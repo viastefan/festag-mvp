@@ -32,30 +32,36 @@ export default function LoginPage() {
       const { error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) {
         setStatus({ type: 'error', message: 'E-Mail oder Passwort falsch.' })
+        setLoading(false)
       } else {
         router.push('/dashboard')
         router.refresh()
       }
     } else {
-      const { error } = await supabase.auth.signUp({ email, password })
-      if (error) {
-        setStatus({ type: 'error', message: error.message })
-      } else {
-        setStatus({
-          type: 'success',
-          message: '✅ Registrierung erfolgreich! Bitte E-Mail bestätigen.'
-        })
+      // Register then immediately sign in
+      const { error: signUpError } = await supabase.auth.signUp({ email, password })
+      if (signUpError) {
+        setStatus({ type: 'error', message: signUpError.message })
+        setLoading(false)
+        return
+      }
+      // Auto-login after registration
+      const { error: signInError } = await supabase.auth.signInWithPassword({ email, password })
+      if (signInError) {
+        // Registration worked but login failed — prompt manual login
+        setStatus({ type: 'success', message: '✅ Konto erstellt! Bitte jetzt anmelden.' })
         setMode('login')
+        setLoading(false)
+      } else {
+        router.push('/dashboard')
+        router.refresh()
       }
     }
-
-    setLoading(false)
   }
 
   return (
     <div style={styles.page}>
       <div style={styles.card}>
-        {/* Logo */}
         <div style={styles.logo}>
           <span style={styles.logoText}>Festag</span>
           <span style={styles.logoDot}>.</span>
@@ -64,7 +70,6 @@ export default function LoginPage() {
           {mode === 'login' ? 'Willkommen zurück' : 'Konto erstellen'}
         </p>
 
-        {/* Tab Toggle */}
         <div style={styles.tabs}>
           <button
             onClick={() => { setMode('login'); setStatus(null) }}
@@ -80,7 +85,6 @@ export default function LoginPage() {
           </button>
         </div>
 
-        {/* Form */}
         <div style={styles.form}>
           <label style={styles.label}>E-Mail</label>
           <input
@@ -103,7 +107,6 @@ export default function LoginPage() {
             autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
           />
 
-          {/* Status Message */}
           {status && (
             <div style={{
               ...styles.statusBox,
@@ -121,8 +124,8 @@ export default function LoginPage() {
             style={{ ...styles.btn, opacity: loading ? 0.7 : 1 }}
           >
             {loading
-              ? 'Bitte warten...'
-              : mode === 'login' ? 'Anmelden' : 'Konto erstellen'
+              ? '...'
+              : mode === 'login' ? 'Anmelden' : 'Konto erstellen & einloggen'
             }
           </button>
         </div>
@@ -159,26 +162,10 @@ const styles: Record<string, React.CSSProperties> = {
     border: '1px solid #E6E8EE',
     boxShadow: '0 8px 40px rgba(0,0,0,0.08)',
   },
-  logo: {
-    marginBottom: 4,
-  },
-  logoText: {
-    fontSize: 26,
-    fontWeight: 800,
-    color: '#111',
-    letterSpacing: '-0.5px',
-  },
-  logoDot: {
-    fontSize: 26,
-    fontWeight: 800,
-    color: '#2F6BFF',
-  },
-  subtitle: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginBottom: 24,
-    marginTop: 2,
-  },
+  logo: { marginBottom: 4 },
+  logoText: { fontSize: 26, fontWeight: 800, color: '#111', letterSpacing: '-0.5px' },
+  logoDot: { fontSize: 26, fontWeight: 800, color: '#2F6BFF' },
+  subtitle: { fontSize: 14, color: '#6B7280', marginBottom: 24, marginTop: 2 },
   tabs: {
     display: 'flex',
     background: '#F3F4F6',
@@ -197,7 +184,6 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 13,
     fontWeight: 500,
     color: '#6B7280',
-    transition: 'all 0.15s',
   },
   tabActive: {
     background: 'white',
@@ -205,16 +191,8 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 600,
     boxShadow: '0 1px 4px rgba(0,0,0,0.1)',
   },
-  form: {
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  label: {
-    fontSize: 13,
-    fontWeight: 500,
-    color: '#374151',
-    marginBottom: 6,
-  },
+  form: { display: 'flex', flexDirection: 'column' },
+  label: { fontSize: 13, fontWeight: 500, color: '#374151', marginBottom: 6 },
   input: {
     width: '100%',
     padding: '10px 12px',
@@ -244,7 +222,6 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 14,
     fontWeight: 600,
     cursor: 'pointer',
-    transition: 'background 0.15s',
   },
   footer: {
     marginTop: 20,
