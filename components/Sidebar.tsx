@@ -1,45 +1,55 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
-const navItems = [
-  { href: '/dashboard', label: 'Dashboard', icon: '⊞' },
-  { href: '/tasks', label: 'Tasks', icon: '✓' },
-  { href: '/messages', label: 'Messages', icon: '◻' },
-  { href: '/team', label: 'Team', icon: '◎' },
-  { href: '/settings', label: 'Settings', icon: '⚙' },
+const nav = [
+  { href: '/dashboard', icon: '⊞', label: 'Dashboard' },
+  { href: '/tasks', icon: '✓', label: 'Tasks' },
+  { href: '/messages', icon: '◻', label: 'Messages' },
+  { href: '/team', icon: '◎', label: 'Team' },
+  { href: '/settings', icon: '⚙', label: 'Settings' },
 ]
 
 export default function Sidebar() {
   const pathname = usePathname()
-  const router = useRouter()
-  const supabase = createClient()
 
   const logout = async () => {
-    await supabase.auth.signOut()
-    router.push('/login')
-    router.refresh()
+    await createClient().auth.signOut()
+    window.location.href = '/login'
   }
 
   return (
-    <aside style={s.sidebar}>
+    <aside style={{
+      position: 'fixed', top: 0, left: 0, width: 220, height: '100vh',
+      background: 'var(--surface)', borderRight: '1px solid var(--border)',
+      display: 'flex', flexDirection: 'column', padding: '20px 12px', zIndex: 100,
+    }}>
       {/* Logo */}
-      <div style={s.logo}>
-        <span style={s.logoText}>Festag</span>
-        <span style={s.logoDot}>.</span>
+      <div style={{ padding: '4px 8px', marginBottom: 28 }}>
+        <span style={{ fontSize: 19, fontWeight: 700, letterSpacing: '-0.5px', color: 'var(--text-primary)' }}>
+          festag
+        </span>
+        <span style={{ fontSize: 19, fontWeight: 700, color: 'var(--accent)' }}>.</span>
       </div>
 
       {/* Nav */}
-      <nav style={s.nav}>
-        {navItems.map(item => {
+      <nav style={{ display: 'flex', flexDirection: 'column', gap: 2, flex: 1 }}>
+        {nav.map(item => {
           const active = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))
           return (
-            <Link key={item.href} href={item.href} style={{ textDecoration: 'none' }}>
-              <div style={{ ...s.navItem, ...(active ? s.navActive : {}) }}>
-                <span style={s.navIcon}>{item.icon}</span>
-                <span>{item.label}</span>
+            <Link key={item.href} href={item.href}>
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: 9,
+                padding: '8px 10px', borderRadius: 'var(--radius-sm)',
+                fontSize: 13.5, fontWeight: active ? 600 : 400,
+                color: active ? 'var(--accent)' : 'var(--text-secondary)',
+                background: active ? 'var(--accent-light)' : 'transparent',
+                transition: 'all 0.15s', cursor: 'pointer',
+              }}>
+                <span style={{ fontSize: 13, opacity: active ? 1 : 0.7 }}>{item.icon}</span>
+                {item.label}
               </div>
             </Link>
           )
@@ -47,44 +57,16 @@ export default function Sidebar() {
       </nav>
 
       {/* Footer */}
-      <div style={s.footer}>
-        <button onClick={logout} style={s.logoutBtn}>
+      <div style={{ borderTop: '1px solid var(--border)', paddingTop: 12 }}>
+        <button onClick={logout} style={{
+          width: '100%', padding: '8px 10px', textAlign: 'left',
+          border: 'none', background: 'transparent', cursor: 'pointer',
+          fontSize: 13, color: 'var(--text-muted)', borderRadius: 'var(--radius-sm)',
+          transition: 'color 0.15s',
+        }}>
           ↪ Abmelden
         </button>
       </div>
     </aside>
   )
-}
-
-const s: Record<string, React.CSSProperties> = {
-  sidebar: {
-    position: 'fixed',
-    top: 0, left: 0,
-    width: 240,
-    height: '100vh',
-    background: '#fff',
-    borderRight: '1px solid #E6E8EE',
-    display: 'flex',
-    flexDirection: 'column',
-    padding: '24px 16px',
-    zIndex: 100,
-  },
-  logo: { padding: '0 8px', marginBottom: 32 },
-  logoText: { fontSize: 20, fontWeight: 800, color: '#111', letterSpacing: '-0.5px' },
-  logoDot: { fontSize: 20, fontWeight: 800, color: '#2F6BFF' },
-  nav: { display: 'flex', flexDirection: 'column', gap: 2, flex: 1 },
-  navItem: {
-    display: 'flex', alignItems: 'center', gap: 10,
-    padding: '9px 12px', borderRadius: 8,
-    fontSize: 14, fontWeight: 500, color: '#6B7280',
-    cursor: 'pointer', transition: 'all 0.15s',
-  },
-  navActive: { background: '#EEF3FF', color: '#2F6BFF', fontWeight: 600 },
-  navIcon: { fontSize: 15, width: 18, textAlign: 'center' },
-  footer: { borderTop: '1px solid #E6E8EE', paddingTop: 16 },
-  logoutBtn: {
-    width: '100%', padding: '8px 12px', textAlign: 'left',
-    border: 'none', background: 'transparent', cursor: 'pointer',
-    fontSize: 13, color: '#9CA3AF', borderRadius: 8,
-  },
 }
