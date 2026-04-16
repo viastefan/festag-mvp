@@ -47,117 +47,73 @@ body{
 
 <body>
 
-<!-- =========================
-     🔐 AUTH
-========================= -->
-<div id="auth">
-  <h2>Festag Login</h2>
-
-  <input id="email" placeholder="Email" />
-  <input id="password" type="password" placeholder="Password" />
-
-  <button onclick="signUp()">Sign Up</button>
-  <button onclick="signIn()">Login</button>
-
-  <p id="status"></p>
-</div>
-
-<!-- =========================
-     🚀 DASHBOARD
-========================= -->
-<div id="dashboard">
-  <h1>Dashboard läuft 🚀</h1>
-</div>
-
-<!-- =========================
-     🔥 SUPABASE + LOGIC
-========================= -->
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
 console.log("APP LOADED 🚀");
 
 // ======================
-// SUPABASE INIT
+// SUPABASE (NUR 1x!)
 // ======================
 const supabaseUrl = "https://DEIN-PROJECT.supabase.co";
 const supabaseKey = "sb_publishable_MGTVjX_dT_rlhvdzTgqw7g_LBUg9W_z";
 
-const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+const client = supabase.createClient(supabaseUrl, supabaseKey);
 
 // ======================
-// UI
+// AUTH FUNCTIONS (GLOBAL)
 // ======================
-function showDashboard(){
-  document.getElementById("auth").style.display = "none";
-  document.getElementById("dashboard").style.display = "block";
-}
-
-function showAuth(){
-  document.getElementById("auth").style.display = "block";
-  document.getElementById("dashboard").style.display = "none";
-}
-
-// ======================
-// SIGN UP
-// ======================
-async function signUp(){
+window.signUp = async function () {
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
 
-  const { error } = await supabase.auth.signUp({
+  const { error } = await client.auth.signUp({
     email,
     password
   });
 
   document.getElementById("status").innerText =
     error ? error.message : "Check Email zur Bestätigung!";
-}
+};
 
-// ======================
-// SIGN IN
-// ======================
-async function signIn(){
+window.signIn = async function () {
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
 
-  const { error } = await supabase.auth.signInWithPassword({
+  const { error } = await client.auth.signInWithPassword({
     email,
     password
   });
 
-  if(error){
+  if (error) {
     document.getElementById("status").innerText = error.message;
     return;
   }
 
   showDashboard();
-}
+};
 
-// ======================
-// LOGOUT
-// ======================
-async function logout(){
-  await supabase.auth.signOut();
-  showAuth();
+window.logout = async function () {
+  await client.auth.signOut();
+  document.getElementById("auth").style.display = "block";
+  document.getElementById("dashboard").style.display = "none";
+};
+
+function showDashboard() {
+  document.getElementById("auth").style.display = "none";
+  document.getElementById("dashboard").style.display = "block";
 }
 
 // ======================
 // AUTO LOGIN CHECK
 // ======================
-async function checkUser(){
-  const { data } = await supabase.auth.getSession();
-
-  if(data && data.session){
+client.auth.getSession().then(({ data }) => {
+  if (data.session) {
     showDashboard();
-  } else {
-    showAuth();
   }
-}
-
-checkUser();
+});
 </script>
+
 
 </body>
 </html>
