@@ -1,0 +1,28 @@
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+:root {
+  --background: #F5F7FA;
+  --foreground: #111111;
+  --card: #ffffff;
+  --border: #E6E8EE;
+  --primary: #2F6BFF;
+  --primary-hover: #1a55e8;
+  --muted: #6B7280;
+  --radius: 12px;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: 'DM Sans', system-ui, sans-serif;
+  min-height: 100vh;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
