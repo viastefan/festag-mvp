@@ -9,29 +9,27 @@ export async function middleware(request: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        getAll() {
-          return request.cookies.getAll()
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
+        getAll() { return request.cookies.getAll() },
+        setAll(cookiesToSet: any[]) {
+          cookiesToSet.forEach(({ name, value }: any) => request.cookies.set(name, value))
           supabaseResponse = NextResponse.next({ request })
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          )
+          cookiesToSet.forEach(({ name, value, options }: any) => supabaseResponse.cookies.set(name, value, options))
         },
       },
     }
   )
 
   const { data: { user } } = await supabase.auth.getUser()
+  const { pathname } = request.nextUrl
 
-  // Redirect to login if not authenticated and trying to access protected routes
-  if (!user && (request.nextUrl.pathname.startsWith('/dashboard') || request.nextUrl.pathname.startsWith('/admin'))) {
+  const protectedPaths = ['/dashboard', '/project', '/tasks', '/team', '/messages', '/settings']
+  const isProtected = protectedPaths.some(p => pathname.startsWith(p))
+
+  if (!user && isProtected) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  // Redirect to dashboard if already logged in and visiting login
-  if (user && request.nextUrl.pathname === '/login') {
+  if (user && pathname === '/login') {
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 
@@ -39,5 +37,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/admin/:path*', '/login'],
+  matcher: ['/dashboard/:path*', '/project/:path*', '/tasks/:path*', '/team/:path*', '/messages/:path*', '/settings/:path*', '/login'],
 }
