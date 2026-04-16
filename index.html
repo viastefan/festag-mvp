@@ -5,11 +5,6 @@
 <title>Festag MVP</title>
 
 <style>
-/* =======================
-   DEIN EXISTIERENDER STYLE
-   (unverändert gelassen)
-======================= */
-
 body{
   background:#F5F7FA;
   font-family: 'DM Sans', sans-serif;
@@ -44,7 +39,6 @@ body{
   border-radius:8px;
 }
 
-/* DASHBOARD WRAPPER */
 #dashboard{
   display:none;
 }
@@ -54,7 +48,7 @@ body{
 <body>
 
 <!-- =========================
-     🔐 AUTH SECTION
+     🔐 AUTH
 ========================= -->
 <div id="auth">
   <h2>Festag Login</h2>
@@ -69,43 +63,50 @@ body{
 </div>
 
 <!-- =========================
-     🚀 DEIN KOMPLETTES DASHBOARD
-     (HIER kommt dein ganzer Code rein)
+     🚀 DASHBOARD
 ========================= -->
 <div id="dashboard">
-
-  <!-- 👉 HIER FÜGST DU DEIN GANZES UI EIN -->
-  <!-- Sidebar, Panels, Tasks, Chat etc. -->
-  <!-- NICHT verändern -->
-
   <h1>Dashboard läuft 🚀</h1>
-
 </div>
 
 <!-- =========================
      🔥 SUPABASE + LOGIC
 ========================= -->
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
-   
-<script>
 console.log("APP LOADED 🚀");
 
+// ======================
+// SUPABASE INIT
+// ======================
 const supabaseUrl = "https://DEIN-PROJECT.supabase.co";
 const supabaseKey = "sb_publishable_MGTVjX_dT_rlhvdzTgqw7g_LBUg9W_z";
 
 const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-</script>
 
 // ======================
-// AUTH
+// UI
+// ======================
+function showDashboard(){
+  document.getElementById("auth").style.display = "none";
+  document.getElementById("dashboard").style.display = "block";
+}
+
+function showAuth(){
+  document.getElementById("auth").style.display = "block";
+  document.getElementById("dashboard").style.display = "none";
+}
+
+// ======================
+// SIGN UP
 // ======================
 async function signUp(){
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
 
-  const { data, error } = await supabase.auth.signUp({
+  const { error } = await supabase.auth.signUp({
     email,
     password
   });
@@ -114,11 +115,14 @@ async function signUp(){
     error ? error.message : "Check Email zur Bestätigung!";
 }
 
+// ======================
+// SIGN IN
+// ======================
 async function signIn(){
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
 
-  const { data, error } = await supabase.auth.signInWithPassword({
+  const { error } = await supabase.auth.signInWithPassword({
     email,
     password
   });
@@ -131,25 +135,28 @@ async function signIn(){
   showDashboard();
 }
 
+// ======================
+// LOGOUT
+// ======================
 async function logout(){
   await supabase.auth.signOut();
-  document.getElementById("auth").style.display = "block";
-  document.getElementById("dashboard").style.display = "none";
-}
-
-function showDashboard(){
-  document.getElementById("auth").style.display = "none";
-  document.getElementById("dashboard").style.display = "block";
+  showAuth();
 }
 
 // ======================
 // AUTO LOGIN CHECK
 // ======================
-supabase.auth.getSession().then(({ data }) => {
-  if(data.session){
+async function checkUser(){
+  const { data } = await supabase.auth.getSession();
+
+  if(data && data.session){
     showDashboard();
+  } else {
+    showAuth();
   }
-});
+}
+
+checkUser();
 </script>
 
 </body>
