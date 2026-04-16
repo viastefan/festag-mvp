@@ -5,10 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import StatusBadge from '@/components/StatusBadge'
 
-type Project = {
-  id: string; title: string; description: string | null
-  status: string; created_at: string
-}
+type Project = { id: string; title: string; description: string | null; status: string; created_at: string }
 
 export default function DashboardPage() {
   const [projects, setProjects] = useState<Project[]>([])
@@ -61,7 +58,6 @@ export default function DashboardPage() {
         <button onClick={() => setShowModal(true)} style={s.btnPrimary}>+ Neues Projekt</button>
       </div>
 
-      {/* Stats */}
       <div style={s.statsGrid}>
         {[
           { label: 'Projekte gesamt', value: projects.length },
@@ -76,46 +72,42 @@ export default function DashboardPage() {
         ))}
       </div>
 
-      {/* Projects */}
       <h2 style={s.sectionTitle}>Projekte</h2>
-      {loading ? (
-        <p style={{ color: '#9CA3AF', fontSize: 14 }}>Lädt...</p>
-      ) : projects.length === 0 ? (
-        <div style={s.emptyState}>
-          <p style={{ fontSize: 15, fontWeight: 600 }}>Noch keine Projekte</p>
-          <p style={{ fontSize: 13, color: '#9CA3AF', marginTop: 4 }}>Erstelle dein erstes Projekt um loszulegen.</p>
-          <button onClick={() => setShowModal(true)} style={{ ...s.btnPrimary, marginTop: 16 }}>+ Projekt erstellen</button>
-        </div>
-      ) : (
-        <div style={s.projectGrid}>
-          {projects.map(p => {
-            const tc = taskCounts[p.id] ?? { total: 0, done: 0 }
-            const pct = tc.total ? Math.round(tc.done / tc.total * 100) : 0
-            return (
-              <Link key={p.id} href={`/project/${p.id}`} style={{ textDecoration: 'none' }}>
-                <div style={s.projectCard}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
-                    <h3 style={s.projectTitle}>{p.title}</h3>
-                    <StatusBadge status={p.status} />
-                  </div>
-                  {p.description && <p style={s.projectDesc}>{p.description}</p>}
-                  <div style={{ marginTop: 16 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#9CA3AF', marginBottom: 6 }}>
-                      <span>{tc.total} Tasks</span>
-                      <span>{pct}%</span>
+      {loading ? <p style={{ color: '#9CA3AF', fontSize: 14 }}>Lädt...</p> :
+        projects.length === 0 ? (
+          <div style={s.emptyState}>
+            <p style={{ fontSize: 15, fontWeight: 600 }}>Noch keine Projekte</p>
+            <p style={{ fontSize: 13, color: '#9CA3AF', marginTop: 4 }}>Erstelle dein erstes Projekt.</p>
+            <button onClick={() => setShowModal(true)} style={{ ...s.btnPrimary, marginTop: 16 }}>+ Projekt erstellen</button>
+          </div>
+        ) : (
+          <div style={s.projectGrid}>
+            {projects.map(p => {
+              const tc = taskCounts[p.id] ?? { total: 0, done: 0 }
+              const pct = tc.total ? Math.round(tc.done / tc.total * 100) : 0
+              return (
+                <Link key={p.id} href={`/project/${p.id}`} style={{ textDecoration: 'none' }}>
+                  <div style={s.projectCard}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+                      <h3 style={s.projectTitle}>{p.title}</h3>
+                      <StatusBadge status={p.status} />
                     </div>
-                    <div style={{ height: 4, background: '#F3F4F6', borderRadius: 4 }}>
-                      <div style={{ width: `${pct}%`, height: '100%', background: '#2F6BFF', borderRadius: 4, transition: 'width 0.3s' }} />
+                    {p.description && <p style={s.projectDesc}>{p.description}</p>}
+                    <div style={{ marginTop: 16 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#9CA3AF', marginBottom: 6 }}>
+                        <span>{tc.total} Tasks</span><span>{pct}%</span>
+                      </div>
+                      <div style={{ height: 4, background: '#F3F4F6', borderRadius: 4 }}>
+                        <div style={{ width: `${pct}%`, height: '100%', background: '#2F6BFF', borderRadius: 4 }} />
+                      </div>
                     </div>
                   </div>
-                </div>
-              </Link>
-            )
-          })}
-        </div>
-      )}
+                </Link>
+              )
+            })}
+          </div>
+        )}
 
-      {/* Modal */}
       {showModal && (
         <div style={s.overlay} onClick={() => setShowModal(false)}>
           <div style={s.modal} onClick={e => e.stopPropagation()}>
@@ -123,7 +115,7 @@ export default function DashboardPage() {
             <label style={s.label}>Titel *</label>
             <input value={newTitle} onChange={e => setNewTitle(e.target.value)} placeholder="Projektname" style={s.input} autoFocus />
             <label style={{ ...s.label, marginTop: 12 }}>Beschreibung</label>
-            <textarea value={newDesc} onChange={e => setNewDesc(e.target.value)} placeholder="Kurze Projektbeschreibung..." style={{ ...s.input, height: 80, resize: 'vertical' }} />
+            <textarea value={newDesc} onChange={e => setNewDesc(e.target.value)} placeholder="Kurze Beschreibung..." style={{ ...s.input, height: 80, resize: 'vertical' as const }} />
             <div style={{ display: 'flex', gap: 8, marginTop: 20 }}>
               <button onClick={() => setShowModal(false)} style={s.btnSecondary}>Abbrechen</button>
               <button onClick={createProject} disabled={saving || !newTitle.trim()} style={{ ...s.btnPrimary, flex: 1, opacity: saving || !newTitle.trim() ? 0.6 : 1 }}>
@@ -150,12 +142,12 @@ const s: Record<string, React.CSSProperties> = {
   sectionTitle: { fontSize: 16, fontWeight: 700, color: '#111', marginBottom: 16 },
   emptyState: { background: '#fff', border: '1px dashed #D1D5DB', borderRadius: 12, padding: 40, textAlign: 'center' },
   projectGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(280px,1fr))', gap: 16 },
-  projectCard: { background: '#fff', border: '1px solid #E6E8EE', borderRadius: 12, padding: '20px', cursor: 'pointer', transition: 'box-shadow 0.15s', ':hover': { boxShadow: '0 4px 16px rgba(0,0,0,0.08)' } },
+  projectCard: { background: '#fff', border: '1px solid #E6E8EE', borderRadius: 12, padding: 20, cursor: 'pointer' },
   projectTitle: { fontSize: 15, fontWeight: 600, color: '#111', margin: 0 },
   projectDesc: { fontSize: 13, color: '#9CA3AF', marginTop: 6, lineHeight: 1.5 },
   overlay: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200 },
   modal: { background: '#fff', borderRadius: 16, padding: 28, width: '100%', maxWidth: 420 },
   modalTitle: { fontSize: 18, fontWeight: 700, marginBottom: 20 },
   label: { fontSize: 13, fontWeight: 500, color: '#374151', display: 'block', marginBottom: 6 },
-  input: { width: '100%', padding: '9px 12px', border: '1px solid #D1D5DB', borderRadius: 8, fontSize: 14, outline: 'none', boxSizing: 'border-box', background: '#FAFAFA' },
+  input: { width: '100%', padding: '9px 12px', border: '1px solid #D1D5DB', borderRadius: 8, fontSize: 14, outline: 'none', boxSizing: 'border-box' as const, background: '#FAFAFA' },
 }
