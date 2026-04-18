@@ -3,74 +3,92 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
-type Profile = { id: string; email: string; full_name: string | null; role: string }
-
 export default function SettingsPage() {
-  const [profile, setProfile] = useState<Profile | null>(null)
+  const [email, setEmail] = useState('')
   const [fullName, setFullName] = useState('')
+  const [role, setRole] = useState('')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
 
   useEffect(() => {
     const supabase = createClient()
-    supabase.auth.getSession().then(({ data }) => {
+    supabase.auth.getSession().then(async ({ data }) => {
       if (!data.session) { window.location.href = '/login'; return }
-      supabase.from('profiles').select('*').eq('id', data.session.user.id).single().then(({ data: prof }) => {
-        if (prof) { setProfile(prof); setFullName(prof.full_name ?? '') }
-      })
+      setEmail(data.session.user.email ?? '')
+      const { data: p } = await supabase.from('profiles').select('full_name,role').eq('id', data.session.user.id).single()
+      setFullName(p?.full_name ?? '')
+      setRole(p?.role ?? 'client')
     })
   }, [])
 
   const save = async () => {
-    if (!profile) return
     setSaving(true)
     const supabase = createClient()
-    await supabase.from('profiles').update({ full_name: fullName }).eq('id', profile.id)
-    setSaving(false); setSaved(true)
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) await supabase.from('profiles').update({ full_name: fullName }).eq('id', user.id)
+    setSaving(false)
+    setSaved(true)
     setTimeout(() => setSaved(false), 2000)
   }
 
-  const logout = () => {
-    const supabase = createClient()
-    supabase.auth.signOut().then(() => { window.location.href = '/login' })
-  }
-
-  if (!profile) return <div style={{ color: '#9CA3AF', padding: 40 }}>Lädt...</div>
+  const logout = async () => { await createClient().auth.signOut(); window.location.href = '/login' }
 
   return (
-    <div style={{ maxWidth: 560 }}>
-      <h1 style={{ fontSize: 24, fontWeight: 700, margin: '0 0 4px' }}>Settings</h1>
-      <p style={{ fontSize: 14, color: '#9CA3AF', marginBottom: 32 }}>Dein Konto & Profil</p>
+    <div style={{ maxWidth: 640 }}>
+      <div className="animate-fade-up" style={{ marginBottom: 28 }}>
+        <h1 style={{ marginBottom: 4 }}>Profil & Einstellungen</h1>
+        <p style={{ fontSize: 14, color: 'var(--text-secondary)' }}>Verwalte deine Kontodaten</p>
+      </div>
 
-      <div style={{ background: '#fff', border: '1px solid #E6E8EE', borderRadius: 12, padding: 24, marginBottom: 16 }}>
-        <h2 style={{ fontSize: 16, fontWeight: 600, margin: '0 0 20px' }}>Profil</h2>
-        <label style={s.label}>Name</label>
-        <input value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Vollständiger Name" style={s.input} />
-        <label style={{ ...s.label, marginTop: 14 }}>E-Mail</label>
-        <input value={profile.email} disabled style={{ ...s.input, background: '#F3F4F6', color: '#9CA3AF' }} />
-        <label style={{ ...s.label, marginTop: 14 }}>Rolle</label>
-        <div style={{ padding: '8px 12px', background: '#F3F4F6', borderRadius: 8, fontSize: 14, display: 'inline-block' }}>
-          {profile.role.charAt(0).toUpperCase() + profile.role.slice(1)}
+      <div className="animate-fade-up-1" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', overflow: 'hidden', marginBottom: 16 }}>
+        <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)' }}>
+          <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', letterSpacing: '0.08em' }}>ACCOUNT</p>
         </div>
-        <div style={{ marginTop: 20 }}>
-          <button onClick={save} disabled={saving} style={s.btnPrimary}>
-            {saving ? 'Speichert...' : saved ? '✓ Gespeichert' : 'Speichern'}
+        <div style={{ padding: 20 }}>
+          <label style={lbl}>Name</label>
+          <input value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Dein Name" style={inp} />
+          <label style={{ ...lbl, marginTop: 14 }}>E-Mail</label>
+          <input value={email} disabled style={{ ...inp, background: 'var(--surface-2)', color: 'var(--text-muted)' }} />
+          <label style={{ ...lbl, marginTop: 14 }}>Rolle</label>
+          <input value={role} disabled style={{ ...inp, background: 'var(--surface-2)', color: 'var(--text-muted)', textTransform: 'capitalize' }} />
+
+          <button onClick={save} disabled={saving} className="tap-scale" style={{
+            marginTop: 18, padding: '10px 18px', background: saved ? 'var(--green-bg)' : 'var(--text)',
+            color: saved ? 'var(--green-dark)' : '#fff',
+            border: 'none', borderRadius: 'var(--r-sm)', fontSize: 13, fontWeight: 600,
+            cursor: saving ? 'default' : 'pointer', minHeight: 40,
+          }}>
+            {saving ? 'Speichert…' : saved ? '✓ Gespeichert' : 'Änderungen speichern'}
           </button>
         </div>
       </div>
 
-      <div style={{ background: '#fff', border: '1px solid #E6E8EE', borderRadius: 12, padding: 24 }}>
-        <h2 style={{ fontSize: 16, fontWeight: 600, margin: '0 0 8px' }}>Abmelden</h2>
-        <p style={{ fontSize: 14, color: '#6B7280', marginBottom: 16 }}>Von deinem Konto abmelden.</p>
-        <button onClick={logout} style={s.btnDanger}>Abmelden</button>
+      <div className="animate-fade-up-2" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', overflow: 'hidden', marginBottom: 16 }}>
+        <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)' }}>
+          <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', letterSpacing: '0.08em' }}>BENACHRICHTIGUNGEN</p>
+        </div>
+        <div style={{ padding: 20 }}>
+          {['AI Updates zu meinen Projekten', 'Developer-Aktivität', 'Rechnungen & Zahlungen'].map(n => (
+            <div key={n} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid var(--border)' }}>
+              <span style={{ fontSize: 14, color: 'var(--text)' }}>{n}</span>
+              <div style={{ width: 36, height: 20, borderRadius: 20, background: 'var(--green)', position: 'relative', cursor: 'pointer' }}>
+                <div style={{ position: 'absolute', top: 2, right: 2, width: 16, height: 16, borderRadius: '50%', background: '#fff', boxShadow: 'var(--shadow-xs)' }} />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
+
+      <button onClick={logout} className="tap-scale" style={{
+        width: '100%', padding: '13px', background: 'var(--surface)', color: 'var(--red)',
+        border: '1px solid var(--border)', borderRadius: 'var(--r)', fontSize: 14, fontWeight: 500,
+        cursor: 'pointer', minHeight: 44,
+      }}>
+        Abmelden
+      </button>
     </div>
   )
 }
 
-const s: Record<string, React.CSSProperties> = {
-  label: { fontSize: 13, fontWeight: 500, color: '#374151', display: 'block', marginBottom: 6 },
-  input: { width: '100%', padding: '9px 12px', border: '1px solid #D1D5DB', borderRadius: 8, fontSize: 14, outline: 'none', boxSizing: 'border-box' as const },
-  btnPrimary: { padding: '9px 20px', background: '#2F6BFF', color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer' },
-  btnDanger: { padding: '9px 20px', background: '#FEF2F2', color: '#EF4444', border: '1px solid #FECACA', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer' },
-}
+const lbl: React.CSSProperties = { fontSize: 12, fontWeight: 500, color: 'var(--text-secondary)', display: 'block', marginBottom: 6 }
+const inp: React.CSSProperties = { width: '100%', padding: '10px 14px', background: '#FFFFFF', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', fontSize: 14, outline: 'none', color: 'var(--text)', boxSizing: 'border-box' as const, minHeight: 42 }

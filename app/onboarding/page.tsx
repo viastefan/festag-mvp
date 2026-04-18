@@ -4,31 +4,32 @@ import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
 type Step = 'chat'|'analysis'|'quote'|'payment'|'activated'
-
-type AiMsg = { role: 'ai'|'user'; text: string }
+type Msg = { role: 'ai'|'user'; text: string }
 
 const TAGRO_SYSTEM = `Du bist Tagro, das AI-Kernsystem von Festag.
 
-VERHALTEN-REGELN:
-- Antworte IMMER strukturiert
-- Kein Small Talk
-- Jede Antwort hat: STATUS → ANALYSE → SYSTEM-AKTION → NÄCHSTE SCHRITTE
-- Klingt wie ein intelligentes System, nicht wie ein Chatbot
-- Maximal 4 präzise Sätze
-- Sprache: Deutsch
+REGELN:
+- Strukturierte Antworten
+- Keine Emojis, keine Floskeln
+- Klingt wie ein System, nicht wie ein Chatbot
+- Maximal 4 Sätze
+- Deutsch
 
-BEISPIEL-FORMAT:
-"Projekt erkannt. Analysiere Struktur…
-Ziel: [was der User will]
-System zerlegt Anforderungen in Module und Tasks.
-Erste Struktur wird in Kürze bereitgestellt."
+Wenn der User sein Projekt ausreichend beschrieben hat, antworte mit genau diesem JSON (reines JSON, kein Markdown):
+{"ready":true,"title":"Titel","description":"Kurz","features":["F1","F2","F3"],"tasks":["T1","T2","T3","T4","T5"],"timeline":"4-6 Wochen","complexity":"medium","price_dev":2800,"price_design":800,"price_ai":600,"price_mgmt":400}
 
-Wenn der User sein Projekt beschrieben hat, antworte mit genau diesem JSON (kein Markdown, reines JSON):
-{"ready":true,"title":"Titel","description":"Kurz","features":["Feature 1","Feature 2","Feature 3"],"tasks":["Task 1","Task 2","Task 3","Task 4","Task 5"],"timeline":"4-6 Wochen","complexity":"medium","price_dev":2800,"price_design":800,"price_ai":600,"price_mgmt":400}`
+Sonst: Stelle gezielte Nachfragen (max 3 Sätze), um Klarheit zu schaffen.`
+
+const PLACEHOLDERS = [
+  'Baue mir eine SaaS-Plattform für mein Business',
+  'Ich brauche ein AI-Automation-System',
+  'Erstelle eine Booking-Plattform mit Zahlungen',
+  'Entwickle eine Mobile App',
+]
 
 export default function OnboardingPage() {
   const [step, setStep] = useState<Step>('chat')
-  const [msgs, setMsgs] = useState<AiMsg[]>([
+  const [msgs, setMsgs] = useState<Msg[]>([
     { role: 'ai', text: 'System bereit. Beschreibe dein Projekt — ich strukturiere es für dich.' }
   ])
   const [input, setInput] = useState('')
@@ -37,6 +38,7 @@ export default function OnboardingPage() {
   const [plan, setPlan] = useState<'once'|'monthly'>('once')
   const [userId, setUserId] = useState('')
   const [userEmail, setUserEmail] = useState('')
+  const [placeholderIdx, setPlaceholderIdx] = useState(0)
   const feedRef = useRef<HTMLDivElement>(null)
   const supabase = createClient()
 
@@ -49,8 +51,11 @@ export default function OnboardingPage() {
   }, [])
 
   useEffect(() => {
-    feedRef.current?.scrollTo({ top: feedRef.current.scrollHeight, behavior: 'smooth' })
-  }, [msgs])
+    const iv = setInterval(() => setPlaceholderIdx(i => (i + 1) % PLACEHOLDERS.length), 3000)
+    return () => clearInterval(iv)
+  }, [])
+
+  useEffect(() => { feedRef.current?.scrollTo({ top: feedRef.current.scrollHeight, behavior: 'smooth' }) }, [msgs])
 
   async function sendMsg() {
     if (!input.trim() || loading) return
@@ -61,31 +66,29 @@ export default function OnboardingPage() {
 
     try {
       const res = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514', max_tokens: 800,
+          model: 'claude-sonnet-4-20250514', max_tokens: 700,
           system: TAGRO_SYSTEM,
-          messages: [...msgs.slice(-4).map(m => ({ role: m.role === 'ai' ? 'assistant' : 'user', content: m.text })),
-            { role: 'user', content: msg }]
+          messages: [
+            ...msgs.slice(-4).map(m => ({ role: m.role === 'ai' ? 'assistant' : 'user', content: m.text })),
+            { role: 'user', content: msg }
+          ]
         })
       })
       const data = await res.json()
       const text = data.content?.[0]?.text ?? ''
-
-      // Check if AI returned project analysis JSON
       try {
         const clean = text.replace(/```json|```/g, '').trim()
         const parsed = JSON.parse(clean)
         if (parsed.ready) {
           setAnalysis(parsed)
-          setMsgs(m => [...m, { role: 'ai', text: `Analyse abgeschlossen. Projekt: "${parsed.title}" · ${parsed.tasks.length} Tasks identifiziert · Laufzeit: ${parsed.timeline}` }])
-          setTimeout(() => setStep('analysis'), 1200)
+          setMsgs(m => [...m, { role: 'ai', text: `Analyse abgeschlossen. Projekt: "${parsed.title}". ${parsed.tasks.length} Tasks identifiziert. Laufzeit: ${parsed.timeline}.` }])
+          setTimeout(() => setStep('analysis'), 1400)
           setLoading(false)
           return
         }
       } catch {}
-
       setMsgs(m => [...m, { role: 'ai', text }])
     } catch {
       setMsgs(m => [...m, { role: 'ai', text: 'System-Fehler. Bitte erneut versuchen.' }])
@@ -93,14 +96,8 @@ export default function OnboardingPage() {
     setLoading(false)
   }
 
-  async function acceptQuote() {
-    if (!analysis || !userId) return
-    setStep('payment')
-  }
-
   async function activateProject() {
     if (!analysis || !userId) return
-    // Create project
     const { data: proj } = await supabase.from('projects').insert({
       title: analysis.title, description: analysis.description,
       user_id: userId, status: 'planning',
@@ -108,276 +105,245 @@ export default function OnboardingPage() {
     }).select().single()
 
     if (proj) {
-      // Create tasks
       await Promise.all(analysis.tasks.map((t: string) =>
         supabase.from('tasks').insert({ project_id: proj.id, title: t, status: 'todo' })
       ))
-      // Save quote
       const total = analysis.price_dev + analysis.price_design + analysis.price_ai + analysis.price_mgmt
       await supabase.from('project_quotes').insert({
         project_id: proj.id, user_id: userId, total_price: total,
         breakdown: { dev: analysis.price_dev, design: analysis.price_design, ai: analysis.price_ai, mgmt: analysis.price_mgmt },
         timeline: analysis.timeline, status: 'accepted',
       })
-      // Mark onboarding complete
-      await supabase.from('onboarding').upsert({ user_id: userId, step: 5, completed: true })
     }
     setStep('activated')
-    setTimeout(() => { window.location.href = proj ? `/project/${proj.id}` : '/dashboard' }, 2500)
+    setTimeout(() => { window.location.href = proj ? `/project/${proj.id}` : '/dashboard' }, 2400)
   }
 
   const total = analysis ? analysis.price_dev + analysis.price_design + analysis.price_ai + analysis.price_mgmt : 0
 
-  // ─── CHAT STEP ───
+  // CHAT
   if (step === 'chat') return (
-    <div style={{ minHeight: '100vh', background: '#0A0B0E', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px 20px' }}>
-      <div style={{ width: '100%', maxWidth: 640 }}>
-        {/* Header */}
-        <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <div style={{ width: 44, height: 44, borderRadius: 13, background: 'linear-gradient(135deg, #2563EB, #7C3AED)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, color: '#fff', margin: '0 auto 16px' }}>✦</div>
-          <h1 style={{ fontSize: 24, fontWeight: 700, color: '#fff', letterSpacing: '-0.5px', marginBottom: 6 }}>Tagro AI System</h1>
-          <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.35)', letterSpacing: '0.06em' }}>FESTAG PRODUCTION ENGINE · BEREIT</p>
-        </div>
+    <div style={{ minHeight: '100vh', background: '#FFFFFF', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <img src="/brand/logo.svg" alt="festag" style={{ height: 18 }} />
+        <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', letterSpacing: '0.06em' }}>SCHRITT 1 · PROJEKT</span>
+      </div>
 
-        {/* Feed */}
-        <div ref={feedRef} style={{ minHeight: 200, maxHeight: 340, overflowY: 'auto', marginBottom: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {msgs.map((m, i) => (
-            <div key={i} style={{ display: 'flex', gap: 10, animation: i === msgs.length-1 ? 'slideUp 0.25s ease' : 'none' }}>
-              <div style={{
-                width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
-                background: m.role === 'ai' ? 'linear-gradient(135deg, #2563EB, #7C3AED)' : 'rgba(255,255,255,0.1)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: m.role === 'ai' ? 12 : 11, color: '#fff', fontWeight: 700,
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '32px 24px', maxWidth: 720, margin: '0 auto', width: '100%' }}>
+        {msgs.length === 1 && !loading ? (
+          // First screen — large writing canvas
+          <div style={{ width: '100%', textAlign: 'center', animation: 'fadeUp 0.5s ease both' }}>
+            <h1 style={{ fontSize: 32, fontWeight: 700, color: 'var(--text)', letterSpacing: '-0.6px', marginBottom: 10, lineHeight: 1.2 }}>
+              Was möchtest du bauen?
+            </h1>
+            <p style={{ fontSize: 15, color: 'var(--text-secondary)', marginBottom: 32 }}>
+              Beschreibe dein Projekt — Tagro AI strukturiert es in Sekunden.
+            </p>
+            <div style={{ width: '100%', maxWidth: 600, margin: '0 auto' }}>
+              <textarea value={input} onChange={e => setInput(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg() } }}
+                placeholder={PLACEHOLDERS[placeholderIdx]} rows={3}
+                style={{ width: '100%', background: 'transparent', border: 'none', outline: 'none', fontSize: 22, fontWeight: 500, lineHeight: 1.4, resize: 'none', fontFamily: 'inherit', color: 'var(--text)', textAlign: 'center', padding: 16 }} />
+              <div style={{ height: 1, background: 'var(--border)', width: '60%', margin: '0 auto' }} />
+              <button onClick={sendMsg} disabled={!input.trim()} className="tap-scale" style={{
+                marginTop: 28, padding: '12px 28px', background: 'var(--text)', color: '#fff', border: 'none',
+                borderRadius: 'var(--r-sm)', fontSize: 14, fontWeight: 600, cursor: input.trim() ? 'pointer' : 'default',
+                opacity: input.trim() ? 1 : 0.3, transition: 'opacity 0.2s',
               }}>
-                {m.role === 'ai' ? '✦' : (userEmail.charAt(0)||'U').toUpperCase()}
-              </div>
-              <div style={{
-                flex: 1, background: m.role === 'ai' ? 'rgba(255,255,255,0.05)' : 'rgba(37,99,235,0.15)',
-                border: `1px solid ${m.role === 'ai' ? 'rgba(255,255,255,0.08)' : 'rgba(37,99,235,0.3)'}`,
-                borderRadius: 12, padding: '10px 14px',
-              }}>
-                <p style={{ fontSize: 14, color: m.role === 'ai' ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.9)', lineHeight: 1.6, margin: 0 }}>{m.text}</p>
-              </div>
+                Analyse starten →
+              </button>
             </div>
-          ))}
-          {loading && (
-            <div style={{ display: 'flex', gap: 10 }}>
-              <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'linear-gradient(135deg, #2563EB, #7C3AED)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, color: '#fff', flexShrink: 0 }}>✦</div>
-              <div style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '12px 16px', display: 'flex', gap: 5 }}>
-                {[0,1,2].map(j => <span key={j} style={{ width: 5, height: 5, borderRadius: '50%', background: '#2563EB', display: 'inline-block', animation: `pulse 1s ${j*0.2}s infinite` }} />)}
-              </div>
+          </div>
+        ) : (
+          <div style={{ width: '100%', display: 'flex', flexDirection: 'column', height: 'calc(100vh - 200px)' }}>
+            <div ref={feedRef} style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 14, padding: '20px 0' }}>
+              {msgs.map((m, i) => (
+                <div key={i} style={{ display: 'flex', gap: 10, animation: i === msgs.length-1 ? 'slideUp 0.25s ease' : 'none' }}>
+                  <div style={{ width: 32, height: 32, borderRadius: '50%', background: m.role === 'ai' ? 'var(--text)' : 'var(--surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, color: m.role === 'ai' ? '#fff' : 'var(--text-secondary)', fontWeight: 600, flexShrink: 0 }}>
+                    {m.role === 'ai' ? 'T' : (userEmail.charAt(0) || 'U').toUpperCase()}
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', marginBottom: 4 }}>{m.role === 'ai' ? 'Tagro' : 'Du'}</p>
+                    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r)', padding: '10px 14px' }}>
+                      <p style={{ fontSize: 14, color: 'var(--text)', margin: 0, lineHeight: 1.55 }}>{m.text}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {loading && (
+                <div style={{ display: 'flex', gap: 10 }}>
+                  <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--text)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, color: '#fff', fontWeight: 600, flexShrink: 0 }}>T</div>
+                  <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r)', padding: '14px 16px', display: 'flex', gap: 5 }}>
+                    {[0,1,2].map(j => <span key={j} style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--text-muted)', animation: `pulse 1s ${j*0.2}s infinite` }} />)}
+                  </div>
+                </div>
+              )}
             </div>
-          )}
-        </div>
-
-        {/* Input */}
-        <div style={{ display: 'flex', gap: 8 }}>
-          <textarea value={input} onChange={e => setInput(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg() } }}
-            placeholder="Beschreibe dein Projekt… (Enter zum Senden)"
-            rows={2}
-            style={{ flex: 1, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, padding: '12px 16px', fontSize: 14, outline: 'none', color: '#fff', resize: 'none', fontFamily: 'Aeonik, sans-serif', lineHeight: 1.5 }}
-            onFocus={e => e.target.style.borderColor = 'rgba(37,99,235,0.6)'}
-            onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
-          />
-          <button onClick={sendMsg} disabled={!input.trim() || loading} style={{
-            width: 44, borderRadius: 12, border: 'none', flexShrink: 0,
-            background: input.trim() && !loading ? 'linear-gradient(135deg, #2563EB, #7C3AED)' : 'rgba(255,255,255,0.06)',
-            color: '#fff', fontSize: 18, cursor: input.trim() ? 'pointer' : 'default',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>
-            {loading ? <span style={{ width: 14, height: 14, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.7s linear infinite', display: 'inline-block' }} /> : '↗'}
-          </button>
-        </div>
-
-        {/* Quick prompts */}
-        <div style={{ marginTop: 12, display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'center' }}>
-          {['SaaS Plattform bauen', 'E-Commerce App', 'AI-gestütztes Tool', 'Mobile App'].map(s => (
-            <button key={s} onClick={() => setInput(s)} style={{ padding: '4px 12px', borderRadius: 20, border: '1px solid rgba(255,255,255,0.1)', background: 'transparent', fontSize: 12, color: 'rgba(255,255,255,0.35)', cursor: 'pointer', fontFamily: 'Aeonik, sans-serif' }}>
-              {s}
-            </button>
-          ))}
-        </div>
+            <div style={{ display: 'flex', gap: 8, paddingTop: 12 }}>
+              <input value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && sendMsg()}
+                placeholder="Antwort…" style={{ flex: 1, padding: '12px 16px', border: '1px solid var(--border)', borderRadius: 'var(--r)', fontSize: 15, outline: 'none', background: 'var(--surface)', minHeight: 44 }} />
+              <button onClick={sendMsg} disabled={!input.trim() || loading} className="tap-scale" style={{ width: 44, height: 44, borderRadius: 'var(--r)', border: 'none', background: input.trim() ? 'var(--text)' : 'var(--surface-2)', color: input.trim() ? '#fff' : 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M7 17L17 7M9 7h8v8"/></svg>
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
 
-  // ─── ANALYSIS STEP ───
+  // ANALYSIS
   if (step === 'analysis' && analysis) return (
-    <div style={{ minHeight: '100vh', background: '#0A0B0E', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 20px' }}>
-      <div style={{ width: '100%', maxWidth: 580, animation: 'fadeUp 0.4s ease' }}>
-        <div style={{ textAlign: 'center', marginBottom: 28 }}>
-          <p style={{ fontSize: 11, fontWeight: 700, color: '#10B981', letterSpacing: '0.1em', marginBottom: 8 }}>✦ ANALYSE ABGESCHLOSSEN</p>
-          <h2 style={{ fontSize: 26, fontWeight: 700, color: '#fff', letterSpacing: '-0.5px', marginBottom: 6 }}>{analysis.title}</h2>
-          <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)' }}>{analysis.description}</p>
+    <div style={{ minHeight: '100vh', background: '#FFFFFF', padding: '40px 24px' }}>
+      <div style={{ maxWidth: 560, margin: '0 auto', animation: 'fadeUp 0.4s ease both' }}>
+        <div style={{ marginBottom: 24 }}>
+          <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--green-dark)', letterSpacing: '0.08em', marginBottom: 8 }}>ANALYSE ABGESCHLOSSEN</p>
+          <h1 style={{ marginBottom: 6 }}>{analysis.title}</h1>
+          <p style={{ fontSize: 14, color: 'var(--text-secondary)' }}>{analysis.description}</p>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 16 }}>
-          {/* Features */}
-          <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '16px' }}>
-            <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.3)', letterSpacing: '0.1em', marginBottom: 10 }}>FEATURES</p>
+        <div className="grid-cols-2-mobile-1" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r)', padding: 16 }}>
+            <p style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-muted)', letterSpacing: '0.08em', marginBottom: 10 }}>FEATURES</p>
             {analysis.features.map((f: string, i: number) => (
-              <div key={i} style={{ display: 'flex', gap: 7, marginBottom: 6 }}>
-                <span style={{ fontSize: 10, color: '#2563EB', marginTop: 1 }}>◆</span>
-                <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)' }}>{f}</span>
+              <div key={i} style={{ display: 'flex', gap: 7, marginBottom: 5 }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0F172A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginTop: 2, flexShrink: 0 }}><path d="M5 13l4 4L19 7"/></svg>
+                <span style={{ fontSize: 13, color: 'var(--text)' }}>{f}</span>
               </div>
             ))}
           </div>
-          {/* Tasks */}
-          <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '16px' }}>
-            <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.3)', letterSpacing: '0.1em', marginBottom: 10 }}>TASKS · {analysis.tasks.length}</p>
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r)', padding: 16 }}>
+            <p style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-muted)', letterSpacing: '0.08em', marginBottom: 10 }}>TASKS · {analysis.tasks.length}</p>
             {analysis.tasks.slice(0,5).map((t: string, i: number) => (
-              <div key={i} style={{ display: 'flex', gap: 7, marginBottom: 6 }}>
-                <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.2)', marginTop: 1 }}>○</span>
-                <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>{t}</span>
-              </div>
+              <p key={i} style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 4 }}>—  {t}</p>
             ))}
           </div>
         </div>
 
-        {/* Meta */}
         <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
           {[
             { label: 'Laufzeit', value: analysis.timeline },
             { label: 'Komplexität', value: analysis.complexity },
-            { label: 'Tasks', value: `${analysis.tasks.length} identifiziert` },
+            { label: 'Tasks', value: analysis.tasks.length },
           ].map(m => (
-            <div key={m.label} style={{ flex: 1, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: '10px 12px', textAlign: 'center' }}>
-              <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', marginBottom: 4 }}>{m.label}</p>
-              <p style={{ fontSize: 13, fontWeight: 600, color: '#fff' }}>{m.value}</p>
+            <div key={m.label} style={{ flex: 1, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', padding: '10px 12px', textAlign: 'center' }}>
+              <p style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 3, letterSpacing: '0.04em' }}>{m.label}</p>
+              <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', textTransform: 'capitalize' }}>{m.value}</p>
             </div>
           ))}
         </div>
 
-        <button onClick={() => setStep('quote')} style={{ width: '100%', padding: '13px', background: 'linear-gradient(135deg, #2563EB, #7C3AED)', color: '#fff', border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'Aeonik, sans-serif' }}>
-          Preis anzeigen →
+        <button onClick={() => setStep('quote')} className="tap-scale" style={{ width: '100%', padding: 14, background: 'var(--text)', color: '#fff', border: 'none', borderRadius: 'var(--r)', fontSize: 14, fontWeight: 600, cursor: 'pointer', minHeight: 48 }}>
+          Preisübersicht anzeigen →
         </button>
       </div>
     </div>
   )
 
-  // ─── QUOTE STEP ───
+  // QUOTE
   if (step === 'quote' && analysis) return (
-    <div style={{ minHeight: '100vh', background: '#0A0B0E', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 20px' }}>
-      <div style={{ width: '100%', maxWidth: 540, animation: 'fadeUp 0.4s ease' }}>
+    <div style={{ minHeight: '100vh', background: '#FFFFFF', padding: '40px 24px' }}>
+      <div style={{ maxWidth: 520, margin: '0 auto', animation: 'fadeUp 0.4s ease both' }}>
         <div style={{ textAlign: 'center', marginBottom: 28 }}>
-          <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.3)', letterSpacing: '0.1em', marginBottom: 8 }}>KOSTENÜBERSICHT</p>
-          <div style={{ fontSize: 48, fontWeight: 700, color: '#fff', letterSpacing: '-1px', marginBottom: 4 }}>
-            €{total.toLocaleString('de')}
-          </div>
-          <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.3)' }}>Gesamtpreis · keine versteckten Kosten</p>
+          <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', letterSpacing: '0.08em', marginBottom: 6 }}>GESAMTPREIS</p>
+          <h1 style={{ fontSize: 48, fontWeight: 700, letterSpacing: '-1px', marginBottom: 4 }}>€{total.toLocaleString('de')}</h1>
+          <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Keine versteckten Kosten</p>
         </div>
 
-        {/* Breakdown */}
-        <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 14, padding: '20px', marginBottom: 16 }}>
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r)', padding: 18, marginBottom: 14 }}>
           {[
             { label: 'Entwicklung', value: analysis.price_dev },
             { label: 'Design', value: analysis.price_design },
             { label: 'AI System', value: analysis.price_ai },
             { label: 'Projektmanagement', value: analysis.price_mgmt },
-          ].map(item => (
-            <div key={item.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-              <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.6)' }}>{item.label}</span>
-              <span style={{ fontSize: 14, fontWeight: 600, color: '#fff' }}>€{item.value.toLocaleString('de')}</span>
+          ].map((item, i) => (
+            <div key={item.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: i < 3 ? '1px solid var(--border)' : 'none' }}>
+              <span style={{ fontSize: 14, color: 'var(--text-secondary)' }}>{item.label}</span>
+              <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>€{item.value.toLocaleString('de')}</span>
             </div>
           ))}
-          <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: 12, marginTop: 4 }}>
-            <span style={{ fontSize: 15, fontWeight: 600, color: '#fff' }}>Gesamt</span>
-            <span style={{ fontSize: 15, fontWeight: 700, color: '#2563EB' }}>€{total.toLocaleString('de')}</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: 12, marginTop: 2 }}>
+            <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)' }}>Gesamt</span>
+            <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)' }}>€{total.toLocaleString('de')}</span>
           </div>
         </div>
 
-        {/* Plan selection */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 }}>
+        <div className="grid-cols-2-mobile-1" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 14 }}>
           {[
             { key: 'once', label: 'Einmalzahlung', desc: `€${total.toLocaleString('de')} einmalig`, badge: '–10%' },
             { key: 'monthly', label: 'Monatlich', desc: `€${Math.ceil(total/4).toLocaleString('de')}/Monat`, badge: '4 Raten' },
           ].map(opt => (
-            <button key={opt.key} onClick={() => setPlan(opt.key as 'once'|'monthly')} style={{
-              padding: '14px', borderRadius: 12, cursor: 'pointer',
-              border: `1.5px solid ${plan === opt.key ? '#2563EB' : 'rgba(255,255,255,0.08)'}`,
-              background: plan === opt.key ? 'rgba(37,99,235,0.1)' : 'rgba(255,255,255,0.03)',
-              textAlign: 'left', fontFamily: 'Aeonik, sans-serif', transition: 'all 0.15s',
+            <button key={opt.key} onClick={() => setPlan(opt.key as 'once'|'monthly')} className="tap-scale" style={{
+              padding: 16, borderRadius: 'var(--r)', cursor: 'pointer',
+              border: `1.5px solid ${plan === opt.key ? 'var(--text)' : 'var(--border)'}`,
+              background: 'var(--surface)', textAlign: 'left', fontFamily: 'inherit',
             }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                <span style={{ fontSize: 13, fontWeight: 600, color: plan === opt.key ? '#60A5FA' : 'rgba(255,255,255,0.7)' }}>{opt.label}</span>
-                <span style={{ fontSize: 10, fontWeight: 700, color: '#10B981', background: 'rgba(16,185,129,0.15)', padding: '1px 6px', borderRadius: 5 }}>{opt.badge}</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
+                <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>{opt.label}</span>
+                <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--green-dark)', background: 'var(--green-bg)', padding: '1px 6px', borderRadius: 5 }}>{opt.badge}</span>
               </div>
-              <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', margin: 0 }}>{opt.desc}</p>
+              <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>{opt.desc}</p>
             </button>
           ))}
         </div>
 
-        {/* Festag Guarantee */}
-        <div style={{ background: 'rgba(16,185,129,0.06)', border: '1px solid rgba(16,185,129,0.15)', borderRadius: 12, padding: '14px 16px', marginBottom: 16 }}>
-          <p style={{ fontSize: 11, fontWeight: 700, color: '#10B981', letterSpacing: '0.08em', marginBottom: 8 }}>✓ FESTAG GARANTIE</p>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-            {['100% strukturierte Umsetzung','AI + Project Owner Kontrolle','Transparente Fortschritte','Klare Lieferung'].map(g => (
-              <span key={g} style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', display: 'flex', gap: 4 }}>
-                <span style={{ color: '#10B981' }}>✓</span> {g}
-              </span>
-            ))}
-          </div>
+        <div style={{ background: 'var(--green-bg)', border: '1px solid var(--green-border)', borderRadius: 'var(--r)', padding: '12px 14px', marginBottom: 14 }}>
+          <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--green-dark)', letterSpacing: '0.06em', marginBottom: 6 }}>FESTAG GARANTIE</p>
+          <p style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+            Strukturierte Umsetzung · AI + Project Owner Kontrolle · Transparente Fortschritte · Kontrollierte Lieferung
+          </p>
         </div>
 
-        <button onClick={acceptQuote} style={{ width: '100%', padding: '14px', background: 'linear-gradient(135deg, #2563EB, #7C3AED)', color: '#fff', border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: 'Aeonik, sans-serif' }}>
+        <button onClick={() => setStep('payment')} className="tap-scale" style={{ width: '100%', padding: 14, background: 'var(--text)', color: '#fff', border: 'none', borderRadius: 'var(--r)', fontSize: 15, fontWeight: 600, cursor: 'pointer', minHeight: 48 }}>
           Projekt starten →
         </button>
-        <p style={{ textAlign: 'center', fontSize: 12, color: 'rgba(255,255,255,0.2)', marginTop: 10 }}>
-          Projekt kann sofort gestartet werden · Keine versteckten Kosten
-        </p>
+        <p style={{ textAlign: 'center', fontSize: 12, color: 'var(--text-muted)', marginTop: 10 }}>Projekt kann sofort gestartet werden</p>
       </div>
     </div>
   )
 
-  // ─── PAYMENT STEP ───
+  // PAYMENT
   if (step === 'payment') return (
-    <div style={{ minHeight: '100vh', background: '#0A0B0E', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 20px' }}>
-      <div style={{ width: '100%', maxWidth: 480, animation: 'fadeUp 0.4s ease', textAlign: 'center' }}>
-        <div style={{ marginBottom: 28 }}>
-          <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.3)', letterSpacing: '0.1em', marginBottom: 8 }}>ZAHLUNGSDETAILS</p>
-          <h2 style={{ fontSize: 24, fontWeight: 700, color: '#fff' }}>Sicher bezahlen</h2>
-          <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.35)', marginTop: 6 }}>Verschlüsselt · SSL-gesichert · Stripe-Standard</p>
+    <div style={{ minHeight: '100vh', background: '#FFFFFF', padding: '40px 24px' }}>
+      <div style={{ maxWidth: 460, margin: '0 auto', animation: 'fadeUp 0.4s ease both' }}>
+        <div style={{ textAlign: 'center', marginBottom: 28 }}>
+          <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', letterSpacing: '0.08em', marginBottom: 6 }}>ZAHLUNGSDETAILS</p>
+          <h1 style={{ marginBottom: 6 }}>Sicher bezahlen</h1>
+          <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>SSL-verschlüsselt · Stripe-Standard</p>
         </div>
-
-        {/* Mock payment form */}
-        <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 14, padding: '24px', marginBottom: 16, textAlign: 'left' }}>
-          <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.3)', letterSpacing: '0.1em', marginBottom: 16 }}>KREDITKARTE</p>
-          <input placeholder="Karteninhaber" style={{ ...payInp, marginBottom: 10 }} />
-          <input placeholder="1234 5678 9012 3456" style={{ ...payInp, marginBottom: 10 }} />
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r)', padding: 20, marginBottom: 14 }}>
+          <input placeholder="Karteninhaber" style={payInp} />
+          <input placeholder="1234 5678 9012 3456" style={{ ...payInp, marginTop: 10 }} />
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 10 }}>
             <input placeholder="MM/YY" style={payInp} />
             <input placeholder="CVV" style={payInp} />
           </div>
         </div>
-
-        <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '12px 16px', marginBottom: 16, display: 'flex', justifyContent: 'space-between' }}>
-          <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)' }}>{analysis?.title}</span>
-          <span style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>€{total.toLocaleString('de')}</span>
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', padding: '12px 16px', marginBottom: 14, display: 'flex', justifyContent: 'space-between' }}>
+          <span style={{ fontSize: 14, color: 'var(--text-secondary)' }}>{analysis?.title}</span>
+          <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)' }}>€{total.toLocaleString('de')}</span>
         </div>
-
-        <button onClick={activateProject} style={{ width: '100%', padding: '14px', background: 'linear-gradient(135deg, #059669, #0D9488)', color: '#fff', border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: 'Aeonik, sans-serif' }}>
-          Jetzt bezahlen · €{total.toLocaleString('de')} →
+        <button onClick={activateProject} className="tap-scale" style={{ width: '100%', padding: 14, background: 'var(--green-dark)', color: '#fff', border: 'none', borderRadius: 'var(--r)', fontSize: 15, fontWeight: 700, cursor: 'pointer', minHeight: 48 }}>
+          Jetzt bezahlen · €{total.toLocaleString('de')}
         </button>
-        <p style={{ textAlign: 'center', fontSize: 11, color: 'rgba(255,255,255,0.2)', marginTop: 10 }}>
-          🔒 SSL-verschlüsselt · Powered by Stripe
-        </p>
       </div>
     </div>
   )
 
-  // ─── ACTIVATED STEP ───
+  // ACTIVATED
   return (
-    <div style={{ minHeight: '100vh', background: '#0A0B0E', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ textAlign: 'center', animation: 'fadeUp 0.5s ease' }}>
-        <div style={{ width: 64, height: 64, borderRadius: 18, background: 'linear-gradient(135deg, #059669, #0D9488)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, margin: '0 auto 20px', animation: 'pulse 1s ease' }}>✓</div>
-        <h2 style={{ fontSize: 26, fontWeight: 700, color: '#fff', letterSpacing: '-0.5px', marginBottom: 8 }}>Projekt aktiviert.</h2>
-        <p style={{ fontSize: 14, color: '#10B981', marginBottom: 4 }}>System startet Planung. Developer werden zugewiesen.</p>
-        <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.25)', marginTop: 16 }}>Weiterleitung zum Projekt…</p>
-        <div style={{ width: 32, height: 32, border: '2px solid rgba(255,255,255,0.1)', borderTopColor: '#2563EB', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '16px auto 0' }} />
+    <div style={{ minHeight: '100vh', background: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ textAlign: 'center', animation: 'fadeUp 0.5s ease both' }}>
+        <div style={{ width: 64, height: 64, borderRadius: 18, background: 'var(--green-dark)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', animation: 'pulse 1.2s ease' }}>
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 13l4 4L19 7"/></svg>
+        </div>
+        <h1 style={{ marginBottom: 8 }}>Projekt aktiviert</h1>
+        <p style={{ fontSize: 14, color: 'var(--green-dark)', marginBottom: 4 }}>System startet Planung. Developer werden zugewiesen.</p>
+        <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 16 }}>Weiterleitung…</p>
+        <div style={{ width: 24, height: 24, border: '2px solid var(--border)', borderTopColor: 'var(--text)', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '12px auto 0' }} />
       </div>
     </div>
   )
 }
 
-const payInp: React.CSSProperties = { width: '100%', padding: '11px 14px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 9, fontSize: 14, outline: 'none', color: '#fff', boxSizing: 'border-box' as const, fontFamily: 'Aeonik, sans-serif' }
+const payInp: React.CSSProperties = { width: '100%', padding: '11px 14px', background: '#FFFFFF', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', fontSize: 14, outline: 'none', color: 'var(--text)', boxSizing: 'border-box' as const, minHeight: 42 }
