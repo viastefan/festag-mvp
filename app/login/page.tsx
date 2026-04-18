@@ -2,84 +2,126 @@
 
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { useRouter } from 'next/navigation'
 
 export default function LoginPage() {
-  const [mode, setMode] = useState<'login' | 'register'>('login')
+  const [mode, setMode] = useState<'login'|'register'>('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const router = useRouter()
 
-  const handleSubmit = async () => {
+  const submit = async () => {
     setError('')
-    if (!email || !password) return setError('Bitte E-Mail und Passwort eingeben.')
-    if (password.length < 6) return setError('Passwort mind. 6 Zeichen.')
+    if (!email || !password) return setError('Bitte alle Felder ausfüllen.')
+    if (password.length < 6) return setError('Passwort min. 6 Zeichen.')
     setLoading(true)
-
-    try {
-      const supabase = createClient()
-
-      if (mode === 'register') {
-        const { error } = await supabase.auth.signUp({ email, password })
-        if (error) { setError(error.message); setLoading(false); return }
-        // After signup, immediately sign in
-        const { error: err2 } = await supabase.auth.signInWithPassword({ email, password })
-        if (err2) { setError(err2.message); setLoading(false); return }
-      } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password })
-        if (error) { setError('E-Mail oder Passwort falsch.'); setLoading(false); return }
-      }
-
-      // Hard redirect - bypasses Next.js router which may fail before session cookie is set
+    const supabase = createClient()
+    if (mode === 'register') {
+      const { error } = await supabase.auth.signUp({ email, password })
+      if (error) { setError(error.message); setLoading(false); return }
+      const { error: e2 } = await supabase.auth.signInWithPassword({ email, password })
+      if (e2) { setError(e2.message); setLoading(false); return }
+      // New users go to onboarding
+      window.location.href = '/onboarding'
+    } else {
+      const { error } = await supabase.auth.signInWithPassword({ email, password })
+      if (error) { setError('E-Mail oder Passwort falsch.'); setLoading(false); return }
       window.location.href = '/dashboard'
-    } catch (e: any) {
-      setError('Fehler: ' + e.message)
-      setLoading(false)
     }
   }
 
   return (
-    <div style={s.page}>
-      <div style={s.card}>
-        <div>
-          <span style={s.logo}>Festag</span>
-          <span style={{ color: '#2F6BFF', fontSize: 26, fontWeight: 800 }}>.</span>
+    <div style={{ minHeight: '100vh', display: 'flex', background: '#0A0B0E' }}>
+      {/* Left — branding */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '60px', borderRight: '1px solid rgba(255,255,255,0.06)' }} className="hide-mobile">
+        <div style={{ maxWidth: 480 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 48 }}>
+            <div style={{ width: 32, height: 32, borderRadius: 9, background: 'linear-gradient(135deg, #2563EB, #7C3AED)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, color: '#fff', fontWeight: 700 }}>F</div>
+            <span style={{ fontSize: 20, fontWeight: 700, color: '#fff', letterSpacing: '-0.3px' }}>festag<span style={{ color: '#2563EB' }}>.</span></span>
+          </div>
+          <h1 style={{ fontSize: 36, fontWeight: 700, color: '#fff', letterSpacing: '-0.8px', lineHeight: 1.2, marginBottom: 20 }}>
+            Software development,<br />
+            <span style={{ color: '#2563EB' }}>finally understandable.</span>
+          </h1>
+          <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.45)', lineHeight: 1.7, marginBottom: 40 }}>
+            AI plant. Menschen bauen. Ein System verbindet alles.
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {[
+              { icon: '✦', text: 'AI strukturiert dein Projekt automatisch' },
+              { icon: '◎', text: 'Verifizierte Developer setzen um' },
+              { icon: '◻', text: 'Tägliche Updates — keine Überraschungen' },
+            ].map(f => (
+              <div key={f.text} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                <span style={{ fontSize: 13, color: '#2563EB', marginTop: 1, flexShrink: 0 }}>{f.icon}</span>
+                <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)' }}>{f.text}</span>
+              </div>
+            ))}
+          </div>
         </div>
-        <p style={s.sub}>{mode === 'login' ? 'Willkommen zurück' : 'Konto erstellen'}</p>
+      </div>
 
-        <div style={s.tabs}>
-          {(['login', 'register'] as const).map(m => (
-            <button key={m} onClick={() => { setMode(m); setError('') }}
-              style={{ ...s.tab, ...(mode === m ? s.tabOn : {}) }}>
+      {/* Right — form */}
+      <div style={{ width: '100%', maxWidth: 480, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '48px 40px' }}>
+        <div style={{ marginBottom: 36 }}>
+          <h2 style={{ fontSize: 22, fontWeight: 700, color: '#fff', letterSpacing: '-0.3px', marginBottom: 6 }}>
+            {mode === 'login' ? 'Willkommen zurück' : 'Konto erstellen'}
+          </h2>
+          <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.35)' }}>
+            {mode === 'login' ? 'Melde dich an um fortzufahren.' : 'Starte dein erstes Projekt kostenlos.'}
+          </p>
+        </div>
+
+        {/* Tabs */}
+        <div style={{ display: 'flex', background: 'rgba(255,255,255,0.05)', borderRadius: 10, padding: 3, marginBottom: 24, gap: 3 }}>
+          {(['login','register'] as const).map(m => (
+            <button key={m} onClick={() => { setMode(m); setError('') }} style={{
+              flex: 1, padding: '8px', borderRadius: 8, border: 'none', cursor: 'pointer',
+              background: mode === m ? 'rgba(255,255,255,0.1)' : 'transparent',
+              color: mode === m ? '#fff' : 'rgba(255,255,255,0.35)',
+              fontSize: 13, fontWeight: mode === m ? 600 : 400, fontFamily: 'Aeonik, sans-serif',
+            }}>
               {m === 'login' ? 'Anmelden' : 'Registrieren'}
             </button>
           ))}
         </div>
 
-        <label style={s.label}>E-Mail</label>
-        <input
-          type="email" value={email} onChange={e => setEmail(e.target.value)}
-          placeholder="name@beispiel.de" style={s.input} autoComplete="email"
-        />
+        <label style={lbl}>E-Mail</label>
+        <input type="email" value={email} onChange={e => setEmail(e.target.value)}
+          placeholder="name@beispiel.de" style={inp} autoComplete="email"
+          onKeyDown={e => e.key === 'Enter' && submit()} />
 
-        <label style={{ ...s.label, marginTop: 14 }}>Passwort</label>
-        <input
-          type="password" value={password} onChange={e => setPassword(e.target.value)}
-          placeholder="••••••••" onKeyDown={e => e.key === 'Enter' && handleSubmit()}
-          style={s.input} autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-        />
+        <label style={{ ...lbl, marginTop: 16 }}>Passwort</label>
+        <input type="password" value={password} onChange={e => setPassword(e.target.value)}
+          placeholder="••••••••" style={inp}
+          autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+          onKeyDown={e => e.key === 'Enter' && submit()} />
 
-        {error && <div style={s.err}>{error}</div>}
+        {error && (
+          <div style={{ marginTop: 12, padding: '10px 14px', background: 'rgba(220,38,38,0.1)', border: '1px solid rgba(220,38,38,0.2)', borderRadius: 8, fontSize: 13, color: '#F87171' }}>
+            {error}
+          </div>
+        )}
 
-        <button onClick={handleSubmit} disabled={loading} style={{ ...s.btn, opacity: loading ? 0.6 : 1 }}>
-          {loading ? 'Bitte warten...' : mode === 'login' ? 'Anmelden' : 'Registrieren & einloggen'}
+        <button onClick={submit} disabled={loading} style={{
+          marginTop: 20, width: '100%', padding: '13px', borderRadius: 10, border: 'none',
+          background: loading ? 'rgba(255,255,255,0.08)' : 'linear-gradient(135deg, #2563EB, #7C3AED)',
+          color: '#fff', fontSize: 14, fontWeight: 600, cursor: loading ? 'default' : 'pointer',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+          fontFamily: 'Aeonik, sans-serif', transition: 'opacity 0.2s', opacity: loading ? 0.7 : 1,
+        }}>
+          {loading ? (
+            <>
+              <span style={{ width: 14, height: 14, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.7s linear infinite', display: 'inline-block' }} />
+              Bitte warten…
+            </>
+          ) : mode === 'login' ? 'Anmelden →' : 'Konto erstellen →'}
         </button>
 
-        <p style={s.foot}>
-          {mode === 'login' ? 'Kein Konto? ' : 'Schon registriert? '}
-          <span onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setError('') }} style={s.link}>
+        <p style={{ marginTop: 20, textAlign: 'center', fontSize: 13, color: 'rgba(255,255,255,0.3)' }}>
+          {mode === 'login' ? 'Noch kein Konto? ' : 'Bereits registriert? '}
+          <span onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setError('') }}
+            style={{ color: '#2563EB', cursor: 'pointer', fontWeight: 500 }}>
             {mode === 'login' ? 'Registrieren' : 'Anmelden'}
           </span>
         </p>
@@ -88,18 +130,5 @@ export default function LoginPage() {
   )
 }
 
-const s: Record<string, React.CSSProperties> = {
-  page: { minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg,#f5f7fa,#e8edf5)', padding: 20 },
-  card: { width: '100%', maxWidth: 420, background: '#fff', padding: '36px 32px 28px', borderRadius: 16, border: '1px solid #E6E8EE', boxShadow: '0 8px 40px rgba(0,0,0,0.08)' },
-  logo: { fontSize: 26, fontWeight: 800, color: '#111', letterSpacing: '-0.5px' },
-  sub: { fontSize: 14, color: '#6B7280', margin: '4px 0 24px' },
-  tabs: { display: 'flex', background: '#F3F4F6', borderRadius: 10, padding: 4, marginBottom: 24, gap: 4 },
-  tab: { flex: 1, padding: '8px 0', border: 'none', background: 'transparent', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 500, color: '#6B7280' },
-  tabOn: { background: '#fff', color: '#111', fontWeight: 600, boxShadow: '0 1px 4px rgba(0,0,0,0.1)' },
-  label: { fontSize: 13, fontWeight: 500, color: '#374151', display: 'block', marginBottom: 6 },
-  input: { width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid #D1D5DB', fontSize: 14, outline: 'none', background: '#FAFAFA', color: '#111', boxSizing: 'border-box' as const },
-  err: { marginTop: 12, padding: '10px 14px', borderRadius: 8, fontSize: 13, background: '#fff1f2', border: '1px solid #fecdd3', color: '#9f1239' },
-  btn: { marginTop: 20, width: '100%', padding: 12, borderRadius: 8, border: 'none', background: '#2F6BFF', color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer' },
-  foot: { marginTop: 20, textAlign: 'center' as const, fontSize: 13, color: '#6B7280' },
-  link: { color: '#2F6BFF', fontWeight: 600, cursor: 'pointer' },
-}
+const lbl: React.CSSProperties = { fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.3)', display: 'block', marginBottom: 6, letterSpacing: '0.08em', textTransform: 'uppercase' }
+const inp: React.CSSProperties = { width: '100%', padding: '11px 14px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 9, fontSize: 14, outline: 'none', color: '#fff', boxSizing: 'border-box' as const, fontFamily: 'Aeonik, sans-serif', transition: 'border-color 0.2s' }
