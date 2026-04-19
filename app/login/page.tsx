@@ -19,7 +19,6 @@ export default function LoginPage() {
 
   useEffect(() => { setMounted(true) }, [])
 
-  /* ─── CLIENT AUTH ─── */
   const submitClient = async () => {
     setError('')
     if (!email || !password) return setError('Bitte alle Felder ausfüllen.')
@@ -38,14 +37,12 @@ export default function LoginPage() {
     }
   }
 
-  /* ─── DEV PIN AUTH ─── */
   const submitDev = async () => {
     setError('')
     if (!devUsername || !devPin) return setError('Bitte Nutzername und PIN eingeben.')
     setLoading(true)
     try {
       const supabase = createClient()
-      // Verify PIN via Supabase RPC
       const { data, error: rpcError } = await supabase.rpc('verify_dev_pin', {
         username_input: devUsername.trim().toLowerCase(),
         pin_input: devPin.trim(),
@@ -55,20 +52,13 @@ export default function LoginPage() {
         setLoading(false)
         return
       }
-      // Sign in with the email found
-      const devEmail = data[0].user_email
-      // We use a special token approach: sign in as this user via admin flow is not possible client-side
-      // Instead: store dev session token in localStorage for dev portal
       const devSession = {
         user_id: data[0].user_id,
-        user_email: devEmail,
+        user_email: data[0].user_email,
         user_role: data[0].user_role,
-        expires: Date.now() + 8 * 60 * 60 * 1000, // 8 hours
+        expires: Date.now() + 8 * 60 * 60 * 1000,
       }
       localStorage.setItem('festag_dev_session', JSON.stringify(devSession))
-      // Also do real supabase sign in using the email + a known method
-      // Since we control the DB, we use service-level access via the rpc confirmation
-      // For dev login we redirect to /dev/auth which reads the localStorage session
       window.location.href = '/dev'
     } catch {
       setError('Fehler bei der Anmeldung.')
@@ -78,278 +68,339 @@ export default function LoginPage() {
 
   /* ─── PORTAL SELECT ─── */
   if (portal === 'select') return (
-    <div style={styles.selectBg}>
-      {/* Animated background orbs */}
-      <div style={{ position: 'fixed', inset: 0, overflow: 'hidden', pointerEvents: 'none' }}>
-        <div style={{ ...styles.orb, width: 600, height: 600, top: '10%', left: '15%', background: 'radial-gradient(circle, rgba(96,165,250,0.35) 0%, rgba(147,197,253,0.15) 50%, transparent 70%)', animationDuration: '8s' }} className="orb" />
-        <div style={{ ...styles.orb, width: 400, height: 400, top: '50%', left: '5%', background: 'radial-gradient(circle, rgba(59,130,246,0.25) 0%, transparent 70%)', animationDuration: '12s', animationDelay: '-3s' }} className="orb" />
-        <div style={{ ...styles.orb, width: 300, height: 300, top: '20%', left: '55%', background: 'radial-gradient(circle, rgba(186,230,253,0.4) 0%, transparent 70%)', animationDuration: '10s', animationDelay: '-5s' }} className="orb" />
-      </div>
-
-      <div style={{ position: 'relative', zIndex: 1, textAlign: 'center', animation: mounted ? 'fadeUp 0.5s ease both' : 'none' }}>
-        <img src="/brand/logo.svg" alt="festag" style={{ height: 22, marginBottom: 40 }} />
-        <h1 style={{ fontSize: 28, fontWeight: 700, color: '#0F172A', letterSpacing: '-0.5px', marginBottom: 8 }}>Willkommen</h1>
+    <div style={{
+      minHeight: '100vh',
+      background: '#FFFFFF',
+      display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24,
+    }}>
+      <style>{`
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+        .select-wrap { animation: fadeUp 0.4s cubic-bezier(0.16,1,0.3,1) both; }
+        .portal-btn:hover { border-color: #CBD5E1 !important; background: #FAFAFA !important; }
+        .portal-btn { transition: all 0.15s; }
+      `}</style>
+      <div className="select-wrap" style={{ width: '100%', maxWidth: 400, textAlign: 'center' }}>
+        <img src="/brand/logo.svg" alt="festag" style={{ height: 22, marginBottom: 44 }} />
+        <h1 style={{ fontSize: 26, fontWeight: 700, color: '#0F172A', letterSpacing: '-0.5px', marginBottom: 6 }}>Willkommen</h1>
         <p style={{ fontSize: 14, color: '#94A3B8', marginBottom: 36 }}>Wähle deinen Zugang</p>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, width: 340 }}>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {[
             { key: 'client', label: 'Client Portal', desc: 'Für Auftraggeber', badge: 'CLIENT' },
             { key: 'developer', label: 'Developer', desc: 'Nutzername & PIN', badge: 'DEV' },
           ].map(p => (
-            <button key={p.key} onClick={() => setPortal(p.key as Portal)} className="tap-scale" style={styles.portalBtn}>
-              <div>
-                <p style={{ fontSize: 15, fontWeight: 600, color: '#0F172A', margin: 0, marginBottom: 2, textAlign: 'left' }}>{p.label}</p>
-                <p style={{ fontSize: 12, color: '#94A3B8', margin: 0, textAlign: 'left' }}>{p.desc}</p>
+            <button key={p.key} onClick={() => setPortal(p.key as Portal)}
+              className="portal-btn"
+              style={{
+                background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 14,
+                padding: '16px 18px', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                gap: 12, fontFamily: 'inherit',
+              }}>
+              <div style={{ textAlign: 'left' }}>
+                <p style={{ fontSize: 15, fontWeight: 600, color: '#0F172A', margin: '0 0 2px' }}>{p.label}</p>
+                <p style={{ fontSize: 12, color: '#94A3B8', margin: 0 }}>{p.desc}</p>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ fontSize: 9, fontWeight: 700, color: p.key === 'client' ? '#007AFF' : '#059669', background: p.key === 'client' ? '#EFF6FF' : '#ECFDF5', padding: '3px 8px', borderRadius: 5, letterSpacing: '0.08em' }}>{p.badge}</span>
+                <span style={{ fontSize: 9, fontWeight: 700, color: '#475569', background: '#F1F5F9', padding: '3px 8px', borderRadius: 5, letterSpacing: '0.08em' }}>{p.badge}</span>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" strokeWidth="2" strokeLinecap="round"><path d="M9 6l6 6-6 6"/></svg>
               </div>
             </button>
           ))}
         </div>
-        <p style={{ marginTop: 28, fontSize: 11, color: '#CBD5E1', letterSpacing: '0.08em' }}>AI PLANT · MENSCHEN BAUEN · SYSTEM VERBINDET</p>
-      </div>
 
-      <style>{`
-        .orb { position: absolute; border-radius: 50%; animation: float linear infinite; }
-        @keyframes float { 0%,100% { transform: translate(0,0) scale(1); } 33% { transform: translate(20px,-30px) scale(1.05); } 66% { transform: translate(-15px,20px) scale(0.95); } }
-      `}</style>
-    </div>
-  )
-
-  /* ─── CLIENT LOGIN — matches reference image exactly ─── */
-  if (portal === 'client') return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: '#FFFFFF' }}>
-      <style>{`
-        .blob-orb { position: absolute; border-radius: 50%; filter: blur(60px); animation: blobFloat linear infinite; }
-        @keyframes blobFloat { 0%,100% { transform: translate(0,0) scale(1); } 25% { transform: translate(30px,-40px) scale(1.08); } 50% { transform: translate(-20px,30px) scale(0.92); } 75% { transform: translate(40px,20px) scale(1.05); } }
-        .glass-card { background: rgba(255,255,255,0.7); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.8); border-radius: 18px; animation: cardFloat ease-in-out infinite; }
-        @keyframes cardFloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
-        .inp-field { width: 100%; padding: 13px 16px; background: #EFF6FF; border: 1.5px solid #BFDBFE; border-radius: 12px; font-size: 15px; outline: none; color: #0F172A; box-sizing: border-box; transition: border-color 0.2s, box-shadow 0.2s; }
-        .inp-field:focus { border-color: #3B82F6; box-shadow: 0 0 0 3px rgba(59,130,246,0.12); }
-        .login-btn { width: 100%; padding: 14px; background: #0F172A; color: #fff; border: none; border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer; transition: opacity 0.2s, transform 0.1s; letter-spacing: -0.2px; }
-        .login-btn:hover { opacity: 0.9; } .login-btn:active { transform: scale(0.99); }
-        .login-btn:disabled { opacity: 0.5; cursor: default; }
-        @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
-        .fade-in { animation: fadeUp 0.45s cubic-bezier(0.16,1,0.3,1) both; }
-        .tab-active { background: #fff; color: #0F172A; font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
-        .tab-inactive { background: transparent; color: #94A3B8; font-weight: 500; }
-      `}</style>
-
-      {/* LEFT — Animated gradient with glass cards (matches image) */}
-      <div className="hide-mobile" style={{ flex: 1, position: 'relative', overflow: 'hidden', background: 'linear-gradient(135deg, #F0F9FF 0%, #E0F2FE 30%, #DBEAFE 60%, #EFF6FF 100%)' }}>
-        {/* Gradient blobs */}
-        <div className="blob-orb" style={{ width: 500, height: 500, top: '15%', left: '8%', background: 'radial-gradient(circle, rgba(59,130,246,0.5) 0%, rgba(96,165,250,0.3) 40%, transparent 70%)', animationDuration: '9s' }} />
-        <div className="blob-orb" style={{ width: 350, height: 350, top: '45%', left: '30%', background: 'radial-gradient(circle, rgba(37,99,235,0.4) 0%, rgba(59,130,246,0.2) 40%, transparent 70%)', animationDuration: '13s', animationDelay: '-4s' }} />
-        <div className="blob-orb" style={{ width: 250, height: 250, top: '65%', left: '5%', background: 'radial-gradient(circle, rgba(147,197,253,0.5) 0%, transparent 70%)', animationDuration: '11s', animationDelay: '-7s' }} />
-        <div className="blob-orb" style={{ width: 200, height: 200, top: '5%', left: '50%', background: 'radial-gradient(circle, rgba(186,230,253,0.6) 0%, transparent 70%)', animationDuration: '15s', animationDelay: '-2s' }} />
-
-        {/* Glass cards — staggered/stepped like reference image */}
-        <div style={{ position: 'absolute', inset: 0, padding: '10% 5%' }}>
-          {/* Top left card */}
-          <div className="glass-card" style={{ position: 'absolute', top: '5%', left: '5%', width: '52%', height: '16%', animationDuration: '6s' }} />
-          {/* Second card — offset right */}
-          <div className="glass-card" style={{ position: 'absolute', top: '16%', left: '28%', width: '45%', height: '14%', animationDuration: '8s', animationDelay: '-2s', background: 'rgba(255,255,255,0.85)' }} />
-          {/* Third card — wider, further right */}
-          <div className="glass-card" style={{ position: 'absolute', top: '30%', left: '5%', width: '60%', height: '18%', animationDuration: '7s', animationDelay: '-4s' }} />
-          {/* Blue tinted card */}
-          <div className="glass-card" style={{ position: 'absolute', top: '48%', left: '35%', width: '40%', height: '14%', animationDuration: '9s', animationDelay: '-1s', background: 'rgba(219,234,254,0.6)' }} />
-          {/* Lower cards */}
-          <div className="glass-card" style={{ position: 'absolute', top: '62%', left: '5%', width: '52%', height: '16%', animationDuration: '6.5s', animationDelay: '-3s' }} />
-          <div className="glass-card" style={{ position: 'absolute', top: '75%', left: '20%', width: '38%', height: '12%', animationDuration: '10s', animationDelay: '-5s', background: 'rgba(241,245,249,0.7)' }} />
-          <div className="glass-card" style={{ position: 'absolute', top: '85%', left: '5%', width: '30%', height: '10%', animationDuration: '8s', animationDelay: '-6s', background: 'rgba(255,255,255,0.5)' }} />
-
-          {/* Logo bottom */}
-          <div style={{ position: 'absolute', bottom: 28, left: 32 }}>
-            <img src="/brand/logo.svg" alt="festag" style={{ height: 18, opacity: 0.4 }} />
-          </div>
-        </div>
-      </div>
-
-      {/* RIGHT — Login form */}
-      <div style={{ width: '100%', maxWidth: 480, padding: '48px 48px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-        <button onClick={() => setPortal('select')} style={{ background: 'transparent', border: 'none', color: '#94A3B8', fontSize: 13, cursor: 'pointer', padding: 0, marginBottom: 40, display: 'flex', alignItems: 'center', gap: 5, fontFamily: 'inherit', alignSelf: 'flex-start' }}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M15 6l-6 6 6 6"/></svg>
-          Zurück
-        </button>
-
-        <div className="fade-in" style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-          <div style={{ marginBottom: 28 }}>
-            <p style={{ fontSize: 11, fontWeight: 700, color: '#007AFF', letterSpacing: '0.12em', marginBottom: 10 }}>CLIENT PORTAL</p>
-            <h1 style={{ fontSize: 30, fontWeight: 700, color: '#0F172A', letterSpacing: '-0.6px', marginBottom: 8, lineHeight: 1.1 }}>
-              {mode === 'login' ? 'Willkommen zurück' : 'Konto erstellen'}
-            </h1>
-            <p style={{ fontSize: 14, color: '#94A3B8', margin: 0 }}>
-              {mode === 'login' ? 'Melde dich an, um fortzufahren.' : 'Starte dein Projekt in 2 Minuten.'}
-            </p>
-          </div>
-
-          {/* Tab switch */}
-          <div style={{ display: 'flex', background: '#F1F5F9', borderRadius: 10, padding: 3, marginBottom: 24, gap: 2 }}>
-            {(['login', 'register'] as const).map(m => (
-              <button key={m} onClick={() => { setMode(m); setError('') }} className={`tap-scale ${mode === m ? 'tab-active' : 'tab-inactive'}`} style={{ flex: 1, padding: '9px', borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 13, transition: 'all 0.15s', fontFamily: 'inherit' }}>
-                {m === 'login' ? 'Anmelden' : 'Registrieren'}
-              </button>
-            ))}
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            <div>
-              <label style={styles.label}>E-Mail</label>
-              <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="name@beispiel.de" className="inp-field" autoComplete="email" onKeyDown={e => e.key === 'Enter' && submitClient()} />
-            </div>
-            <div>
-              <label style={styles.label}>Passwort</label>
-              <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" className="inp-field" autoComplete={mode === 'login' ? 'current-password' : 'new-password'} onKeyDown={e => e.key === 'Enter' && submitClient()} />
-            </div>
-          </div>
-
-          {error && (
-            <div style={{ marginTop: 12, padding: '10px 14px', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 10, fontSize: 13, color: '#DC2626' }}>{error}</div>
-          )}
-
-          <button onClick={submitClient} disabled={loading} className="login-btn" style={{ marginTop: 20, fontFamily: 'inherit' }}>
-            {loading ? (
-              <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                <span style={{ width: 14, height: 14, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.7s linear infinite' }} />
-                Einen Moment…
-              </span>
-            ) : mode === 'login' ? 'Anmelden' : 'Konto erstellen'}
-          </button>
-
-          <p style={{ marginTop: 20, textAlign: 'center', fontSize: 13, color: '#94A3B8' }}>
-            {mode === 'login' ? 'Noch kein Konto? ' : 'Bereits registriert? '}
-            <span onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setError('') }} style={{ color: '#0F172A', cursor: 'pointer', fontWeight: 700 }}>
-              {mode === 'login' ? 'Registrieren' : 'Anmelden'}
-            </span>
-          </p>
-        </div>
+        <p style={{ marginTop: 28, fontSize: 11, color: '#E2E8F0', letterSpacing: '0.08em' }}>AI PLANT · MENSCHEN BAUEN · SYSTEM VERBINDET</p>
       </div>
     </div>
   )
 
-  /* ─── DEV LOGIN — PIN only, NO register ─── */
+  /* ─── SHARED STYLES ─── */
+  const isDev = portal === 'developer'
+
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: '#FFFFFF' }}>
       <style>{`
-        .blob-orb-g { position: absolute; border-radius: 50%; filter: blur(60px); animation: blobFloat2 linear infinite; }
-        @keyframes blobFloat2 { 0%,100% { transform: translate(0,0) scale(1); } 25% { transform: translate(-25px,35px) scale(1.06); } 50% { transform: translate(30px,-25px) scale(0.94); } 75% { transform: translate(-15px,25px) scale(1.03); } }
-        .glass-card-g { background: rgba(255,255,255,0.65); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.8); border-radius: 18px; animation: cardFloat ease-in-out infinite; }
-        .pin-input { width: 100%; padding: 13px 16px; background: #F0FDF4; border: 1.5px solid #A7F3D0; border-radius: 12px; font-size: 15px; outline: none; color: #0F172A; box-sizing: border-box; transition: border-color 0.2s, box-shadow 0.2s; letter-spacing: 0.3em; }
-        .pin-input:focus { border-color: #10B981; box-shadow: 0 0 0 3px rgba(16,185,129,0.12); }
-        .dev-login-btn { width: 100%; padding: 14px; background: #0F172A; color: #fff; border: none; border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer; transition: opacity 0.2s; }
-        .dev-login-btn:hover { opacity: 0.9; } .dev-login-btn:disabled { opacity: 0.5; cursor: default; }
+        /* === PIXEL/GRADIENT BOX EFFECT ===
+           Boxes fade from solid white (right edge) to transparent (left)
+           creating the "dissolving into gradient" look */
+        @keyframes floatA { 0%,100%{transform:translateY(0) translateX(0);} 33%{transform:translateY(-10px) translateX(6px);} 66%{transform:translateY(6px) translateX(-8px);} }
+        @keyframes floatB { 0%,100%{transform:translateY(0) translateX(0);} 40%{transform:translateY(8px) translateX(-5px);} 75%{transform:translateY(-8px) translateX(10px);} }
+        @keyframes floatC { 0%,100%{transform:translateY(0) translateX(0);} 50%{transform:translateY(-6px) translateX(-10px);} }
+        @keyframes blobDrift { 0%,100%{transform:translate(0,0) scale(1);} 30%{transform:translate(30px,-30px) scale(1.05);} 60%{transform:translate(-20px,25px) scale(0.95);} }
+        
+        /* Input style — clean gray, no color borders */
+        .login-inp {
+          width: 100%;
+          padding: 12px 14px;
+          background: #F8FAFC;
+          border: 1px solid #E2E8F0;
+          border-radius: 10px;
+          font-size: 15px;
+          outline: none;
+          color: #0F172A;
+          box-sizing: border-box;
+          transition: border-color 0.15s, box-shadow 0.15s;
+          font-family: inherit;
+        }
+        .login-inp:focus {
+          border-color: #CBD5E1;
+          box-shadow: 0 0 0 3px rgba(15,23,42,0.04);
+          background: #FFFFFF;
+        }
+        .login-inp::placeholder { color: #CBD5E1; }
+        
+        .submit-btn {
+          width: 100%;
+          padding: 13px;
+          background: #0F172A;
+          color: #fff;
+          border: none;
+          border-radius: 10px;
+          font-size: 15px;
+          font-weight: 600;
+          cursor: pointer;
+          letter-spacing: -0.1px;
+          transition: opacity 0.15s;
+          font-family: inherit;
+        }
+        .submit-btn:hover { opacity: 0.88; }
+        .submit-btn:active { opacity: 0.8; transform: scale(0.99); }
+        .submit-btn:disabled { opacity: 0.45; cursor: default; }
+
+        .tab-seg { display:flex; background:#F1F5F9; border-radius:9px; padding:3px; gap:2px; margin-bottom:22px; }
+        .tab-seg button { flex:1; padding:9px; border-radius:7px; border:none; cursor:pointer; font-size:13px; font-family:inherit; transition:all 0.12s; }
+        .tab-active-btn { background:#FFF; color:#0F172A; font-weight:600; box-shadow:0 1px 3px rgba(0,0,0,0.07); }
+        .tab-inactive-btn { background:transparent; color:#94A3B8; font-weight:400; }
+
+        @keyframes fadeUp { from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);} }
+        .form-in { animation: fadeUp 0.35s cubic-bezier(0.16,1,0.3,1) both; }
+        @keyframes spin { to { transform: rotate(360deg); } }
       `}</style>
 
-      {/* LEFT — Green-tinted glass cards for Dev */}
-      <div className="hide-mobile" style={{ flex: 1, position: 'relative', overflow: 'hidden', background: 'linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 30%, #D1FAE5 60%, #ECFDF5 100%)' }}>
-        <div className="blob-orb-g" style={{ width: 480, height: 480, top: '10%', left: '10%', background: 'radial-gradient(circle, rgba(16,185,129,0.4) 0%, rgba(52,211,153,0.2) 40%, transparent 70%)', animationDuration: '10s' }} />
-        <div className="blob-orb-g" style={{ width: 320, height: 320, top: '50%', left: '25%', background: 'radial-gradient(circle, rgba(5,150,105,0.3) 0%, transparent 70%)', animationDuration: '14s', animationDelay: '-4s' }} />
-        <div className="blob-orb-g" style={{ width: 220, height: 220, top: '70%', left: '5%', background: 'radial-gradient(circle, rgba(167,243,208,0.5) 0%, transparent 70%)', animationDuration: '12s', animationDelay: '-6s' }} />
+      {/* ════ LEFT — Pixel/Gradient boxes ════ */}
+      <div className="hide-mobile" style={{
+        flex: 1,
+        position: 'relative',
+        overflow: 'hidden',
+        /* Base gradient that the boxes dissolve into */
+        background: isDev
+          ? 'linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 40%, #D1FAE5 70%, #ECFDF5 100%)'
+          : 'linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 40%, #BFDBFE 70%, #EFF6FF 100%)',
+      }}>
+        {/* Soft blur blobs behind everything */}
+        <div style={{
+          position:'absolute', width:500, height:500,
+          top:'5%', left:'5%',
+          borderRadius:'50%',
+          filter:'blur(80px)',
+          background: isDev
+            ? 'radial-gradient(circle, rgba(34,197,94,0.25) 0%, transparent 70%)'
+            : 'radial-gradient(circle, rgba(59,130,246,0.25) 0%, transparent 70%)',
+          animation:'blobDrift 12s ease-in-out infinite',
+        }}/>
+        <div style={{
+          position:'absolute', width:360, height:360,
+          bottom:'10%', right:'10%',
+          borderRadius:'50%',
+          filter:'blur(70px)',
+          background: isDev
+            ? 'radial-gradient(circle, rgba(16,185,129,0.2) 0%, transparent 70%)'
+            : 'radial-gradient(circle, rgba(96,165,250,0.2) 0%, transparent 70%)',
+          animation:'blobDrift 16s ease-in-out infinite reverse',
+        }}/>
 
-        <div style={{ position: 'absolute', inset: 0, padding: '8%' }}>
-          {[
-            { t: '4%', l: '6%', w: '50%', h: '15%', d: '0s' },
-            { t: '18%', l: '25%', w: '47%', h: '13%', d: '-2s' },
-            { t: '30%', l: '6%', w: '58%', h: '17%', d: '-4s' },
-            { t: '47%', l: '32%', w: '38%', h: '13%', d: '-1s' },
-            { t: '60%', l: '6%', w: '50%', h: '15%', d: '-3s' },
-            { t: '74%', l: '18%', w: '36%', h: '11%', d: '-5s' },
-            { t: '84%', l: '6%', w: '28%', h: '9%', d: '-7s' },
-          ].map((c, i) => (
-            <div key={i} className="glass-card-g" style={{ position: 'absolute', top: c.t, left: c.l, width: c.w, height: c.h, animationDuration: `${6 + i}s`, animationDelay: c.d }} />
-          ))}
+        {/* ── GRADIENT BOXES
+            Each box: left edge transparent → right edge solid white
+            This creates the "pixel dissolve" / "emerging from gradient" effect ── */}
+        {[
+          /* [top%, left%, width%, height%, animClass, animDuration, animDelay] */
+          [4,  5,  52, 13, 'floatA', '7s',  '0s'],
+          [15, 28, 44, 12, 'floatB', '9s',  '-2s'],
+          [27, 5,  58, 15, 'floatC', '8s',  '-4s'],
+          [43, 33, 42, 12, 'floatA', '10s', '-1s'],
+          [57, 5,  50, 14, 'floatB', '7.5s','-3s'],
+          [70, 18, 38, 11, 'floatC', '9.5s','-5s'],
+          [80, 5,  30, 10, 'floatA', '8.5s','-6s'],
+          [88, 22, 36, 9,  'floatB', '11s', '-7s'],
+        ].map(([t, l, w, h, anim, dur, delay], i) => (
+          <div key={i} style={{
+            position: 'absolute',
+            top: `${t}%`, left: `${l}%`,
+            width: `${w}%`, height: `${h}%`,
+            borderRadius: 18,
+            /* KEY EFFECT: gradient from transparent (left) to white (right)
+               This makes boxes look like they're "dissolving" from the gradient bg */
+            background: `linear-gradient(90deg,
+              rgba(255,255,255,0) 0%,
+              rgba(255,255,255,0.3) 20%,
+              rgba(255,255,255,0.65) 55%,
+              rgba(255,255,255,0.88) 80%,
+              rgba(255,255,255,0.95) 100%
+            )`,
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+            border: '1px solid rgba(255,255,255,0.6)',
+            borderLeft: 'none',
+            animation: `${anim} ${dur} ${delay} ease-in-out infinite`,
+          }} />
+        ))}
 
-          <div style={{ position: 'absolute', bottom: 24, left: 28 }}>
-            <img src="/brand/logo.svg" alt="festag" style={{ height: 16, opacity: 0.3 }} />
-            <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(5,150,105,0.5)', letterSpacing: '0.1em', marginTop: 6 }}>DEVELOPER ACCESS</p>
-          </div>
+        {/* Logo bottom left */}
+        <div style={{ position:'absolute', bottom:28, left:32 }}>
+          <img src="/brand/logo.svg" alt="festag" style={{ height:16, opacity:0.3 }} />
         </div>
       </div>
 
-      {/* RIGHT — Dev form (PIN only) */}
-      <div style={{ width: '100%', maxWidth: 480, padding: '48px 48px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-        <button onClick={() => setPortal('select')} style={{ background: 'transparent', border: 'none', color: '#94A3B8', fontSize: 13, cursor: 'pointer', padding: 0, marginBottom: 40, display: 'flex', alignItems: 'center', gap: 5, fontFamily: 'inherit', alignSelf: 'flex-start' }}>
+      {/* ════ RIGHT — Form ════ */}
+      <div style={{
+        width:'100%', maxWidth:460,
+        padding:'0 48px',
+        display:'flex', flexDirection:'column', justifyContent:'center',
+        minHeight:'100vh',
+      }}>
+        {/* Back */}
+        <button onClick={() => setPortal('select')} style={{
+          background:'transparent', border:'none', color:'#94A3B8',
+          fontSize:13, cursor:'pointer', padding:0,
+          display:'flex', alignItems:'center', gap:5,
+          fontFamily:'inherit', position:'absolute', top:32,
+        }}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M15 6l-6 6 6 6"/></svg>
           Zurück
         </button>
 
-        <div className="fade-in">
-          <p style={{ fontSize: 11, fontWeight: 700, color: '#059669', letterSpacing: '0.12em', marginBottom: 10 }}>DEVELOPER PORTAL</p>
-          <h1 style={{ fontSize: 30, fontWeight: 700, color: '#0F172A', letterSpacing: '-0.6px', marginBottom: 8, lineHeight: 1.1 }}>Systemzugang</h1>
-          <p style={{ fontSize: 14, color: '#94A3B8', marginBottom: 28 }}>
-            Nur für verifizierte Festag Developer.<br />Zugangsdaten vom Admin erhalten.
-          </p>
-
-          <div style={{ background: '#F0FDF4', border: '1px solid #A7F3D0', borderRadius: 12, padding: '14px 16px', marginBottom: 24, display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#10B981', animation: 'pulse 2s infinite' }} />
-            <p style={{ fontSize: 12, color: '#059669', margin: 0, fontWeight: 500 }}>Kein öffentlicher Zugang · Zuteilung durch Admin</p>
+        <div className="form-in">
+          {/* Badge + Headline */}
+          <div style={{ marginBottom:24 }}>
+            <p style={{
+              fontSize:11, fontWeight:700, letterSpacing:'0.12em', marginBottom:10,
+              color: isDev ? '#059669' : '#007AFF',
+            }}>
+              {isDev ? 'DEVELOPER PORTAL' : 'CLIENT PORTAL'}
+            </p>
+            <h1 style={{ fontSize:30, fontWeight:700, color:'#0F172A', letterSpacing:'-0.6px', lineHeight:1.1, marginBottom:8 }}>
+              {isDev ? 'Systemzugang' : (mode === 'login' ? 'Willkommen zurück' : 'Konto erstellen')}
+            </h1>
+            <p style={{ fontSize:14, color:'#94A3B8', margin:0 }}>
+              {isDev
+                ? 'Nur für verifizierte Festag Developer.\nZugangsdaten vom Admin erhalten.'
+                : (mode === 'login' ? 'Melde dich an, um fortzufahren.' : 'Starte dein Projekt in 2 Minuten.')}
+            </p>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            <div>
-              <label style={styles.label}>Nutzername</label>
-              <input value={devUsername} onChange={e => setDevUsername(e.target.value)} placeholder="dein-username" style={{ width: '100%', padding: '13px 16px', background: '#F0FDF4', border: '1.5px solid #A7F3D0', borderRadius: 12, fontSize: 15, outline: 'none', color: '#0F172A', boxSizing: 'border-box' as const }} onKeyDown={e => e.key === 'Enter' && submitDev()} />
-            </div>
-            <div>
-              <label style={styles.label}>PIN</label>
-              <input type="password" value={devPin} onChange={e => setDevPin(e.target.value.replace(/\D/g, '').slice(0, 8))} placeholder="••••" maxLength={8} inputMode="numeric" className="pin-input" onKeyDown={e => e.key === 'Enter' && submitDev()} />
-              <p style={{ fontSize: 11, color: '#A7F3D0', marginTop: 6, marginLeft: 2 }}>Numerischer PIN, 4–8 Stellen</p>
-            </div>
-          </div>
+          {/* ── CLIENT FORM ── */}
+          {!isDev && (
+            <>
+              {/* Tab toggle */}
+              <div className="tab-seg">
+                {(['login','register'] as const).map(m => (
+                  <button key={m}
+                    onClick={() => { setMode(m); setError('') }}
+                    className={mode === m ? 'tab-active-btn' : 'tab-inactive-btn'}
+                  >
+                    {m === 'login' ? 'Anmelden' : 'Registrieren'}
+                  </button>
+                ))}
+              </div>
 
-          {error && (
-            <div style={{ marginTop: 12, padding: '10px 14px', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 10, fontSize: 13, color: '#DC2626' }}>{error}</div>
+              <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
+                <div>
+                  <label style={lbl}>E-Mail</label>
+                  <input type="email" value={email} onChange={e=>setEmail(e.target.value)}
+                    placeholder="name@beispiel.de" className="login-inp"
+                    autoComplete="email"
+                    onKeyDown={e=>e.key==='Enter'&&submitClient()} />
+                </div>
+                <div>
+                  <label style={lbl}>Passwort</label>
+                  <input type="password" value={password} onChange={e=>setPassword(e.target.value)}
+                    placeholder="••••••••" className="login-inp"
+                    autoComplete={mode==='login'?'current-password':'new-password'}
+                    onKeyDown={e=>e.key==='Enter'&&submitClient()} />
+                </div>
+              </div>
+
+              {error && <div style={errStyle}>{error}</div>}
+
+              <button onClick={submitClient} disabled={loading} className="submit-btn" style={{ marginTop:18 }}>
+                {loading
+                  ? <span style={{display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
+                      <span style={{width:14,height:14,border:'2px solid rgba(255,255,255,0.3)',borderTopColor:'#fff',borderRadius:'50%',display:'inline-block',animation:'spin 0.7s linear infinite'}}/>
+                      Einen Moment…
+                    </span>
+                  : mode==='login' ? 'Anmelden' : 'Konto erstellen'}
+              </button>
+
+              <p style={{ marginTop:18, textAlign:'center', fontSize:13, color:'#94A3B8' }}>
+                {mode==='login' ? 'Noch kein Konto? ' : 'Bereits registriert? '}
+                <span onClick={()=>{setMode(mode==='login'?'register':'login');setError('')}}
+                  style={{color:'#0F172A', cursor:'pointer', fontWeight:700}}>
+                  {mode==='login' ? 'Registrieren' : 'Anmelden'}
+                </span>
+              </p>
+            </>
           )}
 
-          <button onClick={submitDev} disabled={loading} className="dev-login-btn" style={{ marginTop: 20, fontFamily: 'inherit' }}>
-            {loading ? (
-              <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                <span style={{ width: 14, height: 14, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.7s linear infinite' }} />
-                Prüfe Zugang…
-              </span>
-            ) : 'Einloggen →'}
-          </button>
+          {/* ── DEV FORM ── */}
+          {isDev && (
+            <>
+              {/* Info chip — gray like everything else */}
+              <div style={{
+                background:'#F8FAFC', border:'1px solid #E2E8F0',
+                borderRadius:10, padding:'11px 14px', marginBottom:20,
+                display:'flex', alignItems:'center', gap:8,
+              }}>
+                <span style={{width:6,height:6,borderRadius:'50%',background:'#10B981',animation:'pulse 2s infinite',flexShrink:0}}/>
+                <p style={{fontSize:12,color:'#475569',margin:0}}>Kein öffentlicher Zugang · Zuteilung durch Admin</p>
+              </div>
 
-          <p style={{ marginTop: 16, textAlign: 'center', fontSize: 12, color: '#CBD5E1' }}>
-            Noch kein Zugang? Wende dich an dein Admin-Team.
-          </p>
+              <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
+                <div>
+                  <label style={lbl}>Nutzername</label>
+                  <input value={devUsername} onChange={e=>setDevUsername(e.target.value)}
+                    placeholder="dein-username" className="login-inp"
+                    autoComplete="username"
+                    onKeyDown={e=>e.key==='Enter'&&submitDev()} />
+                </div>
+                <div>
+                  <label style={lbl}>PIN</label>
+                  <input type="password" value={devPin}
+                    onChange={e=>setDevPin(e.target.value.replace(/\D/g,'').slice(0,8))}
+                    placeholder="••••" maxLength={8} inputMode="numeric" className="login-inp"
+                    onKeyDown={e=>e.key==='Enter'&&submitDev()} />
+                  <p style={{fontSize:11,color:'#CBD5E1',marginTop:5,marginLeft:2}}>Numerischer PIN, 4–8 Stellen</p>
+                </div>
+              </div>
+
+              {error && <div style={errStyle}>{error}</div>}
+
+              <button onClick={submitDev} disabled={loading} className="submit-btn" style={{ marginTop:18 }}>
+                {loading
+                  ? <span style={{display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
+                      <span style={{width:14,height:14,border:'2px solid rgba(255,255,255,0.3)',borderTopColor:'#fff',borderRadius:'50%',display:'inline-block',animation:'spin 0.7s linear infinite'}}/>
+                      Prüfe Zugang…
+                    </span>
+                  : 'Einloggen →'}
+              </button>
+
+              <p style={{ marginTop:14, textAlign:'center', fontSize:12, color:'#CBD5E1' }}>
+                Noch kein Zugang? Wende dich an dein Admin-Team.
+              </p>
+            </>
+          )}
         </div>
       </div>
     </div>
   )
 }
 
-const styles = {
-  selectBg: {
-    minHeight: '100vh' as const,
-    background: 'linear-gradient(135deg, #F8FAFC 0%, #F0F9FF 50%, #EFF6FF 100%)',
-    display: 'flex' as const,
-    alignItems: 'center' as const,
-    justifyContent: 'center' as const,
-    padding: 24,
-  },
-  orb: { position: 'absolute' as const, borderRadius: '50%', filter: 'blur(80px)' },
-  portalBtn: {
-    background: '#FFFFFF',
-    border: '1px solid #E2E8F0',
-    borderRadius: 14,
-    padding: '16px 18px',
-    cursor: 'pointer' as const,
-    display: 'flex' as const,
-    alignItems: 'center' as const,
-    justifyContent: 'space-between' as const,
-    gap: 12,
-    fontFamily: 'inherit',
-    boxShadow: '0 1px 3px rgba(15,23,42,0.06)',
-    transition: 'all 0.15s',
-  },
-  label: {
-    fontSize: 12,
-    fontWeight: 500 as const,
-    color: '#475569',
-    display: 'block' as const,
-    marginBottom: 7,
-    letterSpacing: '0.01em',
-  },
+const lbl: React.CSSProperties = {
+  fontSize: 12, fontWeight: 500, color: '#64748B',
+  display: 'block', marginBottom: 6,
+}
+
+const errStyle: React.CSSProperties = {
+  marginTop: 12, padding: '10px 14px',
+  background: '#FEF2F2', border: '1px solid #FECACA',
+  borderRadius: 9, fontSize: 13, color: '#DC2626',
 }
