@@ -7,11 +7,11 @@ export default function DevTeamPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    const session = localStorage.getItem('festag_dev_session')
+    if (!session) { window.location.href = '/login'; return }
     const supabase = createClient()
-    supabase.auth.getSession().then(async ({ data }) => {
-      if (!data.session) return
-      const { data: profs } = await supabase.from('profiles').select('*').in('role', ['dev', 'admin']).order('created_at')
-      setMembers(profs ?? []); setLoading(false)
+    supabase.from('profiles').select('id, email, full_name, role, created_at').in('role', ['dev', 'admin']).order('created_at').then(({ data }) => {
+      setMembers(data ?? []); setLoading(false)
     })
   }, [])
 
@@ -21,7 +21,11 @@ export default function DevTeamPage() {
         <h1 style={{ marginBottom: 4 }}>Team</h1>
         <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>{members.length} {members.length === 1 ? 'Mitglied' : 'Mitglieder'}</p>
       </div>
-      {loading ? <div style={{ display: 'flex', justifyContent: 'center', padding: 40 }}><div style={{ width: 24, height: 24, border: '2px solid var(--border)', borderTopColor: 'var(--text)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} /></div> : (
+      {loading ? (
+        <div style={{ display: 'flex', justifyContent: 'center', padding: 40 }}>
+          <div style={{ width: 24, height: 24, border: '2px solid var(--border)', borderTopColor: 'var(--text)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+        </div>
+      ) : (
         <div className="grid-cols-2-mobile-1" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 10 }}>
           {members.map(m => (
             <div key={m.id} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', padding: '14px 16px', display: 'flex', gap: 12, alignItems: 'center' }}>

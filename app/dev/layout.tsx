@@ -2,7 +2,6 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 
 const NAV = [
   { href: '/dev',       icon: 'home',    label: 'Übersicht' },
@@ -25,25 +24,39 @@ function Icon({ name, active }: { name: string; active: boolean }) {
 export default function DevLayout({ children }: { children: React.ReactNode }) {
   const [authed, setAuthed] = useState(false)
   const [checking, setChecking] = useState(true)
-  const [email, setEmail] = useState('')
+  const [devInfo, setDevInfo] = useState<any>(null)
   const pathname = usePathname()
 
   useEffect(() => {
-    const supabase = createClient()
-    supabase.auth.getSession().then(async ({ data }) => {
-      if (!data.session) { window.location.href = '/login'; return }
-      const { data: p } = await supabase.from('profiles').select('role').eq('id', data.session.user.id).single()
-      if (p?.role === 'dev' || p?.role === 'admin') {
-        setAuthed(true); setEmail(data.session.user.email ?? '')
-      } else { window.location.href = '/dashboard' }
-      setChecking(false)
-    })
+    // Check localStorage dev session
+    try {
+      const stored = localStorage.getItem('festag_dev_session')
+      if (!stored) { window.location.href = '/login'; return }
+      const session = JSON.parse(stored)
+      if (!session.user_id || Date.now() > session.expires) {
+        localStorage.removeItem('festag_dev_session')
+        window.location.href = '/login'
+        return
+      }
+      setDevInfo(session)
+      setAuthed(true)
+    } catch {
+      window.location.href = '/login'
+    }
+    setChecking(false)
   }, [])
 
-  if (checking) return <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><div style={{ width: 32, height: 32, border: '2px solid var(--border)', borderTopColor: 'var(--green)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} /></div>
-  if (!authed) return null
+  const logout = () => {
+    localStorage.removeItem('festag_dev_session')
+    window.location.href = '/login'
+  }
 
-  const logout = async () => { await createClient().auth.signOut(); window.location.href = '/login' }
+  if (checking) return (
+    <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ width: 32, height: 32, border: '2px solid var(--border)', borderTopColor: 'var(--green)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+    </div>
+  )
+  if (!authed) return null
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg)' }}>
@@ -57,7 +70,8 @@ export default function DevLayout({ children }: { children: React.ReactNode }) {
             <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--green)', animation: 'pulse 2s infinite' }} />
             <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--green-dark)', letterSpacing: '0.06em' }}>ONLINE</span>
           </div>
-          <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{email}</p>
+          <p style={{ fontSize: 12, color: 'var(--text-secondary)', margin: 0, fontWeight: 600 }}>{devInfo?.user_email?.split('@')[0] ?? 'Developer'}</p>
+          <p style={{ fontSize: 10, color: 'var(--text-muted)', margin: '1px 0 0', textTransform: 'capitalize' }}>{devInfo?.user_role ?? 'dev'}</p>
         </div>
         <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
           {NAV.map(item => {
@@ -74,10 +88,17 @@ export default function DevLayout({ children }: { children: React.ReactNode }) {
         <button onClick={logout} style={{ padding: '8px 10px', textAlign: 'left', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 12, color: 'var(--text-muted)', borderRadius: 'var(--r-sm)', fontFamily: 'inherit', borderTop: '1px solid var(--border)', paddingTop: 12, marginTop: 6 }}>↪ Abmelden</button>
       </aside>
 
-      <nav className="bottom-nav" style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderTop: '1px solid var(--border)', zIndex: 200, justifyContent: 'space-around', alignItems: 'center', padding: '8px 4px', height: 'calc(64px + var(--safe-bottom))' }}>
+      <nav className="bottom-nav" style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderTop: '1px solid var(--border)', zIndex: 200, justifyContent: 'space-around', alignItems: 'center', height: 'calc(64px + var(--safe-bottom))' }}>
         {NAV.map(item => {
           const active = pathname === item.href || (item.href !== '/dev' && pathname.startsWith(item.href))
-          return <Link key={item.href} href={item.href} style={{ flex: 1 }}><div className="tap-scale" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, padding: '6px 4px', minHeight: 44 }}><Icon name={item.icon} active={active} /><span style={{ fontSize: 10.5, fontWeight: active ? 600 : 500, color: active ? 'var(--text)' : 'var(--text-muted)' }}>{item.label}</span></div></Link>
+          return (
+            <Link key={item.href} href={item.href} style={{ flex: 1 }}>
+              <div className="tap-scale" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, padding: '6px 4px', minHeight: 44 }}>
+                <Icon name={item.icon} active={active} />
+                <span style={{ fontSize: 10.5, fontWeight: active ? 600 : 500, color: active ? 'var(--text)' : 'var(--text-muted)' }}>{item.label}</span>
+              </div>
+            </Link>
+          )
         })}
       </nav>
 

@@ -255,3 +255,4 @@ export default function AdminPanel() {
 
 const th: React.CSSProperties = { padding: '10px 16px', fontSize: 10, fontWeight: 600, color: 'var(--text-muted)', letterSpacing: '0.08em', textAlign: 'left', textTransform: 'uppercase' }
 const td: React.CSSProperties = { padding: '12px 16px', verticalAlign: 'middle' }
+// PIN management is handled in invites tab above
