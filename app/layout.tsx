@@ -5,22 +5,16 @@ export const metadata: Metadata = {
   title: 'Festag — AI-native Softwareproduktion',
   description: 'AI plant. Menschen bauen. Ein System verbindet alles.',
   manifest: '/manifest.json',
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: 'default',
-    title: 'Festag',
-  },
+  applicationName: 'Festag',
+  appleWebApp: { capable: true, statusBarStyle: 'default', title: 'Festag' },
   icons: {
-    icon: '/brand/logo.svg',
-    apple: '/brand/icon-192.png',
+    icon: '/brand/icon-192.png',
+    apple: [
+      { url: '/brand/apple-touch-icon.png', sizes: '180x180' },
+      { url: '/brand/icon-152.png', sizes: '152x152' },
+    ],
   },
-  formatDetection: {
-    telephone: false,
-    date: false,
-    address: false,
-    email: false,
-    url: false,
-  },
+  formatDetection: { telephone: false, email: false },
 }
 
 export const viewport: Viewport = {
@@ -39,8 +33,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="Festag" />
-        <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="format-detection" content="telephone=no" />
+        <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png" />
       </head>
       <body>{children}</body>
     </html>
