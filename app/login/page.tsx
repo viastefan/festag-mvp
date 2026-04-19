@@ -15,9 +15,6 @@ export default function LoginPage() {
   const [devPin, setDevPin] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => { setMounted(true) }, [])
 
   const submitClient = async () => {
     setError('')
@@ -61,209 +58,239 @@ export default function LoginPage() {
       window.location.href = '/dev'
     } catch {
       setError('Fehler bei der Anmeldung.')
+      setLoading(false)
     }
-    setLoading(false)
   }
 
-  /* ─── PORTAL SELECT ─── */
+  // ─── PORTAL SELECT ───
   if (portal === 'select') return (
     <div style={{ minHeight: '100vh', background: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
       <style>{`
-        @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .sel-in { animation: fadeUp 0.4s cubic-bezier(0.16,1,0.3,1) both; }
-        .portal-btn { background:#FFF; border:1px solid #E2E8F0; border-radius:14px; padding:16px 18px; cursor:pointer; display:flex; align-items:center; justify-content:space-between; gap:12px; font-family:inherit; transition:all 0.12s; }
-        .portal-btn:hover { border-color:#CBD5E1; background:#FAFAFA; }
+        @keyframes fadeUp { from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);} }
+        .sel { animation: fadeUp .4s cubic-bezier(.16,1,.3,1) both; }
+        .p-btn { background:#FFF; border:1px solid #E2E8F0; border-radius:12px; padding:14px 16px; cursor:pointer; display:flex; align-items:center; justify-content:space-between; gap:10px; font-family:inherit; transition:border-color .12s, background .12s; }
+        .p-btn:hover { border-color:#CBD5E1; background:#FAFBFC; }
       `}</style>
-      <div className="sel-in" style={{ width: '100%', maxWidth: 400, textAlign: 'center' }}>
-        <img src="/brand/logo.svg" alt="festag" style={{ height: 22, marginBottom: 44 }} />
-        <h1 style={{ fontSize: 26, fontWeight: 700, color: '#0F172A', letterSpacing: '-0.5px', marginBottom: 6 }}>Willkommen</h1>
-        <p style={{ fontSize: 14, color: '#94A3B8', marginBottom: 36 }}>Wähle deinen Zugang</p>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <div className="sel" style={{ width:'100%', maxWidth:380, textAlign:'center' }}>
+        <img src="/brand/logo.svg" alt="festag" style={{ height:20, marginBottom:40 }} />
+        <h1 style={{ fontSize:24, fontWeight:700, color:'#0F172A', letterSpacing:'-0.4px', marginBottom:6 }}>Willkommen</h1>
+        <p style={{ fontSize:14, color:'#94A3B8', marginBottom:32 }}>Wähle deinen Zugang</p>
+        <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
           {[
-            { key: 'client',    label: 'Client Portal',    desc: 'Für Auftraggeber', badge: 'CLIENT' },
-            { key: 'developer', label: 'Developer',        desc: 'Nutzername & PIN',  badge: 'DEV' },
+            { key:'client',    label:'Client Portal',   desc:'Für Auftraggeber' },
+            { key:'developer', label:'Developer',        desc:'Nutzername & PIN' },
           ].map(p => (
-            <button key={p.key} onClick={() => setPortal(p.key as Portal)} className="portal-btn">
-              <div style={{ textAlign: 'left' }}>
-                <p style={{ fontSize: 15, fontWeight: 600, color: '#0F172A', margin: '0 0 2px' }}>{p.label}</p>
-                <p style={{ fontSize: 12, color: '#94A3B8', margin: 0 }}>{p.desc}</p>
+            <button key={p.key} onClick={() => setPortal(p.key as Portal)} className="p-btn">
+              <div style={{ textAlign:'left' }}>
+                <p style={{ fontSize:14, fontWeight:600, color:'#0F172A', margin:'0 0 1px' }}>{p.label}</p>
+                <p style={{ fontSize:12, color:'#94A3B8', margin:0 }}>{p.desc}</p>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ fontSize: 9, fontWeight: 700, color: '#475569', background: '#F1F5F9', padding: '3px 8px', borderRadius: 5, letterSpacing: '0.08em' }}>{p.badge}</span>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" strokeWidth="2" strokeLinecap="round"><path d="M9 6l6 6-6 6"/></svg>
-              </div>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" strokeWidth="2" strokeLinecap="round"><path d="M9 6l6 6-6 6"/></svg>
             </button>
           ))}
         </div>
-        <p style={{ marginTop: 28, fontSize: 11, color: '#E2E8F0', letterSpacing: '0.08em' }}>AI PLANT · MENSCHEN BAUEN · SYSTEM VERBINDET</p>
+        <p style={{ marginTop:24, fontSize:10, color:'#E2E8F0', letterSpacing:'0.08em' }}>AI PLANT · MENSCHEN BAUEN · SYSTEM VERBINDET</p>
       </div>
     </div>
   )
 
   const isDev = portal === 'developer'
+  // accent color per portal
+  const accent = isDev ? '#10B981' : '#3B82F6'
+  const accentBg = isDev
+    ? 'linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 40%, #D1FAE5 70%, #F0FDF4 100%)'
+    : 'linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 40%, #BFDBFE 70%, #EFF6FF 100%)'
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: '#FFFFFF' }}>
+    <div style={{ display:'flex', minHeight:'100vh', background:'#FFFFFF' }}>
       <style>{`
-        /* Floating blob animations */
-        @keyframes b1 { 0%,100%{transform:translate(0,0) scale(1);}33%{transform:translate(28px,-35px) scale(1.06);}66%{transform:translate(-18px,25px) scale(0.94);} }
-        @keyframes b2 { 0%,100%{transform:translate(0,0) scale(1);}40%{transform:translate(-25px,30px) scale(1.04);}75%{transform:translate(30px,-20px) scale(0.96);} }
-        @keyframes b3 { 0%,100%{transform:translate(0,0);}50%{transform:translate(-15px,-20px);} }
-        /* Card float */
-        @keyframes cf1 { 0%,100%{transform:translateY(0);}50%{transform:translateY(-8px);} }
-        @keyframes cf2 { 0%,100%{transform:translateY(0);}50%{transform:translateY(-6px);} }
-        @keyframes cf3 { 0%,100%{transform:translateY(0);}50%{transform:translateY(-10px);} }
-        /* Input styles — gray only */
-        .l-inp { width:100%; padding:11px 14px; background:#F8FAFC; border:1px solid #E2E8F0; border-radius:9px; font-size:15px; outline:none; color:#0F172A; box-sizing:border-box; transition:border-color 0.15s, box-shadow 0.15s; font-family:inherit; }
-        .l-inp:focus { border-color:#CBD5E1; box-shadow:0 0 0 3px rgba(15,23,42,0.04); background:#FFF; }
+        /* ── CONTAINERS: white semi-opaque boxes on gradient bg ── */
+        .lcard {
+          position: absolute;
+          background: rgba(255,255,255,0.72);
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
+          border-radius: 16px;
+          border: 1px solid rgba(255,255,255,0.85);
+        }
+        @keyframes fc1 { 0%,100%{transform:translateY(0);}   50%{transform:translateY(-9px);} }
+        @keyframes fc2 { 0%,100%{transform:translateY(0);}   50%{transform:translateY(-6px);} }
+        @keyframes fc3 { 0%,100%{transform:translateY(-3px);}50%{transform:translateY(6px);}  }
+        @keyframes fc4 { 0%,100%{transform:translateY(2px);} 50%{transform:translateY(-7px);} }
+        @keyframes fc5 { 0%,100%{transform:translateY(0);}   50%{transform:translateY(-5px);} }
+        @keyframes fc6 { 0%,100%{transform:translateY(-2px);}50%{transform:translateY(8px);}  }
+        /* Input styles — fine gray borders only */
+        .l-inp {
+          width:100%; padding:11px 13px;
+          background:#F8FAFC;
+          border:1px solid #E2E8F0;
+          border-radius:9px;
+          font-size:15px; outline:none; color:#0F172A;
+          box-sizing:border-box; transition:border-color .15s, box-shadow .15s;
+          font-family:inherit;
+        }
+        .l-inp:focus { border-color:#CBD5E1; box-shadow:0 0 0 3px rgba(15,23,42,.04); background:#FFF; }
         .l-inp::placeholder { color:#CBD5E1; }
-        .l-btn { width:100%; padding:13px; background:#0F172A; color:#fff; border:none; border-radius:9px; font-size:15px; font-weight:600; cursor:pointer; font-family:inherit; transition:opacity 0.15s; }
-        .l-btn:hover { opacity:0.88; } .l-btn:disabled { opacity:0.45; cursor:default; }
-        .l-tabs { display:flex; background:#F1F5F9; border-radius:9px; padding:3px; gap:2px; margin-bottom:22px; }
-        .l-tabs button { flex:1; padding:9px; border-radius:7px; border:none; cursor:pointer; font-size:13px; font-family:inherit; transition:all 0.12s; }
-        .l-tab-on  { background:#FFF; color:#0F172A; font-weight:600; box-shadow:0 1px 3px rgba(0,0,0,0.07); }
-        .l-tab-off { background:transparent; color:#94A3B8; }
+        /* Tab segmented control */
+        .l-seg { display:flex; background:#F1F5F9; border-radius:9px; padding:3px; gap:2px; margin-bottom:20px; }
+        .l-seg button { flex:1; padding:8px; border-radius:7px; border:none; cursor:pointer; font-size:13px; font-family:inherit; transition:all .12s; }
+        .l-seg-on  { background:#FFF; color:#0F172A; font-weight:600; box-shadow:0 1px 3px rgba(0,0,0,.07); }
+        .l-seg-off { background:transparent; color:#94A3B8; }
+        /* Primary button */
+        .l-btn {
+          width:100%; padding:12px;
+          background:#0F172A; color:#FFF;
+          border:none; border-radius:9px;
+          font-size:15px; font-weight:600; cursor:pointer;
+          font-family:inherit; transition:opacity .15s;
+        }
+        .l-btn:hover { opacity:.88; } .l-btn:disabled { opacity:.4; cursor:default; }
+        .l-btn:active { transform:scale(.99); }
         @keyframes fadeUp { from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);} }
-        .form-fade { animation: fadeUp 0.35s cubic-bezier(0.16,1,0.3,1) both; }
+        .fade-form { animation:fadeUp .35s cubic-bezier(.16,1,.3,1) both; }
         @keyframes spin { to{transform:rotate(360deg);} }
+        /* Divider line between columns */
+        .col-divider { width:1px; background:#F1F5F9; flex-shrink:0; }
       `}</style>
 
-      {/* ═══ LEFT — Gradient with animated glass boxes ═══ */}
+      {/* ══════════════════════════════════════════
+          LEFT — gradient background + floating containers
+      ══════════════════════════════════════════ */}
       <div className="hide-mobile" style={{
         flex: 1,
         position: 'relative',
         overflow: 'hidden',
-        background: isDev
-          ? 'linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 35%, #D1FAE5 65%, #ECFDF5 100%)'
-          : 'linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 35%, #BFDBFE 65%, #EFF6FF 100%)',
+        background: accentBg,
       }}>
-        {/* Blobs */}
-        <div style={{ position:'absolute', inset:0, pointerEvents:'none' }}>
-          <div style={{ position:'absolute', width:480, height:480, top:'5%', left:'5%', borderRadius:'50%', filter:'blur(70px)', background: isDev ? 'radial-gradient(circle, rgba(34,197,94,0.3) 0%, transparent 70%)' : 'radial-gradient(circle, rgba(59,130,246,0.28) 0%, transparent 70%)', animation:'b1 11s ease-in-out infinite' }} />
-          <div style={{ position:'absolute', width:320, height:320, bottom:'8%', right:'8%', borderRadius:'50%', filter:'blur(60px)', background: isDev ? 'radial-gradient(circle, rgba(16,185,129,0.22) 0%, transparent 70%)' : 'radial-gradient(circle, rgba(96,165,250,0.22) 0%, transparent 70%)', animation:'b2 15s ease-in-out infinite' }} />
-          <div style={{ position:'absolute', width:200, height:200, top:'50%', left:'35%', borderRadius:'50%', filter:'blur(50px)', background: isDev ? 'radial-gradient(circle, rgba(167,243,208,0.3) 0%, transparent 70%)' : 'radial-gradient(circle, rgba(186,230,253,0.3) 0%, transparent 70%)', animation:'b3 18s ease-in-out infinite' }} />
+        {/* Logo top-left */}
+        <div style={{ position:'absolute', top:28, left:32, zIndex:2 }}>
+          <img src="/brand/logo.svg" alt="festag" style={{ height:18, opacity:.35 }} />
         </div>
 
-        {/* Glass containers — step-ladder layout like reference image
-            Key: gradient from transparent (left) → white (right) = pixel/dissolve effect */}
-        <div style={{ position:'absolute', inset:0 }}>
-          {[
-            /* [top%, left%, width%, height%, animName, duration, delay] */
-            [4,  4,  55, 13, 'cf1', '7s',  '0s'   ],
-            [16, 22, 48, 12, 'cf2', '9s',  '-2.5s'],
-            [28, 4,  62, 15, 'cf3', '8s',  '-4s'  ],
-            [44, 30, 44, 12, 'cf1', '10s', '-1.5s'],
-            [57, 4,  54, 13, 'cf2', '7.5s','-3s'  ],
-            [70, 16, 40, 11, 'cf3', '9.5s','-5s'  ],
-            [80, 4,  32, 10, 'cf1', '8.5s','-6s'  ],
-            [89, 20, 38, 9,  'cf2', '11s', '-7s'  ],
-          ].map(([t, l, w, h, anim, dur, delay], i) => (
-            <div key={i} style={{
-              position:'absolute',
-              top: `${t}%`, left: `${l}%`,
-              width:`${w}%`, height:`${h}%`,
-              borderRadius: 18,
-              /* Gradient from transparent (left edge) to solid white (right edge)
-                 This creates the "emerging from gradient / pixel dissolve" effect */
-              background: `linear-gradient(90deg,
-                rgba(255,255,255,0)    0%,
-                rgba(255,255,255,0.18) 15%,
-                rgba(255,255,255,0.48) 40%,
-                rgba(255,255,255,0.78) 70%,
-                rgba(255,255,255,0.94) 90%,
-                rgba(255,255,255,0.97) 100%)`,
-              backdropFilter: 'blur(6px)',
-              WebkitBackdropFilter: 'blur(6px)',
-              border: '1px solid rgba(255,255,255,0.55)',
-              borderLeft: '1px solid rgba(255,255,255,0.15)',
-              animation: `${anim} ${dur} ${delay} ease-in-out infinite`,
-            }} />
-          ))}
-        </div>
-
-        {/* Logo bottom */}
-        <div style={{ position:'absolute', bottom:28, left:32 }}>
-          <img src="/brand/logo.svg" alt="festag" style={{ height:16, opacity:0.25 }} />
-        </div>
+        {/* Floating white containers — step-ladder layout */}
+        {/* Row 1 */}
+        <div className="lcard" style={{ top:'6%',  left:'5%',  width:'55%', height:'13%', animation:'fc1 7s ease-in-out infinite' }} />
+        <div className="lcard" style={{ top:'6%',  left:'63%', width:'30%', height:'13%', animation:'fc2 9s ease-in-out infinite' }} />
+        {/* Row 2 — offset right */}
+        <div className="lcard" style={{ top:'22%', left:'20%', width:'45%', height:'12%', animation:'fc3 8s ease-in-out -.5s infinite' }} />
+        <div className="lcard" style={{ top:'22%', left:'68%', width:'25%', height:'12%', animation:'fc4 10s ease-in-out -1s infinite' }} />
+        {/* Row 3 — back left */}
+        <div className="lcard" style={{ top:'37%', left:'5%',  width:'60%', height:'14%', animation:'fc1 7.5s ease-in-out -2s infinite' }} />
+        {/* Row 4 — offset */}
+        <div className="lcard" style={{ top:'54%', left:'28%', width:'42%', height:'12%', animation:'fc5 9s ease-in-out -3s infinite' }} />
+        <div className="lcard" style={{ top:'54%', left:'73%', width:'20%', height:'12%', animation:'fc2 11s ease-in-out -.5s infinite' }} />
+        {/* Row 5 */}
+        <div className="lcard" style={{ top:'69%', left:'5%',  width:'52%', height:'13%', animation:'fc6 8s ease-in-out -4s infinite' }} />
+        {/* Row 6 */}
+        <div className="lcard" style={{ top:'85%', left:'15%', width:'38%', height:'11%', animation:'fc3 7s ease-in-out -1s infinite' }} />
+        <div className="lcard" style={{ top:'85%', left:'56%', width:'32%', height:'11%', animation:'fc5 9.5s ease-in-out -2s infinite' }} />
       </div>
 
-      {/* ═══ RIGHT — Form ═══ */}
-      <div style={{ width:'100%', maxWidth:470, minHeight:'100vh', padding:'0 48px', display:'flex', flexDirection:'column', justifyContent:'center', position:'relative' }}>
-        <button onClick={() => setPortal('select')} style={{ position:'absolute', top:36, left:48, background:'transparent', border:'none', color:'#94A3B8', fontSize:13, cursor:'pointer', padding:0, display:'flex', alignItems:'center', gap:5, fontFamily:'inherit' }}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M15 6l-6 6 6 6"/></svg>
+      {/* Thin divider line */}
+      <div className="col-divider hide-mobile" />
+
+      {/* ══════════════════════════════════════════
+          RIGHT — login form
+      ══════════════════════════════════════════ */}
+      <div style={{
+        width:'100%', maxWidth:460,
+        padding:'0 44px',
+        display:'flex', flexDirection:'column', justifyContent:'center',
+        minHeight:'100vh', position:'relative',
+      }}>
+        {/* Back button */}
+        <button onClick={() => setPortal('select')} style={{
+          position:'absolute', top:32, left:44,
+          background:'transparent', border:'none',
+          color:'#94A3B8', fontSize:13, cursor:'pointer',
+          display:'flex', alignItems:'center', gap:4, fontFamily:'inherit', padding:0,
+        }}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M15 6l-6 6 6 6"/></svg>
           Zurück
         </button>
 
-        <div className="form-fade">
-          <div style={{ marginBottom:26 }}>
-            <p style={{ fontSize:11, fontWeight:700, letterSpacing:'0.12em', marginBottom:10, color: isDev ? '#059669' : '#007AFF' }}>
-              {isDev ? 'DEVELOPER PORTAL' : 'CLIENT PORTAL'}
-            </p>
-            <h1 style={{ fontSize:30, fontWeight:700, color:'#0F172A', letterSpacing:'-0.6px', lineHeight:1.1, marginBottom:8 }}>
-              {isDev ? 'Systemzugang' : (mode==='login' ? 'Willkommen zurück' : 'Konto erstellen')}
-            </h1>
-            <p style={{ fontSize:14, color:'#94A3B8', margin:0, lineHeight:1.5 }}>
-              {isDev
-                ? 'Nur für verifizierte Festag Developer.\nZugangsdaten vom Admin erhalten.'
-                : (mode==='login' ? 'Melde dich an, um fortzufahren.' : 'Starte dein Projekt in 2 Minuten.')}
-            </p>
-          </div>
+        <div className="fade-form">
+          {/* Portal label + headline */}
+          <p style={{ fontSize:11, fontWeight:700, color: accent, letterSpacing:'0.1em', marginBottom:8 }}>
+            {isDev ? 'DEVELOPER PORTAL' : 'CLIENT PORTAL'}
+          </p>
+          <h1 style={{ fontSize:28, fontWeight:700, color:'#0F172A', letterSpacing:'-0.5px', lineHeight:1.1, marginBottom:8 }}>
+            {isDev ? 'Systemzugang' : (mode==='login' ? 'Willkommen zurück' : 'Konto erstellen')}
+          </h1>
+          <p style={{ fontSize:14, color:'#94A3B8', marginBottom:24, lineHeight:1.5 }}>
+            {isDev
+              ? 'Nur für verifizierte Festag Developer.\nZugangsdaten vom Admin erhalten.'
+              : (mode==='login' ? 'Melde dich an, um fortzufahren.' : 'Starte dein Projekt in 2 Minuten.')}
+          </p>
 
+          {/* ── CLIENT FORM ── */}
           {!isDev && (
             <>
-              <div className="l-tabs">
+              <div className="l-seg">
                 {(['login','register'] as const).map(m => (
-                  <button key={m} onClick={() => { setMode(m); setError('') }} className={mode===m?'l-tab-on':'l-tab-off'}>
+                  <button key={m} onClick={() => { setMode(m); setError('') }} className={mode===m?'l-seg-on':'l-seg-off'}>
                     {m==='login' ? 'Anmelden' : 'Registrieren'}
                   </button>
                 ))}
               </div>
-              <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
+
+              <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
                 <div>
                   <label style={lbl}>E-Mail</label>
-                  <input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="name@beispiel.de" className="l-inp" autoComplete="email" onKeyDown={e=>e.key==='Enter'&&submitClient()} />
+                  <input type="email" value={email} onChange={e=>setEmail(e.target.value)}
+                    placeholder="name@beispiel.de" className="l-inp" autoComplete="email"
+                    onKeyDown={e=>e.key==='Enter'&&submitClient()} />
                 </div>
                 <div>
                   <label style={lbl}>Passwort</label>
-                  <input type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="••••••••" className="l-inp" autoComplete={mode==='login'?'current-password':'new-password'} onKeyDown={e=>e.key==='Enter'&&submitClient()} />
+                  <input type="password" value={password} onChange={e=>setPassword(e.target.value)}
+                    placeholder="••••••••" className="l-inp"
+                    autoComplete={mode==='login'?'current-password':'new-password'}
+                    onKeyDown={e=>e.key==='Enter'&&submitClient()} />
                 </div>
               </div>
-              {error && <div style={errBox}>{error}</div>}
+              {error && <div style={errStyle}>{error}</div>}
               <button onClick={submitClient} disabled={loading} className="l-btn" style={{ marginTop:18 }}>
-                {loading ? <Spinner /> : (mode==='login' ? 'Anmelden' : 'Konto erstellen')}
+                {loading ? <SpinBtn /> : (mode==='login' ? 'Anmelden' : 'Konto erstellen')}
               </button>
-              <p style={{ marginTop:18, textAlign:'center', fontSize:13, color:'#94A3B8' }}>
+              <p style={{ marginTop:16, textAlign:'center', fontSize:13, color:'#94A3B8' }}>
                 {mode==='login' ? 'Noch kein Konto? ' : 'Bereits registriert? '}
-                <span onClick={()=>{setMode(mode==='login'?'register':'login');setError('')}} style={{color:'#0F172A',cursor:'pointer',fontWeight:700}}>
+                <span onClick={()=>{setMode(mode==='login'?'register':'login');setError('')}}
+                  style={{ color:'#0F172A', cursor:'pointer', fontWeight:700 }}>
                   {mode==='login' ? 'Registrieren' : 'Anmelden'}
                 </span>
               </p>
             </>
           )}
 
+          {/* ── DEV FORM ── */}
           {isDev && (
             <>
-              {/* Status chip — gray */}
-              <div style={{ background:'#F8FAFC', border:'1px solid #E2E8F0', borderRadius:9, padding:'10px 14px', marginBottom:20, display:'flex', alignItems:'center', gap:8 }}>
+              <div style={{ background:'#F8FAFC', border:'1px solid #E2E8F0', borderRadius:9, padding:'10px 13px', marginBottom:18, display:'flex', alignItems:'center', gap:7 }}>
                 <span style={{ width:6, height:6, borderRadius:'50%', background:'#10B981', animation:'pulse 2s infinite', flexShrink:0 }} />
                 <p style={{ fontSize:12, color:'#475569', margin:0 }}>Kein öffentlicher Zugang · Zuteilung durch Admin</p>
               </div>
-              <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
+              <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
                 <div>
                   <label style={lbl}>Nutzername</label>
-                  <input value={devUsername} onChange={e=>setDevUsername(e.target.value)} placeholder="dein-username" className="l-inp" autoComplete="username" onKeyDown={e=>e.key==='Enter'&&submitDev()} />
+                  <input value={devUsername} onChange={e=>setDevUsername(e.target.value)}
+                    placeholder="dein-username" className="l-inp" autoComplete="username"
+                    onKeyDown={e=>e.key==='Enter'&&submitDev()} />
                 </div>
                 <div>
                   <label style={lbl}>PIN</label>
-                  <input type="password" value={devPin} onChange={e=>setDevPin(e.target.value.replace(/\D/g,'').slice(0,8))} placeholder="••••" maxLength={8} inputMode="numeric" className="l-inp" onKeyDown={e=>e.key==='Enter'&&submitDev()} />
+                  <input type="password" value={devPin}
+                    onChange={e=>setDevPin(e.target.value.replace(/\D/g,'').slice(0,8))}
+                    placeholder="••••" maxLength={8} inputMode="numeric" className="l-inp"
+                    onKeyDown={e=>e.key==='Enter'&&submitDev()} />
                   <p style={{ fontSize:11, color:'#CBD5E1', marginTop:4 }}>Numerischer PIN, 4–8 Stellen</p>
                 </div>
               </div>
-              {error && <div style={errBox}>{error}</div>}
+              {error && <div style={errStyle}>{error}</div>}
               <button onClick={submitDev} disabled={loading} className="l-btn" style={{ marginTop:18 }}>
-                {loading ? <Spinner /> : 'Einloggen →'}
+                {loading ? <SpinBtn /> : 'Einloggen →'}
               </button>
-              <p style={{ marginTop:14, textAlign:'center', fontSize:12, color:'#CBD5E1' }}>
+              <p style={{ marginTop:12, textAlign:'center', fontSize:12, color:'#CBD5E1' }}>
                 Noch kein Zugang? Wende dich an dein Admin-Team.
               </p>
             </>
@@ -274,14 +301,14 @@ export default function LoginPage() {
   )
 }
 
-function Spinner() {
+function SpinBtn() {
   return (
     <span style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
-      <span style={{ width:14, height:14, border:'2px solid rgba(255,255,255,0.3)', borderTopColor:'#fff', borderRadius:'50%', display:'inline-block', animation:'spin 0.7s linear infinite' }} />
+      <span style={{ width:14, height:14, border:'2px solid rgba(255,255,255,.3)', borderTopColor:'#fff', borderRadius:'50%', display:'inline-block', animation:'spin .7s linear infinite' }} />
       Einen Moment…
     </span>
   )
 }
 
 const lbl: React.CSSProperties = { fontSize:12, fontWeight:500, color:'#64748B', display:'block', marginBottom:6 }
-const errBox: React.CSSProperties = { marginTop:12, padding:'10px 14px', background:'#FEF2F2', border:'1px solid #FECACA', borderRadius:9, fontSize:13, color:'#DC2626' }
+const errStyle: React.CSSProperties = { marginTop:12, padding:'10px 13px', background:'#FEF2F2', border:'1px solid #FECACA', borderRadius:9, fontSize:13, color:'#DC2626' }
