@@ -227,9 +227,9 @@ export default function SettingsPage() {
   )
 
   return (
-    <div style={{ display:'flex', gap:24, alignItems:'flex-start' }}>
+    <div style={{ display:'flex', gap:28, alignItems:'flex-start', width:'100%' }}>
       {/* Left column — settings forms */}
-      <div style={{ flex:1, minWidth:0, maxWidth:680 }}>
+      <div style={{ flex:'1 1 0', minWidth:0 }}>
       <style>{`
         .s-card { background:#fff;border:1px solid #EEF2F7;border-radius:20px;overflow:hidden;box-shadow:0 2px 16px rgba(15,23,42,.04);margin-bottom:12px; }
         .s-hd { padding:15px 22px;border-bottom:1px solid #F1F5F9;background:#FAFBFD;display:flex;align-items:center;justify-content:space-between; }
@@ -667,7 +667,7 @@ export default function SettingsPage() {
       )}
       </div>
       {/* Right column — info panel (desktop only) */}
-      <div className="hide-mobile" style={{ width:260, flexShrink:0, position:'sticky', top:36 }}>
+      <div className="hide-mobile" style={{ width:300, flexShrink:0, position:'sticky', top:36, alignSelf:'flex-start' }}>
         <SettingsRightPanel />
       </div>
     </div>

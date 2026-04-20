@@ -151,6 +151,7 @@ export default function Sidebar() {
         .mt:active { transform:scale(.9); }
         .mti { width:34px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:9px;transition:background .12s; }
         .mt.on .mti  { background:rgba(15,23,42,.08); }
+        .mt.has-avatar .mti { background:transparent !important; }
         .mt.on  .ml  { color:#0F172A;font-weight:700; }
         .mt.off .ml  { color:#94A3B8;font-weight:500; }
         .ml { font-size:10px;letter-spacing:.01em;transition:color .12s;line-height:1; }
@@ -243,12 +244,20 @@ export default function Sidebar() {
         {MOB_PRIMARY.map(item => {
           const on = isOn(item.href)
           return (
-            <Link key={item.href} href={resolve(item.href)} className={`mt ${on?'on':'off'}`}>
+            <Link key={item.href} href={resolve(item.href)} className={`mt ${on?'on':'off'} ${item.icon==='user'&&avatar?'has-avatar':''}`}>
               <div className="mti">
                 {item.icon==='user' && avatar ? (
-                  <img src={avatar} alt="" style={{ width:24,height:24,borderRadius:'50%',objectFit:'cover',border:`2px solid ${on?'#0F172A':'#E2E8F0'}` }}/>
+                  /* Avatar: NO background container, just the image with border */
+                  <img src={avatar} alt=""
+                    style={{
+                      width:28, height:28,
+                      borderRadius:'50%',
+                      objectFit:'cover',
+                      border: on ? '2.5px solid #0F172A' : '2px solid rgba(15,23,42,.12)',
+                      display:'block',
+                    }}
+                  />
                 ) : (
-                  /* Extra padding on mobile icons so they're not clipped */
                   <div style={{ width:24,height:24,display:'flex',alignItems:'center',justifyContent:'center' }}>
                     <Ico name={item.icon} sz={22} on={on} />
                   </div>

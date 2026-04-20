@@ -24,7 +24,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <div style={{ display:'flex',minHeight:'100vh',background:'var(--bg)' }}>
       <Sidebar />
       <main className="main-content" style={{ flex:1,minWidth:0 }}>
-        <div style={{ maxWidth:1200,margin:'0 auto' }}>
+        <div style={{ width:'100%' }}>
           {children}
         </div>
       </main>

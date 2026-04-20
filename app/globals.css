@@ -88,8 +88,10 @@ input:focus,textarea:focus,select:focus { outline:none; }
 
 .main-content {
   margin-left: 256px;
-  padding: 36px 44px;
+  padding: 36px 40px 36px 44px;
   min-height: 100vh;
+  /* Allow content to fill available width cleanly */
+  box-sizing: border-box;
 }
 
 /* Floating apple-style sidebar card */
