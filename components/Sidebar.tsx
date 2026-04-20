@@ -132,7 +132,7 @@ export default function Sidebar() {
 
       {/* ══ DESKTOP — floating sidebar card ══ */}
       <aside className="sidebar" style={{ position:'fixed',top:0,left:0,width:256,height:'100vh',zIndex:100,padding:'12px' }}>
-        <div className="sidebar-inner" style={{ height:'100%',display:'flex',flexDirection:'column',padding:'20px 10px' }}>
+        <div className="sidebar-inner" style={{ height:'100%',display:'flex',flexDirection:'column',padding:'20px 10px 20px 10px' }}>
           {/* Logo — slightly bigger */}
           <Link href="/dashboard" style={{ textDecoration:'none' }}>
             <div style={{ padding:'0 8px',marginBottom:24 }}>
@@ -169,7 +169,7 @@ export default function Sidebar() {
                 </div>
               </div>
             </Link>
-            <button onClick={logout} style={{ width:'100%',padding:'6px 9px',textAlign:'left',border:'none',background:'transparent',cursor:'pointer',fontSize:11.5,color:'#94A3B8',borderRadius:9,marginTop:1,fontFamily:'inherit',display:'flex',alignItems:'center',gap:5 }}>
+            <button onClick={logout} style={{ width:'100%',padding:'6px 9px',textAlign:'left',border:'none',background:'transparent',cursor:'pointer',fontSize:11.5,color:'#94A3B8',borderRadius:9,marginTop:1,marginBottom:4,fontFamily:'inherit',display:'flex',alignItems:'center',gap:5 }}>
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
               Abmelden
             </button>
