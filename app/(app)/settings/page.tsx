@@ -43,6 +43,7 @@ export default function SettingsPage() {
   const [confPwd, setConfPwd] = useState('')
   const [pwdSaving, setPwdSaving] = useState(false)
   const [pwdMsg,    setPwdMsg]    = useState<{t:'ok'|'err',m:string}|null>(null)
+  const [pwdOtp,    setPwdOtp]    = useState('')
   const [devices,   setDevices]   = useState<any[]>([])
 
   // integrations
@@ -157,16 +158,38 @@ export default function SettingsPage() {
     setUploading(false)
   }
 
-  // ── PASSWORD ──────────────────────────────────────
+  // ── PASSWORD via email verification ──────────────────
+  const [pwdStep, setPwdStep] = useState<'form'|'sent'>('form')
+
   async function changePassword() {
     if (newPwd !== confPwd) { setPwdMsg({ t:'err', m:'Passwörter stimmen nicht überein.' }); return }
     if (newPwd.length < 8) { setPwdMsg({ t:'err', m:'Mindestens 8 Zeichen erforderlich.' }); return }
     setPwdSaving(true); setPwdMsg(null)
-    const { error } = await sb.auth.updateUser({ password: newPwd })
+    // Step 1: Send OTP to email for verification
+    const { error: otpErr } = await sb.auth.signInWithOtp({
+      email,
+      options: { shouldCreateUser: false }
+    })
     setPwdSaving(false)
-    if (error) { setPwdMsg({ t:'err', m: error.message }); return }
-    setPwdMsg({ t:'ok', m:'Passwort erfolgreich geändert.' })
-    setNewPwd(''); setConfPwd('')
+    if (otpErr) { setPwdMsg({ t:'err', m: otpErr.message }); return }
+    // Store new password temporarily and show confirmation step
+    setPwdStep('sent')
+    setPwdMsg({ t:'ok', m:`Bestätigungslink wurde an ${email} gesendet. Klicke auf den Link um dein Passwort zu ändern.` })
+  }
+
+  async function confirmPasswordChange(otp: string) {
+    if (!otp || otp.length < 6) { setPwdMsg({ t:'err', m:'Bitte gib den 6-stelligen Code ein.' }); return }
+    setPwdSaving(true); setPwdMsg(null)
+    // Verify OTP then update password
+    const { error: verifyErr } = await sb.auth.verifyOtp({ email, token: otp, type: 'email' })
+    if (verifyErr) { setPwdMsg({ t:'err', m:'Ungültiger Code. Bitte erneut versuchen.' }); setPwdSaving(false); return }
+    const { error: updateErr } = await sb.auth.updateUser({ password: newPwd })
+    setPwdSaving(false)
+    if (updateErr) { setPwdMsg({ t:'err', m: updateErr.message }); return }
+    // Log security event
+    await sb.from('security_events').insert({ user_id: uid, event_type:'password_changed', metadata:{ method:'otp_email' } })
+    setPwdMsg({ t:'ok', m:'✓ Passwort erfolgreich geändert.' })
+    setNewPwd(''); setConfPwd(''); setPwdStep('form')
     setTimeout(() => setPwdMsg(null), 3000)
   }
 
@@ -501,24 +524,80 @@ export default function SettingsPage() {
       {tab==='security' && (
         <div className="fade-in" style={{ display:'flex',flexDirection:'column',gap:12 }}>
           <div className="s-card">
-            <div className="s-hd"><span className="s-hd-label">PASSWORT ÄNDERN</span></div>
+            <div className="s-hd">
+              <div>
+                <span className="s-hd-label">PASSWORT ÄNDERN</span>
+                <p style={{ fontSize:11.5,color:'#94A3B8',margin:'3px 0 0' }}>Änderung wird per E-Mail bestätigt</p>
+              </div>
+              <div style={{ display:'flex',alignItems:'center',gap:5,padding:'4px 10px',background:'#ECFDF5',border:'1px solid #A7F3D0',borderRadius:8 }}>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                <span style={{ fontSize:10.5,fontWeight:700,color:'#059669',letterSpacing:'.04em' }}>VERIFIZIERT</span>
+              </div>
+            </div>
             <div className="s-bd">
-              <div>
-                <label className="lbl">Neues Passwort</label>
-                <input type="password" value={newPwd} onChange={e=>setNewPwd(e.target.value)} placeholder="Mindestens 8 Zeichen" className="inp" autoComplete="new-password"/>
-              </div>
-              <div>
-                <label className="lbl">Passwort bestätigen</label>
-                <input type="password" value={confPwd} onChange={e=>setConfPwd(e.target.value)} placeholder="Wiederholen" className="inp" autoComplete="new-password" onKeyDown={e=>e.key==='Enter'&&changePassword()}/>
-              </div>
-              {pwdMsg && (
-                <div style={{ padding:'10px 14px',borderRadius:10,fontSize:13,fontWeight:600,background:pwdMsg.t==='ok'?'#ECFDF5':'#FEF2F2',color:pwdMsg.t==='ok'?'#059669':'#EF4444',border:`1px solid ${pwdMsg.t==='ok'?'#A7F3D0':'#FECACA'}` }}>{pwdMsg.m}</div>
+              {pwdStep==='form' ? (
+                <>
+                  <div style={{ background:'#F8FAFC',border:'1.5px solid #EEF2F7',borderRadius:12,padding:'12px 16px',display:'flex',gap:10,alignItems:'flex-start' }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748B" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink:0,marginTop:1 }}><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+                    <p style={{ fontSize:12.5,color:'#64748B',margin:0,lineHeight:1.5 }}>
+                      Nach dem Absenden erhältst du einen Bestätigungslink an <strong style={{ color:'#0F172A' }}>{email}</strong>. Erst nach Bestätigung wird das Passwort geändert.
+                    </p>
+                  </div>
+                  <div>
+                    <label className="lbl">Neues Passwort</label>
+                    <input type="password" value={newPwd} onChange={e=>setNewPwd(e.target.value)} placeholder="Mindestens 8 Zeichen" className="inp" autoComplete="new-password"/>
+                  </div>
+                  <div>
+                    <label className="lbl">Passwort bestätigen</label>
+                    <input type="password" value={confPwd} onChange={e=>setConfPwd(e.target.value)} placeholder="Wiederholen" className="inp" autoComplete="new-password" onKeyDown={e=>e.key==='Enter'&&changePassword()}/>
+                  </div>
+                  {pwdMsg && (
+                    <div style={{ padding:'10px 14px',borderRadius:10,fontSize:13,fontWeight:500,background:pwdMsg.t==='ok'?'#ECFDF5':'#FEF2F2',color:pwdMsg.t==='ok'?'#059669':'#EF4444',border:`1px solid ${pwdMsg.t==='ok'?'#A7F3D0':'#FECACA'}` }}>{pwdMsg.m}</div>
+                  )}
+                  <button onClick={changePassword} disabled={pwdSaving||!newPwd||!confPwd} className="btn-primary" style={{ alignSelf:'flex-start' }}>
+                    {pwdSaving
+                      ? <><span style={{ width:13,height:13,border:'2px solid rgba(255,255,255,.3)',borderTopColor:'#fff',borderRadius:'50%',animation:'spin .7s linear infinite' }}/>Sende E-Mail…</>
+                      : <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>Bestätigungs-E-Mail senden</>}
+                  </button>
+                </>
+              ) : (
+                <>
+                  {/* Sent state — show OTP input */}
+                  <div style={{ background:'#ECFDF5',border:'1.5px solid #A7F3D0',borderRadius:12,padding:'14px 16px',display:'flex',gap:10,alignItems:'center' }}>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2A19.79 19.79 0 0 1 2.09 5.18 2 2 0 0 1 4.09 3h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 10.9a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 17z"/></svg>
+                    <div>
+                      <p style={{ fontSize:13,fontWeight:600,color:'#059669',margin:0 }}>E-Mail gesendet an {email}</p>
+                      <p style={{ fontSize:12,color:'#059669',margin:'2px 0 0',opacity:.8 }}>Gib den 6-stelligen Code aus der E-Mail ein</p>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="lbl">Bestätigungscode (6 Stellen)</label>
+                    <input
+                      value={pwdOtp}
+                      onChange={e=>setPwdOtp(e.target.value.replace(/\D/g,'').slice(0,6))}
+                      placeholder="000000"
+                      className="inp"
+                      inputMode="numeric"
+                      maxLength={6}
+                      style={{ letterSpacing:'0.3em',fontSize:20,textAlign:'center',fontWeight:700 }}
+                      onKeyDown={e=>e.key==='Enter'&&confirmPasswordChange(pwdOtp)}
+                    />
+                  </div>
+                  {pwdMsg && (
+                    <div style={{ padding:'10px 14px',borderRadius:10,fontSize:13,fontWeight:500,background:pwdMsg.t==='ok'?'#ECFDF5':'#FEF2F2',color:pwdMsg.t==='ok'?'#059669':'#EF4444',border:`1px solid ${pwdMsg.t==='ok'?'#A7F3D0':'#FECACA'}` }}>{pwdMsg.m}</div>
+                  )}
+                  <div style={{ display:'flex',gap:8 }}>
+                    <button onClick={()=>confirmPasswordChange(pwdOtp)} disabled={pwdSaving||pwdOtp.length<6} className="btn-primary">
+                      {pwdSaving
+                        ? <><span style={{ width:13,height:13,border:'2px solid rgba(255,255,255,.3)',borderTopColor:'#fff',borderRadius:'50%',animation:'spin .7s linear infinite' }}/>Verifiziert…</>
+                        : <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M5 13l4 4L19 7"/></svg>Code bestätigen &amp; Passwort ändern</>}
+                    </button>
+                    <button onClick={()=>{setPwdStep('form');setPwdMsg(null);setPwdOtp('')}} className="btn-ghost">
+                      Zurück
+                    </button>
+                  </div>
+                </>
               )}
-              <button onClick={changePassword} disabled={pwdSaving||!newPwd||!confPwd} className="btn-primary" style={{ alignSelf:'flex-start' }}>
-                {pwdSaving
-                  ? <><span style={{ width:13,height:13,border:'2px solid rgba(255,255,255,.3)',borderTopColor:'#fff',borderRadius:'50%',animation:'spin .7s linear infinite' }}/>Ändert…</>
-                  : <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Passwort ändern</>}
-              </button>
             </div>
           </div>
 
@@ -670,6 +749,11 @@ export default function SettingsPage() {
       <div className="hide-mobile" style={{ width:300, flexShrink:0, position:'sticky', top:36, alignSelf:'flex-start' }}>
         <SettingsRightPanel />
       </div>
+    </div>
+
+    {/* ── Mobile: right panel content shown below main form ── */}
+    <div className="show-mobile" style={{ marginTop:12 }}>
+      <SettingsRightPanel />
     </div>
   )
 }

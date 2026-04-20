@@ -52,7 +52,7 @@ function Ico({ name, sz=18, on=false }: { name:string; sz?:number; on?:boolean }
     billing: <><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></>,
     doc:     <><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></>,
     // User icon — properly sized, not clipped
-    user:    <><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></>,
+    user:    <><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c0-3.5 3.1-6 7-6s7 2.5 7 6"/></>,
     more:    <><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></>,
     close:   <><path d="M18 6L6 18"/><path d="M6 6l12 12"/></>,
   }
@@ -121,23 +121,22 @@ export default function Sidebar() {
           width: calc(100% - 24px);
           max-width: 400px;
 
-          /* ── Proper glassmorphism ──
-             Frosted glass: semi-transparent white + strong blur
-             The blur creates the glass texture, the white tint keeps it readable */
-          background: rgba(255, 255, 255, 0.72);
-          backdrop-filter: blur(40px) saturate(180%) brightness(108%);
-          -webkit-backdrop-filter: blur(40px) saturate(180%) brightness(108%);
+          /* ── 90% white + subtle glass — modern & clean ──
+             High opacity white gives crisp readable tabs.
+             Small blur adds the glass depth without muddiness. */
+          background: rgba(255, 255, 255, 0.90);
+          backdrop-filter: blur(16px) saturate(160%);
+          -webkit-backdrop-filter: blur(16px) saturate(160%);
 
-          /* Layered borders for depth — light top edge, near-invisible bottom */
-          border: 1px solid rgba(255, 255, 255, 0.85);
-          border-bottom-color: rgba(200, 210, 230, 0.35);
+          /* Thicker border for the premium card look */
+          border: 1.5px solid rgba(255, 255, 255, 0.96);
+          border-bottom: 1.5px solid rgba(180, 200, 220, 0.35);
 
-          /* Multi-layer shadow: ambient + close + inset highlight */
+          /* Refined shadow stack */
           box-shadow:
-            0 12px 40px rgba(15, 23, 42, 0.12),
-            0 4px 12px rgba(15, 23, 42, 0.06),
-            inset 0 1px 0 rgba(255, 255, 255, 0.95),
-            inset 0 -1px 0 rgba(0, 0, 0, 0.03);
+            0 8px 32px rgba(15, 23, 42, 0.10),
+            0 3px 10px rgba(15, 23, 42, 0.05),
+            inset 0 1px 0 rgba(255, 255, 255, 1);
 
           border-radius: 24px;
           z-index: 200;
@@ -180,7 +179,7 @@ export default function Sidebar() {
           Shown via .sidebar class (display:flex on desktop)
       ════════════════════════════════════════ */}
       <aside className="sidebar" style={{ position:'fixed',top:0,left:0,width:256,height:'100vh',zIndex:100,padding:'12px',pointerEvents:'none' }}>
-        <div className="sidebar-inner" style={{ pointerEvents:'all',padding:'20px 10px 16px 10px',display:'flex',flexDirection:'column',height:'100%' }}>
+        <div className="sidebar-inner" style={{ pointerEvents:'all',padding:'20px 10px 20px 10px',display:'flex',flexDirection:'column',height:'100%' }}>
 
           {/* Logo */}
           <Link href="/dashboard" style={{ textDecoration:'none',display:'block' }}>
@@ -203,7 +202,7 @@ export default function Sidebar() {
           </nav>
 
           {/* User block — proper bottom spacing */}
-          <div style={{ borderTop:'1px solid #F1F5F9',paddingTop:10,marginTop:8,paddingBottom:4 }}>
+          <div style={{ borderTop:'1px solid #F1F5F9',paddingTop:10,marginTop:8,paddingBottom:10 }}>
             <Link href="/settings" style={{ textDecoration:'none' }}>
               <div
                 style={{ display:'flex',alignItems:'center',gap:9,padding:'7px 9px',borderRadius:11,cursor:'pointer',transition:'background .1s' }}
