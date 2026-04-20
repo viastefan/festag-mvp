@@ -565,26 +565,35 @@ export default function SettingsPage() {
           {/* Services */}
           <div className="s-card">
             <div className="s-hd">
-              <span className="s-hd-label">DIENSTE</span>
-              <span style={{ fontSize:10.5,color:'#94A3B8',fontStyle:'italic' }}>Fortschrittlich & bald verfügbar</span>
+              <div>
+                <span className="s-hd-label">DIENSTE & AUTOMATISIERUNGEN</span>
+                <p style={{ fontSize:11.5,color:'#94A3B8',margin:'3px 0 0' }}>Fortschrittlich & bald verfügbar — Verbinde dein Festag-Konto</p>
+              </div>
             </div>
             <div style={{ padding:'12px 18px',display:'flex',flexDirection:'column',gap:8 }}>
               {[
-                { name:'Slack',   logo:'/brand/slack.svg',   desc:'Projektbenachrichtigungen direkt in Slack',   bg:'#fff' },
-                { name:'Zapier',  logo:'/brand/zapier.svg',  desc:'Automatisierungen & No-Code Workflows',       bg:'#fff' },
-                { name:'Notion',  logo:'/brand/notion.svg',  desc:'Projekte & Tasks in Notion synchronisieren', bg:'#000' },
-                { name:'GitHub',  logo:'/brand/github.svg',  desc:'Repository verknüpfen & Code-Tracking',      bg:'#fff' },
-                { name:'Gmail',   logo:'/brand/gmail.svg',   desc:'E-Mail Benachrichtigungen & Integration',    bg:'#fff' },
-              ].map(s => (
-                <div key={s.name} className="int-card">
-                  <div className="int-logo" style={{ background:s.name==='Notion'?'#000':'#fff' }}>
+                { name:'Slack',   logo:'/brand/slack.svg',   desc:'Tasks & Updates direkt in deinen Slack-Workspace senden',   features:['Task-Benachrichtigungen','AI-Berichte als Message','Team-Channel Sync'] },
+                { name:'Zapier',  logo:'/brand/zapier.svg',  desc:'Tausende Apps automatisch mit Festag verbinden',            features:['5000+ App-Verbindungen','Custom Trigger & Actions','No-Code Workflows'] },
+                { name:'Notion',  logo:'/brand/notion.svg',  desc:'Projekte, Tasks & Dokumente in Notion synchronisieren',     features:['Bidirektionaler Sync','Datenbank-Integration','Automatische Updates'] },
+                { name:'GitHub',  logo:'/brand/github.svg',  desc:'Code-Repositories verknüpfen & Deployments tracken',        features:['PR → Task-Verknüpfung','Deployment-Status','Code-Review Tracking'] },
+                { name:'Gmail',   logo:'/brand/gmail.svg',   desc:'E-Mail Benachrichtigungen & Kundenkommunikation',           features:['Automatische E-Mails','Kunden-Updates','Rechnungsversand'] },
+              ].map((s, idx) => (
+                <div key={s.name} className="int-card" style={{ cursor:'default' }}>
+                  <div className="int-logo" style={{ background:s.name==='Notion'?'#000':'#fff',flexShrink:0 }}>
                     <img src={s.logo} alt={s.name} style={{ width:24,height:24,objectFit:'contain' }}/>
                   </div>
-                  <div style={{ flex:1 }}>
-                    <p style={{ fontSize:13.5,fontWeight:600,color:'#0F172A',margin:0 }}>{s.name}</p>
-                    <p style={{ fontSize:11.5,color:'#94A3B8',margin:'2px 0 0' }}>{s.desc}</p>
+                  <div style={{ flex:1,minWidth:0 }}>
+                    <div style={{ display:'flex',alignItems:'center',gap:7,marginBottom:3 }}>
+                      <p style={{ fontSize:13.5,fontWeight:700,color:'#0F172A',margin:0 }}>{s.name}</p>
+                      <span className="chip chip-blue" style={{ fontSize:9.5 }}>Kommt</span>
+                    </div>
+                    <p style={{ fontSize:12,color:'#64748B',margin:'0 0 6px',lineHeight:1.4 }}>{s.desc}</p>
+                    <div style={{ display:'flex',gap:5,flexWrap:'wrap' }}>
+                      {s.features.map(f => (
+                        <span key={f} style={{ fontSize:10.5,color:'#475569',background:'#F1F5F9',border:'1px solid #EEF2F7',borderRadius:6,padding:'2px 7px',fontWeight:500 }}>{f}</span>
+                      ))}
+                    </div>
                   </div>
-                  <span className="chip chip-blue">Bald</span>
                 </div>
               ))}
             </div>

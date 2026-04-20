@@ -114,25 +114,37 @@ export default function Sidebar() {
            The .bottom-nav class is display:none on desktop (globals.css)
            and display:flex on mobile. So this CSS only takes effect on mobile. */
         .mob-bar {
-          position:fixed;
-          bottom:14px;
-          left:50%;
-          transform:translateX(-50%);
-          width:calc(100% - 28px);
-          max-width:400px;
-          background:rgba(255,255,255,.88);
-          backdrop-filter:blur(28px) saturate(200%) brightness(105%);
-          -webkit-backdrop-filter:blur(28px) saturate(200%) brightness(105%);
-          border:1px solid rgba(255,255,255,.95);
-          border-bottom:1px solid rgba(0,0,0,.04);
-          box-shadow:0 8px 32px rgba(15,23,42,.10),0 2px 8px rgba(15,23,42,.05),inset 0 1px 0 rgba(255,255,255,1);
-          border-radius:22px;
-          z-index:200;
-          justify-content:space-around;
-          align-items:center;
-          padding:8px 4px;
-          padding-bottom:calc(8px + var(--safe-bottom));
-          /* flex is set by .bottom-nav class in globals.css on mobile only */
+          position: fixed;
+          bottom: 14px;
+          left: 50%;
+          transform: translateX(-50%);
+          width: calc(100% - 24px);
+          max-width: 400px;
+
+          /* ── Proper glassmorphism ──
+             Frosted glass: semi-transparent white + strong blur
+             The blur creates the glass texture, the white tint keeps it readable */
+          background: rgba(255, 255, 255, 0.72);
+          backdrop-filter: blur(40px) saturate(180%) brightness(108%);
+          -webkit-backdrop-filter: blur(40px) saturate(180%) brightness(108%);
+
+          /* Layered borders for depth — light top edge, near-invisible bottom */
+          border: 1px solid rgba(255, 255, 255, 0.85);
+          border-bottom-color: rgba(200, 210, 230, 0.35);
+
+          /* Multi-layer shadow: ambient + close + inset highlight */
+          box-shadow:
+            0 12px 40px rgba(15, 23, 42, 0.12),
+            0 4px 12px rgba(15, 23, 42, 0.06),
+            inset 0 1px 0 rgba(255, 255, 255, 0.95),
+            inset 0 -1px 0 rgba(0, 0, 0, 0.03);
+
+          border-radius: 24px;
+          z-index: 200;
+          justify-content: space-around;
+          align-items: center;
+          padding: 8px 4px;
+          padding-bottom: calc(8px + var(--safe-bottom));
         }
 
         .mt { display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;min-height:44px;justify-content:center;cursor:pointer;text-decoration:none;border:none;background:transparent;font-family:inherit;-webkit-tap-highlight-color:transparent; }
