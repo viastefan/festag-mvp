@@ -250,6 +250,7 @@ export default function SettingsPage() {
   )
 
   return (
+    <>
     <div style={{ display:'flex', gap:28, alignItems:'flex-start', width:'100%' }}>
       {/* Left column — settings forms */}
       <div style={{ flex:'1 1 0', minWidth:0 }}>
@@ -755,6 +756,7 @@ export default function SettingsPage() {
     <div className="show-mobile" style={{ marginTop:12 }}>
       <SettingsRightPanel />
     </div>
+    </>
   )
 }
 
