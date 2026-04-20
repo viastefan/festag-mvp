@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
+import SettingsRightPanel from '@/components/SettingsRightPanel'
 
 const INDUSTRIES = ['Technologie & Software','E-Commerce & Retail','Marketing & Werbung','Finanzen & Versicherung','Gesundheit & Medizin','Bildung & E-Learning','Immobilien & Bau','Medien & Entertainment','Logistik & Transport','Beratung & Services','Gastronomie & Tourismus','Sonstiges']
 const SIZES = [{v:'freelancer',l:'Freelancer'},{v:'1-10',l:'1–10'},{v:'10-50',l:'10–50'},{v:'50-200',l:'50–200'},{v:'200+',l:'200+'}]
@@ -226,7 +227,9 @@ export default function SettingsPage() {
   )
 
   return (
-    <div style={{ maxWidth:680 }}>
+    <div style={{ display:'flex', gap:24, alignItems:'flex-start' }}>
+      {/* Left column — settings forms */}
+      <div style={{ flex:1, minWidth:0, maxWidth:680 }}>
       <style>{`
         .s-card { background:#fff;border:1px solid #EEF2F7;border-radius:20px;overflow:hidden;box-shadow:0 2px 16px rgba(15,23,42,.04);margin-bottom:12px; }
         .s-hd { padding:15px 22px;border-bottom:1px solid #F1F5F9;background:#FAFBFD;display:flex;align-items:center;justify-content:space-between; }
@@ -653,6 +656,11 @@ export default function SettingsPage() {
           </div>
         </div>
       )}
+      </div>
+      {/* Right column — info panel (desktop only) */}
+      <div className="hide-mobile" style={{ width:260, flexShrink:0, position:'sticky', top:36 }}>
+        <SettingsRightPanel />
+      </div>
     </div>
   )
 }

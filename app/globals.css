@@ -10,11 +10,9 @@
   --surface-2: #F1F5F9;
   --border: #EEF2F7;
   --border-strong: #CBD5E1;
-
   --text: #0F172A;
   --text-secondary: #475569;
   --text-muted: #94A3B8;
-
   --blue: #007AFF;
   --blue-bg: #EFF6FF;
   --blue-border: #BFDBFE;
@@ -26,17 +24,14 @@
   --amber-bg: #FFFBEB;
   --red: #EF4444;
   --red-bg: #FEF2F2;
-
   --r-sm: 10px;
   --r: 14px;
   --r-lg: 18px;
   --r-xl: 24px;
-
   --shadow-xs: 0 1px 4px rgba(15,23,42,.04);
   --shadow-sm: 0 2px 8px rgba(15,23,42,.06);
   --shadow:    0 4px 20px rgba(15,23,42,.07);
   --shadow-lg: 0 8px 30px rgba(15,23,42,.08);
-
   --safe-top:    env(safe-area-inset-top);
   --safe-bottom: env(safe-area-inset-bottom);
   --safe-left:   env(safe-area-inset-left);
@@ -81,46 +76,60 @@ input,textarea,select { font-size:16px;font-family:inherit;font-weight:500;color
 
 .tap-scale { transition:transform .1s ease,opacity .12s; }
 .tap-scale:active { transform:scale(.97);opacity:.88; }
-
 input:focus,textarea:focus,select:focus { outline:none; }
 
-/* ── DESKTOP LAYOUT: floating sidebar left ── */
+/* ═══════════════════════════════════════
+   DESKTOP LAYOUT — sidebar always visible
+═══════════════════════════════════════ */
 .sidebar { display:flex; }
-.bottom-nav { display:none; }
+
+/* CRITICAL: bottom-nav is NEVER shown on desktop */
+.bottom-nav { display:none !important; }
 
 .main-content {
-  margin-left: 260px;
+  margin-left: 256px;
   padding: 36px 44px;
   min-height: 100vh;
 }
 
-/* Desktop sidebar: Apple-style floating card */
-@media(min-width:769px) {
-  .sidebar-inner {
-    position:fixed;top:12px;left:12px;bottom:12px;width:232px;
-    background:#fff;
-    border-radius:24px;
-    border:1px solid rgba(0,0,0,.05);
-    box-shadow:0 8px 32px rgba(15,23,42,.07), 0 2px 8px rgba(15,23,42,.04);
-    overflow:hidden;
-    /* Extra bottom padding so logout button clears the rounded corner */
-    padding-bottom:8px;
-  }
+/* Floating apple-style sidebar card */
+.sidebar-inner {
+  position: fixed;
+  top: 12px; left: 12px; bottom: 12px;
+  width: 232px;
+  background: #fff;
+  border-radius: 24px;
+  border: 1px solid rgba(0,0,0,.05);
+  box-shadow: 0 8px 32px rgba(15,23,42,.07), 0 2px 8px rgba(15,23,42,.04);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
-/* ── MOBILE LAYOUT ── */
+/* ═══════════════════════════════════════
+   MOBILE LAYOUT — bottom nav replaces sidebar
+═══════════════════════════════════════ */
 @media(max-width:768px) {
   h1 { font-size:22px; }
   h2 { font-size:18px; }
+
+  /* Hide desktop sidebar entirely on mobile */
   .sidebar { display:none !important; }
+
+  /* Show mobile bottom nav on mobile ONLY */
+  .bottom-nav { display:flex !important; }
+
   .main-content {
     margin-left: 0 !important;
     padding: calc(16px + var(--safe-top)) 16px calc(100px + var(--safe-bottom)) 16px !important;
   }
-  .bottom-nav { display:flex !important; }
+
   .grid-cols-4 { grid-template-columns:repeat(2,1fr) !important; }
   .grid-cols-2-mobile-1 { grid-template-columns:1fr !important; }
   .hide-mobile { display:none !important; }
   .show-mobile { display:block !important; }
 }
-@media(min-width:769px) { .show-mobile { display:none !important; } }
+
+@media(min-width:769px) {
+  .show-mobile { display:none !important; }
+}
