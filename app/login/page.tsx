@@ -26,44 +26,59 @@ function VideoPanel({ portal }: { portal: Portal }) {
         pointerEvents:'none',
       }}/>
       
-      {/* Animierte Bausteine - unterschiedliches Muster pro Portal */}
+      {/* Animierte Bausteine - durchgehende Wand am rechten Rand */}
       <style>{`
-        @keyframes slideInBlock{from{opacity:0;transform:translateX(100px);}to{opacity:1;transform:translateX(0);}}
-        .block{animation:slideInBlock .7s cubic-bezier(.16,1,.3,1) both;}
-        .b1{animation-delay:.05s;}
-        .b2{animation-delay:.12s;}
-        .b3{animation-delay:.19s;}
-        .b4{animation-delay:.26s;}
-        .b5{animation-delay:.33s;}
-        .b6{animation-delay:.40s;}
+        @keyframes slideIn{from{opacity:0;transform:translateX(80px);}to{opacity:1;transform:translateX(0);}}
+        .blk{animation:slideIn .6s cubic-bezier(.16,1,.3,1) both;position:absolute;right:0;background:#fff;pointerEvents:none;}
+        .d1{animation-delay:.03s;} .d2{animation-delay:.06s;} .d3{animation-delay:.09s;} 
+        .d4{animation-delay:.12s;} .d5{animation-delay:.15s;} .d6{animation-delay:.18s;}
+        .d7{animation-delay:.21s;} .d8{animation-delay:.24s;} .d9{animation-delay:.27s;}
+        .d10{animation-delay:.30s;} .d11{animation-delay:.33s;} .d12{animation-delay:.36s;}
       `}</style>
       
-      {/* SELECT Portal - großes Treppen-Muster */}
+      {/* SELECT Portal - Baustein-Wand rechts */}
       {portal === 'select' && (<>
-        <div className="block b1" style={{ position:'absolute', top:'5%', right:0, width:280, height:150, background:'#fff', pointerEvents:'none' }}/>
-        <div className="block b2" style={{ position:'absolute', top:'calc(5% + 150px)', right:80, width:240, height:140, background:'#fff', pointerEvents:'none' }}/>
-        <div className="block b3" style={{ position:'absolute', top:'52%', right:0, width:300, height:160, background:'#fff', pointerEvents:'none' }}/>
-        <div className="block b4" style={{ position:'absolute', bottom:'22%', right:60, width:260, height:145, background:'#fff', pointerEvents:'none' }}/>
-        <div className="block b5" style={{ position:'absolute', bottom:'5%', right:0, width:320, height:155, background:'#fff', pointerEvents:'none' }}/>
+        <div className="blk d1" style={{ top:0, width:180, height:'9%' }}/>
+        <div className="blk d2" style={{ top:'9%', width:150, height:'8%' }}/>
+        <div className="blk d3" style={{ top:'17%', width:200, height:'10%' }}/>
+        <div className="blk d4" style={{ top:'27%', width:160, height:'9%' }}/>
+        <div className="blk d5" style={{ top:'36%', width:190, height:'11%' }}/>
+        <div className="blk d6" style={{ top:'47%', width:170, height:'8%' }}/>
+        <div className="blk d7" style={{ top:'55%', width:210, height:'10%' }}/>
+        <div className="blk d8" style={{ top:'65%', width:155, height:'9%' }}/>
+        <div className="blk d9" style={{ top:'74%', width:185, height:'10%' }}/>
+        <div className="blk d10" style={{ top:'84%', width:200, height:'8%' }}/>
+        <div className="blk d11" style={{ top:'92%', width:175, height:'8%' }}/>
       </>)}
       
-      {/* CLIENT Portal - versetztes Muster */}
+      {/* CLIENT Portal - anderes Muster */}
       {portal === 'client' && (<>
-        <div className="block b1" style={{ position:'absolute', top:'3%', right:0, width:300, height:135, background:'#fff', pointerEvents:'none' }}/>
-        <div className="block b2" style={{ position:'absolute', top:'20%', right:100, width:220, height:120, background:'#fff', pointerEvents:'none' }}/>
-        <div className="block b3" style={{ position:'absolute', top:'42%', right:0, width:280, height:150, background:'#fff', pointerEvents:'none' }}/>
-        <div className="block b4" style={{ position:'absolute', top:'65%', right:70, width:250, height:140, background:'#fff', pointerEvents:'none' }}/>
-        <div className="block b5" style={{ position:'absolute', bottom:'3%', right:0, width:310, height:145, background:'#fff', pointerEvents:'none' }}/>
-        <div className="block b6" style={{ position:'absolute', top:'28%', right:0, width:180, height:110, background:'#fff', pointerEvents:'none' }}/>
+        <div className="blk d1" style={{ top:0, width:190, height:'8%' }}/>
+        <div className="blk d2" style={{ top:'8%', width:165, height:'10%' }}/>
+        <div className="blk d3" style={{ top:'18%', width:210, height:'9%' }}/>
+        <div className="blk d4" style={{ top:'27%', width:145, height:'11%' }}/>
+        <div className="blk d5" style={{ top:'38%', width:180, height:'8%' }}/>
+        <div className="blk d6" style={{ top:'46%', width:200, height:'10%' }}/>
+        <div className="blk d7" style={{ top:'56%', width:160, height:'9%' }}/>
+        <div className="blk d8" style={{ top:'65%', width:195, height:'11%' }}/>
+        <div className="blk d9" style={{ top:'76%', width:170, height:'8%' }}/>
+        <div className="blk d10" style={{ top:'84%', width:185, height:'9%' }}/>
+        <div className="blk d11" style={{ top:'93%', width:205, height:'7%' }}/>
       </>)}
       
-      {/* DEVELOPER Portal - kompaktes Muster */}
+      {/* DEVELOPER Portal - drittes Muster */}
       {portal === 'developer' && (<>
-        <div className="block b1" style={{ position:'absolute', top:'8%', right:0, width:260, height:125, background:'#fff', pointerEvents:'none' }}/>
-        <div className="block b2" style={{ position:'absolute', top:'25%', right:90, width:200, height:130, background:'#fff', pointerEvents:'none' }}/>
-        <div className="block b3" style={{ position:'absolute', top:'48%', right:0, width:290, height:155, background:'#fff', pointerEvents:'none' }}/>
-        <div className="block b4" style={{ position:'absolute', bottom:'18%', right:50, width:240, height:135, background:'#fff', pointerEvents:'none' }}/>
-        <div className="block b5" style={{ position:'absolute', bottom:'4%', right:0, width:270, height:140, background:'#fff', pointerEvents:'none' }}/>
+        <div className="blk d1" style={{ top:0, width:175, height:'10%' }}/>
+        <div className="blk d2" style={{ top:'10%', width:195, height:'8%' }}/>
+        <div className="blk d3" style={{ top:'18%', width:160, height:'11%' }}/>
+        <div className="blk d4" style={{ top:'29%', width:205, height:'9%' }}/>
+        <div className="blk d5" style={{ top:'38%', width:170, height:'10%' }}/>
+        <div className="blk d6" style={{ top:'48%', width:190, height:'8%' }}/>
+        <div className="blk d7" style={{ top:'56%', width:155, height:'11%' }}/>
+        <div className="blk d8" style={{ top:'67%', width:200, height:'9%' }}/>
+        <div className="blk d9" style={{ top:'76%', width:180, height:'10%' }}/>
+        <div className="blk d10" style={{ top:'86%', width:165, height:'8%' }}/>
+        <div className="blk d11" style={{ top:'94%', width:195, height:'6%' }}/>
       </>)}
       
       <div style={{ position:'absolute', top:28, left:32, zIndex:10 }}>
