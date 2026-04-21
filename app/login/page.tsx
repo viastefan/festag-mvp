@@ -308,9 +308,11 @@ export default function LoginPage() {
                 )}
                 Mit Google fortfahren
               </button>
-              <button onClick={()=>signInWithProvider('apple')} disabled={!!socialLoading} className="soc-btn" style={{ background:'#0F172A',color:'#fff',border:'none' }}>
+              <button onClick={()=>signInWithProvider('apple')} disabled={!!socialLoading} className="soc-btn" style={{ background:'#000',color:'#fff',border:'none' }}>
                 {socialLoading==='apple' ? <span style={{ width:16,height:16,border:'2px solid rgba(255,255,255,.3)',borderTopColor:'#fff',borderRadius:'50%',animation:'spin .7s linear infinite' }}/> : (
-                  <svg width="17" height="17" viewBox="0 0 814 1000" fill="#fff"><path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-57.9-155.5-127.4C46 790.7 0 663 0 541.8c0-207.8 140-317.8 277.8-317.8 73.5 0 134.5 46.5 181.2 46.5 44.4 0 114.4-49.1 200.9-49.1zm-87.4-190.3c43.3-51.9 74.1-123.4 74.1-194.9 0-9.7-.6-19.4-2.6-27.8-70.3 2.6-154.2 47.2-206.2 106.1-39.5 44.4-74.1 116.9-74.1 190.3 0 10.4 1.9 20.7 2.6 23.9 4.5.6 11.7 1.9 18.2 1.9 64.2 0 142.3-43.3 187.9-99.5z"/></svg>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="#fff">
+                    <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
+                  </svg>
                 )}
                 Mit Apple fortfahren
               </button>
