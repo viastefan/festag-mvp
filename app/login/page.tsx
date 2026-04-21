@@ -29,56 +29,63 @@ function VideoPanel({ portal }: { portal: Portal }) {
       {/* Animierte Bausteine - durchgehende Wand am rechten Rand */}
       <style>{`
         @keyframes slideIn{from{opacity:0;transform:translateX(80px);}to{opacity:1;transform:translateX(0);}}
-        .blk{animation:slideIn .6s cubic-bezier(.16,1,.3,1) both;position:absolute;right:0;background:#fff;pointerEvents:none;}
+        .blk{animation:slideIn .6s cubic-bezier(.16,1,.3,1) both;position:absolute;right:0;background:#FAFBFC;pointerEvents:none;}
         .d1{animation-delay:.03s;} .d2{animation-delay:.06s;} .d3{animation-delay:.09s;} 
         .d4{animation-delay:.12s;} .d5{animation-delay:.15s;} .d6{animation-delay:.18s;}
         .d7{animation-delay:.21s;} .d8{animation-delay:.24s;} .d9{animation-delay:.27s;}
         .d10{animation-delay:.30s;} .d11{animation-delay:.33s;} .d12{animation-delay:.36s;}
+        .d13{animation-delay:.39s;} .d14{animation-delay:.42s;}
       `}</style>
       
       {/* SELECT Portal - Baustein-Wand rechts */}
       {portal === 'select' && (<>
-        <div className="blk d1" style={{ top:0, width:180, height:'9%' }}/>
-        <div className="blk d2" style={{ top:'9%', width:150, height:'8%' }}/>
-        <div className="blk d3" style={{ top:'17%', width:200, height:'10%' }}/>
-        <div className="blk d4" style={{ top:'27%', width:160, height:'9%' }}/>
-        <div className="blk d5" style={{ top:'36%', width:190, height:'11%' }}/>
-        <div className="blk d6" style={{ top:'47%', width:170, height:'8%' }}/>
-        <div className="blk d7" style={{ top:'55%', width:210, height:'10%' }}/>
-        <div className="blk d8" style={{ top:'65%', width:155, height:'9%' }}/>
-        <div className="blk d9" style={{ top:'74%', width:185, height:'10%' }}/>
-        <div className="blk d10" style={{ top:'84%', width:200, height:'8%' }}/>
-        <div className="blk d11" style={{ top:'92%', width:175, height:'8%' }}/>
+        <div className="blk d1" style={{ top:0, width:90, height:'12%' }}/>
+        <div className="blk d2" style={{ top:'12%', width:120, height:'5%' }}/>
+        <div className="blk d3" style={{ top:'17%', width:75, height:'8%' }}/>
+        <div className="blk d4" style={{ top:'25%', width:110, height:'6%' }}/>
+        <div className="blk d5" style={{ top:'31%', width:95, height:'10%' }}/>
+        <div className="blk d6" style={{ top:'41%', width:85, height:'7%' }}/>
+        <div className="blk d7" style={{ top:'48%', width:105, height:'11%' }}/>
+        <div className="blk d8" style={{ top:'59%', width:70, height:'5%' }}/>
+        <div className="blk d9" style={{ top:'64%', width:100, height:'9%' }}/>
+        <div className="blk d10" style={{ top:'73%', width:115, height:'6%' }}/>
+        <div className="blk d11" style={{ top:'79%', width:80, height:'8%' }}/>
+        <div className="blk d12" style={{ top:'87%', width:95, height:'7%' }}/>
+        <div className="blk d13" style={{ top:'94%', width:110, height:'6%' }}/>
       </>)}
       
       {/* CLIENT Portal - anderes Muster */}
       {portal === 'client' && (<>
-        <div className="blk d1" style={{ top:0, width:190, height:'8%' }}/>
-        <div className="blk d2" style={{ top:'8%', width:165, height:'10%' }}/>
-        <div className="blk d3" style={{ top:'18%', width:210, height:'9%' }}/>
-        <div className="blk d4" style={{ top:'27%', width:145, height:'11%' }}/>
-        <div className="blk d5" style={{ top:'38%', width:180, height:'8%' }}/>
-        <div className="blk d6" style={{ top:'46%', width:200, height:'10%' }}/>
-        <div className="blk d7" style={{ top:'56%', width:160, height:'9%' }}/>
-        <div className="blk d8" style={{ top:'65%', width:195, height:'11%' }}/>
-        <div className="blk d9" style={{ top:'76%', width:170, height:'8%' }}/>
-        <div className="blk d10" style={{ top:'84%', width:185, height:'9%' }}/>
-        <div className="blk d11" style={{ top:'93%', width:205, height:'7%' }}/>
+        <div className="blk d1" style={{ top:0, width:105, height:'6%' }}/>
+        <div className="blk d2" style={{ top:'6%', width:85, height:'11%' }}/>
+        <div className="blk d3" style={{ top:'17%', width:100, height:'5%' }}/>
+        <div className="blk d4" style={{ top:'22%', width:70, height:'9%' }}/>
+        <div className="blk d5" style={{ top:'31%', width:115, height:'7%' }}/>
+        <div className="blk d6" style={{ top:'38%', width:90, height:'10%' }}/>
+        <div className="blk d7" style={{ top:'48%', width:80, height:'6%' }}/>
+        <div className="blk d8" style={{ top:'54%', width:120, height:'8%' }}/>
+        <div className="blk d9" style={{ top:'62%', width:75, height:'11%' }}/>
+        <div className="blk d10" style={{ top:'73%', width:95, height:'5%' }}/>
+        <div className="blk d11" style={{ top:'78%', width:110, height:'9%' }}/>
+        <div className="blk d12" style={{ top:'87%', width:85, height:'7%' }}/>
+        <div className="blk d13" style={{ top:'94%', width:100, height:'6%' }}/>
       </>)}
       
       {/* DEVELOPER Portal - drittes Muster */}
       {portal === 'developer' && (<>
-        <div className="blk d1" style={{ top:0, width:175, height:'10%' }}/>
-        <div className="blk d2" style={{ top:'10%', width:195, height:'8%' }}/>
-        <div className="blk d3" style={{ top:'18%', width:160, height:'11%' }}/>
-        <div className="blk d4" style={{ top:'29%', width:205, height:'9%' }}/>
-        <div className="blk d5" style={{ top:'38%', width:170, height:'10%' }}/>
-        <div className="blk d6" style={{ top:'48%', width:190, height:'8%' }}/>
-        <div className="blk d7" style={{ top:'56%', width:155, height:'11%' }}/>
-        <div className="blk d8" style={{ top:'67%', width:200, height:'9%' }}/>
-        <div className="blk d9" style={{ top:'76%', width:180, height:'10%' }}/>
-        <div className="blk d10" style={{ top:'86%', width:165, height:'8%' }}/>
-        <div className="blk d11" style={{ top:'94%', width:195, height:'6%' }}/>
+        <div className="blk d1" style={{ top:0, width:95, height:'8%' }}/>
+        <div className="blk d2" style={{ top:'8%', width:110, height:'11%' }}/>
+        <div className="blk d3" style={{ top:'19%', width:75, height:'6%' }}/>
+        <div className="blk d4" style={{ top:'25%', width:105, height:'5%' }}/>
+        <div className="blk d5" style={{ top:'30%', width:85, height:'10%' }}/>
+        <div className="blk d6" style={{ top:'40%', width:120, height:'7%' }}/>
+        <div className="blk d7" style={{ top:'47%', width:70, height:'9%' }}/>
+        <div className="blk d8" style={{ top:'56%', width:100, height:'6%' }}/>
+        <div className="blk d9" style={{ top:'62%', width:90, height:'11%' }}/>
+        <div className="blk d10" style={{ top:'73%', width:115, height:'5%' }}/>
+        <div className="blk d11" style={{ top:'78%', width:80, height:'8%' }}/>
+        <div className="blk d12" style={{ top:'86%', width:105, height:'7%' }}/>
+        <div className="blk d13" style={{ top:'93%', width:95, height:'7%' }}/>
       </>)}
       
       <div style={{ position:'absolute', top:28, left:32, zIndex:10 }}>
