@@ -26,7 +26,7 @@ function VideoPanel({ portal }: { portal: Portal }) {
         pointerEvents:'none',
       }}/>
       
-      {/* Animierte Bausteine wie in Bild 2 */}
+      {/* Animierte Bausteine wie in Bild 2 - durchgehend weiß */}
       <style>{`
         @keyframes slideInBlock1{from{opacity:0;transform:translateX(60px);}to{opacity:1;transform:translateX(0);}}
         @keyframes slideInBlock2{from{opacity:0;transform:translateX(80px);}to{opacity:1;transform:translateX(0);}}
@@ -40,12 +40,12 @@ function VideoPanel({ portal }: { portal: Portal }) {
         .block5{animation:slideInBlock5 .8s .5s cubic-bezier(.16,1,.3,1) both;}
       `}</style>
       
-      {/* Bausteine-Pattern von rechts kommend */}
-      <div className="block1" style={{ position:'absolute', top:'8%', right:0, width:280, height:120, background:'rgba(255,255,255,0.12)', pointerEvents:'none' }}/>
-      <div className="block2" style={{ position:'absolute', top:'calc(8% + 120px)', right:0, width:200, height:100, background:'rgba(255,255,255,0.08)', pointerEvents:'none' }}/>
-      <div className="block3" style={{ position:'absolute', top:'50%', right:0, width:240, height:140, background:'rgba(255,255,255,0.1)', pointerEvents:'none' }}/>
-      <div className="block4" style={{ position:'absolute', bottom:'22%', right:0, width:190, height:110, background:'rgba(255,255,255,0.09)', pointerEvents:'none' }}/>
-      <div className="block5" style={{ position:'absolute', bottom:'8%', right:0, width:260, height:130, background:'rgba(255,255,255,0.11)', pointerEvents:'none' }}/>
+      {/* Durchgehend weiße Bausteine von rechts */}
+      <div className="block1" style={{ position:'absolute', top:'4%', right:0, width:280, height:140, background:'#fff', pointerEvents:'none' }}/>
+      <div className="block2" style={{ position:'absolute', top:'calc(4% + 140px)', right:0, width:220, height:120, background:'#fff', pointerEvents:'none' }}/>
+      <div className="block3" style={{ position:'absolute', top:'48%', right:0, width:260, height:160, background:'#fff', pointerEvents:'none' }}/>
+      <div className="block4" style={{ position:'absolute', bottom:'20%', right:0, width:210, height:130, background:'#fff', pointerEvents:'none' }}/>
+      <div className="block5" style={{ position:'absolute', bottom:'4%', right:0, width:290, height:150, background:'#fff', pointerEvents:'none' }}/>
       
       <div style={{ position:'absolute', top:28, left:32, zIndex:10 }}>
         <img src="/brand/logo.svg" alt="festag" style={{ height:22, filter:'brightness(0) invert(1)', opacity:0.92 }} />
