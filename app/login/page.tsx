@@ -26,26 +26,43 @@ function VideoPanel({ portal }: { portal: Portal }) {
         pointerEvents:'none',
       }}/>
       
-      {/* Animierte Bausteine wie in Bild 2 - durchgehend weiß */}
+      {/* Animierte Bausteine wie in Bild 2 - durchgehend weiß mit Pixel-Effekt */}
       <style>{`
         @keyframes slideInBlock1{from{opacity:0;transform:translateX(60px);}to{opacity:1;transform:translateX(0);}}
-        @keyframes slideInBlock2{from{opacity:0;transform:translateX(80px);}to{opacity:1;transform:translateX(0);}}
-        @keyframes slideInBlock3{from{opacity:0;transform:translateX(100px);}to{opacity:1;transform:translateX(0);}}
-        @keyframes slideInBlock4{from{opacity:0;transform:translateX(120px);}to{opacity:1;transform:translateX(0);}}
-        @keyframes slideInBlock5{from{opacity:0;transform:translateX(140px);}to{opacity:1;transform:translateX(0);}}
-        .block1{animation:slideInBlock1 .8s .1s cubic-bezier(.16,1,.3,1) both;}
-        .block2{animation:slideInBlock2 .8s .2s cubic-bezier(.16,1,.3,1) both;}
-        .block3{animation:slideInBlock3 .8s .3s cubic-bezier(.16,1,.3,1) both;}
-        .block4{animation:slideInBlock4 .8s .4s cubic-bezier(.16,1,.3,1) both;}
-        .block5{animation:slideInBlock5 .8s .5s cubic-bezier(.16,1,.3,1) both;}
+        @keyframes slideInBlock2{from{opacity:0;transform:translateX(70px);}to{opacity:1;transform:translateX(0);}}
+        @keyframes slideInBlock3{from{opacity:0;transform:translateX(80px);}to{opacity:1;transform:translateX(0);}}
+        @keyframes slideInBlock4{from{opacity:0;transform:translateX(90px);}to{opacity:1;transform:translateX(0);}}
+        @keyframes slideInBlock5{from{opacity:0;transform:translateX(100px);}to{opacity:1;transform:translateX(0);}}
+        @keyframes slideInBlock6{from{opacity:0;transform:translateX(110px);}to{opacity:1;transform:translateX(0);}}
+        @keyframes slideInBlock7{from{opacity:0;transform:translateX(120px);}to{opacity:1;transform:translateX(0);}}
+        @keyframes slideInBlock8{from{opacity:0;transform:translateX(130px);}to{opacity:1;transform:translateX(0);}}
+        @keyframes slideInBlock9{from{opacity:0;transform:translateX(140px);}to{opacity:1;transform:translateX(0);}}
+        @keyframes slideInBlock10{from{opacity:0;transform:translateX(150px);}to{opacity:1;transform:translateX(0);}}
+        .block1{animation:slideInBlock1 .8s .05s cubic-bezier(.16,1,.3,1) both;}
+        .block2{animation:slideInBlock2 .8s .1s cubic-bezier(.16,1,.3,1) both;}
+        .block3{animation:slideInBlock3 .8s .15s cubic-bezier(.16,1,.3,1) both;}
+        .block4{animation:slideInBlock4 .8s .2s cubic-bezier(.16,1,.3,1) both;}
+        .block5{animation:slideInBlock5 .8s .25s cubic-bezier(.16,1,.3,1) both;}
+        .block6{animation:slideInBlock6 .8s .3s cubic-bezier(.16,1,.3,1) both;}
+        .block7{animation:slideInBlock7 .8s .35s cubic-bezier(.16,1,.3,1) both;}
+        .block8{animation:slideInBlock8 .8s .4s cubic-bezier(.16,1,.3,1) both;}
+        .block9{animation:slideInBlock9 .8s .45s cubic-bezier(.16,1,.3,1) both;}
+        .block10{animation:slideInBlock10 .8s .5s cubic-bezier(.16,1,.3,1) both;}
       `}</style>
       
-      {/* Durchgehend weiße Bausteine von rechts */}
-      <div className="block1" style={{ position:'absolute', top:'4%', right:0, width:280, height:140, background:'#fff', pointerEvents:'none' }}/>
-      <div className="block2" style={{ position:'absolute', top:'calc(4% + 140px)', right:0, width:220, height:120, background:'#fff', pointerEvents:'none' }}/>
-      <div className="block3" style={{ position:'absolute', top:'48%', right:0, width:260, height:160, background:'#fff', pointerEvents:'none' }}/>
-      <div className="block4" style={{ position:'absolute', bottom:'20%', right:0, width:210, height:130, background:'#fff', pointerEvents:'none' }}/>
-      <div className="block5" style={{ position:'absolute', bottom:'4%', right:0, width:290, height:150, background:'#fff', pointerEvents:'none' }}/>
+      {/* Durchgehend weiße Bausteine - Pixel-Effekt mit vielen kleinen/mittleren Blöcken */}
+      <div className="block1" style={{ position:'absolute', top:'2%', right:0, width:320, height:110, background:'#fff', pointerEvents:'none' }}/>
+      <div className="block2" style={{ position:'absolute', top:'14%', right:80, width:240, height:95, background:'#fff', pointerEvents:'none' }}/>
+      <div className="block3" style={{ position:'absolute', top:'26%', right:0, width:280, height:105, background:'#fff', pointerEvents:'none' }}/>
+      <div className="block4" style={{ position:'absolute', top:'40%', right:120, width:200, height:90, background:'#fff', pointerEvents:'none' }}/>
+      <div className="block5" style={{ position:'absolute', top:'55%', right:0, width:300, height:115, background:'#fff', pointerEvents:'none' }}/>
+      <div className="block6" style={{ position:'absolute', top:'72%', right:60, width:260, height:100, background:'#fff', pointerEvents:'none' }}/>
+      <div className="block7" style={{ position:'absolute', bottom:'18%', right:0, width:290, height:108, background:'#fff', pointerEvents:'none' }}/>
+      <div className="block8" style={{ position:'absolute', bottom:'4%', right:100, width:220, height:95, background:'#fff', pointerEvents:'none' }}/>
+      
+      {/* Zusätzliche kleine Pixel-Blöcke um Lücken zu füllen */}
+      <div className="block9" style={{ position:'absolute', top:'8%', right:320, width:140, height:75, background:'#fff', pointerEvents:'none' }}/>
+      <div className="block10" style={{ position:'absolute', top:'35%', right:300, width:120, height:65, background:'#fff', pointerEvents:'none' }}/>
       
       <div style={{ position:'absolute', top:28, left:32, zIndex:10 }}>
         <img src="/brand/logo.svg" alt="festag" style={{ height:22, filter:'brightness(0) invert(1)', opacity:0.92 }} />
