@@ -58,35 +58,35 @@ const LIGHT = {
 
 function getGreeting() {
   const h = new Date().getHours()
-  if (h >= 5  && h < 12) return { line1: 'Guten Morgen.', line2: null, sub: 'Bereit, dein Projekt voranzubringen?' }
-  if (h >= 12 && h < 14) return { line1: 'Guten Mittag.', line2: null, sub: 'Lass uns Fortschritt machen.' }
-  if (h >= 14 && h < 18) return { line1: 'Guten Nachmittag.', line2: null, sub: 'Dein Projekt wartet auf dich.' }
-  return                         { line1: 'Guten Abend.', line2: null,  sub: 'Dein Projekt wartet auf dich.' }
+  if (h >= 5  && h < 12) return 'Guten Morgen.'
+  if (h >= 12 && h < 14) return 'Guten Mittag.'
+  if (h >= 14 && h < 18) return 'Guten Nachmittag.'
+  return 'Guten Abend.'
 }
 
 type View = 'home' | 'login' | 'register' | 'dev'
 // Widths vary per block, heights sum to EXACTLY 100% — zero gaps guaranteed
-// Each array: {w in px, h in %}. Sum of h = 100 always.
+// Verschiedene Patterns für visuelles Interesse
 const BLOCKS: Record<View, {w:number,h:number}[]> = {
   home: [
-    {w:82, h:4}, {w:108,h:9}, {w:70, h:6}, {w:96, h:12},
-    {w:116,h:5}, {w:76, h:8}, {w:102,h:11},{w:86, h:7},
-    {w:112,h:9}, {w:78, h:6}, {w:98, h:13},{w:88, h:10},
+    {w:76,h:5},{w:112,h:8},{w:68,h:6},{w:98,h:11},
+    {w:120,h:7},{w:80,h:9},{w:104,h:10},{w:88,h:8},
+    {w:116,h:9},{w:72,h:7},{w:96,h:13},{w:84,h:7},
   ],// sum=100
   login: [
-    {w:76, h:5}, {w:110,h:10},{w:68, h:7}, {w:94, h:12},
-    {w:118,h:6}, {w:80, h:9}, {w:104,h:8}, {w:72, h:11},
-    {w:96, h:5}, {w:114,h:13},{w:84, h:7}, {w:90, h:7},
+    {w:82,h:6},{w:110,h:9},{w:70,h:7},{w:100,h:11},
+    {w:118,h:8},{w:76,h:10},{w:106,h:6},{w:84,h:9},
+    {w:114,h:7},{w:74,h:11},{w:94,h:8},{w:88,h:8},
   ],// sum=100
   register: [
-    {w:92, h:8}, {w:72, h:6}, {w:114,h:11},{w:84, h:5},
-    {w:66, h:9}, {w:100,h:12},{w:88, h:7}, {w:110,h:8},
-    {w:74, h:13},{w:96, h:6}, {w:82, h:9}, {w:104,h:6},
+    {w:94,h:7},{w:72,h:8},{w:116,h:10},{w:80,h:9},
+    {w:68,h:7},{w:102,h:11},{w:86,h:9},{w:112,h:8},
+    {w:76,h:12},{w:98,h:7},{w:88,h:6},{w:104,h:6},
   ],// sum=100
   dev: [
-    {w:100,h:7}, {w:76, h:11},{w:112,h:5}, {w:86, h:9},
-    {w:68, h:8}, {w:106,h:12},{w:80, h:6}, {w:94, h:10},
-    {w:114,h:7}, {w:72, h:5}, {w:90, h:11},{w:88, h:9},
+    {w:108,h:8},{w:78,h:10},{w:114,h:7},{w:86,h:9},
+    {w:66,h:8},{w:100,h:11},{w:82,h:9},{w:96,h:10},
+    {w:120,h:6},{w:74,h:8},{w:92,h:7},{w:88,h:7},
   ],// sum=100
 }
 
@@ -503,29 +503,22 @@ export default function LoginPage() {
         </button>
 
         <div className="frm">
-          {/* Tageszeit-Greeting statt Icon */}
+          {/* Headline — nur Greeting oder Aktion */}
           {(() => {
-            const g = getGreeting()
             const isDev = view==='dev'
             const isReg = view==='register'
-            const greetingLabel = isDev ? 'Developer Portal' : isReg ? 'Registrierung' : 'Login'
-            const headline = isDev ? 'Systemzugang.' : isReg ? 'Konto erstellen.' : g.line1
-            const subline = isDev ? 'Nur für verifizierte Festag Developer.'
-              : isReg ? 'Starte dein Projekt in weniger als 2 Minuten.'
-              : g.sub
+            const h = isDev ? 'Systemzugang.' : isReg ? 'Konto erstellen.' : getGreeting()
+            const sub = isDev ? 'Nur für verifizierte Festag Developer.'
+              : isReg ? 'Starte oder melde dich an.'
+              : 'Von der Idee zum fertigen Produkt — die KI versteht, plant und liefert.'
             return (
               <>
-                <p style={{fontSize:11,fontWeight:700,letterSpacing:'.12em',color:T.accentSec,
-                  textTransform:'uppercase',marginBottom:12}}>
-                  {greetingLabel}
-                </p>
-                <h1 style={{fontSize:32,fontWeight:700,color:T.text,letterSpacing:'-.7px',
-                  lineHeight:1.15,marginBottom:10,whiteSpace:'nowrap'}}>
-                  {headline}
+                <h1 style={{fontSize:40,fontWeight:700,color:T.text,letterSpacing:'-.8px',
+                  lineHeight:1.1,marginBottom:14}}>
+                  {h}
                 </h1>
-                <p style={{fontSize:15,color:T.textSec,marginBottom:28,lineHeight:1.55,fontWeight:500,
-                  maxWidth:340}}>
-                  {subline}
+                <p style={{fontSize:16,color:T.textSec,marginBottom:32,lineHeight:1.55,fontWeight:500}}>
+                  {sub}
                 </p>
               </>
             )
