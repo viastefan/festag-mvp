@@ -270,10 +270,6 @@ function ImagePanel({ view, dark }: { view: View; dark: boolean }) {
       </div>
       {/* copy */}
       <div style={{position:'absolute',bottom:52,left:48,right:'18%',zIndex:2}}>
-        <p style={{fontSize:11,fontWeight:700,color:'rgba(255,255,255,.4)',letterSpacing:'.18em',
-          textTransform:'uppercase',marginBottom:14}}>
-          Festag — AI-native Softwareproduktion
-        </p>
         <h2 style={{fontSize:48,fontWeight:700,color:'#fff',lineHeight:1.1,letterSpacing:'-.8px',
           marginBottom:16,textShadow:'0 2px 30px rgba(0,0,0,.6)'}}>
           {view==='home' ? <>Projekte,<br/>die laufen.</> :
@@ -421,10 +417,6 @@ export default function LoginPage() {
                 style={{height:19,filter:'brightness(0) invert(1)',opacity:.88}}/>
             </div>
             <div style={{position:'absolute',bottom:24,left:22,right:22,zIndex:2}}>
-              <p style={{fontSize:11,fontWeight:700,color:'rgba(255,255,255,.45)',
-                letterSpacing:'.15em',textTransform:'uppercase',marginBottom:10}}>
-                AI-native Softwareproduktion
-              </p>
               <h1 style={{fontSize:30,fontWeight:700,color:'#fff',lineHeight:1.15,
                 letterSpacing:'-.5px',textShadow:'0 2px 16px rgba(0,0,0,.5)'}}>
                 Projekte,<br/>die laufen.

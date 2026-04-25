@@ -105,21 +105,18 @@ export default function DashboardPage() {
       `}</style>
 
       {/* Greeting */}
-      <div className="animate-fade-up" style={{ marginBottom: 26 }}>
-        <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 5 }}>
-          {new Date().toLocaleDateString('de', { weekday: 'long', day: 'numeric', month: 'long' })}
-        </p>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-          <h1 style={{ marginBottom: 0 }}>{greeting}, {displayName}</h1>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '4px 10px', borderRadius: 20, background: 'var(--green-bg)', border: '1px solid var(--green-border)', fontSize: 11, fontWeight: 700, color: 'var(--green-dark)', letterSpacing: '0.04em' }}>
-            <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--green)', animation: 'pulse 2s infinite' }} />
-            SYSTEM AKTIV
-          </span>
-        </div>
-        <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginTop: 5, display: 'flex', alignItems: 'center', gap: 8 }}>
+      <div className="animate-fade-up" style={{ marginBottom: 32 }}>
+        <h1 style={{ fontSize:32, fontWeight:700, letterSpacing:'-.6px', lineHeight:1.15, marginBottom:6 }}>
+          {greeting}, {displayName}.
+        </h1>
+        <p style={{ fontSize: 15, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: 8 }}>
           <span>{projects.length} {projects.length === 1 ? 'Projekt' : 'Projekte'}</span>
           <span style={{ color: 'var(--border-strong)' }}>·</span>
           <span>Tagro AI Online</span>
+          <span style={{ display:'inline-flex',alignItems:'center',gap:4,padding:'2px 8px',borderRadius:20,background:'var(--green-bg)',border:'1px solid var(--green-border)',fontSize:10,fontWeight:700,color:'var(--green-dark)',letterSpacing:'0.04em',marginLeft:2 }}>
+            <span style={{ width:4,height:4,borderRadius:'50%',background:'var(--green)',animation:'pulse 2s infinite' }}/>
+            AKTIV
+          </span>
         </p>
       </div>
 
