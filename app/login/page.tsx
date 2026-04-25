@@ -56,54 +56,58 @@ const LIGHT = {
   blkColor: '#FFFFFF',
 }
 
-type View = 'home' | 'login' | 'register' | 'dev'
+function getGreeting() {
+  const h = new Date().getHours()
+  if (h >= 5  && h < 12) return { line1: 'Guten Morgen.', line2: null, sub: 'Bereit, dein Projekt voranzubringen?' }
+  if (h >= 12 && h < 14) return { line1: 'Guten Mittag.', line2: null, sub: 'Lass uns Fortschritt machen.' }
+  if (h >= 14 && h < 18) return { line1: 'Guten Nachmittag.', line2: null, sub: 'Dein Projekt wartet auf dich.' }
+  return                         { line1: 'Guten Abend.', line2: null,  sub: 'Dein Projekt wartet auf dich.' }
+}
 
-// ─── Pixel-Blocks sidebar ────────────────────────────────────────────────────
-// Pattern per view: array of {w, h (as %)} - all anchored right:0
+type View = 'home' | 'login' | 'register' | 'dev'
+// Widths vary per block, heights sum to EXACTLY 100% — zero gaps guaranteed
+// Each array: {w in px, h in %}. Sum of h = 100 always.
 const BLOCKS: Record<View, {w:number,h:number}[]> = {
   home: [
-    {w:88,h:3},{w:106,h:11},{w:68,h:5},{w:92,h:13},
-    {w:114,h:4},{w:72,h:9},{w:98,h:7},{w:84,h:12},
-    {w:110,h:6},{w:76,h:10},{w:102,h:5},{w:88,h:14},
-  ],
+    {w:82, h:4}, {w:108,h:9}, {w:70, h:6}, {w:96, h:12},
+    {w:116,h:5}, {w:76, h:8}, {w:102,h:11},{w:86, h:7},
+    {w:112,h:9}, {w:78, h:6}, {w:98, h:13},{w:88, h:10},
+  ],// sum=100
   login: [
-    {w:80,h:4},{w:112,h:8},{w:70,h:13},{w:95,h:5},
-    {w:118,h:9},{w:75,h:6},{w:104,h:11},{w:82,h:4},
-    {w:96,h:12},{w:108,h:7},{w:78,h:5},{w:90,h:10},
-  ],
+    {w:76, h:5}, {w:110,h:10},{w:68, h:7}, {w:94, h:12},
+    {w:118,h:6}, {w:80, h:9}, {w:104,h:8}, {w:72, h:11},
+    {w:96, h:5}, {w:114,h:13},{w:84, h:7}, {w:90, h:7},
+  ],// sum=100
   register: [
-    {w:94,h:11},{w:74,h:5},{w:116,h:7},{w:86,h:13},
-    {w:68,h:4},{w:100,h:9},{w:88,h:6},{w:112,h:10},
-    {w:76,h:14},{w:98,h:5},{w:84,h:8},{w:106,h:6},
-  ],
+    {w:92, h:8}, {w:72, h:6}, {w:114,h:11},{w:84, h:5},
+    {w:66, h:9}, {w:100,h:12},{w:88, h:7}, {w:110,h:8},
+    {w:74, h:13},{w:96, h:6}, {w:82, h:9}, {w:104,h:6},
+  ],// sum=100
   dev: [
-    {w:102,h:6},{w:78,h:12},{w:114,h:4},{w:88,h:9},
-    {w:70,h:7},{w:108,h:13},{w:82,h:5},{w:96,h:10},
-    {w:116,h:8},{w:74,h:4},{w:92,h:11},{w:86,h:6},
-  ],
+    {w:100,h:7}, {w:76, h:11},{w:112,h:5}, {w:86, h:9},
+    {w:68, h:8}, {w:106,h:12},{w:80, h:6}, {w:94, h:10},
+    {w:114,h:7}, {w:72, h:5}, {w:90, h:11},{w:88, h:9},
+  ],// sum=100
 }
 
 function PixelBlocks({ view, color }: { view: View; color: string }) {
   const blocks = BLOCKS[view]
-  // Calculate cumulative top positions from heights
   let top = 0
   const positioned = blocks.map(b => {
     const t = top
     top += b.h
     return { ...b, top: t }
   })
-
   return (
     <>
       <style>{`
         @keyframes blkIn{from{opacity:0;transform:translateX(60px);}to{opacity:1;transform:translateX(0);}}
-        .px-blk{position:absolute;right:0;pointer-events:none;animation:blkIn .55s cubic-bezier(.16,1,.3,1) both;}
+        .px-blk{position:absolute;right:0;pointer-events:none;animation:blkIn .5s cubic-bezier(.16,1,.3,1) both;}
       `}</style>
       {positioned.map((b,i) => (
         <div key={i} className="px-blk" style={{
           top:`${b.top}%`, width:b.w, height:`${b.h}%`,
-          background:color,
-          animationDelay:`${i*0.03}s`,
+          background:color, animationDelay:`${i*0.025}s`,
         }}/>
       ))}
     </>
@@ -469,8 +473,6 @@ export default function LoginPage() {
   )
 
   // ─── LOGIN / REGISTER / DEV ──────────────────────────────────────────────────
-  const isDev = view==='dev'
-  const isReg = view==='register'
 
   return (
     <div style={{minHeight:'100dvh',background:T.bg,fontFamily:"'Aeonik',sans-serif",WebkitFontSmoothing:'antialiased',display:'flex'}}>
@@ -501,29 +503,33 @@ export default function LoginPage() {
         </button>
 
         <div className="frm">
-          {/* Icon */}
-          <div style={{width:50,height:50,borderRadius:14,background:T.card,
-            border:`1px solid ${T.border}`,display:'flex',alignItems:'center',
-            justifyContent:'center',marginBottom:22}}>
-            {isDev
-              ? <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={T.accent} strokeWidth="2" strokeLinecap="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
-              : <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={T.accent} strokeWidth="2" strokeLinecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            }
-          </div>
-
-          <p style={{fontSize:11,fontWeight:700,letterSpacing:'.12em',color:T.accentSec,
-            textTransform:'uppercase',marginBottom:9}}>
-            {isDev?'Developer Portal':isReg?'Registrierung':'Login'}
-          </p>
-          <h1 style={{fontSize:29,fontWeight:700,color:T.text,letterSpacing:'-.6px',
-            lineHeight:1.2,marginBottom:8}}>
-            {isDev?'Systemzugang.':isReg?'Konto erstellen.':'Willkommen zurück.'}
-          </h1>
-          <p style={{fontSize:15,color:T.textSec,marginBottom:28,lineHeight:1.55,fontWeight:500}}>
-            {isDev?'Nur für verifizierte Festag Developer.':
-             isReg?'Starte dein Projekt in weniger als 2 Minuten.':
-             'Melde dich an, um fortzufahren.'}
-          </p>
+          {/* Tageszeit-Greeting statt Icon */}
+          {(() => {
+            const g = getGreeting()
+            const isDev = view==='dev'
+            const isReg = view==='register'
+            const greetingLabel = isDev ? 'Developer Portal' : isReg ? 'Registrierung' : 'Login'
+            const headline = isDev ? 'Systemzugang.' : isReg ? 'Konto erstellen.' : g.line1
+            const subline = isDev ? 'Nur für verifizierte Festag Developer.'
+              : isReg ? 'Starte dein Projekt in weniger als 2 Minuten.'
+              : g.sub
+            return (
+              <>
+                <p style={{fontSize:11,fontWeight:700,letterSpacing:'.12em',color:T.accentSec,
+                  textTransform:'uppercase',marginBottom:12}}>
+                  {greetingLabel}
+                </p>
+                <h1 style={{fontSize:32,fontWeight:700,color:T.text,letterSpacing:'-.7px',
+                  lineHeight:1.15,marginBottom:10,whiteSpace:'nowrap'}}>
+                  {headline}
+                </h1>
+                <p style={{fontSize:15,color:T.textSec,marginBottom:28,lineHeight:1.55,fontWeight:500,
+                  maxWidth:340}}>
+                  {subline}
+                </p>
+              </>
+            )
+          })()}
 
           {error && <ErrBox msg={error} dark={dark}/>}
 
