@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import LoadingScreen from '@/components/LoadingScreen'
+import ThemeToggle from '@/components/ThemeToggle'
 
 type Project = { id: string; title: string; description: string|null; status: string; created_at: string }
 
@@ -94,30 +95,61 @@ export default function DashboardPage() {
   )
 
   return (
-    <div>
+    <div style={{ padding:'32px 40px 40px', maxWidth:1200 }}>
       <style>{`
         @keyframes progressFill { from{width:0;}to{width:${pct}%;} }
         @keyframes logSlide { from{opacity:0;transform:translateX(-6px);}to{opacity:1;transform:translateX(0);} }
         .progress-bar { animation: progressFill 1.2s cubic-bezier(.16,1,.3,1) both .3s; }
         .log-new { animation: logSlide .3s ease both; }
         .card-lift { transition: transform .15s, box-shadow .15s; }
-        .card-lift:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,0,0,.08); }
+        .card-lift:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+        @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+        @media(max-width:768px){.dash-header{flex-direction:column;gap:12px;}.dash-search{width:100%!important;}}
       `}</style>
 
-      {/* Greeting */}
-      <div className="animate-fade-up" style={{ marginBottom: 32 }}>
-        <h1 style={{ fontSize:32, fontWeight:700, letterSpacing:'-.6px', lineHeight:1.15, marginBottom:6 }}>
-          {greeting}, {displayName}.
-        </h1>
-        <p style={{ fontSize: 15, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span>{projects.length} {projects.length === 1 ? 'Projekt' : 'Projekte'}</span>
-          <span style={{ color: 'var(--border-strong)' }}>·</span>
-          <span>Tagro AI Online</span>
-          <span style={{ display:'inline-flex',alignItems:'center',gap:4,padding:'2px 8px',borderRadius:20,background:'var(--green-bg)',border:'1px solid var(--green-border)',fontSize:10,fontWeight:700,color:'var(--green-dark)',letterSpacing:'0.04em',marginLeft:2 }}>
-            <span style={{ width:4,height:4,borderRadius:'50%',background:'var(--green)',animation:'pulse 2s infinite' }}/>
-            AKTIV
-          </span>
-        </p>
+      {/* ── TOP HEADER ── */}
+      <div className="dash-header animate-fade-up" style={{ display:'flex', alignItems:'center', gap:16, marginBottom:36 }}>
+        {/* Greeting left */}
+        <div style={{ flex:1 }}>
+          <h1 style={{ fontSize:28, fontWeight:700, letterSpacing:'-.6px', lineHeight:1.15, marginBottom:4, color:'var(--text)' }}>
+            {greeting}, {displayName}.
+          </h1>
+          <p style={{ fontSize:14, color:'var(--text-secondary)', display:'flex', alignItems:'center', gap:8, margin:0 }}>
+            <span>{projects.length} {projects.length === 1 ? 'Projekt' : 'Projekte'}</span>
+            <span>·</span>
+            <span style={{ display:'inline-flex', alignItems:'center', gap:4 }}>
+              <span style={{ width:5, height:5, borderRadius:'50%', background:'var(--green)', animation:'pulse 2s infinite', display:'inline-block' }}/>
+              Tagro AI Online
+            </span>
+          </p>
+        </div>
+
+        {/* Search */}
+        <div className="dash-search" style={{ position:'relative', width:240 }}>
+          <svg style={{ position:'absolute', left:12, top:'50%', transform:'translateY(-50%)', pointerEvents:'none' }}
+            width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2" strokeLinecap="round">
+            <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+          </svg>
+          <input placeholder="Suchen..." style={{ width:'100%', padding:'9px 12px 9px 34px',
+            background:'var(--card)', border:'1px solid var(--border)', borderRadius:12,
+            fontSize:13, color:'var(--text)', fontFamily:'inherit', fontWeight:500, outline:'none',
+            transition:'border-color .15s' }}
+            onFocus={e=>e.target.style.borderColor='var(--border-strong)'}
+            onBlur={e=>e.target.style.borderColor='var(--border)'}/>
+        </div>
+
+        {/* New project */}
+        <a href="/new-project" style={{ display:'flex', alignItems:'center', gap:7, padding:'9px 16px',
+          background:'var(--btn-prim)', color:'var(--btn-prim-text)', borderRadius:12,
+          fontSize:13, fontWeight:700, textDecoration:'none', flexShrink:0, transition:'opacity .15s' }}
+          onMouseEnter={e=>(e.currentTarget as HTMLElement).style.opacity='.85'}
+          onMouseLeave={e=>(e.currentTarget as HTMLElement).style.opacity='1'}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          Neues Projekt
+        </a>
+
+        {/* Theme toggle */}
+        <ThemeToggle position="relative"/>
       </div>
 
       {/* News banner */}

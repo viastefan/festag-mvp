@@ -1,9 +1,10 @@
 import './globals.css'
 import type { Metadata, Viewport } from 'next'
+import ThemeProvider from '@/components/ThemeProvider'
 
 export const metadata: Metadata = {
   title: 'Festag — AI-native Softwareproduktion',
-  description: 'AI plant. Menschen bauen. Ein System verbindet alles.',
+  description: 'Kein Informationsverlust mehr. Die KI versteht, plant und liefert.',
   manifest: '/manifest.json',
   applicationName: 'Festag',
   appleWebApp: { capable: true, statusBarStyle: 'default', title: 'Festag' },
@@ -18,7 +19,7 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: '#FFFFFF',
+  themeColor: '#0E0F0E',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
@@ -28,14 +29,16 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="de">
+    <html lang="de" data-theme="dark">
       <head>
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="Festag" />
         <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png" />
       </head>
-      <body>{children}</body>
+      <body>
+        <ThemeProvider>{children}</ThemeProvider>
+      </body>
     </html>
   )
 }

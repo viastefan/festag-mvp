@@ -4,21 +4,58 @@
 
 *,*::before,*::after { box-sizing:border-box; padding:0; margin:0; }
 
-:root {
-  --bg:#F8FAFC; --surface:#FFFFFF; --surface-2:#F1F5F9;
-  --border:#EEF2F7; --border-strong:#CBD5E1;
-  --text:#0F172A; --text-secondary:#475569; --text-muted:#94A3B8;
-  --blue:#007AFF; --blue-bg:#EFF6FF; --blue-border:#BFDBFE;
-  --green:#10B981; --green-bg:#ECFDF5; --green-border:#A7F3D0; --green-dark:#059669;
-  --amber:#F59E0B; --amber-bg:#FFFBEB;
-  --red:#EF4444; --red-bg:#FEF2F2;
-  --r-sm:10px; --r:14px; --r-lg:18px; --r-xl:24px;
-  --shadow-xs:0 1px 4px rgba(15,23,42,.04);
-  --shadow-sm:0 2px 8px rgba(15,23,42,.06);
-  --shadow:0 4px 20px rgba(15,23,42,.07);
-  --shadow-lg:0 8px 30px rgba(15,23,42,.08);
-  --safe-top:env(safe-area-inset-top);
-  --safe-bottom:env(safe-area-inset-bottom);
+/* ═══════════════════════════════════════════════
+   THEME VARIABLES — set via data-theme on <html>
+═══════════════════════════════════════════════ */
+:root, [data-theme="light"] {
+  --bg:#F8F9F8; --surface:#FFFFFF; --card:#F1F3F1;
+  --border:rgba(0,0,0,0.08); --border-strong:rgba(0,0,0,0.18);
+  --text:#0F120F; --text-secondary:#4A5450; --text-muted:#9AA49E;
+  --btn-prim:#323635; --btn-prim-text:#FFFFFF;
+  --inp:#FFFFFF; --inp-border:rgba(0,0,0,0.12); --inp-focus:#FFFFFF; --inp-focus-border:#323635;
+  --glow:rgba(50,54,53,0.07);
+  --sidebar-bg:rgba(255,255,255,0.93); --sidebar-border:rgba(255,255,255,0.97);
+  --nav-on:#F1F3F1; --nav-on-text:#0F120F; --nav-off-text:#64748B;
+  /* Keep legacy compat vars */
+  --surface-2:#F1F5F9; --green:#10B981; --green-bg:#ECFDF5; --green-border:#A7F3D0; --green-dark:#059669;
+  --amber:#F59E0B; --red:#EF4444; --red-bg:#FEF2F2;
+  --shadow-xs:0 1px 4px rgba(15,23,42,.04); --shadow-sm:0 2px 8px rgba(15,23,42,.06);
+  --shadow:0 4px 20px rgba(15,23,42,.07); --shadow-lg:0 8px 30px rgba(15,23,42,.08);
+  --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
+}
+
+[data-theme="dark"] {
+  --bg:#0E0F0E; --surface:#161917; --card:#1C1F1C;
+  --border:rgba(255,255,255,0.08); --border-strong:rgba(255,255,255,0.15);
+  --text:#F4F5F4; --text-secondary:#7A8780; --text-muted:#3E4642;
+  --btn-prim:#FFFFFF; --btn-prim-text:#0E0F0E;
+  --inp:rgba(255,255,255,0.05); --inp-border:rgba(255,255,255,0.1);
+  --inp-focus:rgba(255,255,255,0.09); --inp-focus-border:rgba(255,255,255,0.35);
+  --glow:rgba(255,255,255,0.05);
+  --sidebar-bg:rgba(22,25,23,0.97); --sidebar-border:rgba(255,255,255,0.07);
+  --nav-on:rgba(255,255,255,0.1); --nav-on-text:#FFFFFF; --nav-off-text:#4A5450;
+  --surface-2:#1C1F1C; --green:#34A06E; --green-bg:rgba(52,160,110,0.12);
+  --green-border:rgba(52,160,110,0.25); --green-dark:#5DC98A;
+  --amber:#F59E0B; --red:#EF4444; --red-bg:rgba(239,68,68,0.1);
+  --shadow-xs:0 1px 4px rgba(0,0,0,.3); --shadow-sm:0 2px 8px rgba(0,0,0,.35);
+  --shadow:0 4px 20px rgba(0,0,0,.4); --shadow-lg:0 8px 30px rgba(0,0,0,.5);
+  --logo-filter:brightness(0) invert(1);
+}
+
+[data-theme="read"] {
+  --bg:#F5F0E8; --surface:#FDFAF4; --card:#EDE8DE;
+  --border:rgba(0,0,0,0.07); --border-strong:rgba(0,0,0,0.14);
+  --text:#2C2416; --text-secondary:#6B5E47; --text-muted:#A09278;
+  --btn-prim:#2C2416; --btn-prim-text:#FDFAF4;
+  --inp:#FDFAF4; --inp-border:rgba(0,0,0,0.1); --inp-focus:#FFFFFF; --inp-focus-border:#2C2416;
+  --glow:rgba(44,36,22,0.06);
+  --sidebar-bg:rgba(253,250,244,0.95); --sidebar-border:rgba(0,0,0,0.06);
+  --nav-on:#EDE8DE; --nav-on-text:#2C2416; --nav-off-text:#8B7355;
+  --surface-2:#EDE8DE; --green:#4A7C59; --green-bg:rgba(74,124,89,0.1);
+  --green-border:rgba(74,124,89,0.2); --green-dark:#3A6347;
+  --amber:#B8860B; --red:#8B3A3A; --red-bg:rgba(139,58,58,0.08);
+  --shadow-xs:0 1px 4px rgba(44,36,22,.05); --shadow-sm:0 2px 8px rgba(44,36,22,.06);
+  --shadow:0 4px 20px rgba(44,36,22,.08); --shadow-lg:0 8px 30px rgba(44,36,22,.1);
 }
 
 html,body {
@@ -28,6 +65,7 @@ html,body {
   -webkit-font-smoothing:antialiased;
   -webkit-tap-highlight-color:transparent;
   overscroll-behavior-y:none;
+  transition:background .2s ease, color .2s ease;
 }
 p,span,div,label { font-weight:500; }
 h1 { font-size:28px;font-weight:700;letter-spacing:-.5px;line-height:1.2;color:var(--text); }
@@ -44,7 +82,6 @@ input,textarea,select { font-size:16px;font-family:inherit;font-weight:500;color
 @keyframes fadeUp  { from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);} }
 @keyframes pulse   { 0%,100%{opacity:1;}50%{opacity:.4;} }
 @keyframes spin    { to{transform:rotate(360deg);} }
-@keyframes slideUp { from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);} }
 
 .animate-fade-up   { animation:fadeUp .3s cubic-bezier(.16,1,.3,1) both; }
 .animate-fade-up-1 { animation:fadeUp .3s .05s cubic-bezier(.16,1,.3,1) both; }
@@ -55,60 +92,41 @@ input,textarea,select { font-size:16px;font-family:inherit;font-weight:500;color
 .tap-scale:active { transform:scale(.97);opacity:.88; }
 input:focus,textarea:focus,select:focus { outline:none; }
 
-/* ═══════════════════════════════════════════════════
-   DESKTOP — sidebar always visible, never bottom-nav
-═══════════════════════════════════════════════════ */
+/* ═══ DESKTOP ═══ */
 .sidebar    { display:flex; }
-.bottom-nav { display:none !important; }  /* NEVER on desktop */
-
+.bottom-nav { display:none !important; }
 .main-content {
-  margin-left: 256px;
-  padding: 36px 40px 36px 44px;
-  min-height: 100vh;
-  box-sizing: border-box;
+  margin-left:256px;
+  padding:0;
+  min-height:100vh;
 }
 
-/* ── Desktop sidebar: premium glassmorphism card ──
-   90% white + subtle blur + thick border for modern look */
 .sidebar-inner {
-  position: fixed;
-  top: 12px; left: 12px; bottom: 12px;
-  width: 232px;
-  /* 90% white with slight glass effect */
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  /* Thicker, more visible border */
-  border: 1.5px solid rgba(255, 255, 255, 0.95);
-  border-bottom-color: rgba(200, 215, 235, 0.5);
-  border-right-color: rgba(200, 215, 235, 0.4);
-  /* Clean modern shadow */
-  box-shadow:
-    0 8px 32px rgba(15, 23, 42, 0.08),
-    0 2px 8px rgba(15, 23, 42, 0.04),
-    inset 0 1px 0 rgba(255, 255, 255, 1);
-  border-radius: 24px;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+  position:fixed; top:12px; left:12px; bottom:12px; width:232px;
+  background:var(--sidebar-bg);
+  backdrop-filter:blur(20px) saturate(180%);
+  -webkit-backdrop-filter:blur(20px) saturate(180%);
+  border:1.5px solid var(--sidebar-border);
+  box-shadow:var(--shadow-lg);
+  border-radius:24px;
+  display:flex; flex-direction:column; overflow:hidden;
+  transition:background .2s ease, border-color .2s ease;
 }
 
-/* ═══════════════════════════════════════════════════
-   MOBILE — bottom nav ONLY
-═══════════════════════════════════════════════════ */
+/* ═══ MOBILE ═══ */
 @media(max-width:768px) {
   h1 { font-size:22px; }
   h2 { font-size:18px; }
   .sidebar { display:none !important; }
-  .bottom-nav { display:flex !important; }  /* flex on mobile */
+  .bottom-nav { display:flex !important; }
   .main-content {
-    margin-left: 0 !important;
-    padding: calc(14px + var(--safe-top)) 14px calc(96px + var(--safe-bottom)) 14px !important;
+    margin-left:0 !important;
+    padding:calc(14px + var(--safe-top)) 14px calc(96px + var(--safe-bottom)) 14px !important;
   }
-  .grid-cols-4           { grid-template-columns:repeat(2,1fr) !important; }
-  .grid-cols-2-mobile-1  { grid-template-columns:1fr !important; }
-  .hide-mobile           { display:none !important; }
-  .show-mobile           { display:block !important; }
-  div.show-mobile        { display:block !important; }
+  .grid-cols-4          { grid-template-columns:repeat(2,1fr) !important; }
+  .grid-cols-2-mobile-1 { grid-template-columns:1fr !important; }
+  .hide-mobile { display:none !important; }
+  .show-mobile { display:block !important; }
+  div.show-mobile { display:block !important; }
 }
 @media(min-width:769px) { .show-mobile { display:none !important; } }

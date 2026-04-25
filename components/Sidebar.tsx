@@ -106,9 +106,9 @@ export default function Sidebar() {
       <style>{`
         /* ── Desktop nav items ── */
         .ni { display:flex;align-items:center;gap:10px;padding:8px 11px;border-radius:11px;font-size:13.5px;font-weight:500;cursor:pointer;text-decoration:none;color:inherit;transition:background .1s,color .1s;white-space:nowrap;overflow:hidden; }
-        .ni-on  { background:#F1F5F9;font-weight:700;color:#0F172A; }
-        .ni-off { color:#64748B; }
-        .ni-off:hover { background:#F8FAFC;color:#0F172A; }
+        .ni-on  { background:var(--nav-on);font-weight:700;color:var(--nav-on-text); }
+        .ni-off { color:var(--nav-off-text); }
+        .ni-off:hover { background:var(--card);color:var(--text); }
 
         /* ── Mobile floating bar — ONLY rendered on mobile via .bottom-nav class ──
            The .bottom-nav class is display:none on desktop (globals.css)
@@ -184,7 +184,7 @@ export default function Sidebar() {
           {/* Logo */}
           <Link href="/dashboard" style={{ textDecoration:'none',display:'block' }}>
             <div style={{ padding:'0 8px',marginBottom:22 }}>
-              <img src="/brand/logo.svg" alt="festag" style={{ height:15,display:'block' }} />
+              <img src="/brand/logo.svg" alt="festag" style={{ height:15,display:'block',filter:'var(--logo-filter,none)' }} />
             </div>
           </Link>
 
@@ -201,8 +201,8 @@ export default function Sidebar() {
             })}
           </nav>
 
-          {/* User block — proper bottom spacing */}
-          <div style={{ borderTop:'1px solid #F1F5F9',paddingTop:10,marginTop:8,paddingBottom:10 }}>
+          {/* User block */}
+          <div style={{ borderTop:'1px solid var(--border)',paddingTop:10,marginTop:8,paddingBottom:14 }}>
             <Link href="/settings" style={{ textDecoration:'none' }}>
               <div
                 style={{ display:'flex',alignItems:'center',gap:9,padding:'7px 9px',borderRadius:11,cursor:'pointer',transition:'background .1s' }}
