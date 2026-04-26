@@ -13,6 +13,15 @@ function getGreeting() {
   return 'Guten Abend.'
 }
 
+// Tages-Subtext passend zum Greeting
+function getGreetingSub() {
+  const h = new Date().getHours()
+  if (h >= 5  && h < 12) return 'Lass uns heute etwas bauen.'
+  if (h >= 12 && h < 14) return 'Zeit, Fortschritt zu machen.'
+  if (h >= 14 && h < 18) return 'Dein Projekt wartet auf dich.'
+  return 'Starte oder melde dich an.'
+}
+
 // All blocks sum to exactly 100%
 type View = 'home'|'login'|'register'|'dev'
 const BLOCKS: Record<View,{w:number,h:number}[]> = {
@@ -22,22 +31,30 @@ const BLOCKS: Record<View,{w:number,h:number}[]> = {
   dev:     [{w:108,h:8},{w:78,h:10},{w:114,h:7},{w:86,h:9},{w:66,h:8},{w:100,h:11},{w:82,h:9},{w:96,h:10},{w:120,h:6},{w:74,h:8},{w:92,h:7},{w:88,h:7}],
 }
 
+function getPanelBg(theme: string) {
+  if (theme === 'dark') return '#0E0F0E'
+  if (theme === 'read') return '#FDFAF4'
+  return '#FFFFFF'
+}
+
 function PixelBlocks({ view }: { view: View }) {
-  const [panelBg, setPanelBg] = useState('#0E0F0E')
+  const [panelBg, setPanelBg] = useState(() => getPanelBg(typeof window !== 'undefined' ? localStorage.getItem('festag_theme') || 'dark' : 'dark'))
+
   useEffect(() => {
-    const update = () => {
-      const theme = getTheme()
-      setPanelBg(theme==='dark'?'#0E0F0E':theme==='read'?'#FDFAF4':'#FFFFFF')
+    const update = (e?: Event) => {
+      const theme = e instanceof CustomEvent ? e.detail : (localStorage.getItem('festag_theme') || 'dark')
+      setPanelBg(getPanelBg(theme))
     }
     update()
-    window.addEventListener('storage', update)
-    return () => window.removeEventListener('storage', update)
+    window.addEventListener('festag-theme', update)
+    return () => window.removeEventListener('festag-theme', update)
   }, [])
+
   let top = 0
   const positioned = BLOCKS[view].map(b => { const t=top; top+=b.h; return {...b,top:t} })
   return (
     <>
-      <style>{`@keyframes blkIn{from{opacity:0;transform:translateX(56px);}to{opacity:1;transform:translateX(0);}} .px-blk{position:absolute;right:0;pointer-events:none;animation:blkIn .48s cubic-bezier(.16,1,.3,1) both;}`}</style>
+      <style>{`@keyframes blkIn{from{opacity:0;transform:translateX(56px);}to{opacity:1;transform:translateX(0);}} .px-blk{position:absolute;right:0;pointer-events:none;animation:blkIn .48s cubic-bezier(.16,1,.3,1) both;transition:background .2s;}`}</style>
       {positioned.map((b,i)=>(
         <div key={i} className="px-blk" style={{top:`${b.top}%`,width:b.w,height:`${b.h}%`,background:panelBg,animationDelay:`${i*0.022}s`}}/>
       ))}
@@ -247,10 +264,10 @@ export default function LoginPage() {
               <style>{`.desk-header{display:none}@media(min-width:769px){.desk-header{display:block}}`}</style>
               <img src="/brand/logo.svg" alt="festag" style={{height:20,marginBottom:44,display:'block',filter:'var(--logo-filter,none)'}}/>
               <h1 style={{fontSize:34,fontWeight:700,color:'var(--text)',letterSpacing:'-.7px',lineHeight:1.15,marginBottom:10}}>
-                Kein Informationsverlust mehr.
+                {getGreeting()}
               </h1>
               <p style={{fontSize:16,color:'var(--text-secondary)',marginBottom:40,lineHeight:1.6,fontWeight:500}}>
-                Die KI spricht Business für dich und Technik für die Developer.
+                {getGreetingSub()}
               </p>
             </div>
 
