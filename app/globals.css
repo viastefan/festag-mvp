@@ -12,6 +12,7 @@
   --border:rgba(0,0,0,0.08); --border-strong:rgba(0,0,0,0.18);
   --text:#0F120F; --text-secondary:#4A5450; --text-muted:#9AA49E;
   --btn-prim:#181D1C; --btn-prim-text:#FFFFFF;
+  --accent:#181D1C; --accent-text:#FFFFFF;
   --inp:#FFFFFF; --inp-border:rgba(0,0,0,0.12); --inp-focus:#FFFFFF; --inp-focus-border:#181D1C;
   --glow:rgba(24,29,28,0.07);
   --sidebar-bg:rgba(255,255,255,0.93); --sidebar-border:rgba(255,255,255,0.97);
@@ -27,20 +28,56 @@
 }
 
 [data-theme="dark"] {
-  --bg:#181D1C; --surface:#1E2422; --card:#232927;
-  --border:rgba(255,255,255,0.08); --border-strong:rgba(255,255,255,0.15);
-  --text:#F4F5F4; --text-secondary:#7A8780; --text-muted:#3E4642;
-  --btn-prim:#FFFFFF; --btn-prim-text:#181D1C;
-  --inp:rgba(255,255,255,0.05); --inp-border:rgba(255,255,255,0.1);
-  --inp-focus:rgba(255,255,255,0.09); --inp-focus-border:rgba(255,255,255,0.35);
-  --glow:rgba(255,255,255,0.05);
-  --sidebar-bg:rgba(30,36,34,0.97); --sidebar-border:rgba(255,255,255,0.07);
-  --nav-on:rgba(255,255,255,0.1); --nav-on-text:#FFFFFF; --nav-off-text:#4A5450;
-  --surface-2:#232927; --green:#34A06E; --green-bg:rgba(52,160,110,0.12);
-  --green-border:rgba(52,160,110,0.25); --green-dark:#5DC98A;
-  --amber:#F59E0B; --red:#EF4444; --red-bg:rgba(239,68,68,0.1);
-  --shadow-xs:0 1px 4px rgba(0,0,0,.3); --shadow-sm:0 2px 8px rgba(0,0,0,.35);
-  --shadow:0 4px 20px rgba(0,0,0,.4); --shadow-lg:0 8px 30px rgba(0,0,0,.5);
+  /* Background hierarchy — like ChatGPT/Linear */
+  --bg:#171A19;            /* page background */
+  --surface:#1E2220;       /* slight elevation */
+  --card:#22272A;          /* cards on bg */
+  --surface-2:#2A2F33;     /* hover/active layers */
+
+  /* Borders — visible but subtle */
+  --border:rgba(255,255,255,0.07);
+  --border-strong:rgba(255,255,255,0.13);
+
+  /* Text — proper contrast hierarchy */
+  --text:#ECEDEE;             /* primary - high contrast, slightly off-white */
+  --text-secondary:#9BA3A8;   /* secondary - readable on bg */
+  --text-muted:#6E7681;       /* tertiary - hints, labels (was unreadable #3E4642) */
+
+  /* Buttons */
+  --btn-prim:#FFFFFF; --btn-prim-text:#171A19;
+
+  /* Accent: dark surface for highlight cards/banners (NOT --text!) */
+  --accent:#2D3338; --accent-text:#ECEDEE;
+
+  /* Inputs */
+  --inp:rgba(255,255,255,0.04);
+  --inp-border:rgba(255,255,255,0.09);
+  --inp-focus:rgba(255,255,255,0.07);
+  --inp-focus-border:rgba(255,255,255,0.28);
+  --glow:rgba(255,255,255,0.04);
+
+  /* Sidebar/Nav */
+  --sidebar-bg:rgba(28,32,30,0.96);
+  --sidebar-border:rgba(255,255,255,0.06);
+  --nav-on:rgba(255,255,255,0.08);
+  --nav-on-text:#FFFFFF;
+  --nav-off-text:#7E868E;
+
+  /* Status colors — calmer in dark mode */
+  --green:#3FB57A;
+  --green-bg:rgba(63,181,122,0.14);
+  --green-border:rgba(63,181,122,0.28);
+  --green-dark:#5BCC92;
+  --amber:#F5A524;
+  --red:#F76060;
+  --red-bg:rgba(247,96,96,0.1);
+
+  /* Shadows */
+  --shadow-xs:0 1px 4px rgba(0,0,0,.28);
+  --shadow-sm:0 2px 8px rgba(0,0,0,.32);
+  --shadow:0 4px 20px rgba(0,0,0,.4);
+  --shadow-lg:0 8px 30px rgba(0,0,0,.5);
+
   --logo-filter:brightness(0) invert(1);
 }
 
@@ -49,6 +86,7 @@
   --border:rgba(0,0,0,0.07); --border-strong:rgba(0,0,0,0.14);
   --text:#2C2416; --text-secondary:#6B5E47; --text-muted:#A09278;
   --btn-prim:#181D1C; --btn-prim-text:#FDFAF4;
+  --accent:#2C2416; --accent-text:#FDFAF4;
   --inp:#FDFAF4; --inp-border:rgba(0,0,0,0.1); --inp-focus:#FFFFFF; --inp-focus-border:#181D1C;
   --glow:rgba(24,29,28,0.06);
   --sidebar-bg:rgba(253,250,244,0.95); --sidebar-border:rgba(0,0,0,0.06);
@@ -123,7 +161,7 @@ input:focus,textarea:focus,select:focus { outline:none; }
   .bottom-nav { display:flex !important; }
   .main-content {
     margin-left:0 !important;
-    padding:calc(14px + var(--safe-top)) 14px calc(96px + var(--safe-bottom)) 14px !important;
+    padding:calc(16px + var(--safe-top)) 16px calc(96px + var(--safe-bottom)) 16px !important;
   }
   .grid-cols-4          { grid-template-columns:repeat(2,1fr) !important; }
   .grid-cols-2-mobile-1 { grid-template-columns:1fr !important; }

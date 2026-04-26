@@ -322,13 +322,13 @@ export default function SettingsPage() {
               style={{ width:72,height:72,borderRadius:'50%',cursor:'pointer',overflow:'hidden',position:'relative',border:'3px solid #fff',boxShadow:'0 0 0 2px #EEF2F7, 0 4px 16px rgba(0,0,0,.10)' }}
             >
               {uploading ? (
-                <div style={{ width:'100%',height:'100%',background:'#F1F5F9',display:'flex',alignItems:'center',justifyContent:'center' }}>
+                <div style={{ width:'100%',height:'100%',background:'var(--surface-2)',display:'flex',alignItems:'center',justifyContent:'center' }}>
                   <div style={{ width:20,height:20,border:'2.5px solid #CBD5E1',borderTopColor:'#181D1C',borderRadius:'50%',animation:'spin .7s linear infinite' }} />
                 </div>
               ) : avatarUrl ? (
                 <img src={avatarUrl} alt="" style={{ width:'100%',height:'100%',objectFit:'cover',display:'block' }} />
               ) : (
-                <div style={{ width:'100%',height:'100%',background:'linear-gradient(135deg,#E2E8F0,#F1F5F9)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:26,fontWeight:700,color:'#181D1C' }}>{initial}</div>
+                <div style={{ width:'100%',height:'100%',background:'var(--surface-2)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:26,fontWeight:700,color:'var(--text)' }}>{initial}</div>
               )}
             </div>
             {/* Edit badge */}
@@ -340,7 +340,7 @@ export default function SettingsPage() {
 
           {/* User info */}
           <div style={{ flex:1,minWidth:140 }}>
-            <p style={{ fontSize:17,fontWeight:700,color:'#181D1C',margin:'0 0 2px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:220 }}>
+            <p style={{ fontSize:17,fontWeight:700,color:'var(--text)',margin:'0 0 2px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:220 }}>
               {displayName}
             </p>
             <p style={{ fontSize:12.5,color:'#94A3B8',margin:'0 0 8px',textTransform:'capitalize' }}>
@@ -418,7 +418,7 @@ export default function SettingsPage() {
                   return (
                     <div key={n.k} style={{ display:'flex',justifyContent:'space-between',alignItems:'center',padding:'11px 0',borderBottom:i<3?'1px solid #F8FAFC':'none' }}>
                       <div>
-                        <p style={{ fontSize:13.5,fontWeight:600,color:'#181D1C',margin:0 }}>{n.l}</p>
+                        <p style={{ fontSize:13.5,fontWeight:600,color:'var(--text)',margin:0 }}>{n.l}</p>
                         <p style={{ fontSize:11.5,color:'#94A3B8',margin:'2px 0 0' }}>{n.d}</p>
                       </div>
                       <button className="tog" onClick={()=>toggleNotif(n.k as keyof Notifs)} style={{ background:on?'#10B981':'#E2E8F0' }}>
@@ -430,10 +430,10 @@ export default function SettingsPage() {
                 {pushSup && !pushOk && (
                   <div style={{ marginTop:14,background:'#181D1C',borderRadius:14,padding:'13px 16px',display:'flex',gap:13,alignItems:'center' }}>
                     <p style={{ fontSize:13,fontWeight:600,color:'#fff',flex:1,margin:0,lineHeight:1.4 }}>Push-Benachrichtigungen aktivieren</p>
-                    <button onClick={enablePush} style={{ padding:'7px 14px',background:'#fff',color:'#181D1C',border:'none',borderRadius:9,fontSize:12,fontWeight:700,cursor:'pointer',flexShrink:0 }}>Aktivieren</button>
+                    <button onClick={enablePush} style={{ padding:'7px 14px',background:'var(--btn-prim)',color:'var(--btn-prim-text)',border:'none',borderRadius:9,fontSize:12,fontWeight:700,cursor:'pointer',flexShrink:0 }}>Aktivieren</button>
                   </div>
                 )}
-                {pushOk && <div style={{ marginTop:10,padding:'10px 14px',background:'#ECFDF5',border:'1px solid #A7F3D0',borderRadius:10,fontSize:13,color:'#059669',fontWeight:600 }}>✓ Push aktiv auf diesem Gerät</div>}
+                {pushOk && <div style={{ marginTop:10,padding:'10px 14px',background:'var(--green-bg)',border:'1px solid var(--green-border)',borderRadius:10,fontSize:13,color:'var(--green-dark)',fontWeight:600 }}>✓ Push aktiv auf diesem Gerät</div>}
               </div>
 
               <SaveBtn saving={saving} saved={saved} onClick={save} />
@@ -490,7 +490,7 @@ export default function SettingsPage() {
                   <input value={compWeb} onChange={e=>setCompWeb(e.target.value)} placeholder="Noch keine Website? Festag kümmert sich darum!" className="inp" type="url" style={{ paddingLeft:40 }}/>
                   <svg style={{ position:'absolute',left:13,top:'50%',transform:'translateY(-50%)',pointerEvents:'none' }} width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth="1.8" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10A15.3 15.3 0 0 1 8 12 15.3 15.3 0 0 1 12 2z"/></svg>
                 </div>
-                {!compWeb && <p style={{ fontSize:11.5,color:'#059669',marginTop:5,fontWeight:600 }}>✦ Keine Website? Festag baut sie für dich!</p>}
+                {!compWeb && <p style={{ fontSize:11.5,color:'var(--green-dark)',marginTop:5,fontWeight:600 }}>✦ Keine Website? Festag baut sie für dich!</p>}
               </div>
 
               {/* Address */}
@@ -530,18 +530,18 @@ export default function SettingsPage() {
                 <span className="s-hd-label">PASSWORT ÄNDERN</span>
                 <p style={{ fontSize:11.5,color:'#94A3B8',margin:'3px 0 0' }}>Änderung wird per E-Mail bestätigt</p>
               </div>
-              <div style={{ display:'flex',alignItems:'center',gap:5,padding:'4px 10px',background:'#ECFDF5',border:'1px solid #A7F3D0',borderRadius:8 }}>
+              <div style={{ display:'flex',alignItems:'center',gap:5,padding:'4px 10px',background:'var(--green-bg)',border:'1px solid var(--green-border)',borderRadius:8 }}>
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                <span style={{ fontSize:10.5,fontWeight:700,color:'#059669',letterSpacing:'.04em' }}>VERIFIZIERT</span>
+                <span style={{ fontSize:10.5,fontWeight:700,color:'var(--green-dark)',letterSpacing:'.04em' }}>VERIFIZIERT</span>
               </div>
             </div>
             <div className="s-bd">
               {pwdStep==='form' ? (
                 <>
-                  <div style={{ background:'#F8FAFC',border:'1.5px solid #EEF2F7',borderRadius:12,padding:'12px 16px',display:'flex',gap:10,alignItems:'flex-start' }}>
+                  <div style={{ background:'var(--card)',border:'1.5px solid var(--border)',borderRadius:12,padding:'12px 16px',display:'flex',gap:10,alignItems:'flex-start' }}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748B" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink:0,marginTop:1 }}><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
                     <p style={{ fontSize:12.5,color:'#64748B',margin:0,lineHeight:1.5 }}>
-                      Nach dem Absenden erhältst du einen Bestätigungslink an <strong style={{ color:'#181D1C' }}>{email}</strong>. Erst nach Bestätigung wird das Passwort geändert.
+                      Nach dem Absenden erhältst du einen Bestätigungslink an <strong style={{ color:'var(--text)' }}>{email}</strong>. Erst nach Bestätigung wird das Passwort geändert.
                     </p>
                   </div>
                   <div>
@@ -564,11 +564,11 @@ export default function SettingsPage() {
               ) : (
                 <>
                   {/* Sent state — show OTP input */}
-                  <div style={{ background:'#ECFDF5',border:'1.5px solid #A7F3D0',borderRadius:12,padding:'14px 16px',display:'flex',gap:10,alignItems:'center' }}>
+                  <div style={{ background:'var(--green-bg)',border:'1.5px solid var(--green-border)',borderRadius:12,padding:'14px 16px',display:'flex',gap:10,alignItems:'center' }}>
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2A19.79 19.79 0 0 1 2.09 5.18 2 2 0 0 1 4.09 3h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 10.9a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 17z"/></svg>
                     <div>
-                      <p style={{ fontSize:13,fontWeight:600,color:'#059669',margin:0 }}>E-Mail gesendet an {email}</p>
-                      <p style={{ fontSize:12,color:'#059669',margin:'2px 0 0',opacity:.8 }}>Gib den 6-stelligen Code aus der E-Mail ein</p>
+                      <p style={{ fontSize:13,fontWeight:600,color:'var(--green-dark)',margin:0 }}>E-Mail gesendet an {email}</p>
+                      <p style={{ fontSize:12,color:'var(--green-dark)',margin:'2px 0 0',opacity:.8 }}>Gib den 6-stelligen Code aus der E-Mail ein</p>
                     </div>
                   </div>
                   <div>
@@ -620,7 +620,7 @@ export default function SettingsPage() {
                       </svg>
                     </div>
                     <div style={{ flex:1,minWidth:0 }}>
-                      <p style={{ fontSize:13,fontWeight:600,color:'#181D1C',margin:0,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' }}>{d.device_name}</p>
+                      <p style={{ fontSize:13,fontWeight:600,color:'var(--text)',margin:0,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' }}>{d.device_name}</p>
                       <p style={{ fontSize:11,color:'#94A3B8',margin:'2px 0 0' }}>Zuletzt: {new Date(d.last_seen).toLocaleDateString('de',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}</p>
                     </div>
                     {d.is_current
@@ -664,13 +664,13 @@ export default function SettingsPage() {
                   </div>
                   <div style={{ flex:1,minWidth:0 }}>
                     <div style={{ display:'flex',alignItems:'center',gap:7,marginBottom:3 }}>
-                      <p style={{ fontSize:13.5,fontWeight:700,color:'#181D1C',margin:0 }}>{s.name}</p>
+                      <p style={{ fontSize:13.5,fontWeight:700,color:'var(--text)',margin:0 }}>{s.name}</p>
                       <span className="chip chip-blue" style={{ fontSize:9.5 }}>Kommt</span>
                     </div>
                     <p style={{ fontSize:12,color:'#64748B',margin:'0 0 6px',lineHeight:1.4 }}>{s.desc}</p>
                     <div style={{ display:'flex',gap:5,flexWrap:'wrap' }}>
                       {s.features.map(f => (
-                        <span key={f} style={{ fontSize:10.5,color:'#475569',background:'#F1F5F9',border:'1px solid #EEF2F7',borderRadius:6,padding:'2px 7px',fontWeight:500 }}>{f}</span>
+                        <span key={f} style={{ fontSize:10.5,color:'var(--text-secondary)',background:'var(--surface-2)',border:'1px solid var(--border)',borderRadius:6,padding:'2px 7px',fontWeight:500 }}>{f}</span>
                       ))}
                     </div>
                   </div>
@@ -690,7 +690,7 @@ export default function SettingsPage() {
                 <div key={w.id} className="webhook-row">
                   <div style={{ width:7,height:7,borderRadius:'50%',background:w.active?'#10B981':'#E2E8F0',flexShrink:0 }} />
                   <div style={{ flex:1,minWidth:0 }}>
-                    <p style={{ fontSize:13,fontWeight:600,color:'#181D1C',margin:0 }}>{w.name}</p>
+                    <p style={{ fontSize:13,fontWeight:600,color:'var(--text)',margin:0 }}>{w.name}</p>
                     <p style={{ fontSize:11,color:'#94A3B8',margin:'1px 0 0',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' }}>{w.url}</p>
                   </div>
                   <button onClick={()=>deleteWebhook(w.id)} className="btn-danger" style={{ fontSize:11,padding:'5px 9px' }}>
@@ -716,7 +716,7 @@ export default function SettingsPage() {
             <div style={{ padding:'14px 18px',display:'flex',flexDirection:'column',gap:8 }}>
               {generatedKey && (
                 <div className="fade-in">
-                  <p style={{ fontSize:12,fontWeight:700,color:'#059669',marginBottom:8 }}>✓ Key erstellt — nur einmal sichtbar!</p>
+                  <p style={{ fontSize:12,fontWeight:700,color:'var(--green-dark)',marginBottom:8 }}>✓ Key erstellt — nur einmal sichtbar!</p>
                   <div className="key-box">{generatedKey}</div>
                   <button onClick={()=>{navigator.clipboard.writeText(generatedKey);setGeneratedKey(null)}} className="btn-primary" style={{ marginTop:8 }}>
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
@@ -728,7 +728,7 @@ export default function SettingsPage() {
                 <div key={k.id} className="webhook-row">
                   <div style={{ width:7,height:7,borderRadius:'50%',background:'#10B981',flexShrink:0 }} />
                   <div style={{ flex:1 }}>
-                    <p style={{ fontSize:13,fontWeight:600,color:'#181D1C',margin:0 }}>{k.name}</p>
+                    <p style={{ fontSize:13,fontWeight:600,color:'var(--text)',margin:0 }}>{k.name}</p>
                     <p style={{ fontSize:11,color:'#94A3B8',margin:'1px 0 0',fontFamily:'monospace' }}>{k.key_prefix}…</p>
                   </div>
                   {k.last_used && <span style={{ fontSize:11,color:'#94A3B8' }}>{new Date(k.last_used).toLocaleDateString('de')}</span>}

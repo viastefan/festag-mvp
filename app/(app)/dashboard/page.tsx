@@ -129,27 +129,27 @@ export default function DashboardPage() {
       </div>
 
       {/* News banner */}
-      <div className="animate-fade-up-1" style={{ background: 'var(--text)', borderRadius: 12, padding: '14px 20px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 12, overflow: 'hidden', position: 'relative' }}>
+      <div className="animate-fade-up-1" style={{ background: 'var(--accent)', borderRadius: 12, padding: '14px 20px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 12, overflow: 'hidden', position: 'relative' }}>
         <div style={{ position: 'absolute', right: -20, top: -20, width: 120, height: 120, borderRadius: '50%', background: 'rgba(255,255,255,.04)' }} />
-        <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--green)', background: 'rgba(16,185,129,.15)', padding: '3px 8px', borderRadius: 5, letterSpacing: '0.08em', flexShrink: 0 }}>NEU</span>
-        <p style={{ fontSize: 13, color: 'rgba(255,255,255,.9)', flex: 1, margin: 0 }}>
-          <strong style={{ color: '#fff' }}>Tagro AI 2.0</strong> — Strukturierte Berichte, Tagesberichte, intelligente Projektplanung
+        <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--green)', background: 'rgba(63,181,122,.18)', padding: '3px 8px', borderRadius: 5, letterSpacing: '0.08em', flexShrink: 0 }}>NEU</span>
+        <p style={{ fontSize: 13, color: 'var(--accent-text)', flex: 1, margin: 0, opacity: .9 }}>
+          <strong style={{ color: 'var(--accent-text)', opacity: 1 }}>Tagro AI 2.0</strong> — Strukturierte Berichte, Tagesberichte, intelligente Projektplanung
         </p>
-        <Link href="/ai" style={{ fontSize: 12, color: 'rgba(255,255,255,.5)', fontWeight: 600, flexShrink: 0 }}>Mehr →</Link>
+        <Link href="/ai" style={{ fontSize: 12, color: 'var(--accent-text)', fontWeight: 600, flexShrink: 0, opacity: .65 }}>Mehr →</Link>
       </div>
 
       {/* Empty state */}
       {!mainProject && (
         <div className="animate-fade-up-2" style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius: 20, padding: '56px 24px', textAlign: 'center', boxShadow: '0 8px 30px rgba(0,0,0,.04)' }}>
           <div style={{ width: 52, height: 52, borderRadius: 14, background: 'var(--surface-2)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 18 }}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#181D1C" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8"/></svg>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" style={{color:"var(--text)"}} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8"/></svg>
           </div>
           <h2 style={{ marginBottom: 8 }}>Starte dein erstes Projekt</h2>
           <p style={{ fontSize: 14, color: 'var(--text-secondary)', maxWidth: 380, margin: '0 auto 22px' }}>
             Beschreibe deine Idee — Tagro AI analysiert und strukturiert alles in Sekunden.
           </p>
           <Link href="/onboarding">
-            <button className="tap-scale" style={{ padding: '12px 24px', background: 'var(--text)', color: '#fff', border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 600, cursor: 'pointer', boxShadow: '0 4px 16px rgba(15,23,42,.2)' }}>
+            <button className="tap-scale" style={{ padding: '12px 24px', background: 'var(--accent)', color: 'var(--accent-text)', border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 600, cursor: 'pointer', boxShadow: '0 4px 16px rgba(15,23,42,.2)' }}>
               Projekt starten
             </button>
           </Link>
@@ -181,7 +181,7 @@ export default function DashboardPage() {
                   <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)' }}>{pct}%</span>
                 </div>
                 <div style={{ height: 6, background: 'var(--surface-2)', borderRadius: 6, overflow: 'hidden', marginBottom: 16 }}>
-                  <div className="progress-bar" style={{ height: '100%', width: `${pct}%`, background: 'var(--text)', borderRadius: 6 }} />
+                  <div className="progress-bar" style={{ height: '100%', width: `${pct}%`, background: 'var(--accent)', borderRadius: 6 }} />
                 </div>
                 {/* Phase timeline */}
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -219,7 +219,7 @@ export default function DashboardPage() {
 
               <div style={{ padding: '12px 24px', background: 'var(--bg)', borderTop: '1px solid var(--border)' }}>
                 <Link href={`/project/${mainProject.id}`}>
-                  <button className="tap-scale" style={{ width: '100%', padding: '11px', background: 'var(--text)', color: '#fff', border: 'none', borderRadius: 12, fontSize: 13, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, boxShadow: '0 2px 8px rgba(15,23,42,.15)' }}>
+                  <button className="tap-scale" style={{ width: '100%', padding: '11px', background: 'var(--accent)', color: 'var(--accent-text)', border: 'none', borderRadius: 12, fontSize: 13, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, boxShadow: '0 2px 8px rgba(15,23,42,.15)' }}>
                     Projekt öffnen
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M9 6l6 6-6 6"/></svg>
                   </button>
@@ -272,7 +272,7 @@ export default function DashboardPage() {
                           <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--text-secondary)', background: 'var(--surface-2)', padding: '2px 7px', borderRadius: 5, flexShrink: 0 }}>{pc.label.toUpperCase()}</span>
                         </div>
                         <div style={{ height: 3, background: 'var(--surface-2)', borderRadius: 3, overflow: 'hidden' }}>
-                          <div style={{ height: '100%', width: `${pc.pct}%`, background: 'var(--text)', borderRadius: 3 }} />
+                          <div style={{ height: '100%', width: `${pc.pct}%`, background: 'var(--accent)', borderRadius: 3 }} />
                         </div>
                       </div>
                     </Link>

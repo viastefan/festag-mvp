@@ -268,7 +268,7 @@ export default function Sidebar() {
           <div className="mbd" onClick={()=>setMore(false)} />
           <div className="msh">
             <div style={{ width:34,height:4,borderRadius:2,background:'#E2E8F0',margin:'0 auto 14px' }}/>
-            <p style={{ fontSize:10.5,fontWeight:700,color:'#94A3B8',letterSpacing:'.08em',marginBottom:6 }}>WEITERE SEITEN</p>
+            <p style={{ fontSize:10.5,fontWeight:700,color:'var(--text-muted)',letterSpacing:'.08em',marginBottom:6 }}>WEITERE SEITEN</p>
             {MOB_MORE.map(item => {
               const on = isOn(item.href)
               return (
@@ -276,7 +276,7 @@ export default function Sidebar() {
                   <div style={{ width:40,height:40,borderRadius:11,background:on?'#181D1C':'#F1F5F9',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0 }}>
                     <Ico name={item.icon} sz={19} on={on} />
                   </div>
-                  <p style={{ fontSize:15,fontWeight:on?700:600,color:'#181D1C',margin:0,flex:1 }}>{item.label}</p>
+                  <p style={{ fontSize:15,fontWeight:on?700:600,color:'var(--text)',margin:0,flex:1 }}>{item.label}</p>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" strokeWidth="2" strokeLinecap="round"><path d="M9 6l6 6-6 6"/></svg>
                 </Link>
               )
