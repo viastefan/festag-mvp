@@ -37,6 +37,42 @@ function getPanelBg(theme: string) {
   return '#F8F9F8'
 }
 
+function PixelBlocksMobile() {
+  // Blocks rising from bottom into the image, on the right side (Festag signature look)
+  const [bg, setBg] = useState(() => getPanelBg(typeof window !== 'undefined' ? localStorage.getItem('festag_theme') || 'dark' : 'dark'))
+  useEffect(() => {
+    const update = (e?: Event) => {
+      const theme = e instanceof CustomEvent ? e.detail : (localStorage.getItem('festag_theme') || 'dark')
+      setBg(getPanelBg(theme))
+    }
+    update()
+    window.addEventListener('festag-theme', update)
+    return () => window.removeEventListener('festag-theme', update)
+  }, [])
+
+  // Block widths (right side, varying), heights as % of mobile image
+  const blocks = [
+    {right:0,   w:120, h:18},
+    {right:80,  w:88,  h:11},
+    {right:140, w:64,  h:7},
+    {right:0,   w:170, h:6,  bottomOffset:18},
+    {right:90,  w:54,  h:5,  bottomOffset:29},
+    {right:0,   w:100, h:4,  bottomOffset:35},
+  ]
+  return (
+    <>
+      {blocks.map((b,i)=>(
+        <div key={i} className="px-mob" style={{
+          right:b.right, bottom:b.bottomOffset?`${b.bottomOffset}%`:0,
+          width:b.w, height:`${b.h}%`,
+          background:bg, animationDelay:`${i*0.06 + 0.1}s`,
+          left:'auto'
+        }}/>
+      ))}
+    </>
+  )
+}
+
 function PixelBlocks({ view }: { view: View }) {
   const [panelBg, setPanelBg] = useState(() => getPanelBg(typeof window !== 'undefined' ? localStorage.getItem('festag_theme') || 'dark' : 'dark'))
 
@@ -211,12 +247,26 @@ export default function LoginPage() {
     .l-right{
       flex:1;display:flex;flex-direction:column;background:var(--bg);
     }
-    .home-img-mobile{display:block;width:100%;height:55dvh;position:relative;overflow:hidden;flex-shrink:0;}
+    .home-img-mobile{display:block;width:100%;height:62dvh;position:relative;overflow:hidden;flex-shrink:0;}
+    /* Theme-aware gradient overlay on mobile hero image */
+    [data-theme="dark"]  .home-grad-mobile{background:linear-gradient(180deg, rgba(24,29,28,0) 0%, rgba(24,29,28,0) 35%, rgba(24,29,28,.55) 65%, rgba(24,29,28,.95) 92%, #181D1C 100%);}
+    [data-theme="light"] .home-grad-mobile{background:linear-gradient(180deg, rgba(248,249,248,0) 0%, rgba(248,249,248,0) 35%, rgba(248,249,248,.55) 65%, rgba(248,249,248,.95) 92%, #F8F9F8 100%);}
+    [data-theme="read"]  .home-grad-mobile{background:linear-gradient(180deg, rgba(245,240,232,0) 0%, rgba(245,240,232,0) 35%, rgba(245,240,232,.55) 65%, rgba(245,240,232,.95) 92%, #F5F0E8 100%);}
+    /* Mobile pixel blocks rising from bottom */
+    @keyframes pxRise{from{opacity:0;transform:translateY(40px);}to{opacity:1;transform:translateY(0);}}
+    .px-mob{position:absolute;left:0;pointer-events:none;animation:pxRise .55s cubic-bezier(.16,1,.3,1) both;transition:background .25s;}
     /* Mobile home buttons: push to bottom, centered vertically in remaining space */
     .home-btns-mobile{
       flex:1;display:flex;flex-direction:column;justify-content:center;
-      padding:32px 24px calc(env(safe-area-inset-bottom)+36px);
+      padding:36px 22px calc(env(safe-area-inset-bottom)+32px);
+      gap:0;
     }
+    /* Mobile-only logo above text on hero */
+    .home-mobile-logo{position:absolute;top:calc(env(safe-area-inset-top) + 20px);left:22px;z-index:3;height:18px;opacity:.95;}
+    [data-theme="dark"]  .home-mobile-logo{filter:brightness(0) invert(1);}
+    [data-theme="light"] .home-mobile-logo{filter:brightness(0) invert(1);} /* still on photo */
+    [data-theme="read"]  .home-mobile-logo{filter:brightness(0) invert(1);} /* still on photo */
+    .home-mobile-text{position:absolute;bottom:30px;left:22px;right:22px;z-index:3;}
     /* Form: fill height, center content */
     .form-scroll{
       flex:1;display:flex;flex-direction:column;justify-content:center;
@@ -244,16 +294,15 @@ export default function LoginPage() {
           {/* Mobile image top */}
           <div className="home-img-mobile">
             <img src="/bg-office.jpg" alt="" style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover'}}/>
-            <div style={{position:'absolute',inset:0,background:'linear-gradient(180deg,rgba(5,14,10,0.2) 0%,rgba(5,14,10,0.82) 100%)'}}/>
-            <div style={{position:'absolute',top:20,left:22}}>
-              <img src="/brand/logo.svg" alt="festag" style={{height:19,filter:'brightness(0) invert(1)',opacity:.88}}/>
-            </div>
-            <div style={{position:'absolute',bottom:28,left:22,right:22}}>
-              <h1 style={{fontSize:28,fontWeight:700,color:'#fff',lineHeight:1.15,letterSpacing:'-.5px'}}>
-                Kein Informationsverlust mehr.
+            <div className="home-grad-mobile" style={{position:'absolute',inset:0}}/>
+            <PixelBlocksMobile/>
+            <img src="/brand/logo.svg" alt="festag" className="home-mobile-logo"/>
+            <div className="home-mobile-text">
+              <h1 style={{fontSize:30,fontWeight:700,color:'#fff',lineHeight:1.12,letterSpacing:'-.6px'}}>
+                Kein Informationsverlust<br/>mehr. Mit Festag AI.
               </h1>
-              <p style={{fontSize:14,fontWeight:500,color:'rgba(255,255,255,.65)',marginTop:8,lineHeight:1.5}}>
-                Die KI versteht, zerlegt und steuert — Menschen bauen, System liefert.
+              <p style={{fontSize:14.5,fontWeight:500,color:'rgba(255,255,255,.62)',marginTop:10,lineHeight:1.5}}>
+                Die KI versteht, zerlegt und steuert —<br/>Menschen bauen, System liefert
               </p>
             </div>
           </div>
