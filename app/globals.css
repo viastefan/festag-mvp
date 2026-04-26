@@ -23,7 +23,7 @@
   --shadow:0 4px 20px rgba(15,23,42,.07); --shadow-lg:0 8px 30px rgba(15,23,42,.08);
   --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
   /* Border-radius tokens (consistent across all components) */
-  --r-xs:8px; --r-sm:11px; --r-md:14px; --r-lg:18px; --r-xl:24px;
+  --r-xs:8px; --r-sm:10px; --r-md:12px; --r-lg:16px; --r-xl:22px;
 }
 
 [data-theme="dark"] {

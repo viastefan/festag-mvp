@@ -71,7 +71,7 @@ export default function AddonsPage() {
             <div key={a.id} className="tap-scale" style={{
               background: 'var(--surface)',
               border: `1.5px solid ${isSelected ? 'var(--text)' : 'var(--border)'}`,
-              borderRadius: 'var(--r-lg)', padding: 18, cursor: 'pointer', transition: 'all 0.15s',
+              borderRadius: "var(--r-md)", padding: 18, cursor: 'pointer', transition: 'all 0.15s',
               position: 'relative',
             }} onClick={() => toggle(a.id)}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
@@ -108,7 +108,7 @@ export default function AddonsPage() {
         <div style={{
           position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)',
           background: 'var(--text)', color: '#fff', padding: '14px 20px',
-          borderRadius: 'var(--r-lg)', boxShadow: 'var(--shadow-lg)',
+          borderRadius: "var(--r-md)", boxShadow: 'var(--shadow-lg)',
           display: 'flex', alignItems: 'center', gap: 16, zIndex: 300, animation: 'slideUp 0.2s ease',
           maxWidth: 'calc(100% - 32px)',
         }}>

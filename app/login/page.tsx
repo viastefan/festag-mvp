@@ -245,8 +245,8 @@ const MOBILE_CSS = `
     top:calc(env(safe-area-inset-top) + 22px);
     left:20px;
     z-index:5;
-    height:20px;
-    opacity:.95;
+    height:21px;
+    opacity:1;
     filter:brightness(0) invert(1);
   }
 
@@ -264,6 +264,7 @@ const MOBILE_CSS = `
     display:flex;
     flex-direction:column;
     justify-content:center;
+    align-items:center;
     padding:calc(env(safe-area-inset-top) + 24px) 20px calc(env(safe-area-inset-bottom) + 32px);
     overflow-y:auto;
     -webkit-overflow-scrolling:touch;
@@ -277,7 +278,7 @@ const MOBILE_CSS = `
     .mob-cta{padding:52px;margin-top:0;justify-content:center;display:flex;flex-direction:column;height:100%;}
     .l-left{display:flex;flex:1.2;min-width:0;}
     .l-right{width:480px;flex:none;background:var(--bg);}
-    .form-scroll{padding:0 52px;justify-content:center;min-height:100vh;}
+    .form-scroll{padding:0 52px;justify-content:center;align-items:stretch;min-height:100vh;}
   }
 `
 

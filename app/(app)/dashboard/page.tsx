@@ -37,7 +37,10 @@ export default function DashboardPage() {
   const [email,       setEmail]       = useState('')
   const [systemLogs,  setSystemLogs]  = useState<{ text: string; time: string; id: number }[]>([])
   const [loading,     setLoading]     = useState(true)
-  const [showLoader,  setShowLoader]  = useState(true)
+  const [showLoader,  setShowLoader]  = useState(() => {
+    if (typeof window === 'undefined') return false
+    return !sessionStorage.getItem('festag_dash_loaded')
+  })
   const [counter,     setCounter]     = useState(0)
   const supabase = createClient()
 
@@ -87,7 +90,10 @@ export default function DashboardPage() {
   const phaseCfg = mainProject ? PHASE_CFG[mainProject.status] ?? PHASE_CFG.intake : null
   const pct = phaseCfg?.pct ?? 0
 
-  if (showLoader) return <LoadingScreen onDone={() => setShowLoader(false)} />
+  if (showLoader) return <LoadingScreen onDone={() => {
+    if (typeof window !== 'undefined') sessionStorage.setItem('festag_dash_loaded', '1')
+    setShowLoader(false)
+  }} />
   if (loading) return (
     <div style={{ display:'flex', alignItems:'center', justifyContent:'center', minHeight:'60vh' }}>
       <div style={{ width:28, height:28, border:'2px solid var(--border)', borderTopColor:'var(--text)', borderRadius:'50%', animation:'spin .8s linear infinite' }} />
@@ -123,7 +129,7 @@ export default function DashboardPage() {
       </div>
 
       {/* News banner */}
-      <div className="animate-fade-up-1" style={{ background: 'var(--text)', borderRadius: 18, padding: '14px 20px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 12, overflow: 'hidden', position: 'relative' }}>
+      <div className="animate-fade-up-1" style={{ background: 'var(--text)', borderRadius: 12, padding: '14px 20px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 12, overflow: 'hidden', position: 'relative' }}>
         <div style={{ position: 'absolute', right: -20, top: -20, width: 120, height: 120, borderRadius: '50%', background: 'rgba(255,255,255,.04)' }} />
         <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--green)', background: 'rgba(16,185,129,.15)', padding: '3px 8px', borderRadius: 5, letterSpacing: '0.08em', flexShrink: 0 }}>NEU</span>
         <p style={{ fontSize: 13, color: 'rgba(255,255,255,.9)', flex: 1, margin: 0 }}>
@@ -260,7 +266,7 @@ export default function DashboardPage() {
                   const pc = PHASE_CFG[p.status] ?? PHASE_CFG.intake
                   return (
                     <Link key={p.id} href={`/project/${p.id}`}>
-                      <div className="card-lift" style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius: 16, padding: '14px 16px', cursor: 'pointer' }}>
+                      <div className="card-lift" style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius: 12, padding: '14px 16px', cursor: 'pointer' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
                           <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', flex: 1, paddingRight: 6, margin: 0 }}>{p.title}</p>
                           <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--text-secondary)', background: 'var(--surface-2)', padding: '2px 7px', borderRadius: 5, flexShrink: 0 }}>{pc.label.toUpperCase()}</span>
@@ -277,7 +283,7 @@ export default function DashboardPage() {
           )}
 
           {/* Garantie */}
-          <div className="animate-fade-up-4" style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius: 18, padding: '18px 24px', boxShadow: '0 4px 20px rgba(0,0,0,.04)' }}>
+          <div className="animate-fade-up-4" style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius: 12, padding: '18px 24px', boxShadow: '0 4px 20px rgba(0,0,0,.04)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
               <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--green)', animation: 'pulse 2s infinite' }} />
               <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text)', margin: 0, letterSpacing: '0.06em' }}>FESTAG GARANTIE</p>
