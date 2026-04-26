@@ -59,10 +59,10 @@ export default function SettingsRightPanel() {
         </div>
         <div style={{ padding:'16px 18px', display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:8, textAlign:'center' }}>
           {[
-            { l:'Projekte', v:stats.projects, icon:'M3 3h18v18H3zM3 9h18M9 21V9',      c:'#0F172A' },
-            { l:'Tasks',    v:stats.tasks,    icon:'M9 11l3 3L22 4',                   c:'#0F172A' },
+            { l:'Projekte', v:stats.projects, icon:'M3 3h18v18H3zM3 9h18M9 21V9',      c:'#181D1C' },
+            { l:'Tasks',    v:stats.tasks,    icon:'M9 11l3 3L22 4',                   c:'#181D1C' },
             { l:'Erledigt', v:stats.done,     icon:'M5 13l4 4L19 7',                   c:'#10B981' },
-            { l:'Chats',    v:stats.messages, icon:'M21 12c0 4.4-4 8-9 8-1.4 0-2.8-.3-4-.8L3 21l1.8-5C4.3 15 4 13.5 4 12c0-4.4 4-8 9-8s9 3.6 9 8z', c:'#0F172A' },
+            { l:'Chats',    v:stats.messages, icon:'M21 12c0 4.4-4 8-9 8-1.4 0-2.8-.3-4-.8L3 21l1.8-5C4.3 15 4 13.5 4 12c0-4.4 4-8 9-8s9 3.6 9 8z', c:'#181D1C' },
           ].map(s => (
             <div key={s.l}>
               <svg style={{ display:'block', margin:'0 auto 6px' }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={s.c === '#10B981' ? '#10B981' : '#CBD5E1'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -78,10 +78,10 @@ export default function SettingsRightPanel() {
           <div style={{ padding:'0 18px 14px' }}>
             <div style={{ display:'flex', justifyContent:'space-between', marginBottom:6 }}>
               <span style={{ fontSize:11.5, color:'#94A3B8' }}>Gesamtfortschritt</span>
-              <span style={{ fontSize:11.5, fontWeight:700, color:'#0F172A' }}>{pct}%</span>
+              <span style={{ fontSize:11.5, fontWeight:700, color:'#181D1C' }}>{pct}%</span>
             </div>
             <div style={{ height:4, background:'#F1F5F9', borderRadius:4, overflow:'hidden' }}>
-              <div style={{ height:'100%', width:`${pct}%`, background:'#0F172A', borderRadius:4, transition:'width .6s ease' }} />
+              <div style={{ height:'100%', width:`${pct}%`, background:'#181D1C', borderRadius:4, transition:'width .6s ease' }} />
             </div>
           </div>
         )}
@@ -104,7 +104,7 @@ export default function SettingsRightPanel() {
                     onMouseLeave={e=>(e.currentTarget as HTMLElement).style.background='transparent'}
                   >
                     <div style={{ width:7, height:7, borderRadius:'50%', background:ph.c, flexShrink:0 }} />
-                    <p style={{ fontSize:13, color:'#0F172A', flex:1, margin:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', fontWeight:500 }}>{p.title}</p>
+                    <p style={{ fontSize:13, color:'#181D1C', flex:1, margin:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', fontWeight:500 }}>{p.title}</p>
                     <span style={{ fontSize:10.5, color:'#94A3B8', flexShrink:0 }}>{ph.l}</span>
                   </div>
                 </Link>
@@ -127,7 +127,7 @@ export default function SettingsRightPanel() {
             <div key={a.id} style={{ padding:'8px 16px', display:'flex', gap:10, alignItems:'center', borderBottom:i<activity.length-1?'1px solid #F8FAFC':'none' }}>
               <span style={{ fontSize:14, flexShrink:0 }}>{a.icon || ICONS[a.event_type] || '●'}</span>
               <div style={{ flex:1, minWidth:0 }}>
-                <p style={{ fontSize:12.5, color:'#0F172A', margin:0, fontWeight:500, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{a.title}</p>
+                <p style={{ fontSize:12.5, color:'#181D1C', margin:0, fontWeight:500, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{a.title}</p>
                 <p style={{ fontSize:10.5, color:'#94A3B8', margin:0 }}>
                   {new Date(a.created_at).toLocaleTimeString('de',{hour:'2-digit',minute:'2-digit'})}
                   {a.actor_role && <span style={{ marginLeft:5, fontWeight:600, textTransform:'uppercase', fontSize:9.5, letterSpacing:'.05em' }}>{a.actor_role}</span>}
@@ -139,7 +139,7 @@ export default function SettingsRightPanel() {
       </div>
 
       {/* ── Dark Tagro CTA ── */}
-      <div style={{ background:'#0F172A', borderRadius:20, padding:'18px 20px', position:'relative', overflow:'hidden' }}>
+      <div style={{ background:'#181D1C', borderRadius:20, padding:'18px 20px', position:'relative', overflow:'hidden' }}>
         <div style={{ position:'absolute', top:-24, right:-24, width:90, height:90, borderRadius:'50%', background:'rgba(255,255,255,.04)' }}/>
         <div style={{ position:'absolute', bottom:-12, right:16, width:52, height:52, borderRadius:'50%', background:'rgba(255,255,255,.03)' }}/>
         <img src="/brand/logo.svg" alt="festag" style={{ height:12, filter:'brightness(0) invert(1)', opacity:.7, marginBottom:12, display:'block' }} />

@@ -166,7 +166,7 @@ export default function DashboardPage() {
       {!mainProject && (
         <div className="animate-fade-up-2" style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: 20, padding: '56px 24px', textAlign: 'center', boxShadow: '0 8px 30px rgba(0,0,0,.04)' }}>
           <div style={{ width: 52, height: 52, borderRadius: 14, background: 'var(--surface-2)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 18 }}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0F172A" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8"/></svg>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#181D1C" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8"/></svg>
           </div>
           <h2 style={{ marginBottom: 8 }}>Starte dein erstes Projekt</h2>
           <p style={{ fontSize: 14, color: 'var(--text-secondary)', maxWidth: 380, margin: '0 auto 22px' }}>

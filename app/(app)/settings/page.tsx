@@ -245,7 +245,7 @@ export default function SettingsPage() {
 
   if (loading) return (
     <div style={{ display:'flex',justifyContent:'center',alignItems:'center',minHeight:'60vh' }}>
-      <div style={{ width:28,height:28,border:'2px solid #E2E8F0',borderTopColor:'#0F172A',borderRadius:'50%',animation:'spin .8s linear infinite' }} />
+      <div style={{ width:28,height:28,border:'2px solid #E2E8F0',borderTopColor:'#181D1C',borderRadius:'50%',animation:'spin .8s linear infinite' }} />
     </div>
   )
 
@@ -259,17 +259,17 @@ export default function SettingsPage() {
         .s-hd { padding:15px 22px;border-bottom:1px solid #F1F5F9;background:#FAFBFD;display:flex;align-items:center;justify-content:space-between; }
         .s-hd-label { font-size:10.5px;font-weight:700;color:#94A3B8;letter-spacing:.1em; }
         .s-bd { padding:20px 22px;display:flex;flex-direction:column;gap:14px; }
-        .inp { width:100%;padding:11px 14px;background:#F8FAFC;border:1.5px solid #EEF2F7;border-radius:12px;font-size:15px;outline:none;color:#0F172A;box-sizing:border-box;font-family:inherit;font-weight:500;transition:border-color .15s,box-shadow .15s,background .15s; }
+        .inp { width:100%;padding:11px 14px;background:#F8FAFC;border:1.5px solid #EEF2F7;border-radius:12px;font-size:15px;outline:none;color:#181D1C;box-sizing:border-box;font-family:inherit;font-weight:500;transition:border-color .15s,box-shadow .15s,background .15s; }
         .inp:focus { border-color:#CBD5E1;background:#fff;box-shadow:0 0 0 3px rgba(15,23,42,.05); }
         .inp:disabled { background:#F1F5F9;color:#94A3B8;cursor:not-allowed; }
         .inp::placeholder { color:#C1CAD7; }
-        .txta { width:100%;padding:11px 14px;background:#F8FAFC;border:1.5px solid #EEF2F7;border-radius:12px;font-size:15px;outline:none;color:#0F172A;box-sizing:border-box;resize:vertical;min-height:96px;font-family:inherit;font-weight:500;transition:all .15s;line-height:1.6; }
+        .txta { width:100%;padding:11px 14px;background:#F8FAFC;border:1.5px solid #EEF2F7;border-radius:12px;font-size:15px;outline:none;color:#181D1C;box-sizing:border-box;resize:vertical;min-height:96px;font-family:inherit;font-weight:500;transition:all .15s;line-height:1.6; }
         .txta:focus { border-color:#CBD5E1;background:#fff;box-shadow:0 0 0 3px rgba(15,23,42,.05); }
         .sel-wrap { position:relative; }
-        .sel { width:100%;padding:11px 38px 11px 14px;background:#F8FAFC;border:1.5px solid #EEF2F7;border-radius:12px;font-size:15px;outline:none;color:#0F172A;box-sizing:border-box;cursor:pointer;font-family:inherit;font-weight:500;appearance:none;transition:all .15s; }
+        .sel { width:100%;padding:11px 38px 11px 14px;background:#F8FAFC;border:1.5px solid #EEF2F7;border-radius:12px;font-size:15px;outline:none;color:#181D1C;box-sizing:border-box;cursor:pointer;font-family:inherit;font-weight:500;appearance:none;transition:all .15s; }
         .sel:focus { border-color:#CBD5E1;background:#fff; }
         .sel-arr { position:absolute;right:13px;top:50%;transform:translateY(-50%);pointer-events:none;color:#94A3B8; }
-        .btn-primary { display:inline-flex;align-items:center;gap:8px;padding:10px 20px;background:#0F172A;color:#fff;border:none;border-radius:12px;font-size:13.5px;font-weight:600;cursor:pointer;font-family:inherit;box-shadow:0 2px 8px rgba(15,23,42,.18);transition:all .15s; }
+        .btn-primary { display:inline-flex;align-items:center;gap:8px;padding:10px 20px;background:#181D1C;color:#fff;border:none;border-radius:12px;font-size:13.5px;font-weight:600;cursor:pointer;font-family:inherit;box-shadow:0 2px 8px rgba(15,23,42,.18);transition:all .15s; }
         .btn-primary:hover { opacity:.88;transform:translateY(-1px);box-shadow:0 4px 16px rgba(15,23,42,.22); }
         .btn-primary:disabled { opacity:.4;cursor:default;transform:none; }
         .btn-ghost { display:inline-flex;align-items:center;gap:7px;padding:8px 14px;background:transparent;color:#475569;border:1.5px solid #E2E8F0;border-radius:10px;font-size:12.5px;font-weight:500;cursor:pointer;font-family:inherit;transition:all .15s; }
@@ -284,7 +284,7 @@ export default function SettingsPage() {
         /* Tabs */
         .tab-row { display:flex;background:#F1F5F9;border-radius:16px;padding:4px;gap:3px;margin-bottom:14px; }
         .tab-btn { flex:1;padding:9px 8px;border-radius:12px;border:none;cursor:pointer;font-size:13px;font-weight:500;font-family:inherit;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px; }
-        .tab-on  { background:#fff;color:#0F172A;font-weight:700;box-shadow:0 2px 8px rgba(15,23,42,.08); }
+        .tab-on  { background:#fff;color:#181D1C;font-weight:700;box-shadow:0 2px 8px rgba(15,23,42,.08); }
         .tab-off { background:transparent;color:#94A3B8; }
         .tab-off:hover { color:#475569;background:rgba(255,255,255,.5); }
         /* Integration cards */
@@ -299,7 +299,7 @@ export default function SettingsPage() {
         .chip-gray { background:#F1F5F9;color:#64748B;border:1px solid #E2E8F0; }
         .chip-blue { background:#EFF6FF;color:#2563EB;border:1px solid #BFDBFE; }
         .ai-badge { display:inline-flex;align-items:center;gap:4px;padding:3px 9px;background:#EFF6FF;border:1px solid #BFDBFE;border-radius:6px;font-size:10px;font-weight:700;color:#2563EB;letter-spacing:.04em; }
-        .key-box { background:#0F172A;border-radius:10px;padding:12px 16px;font-family:'SF Mono',monospace;font-size:12.5px;color:#4ade80;word-break:break-all;letter-spacing:.04em;line-height:1.6; }
+        .key-box { background:#181D1C;border-radius:10px;padding:12px 16px;font-family:'SF Mono',monospace;font-size:12.5px;color:#4ade80;word-break:break-all;letter-spacing:.04em;line-height:1.6; }
         @media(max-width:600px) { .row2,.row3 { grid-template-columns:1fr; } }
         @keyframes spin { to{transform:rotate(360deg);} }
         @keyframes fadeUp { from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);} }
@@ -323,16 +323,16 @@ export default function SettingsPage() {
             >
               {uploading ? (
                 <div style={{ width:'100%',height:'100%',background:'#F1F5F9',display:'flex',alignItems:'center',justifyContent:'center' }}>
-                  <div style={{ width:20,height:20,border:'2.5px solid #CBD5E1',borderTopColor:'#0F172A',borderRadius:'50%',animation:'spin .7s linear infinite' }} />
+                  <div style={{ width:20,height:20,border:'2.5px solid #CBD5E1',borderTopColor:'#181D1C',borderRadius:'50%',animation:'spin .7s linear infinite' }} />
                 </div>
               ) : avatarUrl ? (
                 <img src={avatarUrl} alt="" style={{ width:'100%',height:'100%',objectFit:'cover',display:'block' }} />
               ) : (
-                <div style={{ width:'100%',height:'100%',background:'linear-gradient(135deg,#E2E8F0,#F1F5F9)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:26,fontWeight:700,color:'#0F172A' }}>{initial}</div>
+                <div style={{ width:'100%',height:'100%',background:'linear-gradient(135deg,#E2E8F0,#F1F5F9)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:26,fontWeight:700,color:'#181D1C' }}>{initial}</div>
               )}
             </div>
             {/* Edit badge */}
-            <div onClick={() => fileRef.current?.click()} style={{ position:'absolute',bottom:1,right:1,width:22,height:22,background:'#0F172A',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',border:'2px solid #fff',boxShadow:'0 2px 8px rgba(0,0,0,.2)' }}>
+            <div onClick={() => fileRef.current?.click()} style={{ position:'absolute',bottom:1,right:1,width:22,height:22,background:'#181D1C',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',border:'2px solid #fff',boxShadow:'0 2px 8px rgba(0,0,0,.2)' }}>
               <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
             </div>
           </div>
@@ -340,7 +340,7 @@ export default function SettingsPage() {
 
           {/* User info */}
           <div style={{ flex:1,minWidth:140 }}>
-            <p style={{ fontSize:17,fontWeight:700,color:'#0F172A',margin:'0 0 2px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:220 }}>
+            <p style={{ fontSize:17,fontWeight:700,color:'#181D1C',margin:'0 0 2px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:220 }}>
               {displayName}
             </p>
             <p style={{ fontSize:12.5,color:'#94A3B8',margin:'0 0 8px',textTransform:'capitalize' }}>
@@ -418,7 +418,7 @@ export default function SettingsPage() {
                   return (
                     <div key={n.k} style={{ display:'flex',justifyContent:'space-between',alignItems:'center',padding:'11px 0',borderBottom:i<3?'1px solid #F8FAFC':'none' }}>
                       <div>
-                        <p style={{ fontSize:13.5,fontWeight:600,color:'#0F172A',margin:0 }}>{n.l}</p>
+                        <p style={{ fontSize:13.5,fontWeight:600,color:'#181D1C',margin:0 }}>{n.l}</p>
                         <p style={{ fontSize:11.5,color:'#94A3B8',margin:'2px 0 0' }}>{n.d}</p>
                       </div>
                       <button className="tog" onClick={()=>toggleNotif(n.k as keyof Notifs)} style={{ background:on?'#10B981':'#E2E8F0' }}>
@@ -428,9 +428,9 @@ export default function SettingsPage() {
                   )
                 })}
                 {pushSup && !pushOk && (
-                  <div style={{ marginTop:14,background:'#0F172A',borderRadius:14,padding:'13px 16px',display:'flex',gap:13,alignItems:'center' }}>
+                  <div style={{ marginTop:14,background:'#181D1C',borderRadius:14,padding:'13px 16px',display:'flex',gap:13,alignItems:'center' }}>
                     <p style={{ fontSize:13,fontWeight:600,color:'#fff',flex:1,margin:0,lineHeight:1.4 }}>Push-Benachrichtigungen aktivieren</p>
-                    <button onClick={enablePush} style={{ padding:'7px 14px',background:'#fff',color:'#0F172A',border:'none',borderRadius:9,fontSize:12,fontWeight:700,cursor:'pointer',flexShrink:0 }}>Aktivieren</button>
+                    <button onClick={enablePush} style={{ padding:'7px 14px',background:'#fff',color:'#181D1C',border:'none',borderRadius:9,fontSize:12,fontWeight:700,cursor:'pointer',flexShrink:0 }}>Aktivieren</button>
                   </div>
                 )}
                 {pushOk && <div style={{ marginTop:10,padding:'10px 14px',background:'#ECFDF5',border:'1px solid #A7F3D0',borderRadius:10,fontSize:13,color:'#059669',fontWeight:600 }}>✓ Push aktiv auf diesem Gerät</div>}
@@ -541,7 +541,7 @@ export default function SettingsPage() {
                   <div style={{ background:'#F8FAFC',border:'1.5px solid #EEF2F7',borderRadius:12,padding:'12px 16px',display:'flex',gap:10,alignItems:'flex-start' }}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748B" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink:0,marginTop:1 }}><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
                     <p style={{ fontSize:12.5,color:'#64748B',margin:0,lineHeight:1.5 }}>
-                      Nach dem Absenden erhältst du einen Bestätigungslink an <strong style={{ color:'#0F172A' }}>{email}</strong>. Erst nach Bestätigung wird das Passwort geändert.
+                      Nach dem Absenden erhältst du einen Bestätigungslink an <strong style={{ color:'#181D1C' }}>{email}</strong>. Erst nach Bestätigung wird das Passwort geändert.
                     </p>
                   </div>
                   <div>
@@ -620,7 +620,7 @@ export default function SettingsPage() {
                       </svg>
                     </div>
                     <div style={{ flex:1,minWidth:0 }}>
-                      <p style={{ fontSize:13,fontWeight:600,color:'#0F172A',margin:0,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' }}>{d.device_name}</p>
+                      <p style={{ fontSize:13,fontWeight:600,color:'#181D1C',margin:0,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' }}>{d.device_name}</p>
                       <p style={{ fontSize:11,color:'#94A3B8',margin:'2px 0 0' }}>Zuletzt: {new Date(d.last_seen).toLocaleDateString('de',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}</p>
                     </div>
                     {d.is_current
@@ -659,12 +659,12 @@ export default function SettingsPage() {
                 { name:'Gmail',   logo:'/brand/gmail.svg',   desc:'E-Mail Benachrichtigungen & Kundenkommunikation',           features:['Automatische E-Mails','Kunden-Updates','Rechnungsversand'] },
               ].map((s, idx) => (
                 <div key={s.name} className="int-card" style={{ cursor:'default' }}>
-                  <div className="int-logo" style={{ background:s.name==='Notion'?'#000':'#fff',flexShrink:0 }}>
+                  <div className="int-logo" style={{ background:s.name==='Notion'?'#181D1C':'#fff',flexShrink:0 }}>
                     <img src={s.logo} alt={s.name} style={{ width:24,height:24,objectFit:'contain' }}/>
                   </div>
                   <div style={{ flex:1,minWidth:0 }}>
                     <div style={{ display:'flex',alignItems:'center',gap:7,marginBottom:3 }}>
-                      <p style={{ fontSize:13.5,fontWeight:700,color:'#0F172A',margin:0 }}>{s.name}</p>
+                      <p style={{ fontSize:13.5,fontWeight:700,color:'#181D1C',margin:0 }}>{s.name}</p>
                       <span className="chip chip-blue" style={{ fontSize:9.5 }}>Kommt</span>
                     </div>
                     <p style={{ fontSize:12,color:'#64748B',margin:'0 0 6px',lineHeight:1.4 }}>{s.desc}</p>
@@ -690,7 +690,7 @@ export default function SettingsPage() {
                 <div key={w.id} className="webhook-row">
                   <div style={{ width:7,height:7,borderRadius:'50%',background:w.active?'#10B981':'#E2E8F0',flexShrink:0 }} />
                   <div style={{ flex:1,minWidth:0 }}>
-                    <p style={{ fontSize:13,fontWeight:600,color:'#0F172A',margin:0 }}>{w.name}</p>
+                    <p style={{ fontSize:13,fontWeight:600,color:'#181D1C',margin:0 }}>{w.name}</p>
                     <p style={{ fontSize:11,color:'#94A3B8',margin:'1px 0 0',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' }}>{w.url}</p>
                   </div>
                   <button onClick={()=>deleteWebhook(w.id)} className="btn-danger" style={{ fontSize:11,padding:'5px 9px' }}>
@@ -728,7 +728,7 @@ export default function SettingsPage() {
                 <div key={k.id} className="webhook-row">
                   <div style={{ width:7,height:7,borderRadius:'50%',background:'#10B981',flexShrink:0 }} />
                   <div style={{ flex:1 }}>
-                    <p style={{ fontSize:13,fontWeight:600,color:'#0F172A',margin:0 }}>{k.name}</p>
+                    <p style={{ fontSize:13,fontWeight:600,color:'#181D1C',margin:0 }}>{k.name}</p>
                     <p style={{ fontSize:11,color:'#94A3B8',margin:'1px 0 0',fontFamily:'monospace' }}>{k.key_prefix}…</p>
                   </div>
                   {k.last_used && <span style={{ fontSize:11,color:'#94A3B8' }}>{new Date(k.last_used).toLocaleDateString('de')}</span>}

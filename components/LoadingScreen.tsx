@@ -24,7 +24,7 @@ export default function LoadingScreen({ onDone }: { onDone: () => void }) {
         <img src="/brand/logo.svg" alt="festag" style={{ height:32,display:'block',marginBottom:24 }} />
         {/* Bar */}
         <div style={{ width:200,height:2,background:'#EEF2F7',borderRadius:2,overflow:'hidden',marginBottom:12 }}>
-          <div style={{ height:'100%',width:`${pct}%`,background:'#0F172A',borderRadius:2,transition:'width .025s linear' }} />
+          <div style={{ height:'100%',width:`${pct}%`,background:'#181D1C',borderRadius:2,transition:'width .025s linear' }} />
         </div>
         {/* Message */}
         <p style={{ fontSize:12,color:'#94A3B8',margin:0,letterSpacing:'.02em',fontFamily:'inherit' }}>{MSGS[mi]}</p>

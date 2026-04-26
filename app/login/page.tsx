@@ -33,8 +33,8 @@ const BLOCKS: Record<View,{w:number,h:number}[]> = {
 
 function getPanelBg(theme: string) {
   if (theme === 'dark') return '#181D1C'
-  if (theme === 'read') return '#FDFAF4'
-  return '#FFFFFF'
+  if (theme === 'read') return '#F5F0E8'
+  return '#F8F9F8'
 }
 
 function PixelBlocks({ view }: { view: View }) {
@@ -84,7 +84,7 @@ function ImagePanel({ view }: { view: View }) {
            'Von der Idee zum fertigen Produkt — die KI versteht, plant und liefert.'}
         </p>
       </div>
-      <p style={{position:'absolute',bottom:18,left:36,fontSize:11,color:'rgba(255,255,255,.22)',letterSpacing:'.06em',zIndex:2}}>© 2026 Festag</p>
+      <p style={{position:'absolute',bottom:18,left:36,fontSize:10,color:'rgba(255,255,255,.22)',letterSpacing:'.05em',zIndex:2,lineHeight:1.5}}>© 2026 Festag GmbH<br/>Alle Rechte vorbehalten</p>
     </div>
   )
 }
@@ -125,7 +125,7 @@ function SocialBtn({ label,onClick,icon,black=false }:{label:string;onClick:()=>
   const [h,setH]=useState(false)
   return (
     <button onClick={onClick} onMouseEnter={()=>setH(true)} onMouseLeave={()=>setH(false)}
-      style={{width:'100%',padding:'14px 18px',background:black?(h?'#1a1a1a':'#000'):(h?'var(--card)':'var(--inp)'),border:black?'none':`1.5px solid ${h?'var(--border-strong)':'var(--border)'}`,borderRadius:13,color:black?'#fff':'var(--text)',fontSize:15,fontWeight:600,display:'flex',alignItems:'center',justifyContent:'center',gap:12,cursor:'pointer',fontFamily:'inherit',transition:'all .15s'}}>
+      style={{width:'100%',padding:'14px 18px',background:black?(h?'#222827':'#181D1C'):(h?'var(--card)':'var(--inp)'),border:black?'none':`1.5px solid ${h?'var(--border-strong)':'var(--border)'}`,borderRadius:13,color:black?'#fff':'var(--text)',fontSize:15,fontWeight:600,display:'flex',alignItems:'center',justifyContent:'center',gap:12,cursor:'pointer',fontFamily:'inherit',transition:'all .15s'}}>
       {icon}{label}
     </button>
   )

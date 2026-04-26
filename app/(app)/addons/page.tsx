@@ -30,7 +30,7 @@ function AddonIcon({ name }: { name: string }) {
     seo: <><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></>,
     bot: <><rect x="5" y="7" width="14" height="12" rx="2"/><path d="M9 3v4M15 3v4M9 13v2M15 13v2"/></>,
   }
-  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0F172A" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">{icons[name]}</svg>
+  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#181D1C" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">{icons[name]}</svg>
 }
 
 export default function AddonsPage() {

@@ -31,7 +31,7 @@ const MOB_MORE = [
 ]
 
 function Ico({ name, sz=18, on=false }: { name:string; sz?:number; on?:boolean }) {
-  const c = on ? '#0F172A' : '#94A3B8'
+  const c = on ? '#181D1C' : '#94A3B8'
   const sw = on ? 2 : 1.7
 
   if (name === 'grid') return (
@@ -151,7 +151,7 @@ export default function Sidebar() {
         .mti { width:34px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:9px;transition:background .12s; }
         .mt.on .mti  { background:rgba(15,23,42,.08); }
         .mt.has-avatar .mti { background:transparent !important; }
-        .mt.on  .ml  { color:#0F172A;font-weight:700; }
+        .mt.on  .ml  { color:#181D1C;font-weight:700; }
         .mt.off .ml  { color:#94A3B8;font-weight:500; }
         .ml { font-size:10px;letter-spacing:.01em;transition:color .12s;line-height:1; }
 
@@ -212,10 +212,10 @@ export default function Sidebar() {
                 {avatar ? (
                   <img src={avatar} alt="" style={{ width:28,height:28,borderRadius:'50%',objectFit:'cover',border:'2px solid #F1F5F9',flexShrink:0 }}/>
                 ) : (
-                  <div style={{ width:28,height:28,borderRadius:'50%',background:'#F1F5F9',display:'flex',alignItems:'center',justifyContent:'center',fontSize:12,fontWeight:700,color:'#0F172A',flexShrink:0 }}>{init}</div>
+                  <div style={{ width:28,height:28,borderRadius:'50%',background:'#F1F5F9',display:'flex',alignItems:'center',justifyContent:'center',fontSize:12,fontWeight:700,color:'#181D1C',flexShrink:0 }}>{init}</div>
                 )}
                 <div style={{ flex:1,minWidth:0 }}>
-                  <p style={{ fontSize:12.5,fontWeight:600,color:'#0F172A',margin:0,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' }}>{name}</p>
+                  <p style={{ fontSize:12.5,fontWeight:600,color:'#181D1C',margin:0,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' }}>{name}</p>
                   <p style={{ fontSize:10.5,color:'#94A3B8',margin:0 }}>Client</p>
                 </div>
               </div>
@@ -252,7 +252,7 @@ export default function Sidebar() {
                       width:28, height:28,
                       borderRadius:'50%',
                       objectFit:'cover',
-                      border: on ? '2.5px solid #0F172A' : '2px solid rgba(15,23,42,.12)',
+                      border: on ? '2.5px solid #181D1C' : '2px solid rgba(15,23,42,.12)',
                       display:'block',
                     }}
                   />
@@ -289,10 +289,10 @@ export default function Sidebar() {
               const on = isOn(item.href)
               return (
                 <Link key={item.href} href={resolve(item.href)} className="mr" onClick={()=>setMore(false)}>
-                  <div style={{ width:40,height:40,borderRadius:11,background:on?'#0F172A':'#F1F5F9',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0 }}>
+                  <div style={{ width:40,height:40,borderRadius:11,background:on?'#181D1C':'#F1F5F9',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0 }}>
                     <Ico name={item.icon} sz={19} on={on} />
                   </div>
-                  <p style={{ fontSize:15,fontWeight:on?700:600,color:'#0F172A',margin:0,flex:1 }}>{item.label}</p>
+                  <p style={{ fontSize:15,fontWeight:on?700:600,color:'#181D1C',margin:0,flex:1 }}>{item.label}</p>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" strokeWidth="2" strokeLinecap="round"><path d="M9 6l6 6-6 6"/></svg>
                 </Link>
               )

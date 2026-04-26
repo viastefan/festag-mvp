@@ -11,7 +11,7 @@ const NAV = [
 ]
 
 function Icon({ name, active }: { name: string; active: boolean }) {
-  const c = active ? '#0F172A' : '#94A3B8'; const sw = active ? 1.8 : 1.6
+  const c = active ? '#181D1C' : '#94A3B8'; const sw = active ? 1.8 : 1.6
   switch (name) {
     case 'home':  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round"><path d="M3 12l9-9 9 9"/><path d="M5 10v10h14V10"/></svg>
     case 'inbox': return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 12h6l2 3h4l2-3h6"/></svg>

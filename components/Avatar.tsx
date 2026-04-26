@@ -38,7 +38,7 @@ export default function Avatar({ user, size = 36, ring = false }: Props) {
       border: ring ? '2px solid var(--surface)' : '1px solid var(--border)',
       boxShadow: ring ? 'var(--shadow-xs)' : 'none',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      fontWeight: 600, color: '#0F172A', flexShrink: 0,
+      fontWeight: 600, color: '#181D1C', flexShrink: 0,
       fontFamily: 'Aeonik, sans-serif', letterSpacing: '-0.02em',
     }}>
       {initials}
