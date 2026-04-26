@@ -25,10 +25,10 @@
 }
 
 [data-theme="dark"] {
-  --bg:#0E0F0E; --surface:#161917; --card:#1C1F1C;
+  --bg:#181D1C; --surface:#161917; --card:#1C1F1C;
   --border:rgba(255,255,255,0.08); --border-strong:rgba(255,255,255,0.15);
   --text:#F4F5F4; --text-secondary:#7A8780; --text-muted:#3E4642;
-  --btn-prim:#FFFFFF; --btn-prim-text:#0E0F0E;
+  --btn-prim:#FFFFFF; --btn-prim-text:#181D1C;
   --inp:rgba(255,255,255,0.05); --inp-border:rgba(255,255,255,0.1);
   --inp-focus:rgba(255,255,255,0.09); --inp-focus-border:rgba(255,255,255,0.35);
   --glow:rgba(255,255,255,0.05);

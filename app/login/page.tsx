@@ -32,7 +32,7 @@ const BLOCKS: Record<View,{w:number,h:number}[]> = {
 }
 
 function getPanelBg(theme: string) {
-  if (theme === 'dark') return '#0E0F0E'
+  if (theme === 'dark') return '#181D1C'
   if (theme === 'read') return '#FDFAF4'
   return '#FFFFFF'
 }
