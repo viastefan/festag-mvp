@@ -35,7 +35,7 @@ function getPanelBg(theme: string) {
   return '#F8F9F8'
 }
 
-// ── Mobile Pixel Signature: intentional staircase from bottom-right ──
+// ── Mobile Pixel Signature: vertical stack rising from bottom ──
 function PixelBlocksMobile() {
   const [bg, setBg] = useState(() => getPanelBg(
     typeof window !== 'undefined' ? localStorage.getItem('festag_theme') || 'dark' : 'dark'
@@ -50,24 +50,27 @@ function PixelBlocksMobile() {
     return () => window.removeEventListener('festag-theme', update)
   }, [])
 
-  // Deliberate staircase — Festag brand signature, rising from bottom-right
-  const blocks = [
-    { right: 0,     bottom: 0,       w: '56%', h: '9%'   },
-    { right: 0,     bottom: '9%',    w: '40%', h: '5%'   },
-    { right: 0,     bottom: '14%',   w: '64%', h: '4.5%' },
-    { right: '18%', bottom: '18.5%', w: '24%', h: '3%'   },
-    { right: 0,     bottom: '21.5%', w: '32%', h: '2.5%' },
-    { right: '12%', bottom: '24%',   w: '16%', h: '2%'   },
+  // Vertical staircase rising from bottom — full-width signature on mobile
+  // Each row is a horizontal slab; widths shrink as we go up
+  const rows = [
+    { bottom: 0,      h: 14, w: '100%' },
+    { bottom: 14,     h: 10, w: '78%'  },
+    { bottom: 24,     h: 8,  w: '92%'  },
+    { bottom: 32,     h: 6,  w: '64%'  },
+    { bottom: 38,     h: 5,  w: '84%'  },
+    { bottom: 43,     h: 4,  w: '52%'  },
+    { bottom: 47,     h: 3,  w: '70%'  },
+    { bottom: 50,     h: 2.5,w: '38%'  },
   ]
   return (
     <>
-      {blocks.map((b, i) => (
+      {rows.map((b, i) => (
         <div key={i} className="px-mob" style={{
           position: 'absolute',
-          right: b.right, bottom: b.bottom,
-          width: b.w, height: b.h,
+          left: 0, bottom: `${b.bottom}px`,
+          width: b.w, height: `${b.h}px`,
           background: bg,
-          animationDelay: `${i * 0.08 + 0.12}s`,
+          animationDelay: `${i * 0.05 + 0.1}s`,
           zIndex: 3,
         }}/>
       ))}
@@ -196,7 +199,7 @@ const MOBILE_CSS = `
   *{box-sizing:border-box;margin:0;padding:0;}
   @keyframes spin{to{transform:rotate(360deg);}}
   @keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
-  @keyframes pxRise{from{opacity:0;transform:translateY(70px);}to{opacity:1;transform:translateY(0);}}
+  @keyframes pxRise{from{opacity:0;transform:translateY(80px);}to{opacity:1;transform:translateY(0);}}
   input::placeholder{color:var(--text-muted);opacity:1;}
   body{background:var(--bg)!important;}
 
@@ -207,33 +210,52 @@ const MOBILE_CSS = `
 
   /* ── Animations ── */
   .frm{animation:fadeUp .35s cubic-bezier(.16,1,.3,1) both;}
-  .px-mob{pointer-events:none;animation:pxRise .75s cubic-bezier(.16,1,.3,1) both;}
+  .px-mob{pointer-events:none;animation:pxRise .8s cubic-bezier(.16,1,.3,1) both;}
 
-  /* ── MOBILE: Hero Image ── */
+  /* ── MOBILE: Full-screen hero (image bleeds top, dark fade to bg color) ── */
   .mob-hero{
     display:block;
-    position:relative;
-    width:100%;
-    height:58dvh;
-    min-height:300px;
+    position:absolute;
+    top:0;left:0;right:0;
+    height:55dvh;
     overflow:hidden;
-    flex-shrink:0;
+    z-index:0;
   }
 
   /* ── MOBILE: Theme-aware gradient ── */
   .mob-grad{position:absolute;inset:0;pointer-events:none;z-index:1;}
-  [data-theme="dark"]  .mob-grad{background:linear-gradient(180deg,rgba(24,29,28,0) 0%,rgba(24,29,28,.02) 35%,rgba(24,29,28,.6) 62%,rgba(24,29,28,.97) 90%,#181D1C 100%);}
-  [data-theme="light"] .mob-grad{background:linear-gradient(180deg,rgba(248,249,248,0) 0%,rgba(248,249,248,.02) 35%,rgba(248,249,248,.6) 62%,rgba(248,249,248,.97) 90%,#F8F9F8 100%);}
-  [data-theme="read"]  .mob-grad{background:linear-gradient(180deg,rgba(245,240,232,0) 0%,rgba(245,240,232,.02) 35%,rgba(245,240,232,.6) 62%,rgba(245,240,232,.97) 90%,#F5F0E8 100%);}
+  [data-theme="dark"]  .mob-grad{background:linear-gradient(180deg,rgba(24,29,28,0) 0%,rgba(24,29,28,.05) 30%,rgba(24,29,28,.55) 60%,rgba(24,29,28,.96) 88%,#181D1C 100%);}
+  [data-theme="light"] .mob-grad{background:linear-gradient(180deg,rgba(248,249,248,0) 0%,rgba(248,249,248,.05) 30%,rgba(248,249,248,.55) 60%,rgba(248,249,248,.96) 88%,#F8F9F8 100%);}
+  [data-theme="read"]  .mob-grad{background:linear-gradient(180deg,rgba(245,240,232,0) 0%,rgba(245,240,232,.05) 30%,rgba(245,240,232,.55) 60%,rgba(245,240,232,.96) 88%,#F5F0E8 100%);}
 
-  /* ── MOBILE: CTA Section ── */
-  .mob-cta{
-    flex:1;
+  /* ── MOBILE: Mobile container — full screen with content centered in lower half ── */
+  .mob-page{
+    position:relative;
+    min-height:100dvh;
+    width:100%;
     display:flex;
     flex-direction:column;
-    justify-content:center;
-    padding:24px 20px calc(env(safe-area-inset-bottom) + 28px);
-    gap:0;
+    background:var(--bg);
+    overflow:hidden;
+  }
+
+  /* Logo positioned over hero */
+  .mob-logo{
+    position:absolute;
+    top:calc(env(safe-area-inset-top) + 22px);
+    left:20px;
+    z-index:5;
+    height:20px;
+    opacity:.95;
+    filter:brightness(0) invert(1);
+  }
+
+  /* CTA section — sits in lower portion of screen, content centered */
+  .mob-cta{
+    position:relative;
+    z-index:2;
+    margin-top:auto;
+    padding:0 20px calc(env(safe-area-inset-bottom) + 28px);
   }
 
   /* ── MOBILE: Form View ── */
@@ -241,19 +263,21 @@ const MOBILE_CSS = `
     flex:1;
     display:flex;
     flex-direction:column;
-    justify-content:flex-start;
-    padding:calc(env(safe-area-inset-top) + 20px) 20px calc(env(safe-area-inset-bottom) + 40px);
+    justify-content:center;
+    padding:calc(env(safe-area-inset-top) + 24px) 20px calc(env(safe-area-inset-bottom) + 32px);
     overflow-y:auto;
     -webkit-overflow-scrolling:touch;
+    min-height:100dvh;
   }
 
   /* ── DESKTOP OVERRIDES (≥769px — untouched) ── */
   @media(min-width:769px){
     .mob-hero{display:none!important;}
-    .mob-cta{padding:52px;justify-content:center;}
+    .mob-page{min-height:auto;background:var(--bg);}
+    .mob-cta{padding:52px;margin-top:0;justify-content:center;display:flex;flex-direction:column;height:100%;}
     .l-left{display:flex;flex:1.2;min-width:0;}
     .l-right{width:480px;flex:none;background:var(--bg);}
-    .form-scroll{padding:0 52px;justify-content:center;}
+    .form-scroll{padding:0 52px;justify-content:center;min-height:100vh;}
   }
 `
 
@@ -322,81 +346,78 @@ export default function LoginPage() {
       <style>{MOBILE_CSS}</style>
       <ThemeToggle/>
       <div className="l-wrap">
-        {/* Desktop left panel — untouched */}
+        {/* Desktop left panel — UNTOUCHED */}
         <div className="l-left"><ImagePanel view="home"/></div>
 
         <div className="l-right">
-          {/* ── MOBILE HERO ── */}
-          <div className="mob-hero">
-            <img src="/bg-office.jpg" alt="" style={{
-              position: 'absolute', inset: 0, width: '100%', height: '100%',
-              objectFit: 'cover', objectPosition: 'center 20%',
-            }}/>
-            <div className="mob-grad" style={{ zIndex: 1 }}/>
-            {/* PixelBlocks below gradient so they show through */}
-            <div style={{ position: 'absolute', inset: 0, zIndex: 2 }}>
+          <div className="mob-page">
+            {/* MOBILE: full-bleed hero behind content */}
+            <div className="mob-hero">
+              <img src="/bg-office.jpg" alt="" style={{
+                position: 'absolute', inset: 0, width: '100%', height: '100%',
+                objectFit: 'cover', objectPosition: 'center 25%',
+              }}/>
+              <div className="mob-grad"/>
               <PixelBlocksMobile/>
             </div>
-            {/* Logo — top-left with safe-area */}
-            <img src="/brand/logo.svg" alt="festag" style={{
-              position: 'absolute',
-              top: 'calc(env(safe-area-inset-top) + 20px)',
-              left: 20, zIndex: 4,
-              height: 20, opacity: .95,
-              filter: 'brightness(0) invert(1)',
-            }}/>
-            {/* Headline — bottom of hero */}
-            <div style={{ position: 'absolute', bottom: 24, left: 20, right: 20, zIndex: 4 }}>
-              <h1 style={{
-                fontSize: 29, fontWeight: 700, color: '#fff',
-                lineHeight: 1.12, letterSpacing: '-.6px', marginBottom: 9,
-              }}>
-                Kein Informationsverlust<br/>mehr. Mit Festag AI.
-              </h1>
+
+            {/* MOBILE: logo top-left over hero */}
+            <img src="/brand/logo.svg" alt="festag" className="mob-logo desk-hide"/>
+            <style>{`@media(min-width:769px){.desk-hide{display:none!important;}}`}</style>
+
+            {/* MOBILE CTA — centered horizontally, anchored bottom */}
+            <div className="mob-cta">
+              {/* Desktop-only header */}
+              <div style={{ display: 'none' }} className="desk-only">
+                <style>{`@media(min-width:769px){.desk-only{display:block!important;}}`}</style>
+                <img src="/brand/logo.svg" alt="festag" style={{ height: 20, marginBottom: 44, display: 'block', filter: 'var(--logo-filter,none)' }}/>
+                <h1 style={{ fontSize: 34, fontWeight: 700, color: 'var(--text)', letterSpacing: '-.7px', lineHeight: 1.15, marginBottom: 10 }}>{greeting}</h1>
+                <p style={{ fontSize: 16, color: 'var(--text-secondary)', marginBottom: 40, lineHeight: 1.6, fontWeight: 500 }}>{getGreetingSub()}</p>
+              </div>
+
+              {/* Mobile: Headline + sub */}
+              <div className="mob-text" style={{ marginBottom: 24 }}>
+                <style>{`@media(min-width:769px){.mob-text{display:none!important;}}`}</style>
+                <h1 style={{
+                  fontSize: 30, fontWeight: 700, color: 'var(--text)',
+                  lineHeight: 1.1, letterSpacing: '-.65px', marginBottom: 10,
+                }}>
+                  Kein Informationsverlust<br/>mehr. Mit Festag AI.
+                </h1>
+                <p style={{
+                  fontSize: 14.5, fontWeight: 500,
+                  color: 'var(--text-secondary)', lineHeight: 1.5,
+                }}>
+                  Die KI versteht, zerlegt und steuert —<br/>Menschen bauen, System liefert
+                </p>
+              </div>
+
+              {/* Buttons */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <PrimaryBtn label="Jetzt starten" onClick={() => go('register')}/>
+                <SecondaryBtn label="Einloggen" onClick={() => go('login')}/>
+              </div>
+
+              {/* Dev link */}
+              <div style={{ marginTop: 22, textAlign: 'center' }}>
+                <span onClick={() => go('dev')} style={{
+                  fontSize: 13, color: 'var(--text-muted)',
+                  cursor: 'pointer', fontWeight: 500,
+                  WebkitTapHighlightColor: 'transparent',
+                }}>
+                  Als Dev'ler fortfahren
+                </span>
+              </div>
+
+              {/* Tagline */}
               <p style={{
-                fontSize: 14, fontWeight: 500,
-                color: 'rgba(255,255,255,.62)', lineHeight: 1.5,
+                textAlign: 'center', fontSize: 10.5,
+                color: 'var(--text-muted)', marginTop: 10,
+                letterSpacing: '.04em', fontWeight: 500, opacity: .55,
               }}>
-                Die KI versteht, zerlegt und steuert —<br/>Menschen bauen, System liefert
+                Kein Informationsverlust AI + Menschen Skalieren
               </p>
             </div>
-          </div>
-
-          {/* ── MOBILE CTA ── */}
-          <div className="mob-cta">
-            {/* Desktop-only header */}
-            <div style={{ display: 'none' }} className="desk-only">
-              <style>{`@media(min-width:769px){.desk-only{display:block!important;}}`}</style>
-              <img src="/brand/logo.svg" alt="festag" style={{ height: 20, marginBottom: 44, display: 'block', filter: 'var(--logo-filter,none)' }}/>
-              <h1 style={{ fontSize: 34, fontWeight: 700, color: 'var(--text)', letterSpacing: '-.7px', lineHeight: 1.15, marginBottom: 10 }}>{greeting}</h1>
-              <p style={{ fontSize: 16, color: 'var(--text-secondary)', marginBottom: 40, lineHeight: 1.6, fontWeight: 500 }}>{getGreetingSub()}</p>
-            </div>
-
-            {/* Buttons */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <PrimaryBtn label="Jetzt starten" onClick={() => go('register')}/>
-              <SecondaryBtn label="Einloggen" onClick={() => go('login')}/>
-            </div>
-
-            {/* Dev link */}
-            <div style={{ marginTop: 22, textAlign: 'center' }}>
-              <span onClick={() => go('dev')} style={{
-                fontSize: 13, color: 'var(--text-muted)',
-                cursor: 'pointer', fontWeight: 500,
-                WebkitTapHighlightColor: 'transparent',
-              }}>
-                Als Dev'ler fortfahren
-              </span>
-            </div>
-
-            {/* Tagline */}
-            <p style={{
-              textAlign: 'center', fontSize: 10.5,
-              color: 'var(--text-muted)', marginTop: 10,
-              letterSpacing: '.04em', fontWeight: 500, opacity: .6,
-            }}>
-              Kein Informationsverlust AI + Menschen Skalieren
-            </p>
           </div>
         </div>
       </div>

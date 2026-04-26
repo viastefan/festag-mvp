@@ -31,7 +31,7 @@ const MOB_MORE = [
 ]
 
 function Ico({ name, sz=18, on=false }: { name:string; sz?:number; on?:boolean }) {
-  const c = on ? '#181D1C' : '#94A3B8'
+  const c = on ? 'var(--text)' : 'var(--text-muted)'
   const sw = on ? 2 : 1.7
 
   if (name === 'grid') return (
@@ -109,10 +109,9 @@ export default function Sidebar() {
         .ni-on  { background:var(--nav-on);font-weight:700;color:var(--nav-on-text); }
         .ni-off { color:var(--nav-off-text); }
         .ni-off:hover { background:var(--card);color:var(--text); }
+        .usr-row:hover { background:var(--card); }
 
-        /* ── Mobile floating bar — ONLY rendered on mobile via .bottom-nav class ──
-           The .bottom-nav class is display:none on desktop (globals.css)
-           and display:flex on mobile. So this CSS only takes effect on mobile. */
+        /* ── Mobile floating bar (theme-aware) ── */
         .mob-bar {
           position: fixed;
           bottom: 14px;
@@ -120,24 +119,11 @@ export default function Sidebar() {
           transform: translateX(-50%);
           width: calc(100% - 24px);
           max-width: 400px;
-
-          /* ── 90% white + subtle glass — modern & clean ──
-             High opacity white gives crisp readable tabs.
-             Small blur adds the glass depth without muddiness. */
-          background: rgba(255, 255, 255, 0.90);
+          background: var(--sidebar-bg);
           backdrop-filter: blur(16px) saturate(160%);
           -webkit-backdrop-filter: blur(16px) saturate(160%);
-
-          /* Thicker border for the premium card look */
-          border: 1.5px solid rgba(255, 255, 255, 0.96);
-          border-bottom: 1.5px solid rgba(180, 200, 220, 0.35);
-
-          /* Refined shadow stack */
-          box-shadow:
-            0 8px 32px rgba(15, 23, 42, 0.10),
-            0 3px 10px rgba(15, 23, 42, 0.05),
-            inset 0 1px 0 rgba(255, 255, 255, 1);
-
+          border: 1px solid var(--border);
+          box-shadow: var(--shadow-lg);
           border-radius: 24px;
           z-index: 200;
           justify-content: space-around;
@@ -149,17 +135,17 @@ export default function Sidebar() {
         .mt { display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;min-height:44px;justify-content:center;cursor:pointer;text-decoration:none;border:none;background:transparent;font-family:inherit;-webkit-tap-highlight-color:transparent; }
         .mt:active { transform:scale(.9); }
         .mti { width:34px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:9px;transition:background .12s; }
-        .mt.on .mti  { background:rgba(15,23,42,.08); }
+        .mt.on .mti  { background:var(--nav-on); }
         .mt.has-avatar .mti { background:transparent !important; }
-        .mt.on  .ml  { color:#181D1C;font-weight:700; }
-        .mt.off .ml  { color:#94A3B8;font-weight:500; }
+        .mt.on  .ml  { color:var(--text);font-weight:700; }
+        .mt.off .ml  { color:var(--text-muted);font-weight:500; }
         .ml { font-size:10px;letter-spacing:.01em;transition:color .12s;line-height:1; }
 
         /* More sheet */
-        .mbd { position:fixed;inset:0;z-index:198;background:rgba(0,0,0,.08);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px); }
+        .mbd { position:fixed;inset:0;z-index:198;background:rgba(0,0,0,.32);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px); }
         .msh {
           position:fixed;bottom:0;left:0;right:0;z-index:199;
-          background:rgba(255,255,255,.97);
+          background:var(--surface);
           backdrop-filter:blur(28px);
           -webkit-backdrop-filter:blur(28px);
           border-radius:20px 20px 0 0;
@@ -178,8 +164,8 @@ export default function Sidebar() {
           DESKTOP SIDEBAR — floating apple card
           Shown via .sidebar class (display:flex on desktop)
       ════════════════════════════════════════ */}
-      <aside className="sidebar" style={{ position:'fixed',top:0,left:0,width:256,height:'100vh',zIndex:100,padding:'12px',pointerEvents:'none' }}>
-        <div className="sidebar-inner" style={{ pointerEvents:'all',padding:'20px 10px 20px 10px',display:'flex',flexDirection:'column',height:'100%' }}>
+      <aside className="sidebar" style={{ pointerEvents:'none' }}>
+        <div className="sidebar-inner" style={{ pointerEvents:'all',padding:'20px 10px 16px 10px' }}>
 
           {/* Logo */}
           <Link href="/dashboard" style={{ textDecoration:'none',display:'block' }}>
@@ -202,27 +188,25 @@ export default function Sidebar() {
           </nav>
 
           {/* User block */}
-          <div style={{ borderTop:'1px solid var(--border)',paddingTop:10,marginTop:8,paddingBottom:14 }}>
+          <div style={{ borderTop:'1px solid var(--border)',paddingTop:10,marginTop:8,paddingBottom:4 }}>
             <Link href="/settings" style={{ textDecoration:'none' }}>
-              <div
+              <div className="usr-row"
                 style={{ display:'flex',alignItems:'center',gap:9,padding:'7px 9px',borderRadius:11,cursor:'pointer',transition:'background .1s' }}
-                onMouseEnter={e=>(e.currentTarget as HTMLElement).style.background='#F8FAFC'}
-                onMouseLeave={e=>(e.currentTarget as HTMLElement).style.background='transparent'}
               >
                 {avatar ? (
-                  <img src={avatar} alt="" style={{ width:28,height:28,borderRadius:'50%',objectFit:'cover',border:'2px solid #F1F5F9',flexShrink:0 }}/>
+                  <img src={avatar} alt="" style={{ width:28,height:28,borderRadius:'50%',objectFit:'cover',border:'2px solid var(--border)',flexShrink:0 }}/>
                 ) : (
-                  <div style={{ width:28,height:28,borderRadius:'50%',background:'#F1F5F9',display:'flex',alignItems:'center',justifyContent:'center',fontSize:12,fontWeight:700,color:'#181D1C',flexShrink:0 }}>{init}</div>
+                  <div style={{ width:28,height:28,borderRadius:'50%',background:'var(--card)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:12,fontWeight:700,color:'var(--text)',flexShrink:0 }}>{init}</div>
                 )}
                 <div style={{ flex:1,minWidth:0 }}>
-                  <p style={{ fontSize:12.5,fontWeight:600,color:'#181D1C',margin:0,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' }}>{name}</p>
-                  <p style={{ fontSize:10.5,color:'#94A3B8',margin:0 }}>Client</p>
+                  <p style={{ fontSize:12.5,fontWeight:600,color:'var(--text)',margin:0,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' }}>{name}</p>
+                  <p style={{ fontSize:10.5,color:'var(--text-muted)',margin:0 }}>Client</p>
                 </div>
               </div>
             </Link>
             <button
               onClick={logout}
-              style={{ width:'100%',padding:'6px 9px',textAlign:'left',border:'none',background:'transparent',cursor:'pointer',fontSize:11.5,color:'#94A3B8',borderRadius:9,marginTop:2,fontFamily:'inherit',display:'flex',alignItems:'center',gap:5 }}
+              style={{ width:'100%',padding:'6px 9px',textAlign:'left',border:'none',background:'transparent',cursor:'pointer',fontSize:11.5,color:'var(--text-muted)',borderRadius:9,marginTop:2,fontFamily:'inherit',display:'flex',alignItems:'center',gap:5 }}
             >
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>

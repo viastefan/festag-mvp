@@ -41,9 +41,7 @@ export default function AppHeader({ title, subtitle }: Props) {
     }}>
       <style>{`
         @media(max-width:768px){
-          .app-header{padding:12px 16px!important;gap:10px!important;}
-          .ah-title{display:none!important;}
-          .ah-search{flex:1;}
+          .app-header{display:none!important;}
         }
       `}</style>
 
