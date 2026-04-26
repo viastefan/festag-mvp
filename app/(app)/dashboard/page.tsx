@@ -107,49 +107,19 @@ export default function DashboardPage() {
         @media(max-width:768px){.dash-header{flex-direction:column;gap:12px;}.dash-search{width:100%!important;}}
       `}</style>
 
-      {/* ── TOP HEADER ── */}
-      <div className="dash-header animate-fade-up" style={{ display:'flex', alignItems:'center', gap:16, marginBottom:36 }}>
-        {/* Greeting left */}
-        <div style={{ flex:1 }}>
-          <h1 style={{ fontSize:28, fontWeight:700, letterSpacing:'-.6px', lineHeight:1.15, marginBottom:4, color:'var(--text)' }}>
-            {greeting}, {displayName}.
-          </h1>
-          <p style={{ fontSize:14, color:'var(--text-secondary)', display:'flex', alignItems:'center', gap:8, margin:0 }}>
-            <span>{projects.length} {projects.length === 1 ? 'Projekt' : 'Projekte'}</span>
-            <span>·</span>
-            <span style={{ display:'inline-flex', alignItems:'center', gap:4 }}>
-              <span style={{ width:5, height:5, borderRadius:'50%', background:'var(--green)', animation:'pulse 2s infinite', display:'inline-block' }}/>
-              Tagro AI Online
-            </span>
-          </p>
-        </div>
-
-        {/* Search */}
-        <div className="dash-search" style={{ position:'relative', width:240 }}>
-          <svg style={{ position:'absolute', left:12, top:'50%', transform:'translateY(-50%)', pointerEvents:'none' }}
-            width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2" strokeLinecap="round">
-            <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
-          </svg>
-          <input placeholder="Suchen..." style={{ width:'100%', padding:'9px 12px 9px 34px',
-            background:'var(--card)', border:'1px solid var(--border)', borderRadius:12,
-            fontSize:13, color:'var(--text)', fontFamily:'inherit', fontWeight:500, outline:'none',
-            transition:'border-color .15s' }}
-            onFocus={e=>e.target.style.borderColor='var(--border-strong)'}
-            onBlur={e=>e.target.style.borderColor='var(--border)'}/>
-        </div>
-
-        {/* New project */}
-        <a href="/new-project" style={{ display:'flex', alignItems:'center', gap:7, padding:'9px 16px',
-          background:'var(--btn-prim)', color:'var(--btn-prim-text)', borderRadius:12,
-          fontSize:13, fontWeight:700, textDecoration:'none', flexShrink:0, transition:'opacity .15s' }}
-          onMouseEnter={e=>(e.currentTarget as HTMLElement).style.opacity='.85'}
-          onMouseLeave={e=>(e.currentTarget as HTMLElement).style.opacity='1'}>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
-          Neues Projekt
-        </a>
-
-        {/* Theme toggle */}
-        <ThemeToggle position="relative"/>
+      {/* ── GREETING (header is now in layout) ── */}
+      <div className="animate-fade-up" style={{ marginBottom:28 }}>
+        <h1 style={{ fontSize:28, fontWeight:700, letterSpacing:'-.6px', lineHeight:1.15, marginBottom:4, color:'var(--text)' }}>
+          {greeting}, {displayName}.
+        </h1>
+        <p style={{ fontSize:14, color:'var(--text-secondary)', display:'flex', alignItems:'center', gap:8, margin:0 }}>
+          <span>{projects.length} {projects.length === 1 ? 'Projekt' : 'Projekte'}</span>
+          <span>·</span>
+          <span style={{ display:'inline-flex', alignItems:'center', gap:4 }}>
+            <span style={{ width:5, height:5, borderRadius:'50%', background:'var(--green)', animation:'pulse 2s infinite', display:'inline-block' }}/>
+            Tagro AI Online
+          </span>
+        </p>
       </div>
 
       {/* News banner */}
@@ -164,7 +134,7 @@ export default function DashboardPage() {
 
       {/* Empty state */}
       {!mainProject && (
-        <div className="animate-fade-up-2" style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: 20, padding: '56px 24px', textAlign: 'center', boxShadow: '0 8px 30px rgba(0,0,0,.04)' }}>
+        <div className="animate-fade-up-2" style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius: 20, padding: '56px 24px', textAlign: 'center', boxShadow: '0 8px 30px rgba(0,0,0,.04)' }}>
           <div style={{ width: 52, height: 52, borderRadius: 14, background: 'var(--surface-2)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 18 }}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#181D1C" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8"/></svg>
           </div>
@@ -186,7 +156,7 @@ export default function DashboardPage() {
           <div className="animate-fade-up-2 grid-cols-2-mobile-1" style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 16, marginBottom: 16 }}>
 
             {/* Project card */}
-            <div style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: 20, overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,.04)' }}>
+            <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius: 20, overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,.04)' }}>
               <div style={{ padding: '22px 24px', borderBottom: '1px solid var(--border)' }}>
                 <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.1em', marginBottom: 10 }}>AKTUELLES PROJEKT</p>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, marginBottom: 6 }}>
@@ -252,7 +222,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Live system activity */}
-            <div style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: 20, overflow: 'hidden', display: 'flex', flexDirection: 'column', boxShadow: '0 4px 20px rgba(0,0,0,.04)' }}>
+            <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius: 20, overflow: 'hidden', display: 'flex', flexDirection: 'column', boxShadow: '0 4px 20px rgba(0,0,0,.04)' }}>
               <div style={{ padding: '14px 18px', borderBottom: '1px solid var(--border)', background: 'var(--bg)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
                   <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--text)', margin: 0 }}>System Activity</p>
@@ -290,7 +260,7 @@ export default function DashboardPage() {
                   const pc = PHASE_CFG[p.status] ?? PHASE_CFG.intake
                   return (
                     <Link key={p.id} href={`/project/${p.id}`}>
-                      <div className="card-lift" style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: 16, padding: '14px 16px', cursor: 'pointer' }}>
+                      <div className="card-lift" style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius: 16, padding: '14px 16px', cursor: 'pointer' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
                           <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', flex: 1, paddingRight: 6, margin: 0 }}>{p.title}</p>
                           <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--text-secondary)', background: 'var(--surface-2)', padding: '2px 7px', borderRadius: 5, flexShrink: 0 }}>{pc.label.toUpperCase()}</span>
@@ -307,7 +277,7 @@ export default function DashboardPage() {
           )}
 
           {/* Garantie */}
-          <div className="animate-fade-up-4" style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: 18, padding: '18px 24px', boxShadow: '0 4px 20px rgba(0,0,0,.04)' }}>
+          <div className="animate-fade-up-4" style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius: 18, padding: '18px 24px', boxShadow: '0 4px 20px rgba(0,0,0,.04)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
               <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--green)', animation: 'pulse 2s infinite' }} />
               <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text)', margin: 0, letterSpacing: '0.06em' }}>FESTAG GARANTIE</p>
