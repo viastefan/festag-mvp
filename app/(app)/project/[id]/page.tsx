@@ -234,7 +234,7 @@ export default function ProjectPage() {
                   placeholder="Task hinzufügen…"
                   style={{ flex: 1, padding: '9px 12px', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', fontSize: 13, outline: 'none', background: 'var(--bg)' }}
                 />
-                <button onClick={addTask} disabled={!newTask.trim()} className="tap-scale" style={{ padding: '9px 14px', background: 'var(--text)', color: '#fff', border: 'none', borderRadius: 'var(--r-sm)', fontSize: 12, fontWeight: 600, cursor: newTask.trim() ? 'pointer' : 'default', opacity: newTask.trim() ? 1 : 0.4 }}>
+                <button onClick={addTask} disabled={!newTask.trim()} className="tap-scale" style={{ padding: '9px 14px', background: 'var(--accent)', color: 'var(--accent-text)', border: 'none', borderRadius: 'var(--r-sm)', fontSize: 12, fontWeight: 600, cursor: newTask.trim() ? 'pointer' : 'default', opacity: newTask.trim() ? 1 : 0.4 }}>
                   + Hinzufügen
                 </button>
               </div>
@@ -291,7 +291,7 @@ export default function ProjectPage() {
                   <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', margin: 0 }}>Tagro AI Statusberichte</p>
                   <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: '2px 0 0' }}>AI-generierte Zusammenfassungen</p>
                 </div>
-                <button onClick={generateAIUpdate} disabled={generatingAI} className="tap-scale" style={{ padding: '7px 13px', background: 'var(--text)', color: '#fff', border: 'none', borderRadius: 'var(--r-sm)', fontSize: 11, fontWeight: 600, cursor: 'pointer', opacity: generatingAI ? 0.5 : 1, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <button onClick={generateAIUpdate} disabled={generatingAI} className="tap-scale" style={{ padding: '7px 13px', background: 'var(--accent)', color: 'var(--accent-text)', border: 'none', borderRadius: 'var(--r-sm)', fontSize: 11, fontWeight: 600, cursor: 'pointer', opacity: generatingAI ? 0.5 : 1, display: 'flex', alignItems: 'center', gap: 6 }}>
                   {generatingAI ? (
                     <>
                       <span style={{ width: 11, height: 11, border: '2px solid rgba(255,255,255,.3)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin .7s linear infinite' }} />
@@ -368,7 +368,7 @@ export default function ProjectPage() {
               })}
               {aiThinking && (
                 <div style={{ display: 'flex', gap: 8 }}>
-                  <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--text)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: '#fff', fontWeight: 600, flexShrink: 0 }}>T</div>
+                  <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: 'var(--accent-text)', fontWeight: 600, flexShrink: 0 }}>T</div>
                   <div style={{ paddingTop: 8, display: 'flex', gap: 4 }}>
                     {[0,1,2].map(i => <span key={i} style={{ width: 4, height: 4, borderRadius: '50%', background: 'var(--text-muted)', animation: `pulse 1s ${i*0.2}s infinite` }} />)}
                   </div>

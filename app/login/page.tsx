@@ -418,6 +418,16 @@ export default function LoginPage() {
               }}>
                 Kein Informationsverlust AI + Menschen Skalieren
               </p>
+
+              {/* Beta badge */}
+              <p style={{
+                textAlign: 'center', fontSize: 10,
+                color: 'var(--text-muted)', marginTop: 8,
+                letterSpacing: '.06em', fontWeight: 600, opacity: .45,
+                textTransform: 'uppercase',
+              }}>
+                Beta · v0.9
+              </p>
             </div>
           </div>
         </div>

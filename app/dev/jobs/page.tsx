@@ -84,7 +84,7 @@ export default function DevJobsPage() {
                   </p>
                 </div>
                 {isAvail && !wasAccepted && (
-                  <button onClick={() => acceptJob(j.id)} disabled={accepting === j.id} className="tap-scale" style={{ padding: '9px 16px', background: 'var(--text)', color: '#fff', border: 'none', borderRadius: 'var(--r-sm)', fontSize: 12, fontWeight: 600, cursor: 'pointer', minHeight: 36, flexShrink: 0, opacity: accepting === j.id ? 0.6 : 1 }}>
+                  <button onClick={() => acceptJob(j.id)} disabled={accepting === j.id} className="tap-scale" style={{ padding: '9px 16px', background: 'var(--accent)', color: 'var(--accent-text)', border: 'none', borderRadius: 'var(--r-sm)', fontSize: 12, fontWeight: 600, cursor: 'pointer', minHeight: 36, flexShrink: 0, opacity: accepting === j.id ? 0.6 : 1 }}>
                     {accepting === j.id ? '…' : 'Annehmen'}
                   </button>
                 )}

@@ -83,7 +83,7 @@ export default function AdminPanel() {
       <div style={{ background: 'var(--surface)', borderBottom: '1px solid var(--border)', padding: '14px 28px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, zIndex: 100 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <img src="/brand/logo.svg" alt="festag" style={{ height: 18 }} />
-          <span style={{ padding: '3px 8px', borderRadius: 6, background: 'var(--text)', color: '#fff', fontSize: 10, fontWeight: 700, letterSpacing: '0.08em' }}>ADMIN</span>
+          <span style={{ padding: '3px 8px', borderRadius: 6, background: 'var(--accent)', color: 'var(--accent-text)', fontSize: 10, fontWeight: 700, letterSpacing: '0.08em' }}>ADMIN</span>
         </div>
         <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
           <Link href="/dashboard" style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 500 }}>Client →</Link>
@@ -215,7 +215,7 @@ export default function AdminPanel() {
                   <option value="dev">Developer</option>
                   <option value="admin">Admin</option>
                 </select>
-                <button onClick={sendInvite} disabled={inviteLoading} style={{ padding: '10px 18px', background: 'var(--text)', color: '#fff', border: 'none', borderRadius: 'var(--r-sm)', fontSize: 13, fontWeight: 600, cursor: 'pointer', opacity: inviteLoading ? 0.6 : 1 }}>
+                <button onClick={sendInvite} disabled={inviteLoading} style={{ padding: '10px 18px', background: 'var(--accent)', color: 'var(--accent-text)', border: 'none', borderRadius: 'var(--r-sm)', fontSize: 13, fontWeight: 600, cursor: 'pointer', opacity: inviteLoading ? 0.6 : 1 }}>
                   {inviteLoading ? 'Sendet…' : 'Einladen'}
                 </button>
               </div>

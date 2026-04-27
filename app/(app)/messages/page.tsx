@@ -65,7 +65,7 @@ export default function MessagesPage() {
             Starte ein Projekt um mit Tagro und Developern zu kommunizieren.
           </p>
           <Link href="/onboarding">
-            <button className="tap-scale" style={{ marginTop: 20, padding: '10px 20px', background: 'var(--text)', color: '#fff', border: 'none', borderRadius: 'var(--r-sm)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+            <button className="tap-scale" style={{ marginTop: 20, padding: '10px 20px', background: 'var(--accent)', color: 'var(--accent-text)', border: 'none', borderRadius: 'var(--r-sm)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
               Projekt starten
             </button>
           </Link>

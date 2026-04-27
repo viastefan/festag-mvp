@@ -47,7 +47,7 @@ export default function AppHeader({ title, subtitle }: Props) {
 
       {/* Title (optional, hidden on mobile) */}
       {title && (
-        <div className="ah-title" style={{flexShrink:0,minWidth:0}}>
+        <div className="ah-title" style={{flexShrink:0,minWidth:0,marginRight:'auto'}}>
           <h1 style={{fontSize:17,fontWeight:700,letterSpacing:'-.3px',color:'var(--text)',margin:0,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>
             {title}
           </h1>
@@ -55,8 +55,8 @@ export default function AppHeader({ title, subtitle }: Props) {
         </div>
       )}
 
-      {/* Search — flex grow */}
-      <div className="ah-search" style={{position:'relative',flex:1,maxWidth:520,marginLeft:title?'auto':0}}>
+      {/* Search — right-aligned, fixed width */}
+      <div className="ah-search" style={{position:'relative',width:320,flexShrink:0}}>
         <svg style={{position:'absolute',left:13,top:'50%',transform:'translateY(-50%)',pointerEvents:'none'}}
           width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2" strokeLinecap="round">
           <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
@@ -71,7 +71,7 @@ export default function AppHeader({ title, subtitle }: Props) {
           style={{
             width:'100%', padding:'9px 60px 9px 36px',
             background:'var(--card)', border:`1px solid ${searchFocused?'var(--border-strong)':'var(--border)'}`,
-            borderRadius:11, fontSize:13.5, color:'var(--text)',
+            borderRadius:12, fontSize:13.5, color:'var(--text)',
             fontFamily:'inherit', fontWeight:500, outline:'none',
             transition:'border-color .15s, background .15s',
           }}
@@ -88,7 +88,7 @@ export default function AppHeader({ title, subtitle }: Props) {
       {/* New project button */}
       <Link href="/new-project" className="ah-btn-new" style={{
         display:'flex',alignItems:'center',gap:7,padding:'8px 14px',
-        background:'var(--btn-prim)',color:'var(--btn-prim-text)',borderRadius:11,
+        background:'var(--btn-prim)',color:'var(--btn-prim-text)',borderRadius:12,
         fontSize:13,fontWeight:700,textDecoration:'none',flexShrink:0,transition:'opacity .15s',
         whiteSpace:'nowrap'
       }}>

@@ -151,7 +151,7 @@ export default function DevHome() {
                     {new Date(j.created_at).toLocaleDateString('de')}
                   </p>
                 </div>
-                <button onClick={() => acceptJob(j.id)} className="tap-scale" style={{ padding: '9px 16px', background: 'var(--text)', color: '#fff', border: 'none', borderRadius: 'var(--r-sm)', fontSize: 12, fontWeight: 600, cursor: 'pointer', minHeight: 36, flexShrink: 0, transition: 'opacity 0.2s' }}>
+                <button onClick={() => acceptJob(j.id)} className="tap-scale" style={{ padding: '9px 16px', background: 'var(--accent)', color: 'var(--accent-text)', border: 'none', borderRadius: 'var(--r-sm)', fontSize: 12, fontWeight: 600, cursor: 'pointer', minHeight: 36, flexShrink: 0, transition: 'opacity 0.2s' }}>
                   Annehmen
                 </button>
               </div>

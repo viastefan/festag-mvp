@@ -136,7 +136,7 @@ export default function AIHubPage() {
         ))}
         {loading && (
           <div style={{ display:'flex', gap:10 }}>
-            <div style={{ width:32, height:32, borderRadius:'50%', background:'var(--text)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, color:'#fff', fontWeight:600, flexShrink:0 }}>T</div>
+            <div style={{ width:32, height:32, borderRadius:'50%', background:'var(--accent)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, color:'var(--accent-text)', fontWeight:600, flexShrink:0 }}>T</div>
             <div style={{ background:'var(--surface)', border:'1px solid var(--border)', borderRadius:'var(--r)', padding:'14px 16px', display:'flex', gap:5 }}>
               {[0,1,2].map(j => <span key={j} style={{ width:5, height:5, borderRadius:'50%', background:'var(--text-muted)', animation:`pulse 1s ${j*0.2}s infinite` }} />)}
             </div>

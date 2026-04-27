@@ -107,16 +107,16 @@ export default function AddonsPage() {
       {selected.size > 0 && (
         <div style={{
           position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)',
-          background: 'var(--text)', color: '#fff', padding: '14px 20px',
+          background: 'var(--accent)', color: 'var(--accent-text)', padding: '14px 20px',
           borderRadius: "var(--r-md)", boxShadow: 'var(--shadow-lg)',
           display: 'flex', alignItems: 'center', gap: 16, zIndex: 300, animation: 'slideUp 0.2s ease',
           maxWidth: 'calc(100% - 32px)',
         }}>
           <div>
-            <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', margin: 0 }}>{selected.size} Add-on{selected.size > 1 ? 's' : ''}</p>
-            <p style={{ fontSize: 18, fontWeight: 700, color: '#fff', margin: 0 }}>€{total.toLocaleString('de')}</p>
+            <p style={{ fontSize: 12, color: 'var(--accent-text)', opacity: .5, margin: 0 }}>{selected.size} Add-on{selected.size > 1 ? 's' : ''}</p>
+            <p style={{ fontSize: 18, fontWeight: 700, color: 'var(--accent-text)', margin: 0 }}>€{total.toLocaleString('de')}</p>
           </div>
-          <button className="tap-scale" style={{ padding: '10px 18px', background: '#fff', color: 'var(--text)', border: 'none', borderRadius: 'var(--r-sm)', fontSize: 13, fontWeight: 600, cursor: 'pointer', minHeight: 40 }}>
+          <button className="tap-scale" style={{ padding: '10px 18px', background: 'var(--btn-prim)', color: 'var(--btn-prim-text)', border: 'none', borderRadius: 'var(--r-sm)', fontSize: 13, fontWeight: 600, cursor: 'pointer', minHeight: 40 }}>
             Zum Projekt hinzufügen →
           </button>
         </div>

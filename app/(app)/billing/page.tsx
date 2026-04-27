@@ -59,7 +59,7 @@ export default function BillingPage() {
           <div style={{ background:'var(--surface)', border:'1px solid var(--border)', borderRadius:'var(--r-lg)', padding:'48px 24px', textAlign:'center' }}>
             <p style={{ fontSize:14, color:'var(--text-muted)', margin:'0 0 14px' }}>Noch keine abgeschlossenen Projekte</p>
             <Link href="/onboarding">
-              <button className="tap-scale" style={{ padding:'10px 20px', background:'var(--text)', color:'#fff', border:'none', borderRadius:'var(--r-sm)', fontSize:13, fontWeight:600, cursor:'pointer' }}>Projekt starten →</button>
+              <button className="tap-scale" style={{ padding:'10px 20px', background:'var(--accent)', color:'var(--accent-text)', border:'none', borderRadius:'var(--r-sm)', fontSize:13, fontWeight:600, cursor:'pointer' }}>Projekt starten →</button>
             </Link>
           </div>
         ) : (
@@ -69,7 +69,7 @@ export default function BillingPage() {
                 <div style={{ flex:1 }}>
                   <div style={{ display:'flex', gap:8, alignItems:'center', marginBottom:5 }}>
                     <p style={{ fontSize:14, fontWeight:600, color:'var(--text)', margin:0 }}>{q.projects?.title ?? 'Projekt'}</p>
-                    <span style={{ padding:'2px 7px', borderRadius:5, fontSize:10, fontWeight:600, color: q.status==='paid'?'var(--green-dark)':q.status==='accepted'?'#D97706':'var(--text-muted)', background: q.status==='paid'?'var(--green-bg)':q.status==='accepted'?'var(--amber-bg)':'var(--surface-2)' }}>
+                    <span style={{ padding:'2px 7px', borderRadius:5, fontSize:10, fontWeight:600, color: q.status==='paid'?'var(--green-dark)':q.status==='accepted'?'var(--amber-dark)':'var(--text-muted)', background: q.status==='paid'?'var(--green-bg)':q.status==='accepted'?'var(--amber-bg)':'var(--surface-2)' }}>
                       {(q.status ?? 'pending').toUpperCase()}
                     </span>
                   </div>
