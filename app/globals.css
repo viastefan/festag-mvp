@@ -76,10 +76,47 @@
 }
 
 /* Force pixel-block classes to use the exact panel color so JS inline backgrounds and any CSS are visually identical */
+/* Updated dark theme scoped to [data-theme="dark"] using provided premium dark variables and scoped dark UI rules */
+[data-theme="dark"] {
+  /* BACKGROUND (FIXED) */
+  --bg: #181D1C;        /* main background */
+  --bg-2: #1A1F1E;      /* slightly elevated (still dark) */
+  --bg-3: #1D2321;      /* deeper dark (NO LIGHT SURFACES) */
+
+  /* TEXT (SOFT WHITE, NOT PURE WHITE) */
+  --text: #E7EEEC;
+  --text-muted: #A9B3AF;
+  --text-dim: #6F7C78;
+
+  /* BORDER (VERY SUBTLE) */
+  --border: rgba(255, 255, 255, 0.06);
+  --border-strong: rgba(255, 255, 255, 0.10);
+
+  /* BUTTONS (ONLY DARK + NEUTRAL) */
+  --btn-bg: #1D2321;
+  --btn-bg-hover: #232A27;
+  --btn-text: #E7EEEC;
+  --btn-secondary: #181D1C;
+  --btn-secondary-hover: #1A201E;
+
+  /* ACCENT (ONLY FOR SMALL HIGHLIGHTS) */
+  --accent: #4EE3B5;
+  --accent-hover: #3CCFA3;
+
+  /* SHADOW (VERY SUBTLE ONLY) */
+  --shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+}
+
+/* Ensure pixel containers use exact main panel color in dark mode so they match right-side background */
 [data-theme="dark"] .px-blk,
 [data-theme="dark"] .px-mob {
-  background: var(--panel-bg) !important;
+  background: var(--bg) !important;
 }
+
+/* Optional scoped UI rules (only if needed elsewhere in globals.css) — you can keep or omit these, they are safe and dark-only:
+[data-theme="dark"] .card { background: var(--bg-2); border: 1px solid var(--border); }
+[data-theme="dark"] .input { background: var(--bg-2); border: 1px solid var(--border); color: var(--text); }
+*/
 
 [data-theme="read"] {
   --bg:#F5F0E8; --surface:#FDFAF4; --card:#EDE8DE;
