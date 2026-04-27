@@ -6,9 +6,9 @@ import ThemeToggle from '@/components/ThemeToggle'
 
 function getGreeting() {
   const h = new Date().getHours()
-  if (h >= 5  && h < 12) return 'Guten Morgen.'
-  if (h >= 12 && h < 14) return 'Guten Mittag.'
-  if (h >= 14 && h < 18) return 'Guten Nachmittag.'
+  if (h >= 5  && h < 12) return 'Guten Kaffee.'
+  if (h >= 12 && h < 14) return 'Guten Hunger.'
+  if (h >= 14 && h < 18) return 'Auf ein Feierabend Bier.'
   return 'Guten Abend.'
 }
 
