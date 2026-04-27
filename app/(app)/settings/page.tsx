@@ -245,7 +245,7 @@ export default function SettingsPage() {
 
   if (loading) return (
     <div style={{ display:'flex',justifyContent:'center',alignItems:'center',minHeight:'60vh' }}>
-      <div style={{ width:28,height:28,border:'2px solid #E2E8F0',borderTopColor:'#181D1C',borderRadius:'50%',animation:'spin .8s linear infinite' }} />
+      <div style={{ width:28,height:28,border:'2px solid #E2E8F0',borderTopColor:'var(--text)',borderRadius:'50%',animation:'spin .8s linear infinite' }} />
     </div>
   )
 
@@ -255,49 +255,49 @@ export default function SettingsPage() {
       {/* Left column — settings forms */}
       <div style={{ flex:'1 1 0', minWidth:0 }}>
       <style>{`
-        .s-card { background:#fff;border:1px solid #EEF2F7;border-radius:20px;overflow:hidden;box-shadow:0 2px 16px rgba(15,23,42,.04);margin-bottom:12px; }
-        .s-hd { padding:15px 22px;border-bottom:1px solid #F1F5F9;background:#FAFBFD;display:flex;align-items:center;justify-content:space-between; }
-        .s-hd-label { font-size:10.5px;font-weight:700;color:#94A3B8;letter-spacing:.1em; }
+        .s-card { background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:var(--shadow-xs);margin-bottom:12px; }
+        .s-hd { padding:15px 22px;border-bottom:1px solid var(--border);background:var(--card);display:flex;align-items:center;justify-content:space-between; }
+        .s-hd-label { font-size:10.5px;font-weight:700;color:var(--text-muted);letter-spacing:.1em; }
         .s-bd { padding:20px 22px;display:flex;flex-direction:column;gap:14px; }
-        .inp { width:100%;padding:11px 14px;background:#F8FAFC;border:1.5px solid #EEF2F7;border-radius:12px;font-size:15px;outline:none;color:#181D1C;box-sizing:border-box;font-family:inherit;font-weight:500;transition:border-color .15s,box-shadow .15s,background .15s; }
-        .inp:focus { border-color:#CBD5E1;background:#fff;box-shadow:0 0 0 3px rgba(15,23,42,.05); }
-        .inp:disabled { background:#F1F5F9;color:#94A3B8;cursor:not-allowed; }
-        .inp::placeholder { color:#C1CAD7; }
-        .txta { width:100%;padding:11px 14px;background:#F8FAFC;border:1.5px solid #EEF2F7;border-radius:12px;font-size:15px;outline:none;color:#181D1C;box-sizing:border-box;resize:vertical;min-height:96px;font-family:inherit;font-weight:500;transition:all .15s;line-height:1.6; }
-        .txta:focus { border-color:#CBD5E1;background:#fff;box-shadow:0 0 0 3px rgba(15,23,42,.05); }
+        .inp { width:100%;padding:11px 14px;background:var(--inp);border:1.5px solid var(--inp-border);border-radius:12px;font-size:15px;outline:none;color:var(--text);box-sizing:border-box;font-family:inherit;font-weight:500;transition:border-color .15s,box-shadow .15s,background .15s; }
+        .inp:focus { border-color:var(--inp-focus-border);background:var(--inp-focus);box-shadow:0 0 0 3px var(--glow); }
+        .inp:disabled { background:var(--card);color:var(--text-muted);cursor:not-allowed; }
+        .inp::placeholder { color:var(--text-muted);opacity:.7; }
+        .txta { width:100%;padding:11px 14px;background:var(--inp);border:1.5px solid var(--inp-border);border-radius:12px;font-size:15px;outline:none;color:var(--text);box-sizing:border-box;resize:vertical;min-height:96px;font-family:inherit;font-weight:500;transition:all .15s;line-height:1.6; }
+        .txta:focus { border-color:var(--inp-focus-border);background:var(--inp-focus);box-shadow:0 0 0 3px var(--glow); }
         .sel-wrap { position:relative; }
-        .sel { width:100%;padding:11px 38px 11px 14px;background:#F8FAFC;border:1.5px solid #EEF2F7;border-radius:12px;font-size:15px;outline:none;color:#181D1C;box-sizing:border-box;cursor:pointer;font-family:inherit;font-weight:500;appearance:none;transition:all .15s; }
-        .sel:focus { border-color:#CBD5E1;background:#fff; }
-        .sel-arr { position:absolute;right:13px;top:50%;transform:translateY(-50%);pointer-events:none;color:#94A3B8; }
-        .btn-primary { display:inline-flex;align-items:center;gap:8px;padding:10px 20px;background:#181D1C;color:#fff;border:none;border-radius:12px;font-size:13.5px;font-weight:600;cursor:pointer;font-family:inherit;box-shadow:0 2px 8px rgba(15,23,42,.18);transition:all .15s; }
-        .btn-primary:hover { opacity:.88;transform:translateY(-1px);box-shadow:0 4px 16px rgba(15,23,42,.22); }
+        .sel { width:100%;padding:11px 38px 11px 14px;background:var(--inp);border:1.5px solid var(--inp-border);border-radius:12px;font-size:15px;outline:none;color:var(--text);box-sizing:border-box;cursor:pointer;font-family:inherit;font-weight:500;appearance:none;transition:all .15s; }
+        .sel:focus { border-color:var(--inp-focus-border);background:var(--inp-focus); }
+        .sel-arr { position:absolute;right:13px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--text-muted); }
+        .btn-primary { display:inline-flex;align-items:center;gap:8px;padding:10px 20px;background:var(--btn-prim);color:var(--btn-prim-text);border:none;border-radius:12px;font-size:13.5px;font-weight:600;cursor:pointer;font-family:inherit;box-shadow:var(--shadow-sm);transition:all .15s; }
+        .btn-primary:hover { opacity:.88;transform:translateY(-1px);box-shadow:var(--shadow); }
         .btn-primary:disabled { opacity:.4;cursor:default;transform:none; }
-        .btn-ghost { display:inline-flex;align-items:center;gap:7px;padding:8px 14px;background:transparent;color:#475569;border:1.5px solid #E2E8F0;border-radius:10px;font-size:12.5px;font-weight:500;cursor:pointer;font-family:inherit;transition:all .15s; }
-        .btn-ghost:hover { background:#F8FAFC;border-color:#CBD5E1; }
-        .btn-danger { display:inline-flex;align-items:center;gap:6px;padding:7px 13px;background:#FEF2F2;color:#EF4444;border:1.5px solid #FECACA;border-radius:9px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s; }
-        .btn-danger:hover { background:#FEE2E2; }
-        .lbl { font-size:12px;font-weight:600;color:#64748B;display:block;margin-bottom:6px;letter-spacing:.01em; }
+        .btn-ghost { display:inline-flex;align-items:center;gap:7px;padding:8px 14px;background:transparent;color:var(--text-secondary);border:1.5px solid var(--border);border-radius:10px;font-size:12.5px;font-weight:500;cursor:pointer;font-family:inherit;transition:all .15s; }
+        .btn-ghost:hover { background:var(--card);border-color:var(--border-strong); }
+        .btn-danger { display:inline-flex;align-items:center;gap:6px;padding:7px 13px;background:var(--red-bg);color:var(--red);border:1.5px solid var(--red);border-radius:9px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;opacity:.85; }
+        .btn-danger:hover { opacity:1; }
+        .lbl { font-size:12px;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:6px;letter-spacing:.01em; }
         .row2 { display:grid;grid-template-columns:1fr 1fr;gap:12px; }
         .row3 { display:grid;grid-template-columns:80px 1fr;gap:8px; }
         .tog { width:44px;height:24px;border-radius:12px;position:relative;cursor:pointer;transition:background .2s;border:none;flex-shrink:0; }
         .tog-th { position:absolute;top:2px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.2);transition:left .18s cubic-bezier(.4,0,.2,1); }
         /* Tabs */
-        .tab-row { display:flex;background:#F1F5F9;border-radius:16px;padding:4px;gap:3px;margin-bottom:14px; }
-        .tab-btn { flex:1;padding:9px 8px;border-radius:12px;border:none;cursor:pointer;font-size:13px;font-weight:500;font-family:inherit;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px; }
-        .tab-on  { background:#fff;color:#181D1C;font-weight:700;box-shadow:0 2px 8px rgba(15,23,42,.08); }
-        .tab-off { background:transparent;color:#94A3B8; }
-        .tab-off:hover { color:#475569;background:rgba(255,255,255,.5); }
+        .tab-row { display:flex;background:var(--card);border-radius:12px;padding:4px;gap:3px;margin-bottom:14px; }
+        .tab-btn { flex:1;padding:9px 8px;border-radius:10px;border:none;cursor:pointer;font-size:13px;font-weight:500;font-family:inherit;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px; }
+        .tab-on  { background:var(--surface);color:var(--text);font-weight:700;box-shadow:var(--shadow-xs); }
+        .tab-off { background:transparent;color:var(--text-muted); }
+        .tab-off:hover { color:var(--text);background:var(--surface-2); }
         /* Integration cards */
-        .int-card { background:#FAFBFD;border:1.5px solid #EEF2F7;border-radius:14px;padding:14px 16px;display:flex;gap:13px;align-items:center;transition:all .15s; }
-        .int-card:hover { border-color:#CBD5E1;background:#fff;box-shadow:0 2px 12px rgba(15,23,42,.04); }
-        .int-logo { width:42px;height:42px;border-radius:11px;background:#fff;border:1.5px solid #EEF2F7;display:flex;align-items:center;justify-content:center;flex-shrink:0; }
+        .int-card { background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:14px 16px;display:flex;gap:13px;align-items:center;transition:all .15s; }
+        .int-card:hover { border-color:var(--border-strong);background:var(--surface);box-shadow:var(--shadow-xs); }
+        .int-logo { width:42px;height:42px;border-radius:11px;background:var(--surface-2);border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0; }
         /* Device card */
-        .dev-card { background:#FAFBFD;border:1.5px solid #EEF2F7;border-radius:12px;padding:12px 15px;display:flex;gap:12px;align-items:center; }
-        .webhook-row { background:#FAFBFD;border:1.5px solid #EEF2F7;border-radius:12px;padding:11px 15px;display:flex;gap:10px;align-items:center; }
+        .dev-card { background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:12px 15px;display:flex;gap:12px;align-items:center; }
+        .webhook-row { background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:11px 15px;display:flex;gap:10px;align-items:center; }
         .chip { display:inline-block;padding:2px 8px;border-radius:6px;font-size:10.5px;font-weight:700;letter-spacing:.04em; }
-        .chip-green { background:#ECFDF5;color:#059669;border:1px solid #A7F3D0; }
-        .chip-gray { background:#F1F5F9;color:#64748B;border:1px solid #E2E8F0; }
-        .chip-blue { background:#EFF6FF;color:#2563EB;border:1px solid #BFDBFE; }
+        .chip-green { background:var(--green-bg);color:var(--green-dark);border:1px solid var(--green-border); }
+        .chip-gray { background:var(--surface-2);color:var(--text-secondary);border:1px solid var(--border); }
+        .chip-blue { background:var(--surface-2);color:var(--text);border:1px solid var(--border); }
         .ai-badge { display:inline-flex;align-items:center;gap:4px;padding:3px 9px;background:#EFF6FF;border:1px solid #BFDBFE;border-radius:6px;font-size:10px;font-weight:700;color:#2563EB;letter-spacing:.04em; }
         .key-box { background:#181D1C;border-radius:10px;padding:12px 16px;font-family:'SF Mono',monospace;font-size:12.5px;color:#4ade80;word-break:break-all;letter-spacing:.04em;line-height:1.6; }
         @media(max-width:600px) { .row2,.row3 { grid-template-columns:1fr; } }
@@ -306,12 +306,6 @@ export default function SettingsPage() {
         .fade-in { animation:fadeUp .25s ease both; }
       `}</style>
 
-      {/* Page header */}
-      <div className="animate-fade-up" style={{ marginBottom:22 }}>
-        <h1 style={{ marginBottom:3 }}>Einstellungen</h1>
-        <p style={{ fontSize:14,color:'#64748B' }}>Profil · Unternehmen · Sicherheit · Integrationen</p>
-      </div>
-
       {/* ── AVATAR CARD ──────────────────────────────────── */}
       <div className="s-card animate-fade-up-1" style={{ marginBottom:14 }}>
         <div style={{ padding:'20px 22px',display:'flex',gap:18,alignItems:'center',flexWrap:'wrap' }}>
@@ -319,11 +313,11 @@ export default function SettingsPage() {
           <div style={{ position:'relative',flexShrink:0 }}>
             <div
               onClick={() => fileRef.current?.click()}
-              style={{ width:72,height:72,borderRadius:'50%',cursor:'pointer',overflow:'hidden',position:'relative',border:'3px solid #fff',boxShadow:'0 0 0 2px #EEF2F7, 0 4px 16px rgba(0,0,0,.10)' }}
+              style={{ width:72,height:72,borderRadius:'50%',cursor:'pointer',overflow:'hidden',position:'relative',border:'3px solid var(--surface)',boxShadow:'0 0 0 2px var(--border), var(--shadow)' }}
             >
               {uploading ? (
                 <div style={{ width:'100%',height:'100%',background:'var(--surface-2)',display:'flex',alignItems:'center',justifyContent:'center' }}>
-                  <div style={{ width:20,height:20,border:'2.5px solid #CBD5E1',borderTopColor:'#181D1C',borderRadius:'50%',animation:'spin .7s linear infinite' }} />
+                  <div style={{ width:20,height:20,border:'2.5px solid #CBD5E1',borderTopColor:'var(--text)',borderRadius:'50%',animation:'spin .7s linear infinite' }} />
                 </div>
               ) : avatarUrl ? (
                 <img src={avatarUrl} alt="" style={{ width:'100%',height:'100%',objectFit:'cover',display:'block' }} />
@@ -332,8 +326,8 @@ export default function SettingsPage() {
               )}
             </div>
             {/* Edit badge */}
-            <div onClick={() => fileRef.current?.click()} style={{ position:'absolute',bottom:1,right:1,width:22,height:22,background:'#181D1C',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',border:'2px solid #fff',boxShadow:'0 2px 8px rgba(0,0,0,.2)' }}>
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            <div onClick={() => fileRef.current?.click()} style={{ position:'absolute',bottom:1,right:1,width:22,height:22,background:'var(--accent)',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',border:'2px solid var(--surface)',boxShadow:'0 2px 8px rgba(0,0,0,.2)' }}>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
             </div>
           </div>
           <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" style={{ display:'none' }} onChange={e => { const f=e.target.files?.[0]; if(f) uploadAvatar(f); e.target.value='' }} />
@@ -343,7 +337,7 @@ export default function SettingsPage() {
             <p style={{ fontSize:17,fontWeight:700,color:'var(--text)',margin:'0 0 2px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:220 }}>
               {displayName}
             </p>
-            <p style={{ fontSize:12.5,color:'#94A3B8',margin:'0 0 8px',textTransform:'capitalize' }}>
+            <p style={{ fontSize:12.5,color:'var(--text-muted)',margin:'0 0 8px',textTransform:'capitalize' }}>
               {role}{joinDate && ` · Seit ${new Date(joinDate).toLocaleDateString('de',{month:'short',year:'numeric'})}`}
             </p>
             <div style={{ display:'flex',gap:6,flexWrap:'wrap',alignItems:'center' }}>
@@ -402,12 +396,12 @@ export default function SettingsPage() {
               <div>
                 <label className="lbl">E-Mail</label>
                 <input value={email} disabled className="inp"/>
-                <p style={{ fontSize:11,color:'#94A3B8',marginTop:5 }}>E-Mail kann nicht geändert werden.</p>
+                <p style={{ fontSize:11,color:'var(--text-muted)',marginTop:5 }}>E-Mail kann nicht geändert werden.</p>
               </div>
 
               {/* Notifications inline */}
               <div style={{ borderTop:'1px solid #F1F5F9',paddingTop:16 }}>
-                <p style={{ fontSize:10.5,fontWeight:700,color:'#94A3B8',letterSpacing:'.1em',marginBottom:12 }}>BENACHRICHTIGUNGEN</p>
+                <p style={{ fontSize:10.5,fontWeight:700,color:'var(--text-muted)',letterSpacing:'.1em',marginBottom:12 }}>BENACHRICHTIGUNGEN</p>
                 {[
                   { k:'ai_updates',     l:'AI Updates & Tagesberichte',  d:'Wenn Tagro Berichte erstellt' },
                   { k:'dev_activity',   l:'Developer-Aktivität',          d:'Tasks erledigt oder aktiv' },
@@ -419,17 +413,17 @@ export default function SettingsPage() {
                     <div key={n.k} style={{ display:'flex',justifyContent:'space-between',alignItems:'center',padding:'11px 0',borderBottom:i<3?'1px solid #F8FAFC':'none' }}>
                       <div>
                         <p style={{ fontSize:13.5,fontWeight:600,color:'var(--text)',margin:0 }}>{n.l}</p>
-                        <p style={{ fontSize:11.5,color:'#94A3B8',margin:'2px 0 0' }}>{n.d}</p>
+                        <p style={{ fontSize:11.5,color:'var(--text-muted)',margin:'2px 0 0' }}>{n.d}</p>
                       </div>
-                      <button className="tog" onClick={()=>toggleNotif(n.k as keyof Notifs)} style={{ background:on?'#10B981':'#E2E8F0' }}>
+                      <button className="tog" onClick={()=>toggleNotif(n.k as keyof Notifs)} style={{ background:on?'#10B981':'var(--border-strong)' }}>
                         <div className="tog-th" style={{ left:on?22:2 }} />
                       </button>
                     </div>
                   )
                 })}
                 {pushSup && !pushOk && (
-                  <div style={{ marginTop:14,background:'#181D1C',borderRadius:14,padding:'13px 16px',display:'flex',gap:13,alignItems:'center' }}>
-                    <p style={{ fontSize:13,fontWeight:600,color:'#fff',flex:1,margin:0,lineHeight:1.4 }}>Push-Benachrichtigungen aktivieren</p>
+                  <div style={{ marginTop:14,background:'var(--accent)',borderRadius:12,padding:'13px 16px',display:'flex',gap:13,alignItems:'center' }}>
+                    <p style={{ fontSize:13,fontWeight:600,color:'var(--accent-text)',flex:1,margin:0,lineHeight:1.4 }}>Push-Benachrichtigungen aktivieren</p>
                     <button onClick={enablePush} style={{ padding:'7px 14px',background:'var(--btn-prim)',color:'var(--btn-prim-text)',border:'none',borderRadius:9,fontSize:12,fontWeight:700,cursor:'pointer',flexShrink:0 }}>Aktivieren</button>
                   </div>
                 )}
@@ -468,7 +462,7 @@ export default function SettingsPage() {
                   <span style={{ fontSize:10.5,color:'#2563EB',fontWeight:700 }}>✦ Wichtig für AI</span>
                 </label>
                 <textarea value={compDesc} onChange={e=>setCompDesc(e.target.value)} placeholder="Was macht dein Unternehmen? Wer sind deine Kunden? Tagro nutzt diese Infos um Projekte besser zu verstehen und zu planen…" className="txta" style={{ minHeight:100 }}/>
-                <p style={{ fontSize:11,color:'#94A3B8',marginTop:4 }}>{compDesc.length} Zeichen</p>
+                <p style={{ fontSize:11,color:'var(--text-muted)',marginTop:4 }}>{compDesc.length} Zeichen</p>
               </div>
 
               <div className="row2">
@@ -505,12 +499,12 @@ export default function SettingsPage() {
 
               {/* Legal / Tax */}
               <div style={{ borderTop:'1px solid #F1F5F9',paddingTop:16 }}>
-                <p style={{ fontSize:10.5,fontWeight:700,color:'#94A3B8',letterSpacing:'.1em',marginBottom:12 }}>STEUER & RECHT</p>
+                <p style={{ fontSize:10.5,fontWeight:700,color:'var(--text-muted)',letterSpacing:'.1em',marginBottom:12 }}>STEUER & RECHT</p>
                 <div className="row2">
                   <div><label className="lbl">USt-IdNr.</label><input value={vat} onChange={e=>setVat(e.target.value)} placeholder="DE123456789" className="inp"/></div>
                   <div><label className="lbl">Steuernummer</label><input value={tax} onChange={e=>setTax(e.target.value)} placeholder="12/345/67890" className="inp"/></div>
                 </div>
-                <p style={{ fontSize:11,color:'#94A3B8',marginTop:6 }}>Für Rechnungen und Verträge. Optional.</p>
+                <p style={{ fontSize:11,color:'var(--text-muted)',marginTop:6 }}>Für Rechnungen und Verträge. Optional.</p>
               </div>
 
               <SaveBtn saving={saving} saved={saved} onClick={save} />
@@ -528,7 +522,7 @@ export default function SettingsPage() {
             <div className="s-hd">
               <div>
                 <span className="s-hd-label">PASSWORT ÄNDERN</span>
-                <p style={{ fontSize:11.5,color:'#94A3B8',margin:'3px 0 0' }}>Änderung wird per E-Mail bestätigt</p>
+                <p style={{ fontSize:11.5,color:'var(--text-muted)',margin:'3px 0 0' }}>Änderung wird per E-Mail bestätigt</p>
               </div>
               <div style={{ display:'flex',alignItems:'center',gap:5,padding:'4px 10px',background:'var(--green-bg)',border:'1px solid var(--green-border)',borderRadius:8 }}>
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
@@ -540,7 +534,7 @@ export default function SettingsPage() {
                 <>
                   <div style={{ background:'var(--card)',border:'1.5px solid var(--border)',borderRadius:12,padding:'12px 16px',display:'flex',gap:10,alignItems:'flex-start' }}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748B" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink:0,marginTop:1 }}><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-                    <p style={{ fontSize:12.5,color:'#64748B',margin:0,lineHeight:1.5 }}>
+                    <p style={{ fontSize:12.5,color:'var(--text-secondary)',margin:0,lineHeight:1.5 }}>
                       Nach dem Absenden erhältst du einen Bestätigungslink an <strong style={{ color:'var(--text)' }}>{email}</strong>. Erst nach Bestätigung wird das Passwort geändert.
                     </p>
                   </div>
@@ -605,15 +599,15 @@ export default function SettingsPage() {
           <div className="s-card">
             <div className="s-hd">
               <span className="s-hd-label">AKTIVE GERÄTE</span>
-              <span style={{ fontSize:11.5,color:'#94A3B8' }}>{devices.length} Gerät{devices.length!==1?'e':''}</span>
+              <span style={{ fontSize:11.5,color:'var(--text-muted)' }}>{devices.length} Gerät{devices.length!==1?'e':''}</span>
             </div>
             <div style={{ padding:'12px 18px',display:'flex',flexDirection:'column',gap:8 }}>
               {devices.length===0
-                ? <p style={{ fontSize:13,color:'#94A3B8',textAlign:'center',padding:'16px 0',margin:0 }}>Noch keine Geräte</p>
+                ? <p style={{ fontSize:13,color:'var(--text-muted)',textAlign:'center',padding:'16px 0',margin:0 }}>Noch keine Geräte</p>
                 : devices.map(d => (
                   <div key={d.id} className="dev-card">
-                    <div style={{ width:40,height:40,borderRadius:11,background:d.is_current?'#ECFDF5':'#F1F5F9',border:`1.5px solid ${d.is_current?'#A7F3D0':'#E2E8F0'}`,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0 }}>
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={d.is_current?'#059669':'#94A3B8'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <div style={{ width:40,height:40,borderRadius:11,background:d.is_current?'#ECFDF5':'var(--surface-2)',border:`1.5px solid ${d.is_current?'#A7F3D0':'var(--border-strong)'}`,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0 }}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={d.is_current?'#059669':'var(--text-muted)'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                         {d.os==='iOS'||d.os==='Android'
                           ? <path d="M12 18h.01M8 21h8a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2z"/>
                           : <><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></>}
@@ -621,7 +615,7 @@ export default function SettingsPage() {
                     </div>
                     <div style={{ flex:1,minWidth:0 }}>
                       <p style={{ fontSize:13,fontWeight:600,color:'var(--text)',margin:0,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' }}>{d.device_name}</p>
-                      <p style={{ fontSize:11,color:'#94A3B8',margin:'2px 0 0' }}>Zuletzt: {new Date(d.last_seen).toLocaleDateString('de',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}</p>
+                      <p style={{ fontSize:11,color:'var(--text-muted)',margin:'2px 0 0' }}>Zuletzt: {new Date(d.last_seen).toLocaleDateString('de',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}</p>
                     </div>
                     {d.is_current
                       ? <span className="chip chip-green">Dieses Gerät</span>
@@ -647,7 +641,7 @@ export default function SettingsPage() {
             <div className="s-hd">
               <div>
                 <span className="s-hd-label">DIENSTE & AUTOMATISIERUNGEN</span>
-                <p style={{ fontSize:11.5,color:'#94A3B8',margin:'3px 0 0' }}>Fortschrittlich & bald verfügbar — Verbinde dein Festag-Konto</p>
+                <p style={{ fontSize:11.5,color:'var(--text-muted)',margin:'3px 0 0' }}>Fortschrittlich & bald verfügbar — Verbinde dein Festag-Konto</p>
               </div>
             </div>
             <div style={{ padding:'12px 18px',display:'flex',flexDirection:'column',gap:8 }}>
@@ -659,7 +653,7 @@ export default function SettingsPage() {
                 { name:'Gmail',   logo:'/brand/gmail.svg',   desc:'E-Mail Benachrichtigungen & Kundenkommunikation',           features:['Automatische E-Mails','Kunden-Updates','Rechnungsversand'] },
               ].map((s, idx) => (
                 <div key={s.name} className="int-card" style={{ cursor:'default' }}>
-                  <div className="int-logo" style={{ background:s.name==='Notion'?'#181D1C':'#fff',flexShrink:0 }}>
+                  <div className="int-logo" style={{ background:s.name==='Notion'?'var(--accent)':'var(--surface-2)',flexShrink:0 }}>
                     <img src={s.logo} alt={s.name} style={{ width:24,height:24,objectFit:'contain' }}/>
                   </div>
                   <div style={{ flex:1,minWidth:0 }}>
@@ -667,7 +661,7 @@ export default function SettingsPage() {
                       <p style={{ fontSize:13.5,fontWeight:700,color:'var(--text)',margin:0 }}>{s.name}</p>
                       <span className="chip chip-blue" style={{ fontSize:9.5 }}>Kommt</span>
                     </div>
-                    <p style={{ fontSize:12,color:'#64748B',margin:'0 0 6px',lineHeight:1.4 }}>{s.desc}</p>
+                    <p style={{ fontSize:12,color:'var(--text-secondary)',margin:'0 0 6px',lineHeight:1.4 }}>{s.desc}</p>
                     <div style={{ display:'flex',gap:5,flexWrap:'wrap' }}>
                       {s.features.map(f => (
                         <span key={f} style={{ fontSize:10.5,color:'var(--text-secondary)',background:'var(--surface-2)',border:'1px solid var(--border)',borderRadius:6,padding:'2px 7px',fontWeight:500 }}>{f}</span>
@@ -682,16 +676,16 @@ export default function SettingsPage() {
           {/* Webhooks */}
           <div className="s-card">
             <div className="s-hd">
-              <div><span className="s-hd-label">WEBHOOKS</span><p style={{ fontSize:11.5,color:'#94A3B8',margin:'3px 0 0' }}>Events via HTTP POST senden</p></div>
-              <span style={{ fontSize:11.5,color:'#94A3B8' }}>{webhooks.length} aktiv</span>
+              <div><span className="s-hd-label">WEBHOOKS</span><p style={{ fontSize:11.5,color:'var(--text-muted)',margin:'3px 0 0' }}>Events via HTTP POST senden</p></div>
+              <span style={{ fontSize:11.5,color:'var(--text-muted)' }}>{webhooks.length} aktiv</span>
             </div>
             <div style={{ padding:'14px 18px',display:'flex',flexDirection:'column',gap:8 }}>
               {webhooks.map(w => (
                 <div key={w.id} className="webhook-row">
-                  <div style={{ width:7,height:7,borderRadius:'50%',background:w.active?'#10B981':'#E2E8F0',flexShrink:0 }} />
+                  <div style={{ width:7,height:7,borderRadius:'50%',background:w.active?'#10B981':'var(--border-strong)',flexShrink:0 }} />
                   <div style={{ flex:1,minWidth:0 }}>
                     <p style={{ fontSize:13,fontWeight:600,color:'var(--text)',margin:0 }}>{w.name}</p>
-                    <p style={{ fontSize:11,color:'#94A3B8',margin:'1px 0 0',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' }}>{w.url}</p>
+                    <p style={{ fontSize:11,color:'var(--text-muted)',margin:'1px 0 0',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' }}>{w.url}</p>
                   </div>
                   <button onClick={()=>deleteWebhook(w.id)} className="btn-danger" style={{ fontSize:11,padding:'5px 9px' }}>
                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>
@@ -712,7 +706,7 @@ export default function SettingsPage() {
 
           {/* API Keys */}
           <div className="s-card">
-            <div className="s-hd"><div><span className="s-hd-label">API KEYS</span><p style={{ fontSize:11.5,color:'#94A3B8',margin:'3px 0 0' }}>Für Zapier, externe Tools oder eigene Integrationen</p></div></div>
+            <div className="s-hd"><div><span className="s-hd-label">API KEYS</span><p style={{ fontSize:11.5,color:'var(--text-muted)',margin:'3px 0 0' }}>Für Zapier, externe Tools oder eigene Integrationen</p></div></div>
             <div style={{ padding:'14px 18px',display:'flex',flexDirection:'column',gap:8 }}>
               {generatedKey && (
                 <div className="fade-in">
@@ -729,9 +723,9 @@ export default function SettingsPage() {
                   <div style={{ width:7,height:7,borderRadius:'50%',background:'#10B981',flexShrink:0 }} />
                   <div style={{ flex:1 }}>
                     <p style={{ fontSize:13,fontWeight:600,color:'var(--text)',margin:0 }}>{k.name}</p>
-                    <p style={{ fontSize:11,color:'#94A3B8',margin:'1px 0 0',fontFamily:'monospace' }}>{k.key_prefix}…</p>
+                    <p style={{ fontSize:11,color:'var(--text-muted)',margin:'1px 0 0',fontFamily:'monospace' }}>{k.key_prefix}…</p>
                   </div>
-                  {k.last_used && <span style={{ fontSize:11,color:'#94A3B8' }}>{new Date(k.last_used).toLocaleDateString('de')}</span>}
+                  {k.last_used && <span style={{ fontSize:11,color:'var(--text-muted)' }}>{new Date(k.last_used).toLocaleDateString('de')}</span>}
                   <button onClick={()=>revokeKey(k.id)} className="btn-danger" style={{ fontSize:11 }}>Widerrufen</button>
                 </div>
               ))}

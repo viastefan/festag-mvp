@@ -34,7 +34,7 @@ export default function SettingsRightPanel() {
   }, [])
 
   const PHASE: Record<string,{l:string,c:string}> = {
-    intake:   { l:'Intake',      c:'#94A3B8' },
+    intake:   { l:'Intake',      c:'var(--text-muted)' },
     planning: { l:'Planning',    c:'#F59E0B' },
     active:   { l:'Development', c:'#10B981' },
     testing:  { l:'Testing',     c:'#007AFF' },
@@ -53,23 +53,23 @@ export default function SettingsRightPanel() {
     <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
 
       {/* ── Account Stats ── */}
-      <div style={{ background:'#fff', border:'1px solid #EEF2F7', borderRadius:20, overflow:'hidden', boxShadow:'0 2px 16px rgba(15,23,42,.04)' }}>
+      <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:12, overflow:'hidden', boxShadow:'0 2px 16px rgba(15,23,42,.04)' }}>
         <div style={{ padding:'13px 18px', borderBottom:'1px solid #F1F5F9', background:'#FAFBFD' }}>
-          <p style={{ fontSize:10.5, fontWeight:700, color:'#94A3B8', letterSpacing:'.1em', margin:0 }}>DEIN ACCOUNT</p>
+          <p style={{ fontSize:10.5, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.1em', margin:0 }}>DEIN ACCOUNT</p>
         </div>
         <div style={{ padding:'16px 18px', display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:8, textAlign:'center' }}>
           {[
-            { l:'Projekte', v:stats.projects, icon:'M3 3h18v18H3zM3 9h18M9 21V9',      c:'#181D1C' },
-            { l:'Tasks',    v:stats.tasks,    icon:'M9 11l3 3L22 4',                   c:'#181D1C' },
+            { l:'Projekte', v:stats.projects, icon:'M3 3h18v18H3zM3 9h18M9 21V9',      c:'var(--text)' },
+            { l:'Tasks',    v:stats.tasks,    icon:'M9 11l3 3L22 4',                   c:'var(--text)' },
             { l:'Erledigt', v:stats.done,     icon:'M5 13l4 4L19 7',                   c:'#10B981' },
-            { l:'Chats',    v:stats.messages, icon:'M21 12c0 4.4-4 8-9 8-1.4 0-2.8-.3-4-.8L3 21l1.8-5C4.3 15 4 13.5 4 12c0-4.4 4-8 9-8s9 3.6 9 8z', c:'#181D1C' },
+            { l:'Chats',    v:stats.messages, icon:'M21 12c0 4.4-4 8-9 8-1.4 0-2.8-.3-4-.8L3 21l1.8-5C4.3 15 4 13.5 4 12c0-4.4 4-8 9-8s9 3.6 9 8z', c:'var(--text)' },
           ].map(s => (
             <div key={s.l}>
               <svg style={{ display:'block', margin:'0 auto 6px' }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={s.c === '#10B981' ? '#10B981' : '#CBD5E1'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                 {s.icon.split('M').filter(Boolean).map((seg,i) => <path key={i} d={'M'+seg}/>)}
               </svg>
               <p style={{ fontSize:22, fontWeight:700, color:s.c, margin:'0 0 2px', lineHeight:1 }}>{s.v}</p>
-              <p style={{ fontSize:10.5, color:'#94A3B8', margin:0 }}>{s.l}</p>
+              <p style={{ fontSize:10.5, color:'var(--text-muted)', margin:0 }}>{s.l}</p>
             </div>
           ))}
         </div>
@@ -77,11 +77,11 @@ export default function SettingsRightPanel() {
         {stats.tasks > 0 && (
           <div style={{ padding:'0 18px 14px' }}>
             <div style={{ display:'flex', justifyContent:'space-between', marginBottom:6 }}>
-              <span style={{ fontSize:11.5, color:'#94A3B8' }}>Gesamtfortschritt</span>
-              <span style={{ fontSize:11.5, fontWeight:700, color:'#181D1C' }}>{pct}%</span>
+              <span style={{ fontSize:11.5, color:'var(--text-muted)' }}>Gesamtfortschritt</span>
+              <span style={{ fontSize:11.5, fontWeight:700, color:'var(--text)' }}>{pct}%</span>
             </div>
-            <div style={{ height:4, background:'#F1F5F9', borderRadius:4, overflow:'hidden' }}>
-              <div style={{ height:'100%', width:`${pct}%`, background:'#181D1C', borderRadius:4, transition:'width .6s ease' }} />
+            <div style={{ height:4, background:'var(--surface-2)', borderRadius:4, overflow:'hidden' }}>
+              <div style={{ height:'100%', width:`${pct}%`, background:'var(--text)', borderRadius:4, transition:'width .6s ease' }} />
             </div>
           </div>
         )}
@@ -89,14 +89,14 @@ export default function SettingsRightPanel() {
 
       {/* ── Active Projects ── */}
       {projects.length > 0 && (
-        <div style={{ background:'#fff', border:'1px solid #EEF2F7', borderRadius:20, overflow:'hidden', boxShadow:'0 2px 16px rgba(15,23,42,.04)' }}>
+        <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:12, overflow:'hidden', boxShadow:'0 2px 16px rgba(15,23,42,.04)' }}>
           <div style={{ padding:'13px 18px', borderBottom:'1px solid #F1F5F9', background:'#FAFBFD', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-            <p style={{ fontSize:10.5, fontWeight:700, color:'#94A3B8', letterSpacing:'.1em', margin:0 }}>PROJEKTE</p>
+            <p style={{ fontSize:10.5, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.1em', margin:0 }}>PROJEKTE</p>
             <Link href="/dashboard" style={{ fontSize:11.5, color:'#007AFF', fontWeight:600 }}>Alle →</Link>
           </div>
           <div style={{ padding:'8px 0' }}>
             {projects.map((p, i) => {
-              const ph = PHASE[p.status] ?? { l:p.status, c:'#94A3B8' }
+              const ph = PHASE[p.status] ?? { l:p.status, c:'var(--text-muted)' }
               return (
                 <Link key={p.id} href={`/project/${p.id}`}>
                   <div style={{ padding:'9px 16px', display:'flex', alignItems:'center', gap:10, borderBottom:i<projects.length-1?'1px solid #F8FAFC':'none', cursor:'pointer', transition:'background .1s' }}
@@ -104,8 +104,8 @@ export default function SettingsRightPanel() {
                     onMouseLeave={e=>(e.currentTarget as HTMLElement).style.background='transparent'}
                   >
                     <div style={{ width:7, height:7, borderRadius:'50%', background:ph.c, flexShrink:0 }} />
-                    <p style={{ fontSize:13, color:'#181D1C', flex:1, margin:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', fontWeight:500 }}>{p.title}</p>
-                    <span style={{ fontSize:10.5, color:'#94A3B8', flexShrink:0 }}>{ph.l}</span>
+                    <p style={{ fontSize:13, color:'var(--text)', flex:1, margin:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', fontWeight:500 }}>{p.title}</p>
+                    <span style={{ fontSize:10.5, color:'var(--text-muted)', flexShrink:0 }}>{ph.l}</span>
                   </div>
                 </Link>
               )
@@ -115,20 +115,20 @@ export default function SettingsRightPanel() {
       )}
 
       {/* ── Recent Activity ── */}
-      <div style={{ background:'#fff', border:'1px solid #EEF2F7', borderRadius:20, overflow:'hidden', boxShadow:'0 2px 16px rgba(15,23,42,.04)' }}>
+      <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:12, overflow:'hidden', boxShadow:'0 2px 16px rgba(15,23,42,.04)' }}>
         <div style={{ padding:'13px 18px', borderBottom:'1px solid #F1F5F9', background:'#FAFBFD', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-          <p style={{ fontSize:10.5, fontWeight:700, color:'#94A3B8', letterSpacing:'.1em', margin:0 }}>ZULETZT AKTIV</p>
+          <p style={{ fontSize:10.5, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.1em', margin:0 }}>ZULETZT AKTIV</p>
           <Link href="/activity" style={{ fontSize:11.5, color:'#007AFF', fontWeight:600 }}>Alle →</Link>
         </div>
         <div style={{ padding:'6px 0' }}>
           {activity.length === 0 ? (
-            <p style={{ fontSize:13, color:'#94A3B8', textAlign:'center', padding:'18px 0', margin:0 }}>Noch keine Aktivitäten</p>
+            <p style={{ fontSize:13, color:'var(--text-muted)', textAlign:'center', padding:'18px 0', margin:0 }}>Noch keine Aktivitäten</p>
           ) : activity.map((a, i) => (
             <div key={a.id} style={{ padding:'8px 16px', display:'flex', gap:10, alignItems:'center', borderBottom:i<activity.length-1?'1px solid #F8FAFC':'none' }}>
               <span style={{ fontSize:14, flexShrink:0 }}>{a.icon || ICONS[a.event_type] || '●'}</span>
               <div style={{ flex:1, minWidth:0 }}>
-                <p style={{ fontSize:12.5, color:'#181D1C', margin:0, fontWeight:500, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{a.title}</p>
-                <p style={{ fontSize:10.5, color:'#94A3B8', margin:0 }}>
+                <p style={{ fontSize:12.5, color:'var(--text)', margin:0, fontWeight:500, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{a.title}</p>
+                <p style={{ fontSize:10.5, color:'var(--text-muted)', margin:0 }}>
                   {new Date(a.created_at).toLocaleTimeString('de',{hour:'2-digit',minute:'2-digit'})}
                   {a.actor_role && <span style={{ marginLeft:5, fontWeight:600, textTransform:'uppercase', fontSize:9.5, letterSpacing:'.05em' }}>{a.actor_role}</span>}
                 </p>
@@ -139,7 +139,7 @@ export default function SettingsRightPanel() {
       </div>
 
       {/* ── Dark Tagro CTA ── */}
-      <div style={{ background:'#181D1C', borderRadius:20, padding:'18px 20px', position:'relative', overflow:'hidden' }}>
+      <div style={{ background:'var(--text)', borderRadius:12, padding:'18px 20px', position:'relative', overflow:'hidden' }}>
         <div style={{ position:'absolute', top:-24, right:-24, width:90, height:90, borderRadius:'50%', background:'rgba(255,255,255,.04)' }}/>
         <div style={{ position:'absolute', bottom:-12, right:16, width:52, height:52, borderRadius:'50%', background:'rgba(255,255,255,.03)' }}/>
         <img src="/brand/logo.svg" alt="festag" style={{ height:12, filter:'brightness(0) invert(1)', opacity:.7, marginBottom:12, display:'block' }} />
@@ -153,9 +153,9 @@ export default function SettingsRightPanel() {
       </div>
 
       {/* ── Quick Links ── */}
-      <div style={{ background:'#fff', border:'1px solid #EEF2F7', borderRadius:16, overflow:'hidden', boxShadow:'0 2px 16px rgba(15,23,42,.04)' }}>
+      <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:12, overflow:'hidden', boxShadow:'0 2px 16px rgba(15,23,42,.04)' }}>
         <div style={{ padding:'12px 16px', borderBottom:'1px solid #F1F5F9', background:'#FAFBFD' }}>
-          <p style={{ fontSize:10.5, fontWeight:700, color:'#94A3B8', letterSpacing:'.1em', margin:0 }}>SCHNELLZUGRIFF</p>
+          <p style={{ fontSize:10.5, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.1em', margin:0 }}>SCHNELLZUGRIFF</p>
         </div>
         <div style={{ padding:'4px 0' }}>
           {[
@@ -173,7 +173,7 @@ export default function SettingsRightPanel() {
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
                   {item.icon.split('M').filter(Boolean).map((seg,i) => <path key={i} d={'M'+seg}/>)}
                 </svg>
-                <span style={{ fontSize:13, color:'#475569', flex:1 }}>{item.l}</span>
+                <span style={{ fontSize:13, color:'var(--text-secondary)', flex:1 }}>{item.l}</span>
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" strokeWidth="2" strokeLinecap="round"><path d="M9 6l6 6-6 6"/></svg>
               </div>
             </Link>

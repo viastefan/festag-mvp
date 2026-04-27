@@ -18,16 +18,16 @@ export default function LoadingScreen({ onDone }: { onDone: () => void }) {
   }, [])
 
   return (
-    <div style={{ position:'fixed',inset:0,background:'#fff',display:'flex',alignItems:'center',justifyContent:'center',zIndex:9999 }}>
+    <div style={{ position:'fixed',inset:0,background:'var(--bg)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:9999 }}>
       <div style={{ display:'flex',flexDirection:'column',alignItems:'center',marginBottom:'4vh' }}>
         {/* Logo: 32px, marginBottom 24px — much tighter to bar */}
         <img src="/brand/logo.svg" alt="festag" style={{ height:32,display:'block',marginBottom:24 }} />
         {/* Bar */}
-        <div style={{ width:200,height:2,background:'#EEF2F7',borderRadius:2,overflow:'hidden',marginBottom:12 }}>
-          <div style={{ height:'100%',width:`${pct}%`,background:'#181D1C',borderRadius:2,transition:'width .025s linear' }} />
+        <div style={{ width:200,height:2,background:'var(--border)',borderRadius:2,overflow:'hidden',marginBottom:12 }}>
+          <div style={{ height:'100%',width:`${pct}%`,background:'var(--text)',borderRadius:2,transition:'width .025s linear' }} />
         </div>
         {/* Message */}
-        <p style={{ fontSize:12,color:'#94A3B8',margin:0,letterSpacing:'.02em',fontFamily:'inherit' }}>{MSGS[mi]}</p>
+        <p style={{ fontSize:12,color:'var(--text-muted)',margin:0,letterSpacing:'.02em',fontFamily:'inherit' }}>{MSGS[mi]}</p>
       </div>
     </div>
   )

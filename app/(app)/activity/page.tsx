@@ -55,8 +55,7 @@ export default function ActivityPage() {
 
   return (
     <div style={{ maxWidth:720 }}>
-      <div className="animate-fade-up" style={{ marginBottom:24 }}>
-        <h1 style={{ marginBottom:4 }}>Activity Feed</h1>
+      <div className="animate-fade-up" style={{ marginBottom:18 }}>
         <p style={{ fontSize:14,color:'var(--text-secondary)' }}>Alle Ereignisse in deinen Projekten</p>
       </div>
 
@@ -69,9 +68,9 @@ export default function ActivityPage() {
           { k:'system', l:'System' },
         ] as const).map(f => (
           <button key={f.k} onClick={() => setFilter(f.k)} style={{
-            padding:'7px 14px',borderRadius:20,border:'1px solid var(--border)',
-            background: filter===f.k?'var(--text)':'var(--surface)',
-            color: filter===f.k?'#fff':'var(--text-secondary)',
+            padding:'7px 14px',borderRadius:12,border:'1px solid var(--border)',
+            background: filter===f.k?'var(--accent)':'var(--surface)',
+            color: filter===f.k?'var(--accent-text)':'var(--text-secondary)',
             fontSize:12,fontWeight:600,cursor:'pointer',fontFamily:'inherit',transition:'all .15s',
           }}>{f.l}</button>
         ))}

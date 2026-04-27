@@ -170,7 +170,7 @@ export default function Sidebar() {
           {/* Logo */}
           <Link href="/dashboard" style={{ textDecoration:'none',display:'block' }}>
             <div style={{ padding:'0 8px',marginBottom:22 }}>
-              <img src="/brand/logo.svg" alt="festag" style={{ height:15,display:'block',filter:'var(--logo-filter,none)' }} />
+              <img src="/brand/logo.svg" alt="festag" style={{ height:19,display:'block',filter:'var(--logo-filter,none)' }} />
             </div>
           </Link>
 
@@ -267,13 +267,13 @@ export default function Sidebar() {
         <>
           <div className="mbd" onClick={()=>setMore(false)} />
           <div className="msh">
-            <div style={{ width:34,height:4,borderRadius:2,background:'#E2E8F0',margin:'0 auto 14px' }}/>
+            <div style={{ width:34,height:4,borderRadius:2,background:'var(--border-strong)',margin:'0 auto 14px' }}/>
             <p style={{ fontSize:10.5,fontWeight:700,color:'var(--text-muted)',letterSpacing:'.08em',marginBottom:6 }}>WEITERE SEITEN</p>
             {MOB_MORE.map(item => {
               const on = isOn(item.href)
               return (
                 <Link key={item.href} href={resolve(item.href)} className="mr" onClick={()=>setMore(false)}>
-                  <div style={{ width:40,height:40,borderRadius:11,background:on?'#181D1C':'#F1F5F9',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0 }}>
+                  <div style={{ width:40,height:40,borderRadius:11,background:on?'var(--text)':'var(--surface-2)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0 }}>
                     <Ico name={item.icon} sz={19} on={on} />
                   </div>
                   <p style={{ fontSize:15,fontWeight:on?700:600,color:'var(--text)',margin:0,flex:1 }}>{item.label}</p>

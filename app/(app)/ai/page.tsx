@@ -88,7 +88,6 @@ export default function AIHubPage() {
   return (
     <div className="animate-fade-up" style={{ maxWidth: 800, margin: '0 auto', display: 'flex', flexDirection: 'column', height: 'calc(100vh - 120px)' }}>
       <div style={{ marginBottom: 20 }}>
-        <h1 style={{ marginBottom: 4 }}>Tagro AI</h1>
         <p style={{ fontSize: 14, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{ display:'inline-flex', alignItems:'center', gap:5 }}>
             <span style={{ width:6, height:6, borderRadius:'50%', background:'var(--green)', animation:'pulse 2s infinite' }} />

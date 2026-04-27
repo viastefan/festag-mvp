@@ -34,8 +34,7 @@ export default function BillingPage() {
 
   return (
     <div>
-      <div className="animate-fade-up" style={{ marginBottom:22 }}>
-        <h1 style={{ marginBottom:4 }}>Billing & Zahlungen</h1>
+      <div className="animate-fade-up" style={{ marginBottom:16 }}>
         <p style={{ fontSize:14, color:'var(--text-secondary)' }}>Deine Projektinvestitionen und Add-ons</p>
       </div>
 
