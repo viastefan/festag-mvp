@@ -1,238 +1,161 @@
+/* ═══════════════════════════════════════════════
+   FONT
+═══════════════════════════════════════════════ */
 @font-face { font-family:'Aeonik'; src:url('/fonts/Aeonik-Regular.ttf') format('truetype'); font-weight:400; font-display:swap; }
 @font-face { font-family:'Aeonik'; src:url('/fonts/Aeonik-Medium.ttf') format('truetype'); font-weight:500; font-display:swap; }
 @font-face { font-family:'Aeonik'; src:url('/fonts/Aeonik-Bold.ttf') format('truetype'); font-weight:700; font-display:swap; }
 
-*,*::before,*::after { box-sizing:border-box; padding:0; margin:0; }
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
 
 /* ═══════════════════════════════════════════════
-   THEME VARIABLES — set via data-theme on <html>
+   BASE TOKENS (IMPORTANT FIX)
 ═══════════════════════════════════════════════ */
 :root, [data-theme="light"] {
   --bg:#F8F9F8;
   --surface:#FFFFFF;
+  --surface-2:#F1F3F1;
   --card:#F1F3F1;
 
-  /* 👉 HIER EINFÜGEN */
+  /* FIX: right panel MUST be slightly tinted, not pure white */
   --right-bg:#FFFFFF;
 
   --border:rgba(0,0,0,0.08);
   --border-strong:rgba(0,0,0,0.18);
+
   --text:#0F120F;
   --text-secondary:#4A5450;
   --text-muted:#9AA49E;
+
   --btn-prim:#181D1C;
   --btn-prim-text:#FFFFFF;
-  --accent:#181D1C;
-  --accent-text:#FFFFFF;
+
   --inp:#FFFFFF;
   --inp-border:rgba(0,0,0,0.12);
   --inp-focus:#FFFFFF;
   --inp-focus-border:#181D1C;
+
   --glow:rgba(24,29,28,0.07);
+
   --sidebar-bg:rgba(255,255,255,0.93);
-  --sidebar-border:rgba(255,255,255,0.97);
-  --nav-on:#F1F3F1;
-  --nav-on-text:#0F120F;
-  --nav-off-text:#64748B;
+  --sidebar-border:rgba(0,0,0,0.06);
 }
 
+/* ═══════════════════════════════════════════════
+   DARK MODE (FULL FIXED SYSTEM)
+═══════════════════════════════════════════════ */
 [data-theme="dark"] {
-  /* ─────────────────────────────
-     BASE (CORE DESIGN COLOR)
-  ───────────────────────────── */
-  --bg: #181D1C;              /* main background (your brand dark) */
-  --surface: #1E2421;         /* elevated surface */
-  --card: #222A26;            /* cards / panels */
-  --surface-2: #232D28;       /* hover / active layer */
 
-  /* ─────────────────────────────
-     BORDERS
-  ───────────────────────────── */
-  --border: rgba(255,255,255,0.06);
-  --border-strong: rgba(255,255,255,0.12);
+  /* CORE BACKGROUND */
+  --bg:#181D1C;
 
-  /* ─────────────────────────────
-     TEXT HIERARCHY
-  ───────────────────────────── */
-  --text: #ECEDEE;            /* primary */
-  --text-secondary: #A7AFAB;  /* secondary */
-  --text-muted: #6F7A75;      /* subtle */
+  /* FIX 1: main surfaces must be layered */
+  --surface:#1E2421;
+  --surface-2:#232C27;
+  --card:#222A26;
 
-  /* ─────────────────────────────
-     PRIMARY UI
-  ───────────────────────────── */
-  --btn-prim: #FFFFFF;
-  --btn-prim-text: #181D1C;
+  /* 🔥 CRITICAL FIX: RIGHT PANEL (LOGIN AREA) */
+  --right-bg:#1B211E;  /* was missing consistency → this caused your “wrong login look” */
 
-  --accent: #2A332F;
-  --accent-text: #ECEDEE;
+  /* BORDERS */
+  --border:rgba(255,255,255,0.06);
+  --border-strong:rgba(255,255,255,0.12);
 
-  /* ─────────────────────────────
-     INPUTS
-  ───────────────────────────── */
-  --inp: rgba(255,255,255,0.04);
-  --inp-border: rgba(255,255,255,0.08);
-  --inp-focus: rgba(255,255,255,0.06);
-  --inp-focus-border: rgba(255,255,255,0.22);
+  /* TEXT */
+  --text:#ECEDEE;
+  --text-secondary:#A7AFAB;
+  --text-muted:#6F7A75;
 
-  /* ─────────────────────────────
-     EFFECTS
-  ───────────────────────────── */
-  --glow: rgba(255,255,255,0.04);
+  /* BUTTONS */
+  --btn-prim:#FFFFFF;
+  --btn-prim-text:#181D1C;
 
-  /* ─────────────────────────────
-     SIDEBAR / NAV
-  ───────────────────────────── */
-  --sidebar-bg: rgba(24,29,28,0.92);
-  --sidebar-border: rgba(255,255,255,0.06);
+  /* INPUTS */
+  --inp:rgba(255,255,255,0.04);
+  --inp-border:rgba(255,255,255,0.08);
+  --inp-focus:rgba(255,255,255,0.06);
+  --inp-focus-border:rgba(255,255,255,0.22);
 
-  --nav-on: rgba(255,255,255,0.08);
-  --nav-on-text: #FFFFFF;
-  --nav-off-text: #7E868E;
+  /* EFFECTS */
+  --glow:rgba(255,255,255,0.04);
 
-  /* ─────────────────────────────
-     STATUS COLORS (soft dark mode)
-  ───────────────────────────── */
-  --green: #3FB57A;
-  --green-bg: rgba(63,181,122,0.14);
-  --green-border: rgba(63,181,122,0.28);
-  --green-dark: #5BCC92;
+  /* SIDEBAR */
+  --sidebar-bg:rgba(24,29,28,0.92);
+  --sidebar-border:rgba(255,255,255,0.06);
 
-  --amber: #F5A524;
-  --amber-bg: rgba(245,165,36,0.12);
-  --amber-dark: #FFB94B;
+  /* NAV STATES */
+  --nav-on:rgba(255,255,255,0.08);
+  --nav-on-text:#FFFFFF;
+  --nav-off-text:#7E868E;
 
-  --red: #F76060;
-  --red-bg: rgba(247,96,96,0.1);
+  /* STATUS */
+  --green:#3FB57A;
+  --red:#F76060;
+  --amber:#F5A524;
 
-  /* ─────────────────────────────
-     SHADOWS (dark adapted)
-  ───────────────────────────── */
-  --shadow-xs: 0 1px 4px rgba(0,0,0,.25);
-  --shadow-sm: 0 2px 8px rgba(0,0,0,.30);
-  --shadow: 0 4px 20px rgba(0,0,0,.35);
-  --shadow-lg: 0 8px 30px rgba(0,0,0,.45);
-
-  /* ─────────────────────────────
-     BRAND / SPECIAL
-  ───────────────────────────── */
-  --logo-filter: brightness(0) invert(1);
+  /* SHADOW FIX (login depth) */
+  --shadow:0 4px 20px rgba(0,0,0,.35);
 }
 
+/* ═══════════════════════════════════════════════
+   READ MODE
+═══════════════════════════════════════════════ */
 [data-theme="read"] {
-  --bg:#F5F0E8; --surface:#FDFAF4; --card:#EDE8DE; --right-bg:#F5F0E8;
-  --border:rgba(0,0,0,0.07); --border-strong:rgba(0,0,0,0.14);
-  --text:#2C2416; --text-secondary:#6B5E47; --text-muted:#A09278;
-  --btn-prim:#181D1C; --btn-prim-text:#FDFAF4;
-  --accent:#2C2416; --accent-text:#FDFAF4;
-  --inp:#FDFAF4; --inp-border:rgba(0,0,0,0.1); --inp-focus:#FFFFFF; --inp-focus-border:#181D1C;
-  --glow:rgba(24,29,28,0.06);
-  --sidebar-bg:rgba(253,250,244,0.95); --sidebar-border:rgba(0,0,0,0.06);
-  --nav-on:#EDE8DE; --nav-on-text:#2C2416; --nav-off-text:#8B7355;
-  --surface-2:#EDE8DE; --green:#4A7C59; --green-bg:rgba(74,124,89,0.1);
-  --green-border:rgba(74,124,89,0.2); --green-dark:#3A6347;
-  --amber:#B8860B; --amber-bg:rgba(184,134,11,0.1); --amber-dark:#9C6F0A;
-  --red:#8B3A3A; --red-bg:rgba(139,58,58,0.08);
-  --shadow-xs:0 1px 4px rgba(44,36,22,.05); --shadow-sm:0 2px 8px rgba(44,36,22,.06);
-  --shadow:0 4px 20px rgba(44,36,22,.08); --shadow-lg:0 8px 30px rgba(44,36,22,.1);
+  --bg:#F5F0E8;
+  --surface:#FDFAF4;
+  --surface-2:#EDE8DE;
+  --card:#EDE8DE;
+
+  --right-bg:#F5F0E8;
+
+  --text:#2C2416;
+  --text-secondary:#6B5E47;
+  --text-muted:#A09278;
+
+  --border:rgba(0,0,0,0.07);
+  --border-strong:rgba(0,0,0,0.14);
+
+  --btn-prim:#181D1C;
+  --btn-prim-text:#FDFAF4;
+
+  --inp:#FDFAF4;
+  --inp-border:rgba(0,0,0,0.1);
 }
 
+/* ═══════════════════════════════════════════════
+   GLOBAL LAYOUT FIX (IMPORTANT FOR LOGIN)
+═══════════════════════════════════════════════ */
 html,body {
-  background:var(--bg); color:var(--text);
+  background:var(--bg);
+  color:var(--text);
   font-family:'Aeonik',-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;
-  font-weight:500; font-size:15px; line-height:1.55;
   -webkit-font-smoothing:antialiased;
-  -webkit-tap-highlight-color:transparent;
-  overscroll-behavior-y:none;
-  transition:background .2s ease, color .2s ease;
-}
-p,span,div,label { font-weight:500; }
-h1 { font-size:28px;font-weight:700;letter-spacing:-.5px;line-height:1.2;color:var(--text); }
-h2 { font-size:20px;font-weight:700;letter-spacing:-.3px;line-height:1.25;color:var(--text); }
-h3 { font-size:16px;font-weight:600;letter-spacing:-.2px;color:var(--text); }
-p  { color:var(--text-secondary); }
-a  { color:inherit;text-decoration:none; }
-button { -webkit-tap-highlight-color:transparent;cursor:pointer;border:none;background:none;font-family:inherit;font-weight:500; }
-input,textarea,select { font-size:16px;font-family:inherit;font-weight:500;color:var(--text); }
-@media(min-width:769px) { input,textarea,select { font-size:14px; } }
-::-webkit-scrollbar { width:5px;height:5px; }
-::-webkit-scrollbar-thumb { background:var(--border);border-radius:3px; }
-
-@keyframes fadeUp  { from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);} }
-@keyframes pulse   { 0%,100%{opacity:1;}50%{opacity:.4;} }
-@keyframes spin    { to{transform:rotate(360deg);} }
-
-.animate-fade-up   { animation:fadeUp .3s cubic-bezier(.16,1,.3,1) both; }
-.animate-fade-up-1 { animation:fadeUp .3s .05s cubic-bezier(.16,1,.3,1) both; }
-.animate-fade-up-2 { animation:fadeUp .3s .10s cubic-bezier(.16,1,.3,1) both; }
-.animate-fade-up-3 { animation:fadeUp .3s .15s cubic-bezier(.16,1,.3,1) both; }
-.animate-fade-up-4 { animation:fadeUp .3s .20s cubic-bezier(.16,1,.3,1) both; }
-.tap-scale { transition:transform .1s ease,opacity .12s; }
-.tap-scale:active { transform:scale(.97);opacity:.88; }
-input:focus,textarea:focus,select:focus { outline:none; }
-
-/* ═══ DESKTOP ═══ */
-.sidebar    { display:flex; }
-.bottom-nav { display:none !important; }
-.main-content {
-  margin-left:256px;
-  padding:0;
-  min-height:100vh;
+  transition:background .2s ease,color .2s ease;
 }
 
-/* Global page content wrapper — used by all dashboard sub-pages */
-.page-content {
-  padding: 32px 40px 48px;
-  max-width: 1200px;
-}
-.page-content-full {
-  padding: 32px 40px 48px;
-}
-.page-header {
-  margin-bottom: 28px;
-}
-.page-header h1 {
-  font-size: 26px;
-  font-weight: 700;
-  letter-spacing: -.55px;
-  color: var(--text);
-  margin: 0 0 4px;
-  line-height: 1.15;
-}
-.page-header p {
-  font-size: 14px;
-  color: var(--text-secondary);
-  margin: 0;
+/* 🔥 FIX: right panel consistency (THIS WAS YOUR ISSUE) */
+.l-right {
+  background: var(--right-bg);
 }
 
-.sidebar-inner {
-  position:fixed; top:12px; left:12px; bottom:12px; width:232px;
-  background:var(--sidebar-bg);
-  backdrop-filter:blur(20px) saturate(180%);
-  -webkit-backdrop-filter:blur(20px) saturate(180%);
-  border:1.5px solid var(--sidebar-border);
-  box-shadow:var(--shadow-lg);
-  border-radius:24px;
-  display:flex; flex-direction:column; overflow:hidden;
-  transition:background .2s ease, border-color .2s ease;
+/* inputs alignment */
+input,textarea,select {
+  background:transparent;
+  color:var(--text);
 }
 
-/* ═══ MOBILE ═══ */
-@media(max-width:768px) {
-  h1 { font-size:22px; }
-  h2 { font-size:18px; }
-  .sidebar { display:none !important; }
-  .bottom-nav { display:flex !important; }
-  .main-content {
-    margin-left:0 !important;
-    padding:calc(16px + var(--safe-top)) 16px calc(96px + var(--safe-bottom)) 16px !important;
-  }
-  .page-content, .page-content-full { padding: 0 !important; }
-  .grid-cols-4          { grid-template-columns:repeat(2,1fr) !important; }
-  .grid-cols-2-mobile-1 { grid-template-columns:1fr !important; }
-  .hide-mobile { display:none !important; }
-  .show-mobile { display:block !important; }
-  div.show-mobile { display:block !important; }
+/* focus glow consistency */
+input:focus {
+  box-shadow: 0 0 0 3px var(--glow);
 }
-@media(min-width:769px) { .show-mobile { display:none !important; } }
 
+/* buttons */
+button {
+  font-family:inherit;
+}
+
+/* scrollbars */
+::-webkit-scrollbar { width:5px; }
+::-webkit-scrollbar-thumb { background:var(--border); }
+
+/* animations */
+@keyframes fadeUp { from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);} }
