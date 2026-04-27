@@ -2,98 +2,211 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
+type Task = {
+  id: string; title: string; description: string; status: string; priority: string;
+  estimated_hours: number; acceptance_criteria: string[]; tags: string[];
+  requires_approval: boolean; approved_by: string | null; dev_notes: string;
+  project?: { title: string; user_id: string }
+  epic?: { title: string }
+}
+
+const PRIORITY_COLOR: Record<string, string> = {
+  critical: '#F76060', high: 'var(--amber)', medium: 'var(--green)', low: 'var(--text-muted)'
+}
+const STATUS_LABEL: Record<string, string> = {
+  todo: 'To Do', in_progress: 'In Arbeit', done: 'Erledigt', blocked: 'Blockiert'
+}
+
 export default function DevJobsPage() {
-  const [jobs, setJobs] = useState<any[]>([])
-  const [devInfo, setDevInfo] = useState<any>(null)
+  const [tasks, setTasks] = useState<Task[]>([])
   const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState<'available'|'taken'|'all'>('available')
-  const [accepting, setAccepting] = useState<string|null>(null)
-  const [accepted, setAccepted] = useState<string[]>([])
+  const [selected, setSelected] = useState<Task | null>(null)
+  const [devNote, setDevNote] = useState('')
+  const [sending, setSending] = useState(false)
+  const [filter, setFilter] = useState<'all'|'pending'|'mine'>('pending')
 
-  useEffect(() => {
-    const session = localStorage.getItem('festag_dev_session')
-    if (session) {
-      const info = JSON.parse(session)
-      setDevInfo(info)
-    }
-    const supabase = createClient()
-    supabase.from('projects').select('*').order('created_at', { ascending: false }).then(({ data }) => {
-      setJobs(data ?? []); setLoading(false)
-    })
-  }, [])
+  useEffect(() => { loadTasks() }, [filter])
 
-  async function acceptJob(projectId: string) {
-    if (!devInfo) return
-    setAccepting(projectId)
-    const supabase = createClient()
-    await supabase.from('project_members').upsert({ project_id: projectId, user_id: devInfo.user_id, role: 'dev' })
-    await supabase.from('projects').update({ status: 'active' }).eq('id', projectId)
-    await supabase.from('messages').insert({
-      project_id: projectId, sender_id: devInfo.user_id,
-      message: 'Ein Festag Developer hat dein Projekt übernommen. Die Umsetzung beginnt jetzt.',
-      is_ai: true,
-    })
-    setJobs(jobs.map(j => j.id === projectId ? { ...j, status: 'active' } : j))
-    setAccepted(a => [...a, projectId])
-    setAccepting(null)
+  async function loadTasks() {
+    setLoading(true)
+    const sb = createClient()
+    const { data: { session } } = await sb.auth.getSession()
+    if (!session) return
+
+    let q = sb.from('tasks')
+      .select('*, project:projects(title,user_id), epic:epics(title)')
+      .order('created_at', { ascending: false })
+      .limit(50)
+
+    if (filter === 'pending') q = q.eq('status', 'todo')
+    if (filter === 'mine') q = q.eq('assigned_to', session.user.id)
+
+    const { data } = await q
+    setTasks(data ?? [])
+    setLoading(false)
   }
 
-  const avail = jobs.filter(j => j.status === 'planning' || j.status === 'intake')
-  const taken = jobs.filter(j => j.status === 'active' || j.status === 'testing')
-  const shown = filter === 'available' ? avail : filter === 'taken' ? taken : jobs
+  async function updateStatus(taskId: string, status: string) {
+    const sb = createClient()
+    await sb.from('tasks').update({ status, updated_at: new Date().toISOString() }).eq('id', taskId)
+    setTasks(t => t.map(x => x.id === taskId ? { ...x, status } : x))
+    if (selected?.id === taskId) setSelected(s => s ? { ...s, status } : null)
+  }
+
+  async function sendProgressUpdate() {
+    if (!selected || !devNote.trim()) return
+    setSending(true)
+    try {
+      await fetch('/api/ai/progress', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          taskId: selected.id,
+          devNote: devNote.trim(),
+          projectId: (selected as any).project_id,
+        })
+      })
+      setDevNote('')
+      await loadTasks()
+      setSelected(null)
+    } catch {}
+    setSending(false)
+  }
+
+  async function approveTask(taskId: string) {
+    const sb = createClient()
+    const { data: { session } } = await sb.auth.getSession()
+    await sb.from('tasks').update({ requires_approval: false, approved_by: session?.user.id }).eq('id', taskId)
+    setTasks(t => t.map(x => x.id === taskId ? { ...x, requires_approval: false } : x))
+  }
 
   return (
-    <div className="animate-fade-up">
-      <div style={{ marginBottom: 20 }}>
-        <h1 style={{ marginBottom: 4 }}>Jobs</h1>
-        <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Alle Projekte im System</p>
+    <div style={{ padding:'32px 40px', maxWidth:1100 }}>
+      <div style={{ marginBottom:24 }}>
+        <h1 style={{ fontSize:26, fontWeight:700, color:'var(--text)', letterSpacing:'-.5px', marginBottom:4 }}>Dev Board</h1>
+        <p style={{ fontSize:14, color:'var(--text-secondary)', margin:0 }}>Alle Tasks aus AI-Projektzerlegung · Kundenupdate per Tagro</p>
       </div>
-      <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
-        {[
-          { k: 'available', l: `Verfügbar (${avail.length})` },
-          { k: 'taken',     l: `In Arbeit (${taken.length})` },
-          { k: 'all',       l: `Alle (${jobs.length})` },
-        ].map(t => (
-          <button key={t.k} onClick={() => setFilter(t.k as any)} className="tap-scale" style={{ padding: '7px 14px', border: '1px solid var(--border)', background: filter === t.k ? 'var(--text)' : 'var(--surface)', color: filter === t.k ? '#fff' : 'var(--text-muted)', borderRadius: 20, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>{t.l}</button>
+
+      {/* Filter */}
+      <div style={{ display:'flex', gap:6, marginBottom:24, padding:4, background:'var(--card)', borderRadius:10, width:'fit-content' }}>
+        {([['all','Alle'],['pending','Offen'],['mine','Meine']] as const).map(([k,l]) => (
+          <button key={k} onClick={()=>setFilter(k)} style={{
+            padding:'7px 14px', borderRadius:8, border:'none', cursor:'pointer', fontFamily:'inherit',
+            fontSize:13, fontWeight:filter===k?700:500,
+            background:filter===k?'var(--surface)':'transparent',
+            color:filter===k?'var(--text)':'var(--text-muted)',
+            boxShadow:filter===k?'var(--shadow-xs)':'none',
+          }}>{l}</button>
         ))}
       </div>
 
       {loading ? (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: 40 }}>
-          <div style={{ width: 24, height: 24, border: '2px solid var(--border)', borderTopColor: 'var(--text)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-        </div>
+        <div style={{display:'flex',justifyContent:'center',padding:48}}><div style={{width:24,height:24,border:'2px solid var(--border)',borderTopColor:'var(--text)',borderRadius:'50%',animation:'spin .8s linear infinite'}}/></div>
+      ) : tasks.length === 0 ? (
+        <div style={{padding:'48px 24px',textAlign:'center',color:'var(--text-muted)',fontSize:14}}>Keine Tasks gefunden.</div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {shown.map((j, idx) => {
-            const isAvail = j.status === 'planning' || j.status === 'intake'
-            const wasAccepted = accepted.includes(j.id)
-            return (
-              <div key={j.id} style={{ background: 'var(--surface)', border: `1px solid ${wasAccepted ? 'var(--green-border)' : 'var(--border)'}`, borderRadius: 'var(--r-lg)', padding: '16px 20px', display: 'flex', gap: 14, alignItems: 'flex-start', animation: `fadeUp 0.25s ${idx * 0.04}s both`, transition: 'border-color 0.3s' }}>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 5 }}>
-                    <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)', margin: 0 }}>{j.title}</p>
-                    <span style={{ padding: '2px 7px', borderRadius: 5, fontSize: 10, fontWeight: 600, color: wasAccepted ? 'var(--green-dark)' : isAvail ? '#D97706' : 'var(--green-dark)', background: wasAccepted ? 'var(--green-bg)' : isAvail ? 'var(--amber-bg)' : 'var(--green-bg)' }}>
-                      {wasAccepted ? '✓ ANGENOMMEN' : isAvail ? 'OFFEN' : j.status.toUpperCase()}
-                    </span>
-                  </div>
-                  {j.description && <p style={{ fontSize: 12, color: 'var(--text-secondary)', margin: '0 0 6px' }}>{j.description}</p>}
-                  <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: 0 }}>
-                    {j.complexity && <span style={{ textTransform: 'capitalize' }}>{j.complexity} · </span>}
-                    {j.timeline && <span>{j.timeline} · </span>}
-                    {new Date(j.created_at).toLocaleDateString('de')}
-                  </p>
+        <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+          {tasks.map(t => (
+            <div key={t.id} onClick={()=>{setSelected(t);setDevNote(t.dev_notes??'')}}
+              style={{
+                background:'var(--surface)', border:'1px solid var(--border)',
+                borderRadius:12, padding:'14px 18px', cursor:'pointer',
+                display:'flex', alignItems:'center', gap:12,
+                transition:'all .12s',
+                borderLeft: `3px solid ${PRIORITY_COLOR[t.priority] ?? 'var(--border)'}`,
+              }}
+            >
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:3}}>
+                  <span style={{fontSize:14,fontWeight:600,color:'var(--text)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{t.title}</span>
+                  {t.requires_approval && <span style={{fontSize:10,fontWeight:700,padding:'2px 7px',borderRadius:5,background:'var(--amber-bg)',color:'var(--amber-dark)'}}>GENEHMIGUNG</span>}
                 </div>
-                {isAvail && !wasAccepted && (
-                  <button onClick={() => acceptJob(j.id)} disabled={accepting === j.id} className="tap-scale" style={{ padding: '9px 16px', background: 'var(--accent)', color: 'var(--accent-text)', border: 'none', borderRadius: 'var(--r-sm)', fontSize: 12, fontWeight: 600, cursor: 'pointer', minHeight: 36, flexShrink: 0, opacity: accepting === j.id ? 0.6 : 1 }}>
-                    {accepting === j.id ? '…' : 'Annehmen'}
+                <div style={{display:'flex',gap:8,fontSize:12,color:'var(--text-muted)'}}>
+                  <span>{t.project?.title ?? '—'}</span>
+                  {t.epic && <><span>·</span><span>{t.epic.title}</span></>}
+                  {t.estimated_hours && <><span>·</span><span>{t.estimated_hours}h</span></>}
+                </div>
+              </div>
+              <div style={{display:'flex',alignItems:'center',gap:8,flexShrink:0}}>
+                <select value={t.status} onClick={e=>e.stopPropagation()} onChange={e=>{e.stopPropagation();updateStatus(t.id,e.target.value)}}
+                  style={{padding:'5px 10px',borderRadius:8,border:'1px solid var(--border)',background:'var(--card)',color:'var(--text)',fontSize:12,fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>
+                  {Object.entries(STATUS_LABEL).map(([k,v])=><option key={k} value={k}>{v}</option>)}
+                </select>
+                {t.requires_approval && (
+                  <button onClick={e=>{e.stopPropagation();approveTask(t.id)}}
+                    style={{padding:'5px 10px',borderRadius:8,border:'none',background:'var(--green-bg)',color:'var(--green-dark)',fontSize:12,fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>
+                    Genehmigen
                   </button>
                 )}
               </div>
-            )
-          })}
-          {shown.length === 0 && <div style={{ background: 'var(--surface)', border: '1px dashed var(--border)', borderRadius: 'var(--r-lg)', padding: '40px 20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>Keine Jobs in dieser Kategorie</div>}
+            </div>
+          ))}
         </div>
       )}
+
+      {/* Task Detail Sidebar */}
+      {selected && (
+        <div style={{position:'fixed',inset:0,zIndex:500,display:'flex'}}>
+          <div onClick={()=>setSelected(null)} style={{flex:1,background:'rgba(0,0,0,.3)',backdropFilter:'blur(2px)'}}/>
+          <div style={{width:420,background:'var(--bg)',borderLeft:'1px solid var(--border)',overflowY:'auto',padding:24,display:'flex',flexDirection:'column',gap:16}}>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+              <h2 style={{fontSize:18,fontWeight:700,color:'var(--text)',letterSpacing:'-.3px',margin:0}}>Task Detail</h2>
+              <button onClick={()=>setSelected(null)} style={{background:'transparent',border:'none',cursor:'pointer',color:'var(--text-muted)',fontSize:20,padding:4}}>×</button>
+            </div>
+
+            <h3 style={{fontSize:15,fontWeight:700,color:'var(--text)',margin:0}}>{selected.title}</h3>
+            {selected.description && <p style={{fontSize:14,color:'var(--text-secondary)',lineHeight:1.6,margin:0}}>{selected.description}</p>}
+
+            {selected.acceptance_criteria?.length > 0 && (
+              <div>
+                <p style={{fontSize:11,fontWeight:700,color:'var(--text-muted)',letterSpacing:'.08em',margin:'0 0 8px'}}>AKZEPTANZKRITERIEN</p>
+                {selected.acceptance_criteria.map((ac,i)=>(
+                  <div key={i} style={{display:'flex',gap:8,marginBottom:6}}>
+                    <span style={{color:'var(--green)',fontWeight:700}}>✓</span>
+                    <span style={{fontSize:13,color:'var(--text-secondary)',lineHeight:1.5}}>{ac}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {selected.tags?.length > 0 && (
+              <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
+                {selected.tags.map(t=>(
+                  <span key={t} style={{padding:'3px 9px',borderRadius:6,background:'var(--card)',border:'1px solid var(--border)',fontSize:12,color:'var(--text-secondary)'}}>#{t}</span>
+                ))}
+              </div>
+            )}
+
+            {/* Kundenupdate */}
+            <div style={{borderTop:'1px solid var(--border)',paddingTop:16}}>
+              <p style={{fontSize:11,fontWeight:700,color:'var(--text-muted)',letterSpacing:'.08em',margin:'0 0 8px'}}>KUNDENUPDATE VIA TAGRO</p>
+              <textarea
+                value={devNote}
+                onChange={e=>setDevNote(e.target.value)}
+                placeholder="Notiz für Tagro — wird automatisch kundenfr eundlich übersetzt…"
+                rows={4}
+                style={{
+                  width:'100%', padding:'12px 14px', background:'var(--card)',
+                  border:'1px solid var(--border)', borderRadius:10,
+                  fontSize:13, color:'var(--text)', fontFamily:'inherit',
+                  resize:'vertical', lineHeight:1.6, outline:'none',
+                }}
+              />
+              <button onClick={sendProgressUpdate} disabled={!devNote.trim() || sending}
+                style={{
+                  marginTop:8, width:'100%', padding:'11px 16px',
+                  background:'var(--btn-prim)', color:'var(--btn-prim-text)',
+                  border:'none', borderRadius:10, fontSize:13, fontWeight:700,
+                  cursor:devNote.trim()?'pointer':'default', fontFamily:'inherit',
+                  opacity:devNote.trim()?1:.5,
+                }}>
+                {sending ? 'Tagro übersetzt…' : 'Update senden →'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      <style>{`@keyframes spin{to{transform:rotate(360deg);}}`}</style>
     </div>
   )
 }
