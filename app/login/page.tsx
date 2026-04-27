@@ -83,12 +83,22 @@ export default function LoginPage() {
 
           {/* RIGHT */}
           <div className="rightPanel">
+
             <h1>Welcome back</h1>
-            <p className="sub">Start or sign in</p>
+
+            {/* 🔥 FIX: earlier wrap + DEPLOY TEST TEXT */}
+            <p className="sub">
+              Start or sign in — DEPLOY TEST ACTIVE
+            </p>
 
             <div className="btnRow">
               <button onClick={() => setView('login')}>Login</button>
               <button onClick={() => setView('register')}>Register</button>
+            </div>
+
+            {/* 🔥 FOOTER FIX (NO WRAP, LEFT ALIGNED, SINGLE LINE) */}
+            <div className="footer">
+              © 2026 Festag GmbH – Alle Rechte vorbehalten
             </div>
           </div>
         </div>
@@ -129,7 +139,7 @@ export default function LoginPage() {
         </div>
       )}
 
-      {/* CSS INLINE FIX (IMPORTANT) */}
+      {/* CSS INLINE FIX */}
       <style jsx>{`
         .page {
           min-height: 100vh;
@@ -159,6 +169,8 @@ export default function LoginPage() {
 
         .sub {
           color: var(--text-secondary);
+          max-width: 260px;
+          line-height: 1.2;
         }
 
         .btnRow button {
@@ -208,6 +220,16 @@ export default function LoginPage() {
         .error {
           color: red;
           margin-top: 10px;
+        }
+
+        /* 🔥 FOOTER FIX */
+        .footer {
+          position: absolute;
+          bottom: 20px;
+          left: 20px;
+          font-size: 12px;
+          color: var(--text-secondary);
+          white-space: nowrap;
         }
       `}</style>
     </div>
