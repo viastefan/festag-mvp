@@ -42,7 +42,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <div style={{ display:'flex',minHeight:'100vh',background:'var(--bg)' }}>
       <Sidebar />
       <main className="main-content" style={{ flex:1,minWidth:0,display:'flex',flexDirection:'column' }}>
-        <AppHeader title={title}/>
+        <AppHeader/>
         <div style={{ width:'100%',flex:1 }}>
           {children}
         </div>

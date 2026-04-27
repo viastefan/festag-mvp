@@ -37,7 +37,7 @@ export default function SettingsRightPanel() {
     intake:   { l:'Intake',      c:'var(--text-muted)' },
     planning: { l:'Planning',    c:'#F59E0B' },
     active:   { l:'Development', c:'var(--green)' },
-    testing:  { l:'Testing',     c:'#007AFF' },
+    testing:  { l:'Testing',     c:'var(--text-secondary)' },
     done:     { l:'Delivered',   c:'var(--green-dark)' },
   }
 

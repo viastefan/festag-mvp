@@ -302,8 +302,8 @@ export default function SettingsPage() {
         .chip-green { background:var(--green-bg);color:var(--green-dark);border:1px solid var(--green-border); }
         .chip-gray { background:var(--surface-2);color:var(--text-secondary);border:1px solid var(--border); }
         .chip-blue { background:var(--surface-2);color:var(--text);border:1px solid var(--border); }
-        .ai-badge { display:inline-flex;align-items:center;gap:4px;padding:3px 9px;background:#EFF6FF;border:1px solid #BFDBFE;border-radius:6px;font-size:10px;font-weight:700;color:#2563EB;letter-spacing:.04em; }
-        .key-box { background:#181D1C;border-radius:10px;padding:12px 16px;font-family:'SF Mono',monospace;font-size:12.5px;color:#4ade80;word-break:break-all;letter-spacing:.04em;line-height:1.6; }
+        .ai-badge { display:inline-flex;align-items:center;gap:4px;padding:3px 9px;background:var(--card);border:1px solid var(--border);border-radius:6px;font-size:10px;font-weight:700;color:var(--text-secondary);letter-spacing:.04em; }
+        .key-box { background:var(--surface-2);border-radius:10px;padding:12px 16px;font-family:'SF Mono',monospace;font-size:12.5px;color:var(--green);word-break:break-all;letter-spacing:.04em;line-height:1.6; }
         @media(max-width:600px) { .row2,.row3 { grid-template-columns:1fr; } }
         @keyframes spin { to{transform:rotate(360deg);} }
         @keyframes fadeUp { from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);} }
@@ -404,7 +404,7 @@ export default function SettingsPage() {
               </div>
 
               {/* Notifications inline */}
-              <div style={{ borderTop:'1px solid #F1F5F9',paddingTop:16 }}>
+              <div style={{ borderTop:'1px solid var(--border)',paddingTop:16 }}>
                 <p style={{ fontSize:10.5,fontWeight:700,color:'var(--text-muted)',letterSpacing:'.1em',marginBottom:12 }}>BENACHRICHTIGUNGEN</p>
                 {[
                   { k:'ai_updates',     l:'AI Updates & Tagesberichte',  d:'Wenn Tagro Berichte erstellt' },
@@ -463,7 +463,7 @@ export default function SettingsPage() {
               <div>
                 <label className="lbl" style={{ display:'flex',justifyContent:'space-between',alignItems:'center' }}>
                   Unternehmensbeschreibung
-                  <span style={{ fontSize:10.5,color:'#2563EB',fontWeight:700 }}>✦ Wichtig für AI</span>
+                  <span style={{ fontSize:10.5,color:'var(--text-secondary)',fontWeight:700 }}>✦ Wichtig für AI</span>
                 </label>
                 <textarea value={compDesc} onChange={e=>setCompDesc(e.target.value)} placeholder="Was macht dein Unternehmen? Wer sind deine Kunden? Tagro nutzt diese Infos um Projekte besser zu verstehen und zu planen…" className="txta" style={{ minHeight:100 }}/>
                 <p style={{ fontSize:11,color:'var(--text-muted)',marginTop:4 }}>{compDesc.length} Zeichen</p>
@@ -502,7 +502,7 @@ export default function SettingsPage() {
               </div>
 
               {/* Legal / Tax */}
-              <div style={{ borderTop:'1px solid #F1F5F9',paddingTop:16 }}>
+              <div style={{ borderTop:'1px solid var(--border)',paddingTop:16 }}>
                 <p style={{ fontSize:10.5,fontWeight:700,color:'var(--text-muted)',letterSpacing:'.1em',marginBottom:12 }}>STEUER & RECHT</p>
                 <div className="row2">
                   <div><label className="lbl">USt-IdNr.</label><input value={vat} onChange={e=>setVat(e.target.value)} placeholder="DE123456789" className="inp"/></div>
@@ -696,7 +696,7 @@ export default function SettingsPage() {
                   </button>
                 </div>
               ))}
-              <div style={{ borderTop:webhooks.length?'1px solid #F1F5F9':'none',paddingTop:webhooks.length?10:0,display:'flex',flexDirection:'column',gap:8 }}>
+              <div style={{ borderTop:webhooks.length?'1px solid var(--border)':'none',paddingTop:webhooks.length?10:0,display:'flex',flexDirection:'column',gap:8 }}>
                 <div className="row2">
                   <div><label className="lbl">Name</label><input value={newWHName} onChange={e=>setNewWHName(e.target.value)} placeholder="Mein Webhook" className="inp" style={{ fontSize:14 }}/></div>
                   <div><label className="lbl">URL</label><input value={newWHUrl} onChange={e=>setNewWHUrl(e.target.value)} placeholder="https://…" className="inp" style={{ fontSize:14 }}/></div>
@@ -733,7 +733,7 @@ export default function SettingsPage() {
                   <button onClick={()=>revokeKey(k.id)} className="btn-danger" style={{ fontSize:11 }}>Widerrufen</button>
                 </div>
               ))}
-              <div style={{ display:'flex',gap:8,borderTop:apiKeys.length?'1px solid #F1F5F9':'none',paddingTop:apiKeys.length?10:0 }}>
+              <div style={{ display:'flex',gap:8,borderTop:apiKeys.length?'1px solid var(--border)':'none',paddingTop:apiKeys.length?10:0 }}>
                 <input value={newKeyName} onChange={e=>setNewKeyName(e.target.value)} placeholder="Key-Name (z.B. Zapier)" className="inp" style={{ flex:1,fontSize:14 }}/>
                 <button onClick={createApiKey} disabled={intBusy||!newKeyName} className="btn-primary">
                   {intBusy?'…':'+ Key erstellen'}

@@ -52,7 +52,7 @@ export default function AIHubPage() {
     setLoading(true)
     try {
       const ctx = projects.length > 0 ? `\n\nAktuelle Projekte: ${projects.map(p => `${p.title} (${p.status})`).join(', ')}` : ''
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
+      const res = await fetch('/api/ai/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
