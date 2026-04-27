@@ -121,21 +121,14 @@ function ImagePanel({ view }: { view: View }) {
            view==='home' ? 'Die KI spricht Business für dich und Technik für die Developer. Kein Übersetzungsverlust.' :
            'Von der Idee zum fertigen Produkt — die KI versteht, plant und liefert.'}
         </p>
-      <p style={{ 
-        position: 'absolute', 
-        bottom: 18, 
-        left: 48, // Von 36 auf 48 geändert, damit es bündig mit der Headline ist
-        fontSize: 10, 
-        color: 'rgba(255,255,255,.22)', 
-        letterSpacing: '.05em', 
-        zIndex: 2, 
-        lineHeight: 1.5,
-        whiteSpace: 'nowrap' // Stellt sicher, dass alles in einer Zeile bleibt
-      }}>
-        © 2026 Festag — Alle Rechte vorbehalten
+     <p style={{ position: 'absolute', bottom: 18, left: 36, fontSize: 10, color: 'rgba(255,255,255,.22)', letterSpacing: '.05em', zIndex: 2, lineHeight: 1.5 }}>
+        © 2026 Festag<br/>Alle Rechte vorbehalten
       </p>
     </div>
+
   )
+
+}
       
 function FInput({ label, value, onChange, type='text', placeholder='', autoFocus=false }: {
   label: string; value: string; onChange: (v: string) => void; type?: string; placeholder?: string; autoFocus?: boolean
