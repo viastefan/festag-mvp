@@ -28,60 +28,57 @@
   --r:12px; --r-xs:8px; --r-sm:10px; --r-md:12px; --r-lg:16px; --r-xl:22px;
 }
 
+/* Premium Dark Theme variables and compatibility mappings for page.tsx */
 [data-theme="dark"] {
-  /* Background hierarchy — like ChatGPT/Linear */
-  --bg:#171A19;            /* page background */
-  --surface:#1E2220;       /* slight elevation */
-  --card:#22272A;          /* cards on bg */
-  --surface-2:#2A2F33;     /* hover/active layers */
+  --bg: #181D1C;
+  --bg-2: #1E2523;
+  --bg-3: #232C29;
 
-  /* Borders — visible but subtle */
-  --border:rgba(255,255,255,0.07);
-  --border-strong:rgba(255,255,255,0.13);
+  --text: #E7EEEC;
+  --text-muted: #A9B3AF;
+  --text-dim: #6F7C78;
 
-  /* Text — proper contrast hierarchy */
-  --text:#ECEDEE;             /* primary - high contrast, slightly off-white */
-  --text-secondary:#9BA3A8;   /* secondary - readable on bg */
-  --text-muted:#6E7681;       /* tertiary - hints, labels (was unreadable #3E4642) */
+  --accent: #4EE3B5;
+  --accent-hover: #2BC4A0;
+  --accent-soft: rgba(78, 227, 181, 0.12);
 
-  /* Buttons */
-  --btn-prim:#FFFFFF; --btn-prim-text:#171A19;
+  --success: #4EE3B5;
+  --warning: #FFCC66;
+  --error: #FF5C7A;
+  --info: #5DA9FF;
 
-  /* Accent: dark surface for highlight cards/banners (NOT --text!) */
-  --accent:#2D3338; --accent-text:#ECEDEE;
+  --border: rgba(255,255,255,0.06);
+  --border-strong: rgba(255,255,255,0.12);
 
-  /* Inputs */
-  --inp:rgba(255,255,255,0.04);
-  --inp-border:rgba(255,255,255,0.09);
-  --inp-focus:rgba(255,255,255,0.07);
-  --inp-focus-border:rgba(255,255,255,0.28);
-  --glow:rgba(255,255,255,0.04);
+  --glass: rgba(24,29,28,0.65);
+  --blur: blur(14px);
 
-  /* Sidebar/Nav */
-  --sidebar-bg:rgba(28,32,30,0.96);
-  --sidebar-border:rgba(255,255,255,0.06);
-  --nav-on:rgba(255,255,255,0.08);
-  --nav-on-text:#FFFFFF;
-  --nav-off-text:#7E868E;
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
 
-  /* Status colors — calmer in dark mode */
-  --green:#3FB57A;
-  --green-bg:rgba(63,181,122,0.14);
-  --green-border:rgba(63,181,122,0.28);
-  --green-dark:#5BCC92;
-  --amber:#F5A524;
-  --amber-bg:rgba(245,165,36,0.12);
-  --amber-dark:#FFB94B;
-  --red:#F76060;
-  --red-bg:rgba(247,96,96,0.1);
+  --gradient-main: linear-gradient(135deg,#181D1C 0%,#1F2A27 100%);
+  --gradient-accent: linear-gradient(135deg,#4EE3B5 0%,#2BC4A0 100%);
 
-  /* Shadows */
-  --shadow-xs:0 1px 4px rgba(0,0,0,.28);
-  --shadow-sm:0 2px 8px rgba(0,0,0,.32);
-  --shadow:0 4px 20px rgba(0,0,0,.4);
-  --shadow-lg:0 8px 30px rgba(0,0,0,.5);
+  /* Backwards-compatible mappings used by this file */
+  --card: var(--glass);
+  --inp: var(--bg-2);
+  --inp-border: var(--border);
+  --inp-focus: rgba(78,227,181,0.06);
+  --inp-focus-border: var(--accent);
+  --btn-prim: var(--gradient-accent);
+  --btn-prim-text: #0B1210;
+  --red: #FF5C7A;
+  --red-bg: rgba(255,92,122,0.08);
 
-  --logo-filter:brightness(0) invert(1);
+  /* Ensure pixel containers are the exact base color */
+  --panel-bg: #181D1C;
+}
+
+/* Force pixel-block classes to use the exact panel color so JS inline backgrounds and any CSS are visually identical */
+[data-theme="dark"] .px-blk,
+[data-theme="dark"] .px-mob {
+  background: var(--panel-bg) !important;
 }
 
 [data-theme="read"] {
