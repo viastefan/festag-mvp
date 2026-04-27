@@ -278,6 +278,9 @@ const MOBILE_CSS = `
     .mob-cta{padding:52px;margin-top:0;justify-content:center;display:flex;flex-direction:column;height:100%;}
     .l-left{display:flex;flex:1.2;min-width:0;}
     .l-right{width:480px;flex:none;background:var(--bg);}
+  [data-theme="dark"] .l-right {
+  background: #181D1C;
+}
     .form-scroll{padding:0 52px;justify-content:center;align-items:stretch;min-height:100vh;}
   }
 `
