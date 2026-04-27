@@ -122,7 +122,7 @@ function ImagePanel({ view }: { view: View }) {
            'Von der Idee zum fertigen Produkt — die KI versteht, plant und liefert.'}
         </p>
       </div>
-      <p style={{ position: 'absolute', bottom: 18, left: 36, fontSize: 10, color: 'rgba(255,255,255,.22)', letterSpacing: '.05em', zIndex: 2, lineHeight: 1.5 }}>
+      <p style={{ position: 'absolute', bottom: 18, left: 48, fontSize: 10, color: 'rgba(255,255,255,.22)', letterSpacing: '.05em', zIndex: 2, lineHeight: 1.5 }}>
         ©2026 Festag. Alle Rechte vorbehalten
       </p>
     </div>
