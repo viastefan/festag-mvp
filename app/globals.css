@@ -8,24 +8,32 @@
    THEME VARIABLES — set via data-theme on <html>
 ═══════════════════════════════════════════════ */
 :root, [data-theme="light"] {
-  --bg:#F8F9F8; --surface:#FFFFFF; --card:#F1F3F1;
-  --border:rgba(0,0,0,0.08); --border-strong:rgba(0,0,0,0.18);
-  --text:#0F120F; --text-secondary:#4A5450; --text-muted:#9AA49E;
-  --btn-prim:#181D1C; --btn-prim-text:#FFFFFF;
-  --accent:#181D1C; --accent-text:#FFFFFF;
-  --inp:#FFFFFF; --inp-border:rgba(0,0,0,0.12); --inp-focus:#FFFFFF; --inp-focus-border:#181D1C;
+  --bg:#F8F9F8;
+  --surface:#FFFFFF;
+  --card:#F1F3F1;
+
+  /* 👉 HIER EINFÜGEN */
+  --right-bg:#FFFFFF;
+
+  --border:rgba(0,0,0,0.08);
+  --border-strong:rgba(0,0,0,0.18);
+  --text:#0F120F;
+  --text-secondary:#4A5450;
+  --text-muted:#9AA49E;
+  --btn-prim:#181D1C;
+  --btn-prim-text:#FFFFFF;
+  --accent:#181D1C;
+  --accent-text:#FFFFFF;
+  --inp:#FFFFFF;
+  --inp-border:rgba(0,0,0,0.12);
+  --inp-focus:#FFFFFF;
+  --inp-focus-border:#181D1C;
   --glow:rgba(24,29,28,0.07);
-  --sidebar-bg:rgba(255,255,255,0.93); --sidebar-border:rgba(255,255,255,0.97);
-  --nav-on:#F1F3F1; --nav-on-text:#0F120F; --nav-off-text:#64748B;
-  /* Keep legacy compat vars */
-  --surface-2:#F1F5F9; --green:#10B981; --green-bg:#ECFDF5; --green-border:#A7F3D0; --green-dark:#059669;
-  --amber:#F59E0B; --amber-bg:#FFFBEB; --amber-dark:#D97706;
-  --red:#EF4444; --red-bg:#FEF2F2;
-  --shadow-xs:0 1px 4px rgba(15,23,42,.04); --shadow-sm:0 2px 8px rgba(15,23,42,.06);
-  --shadow:0 4px 20px rgba(15,23,42,.07); --shadow-lg:0 8px 30px rgba(15,23,42,.08);
-  --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
-  /* Border-radius tokens (consistent across all components) */
-  --r:12px; --r-xs:8px; --r-sm:10px; --r-md:12px; --r-lg:16px; --r-xl:22px;
+  --sidebar-bg:rgba(255,255,255,0.93);
+  --sidebar-border:rgba(255,255,255,0.97);
+  --nav-on:#F1F3F1;
+  --nav-on-text:#0F120F;
+  --nav-off-text:#64748B;
 }
 
 [data-theme="dark"] {
@@ -34,7 +42,7 @@
   --surface:#1E2220;       /* slight elevation */
   --card:#22272A;          /* cards on bg */
   --surface-2:#2A2F33;     /* hover/active layers */
-
+  --right-bg:#181D1C;
   /* Borders — visible but subtle */
   --border:rgba(255,255,255,0.07);
   --border-strong:rgba(255,255,255,0.13);
@@ -85,7 +93,7 @@
 }
 
 [data-theme="read"] {
-  --bg:#F5F0E8; --surface:#FDFAF4; --card:#EDE8DE;
+  --bg:#F5F0E8; --surface:#FDFAF4; --card:#EDE8DE; --right-bg:#F5F0E8;
   --border:rgba(0,0,0,0.07); --border-strong:rgba(0,0,0,0.14);
   --text:#2C2416; --text-secondary:#6B5E47; --text-muted:#A09278;
   --btn-prim:#181D1C; --btn-prim-text:#FDFAF4;
