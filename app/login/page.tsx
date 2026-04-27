@@ -271,19 +271,46 @@ const MOBILE_CSS = `
     min-height:100dvh;
   }
 
-  /* ── DESKTOP OVERRIDES (≥769px — untouched) ── */
-  @media(min-width:769px){
-    .mob-hero{display:none!important;}
-    .mob-page{min-height:auto;background:var(--bg);}
-    .mob-cta{padding:52px;margin-top:0;justify-content:center;display:flex;flex-direction:column;height:100%;}
-    .l-left{display:flex;flex:1.2;min-width:0;}
-    .l-right{width:480px;flex:none;background:var(--bg);}
-  [data-theme="dark"] .l-right {
-  background: #181D1C;
-}
-    .form-scroll{padding:0 52px;justify-content:center;align-items:stretch;min-height:100vh;}
+ /* ── DESKTOP OVERRIDES (≥769px — untouched logic, theme-safe) ── */
+@media (min-width: 769px) {
+  .mob-hero {
+    display: none !important;
   }
-`
+
+  .mob-page {
+    min-height: auto;
+    background: var(--bg);
+  }
+
+  .mob-cta {
+    padding: 52px;
+    margin-top: 0;
+    justify-content: center;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  .l-left {
+    display: flex;
+    flex: 1.2;
+    min-width: 0;
+  }
+
+  /* 🔥 WICHTIG: eigenes Panel-Theme statt var(--bg) */
+  .l-right {
+    width: 480px;
+    flex: none;
+    background: var(--right-bg);
+  }
+
+  .form-scroll {
+    padding: 0 52px;
+    justify-content: center;
+    align-items: stretch;
+    min-height: 100vh;
+  }
+}
 
 // ══════════════════════════════════════════════════════════════════
 // MAIN
