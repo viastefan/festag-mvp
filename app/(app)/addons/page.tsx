@@ -56,11 +56,10 @@ export default function AddonsPage() {
   const total = [...selected].reduce((sum, id) => sum + (CATALOG.find(a => a.id === id)?.price ?? 0), 0)
 
   return (
-    <div>
-      <div className="animate-fade-up" style={{ marginBottom: 18 }}>
-        <p style={{ fontSize: 14, color: 'var(--text-secondary)' }}>
-          Erweitere dein Projekt mit zusätzlichen Services
-        </p>
+    <div className="page-content-full">
+      <div className="page-header">
+        <h1>Add-Ons</h1>
+        <p>Erweitere dein Projekt mit zusätzlichen Services</p>
       </div>
 
       <div className="animate-fade-up-1 grid-cols-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 12, marginBottom: 100 }}>

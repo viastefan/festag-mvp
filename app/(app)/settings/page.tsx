@@ -251,6 +251,10 @@ export default function SettingsPage() {
 
   return (
     <>
+    <div className="page-content-full" style={{ width:'100%' }}>
+    <div className="page-header">
+      <h1>Einstellungen</h1>
+    </div>
     <div style={{ display:'flex', gap:28, alignItems:'flex-start', width:'100%' }}>
       {/* Left column — settings forms */}
       <div style={{ flex:'1 1 0', minWidth:0 }}>
@@ -342,7 +346,7 @@ export default function SettingsPage() {
             </p>
             <div style={{ display:'flex',gap:6,flexWrap:'wrap',alignItems:'center' }}>
               <span className="chip chip-green" style={{ display:'flex',alignItems:'center',gap:5 }}>
-                <span style={{ width:5,height:5,borderRadius:'50%',background:'#10B981',animation:'pulse 2s infinite' }} />
+                <span style={{ width:5,height:5,borderRadius:'50%',background:'var(--green)',animation:'pulse 2s infinite' }} />
                 AKTIV
               </span>
               <button onClick={() => fileRef.current?.click()} className="btn-ghost" style={{ fontSize:11.5,padding:'4px 10px' }}>
@@ -415,7 +419,7 @@ export default function SettingsPage() {
                         <p style={{ fontSize:13.5,fontWeight:600,color:'var(--text)',margin:0 }}>{n.l}</p>
                         <p style={{ fontSize:11.5,color:'var(--text-muted)',margin:'2px 0 0' }}>{n.d}</p>
                       </div>
-                      <button className="tog" onClick={()=>toggleNotif(n.k as keyof Notifs)} style={{ background:on?'#10B981':'var(--border-strong)' }}>
+                      <button className="tog" onClick={()=>toggleNotif(n.k as keyof Notifs)} style={{ background:on?'var(--green)':'var(--border-strong)' }}>
                         <div className="tog-th" style={{ left:on?22:2 }} />
                       </button>
                     </div>
@@ -547,7 +551,7 @@ export default function SettingsPage() {
                     <input type="password" value={confPwd} onChange={e=>setConfPwd(e.target.value)} placeholder="Wiederholen" className="inp" autoComplete="new-password" onKeyDown={e=>e.key==='Enter'&&changePassword()}/>
                   </div>
                   {pwdMsg && (
-                    <div style={{ padding:'10px 14px',borderRadius:10,fontSize:13,fontWeight:500,background:pwdMsg.t==='ok'?'#ECFDF5':'#FEF2F2',color:pwdMsg.t==='ok'?'#059669':'#EF4444',border:`1px solid ${pwdMsg.t==='ok'?'#A7F3D0':'#FECACA'}` }}>{pwdMsg.m}</div>
+                    <div style={{ padding:'10px 14px',borderRadius:10,fontSize:13,fontWeight:500,background:pwdMsg.t==='ok'?'var(--green-bg)':'var(--red-bg)',color:pwdMsg.t==='ok'?'var(--green-dark)':'var(--red)',border:`1px solid ${pwdMsg.t==='ok'?'var(--green-border)':'rgba(239,68,68,0.3)'}` }}>{pwdMsg.m}</div>
                   )}
                   <button onClick={changePassword} disabled={pwdSaving||!newPwd||!confPwd} className="btn-primary" style={{ alignSelf:'flex-start' }}>
                     {pwdSaving
@@ -579,7 +583,7 @@ export default function SettingsPage() {
                     />
                   </div>
                   {pwdMsg && (
-                    <div style={{ padding:'10px 14px',borderRadius:10,fontSize:13,fontWeight:500,background:pwdMsg.t==='ok'?'#ECFDF5':'#FEF2F2',color:pwdMsg.t==='ok'?'#059669':'#EF4444',border:`1px solid ${pwdMsg.t==='ok'?'#A7F3D0':'#FECACA'}` }}>{pwdMsg.m}</div>
+                    <div style={{ padding:'10px 14px',borderRadius:10,fontSize:13,fontWeight:500,background:pwdMsg.t==='ok'?'var(--green-bg)':'var(--red-bg)',color:pwdMsg.t==='ok'?'var(--green-dark)':'var(--red)',border:`1px solid ${pwdMsg.t==='ok'?'var(--green-border)':'rgba(239,68,68,0.3)'}` }}>{pwdMsg.m}</div>
                   )}
                   <div style={{ display:'flex',gap:8 }}>
                     <button onClick={()=>confirmPasswordChange(pwdOtp)} disabled={pwdSaving||pwdOtp.length<6} className="btn-primary">
@@ -606,8 +610,8 @@ export default function SettingsPage() {
                 ? <p style={{ fontSize:13,color:'var(--text-muted)',textAlign:'center',padding:'16px 0',margin:0 }}>Noch keine Geräte</p>
                 : devices.map(d => (
                   <div key={d.id} className="dev-card">
-                    <div style={{ width:40,height:40,borderRadius:11,background:d.is_current?'#ECFDF5':'var(--surface-2)',border:`1.5px solid ${d.is_current?'#A7F3D0':'var(--border-strong)'}`,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0 }}>
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={d.is_current?'#059669':'var(--text-muted)'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <div style={{ width:40,height:40,borderRadius:11,background:d.is_current?'var(--green-bg)':'var(--surface-2)',border:`1.5px solid ${d.is_current?'var(--green-border)':'var(--border-strong)'}`,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0 }}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={d.is_current?'var(--green-dark)':'var(--text-muted)'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                         {d.os==='iOS'||d.os==='Android'
                           ? <path d="M12 18h.01M8 21h8a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2z"/>
                           : <><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></>}
@@ -682,7 +686,7 @@ export default function SettingsPage() {
             <div style={{ padding:'14px 18px',display:'flex',flexDirection:'column',gap:8 }}>
               {webhooks.map(w => (
                 <div key={w.id} className="webhook-row">
-                  <div style={{ width:7,height:7,borderRadius:'50%',background:w.active?'#10B981':'var(--border-strong)',flexShrink:0 }} />
+                  <div style={{ width:7,height:7,borderRadius:'50%',background:w.active?'var(--green)':'var(--border-strong)',flexShrink:0 }} />
                   <div style={{ flex:1,minWidth:0 }}>
                     <p style={{ fontSize:13,fontWeight:600,color:'var(--text)',margin:0 }}>{w.name}</p>
                     <p style={{ fontSize:11,color:'var(--text-muted)',margin:'1px 0 0',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' }}>{w.url}</p>
@@ -720,7 +724,7 @@ export default function SettingsPage() {
               )}
               {apiKeys.map(k => (
                 <div key={k.id} className="webhook-row">
-                  <div style={{ width:7,height:7,borderRadius:'50%',background:'#10B981',flexShrink:0 }} />
+                  <div style={{ width:7,height:7,borderRadius:'50%',background:'var(--green)',flexShrink:0 }} />
                   <div style={{ flex:1 }}>
                     <p style={{ fontSize:13,fontWeight:600,color:'var(--text)',margin:0 }}>{k.name}</p>
                     <p style={{ fontSize:11,color:'var(--text-muted)',margin:'1px 0 0',fontFamily:'monospace' }}>{k.key_prefix}…</p>
@@ -749,6 +753,7 @@ export default function SettingsPage() {
     {/* ── Mobile: right panel content shown below main form ── */}
     <div className="show-mobile" style={{ marginTop:12 }}>
       <SettingsRightPanel />
+    </div>
     </div>
     </>
   )

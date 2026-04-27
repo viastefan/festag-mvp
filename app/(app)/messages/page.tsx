@@ -41,7 +41,11 @@ export default function MessagesPage() {
   }
 
   return (
-    <div style={{ maxWidth: 720 }}>
+    <div className="page-content">
+      <div className="page-header">
+        <h1>Nachrichten</h1>
+        <p>Projekt-Konversationen mit Tagro & Developern</p>
+      </div>
       {loading ? (
         <div style={{ display: 'flex', justifyContent: 'center', padding: 48 }}>
           <div style={{ width: 24, height: 24, border: '2px solid var(--border)', borderTopColor: 'var(--text)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
@@ -49,7 +53,7 @@ export default function MessagesPage() {
       ) : projects.length === 0 ? (
         <div className="animate-fade-up-1" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', padding: '56px 24px', textAlign: 'center' }}>
           <div style={{ width: 48, height: 48, borderRadius: 12, background: 'var(--surface-2)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" style={{color:"var(--text)"}} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" style={{color:"var(--text-muted)"}} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 12c0 4.4-4 8-9 8-1.4 0-2.8-.3-4-.8L3 21l1.8-5C4.3 15 4 13.5 4 12c0-4.4 4-8 9-8s9 3.6 9 8z"/>
             </svg>
           </div>
@@ -64,7 +68,7 @@ export default function MessagesPage() {
           </Link>
         </div>
       ) : (
-        <div className="animate-fade-up-1" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', overflow: 'hidden' }}>
+        <div className="animate-fade-up-1" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', overflow: 'hidden', maxWidth: 720 }}>
           {projects.map((p, i) => {
             const title = p.title || 'Unbenanntes Projekt'
             const initial = title.charAt(0).toUpperCase()
@@ -79,7 +83,7 @@ export default function MessagesPage() {
                     display: 'flex', gap: 14, alignItems: 'center',
                     transition: 'background 0.12s',
                   }}
-                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--bg)'}
+                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--card)'}
                   onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}
                 >
                   <div style={{
@@ -112,7 +116,7 @@ export default function MessagesPage() {
                         : 'Noch keine Nachrichten — Gespräch starten'}
                     </p>
                   </div>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, color: 'var(--text-muted)' }}>
                     <path d="M9 6l6 6-6 6"/>
                   </svg>
                 </div>

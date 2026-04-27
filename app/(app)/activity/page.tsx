@@ -54,9 +54,10 @@ export default function ActivityPage() {
   })
 
   return (
-    <div style={{ maxWidth:720 }}>
-      <div className="animate-fade-up" style={{ marginBottom:18 }}>
-        <p style={{ fontSize:14,color:'var(--text-secondary)' }}>Alle Ereignisse in deinen Projekten</p>
+    <div className="page-content">
+      <div className="page-header">
+        <h1>Aktivität</h1>
+        <p>Alle Ereignisse in deinen Projekten</p>
       </div>
 
       {/* Filter pills */}

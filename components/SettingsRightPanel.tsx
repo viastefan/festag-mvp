@@ -36,9 +36,9 @@ export default function SettingsRightPanel() {
   const PHASE: Record<string,{l:string,c:string}> = {
     intake:   { l:'Intake',      c:'var(--text-muted)' },
     planning: { l:'Planning',    c:'#F59E0B' },
-    active:   { l:'Development', c:'#10B981' },
+    active:   { l:'Development', c:'var(--green)' },
     testing:  { l:'Testing',     c:'#007AFF' },
-    done:     { l:'Delivered',   c:'#059669' },
+    done:     { l:'Delivered',   c:'var(--green-dark)' },
   }
 
   const ICONS: Record<string,string> = {
@@ -54,18 +54,18 @@ export default function SettingsRightPanel() {
 
       {/* ── Account Stats ── */}
       <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:12, overflow:'hidden', boxShadow:'0 2px 16px rgba(15,23,42,.04)' }}>
-        <div style={{ padding:'13px 18px', borderBottom:'1px solid #F1F5F9', background:'#FAFBFD' }}>
+        <div style={{ padding:'13px 18px', borderBottom:'1px solid var(--border)', background:'var(--card)' }}>
           <p style={{ fontSize:10.5, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.1em', margin:0 }}>DEIN ACCOUNT</p>
         </div>
         <div style={{ padding:'16px 18px', display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:8, textAlign:'center' }}>
           {[
             { l:'Projekte', v:stats.projects, icon:'M3 3h18v18H3zM3 9h18M9 21V9',      c:'var(--text)' },
             { l:'Tasks',    v:stats.tasks,    icon:'M9 11l3 3L22 4',                   c:'var(--text)' },
-            { l:'Erledigt', v:stats.done,     icon:'M5 13l4 4L19 7',                   c:'#10B981' },
+            { l:'Erledigt', v:stats.done,     icon:'M5 13l4 4L19 7',                   c:'var(--green)' },
             { l:'Chats',    v:stats.messages, icon:'M21 12c0 4.4-4 8-9 8-1.4 0-2.8-.3-4-.8L3 21l1.8-5C4.3 15 4 13.5 4 12c0-4.4 4-8 9-8s9 3.6 9 8z', c:'var(--text)' },
           ].map(s => (
             <div key={s.l}>
-              <svg style={{ display:'block', margin:'0 auto 6px' }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={s.c === '#10B981' ? '#10B981' : '#CBD5E1'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <svg style={{ display:'block', margin:'0 auto 6px' }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={s.c === 'var(--green)' ? 'var(--green)' : '#CBD5E1'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                 {s.icon.split('M').filter(Boolean).map((seg,i) => <path key={i} d={'M'+seg}/>)}
               </svg>
               <p style={{ fontSize:22, fontWeight:700, color:s.c, margin:'0 0 2px', lineHeight:1 }}>{s.v}</p>
@@ -90,9 +90,9 @@ export default function SettingsRightPanel() {
       {/* ── Active Projects ── */}
       {projects.length > 0 && (
         <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:12, overflow:'hidden', boxShadow:'0 2px 16px rgba(15,23,42,.04)' }}>
-          <div style={{ padding:'13px 18px', borderBottom:'1px solid #F1F5F9', background:'#FAFBFD', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+          <div style={{ padding:'13px 18px', borderBottom:'1px solid var(--border)', background:'var(--card)', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
             <p style={{ fontSize:10.5, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.1em', margin:0 }}>PROJEKTE</p>
-            <Link href="/dashboard" style={{ fontSize:11.5, color:'#007AFF', fontWeight:600 }}>Alle →</Link>
+            <Link href="/dashboard" style={{ fontSize:11.5, color:'var(--green-dark)', fontWeight:600 }}>Alle →</Link>
           </div>
           <div style={{ padding:'8px 0' }}>
             {projects.map((p, i) => {
@@ -100,7 +100,7 @@ export default function SettingsRightPanel() {
               return (
                 <Link key={p.id} href={`/project/${p.id}`}>
                   <div style={{ padding:'9px 16px', display:'flex', alignItems:'center', gap:10, borderBottom:i<projects.length-1?'1px solid #F8FAFC':'none', cursor:'pointer', transition:'background .1s' }}
-                    onMouseEnter={e=>(e.currentTarget as HTMLElement).style.background='#FAFBFD'}
+                    onMouseEnter={e=>(e.currentTarget as HTMLElement).style.background='var(--surface-2)'}
                     onMouseLeave={e=>(e.currentTarget as HTMLElement).style.background='transparent'}
                   >
                     <div style={{ width:7, height:7, borderRadius:'50%', background:ph.c, flexShrink:0 }} />
@@ -116,9 +116,9 @@ export default function SettingsRightPanel() {
 
       {/* ── Recent Activity ── */}
       <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:12, overflow:'hidden', boxShadow:'0 2px 16px rgba(15,23,42,.04)' }}>
-        <div style={{ padding:'13px 18px', borderBottom:'1px solid #F1F5F9', background:'#FAFBFD', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+        <div style={{ padding:'13px 18px', borderBottom:'1px solid var(--border)', background:'var(--card)', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
           <p style={{ fontSize:10.5, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.1em', margin:0 }}>ZULETZT AKTIV</p>
-          <Link href="/activity" style={{ fontSize:11.5, color:'#007AFF', fontWeight:600 }}>Alle →</Link>
+          <Link href="/activity" style={{ fontSize:11.5, color:'var(--green-dark)', fontWeight:600 }}>Alle →</Link>
         </div>
         <div style={{ padding:'6px 0' }}>
           {activity.length === 0 ? (
@@ -154,7 +154,7 @@ export default function SettingsRightPanel() {
 
       {/* ── Quick Links ── */}
       <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:12, overflow:'hidden', boxShadow:'0 2px 16px rgba(15,23,42,.04)' }}>
-        <div style={{ padding:'12px 16px', borderBottom:'1px solid #F1F5F9', background:'#FAFBFD' }}>
+        <div style={{ padding:'12px 16px', borderBottom:'1px solid var(--border)', background:'var(--card)' }}>
           <p style={{ fontSize:10.5, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.1em', margin:0 }}>SCHNELLZUGRIFF</p>
         </div>
         <div style={{ padding:'4px 0' }}>
@@ -167,7 +167,7 @@ export default function SettingsRightPanel() {
           ].map((item, i) => (
             <Link key={item.href} href={item.href}>
               <div style={{ display:'flex', alignItems:'center', gap:10, padding:'9px 16px', borderBottom:i<4?'1px solid #F8FAFC':'none', cursor:'pointer', transition:'background .1s' }}
-                onMouseEnter={e=>(e.currentTarget as HTMLElement).style.background='#FAFBFD'}
+                onMouseEnter={e=>(e.currentTarget as HTMLElement).style.background='var(--surface-2)'}
                 onMouseLeave={e=>(e.currentTarget as HTMLElement).style.background='transparent'}
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">

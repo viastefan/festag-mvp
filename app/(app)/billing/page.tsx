@@ -33,9 +33,10 @@ export default function BillingPage() {
   )
 
   return (
-    <div>
-      <div className="animate-fade-up" style={{ marginBottom:16 }}>
-        <p style={{ fontSize:14, color:'var(--text-secondary)' }}>Deine Projektinvestitionen und Add-ons</p>
+    <div className="page-content">
+      <div className="page-header">
+        <h1>Abrechnung</h1>
+        <p>Deine Projektinvestitionen und Add-ons</p>
       </div>
 
       <div className="animate-fade-up-1 grid-cols-4" style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(160px, 1fr))', gap:10, marginBottom:22 }}>

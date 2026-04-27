@@ -86,9 +86,10 @@ export default function AIHubPage() {
   }
 
   return (
-    <div className="animate-fade-up" style={{ maxWidth: 800, margin: '0 auto', display: 'flex', flexDirection: 'column', height: 'calc(100vh - 120px)' }}>
-      <div style={{ marginBottom: 20 }}>
-        <p style={{ fontSize: 14, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: 8 }}>
+    <div className="page-content-full animate-fade-up" style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 120px)' }}>
+      <div className="page-header" style={{ marginBottom: 16 }}>
+        <h1>Tagro AI</h1>
+        <p style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{ display:'inline-flex', alignItems:'center', gap:5 }}>
             <span style={{ width:6, height:6, borderRadius:'50%', background:'var(--green)', animation:'pulse 2s infinite' }} />
             <span style={{ color:'var(--green-dark)', fontWeight:600 }}>AKTIV</span>
@@ -101,7 +102,7 @@ export default function AIHubPage() {
       <div ref={feedRef} style={{ flex:1, overflowY:'auto', display:'flex', flexDirection:'column', gap:14, paddingBottom:10 }}>
         {msgs.map((m, i) => (
           <div key={i} style={{ display:'flex', gap:10, animation: i===msgs.length-1 ? 'fadeUp 0.25s ease' : 'none' }}>
-            <div style={{ width:32, height:32, borderRadius:'50%', background: m.role==='ai'?'var(--text)':'var(--surface-2)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, color: m.role==='ai'?'#fff':'var(--text-secondary)', fontWeight:600, flexShrink:0, border: m.role==='ai'?'none':'1px solid var(--border)' }}>
+            <div style={{ width:32, height:32, borderRadius:'50%', background: m.role==='ai'?'var(--accent)':'var(--surface-2)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, color: m.role==='ai'?'var(--accent-text)':'var(--text-secondary)', fontWeight:600, flexShrink:0, border: m.role==='ai'?'none':'1px solid var(--border)' }}>
               {m.role==='ai'?'T':'S'}
             </div>
             <div style={{ flex:1, minWidth:0 }}>

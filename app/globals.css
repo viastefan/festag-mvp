@@ -145,6 +145,31 @@ input:focus,textarea:focus,select:focus { outline:none; }
   min-height:100vh;
 }
 
+/* Global page content wrapper — used by all dashboard sub-pages */
+.page-content {
+  padding: 32px 40px 48px;
+  max-width: 1200px;
+}
+.page-content-full {
+  padding: 32px 40px 48px;
+}
+.page-header {
+  margin-bottom: 28px;
+}
+.page-header h1 {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -.55px;
+  color: var(--text);
+  margin: 0 0 4px;
+  line-height: 1.15;
+}
+.page-header p {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
 .sidebar-inner {
   position:fixed; top:12px; left:12px; bottom:12px; width:232px;
   background:var(--sidebar-bg);
@@ -167,6 +192,7 @@ input:focus,textarea:focus,select:focus { outline:none; }
     margin-left:0 !important;
     padding:calc(16px + var(--safe-top)) 16px calc(96px + var(--safe-bottom)) 16px !important;
   }
+  .page-content, .page-content-full { padding: 0 !important; }
   .grid-cols-4          { grid-template-columns:repeat(2,1fr) !important; }
   .grid-cols-2-mobile-1 { grid-template-columns:1fr !important; }
   .hide-mobile { display:none !important; }

@@ -38,9 +38,10 @@ export default function DocumentsPage() {
     : allItems.filter(x => x._type === tab.slice(0, -1))
 
   return (
-    <div>
-      <div className="animate-fade-up" style={{ marginBottom: 16 }}>
-        <p style={{ fontSize: 14, color: 'var(--text-secondary)' }}>Rechnungen, Verträge und Briefings</p>
+    <div className="page-content">
+      <div className="page-header">
+        <h1>Dokumente</h1>
+        <p>Rechnungen, Verträge und Briefings</p>
       </div>
 
       <div className="animate-fade-up-1" style={{ display: 'flex', gap: 6, marginBottom: 16, overflowX: 'auto', paddingBottom: 2 }}>
