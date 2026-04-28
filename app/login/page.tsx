@@ -49,14 +49,15 @@ function PixelBlocksMobile() {
   }, [])
 
   const rows = [
-    { bottom: 0,      h: 14, w: '100%' },
-    { bottom: 14,     h: 10, w: '78%'  },
-    { bottom: 24,     h: 8,  w: '92%'  },
-    { bottom: 32,     h: 6,  w: '64%'  },
-    { bottom: 38,     h: 5,  w: '84%'  },
-    { bottom: 43,     h: 4,  w: '52%'  },
-    { bottom: 47,     h: 3,  w: '70%'  },
-    { bottom: 50,     h: 2.5,w: '38%'  },
+    { bottom: 0,   h: 20,  w: '100%' },
+    { bottom: 20,  h: 13,  w: '84%'  },
+    { bottom: 33,  h: 10,  w: '94%'  },
+    { bottom: 43,  h: 8,   w: '68%'  },
+    { bottom: 51,  h: 6,   w: '88%'  },
+    { bottom: 57,  h: 5,   w: '56%'  },
+    { bottom: 62,  h: 4,   w: '74%'  },
+    { bottom: 66,  h: 3,   w: '42%'  },
+    { bottom: 69,  h: 2,   w: '28%'  },
   ]
   return (
     <>
@@ -92,9 +93,9 @@ function PixelBlocks({ view }: { view: View }) {
   const positioned = BLOCKS[view].map(b => { const t = top; top += b.h; return { ...b, top: t } })
   return (
     <>
-      <style>{`@keyframes blkIn{from{opacity:0;transform:translateX(56px);}to{opacity:1;transform:translateX(0);}} .px-blk{position:absolute;right:0;pointer-events:none;animation:blkIn .48s cubic-bezier(.16,1,.3,1) both;transition:background .2s;}`}</style>
+      <style>{`@keyframes blkIn{from{opacity:0;transform:translateX(56px);}to{opacity:1;transform:translateX(0);}} .px-blk{position:absolute;right:-2px;pointer-events:none;animation:blkIn .48s cubic-bezier(.16,1,.3,1) both;transition:background .2s;}`}</style>
       {positioned.map((b, i) => (
-        <div key={i} className="px-blk" style={{ top: `${b.top}%`, width: b.w, height: `${b.h}%`, background: panelBg, animationDelay: `${i * 0.022}s` }}/>
+        <div key={i} className="px-blk" style={{ top: `${b.top}%`, width: b.w, height: `calc(${b.h}% + 1px)`, background: panelBg, animationDelay: `${i * 0.022}s` }}/>
       ))}
     </>
   )
@@ -111,7 +112,7 @@ function ImagePanel({ view }: { view: View }) {
       </div>
       <div style={{ position: 'absolute', bottom: 52, left: 48, right: '18%', zIndex: 2 }}>
         <h2 style={{ fontSize: 48, fontWeight: 700, color: '#fff', lineHeight: 1.1, letterSpacing: '-.8px', marginBottom: 16, textShadow: '0 2px 30px rgba(0,0,0,.6)' }}>
-          {view==='home' ? <>Kein Informations&shy;verlust mehr.</> :
+          {view==='home' ? <>Kein Informations­herverlust mehr.</> :
            view==='login' ? <>Schön,<br/>dass du wieder da bist.</> :
            view==='register' ? <>Willkommen<br/>bei Festag.</> :
            <>Team Execution<br/>System.</>}
@@ -195,15 +196,15 @@ const MOBILE_CSS = `
   .l-left{display:none;}
   .l-right{flex:1;display:flex;flex-direction:column;background:var(--bg);}
   .frm{animation:fadeUp .35s cubic-bezier(.16,1,.3,1) both;}
-  .px-mob{pointer-events:none;animation:pxRise .8s cubic-bezier(.16,1,.3,1) both;}
-  .mob-hero{display:block;position:absolute;top:0;left:0;right:0;height:55dvh;overflow:hidden;z-index:0;}
+  .px-mob{pointer-events:none;animation:pxRise .9s cubic-bezier(.16,1,.3,1) both;}
+  .mob-hero{display:block;position:absolute;top:0;left:0;right:0;height:62dvh;overflow:hidden;z-index:0;}
   .mob-grad{position:absolute;inset:0;pointer-events:none;z-index:1;}
-  [data-theme="dark"]  .mob-grad{background:linear-gradient(180deg,rgba(13,17,16,0) 0%,rgba(13,17,16,.05) 30%,rgba(13,17,16,.55) 60%,rgba(13,17,16,.96) 88%,#0D1110 100%);}
-  [data-theme="light"] .mob-grad{background:linear-gradient(180deg,rgba(248,249,248,0) 0%,rgba(248,249,248,.05) 30%,rgba(248,249,248,.55) 60%,rgba(248,249,248,.96) 88%,#F8F9F8 100%);}
-  [data-theme="read"]  .mob-grad{background:linear-gradient(180deg,rgba(245,240,232,0) 0%,rgba(245,240,232,.05) 30%,rgba(245,240,232,.55) 60%,rgba(245,240,232,.96) 88%,#F5F0E8 100%);}
+  [data-theme="dark"]  .mob-grad{background:linear-gradient(180deg,rgba(11,15,14,0) 0%,rgba(11,15,14,0) 20%,rgba(11,15,14,0.10) 36%,rgba(11,15,14,0.50) 55%,rgba(11,15,14,0.87) 72%,rgba(11,15,14,0.97) 84%,#0B0F0E 95%);}
+  [data-theme="light"] .mob-grad{background:linear-gradient(180deg,rgba(248,249,248,0) 0%,rgba(248,249,248,0) 20%,rgba(248,249,248,0.10) 36%,rgba(248,249,248,0.50) 55%,rgba(248,249,248,0.87) 72%,rgba(248,249,248,0.97) 84%,#F8F9F8 95%);}
+  [data-theme="read"]  .mob-grad{background:linear-gradient(180deg,rgba(248,247,242,0) 0%,rgba(248,247,242,0) 20%,rgba(248,247,242,0.10) 36%,rgba(248,247,242,0.50) 55%,rgba(248,247,242,0.87) 72%,rgba(248,247,242,0.97) 84%,#F8F7F2 95%);}
   .mob-page{position:relative;min-height:100dvh;width:100%;display:flex;flex-direction:column;background:var(--bg);overflow:hidden;}
-  .mob-logo{position:absolute;top:calc(env(safe-area-inset-top) + 22px);left:20px;z-index:5;height:21px;opacity:1;filter:brightness(0) invert(1);}
-  .mob-cta{position:relative;z-index:2;margin-top:auto;padding:0 20px calc(env(safe-area-inset-bottom) + 28px);}
+  .mob-logo{position:absolute;top:calc(env(safe-area-inset-top) + 26px);left:22px;z-index:5;height:22px;opacity:1;filter:brightness(0) invert(1);}
+  .mob-cta{position:relative;z-index:2;margin-top:auto;padding:0 22px calc(env(safe-area-inset-bottom) + 38px);}
   .form-scroll{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:calc(env(safe-area-inset-top) + 24px) 20px calc(env(safe-area-inset-bottom) + 32px);overflow-y:auto;-webkit-overflow-scrolling:touch;min-height:100dvh;}
   @media(min-width:769px){
     .mob-hero{display:none!important;}
@@ -293,20 +294,19 @@ export default function LoginPage() {
                 <h1 style={{ fontSize: 34, fontWeight: 700, color: 'var(--text)', letterSpacing: '-.7px', lineHeight: 1.15, marginBottom: 10 }}>{greeting}</h1>
                 <p style={{ fontSize: 16, color: 'var(--text-secondary)', marginBottom: 40, lineHeight: 1.6, fontWeight: 500 }}>{getGreetingSub()}</p>
               </div>
-              <div className="mob-text" style={{ marginBottom: 24 }}>
+              <div className="mob-text" style={{ marginBottom: 28 }}>
                 <style>{`@media(min-width:769px){.mob-text{display:none!important;}}`}</style>
-                <h1 style={{ fontSize: 30, fontWeight: 700, color: 'var(--text)', lineHeight: 1.1, letterSpacing: '-.65px', marginBottom: 10 }}>Kein Informationsverlust<br/>mehr. Mit Festag AI.</h1>
-                <p style={{ fontSize: 14.5, fontWeight: 500, color: 'var(--text-secondary)', lineHeight: 1.5 }}>Die KI versteht, zerlegt und steuert —<br/>Menschen bauen, System liefert</p>
+                <h1 style={{ fontSize: 32, fontWeight: 700, color: 'var(--text)', lineHeight: 1.08, letterSpacing: '-.7px', marginBottom: 12 }}>Kein Informationsverlust<br/>mehr. Mit Festag AI.</h1>
+                <p style={{ fontSize: 15, fontWeight: 500, color: 'var(--text-secondary)', lineHeight: 1.55 }}>Die KI versteht, zerlegt und steuert —<br/>Menschen bauen, System liefert.</p>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 <PrimaryBtn label="Jetzt starten" onClick={() => go('register')}/>
                 <SecondaryBtn label="Einloggen" onClick={() => go('login')}/>
               </div>
-              <div style={{ marginTop: 22, textAlign: 'center' }}>
+              <div style={{ marginTop: 28, textAlign: 'center' }}>
                 <span onClick={() => go('dev')} style={{ fontSize: 13, color: 'var(--text-muted)', cursor: 'pointer', fontWeight: 500, WebkitTapHighlightColor: 'transparent' }}>Als Dev'ler fortfahren</span>
               </div>
-              <p style={{ textAlign: 'center', fontSize: 10.5, color: 'var(--text-muted)', marginTop: 10, letterSpacing: '.04em', fontWeight: 500, opacity: .55 }}>Kein Informationsverlust AI + Menschen Skalieren</p>
-              <p style={{ textAlign: 'center', fontSize: 10, color: 'var(--text-muted)', marginTop: 8, letterSpacing: '.06em', fontWeight: 600, opacity: .45, textTransform: 'uppercase' }}>Beta · v0.9</p>
+              <p style={{ textAlign: 'center', fontSize: 10, color: 'var(--text-muted)', marginTop: 20, letterSpacing: '.06em', fontWeight: 600, opacity: .4, textTransform: 'uppercase' }}>Beta · v0.9 · Festag 2026</p>
             </div>
           </div>
         </div>
