@@ -146,7 +146,7 @@ export default function ProjectPage() {
   const phaseIdx = PHASES.indexOf(project.status)
 
   return (
-    <div className="animate-fade-up">
+    <div className="page-content animate-fade-up" style={{ maxWidth: 1160 }}>
       {/* Breadcrumb */}
       <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 14 }}>
         <Link href="/dashboard" style={{ color: 'var(--text-muted)' }}>Dashboard</Link>

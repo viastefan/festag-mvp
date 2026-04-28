@@ -57,8 +57,10 @@ export default function AppHeader() {
     }}>
       <style>{`@media(max-width:768px){.ah-search{display:none!important;}}`}</style>
 
-      {/* Search */}
-      <div ref={wrapRef} className="ah-search" style={{ position: 'relative', flex: 1, maxWidth: 320 }}>
+      <div style={{ flex: 1 }} />
+
+      {/* Search — right side */}
+      <div ref={wrapRef} className="ah-search" style={{ position: 'relative', width: 280 }}>
         <div style={{ position: 'relative' }}>
           <svg style={{ position:'absolute', left:11, top:'50%', transform:'translateY(-50%)', pointerEvents:'none' }}
             width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2" strokeLinecap="round">
@@ -130,16 +132,14 @@ export default function AppHeader() {
         )}
       </div>
 
-      <div style={{ flex: 1 }} />
-
       {/* New project */}
       <Link href="/new-project" style={{ textDecoration: 'none' }}>
         <button className="tap-scale" style={{
-          height: 36, padding: '0 14px',
+          height: 36, padding: '0 16px',
           background: 'var(--btn-prim)', color: 'var(--btn-prim-text)',
           border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700,
           cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 6,
-          whiteSpace: 'nowrap', transition: 'opacity .15s',
+          whiteSpace: 'nowrap',
         }}>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
           Neu
