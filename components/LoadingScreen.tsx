@@ -21,7 +21,7 @@ export default function LoadingScreen({ onDone }: { onDone: () => void }) {
     <div style={{ position:'fixed',inset:0,background:'var(--bg)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:9999 }}>
       <div style={{ display:'flex',flexDirection:'column',alignItems:'center',marginBottom:'4vh' }}>
         {/* Logo: 32px, marginBottom 24px — much tighter to bar */}
-        <img src="/brand/logo.svg" alt="festag" style={{ height:32,display:'block',marginBottom:24 }} />
+        <img src="/brand/logo.svg" alt="festag" style={{ height:32,display:'block',marginBottom:24,filter:'var(--logo-filter,none)' }} />
         {/* Bar */}
         <div style={{ width:200,height:2,background:'var(--border)',borderRadius:2,overflow:'hidden',marginBottom:12 }}>
           <div style={{ height:'100%',width:`${pct}%`,background:'var(--text)',borderRadius:2,transition:'width .025s linear' }} />

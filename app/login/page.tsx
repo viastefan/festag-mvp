@@ -207,10 +207,10 @@ const MOBILE_CSS = `
   .form-scroll{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:calc(env(safe-area-inset-top) + 24px) 20px calc(env(safe-area-inset-bottom) + 32px);overflow-y:auto;-webkit-overflow-scrolling:touch;min-height:100dvh;}
   @media(min-width:769px){
     .mob-hero{display:none!important;}
-    .mob-page{min-height:auto;background:var(--bg);}
-    .mob-cta{padding:52px;margin-top:0;justify-content:center;display:flex;flex-direction:column;height:100%;}
+    .mob-page{flex:1;display:flex;flex-direction:column;background:var(--bg);}
+    .mob-cta{flex:1;padding:52px;margin-top:0;display:flex;flex-direction:column;justify-content:center;}
     .l-left{display:flex;flex:1.2;min-width:0;}
-    .l-right{width:480px;flex:none;background:var(--bg);}
+    .l-right{width:480px;flex:none;background:var(--bg);display:flex;flex-direction:column;}
     .form-scroll{padding:0 52px;justify-content:center;align-items:stretch;min-height:100vh;}
   }
 `
