@@ -42,6 +42,7 @@
 
   --btn-prim:#EAE8E4; --btn-prim-text:#0B0F0E;
 
+  /* Accent — deep void with warm mineral text */
   --accent:#101916; --accent-text:#A8BDB8;
 
   --inp:rgba(255,255,255,0.025);
@@ -56,11 +57,13 @@
   --nav-on-text:#EAE8E4;
   --nav-off-text:#566260;
 
+  /* Status — forest green (not neon) */
   --green:#2DA882;
   --green-bg:rgba(45,168,130,0.10);
   --green-border:rgba(45,168,130,0.22);
   --green-dark:#3EBC94;
 
+  /* Amber — warm mineral gold */
   --amber:#B88A3C;
   --amber-bg:rgba(184,138,60,0.10);
   --amber-dark:#CEAA58;
