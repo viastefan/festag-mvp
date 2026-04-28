@@ -49,10 +49,10 @@ export default function AppHeader() {
   }
 
   return (
-    <header style={{
+    <header className="app-header" style={{
       display: 'flex', alignItems: 'center', gap: 10,
       padding: '0 24px', borderBottom: '1px solid var(--border)',
-      background: 'var(--bg)', position: 'sticky', top: 0, zIndex: 50,
+      background: 'var(--bg)', top: 0, zIndex: 50,
       height: 56,
     }}>
       <style>{`@media(max-width:768px){.ah-search{display:none!important;}}`}</style>
