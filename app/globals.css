@@ -149,14 +149,16 @@ input:focus,textarea:focus,select:focus { outline:none; }
 
 /* Global page content wrapper — used by all dashboard sub-pages */
 .page-content {
-  padding: 32px 40px 48px;
+  padding: 28px 32px 48px;
   max-width: 1200px;
+  width: 100%;
 }
 .page-content-full {
-  padding: 32px 40px 48px;
+  padding: 28px 32px 48px;
+  width: 100%;
 }
 .page-header {
-  margin-bottom: 28px;
+  margin-bottom: 24px;
 }
 .page-header h1 {
   font-size: 26px;
@@ -164,7 +166,7 @@ input:focus,textarea:focus,select:focus { outline:none; }
   letter-spacing: -.55px;
   color: var(--text);
   margin: 0 0 4px;
-  line-height: 1.15;
+  line-height: 1.2;
 }
 .page-header p {
   font-size: 14px;
@@ -192,9 +194,16 @@ input:focus,textarea:focus,select:focus { outline:none; }
   .bottom-nav { display:flex !important; }
   .main-content {
     margin-left:0 !important;
-    padding:calc(16px + var(--safe-top)) 16px calc(96px + var(--safe-bottom)) 16px !important;
+    padding:0 !important;
   }
-  .page-content, .page-content-full { padding: 0 !important; }
+  .page-content {
+    padding: 20px 16px calc(100px + var(--safe-bottom)) !important;
+    max-width: 100% !important;
+  }
+  .page-content-full {
+    padding: 20px 16px calc(100px + var(--safe-bottom)) !important;
+    max-width: 100% !important;
+  }
   .grid-cols-4          { grid-template-columns:repeat(2,1fr) !important; }
   .grid-cols-2-mobile-1 { grid-template-columns:1fr !important; }
   .hide-mobile { display:none !important; }
