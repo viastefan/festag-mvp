@@ -31,57 +31,57 @@
 }
 
 [data-theme="dark"] {
-  /* Background hierarchy — like ChatGPT/Linear */
-  --bg:#171A19;            /* page background */
-  --surface:#1E2220;       /* slight elevation */
-  --card:#22272A;          /* cards on bg */
-  --surface-2:#2A2F33;     /* hover/active layers */
+  /* ── Elevation System — deep warm-dark, like Linear/Vercel ── */
+  --bg:#0D1110;              /* page background — near-black, slight warm tint */
+  --surface:#131918;         /* +1 elevation */
+  --card:#1A2120;            /* +2 — cards, panels */
+  --surface-2:#232C2A;       /* +3 — hover, active states */
 
-  /* Borders — visible but subtle */
-  --border:rgba(255,255,255,0.07);
-  --border-strong:rgba(255,255,255,0.13);
+  /* ── Borders — structural but barely-there ── */
+  --border:rgba(255,255,255,0.055);
+  --border-strong:rgba(255,255,255,0.11);
 
-  /* Text — proper contrast hierarchy */
-  --text:#ECEDEE;             /* primary - high contrast, slightly off-white */
-  --text-secondary:#9BA3A8;   /* secondary - readable on bg */
-  --text-muted:#6E7681;       /* tertiary - hints, labels (was unreadable #3E4642) */
+  /* ── Typography — clean contrast hierarchy ── */
+  --text:#EFF1EF;             /* primary — warm white */
+  --text-secondary:#8B9690;   /* secondary — readable */
+  --text-muted:#526058;       /* tertiary — hints, labels */
 
-  /* Buttons */
-  --btn-prim:#FFFFFF; --btn-prim-text:#171A19;
+  /* ── CTA Button ── */
+  --btn-prim:#EFF1EF; --btn-prim-text:#0D1110;
 
-  /* Accent: dark surface for highlight cards/banners (NOT --text!) */
-  --accent:#2D3338; --accent-text:#ECEDEE;
+  /* ── Brand Accent — forest green, Festag's signature ── */
+  --accent:#152B22; --accent-text:#52DFA0;
 
-  /* Inputs */
-  --inp:rgba(255,255,255,0.04);
-  --inp-border:rgba(255,255,255,0.09);
-  --inp-focus:rgba(255,255,255,0.07);
-  --inp-focus-border:rgba(255,255,255,0.28);
-  --glow:rgba(255,255,255,0.04);
+  /* ── Inputs ── */
+  --inp:rgba(255,255,255,0.03);
+  --inp-border:rgba(255,255,255,0.07);
+  --inp-focus:rgba(255,255,255,0.055);
+  --inp-focus-border:rgba(255,255,255,0.22);
+  --glow:rgba(255,255,255,0.025);
 
-  /* Sidebar/Nav */
-  --sidebar-bg:rgba(28,32,30,0.96);
-  --sidebar-border:rgba(255,255,255,0.06);
+  /* ── Sidebar / Nav ── */
+  --sidebar-bg:rgba(17,23,21,0.97);
+  --sidebar-border:rgba(255,255,255,0.05);
   --nav-on:rgba(255,255,255,0.08);
-  --nav-on-text:#FFFFFF;
-  --nav-off-text:#7E868E;
+  --nav-on-text:#EFF1EF;
+  --nav-off-text:#667068;
 
-  /* Status colors — calmer in dark mode */
-  --green:#3FB57A;
-  --green-bg:rgba(63,181,122,0.14);
-  --green-border:rgba(63,181,122,0.28);
-  --green-dark:#5BCC92;
-  --amber:#F5A524;
-  --amber-bg:rgba(245,165,36,0.12);
-  --amber-dark:#FFB94B;
-  --red:#F76060;
-  --red-bg:rgba(247,96,96,0.1);
+  /* ── Status Colors ── */
+  --green:#42C283;
+  --green-bg:rgba(66,194,131,0.12);
+  --green-border:rgba(66,194,131,0.25);
+  --green-dark:#5AD498;
+  --amber:#EFA820;
+  --amber-bg:rgba(239,168,32,0.11);
+  --amber-dark:#FFC044;
+  --red:#F25A5A;
+  --red-bg:rgba(242,90,90,0.09);
 
-  /* Shadows */
-  --shadow-xs:0 1px 4px rgba(0,0,0,.28);
-  --shadow-sm:0 2px 8px rgba(0,0,0,.32);
-  --shadow:0 4px 20px rgba(0,0,0,.4);
-  --shadow-lg:0 8px 30px rgba(0,0,0,.5);
+  /* ── Shadows ── */
+  --shadow-xs:0 1px 3px rgba(0,0,0,.42);
+  --shadow-sm:0 2px 8px rgba(0,0,0,.50);
+  --shadow:0 4px 20px rgba(0,0,0,.62);
+  --shadow-lg:0 8px 32px rgba(0,0,0,.75);
 
   --logo-filter:brightness(0) invert(1);
 }
@@ -175,10 +175,10 @@ input:focus,textarea:focus,select:focus { outline:none; }
 .sidebar-inner {
   position:fixed; top:12px; left:12px; bottom:12px; width:232px;
   background:var(--sidebar-bg);
-  backdrop-filter:blur(20px) saturate(180%);
-  -webkit-backdrop-filter:blur(20px) saturate(180%);
-  border:1.5px solid var(--sidebar-border);
-  box-shadow:var(--shadow-lg);
+  backdrop-filter:blur(24px) saturate(180%);
+  -webkit-backdrop-filter:blur(24px) saturate(180%);
+  border:1px solid var(--sidebar-border);
+  box-shadow:var(--shadow-lg), inset 0 1px 0 rgba(255,255,255,0.05);
   border-radius:24px;
   display:flex; flex-direction:column; overflow:hidden;
   transition:background .2s ease, border-color .2s ease;

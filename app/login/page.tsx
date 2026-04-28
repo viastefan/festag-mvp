@@ -29,7 +29,7 @@ const BLOCKS: Record<View,{w:number,h:number}[]> = {
 }
 
 function getPanelBg(theme: string) {
-  if (theme === 'dark') return '#181D1C'
+  if (theme === 'dark') return '#0D1110'
   if (theme === 'read') return '#F5F0E8'
   return '#F8F9F8'
 }
@@ -198,7 +198,7 @@ const MOBILE_CSS = `
   .px-mob{pointer-events:none;animation:pxRise .8s cubic-bezier(.16,1,.3,1) both;}
   .mob-hero{display:block;position:absolute;top:0;left:0;right:0;height:55dvh;overflow:hidden;z-index:0;}
   .mob-grad{position:absolute;inset:0;pointer-events:none;z-index:1;}
-  [data-theme="dark"]  .mob-grad{background:linear-gradient(180deg,rgba(24,29,28,0) 0%,rgba(24,29,28,.05) 30%,rgba(24,29,28,.55) 60%,rgba(24,29,28,.96) 88%,#181D1C 100%);}
+  [data-theme="dark"]  .mob-grad{background:linear-gradient(180deg,rgba(13,17,16,0) 0%,rgba(13,17,16,.05) 30%,rgba(13,17,16,.55) 60%,rgba(13,17,16,.96) 88%,#0D1110 100%);}
   [data-theme="light"] .mob-grad{background:linear-gradient(180deg,rgba(248,249,248,0) 0%,rgba(248,249,248,.05) 30%,rgba(248,249,248,.55) 60%,rgba(248,249,248,.96) 88%,#F8F9F8 100%);}
   [data-theme="read"]  .mob-grad{background:linear-gradient(180deg,rgba(245,240,232,0) 0%,rgba(245,240,232,.05) 30%,rgba(245,240,232,.55) 60%,rgba(245,240,232,.96) 88%,#F5F0E8 100%);}
   .mob-page{position:relative;min-height:100dvh;width:100%;display:flex;flex-direction:column;background:var(--bg);overflow:hidden;}

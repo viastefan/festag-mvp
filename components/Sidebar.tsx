@@ -155,7 +155,7 @@ export default function Sidebar() {
           animation:shUp .18s cubic-bezier(.16,1,.3,1);
         }
         @keyframes shUp { from{opacity:0;transform:translateY(32px);}to{opacity:1;transform:translateY(0);} }
-        .mr { display:flex;align-items:center;gap:13px;padding:11px 3px;border-bottom:1px solid #F8FAFC;text-decoration:none;color:inherit;-webkit-tap-highlight-color:transparent; }
+        .mr { display:flex;align-items:center;gap:13px;padding:11px 3px;border-bottom:1px solid var(--border);text-decoration:none;color:inherit;-webkit-tap-highlight-color:transparent; }
         .mr:last-child{border-bottom:none;}
         .mr:active{opacity:.6;}
       `}</style>
@@ -236,7 +236,7 @@ export default function Sidebar() {
                       width:28, height:28,
                       borderRadius:'50%',
                       objectFit:'cover',
-                      border: on ? '2.5px solid #181D1C' : '2px solid rgba(15,23,42,.12)',
+                      border: on ? '2.5px solid var(--bg)' : '2px solid var(--border)',
                       display:'block',
                     }}
                   />
