@@ -10,8 +10,16 @@ type Addon = {
 }
 
 type PurchaseStatus = 'active' | 'pending' | undefined
-type PurchaseRecord = { reference: string; status: PurchaseStatus; createdAt: number; completedAt?: number }
+type PurchaseRecord = {
+  reference: string
+  status: PurchaseStatus
+  createdAt: number
+  completedAt?: number
+  projectId?: string       // Zugewiesenes Projekt
+  projectTitle?: string    // Cache fuers UI (Projektname kann sich aendern)
+}
 type Purchases = Record<string, PurchaseRecord>  // addonId -> record
+type ProjectMini = { id: string; title: string; status: string }
 
 const CATALOG: Addon[] = [
   { id: 'ai-video',   name: 'AI Video Generation',   description: 'Cinematische Videos aus Text — Produktvideos, Werbung, Tutorials', price: 890,  category: 'AI', icon: 'video' },
@@ -43,12 +51,18 @@ export default function AddonsPage() {
   const [purchases, setPurchases] = useState<Purchases>({})
   const [paying, setPaying] = useState<Addon | null>(null)
   const [toast, setToast] = useState<{ kind: 'success'|'pending'; text: string } | null>(null)
+  const [projects, setProjects] = useState<ProjectMini[]>([])
 
   useEffect(() => {
     const supabase = createClient()
-    supabase.auth.getSession().then(({ data }) => {
+    supabase.auth.getSession().then(async ({ data }) => {
       if (!data.session) { window.location.href = '/login'; return }
       setUserId(data.session.user.id)
+      const { data: projs } = await supabase
+        .from('projects')
+        .select('id,title,status')
+        .order('created_at', { ascending: false })
+      setProjects((projs as ProjectMini[]) ?? [])
     })
   }, [])
 
@@ -85,6 +99,18 @@ export default function AddonsPage() {
 
   const markPending = useCallback((addonId: string, reference: string) => {
     persist(prev => ({ ...prev, [addonId]: { reference, status: 'pending', createdAt: Date.now() } }))
+  }, [persist])
+
+  const assignToProject = useCallback((addonId: string, projectId: string, projectTitle: string, addonName: string) => {
+    persist(prev => {
+      const cur = prev[addonId]
+      if (!cur) return prev
+      return { ...prev, [addonId]: { ...cur, projectId: projectId || undefined, projectTitle: projectTitle || undefined } }
+    })
+    if (projectId) {
+      setToast({ kind: 'success', text: `${addonName} wurde "${projectTitle}" zugewiesen.` })
+      setTimeout(() => setToast(null), 3500)
+    }
   }, [persist])
 
   // Initial Load der Käufe aus localStorage
@@ -214,6 +240,41 @@ export default function AddonsPage() {
                   ) : isPending ? 'Wartet auf Zahlung' : 'Jetzt kaufen'}
                 </button>
               </div>
+
+              {/* Projekt-Zuweisung — nur fuer aktive Add-ons */}
+              {isActive && (
+                <div onClick={(e) => e.stopPropagation()} style={{ marginTop: 14, padding: '10px 12px', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 8 }}>
+                  <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '.08em', margin: '0 0 6px' }}>ZUGEWIESEN AN</p>
+                  {projects.length === 0 ? (
+                    <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: 0 }}>Noch kein Projekt vorhanden.</p>
+                  ) : (
+                    <select
+                      value={rec?.projectId ?? ''}
+                      onChange={(e) => {
+                        const pid = e.target.value
+                        const proj = projects.find(p => p.id === pid)
+                        assignToProject(a.id, pid, proj?.title ?? '', a.name)
+                      }}
+                      style={{
+                        width: '100%', padding: '8px 10px', border: '1px solid var(--border)',
+                        borderRadius: 6, fontSize: 13, background: 'var(--surface)', color: 'var(--text)',
+                        outline: 'none', fontFamily: 'inherit', cursor: 'pointer',
+                      }}
+                    >
+                      <option value="">— Projekt waehlen —</option>
+                      {projects.map(p => (
+                        <option key={p.id} value={p.id}>{p.title}</option>
+                      ))}
+                    </select>
+                  )}
+                  {rec?.projectId && rec.projectTitle && (
+                    <p style={{ fontSize: 11, color: 'var(--green-dark)', margin: '6px 0 0', display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 13l4 4L19 7"/></svg>
+                      Aktiv fuer <strong>{rec.projectTitle}</strong>
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
           )
         })}
