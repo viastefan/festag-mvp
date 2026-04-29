@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 
-type Tab = 'overview'|'projects'|'users'|'invites'|'invoices'
+type Tab = 'overview'|'projects'|'users'|'invites'|'invoices'|'create'
 
 export default function AdminPanel() {
   const [authed, setAuthed] = useState(false)
@@ -18,6 +18,13 @@ export default function AdminPanel() {
   const [inviteRole, setInviteRole] = useState<'dev'|'admin'>('dev')
   const [inviteLoading, setInviteLoading] = useState(false)
   const [inviteMsg, setInviteMsg] = useState('')
+  // Create project for customer
+  const [cpUserId, setCpUserId] = useState('')
+  const [cpTitle, setCpTitle] = useState('')
+  const [cpDesc, setCpDesc] = useState('')
+  const [cpStatus, setCpStatus] = useState('intake')
+  const [cpLoading, setCpLoading] = useState(false)
+  const [cpMsg, setCpMsg] = useState('')
 
   useEffect(() => {
     const supabase = createClient()
@@ -65,13 +72,32 @@ export default function AdminPanel() {
     await createClient().from('profiles').update({ role }).eq('id', userId); loadAll()
   }
 
+  async function createProjectForUser() {
+    if (!cpUserId || !cpTitle.trim()) { setCpMsg('Kunde und Projektname sind Pflichtfelder.'); return }
+    setCpLoading(true); setCpMsg('')
+    const supabase = createClient()
+    const { error } = await supabase.from('projects').insert({
+      user_id: cpUserId,
+      title: cpTitle.trim(),
+      description: cpDesc.trim() || null,
+      status: cpStatus,
+    })
+    setCpLoading(false)
+    if (error) { setCpMsg('Fehler: ' + error.message); return }
+    setCpMsg('✓ Projekt erfolgreich erstellt!')
+    setCpTitle(''); setCpDesc(''); setCpUserId(''); setCpStatus('intake')
+    setTimeout(() => setCpMsg(''), 3000)
+    loadAll()
+  }
+
   const logout = async () => { await createClient().auth.signOut(); window.location.href = '/login' }
 
   if (checking) return <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><div style={{ width: 32, height: 32, border: '2px solid var(--border)', borderTopColor: 'var(--text)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} /></div>
   if (!authed) return null
 
-  const TABS: { key: Tab; label: string }[] = [
+  const TABS: { key: Tab; label: string; highlight?: boolean }[] = [
     { key: 'overview', label: 'Übersicht' },
+    { key: 'create',   label: '+ Projekt erstellen', highlight: true },
     { key: 'projects', label: `Projekte (${stats.projects})` },
     { key: 'users', label: `Users (${users.length})` },
     { key: 'invites', label: `Einladungen (${invites.filter(i => i.status === 'pending').length})` },
@@ -114,8 +140,10 @@ export default function AdminPanel() {
           {TABS.map(t => (
             <button key={t.key} onClick={() => setTab(t.key)} style={{
               padding: '10px 16px', background: 'transparent', border: 'none', cursor: 'pointer', fontSize: 13,
-              fontWeight: tab === t.key ? 600 : 500, color: tab === t.key ? 'var(--text)' : 'var(--text-muted)',
-              borderBottom: `2px solid ${tab === t.key ? 'var(--text)' : 'transparent'}`, marginBottom: -1, fontFamily: 'inherit', whiteSpace: 'nowrap',
+              fontWeight: tab === t.key ? 600 : 500,
+              color: t.highlight ? (tab === t.key ? 'var(--green-dark)' : 'var(--green-dark)') : (tab === t.key ? 'var(--text)' : 'var(--text-muted)'),
+              borderBottom: `2px solid ${tab === t.key ? (t.highlight ? 'var(--green)' : 'var(--text)') : 'transparent'}`,
+              marginBottom: -1, fontFamily: 'inherit', whiteSpace: 'nowrap',
             }}>{t.label}</button>
           ))}
         </div>
@@ -154,6 +182,81 @@ export default function AdminPanel() {
                   <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--green)', flexShrink: 0 }} />
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {tab === 'create' && (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, alignItems: 'start' }}>
+            {/* Create form */}
+            <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', padding: 24 }}>
+              <h3 style={{ marginBottom: 6 }}>Projekt für Kunden erstellen</h3>
+              <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 20 }}>Das Projekt wird direkt im Kundenkonto eingetragen — kein Onboarding notwendig.</p>
+              <div style={{ marginBottom: 14 }}>
+                <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '.08em', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>Kunde *</label>
+                <select value={cpUserId} onChange={e => setCpUserId(e.target.value)}
+                  style={{ width: '100%', padding: '11px 14px', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', fontSize: 14, background: 'var(--inp)', color: 'var(--text)', outline: 'none', fontFamily: 'inherit' }}>
+                  <option value="">— Kunden auswählen —</option>
+                  {users.filter(u => u.role === 'client').map(u => (
+                    <option key={u.id} value={u.id}>{u.full_name || u.email} ({u.email})</option>
+                  ))}
+                </select>
+              </div>
+              <div style={{ marginBottom: 14 }}>
+                <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '.08em', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>Projektname *</label>
+                <input value={cpTitle} onChange={e => setCpTitle(e.target.value)} placeholder="z.B. Web-App für Buchungssystem"
+                  style={{ width: '100%', padding: '11px 14px', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', fontSize: 14, background: 'var(--inp)', color: 'var(--text)', outline: 'none', fontFamily: 'inherit' }} />
+              </div>
+              <div style={{ marginBottom: 14 }}>
+                <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '.08em', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>Beschreibung</label>
+                <textarea value={cpDesc} onChange={e => setCpDesc(e.target.value)} rows={3} placeholder="Kurze Projektbeschreibung für den Kunden…"
+                  style={{ width: '100%', padding: '11px 14px', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', fontSize: 14, background: 'var(--inp)', color: 'var(--text)', outline: 'none', fontFamily: 'inherit', resize: 'vertical' }} />
+              </div>
+              <div style={{ marginBottom: 20 }}>
+                <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '.08em', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>Phase</label>
+                <select value={cpStatus} onChange={e => setCpStatus(e.target.value)}
+                  style={{ width: '100%', padding: '11px 14px', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', fontSize: 14, background: 'var(--inp)', color: 'var(--text)', outline: 'none', fontFamily: 'inherit' }}>
+                  <option value="intake">Intake</option>
+                  <option value="planning">Planning</option>
+                  <option value="active">In Arbeit (Active)</option>
+                  <option value="testing">Testing</option>
+                  <option value="done">Abgeschlossen</option>
+                </select>
+              </div>
+              {cpMsg && (
+                <div style={{ padding: '10px 14px', borderRadius: 10, background: cpMsg.startsWith('✓') ? 'var(--green-bg)' : 'var(--red-bg)', border: `1px solid ${cpMsg.startsWith('✓') ? 'var(--green-border)' : 'rgba(200,80,80,.2)'}`, fontSize: 13, color: cpMsg.startsWith('✓') ? 'var(--green-dark)' : 'var(--red)', marginBottom: 14 }}>
+                  {cpMsg}
+                </div>
+              )}
+              <button onClick={createProjectForUser} disabled={cpLoading || !cpUserId || !cpTitle.trim()}
+                style={{ width: '100%', padding: '13px', background: cpLoading || !cpUserId || !cpTitle.trim() ? 'var(--surface-2)' : 'var(--btn-prim)', color: cpLoading || !cpUserId || !cpTitle.trim() ? 'var(--text-muted)' : 'var(--btn-prim-text)', border: 'none', borderRadius: 'var(--r-sm)', fontSize: 14, fontWeight: 700, cursor: cpLoading || !cpUserId || !cpTitle.trim() ? 'default' : 'pointer', fontFamily: 'inherit', transition: 'all .15s' }}>
+                {cpLoading ? 'Erstellt…' : 'Projekt erstellen →'}
+              </button>
+            </div>
+
+            {/* Info panel */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r)', padding: 18 }}>
+                <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--text)', margin: '0 0 8px' }}>Wann nutzen?</p>
+                <ul style={{ paddingLeft: 16, margin: 0 }}>
+                  {['Kunde hat kein Onboarding gemacht', 'Projekt wurde telefonisch/per E-Mail besprochen', 'Schnelles Setup für Enterprise Kunden', 'Interne Testprojekte anlegen'].map(i => (
+                    <li key={i} style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 6, lineHeight: 1.5 }}>{i}</li>
+                  ))}
+                </ul>
+              </div>
+              <div style={{ background: 'var(--green-bg)', border: '1px solid var(--green-border)', borderRadius: 'var(--r)', padding: 18 }}>
+                <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--green-dark)', margin: '0 0 6px' }}>✓ Was passiert nach dem Erstellen?</p>
+                <p style={{ fontSize: 12, color: 'var(--green-dark)', margin: 0, lineHeight: 1.6, opacity: .8 }}>Das Projekt erscheint sofort im Kunden-Dashboard. Der Kunde kann es über seinen normalen Login sehen und mit Tagro kommunizieren.</p>
+              </div>
+              <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r)', padding: 18 }}>
+                <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '.06em', textTransform: 'uppercase', margin: '0 0 10px' }}>Zuletzt erstellt</p>
+                {projects.slice(0, 4).map(p => (
+                  <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '7px 0', borderBottom: '1px solid var(--border)' }}>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 180 }}>{p.title}</span>
+                    <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-muted)', background: 'var(--surface-2)', padding: '2px 7px', borderRadius: 5, flexShrink: 0 }}>{p.status.toUpperCase()}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         )}

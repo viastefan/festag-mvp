@@ -29,18 +29,20 @@ const BLOCKS: Record<View,{w:number,h:number}[]> = {
 }
 
 function getPanelBg(theme: string) {
-  if (theme === 'dark') return '#0D1110'
-  if (theme === 'read') return '#F5F0E8'
+  if (theme === 'dark') return '#0B0F0E'
+  if (theme === 'read') return '#F8F7F2'
   return '#F8F9F8'
+}
+function getDefaultTheme() {
+  if (typeof window === 'undefined') return 'read'
+  return localStorage.getItem('festag_theme') || 'read'
 }
 
 function PixelBlocksMobile() {
-  const [bg, setBg] = useState(() => getPanelBg(
-    typeof window !== 'undefined' ? localStorage.getItem('festag_theme') || 'dark' : 'dark'
-  ))
+  const [bg, setBg] = useState(() => getPanelBg(getDefaultTheme()))
   useEffect(() => {
     const update = (e?: Event) => {
-      const theme = e instanceof CustomEvent ? e.detail : (localStorage.getItem('festag_theme') || 'dark')
+      const theme = e instanceof CustomEvent ? e.detail : getDefaultTheme()
       setBg(getPanelBg(theme))
     }
     update()
@@ -76,12 +78,10 @@ function PixelBlocksMobile() {
 }
 
 function PixelBlocks({ view }: { view: View }) {
-  const [panelBg, setPanelBg] = useState(() => getPanelBg(
-    typeof window !== 'undefined' ? localStorage.getItem('festag_theme') || 'dark' : 'dark'
-  ))
+  const [panelBg, setPanelBg] = useState(() => getPanelBg(getDefaultTheme()))
   useEffect(() => {
     const update = (e?: Event) => {
-      const theme = e instanceof CustomEvent ? e.detail : (localStorage.getItem('festag_theme') || 'dark')
+      const theme = e instanceof CustomEvent ? e.detail : getDefaultTheme()
       setPanelBg(getPanelBg(theme))
     }
     update()
@@ -90,12 +90,12 @@ function PixelBlocks({ view }: { view: View }) {
   }, [])
 
   let top = 0
-  const positioned = BLOCKS[view].map(b => { const t = top; top += b.h; return { ...b, top: t, bottom: top } })
+  const positioned = BLOCKS[view].map(b => { const t = top; top += b.h; return { ...b, top: t } })
   return (
     <>
-      <style>{`@keyframes blkIn{from{opacity:0;transform:translateX(56px);}to{opacity:1;transform:translateX(0);}} .px-blk{position:absolute;right:0;pointer-events:none;animation:blkIn .48s cubic-bezier(.16,1,.3,1) both;transition:background .2s;line-height:0;font-size:0;}`}</style>
+      <style>{`@keyframes blkIn{from{opacity:0;transform:translateX(56px);}to{opacity:1;transform:translateX(0);}} .px-blk{position:absolute;right:-1px;pointer-events:none;animation:blkIn .48s cubic-bezier(.16,1,.3,1) both;transition:background .2s;}`}</style>
       {positioned.map((b, i) => (
-        <div key={i} className="px-blk" style={{ top: `${b.top}%`, bottom: `${100-b.bottom}%`, width: b.w, background: panelBg, animationDelay: `${i * 0.022}s` }}/>
+        <div key={i} className="px-blk" style={{ top: `calc(${b.top}% - 1px)`, height: `calc(${b.h}% + 2px)`, width: b.w + 1, background: panelBg, animationDelay: `${i * 0.022}s` }}/>
       ))}
     </>
   )
@@ -199,9 +199,10 @@ const MOBILE_CSS = `
   .px-mob{pointer-events:none;animation:pxRise .9s cubic-bezier(.16,1,.3,1) both;}
   .mob-hero{display:block;position:absolute;top:0;left:0;right:0;height:56dvh;overflow:hidden;z-index:0;}
   .mob-grad{position:absolute;inset:0;pointer-events:none;z-index:1;}
-  [data-theme="dark"]  .mob-grad{background:linear-gradient(180deg,rgba(11,15,14,0) 0%,rgba(11,15,14,.08) 25%,rgba(11,15,14,.42) 50%,rgba(11,15,14,.78) 75%,#0B0F0E 100%);}
-  [data-theme="light"] .mob-grad{background:linear-gradient(180deg,rgba(248,249,248,0) 0%,rgba(248,249,248,.08) 25%,rgba(248,249,248,.42) 50%,rgba(248,249,248,.78) 75%,#F8F9F8 100%);}
-  [data-theme="read"]  .mob-grad{background:linear-gradient(180deg,rgba(248,247,242,0) 0%,rgba(248,247,242,.08) 25%,rgba(248,247,242,.42) 50%,rgba(248,247,242,.78) 75%,#F8F7F2 100%);}
+  [data-theme="dark"]  .mob-grad{background:linear-gradient(180deg,transparent 0%,rgba(11,15,14,.04) 20%,rgba(11,15,14,.32) 45%,rgba(11,15,14,.82) 70%,#0B0F0E 100%);}
+  [data-theme="light"] .mob-grad{background:linear-gradient(180deg,transparent 0%,rgba(248,249,248,.04) 20%,rgba(248,249,248,.32) 45%,rgba(248,249,248,.82) 70%,#F8F9F8 100%);}
+  .mob-grad{background:linear-gradient(180deg,transparent 0%,rgba(248,247,242,.04) 20%,rgba(248,247,242,.32) 45%,rgba(248,247,242,.82) 70%,#F8F7F2 100%);}
+  [data-theme="read"]  .mob-grad{background:linear-gradient(180deg,transparent 0%,rgba(248,247,242,.04) 20%,rgba(248,247,242,.32) 45%,rgba(248,247,242,.82) 70%,#F8F7F2 100%);}
   .mob-page{position:relative;min-height:100dvh;width:100%;display:flex;flex-direction:column;background:var(--bg);overflow:hidden;}
   .mob-logo{position:absolute;top:calc(env(safe-area-inset-top) + 24px);left:22px;z-index:5;height:20px;opacity:.92;filter:brightness(0) invert(1);}
   .mob-cta{position:relative;z-index:2;margin-top:auto;padding:0 22px calc(env(safe-area-inset-bottom) + 32px);}
@@ -294,20 +295,20 @@ export default function LoginPage() {
                 <h1 style={{ fontSize: 34, fontWeight: 700, color: 'var(--text)', letterSpacing: '-.7px', lineHeight: 1.15, marginBottom: 10 }}>{greeting}</h1>
                 <p style={{ fontSize: 16, color: 'var(--text-secondary)', marginBottom: 40, lineHeight: 1.6, fontWeight: 500 }}>{getGreetingSub()}</p>
               </div>
-              <div className="mob-text" style={{ marginBottom: 24 }}>
+              <div className="mob-text" style={{ marginBottom: 28 }}>
                 <style>{`@media(min-width:769px){.mob-text{display:none!important;}}`}</style>
-                <h1 style={{ fontSize: 30, fontWeight: 700, color: 'var(--text)', lineHeight: 1.1, letterSpacing: '-.65px', marginBottom: 10 }}>Kein Informationsverlust<br/>mehr. Mit Festag AI.</h1>
-                <p style={{ fontSize: 14.5, fontWeight: 500, color: 'var(--text-secondary)', lineHeight: 1.5 }}>Die KI versteht, zerlegt und steuert —<br/>Menschen bauen, System liefert</p>
+                <h1 style={{ fontSize: 32, fontWeight: 700, color: 'var(--text)', lineHeight: 1.08, letterSpacing: '-.7px', marginBottom: 12 }}>Kein Informations&shy;verlust.<br/>Mit Festag AI.</h1>
+                <p style={{ fontSize: 15, fontWeight: 500, color: 'var(--text-secondary)', lineHeight: 1.55 }}>Von der Idee zum fertigen Produkt —<br/>AI steuert, Menschen liefern.</p>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                <PrimaryBtn label="Jetzt starten" onClick={() => go('register')}/>
-                <SecondaryBtn label="Einloggen" onClick={() => go('login')}/>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 11 }}>
+                <PrimaryBtn label="Kostenlos starten →" onClick={() => go('register')}/>
+                <SecondaryBtn label="Anmelden" onClick={() => go('login')}/>
               </div>
-              <div style={{ marginTop: 22, textAlign: 'center' }}>
-                <span onClick={() => go('dev')} style={{ fontSize: 13, color: 'var(--text-muted)', cursor: 'pointer', fontWeight: 500, WebkitTapHighlightColor: 'transparent' }}>Als Dev'ler fortfahren</span>
+              <div style={{ marginTop: 28, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span onClick={() => go('dev')} style={{ fontSize: 12, color: 'var(--text-muted)', cursor: 'pointer', fontWeight: 500, WebkitTapHighlightColor: 'transparent' }}>Dev-Zugang</span>
+                <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600, opacity: .4, letterSpacing: '.06em', textTransform: 'uppercase' }}>Beta · v0.9</span>
               </div>
-              <p style={{ textAlign: 'center', fontSize: 10.5, color: 'var(--text-muted)', marginTop: 10, letterSpacing: '.04em', fontWeight: 500, opacity: .55 }}>Kein Informationsverlust AI + Menschen Skalieren</p>
-              <p style={{ textAlign: 'center', fontSize: 10, color: 'var(--text-muted)', marginTop: 8, letterSpacing: '.06em', fontWeight: 600, opacity: .45, textTransform: 'uppercase' }}>Beta · v0.9</p>
+              <p style={{ textAlign: 'center', fontSize: 10.5, color: 'var(--text-muted)', marginTop: 18, letterSpacing: '.02em', fontWeight: 500, opacity: .45, lineHeight: 1.6 }}>Datenschutzkonform · Server in Deutschland<br/>Keine Kreditkarte erforderlich</p>
             </div>
           </div>
         </div>
