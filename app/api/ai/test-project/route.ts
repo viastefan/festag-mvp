@@ -3,83 +3,102 @@ import { createClient } from '@supabase/supabase-js'
 
 const SUPABASE_URL = 'https://xsdkoepwuvpuroijjain.supabase.co'
 
-const TEST_PROJECT = {
-  project_title: 'Test-Projekt — Booking Web-App',
-  scope_summary: 'Eine schlanke Web-App für Online-Buchungen mit Kalender, Zahlungs-Integration und Admin-Dashboard. Dient als Demo-Projekt zum Testen des Festag-Workflows.',
-  goals: [
-    'Buchungsablauf in unter 60 Sekunden abschließbar',
-    'Mobile-first responsive Design',
-    'Stripe-Zahlungen integriert',
-  ],
-  success_criteria: [
-    'Erste Buchung ist End-to-End möglich',
-    '95+ Lighthouse Performance Score',
-    'Admin kann Buchungen verwalten und exportieren',
-  ],
-  risks: [
-    'Stripe-Webhook-Edge-Cases',
-    'Zeitzonen-Handling bei internationalen Kunden',
-  ],
-  open_questions: [
-    'Welche Sprachen werden unterstützt?',
-    'Soll es einen Mehrbenutzer-Modus geben?',
-  ],
-  epics: [
+const GENERATE_SYSTEM = `Du bist Tagro, der AI-Projektmanager von Festag.
+Deine Aufgabe: Erfinde ein realistisches, kreatives Demo-Software-Projekt und zerlege es vollständig in eine strukturierte Projekt-Definition.
+
+Wähle eine spannende, realistische Produktidee aus dem SaaS- oder B2C-Web/Mobile-Bereich (z.B. Booking-Tool, Marktplatz, Community-App, Workflow-SaaS, KI-Tool, Analytics-Dashboard, Local Business App). Würfle die Idee — nicht jedes Mal das gleiche.
+
+Antworte AUSSCHLIESSLICH mit validem JSON — kein Markdown, kein erklärender Text außerhalb des JSON.
+
+JSON-Schema:
+{
+  "project_title": "Prägnanter Projekttitel",
+  "scope_summary": "2-3 Sätze Projektüberblick",
+  "goals": ["Ziel 1", "Ziel 2", "Ziel 3"],
+  "success_criteria": ["Erfolgskriterium 1", "Erfolgskriterium 2", "Erfolgskriterium 3"],
+  "risks": ["Risiko 1", "Risiko 2"],
+  "open_questions": ["Offene Frage 1", "Offene Frage 2"],
+  "epics": [
     {
-      title: 'Setup & Infrastruktur',
-      description: 'Projekt-Setup, Hosting, CI/CD, DB-Schema',
-      priority: 'high',
-      estimated_effort: '1 Woche',
-      tasks: [
-        { title: 'Next.js Projekt aufsetzen', description: 'Repo, Vercel-Deploy, Env-Vars', priority: 'critical', estimated_hours: 4, acceptance_criteria: ['Repo läuft auf Vercel', 'Preview-Deploys aktiv'], tags: ['setup'], requires_approval: false },
-        { title: 'Supabase Schema definieren', description: 'Tabellen für bookings, slots, customers', priority: 'high', estimated_hours: 6, acceptance_criteria: ['Migrations laufen', 'RLS aktiv'], tags: ['backend', 'db'], requires_approval: false },
-      ],
-    },
-    {
-      title: 'Buchungs-Flow',
-      description: 'Kunden-facing UI für Slot-Auswahl und Buchung',
-      priority: 'high',
-      estimated_effort: '2-3 Wochen',
-      tasks: [
-        { title: 'Kalender-Komponente', description: 'Verfügbare Slots anzeigen, Auswahl ermöglichen', priority: 'critical', estimated_hours: 16, acceptance_criteria: ['Slots werden korrekt geladen', 'Auswahl funktioniert mobil'], tags: ['frontend'], requires_approval: false },
-        { title: 'Stripe-Integration', description: 'Checkout-Session und Webhook-Handler', priority: 'critical', estimated_hours: 12, acceptance_criteria: ['Test-Zahlung erfolgreich', 'Webhook bestätigt Buchung'], tags: ['backend', 'payments'], requires_approval: true },
-        { title: 'Bestätigungs-E-Mail', description: 'Resend-Integration mit Buchungs-PDF', priority: 'medium', estimated_hours: 6, acceptance_criteria: ['E-Mail kommt an', 'PDF-Anhang lesbar'], tags: ['backend'], requires_approval: false },
-      ],
-    },
-    {
-      title: 'Admin-Dashboard',
-      description: 'Übersicht und Verwaltung von Buchungen',
-      priority: 'medium',
-      estimated_effort: '1-2 Wochen',
-      tasks: [
-        { title: 'Buchungs-Tabelle', description: 'Sortier- und filterbare Liste aller Buchungen', priority: 'high', estimated_hours: 10, acceptance_criteria: ['Filterung nach Status', 'CSV-Export funktioniert'], tags: ['frontend', 'admin'], requires_approval: false },
-        { title: 'Slot-Konfiguration', description: 'Admin definiert Verfügbarkeit pro Wochentag', priority: 'medium', estimated_hours: 8, acceptance_criteria: ['Wiederkehrende Slots speicherbar', 'Ausnahmen definierbar'], tags: ['frontend', 'admin'], requires_approval: false },
-      ],
-    },
-  ],
+      "title": "Epic-Titel",
+      "description": "Was wird in diesem Epic gebaut",
+      "priority": "high|medium|low",
+      "estimated_effort": "1 Woche|2-3 Wochen|1 Monat",
+      "tasks": [
+        {
+          "title": "Task-Titel",
+          "description": "Konkrete Aufgabenbeschreibung",
+          "priority": "critical|high|medium|low",
+          "estimated_hours": 8,
+          "acceptance_criteria": ["AC 1", "AC 2"],
+          "tags": ["frontend", "backend", "design"],
+          "requires_approval": false
+        }
+      ]
+    }
+  ]
 }
+
+Anforderungen:
+- 3-4 Epics
+- Pro Epic 2-4 Tasks
+- Realistische Stundenschätzungen
+- Sinnvolle Tags (frontend, backend, design, devops, testing, content)
+- Sprache: Deutsch
+- Beginne den Titel NICHT mit "Test-Projekt" — gib dem Demo-Projekt einen echten, realistischen Namen.`
 
 export async function POST(req: NextRequest) {
   try {
     const { userId } = await req.json()
+    const apiKey = process.env.ANTHROPIC_API_KEY
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    if (!apiKey) return NextResponse.json({ error: 'AI not configured' }, { status: 500 })
     if (!serviceKey) return NextResponse.json({ error: 'service key missing' }, { status: 500 })
     if (!userId) return NextResponse.json({ error: 'userId required' }, { status: 400 })
 
-    const sb = createClient(SUPABASE_URL, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } })
+    // 1. Claude generiert ein komplettes Demo-Projekt
+    const aiRes = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 4000,
+        system: GENERATE_SYSTEM,
+        messages: [{
+          role: 'user',
+          content: 'Generiere jetzt ein realistisches Demo-Software-Projekt mit allen Epics und Tasks. Würfle eine kreative, neue Idee.',
+        }],
+      }),
+    })
 
-    const t = TEST_PROJECT
+    const aiData = await aiRes.json()
+    const rawText = aiData.content?.[0]?.text ?? ''
+
+    let decomposed: any
+    try {
+      const jsonMatch = rawText.match(/\{[\s\S]*\}/)
+      decomposed = JSON.parse(jsonMatch?.[0] ?? rawText)
+    } catch {
+      return NextResponse.json({ error: 'AI lieferte kein valides JSON', raw: rawText }, { status: 422 })
+    }
+
+    // 2. Projekt + Epics + Tasks in DB schreiben
+    const sb = createClient(SUPABASE_URL, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } })
 
     const { data: project, error: projErr } = await sb.from('projects').insert({
       user_id: userId,
-      title: t.project_title,
-      description: t.scope_summary,
+      title: decomposed.project_title ?? 'Demo-Projekt',
+      description: decomposed.scope_summary,
       status: 'intake',
-      goals: t.goals,
-      success_criteria: t.success_criteria,
-      risks: t.risks,
-      open_questions: t.open_questions,
-      scope_summary: t.scope_summary,
+      goals: decomposed.goals ?? [],
+      success_criteria: decomposed.success_criteria ?? [],
+      risks: decomposed.risks ?? [],
+      open_questions: decomposed.open_questions ?? [],
+      scope_summary: decomposed.scope_summary,
       ai_decomposed_at: new Date().toISOString(),
     }).select().single()
 
@@ -87,32 +106,34 @@ export async function POST(req: NextRequest) {
 
     const projectId = project.id
 
-    for (let ei = 0; ei < t.epics.length; ei++) {
-      const ep = t.epics[ei]
+    let taskCount = 0
+    for (let ei = 0; ei < (decomposed.epics ?? []).length; ei++) {
+      const ep = decomposed.epics[ei]
       const { data: epic } = await sb.from('epics').insert({
         project_id: projectId,
         title: ep.title,
         description: ep.description,
-        priority: ep.priority,
+        priority: ep.priority ?? 'medium',
         estimated_effort: ep.estimated_effort,
         order_index: ei,
       }).select().single()
 
       if (!epic) continue
 
-      for (const task of ep.tasks) {
+      for (const task of (ep.tasks ?? [])) {
         await sb.from('tasks').insert({
           project_id: projectId,
           epic_id: epic.id,
           title: task.title,
           description: task.description,
           status: 'todo',
-          priority: task.priority,
+          priority: task.priority ?? 'medium',
           estimated_hours: task.estimated_hours,
-          acceptance_criteria: task.acceptance_criteria,
-          tags: task.tags,
-          requires_approval: task.requires_approval,
+          acceptance_criteria: task.acceptance_criteria ?? [],
+          tags: task.tags ?? [],
+          requires_approval: task.requires_approval ?? false,
         })
+        taskCount++
       }
     }
 
@@ -120,10 +141,10 @@ export async function POST(req: NextRequest) {
       user_id: userId,
       project_id: projectId,
       type: 'project_status',
-      message: `Test-Projekt "${t.project_title}" wurde angelegt (${t.epics.length} Epics, ${t.epics.reduce((a, e) => a + e.tasks.length, 0)} Tasks)`,
+      message: `Demo-Projekt "${decomposed.project_title}" wurde von Tagro AI generiert (${(decomposed.epics ?? []).length} Epics, ${taskCount} Tasks)`,
     }).catch(() => {})
 
-    return NextResponse.json({ projectId, decomposed: t })
+    return NextResponse.json({ projectId, decomposed })
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 })
   }

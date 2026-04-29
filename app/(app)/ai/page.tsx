@@ -10,6 +10,8 @@ type Task = { id: string; title: string; status: string; project_id: string }
 
 const PHASE: Record<string, string> = { intake: 'Intake', planning: 'Planning', active: 'In Arbeit', testing: 'Testing', done: 'Abgeschlossen' }
 
+const TEST_TRIGGER = /^\s*test[\s\-_]*projekt\s*$/i
+
 const SYSTEM = `Du bist Tagro, das AI-Produktionssystem von Festag.
 Verhalte dich wie ein erfahrener CTO und Projektmanager in einem.
 Beantworte Fragen klar und direkt. Maximal 5 Sätze pro Antwort.
@@ -75,6 +77,39 @@ export default function AIPage() {
     return '\n\nAktuelle Projekte:\n' + projects.map(p => `- ${p.title} (${PHASE[p.status] ?? p.status})${p.description ? ': ' + p.description : ''}`).join('\n')
   }
 
+  async function createTestProject() {
+    setLoading(true)
+    try {
+      const { data: { session } } = await sb.auth.getSession()
+      const userId = session?.user.id
+      if (!userId) { setLoading(false); return }
+      const res = await fetch('/api/ai/test-project', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId }),
+      })
+      const d = await res.json()
+      if (d.projectId) {
+        const title = d.decomposed?.project_title ?? 'Demo-Projekt'
+        const epics = d.decomposed?.epics?.length ?? 0
+        const tasks = d.decomposed?.epics?.reduce((a: number, e: any) => a + (e.tasks?.length ?? 0), 0) ?? 0
+        setMsgs(m => [...m, {
+          role: 'ai',
+          text: `**Demo-Projekt erstellt: "${title}"**\n\n- ${epics} Epics\n- ${tasks} Tasks\n- Status: \`intake\`\n\n[Projekt öffnen →](/project/${d.projectId})`,
+          time: fmt(),
+        }])
+        // Projekte neu laden für Sidebar
+        const { data: p } = await sb.from('projects').select('id,title,status,description').order('created_at', { ascending: false }).limit(8)
+        setProjects(p ?? [])
+      } else {
+        setMsgs(m => [...m, { role: 'ai', text: `Konnte Demo-Projekt nicht anlegen: ${d.error ?? 'unbekannter Fehler'}`, time: fmt() }])
+      }
+    } catch {
+      setMsgs(m => [...m, { role: 'ai', text: 'Verbindungsfehler beim Anlegen des Demo-Projekts.', time: fmt() }])
+    }
+    setLoading(false)
+  }
+
   async function send(text?: string) {
     const msg = (text ?? input).trim()
     if (!msg || loading) return
@@ -83,6 +118,14 @@ export default function AIPage() {
 
     const userMsg: Msg = { role: 'user', text: msg, time: fmt() }
     setMsgs(m => [...m, userMsg])
+
+    // Shortcut: "test projekt" → AI-generiertes Demo-Projekt anlegen
+    if (TEST_TRIGGER.test(msg)) {
+      setMsgs(m => [...m, { role: 'ai', text: 'Tagro generiert ein realistisches Demo-Projekt — einen Moment…', time: fmt() }])
+      createTestProject()
+      return
+    }
+
     setLoading(true)
 
     try {
@@ -119,7 +162,6 @@ export default function AIPage() {
       <style>{`
         .ai-msg-in { animation: fadeUp .25s cubic-bezier(.16,1,.3,1) both }
         .ai-sidebar { display: none; }
-        .ai-input-wrap { border-color: var(--border-strong) !important; }
         @media(min-width:769px) {
           .ai-sidebar { display: flex; }
           .ai-quick { gap: 6px !important }
@@ -127,7 +169,6 @@ export default function AIPage() {
         }
         @media(max-width:768px) {
           .ai-quick button { font-size: 11px !important; padding: 5px 10px !important }
-          .ai-input-wrap { background: var(--surface) !important; border-color: var(--border-strong) !important; }
         }
       `}</style>
 
@@ -166,12 +207,12 @@ export default function AIPage() {
                   borderRadius: m.role === 'ai' ? '4px 16px 16px 16px' : '16px 4px 16px 16px',
                   background: m.role === 'ai' ? 'var(--card)' : 'var(--btn-prim)',
                   border: m.role === 'ai' ? '1px solid var(--border)' : 'none',
-                  color: m.role === 'ai' ? 'var(--text)' : 'var(--btn-prim-text)',
+                  color: m.role === 'ai' ? 'var(--text)' : '#FFFFFF',
                   fontSize: 14, lineHeight: 1.6, wordBreak: 'break-word',
                 }}>
                   {m.role === 'ai'
                     ? <ChatMarkdown text={m.text} />
-                    : <p style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{m.text}</p>}
+                    : <p style={{ margin: 0, whiteSpace: 'pre-wrap', color: '#FFFFFF', fontWeight: 600 }}>{m.text}</p>}
                 </div>
                 <span style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '.02em' }}>
                   {m.role === 'ai' ? 'Tagro' : 'Du'} · {m.time}
@@ -199,24 +240,23 @@ export default function AIPage() {
           )}
         </div>
 
-        {/* Quick actions */}
-        <div className="ai-quick" style={{ padding: '0 24px 10px', display: 'flex', gap: 8, overflowX: 'auto', flexShrink: 0 }}>
-          {QUICK.map(q => (
-            <button key={q} onClick={() => send(q)} disabled={loading} className="tap-scale"
-              style={{ padding: '6px 13px', borderRadius: 20, border: '1px solid var(--border)', background: 'var(--card)', fontSize: 12, color: 'var(--text-secondary)', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0, fontFamily: 'inherit', fontWeight: 500, transition: 'border-color .1s' }}
-              onMouseEnter={e => (e.currentTarget as HTMLElement).style.borderColor = 'var(--border-strong)'}
-              onMouseLeave={e => (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'}
-            >
-              {q}
-            </button>
-          ))}
-        </div>
+        {/* Quick actions + Input — zentriert in einem Container */}
+        <div style={{ width: '100%', maxWidth: 760, margin: '0 auto', padding: '0 20px 20px', flexShrink: 0 }}>
+          <div className="ai-quick" style={{ padding: '0 0 10px', display: 'flex', gap: 8, overflowX: 'auto' }}>
+            {QUICK.map(q => (
+              <button key={q} onClick={() => send(q)} disabled={loading} className="tap-scale"
+                style={{ padding: '6px 13px', borderRadius: 20, border: '1px solid var(--border)', background: 'var(--card)', fontSize: 12, color: 'var(--text-secondary)', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0, fontFamily: 'inherit', fontWeight: 500, transition: 'border-color .1s' }}
+                onMouseEnter={e => (e.currentTarget as HTMLElement).style.borderColor = 'var(--border-strong)'}
+                onMouseLeave={e => (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'}
+              >
+                {q}
+              </button>
+            ))}
+          </div>
 
-        {/* Input */}
-        <div style={{ padding: '0 20px 20px', flexShrink: 0 }}>
-          <div className="ai-input-wrap" style={{ display: 'flex', gap: 8, alignItems: 'flex-end', background: 'var(--card)', border: '1.5px solid var(--border-strong)', borderRadius: 16, padding: '10px 12px 10px 16px', transition: 'border-color .15s' }}
+          <div className="ai-input-wrap" style={{ display: 'flex', gap: 8, alignItems: 'flex-end', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 16, padding: '10px 12px 10px 16px', transition: 'border-color .15s' }}
             onFocusCapture={e => (e.currentTarget as HTMLElement).style.borderColor = 'var(--text-muted)'}
-            onBlurCapture={e => (e.currentTarget as HTMLElement).style.borderColor = 'var(--border-strong)'}
+            onBlurCapture={e => (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'}
           >
             <textarea
               ref={inputRef}
@@ -235,14 +275,16 @@ export default function AIPage() {
               onClick={() => send()}
               disabled={!input.trim() || loading}
               className="tap-scale"
-              style={{ width: 36, height: 36, borderRadius: 10, border: 'none', flexShrink: 0, background: input.trim() && !loading ? 'var(--btn-prim)' : 'var(--surface-2)', color: input.trim() && !loading ? 'var(--btn-prim-text)' : 'var(--text-muted)', cursor: input.trim() && !loading ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background .15s' }}>
+              style={{ width: 36, height: 36, borderRadius: 10, border: 'none', flexShrink: 0, background: input.trim() && !loading ? 'var(--btn-prim)' : 'var(--surface-2)', color: input.trim() && !loading ? '#FFFFFF' : 'var(--text-muted)', cursor: input.trim() && !loading ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background .15s' }}>
               {loading
                 ? <span style={{ width: 14, height: 14, border: '2px solid rgba(128,128,128,.3)', borderTopColor: 'currentColor', borderRadius: '50%', animation: 'spin .7s linear infinite' }} />
                 : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M7 17L17 7M9 7h8v8"/></svg>
               }
             </button>
           </div>
-          <p style={{ fontSize: 10.5, color: 'var(--text-muted)', textAlign: 'center', margin: '7px 0 0', opacity: .5 }}>Enter zum Senden · Shift+Enter für neue Zeile</p>
+          <p style={{ fontSize: 11, color: 'var(--text-muted)', textAlign: 'center', margin: '8px 0 0', opacity: .55 }}>
+            Enter zum Senden · Shift+Enter für neue Zeile · Tipp: <code style={{ fontFamily: 'ui-monospace,monospace', background: 'var(--surface-2)', padding: '1px 5px', borderRadius: 4 }}>test projekt</code> für Demo
+          </p>
         </div>
       </div>
 

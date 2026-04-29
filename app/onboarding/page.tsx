@@ -287,9 +287,9 @@ export default function OnboardingPage() {
                 </div>
               ) : (
                 <div style={{
-                  background: 'var(--accent)', color: 'var(--accent-text)',
+                  background: 'var(--accent)', color: '#FFFFFF',
                   padding: '12px 18px', borderRadius: '18px 18px 4px 18px',
-                  fontSize: 15, fontWeight: 500, lineHeight: 1.5,
+                  fontSize: 15, fontWeight: 600, lineHeight: 1.5,
                   maxWidth: '80%',
                 }}>
                   {m.text}
