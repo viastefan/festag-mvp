@@ -2,13 +2,15 @@
 
 import { useEffect, useRef, useState } from 'react'
 
-type BankData = {
+export type BankData = {
   reference: string
   amount_eur: string
   currency: string
   bank_account: { holder: string; iban: string; bic: string }
   instruction?: string
 }
+
+export const PAYMENT_POLL_DURATION_MS = 2 * 60 * 1000
 
 type Props = {
   amount: number          // EUR (Zahl, z.B. 890)
@@ -17,23 +19,29 @@ type Props = {
   onClose: () => void
   onSuccess: (reference: string) => void   // Zahlung in 2 Min bestätigt
   onTimeout: (reference: string) => void   // Polling abgelaufen, manuelle Aktivierung
+  // Resume-Modus: bereits erstellte Zahlungs-Session wieder aufnehmen
+  resumeFrom?: { bankData: BankData; startedAt: number }
+  // Wird gerufen sobald bankData verfügbar ist (zum Persistieren der Session)
+  onSessionReady?: (bankData: BankData, startedAt: number) => void
 }
 
 const POLL_INTERVAL_MS = 5_000
-const POLL_DURATION_MS = 2 * 60 * 1000  // 2 Minuten
+const POLL_DURATION_MS = PAYMENT_POLL_DURATION_MS  // 2 Minuten
 
-export default function PaymentModal({ amount, note, itemTitle, onClose, onSuccess, onTimeout }: Props) {
-  const [phase, setPhase] = useState<'init' | 'await' | 'done' | 'timeout' | 'error'>('init')
+export default function PaymentModal({ amount, note, itemTitle, onClose, onSuccess, onTimeout, resumeFrom, onSessionReady }: Props) {
+  const isResume = !!resumeFrom
+  const [phase, setPhase] = useState<'init' | 'await' | 'done' | 'timeout' | 'error'>(isResume ? 'await' : 'init')
   const [error, setError] = useState('')
-  const [bankData, setBankData] = useState<BankData | null>(null)
+  const [bankData, setBankData] = useState<BankData | null>(resumeFrom?.bankData ?? null)
   const [secondsLeft, setSecondsLeft] = useState(Math.round(POLL_DURATION_MS / 1000))
   const [copied, setCopied] = useState<string | null>(null)
   const tickRef = useRef<any>(null)
   const pollRef = useRef<any>(null)
-  const startedAtRef = useRef<number>(0)
+  const startedAtRef = useRef<number>(resumeFrom?.startedAt ?? 0)
 
-  // Step 1: Create payment
+  // Step 1: Create payment — uebersprungen im Resume-Modus
   useEffect(() => {
+    if (isResume) return
     let cancelled = false
     fetch('/api/payments/create', {
       method: 'POST',
@@ -46,15 +54,26 @@ export default function PaymentModal({ amount, note, itemTitle, onClose, onSucce
         if (data.error) { setError(data.error); setPhase('error'); return }
         setBankData(data as BankData)
         setPhase('await')
+        // Session-Beginn an Parent melden, damit sie persistiert werden kann
+        const start = Date.now()
+        startedAtRef.current = start
+        onSessionReady?.(data as BankData, start)
       })
       .catch(e => { if (!cancelled) { setError(e?.message ?? 'Verbindungsfehler'); setPhase('error') } })
     return () => { cancelled = true }
-  }, [amount, note])
+  }, [amount, note, isResume, onSessionReady])
 
   // Step 2: Polling + Countdown
   useEffect(() => {
     if (phase !== 'await' || !bankData) return
-    startedAtRef.current = Date.now()
+    if (!startedAtRef.current) startedAtRef.current = Date.now()
+    // Wenn Resume und Zeit bereits abgelaufen: direkt timeout
+    const elapsed0 = Date.now() - startedAtRef.current
+    if (elapsed0 >= POLL_DURATION_MS) {
+      setPhase('timeout')
+      onTimeout(bankData.reference)
+      return
+    }
 
     tickRef.current = setInterval(() => {
       const elapsed = Date.now() - startedAtRef.current
