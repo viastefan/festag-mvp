@@ -6,15 +6,16 @@ import { createClient } from '@/lib/supabase/client'
 import { useState, useEffect } from 'react'
 
 const ALL_NAV = [
-  { href:'/dashboard',       icon:'home',     label:'Home' },
-  { href:'/project/current', icon:'project',  label:'Aktuelles Projekt' },
-  { href:'/ai',              icon:'sparkle',  label:'AI' },
-  { href:'/messages',        icon:'chat',     label:'Messages' },
-  { href:'/addons',          icon:'grid',     label:'Add-ons' },
-  { href:'/activity',        icon:'activity', label:'Activity' },
-  { href:'/billing',         icon:'billing',  label:'Billing' },
-  { href:'/documents',       icon:'doc',      label:'Dokumente' },
-  { href:'/settings',        icon:'user',     label:'Profil' },
+  { href:'/dashboard',       icon:'home',      label:'Home' },
+  { href:'/project/current', icon:'project',   label:'Aktuelles Projekt' },
+  { href:'/ai',              icon:'sparkle',   label:'AI' },
+  { href:'/messages',        icon:'chat',      label:'Messages' },
+  { href:'/estimator',       icon:'estimate',  label:'Preisschätzer' },
+  { href:'/addons',          icon:'grid',      label:'Add-ons' },
+  { href:'/activity',        icon:'activity',  label:'Activity' },
+  { href:'/billing',         icon:'billing',   label:'Billing' },
+  { href:'/documents',       icon:'doc',       label:'Dokumente' },
+  { href:'/settings',        icon:'user',      label:'Profil' },
 ]
 const MOB_PRIMARY = [
   { href:'/dashboard',       icon:'home',    label:'Home' },
@@ -24,10 +25,11 @@ const MOB_PRIMARY = [
   { href:'/settings',        icon:'user',    label:'Profil' },
 ]
 const MOB_MORE = [
-  { href:'/addons',    icon:'grid',     label:'Add-ons' },
-  { href:'/activity',  icon:'activity', label:'Activity' },
-  { href:'/billing',   icon:'billing',  label:'Billing' },
-  { href:'/documents', icon:'doc',      label:'Dokumente' },
+  { href:'/estimator',  icon:'estimate', label:'Preisschätzer' },
+  { href:'/addons',     icon:'grid',     label:'Add-ons' },
+  { href:'/activity',   icon:'activity', label:'Activity' },
+  { href:'/billing',    icon:'billing',  label:'Billing' },
+  { href:'/documents',  icon:'doc',      label:'Dokumente' },
 ]
 
 function Ico({ name, sz=18, on=false }: { name:string; sz?:number; on?:boolean }) {
@@ -51,8 +53,8 @@ function Ico({ name, sz=18, on=false }: { name:string; sz?:number; on?:boolean }
     activity:<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>,
     billing: <><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></>,
     doc:     <><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></>,
-    // User icon — properly sized, not clipped
     user:    <><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c0-3.5 3.1-6 7-6s7 2.5 7 6"/></>,
+    estimate:<><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/><circle cx="12" cy="12" r="3"/></>,
     more:    <><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></>,
     close:   <><path d="M18 6L6 18"/><path d="M6 6l12 12"/></>,
   }
