@@ -126,32 +126,63 @@ export default function AddonsPage() {
     } catch {}
   }, [storageKey])
 
-  // Aktive Zahlungs-Session aus localStorage wiederherstellen (nach Reload)
+  // Aktive Zahlungs-Session aus localStorage wiederherstellen (nach Reload).
+  // Skippt sofort, wenn das Add-on bereits als aktiv markiert ist.
   const sessionKey = userId ? `active_payment_session_${userId}` : ''
+  const resumeAttemptedRef = useRef(false)
+
   useEffect(() => {
     if (!sessionKey || typeof window === 'undefined') return
+    if (resumeAttemptedRef.current) return  // genau einmal pro Page-Load
     try {
       const raw = window.localStorage.getItem(sessionKey)
-      if (!raw) return
+      if (!raw) { resumeAttemptedRef.current = true; return }
       const data: ActiveSession = JSON.parse(raw)
-      // Wenn die 2-Min-Session bereits klar abgelaufen ist (+1 Min Puffer), nicht reopen
-      if (Date.now() - data.startedAt > PAYMENT_POLL_DURATION_MS + 60_000) {
+
+      // Add-on schon aktiv? Session war veraltet — wegwerfen, kein Resume.
+      const purchasesRaw = storageKey ? window.localStorage.getItem(storageKey) : null
+      const cur = purchasesRaw ? JSON.parse(purchasesRaw) : {}
+      if (cur[data.addonId]?.status === 'active') {
         window.localStorage.removeItem(sessionKey)
+        resumeAttemptedRef.current = true
         return
       }
+
+      // Zu alt? +1 Min Puffer.
+      if (Date.now() - data.startedAt > PAYMENT_POLL_DURATION_MS + 60_000) {
+        window.localStorage.removeItem(sessionKey)
+        resumeAttemptedRef.current = true
+        return
+      }
+
       const addon = CATALOG.find(a => a.id === data.addonId)
-      if (!addon) { window.localStorage.removeItem(sessionKey); return }
+      if (!addon) {
+        window.localStorage.removeItem(sessionKey)
+        resumeAttemptedRef.current = true
+        return
+      }
+      resumeAttemptedRef.current = true
       setResumeSession(data)
       setPaying(addon)
     } catch {
       window.localStorage.removeItem(sessionKey)
+      resumeAttemptedRef.current = true
     }
-  }, [sessionKey])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionKey, storageKey])
 
-  function clearActiveSession() {
+  // Trennt: localStorage-Cleanup vs. State-Cleanup.
+  // Nach Erfolg: Storage sofort raeumen, State (resumeSession) bleibt
+  // bis zum onClose, damit das Modal seine resumeFrom-Prop nicht verliert
+  // und keinen erneuten create_payment-Call ausloesen kann.
+  function clearActiveSessionStorage() {
     if (typeof window !== 'undefined' && sessionKey) {
       window.localStorage.removeItem(sessionKey)
     }
+  }
+
+  function fullResetActiveSession() {
+    clearActiveSessionStorage()
     setResumeSession(null)
   }
 
@@ -380,16 +411,19 @@ export default function AddonsPage() {
           itemTitle={paying.name}
           resumeFrom={resumeSession ? { bankData: resumeSession.bankData, startedAt: resumeSession.startedAt } : undefined}
           onSessionReady={(bankData, startedAt) => persistActiveSession(paying.id, bankData, startedAt)}
-          onClose={() => { setPaying(null); clearActiveSession() }}
+          onClose={() => { setPaying(null); fullResetActiveSession() }}
           onSuccess={(reference) => {
             markActive(paying.id, reference)
-            clearActiveSession()
+            // Storage sofort raeumen, State erst beim onClose — dadurch
+            // bleibt resumeFrom waehrend des "Erfolg"-Screens stabil und
+            // keine Re-Render-Logik kann einen zweiten create_payment ausloesen.
+            clearActiveSessionStorage()
             setToast({ kind: 'success', text: `${paying.name} ist jetzt aktiv.` })
             setTimeout(() => setToast(null), 4000)
           }}
           onTimeout={(reference) => {
             markPending(paying.id, reference)
-            clearActiveSession()
+            clearActiveSessionStorage()
             setToast({ kind: 'pending', text: `Zahlung noch nicht erkannt. ${paying.name} wird automatisch in den nächsten 24h aktiviert, sobald sie eingeht.` })
             setTimeout(() => setToast(null), 7000)
           }}

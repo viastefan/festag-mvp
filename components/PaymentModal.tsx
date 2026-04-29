@@ -39,19 +39,24 @@ export default function PaymentModal({ amount, note, itemTitle, onClose, onSucce
   const pollRef = useRef<any>(null)
   const startedAtRef = useRef<number>(resumeFrom?.startedAt ?? 0)
 
-  // Mount-Refs: einfrieren der initial-Props, damit Re-Renders mit
-  // neuen prop-Werten (z.B. nachdem resumeFrom durch clearSession auf null
-  // gesetzt wird) keinen erneuten Create-Call ausloesen.
+  // Mount-Refs: einfrieren der initial-Props
   const initialResumeRef = useRef<typeof resumeFrom>(resumeFrom)
   const amountRef = useRef(amount)
   const noteRef = useRef(note)
   const onSessionReadyRef = useRef(onSessionReady)
   onSessionReadyRef.current = onSessionReady
 
-  // Step 1: Create payment — laeuft GENAU einmal beim Mount.
-  // Bei Resume-Mount wird der Create-Call uebersprungen.
+  // Hard-Lock: max EIN create_payment-Call pro Komponenten-Lifetime,
+  // egal was Strict Mode, Re-Renders oder Effekt-Re-Runs versuchen.
+  const createCalledRef = useRef(false)
+
+  // Step 1: Create payment — laeuft maximal einmal pro Mount.
+  // Bei Resume-Mount wird komplett uebersprungen.
   useEffect(() => {
     if (initialResumeRef.current) return
+    if (createCalledRef.current) return
+    createCalledRef.current = true
+
     let cancelled = false
     fetch('/api/payments/create', {
       method: 'POST',
