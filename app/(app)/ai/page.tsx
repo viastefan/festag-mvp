@@ -162,6 +162,8 @@ export default function AIPage() {
       <style>{`
         .ai-msg-in { animation: fadeUp .25s cubic-bezier(.16,1,.3,1) both }
         .ai-sidebar { display: none; }
+        .ai-quick { scrollbar-width: none; -ms-overflow-style: none; }
+        .ai-quick::-webkit-scrollbar { display: none; height: 0; width: 0; }
         @media(min-width:769px) {
           .ai-sidebar { display: flex; }
           .ai-quick { gap: 6px !important }
@@ -240,9 +242,9 @@ export default function AIPage() {
           )}
         </div>
 
-        {/* Quick actions + Input — zentriert in einem Container */}
-        <div style={{ width: '100%', maxWidth: 760, margin: '0 auto', padding: '0 20px 20px', flexShrink: 0 }}>
-          <div className="ai-quick" style={{ padding: '0 0 10px', display: 'flex', gap: 8, overflowX: 'auto' }}>
+        {/* Quick actions + Input — zentriert in einem schmalen Container */}
+        <div style={{ width: '100%', maxWidth: 720, margin: '0 auto', padding: '6px 16px 18px', flexShrink: 0, boxSizing: 'border-box' }}>
+          <div className="ai-quick" style={{ padding: '0 0 10px', display: 'flex', gap: 8, overflowX: 'auto', overflowY: 'hidden' }}>
             {QUICK.map(q => (
               <button key={q} onClick={() => send(q)} disabled={loading} className="tap-scale"
                 style={{ padding: '6px 13px', borderRadius: 20, border: '1px solid var(--border)', background: 'var(--card)', fontSize: 12, color: 'var(--text-secondary)', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0, fontFamily: 'inherit', fontWeight: 500, transition: 'border-color .1s' }}
@@ -254,7 +256,7 @@ export default function AIPage() {
             ))}
           </div>
 
-          <div className="ai-input-wrap" style={{ display: 'flex', gap: 8, alignItems: 'flex-end', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 16, padding: '10px 12px 10px 16px', transition: 'border-color .15s' }}
+          <div className="ai-input-wrap" style={{ display: 'flex', gap: 8, alignItems: 'flex-end', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 14, padding: '8px 10px 8px 14px', transition: 'border-color .15s' }}
             onFocusCapture={e => (e.currentTarget as HTMLElement).style.borderColor = 'var(--text-muted)'}
             onBlurCapture={e => (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'}
           >
@@ -269,15 +271,15 @@ export default function AIPage() {
               onKeyDown={handleKey}
               placeholder="Frage Tagro…"
               rows={1}
-              style={{ flex: 1, resize: 'none', border: 'none', outline: 'none', background: 'transparent', fontSize: 15, lineHeight: 1.55, color: 'var(--text)', fontFamily: 'inherit', fontWeight: 500, padding: 0, overflowY: 'hidden', minHeight: 24, caretColor: 'var(--green)' }}
+              style={{ flex: 1, resize: 'none', border: 'none', outline: 'none', background: 'transparent', fontSize: 14, lineHeight: 1.5, color: 'var(--text)', fontFamily: 'inherit', fontWeight: 500, padding: '6px 0', overflowY: 'hidden', minHeight: 22, caretColor: 'var(--green)' }}
             />
             <button
               onClick={() => send()}
               disabled={!input.trim() || loading}
               className="tap-scale"
-              style={{ width: 36, height: 36, borderRadius: 10, border: 'none', flexShrink: 0, background: input.trim() && !loading ? 'var(--btn-prim)' : 'var(--surface-2)', color: input.trim() && !loading ? '#FFFFFF' : 'var(--text-muted)', cursor: input.trim() && !loading ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background .15s' }}>
+              style={{ width: 34, height: 34, borderRadius: 10, border: 'none', flexShrink: 0, background: input.trim() && !loading ? 'var(--btn-prim)' : 'var(--surface-2)', color: input.trim() && !loading ? '#FFFFFF' : 'var(--text-muted)', cursor: input.trim() && !loading ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background .15s' }}>
               {loading
-                ? <span style={{ width: 14, height: 14, border: '2px solid rgba(128,128,128,.3)', borderTopColor: 'currentColor', borderRadius: '50%', animation: 'spin .7s linear infinite' }} />
+                ? <span style={{ width: 14, height: 14, border: '2px solid rgba(255,255,255,.3)', borderTopColor: 'currentColor', borderRadius: '50%', animation: 'spin .7s linear infinite' }} />
                 : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M7 17L17 7M9 7h8v8"/></svg>
               }
             </button>

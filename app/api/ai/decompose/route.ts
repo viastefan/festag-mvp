@@ -136,12 +136,14 @@ export async function POST(req: NextRequest) {
     }
 
     // Log to activity feed
-    await sb.from('activity_feed').insert({
-      user_id: userId,
-      project_id: projectId,
-      type: 'project_status',
-      message: `Projekt "${decomposed.project_title}" wurde von Tagro AI strukturiert (${(decomposed.epics ?? []).length} Epics, ${(decomposed.epics ?? []).reduce((a: number, e: any) => a + (e.tasks?.length ?? 0), 0)} Tasks)`,
-    }).catch(() => {})
+    try {
+      await sb.from('activity_feed').insert({
+        user_id: userId,
+        project_id: projectId,
+        type: 'project_status',
+        message: `Projekt "${decomposed.project_title}" wurde von Tagro AI strukturiert (${(decomposed.epics ?? []).length} Epics, ${(decomposed.epics ?? []).reduce((a: number, e: any) => a + (e.tasks?.length ?? 0), 0)} Tasks)`,
+      })
+    } catch { /* optional */ }
 
     return NextResponse.json({ decomposed, projectId })
   } catch (err: any) {
