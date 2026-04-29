@@ -2,11 +2,15 @@ import { NextRequest, NextResponse } from 'next/server'
 
 const ENJYN_API = 'https://payground.enjyn.de/bankapi/bank-api.php'
 
+// Hinweis: Key wird ausschließlich serverseitig genutzt und nicht ans Frontend ausgeliefert.
+// Sobald Vercel-ENV verfügbar ist, dort ENJYN_API_KEY setzen — die ENV hat Vorrang.
+const ENJYN_API_KEY_FALLBACK = '0506bfde62e5e99613dd67e4f52a6be370e321816b0c3459'
+
 export async function GET(req: NextRequest) {
   try {
     const reference = req.nextUrl.searchParams.get('reference')
     if (!reference) return NextResponse.json({ error: 'reference required' }, { status: 400 })
-    const apiKey = process.env.ENJYN_API_KEY
+    const apiKey = process.env.ENJYN_API_KEY || ENJYN_API_KEY_FALLBACK
     if (!apiKey) return NextResponse.json({ error: 'Payment API not configured' }, { status: 500 })
 
     const res = await fetch(`${ENJYN_API}?action=transactions`, {
