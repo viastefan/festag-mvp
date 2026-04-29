@@ -1,14 +1,13 @@
 export type ThemeMode = 'dark' | 'light' | 'read'
 
 export function getTheme(): ThemeMode {
-  if (typeof window === 'undefined') return 'dark'
-  return (localStorage.getItem('festag_theme') as ThemeMode) || 'dark'
+  if (typeof window === 'undefined') return 'read'
+  return (localStorage.getItem('festag_theme') as ThemeMode) || 'read'
 }
 
 export function setTheme(mode: ThemeMode) {
   localStorage.setItem('festag_theme', mode)
   document.documentElement.setAttribute('data-theme', mode)
-  // Custom event so same-tab listeners update
   window.dispatchEvent(new CustomEvent('festag-theme', { detail: mode }))
 }
 

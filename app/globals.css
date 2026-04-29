@@ -1,5 +1,3 @@
- 
-
 @font-face { font-family:'Aeonik'; src:url('/fonts/Aeonik-Regular.ttf') format('truetype'); font-weight:400; font-display:swap; }
 @font-face { font-family:'Aeonik'; src:url('/fonts/Aeonik-Medium.ttf') format('truetype'); font-weight:500; font-display:swap; }
 @font-face { font-family:'Aeonik'; src:url('/fonts/Aeonik-Bold.ttf') format('truetype'); font-weight:700; font-display:swap; }
@@ -19,89 +17,89 @@
   --glow:rgba(24,29,28,0.07);
   --sidebar-bg:rgba(255,255,255,0.93); --sidebar-border:rgba(255,255,255,0.97);
   --nav-on:#F1F3F1; --nav-on-text:#0F120F; --nav-off-text:#64748B;
-  /* Keep legacy compat vars */
   --surface-2:#F1F5F9; --green:#10B981; --green-bg:#ECFDF5; --green-border:#A7F3D0; --green-dark:#059669;
   --amber:#F59E0B; --amber-bg:#FFFBEB; --amber-dark:#D97706;
   --red:#EF4444; --red-bg:#FEF2F2;
   --shadow-xs:0 1px 4px rgba(15,23,42,.04); --shadow-sm:0 2px 8px rgba(15,23,42,.06);
   --shadow:0 4px 20px rgba(15,23,42,.07); --shadow-lg:0 8px 30px rgba(15,23,42,.08);
   --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
-  /* Border-radius tokens (consistent across all components) */
   --r:12px; --r-xs:8px; --r-sm:10px; --r-md:12px; --r-lg:16px; --r-xl:22px;
 }
 
+/* ── DARK — Premium void-mineral palette, 2028 ── */
 [data-theme="dark"] {
-  /* ── Elevation System — ultra-premium near-black ── */
-  --bg:#080909;              /* near-absolute black, 2028 luxury */
-  --surface:#0E0F0F;         /* +1 elevation — imperceptible lift */
-  --card:#131414;            /* +2 — cards, panels — surgical precision */
-  --surface-2:#1B1C1C;       /* +3 — hover, active states */
+  --bg:#0B0F0E;
+  --surface:#111817;
+  --card:#171F1D;
+  --surface-2:#1F2A27;
 
-  /* ── Borders — ultra-subtle structure ── */
-  --border:rgba(255,255,255,0.04);
-  --border-strong:rgba(255,255,255,0.08);
+  --border:rgba(255,255,255,0.05);
+  --border-strong:rgba(255,255,255,0.10);
 
-  /* ── Typography — maximum contrast & clarity ── */
-  --text:#F5F5F5;             /* primary — pure white */
-  --text-secondary:#ABABAB;   /* secondary — neutral gray */
-  --text-muted:#626262;       /* tertiary — subtext & hints */
+  --text:#EAE8E4;
+  --text-secondary:#7E8F8A;
+  --text-muted:#485552;
 
-  /* ── CTA Button — decisive & premium ── */
-  --btn-prim:#F5F5F5; --btn-prim-text:#080909;
+  --btn-prim:#EAE8E4; --btn-prim-text:#0B0F0E;
 
-  /* ── Brand Accent — sophisticated muted teal ── */
-  --accent:#1A3A33; --accent-text:#9CB8B0;
+  /* Accent — deep void with warm mineral text */
+  --accent:#101916; --accent-text:#A8BDB8;
 
-  /* ── Inputs ── */
-  --inp:rgba(255,255,255,0.02);
-  --inp-border:rgba(255,255,255,0.06);
-  --inp-focus:rgba(255,255,255,0.04);
-  --inp-focus-border:rgba(255,255,255,0.18);
-  --glow:rgba(255,255,255,0.015);
+  --inp:rgba(255,255,255,0.025);
+  --inp-border:rgba(255,255,255,0.065);
+  --inp-focus:rgba(255,255,255,0.045);
+  --inp-focus-border:rgba(255,255,255,0.20);
+  --glow:rgba(168,189,184,0.06);
 
-  /* ── Sidebar / Nav ── */
-  --sidebar-bg:rgba(8,9,9,0.98);
-  --sidebar-border:rgba(255,255,255,0.04);
-  --nav-on:rgba(255,255,255,0.06);
-  --nav-on-text:#F5F5F5;
-  --nav-off-text:#6D6D6D;
+  --sidebar-bg:rgba(14,20,18,0.97);
+  --sidebar-border:rgba(255,255,255,0.045);
+  --nav-on:rgba(255,255,255,0.07);
+  --nav-on-text:#EAE8E4;
+  --nav-off-text:#566260;
 
-  /* ── Status Colors — muted & sophisticated ── */
-  --green:#7DB89F;
-  --green-bg:rgba(125,184,159,0.08);
-  --green-border:rgba(125,184,159,0.15);
-  --green-dark:#8CCBB0;
-  --amber:#7DB89F;
-  --amber-bg:rgba(125,184,159,0.08);
-  --amber-dark:#8CCBB0;
-  --red:#C07070;
-  --red-bg:rgba(192,112,112,0.08);
+  /* Status — forest green (not neon) */
+  --green:#2DA882;
+  --green-bg:rgba(45,168,130,0.10);
+  --green-border:rgba(45,168,130,0.22);
+  --green-dark:#3EBC94;
 
-  /* ── Shadows — refined depth ── */
-  --shadow-xs:0 1px 2px rgba(0,0,0,.6);
-  --shadow-sm:0 2px 6px rgba(0,0,0,.65);
-  --shadow:0 4px 16px rgba(0,0,0,.75);
-  --shadow-lg:0 8px 28px rgba(0,0,0,.85);
+  /* Amber — warm mineral gold */
+  --amber:#B88A3C;
+  --amber-bg:rgba(184,138,60,0.10);
+  --amber-dark:#CEAA58;
+
+  --red:#D95454;
+  --red-bg:rgba(217,84,84,0.08);
+
+  --shadow-xs:0 1px 3px rgba(0,0,0,.50);
+  --shadow-sm:0 2px 8px rgba(0,0,0,.58);
+  --shadow:0 4px 20px rgba(0,0,0,.68);
+  --shadow-lg:0 8px 36px rgba(0,0,0,.80);
 
   --logo-filter:brightness(0) invert(1);
+  --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
+  --r:12px; --r-xs:8px; --r-sm:10px; --r-md:12px; --r-lg:16px; --r-xl:22px;
 }
 
+/* ── READ — Soft paper, warm manuscript feel ── */
 [data-theme="read"] {
-  --bg:#F5F0E8; --surface:#FDFAF4; --card:#EDE8DE;
+  --bg:#F8F7F2; --surface:#FDFCF8; --card:#EFECE4;
   --border:rgba(0,0,0,0.07); --border-strong:rgba(0,0,0,0.14);
   --text:#2C2416; --text-secondary:#6B5E47; --text-muted:#A09278;
-  --btn-prim:#181D1C; --btn-prim-text:#FDFAF4;
-  --accent:#2C2416; --accent-text:#FDFAF4;
-  --inp:#FDFAF4; --inp-border:rgba(0,0,0,0.1); --inp-focus:#FFFFFF; --inp-focus-border:#181D1C;
-  --glow:rgba(24,29,28,0.06);
-  --sidebar-bg:rgba(253,250,244,0.95); --sidebar-border:rgba(0,0,0,0.06);
-  --nav-on:#EDE8DE; --nav-on-text:#2C2416; --nav-off-text:#8B7355;
-  --surface-2:#EDE8DE; --green:#4A7C59; --green-bg:rgba(74,124,89,0.1);
-  --green-border:rgba(74,124,89,0.2); --green-dark:#3A6347;
-  --amber:#B8860B; --amber-bg:rgba(184,134,11,0.1); --amber-dark:#9C6F0A;
+  --btn-prim:#2C2416; --btn-prim-text:#FDFCF8;
+  --accent:#2C2416; --accent-text:#FDFCF8;
+  --inp:#FDFCF8; --inp-border:rgba(0,0,0,0.10); --inp-focus:#FFFFFF; --inp-focus-border:#2C2416;
+  --glow:rgba(44,36,22,0.07);
+  --sidebar-bg:rgba(253,252,248,0.96); --sidebar-border:rgba(0,0,0,0.06);
+  --nav-on:#EFECE4; --nav-on-text:#2C2416; --nav-off-text:#8B7355;
+  --surface-2:#EFECE4; --green:#4A7C59; --green-bg:rgba(74,124,89,0.10);
+  --green-border:rgba(74,124,89,0.20); --green-dark:#3A6347;
+  --amber:#B8860B; --amber-bg:rgba(184,134,11,0.10); --amber-dark:#9C6F0A;
   --red:#8B3A3A; --red-bg:rgba(139,58,58,0.08);
   --shadow-xs:0 1px 4px rgba(44,36,22,.05); --shadow-sm:0 2px 8px rgba(44,36,22,.06);
-  --shadow:0 4px 20px rgba(44,36,22,.08); --shadow-lg:0 8px 30px rgba(44,36,22,.1);
+  --shadow:0 4px 20px rgba(44,36,22,.08); --shadow-lg:0 8px 30px rgba(44,36,22,.10);
+  --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
+  --r:12px; --r-xs:8px; --r-sm:10px; --r-md:12px; --r-lg:16px; --r-xl:22px;
 }
 
 html,body {
@@ -147,7 +145,6 @@ input:focus,textarea:focus,select:focus { outline:none; }
   min-height:100vh;
 }
 
-/* Global page content wrapper — used by all dashboard sub-pages */
 .page-content {
   padding: 28px 32px 48px;
   max-width: 1200px;
@@ -180,10 +177,17 @@ input:focus,textarea:focus,select:focus { outline:none; }
   backdrop-filter:blur(24px) saturate(180%);
   -webkit-backdrop-filter:blur(24px) saturate(180%);
   border:1px solid var(--sidebar-border);
-  box-shadow:var(--shadow-lg), inset 0 1px 0 rgba(255,255,255,0.05);
+  box-shadow:var(--shadow-lg), inset 0 1px 0 rgba(255,255,255,0.04);
   border-radius:24px;
   display:flex; flex-direction:column; overflow:hidden;
   transition:background .2s ease, border-color .2s ease;
+}
+
+/* App header — sticky desktop, scrollable mobile */
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
 }
 
 /* ═══ MOBILE ═══ */
@@ -209,5 +213,19 @@ input:focus,textarea:focus,select:focus { outline:none; }
   .hide-mobile { display:none !important; }
   .show-mobile { display:block !important; }
   div.show-mobile { display:block !important; }
+
+  /* Header NOT sticky on mobile — scrolls with content */
+  .app-header {
+    position: relative !important;
+    top: auto !important;
+  }
+
+  /* AI chat — ensure input area is fully visible */
+  .ai-input-wrap {
+    position: sticky !important;
+    bottom: calc(80px + var(--safe-bottom)) !important;
+    background: var(--bg) !important;
+    z-index: 10 !important;
+  }
 }
 @media(min-width:769px) { .show-mobile { display:none !important; } }
