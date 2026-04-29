@@ -31,57 +31,57 @@
 }
 
 [data-theme="dark"] {
-  /* ── Elevation System — deep warm-dark, like Linear/Vercel ── */
-  --bg:#0D1110;              /* page background — near-black, slight warm tint */
-  --surface:#131918;         /* +1 elevation */
-  --card:#1A2120;            /* +2 — cards, panels */
-  --surface-2:#232C2A;       /* +3 — hover, active states */
+  /* ── Elevation System — ultra-premium near-black ── */
+  --bg:#080909;              /* near-absolute black, 2028 luxury */
+  --surface:#0E0F0F;         /* +1 elevation — imperceptible lift */
+  --card:#131414;            /* +2 — cards, panels — surgical precision */
+  --surface-2:#1B1C1C;       /* +3 — hover, active states */
 
-  /* ── Borders — structural but barely-there ── */
-  --border:rgba(255,255,255,0.055);
-  --border-strong:rgba(255,255,255,0.11);
+  /* ── Borders — ultra-subtle structure ── */
+  --border:rgba(255,255,255,0.04);
+  --border-strong:rgba(255,255,255,0.08);
 
-  /* ── Typography — clean contrast hierarchy ── */
-  --text:#EFF1EF;             /* primary — warm white */
-  --text-secondary:#8B9690;   /* secondary — readable */
-  --text-muted:#526058;       /* tertiary — hints, labels */
+  /* ── Typography — maximum contrast & clarity ── */
+  --text:#F5F5F5;             /* primary — pure white */
+  --text-secondary:#ABABAB;   /* secondary — neutral gray */
+  --text-muted:#626262;       /* tertiary — subtext & hints */
 
-  /* ── CTA Button ── */
-  --btn-prim:#EFF1EF; --btn-prim-text:#0D1110;
+  /* ── CTA Button — decisive & premium ── */
+  --btn-prim:#F5F5F5; --btn-prim-text:#080909;
 
-  /* ── Brand Accent — forest green, Festag's signature ── */
-  --accent:#152B22; --accent-text:#52DFA0;
+  /* ── Brand Accent — sophisticated muted teal ── */
+  --accent:#1A3A33; --accent-text:#9CB8B0;
 
   /* ── Inputs ── */
-  --inp:rgba(255,255,255,0.03);
-  --inp-border:rgba(255,255,255,0.07);
-  --inp-focus:rgba(255,255,255,0.055);
-  --inp-focus-border:rgba(255,255,255,0.22);
-  --glow:rgba(255,255,255,0.025);
+  --inp:rgba(255,255,255,0.02);
+  --inp-border:rgba(255,255,255,0.06);
+  --inp-focus:rgba(255,255,255,0.04);
+  --inp-focus-border:rgba(255,255,255,0.18);
+  --glow:rgba(255,255,255,0.015);
 
   /* ── Sidebar / Nav ── */
-  --sidebar-bg:rgba(17,23,21,0.97);
-  --sidebar-border:rgba(255,255,255,0.05);
-  --nav-on:rgba(255,255,255,0.08);
-  --nav-on-text:#EFF1EF;
-  --nav-off-text:#667068;
+  --sidebar-bg:rgba(8,9,9,0.98);
+  --sidebar-border:rgba(255,255,255,0.04);
+  --nav-on:rgba(255,255,255,0.06);
+  --nav-on-text:#F5F5F5;
+  --nav-off-text:#6D6D6D;
 
-  /* ── Status Colors ── */
-  --green:#42C283;
-  --green-bg:rgba(66,194,131,0.12);
-  --green-border:rgba(66,194,131,0.25);
-  --green-dark:#5AD498;
-  --amber:#3DA870;
-  --amber-bg:rgba(14,42,26,0.88);
-  --amber-dark:#5CC98A;
-  --red:#F25A5A;
-  --red-bg:rgba(242,90,90,0.09);
+  /* ── Status Colors — muted & sophisticated ── */
+  --green:#7DB89F;
+  --green-bg:rgba(125,184,159,0.08);
+  --green-border:rgba(125,184,159,0.15);
+  --green-dark:#8CCBB0;
+  --amber:#7DB89F;
+  --amber-bg:rgba(125,184,159,0.08);
+  --amber-dark:#8CCBB0;
+  --red:#C07070;
+  --red-bg:rgba(192,112,112,0.08);
 
-  /* ── Shadows ── */
-  --shadow-xs:0 1px 3px rgba(0,0,0,.42);
-  --shadow-sm:0 2px 8px rgba(0,0,0,.50);
-  --shadow:0 4px 20px rgba(0,0,0,.62);
-  --shadow-lg:0 8px 32px rgba(0,0,0,.75);
+  /* ── Shadows — refined depth ── */
+  --shadow-xs:0 1px 2px rgba(0,0,0,.6);
+  --shadow-sm:0 2px 6px rgba(0,0,0,.65);
+  --shadow:0 4px 16px rgba(0,0,0,.75);
+  --shadow-lg:0 8px 28px rgba(0,0,0,.85);
 
   --logo-filter:brightness(0) invert(1);
 }

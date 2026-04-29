@@ -89,12 +89,12 @@ function PixelBlocks({ view }: { view: View }) {
   }, [])
 
   let top = 0
-  const positioned = BLOCKS[view].map(b => { const t = top; top += b.h; return { ...b, top: t } })
+  const positioned = BLOCKS[view].map(b => { const t = top; top += b.h; return { ...b, top: t, bottom: top } })
   return (
     <>
-      <style>{`@keyframes blkIn{from{opacity:0;transform:translateX(56px);}to{opacity:1;transform:translateX(0);}} .px-blk{position:absolute;right:0;pointer-events:none;animation:blkIn .48s cubic-bezier(.16,1,.3,1) both;transition:background .2s;}`}</style>
+      <style>{`@keyframes blkIn{from{opacity:0;transform:translateX(56px);}to{opacity:1;transform:translateX(0);}} .px-blk{position:absolute;right:0;pointer-events:none;animation:blkIn .48s cubic-bezier(.16,1,.3,1) both;transition:background .2s;line-height:0;font-size:0;}`}</style>
       {positioned.map((b, i) => (
-        <div key={i} className="px-blk" style={{ top: `${b.top}%`, width: b.w, height: `${b.h}%`, background: panelBg, animationDelay: `${i * 0.022}s` }}/>
+        <div key={i} className="px-blk" style={{ top: `${b.top}%`, bottom: `${100-b.bottom}%`, width: b.w, background: panelBg, animationDelay: `${i * 0.022}s` }}/>
       ))}
     </>
   )
