@@ -31,9 +31,40 @@ export default function ProjectPage() {
   const msgEndRef = useRef<HTMLDivElement>(null)
   const supabase = createClient()
 
-  // Nur Entwickler/Admins dürfen Tasks und Projekt-Phase steuern.
-  // Hinweis: Dies ist nur Frontend-Gating — für echten Schutz Supabase RLS zusätzlich konfigurieren.
+  // canEdit = Devs/Admins: dürfen Status setzen, alles löschen, Phase ändern, kein Limit
+  // Clients: dürfen Tasks NUR in "todo" anlegen und löschen — max 20 pro Woche
+  // Hinweis: Frontend-Gating; für echten Schutz Supabase RLS zusätzlich konfigurieren.
   const canEdit = userRole === 'dev' || userRole === 'admin'
+
+  const TASK_WEEK_LIMIT = 20
+  const WEEK_MS = 7 * 24 * 60 * 60 * 1000
+  const logKey = userId ? `task_create_log_${userId}` : ''
+
+  function getRecentCreations(): number[] {
+    if (typeof window === 'undefined' || !logKey) return []
+    try {
+      const raw = window.localStorage.getItem(logKey)
+      if (!raw) return []
+      const arr: number[] = JSON.parse(raw)
+      const cutoff = Date.now() - WEEK_MS
+      const fresh = arr.filter(t => t > cutoff)
+      if (fresh.length !== arr.length) window.localStorage.setItem(logKey, JSON.stringify(fresh))
+      return fresh
+    } catch { return [] }
+  }
+
+  function recordCreation() {
+    if (typeof window === 'undefined' || !logKey) return
+    const recent = getRecentCreations()
+    recent.push(Date.now())
+    window.localStorage.setItem(logKey, JSON.stringify(recent))
+  }
+
+  const [clientUsage, setClientUsage] = useState(0)
+  useEffect(() => {
+    if (userRole === 'client') setClientUsage(getRecentCreations().length)
+  }, [userRole, userId])
+  const clientRemaining = Math.max(0, TASK_WEEK_LIMIT - clientUsage)
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data }) => {
@@ -103,8 +134,22 @@ export default function ProjectPage() {
 
   async function addTask() {
     if (!newTask.trim()) return
-    const { data } = await supabase.from('tasks').insert({ project_id: id, title: newTask, status: 'todo' }).select().single()
-    if (data) setTasks(prev => [...prev, data])
+    if (userRole === 'client') {
+      const recent = getRecentCreations()
+      if (recent.length >= TASK_WEEK_LIMIT) {
+        alert(`Wochenlimit erreicht: max ${TASK_WEEK_LIMIT} neue Tasks pro 7 Tage.\nDas Limit setzt sich automatisch zurück, sobald ältere Einträge mehr als 7 Tage alt sind.`)
+        return
+      }
+    }
+    const { data, error } = await supabase.from('tasks').insert({ project_id: id, title: newTask.trim(), status: 'todo' }).select().single()
+    if (error) { alert(`Konnte Task nicht anlegen: ${error.message}`); return }
+    if (data) {
+      setTasks(prev => [...prev, data])
+      if (userRole === 'client') {
+        recordCreation()
+        setClientUsage(getRecentCreations().length)
+      }
+    }
     setNewTask('')
   }
 
@@ -114,6 +159,12 @@ export default function ProjectPage() {
   }
 
   async function deleteTask(taskId: string) {
+    const task = tasks.find(t => t.id === taskId)
+    if (!task) return
+    if (!canEdit && task.status !== 'todo') {
+      alert('Nur Tasks in der Spalte "To Do" können gelöscht werden.')
+      return
+    }
     await supabase.from('tasks').delete().eq('id', taskId)
     setTasks(tasks.filter(t => t.id !== taskId))
   }
@@ -276,25 +327,27 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
           {/* TASKS TAB */}
           {activeLeft === 'tasks' && (
             <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', overflow: 'hidden' }}>
-              {/* Add task input — nur für Devs/Admins */}
-              {canEdit ? (
-                <div style={{ padding: '14px 18px', borderBottom: '1px solid var(--border)', display: 'flex', gap: 8 }}>
+              {/* Add task input — Clients dürfen auch, mit Wochenlimit */}
+              <div style={{ padding: '14px 18px', borderBottom: '1px solid var(--border)' }}>
+                <div style={{ display: 'flex', gap: 8 }}>
                   <input
                     value={newTask} onChange={e => setNewTask(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && addTask()}
-                    placeholder="Task hinzufügen…"
-                    style={{ flex: 1, padding: '9px 12px', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', fontSize: 13, outline: 'none', background: 'var(--bg)' }}
+                    placeholder={userRole === 'client' && clientRemaining === 0 ? 'Wochenlimit erreicht' : 'Task hinzufügen…'}
+                    disabled={userRole === 'client' && clientRemaining === 0}
+                    style={{ flex: 1, padding: '9px 12px', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', fontSize: 13, outline: 'none', background: 'var(--bg)', opacity: userRole === 'client' && clientRemaining === 0 ? 0.5 : 1 }}
                   />
-                  <button onClick={addTask} disabled={!newTask.trim()} className="tap-scale" style={{ padding: '9px 14px', background: 'var(--accent)', color: 'var(--accent-text)', border: 'none', borderRadius: 'var(--r-sm)', fontSize: 12, fontWeight: 600, cursor: newTask.trim() ? 'pointer' : 'default', opacity: newTask.trim() ? 1 : 0.4 }}>
+                  <button onClick={addTask} disabled={!newTask.trim() || (userRole === 'client' && clientRemaining === 0)} className="tap-scale" style={{ padding: '9px 14px', background: 'var(--accent)', color: 'var(--accent-text)', border: 'none', borderRadius: 'var(--r-sm)', fontSize: 12, fontWeight: 600, cursor: newTask.trim() && !(userRole === 'client' && clientRemaining === 0) ? 'pointer' : 'default', opacity: newTask.trim() && !(userRole === 'client' && clientRemaining === 0) ? 1 : 0.4 }}>
                     + Hinzufügen
                   </button>
                 </div>
-              ) : (
-                <div style={{ padding: '10px 18px', borderBottom: '1px solid var(--border)', fontSize: 11.5, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--text-muted)' }} />
-                  Nur das Entwicklerteam kann Tasks anlegen oder Status setzen.
-                </div>
-              )}
+                {userRole === 'client' && (
+                  <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: '8px 0 0', display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ width: 5, height: 5, borderRadius: '50%', background: clientRemaining > 5 ? 'var(--green)' : clientRemaining > 0 ? 'var(--amber)' : 'var(--red)' }} />
+                    {clientRemaining} von {TASK_WEEK_LIMIT} neuen Tasks diese Woche übrig · Status-Wechsel macht das Entwicklerteam
+                  </p>
+                )}
+              </div>
 
               {/* Kanban columns */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 0 }}>
@@ -313,24 +366,31 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
                         </span>
                       </div>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
-                        {colTasks.map(task => (
-                          <div key={task.id} style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', padding: '9px 11px' }}>
-                            <p style={{ fontSize: 12.5, fontWeight: 500, color: 'var(--text)', margin: canEdit ? '0 0 7px' : '0', lineHeight: 1.4 }}>{task.title}</p>
-                            {canEdit && (
-                              <div style={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
-                                {['todo','doing','done'].filter(s => s !== col.status).map(s => {
-                                  const next = { todo: '← Todo', doing: '→ In Progress', done: '✓ Done' }[s] ?? s
-                                  return (
-                                    <button key={s} onClick={() => updateTask(task.id, s)} style={{ padding: '2px 7px', fontSize: 9.5, border: '1px solid var(--border)', background: 'var(--surface)', borderRadius: 5, cursor: 'pointer', color: 'var(--text-secondary)', fontFamily: 'inherit' }}>
-                                      {next}
-                                    </button>
-                                  )
-                                })}
-                                <button onClick={() => deleteTask(task.id)} style={{ padding: '2px 5px', fontSize: 9.5, border: '1px solid #FECACA', background: 'var(--red-bg)', borderRadius: 5, cursor: 'pointer', color: 'var(--red)' }}>✕</button>
-                              </div>
-                            )}
-                          </div>
-                        ))}
+                        {colTasks.map(task => {
+                          const showDelete = canEdit || (userRole === 'client' && col.status === 'todo')
+                          const showStatusButtons = canEdit
+                          const showActions = showDelete || showStatusButtons
+                          return (
+                            <div key={task.id} style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', padding: '9px 11px' }}>
+                              <p style={{ fontSize: 12.5, fontWeight: 500, color: 'var(--text)', margin: showActions ? '0 0 7px' : '0', lineHeight: 1.4 }}>{task.title}</p>
+                              {showActions && (
+                                <div style={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
+                                  {showStatusButtons && ['todo','doing','done'].filter(s => s !== col.status).map(s => {
+                                    const next = { todo: '← Todo', doing: '→ In Progress', done: '✓ Done' }[s] ?? s
+                                    return (
+                                      <button key={s} onClick={() => updateTask(task.id, s)} style={{ padding: '2px 7px', fontSize: 9.5, border: '1px solid var(--border)', background: 'var(--surface)', borderRadius: 5, cursor: 'pointer', color: 'var(--text-secondary)', fontFamily: 'inherit' }}>
+                                        {next}
+                                      </button>
+                                    )
+                                  })}
+                                  {showDelete && (
+                                    <button onClick={() => deleteTask(task.id)} title="Task löschen" style={{ padding: '2px 5px', fontSize: 9.5, border: '1px solid #FECACA', background: 'var(--red-bg)', borderRadius: 5, cursor: 'pointer', color: 'var(--red)' }}>✕</button>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          )
+                        })}
                         {colTasks.length === 0 && (
                           <div style={{ border: '1px dashed var(--border)', borderRadius: 'var(--r-sm)', padding: '10px 8px', textAlign: 'center', fontSize: 11, color: 'var(--text-muted)' }}>Leer</div>
                         )}
