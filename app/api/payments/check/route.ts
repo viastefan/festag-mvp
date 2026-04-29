@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-const ENJYN_API = 'https://payground.enjyn.de/bankapi/bank-api.php'
+// Hinweis: Die Doku schreibt "payground.enjyn.de" — das ist ein Typo, der echte Host ist "playground".
+const ENJYN_API = 'https://playground.enjyn.de/bankapi/bank-api.php'
 
 // Hinweis: Key wird ausschließlich serverseitig genutzt und nicht ans Frontend ausgeliefert.
 // Sobald Vercel-ENV verfügbar ist, dort ENJYN_API_KEY setzen — die ENV hat Vorrang.
