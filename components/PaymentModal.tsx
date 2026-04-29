@@ -39,14 +39,24 @@ export default function PaymentModal({ amount, note, itemTitle, onClose, onSucce
   const pollRef = useRef<any>(null)
   const startedAtRef = useRef<number>(resumeFrom?.startedAt ?? 0)
 
-  // Step 1: Create payment — uebersprungen im Resume-Modus
+  // Mount-Refs: einfrieren der initial-Props, damit Re-Renders mit
+  // neuen prop-Werten (z.B. nachdem resumeFrom durch clearSession auf null
+  // gesetzt wird) keinen erneuten Create-Call ausloesen.
+  const initialResumeRef = useRef<typeof resumeFrom>(resumeFrom)
+  const amountRef = useRef(amount)
+  const noteRef = useRef(note)
+  const onSessionReadyRef = useRef(onSessionReady)
+  onSessionReadyRef.current = onSessionReady
+
+  // Step 1: Create payment — laeuft GENAU einmal beim Mount.
+  // Bei Resume-Mount wird der Create-Call uebersprungen.
   useEffect(() => {
-    if (isResume) return
+    if (initialResumeRef.current) return
     let cancelled = false
     fetch('/api/payments/create', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ amount, note }),
+      body: JSON.stringify({ amount: amountRef.current, note: noteRef.current }),
     })
       .then(r => r.json())
       .then(data => {
@@ -54,24 +64,29 @@ export default function PaymentModal({ amount, note, itemTitle, onClose, onSucce
         if (data.error) { setError(data.error); setPhase('error'); return }
         setBankData(data as BankData)
         setPhase('await')
-        // Session-Beginn an Parent melden, damit sie persistiert werden kann
         const start = Date.now()
         startedAtRef.current = start
-        onSessionReady?.(data as BankData, start)
+        onSessionReadyRef.current?.(data as BankData, start)
       })
       .catch(e => { if (!cancelled) { setError(e?.message ?? 'Verbindungsfehler'); setPhase('error') } })
     return () => { cancelled = true }
-  }, [amount, note, isResume, onSessionReady])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
-  // Step 2: Polling + Countdown
+  // Step 2: Polling + Countdown — laeuft sobald Bankdaten + await-Phase bereit
+  const onSuccessRef = useRef(onSuccess)
+  const onTimeoutRef = useRef(onTimeout)
+  onSuccessRef.current = onSuccess
+  onTimeoutRef.current = onTimeout
+
   useEffect(() => {
     if (phase !== 'await' || !bankData) return
     if (!startedAtRef.current) startedAtRef.current = Date.now()
-    // Wenn Resume und Zeit bereits abgelaufen: direkt timeout
+
     const elapsed0 = Date.now() - startedAtRef.current
     if (elapsed0 >= POLL_DURATION_MS) {
       setPhase('timeout')
-      onTimeout(bankData.reference)
+      onTimeoutRef.current(bankData.reference)
       return
     }
 
@@ -83,7 +98,7 @@ export default function PaymentModal({ amount, note, itemTitle, onClose, onSucce
         clearInterval(tickRef.current)
         clearInterval(pollRef.current)
         setPhase('timeout')
-        onTimeout(bankData.reference)
+        onTimeoutRef.current(bankData.reference)
       }
     }, 1000)
 
@@ -95,7 +110,7 @@ export default function PaymentModal({ amount, note, itemTitle, onClose, onSucce
           clearInterval(tickRef.current)
           clearInterval(pollRef.current)
           setPhase('done')
-          onSuccess(bankData.reference)
+          onSuccessRef.current(bankData.reference)
         }
       } catch { /* still polling */ }
     }, POLL_INTERVAL_MS)
@@ -104,7 +119,7 @@ export default function PaymentModal({ amount, note, itemTitle, onClose, onSucce
       clearInterval(tickRef.current)
       clearInterval(pollRef.current)
     }
-  }, [phase, bankData, onSuccess, onTimeout])
+  }, [phase, bankData])
 
   // Auto-close on done/timeout after a short delay
   useEffect(() => {
