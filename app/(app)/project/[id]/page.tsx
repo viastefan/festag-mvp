@@ -22,6 +22,7 @@ export default function ProjectPage() {
   const [newTask, setNewTask] = useState('')
   const [userId, setUserId] = useState('')
   const [userEmail, setUserEmail] = useState('')
+  const [userRole, setUserRole] = useState<'client'|'dev'|'admin'|''>('')
   const [activeLeft, setActiveLeft] = useState<'tasks'|'updates'>('tasks')
   const [aiThinking, setAiThinking] = useState(false)
   const [generatingAI, setGeneratingAI] = useState(false)
@@ -29,11 +30,19 @@ export default function ProjectPage() {
   const msgEndRef = useRef<HTMLDivElement>(null)
   const supabase = createClient()
 
+  // Nur Entwickler/Admins dürfen Tasks und Projekt-Phase steuern.
+  // Hinweis: Dies ist nur Frontend-Gating — für echten Schutz Supabase RLS zusätzlich konfigurieren.
+  const canEdit = userRole === 'dev' || userRole === 'admin'
+
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
+    supabase.auth.getSession().then(async ({ data }) => {
       if (!data.session) { window.location.href = '/login'; return }
-      setUserId(data.session.user.id)
+      const uid = data.session.user.id
+      setUserId(uid)
       setUserEmail(data.session.user.email ?? '')
+      const { data: prof } = await supabase.from('profiles').select('role').eq('id', uid).single()
+      const role = (prof as any)?.role
+      if (role === 'admin' || role === 'dev' || role === 'client') setUserRole(role)
       loadAll()
     })
 
@@ -162,12 +171,17 @@ export default function ProjectPage() {
         </div>
         {/* Status badge + phase dots */}
         <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexShrink: 0 }}>
-          <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
-            {PHASES.map((phase, i) => (
+          <div style={{ display: 'flex', gap: 5, alignItems: 'center' }} title={canEdit ? undefined : 'Phase wird vom Entwicklerteam gesteuert'}>
+            {PHASES.map((phase, i) => canEdit ? (
               <button key={phase} onClick={() => updateStatus(phase)} className="tap-scale" title={PHASE_LABEL[phase]} style={{
                 width: 8, height: 8, borderRadius: '50%', border: 'none', cursor: 'pointer', padding: 0,
                 background: i <= phaseIdx ? 'var(--text)' : 'var(--border)',
                 transition: 'background 0.2s',
+              }} />
+            ) : (
+              <span key={phase} title={PHASE_LABEL[phase]} style={{
+                width: 8, height: 8, borderRadius: '50%',
+                background: i <= phaseIdx ? 'var(--text)' : 'var(--border)',
               }} />
             ))}
           </div>
@@ -226,18 +240,25 @@ export default function ProjectPage() {
           {/* TASKS TAB */}
           {activeLeft === 'tasks' && (
             <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', overflow: 'hidden' }}>
-              {/* Add task input */}
-              <div style={{ padding: '14px 18px', borderBottom: '1px solid var(--border)', display: 'flex', gap: 8 }}>
-                <input
-                  value={newTask} onChange={e => setNewTask(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && addTask()}
-                  placeholder="Task hinzufügen…"
-                  style={{ flex: 1, padding: '9px 12px', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', fontSize: 13, outline: 'none', background: 'var(--bg)' }}
-                />
-                <button onClick={addTask} disabled={!newTask.trim()} className="tap-scale" style={{ padding: '9px 14px', background: 'var(--accent)', color: 'var(--accent-text)', border: 'none', borderRadius: 'var(--r-sm)', fontSize: 12, fontWeight: 600, cursor: newTask.trim() ? 'pointer' : 'default', opacity: newTask.trim() ? 1 : 0.4 }}>
-                  + Hinzufügen
-                </button>
-              </div>
+              {/* Add task input — nur für Devs/Admins */}
+              {canEdit ? (
+                <div style={{ padding: '14px 18px', borderBottom: '1px solid var(--border)', display: 'flex', gap: 8 }}>
+                  <input
+                    value={newTask} onChange={e => setNewTask(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && addTask()}
+                    placeholder="Task hinzufügen…"
+                    style={{ flex: 1, padding: '9px 12px', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', fontSize: 13, outline: 'none', background: 'var(--bg)' }}
+                  />
+                  <button onClick={addTask} disabled={!newTask.trim()} className="tap-scale" style={{ padding: '9px 14px', background: 'var(--accent)', color: 'var(--accent-text)', border: 'none', borderRadius: 'var(--r-sm)', fontSize: 12, fontWeight: 600, cursor: newTask.trim() ? 'pointer' : 'default', opacity: newTask.trim() ? 1 : 0.4 }}>
+                    + Hinzufügen
+                  </button>
+                </div>
+              ) : (
+                <div style={{ padding: '10px 18px', borderBottom: '1px solid var(--border)', fontSize: 11.5, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--text-muted)' }} />
+                  Nur das Entwicklerteam kann Tasks anlegen oder Status setzen.
+                </div>
+              )}
 
               {/* Kanban columns */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 0 }}>
@@ -258,18 +279,20 @@ export default function ProjectPage() {
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
                         {colTasks.map(task => (
                           <div key={task.id} style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', padding: '9px 11px' }}>
-                            <p style={{ fontSize: 12.5, fontWeight: 500, color: 'var(--text)', margin: '0 0 7px', lineHeight: 1.4 }}>{task.title}</p>
-                            <div style={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
-                              {['todo','doing','done'].filter(s => s !== col.status).map(s => {
-                                const next = { todo: '← Todo', doing: '→ In Progress', done: '✓ Done' }[s] ?? s
-                                return (
-                                  <button key={s} onClick={() => updateTask(task.id, s)} style={{ padding: '2px 7px', fontSize: 9.5, border: '1px solid var(--border)', background: 'var(--surface)', borderRadius: 5, cursor: 'pointer', color: 'var(--text-secondary)', fontFamily: 'inherit' }}>
-                                    {next}
-                                  </button>
-                                )
-                              })}
-                              <button onClick={() => deleteTask(task.id)} style={{ padding: '2px 5px', fontSize: 9.5, border: '1px solid #FECACA', background: 'var(--red-bg)', borderRadius: 5, cursor: 'pointer', color: 'var(--red)' }}>✕</button>
-                            </div>
+                            <p style={{ fontSize: 12.5, fontWeight: 500, color: 'var(--text)', margin: canEdit ? '0 0 7px' : '0', lineHeight: 1.4 }}>{task.title}</p>
+                            {canEdit && (
+                              <div style={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
+                                {['todo','doing','done'].filter(s => s !== col.status).map(s => {
+                                  const next = { todo: '← Todo', doing: '→ In Progress', done: '✓ Done' }[s] ?? s
+                                  return (
+                                    <button key={s} onClick={() => updateTask(task.id, s)} style={{ padding: '2px 7px', fontSize: 9.5, border: '1px solid var(--border)', background: 'var(--surface)', borderRadius: 5, cursor: 'pointer', color: 'var(--text-secondary)', fontFamily: 'inherit' }}>
+                                      {next}
+                                    </button>
+                                  )
+                                })}
+                                <button onClick={() => deleteTask(task.id)} style={{ padding: '2px 5px', fontSize: 9.5, border: '1px solid #FECACA', background: 'var(--red-bg)', borderRadius: 5, cursor: 'pointer', color: 'var(--red)' }}>✕</button>
+                              </div>
+                            )}
                           </div>
                         ))}
                         {colTasks.length === 0 && (
