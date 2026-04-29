@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import PaymentModal from '@/components/PaymentModal'
 
@@ -53,8 +53,41 @@ export default function AddonsPage() {
   }, [])
 
   const storageKey = userId ? `addon_purchases_${userId}` : ''
+  const storageKeyRef = useRef(storageKey)
+  storageKeyRef.current = storageKey
 
-  // Load purchases on userId resolve
+  // Functional updater — kein Closure-Problem mehr und localStorage immer in sync
+  const persist = useCallback((updater: (prev: Purchases) => Purchases) => {
+    setPurchases(prev => {
+      const next = updater(prev)
+      if (storageKeyRef.current && typeof window !== 'undefined') {
+        window.localStorage.setItem(storageKeyRef.current, JSON.stringify(next))
+      }
+      return next
+    })
+  }, [])
+
+  const markActive = useCallback((addonId: string, reference: string, wasNachLate?: boolean, addonName?: string) => {
+    persist(prev => ({
+      ...prev,
+      [addonId]: {
+        reference,
+        status: 'active',
+        createdAt: prev[addonId]?.createdAt ?? Date.now(),
+        completedAt: Date.now(),
+      },
+    }))
+    if (wasNachLate && addonName) {
+      setToast({ kind: 'success', text: `Zahlung für ${addonName} erkannt — Add-on ist jetzt aktiv.` })
+      setTimeout(() => setToast(null), 5000)
+    }
+  }, [persist])
+
+  const markPending = useCallback((addonId: string, reference: string) => {
+    persist(prev => ({ ...prev, [addonId]: { reference, status: 'pending', createdAt: Date.now() } }))
+  }, [persist])
+
+  // Initial Load der Käufe aus localStorage
   useEffect(() => {
     if (!storageKey || typeof window === 'undefined') return
     try {
@@ -63,43 +96,65 @@ export default function AddonsPage() {
     } catch {}
   }, [storageKey])
 
-  // On mount: re-check pending purchases — maybe payment came in late
-  useEffect(() => {
-    if (!storageKey) return
-    const pendings = Object.entries(purchases).filter(([, r]) => r?.status === 'pending')
-    if (pendings.length === 0) return
-    pendings.forEach(async ([addonId, rec]) => {
+  // Sync-Funktion: prueft alle nicht-aktiven Referenzen gegen Enjyn
+  const syncStatuses = useCallback(async () => {
+    const snapshot = purchases
+    const entries = Object.entries(snapshot).filter(([, r]) => r && r.status !== 'active' && r.reference)
+    if (entries.length === 0) return
+    for (const [addonId, rec] of entries) {
+      if (!rec) continue
       try {
         const r = await fetch(`/api/payments/check?reference=${encodeURIComponent(rec.reference)}`)
         const d = await r.json()
         if (d.status === 'done') {
-          markActive(addonId, rec.reference)
+          const addon = CATALOG.find(a => a.id === addonId)
+          markActive(addonId, rec.reference, rec.status === 'pending', addon?.name)
         }
-      } catch {}
-    })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [storageKey])
-
-  function persist(next: Purchases) {
-    setPurchases(next)
-    if (storageKey && typeof window !== 'undefined') {
-      window.localStorage.setItem(storageKey, JSON.stringify(next))
+      } catch { /* still pending */ }
     }
-  }
+  }, [purchases, markActive])
 
-  function markActive(addonId: string, reference: string) {
-    persist({ ...purchases, [addonId]: { reference, status: 'active', createdAt: purchases[addonId]?.createdAt ?? Date.now(), completedAt: Date.now() } })
-  }
+  // Sync ausfuehren: bei Mount, bei Visibility-Change, periodisch alle 30s
+  useEffect(() => {
+    const hasNonActive = Object.values(purchases).some(r => r?.reference && r.status !== 'active')
+    if (!hasNonActive) return
 
-  function markPending(addonId: string, reference: string) {
-    persist({ ...purchases, [addonId]: { reference, status: 'pending', createdAt: Date.now() } })
-  }
+    // Sofort ein erstes Re-Check
+    if (typeof document === 'undefined' || document.visibilityState === 'visible') {
+      syncStatuses()
+    }
+
+    const tick = () => { if (document.visibilityState === 'visible') syncStatuses() }
+    const id = setInterval(tick, 30_000)
+    document.addEventListener('visibilitychange', tick)
+    return () => { clearInterval(id); document.removeEventListener('visibilitychange', tick) }
+  }, [purchases, syncStatuses])
+
+  const hasPending = Object.values(purchases).some(r => r?.status === 'pending')
+  const [refreshing, setRefreshing] = useState(false)
 
   return (
     <div className="page-content-full">
-      <div className="page-header">
-        <h1>Add-Ons</h1>
-        <p>Erweitere dein Projekt mit zusätzlichen Services · Zahlung über <strong>Enjyn</strong></p>
+      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 12 }}>
+        <div>
+          <h1>Add-Ons</h1>
+          <p>Erweitere dein Projekt mit zusätzlichen Services · Zahlung über <strong>Enjyn</strong></p>
+        </div>
+        {hasPending && (
+          <button
+            onClick={async () => { setRefreshing(true); await syncStatuses(); setRefreshing(false) }}
+            disabled={refreshing}
+            className="tap-scale"
+            style={{ padding: '8px 14px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, fontSize: 12.5, fontWeight: 600, color: 'var(--text)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 7 }}
+          >
+            {refreshing ? (
+              <span style={{ width: 12, height: 12, border: '2px solid var(--border)', borderTopColor: 'var(--text)', borderRadius: '50%', animation: 'spin .8s linear infinite' }} />
+            ) : (
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg>
+            )}
+            Status aktualisieren
+          </button>
+        )}
       </div>
 
       <div className="animate-fade-up-1" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 12, marginBottom: 100 }}>
