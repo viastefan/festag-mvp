@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
+import ChatMarkdown from '@/components/ChatMarkdown'
 
 type Project = { id: string; title: string; description: string|null; status: string }
 type Task = { id: string; title: string; status: string; priority?: string }
@@ -84,13 +85,13 @@ export default function ProjectPage() {
     setAiThinking(true)
     setTimeout(async () => {
       try {
-        const res = await fetch('https://api.anthropic.com/v1/messages', {
+        const res = await fetch('/api/ai/chat', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            model: 'claude-sonnet-4-20250514', max_tokens: 200,
+            max_tokens: 200,
             system: `Du bist Tagro, AI-System von Festag. Antworte klar, max 2 Sätze. Kein Smalltalk. Projekt: "${project?.title || 'Unbekannt'}"`,
-            messages: [{ role: 'user', content: msg }]
-          })
+            messages: [{ role: 'user', content: msg }],
+          }),
         })
         const data = await res.json()
         const aiMsg = data.content?.[0]?.text
@@ -126,21 +127,56 @@ export default function ProjectPage() {
     if (!project) return
     setGeneratingAI(true)
     const done = tasks.filter(t => t.status === 'done').length
+    const doing = tasks.filter(t => t.status === 'doing').length
+    const todo = tasks.filter(t => t.status === 'todo').length
     const pct = tasks.length ? Math.round(done / tasks.length * 100) : 0
+
+    const taskOverview = tasks.length
+      ? `\nTasks im Detail:\n${tasks.slice(0, 20).map(t => `- [${t.status}] ${t.title}`).join('\n')}`
+      : ''
+
+    const userPrompt =
+      `Projekt: "${project.title}"\n` +
+      (project.description ? `Beschreibung: ${project.description}\n` : '') +
+      `Phase: ${PHASE_LABEL[project.status]}\n` +
+      `Fortschritt: ${pct}% (${done} erledigt, ${doing} aktiv, ${todo} offen)` +
+      taskOverview +
+      `\n\nErstelle jetzt einen professionellen Statusbericht.`
+
     try {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
+      const res = await fetch('/api/ai/chat', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514', max_tokens: 350,
-          system: 'Du bist Tagro. Erstelle einen professionellen Tagesbericht auf Deutsch. Keine Emojis. 4-5 Sätze. Strukturiert: Was wurde gemacht, was ist offen, nächste Schritte.',
-          messages: [{ role: 'user', content: `Projekt: "${project.title}". Phase: ${PHASE_LABEL[project.status]}. Fortschritt: ${pct}%. ${done} von ${tasks.length} Tasks erledigt.` }]
-        })
+          max_tokens: 500,
+          system: `Du bist Tagro, der AI-Projektmanager von Festag. Erstelle einen professionellen Statusbericht auf Deutsch.
+Struktur (nutze Markdown):
+**Erledigt:** Was wurde abgeschlossen
+**In Arbeit:** Was läuft gerade
+**Nächste Schritte:** Was kommt als Nächstes
+**Risiken:** Falls erkennbar — sonst weglassen
+
+Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn möglich.`,
+          messages: [{ role: 'user', content: userPrompt }],
+        }),
       })
       const data = await res.json()
-      const content = data.content?.[0]?.text ?? `Update: ${pct}% abgeschlossen.`
-      const { data: inserted } = await supabase.from('ai_updates').insert({ project_id: id, content, type: 'daily_summary' }).select().single()
+      if (data?.error) {
+        alert(`Bericht konnte nicht erstellt werden: ${data.error}`)
+        setGeneratingAI(false)
+        return
+      }
+      const content = data.content?.[0]?.text
+      if (!content) {
+        alert('Tagro hat keinen Inhalt zurückgegeben. Bitte erneut versuchen.')
+        setGeneratingAI(false)
+        return
+      }
+      const { data: inserted, error } = await supabase.from('ai_updates').insert({ project_id: id, content, type: 'daily_summary' }).select().single()
+      if (error) { alert(`Speicherfehler: ${error.message}`); setGeneratingAI(false); return }
       if (inserted) setAiUpdates(prev => [inserted, ...prev])
-    } catch {}
+    } catch (e: any) {
+      alert(`Fehler: ${e?.message ?? 'Verbindungsproblem'}`)
+    }
     setGeneratingAI(false)
   }
 
@@ -337,8 +373,8 @@ export default function ProjectPage() {
                         {new Date(u.created_at).toLocaleDateString('de', { day: '2-digit', month: 'short' })} · {new Date(u.created_at).toLocaleTimeString('de', { hour: '2-digit', minute: '2-digit' })}
                       </span>
                     </div>
-                    <div style={{ padding: '12px 14px' }}>
-                      <p style={{ fontSize: 13.5, color: 'var(--text)', margin: 0, lineHeight: 1.65, whiteSpace: 'pre-wrap' }}>{u.content}</p>
+                    <div style={{ padding: '12px 14px', fontSize: 13.5, color: 'var(--text)', lineHeight: 1.65 }}>
+                      <ChatMarkdown text={u.content} />
                     </div>
                   </div>
                 ))}
