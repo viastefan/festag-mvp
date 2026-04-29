@@ -3,9 +3,12 @@
 import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import ThemeToggle from '@/components/ThemeToggle'
+import ChatMarkdown from '@/components/ChatMarkdown'
 import Link from 'next/link'
 
 type Msg = { role: 'ai' | 'user'; text: string }
+
+const TEST_TRIGGER = /^\s*test[\s\-_]*projekt\s*$/i
 
 const AI_SYSTEM = `Du bist Tagro, der AI-Projektmanager von Festag — das AI-native Softwareproduktionssystem.
 
@@ -24,6 +27,8 @@ GESPRÄCHSFÜHRUNG:
 - Kein Smalltalk, kein Emoji, keine Floskeln
 - Klinge wie ein erfahrener CTO im Erstgespräch
 - Sprache: Deutsch
+
+FORMATIERUNG: Markdown ist erlaubt — **fett** für Schlüsselbegriffe, Listen für Aufzählungen, \`code\` für technische Begriffe. Halte den Text trotzdem knapp.
 
 ABSCHLUSS: Nach 5-7 Antworten des Kunden hast du genug. Schreibe dann:
 "Ich habe alle relevanten Informationen. Ich zerlege dein Projekt jetzt strukturiert."
@@ -85,12 +90,47 @@ export default function OnboardingPage() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [msgs, aiLoading])
 
+  async function createTestProject() {
+    if (!userId) return
+    setPhase('decompose')
+    setDecomposing(true)
+    try {
+      const res = await fetch('/api/ai/test-project', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId }),
+      })
+      const d = await res.json()
+      if (d.projectId) {
+        setProjectId(d.projectId)
+        await supabase.from('profiles').update({ onboarding_step: 99 }).eq('id', userId)
+        setPhase('done')
+      } else {
+        setPhase('chat')
+        setDecomposing(false)
+        setMsgs(m => [...m, { role: 'ai', text: 'Konnte Test-Projekt nicht anlegen. Bitte erneut versuchen.' }])
+      }
+    } catch {
+      setPhase('chat')
+      setDecomposing(false)
+      setMsgs(m => [...m, { role: 'ai', text: 'Verbindungsfehler beim Anlegen des Test-Projekts.' }])
+    }
+  }
+
   async function send() {
     if (!input.trim() || aiLoading) return
     const msg = input.trim()
     setInput('')
     const newMsgs: Msg[] = [...msgs, { role: 'user', text: msg }]
     setMsgs(newMsgs)
+
+    // Shortcut: "test projekt" → direkt vorgefertigtes Projekt anlegen
+    if (TEST_TRIGGER.test(msg)) {
+      setMsgs(m => [...m, { role: 'ai', text: '**Test-Modus erkannt.** Lege ein vordefiniertes Test-Projekt an — kein Gespräch nötig.' }])
+      setTimeout(() => createTestProject(), 400)
+      return
+    }
+
     setAiLoading(true)
 
     try {
@@ -239,13 +279,12 @@ export default function OnboardingPage() {
           {msgs.map((m, i) => (
             <div key={i} style={{ display:'flex', justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
               {m.role === 'ai' ? (
-                <p style={{
+                <div style={{
                   fontSize: 16, lineHeight: 1.65, color: 'var(--text)',
-                  margin: 0, maxWidth: '85%',
-                  fontWeight: 500,
+                  maxWidth: '85%', fontWeight: 500,
                 }}>
-                  {m.text}
-                </p>
+                  <ChatMarkdown text={m.text} variant="plain" />
+                </div>
               ) : (
                 <div style={{
                   background: 'var(--accent)', color: 'var(--accent-text)',
@@ -351,7 +390,7 @@ export default function OnboardingPage() {
               </button>
             </div>
             <p style={{ fontSize:11, color:'var(--text-muted)', marginTop:8, opacity:.6 }}>
-              Enter zum Senden · Shift+Enter für neue Zeile
+              Enter zum Senden · Shift+Enter für neue Zeile · Tipp: <code style={{ fontFamily:'ui-monospace,monospace', background:'var(--surface-2)', padding:'1px 5px', borderRadius:4 }}>test projekt</code> für Demo
             </p>
           </div>
         </div>

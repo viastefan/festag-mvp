@@ -2,6 +2,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
+import ChatMarkdown from '@/components/ChatMarkdown'
 
 type Msg = { role: 'user' | 'ai'; text: string; time: string }
 type Project = { id: string; title: string; status: string; description?: string }
@@ -13,7 +14,14 @@ const SYSTEM = `Du bist Tagro, das AI-Produktionssystem von Festag.
 Verhalte dich wie ein erfahrener CTO und Projektmanager in einem.
 Beantworte Fragen klar und direkt. Maximal 5 Sätze pro Antwort.
 Wenn du Projektdaten hast, nutze sie konkret.
-Sprache: Deutsch. Kein Smalltalk. Keine Emojis.`
+Sprache: Deutsch. Kein Smalltalk. Keine Emojis.
+
+FORMATIERUNG: Nutze Markdown wenn es Klarheit schafft.
+- **fett** für Schlüsselbegriffe
+- Listen (- oder 1.) für mehrere Punkte
+- \`code\` für Datei-, Feld- oder Statusnamen
+- Überschriften (### oder ####) nur bei längeren Berichten
+Halte den Text trotzdem knapp.`
 
 const QUICK = [
   'Was ist der aktuelle Projektstatus?',
@@ -159,8 +167,11 @@ export default function AIPage() {
                   background: m.role === 'ai' ? 'var(--card)' : 'var(--btn-prim)',
                   border: m.role === 'ai' ? '1px solid var(--border)' : 'none',
                   color: m.role === 'ai' ? 'var(--text)' : 'var(--btn-prim-text)',
+                  fontSize: 14, lineHeight: 1.6, wordBreak: 'break-word',
                 }}>
-                  <p style={{ fontSize: 14, lineHeight: 1.6, margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{m.text}</p>
+                  {m.role === 'ai'
+                    ? <ChatMarkdown text={m.text} />
+                    : <p style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{m.text}</p>}
                 </div>
                 <span style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '.02em' }}>
                   {m.role === 'ai' ? 'Tagro' : 'Du'} · {m.time}
