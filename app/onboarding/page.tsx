@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import ChatMarkdown from '@/components/ChatMarkdown'
+import ChatInput from '@/components/ChatInput'
 import Link from 'next/link'
 
 type Msg  = { role: 'ai' | 'user'; text: string }
@@ -471,45 +472,35 @@ export default function OnboardingPage() {
 
       {/* ── Input bar (sticky bottom) ── */}
       {!ready && (
-        <div style={{ position:'sticky', bottom:0, background:'linear-gradient(to top, var(--bg) 70%, transparent)', padding:'12px 20px 20px', paddingBottom:'calc(20px + env(safe-area-inset-bottom))' }}>
+        <div style={{ position:'sticky', bottom:0, background:'linear-gradient(to top, var(--bg) 78%, transparent)', padding:'14px 20px 22px', paddingBottom:'calc(22px + env(safe-area-inset-bottom))' }}>
           <div style={{ maxWidth:720, margin:'0 auto' }}>
-            {/* Main input container */}
-            <div className="ob-input-wrap"
-              style={{ display:'flex', alignItems:'flex-end', gap:10, background:'var(--card)', border:'1.5px solid var(--border)', borderRadius:16, padding:'12px 12px 12px 16px', boxShadow:'0 2px 20px rgba(0,0,0,.1)', transition:'border-color .2s, box-shadow .2s' }}>
-              <textarea
-                ref={textRef}
-                value={input}
-                onChange={e => {
-                  setInput(e.target.value)
-                  e.target.style.height = 'auto'
-                  e.target.style.height = Math.min(e.target.scrollHeight, 180) + 'px'
-                }}
-                onKeyDown={handleKey}
-                placeholder="Beschreibe deine Idee…"
-                rows={1}
-                style={{ flex:1, resize:'none', border:'none', outline:'none', background:'transparent', fontSize:15, lineHeight:1.6, color:'var(--text)', fontFamily:'inherit', fontWeight:500, overflowY:'hidden', minHeight:26, maxHeight:180, padding:0, caretColor:'var(--accent)' }}
-              />
-              <button onClick={send} disabled={!input.trim() || aiLoading}
-                style={{ width:38, height:38, borderRadius:11, border:'none', flexShrink:0, background:(input.trim()&&!aiLoading)?'var(--btn-prim)':'var(--surface-2)', color:(input.trim()&&!aiLoading)?'var(--btn-prim-text)':'var(--text-muted)', cursor:(input.trim()&&!aiLoading)?'pointer':'default', display:'flex', alignItems:'center', justifyContent:'center', transition:'background .15s, color .15s' }}>
-                {aiLoading
-                  ? <span style={{ width:14, height:14, border:'2px solid rgba(128,128,128,.3)', borderTopColor:'currentColor', borderRadius:'50%', animation:'spin .7s linear infinite' }}/>
-                  : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-                }
-              </button>
-            </div>
-
-            {/* Hint strip */}
-            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginTop:10, padding:'0 2px' }}>
-              <div style={{ display:'flex', alignItems:'center', gap:6 }}>
-                <span style={{ fontSize:11, color:'var(--text-muted)', opacity:.7 }}>Enter zum Senden · Shift+Enter neue Zeile</span>
-                <span style={{ width:1, height:10, background:'var(--border)' }}/>
-                <span style={{ fontSize:11, color:'var(--text-muted)', opacity:.7 }}>Tipp: <code style={{ fontFamily:'ui-monospace,monospace', background:'var(--surface-2)', padding:'1px 5px', borderRadius:4, fontSize:10 }}>test projekt</code> für Demo</span>
-              </div>
-              <div style={{ display:'flex', alignItems:'center', gap:4, fontSize:10, fontWeight:700, color:'var(--text-muted)', opacity:.5, letterSpacing:'.04em' }}>
-                <span style={{ fontSize:11 }}>✦</span>
-                TAGRO AI
-              </div>
-            </div>
+            <ChatInput
+              value={input}
+              onChange={setInput}
+              onSend={send}
+              loading={aiLoading}
+              placeholder="Beschreibe deine Idee — z.B. eine Website für systemische Beratung…"
+              modes={[
+                { id:'standard', label:'Standard' },
+                { id:'fokus',    label:'Fokus' },
+                { id:'detail',   label:'Detail' },
+              ]}
+              mode="standard"
+              onModeChange={() => {}}
+              banner={
+                <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginTop:11, padding:'10px 14px', background:'linear-gradient(135deg,rgba(99,102,241,.06),rgba(168,85,247,.05))', border:'1px solid rgba(99,102,241,.14)', borderRadius:12 }}>
+                  <div style={{ display:'flex', alignItems:'center', gap:9, minWidth:0 }}>
+                    <div style={{ width:24, height:24, borderRadius:7, background:'linear-gradient(135deg,#6366f1,#8b5cf6)', color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:700, flexShrink:0 }}>✦</div>
+                    <p style={{ fontSize:12, color:'var(--text-secondary)', margin:0, lineHeight:1.45 }}>
+                      <strong style={{ color:'var(--text)' }}>Tagro AI</strong> versteht jede Idee. Tipp: schreibe <code style={{ fontFamily:'ui-monospace,monospace', background:'var(--surface-2)', padding:'1px 5px', borderRadius:4, fontSize:10.5 }}>test projekt</code> für eine Demo.
+                    </p>
+                  </div>
+                  <button onClick={() => setMode('manual')} style={{ flexShrink:0, marginLeft:8, padding:'5px 11px', background:'#6366f1', color:'#fff', fontSize:11, fontWeight:700, border:'none', borderRadius:7, cursor:'pointer', fontFamily:'inherit' }}>
+                    Lieber Formular?
+                  </button>
+                </div>
+              }
+            />
           </div>
         </div>
       )}

@@ -1,0 +1,43 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
+
+const SUPABASE_URL = 'https://xsdkoepwuvpuroijjain.supabase.co'
+
+/**
+ * Mollie webhook. Mollie POSTs `id` (paymentId). We GET status from Mollie API
+ * and update payments table accordingly.
+ */
+export async function POST(req: NextRequest) {
+  try {
+    const form = await req.formData()
+    const id = String(form.get('id') ?? '')
+    if (!id) return NextResponse.json({ ok: false }, { status: 400 })
+
+    const key = process.env.MOLLIE_API_KEY
+    if (!key) return NextResponse.json({ ok: false }, { status: 500 })
+
+    const r = await fetch(`https://api.mollie.com/v2/payments/${id}`, {
+      headers: { 'Authorization': `Bearer ${key}` },
+    })
+    const data = await r.json()
+
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    if (serviceKey) {
+      const sb = createClient(SUPABASE_URL, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } })
+      await sb.from('payments').upsert({
+        provider: 'mollie',
+        provider_id: id,
+        status: data.status,
+        amount: Number(data.amount?.value ?? 0),
+        currency: data.amount?.currency ?? 'EUR',
+        description: data.description ?? null,
+        metadata: data.metadata ?? null,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'provider_id' }).catch(() => {})
+    }
+
+    return NextResponse.json({ ok: true })
+  } catch {
+    return NextResponse.json({ ok: false }, { status: 500 })
+  }
+}

@@ -56,6 +56,7 @@ const PROJECT_NAV: NavItem[] = [
 ]
 const TOOLS_NAV: NavItem[] = [
   { href:'/estimator', icon:'estimate', label:'Preisschätzer' },
+  { href:'/pricing',   icon:'sparkle',  label:'Pakete & Pläne' },
   { href:'/addons',    icon:'grid',     label:'Add-ons' },
 ]
 const ACCOUNT_NAV: NavItem[] = [

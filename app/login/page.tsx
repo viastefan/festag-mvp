@@ -104,7 +104,7 @@ function PixelBlocks({ view }: { view: View }) {
 function ImagePanel({ view }: { view: View }) {
   return (
     <div style={{ position: 'relative', overflow: 'hidden', width: '100%', height: '100%' }}>
-      <img src="/bg-office.jpg" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}/>
+      <img src="/bg-team.jpg" onError={(e) => { (e.target as HTMLImageElement).src = '/bg-office.jpg' }} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}/>
       <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right,rgba(5,14,10,0.72) 0%,rgba(5,14,10,0.45) 60%,rgba(5,14,10,0.08) 100%),linear-gradient(to top,rgba(5,14,10,0.85) 0%,transparent 55%)', pointerEvents: 'none' }}/>
       <PixelBlocks view={view}/>
       <div style={{ position: 'absolute', top: 30, left: 36, zIndex: 2 }}>
@@ -282,7 +282,7 @@ export default function LoginPage() {
         <div className="l-right">
           <div className="mob-page">
             <div className="mob-hero">
-              <img src="/bg-office.jpg" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 25%' }}/>
+              <img src="/bg-team.jpg" onError={(e) => { (e.target as HTMLImageElement).src = '/bg-office.jpg' }} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 25%' }}/>
               <div className="mob-grad"/>
               <PixelBlocksMobile/>
             </div>
