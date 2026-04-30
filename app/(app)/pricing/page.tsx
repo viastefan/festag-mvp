@@ -8,76 +8,88 @@ type Plan = {
   name: string
   price: number | null
   unit: string
+  category: string  // "DER PERFEKTE EINSTIEG" etc.
   tagline: string
   features: string[]
   cta: string
   highlight?: boolean
   badge?: string
   color: string
+  guarantee?: string  // e.g. "+ 30 Tage Garantie"
 }
 
 const PLANS: Plan[] = [
   {
-    id: 'starter', name: 'Starter', price: 1500, unit: 'einmalig ab',
+    id: 'starter', name: 'Starter', price: 1500, unit: 'ab',
+    category: 'DER PERFEKTE EINSTIEG',
     tagline: 'Für Solo-Gründer & MVPs.',
     features: [
-      '1 Developer im Team',
-      'Website oder einfache Web-App',
-      'Custom Figma UI Design',
+      '1 Entwickler',
+      'High-End Website',
+      'Individuelles Figma UI',
+      'Projekt-Basis',
       'Tagro AI Projekt-Aufnahme',
-      '30-Tage Garantie',
       'E-Mail Support',
     ],
-    cta: 'Starter buchen',
+    cta: 'Paket anfragen',
     color: '#6366f1',
+    guarantee: '+ 30 Tage Garantie',
   },
   {
-    id: 'pro', name: 'Pro', price: 2800, unit: 'einmalig ab',
+    id: 'pro', name: 'Pro', price: 2800, unit: 'ab',
+    category: 'WACHSENDE SYSTEME',
     tagline: 'Für skalierende Startups.',
     features: [
-      '1 dedizierter Developer',
-      'Website / App / SaaS',
-      'Festag AI inkludiert',
+      '1 Entwickler (dediziert)',
+      'Website, App, SaaS Lsg.',
+      'Individuelles Figma UI',
+      'Festag AI Features +',
+      "Dev'ler Direktkontakt",
       '2 Client Seats',
-      'Priority Support (4h Reaktion)',
-      '3-Monate Code-Garantie',
-      'Connector: Notion, Slack',
+      'Priorisierter Support',
+      'mtl. Wartung (zubuchbar)',
     ],
-    cta: 'Pro buchen',
+    cta: 'Paket anfragen',
     highlight: true,
-    badge: 'BELIEBT',
+    badge: 'EMPFOHLEN',
     color: '#8b5cf6',
+    guarantee: '+ 3 Monate Garantie',
   },
   {
-    id: 'growth', name: 'Growth', price: 4000, unit: 'einmalig ab',
+    id: 'growth', name: 'Growth', price: 4000, unit: 'ab',
+    category: 'KMU & STARTUP',
     tagline: 'Für etablierte Companies.',
     features: [
-      '1–2 Developer im Team',
-      'Volles Software-Ökosystem',
-      'KI-Integrationen inkludiert',
-      '4 Client Seats',
-      '24/7 Support',
-      '3-Monate erweiterte Garantie',
-      'Alle Connectors (Notion, Zapier, ...)',
-      'Custom AI Workflows',
+      '1–2 Entwickler',
+      'Full Eco-System',
+      'KI Systemintegrationen',
+      'Individuelles Figma UI',
+      'Festag AI Vollumfänglich +',
+      "Dev'ler Direktkontakt",
+      'bis zu 4 Client Seats',
+      '24/7 Priorisierter Support',
+      'mtl. Full-Service (zubuchbar)',
     ],
-    cta: 'Growth buchen',
+    cta: 'Paket anfragen',
     color: '#0ea5e9',
+    guarantee: '+ 3 Monate Garantie',
   },
   {
-    id: 'scale', name: 'Scale', price: null, unit: 'individuelles Angebot',
+    id: 'scale', name: 'Scale', price: null, unit: 'Individuell',
+    category: 'ENTERPRISE LÖSUNGEN',
     tagline: 'Enterprise & Konzerne.',
     features: [
-      'Unbegrenzt Developer',
-      '8+ Client Seats',
-      'Volles Festag AI',
-      'Dedicated Account Manager',
-      'Eigener Tagro-Tenant',
-      'SLA on demand',
-      'On-Site Workshops',
-      'Custom Connectors',
+      'Unbegrenzte Entwickler',
+      'External Eco-System',
+      'KI Systemintegrationen',
+      'Individuelles Figma UI',
+      'Festag AI Vollumfänglich +',
+      "Dev'ler Direktkontakt",
+      'bis zu 8 Client Seats',
+      '24/7 Priorisierter Support',
+      'mtl. Full-Service (zubuchbar)',
     ],
-    cta: 'Gespräch anfragen',
+    cta: 'Support kontaktieren',
     color: '#f59e0b',
   },
 ]
@@ -91,6 +103,7 @@ const MANAGED = {
 
 export default function PricingPage() {
   const [billing, setBilling] = useState<'project'|'managed'>('project')
+  const [oneShot, setOneShot] = useState(true)  // einmalig zahlen toggle
   const [loadingPlan, setLoadingPlan] = useState<string|null>(null)
   const [error, setError] = useState<string|null>(null)
 
@@ -160,49 +173,73 @@ export default function PricingPage() {
               background: plan.highlight ? `linear-gradient(180deg, ${plan.color}10, var(--card))` : 'var(--card)',
               border: `1px solid ${plan.highlight?plan.color:'var(--border)'}`,
               borderRadius:18,
-              padding:'22px 22px 24px',
+              padding:'22px 22px 22px',
               position:'relative',
               boxShadow: plan.highlight ? `0 12px 36px ${plan.color}22` : '0 2px 12px rgba(15,23,42,.04)',
+              display:'flex', flexDirection:'column',
             }}>
               {plan.badge && (
                 <span style={{ position:'absolute', top:14, right:14, padding:'3px 10px', borderRadius:14, background:plan.color, color:'#fff', fontSize:9.5, fontWeight:800, letterSpacing:'.08em' }}>{plan.badge}</span>
               )}
-              <div style={{ width:36, height:36, borderRadius:10, background:`${plan.color}18`, color:plan.color, display:'flex', alignItems:'center', justifyContent:'center', fontSize:16, fontWeight:800, marginBottom:14 }}>
-                {plan.name.charAt(0)}
-              </div>
-              <h3 style={{ fontSize:20, fontWeight:700, color:'var(--text)', margin:'0 0 4px', letterSpacing:'-.3px' }}>{plan.name}</h3>
-              <p style={{ fontSize:12.5, color:'var(--text-muted)', margin:'0 0 18px' }}>{plan.tagline}</p>
-              <div style={{ marginBottom:18 }}>
+              <p style={{ fontSize:10.5, fontWeight:800, color:'var(--text-muted)', letterSpacing:'.1em', margin:'0 0 10px' }}>{plan.category}</p>
+              <h3 style={{ fontSize:24, fontWeight:800, color:'var(--text)', margin:'0 0 4px', letterSpacing:'-.5px' }}>{plan.name}</h3>
+              <p style={{ fontSize:12.5, color:'var(--text-muted)', margin:'0 0 14px' }}>{plan.tagline}</p>
+
+              {/* Price + einmalig toggle */}
+              <div style={{ marginBottom:16 }}>
                 {plan.price !== null ? (
                   <>
-                    <span style={{ fontSize:11, color:'var(--text-muted)', fontWeight:600 }}>{plan.unit}</span>
-                    <p style={{ fontSize:32, fontWeight:800, color:'var(--text)', margin:'2px 0 0', lineHeight:1, letterSpacing:'-.8px' }}>
+                    <p style={{ fontSize:24, fontWeight:800, color:'var(--text)', margin:0, lineHeight:1.1, letterSpacing:'-.6px' }}>
+                      <span style={{ fontSize:14, fontWeight:600, color:'var(--text-muted)' }}>{plan.unit} </span>
                       €{plan.price.toLocaleString('de')}
                     </p>
+                    {oneShot && plan.id !== 'scale' && (
+                      <div style={{ display:'flex', alignItems:'center', gap:8, marginTop:8 }}>
+                        <div style={{ width:30, height:18, background:plan.color, borderRadius:9, position:'relative', flexShrink:0 }}>
+                          <div style={{ position:'absolute', top:2, right:2, width:14, height:14, borderRadius:'50%', background:'#fff' }}/>
+                        </div>
+                        <span style={{ fontSize:12, color:'var(--text-secondary)', fontWeight:600 }}>einmalig zahlen</span>
+                      </div>
+                    )}
                   </>
                 ) : (
-                  <p style={{ fontSize:18, fontWeight:700, color:'var(--text)', margin:0, lineHeight:1.3 }}>Auf Anfrage</p>
+                  <p style={{ fontSize:20, fontWeight:700, color:'var(--text)', margin:0, lineHeight:1.3 }}>{plan.unit}<br/><span style={{ fontSize:12, fontWeight:500, color:'var(--text-muted)' }}>Zeitraum nach Absprache</span></p>
                 )}
               </div>
-              <ul style={{ listStyle:'none', padding:0, margin:'0 0 22px', display:'flex', flexDirection:'column', gap:8 }}>
+
+              <ul style={{ listStyle:'none', padding:0, margin:'0 0 16px', display:'flex', flexDirection:'column', gap:9, flex:1 }}>
                 {plan.features.map(f => (
-                  <li key={f} style={{ display:'flex', alignItems:'flex-start', gap:8, fontSize:13, color:'var(--text-secondary)', lineHeight:1.45 }}>
-                    <span style={{ width:16, height:16, borderRadius:'50%', background:`${plan.color}18`, color:plan.color, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, marginTop:1 }}>
+                  <li key={f} style={{ display:'flex', alignItems:'flex-start', gap:9, fontSize:13, color:'var(--text-secondary)', lineHeight:1.45 }}>
+                    <span style={{ width:17, height:17, borderRadius:'50%', background:`${plan.color}18`, color:plan.color, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, marginTop:1 }}>
                       <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                     </span>
                     {f}
                   </li>
                 ))}
               </ul>
+
+              {plan.guarantee && (
+                <div style={{ display:'flex', alignItems:'center', gap:9, padding:'10px 12px', marginBottom:12, background:`${plan.color}10`, borderRadius:10, border:`1px solid ${plan.color}26` }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={plan.color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink:0 }}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                  <div>
+                    <p style={{ fontSize:12, fontWeight:800, color:plan.color, margin:0, lineHeight:1.2 }}>{plan.guarantee}</p>
+                    <p style={{ fontSize:10, color:'var(--text-muted)', margin:'1px 0 0' }}>Volle Absicherung</p>
+                  </div>
+                </div>
+              )}
+
               <button onClick={() => buy(plan)} disabled={loadingPlan===plan.id} className="pp-cta" style={{
                 background: plan.highlight ? plan.color : 'var(--text)',
-                color: '#fff',
+                color: plan.highlight ? '#fff' : 'var(--bg)',
                 opacity: loadingPlan === plan.id ? .7 : 1,
               }}>
                 {loadingPlan === plan.id ? (
                   <span style={{ width:13, height:13, border:'2px solid rgba(255,255,255,.4)', borderTopColor:'#fff', borderRadius:'50%', animation:'pp-spin .7s linear infinite' }}/>
-                ) : <>{plan.cta}<span>→</span></>}
+                ) : <>{plan.cta}</>}
               </button>
+              <p style={{ fontSize:10.5, color:'var(--text-muted)', margin:'10px 0 0', textAlign:'center' }}>
+                **Preise hängen stark vom gewünschten Endprodukt ab.
+              </p>
             </div>
           ))}
         </div>

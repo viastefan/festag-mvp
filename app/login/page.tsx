@@ -28,23 +28,25 @@ const BLOCKS: Record<View,{w:number,h:number}[]> = {
   dev:     [{w:108,h:8},{w:78,h:10},{w:114,h:7},{w:86,h:9},{w:66,h:8},{w:100,h:11},{w:82,h:9},{w:96,h:10},{w:120,h:6},{w:74,h:8},{w:92,h:7},{w:88,h:7}],
 }
 
-function getPanelBg(theme: string) {
-  if (theme === 'dark') return '#0B0F0E'
-  if (theme === 'read') return '#F8F7F2'
-  return '#F8F9F8'
-}
 function getDefaultTheme() {
   if (typeof window === 'undefined') return 'read'
   return localStorage.getItem('festag_theme') || 'read'
 }
 
+/**
+ * Reads the current --bg CSS variable from the document so pixel blocks
+ * always match the right panel exactly — no color drift in any theme.
+ */
+function getPanelBg() {
+  if (typeof window === 'undefined') return '#F8F7F2'
+  const v = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim()
+  return v || '#F8F7F2'
+}
+
 function PixelBlocksMobile() {
-  const [bg, setBg] = useState(() => getPanelBg(getDefaultTheme()))
+  const [bg, setBg] = useState('#F8F7F2')
   useEffect(() => {
-    const update = (e?: Event) => {
-      const theme = e instanceof CustomEvent ? e.detail : getDefaultTheme()
-      setBg(getPanelBg(theme))
-    }
+    const update = () => setBg(getPanelBg())
     update()
     window.addEventListener('festag-theme', update)
     return () => window.removeEventListener('festag-theme', update)
@@ -78,12 +80,9 @@ function PixelBlocksMobile() {
 }
 
 function PixelBlocks({ view }: { view: View }) {
-  const [panelBg, setPanelBg] = useState(() => getPanelBg(getDefaultTheme()))
+  const [panelBg, setPanelBg] = useState('#F8F7F2')
   useEffect(() => {
-    const update = (e?: Event) => {
-      const theme = e instanceof CustomEvent ? e.detail : getDefaultTheme()
-      setPanelBg(getPanelBg(theme))
-    }
+    const update = () => setPanelBg(getPanelBg())
     update()
     window.addEventListener('festag-theme', update)
     return () => window.removeEventListener('festag-theme', update)

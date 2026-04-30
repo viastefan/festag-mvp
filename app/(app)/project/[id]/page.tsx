@@ -8,6 +8,7 @@ import ChatMarkdown from '@/components/ChatMarkdown'
 import { projectColor } from '@/components/Sidebar'
 import { effectiveRole, isDevOrAdmin } from '@/lib/role'
 import MilestoneChart, { Milestone } from '@/components/MilestoneChart'
+import ProjectCompletionCelebration from '@/components/ProjectCompletionCelebration'
 
 type Project = { id: string; title: string; description: string|null; status: string }
 type Task = { id: string; title: string; status: string; priority?: string }
@@ -25,6 +26,8 @@ export default function ProjectPage() {
   const [messages, setMessages] = useState<Msg[]>([])
   const [aiUpdates, setAiUpdates] = useState<any[]>([])
   const [milestones, setMilestones] = useState<Milestone[]>([])
+  const [celebrationOpen, setCelebrationOpen] = useState(false)
+  const [prevStatus, setPrevStatus] = useState<string|null>(null)
   const [newMsg, setNewMsg] = useState('')
   const [newTask, setNewTask] = useState('')
   const [userId, setUserId] = useState('')
@@ -206,7 +209,30 @@ export default function ProjectPage() {
   async function updateStatus(status: string) {
     await supabase.from('projects').update({ status }).eq('id', id)
     setProject(p => p ? { ...p, status } : p)
+    // Trigger celebration when transitioning to 'done' (and previous wasn't 'done')
+    if (status === 'done' && project && project.status !== 'done') {
+      // Mark celebration shown so we don't re-show on every refresh
+      const seenKey = `pcc_seen_${id}`
+      if (typeof window !== 'undefined' && !window.localStorage.getItem(seenKey)) {
+        setCelebrationOpen(true)
+        window.localStorage.setItem(seenKey, '1')
+      }
+    }
   }
+
+  // If project was already 'done' on first load and we haven't celebrated yet, show once
+  useEffect(() => {
+    if (!project) return
+    if (prevStatus === null) { setPrevStatus(project.status); return }
+    if (project.status === 'done' && prevStatus !== 'done') {
+      const seenKey = `pcc_seen_${id}`
+      if (typeof window !== 'undefined' && !window.localStorage.getItem(seenKey)) {
+        setCelebrationOpen(true)
+        window.localStorage.setItem(seenKey, '1')
+      }
+    }
+    setPrevStatus(project.status)
+  }, [project?.status])
 
   async function generateAIUpdate() {
     if (!project) return
@@ -280,6 +306,15 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m√
   return (
     <div className="page-content animate-fade-up" style={{ maxWidth: 1160 }}>
       <style>{`@keyframes spin{to{transform:rotate(360deg);}} @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}`}</style>
+
+      {/* Celebration overlay when project transitions to done */}
+      <ProjectCompletionCelebration
+        open={celebrationOpen}
+        projectTitle={project.title}
+        deliveryDate={new Date().toISOString()}
+        onClose={() => setCelebrationOpen(false)}
+        onContinue={() => { setCelebrationOpen(false); setActiveLeft('updates'); generateAIUpdate() }}
+      />
 
       {/* Breadcrumb */}
       <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 14 }}>
