@@ -8,7 +8,24 @@ import SettingsRightPanel from '@/components/SettingsRightPanel'
 const INDUSTRIES = ['Technologie & Software','E-Commerce & Retail','Marketing & Werbung','Finanzen & Versicherung','Gesundheit & Medizin','Bildung & E-Learning','Immobilien & Bau','Medien & Entertainment','Logistik & Transport','Beratung & Services','Gastronomie & Tourismus','Sonstiges']
 const SIZES = [{v:'freelancer',l:'Freelancer'},{v:'1-10',l:'1–10'},{v:'10-50',l:'10–50'},{v:'50-200',l:'50–200'},{v:'200+',l:'200+'}]
 const LEGAL = ['GmbH','UG (haftungsbeschränkt)','AG','GbR','Einzelunternehmen','Freiberufler','OHG','KG','GmbH & Co. KG','e.K.','Sonstiges']
-type Tab = 'profile'|'company'|'security'|'integrations'
+type Tab = 'profile'|'skills'|'company'|'security'|'integrations'
+
+const SKILL_CATALOG = [
+  // Frontend
+  'React','Next.js','Vue','Svelte','TypeScript','Tailwind CSS','Figma',
+  // Backend
+  'Node.js','Python','Go','Rust','Supabase','PostgreSQL','REST APIs','GraphQL',
+  // Mobile
+  'Swift','SwiftUI','Kotlin','React Native','Flutter',
+  // AI / Data
+  'OpenAI / Anthropic API','Vector DBs','Prompt Engineering','LangChain','RAG',
+  // DevOps
+  'Vercel','AWS','Docker','GitHub Actions',
+  // Design
+  'UI Design','UX Research','Branding','Motion Design',
+  // Languages
+  'Deutsch','English','Français','Español',
+]
 type Notifs = { ai_updates:boolean; dev_activity:boolean; billing:boolean; project_status:boolean }
 
 export default function SettingsPage() {
@@ -24,6 +41,15 @@ export default function SettingsPage() {
   const [firstName, setFirstName] = useState('')
   const [lastName,  setLastName]  = useState('')
   const [phone,     setPhone]     = useState('')
+
+  // skills/availability (used by Tagro AI for dev matching)
+  const [bio,        setBio]        = useState('')
+  const [skills,     setSkills]     = useState<string[]>([])
+  const [hourlyRate, setHourlyRate] = useState('')
+  const [availability, setAvailability] = useState<'full_time'|'part_time'|'on_demand'|'unavailable'>('full_time')
+  const [timezone,   setTimezone]   = useState('Europe/Berlin')
+  const [skillsSaving, setSkillsSaving] = useState(false)
+  const [skillsSaved,  setSkillsSaved]  = useState<'ok'|'err'|null>(null)
 
   // company fields
   const [compName, setCompName] = useState('')
@@ -83,6 +109,10 @@ export default function SettingsPage() {
       if (p) {
         setFirstName(p.first_name??''); setLastName(p.last_name??''); setPhone(p.phone??'')
         setRole(p.role??'client'); setJoinDate(p.created_at??''); setAvatarUrl(p.avatar_url??null)
+        setBio(p.bio??''); setSkills(Array.isArray(p.skills) ? p.skills : [])
+        setHourlyRate(p.hourly_rate ? String(p.hourly_rate) : '')
+        if (['full_time','part_time','on_demand','unavailable'].includes(p.availability)) setAvailability(p.availability)
+        if (p.timezone) setTimezone(p.timezone)
         setCompName(p.company_name??''); setCompDesc(p.company_desc??''); setCompInd(p.company_industry??'')
         setCompSize(p.company_size??''); setCompWeb(p.company_website??''); setLegalForm(p.legal_form??'')
         setVat(p.vat_number??''); setTax(p.tax_number??''); setAddr(p.company_address??'')
@@ -366,11 +396,12 @@ export default function SettingsPage() {
       {/* ── TABS ─────────────────────────────────────────── */}
       <div className="tab-row animate-fade-up-2">
         {([
-          { k:'profile',      l:'Profil',        icon:'M12 8a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 20c0-4 4-6 8-6s8 2 8 6' },
-          { k:'company',      l:'Unternehmen',   icon:'M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z' },
-          { k:'security',     l:'Sicherheit',    icon:'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z' },
-          { k:'integrations', l:'Integrationen', icon:'M18 20V10M12 20V4M6 20v-6' },
-        ] as const).map(t => (
+          { k:'profile',      l:'Profil',        icon:'M12 8a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 20c0-4 4-6 8-6s8 2 8 6', show: true },
+          { k:'skills',       l:'Skills',        icon:'M13 2L3 14h9l-1 8 10-12h-9l1-8z',                                show: role==='dev'||role==='admin' },
+          { k:'company',      l:'Unternehmen',   icon:'M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z',                  show: true },
+          { k:'security',     l:'Sicherheit',    icon:'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z',                     show: true },
+          { k:'integrations', l:'Integrationen', icon:'M18 20V10M12 20V4M6 20v-6',                                       show: true },
+        ] as const).filter(t => t.show).map(t => (
           <button key={t.k} onClick={() => setTab(t.k)} className={`tab-btn ${tab===t.k?'tab-on':'tab-off'}`}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={tab===t.k?2.2:1.7} strokeLinecap="round" strokeLinejoin="round"><path d={t.icon}/></svg>
             <span className="hide-mobile">{t.l}</span>
@@ -435,6 +466,107 @@ export default function SettingsPage() {
               </div>
 
               <SaveBtn saving={saving} saved={saved} onClick={save} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ══════════════════════════════════════════════════
+          TAB: SKILLS & VERFÜGBARKEIT (dev/admin only)
+      ══════════════════════════════════════════════════ */}
+      {tab==='skills' && (
+        <div className="fade-in">
+          <div className="s-card">
+            <div className="s-hd">
+              <span className="s-hd-label">DEV PROFIL FÜR TAGRO AI</span>
+            </div>
+            <div className="s-bd">
+              <p style={{ fontSize:12.5, color:'var(--text-secondary)', margin:'0 0 14px', lineHeight:1.55 }}>
+                Tagro nutzt diese Daten, um dich mit passenden Projekten zu matchen. Je präziser, desto bessere Vorschläge.
+              </p>
+
+              <div>
+                <label className="lbl">Bio · was machst du am liebsten?</label>
+                <textarea value={bio} onChange={e => setBio(e.target.value)} rows={3} className="inp" style={{ resize:'vertical', minHeight:78 }}
+                  placeholder="z.B. 'Senior Full-Stack Dev mit Fokus auf SaaS-Plattformen und Stripe-Integrationen. 8 Jahre Erfahrung mit React + Node.'"/>
+                <p style={{ fontSize:11, color:'var(--text-muted)', margin:'4px 0 0' }}>
+                  {bio.length}/400 — Tagro liest das wie ein Recruiter.
+                </p>
+              </div>
+
+              <div>
+                <label className="lbl">Skills · klick zum Hinzufügen</label>
+                <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginBottom:10 }}>
+                  {skills.map(s => (
+                    <button key={s} onClick={() => setSkills(skills.filter(x => x !== s))} style={{ padding:'5px 11px 5px 13px', background:'var(--text)', color:'var(--bg)', border:'none', borderRadius:18, fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', gap:6 }}>
+                      {s}
+                      <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                    </button>
+                  ))}
+                  {skills.length === 0 && (
+                    <p style={{ fontSize:12, color:'var(--text-muted)', margin:0, fontStyle:'italic' }}>Keine Skills ausgewählt — wähle aus dem Katalog unten.</p>
+                  )}
+                </div>
+                <div style={{ display:'flex', flexWrap:'wrap', gap:5, padding:10, background:'var(--surface-2)', borderRadius:10 }}>
+                  {SKILL_CATALOG.filter(c => !skills.includes(c)).map(s => (
+                    <button key={s} onClick={() => setSkills([...skills, s])} style={{ padding:'4px 10px', background:'var(--surface)', border:'1px solid var(--border)', borderRadius:14, fontSize:11.5, fontWeight:600, color:'var(--text-secondary)', cursor:'pointer', fontFamily:'inherit' }}>
+                      + {s}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="row2">
+                <div>
+                  <label className="lbl">Stundensatz · €/h</label>
+                  <input value={hourlyRate} onChange={e => setHourlyRate(e.target.value.replace(/[^\d.]/g, ''))} placeholder="85" className="inp"/>
+                </div>
+                <div>
+                  <label className="lbl">Verfügbarkeit</label>
+                  <select value={availability} onChange={e => setAvailability(e.target.value as any)} className="inp">
+                    <option value="full_time">Vollzeit (40h+/Woche)</option>
+                    <option value="part_time">Teilzeit (15-30h/Woche)</option>
+                    <option value="on_demand">Auf Anfrage</option>
+                    <option value="unavailable">Aktuell nicht verfügbar</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="lbl">Zeitzone</label>
+                <select value={timezone} onChange={e => setTimezone(e.target.value)} className="inp">
+                  <option value="Europe/Berlin">Europe/Berlin (CET)</option>
+                  <option value="Europe/London">Europe/London (GMT)</option>
+                  <option value="America/New_York">America/New_York (EST)</option>
+                  <option value="America/Los_Angeles">America/Los_Angeles (PST)</option>
+                  <option value="Asia/Tokyo">Asia/Tokyo (JST)</option>
+                  <option value="Australia/Sydney">Australia/Sydney (AEST)</option>
+                </select>
+              </div>
+
+              <button onClick={async () => {
+                setSkillsSaving(true); setSkillsSaved(null)
+                const { error } = await sb.from('profiles').update({
+                  bio: bio || null,
+                  skills,
+                  hourly_rate: hourlyRate ? Number(hourlyRate) : null,
+                  availability,
+                  timezone,
+                }).eq('id', uid)
+                setSkillsSaving(false)
+                setSkillsSaved(error ? 'err' : 'ok')
+                setTimeout(() => setSkillsSaved(null), 2400)
+              }}
+                style={{ marginTop:6, padding:'12px 18px', background:'var(--btn-prim)', color:'var(--btn-prim-text)', border:'none', borderRadius:11, fontSize:13.5, fontWeight:700, cursor:'pointer', fontFamily:'inherit', display:'inline-flex', alignItems:'center', gap:8 }}>
+                {skillsSaving ? 'Speichert…' : skillsSaved === 'ok' ? '✓ Gespeichert' : skillsSaved === 'err' ? 'Fehler' : 'Skills speichern'}
+              </button>
+
+              <div style={{ marginTop:14, padding:'12px 14px', background:'rgba(99,102,241,.06)', border:'1px solid rgba(99,102,241,.18)', borderRadius:10 }}>
+                <p style={{ fontSize:11, fontWeight:800, color:'#6366f1', letterSpacing:'.07em', margin:'0 0 4px' }}>TAGRO MATCHING</p>
+                <p style={{ fontSize:12.5, color:'var(--text-secondary)', margin:0, lineHeight:1.55 }}>
+                  Mit deinem Profil matched Tagro AI Projekte automatisch nach Stack-Fit, Verfügbarkeit und Stundensatz. Das Match wird im Pool-Modus angezeigt.
+                </p>
+              </div>
             </div>
           </div>
         </div>
