@@ -91,9 +91,13 @@ export default function Sidebar() {
   const [projects,setProjects]= useState<{id:string;title:string;status:string}[]>([])
   const [more,    setMore]    = useState(false)
   const [projExp, setProjExp] = useState(true)
+  const [viewAs,  setViewAs]  = useState<string|null>(null)
 
   useEffect(() => {
     setMore(false)
+    if (typeof window !== 'undefined') {
+      setViewAs(localStorage.getItem('festag_view_as') || null)
+    }
     const sb = createClient()
     sb.auth.getUser().then(async ({ data }) => {
       if (!data.user) return
@@ -177,7 +181,7 @@ export default function Sidebar() {
           DESKTOP SIDEBAR
       ══════════════════════════════════ */}
       <aside className="sidebar" style={{ pointerEvents:'none' }}>
-        <div className="sidebar-inner" style={{ pointerEvents:'all', padding:'16px 10px 12px', display:'flex', flexDirection:'column', height:'100%' }}>
+        <div className="sidebar-inner" style={{ pointerEvents:'all', padding:'16px 10px 18px', display:'flex', flexDirection:'column', height:'100%' }}>
 
           {/* Logo */}
           <Link href="/dashboard" style={{ textDecoration:'none', display:'block', padding:'0 8px', marginBottom:18 }}>
@@ -246,7 +250,7 @@ export default function Sidebar() {
           </div>
 
           {/* User block */}
-          <div style={{ borderTop:'1px solid var(--border)', paddingTop:10, marginTop:4 }}>
+          <div style={{ borderTop:'1px solid var(--border)', paddingTop:12, paddingBottom:6, marginTop:8 }}>
             <Link href="/settings" style={{ textDecoration:'none' }}>
               <div className="usr-row"
                 style={{ display:'flex', alignItems:'center', gap:9, padding:'7px 9px', borderRadius:10, cursor:'pointer', transition:'background .1s' }}>
@@ -258,13 +262,32 @@ export default function Sidebar() {
                 <div style={{ flex:1, minWidth:0 }}>
                   <p style={{ fontSize:12.5, fontWeight:700, color:'var(--text)', margin:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{name}</p>
                   <div style={{ display:'flex', alignItems:'center', gap:4, marginTop:2 }}>
-                    <span style={{ fontSize:9, fontWeight:700, padding:'1px 5px', borderRadius:4, background:`${ROLE_COLOR[role]}20`, color:ROLE_COLOR[role], letterSpacing:'.05em' }}>{ROLE_LABEL[role] ?? 'Client'}</span>
+                    <span style={{ fontSize:9, fontWeight:700, padding:'1px 5px', borderRadius:4, background:`${ROLE_COLOR[viewAs||role]}20`, color:ROLE_COLOR[viewAs||role], letterSpacing:'.05em' }}>{ROLE_LABEL[viewAs||role] ?? 'Client'}{viewAs ? ' · TEST' : ''}</span>
                   </div>
                 </div>
               </div>
             </Link>
+            {role === 'admin' && (
+              <div style={{ display:'flex', gap:3, marginTop:6, padding:'2px', background:'var(--surface-2)', borderRadius:7 }}>
+                {(['admin','dev','client'] as const).map(r => {
+                  const active = (viewAs||role) === r
+                  return (
+                    <button key={r} onClick={() => {
+                      const next = r === role ? null : r
+                      if (next) localStorage.setItem('festag_view_as', next)
+                      else localStorage.removeItem('festag_view_as')
+                      setViewAs(next)
+                      window.location.reload()
+                    }}
+                    style={{ flex:1, padding:'4px 0', fontSize:9.5, fontWeight:700, border:'none', cursor:'pointer', borderRadius:5, background:active?'var(--bg)':'transparent', color:active?ROLE_COLOR[r]:'var(--text-muted)', fontFamily:'inherit', boxShadow:active?'0 1px 3px rgba(0,0,0,.06)':'none' }}>
+                      {ROLE_LABEL[r]}
+                    </button>
+                  )
+                })}
+              </div>
+            )}
             <button onClick={logout}
-              style={{ width:'100%', padding:'6px 9px', textAlign:'left', border:'none', background:'transparent', cursor:'pointer', fontSize:11.5, color:'var(--text-muted)', borderRadius:9, marginTop:2, fontFamily:'inherit', display:'flex', alignItems:'center', gap:6, transition:'color .1s' }}
+              style={{ width:'100%', padding:'7px 9px', textAlign:'left', border:'none', background:'transparent', cursor:'pointer', fontSize:11.5, color:'var(--text-muted)', borderRadius:9, marginTop:4, fontFamily:'inherit', display:'flex', alignItems:'center', gap:6, transition:'color .1s' }}
               onMouseEnter={e => (e.currentTarget.style.color='var(--text)')}
               onMouseLeave={e => (e.currentTarget.style.color='var(--text-muted)')}>
               <Ico name="logout" sz={12} c="currentColor" sw={2} />

@@ -317,7 +317,7 @@ export default function SettingsPage() {
           <div style={{ position:'relative',flexShrink:0 }}>
             <div
               onClick={() => fileRef.current?.click()}
-              style={{ width:72,height:72,borderRadius:'50%',cursor:'pointer',overflow:'hidden',position:'relative',border:'3px solid var(--surface)',boxShadow:'0 0 0 2px var(--border), var(--shadow)' }}
+              style={{ width:72,height:72,borderRadius:'50%',cursor:'pointer',overflow:'hidden',position:'relative',border:'3px solid var(--surface)',boxShadow:'0 0 0 2px var(--border), var(--shadow)',boxSizing:'border-box',flexShrink:0 }}
             >
               {uploading ? (
                 <div style={{ width:'100%',height:'100%',background:'var(--surface-2)',display:'flex',alignItems:'center',justifyContent:'center' }}>

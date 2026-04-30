@@ -128,14 +128,19 @@ export default function OnboardingPage() {
       })
       const d = await res.json()
       let text: string = d.content?.[0]?.text ?? ''
-      if (text.includes('{"ready":true}')) {
+      if (!text && d.error) {
+        const hint = d.error === 'not configured'
+          ? 'Tagro AI ist gerade nicht aktiv (API-Schlüssel fehlt). Schreibe trotzdem deine Antwort weiter — wir lesen mit und melden uns persönlich.'
+          : `Tagro hat gerade nicht geantwortet (${d.error}). Bitte erneut versuchen oder das Formular nutzen.`
+        setMsgs(m => [...m, { role: 'ai', text: hint }])
+      } else if (text.includes('{"ready":true}')) {
         setMsgs(m => [...m, { role: 'ai', text: text.replace('{"ready":true}', '').trim() }])
         setReady(true)
       } else {
-        setMsgs(m => [...m, { role: 'ai', text }])
+        setMsgs(m => [...m, { role: 'ai', text: text || 'Hmm, ich brauche kurz einen Moment. Schreib gerne weiter.' }])
       }
     } catch {
-      setMsgs(m => [...m, { role: 'ai', text: 'Verbindungsfehler. Bitte erneut versuchen.' }])
+      setMsgs(m => [...m, { role: 'ai', text: 'Verbindung unterbrochen. Versuche es nochmal — oder klicke oben auf **Formular**, falls es wiederholt fehlschlägt.' }])
     }
     setAiLoading(false)
   }
@@ -362,6 +367,11 @@ export default function OnboardingPage() {
       {/* ── Header ── */}
       <header style={{ position:'sticky', top:0, zIndex:50, display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 20px', height:54, borderBottom:'1px solid var(--border)', background:'var(--bg)', backdropFilter:'blur(12px)', WebkitBackdropFilter:'blur(12px)' }}>
         <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+          <button onClick={() => { if (msgs.length > 1 && !confirm('Zurück zum Dashboard? Dein Chat geht verloren.')) return; window.location.href='/dashboard' }}
+            title="Zurück" aria-label="Zurück"
+            style={{ width:30, height:30, display:'flex', alignItems:'center', justifyContent:'center', background:'transparent', border:'1px solid var(--border)', borderRadius:8, cursor:'pointer', color:'var(--text-secondary)' }}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
           <img src="/brand/logo.svg" alt="festag" style={{ height:16, filter:'var(--logo-filter,none)' }}/>
           <span style={{ fontSize:11, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.08em', textTransform:'uppercase' }}>Projekt-Aufnahme</span>
         </div>

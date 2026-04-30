@@ -6,6 +6,7 @@ import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import ChatMarkdown from '@/components/ChatMarkdown'
 import { projectColor } from '@/components/Sidebar'
+import { effectiveRole, isDevOrAdmin } from '@/lib/role'
 
 type Project = { id: string; title: string; description: string|null; status: string }
 type Task = { id: string; title: string; status: string; priority?: string }
@@ -37,7 +38,9 @@ export default function ProjectPage() {
   // canEdit = Devs/Admins: dürfen Status setzen, alles löschen, Phase ändern, kein Limit
   // Clients: dürfen Tasks NUR in "todo" anlegen und löschen — max 20 pro Woche
   // Hinweis: Frontend-Gating; für echten Schutz Supabase RLS zusätzlich konfigurieren.
-  const canEdit = userRole === 'dev' || userRole === 'admin'
+  // Effective role: respects 'festag_view_as' localStorage so admin can test as client.
+  const eff = effectiveRole(userRole || null)
+  const canEdit = isDevOrAdmin(userRole || null)
 
   const TASK_WEEK_LIMIT = 20
   const WEEK_MS = 7 * 24 * 60 * 60 * 1000
@@ -65,7 +68,7 @@ export default function ProjectPage() {
 
   const [clientUsage, setClientUsage] = useState(0)
   useEffect(() => {
-    if (userRole === 'client') setClientUsage(getRecentCreations().length)
+    if (eff === 'client') setClientUsage(getRecentCreations().length)
   }, [userRole, userId])
   const clientRemaining = Math.max(0, TASK_WEEK_LIMIT - clientUsage)
 
@@ -137,7 +140,7 @@ export default function ProjectPage() {
 
   async function addTask() {
     if (!newTask.trim()) return
-    if (userRole === 'client') {
+    if (eff === 'client') {
       const recent = getRecentCreations()
       if (recent.length >= TASK_WEEK_LIMIT) {
         alert(`Wochenlimit erreicht: max ${TASK_WEEK_LIMIT} neue Tasks pro 7 Tage.\nDas Limit setzt sich automatisch zurück, sobald ältere Einträge mehr als 7 Tage alt sind.`)
@@ -148,7 +151,7 @@ export default function ProjectPage() {
     if (error) { alert(`Konnte Task nicht anlegen: ${error.message}`); return }
     if (data) {
       setTasks(prev => [...prev, data])
-      if (userRole === 'client') {
+      if (eff === 'client') {
         recordCreation()
         setClientUsage(getRecentCreations().length)
       }
@@ -354,15 +357,15 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
                   <input
                     value={newTask} onChange={e => setNewTask(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && addTask()}
-                    placeholder={userRole === 'client' && clientRemaining === 0 ? 'Wochenlimit erreicht' : 'Task hinzufügen…'}
-                    disabled={userRole === 'client' && clientRemaining === 0}
-                    style={{ flex: 1, padding: '9px 12px', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', fontSize: 13, outline: 'none', background: 'var(--bg)', opacity: userRole === 'client' && clientRemaining === 0 ? 0.5 : 1 }}
+                    placeholder={eff === 'client' && clientRemaining === 0 ? 'Wochenlimit erreicht' : 'Task hinzufügen…'}
+                    disabled={eff === 'client' && clientRemaining === 0}
+                    style={{ flex: 1, padding: '9px 12px', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', fontSize: 13, outline: 'none', background: 'var(--bg)', opacity: eff === 'client' && clientRemaining === 0 ? 0.5 : 1 }}
                   />
-                  <button onClick={addTask} disabled={!newTask.trim() || (userRole === 'client' && clientRemaining === 0)} className="tap-scale" style={{ padding: '9px 14px', background: 'var(--accent)', color: 'var(--accent-text)', border: 'none', borderRadius: 'var(--r-sm)', fontSize: 12, fontWeight: 600, cursor: newTask.trim() && !(userRole === 'client' && clientRemaining === 0) ? 'pointer' : 'default', opacity: newTask.trim() && !(userRole === 'client' && clientRemaining === 0) ? 1 : 0.4 }}>
+                  <button onClick={addTask} disabled={!newTask.trim() || (eff === 'client' && clientRemaining === 0)} className="tap-scale" style={{ padding: '9px 14px', background: 'var(--accent)', color: 'var(--accent-text)', border: 'none', borderRadius: 'var(--r-sm)', fontSize: 12, fontWeight: 600, cursor: newTask.trim() && !(eff === 'client' && clientRemaining === 0) ? 'pointer' : 'default', opacity: newTask.trim() && !(eff === 'client' && clientRemaining === 0) ? 1 : 0.4 }}>
                     + Hinzufügen
                   </button>
                 </div>
-                {userRole === 'client' && (
+                {eff === 'client' && (
                   <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: '8px 0 0', display: 'flex', alignItems: 'center', gap: 6 }}>
                     <span style={{ width: 5, height: 5, borderRadius: '50%', background: clientRemaining > 5 ? 'var(--green)' : clientRemaining > 0 ? 'var(--amber)' : 'var(--red)' }} />
                     {clientRemaining} von {TASK_WEEK_LIMIT} neuen Tasks diese Woche übrig · Status-Wechsel macht das Entwicklerteam
@@ -389,7 +392,7 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
                       </div>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
                         {colTasks.map(task => {
-                          const showDelete = canEdit || (userRole === 'client' && col.status === 'todo')
+                          const showDelete = canEdit || (eff === 'client' && col.status === 'todo')
                           const showStatusButtons = canEdit
                           const showActions = showDelete || showStatusButtons
                           const priColor = task.priority ? PRIORITY_COLOR[task.priority] : null
