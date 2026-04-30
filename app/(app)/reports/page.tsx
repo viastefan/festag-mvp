@@ -16,7 +16,39 @@ export default function ReportsPage() {
   const [loading, setLoading] = useState(true)
   const [generating, setGenerating] = useState(false)
   const [emailing, setEmailing] = useState<string|null>(null)
+  const [extracting, setExtracting] = useState<string|null>(null)
+  const [extractedTasks, setExtractedTasks] = useState<Record<string, any[]>>({})
   const supabase = createClient()
+
+  async function extractTasks(r: Report) {
+    setExtracting(r.id)
+    try {
+      const res = await fetch('/api/ai/report-to-tasks', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ reportId: r.id, projectId: r.project_id, content: r.content, autoInsert: false }),
+      })
+      const d = await res.json()
+      if (d.tasks) setExtractedTasks(prev => ({ ...prev, [r.id]: d.tasks }))
+      else alert(d.error ?? 'Tagro konnte keine Tasks extrahieren.')
+    } catch { alert('Verbindungsfehler.') }
+    setExtracting(null)
+  }
+
+  async function commitTasks(r: Report, tasks: any[]) {
+    const ok = tasks.filter(t => t._selected !== false)
+    if (!ok.length) { alert('Wähle mindestens einen Task aus.'); return }
+    for (const t of ok) {
+      await supabase.from('tasks').insert({
+        project_id: r.project_id,
+        title: t.title,
+        description: t.description ?? null,
+        status: 'todo',
+        priority: t.priority ?? 'medium',
+      }).catch(() => {})
+    }
+    setExtractedTasks(prev => { const n = { ...prev }; delete n[r.id]; return n })
+    alert(`✓ ${ok.length} Tasks angelegt.`)
+  }
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data }) => {
@@ -201,6 +233,11 @@ export default function ReportsPage() {
                   <button onClick={() => downloadPdf(r)} style={{ padding:'5px 11px', background:'var(--surface-2)', border:'1px solid var(--border)', borderRadius:8, fontSize:11.5, fontWeight:700, color:'var(--text-secondary)', cursor:'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', gap:5 }}>
                     📄 PDF
                   </button>
+                  <button onClick={() => extractTasks(r)} disabled={extracting === r.id}
+                    title="Tagro analysiert den Bericht und schlägt konkrete Tasks vor"
+                    style={{ padding:'5px 11px', background:'rgba(99,102,241,.1)', border:'1px solid rgba(99,102,241,.25)', borderRadius:8, fontSize:11.5, fontWeight:700, color:'#6366f1', cursor:'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', gap:5 }}>
+                    {extracting === r.id ? '…' : '✦ Tasks'}
+                  </button>
                   <button onClick={() => { navigator.clipboard.writeText(r.content); }}
                     title="In Teams / Slack teilen — Inhalt kopiert"
                     style={{ padding:'5px 11px', background:'var(--surface-2)', border:'1px solid var(--border)', borderRadius:8, fontSize:11.5, fontWeight:700, color:'var(--text-secondary)', cursor:'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', gap:5 }}>
@@ -214,6 +251,42 @@ export default function ReportsPage() {
               <div style={{ padding:'8px 18px 16px', fontSize:13.5, color:'var(--text-secondary)', lineHeight:1.65 }}>
                 <ChatMarkdown text={r.content}/>
               </div>
+
+              {/* AI-extracted tasks preview (after clicking "✦ Tasks") */}
+              {extractedTasks[r.id] && (
+                <div style={{ borderTop:'1px solid var(--border)', padding:'14px 18px', background:'linear-gradient(135deg,rgba(99,102,241,.04),rgba(139,92,246,.02))' }}>
+                  <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:10 }}>
+                    <span style={{ width:22, height:22, borderRadius:7, background:'linear-gradient(135deg,#6366f1,#8b5cf6)', color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:800 }}>✦</span>
+                    <p style={{ fontSize:12.5, fontWeight:700, color:'var(--text)', margin:0 }}>Tagro hat {extractedTasks[r.id].length} Tasks vorgeschlagen</p>
+                  </div>
+                  <div style={{ display:'flex', flexDirection:'column', gap:7, marginBottom:10 }}>
+                    {extractedTasks[r.id].map((t, i) => (
+                      <label key={i} style={{ display:'flex', alignItems:'flex-start', gap:9, padding:'9px 12px', background:'var(--surface)', border:'1px solid var(--border)', borderRadius:9, cursor:'pointer' }}>
+                        <input type="checkbox" defaultChecked
+                          onChange={e => { extractedTasks[r.id][i]._selected = e.target.checked }}
+                          style={{ marginTop:3 }}/>
+                        <div style={{ flex:1, minWidth:0 }}>
+                          <p style={{ fontSize:13, fontWeight:700, color:'var(--text)', margin:'0 0 2px' }}>{t.title}</p>
+                          {t.description && <p style={{ fontSize:11.5, color:'var(--text-secondary)', margin:0, lineHeight:1.45 }}>{t.description}</p>}
+                        </div>
+                        <span style={{ flexShrink:0, fontSize:9, fontWeight:800, padding:'2px 6px', borderRadius:5, background: t.priority==='critical'?'rgba(239,68,68,.12)':t.priority==='high'?'rgba(249,115,22,.12)':t.priority==='low'?'rgba(34,197,94,.12)':'rgba(245,158,11,.12)', color: t.priority==='critical'?'#ef4444':t.priority==='high'?'#f97316':t.priority==='low'?'#22c55e':'#f59e0b', letterSpacing:'.05em' }}>
+                          {(t.priority ?? 'medium').toUpperCase()}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                  <div style={{ display:'flex', gap:8 }}>
+                    <button onClick={() => commitTasks(r, extractedTasks[r.id])}
+                      style={{ padding:'8px 14px', background:'linear-gradient(135deg,#6366f1,#8b5cf6)', color:'#fff', border:'none', borderRadius:9, fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>
+                      Tasks anlegen →
+                    </button>
+                    <button onClick={() => setExtractedTasks(prev => { const n = { ...prev }; delete n[r.id]; return n })}
+                      style={{ padding:'8px 14px', background:'transparent', border:'1px solid var(--border)', borderRadius:9, fontSize:12, fontWeight:600, color:'var(--text-secondary)', cursor:'pointer', fontFamily:'inherit' }}>
+                      Verwerfen
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )
         })}

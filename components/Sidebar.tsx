@@ -47,6 +47,7 @@ type NavItem = { href: string; icon: string; label: string; badge?: number }
 const MAIN_NAV: NavItem[] = [
   { href:'/dashboard',       icon:'home',     label:'Dashboard' },
   { href:'/messages',        icon:'chat',     label:'Nachrichten' },
+  { href:'/teams',           icon:'team',     label:'Teams' },
   { href:'/activity',        icon:'activity', label:'Aktivität' },
 ]
 const PROJECT_NAV: NavItem[] = [
