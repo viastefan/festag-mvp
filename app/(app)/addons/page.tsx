@@ -51,6 +51,8 @@ export default function AddonsPage() {
 
   const [search, setSearch] = useState('')
   const [activeCategory, setActiveCategory] = useState<AddonCategory | 'Alle' | 'Beliebt' | 'Aktiv'>('Alle')
+  const [priceRange, setPriceRange] = useState<'alle'|'unter500'|'500-1000'|'ueber1000'>('alle')
+  const [sortBy, setSortBy] = useState<'popular'|'price-asc'|'price-desc'|'effort-asc'>('popular')
 
   useEffect(() => {
     const supabase = createClient()
@@ -221,16 +223,19 @@ export default function AddonsPage() {
 
   const hasPending = Object.values(purchases).some(r => r?.status === 'pending')
 
-  // Filter + Search
+  // Filter + Search + Sort
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
-    return CATALOG.filter(a => {
+    let list = CATALOG.filter(a => {
       if (activeCategory === 'Beliebt' && !a.popular) return false
       if (activeCategory === 'Aktiv') {
         if (purchases[a.id]?.status !== 'active') return false
       } else if (activeCategory !== 'Alle' && activeCategory !== 'Beliebt') {
         if (a.category !== activeCategory) return false
       }
+      if (priceRange === 'unter500' && a.price >= 500) return false
+      if (priceRange === '500-1000' && (a.price < 500 || a.price > 1000)) return false
+      if (priceRange === 'ueber1000' && a.price <= 1000) return false
       if (!q) return true
       return (
         a.name.toLowerCase().includes(q) ||
@@ -239,7 +244,24 @@ export default function AddonsPage() {
         a.category.toLowerCase().includes(q)
       )
     })
-  }, [search, activeCategory, purchases])
+    list = [...list].sort((a, b) => {
+      if (sortBy === 'price-asc') return a.price - b.price
+      if (sortBy === 'price-desc') return b.price - a.price
+      if (sortBy === 'effort-asc') return a.estimatedHours - b.estimatedHours
+      // popular: popular first, dann name
+      if (!!a.popular !== !!b.popular) return a.popular ? -1 : 1
+      return a.name.localeCompare(b.name)
+    })
+    return list
+  }, [search, activeCategory, priceRange, sortBy, purchases])
+
+  // Featured: 3 popular Add-ons (deterministisch nach Tagestakt rotiert)
+  const featured = useMemo(() => {
+    const pop = CATALOG.filter(a => a.popular)
+    if (pop.length <= 3) return pop
+    const dayIdx = Math.floor(Date.now() / (24 * 60 * 60 * 1000)) % pop.length
+    return [pop[dayIdx], pop[(dayIdx + 1) % pop.length], pop[(dayIdx + 2) % pop.length]]
+  }, [])
 
   const counts = useMemo(() => {
     const c: Record<string, number> = { Alle: CATALOG.length, Beliebt: CATALOG.filter(a => a.popular).length, Aktiv: 0 }
@@ -294,24 +316,108 @@ export default function AddonsPage() {
         )}
       </div>
 
+      {/* Featured-Hero — nur sichtbar wenn keine Filter aktiv */}
+      {activeCategory === 'Alle' && search === '' && priceRange === 'alle' && featured.length > 0 && (
+        <div style={{ marginBottom: 22 }}>
+          <p style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '.1em', margin: '0 0 10px' }}>★ EMPFOHLEN HEUTE</p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 12 }}>
+            {featured.map(a => {
+              const rec = purchases[a.id]
+              const isActive = rec?.status === 'active'
+              return (
+                <button
+                  key={a.id}
+                  onClick={() => setDetail(a)}
+                  className="tap-scale"
+                  style={{
+                    textAlign: 'left', padding: 18, borderRadius: 'var(--r-md)',
+                    background: 'linear-gradient(135deg, var(--accent), var(--text))',
+                    color: '#fff', border: 'none', cursor: 'pointer',
+                    fontFamily: 'inherit', display: 'flex', flexDirection: 'column', gap: 8,
+                    minHeight: 140, position: 'relative', overflow: 'hidden',
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.08em', opacity: .75 }}>
+                      {a.category.toUpperCase()}
+                    </span>
+                    {isActive && (
+                      <span style={{ fontSize: 9.5, fontWeight: 700, padding: '2px 7px', borderRadius: 5, background: 'rgba(255,255,255,.18)', letterSpacing: '.06em' }}>AKTIV</span>
+                    )}
+                  </div>
+                  <h3 style={{ fontSize: 17, fontWeight: 700, color: '#fff', margin: '4px 0 0', lineHeight: 1.25 }}>{a.name}</h3>
+                  <p style={{ fontSize: 12.5, color: '#fff', opacity: .85, margin: 0, lineHeight: 1.5, flex: 1 }}>{a.description}</p>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
+                    <span style={{ fontSize: 18, fontWeight: 700 }}>€{a.price.toLocaleString('de')}</span>
+                    <span style={{ fontSize: 11, fontWeight: 600, opacity: .85, display: 'flex', alignItems: 'center', gap: 3 }}>
+                      Details <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M9 6l6 6-6 6"/></svg>
+                    </span>
+                  </div>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Such- und Filterleiste */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 18 }}>
-        <div style={{ position: 'relative' }}>
-          <svg style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}
-            width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2" strokeLinecap="round">
-            <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
-          </svg>
-          <input
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder="Suche nach Add-ons (Branding, Auth, AI, Stripe …)"
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <div style={{ position: 'relative', flex: '1 1 240px', minWidth: 200 }}>
+            <svg style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}
+              width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2" strokeLinecap="round">
+              <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+            </svg>
+            <input
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Suche nach Add-ons (Branding, Auth, AI, Stripe …)"
+              style={{
+                width: '100%', height: 42, padding: '0 16px 0 38px',
+                background: 'var(--surface)', border: '1px solid var(--border)',
+                borderRadius: 12, fontSize: 14, color: 'var(--text)',
+                outline: 'none', fontFamily: 'inherit',
+              }}
+            />
+          </div>
+          <select
+            value={priceRange}
+            onChange={e => setPriceRange(e.target.value as any)}
             style={{
-              width: '100%', height: 42, padding: '0 16px 0 38px',
-              background: 'var(--surface)', border: '1px solid var(--border)',
-              borderRadius: 12, fontSize: 14, color: 'var(--text)',
-              outline: 'none', fontFamily: 'inherit',
+              height: 42, padding: '0 32px 0 14px', background: 'var(--surface)',
+              border: '1px solid var(--border)', borderRadius: 12, fontSize: 13,
+              color: 'var(--text)', outline: 'none', fontFamily: 'inherit', fontWeight: 500,
+              cursor: 'pointer',
+              appearance: 'none',
+              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='none' stroke='%23999' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round' d='M1 1l4 4 4-4'/%3E%3C/svg%3E")`,
+              backgroundRepeat: 'no-repeat',
+              backgroundPosition: 'right 12px center',
             }}
-          />
+          >
+            <option value="alle">Alle Preise</option>
+            <option value="unter500">Unter €500</option>
+            <option value="500-1000">€500 – €1.000</option>
+            <option value="ueber1000">Über €1.000</option>
+          </select>
+          <select
+            value={sortBy}
+            onChange={e => setSortBy(e.target.value as any)}
+            style={{
+              height: 42, padding: '0 32px 0 14px', background: 'var(--surface)',
+              border: '1px solid var(--border)', borderRadius: 12, fontSize: 13,
+              color: 'var(--text)', outline: 'none', fontFamily: 'inherit', fontWeight: 500,
+              cursor: 'pointer',
+              appearance: 'none',
+              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='none' stroke='%23999' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round' d='M1 1l4 4 4-4'/%3E%3C/svg%3E")`,
+              backgroundRepeat: 'no-repeat',
+              backgroundPosition: 'right 12px center',
+            }}
+          >
+            <option value="popular">★ Sortieren: Beliebt</option>
+            <option value="price-asc">Preis ↑</option>
+            <option value="price-desc">Preis ↓</option>
+            <option value="effort-asc">Wenig Aufwand</option>
+          </select>
         </div>
 
         <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 4 }}>

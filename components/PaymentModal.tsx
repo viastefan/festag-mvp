@@ -138,6 +138,8 @@ export default function PaymentModal({ amount, note, itemTitle, onClose, onSucce
     }
   }, [phase, onClose])
 
+  const [confirmCancel, setConfirmCancel] = useState(false)
+
   function copy(text: string, key: string) {
     navigator.clipboard.writeText(text).then(() => {
       setCopied(key)
@@ -174,6 +176,7 @@ export default function PaymentModal({ amount, note, itemTitle, onClose, onSucce
           boxShadow: '0 24px 64px rgba(0,0,0,0.25)',
           animation: 'slideIn .25s cubic-bezier(.16,1,.3,1) both',
           maxHeight: '92vh', display: 'flex', flexDirection: 'column',
+          position: 'relative',
         }}
       >
         {/* Header */}
@@ -187,11 +190,16 @@ export default function PaymentModal({ amount, note, itemTitle, onClose, onSucce
                 {itemTitle}
               </h2>
             </div>
-            {phase !== 'await' && (
-              <button onClick={onClose} aria-label="Schließen" style={{ width: 30, height: 30, border: '1px solid var(--border)', background: 'var(--surface)', borderRadius: 8, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
-              </button>
-            )}
+            <button
+              onClick={() => {
+                if (phase === 'await' || phase === 'init') setConfirmCancel(true)
+                else onClose()
+              }}
+              aria-label="Schließen"
+              style={{ width: 30, height: 30, border: '1px solid var(--border)', background: 'var(--surface)', borderRadius: 8, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+            </button>
           </div>
         </div>
 
@@ -288,6 +296,50 @@ export default function PaymentModal({ amount, note, itemTitle, onClose, onSucce
             </div>
           )}
         </div>
+
+        {/* Confirm-Cancel-Overlay innerhalb des Modals */}
+        {confirmCancel && (
+          <div style={{
+            position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.45)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: 20, animation: 'fadeIn .15s ease', borderRadius: 18,
+          }}>
+            <div style={{
+              width: '100%', maxWidth: 360, background: 'var(--surface)',
+              border: '1px solid var(--border)', borderRadius: 14, padding: '20px 22px',
+              boxShadow: '0 16px 40px rgba(0,0,0,0.3)',
+              animation: 'slideIn .2s cubic-bezier(.16,1,.3,1) both',
+            }}>
+              <div style={{ width: 38, height: 38, borderRadius: 10, background: 'rgba(255,176,0,.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A66E00" strokeWidth="2" strokeLinecap="round"><path d="M12 9v4M12 17h.01M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+              </div>
+              <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', margin: '0 0 6px' }}>Zahlung abbrechen?</h3>
+              <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: '0 0 16px', lineHeight: 1.55 }}>
+                Die Bankdaten und der Verwendungszweck verlieren ihre Gültigkeit. Eine neue Zahlung müsste erneut gestartet werden.
+              </p>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button
+                  onClick={() => setConfirmCancel(false)}
+                  style={{
+                    flex: 1, padding: '10px 14px', border: '1px solid var(--border)', background: 'var(--surface)',
+                    borderRadius: 9, fontSize: 13, fontWeight: 600, color: 'var(--text)', cursor: 'pointer', fontFamily: 'inherit',
+                  }}
+                >
+                  Weiter warten
+                </button>
+                <button
+                  onClick={() => { setConfirmCancel(false); onClose() }}
+                  style={{
+                    flex: 1, padding: '10px 14px', border: 'none', background: 'var(--red, #c0392b)',
+                    borderRadius: 9, fontSize: 13, fontWeight: 700, color: '#fff', cursor: 'pointer', fontFamily: 'inherit',
+                  }}
+                >
+                  Ja, abbrechen
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
