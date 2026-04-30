@@ -46,23 +46,25 @@ export default function InvitePage() {
     if (!email.includes('@')) { setError('Bitte gültige E-Mail.'); return }
     setSending(true); setError('')
     try {
-      // Generate PIN for dev invite, temp password for client invite
-      const pin = String(Math.floor(100000 + Math.random()*900000))
       const { data: { user } } = await sb.auth.getUser()
       const role = flow === 'client_invites_dev' ? 'dev' : 'client'
-      await sb.from('team_invites').insert({
-        email: email.trim().toLowerCase(),
-        role,
-        invited_by: user?.id,
-        invited_name: name.trim() || null,
-        access_mode: closedSystem ? 'closed' : 'open',
-        pin,
-        status: 'pending',
+      const res = await fetch('/api/invites/send', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({
+          email: email.trim().toLowerCase(),
+          role,
+          invitedName: name.trim() || null,
+          accessMode: closedSystem ? 'closed' : 'open',
+          fromUserId: user?.id,
+          fromUserEmail: user?.email,
+        }),
       })
-      // Notify festag founder for verification (best-effort)
+      const d = await res.json()
+      if (d.error) throw new Error(d.error)
+      // Mirror to support_messages so the founder sees it in master-control
       await sb.from('support_messages').insert({
         user_id: user?.id, email: user?.email, page: '/invite',
-        message: `Neue ${role}-Einladung von ${user?.email} an ${email} (Mode: ${closedSystem?'closed':'open'}). PIN: ${pin}. Bitte freigeben.`,
+        message: `Neue ${role}-Einladung von ${user?.email} an ${email} (Mode: ${closedSystem?'closed':'open'}).${d.mailSent?' Mail versendet.':''}`,
       }).catch(() => {})
       setSent(true)
     } catch (e: any) { setError(e?.message ?? 'Fehler') }

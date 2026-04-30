@@ -115,7 +115,7 @@ export default function MasterControlPage() {
         .mc-tab:hover:not(.on) { background:rgba(255,255,255,.06); color:#e2e8f0; }
       `}</style>
 
-      <header style={{ borderBottom:'1px solid rgba(255,255,255,.08)', padding:'14px 28px', display:'flex', alignItems:'center', justifyContent:'space-between', position:'sticky', top:0, background:'rgba(10,10,15,.8)', backdropFilter:'blur(12px)', zIndex:50 }}>
+      <header style={{ borderBottom:'1px solid rgba(255,255,255,.08)', padding:'14px 18px', display:'flex', alignItems:'center', justifyContent:'space-between', position:'sticky', top:0, background:'rgba(10,10,15,.8)', backdropFilter:'blur(12px)', zIndex:50, gap:10, flexWrap:'wrap' }}>
         <div style={{ display:'flex', alignItems:'center', gap:12 }}>
           <img src="/brand/logo.svg" alt="festag" style={{ height:18, filter:'brightness(0) invert(1)' }}/>
           <span style={{ padding:'3px 9px', borderRadius:6, background:'linear-gradient(135deg,#a78bfa,#ec4899)', color:'#fff', fontSize:10, fontWeight:800, letterSpacing:'.1em' }}>MASTER · CLASSIFIED</span>
@@ -129,7 +129,7 @@ export default function MasterControlPage() {
         </div>
       </header>
 
-      <div style={{ maxWidth:1280, margin:'0 auto', padding:'28px' }}>
+      <div style={{ maxWidth:1280, margin:'0 auto', padding:'24px 18px calc(28px + env(safe-area-inset-bottom))' }}>
         <h1 style={{ fontSize:30, fontWeight:800, color:'#fff', letterSpacing:'-.6px', margin:'0 0 6px' }}>Master Control</h1>
         <p style={{ fontSize:14, color:'#64748b', margin:'0 0 22px' }}>Festag operativer Überblick. Nur du siehst diese Seite.</p>
 

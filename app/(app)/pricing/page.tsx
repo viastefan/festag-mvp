@@ -229,8 +229,8 @@ export default function PricingPage() {
               )}
 
               <button onClick={() => buy(plan)} disabled={loadingPlan===plan.id} className="pp-cta" style={{
-                background: plan.highlight ? plan.color : 'var(--text)',
-                color: plan.highlight ? '#fff' : 'var(--bg)',
+                background: plan.highlight ? plan.color : 'var(--btn-prim)',
+                color: plan.highlight ? '#fff' : 'var(--btn-prim-text)',
                 opacity: loadingPlan === plan.id ? .7 : 1,
               }}>
                 {loadingPlan === plan.id ? (

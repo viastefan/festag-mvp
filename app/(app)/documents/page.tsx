@@ -1,28 +1,71 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { isDevOrAdmin } from '@/lib/role'
 import Link from 'next/link'
 
 export default function DocumentsPage() {
   const [documents, setDocuments] = useState<any[]>([])
   const [invoices, setInvoices] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const [tab, setTab] = useState<'all'|'invoices'|'contracts'|'briefings'>('all')
+  const [tab, setTab] = useState<'all'|'invoices'|'contracts'|'briefings'|'deliverables'>('all')
+  const [userRole, setUserRole] = useState<string>('')
+  const [userId, setUserId] = useState('')
+  const [projects, setProjects] = useState<any[]>([])
+  const [uploading, setUploading] = useState(false)
+  const [uploadProj, setUploadProj] = useState('')
+  const [uploadType, setUploadType] = useState('deliverable')
+  const fileRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     const supabase = createClient()
     supabase.auth.getSession().then(async ({ data }) => {
       if (!data.session) { window.location.href = '/login'; return }
       const uid = data.session.user.id
-      const [{ data: docs }, { data: inv }] = await Promise.all([
-        supabase.from('documents').select('*, projects(title)').eq('user_id', uid).order('created_at', { ascending: false }),
+      setUserId(uid)
+      const [{ data: docs }, { data: inv }, { data: prof }, { data: projs }] = await Promise.all([
+        supabase.from('documents').select('*, projects(title)').or(`user_id.eq.${uid},uploaded_by.eq.${uid}`).order('created_at', { ascending: false }),
         supabase.from('invoices').select('*, projects(title)').eq('user_id', uid).order('created_at', { ascending: false }),
+        supabase.from('profiles').select('role').eq('id', uid).single(),
+        supabase.from('projects').select('id,title').order('created_at', { ascending: false }),
       ])
-      setDocuments(docs ?? [])
-      setInvoices(inv ?? [])
+      setDocuments((docs as any[]) ?? [])
+      setInvoices((inv as any[]) ?? [])
+      setUserRole((prof as any)?.role ?? 'client')
+      setProjects((projs as any[]) ?? [])
       setLoading(false)
     })
   }, [])
+
+  async function uploadFile(file: File) {
+    if (!uploadProj) { alert('Bitte Projekt wählen.'); return }
+    setUploading(true)
+    const supabase = createClient()
+    try {
+      const path = `${userId}/${Date.now()}-${file.name.replace(/[^\w.-]/g, '_')}`
+      const { error: upErr } = await supabase.storage.from('documents').upload(path, file, { upsert: false, contentType: file.type })
+      if (upErr) throw upErr
+      const { data: { publicUrl } } = supabase.storage.from('documents').getPublicUrl(path)
+      const proj = projects.find(p => p.id === uploadProj)
+      const { data: pj } = await supabase.from('projects').select('user_id').eq('id', uploadProj).single()
+      const projectOwner = (pj as any)?.user_id
+      const { data: ins, error: dbErr } = await supabase.from('documents').insert({
+        user_id: projectOwner ?? userId,
+        uploaded_by: userId,
+        project_id: uploadProj,
+        type: uploadType,
+        title: file.name,
+        url: publicUrl,
+        size: file.size,
+        mime: file.type,
+      }).select().single()
+      if (dbErr) throw dbErr
+      if (ins) setDocuments(prev => [{ ...(ins as any), projects: { title: proj?.title } } as any, ...prev])
+    } catch (e: any) {
+      alert(`Upload fehlgeschlagen: ${e?.message ?? 'unbekannt'}`)
+    }
+    setUploading(false)
+  }
 
   const typeLabel: Record<string, string> = {
     invoice: 'Rechnung', contract: 'Vertrag', briefing: 'Briefing', deliverable: 'Lieferung', other: 'Dokument',
@@ -44,12 +87,39 @@ export default function DocumentsPage() {
         <p>Rechnungen, Verträge und Briefings</p>
       </div>
 
+      {/* Upload bar (dev/admin only) */}
+      {isDevOrAdmin(userRole) && (
+        <div className="animate-fade-up-1" style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:12, padding:'12px 16px', marginBottom:14, display:'flex', gap:10, alignItems:'center', flexWrap:'wrap' }}>
+          <span style={{ fontSize:11, fontWeight:800, color:'var(--text-muted)', letterSpacing:'.07em' }}>UPLOAD</span>
+          <select value={uploadProj} onChange={e => setUploadProj(e.target.value)} style={{ padding:'8px 11px', background:'var(--bg)', border:'1px solid var(--border)', borderRadius:8, fontSize:12.5, color:'var(--text)', fontFamily:'inherit', flex:'1 1 180px' }}>
+            <option value="">Projekt wählen…</option>
+            {projects.map(p => <option key={p.id} value={p.id}>{p.title}</option>)}
+          </select>
+          <select value={uploadType} onChange={e => setUploadType(e.target.value)} style={{ padding:'8px 11px', background:'var(--bg)', border:'1px solid var(--border)', borderRadius:8, fontSize:12.5, color:'var(--text)', fontFamily:'inherit' }}>
+            <option value="deliverable">Lieferung</option>
+            <option value="invoice">Rechnung</option>
+            <option value="contract">Vertrag</option>
+            <option value="briefing">Briefing</option>
+            <option value="other">Sonstiges</option>
+          </select>
+          <input ref={fileRef} type="file" style={{ display:'none' }} onChange={e => { const f = e.target.files?.[0]; if (f) uploadFile(f); e.target.value = '' }}/>
+          <button onClick={() => fileRef.current?.click()} disabled={uploading || !uploadProj}
+            style={{ padding:'9px 16px', background:uploadProj && !uploading ? 'var(--btn-prim)' : 'var(--surface-2)', color:uploadProj && !uploading ? 'var(--btn-prim-text)' : 'var(--text-muted)', border:'none', borderRadius:9, fontSize:12.5, fontWeight:700, cursor:uploadProj && !uploading ? 'pointer' : 'default', fontFamily:'inherit' }}>
+            {uploading ? 'Lädt…' : '+ Datei hochladen'}
+          </button>
+          <p style={{ fontSize:11, color:'var(--text-muted)', margin:0, flexBasis:'100%' }}>
+            Lieferungen erscheinen automatisch im Client-Account.
+          </p>
+        </div>
+      )}
+
       <div className="animate-fade-up-1" style={{ display: 'flex', gap: 6, marginBottom: 16, overflowX: 'auto', paddingBottom: 2 }}>
         {([
           { k: 'all',       l: `Alle (${allItems.length})` },
           { k: 'invoices',  l: `Rechnungen (${invoices.length})` },
           { k: 'contracts', l: 'Verträge' },
           { k: 'briefings', l: 'Briefings' },
+          { k: 'deliverables', l: 'Lieferungen' },
         ] as const).map(t => (
           <button key={t.k} onClick={() => setTab(t.k)} className="tap-scale" style={{ padding: '7px 14px', borderRadius: 12, border: '1px solid var(--border)', background: tab === t.k ? 'var(--accent)' : 'var(--surface)', color: tab === t.k ? 'var(--accent-text)' : 'var(--text-secondary)', fontSize: 12, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap', fontFamily: 'inherit' }}>{t.l}</button>
         ))}
