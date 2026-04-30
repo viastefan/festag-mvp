@@ -56,10 +56,11 @@ const PROJECT_NAV: NavItem[] = [
   { href:'/documents',       icon:'doc',      label:'Dokumente' },
 ]
 const TOOLS_NAV: NavItem[] = [
-  { href:'/estimator', icon:'estimate', label:'Preisschätzer' },
-  { href:'/pricing',   icon:'sparkle',  label:'Pakete & Pläne' },
-  { href:'/invite',    icon:'team',     label:'Team einladen' },
-  { href:'/addons',    icon:'grid',     label:'Add-ons' },
+  { href:'/estimator',  icon:'estimate', label:'Preisschätzer' },
+  { href:'/pricing',    icon:'sparkle',  label:'Pakete & Pläne' },
+  { href:'/invite',     icon:'team',     label:'Team einladen' },
+  { href:'/connectors', icon:'grid',     label:'Connectors' },
+  { href:'/addons',     icon:'grid',     label:'Add-ons' },
 ]
 const ACCOUNT_NAV: NavItem[] = [
   { href:'/billing',  icon:'card',     label:'Abrechnung' },

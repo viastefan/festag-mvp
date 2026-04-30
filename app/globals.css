@@ -230,3 +230,78 @@ input:focus,textarea:focus,select:focus { outline:none; }
   }
 }
 @media(min-width:769px) { .show-mobile { display:none !important; } }
+
+/* ═══════════════════════════════════════════════
+   APP-STORE-READY MOBILE POLISH
+   - 44px min tap targets (Apple HIG)
+   - Safe area insets respected
+   - No tap-highlight flash
+   - Smooth momentum scrolling
+   - PWA standalone mode polish
+═══════════════════════════════════════════════ */
+
+* { -webkit-tap-highlight-color: transparent; }
+
+button, a, [role="button"], [role="link"], [role="tab"] {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* iOS form-element default reset */
+input, textarea, select, button {
+  -webkit-appearance: none;
+  appearance: none;
+  font-family: inherit;
+}
+input[type="checkbox"], input[type="radio"] {
+  -webkit-appearance: auto;
+  appearance: auto;
+}
+
+/* Prevent iOS from auto-zooming text inputs (font-size must be >= 16px on focus) */
+@media(max-width:768px) {
+  input:not([type="checkbox"]):not([type="radio"]),
+  textarea, select {
+    font-size: max(16px, 1em);
+  }
+}
+
+/* Smooth iOS scroll containers */
+.scroll-smooth-touch {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* Ensure all main scroll containers use safe momentum */
+#app-main-scroll, .form-scroll {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Standalone PWA polish — full-bleed top spacing on iPhone */
+@supports (-webkit-touch-callout: none) {
+  @media (display-mode: standalone) {
+    body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
+  }
+}
+
+/* Mobile tap-to-scale animation for primary buttons */
+.tap-scale { transition: transform .1s ease-out; }
+.tap-scale:active { transform: scale(.96); }
+
+/* All buttons & links: minimum 44x44 hit area on mobile */
+@media(max-width:768px) {
+  button:not(.no-min-tap), a.btn-link:not(.no-min-tap), [role="button"]:not(.no-min-tap) {
+    min-height: 44px;
+  }
+  /* Smaller chips/secondary controls explicitly opt out via .no-min-tap */
+}
+
+/* Disable user-select on UI chrome (titles, badges) for better mobile feel */
+.no-select, .badge, .chip, header h1, .page-header h1 {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Prevent overscroll bounce when modal/sheet is open */
+body.locked { overflow: hidden; touch-action: none; }
+

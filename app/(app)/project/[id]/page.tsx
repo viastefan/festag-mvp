@@ -9,6 +9,7 @@ import { projectColor } from '@/components/Sidebar'
 import { effectiveRole, isDevOrAdmin } from '@/lib/role'
 import MilestoneChart, { Milestone } from '@/components/MilestoneChart'
 import ProjectCompletionCelebration from '@/components/ProjectCompletionCelebration'
+import DevTimer from '@/components/DevTimer'
 
 type Project = { id: string; title: string; description: string|null; status: string }
 type Task = { id: string; title: string; status: string; priority?: string }
@@ -315,6 +316,9 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn mÃ
         onClose={() => setCelebrationOpen(false)}
         onContinue={() => { setCelebrationOpen(false); setActiveLeft('updates'); generateAIUpdate() }}
       />
+
+      {/* Dev/admin floating timer */}
+      <DevTimer projectId={project.id} projectTitle={project.title}/>
 
       {/* Breadcrumb */}
       <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 14 }}>
