@@ -10,6 +10,21 @@ type Project = {
   lastMsg?: { message: string; created_at: string; is_ai: boolean } | null
 }
 type Msg = { id: string; message: string; created_at: string; sender_id: string | null; is_ai?: boolean }
+type SenderProfile = { id: string; first_name?: string; full_name?: string; avatar_url?: string|null; role?: string }
+
+/** Verified blue checkmark — used for Tagro AI and Festag-verified devs. */
+function VerifiedTick({ animate = false, size = 13 }: { animate?: boolean; size?: number }) {
+  return (
+    <span style={{ display:'inline-flex', alignItems:'center', justifyContent:'center', width:size+2, height:size+2, position:'relative', flexShrink:0 }}>
+      <span style={{ position:'absolute', inset:-2, borderRadius:'50%', background:'rgba(0,122,255,.18)', animation: animate ? 'tick-pulse 1.4s ease-out 1' : 'none' }}/>
+      <svg width={size} height={size} viewBox="0 0 24 24" style={{ position:'relative', filter:'drop-shadow(0 1px 3px rgba(0,122,255,.4))' }}>
+        <circle cx="12" cy="12" r="10" fill="#007AFF"/>
+        <path d="M8 12l3 3 5-6" stroke="#fff" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round"
+          style={{ strokeDasharray: 16, strokeDashoffset: animate ? 16 : 0, animation: animate ? 'tick-draw .55s .15s cubic-bezier(.4,.0,.2,1) forwards' : 'none' }}/>
+      </svg>
+    </span>
+  )
+}
 
 const PHASE_LABEL: Record<string, string> = {
   intake: 'Intake', planning: 'Planning', active: 'In Arbeit', testing: 'Testing', done: 'Abgeschlossen',
@@ -41,6 +56,8 @@ export default function MessagesPage() {
   const [input, setInput] = useState('')
   const [aiThinking, setAiThinking] = useState(false)
   const [showListMobile, setShowListMobile] = useState(true)
+  const [profiles, setProfiles] = useState<Record<string, SenderProfile>>({})
+  const [newAnimIds, setNewAnimIds] = useState<Set<string>>(new Set())
   const feedRef = useRef<HTMLDivElement>(null)
   const sb = createClient()
 
@@ -71,8 +88,17 @@ export default function MessagesPage() {
   useEffect(() => {
     if (!activeId) return
     setMsgsLoading(true)
-    sb.from('messages').select('*').eq('project_id', activeId).order('created_at').then(({ data }) => {
-      setMessages(data ?? [])
+    sb.from('messages').select('*').eq('project_id', activeId).order('created_at').then(async ({ data }) => {
+      const list = (data as any[]) ?? []
+      setMessages(list)
+      // Resolve sender profiles
+      const ids = Array.from(new Set(list.filter(m => m.sender_id && !m.is_ai).map(m => m.sender_id)))
+      if (ids.length > 0) {
+        const { data: ps } = await sb.from('profiles').select('id,first_name,full_name,avatar_url,role').in('id', ids)
+        const map: Record<string, SenderProfile> = {}
+        for (const p of (ps as any[]) ?? []) map[(p as any).id] = p
+        setProfiles(prev => ({ ...prev, ...map }))
+      }
       setMsgsLoading(false)
     })
 
@@ -81,6 +107,9 @@ export default function MessagesPage() {
         const m = payload.new as Msg
         setMessages(prev => prev.some(x => x.id === m.id) ? prev : [...prev.filter(x => !x.id.startsWith('tmp-')), m])
         setAiThinking(false)
+        // Trigger blue tick animation for verified senders
+        setNewAnimIds(prev => { const s = new Set(prev); s.add(m.id); return s })
+        setTimeout(() => setNewAnimIds(prev => { const s = new Set(prev); s.delete(m.id); return s }), 2000)
         // Update preview in list
         setProjects(prev => prev.map(p => p.id === activeId ? { ...p, lastMsg: { message: m.message, created_at: m.created_at, is_ai: !!m.is_ai } } : p))
       })
@@ -129,6 +158,8 @@ export default function MessagesPage() {
   return (
     <div className="page-content msgs-root" style={{ maxWidth: 1200, padding: 0 }}>
       <style>{`
+        @keyframes tick-pulse { 0%{transform:scale(.4);opacity:.9;} 100%{transform:scale(2.6);opacity:0;} }
+        @keyframes tick-draw  { to { stroke-dashoffset: 0; } }
         .msgs-grid { display: grid; grid-template-columns: 320px 1fr; gap: 0; height: calc(100dvh - 96px); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; background: var(--surface); }
         .msgs-list { border-right: 1px solid var(--border); display: flex; flex-direction: column; min-height: 0; background: var(--surface); }
         .msgs-chat { display: flex; flex-direction: column; min-height: 0; background: var(--bg); }
@@ -270,32 +301,60 @@ export default function MessagesPage() {
                   ) : messages.map(m => {
                     const isAI = m.is_ai
                     const isMe = !isAI && m.sender_id === userId
+                    const senderProfile = m.sender_id ? profiles[m.sender_id] : undefined
+                    const senderRole = senderProfile?.role
+                    const isDev = !isAI && (senderRole === 'dev' || senderRole === 'admin') && !isMe
+                    const verified = isAI || isDev
+                    const animateTick = newAnimIds.has(m.id) && verified
+                    const senderName = isAI ? 'Tagro AI'
+                      : isMe ? 'Du'
+                      : senderProfile?.first_name ?? senderProfile?.full_name?.split(' ')[0] ?? 'Team'
+                    const senderInitial = isAI ? '✦'
+                      : senderProfile?.first_name?.charAt(0)?.toUpperCase()
+                        ?? senderProfile?.full_name?.charAt(0)?.toUpperCase()
+                        ?? (isMe ? (userEmail.charAt(0) || 'U').toUpperCase() : 'T')
+                    const avatarBg = isAI ? 'linear-gradient(135deg,#0f172a,#334155)'
+                      : isDev ? 'linear-gradient(135deg,#22c55e,#16a34a)'
+                      : 'var(--surface-2)'
+                    const avatarBorder = (isAI || isDev) ? 'none' : '1px solid var(--border)'
+                    const avatarColor = (isAI || isDev) ? '#fff' : 'var(--text)'
                     return (
                       <div key={m.id} style={{ display: 'flex', gap: 10, justifyContent: isMe ? 'flex-end' : 'flex-start' }}>
                         {!isMe && (
-                          <div style={{ width: 30, height: 30, borderRadius: 9, background: isAI ? 'var(--text)' : 'var(--surface-2)', color: isAI ? '#FFFFFF' : 'var(--text)', border: isAI ? 'none' : '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>
-                            {isAI ? '✦' : (userEmail.charAt(0) || 'U').toUpperCase()}
+                          <div style={{ width: 32, height: 32, borderRadius: 10, background: avatarBg, color: avatarColor, border: avatarBorder, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12.5, fontWeight: 700, flexShrink: 0, position:'relative', overflow:'hidden' }}>
+                            {!isAI && senderProfile?.avatar_url
+                              ? <img src={senderProfile.avatar_url} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }}/>
+                              : senderInitial}
                           </div>
                         )}
-                        <div style={{ maxWidth: '70%', display: 'flex', flexDirection: 'column', alignItems: isMe ? 'flex-end' : 'flex-start' }}>
+                        <div style={{ maxWidth: '72%', display: 'flex', flexDirection: 'column', alignItems: isMe ? 'flex-end' : 'flex-start' }}>
+                          {!isMe && (
+                            <div style={{ display:'flex', alignItems:'center', gap:5, marginBottom:4, padding:'0 4px' }}>
+                              <span style={{ fontSize:11.5, fontWeight:700, color:'var(--text)' }}>{senderName}</span>
+                              {verified && <VerifiedTick animate={animateTick} size={11}/>}
+                              {isDev && <span style={{ fontSize:8.5, fontWeight:800, color:'#16a34a', background:'rgba(34,197,94,.12)', padding:'1px 5px', borderRadius:4, letterSpacing:'.05em' }}>DEV</span>}
+                              {isAI && <span style={{ fontSize:8.5, fontWeight:800, color:'#6366f1', background:'rgba(99,102,241,.12)', padding:'1px 5px', borderRadius:4, letterSpacing:'.05em' }}>AI</span>}
+                            </div>
+                          )}
                           <div style={{
                             padding: '10px 14px',
                             borderRadius: isMe ? '16px 4px 16px 16px' : '4px 16px 16px 16px',
-                            background: isMe ? 'var(--btn-prim)' : 'var(--surface)',
+                            background: isMe ? 'var(--btn-prim)' : isAI ? 'linear-gradient(135deg,rgba(99,102,241,.06),var(--surface))' : 'var(--surface)',
                             color: isMe ? '#FFFFFF' : 'var(--text)',
-                            border: isMe ? 'none' : '1px solid var(--border)',
+                            border: isMe ? 'none' : `1px solid ${isAI?'rgba(99,102,241,.2)':isDev?'rgba(34,197,94,.2)':'var(--border)'}`,
                             fontSize: 14, lineHeight: 1.55, wordBreak: 'break-word',
                           }}>
                             {isAI
                               ? <ChatMarkdown text={m.message} />
                               : <p style={{ margin: 0, whiteSpace: 'pre-wrap', color: isMe ? '#FFFFFF' : 'var(--text)', fontWeight: isMe ? 600 : 500 }}>{m.message}</p>}
                           </div>
-                          <span style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4, padding: '0 4px' }}>
-                            {isAI ? 'Tagro' : isMe ? 'Du' : 'Team'} · {timeOfDay(m.created_at)}
+                          <span style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4, padding: '0 4px', display:'flex', alignItems:'center', gap:5 }}>
+                            {timeOfDay(m.created_at)}
+                            {isMe && <VerifiedTick size={10}/>}
                           </span>
                         </div>
                         {isMe && (
-                          <div style={{ width: 30, height: 30, borderRadius: 9, background: 'var(--surface-2)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: 'var(--text)', flexShrink: 0 }}>
+                          <div style={{ width: 32, height: 32, borderRadius: 10, background: 'var(--accent)', color:'var(--accent-text)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12.5, fontWeight: 700, flexShrink: 0 }}>
                             {(userEmail.charAt(0) || 'U').toUpperCase()}
                           </div>
                         )}
