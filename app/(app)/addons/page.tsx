@@ -1,13 +1,10 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import PaymentModal, { BankData, PAYMENT_POLL_DURATION_MS } from '@/components/PaymentModal'
-
-type Addon = {
-  id: string; name: string; description: string; price: number;
-  category: string; icon: string;
-}
+import AddonDetailModal from '@/components/AddonDetailModal'
+import { CATALOG, CATEGORIES, type Addon, type AddonCategory } from '@/lib/addons-catalog'
 
 type PurchaseStatus = 'active' | 'pending' | undefined
 type PurchaseRecord = {
@@ -15,47 +12,45 @@ type PurchaseRecord = {
   status: PurchaseStatus
   createdAt: number
   completedAt?: number
-  projectId?: string       // Zugewiesenes Projekt
-  projectTitle?: string    // Cache fuers UI (Projektname kann sich aendern)
+  projectId?: string
+  projectTitle?: string
 }
-type Purchases = Record<string, PurchaseRecord>  // addonId -> record
+type Purchases = Record<string, PurchaseRecord>
 type ProjectMini = { id: string; title: string; status: string }
+type ActiveSession = { addonId: string; bankData: BankData; startedAt: number }
 
-const CATALOG: Addon[] = [
-  { id: 'ai-video',   name: 'AI Video Generation',   description: 'Cinematische Videos aus Text — Produktvideos, Werbung, Tutorials', price: 890,  category: 'AI', icon: 'video' },
-  { id: 'branding',   name: 'Branding Paket',         description: 'Logo, Farbpalette, Typografie, Brand Guidelines',                   price: 1290, category: 'Design', icon: 'brand' },
-  { id: 'saas-ext',   name: 'SaaS Extensions',        description: 'Erweiterte SaaS-Features: Subscriptions, Analytics, Admin',        price: 1490, category: 'Dev', icon: 'saas' },
-  { id: 'automation', name: 'Automation System',      description: 'Workflows, Integrationen, APIs — automatisiere wiederkehrende Tasks', price: 790,  category: 'System', icon: 'auto' },
-  { id: 'website',    name: 'Website Development',    description: 'Landing Page, Marketing Site, SEO-optimiert',                       price: 1190, category: 'Dev', icon: 'web' },
-  { id: 'hosting',    name: 'Hosting & Infrastructure', description: 'Setup, Deployment, Monitoring — inkl. 12 Monate Hosting',        price: 490,  category: 'System', icon: 'host' },
-  { id: 'seo',        name: 'SEO Expert',             description: 'Technisches SEO, Content-Strategie, Rankings-Optimierung',          price: 590,  category: 'Marketing', icon: 'seo' },
-  { id: 'ai-chatbot', name: 'AI Chatbot',             description: 'Custom AI-Assistent für deine Plattform mit Firmenkontext',        price: 890,  category: 'AI', icon: 'bot' },
-]
-
-function AddonIcon({ name }: { name: string }) {
-  const icons: Record<string, JSX.Element> = {
-    video: <><rect x="3" y="6" width="14" height="12" rx="2"/><path d="M17 10l4-2v8l-4-2z"/></>,
-    brand: <><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18"/></>,
-    saas: <><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18M9 21V9"/></>,
-    auto: <><circle cx="12" cy="12" r="3"/><path d="M12 1v6M12 17v6M4.22 4.22l4.24 4.24M15.54 15.54l4.24 4.24M1 12h6M17 12h6M4.22 19.78l4.24-4.24M15.54 8.46l4.24-4.24"/></>,
-    web: <><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><circle cx="6.5" cy="6" r="0.5"/><circle cx="9" cy="6" r="0.5"/></>,
-    host: <><rect x="3" y="4" width="18" height="6" rx="1"/><rect x="3" y="14" width="18" height="6" rx="1"/><path d="M7 7h.01M7 17h.01"/></>,
-    seo: <><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></>,
-    bot: <><rect x="5" y="7" width="14" height="12" rx="2"/><path d="M9 3v4M15 3v4M9 13v2M15 13v2"/></>,
-  }
-  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" style={{color:"var(--text)"}} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">{icons[name]}</svg>
+const PHASE_LABEL: Record<string, string> = {
+  intake: 'Intake', planning: 'Planning', active: 'In Arbeit', testing: 'Testing', done: 'Abgeschlossen',
 }
 
-type ActiveSession = { addonId: string; bankData: BankData; startedAt: number }
+function AddonIcon({ category }: { category: AddonCategory }) {
+  const icons: Record<AddonCategory, JSX.Element> = {
+    'Design':     <><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18"/></>,
+    'Frontend':   <><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></>,
+    'Backend':    <><rect x="3" y="4" width="18" height="6" rx="1"/><rect x="3" y="14" width="18" height="6" rx="1"/></>,
+    'AI':         <><circle cx="12" cy="12" r="3"/><path d="M12 1v6M12 17v6M4.22 4.22l4.24 4.24M15.54 15.54l4.24 4.24M1 12h6M17 12h6"/></>,
+    'Marketing':  <><path d="M3 11l18-8v18L3 13z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></>,
+    'E-Commerce': <><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/></>,
+    'Analytics':  <><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></>,
+    'Mobile':     <><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18"/></>,
+    'DevOps':     <><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h0a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></>,
+    'Security':   <><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></>,
+  }
+  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" style={{ color: 'var(--text)' }} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">{icons[category]}</svg>
+}
 
 export default function AddonsPage() {
   const [userId, setUserId] = useState('')
   const [purchases, setPurchases] = useState<Purchases>({})
   const [paying, setPaying] = useState<Addon | null>(null)
+  const [detail, setDetail] = useState<Addon | null>(null)
+  const [picker, setPicker] = useState<Addon | null>(null)
   const [toast, setToast] = useState<{ kind: 'success'|'pending'; text: string } | null>(null)
   const [projects, setProjects] = useState<ProjectMini[]>([])
   const [resumeSession, setResumeSession] = useState<ActiveSession | null>(null)
-  const [picker, setPicker] = useState<Addon | null>(null)  // Projekt-Picker fuer welches Addon
+
+  const [search, setSearch] = useState('')
+  const [activeCategory, setActiveCategory] = useState<AddonCategory | 'Alle' | 'Beliebt' | 'Aktiv'>('Alle')
 
   useEffect(() => {
     const supabase = createClient()
@@ -74,7 +69,6 @@ export default function AddonsPage() {
   const storageKeyRef = useRef(storageKey)
   storageKeyRef.current = storageKey
 
-  // Functional updater — kein Closure-Problem mehr und localStorage immer in sync
   const persist = useCallback((updater: (prev: Purchases) => Purchases) => {
     setPurchases(prev => {
       const next = updater(prev)
@@ -85,7 +79,7 @@ export default function AddonsPage() {
     })
   }, [])
 
-  const markActive = useCallback((addonId: string, reference: string, wasNachLate?: boolean, addonName?: string) => {
+  const markActive = useCallback((addonId: string, reference: string) => {
     persist(prev => ({
       ...prev,
       [addonId]: {
@@ -93,12 +87,10 @@ export default function AddonsPage() {
         status: 'active',
         createdAt: prev[addonId]?.createdAt ?? Date.now(),
         completedAt: Date.now(),
+        projectId: prev[addonId]?.projectId,
+        projectTitle: prev[addonId]?.projectTitle,
       },
     }))
-    if (wasNachLate && addonName) {
-      setToast({ kind: 'success', text: `Zahlung für ${addonName} erkannt — Add-on ist jetzt aktiv.` })
-      setTimeout(() => setToast(null), 5000)
-    }
   }, [persist])
 
   const markPending = useCallback((addonId: string, reference: string) => {
@@ -117,7 +109,7 @@ export default function AddonsPage() {
     }
   }, [persist])
 
-  // Initial Load der Käufe aus localStorage
+  // Load purchases
   useEffect(() => {
     if (!storageKey || typeof window === 'undefined') return
     try {
@@ -126,20 +118,18 @@ export default function AddonsPage() {
     } catch {}
   }, [storageKey])
 
-  // Aktive Zahlungs-Session aus localStorage wiederherstellen (nach Reload).
-  // Skippt sofort, wenn das Add-on bereits als aktiv markiert ist.
+  // Resume aktive Zahlungs-Session
   const sessionKey = userId ? `active_payment_session_${userId}` : ''
   const resumeAttemptedRef = useRef(false)
 
   useEffect(() => {
     if (!sessionKey || typeof window === 'undefined') return
-    if (resumeAttemptedRef.current) return  // genau einmal pro Page-Load
+    if (resumeAttemptedRef.current) return
     try {
       const raw = window.localStorage.getItem(sessionKey)
       if (!raw) { resumeAttemptedRef.current = true; return }
       const data: ActiveSession = JSON.parse(raw)
 
-      // Add-on schon aktiv? Session war veraltet — wegwerfen, kein Resume.
       const purchasesRaw = storageKey ? window.localStorage.getItem(storageKey) : null
       const cur = purchasesRaw ? JSON.parse(purchasesRaw) : {}
       if (cur[data.addonId]?.status === 'active') {
@@ -148,7 +138,6 @@ export default function AddonsPage() {
         return
       }
 
-      // Zu alt? +1 Min Puffer.
       if (Date.now() - data.startedAt > PAYMENT_POLL_DURATION_MS + 60_000) {
         window.localStorage.removeItem(sessionKey)
         resumeAttemptedRef.current = true
@@ -171,58 +160,33 @@ export default function AddonsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionKey, storageKey])
 
-  // Trennt: localStorage-Cleanup vs. State-Cleanup.
-  // Nach Erfolg: Storage sofort raeumen, State (resumeSession) bleibt
-  // bis zum onClose, damit das Modal seine resumeFrom-Prop nicht verliert
-  // und keinen erneuten create_payment-Call ausloesen kann.
   function clearActiveSessionStorage() {
     if (typeof window !== 'undefined' && sessionKey) {
       window.localStorage.removeItem(sessionKey)
     }
   }
-
   function fullResetActiveSession() {
     clearActiveSessionStorage()
     setResumeSession(null)
   }
-
   function persistActiveSession(addonId: string, bankData: BankData, startedAt: number) {
     if (typeof window !== 'undefined' && sessionKey) {
       window.localStorage.setItem(sessionKey, JSON.stringify({ addonId, bankData, startedAt }))
     }
   }
 
-  // Sync-Funktion: prueft alle nicht-aktiven Referenzen gegen Enjyn
-  const syncStatuses = useCallback(async () => {
-    const snapshot = purchases
-    const entries = Object.entries(snapshot).filter(([, r]) => r && r.status !== 'active' && r.reference)
-    if (entries.length === 0) return
-    for (const [addonId, rec] of entries) {
-      if (!rec) continue
-      try {
-        const r = await fetch(`/api/payments/check?reference=${encodeURIComponent(rec.reference)}`)
-        const d = await r.json()
-        if (d.status === 'done') {
-          const addon = CATALOG.find(a => a.id === addonId)
-          markActive(addonId, rec.reference, rec.status === 'pending', addon?.name)
-        }
-      } catch { /* still pending */ }
-    }
-  }, [purchases, markActive])
-
-  // Manueller "Pruefen"-Button mit 30-Minuten-Cooldown — kein Auto-Check
+  // Manueller Pruefen-Button (Cooldown 30 Min)
   const COOLDOWN_MS = 30 * 60 * 1000
   const [lastCheckAt, setLastCheckAt] = useState<number>(0)
   const [tick, setTick] = useState(Date.now())
+  const [refreshing, setRefreshing] = useState(false)
 
-  // Cooldown-Wert aus localStorage laden
   useEffect(() => {
     if (!userId || typeof window === 'undefined') return
     const raw = window.localStorage.getItem(`addon_check_last_${userId}`)
     if (raw) setLastCheckAt(Number(raw) || 0)
   }, [userId])
 
-  // Display-Ticker (jede Minute) — nur wenn ein Cooldown aktiv ist
   useEffect(() => {
     const left = lastCheckAt + COOLDOWN_MS - Date.now()
     if (left <= 0) return
@@ -234,15 +198,67 @@ export default function AddonsPage() {
   const cooldownActive = cooldownLeftMs > 0
   const cooldownMinLeft = Math.ceil(cooldownLeftMs / 60_000)
 
+  const syncStatuses = useCallback(async () => {
+    const snapshot = purchases
+    const entries = Object.entries(snapshot).filter(([, r]) => r && r.status !== 'active' && r.reference)
+    if (entries.length === 0) return
+    for (const [addonId, rec] of entries) {
+      if (!rec) continue
+      try {
+        const r = await fetch(`/api/payments/check?reference=${encodeURIComponent(rec.reference)}`)
+        const d = await r.json()
+        if (d.status === 'done') {
+          markActive(addonId, rec.reference)
+          const addon = CATALOG.find(a => a.id === addonId)
+          if (addon && rec.status === 'pending') {
+            setToast({ kind: 'success', text: `Zahlung für ${addon.name} erkannt — Add-on ist jetzt aktiv.` })
+            setTimeout(() => setToast(null), 5000)
+          }
+        }
+      } catch { /* ignore */ }
+    }
+  }, [purchases, markActive])
+
   const hasPending = Object.values(purchases).some(r => r?.status === 'pending')
-  const [refreshing, setRefreshing] = useState(false)
+
+  // Filter + Search
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase()
+    return CATALOG.filter(a => {
+      if (activeCategory === 'Beliebt' && !a.popular) return false
+      if (activeCategory === 'Aktiv') {
+        if (purchases[a.id]?.status !== 'active') return false
+      } else if (activeCategory !== 'Alle' && activeCategory !== 'Beliebt') {
+        if (a.category !== activeCategory) return false
+      }
+      if (!q) return true
+      return (
+        a.name.toLowerCase().includes(q) ||
+        a.description.toLowerCase().includes(q) ||
+        a.tags.some(t => t.toLowerCase().includes(q)) ||
+        a.category.toLowerCase().includes(q)
+      )
+    })
+  }, [search, activeCategory, purchases])
+
+  const counts = useMemo(() => {
+    const c: Record<string, number> = { Alle: CATALOG.length, Beliebt: CATALOG.filter(a => a.popular).length, Aktiv: 0 }
+    Object.values(purchases).forEach(r => { if (r?.status === 'active') c.Aktiv++ })
+    CATEGORIES.forEach(cat => { c[cat.key] = CATALOG.filter(a => a.category === cat.key).length })
+    return c
+  }, [purchases])
 
   return (
     <div className="page-content-full">
-      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 12 }}>
+      <style>{`
+        @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(8px) } to { opacity: 1; transform: translateY(0) } }
+      `}</style>
+
+      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 14 }}>
         <div>
-          <h1>Add-Ons</h1>
-          <p>Erweitere dein Projekt mit zusätzlichen Services · Zahlung über <strong>Enjyn</strong></p>
+          <h1>Marketplace</h1>
+          <p>{CATALOG.length} Add-ons für dein Projekt · Zahlung über <strong>Enjyn</strong></p>
         </div>
         {hasPending && (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
@@ -252,11 +268,8 @@ export default function AddonsPage() {
                 setRefreshing(true)
                 await syncStatuses()
                 const ts = Date.now()
-                setLastCheckAt(ts)
-                setTick(ts)
-                if (typeof window !== 'undefined' && userId) {
-                  window.localStorage.setItem(`addon_check_last_${userId}`, String(ts))
-                }
+                setLastCheckAt(ts); setTick(ts)
+                if (typeof window !== 'undefined' && userId) window.localStorage.setItem(`addon_check_last_${userId}`, String(ts))
                 setRefreshing(false)
               }}
               disabled={refreshing || cooldownActive}
@@ -271,122 +284,175 @@ export default function AddonsPage() {
                 display: 'flex', alignItems: 'center', gap: 7,
               }}
             >
-              {refreshing ? (
-                <span style={{ width: 12, height: 12, border: '2px solid var(--border)', borderTopColor: 'var(--text)', borderRadius: '50%', animation: 'spin .8s linear infinite' }} />
-              ) : (
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg>
-              )}
+              {refreshing
+                ? <span style={{ width: 12, height: 12, border: '2px solid var(--border)', borderTopColor: 'var(--text)', borderRadius: '50%', animation: 'spin .8s linear infinite' }} />
+                : <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg>}
               {cooldownActive ? `Wieder in ${cooldownMinLeft} Min` : 'Zahlung pruefen'}
             </button>
-            <span style={{ fontSize: 10.5, color: 'var(--text-muted)' }}>
-              Manueller Check · max alle 30 Min
-            </span>
+            <span style={{ fontSize: 10.5, color: 'var(--text-muted)' }}>Manueller Check · max alle 30 Min</span>
           </div>
         )}
       </div>
 
-      <div className="animate-fade-up-1" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 12, marginBottom: 100 }}>
-        {CATALOG.map(a => {
-          const rec = purchases[a.id]
-          const isActive  = rec?.status === 'active'
-          const isPending = rec?.status === 'pending'
-          return (
-            <div key={a.id} className="tap-scale" style={{
-              background: 'var(--surface)',
-              border: `1.5px solid ${isActive ? 'var(--green)' : isPending ? 'var(--amber)' : 'var(--border)'}`,
-              borderRadius: 'var(--r-md)', padding: 18,
-              cursor: isActive ? 'default' : 'pointer', transition: 'all 0.15s',
-              position: 'relative', opacity: isActive ? 0.95 : 1,
-            }} onClick={() => { if (!isActive && !isPending) setPaying(a) }}>
+      {/* Such- und Filterleiste */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 18 }}>
+        <div style={{ position: 'relative' }}>
+          <svg style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}
+            width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2" strokeLinecap="round">
+            <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+          </svg>
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Suche nach Add-ons (Branding, Auth, AI, Stripe …)"
+            style={{
+              width: '100%', height: 42, padding: '0 16px 0 38px',
+              background: 'var(--surface)', border: '1px solid var(--border)',
+              borderRadius: 12, fontSize: 14, color: 'var(--text)',
+              outline: 'none', fontFamily: 'inherit',
+            }}
+          />
+        </div>
 
-              {/* Status-Badge oben rechts */}
-              {(isActive || isPending) && (
-                <div style={{ position: 'absolute', top: 10, right: 10, display: 'flex', alignItems: 'center', gap: 5, padding: '3px 9px', borderRadius: 7, fontSize: 10, fontWeight: 700, letterSpacing: '.06em',
-                  background: isActive ? 'var(--green-bg)' : 'rgba(255,176,0,.12)',
-                  color: isActive ? 'var(--green-dark)' : '#A66E00',
-                  border: `1px solid ${isActive ? 'var(--green-border)' : 'rgba(255,176,0,.25)'}`,
-                }}>
-                  <span style={{ width: 5, height: 5, borderRadius: '50%', background: isActive ? 'var(--green)' : 'var(--amber)', animation: isPending ? 'pulse 2s infinite' : 'none' }} />
-                  {isActive ? 'AKTIV' : 'AUSSTEHEND'}
-                </div>
-              )}
+        <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 4 }}>
+          {([
+            { key: 'Alle' as const,    label: 'Alle' },
+            { key: 'Beliebt' as const, label: '★ Beliebt' },
+            { key: 'Aktiv' as const,   label: 'Aktiv' },
+          ]).map(t => {
+            const isActive = activeCategory === t.key
+            const count = counts[t.key] ?? 0
+            return (
+              <button
+                key={t.key}
+                onClick={() => setActiveCategory(t.key)}
+                style={{
+                  padding: '7px 13px', border: '1px solid var(--border)', borderRadius: 18,
+                  background: isActive ? 'var(--text)' : 'var(--surface)',
+                  color: isActive ? '#fff' : 'var(--text-secondary)',
+                  fontSize: 12, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap',
+                  fontFamily: 'inherit', flexShrink: 0,
+                }}
+              >
+                {t.label} <span style={{ opacity: .65, marginLeft: 4 }}>{count}</span>
+              </button>
+            )
+          })}
+          <span style={{ width: 1, background: 'var(--border)', margin: '0 4px', flexShrink: 0 }} />
+          {CATEGORIES.map(c => {
+            const isActive = activeCategory === c.key
+            return (
+              <button
+                key={c.key}
+                onClick={() => setActiveCategory(c.key)}
+                style={{
+                  padding: '7px 13px', border: '1px solid var(--border)', borderRadius: 18,
+                  background: isActive ? 'var(--text)' : 'var(--surface)',
+                  color: isActive ? '#fff' : 'var(--text-secondary)',
+                  fontSize: 12, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap',
+                  fontFamily: 'inherit', flexShrink: 0, display: 'flex', alignItems: 'center', gap: 5,
+                }}
+              >
+                <span>{c.emoji}</span> {c.label} <span style={{ opacity: .65 }}>{counts[c.key] ?? 0}</span>
+              </button>
+            )
+          })}
+        </div>
+      </div>
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
-                <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <AddonIcon name={a.icon} />
-                </div>
-                {!isActive && !isPending && (
-                  <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-muted)', letterSpacing: '0.06em' }}>{a.category.toUpperCase()}</span>
+      {/* Grid */}
+      {filtered.length === 0 ? (
+        <div style={{ padding: '60px 20px', textAlign: 'center', background: 'var(--surface)', border: '1px dashed var(--border)', borderRadius: 16, marginBottom: 60 }}>
+          <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)', margin: '0 0 4px' }}>Keine Add-ons gefunden</p>
+          <p style={{ fontSize: 13, color: 'var(--text-muted)', margin: 0 }}>Versuche eine andere Suche oder Kategorie.</p>
+        </div>
+      ) : (
+        <div className="animate-fade-up-1" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 12, marginBottom: 100 }}>
+          {filtered.map(a => {
+            const rec = purchases[a.id]
+            const isActive  = rec?.status === 'active'
+            const isPending = rec?.status === 'pending'
+            return (
+              <div key={a.id} className="tap-scale" style={{
+                background: 'var(--surface)',
+                border: `1.5px solid ${isActive ? 'var(--green)' : isPending ? 'var(--amber)' : 'var(--border)'}`,
+                borderRadius: 'var(--r-md)', padding: 18, cursor: 'pointer', transition: 'all 0.15s',
+                position: 'relative', display: 'flex', flexDirection: 'column',
+              }} onClick={() => setDetail(a)}>
+
+                {(isActive || isPending) && (
+                  <div style={{ position: 'absolute', top: 10, right: 10, display: 'flex', alignItems: 'center', gap: 5, padding: '3px 9px', borderRadius: 7, fontSize: 10, fontWeight: 700, letterSpacing: '.06em',
+                    background: isActive ? 'var(--green-bg)' : 'rgba(255,176,0,.12)',
+                    color: isActive ? 'var(--green-dark)' : '#A66E00',
+                    border: `1px solid ${isActive ? 'var(--green-border)' : 'rgba(255,176,0,.25)'}`,
+                  }}>
+                    <span style={{ width: 5, height: 5, borderRadius: '50%', background: isActive ? 'var(--green)' : 'var(--amber)', animation: isPending ? 'pulse 2s infinite' : 'none' }} />
+                    {isActive ? 'AKTIV' : 'AUSSTEHEND'}
+                  </div>
                 )}
-              </div>
-              <h3 style={{ marginBottom: 6 }}>{a.name}</h3>
-              <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 16, lineHeight: 1.5 }}>{a.description}</p>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: 18, fontWeight: 700, color: 'var(--text)' }}>€{a.price.toLocaleString('de')}</span>
-                <button
-                  onClick={(e) => { e.stopPropagation(); if (!isActive && !isPending) setPaying(a) }}
-                  disabled={isActive}
-                  style={{
-                    padding: '7px 14px', border: 'none', borderRadius: 'var(--r-sm)',
-                    background: isActive ? 'var(--green-bg)' : isPending ? 'var(--surface-2)' : 'var(--text)',
-                    color: isActive ? 'var(--green-dark)' : isPending ? 'var(--text-secondary)' : '#fff',
-                    fontSize: 12, fontWeight: 600, cursor: isActive ? 'default' : 'pointer', minHeight: 32,
-                    display: 'flex', alignItems: 'center', gap: 4,
-                  }}
-                >
-                  {isActive ? (
-                    <>
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 13l4 4L19 7"/></svg>
-                      Aktiv
-                    </>
-                  ) : isPending ? 'Wartet auf Zahlung' : 'Jetzt kaufen'}
-                </button>
-              </div>
 
-              {/* Projekt-Zuweisung — nur fuer aktive Add-ons */}
-              {isActive && (
-                <div onClick={(e) => e.stopPropagation()} style={{ marginTop: 12 }}>
-                  {rec?.projectId && rec.projectTitle ? (
-                    <button
-                      onClick={() => setPicker(a)}
-                      className="tap-scale"
-                      style={{
-                        width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                        gap: 8, padding: '8px 12px', background: 'var(--green-bg)', border: '1px solid var(--green-border)',
-                        borderRadius: 8, fontFamily: 'inherit', cursor: 'pointer', textAlign: 'left',
-                      }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 7, minWidth: 0 }}>
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--green-dark)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d="M5 13l4 4L19 7"/></svg>
-                        <span style={{ fontSize: 12, color: 'var(--green-dark)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          <strong>{rec.projectTitle}</strong>
-                        </span>
-                      </div>
-                      <span style={{ fontSize: 10.5, color: 'var(--green-dark)', opacity: .7, flexShrink: 0 }}>aendern</span>
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => setPicker(a)}
-                      className="tap-scale"
-                      style={{
-                        width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        gap: 6, padding: '9px 12px', background: 'var(--bg)', border: '1px dashed var(--border-strong)',
-                        borderRadius: 8, fontFamily: 'inherit', cursor: 'pointer',
-                        fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)',
-                      }}
-                    >
-                      <span style={{ width: 18, height: 18, borderRadius: '50%', background: 'var(--text)', color: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
-                      </span>
-                      Projekt zuweisen
-                    </button>
+                {a.popular && !isActive && !isPending && (
+                  <div style={{ position: 'absolute', top: 10, right: 10, padding: '2px 7px', borderRadius: 5, fontSize: 9.5, fontWeight: 700, letterSpacing: '.06em', background: 'var(--accent)', color: 'var(--accent-text)' }}>
+                    ★ BELIEBT
+                  </div>
+                )}
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+                  <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <AddonIcon category={a.category} />
+                  </div>
+                  {!isActive && !isPending && !a.popular && (
+                    <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-muted)', letterSpacing: '0.06em' }}>{a.category.toUpperCase()}</span>
                   )}
                 </div>
-              )}
-            </div>
-          )
-        })}
-      </div>
+                <h3 style={{ marginBottom: 6, fontSize: 15, lineHeight: 1.3 }}>{a.name}</h3>
+                <p style={{ fontSize: 12.5, color: 'var(--text-secondary)', marginBottom: 14, lineHeight: 1.5, flex: 1 }}>{a.description}</p>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto' }}>
+                  <span style={{ fontSize: 17, fontWeight: 700, color: 'var(--text)' }}>€{a.price.toLocaleString('de')}</span>
+                  <span style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: 3 }}>
+                    Details <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M9 6l6 6-6 6"/></svg>
+                  </span>
+                </div>
+
+                {isActive && (
+                  <div onClick={(e) => e.stopPropagation()} style={{ marginTop: 12 }}>
+                    {rec?.projectId && rec.projectTitle ? (
+                      <button onClick={() => setPicker(a)} className="tap-scale"
+                        style={{
+                          width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                          gap: 8, padding: '7px 11px', background: 'var(--green-bg)', border: '1px solid var(--green-border)',
+                          borderRadius: 8, fontFamily: 'inherit', cursor: 'pointer', textAlign: 'left',
+                        }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--green-dark)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d="M5 13l4 4L19 7"/></svg>
+                          <span style={{ fontSize: 11.5, color: 'var(--green-dark)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            <strong>{rec.projectTitle}</strong>
+                          </span>
+                        </div>
+                        <span style={{ fontSize: 10, color: 'var(--green-dark)', opacity: .7 }}>aendern</span>
+                      </button>
+                    ) : (
+                      <button onClick={() => setPicker(a)} className="tap-scale"
+                        style={{
+                          width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          gap: 6, padding: '7px 11px', background: 'var(--bg)', border: '1px dashed var(--border-strong)',
+                          borderRadius: 8, fontFamily: 'inherit', cursor: 'pointer',
+                          fontSize: 11.5, fontWeight: 600, color: 'var(--text-secondary)',
+                        }}>
+                        <span style={{ width: 16, height: 16, borderRadius: '50%', background: 'var(--text)', color: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                        </span>
+                        Projekt zuweisen
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      )}
 
       {/* Toast */}
       {toast && (
@@ -403,7 +469,19 @@ export default function AddonsPage() {
         </div>
       )}
 
-      {/* Payment Modal — auch nach Reload via resumeSession wieder aufgenommen */}
+      {/* Detail Modal */}
+      {detail && (
+        <AddonDetailModal
+          addon={detail}
+          status={purchases[detail.id]?.status}
+          projectTitle={purchases[detail.id]?.projectTitle}
+          onClose={() => setDetail(null)}
+          onBuy={() => { setPaying(detail); setDetail(null) }}
+          onAssignProject={() => { setPicker(detail); setDetail(null) }}
+        />
+      )}
+
+      {/* Payment Modal */}
       {paying && (
         <PaymentModal
           amount={paying.price}
@@ -414,9 +492,6 @@ export default function AddonsPage() {
           onClose={() => { setPaying(null); fullResetActiveSession() }}
           onSuccess={(reference) => {
             markActive(paying.id, reference)
-            // Storage sofort raeumen, State erst beim onClose — dadurch
-            // bleibt resumeFrom waehrend des "Erfolg"-Screens stabil und
-            // keine Re-Render-Logik kann einen zweiten create_payment ausloesen.
             clearActiveSessionStorage()
             setToast({ kind: 'success', text: `${paying.name} ist jetzt aktiv.` })
             setTimeout(() => setToast(null), 4000)
@@ -455,10 +530,6 @@ export default function AddonsPage() {
 // Project Picker Modal
 // ───────────────────────────────────────────────────────────────────────
 
-const PHASE_LABEL: Record<string, string> = {
-  intake: 'Intake', planning: 'Planning', active: 'In Arbeit', testing: 'Testing', done: 'Abgeschlossen',
-}
-
 function ProjectPicker({
   addon, projects, currentProjectId, onClose, onSelect, onClear,
 }: {
@@ -470,36 +541,20 @@ function ProjectPicker({
   onClear: () => void
 }) {
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
+    <div role="dialog" aria-modal="true"
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
-      style={{
-        position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        zIndex: 500, padding: 16, backdropFilter: 'blur(4px)',
-        animation: 'fadeIn .2s ease',
-      }}
+      style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 500, padding: 16, backdropFilter: 'blur(4px)', animation: 'fadeIn .2s ease' }}
     >
-      <div style={{
-        width: '100%', maxWidth: 460, background: 'var(--surface)',
-        border: '1px solid var(--border)', borderRadius: 18, overflow: 'hidden',
-        boxShadow: '0 24px 64px rgba(0,0,0,0.25)',
-        animation: 'slideIn .25s cubic-bezier(.16,1,.3,1) both',
-        maxHeight: '85vh', display: 'flex', flexDirection: 'column',
-      }}>
+      <div style={{ width: '100%', maxWidth: 460, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 18, overflow: 'hidden', boxShadow: '0 24px 64px rgba(0,0,0,0.25)', animation: 'slideIn .25s cubic-bezier(.16,1,.3,1) both', maxHeight: '85vh', display: 'flex', flexDirection: 'column' }}>
         <div style={{ padding: '18px 22px 14px', borderBottom: '1px solid var(--border)', background: 'var(--bg)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
           <div style={{ minWidth: 0 }}>
             <p style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '.1em', margin: 0 }}>PROJEKT ZUWEISEN</p>
-            <h2 style={{ fontSize: 17, fontWeight: 700, color: 'var(--text)', margin: '4px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {addon.name}
-            </h2>
+            <h2 style={{ fontSize: 17, fontWeight: 700, color: 'var(--text)', margin: '4px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{addon.name}</h2>
           </div>
           <button onClick={onClose} aria-label="Schliessen" style={{ width: 30, height: 30, border: '1px solid var(--border)', background: 'var(--surface)', borderRadius: 8, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
           </button>
         </div>
-
         <div style={{ padding: 12, overflowY: 'auto' }}>
           {projects.length === 0 ? (
             <div style={{ padding: '32px 16px', textAlign: 'center' }}>
@@ -512,21 +567,8 @@ function ProjectPicker({
                 const isCurrent = p.id === currentProjectId
                 const initial = p.title.charAt(0).toUpperCase()
                 return (
-                  <button
-                    key={p.id}
-                    onClick={() => onSelect(p.id, p.title)}
-                    className="tap-scale"
-                    style={{
-                      display: 'flex', alignItems: 'center', gap: 12,
-                      padding: '11px 14px',
-                      background: isCurrent ? 'var(--green-bg)' : 'var(--bg)',
-                      border: `1px solid ${isCurrent ? 'var(--green-border)' : 'var(--border)'}`,
-                      borderRadius: 10, cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left',
-                      transition: 'background .1s, border-color .1s',
-                    }}
-                    onMouseEnter={(e) => { if (!isCurrent) (e.currentTarget as HTMLElement).style.background = 'var(--surface-2)' }}
-                    onMouseLeave={(e) => { if (!isCurrent) (e.currentTarget as HTMLElement).style.background = 'var(--bg)' }}
-                  >
+                  <button key={p.id} onClick={() => onSelect(p.id, p.title)} className="tap-scale"
+                    style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 14px', background: isCurrent ? 'var(--green-bg)' : 'var(--bg)', border: `1px solid ${isCurrent ? 'var(--green-border)' : 'var(--border)'}`, borderRadius: 10, cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left' }}>
                     <div style={{ width: 36, height: 36, borderRadius: 10, background: isCurrent ? 'var(--green-dark)' : 'var(--surface-2)', color: isCurrent ? '#fff' : 'var(--text)', border: isCurrent ? 'none' : '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 700, flexShrink: 0 }}>
                       {initial}
                     </div>
@@ -534,22 +576,16 @@ function ProjectPicker({
                       <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.title}</p>
                       <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: '2px 0 0' }}>Phase: {PHASE_LABEL[p.status] ?? p.status}</p>
                     </div>
-                    {isCurrent && (
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--green-dark)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d="M5 13l4 4L19 7"/></svg>
-                    )}
+                    {isCurrent && <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--green-dark)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d="M5 13l4 4L19 7"/></svg>}
                   </button>
                 )
               })}
             </div>
           )}
         </div>
-
         {currentProjectId && (
           <div style={{ padding: '10px 16px', borderTop: '1px solid var(--border)', background: 'var(--bg)' }}>
-            <button
-              onClick={onClear}
-              style={{ width: '100%', padding: '8px 12px', background: 'transparent', border: '1px solid var(--border)', borderRadius: 8, fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', cursor: 'pointer', fontFamily: 'inherit' }}
-            >
+            <button onClick={onClear} style={{ width: '100%', padding: '8px 12px', background: 'transparent', border: '1px solid var(--border)', borderRadius: 8, fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', cursor: 'pointer', fontFamily: 'inherit' }}>
               Zuweisung entfernen
             </button>
           </div>
