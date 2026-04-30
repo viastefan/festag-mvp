@@ -26,78 +26,79 @@
   --r:12px; --r-xs:8px; --r-sm:10px; --r-md:12px; --r-lg:16px; --r-xl:22px;
 }
 
-/* ── DARK — Premium void-mineral palette, 2028 ── */
+/* ── DARK — Ultra-premium near-black, barely-perceptible green tint ── */
 [data-theme="dark"] {
-  --bg:#0B0F0E;
-  --surface:#111817;
-  --card:#171F1D;
-  --surface-2:#1F2A27;
+  /* Near-black base — like Claude/ChatGPT with a 2% green undertone */
+  --bg:#151816;
+  --surface:#1C1F1D;
+  --card:#232724;
+  --surface-2:#2B2F2D;
 
-  --border:rgba(255,255,255,0.05);
-  --border-strong:rgba(255,255,255,0.10);
+  --border:rgba(255,255,255,0.08);
+  --border-strong:rgba(255,255,255,0.16);
 
-  --text:#EAE8E4;
-  --text-secondary:#7E8F8A;
-  --text-muted:#485552;
+  --text:#EAEAE7;
+  --text-secondary:#8E9C96;
+  --text-muted:#525E5A;
 
-  --btn-prim:#EAE8E4; --btn-prim-text:#0B0F0E;
+  --btn-prim:#EAEAE7; --btn-prim-text:#151816;
 
-  /* Accent — deep void with warm mineral text */
-  --accent:#101916; --accent-text:#A8BDB8;
+  /* Accent — deep forest pocket with crisp green text */
+  --accent:#1A2620; --accent-text:#44CE8C;
 
-  --inp:rgba(255,255,255,0.025);
-  --inp-border:rgba(255,255,255,0.065);
-  --inp-focus:rgba(255,255,255,0.045);
-  --inp-focus-border:rgba(255,255,255,0.20);
-  --glow:rgba(168,189,184,0.06);
+  --inp:rgba(255,255,255,0.04);
+  --inp-border:rgba(255,255,255,0.09);
+  --inp-focus:rgba(255,255,255,0.07);
+  --inp-focus-border:rgba(255,255,255,0.22);
+  --glow:rgba(68,206,140,0.04);
 
-  --sidebar-bg:rgba(14,20,18,0.97);
-  --sidebar-border:rgba(255,255,255,0.045);
-  --nav-on:rgba(255,255,255,0.07);
-  --nav-on-text:#EAE8E4;
-  --nav-off-text:#566260;
+  --sidebar-bg:rgba(21,24,22,0.97);
+  --sidebar-border:rgba(255,255,255,0.06);
+  --nav-on:rgba(255,255,255,0.09);
+  --nav-on-text:#EAEAE7;
+  --nav-off-text:#525E5A;
 
-  /* Status — forest green (not neon) */
-  --green:#2DA882;
-  --green-bg:rgba(45,168,130,0.10);
-  --green-border:rgba(45,168,130,0.22);
-  --green-dark:#3EBC94;
+  /* Green — clean professional, not neon */
+  --green:#25C47A;
+  --green-bg:rgba(37,196,122,0.09);
+  --green-border:rgba(37,196,122,0.20);
+  --green-dark:#20B06C;
 
-  /* Amber — warm mineral gold */
-  --amber:#B88A3C;
-  --amber-bg:rgba(184,138,60,0.10);
-  --amber-dark:#CEAA58;
+  /* Amber — restrained warm gold */
+  --amber:#C89430;
+  --amber-bg:rgba(200,148,48,0.10);
+  --amber-dark:#B38226;
 
-  --red:#D95454;
-  --red-bg:rgba(217,84,84,0.08);
+  --red:#D94545;
+  --red-bg:rgba(217,69,69,0.09);
 
-  --shadow-xs:0 1px 3px rgba(0,0,0,.50);
-  --shadow-sm:0 2px 8px rgba(0,0,0,.58);
-  --shadow:0 4px 20px rgba(0,0,0,.68);
-  --shadow-lg:0 8px 36px rgba(0,0,0,.80);
+  --shadow-xs:0 1px 3px rgba(0,0,0,.60);
+  --shadow-sm:0 2px 8px rgba(0,0,0,.68);
+  --shadow:0 4px 20px rgba(0,0,0,.78);
+  --shadow-lg:0 8px 36px rgba(0,0,0,.88);
 
   --logo-filter:brightness(0) invert(1);
   --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
   --r:12px; --r-xs:8px; --r-sm:10px; --r-md:12px; --r-lg:16px; --r-xl:22px;
 }
 
-/* ── READ — Soft paper, warm manuscript feel ── */
+/* ── READ — Premium warm paper, final tuned ── */
 [data-theme="read"] {
-  --bg:#F8F7F2; --surface:#FDFCF8; --card:#EFECE4;
-  --border:rgba(0,0,0,0.07); --border-strong:rgba(0,0,0,0.14);
-  --text:#2C2416; --text-secondary:#6B5E47; --text-muted:#A09278;
-  --btn-prim:#2C2416; --btn-prim-text:#FDFCF8;
-  --accent:#2C2416; --accent-text:#FDFCF8;
-  --inp:#FDFCF8; --inp-border:rgba(0,0,0,0.10); --inp-focus:#FFFFFF; --inp-focus-border:#2C2416;
-  --glow:rgba(44,36,22,0.07);
-  --sidebar-bg:rgba(253,252,248,0.96); --sidebar-border:rgba(0,0,0,0.06);
-  --nav-on:#EFECE4; --nav-on-text:#2C2416; --nav-off-text:#8B7355;
-  --surface-2:#EFECE4; --green:#4A7C59; --green-bg:rgba(74,124,89,0.10);
-  --green-border:rgba(74,124,89,0.20); --green-dark:#3A6347;
-  --amber:#B8860B; --amber-bg:rgba(184,134,11,0.10); --amber-dark:#9C6F0A;
-  --red:#8B3A3A; --red-bg:rgba(139,58,58,0.08);
-  --shadow-xs:0 1px 4px rgba(44,36,22,.05); --shadow-sm:0 2px 8px rgba(44,36,22,.06);
-  --shadow:0 4px 20px rgba(44,36,22,.08); --shadow-lg:0 8px 30px rgba(44,36,22,.10);
+  --bg:#F7F6F0; --surface:#FDFCF8; --card:#EDEAE2;
+  --border:rgba(0,0,0,0.08); --border-strong:rgba(0,0,0,0.16);
+  --text:#26200F; --text-secondary:#5C4F38; --text-muted:#9C8870;
+  --btn-prim:#26200F; --btn-prim-text:#FDFCF8;
+  --accent:#26200F; --accent-text:#FDFCF8;
+  --inp:#FEFEFE; --inp-border:rgba(0,0,0,0.11); --inp-focus:#FFFFFF; --inp-focus-border:#26200F;
+  --glow:rgba(38,32,15,0.07);
+  --sidebar-bg:rgba(253,252,248,0.97); --sidebar-border:rgba(0,0,0,0.07);
+  --nav-on:#EDEAE2; --nav-on-text:#26200F; --nav-off-text:#8A7659;
+  --surface-2:#E8E4DB; --green:#3E7A52; --green-bg:rgba(62,122,82,0.10);
+  --green-border:rgba(62,122,82,0.22); --green-dark:#2F6040;
+  --amber:#A87800; --amber-bg:rgba(168,120,0,0.10); --amber-dark:#8C6400;
+  --red:#7A3030; --red-bg:rgba(122,48,48,0.09);
+  --shadow-xs:0 1px 4px rgba(38,32,15,.05); --shadow-sm:0 2px 8px rgba(38,32,15,.07);
+  --shadow:0 4px 20px rgba(38,32,15,.09); --shadow-lg:0 8px 30px rgba(38,32,15,.11);
   --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
   --r:12px; --r-xs:8px; --r-sm:10px; --r-md:12px; --r-lg:16px; --r-xl:22px;
 }

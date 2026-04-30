@@ -84,10 +84,11 @@ export default function AddonsPage() {
                 <span style={{ fontSize: 18, fontWeight: 700, color: 'var(--text)' }}>€{a.price.toLocaleString('de')}</span>
                 <button style={{
                   padding: '7px 14px', border: 'none', borderRadius: 'var(--r-sm)',
-                  background: isSelected ? 'var(--green-bg)' : 'var(--text)',
-                  color: isSelected ? 'var(--green-dark)' : '#fff',
+                  background: isSelected ? 'var(--green-bg)' : 'var(--btn-prim)',
+                  color: isSelected ? 'var(--green-dark)' : 'var(--btn-prim-text)',
                   fontSize: 12, fontWeight: 600, cursor: 'pointer', minHeight: 32,
                   display: 'flex', alignItems: 'center', gap: 4,
+                  border: isSelected ? '1px solid var(--green-border)' : 'none',
                 }}>
                   {isSelected ? (
                     <>
