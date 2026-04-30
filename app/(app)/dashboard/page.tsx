@@ -4,15 +4,17 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import LoadingScreen from '@/components/LoadingScreen'
+import { projectColor } from '@/components/Sidebar'
 
-type Project = { id: string; title: string; description: string | null; status: string; created_at: string }
-type Task    = { id: string; title: string; status: string; priority?: string; project_id: string }
+type Project  = { id: string; title: string; description: string | null; status: string; created_at: string }
+type Task     = { id: string; title: string; status: string; priority?: string; project_id: string; updated_at?: string }
+type Activity = { id: string; type: string; message: string; created_at: string; project_id?: string }
 
 const PHASE: Record<string, { label: string; pct: number; color: string }> = {
-  intake:   { label: 'Intake',        pct: 10,  color: 'var(--amber)' },
-  planning: { label: 'Planning',      pct: 28,  color: 'var(--amber)' },
-  active:   { label: 'In Arbeit',     pct: 62,  color: 'var(--green)' },
-  testing:  { label: 'Testing',       pct: 85,  color: 'var(--green)' },
+  intake:   { label: 'Intake',        pct: 10,  color: '#6366f1' },
+  planning: { label: 'Planning',      pct: 28,  color: '#f59e0b' },
+  active:   { label: 'In Arbeit',     pct: 62,  color: '#22c55e' },
+  testing:  { label: 'Testing',       pct: 85,  color: '#0ea5e9' },
   done:     { label: 'Abgeschlossen', pct: 100, color: 'var(--text-muted)' },
 }
 
@@ -24,25 +26,33 @@ const MILESTONES = [
   { label: 'Delivery',  phase: 'done',     pct: 100, payPct: 10 },
 ]
 
-/* ── SVG Donut chart ── */
 function DonutChart({ pct, color }: { pct: number; color: string }) {
-  const R = 40, cx = 50, cy = 50
-  const circ = 2 * Math.PI * R
-  const filled = circ * (pct / 100)
+  const R = 40, cx = 50, cy = 50, circ = 2 * Math.PI * R
   return (
-    <div style={{ position: 'relative', width: 100, height: 100, flexShrink: 0 }}>
-      <svg width="100" height="100" viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)' }}>
+    <div style={{ position:'relative', width:100, height:100, flexShrink:0 }}>
+      <svg width="100" height="100" viewBox="0 0 100 100" style={{ transform:'rotate(-90deg)' }}>
         <circle cx={cx} cy={cy} r={R} fill="none" stroke="var(--surface-2)" strokeWidth="11"/>
-        <circle cx={cx} cy={cy} r={R} fill="none"
-          stroke={color} strokeWidth="11"
-          strokeDasharray={`${filled} ${circ - filled}`}
-          strokeLinecap="round"
-          style={{ transition: 'stroke-dasharray 1.2s cubic-bezier(.16,1,.3,1)' }}
+        <circle cx={cx} cy={cy} r={R} fill="none" stroke={color} strokeWidth="11"
+          strokeDasharray={`${circ*(pct/100)} ${circ*(1-pct/100)}`}
+          strokeLinecap="round" style={{ transition:'stroke-dasharray 1.2s cubic-bezier(.16,1,.3,1)' }}
         />
       </svg>
-      <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-        <span style={{ fontSize: 17, fontWeight: 700, color: 'var(--text)', lineHeight: 1 }}>{pct}%</span>
-        <span style={{ fontSize: 8, color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '.06em', marginTop: 3 }}>DONE</span>
+      <div style={{ position:'absolute', inset:0, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center' }}>
+        <span style={{ fontSize:17, fontWeight:700, color:'var(--text)', lineHeight:1 }}>{pct}%</span>
+        <span style={{ fontSize:8, color:'var(--text-muted)', fontWeight:700, letterSpacing:'.06em', marginTop:3 }}>DONE</span>
+      </div>
+    </div>
+  )
+}
+
+function MetricCard({ label, value, sub, trend, color }: { label:string; value:string|number; sub:string; trend?:string; color:string }) {
+  return (
+    <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:16, padding:'16px 20px', flex:1, minWidth:0 }}>
+      <p style={{ fontSize:10, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.1em', textTransform:'uppercase', margin:'0 0 8px' }}>{label}</p>
+      <p style={{ fontSize:28, fontWeight:700, color:'var(--text)', margin:'0 0 4px', lineHeight:1, letterSpacing:'-.5px' }}>{value}</p>
+      <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+        <span style={{ fontSize:11, color:'var(--text-muted)' }}>{sub}</span>
+        {trend && <span style={{ fontSize:10, fontWeight:700, color, background:`${color}18`, padding:'1px 6px', borderRadius:5 }}>{trend}</span>}
       </div>
     </div>
   )
@@ -50,10 +60,12 @@ function DonutChart({ pct, color }: { pct: number; color: string }) {
 
 export default function DashboardPage() {
   const [projects,   setProjects]   = useState<Project[]>([])
-  const [main,       setMain]       = useState<Project | null>(null)
+  const [main,       setMain]       = useState<Project|null>(null)
   const [tasks,      setTasks]      = useState<Task[]>([])
   const [allTasks,   setAllTasks]   = useState<Task[]>([])
+  const [activity,   setActivity]   = useState<Activity[]>([])
   const [firstName,  setFirstName]  = useState('')
+  const [userRole,   setUserRole]   = useState('client')
   const [loading,    setLoading]    = useState(true)
   const [genReport,  setGenReport]  = useState(false)
   const [report,     setReport]     = useState('')
@@ -65,13 +77,17 @@ export default function DashboardPage() {
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data }) => {
       if (!data.session) { window.location.href = '/login'; return }
-      const { data: p } = await supabase.from('profiles').select('first_name,full_name').eq('id', data.session.user.id).single()
-      if (p) setFirstName(p.first_name ?? p.full_name?.split(' ')[0] ?? '')
-      const { data: projs } = await supabase.from('projects').select('*').order('created_at', { ascending: false })
+      const uid = data.session.user.id
+      const { data: p } = await supabase.from('profiles').select('first_name,full_name,role').eq('id', uid).single()
+      if (p) {
+        setFirstName((p as any).first_name ?? (p as any).full_name?.split(' ')[0] ?? '')
+        setUserRole((p as any).role ?? 'client')
+      }
+      const { data: projs } = await supabase.from('projects').select('*').order('created_at', { ascending:false })
       if (projs?.length) {
         setProjects(projs)
-        const prio: Record<string, number> = { active: 0, testing: 1, planning: 2, intake: 3, done: 4 }
-        const m = [...projs].sort((a, b) => (prio[a.status] ?? 9) - (prio[b.status] ?? 9))[0]
+        const prio: Record<string,number> = { active:0, testing:1, planning:2, intake:3, done:4 }
+        const m = [...projs].sort((a,b) => (prio[a.status]??9)-(prio[b.status]??9))[0]
         setMain(m)
         const [{ data: t }, { data: at }] = await Promise.all([
           supabase.from('tasks').select('*').eq('project_id', m.id),
@@ -80,6 +96,13 @@ export default function DashboardPage() {
         setTasks(t ?? [])
         setAllTasks(at ?? [])
       }
+      // Load activity feed
+      const { data: feed } = await supabase
+        .from('activity_feed')
+        .select('*')
+        .order('created_at', { ascending:false })
+        .limit(12)
+      setActivity(feed ?? [])
       setLoading(false)
     })
   }, [])
@@ -87,15 +110,15 @@ export default function DashboardPage() {
   async function generateReport() {
     if (!main || genReport) return
     setGenReport(true); setReport('')
-    const done = tasks.filter(t => t.status === 'done').length
-    const pct = tasks.length ? Math.round(done / tasks.length * 100) : 0
+    const done = tasks.filter(t => t.status==='done').length
+    const pct  = tasks.length ? Math.round(done/tasks.length*100) : 0
     try {
       const res = await fetch('/api/ai/chat', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        method:'POST', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({
-          system: 'Du bist Tagro. Erstelle einen kurzen Statusbericht auf Deutsch. 3-4 Sätze. Klar und direkt. Keine Emojis.',
-          max_tokens: 280,
-          messages: [{ role: 'user', content: `Projekt: "${main.title}". Phase: ${PHASE[main.status]?.label}. Fortschritt: ${pct}%. ${done} von ${tasks.length} Tasks erledigt. Erstelle einen Statusbericht.` }],
+          system:'Du bist Tagro. Erstelle einen kurzen Statusbericht auf Deutsch. 3-4 Sätze. Klar und direkt. Keine Emojis.',
+          max_tokens:280,
+          messages:[{ role:'user', content:`Projekt: "${main.title}". Phase: ${PHASE[main.status]?.label}. Fortschritt: ${pct}%. ${done} von ${tasks.length} Tasks erledigt. Erstelle einen Statusbericht.` }],
         }),
       })
       const d = await res.json()
@@ -105,495 +128,431 @@ export default function DashboardPage() {
   }
 
   const h = new Date().getHours()
-  const greeting = h < 12 ? 'Guten Morgen' : h < 18 ? 'Guten Tag' : 'Guten Abend'
-  const displayName = firstName ? firstName.charAt(0).toUpperCase() + firstName.slice(1) : ''
+  const greeting     = h < 12 ? 'Guten Morgen' : h < 18 ? 'Guten Tag' : 'Guten Abend'
+  const displayName  = firstName ? firstName.charAt(0).toUpperCase() + firstName.slice(1) : ''
+  const isDevOrAdmin = userRole === 'dev' || userRole === 'admin'
 
-  if (showLoader) return <LoadingScreen onDone={() => {
-    sessionStorage.setItem('festag_dash_loaded', '1')
-    setShowLoader(false)
-  }} />
-
+  if (showLoader) return <LoadingScreen onDone={() => { sessionStorage.setItem('festag_dash_loaded','1'); setShowLoader(false) }}/>
   if (loading) return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '50vh' }}>
-      <div style={{ width: 24, height: 24, border: '2px solid var(--border)', borderTopColor: 'var(--text)', borderRadius: '50%', animation: 'spin .8s linear infinite' }} />
+    <div style={{ display:'flex', alignItems:'center', justifyContent:'center', minHeight:'50vh' }}>
+      <div style={{ width:24, height:24, border:'2px solid var(--border)', borderTopColor:'var(--text)', borderRadius:'50%', animation:'spin .8s linear infinite' }}/>
+      <style>{`@keyframes spin{to{transform:rotate(360deg);}}`}</style>
     </div>
   )
 
-  const phase      = main ? (PHASE[main.status] ?? PHASE.intake) : null
-  const done       = tasks.filter(t => t.status === 'done').length
-  const inProgress = tasks.filter(t => t.status === 'doing').length
-  const todo       = tasks.filter(t => t.status === 'todo').length
-  const activeTasks = tasks.filter(t => t.status !== 'done')
-  const allDone     = allTasks.filter(t => t.status === 'done').length
-  const allActive   = allTasks.filter(t => t.status === 'doing').length
-  const allTodo2    = allTasks.filter(t => t.status === 'todo').length
+  const phase       = main ? (PHASE[main.status] ?? PHASE.intake) : null
+  const done        = tasks.filter(t => t.status==='done').length
+  const inProgress  = tasks.filter(t => t.status==='doing').length
+  const todo        = tasks.filter(t => t.status==='todo').length
+  const activeTasks = tasks.filter(t => t.status!=='done')
+  const allDone     = allTasks.filter(t => t.status==='done').length
+  const allActive   = allTasks.filter(t => t.status==='doing').length
+  const allTodo2    = allTasks.filter(t => t.status==='todo').length
   const totalAll    = allTasks.length || 1
-  const phaseIdx = main ? ['intake','planning','active','testing','done'].indexOf(main.status) : -1
+  const phaseIdx    = main ? ['intake','planning','active','testing','done'].indexOf(main.status) : -1
+  const completePct = tasks.length ? Math.round(done/tasks.length*100) : 0
+
+  function timeAgo(dateStr: string) {
+    const d = Date.now() - new Date(dateStr).getTime()
+    if (d < 60000)      return 'Gerade'
+    if (d < 3600000)    return `vor ${Math.floor(d/60000)} Min`
+    if (d < 86400000)   return `vor ${Math.floor(d/3600000)} Std`
+    return `vor ${Math.floor(d/86400000)} Tagen`
+  }
 
   return (
-    <div className="page-content" style={{ maxWidth: 1240 }}>
+    <div className="page-content" style={{ maxWidth:1300 }}>
       <style>{`
+        @keyframes spin    { to{transform:rotate(360deg);} }
+        @keyframes pulse   { 0%,100%{opacity:1;}50%{opacity:.3;} }
         @keyframes barFill { from{width:0} to{width:${phase?.pct ?? 0}%} }
-        .dash-bar { animation: barFill 1s cubic-bezier(.16,1,.3,1) both .3s }
-        .dash-layout { display:grid; grid-template-columns:1fr 284px; gap:16px; align-items:start; }
+        .dash-bar     { animation: barFill 1s cubic-bezier(.16,1,.3,1) both .3s }
+        .dash-layout  { display:grid; grid-template-columns:1fr 300px; gap:14px; align-items:start; }
+        .dash-metrics { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
         @media(max-width:1100px) {
-          .dash-layout { grid-template-columns:1fr !important; }
-          .dash-right { display:none !important; }
+          .dash-layout  { grid-template-columns:1fr !important; }
+          .dash-right   { display:none !important; }
+          .dash-metrics { grid-template-columns:repeat(2,1fr) !important; }
         }
-        @media(max-width:768px) {
-          .dash-stats { grid-template-columns: repeat(2,1fr) !important }
-          .dash-stat-last { border-right: 1px solid var(--border) !important }
-          .workload-grid { grid-template-columns: 1fr !important }
+        @media(max-width:640px) {
+          .dash-metrics { grid-template-columns:repeat(2,1fr) !important; }
+          .workload-grid { grid-template-columns:1fr !important; }
         }
+        .proj-row-card { transition:background .12s, border-color .12s; }
+        .proj-row-card:hover { background:var(--surface-2) !important; }
+        .act-row:hover { background:var(--card) !important; }
       `}</style>
 
-      {/* Greeting */}
+      {/* ── Greeting ── */}
       <div className="animate-fade-up page-header">
-        <h1>{greeting}{displayName ? `, ${displayName}` : ''}.</h1>
-        <p style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span>{projects.length} Projekt{projects.length !== 1 ? 'e' : ''} · {allTasks.length} Tasks gesamt</span>
-          <span>·</span>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-            <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--green)', animation: 'pulse 2s infinite', display: 'inline-block' }} />
-            Tagro AI aktiv
-          </span>
-        </p>
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:12 }}>
+          <div>
+            <h1 style={{ margin:0 }}>{greeting}{displayName ? `, ${displayName}` : ''}.</h1>
+            <p style={{ margin:'4px 0 0', display:'flex', alignItems:'center', gap:8 }}>
+              <span>{projects.length} Projekt{projects.length!==1?'e':''} · {allTasks.length} Tasks gesamt</span>
+              <span style={{ display:'inline-flex', alignItems:'center', gap:5 }}>
+                <span style={{ width:5, height:5, borderRadius:'50%', background:'#22c55e', animation:'pulse 2s infinite', display:'inline-block' }}/>
+                Tagro AI aktiv
+              </span>
+            </p>
+          </div>
+          <Link href="/onboarding" style={{ textDecoration:'none' }}>
+            <button style={{ height:36, padding:'0 16px', background:'var(--btn-prim)', color:'var(--btn-prim-text)', border:'none', borderRadius:10, fontSize:13, fontWeight:700, cursor:'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', gap:6 }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
+              Neues Projekt
+            </button>
+          </Link>
+        </div>
       </div>
 
-      {/* Empty state */}
+      {/* ── Empty state ── */}
       {!main && (
-        <div className="animate-fade-up-1" style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 20, padding: '64px 24px', textAlign: 'center' }}>
-          <div style={{ width: 52, height: 52, borderRadius: 14, background: 'var(--surface-2)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 18 }}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="1.6" strokeLinecap="round">
-              <path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8"/>
-            </svg>
-          </div>
-          <h2 style={{ marginBottom: 8 }}>Starte dein erstes Projekt</h2>
-          <p style={{ fontSize: 14, color: 'var(--text-secondary)', maxWidth: 360, margin: '0 auto 24px', lineHeight: 1.6 }}>
-            Beschreibe deine Idee — Tagro AI strukturiert alles in Sekunden.
+        <div className="animate-fade-up-1" style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:20, padding:'64px 24px', textAlign:'center' }}>
+          <div style={{ width:56, height:56, borderRadius:16, background:'var(--accent)', display:'inline-flex', alignItems:'center', justifyContent:'center', marginBottom:20, fontSize:22, color:'var(--accent-text)' }}>✦</div>
+          <h2 style={{ marginBottom:10, fontSize:22 }}>Starte dein erstes Projekt</h2>
+          <p style={{ fontSize:14, color:'var(--text-secondary)', maxWidth:360, margin:'0 auto 28px', lineHeight:1.6 }}>
+            Beschreibe deine Idee — Tagro AI strukturiert alles in Epics und Tasks.
           </p>
           <Link href="/onboarding">
-            <button className="tap-scale" style={{ padding: '12px 28px', background: 'var(--btn-prim)', color: 'var(--btn-prim-text)', border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
-              Projekt starten →
+            <button className="tap-scale" style={{ padding:'13px 32px', background:'var(--btn-prim)', color:'var(--btn-prim-text)', border:'none', borderRadius:12, fontSize:14, fontWeight:700, cursor:'pointer' }}>
+              Mit AI starten →
             </button>
           </Link>
         </div>
       )}
 
       {main && phase && (
-        <div className="dash-layout">
+        <>
+          {/* ── Metric cards row ── */}
+          <div className="dash-metrics animate-fade-up-1" style={{ marginBottom:14 }}>
+            <MetricCard label="Fortschritt" value={`${completePct}%`} sub={phase.label} trend={completePct>50?'+aktiv':undefined} color="#22c55e"/>
+            <MetricCard label="Tasks offen" value={todo} sub={`${inProgress} in Arbeit`} color="#f59e0b"/>
+            <MetricCard label="Erledigt" value={done} sub={`von ${tasks.length} gesamt`} trend={done>0?`${completePct}%`:undefined} color="#22c55e"/>
+            <MetricCard label="Projekte" value={projects.length} sub={`${allTasks.length} Tasks total`} color="#6366f1"/>
+          </div>
 
-          {/* ══════════ LEFT COLUMN ══════════ */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, minWidth: 0 }}>
+          <div className="dash-layout">
+            {/* ══════════ LEFT COLUMN ══════════ */}
+            <div style={{ display:'flex', flexDirection:'column', gap:12, minWidth:0 }}>
 
-            {/* ── Main project card ── */}
-            <div className="animate-fade-up-1" style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 20, overflow: 'hidden', boxShadow: 'var(--shadow-xs)' }}>
-              <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '.12em', textTransform: 'uppercase', margin: '0 0 5px' }}>Aktuelles Projekt</p>
-                  <h2 style={{ fontSize: 19, fontWeight: 700, letterSpacing: '-.3px', margin: '0 0 4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{main.title}</h2>
-                  {main.description && <p style={{ fontSize: 13, color: 'var(--text-muted)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{main.description}</p>}
+              {/* ── Main project card ── */}
+              <div className="animate-fade-up-1" style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:20, overflow:'hidden' }}>
+                {/* Color bar */}
+                <div style={{ height:3, background:`linear-gradient(to right, ${projectColor(main.id)}, ${phase.color})` }}/>
+                <div style={{ padding:'18px 24px', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:16 }}>
+                  <div style={{ flex:1, minWidth:0, display:'flex', alignItems:'flex-start', gap:12 }}>
+                    <div style={{ width:36, height:36, borderRadius:10, background:`${projectColor(main.id)}20`, border:`1.5px solid ${projectColor(main.id)}40`, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, marginTop:2 }}>
+                      <span style={{ fontSize:15, fontWeight:700, color:projectColor(main.id) }}>{main.title.charAt(0)}</span>
+                    </div>
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <p style={{ fontSize:10, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.1em', textTransform:'uppercase', margin:'0 0 3px' }}>Aktuelles Projekt</p>
+                      <h2 style={{ fontSize:18, fontWeight:700, letterSpacing:'-.3px', margin:'0 0 3px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{main.title}</h2>
+                      {main.description && <p style={{ fontSize:12, color:'var(--text-muted)', margin:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{main.description}</p>}
+                    </div>
+                  </div>
+                  <span style={{ height:26, padding:'0 10px', borderRadius:8, fontSize:11, fontWeight:700, flexShrink:0, color:main.status==='active'?'#16a34a':main.status==='done'?'var(--text-muted)':'#d97706', background:main.status==='active'?'rgba(34,197,94,.1)':main.status==='done'?'var(--surface-2)':'rgba(245,158,11,.1)', border:`1px solid ${main.status==='active'?'rgba(34,197,94,.2)':main.status==='done'?'var(--border)':'rgba(245,158,11,.2)'}`, display:'inline-flex', alignItems:'center', gap:5 }}>
+                    {main.status==='active' && <span style={{ width:4, height:4, borderRadius:'50%', background:'#22c55e', animation:'pulse 2s infinite' }}/>}
+                    {phase.label}
+                  </span>
                 </div>
-                <span style={{
-                  height: 28, padding: '0 10px', borderRadius: 8, fontSize: 11, fontWeight: 700, flexShrink: 0,
-                  color: main.status === 'active' ? 'var(--green-dark)' : main.status === 'done' ? 'var(--text-muted)' : 'var(--amber-dark)',
-                  background: main.status === 'active' ? 'var(--green-bg)' : main.status === 'done' ? 'var(--surface-2)' : 'var(--amber-bg)',
-                  border: `1px solid ${main.status === 'active' ? 'var(--green-border)' : 'var(--border)'}`,
-                  display: 'inline-flex', alignItems: 'center', gap: 5,
-                }}>
-                  {main.status === 'active' && <span style={{ width: 4, height: 4, borderRadius: '50%', background: 'var(--green)', animation: 'pulse 2s infinite' }} />}
-                  {phase.label}
-                </span>
-              </div>
 
-              {/* Progress bar */}
-              <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--border)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                  <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Fortschritt</span>
-                  <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>{phase.pct}%</span>
+                {/* Progress */}
+                <div style={{ padding:'16px 24px', borderBottom:'1px solid var(--border)' }}>
+                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:10 }}>
+                    <span style={{ fontSize:12, fontWeight:600, color:'var(--text-secondary)' }}>Projektfortschritt</span>
+                    <span style={{ fontSize:13, fontWeight:700, color:phase.color }}>{phase.pct}%</span>
+                  </div>
+                  <div style={{ position:'relative', height:7, background:'var(--surface-2)', borderRadius:7, overflow:'visible', marginBottom:22 }}>
+                    <div className="dash-bar" style={{ height:'100%', width:`${phase.pct}%`, background:`linear-gradient(to right, ${projectColor(main.id)}, ${phase.color})`, borderRadius:7, position:'relative', zIndex:1 }}/>
+                    {MILESTONES.map(ms => (
+                      <div key={ms.label} style={{ position:'absolute', top:'50%', left:`${ms.pct}%`, transform:'translate(-50%,-50%)', width:11, height:11, borderRadius:'50%', background:phase.pct>=ms.pct?phase.color:'var(--surface-2)', border:`2.5px solid ${phase.pct>=ms.pct?phase.color:'var(--border-strong)'}`, zIndex:2, transition:'background .3s' }}/>
+                    ))}
+                  </div>
+                  <div style={{ display:'flex', justifyContent:'space-between' }}>
+                    {MILESTONES.map(ms => (
+                      <span key={ms.label} style={{ fontSize:9, fontWeight:700, letterSpacing:'.04em', color:phase.pct>=ms.pct?'var(--text-secondary)':'var(--text-muted)', textTransform:'uppercase' }}>{ms.label}</span>
+                    ))}
+                  </div>
                 </div>
-                <div style={{ position: 'relative', height: 6, background: 'var(--surface-2)', borderRadius: 6, overflow: 'visible', marginBottom: 22 }}>
-                  <div className="dash-bar" style={{ height: '100%', width: `${phase.pct}%`, background: phase.color, borderRadius: 6, position: 'relative', zIndex: 1 }} />
-                  {MILESTONES.map((ms) => (
-                    <div key={ms.label} style={{
-                      position: 'absolute', top: '50%', left: `${ms.pct}%`,
-                      transform: 'translate(-50%, -50%)',
-                      width: 10, height: 10, borderRadius: '50%',
-                      background: phase.pct >= ms.pct ? phase.color : 'var(--surface-2)',
-                      border: `2px solid ${phase.pct >= ms.pct ? phase.color : 'var(--border-strong)'}`,
-                      zIndex: 2, transition: 'background .3s',
-                    }} />
-                  ))}
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  {MILESTONES.map((ms) => (
-                    <div key={ms.label} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-                      <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '.04em', color: phase.pct >= ms.pct ? 'var(--text-secondary)' : 'var(--text-muted)' }}>
-                        {ms.label.toUpperCase()}
-                      </span>
+
+                {/* Task stats */}
+                <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', borderBottom:'1px solid var(--border)' }}>
+                  {[
+                    { l:'TASKS',     v:tasks.length,  c:'var(--text)' },
+                    { l:'IN ARBEIT', v:inProgress,    c:inProgress>0?'#d97706':'var(--text)' },
+                    { l:'ERLEDIGT',  v:done,           c:done>0?'#16a34a':'var(--text)' },
+                    { l:'OFFEN',     v:todo,           c:'var(--text)' },
+                  ].map((s,i) => (
+                    <div key={i} style={{ padding:'13px 18px', borderRight:i<3?'1px solid var(--border)':'none' }}>
+                      <p style={{ fontSize:9, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.1em', margin:'0 0 5px' }}>{s.l}</p>
+                      <p style={{ fontSize:22, fontWeight:700, margin:0, color:s.c, lineHeight:1 }}>{s.v}</p>
                     </div>
                   ))}
                 </div>
-              </div>
 
-              {/* Stats row */}
-              <div className="dash-stats" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', borderBottom: '1px solid var(--border)' }}>
-                {[
-                  { l: 'TASKS',     v: tasks.length, c: 'var(--text)' },
-                  { l: 'IN ARBEIT', v: inProgress,   c: inProgress > 0 ? 'var(--amber-dark)' : 'var(--text)' },
-                  { l: 'ERLEDIGT',  v: done,          c: done > 0 ? 'var(--green-dark)' : 'var(--text)', extra: 'dash-stat-last' },
-                  { l: 'OFFEN',     v: todo,          c: 'var(--text)' },
-                ].map((s, i) => (
-                  <div key={i} className={s.extra ?? ''} style={{ padding: '14px 20px', borderRight: i < 3 ? '1px solid var(--border)' : 'none' }}>
-                    <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '.1em', margin: '0 0 5px' }}>{s.l}</p>
-                    <p style={{ fontSize: 22, fontWeight: 700, margin: 0, color: s.c, lineHeight: 1 }}>{s.v}</p>
-                  </div>
-                ))}
-              </div>
-
-              <div style={{ padding: '14px 24px' }}>
-                <Link href={`/project/${main.id}`}>
-                  <button className="tap-scale" style={{ width: '100%', height: 42, background: 'var(--btn-prim)', color: 'var(--btn-prim-text)', border: 'none', borderRadius: 12, fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-                    Projekt öffnen
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M9 6l6 6-6 6"/></svg>
+                <div style={{ padding:'13px 24px', display:'flex', gap:8 }}>
+                  <Link href={`/project/${main.id}`} style={{ flex:1, textDecoration:'none' }}>
+                    <button className="tap-scale" style={{ width:'100%', height:40, background:'var(--btn-prim)', color:'var(--btn-prim-text)', border:'none', borderRadius:10, fontSize:13, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:6 }}>
+                      Projekt öffnen
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M9 6l6 6-6 6"/></svg>
+                    </button>
+                  </Link>
+                  <button onClick={generateReport} disabled={genReport}
+                    style={{ height:40, padding:'0 14px', background:'var(--surface-2)', color:'var(--text-secondary)', border:'1px solid var(--border)', borderRadius:10, fontSize:12, fontWeight:700, cursor:genReport?'default':'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', gap:6, flexShrink:0 }}>
+                    {genReport ? <span style={{ width:12, height:12, border:'2px solid rgba(128,128,128,.3)', borderTopColor:'currentColor', borderRadius:'50%', animation:'spin .7s linear infinite' }}/> : <span style={{ fontSize:12 }}>✦</span>}
+                    {genReport ? 'Lädt…' : 'KI-Bericht'}
                   </button>
-                </Link>
-              </div>
-            </div>
+                </div>
 
-            {/* ── Active tasks + Status report ── */}
-            <div className="animate-fade-up-2 workload-grid" style={{ display: 'grid', gridTemplateColumns: activeTasks.length > 0 ? '1fr 300px' : '1fr', gap: 12 }}>
-
-              {activeTasks.length > 0 && (
-                <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 20, overflow: 'hidden', boxShadow: 'var(--shadow-xs)' }}>
-                  <div style={{ padding: '14px 24px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', margin: 0 }}>Aktive Tasks</p>
-                    <Link href={`/project/${main.id}`} style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600, textDecoration: 'none' }}>Alle →</Link>
+                {/* AI report inline */}
+                {report && (
+                  <div style={{ padding:'14px 24px', borderTop:'1px solid var(--border)', background:'var(--surface)', display:'flex', gap:12 }}>
+                    <div style={{ width:26, height:26, borderRadius:7, background:'var(--accent)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                      <span style={{ fontSize:10, color:'var(--accent-text)', fontWeight:700 }}>✦</span>
+                    </div>
+                    <p style={{ fontSize:13, color:'var(--text-secondary)', lineHeight:1.65, margin:0 }}>{report}</p>
                   </div>
-                  {activeTasks.slice(0, 6).map((t, i, arr) => (
-                    <div key={t.id} style={{ padding: '11px 24px', borderBottom: i < arr.length - 1 ? '1px solid var(--border)' : 'none', display: 'flex', alignItems: 'center', gap: 12 }}>
-                      <span style={{ width: 7, height: 7, borderRadius: '50%', flexShrink: 0, background: t.status === 'doing' ? 'var(--green)' : t.priority === 'critical' ? 'var(--red)' : 'var(--border-strong)' }} />
-                      <span style={{ fontSize: 13, color: 'var(--text)', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.title}</span>
-                      <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', background: 'var(--surface-2)', padding: '2px 7px', borderRadius: 5, flexShrink: 0, letterSpacing: '.04em' }}>
-                        {t.status === 'doing' ? 'AKTIV' : t.priority === 'critical' ? 'KRITISCH' : 'OFFEN'}
-                      </span>
+                )}
+              </div>
+
+              {/* ── Active tasks ── */}
+              {activeTasks.length > 0 && (
+                <div className="animate-fade-up-2" style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:20, overflow:'hidden' }}>
+                  <div style={{ padding:'13px 24px', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                    <p style={{ fontSize:13, fontWeight:700, color:'var(--text)', margin:0 }}>Aktive Tasks</p>
+                    <Link href={`/project/${main.id}`} style={{ fontSize:12, color:'var(--text-muted)', fontWeight:600, textDecoration:'none' }}>Alle ansehen →</Link>
+                  </div>
+                  {activeTasks.slice(0, 7).map((t, i, arr) => (
+                    <div key={t.id} style={{ padding:'10px 24px', borderBottom:i<arr.length-1?'1px solid var(--border)':'none', display:'flex', alignItems:'center', gap:12 }}>
+                      <span style={{ width:7, height:7, borderRadius:'50%', flexShrink:0, background:t.status==='doing'?'#22c55e':t.priority==='critical'?'#ef4444':'var(--border-strong)' }}/>
+                      <span style={{ fontSize:13, color:'var(--text)', flex:1, minWidth:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{t.title}</span>
+                      <div style={{ display:'flex', alignItems:'center', gap:6, flexShrink:0 }}>
+                        {t.priority === 'critical' && <span style={{ fontSize:9, fontWeight:700, color:'#dc2626', background:'rgba(239,68,68,.1)', padding:'2px 6px', borderRadius:4, letterSpacing:'.05em' }}>KRITISCH</span>}
+                        <span style={{ fontSize:9, fontWeight:700, color:t.status==='doing'?'#16a34a':'var(--text-muted)', background:t.status==='doing'?'rgba(34,197,94,.1)':'var(--surface-2)', padding:'2px 7px', borderRadius:4, letterSpacing:'.04em' }}>
+                          {t.status==='doing'?'AKTIV':'OFFEN'}
+                        </span>
+                      </div>
                     </div>
                   ))}
                 </div>
               )}
 
-              {/* Status report */}
-              <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 20, overflow: 'hidden', boxShadow: 'var(--shadow-xs)', display: 'flex', flexDirection: 'column' }}>
-                <div style={{ padding: '14px 24px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <div style={{ width: 26, height: 26, borderRadius: 7, background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--border)' }}>
-                    <span style={{ fontSize: 11, color: 'var(--accent-text)', fontWeight: 700 }}>✦</span>
+              {/* ── All projects workload ── */}
+              {projects.length > 1 && (
+                <div className="animate-fade-up-3" style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:20, overflow:'hidden' }}>
+                  <div style={{ padding:'13px 24px', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                    <p style={{ fontSize:13, fontWeight:700, color:'var(--text)', margin:0 }}>Alle Projekte</p>
+                    <span style={{ fontSize:11, color:'var(--text-muted)', fontWeight:600 }}>{projects.length} Projekte · {allTasks.length} Tasks</span>
                   </div>
-                  <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', margin: 0 }}>Tagro Statusbericht</p>
+
+                  {/* Stacked bar */}
+                  <div style={{ padding:'14px 24px 10px', borderBottom:'1px solid var(--border)' }}>
+                    <div style={{ display:'flex', height:6, borderRadius:6, overflow:'hidden', background:'var(--surface-2)' }}>
+                      {allDone>0   && <div style={{ width:`${allDone/totalAll*100}%`,   background:'#22c55e', transition:'width .6s ease' }}/>}
+                      {allActive>0 && <div style={{ width:`${allActive/totalAll*100}%`, background:'#f59e0b', transition:'width .6s ease' }}/>}
+                    </div>
+                    <div style={{ display:'flex', gap:16, marginTop:8 }}>
+                      {[{l:`${allDone} Erledigt`,c:'#22c55e'},{l:`${allActive} Aktiv`,c:'#f59e0b'},{l:`${allTodo2} Offen`,c:'var(--border-strong)'}].map(s => (
+                        <span key={s.l} style={{ display:'flex', alignItems:'center', gap:5, fontSize:11, color:'var(--text-muted)' }}>
+                          <span style={{ width:7, height:7, borderRadius:2, background:s.c, flexShrink:0 }}/>{s.l}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div style={{ padding:'8px 12px' }}>
+                    {projects.map((proj, i) => {
+                      const ph  = PHASE[proj.status] ?? PHASE.intake
+                      const pt  = allTasks.filter(t => t.project_id===proj.id)
+                      const pd  = pt.filter(t => t.status==='done').length
+                      const pct = pt.length ? Math.round(pd/pt.length*100) : ph.pct
+                      const col = projectColor(proj.id)
+                      return (
+                        <Link key={proj.id} href={`/project/${proj.id}`} style={{ textDecoration:'none' }}>
+                          <div className="proj-row-card" style={{ display:'flex', alignItems:'center', gap:12, padding:'10px 12px', borderRadius:12, cursor:'pointer', background:proj.id===main.id?'var(--surface-2)':'transparent', marginBottom:2 }}>
+                            <div style={{ width:30, height:30, borderRadius:8, background:`${col}18`, border:`1.5px solid ${col}35`, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                              <span style={{ fontSize:12, fontWeight:700, color:col }}>{proj.title.charAt(0)}</span>
+                            </div>
+                            <div style={{ flex:1, minWidth:0 }}>
+                              <p style={{ fontSize:13, fontWeight:600, color:'var(--text)', margin:'0 0 4px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{proj.title}</p>
+                              <div style={{ height:4, background:'var(--surface-2)', borderRadius:4, overflow:'hidden' }}>
+                                <div style={{ height:'100%', width:`${pct}%`, background:col, borderRadius:4, transition:'width .6s ease' }}/>
+                              </div>
+                            </div>
+                            <div style={{ flexShrink:0, display:'flex', flexDirection:'column', alignItems:'flex-end', gap:3 }}>
+                              <span style={{ fontSize:12, fontWeight:700, color:'var(--text)' }}>{pct}%</span>
+                              <span style={{ fontSize:9, fontWeight:700, color:proj.status==='active'?'#16a34a':proj.status==='done'?'var(--text-muted)':'#d97706', letterSpacing:'.05em' }}>{ph.label.toUpperCase()}</span>
+                            </div>
+                          </div>
+                        </Link>
+                      )
+                    })}
+                  </div>
                 </div>
-                <div style={{ flex: 1, padding: '16px 24px', display: 'flex', flexDirection: 'column', gap: 14 }}>
-                  {report ? (
-                    <p style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.65, margin: 0 }}>{report}</p>
-                  ) : (
-                    <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.6, margin: 0 }}>
-                      Lass Tagro AI einen aktuellen Statusbericht für dein Projekt generieren.
-                    </p>
-                  )}
-                  <button onClick={generateReport} disabled={genReport} className="tap-scale" style={{
-                    width: '100%', height: 40, marginTop: 'auto',
-                    background: genReport ? 'var(--surface-2)' : 'var(--accent)',
-                    color: genReport ? 'var(--text-muted)' : 'var(--accent-text)',
-                    border: 'none', borderRadius: 10, fontSize: 12, fontWeight: 700,
-                    cursor: genReport ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
-                  }}>
-                    {genReport
-                      ? <><span style={{ width: 13, height: 13, border: '2px solid rgba(128,128,128,.3)', borderTopColor: 'currentColor', borderRadius: '50%', animation: 'spin .7s linear infinite' }} /> Generiert…</>
-                      : <>{report ? '↺ Neu generieren' : '+ Bericht erstellen'}</>
-                    }
+              )}
+            </div>
+
+            {/* ══════════ RIGHT SIDEBAR ══════════ */}
+            <div className="dash-right animate-fade-up-2" style={{ display:'flex', flexDirection:'column', gap:12 }}>
+
+              {/* ── Donut progress ── */}
+              <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:20, overflow:'hidden' }}>
+                <div style={{ padding:'13px 18px', borderBottom:'1px solid var(--border)' }}>
+                  <p style={{ fontSize:13, fontWeight:700, color:'var(--text)', margin:0 }}>Projektfortschritt</p>
+                  <p style={{ fontSize:11, color:'var(--text-muted)', margin:'2px 0 0', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{main.title}</p>
+                </div>
+                <div style={{ padding:'18px', display:'flex', alignItems:'center', gap:16 }}>
+                  <DonutChart pct={phase.pct} color={phase.color}/>
+                  <div style={{ flex:1, display:'flex', flexDirection:'column', gap:6 }}>
+                    {MILESTONES.map((ms, i) => {
+                      const reached = phase.pct>=ms.pct
+                      const isCurr  = phaseIdx===i
+                      return (
+                        <div key={ms.label} style={{ display:'flex', alignItems:'center', gap:7 }}>
+                          <div style={{ width:15, height:15, borderRadius:'50%', flexShrink:0, background:reached?'rgba(34,197,94,.1)':isCurr?'rgba(245,158,11,.1)':'transparent', border:`1.5px solid ${reached?'rgba(34,197,94,.4)':isCurr?'#f59e0b':'var(--border)'}`, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                            {reached ? <svg width="7" height="7" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="3.5" strokeLinecap="round"><path d="M20 6L9 17l-5-5"/></svg>
+                              : <span style={{ width:4, height:4, borderRadius:'50%', background:isCurr?'#f59e0b':'var(--border-strong)' }}/>
+                            }
+                          </div>
+                          <span style={{ fontSize:11, fontWeight:600, color:reached?'var(--text-secondary)':isCurr?'var(--text)':'var(--text-muted)', flex:1 }}>{ms.label}</span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {/* ── Tagro AI Status ── */}
+              <div style={{ background:'var(--btn-prim)', borderRadius:20, overflow:'hidden' }}>
+                <div style={{ padding:'16px 18px' }}>
+                  <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:10 }}>
+                    <div style={{ width:28, height:28, borderRadius:8, background:'rgba(255,255,255,.15)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                      <span style={{ fontSize:12, color:'var(--btn-prim-text)', fontWeight:700 }}>✦</span>
+                    </div>
+                    <div>
+                      <p style={{ fontSize:13, fontWeight:700, color:'var(--btn-prim-text)', margin:0, lineHeight:1 }}>Tagro Status</p>
+                      <p style={{ fontSize:10, color:'var(--btn-prim-text)', margin:'2px 0 0', opacity:.5, lineHeight:1 }}>KI-Projektbericht</p>
+                    </div>
+                  </div>
+                  <p style={{ fontSize:12.5, lineHeight:1.65, color:'var(--btn-prim-text)', margin:'0 0 12px', opacity:report?.8:.4, fontStyle:report?'normal':'italic' }}>
+                    {report || 'Tagro analysiert deinen Projektfortschritt und liefert einen klaren Bericht.'}
+                  </p>
+                  <button onClick={generateReport} disabled={genReport}
+                    style={{ width:'100%', padding:'8px', background:'rgba(255,255,255,.12)', color:'var(--btn-prim-text)', border:'1px solid rgba(255,255,255,.15)', borderRadius:9, fontSize:12, fontWeight:700, cursor:genReport?'default':'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', justifyContent:'center', gap:6 }}>
+                    {genReport ? <><span style={{ width:12, height:12, border:'2px solid rgba(255,255,255,.3)', borderTopColor:'var(--btn-prim-text)', borderRadius:'50%', animation:'spin .7s linear infinite' }}/> Generiert…</>
+                      : <>{report ? '↺ Neu generieren' : '+ Statusbericht'}</>}
                   </button>
                 </div>
               </div>
-            </div>
 
-            {/* ── Workload Overview ── */}
-            <div className="animate-fade-up-3" style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 20, overflow: 'hidden', boxShadow: 'var(--shadow-xs)' }}>
-              <div style={{ padding: '14px 24px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', margin: 0 }}>Arbeitspensum — alle Projekte</p>
-                <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600 }}>{allTasks.length} Tasks</span>
-              </div>
-              <div style={{ padding: '20px 24px' }}>
-                <div style={{ display: 'flex', height: 8, borderRadius: 6, overflow: 'hidden', marginBottom: 16, background: 'var(--surface-2)' }}>
-                  {allDone > 0 && <div style={{ width: `${allDone / totalAll * 100}%`, background: 'var(--green)' }} />}
-                  {allActive > 0 && <div style={{ width: `${allActive / totalAll * 100}%`, background: 'var(--amber)' }} />}
-                  {allTodo2 > 0 && <div style={{ width: `${allTodo2 / totalAll * 100}%`, background: 'var(--border-strong)' }} />}
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 11 }}>
-                  {projects.slice(0, 5).map(proj => {
-                    const pt = allTasks.filter(t => t.project_id === proj.id)
-                    const pd = pt.filter(t => t.status === 'done').length
-                    const ph = PHASE[proj.status] ?? PHASE.intake
-                    return (
-                      <Link key={proj.id} href={`/project/${proj.id}`} style={{ textDecoration: 'none' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 14, cursor: 'pointer' }}>
-                          <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', width: 150, minWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{proj.title}</span>
-                          <div style={{ flex: 1, height: 5, background: 'var(--surface-2)', borderRadius: 5, overflow: 'hidden' }}>
-                            <div style={{ height: '100%', width: `${ph.pct}%`, background: ph.color, borderRadius: 5, transition: 'width .6s ease' }} />
-                          </div>
-                          <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', width: 36, textAlign: 'right', flexShrink: 0 }}>{ph.pct}%</span>
-                          <span style={{ fontSize: 10, fontWeight: 700, color: proj.status === 'active' ? 'var(--green-dark)' : 'var(--text-muted)', background: proj.status === 'active' ? 'var(--green-bg)' : 'var(--surface-2)', padding: '2px 7px', borderRadius: 5, flexShrink: 0, letterSpacing: '.04em', minWidth: 56, textAlign: 'center', border: `1px solid ${proj.status === 'active' ? 'var(--green-border)' : 'var(--border)'}` }}>
-                            {ph.label.toUpperCase()}
-                          </span>
+              {/* ── Activity feed ── */}
+              {activity.length > 0 && (
+                <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:20, overflow:'hidden' }}>
+                  <div style={{ padding:'13px 18px', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                    <p style={{ fontSize:13, fontWeight:700, color:'var(--text)', margin:0 }}>Aktivität</p>
+                    <div style={{ display:'flex', alignItems:'center', gap:4, padding:'2px 8px', background:'rgba(34,197,94,.08)', border:'1px solid rgba(34,197,94,.15)', borderRadius:8 }}>
+                      <span style={{ width:5, height:5, borderRadius:'50%', background:'#22c55e', animation:'pulse 2s infinite' }}/>
+                      <span style={{ fontSize:9, fontWeight:700, color:'#16a34a', letterSpacing:'.05em' }}>LIVE</span>
+                    </div>
+                  </div>
+                  <div style={{ padding:'8px 0' }}>
+                    {activity.slice(0,8).map((a, i) => (
+                      <div key={a.id} className="act-row" style={{ display:'flex', gap:10, padding:'9px 16px', borderRadius:0, transition:'background .1s', cursor:'default' }}>
+                        <div style={{ width:6, height:6, borderRadius:'50%', background:'var(--accent)', flexShrink:0, marginTop:5 }}/>
+                        <div style={{ flex:1, minWidth:0 }}>
+                          <p style={{ fontSize:12, color:'var(--text-secondary)', margin:0, lineHeight:1.5, overflow:'hidden', textOverflow:'ellipsis', display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical' }}>{a.message}</p>
+                          <p style={{ fontSize:10, color:'var(--text-muted)', margin:'2px 0 0' }}>{timeAgo(a.created_at)}</p>
                         </div>
-                      </Link>
-                    )
-                  })}
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <div style={{ display: 'flex', gap: 20, marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--border)' }}>
+              )}
+
+              {/* ── Quick actions ── */}
+              <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:20, overflow:'hidden', padding:'14px 16px' }}>
+                <p style={{ fontSize:10, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.1em', margin:'0 0 10px', textTransform:'uppercase' }}>Schnellzugriff</p>
+                <div style={{ display:'flex', flexDirection:'column', gap:5 }}>
                   {[
-                    { label: `${allDone} Erledigt`, color: 'var(--green)' },
-                    { label: `${allActive} In Arbeit`, color: 'var(--amber)' },
-                    { label: `${allTodo2} Offen`, color: 'var(--border-strong)' },
-                  ].map(l => (
-                    <span key={l.label} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--text-muted)' }}>
-                      <span style={{ width: 8, height: 8, borderRadius: 2, background: l.color, flexShrink: 0 }} />
-                      {l.label}
-                    </span>
+                    { href:'/onboarding', label:'Neues Projekt starten', icon:'＋' },
+                    { href:'/estimator',  label:'Preisschätzer',         icon:'◈' },
+                    { href:'/addons',     label:'Add-Ons ansehen',       icon:'⊕' },
+                    { href:'/messages',   label:'Nachrichten',           icon:'✉' },
+                  ].map(a => (
+                    <Link key={a.href} href={a.href} style={{ textDecoration:'none' }}>
+                      <div style={{ display:'flex', alignItems:'center', gap:9, padding:'8px 10px', borderRadius:9, border:'1px solid var(--border)', cursor:'pointer', transition:'all .12s' }}
+                        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor='var(--border-strong)'; (e.currentTarget as HTMLElement).style.background='var(--surface-2)'; }}
+                        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor='var(--border)'; (e.currentTarget as HTMLElement).style.background='transparent'; }}>
+                        <span style={{ fontSize:13, color:'var(--text-muted)' }}>{a.icon}</span>
+                        <span style={{ fontSize:12, fontWeight:600, color:'var(--text-secondary)' }}>{a.label}</span>
+                        <svg style={{ marginLeft:'auto' }} width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2" strokeLinecap="round"><path d="M9 6l6 6-6 6"/></svg>
+                      </div>
+                    </Link>
                   ))}
                 </div>
               </div>
-            </div>
 
-          </div>{/* end LEFT */}
-
-          {/* ══════════ RIGHT SIDEBAR ══════════ */}
-          <div className="dash-right animate-fade-up-2" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-
-            {/* ── Donut: Projektfortschritt ── */}
-            <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 20, overflow: 'hidden', boxShadow: 'var(--shadow-xs)' }}>
-              <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--border)' }}>
-                <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', margin: 0 }}>Projektfortschritt</p>
-                <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: '3px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{main.title}</p>
-              </div>
-              <div style={{ padding: '20px', display: 'flex', alignItems: 'center', gap: 18 }}>
-                <DonutChart pct={phase.pct} color={phase.color} />
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 7 }}>
+              {/* ── Zahlungsplan ── */}
+              <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:20, overflow:'hidden' }}>
+                <div style={{ padding:'13px 18px', borderBottom:'1px solid var(--border)' }}>
+                  <p style={{ fontSize:13, fontWeight:700, color:'var(--text)', margin:0 }}>Zahlungsplan</p>
+                  <p style={{ fontSize:11, color:'var(--text-muted)', margin:'2px 0 0' }}>Meilenstein-basiert</p>
+                </div>
+                <div style={{ padding:'12px 16px', display:'flex', flexDirection:'column', gap:7 }}>
                   {MILESTONES.map((ms, i) => {
-                    const reached = phase.pct >= ms.pct
-                    const isCurr  = phaseIdx === i
+                    const reached = phase.pct>=ms.pct
+                    const isCurr  = phaseIdx===i
                     return (
-                      <div key={ms.label} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <div style={{
-                          width: 16, height: 16, borderRadius: '50%', flexShrink: 0,
-                          background: reached ? 'var(--green-bg)' : isCurr ? 'var(--amber-bg)' : 'transparent',
-                          border: `1.5px solid ${reached ? 'var(--green-border)' : isCurr ? 'var(--amber)' : 'var(--border)'}`,
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        }}>
-                          {reached
-                            ? <svg width="7" height="7" viewBox="0 0 24 24" fill="none" stroke="var(--green-dark)" strokeWidth="3.5" strokeLinecap="round"><path d="M20 6L9 17l-5-5"/></svg>
-                            : <span style={{ width: 4, height: 4, borderRadius: '50%', background: isCurr ? 'var(--amber)' : 'var(--border-strong)' }} />
-                          }
+                      <div key={ms.label}>
+                        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:3 }}>
+                          <span style={{ fontSize:12, fontWeight:600, color:reached?'var(--text-secondary)':isCurr?'var(--text)':'var(--text-muted)' }}>{ms.label}</span>
+                          <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+                            <span style={{ fontSize:11, fontWeight:700, color:'var(--text-muted)' }}>{ms.payPct}%</span>
+                            <span style={{ fontSize:9, fontWeight:700, padding:'2px 6px', borderRadius:4, letterSpacing:'.05em', color:reached?'#16a34a':isCurr?'#d97706':'var(--text-muted)', background:reached?'rgba(34,197,94,.1)':isCurr?'rgba(245,158,11,.1)':'var(--surface-2)', border:`1px solid ${reached?'rgba(34,197,94,.2)':'var(--border)'}` }}>
+                              {reached?'PAID':isCurr?'FÄLLIG':'OFFEN'}
+                            </span>
+                          </div>
                         </div>
-                        <span style={{ fontSize: 11, fontWeight: 600, color: reached ? 'var(--text-secondary)' : isCurr ? 'var(--text)' : 'var(--text-muted)', flex: 1 }}>{ms.label}</span>
-                        <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '.04em', color: reached ? 'var(--green-dark)' : isCurr ? 'var(--amber-dark)' : 'var(--text-muted)' }}>
-                          {reached ? '✓' : isCurr ? '●' : '○'}
-                        </span>
+                        <div style={{ height:3, background:'var(--surface-2)', borderRadius:3, overflow:'hidden' }}>
+                          <div style={{ height:'100%', width:reached?'100%':isCurr?'50%':'0%', background:reached?'#22c55e':'#f59e0b', borderRadius:3, transition:'width .8s ease' }}/>
+                        </div>
                       </div>
                     )
                   })}
                 </div>
               </div>
-            </div>
 
-            {/* ── Zahlungsplan / Kostenverteilung ── */}
-            <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 20, overflow: 'hidden', boxShadow: 'var(--shadow-xs)' }}>
-              <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--border)' }}>
-                <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', margin: 0 }}>Zahlungsplan</p>
-                <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: '3px 0 0' }}>Meilenstein-basiert</p>
-              </div>
-              <div style={{ padding: '14px 20px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {MILESTONES.map((ms, i) => {
-                  const reached = phase.pct >= ms.pct
-                  const isCurr  = phaseIdx === i
-                  return (
-                    <div key={ms.label}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-                        <span style={{ fontSize: 12, fontWeight: 600, color: reached ? 'var(--text-secondary)' : isCurr ? 'var(--text)' : 'var(--text-muted)' }}>{ms.label}</span>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                          <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)' }}>{ms.payPct}%</span>
-                          <span style={{
-                            fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 4, letterSpacing: '.05em',
-                            color: reached ? 'var(--green-dark)' : isCurr ? 'var(--amber-dark)' : 'var(--text-muted)',
-                            background: reached ? 'var(--green-bg)' : isCurr ? 'var(--amber-bg)' : 'var(--surface-2)',
-                            border: `1px solid ${reached ? 'var(--green-border)' : 'var(--border)'}`,
-                          }}>
-                            {reached ? 'PAID' : isCurr ? 'FÄLLIG' : 'OFFEN'}
-                          </span>
-                        </div>
-                      </div>
-                      <div style={{ height: 3, background: 'var(--surface-2)', borderRadius: 3, overflow: 'hidden' }}>
-                        <div style={{ height: '100%', width: reached ? '100%' : isCurr ? '50%' : '0%', background: reached ? 'var(--green)' : 'var(--amber)', borderRadius: 3, transition: 'width .8s ease' }} />
-                      </div>
+              {/* ── Festag Kontakt ── */}
+              <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:20, overflow:'hidden' }}>
+                <div style={{ padding:'13px 18px', borderBottom:'1px solid var(--border)' }}>
+                  <p style={{ fontSize:13, fontWeight:700, color:'var(--text)', margin:0 }}>Dein Festag Team</p>
+                </div>
+                <div style={{ padding:'12px 14px', display:'flex', flexDirection:'column', gap:6 }}>
+                  <a href="mailto:hello@festag.io" style={{ display:'flex', alignItems:'center', gap:9, textDecoration:'none', padding:'8px 8px', borderRadius:9, transition:'background .1s' }}
+                    onMouseEnter={e => (e.currentTarget as HTMLElement).style.background='var(--surface-2)'}
+                    onMouseLeave={e => (e.currentTarget as HTMLElement).style.background='transparent'}>
+                    <div style={{ width:30, height:30, borderRadius:8, background:'var(--surface-2)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2" strokeLinecap="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 7l10 7 10-7"/></svg>
                     </div>
-                  )
-                })}
-                <div style={{ marginTop: 6, padding: '10px 12px', background: 'var(--surface-2)', borderRadius: 10, border: '1px solid var(--border)' }}>
-                  <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: 0, lineHeight: 1.45 }}>
-                    Zahlungsdetails werden mit deinem Projekt-Manager besprochen.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* ── Weitere Projekte ── */}
-            {projects.length > 1 && (
-              <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 20, overflow: 'hidden', boxShadow: 'var(--shadow-xs)' }}>
-                <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', margin: 0 }}>Weitere Projekte</p>
-                  <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600 }}>{projects.length - 1}</span>
-                </div>
-                <div style={{ padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  {projects.filter(p => p.id !== main.id).slice(0, 5).map(p => {
-                    const ph = PHASE[p.status] ?? PHASE.intake
-                    return (
-                      <Link key={p.id} href={`/project/${p.id}`} style={{ textDecoration: 'none' }}>
-                        <div style={{ padding: '9px 10px', borderRadius: 10, transition: 'background .12s', cursor: 'pointer' }}
-                          onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--surface-2)'}
-                          onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 5 }}>
-                            <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{p.title}</span>
-                            <span style={{ fontSize: 10, fontWeight: 700, color: p.status === 'active' ? 'var(--green-dark)' : 'var(--text-muted)', marginLeft: 8, flexShrink: 0 }}>{ph.pct}%</span>
-                          </div>
-                          <div style={{ height: 3, background: 'var(--surface-2)', borderRadius: 3, overflow: 'hidden' }}>
-                            <div style={{ height: '100%', width: `${ph.pct}%`, background: ph.color, borderRadius: 3 }} />
-                          </div>
-                        </div>
-                      </Link>
-                    )
-                  })}
-                </div>
-              </div>
-            )}
-
-            {/* ── Quick Actions ── */}
-            <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 20, overflow: 'hidden', boxShadow: 'var(--shadow-xs)', padding: '16px 18px' }}>
-              <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '.1em', margin: '0 0 12px', textTransform: 'uppercase' }}>Schnellzugriff</p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                {[
-                  { href: '/onboarding', icon: '＋', label: 'Neues Projekt starten' },
-                  { href: '/estimator',  icon: '◈',  label: 'Preisschätzer' },
-                  { href: '/addons',     icon: '⊕',  label: 'Add-Ons ansehen' },
-                ].map(a => (
-                  <Link key={a.href} href={a.href} style={{ textDecoration: 'none' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 10, border: '1px solid var(--border)', background: 'var(--surface)', cursor: 'pointer', transition: 'border-color .12s, background .12s' }}
-                      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border-strong)'; (e.currentTarget as HTMLElement).style.background = 'var(--surface-2)'; }}
-                      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'; (e.currentTarget as HTMLElement).style.background = 'var(--surface)'; }}>
-                      <span style={{ fontSize: 14, lineHeight: 1, color: 'var(--text-muted)' }}>{a.icon}</span>
-                      <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)' }}>{a.label}</span>
-                      <svg style={{ marginLeft: 'auto' }} width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2" strokeLinecap="round"><path d="M9 6l6 6-6 6"/></svg>
+                    <div><p style={{ fontSize:9, fontWeight:700, color:'var(--text-muted)', margin:0, letterSpacing:'.06em' }}>E-MAIL</p><p style={{ fontSize:12, fontWeight:600, color:'var(--text)', margin:'1px 0 0' }}>hello@festag.io</p></div>
+                  </a>
+                  <a href="https://wa.me/4989123456" target="_blank" rel="noopener" style={{ display:'flex', alignItems:'center', gap:9, textDecoration:'none', padding:'8px 8px', borderRadius:9, transition:'background .1s' }}
+                    onMouseEnter={e => (e.currentTarget as HTMLElement).style.background='var(--surface-2)'}
+                    onMouseLeave={e => (e.currentTarget as HTMLElement).style.background='transparent'}>
+                    <div style={{ width:30, height:30, borderRadius:8, background:'rgba(34,197,94,.08)', border:'1px solid rgba(34,197,94,.15)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2" strokeLinecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.3h3a2 2 0 0 1 2 1.72c.13.81.37 1.6.7 2.35a2 2 0 0 1-.45 2.11L7.91 9.4a16 16 0 0 0 6.19 6.19l.95-.95a2 2 0 0 1 2.1-.45c.75.33 1.54.57 2.35.7A2 2 0 0 1 22 16.92z"/></svg>
                     </div>
-                  </Link>
-                ))}
-              </div>
-            </div>
-
-            {/* ── Tagro AI Status Widget ── */}
-            <div style={{ background: 'var(--btn-prim)', borderRadius: 20, overflow: 'hidden', boxShadow: 'var(--shadow-xs)' }}>
-              <div style={{ padding: '16px 18px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-                  <div style={{ width: 30, height: 30, borderRadius: 9, background: 'rgba(255,255,255,.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <span style={{ fontSize: 13, color: 'var(--btn-prim-text)', fontWeight: 700 }}>✦</span>
-                  </div>
-                  <div>
-                    <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--btn-prim-text)', margin: 0, lineHeight: 1 }}>Tagro Status</p>
-                    <p style={{ fontSize: 10, color: 'var(--btn-prim-text)', margin: '2px 0 0', opacity: .55, lineHeight: 1 }}>KI-Projektbericht</p>
+                    <div><p style={{ fontSize:9, fontWeight:700, color:'var(--text-muted)', margin:0, letterSpacing:'.06em' }}>WHATSAPP</p><p style={{ fontSize:12, fontWeight:600, color:'var(--text)', margin:'1px 0 0' }}>+49 089 123 456 78</p></div>
+                  </a>
+                  <div style={{ padding:'8px 10px', background:'var(--surface-2)', borderRadius:9, border:'1px solid var(--border)' }}>
+                    <p style={{ fontSize:10, color:'var(--text-muted)', margin:0, lineHeight:1.5 }}>Antwortzeit &lt; 24h · Mo–Fr 9–18 Uhr</p>
                   </div>
                 </div>
-                {report ? (
-                  <p style={{ fontSize: 12.5, lineHeight: 1.65, color: 'var(--btn-prim-text)', margin: '0 0 14px', opacity: .88 }}>{report}</p>
-                ) : (
-                  <p style={{ fontSize: 12.5, lineHeight: 1.65, color: 'var(--btn-prim-text)', margin: '0 0 14px', opacity: .45, fontStyle: 'italic' }}>
-                    Tagro analysiert deinen Projektfortschritt und liefert dir einen klaren Bericht.
-                  </p>
-                )}
-                <button onClick={generateReport} disabled={genReport}
-                  style={{ width: '100%', padding: '9px', background: 'rgba(255,255,255,.12)', color: 'var(--btn-prim-text)', border: '1px solid rgba(255,255,255,.15)', borderRadius: 10, fontSize: 12, fontWeight: 700, cursor: genReport ? 'default' : 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, transition: 'background .15s' }}
-                  onMouseEnter={e => { if (!genReport) (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,.18)' }}
-                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,.12)'}
-                >
-                  {genReport
-                    ? <><span style={{ width: 12, height: 12, border: '2px solid rgba(255,255,255,.3)', borderTopColor: 'var(--btn-prim-text)', borderRadius: '50%', animation: 'spin .7s linear infinite' }}/> Generiert…</>
-                    : <>{report ? '↺ Neu generieren' : '+ Statusbericht'}</>
-                  }
-                </button>
               </div>
-            </div>
 
-            {/* ── Festag Kontakt ── */}
-            <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 20, overflow: 'hidden', boxShadow: 'var(--shadow-xs)' }}>
-              <div style={{ padding: '14px 18px', borderBottom: '1px solid var(--border)' }}>
-                <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', margin: 0 }}>Dein Festag Team</p>
-                <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: '3px 0 0' }}>Persönlicher Kontakt</p>
-              </div>
-              <div style={{ padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <a href="mailto:hello@festag.io" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', padding: '9px 10px', borderRadius: 10, transition: 'background .1s' }}
-                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--surface-2)'}
-                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}
-                >
-                  <div style={{ width: 32, height: 32, borderRadius: 9, background: 'var(--surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2" strokeLinecap="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 7l10 7 10-7"/></svg>
-                  </div>
-                  <div>
-                    <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', margin: 0, letterSpacing: '.06em' }}>E-MAIL</p>
-                    <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', margin: '2px 0 0' }}>hello@festag.io</p>
-                  </div>
-                </a>
-                <a href="https://wa.me/4989123456" target="_blank" rel="noopener" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', padding: '9px 10px', borderRadius: 10, transition: 'background .1s' }}
-                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--surface-2)'}
-                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}
-                >
-                  <div style={{ width: 32, height: 32, borderRadius: 9, background: 'var(--green-bg)', border: '1px solid var(--green-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--green-dark)" strokeWidth="2" strokeLinecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.3h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 8.9a16 16 0 0 0 6.19 6.19l.95-.95a2 2 0 0 1 2.1-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                  </div>
-                  <div>
-                    <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', margin: 0, letterSpacing: '.06em' }}>WHATSAPP</p>
-                    <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', margin: '2px 0 0' }}>+49 (0)89 123 456 78</p>
-                  </div>
-                </a>
-                <div style={{ marginTop: 4, padding: '10px 12px', background: 'var(--surface-2)', borderRadius: 10, border: '1px solid var(--border)' }}>
-                  <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: 0, lineHeight: 1.5 }}>
-                    Antwortzeit: &lt; 24h · Mo–Fr 9–18 Uhr
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* ── So funktioniert Festag ── */}
-            <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 20, overflow: 'hidden', boxShadow: 'var(--shadow-xs)' }}>
-              <div style={{ padding: '14px 18px', borderBottom: '1px solid var(--border)' }}>
-                <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', margin: 0 }}>So läuft dein Projekt</p>
-              </div>
-              <div style={{ padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {[
-                  { step: '1', label: 'AI strukturiert',  sub: 'Tagro zerlegt dein Projekt automatisch' },
-                  { step: '2', label: 'Team übernimmt',   sub: 'Festag-Entwickler arbeiten die Tasks ab' },
-                  { step: '3', label: 'Du siehst Fortschritt', sub: 'Tägliche KI-Updates ohne Meetings' },
-                  { step: '4', label: 'Delivery',         sub: 'Geprüft, getestet, übergeben' },
-                ].map((s, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 11 }}>
-                    <div style={{ width: 22, height: 22, borderRadius: 7, background: 'var(--surface-2)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>
-                      <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)' }}>{s.step}</span>
-                    </div>
-                    <div>
-                      <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--text)', margin: 0 }}>{s.label}</p>
-                      <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: '2px 0 0', lineHeight: 1.4 }}>{s.sub}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-          </div>{/* end RIGHT */}
-
-        </div>
+            </div>{/* end RIGHT */}
+          </div>
+        </>
       )}
     </div>
   )

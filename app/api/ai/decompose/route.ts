@@ -39,13 +39,13 @@ JSON-Schema:
 
 export async function POST(req: NextRequest) {
   try {
-    const { chatHistory, userId, authToken } = await req.json()
+    const { chatHistory, userId } = await req.json()
 
     const apiKey = process.env.ANTHROPIC_API_KEY
     if (!apiKey) return NextResponse.json({ error: 'not configured' }, { status: 500 })
 
     // Build conversation summary for decomposition
-    const chatText = chatHistory
+    const chatText = (chatHistory ?? [])
       .map((m: any) => `${m.role === 'ai' ? 'Tagro' : 'Kunde'}: ${m.text}`)
       .join('\n')
 
@@ -67,11 +67,11 @@ export async function POST(req: NextRequest) {
       }),
     })
 
-    const data = await res.json()
-    const rawText = data.content?.[0]?.text ?? ''
+    const aiData = await res.json()
+    const rawText = aiData.content?.[0]?.text ?? ''
 
     // Parse JSON from AI response
-    let decomposed
+    let decomposed: any
     try {
       const jsonMatch = rawText.match(/\{[\s\S]*\}/)
       decomposed = JSON.parse(jsonMatch?.[0] ?? rawText)
@@ -85,65 +85,115 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ decomposed })
     }
 
-    const sb = createClient(SUPABASE_URL, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } })
+    const sb = createClient(SUPABASE_URL, serviceKey, {
+      auth: { autoRefreshToken: false, persistSession: false }
+    })
 
-    // Create project
-    const { data: project, error: projErr } = await sb.from('projects').insert({
+    // Create project — only use guaranteed columns first
+    const baseProject: Record<string, any> = {
       user_id: userId,
       title: decomposed.project_title ?? 'Neues Projekt',
-      description: decomposed.scope_summary,
+      description: decomposed.scope_summary ?? null,
       status: 'intake',
+    }
+
+    // Try to insert with extended columns; fall back to base if columns missing
+    let projectId: string | null = null
+
+    const extended = {
+      ...baseProject,
       goals: decomposed.goals ?? [],
       success_criteria: decomposed.success_criteria ?? [],
       risks: decomposed.risks ?? [],
       open_questions: decomposed.open_questions ?? [],
-      scope_summary: decomposed.scope_summary,
+      scope_summary: decomposed.scope_summary ?? null,
       ai_decomposed_at: new Date().toISOString(),
-    }).select().single()
+    }
 
-    if (projErr) return NextResponse.json({ error: projErr.message }, { status: 500 })
+    const { data: project, error: projErr } = await sb
+      .from('projects')
+      .insert(extended)
+      .select('id')
+      .single()
 
-    const projectId = project.id
+    if (projErr) {
+      // Fallback: try base insert without extended columns
+      const { data: proj2, error: err2 } = await sb
+        .from('projects')
+        .insert(baseProject)
+        .select('id')
+        .single()
+
+      if (err2) return NextResponse.json({ error: err2.message }, { status: 500 })
+      projectId = proj2.id
+    } else {
+      projectId = project.id
+    }
 
     // Create epics + tasks
     for (let ei = 0; ei < (decomposed.epics ?? []).length; ei++) {
       const ep = decomposed.epics[ei]
-      const { data: epic } = await sb.from('epics').insert({
+
+      // Try epic insert with full schema; fall back to minimal
+      let epicId: string | null = null
+      const { data: epic, error: epicErr } = await sb.from('epics').insert({
         project_id: projectId,
         title: ep.title,
-        description: ep.description,
+        description: ep.description ?? null,
         priority: ep.priority ?? 'medium',
-        estimated_effort: ep.estimated_effort,
+        estimated_effort: ep.estimated_effort ?? null,
         order_index: ei,
-      }).select().single()
+      }).select('id').single()
 
-      if (!epic) continue
+      if (!epicErr && epic) {
+        epicId = epic.id
+      } else {
+        // Minimal epic insert
+        const { data: epic2 } = await sb.from('epics').insert({
+          project_id: projectId,
+          title: ep.title,
+          order_index: ei,
+        }).select('id').single()
+        epicId = epic2?.id ?? null
+      }
+
+      if (!epicId) continue
 
       for (const task of (ep.tasks ?? [])) {
-        await sb.from('tasks').insert({
+        // Try full task insert; fall back to minimal
+        const { error: taskErr } = await sb.from('tasks').insert({
           project_id: projectId,
-          epic_id: epic.id,
+          epic_id: epicId,
           title: task.title,
-          description: task.description,
+          description: task.description ?? null,
           status: 'todo',
           priority: task.priority ?? 'medium',
-          estimated_hours: task.estimated_hours,
+          estimated_hours: task.estimated_hours ?? null,
           acceptance_criteria: task.acceptance_criteria ?? [],
           tags: task.tags ?? [],
           requires_approval: task.requires_approval ?? false,
         })
+
+        if (taskErr) {
+          // Minimal task insert
+          await sb.from('tasks').insert({
+            project_id: projectId,
+            epic_id: epicId,
+            title: task.title,
+            status: 'todo',
+            priority: task.priority ?? 'medium',
+          }).catch(() => {})
+        }
       }
     }
 
-    // Log to activity feed
-    try {
-      await sb.from('activity_feed').insert({
-        user_id: userId,
-        project_id: projectId,
-        type: 'project_status',
-        message: `Projekt "${decomposed.project_title}" wurde von Tagro AI strukturiert (${(decomposed.epics ?? []).length} Epics, ${(decomposed.epics ?? []).reduce((a: number, e: any) => a + (e.tasks?.length ?? 0), 0)} Tasks)`,
-      })
-    } catch { /* optional */ }
+    // Log to activity feed (optional)
+    await sb.from('activity_feed').insert({
+      user_id: userId,
+      project_id: projectId,
+      type: 'project_status',
+      message: `Projekt "${decomposed.project_title}" wurde von Tagro AI strukturiert (${(decomposed.epics ?? []).length} Epics, ${(decomposed.epics ?? []).reduce((a: number, e: any) => a + (e.tasks?.length ?? 0), 0)} Tasks)`,
+    }).catch(() => {})
 
     return NextResponse.json({ decomposed, projectId })
   } catch (err: any) {
