@@ -51,6 +51,7 @@ const MAIN_NAV: NavItem[] = [
 ]
 const PROJECT_NAV: NavItem[] = [
   { href:'/project/current', icon:'project',  label:'Mein Projekt' },
+  { href:'/reports',         icon:'doc',      label:'Statusberichte' },
   { href:'/ai',              icon:'sparkle',  label:'AI Assistent' },
   { href:'/documents',       icon:'doc',      label:'Dokumente' },
 ]

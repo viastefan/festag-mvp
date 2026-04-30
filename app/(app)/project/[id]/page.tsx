@@ -7,6 +7,7 @@ import Link from 'next/link'
 import ChatMarkdown from '@/components/ChatMarkdown'
 import { projectColor } from '@/components/Sidebar'
 import { effectiveRole, isDevOrAdmin } from '@/lib/role'
+import MilestoneChart, { Milestone } from '@/components/MilestoneChart'
 
 type Project = { id: string; title: string; description: string|null; status: string }
 type Task = { id: string; title: string; status: string; priority?: string }
@@ -23,6 +24,7 @@ export default function ProjectPage() {
   const [tasks, setTasks] = useState<Task[]>([])
   const [messages, setMessages] = useState<Msg[]>([])
   const [aiUpdates, setAiUpdates] = useState<any[]>([])
+  const [milestones, setMilestones] = useState<Milestone[]>([])
   const [newMsg, setNewMsg] = useState('')
   const [newTask, setNewTask] = useState('')
   const [userId, setUserId] = useState('')
@@ -101,16 +103,42 @@ export default function ProjectPage() {
   useEffect(() => { msgEndRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [messages, aiThinking])
 
   async function loadAll() {
-    const [{ data: proj }, { data: t }, { data: m }, { data: ai }] = await Promise.all([
+    const [{ data: proj }, { data: t }, { data: m }, { data: ai }, { data: ms }] = await Promise.all([
       supabase.from('projects').select('*').eq('id', id).single(),
       supabase.from('tasks').select('*').eq('project_id', id).order('created_at'),
       supabase.from('messages').select('*').eq('project_id', id).order('created_at'),
       supabase.from('ai_updates').select('*').eq('project_id', id).order('created_at', { ascending: false }),
+      supabase.from('milestones').select('*').eq('project_id', id).order('order_index', { ascending: true }),
     ])
     if (proj) setProject(proj)
-    setTasks(t ?? [])
-    setMessages(m ?? [])
-    setAiUpdates(ai ?? [])
+    setTasks((t as any[]) ?? [])
+    setMessages((m as any[]) ?? [])
+    setAiUpdates((ai as any[]) ?? [])
+    // If no milestones table or empty: synthesize a default 4-milestone plan from project budget
+    const mlist = (ms as any[]) ?? []
+    if (mlist.length > 0) setMilestones(mlist as Milestone[])
+    else {
+      const budget = (proj as any)?.budget ?? 4000
+      setMilestones([
+        { id:'m1', title:'Projektstart & Discovery',  amount: Math.round(budget*0.25), status:'paid',    description:'Onboarding, Scope, Architektur' },
+        { id:'m2', title:'MVP Build',                 amount: Math.round(budget*0.35), status:'pending', description:'Erste lauffähige Version' },
+        { id:'m3', title:'Beta & Testing',            amount: Math.round(budget*0.25), status:'locked',  description:'QA, Bugfixes, Beta-Release' },
+        { id:'m4', title:'Launch & Übergabe',         amount: Math.round(budget*0.15), status:'locked',  description:'Go-Live + Garantie startet' },
+      ])
+    }
+  }
+
+  async function payMilestone(m: Milestone) {
+    if (!project) return
+    try {
+      const res = await fetch('/api/payments/mollie', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ amount: m.amount, description: `${project.title} — ${m.title}`, metadata: { projectId: project.id, milestoneId: m.id } }),
+      })
+      const d = await res.json()
+      if (d.checkoutUrl) window.location.href = d.checkoutUrl
+      else alert(d.error ?? 'Zahlung konnte nicht gestartet werden.')
+    } catch { alert('Verbindungsfehler.') }
   }
 
   async function sendMessage() {
@@ -325,6 +353,27 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
           </div>
         </div>
       </div>
+
+      {/* Milestones with prices — donut */}
+      {milestones.length > 0 && (
+        <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:18, padding:'20px 22px', marginBottom:14 }}>
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:12, flexWrap:'wrap', gap:8 }}>
+            <div>
+              <p style={{ fontSize:11, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.07em', margin:'0 0 2px' }}>FINANZ-FORTSCHRITT</p>
+              <h2 style={{ fontSize:18, fontWeight:700, margin:0, letterSpacing:'-.3px' }}>Meilensteine &amp; Zahlungen</h2>
+            </div>
+            <span style={{ fontSize:11, color:'var(--text-muted)', display:'flex', alignItems:'center', gap:5 }}>
+              <span style={{ width:5, height:5, borderRadius:'50%', background:'#22c55e', animation:'pulse 2s infinite' }}/>
+              Mollie · DSGVO · SEPA
+            </span>
+          </div>
+          <MilestoneChart
+            milestones={milestones}
+            onPay={canEdit ? undefined : payMilestone}
+            fixedPriceMode={milestones.every(m => m.status === 'paid')}
+          />
+        </div>
+      )}
 
       {/* ═══ MAIN 2-COL LAYOUT ═══ */}
       <div className="grid-cols-2-mobile-1" style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: 14 }}>
