@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import ChatMarkdown from '@/components/ChatMarkdown'
+import { projectColor } from '@/components/Sidebar'
 
 type Project = { id: string; title: string; description: string|null; status: string }
 type Task = { id: string; title: string; status: string; priority?: string }
@@ -12,6 +13,8 @@ type Msg = { id: string; message: string; created_at: string; sender_id: string;
 
 const PHASES = ['intake','planning','active','testing','done']
 const PHASE_LABEL: Record<string,string> = { intake:'Intake', planning:'Planning', active:'Development', testing:'Testing', done:'Delivered' }
+const PHASE_COLOR: Record<string,string> = { intake:'#6366f1', planning:'#f59e0b', active:'#22c55e', testing:'#0ea5e9', done:'var(--text-muted)' }
+const PRIORITY_COLOR: Record<string,string> = { critical:'#ef4444', high:'#f97316', medium:'#f59e0b', low:'#22c55e' }
 
 export default function ProjectPage() {
   const { id } = useParams<{ id: string }>()
@@ -240,65 +243,83 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
   const done = tasks.filter(t => t.status === 'done').length
   const pct = tasks.length ? Math.round(done / tasks.length * 100) : 0
   const phaseIdx = PHASES.indexOf(project.status)
+  const pCol = projectColor(project.id)
+  const phaseCol = PHASE_COLOR[project.status] ?? pCol
 
   return (
     <div className="page-content animate-fade-up" style={{ maxWidth: 1160 }}>
+      <style>{`@keyframes spin{to{transform:rotate(360deg);}} @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}`}</style>
+
       {/* Breadcrumb */}
       <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 14 }}>
-        <Link href="/dashboard" style={{ color: 'var(--text-muted)' }}>Dashboard</Link>
-        <span style={{ margin: '0 6px' }}>/</span>
+        <Link href="/dashboard" style={{ color: 'var(--text-muted)', textDecoration:'none' }}>Dashboard</Link>
+        <span style={{ margin: '0 6px', opacity:.4 }}>/</span>
         <span style={{ color: 'var(--text-secondary)' }}>Projekt</span>
       </p>
 
-      {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14, gap: 12 }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <h1 style={{ marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{project.title}</h1>
-          {project.description && <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: 0 }}>{project.description}</p>}
+      {/* Header card with color accent */}
+      <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:20, overflow:'hidden', marginBottom:14 }}>
+        <div style={{ height:4, background:`linear-gradient(to right, ${pCol}, ${phaseCol})` }}/>
+        <div style={{ padding:'18px 24px', display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:16 }}>
+          <div style={{ display:'flex', alignItems:'flex-start', gap:14, flex:1, minWidth:0 }}>
+            <div style={{ width:44, height:44, borderRadius:12, background:`${pCol}18`, border:`2px solid ${pCol}30`, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+              <span style={{ fontSize:18, fontWeight:700, color:pCol }}>{project.title.charAt(0)}</span>
+            </div>
+            <div style={{ flex:1, minWidth:0 }}>
+              <h1 style={{ marginBottom:4, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', fontSize:20 }}>{project.title}</h1>
+              {project.description && <p style={{ fontSize:13, color:'var(--text-secondary)', margin:0, lineHeight:1.5 }}>{project.description}</p>}
+            </div>
+          </div>
+          <div style={{ display:'flex', gap:8, alignItems:'center', flexShrink:0 }}>
+            {/* Phase stepper */}
+            <div style={{ display:'flex', gap:4, alignItems:'center', background:'var(--surface-2)', borderRadius:10, padding:'5px 8px' }}
+              title={canEdit ? 'Phase ändern' : 'Phase wird vom Entwicklerteam gesteuert'}>
+              {PHASES.map((phase, i) => {
+                const isActive = i === phaseIdx
+                const isPast   = i < phaseIdx
+                return canEdit ? (
+                  <button key={phase} onClick={() => updateStatus(phase)} title={PHASE_LABEL[phase]}
+                    style={{ width:isActive?24:8, height:8, borderRadius:4, border:'none', cursor:'pointer', padding:0, transition:'all .2s',
+                      background: isPast||isActive ? PHASE_COLOR[phase]??pCol : 'var(--border)' }}/>
+                ) : (
+                  <span key={phase} title={PHASE_LABEL[phase]}
+                    style={{ width:isActive?24:8, height:8, borderRadius:4, transition:'all .2s',
+                      background: isPast||isActive ? PHASE_COLOR[phase]??pCol : 'var(--border)' }}/>
+                )
+              })}
+            </div>
+            <span style={{ padding:'5px 11px', borderRadius:8, fontSize:11, fontWeight:700, flexShrink:0,
+              color:project.status==='active'?'#16a34a':project.status==='done'?'var(--text-muted)':'#d97706',
+              background:project.status==='active'?'rgba(34,197,94,.1)':project.status==='done'?'var(--surface-2)':'rgba(245,158,11,.1)',
+              border:`1px solid ${project.status==='active'?'rgba(34,197,94,.25)':project.status==='done'?'var(--border)':'rgba(245,158,11,.25)'}`,
+              display:'inline-flex', alignItems:'center', gap:5 }}>
+              {project.status==='active' && <span style={{ width:5, height:5, borderRadius:'50%', background:'#22c55e', animation:'pulse 2s infinite' }}/>}
+              {PHASE_LABEL[project.status] ?? project.status}
+            </span>
+          </div>
         </div>
-        {/* Status badge + phase dots */}
-        <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexShrink: 0 }}>
-          <div style={{ display: 'flex', gap: 5, alignItems: 'center' }} title={canEdit ? undefined : 'Phase wird vom Entwicklerteam gesteuert'}>
-            {PHASES.map((phase, i) => canEdit ? (
-              <button key={phase} onClick={() => updateStatus(phase)} className="tap-scale" title={PHASE_LABEL[phase]} style={{
-                width: 8, height: 8, borderRadius: '50%', border: 'none', cursor: 'pointer', padding: 0,
-                background: i <= phaseIdx ? 'var(--text)' : 'var(--border)',
-                transition: 'background 0.2s',
-              }} />
-            ) : (
-              <span key={phase} title={PHASE_LABEL[phase]} style={{
-                width: 8, height: 8, borderRadius: '50%',
-                background: i <= phaseIdx ? 'var(--text)' : 'var(--border)',
-              }} />
+
+        {/* Progress bar */}
+        <div style={{ padding:'0 24px 18px', borderTop:'1px solid var(--border)', paddingTop:16 }}>
+          <div style={{ display:'flex', justifyContent:'space-between', marginBottom:8 }}>
+            <span style={{ fontSize:12, fontWeight:600, color:'var(--text-secondary)' }}>Gesamtfortschritt</span>
+            <span style={{ fontSize:13, fontWeight:700, color:phaseCol }}>{pct}%</span>
+          </div>
+          <div style={{ height:6, background:'var(--surface-2)', borderRadius:6, overflow:'hidden', marginBottom:12 }}>
+            <div style={{ height:'100%', width:`${pct}%`, background:`linear-gradient(to right, ${pCol}, ${phaseCol})`, borderRadius:6, transition:'width .6s ease' }}/>
+          </div>
+          <div style={{ display:'flex', gap:16, flexWrap:'wrap' }}>
+            {[
+              { label:'Offen',    count: tasks.filter(t => t.status === 'todo').length, color:'var(--text-muted)' },
+              { label:'Aktiv',    count: tasks.filter(t => t.status === 'doing').length, color:'#f59e0b' },
+              { label:'Erledigt', count: done,                                           color:'#22c55e' },
+            ].map(s => (
+              <span key={s.label} style={{ display:'flex', alignItems:'center', gap:5, fontSize:12, color:'var(--text-muted)' }}>
+                <span style={{ width:6, height:6, borderRadius:'50%', background:s.color }}/>
+                {s.label}: <strong style={{ color:'var(--text)' }}>{s.count}</strong>
+              </span>
             ))}
           </div>
-          <span style={{ padding: '4px 10px', borderRadius: 7, fontSize: 11, fontWeight: 600, color: project.status === 'active' ? 'var(--green-dark)' : 'var(--text-secondary)', background: project.status === 'active' ? 'var(--green-bg)' : 'var(--surface-2)', border: `1px solid ${project.status === 'active' ? 'var(--green-border)' : 'var(--border)'}`, display: 'flex', alignItems: 'center', gap: 5 }}>
-            {project.status === 'active' && <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--green)', animation: 'pulse 2s infinite' }} />}
-            {PHASE_LABEL[project.status] ?? project.status}
-          </span>
-        </div>
-      </div>
-
-      {/* Progress bar */}
-      <div style={{ marginBottom: 18, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r)', padding: '14px 18px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-          <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)' }}>Gesamtfortschritt</span>
-          <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>{pct}%</span>
-        </div>
-        <div style={{ height: 5, background: 'var(--surface-2)', borderRadius: 4, overflow: 'hidden', marginBottom: 12 }}>
-          <div style={{ height: '100%', width: `${pct}%`, background: 'var(--text)', borderRadius: 4, transition: 'width 0.6s ease' }} />
-        </div>
-        <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
-          {[
-            { label: 'Offen',    count: tasks.filter(t => t.status === 'todo').length, color: 'var(--text-muted)' },
-            { label: 'Aktiv',    count: tasks.filter(t => t.status === 'doing').length, color: 'var(--amber)' },
-            { label: 'Erledigt', count: done,                                           color: 'var(--green)' },
-          ].map(s => (
-            <span key={s.label} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: 'var(--text-muted)' }}>
-              <span style={{ width: 6, height: 6, borderRadius: '50%', background: s.color }} />
-              {s.label}: <strong style={{ color: 'var(--text)' }}>{s.count}</strong>
-            </span>
-          ))}
         </div>
       </div>
 
@@ -352,42 +373,54 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
               {/* Kanban columns */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 0 }}>
                 {[
-                  { status: 'todo',  label: 'To Do',      color: 'var(--text-muted)' },
-                  { status: 'doing', label: 'In Progress', color: 'var(--amber)' },
-                  { status: 'done',  label: 'Done',        color: 'var(--green)' },
+                  { status: 'todo',  label: 'To Do',      color: 'var(--text-muted)', bg:'var(--surface-2)' },
+                  { status: 'doing', label: 'In Progress', color: '#d97706',           bg:'rgba(245,158,11,.06)' },
+                  { status: 'done',  label: 'Done',        color: '#16a34a',           bg:'rgba(34,197,94,.05)' },
                 ].map((col, ci) => {
                   const colTasks = tasks.filter(t => t.status === col.status)
                   return (
-                    <div key={col.status} style={{ borderRight: ci < 2 ? '1px solid var(--border)' : 'none', padding: 14 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
-                        <span style={{ width: 7, height: 7, borderRadius: '50%', background: col.color }} />
-                        <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.06em' }}>
-                          {col.label.toUpperCase()} · {colTasks.length}
+                    <div key={col.status} style={{ borderRight: ci < 2 ? '1px solid var(--border)' : 'none', padding: 12, background: colTasks.length > 0 ? col.bg : 'transparent', transition:'background .2s' }}>
+                      <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:10, padding:'2px 0' }}>
+                        <span style={{ width:7, height:7, borderRadius:'50%', background:col.color }}/>
+                        <span style={{ fontSize:10, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.07em' }}>
+                          {col.label.toUpperCase()}
                         </span>
+                        <span style={{ marginLeft:'auto', fontSize:10, fontWeight:700, color:col.color, background:`${col.color}18`, padding:'1px 6px', borderRadius:5 }}>{colTasks.length}</span>
                       </div>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
                         {colTasks.map(task => {
                           const showDelete = canEdit || (userRole === 'client' && col.status === 'todo')
                           const showStatusButtons = canEdit
                           const showActions = showDelete || showStatusButtons
+                          const priColor = task.priority ? PRIORITY_COLOR[task.priority] : null
                           return (
-                            <div key={task.id} style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', padding: '9px 11px' }}>
-                              <p style={{ fontSize: 12.5, fontWeight: 500, color: 'var(--text)', margin: showActions ? '0 0 7px' : '0', lineHeight: 1.4 }}>{task.title}</p>
-                              {showActions && (
-                                <div style={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
-                                  {showStatusButtons && ['todo','doing','done'].filter(s => s !== col.status).map(s => {
-                                    const next = { todo: '← Todo', doing: '→ In Progress', done: '✓ Done' }[s] ?? s
-                                    return (
-                                      <button key={s} onClick={() => updateTask(task.id, s)} style={{ padding: '2px 7px', fontSize: 9.5, border: '1px solid var(--border)', background: 'var(--surface)', borderRadius: 5, cursor: 'pointer', color: 'var(--text-secondary)', fontFamily: 'inherit' }}>
-                                        {next}
-                                      </button>
-                                    )
-                                  })}
-                                  {showDelete && (
-                                    <button onClick={() => deleteTask(task.id)} title="Task löschen" style={{ padding: '2px 5px', fontSize: 9.5, border: '1px solid #FECACA', background: 'var(--red-bg)', borderRadius: 5, cursor: 'pointer', color: 'var(--red)' }}>✕</button>
-                                  )}
-                                </div>
-                              )}
+                            <div key={task.id} style={{ background:'var(--bg)', border:`1px solid var(--border)`, borderRadius:10, overflow:'hidden' }}>
+                              {priColor && <div style={{ height:2.5, background:priColor }}/>}
+                              <div style={{ padding:'9px 11px' }}>
+                                <p style={{ fontSize:12.5, fontWeight:500, color:'var(--text)', margin: showActions ? '0 0 8px' : '0', lineHeight:1.4 }}>{task.title}</p>
+                                {task.priority && task.priority !== 'medium' && (
+                                  <span style={{ display:'inline-block', fontSize:9, fontWeight:700, color:priColor!, background:`${priColor}18`, padding:'1px 5px', borderRadius:4, letterSpacing:'.05em', marginBottom:showActions?6:0 }}>
+                                    {task.priority.toUpperCase()}
+                                  </span>
+                                )}
+                                {showActions && (
+                                  <div style={{ display:'flex', gap:3, flexWrap:'wrap' }}>
+                                    {showStatusButtons && ['todo','doing','done'].filter(s => s !== col.status).map(s => {
+                                      const next = { todo:'← Todo', doing:'→ Aktiv', done:'✓ Done' }[s] ?? s
+                                      return (
+                                        <button key={s} onClick={() => updateTask(task.id, s)}
+                                          style={{ padding:'2px 7px', fontSize:9.5, border:'1px solid var(--border)', background:'var(--surface)', borderRadius:5, cursor:'pointer', color:'var(--text-secondary)', fontFamily:'inherit', transition:'background .1s' }}>
+                                          {next}
+                                        </button>
+                                      )
+                                    })}
+                                    {showDelete && (
+                                      <button onClick={() => deleteTask(task.id)} title="Task löschen"
+                                        style={{ padding:'2px 6px', fontSize:9.5, border:'1px solid rgba(239,68,68,.2)', background:'rgba(239,68,68,.06)', borderRadius:5, cursor:'pointer', color:'#ef4444' }}>✕</button>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
                             </div>
                           )
                         })}
@@ -446,11 +479,16 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
         {/* RIGHT — Live Chat (always visible) */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {/* Chat box */}
-          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', overflow: 'hidden', display: 'flex', flexDirection: 'column', height: 480 }}>
-            <div style={{ padding: '14px 18px', borderBottom: '1px solid var(--border)', background: 'var(--bg)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', margin: 0 }}>Live Dialog & AI</p>
-                <p style={{ fontSize: 10, color: 'var(--text-muted)', margin: '2px 0 0' }}>Tagro + Developer Kommunikation</p>
+          <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:20, overflow:'hidden', display:'flex', flexDirection:'column', height:480 }}>
+            <div style={{ padding:'13px 18px', borderBottom:'1px solid var(--border)', background:'var(--bg)', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+              <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                <div style={{ width:28, height:28, borderRadius:8, background:'var(--accent)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                  <span style={{ fontSize:11, color:'var(--accent-text)', fontWeight:700 }}>✦</span>
+                </div>
+                <div>
+                  <p style={{ fontSize:13, fontWeight:700, color:'var(--text)', margin:0 }}>Live Dialog & AI</p>
+                  <p style={{ fontSize:10, color:'var(--text-muted)', margin:'1px 0 0' }}>Tagro + Developer Kommunikation</p>
+                </div>
               </div>
               <span style={{ fontSize: 9, fontWeight: 700, color: online ? 'var(--green-dark)' : 'var(--text-muted)', background: online ? 'var(--green-bg)' : 'var(--surface-2)', padding: '3px 8px', borderRadius: 8, display: 'inline-flex', alignItems: 'center', gap: 4, border: `1px solid ${online ? 'var(--green-border)' : 'var(--border)'}`, letterSpacing: '0.06em' }}>
                 <span style={{ width: 4, height: 4, borderRadius: '50%', background: online ? 'var(--green)' : 'var(--text-muted)', animation: online ? 'pulse 1.5s infinite' : 'none' }} />

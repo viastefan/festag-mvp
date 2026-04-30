@@ -87,11 +87,11 @@ export default function DashboardPage() {
       if (projs?.length) {
         setProjects(projs)
         const prio: Record<string,number> = { active:0, testing:1, planning:2, intake:3, done:4 }
-        const m = [...projs].sort((a,b) => (prio[a.status]??9)-(prio[b.status]??9))[0]
+        const m = [...(projs as any[])].sort((a,b) => (prio[a.status]??9)-(prio[b.status]??9))[0]
         setMain(m)
         const [{ data: t }, { data: at }] = await Promise.all([
           supabase.from('tasks').select('*').eq('project_id', m.id),
-          supabase.from('tasks').select('*').in('project_id', projs.map(pr => pr.id)),
+          supabase.from('tasks').select('*').in('project_id', (projs as any[]).map(pr => pr.id)),
         ])
         setTasks(t ?? [])
         setAllTasks(at ?? [])
