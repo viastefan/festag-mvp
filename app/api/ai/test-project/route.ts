@@ -3,19 +3,21 @@ import { createClient } from '@supabase/supabase-js'
 
 const SUPABASE_URL = 'https://xsdkoepwuvpuroijjain.supabase.co'
 
-const DECOMPOSE_SYSTEM = `Du bist Tagro, der AI-Projektmanager von Festag.
-Deine Aufgabe: Zerlege ein Kundenprojekt aus einem Chat-Gespräch in eine strukturierte Projekt-Definition.
+const GENERATE_SYSTEM = `Du bist Tagro, der AI-Projektmanager von Festag.
+Deine Aufgabe: Erfinde ein realistisches, kreatives Demo-Software-Projekt und zerlege es vollständig in eine strukturierte Projekt-Definition.
 
-Antworte NUR mit validen JSON — kein Markdown, kein erklärender Text außerhalb des JSON.
+Wähle eine spannende, realistische Produktidee aus dem SaaS- oder B2C-Web/Mobile-Bereich (z.B. Booking-Tool, Marktplatz, Community-App, Workflow-SaaS, KI-Tool, Analytics-Dashboard, Local Business App). Würfle die Idee — nicht jedes Mal das gleiche.
+
+Antworte AUSSCHLIESSLICH mit validem JSON — kein Markdown, kein erklärender Text außerhalb des JSON.
 
 JSON-Schema:
 {
   "project_title": "Prägnanter Projekttitel",
   "scope_summary": "2-3 Sätze Projektüberblick",
-  "goals": ["Ziel 1", "Ziel 2"],
-  "success_criteria": ["Erfolgskriterium 1", "Erfolgskriterium 2"],
+  "goals": ["Ziel 1", "Ziel 2", "Ziel 3"],
+  "success_criteria": ["Erfolgskriterium 1", "Erfolgskriterium 2", "Erfolgskriterium 3"],
   "risks": ["Risiko 1", "Risiko 2"],
-  "open_questions": ["Offene Frage 1"],
+  "open_questions": ["Offene Frage 1", "Offene Frage 2"],
   "epics": [
     {
       "title": "Epic-Titel",
@@ -35,21 +37,27 @@ JSON-Schema:
       ]
     }
   ]
-}`
+}
+
+Anforderungen:
+- 3-4 Epics
+- Pro Epic 2-4 Tasks
+- Realistische Stundenschätzungen
+- Sinnvolle Tags (frontend, backend, design, devops, testing, content)
+- Sprache: Deutsch
+- Beginne den Titel NICHT mit "Test-Projekt" — gib dem Demo-Projekt einen echten, realistischen Namen.`
 
 export async function POST(req: NextRequest) {
   try {
-    const { chatHistory, userId, authToken } = await req.json()
-
+    const { userId } = await req.json()
     const apiKey = process.env.ANTHROPIC_API_KEY
-    if (!apiKey) return NextResponse.json({ error: 'not configured' }, { status: 500 })
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    if (!apiKey) return NextResponse.json({ error: 'AI not configured' }, { status: 500 })
+    if (!serviceKey) return NextResponse.json({ error: 'service key missing' }, { status: 500 })
+    if (!userId) return NextResponse.json({ error: 'userId required' }, { status: 400 })
 
-    // Build conversation summary for decomposition
-    const chatText = chatHistory
-      .map((m: any) => `${m.role === 'ai' ? 'Tagro' : 'Kunde'}: ${m.text}`)
-      .join('\n')
-
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    // 1. Claude generiert ein komplettes Demo-Projekt
+    const aiRes = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -59,38 +67,31 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 4000,
-        system: DECOMPOSE_SYSTEM,
+        system: GENERATE_SYSTEM,
         messages: [{
           role: 'user',
-          content: `Hier ist das Onboarding-Gespräch mit dem Kunden:\n\n${chatText}\n\nZerlege dieses Projekt strukturiert.`
-        }]
+          content: 'Generiere jetzt ein realistisches Demo-Software-Projekt mit allen Epics und Tasks. Würfle eine kreative, neue Idee.',
+        }],
       }),
     })
 
-    const data = await res.json()
-    const rawText = data.content?.[0]?.text ?? ''
+    const aiData = await aiRes.json()
+    const rawText = aiData.content?.[0]?.text ?? ''
 
-    // Parse JSON from AI response
-    let decomposed
+    let decomposed: any
     try {
       const jsonMatch = rawText.match(/\{[\s\S]*\}/)
       decomposed = JSON.parse(jsonMatch?.[0] ?? rawText)
     } catch {
-      return NextResponse.json({ error: 'Parse failed', raw: rawText }, { status: 422 })
+      return NextResponse.json({ error: 'AI lieferte kein valides JSON', raw: rawText }, { status: 422 })
     }
 
-    // Save to Supabase using service role
-    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-    if (!serviceKey || !userId) {
-      return NextResponse.json({ decomposed })
-    }
-
+    // 2. Projekt + Epics + Tasks in DB schreiben
     const sb = createClient(SUPABASE_URL, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } })
 
-    // Create project
     const { data: project, error: projErr } = await sb.from('projects').insert({
       user_id: userId,
-      title: decomposed.project_title ?? 'Neues Projekt',
+      title: decomposed.project_title ?? 'Demo-Projekt',
       description: decomposed.scope_summary,
       status: 'intake',
       goals: decomposed.goals ?? [],
@@ -105,7 +106,7 @@ export async function POST(req: NextRequest) {
 
     const projectId = project.id
 
-    // Create epics + tasks
+    let taskCount = 0
     for (let ei = 0; ei < (decomposed.epics ?? []).length; ei++) {
       const ep = decomposed.epics[ei]
       const { data: epic } = await sb.from('epics').insert({
@@ -132,20 +133,22 @@ export async function POST(req: NextRequest) {
           tags: task.tags ?? [],
           requires_approval: task.requires_approval ?? false,
         })
+        taskCount++
       }
     }
 
-    // Log to activity feed
     try {
       await sb.from('activity_feed').insert({
         user_id: userId,
         project_id: projectId,
         type: 'project_status',
-        message: `Projekt "${decomposed.project_title}" wurde von Tagro AI strukturiert (${(decomposed.epics ?? []).length} Epics, ${(decomposed.epics ?? []).reduce((a: number, e: any) => a + (e.tasks?.length ?? 0), 0)} Tasks)`,
+        message: `Demo-Projekt "${decomposed.project_title}" wurde von Tagro AI generiert (${(decomposed.epics ?? []).length} Epics, ${taskCount} Tasks)`,
       })
-    } catch { /* optional */ }
+    } catch {
+      /* activity_feed ist optional — Projekt-Insert ist schon erfolgt */
+    }
 
-    return NextResponse.json({ decomposed, projectId })
+    return NextResponse.json({ projectId, decomposed })
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 })
   }

@@ -45,11 +45,13 @@ Regeln: Max 2 Sätze. Kein Fachjargon. Positiv aber ehrlich. Deutsch.`,
           message: customerUpdate,
           is_ai: true,
         })
-        await sb.from('activity_feed').insert({
-          project_id: projectId,
-          type: 'ai_report',
-          message: `Tagro Update: ${customerUpdate}`,
-        }).catch(() => {})
+        try {
+          await sb.from('activity_feed').insert({
+            project_id: projectId,
+            type: 'ai_report',
+            message: `Tagro Update: ${customerUpdate}`,
+          })
+        } catch { /* optional */ }
       }
     }
 
