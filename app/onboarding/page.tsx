@@ -141,7 +141,7 @@ export default function OnboardingPage() {
   }
 
   async function decompose() {
-    if (!userId) return
+    if (!userId) { setDecomposeErr('Sitzung abgelaufen — bitte Seite neu laden.'); return }
     setDecomposing(true); setPhase('decompose'); setDecomposeErr('')
     try {
       const res = await fetch('/api/ai/decompose', {
@@ -460,7 +460,7 @@ export default function OnboardingPage() {
       </div>
 
       {/* ── Input bar (sticky bottom) ── */}
-      {!ready && !aiLoading && (
+      {!ready && (
         <div style={{ position:'sticky', bottom:0, background:'linear-gradient(to top, var(--bg) 70%, transparent)', padding:'12px 20px 20px', paddingBottom:'calc(20px + env(safe-area-inset-bottom))' }}>
           <div style={{ maxWidth:720, margin:'0 auto' }}>
             {/* Main input container */}
@@ -479,11 +479,12 @@ export default function OnboardingPage() {
                 rows={1}
                 style={{ flex:1, resize:'none', border:'none', outline:'none', background:'transparent', fontSize:15, lineHeight:1.6, color:'var(--text)', fontFamily:'inherit', fontWeight:500, overflowY:'hidden', minHeight:26, maxHeight:180, padding:0, caretColor:'var(--accent)' }}
               />
-              <button onClick={send} disabled={!input.trim()}
-                style={{ width:38, height:38, borderRadius:11, border:'none', flexShrink:0, background:input.trim()?'var(--btn-prim)':'var(--surface-2)', color:input.trim()?'var(--btn-prim-text)':'var(--text-muted)', cursor:input.trim()?'pointer':'default', display:'flex', alignItems:'center', justifyContent:'center', transition:'background .15s, color .15s' }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                  <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
-                </svg>
+              <button onClick={send} disabled={!input.trim() || aiLoading}
+                style={{ width:38, height:38, borderRadius:11, border:'none', flexShrink:0, background:(input.trim()&&!aiLoading)?'var(--btn-prim)':'var(--surface-2)', color:(input.trim()&&!aiLoading)?'var(--btn-prim-text)':'var(--text-muted)', cursor:(input.trim()&&!aiLoading)?'pointer':'default', display:'flex', alignItems:'center', justifyContent:'center', transition:'background .15s, color .15s' }}>
+                {aiLoading
+                  ? <span style={{ width:14, height:14, border:'2px solid rgba(128,128,128,.3)', borderTopColor:'currentColor', borderRadius:'50%', animation:'spin .7s linear infinite' }}/>
+                  : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                }
               </button>
             </div>
 
