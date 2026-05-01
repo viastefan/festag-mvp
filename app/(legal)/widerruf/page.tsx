@@ -37,10 +37,11 @@ export default function WiderrufPage() {
       <div className="box">
         <p style={{ margin:0 }}>
           <strong>Adressat des Widerrufs:</strong><br/>
-          Enjyn Gruppe<br/>
-          [Strasse Nr.]<br/>
-          [PLZ Ort]<br/>
-          E-Mail: <a href="mailto:hello@festag.io">hello@festag.io</a>
+          Enjyn® Gruppe<br/>
+          Bahnhofstraße 15<br/>
+          84079 Bruckberg<br/>
+          Telefon: 08765 33 999 73<br/>
+          E-Mail: <a href="mailto:support@enjyn.de">support@enjyn.de</a>
         </p>
       </div>
 
@@ -72,7 +73,7 @@ export default function WiderrufPage() {
 
       <h2>Muster-Widerrufsformular</h2>
       <div className="box">
-        <p style={{ margin:0, whiteSpace:'pre-line', fontSize:13.5 }}>{`An: Enjyn Gruppe, [Adresse], hello@festag.io
+        <p style={{ margin:0, whiteSpace:'pre-line', fontSize:13.5 }}>{`An: Enjyn® Gruppe, Bahnhofstraße 15, 84079 Bruckberg, support@enjyn.de
 
 Hiermit widerrufe(n) ich/wir (*) den von mir/uns (*) abgeschlossenen
 Vertrag über die Erbringung der folgenden Dienstleistung:

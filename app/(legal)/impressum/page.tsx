@@ -20,35 +20,37 @@ export default function ImpressumPage() {
 
       <div className="box">
         <p style={{ margin:0 }}>
-          <strong>festag</strong> — AI-native Softwareproduktion<br/>
-          ein Projekt der Enjyn Gruppe<br/>
-          [Strasse Nr.]<br/>
-          [PLZ Ort]<br/>
+          <strong>Enjyn® Gruppe</strong><br/>
+          Inhaber: Ramon Dehner<br/>
+          Bahnhofstraße 15<br/>
+          84079 Bruckberg<br/>
           Deutschland
         </p>
       </div>
 
       <h2>Rechtsträger und Vertragsabwicklung</h2>
       <p>
-        festag ist ein unabhängiges Projekt. Sämtliche Geschäftspraktiken, Verträge,
-        Rechnungen und Zahlungen werden über die <strong>Enjyn Gruppe</strong> als verantwortlichen
-        Rechtsträger abgewickelt.
+        <strong>festag</strong> ist ein unabhängiges Projekt. Sämtliche Geschäftspraktiken,
+        Verträge, Rechnungen und Zahlungen werden über die <strong>Enjyn® Gruppe</strong> als
+        verantwortlichen Rechtsträger abgewickelt.
       </p>
 
       <h2>Kontakt</h2>
       <p>
-        E-Mail: <a href="mailto:hello@festag.io">hello@festag.io</a><br/>
-        Telefon: +49 089 123 456 78
+        Telefon: <a href="tel:+4987653399973">08765 33 999 73</a><br/>
+        Fax: 08765 33 999 72<br/>
+        WhatsApp: <a href="https://wa.me/4915207849821" target="_blank" rel="noopener noreferrer">0152 078 498 21</a><br/>
+        E-Mail: <a href="mailto:support@enjyn.de">support@enjyn.de</a>
       </p>
 
-      <h2>Vertretungsberechtigt</h2>
-      <p>[Name der Geschäftsführung / Inhaber:in]</p>
-
       <h2>Umsatzsteuer-ID</h2>
-      <p>Umsatzsteuer-Identifikationsnummer gemäß § 27 a UStG:<br/>[USt-IdNr.]</p>
+      <p>
+        Umsatzsteuer-Identifikationsnummer gemäß § 27 a UStG:<br/>
+        <strong>DE362716091</strong>
+      </p>
 
       <h2>Verantwortlich für den Inhalt</h2>
-      <p>nach § 18 Abs. 2 MStV:<br/>[Name], [Adresse]</p>
+      <p>nach § 18 Abs. 2 MStV:<br/><strong>Stefan Dirnberger</strong></p>
 
       <h2>EU-Streitschlichtung</h2>
       <p>

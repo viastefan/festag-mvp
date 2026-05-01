@@ -25,9 +25,14 @@ export default function DatenschutzPage() {
 
       <h2>1. Verantwortlicher</h2>
       <p>
-        Enjyn Gruppe<br/>
-        [Strasse Nr.], [PLZ Ort]<br/>
-        E-Mail: <a href="mailto:hello@festag.io">hello@festag.io</a>
+        <strong>Enjyn® Gruppe</strong><br/>
+        Inhaber: Ramon Dehner<br/>
+        Bahnhofstraße 15, 84079 Bruckberg, Deutschland<br/>
+        Telefon: 08765 33 999 73<br/>
+        E-Mail: <a href="mailto:support@enjyn.de">support@enjyn.de</a>
+      </p>
+      <p>
+        Inhaltlich verantwortlich nach § 18 Abs. 2 MStV: <strong>Stefan Dirnberger</strong>
       </p>
 
       <h2>2. Welche Daten wir verarbeiten</h2>
@@ -80,7 +85,7 @@ export default function DatenschutzPage() {
       <h2>8. Kontakt</h2>
       <p>
         Bei Fragen zum Datenschutz wende dich an&nbsp;
-        <a href="mailto:hello@festag.io">hello@festag.io</a>.
+        <a href="mailto:support@enjyn.de">support@enjyn.de</a>.
       </p>
 
       <p style={{ marginTop:32, fontSize:12, color:'var(--text-muted)' }}>

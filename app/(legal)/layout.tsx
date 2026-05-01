@@ -32,10 +32,11 @@ export default function LegalLayout({ children }: { children: React.ReactNode })
       <footer style={{ borderTop:'1px solid var(--border)', padding:'24px', textAlign:'center', color:'var(--text-muted)', fontSize:12 }}>
         <p style={{ margin:0, lineHeight:1.6 }}>
           <strong style={{ color:'var(--text-secondary)' }}>festag</strong> ist ein unabhängiges Projekt.
-          Geschäftspraktiken und Vertragsabwicklung werden über die <strong style={{ color:'var(--text-secondary)' }}>Enjyn Gruppe</strong> abgewickelt.
+          Geschäftspraktiken und Vertragsabwicklung werden über die&nbsp;
+          <strong style={{ color:'var(--text-secondary)' }}>Enjyn® Gruppe</strong> abgewickelt.
         </p>
         <p style={{ margin:'6px 0 0' }}>
-          © {new Date().getFullYear()} festag · alle Rechte vorbehalten
+          © {new Date().getFullYear()} Enjyn® Gruppe · Bahnhofstraße 15, 84079 Bruckberg · alle Rechte vorbehalten
         </p>
       </footer>
     </div>

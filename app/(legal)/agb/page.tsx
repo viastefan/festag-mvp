@@ -17,7 +17,8 @@ export default function AGBPage() {
 
       <h1>Allgemeine Geschäftsbedingungen</h1>
       <p className="lead">
-        Diese AGB regeln das Vertragsverhältnis zwischen dir und der <strong>Enjyn Gruppe</strong>,
+        Diese AGB regeln das Vertragsverhältnis zwischen dir und der&nbsp;
+        <strong>Enjyn® Gruppe</strong> (Inhaber: Ramon Dehner, Bahnhofstraße 15, 84079 Bruckberg),
         über welche das Projekt festag seine Geschäftspraktiken abwickelt.
       </p>
 
