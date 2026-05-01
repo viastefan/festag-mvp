@@ -14,16 +14,28 @@ type EstimateResult = {
   excluded:  string[]
 }
 
+/* ─── Type icon SVGs ─────────────────────────────────────── */
+const TYPE_ICONS: Record<string, React.ReactNode> = {
+  web:     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>,
+  mobile:  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>,
+  saas:    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>,
+  ecom:    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>,
+  ai:      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8"/></svg>,
+  landing: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="18" rx="2"/><path d="M2 9h20"/><path d="M8 3v6"/></svg>,
+  api:     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>,
+  custom:  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>,
+}
+
 /* ─── Options ────────────────────────────────────────────── */
 const PROJECT_TYPES = [
-  { id:'web',       label:'Web App',        icon:'🌐' },
-  { id:'mobile',    label:'Mobile App',     icon:'📱' },
-  { id:'saas',      label:'SaaS Plattform', icon:'☁️' },
-  { id:'ecom',      label:'E-Commerce',     icon:'🛍️' },
-  { id:'ai',        label:'AI Integration', icon:'✦' },
-  { id:'landing',   label:'Landing Page',   icon:'🎯' },
-  { id:'api',       label:'API / Backend',  icon:'⚙️' },
-  { id:'custom',    label:'Individuell',    icon:'🔧' },
+  { id:'web',       label:'Web App' },
+  { id:'mobile',    label:'Mobile App' },
+  { id:'saas',      label:'SaaS Plattform' },
+  { id:'ecom',      label:'E-Commerce' },
+  { id:'ai',        label:'AI Integration' },
+  { id:'landing',   label:'Landing Page' },
+  { id:'api',       label:'API / Backend' },
+  { id:'custom',    label:'Individuell' },
 ]
 
 const FEATURE_OPTIONS = [
@@ -55,7 +67,9 @@ function buildPrompt(type: string, desc: string, features: string[], complexity:
 
   return `Du bist ein Senior Software-Architekt bei Festag, einer deutschen Software-Produktionsfirma.
 Schätze die Kosten für das folgende Projekt realistisch ein. Festag arbeitet mit einem Team aus Senior-Entwicklern.
-Stundensatz: €85–€120 (Senior Dev). Alle Preise in Euro (€).
+Stundensatz: €85–€120 (Senior Dev, für Web Apps, SaaS, Mobile, E-Commerce, APIs).
+AUSNAHME Landing Pages: Stundensatz €50–€75, Gesamtkosten typisch €900–€3.500 (je nach Umfang).
+Alle Preise in Euro (€). Schätze realistisch für den deutschen Markt.
 
 Projektdetails:
 - Typ: ${typeLabel}
@@ -162,15 +176,8 @@ export default function EstimatorPage() {
 
       {/* Header */}
       <div className="page-header animate-fade-up">
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6 }}>
-          <div style={{ width: 40, height: 40, borderRadius: 12, background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <span style={{ fontSize: 18, color: 'var(--accent-text)' }}>✦</span>
-          </div>
-          <div>
-            <h1 style={{ margin: 0 }}>AI Preisschätzer</h1>
-            <p style={{ margin: 0, fontSize: 13 }}>Projektkostenschätzung in Sekunden — powered by Claude AI</p>
-          </div>
-        </div>
+        <h1 style={{ margin: '0 0 4px' }}>AI Preisschätzer</h1>
+        <p style={{ margin: 0, fontSize: 14, color: 'var(--text-secondary)' }}>Projektkostenschätzung in Sekunden — powered by Claude AI</p>
       </div>
 
       <div className="est-grid animate-fade-up-1" style={{ display: 'grid', gridTemplateColumns: result ? '420px 1fr' : '1fr', gap: 16 }}>
@@ -182,13 +189,18 @@ export default function EstimatorPage() {
           <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 20, padding: '18px 20px' }}>
             <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '.1em', textTransform: 'uppercase', margin: '0 0 12px' }}>1. Projekttyp *</p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
-              {PROJECT_TYPES.map(pt => (
-                <button key={pt.id} onClick={() => setType(pt.id)} className="est-type"
-                  style={{ padding: '10px 8px', borderRadius: 12, border: `1.5px solid ${type === pt.id ? 'var(--text)' : 'var(--border)'}`, background: type === pt.id ? 'var(--surface-2)' : 'var(--bg)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, fontFamily: 'inherit' }}>
-                  <span style={{ fontSize: 20 }}>{pt.icon}</span>
-                  <span style={{ fontSize: 10.5, fontWeight: type === pt.id ? 700 : 500, color: type === pt.id ? 'var(--text)' : 'var(--text-secondary)' }}>{pt.label}</span>
-                </button>
-              ))}
+              {PROJECT_TYPES.map(pt => {
+                const on = type === pt.id
+                return (
+                  <button key={pt.id} onClick={() => setType(pt.id)} className="est-type"
+                    style={{ padding: '12px 8px', borderRadius: 12, border: `1.5px solid ${on ? 'var(--text)' : 'var(--border)'}`, background: on ? 'var(--surface-2)' : 'var(--bg)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 7, fontFamily: 'inherit' }}>
+                    <div style={{ width:32, height:32, borderRadius:9, background:on?'var(--text)':'var(--surface-2)', display:'flex', alignItems:'center', justifyContent:'center', color:on?'var(--bg)':'var(--text-secondary)', flexShrink:0 }}>
+                      {TYPE_ICONS[pt.id]}
+                    </div>
+                    <span style={{ fontSize: 10.5, fontWeight: on ? 700 : 500, color: on ? 'var(--text)' : 'var(--text-secondary)', textAlign:'center', lineHeight:1.3 }}>{pt.label}</span>
+                  </button>
+                )
+              })}
             </div>
           </div>
 
@@ -246,10 +258,7 @@ export default function EstimatorPage() {
             ) : result ? (
               '← Neue Schätzung'
             ) : (
-              <>
-                <span style={{ fontSize: 16 }}>✦</span>
-                Jetzt schätzen lassen
-              </>
+              'Jetzt schätzen lassen'
             )}
           </button>
         </div>
@@ -320,10 +329,10 @@ export default function EstimatorPage() {
             {/* Included / Excluded */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
               <div style={{ background: 'var(--card)', border: '1px solid var(--green-border)', borderRadius: 14, padding: '14px 16px' }}>
-                <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--green-dark)', letterSpacing: '.1em', textTransform: 'uppercase', margin: '0 0 10px' }}>✓ Inklusive</p>
+                <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--green-dark)', letterSpacing: '.1em', textTransform: 'uppercase', margin: '0 0 10px' }}>Inklusive</p>
                 {result.included.map((item, i) => (
                   <p key={i} style={{ fontSize: 12, color: 'var(--text-secondary)', margin: '0 0 5px', display: 'flex', gap: 7, lineHeight: 1.4 }}>
-                    <span style={{ color: 'var(--green)', flexShrink: 0 }}>✓</span>{item}
+                    <span style={{ color: 'var(--green)', flexShrink: 0, fontWeight:700 }}>+</span>{item}
                   </p>
                 ))}
               </div>
@@ -340,7 +349,7 @@ export default function EstimatorPage() {
             {/* Risks */}
             {result.risks.length > 0 && (
               <div style={{ background: 'var(--amber-bg)', border: '1px solid var(--border)', borderRadius: 14, padding: '14px 16px' }}>
-                <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--amber-dark)', letterSpacing: '.1em', textTransform: 'uppercase', margin: '0 0 10px' }}>⚠ Risiken & Hinweise</p>
+                <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--amber-dark)', letterSpacing: '.1em', textTransform: 'uppercase', margin: '0 0 10px' }}>Risiken & Hinweise</p>
                 {result.risks.map((r, i) => (
                   <p key={i} style={{ fontSize: 12, color: 'var(--text-secondary)', margin: '0 0 5px', lineHeight: 1.5 }}>· {r}</p>
                 ))}
