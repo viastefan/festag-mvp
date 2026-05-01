@@ -308,19 +308,43 @@ export default function Sidebar() {
               </button>
             </div>
 
-            {/* Legal-Links */}
-            <div style={{ padding:'10px 4px 4px', display:'flex', flexWrap:'wrap', gap:'4px 8px', justifyContent:'center' }}>
-              {[
-                { href:'/impressum',   label:'Impressum' },
-                { href:'/datenschutz', label:'Datenschutz' },
-                { href:'/agb',         label:'AGB' },
-                { href:'/widerruf',    label:'Widerruf' },
-              ].map(l => (
-                <Link key={l.href} href={l.href}
-                  style={{ fontSize:9.5, color:'var(--text-muted)', textDecoration:'none', opacity:.7, letterSpacing:'.02em' }}>
-                  {l.label}
-                </Link>
-              ))}
+            {/* Legal-Footer: Disclaimer + Links */}
+            <div style={{ padding:'12px 4px 2px' }}>
+              <p style={{
+                fontSize:9.5, lineHeight:1.55, color:'var(--text-muted)',
+                margin:0, opacity:.65, letterSpacing:'.005em',
+              }}>
+                <strong style={{ color:'var(--text-secondary)', fontWeight:600 }}>festag</strong> ist ein
+                unabhängiges Projekt. Geschäftspraktiken und Vertragsabwicklung werden über die&nbsp;
+                <strong style={{ color:'var(--text-secondary)', fontWeight:600 }}>Enjyn® Gruppe</strong> abgewickelt.
+              </p>
+              <div style={{
+                marginTop:8, paddingTop:8, borderTop:'1px solid var(--border)',
+                display:'flex', flexWrap:'wrap', alignItems:'center', columnGap:6, rowGap:3,
+              }}>
+                {[
+                  { href:'/impressum',   label:'Impressum' },
+                  { href:'/datenschutz', label:'Datenschutz' },
+                  { href:'/agb',         label:'AGB' },
+                  { href:'/widerruf',    label:'Widerruf' },
+                ].map((l, i, arr) => (
+                  <span key={l.href} style={{ display:'inline-flex', alignItems:'center', gap:6 }}>
+                    <Link href={l.href}
+                      style={{
+                        fontSize:10, color:'var(--text-muted)', textDecoration:'none',
+                        opacity:.75, letterSpacing:'.01em', transition:'opacity .12s, color .12s',
+                      }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.opacity = '1'; (e.currentTarget as HTMLElement).style.color = 'var(--text)' }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.opacity = '.75'; (e.currentTarget as HTMLElement).style.color = 'var(--text-muted)' }}
+                    >
+                      {l.label}
+                    </Link>
+                    {i < arr.length - 1 && (
+                      <span style={{ fontSize:8, color:'var(--text-muted)', opacity:.4 }}>·</span>
+                    )}
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
         </div>
