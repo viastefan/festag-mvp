@@ -320,7 +320,8 @@ export default function Sidebar() {
               </p>
               <div style={{
                 marginTop:8, paddingTop:8, borderTop:'1px solid var(--border)',
-                display:'flex', flexWrap:'wrap', alignItems:'center', columnGap:6, rowGap:3,
+                display:'flex', flexWrap:'nowrap', alignItems:'center',
+                justifyContent:'space-between', gap:4,
               }}>
                 {[
                   { href:'/impressum',   label:'Impressum' },
@@ -328,11 +329,12 @@ export default function Sidebar() {
                   { href:'/agb',         label:'AGB' },
                   { href:'/widerruf',    label:'Widerruf' },
                 ].map((l, i, arr) => (
-                  <span key={l.href} style={{ display:'inline-flex', alignItems:'center', gap:6 }}>
+                  <span key={l.href} style={{ display:'inline-flex', alignItems:'center', gap:4, flexShrink:0, whiteSpace:'nowrap' }}>
                     <Link href={l.href}
                       style={{
-                        fontSize:10, color:'var(--text-muted)', textDecoration:'none',
-                        opacity:.75, letterSpacing:'.01em', transition:'opacity .12s, color .12s',
+                        fontSize:8.5, color:'var(--text-muted)', textDecoration:'none',
+                        opacity:.75, letterSpacing:'.01em', whiteSpace:'nowrap',
+                        transition:'opacity .12s, color .12s',
                       }}
                       onMouseEnter={e => { (e.currentTarget as HTMLElement).style.opacity = '1'; (e.currentTarget as HTMLElement).style.color = 'var(--text)' }}
                       onMouseLeave={e => { (e.currentTarget as HTMLElement).style.opacity = '.75'; (e.currentTarget as HTMLElement).style.color = 'var(--text-muted)' }}
@@ -340,7 +342,7 @@ export default function Sidebar() {
                       {l.label}
                     </Link>
                     {i < arr.length - 1 && (
-                      <span style={{ fontSize:8, color:'var(--text-muted)', opacity:.4 }}>·</span>
+                      <span style={{ fontSize:7, color:'var(--text-muted)', opacity:.4 }}>·</span>
                     )}
                   </span>
                 ))}
