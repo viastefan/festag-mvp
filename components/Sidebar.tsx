@@ -95,14 +95,10 @@ export default function Sidebar() {
   const [projId,  setProjId]  = useState<string|null>(null)
   const [projects,setProjects]= useState<{id:string;title:string;status:string}[]>([])
   const [more,    setMore]    = useState(false)
-  const [projExp, setProjExp] = useState(true)
-  const [viewAs,  setViewAs]  = useState<string|null>(null)
+  const [projExp, setProjExp] = useState(false)
 
   useEffect(() => {
     setMore(false)
-    if (typeof window !== 'undefined') {
-      setViewAs(localStorage.getItem('festag_view_as') || null)
-    }
     const sb = createClient()
     sb.auth.getUser().then(async ({ data }) => {
       if (!data.user) return
@@ -115,10 +111,13 @@ export default function Sidebar() {
       }
     })
     createClient().from('projects').select('id,title,status').order('created_at',{ascending:false}).limit(8).then(({data}) => {
-      if (!data?.length) return
-      setProjects(data)
+      const list = (data as any[]) ?? []
+      if (!list.length) { setProjects([]); setProjExp(false); return }
+      setProjects(list)
+      // Auto-expand the project section once user has at least one project
+      setProjExp(true)
       const prio: Record<string,number> = {active:0,testing:1,planning:2,intake:3,done:4}
-      setProjId([...data].sort((a,b)=>(prio[a.status]??9)-(prio[b.status]??9))[0].id)
+      setProjId([...list].sort((a,b)=>(prio[a.status]??9)-(prio[b.status]??9))[0].id)
     })
   }, [pathname])
 
@@ -267,30 +266,11 @@ export default function Sidebar() {
                 <div style={{ flex:1, minWidth:0 }}>
                   <p style={{ fontSize:12.5, fontWeight:700, color:'var(--text)', margin:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{name}</p>
                   <div style={{ display:'flex', alignItems:'center', gap:4, marginTop:2 }}>
-                    <span style={{ fontSize:9, fontWeight:700, padding:'1px 5px', borderRadius:4, background:`${ROLE_COLOR[viewAs||role]}20`, color:ROLE_COLOR[viewAs||role], letterSpacing:'.05em' }}>{ROLE_LABEL[viewAs||role] ?? 'Client'}{viewAs ? ' · TEST' : ''}</span>
+                    <span style={{ fontSize:9, fontWeight:700, padding:'1px 5px', borderRadius:4, background:`${ROLE_COLOR[role]}20`, color:ROLE_COLOR[role], letterSpacing:'.05em' }}>{ROLE_LABEL[role] ?? 'Client'}</span>
                   </div>
                 </div>
               </div>
             </Link>
-            {role === 'admin' && (
-              <div style={{ display:'flex', gap:3, marginTop:6, padding:'2px', background:'var(--surface-2)', borderRadius:7 }}>
-                {(['admin','dev','client'] as const).map(r => {
-                  const active = (viewAs||role) === r
-                  return (
-                    <button key={r} onClick={() => {
-                      const next = r === role ? null : r
-                      if (next) localStorage.setItem('festag_view_as', next)
-                      else localStorage.removeItem('festag_view_as')
-                      setViewAs(next)
-                      window.location.reload()
-                    }}
-                    style={{ flex:1, padding:'4px 0', fontSize:9.5, fontWeight:700, border:'none', cursor:'pointer', borderRadius:5, background:active?'var(--bg)':'transparent', color:active?ROLE_COLOR[r]:'var(--text-muted)', fontFamily:'inherit', boxShadow:active?'0 1px 3px rgba(0,0,0,.06)':'none' }}>
-                      {ROLE_LABEL[r]}
-                    </button>
-                  )
-                })}
-              </div>
-            )}
             <button onClick={logout}
               style={{ width:'100%', padding:'7px 9px', textAlign:'left', border:'none', background:'transparent', cursor:'pointer', fontSize:11.5, color:'var(--text-muted)', borderRadius:9, marginTop:4, fontFamily:'inherit', display:'flex', alignItems:'center', gap:6, transition:'color .1s' }}
               onMouseEnter={e => (e.currentTarget.style.color='var(--text)')}

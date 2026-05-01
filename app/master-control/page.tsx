@@ -86,7 +86,7 @@ export default function MasterControlPage() {
     await sb.from('activity_feed').insert({
       user_id: user?.id, project_id: null,
       type: 'system_broadcast',
-      message: `📢 Master: ${broadcastMsg.trim()}`,
+      message: `[BROADCAST] ${broadcastMsg.trim()}`,
     }).catch(() => {})
     setBroadcastSent(true); setBroadcastMsg('')
     setTimeout(() => setBroadcastSent(false), 2400)
@@ -95,13 +95,13 @@ export default function MasterControlPage() {
   if (checking) return <div style={{ minHeight:'100vh', background:'#0a0a0f', display:'flex', alignItems:'center', justifyContent:'center' }}><div style={{ width:32, height:32, border:'2px solid rgba(255,255,255,.1)', borderTopColor:'#a78bfa', borderRadius:'50%', animation:'spin .8s linear infinite' }}/><style>{`@keyframes spin{to{transform:rotate(360deg);}}`}</style></div>
   if (!authed) return null
 
-  const TABS: { key: Tab; label: string; emoji: string }[] = [
-    { key:'pulse',    label:'Pulse',     emoji:'💚' },
-    { key:'support',  label:`Support (${support.length})`, emoji:'💬' },
-    { key:'reports',  label:`Reports (${reports.length})`, emoji:'📊' },
-    { key:'payments', label:`Payments (${payments.length})`, emoji:'💳' },
-    { key:'broadcast',label:'Broadcast', emoji:'📢' },
-    { key:'access',   label:'Access',    emoji:'🔐' },
+  const TABS: { key: Tab; label: string }[] = [
+    { key:'pulse',    label:'Pulse' },
+    { key:'support',  label:`Support (${support.length})` },
+    { key:'reports',  label:`Reports (${reports.length})` },
+    { key:'payments', label:`Payments (${payments.length})` },
+    { key:'broadcast',label:'Broadcast' },
+    { key:'access',   label:'Access' },
   ]
 
   return (
@@ -154,7 +154,7 @@ export default function MasterControlPage() {
         <div style={{ display:'flex', gap:6, marginBottom:18, flexWrap:'wrap' }}>
           {TABS.map(t => (
             <button key={t.key} className={`mc-tab ${tab===t.key?'on':''}`} onClick={() => setTab(t.key)}>
-              <span style={{ marginRight:5 }}>{t.emoji}</span>{t.label}
+              {t.label}
             </button>
           ))}
         </div>

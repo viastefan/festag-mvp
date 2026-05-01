@@ -35,19 +35,26 @@ export default function TeamsPage() {
       if (!data.session) { window.location.href='/login'; return }
       const uid = data.session.user.id
 
-      const [{ data: prof }, { data: tm }, { data: feed }] = await Promise.all([
-        sb.from('profiles').select('*').eq('id', uid).single(),
-        sb.from('team_members').select('*, profiles!team_members_member_id_fkey(id,first_name,full_name,avatar_url,role,email)').eq('owner_id', uid),
-        sb.from('activity_feed').select('*').order('created_at', {ascending:false}).limit(40),
+      const safe = async (p: Promise<any>) => { try { return await p } catch (e) { return { data: null, error: e } } }
+      const [profRes, tmRes, feedRes] = await Promise.all([
+        safe(sb.from('profiles').select('*').eq('id', uid).single()),
+        safe(sb.from('team_members').select('id, member_id').eq('owner_id', uid)),
+        safe(sb.from('activity_feed').select('*').order('created_at', {ascending:false}).limit(40)),
       ])
-      const myProf: any = prof
+      const myProf: any = profRes.data
       setMe(myProf as Member)
 
-      const list: Member[] = ((tm as any[]) ?? []).map(t => t.profiles).filter(Boolean)
-      // Always include self at the top
+      // Resolve member profiles in 2nd query (no FK alias)
+      const memberIds = ((tmRes.data as any[]) ?? []).map(t => t.member_id).filter(Boolean)
+      let memberProfiles: any[] = []
+      if (memberIds.length > 0) {
+        const { data: mp } = await safe(sb.from('profiles').select('id,first_name,full_name,avatar_url,role,email').in('id', memberIds))
+        memberProfiles = (mp as any[]) ?? []
+      }
+      const list: Member[] = memberProfiles
       if (myProf && !list.find(m => m.id === myProf.id)) list.unshift(myProf as Member)
       setMembers(list)
-      setEvents((feed as any[]) ?? [])
+      setEvents((feedRes.data as any[]) ?? [])
       setLoading(false)
 
       // Realtime presence — broadcast self + listen for others

@@ -68,24 +68,32 @@ export default function DevHome() {
     const dayStart = new Date(); dayStart.setHours(0,0,0,0)
     const weekStart = new Date(); weekStart.setDate(weekStart.getDate() - 7)
 
-    const queries: any[] = [
-      sb.from('tasks').select('*, projects(title, status, user_id)').eq('assigned_to', userId).limit(15),
-      sb.from('time_entries').select('seconds, started_at, project_id').eq('user_id', userId).gte('started_at', weekStart.toISOString()),
-    ]
-    if (mode === 'pool') {
-      // Public unassigned new projects
-      queries.push(sb.from('projects').select('*').in('status', ['planning','intake']).is('assigned_dev', null).order('created_at', { ascending: false }).limit(8))
-    } else {
-      // Closed/company: only see projects via membership / invited clients
-      queries.push(sb.from('project_members').select('project_id, projects(*)').eq('user_id', userId))
-    }
-    queries.push(sb.from('team_members').select('id, member_id, profiles!team_members_member_id_fkey(first_name, full_name, avatar_url, role)').eq('owner_id', userId).limit(8))
+    // Defensive parallel queries — each wrapped to never throw
+    const safe = async (p: Promise<any>) => { try { return await p } catch (e) { return { data: null, error: e } } }
 
-    const [tasksRes, timeRes, projsRes, collabRes] = await Promise.all(queries)
+    const projectQuery = mode === 'pool'
+      ? sb.from('projects').select('*').in('status', ['planning','intake']).is('assigned_dev', null).order('created_at', { ascending: false }).limit(8)
+      : sb.from('project_members').select('project_id, projects(*)').eq('user_id', userId)
+
+    const [tasksRes, timeRes, projsRes, tmRes] = await Promise.all([
+      safe(sb.from('tasks').select('*, projects(title, status, user_id)').eq('assigned_to', userId).limit(15)),
+      safe(sb.from('time_entries').select('seconds, started_at, project_id').eq('user_id', userId).gte('started_at', weekStart.toISOString())),
+      safe(projectQuery),
+      safe(sb.from('team_members').select('id, member_id').eq('owner_id', userId).limit(8)),
+    ])
     const tasks = (tasksRes.data as any[]) ?? []
     const times = (timeRes.data as any[]) ?? []
     const projsRaw = (projsRes.data as any[]) ?? []
-    const collabs = (collabRes.data as any[]) ?? []
+    const tmRows = (tmRes.data as any[]) ?? []
+
+    // Resolve member profiles in second query (no FK alias dependency)
+    const memberIds = tmRows.map(t => t.member_id).filter(Boolean)
+    let collabs: any[] = []
+    if (memberIds.length > 0) {
+      const { data: memberProfiles } = await safe(sb.from('profiles').select('id,first_name,full_name,avatar_url,role').in('id', memberIds))
+      const map = new Map(((memberProfiles as any[]) ?? []).map(p => [p.id, p]))
+      collabs = tmRows.map(t => ({ id: t.id, profiles: map.get(t.member_id) ?? null })).filter(t => t.profiles)
+    }
 
     setMyTasks(tasks)
     if (mode === 'pool') {

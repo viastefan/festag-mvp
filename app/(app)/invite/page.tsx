@@ -113,15 +113,20 @@ export default function InvitePage() {
       {/* THREE MODE CARDS */}
       <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(220px, 1fr))', gap:14, marginBottom:22 }}>
         {[
-          { id:'pool',     icon:'🎯', title:'Festag Pool', desc:'Tagro AI matched dich mit dem perfekten Dev aus unserem Team. Schnellster Weg zum Start.', flow:'pool_match' },
-          { id:'invited',  icon:'🔗', title:'Eigener Dev', desc:'Du arbeitest schon mit einem Dev oder einer Agentur. Lade ihn ein — er bekommt geschlossenen Zugang.', flow:'client_invites_dev' },
-          { id:'company',  icon:'🏢', title:'Firmen-Setup', desc:'Du bist Agentur und willst deine Kunden hier verwalten. Lade Clients ein, behalte volle Kontrolle.', flow:'dev_invites_client' },
+          { id:'pool',    title:'Festag Pool',  desc:'Tagro AI matched dich mit dem perfekten Dev aus unserem Team. Schnellster Weg zum Start.', flow:'pool_match',
+            svg:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg> },
+          { id:'invited', title:'Eigener Dev',  desc:'Du arbeitest schon mit einem Dev oder einer Agentur. Lade ihn ein — er bekommt geschlossenen Zugang.', flow:'client_invites_dev',
+            svg:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> },
+          { id:'company', title:'Firmen-Setup', desc:'Du bist Agentur und willst deine Kunden hier verwalten. Lade Clients ein, behalte volle Kontrolle.', flow:'dev_invites_client',
+            svg:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg> },
         ].map(m => {
           const on = flow === m.flow
           return (
             <button key={m.id} onClick={() => setFlow(m.flow as Flow)}
-              style={{ textAlign:'left', padding:'18px 18px', background:on?'linear-gradient(135deg,rgba(99,102,241,.05),var(--card))':'var(--card)', border:`1.5px solid ${on?'#6366f1':'var(--border)'}`, borderRadius:14, cursor:'pointer', fontFamily:'inherit', boxShadow: on?'0 8px 24px rgba(99,102,241,.15)':'none', transition:'all .15s' }}>
-              <div style={{ fontSize:24, marginBottom:8 }}>{m.icon}</div>
+              style={{ textAlign:'left', padding:'18px 18px', background:'var(--surface)', border:`1.5px solid ${on?'var(--text)':'var(--border)'}`, borderRadius:'var(--r-lg)', cursor:'pointer', fontFamily:'inherit', transition:'border-color .15s' }}>
+              <div style={{ width:36, height:36, borderRadius:10, background:on?'var(--text)':'var(--surface-2)', color:on?'var(--bg)':'var(--text-secondary)', display:'inline-flex', alignItems:'center', justifyContent:'center', marginBottom:10 }}>
+                {m.svg}
+              </div>
               <p style={{ fontSize:14, fontWeight:700, color:'var(--text)', margin:'0 0 4px' }}>{m.title}</p>
               <p style={{ fontSize:12, color:'var(--text-secondary)', margin:0, lineHeight:1.5 }}>{m.desc}</p>
             </button>

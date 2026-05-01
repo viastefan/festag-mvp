@@ -3,19 +3,24 @@
 import { useState } from 'react'
 import Link from 'next/link'
 
+/**
+ * Pricing — Apple-clean rebuild. Reference design lives at festag.io.
+ * No purple/violet, no emojis, no playful gradients.
+ * Token-driven so dark/read modes feel native.
+ */
+
 type Plan = {
   id: string
   name: string
   price: number | null
   unit: string
-  category: string  // "DER PERFEKTE EINSTIEG" etc.
+  category: string
   tagline: string
   features: string[]
   cta: string
   highlight?: boolean
   badge?: string
-  color: string
-  guarantee?: string  // e.g. "+ 30 Tage Garantie"
+  guarantee?: string
 }
 
 const PLANS: Plan[] = [
@@ -32,7 +37,6 @@ const PLANS: Plan[] = [
       'E-Mail Support',
     ],
     cta: 'Paket anfragen',
-    color: '#6366f1',
     guarantee: '+ 30 Tage Garantie',
   },
   {
@@ -41,7 +45,7 @@ const PLANS: Plan[] = [
     tagline: 'Für skalierende Startups.',
     features: [
       '1 Entwickler (dediziert)',
-      'Website, App, SaaS Lsg.',
+      'Website, App, SaaS Lösung',
       'Individuelles Figma UI',
       'Festag AI Features +',
       "Dev'ler Direktkontakt",
@@ -52,7 +56,6 @@ const PLANS: Plan[] = [
     cta: 'Paket anfragen',
     highlight: true,
     badge: 'EMPFOHLEN',
-    color: '#8b5cf6',
     guarantee: '+ 3 Monate Garantie',
   },
   {
@@ -71,7 +74,6 @@ const PLANS: Plan[] = [
       'mtl. Full-Service (zubuchbar)',
     ],
     cta: 'Paket anfragen',
-    color: '#0ea5e9',
     guarantee: '+ 3 Monate Garantie',
   },
   {
@@ -90,7 +92,6 @@ const PLANS: Plan[] = [
       'mtl. Full-Service (zubuchbar)',
     ],
     cta: 'Support kontaktieren',
-    color: '#f59e0b',
   },
 ]
 
@@ -101,18 +102,37 @@ const MANAGED = {
   features: ['Hosting + Monitoring', 'Wartung + Updates', 'Bug Fixes inklusive', 'Performance Reports'],
 }
 
+function CheckIco({ size = 14 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="20 6 9 17 4 12"/>
+    </svg>
+  )
+}
+
+function ShieldIco({ size = 14 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+    </svg>
+  )
+}
+
 export default function PricingPage() {
   const [billing, setBilling] = useState<'project'|'managed'>('project')
-  const [oneShot, setOneShot] = useState(true)  // einmalig zahlen toggle
+  const [oneShot, setOneShot] = useState(true)
   const [loadingPlan, setLoadingPlan] = useState<string|null>(null)
   const [error, setError] = useState<string|null>(null)
 
   async function buy(plan: Plan) {
-    if (!plan.price) { window.location.href = 'mailto:hello@festag.io?subject=' + encodeURIComponent(`Anfrage: ${plan.name} Plan`); return }
+    if (!plan.price) {
+      window.location.href = 'mailto:hello@festag.io?subject=' + encodeURIComponent(`Anfrage: ${plan.name} Plan`)
+      return
+    }
     setLoadingPlan(plan.id); setError(null)
     try {
       const res = await fetch('/api/payments/mollie', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        method:'POST', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({
           amount: plan.price,
           description: `Festag ${plan.name} Plan`,
@@ -120,98 +140,104 @@ export default function PricingPage() {
         }),
       })
       const data = await res.json()
-      if (data.checkoutUrl) {
-        window.location.href = data.checkoutUrl
-      } else {
-        setError(data.error ?? 'Payment-Fehler. Bitte WhatsApp/E-Mail nutzen.')
-        setLoadingPlan(null)
-      }
+      if (data.checkoutUrl) window.location.href = data.checkoutUrl
+      else { setError(data.error ?? 'Buchung nicht möglich. Bitte Support kontaktieren.'); setLoadingPlan(null) }
     } catch {
-      setError('Verbindungsfehler. Bitte erneut versuchen oder Support kontaktieren.')
+      setError('Verbindungsfehler. Bitte erneut versuchen.')
       setLoadingPlan(null)
     }
   }
 
   return (
-    <div className="page-content animate-fade-up" style={{ maxWidth:1180, padding:'24px 20px 80px' }}>
+    <div className="page-content animate-fade-up" style={{ maxWidth:1240, padding:'24px 22px 80px' }}>
       <style>{`
-        @keyframes pp-shine { 0%{background-position:0% 50%;} 100%{background-position:100% 50%;} }
-        .pp-card { transition:transform .18s, box-shadow .18s, border-color .18s; }
-        .pp-card:hover { transform:translateY(-3px); box-shadow:0 14px 40px rgba(15,23,42,.08); }
-        .pp-toggle { display:inline-flex; padding:4px; background:var(--surface-2); border-radius:11px; gap:2px; }
-        .pp-toggle button { padding:8px 18px; font-size:13px; font-weight:700; border:none; background:transparent; color:var(--text-muted); border-radius:8px; cursor:pointer; font-family:inherit; transition:all .15s; }
-        .pp-toggle button.on { background:var(--surface); color:var(--text); box-shadow:0 1px 4px rgba(0,0,0,.06); }
-        .pp-cta { width:100%; padding:13px; border-radius:12px; border:none; cursor:pointer; font-family:inherit; font-size:14px; font-weight:700; transition:transform .12s, opacity .15s; display:flex; align-items:center; justify-content:center; gap:7px; }
-        .pp-cta:hover { transform:translateY(-1px); }
-        .pp-cta:active { transform:translateY(0); }
-        @keyframes pp-spin { to { transform: rotate(360deg); } }
+        .pp-card { transition: border-color .2s ease, transform .2s ease; will-change: transform; }
+        .pp-card:hover { transform: translateY(-2px); }
+        .pp-toggle-wrap { display:inline-flex; padding:4px; background:var(--surface-2); border-radius:999px; gap:2px; }
+        .pp-toggle-btn { padding:8px 18px; font-size:13px; font-weight:600; border:none; background:transparent; color:var(--text-muted); border-radius:999px; cursor:pointer; font-family:inherit; transition:color .15s, background .15s; -webkit-tap-highlight-color:transparent; }
+        .pp-toggle-btn.on { background:var(--surface); color:var(--text); box-shadow:0 1px 3px rgba(0,0,0,.05); }
+        .pp-cta {
+          width:100%; padding:13px 18px; border-radius:14px;
+          border:none; cursor:pointer; font-family:inherit;
+          font-size:14px; font-weight:600; letter-spacing:-.1px;
+          transition:opacity .12s, transform .1s; display:flex;
+          align-items:center; justify-content:center; gap:6px;
+          background:var(--btn-prim); color:var(--btn-prim-text);
+          -webkit-tap-highlight-color:transparent;
+        }
+        .pp-cta:hover { opacity:.92; }
+        .pp-cta:active { transform:scale(.985); }
+        .pp-spin { width:14px;height:14px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:pp-rot .7s linear infinite; }
+        @keyframes pp-rot { to { transform: rotate(360deg); } }
+        .pp-radio { width:32px;height:18px;background:var(--text);border-radius:999px;position:relative;flex-shrink:0; }
+        .pp-radio::after { content:''; position:absolute; top:2px; right:2px; width:14px; height:14px; border-radius:50%; background:var(--bg); }
       `}</style>
 
       {/* Header */}
-      <div style={{ textAlign:'center', maxWidth:680, margin:'0 auto 36px' }}>
-        <span style={{ display:'inline-block', padding:'4px 12px', borderRadius:20, background:'rgba(99,102,241,.1)', color:'#6366f1', fontSize:11, fontWeight:700, letterSpacing:'.07em', marginBottom:14 }}>PREISE</span>
-        <h1 style={{ fontSize:38, fontWeight:700, color:'var(--text)', letterSpacing:'-.6px', margin:'0 0 12px', lineHeight:1.1 }}>Wähle deinen Plan.</h1>
-        <p style={{ fontSize:15.5, color:'var(--text-secondary)', margin:0, lineHeight:1.6 }}>
+      <div style={{ textAlign:'center', maxWidth:680, margin:'0 auto 30px' }}>
+        <span style={{ display:'inline-block', padding:'4px 12px', borderRadius:999, background:'var(--surface-2)', color:'var(--text-secondary)', fontSize:11, fontWeight:600, letterSpacing:'.1em', marginBottom:14 }}>PREISE</span>
+        <h1 style={{ fontSize:'clamp(28px, 5vw, 42px)', fontWeight:700, color:'var(--text)', letterSpacing:'-.7px', margin:'0 0 12px', lineHeight:1.08 }}>Wähle deinen Plan.</h1>
+        <p style={{ fontSize:15.5, color:'var(--text-secondary)', margin:0, lineHeight:1.55 }}>
           Transparente Preise. Keine versteckten Kosten. Alle Pläne enthalten Festag AI &amp; Code-Garantie.
         </p>
-
-        <div className="pp-toggle" style={{ marginTop:20 }}>
-          <button className={billing==='project'?'on':''} onClick={() => setBilling('project')}>Projekt-Pakete</button>
-          <button className={billing==='managed'?'on':''} onClick={() => setBilling('managed')}>Managed Service</button>
+        <div className="pp-toggle-wrap" style={{ marginTop:20 }}>
+          <button className={`pp-toggle-btn ${billing==='project'?'on':''}`} onClick={() => setBilling('project')}>Projekt-Pakete</button>
+          <button className={`pp-toggle-btn ${billing==='managed'?'on':''}`} onClick={() => setBilling('managed')}>Managed Service</button>
         </div>
       </div>
 
       {error && (
-        <div style={{ maxWidth:520, margin:'0 auto 22px', padding:'11px 14px', background:'rgba(239,68,68,.08)', border:'1px solid rgba(239,68,68,.2)', borderRadius:10, fontSize:13, color:'#dc2626', textAlign:'center' }}>{error}</div>
+        <div style={{ maxWidth:520, margin:'0 auto 22px', padding:'11px 14px', background:'var(--red-bg)', border:'1px solid rgba(220,70,70,.2)', borderRadius:'var(--r)', fontSize:13, color:'var(--red)', textAlign:'center' }}>{error}</div>
       )}
 
       {/* Plans grid */}
       {billing === 'project' ? (
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(248px, 1fr))', gap:16 }}>
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(248px, 1fr))', gap:14 }}>
           {PLANS.map(plan => (
             <div key={plan.id} className="pp-card" style={{
-              background: plan.highlight ? `linear-gradient(180deg, ${plan.color}10, var(--card))` : 'var(--card)',
-              border: `1px solid ${plan.highlight?plan.color:'var(--border)'}`,
-              borderRadius:18,
-              padding:'22px 22px 22px',
+              background: 'var(--surface)',
+              border: `1px solid ${plan.highlight ? 'var(--text)' : 'var(--border)'}`,
+              borderRadius:20,
+              padding:'24px 22px 22px',
               position:'relative',
-              boxShadow: plan.highlight ? `0 12px 36px ${plan.color}22` : '0 2px 12px rgba(15,23,42,.04)',
-              display:'flex', flexDirection:'column',
+              display:'flex',
+              flexDirection:'column',
             }}>
               {plan.badge && (
-                <span style={{ position:'absolute', top:14, right:14, padding:'3px 10px', borderRadius:14, background:plan.color, color:'#fff', fontSize:9.5, fontWeight:800, letterSpacing:'.08em' }}>{plan.badge}</span>
+                <span style={{ position:'absolute', top:14, right:14, padding:'3px 10px', borderRadius:999, background:'var(--text)', color:'var(--bg)', fontSize:9.5, fontWeight:700, letterSpacing:'.1em' }}>{plan.badge}</span>
               )}
-              <p style={{ fontSize:10.5, fontWeight:800, color:'var(--text-muted)', letterSpacing:'.1em', margin:'0 0 10px' }}>{plan.category}</p>
-              <h3 style={{ fontSize:24, fontWeight:800, color:'var(--text)', margin:'0 0 4px', letterSpacing:'-.5px' }}>{plan.name}</h3>
-              <p style={{ fontSize:12.5, color:'var(--text-muted)', margin:'0 0 14px' }}>{plan.tagline}</p>
+              <p style={{ fontSize:10.5, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.12em', margin:'0 0 12px' }}>{plan.category}</p>
+              <h3 style={{ fontSize:26, fontWeight:700, color:'var(--text)', margin:'0 0 4px', letterSpacing:'-.6px' }}>{plan.name}</h3>
+              <p style={{ fontSize:13, color:'var(--text-muted)', margin:'0 0 16px' }}>{plan.tagline}</p>
 
-              {/* Price + einmalig toggle */}
               <div style={{ marginBottom:16 }}>
                 {plan.price !== null ? (
                   <>
-                    <p style={{ fontSize:24, fontWeight:800, color:'var(--text)', margin:0, lineHeight:1.1, letterSpacing:'-.6px' }}>
-                      <span style={{ fontSize:14, fontWeight:600, color:'var(--text-muted)' }}>{plan.unit} </span>
+                    <p style={{ fontSize:24, fontWeight:700, color:'var(--text)', margin:0, lineHeight:1.1, letterSpacing:'-.7px' }}>
+                      <span style={{ fontSize:14, fontWeight:500, color:'var(--text-muted)' }}>{plan.unit} </span>
                       €{plan.price.toLocaleString('de')}
                     </p>
-                    {oneShot && plan.id !== 'scale' && (
-                      <div style={{ display:'flex', alignItems:'center', gap:8, marginTop:8 }}>
-                        <div style={{ width:30, height:18, background:plan.color, borderRadius:9, position:'relative', flexShrink:0 }}>
-                          <div style={{ position:'absolute', top:2, right:2, width:14, height:14, borderRadius:'50%', background:'#fff' }}/>
-                        </div>
-                        <span style={{ fontSize:12, color:'var(--text-secondary)', fontWeight:600 }}>einmalig zahlen</span>
-                      </div>
+                    {plan.id !== 'scale' && (
+                      <button onClick={() => setOneShot(v => !v)}
+                        style={{ display:'flex', alignItems:'center', gap:9, marginTop:10, padding:0, background:'transparent', border:'none', cursor:'pointer', fontFamily:'inherit' }}>
+                        <span className="pp-radio" style={{ background: oneShot ? 'var(--text)' : 'var(--border-strong)' }}/>
+                        <span style={{ fontSize:12.5, color:'var(--text-secondary)', fontWeight:500 }}>einmalig zahlen</span>
+                      </button>
                     )}
                   </>
                 ) : (
-                  <p style={{ fontSize:20, fontWeight:700, color:'var(--text)', margin:0, lineHeight:1.3 }}>{plan.unit}<br/><span style={{ fontSize:12, fontWeight:500, color:'var(--text-muted)' }}>Zeitraum nach Absprache</span></p>
+                  <>
+                    <p style={{ fontSize:22, fontWeight:700, color:'var(--text)', margin:0, lineHeight:1.2, letterSpacing:'-.5px' }}>Individuell</p>
+                    <p style={{ fontSize:12.5, color:'var(--text-muted)', margin:'4px 0 0' }}>Zeitraum nach Absprache</p>
+                  </>
                 )}
               </div>
 
-              <ul style={{ listStyle:'none', padding:0, margin:'0 0 16px', display:'flex', flexDirection:'column', gap:9, flex:1 }}>
+              <ul style={{ listStyle:'none', padding:0, margin:'0 0 16px', display:'flex', flexDirection:'column', gap:10, flex:1 }}>
                 {plan.features.map(f => (
-                  <li key={f} style={{ display:'flex', alignItems:'flex-start', gap:9, fontSize:13, color:'var(--text-secondary)', lineHeight:1.45 }}>
-                    <span style={{ width:17, height:17, borderRadius:'50%', background:`${plan.color}18`, color:plan.color, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, marginTop:1 }}>
-                      <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  <li key={f} style={{ display:'flex', alignItems:'flex-start', gap:9, fontSize:13.5, color:'var(--text-secondary)', lineHeight:1.45 }}>
+                    <span style={{ width:18, height:18, borderRadius:'50%', background:'var(--surface-2)', color:'var(--text)', display:'inline-flex', alignItems:'center', justifyContent:'center', flexShrink:0, marginTop:1 }}>
+                      <CheckIco size={9}/>
                     </span>
                     {f}
                   </li>
@@ -219,70 +245,59 @@ export default function PricingPage() {
               </ul>
 
               {plan.guarantee && (
-                <div style={{ display:'flex', alignItems:'center', gap:9, padding:'10px 12px', marginBottom:12, background:`${plan.color}10`, borderRadius:10, border:`1px solid ${plan.color}26` }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={plan.color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink:0 }}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                  <div>
-                    <p style={{ fontSize:12, fontWeight:800, color:plan.color, margin:0, lineHeight:1.2 }}>{plan.guarantee}</p>
-                    <p style={{ fontSize:10, color:'var(--text-muted)', margin:'1px 0 0' }}>Volle Absicherung</p>
+                <div style={{ display:'flex', alignItems:'center', gap:10, padding:'11px 13px', marginBottom:12, background:'var(--surface-2)', borderRadius:14, border:'1px solid var(--border)' }}>
+                  <span style={{ width:30, height:30, borderRadius:'50%', background:'var(--bg)', display:'flex', alignItems:'center', justifyContent:'center', color:'var(--text)', flexShrink:0 }}>
+                    <ShieldIco size={14}/>
+                  </span>
+                  <div style={{ minWidth:0 }}>
+                    <p style={{ fontSize:12.5, fontWeight:700, color:'var(--text)', margin:0, lineHeight:1.2 }}>{plan.guarantee}</p>
+                    <p style={{ fontSize:10.5, color:'var(--text-muted)', margin:'1px 0 0' }}>Volle Absicherung</p>
                   </div>
                 </div>
               )}
 
-              <button onClick={() => buy(plan)} disabled={loadingPlan===plan.id} className="pp-cta" style={{
-                background: plan.highlight ? plan.color : 'var(--btn-prim)',
-                color: plan.highlight ? '#fff' : 'var(--btn-prim-text)',
-                opacity: loadingPlan === plan.id ? .7 : 1,
-              }}>
-                {loadingPlan === plan.id ? (
-                  <span style={{ width:13, height:13, border:'2px solid rgba(255,255,255,.4)', borderTopColor:'#fff', borderRadius:'50%', animation:'pp-spin .7s linear infinite' }}/>
-                ) : <>{plan.cta}</>}
+              <button onClick={() => buy(plan)} disabled={loadingPlan===plan.id} className="pp-cta">
+                {loadingPlan === plan.id ? <span className="pp-spin"/> : plan.cta}
               </button>
-              <p style={{ fontSize:10.5, color:'var(--text-muted)', margin:'10px 0 0', textAlign:'center' }}>
+              <p style={{ fontSize:10.5, color:'var(--text-muted)', margin:'10px 0 0', textAlign:'center', lineHeight:1.4 }}>
                 **Preise hängen stark vom gewünschten Endprodukt ab.
               </p>
             </div>
           ))}
         </div>
       ) : (
-        <div style={{ maxWidth:480, margin:'0 auto', background:'var(--card)', border:'1px solid var(--border)', borderRadius:18, padding:30, textAlign:'center' }}>
-          <h3 style={{ fontSize:22, fontWeight:700, margin:'0 0 6px' }}>{MANAGED.name}</h3>
+        <div style={{ maxWidth:480, margin:'0 auto', background:'var(--surface)', border:'1px solid var(--border)', borderRadius:20, padding:30, textAlign:'center' }}>
+          <p style={{ fontSize:10.5, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.12em', margin:'0 0 8px' }}>LAUFENDE BETREUUNG</p>
+          <h3 style={{ fontSize:26, fontWeight:700, margin:'0 0 6px', letterSpacing:'-.5px' }}>{MANAGED.name}</h3>
           <p style={{ fontSize:13, color:'var(--text-muted)', margin:'0 0 16px' }}>{MANAGED.tagline}</p>
-          <p style={{ fontSize:32, fontWeight:800, color:'var(--text)', margin:'0 0 6px', letterSpacing:'-.6px' }}>€{MANAGED.price}<span style={{ fontSize:14, color:'var(--text-muted)', fontWeight:600 }}> / Monat ab</span></p>
-          <ul style={{ listStyle:'none', padding:0, margin:'18px 0 22px', display:'flex', flexDirection:'column', gap:7, textAlign:'left' }}>
+          <p style={{ fontSize:30, fontWeight:700, color:'var(--text)', margin:'0 0 6px', letterSpacing:'-.7px' }}>
+            €{MANAGED.price}<span style={{ fontSize:14, color:'var(--text-muted)', fontWeight:500 }}> / Monat ab</span>
+          </p>
+          <ul style={{ listStyle:'none', padding:0, margin:'18px 0 22px', display:'flex', flexDirection:'column', gap:10, textAlign:'left' }}>
             {MANAGED.features.map(f => (
-              <li key={f} style={{ display:'flex', alignItems:'center', gap:8, fontSize:13.5, color:'var(--text-secondary)' }}>
-                <span style={{ width:18, height:18, borderRadius:'50%', background:'rgba(99,102,241,.12)', color:'#6366f1', display:'flex', alignItems:'center', justifyContent:'center' }}>
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+              <li key={f} style={{ display:'flex', alignItems:'center', gap:9, fontSize:13.5, color:'var(--text-secondary)' }}>
+                <span style={{ width:18, height:18, borderRadius:'50%', background:'var(--surface-2)', color:'var(--text)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                  <CheckIco size={9}/>
                 </span>
                 {f}
               </li>
             ))}
           </ul>
-          <a href="mailto:hello@festag.io?subject=Managed%20Service%20Anfrage" className="pp-cta" style={{ background:'#6366f1', color:'#fff', textDecoration:'none' }}>
-            Managed Service anfragen →
+          <a href="mailto:hello@festag.io?subject=Managed%20Service%20Anfrage" className="pp-cta" style={{ textDecoration:'none' }}>
+            Managed Service anfragen
           </a>
         </div>
       )}
 
-      {/* Trust strip */}
-      <div style={{ marginTop:48, padding:'24px 20px', background:'var(--surface)', border:'1px solid var(--border)', borderRadius:16, display:'flex', flexWrap:'wrap', gap:18, justifyContent:'space-around', alignItems:'center' }}>
-        {[
-          { icon:'🇩🇪', t:'Server in Deutschland' },
-          { icon:'🔐', t:'DSGVO-konform' },
-          { icon:'⚡', t:'Direkt buchbar' },
-          { icon:'💳', t:'Mollie · Kreditkarte · SEPA · PayPal' },
-        ].map(b => (
-          <div key={b.t} style={{ display:'flex', alignItems:'center', gap:8 }}>
-            <span style={{ fontSize:18 }}>{b.icon}</span>
-            <span style={{ fontSize:12.5, color:'var(--text-secondary)', fontWeight:600 }}>{b.t}</span>
-          </div>
-        ))}
+      {/* Footer */}
+      <div style={{ marginTop:36, padding:'18px 22px', background:'var(--surface)', border:'1px solid var(--border)', borderRadius:'var(--r-lg)', display:'flex', gap:14, justifyContent:'space-between', alignItems:'center', flexWrap:'wrap' }}>
+        <span style={{ fontSize:12.5, color:'var(--text-secondary)', fontWeight:500 }}>
+          Server in Deutschland · DSGVO-konform · Mollie · SEPA · Kreditkarte · PayPal
+        </span>
+        <Link href="/messages" style={{ fontSize:13, color:'var(--text)', fontWeight:600, textDecoration:'none' }}>
+          Fragen? Schreib Tagro →
+        </Link>
       </div>
-
-      {/* FAQ link */}
-      <p style={{ textAlign:'center', marginTop:32, fontSize:13, color:'var(--text-muted)' }}>
-        Fragen? <Link href="/messages" style={{ color:'#6366f1', fontWeight:700 }}>Schreibe Tagro</Link> oder <a href="mailto:hello@festag.io" style={{ color:'#6366f1', fontWeight:700 }}>direkt an uns</a>.
-      </p>
     </div>
   )
 }

@@ -193,7 +193,7 @@ export default function MessagesPage() {
             Starte ein Projekt um mit Tagro und dem Team zu kommunizieren.
           </p>
           <Link href="/onboarding">
-            <button className="tap-scale" style={{ padding: '10px 22px', background: 'var(--btn-prim)', color: '#FFFFFF', border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+            <button className="tap-scale" style={{ padding: '10px 22px', background: 'var(--btn-prim)', color: 'var(--btn-prim-text)', border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
               Projekt starten →
             </button>
           </Link>
@@ -292,8 +292,8 @@ export default function MessagesPage() {
                     </div>
                   ) : messages.length === 0 ? (
                     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 30, textAlign: 'center', color: 'var(--text-muted)' }}>
-                      <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--surface-2)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
-                        <span style={{ fontSize: 18 }}>✦</span>
+                      <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--surface-2)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12, color: 'var(--text)' }}>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12c0 4.4-4 8-9 8-1.4 0-2.8-.3-4-.8L3 21l1.8-5C4.3 15 4 13.5 4 12c0-4.4 4-8 9-8s9 3.6 9 8z"/></svg>
                       </div>
                       <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)', margin: '0 0 4px' }}>Starte das Gespräch</p>
                       <p style={{ fontSize: 12.5, color: 'var(--text-muted)', margin: 0, maxWidth: 280, lineHeight: 1.55 }}>Stelle Tagro eine Frage zum Projekt — oder hinterlasse eine Nachricht für das Team.</p>
@@ -309,7 +309,7 @@ export default function MessagesPage() {
                     const senderName = isAI ? 'Tagro AI'
                       : isMe ? 'Du'
                       : senderProfile?.first_name ?? senderProfile?.full_name?.split(' ')[0] ?? 'Team'
-                    const senderInitial = isAI ? '✦'
+                    const senderInitial = isAI ? 'T'
                       : senderProfile?.first_name?.charAt(0)?.toUpperCase()
                         ?? senderProfile?.full_name?.charAt(0)?.toUpperCase()
                         ?? (isMe ? (userEmail.charAt(0) || 'U').toUpperCase() : 'T')
@@ -350,7 +350,6 @@ export default function MessagesPage() {
                           </div>
                           <span style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4, padding: '0 4px', display:'flex', alignItems:'center', gap:5 }}>
                             {timeOfDay(m.created_at)}
-                            {isMe && <VerifiedTick size={10}/>}
                           </span>
                         </div>
                         {isMe && (
@@ -363,7 +362,9 @@ export default function MessagesPage() {
                   })}
                   {aiThinking && (
                     <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                      <div style={{ width: 30, height: 30, borderRadius: 9, background: 'var(--text)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFFFFF', fontSize: 12, flexShrink: 0 }}>✦</div>
+                      <div style={{ width: 30, height: 30, borderRadius: 9, background: 'var(--text)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--bg)', flexShrink: 0 }}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v4M12 18v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8"/></svg>
+                      </div>
                       <div style={{ padding: '12px 14px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '4px 16px 16px 16px', display: 'flex', gap: 5 }}>
                         {[0,1,2].map(i => <span key={i} style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--text-muted)', animation: `pulse 1.2s ${i*0.2}s infinite` }} />)}
                       </div>

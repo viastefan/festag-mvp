@@ -153,10 +153,7 @@ export default function ReportsPage() {
       `}</style>
 
       <div className="page-header">
-        <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:6 }}>
-          <span style={{ width:30, height:30, borderRadius:9, background:'linear-gradient(135deg,#6366f1,#8b5cf6)', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontSize:14, fontWeight:800 }}>✦</span>
-          <h1 style={{ margin:0 }}>Statusberichte</h1>
-        </div>
+        <h1 style={{ margin:'0 0 6px' }}>Statusberichte</h1>
         <p>AI-generierte Updates zu deinen Projekten — als Mail versenden, PDF downloaden oder im Team teilen.</p>
       </div>
 
@@ -194,10 +191,10 @@ export default function ReportsPage() {
             </p>
           </div>
           <button onClick={() => generateReport(showProject)} disabled={generating}
-            style={{ padding:'10px 16px', background:'linear-gradient(135deg,#6366f1,#8b5cf6)', color:'#fff', border:'none', borderRadius:10, fontSize:13, fontWeight:700, cursor:'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', gap:7, opacity: generating?.7:1 }}>
+            style={{ padding:'10px 16px', background:'var(--btn-prim)', color:'var(--btn-prim-text)', border:'none', borderRadius:10, fontSize:13, fontWeight:700, cursor:'pointer', fontFamily:'inherit', display:'inline-flex', alignItems:'center', gap:7, opacity: generating?.7:1 }}>
             {generating ? (
-              <><span style={{ width:12, height:12, border:'2px solid rgba(255,255,255,.4)', borderTopColor:'#fff', borderRadius:'50%', animation:'spin .7s linear infinite' }}/> Generiert…</>
-            ) : <><span>✦</span> Neuen Bericht erstellen</>}
+              <><span style={{ width:12, height:12, border:'2px solid currentColor', borderRightColor:'transparent', borderRadius:'50%', animation:'spin .7s linear infinite' }}/> Generiert…</>
+            ) : <>Neuen Bericht erstellen</>}
           </button>
         </div>
       )}
@@ -205,8 +202,10 @@ export default function ReportsPage() {
       {/* Report list */}
       <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
         {visibleReports.length === 0 ? (
-          <div style={{ padding:'42px 22px', background:'var(--surface)', border:'1px dashed var(--border)', borderRadius:14, textAlign:'center' }}>
-            <div style={{ width:46, height:46, borderRadius:'50%', background:'var(--surface-2)', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 12px', fontSize:18 }}>✦</div>
+          <div style={{ padding:'42px 22px', background:'var(--surface)', border:'1px dashed var(--border)', borderRadius:'var(--r-lg)', textAlign:'center' }}>
+            <div style={{ width:46, height:46, borderRadius:14, background:'var(--surface-2)', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 12px', color:'var(--text-secondary)' }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></svg>
+            </div>
             <p style={{ fontSize:14.5, fontWeight:700, color:'var(--text)', margin:'0 0 4px' }}>Noch keine Berichte</p>
             <p style={{ fontSize:12.5, color:'var(--text-muted)', margin:0 }}>Klicke auf "Neuen Bericht erstellen", um Tagro einen Status zusammenfassen zu lassen.</p>
           </div>
@@ -214,11 +213,13 @@ export default function ReportsPage() {
           const proj = projects.find(p => p.id === r.project_id)
           const c = proj ? projectColor(proj.id) : '#6366f1'
           return (
-            <div key={r.id} className="rp-card" style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:14, overflow:'hidden' }}>
-              <div style={{ height:3, background:`linear-gradient(to right,${c},#8b5cf6)` }}/>
+            <div key={r.id} className="rp-card" style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:'var(--r-lg)', overflow:'hidden' }}>
+              <div style={{ height:3, background:c }}/>
               <div style={{ padding:'14px 18px 6px', display:'flex', alignItems:'center', gap:9, flexWrap:'wrap', justifyContent:'space-between' }}>
                 <div style={{ display:'flex', alignItems:'center', gap:9, minWidth:0 }}>
-                  <span style={{ width:24, height:24, borderRadius:7, background:`${c}20`, color:c, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, fontSize:12, fontWeight:700 }}>✦</span>
+                  <span style={{ width:24, height:24, borderRadius:7, background:`${c}20`, color:c, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>
+                  </span>
                   <div style={{ minWidth:0 }}>
                     <p style={{ fontSize:13.5, fontWeight:700, color:'var(--text)', margin:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{proj?.title ?? 'Projekt'}</p>
                     <p style={{ fontSize:10.5, color:'var(--text-muted)', margin:'1px 0 0', letterSpacing:'.05em' }}>
@@ -226,25 +227,18 @@ export default function ReportsPage() {
                     </p>
                   </div>
                 </div>
-                <div style={{ display:'flex', gap:6 }}>
-                  <button onClick={() => emailReport(r)} disabled={emailing===r.id} style={{ padding:'5px 11px', background:'var(--surface-2)', border:'1px solid var(--border)', borderRadius:8, fontSize:11.5, fontWeight:700, color:'var(--text-secondary)', cursor:'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', gap:5 }}>
-                    📧 Mail
-                  </button>
-                  <button onClick={() => downloadPdf(r)} style={{ padding:'5px 11px', background:'var(--surface-2)', border:'1px solid var(--border)', borderRadius:8, fontSize:11.5, fontWeight:700, color:'var(--text-secondary)', cursor:'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', gap:5 }}>
-                    📄 PDF
-                  </button>
+                <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
+                  <button onClick={() => emailReport(r)} disabled={emailing===r.id} style={{ padding:'6px 11px', background:'var(--surface-2)', border:'1px solid var(--border)', borderRadius:9, fontSize:11.5, fontWeight:600, color:'var(--text-secondary)', cursor:'pointer', fontFamily:'inherit' }}>Mail</button>
+                  <button onClick={() => downloadPdf(r)} style={{ padding:'6px 11px', background:'var(--surface-2)', border:'1px solid var(--border)', borderRadius:9, fontSize:11.5, fontWeight:600, color:'var(--text-secondary)', cursor:'pointer', fontFamily:'inherit' }}>PDF</button>
                   <button onClick={() => extractTasks(r)} disabled={extracting === r.id}
                     title="Tagro analysiert den Bericht und schlägt konkrete Tasks vor"
-                    style={{ padding:'5px 11px', background:'rgba(99,102,241,.1)', border:'1px solid rgba(99,102,241,.25)', borderRadius:8, fontSize:11.5, fontWeight:700, color:'#6366f1', cursor:'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', gap:5 }}>
-                    {extracting === r.id ? '…' : '✦ Tasks'}
+                    style={{ padding:'6px 11px', background:'var(--surface-2)', border:'1px solid var(--border)', borderRadius:9, fontSize:11.5, fontWeight:600, color:'var(--text-secondary)', cursor:'pointer', fontFamily:'inherit' }}>
+                    {extracting === r.id ? '…' : 'Tasks erstellen'}
                   </button>
-                  <button onClick={() => { navigator.clipboard.writeText(r.content); }}
-                    title="In Teams / Slack teilen — Inhalt kopiert"
-                    style={{ padding:'5px 11px', background:'var(--surface-2)', border:'1px solid var(--border)', borderRadius:8, fontSize:11.5, fontWeight:700, color:'var(--text-secondary)', cursor:'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', gap:5 }}>
-                    🔗 Teilen
-                  </button>
-                  <Link href={`/project/${r.project_id}`} style={{ padding:'5px 11px', background:c, color:'#fff', borderRadius:8, fontSize:11.5, fontWeight:700, textDecoration:'none', display:'flex', alignItems:'center' }}>
-                    Öffnen →
+                  <button onClick={() => { navigator.clipboard.writeText(r.content); }} title="Inhalt kopiert"
+                    style={{ padding:'6px 11px', background:'var(--surface-2)', border:'1px solid var(--border)', borderRadius:9, fontSize:11.5, fontWeight:600, color:'var(--text-secondary)', cursor:'pointer', fontFamily:'inherit' }}>Teilen</button>
+                  <Link href={`/project/${r.project_id}`} style={{ padding:'6px 11px', background:'var(--btn-prim)', color:'var(--btn-prim-text)', borderRadius:9, fontSize:11.5, fontWeight:600, textDecoration:'none', display:'flex', alignItems:'center' }}>
+                    Öffnen
                   </Link>
                 </div>
               </div>
@@ -252,13 +246,10 @@ export default function ReportsPage() {
                 <ChatMarkdown text={r.content}/>
               </div>
 
-              {/* AI-extracted tasks preview (after clicking "✦ Tasks") */}
+              {/* AI-extracted tasks preview */}
               {extractedTasks[r.id] && (
-                <div style={{ borderTop:'1px solid var(--border)', padding:'14px 18px', background:'linear-gradient(135deg,rgba(99,102,241,.04),rgba(139,92,246,.02))' }}>
-                  <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:10 }}>
-                    <span style={{ width:22, height:22, borderRadius:7, background:'linear-gradient(135deg,#6366f1,#8b5cf6)', color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:800 }}>✦</span>
-                    <p style={{ fontSize:12.5, fontWeight:700, color:'var(--text)', margin:0 }}>Tagro hat {extractedTasks[r.id].length} Tasks vorgeschlagen</p>
-                  </div>
+                <div style={{ borderTop:'1px solid var(--border)', padding:'14px 18px', background:'var(--surface-2)' }}>
+                  <p style={{ fontSize:11, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.07em', margin:'0 0 10px' }}>TAGRO HAT {extractedTasks[r.id].length} TASKS VORGESCHLAGEN</p>
                   <div style={{ display:'flex', flexDirection:'column', gap:7, marginBottom:10 }}>
                     {extractedTasks[r.id].map((t, i) => (
                       <label key={i} style={{ display:'flex', alignItems:'flex-start', gap:9, padding:'9px 12px', background:'var(--surface)', border:'1px solid var(--border)', borderRadius:9, cursor:'pointer' }}>
@@ -277,11 +268,11 @@ export default function ReportsPage() {
                   </div>
                   <div style={{ display:'flex', gap:8 }}>
                     <button onClick={() => commitTasks(r, extractedTasks[r.id])}
-                      style={{ padding:'8px 14px', background:'linear-gradient(135deg,#6366f1,#8b5cf6)', color:'#fff', border:'none', borderRadius:9, fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>
-                      Tasks anlegen →
+                      style={{ padding:'9px 14px', background:'var(--btn-prim)', color:'var(--btn-prim-text)', border:'none', borderRadius:10, fontSize:12.5, fontWeight:600, cursor:'pointer', fontFamily:'inherit' }}>
+                      Tasks anlegen
                     </button>
                     <button onClick={() => setExtractedTasks(prev => { const n = { ...prev }; delete n[r.id]; return n })}
-                      style={{ padding:'8px 14px', background:'transparent', border:'1px solid var(--border)', borderRadius:9, fontSize:12, fontWeight:600, color:'var(--text-secondary)', cursor:'pointer', fontFamily:'inherit' }}>
+                      style={{ padding:'9px 14px', background:'transparent', border:'1px solid var(--border)', borderRadius:10, fontSize:12.5, fontWeight:600, color:'var(--text-secondary)', cursor:'pointer', fontFamily:'inherit' }}>
                       Verwerfen
                     </button>
                   </div>
