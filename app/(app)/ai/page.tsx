@@ -199,8 +199,8 @@ export default function AIPage() {
           {msgs.map((m, i) => (
             <div key={i} className={i === msgs.length - 1 ? 'ai-msg-in' : ''} style={{ display: 'flex', gap: 12, justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
               {m.role === 'ai' && (
-                <div style={{ width: 30, height: 30, borderRadius: 9, background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2 }}>
-                  <span style={{ fontSize: 12, color: 'var(--accent-text)', fontWeight: 700 }}>✦</span>
+                <div style={{ width: 30, height: 30, borderRadius: 9, background: 'var(--text)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2 }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--bg)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8"/></svg>
                 </div>
               )}
               <div style={{ maxWidth: '78%', display: 'flex', flexDirection: 'column', gap: 4, alignItems: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
@@ -209,12 +209,12 @@ export default function AIPage() {
                   borderRadius: m.role === 'ai' ? '4px 16px 16px 16px' : '16px 4px 16px 16px',
                   background: m.role === 'ai' ? 'var(--card)' : 'var(--btn-prim)',
                   border: m.role === 'ai' ? '1px solid var(--border)' : 'none',
-                  color: m.role === 'ai' ? 'var(--text)' : '#FFFFFF',
+                  color: m.role === 'ai' ? 'var(--text)' : 'var(--btn-prim-text)',
                   fontSize: 14, lineHeight: 1.6, wordBreak: 'break-word',
                 }}>
                   {m.role === 'ai'
                     ? <ChatMarkdown text={m.text} />
-                    : <p style={{ margin: 0, whiteSpace: 'pre-wrap', color: '#FFFFFF', fontWeight: 600 }}>{m.text}</p>}
+                    : <p style={{ margin: 0, whiteSpace: 'pre-wrap', color: 'var(--btn-prim-text)', fontWeight: 600 }}>{m.text}</p>}
                 </div>
                 <span style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '.02em' }}>
                   {m.role === 'ai' ? 'Tagro' : 'Du'} · {m.time}
@@ -230,8 +230,8 @@ export default function AIPage() {
 
           {loading && (
             <div className="ai-msg-in" style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-              <div style={{ width: 30, height: 30, borderRadius: 9, background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <span style={{ fontSize: 12, color: 'var(--accent-text)', fontWeight: 700 }}>✦</span>
+              <div style={{ width: 30, height: 30, borderRadius: 9, background: 'var(--text)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--bg)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8"/></svg>
               </div>
               <div style={{ padding: '14px 16px', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '4px 16px 16px 16px', display: 'flex', gap: 5, alignItems: 'center' }}>
                 {[0, 1, 2].map(j => (
@@ -256,9 +256,10 @@ export default function AIPage() {
             ))}
           </div>
 
-          <div className="ai-input-wrap" style={{ display: 'flex', gap: 8, alignItems: 'flex-end', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 14, padding: '8px 10px 8px 14px', transition: 'border-color .15s' }}
-            onFocusCapture={e => (e.currentTarget as HTMLElement).style.borderColor = 'var(--text-muted)'}
-            onBlurCapture={e => (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'}
+          {/* Codex-style input */}
+          <div className="ai-input-wrap" style={{ position: 'relative', background: 'var(--card)', border: '1.5px solid var(--border)', borderRadius: 18, padding: '12px 50px 12px 16px', transition: 'border-color .15s, box-shadow .15s', boxShadow: 'var(--shadow-sm)' }}
+            onFocusCapture={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border-strong)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 0 0 4px var(--glow)' }}
+            onBlurCapture={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'; (e.currentTarget as HTMLElement).style.boxShadow = 'var(--shadow-sm)' }}
           >
             <textarea
               ref={inputRef}
@@ -266,26 +267,26 @@ export default function AIPage() {
               onChange={e => {
                 setInput(e.target.value)
                 e.target.style.height = 'auto'
-                e.target.style.height = Math.min(e.target.scrollHeight, 140) + 'px'
+                e.target.style.height = Math.min(e.target.scrollHeight, 160) + 'px'
               }}
               onKeyDown={handleKey}
-              placeholder="Frage Tagro…"
+              placeholder="Frag Tagro — was soll dein Projekt können?"
               rows={1}
-              style={{ flex: 1, resize: 'none', border: 'none', outline: 'none', background: 'transparent', fontSize: 14, lineHeight: 1.5, color: 'var(--text)', fontFamily: 'inherit', fontWeight: 500, padding: '6px 0', overflowY: 'hidden', minHeight: 22, caretColor: 'var(--green)' }}
+              style={{ width: '100%', resize: 'none', border: 'none', outline: 'none', background: 'transparent', fontSize: 15, lineHeight: 1.55, color: 'var(--text)', fontFamily: 'inherit', fontWeight: 500, padding: 0, overflowY: 'hidden', minHeight: 26, caretColor: 'var(--text)' }}
             />
             <button
               onClick={() => send()}
               disabled={!input.trim() || loading}
               className="tap-scale"
-              style={{ width: 34, height: 34, borderRadius: 10, border: 'none', flexShrink: 0, background: input.trim() && !loading ? 'var(--btn-prim)' : 'var(--surface-2)', color: input.trim() && !loading ? '#FFFFFF' : 'var(--text-muted)', cursor: input.trim() && !loading ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background .15s' }}>
+              style={{ position: 'absolute', right: 10, bottom: 10, width: 36, height: 36, borderRadius: 12, border: 'none', background: input.trim() && !loading ? 'var(--btn-prim)' : 'var(--surface-2)', color: input.trim() && !loading ? 'var(--btn-prim-text)' : 'var(--text-muted)', cursor: input.trim() && !loading ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all .12s' }}>
               {loading
-                ? <span style={{ width: 14, height: 14, border: '2px solid rgba(255,255,255,.3)', borderTopColor: 'currentColor', borderRadius: '50%', animation: 'spin .7s linear infinite' }} />
+                ? <span style={{ width: 14, height: 14, border: '2px solid currentColor', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin .7s linear infinite', opacity: .6 }} />
                 : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M7 17L17 7M9 7h8v8"/></svg>
               }
             </button>
           </div>
-          <p style={{ fontSize: 11, color: 'var(--text-muted)', textAlign: 'center', margin: '8px 0 0', opacity: .55 }}>
-            Enter zum Senden · Shift+Enter für neue Zeile · Tipp: <code style={{ fontFamily: 'ui-monospace,monospace', background: 'var(--surface-2)', padding: '1px 5px', borderRadius: 4 }}>test projekt</code> für Demo
+          <p style={{ fontSize: 10, color: 'var(--text-muted)', textAlign: 'center', margin: '7px 0 0', letterSpacing: '.03em' }}>
+            ⏎ Senden · ⇧⏎ Neue Zeile
           </p>
         </div>
       </div>

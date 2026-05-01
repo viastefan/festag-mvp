@@ -172,7 +172,7 @@ export default function MessagesPage() {
         }
       `}</style>
 
-      <div className="page-header" style={{ padding: '0 4px 12px' }}>
+      <div className="page-header" style={{ padding: '24px 28px 20px' }}>
         <h1 style={{ marginBottom: 4 }}>Nachrichten</h1>
         <p style={{ margin: 0 }}>Projekt-Konversationen mit Tagro &amp; dem Team</p>
       </div>
@@ -333,20 +333,20 @@ export default function MessagesPage() {
                               <span style={{ fontSize:11.5, fontWeight:700, color:'var(--text)' }}>{senderName}</span>
                               {verified && <VerifiedTick animate={animateTick} size={11}/>}
                               {isDev && <span style={{ fontSize:8.5, fontWeight:800, color:'#16a34a', background:'rgba(34,197,94,.12)', padding:'1px 5px', borderRadius:4, letterSpacing:'.05em' }}>DEV</span>}
-                              {isAI && <span style={{ fontSize:8.5, fontWeight:800, color:'#6366f1', background:'rgba(99,102,241,.12)', padding:'1px 5px', borderRadius:4, letterSpacing:'.05em' }}>AI</span>}
+                              {isAI && <span style={{ fontSize:8.5, fontWeight:800, color:'var(--text-muted)', background:'var(--surface-2)', padding:'1px 5px', borderRadius:4, letterSpacing:'.05em' }}>AI</span>}
                             </div>
                           )}
                           <div style={{
                             padding: '10px 14px',
                             borderRadius: isMe ? '16px 4px 16px 16px' : '4px 16px 16px 16px',
-                            background: isMe ? 'var(--btn-prim)' : isAI ? 'linear-gradient(135deg,rgba(99,102,241,.06),var(--surface))' : 'var(--surface)',
-                            color: isMe ? '#FFFFFF' : 'var(--text)',
-                            border: isMe ? 'none' : `1px solid ${isAI?'rgba(99,102,241,.2)':isDev?'rgba(34,197,94,.2)':'var(--border)'}`,
+                            background: isMe ? 'var(--btn-prim)' : 'var(--surface)',
+                            color: isMe ? 'var(--btn-prim-text)' : 'var(--text)',
+                            border: isMe ? 'none' : `1px solid ${isDev?'var(--green-border)':'var(--border)'}`,
                             fontSize: 14, lineHeight: 1.55, wordBreak: 'break-word',
                           }}>
                             {isAI
                               ? <ChatMarkdown text={m.message} />
-                              : <p style={{ margin: 0, whiteSpace: 'pre-wrap', color: isMe ? '#FFFFFF' : 'var(--text)', fontWeight: isMe ? 600 : 500 }}>{m.message}</p>}
+                              : <p style={{ margin: 0, whiteSpace: 'pre-wrap', color: isMe ? 'var(--btn-prim-text)' : 'var(--text)', fontWeight: isMe ? 600 : 500 }}>{m.message}</p>}
                           </div>
                           <span style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4, padding: '0 4px', display:'flex', alignItems:'center', gap:5 }}>
                             {timeOfDay(m.created_at)}
@@ -372,32 +372,34 @@ export default function MessagesPage() {
                   )}
                 </div>
 
-                {/* Input */}
-                <div style={{ padding: '12px 18px 16px', borderTop: '1px solid var(--border)', background: 'var(--surface)', flexShrink: 0 }}>
-                  <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 14, padding: '8px 10px 8px 14px' }}>
+                {/* Codex-style input */}
+                <div style={{ padding: '10px 14px 14px', borderTop: '1px solid var(--border)', background: 'var(--surface)', flexShrink: 0 }}>
+                  <div style={{ position: 'relative', background: 'var(--bg)', border: '1.5px solid var(--border)', borderRadius: 16, padding: '10px 44px 10px 14px', transition: 'border-color .15s, box-shadow .15s' }}
+                    onFocusCapture={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border-strong)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 0 0 3px var(--glow)' }}
+                    onBlurCapture={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'; (e.currentTarget as HTMLElement).style.boxShadow = 'none' }}>
                     <textarea
                       value={input}
                       onChange={e => {
                         setInput(e.target.value)
                         e.target.style.height = 'auto'
-                        e.target.style.height = Math.min(e.target.scrollHeight, 140) + 'px'
+                        e.target.style.height = Math.min(e.target.scrollHeight, 160) + 'px'
                       }}
                       onKeyDown={handleKey}
                       placeholder="Nachricht an Tagro / Team…"
                       rows={1}
-                      style={{ flex: 1, resize: 'none', border: 'none', outline: 'none', background: 'transparent', fontSize: 14, lineHeight: 1.5, color: 'var(--text)', fontFamily: 'inherit', fontWeight: 500, padding: '6px 0', overflowY: 'hidden', minHeight: 22 }}
+                      style={{ width: '100%', resize: 'none', border: 'none', outline: 'none', background: 'transparent', fontSize: 14, lineHeight: 1.6, color: 'var(--text)', fontFamily: 'inherit', fontWeight: 500, padding: 0, overflowY: 'hidden', minHeight: 24, caretColor: 'var(--text)' }}
                     />
                     <button
                       onClick={send}
                       disabled={!input.trim() || aiThinking}
                       className="tap-scale"
-                      style={{ width: 34, height: 34, borderRadius: 10, border: 'none', flexShrink: 0, background: input.trim() && !aiThinking ? 'var(--btn-prim)' : 'var(--surface-2)', color: input.trim() && !aiThinking ? '#FFFFFF' : 'var(--text-muted)', cursor: input.trim() && !aiThinking ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      style={{ position: 'absolute', right: 8, bottom: 8, width: 32, height: 32, borderRadius: 10, border: 'none', background: input.trim() && !aiThinking ? 'var(--btn-prim)' : 'var(--surface-2)', color: input.trim() && !aiThinking ? 'var(--btn-prim-text)' : 'var(--text-muted)', cursor: input.trim() && !aiThinking ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all .12s' }}>
                       {aiThinking
-                        ? <span style={{ width: 13, height: 13, border: '2px solid rgba(255,255,255,.3)', borderTopColor: 'currentColor', borderRadius: '50%', animation: 'spin .7s linear infinite' }} />
+                        ? <span style={{ width: 12, height: 12, border: '2px solid currentColor', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin .7s linear infinite', opacity: .6 }} />
                         : <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M7 17L17 7M9 7h8v8"/></svg>}
                     </button>
                   </div>
-                  <p style={{ fontSize: 10.5, color: 'var(--text-muted)', textAlign: 'center', margin: '7px 0 0', opacity: .6 }}>Enter zum Senden · Shift+Enter für neue Zeile</p>
+                  <p style={{ fontSize: 10, color: 'var(--text-muted)', textAlign: 'center', margin: '5px 0 0', letterSpacing: '.03em' }}>⏎ Senden · ⇧⏎ Neue Zeile</p>
                 </div>
               </>
             )}

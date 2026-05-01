@@ -82,23 +82,25 @@
   --r:12px; --r-xs:8px; --r-sm:10px; --r-md:12px; --r-lg:16px; --r-xl:22px;
 }
 
-/* ── READ — Premium warm paper, final tuned ── */
+/* ── READ — Premium warm paper with neutral buttons ── */
 [data-theme="read"] {
-  --bg:#F7F6F0; --surface:#FDFCF8; --card:#EDEAE2;
-  --border:rgba(0,0,0,0.08); --border-strong:rgba(0,0,0,0.16);
-  --text:#26200F; --text-secondary:#5C4F38; --text-muted:#9C8870;
-  --btn-prim:#26200F; --btn-prim-text:#FDFCF8;
-  --accent:#26200F; --accent-text:#FDFCF8;
-  --inp:#FEFEFE; --inp-border:rgba(0,0,0,0.11); --inp-focus:#FFFFFF; --inp-focus-border:#26200F;
-  --glow:rgba(38,32,15,0.07);
+  --bg:#F6F5EF; --surface:#FDFCF8; --card:#ECEAE3;
+  --border:rgba(0,0,0,0.08); --border-strong:rgba(0,0,0,0.15);
+  --text:#1A1A17; --text-secondary:#54534A; --text-muted:#9A9890;
+  /* Buttons: neutral dark (not warm brown) */
+  --btn-prim:#1A1A17; --btn-prim-text:#FDFCF8;
+  --accent:#1A1A17; --accent-text:#FDFCF8;
+  --inp:#FEFEFE; --inp-border:rgba(0,0,0,0.10); --inp-focus:#FFFFFF; --inp-focus-border:#1A1A17;
+  --glow:rgba(26,26,23,0.06);
   --sidebar-bg:rgba(253,252,248,0.97); --sidebar-border:rgba(0,0,0,0.07);
-  --nav-on:#EDEAE2; --nav-on-text:#26200F; --nav-off-text:#8A7659;
-  --surface-2:#E8E4DB; --green:#3E7A52; --green-bg:rgba(62,122,82,0.10);
-  --green-border:rgba(62,122,82,0.22); --green-dark:#2F6040;
-  --amber:#A87800; --amber-bg:rgba(168,120,0,0.10); --amber-dark:#8C6400;
-  --red:#7A3030; --red-bg:rgba(122,48,48,0.09);
-  --shadow-xs:0 1px 4px rgba(38,32,15,.05); --shadow-sm:0 2px 8px rgba(38,32,15,.07);
-  --shadow:0 4px 20px rgba(38,32,15,.09); --shadow-lg:0 8px 30px rgba(38,32,15,.11);
+  --nav-on:#ECEAE3; --nav-on-text:#1A1A17; --nav-off-text:#82807A;
+  --surface-2:#E5E3DA; --green:#2E7A50; --green-bg:rgba(46,122,80,0.09);
+  --green-border:rgba(46,122,80,0.20); --green-dark:#256040;
+  /* Amber stays but in a warm-neutral tone */
+  --amber:#8A7200; --amber-bg:rgba(138,114,0,0.09); --amber-dark:#6E5B00;
+  --red:#6E2E2E; --red-bg:rgba(110,46,46,0.08);
+  --shadow-xs:0 1px 4px rgba(26,26,23,.05); --shadow-sm:0 2px 8px rgba(26,26,23,.07);
+  --shadow:0 4px 20px rgba(26,26,23,.09); --shadow-lg:0 8px 30px rgba(26,26,23,.11);
   --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
   --r:12px; --r-xs:8px; --r-sm:10px; --r-md:12px; --r-lg:16px; --r-xl:22px;
 }
