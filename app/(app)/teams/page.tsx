@@ -3,286 +3,313 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
-import { projectColor } from '@/components/Sidebar'
 
 /**
- * Festag Teams — expanded hub.
+ * Festag Teams — structured workspace layer.
  *
- * 1. 4 Team Models (Strategic Core / Execution Squad / Agency Ecosystem / Corporate)
- * 2. Your Team — members with live presence dots
- * 3. Live Now — realtime activity via Supabase presence
- * 4. Activity feed
- * 5. Quick invite
+ * Architecture: Team = root container
+ *   Team → Projects → Users (via Membership)
+ *
+ * 4 Scenarios:
+ *   1. Client Team     (Collaboration)
+ *   2. Developer Team  (Execution)
+ *   3. Agency Ecosystem (Multi-Client)
+ *   4. Corporate Integration (Inhouse)
  */
 
-type Member = { id: string; first_name?: string; full_name?: string; avatar_url?: string|null; role?: string; email?: string }
-type Event  = { id: string; created_at: string; type: string; message: string; project_id?: string }
+type Member = {
+  id: string
+  first_name?: string
+  full_name?: string
+  avatar_url?: string | null
+  role?: string
+  email?: string
+}
 
-/* ── SVG icons ── */
-function Ico({ path, size=18, sw=1.75 }: { path: React.ReactNode; size?: number; sw?: number }) {
+/* ── Minimal SVG icon ── */
+function Ico({ path, size = 18, sw = 1.75, color = 'currentColor' }: {
+  path: React.ReactNode; size?: number; sw?: number; color?: string
+}) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round">{path}</svg>
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
+      stroke={color} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round">
+      {path}
+    </svg>
   )
 }
 
 const ICONS = {
-  rocket:  <><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2l5.5-5.5"/><path d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/></>,
-  team:    <><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></>,
-  agency:  <><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></>,
-  enterprise: <><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M7 8h.01M12 8h.01M17 8h.01M7 12h.01M12 12h.01M17 12h.01"/></>,
-  check:   <polyline points="20 6 9 17 4 12"/>,
-  plus:    <><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></>,
-  dot:     <circle cx="12" cy="12" r="3"/>,
-  mail:    <><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></>,
-  chev:    <polyline points="9 18 15 12 9 6"/>,
+  founder:    <><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></>,
+  dev:        <><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></>,
+  agency:     <><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></>,
+  corporate:  <><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M7 8h.01M12 8h.01M17 8h.01M7 12h.01M12 12h.01M17 12h.01"/></>,
+  check:      <polyline points="20 6 9 17 4 12"/>,
+  plus:       <><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></>,
+  lock:       <><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></>,
+  shield:     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>,
+  switch:     <><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></>,
+  mail:       <><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></>,
+  chevron:    <polyline points="9 18 15 12 9 6"/>,
+  user:       <><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></>,
+  eye:        <><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></>,
+  eyeOff:     <><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></>,
+  layers:     <><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></>,
 }
 
-const MODELS = [
+const SCENARIOS = [
   {
-    id: 'core',
-    icon: ICONS.rocket,
-    label: 'FOUNDER & CO-FOUNDER',
-    title: 'Strategic Core',
-    subtitle: 'Maximale Kontrolle für die Führungsebene',
-    desc: 'Founder + Co-Founder + Lead Dev. Beide Partner haben 100 % Einsicht in den AI-Kontext, die Roadmap und die täglichen Progress-Reports — keine Info bleibt im Verborgenen.',
-    who: 'Founder-Duos & Führungsteams',
-    features: [
-      '2 Admin-Badges mit vollem Systemzugriff',
-      'Gemeinsamer AI-Kontext & Roadmap-Sicht',
-      'Budget- & Strategie-Dashboard geteilt',
-      'Tägliche Progress-Reports für beide',
-      'Lead Dev in Execution Layer eingebunden',
+    id: 'client',
+    icon: ICONS.founder,
+    eyebrow: 'COLLABORATION',
+    title: 'Client Team',
+    subtitle: 'Founder & Co-Founder',
+    desc: 'Maximale Kontrolle für die Führungsebene. Beide Partner haben 100 % Einsicht in AI-Kontext, Roadmap und tägliche Progress-Reports.',
+    roles: ['Owner', 'Co-Owner', 'Lead Dev'],
+    visibility: [
+      { label: 'AI-Kontext & Roadmap', granted: true },
+      { label: 'Budget & Strategie-Dashboard', granted: true },
+      { label: 'Tägliche Progress-Reports', granted: true },
+      { label: 'Alle Projekt-Chats', granted: true },
     ],
-    cta: 'Strategic Core starten',
+    badge: null,
+    cta: 'Client Team erstellen',
     ctaHref: '/invite',
-    highlight: false,
+    accent: 'var(--text)',
   },
   {
-    id: 'squad',
-    icon: ICONS.team,
-    label: 'DEV & PARTNER-DEV',
-    title: 'Execution Squad',
-    subtitle: 'Effiziente Code-Produktion ohne Reibung',
-    desc: 'Primärer Dev + externer Dev. Fokus auf technische Dokumentation, Task-Listen und Deployment-Status. Was für die Entwicklung nötig ist, wird geteilt — private Founder-Chats bleiben unsichtbar.',
-    who: 'Dev-Duos & externe Entwickler',
-    features: [
-      'Geteilter Execution Layer: Tasks & Deployment',
-      'Technische Doku für beide sichtbar',
-      'Founder-Strategie-Chats bleiben privat',
-      'Code Reviews & Task-Zerlegung via AI',
-      'Sprint-Board in Echtzeit synchronisiert',
-      'Kein Zugriff auf Budget-Dashboard',
+    id: 'dev',
+    icon: ICONS.dev,
+    eyebrow: 'EXECUTION',
+    title: 'Developer Team',
+    subtitle: 'Lead Dev & Dev-Partner',
+    desc: 'Fokus auf Code-Produktion ohne Reibungsverluste. Tasks, Deployments und Doku geteilt — private Founder-Strategie-Chats bleiben unsichtbar.',
+    roles: ['Lead Developer', 'Developer'],
+    visibility: [
+      { label: 'Tasks & Sprint-Board', granted: true },
+      { label: 'Technische Dokumentation', granted: true },
+      { label: 'Deployment-Status', granted: true },
+      { label: 'Founder-Strategie-Chats', granted: false },
     ],
-    cta: 'Execution Squad einrichten',
-    ctaHref: '/invite',
-    highlight: true,
     badge: 'BELIEBT',
+    cta: 'Developer Team einrichten',
+    ctaHref: '/invite',
+    accent: 'var(--green)',
   },
   {
     id: 'agency',
     icon: ICONS.agency,
-    label: 'MULTI-CLIENT MANAGEMENT',
+    eyebrow: 'MULTI-CLIENT',
     title: 'Agency Ecosystem',
-    subtitle: 'Mandantenfähig & skalierbar',
-    desc: 'Die Agentur verwaltet 50 Teams für 50 Kunden — Kunde A sieht niemals die Projekte von Kunde B. Die AI behält für jedes Team einen eigenen, isolierten Kontext.',
-    who: 'Agenturen & Dienstleister',
-    features: [
-      'Unbegrenzte Client-Workspaces (isoliert)',
-      'Kunde A sieht nie Kunde B — strikte Trennung',
-      'Team-Switcher-UI für Agentur-Inhaber',
-      'Eigener AI-Kontext pro Client-Team',
-      'Agentur-Billing pro Mandant steuerbar',
-      'White-Label Dashboard möglich',
+    subtitle: 'Agentur & Clients (isoliert)',
+    desc: 'Die Agentur verwaltet 50 Teams für 50 Kunden. Jeder Client = ein isolierter Team-Context. Kunde A sieht niemals die Projekte von Kunde B.',
+    roles: ['Agency Admin', 'Agency Manager', 'Client Owner'],
+    visibility: [
+      { label: 'Team-Switcher für Agentur-Admin', granted: true },
+      { label: 'Eigener AI-Kontext pro Client', granted: true },
+      { label: 'Strikte Container-Trennung', granted: true },
+      { label: 'Andere Client-Workspaces', granted: false },
     ],
-    cta: 'Als Agentur einrichten',
+    badge: null,
+    cta: 'Als Agentur starten',
     ctaHref: '/invite',
-    highlight: false,
+    accent: 'var(--amber)',
   },
   {
     id: 'corporate',
-    icon: ICONS.enterprise,
-    label: 'INHOUSE / OUTBOUND',
+    icon: ICONS.corporate,
+    eyebrow: 'INHOUSE / OUTBOUND',
     title: 'Corporate Integration',
-    subtitle: 'Struktur für festangestellte Entwickler',
-    desc: 'Client (Unternehmen) + festangestellter Dev. Der Angestellte erhält dedizierten Dev-Zugang — sieht nur zugewiesene Produkte, keine öffentlichen Marktplätze, keine fremden Projekte.',
-    who: 'KMU, Konzerne & IT-Abteilungen',
-    features: [
-      'Inhouse-Badge: dedizierter Dev-Zugang',
-      'Read-Only für Strategie, Full-Access für Code',
-      'Kein Zugriff auf öffentliche Marktplätze',
-      'Sichtbarkeit auf zugewiesene Projekte begrenzt',
-      'DSGVO-konform, Server in Deutschland',
-      'SLA mit garantierter Uptime',
+    subtitle: 'Unternehmen & Inhouse-Dev',
+    desc: 'Festangestellter Dev erhält dedizierten Zugang — sieht nur zugewiesene Produkte. Read-Only für Strategie, Full-Access für Code.',
+    roles: ['Client (Unternehmen)', 'Employee Dev'],
+    visibility: [
+      { label: 'Zugewiesene Projekte & Code', granted: true },
+      { label: 'Technische Tasks', granted: true },
+      { label: 'Öffentliche Marktplätze', granted: false },
+      { label: 'Strategie-Dashboard', granted: false },
     ],
+    badge: 'ENTERPRISE',
     cta: 'Corporate anfragen',
-    ctaHref: 'mailto:hello@festag.io?subject=Corporate%20Integration%20Anfrage',
-    highlight: false,
+    ctaHref: 'mailto:hello@festag.io?subject=Corporate%20Integration',
+    accent: 'var(--text-muted)',
   },
 ]
 
 export default function TeamsPage() {
   const [members,  setMembers]  = useState<Member[]>([])
-  const [events,   setEvents]   = useState<Event[]>([])
-  const [presence, setPresence] = useState<Record<string,{ name?: string; project?: string }>>({})
-  const [me,       setMe]       = useState<Member|null>(null)
+  const [me,       setMe]       = useState<Member | null>(null)
   const [email,    setEmail]    = useState('')
   const [sent,     setSent]     = useState(false)
   const [loading,  setLoading]  = useState(true)
-  const [model,    setModel]    = useState<string|null>(null)
-  const sb = createClient()
+  const [selected, setSelected] = useState<string | null>(null)
 
   useEffect(() => {
-    let cleanup: (() => void) | null = null
-    ;(async () => {
+    const sb = createClient()
+    sb.auth.getSession().then(async ({ data }) => {
       try {
-        const { data } = await sb.auth.getSession()
-        if (!data.session) { window.location.href='/login'; return }
+        if (!data.session) { window.location.href = '/login'; return }
         const uid = data.session.user.id
 
-        const safe = async (p: any) => { try { return await p } catch { return { data: null } } }
-        const [profRes, tmRes, feedRes] = await Promise.all([
-          safe(sb.from('profiles').select('*').eq('id', uid).single()),
-          safe(sb.from('team_members').select('id,member_id').eq('owner_id', uid)),
-          safe(sb.from('activity_feed').select('*').order('created_at',{ascending:false}).limit(40)),
-        ])
-        const myProf: any = profRes?.data ?? null
-        setMe(myProf)
+        const { data: prof } = await sb
+          .from('profiles').select('*').eq('id', uid).single()
+        const myProf = prof as any
+        setMe(myProf ?? null)
 
-        const memberIds = ((tmRes?.data as any[]) ?? []).map((t:any) => t.member_id).filter(Boolean)
-        let memberProfs: any[] = []
-        if (memberIds.length > 0) {
-          const r = await safe(sb.from('profiles').select('id,first_name,full_name,avatar_url,role,email').in('id', memberIds as string[]))
-          memberProfs = (r?.data as any[]) ?? []
+        const { data: tmRows } = await sb
+          .from('team_members').select('member_id').eq('owner_id', uid)
+        const ids = ((tmRows as any[]) ?? []).map((r: any) => r.member_id).filter(Boolean) as string[]
+
+        if (ids.length > 0) {
+          const { data: profs } = await sb
+            .from('profiles').select('id,first_name,full_name,avatar_url,role,email').in('id', ids)
+          const list: Member[] = (profs as any[]) ?? []
+          if (myProf && !list.find(m => m.id === myProf.id)) list.unshift(myProf as Member)
+          setMembers(list)
+        } else {
+          setMembers(myProf ? [myProf as Member] : [])
         }
-        const list: Member[] = [...memberProfs]
-        if (myProf && !list.find(m => m.id === myProf.id)) list.unshift(myProf)
-        setMembers(list)
-        setEvents((feedRes?.data as any[]) ?? [])
-        setLoading(false)
-
-        try {
-          const ch = sb.channel('festag-team-presence', { config: { presence: { key: uid } } })
-          ch.on('presence', { event: 'sync' }, () => {
-            const state = ch.presenceState() as Record<string, any[]>
-            const next: Record<string, any> = {}
-            for (const [k, arr] of Object.entries(state)) {
-              const last = arr[arr.length-1]
-              if (last) next[k] = { name: last.name, project: last.project }
-            }
-            setPresence(next)
-          })
-          ch.subscribe(async (status) => {
-            if (status === 'SUBSCRIBED') {
-              try {
-                await ch.track({
-                  name: myProf?.first_name ?? myProf?.full_name ?? data.session?.user.email,
-                  project: typeof window !== 'undefined' ? window.location.pathname : '',
-                })
-              } catch {}
-            }
-          })
-          cleanup = () => { try { sb.removeChannel(ch) } catch {} }
-        } catch {}
       } catch (err) {
-        console.error('[teams] effect error', err)
+        console.error('[teams]', err)
+      } finally {
         setLoading(false)
       }
-    })()
-    return () => { if (cleanup) cleanup() }
+    }).catch(() => setLoading(false))
   }, [])
 
   async function invite() {
     if (!email.includes('@')) return
-    const { data: { user } } = await sb.auth.getUser()
-    await (sb.from('team_invites') as any).insert({
-      email: email.trim().toLowerCase(), role: 'collaborator',
-      invited_by: user?.id, status: 'pending', access_mode: 'team',
-    }).catch(() => {})
-    setSent(true); setEmail('')
-    setTimeout(() => setSent(false), 2800)
+    try {
+      const sb = createClient()
+      const { data: { user } } = await sb.auth.getUser()
+      await (sb.from('team_invites') as any).insert({
+        email: email.trim().toLowerCase(),
+        role: 'collaborator',
+        invited_by: user?.id,
+        status: 'pending',
+        access_mode: 'team',
+      })
+    } catch {}
+    setSent(true)
+    setEmail('')
+    setTimeout(() => setSent(false), 3000)
   }
 
-  const onlineCount = Object.keys(presence).length
-
   if (loading) return (
-    <div style={{ padding:60, display:'flex', justifyContent:'center', alignItems:'center' }}>
-      <div style={{ width:22, height:22, border:'2px solid var(--border)', borderTopColor:'var(--text)', borderRadius:'50%', animation:'spin .8s linear infinite' }}/>
+    <div style={{ padding: 60, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+      <div style={{ width: 22, height: 22, border: '2px solid var(--border)', borderTopColor: 'var(--text)', borderRadius: '50%', animation: 'spin .8s linear infinite' }} />
       <style>{`@keyframes spin{to{transform:rotate(360deg);}}`}</style>
     </div>
   )
 
   return (
-    <div className="page-content animate-fade-up" style={{ maxWidth:1180 }}>
+    <div className="page-content animate-fade-up" style={{ maxWidth: 1100 }}>
       <style>{`
-        @keyframes spin{to{transform:rotate(360deg);}}
-        @keyframes tm-pulse { 0%,100%{box-shadow:0 0 0 0 rgba(37,196,122,.45);} 60%{box-shadow:0 0 0 6px rgba(37,196,122,0);} }
-        @keyframes ev-in { from{opacity:0;transform:translateY(5px);} to{opacity:1;transform:none;} }
-        .tm-mc { transition:border-color .15s,transform .15s; cursor:pointer; }
-        .tm-mc:hover { border-color:var(--border-strong)!important; transform:translateY(-2px); }
-        .tm-mc.sel { border-color:var(--text)!important; }
-        .tm-member { transition:transform .12s; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes sc-in { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+        .sc-card { transition: border-color .15s, transform .12s, box-shadow .15s; cursor:pointer; }
+        .sc-card:hover { transform:translateY(-2px); box-shadow:var(--shadow); }
+        .sc-card.active { border-color:var(--text) !important; }
+        .tm-member { transition:transform .1s; }
         .tm-member:hover { transform:translateY(-1px); }
-        .ev-item { animation:ev-in .3s cubic-bezier(.16,1,.3,1) both; }
-        .chk { width:17px;height:17px;border-radius:50%;background:var(--surface-2);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--text);margin-top:1px; }
+        .vis-row { display:flex; align-items:center; gap:8px; padding:5px 0; border-bottom:1px solid var(--border); }
+        .vis-row:last-child { border-bottom:none; }
       `}</style>
 
-      {/* Header */}
+      {/* ── Header ── */}
       <div className="page-header">
         <h1>Teams</h1>
-        <p>Wähle dein Team-Modell und verwalte Collaborators, Live-Status und Aktivität.</p>
+        <p>Strukturierte Workspace-Schicht. Team = Root-Container. Projekte leben in Teams — nicht umgekehrt.</p>
       </div>
 
-      {/* ── SECTION 1: 4 Team Models ── */}
-      <section style={{ marginBottom:32 }}>
-        <p style={{ fontSize:11, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.1em', marginBottom:14 }}>TEAM-MODELL WÄHLEN</p>
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(240px, 1fr))', gap:12 }}>
-          {MODELS.map(m => {
-            const sel = model === m.id
-            return (
-              <div key={m.id} className={`tm-mc${sel?' sel':''}`}
-                onClick={() => setModel(v => v === m.id ? null : m.id)}
-                style={{ background:'var(--surface)', border:`1.5px solid ${sel?'var(--text)':'var(--border)'}`, borderRadius:18, padding:'20px 20px 18px', position:'relative', display:'flex', flexDirection:'column', gap:0 }}>
+      {/* ── Architecture callout ── */}
+      <div style={{ padding: '14px 18px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', marginBottom: 28, display: 'flex', alignItems: 'flex-start', gap: 14 }}>
+        <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2 }}>
+          <Ico path={ICONS.layers} size={16} sw={1.8} />
+        </div>
+        <div>
+          <p style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--text)', margin: '0 0 3px' }}>Kern-Architektur</p>
+          <p style={{ fontSize: 12, color: 'var(--text-secondary)', margin: 0, lineHeight: 1.6 }}>
+            <strong style={{ color: 'var(--text)' }}>Team → Projekte → User</strong> (via Mitgliedschaft) — nicht User → Projekte.&nbsp;
+            Agenturen verwalten <em>mehrere Teams</em>, nicht mehrere Projekte. Jeder Client = ein isolierter Team-Kontext.
+            AI behält pro Team einen eigenständigen Kontext.
+          </p>
+        </div>
+      </div>
 
-                {m.badge && (
-                  <span style={{ position:'absolute', top:14, right:14, padding:'2px 9px', borderRadius:999, background:'var(--text)', color:'var(--bg)', fontSize:9, fontWeight:700, letterSpacing:'.1em' }}>{m.badge}</span>
+      {/* ── 4 Scenarios ── */}
+      <section style={{ marginBottom: 32 }}>
+        <p className="eyebrow" style={{ marginBottom: 14 }}>TEAM-MODELL WÄHLEN</p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: 10 }}>
+          {SCENARIOS.map((sc, idx) => {
+            const active = selected === sc.id
+            return (
+              <div key={sc.id} className={`sc-card${active ? ' active' : ''}`}
+                onClick={() => setSelected(v => v === sc.id ? null : sc.id)}
+                style={{
+                  background: 'var(--surface)',
+                  border: `1.5px solid ${active ? 'var(--text)' : 'var(--border)'}`,
+                  borderRadius: 18,
+                  padding: '20px 20px 18px',
+                  display: 'flex', flexDirection: 'column', gap: 0,
+                  position: 'relative',
+                  animation: `sc-in .3s ${idx * 0.06}s both`,
+                }}>
+
+                {/* Badge */}
+                {sc.badge && (
+                  <span style={{ position: 'absolute', top: 14, right: 14, padding: '2px 8px', borderRadius: 999, background: active ? 'var(--btn-prim)' : 'var(--surface-2)', color: active ? 'var(--btn-prim-text)' : 'var(--text-muted)', fontSize: 9, fontWeight: 700, letterSpacing: '.1em' }}>
+                    {sc.badge}
+                  </span>
                 )}
 
                 {/* Icon */}
-                <div style={{ width:38, height:38, borderRadius:11, background:sel?'var(--text)':'var(--surface-2)', color:sel?'var(--bg)':'var(--text-secondary)', display:'flex', alignItems:'center', justifyContent:'center', marginBottom:12 }}>
-                  <Ico path={m.icon} size={17} sw={1.8} />
+                <div style={{ width: 38, height: 38, borderRadius: 11, background: active ? 'var(--btn-prim)' : 'var(--surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 14, flexShrink: 0 }}>
+                  <Ico path={sc.icon} size={17} sw={1.8} color={active ? 'var(--btn-prim-text)' : 'var(--text-secondary)'} />
                 </div>
 
                 {/* Label + title */}
-                <p style={{ fontSize:9.5, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.1em', margin:'0 0 4px' }}>{m.label}</p>
-                <h3 style={{ fontSize:16, fontWeight:700, margin:'0 0 3px', letterSpacing:'-.3px', color:'var(--text)' }}>{m.title}</h3>
-                <p style={{ fontSize:11.5, color:'var(--text-muted)', margin:'0 0 12px', fontWeight:500 }}>{m.subtitle}</p>
-                <p style={{ fontSize:12.5, color:'var(--text-secondary)', margin:'0 0 14px', lineHeight:1.55, flex:1 }}>{m.desc}</p>
+                <p style={{ fontSize: 9.5, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '.1em', margin: '0 0 3px' }}>{sc.eyebrow}</p>
+                <h3 style={{ fontSize: 16, fontWeight: 700, margin: '0 0 2px', letterSpacing: '-.3px' }}>{sc.title}</h3>
+                <p style={{ fontSize: 11.5, color: 'var(--text-muted)', margin: '0 0 12px', fontWeight: 500 }}>{sc.subtitle}</p>
+                <p style={{ fontSize: 12.5, color: 'var(--text-secondary)', margin: '0 0 16px', lineHeight: 1.55, flex: 1 }}>{sc.desc}</p>
 
-                {/* Features — only show when selected or on desktop expanded view */}
-                <ul style={{ listStyle:'none', padding:0, margin:'0 0 16px', display:'flex', flexDirection:'column', gap:7 }}>
-                  {m.features.map(f => (
-                    <li key={f} style={{ display:'flex', alignItems:'flex-start', gap:8, fontSize:12, color:'var(--text-secondary)', lineHeight:1.45 }}>
-                      <span className="chk"><Ico path={ICONS.check} size={8} sw={2.8} /></span>
-                      {f}
-                    </li>
+                {/* Roles */}
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 14 }}>
+                  {sc.roles.map(r => (
+                    <span key={r} style={{ padding: '3px 8px', borderRadius: 6, background: 'var(--surface-2)', border: '1px solid var(--border)', fontSize: 10.5, fontWeight: 600, color: 'var(--text-secondary)' }}>
+                      {r}
+                    </span>
                   ))}
-                </ul>
+                </div>
 
-                {/* Who */}
-                <p style={{ fontSize:10.5, color:'var(--text-muted)', margin:'0 0 12px', fontStyle:'italic' }}>Für: {m.who}</p>
+                {/* Visibility matrix */}
+                <div style={{ marginBottom: 16 }}>
+                  {sc.visibility.map(v => (
+                    <div key={v.label} className="vis-row">
+                      <div style={{ width: 16, height: 16, borderRadius: '50%', background: v.granted ? 'var(--green-bg)' : 'var(--red-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        {v.granted
+                          ? <Ico path={ICONS.check} size={8} sw={2.8} color="var(--green)" />
+                          : <Ico path={<><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></>} size={7} sw={2.5} color="var(--red)" />
+                        }
+                      </div>
+                      <span style={{ fontSize: 11.5, color: v.granted ? 'var(--text-secondary)' : 'var(--text-muted)', flex: 1, lineHeight: 1.3 }}>{v.label}</span>
+                      {!v.granted && (
+                        <Ico path={ICONS.eyeOff} size={11} sw={1.6} color="var(--text-muted)" />
+                      )}
+                    </div>
+                  ))}
+                </div>
 
                 {/* CTA */}
-                {m.ctaHref.startsWith('mailto') ? (
-                  <a href={m.ctaHref}
-                    style={{ display:'block', padding:'10px 14px', background:sel?'var(--btn-prim)':'var(--surface-2)', color:sel?'var(--btn-prim-text)':'var(--text)', borderRadius:11, fontSize:12.5, fontWeight:700, textAlign:'center', textDecoration:'none', border:`1px solid ${sel?'transparent':'var(--border)'}` }}>
-                    {m.cta}
+                {sc.ctaHref.startsWith('mailto') ? (
+                  <a href={sc.ctaHref} onClick={e => e.stopPropagation()}
+                    style={{ display: 'block', padding: '10px 14px', background: active ? 'var(--btn-prim)' : 'var(--surface-2)', color: active ? 'var(--btn-prim-text)' : 'var(--text)', borderRadius: 11, fontSize: 12.5, fontWeight: 700, textAlign: 'center', textDecoration: 'none', border: `1px solid ${active ? 'transparent' : 'var(--border)'}`, transition: 'background .15s, color .15s' }}>
+                    {sc.cta}
                   </a>
                 ) : (
-                  <Link href={m.ctaHref}
-                    style={{ display:'block', padding:'10px 14px', background:sel?'var(--btn-prim)':'var(--surface-2)', color:sel?'var(--btn-prim-text)':'var(--text)', borderRadius:11, fontSize:12.5, fontWeight:700, textAlign:'center', textDecoration:'none', border:`1px solid ${sel?'transparent':'var(--border)'}` }}
-                    onClick={e => e.stopPropagation()}>
-                    {m.cta}
+                  <Link href={sc.ctaHref} onClick={e => e.stopPropagation()}
+                    style={{ display: 'block', padding: '10px 14px', background: active ? 'var(--btn-prim)' : 'var(--surface-2)', color: active ? 'var(--btn-prim-text)' : 'var(--text)', borderRadius: 11, fontSize: 12.5, fontWeight: 700, textAlign: 'center', textDecoration: 'none', border: `1px solid ${active ? 'transparent' : 'var(--border)'}`, transition: 'background .15s, color .15s' }}>
+                    {sc.cta}
                   </Link>
                 )}
               </div>
@@ -291,146 +318,129 @@ export default function TeamsPage() {
         </div>
       </section>
 
-      {/* ── SECTION 2: Your Team + Activity ── */}
-      <div style={{ display:'grid', gridTemplateColumns:'1fr 320px', gap:14 }} className="grid-cols-2-mobile-1">
+      {/* ── Bottom: Team + Invite ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 12 }} className="grid-cols-2-mobile-1">
 
-        {/* LEFT */}
-        <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
+        {/* Members */}
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', padding: '18px 20px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+            <h3 style={{ margin: 0 }}>Dein Team <span style={{ color: 'var(--text-muted)', fontWeight: 500, fontSize: 13 }}>({members.length})</span></h3>
+            <Link href="/invite" style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: 'var(--text)', fontWeight: 600, textDecoration: 'none', padding: '5px 10px', background: 'var(--surface-2)', borderRadius: 8, border: '1px solid var(--border)' }}>
+              <Ico path={ICONS.plus} size={11} sw={2.2} />
+              Einladen
+            </Link>
+          </div>
 
-          {/* Members */}
-          <div style={{ background:'var(--surface)', border:'1px solid var(--border)', borderRadius:'var(--r-lg)', padding:'18px 20px' }}>
-            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:14 }}>
-              <h3 style={{ margin:0, fontSize:14.5 }}>Dein Team <span style={{ color:'var(--text-muted)', fontWeight:500, fontSize:13 }}>({members.length})</span></h3>
-              {onlineCount > 0 && (
-                <span style={{ display:'flex', alignItems:'center', gap:5, fontSize:11, color:'var(--green)', fontWeight:700 }}>
-                  <span style={{ width:6, height:6, borderRadius:'50%', background:'var(--green)', animation:'tm-pulse 1.8s infinite' }}/>
-                  {onlineCount} online
-                </span>
-              )}
+          {members.length === 0 ? (
+            <div style={{ padding: '32px 20px', textAlign: 'center', opacity: .5 }}>
+              <div style={{ marginBottom: 8 }}>
+                <Ico path={ICONS.user} size={28} sw={1.4} />
+              </div>
+              <p style={{ fontSize: 13, color: 'var(--text-muted)', margin: 0 }}>Noch keine Mitglieder eingeladen.</p>
             </div>
-            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(140px, 1fr))', gap:10 }}>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 8 }}>
               {members.map(m => {
-                const online = !!presence[m.id]
                 const initial = (m.first_name ?? m.full_name ?? '?').charAt(0).toUpperCase()
                 const isMe = m.id === me?.id
                 const roleColor = m.role === 'dev' ? 'var(--green)' : m.role === 'admin' ? 'var(--amber)' : 'var(--text-muted)'
                 const roleBg   = m.role === 'dev' ? 'var(--green-bg)' : m.role === 'admin' ? 'var(--amber-bg)' : 'var(--surface-2)'
+                const roleLabel = m.role === 'dev' ? 'Developer' : m.role === 'admin' ? 'Admin' : 'Client'
                 return (
-                  <div key={m.id} className="tm-member" style={{ position:'relative', display:'flex', flexDirection:'column', alignItems:'center', padding:'14px 10px 12px', background:'var(--card)', border:'1px solid var(--border)', borderRadius:14 }}>
-                    <div style={{ position:'relative' }}>
-                      <div style={{ width:42, height:42, borderRadius:'50%', background:'var(--surface-2)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:15, fontWeight:700, color:'var(--text)', overflow:'hidden', border:'2px solid var(--border)', flexShrink:0 }}>
-                        {m.avatar_url ? <img src={m.avatar_url} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }}/> : initial}
-                      </div>
-                      <div style={{ position:'absolute', bottom:0, right:-2, width:12, height:12, borderRadius:'50%', background:online?'var(--green)':'var(--border-strong)', border:'2.5px solid var(--card)', animation:online?'tm-pulse 1.8s infinite':'none' }}/>
+                  <div key={m.id} className="tm-member" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '16px 12px 14px', background: 'var(--card)', border: `1.5px solid ${isMe ? 'var(--border-strong)' : 'var(--border)'}`, borderRadius: 14 }}>
+                    <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'var(--surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 700, color: 'var(--text)', overflow: 'hidden', border: '2px solid var(--border)', marginBottom: 8, flexShrink: 0 }}>
+                      {m.avatar_url
+                        ? <img src={m.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        : initial}
                     </div>
-                    <p style={{ fontSize:12, fontWeight:700, color:'var(--text)', margin:'8px 0 4px', textAlign:'center', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:'100%' }}>
+                    <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--text)', margin: '0 0 5px', textAlign: 'center', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%' }}>
                       {m.first_name ?? m.full_name?.split(' ')[0] ?? 'Mitglied'}{isMe ? ' ✓' : ''}
                     </p>
-                    {m.role && (
-                      <span style={{ fontSize:9, fontWeight:700, padding:'2px 6px', borderRadius:4, background:roleBg, color:roleColor, letterSpacing:'.06em', textTransform:'uppercase' }}>{m.role}</span>
-                    )}
+                    <span style={{ fontSize: 9.5, fontWeight: 700, padding: '2px 7px', borderRadius: 4, background: roleBg, color: roleColor, letterSpacing: '.06em', textTransform: 'uppercase' }}>
+                      {roleLabel}
+                    </span>
                   </div>
                 )
               })}
-              {/* Add placeholder */}
+
+              {/* Add slot */}
               <div className="tm-member" onClick={() => document.getElementById('tm-invite-input')?.focus()}
-                style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'14px 10px', border:'1.5px dashed var(--border)', borderRadius:14, cursor:'pointer', minHeight:108, gap:6 }}>
-                <div style={{ width:34, height:34, borderRadius:'50%', background:'var(--surface-2)', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '16px 12px', border: '1.5px dashed var(--border)', borderRadius: 14, cursor: 'pointer', minHeight: 112, gap: 6 }}>
+                <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <Ico path={ICONS.plus} size={14} sw={2.2} />
                 </div>
-                <p style={{ fontSize:11, color:'var(--text-muted)', margin:0, fontWeight:600 }}>Einladen</p>
+                <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: 0, fontWeight: 600 }}>Einladen</p>
               </div>
             </div>
-          </div>
+          )}
+        </div>
 
-          {/* Live Now */}
-          <div style={{ background:'var(--surface)', border:'1px solid var(--border)', borderRadius:'var(--r-lg)', padding:'18px 20px' }}>
-            <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:12 }}>
-              <span style={{ width:7, height:7, borderRadius:'50%', background:'var(--green)', animation:'tm-pulse 1.8s infinite' }}/>
-              <h3 style={{ margin:0, fontSize:14.5 }}>Gerade aktiv</h3>
-            </div>
-            {Object.keys(presence).length === 0 ? (
-              <p style={{ fontSize:12.5, color:'var(--text-muted)', margin:0 }}>Niemand online — du bist gerade allein.</p>
-            ) : (
-              <div style={{ display:'flex', flexDirection:'column', gap:7 }}>
-                {Object.entries(presence).map(([key, p]) => (
-                  <div key={key} style={{ display:'flex', alignItems:'center', gap:10, padding:'9px 12px', background:'var(--green-bg)', border:'1px solid var(--green-border)', borderRadius:10 }}>
-                    <div style={{ width:28, height:28, borderRadius:'50%', background:'var(--green)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:12, fontWeight:800, color:'var(--bg)' }}>
-                      {(p.name ?? '?').charAt(0).toUpperCase()}
-                    </div>
-                    <div style={{ flex:1, minWidth:0 }}>
-                      <p style={{ fontSize:12.5, fontWeight:700, color:'var(--text)', margin:0 }}>{p.name ?? 'Mitglied'}</p>
-                      <p style={{ fontSize:10.5, color:'var(--text-muted)', margin:'1px 0 0', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
-                        {p.project || '—'}
-                      </p>
-                    </div>
-                    <span style={{ fontSize:9.5, fontWeight:800, color:'var(--green)', letterSpacing:'.06em' }}>LIVE</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+        {/* Invite + permissions info */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
 
-          {/* Quick Invite */}
-          <div style={{ background:'var(--surface)', border:'1px solid var(--border)', borderRadius:'var(--r-lg)', padding:'18px 20px' }}>
-            <h3 style={{ margin:'0 0 6px', fontSize:14.5 }}>Mitglied einladen</h3>
-            <p style={{ fontSize:12.5, color:'var(--text-secondary)', margin:'0 0 14px', lineHeight:1.5 }}>
-              Schnell-Einladung. Für mehr Optionen (Closed-System, Agentur-Modus) →&nbsp;
-              <Link href="/invite" style={{ color:'var(--text)', fontWeight:700, textDecoration:'underline', textDecorationColor:'var(--border-strong)' }}>Invite Hub</Link>
+          {/* Quick invite */}
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', padding: '18px 20px' }}>
+            <h3 style={{ margin: '0 0 5px' }}>Schnell einladen</h3>
+            <p style={{ fontSize: 12.5, color: 'var(--text-secondary)', margin: '0 0 14px', lineHeight: 1.5 }}>
+              E-Mail eingeben — das System sendet Zugang automatisch.
+              Für vollständige Optionen →&nbsp;
+              <Link href="/invite" style={{ color: 'var(--text)', fontWeight: 700, textDecoration: 'underline', textDecorationColor: 'var(--border-strong)' }}>Invite Hub</Link>
             </p>
+
             {sent ? (
-              <div style={{ display:'flex', alignItems:'center', gap:10, padding:'12px 14px', background:'var(--green-bg)', border:'1px solid var(--green-border)', borderRadius:11 }}>
-                <div style={{ width:28, height:28, borderRadius:'50%', background:'var(--green)', display:'flex', alignItems:'center', justifyContent:'center' }}>
-                  <Ico path={ICONS.check} size={12} sw={2.8} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', background: 'var(--green-bg)', border: '1px solid var(--green-border)', borderRadius: 11 }}>
+                <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--green)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Ico path={ICONS.check} size={12} sw={2.8} color="var(--surface)" />
                 </div>
                 <div>
-                  <p style={{ fontSize:13, fontWeight:700, color:'var(--text)', margin:0 }}>Einladung versendet</p>
-                  <p style={{ fontSize:11, color:'var(--text-muted)', margin:0 }}>Wir prüfen und senden Zugang.</p>
+                  <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', margin: 0 }}>Einladung versendet</p>
+                  <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: 0 }}>Wir prüfen und senden Zugang.</p>
                 </div>
               </div>
             ) : (
-              <div style={{ display:'flex', gap:8 }}>
+              <div style={{ display: 'flex', gap: 8 }}>
                 <input id="tm-invite-input" value={email} onChange={e => setEmail(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && invite()}
                   type="email" placeholder="kollege@firma.com"
-                  style={{ flex:1, padding:'10px 14px', background:'var(--card)', border:'1.5px solid var(--border)', borderRadius:11, fontSize:14, color:'var(--text)', fontFamily:'inherit', outline:'none', boxSizing:'border-box' }}/>
+                  style={{ flex: 1, padding: '10px 14px', background: 'var(--card)', border: '1.5px solid var(--border)', borderRadius: 11, fontSize: 13.5, color: 'var(--text)', fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box' }} />
                 <button onClick={invite} disabled={!email.includes('@')}
-                  style={{ padding:'10px 16px', background:email.includes('@')?'var(--btn-prim)':'var(--surface-2)', color:email.includes('@')?'var(--btn-prim-text)':'var(--text-muted)', border:'none', borderRadius:11, fontSize:13, fontWeight:700, cursor:email.includes('@')?'pointer':'default', fontFamily:'inherit', whiteSpace:'nowrap' }}>
+                  style={{ padding: '10px 16px', background: email.includes('@') ? 'var(--btn-prim)' : 'var(--surface-2)', color: email.includes('@') ? 'var(--btn-prim-text)' : 'var(--text-muted)', border: 'none', borderRadius: 11, fontSize: 13, fontWeight: 700, cursor: email.includes('@') ? 'pointer' : 'default', fontFamily: 'inherit', whiteSpace: 'nowrap', transition: 'background .15s, color .15s' }}>
                   Senden
                 </button>
               </div>
             )}
           </div>
-        </div>
 
-        {/* RIGHT: Activity */}
-        <div style={{ background:'var(--surface)', border:'1px solid var(--border)', borderRadius:'var(--r-lg)', padding:'18px 20px', display:'flex', flexDirection:'column' }}>
-          <h3 style={{ margin:'0 0 14px', fontSize:14.5 }}>Aktivität</h3>
-          {events.length === 0 ? (
-            <div style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:10, padding:'24px 0', opacity:.6 }}>
-              <Ico path={<><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></>} size={32} sw={1.4} />
-              <p style={{ fontSize:12.5, color:'var(--text-muted)', margin:0, textAlign:'center' }}>Noch keine Events</p>
+          {/* Permission principle */}
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', padding: '18px 20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+              <div style={{ width: 28, height: 28, borderRadius: 8, background: 'var(--surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <Ico path={ICONS.shield} size={13} sw={1.8} />
+              </div>
+              <h3 style={{ margin: 0, fontSize: 13.5 }}>Berechtigungs-Prinzip</h3>
             </div>
-          ) : (
-            <div style={{ display:'flex', flexDirection:'column', gap:10, overflowY:'auto', flex:1 }}>
-              {events.map((e, i) => {
-                const c = e.project_id ? projectColor(e.project_id) : 'var(--text-muted)'
-                return (
-                  <div key={e.id} className="ev-item" style={{ display:'flex', gap:9, animationDelay:`${Math.min(i,8)*0.035}s` }}>
-                    <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:0, flexShrink:0, paddingTop:5 }}>
-                      <span style={{ width:7, height:7, borderRadius:'50%', background:c }}/>
-                      {i < events.length-1 && <span style={{ width:1, flex:1, background:'var(--border)', marginTop:4, minHeight:10 }}/>}
-                    </div>
-                    <div style={{ flex:1, minWidth:0, paddingBottom:10 }}>
-                      <p style={{ fontSize:12.5, color:'var(--text)', margin:0, lineHeight:1.5 }}>{e.message}</p>
-                      <p style={{ fontSize:10, color:'var(--text-muted)', margin:'2px 0 0', letterSpacing:'.04em', textTransform:'uppercase' }}>
-                        {new Date(e.created_at).toLocaleString('de',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})} · {e.type.replace(/_/g,' ')}
-                      </p>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          )}
+            {[
+              { role: 'Owner', desc: 'Vollzugriff: Strategie, Budget, AI, Chats' },
+              { role: 'Lead Developer', desc: 'Execution Layer + Code-Reviews, kein Budget' },
+              { role: 'Developer', desc: 'Tasks & eigene Projekte — kein Strategie-Zugriff' },
+              { role: 'Agency Admin', desc: 'Team-Switcher + alle eigenen Clients' },
+              { role: 'Employee Dev', desc: 'Read-Only Strategie, Full-Access Code' },
+            ].map(r => (
+              <div key={r.role} style={{ padding: '8px 0', borderBottom: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <p style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--text)', margin: 0 }}>{r.role}</p>
+                <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: 0, lineHeight: 1.4 }}>{r.desc}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Scale info */}
+          <div style={{ padding: '14px 16px', background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+            <Ico path={ICONS.switch} size={16} sw={1.8} color="var(--text-muted)" />
+            <p style={{ fontSize: 11.5, color: 'var(--text-secondary)', margin: 0, lineHeight: 1.55 }}>
+              <strong style={{ color: 'var(--text)', display: 'block', marginBottom: 2 }}>Team Switcher</strong>
+              Ein User kann beliebig vielen Teams angehören. Agenturen schalten mit einem Klick zwischen 10–100 Client-Contexts — ohne Account-Wechsel.
+            </p>
+          </div>
         </div>
       </div>
     </div>
