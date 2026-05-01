@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import LoadingScreen from '@/components/LoadingScreen'
-import { projectColor } from '@/components/Sidebar'
 
 type Project  = { id: string; title: string; description: string | null; status: string; created_at: string }
 type Task     = { id: string; title: string; status: string; priority?: string; project_id: string; updated_at?: string }
@@ -12,10 +11,10 @@ type Activity = { id: string; type: string; message: string; created_at: string;
 
 const PHASE: Record<string, { label: string; pct: number; color: string }> = {
   intake:   { label: 'Intake',        pct: 10,  color: 'var(--text-muted)' },
-  planning: { label: 'Planning',      pct: 28,  color: '#f59e0b' },
-  active:   { label: 'In Arbeit',     pct: 62,  color: '#22c55e' },
-  testing:  { label: 'Testing',       pct: 85,  color: '#0ea5e9' },
-  done:     { label: 'Abgeschlossen', pct: 100, color: 'var(--text-muted)' },
+  planning: { label: 'Planung',       pct: 28,  color: 'var(--text-secondary)' },
+  active:   { label: 'In Arbeit',     pct: 62,  color: 'var(--green)' },
+  testing:  { label: 'Testing',       pct: 85,  color: 'var(--text-secondary)' },
+  done:     { label: 'Abgeschlossen', pct: 100, color: 'var(--green)' },
 }
 
 const MILESTONES = [
@@ -225,9 +224,9 @@ export default function DashboardPage() {
         <>
           {/* ── Metric cards row ── */}
           <div className="dash-metrics animate-fade-up-1" style={{ marginBottom:14 }}>
-            <MetricCard label="Fortschritt" value={`${completePct}%`} sub={phase.label} trend={completePct>50?'+aktiv':undefined} color="#22c55e"/>
-            <MetricCard label="Tasks offen" value={todo} sub={`${inProgress} in Arbeit`} color="#f59e0b"/>
-            <MetricCard label="Erledigt" value={done} sub={`von ${tasks.length} gesamt`} trend={done>0?`${completePct}%`:undefined} color="#22c55e"/>
+            <MetricCard label="Fortschritt" value={`${completePct}%`} sub={phase.label} trend={completePct>0?`${done}/${tasks.length} Tasks`:undefined} color="var(--green)"/>
+            <MetricCard label="Offen" value={todo} sub={`${inProgress} in Arbeit`} color="var(--text-secondary)"/>
+            <MetricCard label="Erledigt" value={done} sub={`von ${tasks.length} gesamt`} color="var(--green)"/>
             <MetricCard label="Projekte" value={projects.length} sub={`${allTasks.length} Tasks total`} color="var(--text)"/>
           </div>
 
@@ -237,12 +236,12 @@ export default function DashboardPage() {
 
               {/* ── Main project card ── */}
               <div className="animate-fade-up-1" style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:20, overflow:'hidden' }}>
-                {/* Color bar */}
-                <div style={{ height:3, background:`linear-gradient(to right, ${projectColor(main.id)}, ${phase.color})` }}/>
+                {/* Clean top accent — single pixel, green only when active */}
+                <div style={{ height:2, background: main.status === 'active' || main.status === 'done' ? 'var(--green)' : 'var(--border)' }}/>
                 <div style={{ padding:'18px 24px', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:16 }}>
                   <div style={{ flex:1, minWidth:0, display:'flex', alignItems:'flex-start', gap:12 }}>
-                    <div style={{ width:36, height:36, borderRadius:10, background:`${projectColor(main.id)}20`, border:`1.5px solid ${projectColor(main.id)}40`, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, marginTop:2 }}>
-                      <span style={{ fontSize:15, fontWeight:700, color:projectColor(main.id) }}>{main.title.charAt(0)}</span>
+                    <div style={{ width:36, height:36, borderRadius:10, background:'var(--surface-2)', border:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, marginTop:2 }}>
+                      <span style={{ fontSize:15, fontWeight:700, color:'var(--text)' }}>{main.title.charAt(0)}</span>
                     </div>
                     <div style={{ flex:1, minWidth:0 }}>
                       <p style={{ fontSize:10, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.1em', textTransform:'uppercase', margin:'0 0 3px' }}>Aktuelles Projekt</p>
@@ -250,8 +249,8 @@ export default function DashboardPage() {
                       {main.description && <p style={{ fontSize:12, color:'var(--text-muted)', margin:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{main.description}</p>}
                     </div>
                   </div>
-                  <span style={{ height:26, padding:'0 10px', borderRadius:8, fontSize:11, fontWeight:700, flexShrink:0, color:main.status==='active'?'#16a34a':main.status==='done'?'var(--text-muted)':'#d97706', background:main.status==='active'?'rgba(34,197,94,.1)':main.status==='done'?'var(--surface-2)':'rgba(245,158,11,.1)', border:`1px solid ${main.status==='active'?'rgba(34,197,94,.2)':main.status==='done'?'var(--border)':'rgba(245,158,11,.2)'}`, display:'inline-flex', alignItems:'center', gap:5 }}>
-                    {main.status==='active' && <span style={{ width:4, height:4, borderRadius:'50%', background:'#22c55e', animation:'pulse 2s infinite' }}/>}
+                  <span style={{ height:26, padding:'0 10px', borderRadius:8, fontSize:11, fontWeight:700, flexShrink:0, color: main.status==='active'?'var(--green-dark)': main.status==='done'?'var(--text-muted)':'var(--text-secondary)', background: main.status==='active'?'var(--green-bg)':'var(--surface-2)', border:'1px solid var(--border)', display:'inline-flex', alignItems:'center', gap:5 }}>
+                    {main.status==='active' && <span style={{ width:5, height:5, borderRadius:'50%', background:'var(--green)', animation:'pulse 2s infinite' }}/>}
                     {phase.label}
                   </span>
                 </div>
@@ -263,9 +262,9 @@ export default function DashboardPage() {
                     <span style={{ fontSize:13, fontWeight:700, color:phase.color }}>{phase.pct}%</span>
                   </div>
                   <div style={{ position:'relative', height:7, background:'var(--surface-2)', borderRadius:7, overflow:'visible', marginBottom:22 }}>
-                    <div className="dash-bar" style={{ height:'100%', width:`${phase.pct}%`, background:`linear-gradient(to right, ${projectColor(main.id)}, ${phase.color})`, borderRadius:7, position:'relative', zIndex:1 }}/>
+                    <div className="dash-bar" style={{ height:'100%', width:`${phase.pct}%`, background:'var(--green)', borderRadius:7, position:'relative', zIndex:1 }}/>
                     {MILESTONES.map(ms => (
-                      <div key={ms.label} style={{ position:'absolute', top:'50%', left:`${ms.pct}%`, transform:'translate(-50%,-50%)', width:11, height:11, borderRadius:'50%', background:phase.pct>=ms.pct?phase.color:'var(--surface-2)', border:`2.5px solid ${phase.pct>=ms.pct?phase.color:'var(--border-strong)'}`, zIndex:2, transition:'background .3s' }}/>
+                      <div key={ms.label} style={{ position:'absolute', top:'50%', left:`${ms.pct}%`, transform:'translate(-50%,-50%)', width:10, height:10, borderRadius:'50%', background:phase.pct>=ms.pct?'var(--green)':'var(--surface)', border:`2px solid ${phase.pct>=ms.pct?'var(--green)':'var(--border-strong)'}`, zIndex:2, transition:'background .3s' }}/>
                     ))}
                   </div>
                   <div style={{ display:'flex', justifyContent:'space-between' }}>
@@ -279,8 +278,8 @@ export default function DashboardPage() {
                 <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', borderBottom:'1px solid var(--border)' }}>
                   {[
                     { l:'TASKS',     v:tasks.length,  c:'var(--text)' },
-                    { l:'IN ARBEIT', v:inProgress,    c:inProgress>0?'#d97706':'var(--text)' },
-                    { l:'ERLEDIGT',  v:done,           c:done>0?'#16a34a':'var(--text)' },
+                    { l:'IN ARBEIT', v:inProgress,    c:inProgress>0?'var(--amber-dark)':'var(--text-muted)' },
+                    { l:'ERLEDIGT',  v:done,           c:done>0?'var(--green-dark)':'var(--text-muted)' },
                     { l:'OFFEN',     v:todo,           c:'var(--text)' },
                   ].map((s,i) => (
                     <div key={i} style={{ padding:'13px 18px', borderRight:i<3?'1px solid var(--border)':'none' }}>
@@ -324,7 +323,7 @@ export default function DashboardPage() {
                   </div>
                   {activeTasks.slice(0, 7).map((t, i, arr) => (
                     <div key={t.id} style={{ padding:'10px 24px', borderBottom:i<arr.length-1?'1px solid var(--border)':'none', display:'flex', alignItems:'center', gap:12 }}>
-                      <span style={{ width:7, height:7, borderRadius:'50%', flexShrink:0, background:t.status==='doing'?'#22c55e':t.priority==='critical'?'#ef4444':'var(--border-strong)' }}/>
+                      <span style={{ width:6, height:6, borderRadius:'50%', flexShrink:0, background:t.status==='doing'?'var(--green)':t.priority==='critical'?'var(--red)':'var(--border-strong)' }}/>
                       <span style={{ fontSize:13, color:'var(--text)', flex:1, minWidth:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{t.title}</span>
                       <div style={{ display:'flex', alignItems:'center', gap:6, flexShrink:0 }}>
                         {t.priority === 'critical' && <span style={{ fontSize:9, fontWeight:700, color:'#dc2626', background:'rgba(239,68,68,.1)', padding:'2px 6px', borderRadius:4, letterSpacing:'.05em' }}>KRITISCH</span>}
@@ -366,17 +365,16 @@ export default function DashboardPage() {
                       const pt  = allTasks.filter(t => t.project_id===proj.id)
                       const pd  = pt.filter(t => t.status==='done').length
                       const pct = pt.length ? Math.round(pd/pt.length*100) : ph.pct
-                      const col = projectColor(proj.id)
                       return (
                         <Link key={proj.id} href={`/project/${proj.id}`} style={{ textDecoration:'none' }}>
                           <div className="proj-row-card" style={{ display:'flex', alignItems:'center', gap:12, padding:'10px 12px', borderRadius:12, cursor:'pointer', background:proj.id===main.id?'var(--surface-2)':'transparent', marginBottom:2 }}>
-                            <div style={{ width:30, height:30, borderRadius:8, background:`${col}18`, border:`1.5px solid ${col}35`, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                              <span style={{ fontSize:12, fontWeight:700, color:col }}>{proj.title.charAt(0)}</span>
+                            <div style={{ width:30, height:30, borderRadius:8, background:'var(--surface-2)', border:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                              <span style={{ fontSize:12, fontWeight:700, color:'var(--text-secondary)' }}>{proj.title.charAt(0)}</span>
                             </div>
                             <div style={{ flex:1, minWidth:0 }}>
                               <p style={{ fontSize:13, fontWeight:600, color:'var(--text)', margin:'0 0 4px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{proj.title}</p>
-                              <div style={{ height:4, background:'var(--surface-2)', borderRadius:4, overflow:'hidden' }}>
-                                <div style={{ height:'100%', width:`${pct}%`, background:col, borderRadius:4, transition:'width .6s ease' }}/>
+                              <div style={{ height:3, background:'var(--surface-2)', borderRadius:4, overflow:'hidden' }}>
+                                <div style={{ height:'100%', width:`${pct}%`, background:'var(--green)', borderRadius:4, transition:'width .6s ease' }}/>
                               </div>
                             </div>
                             <div style={{ flexShrink:0, display:'flex', flexDirection:'column', alignItems:'flex-end', gap:3 }}>

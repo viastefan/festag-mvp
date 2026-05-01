@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 
@@ -136,12 +137,17 @@ const SCENARIOS = [
 ]
 
 export default function TeamsPage() {
-  const [members,  setMembers]  = useState<Member[]>([])
-  const [me,       setMe]       = useState<Member | null>(null)
-  const [email,    setEmail]    = useState('')
-  const [sent,     setSent]     = useState(false)
-  const [loading,  setLoading]  = useState(true)
-  const [selected, setSelected] = useState<string | null>(null)
+  const [members,     setMembers]     = useState<Member[]>([])
+  const [me,          setMe]          = useState<Member | null>(null)
+  const [loading,     setLoading]     = useState(true)
+  const [selected,    setSelected]    = useState<string | null>(null)
+  const [inviteOpen,  setInviteOpen]  = useState(false)
+  const [invEmail,    setInvEmail]    = useState('')
+  const [invRole,     setInvRole]     = useState('collaborator')
+  const [invSent,     setInvSent]     = useState(false)
+  const [invSending,  setInvSending]  = useState(false)
+  const [mounted,     setMounted]     = useState(false)
+  useEffect(() => setMounted(true), [])
 
   useEffect(() => {
     const sb = createClient()
@@ -176,23 +182,111 @@ export default function TeamsPage() {
     }).catch(() => setLoading(false))
   }, [])
 
-  async function invite() {
-    if (!email.includes('@')) return
+  async function sendInvite() {
+    if (!invEmail.includes('@')) return
+    setInvSending(true)
     try {
       const sb = createClient()
       const { data: { user } } = await sb.auth.getUser()
       await (sb.from('team_invites') as any).insert({
-        email: email.trim().toLowerCase(),
-        role: 'collaborator',
+        email: invEmail.trim().toLowerCase(),
+        role: invRole,
         invited_by: user?.id,
         status: 'pending',
         access_mode: 'team',
       })
-    } catch {}
-    setSent(true)
-    setEmail('')
-    setTimeout(() => setSent(false), 3000)
+      setInvSent(true)
+      setInvEmail('')
+      setTimeout(() => { setInvSent(false); setInviteOpen(false) }, 2500)
+    } catch (e) {
+      console.error(e)
+    }
+    setInvSending(false)
   }
+
+  /* ── Invite Modal ── */
+  const InviteModal = mounted ? createPortal(
+    <div style={{ position:'fixed', inset:0, zIndex:9999, display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}
+      onClick={e => { if (e.target === e.currentTarget) setInviteOpen(false) }}>
+      {/* Backdrop */}
+      <div style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.55)', backdropFilter:'blur(8px)', WebkitBackdropFilter:'blur(8px)' }}
+        onClick={() => setInviteOpen(false)}/>
+
+      {/* Panel */}
+      <div style={{ position:'relative', width:'100%', maxWidth:460, background:'var(--surface)', border:'1px solid var(--border)', borderRadius:20, boxShadow:'0 32px 80px rgba(0,0,0,0.28)', overflow:'hidden', animation:'inv-pop .22s cubic-bezier(.16,1,.3,1) both' }}>
+        <style>{`@keyframes inv-pop { from{opacity:0;transform:scale(.96) translateY(8px);} to{opacity:1;transform:none;} }`}</style>
+
+        {/* Header */}
+        <div style={{ padding:'22px 24px 18px', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:12 }}>
+          <div>
+            <h2 style={{ margin:'0 0 4px', fontSize:18, fontWeight:700 }}>Mitglied einladen</h2>
+            <p style={{ margin:0, fontSize:13, color:'var(--text-muted)' }}>Zugang wird nach Prüfung freigeschaltet.</p>
+          </div>
+          <button onClick={() => setInviteOpen(false)} style={{ width:32, height:32, borderRadius:9, border:'1px solid var(--border)', background:'transparent', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:'var(--text-muted)', flexShrink:0 }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+
+        {/* Body */}
+        <div style={{ padding:'22px 24px 24px' }}>
+          {invSent ? (
+            <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:14, padding:'24px 0', textAlign:'center' }}>
+              <div style={{ width:52, height:52, borderRadius:'50%', background:'var(--green-bg)', border:'1px solid var(--green-border)', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--green)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
+              <div>
+                <p style={{ fontSize:15, fontWeight:700, color:'var(--text)', margin:'0 0 4px' }}>Einladung gesendet</p>
+                <p style={{ fontSize:13, color:'var(--text-muted)', margin:0 }}>Wir prüfen und senden den Zugang direkt zu.</p>
+              </div>
+            </div>
+          ) : (
+            <>
+              {/* Email */}
+              <div style={{ marginBottom:16 }}>
+                <label style={{ display:'block', fontSize:11.5, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.06em', marginBottom:7, textTransform:'uppercase' }}>E-Mail-Adresse</label>
+                <input
+                  value={invEmail} onChange={e => setInvEmail(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && sendInvite()}
+                  type="email" placeholder="name@firma.com" autoFocus
+                  style={{ width:'100%', padding:'11px 14px', background:'var(--bg)', border:'1.5px solid var(--border)', borderRadius:12, fontSize:14, color:'var(--text)', fontFamily:'inherit', outline:'none', boxSizing:'border-box', transition:'border-color .15s' }}
+                  onFocus={e => (e.target.style.borderColor = 'var(--border-strong)')}
+                  onBlur={e => (e.target.style.borderColor = 'var(--border)')}
+                />
+              </div>
+
+              {/* Role */}
+              <div style={{ marginBottom:22 }}>
+                <label style={{ display:'block', fontSize:11.5, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.06em', marginBottom:7, textTransform:'uppercase' }}>Rolle</label>
+                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
+                  {[
+                    { id:'collaborator', label:'Client / Collaborator', desc:'Strategische Sicht, Kommentare' },
+                    { id:'dev',          label:'Developer',              desc:'Execution Layer, Tasks, Code' },
+                  ].map(r => (
+                    <button key={r.id} onClick={() => setInvRole(r.id)}
+                      style={{ padding:'10px 12px', borderRadius:11, border:`1.5px solid ${invRole===r.id?'var(--text)':'var(--border)'}`, background:invRole===r.id?'var(--surface-2)':'transparent', cursor:'pointer', textAlign:'left', fontFamily:'inherit', transition:'border-color .12s, background .12s' }}>
+                      <p style={{ fontSize:12.5, fontWeight:700, color:'var(--text)', margin:'0 0 2px' }}>{r.label}</p>
+                      <p style={{ fontSize:11, color:'var(--text-muted)', margin:0, lineHeight:1.4 }}>{r.desc}</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* CTA */}
+              <button onClick={sendInvite} disabled={!invEmail.includes('@') || invSending}
+                style={{ width:'100%', padding:'13px', background: invEmail.includes('@') ? 'var(--btn-prim)' : 'var(--surface-2)', color: invEmail.includes('@') ? 'var(--btn-prim-text)' : 'var(--text-muted)', border:'none', borderRadius:12, fontSize:14, fontWeight:700, cursor: invEmail.includes('@') ? 'pointer' : 'default', fontFamily:'inherit', display:'flex', alignItems:'center', justifyContent:'center', gap:8, transition:'background .15s, color .15s' }}>
+                {invSending
+                  ? <><span style={{ width:14, height:14, border:'2px solid transparent', borderTopColor:'currentColor', borderRadius:'50%', animation:'spin .7s linear infinite', display:'inline-block' }}/>Wird gesendet…</>
+                  : 'Einladung senden →'
+                }
+                <style>{`@keyframes spin{to{transform:rotate(360deg);}}`}</style>
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+    </div>,
+    document.body
+  ) : null
 
   if (loading) return (
     <div style={{ padding: 60, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
@@ -203,6 +297,7 @@ export default function TeamsPage() {
 
   return (
     <div className="page-content animate-fade-up" style={{ maxWidth: 1100 }}>
+      {inviteOpen && InviteModal}
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes sc-in { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
@@ -325,10 +420,10 @@ export default function TeamsPage() {
         <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', padding: '18px 20px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
             <h3 style={{ margin: 0 }}>Dein Team <span style={{ color: 'var(--text-muted)', fontWeight: 500, fontSize: 13 }}>({members.length})</span></h3>
-            <Link href="/invite" style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: 'var(--text)', fontWeight: 600, textDecoration: 'none', padding: '5px 10px', background: 'var(--surface-2)', borderRadius: 8, border: '1px solid var(--border)' }}>
-              <Ico path={ICONS.plus} size={11} sw={2.2} />
+            <button onClick={() => setInviteOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: 'var(--text)', fontWeight: 700, padding: '6px 12px', background: 'var(--btn-prim)', color: 'var(--btn-prim-text)', border: 'none', borderRadius: 9, cursor: 'pointer', fontFamily: 'inherit' }}>
+              <Ico path={ICONS.plus} size={11} sw={2.4} color="var(--btn-prim-text)" />
               Einladen
-            </Link>
+            </button>
           </div>
 
           {members.length === 0 ? (
@@ -378,37 +473,17 @@ export default function TeamsPage() {
         {/* Invite + permissions info */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
 
-          {/* Quick invite */}
+          {/* Quick invite — opens modal */}
           <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', padding: '18px 20px' }}>
-            <h3 style={{ margin: '0 0 5px' }}>Schnell einladen</h3>
+            <h3 style={{ margin: '0 0 5px' }}>Team erweitern</h3>
             <p style={{ fontSize: 12.5, color: 'var(--text-secondary)', margin: '0 0 14px', lineHeight: 1.5 }}>
-              E-Mail eingeben — das System sendet Zugang automatisch.
-              Für vollständige Optionen →&nbsp;
-              <Link href="/invite" style={{ color: 'var(--text)', fontWeight: 700, textDecoration: 'underline', textDecorationColor: 'var(--border-strong)' }}>Invite Hub</Link>
+              Founder, Developer oder Agency-Client einladen. Zugang wird nach Prüfung aktiviert.
             </p>
-
-            {sent ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', background: 'var(--green-bg)', border: '1px solid var(--green-border)', borderRadius: 11 }}>
-                <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--green)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <Ico path={ICONS.check} size={12} sw={2.8} color="var(--surface)" />
-                </div>
-                <div>
-                  <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', margin: 0 }}>Einladung versendet</p>
-                  <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: 0 }}>Wir prüfen und senden Zugang.</p>
-                </div>
-              </div>
-            ) : (
-              <div style={{ display: 'flex', gap: 8 }}>
-                <input id="tm-invite-input" value={email} onChange={e => setEmail(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && invite()}
-                  type="email" placeholder="kollege@firma.com"
-                  style={{ flex: 1, padding: '10px 14px', background: 'var(--card)', border: '1.5px solid var(--border)', borderRadius: 11, fontSize: 13.5, color: 'var(--text)', fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box' }} />
-                <button onClick={invite} disabled={!email.includes('@')}
-                  style={{ padding: '10px 16px', background: email.includes('@') ? 'var(--btn-prim)' : 'var(--surface-2)', color: email.includes('@') ? 'var(--btn-prim-text)' : 'var(--text-muted)', border: 'none', borderRadius: 11, fontSize: 13, fontWeight: 700, cursor: email.includes('@') ? 'pointer' : 'default', fontFamily: 'inherit', whiteSpace: 'nowrap', transition: 'background .15s, color .15s' }}>
-                  Senden
-                </button>
-              </div>
-            )}
+            <button onClick={() => setInviteOpen(true)}
+              style={{ width: '100%', padding: '11px', background: 'var(--btn-prim)', color: 'var(--btn-prim-text)', border: 'none', borderRadius: 11, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
+              <Ico path={ICONS.plus} size={13} sw={2.4} color="var(--btn-prim-text)" />
+              Mitglied einladen
+            </button>
           </div>
 
           {/* Permission principle */}
