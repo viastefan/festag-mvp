@@ -208,20 +208,10 @@ export default function Sidebar() {
       <aside className="sidebar" style={{ pointerEvents:'none' }}>
         <div className="sidebar-inner" style={{ pointerEvents:'all', padding:'16px 10px 18px', display:'flex', flexDirection:'column', height:'100%' }}>
 
-          {/* Logo (mit by Enjyn darunter) + Support-Button */}
-          <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', padding:'0 8px', marginBottom:18, gap:8 }}>
-            <Link href="/dashboard" style={{ textDecoration:'none', display:'flex', flexDirection:'column', alignItems:'flex-start', gap:3, lineHeight:1 }} title="festag — by Enjyn®">
+          {/* Logo + Support-Button */}
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 8px', marginBottom:18, gap:8 }}>
+            <Link href="/dashboard" style={{ textDecoration:'none', display:'flex', alignItems:'center' }}>
               <img src="/brand/logo.svg" alt="festag" style={{ height:18, display:'block', filter:'var(--logo-filter,none)' }}/>
-              <span style={{
-                fontSize:8, fontWeight:600, color:'var(--text-muted)',
-                letterSpacing:'.18em', textTransform:'uppercase',
-                whiteSpace:'nowrap', opacity:.55,
-                display:'inline-flex', alignItems:'baseline', gap:2,
-              }}>
-                <span style={{ fontWeight:500 }}>by</span>
-                <span>Enjyn</span>
-                <sup style={{ fontSize:5, opacity:.7, marginLeft:1, top:'-.5em', position:'relative' }}>®</sup>
-              </span>
             </Link>
             <SupportButton />
           </div>
@@ -287,31 +277,51 @@ export default function Sidebar() {
             <NavSection label="Konto" items={ACCOUNT_NAV} />
           </div>
 
-          {/* User block */}
-          <div style={{ borderTop:'1px solid var(--border)', paddingTop:12, paddingBottom:6, marginTop:8 }}>
-            <Link href="/settings" style={{ textDecoration:'none' }}>
-              <div className="usr-row"
-                style={{ display:'flex', alignItems:'center', gap:9, padding:'7px 9px', borderRadius:10, cursor:'pointer', transition:'background .1s' }}>
+          {/* User block — als Karte mit integriertem Logout */}
+          <div style={{ borderTop:'1px solid var(--border)', paddingTop:12, marginTop:8 }}>
+            <div style={{
+              background:'var(--surface-2)', border:'1px solid var(--border)',
+              borderRadius:12, padding:'9px 10px',
+              display:'flex', alignItems:'center', gap:10,
+            }}>
+              <Link href="/settings" style={{ textDecoration:'none', display:'flex', alignItems:'center', gap:9, flex:1, minWidth:0 }}>
                 {avatar ? (
-                  <img src={avatar} alt="" style={{ width:28, height:28, borderRadius:'50%', objectFit:'cover', border:'2px solid var(--border)', flexShrink:0 }}/>
+                  <img src={avatar} alt="" style={{ width:30, height:30, borderRadius:'50%', objectFit:'cover', border:'1.5px solid var(--border)', flexShrink:0 }}/>
                 ) : (
-                  <div style={{ width:28, height:28, borderRadius:'50%', background:'var(--accent)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:12, fontWeight:700, color:'var(--accent-text)', flexShrink:0 }}>{init}</div>
+                  <div style={{ width:30, height:30, borderRadius:'50%', background:'var(--accent)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:12, fontWeight:700, color:'var(--accent-text)', flexShrink:0 }}>{init}</div>
                 )}
                 <div style={{ flex:1, minWidth:0 }}>
-                  <p style={{ fontSize:12.5, fontWeight:700, color:'var(--text)', margin:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{name}</p>
-                  <div style={{ display:'flex', alignItems:'center', gap:4, marginTop:2 }}>
-                    <span style={{ fontSize:9, fontWeight:700, padding:'1px 5px', borderRadius:4, background:`${ROLE_COLOR[role]}20`, color:ROLE_COLOR[role], letterSpacing:'.05em' }}>{ROLE_LABEL[role] ?? 'Client'}</span>
-                  </div>
+                  <p style={{ fontSize:12.5, fontWeight:700, color:'var(--text)', margin:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', lineHeight:1.2 }}>{name}</p>
+                  <p style={{ fontSize:10, fontWeight:600, color:'var(--text-muted)', margin:'2px 0 0', letterSpacing:'.04em', textTransform:'uppercase' }}>{ROLE_LABEL[role] ?? 'Client'}</p>
                 </div>
-              </div>
-            </Link>
-            <button onClick={logout}
-              style={{ width:'100%', padding:'7px 9px', textAlign:'left', border:'none', background:'transparent', cursor:'pointer', fontSize:11.5, color:'var(--text-muted)', borderRadius:9, marginTop:4, fontFamily:'inherit', display:'flex', alignItems:'center', gap:6, transition:'color .1s' }}
-              onMouseEnter={e => (e.currentTarget.style.color='var(--text)')}
-              onMouseLeave={e => (e.currentTarget.style.color='var(--text-muted)')}>
-              <Ico name="logout" sz={12} c="currentColor" sw={2} />
-              Abmelden
-            </button>
+              </Link>
+              <button onClick={logout} title="Abmelden" aria-label="Abmelden"
+                style={{
+                  width:28, height:28, borderRadius:8, border:'1px solid var(--border)',
+                  background:'var(--surface)', cursor:'pointer',
+                  display:'flex', alignItems:'center', justifyContent:'center',
+                  color:'var(--text-muted)', flexShrink:0, transition:'color .12s, background .12s',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.color='var(--text)'; e.currentTarget.style.background='var(--bg)' }}
+                onMouseLeave={e => { e.currentTarget.style.color='var(--text-muted)'; e.currentTarget.style.background='var(--surface)' }}>
+                <Ico name="logout" sz={13} c="currentColor" sw={1.9} />
+              </button>
+            </div>
+
+            {/* Legal-Links */}
+            <div style={{ padding:'10px 4px 4px', display:'flex', flexWrap:'wrap', gap:'4px 8px', justifyContent:'center' }}>
+              {[
+                { href:'/impressum',   label:'Impressum' },
+                { href:'/datenschutz', label:'Datenschutz' },
+                { href:'/agb',         label:'AGB' },
+                { href:'/widerruf',    label:'Widerruf' },
+              ].map(l => (
+                <Link key={l.href} href={l.href}
+                  style={{ fontSize:9.5, color:'var(--text-muted)', textDecoration:'none', opacity:.7, letterSpacing:'.02em' }}>
+                  {l.label}
+                </Link>
+              ))}
+            </div>
           </div>
         </div>
       </aside>
