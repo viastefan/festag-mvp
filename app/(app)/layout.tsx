@@ -7,6 +7,7 @@ import Sidebar from '@/components/Sidebar'
 import AppHeader from '@/components/AppHeader'
 import CopilotPanel from '@/components/CopilotPanel'
 import SupportWidget from '@/components/SupportWidget'
+import FeedbackWidget from '@/components/FeedbackWidget'
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [checking,    setChecking]    = useState(true)
@@ -48,6 +49,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
       <CopilotPanel open={copilotOpen} onClose={() => setCopilotOpen(false)} />
       <SupportWidget />
+      <FeedbackWidget />
     </div>
   )
 }

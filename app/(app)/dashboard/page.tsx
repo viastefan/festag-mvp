@@ -11,7 +11,7 @@ type Task     = { id: string; title: string; status: string; priority?: string; 
 type Activity = { id: string; type: string; message: string; created_at: string; project_id?: string }
 
 const PHASE: Record<string, { label: string; pct: number; color: string }> = {
-  intake:   { label: 'Intake',        pct: 10,  color: '#6366f1' },
+  intake:   { label: 'Intake',        pct: 10,  color: 'var(--text-muted)' },
   planning: { label: 'Planning',      pct: 28,  color: '#f59e0b' },
   active:   { label: 'In Arbeit',     pct: 62,  color: '#22c55e' },
   testing:  { label: 'Testing',       pct: 85,  color: '#0ea5e9' },
@@ -228,7 +228,7 @@ export default function DashboardPage() {
             <MetricCard label="Fortschritt" value={`${completePct}%`} sub={phase.label} trend={completePct>50?'+aktiv':undefined} color="#22c55e"/>
             <MetricCard label="Tasks offen" value={todo} sub={`${inProgress} in Arbeit`} color="#f59e0b"/>
             <MetricCard label="Erledigt" value={done} sub={`von ${tasks.length} gesamt`} trend={done>0?`${completePct}%`:undefined} color="#22c55e"/>
-            <MetricCard label="Projekte" value={projects.length} sub={`${allTasks.length} Tasks total`} color="#6366f1"/>
+            <MetricCard label="Projekte" value={projects.length} sub={`${allTasks.length} Tasks total`} color="var(--text)"/>
           </div>
 
           <div className="dash-layout">

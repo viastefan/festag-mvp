@@ -17,7 +17,7 @@ type Msg = { id: string; message: string; created_at: string; sender_id: string;
 
 const PHASES = ['intake','planning','active','testing','done']
 const PHASE_LABEL: Record<string,string> = { intake:'Intake', planning:'Planning', active:'Development', testing:'Testing', done:'Delivered' }
-const PHASE_COLOR: Record<string,string> = { intake:'#6366f1', planning:'#f59e0b', active:'#22c55e', testing:'#0ea5e9', done:'var(--text-muted)' }
+const PHASE_COLOR: Record<string,string> = { intake:'var(--text-muted)', planning:'#f59e0b', active:'#22c55e', testing:'#0ea5e9', done:'var(--border-strong)' }
 const PRIORITY_COLOR: Record<string,string> = { critical:'#ef4444', high:'#f97316', medium:'#f59e0b', low:'#22c55e' }
 
 export default function ProjectPage() {

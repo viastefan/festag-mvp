@@ -490,14 +490,16 @@ export default function OnboardingPage() {
               mode="standard"
               onModeChange={() => {}}
               banner={
-                <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginTop:11, padding:'10px 14px', background:'linear-gradient(135deg,rgba(99,102,241,.06),rgba(168,85,247,.05))', border:'1px solid rgba(99,102,241,.14)', borderRadius:12 }}>
+                <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginTop:11, padding:'10px 14px', background:'var(--surface-2)', border:'1px solid var(--border)', borderRadius:12 }}>
                   <div style={{ display:'flex', alignItems:'center', gap:9, minWidth:0 }}>
-                    <div style={{ width:24, height:24, borderRadius:7, background:'linear-gradient(135deg,#6366f1,#8b5cf6)', color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:700, flexShrink:0 }}>✦</div>
+                    <div style={{ width:24, height:24, borderRadius:7, background:'var(--text)', color:'var(--bg)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8"/></svg>
+                    </div>
                     <p style={{ fontSize:12, color:'var(--text-secondary)', margin:0, lineHeight:1.45 }}>
-                      <strong style={{ color:'var(--text)' }}>Tagro AI</strong> versteht jede Idee. Tipp: schreibe <code style={{ fontFamily:'ui-monospace,monospace', background:'var(--surface-2)', padding:'1px 5px', borderRadius:4, fontSize:10.5 }}>test projekt</code> für eine Demo.
+                      <strong style={{ color:'var(--text)' }}>Tagro AI</strong> versteht jede Idee. Tipp: schreibe <code style={{ fontFamily:'ui-monospace,monospace', background:'var(--surface)', padding:'1px 5px', borderRadius:4, fontSize:10.5 }}>test projekt</code> für eine Demo.
                     </p>
                   </div>
-                  <button onClick={() => setMode('manual')} style={{ flexShrink:0, marginLeft:8, padding:'5px 11px', background:'#6366f1', color:'#fff', fontSize:11, fontWeight:700, border:'none', borderRadius:7, cursor:'pointer', fontFamily:'inherit' }}>
+                  <button onClick={() => setMode('manual')} style={{ flexShrink:0, marginLeft:8, padding:'5px 11px', background:'var(--btn-prim)', color:'var(--btn-prim-text)', fontSize:11, fontWeight:700, border:'none', borderRadius:7, cursor:'pointer', fontFamily:'inherit' }}>
                     Lieber Formular?
                   </button>
                 </div>

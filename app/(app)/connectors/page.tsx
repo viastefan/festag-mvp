@@ -65,7 +65,7 @@ const CONNECTORS: Connector[] = [
 
   { id:'webhook', name:'Custom Webhook', category:'Eigene',
     description:'Eigene URL — Festag postet alle Events als JSON.',
-    iconBg:'#6366f1', iconText:'#fff',
+    iconBg:'var(--surface-2)', iconText:'var(--text)',
     authMode:'webhook', docs:'/docs/webhooks' },
 ]
 
@@ -229,7 +229,7 @@ export default function ConnectorsPage() {
                 <label style={{ fontSize:11, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.07em', display:'block', marginBottom:6 }}>API TOKEN</label>
                 <input type="password" value={token} onChange={e => setToken(e.target.value)} placeholder={`Token aus ${opened.name}`}
                   style={{ width:'100%', padding:'11px 13px', background:'var(--bg)', border:'1.5px solid var(--border)', borderRadius:10, fontSize:13, color:'var(--text)', fontFamily:'ui-monospace,monospace', outline:'none', boxSizing:'border-box' }}/>
-                <a href={opened.docs} target="_blank" rel="noopener" style={{ fontSize:11.5, color:'#6366f1', fontWeight:600, marginTop:6, display:'inline-block' }}>Wo finde ich meinen Token? ↗</a>
+                <a href={opened.docs} target="_blank" rel="noopener" style={{ fontSize:11.5, color:'var(--text)', fontWeight:600, marginTop:6, display:'inline-block', textDecoration:'underline', textDecorationColor:'var(--border-strong)' }}>Wo finde ich meinen Token? ↗</a>
               </div>
             )}
 

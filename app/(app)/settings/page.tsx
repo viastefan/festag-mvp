@@ -561,8 +561,8 @@ export default function SettingsPage() {
                 {skillsSaving ? 'Speichert…' : skillsSaved === 'ok' ? '✓ Gespeichert' : skillsSaved === 'err' ? 'Fehler' : 'Skills speichern'}
               </button>
 
-              <div style={{ marginTop:14, padding:'12px 14px', background:'rgba(99,102,241,.06)', border:'1px solid rgba(99,102,241,.18)', borderRadius:10 }}>
-                <p style={{ fontSize:11, fontWeight:800, color:'#6366f1', letterSpacing:'.07em', margin:'0 0 4px' }}>TAGRO MATCHING</p>
+              <div style={{ marginTop:14, padding:'12px 14px', background:'var(--surface-2)', border:'1px solid var(--border)', borderRadius:10 }}>
+                <p style={{ fontSize:11, fontWeight:800, color:'var(--text-muted)', letterSpacing:'.07em', margin:'0 0 4px' }}>TAGRO MATCHING</p>
                 <p style={{ fontSize:12.5, color:'var(--text-secondary)', margin:0, lineHeight:1.55 }}>
                   Mit deinem Profil matched Tagro AI Projekte automatisch nach Stack-Fit, Verfügbarkeit und Stundensatz. Das Match wird im Pool-Modus angezeigt.
                 </p>

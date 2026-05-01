@@ -154,7 +154,7 @@ export default function DevHome() {
     company: 'Du verwaltest deine eigenen Clients in Festag Teams.',
   }
   const MODE_COLOR: Record<AccessMode, string> = {
-    pool: '#6366f1',
+    pool: 'var(--text)',
     closed: '#22c55e',
     company: '#f59e0b',
   }
@@ -209,7 +209,7 @@ export default function DevHome() {
           { label: 'OFFEN',      value: stats.pending },
           { label: 'ERLEDIGT',   value: stats.completed },
           ...(accessMode === 'pool' ? [{ label: 'NEUE JOBS', value: stats.jobs, color: '#D97706', bg: 'var(--amber-bg)' }] : []),
-          { label: 'HEUTE',      value: fmtMin(stats.todayMin), color: '#6366f1' },
+          { label: 'HEUTE',      value: fmtMin(stats.todayMin), color: 'var(--text)' },
           { label: 'WOCHE',      value: fmtMin(stats.weekMin) },
         ].map(s => (
           <div key={s.label} style={{ background: s.bg ?? 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r)', padding: '14px 16px' }}>

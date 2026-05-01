@@ -211,7 +211,7 @@ export default function ReportsPage() {
           </div>
         ) : visibleReports.map(r => {
           const proj = projects.find(p => p.id === r.project_id)
-          const c = proj ? projectColor(proj.id) : '#6366f1'
+          const c = proj ? projectColor(proj.id) : 'var(--text-muted)'
           return (
             <div key={r.id} className="rp-card" style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:'var(--r-lg)', overflow:'hidden' }}>
               <div style={{ height:3, background:c }}/>

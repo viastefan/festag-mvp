@@ -141,7 +141,7 @@ export default function InvitePage() {
           <p style={{ fontSize:14, color:'var(--text-secondary)', margin:'0 0 22px', lineHeight:1.6 }}>
             Tagro AI analysiert dein Projekt und schlägt aus unserem Pool den passenden Developer vor. Du siehst die Match-Animation in Echtzeit.
           </p>
-          <button onClick={() => setShowMatch(true)} style={{ padding:'13px 28px', background:'linear-gradient(135deg,#6366f1,#8b5cf6)', color:'#fff', border:'none', borderRadius:11, fontSize:14, fontWeight:700, cursor:'pointer', fontFamily:'inherit', boxShadow:'0 8px 24px rgba(99,102,241,.3)' }}>
+          <button onClick={() => setShowMatch(true)} style={{ padding:'13px 28px', background:'var(--btn-prim)', color:'var(--btn-prim-text)', border:'none', borderRadius:11, fontSize:14, fontWeight:700, cursor:'pointer', fontFamily:'inherit', boxShadow:'var(--shadow)' }}>
             🎯 Match starten — Demo
           </button>
         </div>
