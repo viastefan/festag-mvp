@@ -71,16 +71,21 @@ const ACCOUNT_NAV: NavItem[] = [
 const MOB_PRIMARY: NavItem[] = [
   { href:'/dashboard',       icon:'home',    label:'Home' },
   { href:'/project/current', icon:'project', label:'Projekt' },
+  // center FAB slot
   { href:'/ai',              icon:'sparkle', label:'AI' },
-  { href:'/messages',        icon:'chat',    label:'Chat' },
   { href:'/settings',        icon:'user',    label:'Profil' },
 ]
-const MOB_MORE: NavItem[] = [
-  { href:'/estimator', icon:'estimate', label:'Preisschätzer' },
-  { href:'/addons',    icon:'grid',     label:'Add-ons' },
-  { href:'/activity',  icon:'activity', label:'Aktivität' },
-  { href:'/billing',   icon:'card',     label:'Abrechnung' },
-  { href:'/documents', icon:'doc',      label:'Dokumente' },
+
+// Quick actions in the FAB pop-up menu
+const MOB_QUICK = [
+  { href:'/new-project', icon:'plus',     label:'Neues Projekt',   primary: true },
+  { href:'/messages',    icon:'chat',     label:'Nachrichten' },
+  { href:'/teams',       icon:'team',     label:'Teams' },
+  { href:'/activity',    icon:'activity', label:'Aktivität' },
+  { href:'/documents',   icon:'doc',      label:'Dokumente' },
+  { href:'/estimator',   icon:'estimate', label:'Preisschätzer' },
+  { href:'/addons',      icon:'grid',     label:'Add-ons' },
+  { href:'/billing',     icon:'card',     label:'Abrechnung' },
 ]
 
 const ROLE_LABEL: Record<string,string> = { client:'Client', dev:'Developer', admin:'Admin' }
@@ -164,21 +169,36 @@ export default function Sidebar() {
         .proj-row.active { background:var(--nav-on);color:var(--nav-on-text);font-weight:700; }
 
         /* ── Mobile floating bar ── */
-        .mob-bar { position:fixed;bottom:14px;left:50%;transform:translateX(-50%);width:calc(100% - 24px);max-width:400px;background:var(--sidebar-bg);backdrop-filter:blur(16px) saturate(160%);-webkit-backdrop-filter:blur(16px) saturate(160%);border:1px solid var(--border);box-shadow:var(--shadow-lg);border-radius:24px;z-index:200;justify-content:space-around;align-items:center;padding:8px 4px;padding-bottom:calc(8px + var(--safe-bottom)); }
-        .mt  { display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;min-height:44px;justify-content:center;cursor:pointer;text-decoration:none;border:none;background:transparent;font-family:inherit;-webkit-tap-highlight-color:transparent; }
-        .mt:active { transform:scale(.9); }
-        .mti { width:34px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:9px;transition:background .12s; }
+        .mob-bar { position:fixed;bottom:calc(14px + var(--safe-bottom));left:50%;transform:translateX(-50%);width:calc(100% - 28px);max-width:380px;background:var(--sidebar-bg);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border:1px solid var(--border);box-shadow:var(--shadow-lg);border-radius:32px;z-index:200;align-items:center;padding:10px 16px;gap:0; }
+
+        /* Nav tab items */
+        .mt  { display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;min-height:44px;justify-content:center;cursor:pointer;text-decoration:none;border:none;background:transparent;font-family:inherit;-webkit-tap-highlight-color:transparent;transition:transform .1s; }
+        .mt:active { transform:scale(.88); }
+        .mti { width:32px;height:26px;display:flex;align-items:center;justify-content:center;border-radius:8px;transition:background .12s; }
         .mt.on .mti  { background:var(--nav-on); }
         .mt.has-avatar .mti { background:transparent !important; }
         .mt.on .ml   { color:var(--text);font-weight:700; }
         .mt.off .ml  { color:var(--text-muted);font-weight:500; }
-        .ml { font-size:10px;letter-spacing:.01em;transition:color .12s;line-height:1; }
-        .mbd { position:fixed;inset:0;z-index:198;background:rgba(0,0,0,.32);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px); }
-        .msh { position:fixed;bottom:0;left:0;right:0;z-index:199;background:var(--surface);backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);border-radius:20px 20px 0 0;border-top:1px solid rgba(0,0,0,.05);padding:8px 18px calc(110px + var(--safe-bottom)) 18px;box-shadow:0 -8px 40px rgba(15,23,42,.09);animation:shUp .18s cubic-bezier(.16,1,.3,1); }
-        @keyframes shUp { from{opacity:0;transform:translateY(32px);}to{opacity:1;transform:translateY(0);} }
-        .mr { display:flex;align-items:center;gap:13px;padding:11px 3px;border-bottom:1px solid var(--border);text-decoration:none;color:inherit;-webkit-tap-highlight-color:transparent; }
-        .mr:last-child{border-bottom:none;}
-        .mr:active{opacity:.6;}
+        .ml { font-size:9.5px;letter-spacing:.01em;transition:color .12s;line-height:1; }
+
+        /* Center FAB */
+        .mob-fab { width:50px;height:50px;border-radius:50%;background:var(--btn-prim);color:var(--btn-prim-text);display:flex;align-items:center;justify-content:center;margin:-6px 12px;box-shadow:0 4px 18px rgba(0,0,0,.35);border:none;cursor:pointer;transition:transform .15s ease,background .15s;flex-shrink:0;-webkit-tap-highlight-color:transparent; }
+        .mob-fab:active { transform:scale(.88); }
+        .mob-fab.open { background:var(--surface-2);box-shadow:0 2px 8px rgba(0,0,0,.2); }
+
+        /* Backdrop */
+        .mbd { position:fixed;inset:0;z-index:198;background:rgba(0,0,0,.40);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px); }
+
+        /* Quick action panel */
+        .mob-quick { position:fixed;bottom:calc(96px + var(--safe-bottom));left:50%;transform:translateX(-50%);width:calc(100% - 32px);max-width:340px;z-index:199;display:flex;flex-direction:column;gap:6px;animation:mqUp .2s cubic-bezier(.16,1,.3,1) both; }
+        @keyframes mqUp { from{opacity:0;transform:translateX(-50%) translateY(18px);}to{opacity:1;transform:translateX(-50%) translateY(0);} }
+
+        /* Quick action items */
+        .mqi { display:flex;align-items:center;gap:14px;padding:13px 16px;background:var(--surface);border:1px solid var(--border);border-radius:16px;text-decoration:none;color:inherit;-webkit-tap-highlight-color:transparent;transition:background .1s; }
+        .mqi:active { background:var(--card); }
+        .mqi.primary-action { background:var(--btn-prim);border-color:transparent; }
+        .mqi.primary-action .mqi-label { color:var(--btn-prim-text); }
+        .mqi.primary-action .mqi-ico { background:rgba(0,0,0,.12);color:var(--btn-prim-text); }
       `}</style>
 
       {/* ══════════════════════════════════
@@ -284,54 +304,93 @@ export default function Sidebar() {
 
       {/* ══════════════════════════════════
           MOBILE FLOATING NAV BAR
+          4 items + center FAB (three-dots)
       ══════════════════════════════════ */}
       <nav className="bottom-nav mob-bar">
-        {MOB_PRIMARY.map(item => {
+        {/* Left 2: Home, Projekt */}
+        {MOB_PRIMARY.slice(0,2).map(item => {
+          const on = isOn(item.href)
+          return (
+            <Link key={item.href} href={resolve(item.href)} className={`mt ${on?'on':'off'}`}>
+              <div className="mti">
+                <Ico name={item.icon} sz={21} c={on?'var(--text)':'var(--text-muted)'} sw={on?2.1:1.65} />
+              </div>
+              <span className="ml">{item.label}</span>
+            </Link>
+          )
+        })}
+
+        {/* Center FAB — plus / close */}
+        <button className={`mob-fab ${more?'open':''}`} onClick={() => setMore(v => !v)} aria-label="Menü">
+          {more
+            ? <Ico name="close"  sz={20} c="var(--text)"          sw={2.5} />
+            : <Ico name="plus"   sz={22} c="var(--btn-prim-text)" sw={2.2} />
+          }
+        </button>
+
+        {/* Right 2: AI, Profil */}
+        {MOB_PRIMARY.slice(2).map(item => {
           const on = isOn(item.href)
           return (
             <Link key={item.href} href={resolve(item.href)} className={`mt ${on?'on':'off'} ${item.icon==='user'&&avatar?'has-avatar':''}`}>
               <div className="mti">
                 {item.icon==='user' && avatar ? (
-                  <img src={avatar} alt="" style={{ width:28, height:28, borderRadius:'50%', objectFit:'cover', border:on?'2.5px solid var(--bg)':'2px solid var(--border)', display:'block' }} />
+                  <img src={avatar} alt="" style={{ width:26, height:26, borderRadius:'50%', objectFit:'cover', border:on?'2.5px solid var(--text)':'2px solid var(--border)', display:'block' }} />
                 ) : (
-                  <div style={{ width:24, height:24, display:'flex', alignItems:'center', justifyContent:'center' }}>
-                    <Ico name={item.icon} sz={22} c={on?'var(--text)':'var(--text-muted)'} sw={on?2.1:1.65} />
-                  </div>
+                  <Ico name={item.icon} sz={21} c={on?'var(--text)':'var(--text-muted)'} sw={on?2.1:1.65} />
                 )}
               </div>
               <span className="ml">{item.label}</span>
             </Link>
           )
         })}
-        <button className={`mt ${more?'on':'off'}`} onClick={() => setMore(v => !v)}>
-          <div className="mti">
-            <div style={{ width:24, height:24, display:'flex', alignItems:'center', justifyContent:'center' }}>
-              <Ico name={more?'close':'more'} sz={22} c={more?'var(--text)':'var(--text-muted)'} sw={more?2.1:1.65} />
-            </div>
-          </div>
-          <span className="ml">{more?'Schließen':'Mehr'}</span>
-        </button>
       </nav>
 
-      {/* Mehr sheet */}
+      {/* Quick action panel — slides up from FAB */}
       {more && (
         <>
           <div className="mbd" onClick={() => setMore(false)} />
-          <div className="msh">
-            <div style={{ width:34, height:4, borderRadius:2, background:'var(--border-strong)', margin:'0 auto 14px' }}/>
-            <p style={{ fontSize:10.5, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.08em', marginBottom:6 }}>WEITERE SEITEN</p>
-            {MOB_MORE.map(item => {
-              const on = isOn(item.href)
-              return (
-                <Link key={item.href} href={resolve(item.href)} className="mr" onClick={() => setMore(false)}>
-                  <div style={{ width:40, height:40, borderRadius:11, background:on?'var(--text)':'var(--surface-2)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                    <Ico name={item.icon} sz={18} c={on?'var(--bg)':'var(--text-secondary)'} sw={1.75} />
-                  </div>
-                  <p style={{ fontSize:15, fontWeight:on?700:600, color:'var(--text)', margin:0, flex:1 }}>{item.label}</p>
-                  <Ico name="chevron" sz={14} c="var(--text-muted)" sw={1.75} />
-                </Link>
-              )
-            })}
+          <div className="mob-quick">
+            {/* Primary action first */}
+            <Link href="/new-project" className="mqi primary-action" onClick={() => setMore(false)}>
+              <div className="mqi-ico" style={{ width:40, height:40, borderRadius:12, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, background:'rgba(0,0,0,.14)' }}>
+                <Ico name="plus" sz={18} c="var(--btn-prim-text)" sw={2.2} />
+              </div>
+              <div style={{ flex:1, minWidth:0 }}>
+                <p className="mqi-label" style={{ fontSize:15, fontWeight:700, margin:'0 0 1px', color:'var(--btn-prim-text)' }}>Neues Projekt</p>
+                <p style={{ fontSize:11.5, margin:0, color:'var(--btn-prim-text)', opacity:.65 }}>Projekt starten →</p>
+              </div>
+            </Link>
+
+            {/* 2-col grid for secondary actions */}
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:6 }}>
+              {MOB_QUICK.slice(1).map(item => {
+                const on = isOn(item.href)
+                return (
+                  <Link key={item.href} href={resolve(item.href)} className="mqi" onClick={() => setMore(false)}
+                    style={{ borderRadius:14, gap:10, padding:'12px 13px' }}>
+                    <div style={{ width:34, height:34, borderRadius:10, background:on?'var(--text)':'var(--surface-2)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                      <Ico name={item.icon} sz={16} c={on?'var(--bg)':'var(--text-secondary)'} sw={1.8} />
+                    </div>
+                    <span className="mqi-label" style={{ fontSize:13, fontWeight:on?700:600, color:'var(--text)', lineHeight:1.25 }}>{item.label}</span>
+                  </Link>
+                )
+              })}
+            </div>
+
+            {/* Bottom: theme + logout row */}
+            <div style={{ display:'flex', gap:6, marginTop:2 }}>
+              <button onClick={logout}
+                style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', gap:8, padding:'11px 14px', background:'var(--surface)', border:'1px solid var(--border)', borderRadius:14, fontSize:13, fontWeight:600, color:'var(--text-muted)', cursor:'pointer', fontFamily:'inherit' }}>
+                <Ico name="logout" sz={15} c="currentColor" sw={1.8}/>
+                Abmelden
+              </button>
+              <Link href="/settings" onClick={() => setMore(false)}
+                style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', gap:8, padding:'11px 14px', background:'var(--surface)', border:'1px solid var(--border)', borderRadius:14, fontSize:13, fontWeight:600, color:'var(--text)', textDecoration:'none' }}>
+                <Ico name="settings" sz={15} c="currentColor" sw={1.8}/>
+                Einstellungen
+              </Link>
+            </div>
           </div>
         </>
       )}

@@ -26,56 +26,56 @@
   --r:12px; --r-xs:8px; --r-sm:10px; --r-md:12px; --r-lg:16px; --r-xl:22px;
 }
 
-/* ── DARK — Ultra-premium near-black, barely-perceptible green tint ── */
+/* ── DARK — True black Apple-style, #0E0F0F base ── */
 [data-theme="dark"] {
-  /* Near-black base — like Claude/ChatGPT with a 2% green undertone */
-  --bg:#151816;
-  --surface:#1C1F1D;
-  --card:#232724;
-  --surface-2:#2B2F2D;
+  /* Pure near-black — deepest possible base like Apple Pro Display */
+  --bg:#0E0F0F;
+  --surface:#141515;
+  --card:#191A1A;
+  --surface-2:#1F2121;
 
-  --border:rgba(255,255,255,0.08);
-  --border-strong:rgba(255,255,255,0.16);
+  --border:rgba(255,255,255,0.07);
+  --border-strong:rgba(255,255,255,0.14);
 
-  --text:#EAEAE7;
-  --text-secondary:#8E9C96;
-  --text-muted:#525E5A;
+  --text:#E8E8E5;
+  --text-secondary:#888E8B;
+  --text-muted:#4B5250;
 
-  --btn-prim:#EAEAE7; --btn-prim-text:#151816;
+  --btn-prim:#E8E8E5; --btn-prim-text:#0E0F0F;
 
   /* Accent — deep forest pocket with crisp green text */
-  --accent:#1A2620; --accent-text:#44CE8C;
+  --accent:#17211A; --accent-text:#44CE8C;
 
   --inp:rgba(255,255,255,0.04);
-  --inp-border:rgba(255,255,255,0.09);
-  --inp-focus:rgba(255,255,255,0.07);
-  --inp-focus-border:rgba(255,255,255,0.22);
-  --glow:rgba(68,206,140,0.04);
+  --inp-border:rgba(255,255,255,0.08);
+  --inp-focus:rgba(255,255,255,0.06);
+  --inp-focus-border:rgba(255,255,255,0.20);
+  --glow:rgba(68,206,140,0.03);
 
-  --sidebar-bg:rgba(21,24,22,0.97);
-  --sidebar-border:rgba(255,255,255,0.06);
-  --nav-on:rgba(255,255,255,0.09);
-  --nav-on-text:#EAEAE7;
-  --nav-off-text:#525E5A;
+  --sidebar-bg:rgba(14,15,15,0.97);
+  --sidebar-border:rgba(255,255,255,0.05);
+  --nav-on:rgba(255,255,255,0.08);
+  --nav-on-text:#E8E8E5;
+  --nav-off-text:#4B5250;
 
-  /* Green — clean professional, not neon */
+  /* Green — clean professional */
   --green:#25C47A;
   --green-bg:rgba(37,196,122,0.09);
-  --green-border:rgba(37,196,122,0.20);
+  --green-border:rgba(37,196,122,0.18);
   --green-dark:#20B06C;
 
   /* Amber — restrained warm gold */
   --amber:#C89430;
-  --amber-bg:rgba(200,148,48,0.10);
+  --amber-bg:rgba(200,148,48,0.09);
   --amber-dark:#B38226;
 
   --red:#D94545;
   --red-bg:rgba(217,69,69,0.09);
 
-  --shadow-xs:0 1px 3px rgba(0,0,0,.60);
-  --shadow-sm:0 2px 8px rgba(0,0,0,.68);
-  --shadow:0 4px 20px rgba(0,0,0,.78);
-  --shadow-lg:0 8px 36px rgba(0,0,0,.88);
+  --shadow-xs:0 1px 3px rgba(0,0,0,.70);
+  --shadow-sm:0 2px 8px rgba(0,0,0,.78);
+  --shadow:0 4px 20px rgba(0,0,0,.88);
+  --shadow-lg:0 8px 40px rgba(0,0,0,.95);
 
   --logo-filter:brightness(0) invert(1);
   --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
@@ -202,11 +202,11 @@ input:focus,textarea:focus,select:focus { outline:none; }
     padding:0 !important;
   }
   .page-content {
-    padding: 20px 16px calc(100px + var(--safe-bottom)) !important;
+    padding: 16px 16px calc(110px + var(--safe-bottom)) !important;
     max-width: 100% !important;
   }
   .page-content-full {
-    padding: 20px 16px calc(100px + var(--safe-bottom)) !important;
+    padding: 16px 16px calc(110px + var(--safe-bottom)) !important;
     max-width: 100% !important;
   }
   .grid-cols-4          { grid-template-columns:repeat(2,1fr) !important; }
@@ -215,16 +215,13 @@ input:focus,textarea:focus,select:focus { outline:none; }
   .show-mobile { display:block !important; }
   div.show-mobile { display:block !important; }
 
-  /* Header NOT sticky on mobile — scrolls with content */
-  .app-header {
-    position: relative !important;
-    top: auto !important;
-  }
+  /* Top header completely hidden on mobile — all control via bottom FAB bar */
+  .app-header { display: none !important; }
 
-  /* AI chat — ensure input area is fully visible */
+  /* AI chat — ensure input area is fully visible above nav bar */
   .ai-input-wrap {
     position: sticky !important;
-    bottom: calc(80px + var(--safe-bottom)) !important;
+    bottom: calc(90px + var(--safe-bottom)) !important;
     background: var(--bg) !important;
     z-index: 10 !important;
   }
