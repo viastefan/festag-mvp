@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useState, useEffect } from 'react'
+import SupportButton from '@/components/SupportButton'
 
 /* ── Project color palette ── */
 const PROJECT_COLORS = ['#6366f1','#0ea5e9','#22c55e','#f59e0b','#ef4444','#a855f7','#ec4899','#14b8a6']
@@ -207,10 +208,13 @@ export default function Sidebar() {
       <aside className="sidebar" style={{ pointerEvents:'none' }}>
         <div className="sidebar-inner" style={{ pointerEvents:'all', padding:'16px 10px 18px', display:'flex', flexDirection:'column', height:'100%' }}>
 
-          {/* Logo */}
-          <Link href="/dashboard" style={{ textDecoration:'none', display:'block', padding:'0 8px', marginBottom:18 }}>
-            <img src="/brand/logo.svg" alt="festag" style={{ height:18, display:'block', filter:'var(--logo-filter,none)' }}/>
-          </Link>
+          {/* Logo + Support-Button */}
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 8px', marginBottom:18, gap:8 }}>
+            <Link href="/dashboard" style={{ textDecoration:'none', display:'flex', alignItems:'center' }}>
+              <img src="/brand/logo.svg" alt="festag" style={{ height:18, display:'block', filter:'var(--logo-filter,none)' }}/>
+            </Link>
+            <SupportButton />
+          </div>
 
           {/* Scrollable nav */}
           <div style={{ flex:1, overflowY:'auto', overflowX:'hidden', scrollbarWidth:'none' }}>

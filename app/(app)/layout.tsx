@@ -6,7 +6,6 @@ import { createClient } from '@/lib/supabase/client'
 import Sidebar from '@/components/Sidebar'
 import AppHeader from '@/components/AppHeader'
 import CopilotPanel from '@/components/CopilotPanel'
-import SupportWidget from '@/components/SupportWidget'
 import FeedbackWidget from '@/components/FeedbackWidget'
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -48,7 +47,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       </main>
 
       <CopilotPanel open={copilotOpen} onClose={() => setCopilotOpen(false)} />
-      <SupportWidget />
       <FeedbackWidget />
     </div>
   )
