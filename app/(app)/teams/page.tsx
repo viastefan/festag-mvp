@@ -133,49 +133,63 @@ export default function TeamsPage() {
   const sb = createClient()
 
   useEffect(() => {
-    sb.auth.getSession().then(async ({ data }) => {
-      if (!data.session) { window.location.href='/login'; return }
-      const uid = data.session.user.id
+    let cleanup: (() => void) | null = null
+    ;(async () => {
+      try {
+        const { data } = await sb.auth.getSession()
+        if (!data.session) { window.location.href='/login'; return }
+        const uid = data.session.user.id
 
-      const safe = async (p: any) => { try { return await p } catch { return { data: null } } }
-      const [profRes, tmRes, feedRes] = await Promise.all([
-        safe(sb.from('profiles').select('*').eq('id', uid).single()),
-        safe(sb.from('team_members').select('id,member_id').eq('owner_id', uid)),
-        safe(sb.from('activity_feed').select('*').order('created_at',{ascending:false}).limit(40)),
-      ])
-      const myProf: any = profRes.data
-      setMe(myProf)
+        const safe = async (p: any) => { try { return await p } catch { return { data: null } } }
+        const [profRes, tmRes, feedRes] = await Promise.all([
+          safe(sb.from('profiles').select('*').eq('id', uid).single()),
+          safe(sb.from('team_members').select('id,member_id').eq('owner_id', uid)),
+          safe(sb.from('activity_feed').select('*').order('created_at',{ascending:false}).limit(40)),
+        ])
+        const myProf: any = profRes?.data ?? null
+        setMe(myProf)
 
-      const memberIds = ((tmRes.data as any[]) ?? []).map((t:any) => t.member_id).filter(Boolean)
-      let memberProfs: any[] = []
-      if (memberIds.length > 0) {
-        const { data: mp } = await safe(sb.from('profiles').select('id,first_name,full_name,avatar_url,role,email').in('id', memberIds as string[]))
-        memberProfs = (mp as any[]) ?? []
-      }
-      const list: Member[] = memberProfs
-      if (myProf && !list.find(m => m.id === myProf.id)) list.unshift(myProf)
-      setMembers(list)
-      setEvents((feedRes.data as any[]) ?? [])
-      setLoading(false)
-
-      const ch = sb.channel('festag-team-presence', { config: { presence: { key: uid } } })
-      ch.on('presence', { event: 'sync' }, () => {
-        const state = ch.presenceState() as Record<string, any[]>
-        const next: Record<string, any> = {}
-        for (const [k, arr] of Object.entries(state)) {
-          const last = arr[arr.length-1]
-          if (last) next[k] = { name: last.name, project: last.project }
+        const memberIds = ((tmRes?.data as any[]) ?? []).map((t:any) => t.member_id).filter(Boolean)
+        let memberProfs: any[] = []
+        if (memberIds.length > 0) {
+          const r = await safe(sb.from('profiles').select('id,first_name,full_name,avatar_url,role,email').in('id', memberIds as string[]))
+          memberProfs = (r?.data as any[]) ?? []
         }
-        setPresence(next)
-      })
-      ch.subscribe(async (status) => {
-        if (status === 'SUBSCRIBED') await ch.track({
-          name: myProf?.first_name ?? myProf?.full_name ?? data.session?.user.email,
-          project: typeof window !== 'undefined' ? window.location.pathname : '',
-        })
-      })
-      return () => { sb.removeChannel(ch) }
-    })
+        const list: Member[] = [...memberProfs]
+        if (myProf && !list.find(m => m.id === myProf.id)) list.unshift(myProf)
+        setMembers(list)
+        setEvents((feedRes?.data as any[]) ?? [])
+        setLoading(false)
+
+        try {
+          const ch = sb.channel('festag-team-presence', { config: { presence: { key: uid } } })
+          ch.on('presence', { event: 'sync' }, () => {
+            const state = ch.presenceState() as Record<string, any[]>
+            const next: Record<string, any> = {}
+            for (const [k, arr] of Object.entries(state)) {
+              const last = arr[arr.length-1]
+              if (last) next[k] = { name: last.name, project: last.project }
+            }
+            setPresence(next)
+          })
+          ch.subscribe(async (status) => {
+            if (status === 'SUBSCRIBED') {
+              try {
+                await ch.track({
+                  name: myProf?.first_name ?? myProf?.full_name ?? data.session?.user.email,
+                  project: typeof window !== 'undefined' ? window.location.pathname : '',
+                })
+              } catch {}
+            }
+          })
+          cleanup = () => { try { sb.removeChannel(ch) } catch {} }
+        } catch {}
+      } catch (err) {
+        console.error('[teams] effect error', err)
+        setLoading(false)
+      }
+    })()
+    return () => { if (cleanup) cleanup() }
   }, [])
 
   async function invite() {

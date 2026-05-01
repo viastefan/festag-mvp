@@ -54,10 +54,10 @@ export default function ChatInput({
       <style>{`
         @keyframes ci-spin{to{transform:rotate(360deg);}}
         .ci-wrap { position:relative; background:var(--surface); border:1px solid var(--border); border-radius:18px; box-shadow:0 8px 28px rgba(15,23,42,.06), 0 1px 0 rgba(15,23,42,.02); transition:border-color .15s, box-shadow .15s; padding:6px 6px 6px 8px; display:flex; align-items:flex-end; gap:6px; }
-        .ci-wrap:focus-within { border-color:#a5b4fc; box-shadow:0 8px 28px rgba(99,102,241,.18), 0 0 0 4px rgba(99,102,241,.08); }
+        .ci-wrap:focus-within { border-color:var(--border-strong); box-shadow:0 8px 28px var(--glow), 0 0 0 4px var(--glow); }
         .ci-iconbtn { width:34px; height:34px; border-radius:50%; border:1px solid var(--border); background:var(--card); color:var(--text-secondary); display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; transition:background .12s, color .12s, border-color .12s; }
         .ci-iconbtn:hover { background:var(--surface-2); color:var(--text); }
-        .ci-text { flex:1; resize:none; border:none; outline:none; background:transparent; font-family:inherit; font-size:15px; line-height:1.55; color:var(--text); padding:9px 4px; min-height:38px; max-height:300px; overflow-y:auto; caret-color:#6366f1; font-weight:500; }
+        .ci-text { flex:1; resize:none; border:none; outline:none; background:transparent; font-family:inherit; font-size:15px; line-height:1.55; color:var(--text); padding:9px 4px; min-height:38px; max-height:300px; overflow-y:auto; caret-color:var(--text); font-weight:500; }
         .ci-text::placeholder { color:var(--text-muted); opacity:.85; }
         .ci-mode { display:inline-flex; align-items:center; gap:4px; height:30px; padding:0 11px; margin-bottom:2px; background:transparent; border:none; cursor:pointer; color:var(--text-secondary); font-family:inherit; font-size:13px; font-weight:500; border-radius:9px; transition:background .12s; }
         .ci-mode:hover { background:var(--surface-2); color:var(--text); }

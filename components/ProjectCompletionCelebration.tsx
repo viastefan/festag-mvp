@@ -21,7 +21,7 @@ interface Props {
   deliveryDate?: string
 }
 
-const CONFETTI_COLORS = ['#6366f1','#8b5cf6','#ec4899','#22c55e','#f59e0b','#0ea5e9','#ef4444','#a78bfa']
+const CONFETTI_COLORS = ['#0A0B0A','#34C759','#0EA5E9','#F59E0B','#94A3B8','#14B8A6','#64748B','#28A745']
 
 export default function ProjectCompletionCelebration({ open, projectTitle, onClose, onContinue, duration=0, deliveryDate }: Props) {
   const [visible, setVisible] = useState(false)
@@ -137,17 +137,17 @@ export default function ProjectCompletionCelebration({ open, projectTitle, onClo
         animation:'pcc-fade-up .6s .15s cubic-bezier(.16,1,.3,1) both',
       }}>
         {/* Pulsing ring behind trophy */}
-        <div style={{ position:'absolute', top:48, left:'50%', width:118, height:118, marginLeft:-59, borderRadius:'50%', border:'2px solid rgba(167,139,250,.5)', animation:'pcc-ring 2.4s ease-out infinite' }}/>
-        <div style={{ position:'absolute', top:48, left:'50%', width:118, height:118, marginLeft:-59, borderRadius:'50%', border:'2px solid rgba(167,139,250,.5)', animation:'pcc-ring 2.4s ease-out 1.2s infinite' }}/>
+        <div style={{ position:'absolute', top:48, left:'50%', width:118, height:118, marginLeft:-59, borderRadius:'50%', border:'2px solid rgba(52,199,89,.45)', animation:'pcc-ring 2.4s ease-out infinite' }}/>
+        <div style={{ position:'absolute', top:48, left:'50%', width:118, height:118, marginLeft:-59, borderRadius:'50%', border:'2px solid rgba(52,199,89,.45)', animation:'pcc-ring 2.4s ease-out 1.2s infinite' }}/>
 
         {/* Trophy */}
         <div style={{
           width:118, height:118, margin:'0 auto 20px',
           borderRadius:'50%',
-          background:'linear-gradient(135deg, #6366f1, #ec4899)',
+          background:'linear-gradient(135deg, #34C759, #28A745)',
           display:'flex', alignItems:'center', justifyContent:'center',
           fontSize:54,
-          boxShadow:'0 20px 60px rgba(99,102,241,.5), inset 0 -4px 12px rgba(0,0,0,.2)',
+          boxShadow:'0 20px 60px rgba(52,199,89,.4), inset 0 -4px 12px rgba(0,0,0,.2)',
           animation:'pcc-trophy-pop .8s cubic-bezier(.16,1.3,.3,1) both',
           position:'relative',
         }}>
@@ -156,7 +156,7 @@ export default function ProjectCompletionCelebration({ open, projectTitle, onClo
 
         <p style={{
           fontSize:11, fontWeight:800, letterSpacing:'.18em',
-          color:'#a78bfa', margin:'0 0 6px',
+          color:'#34C759', margin:'0 0 6px',
           animation:'pcc-fade-up .5s .35s both',
         }}>PROJEKT GELIEFERT</p>
 
@@ -191,7 +191,7 @@ export default function ProjectCompletionCelebration({ open, projectTitle, onClo
           {onContinue && (
             <button onClick={onContinue} style={{
               width:'100%', padding:'14px',
-              background:'linear-gradient(135deg, #6366f1, #ec4899)',
+              background:'linear-gradient(135deg, #34C759, #28A745)',
               backgroundSize:'200% 100%',
               animation:'pcc-shimmer 3s linear infinite',
               color:'#fff', border:'none', borderRadius:13,

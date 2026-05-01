@@ -7,7 +7,7 @@ import { useState, useEffect } from 'react'
 import SupportButton from '@/components/SupportButton'
 
 /* ── Project color palette ── */
-const PROJECT_COLORS = ['#6366f1','#0ea5e9','#22c55e','#f59e0b','#ef4444','#a855f7','#ec4899','#14b8a6']
+const PROJECT_COLORS = ['#0A0B0A','#34C759','#0EA5E9','#F59E0B','#D14343','#64748B','#14B8A6','#94A3B8']
 export function projectColor(id: string) {
   let h = 0; for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0
   return PROJECT_COLORS[h % PROJECT_COLORS.length]

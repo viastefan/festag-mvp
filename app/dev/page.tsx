@@ -155,8 +155,8 @@ export default function DevHome() {
   }
   const MODE_COLOR: Record<AccessMode, string> = {
     pool: 'var(--text)',
-    closed: '#22c55e',
-    company: '#f59e0b',
+    closed: 'var(--green)',
+    company: 'var(--amber)',
   }
   const fmtMin = (m: number) => m >= 60 ? `${Math.floor(m/60)}h ${m%60}m` : `${m}m`
 
@@ -208,7 +208,7 @@ export default function DevHome() {
           { label: 'IN ARBEIT',  value: stats.active, color: 'var(--green-dark)', bg: 'var(--green-bg)' },
           { label: 'OFFEN',      value: stats.pending },
           { label: 'ERLEDIGT',   value: stats.completed },
-          ...(accessMode === 'pool' ? [{ label: 'NEUE JOBS', value: stats.jobs, color: '#D97706', bg: 'var(--amber-bg)' }] : []),
+          ...(accessMode === 'pool' ? [{ label: 'NEUE JOBS', value: stats.jobs, color: 'var(--amber-dark)', bg: 'var(--amber-bg)' }] : []),
           { label: 'HEUTE',      value: fmtMin(stats.todayMin), color: 'var(--text)' },
           { label: 'WOCHE',      value: fmtMin(stats.weekMin) },
         ].map(s => (
@@ -322,7 +322,7 @@ export default function DevHome() {
                   <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)', margin: 0 }}>{t.title}</p>
                   <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: '2px 0 0' }}>{t.projects?.title}</p>
                 </div>
-                <span style={{ padding: '2px 8px', borderRadius: 6, fontSize: 10, fontWeight: 700, background: t.status === 'done' ? 'var(--green-bg)' : t.status === 'doing' ? 'var(--amber-bg)' : 'var(--surface-2)', color: t.status === 'done' ? 'var(--green-dark)' : t.status === 'doing' ? '#D97706' : 'var(--text-muted)' }}>
+                <span style={{ padding: '2px 8px', borderRadius: 6, fontSize: 10, fontWeight: 700, background: t.status === 'done' ? 'var(--green-bg)' : t.status === 'doing' ? 'var(--amber-bg)' : 'var(--surface-2)', color: t.status === 'done' ? 'var(--green-dark)' : t.status === 'doing' ? 'var(--amber-dark)' : 'var(--text-muted)' }}>
                   {t.status.toUpperCase()}
                 </span>
               </Link>

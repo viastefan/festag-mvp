@@ -366,7 +366,7 @@ export default function AIPage() {
               { icon: '📝', label: 'Projekt strukturieren' },
             ].map((c, i) => (
               <button key={c.label} onClick={() => send(c.label)} disabled={loading}
-                style={{ width: '100%', padding: '9px 13px', borderBottom: i < 4 ? '1px solid var(--border)' : 'none', display: 'flex', alignItems: 'center', gap: 9, background: 'transparent', border: 'none', borderBottom: i < 4 ? '1px solid var(--border)' : 'none', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left', transition: 'background .1s' }}
+                style={{ width: '100%', padding: '9px 13px', display: 'flex', alignItems: 'center', gap: 9, background: 'transparent', border: 'none', borderBottom: i < 4 ? '1px solid var(--border)' : 'none', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left', transition: 'background .1s' }}
                 onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--surface-2)'}
                 onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}
               >
