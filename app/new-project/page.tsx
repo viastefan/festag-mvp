@@ -200,7 +200,7 @@ export default function NewProjectPage() {
         textarea::placeholder{opacity:0;}
       `}</style>
 
-      <div style={{ minHeight:'100dvh', background:'var(--bg)', fontFamily:"'Aeonik',sans-serif",
+      <div style={{ minHeight:'100dvh', background:'var(--bg)', fontFamily:"'Inter',sans-serif",
         WebkitFontSmoothing:'antialiased', display:'flex', flexDirection:'column' }}>
 
         <ThemeToggle/>

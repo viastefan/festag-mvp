@@ -121,7 +121,7 @@ export default function DevTimer({ projectId, projectTitle, visible = true }: Pr
 
       {/* Expanded panel */}
       {open && (
-        <div className="dt-fab" style={{ position:'fixed', bottom:'calc(18px + env(safe-area-inset-bottom))', left:18, width:280, background:'var(--card)', border:'1px solid var(--border)', borderRadius:16, padding:16, boxShadow:'0 18px 50px rgba(15,23,42,.2)', zIndex:9997, fontFamily:"'Aeonik',sans-serif" }}>
+        <div className="dt-fab" style={{ position:'fixed', bottom:'calc(18px + env(safe-area-inset-bottom))', left:18, width:280, background:'var(--card)', border:'1px solid var(--border)', borderRadius:16, padding:16, boxShadow:'0 18px 50px rgba(15,23,42,.2)', zIndex:9997, fontFamily:"'Inter',sans-serif" }}>
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10 }}>
             <p style={{ fontSize:11, fontWeight:800, color:'var(--text-muted)', letterSpacing:'.1em', margin:0 }}>DEV TIMER</p>
             <button onClick={() => setOpen(false)} style={{ width:22, height:22, border:'none', background:'transparent', cursor:'pointer', color:'var(--text-muted)', display:'flex', alignItems:'center', justifyContent:'center' }}>

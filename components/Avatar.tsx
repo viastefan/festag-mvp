@@ -39,7 +39,7 @@ export default function Avatar({ user, size = 36, ring = false }: Props) {
       boxShadow: ring ? 'var(--shadow-xs)' : 'none',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       fontWeight: 600, color: 'var(--text)', flexShrink: 0,
-      fontFamily: 'Aeonik, sans-serif', letterSpacing: '-0.02em',
+      fontFamily: 'Inter, sans-serif', letterSpacing: '-0.02em',
     }}>
       {initials}
     </div>

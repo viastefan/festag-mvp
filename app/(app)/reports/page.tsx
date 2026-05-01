@@ -123,7 +123,7 @@ export default function ReportsPage() {
     const w = window.open('', '_blank')
     if (!w) return
     w.document.write(`<!doctype html><html><head><title>${proj?.title ?? 'Bericht'} — Festag</title>
-      <style>body{font-family:'Aeonik',-apple-system,sans-serif;max-width:680px;margin:48px auto;padding:0 24px;color:#0f172a;line-height:1.65;} h1{font-size:22px;letter-spacing:-.4px;margin:0 0 4px;} .muted{color:#64748b;font-size:13px;margin:0 0 28px;} .badge{display:inline-block;padding:3px 9px;background:#f1f5f9;border-radius:12px;font-size:11px;font-weight:700;letter-spacing:.07em;} pre{white-space:pre-wrap;}</style>
+      <style>body{font-family:'Inter',-apple-system,sans-serif;max-width:680px;margin:48px auto;padding:0 24px;color:#0f172a;line-height:1.65;} h1{font-size:22px;letter-spacing:-.4px;margin:0 0 4px;} .muted{color:#64748b;font-size:13px;margin:0 0 28px;} .badge{display:inline-block;padding:3px 9px;background:#f1f5f9;border-radius:12px;font-size:11px;font-weight:700;letter-spacing:.07em;} pre{white-space:pre-wrap;}</style>
       </head><body>
       <span class="badge">FESTAG · STATUSBERICHT</span>
       <h1 style="margin-top:14px;">${proj?.title ?? 'Projekt'}</h1>

@@ -1,6 +1,5 @@
-@font-face { font-family:'Aeonik'; src:url('/fonts/Aeonik-Regular.ttf') format('truetype'); font-weight:400; font-display:swap; }
-@font-face { font-family:'Aeonik'; src:url('/fonts/Aeonik-Medium.ttf') format('truetype'); font-weight:500; font-display:swap; }
-@font-face { font-family:'Aeonik'; src:url('/fonts/Aeonik-Bold.ttf') format('truetype'); font-weight:700; font-display:swap; }
+/* Inter wird via app/layout.tsx von fonts.eg-core.de geladen.
+   Lokale Aeonik-TTFs sind nicht mehr eingebunden (Lizenz). */
 
 *,*::before,*::after { box-sizing:border-box; padding:0; margin:0; }
 
@@ -107,7 +106,7 @@
 
 html,body {
   background:var(--bg); color:var(--text);
-  font-family:'Aeonik',-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;
+  font-family:'Inter',-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;
   font-weight:500; font-size:15px; line-height:1.55;
   -webkit-font-smoothing:antialiased;
   -webkit-tap-highlight-color:transparent;

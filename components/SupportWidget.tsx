@@ -50,7 +50,7 @@ export default function SupportWidget() {
 
       {/* Panel */}
       {open && (
-        <div style={{ position:'fixed', bottom:84, right:18, width:340, maxWidth:'calc(100vw - 28px)', background:'var(--card)', border:'1px solid var(--border)', borderRadius:18, boxShadow:'0 18px 60px rgba(15,23,42,.18)', zIndex:9999, overflow:'hidden', animation:'sw-pop .22s cubic-bezier(.16,1,.3,1) both', fontFamily:"'Aeonik',sans-serif" }}>
+        <div style={{ position:'fixed', bottom:84, right:18, width:340, maxWidth:'calc(100vw - 28px)', background:'var(--card)', border:'1px solid var(--border)', borderRadius:18, boxShadow:'0 18px 60px rgba(15,23,42,.18)', zIndex:9999, overflow:'hidden', animation:'sw-pop .22s cubic-bezier(.16,1,.3,1) both', fontFamily:"'Inter',sans-serif" }}>
           {/* Header */}
           <div style={{ padding:'16px 18px', background:'linear-gradient(135deg,#6366f1,#8b5cf6)', color:'#fff' }}>
             <div style={{ display:'flex', alignItems:'center', gap:9, marginBottom:6 }}>

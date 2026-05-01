@@ -35,6 +35,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="Festag" />
         <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png" />
+        {/* Schriftarten — eg-core */}
+        <link rel="preconnect" href="https://fonts.eg-core.de" />
+        <link rel="stylesheet" href="https://fonts.eg-core.de/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
       </head>
       <body>
         <ThemeProvider>{children}</ThemeProvider>

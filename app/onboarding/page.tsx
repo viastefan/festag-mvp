@@ -364,7 +364,7 @@ export default function OnboardingPage() {
 
   /* ─── CHAT STATE ──────────────────────────────────────────── */
   return (
-    <div style={{ minHeight:'100dvh', background:'var(--bg)', display:'flex', flexDirection:'column', fontFamily:"'Aeonik',-apple-system,sans-serif", WebkitFontSmoothing:'antialiased' }}>
+    <div style={{ minHeight:'100dvh', background:'var(--bg)', display:'flex', flexDirection:'column', fontFamily:"'Inter',-apple-system,sans-serif", WebkitFontSmoothing:'antialiased' }}>
       <style>{globalStyle}</style>
 
       {/* ── Header ── */}

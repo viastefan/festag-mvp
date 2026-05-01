@@ -60,7 +60,7 @@ export default function ProjectCompletionCelebration({ open, projectTitle, onClo
         display:'flex', alignItems:'center', justifyContent:'center',
         opacity: visible ? 1 : 0,
         transition:'opacity .35s ease',
-        fontFamily:"'Aeonik',-apple-system,sans-serif",
+        fontFamily:"'Inter',-apple-system,sans-serif",
       }}>
       <style>{`
         @keyframes cf-fall {

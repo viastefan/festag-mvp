@@ -273,7 +273,7 @@ export default function LoginPage() {
   const greeting = getGreeting()
 
   if (view === 'home') return (
-    <div style={{ minHeight: '100dvh', background: 'var(--bg)', fontFamily: "'Aeonik',sans-serif", WebkitFontSmoothing: 'antialiased' }}>
+    <div style={{ minHeight: '100dvh', background: 'var(--bg)', fontFamily: "'Inter',sans-serif", WebkitFontSmoothing: 'antialiased' }}>
       <style>{MOBILE_CSS}</style>
       <ThemeToggle/>
       <div className="l-wrap">
@@ -318,7 +318,7 @@ export default function LoginPage() {
   const isDev = view === 'dev'; const isReg = view === 'register'
 
   return (
-    <div style={{ minHeight: '100dvh', background: 'var(--bg)', fontFamily: "'Aeonik',sans-serif", WebkitFontSmoothing: 'antialiased', display: 'flex' }}>
+    <div style={{ minHeight: '100dvh', background: 'var(--bg)', fontFamily: "'Inter',sans-serif", WebkitFontSmoothing: 'antialiased', display: 'flex' }}>
       <style>{MOBILE_CSS}</style>
       <ThemeToggle/>
       <div className="l-left"><ImagePanel view={view}/></div>

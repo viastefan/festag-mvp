@@ -105,7 +105,7 @@ export default function MasterControlPage() {
   ]
 
   return (
-    <div style={{ minHeight:'100vh', background:'#0a0a0f', color:'#e2e8f0', fontFamily:"'Aeonik',-apple-system,sans-serif" }}>
+    <div style={{ minHeight:'100vh', background:'#0a0a0f', color:'#e2e8f0', fontFamily:"'Inter',-apple-system,sans-serif" }}>
       <style>{`
         @keyframes spin{to{transform:rotate(360deg);}}
         @keyframes mc-pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
