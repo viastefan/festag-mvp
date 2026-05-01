@@ -208,19 +208,19 @@ export default function Sidebar() {
       <aside className="sidebar" style={{ pointerEvents:'none' }}>
         <div className="sidebar-inner" style={{ pointerEvents:'all', padding:'16px 10px 18px', display:'flex', flexDirection:'column', height:'100%' }}>
 
-          {/* Logo + by Enjyn + Support-Button */}
-          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 8px', marginBottom:18, gap:8 }}>
-            <Link href="/dashboard" style={{ textDecoration:'none', display:'flex', alignItems:'flex-end', gap:6, lineHeight:1, minWidth:0 }} title="by Enjyn®">
-              <img src="/brand/logo.svg" alt="festag" style={{ height:18, display:'block', filter:'var(--logo-filter,none)', flexShrink:0 }}/>
+          {/* Logo (mit by Enjyn darunter) + Support-Button */}
+          <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', padding:'0 8px', marginBottom:18, gap:8 }}>
+            <Link href="/dashboard" style={{ textDecoration:'none', display:'flex', flexDirection:'column', alignItems:'flex-start', gap:3, lineHeight:1 }} title="festag — by Enjyn®">
+              <img src="/brand/logo.svg" alt="festag" style={{ height:18, display:'block', filter:'var(--logo-filter,none)' }}/>
               <span style={{
-                fontSize:9.5, fontWeight:600, color:'var(--text-muted)',
-                letterSpacing:'.02em', whiteSpace:'nowrap',
-                paddingBottom:1, opacity:.75,
-                display:'inline-flex', alignItems:'baseline', gap:1,
+                fontSize:8, fontWeight:600, color:'var(--text-muted)',
+                letterSpacing:'.18em', textTransform:'uppercase',
+                whiteSpace:'nowrap', opacity:.55,
+                display:'inline-flex', alignItems:'baseline', gap:2,
               }}>
-                <span style={{ opacity:.55 }}>by</span>
+                <span style={{ fontWeight:500 }}>by</span>
                 <span>Enjyn</span>
-                <span style={{ fontSize:7, opacity:.55, transform:'translateY(-3px)' }}>®</span>
+                <sup style={{ fontSize:5, opacity:.7, marginLeft:1, top:'-.5em', position:'relative' }}>®</sup>
               </span>
             </Link>
             <SupportButton />
