@@ -208,10 +208,20 @@ export default function Sidebar() {
       <aside className="sidebar" style={{ pointerEvents:'none' }}>
         <div className="sidebar-inner" style={{ pointerEvents:'all', padding:'16px 10px 18px', display:'flex', flexDirection:'column', height:'100%' }}>
 
-          {/* Logo + Support-Button */}
+          {/* Logo + by Enjyn + Support-Button */}
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 8px', marginBottom:18, gap:8 }}>
-            <Link href="/dashboard" style={{ textDecoration:'none', display:'flex', alignItems:'center' }}>
-              <img src="/brand/logo.svg" alt="festag" style={{ height:18, display:'block', filter:'var(--logo-filter,none)' }}/>
+            <Link href="/dashboard" style={{ textDecoration:'none', display:'flex', alignItems:'flex-end', gap:6, lineHeight:1, minWidth:0 }} title="by Enjyn®">
+              <img src="/brand/logo.svg" alt="festag" style={{ height:18, display:'block', filter:'var(--logo-filter,none)', flexShrink:0 }}/>
+              <span style={{
+                fontSize:9.5, fontWeight:600, color:'var(--text-muted)',
+                letterSpacing:'.02em', whiteSpace:'nowrap',
+                paddingBottom:1, opacity:.75,
+                display:'inline-flex', alignItems:'baseline', gap:1,
+              }}>
+                <span style={{ opacity:.55 }}>by</span>
+                <span>Enjyn</span>
+                <span style={{ fontSize:7, opacity:.55, transform:'translateY(-3px)' }}>®</span>
+              </span>
             </Link>
             <SupportButton />
           </div>
