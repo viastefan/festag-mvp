@@ -3,12 +3,16 @@ import { useEffect, useState, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import ChatMarkdown from '@/components/ChatMarkdown'
+import ChatInput from '@/components/ChatInput'
 
-type Msg = { role: 'user' | 'ai'; text: string; time: string }
+type Msg     = { role: 'user' | 'ai'; text: string; time: string }
 type Project = { id: string; title: string; status: string; description?: string }
-type Task = { id: string; title: string; status: string; project_id: string }
+type Task    = { id: string; title: string; status: string; project_id: string }
 
-const PHASE: Record<string, string> = { intake: 'Intake', planning: 'Planning', active: 'In Arbeit', testing: 'Testing', done: 'Abgeschlossen' }
+const PHASE: Record<string, string> = {
+  intake: 'Intake', planning: 'Planning',
+  active: 'In Arbeit', testing: 'Testing', done: 'Abgeschlossen',
+}
 
 const TEST_TRIGGER = /^\s*test[\s\-_]*projekt\s*$/i
 
@@ -33,15 +37,21 @@ const QUICK = [
   'Wo gibt es Risiken?',
 ]
 
+const TAGRO_CAN = [
+  { icon: '📊', label: 'Statusberichte erstellen' },
+  { icon: '🎯', label: 'Risiken identifizieren' },
+  { icon: '✅', label: 'Tasks priorisieren' },
+  { icon: '🗺️', label: 'Roadmaps planen' },
+  { icon: '🏗️', label: 'Projekt strukturieren' },
+]
+
 export default function AIPage() {
   const [msgs,     setMsgs]     = useState<Msg[]>([])
   const [input,    setInput]    = useState('')
   const [loading,  setLoading]  = useState(false)
   const [projects, setProjects] = useState<Project[]>([])
   const [tasks,    setTasks]    = useState<Task[]>([])
-  const [initDone, setInitDone] = useState(false)
-  const feedRef  = useRef<HTMLDivElement>(null)
-  const inputRef = useRef<HTMLTextAreaElement>(null)
+  const feedRef = useRef<HTMLDivElement>(null)
   const sb = createClient()
 
   useEffect(() => {
@@ -51,16 +61,13 @@ export default function AIPage() {
       const { data: t } = await sb.from('tasks').select('id,title,status,project_id').order('created_at', { ascending: false }).limit(50)
       setProjects(p ?? [])
       setTasks(t ?? [])
-
-      const welcome: Msg = {
+      setMsgs([{
         role: 'ai',
         text: p?.length
           ? `Ich bin Tagro — dein AI-Projektmanager. Du hast ${p.length} aktives Projekt${p.length !== 1 ? 'e' : ''}. Wie kann ich dir helfen?`
           : 'Ich bin Tagro — dein AI-Projektmanager. Du hast noch keine Projekte. Starte ein Projekt um loszulegen.',
         time: fmt(),
-      }
-      setMsgs([welcome])
-      setInitDone(true)
+      }])
     })
   }, [])
 
@@ -74,7 +81,9 @@ export default function AIPage() {
 
   function buildContext() {
     if (!projects.length) return ''
-    return '\n\nAktuelle Projekte:\n' + projects.map(p => `- ${p.title} (${PHASE[p.status] ?? p.status})${p.description ? ': ' + p.description : ''}`).join('\n')
+    return '\n\nAktuelle Projekte:\n' + projects.map(p =>
+      `- ${p.title} (${PHASE[p.status] ?? p.status})${p.description ? ': ' + p.description : ''}`
+    ).join('\n')
   }
 
   async function createTestProject() {
@@ -90,15 +99,10 @@ export default function AIPage() {
       })
       const d = await res.json()
       if (d.projectId) {
-        const title = d.decomposed?.project_title ?? 'Demo-Projekt'
-        const epics = d.decomposed?.epics?.length ?? 0
-        const tasks = d.decomposed?.epics?.reduce((a: number, e: any) => a + (e.tasks?.length ?? 0), 0) ?? 0
-        setMsgs(m => [...m, {
-          role: 'ai',
-          text: `**Demo-Projekt erstellt: "${title}"**\n\n- ${epics} Epics\n- ${tasks} Tasks\n- Status: \`intake\`\n\n[Projekt öffnen →](/project/${d.projectId})`,
-          time: fmt(),
-        }])
-        // Projekte neu laden für Sidebar
+        const title  = d.decomposed?.project_title ?? 'Demo-Projekt'
+        const epics  = d.decomposed?.epics?.length ?? 0
+        const ntasks = d.decomposed?.epics?.reduce((a: number, e: any) => a + (e.tasks?.length ?? 0), 0) ?? 0
+        setMsgs(m => [...m, { role: 'ai', text: `**Demo-Projekt erstellt: "${title}"**\n\n- ${epics} Epics\n- ${ntasks} Tasks\n- Status: \`intake\`\n\n[Projekt öffnen →](/project/${d.projectId})`, time: fmt() }])
         const { data: p } = await sb.from('projects').select('id,title,status,description').order('created_at', { ascending: false }).limit(8)
         setProjects(p ?? [])
       } else {
@@ -114,12 +118,10 @@ export default function AIPage() {
     const msg = (text ?? input).trim()
     if (!msg || loading) return
     setInput('')
-    if (inputRef.current) { inputRef.current.style.height = 'auto' }
 
     const userMsg: Msg = { role: 'user', text: msg, time: fmt() }
     setMsgs(m => [...m, userMsg])
 
-    // Shortcut: "test projekt" → AI-generiertes Demo-Projekt anlegen
     if (TEST_TRIGGER.test(msg)) {
       setMsgs(m => [...m, { role: 'ai', text: 'Tagro generiert ein realistisches Demo-Projekt — einen Moment…', time: fmt() }])
       createTestProject()
@@ -127,7 +129,6 @@ export default function AIPage() {
     }
 
     setLoading(true)
-
     try {
       const history = [...msgs.slice(-8), userMsg]
       const res = await fetch('/api/ai/chat', {
@@ -140,72 +141,69 @@ export default function AIPage() {
         }),
       })
       const d = await res.json()
-      const reply = d.content?.[0]?.text ?? 'Verbindungsfehler. Bitte erneut versuchen.'
-      setMsgs(m => [...m, { role: 'ai', text: reply, time: fmt() }])
+      setMsgs(m => [...m, { role: 'ai', text: d.content?.[0]?.text ?? 'Verbindungsfehler. Bitte erneut versuchen.', time: fmt() }])
     } catch {
       setMsgs(m => [...m, { role: 'ai', text: 'Verbindungsfehler. Bitte erneut versuchen.', time: fmt() }])
     }
     setLoading(false)
   }
 
-  function handleKey(e: React.KeyboardEvent) {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() }
-  }
-
   const totalTasks = tasks.length
   const doneTasks  = tasks.filter(t => t.status === 'done').length
   const inProgress = tasks.filter(t => t.status === 'doing').length
-  const pct = totalTasks ? Math.round(doneTasks / totalTasks * 100) : 0
+  const pct        = totalTasks ? Math.round(doneTasks / totalTasks * 100) : 0
 
   return (
-    <div style={{ display: 'flex', height: 'calc(100dvh - 56px)', overflow: 'hidden' }}>
+    <div style={{ display: 'flex', height: 'calc(100dvh - 0px)', overflow: 'hidden' }}>
       <style>{`
         .ai-msg-in { animation: fadeUp .25s cubic-bezier(.16,1,.3,1) both }
         .ai-sidebar { display: none; }
         .ai-quick { scrollbar-width: none; -ms-overflow-style: none; }
-        .ai-quick::-webkit-scrollbar { display: none; height: 0; width: 0; }
-        @media(min-width:769px) {
-          .ai-sidebar { display: flex; }
-          .ai-quick { gap: 6px !important }
-          .ai-quick button { font-size: 12px !important }
-        }
-        @media(max-width:768px) {
-          .ai-quick button { font-size: 11px !important; padding: 5px 10px !important }
+        .ai-quick::-webkit-scrollbar { display: none; }
+        .q-chip { padding:5px 13px; border-radius:20px; border:1px solid var(--border); background:var(--surface); font-size:12px; color:var(--text-secondary); cursor:pointer; white-space:nowrap; flex-shrink:0; font-family:inherit; font-weight:500; transition:border-color .1s, background .1s; }
+        .q-chip:hover { border-color:var(--border-strong); background:var(--card); color:var(--text); }
+        .tagro-can-row { display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid var(--border); font-size:12.5px; color:var(--text-secondary); font-weight:500; }
+        .tagro-can-row:last-child { border-bottom:none; }
+        @media(min-width:900px) {
+          .ai-sidebar { display:flex !important; }
         }
       `}</style>
 
-      {/* ── MAIN CHAT COLUMN ── */}
+      {/* ── MAIN CHAT ── */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
 
         {/* Header */}
-        <div style={{ padding: '14px 24px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+        <div style={{ padding: '12px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0, background: 'var(--bg)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ width: 32, height: 32, borderRadius: 10, background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <span style={{ fontSize: 14, color: 'var(--accent-text)', fontWeight: 700 }}>✦</span>
+            <div style={{ width: 34, height: 34, borderRadius: 10, background: 'var(--text)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--bg)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8"/>
+              </svg>
             </div>
             <div>
-              <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)', margin: 0, lineHeight: 1 }}>Tagro AI</p>
+              <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)', margin: 0, lineHeight: 1.1 }}>Tagro AI</p>
               <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: '2px 0 0', lineHeight: 1 }}>Production Engine</p>
             </div>
           </div>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 700, color: 'var(--green-dark)', background: 'var(--green-bg)', padding: '4px 10px', borderRadius: 8, border: '1px solid var(--green-border)' }}>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 10.5, fontWeight: 700, color: 'var(--green-dark)', background: 'var(--green-bg)', padding: '4px 10px', borderRadius: 8, border: '1px solid var(--green-border)', letterSpacing: '.06em' }}>
             <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--green)', animation: 'pulse 2s infinite' }} />
             AKTIV
           </span>
         </div>
 
-        {/* Feed */}
-        <div ref={feedRef} style={{ flex: 1, overflowY: 'auto', padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+        {/* Message feed */}
+        <div ref={feedRef} style={{ flex: 1, overflowY: 'auto', padding: '24px 20px', display: 'flex', flexDirection: 'column', gap: 22 }}>
           {msgs.map((m, i) => (
-            <div key={i} className={i === msgs.length - 1 ? 'ai-msg-in' : ''} style={{ display: 'flex', gap: 12, justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
+            <div key={i} className={i === msgs.length - 1 ? 'ai-msg-in' : ''}
+              style={{ display: 'flex', gap: 10, justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
               {m.role === 'ai' && (
-                <div style={{ width: 30, height: 30, borderRadius: 9, background: 'var(--text)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2 }}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--bg)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8"/></svg>
+                <div style={{ width: 28, height: 28, borderRadius: 8, background: 'var(--text)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 3 }}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--bg)" strokeWidth="2.2" strokeLinecap="round"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8"/></svg>
                 </div>
               )}
-              <div style={{ maxWidth: '78%', display: 'flex', flexDirection: 'column', gap: 4, alignItems: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
+              <div style={{ maxWidth: '80%', display: 'flex', flexDirection: 'column', gap: 4, alignItems: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
                 <div style={{
-                  padding: '12px 16px',
+                  padding: '11px 15px',
                   borderRadius: m.role === 'ai' ? '4px 16px 16px 16px' : '16px 4px 16px 16px',
                   background: m.role === 'ai' ? 'var(--card)' : 'var(--btn-prim)',
                   border: m.role === 'ai' ? '1px solid var(--border)' : 'none',
@@ -214,26 +212,27 @@ export default function AIPage() {
                 }}>
                   {m.role === 'ai'
                     ? <ChatMarkdown text={m.text} />
-                    : <p style={{ margin: 0, whiteSpace: 'pre-wrap', color: 'var(--btn-prim-text)', fontWeight: 600 }}>{m.text}</p>}
+                    : <p style={{ margin: 0, whiteSpace: 'pre-wrap', color: 'var(--btn-prim-text)', fontWeight: 600 }}>{m.text}</p>
+                  }
                 </div>
                 <span style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '.02em' }}>
                   {m.role === 'ai' ? 'Tagro' : 'Du'} · {m.time}
                 </span>
               </div>
               {m.role === 'user' && (
-                <div style={{ width: 30, height: 30, borderRadius: 9, background: 'var(--surface-2)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2 }}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c0-3.5 3.1-6 7-6s7 2.5 7 6"/></svg>
+                <div style={{ width: 28, height: 28, borderRadius: 8, background: 'var(--surface-2)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 3 }}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" strokeWidth="2"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c0-3.5 3.1-6 7-6s7 2.5 7 6"/></svg>
                 </div>
               )}
             </div>
           ))}
 
           {loading && (
-            <div className="ai-msg-in" style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-              <div style={{ width: 30, height: 30, borderRadius: 9, background: 'var(--text)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--bg)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8"/></svg>
+            <div className="ai-msg-in" style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+              <div style={{ width: 28, height: 28, borderRadius: 8, background: 'var(--text)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--bg)" strokeWidth="2.2" strokeLinecap="round"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8"/></svg>
               </div>
-              <div style={{ padding: '14px 16px', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '4px 16px 16px 16px', display: 'flex', gap: 5, alignItems: 'center' }}>
+              <div style={{ padding: '12px 16px', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '4px 16px 16px 16px', display: 'flex', gap: 5, alignItems: 'center' }}>
                 {[0, 1, 2].map(j => (
                   <span key={j} style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--text-muted)', animation: `pulse 1.2s ${j * 0.2}s ease-in-out infinite` }} />
                 ))}
@@ -242,81 +241,66 @@ export default function AIPage() {
           )}
         </div>
 
-        {/* Quick actions + Input — zentriert in einem schmalen Container */}
-        <div style={{ width: '100%', maxWidth: 720, margin: '0 auto', padding: '6px 16px 18px', flexShrink: 0, boxSizing: 'border-box' }}>
-          <div className="ai-quick" style={{ padding: '0 0 10px', display: 'flex', gap: 8, overflowX: 'auto', overflowY: 'hidden' }}>
+        {/* Input area — with quick chips + ChatInput */}
+        <div style={{ flexShrink: 0, padding: '0 16px 20px', background: 'var(--bg)', borderTop: '1px solid var(--border)' }}>
+          {/* Quick chips */}
+          <div className="ai-quick" style={{ display: 'flex', gap: 6, overflowX: 'auto', padding: '12px 0 10px' }}>
             {QUICK.map(q => (
-              <button key={q} onClick={() => send(q)} disabled={loading} className="tap-scale"
-                style={{ padding: '6px 13px', borderRadius: 20, border: '1px solid var(--border)', background: 'var(--card)', fontSize: 12, color: 'var(--text-secondary)', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0, fontFamily: 'inherit', fontWeight: 500, transition: 'border-color .1s' }}
-                onMouseEnter={e => (e.currentTarget as HTMLElement).style.borderColor = 'var(--border-strong)'}
-                onMouseLeave={e => (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'}
-              >
+              <button key={q} onClick={() => send(q)} disabled={loading} className="q-chip">
                 {q}
               </button>
             ))}
           </div>
 
-          {/* Codex-style input */}
-          <div className="ai-input-wrap" style={{ position: 'relative', background: 'var(--card)', border: '1.5px solid var(--border)', borderRadius: 18, padding: '12px 50px 12px 16px', transition: 'border-color .15s, box-shadow .15s', boxShadow: 'var(--shadow-sm)' }}
-            onFocusCapture={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border-strong)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 0 0 4px var(--glow)' }}
-            onBlurCapture={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'; (e.currentTarget as HTMLElement).style.boxShadow = 'var(--shadow-sm)' }}
-          >
-            <textarea
-              ref={inputRef}
-              value={input}
-              onChange={e => {
-                setInput(e.target.value)
-                e.target.style.height = 'auto'
-                e.target.style.height = Math.min(e.target.scrollHeight, 160) + 'px'
-              }}
-              onKeyDown={handleKey}
-              placeholder="Frag Tagro — was soll dein Projekt können?"
-              rows={1}
-              style={{ width: '100%', resize: 'none', border: 'none', outline: 'none', background: 'transparent', fontSize: 15, lineHeight: 1.55, color: 'var(--text)', fontFamily: 'inherit', fontWeight: 500, padding: 0, overflowY: 'hidden', minHeight: 26, caretColor: 'var(--text)' }}
-            />
-            <button
-              onClick={() => send()}
-              disabled={!input.trim() || loading}
-              className="tap-scale"
-              style={{ position: 'absolute', right: 10, bottom: 10, width: 36, height: 36, borderRadius: 12, border: 'none', background: input.trim() && !loading ? 'var(--btn-prim)' : 'var(--surface-2)', color: input.trim() && !loading ? 'var(--btn-prim-text)' : 'var(--text-muted)', cursor: input.trim() && !loading ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all .12s' }}>
-              {loading
-                ? <span style={{ width: 14, height: 14, border: '2px solid currentColor', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin .7s linear infinite', opacity: .6 }} />
-                : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M7 17L17 7M9 7h8v8"/></svg>
-              }
-            </button>
-          </div>
-          <p style={{ fontSize: 10, color: 'var(--text-muted)', textAlign: 'center', margin: '7px 0 0', letterSpacing: '.03em' }}>
-            ⏎ Senden · ⇧⏎ Neue Zeile
-          </p>
+          {/* ChatInput component — same as copilot/onboarding */}
+          <ChatInput
+            value={input}
+            onChange={setInput}
+            onSend={() => send()}
+            loading={loading}
+            placeholder="Frag Tagro — was soll dein Projekt können?"
+            autoFocus
+            banner={
+              <p style={{ fontSize: 10.5, color: 'var(--text-muted)', textAlign: 'center', margin: '7px 0 0', letterSpacing: '.03em' }}>
+                ⏎ Senden · ⇧⏎ Neue Zeile
+              </p>
+            }
+          />
         </div>
       </div>
 
       {/* ── RIGHT SIDEBAR — desktop only ── */}
-      <div className="ai-sidebar" style={{ width: 300, borderLeft: '1px solid var(--border)', flexDirection: 'column', gap: 0, overflowY: 'auto', background: 'var(--bg)' }}>
+      <div className="ai-sidebar" style={{
+        width: 280,
+        borderLeft: '1px solid var(--border)',
+        flexDirection: 'column',
+        overflowY: 'auto',
+        background: 'var(--bg)',
+        scrollbarWidth: 'none',
+      }}>
 
-        {/* Global stats */}
-        <div style={{ padding: '20px 20px 0' }}>
+        {/* Übersicht */}
+        <div style={{ padding: '20px 18px 0' }}>
           <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '.1em', textTransform: 'uppercase', margin: '0 0 12px' }}>Übersicht</p>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 14 }}>
             {[
-              { label: 'Projekte', value: projects.length, color: 'var(--text)' },
-              { label: 'Tasks', value: totalTasks, color: 'var(--text)' },
-              { label: 'Erledigt', value: doneTasks, color: 'var(--green-dark)' },
-              { label: 'Aktiv', value: inProgress, color: 'var(--amber-dark)' },
+              { label: 'Projekte', value: projects.length },
+              { label: 'Tasks',    value: totalTasks },
+              { label: 'Erledigt', value: doneTasks,  green: true },
+              { label: 'Aktiv',    value: inProgress, amber: true },
             ].map(s => (
               <div key={s.label} style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 12, padding: '11px 13px' }}>
-                <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '.06em', margin: '0 0 4px' }}>{s.label.toUpperCase()}</p>
-                <p style={{ fontSize: 20, fontWeight: 700, color: s.color, margin: 0, lineHeight: 1 }}>{s.value}</p>
+                <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '.06em', margin: '0 0 5px' }}>{s.label.toUpperCase()}</p>
+                <p style={{ fontSize: 22, fontWeight: 700, color: (s as any).green ? 'var(--green-dark)' : (s as any).amber ? 'var(--amber-dark)' : 'var(--text)', margin: 0, lineHeight: 1, letterSpacing: '-.4px' }}>{s.value}</p>
               </div>
             ))}
           </div>
 
-          {/* Progress bar */}
           {totalTasks > 0 && (
-            <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 12, padding: '13px 14px', marginBottom: 16 }}>
+            <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 12, padding: '13px 14px', marginBottom: 14 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)' }}>Gesamtfortschritt</span>
-                <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text)' }}>{pct}%</span>
+                <span style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--text-secondary)' }}>Gesamtfortschritt</span>
+                <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--text)' }}>{pct}%</span>
               </div>
               <div style={{ height: 4, background: 'var(--surface-2)', borderRadius: 4, overflow: 'hidden' }}>
                 <div style={{ height: '100%', width: `${pct}%`, background: 'var(--green)', borderRadius: 4, transition: 'width 1s cubic-bezier(.16,1,.3,1)' }} />
@@ -325,67 +309,58 @@ export default function AIPage() {
           )}
         </div>
 
-        {/* Projects list */}
+        {/* Projects */}
         {projects.length > 0 && (
-          <div style={{ padding: '0 20px 16px' }}>
+          <div style={{ padding: '0 18px 14px' }}>
             <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '.1em', textTransform: 'uppercase', margin: '0 0 10px' }}>Projekte</p>
             <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 12, overflow: 'hidden' }}>
               {projects.slice(0, 5).map((p, i) => (
-                <Link key={p.id} href={`/project/${p.id}`} style={{ textDecoration: 'none', display: 'block' }}>
+                <Link key={p.id} href={`/project/${p.id}`}
+                  style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderBottom: i < Math.min(projects.length, 5) - 1 ? '1px solid var(--border)' : 'none', textDecoration: 'none', transition: 'background .1s' }}
+                  onMouseEnter={e => (e.currentTarget.style.background = 'var(--surface-2)')}
+                  onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
                   <div style={{
-                    padding: '10px 13px', borderBottom: i < Math.min(projects.length, 5) - 1 ? '1px solid var(--border)' : 'none',
-                    display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', transition: 'background .1s',
-                  }}
-                    onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--surface-2)'}
-                    onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}
-                  >
-                    <div style={{ width: 28, height: 28, borderRadius: 8, background: 'var(--surface-2)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: 'var(--text)', flexShrink: 0 }}>
-                      {p.title.charAt(0).toUpperCase()}
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.title}</p>
-                      <p style={{ fontSize: 10, color: 'var(--text-muted)', margin: 0 }}>{PHASE[p.status] ?? p.status}</p>
-                    </div>
-                    <div style={{ width: 6, height: 6, borderRadius: '50%', flexShrink: 0, background: p.status === 'active' ? 'var(--green)' : p.status === 'done' ? 'var(--text-muted)' : 'var(--amber)' }} />
+                    width: 28, height: 28, borderRadius: 8, flexShrink: 0,
+                    background: 'var(--surface-2)', border: '1px solid var(--border)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 10.5, fontWeight: 700, color: 'var(--text-muted)',
+                  }}>
+                    {p.title.charAt(0).toUpperCase()}
                   </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--text)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.title}</p>
+                    <p style={{ fontSize: 10.5, color: 'var(--text-muted)', margin: 0, textTransform: 'capitalize' }}>{PHASE[p.status] ?? p.status}</p>
+                  </div>
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: p.status === 'active' ? 'var(--green)' : p.status === 'done' ? 'var(--text-muted)' : 'var(--amber)', flexShrink: 0 }} />
                 </Link>
               ))}
             </div>
           </div>
         )}
 
-        {/* Tagro capabilities */}
-        <div style={{ padding: '0 20px 16px' }}>
+        {/* Tagro kann */}
+        <div style={{ padding: '0 18px 20px' }}>
           <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '.1em', textTransform: 'uppercase', margin: '0 0 10px' }}>Tagro kann</p>
-          <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 12, overflow: 'hidden' }}>
-            {[
-              { icon: '📊', label: 'Statusberichte erstellen' },
-              { icon: '🎯', label: 'Risiken identifizieren' },
-              { icon: '✅', label: 'Tasks priorisieren' },
-              { icon: '🗺️', label: 'Roadmaps planen' },
-              { icon: '📝', label: 'Projekt strukturieren' },
-            ].map((c, i) => (
-              <button key={c.label} onClick={() => send(c.label)} disabled={loading}
-                style={{ width: '100%', padding: '9px 13px', display: 'flex', alignItems: 'center', gap: 9, background: 'transparent', border: 'none', borderBottom: i < 4 ? '1px solid var(--border)' : 'none', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left', transition: 'background .1s' }}
-                onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--surface-2)'}
-                onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}
-              >
+          <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 12, padding: '4px 14px' }}>
+            {TAGRO_CAN.map(c => (
+              <div key={c.label} className="tagro-can-row" style={{ cursor: 'pointer' }}
+                onClick={() => send(c.label)}>
                 <span style={{ fontSize: 14, flexShrink: 0 }}>{c.icon}</span>
-                <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-secondary)' }}>{c.label}</span>
-              </button>
+                <span style={{ fontSize: 12.5, color: 'var(--text-secondary)', fontWeight: 500 }}>{c.label}</span>
+              </div>
             ))}
           </div>
         </div>
 
-        {/* Quick start new project */}
-        <div style={{ padding: '0 20px 20px' }}>
-          <div style={{ background: 'var(--accent)', border: '1px solid var(--border)', borderRadius: 12, padding: '14px 16px' }}>
-            <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--accent-text)', margin: '0 0 6px', opacity: .7, letterSpacing: '.06em' }}>NEUES PROJEKT</p>
-            <p style={{ fontSize: 12, color: 'var(--accent-text)', margin: '0 0 12px', lineHeight: 1.5, opacity: .85 }}>Beschreibe deine Idee — Tagro strukturiert alles.</p>
-            <Link href="/onboarding">
-              <button className="tap-scale" style={{ width: '100%', height: 36, background: 'rgba(255,255,255,0.12)', color: 'var(--accent-text)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 9, fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
-                Projekt starten →
-              </button>
+        {/* New project CTA */}
+        <div style={{ padding: '0 18px 20px', marginTop: 'auto' }}>
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '14px 16px' }}>
+            <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '.08em', margin: '0 0 8px', textTransform: 'uppercase' }}>Neues Projekt</p>
+            <p style={{ fontSize: 12.5, color: 'var(--text-secondary)', margin: '0 0 12px', lineHeight: 1.5 }}>Lass Tagro dein nächstes Projekt strukturieren.</p>
+            <Link href="/new-project"
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '9px', background: 'var(--btn-prim)', color: 'var(--btn-prim-text)', borderRadius: 9, fontSize: 12.5, fontWeight: 700, textDecoration: 'none' }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Starten
             </Link>
           </div>
         </div>

@@ -35,6 +35,11 @@ function Ico({ name, sz=16, c='currentColor', sw=1.75 }: { name:string; sz?:numb
     team:     <><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></>,
     bell:     <><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></>,
     card:     <><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></>,
+    briefcase:<><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></>,
+    clock:    <><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></>,
+    check:    <><polyline points="20 6 9 17 4 12"/></>,
+    code:     <><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></>,
+    task:     <><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></>,
   }
   return (
     <svg width={sz} height={sz} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round">
@@ -45,41 +50,38 @@ function Ico({ name, sz=16, c='currentColor', sw=1.75 }: { name:string; sz?:numb
 
 type NavItem = { href: string; icon: string; label: string; badge?: number }
 
-const MAIN_NAV: NavItem[] = [
-  { href:'/dashboard',       icon:'home',     label:'Dashboard' },
-  { href:'/messages',        icon:'chat',     label:'Nachrichten' },
-  { href:'/teams',           icon:'team',     label:'Teams' },
-  { href:'/activity',        icon:'activity', label:'Aktivität' },
+/* ── CLIENT nav ── */
+const CLIENT_MAIN: NavItem[] = [
+  { href:'/dashboard', icon:'home',     label:'Dashboard' },
+  { href:'/messages',  icon:'chat',     label:'Nachrichten' },
+  { href:'/teams',     icon:'team',     label:'Teams' },
+  { href:'/activity',  icon:'activity', label:'Aktivität' },
 ]
-const PROJECT_NAV: NavItem[] = [
+const CLIENT_PROJECT: NavItem[] = [
   { href:'/project/current', icon:'project',  label:'Mein Projekt' },
   { href:'/reports',         icon:'doc',      label:'Statusberichte' },
   { href:'/ai',              icon:'sparkle',  label:'AI Assistent' },
   { href:'/documents',       icon:'doc',      label:'Dokumente' },
 ]
-const TOOLS_NAV: NavItem[] = [
+const CLIENT_TOOLS: NavItem[] = [
   { href:'/estimator',  icon:'estimate', label:'Preisschätzer' },
   { href:'/pricing',    icon:'sparkle',  label:'Pakete & Pläne' },
-  { href:'/invite',     icon:'team',     label:'Team einladen' },
   { href:'/connectors', icon:'grid',     label:'Connectors' },
   { href:'/addons',     icon:'grid',     label:'Add-ons' },
 ]
-const ACCOUNT_NAV: NavItem[] = [
+const CLIENT_ACCOUNT: NavItem[] = [
   { href:'/billing',  icon:'card',     label:'Abrechnung' },
   { href:'/settings', icon:'settings', label:'Einstellungen' },
 ]
 
-const MOB_PRIMARY: NavItem[] = [
+const CLIENT_MOB_PRIMARY: NavItem[] = [
   { href:'/dashboard',       icon:'home',    label:'Home' },
   { href:'/project/current', icon:'project', label:'Projekt' },
-  // center FAB slot
   { href:'/ai',              icon:'sparkle', label:'AI' },
   { href:'/settings',        icon:'user',    label:'Profil' },
 ]
-
-// Quick actions in the FAB pop-up menu
-const MOB_QUICK = [
-  { href:'/new-project', icon:'plus',     label:'Neues Projekt',   primary: true },
+const CLIENT_MOB_QUICK = [
+  { href:'/new-project', icon:'plus',     label:'Neues Projekt', primary: true },
   { href:'/messages',    icon:'chat',     label:'Nachrichten' },
   { href:'/teams',       icon:'team',     label:'Teams' },
   { href:'/activity',    icon:'activity', label:'Aktivität' },
@@ -89,8 +91,45 @@ const MOB_QUICK = [
   { href:'/billing',     icon:'card',     label:'Abrechnung' },
 ]
 
+/* ── DEV nav ── */
+const DEV_MAIN: NavItem[] = [
+  { href:'/dev',      icon:'home',      label:'Dashboard' },
+  { href:'/messages', icon:'chat',      label:'Nachrichten' },
+  { href:'/teams',    icon:'team',      label:'Teams' },
+  { href:'/activity', icon:'activity',  label:'Aktivität' },
+]
+const DEV_WORK: NavItem[] = [
+  { href:'/dev/jobs',      icon:'briefcase', label:'Job Board' },
+  { href:'/dev/tasks',     icon:'task',      label:'Meine Tasks' },
+  { href:'/dev/projects',  icon:'project',   label:'Meine Projekte' },
+  { href:'/dev/time',      icon:'clock',     label:'Zeiterfassung' },
+]
+const DEV_TOOLS: NavItem[] = [
+  { href:'/connectors', icon:'grid',  label:'Connectors' },
+  { href:'/addons',     icon:'grid',  label:'Add-ons' },
+]
+const DEV_ACCOUNT: NavItem[] = [
+  { href:'/settings', icon:'settings', label:'Einstellungen' },
+]
+
+const DEV_MOB_PRIMARY: NavItem[] = [
+  { href:'/dev',           icon:'home',      label:'Home' },
+  { href:'/dev/jobs',      icon:'briefcase', label:'Jobs' },
+  { href:'/dev/tasks',     icon:'task',      label:'Tasks' },
+  { href:'/settings',      icon:'user',      label:'Profil' },
+]
+const DEV_MOB_QUICK = [
+  { href:'/dev/jobs',     icon:'briefcase', label:'Job Board',     primary: true },
+  { href:'/messages',     icon:'chat',      label:'Nachrichten' },
+  { href:'/teams',        icon:'team',      label:'Teams' },
+  { href:'/dev/tasks',    icon:'task',      label:'Meine Tasks' },
+  { href:'/dev/projects', icon:'project',   label:'Projekte' },
+  { href:'/dev/time',     icon:'clock',     label:'Zeiterfassung' },
+  { href:'/connectors',   icon:'grid',      label:'Connectors' },
+  { href:'/activity',     icon:'activity',  label:'Aktivität' },
+]
+
 const ROLE_LABEL: Record<string,string> = { client:'Client', dev:'Developer', admin:'Admin' }
-const ROLE_COLOR: Record<string,string> = { client:'var(--accent)', dev:'#22c55e', admin:'#f59e0b' }
 
 export default function Sidebar() {
   const pathname  = usePathname()
@@ -102,6 +141,16 @@ export default function Sidebar() {
   const [projects,setProjects]= useState<{id:string;title:string;status:string}[]>([])
   const [more,    setMore]    = useState(false)
   const [projExp, setProjExp] = useState(false)
+
+  const isClient = role !== 'dev'
+  const isDev    = role === 'dev'
+
+  const homeHref    = isDev ? '/dev' : '/dashboard'
+  const mainNav     = isDev ? DEV_MAIN     : CLIENT_MAIN
+  const toolsNav    = isDev ? DEV_TOOLS    : CLIENT_TOOLS
+  const accountNav  = isDev ? DEV_ACCOUNT  : CLIENT_ACCOUNT
+  const mobPrimary  = isDev ? DEV_MOB_PRIMARY : CLIENT_MOB_PRIMARY
+  const mobQuick    = isDev ? DEV_MOB_QUICK   : CLIENT_MOB_QUICK
 
   useEffect(() => {
     setMore(false)
@@ -116,11 +165,11 @@ export default function Sidebar() {
         setRole((p as any).role ?? 'client')
       }
     })
+    // Only load projects for client accounts
     createClient().from('projects').select('id,title,status').order('created_at',{ascending:false}).limit(8).then(({data}) => {
       const list = (data as any[]) ?? []
       if (!list.length) { setProjects([]); setProjExp(false); return }
       setProjects(list)
-      // Auto-expand the project section once user has at least one project
       setProjExp(true)
       const prio: Record<string,number> = {active:0,testing:1,planning:2,intake:3,done:4}
       setProjId([...list].sort((a,b)=>(prio[a.status]??9)-(prio[b.status]??9))[0].id)
@@ -130,7 +179,8 @@ export default function Sidebar() {
   const logout  = async () => { await createClient().auth.signOut(); window.location.href='/login' }
   const resolve = (h:string) => h==='/project/current'?(projId?`/project/${projId}`:'/dashboard'):h
   const isOn    = (h:string) => {
-    if (h==='/dashboard')       return pathname==='/dashboard'
+    if (h==='/dashboard') return pathname==='/dashboard'
+    if (h==='/dev')       return pathname==='/dev'
     if (h==='/project/current') return pathname.startsWith('/project/')
     return pathname.startsWith(h)
   }
@@ -210,7 +260,7 @@ export default function Sidebar() {
 
           {/* Logo + Support-Button */}
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 8px', marginBottom:18, gap:8 }}>
-            <Link href="/dashboard" style={{ textDecoration:'none', display:'flex', alignItems:'center' }}>
+            <Link href={homeHref} style={{ textDecoration:'none', display:'flex', alignItems:'center' }}>
               <img src="/brand/logo.svg" alt="festag" style={{ height:18, display:'block', filter:'var(--logo-filter,none)' }}/>
             </Link>
             <SupportButton />
@@ -220,64 +270,68 @@ export default function Sidebar() {
           <div style={{ flex:1, overflowY:'auto', overflowX:'hidden', scrollbarWidth:'none' }}>
 
             {/* Main nav */}
-            <NavSection label="Übersicht" items={MAIN_NAV} />
+            <NavSection label="Übersicht" items={mainNav} />
 
-            {/* Projects */}
-            <div style={{ marginBottom:4 }}>
-              <button onClick={() => setProjExp(v => !v)}
-                style={{ display:'flex', alignItems:'center', gap:6, width:'100%', padding:'6px 11px 3px', background:'transparent', border:'none', cursor:'pointer', fontFamily:'inherit' }}>
-                <span style={{ fontSize:9.5, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.09em', textTransform:'uppercase', opacity:.6, flex:1, textAlign:'left' }}>Projekte</span>
-                <span style={{ opacity:.4, transition:'transform .15s', display:'block', transform:projExp?'rotate(90deg)':'none' }}>
-                  <Ico name="chevron" sz={11} c="var(--text-muted)" sw={2} />
-                </span>
-                <Link href="/new-project" onClick={e => e.stopPropagation()}
-                  style={{ opacity:.5, display:'flex', marginLeft:2, padding:2, borderRadius:5, textDecoration:'none' }}>
-                  <Ico name="plus" sz={11} c="var(--text-muted)" sw={2.2} />
-                </Link>
-              </button>
+            {/* CLIENT: Projects section */}
+            {isClient && (
+              <div style={{ marginBottom:4 }}>
+                <button onClick={() => setProjExp(v => !v)}
+                  style={{ display:'flex', alignItems:'center', gap:6, width:'100%', padding:'6px 11px 3px', background:'transparent', border:'none', cursor:'pointer', fontFamily:'inherit' }}>
+                  <span style={{ fontSize:9.5, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.09em', textTransform:'uppercase', opacity:.6, flex:1, textAlign:'left' }}>Projekte</span>
+                  <span style={{ opacity:.4, transition:'transform .15s', display:'block', transform:projExp?'rotate(90deg)':'none' }}>
+                    <Ico name="chevron" sz={11} c="var(--text-muted)" sw={2} />
+                  </span>
+                  <Link href="/new-project" onClick={e => e.stopPropagation()}
+                    style={{ opacity:.5, display:'flex', marginLeft:2, padding:2, borderRadius:5, textDecoration:'none' }}>
+                    <Ico name="plus" sz={11} c="var(--text-muted)" sw={2.2} />
+                  </Link>
+                </button>
 
-              {projExp && (
-                <>
-                  {projects.length > 0 ? projects.map(p => {
-                    const on = pathname === `/project/${p.id}`
-                    return (
-                      <Link key={p.id} href={`/project/${p.id}`} className={`proj-row ${on?'active':''}`}>
-                        <span style={{ width:7, height:7, borderRadius:'50%', background:projectColor(p.id), flexShrink:0 }}/>
-                        <span style={{ flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{p.title}</span>
+                {projExp && (
+                  <>
+                    {projects.length > 0 ? projects.map(p => {
+                      const on = pathname === `/project/${p.id}`
+                      return (
+                        <Link key={p.id} href={`/project/${p.id}`} className={`proj-row ${on?'active':''}`}>
+                          <span style={{ width:7, height:7, borderRadius:'50%', background:projectColor(p.id), flexShrink:0 }}/>
+                          <span style={{ flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{p.title}</span>
+                        </Link>
+                      )
+                    }) : (
+                      <Link href="/new-project" className="proj-row" style={{ opacity:.6 }}>
+                        <span style={{ width:7, height:7, borderRadius:'50%', background:'var(--border)', flexShrink:0 }}/>
+                        <span style={{ fontStyle:'italic', fontSize:12 }}>Neues Projekt</span>
                       </Link>
-                    )
-                  }) : (
-                    <Link href="/new-project" className="proj-row" style={{ opacity:.6 }}>
-                      <span style={{ width:7, height:7, borderRadius:'50%', background:'var(--border)', flexShrink:0 }}/>
-                      <span style={{ fontStyle:'italic', fontSize:12 }}>Neues Projekt</span>
-                    </Link>
-                  )}
+                    )}
 
-                  {/* Project sub-nav (current project) */}
-                  {projId && (
-                    <div style={{ marginLeft:11, borderLeft:'1.5px solid var(--border)', paddingLeft:8, marginTop:2, marginBottom:2 }}>
-                      {PROJECT_NAV.map(item => {
-                        const on = isOn(item.href)
-                        return (
-                          <Link key={item.href} href={resolve(item.href)}
-                            className={`ni ${on?'ni-on':'ni-off'}`}
-                            style={{ fontSize:12, padding:'5px 9px', borderRadius:7 }}>
-                            <Ico name={item.icon} sz={13} c={on?'var(--text)':'var(--text-muted)'} sw={on?2:1.6} />
-                            {item.label}
-                          </Link>
-                        )
-                      })}
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
+                    {projId && (
+                      <div style={{ marginLeft:11, borderLeft:'1.5px solid var(--border)', paddingLeft:8, marginTop:2, marginBottom:2 }}>
+                        {CLIENT_PROJECT.map(item => {
+                          const on = isOn(item.href)
+                          return (
+                            <Link key={item.href} href={resolve(item.href)}
+                              className={`ni ${on?'ni-on':'ni-off'}`}
+                              style={{ fontSize:12, padding:'5px 9px', borderRadius:7 }}>
+                              <Ico name={item.icon} sz={13} c={on?'var(--text)':'var(--text-muted)'} sw={on?2:1.6} />
+                              {item.label}
+                            </Link>
+                          )
+                        })}
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
 
-            <NavSection label="Tools" items={TOOLS_NAV} />
-            <NavSection label="Konto" items={ACCOUNT_NAV} />
+            {/* DEV: Work section */}
+            {isDev && <NavSection label="Arbeit" items={DEV_WORK} />}
+
+            <NavSection label="Tools" items={toolsNav} />
+            <NavSection label="Konto" items={accountNav} />
           </div>
 
-          {/* User block — als Karte mit integriertem Logout */}
+          {/* User block */}
           <div style={{ borderTop:'1px solid var(--border)', paddingTop:12, marginTop:8 }}>
             <div style={{
               background:'var(--surface-2)', border:'1px solid var(--border)',
@@ -354,11 +408,10 @@ export default function Sidebar() {
 
       {/* ══════════════════════════════════
           MOBILE FLOATING NAV BAR
-          4 items + center FAB (three-dots)
       ══════════════════════════════════ */}
       <nav className="bottom-nav mob-bar">
-        {/* Left 2: Home, Projekt */}
-        {MOB_PRIMARY.slice(0,2).map(item => {
+        {/* Left 2 items */}
+        {mobPrimary.slice(0,2).map(item => {
           const on = isOn(item.href)
           return (
             <Link key={item.href} href={resolve(item.href)} className={`mt ${on?'on':'off'}`}>
@@ -378,14 +431,15 @@ export default function Sidebar() {
           }
         </button>
 
-        {/* Right 2: AI, Profil */}
-        {MOB_PRIMARY.slice(2).map(item => {
+        {/* Right 2 items */}
+        {mobPrimary.slice(2).map(item => {
           const on = isOn(item.href)
+          const isAvatar = item.icon === 'user' && !!avatar
           return (
-            <Link key={item.href} href={resolve(item.href)} className={`mt ${on?'on':'off'} ${item.icon==='user'&&avatar?'has-avatar':''}`}>
+            <Link key={item.href} href={resolve(item.href)} className={`mt ${on?'on':'off'} ${isAvatar?'has-avatar':''}`}>
               <div className="mti">
-                {item.icon==='user' && avatar ? (
-                  <img src={avatar} alt="" style={{ width:26, height:26, borderRadius:'50%', objectFit:'cover', border:on?'2.5px solid var(--text)':'2px solid var(--border)', display:'block' }} />
+                {isAvatar ? (
+                  <img src={avatar!} alt="" style={{ width:26, height:26, borderRadius:'50%', objectFit:'cover', border:on?'2.5px solid var(--text)':'2px solid var(--border)', display:'block' }} />
                 ) : (
                   <Ico name={item.icon} sz={21} c={on?'var(--text)':'var(--text-muted)'} sw={on?2.1:1.65} />
                 )}
@@ -396,25 +450,25 @@ export default function Sidebar() {
         })}
       </nav>
 
-      {/* Quick action panel — slides up from FAB */}
+      {/* Quick action panel */}
       {more && (
         <>
           <div className="mbd" onClick={() => setMore(false)} />
           <div className="mob-quick">
-            {/* Primary action first */}
-            <Link href="/new-project" className="mqi primary-action" onClick={() => setMore(false)}>
+            {/* Primary action */}
+            <Link href={mobQuick[0].href} className="mqi primary-action" onClick={() => setMore(false)}>
               <div className="mqi-ico" style={{ width:40, height:40, borderRadius:12, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, background:'rgba(0,0,0,.14)' }}>
-                <Ico name="plus" sz={18} c="var(--btn-prim-text)" sw={2.2} />
+                <Ico name={mobQuick[0].icon} sz={18} c="var(--btn-prim-text)" sw={2.2} />
               </div>
               <div style={{ flex:1, minWidth:0 }}>
-                <p className="mqi-label" style={{ fontSize:15, fontWeight:700, margin:'0 0 1px', color:'var(--btn-prim-text)' }}>Neues Projekt</p>
-                <p style={{ fontSize:11.5, margin:0, color:'var(--btn-prim-text)', opacity:.65 }}>Projekt starten →</p>
+                <p className="mqi-label" style={{ fontSize:15, fontWeight:700, margin:'0 0 1px', color:'var(--btn-prim-text)' }}>{mobQuick[0].label}</p>
+                <p style={{ fontSize:11.5, margin:0, color:'var(--btn-prim-text)', opacity:.65 }}>{isDev ? 'Jobs ansehen →' : 'Projekt starten →'}</p>
               </div>
             </Link>
 
             {/* 2-col grid for secondary actions */}
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:6 }}>
-              {MOB_QUICK.slice(1).map(item => {
+              {mobQuick.slice(1).map(item => {
                 const on = isOn(item.href)
                 return (
                   <Link key={item.href} href={resolve(item.href)} className="mqi" onClick={() => setMore(false)}
@@ -428,7 +482,7 @@ export default function Sidebar() {
               })}
             </div>
 
-            {/* Bottom: theme + logout row */}
+            {/* Bottom: logout + settings */}
             <div style={{ display:'flex', gap:6, marginTop:2 }}>
               <button onClick={logout}
                 style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', gap:8, padding:'11px 14px', background:'var(--surface)', border:'1px solid var(--border)', borderRadius:14, fontSize:13, fontWeight:600, color:'var(--text-muted)', cursor:'pointer', fontFamily:'inherit' }}>

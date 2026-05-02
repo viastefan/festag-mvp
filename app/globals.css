@@ -12,7 +12,17 @@
 @font-face {
   font-family: 'Aeonik';
   src: url('/fonts/Aeonik-Bold.ttf') format('truetype');
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Aeonik';
+  src: url('/fonts/Aeonik-Bold.ttf') format('truetype');
   font-weight: 700; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Aeonik';
+  src: url('/fonts/Aeonik-Bold.ttf') format('truetype');
+  font-weight: 800; font-style: normal; font-display: swap;
 }
 
 *,*::before,*::after { box-sizing:border-box; padding:0; margin:0; }
@@ -136,13 +146,14 @@ html,body {
   overscroll-behavior-y:none;
   transition:background .2s ease, color .2s ease;
 }
-p,span,div,label { font-weight:500; }
-strong,b { font-weight:600; }
-/* Editorial display sizes — Apple keynote feel, no bold-shouting */
-h1 { font-size:30px;font-weight:600;letter-spacing:-.022em;line-height:1.12;color:var(--text); }
-h2 { font-size:22px;font-weight:600;letter-spacing:-.018em;line-height:1.2; color:var(--text); }
-h3 { font-size:17px;font-weight:600;letter-spacing:-.012em;line-height:1.3; color:var(--text); }
-h4 { font-size:14px;font-weight:600;letter-spacing:-.005em;color:var(--text); }
+p,span,div,label,li,td,th { font-weight:500; font-family:'Aeonik',-apple-system,BlinkMacSystemFont,'SF Pro Text','Inter',sans-serif; }
+strong,b { font-weight:700; }
+/* Editorial display sizes — Apple keynote feel */
+h1,h2,h3,h4,h5,h6 { font-family:'Aeonik',-apple-system,BlinkMacSystemFont,'SF Pro Text','Inter',sans-serif; }
+h1 { font-size:28px;font-weight:700;letter-spacing:-.025em;line-height:1.12;color:var(--text); }
+h2 { font-size:21px;font-weight:700;letter-spacing:-.020em;line-height:1.2; color:var(--text); }
+h3 { font-size:16px;font-weight:700;letter-spacing:-.014em;line-height:1.3; color:var(--text); }
+h4 { font-size:13.5px;font-weight:700;letter-spacing:-.005em;color:var(--text); }
 p  { color:var(--text-secondary); }
 .eyebrow { font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted); }
 .display { font-size:44px;font-weight:600;letter-spacing:-.028em;line-height:1.04;color:var(--text); }
