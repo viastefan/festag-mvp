@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import ThemeToggle from '@/components/ThemeToggle'
 
@@ -28,30 +28,8 @@ const BLOCKS: Record<View,{w:number,h:number}[]> = {
   dev:     [{w:108,h:8},{w:78,h:10},{w:114,h:7},{w:86,h:9},{w:66,h:8},{w:100,h:11},{w:82,h:9},{w:96,h:10},{w:120,h:6},{w:74,h:8},{w:92,h:7},{w:88,h:7}],
 }
 
-function getDefaultTheme() {
-  if (typeof window === 'undefined') return 'read'
-  return localStorage.getItem('festag_theme') || 'read'
-}
-
-/**
- * Reads the current --bg CSS variable from the document so pixel blocks
- * always match the right panel exactly — no color drift in any theme.
- */
-function getPanelBg() {
-  if (typeof window === 'undefined') return '#F8F7F2'
-  const v = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim()
-  return v || '#F8F7F2'
-}
 
 function PixelBlocksMobile() {
-  const [bg, setBg] = useState('#F8F7F2')
-  useEffect(() => {
-    const update = () => setBg(getPanelBg())
-    update()
-    window.addEventListener('festag-theme', update)
-    return () => window.removeEventListener('festag-theme', update)
-  }, [])
-
   const rows = [
     { bottom: 0,   h: 20,  w: '100%' },
     { bottom: 20,  h: 13,  w: '84%'  },
@@ -70,7 +48,7 @@ function PixelBlocksMobile() {
           position: 'absolute',
           left: 0, bottom: `${b.bottom}px`,
           width: b.w, height: `${b.h}px`,
-          background: bg,
+          background: 'var(--bg)',
           animationDelay: `${i * 0.06}s`,
           zIndex: 3,
         }}/>
@@ -80,21 +58,13 @@ function PixelBlocksMobile() {
 }
 
 function PixelBlocks({ view }: { view: View }) {
-  const [panelBg, setPanelBg] = useState('#F8F7F2')
-  useEffect(() => {
-    const update = () => setPanelBg(getPanelBg())
-    update()
-    window.addEventListener('festag-theme', update)
-    return () => window.removeEventListener('festag-theme', update)
-  }, [])
-
   let top = 0
   const positioned = BLOCKS[view].map(b => { const t = top; top += b.h; return { ...b, top: t } })
   return (
     <>
-      <style>{`@keyframes blkIn{from{opacity:0;transform:translateX(56px);}to{opacity:1;transform:translateX(0);}} .px-blk{position:absolute;right:-1px;pointer-events:none;animation:blkIn .48s cubic-bezier(.16,1,.3,1) both;transition:background .2s;}`}</style>
+      <style>{`@keyframes blkIn{from{opacity:0;transform:translateX(56px);}to{opacity:1;transform:translateX(0);}} .px-blk{position:absolute;right:-1px;pointer-events:none;animation:blkIn .48s cubic-bezier(.16,1,.3,1) both;}`}</style>
       {positioned.map((b, i) => (
-        <div key={i} className="px-blk" style={{ top: `calc(${b.top}% - 1px)`, height: `calc(${b.h}% + 2px)`, width: b.w + 1, background: panelBg, animationDelay: `${i * 0.022}s` }}/>
+        <div key={i} className="px-blk" style={{ top: `calc(${b.top}% - 1px)`, height: `calc(${b.h}% + 2px)`, width: b.w + 1, background: 'var(--bg)', animationDelay: `${i * 0.022}s` }}/>
       ))}
     </>
   )
@@ -197,13 +167,10 @@ const MOBILE_CSS = `
   .frm{animation:fadeUp .35s cubic-bezier(.16,1,.3,1) both;}
   .px-mob{pointer-events:none;animation:pxRise .9s cubic-bezier(.16,1,.3,1) both;}
   .mob-hero{display:block;position:absolute;top:0;left:0;right:0;height:56dvh;overflow:hidden;z-index:0;}
-  .mob-grad{position:absolute;inset:0;pointer-events:none;z-index:1;}
-  [data-theme="dark"]  .mob-grad{background:linear-gradient(180deg,transparent 0%,rgba(11,15,14,.04) 20%,rgba(11,15,14,.32) 45%,rgba(11,15,14,.82) 70%,#0B0F0E 100%);}
-  [data-theme="light"] .mob-grad{background:linear-gradient(180deg,transparent 0%,rgba(248,249,248,.04) 20%,rgba(248,249,248,.32) 45%,rgba(248,249,248,.82) 70%,#F8F9F8 100%);}
-  .mob-grad{background:linear-gradient(180deg,transparent 0%,rgba(248,247,242,.04) 20%,rgba(248,247,242,.32) 45%,rgba(248,247,242,.82) 70%,#F8F7F2 100%);}
-  [data-theme="read"]  .mob-grad{background:linear-gradient(180deg,transparent 0%,rgba(248,247,242,.04) 20%,rgba(248,247,242,.32) 45%,rgba(248,247,242,.82) 70%,#F8F7F2 100%);}
+  .mob-grad{position:absolute;inset:0;pointer-events:none;z-index:1;background:linear-gradient(180deg,transparent 0%,transparent 25%,var(--bg) 100%);}
   .mob-page{position:relative;min-height:100dvh;width:100%;display:flex;flex-direction:column;background:var(--bg);overflow:hidden;}
   .mob-logo{position:absolute;top:calc(env(safe-area-inset-top) + 24px);left:22px;z-index:5;height:20px;opacity:.92;filter:brightness(0) invert(1);}
+  [data-theme="light"] .mob-logo{filter:none;opacity:.85;}
   .mob-cta{position:relative;z-index:2;margin-top:auto;padding:0 22px calc(env(safe-area-inset-bottom) + 32px);}
   .form-scroll{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:calc(env(safe-area-inset-top) + 28px) 22px calc(env(safe-area-inset-bottom) + 36px);overflow-y:auto;-webkit-overflow-scrolling:touch;min-height:100dvh;}
   @media(min-width:769px){
