@@ -6,11 +6,14 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import {
   ArrowLeft, Briefcase, ChatCircle, FileText, Tag,
-  Users, PencilSimple, Check, Trash,
+  Users, PencilSimple, Check, Trash, Plus, Brain,
 } from '@phosphor-icons/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import RelationsChat from '@/components/RelationsChat'
 import RelationsDocuments from '@/components/RelationsDocuments'
+import RelationsQuoteBuilder from '@/components/RelationsQuoteBuilder'
+import RelationsQuoteView from '@/components/RelationsQuoteView'
+import RelationsTagro from '@/components/RelationsTagro'
 
 type Project = {
   id: string
@@ -48,7 +51,27 @@ const TABS = [
   { key: 'chat',      label: 'Chat',       icon: ChatCircle },
   { key: 'documents', label: 'Dokumente',  icon: FileText },
   { key: 'offers',    label: 'Angebote',   icon: Tag },
+  { key: 'tagro',     label: 'Tagro AI',   icon: Brain },
 ]
+
+type Quote = {
+  id: string
+  project_id: string
+  created_by: string
+  title: string
+  description: string | null
+  items: any[]
+  subtotal: number
+  tax_rate: number
+  tax_amount: number
+  total: number
+  currency: string
+  status: string
+  valid_until: string | null
+  notes: string | null
+  created_at: string
+  updated_at: string
+}
 
 function formatBudget(min: number | null, max: number | null, currency: string) {
   const fmt = (n: number) => new Intl.NumberFormat('de-DE', { style: 'currency', currency, maximumFractionDigits: 0 }).format(n)
@@ -70,10 +93,24 @@ export default function ProjectDetailPage() {
   const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'overview')
   const [statusOpen, setStatusOpen] = useState(false)
   const [updating, setUpdating] = useState(false)
+  const [quotes, setQuotes] = useState<Quote[]>([])
+  const [quotesLoading, setQuotesLoading] = useState(false)
+  const [quoteView, setQuoteView] = useState<'list' | 'create' | 'edit' | 'view'>('list')
+  const [selectedQuote, setSelectedQuote] = useState<Quote | null>(null)
 
   useEffect(() => {
     loadProject()
+    loadQuotes()
   }, [projectId])
+
+  // Open specific quote from URL param
+  useEffect(() => {
+    const qid = searchParams.get('quote')
+    if (qid && quotes.length) {
+      const found = quotes.find(q => q.id === qid)
+      if (found) { setSelectedQuote(found); setQuoteView('view') }
+    }
+  }, [quotes, searchParams])
 
   async function loadProject() {
     const sb = createClient()
@@ -97,6 +134,18 @@ export default function ProjectDetailPage() {
 
     setMembers((memberData as Member[]) ?? [])
     setLoading(false)
+  }
+
+  async function loadQuotes() {
+    setQuotesLoading(true)
+    const sb = createClient()
+    const { data } = await sb
+      .from('rel_quotes')
+      .select('*')
+      .eq('project_id', projectId)
+      .order('created_at', { ascending: false })
+    setQuotes((data as Quote[]) ?? [])
+    setQuotesLoading(false)
   }
 
   async function updateStatus(newStatus: string) {
@@ -396,15 +445,146 @@ export default function ProjectDetailPage() {
             )}
 
             {activeTab === 'offers' && (
-              <div style={{
-                textAlign: 'center', padding: '48px 20px',
-                background: 'var(--surface)', border: '1px solid var(--border)',
-                borderRadius: 'var(--r-lg)',
-              }}>
-                <Tag size={32} weight="duotone" color="var(--text-muted)" style={{ marginBottom: 12 }} />
-                <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)', margin: '0 0 4px' }}>Angebote</p>
-                <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: 0 }}>Kommt bald — Erstelle und verwalte Angebote.</p>
-              </div>
+              <>
+                {quoteView === 'create' && (
+                  <RelationsQuoteBuilder
+                    projectId={projectId}
+                    onSaved={() => { setQuoteView('list'); loadQuotes() }}
+                    onCancel={() => setQuoteView('list')}
+                  />
+                )}
+
+                {quoteView === 'edit' && selectedQuote && (
+                  <RelationsQuoteBuilder
+                    projectId={projectId}
+                    initialData={{
+                      id: selectedQuote.id,
+                      title: selectedQuote.title,
+                      description: selectedQuote.description ?? '',
+                      items: (selectedQuote.items as any[]).map((it: any) => ({ ...it, id: Math.random().toString(36).slice(2, 10) })),
+                      tax_rate: selectedQuote.tax_rate,
+                      valid_until: selectedQuote.valid_until ?? '',
+                      notes: selectedQuote.notes ?? '',
+                    }}
+                    onSaved={() => { setQuoteView('list'); setSelectedQuote(null); loadQuotes() }}
+                    onCancel={() => { setQuoteView('list'); setSelectedQuote(null) }}
+                  />
+                )}
+
+                {quoteView === 'view' && selectedQuote && (
+                  <RelationsQuoteView
+                    quote={selectedQuote}
+                    onBack={() => { setQuoteView('list'); setSelectedQuote(null) }}
+                    onEdit={() => setQuoteView('edit')}
+                    onDeleted={() => { setQuoteView('list'); setSelectedQuote(null); loadQuotes() }}
+                  />
+                )}
+
+                {quoteView === 'list' && (
+                  <>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+                      <h3 style={{ margin: 0 }}>Angebote ({quotes.length})</h3>
+                      <button
+                        onClick={() => setQuoteView('create')}
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: 6,
+                          padding: '8px 16px', borderRadius: 9,
+                          background: 'var(--btn-prim)', color: 'var(--btn-prim-text)',
+                          border: 'none', fontSize: 12, fontWeight: 700,
+                          cursor: 'pointer', fontFamily: 'inherit',
+                          transition: 'opacity .12s',
+                        }}
+                      >
+                        <Plus size={13} weight="bold" />
+                        Neues Angebot
+                      </button>
+                    </div>
+
+                    {quotesLoading ? (
+                      <div style={{ display: 'flex', justifyContent: 'center', padding: 40 }}>
+                        <div style={{ width: 24, height: 24, border: '2px solid var(--border)', borderTopColor: 'var(--text)', borderRadius: '50%', animation: 'spin .8s linear infinite' }} />
+                      </div>
+                    ) : quotes.length === 0 ? (
+                      <div style={{
+                        textAlign: 'center', padding: '48px 20px',
+                        background: 'var(--surface)', border: '1px solid var(--border)',
+                        borderRadius: 'var(--r-lg)',
+                      }}>
+                        <Tag size={32} weight="duotone" color="var(--text-muted)" style={{ marginBottom: 12 }} />
+                        <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)', margin: '0 0 4px' }}>Noch keine Angebote</p>
+                        <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: '0 0 16px' }}>Erstelle dein erstes Angebot für dieses Projekt.</p>
+                        <button
+                          onClick={() => setQuoteView('create')}
+                          style={{
+                            padding: '10px 20px', borderRadius: 10,
+                            background: 'var(--btn-prim)', color: 'var(--btn-prim-text)',
+                            border: 'none', fontSize: 13, fontWeight: 700,
+                            cursor: 'pointer', fontFamily: 'inherit',
+                          }}
+                        >
+                          Angebot erstellen
+                        </button>
+                      </div>
+                    ) : (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                        {quotes.map(q => {
+                          const stCfg: Record<string, { label: string; color: string; bg: string }> = {
+                            draft:    { label: 'Entwurf',     color: 'var(--text-muted)',  bg: 'var(--surface-2)' },
+                            sent:     { label: 'Gesendet',    color: 'var(--amber)',       bg: 'var(--amber-bg)' },
+                            accepted: { label: 'Angenommen',  color: 'var(--green)',       bg: 'var(--green-bg)' },
+                            rejected: { label: 'Abgelehnt',   color: 'var(--red)',         bg: 'var(--red-bg)' },
+                            expired:  { label: 'Abgelaufen',  color: 'var(--text-muted)',  bg: 'var(--surface-2)' },
+                          }
+                          const s = stCfg[q.status] ?? stCfg.draft
+                          return (
+                            <motion.button
+                              key={q.id}
+                              initial={{ opacity: 0, y: 4 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              onClick={() => { setSelectedQuote(q); setQuoteView('view') }}
+                              style={{
+                                width: '100%', textAlign: 'left',
+                                display: 'flex', alignItems: 'center', gap: 14,
+                                padding: '14px 16px', borderRadius: 12,
+                                background: 'var(--card)', border: '1px solid var(--border)',
+                                cursor: 'pointer', fontFamily: 'inherit',
+                                transition: 'border-color .12s, box-shadow .12s',
+                              }}
+                              onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--border-strong)'; e.currentTarget.style.boxShadow = 'var(--shadow-xs)' }}
+                              onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.boxShadow = 'none' }}
+                            >
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)', margin: '0 0 2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                  {q.title}
+                                </p>
+                                <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: 0 }}>
+                                  {new Date(q.created_at).toLocaleDateString('de-DE', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                </p>
+                              </div>
+                              <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                                <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)', margin: '0 0 2px', fontVariantNumeric: 'tabular-nums' }}>
+                                  {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(q.total)}
+                                </p>
+                                <span style={{
+                                  display: 'inline-block', padding: '2px 8px', borderRadius: 6,
+                                  background: s.bg, color: s.color,
+                                  fontSize: 10.5, fontWeight: 600,
+                                }}>
+                                  {s.label}
+                                </span>
+                              </div>
+                            </motion.button>
+                          )
+                        })}
+                      </div>
+                    )}
+                  </>
+                )}
+              </>
+            )}
+
+            {activeTab === 'tagro' && project && (
+              <RelationsTagro project={{ id: project.id, title: project.title, description: project.description, status: project.status }} />
             )}
           </motion.div>
         </AnimatePresence>

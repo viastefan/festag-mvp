@@ -15,6 +15,7 @@ import {
   Gear,
   List,
   X,
+  Users,
 } from '@phosphor-icons/react'
 import ViewSwitch from '@/components/ViewSwitch'
 
@@ -29,8 +30,9 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/relations/projects', label: 'Projekte',     icon: Briefcase },
   { href: '/relations/documents',label: 'Dokumente',    icon: FileText },
   { href: '/relations/messages', label: 'Nachrichten',  icon: ChatCircle },
-  { href: '/relations/offers',   label: 'Angebote',     icon: Tag },
+  { href: '/relations/quotes',   label: 'Angebote',     icon: Tag },
   { href: '/relations/ai',       label: 'Tagro AI',     icon: Brain },
+  { href: '/relations/users',    label: 'Benutzer',     icon: Users },
 ]
 
 export default function RelationsSidebar() {
