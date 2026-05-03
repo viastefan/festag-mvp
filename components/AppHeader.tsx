@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import ThemeToggle from '@/components/ThemeToggle'
+import ViewSwitch from '@/components/ViewSwitch'
 
 const PHASE_LABEL: Record<string, string> = {
   intake: 'Intake', planning: 'Planning', active: 'In Arbeit',
@@ -72,6 +73,7 @@ export default function AppHeader({
         background: 'var(--bg)', position: 'sticky', top: 0, zIndex: 50,
         height: 56, flexShrink: 0,
       }}>
+        <ViewSwitch />
         <div style={{ flex: 1 }} />
 
         {/* Search */}
