@@ -272,7 +272,7 @@ export default function Sidebar() {
           </div>
 
           {/* View-Switch — direkt unter dem Logo */}
-          <div style={{ padding:'0 4px', marginBottom:14, display:'flex', justifyContent:'center' }}>
+          <div style={{ padding:'0 4px', marginBottom:14 }}>
             <ViewSwitch />
           </div>
 

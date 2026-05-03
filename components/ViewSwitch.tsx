@@ -50,16 +50,17 @@ export default function ViewSwitch() {
 
   return (
     <>
-      {/* Desktop: horizontal tabs */}
+      {/* Desktop: horizontal tabs (kompakt fuer Sidebar) */}
       <nav className="view-switch-desktop" style={{
         display: 'flex',
-        alignItems: 'center',
-        gap: 4,
+        alignItems: 'stretch',
+        gap: 2,
         background: 'var(--surface)',
         border: '1px solid var(--border)',
-        borderRadius: 12,
-        padding: 3,
+        borderRadius: 10,
+        padding: 2,
         position: 'relative',
+        width: '100%',
       }}>
         {TABS.map((tab, i) => {
           const isActive = i === activeIdx
@@ -71,16 +72,19 @@ export default function ViewSwitch() {
                 position: 'relative',
                 display: 'flex',
                 alignItems: 'center',
-                gap: 6,
-                padding: '6px 14px',
-                borderRadius: 9,
-                fontSize: 12.5,
+                justifyContent: 'center',
+                gap: 4,
+                padding: '5px 4px',
+                borderRadius: 7,
+                fontSize: 10.5,
                 fontWeight: isActive ? 700 : 500,
                 color: isActive ? 'var(--text)' : 'var(--text-muted)',
                 textDecoration: 'none',
                 transition: 'color .15s',
                 zIndex: 1,
                 whiteSpace: 'nowrap',
+                flex: 1,
+                minWidth: 0,
               }}
             >
               {isActive && (
@@ -90,14 +94,17 @@ export default function ViewSwitch() {
                     position: 'absolute',
                     inset: 0,
                     background: 'var(--nav-on)',
-                    borderRadius: 9,
+                    borderRadius: 7,
                     zIndex: -1,
                   }}
                   transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                 />
               )}
-              {tab.icon}
-              {tab.label}
+              <span style={{ display:'flex', alignItems:'center', flexShrink:0 }}>
+                {/* Icon kleiner via wrapper-skalierung */}
+                <span style={{ display:'flex', transform:'scale(0.82)' }}>{tab.icon}</span>
+              </span>
+              <span style={{ overflow:'hidden', textOverflow:'ellipsis' }}>{tab.label}</span>
             </Link>
           )
         })}
