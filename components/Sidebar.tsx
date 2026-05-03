@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useState, useEffect } from 'react'
 import SupportButton from '@/components/SupportButton'
+import ViewSwitch from '@/components/ViewSwitch'
 
 /* ── Project color palette ── */
 const PROJECT_COLORS = ['#0A0B0A','#34C759','#0EA5E9','#F59E0B','#D14343','#64748B','#14B8A6','#94A3B8']
@@ -263,11 +264,16 @@ export default function Sidebar() {
         <div className="sidebar-inner" style={{ pointerEvents:'all', padding:'16px 10px 18px', display:'flex', flexDirection:'column', height:'100%' }}>
 
           {/* Logo + Support-Button */}
-          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 8px', marginBottom:18, gap:8 }}>
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 8px', marginBottom:12, gap:8 }}>
             <Link href={homeHref} style={{ textDecoration:'none', display:'flex', alignItems:'center' }}>
               <img src="/brand/logo.svg" alt="festag" style={{ height:18, display:'block', filter:'var(--logo-filter,none)' }}/>
             </Link>
             <SupportButton />
+          </div>
+
+          {/* View-Switch — direkt unter dem Logo */}
+          <div style={{ padding:'0 4px', marginBottom:14, display:'flex', justifyContent:'center' }}>
+            <ViewSwitch />
           </div>
 
           {/* Scrollable nav */}
