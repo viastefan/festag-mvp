@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import {
@@ -9,6 +9,8 @@ import {
   Users, PencilSimple, Check, Trash,
 } from '@phosphor-icons/react'
 import { motion, AnimatePresence } from 'framer-motion'
+import RelationsChat from '@/components/RelationsChat'
+import RelationsDocuments from '@/components/RelationsDocuments'
 
 type Project = {
   id: string
@@ -59,12 +61,13 @@ function formatBudget(min: number | null, max: number | null, currency: string) 
 export default function ProjectDetailPage() {
   const params = useParams()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const projectId = params.id as string
 
   const [project, setProject] = useState<Project | null>(null)
   const [members, setMembers] = useState<Member[]>([])
   const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState('overview')
+  const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'overview')
   const [statusOpen, setStatusOpen] = useState(false)
   const [updating, setUpdating] = useState(false)
 
@@ -385,27 +388,11 @@ export default function ProjectDetailPage() {
             )}
 
             {activeTab === 'chat' && (
-              <div style={{
-                textAlign: 'center', padding: '48px 20px',
-                background: 'var(--surface)', border: '1px solid var(--border)',
-                borderRadius: 'var(--r-lg)',
-              }}>
-                <ChatCircle size={32} weight="duotone" color="var(--text-muted)" style={{ marginBottom: 12 }} />
-                <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)', margin: '0 0 4px' }}>Projekt-Chat</p>
-                <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: 0 }}>Kommt bald — Kommuniziere direkt im Projekt.</p>
-              </div>
+              <RelationsChat projectId={projectId} />
             )}
 
             {activeTab === 'documents' && (
-              <div style={{
-                textAlign: 'center', padding: '48px 20px',
-                background: 'var(--surface)', border: '1px solid var(--border)',
-                borderRadius: 'var(--r-lg)',
-              }}>
-                <FileText size={32} weight="duotone" color="var(--text-muted)" style={{ marginBottom: 12 }} />
-                <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)', margin: '0 0 4px' }}>Dokumente</p>
-                <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: 0 }}>Kommt bald — Teile und verwalte Projektdokumente.</p>
-              </div>
+              <RelationsDocuments projectId={projectId} />
             )}
 
             {activeTab === 'offers' && (
