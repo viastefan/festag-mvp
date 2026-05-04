@@ -9,13 +9,18 @@ import { NextRequest, NextResponse } from 'next/server'
  * MINIMAX_API_KEY muss in Vercel-ENV gesetzt sein.
  */
 
-const MINIMAX_ENDPOINT = 'https://api.minimaxi.chat/v1/text/chatcompletion_v2'
-const MINIMAX_DEFAULT_MODEL = 'MiniMax-Text-01'
+const MINIMAX_ENDPOINT = 'https://api.minimax.io/v1/text/chatcompletion_v2'
+const MINIMAX_DEFAULT_MODEL = 'MiniMax-M2.7'
+
+/** Strip the <think>...</think> reasoning block that MiniMax-M2.x prepends. */
+function stripThink(s: string): string {
+  return s.replace(/<think>[\s\S]*?<\/think>\s*/g, '').trim()
+}
 
 export async function POST(req: NextRequest) {
   try {
     const { messages, system, max_tokens = 500, model } = await req.json()
-    const apiKey = process.env.MINIMAX_API_KEY || 'sk-api-E2sKUjhnOC8U5Crp2HcnwMa5RYvP-yrHRqphyS02cUi8KO4KUbnjKWmqNDemitoGh6_iZEtZ-Dymc74lIu8FGR1LZz3PrqDPNJvExGfWX94AS9u0fgqAPAo'
+    const apiKey = process.env.MINIMAX_API_KEY || 'sk-cp-i7jkWRarSBe8qM82Zj2YXxHh7bXCCUAwciPjL5t-WrYRF3WHR4tgVXeJk-Y27k62RDsp7hrb1RJS2nr9rqXB-Q6GBMCKXU6-igQu2pPH6gerajhYbZySzHA'
     if (!apiKey) {
       return NextResponse.json({
         error: 'not configured',
@@ -63,7 +68,8 @@ export async function POST(req: NextRequest) {
     }
 
     // Minimax-Format -> Anthropic-Format zurueckkonvertieren
-    const text = data?.choices?.[0]?.message?.content ?? ''
+    // <think>...</think> rausstrippen (Reasoning-Block bei MiniMax-M2.x)
+    const text = stripThink(data?.choices?.[0]?.message?.content ?? '')
     return NextResponse.json({
       content: [{ type: 'text', text }],
       usage: data?.usage ?? null,

@@ -50,14 +50,14 @@ Anforderungen:
 export async function POST(req: NextRequest) {
   try {
     const { userId } = await req.json()
-    const apiKey = process.env.MINIMAX_API_KEY || 'sk-api-E2sKUjhnOC8U5Crp2HcnwMa5RYvP-yrHRqphyS02cUi8KO4KUbnjKWmqNDemitoGh6_iZEtZ-Dymc74lIu8FGR1LZz3PrqDPNJvExGfWX94AS9u0fgqAPAo'
+    const apiKey = process.env.MINIMAX_API_KEY || 'sk-cp-i7jkWRarSBe8qM82Zj2YXxHh7bXCCUAwciPjL5t-WrYRF3WHR4tgVXeJk-Y27k62RDsp7hrb1RJS2nr9rqXB-Q6GBMCKXU6-igQu2pPH6gerajhYbZySzHA'
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
     if (!apiKey) return NextResponse.json({ error: 'AI not configured' }, { status: 500 })
     if (!serviceKey) return NextResponse.json({ error: 'service key missing' }, { status: 500 })
     if (!userId) return NextResponse.json({ error: 'userId required' }, { status: 400 })
 
     // 1. Minimax generiert ein komplettes Demo-Projekt
-    const aiRes = await fetch('https://api.minimaxi.chat/v1/text/chatcompletion_v2', {
+    const aiRes = await fetch('https://api.minimax.io/v1/text/chatcompletion_v2', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
