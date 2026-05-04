@@ -141,9 +141,15 @@ export default function AIPage() {
         }),
       })
       const d = await res.json()
-      setMsgs(m => [...m, { role: 'ai', text: d.content?.[0]?.text ?? 'Verbindungsfehler. Bitte erneut versuchen.', time: fmt() }])
-    } catch {
-      setMsgs(m => [...m, { role: 'ai', text: 'Verbindungsfehler. Bitte erneut versuchen.', time: fmt() }])
+      const text = d.content?.[0]?.text
+      if (text) {
+        setMsgs(m => [...m, { role: 'ai', text, time: fmt() }])
+      } else {
+        const errMsg = d?.message || d?.error || 'Unbekannter Fehler'
+        setMsgs(m => [...m, { role: 'ai', text: `**AI-Fehler:** ${errMsg}`, time: fmt() }])
+      }
+    } catch (e: any) {
+      setMsgs(m => [...m, { role: 'ai', text: `**Verbindungsfehler:** ${e?.message ?? 'unbekannt'}`, time: fmt() }])
     }
     setLoading(false)
   }
