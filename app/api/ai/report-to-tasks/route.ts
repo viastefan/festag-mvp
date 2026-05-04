@@ -26,18 +26,18 @@ export async function POST(req: NextRequest) {
     const { reportId, projectId, content, autoInsert = false } = await req.json()
     if (!content) return NextResponse.json({ error:'no content' }, { status:400 })
 
-    const apiKey = process.env.MINIMAX_API_KEY || 'sk-api-E2sKUjhnOC8U5Crp2HcnwMa5RYvP-yrHRqphyS02cUi8KO4KUbnjKWmqNDemitoGh6_iZEtZ-Dymc74lIu8FGR1LZz3PrqDPNJvExGfWX94AS9u0fgqAPAo'
+    const apiKey = process.env.MINIMAX_API_KEY || 'sk-cp-i7jkWRarSBe8qM82Zj2YXxHh7bXCCUAwciPjL5t-WrYRF3WHR4tgVXeJk-Y27k62RDsp7hrb1RJS2nr9rqXB-Q6GBMCKXU6-igQu2pPH6gerajhYbZySzHA'
     if (!apiKey) return NextResponse.json({ error:'AI not configured' }, { status:500 })
 
-    const res = await fetch('https://api.minimaxi.chat/v1/text/chatcompletion_v2', {
+    const res = await fetch('https://api.minimax.io/v1/text/chatcompletion_v2', {
       method:'POST',
       headers: {
         'Content-Type':'application/json',
         'Authorization': `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model:'MiniMax-Text-01',
-        max_tokens: 1500,
+        model:'MiniMax-M2.7',
+        max_tokens: 4000,
         messages: [
           { role: 'system', content: SYSTEM },
           { role:'user', content: `Statusbericht:\n\n${content}\n\nExtrahiere die Verbesserungs-Tasks.` },
@@ -45,7 +45,8 @@ export async function POST(req: NextRequest) {
       }),
     })
     const data = await res.json()
-    const raw = data?.choices?.[0]?.message?.content ?? ''
+    // <think>...</think> Reasoning-Block strippen (MiniMax-M2.x)
+    const raw = (data?.choices?.[0]?.message?.content ?? '').replace(/<think>[\s\S]*?<\/think>\s*/g, '').trim()
 
     let parsed: any
     try {

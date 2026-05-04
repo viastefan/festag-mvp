@@ -64,8 +64,8 @@ export async function POST(req: NextRequest) {
         'Authorization': `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: 'MiniMax-Text-01',
-        max_tokens: 4000,
+        model: 'MiniMax-M2.7',
+        max_tokens: 8000,
         messages: [
           { role: 'system', content: GENERATE_SYSTEM },
           { role: 'user', content: 'Generiere jetzt ein realistisches Demo-Software-Projekt mit allen Epics und Tasks. Würfle eine kreative, neue Idee.' },
@@ -74,7 +74,8 @@ export async function POST(req: NextRequest) {
     })
 
     const aiData = await aiRes.json()
-    const rawText = aiData?.choices?.[0]?.message?.content ?? ''
+    // <think>...</think> Reasoning-Block strippen (MiniMax-M2.x)
+    const rawText = (aiData?.choices?.[0]?.message?.content ?? '').replace(/<think>[\s\S]*?<\/think>\s*/g, '').trim()
 
     let decomposed: any
     try {
