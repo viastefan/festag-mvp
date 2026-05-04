@@ -50,33 +50,31 @@ Anforderungen:
 export async function POST(req: NextRequest) {
   try {
     const { userId } = await req.json()
-    const apiKey = process.env.ANTHROPIC_API_KEY
+    const apiKey = process.env.MINIMAX_API_KEY || 'sk-api-E2sKUjhnOC8U5Crp2HcnwMa5RYvP-yrHRqphyS02cUi8KO4KUbnjKWmqNDemitoGh6_iZEtZ-Dymc74lIu8FGR1LZz3PrqDPNJvExGfWX94AS9u0fgqAPAo'
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
     if (!apiKey) return NextResponse.json({ error: 'AI not configured' }, { status: 500 })
     if (!serviceKey) return NextResponse.json({ error: 'service key missing' }, { status: 500 })
     if (!userId) return NextResponse.json({ error: 'userId required' }, { status: 400 })
 
-    // 1. Claude generiert ein komplettes Demo-Projekt
-    const aiRes = await fetch('https://api.anthropic.com/v1/messages', {
+    // 1. Minimax generiert ein komplettes Demo-Projekt
+    const aiRes = await fetch('https://api.minimaxi.chat/v1/text/chatcompletion_v2', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
+        'Authorization': `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'MiniMax-Text-01',
         max_tokens: 4000,
-        system: GENERATE_SYSTEM,
-        messages: [{
-          role: 'user',
-          content: 'Generiere jetzt ein realistisches Demo-Software-Projekt mit allen Epics und Tasks. Würfle eine kreative, neue Idee.',
-        }],
+        messages: [
+          { role: 'system', content: GENERATE_SYSTEM },
+          { role: 'user', content: 'Generiere jetzt ein realistisches Demo-Software-Projekt mit allen Epics und Tasks. Würfle eine kreative, neue Idee.' },
+        ],
       }),
     })
 
     const aiData = await aiRes.json()
-    const rawText = aiData.content?.[0]?.text ?? ''
+    const rawText = aiData?.choices?.[0]?.message?.content ?? ''
 
     let decomposed: any
     try {

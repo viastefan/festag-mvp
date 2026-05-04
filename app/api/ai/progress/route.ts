@@ -6,27 +6,27 @@ const SUPABASE_URL = 'https://xsdkoepwuvpuroijjain.supabase.co'
 export async function POST(req: NextRequest) {
   try {
     const { taskId, devNote, projectId } = await req.json()
-    const apiKey = process.env.ANTHROPIC_API_KEY
+    const apiKey = process.env.MINIMAX_API_KEY || 'sk-api-E2sKUjhnOC8U5Crp2HcnwMa5RYvP-yrHRqphyS02cUi8KO4KUbnjKWmqNDemitoGh6_iZEtZ-Dymc74lIu8FGR1LZz3PrqDPNJvExGfWX94AS9u0fgqAPAo'
     if (!apiKey) return NextResponse.json({ error: 'not configured' }, { status: 500 })
 
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch('https://api.minimaxi.chat/v1/text/chatcompletion_v2', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
+        'Authorization': `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'MiniMax-Text-01',
         max_tokens: 200,
-        system: `Du bist Tagro. Übersetze technische Entwickler-Notizen in kundenfr eundliche, klare Projekt-Updates.
-Regeln: Max 2 Sätze. Kein Fachjargon. Positiv aber ehrlich. Deutsch.`,
-        messages: [{ role: 'user', content: `Entwickler-Notiz: ${devNote}` }]
+        messages: [
+          { role: 'system', content: `Du bist Tagro. Übersetze technische Entwickler-Notizen in kundenfreundliche, klare Projekt-Updates.\nRegeln: Max 2 Sätze. Kein Fachjargon. Positiv aber ehrlich. Deutsch.` },
+          { role: 'user', content: `Entwickler-Notiz: ${devNote}` },
+        ],
       }),
     })
 
     const data = await res.json()
-    const customerUpdate = data.content?.[0]?.text ?? devNote
+    const customerUpdate = data?.choices?.[0]?.message?.content ?? devNote
 
     // Save customer_update to task
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY

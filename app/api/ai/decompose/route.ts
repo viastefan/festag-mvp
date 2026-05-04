@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
   try {
     const { chatHistory, userId } = await req.json()
 
-    const apiKey = process.env.ANTHROPIC_API_KEY
+    const apiKey = process.env.MINIMAX_API_KEY || 'sk-api-E2sKUjhnOC8U5Crp2HcnwMa5RYvP-yrHRqphyS02cUi8KO4KUbnjKWmqNDemitoGh6_iZEtZ-Dymc74lIu8FGR1LZz3PrqDPNJvExGfWX94AS9u0fgqAPAo'
     if (!apiKey) return NextResponse.json({ error: 'not configured' }, { status: 500 })
 
     // Build conversation summary for decomposition
@@ -49,26 +49,24 @@ export async function POST(req: NextRequest) {
       .map((m: any) => `${m.role === 'ai' ? 'Tagro' : 'Kunde'}: ${m.text}`)
       .join('\n')
 
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch('https://api.minimaxi.chat/v1/text/chatcompletion_v2', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
+        'Authorization': `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'MiniMax-Text-01',
         max_tokens: 4000,
-        system: DECOMPOSE_SYSTEM,
-        messages: [{
-          role: 'user',
-          content: `Hier ist das Onboarding-Gespräch mit dem Kunden:\n\n${chatText}\n\nZerlege dieses Projekt strukturiert.`
-        }]
+        messages: [
+          { role: 'system', content: DECOMPOSE_SYSTEM },
+          { role: 'user', content: `Hier ist das Onboarding-Gespräch mit dem Kunden:\n\n${chatText}\n\nZerlege dieses Projekt strukturiert.` },
+        ],
       }),
     })
 
     const aiData = await res.json()
-    const rawText = aiData.content?.[0]?.text ?? ''
+    const rawText = aiData?.choices?.[0]?.message?.content ?? ''
 
     // Parse JSON from AI response
     let decomposed: any
