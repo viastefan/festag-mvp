@@ -58,6 +58,7 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify({
         model: 'MiniMax-M2.7',
         max_tokens: 8000,
+        reasoning_effort: 'none',
         messages: [
           { role: 'system', content: DECOMPOSE_SYSTEM },
           { role: 'user', content: `Hier ist das Onboarding-Gespräch mit dem Kunden:\n\n${chatText}\n\nZerlege dieses Projekt strukturiert.` },

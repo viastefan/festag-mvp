@@ -54,6 +54,7 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify({
         model: model ?? MINIMAX_DEFAULT_MODEL,
         max_tokens,
+        reasoning_effort: 'none',  // minimiert <think>-Block fuer schnellere Antworten
         messages: mmMessages,
       }),
     })

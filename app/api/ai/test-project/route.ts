@@ -66,6 +66,7 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify({
         model: 'MiniMax-M2.7',
         max_tokens: 8000,
+        reasoning_effort: 'none',
         messages: [
           { role: 'system', content: GENERATE_SYSTEM },
           { role: 'user', content: 'Generiere jetzt ein realistisches Demo-Software-Projekt mit allen Epics und Tasks. Würfle eine kreative, neue Idee.' },

@@ -18,6 +18,7 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify({
         model: 'MiniMax-M2.7',
         max_tokens: 1500,
+        reasoning_effort: 'none',
         messages: [
           { role: 'system', content: `Du bist Tagro. Übersetze technische Entwickler-Notizen in kundenfreundliche, klare Projekt-Updates.\nRegeln: Max 2 Sätze. Kein Fachjargon. Positiv aber ehrlich. Deutsch.` },
           { role: 'user', content: `Entwickler-Notiz: ${devNote}` },

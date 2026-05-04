@@ -38,6 +38,7 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify({
         model:'MiniMax-M2.7',
         max_tokens: 4000,
+        reasoning_effort: 'none',
         messages: [
           { role: 'system', content: SYSTEM },
           { role:'user', content: `Statusbericht:\n\n${content}\n\nExtrahiere die Verbesserungs-Tasks.` },
