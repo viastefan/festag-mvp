@@ -5,7 +5,7 @@ import Link from 'next/link'
 import ChatMarkdown from '@/components/ChatMarkdown'
 import ChatInput from '@/components/ChatInput'
 
-type Msg     = { role: 'user' | 'ai'; text: string; time: string }
+type Msg     = { role: 'user' | 'ai'; text: string; time: string; thinking?: string | null }
 type Project = { id: string; title: string; status: string; description?: string }
 type Task    = { id: string; title: string; status: string; project_id: string }
 
@@ -143,7 +143,7 @@ export default function AIPage() {
       const d = await res.json()
       const text = d.content?.[0]?.text
       if (text) {
-        setMsgs(m => [...m, { role: 'ai', text, time: fmt() }])
+        setMsgs(m => [...m, { role: 'ai', text, time: fmt(), thinking: d.thinking ?? null }])
       } else {
         const errMsg = d?.message || d?.error || 'Unbekannter Fehler'
         setMsgs(m => [...m, { role: 'ai', text: `**AI-Fehler:** ${errMsg}`, time: fmt() }])
@@ -207,7 +207,8 @@ export default function AIPage() {
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--bg)" strokeWidth="2.2" strokeLinecap="round"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8"/></svg>
                 </div>
               )}
-              <div style={{ maxWidth: '80%', display: 'flex', flexDirection: 'column', gap: 4, alignItems: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
+              <div style={{ maxWidth: '80%', display: 'flex', flexDirection: 'column', gap: 6, alignItems: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
+                {m.role === 'ai' && m.thinking && <ThinkingBlock text={m.thinking} />}
                 <div style={{
                   padding: '11px 15px',
                   borderRadius: m.role === 'ai' ? '4px 16px 16px 16px' : '16px 4px 16px 16px',
@@ -371,6 +372,52 @@ export default function AIPage() {
           </div>
         </div>
       </div>
+    </div>
+  )
+}
+
+// ───────────────────────────────────────────────────────────────────────
+// Thinking-Block — zeigt den <think>-Reasoning-Block der MiniMax-M2.x
+// gibt aufklappbar an, damit Nutzer Tagros Denkprozess nachvollziehen koennen.
+// ───────────────────────────────────────────────────────────────────────
+function ThinkingBlock({ text }: { text: string }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <div style={{
+      width: '100%', maxWidth: '100%',
+      background: 'var(--surface-2)', border: '1px dashed var(--border)',
+      borderRadius: 10, overflow: 'hidden',
+    }}>
+      <button
+        onClick={() => setOpen(o => !o)}
+        style={{
+          display: 'flex', alignItems: 'center', gap: 7,
+          width: '100%', padding: '7px 11px',
+          background: 'transparent', border: 'none', cursor: 'pointer',
+          color: 'var(--text-muted)', fontFamily: 'inherit',
+          fontSize: 11, fontWeight: 600, letterSpacing: '.04em',
+          textAlign: 'left',
+        }}
+      >
+        <span style={{ display: 'inline-flex', transform: open ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform .15s' }}>
+          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M9 6l6 6-6 6"/></svg>
+        </span>
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M9.5 2A2.5 2.5 0 0 0 7 4.5v15A2.5 2.5 0 0 0 9.5 22h5a2.5 2.5 0 0 0 2.5-2.5v-15A2.5 2.5 0 0 0 14.5 2z"/>
+          <path d="M12 6v6l3 1.5"/>
+        </svg>
+        DENKPROZESS · TAGRO
+        <span style={{ marginLeft: 'auto', opacity: .6 }}>{open ? 'verbergen' : 'anzeigen'}</span>
+      </button>
+      {open && (
+        <div style={{
+          padding: '8px 13px 11px', borderTop: '1px dashed var(--border)',
+          fontSize: 12, lineHeight: 1.6, color: 'var(--text-muted)',
+          fontFamily: 'inherit', whiteSpace: 'pre-wrap', fontStyle: 'italic',
+        }}>
+          {text}
+        </div>
+      )}
     </div>
   )
 }

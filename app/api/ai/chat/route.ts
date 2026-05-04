@@ -68,10 +68,14 @@ export async function POST(req: NextRequest) {
     }
 
     // Minimax-Format -> Anthropic-Format zurueckkonvertieren
-    // <think>...</think> rausstrippen (Reasoning-Block bei MiniMax-M2.x)
-    const text = stripThink(data?.choices?.[0]?.message?.content ?? '')
+    // <think>...</think> Reasoning-Block extrahieren UND aus Hauptantwort entfernen
+    const raw = data?.choices?.[0]?.message?.content ?? ''
+    const thinkMatch = raw.match(/<think>([\s\S]*?)<\/think>/)
+    const thinking = thinkMatch?.[1]?.trim() || null
+    const text = stripThink(raw)
     return NextResponse.json({
       content: [{ type: 'text', text }],
+      thinking,
       usage: data?.usage ?? null,
       model: data?.model ?? model ?? MINIMAX_DEFAULT_MODEL,
     })
