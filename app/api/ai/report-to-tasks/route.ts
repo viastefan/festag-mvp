@@ -26,25 +26,26 @@ export async function POST(req: NextRequest) {
     const { reportId, projectId, content, autoInsert = false } = await req.json()
     if (!content) return NextResponse.json({ error:'no content' }, { status:400 })
 
-    const apiKey = process.env.ANTHROPIC_API_KEY
+    const apiKey = process.env.MINIMAX_API_KEY || 'sk-api-E2sKUjhnOC8U5Crp2HcnwMa5RYvP-yrHRqphyS02cUi8KO4KUbnjKWmqNDemitoGh6_iZEtZ-Dymc74lIu8FGR1LZz3PrqDPNJvExGfWX94AS9u0fgqAPAo'
     if (!apiKey) return NextResponse.json({ error:'AI not configured' }, { status:500 })
 
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch('https://api.minimaxi.chat/v1/text/chatcompletion_v2', {
       method:'POST',
       headers: {
         'Content-Type':'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version':'2023-06-01',
+        'Authorization': `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model:'claude-sonnet-4-20250514',
+        model:'MiniMax-Text-01',
         max_tokens: 1500,
-        system: SYSTEM,
-        messages: [{ role:'user', content: `Statusbericht:\n\n${content}\n\nExtrahiere die Verbesserungs-Tasks.` }],
+        messages: [
+          { role: 'system', content: SYSTEM },
+          { role:'user', content: `Statusbericht:\n\n${content}\n\nExtrahiere die Verbesserungs-Tasks.` },
+        ],
       }),
     })
     const data = await res.json()
-    const raw = data.content?.[0]?.text ?? ''
+    const raw = data?.choices?.[0]?.message?.content ?? ''
 
     let parsed: any
     try {

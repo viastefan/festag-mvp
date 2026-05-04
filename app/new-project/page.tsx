@@ -103,15 +103,14 @@ export default function NewProjectPage() {
     setAiLoading(true)
 
     try {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
+      const res = await fetch('/api/ai/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
           max_tokens: 300,
           system: AI_SYSTEM,
-          messages: [{ role: 'user', content: userMsg }]
-        })
+          messages: [{ role: 'user', content: userMsg }],
+        }),
       })
       const data = await res.json()
       const text: string = data.content?.[0]?.text ?? ''
@@ -155,18 +154,17 @@ export default function NewProjectPage() {
     setAiLoading(true)
 
     try {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
+      const res = await fetch('/api/ai/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
           max_tokens: 300,
           system: AI_SYSTEM,
           messages: newMsgs.map(m => ({
             role: m.role === 'ai' ? 'assistant' : 'user',
-            content: m.text
-          }))
-        })
+            content: m.text,
+          })),
+        }),
       })
       const data = await res.json()
       processAiResponse(data.content?.[0]?.text ?? '', newMsgs)
