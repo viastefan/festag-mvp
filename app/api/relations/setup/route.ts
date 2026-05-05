@@ -2,37 +2,42 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
 const SUPABASE_URL = 'https://xsdkoepwuvpuroijjain.supabase.co'
+// Anon key ist public — nur fuer Table-Existence-Check (RLS-geschuetzt)
+const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ''
 
 /**
- * Auto-Migration: erstellt alle Relations-Tabellen falls sie nicht existieren.
- * Nutzt den Service Role Key um RLS zu umgehen.
- *
- * Strategie:
- * 1. Pruefen ob Tabellen bereits existieren (via Service Role Select)
- * 2. Falls nicht: SQL ueber den Supabase SQL HTTP Endpoint ausfuehren
+ * Relations Setup:
+ * 1. Prueft ob Tabellen existieren (via Anon Key — kein Service Key noetig fuer Check)
+ * 2. Falls ja → sofort "ready" — Tabellen wurden via Supabase MCP bereits angelegt
+ * 3. Falls nein und Service Key vorhanden → Migration ausfuehren
+ * 4. Falls nein und kein Service Key → Fehlermeldung mit Anleitung
  */
 export async function POST() {
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-  if (!serviceKey) {
-    return NextResponse.json(
-      { error: 'SUPABASE_SERVICE_ROLE_KEY nicht konfiguriert' },
-      { status: 500 }
-    )
-  }
-
-  const sb = createClient(SUPABASE_URL, serviceKey, {
+  // Check via Anon Key (funktioniert auch ohne Service Key)
+  const anonSb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     auth: { autoRefreshToken: false, persistSession: false },
   })
 
   try {
-    // Pruefen ob alle Tabellen existieren
-    const checks = await checkAllTables(sb)
+    const checks = await checkAllTables(anonSb)
 
     if (checks.allExist) {
       return NextResponse.json({ status: 'ready', message: 'Alle Tabellen vorhanden' })
     }
 
-    // Migration ausfuehren
+    // Tabellen fehlen — Service Key fuer Migration benoetigt
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    if (!serviceKey) {
+      return NextResponse.json(
+        { error: 'Tabellen fehlen und SUPABASE_SERVICE_ROLE_KEY ist nicht konfiguriert. Bitte in Vercel Environment Variables eintragen.' },
+        { status: 500 }
+      )
+    }
+
+    const sb = createClient(SUPABASE_URL, serviceKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    })
+
     const migrationSql = buildMigrationSql(checks)
     const result = await executeSql(migrationSql, serviceKey)
 
@@ -74,10 +79,11 @@ async function checkAllTables(sb: ReturnType<typeof createClient>): Promise<Tabl
   const results: Record<string, boolean> = {}
 
   for (const table of tableNames) {
-    // Service Role umgeht RLS, also sollte ein Select funktionieren
-    // auch wenn die Tabelle leer ist. Fehler = Tabelle existiert nicht.
-    const { error } = await sb.from(table).select('id').limit(1)
-    results[table] = !error
+    // Mit Anon Key: RLS gibt leeres Array zurueck (kein Auth) = Tabelle existiert
+    // Fehler (42P01 / PGRST204) = Tabelle existiert nicht
+    const { error } = await sb.from(table as any).select('id').limit(1)
+    const notFound = error?.code === '42P01' || error?.message?.includes('does not exist') || error?.message?.includes('relation')
+    results[table] = !notFound
   }
 
   return {
