@@ -140,6 +140,7 @@ export default function Sidebar() {
   const [fn,      setFn]      = useState('')
   const [avatar,  setAvatar]  = useState<string|null>(null)
   const [role,    setRole]    = useState('client')
+  const [plan,    setPlan]    = useState('free')
   const [projId,  setProjId]  = useState<string|null>(null)
   const [projects,setProjects]= useState<{id:string;title:string;status:string}[]>([])
   const [more,    setMore]    = useState(false)
@@ -161,11 +162,12 @@ export default function Sidebar() {
     sb.auth.getUser().then(async ({ data }) => {
       if (!data.user) return
       setEmail(data.user.email ?? '')
-      const { data:p } = await sb.from('profiles').select('first_name,full_name,avatar_url,role').eq('id', data.user.id).single()
+      const { data:p } = await sb.from('profiles').select('first_name,full_name,avatar_url,role,plan').eq('id', data.user.id).single()
       if (p) {
         setFn((p as any).first_name ?? (p as any).full_name?.split(' ')[0] ?? '')
         setAvatar((p as any).avatar_url ?? null)
         setRole((p as any).role ?? 'client')
+        setPlan((p as any).plan ?? 'free')
       }
     })
     // Only load projects for client accounts
@@ -340,75 +342,77 @@ export default function Sidebar() {
           </div>
 
           {/* User block */}
-          <div style={{ borderTop:'1px solid var(--border)', paddingTop:12, marginTop:8 }}>
+          <div style={{ borderTop:'1px solid var(--border)', paddingTop:10, marginTop:8 }}>
+
+            {/* Plan badge row — only for client, only in Festwerk context */}
+            {isClient && !pathname.startsWith('/relations') && (
+              <Link href="/pricing" style={{ textDecoration:'none', display:'flex', alignItems:'center', justifyContent:'space-between', padding:'6px 10px 7px', borderRadius:10, transition:'background .1s' }}
+                onMouseEnter={e => (e.currentTarget as HTMLElement).style.background='var(--card)'}
+                onMouseLeave={e => (e.currentTarget as HTMLElement).style.background='transparent'}>
+                <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+                  <span style={{ fontSize:12.5, fontWeight:600, color:'var(--text)', letterSpacing:'-.01em' }}>{name}</span>
+                  <span style={{ fontSize:11, color:'var(--text-muted)', fontWeight:500 }}>·</span>
+                  <span style={{
+                    fontSize:11, fontWeight:700, letterSpacing:'.01em',
+                    color: plan==='free' ? 'var(--text-muted)' : plan==='pro' ? 'var(--green,#34c759)' : plan==='enterprise' ? 'var(--accent-text,#fff)' : 'var(--text)',
+                    background: plan==='enterprise' ? 'var(--accent)' : 'transparent',
+                    padding: plan==='enterprise' ? '1px 6px' : '0',
+                    borderRadius: plan==='enterprise' ? 5 : 0,
+                  }}>
+                    {plan === 'free' ? 'Free' : plan === 'starter' ? 'Starter' : plan === 'pro' ? 'Pro' : plan === 'enterprise' ? 'Enterprise' : plan}
+                  </span>
+                </div>
+                <Ico name="chevron" sz={12} c="var(--text-muted)" sw={2} />
+              </Link>
+            )}
+
+            {/* Avatar + logout row */}
             <div style={{
               background:'var(--surface-2)', border:'1px solid var(--border)',
-              borderRadius:12, padding:'9px 10px',
+              borderRadius:12, padding:'8px 10px',
               display:'flex', alignItems:'center', gap:10,
             }}>
               <Link href="/settings" style={{ textDecoration:'none', display:'flex', alignItems:'center', gap:9, flex:1, minWidth:0 }}>
                 {avatar ? (
-                  <img src={avatar} alt="" style={{ width:30, height:30, borderRadius:'50%', objectFit:'cover', border:'1.5px solid var(--border)', flexShrink:0 }}/>
+                  <img src={avatar} alt="" style={{ width:28, height:28, borderRadius:'50%', objectFit:'cover', border:'1.5px solid var(--border)', flexShrink:0 }}/>
                 ) : (
-                  <div style={{ width:30, height:30, borderRadius:'50%', background:'var(--accent)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:12, fontWeight:700, color:'var(--accent-text)', flexShrink:0 }}>{init}</div>
+                  <div style={{ width:28, height:28, borderRadius:'50%', background:'var(--accent)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:700, color:'var(--accent-text)', flexShrink:0 }}>{init}</div>
                 )}
                 <div style={{ flex:1, minWidth:0 }}>
-                  <p style={{ fontSize:12.5, fontWeight:700, color:'var(--text)', margin:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', lineHeight:1.2 }}>{name}</p>
-                  <p style={{ fontSize:10, fontWeight:600, color:'var(--text-muted)', margin:'2px 0 0', letterSpacing:'.04em', textTransform:'uppercase' }}>{ROLE_LABEL[role] ?? 'Client'}</p>
+                  <p style={{ fontSize:11.5, fontWeight:600, color:'var(--text)', margin:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', lineHeight:1.25 }}>{email}</p>
+                  <p style={{ fontSize:9.5, fontWeight:600, color:'var(--text-muted)', margin:'1px 0 0', letterSpacing:'.04em', textTransform:'uppercase' }}>{ROLE_LABEL[role] ?? 'Client'}</p>
                 </div>
               </Link>
               <button onClick={logout} title="Abmelden" aria-label="Abmelden"
                 style={{
-                  width:28, height:28, borderRadius:8, border:'1px solid var(--border)',
+                  width:26, height:26, borderRadius:8, border:'1px solid var(--border)',
                   background:'var(--surface)', cursor:'pointer',
                   display:'flex', alignItems:'center', justifyContent:'center',
                   color:'var(--text-muted)', flexShrink:0, transition:'color .12s, background .12s',
                 }}
                 onMouseEnter={e => { e.currentTarget.style.color='var(--text)'; e.currentTarget.style.background='var(--bg)' }}
                 onMouseLeave={e => { e.currentTarget.style.color='var(--text-muted)'; e.currentTarget.style.background='var(--surface)' }}>
-                <Ico name="logout" sz={13} c="currentColor" sw={1.9} />
+                <Ico name="logout" sz={12} c="currentColor" sw={1.9} />
               </button>
             </div>
 
-            {/* Legal-Footer: Disclaimer + Links */}
-            <div style={{ padding:'12px 4px 2px' }}>
-              <p style={{
-                fontSize:9.5, lineHeight:1.55, color:'var(--text-muted)',
-                margin:0, opacity:.65, letterSpacing:'.005em',
-              }}>
-                <strong style={{ color:'var(--text-secondary)', fontWeight:600 }}>festag</strong> ist ein
-                unabhängiges Projekt. Geschäftspraktiken und Vertragsabwicklung werden über die&nbsp;
-                <strong style={{ color:'var(--text-secondary)', fontWeight:600 }}>Enjyn® Gruppe</strong> abgewickelt.
-              </p>
-              <div style={{
-                marginTop:8, paddingTop:8, borderTop:'1px solid var(--border)',
-                display:'flex', flexWrap:'nowrap', alignItems:'center',
-                justifyContent:'space-between', gap:4,
-              }}>
-                {[
-                  { href:'/impressum',   label:'Impressum' },
-                  { href:'/datenschutz', label:'Datenschutz' },
-                  { href:'/agb',         label:'AGB' },
-                  { href:'/widerruf',    label:'Widerruf' },
-                ].map((l, i, arr) => (
-                  <span key={l.href} style={{ display:'inline-flex', alignItems:'center', gap:4, flexShrink:0, whiteSpace:'nowrap' }}>
-                    <Link href={l.href}
-                      style={{
-                        fontSize:8.5, color:'var(--text-muted)', textDecoration:'none',
-                        opacity:.75, letterSpacing:'.01em', whiteSpace:'nowrap',
-                        transition:'opacity .12s, color .12s',
-                      }}
-                      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.opacity = '1'; (e.currentTarget as HTMLElement).style.color = 'var(--text)' }}
-                      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.opacity = '.75'; (e.currentTarget as HTMLElement).style.color = 'var(--text-muted)' }}
-                    >
-                      {l.label}
-                    </Link>
-                    {i < arr.length - 1 && (
-                      <span style={{ fontSize:7, color:'var(--text-muted)', opacity:.4 }}>·</span>
-                    )}
-                  </span>
-                ))}
-              </div>
+            {/* Legal links only */}
+            <div style={{ padding:'8px 4px 2px', display:'flex', flexWrap:'nowrap', alignItems:'center', justifyContent:'space-between', gap:4 }}>
+              {[
+                { href:'/impressum',   label:'Impressum' },
+                { href:'/datenschutz', label:'Datenschutz' },
+                { href:'/agb',         label:'AGB' },
+                { href:'/widerruf',    label:'Widerruf' },
+              ].map((l, i, arr) => (
+                <span key={l.href} style={{ display:'inline-flex', alignItems:'center', gap:4, flexShrink:0, whiteSpace:'nowrap' }}>
+                  <Link href={l.href}
+                    style={{ fontSize:8.5, color:'var(--text-muted)', textDecoration:'none', opacity:.65, letterSpacing:'.01em', whiteSpace:'nowrap', transition:'opacity .12s, color .12s' }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.opacity='1'; (e.currentTarget as HTMLElement).style.color='var(--text)' }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.opacity='.65'; (e.currentTarget as HTMLElement).style.color='var(--text-muted)' }}
+                  >{l.label}</Link>
+                  {i < arr.length - 1 && <span style={{ fontSize:7, color:'var(--text-muted)', opacity:.35 }}>·</span>}
+                </span>
+              ))}
             </div>
           </div>
         </div>

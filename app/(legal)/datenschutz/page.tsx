@@ -23,6 +23,15 @@ export default function DatenschutzPage() {
         ist die <strong>Enjyn Gruppe</strong>, über welche festag seine Geschäftspraktiken abwickelt.
       </p>
 
+      <div style={{ background:'var(--card,#f5f5f0)', border:'1px solid var(--border)', borderRadius:12, padding:'14px 18px', marginBottom:28 }}>
+        <p style={{ margin:0, fontSize:13.5, lineHeight:1.65, color:'var(--text-secondary)' }}>
+          <strong style={{ color:'var(--text)' }}>Hinweis:</strong> festag ist ein unabhängiges Softwareprojekt.
+          Alle Geschäftspraktiken, Vertragsabwicklungen und Zahlungen werden über die{' '}
+          <strong style={{ color:'var(--text)' }}>Enjyn® Gruppe</strong> (Inhaber: Ramon Dehner, Bruckberg) abgewickelt.
+          festag selbst speichert keine Zahlungsdaten.
+        </p>
+      </div>
+
       <h2>1. Verantwortlicher</h2>
       <p>
         <strong>Enjyn® Gruppe</strong><br/>
