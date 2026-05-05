@@ -27,6 +27,11 @@
 
 *,*::before,*::after { box-sizing:border-box; padding:0; margin:0; }
 
+/* Smooth cursor for all interactive elements */
+a, button, [role="button"], label[for] { cursor:pointer; }
+a { -webkit-tap-highlight-color: transparent; }
+button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
+
 /* ═══════════════════════════════════════════════
    THEME VARIABLES — set via data-theme on <html>
 ═══════════════════════════════════════════════ */
