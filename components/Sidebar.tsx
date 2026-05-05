@@ -6,6 +6,14 @@ import { createClient } from '@/lib/supabase/client'
 import { useState, useEffect } from 'react'
 import SupportButton from '@/components/SupportButton'
 import ViewSwitch from '@/components/ViewSwitch'
+import {
+  House, FolderSimple, Sparkle, ChatCircle, ChartLineUp,
+  CreditCard, FileText, UserCircle, GearSix,
+  SunHorizon, GridFour, Stack, LinkSimple,
+  Plus, CaretRight, DotsThreeOutline, X,
+  SignOut, UsersThree, Bell, Briefcase,
+  Clock, CheckSquare, Code, FileCode,
+} from '@phosphor-icons/react'
 
 /* ── Project color palette ── */
 const PROJECT_COLORS = ['#0A0B0A','#34C759','#0EA5E9','#F59E0B','#D14343','#64748B','#14B8A6','#94A3B8']
@@ -14,41 +22,40 @@ export function projectColor(id: string) {
   return PROJECT_COLORS[h % PROJECT_COLORS.length]
 }
 
-/* ── Icon renderer ── */
-function Ico({ name, sz=16, c='currentColor', sw=1.75 }: { name:string; sz?:number; c?:string; sw?:number }) {
-  const paths: Record<string,React.ReactNode> = {
-    home:     <><path d="M3 12l9-9 9 9"/><path d="M5 10v10h14V10"/></>,
-    project:  <><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></>,
-    sparkle:  <><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8"/></>,
-    chat:     <path d="M21 12c0 4.4-4 8-9 8-1.4 0-2.8-.3-4-.8L3 21l1.8-5C4.3 15 4 13.5 4 12c0-4.4 4-8 9-8s9 3.6 9 8z"/>,
-    activity: <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>,
-    billing:  <><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></>,
-    doc:      <><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></>,
-    user:     <><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c0-3.5 3.1-6 7-6s7 2.5 7 6"/></>,
-    settings: <><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></>,
-    estimate: <><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/><circle cx="12" cy="12" r="3"/></>,
-    grid:     <><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></>,
-    layers:   <><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></>,
-    link:     <><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></>,
-    plus:     <><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></>,
-    chevron:  <polyline points="9 18 15 12 9 6"/>,
-    more:     <><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></>,
-    close:    <><path d="M18 6L6 18"/><path d="M6 6l12 12"/></>,
-    logout:   <><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></>,
-    team:     <><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></>,
-    bell:     <><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></>,
-    card:     <><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></>,
-    briefcase:<><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></>,
-    clock:    <><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></>,
-    check:    <><polyline points="20 6 9 17 4 12"/></>,
-    code:     <><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></>,
-    task:     <><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></>,
-  }
-  return (
-    <svg width={sz} height={sz} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round">
-      {paths[name] ?? null}
-    </svg>
-  )
+/* ── Icon renderer using Phosphor ── */
+const ICONS: Record<string, React.ElementType> = {
+  home:      House,
+  project:   FolderSimple,
+  sparkle:   Sparkle,
+  chat:      ChatCircle,
+  activity:  ChartLineUp,
+  billing:   CreditCard,
+  card:      CreditCard,
+  doc:       FileText,
+  user:      UserCircle,
+  settings:  GearSix,
+  estimate:  SunHorizon,
+  grid:      GridFour,
+  layers:    Stack,
+  link:      LinkSimple,
+  plus:      Plus,
+  chevron:   CaretRight,
+  more:      DotsThreeOutline,
+  close:     X,
+  logout:    SignOut,
+  team:      UsersThree,
+  bell:      Bell,
+  briefcase: Briefcase,
+  clock:     Clock,
+  check:     CheckSquare,
+  code:      Code,
+  task:      FileCode,
+}
+
+function Ico({ name, sz=16, c='currentColor', weight='regular' }: { name:string; sz?:number; c?:string; weight?:'thin'|'light'|'regular'|'bold'|'fill'|'duotone' }) {
+  const Icon = ICONS[name]
+  if (!Icon) return null
+  return <Icon size={sz} color={c} weight={weight} />
 }
 
 type NavItem = { href: string; icon: string; label: string; badge?: number }
@@ -202,7 +209,7 @@ export default function Sidebar() {
             <Link key={item.href} href={resolve(item.href)}
               className={`ni ${on?'ni-on':'ni-off'}`}
               style={{ position:'relative' }}>
-              <Ico name={item.icon} sz={15} c={on?'var(--text)':'var(--text-muted)'} sw={on?2.1:1.65} />
+              <Ico name={item.icon} sz={15} c={on?'var(--text)':'var(--text-muted)'} weight={on?'bold':'regular'} />
               <span style={{ flex:1 }}>{item.label}</span>
               {item.badge ? <span style={{ fontSize:10, fontWeight:700, color:'var(--accent-text)', background:'var(--accent)', borderRadius:10, padding:'1px 6px', minWidth:16, textAlign:'center' }}>{item.badge}</span> : null}
             </Link>
@@ -289,11 +296,11 @@ export default function Sidebar() {
                   style={{ display:'flex', alignItems:'center', gap:6, width:'100%', padding:'6px 11px 3px', background:'transparent', border:'none', cursor:'pointer', fontFamily:'inherit' }}>
                   <span style={{ fontSize:9.5, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.09em', textTransform:'uppercase', opacity:.6, flex:1, textAlign:'left' }}>Projekte</span>
                   <span style={{ opacity:.4, transition:'transform .15s', display:'block', transform:projExp?'rotate(90deg)':'none' }}>
-                    <Ico name="chevron" sz={11} c="var(--text-muted)" sw={2} />
+                    <Ico name="chevron" sz={11} c="var(--text-muted)" weight="light" />
                   </span>
                   <Link href="/new-project" onClick={e => e.stopPropagation()}
                     style={{ opacity:.5, display:'flex', marginLeft:2, padding:2, borderRadius:5, textDecoration:'none' }}>
-                    <Ico name="plus" sz={11} c="var(--text-muted)" sw={2.2} />
+                    <Ico name="plus" sz={11} c="var(--text-muted)" weight="regular" />
                   </Link>
                 </button>
 
@@ -322,7 +329,7 @@ export default function Sidebar() {
                             <Link key={item.href} href={resolve(item.href)}
                               className={`ni ${on?'ni-on':'ni-off'}`}
                               style={{ fontSize:12, padding:'5px 9px', borderRadius:7 }}>
-                              <Ico name={item.icon} sz={13} c={on?'var(--text)':'var(--text-muted)'} sw={on?2:1.6} />
+                              <Ico name={item.icon} sz={13} c={on?'var(--text)':'var(--text-muted)'} weight={on?"bold":"regular"} />
                               {item.label}
                             </Link>
                           )
@@ -362,7 +369,7 @@ export default function Sidebar() {
                     {plan === 'free' ? 'Free' : plan === 'starter' ? 'Starter' : plan === 'pro' ? 'Pro' : plan === 'enterprise' ? 'Enterprise' : plan}
                   </span>
                 </div>
-                <Ico name="chevron" sz={12} c="var(--text-muted)" sw={2} />
+                <Ico name="chevron" sz={12} c="var(--text-muted)" weight="light" />
               </Link>
             )}
 
@@ -392,7 +399,7 @@ export default function Sidebar() {
                 }}
                 onMouseEnter={e => { e.currentTarget.style.color='var(--text)'; e.currentTarget.style.background='var(--bg)' }}
                 onMouseLeave={e => { e.currentTarget.style.color='var(--text-muted)'; e.currentTarget.style.background='var(--surface)' }}>
-                <Ico name="logout" sz={12} c="currentColor" sw={1.9} />
+                <Ico name="logout" sz={12} c="currentColor" weight="regular" />
               </button>
             </div>
 
@@ -428,7 +435,7 @@ export default function Sidebar() {
           return (
             <Link key={item.href} href={resolve(item.href)} className={`mt ${on?'on':'off'}`}>
               <div className="mti">
-                <Ico name={item.icon} sz={21} c={on?'var(--text)':'var(--text-muted)'} sw={on?2.1:1.65} />
+                <Ico name={item.icon} sz={21} c={on?'var(--text)':'var(--text-muted)'} weight={on?"bold":"regular"} />
               </div>
               <span className="ml">{item.label}</span>
             </Link>
@@ -438,8 +445,8 @@ export default function Sidebar() {
         {/* Center FAB — plus / close */}
         <button className={`mob-fab ${more?'open':''}`} onClick={() => setMore(v => !v)} aria-label="Menü">
           {more
-            ? <Ico name="close"  sz={20} c="var(--text)"          sw={2.5} />
-            : <Ico name="plus"   sz={22} c="var(--btn-prim-text)" sw={2.2} />
+            ? <Ico name="close"  sz={20} c="var(--text)"          weight="bold" />
+            : <Ico name="plus"   sz={22} c="var(--btn-prim-text)" weight="regular" />
           }
         </button>
 
@@ -453,7 +460,7 @@ export default function Sidebar() {
                 {isAvatar ? (
                   <img src={avatar!} alt="" style={{ width:26, height:26, borderRadius:'50%', objectFit:'cover', border:on?'2.5px solid var(--text)':'2px solid var(--border)', display:'block' }} />
                 ) : (
-                  <Ico name={item.icon} sz={21} c={on?'var(--text)':'var(--text-muted)'} sw={on?2.1:1.65} />
+                  <Ico name={item.icon} sz={21} c={on?'var(--text)':'var(--text-muted)'} weight={on?"bold":"regular"} />
                 )}
               </div>
               <span className="ml">{item.label}</span>
@@ -470,7 +477,7 @@ export default function Sidebar() {
             {/* Primary action */}
             <Link href={mobQuick[0].href} className="mqi primary-action" onClick={() => setMore(false)}>
               <div className="mqi-ico" style={{ width:40, height:40, borderRadius:12, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, background:'rgba(0,0,0,.14)' }}>
-                <Ico name={mobQuick[0].icon} sz={18} c="var(--btn-prim-text)" sw={2.2} />
+                <Ico name={mobQuick[0].icon} sz={18} c="var(--btn-prim-text)" weight="regular" />
               </div>
               <div style={{ flex:1, minWidth:0 }}>
                 <p className="mqi-label" style={{ fontSize:15, fontWeight:700, margin:'0 0 1px', color:'var(--btn-prim-text)' }}>{mobQuick[0].label}</p>
@@ -486,7 +493,7 @@ export default function Sidebar() {
                   <Link key={item.href} href={resolve(item.href)} className="mqi" onClick={() => setMore(false)}
                     style={{ borderRadius:14, gap:10, padding:'12px 13px' }}>
                     <div style={{ width:34, height:34, borderRadius:10, background:on?'var(--text)':'var(--surface-2)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                      <Ico name={item.icon} sz={16} c={on?'var(--bg)':'var(--text-secondary)'} sw={1.8} />
+                      <Ico name={item.icon} sz={16} c={on?'var(--bg)':'var(--text-secondary)'} weight="regular" />
                     </div>
                     <span className="mqi-label" style={{ fontSize:13, fontWeight:on?700:600, color:'var(--text)', lineHeight:1.25 }}>{item.label}</span>
                   </Link>
@@ -498,12 +505,12 @@ export default function Sidebar() {
             <div style={{ display:'flex', gap:6, marginTop:2 }}>
               <button onClick={logout}
                 style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', gap:8, padding:'11px 14px', background:'var(--surface)', border:'1px solid var(--border)', borderRadius:14, fontSize:13, fontWeight:600, color:'var(--text-muted)', cursor:'pointer', fontFamily:'inherit' }}>
-                <Ico name="logout" sz={15} c="currentColor" sw={1.8}/>
+                <Ico name="logout" sz={15} c="currentColor" weight="regular"/>
                 Abmelden
               </button>
               <Link href="/settings" onClick={() => setMore(false)}
                 style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', gap:8, padding:'11px 14px', background:'var(--surface)', border:'1px solid var(--border)', borderRadius:14, fontSize:13, fontWeight:600, color:'var(--text)', textDecoration:'none' }}>
-                <Ico name="settings" sz={15} c="currentColor" sw={1.8}/>
+                <Ico name="settings" sz={15} c="currentColor" weight="regular"/>
                 Einstellungen
               </Link>
             </div>

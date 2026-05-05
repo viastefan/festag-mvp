@@ -34,7 +34,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg)' }}>
-      <Sidebar />
+      <style>{`
+        @keyframes panelFadeIn {
+          from { opacity: 0; transform: translateY(6px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        .panel-enter { animation: panelFadeIn .22s cubic-bezier(.16,1,.3,1) both; }
+      `}</style>
+      <div className="panel-enter" style={{ display:'contents' }} key="festwerk">
+        <Sidebar />
+      </div>
       <main
         id="app-main-scroll"
         className="main-content"

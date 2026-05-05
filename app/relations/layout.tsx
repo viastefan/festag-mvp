@@ -67,7 +67,16 @@ export default function RelationsLayout({ children }: { children: React.ReactNod
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg)' }}>
-      <RelationsSidebar />
+      <style>{`
+        @keyframes panelFadeIn {
+          from { opacity: 0; transform: translateY(6px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        .panel-enter { animation: panelFadeIn .22s cubic-bezier(.16,1,.3,1) both; }
+      `}</style>
+      <div className="panel-enter" style={{ display:'contents' }} key="relations">
+        <RelationsSidebar />
+      </div>
       <main
         id="relations-main-scroll"
         className="main-content"
