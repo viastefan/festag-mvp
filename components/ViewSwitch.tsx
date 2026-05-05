@@ -73,18 +73,18 @@ export default function ViewSwitch() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: 4,
-                padding: '5px 4px',
+                gap: isActive ? 5 : 0,
+                padding: isActive ? '5px 10px' : '5px 0',
                 borderRadius: 7,
-                fontSize: 10.5,
-                fontWeight: isActive ? 700 : 500,
+                fontSize: 11,
+                fontWeight: 700,
                 color: isActive ? 'var(--text)' : 'var(--text-muted)',
                 textDecoration: 'none',
-                transition: 'color .15s',
+                transition: 'color .15s, padding .2s, gap .2s',
                 zIndex: 1,
                 whiteSpace: 'nowrap',
-                flex: 1,
-                minWidth: 0,
+                flex: isActive ? 'none' : 1,
+                minWidth: isActive ? 'auto' : 0,
               }}
             >
               {isActive && (
@@ -101,10 +101,16 @@ export default function ViewSwitch() {
                 />
               )}
               <span style={{ display:'flex', alignItems:'center', flexShrink:0 }}>
-                {/* Icon kleiner via wrapper-skalierung */}
-                <span style={{ display:'flex', transform:'scale(0.82)' }}>{tab.icon}</span>
+                <span style={{ display:'flex', transform:'scale(0.85)' }}>{tab.icon}</span>
               </span>
-              <span style={{ overflow:'hidden', textOverflow:'ellipsis' }}>{tab.label}</span>
+              <motion.span
+                initial={false}
+                animate={{ width: isActive ? 'auto' : 0, opacity: isActive ? 1 : 0 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                style={{ overflow: 'hidden', display: 'block' }}
+              >
+                {tab.label}
+              </motion.span>
             </Link>
           )
         })}

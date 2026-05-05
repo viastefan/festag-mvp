@@ -206,14 +206,14 @@ export default function DashboardPage() {
 
       {/* ── Empty state ── */}
       {!main && (
-        <div className="animate-fade-up-1" style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:20, padding:'64px 24px', textAlign:'center' }}>
-          <div style={{ width:56, height:56, borderRadius:16, background:'var(--accent)', display:'inline-flex', alignItems:'center', justifyContent:'center', marginBottom:20, fontSize:22, color:'var(--accent-text)' }}>✦</div>
-          <h2 style={{ marginBottom:10, fontSize:22 }}>Starte dein erstes Projekt</h2>
-          <p style={{ fontSize:14, color:'var(--text-secondary)', maxWidth:360, margin:'0 auto 28px', lineHeight:1.6 }}>
-            Beschreibe deine Idee — Tagro AI strukturiert alles in Epics und Tasks.
+        <div className="animate-fade-up-1" style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:20, padding:'72px 32px', textAlign:'center' }}>
+          <p style={{ fontSize:11, fontWeight:700, letterSpacing:'.12em', textTransform:'uppercase', color:'var(--text-muted)', margin:'0 0 16px', opacity:.6 }}>Noch kein Projekt</p>
+          <h2 style={{ fontSize:28, fontWeight:800, letterSpacing:'-.6px', lineHeight:1.1, margin:'0 0 12px', color:'var(--text)' }}>Starte dein erstes Projekt.</h2>
+          <p style={{ fontSize:14, color:'var(--text-secondary)', maxWidth:340, margin:'0 auto 32px', lineHeight:1.65, fontWeight:500 }}>
+            Beschreibe deine Idee — Tagro strukturiert alles in Epics und Tasks.
           </p>
-          <Link href="/onboarding">
-            <button className="tap-scale" style={{ padding:'13px 32px', background:'var(--btn-prim)', color:'var(--btn-prim-text)', border:'none', borderRadius:12, fontSize:14, fontWeight:700, cursor:'pointer' }}>
+          <Link href="/onboarding" style={{ textDecoration:'none' }}>
+            <button className="tap-scale" style={{ padding:'13px 32px', background:'var(--btn-prim)', color:'var(--btn-prim-text)', border:'none', borderRadius:12, fontSize:14, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>
               Mit AI starten →
             </button>
           </Link>
