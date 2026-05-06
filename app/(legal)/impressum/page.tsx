@@ -18,29 +18,21 @@ export default function ImpressumPage() {
       <h1>Impressum</h1>
       <p className="lead">Angaben gemäß § 5 TMG</p>
 
+      {/* Primary owner */}
       <div className="box">
         <p style={{ margin:0 }}>
-          <strong>Enjyn® Gruppe</strong><br/>
-          Inhaber: Ramon Dehner<br/>
-          Bahnhofstraße 15<br/>
-          84079 Bruckberg<br/>
+          <strong>Stefan Dirnberger</strong><br/>
+          Lindenstraße 15<br/>
+          84036 Kumhausen<br/>
           Deutschland
         </p>
       </div>
 
-      <h2>Rechtsträger und Vertragsabwicklung</h2>
-      <p>
-        <strong>festag</strong> ist ein unabhängiges Projekt. Sämtliche Geschäftspraktiken,
-        Verträge, Rechnungen und Zahlungen werden über die <strong>Enjyn® Gruppe</strong> als
-        verantwortlichen Rechtsträger abgewickelt.
-      </p>
-
       <h2>Kontakt</h2>
       <p>
         Telefon: <a href="tel:+4987653399973">08765 33 999 73</a><br/>
-        Fax: 08765 33 999 72<br/>
         WhatsApp: <a href="https://wa.me/4915207849821" target="_blank" rel="noopener noreferrer">0152 078 498 21</a><br/>
-        E-Mail: <a href="mailto:support@enjyn.de">support@enjyn.de</a>
+        E-Mail: <a href="mailto:hello@festag.io">hello@festag.io</a>
       </p>
 
       <h2>Umsatzsteuer-ID</h2>
@@ -51,6 +43,19 @@ export default function ImpressumPage() {
 
       <h2>Verantwortlich für den Inhalt</h2>
       <p>nach § 18 Abs. 2 MStV:<br/><strong>Stefan Dirnberger</strong></p>
+
+      <h2>Zahlungsabwicklung</h2>
+      <p>
+        Rechnungen und Zahlungen werden derzeit über die <strong>Enjyn® Gruppe</strong> entgegengenommen.
+        Die Enjyn® Gruppe fungiert dabei ausschließlich als Zahlungsstelle; inhaltlich und rechtlich
+        verantwortlich für festag ist Stefan Dirnberger.
+      </p>
+
+      {/* Co-founder — subdued, small */}
+      <p style={{ marginTop:8, fontSize:12.5, color:'var(--text-muted)', lineHeight:1.6 }}>
+        Co-Founder &amp; technische Zahlungsinfrastruktur: Ramon Dehner, Enjyn® Gruppe,
+        Bahnhofstraße 15, 84079 Bruckberg.
+      </p>
 
       <h2>EU-Streitschlichtung</h2>
       <p>
