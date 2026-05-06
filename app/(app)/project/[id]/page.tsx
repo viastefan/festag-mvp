@@ -304,11 +304,27 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
   const pCol = projectColor(project.id, (project as any).color)
   const phaseCol = PHASE_COLOR[project.status] ?? pCol
 
+  const todoTasks  = tasks.filter(t => t.status === 'todo')
+  const doingTasks = tasks.filter(t => t.status === 'doing')
+  const doneTasks  = tasks.filter(t => t.status === 'done')
+
   return (
     <div className="page-content animate-fade-up" style={{ maxWidth: 1160 }}>
-      <style>{`@keyframes spin{to{transform:rotate(360deg);}} @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}`}</style>
+      <style>{`
+        @keyframes spin  { to { transform:rotate(360deg); } }
+        @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.3;} }
+        .task-row { display:flex; align-items:center; gap:10px; padding:8px 14px; border-bottom:1px solid var(--border); transition:background .08s; cursor:default; }
+        .task-row:last-child { border-bottom:none; }
+        .task-row:hover { background:var(--surface-2); }
+        .tab-btn { background:transparent; border:none; padding:8px 0; font-family:inherit; font-size:13px; font-weight:500; cursor:pointer; color:var(--text-muted); position:relative; transition:color .12s; }
+        .tab-btn.active { color:var(--text); font-weight:600; }
+        .tab-btn.active::after { content:''; position:absolute; bottom:-1px; left:0; right:0; height:2px; background:var(--text); border-radius:1px; }
+        .ms-row { display:flex; align-items:center; gap:14px; padding:10px 0; border-bottom:1px solid var(--border); }
+        .ms-row:last-child { border-bottom:none; }
+        .ghost-sm { background:transparent; border:1px solid var(--border); color:var(--text-secondary); border-radius:6px; padding:4px 10px; font-size:11px; font-weight:500; cursor:pointer; font-family:inherit; transition:border-color .1s, color .1s; }
+        .ghost-sm:hover { border-color:var(--border-strong); color:var(--text); }
+      `}</style>
 
-      {/* Celebration overlay when project transitions to done */}
       <ProjectCompletionCelebration
         open={celebrationOpen}
         projectTitle={project.title}
@@ -316,356 +332,316 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
         onClose={() => setCelebrationOpen(false)}
         onContinue={() => { setCelebrationOpen(false); setActiveLeft('updates'); generateAIUpdate() }}
       />
-
-      {/* Dev/admin floating timer */}
       <DevTimer projectId={project.id} projectTitle={project.title}/>
 
       {/* Breadcrumb */}
-      <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 14 }}>
-        <Link href="/dashboard" style={{ color: 'var(--text-muted)', textDecoration:'none' }}>Dashboard</Link>
-        <span style={{ margin: '0 6px', opacity:.4 }}>/</span>
-        <span style={{ color: 'var(--text-secondary)' }}>Projekt</span>
+      <p style={{ fontSize:12, color:'var(--text-muted)', marginBottom:20 }}>
+        <Link href="/dashboard" style={{ color:'var(--text-muted)', textDecoration:'none' }}>Dashboard</Link>
+        <span style={{ margin:'0 6px', opacity:.4 }}>/</span>
+        <span>{project.title}</span>
       </p>
 
-      {/* Header card with color accent */}
-      <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:20, overflow:'hidden', marginBottom:14 }}>
-        <div style={{ height:4, background:`linear-gradient(to right, ${pCol}, ${phaseCol})` }}/>
-        <div style={{ padding:'18px 24px', display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:16 }}>
-          <div style={{ display:'flex', alignItems:'flex-start', gap:14, flex:1, minWidth:0 }}>
-            <div style={{ width:44, height:44, borderRadius:12, background:`${pCol}18`, border:`2px solid ${pCol}30`, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-              <span style={{ fontSize:18, fontWeight:700, color:pCol }}>{project.title.charAt(0)}</span>
-            </div>
-            <div style={{ flex:1, minWidth:0 }}>
-              <h1 style={{ marginBottom:4, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', fontSize:20 }}>{project.title}</h1>
-              {project.description && <p style={{ fontSize:13, color:'var(--text-secondary)', margin:0, lineHeight:1.5 }}>{project.description}</p>}
-            </div>
+      {/* ── Header ── */}
+      <div style={{ marginBottom:32 }}>
+        <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:16, marginBottom:16 }}>
+          <div style={{ display:'flex', alignItems:'center', gap:10, minWidth:0 }}>
+            <span style={{ width:10, height:10, borderRadius:'50%', background:pCol, flexShrink:0 }}/>
+            <h1 style={{ margin:0, fontSize:22, fontWeight:600, letterSpacing:'-.4px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{project.title}</h1>
           </div>
-          <div style={{ display:'flex', gap:8, alignItems:'center', flexShrink:0 }}>
+          <div style={{ display:'flex', alignItems:'center', gap:8, flexShrink:0 }}>
             {/* Phase stepper */}
-            <div style={{ display:'flex', gap:4, alignItems:'center', background:'var(--surface-2)', borderRadius:10, padding:'5px 8px' }}
+            <div style={{ display:'flex', gap:3, alignItems:'center', padding:'4px 0' }}
               title={canEdit ? 'Phase ändern' : 'Phase wird vom Entwicklerteam gesteuert'}>
               {PHASES.map((phase, i) => {
                 const isActive = i === phaseIdx
                 const isPast   = i < phaseIdx
                 return canEdit ? (
                   <button key={phase} onClick={() => updateStatus(phase)} title={PHASE_LABEL[phase]}
-                    style={{ width:isActive?24:8, height:8, borderRadius:4, border:'none', cursor:'pointer', padding:0, transition:'all .2s',
-                      background: isPast||isActive ? PHASE_COLOR[phase]??pCol : 'var(--border)' }}/>
+                    style={{ width:isActive?20:6, height:6, borderRadius:3, border:'none', cursor:'pointer', padding:0, transition:'all .2s',
+                      background: isPast||isActive ? pCol : 'var(--border)' }}/>
                 ) : (
                   <span key={phase} title={PHASE_LABEL[phase]}
-                    style={{ width:isActive?24:8, height:8, borderRadius:4, transition:'all .2s',
-                      background: isPast||isActive ? PHASE_COLOR[phase]??pCol : 'var(--border)' }}/>
+                    style={{ width:isActive?20:6, height:6, borderRadius:3, display:'block', transition:'all .2s',
+                      background: isPast||isActive ? pCol : 'var(--border)' }}/>
                 )
               })}
             </div>
-            <span style={{ padding:'5px 11px', borderRadius:8, fontSize:11, fontWeight:700, flexShrink:0,
-              color:project.status==='active'?'#16a34a':project.status==='done'?'var(--text-muted)':'#d97706',
-              background:project.status==='active'?'rgba(34,197,94,.1)':project.status==='done'?'var(--surface-2)':'rgba(245,158,11,.1)',
-              border:`1px solid ${project.status==='active'?'rgba(34,197,94,.25)':project.status==='done'?'var(--border)':'rgba(245,158,11,.25)'}`,
+            <span style={{ padding:'4px 9px', borderRadius:6, fontSize:11, fontWeight:600,
+              color: project.status==='active' ? '#16a34a' : project.status==='done' ? 'var(--text-muted)' : 'var(--text-secondary)',
+              border:'1px solid var(--border)',
               display:'inline-flex', alignItems:'center', gap:5 }}>
-              {project.status==='active' && <span style={{ width:5, height:5, borderRadius:'50%', background:'#22c55e', animation:'pulse 2s infinite' }}/>}
+              {project.status==='active' && <span style={{ width:5, height:5, borderRadius:'50%', background:'#22c55e', animation:'pulse 2s infinite', flexShrink:0 }}/>}
               {PHASE_LABEL[project.status] ?? project.status}
             </span>
           </div>
         </div>
 
-        {/* Progress bar */}
-        <div style={{ padding:'0 24px 18px', borderTop:'1px solid var(--border)', paddingTop:16 }}>
-          <div style={{ display:'flex', justifyContent:'space-between', marginBottom:8 }}>
-            <span style={{ fontSize:12, fontWeight:600, color:'var(--text-secondary)' }}>Gesamtfortschritt</span>
-            <span style={{ fontSize:13, fontWeight:700, color:phaseCol }}>{pct}%</span>
+        {project.description && (
+          <p style={{ fontSize:13.5, color:'var(--text-muted)', margin:'0 0 16px', lineHeight:1.6, maxWidth:640 }}>{project.description}</p>
+        )}
+
+        {/* Progress + stats inline */}
+        <div style={{ display:'flex', alignItems:'center', gap:18, borderTop:'1px solid var(--border)', borderBottom:'1px solid var(--border)', padding:'12px 0' }}>
+          <div style={{ flex:1, display:'flex', alignItems:'center', gap:10 }}>
+            <div style={{ flex:1, height:3, background:'var(--border)', borderRadius:2, overflow:'hidden' }}>
+              <div style={{ height:'100%', width:`${pct}%`, background:pCol, transition:'width .6s ease' }}/>
+            </div>
+            <span style={{ fontSize:12, fontWeight:600, color:'var(--text-secondary)', flexShrink:0 }}>{pct}%</span>
           </div>
-          <div style={{ height:6, background:'var(--surface-2)', borderRadius:6, overflow:'hidden', marginBottom:12 }}>
-            <div style={{ height:'100%', width:`${pct}%`, background:`linear-gradient(to right, ${pCol}, ${phaseCol})`, borderRadius:6, transition:'width .6s ease' }}/>
-          </div>
-          <div style={{ display:'flex', gap:16, flexWrap:'wrap' }}>
+          <div style={{ display:'flex', gap:14, flexShrink:0 }}>
             {[
-              { label:'Offen',    count: tasks.filter(t => t.status === 'todo').length, color:'var(--text-muted)' },
-              { label:'Aktiv',    count: tasks.filter(t => t.status === 'doing').length, color:'#f59e0b' },
-              { label:'Erledigt', count: done,                                           color:'#22c55e' },
+              { label:'Todo',    count: todoTasks.length,  dot:'var(--border-strong)' },
+              { label:'Aktiv',   count: doingTasks.length, dot:'#f59e0b' },
+              { label:'Fertig',  count: doneTasks.length,  dot:'#22c55e' },
             ].map(s => (
               <span key={s.label} style={{ display:'flex', alignItems:'center', gap:5, fontSize:12, color:'var(--text-muted)' }}>
-                <span style={{ width:6, height:6, borderRadius:'50%', background:s.color }}/>
-                {s.label}: <strong style={{ color:'var(--text)' }}>{s.count}</strong>
+                <span style={{ width:6, height:6, borderRadius:'50%', background:s.dot }}/>
+                <span style={{ color:'var(--text)', fontWeight:600 }}>{s.count}</span> {s.label}
               </span>
             ))}
           </div>
         </div>
       </div>
 
-      {/* Milestones with prices — donut */}
+      {/* ── Milestones ── compact list */}
       {milestones.length > 0 && (
-        <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:18, padding:'20px 22px', marginBottom:14 }}>
-          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:12, flexWrap:'wrap', gap:8 }}>
-            <div>
-              <p style={{ fontSize:11, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.07em', margin:'0 0 2px' }}>FINANZ-FORTSCHRITT</p>
-              <h2 style={{ fontSize:18, fontWeight:700, margin:0, letterSpacing:'-.3px' }}>Meilensteine &amp; Zahlungen</h2>
-            </div>
-            <span style={{ fontSize:11, color:'var(--text-muted)', display:'flex', alignItems:'center', gap:5 }}>
-              <span style={{ width:5, height:5, borderRadius:'50%', background:'#22c55e', animation:'pulse 2s infinite' }}/>
-              Mollie · DSGVO · SEPA
-            </span>
+        <div style={{ marginBottom:32 }}>
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:12 }}>
+            <h3 style={{ margin:0, fontSize:13, fontWeight:600, color:'var(--text)' }}>Meilensteine & Zahlungen</h3>
+            <span style={{ fontSize:11, color:'var(--text-muted)' }}>Mollie · SEPA · DSGVO</span>
           </div>
-          <MilestoneChart
-            milestones={milestones}
-            onPay={canEdit ? undefined : payMilestone}
-            fixedPriceMode={milestones.every(m => m.status === 'paid')}
-          />
+          <div style={{ border:'1px solid var(--border)', borderRadius:10, overflow:'hidden' }}>
+            {milestones.map((ms, i) => {
+              const isPaid    = ms.status === 'paid'
+              const isPending = ms.status === 'pending'
+              const isLocked  = ms.status === 'locked'
+              return (
+                <div key={ms.id} className="ms-row" style={{ padding:'12px 16px', borderBottom: i < milestones.length-1 ? '1px solid var(--border)' : 'none' }}>
+                  <span style={{ width:7, height:7, borderRadius:'50%', flexShrink:0,
+                    background: isPaid ? '#22c55e' : isPending ? '#f59e0b' : 'var(--border-strong)' }}/>
+                  <span style={{ flex:1, fontSize:13, fontWeight:500, color: isLocked ? 'var(--text-muted)' : 'var(--text)' }}>{ms.title}</span>
+                  {ms.description && <span style={{ fontSize:11.5, color:'var(--text-muted)', flex:1, minWidth:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{ms.description}</span>}
+                  <span style={{ fontSize:13, fontWeight:600, color:'var(--text)', flexShrink:0, minWidth:60, textAlign:'right' }}>€{ms.amount.toLocaleString('de')}</span>
+                  <span style={{ fontSize:10, fontWeight:600, flexShrink:0, padding:'2px 8px', borderRadius:5, letterSpacing:'.04em',
+                    color: isPaid ? '#16a34a' : isPending ? '#d97706' : 'var(--text-muted)',
+                    background: isPaid ? 'rgba(34,197,94,.08)' : isPending ? 'rgba(245,158,11,.08)' : 'transparent',
+                    border: `1px solid ${isPaid ? 'rgba(34,197,94,.2)' : isPending ? 'rgba(245,158,11,.2)' : 'var(--border)'}`,
+                  }}>
+                    {isPaid ? 'Bezahlt' : isPending ? 'Fällig' : 'Gesperrt'}
+                  </span>
+                  {isPending && !canEdit && (
+                    <button onClick={() => payMilestone(ms)} style={{ height:26, padding:'0 12px', background:'var(--btn-prim)', color:'var(--btn-prim-text)', border:'none', borderRadius:6, fontSize:11, fontWeight:600, cursor:'pointer', flexShrink:0 }}>
+                      Freischalten →
+                    </button>
+                  )}
+                </div>
+              )
+            })}
+          </div>
         </div>
       )}
 
-      {/* ═══ MAIN 2-COL LAYOUT ═══ */}
-      <div className="grid-cols-2-mobile-1" style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: 14 }}>
+      {/* ── Main 2-col ── */}
+      <div className="grid-cols-2-mobile-1" style={{ display:'grid', gridTemplateColumns:'1fr 340px', gap:32 }}>
 
-        {/* LEFT — Tasks + Status Updates */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          {/* Tab switcher */}
-          <div style={{ display: 'flex', background: 'var(--surface-2)', borderRadius: 'var(--r-sm)', padding: 3, gap: 2 }}>
+        {/* LEFT */}
+        <div>
+          {/* Tab bar */}
+          <div style={{ display:'flex', gap:20, borderBottom:'1px solid var(--border)', marginBottom:20 }}>
             {([
-              { key: 'tasks', label: `Tasks (${tasks.length})` },
-              { key: 'updates', label: 'AI Statusbericht' },
+              { key:'tasks',   label:`Tasks (${tasks.length})` },
+              { key:'updates', label:'AI Statusbericht' },
             ] as const).map(tab => (
-              <button key={tab.key} onClick={() => setActiveLeft(tab.key)} style={{
-                flex: 1, padding: '8px', borderRadius: 6, border: 'none', cursor: 'pointer',
-                fontSize: 13, fontFamily: 'inherit', transition: 'all 0.12s',
-                background: activeLeft === tab.key ? 'var(--surface)' : 'transparent',
-                color: activeLeft === tab.key ? 'var(--text)' : 'var(--text-muted)',
-                fontWeight: activeLeft === tab.key ? 600 : 500,
-                boxShadow: activeLeft === tab.key ? 'var(--shadow-xs)' : 'none',
-              }}>{tab.label}</button>
+              <button key={tab.key} className={`tab-btn ${activeLeft===tab.key?'active':''}`} onClick={() => setActiveLeft(tab.key)}>
+                {tab.label}
+              </button>
             ))}
           </div>
 
-          {/* TASKS TAB */}
+          {/* TASKS */}
           {activeLeft === 'tasks' && (
-            <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', overflow: 'hidden' }}>
-              {/* Add task input — Clients dürfen auch, mit Wochenlimit */}
-              <div style={{ padding: '14px 18px', borderBottom: '1px solid var(--border)' }}>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <input
-                    value={newTask} onChange={e => setNewTask(e.target.value)}
-                    onKeyDown={e => e.key === 'Enter' && addTask()}
-                    placeholder={eff === 'client' && clientRemaining === 0 ? 'Wochenlimit erreicht' : 'Task hinzufügen…'}
-                    disabled={eff === 'client' && clientRemaining === 0}
-                    style={{ flex: 1, padding: '9px 12px', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', fontSize: 13, outline: 'none', background: 'var(--bg)', opacity: eff === 'client' && clientRemaining === 0 ? 0.5 : 1 }}
-                  />
-                  <button onClick={addTask} disabled={!newTask.trim() || (eff === 'client' && clientRemaining === 0)} className="tap-scale" style={{ padding: '9px 14px', background: 'var(--accent)', color: 'var(--accent-text)', border: 'none', borderRadius: 'var(--r-sm)', fontSize: 12, fontWeight: 600, cursor: newTask.trim() && !(eff === 'client' && clientRemaining === 0) ? 'pointer' : 'default', opacity: newTask.trim() && !(eff === 'client' && clientRemaining === 0) ? 1 : 0.4 }}>
-                    + Hinzufügen
-                  </button>
-                </div>
-                {eff === 'client' && (
-                  <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: '8px 0 0', display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <span style={{ width: 5, height: 5, borderRadius: '50%', background: clientRemaining > 5 ? 'var(--green)' : clientRemaining > 0 ? 'var(--amber)' : 'var(--red)' }} />
-                    {clientRemaining} von {TASK_WEEK_LIMIT} neuen Tasks diese Woche übrig · Status-Wechsel macht das Entwicklerteam
-                  </p>
-                )}
+            <div>
+              {/* Add task */}
+              <div style={{ display:'flex', gap:8, marginBottom:20 }}>
+                <input
+                  value={newTask} onChange={e => setNewTask(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && addTask()}
+                  placeholder={eff==='client' && clientRemaining===0 ? 'Wochenlimit erreicht' : 'Task hinzufügen…'}
+                  disabled={eff==='client' && clientRemaining===0}
+                  style={{ flex:1, padding:'8px 12px', border:'1px solid var(--border)', borderRadius:7, fontSize:13, outline:'none', background:'transparent', color:'var(--text)', opacity: eff==='client' && clientRemaining===0 ? 0.5 : 1 }}
+                />
+                <button onClick={addTask} disabled={!newTask.trim() || (eff==='client' && clientRemaining===0)}
+                  style={{ height:34, padding:'0 14px', background:'var(--btn-prim)', color:'var(--btn-prim-text)', border:'none', borderRadius:7, fontSize:12, fontWeight:600, cursor:'pointer', opacity: !newTask.trim() ? .4 : 1 }}>
+                  Hinzufügen
+                </button>
               </div>
+              {eff==='client' && (
+                <p style={{ fontSize:11, color:'var(--text-muted)', margin:'-12px 0 16px', display:'flex', alignItems:'center', gap:5 }}>
+                  <span style={{ width:5, height:5, borderRadius:'50%', background: clientRemaining>5?'#22c55e':clientRemaining>0?'#f59e0b':'#ef4444' }}/>
+                  {clientRemaining} von {TASK_WEEK_LIMIT} Tasks diese Woche übrig
+                </p>
+              )}
 
-              {/* Kanban columns */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 0 }}>
-                {[
-                  { status: 'todo',  label: 'To Do',      color: 'var(--text-muted)', bg:'var(--surface-2)' },
-                  { status: 'doing', label: 'In Progress', color: '#d97706',           bg:'rgba(245,158,11,.06)' },
-                  { status: 'done',  label: 'Done',        color: '#16a34a',           bg:'rgba(34,197,94,.05)' },
-                ].map((col, ci) => {
-                  const colTasks = tasks.filter(t => t.status === col.status)
-                  return (
-                    <div key={col.status} style={{ borderRight: ci < 2 ? '1px solid var(--border)' : 'none', padding: 12, background: colTasks.length > 0 ? col.bg : 'transparent', transition:'background .2s' }}>
-                      <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:10, padding:'2px 0' }}>
-                        <span style={{ width:7, height:7, borderRadius:'50%', background:col.color }}/>
-                        <span style={{ fontSize:10, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.07em' }}>
-                          {col.label.toUpperCase()}
-                        </span>
-                        <span style={{ marginLeft:'auto', fontSize:10, fontWeight:700, color:col.color, background:`${col.color}18`, padding:'1px 6px', borderRadius:5 }}>{colTasks.length}</span>
-                      </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
-                        {colTasks.map(task => {
-                          const showDelete = canEdit || (eff === 'client' && col.status === 'todo')
-                          const showStatusButtons = canEdit
-                          const showActions = showDelete || showStatusButtons
-                          const priColor = task.priority ? PRIORITY_COLOR[task.priority] : null
-                          return (
-                            <div key={task.id} style={{ background:'var(--bg)', border:`1px solid var(--border)`, borderRadius:10, overflow:'hidden' }}>
-                              {priColor && <div style={{ height:2.5, background:priColor }}/>}
-                              <div style={{ padding:'9px 11px' }}>
-                                <p style={{ fontSize:12.5, fontWeight:500, color:'var(--text)', margin: showActions ? '0 0 8px' : '0', lineHeight:1.4 }}>{task.title}</p>
-                                {task.priority && task.priority !== 'medium' && (
-                                  <span style={{ display:'inline-block', fontSize:9, fontWeight:700, color:priColor!, background:`${priColor}18`, padding:'1px 5px', borderRadius:4, letterSpacing:'.05em', marginBottom:showActions?6:0 }}>
-                                    {task.priority.toUpperCase()}
-                                  </span>
-                                )}
-                                {showActions && (
-                                  <div style={{ display:'flex', gap:3, flexWrap:'wrap' }}>
-                                    {showStatusButtons && ['todo','doing','done'].filter(s => s !== col.status).map(s => {
-                                      const next = { todo:'← Todo', doing:'→ Aktiv', done:'✓ Done' }[s] ?? s
-                                      return (
-                                        <button key={s} onClick={() => updateTask(task.id, s)}
-                                          style={{ padding:'2px 7px', fontSize:9.5, border:'1px solid var(--border)', background:'var(--surface)', borderRadius:5, cursor:'pointer', color:'var(--text-secondary)', fontFamily:'inherit', transition:'background .1s' }}>
-                                          {next}
-                                        </button>
-                                      )
-                                    })}
-                                    {showDelete && (
-                                      <button onClick={() => deleteTask(task.id)} title="Task löschen"
-                                        style={{ padding:'2px 6px', fontSize:9.5, border:'1px solid rgba(239,68,68,.2)', background:'rgba(239,68,68,.06)', borderRadius:5, cursor:'pointer', color:'#ef4444' }}>✕</button>
-                                    )}
-                                  </div>
-                                )}
-                              </div>
+              {/* Grouped task list */}
+              {[
+                { status:'doing', label:'In Progress', dot:'#f59e0b',           list: doingTasks },
+                { status:'todo',  label:'To Do',       dot:'var(--border-strong)', list: todoTasks  },
+                { status:'done',  label:'Done',        dot:'#22c55e',           list: doneTasks  },
+              ].map(group => group.list.length === 0 ? null : (
+                <div key={group.status} style={{ marginBottom:24 }}>
+                  <div style={{ display:'flex', alignItems:'center', gap:7, marginBottom:4 }}>
+                    <span style={{ width:6, height:6, borderRadius:'50%', background:group.dot }}/>
+                    <span style={{ fontSize:11, fontWeight:600, color:'var(--text-muted)', letterSpacing:'.04em' }}>{group.label}</span>
+                    <span style={{ fontSize:11, color:'var(--text-muted)', opacity:.6 }}>{group.list.length}</span>
+                  </div>
+                  <div style={{ border:'1px solid var(--border)', borderRadius:8, overflow:'hidden' }}>
+                    {group.list.map(task => {
+                      const showDelete = canEdit || (eff==='client' && task.status==='todo')
+                      const priColor = task.priority ? PRIORITY_COLOR[task.priority] : null
+                      return (
+                        <div key={task.id} className="task-row">
+                          <span style={{ width:6, height:6, borderRadius:'50%', flexShrink:0, background: group.dot }}/>
+                          <span style={{ flex:1, fontSize:13, color:'var(--text)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{task.title}</span>
+                          {priColor && (
+                            <span style={{ fontSize:10, fontWeight:600, color:priColor, flexShrink:0 }}>
+                              {task.priority?.toUpperCase()}
+                            </span>
+                          )}
+                          {canEdit && (
+                            <div style={{ display:'flex', gap:4, flexShrink:0 }}>
+                              {['todo','doing','done'].filter(s => s !== task.status).map(s => (
+                                <button key={s} onClick={() => updateTask(task.id, s)} className="ghost-sm">
+                                  {{ todo:'Todo', doing:'Aktiv', done:'Fertig' }[s]}
+                                </button>
+                              ))}
                             </div>
-                          )
-                        })}
-                        {colTasks.length === 0 && (
-                          <div style={{ border: '1px dashed var(--border)', borderRadius: 'var(--r-sm)', padding: '10px 8px', textAlign: 'center', fontSize: 11, color: 'var(--text-muted)' }}>Leer</div>
-                        )}
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
+                          )}
+                          {showDelete && (
+                            <button onClick={() => deleteTask(task.id)}
+                              style={{ background:'none', border:'none', cursor:'pointer', color:'var(--text-muted)', padding:'2px 4px', fontSize:12, opacity:.5, transition:'opacity .1s' }}
+                              onMouseEnter={e => (e.currentTarget as HTMLElement).style.opacity='1'}
+                              onMouseLeave={e => (e.currentTarget as HTMLElement).style.opacity='.5'}>
+                              ✕
+                            </button>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              ))}
+
+              {tasks.length === 0 && (
+                <p style={{ fontSize:13, color:'var(--text-muted)', padding:'24px 0' }}>Noch keine Tasks angelegt.</p>
+              )}
             </div>
           )}
 
-          {/* AI UPDATES TAB */}
+          {/* AI UPDATES */}
           {activeLeft === 'updates' && (
-            <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', overflow: 'hidden' }}>
-              <div style={{ padding: '14px 18px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', margin: 0 }}>Tagro AI Statusberichte</p>
-                  <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: '2px 0 0' }}>AI-generierte Zusammenfassungen</p>
-                </div>
-                <button onClick={generateAIUpdate} disabled={generatingAI} className="tap-scale" style={{ padding: '7px 13px', background: 'var(--accent)', color: 'var(--accent-text)', border: 'none', borderRadius: 'var(--r-sm)', fontSize: 11, fontWeight: 600, cursor: 'pointer', opacity: generatingAI ? 0.5 : 1, display: 'flex', alignItems: 'center', gap: 6 }}>
-                  {generatingAI ? (
-                    <>
-                      <span style={{ width: 11, height: 11, border: '2px solid rgba(255,255,255,.3)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin .7s linear infinite' }} />
-                      Generiert…
-                    </>
-                  ) : '+ Bericht erstellen'}
+            <div>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:16 }}>
+                <p style={{ margin:0, fontSize:13, color:'var(--text-muted)' }}>AI-generierte Zusammenfassungen des Projektstands</p>
+                <button onClick={generateAIUpdate} disabled={generatingAI}
+                  style={{ height:30, padding:'0 12px', background:'var(--btn-prim)', color:'var(--btn-prim-text)', border:'none', borderRadius:7, fontSize:11.5, fontWeight:600, cursor:'pointer', opacity:generatingAI?.5:1, display:'flex', alignItems:'center', gap:6 }}>
+                  {generatingAI ? <><span style={{ width:10, height:10, border:'2px solid rgba(255,255,255,.3)', borderTopColor:'#fff', borderRadius:'50%', animation:'spin .7s linear infinite' }}/>Generiert…</> : '+ Bericht erstellen'}
                 </button>
               </div>
-              <div style={{ padding: 14, display: 'flex', flexDirection: 'column', gap: 10, maxHeight: 440, overflowY: 'auto' }}>
-                {aiUpdates.length === 0 ? (
-                  <div style={{ padding: '32px 16px', textAlign: 'center', border: '1px dashed var(--border)', borderRadius: 'var(--r)' }}>
-                    <p style={{ fontSize: 14, fontWeight: 500, color: 'var(--text)', margin: '0 0 4px' }}>Noch keine Berichte</p>
-                    <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: 0 }}>Klick "+ Bericht erstellen" für eine AI-Zusammenfassung</p>
-                  </div>
-                ) : aiUpdates.map(u => (
-                  <div key={u.id} style={{ border: '1px solid var(--border)', borderRadius: 'var(--r)', overflow: 'hidden' }}>
-                    <div style={{ padding: '8px 14px', background: 'var(--bg)', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.06em' }}>TAGRO AI · STATUSBERICHT</span>
-                      <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-                        {new Date(u.created_at).toLocaleDateString('de', { day: '2-digit', month: 'short' })} · {new Date(u.created_at).toLocaleTimeString('de', { hour: '2-digit', minute: '2-digit' })}
-                      </span>
+              {aiUpdates.length === 0 ? (
+                <p style={{ fontSize:13, color:'var(--text-muted)', padding:'24px 0' }}>Noch keine Berichte erstellt.</p>
+              ) : (
+                <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
+                  {aiUpdates.map(u => (
+                    <div key={u.id}>
+                      <div style={{ display:'flex', justifyContent:'space-between', marginBottom:8 }}>
+                        <span style={{ fontSize:11, fontWeight:600, color:'var(--text-muted)', letterSpacing:'.04em' }}>TAGRO AI</span>
+                        <span style={{ fontSize:11, color:'var(--text-muted)' }}>
+                          {new Date(u.created_at).toLocaleDateString('de',{day:'2-digit',month:'short'})} · {new Date(u.created_at).toLocaleTimeString('de',{hour:'2-digit',minute:'2-digit'})}
+                        </span>
+                      </div>
+                      <div style={{ borderTop:'1px solid var(--border)', paddingTop:12, fontSize:13.5, color:'var(--text)', lineHeight:1.7 }}>
+                        <ChatMarkdown text={u.content} />
+                      </div>
                     </div>
-                    <div style={{ padding: '12px 14px', fontSize: 13.5, color: 'var(--text)', lineHeight: 1.65 }}>
-                      <ChatMarkdown text={u.content} />
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>
 
-        {/* RIGHT — Live Chat (always visible) */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {/* Chat box */}
-          <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:20, overflow:'hidden', display:'flex', flexDirection:'column', height:480 }}>
-            <div style={{ padding:'13px 18px', borderBottom:'1px solid var(--border)', background:'var(--bg)', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-              <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-                <div style={{ width:28, height:28, borderRadius:8, background:'var(--accent)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                  <span style={{ fontSize:11, color:'var(--accent-text)', fontWeight:700 }}>✦</span>
-                </div>
-                <div>
-                  <p style={{ fontSize:13, fontWeight:700, color:'var(--text)', margin:0 }}>Live Dialog & AI</p>
-                  <p style={{ fontSize:10, color:'var(--text-muted)', margin:'1px 0 0' }}>Tagro + Developer Kommunikation</p>
-                </div>
+        {/* RIGHT — Chat */}
+        <div>
+          <div style={{ border:'1px solid var(--border)', borderRadius:10, overflow:'hidden', display:'flex', flexDirection:'column', height:520 }}>
+            <div style={{ padding:'12px 16px', borderBottom:'1px solid var(--border)', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+              <div>
+                <p style={{ fontSize:13, fontWeight:600, color:'var(--text)', margin:0 }}>Tagro AI</p>
+                <p style={{ fontSize:11, color:'var(--text-muted)', margin:'1px 0 0' }}>Projektkommunikation</p>
               </div>
-              <span style={{ fontSize: 9, fontWeight: 700, color: online ? 'var(--green-dark)' : 'var(--text-muted)', background: online ? 'var(--green-bg)' : 'var(--surface-2)', padding: '3px 8px', borderRadius: 8, display: 'inline-flex', alignItems: 'center', gap: 4, border: `1px solid ${online ? 'var(--green-border)' : 'var(--border)'}`, letterSpacing: '0.06em' }}>
-                <span style={{ width: 4, height: 4, borderRadius: '50%', background: online ? 'var(--green)' : 'var(--text-muted)', animation: online ? 'pulse 1.5s infinite' : 'none' }} />
-                {online ? 'LIVE' : 'OFFLINE'}
+              <span style={{ fontSize:10, fontWeight:600, color: online?'#16a34a':'var(--text-muted)', display:'inline-flex', alignItems:'center', gap:4 }}>
+                <span style={{ width:5, height:5, borderRadius:'50%', background:online?'#22c55e':'var(--border-strong)', animation:online?'pulse 1.5s infinite':'none' }}/>
+                {online ? 'Live' : 'Offline'}
               </span>
             </div>
 
-            {/* Messages */}
-            <div style={{ flex: 1, overflowY: 'auto', padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div style={{ flex:1, overflowY:'auto', padding:'14px 16px', display:'flex', flexDirection:'column', gap:14 }}>
               {messages.length === 0 && !aiThinking && (
-                <p style={{ fontSize: 12, color: 'var(--text-muted)', textAlign: 'center', padding: '16px 0', margin: 0 }}>
-                  Starte eine Konversation mit Tagro…
-                </p>
+                <p style={{ fontSize:12.5, color:'var(--text-muted)', margin:0, paddingTop:8 }}>Starte eine Konversation mit Tagro…</p>
               )}
               {messages.map(m => {
                 const isAI = m.is_ai
                 return (
-                  <div key={m.id} style={{ display: 'flex', gap: 8 }}>
-                    <div style={{ width: 28, height: 28, borderRadius: '50%', background: isAI ? 'var(--text)' : 'var(--surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: isAI ? '#fff' : 'var(--text-secondary)', fontWeight: 600, flexShrink: 0, border: isAI ? 'none' : '1px solid var(--border)' }}>
-                      {isAI ? 'T' : (userEmail.charAt(0) || 'U').toUpperCase()}
+                  <div key={m.id} style={{ display:'flex', gap:9 }}>
+                    <div style={{ width:24, height:24, borderRadius:'50%', background:isAI?'var(--text)':'var(--border)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:10, color:isAI?'var(--bg)':'var(--text-secondary)', fontWeight:700, flexShrink:0 }}>
+                      {isAI ? 'T' : (userEmail.charAt(0)||'U').toUpperCase()}
                     </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: 'flex', gap: 5, alignItems: 'center', marginBottom: 3 }}>
-                        <span style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--text)' }}>{isAI ? 'Tagro' : 'Du'}</span>
-                        {isAI && <svg width="11" height="11" viewBox="0 0 24 24" fill="#007AFF"><circle cx="12" cy="12" r="10"/><path d="M8 12l3 3 5-6" stroke="#fff" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/></svg>}
-                        <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>
-                          {new Date(m.created_at).toLocaleTimeString('de', { hour: '2-digit', minute: '2-digit' })}
-                        </span>
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <div style={{ display:'flex', gap:6, alignItems:'baseline', marginBottom:2 }}>
+                        <span style={{ fontSize:12, fontWeight:600, color:'var(--text)' }}>{isAI?'Tagro':'Du'}</span>
+                        <span style={{ fontSize:10, color:'var(--text-muted)' }}>{new Date(m.created_at).toLocaleTimeString('de',{hour:'2-digit',minute:'2-digit'})}</span>
                       </div>
-                      <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: 0, lineHeight: 1.55 }}>{m.message}</p>
+                      <p style={{ fontSize:13, color:'var(--text-secondary)', margin:0, lineHeight:1.55 }}>{m.message}</p>
                     </div>
                   </div>
                 )
               })}
               {aiThinking && (
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: 'var(--accent-text)', fontWeight: 600, flexShrink: 0 }}>T</div>
-                  <div style={{ paddingTop: 8, display: 'flex', gap: 4 }}>
-                    {[0,1,2].map(i => <span key={i} style={{ width: 4, height: 4, borderRadius: '50%', background: 'var(--text-muted)', animation: `pulse 1s ${i*0.2}s infinite` }} />)}
+                <div style={{ display:'flex', gap:9 }}>
+                  <div style={{ width:24, height:24, borderRadius:'50%', background:'var(--text)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:10, color:'var(--bg)', fontWeight:700, flexShrink:0 }}>T</div>
+                  <div style={{ paddingTop:8, display:'flex', gap:4 }}>
+                    {[0,1,2].map(i => <span key={i} style={{ width:4, height:4, borderRadius:'50%', background:'var(--text-muted)', animation:`pulse 1s ${i*0.2}s infinite` }}/>)}
                   </div>
                 </div>
               )}
-              <div ref={msgEndRef} />
+              <div ref={msgEndRef}/>
             </div>
 
-            {/* Input */}
-            <div style={{ padding: '10px 14px', borderTop: '1px solid var(--border)', display: 'flex', gap: 7 }}>
+            <div style={{ padding:'10px 12px', borderTop:'1px solid var(--border)', display:'flex', gap:7 }}>
               <input
                 value={newMsg} onChange={e => setNewMsg(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage()}
-                placeholder="Nachricht an Tagro / Developer…"
-                style={{ flex: 1, background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 20, padding: '8px 14px', fontSize: 13, outline: 'none' }}
+                onKeyDown={e => e.key==='Enter' && !e.shiftKey && sendMessage()}
+                placeholder="Nachricht…"
+                style={{ flex:1, background:'transparent', border:'1px solid var(--border)', borderRadius:7, padding:'7px 12px', fontSize:13, outline:'none', color:'var(--text)' }}
               />
-              <button onClick={sendMessage} disabled={!newMsg.trim()} className="tap-scale" style={{ width: 32, height: 32, borderRadius: '50%', border: 'none', flexShrink: 0, background: newMsg.trim() ? 'var(--text)' : 'var(--surface-2)', color: newMsg.trim() ? '#fff' : 'var(--text-muted)', cursor: newMsg.trim() ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M7 17L17 7M9 7h8v8"/></svg>
+              <button onClick={sendMessage} disabled={!newMsg.trim()}
+                style={{ width:30, height:30, borderRadius:7, border:'none', flexShrink:0, background:newMsg.trim()?'var(--text)':'var(--border)', color:newMsg.trim()?'var(--bg)':'var(--text-muted)', cursor:newMsg.trim()?'pointer':'default', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M7 17L17 7M9 7h8v8"/></svg>
               </button>
             </div>
           </div>
 
-          {/* Quick Add-ons */}
-          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r)', padding: '12px 16px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 9 }}>
-              <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.06em' }}>ADD-ONS</span>
-              <Link href="/addons" style={{ fontSize: 11, color: 'var(--text)', fontWeight: 600 }}>Alle →</Link>
-            </div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
-              {['AI Cinematics','Branding','SEO','Chatbot'].map(a => (
-                <button key={a} style={{ padding: '4px 10px', borderRadius: 16, border: '1px solid var(--border)', background: 'var(--surface-2)', fontSize: 11, color: 'var(--text-secondary)', cursor: 'pointer' }}>
-                  {a} <span style={{ color: 'var(--text)' }}>+</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Festag Garantie */}
-          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r)', padding: '12px 16px' }}>
-            <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.08em', marginBottom: 9 }}>FESTAG GARANTIE</p>
+          {/* Garantie */}
+          <div style={{ marginTop:24 }}>
+            <p style={{ fontSize:11, fontWeight:600, color:'var(--text-muted)', letterSpacing:'.04em', margin:'0 0 10px' }}>FESTAG GARANTIE</p>
             {[
-              { label: 'AI Check',             done: pct > 30 },
-              { label: 'Project Owner Review', done: pct > 70 },
-              { label: 'Controlled Release',   done: project.status === 'done' },
-            ].map(item => (
-              <div key={item.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 }}>
-                <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{item.label}</span>
-                <span style={{ fontSize: 9, fontWeight: 700, padding: '2px 7px', borderRadius: 5, background: item.done ? 'var(--green-bg)' : 'var(--surface-2)', color: item.done ? 'var(--green-dark)' : 'var(--text-muted)', letterSpacing: '0.04em' }}>
-                  {item.done ? 'PASSED' : 'PENDING'}
+              { label:'AI Check',             done: pct>30 },
+              { label:'Project Owner Review', done: pct>70 },
+              { label:'Controlled Release',   done: project.status==='done' },
+            ].map((item, i, arr) => (
+              <div key={item.label} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'8px 0', borderBottom: i<arr.length-1?'1px solid var(--border)':'none' }}>
+                <span style={{ fontSize:12.5, color:'var(--text-secondary)' }}>{item.label}</span>
+                <span style={{ fontSize:10, fontWeight:600, color:item.done?'#16a34a':'var(--text-muted)', letterSpacing:'.04em' }}>
+                  {item.done ? '✓ PASSED' : 'PENDING'}
                 </span>
               </div>
             ))}
