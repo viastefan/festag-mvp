@@ -556,7 +556,7 @@ export default function Sidebar() {
               <span style={{ flex:1, minWidth:0, display:'flex', alignItems:'center', gap:5, overflow:'hidden' }}>
                 <span style={{ fontSize:12, fontWeight:600, color:'var(--text)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{name}</span>
                 {isClient && (
-                  <span style={{ flexShrink:0, fontSize:8.5, fontWeight:700, letterSpacing:'.04em', color:'var(--text-muted)', background:'var(--border)', padding:'1px 4px', borderRadius:4, lineHeight:1.6 }}>
+                  <span style={{ flexShrink:0, fontSize:9, fontWeight:700, letterSpacing:'.05em', color: plan === 'free' ? 'var(--text-secondary)' : 'var(--btn-prim-text)', background: plan === 'free' ? 'var(--surface-2)' : 'var(--btn-prim)', border: plan === 'free' ? '1px solid var(--border)' : 'none', padding:'2px 5px', borderRadius:5, lineHeight:1.5 }}>
                     {plan === 'free' ? 'Free' : plan === 'starter' ? 'Starter' : plan === 'pro' ? 'Pro' : plan === 'enterprise' ? 'Ent.' : plan}
                   </span>
                 )}

@@ -6,7 +6,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import {
   House, Briefcase, FileText, ChatCircle,
-  Notebook, Brain, SignOut, UsersThree, GearSix,
+  Notebook, Brain, SignOut, GearSix,
   List, X, CaretRight, Bell, CreditCard, ChartLineUp,
 } from '@phosphor-icons/react'
 import ViewSwitch from '@/components/ViewSwitch'
@@ -26,7 +26,6 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/relations/documents', label: 'Dokumente',    Icon: FileText     },
   { href: '/relations/notes',     label: 'Notizen',      Icon: Notebook     },
   { href: '/relations/ai',        label: 'Tagro AI',     Icon: Brain        },
-  { href: '/relations/users',     label: 'Kunden',       Icon: UsersThree   },
 ]
 
 export default function RelationsSidebar() {
@@ -87,7 +86,6 @@ export default function RelationsSidebar() {
 
       {/* Nav */}
       <div style={{ flex:1, overflowY:'auto', overflowX:'hidden', scrollbarWidth:'none' }}>
-        <p style={{ fontSize:10.5, fontWeight:600, color:'var(--text-muted)', padding:'5px 9px 2px', margin:0, opacity:.55 }}>Kunden</p>
         {NAV_ITEMS.map(({ href, label, Icon }) => {
           const on = isOn(href)
           return (
