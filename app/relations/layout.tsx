@@ -5,9 +5,13 @@ import { usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useRelationsSetup } from '@/hooks/useRelationsSetup'
 import RelationsSidebar from '@/components/RelationsSidebar'
+import AppHeader from '@/components/AppHeader'
+import CopilotPanel from '@/components/CopilotPanel'
+import FeedbackWidget from '@/components/FeedbackWidget'
 
 export default function RelationsLayout({ children }: { children: React.ReactNode }) {
-  const [checking, setChecking] = useState(true)
+  const [checking,    setChecking]    = useState(true)
+  const [copilotOpen, setCopilotOpen] = useState(false)
   const pathname = usePathname()
   const { status: setupStatus, error: setupError, retry: retrySetup } = useRelationsSetup()
 
@@ -82,10 +86,14 @@ export default function RelationsLayout({ children }: { children: React.ReactNod
         className="main-content"
         style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', overflowY: 'scroll', scrollBehavior: 'auto' }}
       >
+        <AppHeader copilotOpen={copilotOpen} onToggleCopilot={() => setCopilotOpen(o => !o)} />
         <div style={{ width: '100%', flex: 1 }}>
           {children}
         </div>
       </main>
+
+      <CopilotPanel open={copilotOpen} onClose={() => setCopilotOpen(false)} />
+      <FeedbackWidget />
     </div>
   )
 }

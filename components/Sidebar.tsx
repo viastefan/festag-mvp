@@ -56,9 +56,9 @@ const CLIENT_TOOLS: NavItem[] = [
   { href:'/connectors', icon:'link',     label:'Connectors' },
   { href:'/addons',     icon:'grid',     label:'Add-ons' },
 ]
-const CLIENT_ACCOUNT: NavItem[] = [
-  { href:'/billing',  icon:'card',     label:'Abrechnung' },
-  { href:'/settings', icon:'settings', label:'Einstellungen' },
+const CLIENT_BILLING: NavItem[] = [
+  { href:'/billing',   icon:'card', label:'Abrechnung' },
+  { href:'/documents', icon:'doc',  label:'Dokumente' },
 ]
 const CLIENT_MOB_PRIMARY: NavItem[] = [
   { href:'/dashboard',       icon:'home',    label:'Home' },
@@ -91,8 +91,8 @@ const DEV_TOOLS: NavItem[] = [
   { href:'/connectors', icon:'link', label:'Connectors' },
   { href:'/addons',     icon:'grid', label:'Add-ons' },
 ]
-const DEV_ACCOUNT: NavItem[] = [
-  { href:'/settings', icon:'settings', label:'Einstellungen' },
+const DEV_BILLING: NavItem[] = [
+  { href:'/billing', icon:'card', label:'Abrechnung' },
 ]
 const DEV_MOB_PRIMARY: NavItem[] = [
   { href:'/dev',       icon:'home',      label:'Home' },
@@ -122,8 +122,9 @@ export default function Sidebar() {
   const [projId,   setProjId]   = useState<string|null>(null)
   const [projects, setProjects] = useState<{id:string;title:string;status:string}[]>([])
   const [more,       setMore]      = useState(false)
-  const [projExp,    setProjExp]   = useState(false)   // collapsed by default
-  const [toolsExp,   setToolsExp]  = useState(false)   // collapsed by default
+  const [projExp,    setProjExp]    = useState(false)
+  const [toolsExp,   setToolsExp]   = useState(false)
+  const [billExp,    setBillExp]    = useState(false)
   const [teamsOpen,  setTeamsOpen] = useState(false)
   const [userMenu,   setUserMenu]  = useState(false)
 
@@ -131,8 +132,8 @@ export default function Sidebar() {
   const isDev    = role === 'dev'
   const homeHref   = isDev ? '/dev' : '/dashboard'
   const mainNav    = isDev ? DEV_MAIN    : CLIENT_MAIN
-  const toolsNav   = isDev ? DEV_TOOLS   : CLIENT_TOOLS
-  const accountNav = isDev ? DEV_ACCOUNT : CLIENT_ACCOUNT
+  const toolsNav    = isDev ? DEV_TOOLS   : CLIENT_TOOLS
+  const billingNav  = isDev ? DEV_BILLING : CLIENT_BILLING
   const mobPrimary = isDev ? DEV_MOB_PRIMARY : CLIENT_MOB_PRIMARY
   const mobQuick   = isDev ? DEV_MOB_QUICK   : CLIENT_MOB_QUICK
 
@@ -212,14 +213,21 @@ export default function Sidebar() {
             fontFamily:'inherit', padding:0, textAlign:'left',
           }}>
             <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2.5" strokeLinecap="round"
-              style={{ flexShrink:0, opacity:.5, transform:expanded?'rotate(90deg)':'rotate(0deg)', transition:'transform .15s' }}>
+              style={{ flexShrink:0, opacity:.5, transform:expanded?'rotate(90deg)':'rotate(0deg)', transition:'transform .18s cubic-bezier(.16,1,.3,1)' }}>
               <path d="M9 6l6 6-6 6"/>
             </svg>
             <span style={{ fontSize:11, fontWeight:600, color:'var(--text-muted)', letterSpacing:'.01em', opacity:.65 }}>{label}</span>
           </button>
           {action}
         </div>
-        {expanded && children}
+        <div style={{
+          overflow:'hidden',
+          display:'grid',
+          gridTemplateRows: expanded ? '1fr' : '0fr',
+          transition:'grid-template-rows .22s cubic-bezier(.16,1,.3,1)',
+        }}>
+          <div style={{ minHeight:0 }}>{children}</div>
+        </div>
       </div>
     )
   }
@@ -243,13 +251,15 @@ export default function Sidebar() {
           padding:5px 9px; border-radius:7px;
           font-size:13px; font-weight:500;
           cursor:pointer; text-decoration:none; color:inherit;
-          transition:background .08s, color .08s;
+          transition:background .12s, color .12s;
           white-space:nowrap; overflow:hidden;
           margin:0 2px;
         }
-        .ni-on  { background:var(--nav-on); font-weight:600; color:var(--nav-on-text); }
+        .ni-on  { background:rgba(0,0,0,0.055); font-weight:600; color:var(--text); }
+        [data-theme="dark"] .ni-on { background:rgba(255,255,255,0.09); color:var(--nav-on-text); }
+        [data-theme="read"] .ni-on { background:rgba(0,0,0,0.055); color:var(--text); }
         .ni-off { color:var(--text-secondary); }
-        .ni-off:hover { background:rgba(0,0,0,0.04); color:var(--text); }
+        .ni-off:hover { background:rgba(0,0,0,0.035); color:var(--text); }
         [data-theme="dark"] .ni-off:hover { background:rgba(255,255,255,0.05); }
         [data-theme="read"] .ni-off:hover { background:rgba(0,0,0,0.04); }
 
@@ -401,10 +411,14 @@ export default function Sidebar() {
               <NavItems items={toolsNav} />
             </Section>
 
-            {/* Account — always visible, no header */}
-            <div style={{ marginTop:2 }}>
-              <NavItems items={accountNav} />
-            </div>
+            {/* Abrechnung — collapsible */}
+            <Section
+              label="Abrechnung"
+              expanded={billExp}
+              onToggle={() => setBillExp(v => !v)}
+            >
+              <NavItems items={billingNav} />
+            </Section>
 
           </div>
 
