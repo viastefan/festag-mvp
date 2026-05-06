@@ -231,6 +231,7 @@ input:focus,textarea:focus,select:focus { outline:none; }
     inset 0 1px 0 rgba(255,255,255,0.10);
   border-radius:22px;
   display:flex; flex-direction:column; overflow:hidden;
+  padding-bottom:14px;
   transition:background .2s ease, border-color .2s ease;
 }
 [data-theme="dark"] .sidebar-inner {

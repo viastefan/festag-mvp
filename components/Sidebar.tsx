@@ -336,7 +336,7 @@ export default function Sidebar() {
 
       {/* ══ DESKTOP SIDEBAR ══ */}
       <aside className="sidebar" style={{ pointerEvents:'none' }}>
-        <div className="sidebar-inner" style={{ pointerEvents:'all', padding:'14px 8px 10px', display:'flex', flexDirection:'column', height:'100%', boxSizing:'border-box' }}>
+        <div className="sidebar-inner" style={{ pointerEvents:'all', padding:'14px 8px 0', display:'flex', flexDirection:'column', height:'100%', boxSizing:'border-box' }}>
 
           {/* Logo + Support */}
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 6px', marginBottom:10, gap:8 }}>
