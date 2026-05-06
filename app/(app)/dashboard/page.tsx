@@ -4,8 +4,9 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import LoadingScreen from '@/components/LoadingScreen'
+import NewProjectModal from '@/components/NewProjectModal'
 
-type Project  = { id: string; title: string; description: string | null; status: string; created_at: string }
+type Project  = { id: string; title: string; description: string | null; status: string; created_at: string; color: string | null }
 type Task     = { id: string; title: string; status: string; priority?: string; project_id: string; updated_at?: string }
 type Activity = { id: string; type: string; message: string; created_at: string; project_id?: string }
 
@@ -65,6 +66,7 @@ export default function DashboardPage() {
   const [loading,    setLoading]    = useState(true)
   const [genReport,  setGenReport]  = useState(false)
   const [report,     setReport]     = useState('')
+  const [showNewProject, setShowNewProject] = useState(false)
   const [showLoader, setShowLoader] = useState(() =>
     typeof window !== 'undefined' && !sessionStorage.getItem('festag_dash_loaded')
   )
@@ -186,12 +188,10 @@ export default function DashboardPage() {
               {projects.length} Projekt{projects.length!==1?'e':''} · {allTasks.length} Tasks · Phase: {phase?.label ?? '—'}
             </p>
           </div>
-          <Link href="/onboarding" style={{ textDecoration:'none' }}>
-            <button style={{ height:36, padding:'0 16px', background:'var(--btn-prim)', color:'var(--btn-prim-text)', border:'none', borderRadius:10, fontSize:13, fontWeight:700, cursor:'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', gap:6 }}>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
-              Neues Projekt
-            </button>
-          </Link>
+          <button onClick={() => setShowNewProject(true)} style={{ height:36, padding:'0 16px', background:'var(--btn-prim)', color:'var(--btn-prim-text)', border:'none', borderRadius:10, fontSize:13, fontWeight:700, cursor:'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', gap:6 }}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
+            Neues Projekt
+          </button>
         </div>
       </div>
 
@@ -203,11 +203,9 @@ export default function DashboardPage() {
           <p style={{ fontSize:14, color:'var(--text-secondary)', maxWidth:340, margin:'0 auto 32px', lineHeight:1.65, fontWeight:500 }}>
             Beschreibe deine Idee — Tagro strukturiert alles in Epics und Tasks.
           </p>
-          <Link href="/onboarding" style={{ textDecoration:'none' }}>
-            <button className="tap-scale" style={{ padding:'13px 32px', background:'var(--btn-prim)', color:'var(--btn-prim-text)', border:'none', borderRadius:12, fontSize:14, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>
-              Mit AI starten →
-            </button>
-          </Link>
+          <button onClick={() => setShowNewProject(true)} className="tap-scale" style={{ padding:'13px 32px', background:'var(--btn-prim)', color:'var(--btn-prim-text)', border:'none', borderRadius:12, fontSize:14, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>
+            Neues Projekt erstellen →
+          </button>
         </div>
       )}
 
@@ -226,11 +224,11 @@ export default function DashboardPage() {
             <div style={{ display:'flex', flexDirection:'column', gap:12, minWidth:0 }}>
 
               {/* ── Main project card ── */}
-              <div className="animate-fade-up-1" style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:20, overflow:'hidden' }}>
+              <div className="animate-fade-up-1" style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:20, overflow:'hidden', borderLeft: main.color ? `3px solid ${main.color}` : '1px solid var(--border)' }}>
                 <div style={{ padding:'18px 24px', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:16 }}>
                   <div style={{ flex:1, minWidth:0, display:'flex', alignItems:'flex-start', gap:12 }}>
-                    <div style={{ width:36, height:36, borderRadius:10, background:'var(--surface-2)', border:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, marginTop:2 }}>
-                      <span style={{ fontSize:15, fontWeight:700, color:'var(--text)' }}>{main.title.charAt(0)}</span>
+                    <div style={{ width:36, height:36, borderRadius:10, background: main.color ? main.color + '22' : 'var(--surface-2)', border: `1px solid ${main.color ? main.color + '44' : 'var(--border)'}`, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, marginTop:2 }}>
+                      <span style={{ fontSize:15, fontWeight:700, color: main.color || 'var(--text)' }}>{main.title.charAt(0)}</span>
                     </div>
                     <div style={{ flex:1, minWidth:0 }}>
                       <p style={{ fontSize:10, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.1em', textTransform:'uppercase', margin:'0 0 3px' }}>Aktuelles Projekt</p>
@@ -250,9 +248,9 @@ export default function DashboardPage() {
                     <span style={{ fontSize:13, fontWeight:700, color:'var(--text-secondary)' }}>{phase.pct}%</span>
                   </div>
                   <div style={{ position:'relative', height:7, background:'var(--surface-2)', borderRadius:7, overflow:'visible', marginBottom:22 }}>
-                    <div className="dash-bar" style={{ height:'100%', width:`${phase.pct}%`, background:'var(--text)', borderRadius:7, position:'relative', zIndex:1 }}/>
+                    <div className="dash-bar" style={{ height:'100%', width:`${phase.pct}%`, background: main.color || 'var(--text)', borderRadius:7, position:'relative', zIndex:1 }}/>
                     {MILESTONES.map(ms => (
-                      <div key={ms.label} style={{ position:'absolute', top:'50%', left:`${ms.pct}%`, transform:'translate(-50%,-50%)', width:10, height:10, borderRadius:'50%', background:phase.pct>=ms.pct?'var(--text)':'var(--surface)', border:`2px solid ${phase.pct>=ms.pct?'var(--text)':'var(--border-strong)'}`, zIndex:2, transition:'background .3s' }}/>
+                      <div key={ms.label} style={{ position:'absolute', top:'50%', left:`${ms.pct}%`, transform:'translate(-50%,-50%)', width:10, height:10, borderRadius:'50%', background:phase.pct>=ms.pct?(main.color||'var(--text)'):'var(--surface)', border:`2px solid ${phase.pct>=ms.pct?(main.color||'var(--text)'):'var(--border-strong)'}`, zIndex:2, transition:'background .3s' }}/>
                     ))}
                   </div>
                   <div style={{ display:'flex', justifyContent:'space-between' }}>
@@ -356,13 +354,13 @@ export default function DashboardPage() {
                       return (
                         <Link key={proj.id} href={`/project/${proj.id}`} style={{ textDecoration:'none' }}>
                           <div className="proj-row-card" style={{ display:'flex', alignItems:'center', gap:12, padding:'10px 12px', borderRadius:12, cursor:'pointer', background:proj.id===main.id?'var(--surface-2)':'transparent', marginBottom:2 }}>
-                            <div style={{ width:30, height:30, borderRadius:8, background:'var(--surface-2)', border:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                              <span style={{ fontSize:12, fontWeight:700, color:'var(--text-secondary)' }}>{proj.title.charAt(0)}</span>
+                            <div style={{ width:30, height:30, borderRadius:8, background: proj.color ? proj.color + '22' : 'var(--surface-2)', border:`1px solid ${proj.color ? proj.color + '44' : 'var(--border)'}`, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                              <span style={{ fontSize:12, fontWeight:700, color: proj.color || 'var(--text-secondary)' }}>{proj.title.charAt(0)}</span>
                             </div>
                             <div style={{ flex:1, minWidth:0 }}>
                               <p style={{ fontSize:13, fontWeight:600, color:'var(--text)', margin:'0 0 4px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{proj.title}</p>
                               <div style={{ height:3, background:'var(--surface-2)', borderRadius:4, overflow:'hidden' }}>
-                                <div style={{ height:'100%', width:`${pct}%`, background:'var(--text)', borderRadius:4, transition:'width .6s ease' }}/>
+                                <div style={{ height:'100%', width:`${pct}%`, background: proj.color || 'var(--text)', borderRadius:4, transition:'width .6s ease' }}/>
                               </div>
                             </div>
                             <div style={{ flexShrink:0, display:'flex', flexDirection:'column', alignItems:'flex-end', gap:3 }}>
@@ -533,6 +531,13 @@ export default function DashboardPage() {
             </div>{/* end RIGHT */}
           </div>
         </>
+      )}
+
+      {showNewProject && (
+        <NewProjectModal
+          onClose={() => setShowNewProject(false)}
+          onCreated={(id) => { setShowNewProject(false); window.location.href = `/project/${id}` }}
+        />
       )}
     </div>
   )

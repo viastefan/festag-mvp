@@ -301,7 +301,7 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn mÃ
   const done = tasks.filter(t => t.status === 'done').length
   const pct = tasks.length ? Math.round(done / tasks.length * 100) : 0
   const phaseIdx = PHASES.indexOf(project.status)
-  const pCol = projectColor(project.id)
+  const pCol = projectColor(project.id, (project as any).color)
   const phaseCol = PHASE_COLOR[project.status] ?? pCol
 
   return (

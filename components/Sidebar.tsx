@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react'
 import SupportButton from '@/components/SupportButton'
 import ViewSwitch from '@/components/ViewSwitch'
 import TeamsModal from '@/components/TeamsModal'
+import NewProjectModal from '@/components/NewProjectModal'
 import {
   House, FolderSimple, Sparkle, ChatCircle, ChartLineUp,
   CreditCard, FileText, UserCircle, GearSix,
@@ -16,7 +17,7 @@ import {
   Clock, CheckSquare, Code, FileCode,
 } from '@phosphor-icons/react'
 
-export function projectColor(_id: string) { return 'var(--text-muted)' }
+export function projectColor(_id: string, color?: string | null) { return color || 'var(--text-muted)' }
 
 const ICONS: Record<string, React.ElementType> = {
   home: House, project: FolderSimple, sparkle: Sparkle, chat: ChatCircle,
@@ -120,7 +121,8 @@ export default function Sidebar() {
   const [role,     setRole]     = useState('client')
   const [plan,     setPlan]     = useState('free')
   const [projId,   setProjId]   = useState<string|null>(null)
-  const [projects, setProjects] = useState<{id:string;title:string;status:string}[]>([])
+  const [projects, setProjects] = useState<{id:string;title:string;status:string;color:string|null}[]>([])
+  const [showNewProject, setShowNewProject] = useState(false)
   const [more,       setMore]      = useState(false)
   const [projExp,    setProjExp]    = useState(false)
   const [toolsExp,   setToolsExp]   = useState(false)
@@ -157,7 +159,7 @@ export default function Sidebar() {
         setPlan((p as any).plan ?? 'free')
       }
     })
-    createClient().from('projects').select('id,title,status').order('created_at',{ascending:false}).limit(12).then(({ data }) => {
+    createClient().from('projects').select('id,title,status,color').order('created_at',{ascending:false}).limit(12).then(({ data }) => {
       const list = (data as any[]) ?? []
       setProjects(list)
       // Find active project for sub-nav links, but keep section collapsed
@@ -357,28 +359,29 @@ export default function Sidebar() {
                 expanded={projExp}
                 onToggle={() => setProjExp(v => !v)}
                 action={
-                  <Link href="/new-project" onClick={e => e.stopPropagation()}
-                    style={{ display:'flex', alignItems:'center', justifyContent:'center', width:20, height:20, borderRadius:5, opacity:.45, textDecoration:'none', transition:'opacity .1s' }}
+                  <button onClick={e => { e.stopPropagation(); setShowNewProject(true) }}
+                    style={{ display:'flex', alignItems:'center', justifyContent:'center', width:20, height:20, borderRadius:5, opacity:.45, background:'none', border:'none', cursor:'pointer', transition:'opacity .1s', padding:0 }}
                     onMouseEnter={e => (e.currentTarget as HTMLElement).style.opacity='0.9'}
                     onMouseLeave={e => (e.currentTarget as HTMLElement).style.opacity='0.45'}
                   >
                     <Ico name="plus" sz={11} c="var(--text-muted)" weight="regular" />
-                  </Link>
+                  </button>
                 }
               >
                 {projects.length > 0 ? projects.map(p => {
                   const on = pathname === `/project/${p.id}`
+                  const dot = p.color || (on ? 'var(--nav-on-text)' : 'var(--text-muted)')
                   return (
                     <Link key={p.id} href={`/project/${p.id}`} className={`proj-row ${on?'active':''}`}>
-                      <span style={{ width:5, height:5, borderRadius:'50%', background: on ? 'var(--nav-on-text)' : 'var(--text-muted)', flexShrink:0, opacity: on ? 1 : .45 }}/>
+                      <span style={{ width:6, height:6, borderRadius:'50%', background: dot, flexShrink:0, opacity: on ? 1 : .7 }}/>
                       <span style={{ flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{p.title}</span>
                     </Link>
                   )
                 }) : (
-                  <Link href="/new-project" className="proj-row" style={{ opacity:.5 }}>
+                  <button onClick={() => setShowNewProject(true)} className="proj-row" style={{ opacity:.5, background:'none', border:'none', cursor:'pointer', fontFamily:'inherit', width:'100%', textAlign:'left' }}>
                     <span style={{ width:5, height:5, borderRadius:'50%', background:'var(--border)', flexShrink:0 }}/>
                     <span style={{ fontStyle:'italic' }}>Neues Projekt…</span>
-                  </Link>
+                  </button>
                 )}
 
                 {/* Sub-links for active project */}
@@ -577,12 +580,18 @@ export default function Sidebar() {
       </nav>
 
       <TeamsModal open={teamsOpen} onClose={() => setTeamsOpen(false)} />
+      {showNewProject && (
+        <NewProjectModal
+          onClose={() => setShowNewProject(false)}
+          onCreated={(id) => { setShowNewProject(false); window.location.href = `/project/${id}` }}
+        />
+      )}
 
       {more && (
         <>
           <div className="mbd" onClick={() => setMore(false)} />
           <div className="mob-quick">
-            <Link href={mobQuick[0].href} className="mqi primary-action" onClick={() => setMore(false)}>
+            <button className="mqi primary-action" onClick={() => { setMore(false); if (!isDev) { setShowNewProject(true) } else { window.location.href = mobQuick[0].href } }} style={{ background:'var(--btn-prim)', border:'none', cursor:'pointer', fontFamily:'inherit', textAlign:'left', width:'100%' }}>
               <div className="mqi-ico" style={{ width:40,height:40,borderRadius:12,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,background:'rgba(0,0,0,.14)' }}>
                 <Ico name={mobQuick[0].icon} sz={18} c="var(--btn-prim-text)" weight="regular"/>
               </div>
@@ -590,7 +599,7 @@ export default function Sidebar() {
                 <p className="mqi-label" style={{ fontSize:15,fontWeight:700,margin:'0 0 1px',color:'var(--btn-prim-text)' }}>{mobQuick[0].label}</p>
                 <p style={{ fontSize:11.5,margin:0,color:'var(--btn-prim-text)',opacity:.65 }}>{isDev?'Jobs ansehen →':'Projekt starten →'}</p>
               </div>
-            </Link>
+            </button>
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:6 }}>
               {mobQuick.slice(1).map(item => {
                 const on = isOn(item.href)
