@@ -8,6 +8,7 @@ import RelationsSidebar from '@/components/RelationsSidebar'
 import AppHeader from '@/components/AppHeader'
 import CopilotPanel from '@/components/CopilotPanel'
 import FeedbackWidget from '@/components/FeedbackWidget'
+import CommandPalette from '@/components/CommandPalette'
 
 export default function RelationsLayout({ children }: { children: React.ReactNode }) {
   const [checking,    setChecking]    = useState(true)
@@ -94,6 +95,7 @@ export default function RelationsLayout({ children }: { children: React.ReactNod
 
       <CopilotPanel open={copilotOpen} onClose={() => setCopilotOpen(false)} />
       <FeedbackWidget />
+      <CommandPalette />
     </div>
   )
 }

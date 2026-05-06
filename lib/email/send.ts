@@ -5,11 +5,12 @@
 
 import { sendMail, getFounderMail, type SendResult } from './client'
 import {
-  tplInvite, tplSupportAck, tplSupportNotify,
+  tplInvite, tplInviteAccept, tplInvitePin,
+  tplSupportAck, tplSupportNotify,
   tplPaymentReceipt, tplPaymentPending, tplGeneric,
 } from './templates'
 
-// ── Invite ───────────────────────────────────────────────────────────────
+// ── Invite (Legacy, PIN sofort — nur Fallback) ──────────────────────────
 export async function sendInviteEmail(opts: {
   to:           string
   invitedName?: string | null
@@ -29,6 +30,47 @@ export async function sendInviteEmail(opts: {
     subject, html,
     cc:      opts.ccFounder && founder ? [founder] : undefined,
     replyTo: founder ?? undefined,
+  })
+}
+
+// ── Invite Stufe 1 — Acceptance-Link, kein PIN ──────────────────────────
+export async function sendInviteAcceptEmail(opts: {
+  to:           string
+  invitedName?: string | null
+  role:         'dev'|'client'|'collaborator'|'admin'
+  fromName:     string
+  acceptUrl:    string
+  ccFounder?:   boolean
+}): Promise<SendResult> {
+  const { subject, html } = tplInviteAccept({
+    invitedName: opts.invitedName, role: opts.role,
+    fromName: opts.fromName, acceptUrl: opts.acceptUrl,
+  })
+  const founder = getFounderMail()
+  return sendMail({
+    to:      opts.to,
+    subject, html,
+    cc:      opts.ccFounder && founder ? [founder] : undefined,
+    replyTo: founder ?? undefined,
+  })
+}
+
+// ── Invite Stufe 2 — PIN nach Acceptance ────────────────────────────────
+export async function sendInvitePinEmail(opts: {
+  to:           string
+  invitedName?: string | null
+  role:         'dev'|'client'|'collaborator'|'admin'
+  pin:          string
+  redeemUrl:    string
+}): Promise<SendResult> {
+  const { subject, html } = tplInvitePin({
+    invitedName: opts.invitedName, role: opts.role,
+    pin: opts.pin, redeemUrl: opts.redeemUrl,
+  })
+  return sendMail({
+    to:      opts.to,
+    subject, html,
+    replyTo: getFounderMail() ?? undefined,
   })
 }
 

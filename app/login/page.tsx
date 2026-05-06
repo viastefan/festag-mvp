@@ -270,8 +270,9 @@ export default function LoginPage() {
                 <PrimaryBtn label="Kostenlos starten →" onClick={() => go('register')}/>
                 <SecondaryBtn label="Anmelden" onClick={() => go('login')}/>
               </div>
-              <div style={{ marginTop: 28, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ marginTop: 28, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
                 <span onClick={() => go('dev')} style={{ fontSize: 12, color: 'var(--text-muted)', cursor: 'pointer', fontWeight: 500, WebkitTapHighlightColor: 'transparent' }}>Dev-Zugang</span>
+                <a href="/redeem" style={{ fontSize: 12, color: 'var(--text-muted)', cursor: 'pointer', fontWeight: 500, textDecoration: 'none', WebkitTapHighlightColor: 'transparent' }}>Einladungspin einlösen</a>
                 <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600, opacity: .4, letterSpacing: '.06em', textTransform: 'uppercase' }}>Beta · v0.9</span>
               </div>
               <p style={{ textAlign: 'center', fontSize: 10.5, color: 'var(--text-muted)', marginTop: 18, letterSpacing: '.02em', fontWeight: 500, opacity: .45, lineHeight: 1.6 }}>Datenschutzkonform · Server in Deutschland<br/>Keine Kreditkarte erforderlich</p>
@@ -309,6 +310,7 @@ export default function LoginPage() {
                 <SocialBtn label="Mit Apple anmelden" onClick={() => doSocial('apple')} icon={APPLE_ICON} black/>
               </div>
               <p style={{ textAlign: 'center', fontSize: 13, color: 'var(--text-muted)', marginTop: 28 }}>Noch kein Konto? <span onClick={() => go('register')} style={{ color: 'var(--btn-prim)', fontWeight: 700, cursor: 'pointer' }}>Registrieren</span></p>
+              <p style={{ textAlign: 'center', fontSize: 12.5, color: 'var(--text-muted)', marginTop: 10 }}>Sie haben einen Einladungspin erhalten? <a href="/redeem" style={{ color: 'var(--btn-prim)', fontWeight: 700, textDecoration: 'none' }}>PIN einlösen</a></p>
             </>)}
 
             {view === 'register' && (<>

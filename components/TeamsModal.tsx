@@ -1,10 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import {
   X, Envelope, Check, Star, Code, Buildings, Briefcase,
-  Eye, EyeSlash, CaretRight, UsersThree,
+  Eye, EyeSlash, CaretRight, UsersThree, Clock, Lightning,
 } from '@phosphor-icons/react'
 import { motion, AnimatePresence } from 'framer-motion'
 
@@ -42,11 +42,73 @@ const MODELS = [
   },
 ]
 
+type SeatRow = {
+  id:           string
+  user_id:      string | null
+  role:         string
+  status:       'reserved' | 'active' | 'suspended' | 'revoked'
+  activated_at: string | null
+  invite_id:    string | null
+  email?:       string | null
+  invited_name?: string | null
+}
+
 export default function TeamsModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [email,   setEmail]   = useState('')
   const [role,    setRole]    = useState<'collaborator'|'dev'>('collaborator')
   const [sent,    setSent]    = useState(false)
   const [sending, setSending] = useState(false)
+  const [seats,   setSeats]   = useState<SeatRow[]>([])
+  const [seatsLoading, setSeatsLoading] = useState(false)
+  const [activatingId, setActivatingId] = useState<string|null>(null)
+
+  // Lade Seats des Tenants (Owner = aktueller User) wenn das Modal geöffnet wird
+  useEffect(() => {
+    if (!open) return
+    let cancelled = false
+    ;(async () => {
+      setSeatsLoading(true)
+      try {
+        const sb = createClient()
+        const { data: { user } } = await sb.auth.getUser()
+        if (!user || cancelled) { setSeatsLoading(false); return }
+
+        const { data } = await (sb as any)
+          .from('seats')
+          .select('id, user_id, role, status, activated_at, invite_id, team_invites(email, invited_name)')
+          .eq('tenant_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(20)
+
+        if (cancelled) return
+        const flattened = ((data as any[]) ?? []).map((s: any) => ({
+          id: s.id, user_id: s.user_id, role: s.role,
+          status: s.status, activated_at: s.activated_at,
+          invite_id: s.invite_id,
+          email: s.team_invites?.email ?? null,
+          invited_name: s.team_invites?.invited_name ?? null,
+        }))
+        setSeats(flattened)
+      } catch { /* ignore — tabelle könnte noch nicht migriert sein */ }
+      setSeatsLoading(false)
+    })()
+    return () => { cancelled = true }
+  }, [open, sent])
+
+  async function activateSeat(seatId: string) {
+    setActivatingId(seatId)
+    try {
+      const res = await fetch('/api/seats/activate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ seatId }),
+      })
+      if (res.ok) {
+        setSeats(prev => prev.map(s => s.id === seatId ? { ...s, status: 'active', activated_at: new Date().toISOString() } : s))
+      }
+    } catch (e) { console.error(e) }
+    setActivatingId(null)
+  }
 
   async function send() {
     if (!email.includes('@')) return
@@ -54,8 +116,8 @@ export default function TeamsModal({ open, onClose }: { open: boolean; onClose: 
     try {
       const sb = createClient()
       const { data: { user } } = await sb.auth.getUser()
-      // Triggert /api/invites/send → erzeugt PIN, speichert team_invites,
-      // verschickt IONOS-Mail an Empfänger und CC an Founder.
+      // Triggert /api/invites/send → erzeugt accept_token, speichert team_invites,
+      // verschickt Acceptance-Mail (ohne PIN). PIN kommt erst nach Annahme.
       await fetch('/api/invites/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -72,6 +134,9 @@ export default function TeamsModal({ open, onClose }: { open: boolean; onClose: 
     } catch (e) { console.error(e) }
     setSending(false)
   }
+
+  const reservedSeats = seats.filter(s => s.status === 'reserved')
+  const activeSeats   = seats.filter(s => s.status === 'active')
 
   return (
     <AnimatePresence>
@@ -192,9 +257,103 @@ export default function TeamsModal({ open, onClose }: { open: boolean; onClose: 
                   </button>
                 </div>
                 <p style={{ fontSize:11, color:'var(--text-muted)', margin:'8px 0 0', lineHeight:1.5 }}>
-                  Direkt einladen — der Eingeladene bekommt nach Prüfung den Zugang per E-Mail.
+                  Der Eingeladene erhält eine Mail mit Acceptance-Link. Erst nach Annahme wird automatisch der Zugangs-PIN versendet.
                 </p>
               </div>
+
+              {/* Seats Section — Reserviert + Aktiv */}
+              {(reservedSeats.length > 0 || activeSeats.length > 0 || seatsLoading) && (
+                <div style={{ marginBottom: 16 }}>
+                  <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 2px 8px' }}>
+                    <p style={{ fontSize:11, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.08em', textTransform:'uppercase', margin:0 }}>
+                      Seats
+                    </p>
+                    {reservedSeats.length > 0 && (
+                      <span style={{ fontSize:10.5, color:'var(--text-muted)', fontWeight:600 }}>
+                        {reservedSeats.length} wartet auf Aktivierung
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Reservierte Seats */}
+                  {reservedSeats.map(s => (
+                    <div key={s.id} style={{
+                      padding:'10px 12px', marginBottom: 6,
+                      background:'var(--surface)', border:'1px solid var(--border)',
+                      borderRadius: 11,
+                      display:'flex', alignItems:'center', gap: 10,
+                    }}>
+                      <div style={{
+                        width:28, height:28, borderRadius:8,
+                        background:'var(--surface-2)',
+                        display:'flex', alignItems:'center', justifyContent:'center',
+                        flexShrink: 0,
+                      }}>
+                        <Clock size={13} weight="regular" color="var(--text-muted)"/>
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--text)', margin: 0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                          {s.invited_name || s.email || 'Unbenannt'}
+                        </p>
+                        <p style={{ fontSize: 10.5, color: 'var(--text-muted)', margin: '1px 0 0', lineHeight: 1.4, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                          {s.email && s.invited_name ? s.email + ' · ' : ''}{s.role === 'dev' ? 'Developer' : s.role === 'admin' ? 'Admin' : 'Mitglied'} · reserviert
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => activateSeat(s.id)}
+                        disabled={activatingId === s.id}
+                        style={{
+                          padding:'6px 11px', borderRadius: 8,
+                          border: 'none',
+                          background: 'var(--btn-prim)', color: 'var(--btn-prim-text)',
+                          fontSize: 11, fontWeight: 700,
+                          cursor: activatingId === s.id ? 'default' : 'pointer',
+                          fontFamily:'inherit', display:'flex', alignItems:'center', gap: 5,
+                          flexShrink: 0,
+                          opacity: activatingId === s.id ? .65 : 1,
+                          transition: 'opacity .15s',
+                        }}
+                      >
+                        {activatingId === s.id
+                          ? <span style={{ width:11, height:11, border:'2px solid transparent', borderTopColor:'currentColor', borderRadius:'50%', animation:'spin .7s linear infinite' }}/>
+                          : <Lightning size={11} weight="fill"/>}
+                        Aktivieren
+                      </button>
+                    </div>
+                  ))}
+
+                  {/* Aktive Seats */}
+                  {activeSeats.map(s => (
+                    <div key={s.id} style={{
+                      padding:'10px 12px', marginBottom: 6,
+                      background:'var(--surface)', border:'1px solid var(--border)',
+                      borderRadius: 11,
+                      display:'flex', alignItems:'center', gap: 10,
+                    }}>
+                      <div style={{
+                        width:28, height:28, borderRadius:8,
+                        background: 'var(--green-bg, rgba(34,197,94,0.12))',
+                        display:'flex', alignItems:'center', justifyContent:'center',
+                        flexShrink: 0,
+                      }}>
+                        <Check size={12} weight="bold" color="var(--green)"/>
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--text)', margin: 0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                          {s.invited_name || s.email || 'Aktiv'}
+                        </p>
+                        <p style={{ fontSize: 10.5, color: 'var(--text-muted)', margin: '1px 0 0', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                          {s.role === 'dev' ? 'Developer' : s.role === 'admin' ? 'Admin' : 'Mitglied'} · aktiv
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+
+                  {seatsLoading && reservedSeats.length === 0 && activeSeats.length === 0 && (
+                    <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: 0, padding: '4px 2px' }}>Lade Seats …</p>
+                  )}
+                </div>
+              )}
 
               {/* Models */}
               <div style={{ marginBottom:8 }}>

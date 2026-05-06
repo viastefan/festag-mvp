@@ -72,6 +72,13 @@ function pinBox(pin: string): string {
 // TEMPLATES
 // ════════════════════════════════════════════════════════════════
 
+/**
+ * @deprecated — bestehender Pfad: PIN sofort in der Einladungsmail.
+ *   Wird intern nur noch als Fallback genutzt (z. B. wenn ENV
+ *   FESTAG_INVITE_DIRECT_PIN=1). Standardflow ist jetzt 2-stufig:
+ *     1. tplInviteAccept (Acceptance-Link, kein PIN)
+ *     2. tplInvitePin    (nach Klick auf Acceptance-Link)
+ */
 export function tplInvite(opts: {
   invitedName?: string | null
   role:         'dev'|'client'|'collaborator'|'admin'
@@ -92,7 +99,66 @@ export function tplInvite(opts: {
         <p style="margin:0 0 14px;">Du wurdest eingeladen, dem Festag-Workspace beizutreten. Logge dich mit deiner E-Mail-Adresse und dem folgenden PIN ein:</p>
         ${pinBox(opts.pin)}
         <p style="margin:0 0 18px;text-align:center;">${button(opts.acceptUrl, 'Festag öffnen')}</p>
-        <p style="margin:18px 0 0;font-size:12px;color:${COLORS.muted};">Dieser PIN ist 7 Tage gültig. Nach dem Login wirst du gebeten, ein eigenes Passwort zu setzen.</p>
+        <p style="margin:18px 0 0;font-size:12px;color:${COLORS.muted};">Dieser PIN ist 14 Tage gültig. Nach dem Login wirst du gebeten, ein eigenes Passwort zu setzen.</p>
+      `,
+    }),
+  }
+}
+
+/**
+ * Stufe 1 — Acceptance-Mail (ohne PIN).
+ * Empfänger klickt auf den Link, akzeptiert die Einladung im Browser,
+ * danach erhält er automatisch eine 2. Mail mit dem PIN.
+ */
+export function tplInviteAccept(opts: {
+  invitedName?: string | null
+  role:         'dev'|'client'|'collaborator'|'admin'
+  fromName:     string
+  acceptUrl:    string
+}): { subject: string; html: string } {
+  const roleLabel = opts.role === 'dev' ? 'Developer' : opts.role === 'admin' ? 'Admin' : opts.role === 'client' ? 'Kunde' : 'Mitglied'
+  const greeting  = opts.invitedName ? `Hi ${escape(opts.invitedName)},` : 'Hi,'
+  return {
+    subject: `Einladung zu Festag — von ${opts.fromName}`,
+    html: layout({
+      preheader: `${opts.fromName} hat dich als ${roleLabel} zu Festag eingeladen.`,
+      title:     'Einladung zu Festag',
+      subtitle:  `${escape(opts.fromName)} möchte dich als ${roleLabel} hinzufügen.`,
+      body: `
+        <p style="margin:0 0 14px;">${greeting}</p>
+        <p style="margin:0 0 18px;">Du wurdest zu einem Festag-Workspace eingeladen. Klicke unten, um die Einladung anzunehmen — du erhältst danach automatisch eine zweite Mail mit deinem persönlichen Zugangs-PIN.</p>
+        <p style="margin:0 0 18px;text-align:center;">${button(opts.acceptUrl, 'Einladung annehmen')}</p>
+        <p style="margin:18px 0 0;font-size:12px;color:${COLORS.muted};">Der Link ist 14 Tage gültig. Wenn du die Einladung nicht erwartet hast, kannst du diese Mail ignorieren.</p>
+      `,
+    }),
+  }
+}
+
+/**
+ * Stufe 2 — PIN-Mail (nach Acceptance).
+ * Wird automatisch vom Server ausgelöst, sobald der User die Einladung
+ * angenommen hat.
+ */
+export function tplInvitePin(opts: {
+  invitedName?: string | null
+  role:         'dev'|'client'|'collaborator'|'admin'
+  pin:          string
+  redeemUrl:    string
+}): { subject: string; html: string } {
+  const roleLabel = opts.role === 'dev' ? 'Developer' : opts.role === 'admin' ? 'Admin' : opts.role === 'client' ? 'Kunde' : 'Mitglied'
+  const greeting  = opts.invitedName ? `Hi ${escape(opts.invitedName)},` : 'Hi,'
+  return {
+    subject: `Dein Festag-Zugangs-PIN`,
+    html: layout({
+      preheader: 'Dein persönlicher PIN — 14 Tage gültig.',
+      title:     'Dein Zugangs-PIN',
+      subtitle:  `Du wurdest als ${roleLabel} bestätigt.`,
+      body: `
+        <p style="margin:0 0 14px;">${greeting}</p>
+        <p style="margin:0 0 14px;">Danke fürs Annehmen. Hier ist dein Zugangs-PIN. Logge dich auf festag.io ein und gib ihn auf der Login-Seite unter "Einladungspin erhalten?" ein.</p>
+        ${pinBox(opts.pin)}
+        <p style="margin:0 0 18px;text-align:center;">${button(opts.redeemUrl, 'PIN einlösen')}</p>
+        <p style="margin:18px 0 0;font-size:12px;color:${COLORS.muted};">Der PIN ist 14 Tage gültig. Nach dem Login richtest du dein Passwort ein und wirst automatisch dem richtigen Workspace zugewiesen.</p>
       `,
     }),
   }
