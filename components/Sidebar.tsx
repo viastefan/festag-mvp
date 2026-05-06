@@ -418,36 +418,76 @@ export default function Sidebar() {
                 <div style={{
                   position:'absolute', bottom:'calc(100% + 6px)', left:0, right:0,
                   background:'var(--surface)', border:'1px solid var(--border)',
-                  borderRadius:12,
-                  boxShadow:'0 8px 32px rgba(0,0,0,0.14), 0 2px 8px rgba(0,0,0,0.08)',
+                  borderRadius:13,
+                  boxShadow:'0 12px 40px rgba(0,0,0,0.16), 0 2px 8px rgba(0,0,0,0.08)',
                   zIndex:1001, padding:'4px',
+                  maxHeight:'calc(100vh - 120px)', overflowY:'auto',
                 }}>
-                  {/* Header */}
-                  <div style={{ padding:'8px 10px 6px', display:'flex', alignItems:'center', gap:8 }}>
+
+                  {/* ── Account header ── */}
+                  <div style={{ padding:'10px 11px 8px', display:'flex', alignItems:'center', gap:9 }}>
                     {avatar
-                      ? <img src={avatar} alt="" style={{ width:28,height:28,borderRadius:'50%',objectFit:'cover',border:'1.5px solid var(--border)',flexShrink:0 }}/>
-                      : <div style={{ width:28,height:28,borderRadius:'50%',background:'var(--btn-prim)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,fontWeight:700,color:'var(--btn-prim-text)',flexShrink:0 }}>{init}</div>
+                      ? <img src={avatar} alt="" style={{ width:30,height:30,borderRadius:'50%',objectFit:'cover',border:'1.5px solid var(--border)',flexShrink:0 }}/>
+                      : <div style={{ width:30,height:30,borderRadius:'50%',background:'var(--btn-prim)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:12,fontWeight:700,color:'var(--btn-prim-text)',flexShrink:0 }}>{init}</div>
                     }
-                    <div>
-                      <p style={{ margin:0, fontSize:12.5, fontWeight:700, color:'var(--text)', lineHeight:1.3 }}>{name}</p>
-                      <p style={{ margin:0, fontSize:10.5, color:'var(--text-muted)', lineHeight:1.3 }}>{email}</p>
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <p style={{ margin:0, fontSize:13, fontWeight:700, color:'var(--text)', lineHeight:1.3, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{name}</p>
+                      <p style={{ margin:0, fontSize:10.5, color:'var(--text-muted)', lineHeight:1.3, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{email}</p>
                     </div>
+                    {isClient && (
+                      <span style={{ flexShrink:0, fontSize:9, fontWeight:700, letterSpacing:'.05em', color:'var(--text-muted)', background:'var(--border)', padding:'2px 6px', borderRadius:5, lineHeight:1.6 }}>
+                        {plan === 'free' ? 'Free' : plan === 'starter' ? 'Starter' : plan === 'pro' ? 'Pro' : plan === 'enterprise' ? 'Enterprise' : plan}
+                      </span>
+                    )}
                   </div>
-                  <div style={{ height:1, background:'var(--border)', margin:'3px 0' }}/>
+
+                  <div style={{ height:1, background:'var(--border)', margin:'2px 0' }}/>
+
+                  {/* ── Konto ── */}
+                  <p style={{ fontSize:9.5, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.08em', padding:'6px 11px 2px', margin:0, opacity:.55 }}>KONTO</p>
                   <Link href="/settings" className="usr-row" onClick={() => setUserMenu(false)}>
                     <Ico name="settings" sz={13} c="var(--text-muted)" weight="regular" />
-                    Einstellungen
+                    <span style={{ flex:1 }}>Einstellungen</span>
                   </Link>
-                  {isClient && (
+                  {isClient && <>
                     <Link href="/billing" className="usr-row" onClick={() => setUserMenu(false)}>
                       <Ico name="billing" sz={13} c="var(--text-muted)" weight="regular" />
-                      Billing
+                      <span style={{ flex:1 }}>Abrechnung & Plan</span>
                     </Link>
-                  )}
-                  <div style={{ height:1, background:'var(--border)', margin:'3px 0' }}/>
-                  <button className="usr-row" onClick={logout}>
-                    <Ico name="logout" sz={13} c="var(--text-muted)" weight="regular" />
-                    Abmelden
+                    <Link href="/activity" className="usr-row" onClick={() => setUserMenu(false)}>
+                      <Ico name="activity" sz={13} c="var(--text-muted)" weight="regular" />
+                      <span style={{ flex:1 }}>Account-Verlauf</span>
+                    </Link>
+                    <Link href="/reports" className="usr-row" onClick={() => setUserMenu(false)}>
+                      <Ico name="doc" sz={13} c="var(--text-muted)" weight="regular" />
+                      <span style={{ flex:1 }}>Statusberichte</span>
+                    </Link>
+                  </>}
+
+                  <div style={{ height:1, background:'var(--border)', margin:'2px 0' }}/>
+
+                  {/* ── Rechtliches ── */}
+                  <p style={{ fontSize:9.5, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.08em', padding:'6px 11px 2px', margin:0, opacity:.55 }}>RECHTLICHES</p>
+                  {[
+                    { href:'/impressum',   label:'Impressum' },
+                    { href:'/datenschutz', label:'Datenschutz' },
+                    { href:'/agb',         label:'AGB' },
+                    { href:'/widerruf',    label:'Widerruf' },
+                  ].map(l => (
+                    <Link key={l.href} href={l.href} className="usr-row" onClick={() => setUserMenu(false)}>
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="1.8" strokeLinecap="round" style={{ flexShrink:0 }}>
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+                      </svg>
+                      <span style={{ flex:1 }}>{l.label}</span>
+                    </Link>
+                  ))}
+
+                  <div style={{ height:1, background:'var(--border)', margin:'2px 0' }}/>
+
+                  {/* ── Abmelden ── */}
+                  <button className="usr-row" onClick={logout} style={{ width:'100%', color:'var(--red,#D14343)' }}>
+                    <Ico name="logout" sz={13} c="var(--red,#D14343)" weight="regular" />
+                    <span style={{ flex:1, color:'var(--red,#D14343)' }}>Abmelden</span>
                   </button>
                 </div>
               </>
@@ -484,24 +524,6 @@ export default function Sidebar() {
               </svg>
             </button>
 
-            {/* Legal */}
-            <div style={{ padding:'4px 2px 0', display:'flex', flexWrap:'nowrap', alignItems:'center', justifyContent:'space-between', gap:3 }}>
-              {[
-                { href:'/impressum',   label:'Impressum' },
-                { href:'/datenschutz', label:'Datenschutz' },
-                { href:'/agb',         label:'AGB' },
-                { href:'/widerruf',    label:'Widerruf' },
-              ].map((l, i, arr) => (
-                <span key={l.href} style={{ display:'inline-flex', alignItems:'center', gap:2, flexShrink:0 }}>
-                  <Link href={l.href}
-                    style={{ fontSize:7.5, color:'var(--text-muted)', textDecoration:'none', opacity:.4, whiteSpace:'nowrap', transition:'opacity .1s' }}
-                    onMouseEnter={e => (e.currentTarget as HTMLElement).style.opacity='0.8'}
-                    onMouseLeave={e => (e.currentTarget as HTMLElement).style.opacity='0.4'}
-                  >{l.label}</Link>
-                  {i < arr.length-1 && <span style={{ fontSize:5, color:'var(--text-muted)', opacity:.3 }}>·</span>}
-                </span>
-              ))}
-            </div>
           </div>
         </div>
       </aside>
