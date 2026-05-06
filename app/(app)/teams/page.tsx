@@ -97,7 +97,7 @@ const SCENARIOS = [
     denied: ['Öffentliche Marktplätze', 'Strategie-Dashboard'],
     badge: 'ENTERPRISE',
     cta: 'Corporate anfragen',
-    mailto: 'mailto:hello@festag.io?subject=Corporate%20Integration',
+    mailto: 'mailto:stefandirnberger@viawen.com?subject=Corporate%20Integration',
   },
 ]
 

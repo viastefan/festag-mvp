@@ -205,7 +205,7 @@ export default function PricingPage() {
 
   function buy(plan: Plan) {
     if (!plan.price) {
-      window.location.href = 'mailto:hello@festag.io?subject=' + encodeURIComponent(`Anfrage: ${plan.name} Plan`)
+      window.location.href = 'mailto:stefandirnberger@viawen.com?subject=' + encodeURIComponent(`Anfrage: ${plan.name} Plan`)
       return
     }
     if (purchases[plan.id]?.status === 'active') return
@@ -218,7 +218,7 @@ export default function PricingPage() {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async function buyViaMollie(plan: Plan) {
     if (!plan.price) {
-      window.location.href = 'mailto:hello@festag.io?subject=' + encodeURIComponent(`Anfrage: ${plan.name} Plan`); return
+      window.location.href = 'mailto:stefandirnberger@viawen.com?subject=' + encodeURIComponent(`Anfrage: ${plan.name} Plan`); return
     }
     setLoadingPlan(plan.id); setError(null)
     try {
@@ -408,7 +408,7 @@ export default function PricingPage() {
               </li>
             ))}
           </ul>
-          <a href="mailto:hello@festag.io?subject=Managed%20Service%20Anfrage" className="pp-cta" style={{ textDecoration:'none' }}>
+          <a href="mailto:stefandirnberger@viawen.com?subject=Managed%20Service%20Anfrage" className="pp-cta" style={{ textDecoration:'none' }}>
             Managed Service anfragen
           </a>
         </div>

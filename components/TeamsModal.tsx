@@ -38,7 +38,7 @@ const MODELS = [
     access: ['Zugewiesene Projekte', 'Technische Tasks'],
     denied: ['Strategie-Dashboard'],
     badge: 'ENTERPRISE',
-    mailto: 'mailto:hello@festag.io?subject=Corporate%20Integration',
+    mailto: 'mailto:stefandirnberger@viawen.com?subject=Corporate%20Integration',
   },
 ]
 

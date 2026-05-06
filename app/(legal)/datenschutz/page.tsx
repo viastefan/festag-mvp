@@ -27,7 +27,7 @@ export default function DatenschutzPage() {
         <strong>Stefan Dirnberger</strong><br/>
         Lindenstraße 15, 84036 Kumhausen, Deutschland<br/>
         Telefon: <a href="tel:+4987653399973">08765 33 999 73</a><br/>
-        E-Mail: <a href="mailto:hello@festag.io">hello@festag.io</a>
+        E-Mail: <a href="mailto:stefandirnberger@viawen.com">stefandirnberger@viawen.com</a>
       </p>
       <p>
         Inhaltlich verantwortlich nach § 18 Abs. 2 MStV: <strong>Stefan Dirnberger</strong>
@@ -87,7 +87,7 @@ export default function DatenschutzPage() {
       <h2>8. Kontakt</h2>
       <p>
         Bei Fragen zum Datenschutz wende dich an&nbsp;
-        <a href="mailto:hello@festag.io">hello@festag.io</a>.
+        <a href="mailto:stefandirnberger@viawen.com">stefandirnberger@viawen.com</a>.
       </p>
 
       <p style={{ marginTop:32, fontSize:12, color:'var(--text-muted)' }}>

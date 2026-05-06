@@ -32,7 +32,7 @@ export default function ImpressumPage() {
       <p>
         Telefon: <a href="tel:+4987653399973">08765 33 999 73</a><br/>
         WhatsApp: <a href="https://wa.me/4915207849821" target="_blank" rel="noopener noreferrer">0152 078 498 21</a><br/>
-        E-Mail: <a href="mailto:hello@festag.io">hello@festag.io</a>
+        E-Mail: <a href="mailto:stefandirnberger@viawen.com">stefandirnberger@viawen.com</a>
       </p>
 
       <h2>Umsatzsteuer-ID</h2>

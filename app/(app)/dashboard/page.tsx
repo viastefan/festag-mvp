@@ -526,13 +526,13 @@ export default function DashboardPage() {
                   <p style={{ fontSize:13, fontWeight:700, color:'var(--text)', margin:0 }}>Dein Festag Team</p>
                 </div>
                 <div style={{ padding:'12px 14px', display:'flex', flexDirection:'column', gap:6 }}>
-                  <a href="mailto:hello@festag.io" style={{ display:'flex', alignItems:'center', gap:9, textDecoration:'none', padding:'8px 8px', borderRadius:9, transition:'background .1s' }}
+                  <a href="mailto:stefandirnberger@viawen.com" style={{ display:'flex', alignItems:'center', gap:9, textDecoration:'none', padding:'8px 8px', borderRadius:9, transition:'background .1s' }}
                     onMouseEnter={e => (e.currentTarget as HTMLElement).style.background='var(--surface-2)'}
                     onMouseLeave={e => (e.currentTarget as HTMLElement).style.background='transparent'}>
                     <div style={{ width:30, height:30, borderRadius:8, background:'var(--surface-2)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
                       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2" strokeLinecap="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 7l10 7 10-7"/></svg>
                     </div>
-                    <div><p style={{ fontSize:9, fontWeight:700, color:'var(--text-muted)', margin:0, letterSpacing:'.06em' }}>E-MAIL</p><p style={{ fontSize:12, fontWeight:600, color:'var(--text)', margin:'1px 0 0' }}>hello@festag.io</p></div>
+                    <div><p style={{ fontSize:9, fontWeight:700, color:'var(--text-muted)', margin:0, letterSpacing:'.06em' }}>E-MAIL</p><p style={{ fontSize:12, fontWeight:600, color:'var(--text)', margin:'1px 0 0' }}>stefandirnberger@viawen.com</p></div>
                   </a>
                   <a href="https://wa.me/4989123456" target="_blank" rel="noopener" style={{ display:'flex', alignItems:'center', gap:9, textDecoration:'none', padding:'8px 8px', borderRadius:9, transition:'background .1s' }}
                     onMouseEnter={e => (e.currentTarget as HTMLElement).style.background='var(--surface-2)'}

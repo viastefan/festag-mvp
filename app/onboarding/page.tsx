@@ -233,11 +233,11 @@ export default function OnboardingPage() {
           <p style={{ fontSize:13, fontWeight:700, color:'var(--text)', margin:'0 0 4px' }}>Lieber persönlich?</p>
           <p style={{ fontSize:12, color:'var(--text-secondary)', margin:'0 0 14px', lineHeight:1.6 }}>Wir melden uns innerhalb 24h. Oder direkt:</p>
           <div style={{ display:'flex', gap:10 }}>
-            <a href="mailto:hello@festag.io" style={{ flex:1, display:'flex', alignItems:'center', gap:10, padding:'10px 13px', background:'var(--surface)', border:'1px solid var(--border)', borderRadius:10, textDecoration:'none' }}>
+            <a href="mailto:stefandirnberger@viawen.com" style={{ flex:1, display:'flex', alignItems:'center', gap:10, padding:'10px 13px', background:'var(--surface)', border:'1px solid var(--border)', borderRadius:10, textDecoration:'none' }}>
               <div style={{ width:30, height:30, borderRadius:8, background:'var(--accent)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text)" strokeWidth="2" strokeLinecap="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 7l10 7 10-7"/></svg>
               </div>
-              <div><p style={{ fontSize:9, fontWeight:700, color:'var(--text-muted)', margin:0, letterSpacing:'.06em' }}>E-MAIL</p><p style={{ fontSize:12, fontWeight:600, color:'var(--text)', margin:'1px 0 0' }}>hello@festag.io</p></div>
+              <div><p style={{ fontSize:9, fontWeight:700, color:'var(--text-muted)', margin:0, letterSpacing:'.06em' }}>E-MAIL</p><p style={{ fontSize:12, fontWeight:600, color:'var(--text)', margin:'1px 0 0' }}>stefandirnberger@viawen.com</p></div>
             </a>
             <a href="https://wa.me/4989123456" target="_blank" rel="noopener" style={{ flex:1, display:'flex', alignItems:'center', gap:10, padding:'10px 13px', background:'var(--surface)', border:'1px solid var(--border)', borderRadius:10, textDecoration:'none' }}>
               <div style={{ width:30, height:30, borderRadius:8, background:'rgba(34,197,94,.12)', border:'1px solid rgba(34,197,94,.2)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>

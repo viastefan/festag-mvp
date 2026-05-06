@@ -3,7 +3,7 @@
  *
  * Vercel-ENV-Vars:
  *   FESTAG_MAIL_IONOS_KEY  – SMTP-Passwort (von IONOS gegenerated)
- *   FESTAG_MAIL_FROM       – Absender, z. B. "Festag <noreply@festag.io>"
+ *   FESTAG_MAIL_FROM       – Absender, z. B. "Festag <stefandirnberger@viawen.com>"
  *   FESTAG_MAIL_USER       – SMTP-Login (volle Email-Adresse, default = FROM ohne Display-Name)
  *   FESTAG_MAIL_HOST       – default smtp.ionos.de
  *   FESTAG_MAIL_PORT       – default 465 (SSL); 587 für STARTTLS
@@ -15,13 +15,13 @@ import nodemailer, { type Transporter } from 'nodemailer'
 let _transporter: Transporter | null = null
 
 function extractEmail(addr: string): string {
-  // "Festag <noreply@festag.io>" -> "noreply@festag.io"
+  // "Festag <stefandirnberger@viawen.com>" -> "stefandirnberger@viawen.com"
   const m = addr.match(/<([^>]+)>/)
   return (m ? m[1] : addr).trim()
 }
 
 export function getMailFrom(): string {
-  return process.env.FESTAG_MAIL_FROM ?? 'Festag <noreply@festag.io>'
+  return process.env.FESTAG_MAIL_FROM ?? 'Festag <stefandirnberger@viawen.com>'
 }
 
 export function getFounderMail(): string | null {
