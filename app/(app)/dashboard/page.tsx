@@ -179,7 +179,7 @@ export default function DashboardPage() {
         .dash-layout  { display:grid; grid-template-columns:1fr 280px; gap:48px; align-items:start; }
         .dash-metrics { display:grid; grid-template-columns:repeat(4,1fr); gap:0; }
         .dash-metrics > div + div { border-left:1px solid var(--border); padding-left:18px !important; }
-        .dash-hero { display:grid; grid-template-columns:300px 1fr; gap:0; }
+        .dash-hero { display:grid; grid-template-columns:260px 1fr; gap:0; min-height:200px; }
         .dash-hero > .hero-info { padding:22px 26px; }
         @media(max-width:1100px) {
           .dash-layout  { grid-template-columns:1fr !important; gap:32px !important; }
@@ -228,11 +228,9 @@ export default function DashboardPage() {
             {/* ── HERO: Vercel-Style Production Deployment Karte ── */}
             <div className="animate-fade-up-1 dash-hero" style={{ border:'1px solid var(--border)', borderRadius:14, overflow:'hidden', background:'var(--card)' }}>
               {/* Preview left */}
-              <div style={{ padding:18, paddingRight:0, borderRight:'1px solid var(--border)' }}>
-                <Link href={`/project/${main.id}`} style={{ textDecoration:'none', display:'block' }}>
-                  <ProjectPreview title={main.title} color={main.color} progress={completePct} height={180}/>
-                </Link>
-              </div>
+              <Link href={`/project/${main.id}`} style={{ textDecoration:'none', display:'block', borderRight:'1px solid var(--border)', overflow:'hidden', alignSelf:'stretch' }}>
+                <ProjectPreview title={main.title} color={main.color} progress={completePct} width="100%" height="100%"/>
+              </Link>
 
               {/* Info right */}
               <div className="hero-info" style={{ display:'flex', flexDirection:'column', gap:14 }}>
@@ -334,7 +332,7 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Action bar */}
-                <div style={{ borderTop:'1px solid var(--border)', padding:'10px 14px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:10, background:'var(--surface)' }}>
+                <div style={{ borderTop:'1px solid var(--border)', padding:'10px 14px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:10 }}>
                   <div style={{ display:'flex', alignItems:'center', gap:6, fontSize:11.5, color:'var(--text-muted)' }}>
                     <span style={{ width:6, height:6, borderRadius:'50%', background: report ? '#22c55e' : 'var(--border-strong)' }}/>
                     {report ? 'Aktueller Bericht erstellt' : 'Kein aktiver Bericht'}
@@ -453,7 +451,6 @@ export default function DashboardPage() {
               <SectionLabel>Schnellzugriff</SectionLabel>
               <div style={{ display:'flex', flexDirection:'column' }}>
                 {[
-                  { onClick: () => { setTaskFromReport(false); setShowNewTask(true) }, label:'Neue Task' },
                   { href:'/onboarding', label:'Neues Projekt mit AI' },
                   { href:'/estimator',  label:'Preisschätzer'  },
                   { href:'/addons',     label:'Add-Ons'         },

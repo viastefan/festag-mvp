@@ -122,11 +122,12 @@ export default function Sidebar() {
   const [projId,   setProjId]   = useState<string|null>(null)
   const [projects, setProjects] = useState<{id:string;title:string;status:string;color:string|null}[]>([])
   const [more,       setMore]      = useState(false)
-  const [projExp,    setProjExp]    = useState(false)
-  const [toolsExp,   setToolsExp]   = useState(false)
+  const [projExp,    setProjExp]    = useState(true)
+  const [toolsExp,   setToolsExp]   = useState(true)
   const [billExp,    setBillExp]    = useState(false)
   const [teamsOpen,  setTeamsOpen] = useState(false)
   const [userMenu,   setUserMenu]  = useState(false)
+  const [colorPickId, setColorPickId] = useState<string|null>(null)
 
   const isClient = role !== 'dev'
   const isDev    = role === 'dev'
@@ -167,6 +168,14 @@ export default function Sidebar() {
       }
     })
   }, [pathname])
+
+  const PROJ_COLORS = ['#6366f1','#8b5cf6','#ec4899','#ef4444','#f97316','#eab308','#22c55e','#06b6d4','#3b82f6','#64748b']
+
+  async function setProjectColor(id: string, color: string) {
+    setProjects(prev => prev.map(p => p.id === id ? { ...p, color } : p))
+    setColorPickId(null)
+    await (createClient() as any).from('projects').update({ color }).eq('id', id)
+  }
 
   const logout  = async () => { await createClient().auth.signOut(); window.location.href='/login' }
   const resolve = (h: string) => h==='/project/current'?(projId?`/project/${projId}`:'/dashboard'):h
@@ -212,11 +221,11 @@ export default function Sidebar() {
             background:'transparent', border:'none', cursor:'pointer',
             fontFamily:'inherit', padding:0, textAlign:'left',
           }}>
-            <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2.5" strokeLinecap="round"
-              style={{ flexShrink:0, opacity:.5, transform:expanded?'rotate(90deg)':'rotate(0deg)', transition:'transform .18s cubic-bezier(.16,1,.3,1)' }}>
+            <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" strokeWidth="2.5" strokeLinecap="round"
+              style={{ flexShrink:0, opacity:.7, transform:expanded?'rotate(90deg)':'rotate(0deg)', transition:'transform .18s cubic-bezier(.16,1,.3,1)' }}>
               <path d="M9 6l6 6-6 6"/>
             </svg>
-            <span style={{ fontSize:11, fontWeight:600, color:'var(--text-muted)', letterSpacing:'.01em', opacity:.65 }}>{label}</span>
+            <span style={{ fontSize:11.5, fontWeight:600, color:'var(--text-secondary)', letterSpacing:'.01em' }}>{label}</span>
           </button>
           {action}
         </div>
@@ -327,7 +336,7 @@ export default function Sidebar() {
 
       {/* ══ DESKTOP SIDEBAR ══ */}
       <aside className="sidebar" style={{ pointerEvents:'none' }}>
-        <div className="sidebar-inner" style={{ pointerEvents:'all', padding:'14px 8px 16px', display:'flex', flexDirection:'column', height:'100%' }}>
+        <div className="sidebar-inner" style={{ pointerEvents:'all', padding:'14px 8px 20px', display:'flex', flexDirection:'column', height:'100%', boxSizing:'border-box' }}>
 
           {/* Logo + Support */}
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 6px', marginBottom:10, gap:8 }}>
@@ -368,12 +377,31 @@ export default function Sidebar() {
               >
                 {projects.length > 0 ? projects.map(p => {
                   const on = pathname === `/project/${p.id}`
-                  const dot = p.color || (on ? 'var(--nav-on-text)' : 'var(--text-muted)')
+                  const dot = p.color || '#64748b'
+                  const picking = colorPickId === p.id
                   return (
-                    <Link key={p.id} href={`/project/${p.id}`} className={`proj-row ${on?'active':''}`}>
-                      <span style={{ width:6, height:6, borderRadius:'50%', background: dot, flexShrink:0, opacity: on ? 1 : .7 }}/>
-                      <span style={{ flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{p.title}</span>
-                    </Link>
+                    <div key={p.id} style={{ position:'relative' }}>
+                      <Link href={`/project/${p.id}`} className={`proj-row ${on?'active':''}`} style={{ paddingLeft:6 }}>
+                        <button
+                          onClick={e => { e.preventDefault(); e.stopPropagation(); setColorPickId(picking ? null : p.id) }}
+                          title="Farbe ändern"
+                          style={{ width:10, height:10, borderRadius:'50%', background: dot, flexShrink:0, border:'none', cursor:'pointer', padding:0, outline:'none' }}
+                        />
+                        <span style={{ flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{p.title}</span>
+                      </Link>
+                      {picking && (
+                        <>
+                          <div style={{ position:'fixed', inset:0, zIndex:200 }} onClick={() => setColorPickId(null)} />
+                          <div style={{ position:'absolute', left:8, top:'calc(100% + 4px)', zIndex:201, background:'var(--card)', border:'1px solid var(--border)', borderRadius:10, padding:8, display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:5, boxShadow:'0 8px 24px rgba(0,0,0,.2)' }}>
+                            {PROJ_COLORS.map(c => (
+                              <button key={c} onClick={() => setProjectColor(p.id, c)}
+                                style={{ width:18, height:18, borderRadius:5, background:c, border: dot===c?'2px solid var(--text)':'2px solid transparent', cursor:'pointer', padding:0 }}
+                              />
+                            ))}
+                          </div>
+                        </>
+                      )}
+                    </div>
                   )
                 }) : (
                   <Link href="/onboarding" className="proj-row" style={{ opacity:.5 }}>
@@ -424,7 +452,7 @@ export default function Sidebar() {
           </div>
 
           {/* ── User block ── */}
-          <div style={{ borderTop:'1px solid var(--border)', paddingTop:8, marginTop:6, position:'relative' }}>
+          <div style={{ borderTop:'1px solid var(--border)', paddingTop:8, paddingBottom:4, marginTop:6, position:'relative' }}>
 
             {/* Dropdown */}
             {userMenu && (

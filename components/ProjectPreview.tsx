@@ -23,7 +23,8 @@ export default function ProjectPreview({
   return (
     <div style={{
       position: 'relative',
-      width, height,
+      width, height: height === '100%' ? '100%' : height,
+      minHeight: height === '100%' ? 180 : undefined,
       borderRadius: variant === 'compact' ? 8 : 12,
       overflow: 'hidden',
       background: `radial-gradient(circle at 28% 35%, ${c}38 0%, ${c}10 38%, var(--card) 75%)`,
