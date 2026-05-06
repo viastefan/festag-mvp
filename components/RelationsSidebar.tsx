@@ -6,7 +6,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import {
   House, Briefcase, FileText, ChatCircle,
-  Tag, Brain, SignOut, Users, GearSix,
+  Notebook, Brain, SignOut, UsersThree, GearSix,
   List, X,
 } from '@phosphor-icons/react'
 import ViewSwitch from '@/components/ViewSwitch'
@@ -17,14 +17,15 @@ type NavItem = {
   Icon: React.ComponentType<any>
 }
 
+// Kunden-Verwaltung: privates B2B-Bereich, Bestandskunden
 const NAV_ITEMS: NavItem[] = [
-  { href: '/relations',           label: 'Übersicht',   Icon: House       },
-  { href: '/relations/projects',  label: 'Projekte',    Icon: Briefcase   },
-  { href: '/relations/messages',  label: 'Nachrichten', Icon: ChatCircle  },
-  { href: '/relations/documents', label: 'Dokumente',   Icon: FileText    },
-  { href: '/relations/quotes',    label: 'Angebote',    Icon: Tag         },
-  { href: '/relations/ai',        label: 'Tagro AI',    Icon: Brain       },
-  { href: '/relations/users',     label: 'Benutzer',    Icon: Users       },
+  { href: '/relations',           label: 'Übersicht',    Icon: House        },
+  { href: '/relations/projects',  label: 'Projekte',     Icon: Briefcase    },
+  { href: '/relations/messages',  label: 'Nachrichten',  Icon: ChatCircle   },
+  { href: '/relations/documents', label: 'Dokumente',    Icon: FileText     },
+  { href: '/relations/notes',     label: 'Notizen',      Icon: Notebook     },
+  { href: '/relations/ai',        label: 'Tagro AI',     Icon: Brain        },
+  { href: '/relations/users',     label: 'Kunden',       Icon: UsersThree   },
 ]
 
 export default function RelationsSidebar() {
@@ -72,7 +73,7 @@ export default function RelationsSidebar() {
       {/* Nav */}
       <div style={{ flex:1, overflowY:'auto', overflowX:'hidden', scrollbarWidth:'none' }}>
         <p style={{ fontSize:9.5, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.09em', textTransform:'uppercase', padding:'6px 11px 3px', margin:0, opacity:.6 }}>
-          Relations
+          Kunden
         </p>
         {NAV_ITEMS.map(({ href, label, Icon }) => {
           const on = isOn(href)
@@ -95,41 +96,41 @@ export default function RelationsSidebar() {
         </div>
       </div>
 
-      {/* User block — email only, no duplicate name */}
-      <div style={{ borderTop:'1px solid var(--border)', paddingTop:10, marginTop:8 }}>
+      {/* User block */}
+      <div style={{ borderTop:'1px solid var(--border)', paddingTop:9, marginTop:8 }}>
         <div style={{
-          background:'var(--surface-2)', border:'1px solid var(--border)',
-          borderRadius:12, padding:'8px 10px',
-          display:'flex', alignItems:'center', gap:10,
+          display:'flex', alignItems:'center', gap:9,
+          padding:'7px 9px', borderRadius:11,
+          border:'1px solid var(--border)', background:'var(--surface-2)',
         }}>
-          <Link href="/settings" style={{ textDecoration:'none', display:'flex', alignItems:'center', gap:9, flex:1, minWidth:0 }}>
+          <Link href="/settings" style={{ textDecoration:'none', display:'flex', alignItems:'center', gap:8, flex:1, minWidth:0 }}>
             {avatar
-              ? <img src={avatar} alt="" style={{ width:28, height:28, borderRadius:'50%', objectFit:'cover', border:'1.5px solid var(--border)', flexShrink:0 }}/>
-              : <div style={{ width:28, height:28, borderRadius:'50%', background:'var(--accent)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:700, color:'var(--accent-text)', flexShrink:0 }}>{init}</div>
+              ? <img src={avatar} alt="" style={{ width:26, height:26, borderRadius:'50%', objectFit:'cover', border:'1.5px solid var(--border)', flexShrink:0 }}/>
+              : <div style={{ width:26, height:26, borderRadius:'50%', background:'var(--btn-prim)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:10.5, fontWeight:700, color:'var(--btn-prim-text)', flexShrink:0 }}>{init}</div>
             }
             <div style={{ flex:1, minWidth:0 }}>
-              <p style={{ fontSize:11.5, fontWeight:600, color:'var(--text)', margin:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', lineHeight:1.25 }}>{email}</p>
-              <p style={{ fontSize:9.5, fontWeight:600, color:'var(--text-muted)', margin:'1px 0 0', letterSpacing:'.04em', textTransform:'uppercase' }}>Relations</p>
+              <p style={{ fontSize:12, fontWeight:600, color:'var(--text)', margin:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', lineHeight:1.3 }}>{name || email.split('@')[0]}</p>
+              <p style={{ fontSize:10, fontWeight:500, color:'var(--text-muted)', margin:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', lineHeight:1.2 }}>{email}</p>
             </div>
           </Link>
           <button onClick={logout} title="Abmelden"
-            style={{ width:26, height:26, borderRadius:8, border:'1px solid var(--border)', background:'var(--surface)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:'var(--text-muted)', flexShrink:0, transition:'color .12s,background .12s' }}
-            onMouseEnter={e => { e.currentTarget.style.color='var(--text)'; e.currentTarget.style.background='var(--bg)' }}
-            onMouseLeave={e => { e.currentTarget.style.color='var(--text-muted)'; e.currentTarget.style.background='var(--surface)' }}>
+            style={{ width:26, height:26, borderRadius:7, border:'1px solid var(--border)', background:'transparent', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:'var(--text-muted)', flexShrink:0, transition:'color .12s,background .12s' }}
+            onMouseEnter={e => { e.currentTarget.style.color='var(--text)'; e.currentTarget.style.background='var(--card)' }}
+            onMouseLeave={e => { e.currentTarget.style.color='var(--text-muted)'; e.currentTarget.style.background='transparent' }}>
             <SignOut size={12} weight="regular" />
           </button>
         </div>
 
         {/* Legal links */}
-        <div style={{ padding:'8px 4px 2px', display:'flex', flexWrap:'nowrap', alignItems:'center', justifyContent:'space-between', gap:4 }}>
+        <div style={{ padding:'6px 3px 2px', display:'flex', flexWrap:'nowrap', alignItems:'center', justifyContent:'space-between', gap:3 }}>
           {[{href:'/impressum',label:'Impressum'},{href:'/datenschutz',label:'Datenschutz'},{href:'/agb',label:'AGB'},{href:'/widerruf',label:'Widerruf'}].map((l,i,arr) => (
-            <span key={l.href} style={{ display:'inline-flex', alignItems:'center', gap:4, flexShrink:0 }}>
-              <Link href={l.href} style={{ fontSize:8.5, color:'var(--text-muted)', textDecoration:'none', opacity:.65, whiteSpace:'nowrap', transition:'opacity .12s,color .12s' }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.opacity='1'; (e.currentTarget as HTMLElement).style.color='var(--text)' }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.opacity='.65'; (e.currentTarget as HTMLElement).style.color='var(--text-muted)' }}>
+            <span key={l.href} style={{ display:'inline-flex', alignItems:'center', gap:3, flexShrink:0 }}>
+              <Link href={l.href} style={{ fontSize:8, color:'var(--text-muted)', textDecoration:'none', opacity:.5, whiteSpace:'nowrap', transition:'opacity .12s' }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.opacity='1' }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.opacity='.5' }}>
                 {l.label}
               </Link>
-              {i < arr.length-1 && <span style={{ fontSize:7, color:'var(--text-muted)', opacity:.35 }}>·</span>}
+              {i < arr.length-1 && <span style={{ fontSize:6, color:'var(--text-muted)', opacity:.3 }}>·</span>}
             </span>
           ))}
         </div>
@@ -137,10 +138,12 @@ export default function RelationsSidebar() {
 
       {/* Nav styles */}
       <style>{`
-        .rni { display:flex;align-items:center;gap:9px;padding:7px 11px;border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;text-decoration:none;color:inherit;transition:background .15s,color .15s;white-space:nowrap;overflow:hidden; }
+        .rni { display:flex;align-items:center;gap:9px;padding:7px 11px;border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;text-decoration:none;color:inherit;transition:background .1s,color .1s;white-space:nowrap;overflow:hidden; }
         .rni-on  { background:var(--nav-on);font-weight:700;color:var(--nav-on-text); }
         .rni-off { color:var(--nav-off-text); }
-        .rni-off:hover { background:var(--card);color:var(--text); }
+        .rni-off:hover { background:rgba(0,0,0,0.035);color:var(--text); }
+        [data-theme="dark"] .rni-off:hover { background:rgba(255,255,255,0.05); }
+        [data-theme="read"] .rni-off:hover { background:rgba(0,0,0,0.04); }
       `}</style>
     </div>
   )

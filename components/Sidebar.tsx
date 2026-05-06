@@ -225,10 +225,13 @@ export default function Sidebar() {
         .ni { display:flex;align-items:center;gap:9px;padding:7px 11px;border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;text-decoration:none;color:inherit;transition:background .1s,color .1s;white-space:nowrap;overflow:hidden; }
         .ni-on  { background:var(--nav-on);font-weight:700;color:var(--nav-on-text); }
         .ni-off { color:var(--nav-off-text); }
-        .ni-off:hover { background:var(--card);color:var(--text); }
+        .ni-off:hover { background:rgba(0,0,0,0.035);color:var(--text); }
+        [data-theme="dark"] .ni-off:hover { background:rgba(255,255,255,0.05); }
+        [data-theme="read"] .ni-off:hover { background:rgba(0,0,0,0.04); }
         .usr-row:hover { background:var(--card); }
         .proj-row { display:flex;align-items:center;gap:8px;padding:6px 11px;border-radius:9px;font-size:12.5px;font-weight:500;cursor:pointer;text-decoration:none;color:var(--text-secondary);transition:background .1s,color .1s;overflow:hidden; }
-        .proj-row:hover { background:var(--card);color:var(--text); }
+        .proj-row:hover { background:rgba(0,0,0,0.035);color:var(--text); }
+        [data-theme="dark"] .proj-row:hover { background:rgba(255,255,255,0.05); }
         .proj-row.active { background:var(--nav-on);color:var(--nav-on-text);font-weight:700; }
 
         /* ── Mobile floating bar ── */
@@ -349,75 +352,57 @@ export default function Sidebar() {
           </div>
 
           {/* User block */}
-          <div style={{ borderTop:'1px solid var(--border)', paddingTop:10, marginTop:8 }}>
-
-            {/* Plan badge row — only for client, only in Festwerk context */}
-            {isClient && !pathname.startsWith('/relations') && (
-              <Link href="/pricing" style={{ textDecoration:'none', display:'flex', alignItems:'center', justifyContent:'space-between', padding:'6px 10px 7px', borderRadius:10, transition:'background .1s' }}
-                onMouseEnter={e => (e.currentTarget as HTMLElement).style.background='var(--card)'}
-                onMouseLeave={e => (e.currentTarget as HTMLElement).style.background='transparent'}>
-                <div style={{ display:'flex', alignItems:'center', gap:6 }}>
-                  <span style={{ fontSize:12.5, fontWeight:600, color:'var(--text)', letterSpacing:'-.01em' }}>{name}</span>
-                  <span style={{ fontSize:11, color:'var(--text-muted)', fontWeight:500 }}>·</span>
-                  <span style={{
-                    fontSize:11, fontWeight:700, letterSpacing:'.01em',
-                    color: plan==='free' ? 'var(--text-muted)' : plan==='pro' ? 'var(--green,#34c759)' : plan==='enterprise' ? 'var(--accent-text,#fff)' : 'var(--text)',
-                    background: plan==='enterprise' ? 'var(--accent)' : 'transparent',
-                    padding: plan==='enterprise' ? '1px 6px' : '0',
-                    borderRadius: plan==='enterprise' ? 5 : 0,
-                  }}>
-                    {plan === 'free' ? 'Free' : plan === 'starter' ? 'Starter' : plan === 'pro' ? 'Pro' : plan === 'enterprise' ? 'Enterprise' : plan}
-                  </span>
-                </div>
-                <Ico name="chevron" sz={12} c="var(--text-muted)" weight="light" />
-              </Link>
-            )}
-
-            {/* Avatar + logout row */}
+          <div style={{ borderTop:'1px solid var(--border)', paddingTop:9, marginTop:8 }}>
             <div style={{
-              background:'var(--surface-2)', border:'1px solid var(--border)',
-              borderRadius:12, padding:'8px 10px',
-              display:'flex', alignItems:'center', gap:10,
+              display:'flex', alignItems:'center', gap:9,
+              padding:'7px 9px',
+              borderRadius:11,
+              border:'1px solid var(--border)',
+              background:'var(--surface-2)',
             }}>
-              <Link href="/settings" style={{ textDecoration:'none', display:'flex', alignItems:'center', gap:9, flex:1, minWidth:0 }}>
+              {/* Avatar → goes to settings */}
+              <Link href="/settings" style={{ textDecoration:'none', display:'flex', alignItems:'center', gap:8, flex:1, minWidth:0 }}>
                 {avatar ? (
-                  <img src={avatar} alt="" style={{ width:28, height:28, borderRadius:'50%', objectFit:'cover', border:'1.5px solid var(--border)', flexShrink:0 }}/>
+                  <img src={avatar} alt="" style={{ width:26, height:26, borderRadius:'50%', objectFit:'cover', border:'1.5px solid var(--border)', flexShrink:0 }}/>
                 ) : (
-                  <div style={{ width:28, height:28, borderRadius:'50%', background:'var(--accent)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:700, color:'var(--accent-text)', flexShrink:0 }}>{init}</div>
+                  <div style={{ width:26, height:26, borderRadius:'50%', background:'var(--btn-prim)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:10.5, fontWeight:700, color:'var(--btn-prim-text)', flexShrink:0 }}>{init}</div>
                 )}
                 <div style={{ flex:1, minWidth:0 }}>
-                  <p style={{ fontSize:11.5, fontWeight:600, color:'var(--text)', margin:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', lineHeight:1.25 }}>{email}</p>
-                  <p style={{ fontSize:9.5, fontWeight:600, color:'var(--text-muted)', margin:'1px 0 0', letterSpacing:'.04em', textTransform:'uppercase' }}>{ROLE_LABEL[role] ?? 'Client'}</p>
+                  <div style={{ display:'flex', alignItems:'center', gap:5, overflow:'hidden' }}>
+                    <p style={{ fontSize:12, fontWeight:600, color:'var(--text)', margin:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', lineHeight:1.3 }}>{name || email.split('@')[0]}</p>
+                    {isClient && !pathname.startsWith('/relations') && (
+                      <span style={{ flexShrink:0, fontSize:9.5, fontWeight:700, letterSpacing:'.04em', color:'var(--text-muted)', background:'var(--border)', padding:'1px 5px', borderRadius:4, lineHeight:1.5 }}>
+                        {plan === 'free' ? 'Free' : plan === 'starter' ? 'Starter' : plan === 'pro' ? 'Pro' : plan === 'enterprise' ? 'Enterprise' : plan}
+                      </span>
+                    )}
+                  </div>
+                  <p style={{ fontSize:10, fontWeight:500, color:'var(--text-muted)', margin:0, letterSpacing:'.03em', lineHeight:1.2 }}>{email}</p>
                 </div>
               </Link>
+              {/* Logout */}
               <button onClick={logout} title="Abmelden" aria-label="Abmelden"
-                style={{
-                  width:26, height:26, borderRadius:8, border:'1px solid var(--border)',
-                  background:'var(--surface)', cursor:'pointer',
-                  display:'flex', alignItems:'center', justifyContent:'center',
-                  color:'var(--text-muted)', flexShrink:0, transition:'color .12s, background .12s',
-                }}
-                onMouseEnter={e => { e.currentTarget.style.color='var(--text)'; e.currentTarget.style.background='var(--bg)' }}
-                onMouseLeave={e => { e.currentTarget.style.color='var(--text-muted)'; e.currentTarget.style.background='var(--surface)' }}>
+                style={{ width:26, height:26, borderRadius:7, border:'1px solid var(--border)', background:'transparent', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:'var(--text-muted)', flexShrink:0, transition:'color .12s, background .12s' }}
+                onMouseEnter={e => { e.currentTarget.style.color='var(--text)'; e.currentTarget.style.background='var(--card)' }}
+                onMouseLeave={e => { e.currentTarget.style.color='var(--text-muted)'; e.currentTarget.style.background='transparent' }}>
                 <Ico name="logout" sz={12} c="currentColor" weight="regular" />
               </button>
             </div>
 
-            {/* Legal links only */}
-            <div style={{ padding:'8px 4px 2px', display:'flex', flexWrap:'nowrap', alignItems:'center', justifyContent:'space-between', gap:4 }}>
+            {/* Legal links */}
+            <div style={{ padding:'6px 3px 2px', display:'flex', flexWrap:'nowrap', alignItems:'center', justifyContent:'space-between', gap:3 }}>
               {[
                 { href:'/impressum',   label:'Impressum' },
                 { href:'/datenschutz', label:'Datenschutz' },
                 { href:'/agb',         label:'AGB' },
                 { href:'/widerruf',    label:'Widerruf' },
               ].map((l, i, arr) => (
-                <span key={l.href} style={{ display:'inline-flex', alignItems:'center', gap:4, flexShrink:0, whiteSpace:'nowrap' }}>
+                <span key={l.href} style={{ display:'inline-flex', alignItems:'center', gap:3, flexShrink:0 }}>
                   <Link href={l.href}
-                    style={{ fontSize:8.5, color:'var(--text-muted)', textDecoration:'none', opacity:.65, letterSpacing:'.01em', whiteSpace:'nowrap', transition:'opacity .12s, color .12s' }}
-                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.opacity='1'; (e.currentTarget as HTMLElement).style.color='var(--text)' }}
-                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.opacity='.65'; (e.currentTarget as HTMLElement).style.color='var(--text-muted)' }}
+                    style={{ fontSize:8, color:'var(--text-muted)', textDecoration:'none', opacity:.5, whiteSpace:'nowrap', transition:'opacity .12s' }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.opacity='1' }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.opacity='.5' }}
                   >{l.label}</Link>
-                  {i < arr.length - 1 && <span style={{ fontSize:7, color:'var(--text-muted)', opacity:.35 }}>·</span>}
+                  {i < arr.length - 1 && <span style={{ fontSize:6, color:'var(--text-muted)', opacity:.3 }}>·</span>}
                 </span>
               ))}
             </div>
