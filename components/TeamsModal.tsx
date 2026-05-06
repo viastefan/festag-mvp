@@ -54,9 +54,18 @@ export default function TeamsModal({ open, onClose }: { open: boolean; onClose: 
     try {
       const sb = createClient()
       const { data: { user } } = await sb.auth.getUser()
-      await (sb.from('team_invites') as any).insert({
-        email: email.trim().toLowerCase(), role,
-        invited_by: user?.id, status: 'pending', access_mode: 'team',
+      // Triggert /api/invites/send → erzeugt PIN, speichert team_invites,
+      // verschickt IONOS-Mail an Empfänger und CC an Founder.
+      await fetch('/api/invites/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: email.trim().toLowerCase(),
+          role,
+          fromUserId: user?.id ?? null,
+          fromUserEmail: user?.email ?? null,
+          accessMode: 'team',
+        }),
       })
       setSent(true); setEmail('')
       setTimeout(() => setSent(false), 2800)
@@ -82,15 +91,19 @@ export default function TeamsModal({ open, onClose }: { open: boolean; onClose: 
               WebkitBackdropFilter:'blur(14px) saturate(160%)',
             }}
           />
-          {/* Panel */}
+          {/* Centering wrapper — flex avoids transform conflict with Framer Motion */}
+          <div style={{
+            position:'fixed', inset:0, zIndex:9001,
+            display:'flex', alignItems:'center', justifyContent:'center',
+            pointerEvents:'none',
+          }}>
           <motion.div
             initial={{ opacity: 0, scale: .96, y: 12 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: .97, y: 8 }}
             transition={{ type:'spring', stiffness:380, damping:32 }}
             style={{
-              position:'fixed', top:'50%', left:'50%',
-              transform:'translate(-50%,-50%)', zIndex:9001,
+              pointerEvents:'auto',
               width:'min(720px, calc(100vw - 32px))',
               maxHeight:'min(720px, calc(100vh - 40px))',
               display:'flex', flexDirection:'column',
@@ -230,6 +243,7 @@ export default function TeamsModal({ open, onClose }: { open: boolean; onClose: 
               </div>
             </div>
           </motion.div>
+          </div>
           <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
         </>
       )}

@@ -156,26 +156,21 @@ export default function MessagesPage() {
   }
 
   return (
-    <div className="page-content msgs-root" style={{ maxWidth: 1200, padding: 0 }}>
+    <div className="msgs-root" style={{ width: '100%', padding: '16px 20px', boxSizing: 'border-box', height: 'calc(100dvh - 56px)', display: 'flex', flexDirection: 'column' }}>
       <style>{`
         @keyframes tick-pulse { 0%{transform:scale(.4);opacity:.9;} 100%{transform:scale(2.6);opacity:0;} }
         @keyframes tick-draw  { to { stroke-dashoffset: 0; } }
-        .msgs-grid { display: grid; grid-template-columns: 320px 1fr; gap: 0; height: calc(100dvh - 96px); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; background: var(--surface); }
+        .msgs-grid { display: grid; grid-template-columns: 320px 1fr; gap: 0; flex: 1; min-height: 0; border: 1px solid var(--border); border-radius: 16px; overflow: hidden; background: var(--surface); }
         .msgs-list { border-right: 1px solid var(--border); display: flex; flex-direction: column; min-height: 0; background: var(--surface); }
         .msgs-chat { display: flex; flex-direction: column; min-height: 0; background: var(--bg); }
         .msgs-back { display: none; }
         @media (max-width: 820px) {
-          .msgs-grid { grid-template-columns: 1fr; height: calc(100dvh - 80px); }
+          .msgs-grid { grid-template-columns: 1fr; }
           .msgs-list { display: ${showListMobile ? 'flex' : 'none'} !important; border-right: none; }
           .msgs-chat { display: ${showListMobile ? 'none' : 'flex'} !important; }
           .msgs-back { display: inline-flex !important; }
         }
       `}</style>
-
-      <div className="page-header" style={{ padding: '24px 28px 20px' }}>
-        <h1 style={{ marginBottom: 4 }}>Nachrichten</h1>
-        <p style={{ margin: 0 }}>Projekt-Konversationen mit Tagro &amp; dem Team</p>
-      </div>
 
       {loading ? (
         <div style={{ display: 'flex', justifyContent: 'center', padding: 60 }}>

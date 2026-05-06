@@ -59,12 +59,14 @@ export default function SupportButton() {
     try {
       const { createClient } = await import('@/lib/supabase/client')
       const sb = createClient()
-      const { data: u } = await sb.auth.getUser()
-      await sb.from('support_messages').insert({
-        user_id: u.user?.id ?? null,
-        email: u.user?.email ?? null,
-        message: msg.trim(),
-        page: window.location.pathname,
+      const { data: { session } } = await sb.auth.getSession()
+      await fetch('/api/support/send', {
+        method:'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(session?.access_token ? { 'Authorization': `Bearer ${session.access_token}` } : {}),
+        },
+        body: JSON.stringify({ message: msg.trim(), page: window.location.pathname }),
       })
     } catch { /* ignore */ }
     setTimeout(() => { setOpen(false); setSent(false); setMsg('') }, 1800)

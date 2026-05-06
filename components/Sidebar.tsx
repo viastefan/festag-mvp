@@ -382,7 +382,7 @@ export default function Sidebar() {
                       </span>
                     )}
                   </div>
-                  <p style={{ fontSize:10, fontWeight:500, color:'var(--text-muted)', margin:0, letterSpacing:'.03em', lineHeight:1.2 }}>{email}</p>
+                  <p style={{ fontSize:10, fontWeight:500, color:'var(--text-muted)', margin:0, letterSpacing:'.03em', lineHeight:1.2 }}>{ROLE_LABEL[role] ?? 'Client'}</p>
                 </div>
               </Link>
               {/* Logout */}

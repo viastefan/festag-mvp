@@ -12,6 +12,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [checking,    setChecking]    = useState(true)
   const [copilotOpen, setCopilotOpen] = useState(false)
   const pathname = usePathname()
+  const isFullHeight = pathname === '/messages'
 
   useEffect(() => {
     const el = document.getElementById('app-main-scroll')
@@ -47,7 +48,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <main
         id="app-main-scroll"
         className="main-content"
-        style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', overflowY: 'scroll', scrollBehavior: 'auto' }}
+        style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', overflowY: isFullHeight ? 'hidden' : 'scroll', height: isFullHeight ? '100dvh' : undefined, scrollBehavior: 'auto' }}
       >
         <AppHeader copilotOpen={copilotOpen} onToggleCopilot={() => setCopilotOpen(o => !o)} />
         <div style={{ width: '100%', flex: 1 }}>
