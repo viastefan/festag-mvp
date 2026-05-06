@@ -126,7 +126,7 @@ export default function RelProjectsPage() {
     if (!nTitle.trim() || nSaving) return
     setNSaving(true)
     const sb = createClient()
-    const payload = { title: nTitle.trim(), content: nContent.trim() || null, color: nColor, due_date: nDue || null, shared: nShared }
+    const payload = { title: nTitle.trim(), content: nContent.trim() || null, color: nColor, due_date: nDue || null, shared: false }
     if (editNote) {
       await (sb as any).from('rel_notes').update(payload).eq('id', editNote.id)
     } else {
@@ -360,14 +360,6 @@ export default function RelProjectsPage() {
                   style={{ background:'transparent', border:'none', outline:'none', fontSize:11.5, color:'var(--text-muted)', fontFamily:'inherit', cursor:'pointer', colorScheme:'dark' }}/>
               </div>
 
-              {/* Share toggle */}
-              <button onClick={() => setNShared(s => !s)}
-                style={{ display:'flex', alignItems:'center', gap:5, background:'none', border:'none', cursor:'pointer', padding:0, fontFamily:'inherit' }}>
-                <div style={{ width:28, height:16, borderRadius:8, background: nShared ? '#6366f1' : 'var(--border)', position:'relative', transition:'background .15s', flexShrink:0 }}>
-                  <div style={{ position:'absolute', top:2, left: nShared ? 14 : 2, width:12, height:12, borderRadius:'50%', background:'white', transition:'left .15s' }}/>
-                </div>
-                <span style={{ fontSize:11.5, color: nShared ? '#6366f1' : 'var(--text-muted)', fontWeight:500 }}>Mit Team teilen</span>
-              </button>
             </div>
 
             {/* Footer */}
