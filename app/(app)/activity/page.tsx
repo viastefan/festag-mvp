@@ -3,12 +3,6 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
-const EVENT_ICONS: Record<string,string> = {
-  task_created:'📋', task_done:'✅', task_status:'🔄', dev_joined:'👨‍💻',
-  ai_report:'🤖', project_status:'🚀', message_sent:'💬', addon_added:'⚡',
-  ai_priority:'🎯', login:'🔐', password_changed:'🔐', report_generated:'📊',
-}
-
 const EVENT_ACTOR_COLORS: Record<string,string> = {
   ai:'var(--blue)', dev:'var(--green-dark)', client:'var(--text)', system:'var(--amber)',
 }
@@ -82,8 +76,7 @@ export default function ActivityPage() {
           <div style={{ width:24,height:24,border:'2px solid var(--border)',borderTopColor:'var(--text)',borderRadius:'50%',animation:'spin .8s linear infinite' }} />
         </div>
       ) : filtered.length===0 ? (
-        <div className="animate-fade-up-2" style={{ background:'var(--surface)',border:'1px solid var(--border)',borderRadius:20,padding:'56px 24px',textAlign:'center' }}>
-          <div style={{ fontSize:40,marginBottom:16 }}>📭</div>
+        <div className="animate-fade-up-2" style={{ background:'var(--surface)',border:'1px solid var(--border)',borderRadius:'var(--r-lg)',padding:'48px 24px',textAlign:'center' }}>
           <h2 style={{ marginBottom:8 }}>Noch keine Aktivitäten</h2>
           <p style={{ fontSize:14,color:'var(--text-secondary)' }}>Sobald Tasks erstellt, AI-Berichte generiert oder Developer aktiv werden, erscheint es hier.</p>
         </div>
@@ -92,15 +85,12 @@ export default function ActivityPage() {
           {Object.entries(grouped).map(([date, items]) => (
             <div key={date} style={{ marginBottom:24 }}>
               <p style={{ fontSize:11,fontWeight:700,color:'var(--text-muted)',letterSpacing:'.08em',marginBottom:12 }}>{date.toUpperCase()}</p>
-              <div style={{ background:'var(--surface)',border:'1px solid var(--border)',borderRadius:20,overflow:'hidden',boxShadow:'0 4px 20px rgba(0,0,0,.04)' }}>
+              <div style={{ background:'var(--surface)',border:'1px solid var(--border)',borderRadius:'var(--r-lg)',overflow:'hidden',boxShadow:'var(--shadow-xs)' }}>
                 {items.map((item, i) => (
                   <div key={item.id} style={{ padding:'14px 20px',borderBottom:i<items.length-1?'1px solid var(--border)':'none',display:'flex',gap:14,alignItems:'flex-start',transition:'background .12s' }}
                     onMouseEnter={e => (e.currentTarget as HTMLElement).style.background='var(--bg)'}
                     onMouseLeave={e => (e.currentTarget as HTMLElement).style.background='transparent'}>
-                    {/* Icon bubble */}
-                    <div style={{ width:38,height:38,borderRadius:11,background:'var(--surface-2)',border:'1px solid var(--border)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,flexShrink:0 }}>
-                      {item.icon || EVENT_ICONS[item.event_type] || '•'}
-                    </div>
+                    <div style={{ width:8,height:8,borderRadius:'50%',background:EVENT_ACTOR_COLORS[item.actor_role]||'var(--text-muted)',flexShrink:0,marginTop:6 }} />
                     <div style={{ flex:1,minWidth:0 }}>
                       <div style={{ display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:10 }}>
                         <p style={{ fontSize:13.5,fontWeight:600,color:'var(--text)',margin:0,lineHeight:1.4 }}>{item.title}</p>

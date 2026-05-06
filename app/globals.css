@@ -1,169 +1,83 @@
-/* Aeonik — lokal aus /public/fonts/, Medium als Standardgewicht */
-@font-face {
-  font-family: 'Aeonik';
-  src: url('/fonts/Aeonik-Regular.ttf') format('truetype');
-  font-weight: 400; font-style: normal; font-display: swap;
-}
-@font-face {
-  font-family: 'Aeonik';
-  src: url('/fonts/Aeonik-Medium.ttf') format('truetype');
-  font-weight: 500; font-style: normal; font-display: swap;
-}
-@font-face {
-  font-family: 'Aeonik';
-  src: url('/fonts/Aeonik-Bold.ttf') format('truetype');
-  font-weight: 600; font-style: normal; font-display: swap;
-}
-@font-face {
-  font-family: 'Aeonik';
-  src: url('/fonts/Aeonik-Bold.ttf') format('truetype');
-  font-weight: 700; font-style: normal; font-display: swap;
-}
-@font-face {
-  font-family: 'Aeonik';
-  src: url('/fonts/Aeonik-Bold.ttf') format('truetype');
-  font-weight: 800; font-style: normal; font-display: swap;
-}
+@font-face { font-family:'Aeonik'; src:url('/fonts/Aeonik-Regular.ttf') format('truetype'); font-weight:400; font-display:swap; }
+@font-face { font-family:'Aeonik'; src:url('/fonts/Aeonik-Medium.ttf') format('truetype'); font-weight:500; font-display:swap; }
+@font-face { font-family:'Aeonik'; src:url('/fonts/Aeonik-Bold.ttf') format('truetype'); font-weight:700; font-display:swap; }
 
 *,*::before,*::after { box-sizing:border-box; padding:0; margin:0; }
-
-/* Smooth cursor for all interactive elements */
-a, button, [role="button"], label[for] { cursor:pointer; }
-a { -webkit-tap-highlight-color: transparent; }
-button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
 
 /* ═══════════════════════════════════════════════
    THEME VARIABLES — set via data-theme on <html>
 ═══════════════════════════════════════════════ */
 :root, [data-theme="light"] {
-  /* Light — cleaner, brighter, more technical. Pure white base, sharp text,
-     festag-greige & apple-green only as accents. */
-  --bg:#FFFFFF; --surface:#FAFAFA; --card:#F4F4F2;
-  --border:rgba(0,0,0,0.06); --border-strong:rgba(0,0,0,0.14);
-  --text:#0A0B0A; --text-secondary:#54585A; --text-muted:#9DA1A0;
-  --btn-prim:#0A0B0A; --btn-prim-text:#FFFFFF;
-  --accent:#0A0B0A; --accent-text:#FFFFFF;
-  --inp:#FFFFFF; --inp-border:rgba(0,0,0,0.10); --inp-focus:#FFFFFF; --inp-focus-border:#0A0B0A;
-  --glow:rgba(10,11,10,0.06);
-  --sidebar-bg:rgba(252,252,251,0.72); --sidebar-border:rgba(0,0,0,0.06);
-  --nav-on:#E9E8E4; --nav-on-text:#0A0B0A; --nav-off-text:#6B7280;
-  /* Festag greige */
-  --surface-2:#F0EEE9;
-  /* Apple-green accents */
-  --green:#34C759; --green-bg:rgba(52,199,89,0.08); --green-border:rgba(52,199,89,0.22); --green-dark:#28A745;
-  --amber:#B98700; --amber-bg:rgba(185,135,0,0.08); --amber-dark:#8A6500;
-  --red:#D14343; --red-bg:rgba(209,67,67,0.07);
-  --shadow-xs:0 1px 2px rgba(10,11,10,.04); --shadow-sm:0 2px 6px rgba(10,11,10,.05);
-  --shadow:0 4px 16px rgba(10,11,10,.06); --shadow-lg:0 12px 32px rgba(10,11,10,.08);
+  --bg:#F6F7F8; --surface:#FFFFFF; --card:#F2F3F5;
+  --border:rgba(15,23,42,0.09); --border-strong:rgba(15,23,42,0.18);
+  --text:#111315; --text-secondary:#59616B; --text-muted:#9AA3AF;
+  --btn-prim:#323635; --btn-prim-text:#FFFFFF;
+  --inp:#FFFFFF; --inp-border:rgba(0,0,0,0.12); --inp-focus:#FFFFFF; --inp-focus-border:#323635;
+  --glow:rgba(50,54,53,0.07);
+  --sidebar-bg:rgba(255,255,255,0.88); --sidebar-border:rgba(15,23,42,0.08);
+  --nav-on:#ECEEF2; --nav-on-text:#111315; --nav-off-text:#6B7280;
+  /* Keep legacy compat vars */
+  --surface-2:#EEF1F4; --green:#16A36C; --green-bg:#ECFDF5; --green-border:#B7E7D0; --green-dark:#0B7F50;
+  --blue:#2563EB; --blue-bg:#EFF6FF; --blue-border:#BFDBFE;
+  --amber:#D97706; --red:#DC2626; --red-bg:#FEF2F2;
+  --r-xs:5px; --r-sm:7px; --r:9px; --r-lg:12px;
+  --shadow-xs:0 1px 2px rgba(15,23,42,.04); --shadow-sm:0 2px 8px rgba(15,23,42,.05);
+  --shadow:0 10px 30px rgba(15,23,42,.06); --shadow-lg:0 18px 50px rgba(15,23,42,.09);
   --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
-  --r:12px; --r-xs:8px; --r-sm:10px; --r-md:12px; --r-lg:16px; --r-xl:22px;
 }
 
-/* ── DARK — True black Apple-style, #0E0F0F base ── */
 [data-theme="dark"] {
-  /* Pure near-black — deepest possible base like Apple Pro Display */
-  --bg:#0E0F0F;
-  --surface:#141515;
-  --card:#191A1A;
-  --surface-2:#1F2121;
-
-  --border:rgba(255,255,255,0.07);
-  --border-strong:rgba(255,255,255,0.14);
-
-  --text:#E8E8E5;
-  --text-secondary:#888E8B;
-  --text-muted:#4B5250;
-
-  --btn-prim:#E8E8E5; --btn-prim-text:#0E0F0F;
-
-  /* Accent — deep forest pocket with crisp green text */
-  --accent:#17211A; --accent-text:#44CE8C;
-
-  --inp:rgba(255,255,255,0.04);
-  --inp-border:rgba(255,255,255,0.08);
-  --inp-focus:rgba(255,255,255,0.06);
-  --inp-focus-border:rgba(255,255,255,0.20);
-  --glow:rgba(68,206,140,0.03);
-
-  --sidebar-bg:rgba(16,18,18,0.72);
-  --sidebar-border:rgba(255,255,255,0.08);
-  --nav-on:rgba(255,255,255,0.10);
-  --nav-on-text:#E8E8E5;
-  --nav-off-text:#4B5250;
-
-  /* Green — clean professional */
-  --green:#25C47A;
-  --green-bg:rgba(37,196,122,0.09);
-  --green-border:rgba(37,196,122,0.18);
-  --green-dark:#20B06C;
-
-  /* Amber — restrained warm gold */
-  --amber:#C89430;
-  --amber-bg:rgba(200,148,48,0.09);
-  --amber-dark:#B38226;
-
-  --red:#D94545;
-  --red-bg:rgba(217,69,69,0.09);
-
-  --shadow-xs:0 1px 3px rgba(0,0,0,.70);
-  --shadow-sm:0 2px 8px rgba(0,0,0,.78);
-  --shadow:0 4px 20px rgba(0,0,0,.88);
-  --shadow-lg:0 8px 40px rgba(0,0,0,.95);
-
+  --bg:#0E0F0E; --surface:#161917; --card:#1C1F1C;
+  --border:rgba(255,255,255,0.08); --border-strong:rgba(255,255,255,0.15);
+  --text:#F4F5F4; --text-secondary:#7A8780; --text-muted:#3E4642;
+  --btn-prim:#FFFFFF; --btn-prim-text:#0E0F0E;
+  --inp:rgba(255,255,255,0.05); --inp-border:rgba(255,255,255,0.1);
+  --inp-focus:rgba(255,255,255,0.09); --inp-focus-border:rgba(255,255,255,0.35);
+  --glow:rgba(255,255,255,0.05);
+  --sidebar-bg:rgba(22,25,23,0.97); --sidebar-border:rgba(255,255,255,0.07);
+  --nav-on:rgba(255,255,255,0.1); --nav-on-text:#FFFFFF; --nav-off-text:#4A5450;
+  --surface-2:#1C1F1C; --green:#34A06E; --green-bg:rgba(52,160,110,0.12);
+  --green-border:rgba(52,160,110,0.25); --green-dark:#5DC98A;
+  --blue:#60A5FA; --blue-bg:rgba(96,165,250,0.12); --blue-border:rgba(96,165,250,0.24);
+  --amber:#F59E0B; --red:#EF4444; --red-bg:rgba(239,68,68,0.1);
+  --r-xs:5px; --r-sm:7px; --r:9px; --r-lg:12px;
+  --shadow-xs:0 1px 4px rgba(0,0,0,.3); --shadow-sm:0 2px 8px rgba(0,0,0,.35);
+  --shadow:0 4px 20px rgba(0,0,0,.4); --shadow-lg:0 8px 30px rgba(0,0,0,.5);
   --logo-filter:brightness(0) invert(1);
-  --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
-  --r:12px; --r-xs:8px; --r-sm:10px; --r-md:12px; --r-lg:16px; --r-xl:22px;
 }
 
-/* ── READ — Premium warm paper with neutral buttons ── */
 [data-theme="read"] {
-  --bg:#F6F5EF; --surface:#FDFCF8; --card:#ECEAE3;
-  --border:rgba(0,0,0,0.08); --border-strong:rgba(0,0,0,0.15);
-  --text:#1A1A17; --text-secondary:#54534A; --text-muted:#9A9890;
-  /* Buttons: neutral dark (not warm brown) */
-  --btn-prim:#1A1A17; --btn-prim-text:#FDFCF8;
-  --accent:#1A1A17; --accent-text:#FDFCF8;
-  --inp:#FEFEFE; --inp-border:rgba(0,0,0,0.10); --inp-focus:#FFFFFF; --inp-focus-border:#1A1A17;
-  --glow:rgba(26,26,23,0.06);
-  --sidebar-bg:rgba(252,250,243,0.72); --sidebar-border:rgba(0,0,0,0.07);
-  --nav-on:#E0DDD3; --nav-on-text:#1A1A17; --nav-off-text:#82807A;
-  --surface-2:#E5E3DA; --green:#2E7A50; --green-bg:rgba(46,122,80,0.09);
-  --green-border:rgba(46,122,80,0.20); --green-dark:#256040;
-  /* Amber stays but in a warm-neutral tone */
-  --amber:#8A7200; --amber-bg:rgba(138,114,0,0.09); --amber-dark:#6E5B00;
-  --red:#6E2E2E; --red-bg:rgba(110,46,46,0.08);
-  --shadow-xs:0 1px 4px rgba(26,26,23,.05); --shadow-sm:0 2px 8px rgba(26,26,23,.07);
-  --shadow:0 4px 20px rgba(26,26,23,.09); --shadow-lg:0 8px 30px rgba(26,26,23,.11);
-  --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
-  --r:12px; --r-xs:8px; --r-sm:10px; --r-md:12px; --r-lg:16px; --r-xl:22px;
+  --bg:#F5F0E8; --surface:#FDFAF4; --card:#EDE8DE;
+  --border:rgba(0,0,0,0.07); --border-strong:rgba(0,0,0,0.14);
+  --text:#2C2416; --text-secondary:#6B5E47; --text-muted:#A09278;
+  --btn-prim:#2C2416; --btn-prim-text:#FDFAF4;
+  --inp:#FDFAF4; --inp-border:rgba(0,0,0,0.1); --inp-focus:#FFFFFF; --inp-focus-border:#2C2416;
+  --glow:rgba(44,36,22,0.06);
+  --sidebar-bg:rgba(253,250,244,0.95); --sidebar-border:rgba(0,0,0,0.06);
+  --nav-on:#EDE8DE; --nav-on-text:#2C2416; --nav-off-text:#8B7355;
+  --surface-2:#EDE8DE; --green:#4A7C59; --green-bg:rgba(74,124,89,0.1);
+  --green-border:rgba(74,124,89,0.2); --green-dark:#3A6347;
+  --blue:#3568B8; --blue-bg:rgba(53,104,184,0.1); --blue-border:rgba(53,104,184,0.2);
+  --amber:#B8860B; --red:#8B3A3A; --red-bg:rgba(139,58,58,0.08);
+  --r-xs:5px; --r-sm:7px; --r:9px; --r-lg:12px;
+  --shadow-xs:0 1px 4px rgba(44,36,22,.05); --shadow-sm:0 2px 8px rgba(44,36,22,.06);
+  --shadow:0 4px 20px rgba(44,36,22,.08); --shadow-lg:0 8px 30px rgba(44,36,22,.1);
 }
 
 html,body {
   background:var(--bg); color:var(--text);
-  font-family:'Aeonik',-apple-system,BlinkMacSystemFont,'SF Pro Text','Inter',sans-serif;
+  font-family:'Aeonik',-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;
   font-weight:500; font-size:15px; line-height:1.55;
-  letter-spacing:-.01em;
   -webkit-font-smoothing:antialiased;
-  -moz-osx-font-smoothing:grayscale;
-  text-rendering:optimizeLegibility;
-  font-feature-settings:"ss01","cv11","kern";
   -webkit-tap-highlight-color:transparent;
   overscroll-behavior-y:none;
   transition:background .2s ease, color .2s ease;
 }
-p,span,div,label,li,td,th { font-weight:500; font-family:'Aeonik',-apple-system,BlinkMacSystemFont,'SF Pro Text','Inter',sans-serif; }
-strong,b { font-weight:700; }
-/* Editorial display sizes — Apple keynote feel */
-h1,h2,h3,h4,h5,h6 { font-family:'Aeonik',-apple-system,BlinkMacSystemFont,'SF Pro Text','Inter',sans-serif; }
-h1 { font-size:28px;font-weight:700;letter-spacing:-.025em;line-height:1.12;color:var(--text); }
-h2 { font-size:21px;font-weight:700;letter-spacing:-.020em;line-height:1.2; color:var(--text); }
-h3 { font-size:16px;font-weight:700;letter-spacing:-.014em;line-height:1.3; color:var(--text); }
-h4 { font-size:13.5px;font-weight:700;letter-spacing:-.005em;color:var(--text); }
+p,span,div,label { font-weight:500; }
+h1 { font-size:28px;font-weight:700;letter-spacing:-.5px;line-height:1.2;color:var(--text); }
+h2 { font-size:20px;font-weight:700;letter-spacing:-.3px;line-height:1.25;color:var(--text); }
+h3 { font-size:16px;font-weight:600;letter-spacing:-.2px;color:var(--text); }
 p  { color:var(--text-secondary); }
-.eyebrow { font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted); }
-.display { font-size:44px;font-weight:600;letter-spacing:-.028em;line-height:1.04;color:var(--text); }
-.metric  { font-size:28px;font-weight:600;letter-spacing:-.02em;line-height:1; color:var(--text); font-variant-numeric:tabular-nums; }
-.tabular { font-variant-numeric:tabular-nums; }
 a  { color:inherit;text-decoration:none; }
 button { -webkit-tap-highlight-color:transparent;cursor:pointer;border:none;background:none;font-family:inherit;font-weight:500; }
 input,textarea,select { font-size:16px;font-family:inherit;font-weight:500;color:var(--text); }
@@ -193,58 +107,16 @@ input:focus,textarea:focus,select:focus { outline:none; }
   min-height:100vh;
 }
 
-.page-content {
-  padding: 28px 32px 48px;
-  max-width: 1200px;
-  width: 100%;
-}
-.page-content-full {
-  padding: 28px 32px 48px;
-  width: 100%;
-}
-.page-header {
-  margin-bottom: 24px;
-}
-.page-header h1 {
-  font-size: 26px;
-  font-weight: 700;
-  letter-spacing: -.55px;
-  color: var(--text);
-  margin: 0 0 4px;
-  line-height: 1.2;
-}
-.page-header p {
-  font-size: 14px;
-  color: var(--text-secondary);
-  margin: 0;
-}
-
 .sidebar-inner {
   position:fixed; top:12px; left:12px; bottom:12px; width:232px;
   background:var(--sidebar-bg);
-  backdrop-filter:blur(36px) saturate(200%);
-  -webkit-backdrop-filter:blur(36px) saturate(200%);
+  backdrop-filter:blur(20px) saturate(180%);
+  -webkit-backdrop-filter:blur(20px) saturate(180%);
   border:1px solid var(--sidebar-border);
-  box-shadow:
-    0 12px 40px rgba(0,0,0,0.08),
-    0 2px 8px rgba(0,0,0,0.04),
-    inset 0 1px 0 rgba(255,255,255,0.10);
-  border-radius:22px;
+  box-shadow:0 14px 40px rgba(15,23,42,.07);
+  border-radius:16px;
   display:flex; flex-direction:column; overflow:hidden;
   transition:background .2s ease, border-color .2s ease;
-}
-[data-theme="dark"] .sidebar-inner {
-  box-shadow:
-    0 12px 40px rgba(0,0,0,0.50),
-    0 2px 8px rgba(0,0,0,0.35),
-    inset 0 1px 0 rgba(255,255,255,0.06);
-}
-
-/* App header — sticky desktop, scrollable mobile */
-.app-header {
-  position: sticky;
-  top: 0;
-  z-index: 50;
 }
 
 /* ═══ MOBILE ═══ */
@@ -255,106 +127,12 @@ input:focus,textarea:focus,select:focus { outline:none; }
   .bottom-nav { display:flex !important; }
   .main-content {
     margin-left:0 !important;
-    padding:0 !important;
-  }
-  .page-content {
-    padding: 16px 16px calc(110px + var(--safe-bottom)) !important;
-    max-width: 100% !important;
-  }
-  .page-content-full {
-    padding: 16px 16px calc(110px + var(--safe-bottom)) !important;
-    max-width: 100% !important;
+    padding:calc(14px + var(--safe-top)) 14px calc(96px + var(--safe-bottom)) 14px !important;
   }
   .grid-cols-4          { grid-template-columns:repeat(2,1fr) !important; }
   .grid-cols-2-mobile-1 { grid-template-columns:1fr !important; }
   .hide-mobile { display:none !important; }
   .show-mobile { display:block !important; }
   div.show-mobile { display:block !important; }
-
-  /* Top header completely hidden on mobile — all control via bottom FAB bar */
-  .app-header { display: none !important; }
-
-  /* AI chat — ensure input area is fully visible above nav bar */
-  .ai-input-wrap {
-    position: sticky !important;
-    bottom: calc(90px + var(--safe-bottom)) !important;
-    background: var(--bg) !important;
-    z-index: 10 !important;
-  }
 }
 @media(min-width:769px) { .show-mobile { display:none !important; } }
-
-/* ═══════════════════════════════════════════════
-   APP-STORE-READY MOBILE POLISH
-   - 44px min tap targets (Apple HIG)
-   - Safe area insets respected
-   - No tap-highlight flash
-   - Smooth momentum scrolling
-   - PWA standalone mode polish
-═══════════════════════════════════════════════ */
-
-* { -webkit-tap-highlight-color: transparent; }
-
-button, a, [role="button"], [role="link"], [role="tab"] {
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
-}
-
-/* iOS form-element default reset */
-input, textarea, select, button {
-  -webkit-appearance: none;
-  appearance: none;
-  font-family: inherit;
-}
-input[type="checkbox"], input[type="radio"] {
-  -webkit-appearance: auto;
-  appearance: auto;
-}
-
-/* Prevent iOS from auto-zooming text inputs (font-size must be >= 16px on focus) */
-@media(max-width:768px) {
-  input:not([type="checkbox"]):not([type="radio"]),
-  textarea, select {
-    font-size: max(16px, 1em);
-  }
-}
-
-/* Smooth iOS scroll containers */
-.scroll-smooth-touch {
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
-}
-
-/* Ensure all main scroll containers use safe momentum */
-#app-main-scroll, .form-scroll {
-  -webkit-overflow-scrolling: touch;
-}
-
-/* Standalone PWA polish — full-bleed top spacing on iPhone */
-@supports (-webkit-touch-callout: none) {
-  @media (display-mode: standalone) {
-    body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
-  }
-}
-
-/* Mobile tap-to-scale animation for primary buttons */
-.tap-scale { transition: transform .1s ease-out; }
-.tap-scale:active { transform: scale(.96); }
-
-/* All buttons & links: minimum 44x44 hit area on mobile */
-@media(max-width:768px) {
-  button:not(.no-min-tap), a.btn-link:not(.no-min-tap), [role="button"]:not(.no-min-tap) {
-    min-height: 44px;
-  }
-  /* Smaller chips/secondary controls explicitly opt out via .no-min-tap */
-}
-
-/* Disable user-select on UI chrome (titles, badges) for better mobile feel */
-.no-select, .badge, .chip, header h1, .page-header h1 {
-  user-select: none;
-  -webkit-user-select: none;
-}
-
-/* Prevent overscroll bounce when modal/sheet is open */
-body.locked { overflow: hidden; touch-action: none; }
-

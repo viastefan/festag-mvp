@@ -8,24 +8,13 @@ import SettingsRightPanel from '@/components/SettingsRightPanel'
 const INDUSTRIES = ['Technologie & Software','E-Commerce & Retail','Marketing & Werbung','Finanzen & Versicherung','Gesundheit & Medizin','Bildung & E-Learning','Immobilien & Bau','Medien & Entertainment','Logistik & Transport','Beratung & Services','Gastronomie & Tourismus','Sonstiges']
 const SIZES = [{v:'freelancer',l:'Freelancer'},{v:'1-10',l:'1–10'},{v:'10-50',l:'10–50'},{v:'50-200',l:'50–200'},{v:'200+',l:'200+'}]
 const LEGAL = ['GmbH','UG (haftungsbeschränkt)','AG','GbR','Einzelunternehmen','Freiberufler','OHG','KG','GmbH & Co. KG','e.K.','Sonstiges']
-type Tab = 'profile'|'skills'|'company'|'security'|'integrations'
-
-const SKILL_CATALOG = [
-  // Frontend
-  'React','Next.js','Vue','Svelte','TypeScript','Tailwind CSS','Figma',
-  // Backend
-  'Node.js','Python','Go','Rust','Supabase','PostgreSQL','REST APIs','GraphQL',
-  // Mobile
-  'Swift','SwiftUI','Kotlin','React Native','Flutter',
-  // AI / Data
-  'OpenAI / Anthropic API','Vector DBs','Prompt Engineering','LangChain','RAG',
-  // DevOps
-  'Vercel','AWS','Docker','GitHub Actions',
-  // Design
-  'UI Design','UX Research','Branding','Motion Design',
-  // Languages
-  'Deutsch','English','Français','Español',
-]
+const LEGAL_PROVIDER = {
+  owner: 'Stefan Dirnberger',
+  coFounder: 'Ramon',
+  street: 'Lindenstr. 15',
+  city: '84036 Kumhausen',
+}
+type Tab = 'profile'|'company'|'security'|'integrations'
 type Notifs = { ai_updates:boolean; dev_activity:boolean; billing:boolean; project_status:boolean }
 
 export default function SettingsPage() {
@@ -41,15 +30,6 @@ export default function SettingsPage() {
   const [firstName, setFirstName] = useState('')
   const [lastName,  setLastName]  = useState('')
   const [phone,     setPhone]     = useState('')
-
-  // skills/availability (used by Tagro AI for dev matching)
-  const [bio,        setBio]        = useState('')
-  const [skills,     setSkills]     = useState<string[]>([])
-  const [hourlyRate, setHourlyRate] = useState('')
-  const [availability, setAvailability] = useState<'full_time'|'part_time'|'on_demand'|'unavailable'>('full_time')
-  const [timezone,   setTimezone]   = useState('Europe/Berlin')
-  const [skillsSaving, setSkillsSaving] = useState(false)
-  const [skillsSaved,  setSkillsSaved]  = useState<'ok'|'err'|null>(null)
 
   // company fields
   const [compName, setCompName] = useState('')
@@ -109,10 +89,6 @@ export default function SettingsPage() {
       if (p) {
         setFirstName(p.first_name??''); setLastName(p.last_name??''); setPhone(p.phone??'')
         setRole(p.role??'client'); setJoinDate(p.created_at??''); setAvatarUrl(p.avatar_url??null)
-        setBio(p.bio??''); setSkills(Array.isArray(p.skills) ? p.skills : [])
-        setHourlyRate(p.hourly_rate ? String(p.hourly_rate) : '')
-        if (['full_time','part_time','on_demand','unavailable'].includes(p.availability)) setAvailability(p.availability)
-        if (p.timezone) setTimezone(p.timezone)
         setCompName(p.company_name??''); setCompDesc(p.company_desc??''); setCompInd(p.company_industry??'')
         setCompSize(p.company_size??''); setCompWeb(p.company_website??''); setLegalForm(p.legal_form??'')
         setVat(p.vat_number??''); setTax(p.tax_number??''); setAddr(p.company_address??'')
@@ -218,7 +194,7 @@ export default function SettingsPage() {
     if (updateErr) { setPwdMsg({ t:'err', m: updateErr.message }); return }
     // Log security event
     await sb.from('security_events').insert({ user_id: uid, event_type:'password_changed', metadata:{ method:'otp_email' } })
-    setPwdMsg({ t:'ok', m:'✓ Passwort erfolgreich geändert.' })
+    setPwdMsg({ t:'ok', m:'Passwort erfolgreich geändert.' })
     setNewPwd(''); setConfPwd(''); setPwdStep('form')
     setTimeout(() => setPwdMsg(null), 3000)
   }
@@ -275,111 +251,113 @@ export default function SettingsPage() {
 
   if (loading) return (
     <div style={{ display:'flex',justifyContent:'center',alignItems:'center',minHeight:'60vh' }}>
-      <div style={{ width:28,height:28,border:'2px solid #E2E8F0',borderTopColor:'var(--text)',borderRadius:'50%',animation:'spin .8s linear infinite' }} />
+      <div style={{ width:28,height:28,border:'2px solid #E2E8F0',borderTopColor:'#0F172A',borderRadius:'50%',animation:'spin .8s linear infinite' }} />
     </div>
   )
 
   return (
     <>
-    <div className="page-content-full" style={{ width:'100%' }}>
-    <div className="page-header">
-      <h1>Einstellungen</h1>
-    </div>
     <div style={{ display:'flex', gap:28, alignItems:'flex-start', width:'100%' }}>
       {/* Left column — settings forms */}
       <div style={{ flex:'1 1 0', minWidth:0 }}>
       <style>{`
-        .s-card { background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:var(--shadow-xs);margin-bottom:12px; }
-        .s-hd { padding:15px 22px;border-bottom:1px solid var(--border);background:var(--card);display:flex;align-items:center;justify-content:space-between; }
-        .s-hd-label { font-size:10.5px;font-weight:700;color:var(--text-muted);letter-spacing:.1em; }
+        .s-card { background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--shadow-xs);margin-bottom:12px; }
+        .s-hd { padding:14px 18px;border-bottom:1px solid var(--border);background:var(--bg);display:flex;align-items:center;justify-content:space-between; }
+        .s-hd-label { font-size:10.5px;font-weight:700;color:#94A3B8;letter-spacing:.1em; }
         .s-bd { padding:20px 22px;display:flex;flex-direction:column;gap:14px; }
-        .inp { width:100%;padding:11px 14px;background:var(--inp);border:1.5px solid var(--inp-border);border-radius:12px;font-size:15px;outline:none;color:var(--text);box-sizing:border-box;font-family:inherit;font-weight:500;transition:border-color .15s,box-shadow .15s,background .15s; }
-        .inp:focus { border-color:var(--inp-focus-border);background:var(--inp-focus);box-shadow:0 0 0 3px var(--glow); }
-        .inp:disabled { background:var(--card);color:var(--text-muted);cursor:not-allowed; }
-        .inp::placeholder { color:var(--text-muted);opacity:.7; }
-        .txta { width:100%;padding:11px 14px;background:var(--inp);border:1.5px solid var(--inp-border);border-radius:12px;font-size:15px;outline:none;color:var(--text);box-sizing:border-box;resize:vertical;min-height:96px;font-family:inherit;font-weight:500;transition:all .15s;line-height:1.6; }
-        .txta:focus { border-color:var(--inp-focus-border);background:var(--inp-focus);box-shadow:0 0 0 3px var(--glow); }
+        .inp { width:100%;padding:11px 14px;background:#F8FAFC;border:1.5px solid #EEF2F7;border-radius:12px;font-size:15px;outline:none;color:#0F172A;box-sizing:border-box;font-family:inherit;font-weight:500;transition:border-color .15s,box-shadow .15s,background .15s; }
+        .inp:focus { border-color:#CBD5E1;background:#fff;box-shadow:0 0 0 3px rgba(15,23,42,.05); }
+        .inp:disabled { background:#F1F5F9;color:#94A3B8;cursor:not-allowed; }
+        .inp::placeholder { color:#C1CAD7; }
+        .txta { width:100%;padding:11px 14px;background:#F8FAFC;border:1.5px solid #EEF2F7;border-radius:12px;font-size:15px;outline:none;color:#0F172A;box-sizing:border-box;resize:vertical;min-height:96px;font-family:inherit;font-weight:500;transition:all .15s;line-height:1.6; }
+        .txta:focus { border-color:#CBD5E1;background:#fff;box-shadow:0 0 0 3px rgba(15,23,42,.05); }
         .sel-wrap { position:relative; }
-        .sel { width:100%;padding:11px 38px 11px 14px;background:var(--inp);border:1.5px solid var(--inp-border);border-radius:12px;font-size:15px;outline:none;color:var(--text);box-sizing:border-box;cursor:pointer;font-family:inherit;font-weight:500;appearance:none;transition:all .15s; }
-        .sel:focus { border-color:var(--inp-focus-border);background:var(--inp-focus); }
-        .sel-arr { position:absolute;right:13px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--text-muted); }
-        .btn-primary { display:inline-flex;align-items:center;gap:8px;padding:10px 20px;background:var(--btn-prim);color:var(--btn-prim-text);border:none;border-radius:12px;font-size:13.5px;font-weight:600;cursor:pointer;font-family:inherit;box-shadow:var(--shadow-sm);transition:all .15s; }
-        .btn-primary:hover { opacity:.88;transform:translateY(-1px);box-shadow:var(--shadow); }
+        .sel { width:100%;padding:11px 38px 11px 14px;background:#F8FAFC;border:1.5px solid #EEF2F7;border-radius:12px;font-size:15px;outline:none;color:#0F172A;box-sizing:border-box;cursor:pointer;font-family:inherit;font-weight:500;appearance:none;transition:all .15s; }
+        .sel:focus { border-color:#CBD5E1;background:#fff; }
+        .sel-arr { position:absolute;right:13px;top:50%;transform:translateY(-50%);pointer-events:none;color:#94A3B8; }
+        .btn-primary { display:inline-flex;align-items:center;gap:8px;padding:10px 20px;background:#0F172A;color:#fff;border:none;border-radius:12px;font-size:13.5px;font-weight:600;cursor:pointer;font-family:inherit;box-shadow:0 2px 8px rgba(15,23,42,.18);transition:all .15s; }
+        .btn-primary:hover { opacity:.88;transform:translateY(-1px);box-shadow:0 4px 16px rgba(15,23,42,.22); }
         .btn-primary:disabled { opacity:.4;cursor:default;transform:none; }
-        .btn-ghost { display:inline-flex;align-items:center;gap:7px;padding:8px 14px;background:transparent;color:var(--text-secondary);border:1.5px solid var(--border);border-radius:10px;font-size:12.5px;font-weight:500;cursor:pointer;font-family:inherit;transition:all .15s; }
-        .btn-ghost:hover { background:var(--card);border-color:var(--border-strong); }
-        .btn-danger { display:inline-flex;align-items:center;gap:6px;padding:7px 13px;background:var(--red-bg);color:var(--red);border:1.5px solid var(--red);border-radius:9px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;opacity:.85; }
-        .btn-danger:hover { opacity:1; }
-        .lbl { font-size:12px;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:6px;letter-spacing:.01em; }
+        .btn-ghost { display:inline-flex;align-items:center;gap:7px;padding:8px 14px;background:transparent;color:#475569;border:1.5px solid #E2E8F0;border-radius:10px;font-size:12.5px;font-weight:500;cursor:pointer;font-family:inherit;transition:all .15s; }
+        .btn-ghost:hover { background:#F8FAFC;border-color:#CBD5E1; }
+        .btn-danger { display:inline-flex;align-items:center;gap:6px;padding:7px 13px;background:#FEF2F2;color:#EF4444;border:1.5px solid #FECACA;border-radius:9px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s; }
+        .btn-danger:hover { background:#FEE2E2; }
+        .lbl { font-size:12px;font-weight:600;color:#64748B;display:block;margin-bottom:6px;letter-spacing:.01em; }
         .row2 { display:grid;grid-template-columns:1fr 1fr;gap:12px; }
         .row3 { display:grid;grid-template-columns:80px 1fr;gap:8px; }
         .tog { width:44px;height:24px;border-radius:12px;position:relative;cursor:pointer;transition:background .2s;border:none;flex-shrink:0; }
         .tog-th { position:absolute;top:2px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.2);transition:left .18s cubic-bezier(.4,0,.2,1); }
         /* Tabs */
-        .tab-row { display:flex;background:var(--card);border-radius:12px;padding:4px;gap:3px;margin-bottom:14px; }
-        .tab-btn { flex:1;padding:9px 8px;border-radius:10px;border:none;cursor:pointer;font-size:13px;font-weight:500;font-family:inherit;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px; }
-        .tab-on  { background:var(--surface);color:var(--text);font-weight:700;box-shadow:var(--shadow-xs); }
-        .tab-off { background:transparent;color:var(--text-muted); }
-        .tab-off:hover { color:var(--text);background:var(--surface-2); }
+        .tab-row { display:flex;background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:3px;gap:2px;margin-bottom:14px; }
+        .tab-btn { flex:1;padding:8px;border-radius:var(--r-sm);border:none;cursor:pointer;font-size:13px;font-weight:500;font-family:inherit;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px; }
+        .tab-on  { background:var(--surface);color:var(--text);font-weight:650;box-shadow:var(--shadow-xs); }
+        .tab-off { background:transparent;color:#94A3B8; }
+        .tab-off:hover { color:#475569;background:rgba(255,255,255,.5); }
         /* Integration cards */
-        .int-card { background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:14px 16px;display:flex;gap:13px;align-items:center;transition:all .15s; }
-        .int-card:hover { border-color:var(--border-strong);background:var(--surface);box-shadow:var(--shadow-xs); }
-        .int-logo { width:42px;height:42px;border-radius:11px;background:var(--surface-2);border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0; }
+        .int-card { background:#FAFBFD;border:1.5px solid #EEF2F7;border-radius:14px;padding:14px 16px;display:flex;gap:13px;align-items:center;transition:all .15s; }
+        .int-card:hover { border-color:#CBD5E1;background:#fff;box-shadow:0 2px 12px rgba(15,23,42,.04); }
+        .int-logo { width:42px;height:42px;border-radius:11px;background:#fff;border:1.5px solid #EEF2F7;display:flex;align-items:center;justify-content:center;flex-shrink:0; }
         /* Device card */
-        .dev-card { background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:12px 15px;display:flex;gap:12px;align-items:center; }
-        .webhook-row { background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:11px 15px;display:flex;gap:10px;align-items:center; }
+        .dev-card { background:#FAFBFD;border:1.5px solid #EEF2F7;border-radius:12px;padding:12px 15px;display:flex;gap:12px;align-items:center; }
+        .webhook-row { background:#FAFBFD;border:1.5px solid #EEF2F7;border-radius:12px;padding:11px 15px;display:flex;gap:10px;align-items:center; }
         .chip { display:inline-block;padding:2px 8px;border-radius:6px;font-size:10.5px;font-weight:700;letter-spacing:.04em; }
-        .chip-green { background:var(--green-bg);color:var(--green-dark);border:1px solid var(--green-border); }
-        .chip-gray { background:var(--surface-2);color:var(--text-secondary);border:1px solid var(--border); }
-        .chip-blue { background:var(--surface-2);color:var(--text);border:1px solid var(--border); }
-        .ai-badge { display:inline-flex;align-items:center;gap:4px;padding:3px 9px;background:var(--card);border:1px solid var(--border);border-radius:6px;font-size:10px;font-weight:700;color:var(--text-secondary);letter-spacing:.04em; }
-        .key-box { background:var(--surface-2);border-radius:10px;padding:12px 16px;font-family:'SF Mono',monospace;font-size:12.5px;color:var(--green);word-break:break-all;letter-spacing:.04em;line-height:1.6; }
+        .chip-green { background:#ECFDF5;color:#059669;border:1px solid #A7F3D0; }
+        .chip-gray { background:#F1F5F9;color:#64748B;border:1px solid #E2E8F0; }
+        .chip-blue { background:#EFF6FF;color:#2563EB;border:1px solid #BFDBFE; }
+        .ai-badge { display:inline-flex;align-items:center;gap:4px;padding:3px 9px;background:#EFF6FF;border:1px solid #BFDBFE;border-radius:6px;font-size:10px;font-weight:700;color:#2563EB;letter-spacing:.04em; }
+        .key-box { background:#0F172A;border-radius:10px;padding:12px 16px;font-family:'SF Mono',monospace;font-size:12.5px;color:#4ade80;word-break:break-all;letter-spacing:.04em;line-height:1.6; }
         @media(max-width:600px) { .row2,.row3 { grid-template-columns:1fr; } }
         @keyframes spin { to{transform:rotate(360deg);} }
         @keyframes fadeUp { from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);} }
         .fade-in { animation:fadeUp .25s ease both; }
       `}</style>
 
+      {/* Page header */}
+      <div className="animate-fade-up" style={{ marginBottom:22 }}>
+        <h1 style={{ marginBottom:3 }}>Einstellungen</h1>
+        <p style={{ fontSize:14,color:'#64748B' }}>Profil · Unternehmen · Sicherheit · Integrationen</p>
+      </div>
+
       {/* ── AVATAR CARD ──────────────────────────────────── */}
       <div className="s-card animate-fade-up-1" style={{ marginBottom:14 }}>
-        <div style={{ padding:'20px 22px',display:'flex',gap:18,alignItems:'center',flexWrap:'wrap' }}>
+        <div style={{ padding:'14px 16px',display:'flex',gap:12,alignItems:'center',flexWrap:'wrap' }}>
           {/* Avatar */}
           <div style={{ position:'relative',flexShrink:0 }}>
             <div
               onClick={() => fileRef.current?.click()}
-              style={{ width:72,height:72,borderRadius:'50%',cursor:'pointer',overflow:'hidden',position:'relative',border:'3px solid var(--surface)',boxShadow:'0 0 0 2px var(--border), var(--shadow)',boxSizing:'border-box',flexShrink:0 }}
+              style={{ width:44,height:44,borderRadius:'50%',cursor:'pointer',overflow:'hidden',position:'relative',border:'1px solid var(--border)',boxShadow:'var(--shadow-xs)' }}
             >
               {uploading ? (
-                <div style={{ width:'100%',height:'100%',background:'var(--surface-2)',display:'flex',alignItems:'center',justifyContent:'center' }}>
-                  <div style={{ width:20,height:20,border:'2.5px solid #CBD5E1',borderTopColor:'var(--text)',borderRadius:'50%',animation:'spin .7s linear infinite' }} />
+                <div style={{ width:'100%',height:'100%',background:'#F1F5F9',display:'flex',alignItems:'center',justifyContent:'center' }}>
+                  <div style={{ width:20,height:20,border:'2.5px solid #CBD5E1',borderTopColor:'#0F172A',borderRadius:'50%',animation:'spin .7s linear infinite' }} />
                 </div>
               ) : avatarUrl ? (
                 <img src={avatarUrl} alt="" style={{ width:'100%',height:'100%',objectFit:'cover',display:'block' }} />
               ) : (
-                <div style={{ width:'100%',height:'100%',background:'var(--surface-2)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:26,fontWeight:700,color:'var(--text)' }}>{initial}</div>
+                <div style={{ width:'100%',height:'100%',background:'var(--surface-2)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:17,fontWeight:700,color:'var(--text)' }}>{initial}</div>
               )}
             </div>
             {/* Edit badge */}
-            <div onClick={() => fileRef.current?.click()} style={{ position:'absolute',bottom:1,right:1,width:22,height:22,background:'var(--accent)',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',border:'2px solid var(--surface)',boxShadow:'0 2px 8px rgba(0,0,0,.2)' }}>
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            <div onClick={() => fileRef.current?.click()} style={{ position:'absolute',bottom:-2,right:-2,width:18,height:18,background:'var(--surface)',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',border:'1px solid var(--border)',boxShadow:'var(--shadow-xs)' }}>
+              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
             </div>
           </div>
           <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" style={{ display:'none' }} onChange={e => { const f=e.target.files?.[0]; if(f) uploadAvatar(f); e.target.value='' }} />
 
           {/* User info */}
           <div style={{ flex:1,minWidth:140 }}>
-            <p style={{ fontSize:17,fontWeight:700,color:'var(--text)',margin:'0 0 2px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:220 }}>
+            <p style={{ fontSize:14,fontWeight:650,color:'var(--text)',margin:'0 0 1px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:220 }}>
               {displayName}
             </p>
-            <p style={{ fontSize:12.5,color:'var(--text-muted)',margin:'0 0 8px',textTransform:'capitalize' }}>
+            <p style={{ fontSize:12,color:'var(--text-muted)',margin:'0 0 7px',textTransform:'capitalize' }}>
               {role}{joinDate && ` · Seit ${new Date(joinDate).toLocaleDateString('de',{month:'short',year:'numeric'})}`}
             </p>
             <div style={{ display:'flex',gap:6,flexWrap:'wrap',alignItems:'center' }}>
-              <span className="chip chip-green" style={{ display:'flex',alignItems:'center',gap:5 }}>
-                <span style={{ width:5,height:5,borderRadius:'50%',background:'var(--green)',animation:'pulse 2s infinite' }} />
+              <span className="chip chip-green" style={{ display:'flex',alignItems:'center',gap:5,borderRadius:'var(--r-xs)' }}>
+                <span style={{ width:5,height:5,borderRadius:'50%',background:'#10B981' }} />
                 AKTIV
               </span>
-              <button onClick={() => fileRef.current?.click()} className="btn-ghost" style={{ fontSize:11.5,padding:'4px 10px' }}>
+              <button onClick={() => fileRef.current?.click()} className="btn-ghost" style={{ fontSize:11.5,padding:'4px 9px',borderRadius:'var(--r-sm)' }}>
                 Foto ändern
               </button>
             </div>
@@ -396,12 +374,11 @@ export default function SettingsPage() {
       {/* ── TABS ─────────────────────────────────────────── */}
       <div className="tab-row animate-fade-up-2">
         {([
-          { k:'profile',      l:'Profil',        icon:'M12 8a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 20c0-4 4-6 8-6s8 2 8 6', show: true },
-          { k:'skills',       l:'Skills',        icon:'M13 2L3 14h9l-1 8 10-12h-9l1-8z',                                show: role==='dev'||role==='admin' },
-          { k:'company',      l:'Unternehmen',   icon:'M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z',                  show: true },
-          { k:'security',     l:'Sicherheit',    icon:'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z',                     show: true },
-          { k:'integrations', l:'Integrationen', icon:'M18 20V10M12 20V4M6 20v-6',                                       show: true },
-        ] as const).filter(t => t.show).map(t => (
+          { k:'profile',      l:'Profil',        icon:'M12 8a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 20c0-4 4-6 8-6s8 2 8 6' },
+          { k:'company',      l:'Unternehmen',   icon:'M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z' },
+          { k:'security',     l:'Sicherheit',    icon:'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z' },
+          { k:'integrations', l:'Integrationen', icon:'M18 20V10M12 20V4M6 20v-6' },
+        ] as const).map(t => (
           <button key={t.k} onClick={() => setTab(t.k)} className={`tab-btn ${tab===t.k?'tab-on':'tab-off'}`}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={tab===t.k?2.2:1.7} strokeLinecap="round" strokeLinejoin="round"><path d={t.icon}/></svg>
             <span className="hide-mobile">{t.l}</span>
@@ -431,12 +408,12 @@ export default function SettingsPage() {
               <div>
                 <label className="lbl">E-Mail</label>
                 <input value={email} disabled className="inp"/>
-                <p style={{ fontSize:11,color:'var(--text-muted)',marginTop:5 }}>E-Mail kann nicht geändert werden.</p>
+                <p style={{ fontSize:11,color:'#94A3B8',marginTop:5 }}>E-Mail kann nicht geändert werden.</p>
               </div>
 
               {/* Notifications inline */}
-              <div style={{ borderTop:'1px solid var(--border)',paddingTop:16 }}>
-                <p style={{ fontSize:10.5,fontWeight:700,color:'var(--text-muted)',letterSpacing:'.1em',marginBottom:12 }}>BENACHRICHTIGUNGEN</p>
+              <div style={{ borderTop:'1px solid #F1F5F9',paddingTop:16 }}>
+                <p style={{ fontSize:10.5,fontWeight:700,color:'#94A3B8',letterSpacing:'.1em',marginBottom:12 }}>BENACHRICHTIGUNGEN</p>
                 {[
                   { k:'ai_updates',     l:'AI Updates & Tagesberichte',  d:'Wenn Tagro Berichte erstellt' },
                   { k:'dev_activity',   l:'Developer-Aktivität',          d:'Tasks erledigt oder aktiv' },
@@ -447,126 +424,25 @@ export default function SettingsPage() {
                   return (
                     <div key={n.k} style={{ display:'flex',justifyContent:'space-between',alignItems:'center',padding:'11px 0',borderBottom:i<3?'1px solid #F8FAFC':'none' }}>
                       <div>
-                        <p style={{ fontSize:13.5,fontWeight:600,color:'var(--text)',margin:0 }}>{n.l}</p>
-                        <p style={{ fontSize:11.5,color:'var(--text-muted)',margin:'2px 0 0' }}>{n.d}</p>
+                        <p style={{ fontSize:13.5,fontWeight:600,color:'#0F172A',margin:0 }}>{n.l}</p>
+                        <p style={{ fontSize:11.5,color:'#94A3B8',margin:'2px 0 0' }}>{n.d}</p>
                       </div>
-                      <button className="tog" onClick={()=>toggleNotif(n.k as keyof Notifs)} style={{ background:on?'var(--green)':'var(--border-strong)' }}>
+                      <button className="tog" onClick={()=>toggleNotif(n.k as keyof Notifs)} style={{ background:on?'#10B981':'#E2E8F0' }}>
                         <div className="tog-th" style={{ left:on?22:2 }} />
                       </button>
                     </div>
                   )
                 })}
                 {pushSup && !pushOk && (
-                  <div style={{ marginTop:14,background:'var(--accent)',borderRadius:12,padding:'13px 16px',display:'flex',gap:13,alignItems:'center' }}>
-                    <p style={{ fontSize:13,fontWeight:600,color:'var(--accent-text)',flex:1,margin:0,lineHeight:1.4 }}>Push-Benachrichtigungen aktivieren</p>
-                    <button onClick={enablePush} style={{ padding:'7px 14px',background:'var(--btn-prim)',color:'var(--btn-prim-text)',border:'none',borderRadius:9,fontSize:12,fontWeight:700,cursor:'pointer',flexShrink:0 }}>Aktivieren</button>
+                  <div style={{ marginTop:14,background:'#0F172A',borderRadius:14,padding:'13px 16px',display:'flex',gap:13,alignItems:'center' }}>
+                    <p style={{ fontSize:13,fontWeight:600,color:'#fff',flex:1,margin:0,lineHeight:1.4 }}>Push-Benachrichtigungen aktivieren</p>
+                    <button onClick={enablePush} style={{ padding:'7px 14px',background:'#fff',color:'#0F172A',border:'none',borderRadius:9,fontSize:12,fontWeight:700,cursor:'pointer',flexShrink:0 }}>Aktivieren</button>
                   </div>
                 )}
-                {pushOk && <div style={{ marginTop:10,padding:'10px 14px',background:'var(--green-bg)',border:'1px solid var(--green-border)',borderRadius:10,fontSize:13,color:'var(--green-dark)',fontWeight:600 }}>✓ Push aktiv auf diesem Gerät</div>}
+                {pushOk && <div style={{ marginTop:10,padding:'10px 14px',background:'#ECFDF5',border:'1px solid #A7F3D0',borderRadius:10,fontSize:13,color:'#059669',fontWeight:600 }}>Push aktiv auf diesem Gerät</div>}
               </div>
 
               <SaveBtn saving={saving} saved={saved} onClick={save} />
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ══════════════════════════════════════════════════
-          TAB: SKILLS & VERFÜGBARKEIT (dev/admin only)
-      ══════════════════════════════════════════════════ */}
-      {tab==='skills' && (
-        <div className="fade-in">
-          <div className="s-card">
-            <div className="s-hd">
-              <span className="s-hd-label">DEV PROFIL FÜR TAGRO AI</span>
-            </div>
-            <div className="s-bd">
-              <p style={{ fontSize:12.5, color:'var(--text-secondary)', margin:'0 0 14px', lineHeight:1.55 }}>
-                Tagro nutzt diese Daten, um dich mit passenden Projekten zu matchen. Je präziser, desto bessere Vorschläge.
-              </p>
-
-              <div>
-                <label className="lbl">Bio · was machst du am liebsten?</label>
-                <textarea value={bio} onChange={e => setBio(e.target.value)} rows={3} className="inp" style={{ resize:'vertical', minHeight:78 }}
-                  placeholder="z.B. 'Senior Full-Stack Dev mit Fokus auf SaaS-Plattformen und Stripe-Integrationen. 8 Jahre Erfahrung mit React + Node.'"/>
-                <p style={{ fontSize:11, color:'var(--text-muted)', margin:'4px 0 0' }}>
-                  {bio.length}/400 — Tagro liest das wie ein Recruiter.
-                </p>
-              </div>
-
-              <div>
-                <label className="lbl">Skills · klick zum Hinzufügen</label>
-                <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginBottom:10 }}>
-                  {skills.map(s => (
-                    <button key={s} onClick={() => setSkills(skills.filter(x => x !== s))} style={{ padding:'5px 11px 5px 13px', background:'var(--text)', color:'var(--bg)', border:'none', borderRadius:18, fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', gap:6 }}>
-                      {s}
-                      <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
-                    </button>
-                  ))}
-                  {skills.length === 0 && (
-                    <p style={{ fontSize:12, color:'var(--text-muted)', margin:0, fontStyle:'italic' }}>Keine Skills ausgewählt — wähle aus dem Katalog unten.</p>
-                  )}
-                </div>
-                <div style={{ display:'flex', flexWrap:'wrap', gap:5, padding:10, background:'var(--surface-2)', borderRadius:10 }}>
-                  {SKILL_CATALOG.filter(c => !skills.includes(c)).map(s => (
-                    <button key={s} onClick={() => setSkills([...skills, s])} style={{ padding:'4px 10px', background:'var(--surface)', border:'1px solid var(--border)', borderRadius:14, fontSize:11.5, fontWeight:600, color:'var(--text-secondary)', cursor:'pointer', fontFamily:'inherit' }}>
-                      + {s}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="row2">
-                <div>
-                  <label className="lbl">Stundensatz · €/h</label>
-                  <input value={hourlyRate} onChange={e => setHourlyRate(e.target.value.replace(/[^\d.]/g, ''))} placeholder="85" className="inp"/>
-                </div>
-                <div>
-                  <label className="lbl">Verfügbarkeit</label>
-                  <select value={availability} onChange={e => setAvailability(e.target.value as any)} className="inp">
-                    <option value="full_time">Vollzeit (40h+/Woche)</option>
-                    <option value="part_time">Teilzeit (15-30h/Woche)</option>
-                    <option value="on_demand">Auf Anfrage</option>
-                    <option value="unavailable">Aktuell nicht verfügbar</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="lbl">Zeitzone</label>
-                <select value={timezone} onChange={e => setTimezone(e.target.value)} className="inp">
-                  <option value="Europe/Berlin">Europe/Berlin (CET)</option>
-                  <option value="Europe/London">Europe/London (GMT)</option>
-                  <option value="America/New_York">America/New_York (EST)</option>
-                  <option value="America/Los_Angeles">America/Los_Angeles (PST)</option>
-                  <option value="Asia/Tokyo">Asia/Tokyo (JST)</option>
-                  <option value="Australia/Sydney">Australia/Sydney (AEST)</option>
-                </select>
-              </div>
-
-              <button onClick={async () => {
-                setSkillsSaving(true); setSkillsSaved(null)
-                const { error } = await sb.from('profiles').update({
-                  bio: bio || null,
-                  skills,
-                  hourly_rate: hourlyRate ? Number(hourlyRate) : null,
-                  availability,
-                  timezone,
-                }).eq('id', uid)
-                setSkillsSaving(false)
-                setSkillsSaved(error ? 'err' : 'ok')
-                setTimeout(() => setSkillsSaved(null), 2400)
-              }}
-                style={{ marginTop:6, padding:'12px 18px', background:'var(--btn-prim)', color:'var(--btn-prim-text)', border:'none', borderRadius:11, fontSize:13.5, fontWeight:700, cursor:'pointer', fontFamily:'inherit', display:'inline-flex', alignItems:'center', gap:8 }}>
-                {skillsSaving ? 'Speichert…' : skillsSaved === 'ok' ? '✓ Gespeichert' : skillsSaved === 'err' ? 'Fehler' : 'Skills speichern'}
-              </button>
-
-              <div style={{ marginTop:14, padding:'12px 14px', background:'var(--surface-2)', border:'1px solid var(--border)', borderRadius:10 }}>
-                <p style={{ fontSize:11, fontWeight:800, color:'var(--text-muted)', letterSpacing:'.07em', margin:'0 0 4px' }}>TAGRO MATCHING</p>
-                <p style={{ fontSize:12.5, color:'var(--text-secondary)', margin:0, lineHeight:1.55 }}>
-                  Mit deinem Profil matched Tagro AI Projekte automatisch nach Stack-Fit, Verfügbarkeit und Stundensatz. Das Match wird im Pool-Modus angezeigt.
-                </p>
-              </div>
             </div>
           </div>
         </div>
@@ -595,10 +471,10 @@ export default function SettingsPage() {
               <div>
                 <label className="lbl" style={{ display:'flex',justifyContent:'space-between',alignItems:'center' }}>
                   Unternehmensbeschreibung
-                  <span style={{ fontSize:10.5,color:'var(--text-secondary)',fontWeight:700 }}>✦ Wichtig für AI</span>
+                  <span style={{ fontSize:10.5,color:'#2563EB',fontWeight:700 }}>Wichtig für AI</span>
                 </label>
                 <textarea value={compDesc} onChange={e=>setCompDesc(e.target.value)} placeholder="Was macht dein Unternehmen? Wer sind deine Kunden? Tagro nutzt diese Infos um Projekte besser zu verstehen und zu planen…" className="txta" style={{ minHeight:100 }}/>
-                <p style={{ fontSize:11,color:'var(--text-muted)',marginTop:4 }}>{compDesc.length} Zeichen</p>
+                <p style={{ fontSize:11,color:'#94A3B8',marginTop:4 }}>{compDesc.length} Zeichen</p>
               </div>
 
               <div className="row2">
@@ -620,7 +496,7 @@ export default function SettingsPage() {
                   <input value={compWeb} onChange={e=>setCompWeb(e.target.value)} placeholder="Noch keine Website? Festag kümmert sich darum!" className="inp" type="url" style={{ paddingLeft:40 }}/>
                   <svg style={{ position:'absolute',left:13,top:'50%',transform:'translateY(-50%)',pointerEvents:'none' }} width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth="1.8" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10A15.3 15.3 0 0 1 8 12 15.3 15.3 0 0 1 12 2z"/></svg>
                 </div>
-                {!compWeb && <p style={{ fontSize:11.5,color:'var(--green-dark)',marginTop:5,fontWeight:600 }}>✦ Keine Website? Festag baut sie für dich!</p>}
+                {!compWeb && <p style={{ fontSize:11.5,color:'#059669',marginTop:5,fontWeight:600 }}>Keine Website? Festag baut sie für dich.</p>}
               </div>
 
               {/* Address */}
@@ -634,13 +510,30 @@ export default function SettingsPage() {
               </div>
 
               {/* Legal / Tax */}
-              <div style={{ borderTop:'1px solid var(--border)',paddingTop:16 }}>
-                <p style={{ fontSize:10.5,fontWeight:700,color:'var(--text-muted)',letterSpacing:'.1em',marginBottom:12 }}>STEUER & RECHT</p>
+              <div style={{ borderTop:'1px solid #F1F5F9',paddingTop:16 }}>
+                <p style={{ fontSize:10.5,fontWeight:700,color:'#94A3B8',letterSpacing:'.1em',marginBottom:12 }}>STEUER & RECHT</p>
                 <div className="row2">
                   <div><label className="lbl">USt-IdNr.</label><input value={vat} onChange={e=>setVat(e.target.value)} placeholder="DE123456789" className="inp"/></div>
                   <div><label className="lbl">Steuernummer</label><input value={tax} onChange={e=>setTax(e.target.value)} placeholder="12/345/67890" className="inp"/></div>
                 </div>
-                <p style={{ fontSize:11,color:'var(--text-muted)',marginTop:6 }}>Für Rechnungen und Verträge. Optional.</p>
+                <p style={{ fontSize:11,color:'#94A3B8',marginTop:6 }}>Für Rechnungen und Verträge. Optional.</p>
+              </div>
+
+              <div style={{ borderTop:'1px solid var(--border)',paddingTop:16 }}>
+                <p style={{ fontSize:10.5,fontWeight:700,color:'var(--text-muted)',letterSpacing:'.1em',marginBottom:12 }}>RECHTLICHER ANBIETER</p>
+                <div style={{ border:'1px solid var(--border)',borderRadius:'var(--r)',overflow:'hidden',background:'var(--surface)' }}>
+                  {[
+                    ['Inhaber', LEGAL_PROVIDER.owner],
+                    ['Co-Founder', LEGAL_PROVIDER.coFounder],
+                    ['Adresse', `${LEGAL_PROVIDER.street}, ${LEGAL_PROVIDER.city}`],
+                  ].map(([label, value], i) => (
+                    <div key={label} style={{ display:'flex',justifyContent:'space-between',gap:16,padding:'10px 12px',borderBottom:i<2?'1px solid var(--border)':'none' }}>
+                      <span style={{ fontSize:12,color:'var(--text-muted)' }}>{label}</span>
+                      <strong style={{ fontSize:12.5,color:'var(--text)',fontWeight:650,textAlign:'right' }}>{value}</strong>
+                    </div>
+                  ))}
+                </div>
+                <p style={{ fontSize:11,color:'var(--text-muted)',marginTop:7 }}>Impressum, Datenschutz, AGB und Widerruf sollten als öffentliche Legal-Seiten verlinkt werden, nicht als sichtbare App-Footerlinks.</p>
               </div>
 
               <SaveBtn saving={saving} saved={saved} onClick={save} />
@@ -658,20 +551,20 @@ export default function SettingsPage() {
             <div className="s-hd">
               <div>
                 <span className="s-hd-label">PASSWORT ÄNDERN</span>
-                <p style={{ fontSize:11.5,color:'var(--text-muted)',margin:'3px 0 0' }}>Änderung wird per E-Mail bestätigt</p>
+                <p style={{ fontSize:11.5,color:'#94A3B8',margin:'3px 0 0' }}>Änderung wird per E-Mail bestätigt</p>
               </div>
-              <div style={{ display:'flex',alignItems:'center',gap:5,padding:'4px 10px',background:'var(--green-bg)',border:'1px solid var(--green-border)',borderRadius:8 }}>
+              <div style={{ display:'flex',alignItems:'center',gap:5,padding:'4px 10px',background:'#ECFDF5',border:'1px solid #A7F3D0',borderRadius:8 }}>
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                <span style={{ fontSize:10.5,fontWeight:700,color:'var(--green-dark)',letterSpacing:'.04em' }}>VERIFIZIERT</span>
+                <span style={{ fontSize:10.5,fontWeight:700,color:'#059669',letterSpacing:'.04em' }}>VERIFIZIERT</span>
               </div>
             </div>
             <div className="s-bd">
               {pwdStep==='form' ? (
                 <>
-                  <div style={{ background:'var(--card)',border:'1.5px solid var(--border)',borderRadius:12,padding:'12px 16px',display:'flex',gap:10,alignItems:'flex-start' }}>
+                  <div style={{ background:'#F8FAFC',border:'1.5px solid #EEF2F7',borderRadius:12,padding:'12px 16px',display:'flex',gap:10,alignItems:'flex-start' }}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748B" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink:0,marginTop:1 }}><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-                    <p style={{ fontSize:12.5,color:'var(--text-secondary)',margin:0,lineHeight:1.5 }}>
-                      Nach dem Absenden erhältst du einen Bestätigungslink an <strong style={{ color:'var(--text)' }}>{email}</strong>. Erst nach Bestätigung wird das Passwort geändert.
+                    <p style={{ fontSize:12.5,color:'#64748B',margin:0,lineHeight:1.5 }}>
+                      Nach dem Absenden erhältst du einen Bestätigungslink an <strong style={{ color:'#0F172A' }}>{email}</strong>. Erst nach Bestätigung wird das Passwort geändert.
                     </p>
                   </div>
                   <div>
@@ -683,7 +576,7 @@ export default function SettingsPage() {
                     <input type="password" value={confPwd} onChange={e=>setConfPwd(e.target.value)} placeholder="Wiederholen" className="inp" autoComplete="new-password" onKeyDown={e=>e.key==='Enter'&&changePassword()}/>
                   </div>
                   {pwdMsg && (
-                    <div style={{ padding:'10px 14px',borderRadius:10,fontSize:13,fontWeight:500,background:pwdMsg.t==='ok'?'var(--green-bg)':'var(--red-bg)',color:pwdMsg.t==='ok'?'var(--green-dark)':'var(--red)',border:`1px solid ${pwdMsg.t==='ok'?'var(--green-border)':'rgba(239,68,68,0.3)'}` }}>{pwdMsg.m}</div>
+                    <div style={{ padding:'10px 14px',borderRadius:10,fontSize:13,fontWeight:500,background:pwdMsg.t==='ok'?'#ECFDF5':'#FEF2F2',color:pwdMsg.t==='ok'?'#059669':'#EF4444',border:`1px solid ${pwdMsg.t==='ok'?'#A7F3D0':'#FECACA'}` }}>{pwdMsg.m}</div>
                   )}
                   <button onClick={changePassword} disabled={pwdSaving||!newPwd||!confPwd} className="btn-primary" style={{ alignSelf:'flex-start' }}>
                     {pwdSaving
@@ -694,11 +587,11 @@ export default function SettingsPage() {
               ) : (
                 <>
                   {/* Sent state — show OTP input */}
-                  <div style={{ background:'var(--green-bg)',border:'1.5px solid var(--green-border)',borderRadius:12,padding:'14px 16px',display:'flex',gap:10,alignItems:'center' }}>
+                  <div style={{ background:'#ECFDF5',border:'1.5px solid #A7F3D0',borderRadius:12,padding:'14px 16px',display:'flex',gap:10,alignItems:'center' }}>
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2A19.79 19.79 0 0 1 2.09 5.18 2 2 0 0 1 4.09 3h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 10.9a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 17z"/></svg>
                     <div>
-                      <p style={{ fontSize:13,fontWeight:600,color:'var(--green-dark)',margin:0 }}>E-Mail gesendet an {email}</p>
-                      <p style={{ fontSize:12,color:'var(--green-dark)',margin:'2px 0 0',opacity:.8 }}>Gib den 6-stelligen Code aus der E-Mail ein</p>
+                      <p style={{ fontSize:13,fontWeight:600,color:'#059669',margin:0 }}>E-Mail gesendet an {email}</p>
+                      <p style={{ fontSize:12,color:'#059669',margin:'2px 0 0',opacity:.8 }}>Gib den 6-stelligen Code aus der E-Mail ein</p>
                     </div>
                   </div>
                   <div>
@@ -715,7 +608,7 @@ export default function SettingsPage() {
                     />
                   </div>
                   {pwdMsg && (
-                    <div style={{ padding:'10px 14px',borderRadius:10,fontSize:13,fontWeight:500,background:pwdMsg.t==='ok'?'var(--green-bg)':'var(--red-bg)',color:pwdMsg.t==='ok'?'var(--green-dark)':'var(--red)',border:`1px solid ${pwdMsg.t==='ok'?'var(--green-border)':'rgba(239,68,68,0.3)'}` }}>{pwdMsg.m}</div>
+                    <div style={{ padding:'10px 14px',borderRadius:10,fontSize:13,fontWeight:500,background:pwdMsg.t==='ok'?'#ECFDF5':'#FEF2F2',color:pwdMsg.t==='ok'?'#059669':'#EF4444',border:`1px solid ${pwdMsg.t==='ok'?'#A7F3D0':'#FECACA'}` }}>{pwdMsg.m}</div>
                   )}
                   <div style={{ display:'flex',gap:8 }}>
                     <button onClick={()=>confirmPasswordChange(pwdOtp)} disabled={pwdSaving||pwdOtp.length<6} className="btn-primary">
@@ -735,23 +628,23 @@ export default function SettingsPage() {
           <div className="s-card">
             <div className="s-hd">
               <span className="s-hd-label">AKTIVE GERÄTE</span>
-              <span style={{ fontSize:11.5,color:'var(--text-muted)' }}>{devices.length} Gerät{devices.length!==1?'e':''}</span>
+              <span style={{ fontSize:11.5,color:'#94A3B8' }}>{devices.length} Gerät{devices.length!==1?'e':''}</span>
             </div>
             <div style={{ padding:'12px 18px',display:'flex',flexDirection:'column',gap:8 }}>
               {devices.length===0
-                ? <p style={{ fontSize:13,color:'var(--text-muted)',textAlign:'center',padding:'16px 0',margin:0 }}>Noch keine Geräte</p>
+                ? <p style={{ fontSize:13,color:'#94A3B8',textAlign:'center',padding:'16px 0',margin:0 }}>Noch keine Geräte</p>
                 : devices.map(d => (
                   <div key={d.id} className="dev-card">
-                    <div style={{ width:40,height:40,borderRadius:11,background:d.is_current?'var(--green-bg)':'var(--surface-2)',border:`1.5px solid ${d.is_current?'var(--green-border)':'var(--border-strong)'}`,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0 }}>
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={d.is_current?'var(--green-dark)':'var(--text-muted)'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <div style={{ width:40,height:40,borderRadius:11,background:d.is_current?'#ECFDF5':'#F1F5F9',border:`1.5px solid ${d.is_current?'#A7F3D0':'#E2E8F0'}`,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0 }}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={d.is_current?'#059669':'#94A3B8'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                         {d.os==='iOS'||d.os==='Android'
                           ? <path d="M12 18h.01M8 21h8a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2z"/>
                           : <><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></>}
                       </svg>
                     </div>
                     <div style={{ flex:1,minWidth:0 }}>
-                      <p style={{ fontSize:13,fontWeight:600,color:'var(--text)',margin:0,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' }}>{d.device_name}</p>
-                      <p style={{ fontSize:11,color:'var(--text-muted)',margin:'2px 0 0' }}>Zuletzt: {new Date(d.last_seen).toLocaleDateString('de',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}</p>
+                      <p style={{ fontSize:13,fontWeight:600,color:'#0F172A',margin:0,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' }}>{d.device_name}</p>
+                      <p style={{ fontSize:11,color:'#94A3B8',margin:'2px 0 0' }}>Zuletzt: {new Date(d.last_seen).toLocaleDateString('de',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}</p>
                     </div>
                     {d.is_current
                       ? <span className="chip chip-green">Dieses Gerät</span>
@@ -777,30 +670,27 @@ export default function SettingsPage() {
             <div className="s-hd">
               <div>
                 <span className="s-hd-label">DIENSTE & AUTOMATISIERUNGEN</span>
-                <p style={{ fontSize:11.5,color:'var(--text-muted)',margin:'3px 0 0' }}>Fortschrittlich & bald verfügbar — Verbinde dein Festag-Konto</p>
+                <p style={{ fontSize:11.5,color:'#94A3B8',margin:'3px 0 0' }}>Fortschrittlich & bald verfügbar — Verbinde dein Festag-Konto</p>
               </div>
             </div>
             <div style={{ padding:'12px 18px',display:'flex',flexDirection:'column',gap:8 }}>
               {[
-                { name:'Slack',   logo:'/brand/slack.svg',   desc:'Tasks & Updates direkt in deinen Slack-Workspace senden',   features:['Task-Benachrichtigungen','AI-Berichte als Message','Team-Channel Sync'] },
-                { name:'Zapier',  logo:'/brand/zapier.svg',  desc:'Tausende Apps automatisch mit Festag verbinden',            features:['5000+ App-Verbindungen','Custom Trigger & Actions','No-Code Workflows'] },
-                { name:'Notion',  logo:'/brand/notion.svg',  desc:'Projekte, Tasks & Dokumente in Notion synchronisieren',     features:['Bidirektionaler Sync','Datenbank-Integration','Automatische Updates'] },
-                { name:'GitHub',  logo:'/brand/github.svg',  desc:'Code-Repositories verknüpfen & Deployments tracken',        features:['PR → Task-Verknüpfung','Deployment-Status','Code-Review Tracking'] },
-                { name:'Gmail',   logo:'/brand/gmail.svg',   desc:'E-Mail Benachrichtigungen & Kundenkommunikation',           features:['Automatische E-Mails','Kunden-Updates','Rechnungsversand'] },
+                { name:'Slack',   desc:'Tasks & Updates direkt in deinen Slack-Workspace senden',   features:['Task-Benachrichtigungen','AI-Berichte als Message','Team-Channel Sync'] },
+                { name:'Zapier',  desc:'Tausende Apps automatisch mit Festag verbinden',            features:['5000+ App-Verbindungen','Custom Trigger & Actions','No-Code Workflows'] },
+                { name:'Notion',  desc:'Projekte, Tasks & Dokumente in Notion synchronisieren',     features:['Bidirektionaler Sync','Datenbank-Integration','Automatische Updates'] },
+                { name:'GitHub',  desc:'Code-Repositories verknüpfen & Deployments tracken',        features:['PR zu Task-Verknüpfung','Deployment-Status','Code-Review Tracking'] },
+                { name:'Gmail',   desc:'E-Mail Benachrichtigungen & Kundenkommunikation',           features:['Automatische E-Mails','Kunden-Updates','Rechnungsversand'] },
               ].map((s, idx) => (
                 <div key={s.name} className="int-card" style={{ cursor:'default' }}>
-                  <div className="int-logo" style={{ background:s.name==='Notion'?'var(--accent)':'var(--surface-2)',flexShrink:0 }}>
-                    <img src={s.logo} alt={s.name} style={{ width:24,height:24,objectFit:'contain' }}/>
-                  </div>
                   <div style={{ flex:1,minWidth:0 }}>
                     <div style={{ display:'flex',alignItems:'center',gap:7,marginBottom:3 }}>
-                      <p style={{ fontSize:13.5,fontWeight:700,color:'var(--text)',margin:0 }}>{s.name}</p>
+                      <p style={{ fontSize:13.5,fontWeight:700,color:'#0F172A',margin:0 }}>{s.name}</p>
                       <span className="chip chip-blue" style={{ fontSize:9.5 }}>Kommt</span>
                     </div>
-                    <p style={{ fontSize:12,color:'var(--text-secondary)',margin:'0 0 6px',lineHeight:1.4 }}>{s.desc}</p>
+                    <p style={{ fontSize:12,color:'#64748B',margin:'0 0 6px',lineHeight:1.4 }}>{s.desc}</p>
                     <div style={{ display:'flex',gap:5,flexWrap:'wrap' }}>
                       {s.features.map(f => (
-                        <span key={f} style={{ fontSize:10.5,color:'var(--text-secondary)',background:'var(--surface-2)',border:'1px solid var(--border)',borderRadius:6,padding:'2px 7px',fontWeight:500 }}>{f}</span>
+                        <span key={f} style={{ fontSize:10.5,color:'#475569',background:'#F1F5F9',border:'1px solid #EEF2F7',borderRadius:6,padding:'2px 7px',fontWeight:500 }}>{f}</span>
                       ))}
                     </div>
                   </div>
@@ -812,23 +702,23 @@ export default function SettingsPage() {
           {/* Webhooks */}
           <div className="s-card">
             <div className="s-hd">
-              <div><span className="s-hd-label">WEBHOOKS</span><p style={{ fontSize:11.5,color:'var(--text-muted)',margin:'3px 0 0' }}>Events via HTTP POST senden</p></div>
-              <span style={{ fontSize:11.5,color:'var(--text-muted)' }}>{webhooks.length} aktiv</span>
+              <div><span className="s-hd-label">WEBHOOKS</span><p style={{ fontSize:11.5,color:'#94A3B8',margin:'3px 0 0' }}>Events via HTTP POST senden</p></div>
+              <span style={{ fontSize:11.5,color:'#94A3B8' }}>{webhooks.length} aktiv</span>
             </div>
             <div style={{ padding:'14px 18px',display:'flex',flexDirection:'column',gap:8 }}>
               {webhooks.map(w => (
                 <div key={w.id} className="webhook-row">
-                  <div style={{ width:7,height:7,borderRadius:'50%',background:w.active?'var(--green)':'var(--border-strong)',flexShrink:0 }} />
+                  <div style={{ width:7,height:7,borderRadius:'50%',background:w.active?'#10B981':'#E2E8F0',flexShrink:0 }} />
                   <div style={{ flex:1,minWidth:0 }}>
-                    <p style={{ fontSize:13,fontWeight:600,color:'var(--text)',margin:0 }}>{w.name}</p>
-                    <p style={{ fontSize:11,color:'var(--text-muted)',margin:'1px 0 0',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' }}>{w.url}</p>
+                    <p style={{ fontSize:13,fontWeight:600,color:'#0F172A',margin:0 }}>{w.name}</p>
+                    <p style={{ fontSize:11,color:'#94A3B8',margin:'1px 0 0',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' }}>{w.url}</p>
                   </div>
                   <button onClick={()=>deleteWebhook(w.id)} className="btn-danger" style={{ fontSize:11,padding:'5px 9px' }}>
                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>
                   </button>
                 </div>
               ))}
-              <div style={{ borderTop:webhooks.length?'1px solid var(--border)':'none',paddingTop:webhooks.length?10:0,display:'flex',flexDirection:'column',gap:8 }}>
+              <div style={{ borderTop:webhooks.length?'1px solid #F1F5F9':'none',paddingTop:webhooks.length?10:0,display:'flex',flexDirection:'column',gap:8 }}>
                 <div className="row2">
                   <div><label className="lbl">Name</label><input value={newWHName} onChange={e=>setNewWHName(e.target.value)} placeholder="Mein Webhook" className="inp" style={{ fontSize:14 }}/></div>
                   <div><label className="lbl">URL</label><input value={newWHUrl} onChange={e=>setNewWHUrl(e.target.value)} placeholder="https://…" className="inp" style={{ fontSize:14 }}/></div>
@@ -842,11 +732,11 @@ export default function SettingsPage() {
 
           {/* API Keys */}
           <div className="s-card">
-            <div className="s-hd"><div><span className="s-hd-label">API KEYS</span><p style={{ fontSize:11.5,color:'var(--text-muted)',margin:'3px 0 0' }}>Für Zapier, externe Tools oder eigene Integrationen</p></div></div>
+            <div className="s-hd"><div><span className="s-hd-label">API KEYS</span><p style={{ fontSize:11.5,color:'#94A3B8',margin:'3px 0 0' }}>Für Zapier, externe Tools oder eigene Integrationen</p></div></div>
             <div style={{ padding:'14px 18px',display:'flex',flexDirection:'column',gap:8 }}>
               {generatedKey && (
                 <div className="fade-in">
-                  <p style={{ fontSize:12,fontWeight:700,color:'var(--green-dark)',marginBottom:8 }}>✓ Key erstellt — nur einmal sichtbar!</p>
+                  <p style={{ fontSize:12,fontWeight:700,color:'#059669',marginBottom:8 }}>Key erstellt. Nur einmal sichtbar.</p>
                   <div className="key-box">{generatedKey}</div>
                   <button onClick={()=>{navigator.clipboard.writeText(generatedKey);setGeneratedKey(null)}} className="btn-primary" style={{ marginTop:8 }}>
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
@@ -856,16 +746,16 @@ export default function SettingsPage() {
               )}
               {apiKeys.map(k => (
                 <div key={k.id} className="webhook-row">
-                  <div style={{ width:7,height:7,borderRadius:'50%',background:'var(--green)',flexShrink:0 }} />
+                  <div style={{ width:7,height:7,borderRadius:'50%',background:'#10B981',flexShrink:0 }} />
                   <div style={{ flex:1 }}>
-                    <p style={{ fontSize:13,fontWeight:600,color:'var(--text)',margin:0 }}>{k.name}</p>
-                    <p style={{ fontSize:11,color:'var(--text-muted)',margin:'1px 0 0',fontFamily:'monospace' }}>{k.key_prefix}…</p>
+                    <p style={{ fontSize:13,fontWeight:600,color:'#0F172A',margin:0 }}>{k.name}</p>
+                    <p style={{ fontSize:11,color:'#94A3B8',margin:'1px 0 0',fontFamily:'monospace' }}>{k.key_prefix}…</p>
                   </div>
-                  {k.last_used && <span style={{ fontSize:11,color:'var(--text-muted)' }}>{new Date(k.last_used).toLocaleDateString('de')}</span>}
+                  {k.last_used && <span style={{ fontSize:11,color:'#94A3B8' }}>{new Date(k.last_used).toLocaleDateString('de')}</span>}
                   <button onClick={()=>revokeKey(k.id)} className="btn-danger" style={{ fontSize:11 }}>Widerrufen</button>
                 </div>
               ))}
-              <div style={{ display:'flex',gap:8,borderTop:apiKeys.length?'1px solid var(--border)':'none',paddingTop:apiKeys.length?10:0 }}>
+              <div style={{ display:'flex',gap:8,borderTop:apiKeys.length?'1px solid #F1F5F9':'none',paddingTop:apiKeys.length?10:0 }}>
                 <input value={newKeyName} onChange={e=>setNewKeyName(e.target.value)} placeholder="Key-Name (z.B. Zapier)" className="inp" style={{ flex:1,fontSize:14 }}/>
                 <button onClick={createApiKey} disabled={intBusy||!newKeyName} className="btn-primary">
                   {intBusy?'…':'+ Key erstellen'}
@@ -886,7 +776,6 @@ export default function SettingsPage() {
     <div className="show-mobile" style={{ marginTop:12 }}>
       <SettingsRightPanel />
     </div>
-    </div>
     </>
   )
 }
@@ -899,7 +788,7 @@ function SaveBtn({ saving, saved, onClick }: { saving:boolean; saved:'ok'|'err'|
         : saved==='ok'
           ? <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 13l4 4L19 7"/></svg>Gespeichert!</>
           : saved==='err'
-            ? '⚠ Fehler — erneut versuchen'
+            ? 'Fehler. Erneut versuchen'
             : 'Speichern'}
     </button>
   )
