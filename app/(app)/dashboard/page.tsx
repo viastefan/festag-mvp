@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import LoadingScreen from '@/components/LoadingScreen'
 import NewProjectModal from '@/components/NewProjectModal'
+import NewTaskModal from '@/components/NewTaskModal'
 import ProjectPreview from '@/components/ProjectPreview'
 
 type Project  = { id: string; title: string; description: string | null; status: string; created_at: string; color: string | null }
@@ -77,6 +78,8 @@ export default function DashboardPage() {
   const [genReport,  setGenReport]  = useState(false)
   const [report,     setReport]     = useState('')
   const [showNewProject, setShowNewProject] = useState(false)
+  const [showNewTask, setShowNewTask] = useState(false)
+  const [taskFromReport, setTaskFromReport] = useState(false)
   const [showLoader, setShowLoader] = useState(() =>
     typeof window !== 'undefined' && !sessionStorage.getItem('festag_dash_loaded')
   )
@@ -197,17 +200,11 @@ export default function DashboardPage() {
       `}</style>
 
       {/* ── Greeting ── */}
-      <div className="animate-fade-up" style={{ marginBottom:36, display:'flex', alignItems:'flex-end', justifyContent:'space-between', flexWrap:'wrap', gap:12 }}>
-        <div>
-          <h1 style={{ margin:0, fontSize:28, fontWeight:600, letterSpacing:'-.7px' }}>{greeting}{displayName ? `, ${displayName}` : ''}</h1>
-          <p style={{ margin:'6px 0 0', color:'var(--text-muted)', fontSize:13 }}>
-            {projects.length} Projekt{projects.length!==1?'e':''} · {allTasks.length} Tasks{phase ? ` · ${phase.label}` : ''}
-          </p>
-        </div>
-        <button onClick={() => setShowNewProject(true)} style={{ height:34, padding:'0 14px', background:'var(--btn-prim)', color:'var(--btn-prim-text)', border:'none', borderRadius:8, fontSize:13, fontWeight:600, cursor:'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', gap:6 }}>
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
-          Neues Projekt
-        </button>
+      <div className="animate-fade-up" style={{ marginBottom:36 }}>
+        <h1 style={{ margin:0, fontSize:28, fontWeight:600, letterSpacing:'-.7px' }}>{greeting}{displayName ? `, ${displayName}` : ''}</h1>
+        <p style={{ margin:'6px 0 0', color:'var(--text-muted)', fontSize:13 }}>
+          {projects.length} Projekt{projects.length!==1?'e':''} · {allTasks.length} Tasks{phase ? ` · ${phase.label}` : ''}
+        </p>
       </div>
 
       {/* ── Empty state ── */}
@@ -271,28 +268,20 @@ export default function DashboardPage() {
                   </div>
                 </div>
 
-                <div style={{ display:'flex', gap:8, marginTop:'auto' }}>
+                <div style={{ display:'flex', gap:6, marginTop:'auto' }}>
                   <Link href={`/project/${main.id}`} style={{ flex:1, textDecoration:'none' }}>
-                    <button style={{ width:'100%', height:34, background:'var(--btn-prim)', color:'var(--btn-prim-text)', border:'none', borderRadius:8, fontSize:12.5, fontWeight:600, cursor:'pointer', fontFamily:'inherit' }}>
+                    <button style={{ width:'100%', height:30, background:'var(--btn-prim)', color:'var(--btn-prim-text)', border:'none', borderRadius:7, fontSize:12, fontWeight:600, cursor:'pointer', fontFamily:'inherit' }}>
                       Projekt öffnen →
                     </button>
                   </Link>
-                  <button onClick={generateReport} disabled={genReport} className="ghost-btn"
-                    style={{ height:34, padding:'0 14px', fontSize:12, fontWeight:600, cursor:genReport?'default':'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', gap:6 }}>
-                    {genReport ? <span style={{ width:11, height:11, border:'2px solid rgba(128,128,128,.3)', borderTopColor:'currentColor', borderRadius:'50%', animation:'spin .7s linear infinite' }}/> : <span>✦</span>}
-                    {genReport ? 'Lädt' : 'KI-Bericht'}
+                  <button onClick={() => { setTaskFromReport(false); setShowNewTask(true) }} className="ghost-btn"
+                    style={{ height:30, padding:'0 12px', fontSize:11.5, fontWeight:600, cursor:'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', gap:5 }}>
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                    Task
                   </button>
                 </div>
               </div>
             </div>
-
-            {/* AI report inline below hero */}
-            {report && (
-              <div style={{ marginTop:14, padding:'14px 16px', borderTop:'1px solid var(--border)', borderBottom:'1px solid var(--border)', display:'flex', gap:11 }}>
-                <span style={{ fontSize:11, color:'var(--text-muted)', fontWeight:600, marginTop:2 }}>✦</span>
-                <p style={{ fontSize:13, color:'var(--text-secondary)', lineHeight:1.65, margin:0 }}>{report}</p>
-              </div>
-            )}
 
             {/* ── Inline metrics row ── */}
             <div className="dash-metrics animate-fade-up-1" style={{ marginTop:36, marginBottom:36, paddingTop:22, paddingBottom:22, borderTop:'1px solid var(--border)', borderBottom:'1px solid var(--border)' }}>
@@ -300,6 +289,72 @@ export default function DashboardPage() {
               <Metric label="Offen" value={todo} sub={`${inProgress} in Arbeit`}/>
               <Metric label="Erledigt" value={done} sub={`von ${tasks.length} gesamt`}/>
               <Metric label="Projekte" value={projects.length} sub={`${allTasks.length} Tasks total`}/>
+            </div>
+
+            {/* ── STATUSBERICHT — Hauptmarketing-Block ── */}
+            <div className="animate-fade-up-2" style={{ marginBottom:36 }}>
+              <SectionLabel action={
+                <span style={{ fontSize:11.5, color:'var(--text-muted)', fontWeight:500 }}>
+                  Verständlich · Auf Deutsch · Echtzeit
+                </span>
+              }>
+                Statusbericht
+              </SectionLabel>
+
+              <div style={{ border:'1px solid var(--border)', borderRadius:14, overflow:'hidden', background:'var(--card)' }}>
+                {/* Header inside */}
+                <div style={{ padding:'16px 20px', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', gap:12 }}>
+                  <div style={{ width:32, height:32, borderRadius:8, background: main.color ? main.color + '1a' : 'var(--surface-2)', border:`1px solid ${main.color ? main.color + '33' : 'var(--border)'}`, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                    <span style={{ fontSize:14, color: main.color || 'var(--text-secondary)', fontWeight:700 }}>✦</span>
+                  </div>
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <p style={{ fontSize:13, fontWeight:600, color:'var(--text)', margin:0, letterSpacing:'-.1px' }}>Wo steht dein Projekt?</p>
+                    <p style={{ fontSize:11.5, color:'var(--text-muted)', margin:'2px 0 0' }}>
+                      Tagro fasst Fortschritt, Blocker und nächste Schritte zusammen — du verstehst sofort, was gerade passiert.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Body — current report or empty */}
+                <div style={{ padding:'18px 20px', minHeight: 100 }}>
+                  {report ? (
+                    <p style={{ fontSize:14, color:'var(--text)', lineHeight:1.7, margin:0, whiteSpace:'pre-wrap' }}>{report}</p>
+                  ) : (
+                    <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                      <p style={{ fontSize:13.5, color:'var(--text-muted)', margin:0, lineHeight:1.65, fontStyle:'italic' }}>
+                        Noch kein Bericht erstellt. Lass Tagro automatisch einen Bericht generieren — oder schreib selbst einen.
+                      </p>
+                      <div style={{ display:'flex', gap:10, marginTop:6, fontSize:11.5, color:'var(--text-muted)' }}>
+                        <span>• Was wurde diese Woche erledigt</span>
+                        <span>• Wo gibt's Blocker</span>
+                        <span>• Nächste Meilensteine</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Action bar */}
+                <div style={{ borderTop:'1px solid var(--border)', padding:'10px 14px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:10, background:'var(--surface)' }}>
+                  <div style={{ display:'flex', alignItems:'center', gap:6, fontSize:11.5, color:'var(--text-muted)' }}>
+                    <span style={{ width:6, height:6, borderRadius:'50%', background: report ? '#22c55e' : 'var(--border-strong)' }}/>
+                    {report ? 'Aktueller Bericht erstellt' : 'Kein aktiver Bericht'}
+                  </div>
+                  <div style={{ display:'flex', gap:6 }}>
+                    <button onClick={generateReport} disabled={genReport} className="ghost-btn"
+                      style={{ height:28, padding:'0 11px', fontSize:11.5, fontWeight:600, cursor:genReport?'default':'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', gap:5 }}>
+                      {genReport ? <span style={{ width:10, height:10, border:'2px solid rgba(128,128,128,.3)', borderTopColor:'currentColor', borderRadius:'50%', animation:'spin .7s linear infinite' }}/> : <span>✦</span>}
+                      {genReport ? 'Tagro denkt' : report ? 'Neu generieren' : 'Mit Tagro generieren'}
+                    </button>
+                    {report && (
+                      <button onClick={() => { setTaskFromReport(true); setShowNewTask(true) }} className="ghost-btn"
+                        style={{ height:28, padding:'0 11px', fontSize:11.5, fontWeight:600, cursor:'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', gap:5 }}>
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                        Task daraus
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* ── Active tasks ── */}
@@ -393,34 +448,34 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Tagro Status */}
-            <div>
-              <SectionLabel>Tagro Status</SectionLabel>
-              <p style={{ fontSize:12.5, lineHeight:1.65, color:report?'var(--text-secondary)':'var(--text-muted)', margin:'0 0 12px', fontStyle:report?'normal':'italic' }}>
-                {report || 'Tagro analysiert deinen Projektfortschritt und liefert einen klaren Bericht.'}
-              </p>
-              <button onClick={generateReport} disabled={genReport} className="ghost-btn"
-                style={{ width:'100%', padding:'7px', fontSize:12, fontWeight:600, cursor:genReport?'default':'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', justifyContent:'center', gap:6 }}>
-                {genReport ? <><span style={{ width:11, height:11, border:'2px solid var(--border)', borderTopColor:'var(--text)', borderRadius:'50%', animation:'spin .7s linear infinite' }}/> Generiert</>
-                  : <>{report ? '↺ Neu generieren' : '+ Statusbericht'}</>}
-              </button>
-            </div>
-
             {/* Quick actions */}
             <div>
               <SectionLabel>Schnellzugriff</SectionLabel>
               <div style={{ display:'flex', flexDirection:'column' }}>
                 {[
-                  { href:'/onboarding', label:'Mit AI starten' },
+                  { onClick: () => { setTaskFromReport(false); setShowNewTask(true) }, label:'Neue Task' },
+                  { href:'/onboarding', label:'Neues Projekt mit AI' },
                   { href:'/estimator',  label:'Preisschätzer'  },
                   { href:'/addons',     label:'Add-Ons'         },
                   { href:'/messages',   label:'Nachrichten'     },
-                ].map((a, i, arr) => (
-                  <Link key={a.href} href={a.href} className="row-hover" style={{ textDecoration:'none', display:'flex', alignItems:'center', gap:9, padding:'9px 10px', borderTop:i===0?'1px solid var(--border)':'none', borderBottom:'1px solid var(--border)', color:'var(--text-secondary)', fontSize:12.5, fontWeight:500 }}>
-                    {a.label}
-                    <svg style={{ marginLeft:'auto' }} width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2" strokeLinecap="round"><path d="M9 6l6 6-6 6"/></svg>
-                  </Link>
-                ))}
+                ].map((a: any, i, arr) => {
+                  const inner = (
+                    <>
+                      {a.label}
+                      <svg style={{ marginLeft:'auto' }} width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2" strokeLinecap="round"><path d="M9 6l6 6-6 6"/></svg>
+                    </>
+                  )
+                  const sty: any = { textDecoration:'none', display:'flex', alignItems:'center', gap:9, padding:'9px 10px', borderTop:i===0?'1px solid var(--border)':'none', borderBottom:'1px solid var(--border)', color:'var(--text-secondary)', fontSize:12.5, fontWeight:500 }
+                  return a.onClick ? (
+                    <button key={a.label} onClick={a.onClick} className="row-hover" style={{ ...sty, background:'transparent', border:'none', borderTop:sty.borderTop, borderBottom:sty.borderBottom, cursor:'pointer', fontFamily:'inherit', textAlign:'left', width:'100%' }}>
+                      {inner}
+                    </button>
+                  ) : (
+                    <Link key={a.href} href={a.href} className="row-hover" style={sty}>
+                      {inner}
+                    </Link>
+                  )
+                })}
               </div>
             </div>
 
@@ -472,6 +527,16 @@ export default function DashboardPage() {
         <NewProjectModal
           onClose={() => setShowNewProject(false)}
           onCreated={(id) => { setShowNewProject(false); window.location.href = `/project/${id}` }}
+        />
+      )}
+
+      {showNewTask && main && (
+        <NewTaskModal
+          onClose={() => { setShowNewTask(false); setTaskFromReport(false) }}
+          onCreated={() => { setShowNewTask(false); setTaskFromReport(false); window.location.reload() }}
+          defaultProjectId={main.id}
+          defaultDescription={taskFromReport && report ? report : undefined}
+          source={taskFromReport ? 'status_report' : 'manual'}
         />
       )}
     </div>
