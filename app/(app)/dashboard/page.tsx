@@ -97,10 +97,10 @@ export default function DashboardPage() {
         .portal-eyebrow { font-size:11px; line-height:1; font-weight:700; letter-spacing:.11em; text-transform:uppercase; color:var(--text-muted); margin:0 0 10px; }
         .portal-title h1 { font-size:30px; letter-spacing:0; margin:0; }
         .portal-title p { font-size:14px; margin:7px 0 0; color:var(--text-secondary); }
-        .portal-search { position:relative; width:260px; flex-shrink:0; }
-        .portal-search input { width:100%; height:36px; padding:0 12px 0 34px; background:var(--surface); border:1px solid var(--border); border-radius:var(--r); color:var(--text); font-size:13px; box-shadow:var(--shadow-xs); }
+        .portal-search { width:260px; flex-shrink:0; }
+        .portal-search input { width:100%; height:36px; padding:0 12px; background:var(--surface); border:1px solid var(--border); border-radius:var(--r); color:var(--text); font-size:13px; box-shadow:var(--shadow-xs); }
         .portal-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--r-lg); box-shadow:var(--shadow-xs); }
-        .portal-btn { height:36px; display:inline-flex; align-items:center; justify-content:center; gap:7px; padding:0 13px; background:var(--text); color:var(--btn-prim-text); border-radius:var(--r); font-size:13px; font-weight:650; text-decoration:none; white-space:nowrap; }
+        .portal-btn { height:36px; display:inline-flex; align-items:center; justify-content:center; padding:0 13px; background:var(--text); color:var(--btn-prim-text); border-radius:var(--r); font-size:13px; font-weight:650; text-decoration:none; white-space:nowrap; }
         .kpi-grid { display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:10px; margin-bottom:14px; }
         .kpi { padding:15px 16px; }
         .kpi span { display:block; font-size:11px; color:var(--text-muted); margin-bottom:7px; }
@@ -155,15 +155,9 @@ export default function DashboardPage() {
           <p>{activeProjects} aktive Projekte, {taskStats.doing} Tasks in Umsetzung, {openTasks} offene Entscheidungen.</p>
         </div>
 
-        <div className="portal-search">
-          <svg style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2" strokeLinecap="round">
-            <circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" />
-          </svg>
-          <input placeholder="Projekte suchen" />
-        </div>
+        <div className="portal-search"><input placeholder="Projekte suchen" /></div>
 
         <Link href="/new-project" className="portal-btn">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
           Neues Projekt
         </Link>
         <ThemeToggle position="relative" />
@@ -235,7 +229,6 @@ export default function DashboardPage() {
               <div style={{ padding: 16, borderTop: '1px solid var(--border)' }}>
                 <Link href={`/project/${mainProject.id}`} className="portal-btn" style={{ width: '100%' }}>
                   Projekt öffnen
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round"><path d="M9 6l6 6-6 6" /></svg>
                 </Link>
               </div>
             </aside>
@@ -265,9 +258,7 @@ export default function DashboardPage() {
                   </div>
                   <span className="status-pill">{cfg.label}</span>
                   <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{cfg.pct}%</span>
-                  <span style={{ justifySelf: 'end', color: 'var(--text-muted)' }}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M9 6l6 6-6 6" /></svg>
-                  </span>
+                  <span style={{ justifySelf: 'end', color: 'var(--text-muted)', fontSize: 12, fontWeight: 600 }}>Öffnen</span>
                 </Link>
               )
             })}

@@ -6,62 +6,36 @@ import { createClient } from '@/lib/supabase/client'
 import { useState, useEffect } from 'react'
 
 const ALL_NAV = [
-  { href:'/dashboard',       icon:'home',     label:'Home' },
-  { href:'/project/current', icon:'project',  label:'Aktuelles Projekt' },
-  { href:'/ai',              icon:'sparkle',  label:'AI' },
-  { href:'/messages',        icon:'chat',     label:'Messages' },
-  { href:'/addons',          icon:'grid',     label:'Add-ons' },
-  { href:'/activity',        icon:'activity', label:'Activity' },
-  { href:'/billing',         icon:'billing',  label:'Billing' },
-  { href:'/documents',       icon:'doc',      label:'Dokumente' },
-  { href:'/settings',        icon:'user',     label:'Profil' },
+  { href:'/dashboard',       label:'Home' },
+  { href:'/project/current', label:'Aktuelles Projekt' },
+  { href:'/ai',              label:'AI' },
+  { href:'/messages',        label:'Messages' },
+  { href:'/addons',          label:'Add-ons' },
+  { href:'/activity',        label:'Activity' },
+  { href:'/billing',         label:'Billing' },
+  { href:'/documents',       label:'Dokumente' },
+  { href:'/settings',        label:'Profil' },
 ]
 const MOB_PRIMARY = [
-  { href:'/dashboard',       icon:'home',    label:'Home' },
-  { href:'/project/current', icon:'project', label:'Projekt' },
-  { href:'/ai',              icon:'sparkle', label:'AI' },
-  { href:'/messages',        icon:'chat',    label:'Chat' },
-  { href:'/settings',        icon:'user',    label:'Profil' },
+  { href:'/dashboard',       label:'Home' },
+  { href:'/project/current', label:'Projekt' },
+  { href:'/ai',              label:'AI' },
+  { href:'/messages',        label:'Chat' },
+  { href:'/settings',        label:'Profil' },
 ]
 const MOB_MORE = [
-  { href:'/addons',    icon:'grid',     label:'Add-ons' },
-  { href:'/activity',  icon:'activity', label:'Activity' },
-  { href:'/billing',   icon:'billing',  label:'Billing' },
-  { href:'/documents', icon:'doc',      label:'Dokumente' },
+  { href:'/addons',    label:'Add-ons' },
+  { href:'/activity',  label:'Activity' },
+  { href:'/billing',   label:'Billing' },
+  { href:'/documents', label:'Dokumente' },
 ]
 
-function Ico({ name, sz=18, on=false }: { name:string; sz?:number; on?:boolean }) {
-  const c = on ? 'var(--text)' : 'var(--text-muted)'
-  const sw = on ? 2 : 1.65
+const PROJECT_COLORS = ['#2563EB', '#0EA5E9', '#16A36C', '#D97706', '#7C3AED', '#DC2626']
 
-  if (name === 'grid') return (
-    <svg width={sz} height={sz} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="3" width="7" height="7" rx="1.5"/>
-      <rect x="14" y="3" width="7" height="7" rx="1.5"/>
-      <rect x="3" y="14" width="7" height="7" rx="1.5"/>
-      <rect x="14" y="14" width="7" height="7" rx="1.5"/>
-    </svg>
-  )
-
-  const paths: Record<string, React.ReactNode> = {
-    home:    <><path d="M3 12l9-9 9 9"/><path d="M5 10v10h14V10"/></>,
-    project: <><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></>,
-    sparkle: <><path d="M12 3v4M12 17v4M3 12h4M17 12h4"/></>,
-    chat:    <path d="M21 12c0 4.4-4 8-9 8-1.4 0-2.8-.3-4-.8L3 21l1.8-5C4.3 15 4 13.5 4 12c0-4.4 4-8 9-8s9 3.6 9 8z"/>,
-    activity:<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>,
-    billing: <><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></>,
-    doc:     <><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></>,
-    // User icon — properly sized, not clipped
-    user:    <><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c0-3.5 3.1-6 7-6s7 2.5 7 6"/></>,
-    more:    <><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></>,
-    close:   <><path d="M18 6L6 18"/><path d="M6 6l12 12"/></>,
-  }
-
-  return (
-    <svg width={sz} height={sz} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round">
-      {paths[name]}
-    </svg>
-  )
+export function projectColor(id: string) {
+  let hash = 0
+  for (let i = 0; i < id.length; i++) hash = (hash * 31 + id.charCodeAt(i)) >>> 0
+  return PROJECT_COLORS[hash % PROJECT_COLORS.length]
 }
 
 export default function Sidebar() {
@@ -107,7 +81,7 @@ export default function Sidebar() {
     <>
       <style>{`
         /* ── Desktop nav items ── */
-        .ni { display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;text-decoration:none;color:inherit;transition:background .12s,color .12s;white-space:nowrap;overflow:hidden; }
+        .ni { display:flex;align-items:center;padding:7px 10px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;text-decoration:none;color:inherit;transition:background .12s,color .12s;white-space:nowrap;overflow:hidden; }
         .ni-on  { background:var(--nav-on);font-weight:650;color:var(--nav-on-text); }
         .ni-off { color:var(--nav-off-text); }
         .ni-off:hover { background:rgba(15,23,42,.045);color:var(--text); }
@@ -148,14 +122,12 @@ export default function Sidebar() {
           padding-bottom: calc(8px + var(--safe-bottom));
         }
 
-        .mt { display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;min-height:44px;justify-content:center;cursor:pointer;text-decoration:none;border:none;background:transparent;font-family:inherit;-webkit-tap-highlight-color:transparent; }
+        .mt { display:flex;align-items:center;justify-content:center;flex:1;min-height:40px;cursor:pointer;text-decoration:none;border:none;background:transparent;font-family:inherit;-webkit-tap-highlight-color:transparent; }
         .mt:active { transform:scale(.9); }
-        .mti { width:34px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:8px;transition:background .12s; }
-        .mt.on .mti  { background:rgba(15,23,42,.08); }
-        .mt.has-avatar .mti { background:transparent !important; }
+        .mt.on  { background:rgba(15,23,42,.08); border-radius:9px; }
         .mt.on  .ml  { color:#0F172A;font-weight:700; }
         .mt.off .ml  { color:#94A3B8;font-weight:500; }
-        .ml { font-size:10px;letter-spacing:.01em;transition:color .12s;line-height:1; }
+        .ml { font-size:11px;letter-spacing:.01em;transition:color .12s;line-height:1; }
 
         /* More sheet */
         .mbd { position:fixed;inset:0;z-index:198;background:rgba(0,0,0,.08);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px); }
@@ -174,14 +146,21 @@ export default function Sidebar() {
         .mr { display:flex;align-items:center;gap:13px;padding:11px 3px;border-bottom:1px solid #F8FAFC;text-decoration:none;color:inherit;-webkit-tap-highlight-color:transparent; }
         .mr:last-child{border-bottom:none;}
         .mr:active{opacity:.6;}
-        .help-menu { position:absolute;left:0;right:0;bottom:58px;background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:0 18px 50px rgba(15,23,42,.14);padding:7px;z-index:220; }
-        .help-row { display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 10px;border-radius:8px;color:var(--text-secondary);font-size:12.5px;font-weight:550;text-decoration:none; }
-        .help-row:hover { background:var(--card);color:var(--text); }
-        .help-kbd { color:var(--text-muted);font-size:11px;font-weight:600; }
+        .help-menu { position:absolute;left:0;right:0;bottom:68px;background:#17181b;border:1px solid rgba(255,255,255,.08);border-radius:14px;box-shadow:0 24px 60px rgba(15,23,42,.24);padding:7px;z-index:220; }
+        .help-row { display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 11px;border-radius:8px;color:rgba(255,255,255,.78);font-size:12.5px;font-weight:550;text-decoration:none; }
+        .help-row:hover { background:rgba(255,255,255,.06);color:#fff; }
+        .help-kbd { color:rgba(255,255,255,.42);font-size:11px;font-weight:600; }
+        .account-shell { background:#17181b;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:8px;box-shadow:0 10px 30px rgba(15,23,42,.18); }
+        .account-row { display:flex;align-items:center;gap:10px;padding:4px 4px 8px 4px;color:#fff;text-decoration:none; }
+        .account-meta { font-size:11px;color:rgba(255,255,255,.45);margin:0; }
+        .account-name { font-size:13px;font-weight:650;color:#fff;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+        .account-actions { display:flex;gap:6px; }
+        .account-btn { height:30px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.04);border-radius:8px;color:rgba(255,255,255,.78);font-size:11.5px;font-weight:600;font-family:inherit;padding:0 10px; }
+        .account-btn:hover { background:rgba(255,255,255,.08);color:#fff; }
       `}</style>
 
       {/* ════════════════════════════════════════
-          DESKTOP SIDEBAR — floating apple card
+          DESKTOP SIDEBAR
           Shown via .sidebar class (display:flex on desktop)
       ════════════════════════════════════════ */}
       <aside className="sidebar" style={{ position:'fixed',top:0,left:0,width:256,height:'100vh',zIndex:100,padding:'12px',pointerEvents:'none' }}>
@@ -200,7 +179,6 @@ export default function Sidebar() {
               const on = isOn(item.href)
               return (
                 <Link key={item.href} href={resolve(item.href)} className={`ni ${on?'ni-on':'ni-off'}`}>
-                  <Ico name={item.icon} sz={16} on={on} />
                   {item.label}
                 </Link>
               )
@@ -230,38 +208,34 @@ export default function Sidebar() {
               </div>
             )}
 
-            <Link href="/settings" style={{ textDecoration:'none' }}>
-              <div
-                style={{ display:'flex',alignItems:'center',gap:9,padding:'7px 8px',borderRadius:9,cursor:'pointer',transition:'background .1s' }}
-                onMouseEnter={e=>(e.currentTarget as HTMLElement).style.background='var(--card)'}
-                onMouseLeave={e=>(e.currentTarget as HTMLElement).style.background='transparent'}
-              >
+            <div className="account-shell">
+              <Link href="/settings" className="account-row">
                 {avatar ? (
-                  <img src={avatar} alt="" style={{ width:28,height:28,borderRadius:'50%',objectFit:'cover',border:'1px solid var(--border)',flexShrink:0 }}/>
+                  <img src={avatar} alt="" style={{ width:30,height:30,borderRadius:'50%',objectFit:'cover',border:'1px solid rgba(255,255,255,.12)',flexShrink:0 }}/>
                 ) : (
-                  <div style={{ width:28,height:28,borderRadius:'50%',background:'var(--surface-2)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:12,fontWeight:700,color:'var(--text)',flexShrink:0 }}>{init}</div>
+                  <div style={{ width:30,height:30,borderRadius:'50%',background:'rgba(255,255,255,.1)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:12,fontWeight:700,color:'#fff',flexShrink:0 }}>{init}</div>
                 )}
                 <div style={{ flex:1,minWidth:0 }}>
-                  <p style={{ fontSize:12.5,fontWeight:600,color:'var(--text)',margin:0,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' }}>{name}</p>
-                  <p style={{ fontSize:10.5,color:'var(--text-muted)',margin:0 }}>Pro</p>
+                  <p className="account-name">{name}</p>
+                  <p className="account-meta">Pro</p>
                 </div>
-                <span style={{ color:'var(--text-muted)',fontSize:11,flexShrink:0 }}>Account</span>
+                <span style={{ color:'rgba(255,255,255,.42)',fontSize:11,flexShrink:0 }}>Menu</span>
+              </Link>
+              <div className="account-actions">
+                <button
+                  onClick={() => setHelpOpen(v => !v)}
+                  className="account-btn"
+                  aria-label="Help"
+                >
+                  Help
+                </button>
+                <button
+                  onClick={logout}
+                  className="account-btn"
+                >
+                  Abmelden
+                </button>
               </div>
-            </Link>
-            <div style={{ display:'flex',gap:6,marginTop:4 }}>
-              <button
-                onClick={() => setHelpOpen(v => !v)}
-                style={{ width:30,height:30,border:'1px solid var(--border)',background:helpOpen?'var(--card)':'transparent',borderRadius:9,cursor:'pointer',fontSize:15,fontWeight:650,color:'var(--text-secondary)',fontFamily:'inherit' }}
-                aria-label="Help"
-              >
-                ?
-              </button>
-              <button
-                onClick={logout}
-                style={{ flex:1,height:30,textAlign:'left',border:'1px solid transparent',background:'transparent',cursor:'pointer',fontSize:11.5,color:'var(--text-muted)',borderRadius:8,fontFamily:'inherit',padding:'0 8px' }}
-              >
-                Abmelden
-              </button>
             </div>
           </div>
         </div>
@@ -275,25 +249,7 @@ export default function Sidebar() {
         {MOB_PRIMARY.map(item => {
           const on = isOn(item.href)
           return (
-            <Link key={item.href} href={resolve(item.href)} className={`mt ${on?'on':'off'} ${item.icon==='user'&&avatar?'has-avatar':''}`}>
-              <div className="mti">
-                {item.icon==='user' && avatar ? (
-                  /* Avatar: NO background container, just the image with border */
-                  <img src={avatar} alt=""
-                    style={{
-                      width:28, height:28,
-                      borderRadius:'50%',
-                      objectFit:'cover',
-                      border: on ? '2.5px solid #0F172A' : '2px solid rgba(15,23,42,.12)',
-                      display:'block',
-                    }}
-                  />
-                ) : (
-                  <div style={{ width:24,height:24,display:'flex',alignItems:'center',justifyContent:'center' }}>
-                    <Ico name={item.icon} sz={22} on={on} />
-                  </div>
-                )}
-              </div>
+            <Link key={item.href} href={resolve(item.href)} className={`mt ${on?'on':'off'}`}>
               <span className="ml">{item.label}</span>
             </Link>
           )
@@ -301,11 +257,6 @@ export default function Sidebar() {
 
         {/* Mehr */}
         <button className={`mt ${more?'on':'off'}`} onClick={()=>setMore(v=>!v)}>
-          <div className="mti">
-            <div style={{ width:24,height:24,display:'flex',alignItems:'center',justifyContent:'center' }}>
-              <Ico name={more?'close':'more'} sz={22} on={more} />
-            </div>
-          </div>
           <span className="ml">{more?'Schließen':'Mehr'}</span>
         </button>
       </nav>
@@ -321,11 +272,7 @@ export default function Sidebar() {
               const on = isOn(item.href)
               return (
                 <Link key={item.href} href={resolve(item.href)} className="mr" onClick={()=>setMore(false)}>
-                  <div style={{ width:40,height:40,borderRadius:11,background:on?'#0F172A':'#F1F5F9',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0 }}>
-                    <Ico name={item.icon} sz={19} on={on} />
-                  </div>
                   <p style={{ fontSize:15,fontWeight:on?700:600,color:'#0F172A',margin:0,flex:1 }}>{item.label}</p>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" strokeWidth="2" strokeLinecap="round"><path d="M9 6l6 6-6 6"/></svg>
                 </Link>
               )
             })}

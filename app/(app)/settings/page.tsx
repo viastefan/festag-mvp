@@ -272,9 +272,8 @@ export default function SettingsPage() {
         .txta { width:100%;padding:11px 14px;background:#F8FAFC;border:1.5px solid #EEF2F7;border-radius:12px;font-size:15px;outline:none;color:#0F172A;box-sizing:border-box;resize:vertical;min-height:96px;font-family:inherit;font-weight:500;transition:all .15s;line-height:1.6; }
         .txta:focus { border-color:#CBD5E1;background:#fff;box-shadow:0 0 0 3px rgba(15,23,42,.05); }
         .sel-wrap { position:relative; }
-        .sel { width:100%;padding:11px 38px 11px 14px;background:#F8FAFC;border:1.5px solid #EEF2F7;border-radius:12px;font-size:15px;outline:none;color:#0F172A;box-sizing:border-box;cursor:pointer;font-family:inherit;font-weight:500;appearance:none;transition:all .15s; }
+        .sel { width:100%;padding:11px 14px;background:#F8FAFC;border:1.5px solid #EEF2F7;border-radius:12px;font-size:15px;outline:none;color:#0F172A;box-sizing:border-box;cursor:pointer;font-family:inherit;font-weight:500;appearance:none;transition:all .15s; }
         .sel:focus { border-color:#CBD5E1;background:#fff; }
-        .sel-arr { position:absolute;right:13px;top:50%;transform:translateY(-50%);pointer-events:none;color:#94A3B8; }
         .btn-primary { display:inline-flex;align-items:center;gap:8px;padding:10px 20px;background:#0F172A;color:#fff;border:none;border-radius:12px;font-size:13.5px;font-weight:600;cursor:pointer;font-family:inherit;box-shadow:0 2px 8px rgba(15,23,42,.18);transition:all .15s; }
         .btn-primary:hover { opacity:.88;transform:translateY(-1px);box-shadow:0 4px 16px rgba(15,23,42,.22); }
         .btn-primary:disabled { opacity:.4;cursor:default;transform:none; }
@@ -289,7 +288,7 @@ export default function SettingsPage() {
         .tog-th { position:absolute;top:2px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.2);transition:left .18s cubic-bezier(.4,0,.2,1); }
         /* Tabs */
         .tab-row { display:flex;background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:3px;gap:2px;margin-bottom:14px; }
-        .tab-btn { flex:1;padding:8px;border-radius:var(--r-sm);border:none;cursor:pointer;font-size:13px;font-weight:500;font-family:inherit;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px; }
+        .tab-btn { flex:1;padding:8px;border-radius:var(--r-sm);border:none;cursor:pointer;font-size:13px;font-weight:500;font-family:inherit;transition:all .15s;display:flex;align-items:center;justify-content:center; }
         .tab-on  { background:var(--surface);color:var(--text);font-weight:650;box-shadow:var(--shadow-xs); }
         .tab-off { background:transparent;color:#94A3B8; }
         .tab-off:hover { color:#475569;background:rgba(255,255,255,.5); }
@@ -304,7 +303,7 @@ export default function SettingsPage() {
         .chip-green { background:#ECFDF5;color:#059669;border:1px solid #A7F3D0; }
         .chip-gray { background:#F1F5F9;color:#64748B;border:1px solid #E2E8F0; }
         .chip-blue { background:#EFF6FF;color:#2563EB;border:1px solid #BFDBFE; }
-        .ai-badge { display:inline-flex;align-items:center;gap:4px;padding:3px 9px;background:#EFF6FF;border:1px solid #BFDBFE;border-radius:6px;font-size:10px;font-weight:700;color:#2563EB;letter-spacing:.04em; }
+        .ai-badge { display:inline-flex;align-items:center;padding:3px 9px;background:#EFF6FF;border:1px solid #BFDBFE;border-radius:6px;font-size:10px;font-weight:700;color:#2563EB;letter-spacing:.04em; }
         .key-box { background:#0F172A;border-radius:10px;padding:12px 16px;font-family:'SF Mono',monospace;font-size:12.5px;color:#4ade80;word-break:break-all;letter-spacing:.04em;line-height:1.6; }
         @media(max-width:600px) { .row2,.row3 { grid-template-columns:1fr; } }
         @keyframes spin { to{transform:rotate(360deg);} }
@@ -338,9 +337,9 @@ export default function SettingsPage() {
               )}
             </div>
             {/* Edit badge */}
-            <div onClick={() => fileRef.current?.click()} style={{ position:'absolute',bottom:-2,right:-2,width:18,height:18,background:'var(--surface)',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',border:'1px solid var(--border)',boxShadow:'var(--shadow-xs)' }}>
-              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-            </div>
+            <button onClick={() => fileRef.current?.click()} style={{ position:'absolute',bottom:-6,right:-6,height:22,padding:'0 7px',background:'var(--surface)',borderRadius:999,border:'1px solid var(--border)',boxShadow:'var(--shadow-xs)',fontSize:10.5,color:'var(--text-secondary)',fontFamily:'inherit' }}>
+              Bild
+            </button>
           </div>
           <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" style={{ display:'none' }} onChange={e => { const f=e.target.files?.[0]; if(f) uploadAvatar(f); e.target.value='' }} />
 
@@ -365,7 +364,6 @@ export default function SettingsPage() {
 
           {/* Logout */}
           <button onClick={logout} className="btn-danger" style={{ alignSelf:'flex-start' }}>
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
             Abmelden
           </button>
         </div>
@@ -374,13 +372,12 @@ export default function SettingsPage() {
       {/* ── TABS ─────────────────────────────────────────── */}
       <div className="tab-row animate-fade-up-2">
         {([
-          { k:'profile',      l:'Profil',        icon:'M12 8a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 20c0-4 4-6 8-6s8 2 8 6' },
-          { k:'company',      l:'Unternehmen',   icon:'M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z' },
-          { k:'security',     l:'Sicherheit',    icon:'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z' },
-          { k:'integrations', l:'Integrationen', icon:'M18 20V10M12 20V4M6 20v-6' },
+          { k:'profile',      l:'Profil' },
+          { k:'company',      l:'Unternehmen' },
+          { k:'security',     l:'Sicherheit' },
+          { k:'integrations', l:'Integrationen' },
         ] as const).map(t => (
           <button key={t.k} onClick={() => setTab(t.k)} className={`tab-btn ${tab===t.k?'tab-on':'tab-off'}`}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={tab===t.k?2.2:1.7} strokeLinecap="round" strokeLinejoin="round"><path d={t.icon}/></svg>
             <span className="hide-mobile">{t.l}</span>
           </button>
         ))}
@@ -400,10 +397,7 @@ export default function SettingsPage() {
               </div>
               <div>
                 <label className="lbl">Telefonnummer</label>
-                <div style={{ position:'relative' }}>
-                  <input value={phone} onChange={e=>setPhone(e.target.value)} placeholder="+49 151 12345678" className="inp" type="tel" style={{ paddingLeft:40 }}/>
-                  <svg style={{ position:'absolute',left:13,top:'50%',transform:'translateY(-50%)',pointerEvents:'none' }} width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2A19.79 19.79 0 0 1 2.09 5.18 2 2 0 0 1 4.09 3h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 10.9a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 17z"/></svg>
-                </div>
+                <input value={phone} onChange={e=>setPhone(e.target.value)} placeholder="+49 151 12345678" className="inp" type="tel" />
               </div>
               <div>
                 <label className="lbl">E-Mail</label>
@@ -456,7 +450,7 @@ export default function SettingsPage() {
           <div className="s-card">
             <div className="s-hd">
               <span className="s-hd-label">UNTERNEHMENSDATEN</span>
-              <span className="ai-badge"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 3v4M12 17v4M3 12h4M17 12h4"/></svg>AI-KONTEXT</span>
+              <span className="ai-badge">AI-KONTEXT</span>
             </div>
             <div className="s-bd">
               <div className="row2">
@@ -464,7 +458,6 @@ export default function SettingsPage() {
                 <div className="sel-wrap">
                   <label className="lbl">Rechtsform</label>
                   <select value={legalForm} onChange={e=>setLegalForm(e.target.value)} className="sel"><option value="">Wählen…</option>{LEGAL.map(l=><option key={l} value={l}>{l}</option>)}</select>
-                  <svg className="sel-arr" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M6 9l6 6 6-6"/></svg>
                 </div>
               </div>
 
@@ -481,21 +474,16 @@ export default function SettingsPage() {
                 <div className="sel-wrap">
                   <label className="lbl">Branche</label>
                   <select value={compInd} onChange={e=>setCompInd(e.target.value)} className="sel"><option value="">Branche…</option>{INDUSTRIES.map(i=><option key={i} value={i}>{i}</option>)}</select>
-                  <svg className="sel-arr" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M6 9l6 6 6-6"/></svg>
                 </div>
                 <div className="sel-wrap">
                   <label className="lbl">Unternehmensgröße</label>
                   <select value={compSize} onChange={e=>setCompSize(e.target.value)} className="sel"><option value="">Größe…</option>{SIZES.map(s=><option key={s.v} value={s.v}>{s.l}</option>)}</select>
-                  <svg className="sel-arr" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M6 9l6 6 6-6"/></svg>
                 </div>
               </div>
 
               <div>
                 <label className="lbl">Website</label>
-                <div style={{ position:'relative' }}>
-                  <input value={compWeb} onChange={e=>setCompWeb(e.target.value)} placeholder="Noch keine Website? Festag kümmert sich darum!" className="inp" type="url" style={{ paddingLeft:40 }}/>
-                  <svg style={{ position:'absolute',left:13,top:'50%',transform:'translateY(-50%)',pointerEvents:'none' }} width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth="1.8" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10A15.3 15.3 0 0 1 8 12 15.3 15.3 0 0 1 12 2z"/></svg>
-                </div>
+                <input value={compWeb} onChange={e=>setCompWeb(e.target.value)} placeholder="Noch keine Website? Festag kümmert sich darum!" className="inp" type="url" />
                 {!compWeb && <p style={{ fontSize:11.5,color:'#059669',marginTop:5,fontWeight:600 }}>Keine Website? Festag baut sie für dich.</p>}
               </div>
 
@@ -553,8 +541,8 @@ export default function SettingsPage() {
                 <span className="s-hd-label">PASSWORT ÄNDERN</span>
                 <p style={{ fontSize:11.5,color:'#94A3B8',margin:'3px 0 0' }}>Änderung wird per E-Mail bestätigt</p>
               </div>
-              <div style={{ display:'flex',alignItems:'center',gap:5,padding:'4px 10px',background:'#ECFDF5',border:'1px solid #A7F3D0',borderRadius:8 }}>
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              <div style={{ display:'flex',alignItems:'center',gap:7,padding:'4px 10px',background:'#ECFDF5',border:'1px solid #A7F3D0',borderRadius:8 }}>
+                <span style={{ width:6,height:6,borderRadius:'50%',background:'#059669' }} />
                 <span style={{ fontSize:10.5,fontWeight:700,color:'#059669',letterSpacing:'.04em' }}>VERIFIZIERT</span>
               </div>
             </div>
@@ -562,7 +550,7 @@ export default function SettingsPage() {
               {pwdStep==='form' ? (
                 <>
                   <div style={{ background:'#F8FAFC',border:'1.5px solid #EEF2F7',borderRadius:12,padding:'12px 16px',display:'flex',gap:10,alignItems:'flex-start' }}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748B" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink:0,marginTop:1 }}><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+                    <span style={{ width:6,height:6,borderRadius:'50%',background:'#94A3B8',marginTop:6,flexShrink:0 }} />
                     <p style={{ fontSize:12.5,color:'#64748B',margin:0,lineHeight:1.5 }}>
                       Nach dem Absenden erhältst du einen Bestätigungslink an <strong style={{ color:'#0F172A' }}>{email}</strong>. Erst nach Bestätigung wird das Passwort geändert.
                     </p>
@@ -581,14 +569,14 @@ export default function SettingsPage() {
                   <button onClick={changePassword} disabled={pwdSaving||!newPwd||!confPwd} className="btn-primary" style={{ alignSelf:'flex-start' }}>
                     {pwdSaving
                       ? <><span style={{ width:13,height:13,border:'2px solid rgba(255,255,255,.3)',borderTopColor:'#fff',borderRadius:'50%',animation:'spin .7s linear infinite' }}/>Sende E-Mail…</>
-                      : <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>Bestätigungs-E-Mail senden</>}
+                      : 'Bestätigungs-E-Mail senden'}
                   </button>
                 </>
               ) : (
                 <>
                   {/* Sent state — show OTP input */}
                   <div style={{ background:'#ECFDF5',border:'1.5px solid #A7F3D0',borderRadius:12,padding:'14px 16px',display:'flex',gap:10,alignItems:'center' }}>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2A19.79 19.79 0 0 1 2.09 5.18 2 2 0 0 1 4.09 3h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 10.9a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 17z"/></svg>
+                    <span style={{ width:7,height:7,borderRadius:'50%',background:'#059669',flexShrink:0 }} />
                     <div>
                       <p style={{ fontSize:13,fontWeight:600,color:'#059669',margin:0 }}>E-Mail gesendet an {email}</p>
                       <p style={{ fontSize:12,color:'#059669',margin:'2px 0 0',opacity:.8 }}>Gib den 6-stelligen Code aus der E-Mail ein</p>
@@ -614,7 +602,7 @@ export default function SettingsPage() {
                     <button onClick={()=>confirmPasswordChange(pwdOtp)} disabled={pwdSaving||pwdOtp.length<6} className="btn-primary">
                       {pwdSaving
                         ? <><span style={{ width:13,height:13,border:'2px solid rgba(255,255,255,.3)',borderTopColor:'#fff',borderRadius:'50%',animation:'spin .7s linear infinite' }}/>Verifiziert…</>
-                        : <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M5 13l4 4L19 7"/></svg>Code bestätigen &amp; Passwort ändern</>}
+                        : 'Code bestätigen & Passwort ändern'}
                     </button>
                     <button onClick={()=>{setPwdStep('form');setPwdMsg(null);setPwdOtp('')}} className="btn-ghost">
                       Zurück
@@ -635,12 +623,8 @@ export default function SettingsPage() {
                 ? <p style={{ fontSize:13,color:'#94A3B8',textAlign:'center',padding:'16px 0',margin:0 }}>Noch keine Geräte</p>
                 : devices.map(d => (
                   <div key={d.id} className="dev-card">
-                    <div style={{ width:40,height:40,borderRadius:11,background:d.is_current?'#ECFDF5':'#F1F5F9',border:`1.5px solid ${d.is_current?'#A7F3D0':'#E2E8F0'}`,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0 }}>
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={d.is_current?'#059669':'#94A3B8'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                        {d.os==='iOS'||d.os==='Android'
-                          ? <path d="M12 18h.01M8 21h8a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2z"/>
-                          : <><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></>}
-                      </svg>
+                    <div style={{ minWidth:78,display:'flex',alignItems:'center' }}>
+                      <span className={d.is_current ? 'chip chip-green' : 'chip chip-gray'}>{d.os}</span>
                     </div>
                     <div style={{ flex:1,minWidth:0 }}>
                       <p style={{ fontSize:13,fontWeight:600,color:'#0F172A',margin:0,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' }}>{d.device_name}</p>
@@ -649,7 +633,7 @@ export default function SettingsPage() {
                     {d.is_current
                       ? <span className="chip chip-green">Dieses Gerät</span>
                       : <button onClick={()=>removeDevice(d.id)} className="btn-danger" style={{ fontSize:11 }}>
-                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                          Entfernen
                         </button>
                     }
                   </div>
@@ -714,7 +698,7 @@ export default function SettingsPage() {
                     <p style={{ fontSize:11,color:'#94A3B8',margin:'1px 0 0',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' }}>{w.url}</p>
                   </div>
                   <button onClick={()=>deleteWebhook(w.id)} className="btn-danger" style={{ fontSize:11,padding:'5px 9px' }}>
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>
+                    Löschen
                   </button>
                 </div>
               ))}
@@ -724,7 +708,7 @@ export default function SettingsPage() {
                   <div><label className="lbl">URL</label><input value={newWHUrl} onChange={e=>setNewWHUrl(e.target.value)} placeholder="https://…" className="inp" style={{ fontSize:14 }}/></div>
                 </div>
                 <button onClick={createWebhook} disabled={intBusy||!newWHName||!newWHUrl} className="btn-primary" style={{ alignSelf:'flex-start' }}>
-                  {intBusy?'…':'+ Webhook hinzufügen'}
+                  {intBusy?'…':'Webhook hinzufügen'}
                 </button>
               </div>
             </div>
@@ -739,7 +723,6 @@ export default function SettingsPage() {
                   <p style={{ fontSize:12,fontWeight:700,color:'#059669',marginBottom:8 }}>Key erstellt. Nur einmal sichtbar.</p>
                   <div className="key-box">{generatedKey}</div>
                   <button onClick={()=>{navigator.clipboard.writeText(generatedKey);setGeneratedKey(null)}} className="btn-primary" style={{ marginTop:8 }}>
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
                     Kopieren & Schließen
                   </button>
                 </div>
@@ -758,7 +741,7 @@ export default function SettingsPage() {
               <div style={{ display:'flex',gap:8,borderTop:apiKeys.length?'1px solid #F1F5F9':'none',paddingTop:apiKeys.length?10:0 }}>
                 <input value={newKeyName} onChange={e=>setNewKeyName(e.target.value)} placeholder="Key-Name (z.B. Zapier)" className="inp" style={{ flex:1,fontSize:14 }}/>
                 <button onClick={createApiKey} disabled={intBusy||!newKeyName} className="btn-primary">
-                  {intBusy?'…':'+ Key erstellen'}
+                  {intBusy?'…':'Key erstellen'}
                 </button>
               </div>
             </div>
@@ -786,7 +769,7 @@ function SaveBtn({ saving, saved, onClick }: { saving:boolean; saved:'ok'|'err'|
       {saving
         ? <><span style={{ width:13,height:13,border:'2px solid rgba(255,255,255,.3)',borderTopColor:'#fff',borderRadius:'50%',animation:'spin .7s linear infinite' }}/>Speichert…</>
         : saved==='ok'
-          ? <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 13l4 4L19 7"/></svg>Gespeichert!</>
+          ? 'Gespeichert!'
           : saved==='err'
             ? 'Fehler. Erneut versuchen'
             : 'Speichern'}
