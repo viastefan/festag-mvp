@@ -226,7 +226,7 @@ export default function DashboardPage() {
           <div style={{ minWidth:0 }}>
 
             {/* ── HERO: Vercel-Style Production Deployment Karte ── */}
-            <div className="animate-fade-up-1 dash-hero" style={{ border:'1px solid var(--border)', borderRadius:14, overflow:'hidden', background:'var(--card)' }}>
+            <div className="animate-fade-up-1 dash-hero" style={{ border:`1px solid ${main.color ? main.color+'33' : 'var(--border)'}`, borderRadius:14, overflow:'hidden', background:'var(--card)', boxShadow: main.color ? `0 0 0 0px ${main.color}00, inset 3px 0 0 ${main.color}` : 'none' }}>
               {/* Preview left */}
               <Link href={`/project/${main.id}`} style={{ textDecoration:'none', display:'block', borderRight:'1px solid var(--border)', overflow:'hidden', alignSelf:'stretch' }}>
                 <ProjectPreview title={main.title} color={main.color} progress={completePct} width="100%" height="100%"/>
@@ -282,8 +282,12 @@ export default function DashboardPage() {
             </div>
 
             {/* ── Inline metrics row ── */}
-            <div className="dash-metrics animate-fade-up-1" style={{ marginTop:36, marginBottom:36, paddingTop:22, paddingBottom:22, borderTop:'1px solid var(--border)', borderBottom:'1px solid var(--border)' }}>
-              <Metric label="Fortschritt" value={`${completePct}%`} sub={phase.label}/>
+            <div className="dash-metrics animate-fade-up-1" style={{ marginTop:36, marginBottom:36, paddingTop:22, paddingBottom:22, borderTop:`1px solid var(--border)`, borderBottom:'1px solid var(--border)' }}>
+              <div style={{ flex:1, minWidth:0, padding:'2px 4px' }}>
+                <p style={{ fontSize:10.5, fontWeight:600, color:'var(--text-muted)', letterSpacing:'.04em', textTransform:'uppercase', margin:'0 0 6px', opacity:.75 }}>Fortschritt</p>
+                <p style={{ fontSize:26, fontWeight:600, color: main.color || 'var(--text)', margin:'0 0 2px', lineHeight:1, letterSpacing:'-.6px' }}>{completePct}%</p>
+                <span style={{ fontSize:11, color:'var(--text-muted)' }}>{phase.label}</span>
+              </div>
               <Metric label="Offen" value={todo} sub={`${inProgress} in Arbeit`}/>
               <Metric label="Erledigt" value={done} sub={`von ${tasks.length} gesamt`}/>
               <Metric label="Projekte" value={projects.length} sub={`${allTasks.length} Tasks total`}/>
@@ -299,9 +303,9 @@ export default function DashboardPage() {
                 Statusbericht
               </SectionLabel>
 
-              <div style={{ border:'1px solid var(--border)', borderRadius:14, overflow:'hidden', background:'var(--card)' }}>
+              <div style={{ border:`1px solid ${main.color ? main.color+'22' : 'var(--border)'}`, borderRadius:14, overflow:'hidden', background:'var(--card)' }}>
                 {/* Header inside */}
-                <div style={{ padding:'16px 20px', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', gap:12 }}>
+                <div style={{ padding:'16px 20px', borderBottom:`1px solid ${main.color ? main.color+'18' : 'var(--border)'}`, display:'flex', alignItems:'center', gap:12, background: main.color ? main.color+'06' : 'transparent' }}>
                   <div style={{ width:32, height:32, borderRadius:8, background: main.color ? main.color + '1a' : 'var(--surface-2)', border:`1px solid ${main.color ? main.color + '33' : 'var(--border)'}`, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
                     <span style={{ fontSize:14, color: main.color || 'var(--text-secondary)', fontWeight:700 }}>✦</span>
                   </div>
