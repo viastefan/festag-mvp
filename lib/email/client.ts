@@ -21,7 +21,10 @@ function extractEmail(addr: string): string {
 }
 
 export function getMailFrom(): string {
-  return process.env.FESTAG_MAIL_FROM ?? 'Festag <stefandirnberger@viawen.com>'
+  // Accept both naming variants (FESTAG_MAIL_FROM_FESTAG was accidentally used in Vercel)
+  return process.env.FESTAG_MAIL_FROM
+      ?? process.env.FESTAG_MAIL_FROM_FESTAG
+      ?? 'Festag <stefandirnberger@viawen.com>'
 }
 
 export function getFounderMail(): string | null {
