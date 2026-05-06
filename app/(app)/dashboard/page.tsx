@@ -9,12 +9,12 @@ type Project  = { id: string; title: string; description: string | null; status:
 type Task     = { id: string; title: string; status: string; priority?: string; project_id: string; updated_at?: string }
 type Activity = { id: string; type: string; message: string; created_at: string; project_id?: string }
 
-const PHASE: Record<string, { label: string; pct: number; color: string }> = {
-  intake:   { label: 'Intake',        pct: 10,  color: 'var(--text-muted)' },
-  planning: { label: 'Planung',       pct: 28,  color: 'var(--text-secondary)' },
-  active:   { label: 'In Arbeit',     pct: 62,  color: 'var(--green)' },
-  testing:  { label: 'Testing',       pct: 85,  color: 'var(--text-secondary)' },
-  done:     { label: 'Abgeschlossen', pct: 100, color: 'var(--green)' },
+const PHASE: Record<string, { label: string; pct: number }> = {
+  intake:   { label: 'Intake',        pct: 10  },
+  planning: { label: 'Planung',       pct: 28  },
+  active:   { label: 'In Arbeit',     pct: 62  },
+  testing:  { label: 'Testing',       pct: 85  },
+  done:     { label: 'Abgeschlossen', pct: 100 },
 }
 
 const MILESTONES = [
@@ -25,13 +25,13 @@ const MILESTONES = [
   { label: 'Delivery',  phase: 'done',     pct: 100, payPct: 10 },
 ]
 
-function DonutChart({ pct, color }: { pct: number; color: string }) {
+function DonutChart({ pct }: { pct: number }) {
   const R = 40, cx = 50, cy = 50, circ = 2 * Math.PI * R
   return (
     <div style={{ position:'relative', width:100, height:100, flexShrink:0 }}>
       <svg width="100" height="100" viewBox="0 0 100 100" style={{ transform:'rotate(-90deg)' }}>
         <circle cx={cx} cy={cy} r={R} fill="none" stroke="var(--surface-2)" strokeWidth="11"/>
-        <circle cx={cx} cy={cy} r={R} fill="none" stroke={color} strokeWidth="11"
+        <circle cx={cx} cy={cy} r={R} fill="none" stroke="var(--text-secondary)" strokeWidth="11"
           strokeDasharray={`${circ*(pct/100)} ${circ*(1-pct/100)}`}
           strokeLinecap="round" style={{ transition:'stroke-dasharray 1.2s cubic-bezier(.16,1,.3,1)' }}
         />
@@ -44,15 +44,12 @@ function DonutChart({ pct, color }: { pct: number; color: string }) {
   )
 }
 
-function MetricCard({ label, value, sub, trend, color }: { label:string; value:string|number; sub:string; trend?:string; color:string }) {
+function MetricCard({ label, value, sub }: { label:string; value:string|number; sub:string }) {
   return (
     <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:16, padding:'16px 20px', flex:1, minWidth:0 }}>
       <p style={{ fontSize:10, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.1em', textTransform:'uppercase', margin:'0 0 8px' }}>{label}</p>
       <p style={{ fontSize:28, fontWeight:700, color:'var(--text)', margin:'0 0 4px', lineHeight:1, letterSpacing:'-.5px' }}>{value}</p>
-      <div style={{ display:'flex', alignItems:'center', gap:6 }}>
-        <span style={{ fontSize:11, color:'var(--text-muted)' }}>{sub}</span>
-        {trend && <span style={{ fontSize:10, fontWeight:700, color, background:`${color}18`, padding:'1px 6px', borderRadius:5 }}>{trend}</span>}
-      </div>
+      <span style={{ fontSize:11, color:'var(--text-muted)' }}>{sub}</span>
     </div>
   )
 }
@@ -95,7 +92,6 @@ export default function DashboardPage() {
         setTasks(t ?? [])
         setAllTasks(at ?? [])
       }
-      // Load activity feed
       const { data: feed } = await supabase
         .from('activity_feed')
         .select('*')
@@ -163,7 +159,6 @@ export default function DashboardPage() {
     <div className="page-content" style={{ maxWidth:1300 }}>
       <style>{`
         @keyframes spin    { to{transform:rotate(360deg);} }
-        @keyframes pulse   { 0%,100%{opacity:1;}50%{opacity:.3;} }
         @keyframes barFill { from{width:0} to{width:${phase?.pct ?? 0}%} }
         .dash-bar     { animation: barFill 1s cubic-bezier(.16,1,.3,1) both .3s }
         .dash-layout  { display:grid; grid-template-columns:1fr 300px; gap:14px; align-items:start; }
@@ -187,12 +182,8 @@ export default function DashboardPage() {
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:12 }}>
           <div>
             <h1 style={{ margin:0 }}>{greeting}{displayName ? `, ${displayName}` : ''}.</h1>
-            <p style={{ margin:'4px 0 0', display:'flex', alignItems:'center', gap:8 }}>
-              <span>{projects.length} Projekt{projects.length!==1?'e':''} · {allTasks.length} Tasks gesamt</span>
-              <span style={{ display:'inline-flex', alignItems:'center', gap:5 }}>
-                <span style={{ width:5, height:5, borderRadius:'50%', background:'#22c55e', animation:'pulse 2s infinite', display:'inline-block' }}/>
-                Tagro AI aktiv
-              </span>
+            <p style={{ margin:'4px 0 0', color:'var(--text-muted)', fontSize:13 }}>
+              {projects.length} Projekt{projects.length!==1?'e':''} · {allTasks.length} Tasks · Phase: {phase?.label ?? '—'}
             </p>
           </div>
           <Link href="/onboarding" style={{ textDecoration:'none' }}>
@@ -224,10 +215,10 @@ export default function DashboardPage() {
         <>
           {/* ── Metric cards row ── */}
           <div className="dash-metrics animate-fade-up-1" style={{ marginBottom:14 }}>
-            <MetricCard label="Fortschritt" value={`${completePct}%`} sub={phase.label} trend={completePct>0?`${done}/${tasks.length} Tasks`:undefined} color="var(--green)"/>
-            <MetricCard label="Offen" value={todo} sub={`${inProgress} in Arbeit`} color="var(--text-secondary)"/>
-            <MetricCard label="Erledigt" value={done} sub={`von ${tasks.length} gesamt`} color="var(--green)"/>
-            <MetricCard label="Projekte" value={projects.length} sub={`${allTasks.length} Tasks total`} color="var(--text)"/>
+            <MetricCard label="Fortschritt" value={`${completePct}%`} sub={phase.label}/>
+            <MetricCard label="Offen" value={todo} sub={`${inProgress} in Arbeit`}/>
+            <MetricCard label="Erledigt" value={done} sub={`von ${tasks.length} gesamt`}/>
+            <MetricCard label="Projekte" value={projects.length} sub={`${allTasks.length} Tasks total`}/>
           </div>
 
           <div className="dash-layout">
@@ -236,8 +227,6 @@ export default function DashboardPage() {
 
               {/* ── Main project card ── */}
               <div className="animate-fade-up-1" style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:20, overflow:'hidden' }}>
-                {/* Clean top accent — single pixel, green only when active */}
-                <div style={{ height:2, background: main.status === 'active' || main.status === 'done' ? 'var(--green)' : 'var(--border)' }}/>
                 <div style={{ padding:'18px 24px', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:16 }}>
                   <div style={{ flex:1, minWidth:0, display:'flex', alignItems:'flex-start', gap:12 }}>
                     <div style={{ width:36, height:36, borderRadius:10, background:'var(--surface-2)', border:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, marginTop:2 }}>
@@ -249,8 +238,7 @@ export default function DashboardPage() {
                       {main.description && <p style={{ fontSize:12, color:'var(--text-muted)', margin:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{main.description}</p>}
                     </div>
                   </div>
-                  <span style={{ height:26, padding:'0 10px', borderRadius:8, fontSize:11, fontWeight:700, flexShrink:0, color: main.status==='active'?'var(--green-dark)': main.status==='done'?'var(--text-muted)':'var(--text-secondary)', background: main.status==='active'?'var(--green-bg)':'var(--surface-2)', border:'1px solid var(--border)', display:'inline-flex', alignItems:'center', gap:5 }}>
-                    {main.status==='active' && <span style={{ width:5, height:5, borderRadius:'50%', background:'var(--green)', animation:'pulse 2s infinite' }}/>}
+                  <span style={{ height:26, padding:'0 10px', borderRadius:8, fontSize:11, fontWeight:700, flexShrink:0, color:'var(--text-secondary)', background:'var(--surface-2)', border:'1px solid var(--border)', display:'inline-flex', alignItems:'center' }}>
                     {phase.label}
                   </span>
                 </div>
@@ -259,12 +247,12 @@ export default function DashboardPage() {
                 <div style={{ padding:'16px 24px', borderBottom:'1px solid var(--border)' }}>
                   <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:10 }}>
                     <span style={{ fontSize:12, fontWeight:600, color:'var(--text-secondary)' }}>Projektfortschritt</span>
-                    <span style={{ fontSize:13, fontWeight:700, color:phase.color }}>{phase.pct}%</span>
+                    <span style={{ fontSize:13, fontWeight:700, color:'var(--text-secondary)' }}>{phase.pct}%</span>
                   </div>
                   <div style={{ position:'relative', height:7, background:'var(--surface-2)', borderRadius:7, overflow:'visible', marginBottom:22 }}>
-                    <div className="dash-bar" style={{ height:'100%', width:`${phase.pct}%`, background:'var(--green)', borderRadius:7, position:'relative', zIndex:1 }}/>
+                    <div className="dash-bar" style={{ height:'100%', width:`${phase.pct}%`, background:'var(--text)', borderRadius:7, position:'relative', zIndex:1 }}/>
                     {MILESTONES.map(ms => (
-                      <div key={ms.label} style={{ position:'absolute', top:'50%', left:`${ms.pct}%`, transform:'translate(-50%,-50%)', width:10, height:10, borderRadius:'50%', background:phase.pct>=ms.pct?'var(--green)':'var(--surface)', border:`2px solid ${phase.pct>=ms.pct?'var(--green)':'var(--border-strong)'}`, zIndex:2, transition:'background .3s' }}/>
+                      <div key={ms.label} style={{ position:'absolute', top:'50%', left:`${ms.pct}%`, transform:'translate(-50%,-50%)', width:10, height:10, borderRadius:'50%', background:phase.pct>=ms.pct?'var(--text)':'var(--surface)', border:`2px solid ${phase.pct>=ms.pct?'var(--text)':'var(--border-strong)'}`, zIndex:2, transition:'background .3s' }}/>
                     ))}
                   </div>
                   <div style={{ display:'flex', justifyContent:'space-between' }}>
@@ -277,14 +265,14 @@ export default function DashboardPage() {
                 {/* Task stats */}
                 <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', borderBottom:'1px solid var(--border)' }}>
                   {[
-                    { l:'TASKS',     v:tasks.length,  c:'var(--text)' },
-                    { l:'IN ARBEIT', v:inProgress,    c:inProgress>0?'var(--amber-dark)':'var(--text-muted)' },
-                    { l:'ERLEDIGT',  v:done,           c:done>0?'var(--green-dark)':'var(--text-muted)' },
-                    { l:'OFFEN',     v:todo,           c:'var(--text)' },
+                    { l:'TASKS',     v:tasks.length },
+                    { l:'IN ARBEIT', v:inProgress   },
+                    { l:'ERLEDIGT',  v:done          },
+                    { l:'OFFEN',     v:todo          },
                   ].map((s,i) => (
                     <div key={i} style={{ padding:'13px 18px', borderRight:i<3?'1px solid var(--border)':'none' }}>
                       <p style={{ fontSize:9, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.1em', margin:'0 0 5px' }}>{s.l}</p>
-                      <p style={{ fontSize:22, fontWeight:700, margin:0, color:s.c, lineHeight:1 }}>{s.v}</p>
+                      <p style={{ fontSize:22, fontWeight:700, margin:0, color:'var(--text)', lineHeight:1 }}>{s.v}</p>
                     </div>
                   ))}
                 </div>
@@ -323,11 +311,11 @@ export default function DashboardPage() {
                   </div>
                   {activeTasks.slice(0, 7).map((t, i, arr) => (
                     <div key={t.id} style={{ padding:'10px 24px', borderBottom:i<arr.length-1?'1px solid var(--border)':'none', display:'flex', alignItems:'center', gap:12 }}>
-                      <span style={{ width:6, height:6, borderRadius:'50%', flexShrink:0, background:t.status==='doing'?'var(--green)':t.priority==='critical'?'var(--red)':'var(--border-strong)' }}/>
+                      <span style={{ width:6, height:6, borderRadius:'50%', flexShrink:0, background:'var(--border-strong)' }}/>
                       <span style={{ fontSize:13, color:'var(--text)', flex:1, minWidth:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{t.title}</span>
                       <div style={{ display:'flex', alignItems:'center', gap:6, flexShrink:0 }}>
-                        {t.priority === 'critical' && <span style={{ fontSize:9, fontWeight:700, color:'#dc2626', background:'rgba(239,68,68,.1)', padding:'2px 6px', borderRadius:4, letterSpacing:'.05em' }}>KRITISCH</span>}
-                        <span style={{ fontSize:9, fontWeight:700, color:t.status==='doing'?'#16a34a':'var(--text-muted)', background:t.status==='doing'?'rgba(34,197,94,.1)':'var(--surface-2)', padding:'2px 7px', borderRadius:4, letterSpacing:'.04em' }}>
+                        {t.priority === 'critical' && <span style={{ fontSize:9, fontWeight:700, color:'var(--text-muted)', background:'var(--surface-2)', padding:'2px 6px', borderRadius:4, letterSpacing:'.05em' }}>KRITISCH</span>}
+                        <span style={{ fontSize:9, fontWeight:700, color:'var(--text-muted)', background:'var(--surface-2)', padding:'2px 7px', borderRadius:4, letterSpacing:'.04em' }}>
                           {t.status==='doing'?'AKTIV':'OFFEN'}
                         </span>
                       </div>
@@ -344,14 +332,14 @@ export default function DashboardPage() {
                     <span style={{ fontSize:11, color:'var(--text-muted)', fontWeight:600 }}>{projects.length} Projekte · {allTasks.length} Tasks</span>
                   </div>
 
-                  {/* Stacked bar */}
+                  {/* Mono stacked bar */}
                   <div style={{ padding:'14px 24px 10px', borderBottom:'1px solid var(--border)' }}>
                     <div style={{ display:'flex', height:6, borderRadius:6, overflow:'hidden', background:'var(--surface-2)' }}>
-                      {allDone>0   && <div style={{ width:`${allDone/totalAll*100}%`,   background:'#22c55e', transition:'width .6s ease' }}/>}
-                      {allActive>0 && <div style={{ width:`${allActive/totalAll*100}%`, background:'#f59e0b', transition:'width .6s ease' }}/>}
+                      {allDone>0   && <div style={{ width:`${allDone/totalAll*100}%`,   background:'var(--text)', transition:'width .6s ease' }}/>}
+                      {allActive>0 && <div style={{ width:`${allActive/totalAll*100}%`, background:'var(--text-secondary)', transition:'width .6s ease' }}/>}
                     </div>
                     <div style={{ display:'flex', gap:16, marginTop:8 }}>
-                      {[{l:`${allDone} Erledigt`,c:'#22c55e'},{l:`${allActive} Aktiv`,c:'#f59e0b'},{l:`${allTodo2} Offen`,c:'var(--border-strong)'}].map(s => (
+                      {[{l:`${allDone} Erledigt`,c:'var(--text)'},{l:`${allActive} Aktiv`,c:'var(--text-secondary)'},{l:`${allTodo2} Offen`,c:'var(--border-strong)'}].map(s => (
                         <span key={s.l} style={{ display:'flex', alignItems:'center', gap:5, fontSize:11, color:'var(--text-muted)' }}>
                           <span style={{ width:7, height:7, borderRadius:2, background:s.c, flexShrink:0 }}/>{s.l}
                         </span>
@@ -374,12 +362,12 @@ export default function DashboardPage() {
                             <div style={{ flex:1, minWidth:0 }}>
                               <p style={{ fontSize:13, fontWeight:600, color:'var(--text)', margin:'0 0 4px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{proj.title}</p>
                               <div style={{ height:3, background:'var(--surface-2)', borderRadius:4, overflow:'hidden' }}>
-                                <div style={{ height:'100%', width:`${pct}%`, background:'var(--green)', borderRadius:4, transition:'width .6s ease' }}/>
+                                <div style={{ height:'100%', width:`${pct}%`, background:'var(--text)', borderRadius:4, transition:'width .6s ease' }}/>
                               </div>
                             </div>
                             <div style={{ flexShrink:0, display:'flex', flexDirection:'column', alignItems:'flex-end', gap:3 }}>
                               <span style={{ fontSize:12, fontWeight:700, color:'var(--text)' }}>{pct}%</span>
-                              <span style={{ fontSize:9, fontWeight:700, color:proj.status==='active'?'#16a34a':proj.status==='done'?'var(--text-muted)':'#d97706', letterSpacing:'.05em' }}>{ph.label.toUpperCase()}</span>
+                              <span style={{ fontSize:9, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.05em' }}>{ph.label.toUpperCase()}</span>
                             </div>
                           </div>
                         </Link>
@@ -400,17 +388,15 @@ export default function DashboardPage() {
                   <p style={{ fontSize:11, color:'var(--text-muted)', margin:'2px 0 0', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{main.title}</p>
                 </div>
                 <div style={{ padding:'18px', display:'flex', alignItems:'center', gap:16 }}>
-                  <DonutChart pct={phase.pct} color={phase.color}/>
+                  <DonutChart pct={phase.pct}/>
                   <div style={{ flex:1, display:'flex', flexDirection:'column', gap:6 }}>
                     {MILESTONES.map((ms, i) => {
                       const reached = phase.pct>=ms.pct
                       const isCurr  = phaseIdx===i
                       return (
                         <div key={ms.label} style={{ display:'flex', alignItems:'center', gap:7 }}>
-                          <div style={{ width:15, height:15, borderRadius:'50%', flexShrink:0, background:reached?'rgba(34,197,94,.1)':isCurr?'rgba(245,158,11,.1)':'transparent', border:`1.5px solid ${reached?'rgba(34,197,94,.4)':isCurr?'#f59e0b':'var(--border)'}`, display:'flex', alignItems:'center', justifyContent:'center' }}>
-                            {reached ? <svg width="7" height="7" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="3.5" strokeLinecap="round"><path d="M20 6L9 17l-5-5"/></svg>
-                              : <span style={{ width:4, height:4, borderRadius:'50%', background:isCurr?'#f59e0b':'var(--border-strong)' }}/>
-                            }
+                          <div style={{ width:15, height:15, borderRadius:'50%', flexShrink:0, background:'transparent', border:`1.5px solid ${reached?'var(--text-secondary)':'var(--border)'}`, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                            <span style={{ width:4, height:4, borderRadius:'50%', background:reached?'var(--text-secondary)':isCurr?'var(--text-muted)':'var(--border-strong)' }}/>
                           </div>
                           <span style={{ fontSize:11, fontWeight:600, color:reached?'var(--text-secondary)':isCurr?'var(--text)':'var(--text-muted)', flex:1 }}>{ms.label}</span>
                         </div>
@@ -421,23 +407,23 @@ export default function DashboardPage() {
               </div>
 
               {/* ── Tagro AI Status ── */}
-              <div style={{ background:'var(--btn-prim)', borderRadius:20, overflow:'hidden' }}>
+              <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:20, overflow:'hidden' }}>
                 <div style={{ padding:'16px 18px' }}>
                   <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:10 }}>
-                    <div style={{ width:28, height:28, borderRadius:8, background:'rgba(255,255,255,.15)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                      <span style={{ fontSize:12, color:'var(--btn-prim-text)', fontWeight:700 }}>✦</span>
+                    <div style={{ width:28, height:28, borderRadius:8, background:'var(--surface-2)', border:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                      <span style={{ fontSize:12, color:'var(--text-secondary)', fontWeight:700 }}>✦</span>
                     </div>
                     <div>
-                      <p style={{ fontSize:13, fontWeight:700, color:'var(--btn-prim-text)', margin:0, lineHeight:1 }}>Tagro Status</p>
-                      <p style={{ fontSize:10, color:'var(--btn-prim-text)', margin:'2px 0 0', opacity:.5, lineHeight:1 }}>KI-Projektbericht</p>
+                      <p style={{ fontSize:13, fontWeight:700, color:'var(--text)', margin:0, lineHeight:1 }}>Tagro Status</p>
+                      <p style={{ fontSize:10, color:'var(--text-muted)', margin:'2px 0 0', lineHeight:1 }}>KI-Projektbericht</p>
                     </div>
                   </div>
-                  <p style={{ fontSize:12.5, lineHeight:1.65, color:'var(--btn-prim-text)', margin:'0 0 12px', opacity:report?.8:.4, fontStyle:report?'normal':'italic' }}>
+                  <p style={{ fontSize:12.5, lineHeight:1.65, color:'var(--text-secondary)', margin:'0 0 12px', opacity:report?.8:.4, fontStyle:report?'normal':'italic' }}>
                     {report || 'Tagro analysiert deinen Projektfortschritt und liefert einen klaren Bericht.'}
                   </p>
                   <button onClick={generateReport} disabled={genReport}
-                    style={{ width:'100%', padding:'8px', background:'rgba(255,255,255,.12)', color:'var(--btn-prim-text)', border:'1px solid rgba(255,255,255,.15)', borderRadius:9, fontSize:12, fontWeight:700, cursor:genReport?'default':'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', justifyContent:'center', gap:6 }}>
-                    {genReport ? <><span style={{ width:12, height:12, border:'2px solid rgba(255,255,255,.3)', borderTopColor:'var(--btn-prim-text)', borderRadius:'50%', animation:'spin .7s linear infinite' }}/> Generiert…</>
+                    style={{ width:'100%', padding:'8px', background:'var(--surface-2)', color:'var(--text-secondary)', border:'1px solid var(--border)', borderRadius:9, fontSize:12, fontWeight:700, cursor:genReport?'default':'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', justifyContent:'center', gap:6 }}>
+                    {genReport ? <><span style={{ width:12, height:12, border:'2px solid var(--border)', borderTopColor:'var(--text)', borderRadius:'50%', animation:'spin .7s linear infinite' }}/> Generiert…</>
                       : <>{report ? '↺ Neu generieren' : '+ Statusbericht'}</>}
                   </button>
                 </div>
@@ -448,15 +434,11 @@ export default function DashboardPage() {
                 <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:20, overflow:'hidden' }}>
                   <div style={{ padding:'13px 18px', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
                     <p style={{ fontSize:13, fontWeight:700, color:'var(--text)', margin:0 }}>Aktivität</p>
-                    <div style={{ display:'flex', alignItems:'center', gap:4, padding:'2px 8px', background:'rgba(34,197,94,.08)', border:'1px solid rgba(34,197,94,.15)', borderRadius:8 }}>
-                      <span style={{ width:5, height:5, borderRadius:'50%', background:'#22c55e', animation:'pulse 2s infinite' }}/>
-                      <span style={{ fontSize:9, fontWeight:700, color:'#16a34a', letterSpacing:'.05em' }}>LIVE</span>
-                    </div>
                   </div>
                   <div style={{ padding:'8px 0' }}>
                     {activity.slice(0,8).map((a, i) => (
                       <div key={a.id} className="act-row" style={{ display:'flex', gap:10, padding:'9px 16px', borderRadius:0, transition:'background .1s', cursor:'default' }}>
-                        <div style={{ width:6, height:6, borderRadius:'50%', background:'var(--accent)', flexShrink:0, marginTop:5 }}/>
+                        <div style={{ width:6, height:6, borderRadius:'50%', background:'var(--border-strong)', flexShrink:0, marginTop:5 }}/>
                         <div style={{ flex:1, minWidth:0 }}>
                           <p style={{ fontSize:12, color:'var(--text-secondary)', margin:0, lineHeight:1.5, overflow:'hidden', textOverflow:'ellipsis', display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical' }}>{a.message}</p>
                           <p style={{ fontSize:10, color:'var(--text-muted)', margin:'2px 0 0' }}>{timeAgo(a.created_at)}</p>
@@ -506,13 +488,13 @@ export default function DashboardPage() {
                           <span style={{ fontSize:12, fontWeight:600, color:reached?'var(--text-secondary)':isCurr?'var(--text)':'var(--text-muted)' }}>{ms.label}</span>
                           <div style={{ display:'flex', alignItems:'center', gap:6 }}>
                             <span style={{ fontSize:11, fontWeight:700, color:'var(--text-muted)' }}>{ms.payPct}%</span>
-                            <span style={{ fontSize:9, fontWeight:700, padding:'2px 6px', borderRadius:4, letterSpacing:'.05em', color:reached?'#16a34a':isCurr?'#d97706':'var(--text-muted)', background:reached?'rgba(34,197,94,.1)':isCurr?'rgba(245,158,11,.1)':'var(--surface-2)', border:`1px solid ${reached?'rgba(34,197,94,.2)':'var(--border)'}` }}>
+                            <span style={{ fontSize:9, fontWeight:700, padding:'2px 6px', borderRadius:4, letterSpacing:'.05em', color:'var(--text-muted)', background:'var(--surface-2)', border:'1px solid var(--border)' }}>
                               {reached?'PAID':isCurr?'FÄLLIG':'OFFEN'}
                             </span>
                           </div>
                         </div>
                         <div style={{ height:3, background:'var(--surface-2)', borderRadius:3, overflow:'hidden' }}>
-                          <div style={{ height:'100%', width:reached?'100%':isCurr?'50%':'0%', background:reached?'#22c55e':'#f59e0b', borderRadius:3, transition:'width .8s ease' }}/>
+                          <div style={{ height:'100%', width:reached?'100%':isCurr?'50%':'0%', background:'var(--text)', borderRadius:3, transition:'width .8s ease' }}/>
                         </div>
                       </div>
                     )
@@ -537,8 +519,8 @@ export default function DashboardPage() {
                   <a href="https://wa.me/4989123456" target="_blank" rel="noopener" style={{ display:'flex', alignItems:'center', gap:9, textDecoration:'none', padding:'8px 8px', borderRadius:9, transition:'background .1s' }}
                     onMouseEnter={e => (e.currentTarget as HTMLElement).style.background='var(--surface-2)'}
                     onMouseLeave={e => (e.currentTarget as HTMLElement).style.background='transparent'}>
-                    <div style={{ width:30, height:30, borderRadius:8, background:'rgba(34,197,94,.08)', border:'1px solid rgba(34,197,94,.15)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2" strokeLinecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.3h3a2 2 0 0 1 2 1.72c.13.81.37 1.6.7 2.35a2 2 0 0 1-.45 2.11L7.91 9.4a16 16 0 0 0 6.19 6.19l.95-.95a2 2 0 0 1 2.1-.45c.75.33 1.54.57 2.35.7A2 2 0 0 1 22 16.92z"/></svg>
+                    <div style={{ width:30, height:30, borderRadius:8, background:'var(--surface-2)', border:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2" strokeLinecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.3h3a2 2 0 0 1 2 1.72c.13.81.37 1.6.7 2.35a2 2 0 0 1-.45 2.11L7.91 9.4a16 16 0 0 0 6.19 6.19l.95-.95a2 2 0 0 1 2.1-.45c.75.33 1.54.57 2.35.7A2 2 0 0 1 22 16.92z"/></svg>
                     </div>
                     <div><p style={{ fontSize:9, fontWeight:700, color:'var(--text-muted)', margin:0, letterSpacing:'.06em' }}>WHATSAPP</p><p style={{ fontSize:12, fontWeight:600, color:'var(--text)', margin:'1px 0 0' }}>+49 089 123 456 78</p></div>
                   </a>

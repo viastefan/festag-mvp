@@ -241,14 +241,14 @@ export default function Sidebar() {
         .ni {
           display:flex; align-items:center; gap:7px;
           padding:5px 9px; border-radius:7px;
-          font-size:12.5px; font-weight:500;
+          font-size:13px; font-weight:500;
           cursor:pointer; text-decoration:none; color:inherit;
           transition:background .08s, color .08s;
           white-space:nowrap; overflow:hidden;
           margin:0 2px;
         }
         .ni-on  { background:var(--nav-on); font-weight:600; color:var(--nav-on-text); }
-        .ni-off { color:var(--nav-off-text); }
+        .ni-off { color:var(--text-secondary); }
         .ni-off:hover { background:rgba(0,0,0,0.04); color:var(--text); }
         [data-theme="dark"] .ni-off:hover { background:rgba(255,255,255,0.05); }
         [data-theme="read"] .ni-off:hover { background:rgba(0,0,0,0.04); }
