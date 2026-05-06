@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import LoadingScreen from '@/components/LoadingScreen'
 import NewProjectModal from '@/components/NewProjectModal'
+import ProjectPreview from '@/components/ProjectPreview'
 
 type Project  = { id: string; title: string; description: string | null; status: string; created_at: string; color: string | null }
 type Task     = { id: string; title: string; status: string; priority?: string; project_id: string; updated_at?: string }
@@ -45,12 +46,21 @@ function DonutChart({ pct }: { pct: number }) {
   )
 }
 
-function MetricCard({ label, value, sub }: { label:string; value:string|number; sub:string }) {
+function Metric({ label, value, sub }: { label:string; value:string|number; sub:string }) {
   return (
-    <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:16, padding:'16px 20px', flex:1, minWidth:0 }}>
-      <p style={{ fontSize:10, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.1em', textTransform:'uppercase', margin:'0 0 8px' }}>{label}</p>
-      <p style={{ fontSize:28, fontWeight:700, color:'var(--text)', margin:'0 0 4px', lineHeight:1, letterSpacing:'-.5px' }}>{value}</p>
+    <div style={{ flex:1, minWidth:0, padding:'2px 4px' }}>
+      <p style={{ fontSize:10.5, fontWeight:600, color:'var(--text-muted)', letterSpacing:'.04em', textTransform:'uppercase', margin:'0 0 6px', opacity:.75 }}>{label}</p>
+      <p style={{ fontSize:26, fontWeight:600, color:'var(--text)', margin:'0 0 2px', lineHeight:1, letterSpacing:'-.6px' }}>{value}</p>
       <span style={{ fontSize:11, color:'var(--text-muted)' }}>{sub}</span>
+    </div>
+  )
+}
+
+function SectionLabel({ children, action }: { children: React.ReactNode; action?: React.ReactNode }) {
+  return (
+    <div style={{ display:'flex', alignItems:'baseline', justifyContent:'space-between', marginBottom:14 }}>
+      <h3 style={{ fontSize:13, fontWeight:600, color:'var(--text)', margin:0, letterSpacing:'-.1px' }}>{children}</h3>
+      {action}
     </div>
   )
 }
@@ -158,379 +168,304 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="page-content" style={{ maxWidth:1300 }}>
+    <div className="page-content" style={{ maxWidth:1180 }}>
       <style>{`
         @keyframes spin    { to{transform:rotate(360deg);} }
         @keyframes barFill { from{width:0} to{width:${phase?.pct ?? 0}%} }
         .dash-bar     { animation: barFill 1s cubic-bezier(.16,1,.3,1) both .3s }
-        .dash-layout  { display:grid; grid-template-columns:1fr 300px; gap:14px; align-items:start; }
-        .dash-metrics { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+        .dash-layout  { display:grid; grid-template-columns:1fr 280px; gap:48px; align-items:start; }
+        .dash-metrics { display:grid; grid-template-columns:repeat(4,1fr); gap:0; }
+        .dash-metrics > div + div { border-left:1px solid var(--border); padding-left:18px !important; }
+        .dash-hero { display:grid; grid-template-columns:300px 1fr; gap:0; }
+        .dash-hero > .hero-info { padding:22px 26px; }
         @media(max-width:1100px) {
-          .dash-layout  { grid-template-columns:1fr !important; }
+          .dash-layout  { grid-template-columns:1fr !important; gap:32px !important; }
           .dash-right   { display:none !important; }
-          .dash-metrics { grid-template-columns:repeat(2,1fr) !important; }
         }
-        @media(max-width:640px) {
-          .dash-metrics { grid-template-columns:repeat(2,1fr) !important; }
-          .workload-grid { grid-template-columns:1fr !important; }
+        @media(max-width:760px) {
+          .dash-hero { grid-template-columns:1fr !important; }
+          .dash-hero > .hero-info { padding:18px 20px !important; }
+          .dash-metrics { grid-template-columns:repeat(2,1fr) !important; gap:18px 0 !important; }
+          .dash-metrics > div + div { border-left:none !important; padding-left:4px !important; }
+          .dash-metrics > div:nth-child(3) { border-top:1px solid var(--border); padding-top:14px !important; }
+          .dash-metrics > div:nth-child(4) { border-top:1px solid var(--border); padding-top:14px !important; }
         }
-        .proj-row-card { transition:background .12s, border-color .12s; }
-        .proj-row-card:hover { background:var(--surface-2) !important; }
-        .act-row:hover { background:var(--card) !important; }
+        .row-hover { transition:background .1s ease; cursor:pointer; }
+        .row-hover:hover { background:var(--surface-2); }
+        .ghost-btn { background:transparent; border:1px solid var(--border); color:var(--text-secondary); border-radius:8px; transition:border-color .12s, color .12s, background .12s; }
+        .ghost-btn:hover { border-color:var(--border-strong); color:var(--text); }
       `}</style>
 
       {/* ── Greeting ── */}
-      <div className="animate-fade-up page-header">
-        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:12 }}>
-          <div>
-            <h1 style={{ margin:0 }}>{greeting}{displayName ? `, ${displayName}` : ''}.</h1>
-            <p style={{ margin:'4px 0 0', color:'var(--text-muted)', fontSize:13 }}>
-              {projects.length} Projekt{projects.length!==1?'e':''} · {allTasks.length} Tasks · Phase: {phase?.label ?? '—'}
-            </p>
-          </div>
-          <button onClick={() => setShowNewProject(true)} style={{ height:36, padding:'0 16px', background:'var(--btn-prim)', color:'var(--btn-prim-text)', border:'none', borderRadius:10, fontSize:13, fontWeight:700, cursor:'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', gap:6 }}>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
-            Neues Projekt
-          </button>
+      <div className="animate-fade-up" style={{ marginBottom:36, display:'flex', alignItems:'flex-end', justifyContent:'space-between', flexWrap:'wrap', gap:12 }}>
+        <div>
+          <h1 style={{ margin:0, fontSize:28, fontWeight:600, letterSpacing:'-.7px' }}>{greeting}{displayName ? `, ${displayName}` : ''}</h1>
+          <p style={{ margin:'6px 0 0', color:'var(--text-muted)', fontSize:13 }}>
+            {projects.length} Projekt{projects.length!==1?'e':''} · {allTasks.length} Tasks{phase ? ` · ${phase.label}` : ''}
+          </p>
         </div>
+        <button onClick={() => setShowNewProject(true)} style={{ height:34, padding:'0 14px', background:'var(--btn-prim)', color:'var(--btn-prim-text)', border:'none', borderRadius:8, fontSize:13, fontWeight:600, cursor:'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', gap:6 }}>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          Neues Projekt
+        </button>
       </div>
 
       {/* ── Empty state ── */}
       {!main && (
-        <div className="animate-fade-up-1" style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:20, padding:'72px 32px', textAlign:'center' }}>
-          <p style={{ fontSize:11, fontWeight:700, letterSpacing:'.12em', textTransform:'uppercase', color:'var(--text-muted)', margin:'0 0 16px', opacity:.6 }}>Noch kein Projekt</p>
-          <h2 style={{ fontSize:28, fontWeight:800, letterSpacing:'-.6px', lineHeight:1.1, margin:'0 0 12px', color:'var(--text)' }}>Starte dein erstes Projekt.</h2>
-          <p style={{ fontSize:14, color:'var(--text-secondary)', maxWidth:340, margin:'0 auto 32px', lineHeight:1.65, fontWeight:500 }}>
+        <div className="animate-fade-up-1" style={{ borderTop:'1px solid var(--border)', borderBottom:'1px solid var(--border)', padding:'80px 32px', textAlign:'center' }}>
+          <h2 style={{ fontSize:22, fontWeight:600, letterSpacing:'-.4px', lineHeight:1.2, margin:'0 0 10px', color:'var(--text)' }}>Starte dein erstes Projekt</h2>
+          <p style={{ fontSize:14, color:'var(--text-muted)', maxWidth:380, margin:'0 auto 28px', lineHeight:1.6 }}>
             Beschreibe deine Idee — Tagro strukturiert alles in Epics und Tasks.
           </p>
-          <button onClick={() => setShowNewProject(true)} className="tap-scale" style={{ padding:'13px 32px', background:'var(--btn-prim)', color:'var(--btn-prim-text)', border:'none', borderRadius:12, fontSize:14, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>
-            Neues Projekt erstellen →
+          <button onClick={() => setShowNewProject(true)} style={{ padding:'10px 24px', background:'var(--btn-prim)', color:'var(--btn-prim-text)', border:'none', borderRadius:8, fontSize:13, fontWeight:600, cursor:'pointer', fontFamily:'inherit' }}>
+            Projekt erstellen →
           </button>
         </div>
       )}
 
       {main && phase && (
-        <>
-          {/* ── Metric cards row ── */}
-          <div className="dash-metrics animate-fade-up-1" style={{ marginBottom:14 }}>
-            <MetricCard label="Fortschritt" value={`${completePct}%`} sub={phase.label}/>
-            <MetricCard label="Offen" value={todo} sub={`${inProgress} in Arbeit`}/>
-            <MetricCard label="Erledigt" value={done} sub={`von ${tasks.length} gesamt`}/>
-            <MetricCard label="Projekte" value={projects.length} sub={`${allTasks.length} Tasks total`}/>
-          </div>
+        <div className="dash-layout">
+          {/* ══════════ LEFT COLUMN ══════════ */}
+          <div style={{ minWidth:0 }}>
 
-          <div className="dash-layout">
-            {/* ══════════ LEFT COLUMN ══════════ */}
-            <div style={{ display:'flex', flexDirection:'column', gap:12, minWidth:0 }}>
+            {/* ── HERO: Vercel-Style Production Deployment Karte ── */}
+            <div className="animate-fade-up-1 dash-hero" style={{ border:'1px solid var(--border)', borderRadius:14, overflow:'hidden', background:'var(--card)' }}>
+              {/* Preview left */}
+              <div style={{ padding:18, paddingRight:0, borderRight:'1px solid var(--border)' }}>
+                <Link href={`/project/${main.id}`} style={{ textDecoration:'none', display:'block' }}>
+                  <ProjectPreview title={main.title} color={main.color} progress={completePct} height={180}/>
+                </Link>
+              </div>
 
-              {/* ── Main project card ── */}
-              <div className="animate-fade-up-1" style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:20, overflow:'hidden', borderLeft: main.color ? `3px solid ${main.color}` : '1px solid var(--border)' }}>
-                <div style={{ padding:'18px 24px', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:16 }}>
-                  <div style={{ flex:1, minWidth:0, display:'flex', alignItems:'flex-start', gap:12 }}>
-                    <div style={{ width:36, height:36, borderRadius:10, background: main.color ? main.color + '22' : 'var(--surface-2)', border: `1px solid ${main.color ? main.color + '44' : 'var(--border)'}`, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, marginTop:2 }}>
-                      <span style={{ fontSize:15, fontWeight:700, color: main.color || 'var(--text)' }}>{main.title.charAt(0)}</span>
-                    </div>
-                    <div style={{ flex:1, minWidth:0 }}>
-                      <p style={{ fontSize:10, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.1em', textTransform:'uppercase', margin:'0 0 3px' }}>Aktuelles Projekt</p>
-                      <h2 style={{ fontSize:18, fontWeight:700, letterSpacing:'-.3px', margin:'0 0 3px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{main.title}</h2>
-                      {main.description && <p style={{ fontSize:12, color:'var(--text-muted)', margin:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{main.description}</p>}
-                    </div>
-                  </div>
-                  <span style={{ height:26, padding:'0 10px', borderRadius:8, fontSize:11, fontWeight:700, flexShrink:0, color:'var(--text-secondary)', background:'var(--surface-2)', border:'1px solid var(--border)', display:'inline-flex', alignItems:'center' }}>
-                    {phase.label}
-                  </span>
+              {/* Info right */}
+              <div className="hero-info" style={{ display:'flex', flexDirection:'column', gap:14 }}>
+                <div>
+                  <p style={{ fontSize:11, fontWeight:600, color:'var(--text-muted)', margin:'0 0 4px' }}>Aktuelles Projekt</p>
+                  <h2 style={{ fontSize:18, fontWeight:600, letterSpacing:'-.3px', margin:'0 0 4px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{main.title}</h2>
+                  {main.description && <p style={{ fontSize:13, color:'var(--text-muted)', margin:0, lineHeight:1.5, display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden' }}>{main.description}</p>}
                 </div>
 
-                {/* Progress */}
-                <div style={{ padding:'16px 24px', borderBottom:'1px solid var(--border)' }}>
-                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:10 }}>
-                    <span style={{ fontSize:12, fontWeight:600, color:'var(--text-secondary)' }}>Projektfortschritt</span>
-                    <span style={{ fontSize:13, fontWeight:700, color:'var(--text-secondary)' }}>{phase.pct}%</span>
-                  </div>
-                  <div style={{ position:'relative', height:7, background:'var(--surface-2)', borderRadius:7, overflow:'visible', marginBottom:22 }}>
-                    <div className="dash-bar" style={{ height:'100%', width:`${phase.pct}%`, background: main.color || 'var(--text)', borderRadius:7, position:'relative', zIndex:1 }}/>
+                <div style={{ display:'flex', alignItems:'center', gap:7, flexWrap:'wrap' }}>
+                  <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:12, color:'var(--text-secondary)' }}>
+                    <span style={{ width:7, height:7, borderRadius:'50%', background: main.color || 'var(--text-muted)' }}/>
+                    {phase.label}
+                  </span>
+                  <span style={{ color:'var(--text-muted)', fontSize:11 }}>·</span>
+                  <span style={{ fontSize:12, color:'var(--text-secondary)' }}>{tasks.length} Tasks</span>
+                  <span style={{ color:'var(--text-muted)', fontSize:11 }}>·</span>
+                  <span style={{ fontSize:12, color:'var(--text-secondary)' }}>{completePct}% fertig</span>
+                </div>
+
+                {/* Inline progress milestones */}
+                <div>
+                  <div style={{ position:'relative', height:4, background:'var(--surface-2)', borderRadius:4, marginBottom:8 }}>
+                    <div className="dash-bar" style={{ height:'100%', width:`${phase.pct}%`, background: main.color || 'var(--text)', borderRadius:4 }}/>
                     {MILESTONES.map(ms => (
-                      <div key={ms.label} style={{ position:'absolute', top:'50%', left:`${ms.pct}%`, transform:'translate(-50%,-50%)', width:10, height:10, borderRadius:'50%', background:phase.pct>=ms.pct?(main.color||'var(--text)'):'var(--surface)', border:`2px solid ${phase.pct>=ms.pct?(main.color||'var(--text)'):'var(--border-strong)'}`, zIndex:2, transition:'background .3s' }}/>
+                      <div key={ms.label} style={{ position:'absolute', top:'50%', left:`${ms.pct}%`, transform:'translate(-50%,-50%)', width:7, height:7, borderRadius:'50%', background: phase.pct>=ms.pct ? (main.color||'var(--text)') : 'var(--card)', border:`1.5px solid ${phase.pct>=ms.pct?(main.color||'var(--text)'):'var(--border-strong)'}` }}/>
                     ))}
                   </div>
                   <div style={{ display:'flex', justifyContent:'space-between' }}>
                     {MILESTONES.map(ms => (
-                      <span key={ms.label} style={{ fontSize:9, fontWeight:700, letterSpacing:'.04em', color:phase.pct>=ms.pct?'var(--text-secondary)':'var(--text-muted)', textTransform:'uppercase' }}>{ms.label}</span>
+                      <span key={ms.label} style={{ fontSize:9.5, fontWeight:500, color: phase.pct>=ms.pct?'var(--text-secondary)':'var(--text-muted)' }}>{ms.label}</span>
                     ))}
                   </div>
                 </div>
 
-                {/* Task stats */}
-                <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', borderBottom:'1px solid var(--border)' }}>
-                  {[
-                    { l:'TASKS',     v:tasks.length },
-                    { l:'IN ARBEIT', v:inProgress   },
-                    { l:'ERLEDIGT',  v:done          },
-                    { l:'OFFEN',     v:todo          },
-                  ].map((s,i) => (
-                    <div key={i} style={{ padding:'13px 18px', borderRight:i<3?'1px solid var(--border)':'none' }}>
-                      <p style={{ fontSize:9, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.1em', margin:'0 0 5px' }}>{s.l}</p>
-                      <p style={{ fontSize:22, fontWeight:700, margin:0, color:'var(--text)', lineHeight:1 }}>{s.v}</p>
-                    </div>
-                  ))}
-                </div>
-
-                <div style={{ padding:'13px 24px', display:'flex', gap:8 }}>
+                <div style={{ display:'flex', gap:8, marginTop:'auto' }}>
                   <Link href={`/project/${main.id}`} style={{ flex:1, textDecoration:'none' }}>
-                    <button className="tap-scale" style={{ width:'100%', height:40, background:'var(--btn-prim)', color:'var(--btn-prim-text)', border:'none', borderRadius:10, fontSize:13, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:6 }}>
-                      Projekt öffnen
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M9 6l6 6-6 6"/></svg>
+                    <button style={{ width:'100%', height:34, background:'var(--btn-prim)', color:'var(--btn-prim-text)', border:'none', borderRadius:8, fontSize:12.5, fontWeight:600, cursor:'pointer', fontFamily:'inherit' }}>
+                      Projekt öffnen →
                     </button>
                   </Link>
-                  <button onClick={generateReport} disabled={genReport}
-                    style={{ height:40, padding:'0 14px', background:'var(--surface-2)', color:'var(--text-secondary)', border:'1px solid var(--border)', borderRadius:10, fontSize:12, fontWeight:700, cursor:genReport?'default':'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', gap:6, flexShrink:0 }}>
-                    {genReport ? <span style={{ width:12, height:12, border:'2px solid rgba(128,128,128,.3)', borderTopColor:'currentColor', borderRadius:'50%', animation:'spin .7s linear infinite' }}/> : <span style={{ fontSize:12 }}>✦</span>}
-                    {genReport ? 'Lädt…' : 'KI-Bericht'}
+                  <button onClick={generateReport} disabled={genReport} className="ghost-btn"
+                    style={{ height:34, padding:'0 14px', fontSize:12, fontWeight:600, cursor:genReport?'default':'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', gap:6 }}>
+                    {genReport ? <span style={{ width:11, height:11, border:'2px solid rgba(128,128,128,.3)', borderTopColor:'currentColor', borderRadius:'50%', animation:'spin .7s linear infinite' }}/> : <span>✦</span>}
+                    {genReport ? 'Lädt' : 'KI-Bericht'}
                   </button>
                 </div>
-
-                {/* AI report inline */}
-                {report && (
-                  <div style={{ padding:'14px 24px', borderTop:'1px solid var(--border)', background:'var(--surface)', display:'flex', gap:12 }}>
-                    <div style={{ width:26, height:26, borderRadius:7, background:'var(--accent)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                      <span style={{ fontSize:10, color:'var(--accent-text)', fontWeight:700 }}>✦</span>
-                    </div>
-                    <p style={{ fontSize:13, color:'var(--text-secondary)', lineHeight:1.65, margin:0 }}>{report}</p>
-                  </div>
-                )}
               </div>
-
-              {/* ── Active tasks ── */}
-              {activeTasks.length > 0 && (
-                <div className="animate-fade-up-2" style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:20, overflow:'hidden' }}>
-                  <div style={{ padding:'13px 24px', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-                    <p style={{ fontSize:13, fontWeight:700, color:'var(--text)', margin:0 }}>Aktive Tasks</p>
-                    <Link href={`/project/${main.id}`} style={{ fontSize:12, color:'var(--text-muted)', fontWeight:600, textDecoration:'none' }}>Alle ansehen →</Link>
-                  </div>
-                  {activeTasks.slice(0, 7).map((t, i, arr) => (
-                    <div key={t.id} style={{ padding:'10px 24px', borderBottom:i<arr.length-1?'1px solid var(--border)':'none', display:'flex', alignItems:'center', gap:12 }}>
-                      <span style={{ width:6, height:6, borderRadius:'50%', flexShrink:0, background:'var(--border-strong)' }}/>
-                      <span style={{ fontSize:13, color:'var(--text)', flex:1, minWidth:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{t.title}</span>
-                      <div style={{ display:'flex', alignItems:'center', gap:6, flexShrink:0 }}>
-                        {t.priority === 'critical' && <span style={{ fontSize:9, fontWeight:700, color:'var(--text-muted)', background:'var(--surface-2)', padding:'2px 6px', borderRadius:4, letterSpacing:'.05em' }}>KRITISCH</span>}
-                        <span style={{ fontSize:9, fontWeight:700, color:'var(--text-muted)', background:'var(--surface-2)', padding:'2px 7px', borderRadius:4, letterSpacing:'.04em' }}>
-                          {t.status==='doing'?'AKTIV':'OFFEN'}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* ── All projects workload ── */}
-              {projects.length > 1 && (
-                <div className="animate-fade-up-3" style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:20, overflow:'hidden' }}>
-                  <div style={{ padding:'13px 24px', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-                    <p style={{ fontSize:13, fontWeight:700, color:'var(--text)', margin:0 }}>Alle Projekte</p>
-                    <span style={{ fontSize:11, color:'var(--text-muted)', fontWeight:600 }}>{projects.length} Projekte · {allTasks.length} Tasks</span>
-                  </div>
-
-                  {/* Mono stacked bar */}
-                  <div style={{ padding:'14px 24px 10px', borderBottom:'1px solid var(--border)' }}>
-                    <div style={{ display:'flex', height:6, borderRadius:6, overflow:'hidden', background:'var(--surface-2)' }}>
-                      {allDone>0   && <div style={{ width:`${allDone/totalAll*100}%`,   background:'var(--text)', transition:'width .6s ease' }}/>}
-                      {allActive>0 && <div style={{ width:`${allActive/totalAll*100}%`, background:'var(--text-secondary)', transition:'width .6s ease' }}/>}
-                    </div>
-                    <div style={{ display:'flex', gap:16, marginTop:8 }}>
-                      {[{l:`${allDone} Erledigt`,c:'var(--text)'},{l:`${allActive} Aktiv`,c:'var(--text-secondary)'},{l:`${allTodo2} Offen`,c:'var(--border-strong)'}].map(s => (
-                        <span key={s.l} style={{ display:'flex', alignItems:'center', gap:5, fontSize:11, color:'var(--text-muted)' }}>
-                          <span style={{ width:7, height:7, borderRadius:2, background:s.c, flexShrink:0 }}/>{s.l}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div style={{ padding:'8px 12px' }}>
-                    {projects.map((proj, i) => {
-                      const ph  = PHASE[proj.status] ?? PHASE.intake
-                      const pt  = allTasks.filter(t => t.project_id===proj.id)
-                      const pd  = pt.filter(t => t.status==='done').length
-                      const pct = pt.length ? Math.round(pd/pt.length*100) : ph.pct
-                      return (
-                        <Link key={proj.id} href={`/project/${proj.id}`} style={{ textDecoration:'none' }}>
-                          <div className="proj-row-card" style={{ display:'flex', alignItems:'center', gap:12, padding:'10px 12px', borderRadius:12, cursor:'pointer', background:proj.id===main.id?'var(--surface-2)':'transparent', marginBottom:2 }}>
-                            <div style={{ width:30, height:30, borderRadius:8, background: proj.color ? proj.color + '22' : 'var(--surface-2)', border:`1px solid ${proj.color ? proj.color + '44' : 'var(--border)'}`, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                              <span style={{ fontSize:12, fontWeight:700, color: proj.color || 'var(--text-secondary)' }}>{proj.title.charAt(0)}</span>
-                            </div>
-                            <div style={{ flex:1, minWidth:0 }}>
-                              <p style={{ fontSize:13, fontWeight:600, color:'var(--text)', margin:'0 0 4px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{proj.title}</p>
-                              <div style={{ height:3, background:'var(--surface-2)', borderRadius:4, overflow:'hidden' }}>
-                                <div style={{ height:'100%', width:`${pct}%`, background: proj.color || 'var(--text)', borderRadius:4, transition:'width .6s ease' }}/>
-                              </div>
-                            </div>
-                            <div style={{ flexShrink:0, display:'flex', flexDirection:'column', alignItems:'flex-end', gap:3 }}>
-                              <span style={{ fontSize:12, fontWeight:700, color:'var(--text)' }}>{pct}%</span>
-                              <span style={{ fontSize:9, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.05em' }}>{ph.label.toUpperCase()}</span>
-                            </div>
-                          </div>
-                        </Link>
-                      )
-                    })}
-                  </div>
-                </div>
-              )}
             </div>
 
-            {/* ══════════ RIGHT SIDEBAR ══════════ */}
-            <div className="dash-right animate-fade-up-2" style={{ display:'flex', flexDirection:'column', gap:12 }}>
-
-              {/* ── Donut progress ── */}
-              <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:20, overflow:'hidden' }}>
-                <div style={{ padding:'13px 18px', borderBottom:'1px solid var(--border)' }}>
-                  <p style={{ fontSize:13, fontWeight:700, color:'var(--text)', margin:0 }}>Projektfortschritt</p>
-                  <p style={{ fontSize:11, color:'var(--text-muted)', margin:'2px 0 0', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{main.title}</p>
-                </div>
-                <div style={{ padding:'18px', display:'flex', alignItems:'center', gap:16 }}>
-                  <DonutChart pct={phase.pct}/>
-                  <div style={{ flex:1, display:'flex', flexDirection:'column', gap:6 }}>
-                    {MILESTONES.map((ms, i) => {
-                      const reached = phase.pct>=ms.pct
-                      const isCurr  = phaseIdx===i
-                      return (
-                        <div key={ms.label} style={{ display:'flex', alignItems:'center', gap:7 }}>
-                          <div style={{ width:15, height:15, borderRadius:'50%', flexShrink:0, background:'transparent', border:`1.5px solid ${reached?'var(--text-secondary)':'var(--border)'}`, display:'flex', alignItems:'center', justifyContent:'center' }}>
-                            <span style={{ width:4, height:4, borderRadius:'50%', background:reached?'var(--text-secondary)':isCurr?'var(--text-muted)':'var(--border-strong)' }}/>
-                          </div>
-                          <span style={{ fontSize:11, fontWeight:600, color:reached?'var(--text-secondary)':isCurr?'var(--text)':'var(--text-muted)', flex:1 }}>{ms.label}</span>
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
+            {/* AI report inline below hero */}
+            {report && (
+              <div style={{ marginTop:14, padding:'14px 16px', borderTop:'1px solid var(--border)', borderBottom:'1px solid var(--border)', display:'flex', gap:11 }}>
+                <span style={{ fontSize:11, color:'var(--text-muted)', fontWeight:600, marginTop:2 }}>✦</span>
+                <p style={{ fontSize:13, color:'var(--text-secondary)', lineHeight:1.65, margin:0 }}>{report}</p>
               </div>
+            )}
 
-              {/* ── Tagro AI Status ── */}
-              <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:20, overflow:'hidden' }}>
-                <div style={{ padding:'16px 18px' }}>
-                  <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:10 }}>
-                    <div style={{ width:28, height:28, borderRadius:8, background:'var(--surface-2)', border:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                      <span style={{ fontSize:12, color:'var(--text-secondary)', fontWeight:700 }}>✦</span>
+            {/* ── Inline metrics row ── */}
+            <div className="dash-metrics animate-fade-up-1" style={{ marginTop:36, marginBottom:36, paddingTop:22, paddingBottom:22, borderTop:'1px solid var(--border)', borderBottom:'1px solid var(--border)' }}>
+              <Metric label="Fortschritt" value={`${completePct}%`} sub={phase.label}/>
+              <Metric label="Offen" value={todo} sub={`${inProgress} in Arbeit`}/>
+              <Metric label="Erledigt" value={done} sub={`von ${tasks.length} gesamt`}/>
+              <Metric label="Projekte" value={projects.length} sub={`${allTasks.length} Tasks total`}/>
+            </div>
+
+            {/* ── Active tasks ── */}
+            {activeTasks.length > 0 && (
+              <div className="animate-fade-up-2" style={{ marginBottom:36 }}>
+                <SectionLabel action={
+                  <Link href={`/project/${main.id}`} style={{ fontSize:12, color:'var(--text-muted)', fontWeight:500, textDecoration:'none' }}>Alle ansehen →</Link>
+                }>Aktive Tasks</SectionLabel>
+                <div>
+                  {activeTasks.slice(0, 7).map((t, i, arr) => (
+                    <div key={t.id} className="row-hover" style={{ padding:'11px 12px', borderTop: i===0?'1px solid var(--border)':'none', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', gap:12 }}>
+                      <span style={{ width:6, height:6, borderRadius:'50%', flexShrink:0, background: t.status==='doing' ? (main.color || 'var(--text-secondary)') : 'var(--border-strong)' }}/>
+                      <span style={{ fontSize:13, color:'var(--text)', flex:1, minWidth:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{t.title}</span>
+                      <span style={{ fontSize:11, fontWeight:500, color:'var(--text-muted)', flexShrink:0 }}>
+                        {t.priority === 'critical' ? 'Kritisch · ' : ''}{t.status==='doing'?'Aktiv':'Offen'}
+                      </span>
                     </div>
-                    <div>
-                      <p style={{ fontSize:13, fontWeight:700, color:'var(--text)', margin:0, lineHeight:1 }}>Tagro Status</p>
-                      <p style={{ fontSize:10, color:'var(--text-muted)', margin:'2px 0 0', lineHeight:1 }}>KI-Projektbericht</p>
-                    </div>
-                  </div>
-                  <p style={{ fontSize:12.5, lineHeight:1.65, color:'var(--text-secondary)', margin:'0 0 12px', opacity:report?.8:.4, fontStyle:report?'normal':'italic' }}>
-                    {report || 'Tagro analysiert deinen Projektfortschritt und liefert einen klaren Bericht.'}
-                  </p>
-                  <button onClick={generateReport} disabled={genReport}
-                    style={{ width:'100%', padding:'8px', background:'var(--surface-2)', color:'var(--text-secondary)', border:'1px solid var(--border)', borderRadius:9, fontSize:12, fontWeight:700, cursor:genReport?'default':'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', justifyContent:'center', gap:6 }}>
-                    {genReport ? <><span style={{ width:12, height:12, border:'2px solid var(--border)', borderTopColor:'var(--text)', borderRadius:'50%', animation:'spin .7s linear infinite' }}/> Generiert…</>
-                      : <>{report ? '↺ Neu generieren' : '+ Statusbericht'}</>}
-                  </button>
-                </div>
-              </div>
-
-              {/* ── Activity feed ── */}
-              {activity.length > 0 && (
-                <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:20, overflow:'hidden' }}>
-                  <div style={{ padding:'13px 18px', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-                    <p style={{ fontSize:13, fontWeight:700, color:'var(--text)', margin:0 }}>Aktivität</p>
-                  </div>
-                  <div style={{ padding:'8px 0' }}>
-                    {activity.slice(0,8).map((a, i) => (
-                      <div key={a.id} className="act-row" style={{ display:'flex', gap:10, padding:'9px 16px', borderRadius:0, transition:'background .1s', cursor:'default' }}>
-                        <div style={{ width:6, height:6, borderRadius:'50%', background:'var(--border-strong)', flexShrink:0, marginTop:5 }}/>
-                        <div style={{ flex:1, minWidth:0 }}>
-                          <p style={{ fontSize:12, color:'var(--text-secondary)', margin:0, lineHeight:1.5, overflow:'hidden', textOverflow:'ellipsis', display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical' }}>{a.message}</p>
-                          <p style={{ fontSize:10, color:'var(--text-muted)', margin:'2px 0 0' }}>{timeAgo(a.created_at)}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* ── Quick actions ── */}
-              <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:20, overflow:'hidden', padding:'14px 16px' }}>
-                <p style={{ fontSize:10, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.1em', margin:'0 0 10px', textTransform:'uppercase' }}>Schnellzugriff</p>
-                <div style={{ display:'flex', flexDirection:'column', gap:5 }}>
-                  {[
-                    { href:'/onboarding', label:'Neues Projekt starten', icon:'＋' },
-                    { href:'/estimator',  label:'Preisschätzer',         icon:'◈' },
-                    { href:'/addons',     label:'Add-Ons ansehen',       icon:'⊕' },
-                    { href:'/messages',   label:'Nachrichten',           icon:'✉' },
-                  ].map(a => (
-                    <Link key={a.href} href={a.href} style={{ textDecoration:'none' }}>
-                      <div style={{ display:'flex', alignItems:'center', gap:9, padding:'8px 10px', borderRadius:9, border:'1px solid var(--border)', cursor:'pointer', transition:'all .12s' }}
-                        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor='var(--border-strong)'; (e.currentTarget as HTMLElement).style.background='var(--surface-2)'; }}
-                        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor='var(--border)'; (e.currentTarget as HTMLElement).style.background='transparent'; }}>
-                        <span style={{ fontSize:13, color:'var(--text-muted)' }}>{a.icon}</span>
-                        <span style={{ fontSize:12, fontWeight:600, color:'var(--text-secondary)' }}>{a.label}</span>
-                        <svg style={{ marginLeft:'auto' }} width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2" strokeLinecap="round"><path d="M9 6l6 6-6 6"/></svg>
-                      </div>
-                    </Link>
                   ))}
                 </div>
               </div>
+            )}
 
-              {/* ── Zahlungsplan ── */}
-              <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:20, overflow:'hidden' }}>
-                <div style={{ padding:'13px 18px', borderBottom:'1px solid var(--border)' }}>
-                  <p style={{ fontSize:13, fontWeight:700, color:'var(--text)', margin:0 }}>Zahlungsplan</p>
-                  <p style={{ fontSize:11, color:'var(--text-muted)', margin:'2px 0 0' }}>Meilenstein-basiert</p>
+            {/* ── All projects ── */}
+            {projects.length > 1 && (
+              <div className="animate-fade-up-3" style={{ marginBottom:36 }}>
+                <SectionLabel action={
+                  <span style={{ fontSize:11.5, color:'var(--text-muted)', fontWeight:500 }}>{projects.length} · {allTasks.length} Tasks</span>
+                }>Alle Projekte</SectionLabel>
+                <div>
+                  {projects.map((proj, i, arr) => {
+                    const ph  = PHASE[proj.status] ?? PHASE.intake
+                    const pt  = allTasks.filter(t => t.project_id===proj.id)
+                    const pd  = pt.filter(t => t.status==='done').length
+                    const pct = pt.length ? Math.round(pd/pt.length*100) : ph.pct
+                    const pCol = proj.color || 'var(--text-secondary)'
+                    return (
+                      <Link key={proj.id} href={`/project/${proj.id}`} style={{ textDecoration:'none', color:'inherit' }}>
+                        <div className="row-hover" style={{ display:'flex', alignItems:'center', gap:14, padding:'12px 12px', borderTop:i===0?'1px solid var(--border)':'none', borderBottom:'1px solid var(--border)' }}>
+                          <span style={{ width:8, height:8, borderRadius:'50%', background:pCol, flexShrink:0 }}/>
+                          <span style={{ fontSize:13, fontWeight:500, color:'var(--text)', flex:1, minWidth:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{proj.title}</span>
+                          <div style={{ width:120, height:3, background:'var(--surface-2)', borderRadius:2, flexShrink:0, overflow:'hidden' }}>
+                            <div style={{ height:'100%', width:`${pct}%`, background: pCol }}/>
+                          </div>
+                          <span style={{ fontSize:12, fontWeight:500, color:'var(--text-muted)', flexShrink:0, width:38, textAlign:'right' }}>{pct}%</span>
+                          <span style={{ fontSize:11, fontWeight:500, color:'var(--text-muted)', flexShrink:0, width:80, textAlign:'right' }}>{ph.label}</span>
+                        </div>
+                      </Link>
+                    )
+                  })}
                 </div>
-                <div style={{ padding:'12px 16px', display:'flex', flexDirection:'column', gap:7 }}>
+              </div>
+            )}
+
+            {/* ── Activity ── */}
+            {activity.length > 0 && (
+              <div className="animate-fade-up-3" style={{ marginBottom:36 }}>
+                <SectionLabel>Aktivität</SectionLabel>
+                <div>
+                  {activity.slice(0,8).map((a, i) => (
+                    <div key={a.id} style={{ padding:'11px 12px', borderTop:i===0?'1px solid var(--border)':'none', borderBottom:'1px solid var(--border)', display:'flex', gap:12 }}>
+                      <span style={{ width:5, height:5, borderRadius:'50%', background:'var(--border-strong)', flexShrink:0, marginTop:7 }}/>
+                      <p style={{ fontSize:12.5, color:'var(--text-secondary)', margin:0, flex:1, lineHeight:1.5, overflow:'hidden', textOverflow:'ellipsis', display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical' }}>{a.message}</p>
+                      <span style={{ fontSize:11, color:'var(--text-muted)', flexShrink:0 }}>{timeAgo(a.created_at)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* ══════════ RIGHT COLUMN ══════════ */}
+          <div className="dash-right animate-fade-up-2" style={{ display:'flex', flexDirection:'column', gap:34 }}>
+
+            {/* Donut + milestones */}
+            <div>
+              <SectionLabel>Fortschritt</SectionLabel>
+              <div style={{ display:'flex', alignItems:'center', gap:16 }}>
+                <DonutChart pct={phase.pct}/>
+                <div style={{ flex:1, display:'flex', flexDirection:'column', gap:7 }}>
                   {MILESTONES.map((ms, i) => {
                     const reached = phase.pct>=ms.pct
                     const isCurr  = phaseIdx===i
                     return (
-                      <div key={ms.label}>
-                        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:3 }}>
-                          <span style={{ fontSize:12, fontWeight:600, color:reached?'var(--text-secondary)':isCurr?'var(--text)':'var(--text-muted)' }}>{ms.label}</span>
-                          <div style={{ display:'flex', alignItems:'center', gap:6 }}>
-                            <span style={{ fontSize:11, fontWeight:700, color:'var(--text-muted)' }}>{ms.payPct}%</span>
-                            <span style={{ fontSize:9, fontWeight:700, padding:'2px 6px', borderRadius:4, letterSpacing:'.05em', color:'var(--text-muted)', background:'var(--surface-2)', border:'1px solid var(--border)' }}>
-                              {reached?'PAID':isCurr?'FÄLLIG':'OFFEN'}
-                            </span>
-                          </div>
-                        </div>
-                        <div style={{ height:3, background:'var(--surface-2)', borderRadius:3, overflow:'hidden' }}>
-                          <div style={{ height:'100%', width:reached?'100%':isCurr?'50%':'0%', background:'var(--text)', borderRadius:3, transition:'width .8s ease' }}/>
-                        </div>
+                      <div key={ms.label} style={{ display:'flex', alignItems:'center', gap:8 }}>
+                        <span style={{ width:5, height:5, borderRadius:'50%', flexShrink:0, background: reached ? (main.color || 'var(--text-secondary)') : isCurr ? 'var(--text-muted)' : 'var(--border-strong)' }}/>
+                        <span style={{ fontSize:11.5, fontWeight: isCurr?600:500, color:reached?'var(--text-secondary)':isCurr?'var(--text)':'var(--text-muted)', flex:1 }}>{ms.label}</span>
                       </div>
                     )
                   })}
                 </div>
               </div>
+            </div>
 
-              {/* ── Festag Kontakt ── */}
-              <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:20, overflow:'hidden' }}>
-                <div style={{ padding:'13px 18px', borderBottom:'1px solid var(--border)' }}>
-                  <p style={{ fontSize:13, fontWeight:700, color:'var(--text)', margin:0 }}>Dein Festag Team</p>
-                </div>
-                <div style={{ padding:'12px 14px', display:'flex', flexDirection:'column', gap:6 }}>
-                  <a href="mailto:stefandirnberger@viawen.com" style={{ display:'flex', alignItems:'center', gap:9, textDecoration:'none', padding:'8px 8px', borderRadius:9, transition:'background .1s' }}
-                    onMouseEnter={e => (e.currentTarget as HTMLElement).style.background='var(--surface-2)'}
-                    onMouseLeave={e => (e.currentTarget as HTMLElement).style.background='transparent'}>
-                    <div style={{ width:30, height:30, borderRadius:8, background:'var(--surface-2)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2" strokeLinecap="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 7l10 7 10-7"/></svg>
-                    </div>
-                    <div><p style={{ fontSize:9, fontWeight:700, color:'var(--text-muted)', margin:0, letterSpacing:'.06em' }}>E-MAIL</p><p style={{ fontSize:12, fontWeight:600, color:'var(--text)', margin:'1px 0 0' }}>stefandirnberger@viawen.com</p></div>
-                  </a>
-                  <a href="https://wa.me/4989123456" target="_blank" rel="noopener" style={{ display:'flex', alignItems:'center', gap:9, textDecoration:'none', padding:'8px 8px', borderRadius:9, transition:'background .1s' }}
-                    onMouseEnter={e => (e.currentTarget as HTMLElement).style.background='var(--surface-2)'}
-                    onMouseLeave={e => (e.currentTarget as HTMLElement).style.background='transparent'}>
-                    <div style={{ width:30, height:30, borderRadius:8, background:'var(--surface-2)', border:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2" strokeLinecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.3h3a2 2 0 0 1 2 1.72c.13.81.37 1.6.7 2.35a2 2 0 0 1-.45 2.11L7.91 9.4a16 16 0 0 0 6.19 6.19l.95-.95a2 2 0 0 1 2.1-.45c.75.33 1.54.57 2.35.7A2 2 0 0 1 22 16.92z"/></svg>
-                    </div>
-                    <div><p style={{ fontSize:9, fontWeight:700, color:'var(--text-muted)', margin:0, letterSpacing:'.06em' }}>WHATSAPP</p><p style={{ fontSize:12, fontWeight:600, color:'var(--text)', margin:'1px 0 0' }}>+49 089 123 456 78</p></div>
-                  </a>
-                  <div style={{ padding:'8px 10px', background:'var(--surface-2)', borderRadius:9, border:'1px solid var(--border)' }}>
-                    <p style={{ fontSize:10, color:'var(--text-muted)', margin:0, lineHeight:1.5 }}>Antwortzeit &lt; 24h · Mo–Fr 9–18 Uhr</p>
-                  </div>
-                </div>
+            {/* Tagro Status */}
+            <div>
+              <SectionLabel>Tagro Status</SectionLabel>
+              <p style={{ fontSize:12.5, lineHeight:1.65, color:report?'var(--text-secondary)':'var(--text-muted)', margin:'0 0 12px', fontStyle:report?'normal':'italic' }}>
+                {report || 'Tagro analysiert deinen Projektfortschritt und liefert einen klaren Bericht.'}
+              </p>
+              <button onClick={generateReport} disabled={genReport} className="ghost-btn"
+                style={{ width:'100%', padding:'7px', fontSize:12, fontWeight:600, cursor:genReport?'default':'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', justifyContent:'center', gap:6 }}>
+                {genReport ? <><span style={{ width:11, height:11, border:'2px solid var(--border)', borderTopColor:'var(--text)', borderRadius:'50%', animation:'spin .7s linear infinite' }}/> Generiert</>
+                  : <>{report ? '↺ Neu generieren' : '+ Statusbericht'}</>}
+              </button>
+            </div>
+
+            {/* Quick actions */}
+            <div>
+              <SectionLabel>Schnellzugriff</SectionLabel>
+              <div style={{ display:'flex', flexDirection:'column' }}>
+                {[
+                  { href:'/onboarding', label:'Mit AI starten' },
+                  { href:'/estimator',  label:'Preisschätzer'  },
+                  { href:'/addons',     label:'Add-Ons'         },
+                  { href:'/messages',   label:'Nachrichten'     },
+                ].map((a, i, arr) => (
+                  <Link key={a.href} href={a.href} className="row-hover" style={{ textDecoration:'none', display:'flex', alignItems:'center', gap:9, padding:'9px 10px', borderTop:i===0?'1px solid var(--border)':'none', borderBottom:'1px solid var(--border)', color:'var(--text-secondary)', fontSize:12.5, fontWeight:500 }}>
+                    {a.label}
+                    <svg style={{ marginLeft:'auto' }} width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2" strokeLinecap="round"><path d="M9 6l6 6-6 6"/></svg>
+                  </Link>
+                ))}
               </div>
+            </div>
 
-            </div>{/* end RIGHT */}
-          </div>
-        </>
+            {/* Zahlungsplan */}
+            <div>
+              <SectionLabel><span>Zahlungsplan <span style={{ color:'var(--text-muted)', fontWeight:400 }}>· Meilensteine</span></span></SectionLabel>
+              <div style={{ display:'flex', flexDirection:'column', gap:9 }}>
+                {MILESTONES.map((ms, i) => {
+                  const reached = phase.pct>=ms.pct
+                  const isCurr  = phaseIdx===i
+                  return (
+                    <div key={ms.label}>
+                      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:4 }}>
+                        <span style={{ fontSize:12, fontWeight: isCurr?600:500, color:reached?'var(--text-secondary)':isCurr?'var(--text)':'var(--text-muted)' }}>{ms.label}</span>
+                        <span style={{ fontSize:11, color:'var(--text-muted)' }}>
+                          {ms.payPct}% · {reached?'bezahlt':isCurr?'fällig':'offen'}
+                        </span>
+                      </div>
+                      <div style={{ height:2, background:'var(--surface-2)', borderRadius:2, overflow:'hidden' }}>
+                        <div style={{ height:'100%', width:reached?'100%':isCurr?'50%':'0%', background:reached?(main.color||'var(--text)'):'var(--text-muted)', transition:'width .8s ease' }}/>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* Festag Kontakt */}
+            <div>
+              <SectionLabel>Dein Festag Team</SectionLabel>
+              <div style={{ display:'flex', flexDirection:'column' }}>
+                <a href="mailto:stefandirnberger@viawen.com" className="row-hover" style={{ textDecoration:'none', color:'var(--text)', display:'flex', flexDirection:'column', padding:'10px 10px', borderTop:'1px solid var(--border)', borderBottom:'1px solid var(--border)' }}>
+                  <span style={{ fontSize:10, fontWeight:600, color:'var(--text-muted)', letterSpacing:'.04em' }}>E-MAIL</span>
+                  <span style={{ fontSize:12.5, fontWeight:500, color:'var(--text)', marginTop:2 }}>stefandirnberger@viawen.com</span>
+                </a>
+                <a href="https://wa.me/4989123456" target="_blank" rel="noopener" className="row-hover" style={{ textDecoration:'none', color:'var(--text)', display:'flex', flexDirection:'column', padding:'10px 10px', borderBottom:'1px solid var(--border)' }}>
+                  <span style={{ fontSize:10, fontWeight:600, color:'var(--text-muted)', letterSpacing:'.04em' }}>WHATSAPP</span>
+                  <span style={{ fontSize:12.5, fontWeight:500, color:'var(--text)', marginTop:2 }}>+49 089 123 456 78</span>
+                </a>
+                <p style={{ fontSize:10.5, color:'var(--text-muted)', margin:'10px 0 0', lineHeight:1.5 }}>Antwortzeit &lt; 24h · Mo–Fr 9–18 Uhr</p>
+              </div>
+            </div>
+
+          </div>{/* end RIGHT */}
+        </div>
       )}
 
       {showNewProject && (
