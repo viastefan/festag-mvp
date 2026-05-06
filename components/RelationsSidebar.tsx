@@ -11,6 +11,7 @@ import {
 } from '@phosphor-icons/react'
 import ViewSwitch from '@/components/ViewSwitch'
 import TeamsModal from '@/components/TeamsModal'
+import SupportButton from '@/components/SupportButton'
 
 type NavItem = {
   href: string
@@ -37,6 +38,13 @@ export default function RelationsSidebar() {
   const [mobOpen, setMobOpen] = useState(false)
   const [teamsOpen, setTeamsOpen] = useState(false)
 
+  // Globales Event vom ViewSwitch (Teams-Tab)
+  useEffect(() => {
+    const handler = () => setTeamsOpen(true)
+    window.addEventListener('open-teams-modal', handler)
+    return () => window.removeEventListener('open-teams-modal', handler)
+  }, [])
+
   useEffect(() => {
     setMobOpen(false)
     createClient().auth.getUser().then(async ({ data }) => {
@@ -62,13 +70,16 @@ export default function RelationsSidebar() {
   const Inner = () => (
     <div style={{ display:'flex', flexDirection:'column', height:'100%', padding:'16px 10px 18px' }}>
 
-      {/* Logo + ViewSwitch */}
-      <div style={{ padding:'0 8px', marginBottom:14 }}>
-        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:12 }}>
-          <Link href="/relations" style={{ textDecoration:'none' }}>
-            <img src="/brand/logo.svg" alt="festag" style={{ height:18, display:'block', filter:'var(--logo-filter,none)' }}/>
-          </Link>
-        </div>
+      {/* Logo + SupportButton — identisch zu Festwerk-Sidebar */}
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 8px', marginBottom:12, gap:8 }}>
+        <Link href="/relations" style={{ textDecoration:'none', display:'flex', alignItems:'center' }}>
+          <img src="/brand/logo.svg" alt="festag" style={{ height:18, display:'block', filter:'var(--logo-filter,none)' }}/>
+        </Link>
+        <SupportButton />
+      </div>
+
+      {/* ViewSwitch — identisches Padding zu Festwerk-Sidebar */}
+      <div style={{ padding:'0 4px', marginBottom:14 }}>
         <ViewSwitch />
       </div>
 
@@ -88,14 +99,8 @@ export default function RelationsSidebar() {
           )
         })}
 
-        {/* Teams + Settings */}
+        {/* Settings */}
         <div style={{ marginTop:8, paddingTop:8, borderTop:'1px solid var(--border)' }}>
-          <button type="button" onClick={() => { setMobOpen(false); setTeamsOpen(true) }}
-            className="rni rni-off"
-            style={{ width:'100%', textAlign:'left', border:'none', background:'transparent' }}>
-            <UsersThree size={15} weight="regular" color="var(--text-muted)" />
-            <span style={{ flex:1 }}>Teams</span>
-          </button>
           <Link href="/settings" onClick={() => setMobOpen(false)}
             className={`rni ${pathname.startsWith('/settings') ? 'rni-on' : 'rni-off'}`}>
             <GearSix size={15} weight={pathname.startsWith('/settings') ? 'bold' : 'regular'} color={pathname.startsWith('/settings') ? 'var(--text)' : 'var(--text-muted)'} />

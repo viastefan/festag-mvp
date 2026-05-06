@@ -61,11 +61,10 @@ function Ico({ name, sz=16, c='currentColor', weight='regular' }: { name:string;
 
 type NavItem = { href: string; icon: string; label: string; badge?: number }
 
-/* ── CLIENT nav ── */
+/* ── CLIENT nav ── (Teams ist jetzt im ViewSwitch oben → Modal) */
 const CLIENT_MAIN: NavItem[] = [
   { href:'/dashboard', icon:'home',     label:'Dashboard' },
   { href:'/messages',  icon:'chat',     label:'Nachrichten' },
-  { href:'/teams',     icon:'team',     label:'Teams' },
   { href:'/activity',  icon:'activity', label:'Aktivität' },
 ]
 const CLIENT_PROJECT: NavItem[] = [
@@ -94,7 +93,6 @@ const CLIENT_MOB_PRIMARY: NavItem[] = [
 const CLIENT_MOB_QUICK = [
   { href:'/new-project', icon:'plus',     label:'Neues Projekt', primary: true },
   { href:'/messages',    icon:'chat',     label:'Nachrichten' },
-  { href:'/teams',       icon:'team',     label:'Teams' },
   { href:'/activity',    icon:'activity', label:'Aktivität' },
   { href:'/documents',   icon:'doc',      label:'Dokumente' },
   { href:'/estimator',   icon:'estimate', label:'Preisschätzer' },
@@ -102,11 +100,10 @@ const CLIENT_MOB_QUICK = [
   { href:'/billing',     icon:'card',     label:'Abrechnung' },
 ]
 
-/* ── DEV nav ── */
+/* ── DEV nav ── (Teams via ViewSwitch-Modal) */
 const DEV_MAIN: NavItem[] = [
   { href:'/dev',      icon:'home',      label:'Dashboard' },
   { href:'/messages', icon:'chat',      label:'Nachrichten' },
-  { href:'/teams',    icon:'team',      label:'Teams' },
   { href:'/activity', icon:'activity',  label:'Aktivität' },
 ]
 const DEV_WORK: NavItem[] = [
@@ -132,7 +129,6 @@ const DEV_MOB_PRIMARY: NavItem[] = [
 const DEV_MOB_QUICK = [
   { href:'/dev/jobs',     icon:'briefcase', label:'Job Board',     primary: true },
   { href:'/messages',     icon:'chat',      label:'Nachrichten' },
-  { href:'/teams',        icon:'team',      label:'Teams' },
   { href:'/dev/tasks',    icon:'task',      label:'Meine Tasks' },
   { href:'/dev/projects', icon:'project',   label:'Projekte' },
   { href:'/dev/time',     icon:'clock',     label:'Zeiterfassung' },
@@ -164,6 +160,13 @@ export default function Sidebar() {
   const accountNav  = isDev ? DEV_ACCOUNT  : CLIENT_ACCOUNT
   const mobPrimary  = isDev ? DEV_MOB_PRIMARY : CLIENT_MOB_PRIMARY
   const mobQuick    = isDev ? DEV_MOB_QUICK   : CLIENT_MOB_QUICK
+
+  // Listen für globales Teams-Modal-Event (von ViewSwitch oder anderen Triggern)
+  useEffect(() => {
+    const handler = () => setTeamsOpen(true)
+    window.addEventListener('open-teams-modal', handler)
+    return () => window.removeEventListener('open-teams-modal', handler)
+  }, [])
 
   useEffect(() => {
     setMore(false)
@@ -206,20 +209,7 @@ export default function Sidebar() {
       <div style={{ marginBottom:4 }}>
         <p style={{ fontSize:9.5, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.09em', textTransform:'uppercase', padding:'6px 11px 3px', margin:0, opacity:.6 }}>{label}</p>
         {items.map(item => {
-          const isTeams = item.href === '/teams'
-          const on = isTeams ? false : isOn(item.href)
-          // Teams: open modal instead of navigating
-          if (isTeams) {
-            return (
-              <button key={item.href} type="button"
-                onClick={() => setTeamsOpen(true)}
-                className="ni ni-off"
-                style={{ position:'relative', width:'100%', textAlign:'left', border:'none', background:'transparent' }}>
-                <Ico name={item.icon} sz={15} c="var(--text-muted)" weight="regular" />
-                <span style={{ flex:1 }}>{item.label}</span>
-              </button>
-            )
-          }
+          const on = isOn(item.href)
           return (
             <Link key={item.href} href={resolve(item.href)}
               className={`ni ${on?'ni-on':'ni-off'}`}
@@ -492,21 +482,7 @@ export default function Sidebar() {
             {/* 2-col grid for secondary actions */}
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:6 }}>
               {mobQuick.slice(1).map(item => {
-                const isTeams = item.href === '/teams'
-                const on = isTeams ? false : isOn(item.href)
-                if (isTeams) {
-                  return (
-                    <button key={item.href} type="button"
-                      onClick={() => { setMore(false); setTeamsOpen(true) }}
-                      className="mqi"
-                      style={{ borderRadius:14, gap:10, padding:'12px 13px', width:'100%', textAlign:'left' }}>
-                      <div style={{ width:34, height:34, borderRadius:10, background:'var(--surface-2)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                        <Ico name={item.icon} sz={16} c="var(--text-secondary)" weight="regular" />
-                      </div>
-                      <span className="mqi-label" style={{ fontSize:13, fontWeight:600, color:'var(--text)', lineHeight:1.25 }}>{item.label}</span>
-                    </button>
-                  )
-                }
+                const on = isOn(item.href)
                 return (
                   <Link key={item.href} href={resolve(item.href)} className="mqi" onClick={() => setMore(false)}
                     style={{ borderRadius:14, gap:10, padding:'12px 13px' }}>
