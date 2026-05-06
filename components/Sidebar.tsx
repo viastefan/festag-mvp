@@ -16,44 +16,22 @@ import {
   Clock, CheckSquare, Code, FileCode,
 } from '@phosphor-icons/react'
 
-/* ── Project color palette ── */
-const PROJECT_COLORS = ['#0A0B0A','#34C759','#0EA5E9','#F59E0B','#D14343','#64748B','#14B8A6','#94A3B8']
-export function projectColor(id: string) {
-  let h = 0; for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0
-  return PROJECT_COLORS[h % PROJECT_COLORS.length]
-}
+export function projectColor(_id: string) { return 'var(--text-muted)' }
 
-/* ── Icon renderer using Phosphor ── */
 const ICONS: Record<string, React.ElementType> = {
-  home:      House,
-  project:   FolderSimple,
-  sparkle:   Sparkle,
-  chat:      ChatCircle,
-  activity:  ChartLineUp,
-  billing:   CreditCard,
-  card:      CreditCard,
-  doc:       FileText,
-  user:      UserCircle,
-  settings:  GearSix,
-  estimate:  SunHorizon,
-  grid:      GridFour,
-  layers:    Stack,
-  link:      LinkSimple,
-  plus:      Plus,
-  chevron:   CaretRight,
-  more:      DotsThreeOutline,
-  close:     X,
-  logout:    SignOut,
-  team:      UsersThree,
-  bell:      Bell,
-  briefcase: Briefcase,
-  clock:     Clock,
-  check:     CheckSquare,
-  code:      Code,
-  task:      FileCode,
+  home: House, project: FolderSimple, sparkle: Sparkle, chat: ChatCircle,
+  activity: ChartLineUp, billing: CreditCard, card: CreditCard, doc: FileText,
+  user: UserCircle, settings: GearSix, estimate: SunHorizon, grid: GridFour,
+  layers: Stack, link: LinkSimple, plus: Plus, chevron: CaretRight,
+  more: DotsThreeOutline, close: X, logout: SignOut, team: UsersThree,
+  bell: Bell, briefcase: Briefcase, clock: Clock, check: CheckSquare,
+  code: Code, task: FileCode,
 }
 
-function Ico({ name, sz=16, c='currentColor', weight='regular' }: { name:string; sz?:number; c?:string; weight?:'thin'|'light'|'regular'|'bold'|'fill'|'duotone' }) {
+function Ico({ name, sz=16, c='currentColor', weight='regular' }: {
+  name: string; sz?: number; c?: string;
+  weight?: 'thin'|'light'|'regular'|'bold'|'fill'|'duotone'
+}) {
   const Icon = ICONS[name]
   if (!Icon) return null
   return <Icon size={sz} color={c} weight={weight} />
@@ -61,7 +39,6 @@ function Ico({ name, sz=16, c='currentColor', weight='regular' }: { name:string;
 
 type NavItem = { href: string; icon: string; label: string; badge?: number }
 
-/* ── CLIENT nav ── (Teams ist jetzt im ViewSwitch oben → Modal) */
 const CLIENT_MAIN: NavItem[] = [
   { href:'/dashboard', icon:'home',     label:'Dashboard' },
   { href:'/messages',  icon:'chat',     label:'Nachrichten' },
@@ -83,7 +60,6 @@ const CLIENT_ACCOUNT: NavItem[] = [
   { href:'/billing',  icon:'card',     label:'Abrechnung' },
   { href:'/settings', icon:'settings', label:'Einstellungen' },
 ]
-
 const CLIENT_MOB_PRIMARY: NavItem[] = [
   { href:'/dashboard',       icon:'home',    label:'Home' },
   { href:'/project/current', icon:'project', label:'Projekt' },
@@ -100,39 +76,37 @@ const CLIENT_MOB_QUICK = [
   { href:'/billing',     icon:'card',     label:'Abrechnung' },
 ]
 
-/* ── DEV nav ── (Teams via ViewSwitch-Modal) */
 const DEV_MAIN: NavItem[] = [
-  { href:'/dev',      icon:'home',      label:'Dashboard' },
-  { href:'/messages', icon:'chat',      label:'Nachrichten' },
-  { href:'/activity', icon:'activity',  label:'Aktivität' },
+  { href:'/dev',      icon:'home',     label:'Dashboard' },
+  { href:'/messages', icon:'chat',     label:'Nachrichten' },
+  { href:'/activity', icon:'activity', label:'Aktivität' },
 ]
 const DEV_WORK: NavItem[] = [
-  { href:'/dev/jobs',      icon:'briefcase', label:'Job Board' },
-  { href:'/dev/tasks',     icon:'task',      label:'Meine Tasks' },
-  { href:'/dev/projects',  icon:'project',   label:'Meine Projekte' },
-  { href:'/dev/time',      icon:'clock',     label:'Zeiterfassung' },
+  { href:'/dev/jobs',     icon:'briefcase', label:'Job Board' },
+  { href:'/dev/tasks',    icon:'task',      label:'Meine Tasks' },
+  { href:'/dev/projects', icon:'project',   label:'Meine Projekte' },
+  { href:'/dev/time',     icon:'clock',     label:'Zeiterfassung' },
 ]
 const DEV_TOOLS: NavItem[] = [
-  { href:'/connectors', icon:'grid',  label:'Connectors' },
-  { href:'/addons',     icon:'grid',  label:'Add-ons' },
+  { href:'/connectors', icon:'link', label:'Connectors' },
+  { href:'/addons',     icon:'grid', label:'Add-ons' },
 ]
 const DEV_ACCOUNT: NavItem[] = [
   { href:'/settings', icon:'settings', label:'Einstellungen' },
 ]
-
 const DEV_MOB_PRIMARY: NavItem[] = [
-  { href:'/dev',           icon:'home',      label:'Home' },
-  { href:'/dev/jobs',      icon:'briefcase', label:'Jobs' },
-  { href:'/dev/tasks',     icon:'task',      label:'Tasks' },
-  { href:'/settings',      icon:'user',      label:'Profil' },
+  { href:'/dev',       icon:'home',      label:'Home' },
+  { href:'/dev/jobs',  icon:'briefcase', label:'Jobs' },
+  { href:'/dev/tasks', icon:'task',      label:'Tasks' },
+  { href:'/settings',  icon:'user',      label:'Profil' },
 ]
 const DEV_MOB_QUICK = [
-  { href:'/dev/jobs',     icon:'briefcase', label:'Job Board',     primary: true },
+  { href:'/dev/jobs',     icon:'briefcase', label:'Job Board',    primary: true },
   { href:'/messages',     icon:'chat',      label:'Nachrichten' },
   { href:'/dev/tasks',    icon:'task',      label:'Meine Tasks' },
   { href:'/dev/projects', icon:'project',   label:'Projekte' },
   { href:'/dev/time',     icon:'clock',     label:'Zeiterfassung' },
-  { href:'/connectors',   icon:'grid',      label:'Connectors' },
+  { href:'/connectors',   icon:'link',      label:'Connectors' },
   { href:'/activity',     icon:'activity',  label:'Aktivität' },
 ]
 
@@ -140,29 +114,28 @@ const ROLE_LABEL: Record<string,string> = { client:'Client', dev:'Developer', ad
 
 export default function Sidebar() {
   const pathname  = usePathname()
-  const [email,   setEmail]   = useState('')
-  const [fn,      setFn]      = useState('')
-  const [avatar,  setAvatar]  = useState<string|null>(null)
-  const [role,    setRole]    = useState('client')
-  const [plan,    setPlan]    = useState('free')
-  const [projId,  setProjId]  = useState<string|null>(null)
-  const [projects,setProjects]= useState<{id:string;title:string;status:string}[]>([])
-  const [more,       setMore]       = useState(false)
-  const [projExp,    setProjExp]    = useState(false)
-  const [teamsOpen,  setTeamsOpen]  = useState(false)
-  const [userMenu,   setUserMenu]   = useState(false)
+  const [email,    setEmail]    = useState('')
+  const [fn,       setFn]       = useState('')
+  const [avatar,   setAvatar]   = useState<string|null>(null)
+  const [role,     setRole]     = useState('client')
+  const [plan,     setPlan]     = useState('free')
+  const [projId,   setProjId]   = useState<string|null>(null)
+  const [projects, setProjects] = useState<{id:string;title:string;status:string}[]>([])
+  const [more,       setMore]      = useState(false)
+  const [projExp,    setProjExp]   = useState(false)   // collapsed by default
+  const [toolsExp,   setToolsExp]  = useState(false)   // collapsed by default
+  const [teamsOpen,  setTeamsOpen] = useState(false)
+  const [userMenu,   setUserMenu]  = useState(false)
 
   const isClient = role !== 'dev'
   const isDev    = role === 'dev'
+  const homeHref   = isDev ? '/dev' : '/dashboard'
+  const mainNav    = isDev ? DEV_MAIN    : CLIENT_MAIN
+  const toolsNav   = isDev ? DEV_TOOLS   : CLIENT_TOOLS
+  const accountNav = isDev ? DEV_ACCOUNT : CLIENT_ACCOUNT
+  const mobPrimary = isDev ? DEV_MOB_PRIMARY : CLIENT_MOB_PRIMARY
+  const mobQuick   = isDev ? DEV_MOB_QUICK   : CLIENT_MOB_QUICK
 
-  const homeHref    = isDev ? '/dev' : '/dashboard'
-  const mainNav     = isDev ? DEV_MAIN     : CLIENT_MAIN
-  const toolsNav    = isDev ? DEV_TOOLS    : CLIENT_TOOLS
-  const accountNav  = isDev ? DEV_ACCOUNT  : CLIENT_ACCOUNT
-  const mobPrimary  = isDev ? DEV_MOB_PRIMARY : CLIENT_MOB_PRIMARY
-  const mobQuick    = isDev ? DEV_MOB_QUICK   : CLIENT_MOB_QUICK
-
-  // Listen für globales Teams-Modal-Event (von ViewSwitch oder anderen Triggern)
   useEffect(() => {
     const handler = () => setTeamsOpen(true)
     window.addEventListener('open-teams-modal', handler)
@@ -175,7 +148,7 @@ export default function Sidebar() {
     sb.auth.getUser().then(async ({ data }) => {
       if (!data.user) return
       setEmail(data.user.email ?? '')
-      const { data:p } = await sb.from('profiles').select('first_name,full_name,avatar_url,role,plan').eq('id', data.user.id).single()
+      const { data: p } = await sb.from('profiles').select('first_name,full_name,avatar_url,role,plan').eq('id', data.user.id).single()
       if (p) {
         setFn((p as any).first_name ?? (p as any).full_name?.split(' ')[0] ?? '')
         setAvatar((p as any).avatar_url ?? null)
@@ -183,20 +156,20 @@ export default function Sidebar() {
         setPlan((p as any).plan ?? 'free')
       }
     })
-    // Only load projects for client accounts
-    createClient().from('projects').select('id,title,status').order('created_at',{ascending:false}).limit(8).then(({data}) => {
+    createClient().from('projects').select('id,title,status').order('created_at',{ascending:false}).limit(12).then(({ data }) => {
       const list = (data as any[]) ?? []
-      if (!list.length) { setProjects([]); setProjExp(false); return }
       setProjects(list)
-      setProjExp(true)
-      const prio: Record<string,number> = {active:0,testing:1,planning:2,intake:3,done:4}
-      setProjId([...list].sort((a,b)=>(prio[a.status]??9)-(prio[b.status]??9))[0].id)
+      // Find active project for sub-nav links, but keep section collapsed
+      if (list.length) {
+        const prio: Record<string,number> = { active:0,testing:1,planning:2,intake:3,done:4 }
+        setProjId([...list].sort((a,b)=>(prio[a.status]??9)-(prio[b.status]??9))[0].id)
+      }
     })
   }, [pathname])
 
   const logout  = async () => { await createClient().auth.signOut(); window.location.href='/login' }
-  const resolve = (h:string) => h==='/project/current'?(projId?`/project/${projId}`:'/dashboard'):h
-  const isOn    = (h:string) => {
+  const resolve = (h: string) => h==='/project/current'?(projId?`/project/${projId}`:'/dashboard'):h
+  const isOn    = (h: string) => {
     if (h==='/dashboard') return pathname==='/dashboard'
     if (h==='/dev')       return pathname==='/dev'
     if (h==='/project/current') return pathname.startsWith('/project/')
@@ -205,22 +178,58 @@ export default function Sidebar() {
   const name = fn || email.split('@')[0] || 'Konto'
   const init = (fn || email || 'U').charAt(0).toUpperCase()
 
-  function NavSection({ label, items }: { label:string; items:NavItem[] }) {
+  // ── NavItems list (no section header) ──
+  function NavItems({ items }: { items: NavItem[] }) {
     return (
-      <div style={{ marginBottom:4 }}>
-        <p style={{ fontSize:9.5, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.09em', textTransform:'uppercase', padding:'6px 11px 3px', margin:0, opacity:.6 }}>{label}</p>
+      <>
         {items.map(item => {
           const on = isOn(item.href)
           return (
-            <Link key={item.href} href={resolve(item.href)}
-              className={`ni ${on?'ni-on':'ni-off'}`}
-              style={{ position:'relative' }}>
-              <Ico name={item.icon} sz={15} c={on?'var(--text)':'var(--text-muted)'} weight={on?'bold':'regular'} />
+            <Link key={item.href} href={resolve(item.href)} className={`ni ${on?'ni-on':'ni-off'}`}>
+              <Ico name={item.icon} sz={14} c={on?'var(--text)':'var(--text-muted)'} weight={on?'bold':'regular'} />
               <span style={{ flex:1 }}>{item.label}</span>
-              {item.badge ? <span style={{ fontSize:10, fontWeight:700, color:'var(--accent-text)', background:'var(--accent)', borderRadius:10, padding:'1px 6px', minWidth:16, textAlign:'center' }}>{item.badge}</span> : null}
+              {item.badge ? (
+                <span style={{ fontSize:9.5, fontWeight:700, color:'var(--text-muted)', background:'var(--border)', borderRadius:10, padding:'0 5px', minWidth:16, textAlign:'center', lineHeight:'16px' }}>{item.badge}</span>
+              ) : null}
             </Link>
           )
         })}
+      </>
+    )
+  }
+
+  // ── Collapsible section ──
+  function Section({ label, expanded, onToggle, children, action }: {
+    label: string; expanded: boolean; onToggle: () => void;
+    children: React.ReactNode; action?: React.ReactNode
+  }) {
+    return (
+      <div style={{ marginBottom:2 }}>
+        <div style={{ display:'flex', alignItems:'center', padding:'4px 8px 2px' }}>
+          <button onClick={onToggle} style={{
+            display:'flex', alignItems:'center', gap:4, flex:1,
+            background:'transparent', border:'none', cursor:'pointer',
+            fontFamily:'inherit', padding:0, textAlign:'left',
+          }}>
+            <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2.5" strokeLinecap="round"
+              style={{ flexShrink:0, opacity:.5, transform:expanded?'rotate(90deg)':'rotate(0deg)', transition:'transform .15s' }}>
+              <path d="M9 6l6 6-6 6"/>
+            </svg>
+            <span style={{ fontSize:11, fontWeight:600, color:'var(--text-muted)', letterSpacing:'.01em', opacity:.65 }}>{label}</span>
+          </button>
+          {action}
+        </div>
+        {expanded && children}
+      </div>
+    )
+  }
+
+  // ── Flat section (no header) ──
+  function FlatSection({ label, items }: { label: string; items: NavItem[] }) {
+    return (
+      <div style={{ marginBottom:6 }}>
+        <p style={{ fontSize:10.5, fontWeight:600, color:'var(--text-muted)', padding:'5px 9px 2px', margin:0, opacity:.55 }}>{label}</p>
+        <NavItems items={items} />
       </div>
     )
   }
@@ -228,153 +237,192 @@ export default function Sidebar() {
   return (
     <>
       <style>{`
-        .ni { display:flex;align-items:center;gap:9px;padding:7px 11px;border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;text-decoration:none;color:inherit;transition:background .1s,color .1s;white-space:nowrap;overflow:hidden; }
-        .ni-on  { background:var(--nav-on);font-weight:700;color:var(--nav-on-text); }
+        /* ── Nav item ── */
+        .ni {
+          display:flex; align-items:center; gap:7px;
+          padding:5px 9px; border-radius:7px;
+          font-size:12.5px; font-weight:500;
+          cursor:pointer; text-decoration:none; color:inherit;
+          transition:background .08s, color .08s;
+          white-space:nowrap; overflow:hidden;
+          margin:0 2px;
+        }
+        .ni-on  { background:var(--nav-on); font-weight:600; color:var(--nav-on-text); }
         .ni-off { color:var(--nav-off-text); }
-        .ni-off:hover { background:rgba(0,0,0,0.035);color:var(--text); }
+        .ni-off:hover { background:rgba(0,0,0,0.04); color:var(--text); }
         [data-theme="dark"] .ni-off:hover { background:rgba(255,255,255,0.05); }
         [data-theme="read"] .ni-off:hover { background:rgba(0,0,0,0.04); }
-        .usr-row:hover { background:var(--card); }
-        .proj-row { display:flex;align-items:center;gap:8px;padding:6px 11px;border-radius:9px;font-size:12.5px;font-weight:500;cursor:pointer;text-decoration:none;color:var(--text-secondary);transition:background .1s,color .1s;overflow:hidden; }
-        .proj-row:hover { background:rgba(0,0,0,0.035);color:var(--text); }
+
+        /* ── Project row ── */
+        .proj-row {
+          display:flex; align-items:center; gap:7px;
+          padding:4px 9px; border-radius:7px;
+          font-size:12px; font-weight:500;
+          cursor:pointer; text-decoration:none;
+          color:var(--text-muted);
+          transition:background .08s, color .08s;
+          overflow:hidden; margin:0 2px;
+        }
+        .proj-row:hover { background:rgba(0,0,0,0.04); color:var(--text); }
         [data-theme="dark"] .proj-row:hover { background:rgba(255,255,255,0.05); }
-        .proj-row.active { background:var(--nav-on);color:var(--nav-on-text);font-weight:700; }
+        .proj-row.active { background:var(--nav-on); color:var(--nav-on-text); font-weight:600; }
 
-        /* ── Mobile floating bar (glass) ── */
-        .mob-bar { position:fixed;bottom:calc(14px + var(--safe-bottom));left:50%;transform:translateX(-50%);width:calc(100% - 28px);max-width:380px;background:var(--sidebar-bg);backdrop-filter:blur(36px) saturate(200%);-webkit-backdrop-filter:blur(36px) saturate(200%);border:1px solid var(--sidebar-border);box-shadow:0 12px 40px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.10);border-radius:30px;z-index:200;align-items:center;padding:10px 16px;gap:0; }
-        [data-theme="dark"] .mob-bar { box-shadow:0 12px 40px rgba(0,0,0,0.55), 0 2px 8px rgba(0,0,0,0.40), inset 0 1px 0 rgba(255,255,255,0.06); }
+        /* ── User dropdown row ── */
+        .usr-row {
+          display:flex; align-items:center; gap:9px;
+          padding:7px 10px; border-radius:8px;
+          cursor:pointer; transition:background .08s;
+          width:100%; border:none; font-family:inherit;
+          background:transparent; text-decoration:none; color:var(--text);
+          font-size:12.5px; font-weight:500;
+        }
+        .usr-row:hover { background:var(--surface-2); }
 
-        /* Nav tab items */
-        .mt  { display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;min-height:44px;justify-content:center;cursor:pointer;text-decoration:none;border:none;background:transparent;font-family:inherit;-webkit-tap-highlight-color:transparent;transition:transform .1s; }
+        /* ── Mobile bar (glass) ── */
+        .mob-bar {
+          position:fixed; bottom:calc(14px + var(--safe-bottom));
+          left:50%; transform:translateX(-50%);
+          width:calc(100% - 28px); max-width:380px;
+          background:var(--sidebar-bg);
+          backdrop-filter:blur(36px) saturate(200%);
+          -webkit-backdrop-filter:blur(36px) saturate(200%);
+          border:1px solid var(--sidebar-border);
+          box-shadow:0 12px 40px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.10);
+          border-radius:30px; z-index:200;
+          align-items:center; padding:10px 16px; gap:0;
+        }
+        [data-theme="dark"] .mob-bar {
+          box-shadow:0 12px 40px rgba(0,0,0,0.55), 0 2px 8px rgba(0,0,0,0.40), inset 0 1px 0 rgba(255,255,255,0.06);
+        }
+        .mt  { display:flex; flex-direction:column; align-items:center; gap:3px; flex:1; min-height:44px; justify-content:center; cursor:pointer; text-decoration:none; border:none; background:transparent; font-family:inherit; -webkit-tap-highlight-color:transparent; transition:transform .1s; }
         .mt:active { transform:scale(.88); }
-        .mti { width:32px;height:26px;display:flex;align-items:center;justify-content:center;border-radius:8px;transition:background .12s; }
+        .mti { width:32px; height:26px; display:flex; align-items:center; justify-content:center; border-radius:8px; transition:background .12s; }
         .mt.on .mti  { background:var(--nav-on); }
         .mt.has-avatar .mti { background:transparent !important; }
-        .mt.on .ml   { color:var(--text);font-weight:700; }
-        .mt.off .ml  { color:var(--text-muted);font-weight:500; }
-        .ml { font-size:9.5px;letter-spacing:.01em;transition:color .12s;line-height:1; }
-
-        /* Center FAB */
-        .mob-fab { width:50px;height:50px;border-radius:50%;background:var(--btn-prim);color:var(--btn-prim-text);display:flex;align-items:center;justify-content:center;margin:-6px 12px;box-shadow:0 4px 18px rgba(0,0,0,.35);border:none;cursor:pointer;transition:transform .15s ease,background .15s;flex-shrink:0;-webkit-tap-highlight-color:transparent; }
+        .mt.on .ml   { color:var(--text); font-weight:700; }
+        .mt.off .ml  { color:var(--text-muted); font-weight:500; }
+        .ml { font-size:9.5px; letter-spacing:.01em; transition:color .12s; line-height:1; }
+        .mob-fab { width:50px; height:50px; border-radius:50%; background:var(--btn-prim); color:var(--btn-prim-text); display:flex; align-items:center; justify-content:center; margin:-6px 12px; box-shadow:0 4px 18px rgba(0,0,0,.35); border:none; cursor:pointer; transition:transform .15s ease,background .15s; flex-shrink:0; -webkit-tap-highlight-color:transparent; }
         .mob-fab:active { transform:scale(.88); }
-        .mob-fab.open { background:var(--surface-2);box-shadow:0 2px 8px rgba(0,0,0,.2); }
-
-        /* Backdrop */
-        .mbd { position:fixed;inset:0;z-index:198;background:rgba(0,0,0,.40);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px); }
-
-        /* Quick action panel */
-        .mob-quick { position:fixed;bottom:calc(96px + var(--safe-bottom));left:50%;transform:translateX(-50%);width:calc(100% - 32px);max-width:340px;z-index:199;display:flex;flex-direction:column;gap:6px;animation:mqUp .2s cubic-bezier(.16,1,.3,1) both; }
+        .mob-fab.open { background:var(--surface-2); box-shadow:0 2px 8px rgba(0,0,0,.2); }
+        .mbd { position:fixed; inset:0; z-index:198; background:rgba(0,0,0,.40); backdrop-filter:blur(3px); -webkit-backdrop-filter:blur(3px); }
+        .mob-quick { position:fixed; bottom:calc(96px + var(--safe-bottom)); left:50%; transform:translateX(-50%); width:calc(100% - 32px); max-width:340px; z-index:199; display:flex; flex-direction:column; gap:6px; animation:mqUp .2s cubic-bezier(.16,1,.3,1) both; }
         @keyframes mqUp { from{opacity:0;transform:translateX(-50%) translateY(18px);}to{opacity:1;transform:translateX(-50%) translateY(0);} }
-
-        /* Quick action items */
-        .mqi { display:flex;align-items:center;gap:14px;padding:13px 16px;background:var(--surface);border:1px solid var(--border);border-radius:16px;text-decoration:none;color:inherit;-webkit-tap-highlight-color:transparent;transition:background .1s; }
+        .mqi { display:flex; align-items:center; gap:14px; padding:13px 16px; background:var(--surface); border:1px solid var(--border); border-radius:16px; text-decoration:none; color:inherit; -webkit-tap-highlight-color:transparent; transition:background .1s; }
         .mqi:active { background:var(--card); }
-        .mqi.primary-action { background:var(--btn-prim);border-color:transparent; }
+        .mqi.primary-action { background:var(--btn-prim); border-color:transparent; }
         .mqi.primary-action .mqi-label { color:var(--btn-prim-text); }
-        .mqi.primary-action .mqi-ico { background:rgba(0,0,0,.12);color:var(--btn-prim-text); }
+        .mqi.primary-action .mqi-ico { background:rgba(0,0,0,.12); color:var(--btn-prim-text); }
       `}</style>
 
-      {/* ══════════════════════════════════
-          DESKTOP SIDEBAR
-      ══════════════════════════════════ */}
+      {/* ══ DESKTOP SIDEBAR ══ */}
       <aside className="sidebar" style={{ pointerEvents:'none' }}>
-        <div className="sidebar-inner" style={{ pointerEvents:'all', padding:'16px 10px 18px', display:'flex', flexDirection:'column', height:'100%' }}>
+        <div className="sidebar-inner" style={{ pointerEvents:'all', padding:'14px 8px 16px', display:'flex', flexDirection:'column', height:'100%' }}>
 
-          {/* Logo + Support-Button */}
-          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 8px', marginBottom:12, gap:8 }}>
+          {/* Logo + Support */}
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 6px', marginBottom:10, gap:8 }}>
             <Link href={homeHref} style={{ textDecoration:'none', display:'flex', alignItems:'center' }}>
-              <img src="/brand/logo.svg" alt="festag" style={{ height:18, display:'block', filter:'var(--logo-filter,none)' }}/>
+              <img src="/brand/logo.svg" alt="festag" style={{ height:17, display:'block', filter:'var(--logo-filter,none)' }}/>
             </Link>
             <SupportButton />
           </div>
 
-          {/* View-Switch — direkt unter dem Logo */}
-          <div style={{ padding:'0 4px', marginBottom:14 }}>
+          {/* ViewSwitch */}
+          <div style={{ padding:'0 2px', marginBottom:10 }}>
             <ViewSwitch />
           </div>
 
           {/* Scrollable nav */}
           <div style={{ flex:1, overflowY:'auto', overflowX:'hidden', scrollbarWidth:'none' }}>
 
-            {/* Main nav */}
-            <NavSection label="Übersicht" items={mainNav} />
+            {/* Main nav — always visible, no section header (like Linear's top items) */}
+            <div style={{ marginBottom:6 }}>
+              <NavItems items={mainNav} />
+            </div>
 
-            {/* CLIENT: Projects section */}
+            {/* Projects — collapsible */}
             {isClient && (
-              <div style={{ marginBottom:4 }}>
-                <button onClick={() => setProjExp(v => !v)}
-                  style={{ display:'flex', alignItems:'center', gap:6, width:'100%', padding:'6px 11px 3px', background:'transparent', border:'none', cursor:'pointer', fontFamily:'inherit' }}>
-                  <span style={{ fontSize:9.5, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.09em', textTransform:'uppercase', opacity:.6, flex:1, textAlign:'left' }}>Projekte</span>
-                  <span style={{ opacity:.4, transition:'transform .15s', display:'block', transform:projExp?'rotate(90deg)':'none' }}>
-                    <Ico name="chevron" sz={11} c="var(--text-muted)" weight="light" />
-                  </span>
+              <Section
+                label="Projekte"
+                expanded={projExp}
+                onToggle={() => setProjExp(v => !v)}
+                action={
                   <Link href="/new-project" onClick={e => e.stopPropagation()}
-                    style={{ opacity:.5, display:'flex', marginLeft:2, padding:2, borderRadius:5, textDecoration:'none' }}>
+                    style={{ display:'flex', alignItems:'center', justifyContent:'center', width:20, height:20, borderRadius:5, opacity:.45, textDecoration:'none', transition:'opacity .1s' }}
+                    onMouseEnter={e => (e.currentTarget as HTMLElement).style.opacity='0.9'}
+                    onMouseLeave={e => (e.currentTarget as HTMLElement).style.opacity='0.45'}
+                  >
                     <Ico name="plus" sz={11} c="var(--text-muted)" weight="regular" />
                   </Link>
-                </button>
+                }
+              >
+                {projects.length > 0 ? projects.map(p => {
+                  const on = pathname === `/project/${p.id}`
+                  return (
+                    <Link key={p.id} href={`/project/${p.id}`} className={`proj-row ${on?'active':''}`}>
+                      <span style={{ width:5, height:5, borderRadius:'50%', background: on ? 'var(--nav-on-text)' : 'var(--text-muted)', flexShrink:0, opacity: on ? 1 : .45 }}/>
+                      <span style={{ flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{p.title}</span>
+                    </Link>
+                  )
+                }) : (
+                  <Link href="/new-project" className="proj-row" style={{ opacity:.5 }}>
+                    <span style={{ width:5, height:5, borderRadius:'50%', background:'var(--border)', flexShrink:0 }}/>
+                    <span style={{ fontStyle:'italic' }}>Neues Projekt…</span>
+                  </Link>
+                )}
 
-                {projExp && (
-                  <>
-                    {projects.length > 0 ? projects.map(p => {
-                      const on = pathname === `/project/${p.id}`
+                {/* Sub-links for active project */}
+                {projId && (
+                  <div style={{ marginLeft:12, borderLeft:'1px solid var(--border)', paddingLeft:6, marginTop:1, marginBottom:2 }}>
+                    {CLIENT_PROJECT.map(item => {
+                      const on = isOn(item.href)
                       return (
-                        <Link key={p.id} href={`/project/${p.id}`} className={`proj-row ${on?'active':''}`}>
-                          <span style={{ width:7, height:7, borderRadius:'50%', background:projectColor(p.id), flexShrink:0 }}/>
-                          <span style={{ flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{p.title}</span>
+                        <Link key={item.href} href={resolve(item.href)} className={`ni ${on?'ni-on':'ni-off'}`}
+                          style={{ fontSize:11.5, padding:'4px 8px', borderRadius:6, margin:'0 1px' }}>
+                          <Ico name={item.icon} sz={12} c={on?'var(--text)':'var(--text-muted)'} weight={on?'bold':'regular'} />
+                          {item.label}
                         </Link>
                       )
-                    }) : (
-                      <Link href="/new-project" className="proj-row" style={{ opacity:.6 }}>
-                        <span style={{ width:7, height:7, borderRadius:'50%', background:'var(--border)', flexShrink:0 }}/>
-                        <span style={{ fontStyle:'italic', fontSize:12 }}>Neues Projekt</span>
-                      </Link>
-                    )}
-
-                    {projId && (
-                      <div style={{ marginLeft:11, borderLeft:'1.5px solid var(--border)', paddingLeft:8, marginTop:2, marginBottom:2 }}>
-                        {CLIENT_PROJECT.map(item => {
-                          const on = isOn(item.href)
-                          return (
-                            <Link key={item.href} href={resolve(item.href)}
-                              className={`ni ${on?'ni-on':'ni-off'}`}
-                              style={{ fontSize:12, padding:'5px 9px', borderRadius:7 }}>
-                              <Ico name={item.icon} sz={13} c={on?'var(--text)':'var(--text-muted)'} weight={on?"bold":"regular"} />
-                              {item.label}
-                            </Link>
-                          )
-                        })}
-                      </div>
-                    )}
-                  </>
+                    })}
+                  </div>
                 )}
-              </div>
+              </Section>
             )}
 
-            {/* DEV: Work section */}
-            {isDev && <NavSection label="Arbeit" items={DEV_WORK} />}
+            {/* Dev: Work section */}
+            {isDev && <FlatSection label="Arbeit" items={DEV_WORK} />}
 
-            <NavSection label="Tools" items={toolsNav} />
-            <NavSection label="Konto" items={accountNav} />
+            {/* Tools — collapsible */}
+            <Section
+              label="Tools"
+              expanded={toolsExp}
+              onToggle={() => setToolsExp(v => !v)}
+            >
+              <NavItems items={toolsNav} />
+            </Section>
+
+            {/* Account — always visible, no header */}
+            <div style={{ marginTop:2 }}>
+              <NavItems items={accountNav} />
+            </div>
+
           </div>
 
-          {/* ── User block — Linear + Claude style ── */}
-          <div style={{ borderTop:'1px solid var(--border)', paddingTop:8, marginTop:8, position:'relative' }}>
+          {/* ── User block ── */}
+          <div style={{ borderTop:'1px solid var(--border)', paddingTop:8, marginTop:6, position:'relative' }}>
 
-            {/* Dropdown menu — appears above */}
+            {/* Dropdown */}
             {userMenu && (
               <>
-                {/* Click-outside trap */}
                 <div style={{ position:'fixed', inset:0, zIndex:1000 }} onClick={() => setUserMenu(false)} />
                 <div style={{
                   position:'absolute', bottom:'calc(100% + 6px)', left:0, right:0,
                   background:'var(--surface)', border:'1px solid var(--border)',
-                  borderRadius:12, boxShadow:'0 8px 32px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.10)',
-                  zIndex:1001, overflow:'hidden',
-                  padding:'4px',
+                  borderRadius:12,
+                  boxShadow:'0 8px 32px rgba(0,0,0,0.14), 0 2px 8px rgba(0,0,0,0.08)',
+                  zIndex:1001, padding:'4px',
                 }}>
-                  <style>{`.usr-row{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:8px;cursor:pointer;transition:background .1s;width:100%;border:none;font-family:inherit;background:transparent;text-decoration:none;color:var(--text);}.usr-row:hover{background:var(--surface-2);}`}</style>
-                  {/* Name + plan header */}
+                  {/* Header */}
                   <div style={{ padding:'8px 10px 6px', display:'flex', alignItems:'center', gap:8 }}>
                     {avatar
                       ? <img src={avatar} alt="" style={{ width:28,height:28,borderRadius:'50%',objectFit:'cover',border:'1.5px solid var(--border)',flexShrink:0 }}/>
@@ -385,74 +433,72 @@ export default function Sidebar() {
                       <p style={{ margin:0, fontSize:10.5, color:'var(--text-muted)', lineHeight:1.3 }}>{email}</p>
                     </div>
                   </div>
-                  <div style={{ height:1, background:'var(--border)', margin:'4px 0' }} />
+                  <div style={{ height:1, background:'var(--border)', margin:'3px 0' }}/>
                   <Link href="/settings" className="usr-row" onClick={() => setUserMenu(false)}>
                     <Ico name="settings" sz={13} c="var(--text-muted)" weight="regular" />
-                    <span style={{ fontSize:12.5, fontWeight:500 }}>Einstellungen</span>
+                    Einstellungen
                   </Link>
                   {isClient && (
                     <Link href="/billing" className="usr-row" onClick={() => setUserMenu(false)}>
                       <Ico name="billing" sz={13} c="var(--text-muted)" weight="regular" />
-                      <span style={{ fontSize:12.5, fontWeight:500 }}>Billing</span>
+                      Billing
                     </Link>
                   )}
-                  <div style={{ height:1, background:'var(--border)', margin:'4px 0' }} />
-                  <button className="usr-row" onClick={logout} style={{ width:'100%', textAlign:'left' }}>
+                  <div style={{ height:1, background:'var(--border)', margin:'3px 0' }}/>
+                  <button className="usr-row" onClick={logout}>
                     <Ico name="logout" sz={13} c="var(--text-muted)" weight="regular" />
-                    <span style={{ fontSize:12.5, fontWeight:500 }}>Abmelden</span>
+                    Abmelden
                   </button>
                 </div>
               </>
             )}
 
-            {/* Trigger row — Linear-style: Avatar · Name · Plan · Chevron */}
+            {/* Trigger row */}
             <button
               onClick={() => setUserMenu(m => !m)}
               style={{
                 width:'100%', display:'flex', alignItems:'center', gap:8,
-                padding:'6px 8px', borderRadius:10,
+                padding:'5px 7px', borderRadius:8,
                 background: userMenu ? 'var(--surface-2)' : 'transparent',
                 border:'none', cursor:'pointer', fontFamily:'inherit',
-                transition:'background .12s',
+                transition:'background .1s',
               }}
-              onMouseEnter={e => { if (!userMenu) e.currentTarget.style.background='var(--surface-2)' }}
+              onMouseEnter={e => { if (!userMenu) e.currentTarget.style.background='rgba(0,0,0,0.04)' }}
               onMouseLeave={e => { if (!userMenu) e.currentTarget.style.background='transparent' }}
             >
-              {/* Avatar */}
               {avatar
-                ? <img src={avatar} alt="" style={{ width:24,height:24,borderRadius:'50%',objectFit:'cover',border:'1.5px solid var(--border)',flexShrink:0 }}/>
-                : <div style={{ width:24,height:24,borderRadius:'50%',background:'var(--btn-prim)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:10,fontWeight:700,color:'var(--btn-prim-text)',flexShrink:0 }}>{init}</div>
+                ? <img src={avatar} alt="" style={{ width:22,height:22,borderRadius:'50%',objectFit:'cover',border:'1.5px solid var(--border)',flexShrink:0 }}/>
+                : <div style={{ width:22,height:22,borderRadius:'50%',background:'var(--btn-prim)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:9.5,fontWeight:700,color:'var(--btn-prim-text)',flexShrink:0 }}>{init}</div>
               }
-              {/* Name */}
               <span style={{ flex:1, minWidth:0, display:'flex', alignItems:'center', gap:5, overflow:'hidden' }}>
                 <span style={{ fontSize:12, fontWeight:600, color:'var(--text)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{name}</span>
                 {isClient && (
-                  <span style={{ flexShrink:0, fontSize:9, fontWeight:700, letterSpacing:'.05em', color:'var(--text-muted)', background:'var(--border)', padding:'1px 5px', borderRadius:4, lineHeight:1.6 }}>
+                  <span style={{ flexShrink:0, fontSize:8.5, fontWeight:700, letterSpacing:'.04em', color:'var(--text-muted)', background:'var(--border)', padding:'1px 4px', borderRadius:4, lineHeight:1.6 }}>
                     {plan === 'free' ? 'Free' : plan === 'starter' ? 'Starter' : plan === 'pro' ? 'Pro' : plan === 'enterprise' ? 'Ent.' : plan}
                   </span>
                 )}
               </span>
-              {/* Chevron */}
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2.5" strokeLinecap="round" style={{ flexShrink:0, transform: userMenu ? 'rotate(180deg)' : 'rotate(0deg)', transition:'transform .18s' }}>
+              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2.5" strokeLinecap="round"
+                style={{ flexShrink:0, transform:userMenu?'rotate(180deg)':'rotate(0deg)', transition:'transform .16s', opacity:.6 }}>
                 <path d="M6 9l6 6 6-6"/>
               </svg>
             </button>
 
-            {/* Legal links */}
-            <div style={{ padding:'5px 3px 2px', display:'flex', flexWrap:'nowrap', alignItems:'center', justifyContent:'space-between', gap:3 }}>
+            {/* Legal */}
+            <div style={{ padding:'4px 2px 0', display:'flex', flexWrap:'nowrap', alignItems:'center', justifyContent:'space-between', gap:3 }}>
               {[
                 { href:'/impressum',   label:'Impressum' },
                 { href:'/datenschutz', label:'Datenschutz' },
                 { href:'/agb',         label:'AGB' },
                 { href:'/widerruf',    label:'Widerruf' },
               ].map((l, i, arr) => (
-                <span key={l.href} style={{ display:'inline-flex', alignItems:'center', gap:3, flexShrink:0 }}>
+                <span key={l.href} style={{ display:'inline-flex', alignItems:'center', gap:2, flexShrink:0 }}>
                   <Link href={l.href}
-                    style={{ fontSize:8, color:'var(--text-muted)', textDecoration:'none', opacity:.5, whiteSpace:'nowrap', transition:'opacity .12s' }}
-                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.opacity='1' }}
-                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.opacity='.5' }}
+                    style={{ fontSize:7.5, color:'var(--text-muted)', textDecoration:'none', opacity:.4, whiteSpace:'nowrap', transition:'opacity .1s' }}
+                    onMouseEnter={e => (e.currentTarget as HTMLElement).style.opacity='0.8'}
+                    onMouseLeave={e => (e.currentTarget as HTMLElement).style.opacity='0.4'}
                   >{l.label}</Link>
-                  {i < arr.length - 1 && <span style={{ fontSize:6, color:'var(--text-muted)', opacity:.3 }}>·</span>}
+                  {i < arr.length-1 && <span style={{ fontSize:5, color:'var(--text-muted)', opacity:.3 }}>·</span>}
                 </span>
               ))}
             </div>
@@ -460,43 +506,33 @@ export default function Sidebar() {
         </div>
       </aside>
 
-      {/* ══════════════════════════════════
-          MOBILE FLOATING NAV BAR
-      ══════════════════════════════════ */}
+      {/* ══ MOBILE FLOATING NAV BAR ══ */}
       <nav className="bottom-nav mob-bar">
-        {/* Left 2 items */}
         {mobPrimary.slice(0,2).map(item => {
           const on = isOn(item.href)
           return (
             <Link key={item.href} href={resolve(item.href)} className={`mt ${on?'on':'off'}`}>
-              <div className="mti">
-                <Ico name={item.icon} sz={21} c={on?'var(--text)':'var(--text-muted)'} weight={on?"bold":"regular"} />
-              </div>
+              <div className="mti"><Ico name={item.icon} sz={21} c={on?'var(--text)':'var(--text-muted)'} weight={on?'bold':'regular'}/></div>
               <span className="ml">{item.label}</span>
             </Link>
           )
         })}
-
-        {/* Center FAB — plus / close */}
         <button className={`mob-fab ${more?'open':''}`} onClick={() => setMore(v => !v)} aria-label="Menü">
           {more
-            ? <Ico name="close"  sz={20} c="var(--text)"          weight="bold" />
-            : <Ico name="plus"   sz={22} c="var(--btn-prim-text)" weight="regular" />
+            ? <Ico name="close" sz={20} c="var(--text)"          weight="bold" />
+            : <Ico name="plus"  sz={22} c="var(--btn-prim-text)" weight="regular" />
           }
         </button>
-
-        {/* Right 2 items */}
         {mobPrimary.slice(2).map(item => {
-          const on = isOn(item.href)
-          const isAvatar = item.icon === 'user' && !!avatar
+          const on      = isOn(item.href)
+          const isAv    = item.icon === 'user' && !!avatar
           return (
-            <Link key={item.href} href={resolve(item.href)} className={`mt ${on?'on':'off'} ${isAvatar?'has-avatar':''}`}>
+            <Link key={item.href} href={resolve(item.href)} className={`mt ${on?'on':'off'} ${isAv?'has-avatar':''}`}>
               <div className="mti">
-                {isAvatar ? (
-                  <img src={avatar!} alt="" style={{ width:26, height:26, borderRadius:'50%', objectFit:'cover', border:on?'2.5px solid var(--text)':'2px solid var(--border)', display:'block' }} />
-                ) : (
-                  <Ico name={item.icon} sz={21} c={on?'var(--text)':'var(--text-muted)'} weight={on?"bold":"regular"} />
-                )}
+                {isAv
+                  ? <img src={avatar!} alt="" style={{ width:26,height:26,borderRadius:'50%',objectFit:'cover',border:on?'2.5px solid var(--text)':'2px solid var(--border)',display:'block' }}/>
+                  : <Ico name={item.icon} sz={21} c={on?'var(--text)':'var(--text-muted)'} weight={on?'bold':'regular'}/>
+                }
               </div>
               <span className="ml">{item.label}</span>
             </Link>
@@ -504,52 +540,42 @@ export default function Sidebar() {
         })}
       </nav>
 
-      {/* Teams Popup — global */}
       <TeamsModal open={teamsOpen} onClose={() => setTeamsOpen(false)} />
 
-      {/* Quick action panel */}
       {more && (
         <>
           <div className="mbd" onClick={() => setMore(false)} />
           <div className="mob-quick">
-            {/* Primary action */}
             <Link href={mobQuick[0].href} className="mqi primary-action" onClick={() => setMore(false)}>
-              <div className="mqi-ico" style={{ width:40, height:40, borderRadius:12, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, background:'rgba(0,0,0,.14)' }}>
-                <Ico name={mobQuick[0].icon} sz={18} c="var(--btn-prim-text)" weight="regular" />
+              <div className="mqi-ico" style={{ width:40,height:40,borderRadius:12,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,background:'rgba(0,0,0,.14)' }}>
+                <Ico name={mobQuick[0].icon} sz={18} c="var(--btn-prim-text)" weight="regular"/>
               </div>
               <div style={{ flex:1, minWidth:0 }}>
-                <p className="mqi-label" style={{ fontSize:15, fontWeight:700, margin:'0 0 1px', color:'var(--btn-prim-text)' }}>{mobQuick[0].label}</p>
-                <p style={{ fontSize:11.5, margin:0, color:'var(--btn-prim-text)', opacity:.65 }}>{isDev ? 'Jobs ansehen →' : 'Projekt starten →'}</p>
+                <p className="mqi-label" style={{ fontSize:15,fontWeight:700,margin:'0 0 1px',color:'var(--btn-prim-text)' }}>{mobQuick[0].label}</p>
+                <p style={{ fontSize:11.5,margin:0,color:'var(--btn-prim-text)',opacity:.65 }}>{isDev?'Jobs ansehen →':'Projekt starten →'}</p>
               </div>
             </Link>
-
-            {/* 2-col grid for secondary actions */}
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:6 }}>
               {mobQuick.slice(1).map(item => {
                 const on = isOn(item.href)
                 return (
                   <Link key={item.href} href={resolve(item.href)} className="mqi" onClick={() => setMore(false)}
                     style={{ borderRadius:14, gap:10, padding:'12px 13px' }}>
-                    <div style={{ width:34, height:34, borderRadius:10, background:on?'var(--text)':'var(--surface-2)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                      <Ico name={item.icon} sz={16} c={on?'var(--bg)':'var(--text-secondary)'} weight="regular" />
+                    <div style={{ width:34,height:34,borderRadius:10,background:on?'var(--text)':'var(--surface-2)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0 }}>
+                      <Ico name={item.icon} sz={16} c={on?'var(--bg)':'var(--text-secondary)'} weight="regular"/>
                     </div>
-                    <span className="mqi-label" style={{ fontSize:13, fontWeight:on?700:600, color:'var(--text)', lineHeight:1.25 }}>{item.label}</span>
+                    <span className="mqi-label" style={{ fontSize:13,fontWeight:on?700:600,color:'var(--text)',lineHeight:1.25 }}>{item.label}</span>
                   </Link>
                 )
               })}
             </div>
-
-            {/* Bottom: logout + settings */}
             <div style={{ display:'flex', gap:6, marginTop:2 }}>
-              <button onClick={logout}
-                style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', gap:8, padding:'11px 14px', background:'var(--surface)', border:'1px solid var(--border)', borderRadius:14, fontSize:13, fontWeight:600, color:'var(--text-muted)', cursor:'pointer', fontFamily:'inherit' }}>
-                <Ico name="logout" sz={15} c="currentColor" weight="regular"/>
-                Abmelden
+              <button onClick={logout} style={{ flex:1,display:'flex',alignItems:'center',justifyContent:'center',gap:8,padding:'11px 14px',background:'var(--surface)',border:'1px solid var(--border)',borderRadius:14,fontSize:13,fontWeight:600,color:'var(--text-muted)',cursor:'pointer',fontFamily:'inherit' }}>
+                <Ico name="logout" sz={15} c="currentColor" weight="regular"/>Abmelden
               </button>
               <Link href="/settings" onClick={() => setMore(false)}
-                style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', gap:8, padding:'11px 14px', background:'var(--surface)', border:'1px solid var(--border)', borderRadius:14, fontSize:13, fontWeight:600, color:'var(--text)', textDecoration:'none' }}>
-                <Ico name="settings" sz={15} c="currentColor" weight="regular"/>
-                Einstellungen
+                style={{ flex:1,display:'flex',alignItems:'center',justifyContent:'center',gap:8,padding:'11px 14px',background:'var(--surface)',border:'1px solid var(--border)',borderRadius:14,fontSize:13,fontWeight:600,color:'var(--text)',textDecoration:'none' }}>
+                <Ico name="settings" sz={15} c="currentColor" weight="regular"/>Einstellungen
               </Link>
             </div>
           </div>
