@@ -125,13 +125,7 @@ export default function AppHeader({
           <span className="ah-cp-label">Copilot</span>
         </button>
 
-        {/* New project */}
-        <Link href="/new-project" style={{ textDecoration:'none' }}>
-          <button className="tap-scale" style={{ height:36, padding:'0 14px', background:'var(--btn-prim)', color:'var(--btn-prim-text)', border:'none', borderRadius:10, fontSize:13, fontWeight:700, cursor:'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', gap:6, whiteSpace:'nowrap' }}>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
-            Neu
-          </button>
-        </Link>
+
 
         {/* Theme */}
         <div style={{ height:36, display:'flex', alignItems:'center' }}>
