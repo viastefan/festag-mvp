@@ -71,42 +71,65 @@ function PixelBlocks({ view }: { view: View }) {
 }
 
 function ImagePanel({ view }: { view: View }) {
+  // Hero-Image: bevorzugt /brand/hero-team.jpg (kuratiertes Expertenteam-Visual).
+  // Fallback auf /bg-office.jpg, falls die Datei noch nicht eingespielt ist.
+  // Kein Stockfoto-Look — Erzählung: koordiniertes Expertenteam.
   return (
     <div style={{ position: 'relative', overflow: 'hidden', width: '100%', height: '100%' }}>
-      <img src="/bg-office.jpg" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}/>
-      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right,rgba(5,14,10,0.72) 0%,rgba(5,14,10,0.45) 60%,rgba(5,14,10,0.08) 100%),linear-gradient(to top,rgba(5,14,10,0.85) 0%,transparent 55%)', pointerEvents: 'none' }}/>
+      <img
+        src="/brand/hero-team.jpg"
+        alt=""
+        onError={e => { (e.currentTarget as HTMLImageElement).src = '/bg-office.jpg' }}
+        style={{
+          position: 'absolute', inset: 0,
+          width: '100%', height: '100%',
+          objectFit: 'cover', objectPosition: 'center 35%',
+          display: 'block',
+          filter: 'saturate(1.05) contrast(1.02)',
+        }}
+      />
+      {/* Seriöser, ruhiger Verlauf — weniger "Kino", mehr Premium */}
+      <div style={{
+        position: 'absolute', inset: 0,
+        background: 'linear-gradient(to right, rgba(8,12,14,0.78) 0%, rgba(8,12,14,0.42) 55%, rgba(8,12,14,0.08) 100%), linear-gradient(to top, rgba(8,12,14,0.82) 0%, transparent 50%)',
+        pointerEvents: 'none',
+      }}/>
       <PixelBlocks view={view}/>
       <div style={{ position: 'absolute', top: 30, left: 36, zIndex: 2 }}>
-        <img src="/brand/logo.svg" alt="festag" style={{ height: 21, filter: 'brightness(0) invert(1)', opacity: .88 }}/>
+        <img src="/brand/logo.svg" alt="festag" style={{ height: 21, filter: 'brightness(0) invert(1)', opacity: .92 }}/>
       </div>
-      <div style={{ position: 'absolute', bottom: 52, left: 48, right: '18%', zIndex: 2 }}>
-        <h2 style={{ fontSize: 48, fontWeight: 700, color: '#fff', lineHeight: 1.1, letterSpacing: '-.8px', marginBottom: 16, textShadow: '0 2px 30px rgba(0,0,0,.6)' }}>
-          {view==='home' ? <>Kein Informations&shy;verlust mehr.</> :
+      <div style={{ position: 'absolute', bottom: 56, left: 48, right: '16%', zIndex: 2 }}>
+        <h2 style={{ fontSize: 46, fontWeight: 700, color: '#fff', lineHeight: 1.08, letterSpacing: '-.8px', marginBottom: 16, textShadow: '0 2px 30px rgba(0,0,0,.6)' }}>
+          {view==='home' ? <>Software&shy;produktion ohne Chaos.</> :
            view==='login' ? <>Schön,<br/>dass du wieder da bist.</> :
            view==='register' ? <>Willkommen<br/>bei Festag.</> :
-           <>Team Execution<br/>System.</>}
+           <>Empfange Tasks.<br/>Liefere kontrolliert.</>}
         </h2>
-        <p style={{ fontSize: 17, fontWeight: 500, color: 'rgba(255,255,255,.62)', lineHeight: 1.6 }}>
-          {view==='dev' ? 'Empfange Tasks. Liefere kontrolliert.' :
-           view==='home' ? 'Die KI spricht Business für dich und Technik für die Developer. Kein Übersetzungsverlust.' :
-           'Von der Idee zum fertigen Produkt — die KI versteht, plant und liefert.'}
+        <p style={{ fontSize: 16, fontWeight: 500, color: 'rgba(255,255,255,.66)', lineHeight: 1.6, maxWidth: 420 }}>
+          {view==='dev' ? 'Festag steuert Tasks und Status. Du fokussierst dich auf den Code.' :
+           view==='home' ? 'Ein kuratiertes Expertenteam plus AI-orchestrierte Struktur. Klar, kontrolliert, geliefert.' :
+           'Von der Idee zum fertigen Produkt — strukturiert, transparent, verifiziert.'}
         </p>
       </div>
-      <p style={{ position: 'absolute', bottom: 18, left: 48, fontSize: 10, color: 'rgba(255,255,255,.22)', letterSpacing: '.05em', zIndex: 2, lineHeight: 1.5 }}>
-        ©2026 Festag. Alle Rechte vorbehalten
+      <p style={{ position: 'absolute', bottom: 18, left: 48, fontSize: 10, color: 'rgba(255,255,255,.28)', letterSpacing: '.05em', zIndex: 2, lineHeight: 1.5 }}>
+        ©2026 Festag · Enjyn® Gruppe
       </p>
     </div>
   )
 }
 
-function FInput({ label, value, onChange, type='text', placeholder='', autoFocus=false }: {
-  label: string; value: string; onChange: (v: string) => void; type?: string; placeholder?: string; autoFocus?: boolean
+function FInput({ label, value, onChange, type='text', placeholder='', autoFocus=false, onSubmit }: {
+  label: string; value: string; onChange: (v: string) => void; type?: string; placeholder?: string; autoFocus?: boolean; onSubmit?: () => void
 }) {
   const [f, setF] = useState(false)
   return (
     <div style={{ marginBottom: 12 }}>
       <label style={{ display: 'block', fontSize: 11, fontWeight: 700, letterSpacing: '.1em', color: f ? 'var(--btn-prim)' : 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 6, transition: 'color .15s' }}>{label}</label>
-      <input type={type} value={value} autoFocus={autoFocus} onChange={e => onChange(e.target.value)} onFocus={() => setF(true)} onBlur={() => setF(false)} placeholder={placeholder}
+      <input type={type} value={value} autoFocus={autoFocus}
+        onChange={e => onChange(e.target.value)}
+        onFocus={() => setF(true)} onBlur={() => setF(false)}
+        onKeyDown={e => { if (e.key === 'Enter' && onSubmit) { e.preventDefault(); onSubmit() } }}
+        placeholder={placeholder}
         style={{ width: '100%', padding: '14px 16px', background: f ? 'var(--inp-focus)' : 'var(--inp)', border: `1.5px solid ${f ? 'var(--inp-focus-border)' : 'var(--inp-border)'}`, borderRadius: 13, fontSize: 16, color: 'var(--text)', outline: 'none', transition: 'all .15s', boxShadow: f ? '0 0 0 3px var(--glow)' : 'none', fontFamily: 'inherit', fontWeight: 500, caretColor: 'var(--btn-prim)' }}/>
     </div>
   )
@@ -248,7 +271,12 @@ export default function LoginPage() {
         <div className="l-right">
           <div className="mob-page">
             <div className="mob-hero">
-              <img src="/bg-office.jpg" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 25%' }}/>
+              <img
+                src="/brand/hero-team.jpg"
+                alt=""
+                onError={e => { (e.currentTarget as HTMLImageElement).src = '/bg-office.jpg' }}
+                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 35%' }}
+              />
               <div className="mob-grad"/>
               <PixelBlocksMobile/>
             </div>
@@ -301,8 +329,8 @@ export default function LoginPage() {
             {error && <div style={{ padding: '12px 16px', background: 'var(--red-bg)', border: '1px solid rgba(220,70,70,.2)', borderRadius: 12, fontSize: 14, color: 'var(--red)', marginBottom: 18, lineHeight: 1.5 }}>{error}</div>}
             
             {view === 'login' && (<>
-              <FInput label="E-Mail" value={email} onChange={setEmail} type="email" placeholder="deine@email.com" autoFocus/>
-              <FInput label="Passwort" value={pw} onChange={setPw} type="password" placeholder="Dein Passwort"/>
+              <FInput label="E-Mail" value={email} onChange={setEmail} type="email" placeholder="deine@email.com" autoFocus onSubmit={doLogin}/>
+              <FInput label="Passwort" value={pw} onChange={setPw} type="password" placeholder="Dein Passwort" onSubmit={doLogin}/>
               <div style={{ marginTop: 8, marginBottom: 18 }}><PrimaryBtn label="Anmelden →" onClick={doLogin} loading={loading}/></div>
               <Divider/>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -319,9 +347,9 @@ export default function LoginPage() {
                 <SocialBtn label="Mit Apple ID registrieren" onClick={() => doSocial('apple')} icon={APPLE_ICON} black/>
               </div>
               <Divider/>
-              <FInput label="E-Mail" value={email} onChange={setEmail} type="email" placeholder="deine@email.com"/>
-              <FInput label="Passwort" value={pw} onChange={setPw} type="password" placeholder="Mindestens 8 Zeichen"/>
-              <FInput label="Passwort bestätigen" value={pw2} onChange={setPw2} type="password" placeholder="Erneut eingeben"/>
+              <FInput label="E-Mail" value={email} onChange={setEmail} type="email" placeholder="deine@email.com" onSubmit={doRegister}/>
+              <FInput label="Passwort" value={pw} onChange={setPw} type="password" placeholder="Mindestens 8 Zeichen" onSubmit={doRegister}/>
+              <FInput label="Passwort bestätigen" value={pw2} onChange={setPw2} type="password" placeholder="Erneut eingeben" onSubmit={doRegister}/>
               <div style={{ marginTop: 8 }}><PrimaryBtn label="Konto erstellen →" onClick={doRegister} loading={loading}/></div>
               <p style={{ textAlign: 'center', fontSize: 13, color: 'var(--text-muted)', marginTop: 24 }}>Bereits ein Konto? <span onClick={() => go('login')} style={{ color: 'var(--btn-prim)', fontWeight: 700, cursor: 'pointer' }}>Einloggen</span></p>
             </>)}
@@ -329,8 +357,8 @@ export default function LoginPage() {
             {view === 'dev' && (<>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '11px 15px', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 12, marginBottom: 24 }}><span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--green)', animation: 'pulse 2s infinite', flexShrink: 0 }}/> <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: 0, lineHeight: 1.4 }}>Kein öffentlicher Zugang · Zuteilung durch Admin</p></div>
               <style>{`@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}`}</style>
-              <FInput label="Nutzername" value={devUser} onChange={setDevUser} placeholder="dein-username" autoFocus/>
-              <FInput label="PIN" value={devPin} onChange={v => setDevPin(v.replace(/\D/g,'').slice(0,8))} type="password" placeholder="Numerischer PIN"/>
+              <FInput label="Nutzername" value={devUser} onChange={setDevUser} placeholder="dein-username" autoFocus onSubmit={doDev}/>
+              <FInput label="PIN" value={devPin} onChange={v => setDevPin(v.replace(/\D/g,'').slice(0,8))} type="password" placeholder="Numerischer PIN" onSubmit={doDev}/>
               <div style={{ marginTop: 8 }}><PrimaryBtn label="Einloggen →" onClick={doDev} loading={loading}/></div>
             </>)}
           </div>

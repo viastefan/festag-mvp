@@ -84,10 +84,28 @@ export default function NewTaskModal({ onClose, onCreated, defaultProjectId, def
   return (
     <>
       <style>{`
-        .nt-overlay { position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:1000; display:flex; align-items:flex-start; justify-content:center; padding:96px 24px 24px; animation:ntFadeIn .15s ease; }
-        .nt-modal { background:var(--card); border:1px solid var(--border); border-radius:12px; width:100%; max-width:640px; box-shadow:0 24px 80px rgba(0,0,0,.35); animation:ntSlideUp .2s cubic-bezier(.16,1,.3,1); display:flex; flex-direction:column; }
+        .nt-overlay {
+          position:fixed; inset:0;
+          background:rgba(0,0,0,.55);
+          backdrop-filter:blur(10px) saturate(140%);
+          -webkit-backdrop-filter:blur(10px) saturate(140%);
+          z-index:1000;
+          display:flex; align-items:center; justify-content:center;
+          padding:24px;
+          animation:ntFadeIn .15s ease;
+        }
+        .nt-modal {
+          background:var(--card);
+          border:1px solid var(--border);
+          border-radius:14px;
+          width:100%; max-width:640px;
+          max-height:calc(100vh - 48px); overflow:hidden;
+          box-shadow:0 28px 80px rgba(0,0,0,.32), 0 2px 8px rgba(0,0,0,.12);
+          animation:ntSlideUp .22s cubic-bezier(.16,1,.3,1);
+          display:flex; flex-direction:column;
+        }
         @keyframes ntFadeIn { from{opacity:0} to{opacity:1} }
-        @keyframes ntSlideUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes ntSlideUp { from{opacity:0;transform:translateY(6px) scale(.985)} to{opacity:1;transform:translateY(0) scale(1)} }
         .nt-input { background:transparent; border:none; outline:none; font-family:inherit; color:var(--text); width:100%; }
         .nt-chip { display:inline-flex; align-items:center; gap:5px; padding:3px 8px; border-radius:5px; border:1px solid var(--border); background:transparent; color:var(--text-secondary); font-size:11.5px; font-weight:500; cursor:pointer; font-family:inherit; transition:background .1s, border-color .1s; white-space:nowrap; height:24px; }
         .nt-chip:hover { background:var(--surface-2); border-color:var(--border-strong); }
@@ -125,7 +143,7 @@ export default function NewTaskModal({ onClose, onCreated, defaultProjectId, def
               placeholder="Task-Titel"
               value={title}
               onChange={e => setTitle(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) handleCreate() }}
+              onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleCreate() } }}
               style={{ fontSize:18, fontWeight:600, letterSpacing:'-.2px', marginBottom:8, display:'block' }}
               autoFocus
             />
@@ -134,6 +152,7 @@ export default function NewTaskModal({ onClose, onCreated, defaultProjectId, def
               placeholder="Beschreibung hinzufügen…"
               value={description}
               onChange={e => setDescription(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); handleCreate() } }}
               rows={4}
               style={{ fontSize:13.5, lineHeight:1.6, color:'var(--text-secondary)', resize:'none', minHeight:80 }}
             />
@@ -202,7 +221,7 @@ export default function NewTaskModal({ onClose, onCreated, defaultProjectId, def
                   display:'flex', alignItems:'center', gap:6,
                 }}>
                 {creating ? 'Erstelle…' : 'Task erstellen'}
-                {!creating && <span style={{ fontSize:10, opacity:.6 }}>⌘↵</span>}
+                {!creating && <span style={{ fontSize:10, opacity:.6 }}>↵</span>}
               </button>
             </div>
           </div>

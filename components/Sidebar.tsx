@@ -285,6 +285,9 @@ export default function Sidebar() {
         .proj-row:hover { background:rgba(0,0,0,0.04); color:var(--text); }
         [data-theme="dark"] .proj-row:hover { background:rgba(255,255,255,0.05); }
         .proj-row.active { background:var(--nav-on); color:var(--nav-on-text); font-weight:600; }
+        .proj-row.proj-new { opacity:.55; transition:opacity .12s; }
+        .proj-row.proj-new:hover { opacity:1; background:rgba(0,0,0,0.035); }
+        [data-theme="dark"] .proj-row.proj-new:hover { background:rgba(255,255,255,0.05); }
 
         /* ── User dropdown row ── */
         .usr-row {
@@ -375,7 +378,7 @@ export default function Sidebar() {
                   </Link>
                 }
               >
-                {projects.length > 0 ? projects.map(p => {
+                {projects.map(p => {
                   const on = pathname === `/project/${p.id}`
                   const dot = p.color || '#64748b'
                   const picking = colorPickId === p.id
@@ -403,12 +406,23 @@ export default function Sidebar() {
                       )}
                     </div>
                   )
-                }) : (
-                  <Link href="/onboarding" className="proj-row" style={{ opacity:.5 }}>
-                    <span style={{ width:5, height:5, borderRadius:'50%', background:'var(--border)', flexShrink:0 }}/>
-                    <span style={{ fontStyle:'italic' }}>Neues Projekt…</span>
-                  </Link>
-                )}
+                })}
+
+                {/* Immer sichtbar: dezenter Onboarding-Einstieg, auch wenn Projekte existieren.
+                    Linear-style: kleiner Plus-Punkt, kein CTA-Button. */}
+                <Link href="/onboarding" className="proj-row proj-new" style={{ paddingLeft:6 }}>
+                  <span style={{
+                    width:10, height:10, borderRadius:3,
+                    border:'1px dashed var(--text-muted)',
+                    flexShrink:0, opacity:.6,
+                    display:'flex', alignItems:'center', justifyContent:'center',
+                  }}>
+                    <span style={{ fontSize:9, color:'var(--text-muted)', lineHeight:1, fontWeight:600 }}>+</span>
+                  </span>
+                  <span style={{ fontStyle:'normal', fontSize:12, color:'var(--text-muted)' }}>
+                    {projects.length === 0 ? 'Erstes Projekt anlegen…' : 'Neues Projekt…'}
+                  </span>
+                </Link>
 
                 {/* Sub-links for active project */}
                 {projId && (

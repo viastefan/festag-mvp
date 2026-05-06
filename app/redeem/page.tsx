@@ -142,8 +142,8 @@ function RedeemInner() {
               Gib deine E-Mail und den 6-stelligen PIN aus deiner Einladungs-Mail ein.
             </p>
 
-            <Field label="E-Mail" value={email} onChange={setEmail} type="email" placeholder="deine@email.com"/>
-            <PinField value={pin} onChange={setPin}/>
+            <Field label="E-Mail" value={email} onChange={setEmail} type="email" placeholder="deine@email.com" onSubmit={checkPinAndProceed}/>
+            <PinField value={pin} onChange={setPin} onSubmit={checkPinAndProceed}/>
 
             {error && <ErrorBox text={error}/>}
 
@@ -167,8 +167,8 @@ function RedeemInner() {
             </p>
 
             <Field label="E-Mail" value={email} onChange={setEmail} type="email" disabled/>
-            <Field label="Passwort" value={pw} onChange={setPw} type="password" placeholder={authMode === 'login' ? 'Passwort' : 'Mindestens 8 Zeichen'}/>
-            {authMode === 'register' && <Field label="Passwort bestätigen" value={pw2} onChange={setPw2} type="password" placeholder="Erneut eingeben"/>}
+            <Field label="Passwort" value={pw} onChange={setPw} type="password" placeholder={authMode === 'login' ? 'Passwort' : 'Mindestens 8 Zeichen'} onSubmit={doAuth}/>
+            {authMode === 'register' && <Field label="Passwort bestätigen" value={pw2} onChange={setPw2} type="password" placeholder="Erneut eingeben" onSubmit={doAuth}/>}
 
             {error && <ErrorBox text={error}/>}
 
@@ -211,9 +211,9 @@ export default function RedeemPage() {
 
 // ── Atoms ────────────────────────────────────────────────────────────────
 
-function Field({ label, value, onChange, type='text', placeholder='', disabled=false }: {
+function Field({ label, value, onChange, type='text', placeholder='', disabled=false, onSubmit }: {
   label: string; value: string; onChange: (v: string) => void;
-  type?: string; placeholder?: string; disabled?: boolean
+  type?: string; placeholder?: string; disabled?: boolean; onSubmit?: () => void
 }) {
   const [f, setF] = useState(false)
   return (
@@ -227,6 +227,7 @@ function Field({ label, value, onChange, type='text', placeholder='', disabled=f
         type={type} value={value} disabled={disabled}
         onChange={e => onChange(e.target.value)}
         onFocus={() => setF(true)} onBlur={() => setF(false)}
+        onKeyDown={e => { if (e.key === 'Enter' && onSubmit) { e.preventDefault(); onSubmit() } }}
         placeholder={placeholder}
         style={{
           width:'100%', padding:'12px 14px',
@@ -242,7 +243,7 @@ function Field({ label, value, onChange, type='text', placeholder='', disabled=f
   )
 }
 
-function PinField({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+function PinField({ value, onChange, onSubmit }: { value: string; onChange: (v: string) => void; onSubmit?: () => void }) {
   const [f, setF] = useState(false)
   return (
     <div style={{ marginBottom: 14 }}>
@@ -256,6 +257,7 @@ function PinField({ value, onChange }: { value: string; onChange: (v: string) =>
         value={value}
         onChange={e => onChange(e.target.value.replace(/\D/g, '').slice(0, 6))}
         onFocus={() => setF(true)} onBlur={() => setF(false)}
+        onKeyDown={e => { if (e.key === 'Enter' && onSubmit) { e.preventDefault(); onSubmit() } }}
         placeholder="••••••"
         style={{
           width:'100%', padding:'14px 16px',

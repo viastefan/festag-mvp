@@ -10,6 +10,7 @@ import { effectiveRole, isDevOrAdmin } from '@/lib/role'
 import MilestoneChart, { Milestone } from '@/components/MilestoneChart'
 import ProjectCompletionCelebration from '@/components/ProjectCompletionCelebration'
 import DevTimer from '@/components/DevTimer'
+import DeleteProjectModal from '@/components/DeleteProjectModal'
 
 type Project = { id: string; title: string; description: string|null; status: string }
 type Task = { id: string; title: string; status: string; priority?: string }
@@ -38,6 +39,7 @@ export default function ProjectPage() {
   const [aiThinking, setAiThinking] = useState(false)
   const [generatingAI, setGeneratingAI] = useState(false)
   const [online, setOnline] = useState(false)
+  const [deleteOpen, setDeleteOpen] = useState(false)
   const msgEndRef = useRef<HTMLDivElement>(null)
   const supabase = createClient()
 
@@ -334,6 +336,14 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn mÃ
       />
       <DevTimer projectId={project.id} projectTitle={project.title}/>
 
+      <DeleteProjectModal
+        open={deleteOpen}
+        projectId={project.id}
+        projectTitle={project.title}
+        onClose={() => setDeleteOpen(false)}
+        onDeleted={() => { setDeleteOpen(false); window.location.href = '/dashboard' }}
+      />
+
       {/* Breadcrumb */}
       <p style={{ fontSize:12, color:'var(--text-muted)', marginBottom:20 }}>
         <Link href="/dashboard" style={{ color:'var(--text-muted)', textDecoration:'none' }}>Dashboard</Link>
@@ -373,6 +383,25 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn mÃ
               {project.status==='active' && <span style={{ width:5, height:5, borderRadius:'50%', background:'#22c55e', animation:'pulse 2s infinite', flexShrink:0 }}/>}
               {PHASE_LABEL[project.status] ?? project.status}
             </span>
+            {/* Subtiler Delete-Trigger â€” Sicherheits-Logik im Modal */}
+            <button
+              onClick={() => setDeleteOpen(true)}
+              title="Projekt lÃ¶schen"
+              aria-label="Projekt lÃ¶schen"
+              style={{
+                width:26, height:26, borderRadius:7,
+                border:'1px solid var(--border)', background:'transparent',
+                display:'flex', alignItems:'center', justifyContent:'center',
+                color:'var(--text-muted)', cursor:'pointer',
+                transition:'color .12s, border-color .12s, background .12s',
+              }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--red,#D14343)'; (e.currentTarget as HTMLElement).style.borderColor = 'rgba(220,70,70,.35)' }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text-muted)'; (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)' }}
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z"/>
+              </svg>
+            </button>
           </div>
         </div>
 

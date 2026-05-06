@@ -81,8 +81,24 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
   return (
     <>
       <style>{`
-        .npm-overlay { position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:1000; display:flex; align-items:center; justify-content:center; padding:24px; animation:npmFadeIn .15s ease; }
-        .npm-modal { background:var(--card); border:1px solid var(--border); border-radius:16px; width:100%; max-width:660px; max-height:90vh; overflow-y:auto; box-shadow:0 24px 80px rgba(0,0,0,.35); animation:npmSlideUp .2s cubic-bezier(.16,1,.3,1); }
+        .npm-overlay {
+          position:fixed; inset:0;
+          background:rgba(0,0,0,.55);
+          backdrop-filter:blur(10px) saturate(140%);
+          -webkit-backdrop-filter:blur(10px) saturate(140%);
+          z-index:1000;
+          display:flex; align-items:center; justify-content:center;
+          padding:24px;
+          animation:npmFadeIn .15s ease;
+        }
+        .npm-modal {
+          background:var(--card);
+          border:1px solid var(--border);
+          border-radius:16px;
+          width:100%; max-width:660px; max-height:90vh; overflow-y:auto;
+          box-shadow:0 28px 80px rgba(0,0,0,.32), 0 2px 8px rgba(0,0,0,.12);
+          animation:npmSlideUp .22s cubic-bezier(.16,1,.3,1);
+        }
         @keyframes npmFadeIn { from{opacity:0} to{opacity:1} }
         @keyframes npmSlideUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
         .npm-chip { display:flex; align-items:center; gap:5px; padding:4px 10px; border-radius:6px; border:1px solid var(--border); background:transparent; color:var(--text-muted); font-size:12px; font-weight:500; cursor:pointer; font-family:inherit; transition:all .1s; white-space:nowrap; }
@@ -144,6 +160,7 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
                   placeholder="Projektname"
                   value={name}
                   onChange={e => setName(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleCreate() } }}
                   style={{ fontSize:22, fontWeight:700, letterSpacing:'-.3px', marginBottom:6, display:'block' }}
                   autoFocus
                 />
@@ -152,6 +169,7 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
                   placeholder="Kurze Beschreibung hinzufügen…"
                   value={summary}
                   onChange={e => setSummary(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleCreate() } }}
                   style={{ fontSize:14, color:'var(--text-muted)', fontWeight:400 }}
                 />
               </div>
