@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { Handshake, House } from '@phosphor-icons/react'
+import { Handshake, House, UsersThree } from '@phosphor-icons/react'
 
 type ViewTab = {
   label: string
@@ -11,22 +11,30 @@ type ViewTab = {
   icon: React.ReactNode
 }
 
+// Client-Portal hat 3 Bereiche.
+// Developer-Portal ist ein komplett getrenntes Portal (/dev).
 const TABS: ViewTab[] = [
   {
     label: 'Festwerk',
     href: '/dashboard',
-    icon: <House size={14} weight="bold" />,
+    icon: <House size={13} weight="bold" />,
   },
   {
     label: 'Relations',
     href: '/relations',
-    icon: <Handshake size={14} weight="bold" />,
+    icon: <Handshake size={13} weight="bold" />,
+  },
+  {
+    label: 'Teams',
+    href: '/teams',
+    icon: <UsersThree size={13} weight="bold" />,
   },
 ]
 
 function getActiveTab(pathname: string): number {
   if (pathname.startsWith('/relations')) return 1
-  return 0
+  if (pathname === '/teams' || pathname.startsWith('/teams/')) return 2
+  return 0 // Festwerk (Dashboard, Projekte, Nachrichten, etc.)
 }
 
 export default function ViewSwitch() {
@@ -36,7 +44,7 @@ export default function ViewSwitch() {
   return (
     <nav style={{
       display: 'flex',
-      gap: 3,
+      gap: 2,
       background: 'var(--surface-2)',
       borderRadius: 10,
       padding: 3,
@@ -55,16 +63,17 @@ export default function ViewSwitch() {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: 5,
+              gap: 4,
               flex: 1,
               borderRadius: 7,
-              fontSize: 11.5,
+              fontSize: 11,
               fontWeight: isActive ? 700 : 500,
               color: isActive ? 'var(--text)' : 'var(--text-muted)',
               textDecoration: 'none',
               zIndex: 1,
               whiteSpace: 'nowrap',
               overflow: 'hidden',
+              letterSpacing: isActive ? '-.01em' : '0',
             }}
           >
             {isActive && (
