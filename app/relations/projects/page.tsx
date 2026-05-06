@@ -230,7 +230,7 @@ export default function RelProjectsPage() {
         ) : (
           <div style={{ border:'1px solid var(--border)', borderRadius:10, overflow:'hidden' }}>
             {projects.map((p, i) => (
-              <Link key={p.id} href={`/project/${p.id}`} style={{ textDecoration:'none', color:'inherit' }}>
+              <Link key={p.id} href={isPriv ? `/project/${p.id}` : `/relations/projects/${p.id}`} style={{ textDecoration:'none', color:'inherit' }}>
                 <div className="rp-row" style={{ display:'flex', alignItems:'center', gap:14, padding:'13px 16px', borderBottom: i < projects.length-1 ? '1px solid var(--border)' : 'none', background:'var(--card)' }}>
                   <span style={{ width:8, height:8, borderRadius:'50%', background:p.color||'#64748b', flexShrink:0 }}/>
                   <span style={{ flex:1, fontSize:13.5, fontWeight:500, color:'var(--text)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{p.title}</span>
