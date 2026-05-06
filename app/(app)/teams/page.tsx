@@ -162,9 +162,16 @@ export default function TeamsPage() {
     try {
       const sb = createClient()
       const { data: { user } } = await sb.auth.getUser()
-      await (sb.from('team_invites') as any).insert({
-        email: invEmail.trim().toLowerCase(), role: invRole,
-        invited_by: user?.id, status: 'pending', access_mode: 'team',
+      await fetch('/api/invites/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: invEmail.trim().toLowerCase(),
+          role: invRole,
+          fromUserId: user?.id ?? null,
+          fromUserEmail: user?.email ?? null,
+          accessMode: 'team',
+        }),
       })
       setInvSent(true); setInvEmail('')
       setTimeout(() => { setInvSent(false); setInviteOpen(false) }, 2500)
