@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useState, useEffect } from 'react'
 import SupportButton from '@/components/SupportButton'
 import ViewSwitch from '@/components/ViewSwitch'
+import TeamsModal from '@/components/TeamsModal'
 import {
   House, FolderSimple, Sparkle, ChatCircle, ChartLineUp,
   CreditCard, FileText, UserCircle, GearSix,
@@ -150,8 +151,9 @@ export default function Sidebar() {
   const [plan,    setPlan]    = useState('free')
   const [projId,  setProjId]  = useState<string|null>(null)
   const [projects,setProjects]= useState<{id:string;title:string;status:string}[]>([])
-  const [more,    setMore]    = useState(false)
-  const [projExp, setProjExp] = useState(false)
+  const [more,       setMore]       = useState(false)
+  const [projExp,    setProjExp]    = useState(false)
+  const [teamsOpen,  setTeamsOpen]  = useState(false)
 
   const isClient = role !== 'dev'
   const isDev    = role === 'dev'
@@ -204,7 +206,20 @@ export default function Sidebar() {
       <div style={{ marginBottom:4 }}>
         <p style={{ fontSize:9.5, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.09em', textTransform:'uppercase', padding:'6px 11px 3px', margin:0, opacity:.6 }}>{label}</p>
         {items.map(item => {
-          const on = isOn(item.href)
+          const isTeams = item.href === '/teams'
+          const on = isTeams ? false : isOn(item.href)
+          // Teams: open modal instead of navigating
+          if (isTeams) {
+            return (
+              <button key={item.href} type="button"
+                onClick={() => setTeamsOpen(true)}
+                className="ni ni-off"
+                style={{ position:'relative', width:'100%', textAlign:'left', border:'none', background:'transparent' }}>
+                <Ico name={item.icon} sz={15} c="var(--text-muted)" weight="regular" />
+                <span style={{ flex:1 }}>{item.label}</span>
+              </button>
+            )
+          }
           return (
             <Link key={item.href} href={resolve(item.href)}
               className={`ni ${on?'ni-on':'ni-off'}`}
@@ -234,8 +249,9 @@ export default function Sidebar() {
         [data-theme="dark"] .proj-row:hover { background:rgba(255,255,255,0.05); }
         .proj-row.active { background:var(--nav-on);color:var(--nav-on-text);font-weight:700; }
 
-        /* ── Mobile floating bar ── */
-        .mob-bar { position:fixed;bottom:calc(14px + var(--safe-bottom));left:50%;transform:translateX(-50%);width:calc(100% - 28px);max-width:380px;background:var(--sidebar-bg);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border:1px solid var(--border);box-shadow:var(--shadow-lg);border-radius:32px;z-index:200;align-items:center;padding:10px 16px;gap:0; }
+        /* ── Mobile floating bar (glass) ── */
+        .mob-bar { position:fixed;bottom:calc(14px + var(--safe-bottom));left:50%;transform:translateX(-50%);width:calc(100% - 28px);max-width:380px;background:var(--sidebar-bg);backdrop-filter:blur(36px) saturate(200%);-webkit-backdrop-filter:blur(36px) saturate(200%);border:1px solid var(--sidebar-border);box-shadow:0 12px 40px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.10);border-radius:30px;z-index:200;align-items:center;padding:10px 16px;gap:0; }
+        [data-theme="dark"] .mob-bar { box-shadow:0 12px 40px rgba(0,0,0,0.55), 0 2px 8px rgba(0,0,0,0.40), inset 0 1px 0 rgba(255,255,255,0.06); }
 
         /* Nav tab items */
         .mt  { display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;min-height:44px;justify-content:center;cursor:pointer;text-decoration:none;border:none;background:transparent;font-family:inherit;-webkit-tap-highlight-color:transparent;transition:transform .1s; }
@@ -454,6 +470,9 @@ export default function Sidebar() {
         })}
       </nav>
 
+      {/* Teams Popup — global */}
+      <TeamsModal open={teamsOpen} onClose={() => setTeamsOpen(false)} />
+
       {/* Quick action panel */}
       {more && (
         <>
@@ -473,7 +492,21 @@ export default function Sidebar() {
             {/* 2-col grid for secondary actions */}
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:6 }}>
               {mobQuick.slice(1).map(item => {
-                const on = isOn(item.href)
+                const isTeams = item.href === '/teams'
+                const on = isTeams ? false : isOn(item.href)
+                if (isTeams) {
+                  return (
+                    <button key={item.href} type="button"
+                      onClick={() => { setMore(false); setTeamsOpen(true) }}
+                      className="mqi"
+                      style={{ borderRadius:14, gap:10, padding:'12px 13px', width:'100%', textAlign:'left' }}>
+                      <div style={{ width:34, height:34, borderRadius:10, background:'var(--surface-2)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                        <Ico name={item.icon} sz={16} c="var(--text-secondary)" weight="regular" />
+                      </div>
+                      <span className="mqi-label" style={{ fontSize:13, fontWeight:600, color:'var(--text)', lineHeight:1.25 }}>{item.label}</span>
+                    </button>
+                  )
+                }
                 return (
                   <Link key={item.href} href={resolve(item.href)} className="mqi" onClick={() => setMore(false)}
                     style={{ borderRadius:14, gap:10, padding:'12px 13px' }}>

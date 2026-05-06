@@ -10,6 +10,7 @@ import {
   List, X,
 } from '@phosphor-icons/react'
 import ViewSwitch from '@/components/ViewSwitch'
+import TeamsModal from '@/components/TeamsModal'
 
 type NavItem = {
   href: string
@@ -34,6 +35,7 @@ export default function RelationsSidebar() {
   const [name,    setName]    = useState('')
   const [avatar,  setAvatar]  = useState<string|null>(null)
   const [mobOpen, setMobOpen] = useState(false)
+  const [teamsOpen, setTeamsOpen] = useState(false)
 
   useEffect(() => {
     setMobOpen(false)
@@ -86,8 +88,14 @@ export default function RelationsSidebar() {
           )
         })}
 
-        {/* Settings link */}
+        {/* Teams + Settings */}
         <div style={{ marginTop:8, paddingTop:8, borderTop:'1px solid var(--border)' }}>
+          <button type="button" onClick={() => { setMobOpen(false); setTeamsOpen(true) }}
+            className="rni rni-off"
+            style={{ width:'100%', textAlign:'left', border:'none', background:'transparent' }}>
+            <UsersThree size={15} weight="regular" color="var(--text-muted)" />
+            <span style={{ flex:1 }}>Teams</span>
+          </button>
           <Link href="/settings" onClick={() => setMobOpen(false)}
             className={`rni ${pathname.startsWith('/settings') ? 'rni-on' : 'rni-off'}`}>
             <GearSix size={15} weight={pathname.startsWith('/settings') ? 'bold' : 'regular'} color={pathname.startsWith('/settings') ? 'var(--text)' : 'var(--text-muted)'} />
@@ -150,6 +158,9 @@ export default function RelationsSidebar() {
 
   return (
     <>
+      {/* Teams popup — global */}
+      <TeamsModal open={teamsOpen} onClose={() => setTeamsOpen(false)} />
+
       {/* Desktop */}
       <aside className="sidebar" style={{ pointerEvents:'none' }}>
         <div className="sidebar-inner" style={{ pointerEvents:'all', height:'100%' }}>
@@ -163,9 +174,9 @@ export default function RelationsSidebar() {
         display:'flex', alignItems:'center', gap:10,
         padding:'12px 16px',
         background:'var(--sidebar-bg)',
-        backdropFilter:'blur(24px) saturate(180%)',
-        WebkitBackdropFilter:'blur(24px) saturate(180%)',
-        borderBottom:'1px solid var(--border)',
+        backdropFilter:'blur(36px) saturate(200%)',
+        WebkitBackdropFilter:'blur(36px) saturate(200%)',
+        borderBottom:'1px solid var(--sidebar-border)',
       }}>
         <button onClick={() => setMobOpen(v => !v)}
           style={{ width:36, height:36, borderRadius:10, border:'1px solid var(--border)', background:'var(--surface)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', color:'var(--text)', fontFamily:'inherit' }}>

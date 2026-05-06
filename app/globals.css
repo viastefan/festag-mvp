@@ -45,8 +45,8 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --accent:#0A0B0A; --accent-text:#FFFFFF;
   --inp:#FFFFFF; --inp-border:rgba(0,0,0,0.10); --inp-focus:#FFFFFF; --inp-focus-border:#0A0B0A;
   --glow:rgba(10,11,10,0.06);
-  --sidebar-bg:rgba(255,255,255,0.94); --sidebar-border:rgba(0,0,0,0.05);
-  --nav-on:#F0F0EE; --nav-on-text:#0A0B0A; --nav-off-text:#6B7280;
+  --sidebar-bg:rgba(252,252,251,0.72); --sidebar-border:rgba(0,0,0,0.06);
+  --nav-on:#E9E8E4; --nav-on-text:#0A0B0A; --nav-off-text:#6B7280;
   /* Festag greige */
   --surface-2:#F0EEE9;
   /* Apple-green accents */
@@ -85,9 +85,9 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --inp-focus-border:rgba(255,255,255,0.20);
   --glow:rgba(68,206,140,0.03);
 
-  --sidebar-bg:rgba(14,15,15,0.97);
-  --sidebar-border:rgba(255,255,255,0.05);
-  --nav-on:rgba(255,255,255,0.08);
+  --sidebar-bg:rgba(16,18,18,0.72);
+  --sidebar-border:rgba(255,255,255,0.08);
+  --nav-on:rgba(255,255,255,0.10);
   --nav-on-text:#E8E8E5;
   --nav-off-text:#4B5250;
 
@@ -125,8 +125,8 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --accent:#1A1A17; --accent-text:#FDFCF8;
   --inp:#FEFEFE; --inp-border:rgba(0,0,0,0.10); --inp-focus:#FFFFFF; --inp-focus-border:#1A1A17;
   --glow:rgba(26,26,23,0.06);
-  --sidebar-bg:rgba(253,252,248,0.97); --sidebar-border:rgba(0,0,0,0.07);
-  --nav-on:#ECEAE3; --nav-on-text:#1A1A17; --nav-off-text:#82807A;
+  --sidebar-bg:rgba(252,250,243,0.72); --sidebar-border:rgba(0,0,0,0.07);
+  --nav-on:#E0DDD3; --nav-on-text:#1A1A17; --nav-off-text:#82807A;
   --surface-2:#E5E3DA; --green:#2E7A50; --green-bg:rgba(46,122,80,0.09);
   --green-border:rgba(46,122,80,0.20); --green-dark:#256040;
   /* Amber stays but in a warm-neutral tone */
@@ -222,13 +222,22 @@ input:focus,textarea:focus,select:focus { outline:none; }
 .sidebar-inner {
   position:fixed; top:12px; left:12px; bottom:12px; width:232px;
   background:var(--sidebar-bg);
-  backdrop-filter:blur(24px) saturate(180%);
-  -webkit-backdrop-filter:blur(24px) saturate(180%);
+  backdrop-filter:blur(36px) saturate(200%);
+  -webkit-backdrop-filter:blur(36px) saturate(200%);
   border:1px solid var(--sidebar-border);
-  box-shadow:var(--shadow-lg), inset 0 1px 0 rgba(255,255,255,0.04);
-  border-radius:24px;
+  box-shadow:
+    0 12px 40px rgba(0,0,0,0.08),
+    0 2px 8px rgba(0,0,0,0.04),
+    inset 0 1px 0 rgba(255,255,255,0.10);
+  border-radius:22px;
   display:flex; flex-direction:column; overflow:hidden;
   transition:background .2s ease, border-color .2s ease;
+}
+[data-theme="dark"] .sidebar-inner {
+  box-shadow:
+    0 12px 40px rgba(0,0,0,0.50),
+    0 2px 8px rgba(0,0,0,0.35),
+    inset 0 1px 0 rgba(255,255,255,0.06);
 }
 
 /* App header — sticky desktop, scrollable mobile */
