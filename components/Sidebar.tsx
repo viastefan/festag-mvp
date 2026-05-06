@@ -150,6 +150,7 @@ export default function Sidebar() {
   const [more,       setMore]       = useState(false)
   const [projExp,    setProjExp]    = useState(false)
   const [teamsOpen,  setTeamsOpen]  = useState(false)
+  const [userMenu,   setUserMenu]   = useState(false)
 
   const isClient = role !== 'dev'
   const isDev    = role === 'dev'
@@ -357,45 +358,88 @@ export default function Sidebar() {
             <NavSection label="Konto" items={accountNav} />
           </div>
 
-          {/* User block */}
-          <div style={{ borderTop:'1px solid var(--border)', paddingTop:9, marginTop:8 }}>
-            <div style={{
-              display:'flex', alignItems:'center', gap:9,
-              padding:'7px 9px',
-              borderRadius:11,
-              border:'1px solid var(--border)',
-              background:'var(--surface-2)',
-            }}>
-              {/* Avatar → goes to settings */}
-              <Link href="/settings" style={{ textDecoration:'none', display:'flex', alignItems:'center', gap:8, flex:1, minWidth:0 }}>
-                {avatar ? (
-                  <img src={avatar} alt="" style={{ width:26, height:26, borderRadius:'50%', objectFit:'cover', border:'1.5px solid var(--border)', flexShrink:0 }}/>
-                ) : (
-                  <div style={{ width:26, height:26, borderRadius:'50%', background:'var(--btn-prim)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:10.5, fontWeight:700, color:'var(--btn-prim-text)', flexShrink:0 }}>{init}</div>
-                )}
-                <div style={{ flex:1, minWidth:0 }}>
-                  <div style={{ display:'flex', alignItems:'center', gap:5, overflow:'hidden' }}>
-                    <p style={{ fontSize:12, fontWeight:600, color:'var(--text)', margin:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', lineHeight:1.3 }}>{name || email.split('@')[0]}</p>
-                    {isClient && !pathname.startsWith('/relations') && (
-                      <span style={{ flexShrink:0, fontSize:9.5, fontWeight:700, letterSpacing:'.04em', color:'var(--text-muted)', background:'var(--border)', padding:'1px 5px', borderRadius:4, lineHeight:1.5 }}>
-                        {plan === 'free' ? 'Free' : plan === 'starter' ? 'Starter' : plan === 'pro' ? 'Pro' : plan === 'enterprise' ? 'Enterprise' : plan}
-                      </span>
-                    )}
+          {/* ── User block — Linear + Claude style ── */}
+          <div style={{ borderTop:'1px solid var(--border)', paddingTop:8, marginTop:8, position:'relative' }}>
+
+            {/* Dropdown menu — appears above */}
+            {userMenu && (
+              <>
+                {/* Click-outside trap */}
+                <div style={{ position:'fixed', inset:0, zIndex:1000 }} onClick={() => setUserMenu(false)} />
+                <div style={{
+                  position:'absolute', bottom:'calc(100% + 6px)', left:0, right:0,
+                  background:'var(--surface)', border:'1px solid var(--border)',
+                  borderRadius:12, boxShadow:'0 8px 32px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.10)',
+                  zIndex:1001, overflow:'hidden',
+                  padding:'4px',
+                }}>
+                  <style>{`.usr-row{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:8px;cursor:pointer;transition:background .1s;width:100%;border:none;font-family:inherit;background:transparent;text-decoration:none;color:var(--text);}.usr-row:hover{background:var(--surface-2);}`}</style>
+                  {/* Name + plan header */}
+                  <div style={{ padding:'8px 10px 6px', display:'flex', alignItems:'center', gap:8 }}>
+                    {avatar
+                      ? <img src={avatar} alt="" style={{ width:28,height:28,borderRadius:'50%',objectFit:'cover',border:'1.5px solid var(--border)',flexShrink:0 }}/>
+                      : <div style={{ width:28,height:28,borderRadius:'50%',background:'var(--btn-prim)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,fontWeight:700,color:'var(--btn-prim-text)',flexShrink:0 }}>{init}</div>
+                    }
+                    <div>
+                      <p style={{ margin:0, fontSize:12.5, fontWeight:700, color:'var(--text)', lineHeight:1.3 }}>{name}</p>
+                      <p style={{ margin:0, fontSize:10.5, color:'var(--text-muted)', lineHeight:1.3 }}>{email}</p>
+                    </div>
                   </div>
-                  <p style={{ fontSize:10, fontWeight:500, color:'var(--text-muted)', margin:0, letterSpacing:'.03em', lineHeight:1.2 }}>{ROLE_LABEL[role] ?? 'Client'}</p>
+                  <div style={{ height:1, background:'var(--border)', margin:'4px 0' }} />
+                  <Link href="/settings" className="usr-row" onClick={() => setUserMenu(false)}>
+                    <Ico name="settings" sz={13} c="var(--text-muted)" weight="regular" />
+                    <span style={{ fontSize:12.5, fontWeight:500 }}>Einstellungen</span>
+                  </Link>
+                  {isClient && (
+                    <Link href="/billing" className="usr-row" onClick={() => setUserMenu(false)}>
+                      <Ico name="billing" sz={13} c="var(--text-muted)" weight="regular" />
+                      <span style={{ fontSize:12.5, fontWeight:500 }}>Billing</span>
+                    </Link>
+                  )}
+                  <div style={{ height:1, background:'var(--border)', margin:'4px 0' }} />
+                  <button className="usr-row" onClick={logout} style={{ width:'100%', textAlign:'left' }}>
+                    <Ico name="logout" sz={13} c="var(--text-muted)" weight="regular" />
+                    <span style={{ fontSize:12.5, fontWeight:500 }}>Abmelden</span>
+                  </button>
                 </div>
-              </Link>
-              {/* Logout */}
-              <button onClick={logout} title="Abmelden" aria-label="Abmelden"
-                style={{ width:26, height:26, borderRadius:7, border:'1px solid var(--border)', background:'transparent', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:'var(--text-muted)', flexShrink:0, transition:'color .12s, background .12s' }}
-                onMouseEnter={e => { e.currentTarget.style.color='var(--text)'; e.currentTarget.style.background='var(--card)' }}
-                onMouseLeave={e => { e.currentTarget.style.color='var(--text-muted)'; e.currentTarget.style.background='transparent' }}>
-                <Ico name="logout" sz={12} c="currentColor" weight="regular" />
-              </button>
-            </div>
+              </>
+            )}
+
+            {/* Trigger row — Linear-style: Avatar · Name · Plan · Chevron */}
+            <button
+              onClick={() => setUserMenu(m => !m)}
+              style={{
+                width:'100%', display:'flex', alignItems:'center', gap:8,
+                padding:'6px 8px', borderRadius:10,
+                background: userMenu ? 'var(--surface-2)' : 'transparent',
+                border:'none', cursor:'pointer', fontFamily:'inherit',
+                transition:'background .12s',
+              }}
+              onMouseEnter={e => { if (!userMenu) e.currentTarget.style.background='var(--surface-2)' }}
+              onMouseLeave={e => { if (!userMenu) e.currentTarget.style.background='transparent' }}
+            >
+              {/* Avatar */}
+              {avatar
+                ? <img src={avatar} alt="" style={{ width:24,height:24,borderRadius:'50%',objectFit:'cover',border:'1.5px solid var(--border)',flexShrink:0 }}/>
+                : <div style={{ width:24,height:24,borderRadius:'50%',background:'var(--btn-prim)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:10,fontWeight:700,color:'var(--btn-prim-text)',flexShrink:0 }}>{init}</div>
+              }
+              {/* Name */}
+              <span style={{ flex:1, minWidth:0, display:'flex', alignItems:'center', gap:5, overflow:'hidden' }}>
+                <span style={{ fontSize:12, fontWeight:600, color:'var(--text)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{name}</span>
+                {isClient && (
+                  <span style={{ flexShrink:0, fontSize:9, fontWeight:700, letterSpacing:'.05em', color:'var(--text-muted)', background:'var(--border)', padding:'1px 5px', borderRadius:4, lineHeight:1.6 }}>
+                    {plan === 'free' ? 'Free' : plan === 'starter' ? 'Starter' : plan === 'pro' ? 'Pro' : plan === 'enterprise' ? 'Ent.' : plan}
+                  </span>
+                )}
+              </span>
+              {/* Chevron */}
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2.5" strokeLinecap="round" style={{ flexShrink:0, transform: userMenu ? 'rotate(180deg)' : 'rotate(0deg)', transition:'transform .18s' }}>
+                <path d="M6 9l6 6 6-6"/>
+              </svg>
+            </button>
 
             {/* Legal links */}
-            <div style={{ padding:'6px 3px 2px', display:'flex', flexWrap:'nowrap', alignItems:'center', justifyContent:'space-between', gap:3 }}>
+            <div style={{ padding:'5px 3px 2px', display:'flex', flexWrap:'nowrap', alignItems:'center', justifyContent:'space-between', gap:3 }}>
               {[
                 { href:'/impressum',   label:'Impressum' },
                 { href:'/datenschutz', label:'Datenschutz' },
