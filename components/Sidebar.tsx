@@ -46,7 +46,6 @@ type NavItem = { href: string; icon: string; label: string; badge?: number }
 const CLIENT_MAIN: NavItem[] = [
   { href:'/dashboard', icon:'home',     label:'Dashboard' },
   { href:'/messages',  icon:'chat',     label:'Nachrichten' },
-  { href:'/activity',  icon:'activity', label:'Aktivität' },
 ]
 const CLIENT_PROJECT: NavItem[] = [
   { href:'/project/current', icon:'project',  label:'Mein Projekt' },
@@ -73,7 +72,6 @@ const CLIENT_MOB_PRIMARY: NavItem[] = [
 const CLIENT_MOB_QUICK = [
   { href:'/new-project', icon:'plus',     label:'Neues Projekt', primary: true },
   { href:'/messages',    icon:'chat',     label:'Nachrichten' },
-  { href:'/activity',    icon:'activity', label:'Aktivität' },
   { href:'/documents',   icon:'doc',      label:'Dokumente' },
   { href:'/estimator',   icon:'estimate', label:'Preisschätzer' },
   { href:'/addons',      icon:'grid',     label:'Add-ons' },
@@ -83,7 +81,6 @@ const CLIENT_MOB_QUICK = [
 const DEV_MAIN: NavItem[] = [
   { href:'/dev',      icon:'home',     label:'Dashboard' },
   { href:'/messages', icon:'chat',     label:'Nachrichten' },
-  { href:'/activity', icon:'activity', label:'Aktivität' },
 ]
 const DEV_WORK: NavItem[] = [
   { href:'/dev/jobs',     icon:'briefcase', label:'Job Board' },
@@ -111,7 +108,6 @@ const DEV_MOB_QUICK = [
   { href:'/dev/projects', icon:'project',   label:'Projekte' },
   { href:'/dev/time',     icon:'clock',     label:'Zeiterfassung' },
   { href:'/connectors',   icon:'link',      label:'Connectors' },
-  { href:'/activity',     icon:'activity',  label:'Aktivität' },
 ]
 
 const ROLE_LABEL: Record<string,string> = { client:'Client', dev:'Developer', admin:'Admin' }

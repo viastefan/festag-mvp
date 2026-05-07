@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import {
   ArrowsClockwise,
+  Article,
   ChartLineUp,
   ChatCircleDots,
   CreditCard,
@@ -71,8 +72,8 @@ export default function SidebarProfileFooter({
   const avatarFg = avatarTextColor(avatarColor)
   const accountItems: FooterMenuItem[] = [
     { href: '/settings', label: 'Einstellungen', icon: GearSix, hint: '⌘,' },
-    { href: '/activity', label: 'Konto-Verlauf', icon: ChartLineUp },
-    ...(isClient ? [{ href: '/billing', label: 'Abrechnung & Plan', icon: CreditCard }] : []),
+    ...(isClient ? [{ href: '/account', label: 'Konto & Abrechnung', icon: CreditCard }] : []),
+    { href: '/account', label: 'Konto-Verlauf', icon: ChartLineUp },
     { href: '/download', label: 'Download App', icon: DownloadSimple },
   ]
   const workspaceItems: FooterMenuItem[] = [
@@ -82,8 +83,9 @@ export default function SidebarProfileFooter({
     ...(isClient ? [{ href: '/pricing', label: 'Tarif upgraden', icon: RocketLaunch }] : []),
   ]
   const updateItems: FooterMenuItem[] = [
-    { href: '/reports', label: 'Statusberichte', icon: Sparkle },
-    { href: '/activity', label: 'Letzte Aktivitäten', icon: ArrowsClockwise },
+    { href: '/updates', label: 'What’s new', icon: Sparkle },
+    { href: '/updates', label: 'Blogartikel', icon: Article },
+    { href: '/activity', label: 'Produkt-Aktivitäten', icon: ArrowsClockwise },
   ]
 
   return (
@@ -95,15 +97,16 @@ export default function SidebarProfileFooter({
             position: 'absolute',
             bottom: 'calc(100% + 8px)',
             left: 0,
-            width: 312,
-            maxWidth: 'min(312px, calc(100vw - 40px))',
+            width: 286,
+            maxWidth: 'min(286px, calc(100vw - 40px))',
             background: 'var(--surface)',
             border: '1px solid var(--border)',
             borderRadius: 16,
             boxShadow: '0 16px 48px rgba(0,0,0,0.20), 0 4px 12px rgba(0,0,0,0.10)',
             zIndex: 1001,
             padding: '6px',
-            overflow: 'hidden',
+            overflow: 'hidden auto',
+            maxHeight: 'min(72vh, 640px)',
             animation: 'spf-pop .14s ease-out both',
           }}>
             <p style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-muted)', padding: '8px 11px 6px', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
