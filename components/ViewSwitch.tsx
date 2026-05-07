@@ -1,140 +1,195 @@
 'use client'
 
-/**
- * Workspace switcher: Relations / Festwerk / Teams.
- *
- * Animation-Logik:
- *   - Beim Wechsel Relations ↔ Festwerk wird die Sidebar-Komponente komplett
- *     getauscht (Sidebar ↔ RelationsSidebar). `layoutId` von Framer kann sich
- *     dann nicht mehr persistieren → Pill würde "springen".
- *   - Lösung: deterministisches Tween + Persistenz via Layout-Stil
- *     (left/width statt layoutId-Magie). Kein Wobble mehr.
- *   - Hover-Scale aufs Icon entkoppelt vom Pill-Move (separate motion-spans).
- */
-
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { motion } from 'framer-motion'
-import { Handshake, House, UsersThree } from '@phosphor-icons/react'
-import { useState } from 'react'
+import { CaretDown, Check, Handshake, House, StackSimple, UsersThree } from '@phosphor-icons/react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
-type Tab = {
-  label:    string
-  href?:    string
-  trigger?: 'teams'
-  icon:     React.ReactNode
-}
+import {
+  getWorkspaceSurfaceConfig,
+  WORKSPACE_SURFACES,
+} from '@/lib/workspace-system'
 
-const TABS: Tab[] = [
-  { label: 'Kunden',    href: '/relations',  icon: <Handshake  size={12} weight="bold" /> },
-  { label: 'Werk',      href: '/dashboard',  icon: <House      size={12} weight="bold" /> },
-  { label: 'Team',      trigger: 'teams',    icon: <UsersThree size={12} weight="bold" /> },
-]
-
-function getActiveTab(pathname: string): number {
-  if (pathname.startsWith('/relations')) return 0
-  return 1 // Festwerk default. Teams = modal, kein aktiver Pfad.
-}
-
-function openTeams() {
-  if (typeof window !== 'undefined') {
-    window.dispatchEvent(new Event('open-teams-modal'))
-  }
-}
+const SURFACE_ICONS = {
+  festwerk: House,
+  relations: Handshake,
+  teams: UsersThree,
+} as const
 
 export default function ViewSwitch() {
-  const pathname  = usePathname()
-  const activeIdx = getActiveTab(pathname)
-  const [hov, setHov] = useState<number | null>(null)
+  const pathname = usePathname()
+  const [open, setOpen] = useState(false)
+  const rootRef = useRef<HTMLDivElement | null>(null)
+  const activeSurface = useMemo(() => getWorkspaceSurfaceConfig(pathname), [pathname])
+  const ActiveIcon = SURFACE_ICONS[activeSurface.id]
 
-  // Pill-Position deterministisch über CSS-Variablen — keine layoutId nötig,
-  // funktioniert auch wenn die ganze Sidebar-Komponente getauscht wird.
-  const pillLeft  = `calc(${(activeIdx / TABS.length) * 100}% + 3px)`
-  const pillWidth = `calc(${100 / TABS.length}% - 6px)`
+  useEffect(() => {
+    setOpen(false)
+  }, [pathname])
+
+  useEffect(() => {
+    function handlePointerDown(event: MouseEvent) {
+      if (!rootRef.current?.contains(event.target as Node)) {
+        setOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handlePointerDown)
+    return () => document.removeEventListener('mousedown', handlePointerDown)
+  }, [])
 
   return (
-    <nav style={{
-      display: 'flex',
-      background: 'rgba(0,0,0,0.055)',
-      borderRadius: 10, padding: '3px',
-      width: '100%', height: 34, flexShrink: 0,
-      position: 'relative',
-    }}>
-      {/* Active pill — animiert smooth zwischen Tabs */}
-      <motion.span
-        aria-hidden
-        initial={false}
-        animate={{ left: pillLeft, width: pillWidth }}
-        transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+    <div ref={rootRef} style={{ position: 'relative' }}>
+      <button
+        type="button"
+        onClick={() => setOpen((value) => !value)}
         style={{
-          position: 'absolute',
-          top: 3, bottom: 3,
-          background: 'var(--sidebar-bg)',
-          borderRadius: 7,
-          boxShadow: '0 1px 5px rgba(0,0,0,0.10)',
-          zIndex: 0,
+          width: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 10,
+          padding: '10px 12px',
+          borderRadius: 12,
+          border: '1px solid var(--border)',
+          background: 'var(--surface)',
+          cursor: 'pointer',
+          fontFamily: 'inherit',
+          color: 'var(--text)',
+          textAlign: 'left',
+          boxShadow: open ? '0 8px 26px rgba(0,0,0,0.08)' : '0 1px 0 rgba(255,255,255,0.03)',
+          transition: 'border-color .16s ease, box-shadow .16s ease, background .16s ease',
         }}
-      />
-
-      {TABS.map((tab, i) => {
-        const isActive = i === activeIdx
-        const isHov    = hov === i && !isActive
-
-        const inner = (
+      >
+        <span
+          style={{
+            width: 34,
+            height: 34,
+            borderRadius: 10,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'rgba(0,0,0,0.05)',
+            color: 'var(--text)',
+            flexShrink: 0,
+          }}
+        >
+          <ActiveIcon size={17} weight="regular" />
+        </span>
+        <span style={{ minWidth: 0, flex: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
+          <span style={{ fontSize: 10.5, fontWeight: 600, color: 'var(--text-muted)', letterSpacing: '.04em', textTransform: 'uppercase' }}>
+            Workspace
+          </span>
+          <span style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--text)', lineHeight: 1.2 }}>
+            {activeSurface.shortLabel}
+          </span>
           <span
             style={{
-              position: 'relative',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              gap: 4, width: '100%', height: '100%',
-              borderRadius: 7,
-              fontSize: 10.5, fontWeight: isActive ? 700 : 500,
-              color: isActive ? 'var(--text)' : isHov ? 'var(--text-secondary)' : 'var(--text-muted)',
-              whiteSpace: 'nowrap', overflow: 'hidden', minWidth: 0,
-              transition: 'color .18s cubic-bezier(.16,1,.3,1)',
-              zIndex: 1,
+              fontSize: 11.5,
+              color: 'var(--text-secondary)',
+              lineHeight: 1.25,
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
             }}
           >
-            <motion.span
-              style={{ display: 'flex', alignItems: 'center' }}
-              animate={{ scale: isHov ? 1.08 : 1 }}
-              transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
-            >
-              {tab.icon}
-            </motion.span>
-            <span style={{ overflow:'hidden', textOverflow:'ellipsis' }}>{tab.label}</span>
+            {activeSurface.description}
           </span>
-        )
+        </span>
+        <CaretDown
+          size={14}
+          weight="bold"
+          color="var(--text-muted)"
+          style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform .16s ease' }}
+        />
+      </button>
 
-        const wrap: React.CSSProperties = {
-          flex: 1, height: '100%', display: 'block',
-          textDecoration: 'none', cursor: 'pointer',
-          background: 'transparent', border: 'none', padding: 0,
-          fontFamily: 'inherit',
-          position: 'relative',
-        }
-
-        if (tab.trigger === 'teams') {
-          return (
-            <button key={tab.label} type="button" onClick={openTeams}
-              style={wrap}
-              onMouseEnter={() => setHov(i)}
-              onMouseLeave={() => setHov(null)}
-              aria-label="Teams öffnen"
-            >
-              {inner}
-            </button>
-          )
-        }
-        return (
-          <Link key={tab.label} href={tab.href!} style={wrap}
-            onMouseEnter={() => setHov(i)}
-            onMouseLeave={() => setHov(null)}
-            prefetch
+      {open && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 'calc(100% + 8px)',
+            left: 0,
+            right: 0,
+            background: 'var(--surface)',
+            border: '1px solid var(--border)',
+            borderRadius: 14,
+            boxShadow: '0 20px 48px rgba(0,0,0,0.16), 0 4px 12px rgba(0,0,0,0.08)',
+            padding: 6,
+            zIndex: 40,
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '8px 10px 10px',
+              color: 'var(--text-secondary)',
+              borderBottom: '1px solid var(--border)',
+              marginBottom: 4,
+            }}
           >
-            {inner}
-          </Link>
-        )
-      })}
-    </nav>
+            <StackSimple size={14} weight="regular" />
+            <span style={{ fontSize: 11.5, fontWeight: 600 }}>Festag OS Bereiche</span>
+          </div>
+
+          {WORKSPACE_SURFACES.map((surface) => {
+            const Icon = SURFACE_ICONS[surface.id]
+            const isActive = surface.id === activeSurface.id
+
+            return (
+              <Link
+                key={surface.id}
+                href={surface.href}
+                prefetch
+                onClick={() => setOpen(false)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  textDecoration: 'none',
+                  color: 'inherit',
+                  padding: '10px 10px',
+                  borderRadius: 10,
+                  background: isActive ? 'rgba(0,0,0,0.055)' : 'transparent',
+                  transition: 'background .14s ease',
+                }}
+              >
+                <span
+                  style={{
+                    width: 30,
+                    height: 30,
+                    borderRadius: 9,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: isActive ? 'var(--sidebar-bg)' : 'rgba(0,0,0,0.04)',
+                    color: 'var(--text)',
+                    flexShrink: 0,
+                  }}
+                >
+                  <Icon size={16} weight={isActive ? 'bold' : 'regular'} />
+                </span>
+                <span style={{ minWidth: 0, flex: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  <span style={{ fontSize: 13, fontWeight: isActive ? 700 : 600, color: 'var(--text)' }}>{surface.label}</span>
+                  <span
+                    style={{
+                      fontSize: 11.5,
+                      color: 'var(--text-secondary)',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                    }}
+                  >
+                    {surface.description}
+                  </span>
+                </span>
+                {isActive ? <Check size={15} weight="bold" color="var(--text)" /> : null}
+              </Link>
+            )
+          })}
+        </div>
+      )}
+    </div>
   )
 }

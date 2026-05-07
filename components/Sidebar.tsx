@@ -55,13 +55,8 @@ const CLIENT_PROJECT: NavItem[] = [
 ]
 const CLIENT_TOOLS: NavItem[] = [
   { href:'/estimator',  icon:'estimate', label:'Preisschätzer' },
-  { href:'/pricing',    icon:'layers',   label:'Pakete & Pläne' },
   { href:'/connectors', icon:'link',     label:'Connectors' },
   { href:'/addons',     icon:'grid',     label:'Add-ons' },
-]
-const CLIENT_BILLING: NavItem[] = [
-  { href:'/billing',   icon:'card', label:'Abrechnung' },
-  { href:'/documents', icon:'doc',  label:'Dokumente' },
 ]
 const CLIENT_MOB_PRIMARY: NavItem[] = [
   { href:'/dashboard',       icon:'home',    label:'Home' },
@@ -75,7 +70,7 @@ const CLIENT_MOB_QUICK = [
   { href:'/documents',   icon:'doc',      label:'Dokumente' },
   { href:'/estimator',   icon:'estimate', label:'Preisschätzer' },
   { href:'/addons',      icon:'grid',     label:'Add-ons' },
-  { href:'/billing',     icon:'card',     label:'Abrechnung' },
+  { href:'/reports',     icon:'activity', label:'Statusberichte' },
 ]
 
 const DEV_MAIN: NavItem[] = [
@@ -91,9 +86,6 @@ const DEV_WORK: NavItem[] = [
 const DEV_TOOLS: NavItem[] = [
   { href:'/connectors', icon:'link', label:'Connectors' },
   { href:'/addons',     icon:'grid', label:'Add-ons' },
-]
-const DEV_BILLING: NavItem[] = [
-  { href:'/billing', icon:'card', label:'Abrechnung' },
 ]
 const DEV_MOB_PRIMARY: NavItem[] = [
   { href:'/dev',       icon:'home',      label:'Home' },
@@ -124,21 +116,19 @@ export default function Sidebar() {
   const [plan,     setPlan]     = useState('free')
   const [projId,   setProjId]   = useState<string|null>(null)
   const [projects, setProjects] = useState<{id:string;title:string;status:string;color:string|null}[]>([])
-  const [more,       setMore]      = useState(false)
-  const [projExp,    setProjExp]    = useState(true)
-  const [toolsExp,   setToolsExp]   = useState(true)
-  const [billExp,    setBillExp]    = useState(false)
+  const [more, setMore] = useState(false)
+  const [projExp, setProjExp] = useState(true)
+  const [toolsExp, setToolsExp] = useState(true)
   const [teamsOpen,  setTeamsOpen] = useState(false)
   const [colorPickId, setColorPickId] = useState<string|null>(null)
 
   const isClient = role !== 'dev'
   const isDev    = role === 'dev'
-  const homeHref   = isDev ? '/dev' : '/dashboard'
-  const mainNav    = isDev ? DEV_MAIN    : CLIENT_MAIN
-  const toolsNav    = isDev ? DEV_TOOLS   : CLIENT_TOOLS
-  const billingNav  = isDev ? DEV_BILLING : CLIENT_BILLING
+  const homeHref = isDev ? '/dev' : '/dashboard'
+  const mainNav = isDev ? DEV_MAIN : CLIENT_MAIN
+  const toolsNav = isDev ? DEV_TOOLS : CLIENT_TOOLS
   const mobPrimary = isDev ? DEV_MOB_PRIMARY : CLIENT_MOB_PRIMARY
-  const mobQuick   = isDev ? DEV_MOB_QUICK   : CLIENT_MOB_QUICK
+  const mobQuick = isDev ? DEV_MOB_QUICK : CLIENT_MOB_QUICK
 
   useEffect(() => {
     const handler = () => setTeamsOpen(true)
@@ -372,7 +362,7 @@ export default function Sidebar() {
             <SupportButton />
           </div>
 
-          {/* ViewSwitch */}
+          {/* Workspace switcher */}
           <div style={{ padding:'0 2px', marginBottom:10 }}>
             <ViewSwitch />
           </div>
@@ -482,15 +472,6 @@ export default function Sidebar() {
               onToggle={() => setToolsExp(v => !v)}
             >
               <NavItems items={toolsNav} />
-            </Section>
-
-            {/* Abrechnung — collapsible */}
-            <Section
-              label="Abrechnung"
-              expanded={billExp}
-              onToggle={() => setBillExp(v => !v)}
-            >
-              <NavItems items={billingNav} />
             </Section>
 
           </div>

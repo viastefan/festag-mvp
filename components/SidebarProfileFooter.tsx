@@ -72,8 +72,8 @@ export default function SidebarProfileFooter({
   const avatarFg = avatarTextColor(avatarColor)
   const accountItems: FooterMenuItem[] = [
     { href: '/settings', label: 'Einstellungen', icon: GearSix, hint: '⌘,' },
-    ...(isClient ? [{ href: '/account', label: 'Konto & Abrechnung', icon: CreditCard }] : []),
     { href: '/account', label: 'Konto-Verlauf', icon: ChartLineUp },
+    ...(isClient ? [{ href: '/billing', label: 'Abrechnung & Plan', icon: CreditCard }] : []),
     { href: '/download', label: 'Download App', icon: DownloadSimple },
   ]
   const workspaceItems: FooterMenuItem[] = [
@@ -83,9 +83,10 @@ export default function SidebarProfileFooter({
     ...(isClient ? [{ href: '/pricing', label: 'Tarif upgraden', icon: RocketLaunch }] : []),
   ]
   const updateItems: FooterMenuItem[] = [
+    { href: '/reports', label: 'Statusberichte', icon: Sparkle },
     { href: '/updates', label: 'What’s new', icon: Sparkle },
     { href: '/updates', label: 'Blogartikel', icon: Article },
-    { href: '/activity', label: 'Produkt-Aktivitäten', icon: ArrowsClockwise },
+    { href: '/activity', label: 'Letzte Aktivitäten', icon: ArrowsClockwise },
   ]
 
   return (
