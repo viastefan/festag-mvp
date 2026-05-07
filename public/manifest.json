@@ -1,13 +1,14 @@
 {
-  "name": "Festag — AI-native Software",
+  "id": "festag-v2-2026-05-07",
+  "name": "Festag — AI-native Softwareproduktion",
   "short_name": "Festag",
-  "description": "AI plant. Menschen bauen. Ein System verbindet alles.",
+  "description": "Softwareproduktion ohne Chaos. Strukturiert. Verifiziert. Geliefert.",
   "start_url": "/dashboard",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#FFFFFF",
-  "theme_color": "#FFFFFF",
+  "background_color": "#0A0B0A",
+  "theme_color": "#0A0B0A",
   "categories": ["productivity", "business"],
   "lang": "de",
   "icons": [

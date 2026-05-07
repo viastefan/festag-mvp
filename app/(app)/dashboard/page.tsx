@@ -242,7 +242,7 @@ export default function DashboardPage() {
 
                 <div style={{ display:'flex', alignItems:'center', gap:7, flexWrap:'wrap' }}>
                   <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:12, color:'var(--text-secondary)' }}>
-                    <span style={{ width:7, height:7, borderRadius:'50%', background: main.color || 'var(--text-muted)' }}/>
+                    <span style={{ width:7, height:7, borderRadius:'50%', background:'transparent', border:`2px solid ${main.color || 'var(--text-muted)'}`, boxSizing:'border-box', flexShrink:0 }}/>
                     {phase.label}
                   </span>
                   <span style={{ color:'var(--text-muted)', fontSize:11 }}>·</span>
@@ -368,7 +368,7 @@ export default function DashboardPage() {
                 <div>
                   {activeTasks.slice(0, 7).map((t, i, arr) => (
                     <div key={t.id} className="row-hover" style={{ padding:'11px 12px', borderTop: i===0?'1px solid var(--border)':'none', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', gap:12 }}>
-                      <span style={{ width:6, height:6, borderRadius:'50%', flexShrink:0, background: t.status==='doing' ? (main.color || 'var(--text-secondary)') : 'var(--border-strong)' }}/>
+                      <span style={{ width:6, height:6, borderRadius:'50%', flexShrink:0, background:'transparent', border:`1.5px solid ${t.status==='doing' ? (main.color || 'var(--text-secondary)') : 'var(--border-strong)'}`, boxSizing:'border-box' }}/>
                       <span style={{ fontSize:13, color:'var(--text)', flex:1, minWidth:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{t.title}</span>
                       <span style={{ fontSize:11, fontWeight:500, color:'var(--text-muted)', flexShrink:0 }}>
                         {t.priority === 'critical' ? 'Kritisch · ' : ''}{t.status==='doing'?'Aktiv':'Offen'}
@@ -380,7 +380,7 @@ export default function DashboardPage() {
             )}
 
             {/* ── All projects ── */}
-            {projects.length > 1 && (
+            {projects.length > 0 && (
               <div className="animate-fade-up-3" style={{ marginBottom:36 }}>
                 <SectionLabel action={
                   <span style={{ fontSize:11.5, color:'var(--text-muted)', fontWeight:500 }}>{projects.length} · {allTasks.length} Tasks</span>
@@ -395,7 +395,7 @@ export default function DashboardPage() {
                     return (
                       <Link key={proj.id} href={`/project/${proj.id}`} style={{ textDecoration:'none', color:'inherit' }}>
                         <div className="row-hover" style={{ display:'flex', alignItems:'center', gap:14, padding:'12px 12px', borderTop:i===0?'1px solid var(--border)':'none', borderBottom:'1px solid var(--border)' }}>
-                          <span style={{ width:8, height:8, borderRadius:'50%', background:pCol, flexShrink:0 }}/>
+                          <span style={{ width:8, height:8, borderRadius:'50%', background:'transparent', border:`2px solid ${pCol}`, flexShrink:0, boxSizing:'border-box' }}/>
                           <span style={{ fontSize:13, fontWeight:500, color:'var(--text)', flex:1, minWidth:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{proj.title}</span>
                           <div style={{ width:120, height:3, background:'var(--surface-2)', borderRadius:2, flexShrink:0, overflow:'hidden' }}>
                             <div style={{ height:'100%', width:`${pct}%`, background: pCol }}/>
@@ -417,7 +417,7 @@ export default function DashboardPage() {
                 <div>
                   {activity.slice(0,8).map((a, i) => (
                     <div key={a.id} style={{ padding:'11px 12px', borderTop:i===0?'1px solid var(--border)':'none', borderBottom:'1px solid var(--border)', display:'flex', gap:12 }}>
-                      <span style={{ width:5, height:5, borderRadius:'50%', background:'var(--border-strong)', flexShrink:0, marginTop:7 }}/>
+                      <span style={{ width:5, height:5, borderRadius:'50%', background:'transparent', border:'1.5px solid var(--border-strong)', boxSizing:'border-box', flexShrink:0, marginTop:7 }}/>
                       <p style={{ fontSize:12.5, color:'var(--text-secondary)', margin:0, flex:1, lineHeight:1.5, overflow:'hidden', textOverflow:'ellipsis', display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical' }}>{a.message}</p>
                       <span style={{ fontSize:11, color:'var(--text-muted)', flexShrink:0 }}>{timeAgo(a.created_at)}</span>
                     </div>
@@ -441,7 +441,7 @@ export default function DashboardPage() {
                     const isCurr  = phaseIdx===i
                     return (
                       <div key={ms.label} style={{ display:'flex', alignItems:'center', gap:8 }}>
-                        <span style={{ width:5, height:5, borderRadius:'50%', flexShrink:0, background: reached ? (main.color || 'var(--text-secondary)') : isCurr ? 'var(--text-muted)' : 'var(--border-strong)' }}/>
+                        <span style={{ width:5, height:5, borderRadius:'50%', flexShrink:0, background:'transparent', border:`1.5px solid ${reached ? (main.color || 'var(--text-secondary)') : isCurr ? 'var(--text-muted)' : 'var(--border-strong)'}`, boxSizing:'border-box' }}/>
                         <span style={{ fontSize:11.5, fontWeight: isCurr?600:500, color:reached?'var(--text-secondary)':isCurr?'var(--text)':'var(--text-muted)', flex:1 }}>{ms.label}</span>
                       </div>
                     )

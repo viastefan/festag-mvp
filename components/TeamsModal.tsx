@@ -138,6 +138,21 @@ export default function TeamsModal({ open, onClose }: { open: boolean; onClose: 
   const reservedSeats = seats.filter(s => s.status === 'reserved')
   const activeSeats   = seats.filter(s => s.status === 'active')
 
+  // Aktiv ausgewähltes Team-Modell — visuelle Hervorhebung + Rolle wird übernommen.
+  const [selectedModel, setSelectedModel] = useState<string>('dev')
+
+  function pickModel(modelId: string) {
+    setSelectedModel(modelId)
+    // Modell → Rolle mapping
+    if (modelId === 'dev')           setRole('dev')
+    else if (modelId === 'corporate') setRole('dev')
+    else                              setRole('collaborator')
+    // Fokus auf Email-Eingabe
+    setTimeout(() => {
+      document.querySelector<HTMLInputElement>('input[type=email]')?.focus()
+    }, 50)
+  }
+
   return (
     <AnimatePresence>
       {open && (
@@ -359,17 +374,50 @@ export default function TeamsModal({ open, onClose }: { open: boolean; onClose: 
               <div style={{ marginBottom:8 }}>
                 <p style={{ fontSize:11, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.08em', textTransform:'uppercase', margin:'0 0 10px' }}>Team-Modelle</p>
                 <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
-                  {MODELS.map(m => (
-                    <div key={m.id}
-                      style={{ position:'relative', padding:'14px 14px 12px', background:'var(--surface)', border:'1px solid var(--border)', borderRadius:14, display:'flex', flexDirection:'column' }}>
-                      {m.badge && (
+                  {MODELS.map(m => {
+                    const isSelected = selectedModel === m.id
+                    return (
+                    <button
+                      key={m.id}
+                      type="button"
+                      onClick={() => !m.mailto && pickModel(m.id)}
+                      style={{
+                        position:'relative',
+                        padding:'14px 14px 12px',
+                        background: isSelected ? 'var(--card)' : 'var(--surface)',
+                        border: `1.5px solid ${isSelected ? 'var(--text)' : 'var(--border)'}`,
+                        borderRadius: 14,
+                        display:'flex', flexDirection:'column',
+                        textAlign:'left',
+                        fontFamily:'inherit', cursor: m.mailto ? 'default' : 'pointer',
+                        transition:'border-color .15s, background .15s',
+                      }}
+                      onMouseEnter={e => { if (!isSelected && !m.mailto) (e.currentTarget as HTMLElement).style.borderColor = 'var(--border-strong)' }}
+                      onMouseLeave={e => { if (!isSelected) (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)' }}
+                    >
+                      {isSelected && (
+                        <span style={{
+                          position:'absolute', top:10, right:10,
+                          width:18, height:18, borderRadius:'50%',
+                          background:'var(--text)',
+                          display:'flex', alignItems:'center', justifyContent:'center',
+                        }}>
+                          <Check size={10} weight="bold" color="var(--bg)"/>
+                        </span>
+                      )}
+                      {m.badge && !isSelected && (
                         <span style={{ position:'absolute', top:10, right:10, padding:'2px 7px', borderRadius:999, background:'var(--surface-2)', color:'var(--text-muted)', fontSize:8.5, fontWeight:700, letterSpacing:'.1em' }}>{m.badge}</span>
                       )}
-                      <div style={{ width:30, height:30, borderRadius:9, background:'var(--surface-2)', display:'flex', alignItems:'center', justifyContent:'center', marginBottom:10 }}>
-                        <m.Icon size={14} weight="regular" color="var(--text-secondary)" />
+                      <div style={{
+                        width:30, height:30, borderRadius:9,
+                        background: isSelected ? 'var(--text)' : 'var(--surface-2)',
+                        display:'flex', alignItems:'center', justifyContent:'center',
+                        marginBottom:10,
+                      }}>
+                        <m.Icon size={14} weight="regular" color={isSelected ? 'var(--bg)' : 'var(--text-secondary)'} />
                       </div>
                       <p style={{ fontSize:9, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.1em', margin:'0 0 2px' }}>{m.eyebrow}</p>
-                      <h3 style={{ fontSize:14, fontWeight:700, margin:'0 0 1px', letterSpacing:'-.2px' }}>{m.title}</h3>
+                      <h3 style={{ fontSize:14, fontWeight:700, margin:'0 0 1px', letterSpacing:'-.2px', color:'var(--text)' }}>{m.title}</h3>
                       <p style={{ fontSize:10.5, color:'var(--text-muted)', margin:'0 0 7px', fontWeight:500 }}>{m.subtitle}</p>
                       <p style={{ fontSize:11.5, color:'var(--text-secondary)', margin:'0 0 10px', lineHeight:1.5, flex:1 }}>{m.desc}</p>
                       <div style={{ display:'flex', flexDirection:'column', gap:1, marginBottom:10 }}>
@@ -387,17 +435,30 @@ export default function TeamsModal({ open, onClose }: { open: boolean; onClose: 
                         ))}
                       </div>
                       {m.mailto ? (
-                        <a href={m.mailto} style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:5, padding:'7px 10px', background:'var(--surface-2)', color:'var(--text)', borderRadius:8, fontSize:11.5, fontWeight:700, textDecoration:'none', border:'1px solid var(--border)' }}>
+                        <a href={m.mailto}
+                          onClick={e => e.stopPropagation()}
+                          style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:5, padding:'7px 10px', background:'var(--surface-2)', color:'var(--text)', borderRadius:8, fontSize:11.5, fontWeight:700, textDecoration:'none', border:'1px solid var(--border)' }}>
                           Anfragen <CaretRight size={9} weight="bold" />
                         </a>
                       ) : (
-                        <button onClick={() => { setRole(m.id === 'dev' ? 'dev' : 'collaborator'); document.querySelector<HTMLInputElement>('input[type=email]')?.focus() }}
-                          style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:5, width:'100%', padding:'7px 10px', background:'var(--surface-2)', color:'var(--text)', borderRadius:8, fontSize:11.5, fontWeight:700, border:'1px solid var(--border)', cursor:'pointer', fontFamily:'inherit' }}>
-                          Wählen <CaretRight size={9} weight="bold" />
-                        </button>
+                        <span
+                          style={{
+                            display:'flex', alignItems:'center', justifyContent:'center', gap:5,
+                            padding:'7px 10px',
+                            background: isSelected ? 'var(--btn-prim)' : 'var(--surface-2)',
+                            color: isSelected ? 'var(--btn-prim-text)' : 'var(--text)',
+                            borderRadius: 8,
+                            fontSize: 11.5, fontWeight: 700,
+                            border: `1px solid ${isSelected ? 'transparent' : 'var(--border)'}`,
+                            transition:'all .15s',
+                          }}
+                        >
+                          {isSelected ? 'Ausgewählt' : 'Wählen'}
+                          {!isSelected && <CaretRight size={9} weight="bold" />}
+                        </span>
                       )}
-                    </div>
-                  ))}
+                    </button>
+                  )})}
                 </div>
               </div>
             </div>

@@ -14,7 +14,9 @@ import {
   Plus, CaretRight, DotsThreeOutline, X,
   SignOut, UsersThree, Bell, Briefcase,
   Clock, CheckSquare, Code, FileCode,
+  Moon, Sun, BookOpen,
 } from '@phosphor-icons/react'
+import { getTheme, setTheme, ThemeMode } from '@/lib/theme'
 
 export function projectColor(_id: string, color?: string | null) { return color || 'var(--text-muted)' }
 
@@ -128,6 +130,7 @@ export default function Sidebar() {
   const [teamsOpen,  setTeamsOpen] = useState(false)
   const [userMenu,   setUserMenu]  = useState(false)
   const [colorPickId, setColorPickId] = useState<string|null>(null)
+  const [themeMode,  setThemeMode] = useState<ThemeMode>('dark')
 
   const isClient = role !== 'dev'
   const isDev    = role === 'dev'
@@ -139,6 +142,7 @@ export default function Sidebar() {
   const mobQuick   = isDev ? DEV_MOB_QUICK   : CLIENT_MOB_QUICK
 
   useEffect(() => {
+    setThemeMode(getTheme())
     const handler = () => setTeamsOpen(true)
     window.addEventListener('open-teams-modal', handler)
     return () => window.removeEventListener('open-teams-modal', handler)
@@ -339,7 +343,7 @@ export default function Sidebar() {
 
       {/* ══ DESKTOP SIDEBAR ══ */}
       <aside className="sidebar" style={{ pointerEvents:'none' }}>
-        <div className="sidebar-inner" style={{ pointerEvents:'all', padding:'14px 8px 0', display:'flex', flexDirection:'column', height:'100%', boxSizing:'border-box' }}>
+        <div className="sidebar-inner" style={{ pointerEvents:'all', padding:'14px 8px 14px', display:'flex', flexDirection:'column', height:'100%', boxSizing:'border-box' }}>
 
           {/* Logo + Support */}
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 6px', marginBottom:10, gap:8 }}>
@@ -360,6 +364,13 @@ export default function Sidebar() {
             {/* Main nav — always visible, no section header (like Linear's top items) */}
             <div style={{ marginBottom:6 }}>
               <NavItems items={mainNav} />
+              {/* Teams — nur für Admin sichtbar */}
+              {role === 'admin' && (
+                <Link href="/teams" className={`ni ${isOn('/teams')?'ni-on':'ni-off'}`}>
+                  <Ico name="team" sz={14} c={isOn('/teams')?'var(--text)':'var(--text-muted)'} weight={isOn('/teams')?'bold':'regular'} />
+                  <span style={{ flex:1 }}>Teams</span>
+                </Link>
+              )}
             </div>
 
             {/* Projects — collapsible */}
@@ -388,7 +399,7 @@ export default function Sidebar() {
                         <button
                           onClick={e => { e.preventDefault(); e.stopPropagation(); setColorPickId(picking ? null : p.id) }}
                           title="Farbe ändern"
-                          style={{ width:10, height:10, borderRadius:'50%', background: dot, flexShrink:0, border:'none', cursor:'pointer', padding:0, outline:'none' }}
+                          style={{ width:10, height:10, borderRadius:'50%', background:'transparent', flexShrink:0, border:`2px solid ${dot}`, cursor:'pointer', padding:0, outline:'none', boxSizing:'border-box' }}
                         />
                         <span style={{ flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{p.title}</span>
                       </Link>
@@ -465,86 +476,83 @@ export default function Sidebar() {
 
           </div>
 
-          {/* ── User block ── */}
-          <div style={{ borderTop:'1px solid var(--border)', paddingTop:8, paddingBottom:8, marginTop:6, position:'relative' }}>
+          {/* ── User block (Claude-style footer) ── */}
+          <div style={{ borderTop:'1px solid var(--border)', paddingTop:6, marginTop:4, position:'relative' }}>
 
-            {/* Dropdown */}
+            {/* Pop-up menu — expands upward */}
             {userMenu && (
               <>
                 <div style={{ position:'fixed', inset:0, zIndex:1000 }} onClick={() => setUserMenu(false)} />
                 <div style={{
-                  position:'absolute', bottom:'calc(100% + 6px)', left:0, right:0,
-                  background:'var(--surface)', border:'1px solid var(--border)',
-                  borderRadius:13,
-                  boxShadow:'0 12px 40px rgba(0,0,0,0.16), 0 2px 8px rgba(0,0,0,0.08)',
-                  zIndex:1001, padding:'4px',
-                  maxHeight:'calc(100vh - 120px)', overflowY:'auto',
+                  position:'absolute', bottom:'calc(100% + 8px)', left:0, right:0,
+                  background:'var(--surface)',
+                  border:'1px solid var(--border)',
+                  borderRadius:14,
+                  boxShadow:'0 -4px 6px rgba(0,0,0,0.04), 0 16px 48px rgba(0,0,0,0.18), 0 4px 12px rgba(0,0,0,0.08)',
+                  zIndex:1001,
+                  padding:'5px',
+                  overflow:'hidden',
                 }}>
 
-                  {/* ── Account header ── */}
-                  <div style={{ padding:'10px 11px 8px', display:'flex', alignItems:'center', gap:9 }}>
+                  {/* ── Profile header ── */}
+                  <div style={{ display:'flex', alignItems:'center', gap:9, padding:'9px 10px 8px' }}>
                     {avatar
-                      ? <img src={avatar} alt="" style={{ width:30,height:30,borderRadius:'50%',objectFit:'cover',border:'1.5px solid var(--border)',flexShrink:0 }}/>
-                      : <div style={{ width:30,height:30,borderRadius:'50%',background:'var(--btn-prim)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:12,fontWeight:700,color:'var(--btn-prim-text)',flexShrink:0 }}>{init}</div>
+                      ? <img src={avatar} alt="" style={{ width:28,height:28,borderRadius:'50%',objectFit:'cover',flexShrink:0,border:'1.5px solid var(--border)' }}/>
+                      : <div style={{ width:28,height:28,borderRadius:'50%',background:'var(--btn-prim)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,fontWeight:700,color:'var(--btn-prim-text)',flexShrink:0 }}>{init}</div>
                     }
                     <div style={{ flex:1, minWidth:0 }}>
-                      <p style={{ margin:0, fontSize:13, fontWeight:700, color:'var(--text)', lineHeight:1.3, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{name}</p>
+                      <p style={{ margin:0, fontSize:13, fontWeight:600, color:'var(--text)', lineHeight:1.3, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{name}</p>
                       <p style={{ margin:0, fontSize:10.5, color:'var(--text-muted)', lineHeight:1.3, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{email}</p>
                     </div>
-                    {isClient && (
-                      <span style={{ flexShrink:0, fontSize:9, fontWeight:700, letterSpacing:'.05em', color:'var(--text-muted)', background:'var(--border)', padding:'2px 6px', borderRadius:5, lineHeight:1.6 }}>
-                        {plan === 'free' ? 'Free' : plan === 'starter' ? 'Starter' : plan === 'pro' ? 'Pro' : plan === 'enterprise' ? 'Enterprise' : plan}
-                      </span>
-                    )}
                   </div>
 
-                  <div style={{ height:1, background:'var(--border)', margin:'2px 0' }}/>
+                  <div style={{ height:1, background:'var(--border)', margin:'1px 0 3px' }}/>
 
                   {/* ── Konto ── */}
-                  <p style={{ fontSize:9.5, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.08em', padding:'6px 11px 2px', margin:0, opacity:.55 }}>KONTO</p>
+                  <p style={{ fontSize:9.5, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.08em', padding:'4px 10px 1px', margin:0 }}>KONTO</p>
                   <Link href="/settings" className="usr-row" onClick={() => setUserMenu(false)}>
-                    <Ico name="settings" sz={13} c="var(--text-muted)" weight="regular" />
+                    <Ico name="user" sz={13} c="var(--text-muted)" weight="regular"/>
                     <span style={{ flex:1 }}>Einstellungen</span>
                   </Link>
-                  {isClient && <>
+                  {isClient && (
                     <Link href="/billing" className="usr-row" onClick={() => setUserMenu(false)}>
-                      <Ico name="billing" sz={13} c="var(--text-muted)" weight="regular" />
+                      <Ico name="billing" sz={13} c="var(--text-muted)" weight="regular"/>
                       <span style={{ flex:1 }}>Abrechnung & Plan</span>
                     </Link>
-                    <Link href="/activity" className="usr-row" onClick={() => setUserMenu(false)}>
-                      <Ico name="activity" sz={13} c="var(--text-muted)" weight="regular" />
-                      <span style={{ flex:1 }}>Account-Verlauf</span>
-                    </Link>
-                    <Link href="/reports" className="usr-row" onClick={() => setUserMenu(false)}>
-                      <Ico name="doc" sz={13} c="var(--text-muted)" weight="regular" />
-                      <span style={{ flex:1 }}>Statusberichte</span>
-                    </Link>
-                  </>}
+                  )}
 
-                  <div style={{ height:1, background:'var(--border)', margin:'2px 0' }}/>
+                  <div style={{ height:1, background:'var(--border)', margin:'3px 0' }}/>
 
-                  {/* ── Rechtliches ── */}
-                  <p style={{ fontSize:9.5, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.08em', padding:'6px 11px 2px', margin:0, opacity:.55 }}>RECHTLICHES</p>
-                  {[
-                    { href:'/impressum',   label:'Impressum' },
-                    { href:'/datenschutz', label:'Datenschutz' },
-                    { href:'/agb',         label:'AGB' },
-                    { href:'/widerruf',    label:'Widerruf' },
-                  ].map(l => (
-                    <Link key={l.href} href={l.href} className="usr-row" onClick={() => setUserMenu(false)}>
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="1.8" strokeLinecap="round" style={{ flexShrink:0 }}>
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
-                      </svg>
-                      <span style={{ flex:1 }}>{l.label}</span>
-                    </Link>
-                  ))}
+                  {/* ── Design / Theme ── */}
+                  <p style={{ fontSize:9.5, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.08em', padding:'4px 10px 3px', margin:0 }}>DESIGN</p>
+                  {([
+                    { mode:'dark'  as ThemeMode, label:'Dark',  Icon: Moon },
+                    { mode:'light' as ThemeMode, label:'Light', Icon: Sun },
+                    { mode:'read'  as ThemeMode, label:'Lesen', Icon: BookOpen },
+                  ] as const).map(({ mode, label, Icon }) => {
+                    const active = themeMode === mode
+                    return (
+                      <button key={mode} className="usr-row" onClick={() => {
+                        setThemeMode(mode)
+                        setTheme(mode)
+                      }}
+                        style={{ width:'100%', background: active ? 'var(--card)' : 'transparent' }}
+                      >
+                        <Icon size={13} color={active ? 'var(--text)' : 'var(--text-muted)'} weight={active ? 'bold' : 'regular'}/>
+                        <span style={{ flex:1, color: active ? 'var(--text)' : 'var(--text-secondary)', fontWeight: active ? 600 : 500 }}>{label}</span>
+                        {active && (
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--text)" strokeWidth="2.5" strokeLinecap="round"><path d="M20 6L9 17l-5-5"/></svg>
+                        )}
+                      </button>
+                    )
+                  })}
 
-                  <div style={{ height:1, background:'var(--border)', margin:'2px 0' }}/>
+                  <div style={{ height:1, background:'var(--border)', margin:'3px 0' }}/>
 
                   {/* ── Abmelden ── */}
-                  <button className="usr-row" onClick={logout} style={{ width:'100%', color:'var(--red,#D14343)' }}>
-                    <Ico name="logout" sz={13} c="var(--red,#D14343)" weight="regular" />
-                    <span style={{ flex:1, color:'var(--red,#D14343)' }}>Abmelden</span>
+                  <button className="usr-row" onClick={logout} style={{ width:'100%' }}>
+                    <Ico name="logout" sz={13} c="var(--text-muted)" weight="regular"/>
+                    <span style={{ flex:1, color:'var(--text-secondary)' }}>Abmelden</span>
                   </button>
                 </div>
               </>
@@ -555,28 +563,23 @@ export default function Sidebar() {
               onClick={() => setUserMenu(m => !m)}
               style={{
                 width:'100%', display:'flex', alignItems:'center', gap:8,
-                padding:'5px 7px', borderRadius:8,
+                padding:'5px 6px', borderRadius:9,
                 background: userMenu ? 'var(--surface-2)' : 'transparent',
                 border:'none', cursor:'pointer', fontFamily:'inherit',
                 transition:'background .1s',
               }}
-              onMouseEnter={e => { if (!userMenu) e.currentTarget.style.background='rgba(0,0,0,0.04)' }}
-              onMouseLeave={e => { if (!userMenu) e.currentTarget.style.background='transparent' }}
+              onMouseEnter={e => { if (!userMenu) (e.currentTarget as HTMLElement).style.background='var(--surface-2)' }}
+              onMouseLeave={e => { if (!userMenu) (e.currentTarget as HTMLElement).style.background='transparent' }}
             >
               {avatar
-                ? <img src={avatar} alt="" style={{ width:22,height:22,borderRadius:'50%',objectFit:'cover',border:'1.5px solid var(--border)',flexShrink:0 }}/>
-                : <div style={{ width:22,height:22,borderRadius:'50%',background:'var(--btn-prim)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:9.5,fontWeight:700,color:'var(--btn-prim-text)',flexShrink:0 }}>{init}</div>
+                ? <img src={avatar} alt="" style={{ width:24,height:24,borderRadius:'50%',objectFit:'cover',border:'1.5px solid var(--border)',flexShrink:0 }}/>
+                : <div style={{ width:24,height:24,borderRadius:'50%',background:'var(--btn-prim)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:10,fontWeight:700,color:'var(--btn-prim-text)',flexShrink:0 }}>{init}</div>
               }
-              <span style={{ flex:1, minWidth:0, display:'flex', alignItems:'center', gap:5, overflow:'hidden' }}>
-                <span style={{ fontSize:12, fontWeight:600, color:'var(--text)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{name}</span>
-                {isClient && (
-                  <span style={{ flexShrink:0, fontSize:9, fontWeight:700, letterSpacing:'.05em', color: plan === 'free' ? 'var(--text-secondary)' : 'var(--btn-prim-text)', background: plan === 'free' ? 'var(--surface-2)' : 'var(--btn-prim)', border: plan === 'free' ? '1px solid var(--border)' : 'none', padding:'2px 5px', borderRadius:5, lineHeight:1.5 }}>
-                    {plan === 'free' ? 'Free' : plan === 'starter' ? 'Starter' : plan === 'pro' ? 'Pro' : plan === 'enterprise' ? 'Ent.' : plan}
-                  </span>
-                )}
+              <span style={{ flex:1, minWidth:0, overflow:'hidden' }}>
+                <span style={{ fontSize:12.5, fontWeight:600, color:'var(--text)', display:'block', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{name}</span>
               </span>
-              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2.5" strokeLinecap="round"
-                style={{ flexShrink:0, transform:userMenu?'rotate(180deg)':'rotate(0deg)', transition:'transform .16s', opacity:.6 }}>
+              <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2.5" strokeLinecap="round"
+                style={{ flexShrink:0, transform:userMenu?'rotate(180deg)':'rotate(0deg)', transition:'transform .16s', opacity:.5 }}>
                 <path d="M6 9l6 6 6-6"/>
               </svg>
             </button>

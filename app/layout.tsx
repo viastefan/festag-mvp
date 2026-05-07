@@ -1,6 +1,7 @@
 import './globals.css'
 import type { Metadata, Viewport } from 'next'
 import ThemeProvider from '@/components/ThemeProvider'
+import ServiceWorkerCleanup from '@/components/ServiceWorkerCleanup'
 
 export const metadata: Metadata = {
   title: 'Festag — AI-native Softwareproduktion',
@@ -38,6 +39,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* Aeonik wird lokal aus /fonts/ geladen — Inter als Fallback via system */}
       </head>
       <body>
+        <ServiceWorkerCleanup />
         <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>

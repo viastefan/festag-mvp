@@ -297,11 +297,35 @@ export default function LoginPage() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 11 }}>
                 <PrimaryBtn label="Kostenlos starten →" onClick={() => go('register')}/>
                 <SecondaryBtn label="Anmelden" onClick={() => go('login')}/>
+                {/* Einladungspin als ruhiger, eigenständiger Eintrag —
+                    nicht als zweite Marketing-Aktion, sondern als seriöser Hinweis. */}
+                <a
+                  href="/redeem"
+                  style={{
+                    width:'100%', padding:'14px 22px',
+                    background:'transparent',
+                    color:'var(--text-secondary)',
+                    fontSize: 14, fontWeight: 600,
+                    borderRadius: 14, border:'1.5px dashed var(--border-strong)',
+                    cursor:'pointer',
+                    display:'flex', alignItems:'center', justifyContent:'center', gap: 8,
+                    fontFamily:'inherit', letterSpacing:'-.05px',
+                    textDecoration:'none',
+                    transition:'border-color .15s, color .15s, background .15s',
+                  }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--text-secondary)'; (e.currentTarget as HTMLElement).style.color = 'var(--text)' }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border-strong)'; (e.currentTarget as HTMLElement).style.color = 'var(--text-secondary)' }}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2"/>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                  </svg>
+                  Einladungspin einlösen
+                </a>
               </div>
-              <div style={{ marginTop: 28, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-                <span onClick={() => go('dev')} style={{ fontSize: 12, color: 'var(--text-muted)', cursor: 'pointer', fontWeight: 500, WebkitTapHighlightColor: 'transparent' }}>Dev-Zugang</span>
-                <a href="/redeem" style={{ fontSize: 12, color: 'var(--text-muted)', cursor: 'pointer', fontWeight: 500, textDecoration: 'none', WebkitTapHighlightColor: 'transparent' }}>Einladungspin einlösen</a>
-                <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600, opacity: .4, letterSpacing: '.06em', textTransform: 'uppercase' }}>Beta · v0.9</span>
+              <div style={{ marginTop: 22, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+                <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600, opacity: .42, letterSpacing: '.06em', textTransform: 'uppercase' }}>Beta · v0.9</span>
+                <span onClick={() => go('dev')} style={{ fontSize: 11.5, color: 'var(--text-muted)', cursor: 'pointer', fontWeight: 500, opacity: .55, WebkitTapHighlightColor: 'transparent' }}>Dev-Zugang</span>
               </div>
               <p style={{ textAlign: 'center', fontSize: 10.5, color: 'var(--text-muted)', marginTop: 18, letterSpacing: '.02em', fontWeight: 500, opacity: .45, lineHeight: 1.6 }}>Datenschutzkonform · Server in Deutschland<br/>Keine Kreditkarte erforderlich</p>
             </div>
@@ -352,6 +376,7 @@ export default function LoginPage() {
               <FInput label="Passwort bestätigen" value={pw2} onChange={setPw2} type="password" placeholder="Erneut eingeben" onSubmit={doRegister}/>
               <div style={{ marginTop: 8 }}><PrimaryBtn label="Konto erstellen →" onClick={doRegister} loading={loading}/></div>
               <p style={{ textAlign: 'center', fontSize: 13, color: 'var(--text-muted)', marginTop: 24 }}>Bereits ein Konto? <span onClick={() => go('login')} style={{ color: 'var(--btn-prim)', fontWeight: 700, cursor: 'pointer' }}>Einloggen</span></p>
+              <p style={{ textAlign: 'center', fontSize: 12.5, color: 'var(--text-muted)', marginTop: 10 }}>Einladungspin erhalten? <a href="/redeem" style={{ color: 'var(--btn-prim)', fontWeight: 700, textDecoration: 'none' }}>PIN einlösen</a></p>
             </>)}
 
             {view === 'dev' && (<>

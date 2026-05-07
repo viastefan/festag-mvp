@@ -20,8 +20,9 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   MagnifyingGlass, Sparkle, House, Handshake, UsersThree,
   ChatCircle, Briefcase, GearSix, FolderSimple, FileText,
-  Plus, Brain, Code,
+  Plus, Brain, Code, Note, ListChecks,
 } from '@phosphor-icons/react'
+import { createClient } from '@/lib/supabase/client'
 
 type Cmd = {
   id:        string
@@ -30,7 +31,7 @@ type Cmd = {
   href?:     string
   action?:   () => void
   Icon:      React.ComponentType<any>
-  group:     'Navigation' | 'Tagro' | 'Aktionen' | 'Workspace'
+  group:     'Navigation' | 'Tagro' | 'Aktionen' | 'Workspace' | 'Projekte' | 'Tasks' | 'Notizen'
   keywords?: string[]
 }
 
@@ -75,6 +76,7 @@ export default function CommandPalette() {
   const [open, setOpen] = useState(false)
   const [q,    setQ]    = useState('')
   const [idx,  setIdx]  = useState(0)
+  const [dynamic, setDynamic] = useState<Cmd[]>([])
   const inputRef = useRef<HTMLInputElement>(null)
 
   // Shortcut: Cmd/Ctrl+K
@@ -101,6 +103,40 @@ export default function CommandPalette() {
     }
   }, [open])
 
+  // Live-Search über DB (Projekte, Tasks, Notizen) — debounced
+  useEffect(() => {
+    if (!open) { setDynamic([]); return }
+    const term = q.trim()
+    if (!term || term.toLowerCase().startsWith('tagro:')) { setDynamic([]); return }
+    const t = setTimeout(async () => {
+      const sb = createClient()
+      const like = `%${term.replace(/[%_]/g, '\\$&')}%`
+      try {
+        const [projects, tasks, notes] = await Promise.all([
+          sb.from('projects').select('id,title,status').ilike('title', like).limit(5),
+          (sb as any).from('tasks').select('id,title,project_id,status').ilike('title', like).limit(5),
+          (sb as any).from('relations_notes').select('id,title,content').or(`title.ilike.${like},content.ilike.${like}`).limit(5),
+        ])
+        const out: Cmd[] = []
+        ;(projects.data ?? []).forEach((p: any) => out.push({
+          id: `proj-${p.id}`, group: 'Projekte', label: p.title,
+          hint: p.status, href: `/project/${p.id}`, Icon: FolderSimple,
+        }))
+        ;(tasks.data ?? []).forEach((t: any) => out.push({
+          id: `task-${t.id}`, group: 'Tasks', label: t.title,
+          hint: t.status, href: `/project/${t.project_id}#task-${t.id}`, Icon: ListChecks,
+        }))
+        ;(notes.data ?? []).forEach((n: any) => out.push({
+          id: `note-${n.id}`, group: 'Notizen',
+          label: n.title || (n.content ?? '').slice(0, 60),
+          href: `/relations/notes#${n.id}`, Icon: Note,
+        }))
+        setDynamic(out)
+      } catch { setDynamic([]) }
+    }, 180)
+    return () => clearTimeout(t)
+  }, [q, open])
+
   const isTagro = q.trim().toLowerCase().startsWith('tagro:')
   const tagroQuery = isTagro ? q.trim().slice(6).trim() : ''
 
@@ -121,9 +157,13 @@ export default function CommandPalette() {
       },
     }]
   } else {
-    results = STATIC_COMMANDS.filter(c =>
+    const staticHits = STATIC_COMMANDS.filter(c =>
       fuzzy(c.label, q) || (c.keywords ?? []).some(k => fuzzy(k, q))
     )
+    // Bei leerer Query: nur Static. Sonst: Static-Hits + Live-DB-Treffer.
+    results = q.trim().length === 0
+      ? staticHits
+      : [...dynamic, ...staticHits]
     if (q && results.length === 0) {
       results = [{ id: 'no-result', group: 'Aktionen', label: 'Keine Treffer', Icon: MagnifyingGlass }]
     }
@@ -149,7 +189,7 @@ export default function CommandPalette() {
   // Group results
   const grouped: Record<string, Cmd[]> = {}
   results.forEach(c => { (grouped[c.group] ??= []).push(c) })
-  const groupOrder = ['Tagro', 'Workspace', 'Navigation', 'Aktionen']
+  const groupOrder = ['Tagro', 'Projekte', 'Tasks', 'Notizen', 'Workspace', 'Navigation', 'Aktionen']
 
   return (
     <AnimatePresence>
