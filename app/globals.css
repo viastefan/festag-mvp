@@ -117,23 +117,23 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
 
 /* ── READ — Premium warm paper with neutral buttons ── */
 [data-theme="read"] {
-  --bg:#F6F5EF; --surface:#FDFCF8; --card:#ECEAE3;
-  --border:rgba(0,0,0,0.08); --border-strong:rgba(0,0,0,0.15);
-  --text:#1A1A17; --text-secondary:#54534A; --text-muted:#9A9890;
+  --bg:#F7F4EC; --surface:#FFFDF7; --card:#F1EDE3;
+  --border:rgba(38,33,24,0.10); --border-strong:rgba(38,33,24,0.18);
+  --text:#1C1914; --text-secondary:#4E493F; --text-muted:#8D8678;
   /* Buttons: neutral dark (not warm brown) */
-  --btn-prim:#1A1A17; --btn-prim-text:#FDFCF8;
-  --accent:#1A1A17; --accent-text:#FDFCF8;
-  --inp:#FEFEFE; --inp-border:rgba(0,0,0,0.10); --inp-focus:#FFFFFF; --inp-focus-border:#1A1A17;
-  --glow:rgba(26,26,23,0.06);
-  --sidebar-bg:rgba(252,250,243,0.72); --sidebar-border:rgba(0,0,0,0.07);
-  --nav-on:#E0DDD3; --nav-on-text:#1A1A17; --nav-off-text:#82807A;
-  --surface-2:#E5E3DA; --green:#2E7A50; --green-bg:rgba(46,122,80,0.09);
+  --btn-prim:#1C1914; --btn-prim-text:#FFFDF7;
+  --accent:#1C1914; --accent-text:#FFFDF7;
+  --inp:#FFFDF8; --inp-border:rgba(38,33,24,0.12); --inp-focus:#FFFFFF; --inp-focus-border:#1C1914;
+  --glow:rgba(28,25,20,0.08);
+  --sidebar-bg:rgba(255,252,243,0.76); --sidebar-border:rgba(38,33,24,0.09);
+  --nav-on:#E8E2D3; --nav-on-text:#1C1914; --nav-off-text:#777165;
+  --surface-2:#ECE6D8; --green:#2E7A50; --green-bg:rgba(46,122,80,0.09);
   --green-border:rgba(46,122,80,0.20); --green-dark:#256040;
   /* Amber stays but in a warm-neutral tone */
-  --amber:#8A7200; --amber-bg:rgba(138,114,0,0.09); --amber-dark:#6E5B00;
-  --red:#6E2E2E; --red-bg:rgba(110,46,46,0.08);
-  --shadow-xs:0 1px 4px rgba(26,26,23,.05); --shadow-sm:0 2px 8px rgba(26,26,23,.07);
-  --shadow:0 4px 20px rgba(26,26,23,.09); --shadow-lg:0 8px 30px rgba(26,26,23,.11);
+  --amber:#8A7200; --amber-bg:rgba(138,114,0,0.10); --amber-dark:#6E5B00;
+  --red:#6E2E2E; --red-bg:rgba(110,46,46,0.09);
+  --shadow-xs:0 1px 3px rgba(28,25,20,.06); --shadow-sm:0 3px 10px rgba(28,25,20,.08);
+  --shadow:0 8px 28px rgba(28,25,20,.10); --shadow-lg:0 16px 40px rgba(28,25,20,.12);
   --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
   --r:12px; --r-xs:8px; --r-sm:10px; --r-md:12px; --r-lg:16px; --r-xl:22px;
 }
@@ -183,6 +183,30 @@ input,textarea,select { font-size:16px;font-family:inherit;font-weight:500;color
 .tap-scale { transition:transform .1s ease,opacity .12s; }
 .tap-scale:active { transform:scale(.97);opacity:.88; }
 input:focus,textarea:focus,select:focus { outline:none; }
+[data-theme="read"] {
+  letter-spacing: -.006em;
+}
+[data-theme="read"] p {
+  line-height: 1.62;
+}
+[data-theme="read"] h1,[data-theme="read"] h2,[data-theme="read"] h3 {
+  color: var(--text);
+}
+[data-theme="read"] .ni-off:hover {
+  background: color-mix(in srgb, var(--surface-2) 72%, transparent);
+}
+[data-theme="read"] .row-hover:hover,
+[data-theme="read"] .dash-row:hover {
+  background: color-mix(in srgb, var(--surface-2) 58%, transparent);
+}
+[data-theme="read"] input:focus,
+[data-theme="read"] textarea:focus,
+[data-theme="read"] select:focus {
+  box-shadow: 0 0 0 2px rgba(28,25,20,0.10);
+}
+[data-theme="read"] ::selection {
+  background: rgba(116, 94, 46, 0.20);
+}
 
 /* ── Smooth Apple-grade interactions ── */
 button, a {
