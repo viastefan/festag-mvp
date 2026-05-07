@@ -564,12 +564,12 @@ export default function Sidebar() {
               >
                 {isClient && (
                   <ExpandableNavSection
-                    href="/dashboard"
+                    href="/relations/projects"
                     icon="project"
                     label="Projekte"
                     expanded={projExp}
                     onToggle={() => setProjExp(v => !v)}
-                    activeOverride={pathname.startsWith('/project/')}
+                    activeOverride={pathname.startsWith('/project/') || pathname.startsWith('/relations/projects')}
                   >
                     {projects.map(p => {
                       const on = pathname === `/project/${p.id}`

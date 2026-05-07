@@ -279,6 +279,7 @@ button:active, a[role="button"]:active, .tap-scale:active {
 
 .sidebar-inner {
   position:fixed; top:12px; left:12px; bottom:12px; width:232px;
+  box-sizing:border-box;
   background:var(--sidebar-bg);
   backdrop-filter:blur(36px) saturate(200%);
   -webkit-backdrop-filter:blur(36px) saturate(200%);
