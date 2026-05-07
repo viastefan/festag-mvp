@@ -1,13 +1,13 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import {
   Plus, X, CheckCircle, Eye, EyeSlash, Envelope, UserCircle,
   Code, Database, Globe, ShieldCheck, GitBranch, Rocket,
   ChatCircle, FileText, ListChecks, Wrench, Star,
   Users, Briefcase, Buildings, ArrowsClockwise,
-  PencilSimple, CaretRight, Check,
+  PencilSimple, CaretRight, Check, Cube, FunnelSimple, SlidersHorizontal,
 } from '@phosphor-icons/react'
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -36,6 +36,7 @@ type Assignment = {
 
 type TeamTab =
   | 'overview'
+  | 'tasks'
   | 'members'
   | 'scenarios'
   | 'invitations'
@@ -43,6 +44,26 @@ type TeamTab =
   | 'seats'
   | 'assigned'
   | 'communication'
+
+type TeamTaskRow = {
+  id: string
+  title: string
+  status: string | null
+  priority?: string | null
+  project_id?: string | null
+  assigned_to?: string | null
+  owner?: string | null
+  developer_name?: string | null
+  sprint?: string | null
+  updated_at?: string | null
+  created_at?: string | null
+}
+
+type TeamProjectRow = {
+  id: string
+  title: string
+  color?: string | null
+}
 
 // ── Task areas ────────────────────────────────────────────────────────────
 
@@ -113,6 +134,7 @@ const SCENARIOS = [
 
 const TEAM_TABS: { id: TeamTab; label: string }[] = [
   { id: 'overview', label: 'Übersicht' },
+  { id: 'tasks', label: 'Aufgaben' },
   { id: 'members', label: 'Mitglieder' },
   { id: 'scenarios', label: 'Szenarien' },
   { id: 'invitations', label: 'Einladungen' },
@@ -121,6 +143,149 @@ const TEAM_TABS: { id: TeamTab; label: string }[] = [
   { id: 'assigned', label: 'Zugewiesene Projekte' },
   { id: 'communication', label: 'Team-Kommunikation' },
 ]
+
+const TEAM_DONE_STATES = new Set(['done', 'completed', 'erledigt'])
+const TEAM_ACTIVE_STATES = new Set(['doing', 'active', 'in_progress', 'review'])
+
+function normalizeTeamTaskStatus(status?: string | null) {
+  const value = (status || 'todo').toLowerCase()
+  if (TEAM_DONE_STATES.has(value)) return 'done'
+  if (TEAM_ACTIVE_STATES.has(value)) return 'active'
+  return 'open'
+}
+
+function teamTaskStatusLabel(status?: string | null) {
+  const normalized = normalizeTeamTaskStatus(status)
+  if (normalized === 'done') return 'DONE'
+  if (normalized === 'active') return 'IN PROGRESS'
+  return 'OPEN'
+}
+
+function teamTaskPriorityLabel(priority?: string | null) {
+  if (!priority) return '---'
+  const value = priority.toLowerCase()
+  if (value === 'critical') return 'CRITICAL'
+  if (value === 'high') return 'HIGH'
+  if (value === 'medium') return 'MEDIUM'
+  if (value === 'low') return 'LOW'
+  return priority.toUpperCase()
+}
+
+function teamTaskSprintLabel(task: TeamTaskRow, index: number) {
+  return task.sprint || `S${24 + (index % 6)}`
+}
+
+function teamTaskShortId(id: string, index: number) {
+  const numeric = Number.parseInt(id.replace(/\D/g, '').slice(0, 5), 10)
+  return `#${Number.isFinite(numeric) && numeric > 0 ? numeric : 10425 + index}`
+}
+
+function tabFromTeamView(view?: string): TeamTab {
+  if (view === 'tasks') return 'tasks'
+  if (view === 'projects') return 'assigned'
+  if (view === 'messages') return 'communication'
+  return 'overview'
+}
+
+function TeamTasksTable({
+  tasks,
+  projects,
+  members,
+  loading,
+}: {
+  tasks: TeamTaskRow[]
+  projects: TeamProjectRow[]
+  members: Member[]
+  loading: boolean
+}) {
+  const projectById = useMemo(() => new Map(projects.map((project) => [project.id, project])), [projects])
+  const activeCount = tasks.filter((task) => normalizeTeamTaskStatus(task.status) === 'active').length
+  const doneCount = tasks.filter((task) => normalizeTeamTaskStatus(task.status) === 'done').length
+  const openCount = tasks.filter((task) => normalizeTeamTaskStatus(task.status) === 'open').length
+
+  const fallbackLead = members.find((member) => member.role === 'dev') ?? members[0] ?? null
+  const leadFor = (task: TeamTaskRow) => {
+    const assignedMember = task.assigned_to ? members.find((member) => member.id === task.assigned_to) : null
+    const display = assignedMember ?? fallbackLead
+    return {
+      name: task.developer_name || display?.first_name || display?.full_name?.split(' ')[0] || task.owner || 'Developer',
+      avatar: display?.avatar_url ?? null,
+    }
+  }
+
+  return (
+    <section className="team-task-shell" aria-label="Team Aufgaben">
+      <div className="team-task-top">
+        <div>
+          <p className="team-task-kicker">Team Orchestrierungspanel</p>
+          <h2>Aufgaben</h2>
+        </div>
+        <button className="team-task-plus" type="button" aria-label="Neue Team-Aufgabe">+</button>
+      </div>
+
+      <div className="team-task-toolbar">
+        <div className="team-task-filter">
+          <span>All team tasks</span>
+        </div>
+        <span className="team-task-counts">{openCount} offen · {activeCount} aktiv · {doneCount} erledigt</span>
+        <div className="team-task-actions" aria-hidden="true">
+          <span><FunnelSimple size={15} /></span>
+          <span><SlidersHorizontal size={15} /></span>
+        </div>
+      </div>
+
+      <div className="team-task-table-wrap">
+        <div className="team-task-head">
+          <span>ID</span>
+          <span>Technical Task</span>
+          <span>Priority</span>
+          <span>Assigned</span>
+          <span>Sprint</span>
+          <span>Status</span>
+        </div>
+
+        {loading ? (
+          <div className="team-task-empty">Lade Team-Aufgaben…</div>
+        ) : tasks.length === 0 ? (
+          <div className="team-task-empty">Noch keine technischen Team-Aufgaben. Sobald Developer Tasks erledigen oder aktualisieren, erscheinen sie hier.</div>
+        ) : tasks.map((task, index) => {
+          const project = task.project_id ? projectById.get(task.project_id) : null
+          const normalized = normalizeTeamTaskStatus(task.status)
+          const lead = leadFor(task)
+
+          return (
+            <div key={task.id} className="team-task-row">
+              <div className="team-task-id">{teamTaskShortId(task.id, index)}</div>
+              <div className="team-task-name">
+                <span className="team-task-cube"><Cube size={16} weight="regular" /></span>
+                <span>
+                  <strong>{task.title}</strong>
+                  <small>{project?.title || 'Kein Projekt zugeordnet'}</small>
+                </span>
+              </div>
+              <div className={`team-task-priority priority-${(task.priority || '').toLowerCase() || 'none'}`}>
+                {teamTaskPriorityLabel(task.priority)}
+              </div>
+              <div className="team-task-assigned">
+                {lead.avatar ? (
+                  <img src={lead.avatar} alt="" />
+                ) : (
+                  <span>{lead.name.charAt(0).toUpperCase()}</span>
+                )}
+                <em>{lead.name}</em>
+              </div>
+              <div className="team-task-sprint">{teamTaskSprintLabel(task, index)}</div>
+              <div className={`team-task-status status-${normalized}`}>
+                <i />
+                {teamTaskStatusLabel(task.status)}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </section>
+  )
+}
 
 function TeamsTabPlaceholder({ title, description, rows }: { title: string; description: string; rows: string[] }) {
   return (
@@ -143,7 +308,7 @@ function TeamsTabPlaceholder({ title, description, rows }: { title: string; desc
 
 // ── Component ─────────────────────────────────────────────────────────────
 
-export default function TeamsPage() {
+export default function TeamsPage({ searchParams }: { searchParams?: { view?: string } }) {
   const [members,    setMembers]    = useState<Member[]>([])
   const [me,         setMe]         = useState<Member | null>(null)
   const [loading,    setLoading]    = useState(true)
@@ -152,7 +317,10 @@ export default function TeamsPage() {
   const [invRole,    setInvRole]    = useState('collaborator')
   const [invSent,    setInvSent]    = useState(false)
   const [invSending, setInvSending] = useState(false)
-  const [tab,        setTab]        = useState<TeamTab>('overview')
+  const [tab,        setTab]        = useState<TeamTab>(() => tabFromTeamView(searchParams?.view))
+  const [teamTasks,  setTeamTasks]  = useState<TeamTaskRow[]>([])
+  const [teamProjects, setTeamProjects] = useState<TeamProjectRow[]>([])
+  const [teamTasksLoading, setTeamTasksLoading] = useState(true)
 
   // Assignment state
   const [assigningMember, setAssigningMember] = useState<Member | null>(null)
@@ -194,6 +362,41 @@ export default function TeamsPage() {
       } catch (err) { console.error('[teams]', err) }
       finally { setLoading(false) }
     }).catch(() => setLoading(false))
+  }, [])
+
+  useEffect(() => {
+    setTab(tabFromTeamView(searchParams?.view))
+  }, [searchParams?.view])
+
+  useEffect(() => {
+    const sb = createClient()
+    let alive = true
+
+    async function loadTeamTasks() {
+      if (alive) setTeamTasksLoading(true)
+      const [{ data: taskData }, { data: projectData }] = await Promise.all([
+        (sb as any).from('tasks').select('*').order('created_at', { ascending: false }).limit(80),
+        (sb as any).from('projects').select('id,title,color'),
+      ])
+      if (!alive) return
+      setTeamTasks((taskData as TeamTaskRow[]) ?? [])
+      setTeamProjects((projectData as TeamProjectRow[]) ?? [])
+      setTeamTasksLoading(false)
+    }
+
+    loadTeamTasks()
+
+    const channel = sb
+      .channel('team-orchestration-tasks')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, () => {
+        loadTeamTasks()
+      })
+      .subscribe()
+
+    return () => {
+      alive = false
+      sb.removeChannel(channel)
+    }
   }, [])
 
   async function sendInvite() {
@@ -277,6 +480,260 @@ export default function TeamsPage() {
         .inv-panel { position:relative; width:100%; max-width:460px; background:var(--surface); border:1px solid var(--border); border-radius:20px; box-shadow:0 32px 80px rgba(0,0,0,.28); overflow:hidden; animation:popIn .22s cubic-bezier(.16,1,.3,1) both; }
         .assign-panel { position:fixed; top:0; right:0; bottom:0; width:100%; max-width:480px; z-index:8000; background:var(--surface); border-left:1px solid var(--border); box-shadow:-24px 0 64px rgba(0,0,0,.12); animation:slideIn .2s cubic-bezier(.16,1,.3,1) both; display:flex; flex-direction:column; }
         .assign-backdrop { position:fixed; inset:0; z-index:7999; background:rgba(0,0,0,.3); backdrop-filter:blur(4px); }
+        .team-task-shell {
+          width:100%;
+          min-height:420px;
+          color:var(--text);
+          border:1px solid var(--border);
+          border-radius:18px;
+          background:color-mix(in srgb, var(--surface) 86%, var(--bg));
+          overflow:hidden;
+          box-shadow:var(--shadow-soft);
+        }
+        .team-task-top {
+          min-height:54px;
+          padding:0 18px;
+          display:flex;
+          align-items:center;
+          justify-content:space-between;
+          border-bottom:1px solid var(--border);
+        }
+        .team-task-top h2 {
+          margin:1px 0 0;
+          font-size:15px;
+          font-weight:700;
+          letter-spacing:-.1px;
+        }
+        .team-task-kicker {
+          margin:0;
+          font-size:11px;
+          font-weight:650;
+          color:var(--text-muted);
+          letter-spacing:.01em;
+        }
+        .team-task-plus {
+          width:30px;
+          height:30px;
+          border:0;
+          border-radius:9px;
+          background:transparent;
+          color:var(--text-muted);
+          font:inherit;
+          font-size:20px;
+          line-height:1;
+          cursor:pointer;
+        }
+        .team-task-plus:hover { background:var(--surface-2); color:var(--text); }
+        .team-task-toolbar {
+          min-height:52px;
+          padding:0 14px;
+          display:flex;
+          align-items:center;
+          gap:10px;
+          border-bottom:1px solid color-mix(in srgb, var(--border) 78%, transparent);
+        }
+        .team-task-filter {
+          height:30px;
+          padding:0 12px;
+          display:flex;
+          align-items:center;
+          border-radius:999px;
+          background:var(--surface-2);
+          border:1px solid var(--border);
+          color:var(--text);
+          font-size:12.5px;
+          font-weight:700;
+          white-space:nowrap;
+        }
+        .team-task-counts {
+          color:var(--text-muted);
+          font-size:12px;
+          font-weight:650;
+          white-space:nowrap;
+        }
+        .team-task-actions {
+          margin-left:auto;
+          display:flex;
+          align-items:center;
+          gap:8px;
+        }
+        .team-task-actions span {
+          width:32px;
+          height:32px;
+          border-radius:999px;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          background:var(--surface-2);
+          border:1px solid var(--border);
+          color:var(--text-muted);
+        }
+        .team-task-table-wrap { width:100%; overflow:auto; }
+        .team-task-head,
+        .team-task-row {
+          min-width:880px;
+          display:grid;
+          grid-template-columns:82px minmax(300px,1fr) 120px 140px 110px 150px;
+          align-items:center;
+          gap:18px;
+        }
+        .team-task-head {
+          min-height:42px;
+          padding:0 22px;
+          color:var(--text-muted);
+          font-size:12px;
+          font-weight:700;
+          border-bottom:1px solid var(--border);
+        }
+        .team-task-row {
+          min-height:58px;
+          padding:0 22px;
+          color:var(--text-secondary);
+          border-bottom:1px solid color-mix(in srgb, var(--border) 70%, transparent);
+          font-size:12.5px;
+        }
+        .team-task-row:hover { background:color-mix(in srgb, var(--surface-2) 62%, transparent); }
+        .team-task-id {
+          color:var(--text-muted);
+          font-variant-numeric:tabular-nums;
+          font-weight:650;
+        }
+        .team-task-name {
+          min-width:0;
+          display:flex;
+          align-items:center;
+          gap:10px;
+        }
+        .team-task-cube {
+          width:22px;
+          height:22px;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          color:var(--text-muted);
+          flex-shrink:0;
+        }
+        .team-task-name span:last-child {
+          min-width:0;
+          display:block;
+        }
+        .team-task-name strong {
+          display:block;
+          color:var(--text);
+          font-size:13px;
+          font-weight:700;
+          overflow:hidden;
+          text-overflow:ellipsis;
+          white-space:nowrap;
+        }
+        .team-task-name small {
+          display:block;
+          margin-top:2px;
+          color:var(--text-muted);
+          font-size:11.5px;
+          overflow:hidden;
+          text-overflow:ellipsis;
+          white-space:nowrap;
+        }
+        .team-task-priority {
+          color:var(--text-muted);
+          font-size:11.5px;
+          font-weight:800;
+          letter-spacing:.04em;
+        }
+        .team-task-priority.priority-critical,
+        .team-task-priority.priority-high { color:var(--text); }
+        .team-task-assigned {
+          min-width:0;
+          display:flex;
+          align-items:center;
+          gap:8px;
+        }
+        .team-task-assigned img,
+        .team-task-assigned span {
+          width:24px;
+          height:24px;
+          border-radius:50%;
+          flex-shrink:0;
+          object-fit:cover;
+          background:var(--surface-2);
+          border:1px solid var(--border);
+          color:var(--text-secondary);
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          font-size:10.5px;
+          font-weight:800;
+          font-style:normal;
+        }
+        .team-task-assigned em {
+          min-width:0;
+          overflow:hidden;
+          text-overflow:ellipsis;
+          white-space:nowrap;
+          font-style:normal;
+          color:var(--text-secondary);
+          font-weight:650;
+        }
+        .team-task-sprint {
+          color:var(--text-secondary);
+          font-weight:700;
+          font-variant-numeric:tabular-nums;
+        }
+        .team-task-status {
+          width:max-content;
+          max-width:100%;
+          height:26px;
+          padding:0 10px;
+          display:flex;
+          align-items:center;
+          gap:7px;
+          border-radius:999px;
+          border:1px solid var(--border);
+          background:var(--surface-2);
+          color:var(--text-muted);
+          font-size:10.5px;
+          font-weight:850;
+          letter-spacing:.06em;
+          white-space:nowrap;
+        }
+        .team-task-status i {
+          width:9px;
+          height:9px;
+          border-radius:50%;
+          border:2px dotted currentColor;
+          flex-shrink:0;
+        }
+        .team-task-status.status-active {
+          color:#2f6fb2;
+          background:color-mix(in srgb, #dcecff 52%, var(--surface));
+          border-color:color-mix(in srgb, #8fb7e6 48%, var(--border));
+        }
+        .team-task-status.status-done {
+          color:var(--green);
+          background:color-mix(in srgb, var(--green) 12%, var(--surface));
+          border-color:color-mix(in srgb, var(--green) 32%, var(--border));
+        }
+        .team-task-status.status-done i {
+          border-style:solid;
+          background:currentColor;
+        }
+        .team-task-empty {
+          min-height:150px;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          padding:28px;
+          color:var(--text-muted);
+          font-size:13px;
+          text-align:center;
+          border-bottom:1px solid var(--border);
+        }
+        [data-theme="dark"] .team-task-status.status-active {
+          color:#8dbfff;
+          background:rgba(92, 140, 210, .14);
+          border-color:rgba(141, 191, 255, .22);
+        }
       `}</style>
 
       {/* ── Invite Modal ── */}
@@ -462,6 +919,15 @@ export default function TeamsPage() {
           </button>
         ))}
       </div>
+
+      {tab === 'tasks' && (
+        <TeamTasksTable
+          tasks={teamTasks}
+          projects={teamProjects}
+          members={members}
+          loading={teamTasksLoading}
+        />
+      )}
 
       {/* ────────────────────────────────────────────
           TAB — OVERVIEW / MEMBERS
