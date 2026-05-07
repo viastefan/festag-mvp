@@ -82,6 +82,14 @@ export default function FloatingBar({
         @media(max-width:768px) {
           .fbar-wrap { left: 16px; right: 16px; bottom: calc(88px + var(--safe-bottom)); justify-content: center; }
         }
+        [data-theme="read"] .fbar-copilot {
+          color: #4f4536;
+        }
+        [data-theme="read"] .fbar-copilot.active {
+          color: #1f1b15;
+          background: color-mix(in srgb, var(--surface-2) 76%, #d9cfb6 24%);
+          box-shadow: inset 0 0 0 1px rgba(38,33,24,0.16);
+        }
       `}</style>
       <div className="fbar-wrap">
         <div className="fbar">
@@ -109,7 +117,7 @@ export default function FloatingBar({
             aria-label="Copilot öffnen (⌘.)"
           >
             <span style={{ fontSize: 11, lineHeight: 1, opacity: .85 }}>✦</span>
-            Copilot
+            Tagro Copilot
           </button>
         </div>
       </div>

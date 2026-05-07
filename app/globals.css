@@ -137,6 +137,23 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
   --r:12px; --r-xs:8px; --r-sm:10px; --r-md:12px; --r-lg:16px; --r-xl:22px;
 }
+[data-theme="read"] body {
+  background:
+    radial-gradient(1200px 600px at 10% -10%, rgba(149,127,78,0.08), transparent 55%),
+    radial-gradient(1000px 520px at 100% 0%, rgba(104,88,56,0.06), transparent 50%),
+    var(--bg);
+}
+[data-theme="read"] .sidebar-inner {
+  background: color-mix(in srgb, var(--surface) 88%, #fff9ec 12%);
+  border-color: rgba(38,33,24,0.12);
+  box-shadow: 0 14px 34px rgba(28,25,20,.12);
+}
+[data-theme="read"] .ni-on {
+  background: color-mix(in srgb, var(--surface-2) 92%, #ddd3bb 8%);
+}
+[data-theme="read"] .proj-row.active {
+  background: color-mix(in srgb, var(--surface-2) 86%, #d6ccb3 14%);
+}
 
 html,body {
   background:var(--bg); color:var(--text);
