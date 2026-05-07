@@ -1,17 +1,15 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   ArrowsClockwise,
   Article,
   ChartLineUp,
-  ChatCircleDots,
   CreditCard,
   DownloadSimple,
   GearSix,
   GridFour,
-  Keyboard,
   Lifebuoy,
   LinkSimple,
   RocketLaunch,
@@ -63,10 +61,37 @@ export default function SidebarProfileFooter({
   const [designMenu, setDesignMenu] = useState(false)
   const [themeMode, setThemeMode] = useState<ThemeMode>('dark')
   const [userMenu, setUserMenu] = useState(false)
+  const [userMenuPosition, setUserMenuPosition] = useState({ left: 0, bottom: 0 })
+  const [designMenuPosition, setDesignMenuPosition] = useState({ left: 0, bottom: 0, width: 0 })
+  const footerRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
     setThemeMode(getTheme())
   }, [])
+
+  useEffect(() => {
+    function updatePosition() {
+      const rect = footerRef.current?.getBoundingClientRect()
+      if (!rect) return
+      setUserMenuPosition({
+        left: Math.max(16, rect.left),
+        bottom: Math.max(16, window.innerHeight - rect.top + 8),
+      })
+      setDesignMenuPosition({
+        left: Math.max(16, rect.left),
+        bottom: Math.max(16, window.innerHeight - rect.top + 8),
+        width: rect.width,
+      })
+    }
+
+    if (userMenu || designMenu) updatePosition()
+    window.addEventListener('resize', updatePosition)
+    window.addEventListener('scroll', updatePosition, true)
+    return () => {
+      window.removeEventListener('resize', updatePosition)
+      window.removeEventListener('scroll', updatePosition, true)
+    }
+  }, [userMenu, designMenu])
 
   const currentPlanLabel = planLabel(plan)
   const avatarFg = avatarTextColor(avatarColor)
@@ -90,38 +115,25 @@ export default function SidebarProfileFooter({
   ]
 
   return (
-    <div style={{ paddingTop: 8, marginTop: 2, position: 'relative', display: 'flex', alignItems: 'center', gap: 4 }}>
+    <div ref={footerRef} style={{ paddingTop: 8, marginTop: 2, position: 'relative', display: 'flex', alignItems: 'center', gap: 4, zIndex: 40 }}>
       {userMenu && (
         <>
-          <div style={{ position: 'fixed', inset: 0, zIndex: 1000 }} onClick={() => setUserMenu(false)} />
+          <div style={{ position: 'fixed', inset: 0, zIndex: 5000 }} onClick={() => setUserMenu(false)} />
           <div style={{
-            position: 'absolute',
-            bottom: 'calc(100% + 8px)',
-            left: 0,
+            position: 'fixed',
+            left: userMenuPosition.left,
+            bottom: userMenuPosition.bottom,
             width: 286,
-            maxWidth: 'min(286px, calc(100vw - 40px))',
+            maxWidth: 'min(286px, calc(100vw - 32px))',
             background: 'var(--surface)',
             border: '1px solid var(--border)',
-            borderRadius: 16,
+            borderRadius: 14,
             boxShadow: '0 16px 48px rgba(0,0,0,0.20), 0 4px 12px rgba(0,0,0,0.10)',
-            zIndex: 1001,
-            padding: '6px',
-            overflow: 'hidden auto',
-            maxHeight: 'min(72vh, 640px)',
+            zIndex: 5001,
+            padding: '8px',
+            overflow: 'hidden',
             animation: 'spf-pop .14s ease-out both',
           }}>
-            <p style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-muted)', padding: '8px 11px 6px', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {email}
-            </p>
-
-            <div style={{ padding: '4px 4px 2px' }}>
-              <div className="spf-search-row">
-                <ChatCircleDots size={17} color="var(--text-muted)" weight="regular" />
-                <span style={{ flex: 1 }}>Search for help...</span>
-                <Keyboard size={16} color="var(--text-muted)" weight="regular" />
-              </div>
-            </div>
-
             <p className="spf-section-label">Konto</p>
             {accountItems.map((item) => {
               const Icon = item.icon
@@ -134,8 +146,6 @@ export default function SidebarProfileFooter({
               )
             })}
 
-            <div style={{ height: 1, background: 'var(--border)', margin: '8px 6px' }} />
-
             <p className="spf-section-label">Workspace</p>
             {workspaceItems.map((item) => {
               const Icon = item.icon
@@ -146,8 +156,6 @@ export default function SidebarProfileFooter({
                 </Link>
               )
             })}
-
-            <div style={{ height: 1, background: 'var(--border)', margin: '8px 6px' }} />
 
             <p className="spf-section-label">What's new</p>
             {updateItems.map((item) => {
@@ -160,8 +168,6 @@ export default function SidebarProfileFooter({
               )
             })}
 
-            <div style={{ height: 1, background: 'var(--border)', margin: '8px 6px' }} />
-
             <button className="spf-menu-row" onClick={onLogout} style={{ width: '100%' }}>
               <SignOut size={17} color="var(--text-muted)" weight="regular" />
               <span style={{ flex: 1 }}>Abmelden</span>
@@ -172,17 +178,17 @@ export default function SidebarProfileFooter({
 
       {designMenu && (
         <>
-          <div style={{ position: 'fixed', inset: 0, zIndex: 1000 }} onClick={() => setDesignMenu(false)} />
+          <div style={{ position: 'fixed', inset: 0, zIndex: 5000 }} onClick={() => setDesignMenu(false)} />
           <div style={{
-            position: 'absolute',
-            bottom: 'calc(100% + 8px)',
-            left: 0,
-            right: 0,
+            position: 'fixed',
+            left: designMenuPosition.left,
+            bottom: designMenuPosition.bottom,
+            width: Math.max(180, designMenuPosition.width),
             background: 'var(--surface)',
             border: '1px solid var(--border)',
             borderRadius: 12,
             boxShadow: '0 16px 48px rgba(0,0,0,0.20), 0 4px 12px rgba(0,0,0,0.10)',
-            zIndex: 1001,
+            zIndex: 5001,
             padding: '6px',
             overflow: 'hidden',
             animation: 'spf-pop .14s ease-out both',
@@ -306,6 +312,7 @@ export default function SidebarProfileFooter({
           fontFamily: 'inherit',
           transition: 'background .1s',
           justifyContent: 'flex-start',
+          boxSizing: 'border-box',
         }}
         onMouseEnter={(event) => {
           if (!userMenu) event.currentTarget.style.background = 'var(--surface-2)'
@@ -382,6 +389,7 @@ export default function SidebarProfileFooter({
           fontFamily: 'inherit',
           transition: 'background .1s',
           color: 'var(--text-muted)',
+          boxSizing: 'border-box',
         }}
         onMouseEnter={(event) => {
           if (!designMenu) {
@@ -416,7 +424,7 @@ export default function SidebarProfileFooter({
           align-items: center;
           justify-content: flex-start;
           gap: 9px;
-          padding: 7px 10px;
+          padding: 6px 10px;
           border-radius: 8px;
           cursor: pointer;
           transition: background .08s;
@@ -426,27 +434,18 @@ export default function SidebarProfileFooter({
           background: transparent;
           text-decoration: none;
           color: var(--text);
-          font-size: 12.5px;
+          font-size: 12px;
           font-weight: 500;
           text-align: left;
+          box-sizing: border-box;
+          min-height: 34px;
         }
         .spf-menu-row:hover { background: var(--surface-2); }
-        .spf-search-row {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          padding: 10px 12px;
-          border-radius: 10px;
-          background: var(--surface-2);
-          color: var(--text-muted);
-          font-size: 12.5px;
-          font-weight: 500;
-        }
         .spf-section-label {
-          margin: 10px 0 4px;
-          padding: 0 12px;
+          margin: 8px 0 2px;
+          padding: 0 10px;
           color: var(--text-muted);
-          font-size: 11px;
+          font-size: 10.5px;
           font-weight: 700;
           letter-spacing: .04em;
           text-align: left;
