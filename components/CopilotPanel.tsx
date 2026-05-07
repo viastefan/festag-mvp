@@ -2,6 +2,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { createClient } from '@/lib/supabase/client'
+import TagroLogo from '@/components/TagroLogo'
 
 type Msg = { role: 'user' | 'ai'; text: string }
 
@@ -143,9 +144,7 @@ export default function CopilotPanel({ open, onClose }: { open: boolean; onClose
       {/* Header */}
       <div style={{ padding: '0 18px', height: 56, borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0, background: 'var(--card)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ width: 30, height: 30, borderRadius: 9, background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <span style={{ fontSize: 13, color: 'var(--accent-text)', fontWeight: 700 }}>✦</span>
-          </div>
+          <TagroLogo size={28} thinking={loading} />
           <div>
             <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', margin: 0, lineHeight: 1 }}>Tagro Copilot</p>
             <p style={{ fontSize: 10, color: 'var(--text-muted)', margin: '2px 0 0', lineHeight: 1 }}>AI-Assistent</p>
@@ -165,9 +164,7 @@ export default function CopilotPanel({ open, onClose }: { open: boolean; onClose
         {msgs.map((m, i) => (
           <div key={i} className={i === msgs.length - 1 ? 'cp-msg-in' : ''} style={{ display: 'flex', gap: 9, justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
             {m.role === 'ai' && (
-              <div style={{ width: 26, height: 26, borderRadius: 7, background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>
-                <span style={{ fontSize: 10, color: 'var(--accent-text)', fontWeight: 700 }}>✦</span>
-              </div>
+              <TagroLogo size={24} className="cp-msg-avatar" />
             )}
             <div style={{ maxWidth: '84%', padding: '9px 13px', borderRadius: m.role === 'ai' ? '3px 12px 12px 12px' : '12px 3px 12px 12px', background: m.role === 'ai' ? 'var(--card)' : 'var(--btn-prim)', border: m.role === 'ai' ? '1px solid var(--border)' : 'none', color: m.role === 'ai' ? 'var(--text)' : 'var(--btn-prim-text)' }}>
               <p style={{ fontSize: 13, lineHeight: 1.58, margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{m.text}</p>
@@ -176,9 +173,8 @@ export default function CopilotPanel({ open, onClose }: { open: boolean; onClose
         ))}
         {loading && (
           <div className="cp-msg-in" style={{ display: 'flex', gap: 9 }}>
-            <div style={{ width: 26, height: 26, borderRadius: 7, background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <span style={{ fontSize: 10, color: 'var(--accent-text)', fontWeight: 700 }}>✦</span>
-            </div>
+            <TagroLogo size={24} thinking />
+
             <div style={{ padding: '11px 13px', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '3px 12px 12px 12px', display: 'flex', gap: 4 }}>
               {[0,1,2].map(j => <span key={j} style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--text-muted)', animation: `pulse 1.1s ${j*.18}s ease-in-out infinite` }} />)}
             </div>

@@ -79,22 +79,72 @@ export default function CommandPalette() {
   const [dynamic, setDynamic] = useState<Cmd[]>([])
   const inputRef = useRef<HTMLInputElement>(null)
 
-  // Shortcut: Cmd/Ctrl+K
+  // Globale Shortcuts. Tippe in Inputs/Textareas → keine Trigger.
   useEffect(() => {
+    const isTyping = (t: EventTarget | null) => {
+      const el = t as HTMLElement | null
+      if (!el) return false
+      const tag = el.tagName
+      return tag === 'INPUT' || tag === 'TEXTAREA' || (el as any).isContentEditable
+    }
     const onKey = (e: KeyboardEvent) => {
       const isMeta = (e.metaKey || e.ctrlKey)
+
+      // ⌘K — Command Palette (immer)
       if (isMeta && e.key.toLowerCase() === 'k') {
+        e.preventDefault(); setOpen(o => !o); setQ(''); setIdx(0); return
+      }
+      // Esc schließt Palette
+      if (e.key === 'Escape' && open) { setOpen(false); return }
+
+      // Wenn Palette offen oder User tippt → restliche Shortcuts überspringen
+      if (open || isTyping(e.target)) return
+
+      // ⌘N → neues Projekt
+      if (isMeta && e.key.toLowerCase() === 'n' && !e.shiftKey) {
+        e.preventDefault(); router.push('/onboarding'); return
+      }
+      // ⌘, → Einstellungen
+      if (isMeta && e.key === ',') {
+        e.preventDefault(); router.push('/settings'); return
+      }
+      // ⌘. → Copilot toggle
+      if (isMeta && e.key === '.') {
         e.preventDefault()
-        setOpen(o => !o)
-        setQ('')
-        setIdx(0)
-      } else if (e.key === 'Escape' && open) {
-        setOpen(false)
+        window.dispatchEvent(new CustomEvent('toggle-copilot'))
+        return
+      }
+      // ⌘/ → Hilfe / Shortcuts-Übersicht
+      if (isMeta && e.key === '/') {
+        e.preventDefault()
+        window.dispatchEvent(new CustomEvent('show-shortcuts'))
+        return
+      }
+      // g → Schnell-Navigation (g d, g p, g r, g t, g a)
+      if (e.key === 'g' && !isMeta && !e.shiftKey && !e.altKey) {
+        const handler = (e2: KeyboardEvent) => {
+          window.removeEventListener('keydown', handler, true)
+          if (isTyping(e2.target)) return
+          const dest: Record<string,string> = {
+            d: '/dashboard',
+            p: '/dashboard',     // Projekte
+            r: '/relations',
+            t: '/dev/tasks',
+            a: '/ai',
+            m: '/messages',
+            s: '/settings',
+            b: '/billing',
+          }
+          const path = dest[e2.key.toLowerCase()]
+          if (path) { e2.preventDefault(); router.push(path) }
+        }
+        window.addEventListener('keydown', handler, { capture: true, once: true })
+        return
       }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [open])
+  }, [open, router])
 
   // Auto-Focus
   useEffect(() => {

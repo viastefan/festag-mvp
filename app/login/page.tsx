@@ -112,7 +112,7 @@ function ImagePanel({ view }: { view: View }) {
         </p>
       </div>
       <p style={{ position: 'absolute', bottom: 18, left: 48, fontSize: 10, color: 'rgba(255,255,255,.28)', letterSpacing: '.05em', zIndex: 2, lineHeight: 1.5 }}>
-        ©2026 Festag · Enjyn® Gruppe
+        ©2026 Festag · Stefan Dirnberger
       </p>
     </div>
   )

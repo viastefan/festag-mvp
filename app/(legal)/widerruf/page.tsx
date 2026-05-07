@@ -18,8 +18,7 @@ export default function WiderrufPage() {
       <h1>Widerrufsbelehrung</h1>
       <p className="lead">
         Verbraucher haben ein Widerrufsrecht nach Maßgabe der nachfolgenden Bestimmungen.
-        Vertrags­partner ist die <strong>Enjyn Gruppe</strong>, über welche festag seine
-        Geschäftspraktiken abwickelt.
+        Vertrags­partner ist <strong>Stefan Dirnberger</strong>, Inhaber von festag.
       </p>
 
       <h2>Widerrufsrecht</h2>
@@ -37,11 +36,11 @@ export default function WiderrufPage() {
       <div className="box">
         <p style={{ margin:0 }}>
           <strong>Adressat des Widerrufs:</strong><br/>
-          Enjyn® Gruppe<br/>
-          Bahnhofstraße 15<br/>
-          84079 Bruckberg<br/>
+          Stefan Dirnberger — festag<br/>
+          Lindenstraße 15<br/>
+          84036 Kumhausen<br/>
           Telefon: 08765 33 999 73<br/>
-          E-Mail: <a href="mailto:support@enjyn.de">support@enjyn.de</a>
+          E-Mail: <a href="mailto:stefandirnberger@viawen.com">stefandirnberger@viawen.com</a>
         </p>
       </div>
 
@@ -73,7 +72,7 @@ export default function WiderrufPage() {
 
       <h2>Muster-Widerrufsformular</h2>
       <div className="box">
-        <p style={{ margin:0, whiteSpace:'pre-line', fontSize:13.5 }}>{`An: Enjyn® Gruppe, Bahnhofstraße 15, 84079 Bruckberg, support@enjyn.de
+        <p style={{ margin:0, whiteSpace:'pre-line', fontSize:13.5 }}>{`An: Stefan Dirnberger — festag, Lindenstraße 15, 84036 Kumhausen, stefandirnberger@viawen.com
 
 Hiermit widerrufe(n) ich/wir (*) den von mir/uns (*) abgeschlossenen
 Vertrag über die Erbringung der folgenden Dienstleistung:

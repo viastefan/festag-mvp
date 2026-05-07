@@ -46,15 +46,9 @@ export default function ImpressumPage() {
 
       <h2>Zahlungsabwicklung</h2>
       <p>
-        Rechnungen und Zahlungen werden derzeit über die <strong>Enjyn® Gruppe</strong> entgegengenommen.
-        Die Enjyn® Gruppe fungiert dabei ausschließlich als Zahlungsstelle; inhaltlich und rechtlich
-        verantwortlich für festag ist Stefan Dirnberger.
-      </p>
-
-      {/* Co-founder — subdued, small */}
-      <p style={{ marginTop:8, fontSize:12.5, color:'var(--text-muted)', lineHeight:1.6 }}>
-        Co-Founder &amp; technische Zahlungsinfrastruktur: Ramon Dehner, Enjyn® Gruppe,
-        Bahnhofstraße 15, 84079 Bruckberg.
+        Rechnungen und Zahlungen werden ausschließlich als technischer Zahlungsdienstleister über die
+        <strong> Enjyn® Gruppe</strong> entgegengenommen. Inhaltlich und rechtlich verantwortlich
+        für festag ist allein Stefan Dirnberger.
       </p>
 
       <h2>EU-Streitschlichtung</h2>

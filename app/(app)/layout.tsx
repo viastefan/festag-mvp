@@ -27,6 +27,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     })
   }, [])
 
+  // Globale Shortcut-Bridges (vom CommandPalette dispatched)
+  useEffect(() => {
+    const onCopilot = () => setCopilotOpen(o => !o)
+    window.addEventListener('toggle-copilot', onCopilot)
+    return () => window.removeEventListener('toggle-copilot', onCopilot)
+  }, [])
+
   if (checking) return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)' }}>
       <div style={{ width: 24, height: 24, border: '2px solid var(--border)', borderTopColor: 'var(--text)', borderRadius: '50%', animation: 'spin .8s linear infinite' }} />

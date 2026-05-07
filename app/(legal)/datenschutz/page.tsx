@@ -41,7 +41,7 @@ export default function DatenschutzPage() {
       <ul>
         <li><strong>Account-Daten:</strong> E-Mail, Name, Profilbild (via Google/Apple OAuth)</li>
         <li><strong>Projektdaten:</strong> Inhalte die du in der App erstellst (Projekte, Tasks, Nachrichten)</li>
-        <li><strong>Zahlungsdaten:</strong> Verarbeitung über die Enjyn Banking-API (SEPA-Referenz, Beträge — keine Kontodaten bei uns gespeichert)</li>
+        <li><strong>Zahlungsdaten:</strong> Verarbeitung über die Enjyn® Gruppe als technischen Zahlungsdienstleister (SEPA-Referenz, Beträge — keine Kontodaten bei uns gespeichert)</li>
         <li><strong>Technische Daten:</strong> IP-Adresse, Browser, Betriebssystem, Zeitstempel</li>
       </ul>
 
@@ -57,7 +57,7 @@ export default function DatenschutzPage() {
         <li><strong>Supabase</strong> (EU-Hosting) — Datenbank, Authentifizierung, Realtime</li>
         <li><strong>Vercel</strong> — Hosting der Web-App</li>
         <li><strong>Anthropic Claude</strong> — KI-Funktionen (Tagro AI). Keine personenbezogenen Daten in Prompts ohne Notwendigkeit.</li>
-        <li><strong>Enjyn Banking-API</strong> — Zahlungsabwicklung via SEPA</li>
+        <li><strong>Enjyn® Gruppe</strong> — technischer Zahlungsdienstleister (SEPA)</li>
       </ul>
 
       <h2>5. Cookies</h2>

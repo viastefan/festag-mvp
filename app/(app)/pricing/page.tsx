@@ -417,7 +417,7 @@ export default function PricingPage() {
       {/* Footer */}
       <div style={{ marginTop:36, padding:'18px 22px', background:'var(--surface)', border:'1px solid var(--border)', borderRadius:'var(--r-lg)', display:'flex', gap:14, justifyContent:'space-between', alignItems:'center', flexWrap:'wrap' }}>
         <span style={{ fontSize:12.5, color:'var(--text-secondary)', fontWeight:500 }}>
-          Server in Deutschland · DSGVO-konform · Zahlung über Enjyn · SEPA
+          Server in Deutschland · DSGVO-konform · Zahlung per SEPA
         </span>
         <Link href="/messages" style={{ fontSize:13, color:'var(--text)', fontWeight:600, textDecoration:'none' }}>
           Fragen? Schreib Tagro →

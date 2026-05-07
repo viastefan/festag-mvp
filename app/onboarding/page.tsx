@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import ChatMarkdown from '@/components/ChatMarkdown'
+import TagroLogo from '@/components/TagroLogo'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
@@ -356,9 +357,7 @@ export default function OnboardingPage() {
           {/* Header */}
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'16px 22px', borderBottom:'1px solid var(--border)' }}>
             <div style={{ display:'flex', alignItems:'center', gap:9 }}>
-              <div style={{ width:26, height:26, borderRadius:8, background:'rgba(139,92,246,.15)', border:'1px solid rgba(139,92,246,.25)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" strokeWidth="2.2" strokeLinecap="round"><path d="M12 2L9 9H2l5.5 4-2 7L12 16l6.5 4-2-7L22 9h-7z"/></svg>
-              </div>
+              <TagroLogo size={26} thinking={aiLoading} />
               <div>
                 <span style={{ fontSize:13.5, fontWeight:700, color:'var(--text)', letterSpacing:'-.1px' }}>Tagro AI</span>
                 <span style={{ fontSize:11, color:'var(--text-muted)', marginLeft:7 }}>· Neues Projekt</span>

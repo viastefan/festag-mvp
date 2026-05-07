@@ -280,7 +280,7 @@ export default function AddonsPage() {
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 14 }}>
         <div>
           <h1>Marketplace</h1>
-          <p>{CATALOG.length} Add-ons für dein Projekt · Zahlung über <strong>Enjyn</strong></p>
+          <p>{CATALOG.length} Add-ons für dein Projekt · Zahlung per SEPA</p>
         </div>
         {hasPending && (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>

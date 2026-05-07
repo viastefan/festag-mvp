@@ -28,6 +28,12 @@ export default function RelationsLayout({ children }: { children: React.ReactNod
     })
   }, [])
 
+  useEffect(() => {
+    const onCopilot = () => setCopilotOpen(o => !o)
+    window.addEventListener('toggle-copilot', onCopilot)
+    return () => window.removeEventListener('toggle-copilot', onCopilot)
+  }, [])
+
   // Auth-Check laeuft noch
   if (checking) return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)' }}>

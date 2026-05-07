@@ -17,14 +17,15 @@ export default function AGBPage() {
 
       <h1>Allgemeine Geschäftsbedingungen</h1>
       <p className="lead">
-        Diese AGB regeln das Vertragsverhältnis zwischen dir und der&nbsp;
-        <strong>Enjyn® Gruppe</strong> (Inhaber: Ramon Dehner, Bahnhofstraße 15, 84079 Bruckberg),
-        über welche das Projekt festag seine Geschäftspraktiken abwickelt.
+        Diese AGB regeln das Vertragsverhältnis zwischen dir und&nbsp;
+        <strong>Stefan Dirnberger</strong> (Lindenstraße 15, 84036 Kumhausen),
+        Inhaber des Projekts festag. Zahlungen werden technisch über die Enjyn® Gruppe
+        als Zahlungsdienstleister abgewickelt.
       </p>
 
       <h2>§ 1 Geltungsbereich</h2>
       <p>
-        Für alle Verträge, die zwischen der Enjyn Gruppe (nachfolgend „Anbieter") und dem Kunden
+        Für alle Verträge, die zwischen Stefan Dirnberger (nachfolgend „Anbieter") und dem Kunden
         über die Plattform festag geschlossen werden, gelten ausschließlich die nachfolgenden
         Allgemeinen Geschäftsbedingungen in der zum Zeitpunkt des Vertragsschlusses gültigen Fassung.
       </p>
@@ -39,7 +40,7 @@ export default function AGBPage() {
       <h2>§ 3 Vertragsschluss</h2>
       <ol>
         <li>Der Kunde wählt ein Paket bzw. Add-On und löst die Bestellung über die Plattform aus.</li>
-        <li>Mit Eingang der Zahlung über die Enjyn Banking-API (SEPA-Überweisung mit eindeutigem Verwendungszweck) kommt der Vertrag zustande.</li>
+        <li>Mit Eingang der Zahlung (SEPA-Überweisung mit eindeutigem Verwendungszweck, abgewickelt durch den Zahlungsdienstleister) kommt der Vertrag zustande.</li>
         <li>Der Kunde erhält eine Bestätigung per E-Mail.</li>
       </ol>
 
