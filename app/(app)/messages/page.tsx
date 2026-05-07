@@ -11,6 +11,15 @@ type Project = {
 }
 type Msg = { id: string; message: string; created_at: string; sender_id: string | null; is_ai?: boolean }
 type SenderProfile = { id: string; first_name?: string; full_name?: string; avatar_url?: string|null; role?: string }
+type MessageTab = 'all' | 'client' | 'team' | 'system' | 'unread'
+
+const MESSAGE_TABS: { id: MessageTab; label: string }[] = [
+  { id: 'all', label: 'Alle' },
+  { id: 'client', label: 'Client' },
+  { id: 'team', label: 'Team' },
+  { id: 'system', label: 'System' },
+  { id: 'unread', label: 'Ungelesen' },
+]
 
 /** Verified blue checkmark — used for Tagro AI and Festag-verified devs. */
 function VerifiedTick({ animate = false, size = 13 }: { animate?: boolean; size?: number }) {
@@ -58,6 +67,7 @@ export default function MessagesPage() {
   const [showListMobile, setShowListMobile] = useState(true)
   const [profiles, setProfiles] = useState<Record<string, SenderProfile>>({})
   const [newAnimIds, setNewAnimIds] = useState<Set<string>>(new Set())
+  const [messageTab, setMessageTab] = useState<MessageTab>('all')
   const feedRef = useRef<HTMLDivElement>(null)
   const sb = createClient()
 
@@ -164,6 +174,9 @@ export default function MessagesPage() {
         .msgs-list { border-right: 1px solid var(--border); display: flex; flex-direction: column; min-height: 0; background: var(--surface); }
         .msgs-chat { display: flex; flex-direction: column; min-height: 0; background: var(--bg); }
         .msgs-back { display: none; }
+        .msgs-tabs { display:flex; gap:4px; padding:3px; border:1px solid var(--border); border-radius:10px; background:var(--surface); width:max-content; max-width:100%; overflow:auto; margin-bottom:12px; flex-shrink:0; }
+        .msgs-tab { height:30px; padding:0 11px; border:0; border-radius:7px; background:transparent; color:var(--text-secondary); font:inherit; font-size:12px; font-weight:650; white-space:nowrap; cursor:pointer; }
+        .msgs-tab.on { background:var(--surface-2); color:var(--text); }
         @media (max-width: 820px) {
           .msgs-grid { grid-template-columns: 1fr; }
           .msgs-list { display: ${showListMobile ? 'flex' : 'none'} !important; border-right: none; }
@@ -171,6 +184,21 @@ export default function MessagesPage() {
           .msgs-back { display: inline-flex !important; }
         }
       `}</style>
+
+      <div className="msgs-tabs" role="tablist" aria-label="Nachrichten Ansichten">
+        {MESSAGE_TABS.map(tab => (
+          <button
+            key={tab.id}
+            type="button"
+            className={`msgs-tab${messageTab === tab.id ? ' on' : ''}`}
+            onClick={() => setMessageTab(tab.id)}
+            role="tab"
+            aria-selected={messageTab === tab.id}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
 
       {loading ? (
         <div style={{ display: 'flex', justifyContent: 'center', padding: 60 }}>

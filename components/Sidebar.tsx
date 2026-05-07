@@ -44,48 +44,14 @@ type NavItem = { href: string; icon: string; label: string; badge?: number }
 
 const CLIENT_MAIN: NavItem[] = [
   { href:'/relations/messages', icon:'inbox', label:'Inbox' },
-  { href:'/project/current', icon:'task', label:'Meine Aufgaben' },
-  { href:'/dashboard', icon:'home', label:'Alle Projekte' },
+  { href:'/tasks', icon:'task', label:'Aufgaben' },
+  { href:'/dashboard', icon:'home', label:'Projekte' },
   { href:'/reports', icon:'activity', label:'Statusberichte' },
   { href:'/messages', icon:'chat', label:'Nachrichten' },
   { href:'/teams', icon:'team', label:'Teams' },
   { href:'/documents', icon:'doc', label:'Dokumente' },
   { href:'/relations/notes', icon:'card', label:'Notizen' },
   { href:'/ai', icon:'sparkle', label:'Tagro AI' },
-]
-const CLIENT_PROJECT: NavItem[] = [
-  { href:'/project/current', icon:'project', label:'Mein Projekt' },
-  { href:'/reports', icon:'activity', label:'Statusberichte' },
-  { href:'/ai', icon:'sparkle', label:'AI-Kontext' },
-  { href:'/documents', icon:'doc', label:'Dokumente' },
-]
-const CLIENT_MESSAGES: NavItem[] = [
-  { href:'/relations/messages', icon:'chat', label:'Client-Kommunikation' },
-  { href:'/messages', icon:'team', label:'Team-Kommunikation' },
-]
-const CLIENT_TASKS: NavItem[] = [
-  { href:'/project/current', icon:'task', label:'Meine Tasks' },
-  { href:'/teams?view=team-tasks', icon:'check', label:'Team Tasks' },
-  { href:'/teams?view=sprint', icon:'activity', label:'Sprint Board' },
-  { href:'/teams?view=blockers', icon:'bell', label:'Blocker' },
-]
-const CLIENT_TEAMS: NavItem[] = [
-  { href:'/teams?view=overview', icon:'team', label:'Übersicht' },
-  { href:'/teams?view=members', icon:'user', label:'Mitglieder' },
-  { href:'/teams?view=scenarios', icon:'sparkle', label:'Szenarien' },
-  { href:'/teams?view=invitations', icon:'chat', label:'Einladungen' },
-  { href:'/teams?view=roles', icon:'settings', label:'Rollen & Rechte' },
-  { href:'/teams?view=seats', icon:'billing', label:'Seats' },
-  { href:'/teams?view=assigned-projects', icon:'project', label:'Zugewiesene Projekte' },
-]
-const CLIENT_KNOWLEDGE: NavItem[] = [
-  { href:'/documents', icon:'doc', label:'Dokumente' },
-  { href:'/relations/notes', icon:'card', label:'Notizen' },
-]
-const CLIENT_TAGRO: NavItem[] = [
-  { href:'/ai', icon:'sparkle', label:'Projektkontext' },
-  { href:'/ai?mode=plan-task', icon:'task', label:'Task planen' },
-  { href:'/reports', icon:'activity', label:'Status zusammenfassen' },
 ]
 const CLIENT_TOOLS: NavItem[] = [
   { href:'/estimator',  icon:'estimate', label:'Preisschätzer' },
@@ -289,16 +255,6 @@ export default function Sidebar() {
     )
   }
 
-  // ── Flat section (no header) ──
-  function FlatSection({ label, items }: { label: string; items: NavItem[] }) {
-    return (
-      <div style={{ marginBottom:6 }}>
-        <p style={{ fontSize:10.5, fontWeight:600, color:'var(--text-muted)', padding:'5px 9px 2px', margin:0, opacity:.55 }}>{label}</p>
-        <NavItems items={items} />
-      </div>
-    )
-  }
-
   return (
     <>
       <style>{`
@@ -424,8 +380,17 @@ export default function Sidebar() {
             {isClient && (
               <Section
                 label="Aktuelle Projekte"
-                expanded={projects.length > 0}
-                onToggle={() => {}}
+                expanded={projExp}
+                onToggle={() => setProjExp(v => !v)}
+                action={
+                  <Link
+                    href="/onboarding"
+                    title="Neues Projekt"
+                    style={{ width:20, height:20, borderRadius:6, display:'flex', alignItems:'center', justifyContent:'center', color:'var(--text-muted)', textDecoration:'none' }}
+                  >
+                    <Ico name="plus" sz={12} c="currentColor" weight="regular" />
+                  </Link>
+                }
               >
                 {projects.map(p => {
                   const on = pathname === `/project/${p.id}`
@@ -475,12 +440,6 @@ export default function Sidebar() {
 
               </Section>
             )}
-
-            <FlatSection label="Nachrichten" items={CLIENT_MESSAGES} />
-            <FlatSection label="Tasks" items={CLIENT_TASKS} />
-            <FlatSection label="Teams" items={CLIENT_TEAMS} />
-            <FlatSection label="Dokumente & Notizen" items={CLIENT_KNOWLEDGE} />
-            <FlatSection label="Tagro AI" items={CLIENT_TAGRO} />
 
             {/* Tools — collapsible */}
             <Section

@@ -34,6 +34,16 @@ type Assignment = {
   note: string
 }
 
+type TeamTab =
+  | 'overview'
+  | 'members'
+  | 'scenarios'
+  | 'invitations'
+  | 'roles'
+  | 'seats'
+  | 'assigned'
+  | 'communication'
+
 // ── Task areas ────────────────────────────────────────────────────────────
 
 const TASK_AREAS: TaskArea[] = [
@@ -101,6 +111,36 @@ const SCENARIOS = [
   },
 ]
 
+const TEAM_TABS: { id: TeamTab; label: string }[] = [
+  { id: 'overview', label: 'Übersicht' },
+  { id: 'members', label: 'Mitglieder' },
+  { id: 'scenarios', label: 'Szenarien' },
+  { id: 'invitations', label: 'Einladungen' },
+  { id: 'roles', label: 'Rollen & Rechte' },
+  { id: 'seats', label: 'Seats' },
+  { id: 'assigned', label: 'Zugewiesene Projekte' },
+  { id: 'communication', label: 'Team-Kommunikation' },
+]
+
+function TeamsTabPlaceholder({ title, description, rows }: { title: string; description: string; rows: string[] }) {
+  return (
+    <div style={{ background:'var(--surface)', border:'1px solid var(--border)', borderRadius:'var(--r-lg)', overflow:'hidden', maxWidth:760 }}>
+      <div style={{ padding:'18px 20px', borderBottom:'1px solid var(--border)' }}>
+        <h3 style={{ margin:0, fontSize:15, fontWeight:700, letterSpacing:'-.2px' }}>{title}</h3>
+        <p style={{ margin:'4px 0 0', fontSize:12.5, color:'var(--text-muted)', lineHeight:1.5 }}>{description}</p>
+      </div>
+      <div>
+        {rows.map((row) => (
+          <div key={row} style={{ display:'flex', alignItems:'center', gap:10, minHeight:44, padding:'0 20px', borderBottom:'1px solid var(--border)' }}>
+            <span style={{ width:6, height:6, borderRadius:'50%', background:'var(--text-muted)', opacity:.42, flexShrink:0 }} />
+            <span style={{ fontSize:12.5, fontWeight:600, color:'var(--text-secondary)' }}>{row}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 // ── Component ─────────────────────────────────────────────────────────────
 
 export default function TeamsPage() {
@@ -112,7 +152,7 @@ export default function TeamsPage() {
   const [invRole,    setInvRole]    = useState('collaborator')
   const [invSent,    setInvSent]    = useState(false)
   const [invSending, setInvSending] = useState(false)
-  const [tab,        setTab]        = useState<'team'|'models'>('team')
+  const [tab,        setTab]        = useState<TeamTab>('overview')
 
   // Assignment state
   const [assigningMember, setAssigningMember] = useState<Member | null>(null)
@@ -229,8 +269,9 @@ export default function TeamsPage() {
         .area-chip { transition:border-color .12s, background .12s; cursor:pointer; }
         .area-chip:hover { border-color:var(--border-strong) !important; }
         .area-chip.on { background:var(--nav-on) !important; border-color:var(--text) !important; }
-        .tab-btn { padding:6px 14px; border-radius:8px; font-size:13px; font-weight:600; border:none; background:transparent; color:var(--text-muted); cursor:pointer; font-family:inherit; transition:color .12s, background .12s; }
-        .tab-btn.on { background:var(--surface-2); color:var(--text); }
+        .team-tabs { display:flex; gap:2px; margin-bottom:24px; padding:3px; background:var(--surface-2); border-radius:10px; width:fit-content; max-width:100%; overflow:auto; }
+        .tab-btn { padding:6px 14px; border-radius:8px; font-size:13px; font-weight:600; border:none; background:transparent; color:var(--text-muted); cursor:pointer; font-family:inherit; transition:color .12s, background .12s; white-space:nowrap; }
+        .tab-btn.on { background:var(--surface); color:var(--text); }
         .inv-overlay { position:fixed; inset:0; z-index:9000; display:flex; align-items:center; justify-content:center; padding:20px; }
         .inv-backdrop { position:absolute; inset:0; background:rgba(0,0,0,.55); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); }
         .inv-panel { position:relative; width:100%; max-width:460px; background:var(--surface); border:1px solid var(--border); border-radius:20px; box-shadow:0 32px 80px rgba(0,0,0,.28); overflow:hidden; animation:popIn .22s cubic-bezier(.16,1,.3,1) both; }
@@ -414,18 +455,18 @@ export default function TeamsPage() {
       </div>
 
       {/* ── Tabs ── */}
-      <div style={{ display:'flex', gap:2, marginBottom:24, padding:'3px', background:'var(--surface-2)', borderRadius:10, width:'fit-content' }}>
-        {[{id:'team',label:'Team & Aufgaben'},{id:'models',label:'Team-Modelle'}].map(t => (
-          <button key={t.id} className={`tab-btn${tab===t.id?' on':''}`} onClick={() => setTab(t.id as any)}>
+      <div className="team-tabs" role="tablist" aria-label="Teams Ansichten">
+        {TEAM_TABS.map(t => (
+          <button key={t.id} className={`tab-btn${tab===t.id?' on':''}`} onClick={() => setTab(t.id)} role="tab" aria-selected={tab === t.id}>
             {t.label}
           </button>
         ))}
       </div>
 
       {/* ────────────────────────────────────────────
-          TAB 1 — TEAM & AUFGABEN
+          TAB — OVERVIEW / MEMBERS
       ──────────────────────────────────────────── */}
-      {tab === 'team' && (
+      {(tab === 'overview' || tab === 'members') && (
         <div style={{ display:'grid', gridTemplateColumns:'1fr 320px', gap:14, alignItems:'start' }}>
 
           {/* Members grid */}
@@ -564,9 +605,9 @@ export default function TeamsPage() {
       )}
 
       {/* ────────────────────────────────────────────
-          TAB 2 — TEAM MODELLE
+          TAB — SZENARIEN
       ──────────────────────────────────────────── */}
-      {tab === 'models' && (
+      {tab === 'scenarios' && (
         <div>
           <div style={{ marginBottom:20, maxWidth:580 }}>
             <p style={{ fontSize:13.5, color:'var(--text-secondary)', margin:0, lineHeight:1.6 }}>
@@ -631,6 +672,46 @@ export default function TeamsPage() {
             </p>
           </div>
         </div>
+      )}
+
+      {tab === 'invitations' && (
+        <TeamsTabPlaceholder
+          title="Einladungen"
+          description="Invite Flow, PIN-Zugang und ausstehende Einladungen liegen hier, nicht in der Hauptsidebar."
+          rows={['E-Mail Einladung vorbereiten', 'PIN Einladung anzeigen', 'Ausstehende Einladungen', 'Einladung erneut senden oder widerrufen']}
+        />
+      )}
+
+      {tab === 'roles' && (
+        <TeamsTabPlaceholder
+          title="Rollen & Rechte"
+          description="Client-seitige Rollen, Sichtbarkeit und Projektzugriffe werden als Administration innerhalb der Teams-Seite geführt."
+          rows={['Owner / Admin', 'Founder / Co-Founder', 'Developer / Lead Developer', 'Agency Developer', 'Viewer']}
+        />
+      )}
+
+      {tab === 'seats' && (
+        <TeamsTabPlaceholder
+          title="Seats"
+          description="Aktive Mitarbeit braucht Seats. Lesen und eingeschraenkter Zugriff bleiben sauber davon getrennt."
+          rows={['Aktive Seats', 'Seat erforderlich', 'Free Viewer', 'Upgrade Hinweis']}
+        />
+      )}
+
+      {tab === 'assigned' && (
+        <TeamsTabPlaceholder
+          title="Zugewiesene Projekte"
+          description="Developer und Teammitglieder sehen nur die Projekte, die ihnen wirklich zugewiesen wurden."
+          rows={['Systemische Beratung Praxis-Website', 'Praxis-Website', 'Festag Client Panel']}
+        />
+      )}
+
+      {tab === 'communication' && (
+        <TeamsTabPlaceholder
+          title="Team-Kommunikation"
+          description="Operative Abstimmung bleibt im Teams-Kontext. Die Sidebar bleibt trotzdem ruhig."
+          rows={['Team Update', 'Technische Rueckfrage', 'Blocker Meldung', 'Tagro Zusammenfassung']}
+        />
       )}
     </div>
   )

@@ -19,6 +19,7 @@ type ClientAppShellProps = {
 
 const CONTEXT_LABELS: { match: (pathname: string) => boolean; label: string }[] = [
   { match: (pathname) => pathname.startsWith('/relations/messages') || pathname === '/messages', label: 'Nachrichten' },
+  { match: (pathname) => pathname === '/tasks', label: 'Aufgaben' },
   { match: (pathname) => pathname.startsWith('/relations/projects') || pathname.startsWith('/project/') || pathname === '/dashboard', label: 'Projekte' },
   { match: (pathname) => pathname.startsWith('/relations/documents') || pathname === '/documents', label: 'Dokumente' },
   { match: (pathname) => pathname.startsWith('/relations/notes'), label: 'Notizen' },
