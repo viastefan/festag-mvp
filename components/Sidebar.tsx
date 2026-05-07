@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useState, useEffect } from 'react'
 import SidebarProfileFooter from '@/components/SidebarProfileFooter'
@@ -113,6 +113,7 @@ const ROLE_LABEL: Record<string,string> = { client:'Client', dev:'Developer', ad
 
 export default function Sidebar() {
   const pathname  = usePathname()
+  const searchParams = useSearchParams()
   const router = useRouter()
   const [uid,      setUid]      = useState<string|null>(null)
   const [email,    setEmail]    = useState('')
@@ -234,7 +235,14 @@ export default function Sidebar() {
   const logout  = async () => { await createClient().auth.signOut(); window.location.href='/login' }
   const resolve = (h: string) => h==='/project/current'?(projId?`/project/${projId}`:'/dashboard'):h
   const isOn    = (h: string) => {
-    const cleanHref = h.split('?')[0]
+    const [cleanHref, query] = h.split('?')
+    const targetParams = new URLSearchParams(query ?? '')
+    const targetView = targetParams.get('view')
+    const currentView = searchParams.get('view')
+
+    if (targetView) {
+      return pathname === cleanHref && currentView === targetView
+    }
     if (cleanHref==='/dashboard') return pathname==='/dashboard'
     if (cleanHref==='/dev')       return pathname==='/dev'
     if (cleanHref==='/project/current') return pathname.startsWith('/project/')
@@ -279,7 +287,7 @@ export default function Sidebar() {
     return (
       <div style={{ marginBottom:4 }}>
         <div style={{ display:'flex', alignItems:'center', padding:'2px 6px 4px' }}>
-          <button onClick={onToggle} style={{
+          <button className="sb-icon-btn" onClick={onToggle} style={{
             display:'flex', alignItems:'center', gap:4, flex:1,
             background:'transparent', border:'none', cursor:'pointer',
             fontFamily:'inherit', padding:0, textAlign:'left',
@@ -342,6 +350,7 @@ export default function Sidebar() {
           </Link>
           {action ? (
             <button
+              className="sb-icon-btn"
               type="button"
               onClick={(e) => { e.preventDefault(); e.stopPropagation(); action() }}
               title={actionTitle}
@@ -351,6 +360,7 @@ export default function Sidebar() {
             </button>
           ) : null}
           <button
+            className="sb-icon-btn"
             type="button"
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggle() }}
             aria-label={`${label} ein- oder ausklappen`}
@@ -397,6 +407,10 @@ export default function Sidebar() {
         .ni-off:hover { background:rgba(0,0,0,0.03); color:var(--text); }
         [data-theme="dark"] .ni-off:hover { background:rgba(255,255,255,0.045); }
         [data-theme="read"] .ni-off:hover { background:rgba(0,0,0,0.04); }
+        .ni:focus { outline: none; }
+        .ni:focus-visible {
+          box-shadow: 0 0 0 2px var(--focus-ring, rgba(64, 105, 225, 0.35));
+        }
 
         /* ── Project row ── */
         .proj-row {
@@ -415,6 +429,15 @@ export default function Sidebar() {
         .proj-row.proj-new { opacity:.55; transition:opacity .12s; }
         .proj-row.proj-new:hover { opacity:1; background:rgba(0,0,0,0.035); }
         [data-theme="dark"] .proj-row.proj-new:hover { background:rgba(255,255,255,0.05); }
+        .proj-row:focus { outline: none; }
+        .proj-row:focus-visible {
+          box-shadow: 0 0 0 2px var(--focus-ring, rgba(64, 105, 225, 0.35));
+        }
+
+        .sb-icon-btn:focus { outline: none; }
+        .sb-icon-btn:focus-visible {
+          box-shadow: 0 0 0 2px var(--focus-ring, rgba(64, 105, 225, 0.35));
+        }
 
         /* ── User dropdown row ── */
         .usr-row {
@@ -475,6 +498,7 @@ export default function Sidebar() {
             </Link>
           <div style={{ display:'flex', alignItems:'center', gap:4 }}>
               <button
+                className="sb-icon-btn"
                 type="button"
                 onClick={() => window.dispatchEvent(new CustomEvent('open-command-palette'))}
                 title="Suchen"
@@ -574,6 +598,7 @@ export default function Sidebar() {
                     <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Projekte</span>
                   </Link>
                   <button
+                    className="sb-icon-btn"
                     type="button"
                     onClick={(e) => { e.preventDefault(); e.stopPropagation(); setTeamsOpen(true) }}
                     title="Team-Projekt erstellen oder Mitglied einladen"
