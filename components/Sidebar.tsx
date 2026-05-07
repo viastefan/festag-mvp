@@ -299,7 +299,7 @@ export default function Sidebar() {
               <path d="M9 6l6 6-6 6"/>
             </svg>
           </button>
-          {action}
+          {action ? <div className="sb-section-action">{action}</div> : null}
         </div>
         <div style={{
           overflow:'hidden',
@@ -340,32 +340,21 @@ export default function Sidebar() {
         <div
           className={`ni ${active ? 'ni-on' : 'ni-off'}`}
           style={{
-            display: 'grid',
-            gridTemplateColumns: action ? '18px minmax(0,1fr) 20px 20px' : '18px minmax(0,1fr) 20px',
+            display: 'flex',
+            alignItems: 'center',
             gap: 6,
             paddingRight: 6,
           }}
         >
           <Link
             href={resolve(href)}
-            style={{ display: 'contents', textDecoration: 'none', color: 'inherit' }}
+            style={{ display: 'flex', alignItems: 'center', gap: 7, minWidth: 0, flex: 1, textDecoration: 'none', color: 'inherit', height: '100%' }}
           >
             <span style={{ display:'flex', alignItems:'center', justifyContent:'center' }}>
               <Ico name={icon} sz={14} c={active ? 'var(--text)' : 'var(--text-muted)'} weight={active ? 'bold' : 'regular'} />
             </span>
             <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
           </Link>
-          {action ? (
-            <button
-              className="sb-icon-btn"
-              type="button"
-              onClick={(e) => { e.preventDefault(); e.stopPropagation(); action() }}
-              title={actionTitle}
-              style={{ width: 20, height: 20, border: 'none', background: 'transparent', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', borderRadius: 6, flexShrink: 0 }}
-            >
-              <Ico name="plus" sz={12} c="currentColor" weight="regular" />
-            </button>
-          ) : null}
           <button
             className="sb-icon-btn"
             type="button"
@@ -405,6 +394,8 @@ export default function Sidebar() {
           cursor:pointer; text-decoration:none; color:inherit;
           transition:background .12s, color .12s;
           white-space:nowrap; overflow:hidden;
+          width:calc(100% - 4px);
+          box-sizing:border-box;
           margin:0 2px;
         }
         .ni-on  { background:rgba(0,0,0,0.048); font-weight:600; color:var(--text); }
@@ -433,6 +424,18 @@ export default function Sidebar() {
         .sb-section-head button:active {
           transform: none;
         }
+        .sb-section-action {
+          opacity: 0;
+          pointer-events: none;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+        }
+        .sb-section-head:hover .sb-section-action,
+        .sb-section-head:focus-within .sb-section-action {
+          opacity: 1;
+          pointer-events: auto;
+        }
 
         /* ── Project row ── */
         .proj-row {
@@ -443,7 +446,10 @@ export default function Sidebar() {
           cursor:pointer; text-decoration:none;
           color:var(--text-muted);
           transition:background .08s, color .08s;
-          overflow:hidden; margin:0 2px;
+          overflow:hidden;
+          width:calc(100% - 4px);
+          box-sizing:border-box;
+          margin:0 2px;
         }
         .proj-row:hover { background:rgba(0,0,0,0.04); color:var(--text); }
         [data-theme="dark"] .proj-row:hover { background:rgba(255,255,255,0.05); }
@@ -544,6 +550,17 @@ export default function Sidebar() {
                 label="Workspace"
                 expanded={workspaceExp}
                 onToggle={() => setWorkspaceExp(v => !v)}
+                action={
+                  <button
+                    className="sb-icon-btn"
+                    type="button"
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); router.push('/onboarding') }}
+                    title="Neues Projekt"
+                    style={{ width: 18, height: 18, border: 'none', background: 'transparent', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', borderRadius: 6 }}
+                  >
+                    <Ico name="plus" sz={11} c="currentColor" weight="regular" />
+                  </button>
+                }
               >
                 {isClient && (
                   <ExpandableNavSection
@@ -552,8 +569,6 @@ export default function Sidebar() {
                     label="Projekte"
                     expanded={projExp}
                     onToggle={() => setProjExp(v => !v)}
-                    action={() => router.push('/onboarding')}
-                    actionTitle="Neues Projekt"
                     activeOverride={pathname.startsWith('/project/')}
                   >
                     {projects.map(p => {
@@ -610,34 +625,36 @@ export default function Sidebar() {
                 label="Teams"
                 expanded={teamsExp}
                 onToggle={() => setTeamsExp(v => !v)}
+                action={
+                  <button
+                    className="sb-icon-btn"
+                    type="button"
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setTeamsOpen(true) }}
+                    title="Neues Team erstellen"
+                    style={{ width: 18, height: 18, border: 'none', background: 'transparent', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', borderRadius: 6 }}
+                  >
+                    <Ico name="plus" sz={11} c="currentColor" weight="regular" />
+                  </button>
+                }
               >
                 <div
                   className={`ni ${isOn('/teams?view=projects') ? 'ni-on' : 'ni-off'}`}
                   style={{
-                    display: 'grid',
-                    gridTemplateColumns: '18px minmax(0,1fr) 20px',
+                    display: 'flex',
+                    alignItems: 'center',
                     gap: 6,
                     paddingRight: 6,
                   }}
                 >
                   <Link
                     href={resolve('/teams?view=projects')}
-                    style={{ display: 'contents', textDecoration: 'none', color: 'inherit' }}
+                    style={{ display: 'flex', alignItems: 'center', gap: 7, minWidth: 0, flex: 1, textDecoration: 'none', color: 'inherit', height: '100%' }}
                   >
                     <span style={{ display:'flex', alignItems:'center', justifyContent:'center' }}>
                       <Ico name="project" sz={14} c={isOn('/teams?view=projects') ? 'var(--text)' : 'var(--text-muted)'} weight={isOn('/teams?view=projects') ? 'bold' : 'regular'} />
                     </span>
                     <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Projekte</span>
                   </Link>
-                  <button
-                    className="sb-icon-btn"
-                    type="button"
-                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setTeamsOpen(true) }}
-                    title="Team-Projekt erstellen oder Mitglied einladen"
-                    style={{ width: 20, height: 20, border: 'none', background: 'transparent', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', borderRadius: 6, flexShrink: 0 }}
-                  >
-                    <Ico name="plus" sz={12} c="currentColor" weight="regular" />
-                  </button>
                 </div>
                 <NavItems items={teamsNav.slice(1)} />
               </Section>
