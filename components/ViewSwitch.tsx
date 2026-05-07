@@ -26,9 +26,9 @@ type Tab = {
 }
 
 const TABS: Tab[] = [
-  { label: 'Relations', href: '/relations',  icon: <Handshake  size={13} weight="bold" /> },
-  { label: 'Festwerk',  href: '/dashboard',  icon: <House      size={13} weight="bold" /> },
-  { label: 'Teams',     trigger: 'teams',    icon: <UsersThree size={13} weight="bold" /> },
+  { label: 'Kunden',    href: '/relations',  icon: <Handshake  size={12} weight="bold" /> },
+  { label: 'Werk',      href: '/dashboard',  icon: <House      size={12} weight="bold" /> },
+  { label: 'Team',      trigger: 'teams',    icon: <UsersThree size={12} weight="bold" /> },
 ]
 
 function getActiveTab(pathname: string): number {
@@ -85,34 +85,23 @@ export default function ViewSwitch() {
             style={{
               position: 'relative',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              gap: 5, width: '100%', height: '100%',
+              gap: 4, width: '100%', height: '100%',
               borderRadius: 7,
-              fontSize: 11, fontWeight: isActive ? 700 : 500,
+              fontSize: 10.5, fontWeight: isActive ? 700 : 500,
               color: isActive ? 'var(--text)' : isHov ? 'var(--text-secondary)' : 'var(--text-muted)',
               whiteSpace: 'nowrap', overflow: 'hidden', minWidth: 0,
-              transition: 'color .15s',
-              letterSpacing: isActive ? '-.01em' : 0,
+              transition: 'color .18s cubic-bezier(.16,1,.3,1)',
               zIndex: 1,
             }}
           >
-            {/* Icon — sanftes Tween statt Spring (kein Wobble bei Layout-Wechsel) */}
             <motion.span
               style={{ display: 'flex', alignItems: 'center' }}
-              animate={{ scale: isHov ? 1.12 : 1 }}
-              transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
+              animate={{ scale: isHov ? 1.08 : 1 }}
+              transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
             >
               {tab.icon}
             </motion.span>
-            {/* Label — nur aktiv, fade-in via Tween */}
-            {isActive && (
-              <motion.span
-                initial={{ opacity: 0, x: -3 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
-              >
-                {tab.label}
-              </motion.span>
-            )}
+            <span style={{ overflow:'hidden', textOverflow:'ellipsis' }}>{tab.label}</span>
           </span>
         )
 

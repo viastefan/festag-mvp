@@ -17,6 +17,7 @@ import {
   Moon, Sun, BookOpen,
 } from '@phosphor-icons/react'
 import { getTheme, setTheme, ThemeMode } from '@/lib/theme'
+import { autoAvatarColor, avatarInitials, avatarTextColor, AVATAR_COLORS } from '@/lib/avatar'
 
 export function projectColor(_id: string, color?: string | null) { return color || 'var(--text-muted)' }
 
@@ -116,11 +117,15 @@ const ROLE_LABEL: Record<string,string> = { client:'Client', dev:'Developer', ad
 
 export default function Sidebar() {
   const pathname  = usePathname()
+  const [uid,      setUid]      = useState<string|null>(null)
   const [email,    setEmail]    = useState('')
   const [fn,       setFn]       = useState('')
+  const [fullName, setFullName] = useState('')
   const [avatar,   setAvatar]   = useState<string|null>(null)
+  const [avatarColor, setAvatarColor] = useState<string|null>(null)
   const [role,     setRole]     = useState('client')
   const [plan,     setPlan]     = useState('free')
+  const [avatarPick, setAvatarPick] = useState(false)
   const [projId,   setProjId]   = useState<string|null>(null)
   const [projects, setProjects] = useState<{id:string;title:string;status:string;color:string|null}[]>([])
   const [more,       setMore]      = useState(false)
@@ -154,11 +159,14 @@ export default function Sidebar() {
     const sb = createClient()
     sb.auth.getUser().then(async ({ data }) => {
       if (!data.user) return
+      setUid(data.user.id)
       setEmail(data.user.email ?? '')
-      const { data: p } = await sb.from('profiles').select('first_name,full_name,avatar_url,role,plan').eq('id', data.user.id).single()
+      const { data: p } = await sb.from('profiles').select('first_name,full_name,avatar_url,avatar_color,role,plan').eq('id', data.user.id).single()
       if (p) {
         setFn((p as any).first_name ?? (p as any).full_name?.split(' ')[0] ?? '')
+        setFullName((p as any).full_name ?? '')
         setAvatar((p as any).avatar_url ?? null)
+        setAvatarColor((p as any).avatar_color ?? null)
         setRole((p as any).role ?? 'client')
         setPlan((p as any).plan ?? 'free')
       }
@@ -191,7 +199,15 @@ export default function Sidebar() {
     return pathname.startsWith(h)
   }
   const name = fn || email.split('@')[0] || 'Konto'
-  const init = (fn || email || 'U').charAt(0).toUpperCase()
+  const init = avatarInitials(fn, fullName, email)
+  const avBg = avatarColor || autoAvatarColor(uid || email)
+  const avFg = avatarTextColor(avBg)
+
+  async function changeAvatarColor(c: string) {
+    setAvatarColor(c); setAvatarPick(false)
+    if (!uid) return
+    try { await (createClient() as any).from('profiles').update({ avatar_color: c }).eq('id', uid) } catch {}
+  }
 
   // ── NavItems list (no section header) ──
   function NavItems({ items }: { items: NavItem[] }) {
@@ -579,6 +595,26 @@ export default function Sidebar() {
                       </button>
                     )
                   })}
+
+                  {!avatar && (
+                    <>
+                      <div style={{ height:1, background:'var(--border)', margin:'4px 4px' }}/>
+                      <p style={{ fontSize:11, fontWeight:600, color:'var(--text-muted)', padding:'6px 11px 6px', margin:0, letterSpacing:'.04em' }}>Avatar-Farbe</p>
+                      <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', gap:4, padding:'0 8px 6px' }}>
+                        {AVATAR_COLORS.map(c => {
+                          const sel = (avatarColor || avBg) === c
+                          return (
+                            <button key={c} onClick={() => changeAvatarColor(c)}
+                              style={{ width:'100%', aspectRatio:'1/1', borderRadius:'50%', background:c, border: sel ? '2px solid var(--text)' : '2px solid transparent', cursor:'pointer', padding:0, transition:'transform .15s cubic-bezier(.16,1,.3,1)' }}
+                              onMouseEnter={e => (e.currentTarget as HTMLElement).style.transform='scale(1.12)'}
+                              onMouseLeave={e => (e.currentTarget as HTMLElement).style.transform='scale(1)'}
+                              aria-label={`Farbe ${c}`}
+                            />
+                          )
+                        })}
+                      </div>
+                    </>
+                  )}
                 </div>
               </>
             )}
@@ -605,8 +641,8 @@ export default function Sidebar() {
               onMouseLeave={e => { if (!userMenu) (e.currentTarget as HTMLElement).style.background='transparent' }}
             >
               {avatar
-                ? <img src={avatar} alt="" style={{ width:22,height:22,borderRadius:'50%',objectFit:'cover',border:'1.5px solid var(--border)',flexShrink:0 }}/>
-                : <div style={{ width:22,height:22,borderRadius:'50%',background:'var(--btn-prim)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:9.5,fontWeight:700,color:'var(--btn-prim-text)',flexShrink:0 }}>{init}</div>
+                ? <img src={avatar} alt="" style={{ width:24,height:24,borderRadius:'50%',objectFit:'cover',border:'1.5px solid var(--border)',flexShrink:0 }}/>
+                : <div style={{ width:24,height:24,borderRadius:'50%',background:avBg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:9.5,fontWeight:700,color:avFg,flexShrink:0,letterSpacing:'.02em' }}>{init}</div>
               }
               <span style={{ flex:1, minWidth:0, display:'flex', alignItems:'center', gap:5, overflow:'hidden' }}>
                 <span style={{ fontSize:12.5, fontWeight:600, color:'var(--text)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{name}</span>
