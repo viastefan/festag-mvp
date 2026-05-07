@@ -247,7 +247,7 @@ button:active, a[role="button"]:active, .tap-scale:active {
     0 2px 8px rgba(0,0,0,0.04),
     inset 0 1px 0 rgba(255,255,255,0.10);
   border-radius:8px;
-  display:flex; flex-direction:column; overflow:hidden;
+  display:flex; flex-direction:column; overflow:visible;
   transition:background .2s ease, border-color .2s ease;
 }
 [data-theme="dark"] .sidebar-inner {
@@ -374,4 +374,3 @@ input[type="checkbox"], input[type="radio"] {
 
 /* Prevent overscroll bounce when modal/sheet is open */
 body.locked { overflow: hidden; touch-action: none; }
-

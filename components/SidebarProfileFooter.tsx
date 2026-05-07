@@ -2,6 +2,21 @@
 
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
+import {
+  ArrowsClockwise,
+  ChartLineUp,
+  ChatCircleDots,
+  CreditCard,
+  DownloadSimple,
+  GearSix,
+  GridFour,
+  Keyboard,
+  Lifebuoy,
+  LinkSimple,
+  RocketLaunch,
+  SignOut,
+  Sparkle,
+} from '@phosphor-icons/react'
 
 import { AVATAR_COLORS, avatarTextColor } from '@/lib/avatar'
 import { getTheme, setTheme, ThemeMode } from '@/lib/theme'
@@ -16,6 +31,14 @@ type SidebarProfileFooterProps = {
   onAvatarColorChange: (color: string) => void | Promise<void>
   onLogout: () => void | Promise<void>
   plan: string
+}
+
+type FooterMenuItem = {
+  href?: string
+  label: string
+  icon: React.ComponentType<any>
+  hint?: string
+  onClick?: () => void | Promise<void>
 }
 
 function planLabel(plan: string) {
@@ -46,6 +69,22 @@ export default function SidebarProfileFooter({
 
   const currentPlanLabel = planLabel(plan)
   const avatarFg = avatarTextColor(avatarColor)
+  const accountItems: FooterMenuItem[] = [
+    { href: '/settings', label: 'Einstellungen', icon: GearSix, hint: '⌘,' },
+    { href: '/activity', label: 'Konto-Verlauf', icon: ChartLineUp },
+    ...(isClient ? [{ href: '/billing', label: 'Abrechnung & Plan', icon: CreditCard }] : []),
+    { href: '/download', label: 'Download App', icon: DownloadSimple },
+  ]
+  const workspaceItems: FooterMenuItem[] = [
+    { href: '/messages', label: 'Support kontaktieren', icon: Lifebuoy },
+    { href: '/connectors', label: 'Connectors', icon: LinkSimple },
+    { href: '/addons', label: 'Add-Ons', icon: GridFour },
+    ...(isClient ? [{ href: '/pricing', label: 'Tarif upgraden', icon: RocketLaunch }] : []),
+  ]
+  const updateItems: FooterMenuItem[] = [
+    { href: '/reports', label: 'Statusberichte', icon: Sparkle },
+    { href: '/activity', label: 'Letzte Aktivitäten', icon: ArrowsClockwise },
+  ]
 
   return (
     <div style={{ paddingTop: 8, marginTop: 2, position: 'relative', display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -56,10 +95,11 @@ export default function SidebarProfileFooter({
             position: 'absolute',
             bottom: 'calc(100% + 8px)',
             left: 0,
-            minWidth: 240,
+            width: 312,
+            maxWidth: 'min(312px, calc(100vw - 40px))',
             background: 'var(--surface)',
             border: '1px solid var(--border)',
-            borderRadius: 12,
+            borderRadius: 16,
             boxShadow: '0 16px 48px rgba(0,0,0,0.20), 0 4px 12px rgba(0,0,0,0.10)',
             zIndex: 1001,
             padding: '6px',
@@ -70,40 +110,56 @@ export default function SidebarProfileFooter({
               {email}
             </p>
 
-            <Link href="/settings" className="spf-menu-row" onClick={() => setUserMenu(false)}>
-              <span style={{ flex: 1 }}>Einstellungen</span>
-              <span style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'ui-monospace, "SF Mono", Menlo, monospace' }}>⌘,</span>
-            </Link>
+            <div style={{ padding: '4px 4px 2px' }}>
+              <div className="spf-search-row">
+                <ChatCircleDots size={17} color="var(--text-muted)" weight="regular" />
+                <span style={{ flex: 1 }}>Search for help...</span>
+                <Keyboard size={16} color="var(--text-muted)" weight="regular" />
+              </div>
+            </div>
 
-            {isClient && (
-              <Link href="/billing" className="spf-menu-row" onClick={() => setUserMenu(false)}>
-                <span style={{ flex: 1 }}>Abrechnung & Plan</span>
-              </Link>
-            )}
+            <p className="spf-section-label">Konto</p>
+            {accountItems.map((item) => {
+              const Icon = item.icon
+              return (
+                <Link key={item.label} href={item.href!} className="spf-menu-row" onClick={() => setUserMenu(false)}>
+                  <Icon size={17} color="var(--text-muted)" weight="regular" />
+                  <span style={{ flex: 1 }}>{item.label}</span>
+                  {item.hint ? <span className="spf-hint">{item.hint}</span> : null}
+                </Link>
+              )
+            })}
 
-            <Link href="/messages" className="spf-menu-row" onClick={() => setUserMenu(false)}>
-              <span style={{ flex: 1 }}>Hilfe erhalten</span>
-            </Link>
+            <div style={{ height: 1, background: 'var(--border)', margin: '8px 6px' }} />
 
-            <div style={{ height: 1, background: 'var(--border)', margin: '4px 4px' }} />
+            <p className="spf-section-label">Workspace</p>
+            {workspaceItems.map((item) => {
+              const Icon = item.icon
+              return (
+                <Link key={item.label} href={item.href!} className="spf-menu-row" onClick={() => setUserMenu(false)}>
+                  <Icon size={17} color="var(--text-muted)" weight="regular" />
+                  <span style={{ flex: 1 }}>{item.label}</span>
+                </Link>
+              )
+            })}
 
-            {isClient && (
-              <Link href="/pricing" className="spf-menu-row" onClick={() => setUserMenu(false)}>
-                <span style={{ flex: 1 }}>Tarif upgraden</span>
-              </Link>
-            )}
+            <div style={{ height: 1, background: 'var(--border)', margin: '8px 6px' }} />
 
-            <Link href="/connectors" className="spf-menu-row" onClick={() => setUserMenu(false)}>
-              <span style={{ flex: 1 }}>Connectors</span>
-            </Link>
+            <p className="spf-section-label">What's new</p>
+            {updateItems.map((item) => {
+              const Icon = item.icon
+              return (
+                <Link key={item.label} href={item.href!} className="spf-menu-row" onClick={() => setUserMenu(false)}>
+                  <Icon size={17} color="var(--text-muted)" weight="regular" />
+                  <span style={{ flex: 1 }}>{item.label}</span>
+                </Link>
+              )
+            })}
 
-            <Link href="/addons" className="spf-menu-row" onClick={() => setUserMenu(false)}>
-              <span style={{ flex: 1 }}>Add-Ons</span>
-            </Link>
-
-            <div style={{ height: 1, background: 'var(--border)', margin: '4px 4px' }} />
+            <div style={{ height: 1, background: 'var(--border)', margin: '8px 6px' }} />
 
             <button className="spf-menu-row" onClick={onLogout} style={{ width: '100%' }}>
+              <SignOut size={17} color="var(--text-muted)" weight="regular" />
               <span style={{ flex: 1 }}>Abmelden</span>
             </button>
           </div>
@@ -371,6 +427,32 @@ export default function SidebarProfileFooter({
           text-align: left;
         }
         .spf-menu-row:hover { background: var(--surface-2); }
+        .spf-search-row {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 10px 12px;
+          border-radius: 10px;
+          background: var(--surface-2);
+          color: var(--text-muted);
+          font-size: 12.5px;
+          font-weight: 500;
+        }
+        .spf-section-label {
+          margin: 10px 0 4px;
+          padding: 0 12px;
+          color: var(--text-muted);
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: .04em;
+          text-align: left;
+        }
+        .spf-hint {
+          flex-shrink: 0;
+          color: var(--text-muted);
+          font-size: 10px;
+          font-family: ui-monospace, "SF Mono", Menlo, monospace;
+        }
       `}</style>
     </div>
   )
