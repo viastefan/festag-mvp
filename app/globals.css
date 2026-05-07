@@ -194,12 +194,12 @@ input:focus,textarea:focus,select:focus { outline:none; }
 }
 
 .page-content {
-  padding: 28px 32px 48px;
+  padding: 36px 36px 96px;
   max-width: 1200px;
   width: 100%;
 }
 .page-content-full {
-  padding: 28px 32px 48px;
+  padding: 36px 36px 96px;
   width: 100%;
 }
 .page-header {

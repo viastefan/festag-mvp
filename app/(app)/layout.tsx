@@ -4,10 +4,10 @@ import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import Sidebar from '@/components/Sidebar'
-import AppHeader from '@/components/AppHeader'
 import CopilotPanel from '@/components/CopilotPanel'
 import FeedbackWidget from '@/components/FeedbackWidget'
 import CommandPalette from '@/components/CommandPalette'
+import FloatingBar from '@/components/FloatingBar'
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [checking,    setChecking]    = useState(true)
@@ -51,12 +51,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         className="main-content"
         style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', overflowY: isFullHeight ? 'hidden' : 'scroll', height: isFullHeight ? '100dvh' : undefined, scrollBehavior: 'auto' }}
       >
-        <AppHeader copilotOpen={copilotOpen} onToggleCopilot={() => setCopilotOpen(o => !o)} />
         <div style={{ width: '100%', flex: 1 }}>
           {children}
         </div>
       </main>
 
+      <FloatingBar copilotOpen={copilotOpen} onToggleCopilot={() => setCopilotOpen(o => !o)} />
       <CopilotPanel open={copilotOpen} onClose={() => setCopilotOpen(false)} />
       <FeedbackWidget />
       <CommandPalette />
