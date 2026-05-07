@@ -187,21 +187,20 @@ input:focus,textarea:focus,select:focus { outline:none; }
 /* ── Smooth Apple-grade interactions ── */
 button, a {
   transition:
-    background-color .18s cubic-bezier(.16,1,.3,1),
-    border-color     .18s cubic-bezier(.16,1,.3,1),
-    color            .18s cubic-bezier(.16,1,.3,1),
-    opacity          .18s cubic-bezier(.16,1,.3,1),
-    transform        .18s cubic-bezier(.16,1,.3,1),
-    box-shadow       .18s cubic-bezier(.16,1,.3,1);
+    background-color .10s ease,
+    border-color     .10s ease,
+    color            .10s ease,
+    opacity          .10s ease,
+    box-shadow       .10s ease;
 }
 button:active, a[role="button"]:active, .tap-scale:active {
   transform: scale(.97);
-  transition: transform .08s cubic-bezier(.4,0,1,1);
+  transition: transform .06s ease;
 }
 .row-hover { transition: background-color .16s cubic-bezier(.16,1,.3,1); }
 .dash-row  { transition: background-color .16s cubic-bezier(.16,1,.3,1); }
 .tm-card, .sc-card, .area-chip { transition: border-color .18s cubic-bezier(.16,1,.3,1), background-color .18s cubic-bezier(.16,1,.3,1), transform .18s cubic-bezier(.16,1,.3,1); }
-.proj-row, .ni, .usr-row, .quick-link { transition: background-color .14s cubic-bezier(.16,1,.3,1), color .14s cubic-bezier(.16,1,.3,1); }
+.proj-row, .ni, .usr-row, .quick-link { transition: background-color .08s ease, color .08s ease; }
 
 /* ═══ DESKTOP ═══ */
 .sidebar    { display:flex; }
