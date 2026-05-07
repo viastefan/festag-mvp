@@ -99,7 +99,7 @@ export default function RelationsSidebar() {
       </div>
 
       {/* ── User block ── */}
-      <div style={{ borderTop:'1px solid var(--border)', paddingTop:8, marginTop:6, position:'relative' }}>
+      <div style={{ paddingTop:8, marginTop:6, position:'relative' }}>
 
         {/* Dropdown */}
         {userMenu && (
