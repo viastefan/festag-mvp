@@ -564,8 +564,7 @@ export default function Sidebar() {
               <>
                 <div style={{ position:'fixed', inset:0, zIndex:1000 }} onClick={() => setDesignMenu(false)} />
                 <div style={{
-                  position:'absolute', bottom:'calc(100% + 8px)', right:0,
-                  minWidth:180,
+                  position:'absolute', bottom:'calc(100% + 8px)', left:0, right:0,
                   background:'var(--surface)',
                   border:'1px solid var(--border)',
                   borderRadius:12,
@@ -600,13 +599,22 @@ export default function Sidebar() {
                     <>
                       <div style={{ height:1, background:'var(--border)', margin:'4px 4px' }}/>
                       <p style={{ fontSize:11, fontWeight:600, color:'var(--text-muted)', padding:'6px 11px 6px', margin:0, letterSpacing:'.04em' }}>Avatar-Farbe</p>
-                      <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', gap:4, padding:'0 8px 6px' }}>
+                      <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', gap:5, padding:'0 8px 8px' }}>
                         {AVATAR_COLORS.map(c => {
                           const sel = (avatarColor || avBg) === c
                           return (
                             <button key={c} onClick={() => changeAvatarColor(c)}
-                              style={{ width:'100%', aspectRatio:'1/1', borderRadius:'50%', background:c, border: sel ? '2px solid var(--text)' : '2px solid transparent', cursor:'pointer', padding:0, transition:'transform .15s cubic-bezier(.16,1,.3,1)' }}
-                              onMouseEnter={e => (e.currentTarget as HTMLElement).style.transform='scale(1.12)'}
+                              style={{
+                                width:18, height:18, borderRadius:'50%',
+                                background:'transparent',
+                                border:`2px solid ${c}`,
+                                outline: sel ? '2px solid var(--text)' : 'none',
+                                outlineOffset: 1.5,
+                                cursor:'pointer', padding:0,
+                                boxSizing:'border-box',
+                                transition:'transform .15s cubic-bezier(.16,1,.3,1)',
+                              }}
+                              onMouseEnter={e => (e.currentTarget as HTMLElement).style.transform='scale(1.18)'}
                               onMouseLeave={e => (e.currentTarget as HTMLElement).style.transform='scale(1)'}
                               aria-label={`Farbe ${c}`}
                             />

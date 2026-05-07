@@ -355,7 +355,7 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m√
       <div style={{ marginBottom:32 }}>
         <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:16, marginBottom:16 }}>
           <div style={{ display:'flex', alignItems:'center', gap:10, minWidth:0 }}>
-            <span style={{ width:10, height:10, borderRadius:'50%', background:pCol, flexShrink:0 }}/>
+            <span style={{ width:10, height:10, borderRadius:'50%', background:'transparent', border:`2px solid ${pCol}`, flexShrink:0, boxSizing:'border-box' }}/>
             <h1 style={{ margin:0, fontSize:22, fontWeight:600, letterSpacing:'-.4px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{project.title}</h1>
           </div>
           <div style={{ display:'flex', alignItems:'center', gap:8, flexShrink:0 }}>
@@ -424,7 +424,7 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m√
               { label:'Fertig',  count: doneTasks.length,  dot:'#22c55e' },
             ].map(s => (
               <span key={s.label} style={{ display:'flex', alignItems:'center', gap:5, fontSize:12, color:'var(--text-muted)' }}>
-                <span style={{ width:6, height:6, borderRadius:'50%', background:s.dot }}/>
+                <span style={{ width:6, height:6, borderRadius:'50%', background:'transparent', border:`1.5px solid ${s.dot}`, boxSizing:'border-box' }}/>
                 <span style={{ color:'var(--text)', fontWeight:600 }}>{s.count}</span> {s.label}
               </span>
             ))}
@@ -447,7 +447,8 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m√
               return (
                 <div key={ms.id} className="ms-row" style={{ padding:'12px 16px', borderBottom: i < milestones.length-1 ? '1px solid var(--border)' : 'none' }}>
                   <span style={{ width:7, height:7, borderRadius:'50%', flexShrink:0,
-                    background: isPaid ? '#22c55e' : isPending ? '#f59e0b' : 'var(--border-strong)' }}/>
+                    background:'transparent', boxSizing:'border-box',
+                    border:`2px solid ${isPaid ? '#22c55e' : isPending ? '#f59e0b' : 'var(--border-strong)'}` }}/>
                   <span style={{ flex:1, fontSize:13, fontWeight:500, color: isLocked ? 'var(--text-muted)' : 'var(--text)' }}>{ms.title}</span>
                   {ms.description && <span style={{ fontSize:11.5, color:'var(--text-muted)', flex:1, minWidth:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{ms.description}</span>}
                   <span style={{ fontSize:13, fontWeight:600, color:'var(--text)', flexShrink:0, minWidth:60, textAlign:'right' }}>‚Ç¨{ms.amount.toLocaleString('de')}</span>
@@ -506,7 +507,7 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m√
               </div>
               {eff==='client' && (
                 <p style={{ fontSize:11, color:'var(--text-muted)', margin:'-12px 0 16px', display:'flex', alignItems:'center', gap:5 }}>
-                  <span style={{ width:5, height:5, borderRadius:'50%', background: clientRemaining>5?'#22c55e':clientRemaining>0?'#f59e0b':'#ef4444' }}/>
+                  <span style={{ width:5, height:5, borderRadius:'50%', background:'transparent', border:`1.5px solid ${clientRemaining>5?'#22c55e':clientRemaining>0?'#f59e0b':'#ef4444'}`, boxSizing:'border-box' }}/>
                   {clientRemaining} von {TASK_WEEK_LIMIT} Tasks diese Woche √ºbrig
                 </p>
               )}
@@ -519,7 +520,7 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m√
               ].map(group => group.list.length === 0 ? null : (
                 <div key={group.status} style={{ marginBottom:24 }}>
                   <div style={{ display:'flex', alignItems:'center', gap:7, marginBottom:4 }}>
-                    <span style={{ width:6, height:6, borderRadius:'50%', background:group.dot }}/>
+                    <span style={{ width:6, height:6, borderRadius:'50%', background:'transparent', border:`1.5px solid ${group.dot}`, boxSizing:'border-box' }}/>
                     <span style={{ fontSize:11, fontWeight:600, color:'var(--text-muted)', letterSpacing:'.04em' }}>{group.label}</span>
                     <span style={{ fontSize:11, color:'var(--text-muted)', opacity:.6 }}>{group.list.length}</span>
                   </div>
@@ -529,7 +530,7 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m√
                       const priColor = task.priority ? PRIORITY_COLOR[task.priority] : null
                       return (
                         <div key={task.id} className="task-row">
-                          <span style={{ width:6, height:6, borderRadius:'50%', flexShrink:0, background: group.dot }}/>
+                          <span style={{ width:6, height:6, borderRadius:'50%', flexShrink:0, background:'transparent', border:`1.5px solid ${group.dot}`, boxSizing:'border-box' }}/>
                           <span style={{ flex:1, fontSize:13, color:'var(--text)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{task.title}</span>
                           {priColor && (
                             <span style={{ fontSize:10, fontWeight:600, color:priColor, flexShrink:0 }}>
