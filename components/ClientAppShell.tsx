@@ -35,8 +35,13 @@ export default function ClientAppShell({
 
   useEffect(() => {
     const onCopilot = () => setCopilotOpen((open) => !open)
+    const onOpenCopilot = () => setCopilotOpen(true)
     window.addEventListener('toggle-copilot', onCopilot)
-    return () => window.removeEventListener('toggle-copilot', onCopilot)
+    window.addEventListener('open-copilot', onOpenCopilot)
+    return () => {
+      window.removeEventListener('toggle-copilot', onCopilot)
+      window.removeEventListener('open-copilot', onOpenCopilot)
+    }
   }, [])
 
   if (checking) {

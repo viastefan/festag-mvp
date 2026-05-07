@@ -153,22 +153,16 @@ export default function Sidebar() {
 
   useEffect(() => {
     try {
-      const storedProjects = window.localStorage.getItem('sidebar-projects-expanded')
       const storedTeams = window.localStorage.getItem('sidebar-teams-expanded')
       const storedWorkspace = window.localStorage.getItem('sidebar-workspace-expanded')
       const storedTagro = window.localStorage.getItem('sidebar-tagro-expanded')
       const storedTools = window.localStorage.getItem('sidebar-tools-expanded')
-      if (storedProjects !== null) setProjExp(storedProjects === 'true')
       if (storedTeams !== null) setTeamsExp(storedTeams === 'true')
       if (storedWorkspace !== null) setWorkspaceExp(storedWorkspace === 'true')
       if (storedTagro !== null) setTagroExp(storedTagro === 'true')
       if (storedTools !== null) setToolsExp(storedTools === 'true')
     } catch {}
   }, [])
-
-  useEffect(() => {
-    try { window.localStorage.setItem('sidebar-projects-expanded', String(projExp)) } catch {}
-  }, [projExp])
 
   useEffect(() => {
     try { window.localStorage.setItem('sidebar-workspace-expanded', String(workspaceExp)) } catch {}
@@ -335,10 +329,20 @@ export default function Sidebar() {
     children: React.ReactNode
   }) {
     const active = activeOverride ?? isOn(href)
+    const go = () => router.push(resolve(href))
     return (
       <div style={{ marginBottom: 1 }}>
         <div
           className={`ni ${active ? 'ni-on' : 'ni-off'}`}
+          role="link"
+          tabIndex={0}
+          onClick={go}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault()
+              go()
+            }
+          }}
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -346,15 +350,14 @@ export default function Sidebar() {
             paddingRight: 6,
           }}
         >
-          <Link
-            href={resolve(href)}
+          <span
             style={{ display: 'flex', alignItems: 'center', gap: 7, minWidth: 0, flex: 1, textDecoration: 'none', color: 'inherit', height: '100%' }}
           >
             <span style={{ display:'flex', alignItems:'center', justifyContent:'center' }}>
               <Ico name={icon} sz={14} c={active ? 'var(--text)' : 'var(--text-muted)'} weight={active ? 'bold' : 'regular'} />
             </span>
             <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
-          </Link>
+          </span>
           <button
             className="sb-icon-btn"
             type="button"
@@ -394,9 +397,10 @@ export default function Sidebar() {
           cursor:pointer; text-decoration:none; color:inherit;
           transition:background .12s, color .12s;
           white-space:nowrap; overflow:hidden;
-          width:calc(100% - 4px);
+          width:auto;
+          max-width:100%;
           box-sizing:border-box;
-          margin:0 2px;
+          margin:0 5px;
         }
         .ni-on  { background:rgba(0,0,0,0.048); font-weight:600; color:var(--text); }
         [data-theme="dark"] .ni-on { background:rgba(255,255,255,0.075); color:var(--nav-on-text); }
@@ -447,9 +451,10 @@ export default function Sidebar() {
           color:var(--text-muted);
           transition:background .08s, color .08s;
           overflow:hidden;
-          width:calc(100% - 4px);
+          width:auto;
+          max-width:100%;
           box-sizing:border-box;
-          margin:0 2px;
+          margin:0 5px;
         }
         .proj-row:hover { background:rgba(0,0,0,0.04); color:var(--text); }
         [data-theme="dark"] .proj-row:hover { background:rgba(255,255,255,0.05); }
@@ -567,7 +572,7 @@ export default function Sidebar() {
                     href="/relations/projects"
                     icon="project"
                     label="Projekte"
-                    expanded={projExp}
+                    expanded={true}
                     onToggle={() => setProjExp(v => !v)}
                     activeOverride={pathname.startsWith('/project/') || pathname.startsWith('/relations/projects')}
                   >

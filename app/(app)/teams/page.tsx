@@ -211,16 +211,23 @@ function TeamTasksTable({
   projects,
   members,
   loading,
+  onMarkDone,
+  onAssign,
 }: {
   tasks: TeamTaskRow[]
   projects: TeamProjectRow[]
   members: Member[]
   loading: boolean
+  onMarkDone: (ids: string[]) => Promise<void>
+  onAssign: (ids: string[], memberId: string) => Promise<void>
 }) {
+  const [selectedTaskIds, setSelectedTaskIds] = useState<string[]>([])
+  const [assignOpen, setAssignOpen] = useState(false)
   const projectById = useMemo(() => new Map(projects.map((project) => [project.id, project])), [projects])
   const activeCount = tasks.filter((task) => normalizeTeamTaskStatus(task.status) === 'active').length
   const doneCount = tasks.filter((task) => normalizeTeamTaskStatus(task.status) === 'done').length
   const openCount = tasks.filter((task) => normalizeTeamTaskStatus(task.status) === 'open').length
+  const selectedTasks = tasks.filter((task) => selectedTaskIds.includes(task.id))
 
   const fallbackLead = members.find((member) => member.role === 'dev') ?? members[0] ?? null
   const leadFor = (task: TeamTaskRow) => {
@@ -230,6 +237,35 @@ function TeamTasksTable({
       name: task.developer_name || display?.first_name || display?.full_name?.split(' ')[0] || task.owner || 'Developer',
       avatar: display?.avatar_url ?? null,
     }
+  }
+
+  function toggleTaskSelection(id: string) {
+    setSelectedTaskIds((current) => (
+      current.includes(id) ? current.filter((item) => item !== id) : [...current, id]
+    ))
+  }
+
+  function explainSelectedTask() {
+    const task = selectedTasks[0]
+    if (!task) return
+    window.dispatchEvent(new CustomEvent('open-copilot'))
+    window.dispatchEvent(new CustomEvent('tagro-compose', {
+      detail: {
+        prompt: `Erkläre mir diese Aufgabe im Festag-Kontext und nenne den nächsten sinnvollen Schritt: "${task.title}".`,
+      },
+    }))
+  }
+
+  async function markSelectedDone() {
+    if (selectedTaskIds.length === 0) return
+    await onMarkDone(selectedTaskIds)
+    setSelectedTaskIds([])
+  }
+
+  async function assignSelected(memberId: string) {
+    if (selectedTaskIds.length === 0) return
+    await onAssign(selectedTaskIds, memberId)
+    setAssignOpen(false)
   }
 
   return (
@@ -270,10 +306,23 @@ function TeamTasksTable({
           const normalized = normalizeTeamTaskStatus(task.status)
           const lead = leadFor(task)
           const progress = teamTaskProgress(task.status)
+          const selected = selectedTaskIds.includes(task.id)
 
           return (
-            <div key={task.id} className="team-task-row">
+            <div key={task.id} className={`team-task-row${selected ? ' selected' : ''}`}>
               <div className="team-task-name">
+                <button
+                  className={`team-task-select${selected ? ' selected' : ''}`}
+                  type="button"
+                  aria-label={`${task.title} auswählen`}
+                  aria-pressed={selected}
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    toggleTaskSelection(task.id)
+                  }}
+                >
+                  {selected ? <Check size={12} weight="bold" /> : null}
+                </button>
                 <span className="team-task-cube"><Cube size={16} weight="regular" /></span>
                 <span>
                   <strong>{task.title}</strong>
@@ -305,6 +354,33 @@ function TeamTasksTable({
           )
         })}
       </div>
+
+      {selectedTaskIds.length > 0 && (
+        <div className="team-task-selection-bar" role="toolbar" aria-label="Ausgewählte Aufgaben Aktionen">
+          <span className="team-task-selection-count">{selectedTaskIds.length} selected</span>
+          <button className="team-task-selection-close" type="button" aria-label="Auswahl aufheben" onClick={() => setSelectedTaskIds([])}>
+            <X size={13} weight="bold" />
+          </button>
+          <span className="team-task-selection-sep" />
+          <button type="button" onClick={explainSelectedTask}>Tagro erklären</button>
+          <button type="button" onClick={markSelectedDone}>Als erledigt markieren</button>
+          <div className="team-task-reassign">
+            <button type="button" onClick={() => setAssignOpen((open) => !open)}>Neu zuordnen</button>
+            {assignOpen && (
+              <div className="team-task-reassign-menu">
+                {members.length === 0 ? (
+                  <span>Keine Team Member verfügbar</span>
+                ) : members.map((member) => (
+                  <button key={member.id} type="button" onClick={() => assignSelected(member.id)}>
+                    {member.avatar_url ? <img src={member.avatar_url} alt="" /> : <i>{(member.first_name || member.full_name || member.email || 'M').charAt(0).toUpperCase()}</i>}
+                    <span>{member.first_name || member.full_name || member.email || 'Mitglied'}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </section>
   )
 }
@@ -421,6 +497,25 @@ export default function TeamsPage({ searchParams }: { searchParams?: { view?: st
     }
   }, [])
 
+  async function markTeamTasksDone(ids: string[]) {
+    const now = new Date().toISOString()
+    setTeamTasks((current) => current.map((task) => (
+      ids.includes(task.id) ? { ...task, status: 'done', updated_at: now } : task
+    )))
+    await Promise.all(ids.map((id) => (
+      (createClient() as any).from('tasks').update({ status: 'done', updated_at: now }).eq('id', id)
+    )))
+  }
+
+  async function assignTeamTasks(ids: string[], memberId: string) {
+    setTeamTasks((current) => current.map((task) => (
+      ids.includes(task.id) ? { ...task, assigned_to: memberId } : task
+    )))
+    await Promise.all(ids.map((id) => (
+      (createClient() as any).from('tasks').update({ assigned_to: memberId }).eq('id', id)
+    )))
+  }
+
   async function sendInvite() {
     if (!invEmail.includes('@')) return
     setInvSending(true)
@@ -513,6 +608,7 @@ export default function TeamsPage({ searchParams }: { searchParams?: { view?: st
           box-shadow:0 18px 44px rgba(0,0,0,.07);
           display:flex;
           flex-direction:column;
+          position:relative;
         }
         .team-task-top {
           min-height:56px;
@@ -615,11 +711,35 @@ export default function TeamsPage({ searchParams }: { searchParams?: { view?: st
           font-size:12.5px;
         }
         .team-task-row:hover { background:color-mix(in srgb, var(--surface-2) 42%, transparent); }
+        .team-task-row.selected {
+          background:rgba(99,102,241,.13);
+        }
+        [data-theme="dark"] .team-task-row.selected {
+          background:rgba(99,102,241,.20);
+        }
         .team-task-name {
           min-width:0;
           display:flex;
           align-items:center;
           gap:10px;
+        }
+        .team-task-select {
+          width:16px;
+          height:16px;
+          border-radius:4px;
+          border:1.5px solid var(--border-strong);
+          background:transparent;
+          color:#fff;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          padding:0;
+          cursor:pointer;
+          flex-shrink:0;
+        }
+        .team-task-select.selected {
+          background:#676be8;
+          border-color:#676be8;
         }
         .team-task-cube {
           width:22px;
@@ -787,6 +907,106 @@ export default function TeamsPage({ searchParams }: { searchParams?: { view?: st
           background:#101010;
           border-color:#242424;
           box-shadow:0 18px 54px rgba(0,0,0,.42);
+        }
+        .team-task-selection-bar {
+          position:absolute;
+          left:50%;
+          bottom:22px;
+          transform:translateX(-50%);
+          z-index:20;
+          display:flex;
+          align-items:center;
+          gap:8px;
+          padding:8px;
+          border-radius:999px;
+          background:color-mix(in srgb, var(--surface) 86%, transparent);
+          border:1px solid var(--border);
+          box-shadow:0 18px 44px rgba(0,0,0,.18);
+          backdrop-filter:blur(20px) saturate(160%);
+          -webkit-backdrop-filter:blur(20px) saturate(160%);
+          animation:taskActionUp .16s cubic-bezier(.16,1,.3,1) both;
+        }
+        @keyframes taskActionUp {
+          from { opacity:0; transform:translateX(-50%) translateY(8px) scale(.98); }
+          to { opacity:1; transform:translateX(-50%) translateY(0) scale(1); }
+        }
+        .team-task-selection-bar button,
+        .team-task-selection-count {
+          height:32px;
+          border-radius:999px;
+          border:1px solid var(--border);
+          background:var(--surface-2);
+          color:var(--text);
+          font:inherit;
+          font-size:12px;
+          font-weight:700;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          padding:0 12px;
+          white-space:nowrap;
+        }
+        .team-task-selection-bar button {
+          cursor:pointer;
+        }
+        .team-task-selection-bar button:hover {
+          background:var(--nav-on);
+        }
+        .team-task-selection-close {
+          width:32px;
+          padding:0 !important;
+          color:var(--text-muted) !important;
+        }
+        .team-task-selection-sep {
+          width:1px;
+          height:24px;
+          background:var(--border);
+        }
+        .team-task-reassign {
+          position:relative;
+        }
+        .team-task-reassign-menu {
+          position:absolute;
+          left:50%;
+          bottom:calc(100% + 10px);
+          transform:translateX(-50%);
+          width:220px;
+          padding:6px;
+          border:1px solid var(--border);
+          border-radius:14px;
+          background:var(--surface);
+          box-shadow:0 16px 46px rgba(0,0,0,.20);
+          display:flex;
+          flex-direction:column;
+          gap:2px;
+        }
+        .team-task-reassign-menu > span {
+          padding:10px 12px;
+          color:var(--text-muted);
+          font-size:12px;
+        }
+        .team-task-reassign-menu button {
+          width:100%;
+          justify-content:flex-start;
+          gap:8px;
+          border:0;
+          background:transparent;
+          border-radius:10px;
+          padding:0 9px;
+        }
+        .team-task-reassign-menu img,
+        .team-task-reassign-menu i {
+          width:20px;
+          height:20px;
+          border-radius:50%;
+          object-fit:cover;
+          background:var(--surface-2);
+          color:var(--text-secondary);
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          font-style:normal;
+          font-size:10px;
         }
       `}</style>
 
@@ -980,6 +1200,8 @@ export default function TeamsPage({ searchParams }: { searchParams?: { view?: st
           projects={teamProjects}
           members={members}
           loading={teamTasksLoading}
+          onMarkDone={markTeamTasksDone}
+          onAssign={assignTeamTasks}
         />
       )}
 

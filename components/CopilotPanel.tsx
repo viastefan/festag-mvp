@@ -25,6 +25,18 @@ export default function CopilotPanel({ open, onClose }: { open: boolean; onClose
   useEffect(() => { setMounted(true) }, [])
 
   useEffect(() => {
+    function onCompose(event: Event) {
+      const detail = (event as CustomEvent<{ prompt?: string }>).detail
+      if (!detail?.prompt) return
+      setInput(detail.prompt)
+      setTimeout(() => inputRef.current?.focus(), 80)
+    }
+
+    window.addEventListener('tagro-compose', onCompose)
+    return () => window.removeEventListener('tagro-compose', onCompose)
+  }, [])
+
+  useEffect(() => {
     if (!open) return
     if (msgs.length === 0) {
       setMsgs([{ role: 'ai', text: 'Hallo! Ich bin Tagro — dein AI-Copilot. Frag mich nach Projektstatus, Tasks oder wie du loslegen kannst.' }])

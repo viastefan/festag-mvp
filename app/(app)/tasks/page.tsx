@@ -8,7 +8,7 @@ import {
   Cube,
   FunnelSimple,
   SlidersHorizontal,
-  UserCircle,
+  X,
 } from '@phosphor-icons/react'
 
 type TaskView = 'all' | 'open' | 'active' | 'done'
@@ -92,6 +92,7 @@ export default function TasksPage() {
   const [tasks, setTasks] = useState<TaskRow[]>([])
   const [projects, setProjects] = useState<ProjectRow[]>([])
   const [loading, setLoading] = useState(true)
+  const [selectedTaskIds, setSelectedTaskIds] = useState<string[]>([])
 
   const supabase = createClient()
 
@@ -135,6 +136,36 @@ export default function TasksPage() {
   const doneCount = tasks.filter((task) => normalizeStatus(task.status) === 'done').length
   const activeCount = tasks.filter((task) => normalizeStatus(task.status) === 'active').length
   const openCount = tasks.filter((task) => normalizeStatus(task.status) === 'open').length
+  const selectedTasks = tasks.filter((task) => selectedTaskIds.includes(task.id))
+
+  function toggleTaskSelection(id: string) {
+    setSelectedTaskIds((current) => (
+      current.includes(id) ? current.filter((item) => item !== id) : [...current, id]
+    ))
+  }
+
+  function explainSelectedTask() {
+    const task = selectedTasks[0]
+    if (!task) return
+    window.dispatchEvent(new CustomEvent('open-copilot'))
+    window.dispatchEvent(new CustomEvent('tagro-compose', {
+      detail: {
+        prompt: `Erkläre mir diese Aufgabe aus dem Workspace-Kontext und sage mir, warum Tagro sie jetzt eingeplant hat: "${task.title}".`,
+      },
+    }))
+  }
+
+  async function markSelectedDone() {
+    if (selectedTaskIds.length === 0) return
+    const now = new Date().toISOString()
+    setTasks((current) => current.map((task) => (
+      selectedTaskIds.includes(task.id) ? { ...task, status: 'done', updated_at: now } : task
+    )))
+    await Promise.all(selectedTaskIds.map((id) => (
+      (supabase as any).from('tasks').update({ status: 'done', updated_at: now }).eq('id', id)
+    )))
+    setSelectedTaskIds([])
+  }
 
   return (
     <div className="task-os">
@@ -249,6 +280,12 @@ export default function TasksPage() {
         .task-row:hover {
           background:color-mix(in srgb, var(--surface-2) 58%, transparent);
         }
+        .task-row.selected {
+          background:rgba(99,102,241,.13);
+        }
+        [data-theme="dark"] .task-row.selected {
+          background:rgba(99,102,241,.20);
+        }
         .task-name {
           display:flex;
           align-items:center;
@@ -261,6 +298,17 @@ export default function TasksPage() {
           border:1px solid var(--border-strong);
           border-radius:4px;
           flex-shrink:0;
+          background:transparent;
+          color:#fff;
+          padding:0;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          cursor:pointer;
+        }
+        .task-check.selected {
+          background:#676be8;
+          border-color:#676be8;
         }
         .task-project-icon {
           width:20px;
@@ -320,6 +368,74 @@ export default function TasksPage() {
           border-style:solid;
           border-color:var(--green);
           background:var(--green);
+        }
+        .task-lead-avatar {
+          width:22px;
+          height:22px;
+          border-radius:50%;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          background:var(--surface-2);
+          border:1px solid var(--border);
+          color:var(--text-secondary);
+          font-size:10px;
+          font-weight:800;
+          flex-shrink:0;
+        }
+        .task-selection-bar {
+          position:fixed;
+          left:50%;
+          bottom:28px;
+          transform:translateX(-50%);
+          z-index:120;
+          display:flex;
+          align-items:center;
+          gap:8px;
+          padding:8px;
+          border-radius:999px;
+          background:color-mix(in srgb, var(--surface) 86%, transparent);
+          border:1px solid var(--border);
+          box-shadow:0 18px 44px rgba(0,0,0,.18);
+          backdrop-filter:blur(20px) saturate(160%);
+          -webkit-backdrop-filter:blur(20px) saturate(160%);
+          animation:taskActionUp .16s cubic-bezier(.16,1,.3,1) both;
+        }
+        @keyframes taskActionUp {
+          from { opacity:0; transform:translateX(-50%) translateY(8px) scale(.98); }
+          to { opacity:1; transform:translateX(-50%) translateY(0) scale(1); }
+        }
+        .task-selection-bar button,
+        .task-selection-count {
+          height:32px;
+          border-radius:999px;
+          border:1px solid var(--border);
+          background:var(--surface-2);
+          color:var(--text);
+          font:inherit;
+          font-size:12px;
+          font-weight:700;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          padding:0 12px;
+          white-space:nowrap;
+        }
+        .task-selection-bar button {
+          cursor:pointer;
+        }
+        .task-selection-bar button:hover {
+          background:var(--nav-on);
+        }
+        .task-selection-close {
+          width:32px;
+          padding:0 !important;
+          color:var(--text-muted) !important;
+        }
+        .task-selection-sep {
+          width:1px;
+          height:24px;
+          background:var(--border);
         }
         .task-empty {
           padding:52px 12px;
@@ -381,11 +497,20 @@ export default function TasksPage() {
           const normalized = normalizeStatus(task.status)
           const progress = progressFor(task.status)
           const lead = task.developer_name || task.owner || task.assigned_to || 'Developer'
+          const selected = selectedTaskIds.includes(task.id)
 
           return (
-            <div key={task.id} className="task-row">
+            <div key={task.id} className={`task-row${selected ? ' selected' : ''}`}>
               <div className="task-name">
-                <span className="task-check" />
+                <button
+                  className={`task-check${selected ? ' selected' : ''}`}
+                  type="button"
+                  aria-label={`${task.title} auswählen`}
+                  aria-pressed={selected}
+                  onClick={() => toggleTaskSelection(task.id)}
+                >
+                  {selected ? <CheckCircle size={12} weight="bold" /> : null}
+                </button>
                 <span className="task-project-icon"><Cube size={16} weight="regular" /></span>
                 <span className="task-name-text">
                   <strong>{task.title}</strong>
@@ -403,7 +528,7 @@ export default function TasksPage() {
               <div>{priorityLabel(task.priority)}</div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: 7, minWidth: 0 }}>
-                <UserCircle size={16} weight="regular" />
+                <span className="task-lead-avatar">{lead.charAt(0).toUpperCase()}</span>
                 <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{lead}</span>
               </div>
 
@@ -418,6 +543,18 @@ export default function TasksPage() {
           )
         })}
       </div>
+
+      {selectedTaskIds.length > 0 && (
+        <div className="task-selection-bar" role="toolbar" aria-label="Ausgewählte Aufgaben Aktionen">
+          <span className="task-selection-count">{selectedTaskIds.length} selected</span>
+          <button className="task-selection-close" type="button" aria-label="Auswahl aufheben" onClick={() => setSelectedTaskIds([])}>
+            <X size={13} weight="bold" />
+          </button>
+          <span className="task-selection-sep" />
+          <button type="button" onClick={explainSelectedTask}>Tagro erklären</button>
+          <button type="button" onClick={markSelectedDone}>Als erledigt markieren</button>
+        </div>
+      )}
     </div>
   )
 }
