@@ -4,6 +4,8 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { getTheme, setTheme, ThemeMode } from '@/lib/theme'
+import { autoAvatarColor, avatarTextColor, AVATAR_COLORS } from '@/lib/avatar'
 import {
   House, Briefcase, FileText, ChatCircle,
   Notebook, Brain, SignOut, GearSix,
@@ -37,8 +39,11 @@ export default function RelationsSidebar() {
   const [mobOpen,   setMobOpen]   = useState(false)
   const [teamsOpen, setTeamsOpen] = useState(false)
   const [userMenu,  setUserMenu]  = useState(false)
+  const [designMenu, setDesignMenu] = useState(false)
+  const [themeMode, setThemeMode] = useState<ThemeMode>('dark')
 
   useEffect(() => {
+    setThemeMode(getTheme())
     const handler = () => setTeamsOpen(true)
     window.addEventListener('open-teams-modal', handler)
     return () => window.removeEventListener('open-teams-modal', handler)
@@ -67,6 +72,8 @@ export default function RelationsSidebar() {
 
   const displayName = name || email.split('@')[0] || 'Konto'
   const init = (name || email || 'U').charAt(0).toUpperCase()
+  const avBg = autoAvatarColor(email || displayName)
+  const avFg = avatarTextColor(avBg)
 
   const Inner = () => (
     <div style={{ display:'flex', flexDirection:'column', height:'100%', padding:'14px 8px 16px' }}>
@@ -99,7 +106,7 @@ export default function RelationsSidebar() {
       </div>
 
       {/* ── User block ── */}
-      <div style={{ paddingTop:8, marginTop:6, position:'relative' }}>
+      <div style={{ paddingTop:8, marginTop:6, position:'relative', display:'flex', alignItems:'center', gap:4 }}>
 
         {/* Dropdown */}
         {userMenu && (
@@ -172,32 +179,141 @@ export default function RelationsSidebar() {
           </>
         )}
 
+        {designMenu && (
+          <>
+            <div style={{ position:'fixed', inset:0, zIndex:1000 }} onClick={() => setDesignMenu(false)} />
+            <div style={{
+              position:'absolute', bottom:'calc(100% + 8px)', left:0, right:0,
+              background:'var(--surface)',
+              border:'1px solid var(--border)',
+              borderRadius:12,
+              boxShadow:'0 16px 48px rgba(0,0,0,0.20), 0 4px 12px rgba(0,0,0,0.10)',
+              zIndex:1001,
+              padding:'6px',
+              overflow:'hidden',
+              animation:'um-pop .14s ease-out both',
+            }}>
+              <p style={{ fontSize:11, fontWeight:600, color:'var(--text-muted)', padding:'6px 11px 4px', margin:0, letterSpacing:'.04em' }}>Design</p>
+              {([
+                { mode:'dark' as ThemeMode, label:'Dunkel' },
+                { mode:'light' as ThemeMode, label:'Hell' },
+                { mode:'read' as ThemeMode, label:'Lesemodus' },
+              ] as const).map(({ mode, label }) => {
+                const active = themeMode === mode
+                return (
+                  <button
+                    key={mode}
+                    className="rni-drop"
+                    onClick={() => {
+                      setThemeMode(mode)
+                      setTheme(mode)
+                      setDesignMenu(false)
+                    }}
+                    style={{ width:'100%' }}
+                  >
+                    <span style={{ flex:1, color: active ? 'var(--text)' : 'var(--text-secondary)', fontWeight: active ? 600 : 500 }}>{label}</span>
+                    {active && (
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent, #3b82f6)" strokeWidth="2.5" strokeLinecap="round"><path d="M20 6L9 17l-5-5"/></svg>
+                    )}
+                  </button>
+                )
+              })}
+
+              {!avatar && (
+                <>
+                  <div style={{ height:1, background:'var(--border)', margin:'4px 4px' }}/>
+                  <p style={{ fontSize:11, fontWeight:600, color:'var(--text-muted)', padding:'6px 11px 6px', margin:0, letterSpacing:'.04em' }}>Avatar-Farbe</p>
+                  <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', gap:5, padding:'0 8px 8px' }}>
+                    {AVATAR_COLORS.map(c => (
+                      <button
+                        key={c}
+                        onClick={() => setDesignMenu(false)}
+                        style={{
+                          width:18,
+                          height:18,
+                          borderRadius:'50%',
+                          background:'transparent',
+                          border:`2px solid ${c}`,
+                          outline: avBg === c ? '2px solid var(--text)' : 'none',
+                          outlineOffset: 1.5,
+                          cursor:'pointer',
+                          padding:0,
+                          boxSizing:'border-box',
+                        }}
+                        aria-label={`Farbe ${c}`}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          </>
+        )}
+
+        <style>{`
+          @keyframes um-pop {
+            from { opacity: 0; transform: translateY(4px) scale(.98); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+          }
+        `}</style>
+
         {/* Trigger */}
         <button
-          onClick={() => setUserMenu(m => !m)}
+          onClick={() => { setUserMenu(m => !m); setDesignMenu(false) }}
           style={{
-            width:'100%', display:'flex', alignItems:'center', gap:8,
-            padding:'5px 7px', borderRadius:8,
+            flex:1, minWidth:0,
+            display:'flex', alignItems:'center', gap:8,
+            padding:'5px 8px 5px 5px', borderRadius:8,
             background: userMenu ? 'var(--surface-2)' : 'transparent',
             border:'none', cursor:'pointer', fontFamily:'inherit',
-            transition:'background .12s',
+            transition:'background .1s',
           }}
-          onMouseEnter={e => { if (!userMenu) e.currentTarget.style.background='rgba(0,0,0,0.04)' }}
+          onMouseEnter={e => { if (!userMenu) e.currentTarget.style.background='var(--surface-2)' }}
           onMouseLeave={e => { if (!userMenu) e.currentTarget.style.background='transparent' }}
         >
           {avatar
-            ? <img src={avatar} alt="" style={{ width:22,height:22,borderRadius:'50%',objectFit:'cover',border:'1.5px solid var(--border)',flexShrink:0 }}/>
-            : <div style={{ width:22,height:22,borderRadius:'50%',background:'var(--btn-prim)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:9.5,fontWeight:700,color:'var(--btn-prim-text)',flexShrink:0 }}>{init}</div>
+            ? <img src={avatar} alt="" style={{ width:24,height:24,borderRadius:'50%',objectFit:'cover',border:'1.5px solid var(--border)',flexShrink:0 }}/>
+            : <div style={{ width:24,height:24,borderRadius:'50%',background:avBg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:9.5,fontWeight:700,color:avFg,flexShrink:0,letterSpacing:'.02em' }}>{init}</div>
           }
           <span style={{ flex:1, minWidth:0, display:'flex', alignItems:'center', gap:5, overflow:'hidden' }}>
-            <span style={{ fontSize:12, fontWeight:600, color:'var(--text)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{displayName}</span>
-            <span style={{ flexShrink:0, fontSize:8.5, fontWeight:700, letterSpacing:'.04em', color:'var(--text-muted)', background:'var(--border)', padding:'1px 4px', borderRadius:4, lineHeight:1.6 }}>
-              {plan === 'free' ? 'Free' : plan === 'starter' ? 'Starter' : plan === 'pro' ? 'Pro' : plan === 'enterprise' ? 'Ent.' : plan}
-            </span>
+            <span style={{ fontSize:12.5, fontWeight:600, color:'var(--text)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{displayName}</span>
+            {plan !== 'free' && (
+              <>
+                <span style={{ color:'var(--text-muted)', fontSize:11 }}>·</span>
+                <span style={{ fontSize:11, fontWeight:500, color:'var(--text-muted)', flexShrink:0 }}>
+                  {plan === 'starter' ? 'Starter' : plan === 'pro' ? 'Pro' : plan === 'enterprise' ? 'Ent.' : plan}
+                </span>
+              </>
+            )}
           </span>
           <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2.5" strokeLinecap="round"
-            style={{ flexShrink:0, transform:userMenu?'rotate(180deg)':'rotate(0deg)', transition:'transform .16s', opacity:.6 }}>
+            style={{ flexShrink:0, opacity:.55 }}>
             <path d="M6 9l6 6 6-6"/>
+          </svg>
+        </button>
+
+        <button
+          onClick={() => { setDesignMenu(m => !m); setUserMenu(false) }}
+          aria-label="Design-Einstellungen"
+          style={{
+            width:30, height:30, flexShrink:0,
+            display:'flex', alignItems:'center', justifyContent:'center',
+            borderRadius:8,
+            background: designMenu ? 'var(--surface-2)' : 'transparent',
+            border:'none', cursor:'pointer', fontFamily:'inherit',
+            transition:'background .1s',
+            color:'var(--text-muted)',
+          }}
+          onMouseEnter={e => { if (!designMenu) { e.currentTarget.style.background='var(--surface-2)'; e.currentTarget.style.color='var(--text)' } }}
+          onMouseLeave={e => { if (!designMenu) { e.currentTarget.style.background='transparent'; e.currentTarget.style.color='var(--text-muted)' } }}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="4" y1="6" x2="11" y2="6"/>
+            <circle cx="15" cy="6" r="2"/>
+            <line x1="17" y1="6" x2="20" y2="6"/>
+            <line x1="4" y1="18" x2="7" y2="18"/>
+            <circle cx="10" cy="18" r="2"/>
+            <line x1="12" y1="18" x2="20" y2="18"/>
           </svg>
         </button>
       </div>
