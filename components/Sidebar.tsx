@@ -55,10 +55,10 @@ const CLIENT_TEAMS: NavItem[] = [
   { href:'/teams?view=messages', icon:'chat', label:'Nachrichten' },
 ]
 const CLIENT_TAGRO: NavItem[] = [
-  { href:'/reports', icon:'activity', label:'Statusberichte' },
-  { href:'/tasks', icon:'task', label:'Tasks' },
-  { href:'/relations/notes', icon:'card', label:'Notizen' },
-  { href:'/ai', icon:'chat', label:'Chat' },
+  { href:'/ai?view=reports', icon:'activity', label:'Statusberichte' },
+  { href:'/ai?view=tasks', icon:'task', label:'Tasks' },
+  { href:'/ai?view=notes', icon:'card', label:'Notizen' },
+  { href:'/ai?view=chat', icon:'chat', label:'Chat' },
 ]
 const CLIENT_TOOLS: NavItem[] = [
   { href:'/estimator',  icon:'estimate', label:'Preisschätzer' },
@@ -238,7 +238,7 @@ export default function Sidebar() {
     const [cleanHref, query] = h.split('?')
     const targetParams = new URLSearchParams(query ?? '')
     const targetView = targetParams.get('view')
-    const currentView = searchParams.get('view')
+    const currentView = searchParams.get('view') || (cleanHref === '/ai' ? 'chat' : null)
 
     if (targetView) {
       return pathname === cleanHref && currentView === targetView
@@ -268,7 +268,7 @@ export default function Sidebar() {
           return (
             <Link key={`${item.href}-${item.label}`} href={resolve(item.href)} className={`ni ${on?'ni-on':'ni-off'}`}>
               <Ico name={item.icon} sz={14} c={on?'var(--text)':'var(--text-muted)'} weight={on?'bold':'regular'} />
-              <span style={{ flex:1 }}>{item.label}</span>
+              <span style={{ minWidth:0, overflow:'hidden', textOverflow:'ellipsis' }}>{item.label}</span>
               {item.badge ? (
                 <span style={{ fontSize:9.5, fontWeight:700, color:'var(--text-muted)', background:'var(--border)', borderRadius:10, padding:'0 5px', minWidth:16, textAlign:'center', lineHeight:'16px' }}>{item.badge}</span>
               ) : null}
@@ -285,17 +285,16 @@ export default function Sidebar() {
     children: React.ReactNode; action?: React.ReactNode
   }) {
     return (
-      <div style={{ marginBottom:4 }}>
-        <div style={{ display:'flex', alignItems:'center', padding:'2px 6px 4px' }}>
+      <div className="sb-section">
+        <div className="sb-section-head">
           <button className="sb-icon-btn" onClick={onToggle} style={{
-            display:'flex', alignItems:'center', gap:4, flex:1,
+            display:'grid', gridTemplateColumns:'minmax(0,1fr) 18px', alignItems:'center', gap:6, width:'100%',
             background:'transparent', border:'none', cursor:'pointer',
             fontFamily:'inherit', padding:0, textAlign:'left',
           }}>
             <span style={{ fontSize:11.5, fontWeight:600, color:'var(--text-secondary)', letterSpacing:'.01em' }}>{label}</span>
-            <span style={{ flex: 1 }} />
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" strokeWidth="2.4" strokeLinecap="round"
-              style={{ flexShrink:0, opacity:.72, transform:expanded?'rotate(90deg)':'rotate(0deg)', transition:'transform .18s cubic-bezier(.16,1,.3,1)' }}>
+              style={{ justifySelf:'center', opacity:.72, transform:expanded?'rotate(90deg)':'rotate(0deg)', transition:'transform .18s cubic-bezier(.16,1,.3,1)' }}>
               <path d="M9 6l6 6-6 6"/>
             </svg>
           </button>
@@ -336,16 +335,23 @@ export default function Sidebar() {
   }) {
     const active = activeOverride ?? isOn(href)
     return (
-      <div style={{ marginBottom: 4 }}>
+      <div style={{ marginBottom: 1 }}>
         <div
           className={`ni ${active ? 'ni-on' : 'ni-off'}`}
-          style={{ gap: 8, paddingRight: 8 }}
+          style={{
+            display: 'grid',
+            gridTemplateColumns: action ? '18px minmax(0,1fr) 20px 20px' : '18px minmax(0,1fr) 20px',
+            gap: 6,
+            paddingRight: 6,
+          }}
         >
           <Link
             href={resolve(href)}
-            style={{ display: 'flex', alignItems: 'center', gap: 7, minWidth: 0, flex: 1, textDecoration: 'none', color: 'inherit' }}
+            style={{ display: 'contents', textDecoration: 'none', color: 'inherit' }}
           >
-            <Ico name={icon} sz={14} c={active ? 'var(--text)' : 'var(--text-muted)'} weight={active ? 'bold' : 'regular'} />
+            <span style={{ display:'flex', alignItems:'center', justifyContent:'center' }}>
+              <Ico name={icon} sz={14} c={active ? 'var(--text)' : 'var(--text-muted)'} weight={active ? 'bold' : 'regular'} />
+            </span>
             <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
           </Link>
           {action ? (
@@ -372,7 +378,7 @@ export default function Sidebar() {
           </button>
         </div>
         <div style={{ overflow: 'hidden', display: 'grid', gridTemplateRows: expanded ? '1fr' : '0fr', transition: 'grid-template-rows .22s cubic-bezier(.16,1,.3,1)' }}>
-          <div style={{ minHeight: 0, paddingTop: 2 }}>
+          <div style={{ minHeight: 0, paddingTop: 1 }}>
             {children}
           </div>
         </div>
@@ -384,9 +390,9 @@ export default function Sidebar() {
     <>
       <style>{`
         :root {
-          --sb-row-h: 34px;
-          --sb-icon: 17px;
-          --sb-font: 13.5px;
+          --sb-row-h: 30px;
+          --sb-icon: 16px;
+          --sb-font: 13px;
           --sb-x: 10px;
         }
         /* ── Nav item ── */
@@ -411,11 +417,20 @@ export default function Sidebar() {
         .ni:focus-visible {
           box-shadow: 0 0 0 2px var(--focus-ring, rgba(64, 105, 225, 0.35));
         }
+        .sb-section {
+          margin: 10px 0 8px;
+        }
+        .sb-section-head {
+          display:flex;
+          align-items:center;
+          min-height:22px;
+          padding:0 8px 3px;
+        }
 
         /* ── Project row ── */
         .proj-row {
           display:flex; align-items:center; gap:7px;
-          min-height: 30px;
+          min-height: 26px;
           padding:0 var(--sb-x); border-radius:8px;
           font-size:12.5px; font-weight:500;
           cursor:pointer; text-decoration:none;
@@ -517,7 +532,7 @@ export default function Sidebar() {
               <NavItems items={topNav} />
             </div>
 
-            <div style={{ marginTop: 14, marginBottom: 16 }}>
+            <div>
               <Section
                 label="Workspace"
                 expanded={workspaceExp}
@@ -583,18 +598,28 @@ export default function Sidebar() {
               </Section>
             </div>
 
-            <div style={{ marginBottom: 16 }}>
+            <div>
               <Section
                 label="Teams"
                 expanded={teamsExp}
                 onToggle={() => setTeamsExp(v => !v)}
               >
-                <div className={`ni ${pathname.startsWith('/teams') ? 'ni-on' : 'ni-off'}`} style={{ gap: 8, paddingRight: 8 }}>
+                <div
+                  className={`ni ${isOn('/teams?view=projects') ? 'ni-on' : 'ni-off'}`}
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: '18px minmax(0,1fr) 20px',
+                    gap: 6,
+                    paddingRight: 6,
+                  }}
+                >
                   <Link
                     href={resolve('/teams?view=projects')}
-                    style={{ display: 'flex', alignItems: 'center', gap: 7, minWidth: 0, flex: 1, textDecoration: 'none', color: 'inherit' }}
+                    style={{ display: 'contents', textDecoration: 'none', color: 'inherit' }}
                   >
-                    <Ico name="project" sz={14} c={pathname.startsWith('/teams') ? 'var(--text)' : 'var(--text-muted)'} weight={pathname.startsWith('/teams') ? 'bold' : 'regular'} />
+                    <span style={{ display:'flex', alignItems:'center', justifyContent:'center' }}>
+                      <Ico name="project" sz={14} c={isOn('/teams?view=projects') ? 'var(--text)' : 'var(--text-muted)'} weight={isOn('/teams?view=projects') ? 'bold' : 'regular'} />
+                    </span>
                     <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Projekte</span>
                   </Link>
                   <button
@@ -611,7 +636,7 @@ export default function Sidebar() {
               </Section>
             </div>
 
-            <div style={{ marginBottom: 16 }}>
+            <div>
               <Section
                 label="Tagro AI"
                 expanded={tagroExp}
@@ -621,7 +646,7 @@ export default function Sidebar() {
               </Section>
             </div>
 
-            <div style={{ marginBottom: 4 }}>
+            <div>
               <Section
                 label="Tools"
                 expanded={toolsExp}
