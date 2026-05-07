@@ -288,13 +288,14 @@ export default function Sidebar() {
       <div className="sb-section">
         <div className="sb-section-head">
           <button className="sb-icon-btn" onClick={onToggle} style={{
-            display:'grid', gridTemplateColumns:'minmax(0,1fr) 18px', alignItems:'center', gap:6, width:'100%',
+            display:'inline-flex', alignItems:'center', gap:8,
             background:'transparent', border:'none', cursor:'pointer',
             fontFamily:'inherit', padding:0, textAlign:'left',
+            width:'auto', maxWidth:'100%',
           }}>
-            <span style={{ fontSize:11.5, fontWeight:600, color:'var(--text-secondary)', letterSpacing:'.01em' }}>{label}</span>
+            <span style={{ fontSize:11.5, fontWeight:600, color:'var(--text-secondary)', letterSpacing:'.01em', lineHeight:'18px' }}>{label}</span>
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" strokeWidth="2.4" strokeLinecap="round"
-              style={{ justifySelf:'center', opacity:.72, transform:expanded?'rotate(90deg)':'rotate(0deg)', transition:'transform .18s cubic-bezier(.16,1,.3,1)' }}>
+              style={{ flexShrink:0, opacity:.72, transform:expanded?'rotate(90deg)':'rotate(0deg)', transition:'none' }}>
               <path d="M9 6l6 6-6 6"/>
             </svg>
           </button>
@@ -425,6 +426,12 @@ export default function Sidebar() {
           align-items:center;
           min-height:22px;
           padding:0 8px 3px;
+        }
+        .sb-section-head button {
+          min-height: 18px;
+        }
+        .sb-section-head button:active {
+          transform: none;
         }
 
         /* ── Project row ── */
