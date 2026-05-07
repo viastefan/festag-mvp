@@ -171,13 +171,32 @@ function teamTaskPriorityLabel(priority?: string | null) {
   return priority.toUpperCase()
 }
 
-function teamTaskSprintLabel(task: TeamTaskRow, index: number) {
-  return task.sprint || `S${24 + (index % 6)}`
-}
-
 function teamTaskShortId(id: string, index: number) {
   const numeric = Number.parseInt(id.replace(/\D/g, '').slice(0, 5), 10)
   return `#${Number.isFinite(numeric) && numeric > 0 ? numeric : 10425 + index}`
+}
+
+function teamTaskHealthLabel(status?: string | null) {
+  const normalized = normalizeTeamTaskStatus(status)
+  if (normalized === 'done') return 'Vom Developer erledigt'
+  if (normalized === 'active') return 'Update vorhanden'
+  return 'No updates'
+}
+
+function teamTaskProgress(status?: string | null) {
+  const normalized = normalizeTeamTaskStatus(status)
+  if (normalized === 'done') return 100
+  if (normalized === 'active') return 55
+  return 0
+}
+
+function teamTaskDateLabel(value?: string | null) {
+  if (!value) return '---'
+  try {
+    return new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: 'short' }).format(new Date(value))
+  } catch {
+    return '---'
+  }
 }
 
 function tabFromTeamView(view?: string): TeamTab {
@@ -216,16 +235,13 @@ function TeamTasksTable({
   return (
     <section className="team-task-shell" aria-label="Team Aufgaben">
       <div className="team-task-top">
-        <div>
-          <p className="team-task-kicker">Team Orchestrierungspanel</p>
-          <h2>Aufgaben</h2>
-        </div>
+        <h2>Aufgaben</h2>
         <button className="team-task-plus" type="button" aria-label="Neue Team-Aufgabe">+</button>
       </div>
 
       <div className="team-task-toolbar">
         <div className="team-task-filter">
-          <span>All team tasks</span>
+          <span>All tasks</span>
         </div>
         <span className="team-task-counts">{openCount} offen · {activeCount} aktiv · {doneCount} erledigt</span>
         <div className="team-task-actions" aria-hidden="true">
@@ -236,11 +252,12 @@ function TeamTasksTable({
 
       <div className="team-task-table-wrap">
         <div className="team-task-head">
-          <span>ID</span>
-          <span>Technical Task</span>
+          <span>Name</span>
+          <span>Health</span>
           <span>Priority</span>
-          <span>Assigned</span>
-          <span>Sprint</span>
+          <span>Lead</span>
+          <span>Target date</span>
+          <span>Issues</span>
           <span>Status</span>
         </div>
 
@@ -252,16 +269,20 @@ function TeamTasksTable({
           const project = task.project_id ? projectById.get(task.project_id) : null
           const normalized = normalizeTeamTaskStatus(task.status)
           const lead = leadFor(task)
+          const progress = teamTaskProgress(task.status)
 
           return (
             <div key={task.id} className="team-task-row">
-              <div className="team-task-id">{teamTaskShortId(task.id, index)}</div>
               <div className="team-task-name">
                 <span className="team-task-cube"><Cube size={16} weight="regular" /></span>
                 <span>
                   <strong>{task.title}</strong>
-                  <small>{project?.title || 'Kein Projekt zugeordnet'}</small>
+                  <small>{teamTaskShortId(task.id, index)} · {project?.title || 'Kein Projekt zugeordnet'}</small>
                 </span>
+              </div>
+              <div className={`team-task-health health-${normalized}`}>
+                <i />
+                <span>{teamTaskHealthLabel(task.status)}</span>
               </div>
               <div className={`team-task-priority priority-${(task.priority || '').toLowerCase() || 'none'}`}>
                 {teamTaskPriorityLabel(task.priority)}
@@ -274,10 +295,11 @@ function TeamTasksTable({
                 )}
                 <em>{lead.name}</em>
               </div>
-              <div className="team-task-sprint">{teamTaskSprintLabel(task, index)}</div>
+              <div className="team-task-date">{teamTaskDateLabel(task.updated_at || task.created_at)}</div>
+              <div className="team-task-issues">0</div>
               <div className={`team-task-status status-${normalized}`}>
                 <i />
-                {teamTaskStatusLabel(task.status)}
+                {normalized === 'active' ? teamTaskStatusLabel(task.status) : `${progress}%`}
               </div>
             </div>
           )
@@ -482,34 +504,30 @@ export default function TeamsPage({ searchParams }: { searchParams?: { view?: st
         .assign-backdrop { position:fixed; inset:0; z-index:7999; background:rgba(0,0,0,.3); backdrop-filter:blur(4px); }
         .team-task-shell {
           width:100%;
-          min-height:420px;
+          min-height:calc(100vh - 176px);
           color:var(--text);
           border:1px solid var(--border);
-          border-radius:18px;
-          background:color-mix(in srgb, var(--surface) 86%, var(--bg));
+          border-radius:16px;
+          background:var(--surface);
           overflow:hidden;
-          box-shadow:var(--shadow-soft);
+          box-shadow:0 18px 44px rgba(0,0,0,.07);
+          display:flex;
+          flex-direction:column;
         }
         .team-task-top {
-          min-height:54px;
-          padding:0 18px;
+          min-height:56px;
+          padding:0 18px 0 22px;
           display:flex;
           align-items:center;
           justify-content:space-between;
           border-bottom:1px solid var(--border);
+          flex-shrink:0;
         }
         .team-task-top h2 {
-          margin:1px 0 0;
+          margin:0;
           font-size:15px;
           font-weight:700;
-          letter-spacing:-.1px;
-        }
-        .team-task-kicker {
-          margin:0;
-          font-size:11px;
-          font-weight:650;
-          color:var(--text-muted);
-          letter-spacing:.01em;
+          letter-spacing:-.15px;
         }
         .team-task-plus {
           width:30px;
@@ -525,16 +543,17 @@ export default function TeamsPage({ searchParams }: { searchParams?: { view?: st
         }
         .team-task-plus:hover { background:var(--surface-2); color:var(--text); }
         .team-task-toolbar {
-          min-height:52px;
-          padding:0 14px;
+          min-height:58px;
+          padding:0 18px 0 14px;
           display:flex;
           align-items:center;
           gap:10px;
           border-bottom:1px solid color-mix(in srgb, var(--border) 78%, transparent);
+          flex-shrink:0;
         }
         .team-task-filter {
-          height:30px;
-          padding:0 12px;
+          height:32px;
+          padding:0 14px;
           display:flex;
           align-items:center;
           border-radius:999px;
@@ -558,8 +577,8 @@ export default function TeamsPage({ searchParams }: { searchParams?: { view?: st
           gap:8px;
         }
         .team-task-actions span {
-          width:32px;
-          height:32px;
+          width:34px;
+          height:34px;
           border-radius:999px;
           display:flex;
           align-items:center;
@@ -568,36 +587,34 @@ export default function TeamsPage({ searchParams }: { searchParams?: { view?: st
           border:1px solid var(--border);
           color:var(--text-muted);
         }
-        .team-task-table-wrap { width:100%; overflow:auto; }
+        .team-task-table-wrap {
+          width:100%;
+          overflow:auto;
+          flex:1;
+        }
         .team-task-head,
         .team-task-row {
-          min-width:880px;
+          min-width:1080px;
           display:grid;
-          grid-template-columns:82px minmax(300px,1fr) 120px 140px 110px 150px;
+          grid-template-columns:minmax(360px,1.55fr) minmax(150px,.8fr) 100px 104px 130px 76px 110px;
           align-items:center;
-          gap:18px;
+          gap:22px;
         }
         .team-task-head {
-          min-height:42px;
-          padding:0 22px;
+          min-height:46px;
+          padding:0 28px 0 42px;
           color:var(--text-muted);
-          font-size:12px;
-          font-weight:700;
-          border-bottom:1px solid var(--border);
+          font-size:12.5px;
+          font-weight:650;
         }
         .team-task-row {
           min-height:58px;
-          padding:0 22px;
+          padding:0 28px 0 42px;
           color:var(--text-secondary);
-          border-bottom:1px solid color-mix(in srgb, var(--border) 70%, transparent);
+          border-bottom:0;
           font-size:12.5px;
         }
-        .team-task-row:hover { background:color-mix(in srgb, var(--surface-2) 62%, transparent); }
-        .team-task-id {
-          color:var(--text-muted);
-          font-variant-numeric:tabular-nums;
-          font-weight:650;
-        }
+        .team-task-row:hover { background:color-mix(in srgb, var(--surface-2) 42%, transparent); }
         .team-task-name {
           min-width:0;
           display:flex;
@@ -634,6 +651,37 @@ export default function TeamsPage({ searchParams }: { searchParams?: { view?: st
           overflow:hidden;
           text-overflow:ellipsis;
           white-space:nowrap;
+        }
+        .team-task-health {
+          min-width:0;
+          display:flex;
+          align-items:center;
+          gap:8px;
+          color:var(--text-muted);
+          font-weight:650;
+        }
+        .team-task-health i {
+          width:15px;
+          height:15px;
+          border-radius:50%;
+          border:2px dashed currentColor;
+          opacity:.7;
+          flex-shrink:0;
+        }
+        .team-task-health span {
+          overflow:hidden;
+          text-overflow:ellipsis;
+          white-space:nowrap;
+        }
+        .team-task-health.health-done {
+          color:var(--green);
+        }
+        .team-task-health.health-done i {
+          border-style:solid;
+          background:currentColor;
+        }
+        .team-task-health.health-active {
+          color:var(--amber);
         }
         .team-task-priority {
           color:var(--text-muted);
@@ -675,7 +723,8 @@ export default function TeamsPage({ searchParams }: { searchParams?: { view?: st
           color:var(--text-secondary);
           font-weight:650;
         }
-        .team-task-sprint {
+        .team-task-date,
+        .team-task-issues {
           color:var(--text-secondary);
           font-weight:700;
           font-variant-numeric:tabular-nums;
@@ -694,7 +743,7 @@ export default function TeamsPage({ searchParams }: { searchParams?: { view?: st
           color:var(--text-muted);
           font-size:10.5px;
           font-weight:850;
-          letter-spacing:.06em;
+          letter-spacing:.03em;
           white-space:nowrap;
         }
         .team-task-status i {
@@ -719,7 +768,7 @@ export default function TeamsPage({ searchParams }: { searchParams?: { view?: st
           background:currentColor;
         }
         .team-task-empty {
-          min-height:150px;
+          min-height:calc(100vh - 340px);
           display:flex;
           align-items:center;
           justify-content:center;
@@ -733,6 +782,11 @@ export default function TeamsPage({ searchParams }: { searchParams?: { view?: st
           color:#8dbfff;
           background:rgba(92, 140, 210, .14);
           border-color:rgba(141, 191, 255, .22);
+        }
+        [data-theme="dark"] .team-task-shell {
+          background:#101010;
+          border-color:#242424;
+          box-shadow:0 18px 54px rgba(0,0,0,.42);
         }
       `}</style>
 
