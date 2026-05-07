@@ -67,7 +67,7 @@ const CLIENT_TOOLS: NavItem[] = [
 ]
 const CLIENT_MOB_PRIMARY: NavItem[] = [
   { href:'/dashboard',       icon:'home',    label:'Home' },
-  { href:'/project/current', icon:'project', label:'Projekt' },
+  { href:'/projects',        icon:'project', label:'Projekt' },
   { href:'/ai',              icon:'sparkle', label:'AI' },
   { href:'/settings',        icon:'user',    label:'Profil' },
 ]
@@ -127,7 +127,6 @@ export default function Sidebar() {
   const [projects, setProjects] = useState<{id:string;title:string;status:string;color:string|null}[]>([])
   const [more, setMore] = useState(false)
   const [workspaceExp, setWorkspaceExp] = useState(true)
-  const [projExp, setProjExp] = useState(true)
   const [teamsExp, setTeamsExp] = useState(false)
   const [tagroExp, setTagroExp] = useState(true)
   const [toolsExp, setToolsExp] = useState(false)
@@ -227,7 +226,7 @@ export default function Sidebar() {
   }
 
   const logout  = async () => { await createClient().auth.signOut(); window.location.href='/login' }
-  const resolve = (h: string) => h==='/project/current'?(projId?`/project/${projId}`:'/dashboard'):h
+  const resolve = (h: string) => h==='/project/current'?(projId?`/project/${projId}`:'/projects'):h
   const isOn    = (h: string) => {
     const [cleanHref, query] = h.split('?')
     const targetParams = new URLSearchParams(query ?? '')
@@ -555,26 +554,15 @@ export default function Sidebar() {
                 label="Workspace"
                 expanded={workspaceExp}
                 onToggle={() => setWorkspaceExp(v => !v)}
-                action={
-                  <button
-                    className="sb-icon-btn"
-                    type="button"
-                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); router.push('/onboarding') }}
-                    title="Neues Projekt"
-                    style={{ width: 18, height: 18, border: 'none', background: 'transparent', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', borderRadius: 6 }}
-                  >
-                    <Ico name="plus" sz={11} c="currentColor" weight="regular" />
-                  </button>
-                }
               >
                 {isClient && (
                   <ExpandableNavSection
-                    href="/relations/projects"
+                    href="/projects"
                     icon="project"
                     label="Projekte"
                     expanded={true}
-                    onToggle={() => setProjExp(v => !v)}
-                    activeOverride={pathname.startsWith('/project/') || pathname.startsWith('/relations/projects')}
+                    onToggle={() => {}}
+                    activeOverride={pathname.startsWith('/project/') || pathname.startsWith('/projects')}
                   >
                     {projects.map(p => {
                       const on = pathname === `/project/${p.id}`
