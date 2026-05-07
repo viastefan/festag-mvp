@@ -391,7 +391,7 @@ export default function Sidebar() {
     <>
       <style>{`
         :root {
-          --sb-row-h: 30px;
+          --sb-row-h: 27px;
           --sb-icon: 16px;
           --sb-font: 13px;
           --sb-x: 10px;
@@ -405,7 +405,7 @@ export default function Sidebar() {
           cursor:pointer; text-decoration:none; color:inherit;
           transition:background .12s, color .12s;
           white-space:nowrap; overflow:hidden;
-          margin:1px 2px;
+          margin:0 2px;
         }
         .ni-on  { background:rgba(0,0,0,0.048); font-weight:600; color:var(--text); }
         [data-theme="dark"] .ni-on { background:rgba(255,255,255,0.075); color:var(--nav-on-text); }
@@ -419,13 +419,13 @@ export default function Sidebar() {
           box-shadow: 0 0 0 2px var(--focus-ring, rgba(64, 105, 225, 0.35));
         }
         .sb-section {
-          margin: 10px 0 8px;
+          margin: 20px 0 18px;
         }
         .sb-section-head {
           display:flex;
           align-items:center;
           min-height:22px;
-          padding:0 8px 3px;
+          padding:0 8px 5px;
         }
         .sb-section-head button {
           min-height: 18px;
@@ -437,13 +437,13 @@ export default function Sidebar() {
         /* ── Project row ── */
         .proj-row {
           display:flex; align-items:center; gap:7px;
-          min-height: 26px;
+          min-height: 23px;
           padding:0 var(--sb-x); border-radius:8px;
           font-size:12.5px; font-weight:500;
           cursor:pointer; text-decoration:none;
           color:var(--text-muted);
           transition:background .08s, color .08s;
-          overflow:hidden; margin:1px 2px;
+          overflow:hidden; margin:0 2px;
         }
         .proj-row:hover { background:rgba(0,0,0,0.04); color:var(--text); }
         [data-theme="dark"] .proj-row:hover { background:rgba(255,255,255,0.05); }
