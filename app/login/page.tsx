@@ -138,7 +138,7 @@ function FInput({ label, value, onChange, type='text', placeholder='', autoFocus
 function PrimaryBtn({ label, onClick, loading=false, disabled=false }: { label: string; onClick: () => void; loading?: boolean; disabled?: boolean }) {
   return (
     <button onClick={onClick} disabled={disabled || loading}
-      style={{ width: '100%', padding: '16px 24px', background: disabled ? 'var(--card)' : 'var(--btn-prim)', color: disabled ? 'var(--text-muted)' : 'var(--btn-prim-text)', fontSize: 16, fontWeight: 700, borderRadius: 14, border: 'none', cursor: disabled ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, fontFamily: 'inherit', letterSpacing: '-.1px', transition: 'all .18s', boxShadow: disabled ? 'none' : '0 2px 16px var(--glow)', opacity: disabled ? .5 : 1 }}>
+      style={{ width: '100%', padding: '16px 24px', background: disabled ? 'var(--card)' : 'var(--btn-prim)', color: disabled ? 'var(--text-muted)' : 'var(--btn-prim-text)', fontSize: 16, fontWeight: 700, borderRadius: 8, border: 'none', cursor: disabled ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, fontFamily: 'inherit', letterSpacing: '-.1px', transition: 'all .18s', boxShadow: disabled ? 'none' : '0 2px 16px var(--glow)', opacity: disabled ? .5 : 1 }}>
       {loading ? <span style={{ width: 18, height: 18, border: '2.5px solid rgba(128,128,128,.3)', borderTopColor: 'var(--btn-prim-text)', borderRadius: '50%', animation: 'spin .7s linear infinite', display: 'inline-block' }}/> : label}
     </button>
   )
@@ -148,7 +148,7 @@ function SecondaryBtn({ label, onClick }: { label: string; onClick: () => void }
   const [h, setH] = useState(false)
   return (
     <button onClick={onClick} onMouseEnter={() => setH(true)} onMouseLeave={() => setH(false)}
-      style={{ width: '100%', padding: '16px 24px', background: h ? 'var(--card)' : 'var(--inp)', color: 'var(--text)', fontSize: 16, fontWeight: 700, borderRadius: 14, border: '1.5px solid var(--border)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'inherit', letterSpacing: '-.1px', transition: 'all .15s' }}>
+      style={{ width: '100%', padding: '16px 24px', background: h ? 'var(--card)' : 'var(--inp)', color: 'var(--text)', fontSize: 16, fontWeight: 700, borderRadius: 8, border: '1.5px solid var(--border)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'inherit', letterSpacing: '-.1px', transition: 'all .15s' }}>
       {label}
     </button>
   )

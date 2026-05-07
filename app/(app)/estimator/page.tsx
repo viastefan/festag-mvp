@@ -163,7 +163,7 @@ export default function EstimatorPage() {
   const totalHours = result?.breakdown.reduce((s, b) => s + b.hours, 0) ?? 0
 
   return (
-    <div className="page-content" style={{ maxWidth: 1100 }}>
+    <div className="page-content" style={{ maxWidth: undefined }}>
       <style>{`
         .est-type { transition: all .15s; cursor: pointer; }
         .est-type:hover { border-color: var(--border-strong) !important; }
@@ -186,7 +186,7 @@ export default function EstimatorPage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
 
           {/* Project type */}
-          <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 20, padding: '18px 20px' }}>
+          <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 8, padding: '18px 20px' }}>
             <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '.1em', textTransform: 'uppercase', margin: '0 0 12px' }}>1. Projekttyp *</p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
               {PROJECT_TYPES.map(pt => {
@@ -205,7 +205,7 @@ export default function EstimatorPage() {
           </div>
 
           {/* Complexity */}
-          <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 20, padding: '18px 20px' }}>
+          <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 8, padding: '18px 20px' }}>
             <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '.1em', textTransform: 'uppercase', margin: '0 0 12px' }}>2. Komplexität</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
               {COMPLEXITY.map(c => (
@@ -219,14 +219,14 @@ export default function EstimatorPage() {
           </div>
 
           {/* Features */}
-          <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 20, padding: '18px 20px' }}>
+          <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 8, padding: '18px 20px' }}>
             <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '.1em', textTransform: 'uppercase', margin: '0 0 12px' }}>3. Features <span style={{ fontWeight: 500, textTransform: 'none', letterSpacing: 0, opacity: .6 }}>(optional)</span></p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
               {FEATURE_OPTIONS.map(f => {
                 const on = features.includes(f.id)
                 return (
                   <button key={f.id} onClick={() => toggleFeature(f.id)} className="est-feat"
-                    style={{ padding: '7px 13px', borderRadius: 20, border: `1.5px solid ${on ? 'var(--text)' : 'var(--border)'}`, background: on ? 'var(--surface-2)' : 'transparent', fontSize: 12, fontWeight: on ? 700 : 500, color: on ? 'var(--text)' : 'var(--text-secondary)', fontFamily: 'inherit' }}>
+                    style={{ padding: '7px 13px', borderRadius: 8, border: `1.5px solid ${on ? 'var(--text)' : 'var(--border)'}`, background: on ? 'var(--surface-2)' : 'transparent', fontSize: 12, fontWeight: on ? 700 : 500, color: on ? 'var(--text)' : 'var(--text-secondary)', fontFamily: 'inherit' }}>
                     {on && <span style={{ marginRight: 4, fontSize: 10 }}>✓</span>}
                     {f.label}
                   </button>
@@ -236,7 +236,7 @@ export default function EstimatorPage() {
           </div>
 
           {/* Description */}
-          <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 20, padding: '18px 20px' }}>
+          <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 8, padding: '18px 20px' }}>
             <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '.1em', textTransform: 'uppercase', margin: '0 0 10px' }}>4. Beschreibung <span style={{ fontWeight: 500, textTransform: 'none', letterSpacing: 0, opacity: .6 }}>(optional)</span></p>
             <textarea value={desc} onChange={e => setDesc(e.target.value)} rows={3}
               placeholder="Beschreibe kurz was gebaut werden soll, besondere Anforderungen oder Integration zu bestehenden Systemen…"
@@ -249,7 +249,7 @@ export default function EstimatorPage() {
           )}
 
           <button onClick={result ? reset : estimate} disabled={loading} className="tap-scale"
-            style={{ height: 52, background: result ? 'var(--surface-2)' : 'var(--btn-prim)', color: result ? 'var(--text)' : 'var(--btn-prim-text)', border: 'none', borderRadius: 16, fontSize: 15, fontWeight: 700, cursor: loading ? 'default' : 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, transition: 'all .15s' }}>
+            style={{ height: 52, background: result ? 'var(--surface-2)' : 'var(--btn-prim)', color: result ? 'var(--text)' : 'var(--btn-prim-text)', border: 'none', borderRadius: 8, fontSize: 15, fontWeight: 700, cursor: loading ? 'default' : 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, transition: 'all .15s' }}>
             {loading ? (
               <>
                 <span style={{ width: 18, height: 18, border: '2.5px solid rgba(128,128,128,.35)', borderTopColor: 'currentColor', borderRadius: '50%', animation: 'spin .7s linear infinite' }} />
@@ -268,7 +268,7 @@ export default function EstimatorPage() {
           <div key={key} className="result-in" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
 
             {/* Hero price card */}
-            <div style={{ background: 'var(--btn-prim)', borderRadius: 20, padding: '28px 28px 24px', position: 'relative', overflow: 'hidden' }}>
+            <div style={{ background: 'var(--btn-prim)', borderRadius: 8, padding: '28px 28px 24px', position: 'relative', overflow: 'hidden' }}>
               <div style={{ position: 'absolute', top: -20, right: -20, width: 140, height: 140, borderRadius: '50%', background: 'rgba(255,255,255,0.04)' }}/>
               <div style={{ position: 'absolute', bottom: -30, right: 40, width: 90, height: 90, borderRadius: '50%', background: 'rgba(255,255,255,0.03)' }}/>
               <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--btn-prim-text)', opacity: .5, letterSpacing: '.12em', textTransform: 'uppercase', margin: '0 0 6px' }}>Geschätzte Projektkosten</p>
@@ -294,13 +294,13 @@ export default function EstimatorPage() {
             </div>
 
             {/* Summary */}
-            <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 16, padding: '16px 18px' }}>
+            <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 8, padding: '16px 18px' }}>
               <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '.1em', textTransform: 'uppercase', margin: '0 0 8px' }}>Zusammenfassung</p>
               <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.65, margin: 0 }}>{result.summary}</p>
             </div>
 
             {/* Breakdown */}
-            <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 16, overflow: 'hidden' }}>
+            <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden' }}>
               <div style={{ padding: '14px 18px', borderBottom: '1px solid var(--border)' }}>
                 <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '.1em', textTransform: 'uppercase', margin: 0 }}>Kostenkalkulation</p>
               </div>
@@ -328,7 +328,7 @@ export default function EstimatorPage() {
 
             {/* Included / Excluded */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-              <div style={{ background: 'var(--card)', border: '1px solid var(--green-border)', borderRadius: 14, padding: '14px 16px' }}>
+              <div style={{ background: 'var(--card)', border: '1px solid var(--green-border)', borderRadius: 8, padding: '14px 16px' }}>
                 <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--green-dark)', letterSpacing: '.1em', textTransform: 'uppercase', margin: '0 0 10px' }}>Inklusive</p>
                 {result.included.map((item, i) => (
                   <p key={i} style={{ fontSize: 12, color: 'var(--text-secondary)', margin: '0 0 5px', display: 'flex', gap: 7, lineHeight: 1.4 }}>
@@ -336,7 +336,7 @@ export default function EstimatorPage() {
                   </p>
                 ))}
               </div>
-              <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 14, padding: '14px 16px' }}>
+              <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 8, padding: '14px 16px' }}>
                 <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '.1em', textTransform: 'uppercase', margin: '0 0 10px' }}>— Nicht inklusive</p>
                 {result.excluded.map((item, i) => (
                   <p key={i} style={{ fontSize: 12, color: 'var(--text-muted)', margin: '0 0 5px', display: 'flex', gap: 7, lineHeight: 1.4 }}>
@@ -348,7 +348,7 @@ export default function EstimatorPage() {
 
             {/* Risks */}
             {result.risks.length > 0 && (
-              <div style={{ background: 'var(--amber-bg)', border: '1px solid var(--border)', borderRadius: 14, padding: '14px 16px' }}>
+              <div style={{ background: 'var(--amber-bg)', border: '1px solid var(--border)', borderRadius: 8, padding: '14px 16px' }}>
                 <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--amber-dark)', letterSpacing: '.1em', textTransform: 'uppercase', margin: '0 0 10px' }}>Risiken & Hinweise</p>
                 {result.risks.map((r, i) => (
                   <p key={i} style={{ fontSize: 12, color: 'var(--text-secondary)', margin: '0 0 5px', lineHeight: 1.5 }}>· {r}</p>
@@ -357,7 +357,7 @@ export default function EstimatorPage() {
             )}
 
             {/* CTA */}
-            <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 16, padding: '18px 20px', display: 'flex', gap: 14, alignItems: 'center' }}>
+            <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 8, padding: '18px 20px', display: 'flex', gap: 14, alignItems: 'center' }}>
               <div style={{ flex: 1 }}>
                 <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)', margin: '0 0 4px' }}>Bereit dein Projekt zu starten?</p>
                 <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: 0 }}>Tagro begleitet dich durch den gesamten Entwicklungsprozess.</p>

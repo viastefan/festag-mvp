@@ -270,7 +270,7 @@ export default function CommandPalette() {
               zIndex: 9501,
               background:'var(--surface)',
               border:'1px solid var(--border-strong)',
-              borderRadius: 16,
+              borderRadius: 8,
               boxShadow:'0 28px 80px rgba(0,0,0,0.32)',
               overflow:'hidden',
             }}

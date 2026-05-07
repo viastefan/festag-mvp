@@ -216,7 +216,7 @@ export default function TeamsPage() {
   )
 
   return (
-    <div className="page-content animate-fade-up" style={{ maxWidth: 1100 }}>
+    <div className="page-content animate-fade-up" style={{ maxWidth: undefined }}>
       <style>{`
         @keyframes spin     { to { transform: rotate(360deg); } }
         @keyframes fadeUp   { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }

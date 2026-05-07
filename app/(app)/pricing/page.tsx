@@ -235,7 +235,7 @@ export default function PricingPage() {
   }
 
   return (
-    <div className="page-content animate-fade-up" style={{ maxWidth:1240, padding:'24px 22px 80px' }}>
+    <div className="page-content animate-fade-up" style={{ maxWidth: undefined, padding:'24px 22px 80px' }}>
       <style>{`
         .pp-card { transition: border-color .2s ease, transform .2s ease; will-change: transform; }
         .pp-card:hover { transform: translateY(-2px); }

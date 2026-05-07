@@ -240,7 +240,7 @@ export default function RelNotesPage() {
       {showModal && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 500, background: 'rgba(0,0,0,.65)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, animation: 'fadeIn .15s ease' }}
           onClick={e => { if (e.target === e.currentTarget) setShowModal(false) }}>
-          <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 14, width: '100%', maxWidth: 520, animation: 'slideUp .2s cubic-bezier(.16,1,.3,1)' }}>
+          <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 8, width: '100%', maxWidth: 520, animation: 'slideUp .2s cubic-bezier(.16,1,.3,1)' }}>
 
             {/* Header */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', borderBottom: '1px solid var(--border)' }}>

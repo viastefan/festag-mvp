@@ -311,7 +311,7 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn mÃ
   const doneTasks  = tasks.filter(t => t.status === 'done')
 
   return (
-    <div className="page-content animate-fade-up" style={{ maxWidth: 1160 }}>
+    <div className="page-content animate-fade-up" style={{ maxWidth: undefined }}>
       <style>{`
         @keyframes spin  { to { transform:rotate(360deg); } }
         @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.3;} }

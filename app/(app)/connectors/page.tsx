@@ -128,7 +128,7 @@ export default function ConnectorsPage() {
   const opened = CONNECTORS.find(c => c.id === open)
 
   return (
-    <div className="page-content animate-fade-up" style={{ maxWidth:1100 }}>
+    <div className="page-content animate-fade-up" style={{ maxWidth: undefined }}>
       <style>{`
         .conn-card { transition:transform .15s, border-color .15s, box-shadow .15s; }
         .conn-card:hover { transform:translateY(-2px); border-color:var(--border-strong); box-shadow:0 8px 24px rgba(15,23,42,.06); }

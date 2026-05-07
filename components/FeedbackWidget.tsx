@@ -86,7 +86,7 @@ export default function FeedbackWidget() {
       <div style={{
         position: 'fixed', bottom: 'calc(24px + var(--safe-bottom))', right: 24,
         width: 320, background: 'var(--surface)', border: '1px solid var(--border)',
-        borderRadius: 22, padding: '24px 22px 20px', zIndex: 901,
+        borderRadius: 8, padding: '24px 22px 20px', zIndex: 901,
         boxShadow: 'var(--shadow-lg)',
         animation: 'fbUp .3s cubic-bezier(.16,1,.3,1) both',
       }}>

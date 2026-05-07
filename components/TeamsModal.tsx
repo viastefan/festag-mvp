@@ -386,7 +386,7 @@ export default function TeamsModal({ open, onClose }: { open: boolean; onClose: 
                         padding:'14px 14px 12px',
                         background: isSelected ? 'var(--card)' : 'var(--surface)',
                         border: `1.5px solid ${isSelected ? 'var(--text)' : 'var(--border)'}`,
-                        borderRadius: 14,
+                        borderRadius: 8,
                         display:'flex', flexDirection:'column',
                         textAlign:'left',
                         fontFamily:'inherit', cursor: m.mailto ? 'default' : 'pointer',

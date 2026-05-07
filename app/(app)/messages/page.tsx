@@ -177,8 +177,8 @@ export default function MessagesPage() {
           <div style={{ width: 24, height: 24, border: '2px solid var(--border)', borderTopColor: 'var(--text)', borderRadius: '50%', animation: 'spin .8s linear infinite' }} />
         </div>
       ) : projects.length === 0 ? (
-        <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 20, padding: '56px 24px', textAlign: 'center' }}>
-          <div style={{ width: 48, height: 48, borderRadius: 14, background: 'var(--surface-2)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+        <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 8, padding: '56px 24px', textAlign: 'center' }}>
+          <div style={{ width: 48, height: 48, borderRadius: 8, background: 'var(--surface-2)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="1.6" strokeLinecap="round">
               <path d="M21 12c0 4.4-4 8-9 8-1.4 0-2.8-.3-4-.8L3 21l1.8-5C4.3 15 4 13.5 4 12c0-4.4 4-8 9-8s9 3.6 9 8z"/>
             </svg>
@@ -369,7 +369,7 @@ export default function MessagesPage() {
 
                 {/* Codex-style input */}
                 <div style={{ padding: '10px 14px 14px', borderTop: '1px solid var(--border)', background: 'var(--surface)', flexShrink: 0 }}>
-                  <div style={{ position: 'relative', background: 'var(--bg)', border: '1.5px solid var(--border)', borderRadius: 16, padding: '10px 44px 10px 14px', transition: 'border-color .15s, box-shadow .15s' }}
+                  <div style={{ position: 'relative', background: 'var(--bg)', border: '1.5px solid var(--border)', borderRadius: 8, padding: '10px 44px 10px 14px', transition: 'border-color .15s, box-shadow .15s' }}
                     onFocusCapture={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border-strong)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 0 0 3px var(--glow)' }}
                     onBlurCapture={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'; (e.currentTarget as HTMLElement).style.boxShadow = 'none' }}>
                     <textarea

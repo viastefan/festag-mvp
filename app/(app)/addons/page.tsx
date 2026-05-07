@@ -433,7 +433,7 @@ export default function AddonsPage() {
                 key={t.key}
                 onClick={() => setActiveCategory(t.key)}
                 style={{
-                  padding: '7px 13px', border: '1px solid var(--border)', borderRadius: 18,
+                  padding: '7px 13px', border: '1px solid var(--border)', borderRadius: 8,
                   background: isActive ? 'var(--text)' : 'var(--surface)',
                   color: isActive ? '#fff' : 'var(--text-secondary)',
                   fontSize: 12, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap',
@@ -452,7 +452,7 @@ export default function AddonsPage() {
                 key={c.key}
                 onClick={() => setActiveCategory(c.key)}
                 style={{
-                  padding: '7px 13px', border: '1px solid var(--border)', borderRadius: 18,
+                  padding: '7px 13px', border: '1px solid var(--border)', borderRadius: 8,
                   background: isActive ? 'var(--text)' : 'var(--surface)',
                   color: isActive ? '#fff' : 'var(--text-secondary)',
                   fontSize: 12, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap',
@@ -468,7 +468,7 @@ export default function AddonsPage() {
 
       {/* Grid */}
       {filtered.length === 0 ? (
-        <div style={{ padding: '60px 20px', textAlign: 'center', background: 'var(--surface)', border: '1px dashed var(--border)', borderRadius: 16, marginBottom: 60 }}>
+        <div style={{ padding: '60px 20px', textAlign: 'center', background: 'var(--surface)', border: '1px dashed var(--border)', borderRadius: 8, marginBottom: 60 }}>
           <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)', margin: '0 0 4px' }}>Keine Add-ons gefunden</p>
           <p style={{ fontSize: 13, color: 'var(--text-muted)', margin: 0 }}>Versuche eine andere Suche oder Kategorie.</p>
         </div>
@@ -651,7 +651,7 @@ function ProjectPicker({
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
       style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 500, padding: 16, backdropFilter: 'blur(4px)', animation: 'fadeIn .2s ease' }}
     >
-      <div style={{ width: '100%', maxWidth: 460, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 18, overflow: 'hidden', boxShadow: '0 24px 64px rgba(0,0,0,0.25)', animation: 'slideIn .25s cubic-bezier(.16,1,.3,1) both', maxHeight: '85vh', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ width: '100%', maxWidth: 460, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden', boxShadow: '0 24px 64px rgba(0,0,0,0.25)', animation: 'slideIn .25s cubic-bezier(.16,1,.3,1) both', maxHeight: '85vh', display: 'flex', flexDirection: 'column' }}>
         <div style={{ padding: '18px 22px 14px', borderBottom: '1px solid var(--border)', background: 'var(--bg)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
           <div style={{ minWidth: 0 }}>
             <p style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '.1em', margin: 0 }}>PROJEKT ZUWEISEN</p>

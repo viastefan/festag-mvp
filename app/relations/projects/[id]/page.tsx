@@ -402,7 +402,7 @@ Das Team sollte die offenen Punkte prüfen und konkrete Tasks zuweisen.`
       {showTask && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 500, background: 'rgba(0,0,0,.65)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, animation: 'fadeIn .15s ease' }}
           onClick={e => { if (e.target === e.currentTarget) setShowTask(false) }}>
-          <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 14, width: '100%', maxWidth: 520, animation: 'slideUp .2s cubic-bezier(.16,1,.3,1)' }}>
+          <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 8, width: '100%', maxWidth: 520, animation: 'slideUp .2s cubic-bezier(.16,1,.3,1)' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', borderBottom: '1px solid var(--border)' }}>
               <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>{editTask ? 'Task bearbeiten' : 'Neue Task'}</span>
               <button onClick={() => setShowTask(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 4 }}>
@@ -491,7 +491,7 @@ function TaskRow({ task, last, onClick, onCycle }: { task: Task; last: boolean; 
         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" strokeWidth="2" strokeLinecap="round" title="Von Tagro"><path d="M12 2L9 9H2l5.5 4-2 7L12 16l6.5 4-2-7L22 9h-7z"/></svg>
       )}
       {task.assignee_name && (
-        <span style={{ fontSize: 10.5, fontWeight: 600, color: 'var(--text-muted)', background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 20, padding: '1px 7px', flexShrink: 0 }}>{task.assignee_name}</span>
+        <span style={{ fontSize: 10.5, fontWeight: 600, color: 'var(--text-muted)', background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 8, padding: '1px 7px', flexShrink: 0 }}>{task.assignee_name}</span>
       )}
       {task.due_date && (
         <span style={{ fontSize: 11, color: 'var(--text-muted)', flexShrink: 0 }}>

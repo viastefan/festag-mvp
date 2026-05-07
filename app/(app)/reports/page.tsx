@@ -145,7 +145,7 @@ export default function ReportsPage() {
   const showProject = singleProject ? projects[0] : visibleProject
 
   return (
-    <div className="page-content animate-fade-up" style={{ maxWidth:1100 }}>
+    <div className="page-content animate-fade-up" style={{ maxWidth: undefined }}>
       <style>{`
         @keyframes spin{to{transform:rotate(360deg);}}
         .rp-card { transition: transform .15s, border-color .15s; }

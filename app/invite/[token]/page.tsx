@@ -55,7 +55,7 @@ export default function InviteAcceptPage() {
         maxWidth: 440,
         background:'var(--surface)',
         border:'1px solid var(--border)',
-        borderRadius: 22,
+        borderRadius: 8,
         padding:'40px 32px',
         boxShadow:'0 18px 60px rgba(0,0,0,0.06)',
       }}>

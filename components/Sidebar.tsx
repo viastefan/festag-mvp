@@ -494,7 +494,7 @@ export default function Sidebar() {
           </div>
 
           {/* ── User block (Claude-exact footer) ── */}
-          <div style={{ borderTop:'1px solid var(--border)', paddingTop:6, marginTop:4, position:'relative', display:'flex', alignItems:'center', gap:4 }}>
+          <div style={{ borderTop:'1px solid var(--border)', paddingTop:8, marginTop:2, position:'relative', display:'flex', alignItems:'center', gap:4 }}>
 
             {/* ── Main user menu popup (left trigger) ── */}
             {userMenu && (

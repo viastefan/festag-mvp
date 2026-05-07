@@ -127,7 +127,7 @@ function RedeemInner() {
         maxWidth: 420,
         background:'var(--surface)',
         border:'1px solid var(--border)',
-        borderRadius: 22,
+        borderRadius: 8,
         padding:'36px 30px',
         boxShadow:'0 18px 60px rgba(0,0,0,0.06)',
       }}>

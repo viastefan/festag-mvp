@@ -113,7 +113,7 @@ export default function Modal({
               maxHeight: 'calc(100vh - 32px)',
               background: 'var(--surface)',
               border: '1px solid var(--border)',
-              borderRadius: 16,
+              borderRadius: 8,
               boxShadow: '0 24px 64px rgba(0,0,0,0.18), 0 4px 12px rgba(0,0,0,0.08)',
               overflow: 'hidden',
               display: 'flex', flexDirection: 'column',

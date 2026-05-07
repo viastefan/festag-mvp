@@ -120,7 +120,7 @@ export default function DashboardPage() {
   const projColor   = main?.color || null  // never fallback to green
 
   return (
-    <div className="page-content" style={{ maxWidth: 1100 }}>
+    <div className="page-content" style={{ maxWidth: undefined }}>
       <style>{`
         @keyframes spin    { to{transform:rotate(360deg);} }
         @keyframes fadeUp  { from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;} }

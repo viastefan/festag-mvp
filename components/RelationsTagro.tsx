@@ -343,7 +343,7 @@ export default function RelationsTagro({
                 disabled={loading}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 5,
-                  padding: '5px 12px', borderRadius: 18,
+                  padding: '5px 12px', borderRadius: 8,
                   border: '1px solid var(--border)', background: 'var(--surface)',
                   fontSize: 11.5, fontWeight: 500, color: 'var(--text-secondary)',
                   cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0,
