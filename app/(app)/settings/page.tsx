@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import SettingsRightPanel from '@/components/SettingsRightPanel'
+import { broadcastProfileSync } from '@/lib/profile-sync'
 
 const INDUSTRIES = ['Technologie & Software','E-Commerce & Retail','Marketing & Werbung','Finanzen & Versicherung','Gesundheit & Medizin','Bildung & E-Learning','Immobilien & Bau','Medien & Entertainment','Logistik & Transport','Beratung & Services','Gastronomie & Tourismus','Sonstiges']
 const SIZES = [{v:'freelancer',l:'Freelancer'},{v:'1-10',l:'1–10'},{v:'10-50',l:'10–50'},{v:'50-200',l:'50–200'},{v:'200+',l:'200+'}]
@@ -163,6 +164,10 @@ export default function SettingsPage() {
       console.error('Save error:', error)
       setSaved('err')
     } else {
+      broadcastProfileSync({
+        firstName: firstName.trim() || null,
+        fullName: displayName,
+      })
       setSaved('ok')
     }
     setTimeout(() => setSaved(null), 3000)
@@ -184,6 +189,7 @@ export default function SettingsPage() {
       const { error: dbErr } = await sb.from('profiles').upsert({ id: uid, email, avatar_url: freshUrl }, { onConflict: 'id' })
       if (dbErr) { console.error('DB error:', dbErr) }
       setAvatarUrl(freshUrl)
+      broadcastProfileSync({ avatarUrl: freshUrl })
     } catch (e) { console.error('Avatar error:', e) }
     setUploading(false)
   }

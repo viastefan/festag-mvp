@@ -1,0 +1,377 @@
+'use client'
+
+import Link from 'next/link'
+import { useEffect, useState } from 'react'
+
+import { AVATAR_COLORS, avatarTextColor } from '@/lib/avatar'
+import { getTheme, setTheme, ThemeMode } from '@/lib/theme'
+
+type SidebarProfileFooterProps = {
+  avatarColor: string
+  avatarUrl: string | null
+  displayName: string
+  email: string
+  initials: string
+  isClient: boolean
+  onAvatarColorChange: (color: string) => void | Promise<void>
+  onLogout: () => void | Promise<void>
+  plan: string
+}
+
+function planLabel(plan: string) {
+  if (plan === 'starter') return 'Starter'
+  if (plan === 'pro') return 'Pro'
+  if (plan === 'enterprise') return 'Ent.'
+  return null
+}
+
+export default function SidebarProfileFooter({
+  avatarColor,
+  avatarUrl,
+  displayName,
+  email,
+  initials,
+  isClient,
+  onAvatarColorChange,
+  onLogout,
+  plan,
+}: SidebarProfileFooterProps) {
+  const [designMenu, setDesignMenu] = useState(false)
+  const [themeMode, setThemeMode] = useState<ThemeMode>('dark')
+  const [userMenu, setUserMenu] = useState(false)
+
+  useEffect(() => {
+    setThemeMode(getTheme())
+  }, [])
+
+  const currentPlanLabel = planLabel(plan)
+  const avatarFg = avatarTextColor(avatarColor)
+
+  return (
+    <div style={{ paddingTop: 8, marginTop: 2, position: 'relative', display: 'flex', alignItems: 'center', gap: 4 }}>
+      {userMenu && (
+        <>
+          <div style={{ position: 'fixed', inset: 0, zIndex: 1000 }} onClick={() => setUserMenu(false)} />
+          <div style={{
+            position: 'absolute',
+            bottom: 'calc(100% + 8px)',
+            left: 0,
+            minWidth: 240,
+            background: 'var(--surface)',
+            border: '1px solid var(--border)',
+            borderRadius: 12,
+            boxShadow: '0 16px 48px rgba(0,0,0,0.20), 0 4px 12px rgba(0,0,0,0.10)',
+            zIndex: 1001,
+            padding: '6px',
+            overflow: 'hidden',
+            animation: 'spf-pop .14s ease-out both',
+          }}>
+            <p style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-muted)', padding: '8px 11px 6px', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {email}
+            </p>
+
+            <Link href="/settings" className="spf-menu-row" onClick={() => setUserMenu(false)}>
+              <span style={{ flex: 1 }}>Einstellungen</span>
+              <span style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'ui-monospace, "SF Mono", Menlo, monospace' }}>⌘,</span>
+            </Link>
+
+            {isClient && (
+              <Link href="/billing" className="spf-menu-row" onClick={() => setUserMenu(false)}>
+                <span style={{ flex: 1 }}>Abrechnung & Plan</span>
+              </Link>
+            )}
+
+            <Link href="/messages" className="spf-menu-row" onClick={() => setUserMenu(false)}>
+              <span style={{ flex: 1 }}>Hilfe erhalten</span>
+            </Link>
+
+            <div style={{ height: 1, background: 'var(--border)', margin: '4px 4px' }} />
+
+            {isClient && (
+              <Link href="/pricing" className="spf-menu-row" onClick={() => setUserMenu(false)}>
+                <span style={{ flex: 1 }}>Tarif upgraden</span>
+              </Link>
+            )}
+
+            <Link href="/connectors" className="spf-menu-row" onClick={() => setUserMenu(false)}>
+              <span style={{ flex: 1 }}>Connectors</span>
+            </Link>
+
+            <Link href="/addons" className="spf-menu-row" onClick={() => setUserMenu(false)}>
+              <span style={{ flex: 1 }}>Add-Ons</span>
+            </Link>
+
+            <div style={{ height: 1, background: 'var(--border)', margin: '4px 4px' }} />
+
+            <button className="spf-menu-row" onClick={onLogout} style={{ width: '100%' }}>
+              <span style={{ flex: 1 }}>Abmelden</span>
+            </button>
+          </div>
+        </>
+      )}
+
+      {designMenu && (
+        <>
+          <div style={{ position: 'fixed', inset: 0, zIndex: 1000 }} onClick={() => setDesignMenu(false)} />
+          <div style={{
+            position: 'absolute',
+            bottom: 'calc(100% + 8px)',
+            left: 0,
+            right: 0,
+            background: 'var(--surface)',
+            border: '1px solid var(--border)',
+            borderRadius: 12,
+            boxShadow: '0 16px 48px rgba(0,0,0,0.20), 0 4px 12px rgba(0,0,0,0.10)',
+            zIndex: 1001,
+            padding: '6px',
+            overflow: 'hidden',
+            animation: 'spf-pop .14s ease-out both',
+          }}>
+            <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', padding: '6px 11px 4px', margin: 0, letterSpacing: '.04em', textAlign: 'left' }}>
+              Design
+            </p>
+
+            {([
+              { mode: 'dark' as ThemeMode, label: 'Dunkel' },
+              { mode: 'light' as ThemeMode, label: 'Hell' },
+              { mode: 'read' as ThemeMode, label: 'Lesemodus' },
+            ] as const).map(({ mode, label }) => {
+              const active = themeMode === mode
+              return (
+                <button
+                  key={mode}
+                  className="spf-menu-row"
+                  onClick={() => {
+                    setThemeMode(mode)
+                    setTheme(mode)
+                    setDesignMenu(false)
+                  }}
+                  style={{ width: '100%' }}
+                >
+                  <span style={{ flex: 1, color: active ? 'var(--text)' : 'var(--text-secondary)', fontWeight: active ? 600 : 500 }}>
+                    {label}
+                  </span>
+                  {active && (
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent, #3b82f6)" strokeWidth="2.5" strokeLinecap="round">
+                      <path d="M20 6L9 17l-5-5" />
+                    </svg>
+                  )}
+                </button>
+              )
+            })}
+
+            <div style={{ height: 1, background: 'var(--border)', margin: '4px 4px' }} />
+
+            <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', padding: '6px 11px 6px', margin: 0, letterSpacing: '.04em', textAlign: 'left' }}>
+              Avatar-Farbe
+            </p>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '0 11px 10px' }}>
+              {avatarUrl ? (
+                <img
+                  src={avatarUrl}
+                  alt=""
+                  style={{
+                    width: 30,
+                    height: 30,
+                    borderRadius: '50%',
+                    objectFit: 'cover',
+                    border: `2px solid ${avatarColor}`,
+                    flexShrink: 0,
+                  }}
+                />
+              ) : (
+                <div style={{
+                  width: 30,
+                  height: 30,
+                  borderRadius: '50%',
+                  background: avatarColor,
+                  color: avatarFg,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: 11,
+                  fontWeight: 700,
+                  flexShrink: 0,
+                }}>
+                  {initials}
+                </div>
+              )}
+              <p style={{ margin: 0, fontSize: 11.5, color: 'var(--text-secondary)', lineHeight: 1.45, textAlign: 'left' }}>
+                {avatarUrl ? 'Die gewählte Farbe rahmt dein Profilbild.' : 'Die gewählte Farbe füllt deinen Avatar mit Initialen.'}
+              </p>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 8, padding: '0 11px 10px' }}>
+              {AVATAR_COLORS.map((color) => {
+                const selected = avatarColor === color
+                return (
+                  <button
+                    key={color}
+                    onClick={() => onAvatarColorChange(color)}
+                    style={{
+                      width: 18,
+                      height: 18,
+                      borderRadius: '50%',
+                      background: avatarUrl ? 'var(--surface)' : color,
+                      border: avatarUrl ? `2px solid ${color}` : '2px solid transparent',
+                      outline: selected ? '2px solid var(--text)' : 'none',
+                      outlineOffset: 2,
+                      cursor: 'pointer',
+                      padding: 0,
+                      boxSizing: 'border-box',
+                    }}
+                    aria-label={`Farbe ${color}`}
+                  />
+                )
+              })}
+            </div>
+          </div>
+        </>
+      )}
+
+      <button
+        onClick={() => { setUserMenu((open) => !open); setDesignMenu(false) }}
+        style={{
+          flex: 1,
+          minWidth: 0,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 10,
+          padding: '5px 8px 5px 5px',
+          borderRadius: 8,
+          background: userMenu ? 'var(--surface-2)' : 'transparent',
+          border: 'none',
+          cursor: 'pointer',
+          fontFamily: 'inherit',
+          transition: 'background .1s',
+          justifyContent: 'flex-start',
+        }}
+        onMouseEnter={(event) => {
+          if (!userMenu) event.currentTarget.style.background = 'var(--surface-2)'
+        }}
+        onMouseLeave={(event) => {
+          if (!userMenu) event.currentTarget.style.background = 'transparent'
+        }}
+      >
+        {avatarUrl ? (
+          <img
+            src={avatarUrl}
+            alt=""
+            style={{
+              width: 24,
+              height: 24,
+              borderRadius: '50%',
+              objectFit: 'cover',
+              border: `2px solid ${avatarColor}`,
+              flexShrink: 0,
+            }}
+          />
+        ) : (
+          <div style={{
+            width: 24,
+            height: 24,
+            borderRadius: '50%',
+            background: avatarColor,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: 9.5,
+            fontWeight: 700,
+            color: avatarFg,
+            flexShrink: 0,
+            letterSpacing: '.02em',
+          }}>
+            {initials}
+          </div>
+        )}
+
+        <span style={{ minWidth: 0, display: 'inline-flex', alignItems: 'center', gap: 6, overflow: 'hidden' }}>
+          <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {displayName}
+          </span>
+          {currentPlanLabel && (
+            <>
+              <span style={{ color: 'var(--text-muted)', fontSize: 11 }}>·</span>
+              <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--text-muted)', flexShrink: 0 }}>
+                {currentPlanLabel}
+              </span>
+            </>
+          )}
+        </span>
+
+        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2.5" strokeLinecap="round" style={{ flexShrink: 0, opacity: .55 }}>
+          <path d="M6 9l6 6 6-6" />
+        </svg>
+      </button>
+
+      <button
+        onClick={() => { setDesignMenu((open) => !open); setUserMenu(false) }}
+        aria-label="Design-Einstellungen"
+        style={{
+          width: 30,
+          height: 30,
+          flexShrink: 0,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          borderRadius: 8,
+          background: designMenu ? 'var(--surface-2)' : 'transparent',
+          border: 'none',
+          cursor: 'pointer',
+          fontFamily: 'inherit',
+          transition: 'background .1s',
+          color: 'var(--text-muted)',
+        }}
+        onMouseEnter={(event) => {
+          if (!designMenu) {
+            event.currentTarget.style.background = 'var(--surface-2)'
+            event.currentTarget.style.color = 'var(--text)'
+          }
+        }}
+        onMouseLeave={(event) => {
+          if (!designMenu) {
+            event.currentTarget.style.background = 'transparent'
+            event.currentTarget.style.color = 'var(--text-muted)'
+          }
+        }}
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="4" y1="6" x2="11" y2="6" />
+          <circle cx="15" cy="6" r="2" />
+          <line x1="17" y1="6" x2="20" y2="6" />
+          <line x1="4" y1="18" x2="7" y2="18" />
+          <circle cx="10" cy="18" r="2" />
+          <line x1="12" y1="18" x2="20" y2="18" />
+        </svg>
+      </button>
+
+      <style>{`
+        @keyframes spf-pop {
+          from { opacity: 0; transform: translateY(4px) scale(.98); }
+          to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .spf-menu-row {
+          display: flex;
+          align-items: center;
+          justify-content: flex-start;
+          gap: 9px;
+          padding: 7px 10px;
+          border-radius: 8px;
+          cursor: pointer;
+          transition: background .08s;
+          width: 100%;
+          border: none;
+          font-family: inherit;
+          background: transparent;
+          text-decoration: none;
+          color: var(--text);
+          font-size: 12.5px;
+          font-weight: 500;
+          text-align: left;
+        }
+        .spf-menu-row:hover { background: var(--surface-2); }
+      `}</style>
+    </div>
+  )
+}

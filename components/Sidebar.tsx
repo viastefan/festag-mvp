@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useState, useEffect } from 'react'
+import SidebarProfileFooter from '@/components/SidebarProfileFooter'
 import SupportButton from '@/components/SupportButton'
 import ViewSwitch from '@/components/ViewSwitch'
 import TeamsModal from '@/components/TeamsModal'
@@ -16,8 +17,8 @@ import {
   Clock, CheckSquare, Code, FileCode,
   Moon, Sun, BookOpen,
 } from '@phosphor-icons/react'
-import { getTheme, setTheme, ThemeMode } from '@/lib/theme'
-import { autoAvatarColor, avatarInitials, avatarTextColor, AVATAR_COLORS } from '@/lib/avatar'
+import { autoAvatarColor, avatarInitials } from '@/lib/avatar'
+import { broadcastProfileSync, subscribeProfileSync } from '@/lib/profile-sync'
 
 export function projectColor(_id: string, color?: string | null) { return color || 'var(--text-muted)' }
 
@@ -125,7 +126,6 @@ export default function Sidebar() {
   const [avatarColor, setAvatarColor] = useState<string|null>(null)
   const [role,     setRole]     = useState('client')
   const [plan,     setPlan]     = useState('free')
-  const [avatarPick, setAvatarPick] = useState(false)
   const [projId,   setProjId]   = useState<string|null>(null)
   const [projects, setProjects] = useState<{id:string;title:string;status:string;color:string|null}[]>([])
   const [more,       setMore]      = useState(false)
@@ -133,10 +133,7 @@ export default function Sidebar() {
   const [toolsExp,   setToolsExp]   = useState(true)
   const [billExp,    setBillExp]    = useState(false)
   const [teamsOpen,  setTeamsOpen] = useState(false)
-  const [userMenu,   setUserMenu]  = useState(false)
-  const [designMenu, setDesignMenu] = useState(false)
   const [colorPickId, setColorPickId] = useState<string|null>(null)
-  const [themeMode,  setThemeMode] = useState<ThemeMode>('dark')
 
   const isClient = role !== 'dev'
   const isDev    = role === 'dev'
@@ -148,7 +145,6 @@ export default function Sidebar() {
   const mobQuick   = isDev ? DEV_MOB_QUICK   : CLIENT_MOB_QUICK
 
   useEffect(() => {
-    setThemeMode(getTheme())
     const handler = () => setTeamsOpen(true)
     window.addEventListener('open-teams-modal', handler)
     return () => window.removeEventListener('open-teams-modal', handler)
@@ -182,6 +178,16 @@ export default function Sidebar() {
     })
   }, [pathname])
 
+  useEffect(() => {
+    return subscribeProfileSync((payload) => {
+      if (payload.firstName !== undefined) setFn(payload.firstName ?? '')
+      if (payload.fullName !== undefined) setFullName(payload.fullName ?? '')
+      if (payload.avatarUrl !== undefined) setAvatar(payload.avatarUrl ?? null)
+      if (payload.avatarColor !== undefined) setAvatarColor(payload.avatarColor ?? null)
+      if (payload.plan !== undefined && payload.plan !== null) setPlan(payload.plan)
+    })
+  }, [])
+
   const PROJ_COLORS = ['#6366f1','#8b5cf6','#ec4899','#ef4444','#f97316','#eab308','#22c55e','#06b6d4','#3b82f6','#64748b']
 
   async function setProjectColor(id: string, color: string) {
@@ -201,10 +207,10 @@ export default function Sidebar() {
   const name = fn || email.split('@')[0] || 'Konto'
   const init = avatarInitials(fn, fullName, email)
   const avBg = avatarColor || autoAvatarColor(uid || email)
-  const avFg = avatarTextColor(avBg)
 
   async function changeAvatarColor(c: string) {
-    setAvatarColor(c); setAvatarPick(false)
+    setAvatarColor(c)
+    broadcastProfileSync({ avatarColor: c })
     if (!uid) return
     try { await (createClient() as any).from('profiles').update({ avatar_color: c }).eq('id', uid) } catch {}
   }
@@ -493,210 +499,17 @@ export default function Sidebar() {
 
           </div>
 
-          {/* ── User block (Claude-exact footer) ── */}
-          <div style={{ paddingTop:8, marginTop:2, position:'relative', display:'flex', alignItems:'center', gap:4 }}>
-
-            {/* ── Main user menu popup (left trigger) ── */}
-            {userMenu && (
-              <>
-                <div style={{ position:'fixed', inset:0, zIndex:1000 }} onClick={() => setUserMenu(false)} />
-                <div style={{
-                  position:'absolute', bottom:'calc(100% + 8px)', left:0,
-                  minWidth:240,
-                  background:'var(--surface)',
-                  border:'1px solid var(--border)',
-                  borderRadius:12,
-                  boxShadow:'0 16px 48px rgba(0,0,0,0.20), 0 4px 12px rgba(0,0,0,0.10)',
-                  zIndex:1001,
-                  padding:'6px',
-                  overflow:'hidden',
-                  animation:'um-pop .14s ease-out both',
-                }}>
-                  {/* Email */}
-                  <p style={{ fontSize:12, fontWeight:500, color:'var(--text-muted)', padding:'8px 11px 6px', margin:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{email}</p>
-
-                  {/* Items */}
-                  <Link href="/settings" className="usr-row" onClick={() => setUserMenu(false)}>
-                    <Ico name="settings" sz={14} c="var(--text-secondary)" weight="regular"/>
-                    <span style={{ flex:1 }}>Einstellungen</span>
-                    <span style={{ fontSize:10, color:'var(--text-muted)', fontFamily:'ui-monospace, "SF Mono", Menlo, monospace' }}>⌘,</span>
-                  </Link>
-                  {isClient && (
-                    <Link href="/billing" className="usr-row" onClick={() => setUserMenu(false)}>
-                      <Ico name="billing" sz={14} c="var(--text-secondary)" weight="regular"/>
-                      <span style={{ flex:1 }}>Abrechnung & Plan</span>
-                    </Link>
-                  )}
-                  <Link href="/messages" className="usr-row" onClick={() => setUserMenu(false)}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" strokeWidth="1.8" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-                    <span style={{ flex:1 }}>Hilfe erhalten</span>
-                  </Link>
-
-                  <div style={{ height:1, background:'var(--border)', margin:'4px 4px' }}/>
-
-                  {isClient && (
-                    <Link href="/pricing" className="usr-row" onClick={() => setUserMenu(false)}>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" strokeWidth="1.8" strokeLinecap="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
-                      <span style={{ flex:1 }}>Tarif upgraden</span>
-                    </Link>
-                  )}
-                  <Link href="/connectors" className="usr-row" onClick={() => setUserMenu(false)}>
-                    <Ico name="link" sz={14} c="var(--text-secondary)" weight="regular"/>
-                    <span style={{ flex:1 }}>Connectors</span>
-                  </Link>
-                  <Link href="/addons" className="usr-row" onClick={() => setUserMenu(false)}>
-                    <Ico name="grid" sz={14} c="var(--text-secondary)" weight="regular"/>
-                    <span style={{ flex:1 }}>Add-Ons</span>
-                  </Link>
-
-                  <div style={{ height:1, background:'var(--border)', margin:'4px 4px' }}/>
-
-                  <button className="usr-row" onClick={logout} style={{ width:'100%' }}>
-                    <Ico name="logout" sz={14} c="var(--text-secondary)" weight="regular"/>
-                    <span style={{ flex:1 }}>Abmelden</span>
-                  </button>
-                </div>
-              </>
-            )}
-
-            {/* ── Design popup (right trigger) ── */}
-            {designMenu && (
-              <>
-                <div style={{ position:'fixed', inset:0, zIndex:1000 }} onClick={() => setDesignMenu(false)} />
-                <div style={{
-                  position:'absolute', bottom:'calc(100% + 8px)', left:0, right:0,
-                  background:'var(--surface)',
-                  border:'1px solid var(--border)',
-                  borderRadius:12,
-                  boxShadow:'0 16px 48px rgba(0,0,0,0.20), 0 4px 12px rgba(0,0,0,0.10)',
-                  zIndex:1001,
-                  padding:'6px',
-                  overflow:'hidden',
-                  animation:'um-pop .14s ease-out both',
-                }}>
-                  <p style={{ fontSize:11, fontWeight:600, color:'var(--text-muted)', padding:'6px 11px 4px', margin:0, letterSpacing:'.04em' }}>Design</p>
-                  {([
-                    { mode:'dark'  as ThemeMode, label:'Dunkel'   },
-                    { mode:'light' as ThemeMode, label:'Hell'     },
-                    { mode:'read'  as ThemeMode, label:'Lesemodus'},
-                  ] as const).map(({ mode, label }) => {
-                    const active = themeMode === mode
-                    return (
-                      <button key={mode} className="usr-row" onClick={() => {
-                        setThemeMode(mode); setTheme(mode); setDesignMenu(false)
-                      }}
-                        style={{ width:'100%' }}
-                      >
-                        <span style={{ flex:1, color: active ? 'var(--text)' : 'var(--text-secondary)', fontWeight: active ? 600 : 500 }}>{label}</span>
-                        {active && (
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent, #3b82f6)" strokeWidth="2.5" strokeLinecap="round"><path d="M20 6L9 17l-5-5"/></svg>
-                        )}
-                      </button>
-                    )
-                  })}
-
-                  {!avatar && (
-                    <>
-                      <div style={{ height:1, background:'var(--border)', margin:'4px 4px' }}/>
-                      <p style={{ fontSize:11, fontWeight:600, color:'var(--text-muted)', padding:'6px 11px 6px', margin:0, letterSpacing:'.04em' }}>Avatar-Farbe</p>
-                      <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', gap:5, padding:'0 8px 8px' }}>
-                        {AVATAR_COLORS.map(c => {
-                          const sel = (avatarColor || avBg) === c
-                          return (
-                            <button key={c} onClick={() => changeAvatarColor(c)}
-                              style={{
-                                width:18, height:18, borderRadius:'50%',
-                                background:'transparent',
-                                border:`2px solid ${c}`,
-                                outline: sel ? '2px solid var(--text)' : 'none',
-                                outlineOffset: 1.5,
-                                cursor:'pointer', padding:0,
-                                boxSizing:'border-box',
-                                transition:'transform .15s cubic-bezier(.16,1,.3,1)',
-                              }}
-                              onMouseEnter={e => (e.currentTarget as HTMLElement).style.transform='scale(1.18)'}
-                              onMouseLeave={e => (e.currentTarget as HTMLElement).style.transform='scale(1)'}
-                              aria-label={`Farbe ${c}`}
-                            />
-                          )
-                        })}
-                      </div>
-                    </>
-                  )}
-                </div>
-              </>
-            )}
-
-            <style>{`
-              @keyframes um-pop {
-                from { opacity: 0; transform: translateY(4px) scale(.98); }
-                to   { opacity: 1; transform: translateY(0) scale(1); }
-              }
-            `}</style>
-
-            {/* Trigger left — name + chevron */}
-            <button
-              onClick={() => { setUserMenu(m => !m); setDesignMenu(false) }}
-              style={{
-                flex:1, minWidth:0,
-                display:'flex', alignItems:'center', gap:8,
-                padding:'5px 8px 5px 5px', borderRadius:8,
-                background: userMenu ? 'var(--surface-2)' : 'transparent',
-                border:'none', cursor:'pointer', fontFamily:'inherit',
-                transition:'background .1s',
-              }}
-              onMouseEnter={e => { if (!userMenu) (e.currentTarget as HTMLElement).style.background='var(--surface-2)' }}
-              onMouseLeave={e => { if (!userMenu) (e.currentTarget as HTMLElement).style.background='transparent' }}
-            >
-              {avatar
-                ? <img src={avatar} alt="" style={{ width:24,height:24,borderRadius:'50%',objectFit:'cover',border:'1.5px solid var(--border)',flexShrink:0 }}/>
-                : <div style={{ width:24,height:24,borderRadius:'50%',background:avBg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:9.5,fontWeight:700,color:avFg,flexShrink:0,letterSpacing:'.02em' }}>{init}</div>
-              }
-              <span style={{ flex:1, minWidth:0, display:'flex', alignItems:'center', gap:5, overflow:'hidden' }}>
-                <span style={{ fontSize:12.5, fontWeight:600, color:'var(--text)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{name}</span>
-                {isClient && plan !== 'free' && (
-                  <>
-                    <span style={{ color:'var(--text-muted)', fontSize:11 }}>·</span>
-                    <span style={{ fontSize:11, fontWeight:500, color:'var(--text-muted)', flexShrink:0 }}>
-                      {plan === 'starter' ? 'Starter' : plan === 'pro' ? 'Pro' : plan === 'enterprise' ? 'Ent.' : plan}
-                    </span>
-                  </>
-                )}
-              </span>
-              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2.5" strokeLinecap="round"
-                style={{ flexShrink:0, opacity:.55 }}>
-                <path d="M6 9l6 6 6-6"/>
-              </svg>
-            </button>
-
-            {/* Trigger right — sliders icon */}
-            <button
-              onClick={() => { setDesignMenu(m => !m); setUserMenu(false) }}
-              aria-label="Design-Einstellungen"
-              style={{
-                width:30, height:30, flexShrink:0,
-                display:'flex', alignItems:'center', justifyContent:'center',
-                borderRadius:8,
-                background: designMenu ? 'var(--surface-2)' : 'transparent',
-                border:'none', cursor:'pointer', fontFamily:'inherit',
-                transition:'background .1s',
-                color:'var(--text-muted)',
-              }}
-              onMouseEnter={e => { if (!designMenu) { (e.currentTarget as HTMLElement).style.background='var(--surface-2)'; (e.currentTarget as HTMLElement).style.color='var(--text)' } }}
-              onMouseLeave={e => { if (!designMenu) { (e.currentTarget as HTMLElement).style.background='transparent'; (e.currentTarget as HTMLElement).style.color='var(--text-muted)' } }}
-            >
-              {/* Sliders icon (matches Claude's UI) */}
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="4" y1="6" x2="11" y2="6"/>
-                <circle cx="15" cy="6" r="2"/>
-                <line x1="17" y1="6" x2="20" y2="6"/>
-                <line x1="4" y1="18" x2="7" y2="18"/>
-                <circle cx="10" cy="18" r="2"/>
-                <line x1="12" y1="18" x2="20" y2="18"/>
-              </svg>
-            </button>
-
-          </div>
+          <SidebarProfileFooter
+            avatarColor={avBg}
+            avatarUrl={avatar}
+            displayName={name}
+            email={email}
+            initials={init}
+            isClient={isClient}
+            onAvatarColorChange={changeAvatarColor}
+            onLogout={logout}
+            plan={plan}
+          />
         </div>
       </aside>
 
