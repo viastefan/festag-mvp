@@ -147,7 +147,7 @@ export default function ClientAppShell({
         <header className="client-shell-header">
           <div style={{ minWidth: 0 }}>
             <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '.06em', textTransform: 'uppercase' }}>
-              Client Workspace
+              Stefan Workspace
             </p>
             <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: 'var(--text)', lineHeight: 1.2 }}>
               {label}

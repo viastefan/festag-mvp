@@ -6,7 +6,6 @@ import { createClient } from '@/lib/supabase/client'
 import { useState, useEffect } from 'react'
 import SidebarProfileFooter from '@/components/SidebarProfileFooter'
 import SupportButton from '@/components/SupportButton'
-import ViewSwitch from '@/components/ViewSwitch'
 import TeamsModal from '@/components/TeamsModal'
 import {
   House, FolderSimple, Sparkle, ChatCircle, ChartLineUp,
@@ -15,7 +14,7 @@ import {
   Plus, CaretRight, DotsThreeOutline, X,
   SignOut, UsersThree, Bell, Briefcase,
   Clock, CheckSquare, Code, FileCode,
-  Moon, Sun, BookOpen,
+  Tray, MagnifyingGlass,
 } from '@phosphor-icons/react'
 import { autoAvatarColor, avatarInitials } from '@/lib/avatar'
 import { broadcastProfileSync, subscribeProfileSync } from '@/lib/profile-sync'
@@ -29,7 +28,7 @@ const ICONS: Record<string, React.ElementType> = {
   layers: Stack, link: LinkSimple, plus: Plus, chevron: CaretRight,
   more: DotsThreeOutline, close: X, logout: SignOut, team: UsersThree,
   bell: Bell, briefcase: Briefcase, clock: Clock, check: CheckSquare,
-  code: Code, task: FileCode,
+  code: Code, task: FileCode, inbox: Tray, search: MagnifyingGlass,
 }
 
 function Ico({ name, sz=16, c='currentColor', weight='regular' }: {
@@ -44,10 +43,15 @@ function Ico({ name, sz=16, c='currentColor', weight='regular' }: {
 type NavItem = { href: string; icon: string; label: string; badge?: number }
 
 const CLIENT_MAIN: NavItem[] = [
+  { href:'/relations/messages', icon:'inbox', label:'Inbox' },
+  { href:'/project/current', icon:'task', label:'Meine Aufgaben' },
   { href:'/dashboard', icon:'home', label:'Alle Projekte' },
-  { href:'/project/current', icon:'project', label:'Zugewiesene Projekte' },
-  { href:'/project/current', icon:'layers', label:'Roadmap' },
   { href:'/reports', icon:'activity', label:'Statusberichte' },
+  { href:'/messages', icon:'chat', label:'Nachrichten' },
+  { href:'/teams', icon:'team', label:'Teams' },
+  { href:'/documents', icon:'doc', label:'Dokumente' },
+  { href:'/relations/notes', icon:'card', label:'Notizen' },
+  { href:'/ai', icon:'sparkle', label:'Tagro AI' },
 ]
 const CLIENT_PROJECT: NavItem[] = [
   { href:'/project/current', icon:'project', label:'Mein Projekt' },
@@ -390,30 +394,32 @@ export default function Sidebar() {
             <Link href={homeHref} style={{ textDecoration:'none', display:'flex', alignItems:'center' }}>
               <img src="/brand/logo.svg" alt="festag" style={{ height:17, display:'block', filter:'var(--logo-filter,none)' }}/>
             </Link>
-            <SupportButton />
-          </div>
-
-          {/* Workspace switcher */}
-          <div style={{ padding:'0 2px', marginBottom:10 }}>
-            <ViewSwitch />
+            <div style={{ display:'flex', alignItems:'center', gap:4 }}>
+              <button
+                type="button"
+                onClick={() => window.dispatchEvent(new CustomEvent('open-command-palette'))}
+                title="Suchen"
+                style={{ width:28, height:28, borderRadius:8, display:'flex', alignItems:'center', justifyContent:'center', color:'var(--text-muted)', background:'transparent', border:'1px solid transparent' }}
+              >
+                <Ico name="search" sz={14} c="currentColor" weight="regular" />
+              </button>
+              <Link
+                href="/onboarding"
+                title="Neu erstellen"
+                style={{ width:28, height:28, borderRadius:8, display:'flex', alignItems:'center', justifyContent:'center', color:'var(--text-muted)', background:'transparent', border:'1px solid transparent' }}
+              >
+                <Ico name="plus" sz={14} c="currentColor" weight="regular" />
+              </Link>
+              <SupportButton />
+            </div>
           </div>
 
           {/* Scrollable nav */}
           <div style={{ flex:1, overflowY:'auto', overflowX:'hidden', scrollbarWidth:'none' }}>
 
-            <Section label="Projekte" expanded={projExp} onToggle={() => setProjExp(v => !v)}
-              action={
-                <Link href="/onboarding" onClick={e => e.stopPropagation()}
-                  style={{ display:'flex', alignItems:'center', justifyContent:'center', width:20, height:20, borderRadius:5, opacity:.45, textDecoration:'none', transition:'opacity .1s' }}
-                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.opacity='0.9'}
-                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.opacity='0.45'}
-                >
-                  <Ico name="plus" sz={11} c="var(--text-muted)" weight="regular" />
-                </Link>
-              }
-            >
+            <div style={{ marginBottom:8 }}>
               <NavItems items={mainNav} />
-            </Section>
+            </div>
 
             {isClient && (
               <Section
