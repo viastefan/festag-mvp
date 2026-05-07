@@ -11,6 +11,7 @@ import MilestoneChart, { Milestone } from '@/components/MilestoneChart'
 import ProjectCompletionCelebration from '@/components/ProjectCompletionCelebration'
 import DevTimer from '@/components/DevTimer'
 import DeleteProjectModal from '@/components/DeleteProjectModal'
+import TaskDetailModal from '@/components/TaskDetailModal'
 
 type Project = { id: string; title: string; description: string|null; status: string }
 type Task = { id: string; title: string; status: string; priority?: string }
@@ -40,6 +41,7 @@ export default function ProjectPage() {
   const [generatingAI, setGeneratingAI] = useState(false)
   const [online, setOnline] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
+  const [taskDetail, setTaskDetail] = useState<Task | null>(null)
   const msgEndRef = useRef<HTMLDivElement>(null)
   const supabase = createClient()
 
@@ -315,7 +317,7 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m√
       <style>{`
         @keyframes spin  { to { transform:rotate(360deg); } }
         @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.3;} }
-        .task-row { display:flex; align-items:center; gap:10px; padding:8px 14px; border-bottom:1px solid var(--border); transition:background .08s; cursor:default; }
+        .task-row { display:flex; align-items:center; gap:10px; padding:8px 14px; border-bottom:1px solid var(--border); transition:background .08s; cursor:pointer; }
         .task-row:last-child { border-bottom:none; }
         .task-row:hover { background:var(--surface-2); }
         .tab-btn { background:transparent; border:none; padding:8px 0; font-family:inherit; font-size:13px; font-weight:500; cursor:pointer; color:var(--text-muted); position:relative; transition:color .12s; }
@@ -342,6 +344,12 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m√
         projectTitle={project.title}
         onClose={() => setDeleteOpen(false)}
         onDeleted={() => { setDeleteOpen(false); window.location.href = '/dashboard' }}
+      />
+
+      <TaskDetailModal
+        task={taskDetail}
+        projectTitle={project.title}
+        onClose={() => setTaskDetail(null)}
       />
 
       {/* Breadcrumb */}
@@ -529,7 +537,7 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m√
                       const showDelete = canEdit || (eff==='client' && task.status==='todo')
                       const priColor = task.priority ? PRIORITY_COLOR[task.priority] : null
                       return (
-                        <div key={task.id} className="task-row">
+                        <div key={task.id} className="task-row" onClick={() => setTaskDetail(task)} title="Klicken f√ºr Tagro-Erkl√§rung">
                           <span style={{ width:6, height:6, borderRadius:'50%', flexShrink:0, background:'transparent', border:`1.5px solid ${group.dot}`, boxSizing:'border-box' }}/>
                           <span style={{ flex:1, fontSize:13, color:'var(--text)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{task.title}</span>
                           {priColor && (
@@ -538,7 +546,7 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m√
                             </span>
                           )}
                           {canEdit && (
-                            <div style={{ display:'flex', gap:4, flexShrink:0 }}>
+                            <div style={{ display:'flex', gap:4, flexShrink:0 }} onClick={e => e.stopPropagation()}>
                               {['todo','doing','done'].filter(s => s !== task.status).map(s => (
                                 <button key={s} onClick={() => updateTask(task.id, s)} className="ghost-sm">
                                   {{ todo:'Todo', doing:'Aktiv', done:'Fertig' }[s]}
@@ -547,7 +555,7 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m√
                             </div>
                           )}
                           {showDelete && (
-                            <button onClick={() => deleteTask(task.id)}
+                            <button onClick={e => { e.stopPropagation(); deleteTask(task.id) }}
                               style={{ background:'none', border:'none', cursor:'pointer', color:'var(--text-muted)', padding:'2px 4px', fontSize:12, opacity:.5, transition:'opacity .1s' }}
                               onMouseEnter={e => (e.currentTarget as HTMLElement).style.opacity='1'}
                               onMouseLeave={e => (e.currentTarget as HTMLElement).style.opacity='.5'}>

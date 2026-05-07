@@ -127,9 +127,9 @@ export default function CopilotPanel({ open, onClose }: { open: boolean; onClose
         .cp-input {
           flex: 1; border: none; outline: none; background: transparent;
           font-size: 13px; color: var(--text); font-family: inherit;
-          font-weight: 500; min-width: 0;
+          font-weight: 500; min-width: 0; -webkit-text-fill-color: var(--text);
         }
-        .cp-input::placeholder { color: var(--text-muted); }
+        .cp-input::placeholder { color: var(--text-muted); -webkit-text-fill-color: var(--text-muted); }
         .cp-quick-btn {
           padding: 5px 11px; border-radius: 16px; border: 1px solid var(--border);
           background: var(--card); font-size: 11px; color: var(--text-secondary);
