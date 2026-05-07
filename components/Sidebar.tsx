@@ -277,18 +277,19 @@ export default function Sidebar() {
     children: React.ReactNode; action?: React.ReactNode
   }) {
     return (
-      <div style={{ marginBottom:2 }}>
-        <div style={{ display:'flex', alignItems:'center', padding:'4px 8px 2px' }}>
+      <div style={{ marginBottom:4 }}>
+        <div style={{ display:'flex', alignItems:'center', padding:'2px 6px 4px' }}>
           <button onClick={onToggle} style={{
             display:'flex', alignItems:'center', gap:4, flex:1,
             background:'transparent', border:'none', cursor:'pointer',
             fontFamily:'inherit', padding:0, textAlign:'left',
           }}>
-            <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" strokeWidth="2.5" strokeLinecap="round"
-              style={{ flexShrink:0, opacity:.7, transform:expanded?'rotate(90deg)':'rotate(0deg)', transition:'transform .18s cubic-bezier(.16,1,.3,1)' }}>
+            <span style={{ fontSize:11.5, fontWeight:600, color:'var(--text-secondary)', letterSpacing:'.01em' }}>{label}</span>
+            <span style={{ flex: 1 }} />
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" strokeWidth="2.4" strokeLinecap="round"
+              style={{ flexShrink:0, opacity:.72, transform:expanded?'rotate(90deg)':'rotate(0deg)', transition:'transform .18s cubic-bezier(.16,1,.3,1)' }}>
               <path d="M9 6l6 6-6 6"/>
             </svg>
-            <span style={{ fontSize:11.5, fontWeight:600, color:'var(--text-secondary)', letterSpacing:'.01em' }}>{label}</span>
           </button>
           {action}
         </div>
@@ -327,10 +328,10 @@ export default function Sidebar() {
   }) {
     const active = activeOverride ?? isOn(href)
     return (
-      <div style={{ marginBottom: 6 }}>
+      <div style={{ marginBottom: 4 }}>
         <div
           className={`ni ${active ? 'ni-on' : 'ni-off'}`}
-          style={{ gap: 8, paddingRight: 6 }}
+          style={{ gap: 8, paddingRight: 8 }}
         >
           <Link
             href={resolve(href)}
@@ -344,18 +345,18 @@ export default function Sidebar() {
               type="button"
               onClick={(e) => { e.preventDefault(); e.stopPropagation(); action() }}
               title={actionTitle}
-              style={{ width: 18, height: 18, border: 'none', background: 'transparent', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', borderRadius: 5, flexShrink: 0 }}
+              style={{ width: 20, height: 20, border: 'none', background: 'transparent', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', borderRadius: 6, flexShrink: 0 }}
             >
-              <Ico name="plus" sz={11} c="currentColor" weight="regular" />
+              <Ico name="plus" sz={12} c="currentColor" weight="regular" />
             </button>
           ) : null}
           <button
             type="button"
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggle() }}
             aria-label={`${label} ein- oder ausklappen`}
-            style={{ width: 18, height: 18, border: 'none', background: 'transparent', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', borderRadius: 5, flexShrink: 0 }}
+            style={{ width: 20, height: 20, border: 'none', background: 'transparent', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', borderRadius: 6, flexShrink: 0 }}
           >
-            <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" style={{ transform: expanded ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform .18s cubic-bezier(.16,1,.3,1)' }}>
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" style={{ transform: expanded ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform .18s cubic-bezier(.16,1,.3,1)' }}>
               <path d="M9 6l6 6-6 6"/>
             </svg>
           </button>
@@ -372,42 +373,41 @@ export default function Sidebar() {
   return (
     <>
       <style>{`
+        :root {
+          --sb-row-h: 34px;
+          --sb-icon: 17px;
+          --sb-font: 13.5px;
+          --sb-x: 10px;
+        }
         /* ── Nav item ── */
         .ni {
           display:flex; align-items:center; gap:7px;
-          padding:5px 9px; border-radius:7px;
-          font-size:13px; font-weight:500;
+          min-height: var(--sb-row-h);
+          padding:0 var(--sb-x); border-radius:8px;
+          font-size:var(--sb-font); font-weight:500;
           cursor:pointer; text-decoration:none; color:inherit;
           transition:background .12s, color .12s;
           white-space:nowrap; overflow:hidden;
-          margin:0 2px;
+          margin:1px 2px;
         }
-        .ni-on  { background:rgba(0,0,0,0.055); font-weight:600; color:var(--text); }
-        [data-theme="dark"] .ni-on { background:rgba(255,255,255,0.09); color:var(--nav-on-text); }
-        [data-theme="read"] .ni-on { background:rgba(0,0,0,0.055); color:var(--text); }
+        .ni-on  { background:rgba(0,0,0,0.048); font-weight:600; color:var(--text); }
+        [data-theme="dark"] .ni-on { background:rgba(255,255,255,0.075); color:var(--nav-on-text); }
+        [data-theme="read"] .ni-on { background:rgba(0,0,0,0.05); color:var(--text); }
         .ni-off { color:var(--text-secondary); }
-        .ni-off:hover { background:rgba(0,0,0,0.035); color:var(--text); }
-        [data-theme="dark"] .ni-off:hover { background:rgba(255,255,255,0.05); }
+        .ni-off:hover { background:rgba(0,0,0,0.03); color:var(--text); }
+        [data-theme="dark"] .ni-off:hover { background:rgba(255,255,255,0.045); }
         [data-theme="read"] .ni-off:hover { background:rgba(0,0,0,0.04); }
-        .nav-group-label {
-          margin: 0 0 6px;
-          padding: 0 10px;
-          color: var(--text-muted);
-          font-size: 10.5px;
-          font-weight: 700;
-          letter-spacing: .04em;
-          text-align: left;
-        }
 
         /* ── Project row ── */
         .proj-row {
           display:flex; align-items:center; gap:7px;
-          padding:4px 9px; border-radius:7px;
-          font-size:12px; font-weight:500;
+          min-height: 30px;
+          padding:0 var(--sb-x); border-radius:8px;
+          font-size:12.5px; font-weight:500;
           cursor:pointer; text-decoration:none;
           color:var(--text-muted);
           transition:background .08s, color .08s;
-          overflow:hidden; margin:0 2px;
+          overflow:hidden; margin:1px 2px;
         }
         .proj-row:hover { background:rgba(0,0,0,0.04); color:var(--text); }
         [data-theme="dark"] .proj-row:hover { background:rgba(255,255,255,0.05); }
@@ -473,7 +473,7 @@ export default function Sidebar() {
             <Link href={homeHref} style={{ textDecoration:'none', display:'flex', alignItems:'center' }}>
               <img src="/brand/logo.svg" alt="festag" style={{ height:17, display:'block', filter:'var(--logo-filter,none)' }}/>
             </Link>
-            <div style={{ display:'flex', alignItems:'center', gap:4 }}>
+          <div style={{ display:'flex', alignItems:'center', gap:4 }}>
               <button
                 type="button"
                 onClick={() => window.dispatchEvent(new CustomEvent('open-command-palette'))}
@@ -482,13 +482,6 @@ export default function Sidebar() {
               >
                 <Ico name="search" sz={14} c="currentColor" weight="regular" />
               </button>
-              <Link
-                href="/onboarding"
-                title="Neu erstellen"
-                style={{ width:28, height:28, borderRadius:8, display:'flex', alignItems:'center', justifyContent:'center', color:'var(--text-muted)', background:'transparent', border:'1px solid transparent' }}
-              >
-                <Ico name="plus" sz={14} c="currentColor" weight="regular" />
-              </Link>
               <SupportButton />
             </div>
           </div>
@@ -572,7 +565,7 @@ export default function Sidebar() {
                 expanded={teamsExp}
                 onToggle={() => setTeamsExp(v => !v)}
               >
-                <div className={`ni ${pathname.startsWith('/teams') ? 'ni-on' : 'ni-off'}`} style={{ gap: 8, paddingRight: 6 }}>
+                <div className={`ni ${pathname.startsWith('/teams') ? 'ni-on' : 'ni-off'}`} style={{ gap: 8, paddingRight: 8 }}>
                   <Link
                     href={resolve('/teams?view=projects')}
                     style={{ display: 'flex', alignItems: 'center', gap: 7, minWidth: 0, flex: 1, textDecoration: 'none', color: 'inherit' }}
@@ -584,9 +577,9 @@ export default function Sidebar() {
                     type="button"
                     onClick={(e) => { e.preventDefault(); e.stopPropagation(); setTeamsOpen(true) }}
                     title="Team-Projekt erstellen oder Mitglied einladen"
-                    style={{ width: 18, height: 18, border: 'none', background: 'transparent', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', borderRadius: 5, flexShrink: 0 }}
+                    style={{ width: 20, height: 20, border: 'none', background: 'transparent', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', borderRadius: 6, flexShrink: 0 }}
                   >
-                    <Ico name="plus" sz={11} c="currentColor" weight="regular" />
+                    <Ico name="plus" sz={12} c="currentColor" weight="regular" />
                   </button>
                 </div>
                 <NavItems items={teamsNav.slice(1)} />
