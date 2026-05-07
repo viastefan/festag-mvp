@@ -373,6 +373,15 @@ export default function Sidebar() {
         .ni-off:hover { background:rgba(0,0,0,0.035); color:var(--text); }
         [data-theme="dark"] .ni-off:hover { background:rgba(255,255,255,0.05); }
         [data-theme="read"] .ni-off:hover { background:rgba(0,0,0,0.04); }
+        .nav-group-label {
+          margin: 0 0 6px;
+          padding: 0 10px;
+          color: var(--text-muted);
+          font-size: 10.5px;
+          font-weight: 700;
+          letter-spacing: .04em;
+          text-align: left;
+        }
 
         /* ── Project row ── */
         .proj-row {
@@ -475,90 +484,97 @@ export default function Sidebar() {
               <NavItems items={topNav} />
             </div>
 
-            {isClient && (
-              <ExpandableNavSection
-                href="/dashboard"
-                icon="project"
-                label="Projekte"
-                expanded={projExp}
-                onToggle={() => setProjExp(v => !v)}
-                action={() => router.push('/onboarding')}
-                actionTitle="Neues Projekt"
-                activeOverride={pathname.startsWith('/project/')}
-              >
-                {projects.map(p => {
-                  const on = pathname === `/project/${p.id}`
-                  const dot = p.color || '#64748b'
-                  const picking = colorPickId === p.id
-                  return (
-                    <div key={p.id} style={{ position:'relative' }}>
-                      <Link href={`/project/${p.id}`} className={`proj-row ${on?'active':''}`} style={{ paddingLeft:6 }}>
-                        <button
-                          onClick={e => { e.preventDefault(); e.stopPropagation(); setColorPickId(picking ? null : p.id) }}
-                          title="Farbe ändern"
-                          style={{ width:10, height:10, borderRadius:'50%', background:'transparent', flexShrink:0, border:`2px solid ${dot}`, cursor:'pointer', padding:0, outline:'none', boxSizing:'border-box' }}
-                        />
-                        <span style={{ flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{p.title}</span>
-                      </Link>
-                      {picking && (
-                        <>
-                          <div style={{ position:'fixed', inset:0, zIndex:200 }} onClick={() => setColorPickId(null)} />
-                          <div style={{ position:'absolute', left:8, top:'calc(100% + 4px)', zIndex:201, background:'var(--card)', border:'1px solid var(--border)', borderRadius:10, padding:8, display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:5, boxShadow:'0 8px 24px rgba(0,0,0,.2)' }}>
-                            {PROJ_COLORS.map(c => (
-                              <button key={c} onClick={() => setProjectColor(p.id, c)}
-                                style={{ width:18, height:18, borderRadius:5, background:c, border: dot===c?'2px solid var(--text)':'2px solid transparent', cursor:'pointer', padding:0 }}
-                              />
-                            ))}
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  )
-                })}
+            <div style={{ marginTop: 14, marginBottom: 16 }}>
+              <p className="nav-group-label">Workspace</p>
 
-                {/* Immer sichtbar: dezenter Onboarding-Einstieg, auch wenn Projekte existieren.
-                    Linear-style: kleiner Plus-Punkt, kein CTA-Button. */}
-                <Link href="/onboarding" className="proj-row proj-new" style={{ paddingLeft:6 }}>
-                  <span style={{
-                    width:10, height:10, borderRadius:3,
-                    border:'1px dashed var(--text-muted)',
-                    flexShrink:0, opacity:.6,
-                    display:'flex', alignItems:'center', justifyContent:'center',
-                  }}>
-                    <span style={{ fontSize:9, color:'var(--text-muted)', lineHeight:1, fontWeight:600 }}>+</span>
-                  </span>
-                  <span style={{ fontStyle:'normal', fontSize:12, color:'var(--text-muted)' }}>
-                    {projects.length === 0 ? 'Erstes Projekt anlegen…' : 'Neues Projekt…'}
-                  </span>
-                </Link>
-              </ExpandableNavSection>
-            )}
+              {isClient && (
+                <ExpandableNavSection
+                  href="/dashboard"
+                  icon="project"
+                  label="Projekte"
+                  expanded={projExp}
+                  onToggle={() => setProjExp(v => !v)}
+                  action={() => router.push('/onboarding')}
+                  actionTitle="Neues Projekt"
+                  activeOverride={pathname.startsWith('/project/')}
+                >
+                  {projects.map(p => {
+                    const on = pathname === `/project/${p.id}`
+                    const dot = p.color || '#64748b'
+                    const picking = colorPickId === p.id
+                    return (
+                      <div key={p.id} style={{ position:'relative' }}>
+                        <Link href={`/project/${p.id}`} className={`proj-row ${on?'active':''}`} style={{ paddingLeft:6 }}>
+                          <button
+                            onClick={e => { e.preventDefault(); e.stopPropagation(); setColorPickId(picking ? null : p.id) }}
+                            title="Farbe ändern"
+                            style={{ width:10, height:10, borderRadius:'50%', background:'transparent', flexShrink:0, border:`2px solid ${dot}`, cursor:'pointer', padding:0, outline:'none', boxSizing:'border-box' }}
+                          />
+                          <span style={{ flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{p.title}</span>
+                        </Link>
+                        {picking && (
+                          <>
+                            <div style={{ position:'fixed', inset:0, zIndex:200 }} onClick={() => setColorPickId(null)} />
+                            <div style={{ position:'absolute', left:8, top:'calc(100% + 4px)', zIndex:201, background:'var(--card)', border:'1px solid var(--border)', borderRadius:10, padding:8, display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:5, boxShadow:'0 8px 24px rgba(0,0,0,.2)' }}>
+                              {PROJ_COLORS.map(c => (
+                                <button key={c} onClick={() => setProjectColor(p.id, c)}
+                                  style={{ width:18, height:18, borderRadius:5, background:c, border: dot===c?'2px solid var(--text)':'2px solid transparent', cursor:'pointer', padding:0 }}
+                                />
+                              ))}
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    )
+                  })}
 
-            <div style={{ marginBottom:8 }}>
-              <NavItems items={coreNav} />
+                  <Link href="/onboarding" className="proj-row proj-new" style={{ paddingLeft:6 }}>
+                    <span style={{
+                      width:10, height:10, borderRadius:3,
+                      border:'1px dashed var(--text-muted)',
+                      flexShrink:0, opacity:.6,
+                      display:'flex', alignItems:'center', justifyContent:'center',
+                    }}>
+                      <span style={{ fontSize:9, color:'var(--text-muted)', lineHeight:1, fontWeight:600 }}>+</span>
+                    </span>
+                    <span style={{ fontStyle:'normal', fontSize:12, color:'var(--text-muted)' }}>
+                      {projects.length === 0 ? 'Erstes Projekt anlegen…' : 'Neues Projekt…'}
+                    </span>
+                  </Link>
+                </ExpandableNavSection>
+              )}
+
+              <div style={{ marginTop: 10 }}>
+                <NavItems items={coreNav} />
+              </div>
             </div>
 
-            <ExpandableNavSection
-              href="/teams"
-              icon="team"
-              label="Teams"
-              expanded={teamsExp}
-              onToggle={() => setTeamsExp(v => !v)}
-              action={() => setTeamsOpen(true)}
-              actionTitle="Mitglied einladen"
-              activeOverride={pathname.startsWith('/teams')}
-            >
-              <NavItems items={teamsNav} />
-            </ExpandableNavSection>
+            <div style={{ marginBottom: 16 }}>
+              <p className="nav-group-label">Teams</p>
+              <ExpandableNavSection
+                href="/teams"
+                icon="team"
+                label="Teams"
+                expanded={teamsExp}
+                onToggle={() => setTeamsExp(v => !v)}
+                action={() => setTeamsOpen(true)}
+                actionTitle="Mitglied einladen"
+                activeOverride={pathname.startsWith('/teams')}
+              >
+                <NavItems items={teamsNav} />
+              </ExpandableNavSection>
+            </div>
 
-            {/* Tools — collapsible */}
-            <Section
-              label="Tools"
-              expanded={toolsExp}
-              onToggle={() => setToolsExp(v => !v)}
-            >
-              <NavItems items={toolsNav} />
-            </Section>
+            <div style={{ marginBottom: 4 }}>
+              <p className="nav-group-label">Tools</p>
+              <Section
+                label="Tools"
+                expanded={toolsExp}
+                onToggle={() => setToolsExp(v => !v)}
+              >
+                <NavItems items={toolsNav} />
+              </Section>
+            </div>
 
           </div>
 
