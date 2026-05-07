@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useState, useEffect } from 'react'
 import SidebarProfileFooter from '@/components/SidebarProfileFooter'
@@ -42,16 +42,22 @@ function Ico({ name, sz=16, c='currentColor', weight='regular' }: {
 
 type NavItem = { href: string; icon: string; label: string; badge?: number }
 
-const CLIENT_MAIN: NavItem[] = [
+const CLIENT_TOP: NavItem[] = [
+  { href:'/dashboard', icon:'home', label:'Dashboard' },
   { href:'/relations/messages', icon:'inbox', label:'Inbox' },
+]
+const CLIENT_CORE: NavItem[] = [
   { href:'/tasks', icon:'task', label:'Aufgaben' },
-  { href:'/dashboard', icon:'home', label:'Projekte' },
   { href:'/reports', icon:'activity', label:'Statusberichte' },
-  { href:'/messages', icon:'chat', label:'Nachrichten' },
-  { href:'/teams', icon:'team', label:'Teams' },
-  { href:'/documents', icon:'doc', label:'Dokumente' },
   { href:'/relations/notes', icon:'card', label:'Notizen' },
   { href:'/ai', icon:'sparkle', label:'Tagro AI' },
+]
+const CLIENT_TEAMS: NavItem[] = [
+  { href:'/teams?view=projects', icon:'project', label:'Projekte' },
+  { href:'/teams?view=tasks', icon:'task', label:'Tasks' },
+  { href:'/teams?view=messages', icon:'chat', label:'Nachrichten' },
+  { href:'/teams?view=notes', icon:'card', label:'Notizen' },
+  { href:'/teams?view=documents', icon:'doc', label:'Dokumente' },
 ]
 const CLIENT_TOOLS: NavItem[] = [
   { href:'/estimator',  icon:'estimate', label:'Preisschätzer' },
@@ -106,6 +112,7 @@ const ROLE_LABEL: Record<string,string> = { client:'Client', dev:'Developer', ad
 
 export default function Sidebar() {
   const pathname  = usePathname()
+  const router = useRouter()
   const [uid,      setUid]      = useState<string|null>(null)
   const [email,    setEmail]    = useState('')
   const [fn,       setFn]       = useState('')
@@ -118,14 +125,17 @@ export default function Sidebar() {
   const [projects, setProjects] = useState<{id:string;title:string;status:string;color:string|null}[]>([])
   const [more, setMore] = useState(false)
   const [projExp, setProjExp] = useState(true)
-  const [toolsExp, setToolsExp] = useState(true)
+  const [teamsExp, setTeamsExp] = useState(false)
+  const [toolsExp, setToolsExp] = useState(false)
   const [teamsOpen,  setTeamsOpen] = useState(false)
   const [colorPickId, setColorPickId] = useState<string|null>(null)
 
   const isClient = true
   const isDev = false
   const homeHref = '/dashboard'
-  const mainNav = CLIENT_MAIN
+  const topNav = CLIENT_TOP
+  const coreNav = CLIENT_CORE
+  const teamsNav = CLIENT_TEAMS
   const toolsNav = CLIENT_TOOLS
   const mobPrimary = CLIENT_MOB_PRIMARY
   const mobQuick = CLIENT_MOB_QUICK
@@ -135,6 +145,29 @@ export default function Sidebar() {
     window.addEventListener('open-teams-modal', handler)
     return () => window.removeEventListener('open-teams-modal', handler)
   }, [])
+
+  useEffect(() => {
+    try {
+      const storedProjects = window.localStorage.getItem('sidebar-projects-expanded')
+      const storedTeams = window.localStorage.getItem('sidebar-teams-expanded')
+      const storedTools = window.localStorage.getItem('sidebar-tools-expanded')
+      if (storedProjects !== null) setProjExp(storedProjects === 'true')
+      if (storedTeams !== null) setTeamsExp(storedTeams === 'true')
+      if (storedTools !== null) setToolsExp(storedTools === 'true')
+    } catch {}
+  }, [])
+
+  useEffect(() => {
+    try { window.localStorage.setItem('sidebar-projects-expanded', String(projExp)) } catch {}
+  }, [projExp])
+
+  useEffect(() => {
+    try { window.localStorage.setItem('sidebar-teams-expanded', String(teamsExp)) } catch {}
+  }, [teamsExp])
+
+  useEffect(() => {
+    try { window.localStorage.setItem('sidebar-tools-expanded', String(toolsExp)) } catch {}
+  }, [toolsExp])
 
   useEffect(() => {
     setMore(false)
@@ -250,6 +283,71 @@ export default function Sidebar() {
           transition:'grid-template-rows .22s cubic-bezier(.16,1,.3,1)',
         }}>
           <div style={{ minHeight:0 }}>{children}</div>
+        </div>
+      </div>
+    )
+  }
+
+  function ExpandableNavSection({
+    href,
+    icon,
+    label,
+    expanded,
+    onToggle,
+    action,
+    actionTitle,
+    activeOverride,
+    children,
+  }: {
+    href: string
+    icon: string
+    label: string
+    expanded: boolean
+    onToggle: () => void
+    action?: () => void
+    actionTitle?: string
+    activeOverride?: boolean
+    children: React.ReactNode
+  }) {
+    const active = activeOverride ?? isOn(href)
+    return (
+      <div style={{ marginBottom: 6 }}>
+        <div
+          className={`ni ${active ? 'ni-on' : 'ni-off'}`}
+          style={{ gap: 8, paddingRight: 6 }}
+        >
+          <Link
+            href={resolve(href)}
+            style={{ display: 'flex', alignItems: 'center', gap: 7, minWidth: 0, flex: 1, textDecoration: 'none', color: 'inherit' }}
+          >
+            <Ico name={icon} sz={14} c={active ? 'var(--text)' : 'var(--text-muted)'} weight={active ? 'bold' : 'regular'} />
+            <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
+          </Link>
+          {action ? (
+            <button
+              type="button"
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); action() }}
+              title={actionTitle}
+              style={{ width: 18, height: 18, border: 'none', background: 'transparent', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', borderRadius: 5, flexShrink: 0 }}
+            >
+              <Ico name="plus" sz={11} c="currentColor" weight="regular" />
+            </button>
+          ) : null}
+          <button
+            type="button"
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggle() }}
+            aria-label={`${label} ein- oder ausklappen`}
+            style={{ width: 18, height: 18, border: 'none', background: 'transparent', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', borderRadius: 5, flexShrink: 0 }}
+          >
+            <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" style={{ transform: expanded ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform .18s cubic-bezier(.16,1,.3,1)' }}>
+              <path d="M9 6l6 6-6 6"/>
+            </svg>
+          </button>
+        </div>
+        <div style={{ overflow: 'hidden', display: 'grid', gridTemplateRows: expanded ? '1fr' : '0fr', transition: 'grid-template-rows .22s cubic-bezier(.16,1,.3,1)' }}>
+          <div style={{ minHeight: 0, paddingTop: 2 }}>
+            {children}
+          </div>
         </div>
       </div>
     )
@@ -374,23 +472,19 @@ export default function Sidebar() {
           <div style={{ flex:1, overflowY:'auto', overflowX:'hidden', scrollbarWidth:'none' }}>
 
             <div style={{ marginBottom:8 }}>
-              <NavItems items={mainNav} />
+              <NavItems items={topNav} />
             </div>
 
             {isClient && (
-              <Section
-                label="Aktuelle Projekte"
+              <ExpandableNavSection
+                href="/dashboard"
+                icon="project"
+                label="Projekte"
                 expanded={projExp}
                 onToggle={() => setProjExp(v => !v)}
-                action={
-                  <Link
-                    href="/onboarding"
-                    title="Neues Projekt"
-                    style={{ width:20, height:20, borderRadius:6, display:'flex', alignItems:'center', justifyContent:'center', color:'var(--text-muted)', textDecoration:'none' }}
-                  >
-                    <Ico name="plus" sz={12} c="currentColor" weight="regular" />
-                  </Link>
-                }
+                action={() => router.push('/onboarding')}
+                actionTitle="Neues Projekt"
+                activeOverride={pathname.startsWith('/project/')}
               >
                 {projects.map(p => {
                   const on = pathname === `/project/${p.id}`
@@ -437,9 +531,25 @@ export default function Sidebar() {
                     {projects.length === 0 ? 'Erstes Projekt anlegen…' : 'Neues Projekt…'}
                   </span>
                 </Link>
-
-              </Section>
+              </ExpandableNavSection>
             )}
+
+            <div style={{ marginBottom:8 }}>
+              <NavItems items={coreNav} />
+            </div>
+
+            <ExpandableNavSection
+              href="/teams"
+              icon="team"
+              label="Teams"
+              expanded={teamsExp}
+              onToggle={() => setTeamsExp(v => !v)}
+              action={() => setTeamsOpen(true)}
+              actionTitle="Mitglied einladen"
+              activeOverride={pathname.startsWith('/teams')}
+            >
+              <NavItems items={teamsNav} />
+            </ExpandableNavSection>
 
             {/* Tools — collapsible */}
             <Section
