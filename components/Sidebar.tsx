@@ -44,14 +44,44 @@ function Ico({ name, sz=16, c='currentColor', weight='regular' }: {
 type NavItem = { href: string; icon: string; label: string; badge?: number }
 
 const CLIENT_MAIN: NavItem[] = [
-  { href:'/dashboard', icon:'home',     label:'Dashboard' },
-  { href:'/messages',  icon:'chat',     label:'Nachrichten' },
+  { href:'/dashboard', icon:'home', label:'Alle Projekte' },
+  { href:'/project/current', icon:'project', label:'Zugewiesene Projekte' },
+  { href:'/project/current', icon:'layers', label:'Roadmap' },
+  { href:'/reports', icon:'activity', label:'Statusberichte' },
 ]
 const CLIENT_PROJECT: NavItem[] = [
-  { href:'/project/current', icon:'project',  label:'Mein Projekt' },
-  { href:'/reports',         icon:'activity', label:'Statusberichte' },
-  { href:'/ai',              icon:'sparkle',  label:'AI Assistent' },
-  { href:'/documents',       icon:'doc',      label:'Dokumente' },
+  { href:'/project/current', icon:'project', label:'Mein Projekt' },
+  { href:'/reports', icon:'activity', label:'Statusberichte' },
+  { href:'/ai', icon:'sparkle', label:'AI-Kontext' },
+  { href:'/documents', icon:'doc', label:'Dokumente' },
+]
+const CLIENT_MESSAGES: NavItem[] = [
+  { href:'/relations/messages', icon:'chat', label:'Client-Kommunikation' },
+  { href:'/messages', icon:'team', label:'Team-Kommunikation' },
+]
+const CLIENT_TASKS: NavItem[] = [
+  { href:'/project/current', icon:'task', label:'Meine Tasks' },
+  { href:'/teams?view=team-tasks', icon:'check', label:'Team Tasks' },
+  { href:'/teams?view=sprint', icon:'activity', label:'Sprint Board' },
+  { href:'/teams?view=blockers', icon:'bell', label:'Blocker' },
+]
+const CLIENT_TEAMS: NavItem[] = [
+  { href:'/teams?view=overview', icon:'team', label:'Übersicht' },
+  { href:'/teams?view=members', icon:'user', label:'Mitglieder' },
+  { href:'/teams?view=scenarios', icon:'sparkle', label:'Szenarien' },
+  { href:'/teams?view=invitations', icon:'chat', label:'Einladungen' },
+  { href:'/teams?view=roles', icon:'settings', label:'Rollen & Rechte' },
+  { href:'/teams?view=seats', icon:'billing', label:'Seats' },
+  { href:'/teams?view=assigned-projects', icon:'project', label:'Zugewiesene Projekte' },
+]
+const CLIENT_KNOWLEDGE: NavItem[] = [
+  { href:'/documents', icon:'doc', label:'Dokumente' },
+  { href:'/relations/notes', icon:'card', label:'Notizen' },
+]
+const CLIENT_TAGRO: NavItem[] = [
+  { href:'/ai', icon:'sparkle', label:'Projektkontext' },
+  { href:'/ai?mode=plan-task', icon:'task', label:'Task planen' },
+  { href:'/reports', icon:'activity', label:'Status zusammenfassen' },
 ]
 const CLIENT_TOOLS: NavItem[] = [
   { href:'/estimator',  icon:'estimate', label:'Preisschätzer' },
@@ -122,13 +152,13 @@ export default function Sidebar() {
   const [teamsOpen,  setTeamsOpen] = useState(false)
   const [colorPickId, setColorPickId] = useState<string|null>(null)
 
-  const isClient = role !== 'dev'
-  const isDev    = role === 'dev'
-  const homeHref = isDev ? '/dev' : '/dashboard'
-  const mainNav = isDev ? DEV_MAIN : CLIENT_MAIN
-  const toolsNav = isDev ? DEV_TOOLS : CLIENT_TOOLS
-  const mobPrimary = isDev ? DEV_MOB_PRIMARY : CLIENT_MOB_PRIMARY
-  const mobQuick = isDev ? DEV_MOB_QUICK : CLIENT_MOB_QUICK
+  const isClient = true
+  const isDev = false
+  const homeHref = '/dashboard'
+  const mainNav = CLIENT_MAIN
+  const toolsNav = CLIENT_TOOLS
+  const mobPrimary = CLIENT_MOB_PRIMARY
+  const mobQuick = CLIENT_MOB_QUICK
 
   useEffect(() => {
     const handler = () => setTeamsOpen(true)
@@ -185,10 +215,11 @@ export default function Sidebar() {
   const logout  = async () => { await createClient().auth.signOut(); window.location.href='/login' }
   const resolve = (h: string) => h==='/project/current'?(projId?`/project/${projId}`:'/dashboard'):h
   const isOn    = (h: string) => {
-    if (h==='/dashboard') return pathname==='/dashboard'
-    if (h==='/dev')       return pathname==='/dev'
-    if (h==='/project/current') return pathname.startsWith('/project/')
-    return pathname.startsWith(h)
+    const cleanHref = h.split('?')[0]
+    if (cleanHref==='/dashboard') return pathname==='/dashboard'
+    if (cleanHref==='/dev')       return pathname==='/dev'
+    if (cleanHref==='/project/current') return pathname.startsWith('/project/')
+    return pathname.startsWith(cleanHref)
   }
   const name = fn || email.split('@')[0] || 'Konto'
   const init = avatarInitials(fn, fullName, email)
@@ -208,7 +239,7 @@ export default function Sidebar() {
         {items.map(item => {
           const on = isOn(item.href)
           return (
-            <Link key={item.href} href={resolve(item.href)} className={`ni ${on?'ni-on':'ni-off'}`}>
+            <Link key={`${item.href}-${item.label}`} href={resolve(item.href)} className={`ni ${on?'ni-on':'ni-off'}`}>
               <Ico name={item.icon} sz={14} c={on?'var(--text)':'var(--text-muted)'} weight={on?'bold':'regular'} />
               <span style={{ flex:1 }}>{item.label}</span>
               {item.badge ? (
@@ -370,33 +401,25 @@ export default function Sidebar() {
           {/* Scrollable nav */}
           <div style={{ flex:1, overflowY:'auto', overflowX:'hidden', scrollbarWidth:'none' }}>
 
-            {/* Main nav — always visible, no section header (like Linear's top items) */}
-            <div style={{ marginBottom:6 }}>
-              <NavItems items={mainNav} />
-              {/* Teams — nur für Admin sichtbar */}
-              {role === 'admin' && (
-                <Link href="/teams" className={`ni ${isOn('/teams')?'ni-on':'ni-off'}`}>
-                  <Ico name="team" sz={14} c={isOn('/teams')?'var(--text)':'var(--text-muted)'} weight={isOn('/teams')?'bold':'regular'} />
-                  <span style={{ flex:1 }}>Teams</span>
+            <Section label="Projekte" expanded={projExp} onToggle={() => setProjExp(v => !v)}
+              action={
+                <Link href="/onboarding" onClick={e => e.stopPropagation()}
+                  style={{ display:'flex', alignItems:'center', justifyContent:'center', width:20, height:20, borderRadius:5, opacity:.45, textDecoration:'none', transition:'opacity .1s' }}
+                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.opacity='0.9'}
+                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.opacity='0.45'}
+                >
+                  <Ico name="plus" sz={11} c="var(--text-muted)" weight="regular" />
                 </Link>
-              )}
-            </div>
+              }
+            >
+              <NavItems items={mainNav} />
+            </Section>
 
-            {/* Projects — collapsible */}
             {isClient && (
               <Section
-                label="Projekte"
-                expanded={projExp}
-                onToggle={() => setProjExp(v => !v)}
-                action={
-                  <Link href="/onboarding" onClick={e => e.stopPropagation()}
-                    style={{ display:'flex', alignItems:'center', justifyContent:'center', width:20, height:20, borderRadius:5, opacity:.45, textDecoration:'none', transition:'opacity .1s' }}
-                    onMouseEnter={e => (e.currentTarget as HTMLElement).style.opacity='0.9'}
-                    onMouseLeave={e => (e.currentTarget as HTMLElement).style.opacity='0.45'}
-                  >
-                    <Ico name="plus" sz={11} c="var(--text-muted)" weight="regular" />
-                  </Link>
-                }
+                label="Aktuelle Projekte"
+                expanded={projects.length > 0}
+                onToggle={() => {}}
               >
                 {projects.map(p => {
                   const on = pathname === `/project/${p.id}`
@@ -444,26 +467,14 @@ export default function Sidebar() {
                   </span>
                 </Link>
 
-                {/* Sub-links for active project */}
-                {projId && (
-                  <div style={{ marginLeft:12, borderLeft:'1px solid var(--border)', paddingLeft:6, marginTop:1, marginBottom:2 }}>
-                    {CLIENT_PROJECT.map(item => {
-                      const on = isOn(item.href)
-                      return (
-                        <Link key={item.href} href={resolve(item.href)} className={`ni ${on?'ni-on':'ni-off'}`}
-                          style={{ fontSize:11.5, padding:'4px 8px', borderRadius:6, margin:'0 1px' }}>
-                          <Ico name={item.icon} sz={12} c={on?'var(--text)':'var(--text-muted)'} weight={on?'bold':'regular'} />
-                          {item.label}
-                        </Link>
-                      )
-                    })}
-                  </div>
-                )}
               </Section>
             )}
 
-            {/* Dev: Work section */}
-            {isDev && <FlatSection label="Arbeit" items={DEV_WORK} />}
+            <FlatSection label="Nachrichten" items={CLIENT_MESSAGES} />
+            <FlatSection label="Tasks" items={CLIENT_TASKS} />
+            <FlatSection label="Teams" items={CLIENT_TEAMS} />
+            <FlatSection label="Dokumente & Notizen" items={CLIENT_KNOWLEDGE} />
+            <FlatSection label="Tagro AI" items={CLIENT_TAGRO} />
 
             {/* Tools — collapsible */}
             <Section

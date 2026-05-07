@@ -1,37 +1,19 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useRelationsSetup } from '@/hooks/useRelationsSetup'
-import RelationsSidebar from '@/components/RelationsSidebar'
-import CopilotPanel from '@/components/CopilotPanel'
-import FeedbackWidget from '@/components/FeedbackWidget'
-import CommandPalette from '@/components/CommandPalette'
-import FloatingBar from '@/components/FloatingBar'
+import ClientAppShell from '@/components/ClientAppShell'
 
 export default function RelationsLayout({ children }: { children: React.ReactNode }) {
-  const [checking,    setChecking]    = useState(true)
-  const [copilotOpen, setCopilotOpen] = useState(false)
-  const pathname = usePathname()
+  const [checking, setChecking] = useState(true)
   const { status: setupStatus, error: setupError, retry: retrySetup } = useRelationsSetup()
-
-  useEffect(() => {
-    const el = document.getElementById('relations-main-scroll')
-    if (el) el.scrollTop = 0
-  }, [pathname])
 
   useEffect(() => {
     createClient().auth.getSession().then(({ data }) => {
       if (!data.session) { window.location.href = '/login'; return }
       setChecking(false)
     })
-  }, [])
-
-  useEffect(() => {
-    const onCopilot = () => setCopilotOpen(o => !o)
-    window.addEventListener('toggle-copilot', onCopilot)
-    return () => window.removeEventListener('toggle-copilot', onCopilot)
   }, [])
 
   // Auth-Check laeuft noch
@@ -76,32 +58,5 @@ export default function RelationsLayout({ children }: { children: React.ReactNod
     </div>
   )
 
-  return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg)' }}>
-      <style>{`
-        @keyframes panelFadeIn {
-          from { opacity: 0; transform: translateY(6px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-        .panel-enter { animation: panelFadeIn .22s cubic-bezier(.16,1,.3,1) both; }
-      `}</style>
-      <div className="panel-enter" style={{ display:'contents' }} key="relations">
-        <RelationsSidebar />
-      </div>
-      <main
-        id="relations-main-scroll"
-        className="main-content"
-        style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', overflowY: 'scroll', scrollBehavior: 'auto' }}
-      >
-        <div style={{ width: '100%', flex: 1 }}>
-          {children}
-        </div>
-      </main>
-
-      <FloatingBar copilotOpen={copilotOpen} onToggleCopilot={() => setCopilotOpen(o => !o)} />
-      <CopilotPanel open={copilotOpen} onClose={() => setCopilotOpen(false)} />
-      <FeedbackWidget />
-      <CommandPalette />
-    </div>
-  )
+  return <ClientAppShell scrollId="relations-main-scroll">{children}</ClientAppShell>
 }

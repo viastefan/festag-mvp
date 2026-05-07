@@ -4,7 +4,7 @@
  * Cmd+K (Strg+K) — globales Command Palette.
  *
  * Architektur-Prinzip:
- *   - Eine zentrale Suche über alle Workspaces (Festwerk / Relations / Teams).
+ *   - Eine zentrale Suche innerhalb des aktuellen echten Workspaces.
  *   - Tagro-Prefix `tagro:` triggert Tagro-Anfrage (kontextuell, kein floating Button).
  *   - Permissions werden serverseitig erzwungen — hier nur UI-Vorfilter.
  *
@@ -18,7 +18,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  MagnifyingGlass, Sparkle, House, Handshake, UsersThree,
+  MagnifyingGlass, Sparkle, House, UsersThree,
   ChatCircle, Briefcase, GearSix, FolderSimple, FileText,
   Plus, Brain, Code, Note, ListChecks,
 } from '@phosphor-icons/react'
@@ -36,23 +36,20 @@ type Cmd = {
 }
 
 const STATIC_COMMANDS: Cmd[] = [
-  // Workspaces
-  { id:'ws-festwerk',  group:'Workspace',  label:'Festwerk öffnen',     href:'/dashboard',  Icon: House,     keywords:['core','dashboard','main'] },
-  { id:'ws-relations', group:'Workspace',  label:'Relations öffnen',    href:'/relations',  Icon: Handshake, keywords:['client','kunde','chat'] },
-  { id:'ws-teams',     group:'Workspace',  label:'Teams öffnen',        action: () => window.dispatchEvent(new Event('open-teams-modal')), Icon: UsersThree, keywords:['team','member','invite'] },
-
-  // Festwerk navigation
-  { id:'nav-projects', group:'Navigation', label:'Projekte',             href:'/dashboard',          Icon: FolderSimple },
-  { id:'nav-messages', group:'Navigation', label:'Nachrichten',          href:'/messages',           Icon: ChatCircle },
-  { id:'nav-reports',  group:'Navigation', label:'Statusberichte',       href:'/reports',            Icon: FileText },
-  { id:'nav-docs',     group:'Navigation', label:'Dokumente',            href:'/documents',          Icon: FileText },
-  { id:'nav-billing',  group:'Navigation', label:'Abrechnung',           href:'/billing',            Icon: Briefcase },
-  { id:'nav-settings', group:'Navigation', label:'Einstellungen',        href:'/settings',           Icon: GearSix },
-  { id:'nav-dev',      group:'Navigation', label:'Dev Dashboard',        href:'/dev',                Icon: Code },
+  { id:'nav-projects', group:'Navigation', label:'Alle Projekte',              href:'/dashboard',          Icon: FolderSimple },
+  { id:'nav-client-messages', group:'Navigation', label:'Client-Kommunikation', href:'/relations/messages', Icon: ChatCircle },
+  { id:'nav-team-messages', group:'Navigation', label:'Team-Kommunikation',     href:'/messages',           Icon: UsersThree },
+  { id:'nav-teams',    group:'Navigation', label:'Teams',                      href:'/teams',              Icon: UsersThree, keywords:['member','invite','seat'] },
+  { id:'nav-reports',  group:'Navigation', label:'Statusberichte',             href:'/reports',            Icon: FileText },
+  { id:'nav-docs',     group:'Navigation', label:'Dokumente',                  href:'/documents',          Icon: FileText },
+  { id:'nav-notes',    group:'Navigation', label:'Notizen',                    href:'/relations/notes',    Icon: Note },
+  { id:'nav-quotes',   group:'Navigation', label:'Angebote',                   href:'/relations/quotes',   Icon: Briefcase },
+  { id:'nav-billing',  group:'Navigation', label:'Abrechnung & Plan',          href:'/billing',            Icon: Briefcase },
+  { id:'nav-settings', group:'Navigation', label:'Einstellungen',              href:'/settings',           Icon: GearSix },
 
   // Aktionen
   { id:'act-new-proj', group:'Aktionen',   label:'Neues Projekt anlegen', href:'/onboarding',        Icon: Plus,    keywords:['create','start'] },
-  { id:'act-invite',   group:'Aktionen',   label:'Mitglied einladen',     action: () => window.dispatchEvent(new Event('open-teams-modal')), Icon: Plus, keywords:['invite','seat','team'] },
+  { id:'act-invite',   group:'Aktionen',   label:'Mitglied einladen',     href:'/teams', Icon: Plus, keywords:['invite','seat','team'] },
 
   // Tagro hint (immer sichtbar wenn Query leer ist)
   { id:'tagro-hint',   group:'Tagro',      label:'Mit "tagro: …" Tagro fragen', hint:'z. B. tagro: Status zusammenfassen', Icon: Brain, keywords:['ai','assistent'] },
@@ -143,7 +140,12 @@ export default function CommandPalette() {
       }
     }
     window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
+    const onOpen = () => { setOpen(true); setQ(''); setIdx(0) }
+    window.addEventListener('open-command-palette', onOpen)
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      window.removeEventListener('open-command-palette', onOpen)
+    }
   }, [open, router])
 
   // Auto-Focus
@@ -288,7 +290,7 @@ export default function CommandPalette() {
                 value={q}
                 onChange={e => setQ(e.target.value)}
                 onKeyDown={onKeyDown}
-                placeholder={isTagro ? 'Was soll Tagro tun?' : 'Suchen oder "tagro: …" für AI'}
+                placeholder={isTagro ? 'Was soll Tagro tun?' : 'Suche nach Projekt, Task, Dokument, Nachricht oder Einstellung...'}
                 style={{
                   flex: 1,
                   border: 'none', outline: 'none',
