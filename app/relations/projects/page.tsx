@@ -179,7 +179,7 @@ export default function RelProjectsPage() {
   )
 
   return (
-    <div className="page-content" style={{ maxWidth:900 }}>
+    <div className="page-content" style={{ maxWidth:1100 }}>
       <style>{`
         @keyframes spin    { to{transform:rotate(360deg);} }
         @keyframes fadeIn  { from{opacity:0;} to{opacity:1;} }
@@ -203,15 +203,10 @@ export default function RelProjectsPage() {
         <div style={{ display:'flex', gap:8 }}>
           {isPriv && (
             <button onClick={() => setShowAssign(true)}
-              style={{ height:32, padding:'0 14px', background:'transparent', border:'1px solid var(--border)', borderRadius:7, fontSize:12, fontWeight:600, color:'var(--text-secondary)', cursor:'pointer', fontFamily:'inherit' }}>
+              style={{ height:32, padding:'0 14px', background:'var(--surface)', border:'1px solid var(--border)', borderRadius:7, fontSize:12, fontWeight:600, color:'var(--text)', cursor:'pointer', fontFamily:'inherit' }}>
               Projekt zuweisen
             </button>
           )}
-          <button onClick={openNew}
-            style={{ height:32, padding:'0 14px', background:'var(--btn-prim)', color:'var(--btn-prim-text)', border:'none', borderRadius:7, fontSize:12, fontWeight:600, cursor:'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', gap:6 }}>
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
-            Neue Notiz
-          </button>
         </div>
       </div>
 
@@ -232,7 +227,7 @@ export default function RelProjectsPage() {
             {projects.map((p, i) => (
               <Link key={p.id} href={isPriv ? `/project/${p.id}` : `/relations/projects/${p.id}`} style={{ textDecoration:'none', color:'inherit' }}>
                 <div className="rp-row" style={{ display:'flex', alignItems:'center', gap:14, padding:'13px 16px', borderBottom: i < projects.length-1 ? '1px solid var(--border)' : 'none', background:'var(--card)' }}>
-                  <span style={{ width:8, height:8, borderRadius:'50%', background:p.color||'#64748b', flexShrink:0 }}/>
+                  <span style={{ width:8, height:8, borderRadius:'50%', background:'transparent', border:`2px solid ${p.color||'var(--border-strong)'}`, flexShrink:0, boxSizing:'border-box' }}/>
                   <span style={{ flex:1, fontSize:13.5, fontWeight:500, color:'var(--text)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{p.title}</span>
                   <span style={{ fontSize:10, fontWeight:600, color:'var(--text-muted)', border:'1px solid var(--border)', borderRadius:4, padding:'1px 6px', flexShrink:0 }}>Festag</span>
                   <span style={{ fontSize:11.5, color:'var(--text-muted)', flexShrink:0 }}>{PHASE_LABEL[p.status] ?? p.status}</span>
