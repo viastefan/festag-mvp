@@ -5,9 +5,16 @@ import { createClient } from '@/lib/supabase/client'
 import NewTaskModal from '@/components/NewTaskModal'
 import {
   CheckCircle,
+  Code,
   Circle,
   Cube,
+  FileText,
   FunnelSimple,
+  Gauge,
+  Globe,
+  Palette,
+  Plugs,
+  ShieldCheck,
   SlidersHorizontal,
   X,
 } from '@phosphor-icons/react'
@@ -109,6 +116,34 @@ function dateLabel(value?: string | null) {
   } catch {
     return '---'
   }
+}
+
+function taskGroupFor(task: TaskRow) {
+  const haystack = `${task.title} ${task.priority ?? ''}`.toLowerCase()
+
+  if (/datenschutz|impressum|agb|recht|legal|security|sicherheit|compliance/.test(haystack)) {
+    return { label: 'Recht', icon: ShieldCheck, color: '#64748b' }
+  }
+  if (/performance|optimierung|hosting|wordpress|installation|setup|cache|server|deploy/.test(haystack)) {
+    return { label: 'Technik', icon: Gauge, color: '#0ea5e9' }
+  }
+  if (/login|stripe|api|webhook|integration|google|connector|payment|billing/.test(haystack)) {
+    return { label: 'Integration', icon: Plugs, color: '#8b5cf6' }
+  }
+  if (/responsive|theme|design|gestaltung|ui|ux|layout/.test(haystack)) {
+    return { label: 'Design', icon: Palette, color: '#ec4899' }
+  }
+  if (/seo|landing|seite|kontakt|formular|blog|content|inhalt|leistung|über-mich|about/.test(haystack)) {
+    return { label: 'Inhalt', icon: FileText, color: '#f97316' }
+  }
+  if (/domain|website|web|page/.test(haystack)) {
+    return { label: 'Web', icon: Globe, color: '#22c55e' }
+  }
+  if (/code|refactor|service|sdk|schema|database|db/.test(haystack)) {
+    return { label: 'Code', icon: Code, color: '#6366f1' }
+  }
+
+  return { label: 'Projekt', icon: Cube, color: 'var(--text-muted)' }
 }
 
 export default function TasksPage() {
@@ -346,9 +381,9 @@ export default function TasksPage() {
         .task-head,
         .task-row {
           display:grid;
-          grid-template-columns:minmax(320px,1.6fr) minmax(150px,.95fr) 92px 110px 120px 72px 116px;
+          grid-template-columns:62px minmax(300px,1.55fr) minmax(170px,.95fr) 94px 122px 110px 74px 112px;
           align-items:center;
-          gap:16px;
+          gap:14px;
         }
         .task-head {
           min-height:34px;
@@ -374,6 +409,23 @@ export default function TasksPage() {
         [data-theme="dark"] .task-row.selected {
           background:rgba(99,102,241,.20);
         }
+        .task-group-cell {
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          min-width:0;
+        }
+        .task-group-icon {
+          width:24px;
+          height:24px;
+          border-radius:8px;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          background:color-mix(in srgb, currentColor 8%, transparent);
+          color:var(--text-muted);
+          border:1px solid color-mix(in srgb, currentColor 20%, transparent);
+        }
         .task-name {
           display:flex;
           align-items:center;
@@ -397,15 +449,6 @@ export default function TasksPage() {
         .task-check.selected {
           background:#676be8;
           border-color:#676be8;
-        }
-        .task-project-icon {
-          width:20px;
-          height:20px;
-          display:flex;
-          align-items:center;
-          justify-content:center;
-          color:var(--text-muted);
-          flex-shrink:0;
         }
         .task-name-text {
           min-width:0;
@@ -544,12 +587,12 @@ export default function TasksPage() {
         @media(max-width:1100px) {
           .task-table { overflow:auto; }
           .task-head,
-          .task-row { min-width:1050px; }
+          .task-row { min-width:1120px; }
         }
       `}</style>
 
       <div className="task-top">
-        <h1 className="task-title">Aufgaben</h1>
+        <h1 className="task-title">Tasks</h1>
         <button className="task-create" type="button" aria-label="Neue Aufgabe vorschlagen" onClick={() => setTaskModalOpen(true)}>
           <span>Aufgabe vorschlagen</span>
           <span style={{ fontSize: 19, lineHeight: 1 }}>+</span>
@@ -608,13 +651,14 @@ export default function TasksPage() {
 
       <div className="task-table">
         <div className="task-head">
-          <span>Name</span>
-          <span>Developer Update</span>
-          <span>Priority</span>
-          <span>Lead</span>
-          <span>Update date</span>
-          <span>Issues</span>
-          <span>Status</span>
+          <span style={{ textAlign: 'center' }}>Gruppe</span>
+          <span>Task</span>
+          <span>Projektlage</span>
+          <span>Priorität</span>
+          <span>Verantwortlich</span>
+          <span>Update</span>
+          <span>Hinweise</span>
+          <span>Fortschritt</span>
         </div>
 
         {loading ? (
@@ -627,9 +671,16 @@ export default function TasksPage() {
           const progress = progressFor(task.status)
           const lead = task.developer_name || task.owner || task.assigned_to || 'Developer'
           const selected = selectedTaskIds.includes(task.id)
+          const group = taskGroupFor(task)
+          const GroupIcon = group.icon
 
           return (
             <div key={task.id} className={`task-row${selected ? ' selected' : ''}`}>
+              <div className="task-group-cell" title={`Gruppe: ${group.label}`}>
+                <span className="task-group-icon" style={{ color: group.color }}>
+                  <GroupIcon size={15} weight="regular" />
+                </span>
+              </div>
               <div className="task-name">
                 <button
                   className={`task-check${selected ? ' selected' : ''}`}
@@ -640,7 +691,6 @@ export default function TasksPage() {
                 >
                   {selected ? <CheckCircle size={12} weight="bold" /> : null}
                 </button>
-                <span className="task-project-icon"><Cube size={16} weight="regular" /></span>
                 <span className="task-name-text">
                   <strong>{task.title}</strong>
                   <span>{project?.title || 'Kein Projekt zugeordnet'}</span>
