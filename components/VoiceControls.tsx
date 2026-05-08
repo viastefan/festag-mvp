@@ -1,7 +1,8 @@
 'use client'
 
+import { useMemo, useState } from 'react'
 import { Pause, Play, Stop, SpeakerHigh } from '@phosphor-icons/react'
-import { useSpeechSynthesis } from '@/hooks/useSpeechSynthesis'
+import { speechVoiceId, useSpeechSynthesis } from '@/hooks/useSpeechSynthesis'
 
 type VoiceControlsProps = {
   text: string
@@ -9,7 +10,21 @@ type VoiceControlsProps = {
 }
 
 export default function VoiceControls({ text, compact = false }: VoiceControlsProps) {
-  const { supported, state, voices, preferences, play, pause, stop, updatePreferences } = useSpeechSynthesis(text)
+  const [showAllVoices, setShowAllVoices] = useState(false)
+  const { supported, state, voices, selectedVoice, preferences, play, pause, stop, updatePreferences } = useSpeechSynthesis(text)
+
+  const voiceOptions = useMemo(() => {
+    const german = voices.filter((voice) => voice.lang.toLowerCase().startsWith('de'))
+    const preferred = german.length ? german : voices.slice(0, 8)
+    return showAllVoices ? voices : preferred
+  }, [showAllVoices, voices])
+
+  const selectedVoiceId = selectedVoice ? speechVoiceId(selectedVoice) : ''
+
+  function voiceLabel(voice: SpeechSynthesisVoice) {
+    const lang = voice.lang.toLowerCase().startsWith('de') ? 'Deutsch' : voice.lang
+    return `${voice.name} · ${lang}`
+  }
 
   if (!supported) {
     return <p className="voice-note">Audio-Briefings werden von diesem Browser nicht unterstützt.</p>
@@ -38,13 +53,29 @@ export default function VoiceControls({ text, compact = false }: VoiceControlsPr
       {voices.length > 0 && (
         <label className="voice-field voice-field--voice">
           <SpeakerHigh size={13} />
-          <select value={preferences.voiceName ?? ''} onChange={(event) => updatePreferences({ voiceName: event.target.value || undefined })}>
-            <option value="">Systemstimme</option>
-            {voices.map((voice) => (
-              <option key={`${voice.name}-${voice.lang}`} value={voice.name}>{voice.name}</option>
+          <select
+            value={selectedVoiceId}
+            onChange={(event) => {
+              const next = voices.find((voice) => speechVoiceId(voice) === event.target.value)
+              updatePreferences({ voiceId: next ? speechVoiceId(next) : undefined, voiceName: next?.name })
+            }}
+          >
+            <option value="">Beste deutsche Stimme</option>
+            {voiceOptions.map((voice) => (
+              <option key={speechVoiceId(voice)} value={speechVoiceId(voice)}>{voiceLabel(voice)}</option>
             ))}
           </select>
         </label>
+      )}
+      {voices.length > voiceOptions.length && (
+        <button className="voice-text-btn" type="button" onClick={() => setShowAllVoices(true)}>
+          Alle Stimmen
+        </button>
+      )}
+      {showAllVoices && (
+        <button className="voice-text-btn" type="button" onClick={() => setShowAllVoices(false)}>
+          Nur Deutsch
+        </button>
       )}
       {state === 'error' && <span className="voice-state">Konnte nicht gestartet werden.</span>}
     </div>

@@ -12,6 +12,7 @@ export type VoicePreferences = {
   projectBriefingsEnabled: boolean
   speechInputEnabled: boolean
   autoBriefings: 'off' | 'manual' | 'daily_prepared'
+  voiceId?: string
   voiceName?: string
   rate: number
   pitch: number

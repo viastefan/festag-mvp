@@ -5,6 +5,28 @@ import { getVoicePreferences, setVoicePreferences, VoicePreferences } from '@/li
 
 type SpeechState = 'idle' | 'playing' | 'paused' | 'unsupported' | 'error'
 
+export function speechVoiceId(voice: SpeechSynthesisVoice) {
+  return `${voice.name}__${voice.lang}`
+}
+
+function scoreVoice(voice: SpeechSynthesisVoice) {
+  const name = voice.name.toLowerCase()
+  const lang = voice.lang.toLowerCase()
+  let score = 0
+  if (lang === 'de-de') score += 100
+  else if (lang.startsWith('de')) score += 80
+  if (voice.localService) score += 8
+  if (/flo|anna|markus|siri|marlene|shelley|ellen/.test(name)) score += 6
+  if (/google|premium|enhanced|natural/.test(name)) score += 4
+  return score
+}
+
+function pickDefaultGermanVoice(voices: SpeechSynthesisVoice[]) {
+  return [...voices]
+    .filter((voice) => voice.lang.toLowerCase().startsWith('de'))
+    .sort((a, b) => scoreVoice(b) - scoreVoice(a))[0] ?? null
+}
+
 export function useSpeechSynthesis(text: string) {
   const [state, setState] = useState<SpeechState>('idle')
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([])
@@ -14,9 +36,16 @@ export function useSpeechSynthesis(text: string) {
   const supported = typeof window !== 'undefined' && 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window
 
   const selectedVoice = useMemo(() => {
-    if (!preferences.voiceName) return null
-    return voices.find((voice) => voice.name === preferences.voiceName) ?? null
-  }, [preferences.voiceName, voices])
+    if (preferences.voiceId) {
+      const exact = voices.find((voice) => speechVoiceId(voice) === preferences.voiceId)
+      if (exact) return exact
+    }
+    if (preferences.voiceName) {
+      const legacy = voices.find((voice) => voice.name === preferences.voiceName)
+      if (legacy) return legacy
+    }
+    return pickDefaultGermanVoice(voices)
+  }, [preferences.voiceId, preferences.voiceName, voices])
 
   useEffect(() => {
     if (!supported) {
@@ -92,6 +121,7 @@ export function useSpeechSynthesis(text: string) {
     supported,
     state,
     voices,
+    selectedVoice,
     preferences,
     play,
     pause,

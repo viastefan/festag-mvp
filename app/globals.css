@@ -629,10 +629,12 @@ code, pre, kbd, samp { font-family: var(--font-mono); }
 .audio-briefing-head button:hover { background:var(--surface-2); color:var(--text); }
 .audio-briefing-text { margin:0 0 12px; color:var(--text-secondary); font-size:12.5px; line-height:1.58; }
 .voice-controls { display:flex; align-items:center; gap:7px; flex-wrap:wrap; }
-.voice-icon-btn, .voice-field { height:30px; display:inline-flex; align-items:center; gap:6px; border:1px solid var(--border); border-radius:999px; background:transparent; color:var(--text); padding:0 10px; font-size:11.5px; font-weight:700; }
+.voice-icon-btn, .voice-field, .voice-text-btn { height:30px; display:inline-flex; align-items:center; gap:6px; border:1px solid var(--border); border-radius:999px; background:transparent; color:var(--text); padding:0 10px; font-size:11.5px; font-weight:700; }
 .voice-icon-btn:disabled { opacity:.42; cursor:default; }
 .voice-field { color:var(--text-muted); padding-right:8px; }
 .voice-field span { font-size:10.5px; }
-.voice-field select { border:0; background:transparent; color:var(--text); font:inherit; font-size:11.5px; outline:0; max-width:145px; }
-.voice-field--voice { max-width:190px; }
+.voice-field select { border:0; background:transparent; color:var(--text); font:inherit; font-size:11.5px; outline:0; max-width:168px; }
+.voice-field--voice { max-width:220px; }
+.voice-text-btn { color:var(--text-muted); border-color:transparent; padding:0 4px; }
+.voice-text-btn:hover { color:var(--text); }
 .voice-state, .voice-note { color:var(--text-muted); font-size:11.5px; margin:0; }
