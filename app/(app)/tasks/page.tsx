@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import NewTaskModal from '@/components/NewTaskModal'
 import {
   CheckCircle,
   Circle,
@@ -12,6 +13,7 @@ import {
 } from '@phosphor-icons/react'
 
 type TaskView = 'all' | 'open' | 'active' | 'done'
+type SortMode = 'newest' | 'updated' | 'priority' | 'project'
 
 type TaskRow = {
   id: string
@@ -37,6 +39,13 @@ const VIEWS: { id: TaskView; label: string }[] = [
   { id: 'open', label: 'Offen' },
   { id: 'active', label: 'In Arbeit' },
   { id: 'done', label: 'Erledigt' },
+]
+
+const SORT_OPTIONS: { id: SortMode; label: string }[] = [
+  { id: 'newest', label: 'Neueste zuerst' },
+  { id: 'updated', label: 'Letztes Update' },
+  { id: 'priority', label: 'Priorität' },
+  { id: 'project', label: 'Projekt' },
 ]
 
 const DONE_STATES = new Set(['done', 'completed', 'erledigt'])
@@ -93,6 +102,10 @@ export default function TasksPage() {
   const [projects, setProjects] = useState<ProjectRow[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedTaskIds, setSelectedTaskIds] = useState<string[]>([])
+  const [sortMode, setSortMode] = useState<SortMode>('newest')
+  const [filterMenuOpen, setFilterMenuOpen] = useState(false)
+  const [sortMenuOpen, setSortMenuOpen] = useState(false)
+  const [taskModalOpen, setTaskModalOpen] = useState(false)
 
   const supabase = createClient()
 
@@ -127,11 +140,23 @@ export default function TasksPage() {
   }, [projects])
 
   const visibleTasks = useMemo(() => {
-    return tasks.filter((task) => {
-      if (view === 'all') return true
-      return normalizeStatus(task.status) === view
-    })
-  }, [tasks, view])
+    const priorityRank: Record<string, number> = { critical: 0, high: 1, medium: 2, low: 3 }
+    return tasks
+      .filter((task) => {
+        if (view === 'all') return true
+        return normalizeStatus(task.status) === view
+      })
+      .sort((a, b) => {
+        if (sortMode === 'priority') return (priorityRank[a.priority || ''] ?? 9) - (priorityRank[b.priority || ''] ?? 9)
+        if (sortMode === 'project') {
+          const pa = a.project_id ? projectById.get(a.project_id)?.title || '' : ''
+          const pb = b.project_id ? projectById.get(b.project_id)?.title || '' : ''
+          return pa.localeCompare(pb)
+        }
+        const field = sortMode === 'updated' ? 'updated_at' : 'created_at'
+        return new Date((b as any)[field] || b.created_at || 0).getTime() - new Date((a as any)[field] || a.created_at || 0).getTime()
+      })
+  }, [tasks, view, sortMode, projectById])
 
   const doneCount = tasks.filter((task) => normalizeStatus(task.status) === 'done').length
   const activeCount = tasks.filter((task) => normalizeStatus(task.status) === 'active').length
@@ -180,7 +205,7 @@ export default function TasksPage() {
           align-items:center;
           justify-content:space-between;
           min-height:48px;
-          border-bottom:1px solid var(--border);
+          border-bottom:0;
           padding:0 4px 0 0;
         }
         .task-title {
@@ -240,6 +265,24 @@ export default function TasksPage() {
           gap:8px;
           flex-shrink:0;
         }
+        .task-create {
+          height:30px;
+          padding:0 9px 0 12px;
+          border:1px solid transparent;
+          border-radius:8px;
+          background:transparent;
+          color:var(--text-secondary);
+          display:flex;
+          align-items:center;
+          gap:8px;
+          font:inherit;
+          font-size:12.5px;
+          font-weight:650;
+          cursor:pointer;
+        }
+        .task-create:hover { background:var(--surface-2); color:var(--text); }
+        .task-create svg { flex-shrink:0; }
+        .task-tool-wrap { position:relative; }
         .task-tool {
           width:32px;
           height:32px;
@@ -250,7 +293,36 @@ export default function TasksPage() {
           display:flex;
           align-items:center;
           justify-content:center;
+          cursor:pointer;
         }
+        .task-tool:hover, .task-tool.on { background:var(--surface-2); color:var(--text); }
+        .task-menu {
+          position:absolute;
+          top:38px;
+          right:0;
+          width:190px;
+          z-index:20;
+          border:1px solid var(--border);
+          border-radius:12px;
+          background:var(--surface);
+          box-shadow:0 18px 44px rgba(0,0,0,.16);
+          padding:6px;
+        }
+        .task-menu button {
+          width:100%;
+          height:30px;
+          border-radius:8px;
+          display:flex;
+          align-items:center;
+          justify-content:space-between;
+          padding:0 9px;
+          color:var(--text-secondary);
+          font:inherit;
+          font-size:12px;
+          font-weight:650;
+          cursor:pointer;
+        }
+        .task-menu button:hover, .task-menu button.on { background:var(--surface-2); color:var(--text); }
         .task-table {
           width:100%;
           overflow:hidden;
@@ -268,12 +340,12 @@ export default function TasksPage() {
           color:var(--text-muted);
           font-size:12.5px;
           font-weight:650;
-          border-bottom:1px solid var(--border);
+          border-bottom:0;
         }
         .task-row {
           min-height:52px;
           padding:0 10px;
-          border-bottom:1px solid color-mix(in srgb, var(--border) 74%, transparent);
+          border-bottom:0;
           color:var(--text-secondary);
           font-size:12.5px;
         }
@@ -452,7 +524,10 @@ export default function TasksPage() {
 
       <div className="task-top">
         <h1 className="task-title">Aufgaben</h1>
-        <button className="task-plus" type="button" aria-label="Neue Aufgabe">+</button>
+        <button className="task-create" type="button" aria-label="Neue Aufgabe" onClick={() => setTaskModalOpen(true)}>
+          <span>Aufgabe erstellen</span>
+          <span style={{ fontSize: 19, lineHeight: 1 }}>+</span>
+        </button>
       </div>
 
       <div className="task-toolbar">
@@ -471,9 +546,37 @@ export default function TasksPage() {
             {openCount} offen · {activeCount} aktiv · {doneCount} erledigt
           </span>
         </div>
-        <div className="task-tools" aria-hidden="true">
-          <span className="task-tool"><FunnelSimple size={15} /></span>
-          <span className="task-tool"><SlidersHorizontal size={15} /></span>
+        <div className="task-tools">
+          <div className="task-tool-wrap">
+            <button className={`task-tool${filterMenuOpen ? ' on' : ''}`} type="button" aria-label="Aufgaben filtern" onClick={() => { setFilterMenuOpen(v => !v); setSortMenuOpen(false) }}>
+              <FunnelSimple size={15} />
+            </button>
+            {filterMenuOpen && (
+              <div className="task-menu">
+                {VIEWS.map((item) => (
+                  <button key={item.id} type="button" className={view === item.id ? 'on' : ''} onClick={() => { setView(item.id); setFilterMenuOpen(false) }}>
+                    <span>{item.label}</span>
+                    {view === item.id ? <span>✓</span> : null}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          <div className="task-tool-wrap">
+            <button className={`task-tool${sortMenuOpen ? ' on' : ''}`} type="button" aria-label="Aufgaben sortieren" onClick={() => { setSortMenuOpen(v => !v); setFilterMenuOpen(false) }}>
+              <SlidersHorizontal size={15} />
+            </button>
+            {sortMenuOpen && (
+              <div className="task-menu">
+                {SORT_OPTIONS.map((item) => (
+                  <button key={item.id} type="button" className={sortMode === item.id ? 'on' : ''} onClick={() => { setSortMode(item.id); setSortMenuOpen(false) }}>
+                    <span>{item.label}</span>
+                    {sortMode === item.id ? <span>✓</span> : null}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -543,6 +646,14 @@ export default function TasksPage() {
           )
         })}
       </div>
+
+      {taskModalOpen && (
+        <NewTaskModal
+          onClose={() => setTaskModalOpen(false)}
+          onCreated={() => { setTaskModalOpen(false); loadTasks() }}
+          source="tagro"
+        />
+      )}
 
       {selectedTaskIds.length > 0 && (
         <div className="task-selection-bar" role="toolbar" aria-label="Ausgewählte Aufgaben Aktionen">

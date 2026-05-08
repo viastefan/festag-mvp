@@ -37,6 +37,7 @@ export default function NewTaskModal({ onClose, onCreated, defaultProjectId, def
   const [tags, setTags] = useState<string[]>([])
   const [tagInput, setTagInput] = useState('')
   const [creating, setCreating] = useState(false)
+  const [entryMode, setEntryMode] = useState<'tagro' | 'manual'>(source === 'manual' ? 'manual' : 'tagro')
 
   useEffect(() => {
     supabase.from('projects').select('id,title,color').order('created_at', { ascending: false })
@@ -62,7 +63,7 @@ export default function NewTaskModal({ onClose, onCreated, defaultProjectId, def
           status,
           priority: priority === 'none' ? null : priority,
           tags: tags.length ? tags : null,
-          source: source || 'manual',
+          source: entryMode === 'tagro' ? 'tagro' : (source || 'manual'),
         })
         .select('id')
         .single()
@@ -107,6 +108,10 @@ export default function NewTaskModal({ onClose, onCreated, defaultProjectId, def
         @keyframes ntFadeIn { from{opacity:0} to{opacity:1} }
         @keyframes ntSlideUp { from{opacity:0;transform:translateY(6px) scale(.985)} to{opacity:1;transform:translateY(0) scale(1)} }
         .nt-input { background:transparent; border:none; outline:none; font-family:inherit; color:var(--text); width:100%; }
+        .nt-mode { display:flex; gap:6px; padding:12px 18px 0; }
+        .nt-mode button { height:30px; border:1px solid var(--border); border-radius:999px; padding:0 11px; color:var(--text-secondary); background:transparent; font-size:12px; font-weight:650; }
+        .nt-mode button.on { background:var(--surface-2); color:var(--text); border-color:var(--border); }
+        .nt-tagro-box { margin:10px 18px 0; padding:11px 12px; border:1px solid var(--border); border-radius:10px; background:color-mix(in srgb, var(--surface-2) 58%, transparent); color:var(--text-secondary); font-size:12.5px; line-height:1.45; }
         .nt-chip { display:inline-flex; align-items:center; gap:5px; padding:3px 8px; border-radius:5px; border:1px solid var(--border); background:transparent; color:var(--text-secondary); font-size:11.5px; font-weight:500; cursor:pointer; font-family:inherit; transition:background .1s, border-color .1s; white-space:nowrap; height:24px; }
         .nt-chip:hover { background:var(--surface-2); border-color:var(--border-strong); }
         .nt-chip select, .nt-chip input { background:transparent; border:none; outline:none; color:inherit; font-size:11.5px; font-weight:500; font-family:inherit; cursor:pointer; padding:0; }
@@ -129,18 +134,29 @@ export default function NewTaskModal({ onClose, onCreated, defaultProjectId, def
                 </div>
               )}
               <span style={{ fontSize:11, color:'var(--text-muted)' }}>›</span>
-              <span style={{ fontSize:11.5, color:'var(--text-muted)' }}>New task</span>
+              <span style={{ fontSize:11.5, color:'var(--text-muted)' }}>Aufgabe erstellen</span>
             </div>
             <button onClick={onClose} style={{ background:'none', border:'none', cursor:'pointer', color:'var(--text-muted)', padding:2, borderRadius:4, display:'flex' }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
             </button>
           </div>
 
+          <div className="nt-mode" role="tablist" aria-label="Task-Erstellung">
+            <button type="button" className={entryMode === 'tagro' ? 'on' : ''} onClick={() => setEntryMode('tagro')}>Tagro generieren</button>
+            <button type="button" className={entryMode === 'manual' ? 'on' : ''} onClick={() => setEntryMode('manual')}>Manuell</button>
+          </div>
+
+          {entryMode === 'tagro' && (
+            <div className="nt-tagro-box">
+              Tagro ist Standard: Beschreibe kurz das Ziel oder den Blocker. Daraus werden Titel, Priorität und nächste Schritte fuer den Developer ableitbar.
+            </div>
+          )}
+
           {/* Title + description */}
           <div style={{ padding:'14px 18px 4px' }}>
             <input
               className="nt-input"
-              placeholder="Task-Titel"
+              placeholder={entryMode === 'tagro' ? 'Was soll Tagro als Aufgabe vorbereiten?' : 'Task-Titel'}
               value={title}
               onChange={e => setTitle(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleCreate() } }}
@@ -149,7 +165,7 @@ export default function NewTaskModal({ onClose, onCreated, defaultProjectId, def
             />
             <textarea
               className="nt-input"
-              placeholder="Beschreibung hinzufügen…"
+              placeholder={entryMode === 'tagro' ? 'Beschreibe Kontext, Ziel, Akzeptanzkriterien oder was der Developer wissen muss…' : 'Beschreibung hinzufügen…'}
               value={description}
               onChange={e => setDescription(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); handleCreate() } }}
@@ -202,7 +218,7 @@ export default function NewTaskModal({ onClose, onCreated, defaultProjectId, def
           {/* Footer */}
           <div style={{ borderTop:'1px solid var(--border)', padding:'8px 12px', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
             <span style={{ fontSize:11, color:'var(--text-muted)' }}>
-              {source === 'status_report' ? 'Aus Statusbericht' : 'Manuell erstellt'}
+              {entryMode === 'tagro' ? 'Tagro Auto-Generate' : (source === 'status_report' ? 'Aus Statusbericht' : 'Manuell erstellt')}
             </span>
             <div style={{ display:'flex', gap:6 }}>
               <button onClick={onClose}
@@ -220,7 +236,7 @@ export default function NewTaskModal({ onClose, onCreated, defaultProjectId, def
                   fontFamily:'inherit', opacity: creating ? .7 : 1,
                   display:'flex', alignItems:'center', gap:6,
                 }}>
-                {creating ? 'Erstelle…' : 'Task erstellen'}
+                {creating ? 'Erstelle…' : (entryMode === 'tagro' ? 'Mit Tagro erstellen' : 'Task erstellen')}
                 {!creating && <span style={{ fontSize:10, opacity:.6 }}>↵</span>}
               </button>
             </div>

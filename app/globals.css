@@ -137,6 +137,69 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
   --r:12px; --r-xs:8px; --r-sm:10px; --r-md:12px; --r-lg:16px; --r-xl:22px;
 }
+
+[data-theme="pure-light"] {
+  --bg:#FFFFFF; --surface:#FFFFFF; --card:#F7F7F7;
+  --border:rgba(0,0,0,0.055); --border-strong:rgba(0,0,0,0.14);
+  --text:#111111; --text-secondary:#55585D; --text-muted:#A0A3A8;
+  --btn-prim:#111111; --btn-prim-text:#FFFFFF;
+  --accent:#111111; --accent-text:#FFFFFF;
+  --inp:#FFFFFF; --inp-border:rgba(0,0,0,0.10); --inp-focus:#FFFFFF; --inp-focus-border:#111111;
+  --glow:rgba(0,0,0,0.04);
+  --sidebar-bg:rgba(255,255,255,0.82); --sidebar-border:rgba(0,0,0,0.06);
+  --nav-on:#EFEFEF; --nav-on-text:#111111; --nav-off-text:#63666B;
+  --surface-2:#F1F1F1; --green:#22C55E; --green-bg:rgba(34,197,94,0.08);
+  --green-border:rgba(34,197,94,0.22); --green-dark:#16A34A;
+  --amber:#C18409; --amber-bg:rgba(193,132,9,0.08); --amber-dark:#946100;
+  --red:#D14343; --red-bg:rgba(209,67,67,0.07);
+  --shadow-xs:0 1px 2px rgba(0,0,0,.04); --shadow-sm:0 2px 6px rgba(0,0,0,.05);
+  --shadow:0 4px 16px rgba(0,0,0,.06); --shadow-lg:0 12px 32px rgba(0,0,0,.08);
+  --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
+  --r:12px; --r-xs:8px; --r-sm:10px; --r-md:12px; --r-lg:16px; --r-xl:22px;
+}
+
+[data-theme="magic-blue"] {
+  --bg:#0C1020; --surface:#11172A; --card:#151D34;
+  --border:rgba(170,185,255,0.10); --border-strong:rgba(190,202,255,0.22);
+  --text:#EEF2FF; --text-secondary:#AAB5D8; --text-muted:#687394;
+  --btn-prim:#EAF0FF; --btn-prim-text:#0C1020;
+  --accent:#6574FF; --accent-text:#FFFFFF;
+  --inp:rgba(255,255,255,0.045); --inp-border:rgba(255,255,255,0.09); --inp-focus:rgba(255,255,255,0.07); --inp-focus-border:rgba(142,157,255,0.50);
+  --glow:rgba(101,116,255,0.18);
+  --sidebar-bg:rgba(13,18,34,0.78); --sidebar-border:rgba(170,185,255,0.12);
+  --nav-on:rgba(101,116,255,0.18); --nav-on-text:#F5F7FF; --nav-off-text:#7380A4;
+  --surface-2:#1C2542; --green:#52D38C; --green-bg:rgba(82,211,140,0.10);
+  --green-border:rgba(82,211,140,0.24); --green-dark:#42C47C;
+  --amber:#D5A344; --amber-bg:rgba(213,163,68,0.10); --amber-dark:#C39134;
+  --red:#EF6B7A; --red-bg:rgba(239,107,122,0.10);
+  --shadow-xs:0 1px 3px rgba(0,0,0,.65); --shadow-sm:0 2px 8px rgba(0,0,0,.70);
+  --shadow:0 4px 20px rgba(0,0,0,.78); --shadow-lg:0 16px 48px rgba(0,0,0,.85);
+  --logo-filter:brightness(0) invert(1);
+  --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
+  --r:12px; --r-xs:8px; --r-sm:10px; --r-md:12px; --r-lg:16px; --r-xl:22px;
+}
+
+[data-theme="classic-dark"],
+[data-theme="custom"] {
+  --bg:#111111; --surface:#181818; --card:#1F1F1F;
+  --border:rgba(255,255,255,0.08); --border-strong:rgba(255,255,255,0.16);
+  --text:#F0F0F0; --text-secondary:#A0A0A0; --text-muted:#636363;
+  --btn-prim:#F0F0F0; --btn-prim-text:#111111;
+  --accent:#7C86E8; --accent-text:#FFFFFF;
+  --inp:rgba(255,255,255,0.05); --inp-border:rgba(255,255,255,0.10); --inp-focus:rgba(255,255,255,0.07); --inp-focus-border:rgba(255,255,255,0.22);
+  --glow:rgba(124,134,232,0.07);
+  --sidebar-bg:rgba(18,18,18,0.78); --sidebar-border:rgba(255,255,255,0.09);
+  --nav-on:rgba(255,255,255,0.10); --nav-on-text:#F0F0F0; --nav-off-text:#707070;
+  --surface-2:#262626; --green:#32D583; --green-bg:rgba(50,213,131,0.09);
+  --green-border:rgba(50,213,131,0.20); --green-dark:#24B86D;
+  --amber:#D6A038; --amber-bg:rgba(214,160,56,0.09); --amber-dark:#B8892E;
+  --red:#E25D5D; --red-bg:rgba(226,93,93,0.09);
+  --shadow-xs:0 1px 3px rgba(0,0,0,.70); --shadow-sm:0 2px 8px rgba(0,0,0,.78);
+  --shadow:0 4px 20px rgba(0,0,0,.86); --shadow-lg:0 12px 40px rgba(0,0,0,.92);
+  --logo-filter:brightness(0) invert(1);
+  --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
+  --r:12px; --r-xs:8px; --r-sm:10px; --r-md:12px; --r-lg:16px; --r-xl:22px;
+}
 [data-theme="read"] body {
   background:
     radial-gradient(1200px 600px at 10% -10%, rgba(149,127,78,0.08), transparent 55%),

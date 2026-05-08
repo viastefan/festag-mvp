@@ -198,11 +198,17 @@ export default function SidebarProfileFooter({
             </p>
 
             {([
-              { mode: 'dark' as ThemeMode, label: 'Dunkel' },
-              { mode: 'light' as ThemeMode, label: 'Hell' },
-              { mode: 'read' as ThemeMode, label: 'Lesemodus' },
-            ] as const).map(({ mode, label }) => {
+              { mode: 'system' as ThemeMode, label: 'System preference', swatch: 'system' },
+              { mode: 'light' as ThemeMode, label: 'Light', swatch: 'light' },
+              { mode: 'pure-light' as ThemeMode, label: 'Pure Light', swatch: 'pure' },
+              { mode: 'read' as ThemeMode, label: 'Read Mode', swatch: 'read' },
+              { mode: 'dark' as ThemeMode, label: 'Dark', swatch: 'dark' },
+              { mode: 'magic-blue' as ThemeMode, label: 'Magic Blue', swatch: 'blue' },
+              { mode: 'classic-dark' as ThemeMode, label: 'Classic Dark', swatch: 'dark' },
+              { mode: 'custom' as ThemeMode, label: 'Custom', swatch: 'custom' },
+            ] as const).map(({ mode, label, swatch }) => {
               const active = themeMode === mode
+              const darkSwatch = swatch === 'dark' || swatch === 'blue' || swatch === 'custom' || swatch === 'system'
               return (
                 <button
                   key={mode}
@@ -210,11 +216,29 @@ export default function SidebarProfileFooter({
                   onClick={() => {
                     setThemeMode(mode)
                     setTheme(mode)
-                    setDesignMenu(false)
+                    if (mode !== 'custom') setDesignMenu(false)
                   }}
-                  style={{ width: '100%' }}
+                  style={{ width: '100%', height: 32, gap: 10 }}
                 >
-                  <span style={{ flex: 1, color: active ? 'var(--text)' : 'var(--text-secondary)', fontWeight: active ? 600 : 500 }}>
+                  <span style={{
+                    width: 34,
+                    height: 22,
+                    borderRadius: 7,
+                    background: darkSwatch ? '#11131a' : '#fff',
+                    border: '1px solid var(--border)',
+                    color: darkSwatch ? '#f5f5f5' : '#262626',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: 12,
+                    fontWeight: 700,
+                    flexShrink: 0,
+                    boxShadow: swatch === 'blue' ? 'inset 0 0 0 2px rgba(94,117,255,.35)' : 'none',
+                  }}>
+                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: swatch === 'read' ? '#b08b45' : swatch === 'blue' ? '#6574ff' : '#7c86e8', marginRight: 4 }} />
+                    Aa
+                  </span>
+                  <span style={{ flex: 1, color: active ? 'var(--text)' : 'var(--text-secondary)', fontWeight: active ? 650 : 500 }}>
                     {label}
                   </span>
                   {active && (

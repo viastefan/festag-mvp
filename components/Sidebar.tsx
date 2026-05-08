@@ -44,7 +44,7 @@ type NavItem = { href: string; icon: string; label: string; badge?: number }
 
 const CLIENT_TOP: NavItem[] = [
   { href:'/dashboard', icon:'home', label:'Dashboard' },
-  { href:'/relations/messages', icon:'inbox', label:'Inbox' },
+  { href:'/messages', icon:'inbox', label:'Inbox' },
 ]
 const CLIENT_CORE: NavItem[] = [
   { href:'/tasks', icon:'task', label:'Aufgaben' },
@@ -127,6 +127,7 @@ export default function Sidebar() {
   const [projects, setProjects] = useState<{id:string;title:string;status:string;color:string|null}[]>([])
   const [more, setMore] = useState(false)
   const [workspaceExp, setWorkspaceExp] = useState(true)
+  const [projectListExp, setProjectListExp] = useState(true)
   const [teamsExp, setTeamsExp] = useState(false)
   const [tagroExp, setTagroExp] = useState(true)
   const [toolsExp, setToolsExp] = useState(false)
@@ -154,10 +155,12 @@ export default function Sidebar() {
     try {
       const storedTeams = window.localStorage.getItem('sidebar-teams-expanded')
       const storedWorkspace = window.localStorage.getItem('sidebar-workspace-expanded')
+      const storedProjects = window.localStorage.getItem('sidebar-project-list-expanded')
       const storedTagro = window.localStorage.getItem('sidebar-tagro-expanded')
       const storedTools = window.localStorage.getItem('sidebar-tools-expanded')
       if (storedTeams !== null) setTeamsExp(storedTeams === 'true')
       if (storedWorkspace !== null) setWorkspaceExp(storedWorkspace === 'true')
+      if (storedProjects !== null) setProjectListExp(storedProjects === 'true')
       if (storedTagro !== null) setTagroExp(storedTagro === 'true')
       if (storedTools !== null) setToolsExp(storedTools === 'true')
     } catch {}
@@ -166,6 +169,10 @@ export default function Sidebar() {
   useEffect(() => {
     try { window.localStorage.setItem('sidebar-workspace-expanded', String(workspaceExp)) } catch {}
   }, [workspaceExp])
+
+  useEffect(() => {
+    try { window.localStorage.setItem('sidebar-project-list-expanded', String(projectListExp)) } catch {}
+  }, [projectListExp])
 
   useEffect(() => {
     try { window.localStorage.setItem('sidebar-teams-expanded', String(teamsExp)) } catch {}
@@ -396,8 +403,9 @@ export default function Sidebar() {
           cursor:pointer; text-decoration:none; color:inherit;
           transition:background .12s, color .12s;
           white-space:nowrap; overflow:hidden;
-          width:auto;
-          max-width:100%;
+          width:calc(100% - 10px);
+          max-width:calc(100% - 10px);
+          min-width:0;
           box-sizing:border-box;
           margin:0 5px;
         }
@@ -441,19 +449,48 @@ export default function Sidebar() {
         }
 
         /* ── Project row ── */
+        .sb-subnav {
+          width:100%;
+          max-width:100%;
+          min-width:0;
+          overflow:hidden;
+          padding-top:2px;
+        }
         .proj-row {
-          display:flex; align-items:center; gap:7px;
-          min-height: 23px;
-          padding:0 var(--sb-x); border-radius:8px;
+          display:grid;
+          grid-template-columns:16px minmax(0, 1fr);
+          align-items:center;
+          gap:7px;
+          min-height:25px;
+          padding:0 9px 0 13px;
+          border-radius:8px;
           font-size:12.5px; font-weight:500;
           cursor:pointer; text-decoration:none;
           color:var(--text-muted);
           transition:background .08s, color .08s;
           overflow:hidden;
-          width:auto;
-          max-width:100%;
+          width:calc(100% - 10px);
+          max-width:calc(100% - 10px);
+          min-width:0;
           box-sizing:border-box;
           margin:0 5px;
+        }
+        .proj-row .proj-label {
+          min-width:0;
+          overflow:hidden;
+          text-overflow:ellipsis;
+          white-space:nowrap;
+        }
+        .proj-dot-button {
+          width:11px;
+          height:11px;
+          border-radius:50%;
+          background:transparent;
+          flex-shrink:0;
+          cursor:pointer;
+          padding:0;
+          outline:none;
+          box-sizing:border-box;
         }
         .proj-row:hover { background:rgba(0,0,0,0.04); color:var(--text); }
         [data-theme="dark"] .proj-row:hover { background:rgba(255,255,255,0.05); }
@@ -560,53 +597,56 @@ export default function Sidebar() {
                     href="/projects"
                     icon="project"
                     label="Projekte"
-                    expanded={true}
-                    onToggle={() => {}}
+                    expanded={projectListExp}
+                    onToggle={() => setProjectListExp(v => !v)}
                     activeOverride={pathname.startsWith('/project/') || pathname.startsWith('/projects')}
                   >
-                    {projects.map(p => {
-                      const on = pathname === `/project/${p.id}`
-                      const dot = p.color || '#64748b'
-                      const picking = colorPickId === p.id
-                      return (
-                        <div key={p.id} style={{ position:'relative' }}>
-                          <Link href={`/project/${p.id}`} className={`proj-row ${on?'active':''}`} style={{ paddingLeft:6 }}>
-                            <button
-                              onClick={e => { e.preventDefault(); e.stopPropagation(); setColorPickId(picking ? null : p.id) }}
-                              title="Farbe ändern"
-                              style={{ width:10, height:10, borderRadius:'50%', background:'transparent', flexShrink:0, border:`2px solid ${dot}`, cursor:'pointer', padding:0, outline:'none', boxSizing:'border-box' }}
-                            />
-                            <span style={{ flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{p.title}</span>
-                          </Link>
-                          {picking && (
-                            <>
-                              <div style={{ position:'fixed', inset:0, zIndex:200 }} onClick={() => setColorPickId(null)} />
-                              <div style={{ position:'absolute', left:8, top:'calc(100% + 4px)', zIndex:201, background:'var(--card)', border:'1px solid var(--border)', borderRadius:10, padding:8, display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:5, boxShadow:'0 8px 24px rgba(0,0,0,.2)' }}>
-                                {PROJ_COLORS.map(c => (
-                                  <button key={c} onClick={() => setProjectColor(p.id, c)}
-                                    style={{ width:18, height:18, borderRadius:5, background:c, border: dot===c?'2px solid var(--text)':'2px solid transparent', cursor:'pointer', padding:0 }}
-                                  />
-                                ))}
-                              </div>
-                            </>
-                          )}
-                        </div>
-                      )
-                    })}
+                    <div className="sb-subnav">
+                      {projects.map(p => {
+                        const on = pathname === `/project/${p.id}`
+                        const dot = p.color || '#64748b'
+                        const picking = colorPickId === p.id
+                        return (
+                          <div key={p.id} style={{ position:'relative', minWidth:0 }}>
+                            <Link href={`/project/${p.id}`} className={`proj-row ${on?'active':''}`}>
+                              <button
+                                className="proj-dot-button"
+                                onClick={e => { e.preventDefault(); e.stopPropagation(); setColorPickId(picking ? null : p.id) }}
+                                title="Farbe ändern"
+                                style={{ border:`2px solid ${dot}` }}
+                              />
+                              <span className="proj-label">{p.title}</span>
+                            </Link>
+                            {picking && (
+                              <>
+                                <div style={{ position:'fixed', inset:0, zIndex:200 }} onClick={() => setColorPickId(null)} />
+                                <div style={{ position:'absolute', left:22, top:'calc(100% + 4px)', zIndex:201, width:142, background:'var(--card)', border:'1px solid var(--border)', borderRadius:10, padding:8, display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:6, boxShadow:'0 8px 24px rgba(0,0,0,.2)' }}>
+                                  {PROJ_COLORS.map(c => (
+                                    <button key={c} onClick={() => setProjectColor(p.id, c)}
+                                      style={{ width:18, height:18, borderRadius:5, background:c, border: dot===c?'2px solid var(--text)':'2px solid transparent', cursor:'pointer', padding:0 }}
+                                    />
+                                  ))}
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        )
+                      })}
 
-                    <Link href="/onboarding" className="proj-row proj-new" style={{ paddingLeft:6 }}>
-                      <span style={{
-                        width:10, height:10, borderRadius:3,
-                        border:'1px dashed var(--text-muted)',
-                        flexShrink:0, opacity:.6,
-                        display:'flex', alignItems:'center', justifyContent:'center',
-                      }}>
-                        <span style={{ fontSize:9, color:'var(--text-muted)', lineHeight:1, fontWeight:600 }}>+</span>
-                      </span>
-                      <span style={{ fontStyle:'normal', fontSize:12, color:'var(--text-muted)' }}>
-                        {projects.length === 0 ? 'Erstes Projekt anlegen…' : 'Neues Projekt…'}
-                      </span>
-                    </Link>
+                      <Link href="/onboarding" className="proj-row proj-new">
+                        <span style={{
+                          width:11, height:11, borderRadius:3,
+                          border:'1px dashed var(--text-muted)',
+                          opacity:.6,
+                          display:'flex', alignItems:'center', justifyContent:'center',
+                        }}>
+                          <span style={{ fontSize:9, color:'var(--text-muted)', lineHeight:1, fontWeight:600 }}>+</span>
+                        </span>
+                        <span className="proj-label" style={{ fontStyle:'normal', fontSize:12, color:'var(--text-muted)' }}>
+                          {projects.length === 0 ? 'Erstes Projekt anlegen…' : 'Neues Projekt…'}
+                        </span>
+                      </Link>
+                    </div>
                   </ExpandableNavSection>
                 )}
                 <NavItems items={coreNav} />
