@@ -1435,7 +1435,7 @@ export default function TeamsPage({ searchParams }: { searchParams?: { view?: st
       {tab === 'seats' && (
         <TeamsTabPlaceholder
           title="Seats"
-          description="Aktive Mitarbeit braucht Seats. Lesen und eingeschraenkter Zugriff bleiben sauber davon getrennt."
+          description="Aktive Mitarbeit braucht Seats. Lesen und eingeschränkter Zugriff bleiben sauber davon getrennt."
           rows={['Aktive Seats', 'Seat erforderlich', 'Free Viewer', 'Upgrade Hinweis']}
         />
       )}
@@ -1452,7 +1452,7 @@ export default function TeamsPage({ searchParams }: { searchParams?: { view?: st
         <TeamsTabPlaceholder
           title="Team-Kommunikation"
           description="Operative Abstimmung bleibt im Teams-Kontext. Die Sidebar bleibt trotzdem ruhig."
-          rows={['Team Update', 'Technische Rueckfrage', 'Blocker Meldung', 'Tagro Zusammenfassung']}
+          rows={['Team Update', 'Technische Rückfrage', 'Blocker Meldung', 'Tagro Zusammenfassung']}
         />
       )}
     </div>

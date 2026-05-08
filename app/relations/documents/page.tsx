@@ -127,7 +127,7 @@ export default function DocumentsOverviewPage() {
       >
         <h1 style={{ margin: '0 0 6px' }}>Dokumente</h1>
         <p style={{ fontSize: 14, color: 'var(--text-secondary)', margin: '0 0 28px' }}>
-          Alle Projektdokumente im Ueberblick.
+          Alle Projektdokumente im Überblick.
         </p>
 
         {/* Category filter */}

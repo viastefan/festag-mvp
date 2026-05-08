@@ -12,6 +12,7 @@ import ProjectCompletionCelebration from '@/components/ProjectCompletionCelebrat
 import DevTimer from '@/components/DevTimer'
 import DeleteProjectModal from '@/components/DeleteProjectModal'
 import TaskDetailModal from '@/components/TaskDetailModal'
+import AudioBriefingButton from '@/components/AudioBriefingButton'
 
 type Project = { id: string; title: string; description: string|null; status: string }
 type Task = { id: string; title: string; status: string; priority?: string }
@@ -367,6 +368,17 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
             <h1 style={{ margin:0, fontSize:22, fontWeight:600, letterSpacing:'-.4px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{project.title}</h1>
           </div>
           <div style={{ display:'flex', alignItems:'center', gap:8, flexShrink:0 }}>
+            <AudioBriefingButton
+              type="project_briefing"
+              label="Projektbriefing"
+              projectTitle={project.title}
+              report={aiUpdates[0]?.content || `${project.title}: ${done} von ${tasks.length} Tasks erledigt. Aktuelle Phase: ${PHASE_LABEL[project.status] ?? project.status}.`}
+              projectStatus={PHASE_LABEL[project.status] ?? project.status}
+              progress={pct}
+              blockerCount={tasks.filter((task) => ['blocked', 'waiting'].includes(task.status)).length}
+              decisionCount={tasks.filter((task) => task.status === 'waiting').length}
+              nextSteps={[todoTasks[0]?.title ?? 'nächste Projektaufgaben prüfen']}
+            />
             {/* Phase stepper */}
             <div style={{ display:'flex', gap:3, alignItems:'center', padding:'4px 0' }}
               title={canEdit ? 'Phase ändern' : 'Phase wird vom Entwicklerteam gesteuert'}>

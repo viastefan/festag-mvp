@@ -6,6 +6,7 @@ import Link from 'next/link'
 import LoadingScreen from '@/components/LoadingScreen'
 import NewProjectModal from '@/components/NewProjectModal'
 import NewTaskModal from '@/components/NewTaskModal'
+import AudioBriefingButton from '@/components/AudioBriefingButton'
 
 type Project  = { id: string; title: string; description: string | null; status: string; created_at: string; color: string | null }
 type Task     = { id: string; title: string; status: string; priority?: string; project_id: string; updated_at?: string }
@@ -152,15 +153,28 @@ export default function DashboardPage() {
             {projects.length} Projekt{projects.length!==1?'e':''} · {allTasks.length} Tasks
           </p>
         </div>
-        <button
-          onClick={() => setShowNewProject(true)}
-          style={{ display:'flex', alignItems:'center', gap:6, padding:'7px 14px', background:'var(--surface)', border:'1px solid var(--border)', borderRadius:8, fontSize:12.5, fontWeight:600, color:'var(--text)', cursor:'pointer', fontFamily:'inherit', flexShrink:0, transition:'border-color .12s, background .12s' }}
-          onMouseEnter={e => (e.currentTarget as HTMLElement).style.borderColor='var(--border-strong)'}
-          onMouseLeave={e => (e.currentTarget as HTMLElement).style.borderColor='var(--border)'}
-        >
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
-          Neues Projekt
-        </button>
+        <div style={{ display:'flex', alignItems:'center', gap:8, flexShrink:0 }}>
+          <AudioBriefingButton
+            type="dashboard_briefing"
+            label="Briefing anhören"
+            projectTitle={main?.title}
+            report={report || `${projects.length} Projekte, ${allTasks.length} Tasks. Aktueller Fokus: ${main?.title ?? 'kein aktives Projekt'}.`}
+            projectStatus={main ? PHASE[main.status]?.label : undefined}
+            progress={completePct}
+            blockerCount={allTasks.filter((task) => task.status === 'blocked' || task.status === 'waiting').length}
+            decisionCount={allTasks.filter((task) => task.status === 'waiting').length}
+            nextSteps={[main ? `${main.title} prüfen` : 'erstes Projekt erstellen']}
+          />
+          <button
+            onClick={() => setShowNewProject(true)}
+            style={{ display:'flex', alignItems:'center', gap:6, padding:'7px 14px', background:'var(--surface)', border:'1px solid var(--border)', borderRadius:8, fontSize:12.5, fontWeight:600, color:'var(--text)', cursor:'pointer', fontFamily:'inherit', flexShrink:0, transition:'border-color .12s, background .12s' }}
+            onMouseEnter={e => (e.currentTarget as HTMLElement).style.borderColor='var(--border-strong)'}
+            onMouseLeave={e => (e.currentTarget as HTMLElement).style.borderColor='var(--border)'}
+          >
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
+            Neues Projekt
+          </button>
+        </div>
       </div>
 
       {/* ── Empty ── */}

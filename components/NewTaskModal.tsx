@@ -158,7 +158,7 @@ export default function NewTaskModal({ onClose, onCreated, defaultProjectId, def
             <div className="nt-tagro-box">
               {isSuggestion
                 ? 'Tagro ist Standard: Dein Vorschlag wird erst in Projektkontext übersetzt und zur Prüfung vorbereitet. Er geht nicht direkt ungeprüft in den Dev-Workflow.'
-                : 'Tagro ist Standard: Beschreibe kurz das Ziel oder den Blocker. Daraus werden Titel, Priorität und nächste Schritte fuer den Developer ableitbar.'}
+                : 'Tagro ist Standard: Beschreibe kurz das Ziel oder den Blocker. Daraus werden Titel, Priorität und nächste Schritte für den Developer ableitbar.'}
             </div>
           )}
 

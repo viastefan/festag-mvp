@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import ChatMarkdown from '@/components/ChatMarkdown'
 import AppPageHeader from '@/components/AppPageHeader'
+import AudioBriefingButton from '@/components/AudioBriefingButton'
 import { createClient } from '@/lib/supabase/client'
 import { projectColor } from '@/components/Sidebar'
 import {
@@ -48,6 +49,12 @@ type ProjectStatusRow = {
   blockerCount: number
   decisionCount: number
   taskCount: number
+}
+
+type ReportSection = {
+  id: string
+  title: string
+  body: string
 }
 
 const PERIODS: { id: Period; label: string }[] = [
@@ -141,6 +148,25 @@ function deriveReportSections(content: string) {
   }
 }
 
+function parseReportBriefing(content: string): ReportSection[] {
+  const source = content?.trim() || FALLBACK_REPORT
+  const matches = [...source.matchAll(/^##\s+(.+)$/gm)]
+  if (!matches.length) {
+    return [{ id: 'zusammenfassung', title: 'Zusammenfassung', body: source }]
+  }
+
+  return matches.map((match, index) => {
+    const start = (match.index ?? 0) + match[0].length
+    const end = matches[index + 1]?.index ?? source.length
+    const title = match[1].trim()
+    return {
+      id: title.toLowerCase().replace(/[^a-z0-9äöüß]+/gi, '-').replace(/(^-|-$)/g, '') || `section-${index}`,
+      title,
+      body: source.slice(start, end).trim() || 'Noch keine Details vorhanden.',
+    }
+  })
+}
+
 function fallbackSuggestions(projectName: string): TaskSuggestion[] {
   return [
     {
@@ -175,6 +201,8 @@ export default function ReportsPage() {
   const [extracting, setExtracting] = useState(false)
   const [taskSuggestions, setTaskSuggestions] = useState<TaskSuggestion[]>([])
   const [savingSuggestionId, setSavingSuggestionId] = useState<string | null>(null)
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({ zusammenfassung: true })
+  const [activeSignal, setActiveSignal] = useState<'tasks' | 'decisions' | 'risks' | 'actions'>('tasks')
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data }) => {
@@ -242,7 +270,18 @@ export default function ReportsPage() {
   }, [currentReports, selectedReportId])
 
   const currentReport = currentReports.find((report) => report.id === selectedReportId) ?? currentReports[0] ?? null
-  const currentSections = deriveReportSections(currentReport?.content ?? FALLBACK_REPORT)
+  const reportContent = currentReport?.content ?? FALLBACK_REPORT
+  const currentSections = deriveReportSections(reportContent)
+  const briefingSections = useMemo(() => parseReportBriefing(reportContent), [reportContent])
+  const currentStatusRow = useMemo(() => {
+    if (!currentProject) return null
+    return projectStatusRows.find((row) => row.project.id === currentProject.id) ?? null
+  }, [currentProject, projectStatusRows])
+
+  useEffect(() => {
+    const summary = briefingSections[0]?.id ?? 'zusammenfassung'
+    setOpenSections({ [summary]: true })
+  }, [currentReport?.id, briefingSections])
 
   useEffect(() => {
     if (currentProject) setTaskSuggestions(fallbackSuggestions(currentProject.title))
@@ -394,31 +433,42 @@ export default function ReportsPage() {
         .signal-count { color:var(--text); font-size:12.5px; font-weight:740; }
         .open-report { justify-self:start; height:28px; border:0; border-radius:999px; background:transparent; color:var(--text-secondary); font:inherit; font-size:11.8px; font-weight:740; padding:0; display:inline-flex; align-items:center; gap:6px; cursor:pointer; white-space:nowrap; opacity:.72; }
         .project-line:hover .open-report { opacity:1; color:var(--text); }
-        .reports-operating-area { display:grid; grid-template-columns:minmax(0, 1fr) 290px; gap:58px; align-items:start; }
+        .reports-operating-area { display:grid; grid-template-columns:minmax(0, 1fr) 270px; gap:64px; align-items:start; }
         .live-report-shell { min-width:0; max-width:890px; }
         .report-context { display:flex; align-items:center; justify-content:space-between; gap:18px; margin-bottom:30px; }
         .report-meta-title { display:flex; align-items:center; gap:9px; min-width:0; color:var(--text-muted); font-size:12px; font-weight:690; }
         .report-meta-title span { width:8px; height:8px; border-radius:50%; flex:0 0 auto; }
         .report-meta-title strong { color:var(--text); font-size:14px; font-weight:730; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
         .report-actions { display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
-        .report-document { font-size:15px; line-height:1.82; color:var(--text-secondary); max-width:780px; }
-        .report-document h1, .report-document h2, .report-document h3 { color:var(--text); letter-spacing:-.025em; }
-        .report-document h2 { font-size:20px; margin:34px 0 10px; line-height:1.18; }
-        .report-document h2:first-child { margin-top:0; }
-        .report-document p { margin:0 0 15px; }
-        .report-document ul, .report-document ol { padding-left:20px; margin:0 0 18px; }
-        .report-document li { margin:4px 0; }
+        .report-document { max-width:780px; }
+        .briefing-hero { margin:0 0 26px; max-width:720px; color:var(--text-secondary); font-size:14px; line-height:1.62; }
+        .briefing-hero strong { display:block; margin-bottom:7px; color:var(--text); font-size:22px; line-height:1.18; letter-spacing:-.04em; }
+        .briefing-section { padding:17px 0; }
+        .briefing-section + .briefing-section { border-top:1px solid color-mix(in srgb, var(--border) 24%, transparent); }
+        .briefing-toggle { width:100%; display:flex; align-items:center; justify-content:space-between; gap:18px; border:0; background:transparent; color:var(--text); font:inherit; padding:0; cursor:pointer; text-align:left; }
+        .briefing-toggle span:first-child { display:flex; flex-direction:column; gap:3px; min-width:0; }
+        .briefing-toggle strong { color:var(--text); font-size:14px; font-weight:760; letter-spacing:-.018em; }
+        .briefing-toggle small { color:var(--text-muted); font-size:11.2px; font-weight:630; line-height:1.35; }
+        .briefing-toggle em { color:var(--text-muted); font-size:11px; font-style:normal; font-weight:720; opacity:.72; }
+        .briefing-body { color:var(--text-secondary); font-size:14px; line-height:1.7; max-width:720px; padding-top:12px; }
+        .briefing-body p { margin:0 0 12px; }
+        .briefing-body ul, .briefing-body ol { padding-left:18px; margin:0 0 12px; }
+        .briefing-body li { margin:3px 0; }
         .report-history { display:flex; flex-wrap:wrap; gap:7px; margin-top:38px; padding-top:18px; border-top:1px solid color-mix(in srgb, var(--border) 42%, transparent); }
         .history-chip { height:28px; border-radius:999px; border:1px solid color-mix(in srgb, var(--border) 64%, transparent); background:transparent; color:var(--text-muted); font:inherit; font-size:11.5px; font-weight:700; padding:0 10px; cursor:pointer; }
         .history-chip.on, .history-chip:hover { color:var(--text); background:color-mix(in srgb, var(--surface-2) 54%, transparent); }
         .signals-rail { position:sticky; top:26px; align-self:start; color:var(--text-secondary); }
         .signals-title { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:16px; }
         .signals-title h2 { margin:0; color:var(--text); font-size:13px; font-weight:760; letter-spacing:-.01em; }
-        .signal-block { padding:18px 0; border-top:1px solid color-mix(in srgb, var(--border) 48%, transparent); }
+        .signals-metrics { display:grid; grid-template-columns:1fr; gap:7px; margin-bottom:18px; }
+        .signal-metric { height:34px; border:0; border-radius:10px; background:transparent; color:var(--text-secondary); font:inherit; font-size:12px; font-weight:710; display:flex; align-items:center; justify-content:space-between; padding:0 2px; cursor:pointer; }
+        .signal-metric:hover, .signal-metric.on { color:var(--text); background:color-mix(in srgb, var(--surface-2) 44%, transparent); padding:0 10px; }
+        .signal-metric strong { color:inherit; font-size:15px; }
+        .signal-block { padding:16px 0; border-top:1px solid color-mix(in srgb, var(--border) 26%, transparent); }
         .signal-label { display:flex; align-items:center; gap:7px; color:var(--text-muted); font-size:10.5px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; margin-bottom:12px; }
         .signal-row { display:flex; gap:9px; align-items:flex-start; color:var(--text-secondary); font-size:12.5px; line-height:1.52; padding:3px 0; }
-        .suggestion-row { padding:0 0 16px; }
-        .suggestion-row + .suggestion-row { padding-top:16px; border-top:1px solid color-mix(in srgb, var(--border) 36%, transparent); }
+        .suggestion-row { padding:0 0 13px; }
+        .suggestion-row + .suggestion-row { padding-top:13px; border-top:1px solid color-mix(in srgb, var(--border) 20%, transparent); }
         .suggestion-top { display:flex; justify-content:space-between; gap:10px; align-items:flex-start; }
         .suggestion-title { margin:0; font-size:13px; line-height:1.28; color:var(--text); font-weight:750; letter-spacing:-.012em; }
         .suggestion-desc { margin:6px 0 0; color:var(--text-secondary); font-size:12.2px; line-height:1.55; }
@@ -517,6 +567,17 @@ export default function ReportsPage() {
               <button className="reports-inline-action" type="button" onClick={generateReport} disabled={!currentProject || generating}>
                 <MagicWand size={14} /> Neu generieren
               </button>
+              <AudioBriefingButton
+                type="status_report_briefing"
+                label="Status anhören"
+                projectTitle={currentProject?.title}
+                report={reportContent}
+                projectStatus={currentStatusRow?.phase}
+                progress={currentStatusRow?.progress}
+                blockerCount={currentStatusRow?.blockerCount}
+                decisionCount={currentStatusRow?.decisionCount}
+                nextSteps={['Task-Vorschläge prüfen', 'offene Entscheidungen klären']}
+              />
               <button className="reports-inline-action" type="button" onClick={() => currentReport && exportReport(currentReport)} disabled={!currentReport}>
                 <DownloadSimple size={14} /> PDF vorbereiten
               </button>
@@ -527,7 +588,34 @@ export default function ReportsPage() {
           </div>
 
           <article className="report-document">
-            <ChatMarkdown text={currentReport?.content ?? FALLBACK_REPORT} />
+            <p className="briefing-hero">
+              <strong>Operations Briefing</strong>
+              Tagro verdichtet laufende Projektarbeit zu einem ruhigen Überblick. Details bleiben verfügbar, aber der Einstieg bleibt bewusst knapp.
+            </p>
+            {briefingSections.map((section, index) => {
+              const open = Boolean(openSections[section.id])
+              return (
+                <section className="briefing-section" key={section.id}>
+                  <button
+                    className="briefing-toggle"
+                    type="button"
+                    onClick={() => setOpenSections((current) => ({ ...current, [section.id]: !open }))}
+                    aria-expanded={open}
+                  >
+                    <span>
+                      <strong>{section.title}</strong>
+                      <small>{index === 0 ? 'Executive Summary' : open ? 'Details sichtbar' : 'Details bei Bedarf öffnen'}</small>
+                    </span>
+                    <em>{open ? 'Schließen' : 'Öffnen'}</em>
+                  </button>
+                  {open && (
+                    <div className="briefing-body">
+                      <ChatMarkdown text={section.body} />
+                    </div>
+                  )}
+                </section>
+              )
+            })}
           </article>
 
           {currentReports.length > 1 && (
@@ -547,6 +635,19 @@ export default function ReportsPage() {
             <SlidersHorizontal size={14} color="var(--text-muted)" />
           </div>
 
+          <div className="signals-metrics" aria-label="Signal Übersicht">
+            <button className={`signal-metric${activeSignal === 'tasks' ? ' on' : ''}`} type="button" onClick={() => setActiveSignal('tasks')}>
+              <span>Task-Vorschläge</span><strong>{taskSuggestions.length}</strong>
+            </button>
+            <button className={`signal-metric${activeSignal === 'decisions' ? ' on' : ''}`} type="button" onClick={() => setActiveSignal('decisions')}>
+              <span>Entscheidungen</span><strong>{currentSections.decisions.length}</strong>
+            </button>
+            <button className={`signal-metric${activeSignal === 'risks' ? ' on' : ''}`} type="button" onClick={() => setActiveSignal('risks')}>
+              <span>Risiken</span><strong>{currentSections.blockers.length}</strong>
+            </button>
+          </div>
+
+          {activeSignal === 'tasks' && (
           <div className="signal-block">
             <div className="signal-label"><Lightbulb size={14} /> Task-Vorschläge</div>
             {taskSuggestions.map((task) => {
@@ -568,17 +669,26 @@ export default function ReportsPage() {
               )
             })}
           </div>
+          )}
 
+          {activeSignal === 'decisions' && (
           <div className="signal-block">
             <div className="signal-label"><Lightbulb size={14} /> Entscheidungen</div>
             {currentSections.decisions.map((item) => <div className="signal-row" key={item}>{item}</div>)}
           </div>
+          )}
 
+          {activeSignal === 'risks' && (
           <div className="signal-block">
             <div className="signal-label"><WarningCircle size={14} /> Risiken</div>
             {currentSections.blockers.map((item) => <div className="signal-row" key={item}>{item}</div>)}
           </div>
+          )}
 
+          <button className={`signal-metric${activeSignal === 'actions' ? ' on' : ''}`} type="button" onClick={() => setActiveSignal('actions')} style={{ marginBottom: 2 }}>
+            <span>Aktionen</span><strong>5</strong>
+          </button>
+          {activeSignal === 'actions' && (
           <div className="signal-block">
             <div className="signal-label"><MagicWand size={14} /> Aktionen</div>
             <button className="reports-ghost side-action" type="button" onClick={generateReport} disabled={!currentProject || generating}>Statusbericht generieren</button>
@@ -587,6 +697,7 @@ export default function ReportsPage() {
             <button className="reports-ghost side-action" type="button"><Archive size={14} /> Archivieren</button>
             <button className="reports-ghost side-action" type="button" onClick={() => currentReport && exportReport(currentReport)} disabled={!currentReport}><DownloadSimple size={14} /> Export vorbereiten</button>
           </div>
+          )}
 
           <div className="signal-block">
             <div className="signal-label"><SlidersHorizontal size={14} /> Festag Architektur</div>

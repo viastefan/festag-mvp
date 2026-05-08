@@ -18,7 +18,10 @@ import {
 } from '@phosphor-icons/react'
 
 import { AVATAR_COLORS, avatarTextColor } from '@/lib/avatar'
-import { getTheme, setTheme, ThemeMode } from '@/lib/theme'
+import { getFontMode, getTheme, setFontMode, setTheme } from '@/lib/theme'
+import type { FontMode, ThemeMode } from '@/lib/theme'
+import { getVoicePreferences, setVoicePreferences } from '@/lib/voice'
+import type { VoicePreferences } from '@/lib/voice'
 
 type SidebarProfileFooterProps = {
   avatarColor: string
@@ -60,6 +63,8 @@ export default function SidebarProfileFooter({
 }: SidebarProfileFooterProps) {
   const [designMenu, setDesignMenu] = useState(false)
   const [themeMode, setThemeMode] = useState<ThemeMode>('dark')
+  const [fontMode, setFontModeState] = useState<FontMode>('aeonik')
+  const [voicePrefs, setVoicePrefs] = useState<VoicePreferences>(() => getVoicePreferences())
   const [userMenu, setUserMenu] = useState(false)
   const [userMenuPosition, setUserMenuPosition] = useState({ left: 0, bottom: 0 })
   const [designMenuPosition, setDesignMenuPosition] = useState({ left: 0, bottom: 0, width: 0 })
@@ -67,6 +72,8 @@ export default function SidebarProfileFooter({
 
   useEffect(() => {
     setThemeMode(getTheme())
+    setFontModeState(getFontMode())
+    setVoicePrefs(getVoicePreferences())
   }, [])
 
   useEffect(() => {
@@ -246,6 +253,68 @@ export default function SidebarProfileFooter({
                       <path d="M20 6L9 17l-5-5" />
                     </svg>
                   )}
+                </button>
+              )
+            })}
+
+            <div style={{ height: 1, background: 'var(--border)', margin: '4px 4px' }} />
+
+            <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', padding: '6px 11px 4px', margin: 0, letterSpacing: '.04em', textAlign: 'left' }}>
+              Schrift
+            </p>
+
+            {([
+              { mode: 'aeonik' as FontMode, label: 'Aeonik' },
+              { mode: 'inter' as FontMode, label: 'Inter' },
+              { mode: 'sf-pro' as FontMode, label: 'SF Pro' },
+              { mode: 'geist' as FontMode, label: 'Geist' },
+              { mode: 'ibm-plex' as FontMode, label: 'IBM Plex Sans' },
+            ] as const).map(({ mode, label }) => {
+              const active = fontMode === mode
+              return (
+                <button
+                  key={mode}
+                  className="spf-menu-row"
+                  onClick={() => {
+                    setFontModeState(mode)
+                    setFontMode(mode)
+                  }}
+                  style={{ width: '100%', height: 30, gap: 10 }}
+                >
+                  <span style={{ width: 34, height: 20, borderRadius: 7, border: '1px solid var(--border)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 760, flexShrink: 0 }}>Aa</span>
+                  <span style={{ flex: 1, color: active ? 'var(--text)' : 'var(--text-secondary)', fontWeight: active ? 650 : 500 }}>{label}</span>
+                  {active && <span style={{ color: 'var(--text)', fontSize: 12 }}>✓</span>}
+                </button>
+              )
+            })}
+
+            <div style={{ height: 1, background: 'var(--border)', margin: '4px 4px' }} />
+
+            <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', padding: '6px 11px 4px', margin: 0, letterSpacing: '.04em', textAlign: 'left' }}>
+              Tagro Voice & Audio
+            </p>
+
+            {([
+              { key: 'enabled', label: 'Audio Briefings erlauben' },
+              { key: 'statusReportsEnabled', label: 'Statusberichte vorlesen' },
+              { key: 'projectBriefingsEnabled', label: 'Projektbriefings erlauben' },
+              { key: 'speechInputEnabled', label: 'Spracheingabe erlauben' },
+            ] as const).map(({ key, label }) => {
+              const on = Boolean(voicePrefs[key])
+              return (
+                <button
+                  key={key}
+                  className="spf-menu-row"
+                  onClick={() => {
+                    const next = setVoicePreferences({ [key]: !on })
+                    setVoicePrefs(next)
+                  }}
+                  style={{ width: '100%', height: 30 }}
+                >
+                  <span style={{ flex: 1 }}>{label}</span>
+                  <span style={{ width: 28, height: 16, borderRadius: 999, background: on ? 'var(--text)' : 'var(--border-strong)', position: 'relative', flexShrink: 0 }}>
+                    <span style={{ position: 'absolute', top: 2, left: on ? 14 : 2, width: 12, height: 12, borderRadius: '50%', background: on ? 'var(--bg)' : 'var(--surface)', transition: 'left .12s' }} />
+                  </span>
                 </button>
               )
             })}

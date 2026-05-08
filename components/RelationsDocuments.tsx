@@ -208,7 +208,7 @@ export default function RelationsDocuments({ projectId }: Props) {
           {uploading ? 'Wird hochgeladen...' : 'Dateien hochladen'}
         </p>
         <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: 0 }}>
-          Drag & Drop oder klicken zum Auswaehlen
+          Drag & Drop oder klicken zum Auswählen
         </p>
       </div>
 
@@ -260,7 +260,7 @@ export default function RelationsDocuments({ projectId }: Props) {
           <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: 0 }}>
             {documents.length === 0
               ? 'Lade Dokumente hoch um sie mit deinem Team zu teilen.'
-              : 'Waehle eine andere Kategorie oder lade neue Dokumente hoch.'}
+              : 'Wähle eine andere Kategorie oder lade neue Dokumente hoch.'}
           </p>
         </div>
       ) : (
@@ -349,7 +349,7 @@ export default function RelationsDocuments({ projectId }: Props) {
                         cursor: 'pointer',
                         transition: 'color .12s, background .12s',
                       }}
-                      title="Loeschen"
+                      title="Löschen"
                     >
                       <Trash size={14} weight="bold" />
                     </button>
