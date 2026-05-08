@@ -479,3 +479,107 @@ input[type="checkbox"], input[type="radio"] {
 
 /* Prevent overscroll bounce when modal/sheet is open */
 body.locked { overflow: hidden; touch-action: none; }
+
+/* Festag Client Workspace Header System */
+.app-page-header {
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:20px;
+  width:100%;
+  margin:0 0 24px;
+}
+.app-page-header__copy { min-width:0; }
+.app-page-header h1 {
+  margin:0;
+  color:var(--text);
+  font-size:25px;
+  line-height:1.08;
+  font-weight:720;
+  letter-spacing:-.035em;
+}
+.app-page-header p {
+  margin:7px 0 0;
+  color:var(--text-secondary);
+  font-size:13px;
+  line-height:1.45;
+  font-weight:500;
+}
+.app-page-header__action {
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:8px;
+  flex-shrink:0;
+  padding-top:1px;
+}
+.app-page-header--compact {
+  align-items:center;
+  margin-bottom:16px;
+  padding-top:4px;
+}
+.app-page-header--compact h1 {
+  font-size:18px;
+  letter-spacing:-.025em;
+  font-weight:690;
+}
+.app-page-header--compact p {
+  margin-top:4px;
+  font-size:12.5px;
+}
+.app-page-header--hero {
+  align-items:flex-start;
+  margin-bottom:42px;
+  padding-top:10px;
+}
+.app-page-header--hero h1 {
+  font-size:30px;
+  line-height:1.04;
+  font-weight:720;
+  letter-spacing:-.055em;
+}
+.app-page-header--hero p {
+  margin-top:9px;
+  font-size:13.5px;
+}
+.app-header-button,
+.app-page-header__action > a,
+.app-page-header__action > button {
+  min-height:34px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  padding:0 13px;
+  border:1px solid var(--border);
+  border-radius:10px;
+  background:var(--surface);
+  color:var(--text);
+  font:inherit;
+  font-size:12.5px;
+  font-weight:700;
+  text-decoration:none;
+  box-shadow:none;
+}
+.app-header-button--primary,
+.app-page-header__action > .primary,
+.app-page-header__action > button.primary,
+.app-page-header__action > a.primary {
+  background:var(--btn-prim);
+  color:var(--btn-prim-text);
+  border-color:transparent;
+}
+.app-page-header__action > button:disabled,
+.app-page-header__action > .app-header-button:disabled {
+  opacity:.55;
+  cursor:default;
+}
+@media (max-width: 760px) {
+  .app-page-header,
+  .app-page-header--hero {
+    flex-direction:column;
+    align-items:stretch;
+    gap:12px;
+  }
+  .app-page-header__action { justify-content:flex-start; flex-wrap:wrap; }
+}
