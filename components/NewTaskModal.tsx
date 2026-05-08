@@ -113,7 +113,9 @@ export default function NewTaskModal({ onClose, onCreated, defaultProjectId, def
         }
         @keyframes ntFadeIn { from{opacity:0} to{opacity:1} }
         @keyframes ntSlideUp { from{opacity:0;transform:translateY(6px) scale(.985)} to{opacity:1;transform:translateY(0) scale(1)} }
-        .nt-input { background:transparent; border:none; outline:none; font-family:inherit; color:var(--text); width:100%; }
+        .nt-input { background:transparent; border:none; outline:none !important; box-shadow:none !important; font-family:inherit; color:var(--text); width:100%; }
+        .nt-input:focus, .nt-input:focus-visible { outline:none !important; box-shadow:none !important; }
+        .nt-input::selection { background:color-mix(in srgb, var(--text) 14%, transparent); }
         .nt-mode { display:flex; gap:6px; padding:12px 18px 0; }
         .nt-mode button { height:30px; border:1px solid var(--border); border-radius:999px; padding:0 11px; color:var(--text-secondary); background:transparent; font-size:12px; font-weight:650; }
         .nt-mode button.on { background:var(--surface-2); color:var(--text); border-color:var(--border); }
@@ -128,13 +130,13 @@ export default function NewTaskModal({ onClose, onCreated, defaultProjectId, def
         <div className="nt-modal">
 
           {/* Top bar — project context + close */}
-          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'10px 14px', borderBottom:'1px solid var(--border)' }}>
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'10px 14px' }}>
             <div style={{ display:'flex', alignItems:'center', gap:6 }}>
               {currentProject && (
-                <div style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'3px 8px', borderRadius:5, background:'var(--surface-2)' }}>
+                <div style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'3px 7px', borderRadius:6, background:'color-mix(in srgb, var(--surface-2) 72%, transparent)', maxWidth:220, minWidth:0 }}>
                   <span style={{ width:8, height:8, borderRadius:2, background: currentProject.color || 'var(--text-muted)', flexShrink:0 }}/>
                   <select value={projectId} onChange={e => setProjectId(e.target.value)}
-                    style={{ background:'transparent', border:'none', outline:'none', color:'var(--text)', fontSize:11.5, fontWeight:600, fontFamily:'inherit', cursor:'pointer', padding:0 }}>
+                    style={{ background:'transparent', border:'none', outline:'none', color:'var(--text)', fontSize:11.5, fontWeight:600, fontFamily:'inherit', cursor:'pointer', padding:0, maxWidth:170, minWidth:0, overflow:'hidden', textOverflow:'ellipsis' }}>
                     {projects.map(p => <option key={p.id} value={p.id}>{p.title}</option>)}
                   </select>
                 </div>

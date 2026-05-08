@@ -244,9 +244,7 @@ export default function CopilotPanel({ open, onClose }: { open: boolean; onClose
 
         {/* Input */}
         <div style={{ padding: '0 14px 14px', flexShrink: 0 }}>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center', background: 'var(--card)', border: '1.5px solid var(--border-strong)', borderRadius: 12, padding: '8px 8px 8px 14px', transition: 'border-color .15s' }}
-            onFocusCapture={e => (e.currentTarget as HTMLElement).style.borderColor = 'var(--text-muted)'}
-            onBlurCapture={e => (e.currentTarget as HTMLElement).style.borderColor = 'var(--border-strong)'}
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', background: 'color-mix(in srgb, var(--card) 84%, transparent)', border: '1px solid transparent', borderRadius: 12, padding: '8px 8px 8px 14px', transition: 'border-color .15s' }}
           >
             <input
               ref={inputRef}

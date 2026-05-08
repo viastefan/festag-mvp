@@ -250,14 +250,15 @@ export default function TasksPage() {
           width:100%;
           min-height:100%;
           color:var(--text);
+          padding-top:24px;
         }
         .task-top {
           display:flex;
           align-items:center;
           justify-content:space-between;
-          min-height:48px;
+          min-height:38px;
           border-bottom:0;
-          padding:0 4px 0 0;
+          padding:0 4px 8px 0;
         }
         .task-title {
           margin:0;
@@ -283,7 +284,7 @@ export default function TasksPage() {
           align-items:center;
           justify-content:space-between;
           gap:10px;
-          padding:12px 0 14px;
+          padding:16px 0 18px;
         }
         .task-filters {
           display:flex;
