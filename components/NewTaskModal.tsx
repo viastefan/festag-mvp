@@ -4,16 +4,18 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
 const STATUS_OPTIONS = [
-  { value: 'todo',  label: 'Todo',         dot: 'var(--text-muted)'  },
-  { value: 'doing', label: 'In Progress',  dot: '#f59e0b'             },
-  { value: 'done',  label: 'Done',         dot: '#22c55e'             },
+  { value: 'suggested', label: 'Zur Prüfung',  dot: '#6366f1'            },
+  { value: 'todo',      label: 'Geplant',      dot: 'var(--text-muted)'  },
+  { value: 'doing',     label: 'In Entwicklung', dot: '#f59e0b'          },
+  { value: 'review',    label: 'Bereit zur Prüfung', dot: '#8b5cf6'      },
+  { value: 'done',      label: 'Erledigt',     dot: '#22c55e'            },
 ]
 const PRIORITY_OPTIONS = [
-  { value: 'none',     label: 'No priority' },
-  { value: 'critical', label: 'Urgent'      },
-  { value: 'high',     label: 'High'        },
-  { value: 'medium',   label: 'Medium'      },
-  { value: 'low',      label: 'Low'         },
+  { value: 'none',     label: 'Keine Priorität' },
+  { value: 'critical', label: 'Kritisch'        },
+  { value: 'high',     label: 'Hoch'            },
+  { value: 'medium',   label: 'Mittel'          },
+  { value: 'low',      label: 'Niedrig'         },
 ]
 
 type Project = { id: string; title: string; color: string | null }
@@ -24,15 +26,17 @@ interface Props {
   defaultProjectId?: string
   defaultDescription?: string
   source?: string  // e.g. 'status_report', 'manual'
+  mode?: 'create' | 'suggest'
 }
 
-export default function NewTaskModal({ onClose, onCreated, defaultProjectId, defaultDescription, source }: Props) {
+export default function NewTaskModal({ onClose, onCreated, defaultProjectId, defaultDescription, source, mode = 'create' }: Props) {
   const supabase = createClient()
+  const isSuggestion = mode === 'suggest'
   const [projects, setProjects] = useState<Project[]>([])
   const [projectId, setProjectId] = useState(defaultProjectId || '')
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState(defaultDescription || '')
-  const [status, setStatus] = useState('todo')
+  const [status, setStatus] = useState(isSuggestion ? 'suggested' : 'todo')
   const [priority, setPriority] = useState('none')
   const [tags, setTags] = useState<string[]>([])
   const [tagInput, setTagInput] = useState('')
@@ -60,10 +64,12 @@ export default function NewTaskModal({ onClose, onCreated, defaultProjectId, def
           project_id: projectId,
           title: title.trim(),
           description: description.trim() || null,
-          status,
+          status: isSuggestion ? 'suggested' : status,
           priority: priority === 'none' ? null : priority,
           tags: tags.length ? tags : null,
-          source: entryMode === 'tagro' ? 'tagro' : (source || 'manual'),
+          source: isSuggestion
+            ? (entryMode === 'tagro' ? 'client_suggestion_tagro' : 'client_suggestion_manual')
+            : (entryMode === 'tagro' ? 'tagro' : (source || 'manual')),
         })
         .select('id')
         .single()
@@ -134,7 +140,7 @@ export default function NewTaskModal({ onClose, onCreated, defaultProjectId, def
                 </div>
               )}
               <span style={{ fontSize:11, color:'var(--text-muted)' }}>›</span>
-              <span style={{ fontSize:11.5, color:'var(--text-muted)' }}>Aufgabe erstellen</span>
+              <span style={{ fontSize:11.5, color:'var(--text-muted)' }}>{isSuggestion ? 'Aufgabe vorschlagen' : 'Aufgabe erstellen'}</span>
             </div>
             <button onClick={onClose} style={{ background:'none', border:'none', cursor:'pointer', color:'var(--text-muted)', padding:2, borderRadius:4, display:'flex' }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
@@ -142,13 +148,15 @@ export default function NewTaskModal({ onClose, onCreated, defaultProjectId, def
           </div>
 
           <div className="nt-mode" role="tablist" aria-label="Task-Erstellung">
-            <button type="button" className={entryMode === 'tagro' ? 'on' : ''} onClick={() => setEntryMode('tagro')}>Tagro generieren</button>
+            <button type="button" className={entryMode === 'tagro' ? 'on' : ''} onClick={() => setEntryMode('tagro')}>{isSuggestion ? 'Tagro prüfen lassen' : 'Tagro generieren'}</button>
             <button type="button" className={entryMode === 'manual' ? 'on' : ''} onClick={() => setEntryMode('manual')}>Manuell</button>
           </div>
 
           {entryMode === 'tagro' && (
             <div className="nt-tagro-box">
-              Tagro ist Standard: Beschreibe kurz das Ziel oder den Blocker. Daraus werden Titel, Priorität und nächste Schritte fuer den Developer ableitbar.
+              {isSuggestion
+                ? 'Tagro ist Standard: Dein Vorschlag wird erst in Projektkontext übersetzt und zur Prüfung vorbereitet. Er geht nicht direkt ungeprüft in den Dev-Workflow.'
+                : 'Tagro ist Standard: Beschreibe kurz das Ziel oder den Blocker. Daraus werden Titel, Priorität und nächste Schritte fuer den Developer ableitbar.'}
             </div>
           )}
 
@@ -156,7 +164,7 @@ export default function NewTaskModal({ onClose, onCreated, defaultProjectId, def
           <div style={{ padding:'14px 18px 4px' }}>
             <input
               className="nt-input"
-              placeholder={entryMode === 'tagro' ? 'Was soll Tagro als Aufgabe vorbereiten?' : 'Task-Titel'}
+              placeholder={entryMode === 'tagro' ? (isSuggestion ? 'Welche Aufgabe möchtest du vorschlagen?' : 'Was soll Tagro als Aufgabe vorbereiten?') : 'Aufgabentitel'}
               value={title}
               onChange={e => setTitle(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleCreate() } }}
@@ -165,7 +173,7 @@ export default function NewTaskModal({ onClose, onCreated, defaultProjectId, def
             />
             <textarea
               className="nt-input"
-              placeholder={entryMode === 'tagro' ? 'Beschreibe Kontext, Ziel, Akzeptanzkriterien oder was der Developer wissen muss…' : 'Beschreibung hinzufügen…'}
+              placeholder={entryMode === 'tagro' ? (isSuggestion ? 'Beschreibe Ziel, Kontext oder gewünschte Änderung. Tagro formuliert daraus einen prüfbaren Vorschlag…' : 'Beschreibe Kontext, Ziel, Akzeptanzkriterien oder was der Developer wissen muss…') : 'Beschreibung hinzufügen…'}
               value={description}
               onChange={e => setDescription(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); handleCreate() } }}
@@ -176,12 +184,19 @@ export default function NewTaskModal({ onClose, onCreated, defaultProjectId, def
 
           {/* Chips row */}
           <div style={{ padding:'10px 18px 14px', display:'flex', flexWrap:'wrap', gap:5 }}>
-            <label className={`nt-chip ${status !== 'todo' ? 'has-value' : ''}`}>
-              <span style={{ width:7, height:7, borderRadius:'50%', background: STATUS_OPTIONS.find(s=>s.value===status)?.dot, flexShrink:0 }}/>
-              <select value={status} onChange={e => setStatus(e.target.value)}>
-                {STATUS_OPTIONS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
-              </select>
-            </label>
+            {isSuggestion ? (
+              <span className="nt-chip has-value" title="Client-Vorschläge bleiben bis zur Prüfung gesperrt.">
+                <span style={{ width:7, height:7, borderRadius:'50%', background:'#6366f1', flexShrink:0 }}/>
+                Zur Prüfung
+              </span>
+            ) : (
+              <label className={`nt-chip ${status !== 'todo' ? 'has-value' : ''}`}>
+                <span style={{ width:7, height:7, borderRadius:'50%', background: STATUS_OPTIONS.find(s=>s.value===status)?.dot, flexShrink:0 }}/>
+                <select value={status} onChange={e => setStatus(e.target.value)}>
+                  {STATUS_OPTIONS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+                </select>
+              </label>
+            )}
 
             <label className={`nt-chip ${priority !== 'none' ? 'has-value' : ''}`}>
               <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M3 21V3M9 14V3M15 19V3M21 10V3"/></svg>
@@ -218,7 +233,7 @@ export default function NewTaskModal({ onClose, onCreated, defaultProjectId, def
           {/* Footer */}
           <div style={{ borderTop:'1px solid var(--border)', padding:'8px 12px', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
             <span style={{ fontSize:11, color:'var(--text-muted)' }}>
-              {entryMode === 'tagro' ? 'Tagro Auto-Generate' : (source === 'status_report' ? 'Aus Statusbericht' : 'Manuell erstellt')}
+              {isSuggestion ? 'Status: Zur Prüfung' : (entryMode === 'tagro' ? 'Tagro Auto-Generate' : (source === 'status_report' ? 'Aus Statusbericht' : 'Manuell erstellt'))}
             </span>
             <div style={{ display:'flex', gap:6 }}>
               <button onClick={onClose}
@@ -236,7 +251,7 @@ export default function NewTaskModal({ onClose, onCreated, defaultProjectId, def
                   fontFamily:'inherit', opacity: creating ? .7 : 1,
                   display:'flex', alignItems:'center', gap:6,
                 }}>
-                {creating ? 'Erstelle…' : (entryMode === 'tagro' ? 'Mit Tagro erstellen' : 'Task erstellen')}
+                {creating ? (isSuggestion ? 'Sende…' : 'Erstelle…') : (isSuggestion ? (entryMode === 'tagro' ? 'Mit Tagro vorschlagen' : 'Vorschlag senden') : (entryMode === 'tagro' ? 'Mit Tagro erstellen' : 'Task erstellen'))}
                 {!creating && <span style={{ fontSize:10, opacity:.6 }}>↵</span>}
               </button>
             </div>

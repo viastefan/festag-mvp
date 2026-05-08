@@ -12,7 +12,7 @@ import {
   X,
 } from '@phosphor-icons/react'
 
-type TaskView = 'all' | 'open' | 'active' | 'done'
+type TaskView = 'all' | 'open' | 'active' | 'decision' | 'review' | 'done'
 type SortMode = 'newest' | 'updated' | 'priority' | 'project'
 
 type TaskRow = {
@@ -38,6 +38,8 @@ const VIEWS: { id: TaskView; label: string }[] = [
   { id: 'all', label: 'Alle Aufgaben' },
   { id: 'open', label: 'Offen' },
   { id: 'active', label: 'In Arbeit' },
+  { id: 'decision', label: 'Warten' },
+  { id: 'review', label: 'In Prüfung' },
   { id: 'done', label: 'Erledigt' },
 ]
 
@@ -48,12 +50,16 @@ const SORT_OPTIONS: { id: SortMode; label: string }[] = [
   { id: 'project', label: 'Projekt' },
 ]
 
-const DONE_STATES = new Set(['done', 'completed', 'erledigt'])
-const ACTIVE_STATES = new Set(['doing', 'active', 'in_progress', 'review'])
+const DONE_STATES = new Set(['done', 'completed', 'delivered', 'erledigt'])
+const ACTIVE_STATES = new Set(['doing', 'active', 'in_progress', 'development', 'in_development'])
+const DECISION_STATES = new Set(['blocked', 'waiting', 'needs_decision', 'client_decision', 'waiting_for_client'])
+const REVIEW_STATES = new Set(['review', 'ready_for_review', 'in_review', 'festag_review', 'suggested', 'zur_pruefung', 'verified', 'approved', 'festag_checked'])
 
 function normalizeStatus(status?: string | null) {
   const value = (status || 'todo').toLowerCase()
   if (DONE_STATES.has(value)) return 'done'
+  if (REVIEW_STATES.has(value)) return 'review'
+  if (DECISION_STATES.has(value)) return 'decision'
   if (ACTIVE_STATES.has(value)) return 'active'
   return 'open'
 }
@@ -61,21 +67,30 @@ function normalizeStatus(status?: string | null) {
 function statusLabel(status?: string | null) {
   const normalized = normalizeStatus(status)
   if (normalized === 'done') return 'Erledigt'
-  if (normalized === 'active') return 'Aktiv'
+  if (normalized === 'review') return 'In Prüfung'
+  if (normalized === 'decision') return 'Warten'
+  if (normalized === 'active') return 'In Arbeit'
   return 'Offen'
 }
 
 function progressFor(status?: string | null) {
   const normalized = normalizeStatus(status)
   if (normalized === 'done') return 100
+  if (normalized === 'review') return 82
+  if (normalized === 'decision') return 40
   if (normalized === 'active') return 55
   return 0
 }
 
 function healthLabel(task: TaskRow) {
-  if (normalizeStatus(task.status) === 'done') return 'Vom Developer erledigt'
-  if (normalizeStatus(task.status) === 'active') return 'In Umsetzung'
-  return 'Wartet auf Start'
+  const normalized = normalizeStatus(task.status)
+  const raw = (task.status || '').toLowerCase()
+  if (normalized === 'done') return 'Erledigt mit Erklärung'
+  if (raw === 'verified' || raw === 'approved' || raw === 'festag_checked') return 'Von Festag geprüft'
+  if (normalized === 'review') return raw === 'suggested' ? 'Zur Prüfung vorgeschlagen' : 'Festag prüft die Umsetzung'
+  if (normalized === 'decision') return 'Wartet auf deine Entscheidung'
+  if (normalized === 'active') return 'Developer arbeitet daran'
+  return 'Tagro hat die Aufgabe geplant'
 }
 
 function priorityLabel(priority?: string | null) {
@@ -159,6 +174,8 @@ export default function TasksPage() {
   }, [tasks, view, sortMode, projectById])
 
   const doneCount = tasks.filter((task) => normalizeStatus(task.status) === 'done').length
+  const reviewCount = tasks.filter((task) => normalizeStatus(task.status) === 'review').length
+  const decisionCount = tasks.filter((task) => normalizeStatus(task.status) === 'decision').length
   const activeCount = tasks.filter((task) => normalizeStatus(task.status) === 'active').length
   const openCount = tasks.filter((task) => normalizeStatus(task.status) === 'open').length
   const selectedTasks = tasks.filter((task) => selectedTaskIds.includes(task.id))
@@ -180,16 +197,15 @@ export default function TasksPage() {
     }))
   }
 
-  async function markSelectedDone() {
-    if (selectedTaskIds.length === 0) return
-    const now = new Date().toISOString()
-    setTasks((current) => current.map((task) => (
-      selectedTaskIds.includes(task.id) ? { ...task, status: 'done', updated_at: now } : task
-    )))
-    await Promise.all(selectedTaskIds.map((id) => (
-      (supabase as any).from('tasks').update({ status: 'done', updated_at: now }).eq('id', id)
-    )))
-    setSelectedTaskIds([])
+  function suggestChangeForSelectedTask() {
+    const task = selectedTasks[0]
+    if (!task) return
+    window.dispatchEvent(new CustomEvent('open-copilot'))
+    window.dispatchEvent(new CustomEvent('tagro-compose', {
+      detail: {
+        prompt: `Ich möchte zu dieser Aufgabe eine Änderung oder Ergänzung vorschlagen: "${task.title}". Bitte prüfe den Projektkontext, formuliere daraus einen sauberen Vorschlag für Festag/Lead Dev und markiere, welche Entscheidung eventuell vom Client gebraucht wird.`,
+      },
+    }))
   }
 
   return (
@@ -422,6 +438,8 @@ export default function TasksPage() {
         }
         .task-health.done { color:var(--green); }
         .task-health.active { color:var(--amber); }
+        .task-health.decision { color:var(--amber); }
+        .task-health.review { color:#6366f1; }
         .task-progress {
           display:flex;
           align-items:center;
@@ -435,6 +453,14 @@ export default function TasksPage() {
           height:11px;
           border-radius:50%;
           border:2px dotted var(--amber);
+        }
+        .task-health.review ~ .task-progress .task-progress-dot,
+        .task-progress-dot.review {
+          border-color:#6366f1;
+        }
+        .task-health.decision ~ .task-progress .task-progress-dot,
+        .task-progress-dot.decision {
+          border-color:var(--amber);
         }
         .task-progress-dot.done {
           border-style:solid;
@@ -524,8 +550,8 @@ export default function TasksPage() {
 
       <div className="task-top">
         <h1 className="task-title">Aufgaben</h1>
-        <button className="task-create" type="button" aria-label="Neue Aufgabe" onClick={() => setTaskModalOpen(true)}>
-          <span>Aufgabe erstellen</span>
+        <button className="task-create" type="button" aria-label="Neue Aufgabe vorschlagen" onClick={() => setTaskModalOpen(true)}>
+          <span>Aufgabe vorschlagen</span>
           <span style={{ fontSize: 19, lineHeight: 1 }}>+</span>
         </button>
       </div>
@@ -543,7 +569,7 @@ export default function TasksPage() {
             </button>
           ))}
           <span style={{ color: 'var(--text-muted)', fontSize: 12, fontWeight: 650, paddingLeft: 4 }}>
-            {openCount} offen · {activeCount} aktiv · {doneCount} erledigt
+            {openCount} offen · {activeCount} in Arbeit · {decisionCount} warten · {reviewCount} Prüfung · {doneCount} erledigt
           </span>
         </div>
         <div className="task-tools">
@@ -638,8 +664,8 @@ export default function TasksPage() {
               <div>{dateLabel(task.updated_at || task.created_at)}</div>
               <div>0</div>
 
-              <div className="task-progress">
-                <span className={`task-progress-dot${normalized === 'done' ? ' done' : ''}`} />
+              <div className="task-progress" title={statusLabel(task.status)}>
+                <span className={`task-progress-dot ${normalized}`} />
                 <span>{normalized === 'done' ? '100%' : `${progress}%`}</span>
               </div>
             </div>
@@ -652,6 +678,7 @@ export default function TasksPage() {
           onClose={() => setTaskModalOpen(false)}
           onCreated={() => { setTaskModalOpen(false); loadTasks() }}
           source="tagro"
+          mode="suggest"
         />
       )}
 
@@ -663,7 +690,7 @@ export default function TasksPage() {
           </button>
           <span className="task-selection-sep" />
           <button type="button" onClick={explainSelectedTask}>Tagro erklären</button>
-          <button type="button" onClick={markSelectedDone}>Als erledigt markieren</button>
+          <button type="button" onClick={suggestChangeForSelectedTask}>Änderung vorschlagen</button>
         </div>
       )}
     </div>
