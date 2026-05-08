@@ -176,7 +176,7 @@ export default function NewProjectPage() {
 
   function proceed() {
     if (fromOnboarding || !isLoggedIn) {
-      window.location.href = '/onboarding'
+      window.location.href = '/login'
     } else {
       window.location.href = '/dashboard'
     }

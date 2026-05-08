@@ -1,25 +1,16 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import TagroLogo from '@/components/TagroLogo'
 
-const PROJECT_COLORS = [
-  { value: '#6366f1', label: 'Indigo' },
-  { value: '#8b5cf6', label: 'Violet' },
-  { value: '#ec4899', label: 'Pink' },
-  { value: '#ef4444', label: 'Red' },
-  { value: '#f97316', label: 'Orange' },
-  { value: '#eab308', label: 'Yellow' },
-  { value: '#22c55e', label: 'Green' },
-  { value: '#06b6d4', label: 'Cyan' },
-  { value: '#3b82f6', label: 'Blue' },
-  { value: '#64748b', label: 'Slate' },
-]
-
+const PROJECT_COLORS = ['#6366f1', '#8b5cf6', '#ec4899', '#ef4444', '#f97316', '#eab308', '#22c55e', '#06b6d4', '#3b82f6', '#64748b']
 const STATUS_OPTIONS = ['Backlog', 'In Planung', 'Aktiv', 'Testing', 'Fertig']
 const PRIORITY_OPTIONS = ['Keine Priorität', 'Kritisch', 'Hoch', 'Mittel', 'Niedrig']
 
+type Mode = 'tagro' | 'form'
 type Milestone = { label: string; date: string }
+type Message = { role: 'ai' | 'user'; text: string }
 
 interface Props {
   onClose: () => void
@@ -28,11 +19,20 @@ interface Props {
 
 export default function NewProjectModal({ onClose, onCreated }: Props) {
   const supabase = createClient()
+  const inputRef = useRef<HTMLTextAreaElement>(null)
+
+  const [mode, setMode] = useState<Mode>('tagro')
+  const [idea, setIdea] = useState('')
+  const [messages, setMessages] = useState<Message[]>([
+    { role: 'ai', text: 'Was möchtest du bauen — und welches Problem löst es konkret?' },
+  ])
+  const [creatingWithTagro, setCreatingWithTagro] = useState(false)
+  const [tagroError, setTagroError] = useState('')
 
   const [name, setName] = useState('')
   const [summary, setSummary] = useState('')
   const [description, setDescription] = useState('')
-  const [selectedColor, setSelectedColor] = useState(PROJECT_COLORS[0].value)
+  const [selectedColor, setSelectedColor] = useState(PROJECT_COLORS[0])
   const [showColorPicker, setShowColorPicker] = useState(false)
   const [status, setStatus] = useState('Backlog')
   const [priority, setPriority] = useState('Keine Priorität')
@@ -42,6 +42,59 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
   const [newMilestoneLabel, setNewMilestoneLabel] = useState('')
   const [showMilestoneInput, setShowMilestoneInput] = useState(false)
   const [creating, setCreating] = useState(false)
+
+  useEffect(() => {
+    const t = window.setTimeout(() => inputRef.current?.focus(), 120)
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => {
+      window.clearTimeout(t)
+      window.removeEventListener('keydown', onKey)
+    }
+  }, [onClose])
+
+  async function createWithTagro() {
+    const cleanIdea = idea.trim()
+    if (!cleanIdea || creatingWithTagro) return
+    setTagroError('')
+    setCreatingWithTagro(true)
+    setMessages(prev => [...prev, { role: 'user', text: cleanIdea }])
+
+    try {
+      const { data: sessionData } = await supabase.auth.getSession()
+      const userId = sessionData.session?.user.id
+      if (!userId) throw new Error('Bitte melde dich erneut an.')
+
+      const chatHistory: Message[] = [
+        { role: 'ai', text: 'Was möchtest du bauen — und welches Problem löst es konkret?' },
+        { role: 'user', text: cleanIdea },
+      ]
+
+      const res = await fetch('/api/ai/decompose', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chatHistory, userId }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Tagro konnte das Projekt nicht strukturieren.')
+
+      if (data.projectId) {
+        setMessages(prev => [...prev, { role: 'ai', text: 'Ich habe dein Projekt strukturiert und die ersten Workspace-Tasks vorbereitet.' }])
+        onCreated?.(data.projectId)
+        onClose()
+        return
+      }
+
+      throw new Error('Projekt wurde analysiert, aber noch nicht gespeichert.')
+    } catch (error: any) {
+      setTagroError(error.message ?? 'Projektanlage fehlgeschlagen.')
+      setMessages(prev => [...prev, { role: 'ai', text: 'Das hat noch nicht sauber funktioniert. Du kannst es erneut versuchen oder auf Formular wechseln.' }])
+    } finally {
+      setCreatingWithTagro(false)
+    }
+  }
 
   async function handleCreate() {
     if (!name.trim()) return
@@ -79,243 +132,243 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
   }
 
   return (
-    <>
+    <div className="npm-overlay" onMouseDown={e => { if (e.target === e.currentTarget) onClose() }}>
       <style>{`
         .npm-overlay {
-          position:fixed; inset:0;
-          background:rgba(0,0,0,.55);
-          backdrop-filter:blur(10px) saturate(140%);
-          -webkit-backdrop-filter:blur(10px) saturate(140%);
-          z-index:1000;
+          position:fixed; inset:0; z-index:1000;
+          background:rgba(22,22,22,.82);
+          backdrop-filter:blur(14px) saturate(125%);
+          -webkit-backdrop-filter:blur(14px) saturate(125%);
           display:flex; align-items:center; justify-content:center;
           padding:24px;
-          animation:npmFadeIn .15s ease;
+          animation:npmFadeIn .16s ease both;
         }
-        .npm-modal {
+        .npm-shell {
+          width:min(920px, calc(100vw - 40px));
+          max-height:min(760px, calc(100dvh - 48px));
+          border:1px solid color-mix(in srgb, var(--border) 92%, transparent);
           background:var(--card);
-          border:1px solid var(--border);
-          border-radius:16px;
-          width:100%; max-width:660px; max-height:90vh; overflow-y:auto;
-          box-shadow:0 28px 80px rgba(0,0,0,.32), 0 2px 8px rgba(0,0,0,.12);
-          animation:npmSlideUp .22s cubic-bezier(.16,1,.3,1);
+          color:var(--text);
+          border-radius:28px;
+          box-shadow:0 34px 120px rgba(0,0,0,.34), 0 1px 0 rgba(255,255,255,.05) inset;
+          overflow:hidden;
+          animation:npmPop .26s cubic-bezier(.16,1,.3,1) both;
+          display:flex;
+          flex-direction:column;
         }
+        .npm-shell.form { max-width:760px; }
         @keyframes npmFadeIn { from{opacity:0} to{opacity:1} }
-        @keyframes npmSlideUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
-        .npm-chip { display:flex; align-items:center; gap:5px; padding:4px 10px; border-radius:6px; border:1px solid var(--border); background:transparent; color:var(--text-muted); font-size:12px; font-weight:500; cursor:pointer; font-family:inherit; transition:all .1s; white-space:nowrap; }
-        .npm-chip:hover { background:var(--surface); color:var(--text-secondary); }
-        .npm-chip select { background:transparent; border:none; outline:none; color:inherit; font-size:12px; font-weight:500; font-family:inherit; cursor:pointer; padding:0; }
+        @keyframes npmPop { from{opacity:0; transform:translateY(18px) scale(.985)} to{opacity:1; transform:none} }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .npm-head {
+          height:70px;
+          border-bottom:1px solid var(--border);
+          display:flex; align-items:center; justify-content:space-between;
+          padding:0 28px;
+          flex-shrink:0;
+        }
+        .npm-title { display:flex; align-items:center; gap:12px; min-width:0; }
+        .npm-title strong { font-size:16px; letter-spacing:-.03em; }
+        .npm-title span { color:var(--text-muted); font-size:13px; font-weight:700; }
+        .npm-head-actions { display:flex; align-items:center; gap:10px; }
+        .npm-ghost-btn {
+          height:36px; padding:0 14px; border-radius:12px;
+          border:1px solid var(--border); background:var(--surface);
+          color:var(--text-secondary); font-family:inherit; font-weight:750;
+          cursor:pointer;
+        }
+        .npm-icon-btn {
+          width:36px; height:36px; border:0; background:transparent;
+          color:var(--text-muted); border-radius:12px; cursor:pointer;
+          display:flex; align-items:center; justify-content:center;
+        }
+        .npm-icon-btn:hover, .npm-ghost-btn:hover { background:var(--surface-2); color:var(--text); }
+        .npm-chat-body { display:grid; grid-template-rows:1fr auto; min-height:430px; }
+        .npm-question {
+          background:var(--surface);
+          min-height:190px;
+          padding:56px 52px;
+          display:flex; align-items:center;
+        }
+        .npm-question h2 {
+          margin:0;
+          font-size:clamp(25px, 3vw, 34px);
+          line-height:1.16;
+          letter-spacing:-.055em;
+          font-weight:800;
+          color:var(--text-secondary);
+          max-width:780px;
+        }
+        .npm-input-area {
+          padding:32px 52px 36px;
+          display:grid;
+          grid-template-columns:1fr 64px;
+          gap:18px;
+          align-items:end;
+        }
+        .npm-idea {
+          border:0; outline:0; resize:none; background:transparent;
+          color:var(--text); font-family:inherit;
+          font-size:24px; line-height:1.38; font-weight:650;
+          min-height:92px; max-height:210px;
+        }
+        .npm-idea::placeholder { color:var(--text-muted); opacity:.48; }
+        .npm-send {
+          width:58px; height:58px; border:0; border-radius:17px;
+          background:var(--surface-2); color:var(--text-muted);
+          display:flex; align-items:center; justify-content:center;
+          cursor:pointer; transition:all .15s ease;
+        }
+        .npm-send.ready { background:var(--text); color:var(--bg); }
+        .npm-send:disabled { cursor:default; opacity:.62; }
+        .npm-hint {
+          text-align:center; margin-top:20px;
+          color:rgba(255,255,255,.34); font-weight:750; font-size:13px;
+          letter-spacing:.01em;
+        }
+        .npm-kbd { border:1px solid rgba(255,255,255,.14); border-radius:7px; padding:2px 8px; font-family:var(--font-mono); color:rgba(255,255,255,.45); }
+        .npm-error { margin:0 52px 20px; color:#ef4444; font-size:13px; font-weight:750; }
+        .npm-form-body { overflow:auto; padding:28px; }
+        .npm-chip { display:flex; align-items:center; gap:5px; padding:5px 10px; border-radius:999px; border:1px solid var(--border); background:var(--surface); color:var(--text-muted); font-size:12px; font-weight:700; cursor:pointer; font-family:inherit; white-space:nowrap; }
+        .npm-chip:hover { background:var(--surface-2); color:var(--text-secondary); }
+        .npm-chip select { background:transparent; border:none; outline:none; color:inherit; font-size:12px; font-weight:700; font-family:inherit; cursor:pointer; padding:0; }
         .npm-input { background:transparent; border:none; outline:none; font-family:inherit; color:var(--text); width:100%; }
-        .npm-divider { height:1px; background:var(--border); margin:0 24px; }
+        .npm-form-divider { height:1px; background:var(--border); margin:0 0 22px; }
         .npm-milestone-row { display:flex; align-items:center; gap:8px; padding:6px 0; }
         .npm-milestone-row:hover .npm-ms-del { opacity:1; }
         .npm-ms-del { opacity:0; background:none; border:none; cursor:pointer; color:var(--text-muted); padding:2px; transition:opacity .1s; }
+        @media (max-width: 700px) {
+          .npm-overlay { padding:14px; align-items:flex-end; }
+          .npm-shell { width:100%; max-height:calc(100dvh - 28px); border-radius:24px; }
+          .npm-head { padding:0 18px; }
+          .npm-question { padding:34px 24px; min-height:170px; }
+          .npm-input-area { padding:24px; grid-template-columns:1fr 52px; }
+          .npm-idea { font-size:20px; }
+          .npm-send { width:50px; height:50px; border-radius:15px; }
+        }
       `}</style>
 
-      <div className="npm-overlay" onClick={e => { if (e.target === e.currentTarget) onClose() }}>
-        <div className="npm-modal">
+      {mode === 'tagro' ? (
+        <div className="npm-shell" onMouseDown={e => e.stopPropagation()}>
+          <div className="npm-head">
+            <div className="npm-title">
+              <TagroLogo size={30} thinking={creatingWithTagro} />
+              <strong>Tagro AI</strong>
+              <span>· Neues Projekt</span>
+            </div>
+            <div className="npm-head-actions">
+              <button className="npm-ghost-btn" onClick={() => setMode('form')} type="button">Formular</button>
+              <button className="npm-icon-btn" onClick={onClose} type="button" aria-label="Schließen">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
+              </button>
+            </div>
+          </div>
 
-          {/* Header: Icon + Name + Summary */}
-          <div style={{ padding:'24px 24px 0' }}>
-            <div style={{ display:'flex', alignItems:'flex-start', gap:14 }}>
-              {/* Color / Icon button */}
-              <div style={{ position:'relative', flexShrink:0, marginTop:2 }}>
-                <button
-                  onClick={() => setShowColorPicker(v => !v)}
-                  style={{
-                    width:36, height:36, borderRadius:10,
-                    background: selectedColor + '22',
-                    border: `1.5px solid ${selectedColor}55`,
-                    display:'flex', alignItems:'center', justifyContent:'center',
-                    cursor:'pointer', transition:'all .15s',
+          <div className="npm-chat-body">
+            <div>
+              <section className="npm-question">
+                <h2>{messages[messages.length - 1]?.role === 'ai' ? messages[messages.length - 1].text : 'Ich strukturiere dein Projekt und bereite die ersten Workspace-Tasks vor.'}</h2>
+              </section>
+              {tagroError && <p className="npm-error">{tagroError}</p>}
+            </div>
+            <div>
+              <div className="npm-input-area">
+                <textarea
+                  ref={inputRef}
+                  value={idea}
+                  onChange={e => setIdea(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault()
+                      createWithTagro()
+                    }
                   }}
-                >
-                  <span style={{ width:14, height:14, borderRadius:4, background:selectedColor, display:'block' }}/>
+                  className="npm-idea"
+                  placeholder="Beschreibe deine Idee..."
+                  rows={3}
+                />
+                <button className={`npm-send ${idea.trim() ? 'ready' : ''}`} onClick={createWithTagro} disabled={!idea.trim() || creatingWithTagro} type="button" aria-label="Mit Tagro erstellen">
+                  {creatingWithTagro ? (
+                    <span style={{ width:20, height:20, border:'2px solid currentColor', borderTopColor:'transparent', borderRadius:'50%', animation:'spin .8s linear infinite' }} />
+                  ) : (
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M7 17L17 7" /><path d="M9 7h8v8" /></svg>
+                  )}
+                </button>
+              </div>
+              <p className="npm-hint">Tagro · AI-Projektmanager von Festag · <span className="npm-kbd">Enter</span> zum Senden</p>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="npm-shell form" onMouseDown={e => e.stopPropagation()}>
+          <div className="npm-head">
+            <div className="npm-title">
+              <button className="npm-icon-btn" onClick={() => setMode('tagro')} type="button" aria-label="Zurück zu Tagro">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
+              </button>
+              <strong>Formular</strong>
+              <span>· Neues Projekt</span>
+            </div>
+            <button className="npm-icon-btn" onClick={onClose} type="button" aria-label="Schließen">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
+            </button>
+          </div>
+
+          <div className="npm-form-body">
+            <div style={{ display:'flex', alignItems:'flex-start', gap:14, marginBottom:22 }}>
+              <div style={{ position:'relative', flexShrink:0, marginTop:2 }}>
+                <button onClick={() => setShowColorPicker(v => !v)} style={{ width:36, height:36, borderRadius:10, background:selectedColor + '22', border:`1.5px solid ${selectedColor}55`, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }} type="button">
+                  <span style={{ width:14, height:14, borderRadius:4, background:selectedColor, display:'block' }} />
                 </button>
                 {showColorPicker && (
-                  <div style={{
-                    position:'absolute', top:44, left:0, zIndex:10,
-                    background:'var(--card)', border:'1px solid var(--border)',
-                    borderRadius:12, padding:12, display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:8,
-                    boxShadow:'0 8px 32px rgba(0,0,0,.25)',
-                  }}>
-                    {PROJECT_COLORS.map(c => (
-                      <button key={c.value} onClick={() => { setSelectedColor(c.value); setShowColorPicker(false) }}
-                        title={c.label}
-                        style={{
-                          width:24, height:24, borderRadius:6, background:c.value,
-                          border: selectedColor === c.value ? '2px solid var(--text)' : '2px solid transparent',
-                          cursor:'pointer', transition:'transform .1s',
-                        }}
-                        onMouseEnter={e => (e.currentTarget as HTMLElement).style.transform='scale(1.15)'}
-                        onMouseLeave={e => (e.currentTarget as HTMLElement).style.transform='scale(1)'}
-                      />
-                    ))}
+                  <div style={{ position:'absolute', top:44, left:0, zIndex:10, background:'var(--card)', border:'1px solid var(--border)', borderRadius:12, padding:12, display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:8, boxShadow:'0 8px 32px rgba(0,0,0,.25)' }}>
+                    {PROJECT_COLORS.map(c => <button key={c} onClick={() => { setSelectedColor(c); setShowColorPicker(false) }} style={{ width:24, height:24, borderRadius:6, background:c, border:selectedColor === c ? '2px solid var(--text)' : '2px solid transparent', cursor:'pointer' }} type="button" />)}
                   </div>
                 )}
               </div>
-
               <div style={{ flex:1 }}>
-                <input
-                  className="npm-input"
-                  placeholder="Projektname"
-                  value={name}
-                  onChange={e => setName(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleCreate() } }}
-                  style={{ fontSize:22, fontWeight:700, letterSpacing:'-.3px', marginBottom:6, display:'block' }}
-                  autoFocus
-                />
-                <input
-                  className="npm-input"
-                  placeholder="Kurze Beschreibung hinzufügen…"
-                  value={summary}
-                  onChange={e => setSummary(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleCreate() } }}
-                  style={{ fontSize:14, color:'var(--text-muted)', fontWeight:400 }}
-                />
+                <input className="npm-input" placeholder="Projektname" value={name} onChange={e => setName(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleCreate() } }} style={{ fontSize:28, fontWeight:800, letterSpacing:'-.05em', marginBottom:7, display:'block' }} autoFocus />
+                <input className="npm-input" placeholder="Kurze Beschreibung hinzufügen…" value={summary} onChange={e => setSummary(e.target.value)} style={{ fontSize:15, color:'var(--text-muted)', fontWeight:600 }} />
               </div>
-
-              {/* Close */}
-              <button onClick={onClose} style={{ background:'none', border:'none', cursor:'pointer', color:'var(--text-muted)', padding:4, marginTop:-2, borderRadius:6, flexShrink:0 }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
-              </button>
             </div>
 
-            {/* Chips row */}
-            <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginTop:18, paddingBottom:18 }}>
-              <button className="npm-chip">
-                <span style={{ width:8, height:8, borderRadius:'50%', background:'var(--text-muted)', flexShrink:0 }}/>
-                <select value={status} onChange={e => setStatus(e.target.value)}>
-                  {STATUS_OPTIONS.map(s => <option key={s}>{s}</option>)}
-                </select>
-              </button>
-
-              <button className="npm-chip">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M8 12h8M12 8l4 4-4 4"/></svg>
-                <select value={priority} onChange={e => setPriority(e.target.value)}>
-                  {PRIORITY_OPTIONS.map(p => <option key={p}>{p}</option>)}
-                </select>
-              </button>
-
-              <button className="npm-chip">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                Lead
-              </button>
-
-              <button className="npm-chip">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                Mitglieder
-              </button>
-
-              <label className="npm-chip" style={{ cursor:'pointer' }}>
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-                {startDate ? startDate : 'Start'}
-                <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)}
-                  style={{ position:'absolute', opacity:0, width:0, height:0, pointerEvents:'none' }}
-                  tabIndex={-1}
-                />
-              </label>
-
-              <label className="npm-chip" style={{ cursor:'pointer' }}>
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                {targetDate ? targetDate : 'Zieldatum'}
-                <input type="date" value={targetDate} onChange={e => setTargetDate(e.target.value)}
-                  style={{ position:'absolute', opacity:0, width:0, height:0, pointerEvents:'none' }}
-                  tabIndex={-1}
-                />
-              </label>
-
-              <button className="npm-chip">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
-                Labels
-              </button>
-            </div>
-          </div>
-
-          <div className="npm-divider"/>
-
-          {/* Description */}
-          <div style={{ padding:'20px 24px' }}>
-            <textarea
-              className="npm-input"
-              placeholder="Beschreibung, Projektbrief oder Ideen sammeln…"
-              value={description}
-              onChange={e => setDescription(e.target.value)}
-              rows={5}
-              style={{ fontSize:14, lineHeight:1.65, resize:'none', color:'var(--text-secondary)', fontWeight:400 }}
-            />
-          </div>
-
-          <div className="npm-divider"/>
-
-          {/* Milestones */}
-          <div style={{ padding:'16px 24px 20px' }}>
-            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:8 }}>
-              <span style={{ fontSize:13, fontWeight:600, color:'var(--text-secondary)' }}>Milestones</span>
-              <button onClick={() => setShowMilestoneInput(v => !v)}
-                style={{ width:22, height:22, borderRadius:6, background:'none', border:'1px solid var(--border)',
-                  display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', color:'var(--text-muted)' }}>
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
-              </button>
+            <div style={{ display:'flex', flexWrap:'wrap', gap:7, marginBottom:24 }}>
+              <button className="npm-chip" type="button"><span style={{ width:8, height:8, borderRadius:'50%', background:'var(--text-muted)' }} /><select value={status} onChange={e => setStatus(e.target.value)}>{STATUS_OPTIONS.map(s => <option key={s}>{s}</option>)}</select></button>
+              <button className="npm-chip" type="button"><select value={priority} onChange={e => setPriority(e.target.value)}>{PRIORITY_OPTIONS.map(p => <option key={p}>{p}</option>)}</select></button>
+              <button className="npm-chip" type="button">Lead</button>
+              <button className="npm-chip" type="button">Mitglieder</button>
+              <label className="npm-chip">{startDate || 'Start'}<input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} style={{ position:'absolute', opacity:0, width:0, height:0 }} tabIndex={-1} /></label>
+              <label className="npm-chip">{targetDate || 'Zieldatum'}<input type="date" value={targetDate} onChange={e => setTargetDate(e.target.value)} style={{ position:'absolute', opacity:0, width:0, height:0 }} tabIndex={-1} /></label>
+              <button className="npm-chip" type="button">Labels</button>
+              <button className="npm-chip" type="button">Dependencies</button>
             </div>
 
+            <div className="npm-form-divider" />
+            <textarea className="npm-input" placeholder="Beschreibung, Projektbrief oder Ideen sammeln…" value={description} onChange={e => setDescription(e.target.value)} rows={8} style={{ fontSize:16, lineHeight:1.7, resize:'none', color:'var(--text-secondary)', fontWeight:600, marginBottom:26 }} />
+
+            <div style={{ border:'1px solid var(--border)', borderRadius:14, padding:'13px 15px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:12 }}>
+              <span style={{ fontSize:14, fontWeight:800, color:'var(--text-secondary)' }}>Milestones</span>
+              <button onClick={() => setShowMilestoneInput(v => !v)} style={{ width:26, height:26, borderRadius:8, background:'none', border:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', color:'var(--text-muted)' }} type="button">+</button>
+            </div>
             {milestones.map((ms, i) => (
-              <div key={i} className="npm-milestone-row">
-                <span style={{ width:6, height:6, borderRadius:'50%', background:selectedColor, flexShrink:0 }}/>
-                <span style={{ fontSize:13, color:'var(--text-secondary)', flex:1 }}>{ms.label}</span>
-                <button className="npm-ms-del" onClick={() => setMilestones(m => m.filter((_,j) => j !== i))}>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
-                </button>
-              </div>
+              <div key={i} className="npm-milestone-row"><span style={{ width:6, height:6, borderRadius:'50%', background:selectedColor }} /><span style={{ fontSize:13, color:'var(--text-secondary)', flex:1 }}>{ms.label}</span><button className="npm-ms-del" onClick={() => setMilestones(m => m.filter((_, j) => j !== i))} type="button">×</button></div>
             ))}
-
             {showMilestoneInput && (
-              <div style={{ display:'flex', gap:8, marginTop:6 }}>
-                <input
-                  className="npm-input"
-                  autoFocus
-                  placeholder="Milestone Name…"
-                  value={newMilestoneLabel}
-                  onChange={e => setNewMilestoneLabel(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter') addMilestone(); if (e.key === 'Escape') setShowMilestoneInput(false) }}
-                  style={{ flex:1, fontSize:13, background:'var(--surface)', border:'1px solid var(--border)', borderRadius:8, padding:'6px 10px' }}
-                />
-                <button onClick={addMilestone}
-                  style={{ padding:'6px 14px', background:'var(--btn-prim)', color:'var(--btn-prim-text)', border:'none', borderRadius:8, fontSize:12, fontWeight:600, cursor:'pointer', fontFamily:'inherit' }}>
-                  Add
-                </button>
+              <div style={{ display:'flex', gap:8, marginTop:10 }}>
+                <input className="npm-input" autoFocus placeholder="Milestone Name…" value={newMilestoneLabel} onChange={e => setNewMilestoneLabel(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') addMilestone(); if (e.key === 'Escape') setShowMilestoneInput(false) }} style={{ flex:1, fontSize:13, background:'var(--surface)', border:'1px solid var(--border)', borderRadius:10, padding:'8px 10px' }} />
+                <button onClick={addMilestone} style={{ padding:'8px 14px', background:'var(--btn-prim)', color:'var(--btn-prim-text)', border:'none', borderRadius:10, fontSize:12, fontWeight:800, cursor:'pointer', fontFamily:'inherit' }} type="button">Add</button>
               </div>
             )}
 
-            {milestones.length === 0 && !showMilestoneInput && (
-              <p style={{ fontSize:12, color:'var(--text-muted)', margin:0 }}>Noch keine Milestones</p>
-            )}
+            <div style={{ display:'flex', justifyContent:'flex-end', gap:10, marginTop:28 }}>
+              <button onClick={onClose} className="npm-ghost-btn" type="button">Abbrechen</button>
+              <button onClick={handleCreate} disabled={!name.trim() || creating} style={{ height:38, padding:'0 18px', background:name.trim() ? selectedColor : 'var(--surface)', color:name.trim() ? '#fff' : 'var(--text-muted)', border:'none', borderRadius:12, fontSize:13, fontWeight:800, cursor:name.trim() ? 'pointer' : 'default', fontFamily:'inherit', opacity:creating ? .72 : 1 }} type="button">
+                {creating ? 'Erstelle…' : 'Projekt erstellen'}
+              </button>
+            </div>
           </div>
-
-          <div className="npm-divider"/>
-
-          {/* Footer */}
-          <div style={{ padding:'16px 24px', display:'flex', justifyContent:'flex-end', gap:10 }}>
-            <button onClick={onClose}
-              style={{ padding:'8px 18px', background:'none', border:'1px solid var(--border)', borderRadius:8,
-                color:'var(--text-secondary)', fontSize:13, fontWeight:600, cursor:'pointer', fontFamily:'inherit' }}>
-              Abbrechen
-            </button>
-            <button onClick={handleCreate} disabled={!name.trim() || creating}
-              style={{
-                padding:'8px 20px',
-                background: name.trim() ? selectedColor : 'var(--surface)',
-                color: name.trim() ? '#fff' : 'var(--text-muted)',
-                border:'none', borderRadius:8, fontSize:13, fontWeight:700,
-                cursor: name.trim() ? 'pointer' : 'default',
-                fontFamily:'inherit', transition:'all .15s',
-                opacity: creating ? .7 : 1,
-              }}>
-              {creating ? 'Erstelle…' : 'Projekt erstellen'}
-            </button>
-          </div>
-
         </div>
-      </div>
-    </>
+      )}
+    </div>
   )
 }

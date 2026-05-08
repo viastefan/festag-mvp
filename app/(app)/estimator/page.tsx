@@ -362,7 +362,7 @@ export default function EstimatorPage() {
                 <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)', margin: '0 0 4px' }}>Bereit dein Projekt zu starten?</p>
                 <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: 0 }}>Tagro begleitet dich durch den gesamten Entwicklungsprozess.</p>
               </div>
-              <Link href="/onboarding" style={{ textDecoration: 'none', flexShrink: 0 }}>
+              <Link href="/projects?new=1" style={{ textDecoration: 'none', flexShrink: 0 }}>
                 <button className="tap-scale" style={{ height: 42, padding: '0 20px', background: 'var(--btn-prim)', color: 'var(--btn-prim-text)', border: 'none', borderRadius: 12, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
                   Projekt starten →
                 </button>

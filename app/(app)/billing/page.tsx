@@ -58,7 +58,7 @@ export default function BillingPage() {
         {quotes.length === 0 ? (
           <div style={{ background:'var(--surface)', border:'1px solid var(--border)', borderRadius:'var(--r-lg)', padding:'48px 24px', textAlign:'center' }}>
             <p style={{ fontSize:14, color:'var(--text-muted)', margin:'0 0 14px' }}>Noch keine abgeschlossenen Projekte</p>
-            <Link href="/onboarding">
+            <Link href="/projects?new=1">
               <button className="tap-scale" style={{ padding:'10px 20px', background:'var(--accent)', color:'var(--accent-text)', border:'none', borderRadius:'var(--r-sm)', fontSize:13, fontWeight:600, cursor:'pointer' }}>Projekt starten →</button>
             </Link>
           </div>

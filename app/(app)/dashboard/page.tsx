@@ -385,7 +385,7 @@ export default function DashboardPage() {
             <div>
               <p className="dash-label">Schnellzugriff</p>
               {[
-                { href:'/onboarding', label:'Neues Projekt mit AI' },
+                { href:'/projects?new=1', label:'Neues Projekt mit AI' },
                 { href:'/estimator',  label:'Preisschätzer'        },
                 { href:'/addons',     label:'Add-Ons'              },
                 { href:'/messages',   label:'Nachrichten'          },

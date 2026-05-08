@@ -632,7 +632,7 @@ export default function Sidebar() {
                         )
                       })}
 
-                      <Link href="/onboarding" className="proj-row proj-new">
+                      <Link href="/projects?new=1" className="proj-row proj-new">
                         <span style={{
                           width:11, height:11, borderRadius:3,
                           border:'1px dashed var(--text-muted)',

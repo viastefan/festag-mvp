@@ -2,7 +2,9 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import NewProjectModal from '@/components/NewProjectModal'
 import {
   Cube,
   FunnelSimple,
@@ -100,6 +102,8 @@ export default function ProjectsPage() {
   const [projects, setProjects] = useState<ProjectRow[]>([])
   const [tasks, setTasks] = useState<TaskRow[]>([])
   const [loading, setLoading] = useState(true)
+  const [showNewProject, setShowNewProject] = useState(false)
+  const searchParams = useSearchParams()
   const supabase = createClient()
 
   async function loadProjects() {
@@ -133,6 +137,10 @@ export default function ProjectsPage() {
       supabase.removeChannel(channel)
     }
   }, [])
+
+  useEffect(() => {
+    if (searchParams.get('new') === '1') setShowNewProject(true)
+  }, [searchParams])
 
   const activeProject = useMemo(() => {
     const order: Record<string, number> = { active: 0, testing: 1, planning: 2, intake: 3, done: 4, completed: 4 }
@@ -333,9 +341,9 @@ export default function ProjectsPage() {
 
       <div className="projects-top">
         <h1 className="projects-title">Projekte</h1>
-        <Link className="projects-plus" href="/onboarding" aria-label="Neues Projekt erstellen">
+        <button className="projects-plus" type="button" onClick={() => setShowNewProject(true)} aria-label="Neues Projekt erstellen">
           <Plus size={18} weight="regular" />
-        </Link>
+        </button>
       </div>
 
       <div className="projects-toolbar">
@@ -399,6 +407,15 @@ export default function ProjectsPage() {
           )
         })}
       </div>
+      {showNewProject && (
+        <NewProjectModal
+          onClose={() => setShowNewProject(false)}
+          onCreated={(id) => {
+            setShowNewProject(false)
+            window.location.href = `/project/${id}`
+          }}
+        />
+      )}
     </div>
   )
 }

@@ -48,7 +48,7 @@ const STATIC_COMMANDS: Cmd[] = [
   { id:'nav-settings', group:'Navigation', label:'Einstellungen',              href:'/settings',           Icon: GearSix },
 
   // Aktionen
-  { id:'act-new-proj', group:'Aktionen',   label:'Neues Projekt anlegen', href:'/onboarding',        Icon: Plus,    keywords:['create','start'] },
+  { id:'act-new-proj', group:'Aktionen',   label:'Neues Projekt anlegen', href:'/projects?new=1',        Icon: Plus,    keywords:['create','start'] },
   { id:'act-invite',   group:'Aktionen',   label:'Mitglied einladen',     href:'/teams', Icon: Plus, keywords:['invite','seat','team'] },
 
   // Tagro hint (immer sichtbar wenn Query leer ist)
@@ -99,7 +99,7 @@ export default function CommandPalette() {
 
       // ⌘N → neues Projekt
       if (isMeta && e.key.toLowerCase() === 'n' && !e.shiftKey) {
-        e.preventDefault(); router.push('/onboarding'); return
+        e.preventDefault(); router.push('/projects?new=1'); return
       }
       // ⌘, → Einstellungen
       if (isMeta && e.key === ',') {

@@ -288,7 +288,6 @@ export default function LoginPage() {
   const [devUser, setDevUser] = useState(''); const [devPin, setDevPin] = useState('')
   const [error, setError] = useState(''); const [loading, setLoading] = useState(false)
   const [socLoad, setSocLoad] = useState<string|null>(null)
-  const [registeringSetup, setRegisteringSetup] = useState(false)
   const sb = createClient()
 
   function reset() { setError(''); setEmail(''); setPw(''); setPw2('') }
@@ -314,18 +313,16 @@ export default function LoginPage() {
     if (e) { setError(e.message); setLoading(false); return }
     await sb.auth.signInWithPassword({ email, password: pw })
     setLoading(false)
-    setRegisteringSetup(true)
     window.location.href = '/onboarding'
   }
 
   async function doSocial(provider: 'google'|'apple') {
     setSocLoad(provider)
-    if (view === 'register') setRegisteringSetup(true)
     const redirect = view === 'register'
       ? `${window.location.origin}/onboarding`
       : `${window.location.origin}/dashboard`
     const { error: e } = await sb.auth.signInWithOAuth({ provider, options: { redirectTo: redirect } })
-    if (e) { setError(e.message); setSocLoad(null); setRegisteringSetup(false) }
+    if (e) { setError(e.message); setSocLoad(null) }
   }
 
   async function doDev() {
@@ -401,7 +398,6 @@ export default function LoginPage() {
   return (
     <div style={{ minHeight: '100dvh', background: 'var(--bg)', fontFamily: "'Inter',sans-serif", WebkitFontSmoothing: 'antialiased', display: 'flex' }}>
       <style>{MOBILE_CSS}</style>
-      {registeringSetup && view === 'register' ? <RegistrationSetupOverlay /> : null}
       <ThemeToggle/>
       <div className="l-left"><ImagePanel view={view}/></div>
       <div className="l-right">
