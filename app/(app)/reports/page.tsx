@@ -7,10 +7,9 @@ import { createClient } from '@/lib/supabase/client'
 import { projectColor } from '@/components/Sidebar'
 import {
   Archive,
-  CaretDown,
+  ArrowRight,
   ChatCircleText,
   CheckCircle,
-  DotsThree,
   DownloadSimple,
   FunnelSimple,
   Lightbulb,
@@ -24,6 +23,15 @@ type Project = { id: string; title: string; status: string; description?: string
 type Report = { id: string; project_id: string; content: string; created_at: string; type?: string | null }
 type Period = 'today' | 'week' | 'month' | 'custom'
 type SuggestionKind = 'workspace' | 'team'
+type TaskStatus = 'open' | 'active' | 'waiting' | 'review' | 'checked' | 'done' | 'suggested' | 'blocked'
+type TaskRow = {
+  id: string
+  project_id: string
+  title: string
+  status?: string | null
+  priority?: string | null
+  updated_at?: string | null
+}
 type TaskSuggestion = {
   id: string
   title: string
@@ -31,6 +39,16 @@ type TaskSuggestion = {
   priority: 'critical' | 'high' | 'medium' | 'low'
   kind: SuggestionKind
   reason: string
+}
+
+type ProjectStatusRow = {
+  project: Project
+  progress: number
+  phase: string
+  latestReport: Report | null
+  blockerCount: number
+  decisionCount: number
+  taskCount: number
 }
 
 const PERIODS: { id: Period; label: string }[] = [
@@ -41,30 +59,27 @@ const PERIODS: { id: Period; label: string }[] = [
 ]
 
 const FALLBACK_REPORT = `## Zusammenfassung
-Tagro hat den aktuellen Projektstand zusammengefasst und in eine clientfreundliche Lageübersicht übersetzt.
+Für dieses Projekt wurde noch kein Statusbericht generiert. Festag nutzt Statusberichte als Übersetzungsschicht zwischen laufender Dev-Arbeit und Client-Verständnis.
 
 ## Was wurde erledigt
-- Erste Projektstruktur wurde angelegt.
-- Aktuelle Tasks wurden für die Auswertung berücksichtigt.
+- Noch kein abgeschlossener Bericht vorhanden.
 
 ## Was ist in Arbeit
-- Die nächsten Umsetzungsschritte werden vorbereitet.
-- Offene Punkte werden nach Projektkontext priorisiert.
+- Sobald Projektfortschritt, Aufgaben oder Updates vorliegen, kann Tagro daraus einen verständlichen Bericht erzeugen.
 
 ## Blocker / Risiken
-- Keine kritischen Blocker erkannt.
+- Noch keine Risiken erfasst.
 
 ## Nächste Schritte
-1. Nächsten Umsetzungsschritt bestätigen.
-2. Offene Rückfragen prüfen.
-3. Task-Vorschläge bei Bedarf zur Prüfung einreichen.
+1. Projekt auswählen.
+2. Zeitraum wählen.
+3. Statusbericht generieren.
 
 ## Entscheidungen vom Client benötigt
-- Aktuell keine zwingende Entscheidung erforderlich.
+- Aktuell keine Entscheidung erfasst.
 
 ## Mögliche neue Tasks
-- Inhalte finalisieren
-- Technische Prüfung vorbereiten
+- Task-Vorschläge entstehen erst nach Berichtsanalyse.
 
 ## Von Tagro empfohlene Priorität
 Mittel`
@@ -83,15 +98,35 @@ function priorityColor(priority: TaskSuggestion['priority']) {
   return '#f59e0b'
 }
 
-function dateLabel(value?: string | null) {
-  if (!value) return 'Neu'
+function dateLabel(value?: string | null, fallback = 'Noch kein Bericht') {
+  if (!value) return fallback
   return new Intl.DateTimeFormat('de-DE', {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
   }).format(new Date(value))
+}
+
+function projectPhaseLabel(status?: string | null) {
+  const normalized = String(status ?? '').toLowerCase()
+  if (['planning', 'intake', 'new'].includes(normalized)) return 'Planung'
+  if (['active', 'in_progress', 'doing'].includes(normalized)) return 'In Umsetzung'
+  if (['review', 'testing'].includes(normalized)) return 'Prüfung'
+  if (['delivery', 'ready'].includes(normalized)) return 'Übergabe'
+  if (['done', 'completed'].includes(normalized)) return 'Erledigt'
+  return 'Intake'
+}
+
+function normalizeTaskStatus(status?: string | null): TaskStatus {
+  const normalized = String(status ?? '').toLowerCase()
+  if (['done', 'completed', 'delivered'].includes(normalized)) return 'done'
+  if (['checked', 'verified', 'festag_checked'].includes(normalized)) return 'checked'
+  if (['review', 'ready_for_review', 'in_review'].includes(normalized)) return 'review'
+  if (['waiting', 'needs_decision', 'decision_required'].includes(normalized)) return 'waiting'
+  if (['blocked', 'risk'].includes(normalized)) return 'blocked'
+  if (['doing', 'active', 'in_progress'].includes(normalized)) return 'active'
+  if (['suggested', 'proposed'].includes(normalized)) return 'suggested'
+  return 'open'
 }
 
 function deriveReportSections(content: string) {
@@ -99,7 +134,7 @@ function deriveReportSections(content: string) {
   const decision = /entscheidung|freigabe|bestätig|client|kunde|auswahl/i.test(content)
   return {
     blockers: blocker
-      ? ['Tagro hat mögliche Abhängigkeiten oder Risiken im Bericht erkannt.']
+      ? ['Mögliche Abhängigkeiten oder Risiken wurden im Bericht erkannt.']
       : ['Keine kritischen Blocker im aktuellen Bericht erkannt.'],
     decisions: decision
       ? ['Eine Client-Entscheidung oder Freigabe könnte erforderlich sein.']
@@ -112,18 +147,18 @@ function fallbackSuggestions(projectName: string): TaskSuggestion[] {
     {
       id: 'scope-check',
       title: 'Scope nach Statusbericht prüfen',
-      description: `Tagro schlägt vor, den aktuellen Scope von ${projectName} gegen die nächsten Schritte zu prüfen.`,
+      description: `Den aktuellen Scope von ${projectName} gegen Blocker, Entscheidungen und nächste Schritte prüfen.`,
       priority: 'medium',
       kind: 'workspace',
-      reason: 'Statusberichte erzeugen erst Vorschläge. Festag/Lead prüft, ob daraus ein echter Workspace-Task wird.',
+      reason: 'Statusberichte erzeugen zuerst Vorschläge. Owner/Lead/Festag prüft, ob daraus ein echter Task wird.',
     },
     {
       id: 'handoff-prepare',
       title: 'Team-Handoff vorbereiten',
-      description: 'Falls ein Team beteiligt ist, kann Tagro daraus technische Teilaufgaben ableiten.',
+      description: 'Falls operative Umsetzung nötig ist, kann Tagro daraus technische Team-Tasks ableiten.',
       priority: 'high',
       kind: 'team',
-      reason: 'Workspace-Task kann später in operative Team-Tasks zerlegt werden.',
+      reason: 'Workspace Tasks strukturieren. Team Tasks setzen operativ um.',
     },
   ]
 }
@@ -132,6 +167,7 @@ export default function ReportsPage() {
   const supabase = createClient()
   const [projects, setProjects] = useState<Project[]>([])
   const [reports, setReports] = useState<Report[]>([])
+  const [tasks, setTasks] = useState<TaskRow[]>([])
   const [selectedProjectId, setSelectedProjectId] = useState<string>('all')
   const [selectedReportId, setSelectedReportId] = useState<string | null>(null)
   const [period, setPeriod] = useState<Period>('week')
@@ -140,7 +176,6 @@ export default function ReportsPage() {
   const [extracting, setExtracting] = useState(false)
   const [taskSuggestions, setTaskSuggestions] = useState<TaskSuggestion[]>([])
   const [savingSuggestionId, setSavingSuggestionId] = useState<string | null>(null)
-  const [actionMenuId, setActionMenuId] = useState<string | null>(null)
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data }) => {
@@ -149,61 +184,90 @@ export default function ReportsPage() {
         return
       }
 
-      const [{ data: projectRows }, { data: reportRows }] = await Promise.all([
+      const [{ data: projectRows }, { data: reportRows }, { data: taskRows }] = await Promise.all([
         (supabase as any).from('projects').select('id,title,status,description,color').order('created_at', { ascending: false }),
         (supabase as any).from('ai_updates').select('*').eq('type', 'status_report').order('created_at', { ascending: false }).limit(80),
+        (supabase as any).from('tasks').select('id,project_id,title,status,priority,updated_at').order('updated_at', { ascending: false }),
       ])
 
       const list = (projectRows as Project[]) ?? []
       setProjects(list)
       setReports((reportRows as Report[]) ?? [])
+      setTasks((taskRows as TaskRow[]) ?? [])
       if (list.length === 1) setSelectedProjectId(list[0].id)
       setLoading(false)
     })
   }, [])
 
-  const selectedProject = useMemo(() => {
-    if (selectedProjectId === 'all') return null
-    return projects.find((project) => project.id === selectedProjectId) ?? null
-  }, [projects, selectedProjectId])
+  const projectStatusRows = useMemo<ProjectStatusRow[]>(() => {
+    return projects.map((project) => {
+      const projectTasks = tasks.filter((task) => task.project_id === project.id)
+      const projectReports = reports.filter((report) => report.project_id === project.id)
+      const latestReport = projectReports[0] ?? null
+      const doneCount = projectTasks.filter((task) => ['done', 'checked'].includes(normalizeTaskStatus(task.status))).length
+      const progress = projectTasks.length ? Math.round((doneCount / projectTasks.length) * 100) : 0
+      const blockerCount = projectTasks.filter((task) => ['blocked', 'waiting'].includes(normalizeTaskStatus(task.status))).length + (/blocker|risiko|wartet|kritisch/i.test(latestReport?.content ?? '') ? 1 : 0)
+      const decisionCount = projectTasks.filter((task) => normalizeTaskStatus(task.status) === 'waiting').length + (/entscheidung|freigabe|bestätig|kunde|client/i.test(latestReport?.content ?? '') ? 1 : 0)
 
-  const visibleReports = useMemo(() => {
-    if (selectedProjectId === 'all') return reports
-    return reports.filter((report) => report.project_id === selectedProjectId)
-  }, [reports, selectedProjectId])
+      return {
+        project,
+        progress,
+        phase: projectPhaseLabel(project.status),
+        latestReport,
+        blockerCount,
+        decisionCount,
+        taskCount: projectTasks.length,
+      }
+    })
+  }, [projects, reports, tasks])
+
+  const selectedProject = useMemo(() => {
+    if (selectedProjectId === 'all') return projectStatusRows[0]?.project ?? null
+    return projects.find((project) => project.id === selectedProjectId) ?? null
+  }, [projects, projectStatusRows, selectedProjectId])
+
+  const currentProject = selectedProject ?? projects[0] ?? null
+  const currentReports = useMemo(() => {
+    if (!currentProject) return []
+    return reports.filter((report) => report.project_id === currentProject.id)
+  }, [currentProject, reports])
 
   useEffect(() => {
-    if (!visibleReports.length) {
+    if (!currentReports.length) {
       setSelectedReportId(null)
       return
     }
-    if (!selectedReportId || !visibleReports.some((report) => report.id === selectedReportId)) {
-      setSelectedReportId(visibleReports[0].id)
+    if (!selectedReportId || !currentReports.some((report) => report.id === selectedReportId)) {
+      setSelectedReportId(currentReports[0].id)
     }
-  }, [visibleReports, selectedReportId])
+  }, [currentReports, selectedReportId])
 
-  const currentReport = visibleReports.find((report) => report.id === selectedReportId) ?? visibleReports[0] ?? null
-  const currentProject = selectedProject ?? projects.find((project) => project.id === currentReport?.project_id) ?? projects[0] ?? null
+  const currentReport = currentReports.find((report) => report.id === selectedReportId) ?? currentReports[0] ?? null
   const currentSections = deriveReportSections(currentReport?.content ?? FALLBACK_REPORT)
 
   useEffect(() => {
     if (currentProject) setTaskSuggestions(fallbackSuggestions(currentProject.title))
   }, [currentProject?.id])
 
+  function openProjectReport(row: ProjectStatusRow) {
+    setSelectedProjectId(row.project.id)
+    setSelectedReportId(row.latestReport?.id ?? null)
+    window.requestAnimationFrame(() => document.getElementById('aktueller-bericht')?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
+  }
+
   async function generateReport() {
     const project = currentProject
     if (!project) return
     setGenerating(true)
     try {
-      const { data: taskRows } = await (supabase as any).from('tasks').select('*').eq('project_id', project.id)
-      const tasks = (taskRows as any[]) ?? []
-      const done = tasks.filter((task) => ['done', 'completed', 'delivered'].includes(String(task.status).toLowerCase())).length
-      const active = tasks.filter((task) => ['doing', 'active', 'in_progress'].includes(String(task.status).toLowerCase())).length
-      const review = tasks.filter((task) => ['review', 'ready_for_review', 'suggested'].includes(String(task.status).toLowerCase())).length
-      const blocked = tasks.filter((task) => ['blocked', 'waiting', 'needs_decision'].includes(String(task.status).toLowerCase())).length
-      const progress = tasks.length ? Math.round((done / tasks.length) * 100) : 0
+      const projectTasks = tasks.filter((task) => task.project_id === project.id)
+      const done = projectTasks.filter((task) => normalizeTaskStatus(task.status) === 'done').length
+      const active = projectTasks.filter((task) => normalizeTaskStatus(task.status) === 'active').length
+      const review = projectTasks.filter((task) => normalizeTaskStatus(task.status) === 'review').length
+      const blocked = projectTasks.filter((task) => ['blocked', 'waiting'].includes(normalizeTaskStatus(task.status))).length
+      const progress = projectTasks.length ? Math.round((done / projectTasks.length) * 100) : 0
 
-      const prompt = `Projekt: ${project.title}\nZeitraum: ${PERIODS.find((item) => item.id === period)?.label}\nBeschreibung: ${project.description ?? 'Keine Beschreibung'}\nPhase: ${project.status}\nFortschritt: ${progress}%\nTasks: ${tasks.length} gesamt, ${done} erledigt, ${active} in Arbeit, ${review} in Prüfung, ${blocked} blockiert/wartend.\n\nTask-Auszug:\n${tasks.slice(0, 18).map((task) => `- [${task.status ?? 'todo'}] ${task.title}`).join('\n')}\n\nErstelle einen Festag-Statusbericht als Übersetzungsschicht zwischen Dev-Arbeit und Client-Verständnis.`
+      const prompt = `Projekt: ${project.title}\nZeitraum: ${PERIODS.find((item) => item.id === period)?.label}\nBeschreibung: ${project.description ?? 'Keine Beschreibung'}\nPhase: ${project.status}\nFortschritt: ${progress}%\nTasks: ${projectTasks.length} gesamt, ${done} erledigt, ${active} in Arbeit, ${review} in Prüfung, ${blocked} blockiert/wartend.\n\nTask-Auszug:\n${projectTasks.slice(0, 18).map((task) => `- [${task.status ?? 'todo'}] ${task.title}`).join('\n')}\n\nErstelle einen Festag-Statusbericht als Übersetzungsschicht zwischen Dev-Arbeit und Client-Verständnis.`
 
       const res = await fetch('/api/ai/chat', {
         method: 'POST',
@@ -245,12 +309,12 @@ export default function ReportsPage() {
         body: JSON.stringify({ reportId: report.id, projectId: report.project_id, content: report.content, autoInsert: false }),
       })
       const data = await res.json()
-      const tasks = (data.tasks as any[] | undefined) ?? []
-      if (tasks.length) {
-        setTaskSuggestions(tasks.map((task, index) => ({
+      const nextTasks = (data.tasks as any[] | undefined) ?? []
+      if (nextTasks.length) {
+        setTaskSuggestions(nextTasks.map((task, index) => ({
           id: `${report.id}-${index}`,
           title: task.title ?? 'Neuer Task-Vorschlag',
-          description: task.description ?? 'Tagro hat diesen möglichen Task aus dem Statusbericht erkannt.',
+          description: task.description ?? 'Dieser mögliche Task wurde aus dem Statusbericht erkannt.',
           priority: task.priority ?? 'medium',
           kind: 'workspace',
           reason: 'Aus Statusbericht erkannt. Wird nur als Vorschlag zur Prüfung eingereicht.',
@@ -302,7 +366,7 @@ export default function ReportsPage() {
       <style>{`
         .reports-os { color:var(--text); width:100%; min-height:100%; }
         .reports-hero { display:flex; align-items:flex-end; justify-content:space-between; gap:20px; padding:0 0 22px; }
-        .reports-hero h1 { margin:0; font-size:24px; line-height:1.06; letter-spacing:-.03em; font-weight:720; }
+        .reports-hero h1 { margin:0; font-size:25px; line-height:1.05; letter-spacing:-.035em; font-weight:740; }
         .reports-hero p { margin:7px 0 0; color:var(--text-secondary); font-size:13px; line-height:1.45; }
         .reports-controlbar { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px; border:1px solid var(--border); border-radius:16px; background:var(--surface); margin-bottom:14px; }
         .reports-controls { display:flex; align-items:center; gap:8px; min-width:0; flex-wrap:wrap; }
@@ -310,34 +374,51 @@ export default function ReportsPage() {
         .reports-period { color:var(--text-secondary); cursor:pointer; }
         .reports-period.on { background:var(--text); color:var(--bg); border-color:var(--text); }
         .reports-primary { background:var(--btn-prim); color:var(--btn-prim-text); border-color:transparent; cursor:pointer; display:flex; align-items:center; gap:7px; }
-        .reports-primary:disabled { opacity:.65; cursor:default; }
+        .reports-primary:disabled, .reports-ghost:disabled { opacity:.55; cursor:default; }
         .reports-ghost { color:var(--text-secondary); background:transparent; cursor:pointer; display:flex; align-items:center; gap:7px; }
-        .reports-grid { display:grid; grid-template-columns:240px minmax(0, 1fr) 300px; gap:14px; align-items:start; }
+        .reports-ghost:hover:not(:disabled) { background:var(--surface-2); color:var(--text); }
         .reports-panel { border:1px solid var(--border); border-radius:18px; background:var(--surface); overflow:hidden; }
-        .reports-panel-head { min-height:42px; display:flex; align-items:center; justify-content:space-between; padding:0 14px; border-bottom:1px solid color-mix(in srgb, var(--border) 70%, transparent); }
-        .reports-panel-head h2 { margin:0; font-size:12.5px; font-weight:720; letter-spacing:.01em; }
-        .report-list { padding:6px; display:flex; flex-direction:column; gap:4px; }
-        .report-list-row { border:0; width:100%; text-align:left; border-radius:12px; background:transparent; color:var(--text-secondary); padding:10px; cursor:pointer; font:inherit; display:flex; gap:9px; }
-        .report-list-row:hover, .report-list-row.on { background:var(--surface-2); color:var(--text); }
-        .report-list-dot { width:8px; height:8px; border-radius:50%; margin-top:5px; flex-shrink:0; }
-        .report-list-row strong { display:block; font-size:12.5px; line-height:1.25; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-        .report-list-row span { display:block; font-size:10.5px; color:var(--text-muted); margin-top:3px; }
+        .reports-panel-head { min-height:42px; display:flex; align-items:center; justify-content:space-between; gap:12px; padding:0 14px; border-bottom:1px solid color-mix(in srgb, var(--border) 66%, transparent); }
+        .reports-panel-head h2 { margin:0; font-size:12.5px; font-weight:740; letter-spacing:.01em; }
+        .project-status-panel { margin-bottom:14px; }
+        .project-status-table { width:100%; border-collapse:collapse; table-layout:fixed; }
+        .project-status-table th { height:36px; color:var(--text-muted); font-size:11px; font-weight:760; text-transform:uppercase; letter-spacing:.055em; text-align:left; padding:0 14px; border-bottom:1px solid color-mix(in srgb, var(--border) 60%, transparent); }
+        .project-status-table td { height:58px; padding:0 14px; border-bottom:1px solid color-mix(in srgb, var(--border) 45%, transparent); font-size:12.5px; color:var(--text-secondary); vertical-align:middle; }
+        .project-status-table tr:last-child td { border-bottom:0; }
+        .project-status-table tbody tr { cursor:pointer; }
+        .project-status-table tbody tr:hover { background:var(--surface-2); }
+        .project-title-cell { display:flex; align-items:center; gap:9px; min-width:0; color:var(--text); font-weight:720; }
+        .project-dot { width:8px; height:8px; border-radius:50%; flex:0 0 auto; }
+        .project-name-wrap { min-width:0; }
+        .project-name-wrap strong { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .project-name-wrap span { display:block; color:var(--text-muted); font-size:11px; font-weight:620; margin-top:2px; }
+        .progress-cell { display:flex; align-items:center; gap:8px; color:var(--text); font-weight:700; }
+        .progress-track { width:84px; height:5px; border-radius:999px; background:var(--surface-2); overflow:hidden; }
+        .progress-fill { height:100%; border-radius:inherit; background:var(--accent); }
+        .count-pill { min-width:24px; height:24px; display:inline-flex; align-items:center; justify-content:center; border-radius:999px; background:var(--surface-2); color:var(--text); font-size:11.5px; font-weight:760; }
+        .open-report { height:28px; border:1px solid var(--border); border-radius:9px; background:var(--card); color:var(--text); font:inherit; font-size:11.5px; font-weight:740; padding:0 9px; display:inline-flex; align-items:center; gap:6px; cursor:pointer; white-space:nowrap; }
+        .open-report:hover { background:var(--text); color:var(--bg); }
+        .reports-detail-grid { display:grid; grid-template-columns:minmax(0, 1fr) 320px; gap:14px; align-items:start; }
         .report-main { min-height:620px; }
-        .report-body { padding:24px 28px 34px; font-size:14px; line-height:1.75; color:var(--text-secondary); }
+        .report-meta { display:flex; align-items:center; gap:8px; min-width:0; }
+        .report-meta-title { display:flex; align-items:center; gap:8px; min-width:0; }
+        .report-meta-title span { width:9px; height:9px; border-radius:50%; flex:0 0 auto; }
+        .report-meta-title strong { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .report-actions { display:flex; align-items:center; gap:6px; flex-wrap:wrap; justify-content:flex-end; }
+        .report-body { padding:24px 28px 30px; font-size:14px; line-height:1.76; color:var(--text-secondary); }
         .report-body h1, .report-body h2, .report-body h3 { color:var(--text); letter-spacing:-.02em; }
         .report-body h2 { font-size:17px; margin:24px 0 8px; }
         .report-body p { margin:0 0 12px; }
         .report-body ul, .report-body ol { padding-left:20px; }
-        .report-meta { display:flex; align-items:center; gap:8px; min-width:0; }
-        .report-actions { display:flex; align-items:center; gap:6px; position:relative; }
-        .report-action-menu { position:absolute; top:34px; right:0; z-index:30; width:210px; padding:6px; border:1px solid var(--border); border-radius:13px; background:var(--surface); box-shadow:0 18px 44px rgba(0,0,0,.16); }
-        .report-action-menu button { width:100%; height:31px; border:0; border-radius:9px; background:transparent; color:var(--text-secondary); font:inherit; font-size:12px; font-weight:650; display:flex; align-items:center; gap:8px; padding:0 9px; cursor:pointer; }
-        .report-action-menu button:hover { background:var(--surface-2); color:var(--text); }
+        .report-history { padding:0 14px 14px; display:flex; flex-wrap:wrap; gap:7px; }
+        .history-chip { height:28px; border-radius:999px; border:1px solid var(--border); background:var(--card); color:var(--text-secondary); font:inherit; font-size:11.5px; font-weight:700; padding:0 10px; cursor:pointer; }
+        .history-chip.on, .history-chip:hover { background:var(--surface-2); color:var(--text); }
         .insight-list { padding:10px; display:flex; flex-direction:column; gap:10px; }
         .insight-block { border:1px solid var(--border); border-radius:14px; background:var(--card); padding:12px; }
-        .insight-label { display:flex; align-items:center; gap:7px; color:var(--text-muted); font-size:11px; font-weight:760; letter-spacing:.06em; text-transform:uppercase; margin-bottom:8px; }
+        .insight-label { display:flex; align-items:center; gap:7px; color:var(--text-muted); font-size:11px; font-weight:760; letter-spacing:.055em; text-transform:uppercase; margin-bottom:8px; }
         .insight-row { display:flex; gap:9px; align-items:flex-start; color:var(--text-secondary); font-size:12.5px; line-height:1.45; padding:5px 0; }
         .suggestion-row { border:1px solid var(--border); border-radius:13px; padding:11px; background:var(--surface); display:flex; flex-direction:column; gap:8px; }
+        .suggestion-row + .suggestion-row { margin-top:8px; }
         .suggestion-top { display:flex; justify-content:space-between; gap:10px; align-items:flex-start; }
         .suggestion-title { margin:0; font-size:12.8px; line-height:1.3; color:var(--text); font-weight:720; }
         .suggestion-desc { margin:4px 0 0; color:var(--text-secondary); font-size:11.8px; line-height:1.45; }
@@ -345,10 +426,11 @@ export default function ReportsPage() {
         .suggestion-kind { color:var(--text-muted); font-size:11px; font-weight:680; }
         .suggestion-action { height:28px; border-radius:8px; border:1px solid var(--border); background:var(--card); color:var(--text); font:inherit; font-size:11.5px; font-weight:700; cursor:pointer; }
         .suggestion-action:hover { background:var(--surface-2); }
+        .side-action { width:100%; justify-content:flex-start; margin-top:7px; }
         .report-empty { padding:72px 22px; text-align:center; color:var(--text-muted); }
         .report-empty strong { display:block; color:var(--text); font-size:15px; margin-bottom:5px; }
-        @media(max-width:1180px) { .reports-grid { grid-template-columns:210px minmax(0, 1fr); } .reports-side { grid-column:1 / -1; } }
-        @media(max-width:820px) { .reports-hero, .reports-controlbar { align-items:stretch; flex-direction:column; } .reports-grid { grid-template-columns:1fr; } .reports-panel { border-radius:14px; } .report-body { padding:20px; } }
+        @media(max-width:1180px) { .reports-detail-grid { grid-template-columns:1fr; } .project-status-table { min-width:860px; } .project-status-scroll { overflow-x:auto; } }
+        @media(max-width:820px) { .reports-hero, .reports-controlbar { align-items:stretch; flex-direction:column; } .reports-panel { border-radius:14px; } .report-body { padding:20px; } .project-status-panel { overflow:hidden; } }
       `}</style>
 
       <header className="reports-hero">
@@ -358,7 +440,7 @@ export default function ReportsPage() {
         </div>
         <button className="reports-primary" type="button" onClick={generateReport} disabled={!currentProject || generating}>
           <MagicWand size={15} weight="bold" />
-          {generating ? 'Tagro generiert…' : 'Statusbericht generieren'}
+          {generating ? 'Bericht wird generiert…' : 'Statusbericht generieren'}
         </button>
       </header>
 
@@ -376,81 +458,112 @@ export default function ReportsPage() {
         </div>
         <button className="reports-ghost" type="button" onClick={extractTaskSuggestions} disabled={!currentReport || extracting}>
           <Lightbulb size={15} />
-          {extracting ? 'Tagro erkennt…' : 'Task-Vorschläge erkennen'}
+          {extracting ? 'Vorschläge werden erkannt…' : 'Task-Vorschläge prüfen'}
         </button>
       </section>
 
-      <main className="reports-grid">
-        <aside className="reports-panel">
-          <div className="reports-panel-head">
-            <h2>Bisherige Berichte</h2>
-            <FunnelSimple size={14} color="var(--text-muted)" />
-          </div>
-          <div className="report-list">
-            {visibleReports.length === 0 ? (
-              <div className="report-empty" style={{ padding: 28 }}>
-                <strong>Noch keine Berichte</strong>
-                <span>Generiere den ersten Tagro-Status.</span>
-              </div>
-            ) : visibleReports.map((report, index) => {
-              const project = projects.find((item) => item.id === report.project_id)
-              const color = projectColor(report.project_id, project?.color)
-              return (
-                <button
-                  key={report.id}
-                  className={`report-list-row${report.id === currentReport?.id ? ' on' : ''}`}
-                  type="button"
-                  onClick={() => setSelectedReportId(report.id)}
-                >
-                  <span className="report-list-dot" style={{ background: color }} />
-                  <span style={{ minWidth: 0 }}>
-                    <strong>{project?.title ?? 'Projekt'}</strong>
-                    <span>{dateLabel(report.created_at)}</span>
-                  </span>
-                </button>
-              )
-            })}
-          </div>
-        </aside>
+      <section className="reports-panel project-status-panel" aria-label="Projekt Status Liste">
+        <div className="reports-panel-head">
+          <h2>Projekt-Status</h2>
+          <SlidersHorizontal size={14} color="var(--text-muted)" />
+        </div>
+        <div className="project-status-scroll">
+          <table className="project-status-table">
+            <thead>
+              <tr>
+                <th style={{ width: '34%' }}>Projekt</th>
+                <th>Fortschritt</th>
+                <th>Phase</th>
+                <th>Letzter Bericht</th>
+                <th>Blocker</th>
+                <th>Entscheidungen</th>
+                <th style={{ width: 132 }}>Aktion</th>
+              </tr>
+            </thead>
+            <tbody>
+              {projectStatusRows.length === 0 ? (
+                <tr>
+                  <td colSpan={7}>
+                    <div className="report-empty" style={{ padding: 36 }}>
+                      <strong>Noch keine Projekte</strong>
+                      <span>Sobald Projekte existieren, werden sie hier als Status-Zentrale angezeigt.</span>
+                    </div>
+                  </td>
+                </tr>
+              ) : projectStatusRows.map((row) => {
+                const color = projectColor(row.project.id, row.project.color)
+                return (
+                  <tr key={row.project.id} onClick={() => openProjectReport(row)}>
+                    <td>
+                      <div className="project-title-cell">
+                        <span className="project-dot" style={{ background: color }} />
+                        <div className="project-name-wrap">
+                          <strong>{row.project.title}</strong>
+                          <span>{row.taskCount} Tasks im Workspace</span>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <div className="progress-cell">
+                        <div className="progress-track"><div className="progress-fill" style={{ width: `${row.progress}%`, background: color }} /></div>
+                        {row.progress}%
+                      </div>
+                    </td>
+                    <td>{row.phase}</td>
+                    <td>{dateLabel(row.latestReport?.created_at)}</td>
+                    <td><span className="count-pill">{row.blockerCount}</span></td>
+                    <td><span className="count-pill">{row.decisionCount}</span></td>
+                    <td>
+                      <button className="open-report" type="button" onClick={(event) => { event.stopPropagation(); openProjectReport(row) }}>
+                        Bericht öffnen <ArrowRight size={13} />
+                      </button>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      </section>
 
-        <section className="reports-panel report-main">
+      <main className="reports-detail-grid">
+        <section className="reports-panel report-main" id="aktueller-bericht">
           <div className="reports-panel-head">
-            <div className="report-meta">
-              <span style={{ width: 9, height: 9, borderRadius: '50%', background: currentProject ? projectColor(currentProject.id, currentProject.color) : 'var(--text-muted)' }} />
-              <h2>{currentProject?.title ?? 'Aktueller Bericht'}</h2>
-              <span style={{ color: 'var(--text-muted)', fontSize: 11.5 }}>{currentReport ? dateLabel(currentReport.created_at) : 'Noch nicht generiert'}</span>
+            <div className="report-meta-title">
+              <span style={{ background: currentProject ? projectColor(currentProject.id, currentProject.color) : 'var(--text-muted)' }} />
+              <strong>{currentProject?.title ?? 'Aktueller Bericht'}</strong>
+              <small style={{ color: 'var(--text-muted)', fontSize: 11.5 }}>{currentReport ? dateLabel(currentReport.created_at) : 'Noch nicht generiert'}</small>
             </div>
             <div className="report-actions">
-              <button className="reports-ghost" type="button" onClick={generateReport} disabled={!currentProject || generating} title="Neu generieren">
+              <button className="reports-ghost" type="button" onClick={generateReport} disabled={!currentProject || generating}>
                 <MagicWand size={14} /> Neu generieren
               </button>
-              <button className="reports-ghost" type="button" onClick={() => currentReport && exportReport(currentReport)} disabled={!currentReport} title="PDF Export vorbereiten">
-                <DownloadSimple size={14} /> PDF
+              <button className="reports-ghost" type="button" onClick={() => currentReport && exportReport(currentReport)} disabled={!currentReport}>
+                <DownloadSimple size={14} /> PDF vorbereiten
               </button>
-              <button className="reports-ghost" type="button" onClick={() => currentReport && navigator.clipboard.writeText(currentReport.content)} disabled={!currentReport}>
-                <PaperPlaneTilt size={14} /> Teilen
-              </button>
-              <button className="reports-ghost" type="button" aria-label="Weitere Aktionen" onClick={() => setActionMenuId(actionMenuId ? null : (currentReport?.id ?? 'new'))}>
-                <DotsThree size={16} weight="bold" />
-              </button>
-              {actionMenuId && (
-                <div className="report-action-menu">
-                  <button type="button" onClick={extractTaskSuggestions}><Lightbulb size={14} />Task-Vorschläge anzeigen</button>
-                  <button type="button" onClick={() => window.dispatchEvent(new CustomEvent('open-copilot'))}><ChatCircleText size={14} />Entscheidung markieren</button>
-                  <button type="button"><Archive size={14} />Archivieren</button>
-                </div>
-              )}
+              <Link className="reports-ghost" href="/ai?view=chat" style={{ textDecoration: 'none' }}>
+                <ChatCircleText size={14} /> Mit Tagro sprechen
+              </Link>
             </div>
           </div>
           <article className="report-body">
-            {currentReport ? <ChatMarkdown text={currentReport.content} /> : <ChatMarkdown text={FALLBACK_REPORT} />}
+            <ChatMarkdown text={currentReport?.content ?? FALLBACK_REPORT} />
           </article>
+          {currentReports.length > 1 && (
+            <div className="report-history" aria-label="Berichtshistorie">
+              {currentReports.slice(0, 8).map((report) => (
+                <button key={report.id} className={`history-chip${report.id === currentReport?.id ? ' on' : ''}`} type="button" onClick={() => setSelectedReportId(report.id)}>
+                  {dateLabel(report.created_at)}
+                </button>
+              ))}
+            </div>
+          )}
         </section>
 
         <aside className="reports-panel reports-side">
           <div className="reports-panel-head">
-            <h2>Tagro Erkenntnisse</h2>
-            <SlidersHorizontal size={14} color="var(--text-muted)" />
+            <h2>Aus Bericht erkannt</h2>
+            <FunnelSimple size={14} color="var(--text-muted)" />
           </div>
           <div className="insight-list">
             <div className="insight-block">
@@ -466,7 +579,7 @@ export default function ReportsPage() {
                       </div>
                       <span className="suggestion-pill" style={{ color }}>{priorityLabel(task.priority)}</span>
                     </div>
-                    <div className="suggestion-kind">{task.kind === 'team' ? 'Team-Execution möglich' : 'Workspace-Task Vorschlag'}</div>
+                    <div className="suggestion-kind">{task.kind === 'team' ? 'Team-Execution möglich' : 'Workspace-Task Vorschlag'} · Status danach: Zur Prüfung</div>
                     <button className="suggestion-action" type="button" onClick={() => suggestTask(task)} disabled={savingSuggestionId === task.id}>
                       {savingSuggestionId === task.id ? 'Wird vorgeschlagen…' : 'Als Task vorschlagen'}
                     </button>
@@ -476,19 +589,28 @@ export default function ReportsPage() {
             </div>
 
             <div className="insight-block">
-              <div className="insight-label"><WarningCircle size={14} /> Blocker / Risiken</div>
-              {currentSections.blockers.map((item) => <div className="insight-row" key={item}><CaretDown size={12} style={{ marginTop: 2 }} />{item}</div>)}
-            </div>
-
-            <div className="insight-block">
               <div className="insight-label"><CheckCircle size={14} /> Offene Entscheidungen</div>
-              {currentSections.decisions.map((item) => <div className="insight-row" key={item}><CaretDown size={12} style={{ marginTop: 2 }} />{item}</div>)}
+              {currentSections.decisions.map((item) => <div className="insight-row" key={item}>{item}</div>)}
             </div>
 
             <div className="insight-block">
-              <div className="insight-label"><MagicWand size={14} /> Festag Logik</div>
+              <div className="insight-label"><WarningCircle size={14} /> Risiken</div>
+              {currentSections.blockers.map((item) => <div className="insight-row" key={item}>{item}</div>)}
+            </div>
+
+            <div className="insight-block">
+              <div className="insight-label"><MagicWand size={14} /> Aktionen</div>
+              <button className="reports-ghost side-action" type="button" onClick={generateReport} disabled={!currentProject || generating}>Statusbericht generieren</button>
+              <button className="reports-ghost side-action" type="button" onClick={extractTaskSuggestions} disabled={!currentReport || extracting}>Task-Vorschläge prüfen</button>
+              <button className="reports-ghost side-action" type="button" onClick={() => currentReport && navigator.clipboard.writeText(currentReport.content)} disabled={!currentReport}><PaperPlaneTilt size={14} /> Mit Team teilen</button>
+              <button className="reports-ghost side-action" type="button"><Archive size={14} /> Archivieren</button>
+              <button className="reports-ghost side-action" type="button" onClick={() => currentReport && exportReport(currentReport)} disabled={!currentReport}><DownloadSimple size={14} /> Export vorbereiten</button>
+            </div>
+
+            <div className="insight-block">
+              <div className="insight-label"><SlidersHorizontal size={14} /> Festag Architektur</div>
               <div className="insight-row">Statusberichte erkennen. Workspace Tasks strukturieren. Team Tasks setzen operativ um.</div>
-              <Link href="/tasks" style={{ color: 'var(--text)', fontSize: 12, fontWeight: 700, textDecoration: 'none' }}>Workspace Tasks öffnen →</Link>
+              <Link href="/tasks" style={{ color: 'var(--text)', fontSize: 12, fontWeight: 740, textDecoration: 'none' }}>Workspace Tasks öffnen →</Link>
             </div>
           </div>
         </aside>
