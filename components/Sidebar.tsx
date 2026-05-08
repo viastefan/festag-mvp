@@ -47,18 +47,17 @@ const CLIENT_TOP: NavItem[] = [
   { href:'/messages', icon:'inbox', label:'Inbox' },
 ]
 const CLIENT_CORE: NavItem[] = [
-  { href:'/tasks', icon:'task', label:'Aufgaben' },
+  { href:'/tasks', icon:'task', label:'Tasks' },
 ]
 const CLIENT_TEAMS: NavItem[] = [
   { href:'/teams?view=projects', icon:'project', label:'Projekte' },
-  { href:'/teams?view=tasks', icon:'task', label:'Aufgaben' },
+  { href:'/teams?view=tasks', icon:'task', label:'Tasks' },
   { href:'/teams?view=messages', icon:'chat', label:'Nachrichten' },
 ]
 const CLIENT_TAGRO: NavItem[] = [
-  { href:'/ai?view=reports', icon:'activity', label:'Statusberichte' },
-  { href:'/ai?view=tasks', icon:'task', label:'Tasks' },
-  { href:'/ai?view=notes', icon:'card', label:'Notizen' },
+  { href:'/reports', icon:'activity', label:'Statusberichte' },
   { href:'/ai?view=chat', icon:'chat', label:'Chat' },
+  { href:'/ai?view=notes', icon:'card', label:'Notizen' },
 ]
 const CLIENT_TOOLS: NavItem[] = [
   { href:'/estimator',  icon:'estimate', label:'Preisschätzer' },

@@ -1,287 +1,498 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import ChatMarkdown from '@/components/ChatMarkdown'
+import { createClient } from '@/lib/supabase/client'
 import { projectColor } from '@/components/Sidebar'
+import {
+  Archive,
+  CaretDown,
+  ChatCircleText,
+  CheckCircle,
+  DotsThree,
+  DownloadSimple,
+  FunnelSimple,
+  Lightbulb,
+  MagicWand,
+  PaperPlaneTilt,
+  SlidersHorizontal,
+  WarningCircle,
+} from '@phosphor-icons/react'
 
-type Project = { id: string; title: string; status: string; description?: string }
-type Report  = { id: string; project_id: string; content: string; created_at: string; type?: string }
+type Project = { id: string; title: string; status: string; description?: string | null; color?: string | null }
+type Report = { id: string; project_id: string; content: string; created_at: string; type?: string | null }
+type Period = 'today' | 'week' | 'month' | 'custom'
+type SuggestionKind = 'workspace' | 'team'
+type TaskSuggestion = {
+  id: string
+  title: string
+  description: string
+  priority: 'critical' | 'high' | 'medium' | 'low'
+  kind: SuggestionKind
+  reason: string
+}
+
+const PERIODS: { id: Period; label: string }[] = [
+  { id: 'today', label: 'Heute' },
+  { id: 'week', label: 'Woche' },
+  { id: 'month', label: 'Monat' },
+  { id: 'custom', label: 'Benutzerdefiniert' },
+]
+
+const FALLBACK_REPORT = `## Zusammenfassung
+Tagro hat den aktuellen Projektstand zusammengefasst und in eine clientfreundliche Lageübersicht übersetzt.
+
+## Was wurde erledigt
+- Erste Projektstruktur wurde angelegt.
+- Aktuelle Tasks wurden für die Auswertung berücksichtigt.
+
+## Was ist in Arbeit
+- Die nächsten Umsetzungsschritte werden vorbereitet.
+- Offene Punkte werden nach Projektkontext priorisiert.
+
+## Blocker / Risiken
+- Keine kritischen Blocker erkannt.
+
+## Nächste Schritte
+1. Nächsten Umsetzungsschritt bestätigen.
+2. Offene Rückfragen prüfen.
+3. Task-Vorschläge bei Bedarf zur Prüfung einreichen.
+
+## Entscheidungen vom Client benötigt
+- Aktuell keine zwingende Entscheidung erforderlich.
+
+## Mögliche neue Tasks
+- Inhalte finalisieren
+- Technische Prüfung vorbereiten
+
+## Von Tagro empfohlene Priorität
+Mittel`
+
+function priorityLabel(priority: TaskSuggestion['priority']) {
+  if (priority === 'critical') return 'Kritisch'
+  if (priority === 'high') return 'Hoch'
+  if (priority === 'low') return 'Niedrig'
+  return 'Mittel'
+}
+
+function priorityColor(priority: TaskSuggestion['priority']) {
+  if (priority === 'critical') return '#ef4444'
+  if (priority === 'high') return '#f97316'
+  if (priority === 'low') return '#22c55e'
+  return '#f59e0b'
+}
+
+function dateLabel(value?: string | null) {
+  if (!value) return 'Neu'
+  return new Intl.DateTimeFormat('de-DE', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(value))
+}
+
+function deriveReportSections(content: string) {
+  const blocker = /blocker|risiko|abhängig|wartet|fehlt|kritisch/i.test(content)
+  const decision = /entscheidung|freigabe|bestätig|client|kunde|auswahl/i.test(content)
+  return {
+    blockers: blocker
+      ? ['Tagro hat mögliche Abhängigkeiten oder Risiken im Bericht erkannt.']
+      : ['Keine kritischen Blocker im aktuellen Bericht erkannt.'],
+    decisions: decision
+      ? ['Eine Client-Entscheidung oder Freigabe könnte erforderlich sein.']
+      : ['Aktuell keine zwingende Entscheidung vom Client erforderlich.'],
+  }
+}
+
+function fallbackSuggestions(projectName: string): TaskSuggestion[] {
+  return [
+    {
+      id: 'scope-check',
+      title: 'Scope nach Statusbericht prüfen',
+      description: `Tagro schlägt vor, den aktuellen Scope von ${projectName} gegen die nächsten Schritte zu prüfen.`,
+      priority: 'medium',
+      kind: 'workspace',
+      reason: 'Statusberichte erzeugen erst Vorschläge. Festag/Lead prüft, ob daraus ein echter Workspace-Task wird.',
+    },
+    {
+      id: 'handoff-prepare',
+      title: 'Team-Handoff vorbereiten',
+      description: 'Falls ein Team beteiligt ist, kann Tagro daraus technische Teilaufgaben ableiten.',
+      priority: 'high',
+      kind: 'team',
+      reason: 'Workspace-Task kann später in operative Team-Tasks zerlegt werden.',
+    },
+  ]
+}
 
 export default function ReportsPage() {
+  const supabase = createClient()
   const [projects, setProjects] = useState<Project[]>([])
-  const [reports,  setReports]  = useState<Report[]>([])
-  const [selectedProjectId, setSelectedProjectId] = useState<string|null>(null)
+  const [reports, setReports] = useState<Report[]>([])
+  const [selectedProjectId, setSelectedProjectId] = useState<string>('all')
+  const [selectedReportId, setSelectedReportId] = useState<string | null>(null)
+  const [period, setPeriod] = useState<Period>('week')
   const [loading, setLoading] = useState(true)
   const [generating, setGenerating] = useState(false)
-  const [emailing, setEmailing] = useState<string|null>(null)
-  const [extracting, setExtracting] = useState<string|null>(null)
-  const [extractedTasks, setExtractedTasks] = useState<Record<string, any[]>>({})
-  const supabase = createClient()
-
-  async function extractTasks(r: Report) {
-    setExtracting(r.id)
-    try {
-      const res = await fetch('/api/ai/report-to-tasks', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ reportId: r.id, projectId: r.project_id, content: r.content, autoInsert: false }),
-      })
-      const d = await res.json()
-      if (d.tasks) setExtractedTasks(prev => ({ ...prev, [r.id]: d.tasks }))
-      else alert(d.error ?? 'Tagro konnte keine Tasks extrahieren.')
-    } catch { alert('Verbindungsfehler.') }
-    setExtracting(null)
-  }
-
-  async function commitTasks(r: Report, tasks: any[]) {
-    const ok = tasks.filter(t => t._selected !== false)
-    if (!ok.length) { alert('Wähle mindestens einen Task aus.'); return }
-    for (const t of ok) {
-      await supabase.from('tasks').insert({
-        project_id: r.project_id,
-        title: t.title,
-        description: t.description ?? null,
-        status: 'todo',
-        priority: t.priority ?? 'medium',
-      }).catch(() => {})
-    }
-    setExtractedTasks(prev => { const n = { ...prev }; delete n[r.id]; return n })
-    alert(`✓ ${ok.length} Tasks angelegt.`)
-  }
+  const [extracting, setExtracting] = useState(false)
+  const [taskSuggestions, setTaskSuggestions] = useState<TaskSuggestion[]>([])
+  const [savingSuggestionId, setSavingSuggestionId] = useState<string | null>(null)
+  const [actionMenuId, setActionMenuId] = useState<string | null>(null)
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data }) => {
-      if (!data.session) { window.location.href = '/login'; return }
-      const [{ data: ps }, { data: rs }] = await Promise.all([
-        supabase.from('projects').select('id,title,status,description').order('created_at',{ascending:false}),
-        supabase.from('ai_updates').select('*').order('created_at',{ascending:false}).limit(50),
+      if (!data.session) {
+        window.location.href = '/login'
+        return
+      }
+
+      const [{ data: projectRows }, { data: reportRows }] = await Promise.all([
+        (supabase as any).from('projects').select('id,title,status,description,color').order('created_at', { ascending: false }),
+        (supabase as any).from('ai_updates').select('*').eq('type', 'status_report').order('created_at', { ascending: false }).limit(80),
       ])
-      const projs = (ps as any[]) ?? []
-      setProjects(projs)
-      setReports((rs as any[]) ?? [])
-      if (projs.length === 1) setSelectedProjectId(projs[0].id)
+
+      const list = (projectRows as Project[]) ?? []
+      setProjects(list)
+      setReports((reportRows as Report[]) ?? [])
+      if (list.length === 1) setSelectedProjectId(list[0].id)
       setLoading(false)
     })
   }, [])
 
-  const visibleProject = projects.find(p => p.id === selectedProjectId) ?? null
-  const visibleReports = selectedProjectId
-    ? reports.filter(r => r.project_id === selectedProjectId)
-    : reports
+  const selectedProject = useMemo(() => {
+    if (selectedProjectId === 'all') return null
+    return projects.find((project) => project.id === selectedProjectId) ?? null
+  }, [projects, selectedProjectId])
 
-  async function generateReport(p: Project) {
+  const visibleReports = useMemo(() => {
+    if (selectedProjectId === 'all') return reports
+    return reports.filter((report) => report.project_id === selectedProjectId)
+  }, [reports, selectedProjectId])
+
+  useEffect(() => {
+    if (!visibleReports.length) {
+      setSelectedReportId(null)
+      return
+    }
+    if (!selectedReportId || !visibleReports.some((report) => report.id === selectedReportId)) {
+      setSelectedReportId(visibleReports[0].id)
+    }
+  }, [visibleReports, selectedReportId])
+
+  const currentReport = visibleReports.find((report) => report.id === selectedReportId) ?? visibleReports[0] ?? null
+  const currentProject = selectedProject ?? projects.find((project) => project.id === currentReport?.project_id) ?? projects[0] ?? null
+  const currentSections = deriveReportSections(currentReport?.content ?? FALLBACK_REPORT)
+
+  useEffect(() => {
+    if (currentProject) setTaskSuggestions(fallbackSuggestions(currentProject.title))
+  }, [currentProject?.id])
+
+  async function generateReport() {
+    const project = currentProject
+    if (!project) return
     setGenerating(true)
     try {
-      const { data: tasks } = await supabase.from('tasks').select('*').eq('project_id', p.id)
-      const ts = (tasks as any[]) ?? []
-      const done = ts.filter(t => t.status === 'done').length
-      const doing = ts.filter(t => t.status === 'doing').length
-      const todo = ts.filter(t => t.status === 'todo').length
-      const pct = ts.length ? Math.round(done / ts.length * 100) : 0
+      const { data: taskRows } = await (supabase as any).from('tasks').select('*').eq('project_id', project.id)
+      const tasks = (taskRows as any[]) ?? []
+      const done = tasks.filter((task) => ['done', 'completed', 'delivered'].includes(String(task.status).toLowerCase())).length
+      const active = tasks.filter((task) => ['doing', 'active', 'in_progress'].includes(String(task.status).toLowerCase())).length
+      const review = tasks.filter((task) => ['review', 'ready_for_review', 'suggested'].includes(String(task.status).toLowerCase())).length
+      const blocked = tasks.filter((task) => ['blocked', 'waiting', 'needs_decision'].includes(String(task.status).toLowerCase())).length
+      const progress = tasks.length ? Math.round((done / tasks.length) * 100) : 0
 
-      const userPrompt = `Projekt: "${p.title}"\n` +
-        (p.description ? `Beschreibung: ${p.description}\n` : '') +
-        `Phase: ${p.status}\nFortschritt: ${pct}% (${done}/${ts.length} done, ${doing} aktiv, ${todo} offen)\n` +
-        (ts.length ? `\nTasks:\n${ts.slice(0,15).map(t => `- [${t.status}] ${t.title}`).join('\n')}` : '') +
-        `\n\nErstelle einen professionellen Statusbericht mit Markdown.`
+      const prompt = `Projekt: ${project.title}\nZeitraum: ${PERIODS.find((item) => item.id === period)?.label}\nBeschreibung: ${project.description ?? 'Keine Beschreibung'}\nPhase: ${project.status}\nFortschritt: ${progress}%\nTasks: ${tasks.length} gesamt, ${done} erledigt, ${active} in Arbeit, ${review} in Prüfung, ${blocked} blockiert/wartend.\n\nTask-Auszug:\n${tasks.slice(0, 18).map((task) => `- [${task.status ?? 'todo'}] ${task.title}`).join('\n')}\n\nErstelle einen Festag-Statusbericht als Übersetzungsschicht zwischen Dev-Arbeit und Client-Verständnis.`
 
       const res = await fetch('/api/ai/chat', {
-        method:'POST', headers:{'Content-Type':'application/json'},
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          max_tokens: 600,
-          system: `Du bist Tagro, AI-Projektmanager von Festag. Erstelle einen professionellen Statusbericht auf Deutsch mit Markdown.\nStruktur:\n**Erledigt:** ...\n**In Arbeit:** ...\n**Nächste Schritte:** ...\n**Risiken:** (nur wenn relevant)\n\nKeine Emojis. Knapp und konkret.`,
-          messages: [{ role:'user', content: userPrompt }],
+          max_tokens: 850,
+          system: `Du bist Tagro, AI-Projektmanager von Festag. Erstelle einen ruhigen, verständlichen deutschen Statusbericht. Nicht technisch überladen. Struktur exakt: Zusammenfassung, Was wurde erledigt, Was ist in Arbeit, Blocker / Risiken, Nächste Schritte, Entscheidungen vom Client benötigt, Mögliche neue Tasks, Von Tagro empfohlene Priorität. Mögliche Tasks nur als Vorschläge formulieren, keine automatische Scope-Erweiterung. Keine Emojis.`,
+          messages: [{ role: 'user', content: prompt }],
         }),
       })
       const data = await res.json()
-      const content = data.content?.[0]?.text
-      if (!content) { alert('Tagro hat nicht geantwortet.'); setGenerating(false); return }
-
-      const { data: ins, error } = await supabase.from('ai_updates').insert({ project_id: p.id, content, type:'status_report' }).select().single()
-      if (error) { alert(`Speicherfehler: ${error.message}`); setGenerating(false); return }
-      if (ins) setReports(prev => [ins as any, ...prev])
-    } catch (e: any) { alert(`Fehler: ${e?.message ?? 'unbekannt'}`) }
-    setGenerating(false)
+      const content = data.content?.[0]?.text || FALLBACK_REPORT
+      const { data: inserted, error } = await (supabase as any)
+        .from('ai_updates')
+        .insert({ project_id: project.id, content, type: 'status_report' })
+        .select()
+        .single()
+      if (error) throw error
+      if (inserted) {
+        setReports((current) => [inserted as Report, ...current])
+        setSelectedReportId((inserted as Report).id)
+      }
+      setTaskSuggestions(fallbackSuggestions(project.title))
+    } catch (error: any) {
+      alert(error?.message ?? 'Tagro konnte den Bericht nicht generieren.')
+    } finally {
+      setGenerating(false)
+    }
   }
 
-  async function emailReport(r: Report) {
-    setEmailing(r.id)
-    // Best-effort: queue an email via api route (placeholder: just mailto on the client for now)
-    const proj = projects.find(p => p.id === r.project_id)
-    const subject = `Festag Statusbericht — ${proj?.title ?? 'Projekt'}`
-    const body = encodeURIComponent(r.content)
-    setTimeout(() => {
-      window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${body}`
-      setEmailing(null)
-    }, 200)
+  async function extractTaskSuggestions() {
+    const report = currentReport
+    if (!report) return
+    setExtracting(true)
+    try {
+      const res = await fetch('/api/ai/report-to-tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reportId: report.id, projectId: report.project_id, content: report.content, autoInsert: false }),
+      })
+      const data = await res.json()
+      const tasks = (data.tasks as any[] | undefined) ?? []
+      if (tasks.length) {
+        setTaskSuggestions(tasks.map((task, index) => ({
+          id: `${report.id}-${index}`,
+          title: task.title ?? 'Neuer Task-Vorschlag',
+          description: task.description ?? 'Tagro hat diesen möglichen Task aus dem Statusbericht erkannt.',
+          priority: task.priority ?? 'medium',
+          kind: 'workspace',
+          reason: 'Aus Statusbericht erkannt. Wird nur als Vorschlag zur Prüfung eingereicht.',
+        })))
+      } else {
+        setTaskSuggestions(fallbackSuggestions(currentProject?.title ?? 'dieses Projekt'))
+      }
+    } catch {
+      setTaskSuggestions(fallbackSuggestions(currentProject?.title ?? 'dieses Projekt'))
+    } finally {
+      setExtracting(false)
+    }
   }
 
-  function downloadPdf(r: Report) {
-    // Lightweight: print-to-PDF approach via a hidden iframe
-    const proj = projects.find(p => p.id === r.project_id)
-    const w = window.open('', '_blank')
-    if (!w) return
-    w.document.write(`<!doctype html><html><head><title>${proj?.title ?? 'Bericht'} — Festag</title>
-      <style>body{font-family:'Inter',-apple-system,sans-serif;max-width:680px;margin:48px auto;padding:0 24px;color:#0f172a;line-height:1.65;} h1{font-size:22px;letter-spacing:-.4px;margin:0 0 4px;} .muted{color:#64748b;font-size:13px;margin:0 0 28px;} .badge{display:inline-block;padding:3px 9px;background:#f1f5f9;border-radius:12px;font-size:11px;font-weight:700;letter-spacing:.07em;} pre{white-space:pre-wrap;}</style>
-      </head><body>
-      <span class="badge">FESTAG · STATUSBERICHT</span>
-      <h1 style="margin-top:14px;">${proj?.title ?? 'Projekt'}</h1>
-      <p class="muted">${new Date(r.created_at).toLocaleString('de')}</p>
-      <pre>${r.content.replace(/</g,'&lt;')}</pre>
-      </body></html>`)
-    w.document.close()
-    setTimeout(() => w.print(), 400)
+  async function suggestTask(task: TaskSuggestion) {
+    const projectId = currentReport?.project_id ?? currentProject?.id
+    if (!projectId) return
+    setSavingSuggestionId(task.id)
+    try {
+      await (supabase as any).from('tasks').insert({
+        project_id: projectId,
+        title: task.title,
+        description: `${task.description}\n\nQuelle: Statusbericht / Tagro Vorschlag\nKontext: ${task.reason}`,
+        status: 'suggested',
+        priority: task.priority,
+        source: task.kind === 'team' ? 'status_report_team_suggestion' : 'status_report_workspace_suggestion',
+      })
+      setTaskSuggestions((current) => current.filter((item) => item.id !== task.id))
+    } finally {
+      setSavingSuggestionId(null)
+    }
   }
 
-  if (loading) return (
-    <div style={{ padding:60, display:'flex', justifyContent:'center' }}>
-      <div style={{ width:24, height:24, border:'2px solid var(--border)', borderTopColor:'var(--text)', borderRadius:'50%', animation:'spin .8s linear infinite' }}/>
-    </div>
-  )
+  function exportReport(report: Report) {
+    const project = projects.find((item) => item.id === report.project_id)
+    const win = window.open('', '_blank')
+    if (!win) return
+    win.document.write(`<!doctype html><html><head><title>${project?.title ?? 'Statusbericht'} — Festag</title><style>body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;max-width:760px;margin:52px auto;padding:0 28px;color:#171717;line-height:1.72}h1{font-size:24px;margin:12px 0 4px}.eyebrow{font-size:11px;font-weight:800;letter-spacing:.12em;color:#777;text-transform:uppercase}pre{white-space:pre-wrap;font:inherit}</style></head><body><div class="eyebrow">Festag Statusbericht</div><h1>${project?.title ?? 'Projekt'}</h1><p>${dateLabel(report.created_at)}</p><pre>${report.content.replace(/</g, '&lt;')}</pre></body></html>`)
+    win.document.close()
+    setTimeout(() => win.print(), 350)
+  }
 
-  // Single project shortcut: skip selector
-  const singleProject = projects.length === 1
-  const showProject = singleProject ? projects[0] : visibleProject
+  if (loading) {
+    return <div style={{ padding: 52, color: 'var(--text-muted)' }}>Statusberichte werden geladen…</div>
+  }
 
   return (
-    <div className="page-content animate-fade-up" style={{ maxWidth: undefined }}>
+    <div className="reports-os">
       <style>{`
-        @keyframes spin{to{transform:rotate(360deg);}}
-        .rp-card { transition: transform .15s, border-color .15s; }
-        .rp-card:hover { transform: translateY(-1px); border-color: var(--border-strong); }
+        .reports-os { color:var(--text); width:100%; min-height:100%; }
+        .reports-hero { display:flex; align-items:flex-end; justify-content:space-between; gap:20px; padding:0 0 22px; }
+        .reports-hero h1 { margin:0; font-size:24px; line-height:1.06; letter-spacing:-.03em; font-weight:720; }
+        .reports-hero p { margin:7px 0 0; color:var(--text-secondary); font-size:13px; line-height:1.45; }
+        .reports-controlbar { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px; border:1px solid var(--border); border-radius:16px; background:var(--surface); margin-bottom:14px; }
+        .reports-controls { display:flex; align-items:center; gap:8px; min-width:0; flex-wrap:wrap; }
+        .reports-select, .reports-period, .reports-primary, .reports-ghost { height:32px; border-radius:10px; border:1px solid var(--border); background:var(--card); color:var(--text); font:inherit; font-size:12.5px; font-weight:650; padding:0 10px; }
+        .reports-period { color:var(--text-secondary); cursor:pointer; }
+        .reports-period.on { background:var(--text); color:var(--bg); border-color:var(--text); }
+        .reports-primary { background:var(--btn-prim); color:var(--btn-prim-text); border-color:transparent; cursor:pointer; display:flex; align-items:center; gap:7px; }
+        .reports-primary:disabled { opacity:.65; cursor:default; }
+        .reports-ghost { color:var(--text-secondary); background:transparent; cursor:pointer; display:flex; align-items:center; gap:7px; }
+        .reports-grid { display:grid; grid-template-columns:240px minmax(0, 1fr) 300px; gap:14px; align-items:start; }
+        .reports-panel { border:1px solid var(--border); border-radius:18px; background:var(--surface); overflow:hidden; }
+        .reports-panel-head { min-height:42px; display:flex; align-items:center; justify-content:space-between; padding:0 14px; border-bottom:1px solid color-mix(in srgb, var(--border) 70%, transparent); }
+        .reports-panel-head h2 { margin:0; font-size:12.5px; font-weight:720; letter-spacing:.01em; }
+        .report-list { padding:6px; display:flex; flex-direction:column; gap:4px; }
+        .report-list-row { border:0; width:100%; text-align:left; border-radius:12px; background:transparent; color:var(--text-secondary); padding:10px; cursor:pointer; font:inherit; display:flex; gap:9px; }
+        .report-list-row:hover, .report-list-row.on { background:var(--surface-2); color:var(--text); }
+        .report-list-dot { width:8px; height:8px; border-radius:50%; margin-top:5px; flex-shrink:0; }
+        .report-list-row strong { display:block; font-size:12.5px; line-height:1.25; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .report-list-row span { display:block; font-size:10.5px; color:var(--text-muted); margin-top:3px; }
+        .report-main { min-height:620px; }
+        .report-body { padding:24px 28px 34px; font-size:14px; line-height:1.75; color:var(--text-secondary); }
+        .report-body h1, .report-body h2, .report-body h3 { color:var(--text); letter-spacing:-.02em; }
+        .report-body h2 { font-size:17px; margin:24px 0 8px; }
+        .report-body p { margin:0 0 12px; }
+        .report-body ul, .report-body ol { padding-left:20px; }
+        .report-meta { display:flex; align-items:center; gap:8px; min-width:0; }
+        .report-actions { display:flex; align-items:center; gap:6px; position:relative; }
+        .report-action-menu { position:absolute; top:34px; right:0; z-index:30; width:210px; padding:6px; border:1px solid var(--border); border-radius:13px; background:var(--surface); box-shadow:0 18px 44px rgba(0,0,0,.16); }
+        .report-action-menu button { width:100%; height:31px; border:0; border-radius:9px; background:transparent; color:var(--text-secondary); font:inherit; font-size:12px; font-weight:650; display:flex; align-items:center; gap:8px; padding:0 9px; cursor:pointer; }
+        .report-action-menu button:hover { background:var(--surface-2); color:var(--text); }
+        .insight-list { padding:10px; display:flex; flex-direction:column; gap:10px; }
+        .insight-block { border:1px solid var(--border); border-radius:14px; background:var(--card); padding:12px; }
+        .insight-label { display:flex; align-items:center; gap:7px; color:var(--text-muted); font-size:11px; font-weight:760; letter-spacing:.06em; text-transform:uppercase; margin-bottom:8px; }
+        .insight-row { display:flex; gap:9px; align-items:flex-start; color:var(--text-secondary); font-size:12.5px; line-height:1.45; padding:5px 0; }
+        .suggestion-row { border:1px solid var(--border); border-radius:13px; padding:11px; background:var(--surface); display:flex; flex-direction:column; gap:8px; }
+        .suggestion-top { display:flex; justify-content:space-between; gap:10px; align-items:flex-start; }
+        .suggestion-title { margin:0; font-size:12.8px; line-height:1.3; color:var(--text); font-weight:720; }
+        .suggestion-desc { margin:4px 0 0; color:var(--text-secondary); font-size:11.8px; line-height:1.45; }
+        .suggestion-pill { font-size:9.5px; font-weight:800; letter-spacing:.05em; padding:3px 6px; border-radius:999px; background:var(--surface-2); white-space:nowrap; }
+        .suggestion-kind { color:var(--text-muted); font-size:11px; font-weight:680; }
+        .suggestion-action { height:28px; border-radius:8px; border:1px solid var(--border); background:var(--card); color:var(--text); font:inherit; font-size:11.5px; font-weight:700; cursor:pointer; }
+        .suggestion-action:hover { background:var(--surface-2); }
+        .report-empty { padding:72px 22px; text-align:center; color:var(--text-muted); }
+        .report-empty strong { display:block; color:var(--text); font-size:15px; margin-bottom:5px; }
+        @media(max-width:1180px) { .reports-grid { grid-template-columns:210px minmax(0, 1fr); } .reports-side { grid-column:1 / -1; } }
+        @media(max-width:820px) { .reports-hero, .reports-controlbar { align-items:stretch; flex-direction:column; } .reports-grid { grid-template-columns:1fr; } .reports-panel { border-radius:14px; } .report-body { padding:20px; } }
       `}</style>
 
-      <div className="page-header">
-        <h1 style={{ margin:'0 0 6px' }}>Statusberichte</h1>
-        <p>AI-generierte Updates zu deinen Projekten — als Mail versenden, PDF downloaden oder im Team teilen.</p>
-      </div>
-
-      {/* Project selector if more than 1 */}
-      {!singleProject && (
-        <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginBottom:18 }}>
-          <button onClick={() => setSelectedProjectId(null)} className="rp-card"
-            style={{ padding:'8px 14px', borderRadius:11, border:`1.5px solid ${selectedProjectId===null?'var(--text)':'var(--border)'}`, background:selectedProjectId===null?'var(--text)':'var(--card)', color:selectedProjectId===null?'var(--bg)':'var(--text)', fontSize:12.5, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>
-            Alle Projekte ({reports.length})
-          </button>
-          {projects.map(p => {
-            const c = projectColor(p.id)
-            const on = p.id === selectedProjectId
-            const cnt = reports.filter(r => r.project_id === p.id).length
-            return (
-              <button key={p.id} onClick={() => setSelectedProjectId(p.id)} className="rp-card"
-                style={{ display:'flex', alignItems:'center', gap:8, padding:'8px 14px', borderRadius:11, border:`1.5px solid ${on?c:'var(--border)'}`, background:on?`${c}15`:'var(--card)', color:on?c:'var(--text)', fontSize:12.5, fontWeight:on?700:600, cursor:'pointer', fontFamily:'inherit' }}>
-                <span style={{ width:8, height:8, borderRadius:'50%', background:c }}/>
-                {p.title}
-                <span style={{ fontSize:10, opacity:.6, fontWeight:600 }}>({cnt})</span>
-              </button>
-            )
-          })}
+      <header className="reports-hero">
+        <div>
+          <h1>Statusberichte</h1>
+          <p>Verstehe jederzeit, was in deinen Projekten passiert.</p>
         </div>
-      )}
+        <button className="reports-primary" type="button" onClick={generateReport} disabled={!currentProject || generating}>
+          <MagicWand size={15} weight="bold" />
+          {generating ? 'Tagro generiert…' : 'Statusbericht generieren'}
+        </button>
+      </header>
 
-      {/* Generate report bar */}
-      {showProject && (
-        <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:14, padding:'14px 18px', marginBottom:16, display:'flex', alignItems:'center', gap:14, flexWrap:'wrap' }}>
-          <div style={{ flex:1, minWidth:200 }}>
-            <p style={{ fontSize:11, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.07em', margin:'0 0 2px' }}>BERICHT FÜR</p>
-            <p style={{ fontSize:14, fontWeight:700, color:'var(--text)', margin:0 }}>
-              <span style={{ display:'inline-block', width:8, height:8, borderRadius:'50%', background:projectColor(showProject.id), marginRight:7, verticalAlign:'middle' }}/>
-              {showProject.title}
-            </p>
-          </div>
-          <button onClick={() => generateReport(showProject)} disabled={generating}
-            style={{ padding:'10px 16px', background:'var(--btn-prim)', color:'var(--btn-prim-text)', border:'none', borderRadius:10, fontSize:13, fontWeight:700, cursor:'pointer', fontFamily:'inherit', display:'inline-flex', alignItems:'center', gap:7, opacity: generating?.7:1 }}>
-            {generating ? (
-              <><span style={{ width:12, height:12, border:'2px solid currentColor', borderRightColor:'transparent', borderRadius:'50%', animation:'spin .7s linear infinite' }}/> Generiert…</>
-            ) : <>Neuen Bericht erstellen</>}
-          </button>
+      <section className="reports-controlbar" aria-label="Statusbericht Einstellungen">
+        <div className="reports-controls">
+          <select className="reports-select" value={selectedProjectId} onChange={(event) => setSelectedProjectId(event.target.value)} aria-label="Projekt auswählen">
+            <option value="all">Alle Projekte</option>
+            {projects.map((project) => <option key={project.id} value={project.id}>{project.title}</option>)}
+          </select>
+          {PERIODS.map((item) => (
+            <button key={item.id} className={`reports-period${period === item.id ? ' on' : ''}`} type="button" onClick={() => setPeriod(item.id)}>
+              {item.label}
+            </button>
+          ))}
         </div>
-      )}
+        <button className="reports-ghost" type="button" onClick={extractTaskSuggestions} disabled={!currentReport || extracting}>
+          <Lightbulb size={15} />
+          {extracting ? 'Tagro erkennt…' : 'Task-Vorschläge erkennen'}
+        </button>
+      </section>
 
-      {/* Report list */}
-      <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
-        {visibleReports.length === 0 ? (
-          <div style={{ padding:'42px 22px', background:'var(--surface)', border:'1px dashed var(--border)', borderRadius:'var(--r-lg)', textAlign:'center' }}>
-            <div style={{ width:46, height:46, borderRadius:14, background:'var(--surface-2)', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 12px', color:'var(--text-secondary)' }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></svg>
-            </div>
-            <p style={{ fontSize:14.5, fontWeight:700, color:'var(--text)', margin:'0 0 4px' }}>Noch keine Berichte</p>
-            <p style={{ fontSize:12.5, color:'var(--text-muted)', margin:0 }}>Klicke auf "Neuen Bericht erstellen", um Tagro einen Status zusammenfassen zu lassen.</p>
+      <main className="reports-grid">
+        <aside className="reports-panel">
+          <div className="reports-panel-head">
+            <h2>Bisherige Berichte</h2>
+            <FunnelSimple size={14} color="var(--text-muted)" />
           </div>
-        ) : visibleReports.map(r => {
-          const proj = projects.find(p => p.id === r.project_id)
-          const c = proj ? projectColor(proj.id) : 'var(--text-muted)'
-          return (
-            <div key={r.id} className="rp-card" style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:'var(--r-lg)', overflow:'hidden' }}>
-              <div style={{ height:3, background:c }}/>
-              <div style={{ padding:'14px 18px 6px', display:'flex', alignItems:'center', gap:9, flexWrap:'wrap', justifyContent:'space-between' }}>
-                <div style={{ display:'flex', alignItems:'center', gap:9, minWidth:0 }}>
-                  <span style={{ width:24, height:24, borderRadius:7, background:`${c}20`, color:c, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>
+          <div className="report-list">
+            {visibleReports.length === 0 ? (
+              <div className="report-empty" style={{ padding: 28 }}>
+                <strong>Noch keine Berichte</strong>
+                <span>Generiere den ersten Tagro-Status.</span>
+              </div>
+            ) : visibleReports.map((report, index) => {
+              const project = projects.find((item) => item.id === report.project_id)
+              const color = projectColor(report.project_id, project?.color)
+              return (
+                <button
+                  key={report.id}
+                  className={`report-list-row${report.id === currentReport?.id ? ' on' : ''}`}
+                  type="button"
+                  onClick={() => setSelectedReportId(report.id)}
+                >
+                  <span className="report-list-dot" style={{ background: color }} />
+                  <span style={{ minWidth: 0 }}>
+                    <strong>{project?.title ?? 'Projekt'}</strong>
+                    <span>{dateLabel(report.created_at)}</span>
                   </span>
-                  <div style={{ minWidth:0 }}>
-                    <p style={{ fontSize:13.5, fontWeight:700, color:'var(--text)', margin:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{proj?.title ?? 'Projekt'}</p>
-                    <p style={{ fontSize:10.5, color:'var(--text-muted)', margin:'1px 0 0', letterSpacing:'.05em' }}>
-                      {new Date(r.created_at).toLocaleString('de',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}
-                    </p>
-                  </div>
-                </div>
-                <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
-                  <button onClick={() => emailReport(r)} disabled={emailing===r.id} style={{ padding:'6px 11px', background:'var(--surface-2)', border:'1px solid var(--border)', borderRadius:9, fontSize:11.5, fontWeight:600, color:'var(--text-secondary)', cursor:'pointer', fontFamily:'inherit' }}>Mail</button>
-                  <button onClick={() => downloadPdf(r)} style={{ padding:'6px 11px', background:'var(--surface-2)', border:'1px solid var(--border)', borderRadius:9, fontSize:11.5, fontWeight:600, color:'var(--text-secondary)', cursor:'pointer', fontFamily:'inherit' }}>PDF</button>
-                  <button onClick={() => extractTasks(r)} disabled={extracting === r.id}
-                    title="Tagro analysiert den Bericht und schlägt konkrete Tasks vor"
-                    style={{ padding:'6px 11px', background:'var(--surface-2)', border:'1px solid var(--border)', borderRadius:9, fontSize:11.5, fontWeight:600, color:'var(--text-secondary)', cursor:'pointer', fontFamily:'inherit' }}>
-                    {extracting === r.id ? '…' : 'Tasks erstellen'}
-                  </button>
-                  <button onClick={() => { navigator.clipboard.writeText(r.content); }} title="Inhalt kopiert"
-                    style={{ padding:'6px 11px', background:'var(--surface-2)', border:'1px solid var(--border)', borderRadius:9, fontSize:11.5, fontWeight:600, color:'var(--text-secondary)', cursor:'pointer', fontFamily:'inherit' }}>Teilen</button>
-                  <Link href={`/project/${r.project_id}`} style={{ padding:'6px 11px', background:'var(--btn-prim)', color:'var(--btn-prim-text)', borderRadius:9, fontSize:11.5, fontWeight:600, textDecoration:'none', display:'flex', alignItems:'center' }}>
-                    Öffnen
-                  </Link>
-                </div>
-              </div>
-              <div style={{ padding:'8px 18px 16px', fontSize:13.5, color:'var(--text-secondary)', lineHeight:1.65 }}>
-                <ChatMarkdown text={r.content}/>
-              </div>
+                </button>
+              )
+            })}
+          </div>
+        </aside>
 
-              {/* AI-extracted tasks preview */}
-              {extractedTasks[r.id] && (
-                <div style={{ borderTop:'1px solid var(--border)', padding:'14px 18px', background:'var(--surface-2)' }}>
-                  <p style={{ fontSize:11, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.07em', margin:'0 0 10px' }}>TAGRO HAT {extractedTasks[r.id].length} TASKS VORGESCHLAGEN</p>
-                  <div style={{ display:'flex', flexDirection:'column', gap:7, marginBottom:10 }}>
-                    {extractedTasks[r.id].map((t, i) => (
-                      <label key={i} style={{ display:'flex', alignItems:'flex-start', gap:9, padding:'9px 12px', background:'var(--surface)', border:'1px solid var(--border)', borderRadius:9, cursor:'pointer' }}>
-                        <input type="checkbox" defaultChecked
-                          onChange={e => { extractedTasks[r.id][i]._selected = e.target.checked }}
-                          style={{ marginTop:3 }}/>
-                        <div style={{ flex:1, minWidth:0 }}>
-                          <p style={{ fontSize:13, fontWeight:700, color:'var(--text)', margin:'0 0 2px' }}>{t.title}</p>
-                          {t.description && <p style={{ fontSize:11.5, color:'var(--text-secondary)', margin:0, lineHeight:1.45 }}>{t.description}</p>}
-                        </div>
-                        <span style={{ flexShrink:0, fontSize:9, fontWeight:800, padding:'2px 6px', borderRadius:5, background: t.priority==='critical'?'rgba(239,68,68,.12)':t.priority==='high'?'rgba(249,115,22,.12)':t.priority==='low'?'rgba(34,197,94,.12)':'rgba(245,158,11,.12)', color: t.priority==='critical'?'#ef4444':t.priority==='high'?'#f97316':t.priority==='low'?'#22c55e':'#f59e0b', letterSpacing:'.05em' }}>
-                          {(t.priority ?? 'medium').toUpperCase()}
-                        </span>
-                      </label>
-                    ))}
-                  </div>
-                  <div style={{ display:'flex', gap:8 }}>
-                    <button onClick={() => commitTasks(r, extractedTasks[r.id])}
-                      style={{ padding:'9px 14px', background:'var(--btn-prim)', color:'var(--btn-prim-text)', border:'none', borderRadius:10, fontSize:12.5, fontWeight:600, cursor:'pointer', fontFamily:'inherit' }}>
-                      Tasks anlegen
-                    </button>
-                    <button onClick={() => setExtractedTasks(prev => { const n = { ...prev }; delete n[r.id]; return n })}
-                      style={{ padding:'9px 14px', background:'transparent', border:'1px solid var(--border)', borderRadius:10, fontSize:12.5, fontWeight:600, color:'var(--text-secondary)', cursor:'pointer', fontFamily:'inherit' }}>
-                      Verwerfen
-                    </button>
-                  </div>
+        <section className="reports-panel report-main">
+          <div className="reports-panel-head">
+            <div className="report-meta">
+              <span style={{ width: 9, height: 9, borderRadius: '50%', background: currentProject ? projectColor(currentProject.id, currentProject.color) : 'var(--text-muted)' }} />
+              <h2>{currentProject?.title ?? 'Aktueller Bericht'}</h2>
+              <span style={{ color: 'var(--text-muted)', fontSize: 11.5 }}>{currentReport ? dateLabel(currentReport.created_at) : 'Noch nicht generiert'}</span>
+            </div>
+            <div className="report-actions">
+              <button className="reports-ghost" type="button" onClick={generateReport} disabled={!currentProject || generating} title="Neu generieren">
+                <MagicWand size={14} /> Neu generieren
+              </button>
+              <button className="reports-ghost" type="button" onClick={() => currentReport && exportReport(currentReport)} disabled={!currentReport} title="PDF Export vorbereiten">
+                <DownloadSimple size={14} /> PDF
+              </button>
+              <button className="reports-ghost" type="button" onClick={() => currentReport && navigator.clipboard.writeText(currentReport.content)} disabled={!currentReport}>
+                <PaperPlaneTilt size={14} /> Teilen
+              </button>
+              <button className="reports-ghost" type="button" aria-label="Weitere Aktionen" onClick={() => setActionMenuId(actionMenuId ? null : (currentReport?.id ?? 'new'))}>
+                <DotsThree size={16} weight="bold" />
+              </button>
+              {actionMenuId && (
+                <div className="report-action-menu">
+                  <button type="button" onClick={extractTaskSuggestions}><Lightbulb size={14} />Task-Vorschläge anzeigen</button>
+                  <button type="button" onClick={() => window.dispatchEvent(new CustomEvent('open-copilot'))}><ChatCircleText size={14} />Entscheidung markieren</button>
+                  <button type="button"><Archive size={14} />Archivieren</button>
                 </div>
               )}
             </div>
-          )
-        })}
-      </div>
+          </div>
+          <article className="report-body">
+            {currentReport ? <ChatMarkdown text={currentReport.content} /> : <ChatMarkdown text={FALLBACK_REPORT} />}
+          </article>
+        </section>
+
+        <aside className="reports-panel reports-side">
+          <div className="reports-panel-head">
+            <h2>Tagro Erkenntnisse</h2>
+            <SlidersHorizontal size={14} color="var(--text-muted)" />
+          </div>
+          <div className="insight-list">
+            <div className="insight-block">
+              <div className="insight-label"><Lightbulb size={14} /> Task-Vorschläge</div>
+              {taskSuggestions.map((task) => {
+                const color = priorityColor(task.priority)
+                return (
+                  <div className="suggestion-row" key={task.id}>
+                    <div className="suggestion-top">
+                      <div>
+                        <p className="suggestion-title">{task.title}</p>
+                        <p className="suggestion-desc">{task.description}</p>
+                      </div>
+                      <span className="suggestion-pill" style={{ color }}>{priorityLabel(task.priority)}</span>
+                    </div>
+                    <div className="suggestion-kind">{task.kind === 'team' ? 'Team-Execution möglich' : 'Workspace-Task Vorschlag'}</div>
+                    <button className="suggestion-action" type="button" onClick={() => suggestTask(task)} disabled={savingSuggestionId === task.id}>
+                      {savingSuggestionId === task.id ? 'Wird vorgeschlagen…' : 'Als Task vorschlagen'}
+                    </button>
+                  </div>
+                )
+              })}
+            </div>
+
+            <div className="insight-block">
+              <div className="insight-label"><WarningCircle size={14} /> Blocker / Risiken</div>
+              {currentSections.blockers.map((item) => <div className="insight-row" key={item}><CaretDown size={12} style={{ marginTop: 2 }} />{item}</div>)}
+            </div>
+
+            <div className="insight-block">
+              <div className="insight-label"><CheckCircle size={14} /> Offene Entscheidungen</div>
+              {currentSections.decisions.map((item) => <div className="insight-row" key={item}><CaretDown size={12} style={{ marginTop: 2 }} />{item}</div>)}
+            </div>
+
+            <div className="insight-block">
+              <div className="insight-label"><MagicWand size={14} /> Festag Logik</div>
+              <div className="insight-row">Statusberichte erkennen. Workspace Tasks strukturieren. Team Tasks setzen operativ um.</div>
+              <Link href="/tasks" style={{ color: 'var(--text)', fontSize: 12, fontWeight: 700, textDecoration: 'none' }}>Workspace Tasks öffnen →</Link>
+            </div>
+          </div>
+        </aside>
+      </main>
     </div>
   )
 }
