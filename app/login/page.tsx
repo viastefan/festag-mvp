@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { setTheme } from '@/lib/theme'
 
 type AuthView = 'login' | 'email'
+type EmailStage = 'email' | 'password'
 
 const GOOGLE_ICON = (
   <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
@@ -26,9 +27,19 @@ function FestagMark() {
   )
 }
 
+function MailIcon() {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M4 5h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z" />
+      <path d="m22 7-10 6L2 7" />
+    </svg>
+  )
+}
+
 export default function LoginPage() {
   const supabase = createClient()
   const [view, setView] = useState<AuthView>('login')
+  const [emailStage, setEmailStage] = useState<EmailStage>('email')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -79,15 +90,34 @@ export default function LoginPage() {
     window.location.href = '/dashboard'
   }
 
+  function continueEmailFlow() {
+    setError('')
+
+    if (!email.trim()) {
+      setError('Bitte E-Mail-Adresse eingeben.')
+      return
+    }
+
+    setEmailStage('password')
+    requestAnimationFrame(() => {
+      document.getElementById('festag-password')?.focus()
+    })
+  }
+
   return (
     <main className="simple-login">
       <style>{`
         .simple-login {
+          --ink:#191a1c;
+          --ink-soft:rgba(25,26,28,.62);
+          --line:rgba(25,26,28,.105);
+          --line-strong:rgba(25,26,28,.24);
+          --ring:rgba(25,26,28,.07);
           min-height:100dvh;
           width:100%;
           overflow:hidden;
           background:#fbfbfa;
-          color:#242426;
+          color:var(--ink);
           display:grid;
           place-items:center;
           font-family:var(--font-aeonik), Aeonik, Inter, sans-serif;
@@ -95,29 +125,29 @@ export default function LoginPage() {
           text-rendering:geometricPrecision;
         }
         .simple-login-shell {
-          width:min(390px, calc(100vw - 40px));
+          width:min(372px, calc(100vw - 40px));
           display:flex;
           flex-direction:column;
           align-items:center;
           gap:0;
-          transform:translateY(-4vh);
+          transform:translateY(-3vh);
         }
         .simple-login-logo {
           display:flex;
           align-items:center;
           justify-content:center;
-          margin:0 0 28px;
+          margin:0 0 26px;
         }
         .simple-login-mark {
-          width:48px;
-          height:48px;
+          width:42px;
+          height:42px;
           border-radius:999px;
-          background:#29292b;
+          background:var(--ink);
           display:flex;
           align-items:center;
           justify-content:center;
           gap:3px;
-          box-shadow:0 1px 2px rgba(0,0,0,.04);
+          box-shadow:0 1px 2px rgba(0,0,0,.035);
         }
         .simple-login-mark span {
           width:3px;
@@ -130,11 +160,11 @@ export default function LoginPage() {
         .simple-login-mark span:nth-child(1) { height:15px; opacity:.72; }
         .simple-login-mark span:nth-child(4) { height:15px; opacity:.72; }
         .simple-login h1 {
-          margin:0 0 24px;
-          color:#252629;
-          font-size:22px;
+          margin:0 0 23px;
+          color:var(--ink);
+          font-size:20px;
           line-height:1.2;
-          font-weight:690;
+          font-weight:660;
           letter-spacing:-.025em;
           text-align:center;
         }
@@ -142,21 +172,21 @@ export default function LoginPage() {
           width:100%;
           display:flex;
           flex-direction:column;
-          gap:12px;
+          gap:11px;
         }
         .simple-login-button,
         .simple-login-input {
           width:100%;
-          height:48px;
-          border-radius:14px;
-          border:1px solid rgba(20,20,22,.1);
+          height:46px;
+          border-radius:999px;
+          border:1px solid var(--line);
           background:#fff;
-          color:#26272a;
-          box-shadow:0 1px 2px rgba(0,0,0,.035);
+          color:var(--ink);
+          box-shadow:0 1px 1px rgba(0,0,0,.018);
           font:inherit;
-          font-size:14px;
-          font-weight:650;
-          transition:background .16s cubic-bezier(.16,1,.3,1), border-color .16s cubic-bezier(.16,1,.3,1), transform .16s cubic-bezier(.16,1,.3,1), box-shadow .16s cubic-bezier(.16,1,.3,1);
+          font-size:13.5px;
+          font-weight:640;
+          transition:background .18s cubic-bezier(.16,1,.3,1), border-color .18s cubic-bezier(.16,1,.3,1), box-shadow .18s cubic-bezier(.16,1,.3,1), color .18s cubic-bezier(.16,1,.3,1);
         }
         .simple-login-button {
           display:grid;
@@ -165,21 +195,20 @@ export default function LoginPage() {
           cursor:pointer;
         }
         .simple-login-button.primary {
-          background:#6f75d8;
-          border-color:#6f75d8;
+          background:var(--ink);
+          border-color:var(--ink);
           color:white;
-          box-shadow:0 10px 24px rgba(91,96,205,.18);
+          box-shadow:0 9px 22px rgba(0,0,0,.075);
         }
         .simple-login-button:hover,
         .simple-login-input:hover {
-          border-color:rgba(20,20,22,.18);
-          transform:translateY(-1px);
-          box-shadow:0 8px 22px rgba(0,0,0,.06);
+          border-color:rgba(25,26,28,.18);
+          box-shadow:0 6px 16px rgba(0,0,0,.035);
         }
         .simple-login-button.primary:hover {
-          border-color:#6268cb;
-          background:#676dd1;
-          box-shadow:0 12px 28px rgba(91,96,205,.22);
+          border-color:#0d0e0f;
+          background:#0d0e0f;
+          box-shadow:0 10px 24px rgba(0,0,0,.105);
         }
         .simple-login-button:focus,
         .simple-login-input:focus {
@@ -188,19 +217,24 @@ export default function LoginPage() {
         .simple-login-button:focus-visible,
         .simple-login-input:focus-visible,
         .simple-login-link:focus-visible {
-          outline:2px solid rgba(111,117,216,.36);
-          outline-offset:3px;
+          outline:0;
+          border-color:var(--line-strong);
+          box-shadow:0 0 0 3px var(--ring), 0 1px 1px rgba(0,0,0,.018);
         }
         .simple-login-input {
-          padding:0 14px;
+          padding:0 15px;
           font-weight:560;
         }
+        .simple-login-input:focus {
+          border-color:var(--line-strong);
+          box-shadow:0 0 0 3px var(--ring), 0 1px 1px rgba(0,0,0,.018);
+        }
         .simple-login-input::placeholder {
-          color:rgba(37,38,41,.4);
+          color:rgba(25,26,28,.38);
         }
         .simple-login-muted {
           margin:10px 0 0;
-          color:rgba(37,38,41,.58);
+          color:var(--ink-soft);
           font-size:12.5px;
           line-height:1.45;
           font-weight:560;
@@ -218,20 +252,20 @@ export default function LoginPage() {
           text-align:left;
         }
         .simple-login-links {
-          margin-top:28px;
+          margin-top:26px;
           display:flex;
           flex-direction:column;
           align-items:center;
-          gap:16px;
-          color:rgba(37,38,41,.58);
-          font-size:13px;
+          gap:14px;
+          color:var(--ink-soft);
+          font-size:12.5px;
           font-weight:560;
         }
         .simple-login-link {
           border:0;
           background:transparent;
           padding:0;
-          color:#343538;
+          color:var(--ink);
           font:inherit;
           font-weight:650;
           cursor:pointer;
@@ -247,16 +281,33 @@ export default function LoginPage() {
           flex-wrap:wrap;
           gap:8px;
         }
+        .simple-login-separator {
+          width:100%;
+          display:flex;
+          align-items:center;
+          gap:14px;
+          margin:8px 0 2px;
+          color:rgba(25,26,28,.34);
+          font-size:11.5px;
+          font-weight:600;
+        }
+        .simple-login-separator::before,
+        .simple-login-separator::after {
+          content:'';
+          flex:1;
+          height:1px;
+          background:rgba(25,26,28,.075);
+        }
         .simple-login-dev {
           position:fixed;
           right:28px;
           bottom:24px;
-          color:rgba(37,38,41,.38);
+          color:rgba(25,26,28,.38);
           font-size:12px;
           font-weight:620;
           text-decoration:none;
         }
-        .simple-login-dev:hover { color:rgba(37,38,41,.72); }
+        .simple-login-dev:hover { color:rgba(25,26,28,.72); }
         .simple-login-loader {
           width:16px;
           height:16px;
@@ -293,8 +344,9 @@ export default function LoginPage() {
                 <span>Mit Google fortfahren</span>
                 <span />
               </button>
-              <button className="simple-login-button" type="button" onClick={() => { setError(''); setView('email') }}>
-                <span />
+              <div className="simple-login-separator">oder</div>
+              <button className="simple-login-button" type="button" onClick={() => { setError(''); setEmailStage('email'); setView('email') }}>
+                <span><MailIcon /></span>
                 <span>Mit E-Mail fortfahren</span>
                 <span />
               </button>
@@ -309,7 +361,7 @@ export default function LoginPage() {
           </>
         ) : (
           <>
-            <h1>Wie lautet deine E-Mail-Adresse?</h1>
+            <h1>{emailStage === 'email' ? 'Wie lautet deine E-Mail-Adresse?' : 'Passwort eingeben'}</h1>
             {error ? <p className="simple-login-error">{error}</p> : null}
             <div className="simple-login-stack">
               <input
@@ -322,34 +374,42 @@ export default function LoginPage() {
                 onKeyDown={(event) => {
                   if (event.key === 'Enter') {
                     event.preventDefault()
-                    document.getElementById('festag-password')?.focus()
+                    continueEmailFlow()
                   }
                 }}
               />
-              <input
-                id="festag-password"
-                className="simple-login-input"
-                type="password"
-                autoComplete="current-password"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                placeholder="Passwort eingeben..."
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter') {
-                    event.preventDefault()
-                    doEmailLogin()
-                  }
-                }}
-              />
-              <button className="simple-login-button" type="button" onClick={doEmailLogin} disabled={loading}>
+              {emailStage === 'password' ? (
+                <input
+                  id="festag-password"
+                  className="simple-login-input"
+                  type="password"
+                  autoComplete="current-password"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  placeholder="Passwort eingeben..."
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') {
+                      event.preventDefault()
+                      doEmailLogin()
+                    }
+                  }}
+                />
+              ) : null}
+              <button className="simple-login-button" type="button" onClick={emailStage === 'email' ? continueEmailFlow : doEmailLogin} disabled={loading}>
                 <span />
-                <span>{loading ? 'Anmeldung läuft…' : 'Mit E-Mail anmelden'}</span>
+                <span>{loading ? 'Anmeldung läuft…' : emailStage === 'email' ? 'Weiter mit E-Mail' : 'Anmelden'}</span>
                 <span />
               </button>
             </div>
-            <p className="simple-login-muted">Für neue Workspaces empfehlen wir Google Login. Der Projektstart läuft danach direkt im Workspace.</p>
             <div className="simple-login-links">
-              <button className="simple-login-link" type="button" onClick={() => { setError(''); setView('login') }}>Zurück zur Anmeldung</button>
+              <button className="simple-login-link" type="button" onClick={() => {
+                setError('')
+                if (emailStage === 'password') {
+                  setEmailStage('email')
+                } else {
+                  setView('login')
+                }
+              }}>Zurück zur Anmeldung</button>
             </div>
           </>
         )}
