@@ -5,11 +5,15 @@ import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import SettingsRightPanel from '@/components/SettingsRightPanel'
 import { broadcastProfileSync } from '@/lib/profile-sync'
+import { getDensityMode, getFontMode, getTheme, setDensityMode, setFontMode, setTheme } from '@/lib/theme'
+import type { DensityMode, FontMode, ThemeMode } from '@/lib/theme'
+import { getVoicePreferences, setVoicePreferences } from '@/lib/voice'
+import type { VoicePreferences } from '@/lib/voice'
 
 const INDUSTRIES = ['Technologie & Software','E-Commerce & Retail','Marketing & Werbung','Finanzen & Versicherung','Gesundheit & Medizin','Bildung & E-Learning','Immobilien & Bau','Medien & Entertainment','Logistik & Transport','Beratung & Services','Gastronomie & Tourismus','Sonstiges']
 const SIZES = [{v:'freelancer',l:'Freelancer'},{v:'1-10',l:'1–10'},{v:'10-50',l:'10–50'},{v:'50-200',l:'50–200'},{v:'200+',l:'200+'}]
 const LEGAL = ['GmbH','UG (haftungsbeschränkt)','AG','GbR','Einzelunternehmen','Freiberufler','OHG','KG','GmbH & Co. KG','e.K.','Sonstiges']
-type Tab = 'profile'|'skills'|'company'|'security'|'integrations'
+type Tab = 'profile'|'workspace'|'company'|'appearance'|'ai'|'skills'|'members'|'security'|'billing'|'integrations'|'audit'
 
 const SKILL_CATALOG = [
   // Frontend
@@ -87,6 +91,12 @@ export default function SettingsPage() {
   const [pushOk,   setPushOk]   = useState(false)
   const [pushSup,  setPushSup]  = useState(false)
 
+  // appearance + AI preferences
+  const [themeMode, setThemeModeState] = useState<ThemeMode>('read')
+  const [fontMode, setFontModeState] = useState<FontMode>('aeonik')
+  const [densityMode, setDensityModeState] = useState<DensityMode>('comfortable')
+  const [voicePrefs, setVoicePrefs] = useState<VoicePreferences>(() => getVoicePreferences())
+
   // ui
   const [tab,     setTab]     = useState<Tab>('profile')
   const [loading, setLoading] = useState(true)
@@ -97,6 +107,10 @@ export default function SettingsPage() {
 
   // ── LOAD ──────────────────────────────────────────
   useEffect(() => {
+    setThemeModeState(getTheme())
+    setFontModeState(getFontMode())
+    setDensityModeState(getDensityMode())
+    setVoicePrefs(getVoicePreferences())
     sb.auth.getSession().then(async ({ data }) => {
       if (!data.session) { window.location.href='/login'; return }
       const u = data.session.user
@@ -278,6 +292,25 @@ export default function SettingsPage() {
   const logout = async () => { await sb.auth.signOut(); window.location.href='/login' }
   const displayName = [firstName, lastName].filter(Boolean).join(' ') || email.split('@')[0]
   const initial = (firstName || email || 'U').charAt(0).toUpperCase()
+  const settingsNav = [
+    { group:'Account', items:[
+      { k:'profile' as Tab, l:'Profil' },
+      { k:'workspace' as Tab, l:'Workspace' },
+      { k:'company' as Tab, l:'Unternehmen' },
+    ]},
+    { group:'System', items:[
+      { k:'appearance' as Tab, l:'Design & Darstellung' },
+      { k:'ai' as Tab, l:'Tagro AI & Audio' },
+      ...(role==='dev'||role==='admin' ? [{ k:'skills' as Tab, l:'Developer Profil' }] : []),
+    ]},
+    { group:'Administration', items:[
+      { k:'members' as Tab, l:'Mitglieder & Rollen' },
+      { k:'security' as Tab, l:'Sicherheit' },
+      { k:'billing' as Tab, l:'Abrechnung & Plan' },
+      { k:'integrations' as Tab, l:'Integrationen' },
+      { k:'audit' as Tab, l:'Audit Log' },
+    ]},
+  ]
 
   if (loading) return (
     <div style={{ display:'flex',justifyContent:'center',alignItems:'center',minHeight:'60vh' }}>
@@ -287,64 +320,133 @@ export default function SettingsPage() {
 
   return (
     <>
-    <div className="page-content-full" style={{ width:'100%' }}>
-    <div className="page-header">
-      <h1>Einstellungen</h1>
+    <div className="page-content-full settings-canvas" style={{ width:'100%' }}>
+    <div className="settings-hero">
+      <div>
+        <p className="settings-kicker">Client Workspace Administration</p>
+        <h1 className="settings-title">Einstellungen</h1>
+        <p className="settings-sub">Verwalte Profil, Workspace, Design, Tagro Audio, Sicherheit und Integrationen an einem ruhigen Ort.</p>
+      </div>
+      <div style={{ display:'flex', gap:8, alignItems:'center', flexWrap:'wrap' }}>
+        <span className="chip chip-green" style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'5px 10px' }}>
+          <span style={{ width:6, height:6, borderRadius:'50%', background:'var(--green)' }} />
+          Workspace aktiv
+        </span>
+        <button className="btn-ghost" onClick={() => setTab('audit')}>Letzte Änderungen</button>
+      </div>
     </div>
-    <div style={{ display:'flex', gap:28, alignItems:'flex-start', width:'100%' }}>
-      {/* Left column — settings forms */}
-      <div style={{ flex:'1 1 0', minWidth:0 }}>
+    <div className="settings-shell">
+      <nav className="settings-nav" aria-label="Einstellungen Navigation">
+        {settingsNav.map((section) => (
+          <div key={section.group}>
+            <p className="settings-nav-label">{section.group}</p>
+            {section.items.map((item) => (
+              <button
+                key={item.k}
+                type="button"
+                className={`settings-nav-btn ${tab === item.k ? 'is-active' : ''}`}
+                onClick={() => setTab(item.k)}
+              >
+                <span className="settings-nav-dot" />
+                <span style={{ minWidth:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{item.l}</span>
+              </button>
+            ))}
+          </div>
+        ))}
+      </nav>
+
+      {/* Main column — settings forms */}
+      <div className="settings-main">
       <style>{`
-        .s-card { background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:var(--shadow-xs);margin-bottom:12px; }
-        .s-hd { padding:15px 22px;border-bottom:1px solid var(--border);background:var(--card);display:flex;align-items:center;justify-content:space-between; }
-        .s-hd-label { font-size:10.5px;font-weight:700;color:var(--text-muted);letter-spacing:.1em; }
-        .s-bd { padding:20px 22px;display:flex;flex-direction:column;gap:14px; }
-        .inp { width:100%;padding:11px 14px;background:var(--inp);border:1.5px solid var(--inp-border);border-radius:12px;font-size:15px;outline:none;color:var(--text);box-sizing:border-box;font-family:inherit;font-weight:500;transition:border-color .15s,box-shadow .15s,background .15s; }
-        .inp:focus { border-color:var(--inp-focus-border);background:var(--inp-focus);box-shadow:0 0 0 3px var(--glow); }
+        .settings-shell { display:grid; grid-template-columns:216px minmax(0,1fr) 300px; gap:18px; align-items:start; }
+        .settings-nav { position:sticky; top:24px; display:flex; flex-direction:column; gap:3px; padding:10px; border-radius:18px; background:color-mix(in srgb, var(--surface) 80%, transparent); border:1px solid color-mix(in srgb, var(--border) 76%, transparent); box-shadow:0 18px 48px rgba(0,0,0,.04); backdrop-filter:blur(22px) saturate(160%); -webkit-backdrop-filter:blur(22px) saturate(160%); }
+        .settings-nav-label { margin:10px 10px 6px; color:var(--text-muted); font-size:10px; font-weight:760; letter-spacing:.1em; text-transform:uppercase; }
+        .settings-nav-btn { display:flex; align-items:center; gap:9px; min-height:34px; padding:0 10px; border-radius:11px; color:var(--text-secondary); background:transparent; font:inherit; font-size:12.5px; font-weight:620; text-align:left; transition:background .16s cubic-bezier(.16,1,.3,1), color .16s cubic-bezier(.16,1,.3,1), transform .16s cubic-bezier(.16,1,.3,1); }
+        .settings-nav-btn:hover { background:color-mix(in srgb, var(--surface-2) 84%, transparent); color:var(--text); }
+        .settings-nav-btn.is-active { background:var(--surface-2); color:var(--text); box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--border) 58%, transparent); }
+        .settings-nav-dot { width:6px; height:6px; border-radius:999px; background:var(--text-muted); opacity:.35; flex-shrink:0; }
+        .settings-nav-btn.is-active .settings-nav-dot { background:var(--accent); opacity:1; }
+        .settings-overview { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin:0 0 14px; }
+        .settings-metric { min-height:76px; border-radius:18px; background:color-mix(in srgb, var(--surface) 86%, transparent); border:1px solid color-mix(in srgb, var(--border) 72%, transparent); padding:14px; display:flex; flex-direction:column; justify-content:space-between; box-shadow:0 10px 30px rgba(0,0,0,.032); }
+        .settings-metric span { color:var(--text-muted); font-size:10.5px; font-weight:720; letter-spacing:.06em; text-transform:uppercase; }
+        .settings-metric strong { color:var(--text); font-size:20px; line-height:1; letter-spacing:-.04em; }
+        .s-card { background:color-mix(in srgb, var(--surface) 88%, transparent);border:1px solid color-mix(in srgb, var(--border) 76%, transparent);border-radius:18px;overflow:hidden;box-shadow:0 16px 42px rgba(0,0,0,.035);margin-bottom:14px;backdrop-filter:blur(18px) saturate(150%);-webkit-backdrop-filter:blur(18px) saturate(150%); }
+        .s-hd { padding:18px 22px 14px;border-bottom:1px solid color-mix(in srgb, var(--border) 54%, transparent);background:transparent;display:flex;align-items:center;justify-content:space-between;gap:16px; }
+        .s-hd-label { font-size:10.5px;font-weight:760;color:var(--text-muted);letter-spacing:.105em;text-transform:uppercase; }
+        .s-bd { padding:20px 22px 22px;display:flex;flex-direction:column;gap:15px; }
+        .inp { width:100%;padding:11px 14px;background:color-mix(in srgb, var(--inp) 88%, transparent);border:1px solid var(--inp-border);border-radius:13px;font-size:14px;outline:none;color:var(--text);box-sizing:border-box;font-family:inherit;font-weight:560;transition:border-color .15s,box-shadow .15s,background .15s; }
+        .inp:focus { border-color:var(--inp-focus-border);background:var(--inp-focus);box-shadow:0 0 0 3px color-mix(in srgb, var(--focus-ring) 38%, transparent); }
         .inp:disabled { background:var(--card);color:var(--text-muted);cursor:not-allowed; }
         .inp::placeholder { color:var(--text-muted);opacity:.7; }
-        .txta { width:100%;padding:11px 14px;background:var(--inp);border:1.5px solid var(--inp-border);border-radius:12px;font-size:15px;outline:none;color:var(--text);box-sizing:border-box;resize:vertical;min-height:96px;font-family:inherit;font-weight:500;transition:all .15s;line-height:1.6; }
-        .txta:focus { border-color:var(--inp-focus-border);background:var(--inp-focus);box-shadow:0 0 0 3px var(--glow); }
+        .txta { width:100%;padding:11px 14px;background:color-mix(in srgb, var(--inp) 88%, transparent);border:1px solid var(--inp-border);border-radius:13px;font-size:14px;outline:none;color:var(--text);box-sizing:border-box;resize:vertical;min-height:96px;font-family:inherit;font-weight:560;transition:all .15s;line-height:1.6; }
+        .txta:focus { border-color:var(--inp-focus-border);background:var(--inp-focus);box-shadow:0 0 0 3px color-mix(in srgb, var(--focus-ring) 38%, transparent); }
         .sel-wrap { position:relative; }
-        .sel { width:100%;padding:11px 38px 11px 14px;background:var(--inp);border:1.5px solid var(--inp-border);border-radius:12px;font-size:15px;outline:none;color:var(--text);box-sizing:border-box;cursor:pointer;font-family:inherit;font-weight:500;appearance:none;transition:all .15s; }
+        .sel { width:100%;padding:11px 38px 11px 14px;background:color-mix(in srgb, var(--inp) 88%, transparent);border:1px solid var(--inp-border);border-radius:13px;font-size:14px;outline:none;color:var(--text);box-sizing:border-box;cursor:pointer;font-family:inherit;font-weight:560;appearance:none;transition:all .15s; }
         .sel:focus { border-color:var(--inp-focus-border);background:var(--inp-focus); }
         .sel-arr { position:absolute;right:13px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--text-muted); }
-        .btn-primary { display:inline-flex;align-items:center;gap:8px;padding:10px 20px;background:var(--btn-prim);color:var(--btn-prim-text);border:none;border-radius:12px;font-size:13.5px;font-weight:600;cursor:pointer;font-family:inherit;box-shadow:var(--shadow-sm);transition:all .15s; }
-        .btn-primary:hover { opacity:.88;transform:translateY(-1px);box-shadow:var(--shadow); }
+        .btn-primary { display:inline-flex;align-items:center;gap:8px;padding:9px 16px;background:var(--btn-prim);color:var(--btn-prim-text);border:none;border-radius:12px;font-size:12.5px;font-weight:720;cursor:pointer;font-family:inherit;box-shadow:var(--shadow-sm);transition:opacity .15s,transform .15s,box-shadow .15s; }
+        .btn-primary:hover { opacity:.9;transform:translateY(-1px);box-shadow:var(--shadow); }
         .btn-primary:disabled { opacity:.4;cursor:default;transform:none; }
-        .btn-ghost { display:inline-flex;align-items:center;gap:7px;padding:8px 14px;background:transparent;color:var(--text-secondary);border:1.5px solid var(--border);border-radius:10px;font-size:12.5px;font-weight:500;cursor:pointer;font-family:inherit;transition:all .15s; }
+        .btn-ghost { display:inline-flex;align-items:center;gap:7px;padding:8px 13px;background:transparent;color:var(--text-secondary);border:1px solid var(--border);border-radius:11px;font-size:12px;font-weight:650;cursor:pointer;font-family:inherit;transition:all .15s; }
         .btn-ghost:hover { background:var(--card);border-color:var(--border-strong); }
-        .btn-danger { display:inline-flex;align-items:center;gap:6px;padding:7px 13px;background:var(--red-bg);color:var(--red);border:1.5px solid var(--red);border-radius:9px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;opacity:.85; }
+        .btn-danger { display:inline-flex;align-items:center;gap:6px;padding:7px 12px;background:var(--red-bg);color:var(--red);border:1px solid color-mix(in srgb, var(--red) 52%, transparent);border-radius:10px;font-size:12px;font-weight:680;cursor:pointer;font-family:inherit;transition:all .15s;opacity:.9; }
         .btn-danger:hover { opacity:1; }
-        .lbl { font-size:12px;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:6px;letter-spacing:.01em; }
+        .lbl { font-size:11.5px;font-weight:720;color:var(--text-secondary);display:block;margin-bottom:6px;letter-spacing:.01em; }
         .row2 { display:grid;grid-template-columns:1fr 1fr;gap:12px; }
         .row3 { display:grid;grid-template-columns:80px 1fr;gap:8px; }
         .tog { width:44px;height:24px;border-radius:12px;position:relative;cursor:pointer;transition:background .2s;border:none;flex-shrink:0; }
         .tog-th { position:absolute;top:2px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.2);transition:left .18s cubic-bezier(.4,0,.2,1); }
-        /* Tabs */
-        .tab-row { display:flex;background:var(--card);border-radius:12px;padding:4px;gap:3px;margin-bottom:14px; }
+        .tab-row { display:none; }
         .tab-btn { flex:1;padding:9px 8px;border-radius:10px;border:none;cursor:pointer;font-size:13px;font-weight:500;font-family:inherit;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px; }
         .tab-on  { background:var(--surface);color:var(--text);font-weight:700;box-shadow:var(--shadow-xs); }
         .tab-off { background:transparent;color:var(--text-muted); }
-        .tab-off:hover { color:var(--text);background:var(--surface-2); }
-        /* Integration cards */
-        .int-card { background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:14px 16px;display:flex;gap:13px;align-items:center;transition:all .15s; }
+        .int-card { background:color-mix(in srgb, var(--card) 72%, transparent);border:1px solid var(--border);border-radius:14px;padding:14px 16px;display:flex;gap:13px;align-items:center;transition:all .15s; }
         .int-card:hover { border-color:var(--border-strong);background:var(--surface);box-shadow:var(--shadow-xs); }
-        .int-logo { width:42px;height:42px;border-radius:11px;background:var(--surface-2);border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0; }
-        /* Device card */
-        .dev-card { background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:12px 15px;display:flex;gap:12px;align-items:center; }
-        .webhook-row { background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:11px 15px;display:flex;gap:10px;align-items:center; }
+        .int-logo { width:42px;height:42px;border-radius:11px;background:var(--surface-2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0; }
+        .dev-card { background:color-mix(in srgb, var(--card) 76%, transparent);border:1px solid var(--border);border-radius:13px;padding:12px 15px;display:flex;gap:12px;align-items:center; }
+        .webhook-row { background:color-mix(in srgb, var(--card) 76%, transparent);border:1px solid var(--border);border-radius:13px;padding:11px 15px;display:flex;gap:10px;align-items:center; }
         .chip { display:inline-block;padding:2px 8px;border-radius:6px;font-size:10.5px;font-weight:700;letter-spacing:.04em; }
         .chip-green { background:var(--green-bg);color:var(--green-dark);border:1px solid var(--green-border); }
         .chip-gray { background:var(--surface-2);color:var(--text-secondary);border:1px solid var(--border); }
         .chip-blue { background:var(--surface-2);color:var(--text);border:1px solid var(--border); }
         .ai-badge { display:inline-flex;align-items:center;gap:4px;padding:3px 9px;background:var(--card);border:1px solid var(--border);border-radius:6px;font-size:10px;font-weight:700;color:var(--text-secondary);letter-spacing:.04em; }
         .key-box { background:var(--surface-2);border-radius:10px;padding:12px 16px;font-family:'SF Mono',monospace;font-size:12.5px;color:var(--green);word-break:break-all;letter-spacing:.04em;line-height:1.6; }
-        @media(max-width:600px) { .row2,.row3 { grid-template-columns:1fr; } }
+        .pref-grid { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px; }
+        .pref-tile { border:1px solid var(--border);border-radius:15px;background:color-mix(in srgb, var(--card) 78%, transparent);padding:14px;text-align:left;min-height:96px;transition:background .16s,border-color .16s,transform .16s; }
+        .pref-tile:hover { background:var(--surface-2);transform:translateY(-1px); }
+        .pref-tile.is-active { border-color:var(--text);box-shadow:inset 0 0 0 1px var(--text); }
+        .pref-tile strong { display:block;color:var(--text);font-size:13.5px;margin-bottom:5px; }
+        .pref-tile span { display:block;color:var(--text-muted);font-size:11.5px;line-height:1.45; }
+        .member-table { border:1px solid color-mix(in srgb, var(--border) 58%, transparent); border-radius:16px; overflow:hidden; background:color-mix(in srgb, var(--card) 56%, transparent); }
+        .member-row { display:grid; grid-template-columns:minmax(190px,1.45fr) 112px 112px 124px 104px 42px; gap:14px; align-items:center; min-height:56px; padding:0 14px; border-bottom:1px solid color-mix(in srgb, var(--border) 36%, transparent); }
+        .member-row:last-child { border-bottom:0; }
+        .member-row.is-head { min-height:40px; color:var(--text-muted); font-size:10px; font-weight:780; letter-spacing:.08em; text-transform:uppercase; }
+        .member-avatar { width:28px; height:28px; border-radius:999px; display:flex; align-items:center; justify-content:center; background:var(--surface-2); border:1px solid var(--border); font-size:11px; font-weight:800; color:var(--text); flex-shrink:0; }
+        .seat-pill { display:inline-flex; width:max-content; align-items:center; gap:6px; padding:4px 8px; border-radius:999px; background:var(--surface-2); border:1px solid var(--border); color:var(--text-secondary); font-size:11px; font-weight:700; }
+        .audit-row { display:grid;grid-template-columns:124px minmax(0,1fr) 96px;gap:14px;align-items:center;padding:12px 0;border-bottom:1px solid color-mix(in srgb, var(--border) 42%, transparent); }
+        .audit-row:last-child { border-bottom:0; }
+        @media(max-width:1180px) { .settings-shell { grid-template-columns:190px minmax(0,1fr); } .settings-side { display:none; } }
+        @media(max-width:820px) { .settings-shell { grid-template-columns:1fr; } .settings-nav { position:static; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); } .settings-nav-label { grid-column:1/-1; } .settings-overview,.pref-grid { grid-template-columns:1fr 1fr; } }
+        @media(max-width:980px) { .member-row { grid-template-columns:minmax(180px,1fr) 96px 96px 42px; } .member-row > :nth-child(4), .member-row > :nth-child(5) { display:none; } }
+        @media(max-width:600px) { .row2,.row3,.settings-overview,.pref-grid { grid-template-columns:1fr; } .member-row { grid-template-columns:minmax(0,1fr) 42px; } .member-row > :nth-child(2), .member-row > :nth-child(3), .member-row > :nth-child(4), .member-row > :nth-child(5) { display:none; } }
         @keyframes spin { to{transform:rotate(360deg);} }
         @keyframes fadeUp { from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);} }
         .fade-in { animation:fadeUp .25s ease both; }
       `}</style>
+
+      <div className="settings-overview animate-fade-up-1">
+        {[
+          { label:'Rolle', value: role === 'dev' ? 'Developer' : role === 'admin' ? 'Admin' : 'Client' },
+          { label:'Theme', value: themeMode === 'read' ? 'Read' : themeMode === 'dark' ? 'Dark' : themeMode === 'light' ? 'Light' : themeMode },
+          { label:'Audio', value: voicePrefs.enabled ? 'Manuell' : 'Aus' },
+          { label:'Sicherheit', value: devices.length ? `${devices.length} Geräte` : 'Aktiv' },
+        ].map((metric) => (
+          <div key={metric.label} className="settings-metric">
+            <span>{metric.label}</span>
+            <strong>{metric.value}</strong>
+          </div>
+        ))}
+      </div>
 
       {/* ── AVATAR CARD ──────────────────────────────────── */}
       <div className="s-card animate-fade-up-1" style={{ marginBottom:14 }}>
@@ -414,6 +516,199 @@ export default function SettingsPage() {
           </button>
         ))}
       </div>
+
+      {tab==='workspace' && (
+        <div className="fade-in">
+          <div className="s-card">
+            <div className="s-hd">
+              <div>
+                <span className="s-hd-label">WORKSPACE GENERAL</span>
+                <p style={{ fontSize:12,color:'var(--text-muted)',margin:'4px 0 0' }}>Basisdaten für deinen Festag Arbeitskontext.</p>
+              </div>
+              <span className="chip chip-green">Client Panel</span>
+            </div>
+            <div className="s-bd">
+              <div className="row2">
+                <div><label className="lbl">Workspace Name</label><input value={compName || displayName} onChange={e=>setCompName(e.target.value)} placeholder="Stefan Workspace" className="inp"/></div>
+                <div>
+                  <label className="lbl">Workspace Typ</label>
+                  <div className="sel-wrap">
+                    <select className="sel" value={compSize || 'personal'} onChange={e=>setCompSize(e.target.value)}>
+                      <option value="personal">Personal / Founder</option>
+                      <option value="agency">Agency Workspace</option>
+                      <option value="enterprise">Enterprise Workspace</option>
+                    </select>
+                    <span className="sel-arr">⌄</span>
+                  </div>
+                </div>
+              </div>
+              <div><label className="lbl">Workspace Beschreibung</label><textarea value={compDesc} onChange={e=>setCompDesc(e.target.value)} className="txta" placeholder="Wofür nutzt du Festag? Projekte, Kunden, interne Tools oder Team-Delivery…" /></div>
+              <div className="pref-grid">
+                {[
+                  ['Projektsteuerung','Projekte, Tasks und Statusberichte als täglicher Kern.'],
+                  ['Client Transparenz','Berichte, Entscheidungen und verständliche Updates.'],
+                  ['Team Execution','Developer, Rollen und technische Übergaben später in Teams.'],
+                ].map(([title, text]) => (
+                  <div key={title} className="pref-tile">
+                    <strong>{title}</strong>
+                    <span>{text}</span>
+                  </div>
+                ))}
+              </div>
+              <SaveBtn saving={saving} saved={saved} onClick={save} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {tab==='appearance' && (
+        <div className="fade-in">
+          <div className="s-card">
+            <div className="s-hd">
+              <div>
+                <span className="s-hd-label">DESIGN SYSTEM</span>
+                <p style={{ fontSize:12,color:'var(--text-muted)',margin:'4px 0 0' }}>Theme, Schrift und Dichte wirken global im Client Workspace.</p>
+              </div>
+            </div>
+            <div className="s-bd">
+              <div>
+                <label className="lbl">Interface Theme</label>
+                <div className="pref-grid">
+                  {([
+                    { mode:'light' as ThemeMode, title:'Light', desc:'Klar, hell und modern.' },
+                    { mode:'dark' as ThemeMode, title:'Dark', desc:'Ruhige Production-Control-Ästhetik.' },
+                    { mode:'read' as ThemeMode, title:'Read Mode', desc:'Warm, editorial und ideal für Berichte.' },
+                    { mode:'pure-light' as ThemeMode, title:'Pure Light', desc:'Reduzierter Weißraum für Tabellen.' },
+                    { mode:'magic-blue' as ThemeMode, title:'Magic Blue', desc:'Technischer, dunkler AI-Modus.' },
+                    { mode:'classic-dark' as ThemeMode, title:'Classic Dark', desc:'Kontraststark und ruhig.' },
+                  ]).map((option) => (
+                    <button
+                      key={option.mode}
+                      type="button"
+                      className={`pref-tile ${themeMode === option.mode ? 'is-active' : ''}`}
+                      onClick={() => {
+                        setThemeModeState(option.mode)
+                        setTheme(option.mode)
+                      }}
+                    >
+                      <strong>{option.title}</strong>
+                      <span>{option.desc}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="row2">
+                <div>
+                  <label className="lbl">Schrift</label>
+                  <div className="pref-grid" style={{ gridTemplateColumns:'repeat(2,minmax(0,1fr))' }}>
+                    {([
+                      { mode:'aeonik' as FontMode, title:'Aeonik', desc:'Festag Standard. Editorial und eigenständig.' },
+                      { mode:'sf-pro' as FontMode, title:'SF Pro', desc:'Apple-artig, systemnah und kompakt.' },
+                    ]).map((option) => (
+                      <button
+                        key={option.mode}
+                        type="button"
+                        className={`pref-tile ${fontMode === option.mode ? 'is-active' : ''}`}
+                        onClick={() => {
+                          setFontModeState(option.mode)
+                          setFontMode(option.mode)
+                        }}
+                      >
+                        <strong>{option.title}</strong>
+                        <span>{option.desc}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label className="lbl">Dichte</label>
+                  <div className="pref-grid" style={{ gridTemplateColumns:'repeat(2,minmax(0,1fr))' }}>
+                    {([
+                      { mode:'comfortable' as DensityMode, title:'Comfortable', desc:'Mehr Luft für Projektarbeit.' },
+                      { mode:'compact' as DensityMode, title:'Compact', desc:'Dichter für Tabellen und Listen.' },
+                    ]).map((option) => (
+                      <button
+                        key={option.mode}
+                        type="button"
+                        className={`pref-tile ${densityMode === option.mode ? 'is-active' : ''}`}
+                        onClick={() => {
+                          setDensityModeState(option.mode)
+                          setDensityMode(option.mode)
+                        }}
+                      >
+                        <strong>{option.title}</strong>
+                        <span>{option.desc}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {tab==='ai' && (
+        <div className="fade-in">
+          <div className="s-card">
+            <div className="s-hd">
+              <div>
+                <span className="s-hd-label">TAGRO AI & AUDIO</span>
+                <p style={{ fontSize:12,color:'var(--text-muted)',margin:'4px 0 0' }}>Audio ist optional, manuell und nie Always-Listening.</p>
+              </div>
+              <span className="chip chip-gray">Production Intelligence</span>
+            </div>
+            <div className="s-bd">
+              {([
+                ['enabled','Audio Briefings erlauben','Tagro darf kurze Executive Briefings abspielen.'],
+                ['statusReportsEnabled','Statusberichte anhören','Statusberichte werden als kurze Zusammenfassung vorgelesen.'],
+                ['projectBriefingsEnabled','Projektbriefings anhören','Projektfortschritt, Blocker und nächste Schritte als Audio.'],
+                ['speechInputEnabled','Spracheingabe erlauben','Vorbereitet, standardmäßig aus. Kein Always Listening.'],
+              ] as const).map(([key, title, desc]) => {
+                const on = Boolean(voicePrefs[key])
+                return (
+                  <div key={key} className="dev-card" style={{ justifyContent:'space-between' }}>
+                    <div>
+                      <p style={{ margin:0, color:'var(--text)', fontSize:13.5, fontWeight:700 }}>{title}</p>
+                      <p style={{ margin:'3px 0 0', color:'var(--text-muted)', fontSize:12 }}>{desc}</p>
+                    </div>
+                    <button className="tog" onClick={() => {
+                      const next = setVoicePreferences({ [key]: !on } as Partial<VoicePreferences>)
+                      setVoicePrefs(next)
+                    }} style={{ background:on?'var(--text)':'var(--border-strong)' }}>
+                      <span className="tog-th" style={{ left:on?22:2, background:on?'var(--bg)':'#fff' }} />
+                    </button>
+                  </div>
+                )
+              })}
+              <div className="row2">
+                <div>
+                  <label className="lbl">Auto-Briefings</label>
+                  <div className="sel-wrap">
+                    <select className="sel" value={voicePrefs.autoBriefings} onChange={e => {
+                      const next = setVoicePreferences({ autoBriefings: e.target.value as VoicePreferences['autoBriefings'] })
+                      setVoicePrefs(next)
+                    }}>
+                      <option value="off">Aus</option>
+                      <option value="manual">Nur manuell</option>
+                      <option value="daily_prepared">Täglich vorbereitet</option>
+                    </select>
+                    <span className="sel-arr">⌄</span>
+                  </div>
+                </div>
+                <div>
+                  <label className="lbl">Sprechtempo</label>
+                  <input className="inp" type="range" min="0.75" max="1.25" step="0.05" value={voicePrefs.rate} onChange={e => {
+                    const next = setVoicePreferences({ rate: Number(e.target.value) })
+                    setVoicePrefs(next)
+                  }} />
+                  <p style={{ margin:'4px 0 0', color:'var(--text-muted)', fontSize:11 }}>{voicePrefs.rate.toFixed(2)}x</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ══════════════════════════════════════════════════
           TAB: PROFIL
@@ -655,6 +950,105 @@ export default function SettingsPage() {
         </div>
       )}
 
+      {tab==='members' && (
+        <div className="fade-in" style={{ display:'flex', flexDirection:'column', gap:12 }}>
+          <div className="s-card">
+            <div className="s-hd">
+              <div>
+                <span className="s-hd-label">MITGLIEDER & ROLLEN</span>
+                <p style={{ fontSize:12,color:'var(--text-muted)',margin:'4px 0 0' }}>Client-seitige Workspace-Zugriffe. Interne Festag-Developer bleiben getrennt.</p>
+              </div>
+              <button className="btn-primary">Mitglied einladen</button>
+            </div>
+            <div className="s-bd">
+              <div className="pref-grid">
+                {[
+                  ['Aktive Mitglieder', '1 Owner · 0 Developer · Viewer frei'],
+                  ['Seat Logik', 'Aktive Mitarbeit benötigt Seat. Lesen kann eingeschränkt frei bleiben.'],
+                  ['Sichtbarkeit', 'Developer sehen nur freigegebene Projekte und technische Kontexte.'],
+                ].map(([title, text]) => (
+                  <div key={title} className="pref-tile">
+                    <strong>{title}</strong>
+                    <span>{text}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="member-table" role="table" aria-label="Workspace Mitglieder">
+                <div className="member-row is-head" role="row">
+                  <span>Mitglied</span>
+                  <span>Rolle</span>
+                  <span>Seat</span>
+                  <span>Zugriff</span>
+                  <span>Status</span>
+                  <span />
+                </div>
+                {[
+                  {
+                    name: displayName,
+                    mail: email,
+                    role: role === 'admin' ? 'Admin' : role === 'dev' ? 'Developer' : 'Owner',
+                    seat: 'Aktiv',
+                    access: 'Gesamter Workspace',
+                    status: 'Online',
+                    initials: initial,
+                  },
+                  {
+                    name: 'Tagro Vorschlag',
+                    mail: 'Noch nicht eingeladen',
+                    role: 'Lead Developer',
+                    seat: 'Benötigt',
+                    access: 'Projektbasiert',
+                    status: 'Entwurf',
+                    initials: 'T',
+                  },
+                  {
+                    name: 'Client Viewer',
+                    mail: 'Read-only Beispiel',
+                    role: 'Viewer',
+                    seat: 'Frei',
+                    access: 'Status & Dokumente',
+                    status: 'Vorlage',
+                    initials: 'V',
+                  },
+                ].map((member) => (
+                  <div key={`${member.name}-${member.role}`} className="member-row" role="row">
+                    <div style={{ display:'flex', alignItems:'center', gap:10, minWidth:0 }}>
+                      <span className="member-avatar">{member.initials}</span>
+                      <div style={{ minWidth:0 }}>
+                        <p style={{ margin:0, color:'var(--text)', fontSize:13.5, fontWeight:760, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{member.name}</p>
+                        <p style={{ margin:'2px 0 0', color:'var(--text-muted)', fontSize:11.5, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{member.mail}</p>
+                      </div>
+                    </div>
+                    <span style={{ color:'var(--text-secondary)', fontSize:12.5, fontWeight:680 }}>{member.role}</span>
+                    <span className="seat-pill">
+                      <span style={{ width:6, height:6, borderRadius:'50%', background:member.seat === 'Aktiv' ? 'var(--green)' : member.seat === 'Benötigt' ? '#F59E0B' : 'var(--text-muted)' }} />
+                      {member.seat}
+                    </span>
+                    <span style={{ color:'var(--text-secondary)', fontSize:12.5, fontWeight:620 }}>{member.access}</span>
+                    <span className="chip chip-gray" style={{ width:'max-content' }}>{member.status}</span>
+                    <button className="btn-ghost" aria-label={`Aktionen für ${member.name}`} style={{ width:32, height:32, padding:0, justifyContent:'center' }}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M12 5h.01M12 12h.01M12 19h.01"/></svg>
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              <div className="dev-card" style={{ alignItems:'flex-start' }}>
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ marginTop:2, flexShrink:0 }}>
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                  <path d="M9 12l2 2 4-5"/>
+                </svg>
+                <div>
+                  <p style={{ margin:0, color:'var(--text)', fontSize:13.5, fontWeight:760 }}>Einladungen bleiben client-seitig.</p>
+                  <p style={{ margin:'4px 0 0', color:'var(--text-muted)', fontSize:12.5, lineHeight:1.55 }}>Agency-, Enterprise- und Developer-Zugriffe werden später über Teams und PIN-Flows verfeinert, ohne interne Festag-Operations offenzulegen.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ══════════════════════════════════════════════════
           TAB: SICHERHEIT
       ══════════════════════════════════════════════════ */}
@@ -772,6 +1166,42 @@ export default function SettingsPage() {
         </div>
       )}
 
+      {tab==='billing' && (
+        <div className="fade-in" style={{ display:'flex',flexDirection:'column',gap:12 }}>
+          <div className="s-card">
+            <div className="s-hd">
+              <div>
+                <span className="s-hd-label">ABRECHNUNG & PLAN</span>
+                <p style={{ fontSize:12,color:'var(--text-muted)',margin:'4px 0 0' }}>Billing bleibt Verwaltung, nicht Daily Navigation.</p>
+              </div>
+              <span className="chip chip-gray">{role === 'admin' ? 'Admin Zugriff' : 'Workspace Plan'}</span>
+            </div>
+            <div className="s-bd">
+              <div className="pref-grid">
+                {[
+                  ['Aktueller Plan', role === 'dev' ? 'Developer Access' : 'Client Workspace'],
+                  ['Seats', '1 aktiv · Viewer frei'],
+                  ['Rechnungen', 'Keine offenen Zahlungen'],
+                ].map(([title, text]) => (
+                  <div key={title} className="pref-tile">
+                    <strong>{title}</strong>
+                    <span>{text}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="dev-card" style={{ alignItems:'flex-start' }}>
+                <div style={{ width:8, height:8, borderRadius:'50%', background:'var(--green)', marginTop:6, flexShrink:0 }} />
+                <div style={{ flex:1 }}>
+                  <p style={{ margin:0, color:'var(--text)', fontSize:14, fontWeight:750 }}>Seats werden erst für aktive Mitarbeit benötigt.</p>
+                  <p style={{ margin:'4px 0 0', color:'var(--text-muted)', fontSize:12.5, lineHeight:1.55 }}>Viewer, Statusberichte und Leserechte bleiben ruhig getrennt von aktiver Team-Execution.</p>
+                </div>
+                <Link href="/billing" className="btn-primary">Billing öffnen</Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ══════════════════════════════════════════════════
           TAB: INTEGRATIONEN
       ══════════════════════════════════════════════════ */}
@@ -881,9 +1311,38 @@ export default function SettingsPage() {
           </div>
         </div>
       )}
+
+      {tab==='audit' && (
+        <div className="fade-in">
+          <div className="s-card">
+            <div className="s-hd">
+              <div>
+                <span className="s-hd-label">AUDIT LOG</span>
+                <p style={{ fontSize:12,color:'var(--text-muted)',margin:'4px 0 0' }}>Nachvollziehbare Workspace-Ereignisse für Vertrauen und Kontrolle.</p>
+              </div>
+              <Link href="/activity" className="btn-ghost">Activity Feed öffnen</Link>
+            </div>
+            <div className="s-bd">
+              {[
+                ['Heute', 'Profil- und Workspace-Einstellungen geöffnet', 'System'],
+                ['Heute', 'Tagro Audio Präferenzen synchronisiert', 'AI'],
+                ['Gestern', 'Developer-Update in Statusberichte übernommen', 'Delivery'],
+                ['07. Mai', 'Projektstruktur durch Tagro vorbereitet', 'Projekt'],
+                ['07. Mai', 'Client Workspace initialisiert', 'Workspace'],
+              ].map(([time, title, type]) => (
+                <div key={`${time}-${title}`} className="audit-row">
+                  <span style={{ color:'var(--text-muted)', fontSize:12, fontWeight:650 }}>{time}</span>
+                  <span style={{ color:'var(--text)', fontSize:13.5, fontWeight:650, minWidth:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{title}</span>
+                  <span className="chip chip-gray" style={{ textAlign:'center' }}>{type}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
       </div>
       {/* Right column — info panel (desktop only) */}
-      <div className="hide-mobile" style={{ width:300, flexShrink:0, position:'sticky', top:36, alignSelf:'flex-start' }}>
+      <div className="hide-mobile settings-side" style={{ width:300, flexShrink:0, position:'sticky', top:36, alignSelf:'flex-start' }}>
         <SettingsRightPanel />
       </div>
     </div>

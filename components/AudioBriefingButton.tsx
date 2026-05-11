@@ -1,6 +1,7 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { SpeakerHigh, X } from '@phosphor-icons/react'
 import VoiceControls from '@/components/VoiceControls'
 import { generateBriefingText } from '@/lib/briefings'
@@ -20,27 +21,69 @@ type AudioBriefingButtonProps = {
 
 export default function AudioBriefingButton(props: AudioBriefingButtonProps) {
   const [open, setOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
+  const [position, setPosition] = useState({ left: 16, top: 80 })
+  const buttonRef = useRef<HTMLButtonElement | null>(null)
   const text = useMemo(() => generateBriefingText(props), [props.type, props.projectTitle, props.report, props.projectStatus, props.progress, props.blockerCount, props.decisionCount, props.nextSteps?.join('|')])
+
+  useEffect(() => setMounted(true), [])
+
+  useEffect(() => {
+    if (!open) return
+
+    function updatePosition() {
+      const rect = buttonRef.current?.getBoundingClientRect()
+      const width = Math.min(420, window.innerWidth - 32)
+      if (!rect) return
+      setPosition({
+        left: Math.max(16, Math.min(window.innerWidth - width - 16, rect.right - width)),
+        top: Math.max(16, Math.min(window.innerHeight - 260, rect.bottom + 10)),
+      })
+    }
+
+    updatePosition()
+    window.addEventListener('resize', updatePosition)
+    window.addEventListener('scroll', updatePosition, true)
+    return () => {
+      window.removeEventListener('resize', updatePosition)
+      window.removeEventListener('scroll', updatePosition, true)
+    }
+  }, [open])
+
+  useEffect(() => {
+    if (!open) return
+    function onKey(event: KeyboardEvent) {
+      if (event.key === 'Escape') setOpen(false)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [open])
+
+  const popover = open && mounted ? createPortal(
+    <>
+      <div className="audio-briefing-backdrop" onMouseDown={() => setOpen(false)} />
+      <div className="audio-briefing-layer" style={{ left: position.left, top: position.top }} role="dialog" aria-label="Tagro Audio Briefing">
+        <div className="audio-briefing-head">
+          <div>
+            <p>Tagro Audio Briefing</p>
+            <span>Executive Summary · startet nur manuell</span>
+          </div>
+          <button type="button" onClick={() => setOpen(false)} aria-label="Audio Briefing schließen"><X size={14} /></button>
+        </div>
+        <p className="audio-briefing-text">{text}</p>
+        <VoiceControls text={text} compact />
+      </div>
+    </>,
+    document.body
+  ) : null
 
   return (
     <div className="audio-briefing-wrap">
-      <button className="audio-briefing-button" type="button" onClick={() => setOpen((value) => !value)}>
+      <button ref={buttonRef} className="audio-briefing-button" type="button" onClick={() => setOpen((value) => !value)}>
         <SpeakerHigh size={15} />
         {props.label}
       </button>
-      {open && (
-        <div className="audio-briefing-popover">
-          <div className="audio-briefing-head">
-            <div>
-              <p>Tagro Audio Briefing</p>
-              <span>Executive Summary · startet nur manuell</span>
-            </div>
-            <button type="button" onClick={() => setOpen(false)} aria-label="Audio Briefing schließen"><X size={14} /></button>
-          </div>
-          <p className="audio-briefing-text">{text}</p>
-          <VoiceControls text={text} compact />
-        </div>
-      )}
+      {popover}
     </div>
   )
 }

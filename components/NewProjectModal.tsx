@@ -1,8 +1,9 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import TagroLogo from '@/components/TagroLogo'
+import TagroPromptComposer from '@/components/TagroPromptComposer'
 
 const PROJECT_COLORS = ['#6366f1', '#8b5cf6', '#ec4899', '#ef4444', '#f97316', '#eab308', '#22c55e', '#06b6d4', '#3b82f6', '#64748b']
 const STATUS_OPTIONS = ['Backlog', 'In Planung', 'Aktiv', 'Testing', 'Fertig']
@@ -19,8 +20,6 @@ interface Props {
 
 export default function NewProjectModal({ onClose, onCreated }: Props) {
   const supabase = createClient()
-  const inputRef = useRef<HTMLTextAreaElement>(null)
-
   const [mode, setMode] = useState<Mode>('tagro')
   const [idea, setIdea] = useState('')
   const [messages, setMessages] = useState<Message[]>([
@@ -44,19 +43,17 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
   const [creating, setCreating] = useState(false)
 
   useEffect(() => {
-    const t = window.setTimeout(() => inputRef.current?.focus(), 120)
     const onKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') onClose()
     }
     window.addEventListener('keydown', onKey)
     return () => {
-      window.clearTimeout(t)
       window.removeEventListener('keydown', onKey)
     }
   }, [onClose])
 
-  async function createWithTagro() {
-    const cleanIdea = idea.trim()
+  async function createWithTagro(promptValue?: string) {
+    const cleanIdea = (promptValue ?? idea).trim()
     if (!cleanIdea || creatingWithTagro) return
     setTagroError('')
     setCreatingWithTagro(true)
@@ -90,7 +87,7 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
       throw new Error('Projekt wurde analysiert, aber noch nicht gespeichert.')
     } catch (error: any) {
       setTagroError(error.message ?? 'Projektanlage fehlgeschlagen.')
-      setMessages(prev => [...prev, { role: 'ai', text: 'Das hat noch nicht sauber funktioniert. Du kannst es erneut versuchen oder auf Formular wechseln.' }])
+        setMessages(prev => [...prev, { role: 'ai', text: 'Das hat noch nicht sauber funktioniert. Du kannst es erneut versuchen oder manuell erstellen.' }])
     } finally {
       setCreatingWithTagro(false)
     }
@@ -199,13 +196,7 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
           color:var(--text-secondary);
           max-width:780px;
         }
-        .npm-input-area {
-          padding:32px 52px 36px;
-          display:grid;
-          grid-template-columns:1fr 64px;
-          gap:18px;
-          align-items:end;
-        }
+        .npm-input-area { padding:28px 48px 30px; }
         .npm-idea {
           border:0; outline:0; resize:none; background:transparent;
           color:var(--text); font-family:inherit;
@@ -257,7 +248,7 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
               <span>· Neues Projekt</span>
             </div>
             <div className="npm-head-actions">
-              <button className="npm-ghost-btn" onClick={() => setMode('form')} type="button">Formular</button>
+              <button className="npm-ghost-btn" onClick={() => setMode('form')} type="button">Manuell erstellen</button>
               <button className="npm-icon-btn" onClick={onClose} type="button" aria-label="Schließen">
                 <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
               </button>
@@ -267,35 +258,25 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
           <div className="npm-chat-body">
             <div>
               <section className="npm-question">
-                <h2>{messages[messages.length - 1]?.role === 'ai' ? messages[messages.length - 1].text : 'Ich strukturiere dein Projekt und bereite die ersten Workspace-Tasks vor.'}</h2>
+                <div>
+                  <p style={{ margin:'0 0 14px', color:'var(--text-muted)', fontSize:12, fontWeight:800, letterSpacing:'.12em', textTransform:'uppercase' }}>Tagro Project Intake</p>
+                  <h2>{messages[messages.length - 1]?.role === 'ai' ? messages[messages.length - 1].text : 'Ich strukturiere dein Projekt und bereite die ersten Workspace-Tasks vor.'}</h2>
+                  <p style={{ margin:'16px 0 0', color:'var(--text-muted)', fontSize:13.5, lineHeight:1.55, maxWidth:640 }}>Beantworte in natürlicher Sprache. Tagro erzeugt daraus Scope, Milestones und prüfbare Task-Vorschläge.</p>
+                </div>
               </section>
               {tagroError && <p className="npm-error">{tagroError}</p>}
             </div>
             <div>
               <div className="npm-input-area">
-                <textarea
-                  ref={inputRef}
-                  value={idea}
-                  onChange={e => setIdea(e.target.value)}
-                  onKeyDown={e => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault()
-                      createWithTagro()
-                    }
-                  }}
-                  className="npm-idea"
+                <TagroPromptComposer
                   placeholder="Beschreibe deine Idee..."
-                  rows={3}
+                  mode="Projekt"
+                  modes={['Projekt', 'MVP', 'Premium', 'Technisch']}
+                  loading={creatingWithTagro}
+                  statusMessage="Tagro · AI-Projektarchitekt von Festag · Enter zum Senden"
+                  onSubmit={(value) => createWithTagro(value)}
                 />
-                <button className={`npm-send ${idea.trim() ? 'ready' : ''}`} onClick={createWithTagro} disabled={!idea.trim() || creatingWithTagro} type="button" aria-label="Mit Tagro erstellen">
-                  {creatingWithTagro ? (
-                    <span style={{ width:20, height:20, border:'2px solid currentColor', borderTopColor:'transparent', borderRadius:'50%', animation:'spin .8s linear infinite' }} />
-                  ) : (
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M7 17L17 7" /><path d="M9 7h8v8" /></svg>
-                  )}
-                </button>
               </div>
-              <p className="npm-hint">Tagro · AI-Projektmanager von Festag · <span className="npm-kbd">Enter</span> zum Senden</p>
             </div>
           </div>
         </div>
@@ -306,7 +287,7 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
               <button className="npm-icon-btn" onClick={() => setMode('tagro')} type="button" aria-label="Zurück zu Tagro">
                 <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
               </button>
-              <strong>Formular</strong>
+              <strong>Manuell erstellen</strong>
               <span>· Neues Projekt</span>
             </div>
             <button className="npm-icon-btn" onClick={onClose} type="button" aria-label="Schließen">

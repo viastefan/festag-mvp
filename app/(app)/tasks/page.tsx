@@ -27,6 +27,8 @@ type TaskRow = {
   title: string
   status: string | null
   priority?: string | null
+  customer_update?: string | null
+  dev_notes?: string | null
   project_id?: string | null
   assigned_to?: string | null
   owner?: string | null
@@ -90,6 +92,7 @@ function progressFor(status?: string | null) {
 }
 
 function healthLabel(task: TaskRow) {
+  if (task.customer_update) return task.customer_update
   const normalized = normalizeStatus(task.status)
   const raw = (task.status || '').toLowerCase()
   if (normalized === 'done') return 'Erledigt mit Erklärung'
@@ -654,7 +657,7 @@ export default function TasksPage() {
         <div className="task-head">
           <span style={{ textAlign: 'center' }}>Gruppe</span>
           <span>Task</span>
-          <span>Projektlage</span>
+          <span>Developer Update</span>
           <span>Priorität</span>
           <span>Verantwortlich</span>
           <span>Update</span>

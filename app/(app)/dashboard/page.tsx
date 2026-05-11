@@ -105,9 +105,8 @@ export default function DashboardPage() {
 
   if (showLoader) return <LoadingScreen onDone={() => { sessionStorage.setItem('festag_dash_loaded','1'); setShowLoader(false) }}/>
   if (loading) return (
-    <div style={{ display:'flex', alignItems:'center', justifyContent:'center', minHeight:'60vh' }}>
-      <div style={{ width:20, height:20, border:'1.5px solid var(--border)', borderTopColor:'var(--text)', borderRadius:'50%', animation:'spin .8s linear infinite' }}/>
-      <style>{`@keyframes spin{to{transform:rotate(360deg);}}`}</style>
+    <div style={{ display:'flex', alignItems:'center', justifyContent:'center', minHeight:'60vh', color:'var(--text-muted)', fontWeight:700 }}>
+      Workspace wird vorbereitet.
     </div>
   )
 
@@ -121,39 +120,273 @@ export default function DashboardPage() {
   const projColor   = main?.color || null  // never fallback to green
 
   return (
-    <div className="page-content" style={{ maxWidth: undefined }}>
+    <div className="page-content dashboard-os" style={{ maxWidth: undefined }}>
       <style>{`
-        @keyframes spin    { to{transform:rotate(360deg);} }
-        @keyframes fadeUp  { from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;} }
-        .dash-row { display:flex; align-items:center; gap:0; border-bottom:1px solid var(--border); }
-        .dash-row:first-child { border-top:1px solid var(--border); }
-        .dash-row:hover { background:var(--surface-2); }
-        .dash-col-name { flex:1; min-width:0; padding:10px 12px; }
-        .dash-col-stat { padding:10px 14px; font-size:12px; color:var(--text-muted); font-weight:500; white-space:nowrap; }
-        .dash-col-bar  { padding:10px 14px; width:120px; }
-        .dash-section  { margin-bottom:40px; }
-        .dash-label    { font-size:11px; font-weight:600; color:var(--text-muted); letter-spacing:.06em; text-transform:uppercase; margin:0 0 14px; }
-        .stat-item { display:flex; flex-direction:column; gap:3px; }
-        .stat-value { font-size:22px; font-weight:600; color:var(--text); letter-spacing:-.5px; line-height:1; }
-        .stat-sub { font-size:11px; color:var(--text-muted); font-weight:500; }
-        .task-row { display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--border); }
-        .task-row:first-child { border-top:1px solid var(--border); }
-        .quick-link { display:flex; align-items:center; justify-content:space-between; padding:9px 0; border-bottom:1px solid var(--border); text-decoration:none; color:var(--text-secondary); font-size:13px; font-weight:500; transition:color .1s; }
-        .quick-link:first-child { border-top:1px solid var(--border); }
-        .quick-link:hover { color:var(--text); }
+        @keyframes spin { to{transform:rotate(360deg);} }
+        @keyframes fadeUp { from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;} }
+        .dashboard-os {
+          --dash-ease:cubic-bezier(.16,1,.3,1);
+          --dash-hairline:color-mix(in srgb, var(--border) 42%, transparent);
+          --dash-muted:color-mix(in srgb, var(--text-muted) 82%, transparent);
+          color:var(--text);
+          padding-bottom:72px;
+        }
+        .dash-hero {
+          display:flex;
+          align-items:flex-start;
+          justify-content:space-between;
+          gap:28px;
+          margin-bottom:58px;
+          animation:fadeUp .32s var(--dash-ease) both;
+        }
+        .dash-title {
+          margin:0;
+          font-size:clamp(34px, 4.2vw, 56px);
+          line-height:.98;
+          font-weight:740;
+          letter-spacing:-.075em;
+          color:var(--text);
+        }
+        .dash-meta {
+          margin:12px 0 0;
+          font-size:14px;
+          color:var(--text-muted);
+          font-weight:520;
+          letter-spacing:-.01em;
+        }
+        .dash-actions { display:flex; align-items:center; gap:10px; flex-shrink:0; padding-top:2px; }
+        .dash-button {
+          height:36px;
+          display:inline-flex;
+          align-items:center;
+          justify-content:center;
+          gap:7px;
+          padding:0 15px;
+          border-radius:11px;
+          border:1px solid color-mix(in srgb, var(--border) 54%, transparent);
+          background:color-mix(in srgb, var(--surface) 64%, transparent);
+          color:var(--text);
+          font:inherit;
+          font-size:12.5px;
+          font-weight:690;
+          letter-spacing:-.01em;
+          cursor:pointer;
+          text-decoration:none;
+          box-shadow:0 14px 34px rgba(0,0,0,.035);
+          transition:transform .24s var(--dash-ease), background .24s var(--dash-ease), border-color .24s var(--dash-ease), box-shadow .24s var(--dash-ease), opacity .24s var(--dash-ease);
+        }
+        .dash-button:hover {
+          transform:translateY(-1px);
+          background:color-mix(in srgb, var(--surface-2) 34%, var(--surface));
+          border-color:color-mix(in srgb, var(--border-strong) 46%, transparent);
+          box-shadow:0 20px 46px rgba(0,0,0,.055);
+        }
+        .dash-button.primary {
+          background:var(--btn-prim);
+          color:var(--btn-prim-text);
+          border-color:transparent;
+          box-shadow:0 18px 44px rgba(0,0,0,.11);
+        }
+        .dash-layout {
+          display:grid;
+          grid-template-columns:minmax(0, 1fr) 286px;
+          gap:56px;
+          align-items:start;
+        }
+        .dash-section {
+          margin-bottom:56px;
+          animation:fadeUp .34s var(--dash-ease) both;
+        }
+        .dash-section-head {
+          display:flex;
+          align-items:center;
+          justify-content:space-between;
+          gap:16px;
+          margin-bottom:16px;
+        }
+        .dash-label {
+          margin:0;
+          color:var(--dash-muted);
+          font-size:12px;
+          font-weight:680;
+          letter-spacing:.01em;
+          text-transform:none;
+        }
+        .dash-soft-action {
+          background:transparent;
+          border:0;
+          padding:0;
+          color:var(--text-muted);
+          font:inherit;
+          font-size:12px;
+          font-weight:660;
+          cursor:pointer;
+          display:inline-flex;
+          align-items:center;
+          gap:5px;
+          transition:color .18s var(--dash-ease), opacity .18s var(--dash-ease);
+        }
+        .dash-soft-action:hover { color:var(--text); }
+        .dash-current {
+          border-radius:24px;
+          overflow:hidden;
+          background:
+            linear-gradient(135deg, color-mix(in srgb, var(--surface) 58%, transparent), transparent 72%),
+            color-mix(in srgb, var(--surface) 36%, transparent);
+          border:1px solid color-mix(in srgb, var(--border) 34%, transparent);
+          box-shadow:0 24px 70px rgba(0,0,0,.045);
+          backdrop-filter:blur(18px) saturate(145%);
+          -webkit-backdrop-filter:blur(18px) saturate(145%);
+        }
+        .dash-current-top { display:flex; align-items:flex-start; gap:16px; padding:22px 24px 18px; }
+        .dash-current-actions { display:flex; align-items:center; gap:7px; flex-shrink:0; }
+        .dash-chip {
+          display:inline-flex;
+          align-items:center;
+          height:22px;
+          padding:0 8px;
+          border-radius:999px;
+          background:color-mix(in srgb, var(--surface-2) 48%, transparent);
+          color:var(--text-muted);
+          font-size:10.5px;
+          font-weight:680;
+          letter-spacing:.01em;
+        }
+        .dash-current-progress {
+          padding:16px 24px 20px;
+          background:linear-gradient(180deg, transparent, color-mix(in srgb, var(--surface-2) 18%, transparent));
+        }
+        .dash-row {
+          display:flex;
+          align-items:center;
+          gap:0;
+          min-height:50px;
+          margin:5px -12px;
+          border-radius:15px;
+          background:transparent;
+          transition:background .28s var(--dash-ease), transform .28s var(--dash-ease), box-shadow .28s var(--dash-ease), opacity .28s var(--dash-ease);
+        }
+        .dash-row:hover {
+          background:color-mix(in srgb, var(--surface-2) 22%, transparent);
+          transform:translateY(-1px) scale(1.002);
+          box-shadow:0 18px 44px rgba(0,0,0,.035);
+          backdrop-filter:blur(12px);
+          -webkit-backdrop-filter:blur(12px);
+        }
+        .dash-col-name { flex:1; min-width:0; padding:12px 14px; }
+        .dash-col-stat { padding:12px 14px; font-size:12px; color:var(--text-muted); font-weight:540; white-space:nowrap; }
+        .dash-col-bar { padding:12px 14px; width:132px; }
+        .dash-progress-track {
+          height:2px;
+          background:color-mix(in srgb, var(--surface-2) 34%, transparent);
+          border-radius:99px;
+          overflow:hidden;
+          opacity:.55;
+          transition:opacity .26s var(--dash-ease), background .26s var(--dash-ease);
+        }
+        .dash-row:hover .dash-progress-track { opacity:1; background:color-mix(in srgb, var(--surface-2) 54%, transparent); }
+        .dash-progress-fill { height:100%; border-radius:99px; opacity:.78; transition:width .7s var(--dash-ease), opacity .26s var(--dash-ease); }
+        .dash-row:hover .dash-progress-fill { opacity:1; }
+        .task-row {
+          display:flex;
+          align-items:center;
+          gap:11px;
+          min-height:42px;
+          padding:0 12px;
+          margin:4px -12px;
+          border-radius:14px;
+          transition:background .24s var(--dash-ease), transform .24s var(--dash-ease), box-shadow .24s var(--dash-ease);
+        }
+        .task-row:hover {
+          background:color-mix(in srgb, var(--surface-2) 20%, transparent);
+          transform:translateY(-1px) scale(1.001);
+          box-shadow:0 14px 34px rgba(0,0,0,.026);
+        }
+        .dash-report {
+          padding:2px 0 0;
+          max-width:760px;
+        }
+        .dash-report-text {
+          margin:0;
+          color:var(--text-secondary);
+          font-size:14px;
+          line-height:1.85;
+          letter-spacing:-.015em;
+          white-space:pre-wrap;
+        }
+        .dash-report-empty {
+          margin:0;
+          color:var(--text-muted);
+          font-size:13px;
+          line-height:1.7;
+          font-style:italic;
+        }
+        .dash-side-rail {
+          display:flex;
+          flex-direction:column;
+          gap:42px;
+          animation:fadeUp .34s .08s var(--dash-ease) both;
+          position:sticky;
+          top:30px;
+        }
+        .stat-grid { display:grid; grid-template-columns:1fr 1fr; gap:18px 20px; }
+        .stat-item { display:flex; flex-direction:column; gap:4px; }
+        .stat-value { font-size:24px; font-weight:680; color:var(--text); letter-spacing:-.055em; line-height:1; }
+        .stat-caption { font-size:10.5px; font-weight:670; color:var(--text-muted); letter-spacing:.045em; text-transform:uppercase; }
+        .stat-sub { font-size:11px; color:var(--text-muted); font-weight:520; }
+        .quick-link {
+          display:flex;
+          align-items:center;
+          justify-content:space-between;
+          min-height:34px;
+          margin:2px -9px;
+          padding:0 9px;
+          border-radius:11px;
+          text-decoration:none;
+          color:var(--text-secondary);
+          font-size:13px;
+          font-weight:560;
+          transition:background .2s var(--dash-ease), color .2s var(--dash-ease), transform .2s var(--dash-ease);
+        }
+        .quick-link:hover {
+          color:var(--text);
+          background:color-mix(in srgb, var(--surface-2) 18%, transparent);
+          transform:translateX(1px);
+        }
+        .activity-row {
+          display:flex;
+          gap:10px;
+          padding:8px 0;
+          color:var(--text-muted);
+        }
+        @media (max-width: 1120px) {
+          .dash-layout { grid-template-columns:1fr; gap:32px; }
+          .dash-side-rail { position:static; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:26px; }
+        }
+        @media (max-width: 760px) {
+          .dash-hero { flex-direction:column; margin-bottom:36px; }
+          .dash-title { font-size:34px; }
+          .dash-actions { width:100%; flex-wrap:wrap; }
+          .dash-current-top { flex-direction:column; }
+          .dash-current-actions { width:100%; }
+          .dash-current-actions .dash-button { flex:1; }
+          .dash-col-stat:nth-of-type(2),
+          .dash-col-bar { display:none; }
+          .dash-side-rail { display:flex; }
+        }
       `}</style>
 
       {/* ── Greeting ── */}
-      <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:40, animation:'fadeUp .25s both' }}>
+      <div className="dash-hero">
         <div>
-          <h1 style={{ margin:0, fontSize:24, fontWeight:600, letterSpacing:'-.6px', color:'var(--text)' }}>
+          <h1 className="dash-title">
             {greeting}{displayName ? `, ${displayName}` : ''}
           </h1>
-          <p style={{ margin:'5px 0 0', fontSize:12.5, color:'var(--text-muted)', fontWeight:400 }}>
+          <p className="dash-meta">
             {projects.length} Projekt{projects.length!==1?'e':''} · {allTasks.length} Tasks
           </p>
         </div>
-        <div style={{ display:'flex', alignItems:'center', gap:8, flexShrink:0 }}>
+        <div className="dash-actions">
           <AudioBriefingButton
             type="dashboard_briefing"
             label="Briefing anhören"
@@ -167,9 +400,7 @@ export default function DashboardPage() {
           />
           <button
             onClick={() => setShowNewProject(true)}
-            style={{ display:'flex', alignItems:'center', gap:6, padding:'7px 14px', background:'var(--surface)', border:'1px solid var(--border)', borderRadius:8, fontSize:12.5, fontWeight:600, color:'var(--text)', cursor:'pointer', fontFamily:'inherit', flexShrink:0, transition:'border-color .12s, background .12s' }}
-            onMouseEnter={e => (e.currentTarget as HTMLElement).style.borderColor='var(--border-strong)'}
-            onMouseLeave={e => (e.currentTarget as HTMLElement).style.borderColor='var(--border)'}
+            className="dash-button"
           >
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
             Neues Projekt
@@ -179,36 +410,36 @@ export default function DashboardPage() {
 
       {/* ── Empty ── */}
       {!main && (
-        <div style={{ padding:'80px 0', textAlign:'center', borderTop:'1px solid var(--border)', borderBottom:'1px solid var(--border)', animation:'fadeUp .3s both' }}>
+        <div style={{ padding:'92px 0', textAlign:'center', animation:'fadeUp .34s var(--dash-ease) both' }}>
           <p style={{ fontSize:14, fontWeight:600, color:'var(--text)', margin:'0 0 6px' }}>Noch kein Projekt</p>
           <p style={{ fontSize:12.5, color:'var(--text-muted)', maxWidth:320, margin:'0 auto 24px', lineHeight:1.6 }}>
             Erstelle dein erstes Projekt und lass Tagro die Struktur automatisch aufbauen.
           </p>
-          <button onClick={() => setShowNewProject(true)} style={{ padding:'9px 20px', background:'var(--btn-prim)', color:'var(--btn-prim-text)', border:'none', borderRadius:8, fontSize:13, fontWeight:600, cursor:'pointer', fontFamily:'inherit' }}>
+          <button onClick={() => setShowNewProject(true)} className="dash-button primary">
             Projekt erstellen
           </button>
         </div>
       )}
 
       {main && phase && (
-        <div style={{ display:'grid', gridTemplateColumns:'1fr 260px', gap:40, alignItems:'start' }}>
+        <div className="dash-layout">
 
           {/* ══ LEFT ══ */}
           <div>
 
             {/* ── Active project card ── */}
-            <div className="dash-section" style={{ animation:'fadeUp .25s .05s both' }}>
+            <div className="dash-section" style={{ animationDelay:'.05s' }}>
               <p className="dash-label">Aktuelles Projekt</p>
-              <div style={{ border:'1px solid var(--border)', borderRadius:12, overflow:'hidden', background:'var(--surface)' }}>
+              <div className="dash-current">
                 {/* Top row */}
-                <div style={{ display:'flex', alignItems:'flex-start', gap:14, padding:'18px 20px', borderBottom:'1px solid var(--border)' }}>
+                <div className="dash-current-top">
                   <div style={{ flex:1, minWidth:0 }}>
                     <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:4 }}>
                       <span style={{ width:7, height:7, borderRadius:'50%', border:`2px solid ${projColor || 'var(--border-strong)'}`, background:'transparent', flexShrink:0, boxSizing:'border-box' }}/>
                       <Link href={`/project/${main.id}`} style={{ textDecoration:'none' }}>
                         <h2 style={{ fontSize:15, fontWeight:600, letterSpacing:'-.2px', margin:0, color:'var(--text)' }}>{main.title}</h2>
                       </Link>
-                      <span style={{ flexShrink:0, fontSize:10.5, fontWeight:600, color:'var(--text-muted)', background:'var(--surface-2)', border:'1px solid var(--border)', padding:'1px 7px', borderRadius:5, letterSpacing:'.02em' }}>
+                      <span className="dash-chip">
                         {phase.label}
                       </span>
                     </div>
@@ -218,14 +449,13 @@ export default function DashboardPage() {
                       </p>
                     )}
                   </div>
-                  <div style={{ display:'flex', gap:6, flexShrink:0 }}>
-                    <Link href={`/project/${main.id}`} style={{ padding:'6px 13px', background:'var(--btn-prim)', color:'var(--btn-prim-text)', borderRadius:7, fontSize:12, fontWeight:600, textDecoration:'none', display:'inline-block', transition:'opacity .1s' }}>
+                  <div className="dash-current-actions">
+                    <Link href={`/project/${main.id}`} className="dash-button primary" style={{ height:32, padding:'0 13px' }}>
                       Öffnen
                     </Link>
                     <button onClick={() => setShowNewTask(true)}
-                      style={{ padding:'6px 11px', background:'transparent', border:'1px solid var(--border)', borderRadius:7, fontSize:12, fontWeight:600, color:'var(--text-secondary)', cursor:'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', gap:5, transition:'border-color .1s, color .1s' }}
-                      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor='var(--border-strong)'; (e.currentTarget as HTMLElement).style.color='var(--text)' }}
-                      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor='var(--border)'; (e.currentTarget as HTMLElement).style.color='var(--text-secondary)' }}
+                      className="dash-button"
+                      style={{ height:32, padding:'0 12px' }}
                     >
                       <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
                       Task
@@ -234,7 +464,7 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Progress strip */}
-                <div style={{ padding:'14px 20px' }}>
+                <div className="dash-current-progress">
                   <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:8 }}>
                     <div style={{ display:'flex', gap:16 }}>
                       {([
@@ -250,8 +480,8 @@ export default function DashboardPage() {
                     <span style={{ fontSize:12, fontWeight:600, color:'var(--text-muted)' }}>{completePct}%</span>
                   </div>
                   {/* Milestone progress */}
-                  <div style={{ position:'relative', height:3, background:'var(--surface-2)', borderRadius:3, marginBottom:8 }}>
-                    <div style={{ height:'100%', width:`${phase.pct}%`, background: projColor || 'var(--text-secondary)', borderRadius:3, transition:'width 1s cubic-bezier(.16,1,.3,1)' }}/>
+                  <div style={{ position:'relative', height:2, background:'color-mix(in srgb, var(--surface-2) 42%, transparent)', borderRadius:3, marginBottom:9 }}>
+                    <div style={{ height:'100%', width:`${phase.pct}%`, background: projColor || 'var(--text-secondary)', opacity:.76, borderRadius:3, transition:'width 1s cubic-bezier(.16,1,.3,1)' }}/>
                     {MILESTONES.map(ms => (
                       <div key={ms.label} style={{ position:'absolute', top:'50%', left:`${ms.pct}%`, transform:'translate(-50%,-50%)', width:6, height:6, borderRadius:'50%', background: phase.pct>=ms.pct ? (projColor||'var(--text-secondary)') : 'var(--card)', border:`1.5px solid ${phase.pct>=ms.pct?(projColor||'var(--text-secondary)'):'var(--border-strong)'}`, boxSizing:'border-box' }}/>
                     ))}
@@ -267,13 +497,10 @@ export default function DashboardPage() {
 
             {/* ── All projects table ── */}
             {projects.length > 0 && (
-              <div className="dash-section" style={{ animation:'fadeUp .25s .1s both' }}>
-                <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:14 }}>
-                  <p className="dash-label" style={{ margin:0 }}>Projekte</p>
-                  <button onClick={() => setShowNewProject(true)} style={{ background:'transparent', border:'none', cursor:'pointer', fontSize:11.5, fontWeight:600, color:'var(--text-muted)', fontFamily:'inherit', padding:0, display:'flex', alignItems:'center', gap:4 }}
-                    onMouseEnter={e => (e.currentTarget as HTMLElement).style.color='var(--text)'}
-                    onMouseLeave={e => (e.currentTarget as HTMLElement).style.color='var(--text-muted)'}
-                  >
+              <div className="dash-section" style={{ animationDelay:'.1s' }}>
+                <div className="dash-section-head">
+                  <p className="dash-label">Projekte</p>
+                  <button onClick={() => setShowNewProject(true)} className="dash-soft-action">
                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
                     Neu
                   </button>
@@ -297,8 +524,8 @@ export default function DashboardPage() {
                           <div className="dash-col-stat">{ph.label}</div>
                           <div className="dash-col-stat">{pt.length} Tasks</div>
                           <div className="dash-col-bar">
-                            <div style={{ height:2, background:'var(--surface-2)', borderRadius:2, overflow:'hidden' }}>
-                              <div style={{ height:'100%', width:`${pct}%`, background: col || 'var(--text-muted)', borderRadius:2, transition:'width .6s ease' }}/>
+                            <div className="dash-progress-track">
+                              <div className="dash-progress-fill" style={{ width:`${pct}%`, background: col || 'var(--text-muted)' }}/>
                             </div>
                           </div>
                           <div className="dash-col-stat" style={{ width:38, textAlign:'right' }}>{pct}%</div>
@@ -312,16 +539,13 @@ export default function DashboardPage() {
 
             {/* ── Active tasks ── */}
             {activeTasks.length > 0 && (
-              <div className="dash-section" style={{ animation:'fadeUp .25s .15s both' }}>
-                <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:14 }}>
-                  <p className="dash-label" style={{ margin:0 }}>Aktive Tasks</p>
-                  <Link href={`/project/${main.id}`} style={{ fontSize:11.5, color:'var(--text-muted)', fontWeight:600, textDecoration:'none' }}
-                    onMouseEnter={(e:any) => e.currentTarget.style.color='var(--text)'}
-                    onMouseLeave={(e:any) => e.currentTarget.style.color='var(--text-muted)'}
-                  >Alle →</Link>
+              <div className="dash-section" style={{ animationDelay:'.15s' }}>
+                <div className="dash-section-head">
+                  <p className="dash-label">Aktive Tasks</p>
+                  <Link href={`/project/${main.id}`} className="dash-soft-action" style={{ textDecoration:'none' }}>Alle →</Link>
                 </div>
                 {activeTasks.slice(0, 8).map((t, i, arr) => (
-                  <div key={t.id} className="task-row" style={{ borderTop: i===0?'1px solid var(--border)':'none' }}>
+                  <div key={t.id} className="task-row">
                     <span style={{ width:6, height:6, borderRadius:'50%', background:'transparent', border:`1.5px solid ${t.status==='doing'?(projColor||'var(--text-secondary)'):'var(--border-strong)'}`, flexShrink:0, boxSizing:'border-box' }}/>
                     <span style={{ flex:1, fontSize:12.5, color:'var(--text)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{t.title}</span>
                     <span style={{ fontSize:11, color:'var(--text-muted)', flexShrink:0 }}>
@@ -334,23 +558,22 @@ export default function DashboardPage() {
             )}
 
             {/* ── Tagro Statusbericht ── */}
-            <div className="dash-section" style={{ animation:'fadeUp .25s .2s both' }}>
-              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:14 }}>
-                <p className="dash-label" style={{ margin:0 }}>Statusbericht</p>
+            <div className="dash-section" style={{ animationDelay:'.2s' }}>
+              <div className="dash-section-head">
+                <p className="dash-label">Statusbericht</p>
                 <button onClick={generateReport} disabled={genReport}
-                  style={{ background:'transparent', border:'none', cursor:genReport?'default':'pointer', fontSize:11.5, fontWeight:600, color:'var(--text-muted)', fontFamily:'inherit', padding:0, display:'flex', alignItems:'center', gap:4 }}
-                  onMouseEnter={e => { if (!genReport) (e.currentTarget as HTMLElement).style.color='var(--text)' }}
-                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.color='var(--text-muted)'}
+                  className="dash-soft-action"
+                  style={{ cursor:genReport?'default':'pointer', opacity:genReport ? .72 : 1 }}
                 >
                   {genReport ? <span style={{ width:10, height:10, border:'1.5px solid transparent', borderTopColor:'currentColor', borderRadius:'50%', animation:'spin .7s linear infinite', display:'inline-block' }}/> : <span style={{ fontSize:11 }}>✦</span>}
                   {genReport ? 'Lädt…' : report ? 'Neu' : 'Mit Tagro generieren'}
                 </button>
               </div>
-              <div style={{ padding:'16px 18px', background:'var(--surface)', border:'1px solid var(--border)', borderRadius:10 }}>
+              <div className="dash-report">
                 {report ? (
-                  <p style={{ fontSize:13, color:'var(--text)', lineHeight:1.7, margin:0, whiteSpace:'pre-wrap' }}>{report}</p>
+                  <p className="dash-report-text">{report}</p>
                 ) : (
-                  <p style={{ fontSize:12.5, color:'var(--text-muted)', margin:0, fontStyle:'italic', lineHeight:1.65 }}>
+                  <p className="dash-report-empty">
                     Kein Bericht — Tagro fasst Fortschritt, Blocker und nächste Schritte automatisch zusammen.
                   </p>
                 )}
@@ -360,21 +583,21 @@ export default function DashboardPage() {
           </div>{/* end LEFT */}
 
           {/* ══ RIGHT ══ */}
-          <div style={{ display:'flex', flexDirection:'column', gap:32, animation:'fadeUp .25s .1s both' }}>
+          <div className="dash-side-rail">
 
             {/* Stats */}
             <div>
               <p className="dash-label">Übersicht</p>
-              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14 }}>
+              <div className="stat-grid">
                 {[
                   { label:'Fortschritt', value:`${completePct}%`, sub: phase.label },
                   { label:'Offen',       value: todo,              sub:`${inProgress} aktiv` },
                   { label:'Erledigt',    value: done,              sub:`von ${tasks.length}` },
                   { label:'Projekte',    value: projects.length,   sub:`${allTasks.length} Tasks` },
                 ].map(s => (
-                  <div key={s.label} className="stat-item" style={{ padding:'12px 14px', background:'var(--surface)', border:'1px solid var(--border)', borderRadius:10 }}>
+                  <div key={s.label} className="stat-item">
                     <span className="stat-value">{s.value}</span>
-                    <span style={{ fontSize:10, fontWeight:600, color:'var(--text-muted)', letterSpacing:'.04em', textTransform:'uppercase', marginTop:1 }}>{s.label}</span>
+                    <span className="stat-caption">{s.label}</span>
                     <span className="stat-sub">{s.sub}</span>
                   </div>
                 ))}
@@ -402,8 +625,8 @@ export default function DashboardPage() {
               <div>
                 <p className="dash-label">Aktivität</p>
                 <div>
-                  {activity.slice(0, 6).map((a, i) => (
-                    <div key={a.id} style={{ display:'flex', gap:10, padding:'8px 0', borderTop: i===0?'1px solid var(--border)':'none', borderBottom:'1px solid var(--border)' }}>
+                  {activity.slice(0, 6).map((a) => (
+                    <div key={a.id} className="activity-row">
                       <span style={{ width:5, height:5, borderRadius:'50%', border:'1.5px solid var(--border-strong)', background:'transparent', flexShrink:0, marginTop:6, boxSizing:'border-box' }}/>
                       <p style={{ fontSize:11.5, color:'var(--text-muted)', margin:0, flex:1, lineHeight:1.45, overflow:'hidden', textOverflow:'ellipsis', display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical' }}>{a.message}</p>
                       <span style={{ fontSize:10.5, color:'var(--text-muted)', flexShrink:0, marginTop:1 }}>{timeAgo(a.created_at)}</span>

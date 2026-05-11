@@ -1,56 +1,141 @@
 'use client'
-import { useEffect, useState } from 'react'
+
+import { useEffect, useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { getStoredDevSession, type DevSession } from '@/lib/dev-session'
+import { ArrowRight, CheckCircle, Clock, PaperPlaneTilt, WarningCircle, X } from '@phosphor-icons/react'
 
 type Task = {
-  id: string; title: string; description: string; status: string; priority: string;
-  estimated_hours: number; acceptance_criteria: string[]; tags: string[];
-  requires_approval: boolean; approved_by: string | null; dev_notes: string;
-  project?: { title: string; user_id: string }
-  epic?: { title: string }
+  id: string
+  title: string
+  description?: string | null
+  status?: string | null
+  priority?: string | null
+  project_id?: string | null
+  estimated_hours?: number | null
+  acceptance_criteria?: string[] | null
+  tags?: string[] | null
+  requires_approval?: boolean | null
+  approved_by?: string | null
+  dev_notes?: string | null
+  customer_update?: string | null
+  assigned_to?: string | null
+  updated_at?: string | null
+  project?: { title?: string | null; user_id?: string | null } | null
+  epic?: { title?: string | null } | null
 }
 
-const PRIORITY_COLOR: Record<string, string> = {
-  critical: '#F76060', high: 'var(--amber)', medium: 'var(--green)', low: 'var(--text-muted)'
+const FILTERS = [
+  { id: 'all', label: 'Alle' },
+  { id: 'mine', label: 'Meine' },
+  { id: 'open', label: 'Offen' },
+  { id: 'review', label: 'Review' },
+] as const
+
+type Filter = typeof FILTERS[number]['id']
+
+const STATUS = [
+  { id: 'todo', label: 'Geplant' },
+  { id: 'in_progress', label: 'In Entwicklung' },
+  { id: 'blocked', label: 'Blockiert' },
+  { id: 'ready_review', label: 'Ready for Review' },
+  { id: 'done', label: 'Erledigt' },
+]
+
+function statusTone(status?: string | null) {
+  const value = String(status || 'todo').toLowerCase()
+  if (['done', 'completed'].includes(value)) return 'done'
+  if (['ready_review', 'ready_for_review', 'review', 'in_review'].includes(value)) return 'review'
+  if (['blocked', 'waiting'].includes(value)) return 'blocked'
+  if (['in_progress', 'doing', 'active'].includes(value)) return 'active'
+  return 'open'
 }
-const STATUS_LABEL: Record<string, string> = {
-  todo: 'To Do', in_progress: 'In Arbeit', done: 'Erledigt', blocked: 'Blockiert'
+
+function statusLabel(status?: string | null) {
+  const tone = statusTone(status)
+  if (tone === 'done') return 'Erledigt'
+  if (tone === 'review') return 'Bereit zur Prüfung'
+  if (tone === 'blocked') return 'Blockiert'
+  if (tone === 'active') return 'In Entwicklung'
+  return 'Geplant'
+}
+
+function priorityLabel(priority?: string | null) {
+  if (priority === 'critical') return 'Kritisch'
+  if (priority === 'high') return 'Hoch'
+  if (priority === 'low') return 'Niedrig'
+  return 'Mittel'
 }
 
 export default function DevJobsPage() {
+  const [session, setSession] = useState<DevSession | null>(null)
   const [tasks, setTasks] = useState<Task[]>([])
   const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState<Task | null>(null)
   const [devNote, setDevNote] = useState('')
   const [sending, setSending] = useState(false)
-  const [filter, setFilter] = useState<'all'|'pending'|'mine'>('pending')
+  const [filter, setFilter] = useState<Filter>('mine')
+  const supabase = createClient()
 
-  useEffect(() => { loadTasks() }, [filter])
-
-  async function loadTasks() {
+  async function loadTasks(nextFilter = filter) {
+    const dev = getStoredDevSession()
+    if (!dev) return
+    setSession(dev)
     setLoading(true)
-    const sb = createClient()
-    const { data: { session } } = await sb.auth.getSession()
-    if (!session) return
 
-    let q = sb.from('tasks')
+    let q = (supabase as any)
+      .from('tasks')
       .select('*, project:projects(title,user_id), epic:epics(title)')
-      .order('created_at', { ascending: false })
-      .limit(50)
+      .order('updated_at', { ascending: false })
+      .limit(80)
 
-    if (filter === 'pending') q = q.eq('status', 'todo')
-    if (filter === 'mine') q = q.eq('assigned_to', session.user.id)
+    if (nextFilter === 'mine') q = q.eq('assigned_to', dev.user_id)
+    if (nextFilter === 'open') q = q.in('status', ['todo', 'open', 'suggested'])
+    if (nextFilter === 'review') q = q.in('status', ['ready_review', 'ready_for_review', 'review', 'in_review'])
 
     const { data } = await q
-    setTasks(data ?? [])
+    setTasks((data as Task[]) ?? [])
     setLoading(false)
   }
 
-  async function updateStatus(taskId: string, status: string) {
-    const sb = createClient()
-    await sb.from('tasks').update({ status, updated_at: new Date().toISOString() }).eq('id', taskId)
-    setTasks(t => t.map(x => x.id === taskId ? { ...x, status } : x))
-    if (selected?.id === taskId) setSelected(s => s ? { ...s, status } : null)
+  useEffect(() => { loadTasks() }, [])
+
+  function changeFilter(next: Filter) {
+    setFilter(next)
+    loadTasks(next)
+  }
+
+  async function updateStatus(taskId: string, status: string, task?: Task) {
+    await supabase.from('tasks').update({ status, updated_at: new Date().toISOString() }).eq('id', taskId)
+    setTasks((items) => items.map((item) => item.id === taskId ? { ...item, status } : item))
+    if (selected?.id === taskId) setSelected((current) => current ? { ...current, status } : null)
+
+    if (['ready_review', 'done', 'blocked'].includes(status) && task?.project_id) {
+      const label = status === 'blocked'
+        ? `Developer meldet einen Blocker bei „${task.title}”. Tagro bereitet eine verständliche Erklärung vor.`
+        : status === 'done'
+          ? `Developer hat „${task.title}” abgeschlossen. Tagro bereitet die verständliche Zusammenfassung vor.`
+          : `Developer hat „${task.title}” als bereit zur Prüfung markiert.`
+      await supabase.from('messages').insert({ project_id: task.project_id, sender_id: session?.user_id, message: label, is_ai: true }).catch(() => {})
+    }
+  }
+
+  async function claimTask(task: Task) {
+    if (!session) return
+    await supabase.from('tasks').update({
+      assigned_to: session.user_id,
+      status: task.status && task.status !== 'todo' ? task.status : 'in_progress',
+      updated_at: new Date().toISOString(),
+    }).eq('id', task.id)
+    if (task.project_id) {
+      await supabase.from('messages').insert({
+        project_id: task.project_id,
+        sender_id: session.user_id,
+        message: `Ein Developer hat „${task.title}” übernommen. Die Umsetzung ist jetzt im Execution Board aktiv.`,
+        is_ai: true,
+      }).catch(() => {})
+    }
+    await loadTasks()
   }
 
   async function sendProgressUpdate() {
@@ -60,153 +145,170 @@ export default function DevJobsPage() {
       await fetch('/api/ai/progress', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          taskId: selected.id,
-          devNote: devNote.trim(),
-          projectId: (selected as any).project_id,
-        })
+        body: JSON.stringify({ taskId: selected.id, devNote: devNote.trim(), projectId: selected.project_id }),
       })
       setDevNote('')
-      await loadTasks()
       setSelected(null)
-    } catch {}
-    setSending(false)
+      await loadTasks()
+    } finally {
+      setSending(false)
+    }
   }
 
-  async function approveTask(taskId: string) {
-    const sb = createClient()
-    const { data: { session } } = await sb.auth.getSession()
-    await sb.from('tasks').update({ requires_approval: false, approved_by: session?.user.id }).eq('id', taskId)
-    setTasks(t => t.map(x => x.id === taskId ? { ...x, requires_approval: false } : x))
-  }
+  const counts = useMemo(() => ({
+    all: tasks.length,
+    active: tasks.filter((task) => statusTone(task.status) === 'active').length,
+    review: tasks.filter((task) => statusTone(task.status) === 'review').length,
+    blocked: tasks.filter((task) => statusTone(task.status) === 'blocked').length,
+  }), [tasks])
 
   return (
-    <div style={{ padding:'32px 40px', maxWidth:1100 }}>
-      <div style={{ marginBottom:24 }}>
-        <h1 style={{ fontSize:26, fontWeight:700, color:'var(--text)', letterSpacing:'-.5px', marginBottom:4 }}>Dev Board</h1>
-        <p style={{ fontSize:14, color:'var(--text-secondary)', margin:0 }}>Alle Tasks aus AI-Projektzerlegung · Kundenupdate per Tagro</p>
-      </div>
+    <div className="dev-page">
+      <header className="dev-page-header compact">
+        <div>
+          <p className="dev-eyebrow">Execution Board</p>
+          <h1>Technische Umsetzung.</h1>
+          <p className="meta">{counts.all} Tasks · {counts.active} aktiv · {counts.review} bereit zur Prüfung · {counts.blocked} Blocker</p>
+        </div>
+        <button className="dev-secondary-btn" onClick={() => loadTasks()}>Aktualisieren</button>
+      </header>
 
-      {/* Filter */}
-      <div style={{ display:'flex', gap:6, marginBottom:24, padding:4, background:'var(--card)', borderRadius:10, width:'fit-content' }}>
-        {([['all','Alle'],['pending','Offen'],['mine','Meine']] as const).map(([k,l]) => (
-          <button key={k} onClick={()=>setFilter(k)} style={{
-            padding:'7px 14px', borderRadius:8, border:'none', cursor:'pointer', fontFamily:'inherit',
-            fontSize:13, fontWeight:filter===k?700:500,
-            background:filter===k?'var(--surface)':'transparent',
-            color:filter===k?'var(--text)':'var(--text-muted)',
-            boxShadow:filter===k?'var(--shadow-xs)':'none',
-          }}>{l}</button>
-        ))}
-      </div>
-
-      {loading ? (
-        <div style={{display:'flex',justifyContent:'center',padding:48}}><div style={{width:24,height:24,border:'2px solid var(--border)',borderTopColor:'var(--text)',borderRadius:'50%',animation:'spin .8s linear infinite'}}/></div>
-      ) : tasks.length === 0 ? (
-        <div style={{padding:'48px 24px',textAlign:'center',color:'var(--text-muted)',fontSize:14}}>Keine Tasks gefunden.</div>
-      ) : (
-        <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-          {tasks.map(t => (
-            <div key={t.id} onClick={()=>{setSelected(t);setDevNote(t.dev_notes??'')}}
-              style={{
-                background:'var(--surface)', border:'1px solid var(--border)',
-                borderRadius:12, padding:'14px 18px', cursor:'pointer',
-                display:'flex', alignItems:'center', gap:12,
-                transition:'all .12s',
-                borderLeft: `3px solid ${PRIORITY_COLOR[t.priority] ?? 'var(--border)'}`,
-              }}
-            >
-              <div style={{flex:1,minWidth:0}}>
-                <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:3}}>
-                  <span style={{fontSize:14,fontWeight:600,color:'var(--text)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{t.title}</span>
-                  {t.requires_approval && <span style={{fontSize:10,fontWeight:700,padding:'2px 7px',borderRadius:5,background:'var(--amber-bg)',color:'var(--amber-dark)'}}>GENEHMIGUNG</span>}
-                </div>
-                <div style={{display:'flex',gap:8,fontSize:12,color:'var(--text-muted)'}}>
-                  <span>{t.project?.title ?? '—'}</span>
-                  {t.epic && <><span>·</span><span>{t.epic.title}</span></>}
-                  {t.estimated_hours && <><span>·</span><span>{t.estimated_hours}h</span></>}
-                </div>
-              </div>
-              <div style={{display:'flex',alignItems:'center',gap:8,flexShrink:0}}>
-                <select value={t.status} onClick={e=>e.stopPropagation()} onChange={e=>{e.stopPropagation();updateStatus(t.id,e.target.value)}}
-                  style={{padding:'5px 10px',borderRadius:8,border:'1px solid var(--border)',background:'var(--card)',color:'var(--text)',fontSize:12,fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>
-                  {Object.entries(STATUS_LABEL).map(([k,v])=><option key={k} value={k}>{v}</option>)}
-                </select>
-                {t.requires_approval && (
-                  <button onClick={e=>{e.stopPropagation();approveTask(t.id)}}
-                    style={{padding:'5px 10px',borderRadius:8,border:'none',background:'var(--green-bg)',color:'var(--green-dark)',fontSize:12,fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>
-                    Genehmigen
-                  </button>
-                )}
-              </div>
-            </div>
+      <div className="job-toolbar">
+        <div className="job-filters">
+          {FILTERS.map((item) => (
+            <button key={item.id} className={filter === item.id ? 'on' : ''} onClick={() => changeFilter(item.id)}>{item.label}</button>
           ))}
         </div>
-      )}
+        <span className="dev-chip"><Lightning size={13} /> Updates spiegeln ins Client Board</span>
+      </div>
 
-      {/* Task Detail Sidebar */}
+      <section className="job-board dev-surface">
+        <div className="job-head">
+          <span>Task</span><span>Projekt</span><span>Status</span><span>Priorität</span><span>Handoff</span>
+        </div>
+        {loading ? (
+          <p className="empty">Execution Tasks werden geladen…</p>
+        ) : tasks.length === 0 ? (
+          <p className="empty">Keine Tasks in dieser Ansicht.</p>
+        ) : tasks.map((task) => (
+          <button key={task.id} className="job-row" onClick={() => { setSelected(task); setDevNote(task.dev_notes || '') }}>
+            <span className={`job-dot ${statusTone(task.status)}`} />
+            <div className="job-title">
+              <strong>{task.title}</strong>
+              <small>{task.epic?.title || task.estimated_hours ? `${task.epic?.title || 'Execution'} · ${task.estimated_hours || '—'}h` : 'Technische Aufgabe'}</small>
+            </div>
+            <span>{task.project?.title || 'Kein Projekt'}</span>
+            <span className="dev-chip">{statusLabel(task.status)}</span>
+            <span>{priorityLabel(task.priority)}</span>
+            <span className="handoff">{task.assigned_to === session?.user_id ? 'Tagro bereit' : 'Übernehmbar'} <ArrowRight size={13} /></span>
+          </button>
+        ))}
+      </section>
+
       {selected && (
-        <div style={{position:'fixed',inset:0,zIndex:500,display:'flex'}}>
-          <div onClick={()=>setSelected(null)} style={{flex:1,background:'rgba(0,0,0,.3)',backdropFilter:'blur(2px)'}}/>
-          <div style={{width:420,background:'var(--bg)',borderLeft:'1px solid var(--border)',overflowY:'auto',padding:24,display:'flex',flexDirection:'column',gap:16}}>
-            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-              <h2 style={{fontSize:18,fontWeight:700,color:'var(--text)',letterSpacing:'-.3px',margin:0}}>Task Detail</h2>
-              <button onClick={()=>setSelected(null)} style={{background:'transparent',border:'none',cursor:'pointer',color:'var(--text-muted)',fontSize:20,padding:4}}>×</button>
-            </div>
-
-            <h3 style={{fontSize:15,fontWeight:700,color:'var(--text)',margin:0}}>{selected.title}</h3>
-            {selected.description && <p style={{fontSize:14,color:'var(--text-secondary)',lineHeight:1.6,margin:0}}>{selected.description}</p>}
-
-            {selected.acceptance_criteria?.length > 0 && (
+        <div className="task-drawer" role="dialog" aria-modal="true">
+          <button className="drawer-backdrop" onClick={() => setSelected(null)} aria-label="Schließen" />
+          <aside className="drawer-panel">
+            <div className="drawer-top">
               <div>
-                <p style={{fontSize:11,fontWeight:700,color:'var(--text-muted)',letterSpacing:'.08em',margin:'0 0 8px'}}>AKZEPTANZKRITERIEN</p>
-                {selected.acceptance_criteria.map((ac,i)=>(
-                  <div key={i} style={{display:'flex',gap:8,marginBottom:6}}>
-                    <span style={{color:'var(--green)',fontWeight:700}}>✓</span>
-                    <span style={{fontSize:13,color:'var(--text-secondary)',lineHeight:1.5}}>{ac}</span>
-                  </div>
-                ))}
+                <p className="dev-eyebrow">Dev Task</p>
+                <h2>{selected.title}</h2>
               </div>
-            )}
-
-            {selected.tags?.length > 0 && (
-              <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
-                {selected.tags.map(t=>(
-                  <span key={t} style={{padding:'3px 9px',borderRadius:6,background:'var(--card)',border:'1px solid var(--border)',fontSize:12,color:'var(--text-secondary)'}}>#{t}</span>
-                ))}
-              </div>
-            )}
-
-            {/* Kundenupdate */}
-            <div style={{borderTop:'1px solid var(--border)',paddingTop:16}}>
-              <p style={{fontSize:11,fontWeight:700,color:'var(--text-muted)',letterSpacing:'.08em',margin:'0 0 8px'}}>KUNDENUPDATE VIA TAGRO</p>
-              <textarea
-                value={devNote}
-                onChange={e=>setDevNote(e.target.value)}
-                placeholder="Notiz für Tagro — wird automatisch kundenfr eundlich übersetzt…"
-                rows={4}
-                style={{
-                  width:'100%', padding:'12px 14px', background:'var(--card)',
-                  border:'1px solid var(--border)', borderRadius:10,
-                  fontSize:13, color:'var(--text)', fontFamily:'inherit',
-                  resize:'vertical', lineHeight:1.6, outline:'none',
-                }}
-              />
-              <button onClick={sendProgressUpdate} disabled={!devNote.trim() || sending}
-                style={{
-                  marginTop:8, width:'100%', padding:'11px 16px',
-                  background:'var(--btn-prim)', color:'var(--btn-prim-text)',
-                  border:'none', borderRadius:10, fontSize:13, fontWeight:700,
-                  cursor:devNote.trim()?'pointer':'default', fontFamily:'inherit',
-                  opacity:devNote.trim()?1:.5,
-                }}>
-                {sending ? 'Tagro übersetzt…' : 'Update senden →'}
-              </button>
+              <button className="icon-close" onClick={() => setSelected(null)}><X size={18} /></button>
             </div>
-          </div>
+
+            <p className="drawer-desc">{selected.description || 'Keine technische Beschreibung hinterlegt. Nutze die Acceptance Criteria oder sende ein Update über Tagro.'}</p>
+
+            <div className="drawer-meta">
+              <span><Clock size={14} /> {selected.estimated_hours || '—'}h</span>
+              <span>{priorityLabel(selected.priority)}</span>
+              <span>{statusLabel(selected.status)}</span>
+              <span>{selected.assigned_to === session?.user_id ? 'Dir zugewiesen' : 'Nicht zugewiesen'}</span>
+            </div>
+
+            {selected.assigned_to !== session?.user_id && (
+              <button className="dev-primary-btn claim-task" onClick={() => claimTask(selected)}>
+                Task übernehmen
+              </button>
+            )}
+
+            <div>
+              <p className="dev-section-title">Status setzen</p>
+              <div className="status-actions">
+                {STATUS.map((item) => (
+                  <button key={item.id} onClick={() => updateStatus(selected.id, item.id, selected)} className={selected.status === item.id ? 'on' : ''}>{item.label}</button>
+                ))}
+              </div>
+            </div>
+
+            {!!selected.acceptance_criteria?.length && (
+              <div>
+                <p className="dev-section-title">Acceptance Criteria</p>
+                <div className="criteria-list">
+                  {selected.acceptance_criteria.map((item, index) => (
+                    <div key={index}><CheckCircle size={15} /> <span>{item}</span></div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="client-sync-box">
+              <p className="dev-section-title">Client Sync via Tagro</p>
+              <p>Schreibe technisch, was passiert ist. Tagro übersetzt es kurz, freundlich und ohne Fachjargon ins Client Board.</p>
+              <textarea value={devNote} onChange={(event) => setDevNote(event.target.value)} placeholder="z.B. API angebunden, Webhook getestet, noch offen ist Error Handling…" />
+              <button className="dev-primary-btn" onClick={sendProgressUpdate} disabled={!devNote.trim() || sending}>
+                {sending ? 'Tagro übersetzt…' : <><PaperPlaneTilt size={14} /> Update ans Client Board senden</>}
+              </button>
+              {selected.customer_update && <blockquote>{selected.customer_update}</blockquote>}
+            </div>
+          </aside>
         </div>
       )}
-      <style>{`@keyframes spin{to{transform:rotate(360deg);}}`}</style>
+
+      <style jsx>{`
+        .compact { margin-bottom:22px; }
+        .job-toolbar { display:flex; justify-content:space-between; align-items:center; gap:14px; margin-bottom:14px; }
+        .job-filters { display:flex; gap:6px; }
+        .job-filters button { height:30px; padding:0 12px; border-radius:999px; border:1px solid var(--border); background:transparent; color:var(--text-muted); font:inherit; font-size:12px; font-weight:750; cursor:pointer; }
+        .job-filters button.on { color:var(--text); background:var(--surface-2); }
+        .job-board { padding:8px; }
+        .job-head { display:grid; grid-template-columns:minmax(240px,1.5fr) minmax(150px,.9fr) 140px 90px 120px; gap:12px; padding:10px 12px 8px 36px; color:var(--text-muted); font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
+        .job-row { width:100%; border:0; background:transparent; color:var(--text); font:inherit; display:grid; grid-template-columns:12px minmax(240px,1.5fr) minmax(150px,.9fr) 140px 90px 120px; align-items:center; gap:12px; min-height:58px; padding:9px 12px; border-radius:13px; cursor:pointer; text-align:left; transition:background .18s ease, transform .18s ease; }
+        .job-row:hover { background:color-mix(in srgb, var(--surface-2) 70%, transparent); transform:translateY(-1px); }
+        .job-title strong { display:block; font-size:13.5px; }
+        .job-title small { display:block; margin-top:3px; color:var(--text-muted); font-size:11.5px; }
+        .job-dot { width:8px; height:8px; border-radius:50%; background:var(--text-muted); }
+        .job-dot.active { background:#22c55e; }
+        .job-dot.review { background:#f59e0b; }
+        .job-dot.blocked { background:#ef4444; }
+        .job-dot.done { background:#64748b; }
+        .handoff { display:inline-flex; align-items:center; gap:5px; color:var(--text-muted); font-size:12px; font-weight:700; }
+        .empty { padding:32px; color:var(--text-muted); font-size:13px; }
+        .task-drawer { position:fixed; inset:0; z-index:9000; display:flex; justify-content:flex-end; }
+        .drawer-backdrop { flex:1; border:0; background:rgba(0,0,0,.22); backdrop-filter:blur(3px); cursor:pointer; }
+        .drawer-panel { width:min(460px, 100vw); height:100%; overflow:auto; background:var(--bg); border-left:1px solid var(--border); padding:26px; box-shadow:-24px 0 80px rgba(0,0,0,.18); display:flex; flex-direction:column; gap:22px; }
+        .drawer-top { display:flex; justify-content:space-between; gap:16px; }
+        .drawer-top h2 { margin:0; font-size:23px; letter-spacing:-.04em; }
+        .icon-close { border:0; background:transparent; color:var(--text-muted); width:30px; height:30px; border-radius:8px; cursor:pointer; }
+        .icon-close:hover { background:var(--surface-2); color:var(--text); }
+        .drawer-desc { margin:0; color:var(--text-secondary); line-height:1.6; font-size:14px; }
+        .drawer-meta { display:flex; gap:8px; flex-wrap:wrap; }
+        .drawer-meta span { display:inline-flex; align-items:center; gap:5px; min-height:28px; border-radius:999px; border:1px solid var(--border); padding:0 10px; color:var(--text-muted); font-size:12px; font-weight:750; }
+        .claim-task { width:100%; display:flex; align-items:center; justify-content:center; }
+        .status-actions { display:flex; flex-wrap:wrap; gap:7px; }
+        .status-actions button { height:30px; border-radius:999px; border:1px solid var(--border); background:transparent; color:var(--text-muted); font:inherit; font-size:12px; font-weight:750; padding:0 10px; cursor:pointer; }
+        .status-actions button.on, .status-actions button:hover { background:var(--surface-2); color:var(--text); }
+        .criteria-list { display:flex; flex-direction:column; gap:8px; }
+        .criteria-list div { display:flex; gap:8px; color:var(--text-secondary); font-size:13px; line-height:1.45; }
+        .criteria-list svg { color:#22c55e; flex:0 0 auto; margin-top:1px; }
+        .client-sync-box { border-radius:18px; padding:16px; background:var(--surface); border:1px solid var(--border); }
+        .client-sync-box p:not(.dev-section-title) { color:var(--text-muted); margin:0 0 12px; font-size:13px; line-height:1.5; }
+        .client-sync-box textarea { width:100%; min-height:116px; resize:vertical; border:0; outline:0; background:var(--surface-2); border-radius:14px; padding:13px; color:var(--text); font:inherit; font-size:13px; line-height:1.5; margin-bottom:10px; }
+        .client-sync-box button { width:100%; display:flex; justify-content:center; align-items:center; gap:7px; }
+        .client-sync-box button:disabled { opacity:.45; cursor:not-allowed; }
+        .client-sync-box blockquote { margin:12px 0 0; padding:11px 12px; border-left:2px solid #22c55e; color:var(--text-secondary); background:var(--surface-2); border-radius:10px; font-size:13px; line-height:1.5; }
+        @media (max-width: 980px) { .job-head { display:none; } .job-row { grid-template-columns:12px minmax(0,1fr); } .job-row > span:not(.job-dot), .handoff { display:none; } }
+      `}</style>
     </div>
   )
 }

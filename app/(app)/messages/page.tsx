@@ -68,6 +68,7 @@ export default function MessagesPage() {
   const [profiles, setProfiles] = useState<Record<string, SenderProfile>>({})
   const [newAnimIds, setNewAnimIds] = useState<Set<string>>(new Set())
   const [messageTab, setMessageTab] = useState<MessageTab>('all')
+  const [inboxMenuOpen, setInboxMenuOpen] = useState(false)
   const feedRef = useRef<HTMLDivElement>(null)
   const sb = createClient()
 
@@ -166,15 +167,15 @@ export default function MessagesPage() {
   }
 
   return (
-    <div className="msgs-root" style={{ width: '100%', padding: '16px 20px', boxSizing: 'border-box', height: 'calc(100dvh - 56px)', display: 'flex', flexDirection: 'column' }}>
+    <div className="msgs-root" style={{ width: '100%', padding: '14px 18px', boxSizing: 'border-box', height: 'calc(100dvh - 40px)', display: 'flex', flexDirection: 'column' }}>
       <style>{`
         @keyframes tick-pulse { 0%{transform:scale(.4);opacity:.9;} 100%{transform:scale(2.6);opacity:0;} }
         @keyframes tick-draw  { to { stroke-dashoffset: 0; } }
-        .msgs-grid { display: grid; grid-template-columns: 320px 1fr; gap: 0; flex: 1; min-height: 0; border: 1px solid var(--border); border-radius: 16px; overflow: hidden; background: var(--surface); }
-        .msgs-list { border-right: 1px solid var(--border); display: flex; flex-direction: column; min-height: 0; background: var(--surface); }
+        .msgs-grid { display: grid; grid-template-columns: 340px 1fr; gap: 0; flex: 1; min-height: 0; border: 1px solid color-mix(in srgb, var(--border) 72%, transparent); border-radius: 18px; overflow: hidden; background: color-mix(in srgb, var(--surface) 78%, transparent); box-shadow: 0 14px 46px rgba(0,0,0,.04); }
+        .msgs-list { border-right: 1px solid color-mix(in srgb, var(--border) 70%, transparent); display: flex; flex-direction: column; min-height: 0; background: color-mix(in srgb, var(--surface) 86%, transparent); }
         .msgs-chat { display: flex; flex-direction: column; min-height: 0; background: var(--bg); }
         .msgs-back { display: none; }
-        .msgs-tabs { display:flex; gap:4px; padding:3px; border:1px solid var(--border); border-radius:10px; background:var(--surface); width:max-content; max-width:100%; overflow:auto; margin-bottom:12px; flex-shrink:0; }
+        .msgs-tabs { display:none; gap:4px; padding:3px; border:1px solid var(--border); border-radius:10px; background:var(--surface); width:max-content; max-width:100%; overflow:auto; margin-bottom:12px; flex-shrink:0; }
         .msgs-tab { height:30px; padding:0 11px; border:0; border-radius:7px; background:transparent; color:var(--text-secondary); font:inherit; font-size:12px; font-weight:650; white-space:nowrap; cursor:pointer; }
         .msgs-tab.on { background:var(--surface-2); color:var(--text); }
         @media (max-width: 820px) {
@@ -185,48 +186,127 @@ export default function MessagesPage() {
         }
       `}</style>
 
-      <div className="msgs-tabs" role="tablist" aria-label="Nachrichten Ansichten">
-        {MESSAGE_TABS.map(tab => (
-          <button
-            key={tab.id}
-            type="button"
-            className={`msgs-tab${messageTab === tab.id ? ' on' : ''}`}
-            onClick={() => setMessageTab(tab.id)}
-            role="tab"
-            aria-selected={messageTab === tab.id}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
-
       {loading ? (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: 60 }}>
-          <div style={{ width: 24, height: 24, border: '2px solid var(--border)', borderTopColor: 'var(--text)', borderRadius: '50%', animation: 'spin .8s linear infinite' }} />
+        <div style={{ display: 'flex', justifyContent: 'center', padding: 60, color:'var(--text-muted)', fontSize:13, fontWeight:700 }}>
+          Inbox wird vorbereitet.
         </div>
       ) : projects.length === 0 ? (
-        <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 8, padding: '56px 24px', textAlign: 'center' }}>
-          <div style={{ width: 48, height: 48, borderRadius: 8, background: 'var(--surface-2)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="1.6" strokeLinecap="round">
-              <path d="M21 12c0 4.4-4 8-9 8-1.4 0-2.8-.3-4-.8L3 21l1.8-5C4.3 15 4 13.5 4 12c0-4.4 4-8 9-8s9 3.6 9 8z"/>
-            </svg>
+        <div className="msgs-grid">
+          <div className="msgs-list">
+            <div style={{ height: 54, padding: '0 16px', borderBottom: '1px solid color-mix(in srgb, var(--border) 70%, transparent)', flexShrink: 0, display:'flex', alignItems:'center', justifyContent:'space-between', gap:10 }}>
+              <div style={{ display:'flex', alignItems:'center', gap:9 }}>
+                <h1 style={{ margin:0, fontSize:18, fontWeight:690, letterSpacing:'-.025em', color:'var(--text)' }}>Inbox</h1>
+                <button type="button" aria-label="Posteingang auswählen" style={{ width:28, height:28, borderRadius:8, display:'inline-flex', alignItems:'center', justifyContent:'center', color:'var(--text-secondary)', background:'transparent', border:0 }}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>
+                </button>
+              </div>
+              <div style={{ display:'flex', alignItems:'center', gap:4 }}>
+                <button type="button" aria-label="Inbox filtern" style={{ width:30, height:30, borderRadius:9, display:'inline-flex', alignItems:'center', justifyContent:'center', color:'var(--text-secondary)', background:'transparent', border:0 }}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
+                </button>
+                <button type="button" aria-label="Inbox sortieren" style={{ width:30, height:30, borderRadius:9, display:'inline-flex', alignItems:'center', justifyContent:'center', color:'var(--text-secondary)', background:'transparent', border:0 }}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M4 7h8"/><path d="M4 17h8"/><circle cx="17" cy="7" r="2"/><circle cx="17" cy="17" r="2"/></svg>
+                </button>
+              </div>
+            </div>
+            <div style={{ padding: '22px 18px', display:'flex', gap:12, alignItems:'center' }}>
+              <div style={{ width:36, height:36, borderRadius:999, background:'var(--text)', color:'var(--bg)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M4 6h16v12H4z"/><path d="M4 7l8 6 8-6"/></svg>
+              </div>
+              <div style={{ minWidth:0 }}>
+                <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                  <span style={{ width:7, height:7, borderRadius:999, background:'#6f7ee8', flexShrink:0 }} />
+                  <strong style={{ fontSize:15.5, letterSpacing:'-.02em' }}>Willkommen bei Festag</strong>
+                </div>
+                <p style={{ margin:'4px 0 0', color:'var(--text-secondary)', fontSize:13, lineHeight:1.35, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>Sobald dein erstes Projekt läuft, erscheinen hier Updates, Entscheidungen und Nachrichten.</p>
+              </div>
+            </div>
           </div>
-          <h2 style={{ marginBottom: 8 }}>Noch keine Konversationen</h2>
-          <p style={{ fontSize: 14, color: 'var(--text-secondary)', margin: '0 0 20px', lineHeight: 1.6 }}>
-            Starte ein Projekt um mit Tagro und dem Team zu kommunizieren.
-          </p>
-          <Link href="/projects?new=1">
-            <button className="tap-scale" style={{ padding: '10px 22px', background: 'var(--btn-prim)', color: 'var(--btn-prim-text)', border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
-              Projekt starten →
-            </button>
-          </Link>
+          <div className="msgs-chat" style={{ alignItems:'center', justifyContent:'center', color:'var(--text-secondary)', textAlign:'center' }}>
+            <svg width="84" height="84" viewBox="0 0 96 96" fill="none" stroke="currentColor" strokeWidth="1.3" opacity=".62">
+              <path d="M22 26h52v44H22z" rx="8"/><path d="M22 30l26 21 26-21"/><path d="M32 62h32"/>
+            </svg>
+            <p style={{ margin:'18px 0 0', fontSize:14, fontWeight:650 }}>1 ungelesene Systemnotiz</p>
+            <Link href="/projects?new=1" style={{ marginTop:18, textDecoration:'none' }}>
+              <button className="tap-scale" style={{ padding: '9px 18px', background: 'var(--btn-prim)', color: 'var(--btn-prim-text)', border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+                Projekt starten
+              </button>
+            </Link>
+          </div>
         </div>
       ) : (
         <div className="msgs-grid">
 
           {/* ── LEFT: Conversation list ── */}
           <div className="msgs-list">
-            <div style={{ padding: '12px 14px', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
+            <div style={{ height: 54, padding: '0 16px', borderBottom: '1px solid color-mix(in srgb, var(--border) 70%, transparent)', flexShrink: 0, display:'flex', alignItems:'center', justifyContent:'space-between', gap:10 }}>
+              <div style={{ display:'flex', alignItems:'center', gap:9, minWidth:0 }}>
+                <h1 style={{ margin:0, fontSize:18, fontWeight:690, letterSpacing:'-.025em', color:'var(--text)' }}>Inbox</h1>
+                <div style={{ position:'relative', flexShrink:0 }}>
+                  <button
+                    type="button"
+                    aria-label="Posteingang auswählen"
+                    aria-expanded={inboxMenuOpen}
+                    onClick={() => setInboxMenuOpen(v => !v)}
+                    style={{ width:28, height:28, borderRadius:8, display:'inline-flex', alignItems:'center', justifyContent:'center', color:'var(--text-secondary)', background:inboxMenuOpen ? 'var(--surface-2)' : 'transparent', border:0 }}
+                  >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>
+                  </button>
+                  {inboxMenuOpen && (
+                    <div
+                      style={{
+                        position:'absolute',
+                        top:34,
+                        left:0,
+                        zIndex:80,
+                        width:166,
+                        padding:6,
+                        borderRadius:12,
+                        border:'1px solid var(--border)',
+                        background:'var(--surface)',
+                        boxShadow:'0 18px 46px rgba(0,0,0,.14)',
+                      }}
+                    >
+                      {MESSAGE_TABS.map(tab => (
+                        <button
+                          key={tab.id}
+                          type="button"
+                          onClick={() => { setMessageTab(tab.id); setInboxMenuOpen(false) }}
+                          style={{
+                            width:'100%',
+                            height:32,
+                            padding:'0 9px',
+                            border:0,
+                            borderRadius:8,
+                            background:messageTab === tab.id ? 'var(--surface-2)' : 'transparent',
+                            color:messageTab === tab.id ? 'var(--text)' : 'var(--text-secondary)',
+                            display:'flex',
+                            alignItems:'center',
+                            justifyContent:'space-between',
+                            fontSize:12.5,
+                            fontWeight:680,
+                            fontFamily:'inherit',
+                            textAlign:'left',
+                          }}
+                        >
+                          <span>{tab.label}</span>
+                          {messageTab === tab.id && <span style={{ color:'var(--text-muted)' }}>✓</span>}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div style={{ display:'flex', alignItems:'center', gap:4 }}>
+                <button type="button" aria-label="Inbox filtern" style={{ width:30, height:30, borderRadius:9, display:'inline-flex', alignItems:'center', justifyContent:'center', color:'var(--text-secondary)', background:'transparent', border:0 }}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
+                </button>
+                <button type="button" aria-label="Inbox sortieren" style={{ width:30, height:30, borderRadius:9, display:'inline-flex', alignItems:'center', justifyContent:'center', color:'var(--text-secondary)', background:'transparent', border:0 }}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M4 7h8"/><path d="M4 17h8"/><circle cx="17" cy="7" r="2"/><circle cx="17" cy="17" r="2"/></svg>
+                </button>
+              </div>
+            </div>
+            <div style={{ padding: '12px 14px', borderBottom: '1px solid color-mix(in srgb, var(--border) 52%, transparent)', flexShrink: 0 }}>
               <div style={{ position: 'relative' }}>
                 <svg style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}
                   width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2" strokeLinecap="round">
@@ -253,10 +333,10 @@ export default function MessagesPage() {
                     onClick={() => { setActiveId(p.id); setShowListMobile(false) }}
                     style={{
                       width: '100%', textAlign: 'left', padding: '12px 14px',
-                      borderBottom: '1px solid var(--border)',
+                      borderBottom: '1px solid color-mix(in srgb, var(--border) 42%, transparent)',
                       background: isActive ? 'var(--surface-2)' : 'transparent',
-                      borderLeft: isActive ? '3px solid var(--text)' : '3px solid transparent',
-                      border: 'none', borderBottom: '1px solid var(--border)',
+                      borderLeft: 'none',
+                      border: 'none', borderBottom: '1px solid color-mix(in srgb, var(--border) 42%, transparent)',
                       cursor: 'pointer', display: 'flex', gap: 10, alignItems: 'center', fontFamily: 'inherit',
                       transition: 'background .1s',
                     }}
@@ -288,7 +368,7 @@ export default function MessagesPage() {
             ) : (
               <>
                 {/* Chat header */}
-                <div style={{ padding: '12px 18px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0, background: 'var(--surface)' }}>
+                <div style={{ padding: '12px 18px', borderBottom: '1px solid color-mix(in srgb, var(--border) 56%, transparent)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0, background: 'color-mix(in srgb, var(--surface) 72%, transparent)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
                     <button onClick={() => setShowListMobile(true)} className="msgs-back tap-scale"
                       style={{ width: 30, height: 30, border: '1px solid var(--border)', background: 'var(--bg)', borderRadius: 8, alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}>
@@ -303,7 +383,7 @@ export default function MessagesPage() {
                     </div>
                   </div>
                   <Link href={`/project/${active.id}`} style={{ fontSize: 12, color: 'var(--text-secondary)', fontWeight: 600, textDecoration: 'none', flexShrink: 0, padding: '6px 10px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg)' }}>
-                    Projekt öffnen →
+                    Projekt öffnen
                   </Link>
                 </div>
 

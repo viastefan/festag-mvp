@@ -21,6 +21,7 @@ import {
 
 type Project = { id: string; title: string; status: string; description?: string | null; color?: string | null }
 type Report = { id: string; project_id: string; content: string; created_at: string; type?: string | null }
+type DevSignal = { id: string; project_id: string; content: string; created_at: string; type?: string | null }
 type Period = 'today' | 'week' | 'month' | 'custom'
 type SuggestionKind = 'workspace' | 'team'
 type TaskStatus = 'open' | 'active' | 'waiting' | 'review' | 'checked' | 'done' | 'suggested' | 'blocked'
@@ -192,6 +193,7 @@ export default function ReportsPage() {
   const supabase = createClient()
   const [projects, setProjects] = useState<Project[]>([])
   const [reports, setReports] = useState<Report[]>([])
+  const [devSignals, setDevSignals] = useState<DevSignal[]>([])
   const [tasks, setTasks] = useState<TaskRow[]>([])
   const [selectedProjectId, setSelectedProjectId] = useState<string>('all')
   const [selectedReportId, setSelectedReportId] = useState<string | null>(null)
@@ -202,7 +204,7 @@ export default function ReportsPage() {
   const [taskSuggestions, setTaskSuggestions] = useState<TaskSuggestion[]>([])
   const [savingSuggestionId, setSavingSuggestionId] = useState<string | null>(null)
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({ zusammenfassung: true })
-  const [activeSignal, setActiveSignal] = useState<'tasks' | 'decisions' | 'risks' | 'actions'>('tasks')
+  const [activeSignal, setActiveSignal] = useState<'tasks' | 'updates' | 'decisions' | 'risks' | 'actions'>('tasks')
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data }) => {
@@ -211,15 +213,17 @@ export default function ReportsPage() {
         return
       }
 
-      const [{ data: projectRows }, { data: reportRows }, { data: taskRows }] = await Promise.all([
+      const [{ data: projectRows }, { data: reportRows }, { data: devRows }, { data: taskRows }] = await Promise.all([
         (supabase as any).from('projects').select('id,title,status,description,color').order('created_at', { ascending: false }),
         (supabase as any).from('ai_updates').select('*').eq('type', 'status_report').order('created_at', { ascending: false }).limit(80),
+        (supabase as any).from('ai_updates').select('*').eq('type', 'dev_progress_update').order('created_at', { ascending: false }).limit(80),
         (supabase as any).from('tasks').select('id,project_id,title,status,priority,updated_at').order('updated_at', { ascending: false }),
       ])
 
       const list = (projectRows as Project[]) ?? []
       setProjects(list)
       setReports((reportRows as Report[]) ?? [])
+      setDevSignals((devRows as DevSignal[]) ?? [])
       setTasks((taskRows as TaskRow[]) ?? [])
       if (list.length === 1) setSelectedProjectId(list[0].id)
       setLoading(false)
@@ -229,6 +233,7 @@ export default function ReportsPage() {
   const projectStatusRows = useMemo<ProjectStatusRow[]>(() => {
     return projects.map((project) => {
       const projectTasks = tasks.filter((task) => task.project_id === project.id)
+      const projectDevSignals = devSignals.filter((signal) => signal.project_id === project.id).slice(0, 8)
       const projectReports = reports.filter((report) => report.project_id === project.id)
       const latestReport = projectReports[0] ?? null
       const doneCount = projectTasks.filter((task) => ['done', 'checked'].includes(normalizeTaskStatus(task.status))).length
@@ -258,6 +263,10 @@ export default function ReportsPage() {
     if (!currentProject) return []
     return reports.filter((report) => report.project_id === currentProject.id)
   }, [currentProject, reports])
+  const currentDevSignals = useMemo(() => {
+    if (!currentProject) return []
+    return devSignals.filter((signal) => signal.project_id === currentProject.id).slice(0, 5)
+  }, [currentProject, devSignals])
 
   useEffect(() => {
     if (!currentReports.length) {
@@ -305,7 +314,7 @@ export default function ReportsPage() {
       const blocked = projectTasks.filter((task) => ['blocked', 'waiting'].includes(normalizeTaskStatus(task.status))).length
       const progress = projectTasks.length ? Math.round((done / projectTasks.length) * 100) : 0
 
-      const prompt = `Projekt: ${project.title}\nZeitraum: ${PERIODS.find((item) => item.id === period)?.label}\nBeschreibung: ${project.description ?? 'Keine Beschreibung'}\nPhase: ${project.status}\nFortschritt: ${progress}%\nTasks: ${projectTasks.length} gesamt, ${done} erledigt, ${active} in Arbeit, ${review} in Prüfung, ${blocked} blockiert/wartend.\n\nTask-Auszug:\n${projectTasks.slice(0, 18).map((task) => `- [${task.status ?? 'todo'}] ${task.title}`).join('\n')}\n\nErstelle einen Festag-Statusbericht als Übersetzungsschicht zwischen Dev-Arbeit und Client-Verständnis.`
+      const prompt = `Projekt: ${project.title}\nZeitraum: ${PERIODS.find((item) => item.id === period)?.label}\nBeschreibung: ${project.description ?? 'Keine Beschreibung'}\nPhase: ${project.status}\nFortschritt: ${progress}%\nTasks: ${projectTasks.length} gesamt, ${done} erledigt, ${active} in Arbeit, ${review} in Prüfung, ${blocked} blockiert/wartend.\n\nTask-Auszug:\n${projectTasks.slice(0, 18).map((task) => `- [${task.status ?? 'todo'}] ${task.title}`).join('\n')}\n\nDeveloper-Signale aus dem Execution Board:\n${projectDevSignals.length ? projectDevSignals.map((signal) => `- ${signal.content}`).join('\n') : '- Noch keine Developer-Updates vorhanden.'}\n\nErstelle einen Festag-Statusbericht als Übersetzungsschicht zwischen Dev-Arbeit und Client-Verständnis.`
 
       const res = await fetch('/api/ai/chat', {
         method: 'POST',
@@ -639,6 +648,9 @@ export default function ReportsPage() {
             <button className={`signal-metric${activeSignal === 'tasks' ? ' on' : ''}`} type="button" onClick={() => setActiveSignal('tasks')}>
               <span>Task-Vorschläge</span><strong>{taskSuggestions.length}</strong>
             </button>
+            <button className={`signal-metric${activeSignal === 'updates' ? ' on' : ''}`} type="button" onClick={() => setActiveSignal('updates')}>
+              <span>Dev Updates</span><strong>{currentDevSignals.length}</strong>
+            </button>
             <button className={`signal-metric${activeSignal === 'decisions' ? ' on' : ''}`} type="button" onClick={() => setActiveSignal('decisions')}>
               <span>Entscheidungen</span><strong>{currentSections.decisions.length}</strong>
             </button>
@@ -668,6 +680,20 @@ export default function ReportsPage() {
                 </div>
               )
             })}
+          </div>
+          )}
+
+          {activeSignal === 'updates' && (
+          <div className="signal-block">
+            <div className="signal-label"><PaperPlaneTilt size={14} /> Dev Updates</div>
+            {currentDevSignals.length === 0 ? (
+              <div className="signal-row">Noch keine Developer-Updates für diesen Berichtskontext.</div>
+            ) : currentDevSignals.map((item) => (
+              <div className="signal-row" key={item.id}>
+                <span style={{ width: 6, height: 6, borderRadius: 999, background: 'var(--accent)', marginTop: 7, flex: '0 0 auto' }} />
+                <span>{item.content}</span>
+              </div>
+            ))}
           </div>
           )}
 

@@ -6,6 +6,7 @@ import CommandPalette from '@/components/CommandPalette'
 import CopilotPanel from '@/components/CopilotPanel'
 import FeedbackWidget from '@/components/FeedbackWidget'
 import FloatingBar from '@/components/FloatingBar'
+import LoadingScreen from '@/components/LoadingScreen'
 import Sidebar from '@/components/Sidebar'
 import { createClient } from '@/lib/supabase/client'
 
@@ -22,6 +23,15 @@ export default function ClientAppShell({
 }: ClientAppShellProps) {
   const [checking, setChecking] = useState(true)
   const [copilotOpen, setCopilotOpen] = useState(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+
+  useEffect(() => {
+    try { setSidebarCollapsed(localStorage.getItem('festag-sidebar-collapsed') === 'true') } catch {}
+  }, [])
+
+  useEffect(() => {
+    try { localStorage.setItem('festag-sidebar-collapsed', String(sidebarCollapsed)) } catch {}
+  }, [sidebarCollapsed])
 
   useEffect(() => {
     createClient().auth.getSession().then(({ data }) => {
@@ -44,14 +54,7 @@ export default function ClientAppShell({
     }
   }, [])
 
-  if (checking) {
-    return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)' }}>
-        <div style={{ width: 24, height: 24, border: '2px solid var(--border)', borderTopColor: 'var(--text)', borderRadius: '50%', animation: 'spin .8s linear infinite' }} />
-        <style>{`@keyframes spin{to{transform:rotate(360deg);}}`}</style>
-      </div>
-    )
-  }
+  if (checking) return <LoadingScreen onDone={() => undefined} />
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg)' }}>
@@ -63,9 +66,44 @@ export default function ClientAppShell({
         .panel-enter { animation: panelFadeIn .22s cubic-bezier(.16,1,.3,1) both; }
       `}</style>
 
-      <div className="panel-enter" style={{ display: 'contents' }}>
-        <Sidebar />
-      </div>
+      {!sidebarCollapsed && (
+        <div className="panel-enter" style={{ display: 'contents' }}>
+          <Sidebar onCollapse={() => setSidebarCollapsed(true)} />
+        </div>
+      )}
+
+      {sidebarCollapsed && (
+        <button
+          type="button"
+          aria-label="Sidebar ausklappen"
+          title="Sidebar ausklappen"
+          onClick={() => setSidebarCollapsed(false)}
+          style={{
+            position:'fixed',
+            top:14,
+            left:14,
+            zIndex:210,
+            width:34,
+            height:34,
+            borderRadius:11,
+            border:'1px solid var(--sidebar-border)',
+            background:'var(--sidebar-bg)',
+            color:'var(--text-secondary)',
+            display:'inline-flex',
+            alignItems:'center',
+            justifyContent:'center',
+            boxShadow:'0 8px 24px rgba(0,0,0,.07)',
+            backdropFilter:'blur(22px) saturate(180%)',
+            WebkitBackdropFilter:'blur(22px) saturate(180%)',
+            cursor:'pointer',
+          }}
+        >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="4" y="5" width="16" height="14" rx="3" />
+            <path d="M9 5v14" />
+          </svg>
+        </button>
+      )}
 
       <main
         id={scrollId}
@@ -78,6 +116,8 @@ export default function ClientAppShell({
           overflowY: isFullHeight ? 'hidden' : 'scroll',
           height: isFullHeight ? '100dvh' : undefined,
           scrollBehavior: 'auto',
+          marginLeft: sidebarCollapsed ? 0 : 256,
+          transition: 'margin-left .22s cubic-bezier(.16,1,.3,1)',
         }}
       >
         <div style={{ width: '100%', flex: 1 }}>

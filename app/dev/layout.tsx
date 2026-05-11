@@ -1,110 +1,163 @@
 'use client'
+
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { clearStoredDevSession, devDisplayName, getStoredDevSession, type DevSession } from '@/lib/dev-session'
+import { Briefcase, CheckSquare, House, Kanban, SignOut, UsersThree } from '@phosphor-icons/react'
 
 const NAV = [
-  { href: '/dev',       icon: 'home',    label: 'Übersicht' },
-  { href: '/dev/jobs',  icon: 'inbox',   label: 'Jobs' },
-  { href: '/dev/tasks', icon: 'check',   label: 'Tasks' },
-  { href: '/dev/team',  icon: 'users',   label: 'Team' },
+  { href: '/dev', icon: House, label: 'Mission Control', meta: 'Übersicht' },
+  { href: '/dev/jobs', icon: Kanban, label: 'Execution Board', meta: 'Client Sync' },
+  { href: '/dev/tasks', icon: CheckSquare, label: 'Meine Tasks', meta: 'Fokus' },
+  { href: '/dev/team', icon: UsersThree, label: 'Team', meta: 'Delivery' },
 ]
 
-function Icon({ name, active }: { name: string; active: boolean }) {
-  const c = active ? '#181D1C' : '#94A3B8'; const sw = active ? 1.8 : 1.6
-  switch (name) {
-    case 'home':  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round"><path d="M3 12l9-9 9 9"/><path d="M5 10v10h14V10"/></svg>
-    case 'inbox': return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 12h6l2 3h4l2-3h6"/></svg>
-    case 'check': return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-    case 'users': return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2"/><path d="M3 20c0-3 3-5 6-5s6 2 6 5"/><path d="M15 14c2 0 5 1 5 4"/></svg>
-    default: return null
-  }
-}
-
 export default function DevLayout({ children }: { children: React.ReactNode }) {
-  const [authed, setAuthed] = useState(false)
-  const [checking, setChecking] = useState(true)
-  const [devInfo, setDevInfo] = useState<any>(null)
   const pathname = usePathname()
+  const [devInfo, setDevInfo] = useState<DevSession | null>(null)
+  const [checking, setChecking] = useState(true)
 
   useEffect(() => {
-    // Check localStorage dev session
-    try {
-      const stored = localStorage.getItem('festag_dev_session')
-      if (!stored) { window.location.href = '/login'; return }
-      const session = JSON.parse(stored)
-      if (!session.user_id || Date.now() > session.expires) {
-        localStorage.removeItem('festag_dev_session')
-        window.location.href = '/login'
-        return
-      }
-      setDevInfo(session)
-      setAuthed(true)
-    } catch {
+    const session = getStoredDevSession()
+    if (!session) {
       window.location.href = '/login'
+      return
     }
+    setDevInfo(session)
     setChecking(false)
   }, [])
 
-  const logout = () => {
-    localStorage.removeItem('festag_dev_session')
+  function logout() {
+    clearStoredDevSession()
     window.location.href = '/login'
   }
 
-  if (checking) return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ width: 32, height: 32, border: '2px solid var(--border)', borderTopColor: 'var(--green)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-    </div>
-  )
-  if (!authed) return null
+  if (checking) {
+    return (
+      <div className="dev-loading">
+        <div>
+          <p>Execution layer initializing</p>
+          <h1>Developer Workspace wird vorbereitet.</h1>
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg)' }}>
-      <aside className="sidebar" style={{ position: 'fixed', top: 0, left: 0, width: 240, height: '100vh', background: 'var(--surface)', borderRight: '1px solid var(--border)', display: 'flex', flexDirection: 'column', padding: '24px 14px', zIndex: 100 }}>
-        <div style={{ padding: '0 8px', marginBottom: 18, display: 'flex', alignItems: 'center', gap: 8 }}>
-          <img src="/brand/logo.svg" alt="festag" style={{ height: 18 }} />
-          <span style={{ padding: '2px 7px', background: 'var(--green-bg)', color: 'var(--green-dark)', fontSize: 9, fontWeight: 700, letterSpacing: '0.08em', borderRadius: 4 }}>DEV</span>
+    <div className="dev-shell">
+      <aside className="dev-sidebar" aria-label="Developer Navigation">
+        <div className="dev-brand">
+          <img src="/brand/logo.svg" alt="festag" />
+          <span>DEV</span>
         </div>
-        <div style={{ margin: '0 0 14px', padding: '10px 12px', background: 'var(--green-bg)', borderRadius: 10, border: '1px solid var(--green-border)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
-            <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--green)', animation: 'pulse 2s infinite' }} />
-            <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--green-dark)', letterSpacing: '0.06em' }}>ONLINE</span>
+
+        <div className="dev-identity">
+          <div className="dev-avatar">{devDisplayName(devInfo).slice(0, 2).toUpperCase()}</div>
+          <div>
+            <strong>{devDisplayName(devInfo)}</strong>
+            <span>{devInfo?.access_mode === 'pool' ? 'Pool Developer' : 'Workspace Developer'}</span>
           </div>
-          <p style={{ fontSize: 12, color: 'var(--text-secondary)', margin: 0, fontWeight: 600 }}>{devInfo?.user_email?.split('@')[0] ?? 'Developer'}</p>
-          <p style={{ fontSize: 10, color: 'var(--text-muted)', margin: '1px 0 0', textTransform: 'capitalize' }}>{devInfo?.user_role ?? 'dev'}</p>
         </div>
-        <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
-          {NAV.map(item => {
+
+        <div className="dev-sync-card">
+          <span className="dev-pulse" />
+          <div>
+            <strong>Client Board verbunden</strong>
+            <p>Technische Updates werden über Tagro verständlich gespiegelt.</p>
+          </div>
+        </div>
+
+        <nav className="dev-nav">
+          {NAV.map((item) => {
+            const Icon = item.icon
             const active = pathname === item.href || (item.href !== '/dev' && pathname.startsWith(item.href))
             return (
-              <Link key={item.href} href={item.href}>
-                <div className="tap-scale" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 'var(--r-sm)', fontSize: 14, fontWeight: active ? 600 : 500, color: active ? 'var(--text)' : 'var(--text-muted)', background: active ? 'var(--surface-2)' : 'transparent', cursor: 'pointer' }}>
-                  <Icon name={item.icon} active={active} />{item.label}
-                </div>
+              <Link key={item.href} href={item.href} className={`dev-nav-row ${active ? 'active' : ''}`}>
+                <Icon size={18} weight={active ? 'fill' : 'regular'} />
+                <span>{item.label}</span>
+                <small>{item.meta}</small>
               </Link>
             )
           })}
         </nav>
-        <button onClick={logout} style={{ padding: '8px 10px', textAlign: 'left', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 12, color: 'var(--text-muted)', borderRadius: 'var(--r-sm)', fontFamily: 'inherit', borderTop: '1px solid var(--border)', paddingTop: 12, marginTop: 6 }}>↪ Abmelden</button>
+
+        <button className="dev-logout" onClick={logout}>
+          <SignOut size={16} /> Abmelden
+        </button>
       </aside>
 
-      <nav className="bottom-nav" style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderTop: '1px solid var(--border)', zIndex: 200, justifyContent: 'space-around', alignItems: 'center', height: 'calc(64px + var(--safe-bottom))' }}>
-        {NAV.map(item => {
-          const active = pathname === item.href || (item.href !== '/dev' && pathname.startsWith(item.href))
-          return (
-            <Link key={item.href} href={item.href} style={{ flex: 1 }}>
-              <div className="tap-scale" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, padding: '6px 4px', minHeight: 44 }}>
-                <Icon name={item.icon} active={active} />
-                <span style={{ fontSize: 10.5, fontWeight: active ? 600 : 500, color: active ? 'var(--text)' : 'var(--text-muted)' }}>{item.label}</span>
-              </div>
-            </Link>
-          )
-        })}
-      </nav>
-
-      <main className="main-content" style={{ flex: 1, marginLeft: 240, padding: '36px 44px', minWidth: 0 }}>
-        <div style={{ maxWidth: 1200, margin: '0 auto' }}>{children}</div>
+      <main className="dev-main">
+        {children}
       </main>
+
+      <style jsx global>{`
+        .dev-shell {
+          min-height: 100vh;
+          display: grid;
+          grid-template-columns: 252px minmax(0, 1fr);
+          background: var(--bg);
+          color: var(--text);
+        }
+        .dev-sidebar {
+          position: sticky;
+          top: 0;
+          height: 100vh;
+          padding: 22px 14px 16px;
+          border-right: 1px solid color-mix(in srgb, var(--border) 65%, transparent);
+          background: color-mix(in srgb, var(--surface) 72%, var(--bg));
+          display: flex;
+          flex-direction: column;
+          gap: 14px;
+        }
+        .dev-brand { display:flex; align-items:center; gap:9px; padding:0 8px 4px; }
+        .dev-brand img { height:18px; }
+        .dev-brand span { font-size:9px; letter-spacing:.14em; font-weight:750; color:var(--text-muted); border:1px solid var(--border); border-radius:999px; padding:3px 7px; }
+        .dev-identity { display:flex; align-items:center; gap:10px; padding:10px 9px; border-radius:14px; }
+        .dev-avatar { width:32px; height:32px; border-radius:10px; display:grid; place-items:center; background:var(--text); color:var(--bg); font-size:11px; font-weight:800; }
+        .dev-identity strong { display:block; font-size:13px; line-height:1.2; max-width:150px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+        .dev-identity span { display:block; font-size:11px; color:var(--text-muted); margin-top:2px; }
+        .dev-sync-card { display:flex; gap:9px; padding:11px 10px; border-radius:15px; background:color-mix(in srgb, var(--surface-2) 70%, transparent); border:1px solid color-mix(in srgb, var(--border) 55%, transparent); }
+        .dev-sync-card strong { display:block; font-size:12px; }
+        .dev-sync-card p { margin:2px 0 0; font-size:11px; line-height:1.35; color:var(--text-muted); }
+        .dev-pulse { width:8px; height:8px; flex:0 0 auto; border-radius:50%; margin-top:3px; background:#22c55e; box-shadow:0 0 0 4px color-mix(in srgb, #22c55e 16%, transparent); }
+        .dev-nav { display:flex; flex-direction:column; gap:3px; padding-top:2px; flex:1; }
+        .dev-nav-row { min-height:36px; display:grid; grid-template-columns:22px minmax(0, 1fr) auto; align-items:center; gap:8px; padding:0 9px; border-radius:10px; text-decoration:none; color:var(--text-secondary); transition:background .18s ease, color .18s ease; }
+        .dev-nav-row span { font-size:13px; font-weight:650; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .dev-nav-row small { font-size:10px; color:var(--text-muted); opacity:.75; }
+        .dev-nav-row:hover { background:color-mix(in srgb, var(--surface-2) 70%, transparent); color:var(--text); }
+        .dev-nav-row.active { background:color-mix(in srgb, var(--surface-2) 88%, transparent); color:var(--text); }
+        .dev-logout { height:34px; display:flex; align-items:center; gap:7px; border:0; background:transparent; color:var(--text-muted); font:inherit; font-size:12px; font-weight:650; border-radius:10px; padding:0 9px; cursor:pointer; }
+        .dev-logout:hover { background:var(--surface-2); color:var(--text); }
+        .dev-main { min-width:0; padding:42px clamp(24px, 4vw, 56px); }
+        .dev-loading { min-height:100vh; display:flex; align-items:center; padding-left:12vw; background:var(--bg); color:var(--text); }
+        .dev-loading p { margin:0 0 12px; color:var(--text-muted); font-size:12px; text-transform:uppercase; letter-spacing:.18em; }
+        .dev-loading h1 { margin:0; max-width:620px; font-size:clamp(34px, 5vw, 70px); line-height:.98; letter-spacing:-.06em; }
+        .dev-page { max-width:1180px; margin:0 auto; }
+        .dev-page-header { display:flex; justify-content:space-between; gap:24px; align-items:flex-start; margin-bottom:36px; }
+        .dev-eyebrow { margin:0 0 10px; color:var(--text-muted); font-size:11px; text-transform:uppercase; letter-spacing:.16em; font-weight:800; }
+        .dev-page h1 { margin:0; font-size:clamp(34px, 4vw, 58px); line-height:.98; letter-spacing:-.06em; }
+        .dev-page-header .meta { margin:12px 0 0; color:var(--text-muted); font-size:15px; }
+        .dev-primary-btn, .dev-secondary-btn { height:34px; border-radius:10px; padding:0 13px; border:1px solid var(--border); font:inherit; font-size:12.5px; font-weight:750; cursor:pointer; }
+        .dev-primary-btn { background:var(--text); color:var(--bg); border-color:var(--text); }
+        .dev-secondary-btn { background:transparent; color:var(--text); }
+        .dev-surface { border:1px solid color-mix(in srgb, var(--border) 55%, transparent); background:color-mix(in srgb, var(--surface) 70%, transparent); border-radius:18px; }
+        .dev-row { display:grid; align-items:center; gap:14px; min-height:56px; padding:10px 14px; border-radius:14px; transition:background .18s ease, transform .18s ease; }
+        .dev-row:hover { background:color-mix(in srgb, var(--surface-2) 70%, transparent); transform:translateY(-1px); }
+        .dev-kpi-grid { display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:12px; margin-bottom:28px; }
+        .dev-kpi { padding:16px; }
+        .dev-kpi strong { display:block; font-size:24px; letter-spacing:-.04em; }
+        .dev-kpi span { display:block; margin-top:3px; font-size:12px; color:var(--text-muted); }
+        .dev-section-title { margin:0 0 12px; font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--text-muted); font-weight:800; }
+        .dev-chip { display:inline-flex; align-items:center; gap:6px; min-height:26px; padding:0 9px; border-radius:999px; background:var(--surface-2); color:var(--text-secondary); font-size:12px; font-weight:700; border:1px solid color-mix(in srgb, var(--border) 55%, transparent); }
+        @media (max-width: 840px) {
+          .dev-shell { grid-template-columns:1fr; }
+          .dev-sidebar { position:relative; height:auto; border-right:0; border-bottom:1px solid var(--border); }
+          .dev-main { padding:28px 18px 90px; }
+          .dev-nav-row small, .dev-sync-card { display:none; }
+          .dev-kpi-grid { grid-template-columns:repeat(2, minmax(0, 1fr)); }
+        }
+      `}</style>
     </div>
   )
 }

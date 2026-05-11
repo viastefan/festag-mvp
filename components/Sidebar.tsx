@@ -110,7 +110,7 @@ const DEV_MOB_QUICK = [
 
 const ROLE_LABEL: Record<string,string> = { client:'Client', dev:'Developer', admin:'Admin' }
 
-export default function Sidebar() {
+export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
   const pathname  = usePathname()
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -565,6 +565,21 @@ export default function Sidebar() {
               <img src="/brand/logo.svg" alt="festag" style={{ height:17, display:'block', filter:'var(--logo-filter,none)' }}/>
             </Link>
           <div style={{ display:'flex', alignItems:'center', gap:4 }}>
+              {onCollapse && (
+                <button
+                  className="sb-icon-btn"
+                  type="button"
+                  onClick={onCollapse}
+                  title="Sidebar einklappen"
+                  aria-label="Sidebar einklappen"
+                  style={{ width:28, height:28, borderRadius:8, display:'flex', alignItems:'center', justifyContent:'center', color:'var(--text-muted)', background:'transparent', border:'1px solid transparent' }}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="4" y="5" width="16" height="14" rx="3" />
+                    <path d="M9 5v14" />
+                  </svg>
+                </button>
+              )}
               <button
                 className="sb-icon-btn"
                 type="button"

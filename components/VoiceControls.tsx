@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { Pause, Play, Stop, SpeakerHigh } from '@phosphor-icons/react'
 import { speechVoiceId, useSpeechSynthesis } from '@/hooks/useSpeechSynthesis'
 
@@ -9,22 +9,43 @@ type VoiceControlsProps = {
   compact?: boolean
 }
 
+function voiceScore(voice: SpeechSynthesisVoice) {
+  const name = voice.name.toLowerCase()
+  const lang = voice.lang.toLowerCase()
+  let score = 0
+  if (lang.startsWith('de')) score += 100
+  if (name.includes('flo') || name.includes('anna') || name.includes('shelley') || name.includes('siri')) score += 18
+  if (name.includes('premium') || name.includes('enhanced')) score += 12
+  if (voice.localService) score += 4
+  return score
+}
+
+function shortVoiceLabel(voice: SpeechSynthesisVoice) {
+  const lang = voice.lang.toLowerCase().startsWith('de') ? 'Deutsch' : voice.lang.split('-')[0]?.toUpperCase() || voice.lang
+  const cleanName = voice.name.replace(/\s*\([^)]*\)/g, '').trim()
+  return `${cleanName} · ${lang}`
+}
+
 export default function VoiceControls({ text, compact = false }: VoiceControlsProps) {
-  const [showAllVoices, setShowAllVoices] = useState(false)
   const { supported, state, voices, selectedVoice, preferences, play, pause, stop, updatePreferences } = useSpeechSynthesis(text)
 
   const voiceOptions = useMemo(() => {
-    const german = voices.filter((voice) => voice.lang.toLowerCase().startsWith('de'))
-    const preferred = german.length ? german : voices.slice(0, 8)
-    return showAllVoices ? voices : preferred
-  }, [showAllVoices, voices])
+    const map = new Map<string, SpeechSynthesisVoice>()
+    voices
+      .slice()
+      .sort((a, b) => voiceScore(b) - voiceScore(a))
+      .forEach((voice) => {
+        const key = `${voice.name}-${voice.lang}`
+        if (!map.has(key)) map.set(key, voice)
+      })
+    const curated = Array.from(map.values()).slice(0, 8)
+    if (selectedVoice && !curated.some((voice) => speechVoiceId(voice) === speechVoiceId(selectedVoice))) {
+      return [selectedVoice, ...curated].slice(0, 8)
+    }
+    return curated
+  }, [voices, selectedVoice])
 
   const selectedVoiceId = selectedVoice ? speechVoiceId(selectedVoice) : ''
-
-  function voiceLabel(voice: SpeechSynthesisVoice) {
-    const lang = voice.lang.toLowerCase().startsWith('de') ? 'Deutsch' : voice.lang
-    return `${voice.name} · ${lang}`
-  }
 
   if (!supported) {
     return <p className="voice-note">Audio-Briefings werden von diesem Browser nicht unterstützt.</p>
@@ -50,7 +71,7 @@ export default function VoiceControls({ text, compact = false }: VoiceControlsPr
           <option value={1.3}>1.3x</option>
         </select>
       </label>
-      {voices.length > 0 && (
+      {voiceOptions.length > 0 && (
         <label className="voice-field voice-field--voice">
           <SpeakerHigh size={13} />
           <select
@@ -60,22 +81,12 @@ export default function VoiceControls({ text, compact = false }: VoiceControlsPr
               updatePreferences({ voiceId: next ? speechVoiceId(next) : undefined, voiceName: next?.name })
             }}
           >
-            <option value="">Beste deutsche Stimme</option>
+            <option value="">Beste Stimme</option>
             {voiceOptions.map((voice) => (
-              <option key={speechVoiceId(voice)} value={speechVoiceId(voice)}>{voiceLabel(voice)}</option>
+              <option key={speechVoiceId(voice)} value={speechVoiceId(voice)}>{shortVoiceLabel(voice)}</option>
             ))}
           </select>
         </label>
-      )}
-      {voices.length > voiceOptions.length && (
-        <button className="voice-text-btn" type="button" onClick={() => setShowAllVoices(true)}>
-          Alle Stimmen
-        </button>
-      )}
-      {showAllVoices && (
-        <button className="voice-text-btn" type="button" onClick={() => setShowAllVoices(false)}>
-          Nur Deutsch
-        </button>
       )}
       {state === 'error' && <span className="voice-state">Konnte nicht gestartet werden.</span>}
     </div>

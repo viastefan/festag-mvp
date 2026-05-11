@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import {
   ArrowsClockwise,
   Article,
@@ -123,22 +124,24 @@ export default function SidebarProfileFooter({
 
   return (
     <div ref={footerRef} style={{ paddingTop: 8, marginTop: 2, position: 'relative', display: 'flex', alignItems: 'center', gap: 4, zIndex: 40 }}>
-      {userMenu && (
+      {userMenu && typeof document !== 'undefined' && createPortal((
         <>
-          <div style={{ position: 'fixed', inset: 0, zIndex: 5000 }} onClick={() => setUserMenu(false)} />
+          <div style={{ position: 'fixed', inset: 0, zIndex: 119990 }} onClick={() => setUserMenu(false)} />
           <div style={{
             position: 'fixed',
             left: userMenuPosition.left,
             bottom: userMenuPosition.bottom,
             width: 286,
             maxWidth: 'min(286px, calc(100vw - 32px))',
+            maxHeight: 'calc(100dvh - 28px)',
             background: 'var(--surface)',
             border: '1px solid var(--border)',
             borderRadius: 14,
             boxShadow: '0 16px 48px rgba(0,0,0,0.20), 0 4px 12px rgba(0,0,0,0.10)',
-            zIndex: 5001,
+            zIndex: 120000,
             padding: '8px',
-            overflow: 'hidden',
+            overflowX: 'hidden',
+            overflowY: 'auto',
             animation: 'spf-pop .14s ease-out both',
           }}>
             <p className="spf-section-label">Konto</p>
@@ -181,23 +184,25 @@ export default function SidebarProfileFooter({
             </button>
           </div>
         </>
-      )}
+      ), document.body)}
 
-      {designMenu && (
+      {designMenu && typeof document !== 'undefined' && createPortal((
         <>
-          <div style={{ position: 'fixed', inset: 0, zIndex: 5000 }} onClick={() => setDesignMenu(false)} />
+          <div style={{ position: 'fixed', inset: 0, zIndex: 119990 }} onClick={() => setDesignMenu(false)} />
           <div style={{
             position: 'fixed',
             left: designMenuPosition.left,
             bottom: designMenuPosition.bottom,
             width: Math.max(180, designMenuPosition.width),
+            maxHeight: 'calc(100dvh - 28px)',
             background: 'var(--surface)',
             border: '1px solid var(--border)',
             borderRadius: 12,
             boxShadow: '0 16px 48px rgba(0,0,0,0.20), 0 4px 12px rgba(0,0,0,0.10)',
-            zIndex: 5001,
+            zIndex: 120000,
             padding: '6px',
-            overflow: 'hidden',
+            overflowX: 'hidden',
+            overflowY: 'auto',
             animation: 'spf-pop .14s ease-out both',
           }}>
             <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', padding: '6px 11px 4px', margin: 0, letterSpacing: '.04em', textAlign: 'left' }}>
@@ -265,10 +270,7 @@ export default function SidebarProfileFooter({
 
             {([
               { mode: 'aeonik' as FontMode, label: 'Aeonik' },
-              { mode: 'inter' as FontMode, label: 'Inter' },
               { mode: 'sf-pro' as FontMode, label: 'SF Pro' },
-              { mode: 'geist' as FontMode, label: 'Geist' },
-              { mode: 'ibm-plex' as FontMode, label: 'IBM Plex Sans' },
             ] as const).map(({ mode, label }) => {
               const active = fontMode === mode
               return (
@@ -387,13 +389,15 @@ export default function SidebarProfileFooter({
             </div>
           </div>
         </>
-      )}
+      ), document.body)}
 
       <button
+        className="spf-trigger"
         onClick={() => { setUserMenu((open) => !open); setDesignMenu(false) }}
         style={{
-          flex: 1,
+          flex: '0 1 auto',
           minWidth: 0,
+          maxWidth: 168,
           display: 'flex',
           alignItems: 'center',
           gap: 10,
@@ -466,6 +470,7 @@ export default function SidebarProfileFooter({
       </button>
 
       <button
+        className="spf-trigger"
         onClick={() => { setDesignMenu((open) => !open); setUserMenu(false) }}
         aria-label="Design-Einstellungen"
         style={{
@@ -534,6 +539,16 @@ export default function SidebarProfileFooter({
           min-height: 34px;
         }
         .spf-menu-row:hover { background: var(--surface-2); }
+        .spf-menu-row:focus,
+        .spf-trigger:focus {
+          outline: none !important;
+          box-shadow: none !important;
+        }
+        .spf-menu-row:focus-visible,
+        .spf-trigger:focus-visible {
+          outline: 2px solid var(--focus-ring);
+          outline-offset: 2px;
+        }
         .spf-section-label {
           margin: 8px 0 2px;
           padding: 0 10px;

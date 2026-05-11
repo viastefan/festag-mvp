@@ -1,5 +1,5 @@
 export type ThemeMode = 'system' | 'light' | 'pure-light' | 'read' | 'dark' | 'magic-blue' | 'classic-dark' | 'custom'
-export type FontMode = 'inter' | 'sf-pro' | 'geist' | 'ibm-plex' | 'aeonik'
+export type FontMode = 'sf-pro' | 'aeonik'
 export type DensityMode = 'comfortable' | 'compact'
 
 const FONT_KEY = 'festag_font'
@@ -12,7 +12,8 @@ export function getTheme(): ThemeMode {
 
 export function getFontMode(): FontMode {
   if (typeof window === 'undefined') return 'aeonik'
-  return (localStorage.getItem(FONT_KEY) as FontMode) || 'aeonik'
+  const saved = localStorage.getItem(FONT_KEY)
+  return saved === 'sf-pro' ? 'sf-pro' : 'aeonik'
 }
 
 export function getDensityMode(): DensityMode {

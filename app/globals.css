@@ -55,6 +55,7 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --red:#D14343; --red-bg:rgba(209,67,67,0.07);
   --shadow-xs:0 1px 2px rgba(10,11,10,.04); --shadow-sm:0 2px 6px rgba(10,11,10,.05);
   --shadow:0 4px 16px rgba(10,11,10,.06); --shadow-lg:0 12px 32px rgba(10,11,10,.08);
+  --focus-ring:rgba(10,11,10,0.28);
   --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
   --r:12px; --r-xs:8px; --r-sm:10px; --r-md:12px; --r-lg:16px; --r-xl:22px;
 }
@@ -109,6 +110,7 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --shadow-sm:0 2px 8px rgba(0,0,0,.78);
   --shadow:0 4px 20px rgba(0,0,0,.88);
   --shadow-lg:0 8px 40px rgba(0,0,0,.95);
+  --focus-ring:rgba(232,232,229,0.26);
 
   --logo-filter:brightness(0) invert(1);
   --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
@@ -134,6 +136,7 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --red:#6E2E2E; --red-bg:rgba(110,46,46,0.09);
   --shadow-xs:0 1px 3px rgba(28,25,20,.06); --shadow-sm:0 3px 10px rgba(28,25,20,.08);
   --shadow:0 8px 28px rgba(28,25,20,.10); --shadow-lg:0 16px 40px rgba(28,25,20,.12);
+  --focus-ring:rgba(28,25,20,0.20);
   --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
   --r:12px; --r-xs:8px; --r-sm:10px; --r-md:12px; --r-lg:16px; --r-xl:22px;
 }
@@ -209,7 +212,7 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
 [data-theme="read"] .sidebar-inner {
   background: color-mix(in srgb, var(--surface) 88%, #fff9ec 12%);
   border-color: rgba(38,33,24,0.12);
-  box-shadow: 0 14px 34px rgba(28,25,20,.12);
+  box-shadow: 0 10px 28px rgba(28,25,20,.075), 0 1px 4px rgba(28,25,20,.05);
 }
 [data-theme="read"] .ni-on {
   background: color-mix(in srgb, var(--surface-2) 92%, #ddd3bb 8%);
@@ -220,7 +223,7 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
 
 html,body {
   background:var(--bg); color:var(--text);
-  font-family:'Aeonik',-apple-system,BlinkMacSystemFont,'SF Pro Text','Inter',sans-serif;
+  font-family:var(--font-ui);
   font-weight:500; font-size:15px; line-height:1.55;
   letter-spacing:-.01em;
   -webkit-font-smoothing:antialiased;
@@ -231,10 +234,10 @@ html,body {
   overscroll-behavior-y:none;
   transition:background .2s ease, color .2s ease;
 }
-p,span,div,label,li,td,th { font-weight:500; font-family:'Aeonik',-apple-system,BlinkMacSystemFont,'SF Pro Text','Inter',sans-serif; }
+p,span,div,label,li,td,th { font-weight:500; font-family:var(--font-ui); }
 strong,b { font-weight:700; }
 /* Editorial display sizes — Apple keynote feel */
-h1,h2,h3,h4,h5,h6 { font-family:'Aeonik',-apple-system,BlinkMacSystemFont,'SF Pro Text','Inter',sans-serif; }
+h1,h2,h3,h4,h5,h6 { font-family:var(--font-ui); }
 h1 { font-size:28px;font-weight:700;letter-spacing:-.025em;line-height:1.12;color:var(--text); }
 h2 { font-size:21px;font-weight:700;letter-spacing:-.020em;line-height:1.2; color:var(--text); }
 h3 { font-size:16px;font-weight:700;letter-spacing:-.014em;line-height:1.3; color:var(--text); }
@@ -262,7 +265,20 @@ input,textarea,select { font-size:16px;font-family:inherit;font-weight:500;color
 .animate-fade-up-4 { animation:fadeUp .3s .20s cubic-bezier(.16,1,.3,1) both; }
 .tap-scale { transition:transform .1s ease,opacity .12s; }
 .tap-scale:active { transform:scale(.97);opacity:.88; }
-input:focus,textarea:focus,select:focus { outline:none; }
+*:focus { outline:none; }
+*:focus-visible {
+  outline:2px solid var(--focus-ring);
+  outline-offset:2px;
+}
+button:focus:not(:focus-visible),
+a:focus:not(:focus-visible),
+input:focus:not(:focus-visible),
+textarea:focus:not(:focus-visible),
+select:focus:not(:focus-visible),
+[role="button"]:focus:not(:focus-visible) {
+  outline:none !important;
+  box-shadow:none !important;
+}
 [data-theme="read"] {
   letter-spacing: -.006em;
 }
@@ -279,9 +295,9 @@ input:focus,textarea:focus,select:focus { outline:none; }
 [data-theme="read"] .dash-row:hover {
   background: color-mix(in srgb, var(--surface-2) 58%, transparent);
 }
-[data-theme="read"] input:focus,
-[data-theme="read"] textarea:focus,
-[data-theme="read"] select:focus {
+[data-theme="read"] input:focus-visible,
+[data-theme="read"] textarea:focus-visible,
+[data-theme="read"] select:focus-visible {
   box-shadow: 0 0 0 2px rgba(28,25,20,0.10);
 }
 [data-theme="read"] ::selection {
@@ -348,18 +364,18 @@ button:active, a[role="button"]:active, .tap-scale:active {
   -webkit-backdrop-filter:blur(36px) saturate(200%);
   border:1px solid var(--sidebar-border);
   box-shadow:
-    0 12px 40px rgba(0,0,0,0.08),
-    0 2px 8px rgba(0,0,0,0.04),
-    inset 0 1px 0 rgba(255,255,255,0.10);
+    0 16px 50px rgba(0,0,0,0.026),
+    0 1px 2px rgba(0,0,0,0.018),
+    inset 0 1px 0 rgba(255,255,255,0.08);
   border-radius:8px;
   display:flex; flex-direction:column; overflow:visible;
   transition:background .2s ease, border-color .2s ease;
 }
 [data-theme="dark"] .sidebar-inner {
   box-shadow:
-    0 12px 40px rgba(0,0,0,0.50),
-    0 2px 8px rgba(0,0,0,0.35),
-    inset 0 1px 0 rgba(255,255,255,0.06);
+    0 18px 56px rgba(0,0,0,0.24),
+    0 1px 2px rgba(0,0,0,0.18),
+    inset 0 1px 0 rgba(255,255,255,0.045);
 }
 
 /* App header — sticky desktop, scrollable mobile */
@@ -587,20 +603,17 @@ body.locked { overflow: hidden; touch-action: none; }
 /* Global typography system */
 :root {
   --font-aeonik: 'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
-  --font-inter: Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
   --font-sf-pro: 'SF Pro Text', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
-  --font-geist: 'Geist', 'Geist Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-ibm-plex: 'IBM Plex Sans', 'IBM Plex Sans Condensed', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-primary: var(--font-aeonik);
   --font-ui: var(--font-primary);
   --font-mono: 'SF Mono', 'Geist Mono', ui-monospace, Menlo, Monaco, Consolas, monospace;
   --ui-density-scale: 1;
 }
-[data-font="inter"] { --font-primary: var(--font-inter); --font-ui: var(--font-inter); }
 [data-font="sf-pro"] { --font-primary: var(--font-sf-pro); --font-ui: var(--font-sf-pro); letter-spacing: -0.012em; }
-[data-font="geist"] { --font-primary: var(--font-geist); --font-ui: var(--font-geist); }
-[data-font="ibm-plex"] { --font-primary: var(--font-ibm-plex); --font-ui: var(--font-ibm-plex); }
-[data-font="aeonik"] { --font-primary: var(--font-aeonik); --font-ui: var(--font-aeonik); }
+[data-font="aeonik"],
+[data-font="inter"],
+[data-font="geist"],
+[data-font="ibm-plex"] { --font-primary: var(--font-aeonik); --font-ui: var(--font-aeonik); }
 [data-density="compact"] { --ui-density-scale: .92; }
 html, body, button, input, select, textarea { font-family: var(--font-ui); }
 code, pre, kbd, samp { font-family: var(--font-mono); }
@@ -621,6 +634,29 @@ code, pre, kbd, samp { font-family: var(--font-mono); }
   border:1px solid color-mix(in srgb, var(--border) 74%, transparent);
   box-shadow:0 18px 56px rgba(0,0,0,.18), 0 4px 14px rgba(0,0,0,.08);
   backdrop-filter: blur(18px);
+}
+.audio-briefing-backdrop {
+  position:fixed;
+  inset:0;
+  z-index:11990;
+  background:transparent;
+}
+.audio-briefing-layer {
+  position:fixed;
+  z-index:12000;
+  width:min(420px, calc(100vw - 32px));
+  padding:14px;
+  border-radius:18px;
+  background:color-mix(in srgb, var(--surface) 96%, transparent);
+  border:1px solid color-mix(in srgb, var(--border) 72%, transparent);
+  box-shadow:0 24px 72px rgba(0,0,0,.22), 0 7px 18px rgba(0,0,0,.10);
+  backdrop-filter: blur(22px) saturate(150%);
+  -webkit-backdrop-filter: blur(22px) saturate(150%);
+  animation:audioLayerIn .16s cubic-bezier(.16,1,.3,1) both;
+}
+@keyframes audioLayerIn {
+  from { opacity:0; transform:translateY(8px) scale(.985); }
+  to { opacity:1; transform:none; }
 }
 .audio-briefing-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:10px; }
 .audio-briefing-head p { margin:0; color:var(--text); font-size:12.5px; font-weight:760; }
