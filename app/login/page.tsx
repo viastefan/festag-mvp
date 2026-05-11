@@ -9,12 +9,7 @@ type EmailStage = 'email' | 'password'
 
 function FestagMark() {
   return (
-    <div className="simple-login-mark" aria-hidden="true">
-      <span />
-      <span />
-      <span />
-      <span />
-    </div>
+    <img className="simple-login-mark" src="/festag-mark.png" alt="Festag" />
   )
 }
 
@@ -130,26 +125,13 @@ export default function LoginPage() {
           margin:0 0 24px;
         }
         .simple-login-mark {
-          width:38px;
-          height:38px;
-          border-radius:999px;
-          background:var(--ink);
-          display:flex;
-          align-items:center;
-          justify-content:center;
-          gap:3px;
-          box-shadow:0 1px 2px rgba(0,0,0,.035);
+          width:46px;
+          height:46px;
+          display:block;
+          object-fit:contain;
+          user-select:none;
+          -webkit-user-drag:none;
         }
-        .simple-login-mark span {
-          width:2.5px;
-          height:20px;
-          border-radius:999px;
-          background:#fff;
-          transform:rotate(-35deg);
-          opacity:.9;
-        }
-        .simple-login-mark span:nth-child(1) { height:14px; opacity:.72; }
-        .simple-login-mark span:nth-child(4) { height:14px; opacity:.72; }
         .simple-login h1 {
           margin:0 0 22px;
           color:var(--ink);
