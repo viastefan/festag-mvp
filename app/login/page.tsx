@@ -7,15 +7,6 @@ import { setTheme } from '@/lib/theme'
 type AuthView = 'login' | 'email'
 type EmailStage = 'email' | 'password'
 
-const GOOGLE_ICON = (
-  <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
-    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
-    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
-    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
-  </svg>
-)
-
 function FestagMark() {
   return (
     <div className="simple-login-mark" aria-hidden="true">
@@ -125,7 +116,7 @@ export default function LoginPage() {
           text-rendering:geometricPrecision;
         }
         .simple-login-shell {
-          width:min(372px, calc(100vw - 40px));
+          width:min(344px, calc(100vw - 40px));
           display:flex;
           flex-direction:column;
           align-items:center;
@@ -136,11 +127,11 @@ export default function LoginPage() {
           display:flex;
           align-items:center;
           justify-content:center;
-          margin:0 0 26px;
+          margin:0 0 24px;
         }
         .simple-login-mark {
-          width:42px;
-          height:42px;
+          width:38px;
+          height:38px;
           border-radius:999px;
           background:var(--ink);
           display:flex;
@@ -150,21 +141,21 @@ export default function LoginPage() {
           box-shadow:0 1px 2px rgba(0,0,0,.035);
         }
         .simple-login-mark span {
-          width:3px;
-          height:22px;
+          width:2.5px;
+          height:20px;
           border-radius:999px;
           background:#fff;
           transform:rotate(-35deg);
           opacity:.9;
         }
-        .simple-login-mark span:nth-child(1) { height:15px; opacity:.72; }
-        .simple-login-mark span:nth-child(4) { height:15px; opacity:.72; }
+        .simple-login-mark span:nth-child(1) { height:14px; opacity:.72; }
+        .simple-login-mark span:nth-child(4) { height:14px; opacity:.72; }
         .simple-login h1 {
-          margin:0 0 23px;
+          margin:0 0 22px;
           color:var(--ink);
-          font-size:20px;
+          font-size:19px;
           line-height:1.2;
-          font-weight:660;
+          font-weight:500;
           letter-spacing:-.025em;
           text-align:center;
         }
@@ -172,20 +163,20 @@ export default function LoginPage() {
           width:100%;
           display:flex;
           flex-direction:column;
-          gap:11px;
+          gap:10px;
         }
         .simple-login-button,
         .simple-login-input {
           width:100%;
-          height:46px;
-          border-radius:999px;
+          height:44px;
+          border-radius:32px;
           border:1px solid var(--line);
           background:#fff;
           color:var(--ink);
           box-shadow:0 1px 1px rgba(0,0,0,.018);
           font:inherit;
           font-size:13.5px;
-          font-weight:640;
+          font-weight:400;
           transition:background .18s cubic-bezier(.16,1,.3,1), border-color .18s cubic-bezier(.16,1,.3,1), box-shadow .18s cubic-bezier(.16,1,.3,1), color .18s cubic-bezier(.16,1,.3,1);
         }
         .simple-login-button {
@@ -199,6 +190,15 @@ export default function LoginPage() {
           border-color:var(--ink);
           color:white;
           box-shadow:0 9px 22px rgba(0,0,0,.075);
+        }
+        .simple-login-google-icon {
+          width:17px;
+          height:17px;
+          display:inline-block;
+          justify-self:center;
+          background:currentColor;
+          -webkit-mask:url('/google-symbol.svg') center / contain no-repeat;
+          mask:url('/google-symbol.svg') center / contain no-repeat;
         }
         .simple-login-button:hover,
         .simple-login-input:hover {
@@ -222,8 +222,8 @@ export default function LoginPage() {
           box-shadow:0 0 0 3px var(--ring), 0 1px 1px rgba(0,0,0,.018);
         }
         .simple-login-input {
-          padding:0 15px;
-          font-weight:560;
+          padding:0 16px;
+          font-weight:400;
         }
         .simple-login-input:focus {
           border-color:var(--line-strong);
@@ -237,7 +237,7 @@ export default function LoginPage() {
           color:var(--ink-soft);
           font-size:12.5px;
           line-height:1.45;
-          font-weight:560;
+          font-weight:400;
           text-align:center;
         }
         .simple-login-error {
@@ -248,7 +248,7 @@ export default function LoginPage() {
           color:#d53939;
           padding:10px 12px;
           font-size:12.5px;
-          font-weight:620;
+          font-weight:500;
           text-align:left;
         }
         .simple-login-links {
@@ -259,7 +259,7 @@ export default function LoginPage() {
           gap:14px;
           color:var(--ink-soft);
           font-size:12.5px;
-          font-weight:560;
+          font-weight:400;
         }
         .simple-login-link {
           border:0;
@@ -267,7 +267,7 @@ export default function LoginPage() {
           padding:0;
           color:var(--ink);
           font:inherit;
-          font-weight:650;
+          font-weight:500;
           cursor:pointer;
           text-decoration:none;
         }
@@ -289,7 +289,7 @@ export default function LoginPage() {
           margin:8px 0 2px;
           color:rgba(25,26,28,.34);
           font-size:11.5px;
-          font-weight:600;
+          font-weight:400;
         }
         .simple-login-separator::before,
         .simple-login-separator::after {
@@ -304,7 +304,7 @@ export default function LoginPage() {
           bottom:24px;
           color:rgba(25,26,28,.38);
           font-size:12px;
-          font-weight:620;
+          font-weight:400;
           text-decoration:none;
         }
         .simple-login-dev:hover { color:rgba(25,26,28,.72); }
@@ -319,7 +319,7 @@ export default function LoginPage() {
         @keyframes simpleLoginSpin { to { transform:rotate(360deg); } }
         @media (max-width:640px) {
           .simple-login-shell {
-            width:min(382px, calc(100vw - 32px));
+            width:min(344px, calc(100vw - 32px));
             transform:translateY(-2vh);
           }
           .simple-login-dev {
@@ -340,7 +340,7 @@ export default function LoginPage() {
             {error ? <p className="simple-login-error">{error}</p> : null}
             <div className="simple-login-stack">
               <button className="simple-login-button primary" type="button" onClick={doGoogleLogin} disabled={oauthLoading}>
-                <span>{oauthLoading ? <span className="simple-login-loader" /> : GOOGLE_ICON}</span>
+                <span>{oauthLoading ? <span className="simple-login-loader" /> : <span className="simple-login-google-icon" />}</span>
                 <span>Mit Google fortfahren</span>
                 <span />
               </button>
