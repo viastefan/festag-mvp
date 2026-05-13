@@ -53,8 +53,9 @@ export default function RegisterPage() {
   }
 
   function navigateWithFade(href: string) {
+    router.prefetch(href)
     setPageExiting(true)
-    setTimeout(() => router.push(href), 180)
+    setTimeout(() => router.push(href), 200)
   }
 
   useEffect(() => {
@@ -257,9 +258,9 @@ export default function RegisterPage() {
     <div className="reg-legal">
       <p className="reg-legal-text">
         <span className="reg-legal-muted">Secure, AI-orchestrated software Delivery. Mit Ihrer Anmeldung bestätigen Sie unsere{' '}</span>
-        <a href="/legal/agb">AGB</a>
+        <a href="/agb" onClick={e => { e.preventDefault(); navigateWithFade('/agb') }}>AGB</a>
         <span className="reg-legal-muted">{' '}und{' '}</span>
-        <a href="/legal/nutzungsbedingungen">Nutzungsbestimmungen</a>
+        <a href="/nutzungsbedingungen" onClick={e => { e.preventDefault(); navigateWithFade('/nutzungsbedingungen') }}>Nutzungsbestimmungen</a>
         <span className="reg-legal-muted">.</span>
       </p>
       <p className="reg-login-link">
@@ -274,10 +275,10 @@ export default function RegisterPage() {
     <main className={`reg-root${pageExiting ? ' exiting' : ''}`} data-theme={theme}>
       <style>{`
         *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
-        .reg-root { min-height:100dvh; width:100%; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); -webkit-font-smoothing:antialiased; text-rendering:geometricPrecision; transition:opacity 0.18s ease, transform 0.18s ease; }
-        .reg-root.exiting { opacity:0; transform:translateY(6px); pointer-events:none; }
-        @keyframes regPageEnter { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
-        .reg-root:not(.exiting) { animation: regPageEnter 0.18s ease both; }
+        .reg-root { min-height:100dvh; width:100%; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); -webkit-font-smoothing:antialiased; text-rendering:geometricPrecision; transition: opacity 0.22s cubic-bezier(0.4,0,0.2,1); }
+        .reg-root.exiting { opacity:0; pointer-events:none; }
+        @keyframes regPageEnter { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+        .reg-root:not(.exiting) { animation: regPageEnter 0.28s cubic-bezier(0.4,0,0.2,1) both; }
         .reg-btn:active:not(:disabled) { transform:scale(0.97); transition:transform 0.08s ease !important; }
         .reg-content { width:100%; display:flex; flex-direction:column; gap:20px; transition:opacity 0.18s ease, transform 0.18s ease; }
         .reg-content.animating { opacity:0; transform:translateY(6px); }

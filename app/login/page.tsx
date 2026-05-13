@@ -40,8 +40,9 @@ export default function LoginPage() {
   const emailView = emailStep !== 'main'
 
   function navigateWithFade(href: string) {
+    router.prefetch(href)
     setPageExiting(true)
-    setTimeout(() => router.push(href), 180)
+    setTimeout(() => router.push(href), 200)
   }
 
   useEffect(() => {
@@ -255,7 +256,7 @@ export default function LoginPage() {
         Kein Konto?{' '}
         <a href="/register" onClick={e => { e.preventDefault(); navigateWithFade('/register') }}>Hier registrieren</a>
         {' '}oder{' '}
-        <a href="/legal/mehr" onClick={e => { e.preventDefault(); navigateWithFade('/legal/mehr') }}>mehr dazu</a>
+        <a href="/agb" onClick={e => { e.preventDefault(); navigateWithFade('/agb') }}>mehr dazu</a>
       </p>
       <a className="log-dev" href="/dev" onClick={e => { e.preventDefault(); navigateWithFade('/dev') }}>Dev Zugang</a>
     </div>
@@ -279,10 +280,10 @@ export default function LoginPage() {
     <main className={`log-root${pageExiting ? ' exiting' : ''}`} data-theme={theme}>
       <style>{`
         *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
-        .log-root { min-height:100dvh; width:100%; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); -webkit-font-smoothing:antialiased; text-rendering:geometricPrecision; transition:opacity 0.18s ease, transform 0.18s ease; }
-        .log-root.exiting { opacity:0; transform:translateY(6px); pointer-events:none; }
-        @keyframes logPageEnter { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
-        .log-root:not(.exiting) { animation: logPageEnter 0.18s ease both; }
+        .log-root { min-height:100dvh; width:100%; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); -webkit-font-smoothing:antialiased; text-rendering:geometricPrecision; transition: opacity 0.22s cubic-bezier(0.4,0,0.2,1); }
+        .log-root.exiting { opacity:0; pointer-events:none; }
+        @keyframes logPageEnter { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+        .log-root:not(.exiting) { animation: logPageEnter 0.28s cubic-bezier(0.4,0,0.2,1) both; }
 
         /* BUTTON ANIMATION */
         .log-btn:active:not(:disabled) { transform:scale(0.97); transition:transform 0.08s ease !important; }
