@@ -112,7 +112,11 @@ export default function LoginPage() {
     <div className="log-btn-stack">
       <div className="log-btn-group">
         <button className="log-btn log-btn-google" type="button" onClick={handleGoogle} disabled={oauthLoading}>
-          {oauthLoading ? <span className="log-loader" /> : <img className="log-google-icon" src="/google-symbol.svg" alt="" />}
+          {oauthLoading ? <span className="log-loader" /> : (
+            <svg className="log-google-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M21.35 11.1H12.18v2.73h6.51c-.33 3.81-3.5 5.44-6.5 5.44-3.83 0-7.19-3.02-7.19-7.27 0-4.1 3.2-7.27 7.2-7.27 3.09 0 4.9 1.97 4.9 1.97l1.9-1.98S16.56 2 12.1 2C6.42 2 2.03 6.8 2.03 12c0 5.05 4.13 10 10.22 10 5.35 0 9.25-3.67 9.25-9.09 0-1.15-.15-1.81-.15-1.81z" fill="currentColor"/>
+            </svg>
+          )}
           <span>Mit Google verbinden</span>
         </button>
         {lastMethod === 'google' && <p className="log-hint">Du hast dich zuletzt damit angemeldet</p>}
@@ -229,7 +233,7 @@ export default function LoginPage() {
         .log-btn-google:hover:not(:disabled) { background:#505870; }
         .log-btn-outline { background:#fff; color:#202532; border:0.7px solid #e7ebf0; box-shadow:0px 1px 2px 0px rgba(15,23,42,0.03); }
         .log-btn-outline:hover:not(:disabled) { background:#F7F8FB; border:1px solid #DCE1EA; }
-        .log-google-icon { width:22px; height:22px; display:block; flex-shrink:0; object-fit:contain; }
+        .log-google-icon { width:18px; height:18px; display:block; flex-shrink:0; color:#fff; }
 
         /* EMAIL FORM */
         .log-email-form { width:271px; display:flex; flex-direction:column; gap:16px; }
