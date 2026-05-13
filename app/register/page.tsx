@@ -44,12 +44,17 @@ export default function RegisterPage() {
 
   function setTheme(t: Theme) {
     setThemeState(t)
-    try { localStorage.setItem(THEME_KEY, t) } catch {}
+    try {
+      localStorage.setItem(THEME_KEY, t)
+      document.documentElement.setAttribute('data-theme', t)
+      document.documentElement.style.backgroundColor = t === 'dark' ? '#0F141B' : '#fcfcfd'
+      document.documentElement.style.colorScheme = t
+    } catch {}
   }
 
   function navigateWithFade(href: string) {
     setPageExiting(true)
-    setTimeout(() => router.push(href), 240)
+    setTimeout(() => router.push(href), 180)
   }
 
   useEffect(() => {
@@ -269,8 +274,10 @@ export default function RegisterPage() {
     <main className={`reg-root${pageExiting ? ' exiting' : ''}`} data-theme={theme}>
       <style>{`
         *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
-        .reg-root { min-height:100dvh; width:100%; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); -webkit-font-smoothing:antialiased; text-rendering:geometricPrecision; transition:opacity 0.24s ease, transform 0.24s ease; }
-        .reg-root.exiting { opacity:0; transform:translateY(-8px); pointer-events:none; }
+        .reg-root { min-height:100dvh; width:100%; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); -webkit-font-smoothing:antialiased; text-rendering:geometricPrecision; transition:opacity 0.18s ease, transform 0.18s ease; }
+        .reg-root.exiting { opacity:0; transform:translateY(6px); pointer-events:none; }
+        @keyframes regPageEnter { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+        .reg-root:not(.exiting) { animation: regPageEnter 0.18s ease both; }
         .reg-btn:active:not(:disabled) { transform:scale(0.97); transition:transform 0.08s ease !important; }
         .reg-content { width:100%; display:flex; flex-direction:column; gap:20px; transition:opacity 0.18s ease, transform 0.18s ease; }
         .reg-content.animating { opacity:0; transform:translateY(6px); }

@@ -30,14 +30,34 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="de" data-theme="light">
+    <html lang="de" data-theme="dark" suppressHydrationWarning>
       <head>
         <meta charSet="utf-8" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="Festag" />
         <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png" />
-        {/* Aeonik wird lokal aus /fonts/ geladen — Inter als Fallback via system */}
+        {/* Pre-paint theme + bg sync — eliminates white flash between auth pages */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+(function(){try{
+  var t = localStorage.getItem('festag_theme');
+  if (t !== 'light' && t !== 'dark') t = 'dark';
+  document.documentElement.setAttribute('data-theme', t);
+  var bg = t === 'dark' ? '#0F141B' : '#fcfcfd';
+  document.documentElement.style.backgroundColor = bg;
+  document.documentElement.style.colorScheme = t;
+}catch(e){}})();
+            `.trim(),
+          }}
+        />
+        <style dangerouslySetInnerHTML={{ __html: `
+          html[data-theme="dark"]  { background:#0F141B; color-scheme:dark; }
+          html[data-theme="light"] { background:#fcfcfd; color-scheme:light; }
+          html[data-theme="dark"]  body { background:#0F141B; }
+          html[data-theme="light"] body { background:#fcfcfd; }
+        `}} />
       </head>
       <body>
         <ServiceWorkerCleanup />

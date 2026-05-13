@@ -41,7 +41,7 @@ export default function LoginPage() {
 
   function navigateWithFade(href: string) {
     setPageExiting(true)
-    setTimeout(() => router.push(href), 240)
+    setTimeout(() => router.push(href), 180)
   }
 
   useEffect(() => {
@@ -53,7 +53,12 @@ export default function LoginPage() {
 
   function setTheme(t: Theme) {
     setThemeState(t)
-    try { localStorage.setItem(THEME_KEY, t) } catch {}
+    try {
+      localStorage.setItem(THEME_KEY, t)
+      document.documentElement.setAttribute('data-theme', t)
+      document.documentElement.style.backgroundColor = t === 'dark' ? '#0F141B' : '#fcfcfd'
+      document.documentElement.style.colorScheme = t
+    } catch {}
   }
 
   useEffect(() => {
@@ -274,8 +279,10 @@ export default function LoginPage() {
     <main className={`log-root${pageExiting ? ' exiting' : ''}`} data-theme={theme}>
       <style>{`
         *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
-        .log-root { min-height:100dvh; width:100%; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); -webkit-font-smoothing:antialiased; text-rendering:geometricPrecision; transition:opacity 0.24s ease, transform 0.24s ease; }
-        .log-root.exiting { opacity:0; transform:translateY(-8px); pointer-events:none; }
+        .log-root { min-height:100dvh; width:100%; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); -webkit-font-smoothing:antialiased; text-rendering:geometricPrecision; transition:opacity 0.18s ease, transform 0.18s ease; }
+        .log-root.exiting { opacity:0; transform:translateY(6px); pointer-events:none; }
+        @keyframes logPageEnter { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+        .log-root:not(.exiting) { animation: logPageEnter 0.18s ease both; }
 
         /* BUTTON ANIMATION */
         .log-btn:active:not(:disabled) { transform:scale(0.97); transition:transform 0.08s ease !important; }
