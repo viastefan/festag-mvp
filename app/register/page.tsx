@@ -96,9 +96,11 @@ export default function RegisterPage() {
   const Legal = () => (
     <div className="reg-legal">
       <p className="reg-legal-text">
-        Secure, AI-orchestrated software Delivery. Mit Ihrer Anmeldung bestätigen Sie unsere{' '}
-        <a href="/legal/agb">AGB</a>{' '}und{' '}
-        <a href="/legal/nutzungsbedingungen">Nutzungsbestimmungen</a>.
+        <span className="reg-legal-muted">Secure, AI-orchestrated software Delivery. Mit Ihrer Anmeldung bestätigen Sie unsere{' '}</span>
+        <a href="/legal/agb">AGB</a>
+        <span className="reg-legal-muted">{' '}und{' '}</span>
+        <a href="/legal/nutzungsbedingungen">Nutzungsbestimmungen</a>
+        <span className="reg-legal-muted">.</span>
       </p>
       <p className="reg-login-link">
         Zugang erstellt?{' '}<a href="/login">Hier anmelden</a>
@@ -343,6 +345,7 @@ export default function RegisterPage() {
           line-height: 20px;
           letter-spacing: 0.02em;
         }
+        .reg-legal-muted { color: #7b8294; }
         .reg-legal-text a { color: #202532; text-decoration: none; }
         .reg-legal-text a:hover { text-decoration: underline; }
         .reg-login-link {
