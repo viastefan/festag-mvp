@@ -3,11 +3,23 @@
 import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
-const googleLogoDesktop = "https://www.figma.com/api/mcp/asset/ac5179d1-bb52-459e-9ef7-23c9c6233b4a"
-const googleLogoMobile  = "https://www.figma.com/api/mcp/asset/9029d041-7c9a-43a1-b1f2-5d0867aad46f"
+const googleLogoDesktop = "/google-symbol.svg"
+const googleLogoMobile  = "/google-symbol.svg"
 
 type EmailStep = 'none' | 'email' | 'password'
 type Theme = 'light' | 'dark'
+
+function mapAuthError(msg: string): string {
+  if (msg.includes('already registered') || msg.includes('User already registered'))
+    return 'Für diese E-Mail existiert bereits ein Zugang. Melde dich an.'
+  if (msg.includes('Password should be at least'))
+    return 'Passwort muss mindestens 8 Zeichen haben.'
+  if (msg.includes('rate limit') || msg.includes('too many'))
+    return 'Zu viele Versuche. Bitte warte einen Moment.'
+  if (msg.includes('invalid') || msg.includes('Invalid'))
+    return 'Ungültige E-Mail-Adresse.'
+  return 'Registrierung fehlgeschlagen. Bitte versuche es erneut.'
+}
 
 export default function RegisterPage() {
   const supabase = createClient()
@@ -22,12 +34,21 @@ export default function RegisterPage() {
   const [success, setSuccess] = useState(false)
   const [theme, setTheme] = useState<Theme>('light')
   const emailRef = useRef<HTMLInputElement>(null)
+  const pwRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    if (emailStep === 'email') setTimeout(() => emailRef.current?.focus(), 200)
+    if (emailStep !== 'email') return
+    const tries = [0, 50, 150, 250, 400]
+    const timers = tries.map(ms => setTimeout(() => emailRef.current?.focus(), ms))
+    return () => timers.forEach(clearTimeout)
   }, [emailStep])
 
-  function toggleTheme(t: Theme) { setTheme(t) }
+  useEffect(() => {
+    if (emailStep !== 'password') return
+    const tries = [0, 50, 150, 250, 400]
+    const timers = tries.map(ms => setTimeout(() => pwRef.current?.focus(), ms))
+    return () => timers.forEach(clearTimeout)
+  }, [emailStep])
 
   function goTo(step: EmailStep) {
     setError('')
@@ -48,12 +69,14 @@ export default function RegisterPage() {
       provider: 'google',
       options: { redirectTo: `${window.location.origin}/auth/callback` },
     })
-    if (oauthError) { setError(oauthError.message); setOauthLoading(false) }
+    if (oauthError) { setError(mapAuthError(oauthError.message)); setOauthLoading(false) }
   }
 
   function handleEmailNext() {
     setError('')
-    if (!email.trim()) { setError('Bitte E-Mail-Adresse eingeben.'); return }
+    if (!email.trim() || !/\S+@\S+\.\S+/.test(email)) {
+      setError('Bitte gültige E-Mail-Adresse eingeben.'); return
+    }
     goTo('password')
   }
 
@@ -67,68 +90,98 @@ export default function RegisterPage() {
       options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
     })
     setLoading(false)
-    if (signUpError) { setError(signUpError.message); return }
+    if (signUpError) { setError(mapAuthError(signUpError.message)); return }
     setSuccess(true)
   }
 
-  function ThemeSwitcher() {
-    return (
-      <div className="reg-theme-switcher">
-        <button className={`reg-theme-pill${theme === 'light' ? ' active' : ''}`} type="button" onClick={() => toggleTheme('light')} aria-label="Heller Modus">Aa</button>
-        <button className={`reg-theme-pill${theme === 'dark' ? ' active' : ''}`} type="button" onClick={() => toggleTheme('dark')} aria-label="Dunkler Modus">Aa</button>
-      </div>
-    )
-  }
+  const desktopTitle = emailStep === 'email' ? 'Wie lautet Ihre E-Mail?' : emailStep === 'password' ? 'Passwort festlegen' : 'Willkommen bei festag'
+  const mobileTitle  = emailStep === 'email' ? 'Wie lautet Ihre\nE-Mail-Adresse?' : emailStep === 'password' ? 'Passwort festlegen' : 'Willkommen'
 
-  function MainButtons({ googleLogo }: { googleLogo: string }) {
-    if (success) return <p className="reg-success">Bestätigungsmail gesendet! Bitte prüfe dein Postfach.</p>
-    return (
-      <div className="reg-btn-stack">
-        <button className="reg-btn reg-btn-google" type="button" onClick={handleGoogle} disabled={oauthLoading}>
-          {oauthLoading ? <span className="reg-loader" /> : <img className="reg-google-icon" src={googleLogo} alt="" />}
-          <span>Mit Google verbinden</span>
-        </button>
-        <button className="reg-btn reg-btn-outline" type="button" onClick={() => goTo('email')}>E-Mail verwenden</button>
-        <button className="reg-btn reg-btn-outline" type="button" onClick={() => setError('SAM SSO ist noch nicht verfügbar.')}>SAM SSO verwenden</button>
-      </div>
-    )
-  }
+  // ── render helpers (not React components — avoids remount on re-render) ──
 
-  function EmailScreen() {
-    return (
-      <div className="reg-email-form">
-        {error && <p className="reg-error">{error}</p>}
-        <input ref={emailRef} className="reg-email-input" type="email" autoComplete="email"
-          placeholder="E-Mail-Adresse eingeben..." value={email}
-          onChange={e => setEmail(e.target.value)}
-          onKeyDown={e => { if (e.key === 'Enter') handleEmailNext() }} />
-        <button className="reg-btn reg-btn-outline" type="button" onClick={handleEmailNext}>E-Mail verwenden</button>
-        <button className="reg-back" type="button" onClick={goBack}>Zurück</button>
-      </div>
-    )
-  }
+  const themeSwitcher = (
+    <div className="reg-theme-switcher">
+      <button className={`reg-theme-pill${theme === 'light' ? ' active' : ''}`} type="button" onClick={() => setTheme('light')} aria-label="Heller Modus">Aa</button>
+      <button className={`reg-theme-pill${theme === 'dark' ? ' active' : ''}`} type="button" onClick={() => setTheme('dark')} aria-label="Dunkler Modus">Aa</button>
+    </div>
+  )
 
-  function PasswordScreen() {
-    return (
-      <div className="reg-email-form">
-        {error && <p className="reg-error">{error}</p>}
-        <input className="reg-email-input" type="password" autoComplete="new-password"
-          placeholder="Passwort (min. 8 Zeichen)" value={password}
-          onChange={e => setPassword(e.target.value)} autoFocus />
-        <input className="reg-email-input" type="password" autoComplete="new-password"
-          placeholder="Passwort bestätigen" value={confirmPassword}
-          onChange={e => setConfirmPassword(e.target.value)}
-          onKeyDown={e => { if (e.key === 'Enter') handleRegister() }} />
-        <button className="reg-btn reg-btn-google" type="button" onClick={handleRegister} disabled={loading}>
-          {loading && <span className="reg-loader" />}
-          <span>{loading ? 'Konto wird erstellt…' : 'Registrieren'}</span>
-        </button>
-        <button className="reg-back" type="button" onClick={goBack}>Zurück</button>
-      </div>
-    )
-  }
+  const mainButtons = success ? (
+    <p className="reg-success">Bestätigungsmail gesendet! Bitte prüfe dein Postfach.</p>
+  ) : (
+    <div className="reg-btn-stack">
+      <button className="reg-btn reg-btn-google" type="button" onClick={handleGoogle} disabled={oauthLoading}>
+        {oauthLoading ? <span className="reg-loader" /> : <img className="reg-google-icon" src={googleLogoDesktop} alt="" />}
+        <span>Mit Google verbinden</span>
+      </button>
+      <button className="reg-btn reg-btn-outline" type="button" onClick={() => goTo('email')}>E-Mail verwenden</button>
+      <button className="reg-btn reg-btn-outline" type="button" onClick={() => setError('SAM SSO ist noch nicht verfügbar.')}>SAM SSO verwenden</button>
+    </div>
+  )
 
-  const Legal = () => (
+  const mainButtonsMobile = success ? (
+    <p className="reg-success">Bestätigungsmail gesendet! Bitte prüfe dein Postfach.</p>
+  ) : (
+    <div className="reg-btn-stack">
+      <button className="reg-btn reg-btn-google" type="button" onClick={handleGoogle} disabled={oauthLoading}>
+        {oauthLoading ? <span className="reg-loader" /> : <img className="reg-google-icon" src={googleLogoMobile} alt="" />}
+        <span>Mit Google verbinden</span>
+      </button>
+      <button className="reg-btn reg-btn-outline" type="button" onClick={() => goTo('email')}>E-Mail verwenden</button>
+      <button className="reg-btn reg-btn-outline" type="button" onClick={() => setError('SAM SSO ist noch nicht verfügbar.')}>SAM SSO verwenden</button>
+    </div>
+  )
+
+  const emailScreen = (
+    <div className="reg-email-form">
+      {error && <p className="reg-error">{error}</p>}
+      <input
+        ref={emailRef}
+        className="reg-email-input"
+        type="email"
+        autoComplete="email"
+        autoFocus
+        placeholder="E-Mail-Adresse eingeben..."
+        value={email}
+        onChange={e => setEmail(e.target.value)}
+        onKeyDown={e => { if (e.key === 'Enter') handleEmailNext() }}
+      />
+      <button className="reg-btn reg-btn-outline" type="button" onClick={handleEmailNext}>E-Mail verwenden</button>
+      <button className="reg-back" type="button" onClick={goBack}>Zurück</button>
+    </div>
+  )
+
+  const passwordScreen = (
+    <div className="reg-email-form">
+      {error && <p className="reg-error">{error}</p>}
+      <input
+        ref={pwRef}
+        className="reg-email-input"
+        type="password"
+        autoComplete="new-password"
+        autoFocus
+        placeholder="Passwort (min. 8 Zeichen)"
+        value={password}
+        onChange={e => setPassword(e.target.value)}
+      />
+      <input
+        className="reg-email-input"
+        type="password"
+        autoComplete="new-password"
+        placeholder="Passwort bestätigen"
+        value={confirmPassword}
+        onChange={e => setConfirmPassword(e.target.value)}
+        onKeyDown={e => { if (e.key === 'Enter') handleRegister() }}
+      />
+      <button className="reg-btn reg-btn-google" type="button" onClick={handleRegister} disabled={loading}>
+        {loading && <span className="reg-loader" />}
+        <span>{loading ? 'Konto wird erstellt…' : 'Registrieren'}</span>
+      </button>
+      <button className="reg-back" type="button" onClick={goBack}>Zurück</button>
+    </div>
+  )
+
+  const legal = (
     <div className="reg-legal">
       <p className="reg-legal-text">
         <span className="reg-legal-muted">Secure, AI-orchestrated software Delivery. Mit Ihrer Anmeldung bestätigen Sie unsere{' '}</span>
@@ -138,48 +191,33 @@ export default function RegisterPage() {
         <span className="reg-legal-muted">.</span>
       </p>
       <p className="reg-login-link">Zugang erstellt?{' '}<a href="/login">Hier anmelden</a></p>
+      <a className="reg-dev" href="/dev">Dev Zugang</a>
     </div>
   )
-
-  const desktopTitle = emailStep === 'email' ? 'Wie lautet Ihre E-Mail?' : emailStep === 'password' ? 'Passwort festlegen' : 'Willkommen bei festag'
-  const mobileTitle  = emailStep === 'email' ? 'Wie lautet Ihre\nE-Mail-Adresse?' : emailStep === 'password' ? 'Passwort festlegen' : 'Willkommen'
 
   return (
     <main className="reg-root" data-theme={theme}>
       <style>{`
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
         .reg-root { min-height:100dvh; width:100%; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); -webkit-font-smoothing:antialiased; text-rendering:geometricPrecision; }
-
-        /* BUTTON ANIMATION */
         .reg-btn:active:not(:disabled) { transform:scale(0.97); transition:transform 0.08s ease !important; }
-
-        /* VIEW TRANSITION */
         .reg-content { width:100%; display:flex; flex-direction:column; gap:20px; transition:opacity 0.18s ease, transform 0.18s ease; }
         .reg-content.animating { opacity:0; transform:translateY(6px); }
 
-        /* THEME SWITCHER */
         .reg-theme-switcher { display:flex; gap:6px; align-items:center; }
-        .reg-theme-pill {
-          display:flex; align-items:center; justify-content:center;
-          padding:4px 6px; border-radius:6px; border:0.4px solid #c7cdd6;
-          background:transparent; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
-          font-size:12px; font-weight:500; color:#5b647d; letter-spacing:0.24px;
-          cursor:pointer; transition:background .15s, border-color .15s, color .15s; white-space:nowrap;
-        }
+        .reg-theme-pill { display:flex; align-items:center; justify-content:center; padding:4px 6px; border-radius:6px; border:0.4px solid #c7cdd6; background:transparent; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:12px; font-weight:500; color:#5b647d; letter-spacing:0.24px; cursor:pointer; transition:background .15s, border-color .15s, color .15s; }
         .reg-theme-pill.active { background:#f1f3f5; border-color:#fcfcfc; color:#2e2f33; }
-        .reg-theme-desktop { position:fixed; right:28px; top:24px; }
+        .reg-theme-desktop { position:absolute; right:28px; top:24px; }
         .reg-theme-mobile  { position:absolute; right:20px; top:88px; }
 
-        /* DESKTOP */
         .reg-desktop { display:flex; min-height:100dvh; background:#fcfcfd; align-items:center; justify-content:center; position:relative; transition:background .3s; }
         .reg-desktop-shell { width:271px; display:flex; flex-direction:column; gap:24px; align-items:center; transform:translateY(-3vh); }
         .reg-desktop-header { width:100%; display:flex; flex-direction:column; gap:24px; align-items:center; }
         .reg-logo-desktop { font-family:'Qurova DEMO',serif; font-size:24px; font-weight:500; color:#202532; text-align:center; width:100%; line-height:normal; transition:color .3s; }
         .reg-desktop-title { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:21px; font-weight:500; color:#202532; line-height:normal; text-align:center; letter-spacing:0.21px; width:100%; transition:color .3s; }
-        .reg-dev-desktop { position:fixed; right:28px; bottom:24px; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:11px; font-weight:500; color:#7b8294; text-decoration:none; letter-spacing:0.22px; line-height:20px; transition:color .3s; }
-        .reg-dev-desktop:hover { color:#202532; }
+        .reg-dev { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:13px; font-weight:400 !important; line-height:20px; letter-spacing:0.02em; color:#7b8294; text-decoration:none; text-align:center; display:block; transition:color .3s; }
+        .reg-dev:hover { color:#202532; }
 
-        /* MOBILE */
         .reg-mobile { display:none; min-height:100dvh; background:#f5f7fa; position:relative; overflow:hidden; transition:background .3s; }
         .reg-mobile-card { position:absolute; left:0; right:0; bottom:0; top:24px; background:#fcfcfd; border-radius:36px 36px 0 0; box-shadow:0px 2px 8px 0px rgba(15,23,42,0.02),0px 12px 32px 0px rgba(15,23,42,0.03),0px 1px 2px 0px rgba(15,23,42,0.03); transition:background .3s; }
         .reg-mobile-shell { position:absolute; left:50%; transform:translateX(-50%); top:175px; width:271px; display:flex; flex-direction:column; gap:28px; align-items:center; }
@@ -188,10 +226,7 @@ export default function RegisterPage() {
         .reg-mobile-inner { width:100%; display:flex; flex-direction:column; gap:32px; align-items:center; }
         .reg-mobile-title { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:28px; font-weight:500; color:#202532; white-space:nowrap; line-height:47px; text-align:center; letter-spacing:0.28px; height:35px; transition:color .3s; }
         .reg-mobile-title-email { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:20px; font-weight:500; color:#2e2f33; line-height:26px; text-align:center; letter-spacing:0.2px; white-space:pre-line; transition:color .3s; }
-        .reg-dev-mobile { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:12px; font-weight:400; color:#7b8294; text-decoration:none; letter-spacing:0.24px; line-height:20px; text-align:center; display:block; transition:color .3s; }
-        .reg-dev-mobile:hover { color:#202532; }
 
-        /* SHARED BUTTONS */
         .reg-btn-stack { width:271px; display:flex; flex-direction:column; gap:20px; }
         .reg-btn { width:100%; height:47px; border-radius:32px; border:none; display:flex; align-items:center; justify-content:center; gap:8px; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:14px; font-weight:500; letter-spacing:0.14px; cursor:pointer; padding:12px 45px; white-space:nowrap; overflow:hidden; transition:background .15s, opacity .15s, border-color .15s, color .15s, transform 0.25s cubic-bezier(0.34,1.56,0.64,1); transform-origin:center; }
         .reg-btn:disabled { opacity:.5; cursor:not-allowed; }
@@ -201,15 +236,22 @@ export default function RegisterPage() {
         .reg-btn-outline:hover:not(:disabled) { background:#F7F8FB; border:1px solid #DCE1EA; }
         .reg-google-icon { width:22px; height:22px; display:block; flex-shrink:0; }
 
-        /* EMAIL / PASSWORD FORM */
         .reg-email-form { width:271px; display:flex; flex-direction:column; gap:16px; }
-        .reg-email-input { width:100%; height:47px; border-radius:8px; border:1px solid #5b647d; background:#fff; color:#202532; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:14px; font-weight:400 !important; padding:0 16px; outline:none; caret-color:#5b647d; box-shadow:0px 1px 2px 0px rgba(15,23,42,0.03); transition:border-color .15s, box-shadow .15s, background .3s, color .3s; }
+        .reg-email-input {
+          width:100%; height:47px; border-radius:8px; border:1px solid #5b647d;
+          background:#fff; color:#202532;
+          font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
+          font-size:14px; font-weight:400 !important;
+          letter-spacing:0.01em;
+          padding:0 16px; outline:none; caret-color:#5b647d;
+          box-shadow:0px 1px 2px 0px rgba(15,23,42,0.03);
+          transition:border-color .15s, box-shadow .15s, background .3s, color .3s;
+        }
         .reg-email-input::placeholder { color:#bcbfc2; }
         .reg-email-input:focus { border-color:#5b647d; box-shadow:0 0 0 3px rgba(91,100,125,0.12); }
         .reg-back { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:13px; font-weight:400 !important; color:#7b8294; background:none; border:none; cursor:pointer; text-align:center; letter-spacing:0.26px; line-height:20px; transition:color .15s; }
         .reg-back:hover { color:#202532; }
 
-        /* LEGAL */
         .reg-legal { width:271px; display:flex; flex-direction:column; gap:16px; text-align:center; }
         .reg-legal-text { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:13px; font-weight:400 !important; line-height:20px; letter-spacing:0.02em; color:#98A2B3; }
         .reg-legal-muted { color:#98A2B3; }
@@ -218,52 +260,40 @@ export default function RegisterPage() {
         .reg-login-link { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:13px; font-weight:400 !important; line-height:20px; letter-spacing:0.02em; color:#7b8294; }
         .reg-login-link a { color:#202532; text-decoration:underline; transition:color .3s; }
 
-        /* FEEDBACK */
         .reg-error { width:271px; background:rgba(239,68,68,.08); color:#d53939; border-radius:10px; padding:10px 12px; font-size:12.5px; font-weight:500; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); text-align:left; }
         .reg-success { width:271px; background:rgba(34,197,94,.08); color:#16a34a; border-radius:10px; padding:10px 12px; font-size:12.5px; font-weight:500; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); }
         .reg-loader { width:16px; height:16px; border-radius:999px; border:2px solid rgba(255,255,255,.35); border-top-color:#fff; animation:regSpin .75s linear infinite; flex-shrink:0; }
         @keyframes regSpin { to { transform:rotate(360deg); } }
-
-        /* BREAKPOINT */
         @media (max-width: 640px) { .reg-desktop { display:none; } .reg-mobile { display:block; } }
 
-        /* ═══ DARK MODE ══════════════════════════════════════════════ */
+        /* ═══ DARK MODE ═══ */
         .reg-root[data-theme="dark"] .reg-desktop { background:#0F141B; }
         .reg-root[data-theme="dark"] .reg-mobile  { background:#0F141B; }
         .reg-root[data-theme="dark"] .reg-mobile-card { background:#141B25; box-shadow:0px 2px 8px 0px rgba(0,0,0,0.3),0px 12px 32px 0px rgba(0,0,0,0.2); }
-
         .reg-root[data-theme="dark"] .reg-logo-desktop,
-        .reg-root[data-theme="dark"] .reg-logo-mobile { color:#F3F5F7; }
+        .reg-root[data-theme="dark"] .reg-logo-mobile,
         .reg-root[data-theme="dark"] .reg-desktop-title,
         .reg-root[data-theme="dark"] .reg-mobile-title,
         .reg-root[data-theme="dark"] .reg-mobile-title-email { color:#F3F5F7; }
-
         .reg-root[data-theme="dark"] .reg-btn-outline { background:rgba(243,245,247,0.06); color:#F3F5F7; border:0.7px solid rgba(243,245,247,0.12); box-shadow:none; }
         .reg-root[data-theme="dark"] .reg-btn-outline:hover:not(:disabled) { background:rgba(243,245,247,0.1); border:1px solid rgba(243,245,247,0.2); }
-
         .reg-root[data-theme="dark"] .reg-email-input { background:rgba(243,245,247,0.06); color:#F3F5F7; border:1px solid rgba(102,112,143,0.15); caret-color:#66708F; }
         .reg-root[data-theme="dark"] .reg-email-input::placeholder { color:rgba(102,112,143,0.6); }
         .reg-root[data-theme="dark"] .reg-email-input:focus { border-color:#66708F; box-shadow:0 0 0 3px rgba(102,112,143,0.15); }
-
-        .reg-root[data-theme="dark"] .reg-legal-text { color:#98A2B3; }
-        .reg-root[data-theme="dark"] .reg-legal-muted { color:#98A2B3; }
-        .reg-root[data-theme="dark"] .reg-legal-text a { color:#F3F5F7; }
+        .reg-root[data-theme="dark"] .reg-legal-text, .reg-root[data-theme="dark"] .reg-legal-muted { color:#98A2B3; }
+        .reg-root[data-theme="dark"] .reg-legal-text a, .reg-root[data-theme="dark"] .reg-login-link a { color:#F3F5F7; }
         .reg-root[data-theme="dark"] .reg-login-link { color:#98A2B3; }
-        .reg-root[data-theme="dark"] .reg-login-link a { color:#F3F5F7; }
         .reg-root[data-theme="dark"] .reg-back { color:#98A2B3; }
         .reg-root[data-theme="dark"] .reg-back:hover { color:#F3F5F7; }
-        .reg-root[data-theme="dark"] .reg-dev-desktop,
-        .reg-root[data-theme="dark"] .reg-dev-mobile { color:#98A2B3; }
-        .reg-root[data-theme="dark"] .reg-dev-desktop:hover,
-        .reg-root[data-theme="dark"] .reg-dev-mobile:hover { color:#F3F5F7; }
-
-        .reg-root[data-theme="dark"] .reg-theme-pill { border-color:rgba(243,245,247,0.18); color:rgba(243,245,247,0.45); }
+        .reg-root[data-theme="dark"] .reg-dev { color:#98A2B3; }
+        .reg-root[data-theme="dark"] .reg-dev:hover { color:#F3F5F7; }
+        .reg-root[data-theme="dark"] .reg-theme-pill { border-color:rgba(243,245,247,0.18); color:rgba(243,245,247,0.45); background:transparent; }
         .reg-root[data-theme="dark"] .reg-theme-pill.active { background:#F3F5F7; border-color:#F3F5F7; color:#2e2f33; }
       `}</style>
 
       {/* ── DESKTOP ── */}
       <div className="reg-desktop">
-        <ThemeSwitcher />
+        <div className="reg-theme-desktop">{themeSwitcher}</div>
         <section className="reg-desktop-shell" aria-label="Festag Registrierung">
           <div className="reg-desktop-header">
             <p className="reg-logo-desktop">festag</p>
@@ -271,19 +301,18 @@ export default function RegisterPage() {
           </div>
           <div className={`reg-content${animating ? ' animating' : ''}`}>
             {emailStep === 'none' && error && <p className="reg-error">{error}</p>}
-            {emailStep === 'none' && <MainButtons googleLogo={googleLogoDesktop} />}
-            {emailStep === 'email' && <EmailScreen />}
-            {emailStep === 'password' && <PasswordScreen />}
+            {emailStep === 'none' && mainButtons}
+            {emailStep === 'email' && emailScreen}
+            {emailStep === 'password' && passwordScreen}
           </div>
-          {emailStep === 'none' && <Legal />}
+          {emailStep === 'none' && legal}
         </section>
-        <a className="reg-dev-desktop" href="/dev">Dev Zugang</a>
       </div>
 
       {/* ── MOBILE ── */}
       <div className="reg-mobile" aria-label="Festag Registrierung">
         <div className="reg-mobile-card" />
-        <ThemeSwitcher />
+        <div className="reg-theme-mobile">{themeSwitcher}</div>
         <div className="reg-mobile-shell">
           <div className="reg-mobile-logo-title">
             <p className="reg-logo-mobile">festag</p>
@@ -293,17 +322,15 @@ export default function RegisterPage() {
                 : <h1 className="reg-mobile-title-email">{mobileTitle}</h1>}
               <div className={`reg-content${animating ? ' animating' : ''}`}>
                 {emailStep === 'none' && error && <p className="reg-error">{error}</p>}
-                {emailStep === 'none' && <MainButtons googleLogo={googleLogoMobile} />}
-                {emailStep === 'email' && <EmailScreen />}
-                {emailStep === 'password' && <PasswordScreen />}
+                {emailStep === 'none' && mainButtonsMobile}
+                {emailStep === 'email' && emailScreen}
+                {emailStep === 'password' && passwordScreen}
               </div>
-              {emailStep === 'none' && <Legal />}
+              {emailStep === 'none' && legal}
             </div>
           </div>
-          {emailStep === 'none' && <a className="reg-dev-mobile" href="/dev">Dev Zugang</a>}
         </div>
       </div>
-
     </main>
   )
 }
