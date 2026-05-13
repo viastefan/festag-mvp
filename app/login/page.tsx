@@ -12,6 +12,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [theme, setTheme] = useState<'light' | 'dark'>('light')
 
   function switchView(toEmail: boolean) {
     setError('')
@@ -20,6 +21,11 @@ export default function LoginPage() {
       setEmailView(toEmail)
       setAnimating(false)
     }, 180)
+  }
+
+  function toggleTheme(t: 'light' | 'dark') {
+    setTheme(t)
+    document.documentElement.setAttribute('data-theme', t)
   }
 
   async function handleGoogle() {
@@ -47,6 +53,29 @@ export default function LoginPage() {
     setLoading(false)
     if (loginError) { setError('E-Mail oder Passwort ist nicht korrekt.'); return }
     window.location.href = '/dashboard'
+  }
+
+  function ThemeSwitcher({ className }: { className?: string }) {
+    return (
+      <div className={`log-theme-switcher${className ? ' ' + className : ''}`}>
+        <button
+          className={`log-theme-pill${theme === 'light' ? ' log-theme-pill-active' : ''}`}
+          type="button"
+          onClick={() => toggleTheme('light')}
+          aria-label="Heller Modus"
+        >
+          Aa
+        </button>
+        <button
+          className={`log-theme-pill${theme === 'dark' ? ' log-theme-pill-active' : ''}`}
+          type="button"
+          onClick={() => toggleTheme('dark')}
+          aria-label="Dunkler Modus"
+        >
+          Aa
+        </button>
+      </div>
+    )
   }
 
   function Buttons() {
@@ -88,11 +117,12 @@ export default function LoginPage() {
   const Legal = () => (
     <div className="log-legal">
       <p className="log-legal-text">
-        Kein Konto?{' '}
-        <a href="/register">Hier registrieren</a>
-        {' '}und{' '}
+        <span className="log-legal-muted">Kein Konto?</span>{' '}
+        <a href="/register">Hier registrieren</a>{' '}
+        <span className="log-legal-muted">oder</span>{' '}
         <a href="/legal/mehr">mehr dazu</a>
       </p>
+      <a className="log-dev" href="/dev">Dev Zugang</a>
     </div>
   )
 
@@ -109,7 +139,6 @@ export default function LoginPage() {
           text-rendering: geometricPrecision;
         }
 
-        /* ─── BUTTON CLICK ANIMATION ──────────────────────── */
         @keyframes btnPress {
           0%   { transform: scale(1); }
           40%  { transform: scale(0.97); }
@@ -119,7 +148,6 @@ export default function LoginPage() {
           animation: btnPress 0.22s cubic-bezier(.36,.07,.19,.97) forwards;
         }
 
-        /* ─── VIEW TRANSITION ─────────────────────────────── */
         .log-content {
           width: 100%;
           display: flex;
@@ -132,6 +160,35 @@ export default function LoginPage() {
           transform: translateY(6px);
         }
 
+        /* ─── THEME SWITCHER ──────────────────────────────── */
+        .log-theme-switcher {
+          display: flex;
+          gap: 6px;
+          align-items: center;
+        }
+        .log-theme-pill {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 4px 6px;
+          border-radius: 6px;
+          border: 0.4px solid #c7cdd6;
+          background: transparent;
+          font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+          font-size: 12px;
+          font-weight: 500;
+          color: #5b647d;
+          letter-spacing: 0.24px;
+          cursor: pointer;
+          transition: background .15s, border-color .15s, color .15s;
+          white-space: nowrap;
+        }
+        .log-theme-pill-active {
+          background: #f1f3f5;
+          border-color: #fcfcfc;
+          color: #2e2f33;
+        }
+
         /* ─── DESKTOP ─────────────────────────────────────── */
         .log-desktop {
           display: flex;
@@ -139,6 +196,7 @@ export default function LoginPage() {
           background: #fcfcfd;
           align-items: center;
           justify-content: center;
+          position: relative;
         }
         .log-desktop-shell {
           width: 271px;
@@ -175,19 +233,11 @@ export default function LoginPage() {
           letter-spacing: 0.24px;
           width: 100%;
         }
-        .log-dev-desktop {
+        .log-theme-desktop {
           position: fixed;
           right: 28px;
-          bottom: 24px;
-          font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
-          font-size: 11px;
-          font-weight: 500;
-          color: #7b8294;
-          text-decoration: none;
-          letter-spacing: 0.22px;
-          line-height: 20px;
+          top: 24px;
         }
-        .log-dev-desktop:hover { color: #202532; }
 
         /* ─── MOBILE ──────────────────────────────────────── */
         .log-mobile {
@@ -254,18 +304,11 @@ export default function LoginPage() {
           letter-spacing: 0.28px;
           height: 35px;
         }
-        .log-dev-mobile {
-          font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
-          font-size: 12px;
-          font-weight: 400;
-          color: #7b8294;
-          text-decoration: none;
-          letter-spacing: 0.24px;
-          line-height: 20px;
-          text-align: center;
-          display: block;
+        .log-theme-mobile {
+          position: absolute;
+          right: 20px;
+          top: 64px;
         }
-        .log-dev-mobile:hover { color: #202532; }
 
         /* ─── SHARED ──────────────────────────────────────── */
         .log-btn-stack {
@@ -324,8 +367,6 @@ export default function LoginPage() {
           flex-direction: column;
           gap: 16px;
           text-align: center;
-          color: #7b8294;
-          letter-spacing: 0.26px;
         }
         .log-legal-text {
           font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
@@ -333,9 +374,23 @@ export default function LoginPage() {
           font-weight: 400;
           line-height: 20px;
           letter-spacing: 0.02em;
+          color: #7b8294;
         }
+        .log-legal-muted { color: #7b8294; }
         .log-legal-text a { color: #202532; text-decoration: underline; }
         .log-legal-text a:hover { opacity: 0.75; }
+        .log-dev {
+          font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+          font-size: 13px;
+          font-weight: 400;
+          line-height: 20px;
+          letter-spacing: 0.02em;
+          color: #7b8294;
+          text-decoration: none;
+          text-align: center;
+          display: block;
+        }
+        .log-dev:hover { color: #202532; }
         .log-input {
           width: 100%;
           height: 47px;
@@ -377,7 +432,6 @@ export default function LoginPage() {
         }
         @keyframes logSpin { to { transform: rotate(360deg); } }
 
-        /* ─── BREAKPOINT ──────────────────────────────────── */
         @media (max-width: 640px) {
           .log-desktop { display: none; }
           .log-mobile  { display: block; }
@@ -386,6 +440,7 @@ export default function LoginPage() {
 
       {/* ── DESKTOP ── */}
       <div className="log-desktop">
+        <ThemeSwitcher className="log-theme-desktop" />
         <section className="log-desktop-shell" aria-label="Festag Anmeldung">
           <div className="log-desktop-header">
             <p className="log-logo-desktop">festag</p>
@@ -397,12 +452,12 @@ export default function LoginPage() {
           </div>
           <Legal />
         </section>
-        <a className="log-dev-desktop" href="/dev">Dev Zugang</a>
       </div>
 
       {/* ── MOBILE ── */}
       <div className="log-mobile" aria-label="Festag Anmeldung">
         <div className="log-mobile-card" />
+        <ThemeSwitcher className="log-theme-mobile" />
         <div className="log-mobile-shell">
           <div className="log-mobile-logo-title">
             <p className="log-logo-mobile">festag</p>
@@ -415,7 +470,6 @@ export default function LoginPage() {
               <Legal />
             </div>
           </div>
-          <a className="log-dev-mobile" href="/dev">Dev Zugang</a>
         </div>
       </div>
 
