@@ -337,7 +337,7 @@ export default function RegisterPage() {
         .reg-legal-text {
           font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
           font-size: 13px;
-          font-weight: 400;
+          font-weight: 400 !important;
           line-height: 20px;
           letter-spacing: 0.02em;
           color: #98A2B3;
@@ -348,7 +348,7 @@ export default function RegisterPage() {
         .reg-login-link {
           font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
           font-size: 13px;
-          font-weight: 400;
+          font-weight: 400 !important;
           line-height: 20px;
           letter-spacing: 0.02em;
           color: #7b8294;

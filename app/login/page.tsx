@@ -367,7 +367,7 @@ export default function LoginPage() {
         .log-legal-text {
           font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
           font-size: 13px;
-          font-weight: 400;
+          font-weight: 400 !important;
           line-height: 20px;
           letter-spacing: 0.02em;
           color: #7b8294;
@@ -378,7 +378,7 @@ export default function LoginPage() {
         .log-dev {
           font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
           font-size: 13px;
-          font-weight: 400;
+          font-weight: 400 !important;
           line-height: 20px;
           letter-spacing: 0.02em;
           color: #7b8294;
