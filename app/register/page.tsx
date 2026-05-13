@@ -3,19 +3,29 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
-const googleLogoDesktop = "https://www.figma.com/api/mcp/asset/2bd91535-9153-489e-8d08-eaeb2a088f29"
-const googleLogoMobile  = "https://www.figma.com/api/mcp/asset/366a9c77-f13f-4681-a61f-77cb42abd61e"
+const googleLogoDesktop = "https://www.figma.com/api/mcp/asset/ce1effbe-637d-4838-9deb-cf333f458e5d"
+const googleLogoMobile  = "https://www.figma.com/api/mcp/asset/1f66bf20-13f7-43a3-a1ba-abbc287fe4e1"
 
 export default function RegisterPage() {
   const supabase = createClient()
   const [oauthLoading, setOauthLoading] = useState(false)
   const [emailView, setEmailView] = useState(false)
+  const [animating, setAnimating] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
+
+  function switchView(toEmail: boolean) {
+    setError('')
+    setAnimating(true)
+    setTimeout(() => {
+      setEmailView(toEmail)
+      setAnimating(false)
+    }, 180)
+  }
 
   async function handleGoogle() {
     setError('')
@@ -53,10 +63,13 @@ export default function RegisterPage() {
     if (!emailView) return (
       <div className="reg-btn-stack">
         <button className="reg-btn reg-btn-google" type="button" onClick={handleGoogle} disabled={oauthLoading}>
-          {oauthLoading ? <span className="reg-loader" /> : <img className="reg-google-icon" src={googleLogo} alt="" />}
+          {oauthLoading
+            ? <span className="reg-loader" />
+            : <img className="reg-google-icon" src={googleLogo} alt="" />
+          }
           <span>Mit Google verbinden</span>
         </button>
-        <button className="reg-btn reg-btn-outline" type="button" onClick={() => { setError(''); setEmailView(true) }}>
+        <button className="reg-btn reg-btn-outline" type="button" onClick={() => switchView(true)}>
           E-Mail verwenden
         </button>
         <button className="reg-btn reg-btn-outline" type="button" onClick={() => setError('SAM SSO ist noch nicht verfügbar.')}>
@@ -73,7 +86,7 @@ export default function RegisterPage() {
           {loading && <span className="reg-loader" />}
           <span>{loading ? 'Konto wird erstellt…' : 'Registrieren'}</span>
         </button>
-        <button className="reg-btn reg-btn-outline" type="button" onClick={() => { setError(''); setEmailView(false) }}>
+        <button className="reg-btn reg-btn-outline" type="button" onClick={() => switchView(false)}>
           Zurück
         </button>
       </div>
@@ -106,7 +119,30 @@ export default function RegisterPage() {
           text-rendering: geometricPrecision;
         }
 
-        /* ─── DESKTOP ──────────────────────────────────────── */
+        /* ─── BUTTON CLICK ANIMATION ──────────────────────── */
+        @keyframes btnPress {
+          0%   { transform: scale(1); }
+          40%  { transform: scale(0.97); }
+          100% { transform: scale(1); }
+        }
+        .reg-btn:active:not(:disabled) {
+          animation: btnPress 0.22s cubic-bezier(.36,.07,.19,.97) forwards;
+        }
+
+        /* ─── VIEW TRANSITION ─────────────────────────────── */
+        .reg-content {
+          width: 100%;
+          display: flex;
+          flex-direction: column;
+          gap: 20px;
+          transition: opacity 0.18s ease, transform 0.18s ease;
+        }
+        .reg-content.animating {
+          opacity: 0;
+          transform: translateY(6px);
+        }
+
+        /* ─── DESKTOP ─────────────────────────────────────── */
         .reg-desktop {
           display: flex;
           min-height: 100dvh;
@@ -123,7 +159,7 @@ export default function RegisterPage() {
           transform: translateY(-3vh);
         }
         .reg-desktop-header {
-          width: 186px;
+          width: 100%;
           display: flex;
           flex-direction: column;
           gap: 24px;
@@ -141,7 +177,7 @@ export default function RegisterPage() {
         .reg-desktop-title {
           font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
           font-size: 25px;
-          font-weight: 700;
+          font-weight: 500;
           color: #2e2f33;
           white-space: nowrap;
           line-height: normal;
@@ -162,7 +198,7 @@ export default function RegisterPage() {
         }
         .reg-dev-desktop:hover { color: #2e2f33; }
 
-        /* ─── MOBILE ───────────────────────────────────────── */
+        /* ─── MOBILE ──────────────────────────────────────── */
         .reg-mobile {
           display: none;
           min-height: 100dvh;
@@ -170,10 +206,11 @@ export default function RegisterPage() {
           position: relative;
           overflow: hidden;
         }
+        /* Card: pinned to bottom, extends high enough to fill */
         .reg-mobile-card {
           position: absolute;
           left: 0; right: 0; bottom: 0;
-          top: 45px;
+          top: 24px;
           background: #fcfcfc;
           border-radius: 36px 36px 0 0;
           box-shadow:
@@ -181,11 +218,12 @@ export default function RegisterPage() {
             0px 12px 32px 0px rgba(15,23,42,0.03),
             0px 1px 2px 0px rgba(15,23,42,0.03);
         }
+        /* Content: centered horizontally, positioned from top of screen */
         .reg-mobile-shell {
           position: absolute;
           left: 50%;
           transform: translateX(-50%);
-          top: 158px;
+          top: 175px;
           width: 271px;
           display: flex;
           flex-direction: column;
@@ -219,7 +257,7 @@ export default function RegisterPage() {
         .reg-mobile-title {
           font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
           font-size: 28px;
-          font-weight: 700;
+          font-weight: 500;
           color: #2e2f33;
           white-space: nowrap;
           line-height: 47px;
@@ -239,7 +277,7 @@ export default function RegisterPage() {
         }
         .reg-dev-mobile:hover { color: #2e2f33; }
 
-        /* ─── SHARED ───────────────────────────────────────── */
+        /* ─── SHARED ──────────────────────────────────────── */
         .reg-btn-stack {
           width: 271px;
           display: flex;
@@ -263,14 +301,14 @@ export default function RegisterPage() {
           padding: 12px 45px;
           white-space: nowrap;
           overflow: hidden;
-          transition: opacity .15s;
+          transition: background .15s, opacity .15s;
+          transform-origin: center;
         }
         .reg-btn:disabled { opacity: .5; cursor: not-allowed; }
         .reg-btn-google {
           background: #5b647d;
           color: #fff;
           box-shadow: 0px 8px 24px 0px rgba(200,169,91,0.14);
-          transition: background .15s;
         }
         .reg-btn-google:hover:not(:disabled) { background: #505870; }
         .reg-btn-outline {
@@ -278,9 +316,9 @@ export default function RegisterPage() {
           color: #2e2f33;
           border: 0.7px solid #e7ebf0;
           box-shadow: 0px 1px 2px 0px rgba(15,23,42,0.03);
-          transition: background .15s;
         }
         .reg-btn-outline:hover:not(:disabled) { background: #e7ebf0; }
+
         .reg-google-icon {
           width: 22px;
           height: 22px;
@@ -293,7 +331,7 @@ export default function RegisterPage() {
           flex-direction: column;
           gap: 16px;
           text-align: center;
-          color: #6b7280;
+          color: #98a2b3;
           letter-spacing: 0.26px;
         }
         .reg-legal-text {
@@ -309,6 +347,7 @@ export default function RegisterPage() {
           font-size: 13px;
           font-weight: 400;
           line-height: 20px;
+          color: #98a2b3;
         }
         .reg-login-link a { color: #2e2f33; text-decoration: underline; }
         .reg-input {
@@ -362,10 +401,10 @@ export default function RegisterPage() {
         }
         @keyframes regSpin { to { transform: rotate(360deg); } }
 
-        /* ─── BREAKPOINT ───────────────────────────────────── */
+        /* ─── BREAKPOINT ──────────────────────────────────── */
         @media (max-width: 640px) {
           .reg-desktop { display: none; }
-          .reg-mobile  { display: flex; }
+          .reg-mobile  { display: block; }
         }
       `}</style>
 
@@ -376,8 +415,10 @@ export default function RegisterPage() {
             <p className="reg-logo-desktop">festag</p>
             <h1 className="reg-desktop-title">Willkommen bei festag</h1>
           </div>
-          {error && <p className="reg-error">{error}</p>}
-          <Buttons googleLogo={googleLogoDesktop} />
+          <div className={`reg-content${animating ? ' animating' : ''}`}>
+            {error && <p className="reg-error">{error}</p>}
+            <Buttons googleLogo={googleLogoDesktop} />
+          </div>
           <Legal />
         </section>
         <a className="reg-dev-desktop" href="/dev">Dev Zugang</a>
@@ -391,8 +432,10 @@ export default function RegisterPage() {
             <p className="reg-logo-mobile">festag</p>
             <div className="reg-mobile-inner">
               <h1 className="reg-mobile-title">Willkommen</h1>
-              {error && <p className="reg-error">{error}</p>}
-              <Buttons googleLogo={googleLogoMobile} />
+              <div className={`reg-content${animating ? ' animating' : ''}`}>
+                {error && <p className="reg-error">{error}</p>}
+                <Buttons googleLogo={googleLogoMobile} />
+              </div>
               <Legal />
             </div>
           </div>
