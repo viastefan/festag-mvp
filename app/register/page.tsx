@@ -168,20 +168,19 @@ export default function RegisterPage() {
           min-height: 100dvh;
           background: #f5f7fa;
           flex-direction: column;
+          justify-content: flex-end;
         }
         .reg-mobile-card {
-          margin-top: 45px;
           background: #fcfcfc;
           border-radius: 36px 36px 0 0;
           box-shadow:
             0px 2px 8px 0px rgba(15,23,42,0.02),
             0px 12px 32px 0px rgba(15,23,42,0.03),
             0px 1px 2px 0px rgba(15,23,42,0.03);
-          flex: 1;
           display: flex;
           align-items: center;
           justify-content: center;
-          padding: 48px 0;
+          padding: 48px 0 40px;
         }
         .reg-mobile-shell {
           width: 271px;
@@ -257,20 +256,22 @@ export default function RegisterPage() {
           overflow: hidden;
           transition: opacity .15s;
         }
-        .reg-btn:hover { opacity: .85; }
-        .reg-btn:active { opacity: .7; }
         .reg-btn:disabled { opacity: .5; cursor: not-allowed; }
         .reg-btn-google {
           background: #5b647d;
           color: #fff;
           box-shadow: 0px 8px 24px 0px rgba(200,169,91,0.14);
+          transition: background .15s;
         }
+        .reg-btn-google:hover:not(:disabled) { background: #505870; }
         .reg-btn-outline {
           background: #fff;
           color: #2e2f33;
           border: 0.7px solid #e7ebf0;
           box-shadow: 0px 1px 2px 0px rgba(15,23,42,0.03);
+          transition: background .15s;
         }
+        .reg-btn-outline:hover:not(:disabled) { background: #e7ebf0; }
         .reg-google-icon {
           width: 22px;
           height: 22px;
