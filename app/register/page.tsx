@@ -3,8 +3,8 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
-const googleLogoDesktop = "https://www.figma.com/api/mcp/asset/bedb4dab-f5bf-4562-8bba-61f5dcb12380"
-const googleLogoMobile  = "https://www.figma.com/api/mcp/asset/e15241d3-e78f-42d9-831b-2ef3a251cb97"
+const googleLogoDesktop = "https://www.figma.com/api/mcp/asset/2bd91535-9153-489e-8d08-eaeb2a088f29"
+const googleLogoMobile  = "https://www.figma.com/api/mcp/asset/366a9c77-f13f-4681-a61f-77cb42abd61e"
 
 export default function RegisterPage() {
   const supabase = createClient()
@@ -167,29 +167,37 @@ export default function RegisterPage() {
           display: none;
           min-height: 100dvh;
           background: #f5f7fa;
-          flex-direction: column;
-          justify-content: flex-end;
+          position: relative;
+          overflow: hidden;
         }
         .reg-mobile-card {
+          position: absolute;
+          left: 0; right: 0; bottom: 0;
+          top: 45px;
           background: #fcfcfc;
           border-radius: 36px 36px 0 0;
           box-shadow:
             0px 2px 8px 0px rgba(15,23,42,0.02),
             0px 12px 32px 0px rgba(15,23,42,0.03),
             0px 1px 2px 0px rgba(15,23,42,0.03);
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          padding: 48px 0 0;
-          padding-bottom: env(safe-area-inset-bottom, 0px);
         }
         .reg-mobile-shell {
+          position: absolute;
+          left: 50%;
+          transform: translateX(-50%);
+          top: 158px;
           width: 271px;
+          display: flex;
+          flex-direction: column;
+          gap: 28px;
+          align-items: center;
+        }
+        .reg-mobile-logo-title {
+          width: 100%;
           display: flex;
           flex-direction: column;
           gap: 9px;
           align-items: center;
-          padding-bottom: 32px;
         }
         .reg-logo-mobile {
           font-family: 'Qurova DEMO', serif;
@@ -228,7 +236,6 @@ export default function RegisterPage() {
           line-height: 20px;
           text-align: center;
           display: block;
-          margin-top: 24px;
         }
         .reg-dev-mobile:hover { color: #2e2f33; }
 
@@ -378,8 +385,9 @@ export default function RegisterPage() {
 
       {/* ── MOBILE ── */}
       <div className="reg-mobile" aria-label="Festag Registrierung">
-        <div className="reg-mobile-card">
-          <div className="reg-mobile-shell">
+        <div className="reg-mobile-card" />
+        <div className="reg-mobile-shell">
+          <div className="reg-mobile-logo-title">
             <p className="reg-logo-mobile">festag</p>
             <div className="reg-mobile-inner">
               <h1 className="reg-mobile-title">Willkommen</h1>
@@ -387,8 +395,8 @@ export default function RegisterPage() {
               <Buttons googleLogo={googleLogoMobile} />
               <Legal />
             </div>
-            <a className="reg-dev-mobile" href="/dev">Dev Zugang</a>
           </div>
+          <a className="reg-dev-mobile" href="/dev">Dev Zugang</a>
         </div>
       </div>
 

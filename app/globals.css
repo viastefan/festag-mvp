@@ -1,3 +1,10 @@
+/* Qurova DEMO */
+@font-face {
+  font-family: 'Qurova DEMO';
+  src: url('/fonts/QurovaDEMO-Medium.otf') format('opentype');
+  font-weight: 500; font-style: normal; font-display: swap;
+}
+
 /* Aeonik — lokal aus /public/fonts/, Medium als Standardgewicht */
 @font-face {
   font-family: 'Aeonik';
