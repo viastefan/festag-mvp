@@ -344,6 +344,7 @@ export default function RegisterPage() {
           font-weight: 400;
           line-height: 20px;
           letter-spacing: 0.02em;
+          color: #7b8294;
         }
         .reg-legal-muted { color: #7b8294; }
         .reg-legal-text a { color: #202532; text-decoration: none; }
