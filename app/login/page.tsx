@@ -8,32 +8,35 @@ type Method = 'google' | 'email' | 'sso' | 'passkey'
 type Theme = 'light' | 'dark'
 const METHOD_KEY = 'festag_last_method'
 
+type EmailStep = 'main' | 'email' | 'emailSent' | 'codeEntry'
+
 function mapAuthError(msg: string): string {
-  if (msg.includes('Invalid login credentials') || msg.includes('invalid_credentials'))
-    return 'E-Mail oder Passwort ist nicht korrekt.'
-  if (msg.includes('Email not confirmed'))
-    return 'Bitte bestätige zuerst deine E-Mail-Adresse.'
-  if (msg.includes('rate limit') || msg.includes('too many'))
+  if (msg.includes('rate limit') || msg.includes('too many') || msg.includes('Email rate'))
     return 'Zu viele Versuche. Bitte warte einen Moment.'
-  return 'Anmeldung fehlgeschlagen. Bitte versuche es erneut.'
+  if (msg.includes('invalid') || msg.includes('Invalid'))
+    return 'Ungültiger Code oder E-Mail-Adresse.'
+  if (msg.includes('expired'))
+    return 'Code ist abgelaufen. Bitte fordere einen neuen an.'
+  return 'Etwas ist schiefgelaufen. Bitte versuche es erneut.'
 }
 
 export default function LoginPage() {
   const supabase = createClient()
   const router = useRouter()
   const [oauthLoading, setOauthLoading] = useState(false)
-  const [emailView, setEmailView] = useState(false)
+  const [emailStep, setEmailStep] = useState<EmailStep>('main')
   const [animating, setAnimating] = useState(false)
   const [pageExiting, setPageExiting] = useState(false)
   const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [passwordStep, setPasswordStep] = useState(false)
+  const [code, setCode] = useState('')
   const [loading, setLoading] = useState(false)
+  const [resending, setResending] = useState(false)
   const [error, setError] = useState('')
   const [theme, setTheme] = useState<Theme>('dark')
   const [lastMethod, setLastMethod] = useState<Method | null>(null)
   const emailRef = useRef<HTMLInputElement>(null)
-  const pwRef = useRef<HTMLInputElement>(null)
+  const codeRef = useRef<HTMLInputElement>(null)
+  const emailView = emailStep !== 'main'
 
   function navigateWithFade(href: string) {
     setPageExiting(true)
@@ -46,32 +49,35 @@ export default function LoginPage() {
   }, [])
 
   useEffect(() => {
-    if (!emailView || passwordStep) return
+    if (emailStep !== 'email') return
     const tries = [0, 50, 150, 250, 400]
     const timers = tries.map(ms => setTimeout(() => emailRef.current?.focus(), ms))
     return () => timers.forEach(clearTimeout)
-  }, [emailView, passwordStep])
+  }, [emailStep])
 
   useEffect(() => {
-    if (!passwordStep) return
+    if (emailStep !== 'codeEntry') return
     const tries = [0, 50, 150, 250, 400]
-    const timers = tries.map(ms => setTimeout(() => pwRef.current?.focus(), ms))
+    const timers = tries.map(ms => setTimeout(() => codeRef.current?.focus(), ms))
     return () => timers.forEach(clearTimeout)
-  }, [passwordStep])
+  }, [emailStep])
 
   function saveMethod(method: Method) {
     localStorage.setItem(METHOD_KEY, method)
     setLastMethod(method)
   }
 
-  function switchToEmail() {
+  function goTo(step: EmailStep) {
     setError(''); setAnimating(true)
-    setTimeout(() => { setEmailView(true); setAnimating(false) }, 180)
+    setTimeout(() => { setEmailStep(step); setAnimating(false) }, 180)
   }
 
+  function switchToEmail() { goTo('email') }
   function switchBack() {
-    setError(''); setAnimating(true)
-    setTimeout(() => { setEmailView(false); setPasswordStep(false); setEmail(''); setPassword(''); setAnimating(false) }, 180)
+    if (emailStep === 'codeEntry') { goTo('emailSent'); return }
+    if (emailStep === 'emailSent') { setCode(''); goTo('email'); return }
+    setEmail(''); setCode('')
+    goTo('main')
   }
 
   function toggleTheme(t: Theme) { setTheme(t) }
@@ -82,21 +88,49 @@ export default function LoginPage() {
     setOauthLoading(true)
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
+      options: { redirectTo: `${window.location.origin}/auth/callback?next=/dashboard` },
     })
     if (oauthError) { setError(mapAuthError(oauthError.message)); setOauthLoading(false) }
+  }
+
+  async function sendMagicLink(): Promise<boolean> {
+    const { error: otpError } = await supabase.auth.signInWithOtp({
+      email: email.trim(),
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
+        shouldCreateUser: false,
+      },
+    })
+    if (otpError) { setError(mapAuthError(otpError.message)); return false }
+    return true
   }
 
   async function handleEmailSubmit() {
     setError('')
     if (!email.trim()) { setError('Bitte E-Mail-Adresse eingeben.'); return }
     if (!/\S+@\S+\.\S+/.test(email.trim())) { setError('Bitte eine gültige E-Mail-Adresse eingeben.'); return }
-    if (!passwordStep) { setPasswordStep(true); return }
-    if (!password) { setError('Bitte Passwort eingeben.'); return }
     setLoading(true)
-    const { error: loginError } = await supabase.auth.signInWithPassword({ email: email.trim(), password })
+    const ok = await sendMagicLink()
     setLoading(false)
-    if (loginError) { setError(mapAuthError(loginError.message)); return }
+    if (ok) { saveMethod('email'); goTo('emailSent') }
+  }
+
+  async function handleResend() {
+    setError(''); setResending(true)
+    await sendMagicLink()
+    setResending(false)
+  }
+
+  async function handleVerifyCode() {
+    setError('')
+    const trimmed = code.trim()
+    if (!trimmed || trimmed.length < 6) { setError('Bitte vollständigen Code eingeben.'); return }
+    setLoading(true)
+    const { error: verifyError } = await supabase.auth.verifyOtp({
+      email: email.trim(), token: trimmed, type: 'email',
+    })
+    setLoading(false)
+    if (verifyError) { setError(mapAuthError(verifyError.message)); return }
     saveMethod('email')
     window.location.href = '/dashboard'
   }
@@ -150,21 +184,53 @@ export default function LoginPage() {
         onChange={e => setEmail(e.target.value)}
         onKeyDown={e => { if (e.key === 'Enter') handleEmailSubmit() }}
       />
-      {passwordStep && (
-        <input
-          ref={pwRef}
-          className="log-email-input"
-          type="password"
-          autoComplete="current-password"
-          autoFocus
-          placeholder="Passwort eingeben..."
-          value={password}
-          onChange={e => setPassword(e.target.value)}
-          onKeyDown={e => { if (e.key === 'Enter') handleEmailSubmit() }}
-        />
-      )}
       <button className="log-btn log-btn-outline" type="button" onClick={handleEmailSubmit} disabled={loading}>
-        <span>{loading ? 'Anmeldung läuft…' : 'E-Mail verwenden'}</span>
+        <span>{loading ? 'Link wird gesendet…' : 'E-Mail verwenden'}</span>
+      </button>
+      <button className="log-back" type="button" onClick={switchBack}>Zurück</button>
+    </div>
+  )
+
+  const emailSentScreen = (
+    <div className="log-email-form">
+      {error && <p className="log-error">{error}</p>}
+      <p className="log-sent-info">
+        Wir haben einen sicheren<br />Anmeldelink geschickt an<br />
+        <strong>{email}</strong>
+      </p>
+      <button className="log-btn log-btn-outline" type="button" onClick={() => goTo('codeEntry')}>Code manuell eintippen</button>
+      <button className="log-link-action" type="button" onClick={handleResend} disabled={resending}>
+        {resending ? 'Wird gesendet…' : 'Link erneut senden'}
+      </button>
+      <button className="log-back" type="button" onClick={switchBack}>Zurück</button>
+    </div>
+  )
+
+  const codeEntryScreen = (
+    <div className="log-email-form">
+      {error && <p className="log-error">{error}</p>}
+      <p className="log-sent-info">
+        Wir haben einen sicheren<br />Anmeldelink geschickt an<br />
+        <strong>{email}</strong>
+      </p>
+      <input
+        ref={codeRef}
+        className="log-email-input log-code-input"
+        type="text"
+        inputMode="numeric"
+        autoComplete="one-time-code"
+        autoFocus
+        maxLength={6}
+        placeholder="Code eingeben"
+        value={code}
+        onChange={e => setCode(e.target.value.replace(/\s/g, ''))}
+        onKeyDown={e => { if (e.key === 'Enter') handleVerifyCode() }}
+      />
+      <button className="log-btn log-btn-outline" type="button" onClick={handleVerifyCode} disabled={loading}>
+        <span>{loading ? 'Wird geprüft…' : 'Mit Code fortfahren'}</span>
+      </button>
+      <button className="log-link-action" type="button" onClick={handleResend} disabled={resending}>
+        {resending ? 'Wird gesendet…' : 'Link erneut senden'}
       </button>
       <button className="log-back" type="button" onClick={switchBack}>Zurück</button>
     </div>
@@ -182,8 +248,19 @@ export default function LoginPage() {
     </div>
   )
 
-  const emailTitle = passwordStep ? 'Passwort eingeben' : 'Wie lautet Ihre E-Mail?'
-  const emailTitleMobile = passwordStep ? 'Passwort eingeben' : 'Wie lautet Ihre\nE-Mail-Adresse?'
+  const emailTitle =
+    emailStep === 'email'     ? 'Wie lautet Ihre E-Mail?' :
+    emailStep === 'emailSent' ? 'Prüfen Sie Ihre E-Mails' :
+    emailStep === 'codeEntry' ? 'Prüfen Sie Ihre E-Mails' : ''
+  const emailTitleMobile =
+    emailStep === 'email'     ? 'Wie lautet Ihre\nE-Mail-Adresse?' :
+    emailStep === 'emailSent' ? 'Prüfen Sie Ihre\nE-Mails' :
+    emailStep === 'codeEntry' ? 'Prüfen Sie Ihre\nE-Mails' : ''
+
+  const currentEmailScreen =
+    emailStep === 'email'     ? emailForm :
+    emailStep === 'emailSent' ? emailSentScreen :
+    emailStep === 'codeEntry' ? codeEntryScreen : null
 
   return (
     <main className={`log-root${pageExiting ? ' exiting' : ''}`} data-theme={theme}>
@@ -240,8 +317,14 @@ export default function LoginPage() {
         .log-email-input { width:100%; height:47px; border-radius:8px; border:1px solid #5b647d; background:#fff; color:#202532; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:14px; font-weight:400 !important; letter-spacing:0.01em; padding:0 16px; outline:none; caret-color:#5b647d; box-shadow:0px 1px 2px 0px rgba(15,23,42,0.03); transition:border-color .15s, box-shadow .15s, background .3s, color .3s; }
         .log-email-input::placeholder { color:#bcbfc2; }
         .log-email-input:focus { border-color:#5b647d; box-shadow:0 0 0 3px rgba(91,100,125,0.12); }
-        .log-back { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:13px; font-weight:400 !important; color:#7b8294; background:none; border:none; cursor:pointer; text-align:center; letter-spacing:0.26px; line-height:20px; transition:color .15s; }
+        .log-back { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:13px; font-weight:400 !important; color:#7b8294; background:none; border:none; cursor:pointer; text-align:center; letter-spacing:0.26px; line-height:20px; transition:color .15s; padding:4px; }
         .log-back:hover { color:#202532; }
+        .log-link-action { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:13px; font-weight:400 !important; color:#7b8294; background:none; border:none; cursor:pointer; text-align:center; letter-spacing:0.26px; line-height:20px; transition:color .15s; padding:4px; }
+        .log-link-action:hover { color:#202532; }
+        .log-link-action:disabled { opacity:.5; cursor:not-allowed; }
+        .log-sent-info { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:14px; font-weight:400 !important; line-height:20px; letter-spacing:0.14px; text-align:center; color:#7b8294; margin:8px 0 16px; }
+        .log-sent-info strong { color:#202532; font-weight:500; }
+        .log-code-input { text-align:center; letter-spacing:0.4em; font-size:15px; }
 
         /* LEGAL */
         .log-legal { width:271px; display:flex; flex-direction:column; gap:16px; text-align:center; }
@@ -288,6 +371,10 @@ export default function LoginPage() {
         .log-root[data-theme="dark"] .log-dev:hover { color:#F3F5F7; }
         .log-root[data-theme="dark"] .log-back { color:#98A2B3; }
         .log-root[data-theme="dark"] .log-back:hover { color:#F3F5F7; }
+        .log-root[data-theme="dark"] .log-link-action { color:#98A2B3; }
+        .log-root[data-theme="dark"] .log-link-action:hover { color:#F3F5F7; }
+        .log-root[data-theme="dark"] .log-sent-info { color:#98A2B3; }
+        .log-root[data-theme="dark"] .log-sent-info strong { color:#F3F5F7; }
 
         .log-root[data-theme="dark"] .log-theme-pill { border-color:rgba(243,245,247,0.18); color:rgba(243,245,247,0.45); }
         .log-root[data-theme="dark"] .log-theme-pill.active { background:#F3F5F7; border-color:#F3F5F7; color:#2e2f33; }
@@ -303,7 +390,7 @@ export default function LoginPage() {
           </div>
           <div className={`log-content${animating ? ' animating' : ''}`}>
             {!emailView && error && <p className="log-error">{error}</p>}
-            {emailView ? emailForm : mainButtons}
+            {emailView ? currentEmailScreen : mainButtons}
           </div>
           {!emailView && legal}
         </section>
@@ -322,7 +409,7 @@ export default function LoginPage() {
                 : <h1 className="log-mobile-title">Willkommen zurück</h1>}
               <div className={`log-content${animating ? ' animating' : ''}`}>
                 {!emailView && error && <p className="log-error">{error}</p>}
-                {emailView ? emailForm : mainButtons}
+                {emailView ? currentEmailScreen : mainButtons}
               </div>
               {!emailView && legal}
             </div>

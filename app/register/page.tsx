@@ -7,19 +7,17 @@ import { createClient } from '@/lib/supabase/client'
 const googleLogoDesktop = "/google-symbol.svg"
 const googleLogoMobile  = "/google-symbol.svg"
 
-type EmailStep = 'none' | 'email' | 'password'
+type EmailStep = 'none' | 'email' | 'emailSent' | 'codeEntry'
 type Theme = 'light' | 'dark'
 
 function mapAuthError(msg: string): string {
-  if (msg.includes('already registered') || msg.includes('User already registered'))
-    return 'Für diese E-Mail existiert bereits ein Zugang. Melde dich an.'
-  if (msg.includes('Password should be at least'))
-    return 'Passwort muss mindestens 8 Zeichen haben.'
-  if (msg.includes('rate limit') || msg.includes('too many'))
+  if (msg.includes('rate limit') || msg.includes('too many') || msg.includes('Email rate'))
     return 'Zu viele Versuche. Bitte warte einen Moment.'
   if (msg.includes('invalid') || msg.includes('Invalid'))
-    return 'Ungültige E-Mail-Adresse.'
-  return 'Registrierung fehlgeschlagen. Bitte versuche es erneut.'
+    return 'Ungültiger Code oder E-Mail-Adresse.'
+  if (msg.includes('expired'))
+    return 'Code ist abgelaufen. Bitte fordere einen neuen an.'
+  return 'Etwas ist schiefgelaufen. Bitte versuche es erneut.'
 }
 
 export default function RegisterPage() {
@@ -30,14 +28,13 @@ export default function RegisterPage() {
   const [animating, setAnimating] = useState(false)
   const [pageExiting, setPageExiting] = useState(false)
   const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
+  const [code, setCode] = useState('')
   const [loading, setLoading] = useState(false)
+  const [resending, setResending] = useState(false)
   const [error, setError] = useState('')
-  const [success, setSuccess] = useState(false)
   const [theme, setTheme] = useState<Theme>('dark')
   const emailRef = useRef<HTMLInputElement>(null)
-  const pwRef = useRef<HTMLInputElement>(null)
+  const codeRef = useRef<HTMLInputElement>(null)
 
   function navigateWithFade(href: string) {
     setPageExiting(true)
@@ -52,9 +49,9 @@ export default function RegisterPage() {
   }, [emailStep])
 
   useEffect(() => {
-    if (emailStep !== 'password') return
+    if (emailStep !== 'codeEntry') return
     const tries = [0, 50, 150, 250, 400]
-    const timers = tries.map(ms => setTimeout(() => pwRef.current?.focus(), ms))
+    const timers = tries.map(ms => setTimeout(() => codeRef.current?.focus(), ms))
     return () => timers.forEach(clearTimeout)
   }, [emailStep])
 
@@ -65,8 +62,9 @@ export default function RegisterPage() {
   }
 
   function goBack() {
-    if (emailStep === 'password') { goTo('email'); return }
-    setEmail(''); setPassword(''); setConfirmPassword('')
+    if (emailStep === 'codeEntry') { goTo('emailSent'); return }
+    if (emailStep === 'emailSent') { setCode(''); goTo('email'); return }
+    setEmail(''); setCode('')
     goTo('none')
   }
 
@@ -80,30 +78,61 @@ export default function RegisterPage() {
     if (oauthError) { setError(mapAuthError(oauthError.message)); setOauthLoading(false) }
   }
 
-  function handleEmailNext() {
+  async function sendMagicLink(): Promise<boolean> {
+    const { error: otpError } = await supabase.auth.signInWithOtp({
+      email: email.trim(),
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/callback?next=/onboarding`,
+        shouldCreateUser: true,
+      },
+    })
+    if (otpError) { setError(mapAuthError(otpError.message)); return false }
+    return true
+  }
+
+  async function handleEmailNext() {
     setError('')
     if (!email.trim() || !/\S+@\S+\.\S+/.test(email)) {
       setError('Bitte gültige E-Mail-Adresse eingeben.'); return
     }
-    goTo('password')
+    setLoading(true)
+    const ok = await sendMagicLink()
+    setLoading(false)
+    if (ok) goTo('emailSent')
   }
 
-  async function handleRegister() {
+  async function handleResend() {
     setError('')
-    if (password.length < 8) { setError('Passwort muss mindestens 8 Zeichen haben.'); return }
-    if (password !== confirmPassword) { setError('Passwörter stimmen nicht überein.'); return }
+    setResending(true)
+    await sendMagicLink()
+    setResending(false)
+  }
+
+  async function handleVerifyCode() {
+    setError('')
+    const trimmed = code.trim()
+    if (!trimmed || trimmed.length < 6) { setError('Bitte vollständigen Code eingeben.'); return }
     setLoading(true)
-    const { error: signUpError } = await supabase.auth.signUp({
-      email: email.trim(), password,
-      options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+    const { error: verifyError } = await supabase.auth.verifyOtp({
+      email: email.trim(),
+      token: trimmed,
+      type: 'email',
     })
     setLoading(false)
-    if (signUpError) { setError(mapAuthError(signUpError.message)); return }
-    setSuccess(true)
+    if (verifyError) { setError(mapAuthError(verifyError.message)); return }
+    window.location.href = '/onboarding'
   }
 
-  const desktopTitle = emailStep === 'email' ? 'Wie lautet Ihre E-Mail?' : emailStep === 'password' ? 'Passwort festlegen' : 'Willkommen bei festag'
-  const mobileTitle  = emailStep === 'email' ? 'Wie lautet Ihre\nE-Mail-Adresse?' : emailStep === 'password' ? 'Passwort festlegen' : 'Willkommen'
+  const desktopTitle =
+    emailStep === 'email'      ? 'Wie lautet Ihre E-Mail?' :
+    emailStep === 'emailSent'  ? 'Prüfen Sie Ihre E-Mails' :
+    emailStep === 'codeEntry'  ? 'Prüfen Sie Ihre E-Mails' :
+    'Willkommen bei festag'
+  const mobileTitle =
+    emailStep === 'email'      ? 'Wie lautet Ihre\nE-Mail-Adresse?' :
+    emailStep === 'emailSent'  ? 'Prüfen Sie Ihre\nE-Mails' :
+    emailStep === 'codeEntry'  ? 'Prüfen Sie Ihre\nE-Mails' :
+    'Willkommen'
 
   // ── render helpers (not React components — avoids remount on re-render) ──
 
@@ -114,9 +143,7 @@ export default function RegisterPage() {
     </div>
   )
 
-  const mainButtons = success ? (
-    <p className="reg-success">Bestätigungsmail gesendet! Bitte prüfe dein Postfach.</p>
-  ) : (
+  const mainButtons = (
     <div className="reg-btn-stack">
       <button className="reg-btn reg-btn-google" type="button" onClick={handleGoogle} disabled={oauthLoading}>
         {oauthLoading ? <span className="reg-loader" /> : (
@@ -131,9 +158,7 @@ export default function RegisterPage() {
     </div>
   )
 
-  const mainButtonsMobile = success ? (
-    <p className="reg-success">Bestätigungsmail gesendet! Bitte prüfe dein Postfach.</p>
-  ) : (
+  const mainButtonsMobile = (
     <div className="reg-btn-stack">
       <button className="reg-btn reg-btn-google" type="button" onClick={handleGoogle} disabled={oauthLoading}>
         {oauthLoading ? <span className="reg-loader" /> : (
@@ -167,31 +192,46 @@ export default function RegisterPage() {
     </div>
   )
 
-  const passwordScreen = (
+  const emailSentScreen = (
     <div className="reg-email-form">
       {error && <p className="reg-error">{error}</p>}
+      <p className="reg-sent-info">
+        Wir haben einen sicheren<br />Anmeldelink geschickt an<br />
+        <strong>{email}</strong>
+      </p>
+      <button className="reg-btn reg-btn-outline" type="button" onClick={() => goTo('codeEntry')}>Code manuell eintippen</button>
+      <button className="reg-link-action" type="button" onClick={handleResend} disabled={resending}>
+        {resending ? 'Wird gesendet…' : 'Link erneut senden'}
+      </button>
+      <button className="reg-back" type="button" onClick={goBack}>Zurück</button>
+    </div>
+  )
+
+  const codeEntryScreen = (
+    <div className="reg-email-form">
+      {error && <p className="reg-error">{error}</p>}
+      <p className="reg-sent-info">
+        Wir haben einen sicheren<br />Anmeldelink geschickt an<br />
+        <strong>{email}</strong>
+      </p>
       <input
-        ref={pwRef}
-        className="reg-email-input"
-        type="password"
-        autoComplete="new-password"
+        ref={codeRef}
+        className="reg-email-input reg-code-input"
+        type="text"
+        inputMode="numeric"
+        autoComplete="one-time-code"
         autoFocus
-        placeholder="Passwort (min. 8 Zeichen)"
-        value={password}
-        onChange={e => setPassword(e.target.value)}
+        maxLength={6}
+        placeholder="Code eingeben"
+        value={code}
+        onChange={e => setCode(e.target.value.replace(/\s/g, ''))}
+        onKeyDown={e => { if (e.key === 'Enter') handleVerifyCode() }}
       />
-      <input
-        className="reg-email-input"
-        type="password"
-        autoComplete="new-password"
-        placeholder="Passwort bestätigen"
-        value={confirmPassword}
-        onChange={e => setConfirmPassword(e.target.value)}
-        onKeyDown={e => { if (e.key === 'Enter') handleRegister() }}
-      />
-      <button className="reg-btn reg-btn-google" type="button" onClick={handleRegister} disabled={loading}>
-        {loading && <span className="reg-loader" />}
-        <span>{loading ? 'Konto wird erstellt…' : 'Registrieren'}</span>
+      <button className="reg-btn reg-btn-outline" type="button" onClick={handleVerifyCode} disabled={loading}>
+        {loading ? <span className="reg-loader-dark" /> : <span>Mit Code fortfahren</span>}
+      </button>
+      <button className="reg-link-action" type="button" onClick={handleResend} disabled={resending}>
+        {resending ? 'Wird gesendet…' : 'Link erneut senden'}
       </button>
       <button className="reg-back" type="button" onClick={goBack}>Zurück</button>
     </div>
@@ -269,8 +309,15 @@ export default function RegisterPage() {
         }
         .reg-email-input::placeholder { color:#bcbfc2; }
         .reg-email-input:focus { border-color:#5b647d; box-shadow:0 0 0 3px rgba(91,100,125,0.12); }
-        .reg-back { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:13px; font-weight:400 !important; color:#7b8294; background:none; border:none; cursor:pointer; text-align:center; letter-spacing:0.26px; line-height:20px; transition:color .15s; }
+        .reg-back { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:13px; font-weight:400 !important; color:#7b8294; background:none; border:none; cursor:pointer; text-align:center; letter-spacing:0.26px; line-height:20px; transition:color .15s; padding:4px; }
         .reg-back:hover { color:#202532; }
+        .reg-link-action { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:13px; font-weight:400 !important; color:#7b8294; background:none; border:none; cursor:pointer; text-align:center; letter-spacing:0.26px; line-height:20px; transition:color .15s; padding:4px; }
+        .reg-link-action:hover { color:#202532; }
+        .reg-link-action:disabled { opacity:.5; cursor:not-allowed; }
+        .reg-sent-info { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:14px; font-weight:400 !important; line-height:20px; letter-spacing:0.14px; text-align:center; color:#7b8294; margin:8px 0 16px; }
+        .reg-sent-info strong { color:#202532; font-weight:500; }
+        .reg-code-input { text-align:center; letter-spacing:0.4em; font-size:15px; }
+        .reg-loader-dark { width:16px; height:16px; border-radius:999px; border:2px solid rgba(32,37,50,0.25); border-top-color:#202532; animation:regSpin .75s linear infinite; flex-shrink:0; }
 
         .reg-legal { width:271px; display:flex; flex-direction:column; gap:16px; text-align:center; }
         .reg-legal-text { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:13px; font-weight:400 !important; line-height:20px; letter-spacing:0.02em; color:#98A2B3; }
@@ -309,6 +356,10 @@ export default function RegisterPage() {
         .reg-root[data-theme="dark"] .reg-login-link { color:#98A2B3; }
         .reg-root[data-theme="dark"] .reg-back { color:#98A2B3; }
         .reg-root[data-theme="dark"] .reg-back:hover { color:#F3F5F7; }
+        .reg-root[data-theme="dark"] .reg-link-action { color:#98A2B3; }
+        .reg-root[data-theme="dark"] .reg-link-action:hover { color:#F3F5F7; }
+        .reg-root[data-theme="dark"] .reg-sent-info { color:#98A2B3; }
+        .reg-root[data-theme="dark"] .reg-sent-info strong { color:#F3F5F7; }
         .reg-root[data-theme="dark"] .reg-dev { color:#98A2B3; }
         .reg-root[data-theme="dark"] .reg-dev:hover { color:#F3F5F7; }
         .reg-root[data-theme="dark"] .reg-theme-pill { border-color:rgba(243,245,247,0.18); color:rgba(243,245,247,0.45); background:transparent; }
@@ -328,7 +379,8 @@ export default function RegisterPage() {
             {emailStep === 'none' && error && <p className="reg-error">{error}</p>}
             {emailStep === 'none' && mainButtons}
             {emailStep === 'email' && emailScreen}
-            {emailStep === 'password' && passwordScreen}
+            {emailStep === 'emailSent' && emailSentScreen}
+            {emailStep === 'codeEntry' && codeEntryScreen}
           </div>
           {emailStep === 'none' && legal}
         </section>
@@ -349,7 +401,8 @@ export default function RegisterPage() {
                 {emailStep === 'none' && error && <p className="reg-error">{error}</p>}
                 {emailStep === 'none' && mainButtonsMobile}
                 {emailStep === 'email' && emailScreen}
-                {emailStep === 'password' && passwordScreen}
+                {emailStep === 'emailSent' && emailSentScreen}
+            {emailStep === 'codeEntry' && codeEntryScreen}
               </div>
               {emailStep === 'none' && legal}
             </div>
