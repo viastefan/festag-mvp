@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 type Method = 'google' | 'email' | 'sso' | 'passkey'
 type Theme = 'light' | 'dark'
 const METHOD_KEY = 'festag_last_method'
+const THEME_KEY = 'festag_theme'
 
 type EmailStep = 'main' | 'email' | 'emailSent' | 'codeEntry'
 
@@ -32,7 +33,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [resending, setResending] = useState(false)
   const [error, setError] = useState('')
-  const [theme, setTheme] = useState<Theme>('dark')
+  const [theme, setThemeState] = useState<Theme>('dark')
   const [lastMethod, setLastMethod] = useState<Method | null>(null)
   const emailRef = useRef<HTMLInputElement>(null)
   const codeRef = useRef<HTMLInputElement>(null)
@@ -46,7 +47,14 @@ export default function LoginPage() {
   useEffect(() => {
     const stored = localStorage.getItem(METHOD_KEY) as Method | null
     setLastMethod(stored)
+    const storedTheme = localStorage.getItem(THEME_KEY) as Theme | null
+    if (storedTheme === 'light' || storedTheme === 'dark') setThemeState(storedTheme)
   }, [])
+
+  function setTheme(t: Theme) {
+    setThemeState(t)
+    try { localStorage.setItem(THEME_KEY, t) } catch {}
+  }
 
   useEffect(() => {
     if (emailStep !== 'email') return

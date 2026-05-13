@@ -9,6 +9,7 @@ const googleLogoMobile  = "/google-symbol.svg"
 
 type EmailStep = 'none' | 'email' | 'emailSent' | 'codeEntry'
 type Theme = 'light' | 'dark'
+const THEME_KEY = 'festag_theme'
 
 function mapAuthError(msg: string): string {
   if (msg.includes('rate limit') || msg.includes('too many') || msg.includes('Email rate'))
@@ -32,9 +33,19 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false)
   const [resending, setResending] = useState(false)
   const [error, setError] = useState('')
-  const [theme, setTheme] = useState<Theme>('dark')
+  const [theme, setThemeState] = useState<Theme>('dark')
   const emailRef = useRef<HTMLInputElement>(null)
   const codeRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    const stored = localStorage.getItem(THEME_KEY) as Theme | null
+    if (stored === 'light' || stored === 'dark') setThemeState(stored)
+  }, [])
+
+  function setTheme(t: Theme) {
+    setThemeState(t)
+    try { localStorage.setItem(THEME_KEY, t) } catch {}
+  }
 
   function navigateWithFade(href: string) {
     setPageExiting(true)
