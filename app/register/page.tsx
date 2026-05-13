@@ -3,8 +3,8 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
-const googleLogoDesktop = "https://www.figma.com/api/mcp/asset/2d95a3fa-8a28-4d90-9503-9e821fad862d"
-const googleLogoMobile  = "https://www.figma.com/api/mcp/asset/e985d996-ec21-4574-a535-8231cc2e9c38"
+const googleLogoDesktop = "https://www.figma.com/api/mcp/asset/bedb4dab-f5bf-4562-8bba-61f5dcb12380"
+const googleLogoMobile  = "https://www.figma.com/api/mcp/asset/e15241d3-e78f-42d9-831b-2ef3a251cb97"
 
 export default function RegisterPage() {
   const supabase = createClient()
@@ -54,7 +54,7 @@ export default function RegisterPage() {
       <div className="reg-btn-stack">
         <button className="reg-btn reg-btn-google" type="button" onClick={handleGoogle} disabled={oauthLoading}>
           {oauthLoading ? <span className="reg-loader" /> : <img className="reg-google-icon" src={googleLogo} alt="" />}
-          <span>Mit Goole verbinden</span>
+          <span>Mit Google verbinden</span>
         </button>
         <button className="reg-btn reg-btn-outline" type="button" onClick={() => { setError(''); setEmailView(true) }}>
           E-Mail verwenden
@@ -249,7 +249,7 @@ export default function RegisterPage() {
           font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
           font-size: 14px;
           font-weight: 500;
-          letter-spacing: 0.28px;
+          letter-spacing: 0.14px;
           cursor: pointer;
           padding: 12px 45px;
           white-space: nowrap;
