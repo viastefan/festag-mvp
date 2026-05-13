@@ -122,13 +122,9 @@ export default function RegisterPage() {
         }
 
         /* ─── BUTTON CLICK ANIMATION ──────────────────────── */
-        @keyframes btnPress {
-          0%   { transform: scale(1); }
-          40%  { transform: scale(0.97); }
-          100% { transform: scale(1); }
-        }
         .reg-btn:active:not(:disabled) {
-          animation: btnPress 0.22s cubic-bezier(.36,.07,.19,.97) forwards;
+          transform: scale(0.97);
+          transition: transform 0.08s ease !important;
         }
 
         /* ─── VIEW TRANSITION ─────────────────────────────── */
@@ -305,7 +301,7 @@ export default function RegisterPage() {
           padding: 12px 45px;
           white-space: nowrap;
           overflow: hidden;
-          transition: background .15s, opacity .15s;
+          transition: background .15s, opacity .15s, transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
           transform-origin: center;
         }
         .reg-btn:disabled { opacity: .5; cursor: not-allowed; }
@@ -344,9 +340,9 @@ export default function RegisterPage() {
           font-weight: 400;
           line-height: 20px;
           letter-spacing: 0.02em;
-          color: #7b8294;
+          color: #98A2B3;
         }
-        .reg-legal-muted { color: #7b8294; }
+        .reg-legal-muted { color: #98A2B3; }
         .reg-legal-text a { color: #202532; text-decoration: none; }
         .reg-legal-text a:hover { text-decoration: underline; }
         .reg-login-link {
