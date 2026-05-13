@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
 type Method = 'google' | 'email' | 'sso' | 'passkey'
@@ -19,18 +20,25 @@ function mapAuthError(msg: string): string {
 
 export default function LoginPage() {
   const supabase = createClient()
+  const router = useRouter()
   const [oauthLoading, setOauthLoading] = useState(false)
   const [emailView, setEmailView] = useState(false)
   const [animating, setAnimating] = useState(false)
+  const [pageExiting, setPageExiting] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [passwordStep, setPasswordStep] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [theme, setTheme] = useState<Theme>('light')
+  const [theme, setTheme] = useState<Theme>('dark')
   const [lastMethod, setLastMethod] = useState<Method | null>(null)
   const emailRef = useRef<HTMLInputElement>(null)
   const pwRef = useRef<HTMLInputElement>(null)
+
+  function navigateWithFade(href: string) {
+    setPageExiting(true)
+    setTimeout(() => router.push(href), 240)
+  }
 
   useEffect(() => {
     const stored = localStorage.getItem(METHOD_KEY) as Method | null
@@ -161,9 +169,12 @@ export default function LoginPage() {
   const legal = (
     <div className="log-legal">
       <p className="log-legal-text">
-        Kein Konto?{' '}<a href="/register">Hier registrieren</a>{' '}oder{' '}<a href="/legal/mehr">mehr dazu</a>
+        Kein Konto?{' '}
+        <a href="/register" onClick={e => { e.preventDefault(); navigateWithFade('/register') }}>Hier registrieren</a>
+        {' '}oder{' '}
+        <a href="/legal/mehr" onClick={e => { e.preventDefault(); navigateWithFade('/legal/mehr') }}>mehr dazu</a>
       </p>
-      <a className="log-dev" href="/dev">Dev Zugang</a>
+      <a className="log-dev" href="/dev" onClick={e => { e.preventDefault(); navigateWithFade('/dev') }}>Dev Zugang</a>
     </div>
   )
 
@@ -171,10 +182,11 @@ export default function LoginPage() {
   const emailTitleMobile = passwordStep ? 'Passwort eingeben' : 'Wie lautet Ihre\nE-Mail-Adresse?'
 
   return (
-    <main className="log-root" data-theme={theme}>
+    <main className={`log-root${pageExiting ? ' exiting' : ''}`} data-theme={theme}>
       <style>{`
         *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
-        .log-root { min-height:100dvh; width:100%; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); -webkit-font-smoothing:antialiased; text-rendering:geometricPrecision; }
+        .log-root { min-height:100dvh; width:100%; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); -webkit-font-smoothing:antialiased; text-rendering:geometricPrecision; transition:opacity 0.24s ease, transform 0.24s ease; }
+        .log-root.exiting { opacity:0; transform:translateY(-8px); pointer-events:none; }
 
         /* BUTTON ANIMATION */
         .log-btn:active:not(:disabled) { transform:scale(0.97); transition:transform 0.08s ease !important; }
@@ -187,12 +199,12 @@ export default function LoginPage() {
         .log-theme-switcher { display:flex; gap:6px; align-items:center; }
         .log-theme-pill { display:flex; align-items:center; justify-content:center; padding:4px 6px; border-radius:6px; border:0.4px solid #c7cdd6; background:transparent; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:12px; font-weight:500; color:#5b647d; letter-spacing:0.24px; cursor:pointer; transition:background .15s, border-color .15s, color .15s; }
         .log-theme-pill.active { background:#f1f3f5; border-color:#fcfcfc; color:#2e2f33; }
-        .log-theme-desktop { position:absolute; right:28px; top:24px; }
-        .log-theme-mobile  { position:absolute; right:20px; top:88px; }
+        .log-theme-desktop { position:absolute; right:28px; top:24px; z-index:20; }
+        .log-theme-mobile  { position:absolute; right:20px; top:48px; z-index:20; }
 
         /* DESKTOP */
         .log-desktop { display:flex; min-height:100dvh; background:#fcfcfd; align-items:center; justify-content:center; position:relative; transition:background .3s; }
-        .log-desktop-shell { width:271px; display:flex; flex-direction:column; gap:32px; align-items:center; transform:translateY(-3vh); }
+        .log-desktop-shell { width:271px; display:flex; flex-direction:column; gap:32px; align-items:center; }
         .log-desktop-header { width:100%; display:flex; flex-direction:column; gap:24px; align-items:center; }
         .log-logo-desktop { font-family:'Qurova DEMO',serif; font-size:24px; font-weight:500; color:#202532; text-align:center; width:100%; line-height:normal; transition:color .3s; }
         .log-desktop-title { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:21px; font-weight:500; color:#202532; line-height:normal; text-align:center; letter-spacing:0.21px; width:100%; transition:color .3s; }
@@ -230,10 +242,15 @@ export default function LoginPage() {
         /* LEGAL */
         .log-legal { width:271px; display:flex; flex-direction:column; gap:16px; text-align:center; }
         .log-legal-text { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:13px; font-weight:400 !important; line-height:20px; letter-spacing:0.02em; color:#7b8294; }
+        .log-legal-text span, .log-legal-text a { font-weight:400 !important; }
         .log-legal-text a { color:#202532; text-decoration:underline; transition:color .3s; }
         .log-legal-text a:hover { opacity:.75; }
         .log-dev { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:13px; font-weight:400 !important; line-height:20px; letter-spacing:0.02em; color:#7b8294; text-decoration:none; text-align:center; display:block; transition:color .3s; }
         .log-dev:hover { color:#202532; }
+
+        .log-ssl-badge { position:fixed; left:20px; bottom:18px; display:flex; align-items:center; gap:6px; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:11px; font-weight:400 !important; letter-spacing:0.22px; color:#98A2B3; user-select:none; z-index:30; transition:color .3s; }
+        .log-ssl-badge svg { width:11px; height:13px; flex-shrink:0; }
+        .log-root[data-theme="dark"] .log-ssl-badge { color:rgba(243,245,247,0.55); }
 
         /* ERROR */
         .log-error { width:271px; background:rgba(239,68,68,.08); color:#d53939; border-radius:10px; padding:10px 12px; font-size:12.5px; font-weight:500; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); text-align:left; }
@@ -306,10 +323,16 @@ export default function LoginPage() {
               {!emailView && legal}
             </div>
           </div>
-          {!emailView && <a className="log-dev" href="/dev">Dev Zugang</a>}
+          {!emailView && <a className="log-dev" href="/dev" onClick={e => { e.preventDefault(); navigateWithFade('/dev') }}>Dev Zugang</a>}
         </div>
       </div>
 
+      <div className="log-ssl-badge" aria-label="SSL verschlüsselt">
+        <svg viewBox="0 0 11 13" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M5.5 0.5C3.84315 0.5 2.5 1.84315 2.5 3.5V5H1.5C0.947715 5 0.5 5.44772 0.5 6V11.5C0.5 12.0523 0.947715 12.5 1.5 12.5H9.5C10.0523 12.5 10.5 12.0523 10.5 11.5V6C10.5 5.44772 10.0523 5 9.5 5H8.5V3.5C8.5 1.84315 7.15685 0.5 5.5 0.5ZM3.5 5V3.5C3.5 2.39543 4.39543 1.5 5.5 1.5C6.60457 1.5 7.5 2.39543 7.5 3.5V5H3.5Z" fill="currentColor"/>
+        </svg>
+        <span>SSL · End-to-End verschlüsselt</span>
+      </div>
     </main>
   )
 }
