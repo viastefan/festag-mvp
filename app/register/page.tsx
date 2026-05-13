@@ -176,7 +176,7 @@ export default function RegisterPage() {
         }
         .reg-desktop-title {
           font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
-          font-size: 24px;
+          font-size: 21px;
           font-weight: 500;
           color: #202532;
           white-space: nowrap;
