@@ -319,7 +319,7 @@ export default function RegisterPage() {
           border: 0.7px solid #e7ebf0;
           box-shadow: 0px 1px 2px 0px rgba(15,23,42,0.03);
         }
-        .reg-btn-outline:hover:not(:disabled) { background: #e7ebf0; }
+        .reg-btn-outline:hover:not(:disabled) { background: #F7F8FB; border: 1px solid #DCE1EA; }
 
         .reg-google-icon {
           width: 22px;
