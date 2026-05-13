@@ -14,10 +14,12 @@ const THEME_KEY = 'festag_theme'
 function mapAuthError(msg: string): string {
   if (msg.includes('rate limit') || msg.includes('too many') || msg.includes('Email rate'))
     return 'Zu viele Versuche. Bitte warte einen Moment.'
-  if (msg.includes('invalid') || msg.includes('Invalid'))
-    return 'Ungültiger Code oder E-Mail-Adresse.'
+  if (msg.includes('sending') || msg.includes('email') || msg.includes('unexpected'))
+    return 'E-Mail-Versand vorübergehend nicht möglich. Versuche es gleich erneut oder kontaktiere uns.'
   if (msg.includes('expired'))
     return 'Code ist abgelaufen. Bitte fordere einen neuen an.'
+  if (msg.includes('invalid') || msg.includes('Invalid'))
+    return 'Ungültiger Code oder E-Mail-Adresse.'
   return 'Etwas ist schiefgelaufen. Bitte versuche es erneut.'
 }
 

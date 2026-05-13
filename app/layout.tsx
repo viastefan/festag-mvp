@@ -53,6 +53,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           }}
         />
         <style dangerouslySetInnerHTML={{ __html: `
+          html { scrollbar-gutter: stable both-edges; }
           html[data-theme="dark"]  { background:#0F141B; color-scheme:dark; }
           html[data-theme="light"] { background:#fcfcfd; color-scheme:light; }
           html[data-theme="dark"]  body { background:#0F141B; }
