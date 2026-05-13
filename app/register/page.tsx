@@ -178,9 +178,10 @@ export default function RegisterPage() {
             0px 12px 32px 0px rgba(15,23,42,0.03),
             0px 1px 2px 0px rgba(15,23,42,0.03);
           display: flex;
+          flex-direction: column;
           align-items: center;
-          justify-content: center;
-          padding: 48px 0 40px;
+          padding: 48px 0 0;
+          padding-bottom: env(safe-area-inset-bottom, 0px);
         }
         .reg-mobile-shell {
           width: 271px;
@@ -188,6 +189,7 @@ export default function RegisterPage() {
           flex-direction: column;
           gap: 9px;
           align-items: center;
+          padding-bottom: 32px;
         }
         .reg-logo-mobile {
           font-family: 'Qurova DEMO', serif;
@@ -226,7 +228,7 @@ export default function RegisterPage() {
           line-height: 20px;
           text-align: center;
           display: block;
-          padding: 20px 0 24px;
+          margin-top: 24px;
         }
         .reg-dev-mobile:hover { color: #2e2f33; }
 
@@ -385,9 +387,9 @@ export default function RegisterPage() {
               <Buttons googleLogo={googleLogoMobile} />
               <Legal />
             </div>
+            <a className="reg-dev-mobile" href="/dev">Dev Zugang</a>
           </div>
         </div>
-        <a className="reg-dev-mobile" href="/dev">Dev Zugang</a>
       </div>
 
     </main>
