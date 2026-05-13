@@ -3,8 +3,8 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
-const googleLogoDesktop = "https://www.figma.com/api/mcp/asset/c42cac16-4843-46d5-8661-84e5ad01f2e7"
-const googleLogoMobile  = "https://www.figma.com/api/mcp/asset/cbe9a366-2f79-4e18-85ad-abd2c1a35b3d"
+const googleLogoDesktop = "https://www.figma.com/api/mcp/asset/2d95a3fa-8a28-4d90-9503-9e821fad862d"
+const googleLogoMobile  = "https://www.figma.com/api/mcp/asset/e985d996-ec21-4574-a535-8231cc2e9c38"
 
 export default function RegisterPage() {
   const supabase = createClient()
@@ -46,34 +46,24 @@ export default function RegisterPage() {
     setSuccess(true)
   }
 
-  const buttons = (isMobile: boolean) => {
-    const googleLogo = isMobile ? googleLogoMobile : googleLogoDesktop
-    if (success) {
-      return (
-        <p className="reg-success">
-          Bestätigungsmail gesendet! Bitte prüfe dein Postfach.
-        </p>
-      )
-    }
-    if (!emailView) {
-      return (
-        <div className="reg-btn-stack">
-          <button className="reg-btn reg-btn-google" type="button" onClick={handleGoogle} disabled={oauthLoading}>
-            {oauthLoading
-              ? <span className="reg-loader" />
-              : <img className="reg-google-icon" src={googleLogo} alt="" />
-            }
-            <span>Mit Goole verbinden</span>
-          </button>
-          <button className="reg-btn reg-btn-outline" type="button" onClick={() => { setError(''); setEmailView(true) }}>
-            <span>E-Mail verwenden</span>
-          </button>
-          <button className="reg-btn reg-btn-outline" type="button" onClick={() => setError('SAM SSO ist noch nicht verfügbar.')}>
-            <span>SAM SSO verwenden</span>
-          </button>
-        </div>
-      )
-    }
+  function Buttons({ googleLogo }: { googleLogo: string }) {
+    if (success) return (
+      <p className="reg-success">Bestätigungsmail gesendet! Bitte prüfe dein Postfach.</p>
+    )
+    if (!emailView) return (
+      <div className="reg-btn-stack">
+        <button className="reg-btn reg-btn-google" type="button" onClick={handleGoogle} disabled={oauthLoading}>
+          {oauthLoading ? <span className="reg-loader" /> : <img className="reg-google-icon" src={googleLogo} alt="" />}
+          <span>Mit Goole verbinden</span>
+        </button>
+        <button className="reg-btn reg-btn-outline" type="button" onClick={() => { setError(''); setEmailView(true) }}>
+          E-Mail verwenden
+        </button>
+        <button className="reg-btn reg-btn-outline" type="button" onClick={() => setError('SAM SSO ist noch nicht verfügbar.')}>
+          SAM SSO verwenden
+        </button>
+      </div>
+    )
     return (
       <div className="reg-btn-stack">
         <input className="reg-input" type="email" autoComplete="email" placeholder="E-Mail-Adresse" value={email} onChange={e => setEmail(e.target.value)} />
@@ -84,13 +74,13 @@ export default function RegisterPage() {
           <span>{loading ? 'Konto wird erstellt…' : 'Registrieren'}</span>
         </button>
         <button className="reg-btn reg-btn-outline" type="button" onClick={() => { setError(''); setEmailView(false) }}>
-          <span>Zurück</span>
+          Zurück
         </button>
       </div>
     )
   }
 
-  const legal = (
+  const Legal = () => (
     <div className="reg-legal">
       <p className="reg-legal-text">
         Secure, AI-orchestrated software Delivery. Mit Ihrer Anmeldung bestätigen Sie unsere{' '}
@@ -106,7 +96,7 @@ export default function RegisterPage() {
   return (
     <main className="reg-root">
       <style>{`
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         .reg-root {
           min-height: 100dvh;
@@ -116,7 +106,7 @@ export default function RegisterPage() {
           text-rendering: geometricPrecision;
         }
 
-        /* ── DESKTOP ─────────────────────────────────── */
+        /* ─── DESKTOP ──────────────────────────────────────── */
         .reg-desktop {
           display: flex;
           min-height: 100dvh;
@@ -128,7 +118,7 @@ export default function RegisterPage() {
           width: 271px;
           display: flex;
           flex-direction: column;
-          gap: 32px;
+          gap: 24px;
           align-items: center;
           transform: translateY(-3vh);
         }
@@ -139,7 +129,7 @@ export default function RegisterPage() {
           gap: 24px;
           align-items: center;
         }
-        .reg-logo {
+        .reg-logo-desktop {
           font-family: 'Qurova DEMO', serif;
           font-size: 24px;
           font-weight: 500;
@@ -148,45 +138,31 @@ export default function RegisterPage() {
           width: 100%;
           line-height: normal;
         }
-        .reg-desktop-titles {
-          display: flex;
-          flex-direction: column;
-          gap: 2px;
-          align-items: center;
-          width: 100%;
-        }
         .reg-desktop-title {
           font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
-          font-size: 22px;
-          font-weight: 500;
+          font-size: 25px;
+          font-weight: 700;
           color: #2e2f33;
           white-space: nowrap;
           line-height: normal;
-        }
-        .reg-desktop-subtitle {
-          font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
-          font-size: 14px;
-          font-weight: 400;
-          color: #6b7280;
-          letter-spacing: 0.28px;
           text-align: center;
-          line-height: normal;
+          width: 100%;
         }
         .reg-dev-desktop {
           position: fixed;
           right: 28px;
           bottom: 24px;
           font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
-          font-size: 13px;
+          font-size: 11px;
           font-weight: 500;
           color: #6b7280;
           text-decoration: none;
-          letter-spacing: 0.26px;
+          letter-spacing: 0.22px;
           line-height: 20px;
         }
         .reg-dev-desktop:hover { color: #2e2f33; }
 
-        /* ── MOBILE ──────────────────────────────────── */
+        /* ─── MOBILE ───────────────────────────────────────── */
         .reg-mobile {
           display: none;
           min-height: 100dvh;
@@ -211,51 +187,51 @@ export default function RegisterPage() {
           width: 271px;
           display: flex;
           flex-direction: column;
-          gap: 40px;
+          gap: 9px;
           align-items: center;
         }
-        .reg-mobile-header {
-          width: 212px;
+        .reg-logo-mobile {
+          font-family: 'Qurova DEMO', serif;
+          font-size: 20px;
+          font-weight: 500;
+          color: #000;
+          text-align: center;
+          line-height: 47px;
+          height: 35px;
+          width: 100%;
+        }
+        .reg-mobile-inner {
+          width: 100%;
           display: flex;
           flex-direction: column;
+          gap: 32px;
           align-items: center;
-          gap: 0;
         }
         .reg-mobile-title {
-          font-size: 28px;
-          font-weight: 500;
-          color: #2e2f33;
-          line-height: 47px;
-          white-space: nowrap;
-          text-align: center;
-        }
-        .reg-mobile-title-festag {
-          font-family: 'Qurova DEMO', serif;
-        }
-        .reg-mobile-subtitle {
           font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
-          font-size: 14px;
-          font-weight: 400;
-          color: #6b7280;
-          letter-spacing: 0.28px;
+          font-size: 28px;
+          font-weight: 700;
+          color: #2e2f33;
+          white-space: nowrap;
+          line-height: 47px;
           text-align: center;
-          line-height: normal;
-          width: 100%;
+          height: 35px;
         }
         .reg-dev-mobile {
           font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
-          font-size: 13px;
+          font-size: 12px;
           font-weight: 400;
           color: #6b7280;
           text-decoration: none;
-          letter-spacing: 0.26px;
+          letter-spacing: 0.24px;
           line-height: 20px;
-          padding: 24px 30px;
+          text-align: center;
           display: block;
+          padding: 20px 0 24px;
         }
         .reg-dev-mobile:hover { color: #2e2f33; }
 
-        /* ── SHARED COMPONENTS ───────────────────────── */
+        /* ─── SHARED ───────────────────────────────────────── */
         .reg-btn-stack {
           width: 271px;
           display: flex;
@@ -324,11 +300,7 @@ export default function RegisterPage() {
           font-weight: 400;
           line-height: 20px;
         }
-        .reg-login-link a {
-          color: #2e2f33;
-          text-decoration: underline;
-          text-decoration-color: #2e2f33;
-        }
+        .reg-login-link a { color: #2e2f33; text-decoration: underline; }
         .reg-input {
           width: 100%;
           height: 47px;
@@ -380,7 +352,7 @@ export default function RegisterPage() {
         }
         @keyframes regSpin { to { transform: rotate(360deg); } }
 
-        /* ── BREAKPOINT ──────────────────────────────── */
+        /* ─── BREAKPOINT ───────────────────────────────────── */
         @media (max-width: 640px) {
           .reg-desktop { display: none; }
           .reg-mobile  { display: flex; }
@@ -391,15 +363,12 @@ export default function RegisterPage() {
       <div className="reg-desktop">
         <section className="reg-desktop-shell" aria-label="Festag Registrierung">
           <div className="reg-desktop-header">
-            <p className="reg-logo">festag</p>
-            <div className="reg-desktop-titles">
-              <h1 className="reg-desktop-title">Neu bei festag</h1>
-              <p className="reg-desktop-subtitle">Bei Festag registrieren</p>
-            </div>
+            <p className="reg-logo-desktop">festag</p>
+            <h1 className="reg-desktop-title">Willkommen bei festag</h1>
           </div>
           {error && <p className="reg-error">{error}</p>}
-          {buttons(false)}
-          {legal}
+          <Buttons googleLogo={googleLogoDesktop} />
+          <Legal />
         </section>
         <a className="reg-dev-desktop" href="/dev">Dev Zugang</a>
       </div>
@@ -408,15 +377,13 @@ export default function RegisterPage() {
       <div className="reg-mobile" aria-label="Festag Registrierung">
         <div className="reg-mobile-card">
           <div className="reg-mobile-shell">
-            <div className="reg-mobile-header">
-              <p className="reg-mobile-title">
-                Neu bei <span className="reg-mobile-title-festag">festag</span>
-              </p>
-              <p className="reg-mobile-subtitle">Bei Festag registrieren</p>
+            <p className="reg-logo-mobile">festag</p>
+            <div className="reg-mobile-inner">
+              <h1 className="reg-mobile-title">Willkommen</h1>
+              {error && <p className="reg-error">{error}</p>}
+              <Buttons googleLogo={googleLogoMobile} />
+              <Legal />
             </div>
-            {error && <p className="reg-error">{error}</p>}
-            {buttons(true)}
-            {legal}
           </div>
         </div>
         <a className="reg-dev-mobile" href="/dev">Dev Zugang</a>
