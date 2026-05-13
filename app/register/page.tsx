@@ -3,8 +3,8 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
-const googleLogoDesktop = "https://www.figma.com/api/mcp/asset/ce1effbe-637d-4838-9deb-cf333f458e5d"
-const googleLogoMobile  = "https://www.figma.com/api/mcp/asset/1f66bf20-13f7-43a3-a1ba-abbc287fe4e1"
+const googleLogoDesktop = "https://www.figma.com/api/mcp/asset/ac5179d1-bb52-459e-9ef7-23c9c6233b4a"
+const googleLogoMobile  = "https://www.figma.com/api/mcp/asset/9029d041-7c9a-43a1-b1f2-5d0867aad46f"
 
 export default function RegisterPage() {
   const supabase = createClient()
@@ -146,7 +146,7 @@ export default function RegisterPage() {
         .reg-desktop {
           display: flex;
           min-height: 100dvh;
-          background: #fcfcfc;
+          background: #fcfcfd;
           align-items: center;
           justify-content: center;
         }
@@ -169,19 +169,20 @@ export default function RegisterPage() {
           font-family: 'Qurova DEMO', serif;
           font-size: 24px;
           font-weight: 500;
-          color: #2e2f33;
+          color: #202532;
           text-align: center;
           width: 100%;
           line-height: normal;
         }
         .reg-desktop-title {
           font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
-          font-size: 25px;
+          font-size: 24px;
           font-weight: 500;
-          color: #2e2f33;
+          color: #202532;
           white-space: nowrap;
           line-height: normal;
           text-align: center;
+          letter-spacing: 0.24px;
           width: 100%;
         }
         .reg-dev-desktop {
@@ -191,12 +192,12 @@ export default function RegisterPage() {
           font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
           font-size: 11px;
           font-weight: 500;
-          color: #6b7280;
+          color: #7b8294;
           text-decoration: none;
           letter-spacing: 0.22px;
           line-height: 20px;
         }
-        .reg-dev-desktop:hover { color: #2e2f33; }
+        .reg-dev-desktop:hover { color: #202532; }
 
         /* ─── MOBILE ──────────────────────────────────────── */
         .reg-mobile {
@@ -211,7 +212,7 @@ export default function RegisterPage() {
           position: absolute;
           left: 0; right: 0; bottom: 0;
           top: 24px;
-          background: #fcfcfc;
+          background: #fcfcfd;
           border-radius: 36px 36px 0 0;
           box-shadow:
             0px 2px 8px 0px rgba(15,23,42,0.02),
@@ -258,24 +259,25 @@ export default function RegisterPage() {
           font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
           font-size: 28px;
           font-weight: 500;
-          color: #2e2f33;
+          color: #202532;
           white-space: nowrap;
           line-height: 47px;
           text-align: center;
+          letter-spacing: 0.28px;
           height: 35px;
         }
         .reg-dev-mobile {
           font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
           font-size: 12px;
           font-weight: 400;
-          color: #6b7280;
+          color: #7b8294;
           text-decoration: none;
           letter-spacing: 0.24px;
           line-height: 20px;
           text-align: center;
           display: block;
         }
-        .reg-dev-mobile:hover { color: #2e2f33; }
+        .reg-dev-mobile:hover { color: #202532; }
 
         /* ─── SHARED ──────────────────────────────────────── */
         .reg-btn-stack {
@@ -313,7 +315,7 @@ export default function RegisterPage() {
         .reg-btn-google:hover:not(:disabled) { background: #505870; }
         .reg-btn-outline {
           background: #fff;
-          color: #2e2f33;
+          color: #202532;
           border: 0.7px solid #e7ebf0;
           box-shadow: 0px 1px 2px 0px rgba(15,23,42,0.03);
         }
@@ -331,7 +333,7 @@ export default function RegisterPage() {
           flex-direction: column;
           gap: 16px;
           text-align: center;
-          color: #98a2b3;
+          color: #7b8294;
           letter-spacing: 0.26px;
         }
         .reg-legal-text {
@@ -339,17 +341,19 @@ export default function RegisterPage() {
           font-size: 13px;
           font-weight: 400;
           line-height: 20px;
+          letter-spacing: 0.02em;
         }
-        .reg-legal-text a { color: #2e2f33; text-decoration: none; }
+        .reg-legal-text a { color: #202532; text-decoration: none; }
         .reg-legal-text a:hover { text-decoration: underline; }
         .reg-login-link {
           font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
           font-size: 13px;
           font-weight: 400;
           line-height: 20px;
-          color: #98a2b3;
+          letter-spacing: 0.02em;
+          color: #7b8294;
         }
-        .reg-login-link a { color: #2e2f33; text-decoration: underline; }
+        .reg-login-link a { color: #202532; text-decoration: underline; }
         .reg-input {
           width: 100%;
           height: 47px;
