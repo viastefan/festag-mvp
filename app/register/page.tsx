@@ -269,7 +269,7 @@ export default function RegisterPage() {
         Zugang erstellt?{' '}
         <a href="/login" onClick={e => { e.preventDefault(); navigateWithFade('/login') }}>Hier anmelden</a>
       </p>
-      <a className="reg-dev" href="/dev" onClick={e => { e.preventDefault(); navigateWithFade('/dev') }}>Dev Zugang</a>
+      <a className="reg-dev" href="/dev" onClick={e => { e.preventDefault(); navigateWithFade('/dev/login') }}>Dev Zugang</a>
     </div>
   )
 
@@ -354,7 +354,7 @@ export default function RegisterPage() {
         .reg-ssl-badge { position:fixed; left:20px; bottom:18px; display:flex; align-items:center; gap:6px; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:11px; font-weight:400 !important; letter-spacing:0.22px; color:#98A2B3; user-select:none; z-index:30; transition:color .3s; }
         .reg-ssl-badge svg { width:11px; height:13px; flex-shrink:0; }
 
-        .reg-error { width:271px; background:rgba(239,68,68,.08); color:#d53939; border-radius:10px; padding:10px 12px; font-size:12.5px; font-weight:500; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); text-align:left; }
+        .reg-error { width:271px; background:rgba(239,68,68,.05); color:#c0362e; border-radius:10px; padding:9px 12px; font-size:12.5px; font-weight:500 !important; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); text-align:left; letter-spacing:0.01em; line-height:1.45; }
         .reg-success { width:271px; background:rgba(34,197,94,.08); color:#16a34a; border-radius:10px; padding:10px 12px; font-size:12.5px; font-weight:500; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); }
         .reg-loader { width:16px; height:16px; border-radius:999px; border:2px solid rgba(255,255,255,.35); border-top-color:#fff; animation:regSpin .75s linear infinite; flex-shrink:0; }
         @keyframes regSpin { to { transform:rotate(360deg); } }

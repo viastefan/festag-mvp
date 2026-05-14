@@ -262,7 +262,7 @@ export default function LoginPage() {
         {' '}oder{' '}
         <a href="/agb" onClick={e => { e.preventDefault(); navigateWithFade('/agb') }}>mehr dazu</a>
       </p>
-      <a className="log-dev" href="/dev" onClick={e => { e.preventDefault(); navigateWithFade('/dev') }}>Dev Zugang</a>
+      <a className="log-dev" href="/dev" onClick={e => { e.preventDefault(); navigateWithFade('/dev/login') }}>Dev Zugang</a>
     </div>
   )
 
@@ -364,7 +364,7 @@ export default function LoginPage() {
         .log-root[data-theme="dark"] .log-ssl-badge { color:rgba(243,245,247,0.55); }
 
         /* ERROR */
-        .log-error { width:271px; background:rgba(239,68,68,.08); color:#d53939; border-radius:10px; padding:10px 12px; font-size:12.5px; font-weight:500; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); text-align:left; }
+        .log-error { width:271px; background:rgba(239,68,68,.05); color:#c0362e; border-radius:10px; padding:9px 12px; font-size:12.5px; font-weight:500 !important; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); text-align:left; letter-spacing:0.01em; line-height:1.45; }
         .log-loader { width:16px; height:16px; border-radius:999px; border:2px solid rgba(255,255,255,.35); border-top-color:#fff; animation:logSpin .75s linear infinite; flex-shrink:0; }
         @keyframes logSpin { to { transform:rotate(360deg); } }
 
@@ -440,7 +440,7 @@ export default function LoginPage() {
               {!emailView && legal}
             </div>
           </div>
-          {!emailView && <a className="log-dev" href="/dev" onClick={e => { e.preventDefault(); navigateWithFade('/dev') }}>Dev Zugang</a>}
+          {!emailView && <a className="log-dev" href="/dev" onClick={e => { e.preventDefault(); navigateWithFade('/dev/login') }}>Dev Zugang</a>}
         </div>
       </div>
 

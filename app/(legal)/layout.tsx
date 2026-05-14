@@ -78,50 +78,56 @@ export default function LegalLayout({ children }: { children: React.ReactNode })
         .legal-nav-links a[aria-current="page"] { color: var(--legal-text); }
 
         .legal-main {
-          max-width: 720px;
+          max-width: 680px;
           margin: 0 auto;
-          padding: 56px 32px 96px;
+          padding: 72px 32px 96px;
         }
         .legal-back {
           display:inline-flex; align-items:center; gap:6px;
-          font-size:13px; color: var(--legal-text-muted);
+          font-size:13px; font-weight:500;
+          color: var(--legal-text-muted);
           text-decoration:none;
-          margin-bottom: 32px;
-          letter-spacing:.02em;
+          margin-bottom: 56px;
+          letter-spacing:0.01em;
           transition: color .15s;
         }
         .legal-back:hover { color: var(--legal-text); }
 
         .legal h1 {
-          font-size: 34px; font-weight: 600;
-          letter-spacing: -.6px;
-          line-height: 1.15;
-          margin: 0 0 12px;
+          font-size: 30px; font-weight: 500;
+          letter-spacing: -0.01em;
+          line-height: 1.18;
+          margin: 0 0 14px;
           color: var(--legal-text);
         }
         .legal .lead {
-          font-size: 16px; line-height: 1.6;
+          font-size: 15px; line-height: 1.6; font-weight: 500;
           color: var(--legal-text-muted);
-          margin: 0 0 40px;
+          letter-spacing: 0.01em;
+          margin: 0 0 56px;
+          max-width: 560px;
         }
         .legal h2 {
-          font-size: 18px; font-weight: 500;
-          margin: 40px 0 12px;
+          font-size: 16px; font-weight: 500;
+          margin: 48px 0 14px;
           color: var(--legal-text);
-          letter-spacing:-.1px;
+          letter-spacing: 0.01em;
         }
         .legal h3 {
-          font-size: 15px; font-weight: 500;
+          font-size: 14px; font-weight: 500;
           margin: 28px 0 8px;
           color: var(--legal-text);
+          letter-spacing: 0.01em;
         }
         .legal p, .legal li {
-          font-size: 14.5px;
-          line-height: 1.75;
+          font-size: 14px;
+          line-height: 1.7;
+          font-weight: 500;
+          letter-spacing: 0.01em;
           color: var(--legal-text-secondary);
         }
-        .legal p { margin: 0 0 14px; }
-        .legal ul, .legal ol { padding-left: 22px; margin: 8px 0 16px; }
+        .legal p { margin: 0 0 12px; }
+        .legal ul, .legal ol { padding-left: 22px; margin: 8px 0 14px; }
         .legal li { margin: 4px 0; }
         .legal strong { color: var(--legal-text); font-weight: 500; }
         .legal a { color: var(--legal-link); text-decoration: underline; text-underline-offset: 2px; }
@@ -129,7 +135,7 @@ export default function LegalLayout({ children }: { children: React.ReactNode })
           border: none;
           height: 1px;
           background: var(--legal-border);
-          margin: 40px 0;
+          margin: 48px 0;
         }
         .legal-meta {
           margin-top: 56px;

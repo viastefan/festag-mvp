@@ -21,7 +21,7 @@ export default function DevLayout({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const session = getStoredDevSession()
     if (!session) {
-      window.location.href = '/login'
+      window.location.href = '/dev/login'
       return
     }
     setDevInfo(session)
