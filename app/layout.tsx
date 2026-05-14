@@ -54,7 +54,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           }}
         />
         <style dangerouslySetInnerHTML={{ __html: `
-          html { scrollbar-gutter: stable both-edges; }
+          /* Force scrollbar track always visible so content width never jumps
+             when navigating between pages of different scroll height. */
+          html { overflow-y: scroll; }
           html[data-theme="dark"]  { background:#0A0E14; color-scheme:dark; }
           html[data-theme="read"]  { background:#E6DFCE; color-scheme:light; }
           html[data-theme="light"] { background:#fcfcfd; color-scheme:light; }

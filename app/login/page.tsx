@@ -47,7 +47,7 @@ export default function LoginPage() {
   function navigateWithFade(href: string) {
     router.prefetch(href)
     setPageExiting(true)
-    setTimeout(() => router.push(href), 200)
+    setTimeout(() => router.push(href), 160)
   }
 
   useEffect(() => {
@@ -208,14 +208,6 @@ export default function LoginPage() {
         <button className="log-btn log-btn-outline" type="button" onClick={switchToEmail}>E-Mail verwenden</button>
         {lastMethod === 'email' && <p className="log-hint">Du hast dich zuletzt damit angemeldet</p>}
       </div>
-      <div className="log-btn-group">
-        <button className="log-btn log-btn-outline" type="button" onClick={() => setError('SAM SSO ist noch nicht verfügbar.')}>SAM SSO verwenden</button>
-        {lastMethod === 'sso' && <p className="log-hint">Du hast dich zuletzt damit angemeldet</p>}
-      </div>
-      <div className="log-btn-group">
-        <button className="log-btn log-btn-outline" type="button" onClick={() => setError('Passkey-Anmeldung ist noch nicht verfügbar.')}>Passkey verwenden</button>
-        {lastMethod === 'passkey' && <p className="log-hint">Du hast dich zuletzt damit angemeldet</p>}
-      </div>
     </div>
   )
 
@@ -315,10 +307,10 @@ export default function LoginPage() {
     <main className={`log-root${pageExiting ? ' exiting' : ''}`} data-theme={theme}>
       <style>{`
         *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
-        .log-root { min-height:100dvh; width:100%; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); -webkit-font-smoothing:antialiased; text-rendering:geometricPrecision; transition: opacity 0.22s cubic-bezier(0.4,0,0.2,1); }
+        .log-root { min-height:100dvh; width:100%; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); -webkit-font-smoothing:antialiased; text-rendering:geometricPrecision; transition: opacity 0.16s linear; }
         .log-root.exiting { opacity:0; pointer-events:none; }
-        @keyframes logPageEnter { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
-        .log-root:not(.exiting) { animation: logPageEnter 0.28s cubic-bezier(0.4,0,0.2,1) both; }
+        @keyframes logPageEnter { from { opacity:0; } to { opacity:1; } }
+        .log-root:not(.exiting) { animation: logPageEnter 0.18s linear both; }
 
         /* BUTTON ANIMATION */
         .log-btn:active:not(:disabled) { transform:scale(0.97); transition:transform 0.08s ease !important; }

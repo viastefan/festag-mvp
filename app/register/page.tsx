@@ -58,7 +58,7 @@ export default function RegisterPage() {
   function navigateWithFade(href: string) {
     router.prefetch(href)
     setPageExiting(true)
-    setTimeout(() => router.push(href), 200)
+    setTimeout(() => router.push(href), 160)
   }
 
   useEffect(() => {
@@ -178,7 +178,6 @@ export default function RegisterPage() {
         <span>Mit Google verbinden</span>
       </button>
       <button className="reg-btn reg-btn-outline" type="button" onClick={() => goTo('email')}>E-Mail verwenden</button>
-      <button className="reg-btn reg-btn-outline" type="button" onClick={() => setError('SAM SSO ist noch nicht verfügbar.')}>SAM SSO verwenden</button>
     </div>
   )
 
@@ -193,7 +192,6 @@ export default function RegisterPage() {
         <span>Mit Google verbinden</span>
       </button>
       <button className="reg-btn reg-btn-outline" type="button" onClick={() => goTo('email')}>E-Mail verwenden</button>
-      <button className="reg-btn reg-btn-outline" type="button" onClick={() => setError('SAM SSO ist noch nicht verfügbar.')}>SAM SSO verwenden</button>
     </div>
   )
 
@@ -282,10 +280,10 @@ export default function RegisterPage() {
     <main className={`reg-root${pageExiting ? ' exiting' : ''}`} data-theme={theme}>
       <style>{`
         *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
-        .reg-root { min-height:100dvh; width:100%; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); -webkit-font-smoothing:antialiased; text-rendering:geometricPrecision; transition: opacity 0.22s cubic-bezier(0.4,0,0.2,1); }
+        .reg-root { min-height:100dvh; width:100%; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); -webkit-font-smoothing:antialiased; text-rendering:geometricPrecision; transition: opacity 0.16s linear; }
         .reg-root.exiting { opacity:0; pointer-events:none; }
-        @keyframes regPageEnter { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
-        .reg-root:not(.exiting) { animation: regPageEnter 0.28s cubic-bezier(0.4,0,0.2,1) both; }
+        @keyframes regPageEnter { from { opacity:0; } to { opacity:1; } }
+        .reg-root:not(.exiting) { animation: regPageEnter 0.18s linear both; }
         .reg-btn:active:not(:disabled) { transform:scale(0.97); transition:transform 0.08s ease !important; }
         .reg-content { width:100%; display:flex; flex-direction:column; gap:20px; transition:opacity 0.18s ease, transform 0.18s ease; }
         .reg-content.animating { opacity:0; transform:translateY(6px); }
