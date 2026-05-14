@@ -49,7 +49,7 @@ export default function RegisterPage() {
     try {
       localStorage.setItem(THEME_KEY, t)
       document.documentElement.setAttribute('data-theme', t)
-      document.documentElement.style.backgroundColor = t === 'dark' ? '#0F141B' : '#fcfcfd'
+      document.documentElement.style.backgroundColor = t === 'dark' ? '#0A0E14' : '#fcfcfd'
       document.documentElement.style.colorScheme = t
     } catch {}
   }
@@ -296,7 +296,7 @@ export default function RegisterPage() {
         .reg-theme-mobile  { position:absolute; right:20px; top:48px; z-index:20; }
 
         .reg-desktop { display:flex; min-height:100dvh; background:#fcfcfd; align-items:center; justify-content:center; position:relative; transition:background .3s; }
-        .reg-desktop-shell { width:271px; display:flex; flex-direction:column; gap:24px; align-items:center; }
+        .reg-desktop-shell { width:271px; display:flex; flex-direction:column; gap:24px; align-items:center; min-height:540px; justify-content:flex-start; padding-top:48px; }
         .reg-desktop-header { width:100%; display:flex; flex-direction:column; gap:24px; align-items:center; }
         .reg-logo-desktop { font-family:'Qurova DEMO',serif; font-size:24px; font-weight:500; color:#202532; text-align:center; width:100%; line-height:normal; transition:color .3s; }
         .reg-desktop-title { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:21px; font-weight:500; color:#202532; line-height:normal; text-align:center; letter-spacing:0.21px; width:100%; transition:color .3s; }
@@ -365,26 +365,27 @@ export default function RegisterPage() {
         @media (max-width: 640px) { .reg-desktop { display:none; } .reg-mobile { display:block; } }
 
         /* ═══ DARK MODE ═══ */
-        .reg-root[data-theme="dark"] .reg-desktop { background:#0F141B; }
-        .reg-root[data-theme="dark"] .reg-mobile  { background:#0F141B; }
-        .reg-root[data-theme="dark"] .reg-mobile-card { background:#141B25; box-shadow:0px 2px 8px 0px rgba(0,0,0,0.3),0px 12px 32px 0px rgba(0,0,0,0.2); }
+        .reg-root[data-theme="dark"] .reg-desktop { background:#0A0E14; }
+        .reg-root[data-theme="dark"] .reg-mobile  { background:#0A0E14; }
+        .reg-root[data-theme="dark"] .reg-mobile-card { background:#0F141B; box-shadow:0px 2px 8px 0px rgba(0,0,0,0.3),0px 12px 32px 0px rgba(0,0,0,0.2); }
         .reg-root[data-theme="dark"] .reg-logo-desktop,
         .reg-root[data-theme="dark"] .reg-logo-mobile,
         .reg-root[data-theme="dark"] .reg-desktop-title,
         .reg-root[data-theme="dark"] .reg-mobile-title,
-        .reg-root[data-theme="dark"] .reg-mobile-title-email { color:#F3F5F7; }
-        .reg-root[data-theme="dark"] .reg-btn-outline { background:rgba(243,245,247,0.06); color:#F3F5F7; border:0.7px solid rgba(243,245,247,0.12); box-shadow:none; }
-        .reg-root[data-theme="dark"] .reg-btn-outline:hover:not(:disabled) { background:rgba(243,245,247,0.1); border:1px solid rgba(243,245,247,0.2); }
-        .reg-root[data-theme="dark"] .reg-btn-confirm { background:#F3F5F7; color:#202532; box-shadow:0px 8px 24px 0px rgba(0,0,0,0.35); }
-        .reg-root[data-theme="dark"] .reg-btn-confirm:hover:not(:disabled) { background:#FFFFFF; }
-        .reg-root[data-theme="dark"] .reg-email-input { background:rgba(243,245,247,0.06); color:#F3F5F7; border:1px solid rgba(102,112,143,0.15); caret-color:#66708F; }
-        .reg-root[data-theme="dark"] .reg-email-input::placeholder { color:rgba(102,112,143,0.6); }
-        .reg-root[data-theme="dark"] .reg-email-input:focus { border-color:#66708F; box-shadow:0 0 0 3px rgba(102,112,143,0.15); }
-        .reg-root[data-theme="dark"] .reg-legal-text, .reg-root[data-theme="dark"] .reg-legal-muted { color:#98A2B3; }
-        .reg-root[data-theme="dark"] .reg-legal-text a, .reg-root[data-theme="dark"] .reg-login-link a { color:#F3F5F7; }
-        .reg-root[data-theme="dark"] .reg-login-link { color:#98A2B3; }
-        .reg-root[data-theme="dark"] .reg-back { color:#98A2B3; }
-        .reg-root[data-theme="dark"] .reg-back:hover { color:#F3F5F7; }
+        .reg-root[data-theme="dark"] .reg-mobile-title-email { color:#E8E8E5; }
+        .reg-root[data-theme="dark"] .reg-btn-google { box-shadow:0px 1px 2px rgba(0,0,0,0.4); }
+        .reg-root[data-theme="dark"] .reg-btn-outline { background:rgba(243,245,247,0.035); color:#E8E8E5; border:0.7px solid rgba(243,245,247,0.08); box-shadow:none; }
+        .reg-root[data-theme="dark"] .reg-btn-outline:hover:not(:disabled) { background:rgba(243,245,247,0.06); border:1px solid rgba(243,245,247,0.14); }
+        .reg-root[data-theme="dark"] .reg-btn-confirm { background:#E8E8E5; color:#0A0E14; box-shadow:0px 8px 24px 0px rgba(0,0,0,0.35); }
+        .reg-root[data-theme="dark"] .reg-btn-confirm:hover:not(:disabled) { background:#F3F5F7; }
+        .reg-root[data-theme="dark"] .reg-email-input { background:rgba(243,245,247,0.035); color:#E8E8E5; border:1px solid rgba(102,112,143,0.10); caret-color:#66708F; }
+        .reg-root[data-theme="dark"] .reg-email-input::placeholder { color:rgba(102,112,143,0.5); }
+        .reg-root[data-theme="dark"] .reg-email-input:focus { border-color:rgba(102,112,143,0.5); box-shadow:0 0 0 3px rgba(102,112,143,0.10); }
+        .reg-root[data-theme="dark"] .reg-legal-text, .reg-root[data-theme="dark"] .reg-legal-muted { color:#7B8294; }
+        .reg-root[data-theme="dark"] .reg-legal-text a, .reg-root[data-theme="dark"] .reg-login-link a { color:#E8E8E5; }
+        .reg-root[data-theme="dark"] .reg-login-link { color:#7B8294; }
+        .reg-root[data-theme="dark"] .reg-back { color:#7B8294; }
+        .reg-root[data-theme="dark"] .reg-back:hover { color:#E8E8E5; }
         .reg-root[data-theme="dark"] .reg-link-action { color:#98A2B3; }
         .reg-root[data-theme="dark"] .reg-link-action:hover { color:#F3F5F7; }
         .reg-root[data-theme="dark"] .reg-sent-info { color:#98A2B3; }

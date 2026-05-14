@@ -17,8 +17,10 @@ export default function DevLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const [devInfo, setDevInfo] = useState<DevSession | null>(null)
   const [checking, setChecking] = useState(true)
+  const isDevLogin = pathname === '/dev/login'
 
   useEffect(() => {
+    if (isDevLogin) { setChecking(false); return } // login screen runs standalone
     const session = getStoredDevSession()
     if (!session) {
       window.location.href = '/dev/login'
@@ -26,21 +28,19 @@ export default function DevLayout({ children }: { children: React.ReactNode }) {
     }
     setDevInfo(session)
     setChecking(false)
-  }, [])
+  }, [isDevLogin])
 
   function logout() {
     clearStoredDevSession()
     window.location.href = '/login'
   }
 
+  // Login screen renders without the dev sidebar/shell to avoid any flash
+  if (isDevLogin) return <>{children}</>
+
   if (checking) {
     return (
-      <div className="dev-loading">
-        <div>
-          <p>Execution layer initializing</p>
-          <h1>Developer Workspace wird vorbereitet.</h1>
-        </div>
-      </div>
+      <div className="dev-loading" />
     )
   }
 

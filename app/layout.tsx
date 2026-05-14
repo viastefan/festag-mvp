@@ -43,20 +43,23 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             __html: `
 (function(){try{
   var t = localStorage.getItem('festag_theme');
-  if (t !== 'light' && t !== 'dark') t = 'dark';
-  document.documentElement.setAttribute('data-theme', t);
-  var bg = t === 'dark' ? '#0F141B' : '#fcfcfd';
+  if (t !== 'light' && t !== 'dark' && t !== 'read') t = 'dark';
+  var attr = (t === 'read') ? 'read' : t;
+  document.documentElement.setAttribute('data-theme', attr);
+  var bg = t === 'dark' ? '#0A0E14' : t === 'read' ? '#E6DFCE' : '#fcfcfd';
   document.documentElement.style.backgroundColor = bg;
-  document.documentElement.style.colorScheme = t;
+  document.documentElement.style.colorScheme = t === 'dark' ? 'dark' : 'light';
 }catch(e){}})();
             `.trim(),
           }}
         />
         <style dangerouslySetInnerHTML={{ __html: `
           html { scrollbar-gutter: stable both-edges; }
-          html[data-theme="dark"]  { background:#0F141B; color-scheme:dark; }
+          html[data-theme="dark"]  { background:#0A0E14; color-scheme:dark; }
+          html[data-theme="read"]  { background:#E6DFCE; color-scheme:light; }
           html[data-theme="light"] { background:#fcfcfd; color-scheme:light; }
-          html[data-theme="dark"]  body { background:#0F141B; }
+          html[data-theme="dark"]  body { background:#0A0E14; }
+          html[data-theme="read"]  body { background:#E6DFCE; }
           html[data-theme="light"] body { background:#fcfcfd; }
         `}} />
       </head>
