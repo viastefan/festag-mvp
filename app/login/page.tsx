@@ -150,7 +150,7 @@ export default function LoginPage() {
     setLoading(false)
     if (verifyError) { setError(mapAuthError(verifyError.message)); return }
     saveMethod('email')
-    window.location.href = '/dashboard'
+    window.location.href = '/loading'
   }
 
   const themeSwitcher = (

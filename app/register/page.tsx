@@ -139,7 +139,7 @@ export default function RegisterPage() {
     })
     setLoading(false)
     if (verifyError) { setError(mapAuthError(verifyError.message)); return }
-    window.location.href = '/onboarding'
+    window.location.href = '/loading'
   }
 
   const desktopTitle =
