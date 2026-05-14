@@ -289,9 +289,9 @@ export default function LoginPage() {
     <div className="log-legal">
       <p className="log-legal-text">
         Kein Konto?{' '}
-        <a href="/register" onClick={e => { e.preventDefault(); navigateWithFade('/register') }}>Hier registrieren</a>
+        <a href="/register" onClick={e => { e.preventDefault(); navigateWithFade('/register') }}>Hier&nbsp;registrieren</a>
         {' '}oder{' '}
-        <a href="/agb" onClick={e => { e.preventDefault(); navigateWithFade('/agb') }}>mehr dazu</a>
+        <a href="/agb" onClick={e => { e.preventDefault(); navigateWithFade('/agb') }}>mehr&nbsp;dazu</a>
       </p>
       <a className="log-dev" href="/dev" onClick={e => { e.preventDefault(); navigateWithFade('/dev/login') }}>Dev Zugang</a>
     </div>
@@ -429,8 +429,8 @@ export default function LoginPage() {
         .log-root[data-theme="dark"] .log-mobile-title,
         .log-root[data-theme="dark"] .log-mobile-title-email { color:#E8E8E5; }
 
-        /* Google primary button: kill the warm-gold glow in dark mode */
-        .log-root[data-theme="dark"] .log-btn-google { box-shadow:0px 1px 2px rgba(0,0,0,0.4); }
+        /* Google primary button in dark mode: NO shadow at all — sits flat */
+        .log-root[data-theme="dark"] .log-btn-google { box-shadow:none !important; }
 
         .log-root[data-theme="dark"] .log-btn-outline { background:rgba(243,245,247,0.035); color:#E8E8E5; border:0.7px solid rgba(243,245,247,0.08); box-shadow:none; }
         .log-root[data-theme="dark"] .log-btn-outline:hover:not(:disabled) { background:rgba(243,245,247,0.06); border:1px solid rgba(243,245,247,0.14); }

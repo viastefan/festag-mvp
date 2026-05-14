@@ -272,7 +272,7 @@ export default function RegisterPage() {
       </p>
       <p className="reg-login-link">
         Zugang erstellt?{' '}
-        <a href="/login" onClick={e => { e.preventDefault(); navigateWithFade('/login') }}>Hier anmelden</a>
+        <a href="/login" onClick={e => { e.preventDefault(); navigateWithFade('/login') }}>Hier&nbsp;anmelden</a>
       </p>
       <a className="reg-dev" href="/dev" onClick={e => { e.preventDefault(); navigateWithFade('/dev/login') }}>Dev Zugang</a>
     </div>
@@ -374,7 +374,7 @@ export default function RegisterPage() {
         .reg-root[data-theme="dark"] .reg-desktop-title,
         .reg-root[data-theme="dark"] .reg-mobile-title,
         .reg-root[data-theme="dark"] .reg-mobile-title-email { color:#E8E8E5; }
-        .reg-root[data-theme="dark"] .reg-btn-google { box-shadow:0px 1px 2px rgba(0,0,0,0.4); }
+        .reg-root[data-theme="dark"] .reg-btn-google { box-shadow:none !important; }
         .reg-root[data-theme="dark"] .reg-btn-outline { background:rgba(243,245,247,0.035); color:#E8E8E5; border:0.7px solid rgba(243,245,247,0.08); box-shadow:none; }
         .reg-root[data-theme="dark"] .reg-btn-outline:hover:not(:disabled) { background:rgba(243,245,247,0.06); border:1px solid rgba(243,245,247,0.14); }
         .reg-root[data-theme="dark"] .reg-btn-confirm { background:#E8E8E5; color:#0A0E14; box-shadow:0px 8px 24px 0px rgba(0,0,0,0.35); }
