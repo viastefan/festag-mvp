@@ -1,22 +1,11 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { Suspense, useEffect, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import FestagLoader from '@/components/FestagLoader'
 
-/**
- * Client-side fallback for the magic-link callback when the server-side
- * PKCE exchange could not find the code_verifier cookie. This happens when
- * the user opens the email link on a different device than the one that
- * started the sign-in. Here we try the same exchange from the browser,
- * which still has the verifier in its own storage / cookies.
- *
- * Routes:
- *  - success -> /loading?next=... -> /onboarding or /dashboard
- *  - failure -> /login?error=link_expired (with a friendly retry message)
- */
-export default function AuthRecoverPage() {
+function RecoverInner() {
   const router = useRouter()
   const params = useSearchParams()
   const supabase = createClient()
@@ -34,7 +23,6 @@ export default function AuthRecoverPage() {
       try {
         const { error } = await supabase.auth.exchangeCodeForSession(code)
         if (error) { setStage('failed'); return }
-        // Persist device hint so we can recognise this browser next time
         try {
           const { data: { user } } = await supabase.auth.getUser()
           if (user?.email) {
@@ -59,4 +47,12 @@ export default function AuthRecoverPage() {
   }, [stage, router])
 
   return <FestagLoader fullscreen label={stage === 'failed' ? 'Link nicht mehr gültig…' : 'Anmeldung wird abgeschlossen…'} />
+}
+
+export default function AuthRecoverPage() {
+  return (
+    <Suspense fallback={<FestagLoader fullscreen label="Anmeldung wird abgeschlossen…" />}>
+      <RecoverInner />
+    </Suspense>
+  )
 }

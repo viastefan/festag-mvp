@@ -1,20 +1,11 @@
 'use client'
 
-import { useEffect } from 'react'
+import { Suspense, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import FestagLoader from '@/components/FestagLoader'
 
-/**
- * Transitional loader page shown:
- * - after email PIN entry / magic-link verification
- * - between auth callback and onboarding/dashboard
- *
- * Optional `?next=/route` decides where to go after the session is confirmed.
- * If a session exists, we look up onboarding state and route to /onboarding
- * (incomplete) or /dashboard (done).
- */
-export default function LoadingPage() {
+function LoadingInner() {
   const router = useRouter()
   const params = useSearchParams()
   const supabase = createClient()
@@ -24,7 +15,6 @@ export default function LoadingPage() {
     let cancelled = false
 
     async function decide() {
-      // Small minimum hold so the loader feels intentional, not glitchy.
       const start = Date.now()
       const { data: { session } } = await supabase.auth.getSession()
       if (cancelled) return
@@ -53,4 +43,12 @@ export default function LoadingPage() {
   }, [router, supabase, params])
 
   return <FestagLoader fullscreen label="Festag wird vorbereitet…" />
+}
+
+export default function LoadingPage() {
+  return (
+    <Suspense fallback={<FestagLoader fullscreen label="Festag wird vorbereitet…" />}>
+      <LoadingInner />
+    </Suspense>
+  )
 }
