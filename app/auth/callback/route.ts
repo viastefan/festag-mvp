@@ -13,6 +13,12 @@ function safeRedirectPath(value: string | null) {
   return value
 }
 
+function pickPostAuthTarget(requested: string, onboardingCompleted: boolean) {
+  if (!onboardingCompleted) return '/onboarding'
+  if (requested === '/loading' || requested === '/onboarding') return '/dashboard'
+  return requested
+}
+
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get('code')
@@ -29,9 +35,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(loginUrl)
   }
 
-  // Default success goes through /loading so the user sees the polished
-  // transition while we decide between /onboarding and /dashboard.
-  const response = NextResponse.redirect(new URL(next, requestUrl.origin))
+  const cookiesToSet: { name: string; value: string; options: CookieOptions }[] = []
   const cookieStore = cookies()
 
   const supabase = createServerClient(SUPABASE_URL, SUPABASE_KEY, {
@@ -39,17 +43,16 @@ export async function GET(request: NextRequest) {
       getAll() {
         return cookieStore.getAll()
       },
-      setAll(cookiesToSet: { name: string; value: string; options: CookieOptions }[]) {
-        cookiesToSet.forEach(({ name, value, options }) => {
-          response.cookies.set(name, value, options)
-        })
+      setAll(nextCookies: { name: string; value: string; options: CookieOptions }[]) {
+        cookiesToSet.push(...nextCookies)
       },
     },
   })
+  let authenticatedUser: any = null
 
   // Path A: PKCE flow (?code=...)
   if (code) {
-    const { error } = await supabase.auth.exchangeCodeForSession(code)
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code)
     if (error) {
       // Server-side PKCE failed (most common reason: the code_verifier
       // cookie is on a different device — user opened the email link
@@ -60,15 +63,17 @@ export async function GET(request: NextRequest) {
       fallback.searchParams.set('next', next)
       return NextResponse.redirect(fallback)
     }
+    authenticatedUser = data.session?.user ?? null
   }
   // Path B: OTP token_hash flow (?token_hash=...&type=email)
   else if (tokenHash && type) {
-    const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type })
+    const { data, error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type })
     if (error) {
       const loginUrl = new URL('/login', requestUrl.origin)
       loginUrl.searchParams.set('error', 'link_expired')
       return NextResponse.redirect(loginUrl)
     }
+    authenticatedUser = data.user ?? null
   }
   // Path C: neither — invalid callback
   else {
@@ -78,10 +83,19 @@ export async function GET(request: NextRequest) {
   }
 
   // Record device hint on success (best-effort, fail silently)
+  let target = next
   try {
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { user } } = authenticatedUser
+      ? { data: { user: authenticatedUser } }
+      : await supabase.auth.getUser()
     if (user) {
-      const ua = request.headers.get('user-agent') || ''
+      const { data: onboarding } = await supabase
+        .from('onboarding_state')
+        .select('completed_at')
+        .eq('user_id', user.id)
+        .maybeSingle()
+      target = pickPostAuthTarget(next, Boolean(onboarding?.completed_at))
+
       const displayName =
         (user.user_metadata as any)?.full_name ||
         (user.user_metadata as any)?.name ||
@@ -103,5 +117,9 @@ export async function GET(request: NextRequest) {
     }
   } catch { /* best-effort */ }
 
+  const response = NextResponse.redirect(new URL(target, requestUrl.origin))
+  cookiesToSet.forEach(({ name, value, options }) => {
+    response.cookies.set(name, value, options)
+  })
   return response
 }

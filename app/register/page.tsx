@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { rememberFestagAccount } from '@/lib/auth-device-memory'
+import { resolvePostAuthTarget } from '@/lib/auth-client-routing'
 
 const googleLogoDesktop = "/google-symbol.svg"
 const googleLogoMobile  = "/google-symbol.svg"
@@ -93,7 +95,7 @@ export default function RegisterPage() {
     setOauthLoading(true)
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/auth/callback?next=/loading` },
+      options: { redirectTo: `${window.location.origin}/auth/callback?next=/onboarding` },
     })
     if (oauthError) { setError(mapAuthError(oauthError.message)); setOauthLoading(false) }
   }
@@ -102,7 +104,7 @@ export default function RegisterPage() {
     const { error: otpError } = await supabase.auth.signInWithOtp({
       email: email.trim(),
       options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback?next=/loading`,
+        emailRedirectTo: `${window.location.origin}/auth/callback?next=/onboarding`,
         shouldCreateUser: true,
       },
     })
@@ -140,11 +142,22 @@ export default function RegisterPage() {
     })
     setLoading(false)
     if (verifyError) { setError(mapAuthError(verifyError.message)); return }
+    const { data: { session } } = await supabase.auth.getSession()
+    const target = session ? await resolvePostAuthTarget(supabase, session.user.id) : '/onboarding'
     try {
-      localStorage.setItem('festag_last_email', email.trim())
-      localStorage.setItem('festag_last_method', 'email')
+      if (session) {
+        rememberFestagAccount({
+          userId: session.user.id,
+          email: email.trim(),
+          method: 'email',
+          onboardingCompleted: target === '/dashboard',
+        })
+      } else {
+        localStorage.setItem('festag_last_email', email.trim())
+        localStorage.setItem('festag_last_method', 'email')
+      }
     } catch {}
-    window.location.href = '/loading'
+    window.location.href = target
   }
 
   const desktopTitle =

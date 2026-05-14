@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { getLastFestagEmail, getLastFestagMethod, rememberFestagAccount } from '@/lib/auth-device-memory'
+import { resolvePostAuthTarget } from '@/lib/auth-client-routing'
 
 type Method = 'google' | 'email' | 'sso' | 'passkey'
 type Theme = 'light' | 'dark'
@@ -25,6 +27,10 @@ function mapAuthError(msg: string): string {
   return 'Etwas ist schiefgelaufen. Bitte versuche es erneut.'
 }
 
+function inferSessionMethod(user: any): Method {
+  return user?.app_metadata?.provider === 'google' ? 'google' : 'email'
+}
+
 export default function LoginPage() {
   const supabase = createClient()
   const router = useRouter()
@@ -40,6 +46,11 @@ export default function LoginPage() {
   const [theme, setThemeState] = useState<Theme>('dark')
   const [lastMethod, setLastMethod] = useState<Method | null>(null)
   const [lastEmail, setLastEmail] = useState<string | null>(null)
+  const [supportOpen, setSupportOpen] = useState(false)
+  const [supportEmail, setSupportEmail] = useState('')
+  const [supportMessage, setSupportMessage] = useState('')
+  const [supportSending, setSupportSending] = useState(false)
+  const [supportSent, setSupportSent] = useState(false)
   const emailRef = useRef<HTMLInputElement>(null)
   const codeRef = useRef<HTMLInputElement>(null)
   const emailView = emailStep !== 'main'
@@ -50,26 +61,44 @@ export default function LoginPage() {
     setTimeout(() => router.push(href), 160)
   }
 
+  async function routeSessionIfPresent() {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) return false
+
+    const target = await resolvePostAuthTarget(supabase, session.user.id)
+    rememberFestagAccount({
+      userId: session.user.id,
+      email: session.user.email ?? null,
+      method: lastMethod ?? inferSessionMethod(session.user),
+      onboardingCompleted: target === '/dashboard',
+    })
+    window.location.href = target
+    return true
+  }
+
   useEffect(() => {
-    const stored = localStorage.getItem(METHOD_KEY) as Method | null
+    routeSessionIfPresent()
+    const stored = getLastFestagMethod() as Method | null
     setLastMethod(stored)
     const storedTheme = localStorage.getItem(THEME_KEY)
     if (storedTheme === 'light' || storedTheme === 'dark') setThemeState(storedTheme)
     else if (storedTheme === 'read') setThemeState('light') // reading mode → light auth page
     try {
-      const e = localStorage.getItem('festag_last_email')
+      const e = getLastFestagEmail()
       if (e && /\S+@\S+\.\S+/.test(e)) setLastEmail(e)
     } catch {}
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   async function continueAsLastUser() {
+    if (await routeSessionIfPresent()) return
     if (!lastEmail) return
     setEmail(lastEmail)
     setError(''); setLoading(true)
     const { error: otpError } = await supabase.auth.signInWithOtp({
       email: lastEmail.trim(),
       options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback?next=/loading`,
+        emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
         shouldCreateUser: false,
       },
     })
@@ -77,6 +106,14 @@ export default function LoginPage() {
     if (otpError) { setError(mapAuthError(otpError.message)); return }
     saveMethod('email')
     goTo('emailSent')
+  }
+
+  function handleEmailButton() {
+    if (lastEmail && lastMethod === 'email') {
+      continueAsLastUser()
+      return
+    }
+    switchToEmail()
   }
 
   function setTheme(t: Theme) {
@@ -129,7 +166,7 @@ export default function LoginPage() {
     setOauthLoading(true)
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/auth/callback?next=/loading` },
+      options: { redirectTo: `${window.location.origin}/auth/callback?next=/dashboard` },
     })
     if (oauthError) { setError(mapAuthError(oauthError.message)); setOauthLoading(false) }
   }
@@ -138,7 +175,7 @@ export default function LoginPage() {
     const { error: otpError } = await supabase.auth.signInWithOtp({
       email: email.trim(),
       options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback?next=/loading`,
+        emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
         shouldCreateUser: false,
       },
     })
@@ -173,8 +210,58 @@ export default function LoginPage() {
     setLoading(false)
     if (verifyError) { setError(mapAuthError(verifyError.message)); return }
     saveMethod('email')
-    try { localStorage.setItem('festag_last_email', email.trim()) } catch {}
-    window.location.href = '/loading'
+    const { data: { session } } = await supabase.auth.getSession()
+    const target = session ? await resolvePostAuthTarget(supabase, session.user.id) : '/dashboard'
+    if (session) {
+      rememberFestagAccount({
+        userId: session.user.id,
+        email: email.trim(),
+        method: 'email',
+        onboardingCompleted: target === '/dashboard',
+      })
+    } else {
+      try { localStorage.setItem('festag_last_email', email.trim()) } catch {}
+    }
+    window.location.href = target
+  }
+
+  function openSupportModal() {
+    setSupportSent(false)
+    setSupportEmail(email)
+    setSupportMessage(
+      email
+        ? `Ich finde meine Anmelde-E-Mail nicht mehr. Vermutete Adresse: ${email}`
+        : 'Ich finde meine Anmelde-E-Mail nicht mehr und brauche Hilfe beim Zugriff auf mein Festag-Konto.'
+    )
+    setSupportOpen(true)
+  }
+
+  async function sendSupportRequest() {
+    const message = [
+      supportMessage.trim(),
+      supportEmail.trim() ? `Kontakt-E-Mail: ${supportEmail.trim()}` : '',
+    ].filter(Boolean).join('\n\n')
+
+    if (!message) {
+      setError('Bitte beschreibe kurz, womit wir helfen können.')
+      return
+    }
+
+    setSupportSending(true)
+    setError('')
+    try {
+      const res = await fetch('/api/support/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message, page: '/login' }),
+      })
+      if (!res.ok) throw new Error('support failed')
+      setSupportSent(true)
+      setSupportMessage('')
+    } catch {
+      setError('Support-Anfrage konnte gerade nicht gesendet werden. Bitte versuche es gleich erneut.')
+    }
+    setSupportSending(false)
   }
 
   const themeSwitcher = (
@@ -186,13 +273,6 @@ export default function LoginPage() {
 
   const mainButtons = (
     <div className="log-btn-stack">
-      {lastEmail && lastMethod === 'email' && (
-        <button className="log-known-device" type="button" onClick={continueAsLastUser} disabled={loading}>
-          <span className="log-known-label">Letzte Anmeldung</span>
-          <span className="log-known-email">{lastEmail}</span>
-          <span className="log-known-cta">{loading ? 'Wird gesendet…' : 'Code anfordern →'}</span>
-        </button>
-      )}
       <div className="log-btn-group">
         <button className="log-btn log-btn-google" type="button" onClick={handleGoogle} disabled={oauthLoading}>
           {oauthLoading ? <span className="log-loader" /> : (
@@ -205,7 +285,9 @@ export default function LoginPage() {
         {lastMethod === 'google' && <p className="log-hint">Du hast dich zuletzt damit angemeldet</p>}
       </div>
       <div className="log-btn-group">
-        <button className="log-btn log-btn-outline" type="button" onClick={switchToEmail}>E-Mail verwenden</button>
+        <button className="log-btn log-btn-outline" type="button" onClick={handleEmailButton} disabled={loading}>
+          {loading && lastEmail && lastMethod === 'email' ? 'Wird geöffnet…' : 'E-Mail verwenden'}
+        </button>
         {lastMethod === 'email' && <p className="log-hint">Du hast dich zuletzt damit angemeldet</p>}
       </div>
       <div className="log-btn-group">
@@ -247,6 +329,9 @@ export default function LoginPage() {
       <button className="log-link-action" type="button" onClick={handleResend} disabled={resending}>
         {resending ? 'Wird gesendet…' : 'Link erneut senden'}
       </button>
+      <p className="log-support-note">
+        Anmelde-E-Mail vergessen? <button type="button" onClick={openSupportModal}>Support kontaktieren</button>
+      </p>
       <button className="log-back" type="button" onClick={switchBack}>Zurück</button>
     </div>
   )
@@ -277,6 +362,9 @@ export default function LoginPage() {
       <button className="log-link-action" type="button" onClick={handleResend} disabled={resending}>
         {resending ? 'Wird gesendet…' : 'Anmeldecode erneut senden'}
       </button>
+      <p className="log-support-note">
+        Anmelde-E-Mail vergessen? <button type="button" onClick={openSupportModal}>Support kontaktieren</button>
+      </p>
       <button className="log-back" type="button" onClick={switchBack}>Zurück</button>
     </div>
   )
@@ -350,22 +438,6 @@ export default function LoginPage() {
         /* SHARED BUTTONS */
         .log-btn-stack { width:271px; display:flex; flex-direction:column; gap:20px; }
 
-        /* KNOWN DEVICE CARD — appears at top of stack when we recognise the email */
-        .log-known-device {
-          width:100%; display:flex; flex-direction:column; gap:2px;
-          padding:14px 18px; border-radius:14px;
-          background:rgba(91,100,125,0.05);
-          border:1px solid rgba(91,100,125,0.12);
-          font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
-          color:#202532; text-align:left; cursor:pointer;
-          transition: background .15s, border-color .15s, transform .25s cubic-bezier(0.34,1.56,0.64,1);
-        }
-        .log-known-device:hover { background:rgba(91,100,125,0.08); border-color:rgba(91,100,125,0.2); }
-        .log-known-device:active:not(:disabled) { transform:scale(0.98); transition: transform .08s ease; }
-        .log-known-device:disabled { opacity:.55; cursor:not-allowed; }
-        .log-known-label { font-size:11px; font-weight:500; letter-spacing:0.06em; opacity:.5; text-transform:uppercase; }
-        .log-known-email { font-size:14px; font-weight:500; letter-spacing:0.01em; }
-        .log-known-cta { font-size:12px; font-weight:500; letter-spacing:0.01em; opacity:.65; margin-top:2px; }
         .log-btn-group { display:flex; flex-direction:column; gap:6px; }
         .log-hint { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:12px; font-weight:400 !important; color:#7b8294; text-align:center; letter-spacing:0.24px; }
         .log-btn { width:100%; height:47px; border-radius:32px; border:none; display:flex; align-items:center; justify-content:center; gap:8px; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:14px; font-weight:500; letter-spacing:0.14px; cursor:pointer; padding:12px 45px; white-space:nowrap; overflow:hidden; transition:background .15s, opacity .15s, border-color .15s, color .15s, transform 0.25s cubic-bezier(0.34,1.56,0.64,1); transform-origin:center; }
@@ -393,6 +465,27 @@ export default function LoginPage() {
         .log-sent-info { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:14px; font-weight:400 !important; line-height:20px; letter-spacing:0.14px; text-align:center; color:#7b8294; margin:8px 0 16px; }
         .log-sent-info strong { color:#202532; font-weight:500; }
         .log-code-input { text-align:center; letter-spacing:0.4em; font-size:15px; }
+        .log-support-note { margin:-4px 0 0; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:12.5px; line-height:18px; font-weight:400 !important; color:#7b8294; text-align:center; letter-spacing:0.01em; }
+        .log-support-note button { border:0; background:transparent; padding:0; color:#202532; font:inherit; font-weight:400 !important; text-decoration:underline; cursor:pointer; }
+
+        /* SUPPORT MODAL */
+        .log-support-backdrop { position:fixed; inset:0; z-index:90; display:flex; align-items:center; justify-content:center; padding:20px; background:rgba(10,14,20,.28); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); animation:logModalFade .16s ease both; }
+        .log-support-modal { width:min(360px, 100%); border-radius:18px; border:1px solid rgba(91,100,125,.14); background:#fcfcfd; box-shadow:0 24px 70px rgba(15,23,42,.18), 0 6px 20px rgba(15,23,42,.08); padding:18px; animation:logModalPop .18s cubic-bezier(.16,1,.3,1) both; }
+        .log-support-head { display:flex; align-items:flex-start; justify-content:space-between; gap:14px; margin-bottom:14px; }
+        .log-support-head h2 { margin:0; color:#202532; font-size:17px; line-height:1.18; font-weight:500; letter-spacing:0.01em; }
+        .log-support-head p { margin:5px 0 0; color:#7b8294; font-size:12.5px; line-height:18px; font-weight:400 !important; letter-spacing:0.01em; }
+        .log-support-close { width:28px; height:28px; border-radius:9px; border:1px solid rgba(91,100,125,.12); background:transparent; color:#7b8294; font-size:16px; line-height:1; cursor:pointer; }
+        .log-support-field { display:flex; flex-direction:column; gap:6px; margin-bottom:10px; }
+        .log-support-field span { color:#7b8294; font-size:11px; line-height:16px; font-weight:500 !important; letter-spacing:.04em; text-transform:uppercase; }
+        .log-support-field input,
+        .log-support-field textarea { width:100%; border-radius:12px; border:1px solid rgba(91,100,125,.16); background:#fff; color:#202532; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:13.5px; font-weight:400 !important; outline:none; padding:11px 12px; resize:none; box-shadow:0 1px 2px rgba(15,23,42,.03); }
+        .log-support-field input:focus,
+        .log-support-field textarea:focus { border-color:rgba(91,100,125,.42); box-shadow:0 0 0 3px rgba(91,100,125,.10); }
+        .log-support-actions { display:flex; gap:8px; margin-top:14px; }
+        .log-support-actions .log-btn { height:40px; border-radius:14px; padding:0 14px; font-size:13px; }
+        .log-support-success { margin:8px 0 2px; color:#202532; font-size:13px; line-height:19px; text-align:center; font-weight:400 !important; }
+        @keyframes logModalFade { from{opacity:0;} to{opacity:1;} }
+        @keyframes logModalPop { from{opacity:0; transform:translateY(8px) scale(.98);} to{opacity:1; transform:none;} }
 
         /* LEGAL */
         .log-legal { width:271px; display:flex; flex-direction:column; gap:16px; text-align:center; }
@@ -448,8 +541,17 @@ export default function LoginPage() {
         .log-root[data-theme="dark"] .log-link-action:hover { color:#F3F5F7; }
         .log-root[data-theme="dark"] .log-sent-info { color:#98A2B3; }
         .log-root[data-theme="dark"] .log-sent-info strong { color:#F3F5F7; }
-        .log-root[data-theme="dark"] .log-known-device { background:rgba(243,245,247,0.04); border-color:rgba(243,245,247,0.10); color:#F3F5F7; }
-        .log-root[data-theme="dark"] .log-known-device:hover { background:rgba(243,245,247,0.08); border-color:rgba(243,245,247,0.18); }
+        .log-root[data-theme="dark"] .log-support-note { color:#98A2B3; }
+        .log-root[data-theme="dark"] .log-support-note button { color:#F3F5F7; }
+        .log-root[data-theme="dark"] .log-support-backdrop { background:rgba(0,0,0,.42); }
+        .log-root[data-theme="dark"] .log-support-modal { background:#0F141B; border-color:rgba(243,245,247,.10); box-shadow:0 24px 70px rgba(0,0,0,.44); }
+        .log-root[data-theme="dark"] .log-support-head h2,
+        .log-root[data-theme="dark"] .log-support-success { color:#F3F5F7; }
+        .log-root[data-theme="dark"] .log-support-head p,
+        .log-root[data-theme="dark"] .log-support-field span { color:#98A2B3; }
+        .log-root[data-theme="dark"] .log-support-close { border-color:rgba(243,245,247,.10); color:#98A2B3; }
+        .log-root[data-theme="dark"] .log-support-field input,
+        .log-root[data-theme="dark"] .log-support-field textarea { background:rgba(243,245,247,0.035); color:#F3F5F7; border-color:rgba(243,245,247,.10); }
 
         .log-root[data-theme="dark"] .log-theme-pill { border-color:rgba(243,245,247,0.18); color:rgba(243,245,247,0.45); }
         .log-root[data-theme="dark"] .log-theme-pill.active { background:#F3F5F7; border-color:#F3F5F7; color:#2e2f33; }
@@ -499,6 +601,46 @@ export default function LoginPage() {
         </svg>
         <span>SSL · End-to-End verschlüsselt</span>
       </div>
+
+      {supportOpen && (
+        <div className="log-support-backdrop" role="dialog" aria-modal="true" aria-labelledby="login-support-title">
+          <div className="log-support-modal">
+            <div className="log-support-head">
+              <div>
+                <h2 id="login-support-title">Zugang wiederfinden</h2>
+                <p>Schreib uns kurz, welche E-Mail oder Firma zu deinem Konto gehört. Wir melden uns direkt bei dir.</p>
+              </div>
+              <button className="log-support-close" type="button" onClick={() => setSupportOpen(false)} aria-label="Support schließen">×</button>
+            </div>
+
+            {supportSent ? (
+              <>
+                <p className="log-support-success">Danke, deine Anfrage ist angekommen. Wir prüfen den Zugang und melden uns bei dir.</p>
+                <div className="log-support-actions">
+                  <button className="log-btn log-btn-confirm" type="button" onClick={() => setSupportOpen(false)}>Schließen</button>
+                </div>
+              </>
+            ) : (
+              <>
+                <label className="log-support-field">
+                  <span>Kontakt-E-Mail</span>
+                  <input value={supportEmail} onChange={event => setSupportEmail(event.target.value)} placeholder="name@firma.de" type="email" />
+                </label>
+                <label className="log-support-field">
+                  <span>Nachricht</span>
+                  <textarea value={supportMessage} onChange={event => setSupportMessage(event.target.value)} rows={4} placeholder="Ich brauche Hilfe beim Login..." />
+                </label>
+                <div className="log-support-actions">
+                  <button className="log-btn log-btn-outline" type="button" onClick={() => setSupportOpen(false)}>Abbrechen</button>
+                  <button className="log-btn log-btn-confirm" type="button" onClick={sendSupportRequest} disabled={supportSending}>
+                    {supportSending ? 'Wird gesendet…' : 'Anfrage senden'}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </main>
   )
 }
