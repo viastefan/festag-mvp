@@ -45,12 +45,42 @@ export default function OnboardingPage() {
 
   useEffect(() => {
     setLocalTheme(getTheme())
-    supabase.auth.getSession().then(({ data }) => {
-      if (!data.session) { router.replace('/login'); return }
-      setUserId(data.session.user.id)
-      const meta: any = data.session.user.user_metadata || {}
+    let cancelled = false
+    ;(async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (cancelled) return
+      if (!session) { router.replace('/login'); return }
+      const uid = session.user.id
+      setUserId(uid)
+      const meta: any = session.user.user_metadata || {}
       if (meta.full_name || meta.name) setFullName(meta.full_name || meta.name)
-    })
+
+      // Resume from saved progress: read onboarding_state + existing profile fields
+      const [{ data: state }, { data: profile }, { data: brief }] = await Promise.all([
+        supabase.from('onboarding_state').select('current_step,completed_at').eq('user_id', uid).maybeSingle(),
+        supabase.from('profiles').select('full_name,position,work_mode,theme_pref').eq('id', uid).maybeSingle(),
+        supabase.from('onboarding_briefs').select('description').eq('user_id', uid).maybeSingle(),
+      ])
+      if (cancelled) return
+
+      if (state?.completed_at) { router.replace('/dashboard'); return }
+
+      // Pre-fill what's already saved
+      if (profile?.full_name && !fullName) setFullName(profile.full_name)
+      if (profile?.position) setPosition(profile.position)
+      if (profile?.work_mode) setWorkMode(profile.work_mode as WorkMode)
+      if (brief?.description) setProject(brief.description)
+      if (profile?.theme_pref === 'light' || profile?.theme_pref === 'read' || profile?.theme_pref === 'dark') {
+        setLocalTheme(profile.theme_pref as ThemeMode)
+      }
+
+      // Jump to saved step
+      const stepMap: Record<string, number> = { design:0, profile:1, project:2, team:3, invite:4 }
+      const idx = state?.current_step ? stepMap[state.current_step] : 0
+      if (typeof idx === 'number' && idx > 0 && idx < ALL_STEPS.length) setStepIdx(idx)
+    })()
+    return () => { cancelled = true }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router, supabase])
 
   // dynamic step list: skip 'invite' when working alone

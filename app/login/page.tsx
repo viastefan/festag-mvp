@@ -53,8 +53,9 @@ export default function LoginPage() {
   useEffect(() => {
     const stored = localStorage.getItem(METHOD_KEY) as Method | null
     setLastMethod(stored)
-    const storedTheme = localStorage.getItem(THEME_KEY) as Theme | null
+    const storedTheme = localStorage.getItem(THEME_KEY)
     if (storedTheme === 'light' || storedTheme === 'dark') setThemeState(storedTheme)
+    else if (storedTheme === 'read') setThemeState('light') // reading mode → light auth page
     try {
       const e = localStorage.getItem('festag_last_email')
       if (e && /\S+@\S+\.\S+/.test(e)) setLastEmail(e)

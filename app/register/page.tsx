@@ -40,8 +40,9 @@ export default function RegisterPage() {
   const codeRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    const stored = localStorage.getItem(THEME_KEY) as Theme | null
-    if (stored === 'light' || stored === 'dark') setThemeState(stored)
+    const stored = localStorage.getItem(THEME_KEY)
+    if (stored === 'light' || stored === 'dark') setThemeState(stored as Theme)
+    else if (stored === 'read') setThemeState('light') // reading mode → light auth page
   }, [])
 
   function setTheme(t: Theme) {
