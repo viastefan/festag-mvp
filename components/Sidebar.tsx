@@ -5,7 +5,6 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useState, useEffect } from 'react'
 import SidebarProfileFooter from '@/components/SidebarProfileFooter'
-import SupportButton from '@/components/SupportButton'
 import TeamsModal from '@/components/TeamsModal'
 import {
   House, FolderSimple, Sparkle, ChatCircle, ChartLineUp,
@@ -135,7 +134,6 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
 
   const isClient = true
   const isDev = false
-  const homeHref = '/dashboard'
   const topNav = CLIENT_TOP
   const coreNav = CLIENT_CORE
   const teamsNav = CLIENT_TEAMS
@@ -506,6 +504,67 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         .sb-icon-btn:focus-visible {
           box-shadow: 0 0 0 2px var(--focus-ring, rgba(64, 105, 225, 0.35));
         }
+        .sb-topbar {
+          display:flex;
+          align-items:center;
+          gap:5px;
+          padding:0 6px 11px;
+          flex-shrink:0;
+        }
+        .sb-topbar .spf-trigger {
+          min-height:32px;
+        }
+        .sb-top-icon {
+          width:30px;
+          height:30px;
+          border-radius:8px;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          color:var(--text-muted);
+          background:transparent;
+          border:1px solid transparent;
+          flex-shrink:0;
+        }
+        .sb-top-icon:hover {
+          color:var(--text);
+          background:rgba(0,0,0,0.035);
+        }
+        [data-theme="dark"] .sb-top-icon:hover { background:rgba(255,255,255,0.055); }
+        .sb-bottom-actions {
+          display:grid;
+          grid-template-columns:minmax(0,1fr) 42px;
+          gap:8px;
+          padding:10px 6px 2px;
+          flex-shrink:0;
+        }
+        .sb-pill-action,
+        .sb-square-action {
+          min-height:42px;
+          border:1px solid var(--border);
+          background:color-mix(in srgb, var(--surface) 76%, transparent);
+          color:var(--text);
+          border-radius:12px;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          text-decoration:none;
+          box-shadow:0 1px 2px rgba(0,0,0,.025);
+        }
+        .sb-pill-action {
+          gap:9px;
+          padding:0 13px;
+          font-size:13px;
+          font-weight:660;
+        }
+        .sb-square-action {
+          color:var(--text-secondary);
+        }
+        .sb-pill-action:hover,
+        .sb-square-action:hover {
+          background:var(--surface);
+          border-color:var(--border-strong);
+        }
 
         /* ── User dropdown row ── */
         .usr-row {
@@ -557,40 +616,43 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
 
       {/* ══ DESKTOP SIDEBAR ══ */}
       <aside className="sidebar" style={{ pointerEvents:'none' }}>
-        <div className="sidebar-inner" style={{ pointerEvents:'all', padding:'14px 8px 14px', display:'flex', flexDirection:'column' }}>
+        <div className="sidebar-inner" style={{ pointerEvents:'all', padding:'12px 8px 12px', display:'flex', flexDirection:'column' }}>
 
-          {/* Logo + Support */}
-          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 6px', marginBottom:10, gap:8 }}>
-            <Link href={homeHref} style={{ textDecoration:'none', display:'flex', alignItems:'center' }}>
-              <img src="/brand/logo.svg" alt="festag" style={{ height:17, display:'block', filter:'var(--logo-filter,none)' }}/>
-            </Link>
-          <div style={{ display:'flex', alignItems:'center', gap:4 }}>
-              {onCollapse && (
-                <button
-                  className="sb-icon-btn"
-                  type="button"
-                  onClick={onCollapse}
-                  title="Sidebar einklappen"
-                  aria-label="Sidebar einklappen"
-                  style={{ width:28, height:28, borderRadius:8, display:'flex', alignItems:'center', justifyContent:'center', color:'var(--text-muted)', background:'transparent', border:'1px solid transparent' }}
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="4" y="5" width="16" height="14" rx="3" />
-                    <path d="M9 5v14" />
-                  </svg>
-                </button>
-              )}
+          <div className="sb-topbar">
+            <SidebarProfileFooter
+              avatarColor={avBg}
+              avatarUrl={avatar}
+              displayName={name}
+              email={email}
+              initials={init}
+              isClient={isClient}
+              onAvatarColorChange={changeAvatarColor}
+              onLogout={logout}
+              plan={plan}
+            />
+            <button
+              className="sb-icon-btn sb-top-icon"
+              type="button"
+              onClick={() => window.dispatchEvent(new CustomEvent('open-command-palette'))}
+              title="Suchen"
+              aria-label="Suchen"
+            >
+              <Ico name="search" sz={14} c="currentColor" weight="regular" />
+            </button>
+            {onCollapse && (
               <button
-                className="sb-icon-btn"
+                className="sb-icon-btn sb-top-icon"
                 type="button"
-                onClick={() => window.dispatchEvent(new CustomEvent('open-command-palette'))}
-                title="Suchen"
-                style={{ width:28, height:28, borderRadius:8, display:'flex', alignItems:'center', justifyContent:'center', color:'var(--text-muted)', background:'transparent', border:'1px solid transparent' }}
+                onClick={onCollapse}
+                title="Sidebar einklappen"
+                aria-label="Sidebar einklappen"
               >
-                <Ico name="search" sz={14} c="currentColor" weight="regular" />
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="4" y="5" width="16" height="14" rx="3" />
+                  <path d="M9 5v14" />
+                </svg>
               </button>
-              <SupportButton />
-            </div>
+            )}
           </div>
 
           {/* Scrollable nav */}
@@ -729,17 +791,15 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
 
           </div>
 
-          <SidebarProfileFooter
-            avatarColor={avBg}
-            avatarUrl={avatar}
-            displayName={name}
-            email={email}
-            initials={init}
-            isClient={isClient}
-            onAvatarColorChange={changeAvatarColor}
-            onLogout={logout}
-            plan={plan}
-          />
+          <div className="sb-bottom-actions">
+            <Link href="/ai?view=chat" className="sb-pill-action">
+              <Ico name="sparkle" sz={16} c="currentColor" weight="regular" />
+              <span>Tagro AI</span>
+            </Link>
+            <Link href="/reports?new=1" className="sb-square-action" title="Statusbericht erstellen" aria-label="Statusbericht erstellen">
+              <Ico name="activity" sz={17} c="currentColor" weight="regular" />
+            </Link>
+          </div>
         </div>
       </aside>
 

@@ -21,8 +21,6 @@ import {
 import { AVATAR_COLORS, avatarTextColor } from '@/lib/avatar'
 import { getFontMode, getTheme, setFontMode, setTheme } from '@/lib/theme'
 import type { FontMode, ThemeMode } from '@/lib/theme'
-import { getVoicePreferences, setVoicePreferences } from '@/lib/voice'
-import type { VoicePreferences } from '@/lib/voice'
 
 type SidebarProfileFooterProps = {
   avatarColor: string
@@ -62,19 +60,15 @@ export default function SidebarProfileFooter({
   onLogout,
   plan,
 }: SidebarProfileFooterProps) {
-  const [designMenu, setDesignMenu] = useState(false)
   const [themeMode, setThemeMode] = useState<ThemeMode>('dark')
   const [fontMode, setFontModeState] = useState<FontMode>('aeonik')
-  const [voicePrefs, setVoicePrefs] = useState<VoicePreferences>(() => getVoicePreferences())
   const [userMenu, setUserMenu] = useState(false)
-  const [userMenuPosition, setUserMenuPosition] = useState({ left: 0, bottom: 0 })
-  const [designMenuPosition, setDesignMenuPosition] = useState({ left: 0, bottom: 0, width: 0 })
+  const [userMenuPosition, setUserMenuPosition] = useState({ left: 0, top: 0 })
   const footerRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
     setThemeMode(getTheme())
     setFontModeState(getFontMode())
-    setVoicePrefs(getVoicePreferences())
   }, [])
 
   useEffect(() => {
@@ -83,23 +77,18 @@ export default function SidebarProfileFooter({
       if (!rect) return
       setUserMenuPosition({
         left: Math.max(16, rect.left),
-        bottom: Math.max(16, window.innerHeight - rect.top + 8),
-      })
-      setDesignMenuPosition({
-        left: Math.max(16, rect.left),
-        bottom: Math.max(16, window.innerHeight - rect.top + 8),
-        width: rect.width,
+        top: Math.min(window.innerHeight - 24, rect.bottom + 8),
       })
     }
 
-    if (userMenu || designMenu) updatePosition()
+    if (userMenu) updatePosition()
     window.addEventListener('resize', updatePosition)
     window.addEventListener('scroll', updatePosition, true)
     return () => {
       window.removeEventListener('resize', updatePosition)
       window.removeEventListener('scroll', updatePosition, true)
     }
-  }, [userMenu, designMenu])
+  }, [userMenu])
 
   const currentPlanLabel = planLabel(plan)
   const avatarFg = avatarTextColor(avatarColor)
@@ -123,23 +112,23 @@ export default function SidebarProfileFooter({
   ]
 
   return (
-    <div ref={footerRef} style={{ paddingTop: 8, marginTop: 2, position: 'relative', display: 'flex', alignItems: 'center', gap: 4, zIndex: 40 }}>
+    <div ref={footerRef} style={{ width: '100%', position: 'relative', display: 'flex', alignItems: 'center', gap: 4, zIndex: 40 }}>
       {userMenu && typeof document !== 'undefined' && createPortal((
         <>
           <div style={{ position: 'fixed', inset: 0, zIndex: 119990 }} onClick={() => setUserMenu(false)} />
           <div style={{
             position: 'fixed',
             left: userMenuPosition.left,
-            bottom: userMenuPosition.bottom,
-            width: 286,
-            maxWidth: 'min(286px, calc(100vw - 32px))',
+            top: userMenuPosition.top,
+            width: 264,
+            maxWidth: 'min(264px, calc(100vw - 32px))',
             maxHeight: 'calc(100dvh - 28px)',
             background: 'var(--surface)',
             border: '1px solid var(--border)',
-            borderRadius: 14,
-            boxShadow: '0 16px 48px rgba(0,0,0,0.20), 0 4px 12px rgba(0,0,0,0.10)',
+            borderRadius: 12,
+            boxShadow: '0 14px 36px rgba(0,0,0,0.15), 0 3px 10px rgba(0,0,0,0.08)',
             zIndex: 120000,
-            padding: '8px',
+            padding: '6px',
             overflowX: 'hidden',
             overflowY: 'auto',
             animation: 'spf-pop .14s ease-out both',
@@ -155,6 +144,69 @@ export default function SidebarProfileFooter({
                 </Link>
               )
             })}
+
+            <p className="spf-section-label">Design</p>
+            <div className="spf-theme-grid">
+              {([
+                { mode: 'system' as ThemeMode, label: 'System', swatch: '#1f2328' },
+                { mode: 'light' as ThemeMode, label: 'Light', swatch: '#ffffff' },
+                { mode: 'pure-light' as ThemeMode, label: 'Pure', swatch: '#f7f7f7' },
+                { mode: 'read' as ThemeMode, label: 'Read', swatch: '#f1ede3' },
+                { mode: 'dark' as ThemeMode, label: 'Dark', swatch: '#141515' },
+                { mode: 'magic-blue' as ThemeMode, label: 'Blue', swatch: '#11172a' },
+              ] as const).map(({ mode, label, swatch }) => {
+                const active = themeMode === mode
+                return (
+                  <button
+                    key={mode}
+                    className={`spf-theme-chip${active ? ' is-active' : ''}`}
+                    onClick={() => {
+                      setThemeMode(mode)
+                      setTheme(mode)
+                    }}
+                    type="button"
+                  >
+                    <span style={{ background: swatch }} />
+                    {label}
+                  </button>
+                )
+              })}
+            </div>
+
+            <div className="spf-segment">
+              {([
+                { mode: 'aeonik' as FontMode, label: 'Aeonik' },
+                { mode: 'sf-pro' as FontMode, label: 'SF Pro' },
+              ] as const).map(({ mode, label }) => (
+                <button
+                  key={mode}
+                  type="button"
+                  className={fontMode === mode ? 'is-active' : ''}
+                  onClick={() => {
+                    setFontModeState(mode)
+                    setFontMode(mode)
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            <p className="spf-section-label">Profilfarbe</p>
+            <div className="spf-color-row">
+              {AVATAR_COLORS.slice(0, 10).map((color) => (
+                <button
+                  key={color}
+                  onClick={() => onAvatarColorChange(color)}
+                  style={{
+                    background: avatarUrl ? 'var(--surface)' : color,
+                    borderColor: avatarUrl ? color : 'transparent',
+                    outline: avatarColor === color ? '2px solid var(--text)' : 'none',
+                  }}
+                  aria-label={`Farbe ${color}`}
+                />
+              ))}
+            </div>
 
             <p className="spf-section-label">Workspace</p>
             {workspaceItems.map((item) => {
@@ -186,218 +238,13 @@ export default function SidebarProfileFooter({
         </>
       ), document.body)}
 
-      {designMenu && typeof document !== 'undefined' && createPortal((
-        <>
-          <div style={{ position: 'fixed', inset: 0, zIndex: 119990 }} onClick={() => setDesignMenu(false)} />
-          <div style={{
-            position: 'fixed',
-            left: designMenuPosition.left,
-            bottom: designMenuPosition.bottom,
-            width: Math.max(180, designMenuPosition.width),
-            maxHeight: 'calc(100dvh - 28px)',
-            background: 'var(--surface)',
-            border: '1px solid var(--border)',
-            borderRadius: 12,
-            boxShadow: '0 16px 48px rgba(0,0,0,0.20), 0 4px 12px rgba(0,0,0,0.10)',
-            zIndex: 120000,
-            padding: '6px',
-            overflowX: 'hidden',
-            overflowY: 'auto',
-            animation: 'spf-pop .14s ease-out both',
-          }}>
-            <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', padding: '6px 11px 4px', margin: 0, letterSpacing: '.04em', textAlign: 'left' }}>
-              Design
-            </p>
-
-            {([
-              { mode: 'system' as ThemeMode, label: 'System preference', swatch: 'system' },
-              { mode: 'light' as ThemeMode, label: 'Light', swatch: 'light' },
-              { mode: 'pure-light' as ThemeMode, label: 'Pure Light', swatch: 'pure' },
-              { mode: 'read' as ThemeMode, label: 'Read Mode', swatch: 'read' },
-              { mode: 'dark' as ThemeMode, label: 'Dark', swatch: 'dark' },
-              { mode: 'magic-blue' as ThemeMode, label: 'Magic Blue', swatch: 'blue' },
-              { mode: 'classic-dark' as ThemeMode, label: 'Classic Dark', swatch: 'dark' },
-              { mode: 'custom' as ThemeMode, label: 'Custom', swatch: 'custom' },
-            ] as const).map(({ mode, label, swatch }) => {
-              const active = themeMode === mode
-              const darkSwatch = swatch === 'dark' || swatch === 'blue' || swatch === 'custom' || swatch === 'system'
-              return (
-                <button
-                  key={mode}
-                  className="spf-menu-row"
-                  onClick={() => {
-                    setThemeMode(mode)
-                    setTheme(mode)
-                    if (mode !== 'custom') setDesignMenu(false)
-                  }}
-                  style={{ width: '100%', height: 32, gap: 10 }}
-                >
-                  <span style={{
-                    width: 34,
-                    height: 22,
-                    borderRadius: 7,
-                    background: darkSwatch ? '#11131a' : '#fff',
-                    border: '1px solid var(--border)',
-                    color: darkSwatch ? '#f5f5f5' : '#262626',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: 12,
-                    fontWeight: 700,
-                    flexShrink: 0,
-                    boxShadow: swatch === 'blue' ? 'inset 0 0 0 2px rgba(94,117,255,.35)' : 'none',
-                  }}>
-                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: swatch === 'read' ? '#b08b45' : swatch === 'blue' ? '#6574ff' : '#7c86e8', marginRight: 4 }} />
-                    Aa
-                  </span>
-                  <span style={{ flex: 1, color: active ? 'var(--text)' : 'var(--text-secondary)', fontWeight: active ? 650 : 500 }}>
-                    {label}
-                  </span>
-                  {active && (
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent, #3b82f6)" strokeWidth="2.5" strokeLinecap="round">
-                      <path d="M20 6L9 17l-5-5" />
-                    </svg>
-                  )}
-                </button>
-              )
-            })}
-
-            <div style={{ height: 1, background: 'var(--border)', margin: '4px 4px' }} />
-
-            <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', padding: '6px 11px 4px', margin: 0, letterSpacing: '.04em', textAlign: 'left' }}>
-              Schrift
-            </p>
-
-            {([
-              { mode: 'aeonik' as FontMode, label: 'Aeonik' },
-              { mode: 'sf-pro' as FontMode, label: 'SF Pro' },
-            ] as const).map(({ mode, label }) => {
-              const active = fontMode === mode
-              return (
-                <button
-                  key={mode}
-                  className="spf-menu-row"
-                  onClick={() => {
-                    setFontModeState(mode)
-                    setFontMode(mode)
-                  }}
-                  style={{ width: '100%', height: 30, gap: 10 }}
-                >
-                  <span style={{ width: 34, height: 20, borderRadius: 7, border: '1px solid var(--border)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 760, flexShrink: 0 }}>Aa</span>
-                  <span style={{ flex: 1, color: active ? 'var(--text)' : 'var(--text-secondary)', fontWeight: active ? 650 : 500 }}>{label}</span>
-                  {active && <span style={{ color: 'var(--text)', fontSize: 12 }}>✓</span>}
-                </button>
-              )
-            })}
-
-            <div style={{ height: 1, background: 'var(--border)', margin: '4px 4px' }} />
-
-            <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', padding: '6px 11px 4px', margin: 0, letterSpacing: '.04em', textAlign: 'left' }}>
-              Tagro Voice & Audio
-            </p>
-
-            {([
-              { key: 'enabled', label: 'Audio Briefings erlauben' },
-              { key: 'statusReportsEnabled', label: 'Statusberichte vorlesen' },
-              { key: 'projectBriefingsEnabled', label: 'Projektbriefings erlauben' },
-              { key: 'speechInputEnabled', label: 'Spracheingabe erlauben' },
-            ] as const).map(({ key, label }) => {
-              const on = Boolean(voicePrefs[key])
-              return (
-                <button
-                  key={key}
-                  className="spf-menu-row"
-                  onClick={() => {
-                    const next = setVoicePreferences({ [key]: !on })
-                    setVoicePrefs(next)
-                  }}
-                  style={{ width: '100%', height: 30 }}
-                >
-                  <span style={{ flex: 1 }}>{label}</span>
-                  <span style={{ width: 28, height: 16, borderRadius: 999, background: on ? 'var(--text)' : 'var(--border-strong)', position: 'relative', flexShrink: 0 }}>
-                    <span style={{ position: 'absolute', top: 2, left: on ? 14 : 2, width: 12, height: 12, borderRadius: '50%', background: on ? 'var(--bg)' : 'var(--surface)', transition: 'left .12s' }} />
-                  </span>
-                </button>
-              )
-            })}
-
-            <div style={{ height: 1, background: 'var(--border)', margin: '4px 4px' }} />
-
-            <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', padding: '6px 11px 6px', margin: 0, letterSpacing: '.04em', textAlign: 'left' }}>
-              Avatar-Farbe
-            </p>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '0 11px 10px' }}>
-              {avatarUrl ? (
-                <img
-                  src={avatarUrl}
-                  alt=""
-                  style={{
-                    width: 30,
-                    height: 30,
-                    borderRadius: '50%',
-                    objectFit: 'cover',
-                    border: `2px solid ${avatarColor}`,
-                    flexShrink: 0,
-                  }}
-                />
-              ) : (
-                <div style={{
-                  width: 30,
-                  height: 30,
-                  borderRadius: '50%',
-                  background: avatarColor,
-                  color: avatarFg,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: 11,
-                  fontWeight: 700,
-                  flexShrink: 0,
-                }}>
-                  {initials}
-                </div>
-              )}
-              <p style={{ margin: 0, fontSize: 11.5, color: 'var(--text-secondary)', lineHeight: 1.45, textAlign: 'left' }}>
-                {avatarUrl ? 'Die gewählte Farbe rahmt dein Profilbild.' : 'Die gewählte Farbe füllt deinen Avatar mit Initialen.'}
-              </p>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 8, padding: '0 11px 10px' }}>
-              {AVATAR_COLORS.map((color) => {
-                const selected = avatarColor === color
-                return (
-                  <button
-                    key={color}
-                    onClick={() => onAvatarColorChange(color)}
-                    style={{
-                      width: 18,
-                      height: 18,
-                      borderRadius: '50%',
-                      background: avatarUrl ? 'var(--surface)' : color,
-                      border: avatarUrl ? `2px solid ${color}` : '2px solid transparent',
-                      outline: selected ? '2px solid var(--text)' : 'none',
-                      outlineOffset: 2,
-                      cursor: 'pointer',
-                      padding: 0,
-                      boxSizing: 'border-box',
-                    }}
-                    aria-label={`Farbe ${color}`}
-                  />
-                )
-              })}
-            </div>
-          </div>
-        </>
-      ), document.body)}
-
       <button
         className="spf-trigger"
-        onClick={() => { setUserMenu((open) => !open); setDesignMenu(false) }}
+        onClick={() => setUserMenu((open) => !open)}
         style={{
-          flex: '0 1 auto',
+          flex: '1 1 auto',
           minWidth: 0,
-          maxWidth: 168,
+          maxWidth: 'none',
           display: 'flex',
           alignItems: 'center',
           gap: 10,
@@ -469,49 +316,6 @@ export default function SidebarProfileFooter({
         </svg>
       </button>
 
-      <button
-        className="spf-trigger"
-        onClick={() => { setDesignMenu((open) => !open); setUserMenu(false) }}
-        aria-label="Design-Einstellungen"
-        style={{
-          width: 30,
-          height: 30,
-          flexShrink: 0,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          borderRadius: 8,
-          background: designMenu ? 'var(--surface-2)' : 'transparent',
-          border: 'none',
-          cursor: 'pointer',
-          fontFamily: 'inherit',
-          transition: 'background .1s',
-          color: 'var(--text-muted)',
-          boxSizing: 'border-box',
-        }}
-        onMouseEnter={(event) => {
-          if (!designMenu) {
-            event.currentTarget.style.background = 'var(--surface-2)'
-            event.currentTarget.style.color = 'var(--text)'
-          }
-        }}
-        onMouseLeave={(event) => {
-          if (!designMenu) {
-            event.currentTarget.style.background = 'transparent'
-            event.currentTarget.style.color = 'var(--text-muted)'
-          }
-        }}
-      >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-          <line x1="4" y1="6" x2="11" y2="6" />
-          <circle cx="15" cy="6" r="2" />
-          <line x1="17" y1="6" x2="20" y2="6" />
-          <line x1="4" y1="18" x2="7" y2="18" />
-          <circle cx="10" cy="18" r="2" />
-          <line x1="12" y1="18" x2="20" y2="18" />
-        </svg>
-      </button>
-
       <style>{`
         @keyframes spf-pop {
           from { opacity: 0; transform: translateY(4px) scale(.98); }
@@ -536,7 +340,7 @@ export default function SidebarProfileFooter({
           font-weight: 500;
           text-align: left;
           box-sizing: border-box;
-          min-height: 34px;
+          min-height: 30px;
         }
         .spf-menu-row:hover { background: var(--surface-2); }
         .spf-menu-row:focus,
@@ -550,7 +354,7 @@ export default function SidebarProfileFooter({
           outline-offset: 2px;
         }
         .spf-section-label {
-          margin: 8px 0 2px;
+          margin: 7px 0 2px;
           padding: 0 10px;
           color: var(--text-muted);
           font-size: 10.5px;
@@ -563,6 +367,70 @@ export default function SidebarProfileFooter({
           color: var(--text-muted);
           font-size: 10px;
           font-family: ui-monospace, "SF Mono", Menlo, monospace;
+        }
+        .spf-theme-grid {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 5px;
+          padding: 4px 6px 7px;
+        }
+        .spf-theme-chip {
+          min-height: 29px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: flex-start;
+          gap: 6px;
+          padding: 0 7px;
+          border-radius: 8px;
+          border: 1px solid transparent;
+          background: transparent;
+          color: var(--text-secondary);
+          font-size: 11px;
+          font-weight: 600;
+        }
+        .spf-theme-chip span {
+          width: 10px;
+          height: 10px;
+          border-radius: 50%;
+          border: 1px solid var(--border);
+          flex-shrink: 0;
+        }
+        .spf-theme-chip.is-active {
+          color: var(--text);
+          background: var(--surface-2);
+          border-color: var(--border);
+        }
+        .spf-segment {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 3px;
+          padding: 0 6px 7px;
+        }
+        .spf-segment button {
+          min-height: 28px;
+          border-radius: 8px;
+          color: var(--text-secondary);
+          font-size: 11.5px;
+          font-weight: 650;
+          background: transparent;
+        }
+        .spf-segment button.is-active {
+          color: var(--text);
+          background: var(--surface-2);
+          box-shadow: inset 0 0 0 1px var(--border);
+        }
+        .spf-color-row {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 7px;
+          padding: 5px 10px 7px;
+        }
+        .spf-color-row button {
+          width: 16px;
+          height: 16px;
+          border-radius: 50%;
+          border: 2px solid transparent;
+          padding: 0;
         }
       `}</style>
     </div>
