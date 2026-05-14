@@ -246,8 +246,8 @@ export default function RegisterPage() {
         onChange={e => setCode(e.target.value.replace(/\s/g, ''))}
         onKeyDown={e => { if (e.key === 'Enter') handleVerifyCode() }}
       />
-      <button className="reg-btn reg-btn-outline" type="button" onClick={handleVerifyCode} disabled={loading}>
-        {loading ? <span className="reg-loader-dark" /> : <span>Mit Code fortfahren</span>}
+      <button className="reg-btn reg-btn-confirm" type="button" onClick={handleVerifyCode} disabled={loading}>
+        {loading ? <span className="reg-loader" /> : <span>Mit Code fortfahren</span>}
       </button>
       <button className="reg-link-action" type="button" onClick={handleResend} disabled={resending}>
         {resending ? 'Wird gesendet…' : 'Link erneut senden'}
@@ -315,6 +315,8 @@ export default function RegisterPage() {
         .reg-btn-google:hover:not(:disabled) { background:#505870; }
         .reg-btn-outline { background:#fff; color:#202532; border:0.7px solid #e7ebf0; box-shadow:0px 1px 2px 0px rgba(15,23,42,0.03); }
         .reg-btn-outline:hover:not(:disabled) { background:#F7F8FB; border:1px solid #DCE1EA; }
+        .reg-btn-confirm { background:#202532; color:#FFFFFF; border:none; box-shadow:0px 8px 24px 0px rgba(32,37,50,0.18); }
+        .reg-btn-confirm:hover:not(:disabled) { background:#0E1218; }
         .reg-google-icon { width:18px; height:18px; display:block; flex-shrink:0; color:#fff; }
 
         .reg-email-form { width:271px; display:flex; flex-direction:column; gap:16px; }
@@ -369,6 +371,8 @@ export default function RegisterPage() {
         .reg-root[data-theme="dark"] .reg-mobile-title-email { color:#F3F5F7; }
         .reg-root[data-theme="dark"] .reg-btn-outline { background:rgba(243,245,247,0.06); color:#F3F5F7; border:0.7px solid rgba(243,245,247,0.12); box-shadow:none; }
         .reg-root[data-theme="dark"] .reg-btn-outline:hover:not(:disabled) { background:rgba(243,245,247,0.1); border:1px solid rgba(243,245,247,0.2); }
+        .reg-root[data-theme="dark"] .reg-btn-confirm { background:#F3F5F7; color:#202532; box-shadow:0px 8px 24px 0px rgba(0,0,0,0.35); }
+        .reg-root[data-theme="dark"] .reg-btn-confirm:hover:not(:disabled) { background:#FFFFFF; }
         .reg-root[data-theme="dark"] .reg-email-input { background:rgba(243,245,247,0.06); color:#F3F5F7; border:1px solid rgba(102,112,143,0.15); caret-color:#66708F; }
         .reg-root[data-theme="dark"] .reg-email-input::placeholder { color:rgba(102,112,143,0.6); }
         .reg-root[data-theme="dark"] .reg-email-input:focus { border-color:#66708F; box-shadow:0 0 0 3px rgba(102,112,143,0.15); }

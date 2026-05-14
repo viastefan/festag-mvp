@@ -244,7 +244,7 @@ export default function LoginPage() {
         onChange={e => setCode(e.target.value.replace(/\s/g, ''))}
         onKeyDown={e => { if (e.key === 'Enter') handleVerifyCode() }}
       />
-      <button className="log-btn log-btn-outline" type="button" onClick={handleVerifyCode} disabled={loading}>
+      <button className="log-btn log-btn-confirm" type="button" onClick={handleVerifyCode} disabled={loading}>
         <span>{loading ? 'Wird geprüft…' : 'Mit Code fortfahren'}</span>
       </button>
       <button className="log-link-action" type="button" onClick={handleResend} disabled={resending}>
@@ -330,6 +330,10 @@ export default function LoginPage() {
         .log-btn-google:hover:not(:disabled) { background:#505870; }
         .log-btn-outline { background:#fff; color:#202532; border:0.7px solid #e7ebf0; box-shadow:0px 1px 2px 0px rgba(15,23,42,0.03); }
         .log-btn-outline:hover:not(:disabled) { background:#F7F8FB; border:1px solid #DCE1EA; }
+
+        /* CONFIRM (light mode default: dark pill, white text — inverted) */
+        .log-btn-confirm { background:#202532; color:#FFFFFF; border:none; box-shadow:0px 8px 24px 0px rgba(32,37,50,0.18); }
+        .log-btn-confirm:hover:not(:disabled) { background:#0E1218; }
         .log-google-icon { width:18px; height:18px; display:block; flex-shrink:0; color:#fff; }
 
         /* EMAIL FORM */
@@ -379,6 +383,8 @@ export default function LoginPage() {
 
         .log-root[data-theme="dark"] .log-btn-outline { background:rgba(243,245,247,0.06); color:#F3F5F7; border:0.7px solid rgba(243,245,247,0.12); box-shadow:none; }
         .log-root[data-theme="dark"] .log-btn-outline:hover:not(:disabled) { background:rgba(243,245,247,0.1); border:1px solid rgba(243,245,247,0.2); }
+        .log-root[data-theme="dark"] .log-btn-confirm { background:#F3F5F7; color:#202532; box-shadow:0px 8px 24px 0px rgba(0,0,0,0.35); }
+        .log-root[data-theme="dark"] .log-btn-confirm:hover:not(:disabled) { background:#FFFFFF; }
 
         .log-root[data-theme="dark"] .log-email-input { background:rgba(243,245,247,0.06); color:#F3F5F7; border:1px solid rgba(102,112,143,0.15); caret-color:#66708F; }
         .log-root[data-theme="dark"] .log-email-input::placeholder { color:rgba(102,112,143,0.6); }
