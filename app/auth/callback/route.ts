@@ -89,6 +89,10 @@ export async function GET(request: NextRequest) {
       ? { data: { user: authenticatedUser } }
       : await supabase.auth.getUser()
     if (user) {
+      await supabase
+        .from('onboarding_state')
+        .upsert({ user_id: user.id, updated_at: new Date().toISOString() }, { onConflict: 'user_id' })
+
       const { data: onboarding } = await supabase
         .from('onboarding_state')
         .select('completed_at')

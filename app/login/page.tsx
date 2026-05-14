@@ -213,6 +213,11 @@ export default function LoginPage() {
     const { data: { session } } = await supabase.auth.getSession()
     const target = session ? await resolvePostAuthTarget(supabase, session.user.id) : '/dashboard'
     if (session) {
+      await supabase
+        .from('onboarding_state')
+        .upsert({ user_id: session.user.id, updated_at: new Date().toISOString() }, { onConflict: 'user_id' })
+    }
+    if (session) {
       rememberFestagAccount({
         userId: session.user.id,
         email: email.trim(),

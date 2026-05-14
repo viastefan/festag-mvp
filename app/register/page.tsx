@@ -143,6 +143,11 @@ export default function RegisterPage() {
     setLoading(false)
     if (verifyError) { setError(mapAuthError(verifyError.message)); return }
     const { data: { session } } = await supabase.auth.getSession()
+    if (session) {
+      await supabase
+        .from('onboarding_state')
+        .upsert({ user_id: session.user.id, updated_at: new Date().toISOString() }, { onConflict: 'user_id' })
+    }
     const target = session ? await resolvePostAuthTarget(supabase, session.user.id) : '/onboarding'
     try {
       if (session) {

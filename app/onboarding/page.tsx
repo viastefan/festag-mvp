@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { setTheme, getTheme, type ThemeMode } from '@/lib/theme'
 import FestagLoader from '@/components/FestagLoader'
+import { rememberFestagAccount } from '@/lib/auth-device-memory'
 
 type StepId = 'design' | 'profile' | 'project' | 'team' | 'invite'
 type WorkMode = 'alone' | 'existing_team' | 'clients_partners' | 'festag_support'
@@ -161,6 +162,15 @@ export default function OnboardingPage() {
           completed_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         })
+        const { data: { session } } = await supabase.auth.getSession()
+        if (session) {
+          rememberFestagAccount({
+            userId: session.user.id,
+            email: session.user.email ?? null,
+            method: session.user.app_metadata?.provider === 'google' ? 'google' : 'email',
+            onboardingCompleted: true,
+          })
+        }
         setDone(true)
         setTimeout(() => router.replace('/dashboard'), 900)
       }
