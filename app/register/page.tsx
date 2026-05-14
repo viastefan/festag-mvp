@@ -92,7 +92,7 @@ export default function RegisterPage() {
     setOauthLoading(true)
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
+      options: { redirectTo: `${window.location.origin}/auth/callback?next=/loading` },
     })
     if (oauthError) { setError(mapAuthError(oauthError.message)); setOauthLoading(false) }
   }
@@ -101,7 +101,7 @@ export default function RegisterPage() {
     const { error: otpError } = await supabase.auth.signInWithOtp({
       email: email.trim(),
       options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback?next=/onboarding`,
+        emailRedirectTo: `${window.location.origin}/auth/callback?next=/loading`,
         shouldCreateUser: true,
       },
     })
@@ -139,6 +139,10 @@ export default function RegisterPage() {
     })
     setLoading(false)
     if (verifyError) { setError(mapAuthError(verifyError.message)); return }
+    try {
+      localStorage.setItem('festag_last_email', email.trim())
+      localStorage.setItem('festag_last_method', 'email')
+    } catch {}
     window.location.href = '/loading'
   }
 
@@ -250,7 +254,7 @@ export default function RegisterPage() {
         {loading ? <span className="reg-loader" /> : <span>Mit Code fortfahren</span>}
       </button>
       <button className="reg-link-action" type="button" onClick={handleResend} disabled={resending}>
-        {resending ? 'Wird gesendet…' : 'Link erneut senden'}
+        {resending ? 'Wird gesendet…' : 'Anmeldecode erneut senden'}
       </button>
       <button className="reg-back" type="button" onClick={goBack}>Zurück</button>
     </div>

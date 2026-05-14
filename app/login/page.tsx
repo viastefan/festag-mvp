@@ -39,6 +39,7 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const [theme, setThemeState] = useState<Theme>('dark')
   const [lastMethod, setLastMethod] = useState<Method | null>(null)
+  const [lastEmail, setLastEmail] = useState<string | null>(null)
   const emailRef = useRef<HTMLInputElement>(null)
   const codeRef = useRef<HTMLInputElement>(null)
   const emailView = emailStep !== 'main'
@@ -54,7 +55,28 @@ export default function LoginPage() {
     setLastMethod(stored)
     const storedTheme = localStorage.getItem(THEME_KEY) as Theme | null
     if (storedTheme === 'light' || storedTheme === 'dark') setThemeState(storedTheme)
+    try {
+      const e = localStorage.getItem('festag_last_email')
+      if (e && /\S+@\S+\.\S+/.test(e)) setLastEmail(e)
+    } catch {}
   }, [])
+
+  async function continueAsLastUser() {
+    if (!lastEmail) return
+    setEmail(lastEmail)
+    setError(''); setLoading(true)
+    const { error: otpError } = await supabase.auth.signInWithOtp({
+      email: lastEmail.trim(),
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/callback?next=/loading`,
+        shouldCreateUser: false,
+      },
+    })
+    setLoading(false)
+    if (otpError) { setError(mapAuthError(otpError.message)); return }
+    saveMethod('email')
+    goTo('emailSent')
+  }
 
   function setTheme(t: Theme) {
     setThemeState(t)
@@ -106,7 +128,7 @@ export default function LoginPage() {
     setOauthLoading(true)
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/auth/callback?next=/dashboard` },
+      options: { redirectTo: `${window.location.origin}/auth/callback?next=/loading` },
     })
     if (oauthError) { setError(mapAuthError(oauthError.message)); setOauthLoading(false) }
   }
@@ -115,7 +137,7 @@ export default function LoginPage() {
     const { error: otpError } = await supabase.auth.signInWithOtp({
       email: email.trim(),
       options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
+        emailRedirectTo: `${window.location.origin}/auth/callback?next=/loading`,
         shouldCreateUser: false,
       },
     })
@@ -150,6 +172,7 @@ export default function LoginPage() {
     setLoading(false)
     if (verifyError) { setError(mapAuthError(verifyError.message)); return }
     saveMethod('email')
+    try { localStorage.setItem('festag_last_email', email.trim()) } catch {}
     window.location.href = '/loading'
   }
 
@@ -162,6 +185,13 @@ export default function LoginPage() {
 
   const mainButtons = (
     <div className="log-btn-stack">
+      {lastEmail && lastMethod === 'email' && (
+        <button className="log-known-device" type="button" onClick={continueAsLastUser} disabled={loading}>
+          <span className="log-known-label">Letzte Anmeldung</span>
+          <span className="log-known-email">{lastEmail}</span>
+          <span className="log-known-cta">{loading ? 'Wird gesendet…' : 'Code anfordern →'}</span>
+        </button>
+      )}
       <div className="log-btn-group">
         <button className="log-btn log-btn-google" type="button" onClick={handleGoogle} disabled={oauthLoading}>
           {oauthLoading ? <span className="log-loader" /> : (
@@ -248,7 +278,7 @@ export default function LoginPage() {
         <span>{loading ? 'Wird geprüft…' : 'Mit Code fortfahren'}</span>
       </button>
       <button className="log-link-action" type="button" onClick={handleResend} disabled={resending}>
-        {resending ? 'Wird gesendet…' : 'Link erneut senden'}
+        {resending ? 'Wird gesendet…' : 'Anmeldecode erneut senden'}
       </button>
       <button className="log-back" type="button" onClick={switchBack}>Zurück</button>
     </div>
@@ -322,6 +352,23 @@ export default function LoginPage() {
 
         /* SHARED BUTTONS */
         .log-btn-stack { width:271px; display:flex; flex-direction:column; gap:20px; }
+
+        /* KNOWN DEVICE CARD — appears at top of stack when we recognise the email */
+        .log-known-device {
+          width:100%; display:flex; flex-direction:column; gap:2px;
+          padding:14px 18px; border-radius:14px;
+          background:rgba(91,100,125,0.05);
+          border:1px solid rgba(91,100,125,0.12);
+          font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
+          color:#202532; text-align:left; cursor:pointer;
+          transition: background .15s, border-color .15s, transform .25s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        .log-known-device:hover { background:rgba(91,100,125,0.08); border-color:rgba(91,100,125,0.2); }
+        .log-known-device:active:not(:disabled) { transform:scale(0.98); transition: transform .08s ease; }
+        .log-known-device:disabled { opacity:.55; cursor:not-allowed; }
+        .log-known-label { font-size:11px; font-weight:500; letter-spacing:0.06em; opacity:.5; text-transform:uppercase; }
+        .log-known-email { font-size:14px; font-weight:500; letter-spacing:0.01em; }
+        .log-known-cta { font-size:12px; font-weight:500; letter-spacing:0.01em; opacity:.65; margin-top:2px; }
         .log-btn-group { display:flex; flex-direction:column; gap:6px; }
         .log-hint { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:12px; font-weight:400 !important; color:#7b8294; text-align:center; letter-spacing:0.24px; }
         .log-btn { width:100%; height:47px; border-radius:32px; border:none; display:flex; align-items:center; justify-content:center; gap:8px; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:14px; font-weight:500; letter-spacing:0.14px; cursor:pointer; padding:12px 45px; white-space:nowrap; overflow:hidden; transition:background .15s, opacity .15s, border-color .15s, color .15s, transform 0.25s cubic-bezier(0.34,1.56,0.64,1); transform-origin:center; }
@@ -401,6 +448,8 @@ export default function LoginPage() {
         .log-root[data-theme="dark"] .log-link-action:hover { color:#F3F5F7; }
         .log-root[data-theme="dark"] .log-sent-info { color:#98A2B3; }
         .log-root[data-theme="dark"] .log-sent-info strong { color:#F3F5F7; }
+        .log-root[data-theme="dark"] .log-known-device { background:rgba(243,245,247,0.04); border-color:rgba(243,245,247,0.10); color:#F3F5F7; }
+        .log-root[data-theme="dark"] .log-known-device:hover { background:rgba(243,245,247,0.08); border-color:rgba(243,245,247,0.18); }
 
         .log-root[data-theme="dark"] .log-theme-pill { border-color:rgba(243,245,247,0.18); color:rgba(243,245,247,0.45); }
         .log-root[data-theme="dark"] .log-theme-pill.active { background:#F3F5F7; border-color:#F3F5F7; color:#2e2f33; }
