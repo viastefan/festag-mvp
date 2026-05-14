@@ -7,6 +7,7 @@ import CopilotPanel from '@/components/CopilotPanel'
 import FeedbackWidget from '@/components/FeedbackWidget'
 import FloatingBar from '@/components/FloatingBar'
 import LoadingScreen from '@/components/LoadingScreen'
+import PwaInstallBanner from '@/components/PwaInstallBanner'
 import Sidebar from '@/components/Sidebar'
 import { createClient } from '@/lib/supabase/client'
 
@@ -129,6 +130,7 @@ export default function ClientAppShell({
       <CopilotPanel open={copilotOpen} onClose={() => setCopilotOpen(false)} />
       <FeedbackWidget />
       <CommandPalette />
+      <PwaInstallBanner />
     </div>
   )
 }

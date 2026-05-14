@@ -208,6 +208,10 @@ export default function LoginPage() {
         <button className="log-btn log-btn-outline" type="button" onClick={switchToEmail}>E-Mail verwenden</button>
         {lastMethod === 'email' && <p className="log-hint">Du hast dich zuletzt damit angemeldet</p>}
       </div>
+      <div className="log-btn-group">
+        <button className="log-btn log-btn-outline" type="button" onClick={() => setError('Bitte richte zuerst einen Passkey in deinen Einstellungen ein.')}>Passkey verwenden</button>
+        {lastMethod === 'passkey' && <p className="log-hint">Du hast dich zuletzt damit angemeldet</p>}
+      </div>
     </div>
   )
 
