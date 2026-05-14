@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 
-const PUBLIC_PATHS = ['/', '/login', '/register', '/auth', '/redeem', '/invite', '/_next', '/api', '/brand', '/fonts', '/bg-office.jpg', '/manifest.json', '/favicon']
+const PUBLIC_PATHS = ['/', '/login', '/register', '/auth', '/redeem', '/invite', '/agb', '/datenschutz', '/impressum', '/widerruf', '/nutzungsbedingungen', '/_next', '/api', '/brand', '/fonts', '/bg-office.jpg', '/manifest.json', '/favicon']
 const SUPABASE_URL =
   process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'https://xsdkoepwuvpuroijjain.supabase.co'
 const SUPABASE_ANON_KEY =
@@ -42,6 +42,19 @@ export async function middleware(request: NextRequest) {
 
   if (!session) {
     return NextResponse.redirect(new URL('/login', request.url))
+  }
+
+  // Onboarding gating: send users with incomplete onboarding to /onboarding
+  // (except when they're already there, or on /logout)
+  if (!pathname.startsWith('/onboarding') && !pathname.startsWith('/logout')) {
+    const { data: onboarding } = await supabase
+      .from('onboarding_state')
+      .select('completed_at')
+      .eq('user_id', session.user.id)
+      .maybeSingle()
+    if (!onboarding || !onboarding.completed_at) {
+      return NextResponse.redirect(new URL('/onboarding', request.url))
+    }
   }
 
   return response
