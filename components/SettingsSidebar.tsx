@@ -55,7 +55,7 @@ export default function SettingsSidebar() {
         .sset-shell {
           position: fixed;
           inset: 0 auto 0 0;
-          width: 212px;
+          width: 196px;
           box-sizing: border-box;
           pointer-events: none;
         }

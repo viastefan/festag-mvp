@@ -192,7 +192,7 @@ export default function SidebarProfileFooter({
           to   { opacity: 1; transform: translateY(0)    scale(1); }
         }
         .spf-pop {
-          width: 212px; max-width: min(212px, calc(100vw - 32px));
+          width: 196px; max-width: min(196px, calc(100vw - 32px));
           background: var(--surface);
           border: 1px solid var(--border);
           border-radius: 12px;
