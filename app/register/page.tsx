@@ -36,6 +36,7 @@ export default function RegisterPage() {
   const [code, setCode] = useState('')
   const [loading, setLoading] = useState(false)
   const [resending, setResending] = useState(false)
+  const [resendCooldown, setResendCooldown] = useState(0)
   const [error, setError] = useState('')
   const [theme, setThemeState] = useState<Theme>('dark')
   const emailRef = useRef<HTMLInputElement>(null)
@@ -77,6 +78,12 @@ export default function RegisterPage() {
     return () => timers.forEach(clearTimeout)
   }, [emailStep])
 
+  useEffect(() => {
+    if (resendCooldown <= 0) return
+    const t = setInterval(() => setResendCooldown(c => Math.max(0, c - 1)), 1000)
+    return () => clearInterval(t)
+  }, [resendCooldown])
+
   function goTo(step: EmailStep) {
     setError('')
     setAnimating(true)
@@ -84,8 +91,7 @@ export default function RegisterPage() {
   }
 
   function goBack() {
-    if (emailStep === 'codeEntry') { goTo('emailSent'); return }
-    if (emailStep === 'emailSent') { setCode(''); goTo('email'); return }
+    if (emailStep === 'codeEntry' || emailStep === 'emailSent') { setCode(''); goTo('email'); return }
     setEmail(''); setCode('')
     goTo('none')
   }
@@ -120,14 +126,16 @@ export default function RegisterPage() {
     setLoading(true)
     const ok = await sendMagicLink()
     setLoading(false)
-    if (ok) goTo('emailSent')
+    if (ok) { setResendCooldown(60); goTo('codeEntry') }
   }
 
   async function handleResend() {
+    if (resendCooldown > 0 || resending) return
     setError('')
     setResending(true)
-    await sendMagicLink()
+    const ok = await sendMagicLink()
     setResending(false)
+    if (ok) setResendCooldown(60)
   }
 
   async function handleVerifyCode() {
@@ -232,6 +240,19 @@ export default function RegisterPage() {
     </div>
   )
 
+  const resendDisabled = resending || resendCooldown > 0
+  const resendLabel = resending
+    ? 'Wird gesendet…'
+    : resendCooldown > 0
+      ? `Neuen Code anfordern in ${resendCooldown}s`
+      : 'Neuen Code anfordern'
+
+  const newestWarning = (
+    <p className="reg-newest-hint">
+      Nutze den jüngsten Code aus deiner E-Mail. Eine neue Anfrage entwertet alle vorherigen.
+    </p>
+  )
+
   const emailSentScreen = (
     <div className="reg-email-form">
       {error && <p className="reg-error">{error}</p>}
@@ -239,9 +260,10 @@ export default function RegisterPage() {
         Wir haben einen sicheren<br />Anmeldelink geschickt an<br />
         <strong>{email}</strong>
       </p>
+      {newestWarning}
       <button className="reg-btn reg-btn-outline" type="button" onClick={() => goTo('codeEntry')}>Code manuell eintippen</button>
-      <button className="reg-link-action" type="button" onClick={handleResend} disabled={resending}>
-        {resending ? 'Wird gesendet…' : 'Link erneut senden'}
+      <button className="reg-link-action" type="button" onClick={handleResend} disabled={resendDisabled}>
+        {resendLabel}
       </button>
       <button className="reg-back" type="button" onClick={goBack}>Zurück</button>
     </div>
@@ -251,9 +273,10 @@ export default function RegisterPage() {
     <div className="reg-email-form">
       {error && <p className="reg-error">{error}</p>}
       <p className="reg-sent-info">
-        Wir haben einen sicheren<br />Anmeldelink geschickt an<br />
+        Code geschickt an<br />
         <strong>{email}</strong>
       </p>
+      {newestWarning}
       <input
         ref={codeRef}
         className="reg-email-input reg-code-input"
@@ -262,16 +285,16 @@ export default function RegisterPage() {
         autoComplete="one-time-code"
         autoFocus
         maxLength={6}
-        placeholder="Code eingeben"
+        placeholder="6-stelliger Code"
         value={code}
         onChange={e => setCode(e.target.value.replace(/\s/g, ''))}
         onKeyDown={e => { if (e.key === 'Enter') handleVerifyCode() }}
       />
       <button className="reg-btn reg-btn-confirm" type="button" onClick={handleVerifyCode} disabled={loading}>
-        {loading ? <span className="reg-loader" /> : <span>Mit Code fortfahren</span>}
+        {loading ? <span className="reg-loader" /> : <span>Konto erstellen</span>}
       </button>
-      <button className="reg-link-action" type="button" onClick={handleResend} disabled={resending}>
-        {resending ? 'Wird gesendet…' : 'Anmeldecode erneut senden'}
+      <button className="reg-link-action" type="button" onClick={handleResend} disabled={resendDisabled}>
+        {resendLabel}
       </button>
       <button className="reg-back" type="button" onClick={goBack}>Zurück</button>
     </div>
@@ -361,6 +384,8 @@ export default function RegisterPage() {
         .reg-sent-info { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:14px; font-weight:400 !important; line-height:20px; letter-spacing:0.14px; text-align:center; color:#7b8294; margin:8px 0 16px; }
         .reg-sent-info strong { color:#202532; font-weight:500; }
         .reg-code-input { text-align:center; letter-spacing:0.4em; font-size:15px; }
+        .reg-newest-hint { margin:-4px 0 -2px; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:12px; line-height:1.5; font-weight:400 !important; color:#7b8294; text-align:center; letter-spacing:0.01em; padding:8px 12px; background:rgba(91,100,125,0.05); border:1px solid rgba(91,100,125,0.10); border-radius:10px; }
+        .reg-root[data-theme="dark"] .reg-newest-hint { color:#98A2B3; background:rgba(243,245,247,0.04); border-color:rgba(243,245,247,0.08); }
         .reg-loader-dark { width:16px; height:16px; border-radius:999px; border:2px solid rgba(32,37,50,0.25); border-top-color:#202532; animation:regSpin .75s linear infinite; flex-shrink:0; }
 
         .reg-legal { width:271px; display:flex; flex-direction:column; gap:16px; text-align:center; }

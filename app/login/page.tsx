@@ -43,6 +43,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [resending, setResending] = useState(false)
   const [error, setError] = useState('')
+  const [resendCooldown, setResendCooldown] = useState(0)
   const [theme, setThemeState] = useState<Theme>('dark')
   const [lastMethod, setLastMethod] = useState<Method | null>(null)
   const [lastEmail, setLastEmail] = useState<string | null>(null)
@@ -134,6 +135,12 @@ export default function LoginPage() {
   }, [emailStep])
 
   useEffect(() => {
+    if (resendCooldown <= 0) return
+    const t = setInterval(() => setResendCooldown(c => Math.max(0, c - 1)), 1000)
+    return () => clearInterval(t)
+  }, [resendCooldown])
+
+  useEffect(() => {
     if (emailStep !== 'codeEntry') return
     const tries = [0, 50, 150, 250, 400]
     const timers = tries.map(ms => setTimeout(() => codeRef.current?.focus(), ms))
@@ -152,8 +159,7 @@ export default function LoginPage() {
 
   function switchToEmail() { goTo('email') }
   function switchBack() {
-    if (emailStep === 'codeEntry') { goTo('emailSent'); return }
-    if (emailStep === 'emailSent') { setCode(''); goTo('email'); return }
+    if (emailStep === 'codeEntry' || emailStep === 'emailSent') { setCode(''); goTo('email'); return }
     setEmail(''); setCode('')
     goTo('main')
   }
@@ -190,13 +196,15 @@ export default function LoginPage() {
     setLoading(true)
     const ok = await sendMagicLink()
     setLoading(false)
-    if (ok) { saveMethod('email'); goTo('emailSent') }
+    if (ok) { saveMethod('email'); setResendCooldown(60); goTo('codeEntry') }
   }
 
   async function handleResend() {
+    if (resendCooldown > 0 || resending) return
     setError(''); setResending(true)
-    await sendMagicLink()
+    const ok = await sendMagicLink()
     setResending(false)
+    if (ok) setResendCooldown(60)
   }
 
   async function handleVerifyCode() {
@@ -323,6 +331,19 @@ export default function LoginPage() {
     </div>
   )
 
+  const resendDisabled = resending || resendCooldown > 0
+  const resendLabel = resending
+    ? 'Wird gesendet…'
+    : resendCooldown > 0
+      ? `Neuen Code anfordern in ${resendCooldown}s`
+      : 'Neuen Code anfordern'
+
+  const newestWarning = (
+    <p className="log-newest-hint">
+      Nutze den jüngsten Code aus deiner E-Mail. Eine neue Anfrage entwertet alle vorherigen.
+    </p>
+  )
+
   const emailSentScreen = (
     <div className="log-email-form">
       {error && <p className="log-error">{error}</p>}
@@ -330,9 +351,10 @@ export default function LoginPage() {
         Wir haben einen sicheren<br />Anmeldelink geschickt an<br />
         <strong>{email}</strong>
       </p>
+      {newestWarning}
       <button className="log-btn log-btn-outline" type="button" onClick={() => goTo('codeEntry')}>Code manuell eintippen</button>
-      <button className="log-link-action" type="button" onClick={handleResend} disabled={resending}>
-        {resending ? 'Wird gesendet…' : 'Link erneut senden'}
+      <button className="log-link-action" type="button" onClick={handleResend} disabled={resendDisabled}>
+        {resendLabel}
       </button>
       <p className="log-support-note">
         Anmelde-E-Mail vergessen? <button type="button" onClick={openSupportModal}>Support kontaktieren</button>
@@ -345,9 +367,10 @@ export default function LoginPage() {
     <div className="log-email-form">
       {error && <p className="log-error">{error}</p>}
       <p className="log-sent-info">
-        Wir haben einen sicheren<br />Anmeldelink geschickt an<br />
+        Code geschickt an<br />
         <strong>{email}</strong>
       </p>
+      {newestWarning}
       <input
         ref={codeRef}
         className="log-email-input log-code-input"
@@ -356,16 +379,16 @@ export default function LoginPage() {
         autoComplete="one-time-code"
         autoFocus
         maxLength={6}
-        placeholder="Code eingeben"
+        placeholder="6-stelliger Code"
         value={code}
         onChange={e => setCode(e.target.value.replace(/\s/g, ''))}
         onKeyDown={e => { if (e.key === 'Enter') handleVerifyCode() }}
       />
       <button className="log-btn log-btn-confirm" type="button" onClick={handleVerifyCode} disabled={loading}>
-        <span>{loading ? 'Wird geprüft…' : 'Mit Code fortfahren'}</span>
+        <span>{loading ? 'Wird geprüft…' : 'Anmelden'}</span>
       </button>
-      <button className="log-link-action" type="button" onClick={handleResend} disabled={resending}>
-        {resending ? 'Wird gesendet…' : 'Anmeldecode erneut senden'}
+      <button className="log-link-action" type="button" onClick={handleResend} disabled={resendDisabled}>
+        {resendLabel}
       </button>
       <p className="log-support-note">
         Anmelde-E-Mail vergessen? <button type="button" onClick={openSupportModal}>Support kontaktieren</button>
@@ -473,6 +496,8 @@ export default function LoginPage() {
         .log-code-input { text-align:center; letter-spacing:0.4em; font-size:15px; }
         .log-support-note { margin:-4px 0 0; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:12.5px; line-height:18px; font-weight:400 !important; color:#7b8294; text-align:center; letter-spacing:0.01em; }
         .log-support-note button { border:0; background:transparent; padding:0; color:#202532; font:inherit; font-weight:400 !important; text-decoration:underline; cursor:pointer; }
+        .log-newest-hint { margin:-4px 0 -2px; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:12px; line-height:1.5; font-weight:400 !important; color:#7b8294; text-align:center; letter-spacing:0.01em; padding:8px 12px; background:rgba(91,100,125,0.05); border:1px solid rgba(91,100,125,0.10); border-radius:10px; }
+        .log-root[data-theme="dark"] .log-newest-hint { color:#98A2B3; background:rgba(243,245,247,0.04); border-color:rgba(243,245,247,0.08); }
 
         /* SUPPORT MODAL */
         .log-support-backdrop { position:fixed; inset:0; z-index:90; display:flex; align-items:center; justify-content:center; padding:20px; background:rgba(10,14,20,.28); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); animation:logModalFade .16s ease both; }
