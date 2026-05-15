@@ -121,7 +121,7 @@ export default function DevLoginPage() {
 
         .dl-input {
           width:100%; height:47px; border-radius:8px;
-          border:1px solid #5b647d;
+          border:1px solid #e7ebf0;
           background:#fff; color:#202532;
           font-family:inherit; font-size:14px; font-weight:400;
           letter-spacing:0.01em;
@@ -131,7 +131,7 @@ export default function DevLoginPage() {
           transition:border-color .15s, box-shadow .15s, background .3s, color .3s;
         }
         .dl-input::placeholder { color:#bcbfc2; }
-        .dl-input:focus { border-color:#5b647d; box-shadow:0 0 0 3px rgba(91,100,125,0.10); }
+        .dl-input:focus { border-color:#5b647d; box-shadow:0 0 0 3px rgba(91,100,125,0.12); }
         .dl-input.pin { text-align:center; letter-spacing:0.45em; font-size:15px; }
 
         .dl-cta {
@@ -200,6 +200,7 @@ export default function DevLoginPage() {
               type="text"
               autoComplete="username"
               placeholder="Benutzername"
+              autoFocus
               value={username}
               onChange={e => setUsername(e.target.value)}
               spellCheck={false}
