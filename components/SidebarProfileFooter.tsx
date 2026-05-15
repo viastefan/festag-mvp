@@ -70,7 +70,7 @@ export default function SidebarProfileFooter({
 
   const currentPlanLabel = planLabel(plan)
   const avatarFg = avatarTextColor(avatarColor)
-  const triggerName = displayName.length > 7 ? `${displayName.slice(0, 5)}...` : displayName
+  const triggerName = displayName.length > 8 ? `${displayName.slice(0, 8)}...` : displayName
 
   const closeAndGo = () => setOpen(false)
 
@@ -165,7 +165,7 @@ export default function SidebarProfileFooter({
           </div>
         )}
 
-        <span style={{ flex: '1 1 auto', minWidth: 0, maxWidth: 58, display: 'inline-flex', alignItems: 'center', gap: 6, overflow: 'hidden' }}>
+        <span style={{ flex: '1 1 auto', minWidth: 0, maxWidth: 82, display: 'inline-flex', alignItems: 'center', gap: 6, overflow: 'hidden' }}>
           <span style={{
             fontSize: 12.5, fontWeight: 600, color: 'var(--text)',
             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
