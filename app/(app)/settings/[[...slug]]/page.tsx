@@ -107,6 +107,7 @@ export default function SettingsPage() {
   type Member = { user_id: string; role: string; joined_at: string; email: string | null; full_name: string | null; avatar_url: string | null }
   const [members, setMembers] = useState<Member[]>([])
   const [membersLoading, setMembersLoading] = useState(false)
+  const [deleteOpen, setDeleteOpen] = useState(false)
   const [savedTick, setSavedTick] = useState<string | null>(null)
   const [error, setError] = useState('')
 
@@ -1015,6 +1016,27 @@ export default function SettingsPage() {
                 </div>
               </div>
             </div>
+
+            {/* Konto löschen */}
+            <div className="set-card">
+              <div className="set-row set-row-stack">
+                <div>
+                  <div className="set-label">Konto löschen</div>
+                  <div className="set-label-sub">
+                    Beendet deinen Festag-Zugang endgültig. Workspaces, Projekte, Briefings, Inbox-Items und Tagro-Memory werden mitgelöscht. Diese Aktion ist nicht rückgängig zu machen.
+                  </div>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'flex-start', width: '100%' }}>
+                  <button className="set-btn set-btn-danger" onClick={() => setDeleteOpen(true)}>
+                    Konto löschen
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {deleteOpen && (
+              <AccountDeleteModal onClose={() => setDeleteOpen(false)} />
+            )}
           </>
         )}
 
@@ -1403,6 +1425,255 @@ export default function SettingsPage() {
           </>
         )}
       </main>
+    </div>
+  )
+}
+
+const DELETE_REASONS: Array<{ id: string; label: string; sub: string }> = [
+  { id: 'no_longer_needed', label: 'Ich brauche Festag aktuell nicht mehr', sub: 'Projekt ist abgeschlossen oder ruht.' },
+  { id: 'switching_tool',   label: 'Ich wechsle zu einem anderen System',    sub: 'Ein anderes Tool deckt mein Setup besser ab.' },
+  { id: 'too_expensive',    label: 'Preis passt aktuell nicht',              sub: 'Plan-Modell oder Add-ons sind zu hoch für mich.' },
+  { id: 'data_privacy',     label: 'Datenschutz oder Compliance',            sub: 'Ich möchte meine Daten entfernt haben.' },
+  { id: 'temporary_break',  label: 'Ich mache eine Pause',                   sub: 'Wir lassen die Tür offen — du kannst dich später neu anlegen.' },
+  { id: 'other',            label: 'Sonstiges',                              sub: 'Erzähl uns kurz was — hilft uns Festag besser zu machen.' },
+]
+
+function AccountDeleteModal({ onClose }: { onClose: () => void }) {
+  const [step, setStep] = useState<'reason' | 'confirm' | 'sending' | 'done' | 'error'>('reason')
+  const [reason, setReason] = useState<string>('')
+  const [details, setDetails] = useState('')
+  const [errorMessage, setErrorMessage] = useState('')
+
+  async function execute() {
+    setStep('sending')
+    setErrorMessage('')
+    try {
+      const res = await fetch('/api/account/delete', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason, reasonDetails: details }),
+      })
+      const json = await res.json()
+      if (!json?.ok) throw new Error(json?.error || 'delete_failed')
+      setStep('done')
+      // Hard sign-out: clear cookies on next reload by routing to /login.
+      setTimeout(() => { window.location.href = '/login?account_deleted=1' }, 1200)
+    } catch (e: any) {
+      setErrorMessage(e?.message || 'Konnte das Konto nicht löschen.')
+      setStep('error')
+    }
+  }
+
+  return (
+    <div className="acc-del-backdrop" role="dialog" aria-modal="true" aria-label="Konto löschen">
+      <style>{`
+        .acc-del-backdrop {
+          position: fixed; inset: 0; z-index: 200;
+          background: rgba(8, 10, 12, .56);
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
+          display: flex; align-items: center; justify-content: center;
+          padding: 20px;
+          animation: acc-del-fade .14s ease-out both;
+        }
+        @keyframes acc-del-fade { from { opacity: 0 } to { opacity: 1 } }
+        .acc-del-modal {
+          width: min(520px, 100%);
+          background: var(--surface);
+          border: 1px solid var(--border);
+          border-radius: 14px;
+          padding: 22px;
+          box-shadow: 0 24px 60px rgba(0,0,0,.28);
+          color: var(--text);
+          font-family: var(--font-aeonik,'Aeonik',Inter,sans-serif);
+          max-height: calc(100dvh - 40px);
+          overflow-y: auto;
+        }
+        .acc-del-kicker { font-size: 11px; font-weight: 600; letter-spacing: .04em; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; }
+        .acc-del-title { margin: 0 0 6px; font-size: 18px; font-weight: 600; letter-spacing: -.005em; }
+        .acc-del-sub { margin: 0; font-size: 13px; line-height: 1.55; color: var(--text-secondary); }
+        .acc-del-reasons { display: flex; flex-direction: column; gap: 8px; margin: 16px 0 4px; }
+        .acc-del-reason {
+          display: flex; align-items: flex-start; gap: 10px;
+          padding: 12px 14px;
+          border: 1px solid var(--border);
+          border-radius: 10px;
+          background: var(--bg);
+          cursor: pointer;
+          transition: border-color .12s, background .12s;
+        }
+        .acc-del-reason:hover { background: var(--surface-2); }
+        .acc-del-reason.on { border-color: var(--text); background: var(--surface-2); }
+        .acc-del-radio {
+          width: 16px; height: 16px;
+          border-radius: 50%;
+          border: 1.5px solid var(--border);
+          flex-shrink: 0;
+          margin-top: 2px;
+          position: relative;
+        }
+        .acc-del-reason.on .acc-del-radio { border-color: var(--text); }
+        .acc-del-reason.on .acc-del-radio::after {
+          content: ''; position: absolute; inset: 3px;
+          border-radius: 50%; background: var(--text);
+        }
+        .acc-del-reason-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+        .acc-del-reason-label { font-size: 13.5px; font-weight: 500; color: var(--text); }
+        .acc-del-reason-sub { font-size: 12px; color: var(--text-muted); line-height: 1.45; }
+        .acc-del-details {
+          width: 100%;
+          padding: 10px 12px;
+          border-radius: 8px;
+          background: var(--bg);
+          border: 1px solid var(--border);
+          color: var(--text);
+          font-family: inherit;
+          font-size: 14px;
+          resize: vertical;
+          min-height: 70px;
+          margin-top: 8px;
+        }
+        .acc-del-details:focus { outline: none; border-color: color-mix(in srgb, var(--text) 35%, var(--border)); }
+        .acc-del-warning {
+          margin: 12px 0 0;
+          padding: 12px 14px;
+          background: rgba(192,54,46,0.08);
+          border: 1px solid rgba(192,54,46,0.18);
+          border-radius: 10px;
+          color: #c0362e;
+          font-size: 12.5px;
+          line-height: 1.55;
+        }
+        .acc-del-actions {
+          display: flex; gap: 8px; margin-top: 18px;
+          flex-wrap: wrap;
+        }
+        .acc-del-btn {
+          padding: 9px 16px;
+          border-radius: 8px;
+          border: 1px solid var(--border);
+          background: var(--bg);
+          color: var(--text);
+          font-family: inherit;
+          font-size: 13px;
+          font-weight: 500;
+          cursor: pointer;
+        }
+        .acc-del-btn:hover:not(:disabled) { background: var(--surface-2); }
+        .acc-del-btn-danger {
+          background: #c0362e;
+          color: #fff;
+          border-color: #c0362e;
+        }
+        .acc-del-btn-danger:hover:not(:disabled) { opacity: .92; }
+        .acc-del-btn:disabled { opacity: .55; cursor: not-allowed; }
+        @media (max-width: 520px) {
+          .acc-del-modal { padding: 18px; }
+          .acc-del-actions .acc-del-btn { flex: 1; justify-content: center; text-align: center; min-height: 38px; }
+        }
+      `}</style>
+
+      <div className="acc-del-modal">
+        {step === 'reason' && (
+          <>
+            <div className="acc-del-kicker">Konto löschen</div>
+            <h2 className="acc-del-title">Bevor du gehst — was war der Grund?</h2>
+            <p className="acc-del-sub">Hilft uns Festag besser zu machen. Eine Antwort reicht.</p>
+
+            <div className="acc-del-reasons" role="radiogroup" aria-label="Grund für die Löschung">
+              {DELETE_REASONS.map(r => (
+                <div
+                  key={r.id}
+                  role="radio"
+                  tabIndex={0}
+                  aria-checked={reason === r.id}
+                  className={`acc-del-reason${reason === r.id ? ' on' : ''}`}
+                  onClick={() => setReason(r.id)}
+                  onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setReason(r.id) }}}
+                >
+                  <span className="acc-del-radio" aria-hidden />
+                  <span className="acc-del-reason-text">
+                    <span className="acc-del-reason-label">{r.label}</span>
+                    <span className="acc-del-reason-sub">{r.sub}</span>
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            {reason === 'other' && (
+              <textarea
+                className="acc-del-details"
+                value={details}
+                onChange={e => setDetails(e.target.value)}
+                placeholder="Was war konkret? (max. 1000 Zeichen)"
+                maxLength={1000}
+              />
+            )}
+
+            <div className="acc-del-actions">
+              <button className="acc-del-btn" onClick={onClose}>Abbrechen</button>
+              <button
+                className="acc-del-btn"
+                disabled={!reason}
+                onClick={() => setStep('confirm')}
+              >
+                Weiter
+              </button>
+            </div>
+          </>
+        )}
+
+        {step === 'confirm' && (
+          <>
+            <div className="acc-del-kicker">Letzte Bestätigung</div>
+            <h2 className="acc-del-title">Endgültig löschen?</h2>
+            <p className="acc-del-sub">
+              Mit dem Klick auf „Endgültig löschen" werden dein Konto, alle Workspaces, Projekte,
+              Briefings, Inbox-Items, Dateien und Tagro-Memory unwiderruflich entfernt. Niemand kann
+              das danach zurückholen — auch Festag nicht.
+            </p>
+            <div className="acc-del-warning">
+              Du wirst direkt nach dem Löschen abgemeldet. Mit der gleichen E-Mail kannst du dich später
+              jederzeit neu anmelden — alles startet dann frisch.
+            </div>
+            <div className="acc-del-actions">
+              <button className="acc-del-btn" onClick={() => setStep('reason')}>Zurück</button>
+              <button className="acc-del-btn acc-del-btn-danger" onClick={execute}>
+                Endgültig löschen
+              </button>
+            </div>
+          </>
+        )}
+
+        {step === 'sending' && (
+          <>
+            <div className="acc-del-kicker">Bitte warten</div>
+            <h2 className="acc-del-title">Konto wird gelöscht…</h2>
+            <p className="acc-del-sub">Wir entfernen deine Daten und melden dich gleich ab.</p>
+          </>
+        )}
+
+        {step === 'done' && (
+          <>
+            <div className="acc-del-kicker">Erledigt</div>
+            <h2 className="acc-del-title">Dein Konto wurde gelöscht</h2>
+            <p className="acc-del-sub">Du wirst jetzt abgemeldet. Danke, dass du Festag eine Chance gegeben hast.</p>
+          </>
+        )}
+
+        {step === 'error' && (
+          <>
+            <div className="acc-del-kicker">Hat nicht funktioniert</div>
+            <h2 className="acc-del-title">Konto konnte nicht gelöscht werden</h2>
+            <p className="acc-del-sub">{errorMessage || 'Bitte versuche es nochmal oder schreib uns an hi@festag.app.'}</p>
+            <div className="acc-del-actions">
+              <button className="acc-del-btn" onClick={onClose}>Schließen</button>
+              <button className="acc-del-btn acc-del-btn-danger" onClick={() => setStep('confirm')}>Nochmal versuchen</button>
+            </div>
+          </>
+        )}
+      </div>
     </div>
   )
 }
