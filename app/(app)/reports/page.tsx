@@ -1020,6 +1020,8 @@ function BriefingDeliveryCard({ projectId, projectTitle }: { projectId: string |
   const [saved, setSaved] = useState(false)
   const [lastSent, setLastSent] = useState<string | null>(null)
   const [nextRun, setNextRun] = useState<string | null>(null)
+  const [sending, setSending] = useState(false)
+  const [sendResult, setSendResult] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -1202,6 +1204,31 @@ function BriefingDeliveryCard({ projectId, projectTitle }: { projectId: string |
             </button>
           ))}
           <span className={`delivery-saved${saved ? ' on' : ''}`}>Gespeichert</span>
+        </div>
+        <div className="delivery-row" style={{ paddingTop: 6, borderTop: '1px solid color-mix(in srgb, var(--border) 35%, transparent)' }}>
+          <span className="delivery-row-label">Test</span>
+          <button
+            type="button"
+            className="delivery-chip"
+            disabled={sending}
+            onClick={async () => {
+              setSending(true); setSendResult(null)
+              try {
+                const res = await fetch('/api/briefings/send-now', {
+                  method: 'POST',
+                  credentials: 'include',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ projectId }),
+                })
+                const json = await res.json()
+                if (json?.ok) setSendResult(`Gesendet an ${(json.sent_to as string[]).join(', ')}${json.audio_attached ? ' · mit Audio' : ''}`)
+                else setSendResult(json?.error || 'fehlgeschlagen')
+              } catch { setSendResult('fehlgeschlagen') } finally { setSending(false) }
+            }}
+          >
+            {sending ? 'Sende…' : 'Jetzt zustellen'}
+          </button>
+          {sendResult && <span style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>{sendResult}</span>}
         </div>
       </div>
     </section>
