@@ -103,6 +103,10 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false)
   const [wsMode, setWsMode] = useState<'delivery' | 'team' | 'agency' | null>(null)
   const [wsName, setWsName] = useState<string>('')
+  const [wsId, setWsId] = useState<string | null>(null)
+  type Member = { user_id: string; role: string; joined_at: string; email: string | null; full_name: string | null; avatar_url: string | null }
+  const [members, setMembers] = useState<Member[]>([])
+  const [membersLoading, setMembersLoading] = useState(false)
   const [savedTick, setSavedTick] = useState<string | null>(null)
   const [error, setError] = useState('')
 
@@ -180,17 +184,44 @@ export default function SettingsPage() {
         if (typeof p.notif_push === 'boolean') setNotifPush(p.notif_push)
       }
 
-      // Workspace (Primary Mode + name) — for the Settings → Workspace card
+      // Workspace (Primary Mode + name + members) — Settings → Workspace card
       try {
         const { data: ws } = await supabase
           .from('workspaces')
-          .select('mode,name')
+          .select('id,mode,name')
           .eq('primary_owner_id', uid)
           .eq('is_personal', true)
           .maybeSingle()
         if (!cancelled && ws) {
           setWsMode((ws as any).mode ?? null)
           setWsName((ws as any).name ?? '')
+          setWsId((ws as any).id ?? null)
+
+          // Load members with profile join
+          setMembersLoading(true)
+          const { data: rows } = await supabase
+            .from('workspace_members')
+            .select('user_id,role,joined_at')
+            .eq('workspace_id', (ws as any).id)
+            .order('joined_at', { ascending: true })
+          const memberIds = ((rows as any[]) ?? []).map(r => r.user_id)
+          let profilesById: Record<string, any> = {}
+          if (memberIds.length) {
+            const { data: profs } = await supabase
+              .from('profiles').select('id,email,full_name,avatar_url').in('id', memberIds)
+            ;(profs as any[] ?? []).forEach(p => { profilesById[p.id] = p })
+          }
+          if (!cancelled) {
+            setMembers(((rows as any[]) ?? []).map(r => ({
+              user_id: r.user_id,
+              role: r.role,
+              joined_at: r.joined_at,
+              email: profilesById[r.user_id]?.email ?? null,
+              full_name: profilesById[r.user_id]?.full_name ?? null,
+              avatar_url: profilesById[r.user_id]?.avatar_url ?? null,
+            })))
+            setMembersLoading(false)
+          }
         }
       } catch {}
 
@@ -318,6 +349,24 @@ export default function SettingsPage() {
       } catch {}
     }
     flashSaved('Profilfarbe gespeichert')
+  }
+
+  async function changeMemberRole(userId: string, role: string) {
+    if (!wsId) return
+    setMembers(prev => prev.map(m => m.user_id === userId ? { ...m, role } : m))
+    try {
+      await supabase.from('workspace_members').update({ role }).eq('workspace_id', wsId).eq('user_id', userId)
+      flashSaved('Rolle aktualisiert')
+    } catch (e: any) { setError(e?.message || 'Konnte Rolle nicht ändern.') }
+  }
+
+  async function removeMember(userId: string) {
+    if (!wsId) return
+    setMembers(prev => prev.filter(m => m.user_id !== userId))
+    try {
+      await supabase.from('workspace_members').delete().eq('workspace_id', wsId).eq('user_id', userId)
+      flashSaved('Mitglied entfernt')
+    } catch (e: any) { setError(e?.message || 'Konnte Mitglied nicht entfernen.') }
   }
 
   async function saveNotif(next: Partial<{ email: boolean; push: boolean }>) {
@@ -1100,13 +1149,93 @@ export default function SettingsPage() {
               <div className="set-card">
                 <div className="set-row">
                   <div>
-                    <div className="set-label">Mitglieder</div>
-                    <div className="set-label-sub">Lade andere zu deinem Workspace ein.</div>
+                    <div className="set-label">Mitglieder &amp; Rollen</div>
+                    <div className="set-label-sub">
+                      {members.length === 0 || membersLoading
+                        ? 'Lade andere mit klaren Rollen zu deinem Workspace ein.'
+                        : `${members.length} Mitglied${members.length === 1 ? '' : 'er'} · Rollen werden pro Workspace gesetzt.`}
+                    </div>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                     <Link href="/invite" className="set-btn">Einladen</Link>
                   </div>
                 </div>
+                {members.length > 0 && (() => {
+                  // Roles available per workspace mode (per product spec). Owner appears but is read-only on self.
+                  const rolesForMode: { id: string; label: string; color: string }[] = wsMode === 'team'
+                    ? [
+                        { id: 'owner',           label: 'Owner',           color: '#202532' },
+                        { id: 'admin',           label: 'Admin',           color: '#4338CA' },
+                        { id: 'project_manager', label: 'Project Manager', color: '#0369A1' },
+                        { id: 'developer',       label: 'Developer',       color: '#15803D' },
+                        { id: 'reviewer',        label: 'Reviewer',        color: '#B45309' },
+                        { id: 'viewer',          label: 'Viewer',          color: '#6B7280' },
+                      ]
+                    : wsMode === 'agency'
+                    ? [
+                        { id: 'agency_owner',         label: 'Agency Owner',     color: '#202532' },
+                        { id: 'agency_admin',         label: 'Agency Admin',     color: '#4338CA' },
+                        { id: 'project_manager',      label: 'Project Manager',  color: '#0369A1' },
+                        { id: 'developer',            label: 'Developer',        color: '#15803D' },
+                        { id: 'client_owner',         label: 'Client Owner',     color: '#7E22CE' },
+                        { id: 'client_approver',      label: 'Client Approver',  color: '#9333EA' },
+                        { id: 'client_viewer',        label: 'Client Viewer',    color: '#6B7280' },
+                        { id: 'finance',              label: 'Finance',          color: '#0F766E' },
+                        { id: 'white_label_manager',  label: 'White Label',      color: '#D97706' },
+                      ]
+                    : [
+                        // delivery
+                        { id: 'owner',     label: 'Owner',     color: '#202532' },
+                        { id: 'approver',  label: 'Approver',  color: '#4338CA' },
+                        { id: 'finance',   label: 'Finance',   color: '#0F766E' },
+                        { id: 'member',    label: 'Member',    color: '#15803D' },
+                        { id: 'viewer',    label: 'Viewer',    color: '#6B7280' },
+                      ]
+                  const roleColor = (r: string) => rolesForMode.find(x => x.id === r)?.color || '#6B7280'
+                  return (
+                    <div className="set-row set-row-stack" style={{ flexDirection: 'column', alignItems: 'stretch', gap: 6, paddingTop: 6 }}>
+                      {members.map(m => {
+                        const isSelfOwner = m.user_id === profile?.id && m.role === 'owner'
+                        const initials = (m.full_name || m.email || 'F').split(' ').map(s => s[0]).filter(Boolean).slice(0,2).join('').toUpperCase()
+                        return (
+                          <div key={m.user_id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0', borderTop: '1px solid var(--set-border)' }}>
+                            {m.avatar_url ? (
+                              <img src={m.avatar_url} alt="" style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+                            ) : (
+                              <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--set-surface)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 600, color: 'var(--set-text)', flexShrink: 0 }}>
+                                {initials}
+                              </div>
+                            )}
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--set-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                {m.full_name || m.email || '—'}
+                                {isSelfOwner && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 600, color: 'var(--set-text-muted)' }}>(du)</span>}
+                              </div>
+                              <div style={{ fontSize: 11.5, color: 'var(--set-text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.email}</div>
+                            </div>
+                            <span style={{ display: 'inline-flex', alignItems: 'center', padding: '2px 8px', borderRadius: 4, fontSize: 10.5, fontWeight: 600, letterSpacing: '0.02em', color: roleColor(m.role), border: `1px solid ${roleColor(m.role)}`, textTransform: 'uppercase', flexShrink: 0 }}>
+                              {rolesForMode.find(r => r.id === m.role)?.label || m.role}
+                            </span>
+                            <select
+                              className="set-select"
+                              value={m.role}
+                              disabled={isSelfOwner}
+                              style={{ width: 140, flexShrink: 0 }}
+                              onChange={e => changeMemberRole(m.user_id, e.target.value)}
+                            >
+                              {rolesForMode.map(r => <option key={r.id} value={r.id}>{r.label}</option>)}
+                            </select>
+                            {!isSelfOwner && (
+                              <button type="button" className="set-btn set-btn-danger" style={{ flexShrink: 0 }} onClick={() => removeMember(m.user_id)}>
+                                Entfernen
+                              </button>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )
+                })()}
                 <div className="set-row">
                   <div>
                     <div className="set-label">Workspace-Wechsel anfragen</div>
