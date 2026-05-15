@@ -135,17 +135,17 @@ export default function DevLoginPage() {
         .dl-input.pin { text-align:center; letter-spacing:0.45em; font-size:15px; }
 
         .dl-cta {
-          width:100%; height:47px; border-radius:32px; border:none;
+          width:100%; height:47px; border-radius:32px; border:0.7px solid #e7ebf0;
           display:flex; align-items:center; justify-content:center; gap:8px;
           font-family:inherit; font-size:14px; font-weight:500; letter-spacing:0.14px;
           padding:12px 45px; white-space:nowrap; overflow:hidden;
-          background:#202532; color:#FFFFFF;
+          background:#fff; color:#202532;
           cursor:pointer;
-          box-shadow:0px 8px 24px 0px rgba(32,37,50,0.18);
+          box-shadow:0px 1px 2px 0px rgba(15,23,42,0.03);
           transition: background .15s, opacity .15s, border-color .15s, color .15s, transform 0.25s cubic-bezier(0.34,1.56,0.64,1);
           transform-origin:center;
         }
-        .dl-cta:hover:not(:disabled) { background:#0E1218; }
+        .dl-cta:hover:not(:disabled) { background:#F7F8FB; border-color:#DCE1EA; }
         .dl-cta:disabled { opacity:.5; cursor:not-allowed; }
 
         .dl-footer { display:flex; flex-direction:column; gap:8px; align-items:center; }
@@ -169,8 +169,8 @@ export default function DevLoginPage() {
         .dl-root[data-theme="dark"] .dl-input { background:rgba(243,245,247,0.035); color:#E8E8E5; border:1px solid rgba(102,112,143,0.10); caret-color:#66708F; }
         .dl-root[data-theme="dark"] .dl-input::placeholder { color:rgba(102,112,143,0.5); }
         .dl-root[data-theme="dark"] .dl-input:focus { border-color:rgba(102,112,143,0.5); box-shadow:0 0 0 3px rgba(102,112,143,0.10); }
-        .dl-root[data-theme="dark"] .dl-cta { background:#E8E8E5; color:#0A0E14; box-shadow:0px 8px 24px 0px rgba(0,0,0,0.35); }
-        .dl-root[data-theme="dark"] .dl-cta:hover:not(:disabled) { background:#F3F5F7; }
+        .dl-root[data-theme="dark"] .dl-cta { background:rgba(243,245,247,0.035); color:#E8E8E5; border:0.7px solid rgba(243,245,247,0.08); box-shadow:none; }
+        .dl-root[data-theme="dark"] .dl-cta:hover:not(:disabled) { background:rgba(243,245,247,0.06); border-color:rgba(243,245,247,0.14); }
         .dl-root[data-theme="dark"] .dl-link { color:#7B8294; }
         .dl-root[data-theme="dark"] .dl-link:hover { color:#E8E8E5; }
         .dl-root[data-theme="dark"] .dl-ssl { color:rgba(232,232,229,0.5); }
