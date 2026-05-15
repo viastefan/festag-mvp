@@ -627,17 +627,16 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           border-color:var(--border-strong);
         }
 
-        /* ── Tagro Monitoring Capsule ── */
+        /* ── Tagro Monitoring Capsule — single-line ── */
         .sb-monitor-capsule {
-          display:flex; align-items:center; gap:10px;
-          min-height:38px;
-          padding:6px 12px 6px 10px;
+          display:flex; align-items:center; gap:8px;
+          min-height:32px;
+          padding:6px 12px;
           border:1px solid var(--border);
           background:color-mix(in srgb, var(--surface) 76%, transparent);
-          border-radius:12px;
+          border-radius:8px;
           text-decoration:none;
           color:var(--text);
-          box-shadow:0 1px 2px rgba(0,0,0,.025);
           min-width:0;
           transition:background .12s, border-color .12s;
         }
@@ -647,21 +646,14 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           border-color:var(--border-strong);
         }
         .sb-monitor-dot {
-          width:8px; height:8px; border-radius:50%;
+          width:7px; height:7px; border-radius:50%;
           flex-shrink:0;
-          box-shadow:0 0 0 3px color-mix(in srgb, currentColor 6%, transparent);
         }
-        .sb-monitor-text {
-          display:flex; flex-direction:column; min-width:0; line-height:1.2;
-        }
-        .sb-monitor-headline {
-          font-size:11px; font-weight:600; letter-spacing:.02em;
-          color:var(--text-muted); text-transform:uppercase;
-        }
-        .sb-monitor-sub {
-          font-size:12.5px; font-weight:600; letter-spacing:-.005em;
+        .sb-monitor-line {
+          font-size:12.5px; font-weight:500; letter-spacing:-.005em;
           color:var(--text);
           overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+          min-width:0;
         }
 
         /* ── User dropdown row ── */
@@ -951,19 +943,16 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
             {(() => {
               const { decisions, blockers, loaded } = tagroSignals
               const status = !loaded
-                ? { dot: 'var(--text-muted)', headline: 'Tagro Monitoring', sub: 'wird geprüft…' }
+                ? { dot: 'var(--text-muted)', text: 'Tagro prüft Status…' }
                 : decisions > 0
-                  ? { dot: '#0369A1', headline: 'Tagro Monitoring', sub: `${decisions} Entscheidung${decisions === 1 ? '' : 'en'} offen` }
+                  ? { dot: '#0369A1', text: `${decisions} Entscheidung${decisions === 1 ? '' : 'en'} offen` }
                   : blockers > 0
-                    ? { dot: '#D97706', headline: 'Tagro Monitoring', sub: `${blockers} Risik${blockers === 1 ? 'o' : 'en'} im Blick` }
-                    : { dot: '#15803D', headline: 'Tagro Monitoring', sub: 'Alles auf Kurs' }
+                    ? { dot: '#D97706', text: `${blockers} Risik${blockers === 1 ? 'o' : 'en'} im Blick` }
+                    : { dot: '#15803D', text: 'Alles auf Kurs' }
               return (
-                <Link href="/voice-reports" className="sb-monitor-capsule sb-monitor-capsule--single" aria-label={`Voice Reports — ${status.sub}`}>
+                <Link href="/reports" className="sb-monitor-capsule sb-monitor-capsule--single" title={`Tagro Monitoring · ${status.text}`} aria-label={`Tagro Monitoring — ${status.text}`}>
                   <span className="sb-monitor-dot" style={{ background: status.dot }} />
-                  <span className="sb-monitor-text">
-                    <span className="sb-monitor-headline">Voice Reports</span>
-                    <span className="sb-monitor-sub">{status.sub}</span>
-                  </span>
+                  <span className="sb-monitor-line">{status.text}</span>
                 </Link>
               )
             })()}
