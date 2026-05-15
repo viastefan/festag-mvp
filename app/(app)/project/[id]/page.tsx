@@ -13,6 +13,7 @@ import DevTimer from '@/components/DevTimer'
 import DeleteProjectModal from '@/components/DeleteProjectModal'
 import TaskDetailModal from '@/components/TaskDetailModal'
 import AudioBriefingButton from '@/components/AudioBriefingButton'
+import AssetsPanel from '@/components/AssetsPanel'
 
 type Project = { id: string; title: string; description: string|null; status: string }
 type Task = { id: string; title: string; status: string; priority?: string }
@@ -37,7 +38,7 @@ export default function ProjectPage() {
   const [userId, setUserId] = useState('')
   const [userEmail, setUserEmail] = useState('')
   const [userRole, setUserRole] = useState<'client'|'dev'|'admin'|''>('')
-  const [activeLeft, setActiveLeft] = useState<'tasks'|'updates'>('tasks')
+  const [activeLeft, setActiveLeft] = useState<'tasks'|'assets'|'updates'>('tasks')
   const [aiThinking, setAiThinking] = useState(false)
   const [generatingAI, setGeneratingAI] = useState(false)
   const [online, setOnline] = useState(false)
@@ -504,6 +505,7 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m√
           <div style={{ display:'flex', gap:20, borderBottom:'1px solid var(--border)', marginBottom:20 }}>
             {([
               { key:'tasks',   label:`Tasks (${tasks.length})` },
+              { key:'assets',  label:'Assets' },
               { key:'updates', label:'AI Statusbericht' },
             ] as const).map(tab => (
               <button key={tab.key} className={`tab-btn ${activeLeft===tab.key?'active':''}`} onClick={() => setActiveLeft(tab.key)}>
@@ -589,6 +591,11 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m√
                 <p style={{ fontSize:13, color:'var(--text-muted)', padding:'24px 0' }}>Noch keine Tasks angelegt.</p>
               )}
             </div>
+          )}
+
+          {/* ASSETS */}
+          {activeLeft === 'assets' && (
+            <AssetsPanel projectId={project.id} workspaceId={(project as any).workspace_id ?? null} />
           )}
 
           {/* AI UPDATES */}
