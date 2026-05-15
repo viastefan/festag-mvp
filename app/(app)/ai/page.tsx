@@ -1,17 +1,20 @@
 'use client'
-import { useEffect, useState, useRef } from 'react'
-import { createClient } from '@/lib/supabase/client'
-import Link from 'next/link'
-import ChatMarkdown from '@/components/ChatMarkdown'
-import ChatInput from '@/components/ChatInput'
 
-type Msg     = { role: 'user' | 'ai'; text: string; time: string; thinking?: string | null }
+import { useEffect, useRef, useState } from 'react'
+import { ArrowUp, DotsThree, Microphone, Plus, Sparkle } from '@phosphor-icons/react'
+import { createClient } from '@/lib/supabase/client'
+import ChatMarkdown from '@/components/ChatMarkdown'
+
+type Msg = { role: 'user' | 'ai'; text: string; time: string; thinking?: string | null }
 type Project = { id: string; title: string; status: string; description?: string }
-type Task    = { id: string; title: string; status: string; project_id: string }
+type Task = { id: string; title: string; status: string; project_id: string }
 
 const PHASE: Record<string, string> = {
-  intake: 'Intake', planning: 'Planning',
-  active: 'In Arbeit', testing: 'Testing', done: 'Abgeschlossen',
+  intake: 'Intake',
+  planning: 'Planning',
+  active: 'In Arbeit',
+  testing: 'Testing',
+  done: 'Abgeschlossen',
 }
 
 const TEST_TRIGGER = /^\s*test[\s\-_]*projekt\s*$/i
@@ -29,51 +32,48 @@ FORMATIERUNG: Nutze Markdown wenn es Klarheit schafft.
 - Überschriften (### oder ####) nur bei längeren Berichten
 Halte den Text trotzdem knapp.`
 
-const QUICK = [
-  'Was ist der aktuelle Projektstatus?',
-  'Welche Tasks sind kritisch?',
-  'Was sind die nächsten Schritte?',
-  'Erstelle einen Fortschrittsbericht',
-  'Wo gibt es Risiken?',
-]
-
-const TAGRO_CAN = [
-  { icon: '📊', label: 'Projektbriefings erstellen' },
-  { icon: '🎯', label: 'Risiken identifizieren' },
-  { icon: '✅', label: 'Tasks priorisieren' },
-  { icon: '🗺️', label: 'Roadmaps planen' },
-  { icon: '🏗️', label: 'Projekt strukturieren' },
-]
-
 export default function AIPage() {
-  const [msgs,     setMsgs]     = useState<Msg[]>([])
-  const [input,    setInput]    = useState('')
-  const [loading,  setLoading]  = useState(false)
+  const [msgs, setMsgs] = useState<Msg[]>([])
+  const [input, setInput] = useState('')
+  const [loading, setLoading] = useState(false)
   const [projects, setProjects] = useState<Project[]>([])
-  const [tasks,    setTasks]    = useState<Task[]>([])
+  const [tasks, setTasks] = useState<Task[]>([])
   const feedRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLTextAreaElement>(null)
   const sb = createClient()
 
   useEffect(() => {
     sb.auth.getSession().then(async ({ data }) => {
-      if (!data.session) { window.location.href = '/login'; return }
+      if (!data.session) {
+        window.location.href = '/login'
+        return
+      }
       const { data: p } = await sb.from('projects').select('id,title,status,description').order('created_at', { ascending: false }).limit(8)
       const { data: t } = await sb.from('tasks').select('id,title,status,project_id').order('created_at', { ascending: false }).limit(50)
       setProjects(p ?? [])
       setTasks(t ?? [])
-      setMsgs([{
-        role: 'ai',
-        text: p?.length
-          ? `Ich bin Tagro — dein AI-Projektmanager. Du hast ${p.length} aktives Projekt${p.length !== 1 ? 'e' : ''}. Wie kann ich dir helfen?`
-          : 'Ich bin Tagro — dein AI-Projektmanager. Du hast noch keine Projekte. Starte ein Projekt um loszulegen.',
-        time: fmt(),
-      }])
+      setMsgs([
+        {
+          role: 'ai',
+          text: p?.length
+            ? `Ich bin Tagro — dein AI-Projektmanager.\n\nDu hast ${p.length} aktives Projekt${p.length !== 1 ? 'e' : ''}. Wie kann ich dir helfen?`
+            : 'Ich bin Tagro — dein AI-Projektmanager.\n\nDu hast noch keine Projekte. Starte ein Projekt um loszulegen.',
+          time: fmt(),
+        },
+      ])
     })
   }, [])
 
   useEffect(() => {
     if (feedRef.current) feedRef.current.scrollTop = feedRef.current.scrollHeight
   }, [msgs, loading])
+
+  useEffect(() => {
+    const textarea = inputRef.current
+    if (!textarea) return
+    textarea.style.height = 'auto'
+    textarea.style.height = `${Math.min(textarea.scrollHeight, 176)}px`
+  }, [input])
 
   function fmt() {
     return new Date().toLocaleTimeString('de', { hour: '2-digit', minute: '2-digit' })
@@ -91,7 +91,10 @@ export default function AIPage() {
     try {
       const { data: { session } } = await sb.auth.getSession()
       const userId = session?.user.id
-      if (!userId) { setLoading(false); return }
+      if (!userId) {
+        setLoading(false)
+        return
+      }
       const res = await fetch('/api/ai/test-project', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -99,8 +102,8 @@ export default function AIPage() {
       })
       const d = await res.json()
       if (d.projectId) {
-        const title  = d.decomposed?.project_title ?? 'Demo-Projekt'
-        const epics  = d.decomposed?.epics?.length ?? 0
+        const title = d.decomposed?.project_title ?? 'Demo-Projekt'
+        const epics = d.decomposed?.epics?.length ?? 0
         const ntasks = d.decomposed?.epics?.reduce((a: number, e: any) => a + (e.tasks?.length ?? 0), 0) ?? 0
         setMsgs(m => [...m, { role: 'ai', text: `**Demo-Projekt erstellt: "${title}"**\n\n- ${epics} Epics\n- ${ntasks} Tasks\n- Status: \`intake\`\n\n[Projekt öffnen →](/project/${d.projectId})`, time: fmt() }])
         const { data: p } = await sb.from('projects').select('id,title,status,description').order('created_at', { ascending: false }).limit(8)
@@ -154,270 +157,387 @@ export default function AIPage() {
     setLoading(false)
   }
 
+  function submit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    send()
+  }
+
+  function onKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      send()
+    }
+  }
+
   const totalTasks = tasks.length
-  const doneTasks  = tasks.filter(t => t.status === 'done').length
+  const doneTasks = tasks.filter(t => t.status === 'done').length
   const inProgress = tasks.filter(t => t.status === 'doing').length
-  const pct        = totalTasks ? Math.round(doneTasks / totalTasks * 100) : 0
+  const activeProjectName = projects[0]?.title ?? 'kein Projekt gewählt'
 
   return (
-    <div style={{ display: 'flex', height: 'calc(100dvh - 0px)', overflow: 'hidden' }}>
+    <div className="tagro-operating-root">
       <style>{`
-        .ai-msg-in { animation: fadeUp .25s cubic-bezier(.16,1,.3,1) both }
-        .ai-sidebar { display: none; }
-        .ai-quick { scrollbar-width: none; -ms-overflow-style: none; }
-        .ai-quick::-webkit-scrollbar { display: none; }
-        .q-chip { padding:5px 13px; border-radius:20px; border:1px solid var(--border); background:var(--surface); font-size:12px; color:var(--text-secondary); cursor:pointer; white-space:nowrap; flex-shrink:0; font-family:inherit; font-weight:500; transition:border-color .1s, background .1s; }
-        .q-chip:hover { border-color:var(--border-strong); background:var(--card); color:var(--text); }
-        .tagro-can-row { display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid var(--border); font-size:12.5px; color:var(--text-secondary); font-weight:500; }
-        .tagro-can-row:last-child { border-bottom:none; }
-        @media(min-width:900px) {
-          .ai-sidebar { display:flex !important; }
+        .tagro-operating-root {
+          height: 100%;
+          min-height: 0;
+          overflow: hidden;
+          display: flex;
+          flex-direction: column;
+          color: #e8e7e3;
+          background:
+            radial-gradient(circle at 18% 8%, rgba(115, 129, 164, 0.13), transparent 34%),
+            radial-gradient(circle at 78% 2%, rgba(255, 255, 255, 0.045), transparent 26%),
+            linear-gradient(180deg, #0b0d0f 0%, #0a0c0e 100%);
+        }
+        .tagro-head {
+          min-height: 82px;
+          padding: 23px 36px 15px;
+          display: flex;
+          align-items: flex-start;
+          justify-content: space-between;
+          gap: 18px;
+          flex-shrink: 0;
+        }
+        .tagro-title-wrap { display: flex; align-items: center; gap: 13px; min-width: 0; }
+        .tagro-mark {
+          width: 38px;
+          height: 38px;
+          border-radius: 14px;
+          display: grid;
+          place-items: center;
+          color: #f4f3ee;
+          background: linear-gradient(145deg, rgba(255,255,255,.13), rgba(255,255,255,.035));
+          border: 1px solid rgba(255,255,255,.075);
+          box-shadow: inset 0 1px 0 rgba(255,255,255,.08);
+        }
+        .tagro-title { margin: 0; color: #f1f0ec; font-size: 17px; font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+        .tagro-sub { margin: 4px 0 0; color: rgba(232,231,227,.48); font-size: 12.5px; font-weight: 500; letter-spacing: -.01em; }
+        .tagro-actions { display: flex; align-items: center; gap: 10px; padding-top: 2px; }
+        .tagro-live {
+          display: inline-flex;
+          align-items: center;
+          gap: 7px;
+          height: 34px;
+          padding: 0 14px;
+          border-radius: 32px;
+          color: #d9f7dd;
+          background: rgba(51, 195, 91, .09);
+          border: 1px solid rgba(78, 210, 119, .18);
+          font-size: 12px;
+          font-weight: 700;
+        }
+        .tagro-live-dot { width: 7px; height: 7px; border-radius: 50%; background: #50d56d; box-shadow: 0 0 18px rgba(80,213,109,.48); }
+        .tagro-menu-btn {
+          width: 34px;
+          height: 34px;
+          border: 1px solid rgba(255,255,255,.075);
+          border-radius: 32px;
+          background: rgba(255,255,255,.025);
+          color: rgba(232,231,227,.72);
+          display: grid;
+          place-items: center;
+          padding: 0;
+        }
+        .tagro-flow {
+          flex: 1;
+          min-height: 0;
+          overflow-y: auto;
+          padding: 22px 36px 168px;
+          display: flex;
+          flex-direction: column;
+          gap: 40px;
+          scrollbar-width: thin;
+          scrollbar-color: rgba(255,255,255,.12) transparent;
+        }
+        .tagro-flow::-webkit-scrollbar { width: 7px; }
+        .tagro-flow::-webkit-scrollbar-thumb { background: rgba(255,255,255,.12); border-radius: 20px; }
+        .tagro-message {
+          display: grid;
+          grid-template-columns: 42px minmax(0, 1fr);
+          gap: 16px;
+          width: min(720px, 76vw);
+          animation: fadeUp .35s cubic-bezier(.16,1,.3,1) both;
+        }
+        .tagro-message.user {
+          align-self: flex-end;
+          display: flex;
+          justify-content: flex-end;
+          width: min(560px, 58vw);
+        }
+        .tagro-avatar {
+          width: 34px;
+          height: 34px;
+          border-radius: 32px;
+          display: grid;
+          place-items: center;
+          background: rgba(255,255,255,.035);
+          border: 1px solid rgba(255,255,255,.07);
+          color: rgba(244,243,238,.92);
+          margin-top: 2px;
+        }
+        .tagro-ai-block {
+          color: rgba(239,238,234,.88);
+          background:
+            radial-gradient(circle at 10% 0%, rgba(255,255,255,.07), transparent 45%),
+            linear-gradient(145deg, rgba(21,24,27,.92), rgba(14,16,18,.96));
+          border: 1px solid rgba(255,255,255,.06);
+          border-radius: 22px;
+          padding: 20px 24px;
+          box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+          font-size: 15px;
+          line-height: 1.68;
+        }
+        .tagro-ai-block p { margin-top: 0; }
+        .tagro-user-wrap { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+        .tagro-user-block {
+          color: rgba(245,244,239,.92);
+          background: linear-gradient(145deg, rgba(38,41,45,.96), rgba(28,31,34,.94));
+          border: 1px solid rgba(255,255,255,.055);
+          border-radius: 22px 22px 6px 22px;
+          padding: 16px 20px;
+          font-size: 14.5px;
+          line-height: 1.55;
+          font-weight: 560;
+          box-shadow: inset 0 1px 0 rgba(255,255,255,.045);
+        }
+        .tagro-time {
+          color: rgba(232,231,227,.34);
+          font-size: 11px;
+          letter-spacing: -.01em;
+        }
+        .tagro-meta-row {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          margin-top: 10px;
+          color: rgba(232,231,227,.34);
+          font-size: 11px;
+        }
+        .tagro-thinking {
+          margin-bottom: 10px;
+          display: inline-flex;
+          align-items: center;
+          gap: 9px;
+          color: rgba(232,231,227,.32);
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: .14em;
+          text-transform: uppercase;
+          user-select: none;
+        }
+        .tagro-thinking-line { width: 26px; height: 1px; background: rgba(255,255,255,.09); }
+        .tagro-loading {
+          width: 54px;
+          height: 22px;
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+        }
+        .tagro-loading span {
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background: rgba(232,231,227,.46);
+          animation: pulse 1.2s ease-in-out infinite;
+        }
+        .tagro-loading span:nth-child(2) { animation-delay: .15s; }
+        .tagro-loading span:nth-child(3) { animation-delay: .3s; }
+        .tagro-command-shell {
+          flex-shrink: 0;
+          margin-top: auto;
+          padding: 18px 26px calc(18px + env(safe-area-inset-bottom));
+          border-radius: 32px 32px 0 0;
+          background:
+            radial-gradient(circle at 22% 0%, rgba(255,255,255,.055), transparent 34%),
+            linear-gradient(180deg, rgba(21,24,27,.98), rgba(15,17,19,.98));
+          box-shadow:
+            inset 0 1px 0 rgba(255,255,255,.07),
+            0 -28px 90px rgba(0,0,0,.42);
+        }
+        .tagro-context-line {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          color: rgba(232,231,227,.42);
+          font-size: 11px;
+          font-weight: 600;
+          letter-spacing: .02em;
+          margin: 0 0 12px 6px;
+        }
+        .tagro-context-line strong { color: rgba(232,231,227,.72); font-weight: 700; }
+        .tagro-command {
+          min-height: 74px;
+          display: flex;
+          align-items: flex-start;
+          gap: 14px;
+        }
+        .tagro-command-icon {
+          width: 42px;
+          height: 42px;
+          border-radius: 32px;
+          border: 1px solid rgba(255,255,255,.07);
+          background: rgba(255,255,255,.035);
+          color: rgba(232,231,227,.68);
+          display: grid;
+          place-items: center;
+          flex-shrink: 0;
+          margin-top: 3px;
+        }
+        .tagro-textarea {
+          flex: 1;
+          min-height: 48px;
+          max-height: 176px;
+          resize: none;
+          border: 0;
+          outline: none;
+          padding: 13px 0 8px;
+          background: transparent;
+          color: rgba(244,243,238,.92);
+          font: inherit;
+          font-size: 17px;
+          font-weight: 520;
+          line-height: 1.55;
+          overflow-y: auto;
+        }
+        .tagro-textarea::placeholder { color: rgba(232,231,227,.28); transition: opacity .18s ease; }
+        .tagro-textarea:focus::placeholder { opacity: .55; }
+        .tagro-submit {
+          width: 44px;
+          height: 44px;
+          border-radius: 32px;
+          border: 1px solid rgba(255,255,255,.08);
+          background: rgba(255,255,255,.9);
+          color: #0b0d0f;
+          display: grid;
+          place-items: center;
+          padding: 0;
+          flex-shrink: 0;
+          margin-top: 2px;
+          opacity: 1;
+          transform: scale(1);
+          transition: transform .18s ease, opacity .18s ease, background .18s ease;
+        }
+        .tagro-submit:disabled { opacity: .38; transform: scale(.96); }
+        .tagro-mic {
+          width: 44px;
+          height: 44px;
+          border-radius: 32px;
+          border: 0;
+          background: transparent;
+          color: rgba(232,231,227,.62);
+          display: grid;
+          place-items: center;
+          padding: 0;
+          flex-shrink: 0;
+          margin-top: 2px;
+        }
+        @media (max-width: 760px) {
+          .tagro-head { padding: 20px 20px 12px; min-height: 74px; }
+          .tagro-flow { padding: 18px 20px 156px; gap: 30px; }
+          .tagro-message, .tagro-message.user { width: 100%; }
+          .tagro-message { grid-template-columns: 34px minmax(0, 1fr); gap: 11px; }
+          .tagro-ai-block { padding: 17px 18px; border-radius: 20px; }
+          .tagro-command-shell { padding-left: 18px; padding-right: 18px; }
+          .tagro-textarea { font-size: 15.5px; }
         }
       `}</style>
 
-      {/* ── MAIN CHAT ── */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
+      <header className="tagro-head">
+        <div className="tagro-title-wrap">
+          <div className="tagro-mark" aria-hidden="true"><Sparkle size={18} weight="bold" /></div>
+          <div>
+            <h1 className="tagro-title">Tagro AI</h1>
+            <p className="tagro-sub">AI Project Operations</p>
+          </div>
+        </div>
+        <div className="tagro-actions">
+          <span className="tagro-live"><span className="tagro-live-dot" />Aktiv</span>
+          <button className="tagro-menu-btn" type="button" aria-label="Tagro Optionen"><DotsThree size={21} weight="bold" /></button>
+        </div>
+      </header>
 
-        {/* Header */}
-        <div style={{ padding: '12px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0, background: 'var(--bg)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ width: 34, height: 34, borderRadius: 10, background: 'var(--text)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--bg)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8"/>
-              </svg>
-            </div>
+      <main ref={feedRef} className="tagro-flow">
+        {msgs.map((m, i) => (
+          <div key={`${m.time}-${i}`} className={`tagro-message ${m.role === 'user' ? 'user' : 'ai'}`}>
+            {m.role === 'ai' ? (
+              <>
+                <div className="tagro-avatar" aria-hidden="true"><Sparkle size={15} weight="bold" /></div>
+                <div>
+                  {m.thinking && <ThinkingBlock text={m.thinking} />}
+                  <div className="tagro-ai-block"><ChatMarkdown text={m.text} /></div>
+                  <div className="tagro-meta-row"><span>Tagro</span><span>·</span><span>{m.time}</span></div>
+                </div>
+              </>
+            ) : (
+              <div className="tagro-user-wrap">
+                <div className="tagro-user-block"><p style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{m.text}</p></div>
+                <span className="tagro-time">{m.time} ✓✓</span>
+              </div>
+            )}
+          </div>
+        ))}
+
+        {loading && (
+          <div className="tagro-message ai">
+            <div className="tagro-avatar" aria-hidden="true"><Sparkle size={15} weight="bold" /></div>
             <div>
-              <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)', margin: 0, lineHeight: 1.1 }}>Tagro AI</p>
-              <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: '2px 0 0', lineHeight: 1 }}>Production Engine</p>
-            </div>
-          </div>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 10.5, fontWeight: 700, color: 'var(--green-dark)', background: 'var(--green-bg)', padding: '4px 10px', borderRadius: 8, border: '1px solid var(--green-border)', letterSpacing: '.06em' }}>
-            <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--green)', animation: 'pulse 2s infinite' }} />
-            AKTIV
-          </span>
-        </div>
-
-        {/* Message feed */}
-        <div ref={feedRef} style={{ flex: 1, overflowY: 'auto', padding: '24px 20px', display: 'flex', flexDirection: 'column', gap: 22 }}>
-          {msgs.map((m, i) => (
-            <div key={i} className={i === msgs.length - 1 ? 'ai-msg-in' : ''}
-              style={{ display: 'flex', gap: 10, justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
-              {m.role === 'ai' && (
-                <div style={{ width: 28, height: 28, borderRadius: 8, background: 'var(--text)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 3 }}>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--bg)" strokeWidth="2.2" strokeLinecap="round"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8"/></svg>
-                </div>
-              )}
-              <div style={{ maxWidth: '80%', display: 'flex', flexDirection: 'column', gap: 6, alignItems: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
-                {m.role === 'ai' && m.thinking && <ThinkingBlock text={m.thinking} />}
-                <div style={{
-                  padding: '11px 15px',
-                  borderRadius: m.role === 'ai' ? '4px 16px 16px 16px' : '16px 4px 16px 16px',
-                  background: m.role === 'ai' ? 'var(--card)' : 'var(--btn-prim)',
-                  border: m.role === 'ai' ? '1px solid var(--border)' : 'none',
-                  color: m.role === 'ai' ? 'var(--text)' : 'var(--btn-prim-text)',
-                  fontSize: 14, lineHeight: 1.6, wordBreak: 'break-word',
-                }}>
-                  {m.role === 'ai'
-                    ? <ChatMarkdown text={m.text} />
-                    : <p style={{ margin: 0, whiteSpace: 'pre-wrap', color: 'var(--btn-prim-text)', fontWeight: 600 }}>{m.text}</p>
-                  }
-                </div>
-                <span style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '.02em' }}>
-                  {m.role === 'ai' ? 'Tagro' : 'Du'} · {m.time}
-                </span>
+              <div className="tagro-thinking"><span className="tagro-thinking-line" />System verarbeitet Projektkontext</div>
+              <div className="tagro-ai-block" style={{ width: 118 }}>
+                <span className="tagro-loading"><span /><span /><span /></span>
               </div>
-              {m.role === 'user' && (
-                <div style={{ width: 28, height: 28, borderRadius: 8, background: 'var(--surface-2)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 3 }}>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" strokeWidth="2"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c0-3.5 3.1-6 7-6s7 2.5 7 6"/></svg>
-                </div>
-              )}
-            </div>
-          ))}
-
-          {loading && (
-            <div className="ai-msg-in" style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-              <div style={{ width: 28, height: 28, borderRadius: 8, background: 'var(--text)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--bg)" strokeWidth="2.2" strokeLinecap="round"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8"/></svg>
-              </div>
-              <div style={{ padding: '12px 16px', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '4px 16px 16px 16px', display: 'flex', gap: 5, alignItems: 'center' }}>
-                {[0, 1, 2].map(j => (
-                  <span key={j} style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--text-muted)', animation: `pulse 1.2s ${j * 0.2}s ease-in-out infinite` }} />
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Input area — with quick chips + ChatInput */}
-        <div style={{ flexShrink: 0, padding: '0 16px 20px', background: 'var(--bg)', borderTop: '1px solid var(--border)' }}>
-          {/* Quick chips */}
-          <div className="ai-quick" style={{ display: 'flex', gap: 6, overflowX: 'auto', padding: '12px 0 10px' }}>
-            {QUICK.map(q => (
-              <button key={q} onClick={() => send(q)} disabled={loading} className="q-chip">
-                {q}
-              </button>
-            ))}
-          </div>
-
-          {/* ChatInput component — same as copilot/onboarding */}
-          <ChatInput
-            value={input}
-            onChange={setInput}
-            onSend={() => send()}
-            loading={loading}
-            placeholder="Frag Tagro — was soll dein Projekt können?"
-            autoFocus
-            banner={
-              <p style={{ fontSize: 10.5, color: 'var(--text-muted)', textAlign: 'center', margin: '7px 0 0', letterSpacing: '.03em' }}>
-                ⏎ Senden · ⇧⏎ Neue Zeile
-              </p>
-            }
-          />
-        </div>
-      </div>
-
-      {/* ── RIGHT SIDEBAR — desktop only ── */}
-      <div className="ai-sidebar" style={{
-        width: 280,
-        borderLeft: '1px solid var(--border)',
-        flexDirection: 'column',
-        overflowY: 'auto',
-        background: 'var(--bg)',
-        scrollbarWidth: 'none',
-      }}>
-
-        {/* Übersicht */}
-        <div style={{ padding: '20px 18px 0' }}>
-          <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '.1em', textTransform: 'uppercase', margin: '0 0 12px' }}>Übersicht</p>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 14 }}>
-            {[
-              { label: 'Projekte', value: projects.length },
-              { label: 'Tasks',    value: totalTasks },
-              { label: 'Erledigt', value: doneTasks,  green: true },
-              { label: 'Aktiv',    value: inProgress, amber: true },
-            ].map(s => (
-              <div key={s.label} style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 12, padding: '11px 13px' }}>
-                <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '.06em', margin: '0 0 5px' }}>{s.label.toUpperCase()}</p>
-                <p style={{ fontSize: 22, fontWeight: 700, color: (s as any).green ? 'var(--green-dark)' : (s as any).amber ? 'var(--amber-dark)' : 'var(--text)', margin: 0, lineHeight: 1, letterSpacing: '-.4px' }}>{s.value}</p>
-              </div>
-            ))}
-          </div>
-
-          {totalTasks > 0 && (
-            <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 12, padding: '13px 14px', marginBottom: 14 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                <span style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--text-secondary)' }}>Gesamtfortschritt</span>
-                <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--text)' }}>{pct}%</span>
-              </div>
-              <div style={{ height: 4, background: 'var(--surface-2)', borderRadius: 4, overflow: 'hidden' }}>
-                <div style={{ height: '100%', width: `${pct}%`, background: 'var(--green)', borderRadius: 4, transition: 'width 1s cubic-bezier(.16,1,.3,1)' }} />
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Projects */}
-        {projects.length > 0 && (
-          <div style={{ padding: '0 18px 14px' }}>
-            <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '.1em', textTransform: 'uppercase', margin: '0 0 10px' }}>Projekte</p>
-            <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 12, overflow: 'hidden' }}>
-              {projects.slice(0, 5).map((p, i) => (
-                <Link key={p.id} href={`/project/${p.id}`}
-                  style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderBottom: i < Math.min(projects.length, 5) - 1 ? '1px solid var(--border)' : 'none', textDecoration: 'none', transition: 'background .1s' }}
-                  onMouseEnter={e => (e.currentTarget.style.background = 'var(--surface-2)')}
-                  onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
-                  <div style={{
-                    width: 28, height: 28, borderRadius: 8, flexShrink: 0,
-                    background: 'var(--surface-2)', border: '1px solid var(--border)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 10.5, fontWeight: 700, color: 'var(--text-muted)',
-                  }}>
-                    {p.title.charAt(0).toUpperCase()}
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--text)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.title}</p>
-                    <p style={{ fontSize: 10.5, color: 'var(--text-muted)', margin: 0, textTransform: 'capitalize' }}>{PHASE[p.status] ?? p.status}</p>
-                  </div>
-                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: p.status === 'active' ? 'var(--green)' : p.status === 'done' ? 'var(--text-muted)' : 'var(--amber)', flexShrink: 0 }} />
-                </Link>
-              ))}
             </div>
           </div>
         )}
+      </main>
 
-        {/* Tagro kann */}
-        <div style={{ padding: '0 18px 20px' }}>
-          <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '.1em', textTransform: 'uppercase', margin: '0 0 10px' }}>Tagro kann</p>
-          <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 12, padding: '4px 14px' }}>
-            {TAGRO_CAN.map(c => (
-              <div key={c.label} className="tagro-can-row" style={{ cursor: 'pointer' }}
-                onClick={() => send(c.label)}>
-                <span style={{ fontSize: 14, flexShrink: 0 }}>{c.icon}</span>
-                <span style={{ fontSize: 12.5, color: 'var(--text-secondary)', fontWeight: 500 }}>{c.label}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* New project CTA */}
-        <div style={{ padding: '0 18px 20px', marginTop: 'auto' }}>
-          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '14px 16px' }}>
-            <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '.08em', margin: '0 0 8px', textTransform: 'uppercase' }}>Neues Projekt</p>
-            <p style={{ fontSize: 12.5, color: 'var(--text-secondary)', margin: '0 0 12px', lineHeight: 1.5 }}>Lass Tagro dein nächstes Projekt strukturieren.</p>
-            <Link href="/new-project"
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '9px', background: 'var(--btn-prim)', color: 'var(--btn-prim-text)', borderRadius: 9, fontSize: 12.5, fontWeight: 700, textDecoration: 'none' }}>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-              Starten
-            </Link>
-          </div>
-        </div>
-      </div>
+      <section className="tagro-command-shell" aria-label="Tagro Eingabe">
+        <p className="tagro-context-line">
+          Kontext <strong>{activeProjectName}</strong>
+          <span>·</span>
+          <span>{projects.length} Projekte</span>
+          <span>·</span>
+          <span>{doneTasks}/{totalTasks} Tasks erledigt</span>
+          <span>·</span>
+          <span>{inProgress} aktiv</span>
+        </p>
+        <form className="tagro-command" onSubmit={submit}>
+          <button className="tagro-command-icon" type="button" aria-label="Kontext hinzufügen"><Plus size={22} /></button>
+          <textarea
+            ref={inputRef}
+            className="tagro-textarea"
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            onKeyDown={onKeyDown}
+            placeholder="Frag Tagro — was soll dein Projekt können?"
+            rows={1}
+            autoFocus
+          />
+          {input.trim() ? (
+            <button className="tagro-submit" type="submit" disabled={loading} aria-label="An Tagro senden"><ArrowUp size={19} weight="bold" /></button>
+          ) : (
+            <button className="tagro-mic" type="button" aria-label="Voice Input vorbereitet"><Microphone size={21} /></button>
+          )}
+        </form>
+      </section>
     </div>
   )
 }
 
-// ───────────────────────────────────────────────────────────────────────
-// Thinking-Block — zeigt den <think>-Reasoning-Block der MiniMax-M2.x
-// gibt aufklappbar an, damit Nutzer Tagros Denkprozess nachvollziehen koennen.
-// ───────────────────────────────────────────────────────────────────────
 function ThinkingBlock({ text }: { text: string }) {
-  const [open, setOpen] = useState(false)
   return (
-    <div style={{
-      width: '100%', maxWidth: '100%',
-      background: 'var(--surface-2)', border: '1px dashed var(--border)',
-      borderRadius: 10, overflow: 'hidden',
-    }}>
-      <button
-        onClick={() => setOpen(o => !o)}
-        style={{
-          display: 'flex', alignItems: 'center', gap: 7,
-          width: '100%', padding: '7px 11px',
-          background: 'transparent', border: 'none', cursor: 'pointer',
-          color: 'var(--text-muted)', fontFamily: 'inherit',
-          fontSize: 11, fontWeight: 600, letterSpacing: '.04em',
-          textAlign: 'left',
-        }}
-      >
-        <span style={{ display: 'inline-flex', transform: open ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform .15s' }}>
-          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M9 6l6 6-6 6"/></svg>
-        </span>
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M9.5 2A2.5 2.5 0 0 0 7 4.5v15A2.5 2.5 0 0 0 9.5 22h5a2.5 2.5 0 0 0 2.5-2.5v-15A2.5 2.5 0 0 0 14.5 2z"/>
-          <path d="M12 6v6l3 1.5"/>
-        </svg>
-        DENKPROZESS · TAGRO
-        <span style={{ marginLeft: 'auto', opacity: .6 }}>{open ? 'verbergen' : 'anzeigen'}</span>
-      </button>
-      {open && (
-        <div style={{
-          padding: '8px 13px 11px', borderTop: '1px dashed var(--border)',
-          fontSize: 12, lineHeight: 1.6, color: 'var(--text-muted)',
-          fontFamily: 'inherit', whiteSpace: 'pre-wrap', fontStyle: 'italic',
-        }}>
-          {text}
-        </div>
-      )}
+    <div>
+      <div className="tagro-thinking"><span className="tagro-thinking-line" />Denkprozess · Tagro</div>
+      <div style={{
+        marginBottom: 12,
+        maxWidth: 620,
+        color: 'rgba(232,231,227,.36)',
+        fontSize: 12,
+        lineHeight: 1.55,
+        fontStyle: 'italic',
+        whiteSpace: 'pre-wrap',
+      }}>
+        {text}
+      </div>
     </div>
   )
 }
