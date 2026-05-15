@@ -379,7 +379,8 @@ export default function LoginPage() {
       <p className="log-legal-text">
         Kein Konto?{' '}
         <a href="/register" onClick={e => { e.preventDefault(); navigateWithFade('/register') }}>Hier&nbsp;registrieren</a>
-        {' '}oder{' '}
+        <br />
+        oder{' '}
         <a href="/agb" onClick={e => { e.preventDefault(); navigateWithFade('/agb') }}>mehr&nbsp;dazu</a>
       </p>
       <a className="log-dev" href="/dev" onClick={e => { e.preventDefault(); navigateWithFade('/dev/login') }}>Dev Zugang</a>
