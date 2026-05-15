@@ -7,10 +7,20 @@ import { setTheme, getTheme, type ThemeMode } from '@/lib/theme'
 import FestagLoader from '@/components/FestagLoader'
 import { rememberFestagAccount } from '@/lib/auth-device-memory'
 
-type StepId = 'design' | 'profile' | 'project' | 'team' | 'invite'
+type StepId = 'mode' | 'design' | 'profile' | 'project' | 'team' | 'invite'
 type WorkMode = 'alone' | 'existing_team' | 'clients_partners' | 'festag_support'
+type WorkspaceMode = 'delivery' | 'team' | 'agency'
 
-const ALL_STEPS: StepId[] = ['design', 'profile', 'project', 'team', 'invite']
+const ALL_STEPS: StepId[] = ['mode', 'design', 'profile', 'project', 'team', 'invite']
+
+const WORKSPACE_MODES: Array<{ id: WorkspaceMode; title: string; desc: string }> = [
+  { id: 'delivery', title: 'Ich möchte ein Projekt von Festag umsetzen lassen',
+    desc: 'Festag plant, steuert und setzt dein Projekt mit geprüften Entwicklern um. Du bekommst Dashboard, Briefings, Meilensteine und transparente Kommunikation.' },
+  { id: 'team',     title: 'Ich möchte eigene Projekte und Entwickler steuern',
+    desc: 'Festag als internes Betriebssystem für Softwareprojekte, Aufgaben, Briefings, Entwicklersteuerung und Teamkoordination.' },
+  { id: 'agency',   title: 'Ich bin Agentur und steuere Kundenprojekte',
+    desc: 'Verwalte Kundenprojekte, eigene Entwickler, Kundenbereiche, Briefings und optional White Label unter deiner Marke.' },
+]
 
 const THEME_OPTIONS = [
   { id: 'light' as ThemeMode, title: 'Hell',      desc: 'Klar, reduziert und hell für tägliche Arbeit.',     preview: 'light' },
@@ -42,6 +52,7 @@ export default function OnboardingPage() {
   const [position, setPosition] = useState('')
   const [project, setProject] = useState('')
   const [workMode, setWorkMode] = useState<WorkMode | null>(null)
+  const [workspaceMode, setWorkspaceMode] = useState<WorkspaceMode | null>(null)
   const [invites, setInvites] = useState('')
 
   useEffect(() => {
@@ -57,10 +68,11 @@ export default function OnboardingPage() {
       if (meta.full_name || meta.name) setFullName(meta.full_name || meta.name)
 
       // Resume from saved progress: read onboarding_state + existing profile fields
-      const [{ data: state }, { data: profile }, { data: brief }] = await Promise.all([
+      const [{ data: state }, { data: profile }, { data: brief }, { data: ws }] = await Promise.all([
         supabase.from('onboarding_state').select('current_step,completed_at').eq('user_id', uid).maybeSingle(),
         supabase.from('profiles').select('full_name,position,work_mode,theme_pref').eq('id', uid).maybeSingle(),
         supabase.from('onboarding_briefs').select('description').eq('user_id', uid).maybeSingle(),
+        supabase.from('workspaces').select('id,mode,metadata').eq('primary_owner_id', uid).eq('is_personal', true).maybeSingle(),
       ])
       if (cancelled) return
 
@@ -74,9 +86,16 @@ export default function OnboardingPage() {
       if (profile?.theme_pref === 'light' || profile?.theme_pref === 'read' || profile?.theme_pref === 'dark') {
         setLocalTheme(profile.theme_pref as ThemeMode)
       }
+      // Hydrate workspace mode if the user already passed the question.
+      // The mode step persists current_step='design' the moment the user
+      // confirms, so anything past that means we trust the stored mode.
+      const wsMode = (ws as any)?.mode as WorkspaceMode | undefined
+      if (wsMode && state?.current_step && state.current_step !== 'mode') {
+        setWorkspaceMode(wsMode)
+      }
 
       // Jump to saved step
-      const stepMap: Record<string, number> = { design:0, profile:1, project:2, team:3, invite:4 }
+      const stepMap: Record<string, number> = { mode:0, design:1, profile:2, project:3, team:4, invite:5 }
       const idx = state?.current_step ? stepMap[state.current_step] : 0
       if (typeof idx === 'number' && idx > 0 && idx < ALL_STEPS.length) setStepIdx(idx)
     })()
@@ -106,7 +125,17 @@ export default function OnboardingPage() {
 
   async function persistStep(step: StepId) {
     if (!userId) return
-    if (step === 'design') {
+    if (step === 'mode') {
+      if (!workspaceMode) return
+      await supabase
+        .from('workspaces')
+        .update({ mode: workspaceMode })
+        .eq('primary_owner_id', userId)
+        .eq('is_personal', true)
+      await supabase.from('onboarding_state').upsert({
+        user_id: userId, current_step: 'design', updated_at: new Date().toISOString(),
+      })
+    } else if (step === 'design') {
       await supabase.from('profiles').update({ theme_pref: theme }).eq('id', userId)
       await supabase.from('onboarding_state').upsert({
         user_id: userId, current_step: 'profile', design_done: true, updated_at: new Date().toISOString(),
@@ -144,6 +173,7 @@ export default function OnboardingPage() {
   }
 
   async function next() {
+    if (current === 'mode' && !workspaceMode) { setError('Bitte wähle, wie du Festag nutzen möchtest.'); return }
     if (current === 'team' && !workMode) { setError('Bitte wähle eine Option.'); return }
     setError('')
     setSubmitting(true)
@@ -188,6 +218,7 @@ export default function OnboardingPage() {
   }
 
   function skip() {
+    if (current === 'mode')   return // workspace mode is the architectural choice
     if (current === 'design') return // can't skip the theme
     next()
   }
@@ -423,6 +454,33 @@ export default function OnboardingPage() {
           <div className="onb-logo">festag</div>
 
           <div className={`onb-content${animating ? ' animating' : ''}`}>
+            {current === 'mode' && (
+              <>
+                <h1 className="onb-title">Wie möchtest du Festag nutzen?</h1>
+                <p className="onb-lede">Du kannst später jederzeit weitere Workspaces anlegen oder Erweiterungen aktivieren.</p>
+
+                <div className="onb-team-list" role="radiogroup" aria-label="Workspace-Modus">
+                  {WORKSPACE_MODES.map(m => (
+                    <div
+                      key={m.id}
+                      role="radio"
+                      aria-checked={workspaceMode === m.id}
+                      tabIndex={0}
+                      className="onb-team-row"
+                      onClick={() => setWorkspaceMode(m.id)}
+                      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setWorkspaceMode(m.id) }}}
+                    >
+                      <div className="onb-team-text">
+                        <div className="onb-team-title">{m.title}</div>
+                        <div className="onb-team-desc">{m.desc}</div>
+                      </div>
+                      <div className={`onb-toggle${workspaceMode === m.id ? ' on' : ''}`} />
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+
             {current === 'design' && (
               <>
                 <h1 className="onb-title">Wähle dein System-Design</h1>
