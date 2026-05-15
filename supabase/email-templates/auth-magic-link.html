@@ -2,83 +2,74 @@
 Supabase Auth > Email Templates > Magic Link
 Subject suggestion: Dein Festag Login
 
-Important: This template is built for the Festag browser callback at /auth/callback.
+This template targets the Festag browser callback at /auth/callback.
 The app passes emailRedirectTo with ?next=/dashboard, so appending &token_hash=... is intentional.
+Light-mode only by design.
 -->
 <!doctype html>
 <html lang="de">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="color-scheme" content="light">
+  <meta name="color-scheme" content="light only">
   <meta name="supported-color-schemes" content="light">
   <style>
-    @font-face {
-      font-family: 'Qurova Festag';
-      src: url('https://festag.app/fonts/QurovaDEMO-Medium.otf') format('opentype');
-      font-weight: 500;
-      font-style: normal;
-    }
     @media screen and (max-width: 620px) {
-      .page { padding: 28px 18px !important; }
-      .panel { padding: 36px 24px 30px !important; }
-      .title { font-size: 28px !important; line-height: 1.12 !important; }
-      .lead { font-size: 15px !important; line-height: 1.55 !important; }
-      .control { width: 100% !important; }
-      .code { font-size: 30px !important; letter-spacing: 8px !important; padding-left: 24px !important; }
+      .page { padding: 28px 16px !important; }
+      .panel { padding: 28px 22px !important; }
+      .code { font-size: 22px !important; letter-spacing: 6px !important; }
+    }
+    @media (prefers-color-scheme: dark) {
+      /* opt out: keep light look even in dark clients */
+      body, .page, .panel { background:#FCFCFD !important; color:#202532 !important; }
     }
   </style>
 </head>
 <body style="margin:0;padding:0;background:#FCFCFD;color:#202532;-webkit-font-smoothing:antialiased;text-rendering:geometricPrecision;">
   <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">
-    Öffne Festag mit diesem sicheren Link oder nutze den Code {{ .Token }}.
+    Code: {{ .Token }}
   </div>
 
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#FCFCFD;border-collapse:collapse;">
     <tr>
-      <td class="page" align="center" style="padding:54px 24px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
-        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:520px;width:100%;border-collapse:collapse;">
+      <td class="page" align="center" style="padding:48px 24px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:440px;width:100%;border-collapse:collapse;">
           <tr>
-            <td class="panel" align="center" style="padding:48px 44px 38px;background:#FFFFFF;border:1px solid #E7EBF0;border-radius:18px;box-shadow:0 18px 55px rgba(15,23,42,0.06);">
-              <div style="font-family:'Qurova Festag', Georgia, serif;font-size:29px;line-height:1;font-weight:500;letter-spacing:-0.4px;color:#202532;margin:0 0 42px;">
+            <td class="panel" align="left" style="padding:32px;background:#FFFFFF;border:1px solid #EAECEF;border-radius:14px;">
+
+              <div style="font-family:Georgia,'Times New Roman',serif;font-size:18px;font-weight:500;letter-spacing:-0.2px;color:#202532;margin:0 0 28px;">
                 festag
               </div>
 
-              <h1 class="title" style="margin:0 0 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:34px;line-height:1.14;font-weight:650;letter-spacing:0;color:#202532;">
-                Dein Anmeldelink
-              </h1>
-
-              <p class="lead" style="margin:0 auto 30px;max-width:390px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:16px;line-height:1.6;font-weight:400;color:#7B8294;">
-                Melde dich sicher bei Festag an. Der Link ist nur kurz gültig und kann einmal verwendet werden.
+              <p style="margin:0 0 6px;font-size:14px;line-height:1.5;color:#7B8294;font-weight:400;">
+                Hallo,
+              </p>
+              <p style="margin:0 0 22px;font-size:14px;line-height:1.55;color:#202532;font-weight:400;">
+                hier ist dein einmaliger Anmeldecode für Festag.
               </p>
 
-              <table role="presentation" cellspacing="0" cellpadding="0" style="border-collapse:collapse;margin:0 auto 28px;">
-                <tr>
-                  <td class="control" align="center" width="271" style="width:271px;">
-                    <a href="{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=email" style="display:block;width:271px;background:#5B647D;color:#FFFFFF;text-decoration:none;border-radius:32px;padding:16px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:16px;line-height:1;font-weight:600;letter-spacing:0;">
-                      Jetzt anmelden
-                    </a>
-                  </td>
-                </tr>
-              </table>
-
-              <p style="margin:0 0 12px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13px;line-height:1.5;font-weight:500;color:#98A2B3;letter-spacing:0.02em;">
-                oder Code manuell eingeben
-              </p>
-
-              <div class="control code" style="display:block;width:271px;margin:0 auto 38px;font-family:'SF Mono','Roboto Mono',ui-monospace,Menlo,Consolas,monospace;font-size:36px;line-height:1;font-weight:700;letter-spacing:10px;color:#202532;background:#F7F8FB;border:1px solid #E7EBF0;border-radius:12px;padding:17px 14px 17px 24px;box-sizing:border-box;">
+              <div class="code" style="display:inline-block;padding:14px 22px;font-family:'SF Mono','Roboto Mono',ui-monospace,Menlo,Consolas,monospace;font-size:24px;line-height:1;font-weight:600;letter-spacing:8px;color:#202532;background:#F6F7F9;border:1px solid #EAECEF;border-radius:10px;margin:0 0 22px;">
                 {{ .Token }}
               </div>
 
-              <div style="height:1px;background:#E7EBF0;margin:0 0 22px;"></div>
+              <p style="margin:0 0 14px;font-size:13px;line-height:1.55;color:#7B8294;font-weight:400;">
+                Oder öffne Festag direkt:
+              </p>
 
-              <p style="margin:0;max-width:390px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13px;line-height:1.6;font-weight:400;color:#98A2B3;">
-                Wenn du den Login nicht angefordert hast, kannst du diese Mail ignorieren. Festag fragt niemals per Mail nach deinem Passwort.
+              <a href="{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=email"
+                 style="display:inline-block;background:#202532;color:#FFFFFF;text-decoration:none;border-radius:999px;padding:11px 18px;font-size:13px;line-height:1;font-weight:500;letter-spacing:0.02em;">
+                Anmeldung öffnen
+              </a>
+
+              <div style="height:1px;background:#EAECEF;margin:26px 0 16px;"></div>
+
+              <p style="margin:0;font-size:12px;line-height:1.6;color:#98A2B3;font-weight:400;">
+                Der Code ist 60 Minuten gültig und kann einmal verwendet werden. Hast du den Login nicht angefordert, ignoriere diese E-Mail.
               </p>
             </td>
           </tr>
           <tr>
-            <td align="center" style="padding:18px 16px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;line-height:1.6;color:#A1A7B3;">
+            <td align="center" style="padding:14px 12px 0;font-size:11px;line-height:1.6;color:#A1A7B3;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
               festag · Stefan Dirnberger · Lindenstraße 15 · 84036 Kumhausen
             </td>
           </tr>
