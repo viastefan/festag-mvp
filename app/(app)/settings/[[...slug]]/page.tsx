@@ -20,7 +20,8 @@ import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { getTheme, setTheme as applyThemeMode, type ThemeMode } from '@/lib/theme'
+import { getFontMode, setFontMode as applyFontMode, getTheme, setTheme as applyThemeMode, type FontMode, type ThemeMode } from '@/lib/theme'
+import { AVATAR_COLORS } from '@/lib/avatar'
 
 type SectionId = 'profile' | 'appearance' | 'security' | 'notifications' | 'connected' | 'workspace' | 'company' | 'billing'
 
@@ -53,6 +54,7 @@ type Profile = {
   position: string | null
   phone: string | null
   avatar_url: string | null
+  avatar_color: string | null
   theme_pref: string | null
   notif_email: boolean | null
   notif_push: boolean | null
@@ -95,6 +97,8 @@ export default function SettingsPage() {
   const section: SectionId = SLUG_TO_SECTION[slug] || 'profile'
   const [profile, setProfile] = useState<Profile | null>(null)
   const [theme, setLocalTheme] = useState<ThemeMode>('dark')
+  const [font, setLocalFont] = useState<FontMode>('aeonik')
+  const [avatarColor, setLocalAvatarColor] = useState<string>(AVATAR_COLORS[12])
   const [saving, setSaving] = useState(false)
   const [savedTick, setSavedTick] = useState<string | null>(null)
   const [error, setError] = useState('')
@@ -135,6 +139,7 @@ export default function SettingsPage() {
 
   useEffect(() => {
     setLocalTheme(getTheme())
+    setLocalFont(getFontMode())
     let cancelled = false
     ;(async () => {
       const { data: { session } } = await supabase.auth.getSession()
@@ -144,7 +149,7 @@ export default function SettingsPage() {
       const uid = session.user.id
       const { data: p } = await supabase
         .from('profiles')
-        .select('id,email,full_name,position,phone,avatar_url,theme_pref,notif_email,notif_push,company_name,company_desc,company_industry,company_size,company_website,legal_form,vat_number,tax_number,company_address,company_city,company_zip,company_country')
+        .select('id,email,full_name,position,phone,avatar_url,avatar_color,theme_pref,notif_email,notif_push,company_name,company_desc,company_industry,company_size,company_website,legal_form,vat_number,tax_number,company_address,company_city,company_zip,company_country')
         .eq('id', uid)
         .maybeSingle()
 
@@ -155,6 +160,7 @@ export default function SettingsPage() {
         setPosition(p.position || '')
         setPhone(p.phone || '')
         setAvatarUrl(p.avatar_url || null)
+        if (p.avatar_color) setLocalAvatarColor(p.avatar_color)
         setCompName(p.company_name || '')
         setCompDesc(p.company_desc || '')
         setCompIndustry(p.company_industry || '')
@@ -279,6 +285,22 @@ export default function SettingsPage() {
       supabase.from('profiles').update({ theme_pref: mode }).eq('id', profile.id)
     }
     flashSaved('Design gespeichert')
+  }
+
+  function pickFont(mode: FontMode) {
+    setLocalFont(mode)
+    applyFontMode(mode)
+    flashSaved('Schrift gespeichert')
+  }
+
+  async function pickAvatarColor(color: string) {
+    setLocalAvatarColor(color)
+    if (profile) {
+      try {
+        await supabase.from('profiles').update({ avatar_color: color }).eq('id', profile.id)
+      } catch {}
+    }
+    flashSaved('Profilfarbe gespeichert')
   }
 
   async function saveNotif(next: Partial<{ email: boolean; push: boolean }>) {
@@ -468,6 +490,47 @@ export default function SettingsPage() {
           border-color: color-mix(in srgb, #c0362e 60%, var(--set-border));
         }
 
+        /* Segment toggle (font picker) */
+        .set-segment {
+          display: inline-flex;
+          padding: 3px;
+          border-radius: 9px;
+          border: 1px solid var(--set-border);
+          background: var(--set-bg);
+          gap: 2px;
+        }
+        .set-segment button {
+          font-family: inherit; font-size: 12.5px; font-weight: 500;
+          letter-spacing: 0.01em;
+          color: var(--set-text-secondary);
+          padding: 6px 14px;
+          border: none; background: transparent;
+          border-radius: 6px; cursor: pointer;
+          transition: background .15s, color .15s;
+        }
+        .set-segment button:hover { color: var(--set-text); }
+        .set-segment button.on {
+          background: var(--set-card);
+          color: var(--set-text);
+          box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+        }
+
+        /* Profile color picker */
+        .set-color-row {
+          display: flex; flex-wrap: wrap; gap: 7px;
+          align-items: center; justify-content: flex-end;
+        }
+        .set-color-swatch {
+          width: 22px; height: 22px; border-radius: 50%;
+          border: 2px solid transparent; cursor: pointer; padding: 0;
+          transition: transform .15s, border-color .15s;
+        }
+        .set-color-swatch:hover { transform: scale(1.08); }
+        .set-color-swatch.on {
+          border-color: var(--set-text);
+          box-shadow: 0 0 0 2px var(--set-bg);
+        }
+
         /* Theme cards */
         .set-theme-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; }
         .set-theme-card {
@@ -589,6 +652,24 @@ export default function SettingsPage() {
                 <div className="set-value">{profile?.email || '—'}</div>
               </div>
               <div className="set-row">
+                <div>
+                  <div className="set-label">Profilfarbe</div>
+                  <div className="set-label-sub">Erscheint hinter deinen Initialen, wenn kein Bild gesetzt ist.</div>
+                </div>
+                <div className="set-color-row">
+                  {AVATAR_COLORS.map(c => (
+                    <button
+                      key={c}
+                      type="button"
+                      className={`set-color-swatch${avatarColor === c ? ' on' : ''}`}
+                      onClick={() => pickAvatarColor(c)}
+                      style={{ background: c }}
+                      aria-label={`Profilfarbe ${c}`}
+                    />
+                  ))}
+                </div>
+              </div>
+              <div className="set-row">
                 <div className="set-label">Vollständiger Name</div>
                 <input
                   className="set-input"
@@ -653,6 +734,28 @@ export default function SettingsPage() {
                     <div className="set-theme-desc">{o.sub}</div>
                   </button>
                 ))}
+              </div>
+            </div>
+            <div className="set-row">
+              <div>
+                <div className="set-label">Schrift</div>
+                <div className="set-label-sub">Aeonik fühlt sich ruhig an, SF Pro folgt deinem System.</div>
+              </div>
+              <div className="set-segment">
+                <button
+                  type="button"
+                  className={font === 'aeonik' ? 'on' : ''}
+                  onClick={() => pickFont('aeonik')}
+                >
+                  Aeonik
+                </button>
+                <button
+                  type="button"
+                  className={font === 'sf-pro' ? 'on' : ''}
+                  onClick={() => pickFont('sf-pro')}
+                >
+                  SF Pro
+                </button>
               </div>
             </div>
           </div>
