@@ -36,6 +36,8 @@ export default function DashboardPage() {
   const [allTasks,  setAllTasks]  = useState<Task[]>([])
   const [activity,  setActivity]  = useState<Activity[]>([])
   const [milestones, setMilestones] = useState<Milestone[]>([])
+  const [wsMode, setWsMode] = useState<'delivery' | 'team' | 'agency'>('delivery')
+  const [teamSize, setTeamSize] = useState<number>(1)
   const [firstName, setFirstName] = useState('')
   const [loading,   setLoading]   = useState(true)
   const [report,    setReport]    = useState('')
@@ -71,6 +73,21 @@ export default function DashboardPage() {
       }
       const { data: feed } = await supabase.from('activity_feed').select('*').order('created_at',{ascending:false}).limit(8)
       setActivity(feed ?? [])
+
+      // Workspace mode + team size drive Mission-Control framing.
+      try {
+        const { data: ws } = await supabase
+          .from('workspaces').select('id,mode')
+          .eq('primary_owner_id', uid).eq('is_personal', true).maybeSingle()
+        const m = (ws as any)?.mode
+        if (m === 'team' || m === 'agency' || m === 'delivery') setWsMode(m)
+        const wid = (ws as any)?.id
+        if (wid) {
+          const { count } = await supabase.from('workspace_members').select('user_id', { count: 'exact', head: true }).eq('workspace_id', wid)
+          if (typeof count === 'number') setTeamSize(count)
+        }
+      } catch {}
+
       setLoading(false)
     })
   }, [])
@@ -517,17 +534,30 @@ export default function DashboardPage() {
       </div>
 
       <div className="kpi-row" aria-label="Heute wichtig">
-        <div className="kpi-card">
-          <span className="kpi-label">Projektstatus</span>
-          <span className="kpi-value">{activeProjects.length}</span>
-          <span className="kpi-sub">
-            {activeProjects.length === 0
-              ? 'kein aktives Projekt'
-              : activeProjects.length === 1
-                ? `${activeProjects[0].title}${main && PHASE[main.status] ? ` · ${PHASE[main.status].label}` : ''}`
-                : `${activeProjects.length} laufen`}
-          </span>
-        </div>
+        {/* KPI 1 — Projekt-/Kundenüberblick je nach Modus */}
+        {wsMode === 'agency' ? (
+          <div className="kpi-card">
+            <span className="kpi-label">Kunden</span>
+            <span className="kpi-value">{projects.length}</span>
+            <span className="kpi-sub">
+              {projects.length === 0 ? 'noch keine Kundenprojekte' : `${activeProjects.length} aktiv · ${projects.length - activeProjects.length} ruhend`}
+            </span>
+          </div>
+        ) : (
+          <div className="kpi-card">
+            <span className="kpi-label">Projektstatus</span>
+            <span className="kpi-value">{activeProjects.length}</span>
+            <span className="kpi-sub">
+              {activeProjects.length === 0
+                ? 'kein aktives Projekt'
+                : activeProjects.length === 1
+                  ? `${activeProjects[0].title}${main && PHASE[main.status] ? ` · ${PHASE[main.status].label}` : ''}`
+                  : `${activeProjects.length} laufen`}
+            </span>
+          </div>
+        )}
+
+        {/* KPI 2 — Entscheidungen bleiben in allen Modi konstant */}
         <div className="kpi-card">
           <span className="kpi-label">Entscheidungen</span>
           <span className="kpi-value" style={{ color: decisionsOpen > 0 ? '#0369A1' : undefined }}>{decisionsOpen}</span>
@@ -535,6 +565,8 @@ export default function DashboardPage() {
             {decisionsOpen === 0 ? 'nichts wartet auf dich' : decisionsOpen === 1 ? 'wartet auf deine Freigabe' : 'warten auf deine Freigabe'}
           </span>
         </div>
+
+        {/* KPI 3 — Blocker bleiben in allen Modi konstant */}
         <div className="kpi-card">
           <span className="kpi-label">Blocker</span>
           <span className="kpi-value" style={{ color: blockersOpen > 0 ? '#D97706' : undefined }}>{blockersOpen}</span>
@@ -542,17 +574,39 @@ export default function DashboardPage() {
             {blockersOpen === 0 ? 'keine akute Verzögerung' : blockersOpen === 1 ? 'kritischer Blocker' : 'kritische Blocker'}
           </span>
         </div>
-        <div className="kpi-card">
-          <span className="kpi-label">Nächster Meilenstein</span>
-          <span className="kpi-value">{milestoneAmount ?? '—'}</span>
-          <span className="kpi-sub">
-            {nextMilestone
-              ? `${nextMilestone.title}${milestoneDue ? ` · ${milestoneDue}` : ''}`
-              : main
-                ? 'noch kein offener Meilenstein'
-                : 'keine Zahlung anstehend'}
-          </span>
-        </div>
+
+        {/* KPI 4 — pro Modus unterschiedlich */}
+        {wsMode === 'team' ? (
+          <div className="kpi-card">
+            <span className="kpi-label">Workspace Health</span>
+            <span className="kpi-value">{teamSize}</span>
+            <span className="kpi-sub">
+              {teamSize <= 1
+                ? `Solo · ${activeProjects.length} aktive Projekte`
+                : `${teamSize} Mitglied${teamSize === 1 ? '' : 'er'} · ${activeProjects.length} aktive Projekte`}
+            </span>
+          </div>
+        ) : wsMode === 'agency' ? (
+          <div className="kpi-card">
+            <span className="kpi-label">Aktive Projekte</span>
+            <span className="kpi-value">{activeProjects.length}</span>
+            <span className="kpi-sub">
+              {activeProjects.length === 0 ? 'kein laufendes Projekt' : `über ${projects.length} Kunden`}
+            </span>
+          </div>
+        ) : (
+          <div className="kpi-card">
+            <span className="kpi-label">Nächster Meilenstein</span>
+            <span className="kpi-value">{milestoneAmount ?? '—'}</span>
+            <span className="kpi-sub">
+              {nextMilestone
+                ? `${nextMilestone.title}${milestoneDue ? ` · ${milestoneDue}` : ''}`
+                : main
+                  ? 'noch kein offener Meilenstein'
+                  : 'keine Zahlung anstehend'}
+            </span>
+          </div>
+        )}
       </div>
 
       {/* ── Empty ── */}
