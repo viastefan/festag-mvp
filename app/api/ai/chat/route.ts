@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { loadTagroMemoryContext, rememberTagroMemory } from '@/lib/tagro-memory'
 
 /**
  * Festag AI proxy — leitet an Minimax weiter, behaelt aber das Anthropic-
@@ -19,7 +20,7 @@ function stripThink(s: string): string {
 
 export async function POST(req: NextRequest) {
   try {
-    const { messages, system, max_tokens = 500, model } = await req.json()
+    const { messages, system, max_tokens = 500, model, userId, projectId, remember } = await req.json()
     const apiKey = process.env.MINIMAX_API_KEY || 'sk-cp-i7jkWRarSBe8qM82Zj2YXxHh7bXCCUAwciPjL5t-WrYRF3WHR4tgVXeJk-Y27k62RDsp7hrb1RJS2nr9rqXB-Q6GBMCKXU6-igQu2pPH6gerajhYbZySzHA'
     if (!apiKey) {
       return NextResponse.json({
@@ -28,11 +29,29 @@ export async function POST(req: NextRequest) {
       }, { status: 500 })
     }
 
+    const memoryContext = await loadTagroMemoryContext({ userId, projectId })
+    if (remember && typeof remember?.content === 'string' && typeof userId === 'string') {
+      await rememberTagroMemory({
+        userId,
+        projectId: typeof projectId === 'string' ? projectId : null,
+        scope: remember.scope ?? (projectId ? 'project' : 'account'),
+        key: remember.key ?? null,
+        content: remember.content,
+        source: 'chat-api',
+        confidence: typeof remember.confidence === 'number' ? remember.confidence : 1,
+      })
+    }
+
+    const enrichedSystem = [
+      typeof system === 'string' ? system.trim() : '',
+      memoryContext ? `\nTagro Memory / Account-Kontext:\n${memoryContext}\n\nNutze diesen Kontext aktiv. Sage nicht, dass du keinen Zugriff auf Profil, Projekt oder bisherigen Kontext hast, wenn relevante Informationen oben stehen.` : '',
+    ].filter(Boolean).join('\n\n')
+
     // Anthropic-Format -> OpenAI/Minimax-Format
     // System wird als erste Message mit role="system" gesendet.
     const mmMessages: Array<{ role: string; content: string }> = []
-    if (typeof system === 'string' && system.trim()) {
-      mmMessages.push({ role: 'system', content: system })
+    if (enrichedSystem) {
+      mmMessages.push({ role: 'system', content: enrichedSystem })
     }
     if (Array.isArray(messages)) {
       for (const m of messages) {

@@ -165,6 +165,8 @@ export default function ProjectPage() {
             max_tokens: 200,
             system: `Du bist Tagro, AI-System von Festag. Antworte klar, max 2 Sätze. Kein Smalltalk. Projekt: "${project?.title || 'Unbekannt'}"`,
             messages: [{ role: 'user', content: msg }],
+            userId,
+            projectId: id,
           }),
         })
         const data = await res.json()
@@ -274,6 +276,8 @@ Struktur (nutze Markdown):
 
 Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn möglich.`,
           messages: [{ role: 'user', content: userPrompt }],
+          userId,
+          projectId: id,
         }),
       })
       const data = await res.json()
