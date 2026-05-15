@@ -56,6 +56,20 @@ type Profile = {
   theme_pref: string | null
   notif_email: boolean | null
   notif_push: boolean | null
+  // Unternehmen
+  company_name: string | null
+  company_desc: string | null
+  company_industry: string | null
+  company_size: string | null
+  company_website: string | null
+  legal_form: string | null
+  // Abrechnung & Steuer
+  vat_number: string | null
+  tax_number: string | null
+  company_address: string | null
+  company_city: string | null
+  company_zip: string | null
+  company_country: string | null
 }
 
 const THEME_OPTIONS: Array<{ id: ThemeMode; label: string; sub: string }> = [
@@ -63,6 +77,16 @@ const THEME_OPTIONS: Array<{ id: ThemeMode; label: string; sub: string }> = [
   { id: 'read'  as ThemeMode, label: 'Lesemodus', sub: 'Warm, ruhig.' },
   { id: 'dark'  as ThemeMode, label: 'Dunkel',    sub: 'Technisch, kontraststark.' },
 ]
+
+const LEGAL_FORMS = ['Einzelunternehmen', 'GbR', 'UG (haftungsbeschränkt)', 'GmbH', 'AG', 'KG', 'OHG', 'Freiberuflich', 'Sonstiges']
+const COMPANY_SIZES = ['Nur ich', '2–10', '11–50', '51–200', '201–500', '500+']
+const INDUSTRIES = [
+  'Technologie & Software', 'E-Commerce & Retail', 'Marketing & Werbung',
+  'Finanzen & Versicherung', 'Gesundheit & Medizin', 'Bildung & E-Learning',
+  'Immobilien & Bau', 'Medien & Entertainment', 'Logistik & Transport',
+  'Beratung & Services', 'Gastronomie & Tourismus', 'Sonstiges',
+]
+const COUNTRIES = ['Deutschland', 'Österreich', 'Schweiz', 'Liechtenstein', 'Sonstiges']
 
 export default function SettingsPage() {
   const supabase = useMemo(() => createClient(), [])
@@ -79,6 +103,24 @@ export default function SettingsPage() {
   const [fullName, setFullName] = useState('')
   const [position, setPosition] = useState('')
   const [phone, setPhone] = useState('')
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
+  const [avatarUploading, setAvatarUploading] = useState(false)
+
+  // Unternehmen
+  const [compName, setCompName] = useState('')
+  const [compDesc, setCompDesc] = useState('')
+  const [compIndustry, setCompIndustry] = useState('')
+  const [compSize, setCompSize] = useState('')
+  const [compWebsite, setCompWebsite] = useState('')
+  const [legalForm, setLegalForm] = useState('')
+
+  // Abrechnung & Steuer
+  const [vatNumber, setVatNumber] = useState('')
+  const [taxNumber, setTaxNumber] = useState('')
+  const [billAddress, setBillAddress] = useState('')
+  const [billZip, setBillZip] = useState('')
+  const [billCity, setBillCity] = useState('')
+  const [billCountry, setBillCountry] = useState('Deutschland')
 
   // notifications
   const [notifEmail, setNotifEmail] = useState(true)
@@ -102,7 +144,7 @@ export default function SettingsPage() {
       const uid = session.user.id
       const { data: p } = await supabase
         .from('profiles')
-        .select('id,email,full_name,position,phone,avatar_url,theme_pref,notif_email,notif_push')
+        .select('id,email,full_name,position,phone,avatar_url,theme_pref,notif_email,notif_push,company_name,company_desc,company_industry,company_size,company_website,legal_form,vat_number,tax_number,company_address,company_city,company_zip,company_country')
         .eq('id', uid)
         .maybeSingle()
 
@@ -112,6 +154,19 @@ export default function SettingsPage() {
         setFullName(p.full_name || '')
         setPosition(p.position || '')
         setPhone(p.phone || '')
+        setAvatarUrl(p.avatar_url || null)
+        setCompName(p.company_name || '')
+        setCompDesc(p.company_desc || '')
+        setCompIndustry(p.company_industry || '')
+        setCompSize(p.company_size || '')
+        setCompWebsite(p.company_website || '')
+        setLegalForm(p.legal_form || '')
+        setVatNumber(p.vat_number || '')
+        setTaxNumber(p.tax_number || '')
+        setBillAddress(p.company_address || '')
+        setBillCity(p.company_city || '')
+        setBillZip(p.company_zip || '')
+        setBillCountry(p.company_country || 'Deutschland')
         if (typeof p.notif_email === 'boolean') setNotifEmail(p.notif_email)
         if (typeof p.notif_push === 'boolean') setNotifPush(p.notif_push)
       }
@@ -144,6 +199,72 @@ export default function SettingsPage() {
         phone: phone.trim() || null,
       }).eq('id', profile.id)
       flashSaved('Profil gespeichert')
+    } catch (e: any) {
+      setError(e?.message || 'Konnte nicht speichern.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function uploadAvatar(file: File) {
+    if (!profile) return
+    if (!file.type.startsWith('image/')) { setError('Bitte ein Bild auswählen.'); return }
+    if (file.size > 4 * 1024 * 1024)    { setError('Maximal 4 MB.'); return }
+    setError(''); setAvatarUploading(true)
+    try {
+      const ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg'
+      const path = `${profile.id}/${Date.now()}.${ext}`
+      const { error: upErr } = await supabase.storage.from('avatars').upload(path, file, {
+        upsert: true, contentType: file.type, cacheControl: '3600',
+      })
+      if (upErr) throw upErr
+      const { data: pub } = supabase.storage.from('avatars').getPublicUrl(path)
+      const url = pub?.publicUrl || null
+      if (url) {
+        await supabase.from('profiles').update({ avatar_url: url }).eq('id', profile.id)
+        setAvatarUrl(url)
+        flashSaved('Profilbild aktualisiert')
+      }
+    } catch (e: any) {
+      setError(e?.message || 'Bild konnte nicht hochgeladen werden.')
+    } finally {
+      setAvatarUploading(false)
+    }
+  }
+
+  async function saveCompany() {
+    if (!profile) return
+    setError(''); setSaving(true)
+    try {
+      await supabase.from('profiles').update({
+        company_name:     compName.trim()     || null,
+        company_desc:     compDesc.trim()     || null,
+        company_industry: compIndustry        || null,
+        company_size:     compSize            || null,
+        company_website:  compWebsite.trim()  || null,
+        legal_form:       legalForm           || null,
+      }).eq('id', profile.id)
+      flashSaved('Unternehmen gespeichert')
+    } catch (e: any) {
+      setError(e?.message || 'Konnte nicht speichern.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function saveBilling() {
+    if (!profile) return
+    setError(''); setSaving(true)
+    try {
+      await supabase.from('profiles').update({
+        vat_number:      vatNumber.trim()    || null,
+        tax_number:      taxNumber.trim()    || null,
+        company_address: billAddress.trim()  || null,
+        company_city:    billCity.trim()     || null,
+        company_zip:     billZip.trim()      || null,
+        company_country: billCountry         || null,
+      }).eq('id', profile.id)
+      flashSaved('Abrechnung gespeichert')
     } catch (e: any) {
       setError(e?.message || 'Konnte nicht speichern.')
     } finally {
@@ -426,10 +547,38 @@ export default function SettingsPage() {
               <div className="set-row">
                 <div>
                   <div className="set-label">Profilbild</div>
-                  <div className="set-label-sub">Wird in Kommentaren und im Workspace angezeigt.</div>
+                  <div className="set-label-sub">PNG oder JPG, max. 4&nbsp;MB. Wird in Kommentaren und im Workspace angezeigt.</div>
                 </div>
-                <div>
-                  <div className="set-avatar" aria-label="Profilbild">{initials}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, justifyContent: 'flex-end' }}>
+                  <label
+                    htmlFor="set-avatar-input"
+                    className="set-avatar"
+                    aria-label="Profilbild ändern"
+                    title="Profilbild ändern"
+                    style={{
+                      cursor: avatarUploading ? 'wait' : 'pointer',
+                      backgroundImage: avatarUrl ? `url(${avatarUrl})` : undefined,
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center',
+                      opacity: avatarUploading ? 0.6 : 1,
+                    }}
+                  >
+                    {!avatarUrl && initials}
+                  </label>
+                  <input
+                    id="set-avatar-input"
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    style={{ display: 'none' }}
+                    onChange={e => {
+                      const f = e.target.files?.[0]
+                      if (f) uploadAvatar(f)
+                      e.target.value = ''
+                    }}
+                  />
+                  <label htmlFor="set-avatar-input" className="set-btn" style={{ cursor: 'pointer' }}>
+                    {avatarUploading ? 'Lade hoch…' : (avatarUrl ? 'Ersetzen' : 'Hochladen')}
+                  </label>
                 </div>
               </div>
               <div className="set-row">
@@ -653,24 +802,114 @@ export default function SettingsPage() {
 
         {section === 'company' && (
           <div className="set-card">
+            <div className="set-row">
+              <div className="set-label">Firmenname</div>
+              <input className="set-input" type="text" value={compName}
+                onChange={e => setCompName(e.target.value)} placeholder="z. B. Festag GmbH" />
+            </div>
+            <div className="set-row">
+              <div>
+                <div className="set-label">Rechtsform</div>
+                <div className="set-label-sub">Optional. Erscheint auf Rechnungen und Verträgen.</div>
+              </div>
+              <select className="set-select" value={legalForm} onChange={e => setLegalForm(e.target.value)}>
+                <option value="">— bitte wählen —</option>
+                {LEGAL_FORMS.map(lf => <option key={lf} value={lf}>{lf}</option>)}
+              </select>
+            </div>
+            <div className="set-row">
+              <div className="set-label">Branche</div>
+              <select className="set-select" value={compIndustry} onChange={e => setCompIndustry(e.target.value)}>
+                <option value="">— bitte wählen —</option>
+                {INDUSTRIES.map(ind => <option key={ind} value={ind}>{ind}</option>)}
+              </select>
+            </div>
+            <div className="set-row">
+              <div className="set-label">Teamgröße</div>
+              <select className="set-select" value={compSize} onChange={e => setCompSize(e.target.value)}>
+                <option value="">— bitte wählen —</option>
+                {COMPANY_SIZES.map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </div>
+            <div className="set-row">
+              <div className="set-label">Website</div>
+              <input className="set-input" type="url" value={compWebsite}
+                onChange={e => setCompWebsite(e.target.value)} placeholder="https://" />
+            </div>
             <div className="set-row set-row-stack">
               <div>
-                <div className="set-label">Unternehmen</div>
-                <div className="set-label-sub">Firmenname, Branche, Rechtsform, Größe, Website — bald wieder verfügbar.</div>
+                <div className="set-label">Beschreibung</div>
+                <div className="set-label-sub">Kurze Beschreibung, die Tagro für Kontext nutzt.</div>
               </div>
+              <textarea
+                className="set-input"
+                value={compDesc}
+                onChange={e => setCompDesc(e.target.value)}
+                placeholder="Was macht euer Unternehmen?"
+                rows={3}
+                style={{ resize: 'vertical', minHeight: 80, fontFamily: 'inherit', lineHeight: 1.5 }}
+              />
+            </div>
+            <div className="set-row" style={{ justifyContent: 'flex-end', display: 'flex' }}>
+              <button className="set-btn set-btn-primary" onClick={saveCompany} disabled={saving}>
+                {saving ? 'Speichere…' : 'Speichern'}
+              </button>
             </div>
           </div>
         )}
 
         {section === 'billing' && (
-          <div className="set-card">
-            <div className="set-row set-row-stack">
-              <div>
-                <div className="set-label">Abrechnung &amp; Steuer</div>
-                <div className="set-label-sub">USt-ID, Steuernummer, Rechnungsadresse — bald wieder verfügbar.</div>
+          <>
+            <div className="set-card">
+              <div className="set-row">
+                <div>
+                  <div className="set-label">USt-IdNr.</div>
+                  <div className="set-label-sub">Format z. B. DE123456789. Erscheint auf Rechnungen.</div>
+                </div>
+                <input className="set-input" type="text" value={vatNumber}
+                  onChange={e => setVatNumber(e.target.value)} placeholder="DE…" />
+              </div>
+              <div className="set-row">
+                <div>
+                  <div className="set-label">Steuernummer</div>
+                  <div className="set-label-sub">Optional, falls keine USt-IdNr. vorhanden.</div>
+                </div>
+                <input className="set-input" type="text" value={taxNumber}
+                  onChange={e => setTaxNumber(e.target.value)} placeholder="z. B. 123/456/78901" />
               </div>
             </div>
-          </div>
+            <div className="set-card">
+              <div className="set-row">
+                <div>
+                  <div className="set-label">Rechnungsadresse</div>
+                  <div className="set-label-sub">Wird auf allen Festag-Rechnungen verwendet.</div>
+                </div>
+                <input className="set-input" type="text" value={billAddress}
+                  onChange={e => setBillAddress(e.target.value)} placeholder="Straße und Hausnummer" />
+              </div>
+              <div className="set-row">
+                <div className="set-label">PLZ</div>
+                <input className="set-input" type="text" value={billZip}
+                  onChange={e => setBillZip(e.target.value)} placeholder="z. B. 80331" />
+              </div>
+              <div className="set-row">
+                <div className="set-label">Stadt</div>
+                <input className="set-input" type="text" value={billCity}
+                  onChange={e => setBillCity(e.target.value)} placeholder="z. B. München" />
+              </div>
+              <div className="set-row">
+                <div className="set-label">Land</div>
+                <select className="set-select" value={billCountry} onChange={e => setBillCountry(e.target.value)}>
+                  {COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+              <div className="set-row" style={{ justifyContent: 'flex-end', display: 'flex' }}>
+                <button className="set-btn set-btn-primary" onClick={saveBilling} disabled={saving}>
+                  {saving ? 'Speichere…' : 'Speichern'}
+                </button>
+              </div>
+            </div>
+          </>
         )}
       </main>
     </div>
