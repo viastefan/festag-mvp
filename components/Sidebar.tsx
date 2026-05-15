@@ -142,21 +142,21 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
 
   const isClient = true
   const isDev = false
-  // ── Mode-aware nav composition ─────────────────────────────────
-  // Delivery clients should not see raw Tasks / generic Team sub-tabs —
-  // they're the receivers of Festag's delivery, not project operators.
-  // Team mode is the default operator setup. Agency layers a Kunden top
-  // item + White Label tool on top.
+  // ── Mode-aware nav composition (additive only) ─────────────────
+  // Every workspace mode keeps the full default nav. Delivery clients
+  // need Teams for Client-Teamrollen and Tasks for visibility, so we
+  // never hide them. Agency mode layers a "Kunden" top item + White
+  // Label tool on top.
   const topNav: NavItem[] = wsMode === 'agency'
     ? [...CLIENT_TOP, { href: '/teams?view=projects', icon: 'team', label: 'Kunden' }]
     : CLIENT_TOP
-  const coreNav: NavItem[] = wsMode === 'delivery' ? [] : CLIENT_CORE
+  const coreNav: NavItem[] = CLIENT_CORE
   const teamsNav: NavItem[] = CLIENT_TEAMS
   const tagroNav = CLIENT_TAGRO
   const toolsNav: NavItem[] = wsMode === 'agency'
     ? [...CLIENT_TOOLS, { href: '/settings/workspace', icon: 'sparkle', label: 'White Label' }]
     : CLIENT_TOOLS
-  const showTeamsSection = wsMode !== 'delivery'
+  const showTeamsSection = true
   const mobPrimary = CLIENT_MOB_PRIMARY
   const mobQuick = CLIENT_MOB_QUICK
 
