@@ -373,7 +373,7 @@ button:active, a[role="button"]:active, .tap-scale:active {
 }
 
 .sidebar-inner {
-  position:fixed; top:0; left:0; bottom:0; width:196px;
+  position:fixed; top:0; left:0; bottom:0; width:212px;
   box-sizing:border-box;
   background:transparent;
   border:0;

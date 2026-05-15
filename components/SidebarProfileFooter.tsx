@@ -70,7 +70,7 @@ export default function SidebarProfileFooter({
 
   const currentPlanLabel = planLabel(plan)
   const avatarFg = avatarTextColor(avatarColor)
-  const triggerName = displayName.length > 10 ? `${displayName.slice(0, 8)}...` : displayName
+  const triggerName = displayName.length > 9 ? `${displayName.slice(0, 7)}...` : displayName
 
   const closeAndGo = () => setOpen(false)
 
@@ -122,7 +122,7 @@ export default function SidebarProfileFooter({
     <div
       ref={ref}
       style={{
-        flex: '1 1 0', minWidth: 0, position: 'relative',
+        width: '100%', minWidth: 0, position: 'relative',
         display: 'flex', alignItems: 'center', gap: 4, zIndex: 40,
       }}
     >
@@ -133,7 +133,7 @@ export default function SidebarProfileFooter({
         type="button"
         onClick={() => setOpen(o => !o)}
         style={{
-          flex: '1 1 auto', minWidth: 0,
+          width: '100%', minWidth: 0,
           display: 'flex', alignItems: 'center', gap: 10,
           padding: '5px 8px 5px 5px', borderRadius: 8,
           background: open ? 'var(--surface-2)' : 'transparent',
@@ -165,7 +165,7 @@ export default function SidebarProfileFooter({
           </div>
         )}
 
-        <span style={{ flex: '1 1 auto', minWidth: 0, display: 'inline-flex', alignItems: 'center', gap: 6, overflow: 'hidden' }}>
+        <span style={{ flex: '1 1 auto', minWidth: 0, maxWidth: 74, display: 'inline-flex', alignItems: 'center', gap: 6, overflow: 'hidden' }}>
           <span style={{
             fontSize: 12.5, fontWeight: 600, color: 'var(--text)',
             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
@@ -193,7 +193,7 @@ export default function SidebarProfileFooter({
           to   { opacity: 1; transform: translateY(0)    scale(1); }
         }
         .spf-pop {
-          width: 196px; max-width: min(196px, calc(100vw - 32px));
+          width: 212px; max-width: min(212px, calc(100vw - 32px));
           background: var(--surface);
           border: 1px solid var(--border);
           border-radius: 12px;

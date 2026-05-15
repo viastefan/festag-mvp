@@ -531,9 +531,10 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           box-shadow: 0 0 0 2px var(--focus-ring, rgba(64, 105, 225, 0.35));
         }
         .sb-topbar {
-          display:flex;
+          display:grid;
+          grid-template-columns:minmax(0, 1fr) 28px 34px;
           align-items:center;
-          gap:4px;
+          gap:6px;
           padding:0 2px 11px;
           flex-shrink:0;
           min-width:0;
@@ -552,6 +553,19 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           background:transparent;
           border:1px solid transparent;
           flex-shrink:0;
+        }
+        .sb-collapse-icon {
+          width:34px;
+          height:34px;
+          border-radius:999px;
+          background:var(--surface);
+          border:1px solid var(--border);
+          box-shadow:0 4px 14px rgba(0,0,0,.10);
+          color:var(--text);
+        }
+        [data-theme="dark"] .sb-collapse-icon {
+          background:color-mix(in srgb, var(--surface) 78%, transparent);
+          box-shadow:0 8px 18px rgba(0,0,0,.24);
         }
         .sb-top-icon:hover {
           color:var(--text);
@@ -704,7 +718,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
             </button>
             {onCollapse && (
               <button
-                className="sb-icon-btn sb-top-icon"
+                className="sb-icon-btn sb-top-icon sb-collapse-icon"
                 type="button"
                 onClick={onCollapse}
                 title="Sidebar einklappen"
