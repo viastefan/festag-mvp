@@ -177,6 +177,7 @@ export default function DashboardPage() {
           --dash-hairline:color-mix(in srgb, var(--border) 42%, transparent);
           --dash-muted:color-mix(in srgb, var(--text-muted) 82%, transparent);
           color:var(--text);
+          padding-top:clamp(24px, 2.4vw, 36px);
           padding-bottom:72px;
         }
         .dash-hero {
