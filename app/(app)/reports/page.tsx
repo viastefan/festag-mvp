@@ -620,6 +620,18 @@ Keine Emojis. Keine Floskeln. Wenn keine Daten vorliegen, ehrlich sagen "Noch ke
         .report-empty strong { display:block; color:var(--text); font-size:15px; margin-bottom:6px; }
         @media(max-width:1180px) { .reports-operating-area { grid-template-columns:1fr; gap:34px; } .signals-rail { position:static; max-width:760px; } .project-status-stream { overflow-x:auto; padding-bottom:6px; } .project-line-head, .project-line { min-width:980px; } }
         @media(max-width:820px) { .reports-intelligence { padding:24px 20px 0; } .reports-scroll-body { padding-bottom:86px; } .reports-commandline { align-items:stretch; flex-direction:column; margin-bottom:34px; } .report-context { align-items:flex-start; flex-direction:column; } .report-document { font-size:14px; } }
+        @media (max-width: 760px) {
+          .reports-intelligence { padding-bottom:120px; }
+          .reports-controls { flex-wrap:wrap; gap:6px; }
+          .reports-select { width:100%; }
+          .reports-period { flex:1; min-width:0; text-align:center; }
+          .reports-ghost { width:100%; justify-content:center; min-height:40px; }
+          .reports-inline-action { min-height:40px; padding:0 14px; }
+          .report-actions { width:100%; gap:6px; }
+          .report-actions .reports-inline-action { flex:1 1 calc(50% - 3px); justify-content:center; }
+          .briefing-section { padding:14px 0; }
+          .briefing-toggle strong { font-size:13.5px; }
+        }
       `}</style>
 
       <div className="reports-static-top">

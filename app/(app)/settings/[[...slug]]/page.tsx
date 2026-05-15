@@ -414,9 +414,10 @@ export default function SettingsPage() {
 
         /* ── MAIN (centered, no inner sidebar) ──────────────────── */
         .set-main {
-          padding: 56px clamp(28px, 4.5vw, 72px) 80px;
-          max-width: 1120px;
+          padding: 56px clamp(20px, 4vw, 48px) 80px;
+          max-width: 760px;
           width: 100%;
+          margin: 0 auto;
         }
         .set-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px; gap: 16px; }
         .set-title { font-size: 22px; font-weight: 500; letter-spacing: -0.01em; }
@@ -685,9 +686,18 @@ export default function SettingsPage() {
 
         /* Mobile */
         @media (max-width: 760px) {
-          .set-main { padding: 24px 20px 60px; }
+          .set-main { padding: 24px 16px 120px; }
+          .set-header { margin-bottom: 22px; }
+          .set-title { font-size: 20px; }
           .set-profile-layout { grid-template-columns: 1fr; }
-          .set-row { grid-template-columns: 1fr; padding: 14px 16px; gap: 8px; }
+          .set-row { grid-template-columns: 1fr; padding: 14px 16px; gap: 10px; align-items: flex-start; }
+          .set-row > div:last-child { width: 100%; }
+          .set-input, .set-select { font-size: 16px; padding: 10px 12px; }
+          .set-btn { min-height: 38px; padding: 8px 14px; }
+          .set-card { border-radius: 10px; }
+          .set-theme-cards { grid-template-columns: 1fr; gap: 8px; }
+          .set-segment { width: 100%; }
+          .set-segment button { flex: 1; }
         }
       `}</style>
 

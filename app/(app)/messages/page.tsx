@@ -602,5 +602,14 @@ const INBOX_CSS = `
     .ix-root { grid-template-columns: 1fr; }
     .ix-detail { display: none; }
     .ix-list { border-right: none; }
+    .ix-list-head { padding: 14px 16px 8px; }
+    .ix-list-title { font-size: 15px; }
+    .ix-tabs { padding: 0 12px 10px; gap: 5px; overflow-x: auto; flex-wrap: nowrap; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+    .ix-tabs::-webkit-scrollbar { display: none; }
+    .ix-tab { flex-shrink: 0; padding: 7px 11px; font-size: 12px; min-height: 32px; }
+    .ix-row { padding: 12px 12px 12px 8px; min-height: 56px; }
+    .ix-row-title { font-size: 13.5px; }
+    .ix-row-preview { font-size: 12.5px; }
+    .ix-thread-scroll { padding: 4px 6px 90px; }
   }
 `

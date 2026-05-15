@@ -529,15 +529,55 @@ export default function DashboardPage() {
           .dash-side-rail { position:static; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:26px; }
         }
         @media (max-width: 760px) {
+          .dashboard-os { padding-bottom:120px; }
+          .dash-hero--compact { flex-direction:column; align-items:flex-start; gap:14px; margin-bottom:18px; }
+          .dash-title--compact { font-size:22px; }
+          .dash-meta { font-size:13px; }
           .dash-hero { flex-direction:column; margin-bottom:36px; }
-          .dash-title { font-size:34px; }
-          .dash-actions { width:100%; flex-wrap:wrap; }
-          .dash-current-top { flex-direction:column; }
-          .dash-current-actions { width:100%; }
-          .dash-current-actions .dash-button { flex:1; }
+          .dash-title { font-size:30px; }
+          .dash-actions { width:100%; flex-wrap:wrap; gap:8px; }
+          .dash-actions .dash-button { flex:1 1 calc(50% - 4px); justify-content:center; min-height:40px; }
+
+          /* KPI bar */
+          .kpi-row { grid-template-columns:repeat(2, minmax(0,1fr)); gap:8px; }
+          .kpi-card { padding:12px 13px; }
+          .kpi-value { font-size:20px; }
+          .kpi-sub { font-size:11px; }
+
+          /* Heutiges Projektbriefing */
+          .dash-briefing-section { margin-bottom:20px; }
+          .dash-today-briefing { padding:16px 16px; gap:12px; }
+          .dash-today-head { flex-direction:column; align-items:flex-start; gap:4px; }
+          .dash-today-text { font-size:14px; line-height:1.5; }
+          .dash-today-actions { gap:6px; }
+          .dash-today-actions .dash-button { flex:1 1 calc(50% - 3px); justify-content:center; min-height:38px; font-size:12px; }
+
+          /* Active project card */
+          .dash-current-top { flex-direction:column; gap:12px; padding:16px 16px 12px; }
+          .dash-current-progress { padding:12px 16px 14px; }
+          .dash-current-milestone { padding:12px 16px 14px; }
+          .dash-current-milestone .ml-row { flex-direction:column; gap:2px; align-items:flex-start; }
+          .dash-current-milestone .ml-value { text-align:left; }
+          .dash-current-actions { width:100%; flex-wrap:wrap; }
+          .dash-current-actions .dash-button { flex:1 1 calc(50% - 4px); justify-content:center; min-height:38px; }
+
+          /* Project segments */
+          .dash-segment-label { font-size:10.5px; }
           .dash-col-stat:nth-of-type(2),
           .dash-col-bar { display:none; }
-          .dash-side-rail { display:flex; }
+
+          /* Right rail collapses into stacked cards */
+          .dash-side-rail { display:flex; flex-direction:column; gap:10px; }
+          .cp-card { padding:12px 14px; }
+
+          /* Larger touch targets across the whole shell */
+          .dash-button { min-height:36px; }
+        }
+        @media (max-width: 420px) {
+          .kpi-row { grid-template-columns:1fr; }
+          .dash-actions .dash-button,
+          .dash-today-actions .dash-button,
+          .dash-current-actions .dash-button { flex:1 1 100%; }
         }
       `}</style>
 
