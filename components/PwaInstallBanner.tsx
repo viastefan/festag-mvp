@@ -8,15 +8,15 @@ import { useEffect, useState } from 'react'
  * Behavior:
  * - Hidden if the app is already running as an installed PWA
  *   (display-mode: standalone).
- * - Hidden if the user dismissed it before (localStorage flag).
- * - Hidden if the browser doesn't support installation (no
- *   beforeinstallprompt event AND not on iOS Safari).
- * - Otherwise: shows a small card with a "Installieren" button
- *   that triggers the browser's native prompt. On iOS Safari,
- *   the button toggles an instruction popover instead.
+ * - Counts one dashboard/app entry per browser session and shows on every
+ *   second entry until the app is installed.
+ * - Chromium uses the native install prompt when available. Other browsers
+ *   get a compact instruction popover.
  */
 
-const DISMISS_KEY = 'festag_pwa_install_dismissed'
+const INSTALL_STATE_KEY = 'festag_pwa_install_state'
+const ENTRY_COUNT_KEY = 'festag_pwa_entry_count'
+const SESSION_COUNTED_KEY = 'festag_pwa_entry_counted'
 
 type BeforeInstallPromptEvent = Event & {
   prompt: () => Promise<void>
@@ -30,6 +30,9 @@ export default function PwaInstallBanner() {
   const [installing, setInstalling] = useState(false)
 
   useEffect(() => {
+    let shouldShowThisEntry = false
+    let fallbackTimer: ReturnType<typeof setTimeout> | null = null
+
     // Already installed?
     if (typeof window !== 'undefined' && window.matchMedia?.('(display-mode: standalone)').matches) {
       return
@@ -38,10 +41,27 @@ export default function PwaInstallBanner() {
     if (typeof navigator !== 'undefined' && (navigator as any).standalone) {
       return
     }
-    // Dismissed previously?
+
+    // Installed through the native prompt in this browser.
     try {
-      if (localStorage.getItem(DISMISS_KEY)) return
+      if (localStorage.getItem(INSTALL_STATE_KEY) === 'installed') return
     } catch {}
+
+    try {
+      if (!sessionStorage.getItem(SESSION_COUNTED_KEY)) {
+        const nextCount = Number(localStorage.getItem(ENTRY_COUNT_KEY) || '0') + 1
+        localStorage.setItem(ENTRY_COUNT_KEY, String(nextCount))
+        sessionStorage.setItem(SESSION_COUNTED_KEY, '1')
+        shouldShowThisEntry = nextCount % 2 === 0
+      } else {
+        shouldShowThisEntry = sessionStorage.getItem('festag_pwa_show_this_entry') === '1'
+      }
+      sessionStorage.setItem('festag_pwa_show_this_entry', shouldShowThisEntry ? '1' : '0')
+    } catch {
+      shouldShowThisEntry = true
+    }
+
+    if (!shouldShowThisEntry) return
 
     // Chromium / Edge / Android Chrome fire this when the app is installable.
     function onBeforePrompt(e: Event) {
@@ -58,9 +78,22 @@ export default function PwaInstallBanner() {
     const isSafari = /^((?!chrome|android|crios|fxios).)*safari/i.test(ua)
     if (isIos && isSafari) {
       setVisible(true)
+    } else {
+      // Desktop Safari and some in-app browsers do not emit beforeinstallprompt.
+      fallbackTimer = setTimeout(() => setVisible(true), 1200)
     }
 
-    return () => window.removeEventListener('beforeinstallprompt', onBeforePrompt)
+    function onInstalled() {
+      try { localStorage.setItem(INSTALL_STATE_KEY, 'installed') } catch {}
+      setVisible(false)
+    }
+    window.addEventListener('appinstalled', onInstalled)
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', onBeforePrompt)
+      window.removeEventListener('appinstalled', onInstalled)
+      if (fallbackTimer) clearTimeout(fallbackTimer)
+    }
   }, [])
 
   async function install() {
@@ -70,7 +103,7 @@ export default function PwaInstallBanner() {
         await deferred.prompt()
         const { outcome } = await deferred.userChoice
         if (outcome === 'accepted') {
-          try { localStorage.setItem(DISMISS_KEY, 'installed') } catch {}
+          try { localStorage.setItem(INSTALL_STATE_KEY, 'installed') } catch {}
           setVisible(false)
         }
       } finally {
@@ -83,7 +116,6 @@ export default function PwaInstallBanner() {
   }
 
   function dismiss() {
-    try { localStorage.setItem(DISMISS_KEY, '1') } catch {}
     setVisible(false)
   }
 
