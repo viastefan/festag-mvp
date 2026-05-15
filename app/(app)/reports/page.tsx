@@ -6,6 +6,8 @@ import { useSearchParams } from 'next/navigation'
 import ChatMarkdown from '@/components/ChatMarkdown'
 import AppPageHeader from '@/components/AppPageHeader'
 import AudioBriefingButton from '@/components/AudioBriefingButton'
+import VoiceControls from '@/components/VoiceControls'
+import { generateBriefingText } from '@/lib/briefings'
 import { createClient } from '@/lib/supabase/client'
 import { projectColor } from '@/components/Sidebar'
 import {
@@ -13,10 +15,12 @@ import {
   ArrowRight,
   ChatCircleText,
   DownloadSimple,
+  Headphones,
   Lightbulb,
   MagicWand,
   PaperPlaneTilt,
   SlidersHorizontal,
+  Sparkle,
   WarningCircle,
 } from '@phosphor-icons/react'
 
@@ -81,10 +85,13 @@ Für dieses Projekt wurde noch kein Statusbericht generiert. Festag nutzt Status
 ## Nächste Schritte
 1. Projekt auswählen.
 2. Zeitraum wählen.
-3. Statusbericht generieren.
+3. Briefing aktualisieren.
 
 ## Entscheidungen vom Client benötigt
 - Aktuell keine Entscheidung erfasst.
+
+## Verbesserungsvorschläge von Tagro
+- Sobald genug Daten vorliegen, listet Tagro hier konkrete Optimierungen für dein Projekt.
 
 ## Mögliche neue Tasks
 - Task-Vorschläge entstehen erst nach Berichtsanalyse.
@@ -292,7 +299,16 @@ function ReportsPage() {
 
   useEffect(() => {
     const summary = briefingSections[0]?.id ?? 'zusammenfassung'
-    setOpenSections({ [summary]: true })
+    // Default: open the Zusammenfassung, plus the two action-driving sections
+    // (Entscheidungen + Verbesserungsvorschläge) so the client sees them
+    // immediately without an extra click.
+    const open: Record<string, boolean> = { [summary]: true }
+    briefingSections.forEach(s => {
+      if (/entscheidung/i.test(s.title) || /verbesserung/i.test(s.title)) {
+        open[s.id] = true
+      }
+    })
+    setOpenSections(open)
   }, [currentReport?.id, briefingSections])
 
   useEffect(() => {
@@ -324,7 +340,21 @@ function ReportsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           max_tokens: 850,
-          system: `Du bist Tagro, AI-Projektmanager von Festag. Erstelle einen ruhigen, verständlichen deutschen Statusbericht. Nicht technisch überladen. Struktur exakt: Zusammenfassung, Was wurde erledigt, Was ist in Arbeit, Blocker / Risiken, Nächste Schritte, Entscheidungen vom Client benötigt, Mögliche neue Tasks, Von Tagro empfohlene Priorität. Mögliche Tasks nur als Vorschläge formulieren, keine automatische Scope-Erweiterung. Keine Emojis.`,
+          system: `Du bist Tagro, AI-Projektmanager von Festag. Erstelle einen ruhigen, verständlichen deutschen Statusbericht im podcast-tauglichen Stil — natürlich gesprochen, ohne Markdown-Geräusche.
+Pflicht-Struktur, jede Section mit "## " starten, in genau dieser Reihenfolge:
+## Zusammenfassung
+## Was wurde erledigt
+## Was ist in Arbeit
+## Blocker / Risiken
+## Nächste Schritte
+## Entscheidungen vom Client benötigt
+   — Jede Entscheidung als Bulletpoint mit einem konkreten ja/nein-fähigen Satz, damit der Client weiß was er freigeben soll.
+## Verbesserungsvorschläge von Tagro
+   — Konkrete Optimierungen die Tagro vorschlägt. Tasks die wir anlegen sollten, ohne Scope-Erweiterung zu erzwingen. Jeder Vorschlag als Bulletpoint, kurz und actionable.
+## Mögliche neue Tasks
+   — Nur Vorschläge zur Prüfung, niemals automatische Scope-Erweiterung.
+## Von Tagro empfohlene Priorität
+Keine Emojis. Keine Floskeln. Wenn keine Daten vorliegen, ehrlich sagen "Noch keine Signale erkannt" statt zu erfinden.`,
           messages: [{ role: 'user', content: prompt }],
         }),
       })
@@ -457,6 +487,82 @@ function ReportsPage() {
         .report-meta-title strong { color:var(--text); font-size:14px; font-weight:730; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
         .report-actions { display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
         .report-document { max-width:780px; }
+        /* ── Audio Briefing Hero — premium podcast feel ──────────── */
+        .audio-hero {
+          display: grid;
+          grid-template-columns: 116px minmax(0, 1fr);
+          gap: 22px;
+          padding: 22px;
+          margin: 0 0 28px;
+          border-radius: 16px;
+          background: linear-gradient(135deg, color-mix(in srgb, var(--surface) 92%, transparent), color-mix(in srgb, var(--surface-2) 38%, transparent));
+          border: 1px solid color-mix(in srgb, var(--border) 64%, transparent);
+          box-shadow: 0 28px 60px -32px rgba(15,23,42,0.18);
+          align-items: stretch;
+        }
+        .audio-hero-cover {
+          aspect-ratio: 1/1;
+          border-radius: 14px;
+          display: flex; align-items: center; justify-content: center;
+          flex-shrink: 0;
+          box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 12px 28px -16px rgba(15,23,42,.32);
+          position: relative; overflow: hidden;
+        }
+        .audio-hero-cover::after {
+          content: ''; position: absolute; inset: 0;
+          background: radial-gradient(120% 60% at 20% 0%, rgba(255,255,255,.16), transparent 60%);
+          pointer-events: none;
+        }
+        .audio-hero-body { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+        .audio-hero-kicker {
+          display: inline-flex; align-items: center; gap: 6px;
+          font-size: 11px; font-weight: 660; letter-spacing: .04em;
+          color: var(--text-muted); text-transform: uppercase;
+        }
+        .audio-hero-kicker svg { color: #D97706; }
+        .audio-hero-dot { opacity: .5; }
+        .audio-hero-title {
+          margin: 0; font-size: clamp(18px, 1.8vw, 22px);
+          line-height: 1.22; letter-spacing: -.01em; font-weight: 600;
+          color: var(--text);
+        }
+        .audio-hero-sub {
+          margin: 0; font-size: 12.5px; color: var(--text-secondary);
+          line-height: 1.55;
+        }
+        .audio-hero-pills {
+          display: flex; flex-wrap: wrap; gap: 6px;
+          margin-top: 4px;
+        }
+        .audio-hero-pill {
+          display: inline-flex; align-items: center; gap: 6px;
+          padding: 5px 11px;
+          border-radius: 999px;
+          border: 1px solid var(--border);
+          background: color-mix(in srgb, var(--surface) 50%, transparent);
+          font: inherit; font-size: 12px; font-weight: 580;
+          color: var(--text-secondary);
+          cursor: pointer; max-width: 220px;
+          transition: background .12s, color .12s, border-color .12s;
+        }
+        .audio-hero-pill:hover { color: var(--text); border-color: var(--border-strong); }
+        .audio-hero-pill.on {
+          background: var(--text); color: var(--bg); border-color: var(--text);
+        }
+        .audio-hero-pill-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+        .audio-hero-pill-label {
+          overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .audio-hero-player {
+          margin-top: 6px;
+          padding-top: 12px;
+          border-top: 1px solid color-mix(in srgb, var(--border) 40%, transparent);
+        }
+        @media (max-width: 760px) {
+          .audio-hero { grid-template-columns: 1fr; gap: 14px; padding: 18px; }
+          .audio-hero-cover { aspect-ratio: auto; height: 84px; width: 84px; }
+        }
+
         .briefing-priority { margin:0 0 28px; }
         .briefing-priority .reports-section-kicker { margin:0 0 12px; }
         .priority-row { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:12px; }
@@ -473,6 +579,10 @@ function ReportsPage() {
         .briefing-hero strong { display:block; margin-bottom:7px; color:var(--text); font-size:22px; line-height:1.18; letter-spacing:-.04em; }
         .briefing-section { padding:17px 0; }
         .briefing-section + .briefing-section { border-top:1px solid color-mix(in srgb, var(--border) 24%, transparent); }
+        /* Accent-borders for the most action-driving sections */
+        .briefing-section--decision   { padding-left:14px; border-left:2px solid #0369A1; margin-left:-14px; }
+        .briefing-section--suggestion { padding-left:14px; border-left:2px solid #D97706; margin-left:-14px; }
+        .briefing-section--risk       { padding-left:14px; border-left:2px solid #c0362e; margin-left:-14px; }
         .briefing-toggle { width:100%; display:flex; align-items:center; justify-content:space-between; gap:18px; border:0; background:transparent; color:var(--text); font:inherit; padding:0; cursor:pointer; text-align:left; }
         .briefing-toggle span:first-child { display:flex; flex-direction:column; gap:3px; min-width:0; }
         .briefing-toggle strong { color:var(--text); font-size:14px; font-weight:760; letter-spacing:-.018em; }
@@ -534,6 +644,73 @@ function ReportsPage() {
             </button>
           )}
         />
+
+        {/* ── Audio Briefing Hero — podcast-style ───────────────── */}
+        <section className="audio-hero" aria-label="Tagro Audio Briefing">
+          <div className="audio-hero-cover" style={{ background: `linear-gradient(135deg, ${currentProject?.color || '#5B647D'}, color-mix(in srgb, ${currentProject?.color || '#5B647D'} 35%, var(--bg)))` }}>
+            <Headphones size={32} weight="duotone" color="rgba(255,255,255,0.92)" />
+          </div>
+          <div className="audio-hero-body">
+            <div className="audio-hero-kicker">
+              <Sparkle size={12} weight="fill" />
+              <span>Tagro Audio Briefing</span>
+              <span className="audio-hero-dot">·</span>
+              <span>täglich generiert · wie ein Podcast</span>
+            </div>
+            <h2 className="audio-hero-title">
+              {currentProject
+                ? `Höre dein heutiges Update zu ${currentProject.title}`
+                : projects.length > 0
+                  ? 'Höre dein heutiges Update zu allen Projekten'
+                  : 'Audio-Briefing wird verfügbar, sobald dein erstes Projekt startet'}
+            </h2>
+            <p className="audio-hero-sub">
+              {currentProject
+                ? `Phase: ${currentStatusRow?.phase ?? '—'} · ${currentStatusRow?.progress ?? 0}% Fortschritt · ${currentStatusRow?.decisionCount ?? 0} offene Entscheidung${currentStatusRow?.decisionCount === 1 ? '' : 'en'}`
+                : 'Aktuelle Lage, Risiken, Entscheidungen und nächste Schritte — in unter zwei Minuten zusammengefasst.'}
+            </p>
+            {projects.length > 1 && (
+              <div className="audio-hero-pills" role="tablist" aria-label="Projekt für Audio-Briefing">
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={selectedProjectId === 'all'}
+                  className={`audio-hero-pill${selectedProjectId === 'all' ? ' on' : ''}`}
+                  onClick={() => setSelectedProjectId('all')}
+                >
+                  Alle Projekte
+                </button>
+                {projects.slice(0, 6).map(p => (
+                  <button
+                    key={p.id}
+                    type="button"
+                    role="tab"
+                    aria-selected={selectedProjectId === p.id}
+                    className={`audio-hero-pill${selectedProjectId === p.id ? ' on' : ''}`}
+                    onClick={() => setSelectedProjectId(p.id)}
+                  >
+                    <span className="audio-hero-pill-dot" style={{ background: p.color || '#64748b' }} />
+                    <span className="audio-hero-pill-label">{p.title}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+            <div className="audio-hero-player">
+              <VoiceControls
+                text={generateBriefingText({
+                  type: 'status_report_briefing',
+                  projectTitle: currentProject?.title,
+                  report: reportContent,
+                  projectStatus: currentStatusRow?.phase,
+                  progress: currentStatusRow?.progress,
+                  blockerCount: currentStatusRow?.blockerCount,
+                  decisionCount: currentStatusRow?.decisionCount,
+                  nextSteps: ['Task-Vorschläge prüfen', 'offene Entscheidungen klären'],
+                })}
+              />
+            </div>
+          </div>
+        </section>
 
         <section className="reports-commandline" aria-label="Statusbericht Einstellungen">
         <div className="reports-controls">
@@ -676,8 +853,12 @@ function ReportsPage() {
             </p>
             {briefingSections.map((section, index) => {
               const open = Boolean(openSections[section.id])
+              const accent = /entscheidung/i.test(section.title) ? 'decision'
+                : /verbesserung/i.test(section.title) ? 'suggestion'
+                : /risiko|blocker/i.test(section.title) ? 'risk'
+                : null
               return (
-                <section className="briefing-section" key={section.id}>
+                <section className={`briefing-section${accent ? ` briefing-section--${accent}` : ''}`} key={section.id}>
                   <button
                     className="briefing-toggle"
                     type="button"

@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import SidebarProfileFooter from '@/components/SidebarProfileFooter'
 import SettingsSidebar from '@/components/SettingsSidebar'
 import TeamsModal from '@/components/TeamsModal'
@@ -14,7 +14,7 @@ import {
   Plus, CaretRight, DotsThreeOutline, X,
   SignOut, UsersThree, Bell, Briefcase,
   Clock, CheckSquare, Code, FileCode,
-  Tray, MagnifyingGlass,
+  Tray, MagnifyingGlass, SpeakerHigh,
 } from '@phosphor-icons/react'
 import { autoAvatarColor, avatarInitials } from '@/lib/avatar'
 import { broadcastProfileSync, subscribeProfileSync } from '@/lib/profile-sync'
@@ -29,6 +29,7 @@ const ICONS: Record<string, React.ElementType> = {
   more: DotsThreeOutline, close: X, logout: SignOut, team: UsersThree,
   bell: Bell, briefcase: Briefcase, clock: Clock, check: CheckSquare,
   code: Code, task: FileCode, inbox: Tray, search: MagnifyingGlass,
+  audio: SpeakerHigh,
 }
 
 function Ico({ name, sz=16, c='currentColor', weight='regular' }: {
@@ -56,6 +57,7 @@ const CLIENT_TEAMS: NavItem[] = [
 ]
 const CLIENT_TAGRO: NavItem[] = [
   { href:'/reports', icon:'activity', label:'Statusberichte' },
+  { href:'/reports?audio=1', icon:'audio', label:'Audio Briefing' },
   { href:'/ai?view=chat', icon:'chat', label:'Chat' },
   { href:'/ai?view=notes', icon:'card', label:'Notizen' },
 ]
@@ -131,6 +133,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
   const [teamsExp, setTeamsExp] = useState(false)
   const [tagroExp, setTagroExp] = useState(true)
   const [reportsExp, setReportsExp] = useState(false)
+  const reportsAutoSeededRef = useRef(false)
   const [toolsExp, setToolsExp] = useState(false)
   const [teamsOpen,  setTeamsOpen] = useState(false)
   const [colorPickId, setColorPickId] = useState<string|null>(null)
@@ -843,6 +846,13 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
                     ? `/reports?project=${projects[0].id}`
                     : '/reports'
                   const reportsActive = pathname.startsWith('/reports')
+                  // Seed expand the first time the user arrives at /reports,
+                  // but afterwards let the user freely collapse without us
+                  // forcing it back open. Persists across navigations.
+                  if (reportsActive && !reportsAutoSeededRef.current) {
+                    reportsAutoSeededRef.current = true
+                    if (!reportsExp) setReportsExp(true)
+                  }
 
                   if (projects.length > 1) {
                     return (
@@ -851,7 +861,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
                           href={reportsHref}
                           icon="activity"
                           label="Statusberichte"
-                          expanded={reportsExp || reportsActive}
+                          expanded={reportsExp}
                           onToggle={() => setReportsExp(v => !v)}
                           activeOverride={reportsActive}
                         >
