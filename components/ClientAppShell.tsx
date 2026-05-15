@@ -64,7 +64,7 @@ export default function ClientAppShell({
   return (
     <div
       className="festag-app-shell"
-      style={{ '--app-sidebar-width': sidebarCollapsed ? '0px' : '272px' } as React.CSSProperties}
+      style={{ '--app-sidebar-width': sidebarCollapsed ? '0px' : '248px' } as React.CSSProperties}
     >
       <style>{`
         @keyframes panelFadeIn {
