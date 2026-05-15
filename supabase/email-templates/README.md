@@ -1,8 +1,8 @@
 # Festag Supabase Auth Email Templates
 
-Paste these files into Supabase Dashboard > Authentication > Email Templates.
+Pushes to `main` that touch this folder are auto-synced to the live Supabase project via `.github/workflows/supabase-email-sync.yml` (uses the `SUPABASE_ACCESS_TOKEN` repo secret).
 
-Important: GitHub/Vercel deployments do not automatically update Supabase Auth email templates. After changing these files, paste the matching HTML into the Supabase Dashboard or update the project through the Supabase Management API.
+Manual paste through Supabase Dashboard > Authentication > Email Templates is still supported as a fallback.
 
 ## Magic Link
 
