@@ -872,6 +872,7 @@ Keine Emojis. Keine Floskeln. Wenn keine Daten vorliegen, ehrlich sagen "Noch ke
                 : /verbesserung/i.test(section.title) ? 'suggestion'
                 : /risiko|blocker/i.test(section.title) ? 'risk'
                 : null
+              const isSuggestionSection = accent === 'suggestion'
               return (
                 <section className={`briefing-section${accent ? ` briefing-section--${accent}` : ''}`} key={section.id}>
                   <button
@@ -887,9 +888,13 @@ Keine Emojis. Keine Floskeln. Wenn keine Daten vorliegen, ehrlich sagen "Noch ke
                     <em>{open ? 'Schließen' : 'Öffnen'}</em>
                   </button>
                   {open && (
-                    <div className="briefing-body">
-                      <ChatMarkdown text={section.body} />
-                    </div>
+                    isSuggestionSection ? (
+                      <SuggestionBullets body={section.body} projectId={currentProject?.id} />
+                    ) : (
+                      <div className="briefing-body">
+                        <ChatMarkdown text={section.body} />
+                      </div>
+                    )
                   )}
                 </section>
               )
@@ -1200,6 +1205,102 @@ function BriefingDeliveryCard({ projectId, projectTitle }: { projectId: string |
         </div>
       </div>
     </section>
+  )
+}
+
+function SuggestionBullets({ body, projectId }: { body: string; projectId: string | undefined }) {
+  const supabase = useMemo(() => createClient(), [])
+  // Parse bullets ("- foo", "* foo", "1. foo"); skip empty or pure prose lines.
+  const bullets = useMemo(() => {
+    return body
+      .split('\n')
+      .map(line => line.trim())
+      .filter(line => /^([-*]|[0-9]+\.)\s+/.test(line))
+      .map(line => line.replace(/^([-*]|[0-9]+\.)\s+/, '').trim())
+      .filter(line => line.length > 0)
+  }, [body])
+  const [promoted, setPromoted] = useState<Record<number, 'idle' | 'saving' | 'done' | 'error'>>({})
+
+  async function promoteToTask(index: number, title: string) {
+    if (!projectId || promoted[index] === 'saving' || promoted[index] === 'done') return
+    setPromoted(prev => ({ ...prev, [index]: 'saving' }))
+    try {
+      const { error } = await supabase.from('tasks').insert({
+        project_id: projectId,
+        title: title.slice(0, 240),
+        status: 'suggested',
+        priority: 'medium',
+        description: `Aus Tagro-Briefing übernommen. Quelle: Verbesserungsvorschläge von Tagro.\n\nVorschlag: ${title}`,
+      })
+      if (error) throw error
+      setPromoted(prev => ({ ...prev, [index]: 'done' }))
+    } catch {
+      setPromoted(prev => ({ ...prev, [index]: 'error' }))
+    }
+  }
+
+  if (bullets.length === 0) {
+    return <div className="briefing-body"><ChatMarkdown text={body} /></div>
+  }
+
+  return (
+    <div className="suggestion-bullets">
+      <style>{`
+        .suggestion-bullets { display: flex; flex-direction: column; gap: 8px; padding: 4px 0 8px; }
+        .suggestion-bullet {
+          display: flex; align-items: flex-start; gap: 12px;
+          padding: 10px 12px;
+          border: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+          border-radius: 10px;
+          background: color-mix(in srgb, var(--surface) 50%, transparent);
+        }
+        .suggestion-bullet-dot {
+          width: 6px; height: 6px; border-radius: 50%;
+          background: #D97706; flex-shrink: 0; margin-top: 7px;
+        }
+        .suggestion-bullet-text {
+          flex: 1; font-size: 13.5px; line-height: 1.5;
+          color: var(--text); min-width: 0;
+        }
+        .suggestion-bullet-action {
+          height: 28px;
+          padding: 0 11px;
+          border-radius: 6px;
+          border: 1px solid var(--border);
+          background: var(--surface);
+          font-family: inherit; font-size: 11.5px; font-weight: 600;
+          letter-spacing: 0.01em;
+          color: var(--text);
+          cursor: pointer;
+          white-space: nowrap;
+          transition: background .12s, border-color .12s, color .12s, opacity .12s;
+          flex-shrink: 0;
+        }
+        .suggestion-bullet-action:hover:not(:disabled) { background: var(--surface-2); border-color: var(--border-strong); }
+        .suggestion-bullet-action:disabled { opacity: .55; cursor: default; }
+        .suggestion-bullet-action.done { background: #15803D; color: #fff; border-color: #15803D; }
+      `}</style>
+      {bullets.map((bullet, i) => {
+        const state = promoted[i] ?? 'idle'
+        return (
+          <div key={i} className="suggestion-bullet">
+            <span className="suggestion-bullet-dot" />
+            <span className="suggestion-bullet-text">{bullet}</span>
+            <button
+              type="button"
+              className={`suggestion-bullet-action${state === 'done' ? ' done' : ''}`}
+              disabled={!projectId || state === 'saving' || state === 'done'}
+              onClick={() => promoteToTask(i, bullet)}
+            >
+              {state === 'saving' ? 'Lege an…'
+                : state === 'done' ? '✓ Als Task angelegt'
+                : state === 'error' ? 'Nochmal versuchen'
+                : 'Als Task erstellen'}
+            </button>
+          </div>
+        )
+      })}
+    </div>
   )
 }
 
