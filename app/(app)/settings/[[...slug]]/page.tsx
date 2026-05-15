@@ -17,11 +17,34 @@
  */
 
 import Link from 'next/link'
+import { useParams } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { getTheme, setTheme as applyThemeMode, type ThemeMode } from '@/lib/theme'
 
-type SectionId = 'profile' | 'appearance' | 'security' | 'notifications' | 'connected' | 'workspace'
+type SectionId = 'profile' | 'appearance' | 'security' | 'notifications' | 'connected' | 'workspace' | 'company' | 'billing'
+
+const SLUG_TO_SECTION: Record<string, SectionId> = {
+  '':              'profile',
+  'appearance':    'appearance',
+  'security':      'security',
+  'notifications': 'notifications',
+  'connected':     'connected',
+  'workspace':     'workspace',
+  'company':       'company',
+  'billing':       'billing',
+}
+
+const SECTION_TITLE: Record<SectionId, string> = {
+  profile:       'Profil',
+  appearance:    'Erscheinung',
+  security:      'Sicherheit',
+  notifications: 'Benachrichtigungen',
+  connected:     'Verbundene Konten',
+  workspace:     'Workspace',
+  company:       'Unternehmen',
+  billing:       'Abrechnung & Steuer',
+}
 
 type Profile = {
   id: string
@@ -35,19 +58,6 @@ type Profile = {
   notif_push: boolean | null
 }
 
-const NAV: Array<{ group: string; items: Array<{ id: SectionId; label: string }> }> = [
-  { group: 'Konto', items: [
-    { id: 'profile',       label: 'Profil' },
-    { id: 'appearance',    label: 'Erscheinung' },
-    { id: 'security',      label: 'Sicherheit' },
-    { id: 'notifications', label: 'Benachrichtigungen' },
-    { id: 'connected',     label: 'Verbundene Konten' },
-  ]},
-  { group: 'Arbeitsbereich', items: [
-    { id: 'workspace', label: 'Workspace' },
-  ]},
-]
-
 const THEME_OPTIONS: Array<{ id: ThemeMode; label: string; sub: string }> = [
   { id: 'light' as ThemeMode, label: 'Hell',      sub: 'Klar, reduziert.' },
   { id: 'read'  as ThemeMode, label: 'Lesemodus', sub: 'Warm, ruhig.' },
@@ -56,7 +66,9 @@ const THEME_OPTIONS: Array<{ id: ThemeMode; label: string; sub: string }> = [
 
 export default function SettingsPage() {
   const supabase = useMemo(() => createClient(), [])
-  const [section, setSection] = useState<SectionId>('profile')
+  const params = useParams<{ slug?: string[] }>()
+  const slug = params?.slug?.[0] || ''
+  const section: SectionId = SLUG_TO_SECTION[slug] || 'profile'
   const [profile, setProfile] = useState<Profile | null>(null)
   const [theme, setLocalTheme] = useState<ThemeMode>('dark')
   const [saving, setSaving] = useState(false)
@@ -222,52 +234,14 @@ export default function SettingsPage() {
           font-weight: 500;
           letter-spacing: 0.01em;
           min-height: 100dvh;
-          display: grid;
-          grid-template-columns: 260px minmax(0, 1fr);
+          display: flex;
+          justify-content: center;
         }
 
-        /* ── SIDEBAR ─────────────────────────────────────────────── */
-        .set-side {
-          padding: 28px 16px 24px;
-          border-right: 1px solid var(--set-border);
-          background: color-mix(in srgb, var(--set-surface) 50%, transparent);
-          min-height: 100dvh;
-        }
-        .set-back {
-          display: inline-flex; align-items: center; gap: 6px;
-          font-size: 12.5px; font-weight: 500; letter-spacing: 0.01em;
-          color: var(--set-text-muted);
-          text-decoration: none;
-          padding: 6px 8px; border-radius: 6px;
-          margin: 0 4px 24px;
-          transition: color .15s, background .15s;
-        }
-        .set-back:hover { color: var(--set-text); background: color-mix(in srgb, var(--set-text) 6%, transparent); }
-        .set-side-group { margin-bottom: 18px; }
-        .set-side-group-label {
-          font-size: 10.5px; font-weight: 500;
-          letter-spacing: 0.14em; text-transform: uppercase;
-          color: var(--set-text-muted);
-          padding: 6px 10px 8px;
-        }
-        .set-nav-row {
-          display: flex; align-items: center;
-          padding: 7px 10px;
-          border-radius: 7px;
-          font-size: 13.5px; font-weight: 500; letter-spacing: 0.01em;
-          color: var(--set-text-secondary);
-          background: transparent;
-          border: none; width: 100%; cursor: pointer;
-          font-family: inherit; text-align: left;
-          transition: background .15s, color .15s;
-        }
-        .set-nav-row:hover { background: color-mix(in srgb, var(--set-text) 6%, transparent); color: var(--set-text); }
-        .set-nav-row.active { background: color-mix(in srgb, var(--set-text) 8%, transparent); color: var(--set-text); }
-
-        /* ── MAIN ─────────────────────────────────────────────────── */
+        /* ── MAIN (centered, no inner sidebar) ──────────────────── */
         .set-main {
-          padding: 56px clamp(28px, 4vw, 80px) 80px;
-          max-width: 800px;
+          padding: 56px clamp(20px, 4vw, 56px) 80px;
+          max-width: 720px;
           width: 100%;
         }
         .set-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px; gap: 16px; }
@@ -434,49 +408,14 @@ export default function SettingsPage() {
 
         /* Mobile */
         @media (max-width: 760px) {
-          .set { grid-template-columns: 1fr; }
-          .set-side {
-            min-height: auto;
-            position: sticky; top: 0; z-index: 5;
-            display: flex; gap: 4px; overflow-x: auto;
-            padding: 12px 16px; border-right: 0; border-bottom: 1px solid var(--set-border);
-          }
-          .set-back { margin: 0 6px 0 0; flex-shrink: 0; }
-          .set-side-group { margin-bottom: 0; display: flex; gap: 2px; flex-shrink: 0; }
-          .set-side-group-label { display: none; }
-          .set-nav-row { padding: 5px 12px; font-size: 12.5px; }
           .set-main { padding: 24px 20px 60px; }
           .set-row { grid-template-columns: 1fr; padding: 14px 16px; gap: 8px; }
         }
       `}</style>
 
-      <aside className="set-side" aria-label="Einstellungen Navigation">
-        <Link href="/dashboard" className="set-back">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="m15 18-6-6 6-6"/>
-          </svg>
-          Zurück zur App
-        </Link>
-        {NAV.map(grp => (
-          <div key={grp.group} className="set-side-group">
-            <p className="set-side-group-label">{grp.group}</p>
-            {grp.items.map(item => (
-              <button
-                key={item.id}
-                type="button"
-                className={`set-nav-row${section === item.id ? ' active' : ''}`}
-                onClick={() => setSection(item.id)}
-              >
-                {item.label}
-              </button>
-            ))}
-          </div>
-        ))}
-      </aside>
-
       <main className="set-main">
         <div className="set-header">
-          <h1 className="set-title">{NAV.flatMap(g => g.items).find(i => i.id === section)?.label}</h1>
+          <h1 className="set-title">{SECTION_TITLE[section]}</h1>
           <span className={`set-saved${savedTick ? ' show' : ''}`}>{savedTick || 'Gespeichert'}</span>
         </div>
         {error && <div className="set-error">{error}</div>}
@@ -710,6 +649,28 @@ export default function SettingsPage() {
               </div>
             </div>
           </>
+        )}
+
+        {section === 'company' && (
+          <div className="set-card">
+            <div className="set-row set-row-stack">
+              <div>
+                <div className="set-label">Unternehmen</div>
+                <div className="set-label-sub">Firmenname, Branche, Rechtsform, Größe, Website — bald wieder verfügbar.</div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {section === 'billing' && (
+          <div className="set-card">
+            <div className="set-row set-row-stack">
+              <div>
+                <div className="set-label">Abrechnung &amp; Steuer</div>
+                <div className="set-label-sub">USt-ID, Steuernummer, Rechnungsadresse — bald wieder verfügbar.</div>
+              </div>
+            </div>
+          </div>
         )}
       </main>
     </div>

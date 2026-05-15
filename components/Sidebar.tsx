@@ -5,6 +5,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useState, useEffect } from 'react'
 import SidebarProfileFooter from '@/components/SidebarProfileFooter'
+import SettingsSidebar from '@/components/SettingsSidebar'
 import TeamsModal from '@/components/TeamsModal'
 import {
   House, FolderSimple, Sparkle, ChatCircle, ChartLineUp,
@@ -113,6 +114,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
   const pathname  = usePathname()
   const searchParams = useSearchParams()
   const router = useRouter()
+
   const [uid,      setUid]      = useState<string|null>(null)
   const [email,    setEmail]    = useState('')
   const [fn,       setFn]       = useState('')
@@ -380,6 +382,13 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         </div>
       </div>
     )
+  }
+
+  // Settings-mode: replace the entire main sidebar with the settings nav
+  // while the user is anywhere under /settings (Linear pattern).
+  // Placed AFTER all hook declarations to keep React's Rules of Hooks intact.
+  if (pathname && pathname.startsWith('/settings')) {
+    return <SettingsSidebar />
   }
 
   return (
