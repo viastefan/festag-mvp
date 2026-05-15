@@ -10,6 +10,31 @@ import VoiceControls from '@/components/VoiceControls'
 import { generateBriefingText } from '@/lib/briefings'
 import { createClient } from '@/lib/supabase/client'
 import { projectColor } from '@/components/Sidebar'
+import { getProjectPreset, type ProjectType } from '@/lib/project-modules'
+
+const BRIEFING_SECTION_LABELS: Record<string, string> = {
+  zusammenfassung:           'Zusammenfassung',
+  was_wurde_erledigt:        'Was wurde erledigt',
+  was_ist_in_arbeit:         'Was ist in Arbeit',
+  blocker_risiken:           'Blocker / Risiken',
+  naechste_schritte:         'Nächste Schritte',
+  entscheidungen_vom_client: 'Entscheidungen vom Client benötigt',
+  verbesserungsvorschlaege:  'Verbesserungsvorschläge von Tagro',
+  moegliche_neue_tasks:      'Mögliche neue Tasks',
+  tagro_prioritaet:          'Von Tagro empfohlene Priorität',
+  release_status:            'Release-Status',
+  feature_summary:           'Feature-Zusammenfassung',
+  launch_readiness:          'Launch-Bereitschaft',
+  content_freigaben:         'Content & Freigaben',
+  kampagnen_status:          'Kampagnen-Status',
+  creative_review:           'Creative-Review',
+  budget_check:              'Budget-Check',
+  seo_findings:              'SEO-Befunde',
+  ranking_movement:          'Ranking-Bewegungen',
+  design_konzepte:           'Design-Konzepte',
+  asset_freigaben:           'Asset-Freigaben',
+  automation_health:         'Automation-Gesundheit',
+}
 import {
   Archive,
   ArrowRight,
@@ -24,7 +49,7 @@ import {
   WarningCircle,
 } from '@phosphor-icons/react'
 
-type Project = { id: string; title: string; status: string; description?: string | null; color?: string | null }
+type Project = { id: string; title: string; status: string; description?: string | null; color?: string | null; project_type?: ProjectType | null }
 type Report = { id: string; project_id: string; content: string; created_at: string; type?: string | null }
 type DevSignal = { id: string; project_id: string; content: string; created_at: string; type?: string | null }
 type Period = 'today' | 'week' | 'month' | 'custom'
@@ -224,7 +249,7 @@ function ReportsPage() {
       }
 
       const [{ data: projectRows }, { data: reportRows }, { data: devRows }, { data: taskRows }] = await Promise.all([
-        (supabase as any).from('projects').select('id,title,status,description,color').order('created_at', { ascending: false }),
+        (supabase as any).from('projects').select('id,title,status,description,color,project_type').order('created_at', { ascending: false }),
         (supabase as any).from('ai_updates').select('*').eq('type', 'status_report').order('created_at', { ascending: false }).limit(80),
         (supabase as any).from('ai_updates').select('*').eq('type', 'dev_progress_update').order('created_at', { ascending: false }).limit(80),
         (supabase as any).from('tasks').select('id,project_id,title,status,priority,updated_at').order('updated_at', { ascending: false }),
@@ -333,28 +358,41 @@ function ReportsPage() {
       const blocked = projectTasks.filter((task) => ['blocked', 'waiting'].includes(normalizeTaskStatus(task.status))).length
       const progress = projectTasks.length ? Math.round((done / projectTasks.length) * 100) : 0
 
-      const prompt = `Projekt: ${project.title}\nZeitraum: ${PERIODS.find((item) => item.id === period)?.label}\nBeschreibung: ${project.description ?? 'Keine Beschreibung'}\nPhase: ${project.status}\nFortschritt: ${progress}%\nTasks: ${projectTasks.length} gesamt, ${done} erledigt, ${active} in Arbeit, ${review} in Prüfung, ${blocked} blockiert/wartend.\n\nTask-Auszug:\n${projectTasks.slice(0, 18).map((task) => `- [${task.status ?? 'todo'}] ${task.title}`).join('\n')}\n\nDeveloper-Signale aus dem Execution Board:\n${projectDevSignals.length ? projectDevSignals.map((signal) => `- ${signal.content}`).join('\n') : '- Noch keine Developer-Updates vorhanden.'}\n\nErstelle einen Festag-Statusbericht als Übersetzungsschicht zwischen Dev-Arbeit und Client-Verständnis.`
+      // Project-type-aware briefing structure: pull the section list from
+      // the registry preset so software / website / marketing / seo /
+      // branding / automation projects each emit their own framing.
+      const projectType = (project.project_type as ProjectType | null) || 'software'
+      const preset = getProjectPreset(projectType)
+      const sectionList = preset.briefingSections
+        .map((id) => `## ${BRIEFING_SECTION_LABELS[id] || id}`)
+        .join('\n')
+
+      // Re-derive dev signals inside this scope (was a closure bug).
+      const projectDevSignalsScoped = devSignals
+        .filter((signal) => signal.project_id === project.id)
+        .slice(0, 8)
+
+      const prompt = `Projekt: ${project.title}\nProjekt-Typ: ${preset.label}\nZeitraum: ${PERIODS.find((item) => item.id === period)?.label}\nBeschreibung: ${project.description ?? 'Keine Beschreibung'}\nPhase: ${project.status}\nFortschritt: ${progress}%\nTasks: ${projectTasks.length} gesamt, ${done} erledigt, ${active} in Arbeit, ${review} in Prüfung, ${blocked} blockiert/wartend.\n\nTask-Auszug:\n${projectTasks.slice(0, 18).map((task) => `- [${task.status ?? 'todo'}] ${task.title}`).join('\n')}\n\nExecutor-Signale:\n${projectDevSignalsScoped.length ? projectDevSignalsScoped.map((signal) => `- ${signal.content}`).join('\n') : '- Noch keine Executor-Updates vorhanden.'}\n\nErstelle einen Festag-Projektbriefing als ruhige Übersetzungsschicht zwischen operativer Arbeit und Client-Verständnis.`
 
       const res = await fetch('/api/ai/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          max_tokens: 850,
-          system: `Du bist Tagro, AI-Projektmanager von Festag. Erstelle einen ruhigen, verständlichen deutschen Statusbericht im podcast-tauglichen Stil — natürlich gesprochen, ohne Markdown-Geräusche.
+          max_tokens: 950,
+          system: `Du bist Tagro, AI-Orchestrator von Festag. Erstelle ein ruhiges, verständliches deutsches Projektbriefing im podcast-tauglichen Stil — natürlich gesprochen, ohne Markdown-Geräusche.
+
+Projekt-Typ-Kontext: ${preset.label}.
+Positionierung: ${preset.positioning}
+
 Pflicht-Struktur, jede Section mit "## " starten, in genau dieser Reihenfolge:
-## Zusammenfassung
-## Was wurde erledigt
-## Was ist in Arbeit
-## Blocker / Risiken
-## Nächste Schritte
-## Entscheidungen vom Client benötigt
-   — Jede Entscheidung als Bulletpoint mit einem konkreten ja/nein-fähigen Satz, damit der Client weiß was er freigeben soll.
-## Verbesserungsvorschläge von Tagro
-   — Konkrete Optimierungen die Tagro vorschlägt. Tasks die wir anlegen sollten, ohne Scope-Erweiterung zu erzwingen. Jeder Vorschlag als Bulletpoint, kurz und actionable.
-## Mögliche neue Tasks
-   — Nur Vorschläge zur Prüfung, niemals automatische Scope-Erweiterung.
-## Von Tagro empfohlene Priorität
-Keine Emojis. Keine Floskeln. Wenn keine Daten vorliegen, ehrlich sagen "Noch keine Signale erkannt" statt zu erfinden.`,
+${sectionList}
+
+Regeln:
+- Jede Entscheidungs-/Vorschlags-Section verwendet Bulletpoints; alles andere darf Fließtext sein.
+- Entscheidungen sind konkrete ja/nein-Fragen, die der Client freigeben kann.
+- Verbesserungsvorschläge sind Tagro-empfohlene Tasks ohne automatische Scope-Erweiterung.
+- Keine Emojis. Keine Floskeln. Wenn keine Daten vorliegen, ehrlich "Noch keine Signale erkannt" sagen statt zu erfinden.
+- Sprich auf Augenhöhe mit einem Geschäftsführer, nicht mit einem Entwickler. Keine technischen Begriffe ohne Übersetzung.`,
           messages: [{ role: 'user', content: prompt }],
         }),
       })
