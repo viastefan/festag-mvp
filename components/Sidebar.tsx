@@ -138,14 +138,25 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
   const [teamsOpen,  setTeamsOpen] = useState(false)
   const [colorPickId, setColorPickId] = useState<string|null>(null)
   const [tagroSignals, setTagroSignals] = useState<{ decisions: number; blockers: number; loaded: boolean }>({ decisions: 0, blockers: 0, loaded: false })
+  const [wsMode, setWsMode] = useState<'delivery' | 'team' | 'agency'>('delivery')
 
   const isClient = true
   const isDev = false
-  const topNav = CLIENT_TOP
-  const coreNav = CLIENT_CORE
-  const teamsNav = CLIENT_TEAMS
+  // ── Mode-aware nav composition ─────────────────────────────────
+  // Delivery clients should not see raw Tasks / generic Team sub-tabs —
+  // they're the receivers of Festag's delivery, not project operators.
+  // Team mode is the default operator setup. Agency layers a Kunden top
+  // item + White Label tool on top.
+  const topNav: NavItem[] = wsMode === 'agency'
+    ? [...CLIENT_TOP, { href: '/teams?view=projects', icon: 'team', label: 'Kunden' }]
+    : CLIENT_TOP
+  const coreNav: NavItem[] = wsMode === 'delivery' ? [] : CLIENT_CORE
+  const teamsNav: NavItem[] = CLIENT_TEAMS
   const tagroNav = CLIENT_TAGRO
-  const toolsNav = CLIENT_TOOLS
+  const toolsNav: NavItem[] = wsMode === 'agency'
+    ? [...CLIENT_TOOLS, { href: '/settings/workspace', icon: 'sparkle', label: 'White Label' }]
+    : CLIENT_TOOLS
+  const showTeamsSection = wsMode !== 'delivery'
   const mobPrimary = CLIENT_MOB_PRIMARY
   const mobQuick = CLIENT_MOB_QUICK
 
@@ -206,6 +217,15 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         setRole((p as any).role ?? 'client')
         setPlan((p as any).plan ?? 'free')
       }
+      // Workspace mode drives which nav items are visible.
+      try {
+        const { data: ws } = await sb
+          .from('workspaces').select('mode')
+          .eq('primary_owner_id', data.user.id)
+          .eq('is_personal', true).maybeSingle()
+        const m = (ws as any)?.mode
+        if (m === 'team' || m === 'agency' || m === 'delivery') setWsMode(m)
+      } catch {}
     })
     createClient().from('projects').select('id,title,status,color').order('created_at',{ascending:false}).limit(12).then(async ({ data }) => {
       const list = (data as any[]) ?? []
@@ -806,9 +826,10 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
               </Section>
             </div>
 
+            {showTeamsSection && (
             <div>
               <Section
-                label="Teams"
+                label={wsMode === 'agency' ? 'Kunden-Teams' : 'Teams'}
                 expanded={teamsExp}
                 onToggle={() => setTeamsExp(v => !v)}
                 action={
@@ -845,6 +866,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
                 <NavItems items={teamsNav.slice(1)} />
               </Section>
             </div>
+            )}
 
             <div>
               <Section
