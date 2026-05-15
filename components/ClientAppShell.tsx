@@ -10,6 +10,8 @@ import LoadingScreen from '@/components/LoadingScreen'
 import PwaInstallBanner from '@/components/PwaInstallBanner'
 import Sidebar from '@/components/Sidebar'
 import { createClient } from '@/lib/supabase/client'
+import { getTheme, setTheme, type ThemeMode } from '@/lib/theme'
+import { Moon, SlidersHorizontal } from '@phosphor-icons/react'
 
 type ClientAppShellProps = {
   children: React.ReactNode
@@ -26,10 +28,12 @@ export default function ClientAppShell({
   const [checking, setChecking] = useState(true)
   const [copilotOpen, setCopilotOpen] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [themeMode, setThemeMode] = useState<ThemeMode>('read')
   const sidebarWidth = sidebarCollapsed ? '0px' : '212px'
 
   useEffect(() => {
     try { setSidebarCollapsed(localStorage.getItem('festag-sidebar-collapsed') === 'true') } catch {}
+    try { setThemeMode(getTheme()) } catch {}
   }, [])
 
   useEffect(() => {
@@ -54,13 +58,24 @@ export default function ClientAppShell({
   useEffect(() => {
     const onCopilot = () => setCopilotOpen((open) => !open)
     const onOpenCopilot = () => setCopilotOpen(true)
+    const onTheme = (event: Event) => {
+      if (event instanceof CustomEvent) setThemeMode(event.detail as ThemeMode)
+    }
     window.addEventListener('toggle-copilot', onCopilot)
     window.addEventListener('open-copilot', onOpenCopilot)
+    window.addEventListener('festag-theme', onTheme)
     return () => {
       window.removeEventListener('toggle-copilot', onCopilot)
       window.removeEventListener('open-copilot', onOpenCopilot)
+      window.removeEventListener('festag-theme', onTheme)
     }
   }, [])
+
+  function cycleReadingTheme() {
+    const next: ThemeMode = themeMode === 'dark' ? 'read' : themeMode === 'read' ? 'light' : 'dark'
+    setTheme(next)
+    setThemeMode(next)
+  }
 
   if (checking) return <LoadingScreen onDone={() => undefined} />
 
@@ -127,7 +142,39 @@ export default function ClientAppShell({
           .app-workspace-scroll {
             overflow-y: visible;
           }
+          .app-footer-controls { display:none; }
         }
+        .app-footer-controls {
+          position:fixed;
+          right:24px;
+          bottom:12px;
+          z-index:145;
+          display:flex;
+          align-items:center;
+          gap:8px;
+          color:var(--text-muted);
+        }
+        .app-footer-btn {
+          height:32px;
+          border-radius:999px;
+          border:1px solid color-mix(in srgb, var(--border) 70%, transparent);
+          background:color-mix(in srgb, var(--surface) 74%, transparent);
+          color:var(--text-secondary);
+          display:inline-flex;
+          align-items:center;
+          justify-content:center;
+          gap:7px;
+          padding:0 11px;
+          font:inherit;
+          font-size:12px;
+          font-weight:600;
+          text-decoration:none;
+          backdrop-filter:blur(18px);
+          -webkit-backdrop-filter:blur(18px);
+          box-shadow:0 8px 24px -18px rgba(0,0,0,.35);
+        }
+        .app-footer-btn.icon { width:32px; padding:0; }
+        .app-footer-btn:hover { color:var(--text); border-color:var(--border-strong); }
       `}</style>
 
       {!sidebarCollapsed && (
@@ -174,6 +221,16 @@ export default function ClientAppShell({
           {children}
         </div>
       </main>
+
+      <div className="app-footer-controls" aria-label="Workspace Schnellzugriff">
+        <button className="app-footer-btn icon" type="button" onClick={cycleReadingTheme} title="Light, Read und Dark wechseln" aria-label="Theme wechseln">
+          <Moon size={15} weight="regular" />
+        </button>
+        <button className="app-footer-btn" type="button" onClick={() => setCopilotOpen(true)}>
+          <SlidersHorizontal size={14} weight="regular" />
+          <span>Copilot</span>
+        </button>
+      </div>
 
       <CopilotPanel open={copilotOpen} onClose={() => setCopilotOpen(false)} />
       <FeedbackWidget />

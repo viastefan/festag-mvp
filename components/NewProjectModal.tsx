@@ -23,7 +23,7 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
   const [mode, setMode] = useState<Mode>('tagro')
   const [idea, setIdea] = useState('')
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'ai', text: 'Was möchtest du bauen — und welches Problem löst es konkret?' },
+    { role: 'ai', text: 'Lass uns herausfinden, was du wirklich brauchst.' },
   ])
   const [creatingWithTagro, setCreatingWithTagro] = useState(false)
   const [tagroError, setTagroError] = useState('')
@@ -65,7 +65,7 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
       if (!userId) throw new Error('Bitte melde dich erneut an.')
 
       const chatHistory: Message[] = [
-        { role: 'ai', text: 'Was möchtest du bauen — und welches Problem löst es konkret?' },
+        { role: 'ai', text: 'Lass uns herausfinden, was du wirklich brauchst.' },
         { role: 'user', text: cleanIdea },
       ]
 
@@ -182,9 +182,9 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
         .npm-icon-btn:hover, .npm-ghost-btn:hover { background:var(--surface-2); color:var(--text); }
         .npm-chat-body { display:grid; grid-template-rows:1fr auto; min-height:430px; }
         .npm-question {
-          background:var(--surface);
+          background:linear-gradient(180deg, color-mix(in srgb, var(--surface) 90%, transparent), color-mix(in srgb, var(--surface-2) 36%, transparent));
           min-height:190px;
-          padding:56px 52px;
+          padding:44px 52px 36px;
           display:flex; align-items:center;
         }
         .npm-question h2 {
@@ -193,9 +193,12 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
           line-height:1.16;
           letter-spacing:-.055em;
           font-weight:800;
-          color:var(--text-secondary);
+          color:var(--text);
           max-width:780px;
         }
+        .npm-intake-grid { display:flex; flex-wrap:wrap; gap:8px; margin-top:20px; max-width:760px; }
+        .npm-intake-chip { height:32px; padding:0 12px; border-radius:999px; border:1px solid color-mix(in srgb, var(--border) 78%, transparent); background:color-mix(in srgb, var(--surface) 54%, transparent); color:var(--text-secondary); font:inherit; font-size:12px; font-weight:620; }
+        .npm-intake-chip:hover { color:var(--text); border-color:var(--border-strong); }
         .npm-input-area { padding:28px 48px 30px; }
         .npm-idea {
           border:0; outline:0; resize:none; background:transparent;
@@ -259,9 +262,22 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
             <div>
               <section className="npm-question">
                 <div>
-                  <p style={{ margin:'0 0 14px', color:'var(--text-muted)', fontSize:12, fontWeight:800, letterSpacing:'.12em', textTransform:'uppercase' }}>Tagro Project Intake</p>
+                  <p style={{ margin:'0 0 14px', color:'var(--text-muted)', fontSize:12, fontWeight:800, letterSpacing:'.12em', textTransform:'uppercase' }}>Projektanalyse starten</p>
                   <h2>{messages[messages.length - 1]?.role === 'ai' ? messages[messages.length - 1].text : 'Ich strukturiere dein Projekt und bereite die ersten Workspace-Tasks vor.'}</h2>
-                  <p style={{ margin:'16px 0 0', color:'var(--text-muted)', fontSize:13.5, lineHeight:1.55, maxWidth:640 }}>Beantworte in natürlicher Sprache. Tagro erzeugt daraus Scope, Milestones und prüfbare Task-Vorschläge.</p>
+                  <p style={{ margin:'16px 0 0', color:'var(--text-muted)', fontSize:13.5, lineHeight:1.55, maxWidth:660 }}>Beschreibe dein Problem in einfachen Worten. Tagro übersetzt daraus Scope, MVP, offene Fragen und prüfbare nächste Schritte.</p>
+                  <div className="npm-intake-grid" aria-label="Projektstart Beispiele">
+                    {[
+                      'Prozess digitalisieren',
+                      'Kundenportal planen',
+                      'MVP strukturieren',
+                      'Website mit Automatisierung',
+                      'Agentur-Workflow ordnen',
+                    ].map((chip) => (
+                      <button key={chip} className="npm-intake-chip" type="button" onClick={() => setIdea(chip)}>
+                        {chip}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </section>
               {tagroError && <p className="npm-error">{tagroError}</p>}

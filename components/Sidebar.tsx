@@ -56,8 +56,8 @@ const CLIENT_TEAMS: NavItem[] = [
   { href:'/teams?view=messages', icon:'chat', label:'Nachrichten' },
 ]
 const CLIENT_TAGRO: NavItem[] = [
-  { href:'/reports', icon:'activity', label:'Statusberichte' },
-  { href:'/reports?audio=1', icon:'audio', label:'Audio Briefing' },
+  { href:'/reports', icon:'activity', label:'Projektbriefings' },
+  { href:'/voice-reports', icon:'audio', label:'Voice Reports' },
   { href:'/ai?view=chat', icon:'chat', label:'Chat' },
   { href:'/ai?view=notes', icon:'card', label:'Notizen' },
 ]
@@ -78,7 +78,8 @@ const CLIENT_MOB_QUICK = [
   { href:'/documents',   icon:'doc',      label:'Dokumente' },
   { href:'/estimator',   icon:'estimate', label:'Preisschätzer' },
   { href:'/addons',      icon:'grid',     label:'Add-ons' },
-  { href:'/reports',     icon:'activity', label:'Statusberichte' },
+  { href:'/reports',     icon:'activity', label:'Projektbriefings' },
+  { href:'/voice-reports', icon:'audio', label:'Voice Reports' },
 ]
 
 const DEV_MAIN: NavItem[] = [
@@ -468,6 +469,8 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         .sb-section-head {
           display:flex;
           align-items:center;
+          justify-content:space-between;
+          gap:8px;
           min-height:22px;
           padding:0 8px 5px;
         }
@@ -589,9 +592,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         }
         [data-theme="dark"] .sb-top-icon:hover { background:rgba(255,255,255,0.055); }
         .sb-bottom-actions {
-          display:grid;
-          grid-template-columns:minmax(0,1fr) 42px;
-          gap:8px;
+          display:block;
           padding:10px 6px 2px;
           flex-shrink:0;
         }
@@ -629,7 +630,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         /* ── Tagro Monitoring Capsule ── */
         .sb-monitor-capsule {
           display:flex; align-items:center; gap:10px;
-          min-height:42px;
+          min-height:38px;
           padding:6px 12px 6px 10px;
           border:1px solid var(--border);
           background:color-mix(in srgb, var(--surface) 76%, transparent);
@@ -640,6 +641,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           min-width:0;
           transition:background .12s, border-color .12s;
         }
+        .sb-monitor-capsule--single { width:100%; }
         .sb-monitor-capsule:hover {
           background:var(--surface);
           border-color:var(--border-strong);
@@ -872,7 +874,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
                 onToggle={() => setTagroExp(v => !v)}
               >
                 {(() => {
-                  // Statusberichte renders as:
+                  // Projektbriefings renders as:
                   //   ≤ 1 project → direct link (deep-links into that project)
                   //   > 1 project → expandable, sub-rows are the projects
                   const reportsHref = projects.length === 1
@@ -893,7 +895,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
                         <ExpandableNavSection
                           href={reportsHref}
                           icon="activity"
-                          label="Statusberichte"
+                          label="Projektbriefings"
                           expanded={reportsExp}
                           onToggle={() => setReportsExp(v => !v)}
                           activeOverride={reportsActive}
@@ -924,7 +926,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
                     <>
                       <Link href={reportsHref} className={`ni ${reportsActive ? 'ni-on' : 'ni-off'}`}>
                         <Ico name="activity" sz={14} c={reportsActive ? 'var(--text)' : 'var(--text-muted)'} weight={reportsActive ? 'bold' : 'regular'} />
-                        <span style={{ minWidth:0, overflow:'hidden', textOverflow:'ellipsis' }}>Statusberichte</span>
+                        <span style={{ minWidth:0, overflow:'hidden', textOverflow:'ellipsis' }}>Projektbriefings</span>
                       </Link>
                       <NavItems items={tagroNav.filter(item => item.href !== '/reports')} />
                     </>
@@ -956,18 +958,15 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
                     ? { dot: '#D97706', headline: 'Tagro Monitoring', sub: `${blockers} Risik${blockers === 1 ? 'o' : 'en'} im Blick` }
                     : { dot: '#15803D', headline: 'Tagro Monitoring', sub: 'Alles auf Kurs' }
               return (
-                <Link href="/reports" className="sb-monitor-capsule" aria-label={`${status.headline} — ${status.sub}`}>
+                <Link href="/voice-reports" className="sb-monitor-capsule sb-monitor-capsule--single" aria-label={`Voice Reports — ${status.sub}`}>
                   <span className="sb-monitor-dot" style={{ background: status.dot }} />
                   <span className="sb-monitor-text">
-                    <span className="sb-monitor-headline">{status.headline}</span>
+                    <span className="sb-monitor-headline">Voice Reports</span>
                     <span className="sb-monitor-sub">{status.sub}</span>
                   </span>
                 </Link>
               )
             })()}
-            <Link href="/ai?view=chat" className="sb-square-action" title="Mit Tagro sprechen" aria-label="Mit Tagro sprechen">
-              Tagro
-            </Link>
           </div>
         </div>
       </aside>

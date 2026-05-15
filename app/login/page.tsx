@@ -449,7 +449,7 @@ export default function LoginPage() {
 
         /* DESKTOP */
         .log-desktop { display:flex; min-height:100dvh; background:#fcfcfd; align-items:center; justify-content:center; position:relative; transition:background .3s; }
-        .log-desktop-shell { width:271px; display:flex; flex-direction:column; gap:24px; align-items:center; min-height:540px; justify-content:flex-start; padding-top:48px; }
+        .log-desktop-shell { width:271px; display:flex; flex-direction:column; gap:24px; align-items:center; min-height:auto; justify-content:center; padding-top:0; transform:translateY(14px); }
         .log-desktop-header { width:100%; display:flex; flex-direction:column; gap:24px; align-items:center; }
         .log-logo-desktop { font-family:'Qurova DEMO',serif; font-size:24px; font-weight:500; color:#202532; text-align:center; width:100%; line-height:normal; transition:color .3s; }
         .log-desktop-title { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:21px; font-weight:500; color:#202532; line-height:normal; text-align:center; letter-spacing:0.21px; width:100%; transition:color .3s; }
@@ -530,6 +530,8 @@ export default function LoginPage() {
         .log-ssl-badge { position:fixed; left:20px; bottom:18px; display:flex; align-items:center; gap:6px; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:11px; font-weight:400 !important; letter-spacing:0.22px; color:#98A2B3; user-select:none; z-index:30; transition:color .3s; }
         .log-ssl-badge svg { width:11px; height:13px; flex-shrink:0; }
         .log-root[data-theme="dark"] .log-ssl-badge { color:rgba(243,245,247,0.55); }
+        .log-region-note { position:fixed; left:50%; bottom:18px; transform:translateX(-50%); width:min(520px, calc(100vw - 40px)); text-align:center; color:#98A2B3; font-size:11.5px; line-height:1.45; letter-spacing:.01em; font-weight:400 !important; z-index:30; }
+        .log-root[data-theme="dark"] .log-region-note { color:rgba(243,245,247,0.50); }
 
         /* ERROR */
         .log-error { width:271px; background:rgba(239,68,68,.05); color:#c0362e; border-radius:10px; padding:9px 12px; font-size:12.5px; font-weight:500 !important; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); text-align:left; letter-spacing:0.01em; line-height:1.45; }
@@ -632,6 +634,7 @@ export default function LoginPage() {
         </svg>
         <span>SSL · End-to-End verschlüsselt</span>
       </div>
+      <p className="log-region-note">Aktuell konzentriert sich Festag bewusst auf die DACH-Region — Deutschland, Österreich und die Schweiz — damit Softwareprojekte nah, zuverlässig und persönlich begleitet werden.</p>
 
       {supportOpen && (
         <div className="log-support-backdrop" role="dialog" aria-modal="true" aria-labelledby="login-support-title">

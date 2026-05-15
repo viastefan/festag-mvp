@@ -43,7 +43,7 @@ const SCENARIOS: ScenarioConfig[] = [
     purpose: 'Strategie, Budget, Roadmap, AI-Kontext und Progress Reports gemeinsam steuern.',
     visibility: [
       'Voller Zugriff auf AI-Kontext',
-      'Roadmap und Statusberichte',
+      'Roadmap und Projektbriefings',
       'Projektentscheidungen und Notizen',
       'Aufgaben übergreifend steuern',
     ],

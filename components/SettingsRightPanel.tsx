@@ -109,7 +109,7 @@ export default function SettingsRightPanel() {
       <section className="rail-panel">
         <p className="rail-kicker">Workspace Signals</p>
         <h2 className="rail-title">Administration ohne Lärm.</h2>
-        <p className="rail-copy">Diese Einstellungen steuern Profil, Workspace, Zugriff, Audio-Briefings und die externe Tool-Schicht im Client Panel.</p>
+        <p className="rail-copy">Diese Einstellungen steuern Profil, Workspace, Zugriff, Voice Reports und die externe Tool-Schicht im Client Panel.</p>
         <div className="rail-stats">
           {[
             ['Projekte', stats.projects],
@@ -134,7 +134,7 @@ export default function SettingsRightPanel() {
         <div className="rail-list">
           {[
             ['Workspace Daten prüfen', 'Name, Typ und Unternehmenskontext'],
-            ['Audio manuell lassen', 'Kein Autoplay, kein Always Listening'],
+            ['Voice manuell lassen', 'Kein Autoplay, kein Always Listening'],
             ['Rollen vorbereiten', 'Developer nur projektbasiert freigeben'],
           ].map(([title, meta], index) => (
             <div key={title} className="rail-row">
@@ -194,7 +194,7 @@ export default function SettingsRightPanel() {
         <div className="rail-list">
           {[
             ['Dashboard', '/dashboard', 'project' as const],
-            ['Statusberichte', '/reports', 'ai' as const],
+            ['Projektbriefings', '/reports', 'ai' as const],
             ['Activity Feed', '/activity', 'activity' as const],
             ['Billing', '/billing', 'billing' as const],
             ['Dokumente', '/documents', 'document' as const],

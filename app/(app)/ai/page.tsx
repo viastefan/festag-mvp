@@ -38,7 +38,7 @@ const QUICK = [
 ]
 
 const TAGRO_CAN = [
-  { icon: '📊', label: 'Statusberichte erstellen' },
+  { icon: '📊', label: 'Projektbriefings erstellen' },
   { icon: '🎯', label: 'Risiken identifizieren' },
   { icon: '✅', label: 'Tasks priorisieren' },
   { icon: '🗺️', label: 'Roadmaps planen' },

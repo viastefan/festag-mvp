@@ -7,7 +7,7 @@ import VoiceControls from '@/components/VoiceControls'
 import { generateBriefingText } from '@/lib/briefings'
 import type { BriefingType } from '@/lib/voice'
 
-type AudioBriefingButtonProps = {
+type VoiceBriefingButtonProps = {
   type: BriefingType
   label: string
   projectTitle?: string
@@ -19,7 +19,7 @@ type AudioBriefingButtonProps = {
   nextSteps?: string[]
 }
 
-export default function AudioBriefingButton(props: AudioBriefingButtonProps) {
+export default function VoiceBriefingButton(props: VoiceBriefingButtonProps) {
   const [open, setOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
   const [position, setPosition] = useState({ left: 16, top: 80 })
@@ -62,13 +62,13 @@ export default function AudioBriefingButton(props: AudioBriefingButtonProps) {
   const popover = open && mounted ? createPortal(
     <>
       <div className="audio-briefing-backdrop" onMouseDown={() => setOpen(false)} />
-      <div className="audio-briefing-layer" style={{ left: position.left, top: position.top }} role="dialog" aria-label="Tagro Audio Briefing">
+      <div className="audio-briefing-layer" style={{ left: position.left, top: position.top }} role="dialog" aria-label="Tagro Voice Report">
         <div className="audio-briefing-head">
           <div>
-            <p>Tagro Audio Briefing</p>
+            <p>Tagro Voice Report</p>
             <span>Executive Summary · startet nur manuell</span>
           </div>
-          <button type="button" onClick={() => setOpen(false)} aria-label="Audio Briefing schließen"><X size={14} /></button>
+          <button type="button" onClick={() => setOpen(false)} aria-label="Voice Report schließen"><X size={14} /></button>
         </div>
         <p className="audio-briefing-text">{text}</p>
         <VoiceControls text={text} compact />

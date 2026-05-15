@@ -48,7 +48,7 @@ export default function VoiceControls({ text, compact = false }: VoiceControlsPr
   const selectedVoiceId = selectedVoice ? speechVoiceId(selectedVoice) : ''
 
   if (!supported) {
-    return <p className="voice-note">Audio-Briefings werden von diesem Browser nicht unterstützt.</p>
+    return <p className="voice-note">Voice Reports werden von diesem Browser nicht unterstützt.</p>
   }
 
   return (

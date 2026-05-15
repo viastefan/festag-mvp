@@ -152,9 +152,16 @@ export default function ProjectsPage() {
       <style>{`
         .projects-os {
           width:100%;
-          min-height:100%;
+          height:100%;
+          min-height:0;
           color:var(--text);
+          display:flex;
+          flex-direction:column;
+          overflow:hidden;
+          padding:30px 36px 0;
         }
+        .projects-static-top { flex:0 0 auto; position:sticky; top:0; z-index:7; background:var(--surface); }
+        .projects-scroll { flex:1 1 auto; min-height:0; overflow:auto; padding-bottom:96px; scrollbar-gutter:stable; }
         .projects-top {
           display:flex;
           align-items:center;
@@ -339,22 +346,25 @@ export default function ProjectsPage() {
         }
       `}</style>
 
-      <div className="projects-top">
-        <h1 className="projects-title">Projekte</h1>
-        <button className="projects-plus" type="button" onClick={() => setShowNewProject(true)} aria-label="Neues Projekt erstellen">
-          <Plus size={18} weight="regular" />
-        </button>
-      </div>
+      <div className="projects-static-top">
+        <div className="projects-top">
+          <h1 className="projects-title">Projekte</h1>
+          <button className="projects-plus" type="button" onClick={() => setShowNewProject(true)} aria-label="Neues Projekt erstellen">
+            <Plus size={18} weight="regular" />
+          </button>
+        </div>
 
-      <div className="projects-toolbar">
-        <button className="projects-filter" type="button">Alle Projekte</button>
-        <div className="projects-tools" aria-hidden="true">
-          <span className="projects-tool"><FunnelSimple size={16} /></span>
-          <span className="projects-tool"><SlidersHorizontal size={16} /></span>
-          <span className="projects-tool"><Columns size={16} /></span>
+        <div className="projects-toolbar">
+          <button className="projects-filter" type="button">Alle Projekte</button>
+          <div className="projects-tools" aria-hidden="true">
+            <span className="projects-tool"><FunnelSimple size={16} /></span>
+            <span className="projects-tool"><SlidersHorizontal size={16} /></span>
+            <span className="projects-tool"><Columns size={16} /></span>
+          </div>
         </div>
       </div>
 
+      <div className="projects-scroll">
       <div className="projects-table">
         <div className="projects-head">
           <span>Name</span>
@@ -406,6 +416,7 @@ export default function ProjectsPage() {
             </Link>
           )
         })}
+      </div>
       </div>
       {showNewProject && (
         <NewProjectModal

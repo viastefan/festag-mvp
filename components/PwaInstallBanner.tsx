@@ -126,14 +126,14 @@ export default function PwaInstallBanner() {
       <style>{`
         .pwa-banner {
           position:fixed; right:24px; bottom:24px; z-index:200;
-          max-width:340px;
-          background: var(--legal-bg, color-mix(in srgb, var(--bg, #0F141B) 96%, transparent));
-          color: var(--legal-text, var(--text, #E8E8E5));
-          border: 1px solid color-mix(in srgb, currentColor 10%, transparent);
-          border-radius:14px;
-          padding:14px 16px 14px 14px;
+          width:min(370px, calc(100vw - 32px));
+          background: color-mix(in srgb, var(--surface) 94%, transparent);
+          color: var(--text);
+          border: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
+          border-radius:18px;
+          padding:16px;
           display:flex; gap:12px; align-items:flex-start;
-          box-shadow:0 18px 40px -16px rgba(0,0,0,0.35), 0 1px 2px rgba(0,0,0,0.16);
+          box-shadow:0 24px 70px -34px rgba(0,0,0,0.42), 0 1px 2px rgba(0,0,0,0.12);
           font-family: var(--font-aeonik,'Aeonik',Inter,sans-serif);
           backdrop-filter: blur(8px);
           -webkit-backdrop-filter: blur(8px);
@@ -141,29 +141,32 @@ export default function PwaInstallBanner() {
         }
         @keyframes pwaIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
         .pwa-icon {
-          width:36px; height:36px; border-radius:9px;
+          width:40px; height:40px; border-radius:12px;
           flex-shrink:0;
-          background: color-mix(in srgb, currentColor 10%, transparent);
+          background: color-mix(in srgb, var(--text) 9%, transparent);
           display:flex; align-items:center; justify-content:center;
           font-family:'Qurova DEMO', serif; font-size:16px; font-weight:500;
           letter-spacing:-0.4px;
         }
         .pwa-body { flex:1; min-width:0; }
-        .pwa-title { font-size:13.5px; font-weight:500; letter-spacing:0.01em; margin-bottom:2px; }
-        .pwa-sub { font-size:12px; font-weight:400; letter-spacing:0.01em; opacity:.6; line-height:1.45; }
-        .pwa-actions { margin-top:10px; display:flex; gap:6px; align-items:center; }
+        .pwa-title { font-size:14px; font-weight:620; letter-spacing:-0.01em; margin-bottom:3px; }
+        .pwa-sub { font-size:12.5px; font-weight:400; letter-spacing:0.01em; color:var(--text-muted); line-height:1.45; }
+        .pwa-actions { margin-top:12px; display:flex; gap:8px; align-items:center; }
         .pwa-install {
-          font-family:inherit; font-size:12px; font-weight:500; letter-spacing:0.01em;
-          padding:7px 14px; border-radius:999px; border:none; cursor:pointer;
-          background: currentColor; color: var(--legal-bg, #0F141B);
+          min-width:132px;
+          height:34px;
+          font-family:inherit; font-size:12.5px; font-weight:620; letter-spacing:0.01em;
+          padding:0 16px; border-radius:999px; border:1px solid var(--text);
+          background: var(--text); color: var(--bg);
           transition: opacity .15s, transform .25s cubic-bezier(0.34,1.56,0.64,1);
         }
         .pwa-install:active:not(:disabled) { transform: scale(0.97); transition: transform .08s ease; }
         .pwa-install:hover:not(:disabled) { opacity: .88; }
         .pwa-install:disabled { opacity:.55; cursor:not-allowed; }
         .pwa-later {
-          font-family:inherit; font-size:12px; font-weight:500; letter-spacing:0.01em;
-          padding:7px 10px; border-radius:999px; border:none; cursor:pointer;
+          height:34px;
+          font-family:inherit; font-size:12.5px; font-weight:580; letter-spacing:0.01em;
+          padding:0 12px; border-radius:999px; border:none;
           background: transparent; color: inherit; opacity:.5;
           transition: opacity .15s;
         }

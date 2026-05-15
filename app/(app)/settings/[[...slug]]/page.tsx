@@ -964,7 +964,7 @@ export default function SettingsPage() {
             <div className="set-row">
               <div>
                 <div className="set-label">E-Mail-Benachrichtigungen</div>
-                <div className="set-label-sub">Tagro-Updates, Aufgaben, Statusberichte.</div>
+                <div className="set-label-sub">Tagro-Updates, Aufgaben, Projektbriefings.</div>
               </div>
               <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                 <button
@@ -1033,7 +1033,7 @@ export default function SettingsPage() {
               ]
             : [
                 { label: 'Eigenes Team hinzufügen', desc: 'Lade Co-Founder, Approver, Finance oder Viewer in dein Projekt ein.' },
-                { label: 'Briefing-Zustellung aktivieren', desc: 'Tagro schickt dein Projektbriefing automatisch per E-Mail oder Audio.' },
+                { label: 'Briefing-Zustellung aktivieren', desc: 'Tagro schickt dein Projektbriefing automatisch per E-Mail oder Voice.' },
                 { label: 'Neuen Team Workspace erstellen', desc: 'Falls du langfristig eigene Projekte und Entwickler steuern möchtest.' },
               ]
           return (
@@ -1190,6 +1190,28 @@ export default function SettingsPage() {
 
         {section === 'billing' && (
           <>
+            <div className="set-card">
+              <div className="set-row">
+                <div>
+                  <div className="set-label">Briefing & Voice Reports</div>
+                  <div className="set-label-sub">
+                    Tagro Briefings sind das tägliche Kontrollsystem für Softwareprojekte. API-basierte Voice Reports werden separat kalkuliert; ein ChatGPT-Abo deckt die Festag-App-API nicht automatisch ab.
+                  </div>
+                </div>
+                <div className="set-value" style={{ textAlign: 'right' }}>Growth Care / Business</div>
+              </div>
+              {[
+                ['Projektbriefings', 'Im Projekt enthalten'],
+                ['Voice Reports', 'Verfügbar über Growth Care oder Business'],
+                ['Automatische Zustellung', 'Nicht aktiv'],
+                ['Weekly Executive Summary', 'Nicht aktiv'],
+              ].map(([label, value]) => (
+                <div key={label} className="set-row">
+                  <div className="set-label">{label}</div>
+                  <div className="set-value" style={{ textAlign: 'right' }}>{value}</div>
+                </div>
+              ))}
+            </div>
             <div className="set-card">
               <div className="set-row">
                 <div>

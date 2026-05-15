@@ -142,7 +142,7 @@ export default function DevMissionControlPage() {
         <div>
           <p className="dev-section-title">Client Connection</p>
           <h2>Dev-Arbeit bleibt technisch. Client-Updates bleiben verständlich.</h2>
-          <p>Wenn du Fortschritt meldest, übersetzt Tagro deine Notiz in ein klares Client-Update und spiegelt es in Nachrichten, Projektstatus und später in Statusberichte.</p>
+          <p>Wenn du Fortschritt meldest, übersetzt Tagro deine Notiz in ein klares Client-Update und spiegelt es in Nachrichten, Projektstatus und später in Projektbriefings.</p>
         </div>
         <div className="flow-steps" aria-label="Festag Dev Client Connection">
           <span>Workspace Task</span>

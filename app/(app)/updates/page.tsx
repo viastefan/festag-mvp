@@ -66,7 +66,7 @@ export default function UpdatesPage() {
               <h2 style={{ margin: 0, fontSize: 18 }}>Mehr entdecken</h2>
             </div>
             <p style={{ margin: '0 0 14px', fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-              Öffne den Aktivitätsfeed für operative Produktbewegungen oder gehe in die Statusberichte für projektbezogene Updates.
+              Öffne den Aktivitätsfeed für operative Produktbewegungen oder gehe in die Projektbriefings für projektbezogene Updates.
             </p>
             <div style={{ display: 'grid', gap: 10 }}>
               <Link href="/activity" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, textDecoration: 'none', color: 'var(--text)', background: 'var(--surface-2)', borderRadius: 12, padding: '12px 14px' }}>
@@ -74,7 +74,7 @@ export default function UpdatesPage() {
                 <ArrowSquareOut size={16} weight="regular" />
               </Link>
               <Link href="/reports" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, textDecoration: 'none', color: 'var(--text)', background: 'var(--surface-2)', borderRadius: 12, padding: '12px 14px' }}>
-                <span>Statusberichte</span>
+                <span>Projektbriefings</span>
                 <ArrowSquareOut size={16} weight="regular" />
               </Link>
             </div>

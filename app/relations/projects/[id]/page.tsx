@@ -34,7 +34,7 @@ const PRIORITY_META: Record<string, { label: string; color: string }> = {
   high:   { label: 'Hoch',     color: '#ef4444' },
   urgent: { label: 'Dringend', color: '#dc2626' },
 }
-const TABS = ['Übersicht', 'Tasks', 'Statusberichte'] as const
+const TABS = ['Übersicht', 'Tasks', 'Projektbriefings'] as const
 type Tab = typeof TABS[number]
 
 function timeAgo(d: string) {
@@ -177,7 +177,7 @@ Das Team sollte die offenen Punkte prüfen und konkrete Tasks zuweisen.`
     await (createClient() as any).from('rel_statusberichte').insert({
       project_id: id, content, summary: 'Automatischer Tagro-Statusbericht', source: 'tagro', created_by: userId,
     })
-    setGenerating(false); load(); setTab('Statusberichte')
+    setGenerating(false); load(); setTab('Projektbriefings')
   }
 
   async function generateTasksFrom(b: Statusbericht) {
@@ -316,7 +316,7 @@ Das Team sollte die offenen Punkte prüfen und konkrete Tasks zuweisen.`
                 <p style={{ margin: '0 0 10px', fontSize: 12.5, color: 'var(--text-secondary)', lineHeight: 1.65, whiteSpace: 'pre-wrap' }}>
                   {berichte[0].content.slice(0, 300)}{berichte[0].content.length > 300 ? '…' : ''}
                 </p>
-                <button onClick={() => setTab('Statusberichte')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: 'var(--text-muted)', fontFamily: 'inherit', padding: 0 }}>
+                <button onClick={() => setTab('Projektbriefings')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: 'var(--text-muted)', fontFamily: 'inherit', padding: 0 }}>
                   Alle Berichte →
                 </button>
               </div>
@@ -356,7 +356,7 @@ Das Team sollte die offenen Punkte prüfen und konkrete Tasks zuweisen.`
       )}
 
       {/* ══ STATUSBERICHTE ══ */}
-      {tab === 'Statusberichte' && (
+      {tab === 'Projektbriefings' && (
         <div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
             <p style={{ margin: 0, fontSize: 13, color: 'var(--text-muted)' }}>{berichte.length} Berichte</p>

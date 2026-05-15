@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import ChatMarkdown from '@/components/ChatMarkdown'
 import AppPageHeader from '@/components/AppPageHeader'
-import AudioBriefingButton from '@/components/AudioBriefingButton'
+import VoiceBriefingButton from '@/components/AudioBriefingButton'
 import VoiceControls from '@/components/VoiceControls'
 import { generateBriefingText } from '@/lib/briefings'
 import { createClient } from '@/lib/supabase/client'
@@ -71,7 +71,7 @@ const PERIODS: { id: Period; label: string }[] = [
 ]
 
 const FALLBACK_REPORT = `## Zusammenfassung
-Für dieses Projekt wurde noch kein Statusbericht generiert. Festag nutzt Statusberichte als Übersetzungsschicht zwischen laufender Dev-Arbeit und Client-Verständnis.
+Für dieses Projekt wurde noch kein Statusbericht generiert. Festag nutzt Projektbriefings als Übersetzungsschicht zwischen laufender Dev-Arbeit und Client-Verständnis.
 
 ## Was wurde erledigt
 - Noch kein abgeschlossener Bericht vorhanden.
@@ -184,7 +184,7 @@ function fallbackSuggestions(projectName: string): TaskSuggestion[] {
       description: `Den aktuellen Scope von ${projectName} gegen Blocker, Entscheidungen und nächste Schritte prüfen.`,
       priority: 'medium',
       kind: 'workspace',
-      reason: 'Statusberichte erzeugen zuerst Vorschläge. Owner/Lead/Festag prüft, ob daraus ein echter Task wird.',
+      reason: 'Projektbriefings erzeugen zuerst Vorschläge. Owner/Lead/Festag prüft, ob daraus ein echter Task wird.',
     },
     {
       id: 'handoff-prepare',
@@ -438,7 +438,7 @@ Keine Emojis. Keine Floskeln. Wenn keine Daten vorliegen, ehrlich sagen "Noch ke
   }
 
   if (loading) {
-    return <div style={{ padding: 52, color: 'var(--text-muted)' }}>Statusberichte werden geladen…</div>
+    return <div style={{ padding: 52, color: 'var(--text-muted)' }}>Projektbriefings werden geladen…</div>
   }
 
   return (
@@ -487,7 +487,7 @@ Keine Emojis. Keine Floskeln. Wenn keine Daten vorliegen, ehrlich sagen "Noch ke
         .report-meta-title strong { color:var(--text); font-size:14px; font-weight:730; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
         .report-actions { display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
         .report-document { max-width:780px; }
-        /* ── Audio Briefing Hero — premium podcast feel ──────────── */
+        /* ── Voice Report Hero — premium podcast feel ──────────── */
         .audio-hero {
           display: grid;
           grid-template-columns: 116px minmax(0, 1fr);
@@ -645,15 +645,15 @@ Keine Emojis. Keine Floskeln. Wenn keine Daten vorliegen, ehrlich sagen "Noch ke
           )}
         />
 
-        {/* ── Audio Briefing Hero — podcast-style ───────────────── */}
-        <section className="audio-hero" aria-label="Tagro Audio Briefing">
+        {/* ── Voice Report Hero — podcast-style ───────────────── */}
+        <section className="audio-hero" aria-label="Tagro Voice Report">
           <div className="audio-hero-cover" style={{ background: `linear-gradient(135deg, ${currentProject?.color || '#5B647D'}, color-mix(in srgb, ${currentProject?.color || '#5B647D'} 35%, var(--bg)))` }}>
             <Headphones size={32} weight="duotone" color="rgba(255,255,255,0.92)" />
           </div>
           <div className="audio-hero-body">
             <div className="audio-hero-kicker">
               <Sparkle size={12} weight="fill" />
-              <span>Tagro Audio Briefing</span>
+              <span>Tagro Voice Report</span>
               <span className="audio-hero-dot">·</span>
               <span>täglich generiert · wie ein Podcast</span>
             </div>
@@ -662,7 +662,7 @@ Keine Emojis. Keine Floskeln. Wenn keine Daten vorliegen, ehrlich sagen "Noch ke
                 ? `Höre dein heutiges Update zu ${currentProject.title}`
                 : projects.length > 0
                   ? 'Höre dein heutiges Update zu allen Projekten'
-                  : 'Audio-Briefing wird verfügbar, sobald dein erstes Projekt startet'}
+                  : 'Voice Report wird verfügbar, sobald dein erstes Projekt startet'}
             </h2>
             <p className="audio-hero-sub">
               {currentProject
@@ -670,7 +670,7 @@ Keine Emojis. Keine Floskeln. Wenn keine Daten vorliegen, ehrlich sagen "Noch ke
                 : 'Aktuelle Lage, Risiken, Entscheidungen und nächste Schritte — in unter zwei Minuten zusammengefasst.'}
             </p>
             {projects.length > 1 && (
-              <div className="audio-hero-pills" role="tablist" aria-label="Projekt für Audio-Briefing">
+              <div className="audio-hero-pills" role="tablist" aria-label="Projekt für Voice Report">
                 <button
                   type="button"
                   role="tab"
@@ -787,9 +787,9 @@ Keine Emojis. Keine Floskeln. Wenn keine Daten vorliegen, ehrlich sagen "Noch ke
               <small>{currentReport ? dateLabel(currentReport.created_at) : 'Noch nicht generiert'}</small>
             </div>
             <div className="report-actions">
-              <AudioBriefingButton
+              <VoiceBriefingButton
                 type="status_report_briefing"
-                label="Audio anhören"
+                label="Voice Report"
                 projectTitle={currentProject?.title}
                 report={reportContent}
                 projectStatus={currentStatusRow?.phase}
@@ -986,7 +986,7 @@ Keine Emojis. Keine Floskeln. Wenn keine Daten vorliegen, ehrlich sagen "Noch ke
 
           <div className="signal-block">
             <div className="signal-label"><SlidersHorizontal size={14} /> Festag Architektur</div>
-            <p className="architecture-note">Statusberichte erkennen. Workspace Tasks strukturieren. Team Tasks setzen operativ um.</p>
+            <p className="architecture-note">Projektbriefings erkennen. Workspace Tasks strukturieren. Team Tasks setzen operativ um.</p>
             <Link href="/tasks" style={{ color: 'var(--text)', fontSize: 12, fontWeight: 740, textDecoration: 'none' }}>Workspace Tasks öffnen →</Link>
           </div>
         </aside>
@@ -1141,7 +1141,7 @@ function BriefingDeliveryCard({ projectId, projectTitle }: { projectId: string |
             : `Tagro liefert ${projectTitle ? `"${projectTitle}"` : 'deine Workspace-Briefings'} ${cadence === 'daily' ? 'täglich' : cadence === 'weekly' ? 'wöchentlich' : 'alle zwei Wochen'}`}
         </h3>
         <p className="delivery-card-sub">
-          Aus dem Bericht wird ein Audio-Briefing und/oder eine ruhige E-Mail. Wenn nichts Neues anliegt, schickt Tagro auch nichts.
+          Aus dem Bericht wird ein Voice Report und/oder eine ruhige E-Mail. Wenn nichts Neues anliegt, schickt Tagro auch nichts.
         </p>
         <div className="delivery-card-meta">
           <span><strong>Nächste Zustellung:</strong> {cadence === 'off' ? 'inaktiv' : nextLabel}</span>
@@ -1173,7 +1173,7 @@ function BriefingDeliveryCard({ projectId, projectTitle }: { projectId: string |
           <span className="delivery-row-label">Format</span>
           {([
             { id: 'email', label: 'E-Mail' },
-            { id: 'audio', label: 'Audio' },
+            { id: 'audio', label: 'Voice' },
             { id: 'both',  label: 'Beides' },
           ] as const).map(o => (
             <button
@@ -1195,7 +1195,7 @@ function BriefingDeliveryCard({ projectId, projectTitle }: { projectId: string |
 
 export default function ReportsPageWrapper() {
   return (
-    <Suspense fallback={<div style={{ padding: 52, color: 'var(--text-muted)' }}>Statusberichte werden geladen…</div>}>
+    <Suspense fallback={<div style={{ padding: 52, color: 'var(--text-muted)' }}>Projektbriefings werden geladen…</div>}>
       <ReportsPage />
     </Suspense>
   )

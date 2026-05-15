@@ -201,7 +201,7 @@ export default function MasterControlPage() {
 
         {tab === 'reports' && (
           <div className="mc-card" style={{ padding:18 }}>
-            <h3 style={{ fontSize:15, fontWeight:700, color:'#fff', margin:'0 0 14px' }}>Alle Statusberichte</h3>
+            <h3 style={{ fontSize:15, fontWeight:700, color:'#fff', margin:'0 0 14px' }}>Alle Projektbriefings</h3>
             {reports.length === 0 ? <p style={{ color:'#64748b', fontSize:13 }}>Noch keine Berichte.</p> : (
               <div style={{ display:'flex', flexDirection:'column', gap:8, maxHeight:560, overflowY:'auto' }}>
                 {reports.map(r => (

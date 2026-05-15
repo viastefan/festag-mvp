@@ -220,14 +220,15 @@ function CallbackInner() {
 const CB_CSS = `
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
   .cb-page{min-height:100dvh;display:flex;align-items:center;justify-content:center;background:#FCFCFD;padding:24px;font-family:var(--font-aeonik,'Aeonik',Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif);-webkit-font-smoothing:antialiased;color:#202532;}
-  .cb-card{width:100%;max-width:360px;display:flex;flex-direction:column;gap:14px;align-items:stretch;text-align:center;}
-  .cb-brand{font-family:'Qurova DEMO',Georgia,serif;font-size:20px;font-weight:500;letter-spacing:-0.2px;margin-bottom:14px;}
-  .cb-title{font-size:20px;font-weight:500;letter-spacing:-0.1px;line-height:1.25;}
-  .cb-text{font-size:14px;line-height:1.55;color:#7B8294;margin-bottom:4px;}
-  .cb-btn{appearance:none;background:#202532;color:#fff;border:none;border-radius:32px;padding:14px 24px;font-family:inherit;font-size:14px;font-weight:500;letter-spacing:0.14px;cursor:pointer;transition:background .15s,transform .15s;box-shadow:0 6px 20px rgba(32,37,50,0.16);}
-  .cb-btn:hover{background:#0E1218;}
+  .cb-card{width:271px;display:flex;flex-direction:column;gap:18px;align-items:stretch;text-align:center;transform:translateY(14px);}
+  .cb-brand{font-family:'Qurova DEMO',Georgia,serif;font-size:24px;font-weight:500;letter-spacing:-0.2px;margin-bottom:16px;color:#202532;}
+  .cb-title{font-size:21px;font-weight:500;letter-spacing:0.21px;line-height:1.25;color:#202532;}
+  .cb-text{font-size:14px;line-height:1.55;color:#7B8294;margin-bottom:4px;font-weight:400;}
+  .cb-btn{appearance:none;width:100%;height:47px;background:#5b647d;color:#fff;border:none;border-radius:32px;padding:0 24px;font-family:inherit;font-size:14px;font-weight:500;letter-spacing:0.14px;cursor:default;transition:background .15s,transform .15s;box-shadow:0px 8px 24px 0px rgba(200,169,91,0.14);}
+  .cb-btn:hover{background:#505870;}
   .cb-btn:active{transform:scale(0.98);}
-  .cb-foot{margin-top:6px;font-size:12px;color:#98A2B3;line-height:1.5;}
+  .cb-foot{margin-top:0;font-size:12px;color:#98A2B3;line-height:1.5;font-weight:400;}
+  @media (prefers-color-scheme: dark){.cb-page{background:#0A0E14;color:#E8E8E5}.cb-brand,.cb-title{color:#E8E8E5}.cb-text{color:#98A2B3}.cb-btn{background:#E8E8E5;color:#0A0E14;box-shadow:none}.cb-btn:hover{background:#F3F5F7}.cb-foot{color:#7B8294}}
 `
 
 export default function AuthCallbackPage() {

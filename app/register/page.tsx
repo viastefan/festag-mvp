@@ -336,10 +336,11 @@ export default function RegisterPage() {
         .reg-theme-mobile  { position:absolute; right:20px; top:48px; z-index:20; }
 
         .reg-desktop { display:flex; min-height:100dvh; background:#fcfcfd; align-items:center; justify-content:center; position:relative; transition:background .3s; }
-        .reg-desktop-shell { width:271px; display:flex; flex-direction:column; gap:24px; align-items:center; min-height:540px; justify-content:flex-start; padding-top:48px; }
+        .reg-desktop-shell { width:271px; display:flex; flex-direction:column; gap:24px; align-items:center; min-height:auto; justify-content:center; padding-top:0; transform:translateY(14px); }
         .reg-desktop-header { width:100%; display:flex; flex-direction:column; gap:24px; align-items:center; }
         .reg-logo-desktop { font-family:'Qurova DEMO',serif; font-size:24px; font-weight:500; color:#202532; text-align:center; width:100%; line-height:normal; transition:color .3s; }
         .reg-desktop-title { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:21px; font-weight:500; color:#202532; line-height:normal; text-align:center; letter-spacing:0.21px; width:100%; transition:color .3s; }
+        .reg-title-muted { color:#9B9B98; }
         .reg-dev { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:13px; font-weight:400 !important; line-height:20px; letter-spacing:0.02em; color:#7b8294; text-decoration:none; text-align:center; display:block; transition:color .3s; }
         .reg-dev:hover { color:#202532; }
 
@@ -399,6 +400,7 @@ export default function RegisterPage() {
 
         .reg-ssl-badge { position:fixed; left:20px; bottom:18px; display:flex; align-items:center; gap:6px; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:11px; font-weight:400 !important; letter-spacing:0.22px; color:#98A2B3; user-select:none; z-index:30; transition:color .3s; }
         .reg-ssl-badge svg { width:11px; height:13px; flex-shrink:0; }
+        .reg-region-note { position:fixed; left:50%; bottom:18px; transform:translateX(-50%); width:min(520px, calc(100vw - 40px)); text-align:center; color:#98A2B3; font-size:11.5px; line-height:1.45; letter-spacing:.01em; font-weight:400 !important; z-index:30; }
 
         .reg-error { width:271px; background:rgba(239,68,68,.05); color:#c0362e; border-radius:10px; padding:9px 12px; font-size:12.5px; font-weight:500 !important; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); text-align:left; letter-spacing:0.01em; line-height:1.45; }
         .reg-success { width:271px; background:rgba(34,197,94,.08); color:#16a34a; border-radius:10px; padding:10px 12px; font-size:12.5px; font-weight:500; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); }
@@ -437,6 +439,8 @@ export default function RegisterPage() {
         .reg-root[data-theme="dark"] .reg-theme-pill { border-color:rgba(243,245,247,0.18); color:rgba(243,245,247,0.45); background:transparent; }
         .reg-root[data-theme="dark"] .reg-theme-pill.active { background:#F3F5F7; border-color:#F3F5F7; color:#2e2f33; }
         .reg-root[data-theme="dark"] .reg-ssl-badge { color:rgba(243,245,247,0.55); }
+        .reg-root[data-theme="dark"] .reg-title-muted { color:#7B8294; }
+        .reg-root[data-theme="dark"] .reg-region-note { color:rgba(243,245,247,0.50); }
       `}</style>
 
       {/* ── DESKTOP ── */}
@@ -445,7 +449,7 @@ export default function RegisterPage() {
         <section className="reg-desktop-shell" aria-label="Festag Registrierung">
           <div className="reg-desktop-header">
             <p className="reg-logo-desktop">festag</p>
-            <h1 className="reg-desktop-title">{desktopTitle}</h1>
+            <h1 className="reg-desktop-title">{desktopTitle === 'Willkommen bei festag' ? <>Willkommen bei <span className="reg-title-muted">festag</span></> : desktopTitle}</h1>
           </div>
           <div className={`reg-content${animating ? ' animating' : ''}`}>
             {emailStep === 'none' && error && <p className="reg-error">{error}</p>}
@@ -488,6 +492,7 @@ export default function RegisterPage() {
         </svg>
         <span>SSL · End-to-End verschlüsselt</span>
       </div>
+      <p className="reg-region-note">Aktuell konzentriert sich Festag bewusst auf die DACH-Region — Deutschland, Österreich und die Schweiz — damit Softwareprojekte nah, zuverlässig und persönlich begleitet werden.</p>
     </main>
   )
 }
