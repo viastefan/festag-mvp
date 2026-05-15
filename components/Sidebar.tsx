@@ -518,15 +518,16 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           display:flex;
           align-items:center;
           gap:4px;
-          padding:0 4px 11px;
+          padding:0 2px 11px;
           flex-shrink:0;
+          min-width:0;
         }
         .sb-topbar .spf-trigger {
           min-height:32px;
         }
         .sb-top-icon {
-          width:30px;
-          height:30px;
+          width:28px;
+          height:28px;
           border-radius:8px;
           display:flex;
           align-items:center;
