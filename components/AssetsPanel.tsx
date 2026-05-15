@@ -43,6 +43,27 @@ type Asset = {
   tags: string[]
   uploaded_by: string
   created_at: string
+  analyzed_at: string | null
+  analysis_result: AssetAnalysis | null
+}
+
+type AssetAnalysis = {
+  summary: string
+  project_area: string
+  affected_roles: string[]
+  suggested_tasks: Array<{ title: string; priority: 'low' | 'medium' | 'high'; reason: string }>
+  open_questions: string[]
+  risks: string[]
+  requires_client_approval: boolean
+  confidence: number
+  source: 'ai' | 'heuristic'
+}
+
+const ROLE_LABEL: Record<string, string> = {
+  developer: 'Developer', designer: 'Designer', marketing_manager: 'Marketing Manager',
+  ads_manager: 'Ads Manager', seo_specialist: 'SEO', content_creator: 'Content',
+  project_manager: 'Project Manager', strategist: 'Strategist', automation_expert: 'Automation',
+  client_success: 'Client Success', reviewer: 'Reviewer',
 }
 
 const CATEGORY_LABEL: Record<Category, string> = {
@@ -113,6 +134,27 @@ export default function AssetsPanel({ projectId, workspaceId }: { projectId: str
   const [items, setItems] = useState<Asset[]>([])
   const [loading, setLoading] = useState(true)
   const [composer, setComposer] = useState<null | 'link' | 'upload'>(null)
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({})
+  const [taskState, setTaskState] = useState<Record<string, 'idle' | 'saving' | 'done' | 'error'>>({})
+
+  async function promoteSuggestionToTask(assetId: string, idx: number, t: { title: string; priority: 'low'|'medium'|'high'; reason: string }) {
+    const key = `${assetId}:${idx}`
+    if (taskState[key] === 'saving' || taskState[key] === 'done') return
+    setTaskState(prev => ({ ...prev, [key]: 'saving' }))
+    try {
+      const { error } = await supabase.from('tasks').insert({
+        project_id: projectId,
+        title: t.title.slice(0, 240),
+        status: 'suggested',
+        priority: t.priority,
+        description: `Aus Tagro Asset-Analyse abgeleitet.\n\nGrund: ${t.reason}`,
+      })
+      if (error) throw error
+      setTaskState(prev => ({ ...prev, [key]: 'done' }))
+    } catch {
+      setTaskState(prev => ({ ...prev, [key]: 'error' }))
+    }
+  }
 
   useEffect(() => {
     let cancelled = false
@@ -120,7 +162,7 @@ export default function AssetsPanel({ projectId, workspaceId }: { projectId: str
       setLoading(true)
       const { data } = await supabase
         .from('project_assets')
-        .select('id,kind,category,visibility,status,title,description,storage_path,external_url,preview_url,mime_type,size_bytes,tags,uploaded_by,created_at')
+        .select('id,kind,category,visibility,status,title,description,storage_path,external_url,preview_url,mime_type,size_bytes,tags,uploaded_by,created_at,analyzed_at,analysis_result')
         .eq('project_id', projectId)
         .order('created_at', { ascending: false })
         .limit(120)
@@ -130,6 +172,26 @@ export default function AssetsPanel({ projectId, workspaceId }: { projectId: str
     })()
     return () => { cancelled = true }
   }, [supabase, projectId])
+
+  // Fires the Tagro analyzer in the background and patches the local row
+  // with analysis_result + analyzed_at when it returns. Failures are silent.
+  async function runAnalysis(assetId: string) {
+    setItems(prev => prev.map(a => a.id === assetId ? { ...a, status: a.status === 'uploaded' ? a.status : a.status } : a))
+    try {
+      const res = await fetch('/api/assets/analyze', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ assetId }),
+      })
+      const json = await res.json()
+      if (json?.ok && json.analysis) {
+        setItems(prev => prev.map(a => a.id === assetId
+          ? { ...a, status: 'analyzed', analyzed_at: new Date().toISOString(), analysis_result: json.analysis }
+          : a))
+      }
+    } catch {}
+  }
 
   async function deleteAsset(asset: Asset) {
     if (!confirm(`„${asset.title}" wirklich löschen?`)) return
@@ -160,10 +222,11 @@ export default function AssetsPanel({ projectId, workspaceId }: { projectId: str
       visibility,
       mime_type: null,
       size_bytes: null,
-    }).select('id,kind,category,visibility,status,title,description,storage_path,external_url,preview_url,mime_type,size_bytes,tags,uploaded_by,created_at').single()
+    }).select('id,kind,category,visibility,status,title,description,storage_path,external_url,preview_url,mime_type,size_bytes,tags,uploaded_by,created_at,analyzed_at,analysis_result').single()
     if (!error && data) {
       setItems(prev => [data as Asset, ...prev])
       setComposer(null)
+      runAnalysis((data as Asset).id)
     }
   }
 
@@ -187,7 +250,7 @@ export default function AssetsPanel({ projectId, workspaceId }: { projectId: str
       visibility,
       mime_type: file.type || null,
       size_bytes: file.size,
-    }).select('id,kind,category,visibility,status,title,description,storage_path,external_url,preview_url,mime_type,size_bytes,tags,uploaded_by,created_at').single()
+    }).select('id,kind,category,visibility,status,title,description,storage_path,external_url,preview_url,mime_type,size_bytes,tags,uploaded_by,created_at,analyzed_at,analysis_result').single()
     if (insErr || !row) return
     const path = `${projectId}/${(row as any).id}.${ext}`
     const { error: upErr } = await supabase.storage.from('project-assets').upload(path, file, {
@@ -202,6 +265,7 @@ export default function AssetsPanel({ projectId, workspaceId }: { projectId: str
     const stored: Asset = { ...(row as Asset), storage_path: path }
     setItems(prev => [stored, ...prev])
     setComposer(null)
+    runAnalysis(stored.id)
   }
 
   async function openAsset(asset: Asset) {
@@ -257,32 +321,124 @@ export default function AssetsPanel({ projectId, workspaceId }: { projectId: str
         <div className="ap-list">
           {items.map(asset => {
             const Icon = kindIcon(asset.kind)
+            const isOpen = expanded[asset.id]
+            const an = asset.analysis_result
+            const analyzing = asset.status !== 'analyzed' && !an
             return (
               <article key={asset.id} className="ap-card">
-                <div className="ap-icon"><Icon size={18} weight="regular" /></div>
-                <div className="ap-body">
-                  <div className="ap-row">
-                    <p className="ap-cardtitle">{asset.title}</p>
-                    <span className="ap-meta">{timeAgo(asset.created_at)}</span>
+                <div className="ap-card-head">
+                  <div className="ap-icon"><Icon size={18} weight="regular" /></div>
+                  <div className="ap-body">
+                    <div className="ap-row">
+                      <p className="ap-cardtitle">{asset.title}</p>
+                      <span className="ap-meta">{timeAgo(asset.created_at)}</span>
+                    </div>
+                    <div className="ap-tags">
+                      <span className="ap-tag">{CATEGORY_LABEL[asset.category]}</span>
+                      <span className="ap-tag ap-tag-mute">{VISIBILITY_LABEL[asset.visibility]}</span>
+                      {asset.size_bytes ? <span className="ap-tag ap-tag-mute">{humanSize(asset.size_bytes)}</span> : null}
+                      {asset.kind === 'figma' && <span className="ap-tag ap-tag-mute">Figma</span>}
+                      {asset.kind === 'loom' && <span className="ap-tag ap-tag-mute">Loom</span>}
+                      {asset.kind === 'pdf' && <span className="ap-tag ap-tag-mute">PDF</span>}
+                      {an && <span className="ap-tag ap-tag-tagro"><Sparkle size={9} weight="fill" /> Tagro analysiert</span>}
+                      {analyzing && <span className="ap-tag ap-tag-mute">Tagro analysiert…</span>}
+                    </div>
+                    {asset.description && <p className="ap-desc">{asset.description}</p>}
+                    {an?.summary && <p className="ap-desc ap-desc-tagro">{an.summary}</p>}
                   </div>
-                  <div className="ap-tags">
-                    <span className="ap-tag">{CATEGORY_LABEL[asset.category]}</span>
-                    <span className="ap-tag ap-tag-mute">{VISIBILITY_LABEL[asset.visibility]}</span>
-                    {asset.size_bytes ? <span className="ap-tag ap-tag-mute">{humanSize(asset.size_bytes)}</span> : null}
-                    {asset.kind === 'figma' && <span className="ap-tag ap-tag-mute">Figma</span>}
-                    {asset.kind === 'loom' && <span className="ap-tag ap-tag-mute">Loom</span>}
-                    {asset.kind === 'pdf' && <span className="ap-tag ap-tag-mute">PDF</span>}
+                  <div className="ap-actions-row">
+                    {an && (
+                      <button
+                        type="button"
+                        className="ap-icon-btn"
+                        title={isOpen ? 'Analyse schließen' : 'Analyse öffnen'}
+                        onClick={() => setExpanded(prev => ({ ...prev, [asset.id]: !isOpen }))}
+                      >
+                        <Sparkle size={14} weight={isOpen ? 'fill' : 'regular'} />
+                      </button>
+                    )}
+                    <button type="button" className="ap-icon-btn" title="Öffnen" onClick={() => openAsset(asset)}>
+                      <ArrowSquareOut size={14} />
+                    </button>
+                    <button type="button" className="ap-icon-btn ap-icon-btn-danger" title="Löschen" onClick={() => deleteAsset(asset)}>
+                      <Trash size={14} />
+                    </button>
                   </div>
-                  {asset.description && <p className="ap-desc">{asset.description}</p>}
                 </div>
-                <div className="ap-actions-row">
-                  <button type="button" className="ap-icon-btn" title="Öffnen" onClick={() => openAsset(asset)}>
-                    <ArrowSquareOut size={14} />
-                  </button>
-                  <button type="button" className="ap-icon-btn ap-icon-btn-danger" title="Löschen" onClick={() => deleteAsset(asset)}>
-                    <Trash size={14} />
-                  </button>
-                </div>
+
+                {isOpen && an && (
+                  <div className="ap-analysis">
+                    {an.project_area && (
+                      <div className="ap-an-row">
+                        <span className="ap-an-label">Bereich</span>
+                        <span className="ap-an-value">{an.project_area}</span>
+                      </div>
+                    )}
+                    {an.affected_roles?.length > 0 && (
+                      <div className="ap-an-row">
+                        <span className="ap-an-label">Betroffene Rollen</span>
+                        <span className="ap-an-roles">
+                          {an.affected_roles.map(r => (
+                            <span key={r} className="ap-tag ap-tag-mute">{ROLE_LABEL[r] || r}</span>
+                          ))}
+                        </span>
+                      </div>
+                    )}
+                    {an.requires_client_approval && (
+                      <div className="ap-an-row">
+                        <span className="ap-an-label">Client</span>
+                        <span className="ap-an-value ap-an-warn">Freigabe vom Client nötig</span>
+                      </div>
+                    )}
+                    {an.suggested_tasks?.length > 0 && (
+                      <div className="ap-an-block">
+                        <p className="ap-an-blocklabel">Vorgeschlagene Tasks</p>
+                        <div className="ap-an-list">
+                          {an.suggested_tasks.map((t, idx) => {
+                            const key = `${asset.id}:${idx}`
+                            const state = taskState[key] ?? 'idle'
+                            return (
+                              <div key={idx} className="ap-an-item">
+                                <span className={`ap-an-prio ap-an-prio-${t.priority}`}>{t.priority === 'high' ? 'Hoch' : t.priority === 'low' ? 'Niedrig' : 'Mittel'}</span>
+                                <div className="ap-an-itemtext">
+                                  <p className="ap-an-itemtitle">{t.title}</p>
+                                  {t.reason && <p className="ap-an-itemsub">{t.reason}</p>}
+                                </div>
+                                <button
+                                  type="button"
+                                  className={`ap-an-action${state === 'done' ? ' done' : ''}`}
+                                  onClick={() => promoteSuggestionToTask(asset.id, idx, t)}
+                                  disabled={state === 'saving' || state === 'done'}
+                                >
+                                  {state === 'saving' ? 'Lege an…'
+                                    : state === 'done' ? '✓ Übernommen'
+                                    : state === 'error' ? 'Nochmal versuchen'
+                                    : <><Plus size={11} /> Als Task</>}
+                                </button>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    )}
+                    {an.open_questions?.length > 0 && (
+                      <div className="ap-an-block">
+                        <p className="ap-an-blocklabel">Offene Fragen</p>
+                        <ul className="ap-an-bullets">
+                          {an.open_questions.map((q, i) => <li key={i}>{q}</li>)}
+                        </ul>
+                      </div>
+                    )}
+                    {an.risks?.length > 0 && (
+                      <div className="ap-an-block">
+                        <p className="ap-an-blocklabel">Risiken</p>
+                        <ul className="ap-an-bullets">
+                          {an.risks.map((r, i) => <li key={i}>{r}</li>)}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                )}
               </article>
             )
           })}
@@ -500,17 +656,103 @@ const ASSETS_CSS = `
   /* List */
   .ap-list { display: flex; flex-direction: column; gap: 6px; }
   .ap-card {
+    display: flex; flex-direction: column;
+    padding: 0;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface);
+    transition: border-color .12s, background .12s;
+  }
+  .ap-card:hover { border-color: var(--border-strong); }
+  .ap-card-head {
     display: grid;
     grid-template-columns: 36px minmax(0, 1fr) auto;
     gap: 12px;
     padding: 12px 14px;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    background: var(--surface);
     align-items: flex-start;
-    transition: border-color .12s, background .12s;
   }
-  .ap-card:hover { border-color: var(--border-strong); }
+  .ap-tag-tagro {
+    background: color-mix(in srgb, #D97706 14%, transparent);
+    color: #D97706;
+    border: 1px solid color-mix(in srgb, #D97706 40%, transparent);
+    display: inline-flex; align-items: center; gap: 4px;
+  }
+  .ap-desc-tagro {
+    color: var(--text);
+    margin-top: 6px;
+    padding-left: 10px;
+    border-left: 2px solid color-mix(in srgb, #D97706 60%, transparent);
+  }
+
+  /* Tagro Analysis */
+  .ap-analysis {
+    display: flex; flex-direction: column; gap: 12px;
+    padding: 14px 16px 16px;
+    border-top: 1px solid var(--border);
+    background: color-mix(in srgb, var(--surface-2) 40%, transparent);
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+  }
+  .ap-an-row { display: flex; gap: 12px; align-items: baseline; flex-wrap: wrap; }
+  .ap-an-label {
+    font-size: 10.5px; font-weight: 600; letter-spacing: 0.04em;
+    color: var(--text-muted); text-transform: uppercase;
+    min-width: 120px;
+  }
+  .ap-an-value { font-size: 13px; color: var(--text); font-weight: 500; }
+  .ap-an-warn { color: #D97706; }
+  .ap-an-roles { display: flex; gap: 5px; flex-wrap: wrap; }
+  .ap-an-block { display: flex; flex-direction: column; gap: 6px; }
+  .ap-an-blocklabel {
+    margin: 0;
+    font-size: 10.5px; font-weight: 600; letter-spacing: 0.04em;
+    color: var(--text-muted); text-transform: uppercase;
+  }
+  .ap-an-list { display: flex; flex-direction: column; gap: 6px; }
+  .ap-an-item {
+    display: grid;
+    grid-template-columns: 70px minmax(0, 1fr) auto;
+    gap: 10px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+    align-items: center;
+  }
+  .ap-an-prio {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 4px;
+    text-align: center;
+    align-self: flex-start;
+  }
+  .ap-an-prio-high { color: #c0362e; background: color-mix(in srgb, #c0362e 12%, transparent); border: 1px solid color-mix(in srgb, #c0362e 35%, transparent); }
+  .ap-an-prio-medium { color: #D97706; background: color-mix(in srgb, #D97706 12%, transparent); border: 1px solid color-mix(in srgb, #D97706 35%, transparent); }
+  .ap-an-prio-low { color: var(--text-muted); border: 1px solid var(--border); }
+  .ap-an-itemtext { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+  .ap-an-itemtitle { margin: 0; font-size: 13px; font-weight: 500; color: var(--text); line-height: 1.35; }
+  .ap-an-itemsub { margin: 0; font-size: 11.5px; color: var(--text-muted); line-height: 1.45; }
+  .ap-an-action {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 6px 11px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    font-family: inherit; font-size: 11.5px; font-weight: 500;
+    color: var(--text);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background .12s, border-color .12s, opacity .12s;
+  }
+  .ap-an-action:hover:not(:disabled) { background: var(--surface-2); border-color: var(--border-strong); }
+  .ap-an-action:disabled { opacity: .55; cursor: default; }
+  .ap-an-action.done { background: #15803D; color: #fff; border-color: #15803D; }
+  .ap-an-bullets {
+    margin: 0; padding-left: 18px;
+    display: flex; flex-direction: column; gap: 4px;
+    font-size: 12.5px; color: var(--text-secondary); line-height: 1.55;
+  }
   .ap-icon {
     width: 36px; height: 36px; border-radius: 8px;
     background: var(--surface-2);
