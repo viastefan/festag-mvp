@@ -487,25 +487,24 @@ Keine Emojis. Keine Floskeln. Wenn keine Daten vorliegen, ehrlich sagen "Noch ke
         .report-meta-title strong { color:var(--text); font-size:14px; font-weight:730; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
         .report-actions { display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
         .report-document { max-width:780px; }
-        /* ── Voice Report Hero — premium podcast feel ──────────── */
+        /* ── Audio Briefing Hero — compact podcast band ──────────── */
         .audio-hero {
-          display: grid;
-          grid-template-columns: 116px minmax(0, 1fr);
-          gap: 22px;
-          padding: 22px;
-          margin: 0 0 28px;
-          border-radius: 16px;
-          background: linear-gradient(135deg, color-mix(in srgb, var(--surface) 92%, transparent), color-mix(in srgb, var(--surface-2) 38%, transparent));
+          display: flex;
+          align-items: center;
+          gap: 16px;
+          padding: 14px 18px;
+          margin: 0 0 22px;
+          border-radius: 14px;
+          background: linear-gradient(135deg, color-mix(in srgb, var(--surface) 92%, transparent), color-mix(in srgb, var(--surface-2) 30%, transparent));
           border: 1px solid color-mix(in srgb, var(--border) 64%, transparent);
-          box-shadow: 0 28px 60px -32px rgba(15,23,42,0.18);
-          align-items: stretch;
+          box-shadow: 0 14px 36px -22px rgba(15,23,42,.16);
         }
         .audio-hero-cover {
-          aspect-ratio: 1/1;
-          border-radius: 14px;
+          width: 56px; height: 56px;
+          border-radius: 12px;
           display: flex; align-items: center; justify-content: center;
           flex-shrink: 0;
-          box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 12px 28px -16px rgba(15,23,42,.32);
+          box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 8px 18px -12px rgba(15,23,42,.34);
           position: relative; overflow: hidden;
         }
         .audio-hero-cover::after {
@@ -513,54 +512,55 @@ Keine Emojis. Keine Floskeln. Wenn keine Daten vorliegen, ehrlich sagen "Noch ke
           background: radial-gradient(120% 60% at 20% 0%, rgba(255,255,255,.16), transparent 60%);
           pointer-events: none;
         }
-        .audio-hero-body { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+        .audio-hero-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
         .audio-hero-kicker {
           display: inline-flex; align-items: center; gap: 6px;
-          font-size: 11px; font-weight: 660; letter-spacing: .04em;
+          font-size: 10.5px; font-weight: 640; letter-spacing: .04em;
           color: var(--text-muted); text-transform: uppercase;
         }
         .audio-hero-kicker svg { color: #D97706; }
         .audio-hero-dot { opacity: .5; }
         .audio-hero-title {
-          margin: 0; font-size: clamp(18px, 1.8vw, 22px);
-          line-height: 1.22; letter-spacing: -.01em; font-weight: 600;
+          margin: 0; font-size: 14.5px;
+          line-height: 1.3; letter-spacing: -.005em; font-weight: 600;
           color: var(--text);
+          overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
         }
         .audio-hero-sub {
-          margin: 0; font-size: 12.5px; color: var(--text-secondary);
-          line-height: 1.55;
-        }
-        .audio-hero-pills {
-          display: flex; flex-wrap: wrap; gap: 6px;
-          margin-top: 4px;
-        }
-        .audio-hero-pill {
-          display: inline-flex; align-items: center; gap: 6px;
-          padding: 5px 11px;
-          border-radius: 999px;
-          border: 1px solid var(--border);
-          background: color-mix(in srgb, var(--surface) 50%, transparent);
-          font: inherit; font-size: 12px; font-weight: 580;
-          color: var(--text-secondary);
-          cursor: pointer; max-width: 220px;
-          transition: background .12s, color .12s, border-color .12s;
-        }
-        .audio-hero-pill:hover { color: var(--text); border-color: var(--border-strong); }
-        .audio-hero-pill.on {
-          background: var(--text); color: var(--bg); border-color: var(--text);
-        }
-        .audio-hero-pill-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
-        .audio-hero-pill-label {
+          margin: 0; font-size: 11.5px; color: var(--text-muted);
+          line-height: 1.45;
           overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
         }
         .audio-hero-player {
-          margin-top: 6px;
-          padding-top: 12px;
-          border-top: 1px solid color-mix(in srgb, var(--border) 40%, transparent);
+          flex-shrink: 0;
+          min-width: 220px;
         }
-        @media (max-width: 760px) {
-          .audio-hero { grid-template-columns: 1fr; gap: 14px; padding: 18px; }
-          .audio-hero-cover { aspect-ratio: auto; height: 84px; width: 84px; }
+        .audio-hero-pills {
+          display: flex; flex-wrap: nowrap; gap: 5px;
+          overflow-x: auto; padding: 8px 0 0;
+          scrollbar-width: none;
+        }
+        .audio-hero-pills::-webkit-scrollbar { display: none; }
+        .audio-hero-pill {
+          display: inline-flex; align-items: center; gap: 5px;
+          padding: 4px 10px;
+          border-radius: 999px;
+          border: 1px solid var(--border);
+          background: color-mix(in srgb, var(--surface) 50%, transparent);
+          font: inherit; font-size: 11.5px; font-weight: 580;
+          color: var(--text-secondary);
+          cursor: pointer;
+          white-space: nowrap; flex-shrink: 0;
+          transition: background .12s, color .12s, border-color .12s;
+        }
+        .audio-hero-pill:hover { color: var(--text); border-color: var(--border-strong); }
+        .audio-hero-pill.on { background: var(--text); color: var(--bg); border-color: var(--text); }
+        .audio-hero-pill-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+        .audio-hero-pill-label { max-width: 110px; overflow: hidden; text-overflow: ellipsis; }
+        @media (max-width: 880px) {
+          .audio-hero { flex-direction: column; align-items: stretch; gap: 10px; padding: 12px 14px; }
+          .audio-hero-player { min-width: 0; }
+          .audio-hero-cover { width: 48px; height: 48px; }
         }
 
         .briefing-priority { margin:0 0 28px; }
@@ -645,72 +645,70 @@ Keine Emojis. Keine Floskeln. Wenn keine Daten vorliegen, ehrlich sagen "Noch ke
           )}
         />
 
-        {/* ── Voice Report Hero — podcast-style ───────────────── */}
-        <section className="audio-hero" aria-label="Tagro Voice Report">
+        {/* ── Audio Briefing Hero — compact podcast band ──────────── */}
+        <section className="audio-hero" aria-label="Tagro Audio Briefing">
           <div className="audio-hero-cover" style={{ background: `linear-gradient(135deg, ${currentProject?.color || '#5B647D'}, color-mix(in srgb, ${currentProject?.color || '#5B647D'} 35%, var(--bg)))` }}>
-            <Headphones size={32} weight="duotone" color="rgba(255,255,255,0.92)" />
+            <Headphones size={22} weight="duotone" color="rgba(255,255,255,.92)" />
           </div>
           <div className="audio-hero-body">
             <div className="audio-hero-kicker">
-              <Sparkle size={12} weight="fill" />
-              <span>Tagro Voice Report</span>
-              <span className="audio-hero-dot">·</span>
-              <span>täglich generiert · wie ein Podcast</span>
+              <Sparkle size={11} weight="fill" />
+              <span>Audio Briefing · Podcast-Style</span>
             </div>
-            <h2 className="audio-hero-title">
+            <h2 className="audio-hero-title" title={currentProject?.title || undefined}>
               {currentProject
-                ? `Höre dein heutiges Update zu ${currentProject.title}`
+                ? `Update zu ${currentProject.title}`
                 : projects.length > 0
-                  ? 'Höre dein heutiges Update zu allen Projekten'
-                  : 'Voice Report wird verfügbar, sobald dein erstes Projekt startet'}
+                  ? 'Update zu allen Projekten'
+                  : 'Audio-Briefing wartet auf dein erstes Projekt'}
             </h2>
             <p className="audio-hero-sub">
               {currentProject
-                ? `Phase: ${currentStatusRow?.phase ?? '—'} · ${currentStatusRow?.progress ?? 0}% Fortschritt · ${currentStatusRow?.decisionCount ?? 0} offene Entscheidung${currentStatusRow?.decisionCount === 1 ? '' : 'en'}`
-                : 'Aktuelle Lage, Risiken, Entscheidungen und nächste Schritte — in unter zwei Minuten zusammengefasst.'}
+                ? `${currentStatusRow?.phase ?? '—'} · ${currentStatusRow?.progress ?? 0}% · ${currentStatusRow?.decisionCount ?? 0} Entscheidung${currentStatusRow?.decisionCount === 1 ? '' : 'en'}`
+                : 'Aktuelle Lage, Risiken, Entscheidungen, nächste Schritte. Unter 2 Min.'}
             </p>
-            {projects.length > 1 && (
-              <div className="audio-hero-pills" role="tablist" aria-label="Projekt für Voice Report">
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={selectedProjectId === 'all'}
-                  className={`audio-hero-pill${selectedProjectId === 'all' ? ' on' : ''}`}
-                  onClick={() => setSelectedProjectId('all')}
-                >
-                  Alle Projekte
-                </button>
-                {projects.slice(0, 6).map(p => (
-                  <button
-                    key={p.id}
-                    type="button"
-                    role="tab"
-                    aria-selected={selectedProjectId === p.id}
-                    className={`audio-hero-pill${selectedProjectId === p.id ? ' on' : ''}`}
-                    onClick={() => setSelectedProjectId(p.id)}
-                  >
-                    <span className="audio-hero-pill-dot" style={{ background: p.color || '#64748b' }} />
-                    <span className="audio-hero-pill-label">{p.title}</span>
-                  </button>
-                ))}
-              </div>
-            )}
-            <div className="audio-hero-player">
-              <VoiceControls
-                text={generateBriefingText({
-                  type: 'status_report_briefing',
-                  projectTitle: currentProject?.title,
-                  report: reportContent,
-                  projectStatus: currentStatusRow?.phase,
-                  progress: currentStatusRow?.progress,
-                  blockerCount: currentStatusRow?.blockerCount,
-                  decisionCount: currentStatusRow?.decisionCount,
-                  nextSteps: ['Task-Vorschläge prüfen', 'offene Entscheidungen klären'],
-                })}
-              />
-            </div>
+          </div>
+          <div className="audio-hero-player">
+            <VoiceControls
+              text={generateBriefingText({
+                type: 'status_report_briefing',
+                projectTitle: currentProject?.title,
+                report: reportContent,
+                projectStatus: currentStatusRow?.phase,
+                progress: currentStatusRow?.progress,
+                blockerCount: currentStatusRow?.blockerCount,
+                decisionCount: currentStatusRow?.decisionCount,
+                nextSteps: ['Task-Vorschläge prüfen', 'offene Entscheidungen klären'],
+              })}
+            />
           </div>
         </section>
+        {projects.length > 1 && (
+          <div className="audio-hero-pills" role="tablist" aria-label="Projekt für Audio-Briefing">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={selectedProjectId === 'all'}
+              className={`audio-hero-pill${selectedProjectId === 'all' ? ' on' : ''}`}
+              onClick={() => setSelectedProjectId('all')}
+            >
+              Alle Projekte
+            </button>
+            {projects.slice(0, 8).map(p => (
+              <button
+                key={p.id}
+                type="button"
+                role="tab"
+                aria-selected={selectedProjectId === p.id}
+                className={`audio-hero-pill${selectedProjectId === p.id ? ' on' : ''}`}
+                onClick={() => setSelectedProjectId(p.id)}
+              >
+                <span className="audio-hero-pill-dot" style={{ background: p.color || '#64748b' }} />
+                <span className="audio-hero-pill-label">{p.title}</span>
+              </button>
+            ))}
+          </div>
+        )}
 
         <BriefingDeliveryCard
           projectId={selectedProjectId === 'all' ? null : selectedProjectId}

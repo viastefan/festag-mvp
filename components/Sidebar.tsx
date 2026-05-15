@@ -57,7 +57,7 @@ const CLIENT_TEAMS: NavItem[] = [
 ]
 const CLIENT_TAGRO: NavItem[] = [
   { href:'/reports', icon:'activity', label:'Projektbriefings' },
-  { href:'/voice-reports', icon:'audio', label:'Voice Reports' },
+  { href:'/voice-reports', icon:'audio', label:'Audio Briefing' },
   { href:'/ai?view=chat', icon:'chat', label:'Chat' },
   { href:'/ai?view=notes', icon:'card', label:'Notizen' },
 ]
@@ -79,7 +79,7 @@ const CLIENT_MOB_QUICK = [
   { href:'/estimator',   icon:'estimate', label:'Preisschätzer' },
   { href:'/addons',      icon:'grid',     label:'Add-ons' },
   { href:'/reports',     icon:'activity', label:'Projektbriefings' },
-  { href:'/voice-reports', icon:'audio', label:'Voice Reports' },
+  { href:'/voice-reports', icon:'audio', label:'Audio Briefing' },
 ]
 
 const DEV_MAIN: NavItem[] = [
@@ -762,7 +762,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
 
             <div>
               <Section
-                label="Workspace"
+                label="Persönlicher Bereich"
                 expanded={workspaceExp}
                 onToggle={() => setWorkspaceExp(v => !v)}
               >

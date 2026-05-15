@@ -69,35 +69,39 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
 
 /* ── DARK — True black Apple-style, #0E0F0F base ── */
 [data-theme="dark"] {
-  /* Pure near-black — deepest possible base like Apple Pro Display */
+  /* Dark mode — Festag Calm Spec (Linear / Vercel / OpenAI-Platform style).
+     Low contrast, no neon, no AI glows. Strict surface ladder so layers
+     read but never compete: bg → sidebar → card → input → hover → active. */
   --bg:#0E0F0F;
-  --surface:#141515;
-  --card:#191A1A;
-  --surface-2:#1F2121;
+  --surface:#111212;          /* sidebar / panels */
+  --card:#151617;             /* cards on top of surface */
+  --surface-2:#18191A;        /* inputs / secondary layers */
+  --hover:#1B1C1D;
+  --active:#202223;
 
-  --border:rgba(255,255,255,0.07);
-  --border-strong:rgba(255,255,255,0.14);
+  --border:rgba(255,255,255,0.06);
+  --border-strong:rgba(255,255,255,0.12);
 
-  --text:#E8E8E5;
-  --text-secondary:#888E8B;
-  --text-muted:#4B5250;
+  --text:#ECECEC;
+  --text-secondary:#A1A1A1;
+  --text-muted:#6F7275;
 
-  --btn-prim:#E8E8E5; --btn-prim-text:#0E0F0F;
+  --btn-prim:#ECECEC; --btn-prim-text:#0E0F0F;
 
   /* Accent — deep forest pocket with crisp green text */
   --accent:#17211A; --accent-text:#44CE8C;
 
-  --inp:rgba(255,255,255,0.04);
-  --inp-border:rgba(255,255,255,0.08);
-  --inp-focus:rgba(255,255,255,0.06);
-  --inp-focus-border:rgba(255,255,255,0.20);
-  --glow:rgba(68,206,140,0.03);
+  --inp:#18191A;
+  --inp-border:rgba(255,255,255,0.06);
+  --inp-focus:#1B1C1D;
+  --inp-focus-border:rgba(255,255,255,0.16);
+  --glow:rgba(68,206,140,0.02);
 
-  --sidebar-bg:rgba(16,18,18,0.72);
-  --sidebar-border:rgba(255,255,255,0.08);
-  --nav-on:rgba(255,255,255,0.10);
-  --nav-on-text:#E8E8E5;
-  --nav-off-text:#4B5250;
+  --sidebar-bg:#111212;
+  --sidebar-border:rgba(255,255,255,0.06);
+  --nav-on:#202223;
+  --nav-on-text:#ECECEC;
+  --nav-off-text:#6F7275;
 
   /* Green — clean professional */
   --green:#25C47A;
