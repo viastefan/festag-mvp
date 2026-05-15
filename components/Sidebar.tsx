@@ -134,6 +134,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
   const [toolsExp, setToolsExp] = useState(false)
   const [teamsOpen,  setTeamsOpen] = useState(false)
   const [colorPickId, setColorPickId] = useState<string|null>(null)
+  const [tagroSignals, setTagroSignals] = useState<{ decisions: number; blockers: number; loaded: boolean }>({ decisions: 0, blockers: 0, loaded: false })
 
   const isClient = true
   const isDev = false
@@ -203,13 +204,25 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         setPlan((p as any).plan ?? 'free')
       }
     })
-    createClient().from('projects').select('id,title,status,color').order('created_at',{ascending:false}).limit(12).then(({ data }) => {
+    createClient().from('projects').select('id,title,status,color').order('created_at',{ascending:false}).limit(12).then(async ({ data }) => {
       const list = (data as any[]) ?? []
       setProjects(list)
-      // Find active project for sub-nav links, but keep section collapsed
       if (list.length) {
         const prio: Record<string,number> = { active:0,testing:1,planning:2,intake:3,done:4 }
         setProjId([...list].sort((a,b)=>(prio[a.status]??9)-(prio[b.status]??9))[0].id)
+        // Tagro monitoring capsule signals — current open decisions + blockers
+        try {
+          const ids = list.map(p => p.id)
+          const { data: t } = await createClient()
+            .from('tasks').select('status,project_id').in('project_id', ids)
+          const decisions = (t as any[] | null)?.filter(x => x.status === 'waiting').length ?? 0
+          const blockers  = (t as any[] | null)?.filter(x => x.status === 'blocked').length ?? 0
+          setTagroSignals({ decisions, blockers, loaded: true })
+        } catch {
+          setTagroSignals(s => ({ ...s, loaded: true }))
+        }
+      } else {
+        setTagroSignals({ decisions: 0, blockers: 0, loaded: true })
       }
     })
   }, [pathname])
@@ -577,6 +590,42 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           border-color:var(--border-strong);
         }
 
+        /* ── Tagro Monitoring Capsule ── */
+        .sb-monitor-capsule {
+          display:flex; align-items:center; gap:10px;
+          min-height:42px;
+          padding:6px 12px 6px 10px;
+          border:1px solid var(--border);
+          background:color-mix(in srgb, var(--surface) 76%, transparent);
+          border-radius:12px;
+          text-decoration:none;
+          color:var(--text);
+          box-shadow:0 1px 2px rgba(0,0,0,.025);
+          min-width:0;
+          transition:background .12s, border-color .12s;
+        }
+        .sb-monitor-capsule:hover {
+          background:var(--surface);
+          border-color:var(--border-strong);
+        }
+        .sb-monitor-dot {
+          width:8px; height:8px; border-radius:50%;
+          flex-shrink:0;
+          box-shadow:0 0 0 3px color-mix(in srgb, currentColor 6%, transparent);
+        }
+        .sb-monitor-text {
+          display:flex; flex-direction:column; min-width:0; line-height:1.2;
+        }
+        .sb-monitor-headline {
+          font-size:11px; font-weight:600; letter-spacing:.02em;
+          color:var(--text-muted); text-transform:uppercase;
+        }
+        .sb-monitor-sub {
+          font-size:12.5px; font-weight:600; letter-spacing:-.005em;
+          color:var(--text);
+          overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+        }
+
         /* ── User dropdown row ── */
         .usr-row {
           display:flex; align-items:center; gap:9px;
@@ -854,12 +903,27 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           </div>
 
           <div className="sb-bottom-actions">
-            <Link href="/ai?view=chat" className="sb-pill-action">
-              <Ico name="sparkle" sz={16} c="currentColor" weight="regular" />
-              <span>Tagro AI</span>
-            </Link>
-            <Link href="/reports?new=1" className="sb-square-action" title="Statusbericht erstellen" aria-label="Statusbericht erstellen">
-              <Ico name="activity" sz={17} c="currentColor" weight="regular" />
+            {(() => {
+              const { decisions, blockers, loaded } = tagroSignals
+              const status = !loaded
+                ? { dot: 'var(--text-muted)', headline: 'Tagro Monitoring', sub: 'wird geprüft…' }
+                : decisions > 0
+                  ? { dot: '#0369A1', headline: 'Tagro Monitoring', sub: `${decisions} Entscheidung${decisions === 1 ? '' : 'en'} offen` }
+                  : blockers > 0
+                    ? { dot: '#D97706', headline: 'Tagro Monitoring', sub: `${blockers} Risik${blockers === 1 ? 'o' : 'en'} im Blick` }
+                    : { dot: '#15803D', headline: 'Tagro Monitoring', sub: 'Alles auf Kurs' }
+              return (
+                <Link href="/reports" className="sb-monitor-capsule" aria-label={`${status.headline} — ${status.sub}`}>
+                  <span className="sb-monitor-dot" style={{ background: status.dot }} />
+                  <span className="sb-monitor-text">
+                    <span className="sb-monitor-headline">{status.headline}</span>
+                    <span className="sb-monitor-sub">{status.sub}</span>
+                  </span>
+                </Link>
+              )
+            })()}
+            <Link href="/ai?view=chat" className="sb-square-action" title="Mit Tagro sprechen" aria-label="Mit Tagro sprechen">
+              <Ico name="sparkle" sz={17} c="currentColor" weight="regular" />
             </Link>
           </div>
         </div>
