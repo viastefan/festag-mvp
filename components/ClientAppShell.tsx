@@ -26,8 +26,7 @@ export default function ClientAppShell({
   const [checking, setChecking] = useState(true)
   const [copilotOpen, setCopilotOpen] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
-  const isSettings = pathname?.startsWith('/settings')
-  const sidebarWidth = sidebarCollapsed ? '0px' : (isSettings ? '212px' : '248px')
+  const sidebarWidth = sidebarCollapsed ? '0px' : '212px'
 
   useEffect(() => {
     try { setSidebarCollapsed(localStorage.getItem('festag-sidebar-collapsed') === 'true') } catch {}
@@ -88,7 +87,7 @@ export default function ClientAppShell({
           top: 24px;
           right: 10px;
           bottom: 10px;
-          left: calc(var(--app-sidebar-width) + 24px);
+          left: calc(var(--app-sidebar-width) + 18px);
           min-width: 0;
           display: flex;
           flex-direction: column;

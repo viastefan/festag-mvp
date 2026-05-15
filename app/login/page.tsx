@@ -455,8 +455,8 @@ export default function LoginPage() {
         .log-desktop-title { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:21px; font-weight:500; color:#202532; line-height:normal; text-align:center; letter-spacing:0.21px; width:100%; transition:color .3s; }
 
         /* MOBILE */
-        .log-mobile { display:none; min-height:100dvh; background:#f5f7fa; position:relative; overflow:hidden; transition:background .3s; }
-        .log-mobile-card { position:absolute; left:0; right:0; bottom:0; top:24px; background:#fcfcfd; border-radius:36px 36px 0 0; box-shadow:0px 2px 8px 0px rgba(15,23,42,0.02),0px 12px 32px 0px rgba(15,23,42,0.03),0px 1px 2px 0px rgba(15,23,42,0.03); transition:background .3s; }
+        .log-mobile { display:none; min-height:100dvh; background:#edf1f6; position:relative; overflow:hidden; transition:background .3s; }
+        .log-mobile-card { position:absolute; left:12px; right:12px; bottom:10px; top:32px; background:#fff; border:1px solid rgba(99,111,132,.16); border-radius:36px; box-shadow:0px 22px 70px rgba(46,58,82,0.15),0px 4px 18px rgba(46,58,82,0.08),0px 1px 0px rgba(255,255,255,0.85) inset; transition:background .3s, border-color .3s, box-shadow .3s; }
         .log-mobile-shell { position:absolute; left:50%; transform:translateX(-50%); top:175px; width:271px; display:flex; flex-direction:column; gap:28px; align-items:center; }
         .log-mobile-logo-title { width:100%; display:flex; flex-direction:column; gap:9px; align-items:center; }
         .log-logo-mobile { font-family:'Qurova DEMO',serif; font-size:20px; font-weight:500; color:#000; text-align:center; line-height:47px; height:35px; width:100%; transition:color .3s; }
@@ -540,8 +540,8 @@ export default function LoginPage() {
 
         /* ═══ DARK MODE ══════════════════════════════════════════════ */
         .log-root[data-theme="dark"] .log-desktop { background:#0A0E14; }
-        .log-root[data-theme="dark"] .log-mobile  { background:#0A0E14; }
-        .log-root[data-theme="dark"] .log-mobile-card { background:#0F141B; box-shadow:0px 2px 8px 0px rgba(0,0,0,0.3),0px 12px 32px 0px rgba(0,0,0,0.2); }
+        .log-root[data-theme="dark"] .log-mobile  { background:#06090E; }
+        .log-root[data-theme="dark"] .log-mobile-card { background:#101722; border-color:rgba(255,255,255,0.09); box-shadow:0px 26px 80px rgba(0,0,0,0.55),0px 6px 22px rgba(0,0,0,0.34),0px 1px 0px rgba(255,255,255,0.04) inset; }
 
         .log-root[data-theme="dark"] .log-logo-desktop,
         .log-root[data-theme="dark"] .log-logo-mobile { color:#E8E8E5; }

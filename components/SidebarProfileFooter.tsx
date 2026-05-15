@@ -164,7 +164,7 @@ export default function SidebarProfileFooter({
           </div>
         )}
 
-        <span style={{ minWidth: 0, display: 'inline-flex', alignItems: 'center', gap: 6, overflow: 'hidden' }}>
+        <span style={{ flex: '1 1 auto', minWidth: 0, display: 'inline-flex', alignItems: 'center', gap: 6, overflow: 'hidden' }}>
           <span style={{
             fontSize: 12.5, fontWeight: 600, color: 'var(--text)',
             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
@@ -192,7 +192,7 @@ export default function SidebarProfileFooter({
           to   { opacity: 1; transform: translateY(0)    scale(1); }
         }
         .spf-pop {
-          width: 248px; max-width: min(248px, calc(100vw - 32px));
+          width: 212px; max-width: min(212px, calc(100vw - 32px));
           background: var(--surface);
           border: 1px solid var(--border);
           border-radius: 12px;

@@ -516,8 +516,8 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         .sb-topbar {
           display:flex;
           align-items:center;
-          gap:5px;
-          padding:0 6px 11px;
+          gap:4px;
+          padding:0 4px 11px;
           flex-shrink:0;
         }
         .sb-topbar .spf-trigger {
