@@ -324,7 +324,7 @@ export default function TasksPage() {
           width:100%;
           min-height:100%;
           color:var(--text);
-          padding:30px 34px 92px;
+          padding:36px 34px 76px;
         }
         .task-top {
           display:flex;

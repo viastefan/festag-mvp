@@ -5,7 +5,6 @@ import { useEffect, useState } from 'react'
 import CommandPalette from '@/components/CommandPalette'
 import CopilotPanel from '@/components/CopilotPanel'
 import FeedbackWidget from '@/components/FeedbackWidget'
-import FloatingBar from '@/components/FloatingBar'
 import LoadingScreen from '@/components/LoadingScreen'
 import PwaInstallBanner from '@/components/PwaInstallBanner'
 import Sidebar from '@/components/Sidebar'
@@ -82,9 +81,9 @@ export default function ClientAppShell({
         }
         .app-workspace {
           position: fixed;
-          top: 10px;
+          top: 24px;
           right: 10px;
-          bottom: 52px;
+          bottom: 10px;
           left: calc(var(--app-sidebar-width) + 24px);
           min-width: 0;
           display: flex;
@@ -173,7 +172,6 @@ export default function ClientAppShell({
         </div>
       </main>
 
-      <FloatingBar copilotOpen={copilotOpen} onToggleCopilot={() => setCopilotOpen((open) => !open)} />
       <CopilotPanel open={copilotOpen} onClose={() => setCopilotOpen(false)} />
       <FeedbackWidget />
       <CommandPalette />
