@@ -310,6 +310,41 @@ export default function DashboardPage() {
           transition:color .18s var(--dash-ease), opacity .18s var(--dash-ease);
         }
         .dash-soft-action:hover { color:var(--text); }
+        /* ── Heutiges Projektbriefing — primary anchor card ─────── */
+        .dash-briefing-section { margin-bottom: 32px; }
+        .dash-today-briefing {
+          padding: 22px 24px;
+          border-radius: 16px;
+          background: linear-gradient(135deg, var(--card), color-mix(in srgb, var(--surface-2) 50%, var(--card)));
+          border: 1px solid var(--border);
+          display: flex; flex-direction: column; gap: 14px;
+        }
+        .dash-today-head {
+          display: flex; justify-content: space-between; align-items: baseline;
+          flex-wrap: wrap; gap: 6px;
+        }
+        .dash-today-kicker {
+          display: inline-flex; align-items: center; gap: 8px;
+          font-size: 12px; font-weight: 660; letter-spacing: 0.02em;
+          color: var(--text-secondary); text-transform: uppercase;
+        }
+        .dash-today-dot {
+          width: 7px; height: 7px; border-radius: 50%;
+          background: #25C47A; box-shadow: 0 0 0 3px rgba(37, 196, 122, .14);
+        }
+        .dash-today-meta { font-size: 12.5px; color: var(--text-muted); }
+        .dash-today-text {
+          margin: 0; font-size: 15px; line-height: 1.55; color: var(--text);
+          letter-spacing: -.005em; max-width: 720px;
+        }
+        .dash-today-actions {
+          display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px;
+        }
+        @media (max-width: 720px) {
+          .dash-today-briefing { padding: 18px 16px; }
+          .dash-today-text { font-size: 14px; }
+        }
+
         .dash-current {
           border-radius:24px;
           overflow:hidden;
@@ -629,6 +664,48 @@ export default function DashboardPage() {
           {/* ══ LEFT ══ */}
           <div>
 
+            {/* ── Heutiges Projektbriefing — primärer Anker ── */}
+            <div className="dash-section dash-briefing-section" style={{ animationDelay:'.03s' }}>
+              <article className="dash-today-briefing">
+                <div className="dash-today-head">
+                  <span className="dash-today-kicker">
+                    <span className="dash-today-dot" />
+                    Heutiges Projektbriefing
+                  </span>
+                  <span className="dash-today-meta">
+                    {main ? `${main.title}` : 'Kein aktives Projekt'}
+                  </span>
+                </div>
+                <p className="dash-today-text">
+                  {report
+                    ? report
+                    : main
+                      ? `Tagro hat den aktuellen Stand zu "${main.title}" noch nicht analysiert. Klick auf "Briefing aktualisieren", damit Tagro Fortschritt, Risiken und Entscheidungen zusammenfasst.`
+                      : 'Sobald dein erstes Projekt startet, fasst Tagro hier den heutigen Stand zusammen — was wichtig ist, ohne Datenflut.'}
+                </p>
+                <div className="dash-today-actions">
+                  {main && (
+                    <Link href={`/reports?project=${main.id}`} className="dash-button primary" style={{ height:34 }}>
+                      Briefing öffnen
+                    </Link>
+                  )}
+                  {main && (
+                    <Link href="/voice-reports" className="dash-button" style={{ height:34 }}>
+                      Audio anhören
+                    </Link>
+                  )}
+                  <button onClick={generateReport} disabled={genReport || !main} className="dash-button" style={{ height:34 }}>
+                    {genReport ? 'Tagro analysiert…' : report ? 'Briefing aktualisieren' : 'Tagro generieren'}
+                  </button>
+                  {main && (
+                    <Link href={`/reports?project=${main.id}#zustellung`} className="dash-button" style={{ height:34, opacity:.78 }}>
+                      Zustellung konfigurieren
+                    </Link>
+                  )}
+                </div>
+              </article>
+            </div>
+
             {/* ── Active project card ── */}
             <div className="dash-section" style={{ animationDelay:'.05s' }}>
               <p className="dash-label">Aktuelles Projekt</p>
@@ -793,28 +870,7 @@ export default function DashboardPage() {
               </div>
             )}
 
-            {/* ── Tagro Statusbericht ── */}
-            <div className="dash-section" style={{ animationDelay:'.2s' }}>
-              <div className="dash-section-head">
-                <p className="dash-label">Statusbericht</p>
-                <button onClick={generateReport} disabled={genReport}
-                  className="dash-soft-action"
-                  style={{ cursor:genReport?'default':'pointer', opacity:genReport ? .72 : 1 }}
-                >
-                  {genReport ? <span style={{ width:10, height:10, border:'1.5px solid transparent', borderTopColor:'currentColor', borderRadius:'50%', animation:'spin .7s linear infinite', display:'inline-block' }}/> : <span style={{ fontSize:11 }}>✦</span>}
-                  {genReport ? 'Lädt…' : report ? 'Neu' : 'Mit Tagro generieren'}
-                </button>
-              </div>
-              <div className="dash-report">
-                {report ? (
-                  <p className="dash-report-text">{report}</p>
-                ) : (
-                  <p className="dash-report-empty">
-                    Kein Bericht — Tagro fasst Fortschritt, Blocker und nächste Schritte automatisch zusammen.
-                  </p>
-                )}
-              </div>
-            </div>
+            {/* Tagro-Statusbericht ist jetzt in der "Heutiges Projektbriefing"-Card oben. */}
 
           </div>{/* end LEFT */}
 
