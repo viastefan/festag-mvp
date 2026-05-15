@@ -62,6 +62,7 @@ export type SendInput = {
   cc?:       string | string[]
   bcc?:      string | string[]
   replyTo?:  string
+  attachments?: Array<{ filename: string; content: Buffer | string; contentType?: string }>
 }
 
 export type SendResult =
@@ -82,6 +83,7 @@ export async function sendMail(input: SendInput): Promise<SendResult> {
       subject: input.subject,
       html:    input.html,
       text:    input.text ?? stripHtml(input.html),
+      attachments: input.attachments,
     })
     return { ok: true, messageId: info.messageId }
   } catch (e: any) {

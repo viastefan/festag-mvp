@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { sendMail } from '@/lib/email/client'
 import { tplGeneric } from '@/lib/email/templates'
+import { synthesizeBriefingMp3 } from '@/lib/tts'
 
 export const runtime = 'nodejs'
 export const maxDuration = 60
@@ -124,11 +125,27 @@ export async function GET(req: NextRequest) {
         body: bodyHtml,
       })
 
+      // Audio attachment: only when format wants audio AND OpenAI key is set.
+      const wantsAudio = sub.format === 'audio' || sub.format === 'both'
+      let attachments: Array<{ filename: string; content: Buffer; contentType: string }> | undefined
+      if (wantsAudio) {
+        const mp3 = await synthesizeBriefingMp3(`${greeting} hier ist dein heutiges Briefing zu ${projectTitle}. ${body}`, { voice: 'alloy' })
+        if (mp3) {
+          const stamp = new Date().toISOString().slice(0, 10)
+          attachments = [{
+            filename: `festag-briefing-${projectTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 40) || 'projekt'}-${stamp}.mp3`,
+            content: mp3,
+            contentType: 'audio/mpeg',
+          }]
+        }
+      }
+
       const result = await sendMail({
         to: recipients,
         subject: tpl.subject,
         html: tpl.html,
         text: `${greeting}\n\n${body}\n\nIm Festag öffnen: ${ctaUrl}`,
+        attachments,
       })
 
       if (!result.ok) {
