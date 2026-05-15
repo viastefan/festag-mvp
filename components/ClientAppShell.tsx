@@ -85,12 +85,12 @@ export default function ClientAppShell({
           top: 10px;
           right: 10px;
           bottom: 52px;
-          left: calc(var(--app-sidebar-width) + 10px);
+          left: calc(var(--app-sidebar-width) + 24px);
           min-width: 0;
           display: flex;
           flex-direction: column;
           overflow: hidden;
-          border: 1px solid color-mix(in srgb, var(--border) 86%, transparent);
+          border: 1px solid color-mix(in srgb, var(--border) 58%, transparent);
           border-radius: 12px;
           background: var(--surface);
           box-shadow: 0 1px 2px rgba(0,0,0,.025), 0 18px 60px rgba(0,0,0,.045);

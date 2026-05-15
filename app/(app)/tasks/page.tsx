@@ -253,7 +253,7 @@ export default function TasksPage() {
           width:100%;
           min-height:100%;
           color:var(--text);
-          padding-top:24px;
+          padding-top:0;
         }
         .task-top {
           display:flex;
@@ -262,6 +262,7 @@ export default function TasksPage() {
           min-height:38px;
           border-bottom:0;
           padding:0 4px 8px 0;
+          margin-bottom:6px;
         }
         .task-title {
           margin:0;
@@ -381,6 +382,7 @@ export default function TasksPage() {
         .task-table {
           width:100%;
           overflow:hidden;
+          padding-left:10px;
         }
         .task-head,
         .task-row {
@@ -391,7 +393,7 @@ export default function TasksPage() {
         }
         .task-head {
           min-height:34px;
-          padding:0 10px;
+          padding:0 14px;
           color:var(--text-muted);
           font-size:12.5px;
           font-weight:650;
@@ -399,7 +401,7 @@ export default function TasksPage() {
         }
         .task-row {
           min-height:52px;
-          padding:0 10px;
+          padding:0 14px;
           border-bottom:0;
           color:var(--text-secondary);
           font-size:12.5px;

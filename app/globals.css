@@ -348,11 +348,11 @@ button:active, a[role="button"]:active, .tap-scale:active {
 }
 
 .page-content {
-  padding: 28px 32px 118px;
+  padding: clamp(32px, 4vw, 56px) clamp(38px, 5vw, 72px) 118px;
   width: 100%;
 }
 .page-content-full {
-  padding: 28px 32px 118px;
+  padding: clamp(32px, 4vw, 56px) clamp(38px, 5vw, 72px) 118px;
   width: 100%;
 }
 .page-header {
@@ -375,7 +375,7 @@ button:active, a[role="button"]:active, .tap-scale:active {
 .sidebar-inner {
   position:fixed; top:0; left:0; bottom:0; width:272px;
   box-sizing:border-box;
-  background:var(--bg);
+  background:transparent;
   border:0;
   box-shadow:none;
   border-radius:0;

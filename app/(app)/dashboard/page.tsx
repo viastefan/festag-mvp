@@ -144,7 +144,7 @@ export default function DashboardPage() {
           font-size:clamp(34px, 4.2vw, 56px);
           line-height:.98;
           font-weight:740;
-          letter-spacing:-.075em;
+          letter-spacing:0;
           color:var(--text);
         }
         .dash-meta {
@@ -261,7 +261,9 @@ export default function DashboardPage() {
           align-items:center;
           gap:0;
           min-height:50px;
-          margin:5px -12px;
+          margin:5px -16px;
+          padding-left:4px;
+          padding-right:4px;
           border-radius:15px;
           background:transparent;
           transition:background .28s var(--dash-ease), transform .28s var(--dash-ease), box-shadow .28s var(--dash-ease), opacity .28s var(--dash-ease);
@@ -273,7 +275,7 @@ export default function DashboardPage() {
           backdrop-filter:blur(12px);
           -webkit-backdrop-filter:blur(12px);
         }
-        .dash-col-name { flex:1; min-width:0; padding:12px 14px; }
+        .dash-col-name { flex:1; min-width:0; padding:12px 18px; }
         .dash-col-stat { padding:12px 14px; font-size:12px; color:var(--text-muted); font-weight:540; white-space:nowrap; }
         .dash-col-bar { padding:12px 14px; width:132px; }
         .dash-progress-track {
@@ -292,8 +294,8 @@ export default function DashboardPage() {
           align-items:center;
           gap:11px;
           min-height:42px;
-          padding:0 12px;
-          margin:4px -12px;
+          padding:0 18px;
+          margin:4px -16px;
           border-radius:14px;
           transition:background .24s var(--dash-ease), transform .24s var(--dash-ease), box-shadow .24s var(--dash-ease);
         }
