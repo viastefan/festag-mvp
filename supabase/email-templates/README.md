@@ -2,6 +2,8 @@
 
 Paste these files into Supabase Dashboard > Authentication > Email Templates.
 
+Important: GitHub/Vercel deployments do not automatically update Supabase Auth email templates. After changing these files, paste the matching HTML into the Supabase Dashboard or update the project through the Supabase Management API.
+
 ## Magic Link
 
 Use `auth-magic-link.html` for the `Magic Link` template.
