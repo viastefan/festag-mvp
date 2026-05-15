@@ -22,6 +22,7 @@ import {
   type VoiceBriefingMode,
   type VoiceBriefingProject,
   type VoiceBriefingReport,
+  type VoiceReportSnapshot,
   type VoiceBriefingTask,
 } from '@/lib/voice/voice-briefing-service'
 
@@ -110,6 +111,12 @@ export default function VoiceReportsPage() {
   const service = useMemo(() => new VoiceBriefingService(), [])
   const voiceText = useMemo(() => service.generateVoiceBriefingText(briefingData, mode), [briefingData, mode, service])
   const hasVoiceReport = Boolean(selectedProject && projectReports[0] && voiceText)
+  const voiceSnapshot = useMemo<VoiceReportSnapshot | null>(() => service.createVoiceReportSnapshot({
+    data: briefingData,
+    mode,
+    audio: null,
+    deliveryStatus: cadence === 'off' ? 'not_scheduled' : 'queued',
+  }), [briefingData, cadence, mode, service])
   const duration = estimateDuration(voiceText)
 
   async function saveDelivery(nextCadence: DeliveryCadence, nextFormat: DeliveryFormat) {
@@ -179,6 +186,10 @@ export default function VoiceReportsPage() {
         .vr-delivery-row { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
         .vr-label { min-width:92px; color:var(--text-muted); font-size:12px; font-weight:650; }
         .vr-transcript { white-space:pre-wrap; color:var(--text-secondary); font-size:14px; line-height:1.72; font-weight:400; }
+        .vr-snapshot { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-top:14px; }
+        .vr-snapshot-card { border:1px solid color-mix(in srgb, var(--border) 52%, transparent); border-radius:14px; padding:10px 12px; background:color-mix(in srgb, var(--surface-2) 34%, transparent); }
+        .vr-snapshot-card span { display:block; color:var(--text-muted); font-size:10.5px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; }
+        .vr-snapshot-card strong { display:block; margin-top:4px; color:var(--text); font-size:13px; font-weight:620; }
         .vr-billing { display:grid; gap:10px; margin-top:12px; }
         .vr-billing-row { display:flex; align-items:center; justify-content:space-between; gap:14px; padding:10px 0; border-top:1px solid color-mix(in srgb, var(--border) 45%, transparent); color:var(--text-secondary); font-size:13px; }
         .vr-billing-row strong { color:var(--text); font-weight:620; }
@@ -219,7 +230,14 @@ export default function VoiceReportsPage() {
                 <button className="vr-chip" type="button" disabled><Microphone size={13} /> Mit Tagro sprechen · bald</button>
               </div>
               {hasVoiceReport ? (
-                <VoiceControls text={voiceText} />
+                <>
+                  <VoiceControls text={voiceSnapshot?.transcript ?? voiceText} />
+                  {!voiceSnapshot?.audioUrl && (
+                    <p style={{ margin:'10px 0 0', color:'var(--text-muted)', fontSize:12, lineHeight:1.5 }}>
+                      Audio-Datei noch nicht vorbereitet. Das Transkript ist verfügbar und kann sofort gelesen oder per Browser-Stimme abgespielt werden.
+                    </p>
+                  )}
+                </>
               ) : (
                 <div className="vr-empty">Noch kein Voice Report verfügbar. Erstelle zuerst ein Projekt oder aktualisiere dein Projektbriefing. Tagro spielt keinen Fake-Status ab.</div>
               )}
@@ -242,6 +260,14 @@ export default function VoiceReportsPage() {
               <Link className="vr-chip" href="/reports" style={{ textDecoration:'none', display:'inline-flex', alignItems:'center', gap:7 }}>Zum Projektbriefing <ArrowRight size={12} /></Link>
             </div>
             <div className="vr-transcript">{voiceText || 'Noch kein Projektstatus verfügbar. Aktualisiere zuerst dein Briefing.'}</div>
+            {voiceSnapshot && (
+              <div className="vr-snapshot" aria-label="Voice Report Datenbasis">
+                <div className="vr-snapshot-card"><span>Status-Snap</span><strong>{voiceSnapshot.statusSnapText ? 'gespeichert' : 'fehlt'}</strong></div>
+                <div className="vr-snapshot-card"><span>Datenbasis</span><strong>{voiceSnapshot.dataBasis.generatedFrom.join(', ')}</strong></div>
+                <div className="vr-snapshot-card"><span>Dauer</span><strong>{durationLabel(voiceSnapshot.durationSeconds ?? duration)}</strong></div>
+                <div className="vr-snapshot-card"><span>Zustellung</span><strong>{voiceSnapshot.deliveryStatus === 'not_scheduled' ? 'nicht geplant' : 'vorbereitet'}</strong></div>
+              </div>
+            )}
           </article>
 
           <aside className="vr-box">

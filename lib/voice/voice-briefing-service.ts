@@ -54,6 +54,36 @@ export type VoiceSynthesisResult = {
   generatedAt: string
 }
 
+export type VoiceReportSnapshot = {
+  id?: string
+  projectId: string | null
+  sourceReportId?: string | null
+  mode: VoiceBriefingMode
+  statusSnapText: string
+  audioScript: string
+  transcript: string
+  audioUrl: string | null
+  audioProvider: string | null
+  voiceId?: string | null
+  durationSeconds: number | null
+  dataBasis: {
+    projectName?: string | null
+    projectPhase?: string | null
+    progress?: number
+    reportCreatedAt?: string | null
+    taskCount: number
+    completedTaskCount: number
+    activeTaskCount: number
+    blockerCount: number
+    decisionCount: number
+    generatedFrom: Array<'project' | 'status_report' | 'tasks' | 'dev_updates' | 'milestones' | 'payments'>
+  }
+  deliveryStatus: 'manual' | 'queued' | 'sent' | 'failed' | 'not_scheduled'
+  audioStatus: 'not_generated' | 'ready' | 'failed'
+  errorMessage?: string | null
+  createdAt: string
+}
+
 export interface VoiceProvider {
   providerName: string
   supportedVoices: string[]
@@ -72,6 +102,11 @@ function stripMarkdown(value: string) {
 function firstSentences(value: string, max = 3) {
   const sentences = stripMarkdown(value).match(/[^.!?]+[.!?]+|[^.!?]+$/g) ?? []
   return sentences.slice(0, max).join(' ').trim()
+}
+
+function estimateDurationSeconds(text: string) {
+  const words = text.trim().split(/\s+/).filter(Boolean).length
+  return Math.max(25, Math.round((words / 145) * 60))
 }
 
 function statusLabel(status?: string | null) {
@@ -216,6 +251,65 @@ export class VoiceBriefingService {
     ].filter(Boolean).join(' ')
   }
 
+  buildStatusSnapText(data: VoiceBriefingData) {
+    if (!data.project || !data.latestReport) return ''
+    return [
+      `Projekt: ${data.project.title}`,
+      `Phase: ${data.phase}`,
+      `Fortschritt: ${data.progress}%`,
+      `Aufgaben: ${data.completedTasks.length} erledigt, ${data.activeTasks.length} in Arbeit, ${data.openTasks.length} offen`,
+      `Blocker/Risiken: ${data.blockers.length}`,
+      `Offene Entscheidungen: ${data.decisions.length}`,
+      `Letztes Projektbriefing: ${data.latestReport.created_at ?? 'unbekannt'}`,
+    ].join('\n')
+  }
+
+  createVoiceReportSnapshot(input: {
+    data: VoiceBriefingData
+    mode?: VoiceBriefingMode
+    audio?: VoiceSynthesisResult | null
+    errorMessage?: string | null
+    deliveryStatus?: VoiceReportSnapshot['deliveryStatus']
+  }): VoiceReportSnapshot | null {
+    const mode = input.mode ?? 'full'
+    const audioScript = this.generateVoiceBriefingText(input.data, mode)
+    if (!input.data.project || !input.data.latestReport || !audioScript) return null
+
+    const generatedFrom: VoiceReportSnapshot['dataBasis']['generatedFrom'] = ['project', 'status_report']
+    if (input.data.tasks.length) generatedFrom.push('tasks')
+    if (input.data.devUpdates.length) generatedFrom.push('dev_updates')
+    if (input.data.milestones.length) generatedFrom.push('milestones')
+    if (input.data.nextPayment) generatedFrom.push('payments')
+
+    return {
+      projectId: input.data.project.id,
+      sourceReportId: input.data.latestReport.id ?? null,
+      mode,
+      statusSnapText: this.buildStatusSnapText(input.data),
+      audioScript,
+      transcript: audioScript,
+      audioUrl: input.audio?.audioUrl ?? null,
+      audioProvider: input.audio?.providerName ?? this.provider.providerName,
+      durationSeconds: input.audio?.durationSeconds ?? estimateDurationSeconds(audioScript),
+      dataBasis: {
+        projectName: input.data.project.title,
+        projectPhase: input.data.phase,
+        progress: input.data.progress,
+        reportCreatedAt: input.data.latestReport.created_at ?? null,
+        taskCount: input.data.tasks.length,
+        completedTaskCount: input.data.completedTasks.length,
+        activeTaskCount: input.data.activeTasks.length,
+        blockerCount: input.data.blockers.length,
+        decisionCount: input.data.decisions.length,
+        generatedFrom,
+      },
+      deliveryStatus: input.deliveryStatus ?? 'manual',
+      audioStatus: input.audio?.audioUrl ? 'ready' : input.errorMessage ? 'failed' : 'not_generated',
+      errorMessage: input.errorMessage ?? null,
+      createdAt: new Date().toISOString(),
+    }
+  }
+
   async generateAudioFromText(text: string, voiceOptions?: VoiceOptions) {
     return this.provider.synthesizeSpeech(text, voiceOptions)
   }
@@ -224,7 +318,8 @@ export class VoiceBriefingService {
     const data = await this.getProjectBriefingData(projectId)
     const text = this.generateVoiceBriefingText(data, mode)
     const audio = text ? await this.generateAudioFromText(text) : null
-    return { data, text, audio, mode }
+    const snapshot = this.createVoiceReportSnapshot({ data, mode, audio })
+    return { data, text, transcript: snapshot?.transcript ?? text, audio, snapshot, mode }
   }
 
   async regenerateAudioBriefing(projectId: string) {

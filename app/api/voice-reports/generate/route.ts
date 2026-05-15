@@ -44,9 +44,32 @@ export async function POST(req: NextRequest) {
     })
     const service = new VoiceBriefingService()
     const text = service.generateVoiceBriefingText(data, body.mode ?? 'full')
-    const audio = await service.generateAudioFromText(text, { voice: 'alloy', format: 'mp3', speed: 0.95 })
+    let audio = null
+    let audioError: string | null = null
+    try {
+      audio = await service.generateAudioFromText(text, { voice: 'alloy', format: 'mp3', speed: 0.95 })
+    } catch (error: any) {
+      audioError = error?.message ?? 'audio_generation_failed'
+    }
+    const snapshot = service.createVoiceReportSnapshot({
+      data,
+      mode: body.mode ?? 'full',
+      audio,
+      errorMessage: audioError,
+      deliveryStatus: 'manual',
+    })
 
-    return NextResponse.json({ ok: true, state: text ? 'ready' : 'unavailable', project, text, audio, mode: body.mode ?? 'full' })
+    return NextResponse.json({
+      ok: true,
+      state: text ? 'ready' : 'unavailable',
+      project,
+      text,
+      transcript: snapshot?.transcript ?? text,
+      audio,
+      snapshot,
+      audioMessage: audioError ? 'Audio konnte nicht vorbereitet werden. Der Textstatus ist verfügbar.' : null,
+      mode: body.mode ?? 'full',
+    })
   } catch (e: any) {
     return NextResponse.json({ ok: false, state: 'error', error: e?.message ?? 'voice_report_failed' }, { status: 500 })
   }
