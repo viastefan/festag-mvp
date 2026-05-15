@@ -52,12 +52,20 @@ export default function SettingsSidebar() {
   return (
     <>
       <style>{`
+        .sset-shell {
+          position: fixed;
+          inset: 0 auto 0 0;
+          width: 212px;
+          box-sizing: border-box;
+          pointer-events: none;
+        }
         .sset {
           display: flex; flex-direction: column;
           height: 100%; min-height: 0;
-          padding: 14px 10px 18px;
+          padding: 14px 8px 18px;
           color: var(--text);
           font-family: var(--font-aeonik,'Aeonik',Inter,sans-serif);
+          pointer-events: all;
         }
         .sset-back {
           display: inline-flex; align-items: center; gap: 6px;
@@ -78,7 +86,7 @@ export default function SettingsSidebar() {
         }
         .sset-item {
           display: flex; align-items: center; gap: 8px;
-          margin: 0 5px;
+          margin: 0 4px;
           padding: 0 10px;
           min-height: 27px;
           border-radius: 8px;
@@ -95,32 +103,34 @@ export default function SettingsSidebar() {
         [data-theme="dark"] .sset-item.on { background: rgba(255,255,255,.075); }
       `}</style>
 
-      <div className="sset">
-        <Link href="/dashboard" className="sset-back">
-          <CaretLeft size={13} weight="bold" />
-          <span>Zurück zur App</span>
-        </Link>
+      <aside className="sset-shell" aria-label="Einstellungen">
+        <div className="sset">
+          <Link href="/dashboard" className="sset-back">
+            <CaretLeft size={13} weight="bold" />
+            <span>Zurück zur App</span>
+          </Link>
 
-        {GROUPS.map(group => (
-          <div key={group.label} className="sset-group">
-            <div className="sset-group-label">{group.label}</div>
-            {group.items.map(item => {
-              const href = item.slug ? `/settings/${item.slug}` : '/settings'
-              const isActive = item.slug === active
-              return (
-                <Link
-                  key={item.slug || 'profile'}
-                  href={href}
-                  className={`sset-item${isActive ? ' on' : ''}`}
-                >
-                  <item.icon size={14} weight={isActive ? 'bold' : 'regular'} />
-                  <span>{item.label}</span>
-                </Link>
-              )
-            })}
-          </div>
-        ))}
-      </div>
+          {GROUPS.map(group => (
+            <div key={group.label} className="sset-group">
+              <div className="sset-group-label">{group.label}</div>
+              {group.items.map(item => {
+                const href = item.slug ? `/settings/${item.slug}` : '/settings'
+                const isActive = item.slug === active
+                return (
+                  <Link
+                    key={item.slug || 'profile'}
+                    href={href}
+                    className={`sset-item${isActive ? ' on' : ''}`}
+                  >
+                    <item.icon size={14} weight={isActive ? 'bold' : 'regular'} />
+                    <span>{item.label}</span>
+                  </Link>
+                )
+              })}
+            </div>
+          ))}
+        </div>
+      </aside>
     </>
   )
 }

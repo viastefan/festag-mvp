@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { usePathname } from 'next/navigation'
 
 import CommandPalette from '@/components/CommandPalette'
 import CopilotPanel from '@/components/CopilotPanel'
@@ -21,9 +22,12 @@ export default function ClientAppShell({
   isFullHeight = false,
   scrollId = 'client-main-scroll',
 }: ClientAppShellProps) {
+  const pathname = usePathname()
   const [checking, setChecking] = useState(true)
   const [copilotOpen, setCopilotOpen] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const isSettings = pathname?.startsWith('/settings')
+  const sidebarWidth = sidebarCollapsed ? '0px' : (isSettings ? '212px' : '248px')
 
   useEffect(() => {
     try { setSidebarCollapsed(localStorage.getItem('festag-sidebar-collapsed') === 'true') } catch {}
@@ -64,7 +68,7 @@ export default function ClientAppShell({
   return (
     <div
       className="festag-app-shell"
-      style={{ '--app-sidebar-width': sidebarCollapsed ? '0px' : '248px' } as React.CSSProperties}
+      style={{ '--app-sidebar-width': sidebarWidth } as React.CSSProperties}
     >
       <style>{`
         @keyframes panelFadeIn {

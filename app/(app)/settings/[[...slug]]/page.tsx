@@ -55,6 +55,7 @@ type Profile = {
   phone: string | null
   avatar_url: string | null
   avatar_color: string | null
+  role: string | null
   theme_pref: string | null
   notif_email: boolean | null
   notif_push: boolean | null
@@ -149,7 +150,7 @@ export default function SettingsPage() {
       const uid = session.user.id
       const { data: p } = await supabase
         .from('profiles')
-        .select('id,email,full_name,position,phone,avatar_url,avatar_color,theme_pref,notif_email,notif_push,company_name,company_desc,company_industry,company_size,company_website,legal_form,vat_number,tax_number,company_address,company_city,company_zip,company_country')
+        .select('id,email,full_name,position,phone,avatar_url,avatar_color,role,theme_pref,notif_email,notif_push,company_name,company_desc,company_industry,company_size,company_website,legal_form,vat_number,tax_number,company_address,company_city,company_zip,company_country')
         .eq('id', uid)
         .maybeSingle()
 
@@ -359,6 +360,20 @@ export default function SettingsPage() {
 
   const initials = (fullName || profile?.email || 'F')
     .split(' ').map(s => s[0]).filter(Boolean).slice(0,2).join('').toUpperCase() || 'F'
+  const profileCompletion = [
+    avatarUrl,
+    fullName.trim(),
+    position.trim(),
+    phone.trim(),
+    profile?.email,
+  ].filter(Boolean).length
+  const profileCompletionPct = Math.round((profileCompletion / 5) * 100)
+  const roleLabel = profile?.role === 'dev'
+    ? 'Developer'
+    : profile?.role === 'admin'
+      ? 'Admin'
+      : 'Client'
+  const loginLabel = identities.find(i => i.provider === 'google') ? 'Google + Magic-Link' : 'Magic-Link'
 
   return (
     <div className="set">
@@ -378,13 +393,13 @@ export default function SettingsPage() {
           letter-spacing: 0.01em;
           min-height: 100dvh;
           display: flex;
-          justify-content: center;
+          justify-content: flex-start;
         }
 
         /* ── MAIN (centered, no inner sidebar) ──────────────────── */
         .set-main {
-          padding: 56px clamp(20px, 4vw, 56px) 80px;
-          max-width: 720px;
+          padding: 56px clamp(28px, 4.5vw, 72px) 80px;
+          max-width: 1120px;
           width: 100%;
         }
         .set-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px; gap: 16px; }
@@ -404,6 +419,68 @@ export default function SettingsPage() {
           border-radius: 12px;
           padding: 4px 0;
           margin-bottom: 18px;
+        }
+        .set-profile-layout {
+          display: grid;
+          grid-template-columns: minmax(0, 760px) minmax(240px, 300px);
+          gap: 18px;
+          align-items: start;
+        }
+        .set-side-stack {
+          display: flex;
+          flex-direction: column;
+          gap: 18px;
+        }
+        .set-mini-card {
+          background: var(--set-card);
+          border: 1px solid var(--set-border);
+          border-radius: 12px;
+          padding: 18px;
+        }
+        .set-mini-title {
+          font-size: 13.5px;
+          font-weight: 650;
+          letter-spacing: 0;
+          margin-bottom: 8px;
+        }
+        .set-mini-copy {
+          font-size: 12.5px;
+          line-height: 1.5;
+          color: var(--set-text-muted);
+          margin: 0;
+        }
+        .set-progress {
+          height: 6px;
+          border-radius: 999px;
+          background: color-mix(in srgb, var(--set-text) 8%, transparent);
+          overflow: hidden;
+          margin: 12px 0 10px;
+        }
+        .set-progress span {
+          display: block;
+          height: 100%;
+          border-radius: inherit;
+          background: var(--set-text);
+        }
+        .set-meta-list {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          margin-top: 12px;
+        }
+        .set-meta-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          font-size: 12.5px;
+          color: var(--set-text-muted);
+        }
+        .set-meta-row strong {
+          color: var(--set-text-secondary);
+          font-size: 12.5px;
+          font-weight: 650;
+          text-align: right;
         }
         .set-row {
           display: grid;
@@ -593,6 +670,7 @@ export default function SettingsPage() {
         /* Mobile */
         @media (max-width: 760px) {
           .set-main { padding: 24px 20px 60px; }
+          .set-profile-layout { grid-template-columns: 1fr; }
           .set-row { grid-template-columns: 1fr; padding: 14px 16px; gap: 8px; }
         }
       `}</style>
@@ -605,7 +683,7 @@ export default function SettingsPage() {
         {error && <div className="set-error">{error}</div>}
 
         {section === 'profile' && (
-          <>
+          <div className="set-profile-layout">
             <div className="set-card">
               <div className="set-row">
                 <div>
@@ -670,6 +748,13 @@ export default function SettingsPage() {
                 </div>
               </div>
               <div className="set-row">
+                <div>
+                  <div className="set-label">Anzeigename</div>
+                  <div className="set-label-sub">So erscheint dein Profil in Kommentaren und Projektfreigaben.</div>
+                </div>
+                <div className="set-value">{fullName.trim() || profile?.email?.split('@')[0] || 'Noch nicht gesetzt'}</div>
+              </div>
+              <div className="set-row">
                 <div className="set-label">Vollständiger Name</div>
                 <input
                   className="set-input"
@@ -708,7 +793,47 @@ export default function SettingsPage() {
                 </button>
               </div>
             </div>
-          </>
+            <aside className="set-side-stack" aria-label="Profil Kontext">
+              <div className="set-mini-card">
+                <div className="set-mini-title">Profilvollständigkeit</div>
+                <p className="set-mini-copy">
+                  Ein vollständiges Profil hilft Tagro bei Zuordnung, Kommunikation und Projektkontext.
+                </p>
+                <div className="set-progress" aria-hidden="true">
+                  <span style={{ width: `${profileCompletionPct}%` }} />
+                </div>
+                <div className="set-meta-row">
+                  <span>Status</span>
+                  <strong>{profileCompletionPct}% vollständig</strong>
+                </div>
+              </div>
+
+              <div className="set-mini-card">
+                <div className="set-mini-title">Account Kontext</div>
+                <div className="set-meta-list">
+                  <div className="set-meta-row">
+                    <span>Rolle</span>
+                    <strong>{roleLabel}</strong>
+                  </div>
+                  <div className="set-meta-row">
+                    <span>Anmeldung</span>
+                    <strong>{loginLabel}</strong>
+                  </div>
+                  <div className="set-meta-row">
+                    <span>Workspace</span>
+                    <strong>{compName || 'Privat'}</strong>
+                  </div>
+                </div>
+              </div>
+
+              <div className="set-mini-card">
+                <div className="set-mini-title">Empfohlen</div>
+                <p className="set-mini-copy">
+                  Hinterlege Position und Telefon, damit Developer bei Rückfragen schneller den richtigen Kontext haben.
+                </p>
+              </div>
+            </aside>
+          </div>
         )}
 
         {section === 'appearance' && (
