@@ -18,12 +18,13 @@
  * folgt im nächsten Push, sobald das Design steht.
  */
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   Tray, Briefcase, Receipt, UsersThree, Sparkle,
   CheckCircle, ChatCircle, ArrowSquareOut,
   SlidersHorizontal, Funnel,
 } from '@phosphor-icons/react'
+import { createClient } from '@/lib/supabase/client'
 
 type Category = 'all' | 'project' | 'billing' | 'account' | 'tagro'
 type ItemType = 'update' | 'action' | 'question' | 'deliverable' | 'note'
@@ -73,6 +74,63 @@ const ITEM_TYPE_COLOR: Record<ItemType, string> = {
   note:        'var(--text-muted)',
 }
 
+type DbInboxRow = {
+  id: string
+  thread_id: string
+  user_id: string
+  project_id: string | null
+  category: 'tagro' | 'client' | 'team' | 'system' | 'billing' | 'support'
+  type:
+    | 'chat_message' | 'system_event' | 'project_event'
+    | 'invoice_created' | 'payment_event' | 'guarantee_event'
+    | 'support_event' | 'task_event' | 'status_update'
+  title: string
+  body: string | null
+  metadata: any
+  read_at: string | null
+  created_at: string
+}
+
+function dbCategoryToUi(c: DbInboxRow['category']): Exclude<Category, 'all'> {
+  if (c === 'billing') return 'billing'
+  if (c === 'system' || c === 'support') return 'account'
+  if (c === 'client' || c === 'team') return 'project'
+  return 'tagro'
+}
+
+function dbTypeToUi(t: DbInboxRow['type'], meta: any): ItemType {
+  if (meta?.actionable === true) return 'action'
+  if (t === 'chat_message') return 'note'
+  if (t === 'support_event') return 'question'
+  return 'update'
+}
+
+function sourceLabel(c: DbInboxRow['category']): string {
+  if (c === 'billing') return 'Festag Abrechnung'
+  if (c === 'system') return 'Festag'
+  if (c === 'support') return 'Support'
+  if (c === 'tagro') return 'Tagro'
+  if (c === 'team') return 'Team'
+  return 'Festag Team'
+}
+
+function dbRowToItem(row: DbInboxRow, projectTitles: Record<string, string>): Item {
+  const cat = dbCategoryToUi(row.category)
+  return {
+    id: row.id,
+    category: cat,
+    type: dbTypeToUi(row.type, row.metadata),
+    source: row.metadata?.source_label || sourceLabel(row.category),
+    project: row.project_id ? projectTitles[row.project_id] : undefined,
+    title: row.title,
+    preview: (row.body ?? '').slice(0, 200),
+    body: row.body ?? undefined,
+    createdAt: new Date(row.created_at),
+    unread: !row.read_at,
+    actionable: Boolean(row.metadata?.actionable),
+  }
+}
+
 function formatTime(d: Date) {
   const now = Date.now()
   const diffMin = Math.round((now - d.getTime()) / 60000)
@@ -86,12 +144,79 @@ function formatTime(d: Date) {
 }
 
 export default function InboxPage() {
+  const supabase = useMemo(() => createClient(), [])
   const [active, setActive] = useState<Category>('all')
   const [selectedId, setSelectedId] = useState<string | null>(null)
-  const [items] = useState<Item[]>([])  // Phase 2: load from inbox_items
+  const [items, setItems] = useState<Item[]>([])
+  const [projectTitles, setProjectTitles] = useState<Record<string, string>>({})
+  const [loading, setLoading] = useState(true)
+
+  // Load inbox items + project titles for the project tag.
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) { setLoading(false); return }
+
+      const [{ data: rows }, { data: projs }] = await Promise.all([
+        supabase.from('inbox_items')
+          .select('id,thread_id,user_id,project_id,category,type,title,body,metadata,read_at,created_at')
+          .eq('user_id', session.user.id)
+          .order('created_at', { ascending: false })
+          .limit(120),
+        supabase.from('projects').select('id,title'),
+      ])
+      if (cancelled) return
+
+      const titleMap: Record<string, string> = {}
+      ;((projs as { id: string; title: string }[] | null) ?? []).forEach(p => { titleMap[p.id] = p.title })
+      setProjectTitles(titleMap)
+
+      const dbRows = (rows as DbInboxRow[] | null) ?? []
+      setItems(dbRows.map(r => dbRowToItem(r, titleMap)))
+      setLoading(false)
+    })()
+    return () => { cancelled = true }
+  }, [supabase])
+
+  // Realtime: prepend new inbox items, update changed ones.
+  useEffect(() => {
+    let userId: string | null = null
+    const init = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      userId = session?.user.id ?? null
+    }
+    init()
+
+    const channel = supabase
+      .channel('inbox-stream')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'inbox_items' }, payload => {
+        const row = payload.new as DbInboxRow
+        if (!userId || row.user_id !== userId) return
+        setItems(prev => [dbRowToItem(row, projectTitles), ...prev.filter(i => i.id !== row.id)])
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'inbox_items' }, payload => {
+        const row = payload.new as DbInboxRow
+        if (!userId || row.user_id !== userId) return
+        setItems(prev => prev.map(i => i.id === row.id ? dbRowToItem(row, projectTitles) : i))
+      })
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [supabase, projectTitles])
 
   const filtered = active === 'all' ? items : items.filter(i => i.category === active)
   const selected = filtered.find(i => i.id === selectedId) || null
+
+  async function markRead(itemId: string) {
+    const now = new Date().toISOString()
+    setItems(prev => prev.map(i => i.id === itemId ? { ...i, unread: false } : i))
+    try {
+      await supabase.from('inbox_items').update({ read_at: now }).eq('id', itemId)
+    } catch {}
+  }
 
   const unreadByCategory: Record<Category, number> = {
     all:     items.filter(i => i.unread).length,
@@ -145,7 +270,11 @@ export default function InboxPage() {
         </nav>
 
         <div className="ix-thread-scroll">
-          {filtered.length === 0 ? (
+          {loading ? (
+            <div className="ix-empty-list">
+              <span className="ix-empty-sub">Posteingang wird geladen…</span>
+            </div>
+          ) : filtered.length === 0 ? (
             <EmptyList active={active} />
           ) : (
             filtered.map(item => (
@@ -153,7 +282,10 @@ export default function InboxPage() {
                 key={item.id}
                 item={item}
                 selected={item.id === selectedId}
-                onClick={() => setSelectedId(item.id)}
+                onClick={() => {
+                  setSelectedId(item.id)
+                  if (item.unread) markRead(item.id)
+                }}
               />
             ))
           )}

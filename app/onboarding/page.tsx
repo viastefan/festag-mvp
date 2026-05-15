@@ -162,6 +162,12 @@ export default function OnboardingPage() {
           completed_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         })
+
+        // Plant the first Tagro-Memory entries so the bot is never empty
+        // on first use. Fire-and-forget; failures must not block redirect.
+        try {
+          fetch('/api/onboarding/seed-memory', { method: 'POST', credentials: 'include' })
+        } catch {}
         const { data: { session } } = await supabase.auth.getSession()
         if (session) {
           rememberFestagAccount({
