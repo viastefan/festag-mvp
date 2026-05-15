@@ -712,6 +712,11 @@ Keine Emojis. Keine Floskeln. Wenn keine Daten vorliegen, ehrlich sagen "Noch ke
           </div>
         </section>
 
+        <BriefingDeliveryCard
+          projectId={selectedProjectId === 'all' ? null : selectedProjectId}
+          projectTitle={selectedProjectId === 'all' ? null : (currentProject?.title ?? null)}
+        />
+
         <section className="reports-commandline" aria-label="Statusbericht Einstellungen">
         <div className="reports-controls">
           <select className="reports-select" value={selectedProjectId} onChange={(event) => setSelectedProjectId(event.target.value)} aria-label="Projekt auswählen">
@@ -988,6 +993,203 @@ Keine Emojis. Keine Floskeln. Wenn keine Daten vorliegen, ehrlich sagen "Noch ke
       </main>
       </div>
     </div>
+  )
+}
+
+function BriefingDeliveryCard({ projectId, projectTitle }: { projectId: string | null; projectTitle: string | null }) {
+  const supabase = useMemo(() => createClient(), [])
+  const [cadence, setCadence] = useState<'daily' | 'weekly' | 'biweekly' | 'off'>('off')
+  const [format, setFormat] = useState<'email' | 'audio' | 'both'>('email')
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+  const [lastSent, setLastSent] = useState<string | null>(null)
+  const [nextRun, setNextRun] = useState<string | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      setLoading(true)
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) { setLoading(false); return }
+      const { data } = await supabase
+        .from('briefing_subscriptions')
+        .select('cadence,format,last_sent_at,next_run_at')
+        .eq('user_id', session.user.id)
+        .eq('project_id', projectId ?? '00000000-0000-0000-0000-000000000000') // sentinel
+        .maybeSingle()
+      if (cancelled) return
+      if (data) {
+        setCadence((data as any).cadence)
+        setFormat((data as any).format)
+        setLastSent((data as any).last_sent_at)
+        setNextRun((data as any).next_run_at)
+      } else {
+        // Fallback: workspace-level subscription (no project) if no project-specific exists
+        const { data: ws } = await supabase
+          .from('briefing_subscriptions')
+          .select('cadence,format,last_sent_at,next_run_at')
+          .eq('user_id', session.user.id)
+          .is('project_id', null)
+          .maybeSingle()
+        if (!cancelled && ws) {
+          setCadence((ws as any).cadence)
+          setFormat((ws as any).format)
+          setLastSent((ws as any).last_sent_at)
+          setNextRun((ws as any).next_run_at)
+        }
+      }
+      setLoading(false)
+    })()
+    return () => { cancelled = true }
+  }, [supabase, projectId])
+
+  async function save(nextCadence: typeof cadence, nextFormat: typeof format) {
+    setSaving(true); setSaved(false)
+    try {
+      const res = await fetch('/api/briefings/subscribe', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projectId, cadence: nextCadence, format: nextFormat }),
+      })
+      const json = await res.json()
+      if (json?.subscription) {
+        setNextRun(json.subscription.next_run_at)
+        setSaved(true)
+        setTimeout(() => setSaved(false), 1800)
+      }
+    } catch {}
+    setSaving(false)
+  }
+
+  const nextLabel = nextRun
+    ? new Date(nextRun).toLocaleString('de-DE', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
+    : '—'
+  const lastLabel = lastSent
+    ? new Date(lastSent).toLocaleString('de-DE', { day: '2-digit', month: 'short' })
+    : 'noch nie zugestellt'
+
+  return (
+    <section className="delivery-card" aria-label="Briefing-Zustellung">
+      <style>{`
+        .delivery-card {
+          display: grid;
+          grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+          gap: 22px;
+          padding: 18px 22px;
+          margin: 0 0 28px;
+          border: 1px solid color-mix(in srgb, var(--border) 64%, transparent);
+          border-radius: 14px;
+          background: color-mix(in srgb, var(--surface) 50%, transparent);
+        }
+        .delivery-card-head { display: flex; flex-direction: column; gap: 6px; }
+        .delivery-card-kicker {
+          font-size: 11px; font-weight: 660; letter-spacing: .04em;
+          color: var(--text-muted); text-transform: uppercase;
+        }
+        .delivery-card-title {
+          margin: 0; font-size: 17px; font-weight: 600; color: var(--text);
+          letter-spacing: -.005em; line-height: 1.25;
+        }
+        .delivery-card-sub {
+          margin: 0; font-size: 12.5px; color: var(--text-muted); line-height: 1.55;
+        }
+        .delivery-card-meta {
+          margin-top: 8px;
+          display: flex; gap: 14px; flex-wrap: wrap;
+          font-size: 11.5px; color: var(--text-muted);
+        }
+        .delivery-card-meta strong { color: var(--text-secondary); font-weight: 600; }
+        .delivery-controls { display: flex; flex-direction: column; gap: 10px; }
+        .delivery-row {
+          display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+        }
+        .delivery-row-label {
+          font-size: 11.5px; font-weight: 600; letter-spacing: .01em;
+          color: var(--text-muted); min-width: 76px;
+        }
+        .delivery-chip {
+          padding: 5px 11px;
+          border-radius: 999px;
+          border: 1px solid var(--border);
+          background: transparent;
+          font: inherit; font-size: 12px; font-weight: 580;
+          color: var(--text-secondary);
+          cursor: pointer;
+          transition: background .12s, color .12s, border-color .12s;
+        }
+        .delivery-chip:hover { color: var(--text); border-color: var(--border-strong); }
+        .delivery-chip.on {
+          background: var(--text); color: var(--bg); border-color: var(--text);
+        }
+        .delivery-saved {
+          font-size: 11.5px; font-weight: 600; color: #15803D;
+          opacity: 0; transition: opacity .15s;
+        }
+        .delivery-saved.on { opacity: 1; }
+        @media (max-width: 760px) {
+          .delivery-card { grid-template-columns: 1fr; padding: 16px; }
+        }
+      `}</style>
+
+      <div className="delivery-card-head">
+        <span className="delivery-card-kicker">Briefing-Zustellung</span>
+        <h3 className="delivery-card-title">
+          {cadence === 'off'
+            ? 'Lass Tagro dir das Briefing automatisch zustellen'
+            : `Tagro liefert ${projectTitle ? `"${projectTitle}"` : 'deine Workspace-Briefings'} ${cadence === 'daily' ? 'täglich' : cadence === 'weekly' ? 'wöchentlich' : 'alle zwei Wochen'}`}
+        </h3>
+        <p className="delivery-card-sub">
+          Aus dem Bericht wird ein Audio-Briefing und/oder eine ruhige E-Mail. Wenn nichts Neues anliegt, schickt Tagro auch nichts.
+        </p>
+        <div className="delivery-card-meta">
+          <span><strong>Nächste Zustellung:</strong> {cadence === 'off' ? 'inaktiv' : nextLabel}</span>
+          <span><strong>Letzte Zustellung:</strong> {lastLabel}</span>
+        </div>
+      </div>
+
+      <div className="delivery-controls">
+        <div className="delivery-row">
+          <span className="delivery-row-label">Rhythmus</span>
+          {([
+            { id: 'off',      label: 'Aus' },
+            { id: 'daily',    label: 'Täglich' },
+            { id: 'weekly',   label: 'Wöchentlich' },
+            { id: 'biweekly', label: '2-wöchentlich' },
+          ] as const).map(o => (
+            <button
+              key={o.id}
+              type="button"
+              className={`delivery-chip${cadence === o.id ? ' on' : ''}`}
+              onClick={() => { setCadence(o.id); save(o.id, format) }}
+              disabled={saving || loading}
+            >
+              {o.label}
+            </button>
+          ))}
+        </div>
+        <div className="delivery-row">
+          <span className="delivery-row-label">Format</span>
+          {([
+            { id: 'email', label: 'E-Mail' },
+            { id: 'audio', label: 'Audio' },
+            { id: 'both',  label: 'Beides' },
+          ] as const).map(o => (
+            <button
+              key={o.id}
+              type="button"
+              className={`delivery-chip${format === o.id ? ' on' : ''}`}
+              onClick={() => { setFormat(o.id); save(cadence, o.id) }}
+              disabled={saving || loading || cadence === 'off'}
+            >
+              {o.label}
+            </button>
+          ))}
+          <span className={`delivery-saved${saved ? ' on' : ''}`}>Gespeichert</span>
+        </div>
+      </div>
+    </section>
   )
 }
 
