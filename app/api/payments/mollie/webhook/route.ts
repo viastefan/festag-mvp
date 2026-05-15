@@ -38,19 +38,21 @@ export async function POST(req: NextRequest) {
         const { data: project } = await sb.from('projects').select('user_id').eq('id', projectId).maybeSingle()
         userId = (project as any)?.user_id ?? null
       }
-      await sb.from('payments').upsert({
-        user_id: userId,
-        project_id: projectId,
-        milestone_id: milestoneId,
-        provider: 'mollie',
-        provider_id: id,
-        status: data.status,
-        amount: Number(data.amount?.value ?? 0),
-        currency: data.amount?.currency ?? 'EUR',
-        description: data.description ?? null,
-        metadata: data.metadata ?? null,
-        updated_at: new Date().toISOString(),
-      }, { onConflict: 'provider_id' }).catch(() => {})
+      try {
+        await sb.from('payments').upsert({
+          user_id: userId,
+          project_id: projectId,
+          milestone_id: milestoneId,
+          provider: 'mollie',
+          provider_id: id,
+          status: data.status,
+          amount: Number(data.amount?.value ?? 0),
+          currency: data.amount?.currency ?? 'EUR',
+          description: data.description ?? null,
+          metadata: data.metadata ?? null,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: 'provider_id' })
+      } catch {}
     }
 
     return NextResponse.json({ ok: true })
