@@ -625,6 +625,7 @@ body.locked { overflow: hidden; touch-action: none; }
   --font-ui: var(--font-primary);
   --font-mono: 'SF Mono', 'Geist Mono', ui-monospace, Menlo, Monaco, Consolas, monospace;
   --ui-density-scale: 1;
+  --button-radius: 32px;
 }
 [data-font="sf-pro"] { --font-primary: var(--font-sf-pro); --font-ui: var(--font-sf-pro); letter-spacing: -0.012em; }
 [data-font="aeonik"],
@@ -634,6 +635,31 @@ body.locked { overflow: hidden; touch-action: none; }
 [data-density="compact"] { --ui-density-scale: .92; }
 html, body, button, input, select, textarea { font-family: var(--font-ui); }
 code, pre, kbd, samp { font-family: var(--font-mono); }
+
+/* Festag button language: every button is a soft 32px pill.
+   Text inputs keep their own field geometry. */
+button,
+a[role="button"],
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+.app-header-button,
+.app-page-header__action > a,
+.app-page-header__action > button,
+.set-btn,
+.dash-button,
+.vr-btn,
+.vr-chip,
+.audio-briefing-button,
+.voice-icon-btn,
+.voice-field,
+.voice-text-btn,
+:is(a, button)[class*="btn"],
+:is(a, button)[class*="button"],
+:is(a, button)[class*="chip"],
+:is(a, button)[class*="pill"] {
+  border-radius: var(--button-radius) !important;
+}
 
 /* Tagro Audio Briefings */
 .audio-briefing-wrap { position: relative; display: inline-flex; }
