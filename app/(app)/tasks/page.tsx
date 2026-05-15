@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import NewTaskModal from '@/components/NewTaskModal'
 import {
   CheckCircle,
   Code,
@@ -21,6 +20,7 @@ import {
 
 type TaskView = 'all' | 'open' | 'active' | 'decision' | 'review' | 'done'
 type SortMode = 'newest' | 'updated' | 'priority' | 'project'
+type ComposerMode = 'tagro' | 'manual'
 
 type TaskRow = {
   id: string
@@ -42,6 +42,14 @@ type ProjectRow = {
   title: string
   color?: string | null
 }
+
+const PRIORITY_OPTIONS = [
+  { id: 'none', label: 'Keine Priorität' },
+  { id: 'critical', label: 'Kritisch' },
+  { id: 'high', label: 'Hoch' },
+  { id: 'medium', label: 'Mittel' },
+  { id: 'low', label: 'Niedrig' },
+]
 
 const VIEWS: { id: TaskView; label: string }[] = [
   { id: 'all', label: 'Alle Aufgaben' },
@@ -158,7 +166,16 @@ export default function TasksPage() {
   const [sortMode, setSortMode] = useState<SortMode>('newest')
   const [filterMenuOpen, setFilterMenuOpen] = useState(false)
   const [sortMenuOpen, setSortMenuOpen] = useState(false)
-  const [taskModalOpen, setTaskModalOpen] = useState(false)
+  const [composerOpen, setComposerOpen] = useState(false)
+  const [composerMode, setComposerMode] = useState<ComposerMode>('tagro')
+  const [suggestProjectId, setSuggestProjectId] = useState('')
+  const [suggestTitle, setSuggestTitle] = useState('')
+  const [suggestDescription, setSuggestDescription] = useState('')
+  const [suggestPriority, setSuggestPriority] = useState('none')
+  const [suggestDueDate, setSuggestDueDate] = useState('')
+  const [suggestLabelInput, setSuggestLabelInput] = useState('')
+  const [suggestLabels, setSuggestLabels] = useState<string[]>([])
+  const [creatingSuggestion, setCreatingSuggestion] = useState(false)
 
   const supabase = createClient()
 
@@ -170,6 +187,7 @@ export default function TasksPage() {
     ])
     setTasks((taskData as TaskRow[]) ?? [])
     setProjects((projectData as ProjectRow[]) ?? [])
+    setSuggestProjectId((current) => current || ((projectData as ProjectRow[] | null)?.[0]?.id ?? ''))
     setLoading(false)
   }
 
@@ -246,6 +264,59 @@ export default function TasksPage() {
     }))
   }
 
+  function resetComposer() {
+    setSuggestTitle('')
+    setSuggestDescription('')
+    setSuggestPriority('none')
+    setSuggestDueDate('')
+    setSuggestLabelInput('')
+    setSuggestLabels([])
+    setComposerMode('tagro')
+  }
+
+  function closeComposer() {
+    setComposerOpen(false)
+    resetComposer()
+  }
+
+  function addSuggestionLabel() {
+    const label = suggestLabelInput.trim()
+    if (!label || suggestLabels.includes(label)) return
+    setSuggestLabels((current) => [...current, label])
+    setSuggestLabelInput('')
+  }
+
+  async function createSuggestedTask() {
+    const title = suggestTitle.trim()
+    const description = suggestDescription.trim()
+    const fallbackTitle = description.split(/\s+/).slice(0, 9).join(' ').replace(/[.,;:!?]+$/, '')
+    const finalTitle = title || fallbackTitle
+    if (!finalTitle || !suggestProjectId || creatingSuggestion) return
+
+    setCreatingSuggestion(true)
+    try {
+      const { error } = await (supabase as any).from('tasks').insert({
+        project_id: suggestProjectId,
+        title: finalTitle,
+        description: description || null,
+        status: 'suggested',
+        priority: suggestPriority === 'none' ? null : suggestPriority,
+        due_date: suggestDueDate || null,
+        tags: suggestLabels.length ? suggestLabels : null,
+        source: composerMode === 'tagro' ? 'client_suggestion_tagro' : 'client_suggestion_manual',
+        customer_update: composerMode === 'tagro'
+          ? 'Client-Vorschlag wartet auf Tagro-Prüfung.'
+          : 'Client-Vorschlag manuell eingereicht.',
+      })
+      if (!error) {
+        closeComposer()
+        await loadTasks()
+      }
+    } finally {
+      setCreatingSuggestion(false)
+    }
+  }
+
   return (
     <div className="task-os">
       <style>{`
@@ -253,7 +324,7 @@ export default function TasksPage() {
           width:100%;
           min-height:100%;
           color:var(--text);
-          padding-top:0;
+          padding:30px 34px 92px;
         }
         .task-top {
           display:flex;
@@ -261,7 +332,7 @@ export default function TasksPage() {
           justify-content:space-between;
           min-height:38px;
           border-bottom:0;
-          padding:0 4px 8px 0;
+          padding:0 2px 8px;
           margin-bottom:6px;
         }
         .task-title {
@@ -382,18 +453,17 @@ export default function TasksPage() {
         .task-table {
           width:100%;
           overflow:hidden;
-          padding-left:10px;
         }
         .task-head,
         .task-row {
           display:grid;
-          grid-template-columns:62px minmax(300px,1.55fr) minmax(170px,.95fr) 94px 122px 110px 74px 112px;
+          grid-template-columns:72px minmax(320px,1.55fr) minmax(170px,.95fr) 94px 122px 110px 74px 112px;
           align-items:center;
           gap:14px;
         }
         .task-head {
           min-height:34px;
-          padding:0 14px;
+          padding:0 18px;
           color:var(--text-muted);
           font-size:12.5px;
           font-weight:650;
@@ -401,13 +471,161 @@ export default function TasksPage() {
         }
         .task-row {
           min-height:52px;
-          padding:0 14px;
+          padding:0 18px;
           border-bottom:0;
           color:var(--text-secondary);
           font-size:12.5px;
         }
         .task-row:hover {
           background:color-mix(in srgb, var(--surface-2) 58%, transparent);
+        }
+        .task-composer {
+          border:1px solid var(--border);
+          border-radius:16px;
+          background:color-mix(in srgb, var(--surface) 72%, transparent);
+          box-shadow:0 18px 46px rgba(0,0,0,.06);
+          margin:0 0 22px;
+          overflow:hidden;
+          animation:taskComposerIn .18s cubic-bezier(.16,1,.3,1) both;
+        }
+        [data-theme="dark"] .task-composer {
+          background:color-mix(in srgb, var(--surface) 82%, transparent);
+          box-shadow:0 18px 46px rgba(0,0,0,.22);
+        }
+        @keyframes taskComposerIn {
+          from { opacity:0; transform:translateY(-6px); }
+          to { opacity:1; transform:none; }
+        }
+        .task-composer-top {
+          display:flex;
+          align-items:center;
+          justify-content:space-between;
+          gap:12px;
+          padding:13px 16px 10px;
+          border-bottom:1px solid var(--border);
+        }
+        .task-project-select {
+          display:inline-flex;
+          align-items:center;
+          gap:7px;
+          min-width:0;
+          height:28px;
+          padding:0 10px;
+          border-radius:9px;
+          border:1px solid var(--border);
+          background:color-mix(in srgb, var(--surface-2) 48%, transparent);
+          color:var(--text);
+        }
+        .task-project-select select,
+        .task-composer-field,
+        .task-chip-field {
+          border:0;
+          outline:0;
+          background:transparent;
+          color:inherit;
+          font:inherit;
+        }
+        .task-project-select select { max-width:280px; font-size:12.5px; font-weight:650; }
+        .task-composer-body { padding:16px; }
+        .task-mode-tabs { display:flex; gap:8px; margin-bottom:12px; }
+        .task-mode-tabs button {
+          height:32px;
+          padding:0 13px;
+          border-radius:999px;
+          border:1px solid var(--border);
+          background:transparent;
+          color:var(--text-secondary);
+          font:inherit;
+          font-size:12.5px;
+          font-weight:700;
+          cursor:pointer;
+        }
+        .task-mode-tabs button.on {
+          background:var(--surface-2);
+          color:var(--text);
+        }
+        .task-tagro-note {
+          padding:12px 13px;
+          border-radius:12px;
+          border:1px solid var(--border);
+          background:color-mix(in srgb, var(--surface-2) 46%, transparent);
+          color:var(--text-secondary);
+          font-size:12.5px;
+          line-height:1.55;
+          margin-bottom:14px;
+        }
+        .task-composer-field.title {
+          width:100%;
+          display:block;
+          font-size:22px;
+          font-weight:720;
+          letter-spacing:0;
+          margin:0 0 8px;
+        }
+        .task-composer-field.description {
+          width:100%;
+          min-height:86px;
+          resize:vertical;
+          color:var(--text-secondary);
+          font-size:14px;
+          line-height:1.6;
+        }
+        .task-chip-row {
+          display:flex;
+          align-items:center;
+          flex-wrap:wrap;
+          gap:7px;
+          padding:12px 16px 14px;
+          border-top:1px solid var(--border);
+        }
+        .task-composer-chip {
+          height:28px;
+          display:inline-flex;
+          align-items:center;
+          gap:7px;
+          border:1px solid var(--border);
+          border-radius:9px;
+          padding:0 10px;
+          background:transparent;
+          color:var(--text-secondary);
+          font-size:12px;
+          font-weight:650;
+        }
+        .task-composer-chip.has-value { color:var(--text); }
+        .task-composer-chip input[type="date"] { color-scheme:inherit; max-width:124px; }
+        .task-composer-footer {
+          min-height:46px;
+          display:flex;
+          align-items:center;
+          justify-content:space-between;
+          gap:12px;
+          padding:8px 16px;
+          border-top:1px solid var(--border);
+          color:var(--text-muted);
+          font-size:12px;
+          font-weight:650;
+        }
+        .task-composer-actions { display:flex; align-items:center; gap:8px; }
+        .task-composer-actions button {
+          height:32px;
+          padding:0 14px;
+          border-radius:9px;
+          border:1px solid var(--border);
+          background:transparent;
+          color:var(--text-secondary);
+          font:inherit;
+          font-size:12.5px;
+          font-weight:700;
+          cursor:pointer;
+        }
+        .task-composer-actions button.primary {
+          background:var(--btn-prim);
+          color:var(--btn-prim-text);
+          border-color:transparent;
+        }
+        .task-composer-actions button:disabled {
+          opacity:.48;
+          cursor:not-allowed;
         }
         .task-row.selected {
           background:rgba(99,102,241,.13);
@@ -595,13 +813,22 @@ export default function TasksPage() {
           .task-head,
           .task-row { min-width:1120px; }
         }
+        @media(max-width:760px) {
+          .task-os { padding:18px 16px calc(110px + var(--safe-bottom)); }
+          .task-top,
+          .task-toolbar { flex-direction:column; align-items:flex-start; }
+          .task-tools { align-self:flex-end; }
+          .task-composer-top,
+          .task-composer-footer { align-items:flex-start; flex-direction:column; }
+          .task-project-select select { max-width:210px; }
+        }
       `}</style>
 
       <div className="task-top">
         <h1 className="task-title">Tasks</h1>
-        <button className="task-create" type="button" aria-label="Neue Aufgabe vorschlagen" onClick={() => setTaskModalOpen(true)}>
+        <button className="task-create" type="button" aria-label="Neue Aufgabe vorschlagen" onClick={() => setComposerOpen((open) => !open)}>
           <span>Aufgabe vorschlagen</span>
-          <span style={{ fontSize: 19, lineHeight: 1 }}>+</span>
+          <span style={{ fontSize: 19, lineHeight: 1 }}>{composerOpen ? '×' : '+'}</span>
         </button>
       </div>
 
@@ -654,6 +881,130 @@ export default function TasksPage() {
           </div>
         </div>
       </div>
+
+      {composerOpen && (
+        <section className="task-composer" aria-label="Aufgabe vorschlagen">
+          <div className="task-composer-top">
+            <div style={{ display:'flex', alignItems:'center', gap:9, minWidth:0 }}>
+              <label className="task-project-select">
+                <span
+                  style={{
+                    width:9,
+                    height:9,
+                    borderRadius:3,
+                    background:projectById.get(suggestProjectId)?.color || 'var(--text-muted)',
+                    flexShrink:0,
+                  }}
+                />
+                <select value={suggestProjectId} onChange={(event) => setSuggestProjectId(event.target.value)}>
+                  {projects.map((project) => (
+                    <option key={project.id} value={project.id}>{project.title}</option>
+                  ))}
+                </select>
+              </label>
+              <span style={{ color:'var(--text-muted)', fontSize:12 }}>›</span>
+              <span style={{ color:'var(--text-muted)', fontSize:12.5, fontWeight:650 }}>Aufgabe vorschlagen</span>
+            </div>
+            <button className="task-plus" type="button" aria-label="Vorschlag schließen" onClick={closeComposer}>
+              <X size={15} weight="bold" />
+            </button>
+          </div>
+
+          <div className="task-composer-body">
+            <div className="task-mode-tabs" role="tablist" aria-label="Vorschlagmodus">
+              <button type="button" className={composerMode === 'tagro' ? 'on' : ''} onClick={() => setComposerMode('tagro')}>
+                Tagro prüfen lassen
+              </button>
+              <button type="button" className={composerMode === 'manual' ? 'on' : ''} onClick={() => setComposerMode('manual')}>
+                Manuell
+              </button>
+            </div>
+
+            {composerMode === 'tagro' && (
+              <div className="task-tagro-note">
+                Tagro ist Standard: Dein Vorschlag wird erst in Projektkontext übersetzt und zur Prüfung vorbereitet. Er geht nicht direkt ungeprüft in den Dev-Workflow.
+              </div>
+            )}
+
+            <input
+              className="task-composer-field title"
+              value={suggestTitle}
+              onChange={(event) => setSuggestTitle(event.target.value)}
+              placeholder="Welche Aufgabe möchtest du vorschlagen?"
+              autoFocus
+            />
+            <textarea
+              className="task-composer-field description"
+              value={suggestDescription}
+              onChange={(event) => setSuggestDescription(event.target.value)}
+              placeholder="Beschreibe Ziel, Kontext oder gewünschte Änderung. Tagro formuliert daraus einen prüfbaren Vorschlag..."
+            />
+          </div>
+
+          <div className="task-chip-row">
+            <span className="task-composer-chip has-value">
+              <span style={{ width:7, height:7, borderRadius:'50%', background:'#6366f1' }} />
+              Zur Prüfung
+            </span>
+            <label className={`task-composer-chip ${suggestPriority !== 'none' ? 'has-value' : ''}`}>
+              Priorität
+              <select className="task-chip-field" value={suggestPriority} onChange={(event) => setSuggestPriority(event.target.value)}>
+                {PRIORITY_OPTIONS.map((priority) => (
+                  <option key={priority.id} value={priority.id}>{priority.label}</option>
+                ))}
+              </select>
+            </label>
+            <label className={`task-composer-chip ${suggestDueDate ? 'has-value' : ''}`}>
+              Due date
+              <input className="task-chip-field" type="date" value={suggestDueDate} onChange={(event) => setSuggestDueDate(event.target.value)} />
+            </label>
+            <label className="task-composer-chip">
+              Label
+              <input
+                className="task-chip-field"
+                value={suggestLabelInput}
+                onChange={(event) => setSuggestLabelInput(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') {
+                    event.preventDefault()
+                    addSuggestionLabel()
+                  }
+                }}
+                placeholder="Enter"
+                style={{ width:72 }}
+              />
+            </label>
+            {suggestLabels.map((label) => (
+              <span key={label} className="task-composer-chip has-value">
+                {label}
+                <button
+                  type="button"
+                  onClick={() => setSuggestLabels((current) => current.filter((item) => item !== label))}
+                  style={{ border:0, background:'transparent', color:'inherit', cursor:'pointer', padding:0, display:'flex' }}
+                  aria-label={`${label} entfernen`}
+                >
+                  <X size={11} weight="bold" />
+                </button>
+              </span>
+            ))}
+          </div>
+
+          <div className="task-composer-footer">
+            <span>{composerMode === 'tagro' ? 'Status: Zur Prüfung durch Tagro' : 'Status: Vorschlag manuell eingereicht'}</span>
+            <div className="task-composer-actions">
+              <button type="button" onClick={closeComposer}>Abbrechen</button>
+              <button
+                type="button"
+                className="primary"
+                onClick={createSuggestedTask}
+                disabled={creatingSuggestion || !suggestProjectId || (!suggestTitle.trim() && !suggestDescription.trim())}
+              >
+                {creatingSuggestion ? 'Sende...' : composerMode === 'tagro' ? 'Mit Tagro vorschlagen' : 'Vorschlag senden'}
+              </button>
+            </div>
+          </div>
+        </section>
+      )}
 
       <div className="task-table">
         <div className="task-head">
@@ -728,15 +1079,6 @@ export default function TasksPage() {
           )
         })}
       </div>
-
-      {taskModalOpen && (
-        <NewTaskModal
-          onClose={() => setTaskModalOpen(false)}
-          onCreated={() => { setTaskModalOpen(false); loadTasks() }}
-          source="tagro"
-          mode="suggest"
-        />
-      )}
 
       {selectedTaskIds.length > 0 && (
         <div className="task-selection-bar" role="toolbar" aria-label="Ausgewählte Aufgaben Aktionen">
