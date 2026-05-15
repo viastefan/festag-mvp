@@ -156,7 +156,6 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
   const toolsNav: NavItem[] = wsMode === 'agency'
     ? [...CLIENT_TOOLS, { href: '/settings/workspace', icon: 'sparkle', label: 'White Label' }]
     : CLIENT_TOOLS
-  const showTeamsSection = true
   const mobPrimary = CLIENT_MOB_PRIMARY
   const mobQuick = CLIENT_MOB_QUICK
 
@@ -552,7 +551,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         }
         .sb-topbar {
           display:grid;
-          grid-template-columns:minmax(0, 1fr) 28px 34px;
+          grid-template-columns:minmax(0, 1fr) 28px 28px;
           align-items:center;
           gap:6px;
           padding:0 2px 11px;
@@ -575,17 +574,14 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           flex-shrink:0;
         }
         .sb-collapse-icon {
-          width:34px;
-          height:34px;
-          border-radius:999px;
-          background:var(--surface);
-          border:1px solid var(--border);
-          box-shadow:0 4px 14px rgba(0,0,0,.10);
-          color:var(--text);
+          background:transparent;
+          border-color:transparent;
+          box-shadow:none;
+          color:var(--text-muted);
         }
         [data-theme="dark"] .sb-collapse-icon {
-          background:color-mix(in srgb, var(--surface) 78%, transparent);
-          box-shadow:0 8px 18px rgba(0,0,0,.24);
+          background:transparent;
+          box-shadow:none;
         }
         .sb-top-icon:hover {
           color:var(--text);
@@ -620,6 +616,9 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         }
         .sb-square-action {
           color:var(--text-secondary);
+          font-size:12px;
+          font-weight:720;
+          letter-spacing:-.01em;
         }
         .sb-pill-action:hover,
         .sb-square-action:hover {
@@ -826,7 +825,6 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
               </Section>
             </div>
 
-            {showTeamsSection && (
             <div>
               <Section
                 label={wsMode === 'agency' ? 'Kunden-Teams' : 'Teams'}
@@ -866,7 +864,6 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
                 <NavItems items={teamsNav.slice(1)} />
               </Section>
             </div>
-            )}
 
             <div>
               <Section
@@ -969,7 +966,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
               )
             })()}
             <Link href="/ai?view=chat" className="sb-square-action" title="Mit Tagro sprechen" aria-label="Mit Tagro sprechen">
-              <Ico name="sparkle" sz={17} c="currentColor" weight="regular" />
+              Tagro
             </Link>
           </div>
         </div>
