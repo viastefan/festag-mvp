@@ -425,6 +425,8 @@ function ReportsPage() {
         .reports-primary { background:var(--btn-prim); color:var(--btn-prim-text); border-color:transparent; cursor:pointer; display:inline-flex; align-items:center; gap:7px; }
         .reports-primary:disabled, .reports-ghost:disabled, .reports-inline-action:disabled { opacity:.5; cursor:default; }
         .reports-ghost, .reports-inline-action { color:var(--text-secondary); cursor:pointer; display:inline-flex; align-items:center; gap:7px; text-decoration:none; }
+        .reports-inline-action--ghost { border-color:transparent; opacity:.72; }
+        .reports-inline-action--ghost:hover { opacity:1; border-color:color-mix(in srgb, var(--border) 50%, transparent); }
         .reports-ghost:hover:not(:disabled), .reports-inline-action:hover:not(:disabled) { color:var(--text); background:color-mix(in srgb, var(--surface-2) 72%, transparent); }
         .reports-section-kicker { margin:0 0 12px; color:var(--text-muted); font-size:11px; font-weight:790; letter-spacing:.09em; text-transform:uppercase; }
         .project-status-stream { margin-bottom:50px; }
@@ -453,6 +455,18 @@ function ReportsPage() {
         .report-meta-title strong { color:var(--text); font-size:14px; font-weight:730; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
         .report-actions { display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
         .report-document { max-width:780px; }
+        .briefing-priority { margin:0 0 28px; }
+        .briefing-priority .reports-section-kicker { margin:0 0 12px; }
+        .priority-row { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:12px; }
+        .priority-card { display:flex; flex-direction:column; gap:10px; padding:14px 16px; border:1px solid color-mix(in srgb, var(--border) 80%, transparent); border-radius:12px; background:color-mix(in srgb, var(--surface) 70%, transparent); }
+        .priority-tag { display:inline-flex; align-items:center; align-self:flex-start; padding:2px 8px; border-radius:4px; font-size:10.5px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; border:1px solid currentColor; background:transparent; }
+        .priority-tag.decision { color:#0369A1; }
+        .priority-tag.risk { color:#D97706; }
+        .priority-tag.next { color:#15803D; }
+        .priority-title { margin:0; color:var(--text); font-size:13.5px; font-weight:600; line-height:1.4; letter-spacing:-.005em; }
+        .priority-action { display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight:600; color:var(--text-secondary); text-decoration:none; margin-top:auto; transition:color .12s; }
+        .priority-action:hover { color:var(--text); }
+        @media(max-width:880px) { .priority-row { grid-template-columns:1fr; } }
         .briefing-hero { margin:0 0 26px; max-width:720px; color:var(--text-secondary); font-size:14px; line-height:1.62; }
         .briefing-hero strong { display:block; margin-bottom:7px; color:var(--text); font-size:22px; line-height:1.18; letter-spacing:-.04em; }
         .briefing-section { padding:17px 0; }
@@ -498,12 +512,22 @@ function ReportsPage() {
 
       <AppPageHeader
         variant="standard"
-        title="Statusberichte"
-        meta="Verstehe jederzeit, was in deinen Projekten passiert."
+        title="Projektbriefing"
+        meta={currentStatusRow ? (
+          <span style={{ display: 'inline-flex', flexWrap: 'wrap', gap: '0 10px', alignItems: 'center' }}>
+            <strong style={{ color: 'var(--text)', fontWeight: 600 }}>{currentStatusRow.phase}</strong>
+            <span style={{ color: 'var(--text-muted)', opacity: .5 }}>·</span>
+            <span>{currentStatusRow.progress}% Fortschritt</span>
+            <span style={{ color: 'var(--text-muted)', opacity: .5 }}>·</span>
+            <span>{currentStatusRow.blockerCount === 1 ? '1 Risiko' : `${currentStatusRow.blockerCount} Risiken`}</span>
+            <span style={{ color: 'var(--text-muted)', opacity: .5 }}>·</span>
+            <span>{currentStatusRow.decisionCount === 1 ? '1 Entscheidung offen' : `${currentStatusRow.decisionCount} Entscheidungen offen`}</span>
+          </span>
+        ) : 'Tagro fasst laufende Projektarbeit als ruhiges Client-Briefing zusammen.'}
         action={(
           <button className="app-header-button app-header-button--primary" type="button" onClick={generateReport} disabled={!currentProject || generating}>
             <MagicWand size={15} weight="bold" />
-            {generating ? 'Bericht wird generiert…' : 'Statusbericht generieren'}
+            {generating ? 'Briefing wird aktualisiert…' : 'Briefing aktualisieren'}
           </button>
         )}
       />
@@ -576,12 +600,9 @@ function ReportsPage() {
               <small>{currentReport ? dateLabel(currentReport.created_at) : 'Noch nicht generiert'}</small>
             </div>
             <div className="report-actions">
-              <button className="reports-inline-action" type="button" onClick={generateReport} disabled={!currentProject || generating}>
-                <MagicWand size={14} /> Neu generieren
-              </button>
               <AudioBriefingButton
                 type="status_report_briefing"
-                label="Status anhören"
+                label="Audio anhören"
                 projectTitle={currentProject?.title}
                 report={reportContent}
                 projectStatus={currentStatusRow?.phase}
@@ -590,19 +611,63 @@ function ReportsPage() {
                 decisionCount={currentStatusRow?.decisionCount}
                 nextSteps={['Task-Vorschläge prüfen', 'offene Entscheidungen klären']}
               />
-              <button className="reports-inline-action" type="button" onClick={() => currentReport && exportReport(currentReport)} disabled={!currentReport}>
-                <DownloadSimple size={14} /> PDF vorbereiten
+              <button className="reports-inline-action" type="button" onClick={generateReport} disabled={!currentProject || generating}>
+                <MagicWand size={14} /> Briefing aktualisieren
               </button>
-              <Link className="reports-inline-action" href="/ai?view=chat">
+              <button className="reports-inline-action" type="button" onClick={() => currentReport && exportReport(currentReport)} disabled={!currentReport}>
+                <DownloadSimple size={14} /> PDF exportieren
+              </button>
+              <Link className="reports-inline-action reports-inline-action--ghost" href="/ai?view=chat">
                 <ChatCircleText size={14} /> Mit Tagro sprechen
               </Link>
             </div>
           </div>
 
           <article className="report-document">
+            {currentStatusRow && (
+              <section className="briefing-priority" aria-label="Was wichtig ist">
+                <p className="reports-section-kicker">Was wichtig ist</p>
+                <div className="priority-row">
+                  <article className="priority-card">
+                    <span className="priority-tag decision">Entscheidung benötigt</span>
+                    <p className="priority-title">
+                      {currentStatusRow.decisionCount > 0
+                        ? `Scope nach Statusbericht prüfen (${currentStatusRow.decisionCount} offen)`
+                        : 'Keine offenen Entscheidungen'}
+                    </p>
+                    <Link className="priority-action" href="/tasks?status=waiting">
+                      Entscheidung ansehen <ArrowRight size={12} />
+                    </Link>
+                  </article>
+                  <article className="priority-card">
+                    <span className="priority-tag risk">Risiko erkannt</span>
+                    <p className="priority-title">
+                      {currentStatusRow.blockerCount > 0
+                        ? `Team-Handoff vor Umsetzung prüfen (${currentStatusRow.blockerCount} ${currentStatusRow.blockerCount === 1 ? 'Risiko' : 'Risiken'})`
+                        : 'Keine aktiven Blocker'}
+                    </p>
+                    <Link className="priority-action" href={`/project/${currentProject?.id ?? ''}`}>
+                      Risiko prüfen <ArrowRight size={12} />
+                    </Link>
+                  </article>
+                  <article className="priority-card">
+                    <span className="priority-tag next">Nächster Schritt</span>
+                    <p className="priority-title">
+                      {currentStatusRow.progress < 5
+                        ? 'Workspace-Tasks öffnen und Umsetzung vorbereiten'
+                        : 'Laufende Tasks in Workspace prüfen'}
+                    </p>
+                    <Link className="priority-action" href="/tasks">
+                      Tasks öffnen <ArrowRight size={12} />
+                    </Link>
+                  </article>
+                </div>
+              </section>
+            )}
+
             <p className="briefing-hero">
-              <strong>Operations Briefing</strong>
-              Tagro verdichtet laufende Projektarbeit zu einem ruhigen Überblick. Details bleiben verfügbar, aber der Einstieg bleibt bewusst knapp.
+              <strong>Projektbriefing</strong>
+              Ruhiger Überblick statt Daten-Flut. Was wichtig ist steht oben, Details bleiben verfügbar.
             </p>
             {briefingSections.map((section, index) => {
               const open = Boolean(openSections[section.id])
@@ -616,7 +681,7 @@ function ReportsPage() {
                   >
                     <span>
                       <strong>{section.title}</strong>
-                      <small>{index === 0 ? 'Executive Summary' : open ? 'Details sichtbar' : 'Details bei Bedarf öffnen'}</small>
+                      <small>{index === 0 ? 'Kurzfassung' : open ? 'Details sichtbar' : 'Details bei Bedarf öffnen'}</small>
                     </span>
                     <em>{open ? 'Schließen' : 'Öffnen'}</em>
                   </button>
@@ -641,9 +706,9 @@ function ReportsPage() {
           )}
         </section>
 
-        <aside className="signals-rail" aria-label="AI Signals">
+        <aside className="signals-rail" aria-label="Tagro Einschätzung">
           <div className="signals-title">
-            <h2>AI Signals</h2>
+            <h2>Tagro Einschätzung</h2>
             <SlidersHorizontal size={14} color="var(--text-muted)" />
           </div>
 
