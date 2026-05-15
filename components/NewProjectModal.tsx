@@ -79,6 +79,14 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
 
       if (data.projectId) {
         setMessages(prev => [...prev, { role: 'ai', text: 'Ich habe dein Projekt strukturiert und die ersten Workspace-Tasks vorbereitet.' }])
+        // Fire-and-forget: let Tagro classify the project type → module preset.
+        // Mutates projects.project_type etc. server-side; never blocks the flow.
+        fetch('/api/projects/classify', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ description: cleanIdea, projectId: data.projectId }),
+        }).catch(() => {})
         onCreated?.(data.projectId)
         onClose()
         return
@@ -113,6 +121,17 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
         .select('id')
         .single()
       if (!error && data) {
+        // Classify on manual create too — the project doesn't go through
+        // decompose, so without this it would have a default type only.
+        fetch('/api/projects/classify', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            description: `${name.trim()}\n\n${description.trim() || summary.trim() || ''}`,
+            projectId: (data as any).id,
+          }),
+        }).catch(() => {})
         onCreated?.((data as any).id)
         onClose()
       }
