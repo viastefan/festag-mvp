@@ -322,9 +322,26 @@ export default function TasksPage() {
       <style>{`
         .task-os {
           width:100%;
-          min-height:100%;
+          height:100%;
+          min-height:0;
           color:var(--text);
-          padding:36px 34px 76px;
+          padding:36px 34px 0;
+          display:flex;
+          flex-direction:column;
+          overflow:hidden;
+        }
+        .task-static-top {
+          flex:0 0 auto;
+          position:relative;
+          z-index:8;
+        }
+        .task-scroll-body {
+          flex:1 1 auto;
+          min-height:0;
+          overflow:auto;
+          padding:0 0 76px;
+          scrollbar-gutter:stable;
+          overscroll-behavior:contain;
         }
         .task-top {
           display:flex;
@@ -452,7 +469,7 @@ export default function TasksPage() {
         .task-menu button:hover, .task-menu button.on { background:var(--surface-2); color:var(--text); }
         .task-table {
           width:100%;
-          overflow:hidden;
+          overflow:visible;
         }
         .task-head,
         .task-row {
@@ -462,12 +479,17 @@ export default function TasksPage() {
           gap:14px;
         }
         .task-head {
+          position:sticky;
+          top:0;
+          z-index:5;
           min-height:34px;
           padding:0 18px;
           color:var(--text-muted);
           font-size:12.5px;
           font-weight:650;
           border-bottom:0;
+          background:var(--surface);
+          box-shadow:0 1px 0 color-mix(in srgb, var(--border) 24%, transparent);
         }
         .task-row {
           min-height:52px;
@@ -809,12 +831,13 @@ export default function TasksPage() {
           border-bottom:1px solid var(--border);
         }
         @media(max-width:1100px) {
-          .task-table { overflow:auto; }
+          .task-scroll-body { overflow:auto; }
           .task-head,
           .task-row { min-width:1120px; }
         }
         @media(max-width:760px) {
-          .task-os { padding:18px 16px calc(110px + var(--safe-bottom)); }
+          .task-os { padding:18px 16px 0; }
+          .task-scroll-body { padding-bottom:calc(110px + var(--safe-bottom)); }
           .task-top,
           .task-toolbar { flex-direction:column; align-items:flex-start; }
           .task-tools { align-self:flex-end; }
@@ -824,15 +847,16 @@ export default function TasksPage() {
         }
       `}</style>
 
-      <div className="task-top">
-        <h1 className="task-title">Tasks</h1>
-        <button className="task-create" type="button" aria-label="Neue Aufgabe vorschlagen" onClick={() => setComposerOpen((open) => !open)}>
-          <span>Aufgabe vorschlagen</span>
-          <span style={{ fontSize: 19, lineHeight: 1 }}>{composerOpen ? '×' : '+'}</span>
-        </button>
-      </div>
+      <div className="task-static-top">
+        <div className="task-top">
+          <h1 className="task-title">Tasks</h1>
+          <button className="task-create" type="button" aria-label="Neue Aufgabe vorschlagen" onClick={() => setComposerOpen((open) => !open)}>
+            <span>Aufgabe vorschlagen</span>
+            <span style={{ fontSize: 19, lineHeight: 1 }}>{composerOpen ? '×' : '+'}</span>
+          </button>
+        </div>
 
-      <div className="task-toolbar">
+        <div className="task-toolbar">
         <div className="task-filters" role="tablist" aria-label="Aufgabenfilter">
           {VIEWS.map((item) => (
             <button
@@ -880,8 +904,10 @@ export default function TasksPage() {
             )}
           </div>
         </div>
+        </div>
       </div>
 
+      <div className="task-scroll-body">
       {composerOpen && (
         <section className="task-composer" aria-label="Aufgabe vorschlagen">
           <div className="task-composer-top">
@@ -1091,6 +1117,7 @@ export default function TasksPage() {
           <button type="button" onClick={suggestChangeForSelectedTask}>Änderung vorschlagen</button>
         </div>
       )}
+      </div>
     </div>
   )
 }

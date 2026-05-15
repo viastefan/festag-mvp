@@ -414,7 +414,9 @@ function ReportsPage() {
   return (
     <div className="reports-intelligence">
       <style>{`
-        .reports-intelligence { color:var(--text); width:100%; min-height:100%; padding:30px 36px 96px; }
+        .reports-intelligence { color:var(--text); width:100%; height:100%; min-height:0; padding:30px 36px 0; display:flex; flex-direction:column; overflow:hidden; }
+        .reports-static-top { flex:0 0 auto; position:relative; z-index:8; }
+        .reports-scroll-body { flex:1 1 auto; min-height:0; overflow:auto; padding:0 0 96px; scrollbar-gutter:stable; overscroll-behavior:contain; }
         .reports-intelligence .app-page-header { margin-bottom:26px; }
         .reports-commandline { display:flex; align-items:center; justify-content:space-between; gap:18px; margin-bottom:42px; }
         .reports-controls { display:flex; align-items:center; gap:8px; min-width:0; flex-wrap:wrap; }
@@ -507,32 +509,33 @@ function ReportsPage() {
         .report-empty { padding:54px 0; color:var(--text-muted); }
         .report-empty strong { display:block; color:var(--text); font-size:15px; margin-bottom:6px; }
         @media(max-width:1180px) { .reports-operating-area { grid-template-columns:1fr; gap:34px; } .signals-rail { position:static; max-width:760px; } .project-status-stream { overflow-x:auto; padding-bottom:6px; } .project-line-head, .project-line { min-width:980px; } }
-        @media(max-width:820px) { .reports-intelligence { padding:24px 20px 86px; } .reports-commandline { align-items:stretch; flex-direction:column; margin-bottom:34px; } .report-context { align-items:flex-start; flex-direction:column; } .report-document { font-size:14px; } }
+        @media(max-width:820px) { .reports-intelligence { padding:24px 20px 0; } .reports-scroll-body { padding-bottom:86px; } .reports-commandline { align-items:stretch; flex-direction:column; margin-bottom:34px; } .report-context { align-items:flex-start; flex-direction:column; } .report-document { font-size:14px; } }
       `}</style>
 
-      <AppPageHeader
-        variant="standard"
-        title="Projektbriefing"
-        meta={currentStatusRow ? (
-          <span style={{ display: 'inline-flex', flexWrap: 'wrap', gap: '0 10px', alignItems: 'center' }}>
-            <strong style={{ color: 'var(--text)', fontWeight: 600 }}>{currentStatusRow.phase}</strong>
-            <span style={{ color: 'var(--text-muted)', opacity: .5 }}>·</span>
-            <span>{currentStatusRow.progress}% Fortschritt</span>
-            <span style={{ color: 'var(--text-muted)', opacity: .5 }}>·</span>
-            <span>{currentStatusRow.blockerCount === 1 ? '1 Risiko' : `${currentStatusRow.blockerCount} Risiken`}</span>
-            <span style={{ color: 'var(--text-muted)', opacity: .5 }}>·</span>
-            <span>{currentStatusRow.decisionCount === 1 ? '1 Entscheidung offen' : `${currentStatusRow.decisionCount} Entscheidungen offen`}</span>
-          </span>
-        ) : 'Tagro fasst laufende Projektarbeit als ruhiges Client-Briefing zusammen.'}
-        action={(
-          <button className="app-header-button app-header-button--primary" type="button" onClick={generateReport} disabled={!currentProject || generating}>
-            <MagicWand size={15} weight="bold" />
-            {generating ? 'Briefing wird aktualisiert…' : 'Briefing aktualisieren'}
-          </button>
-        )}
-      />
+      <div className="reports-static-top">
+        <AppPageHeader
+          variant="standard"
+          title="Projektbriefing"
+          meta={currentStatusRow ? (
+            <span style={{ display: 'inline-flex', flexWrap: 'wrap', gap: '0 10px', alignItems: 'center' }}>
+              <strong style={{ color: 'var(--text)', fontWeight: 600 }}>{currentStatusRow.phase}</strong>
+              <span style={{ color: 'var(--text-muted)', opacity: .5 }}>·</span>
+              <span>{currentStatusRow.progress}% Fortschritt</span>
+              <span style={{ color: 'var(--text-muted)', opacity: .5 }}>·</span>
+              <span>{currentStatusRow.blockerCount === 1 ? '1 Risiko' : `${currentStatusRow.blockerCount} Risiken`}</span>
+              <span style={{ color: 'var(--text-muted)', opacity: .5 }}>·</span>
+              <span>{currentStatusRow.decisionCount === 1 ? '1 Entscheidung offen' : `${currentStatusRow.decisionCount} Entscheidungen offen`}</span>
+            </span>
+          ) : 'Tagro fasst laufende Projektarbeit als ruhiges Client-Briefing zusammen.'}
+          action={(
+            <button className="app-header-button app-header-button--primary" type="button" onClick={generateReport} disabled={!currentProject || generating}>
+              <MagicWand size={15} weight="bold" />
+              {generating ? 'Briefing wird aktualisiert…' : 'Briefing aktualisieren'}
+            </button>
+          )}
+        />
 
-      <section className="reports-commandline" aria-label="Statusbericht Einstellungen">
+        <section className="reports-commandline" aria-label="Statusbericht Einstellungen">
         <div className="reports-controls">
           <select className="reports-select" value={selectedProjectId} onChange={(event) => setSelectedProjectId(event.target.value)} aria-label="Projekt auswählen">
             <option value="all">Alle Projekte</option>
@@ -548,8 +551,10 @@ function ReportsPage() {
           <Lightbulb size={15} />
           {extracting ? 'Vorschläge werden erkannt…' : 'Task-Vorschläge prüfen'}
         </button>
-      </section>
+        </section>
+      </div>
 
+      <div className="reports-scroll-body">
       <section className="project-status-stream" aria-label="Projekt Status Liste">
         <p className="reports-section-kicker">Projektlage</p>
         <div className="project-line-head" aria-hidden="true">
@@ -800,6 +805,7 @@ function ReportsPage() {
           </div>
         </aside>
       </main>
+      </div>
     </div>
   )
 }
