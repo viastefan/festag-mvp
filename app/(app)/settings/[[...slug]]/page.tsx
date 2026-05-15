@@ -101,6 +101,8 @@ export default function SettingsPage() {
   const [font, setLocalFont] = useState<FontMode>('aeonik')
   const [avatarColor, setLocalAvatarColor] = useState<string>(AVATAR_COLORS[12])
   const [saving, setSaving] = useState(false)
+  const [wsMode, setWsMode] = useState<'delivery' | 'team' | 'agency' | null>(null)
+  const [wsName, setWsName] = useState<string>('')
   const [savedTick, setSavedTick] = useState<string | null>(null)
   const [error, setError] = useState('')
 
@@ -177,6 +179,20 @@ export default function SettingsPage() {
         if (typeof p.notif_email === 'boolean') setNotifEmail(p.notif_email)
         if (typeof p.notif_push === 'boolean') setNotifPush(p.notif_push)
       }
+
+      // Workspace (Primary Mode + name) — for the Settings → Workspace card
+      try {
+        const { data: ws } = await supabase
+          .from('workspaces')
+          .select('mode,name')
+          .eq('primary_owner_id', uid)
+          .eq('is_personal', true)
+          .maybeSingle()
+        if (!cancelled && ws) {
+          setWsMode((ws as any).mode ?? null)
+          setWsName((ws as any).name ?? '')
+        }
+      } catch {}
 
       // factors (passkeys)
       try {
@@ -994,39 +1010,125 @@ export default function SettingsPage() {
           </div>
         )}
 
-        {section === 'workspace' && (
-          <>
-            <div className="set-card">
-              <div className="set-row">
-                <div>
-                  <div className="set-label">Plan</div>
-                  <div className="set-label-sub">Festag MVP — auf Anfrage.</div>
+        {section === 'workspace' && (() => {
+          const modeLabel = wsMode === 'team' ? 'Team Workspace'
+            : wsMode === 'agency' ? 'Agency / White Label Workspace'
+            : 'Festag Delivery Workspace'
+          const modeDesc = wsMode === 'team'
+            ? 'Internes Betriebssystem für eigene Projekte, Entwickler und Aufgaben. Tasks, Briefings und Teamkoordination im Vordergrund.'
+            : wsMode === 'agency'
+            ? 'Für Agenturen, die Kundenprojekte über Festag steuern. Kundenbereiche, eigene Teams und optional White Label unter eigener Marke.'
+            : 'Festag plant und setzt dein Projekt mit geprüften Entwicklern um. Dashboard, Briefings, Meilensteine und transparente Kommunikation.'
+          const extensions = wsMode === 'team'
+            ? [
+                { label: 'Festag Delivery Support', desc: 'Geprüfte Festag-Entwickler oder Projektunterstützung für einzelne Aufgaben dazubuchen.' },
+                { label: 'Agency-Funktionen aktivieren', desc: 'Kundenportale und Kundenbereiche, falls du externe Kunden steuern willst.' },
+                { label: 'Zusätzliche Seats verwalten', desc: 'Mehr Teammitglieder einladen, sobald euer Plan das zulässt.' },
+              ]
+            : wsMode === 'agency'
+            ? [
+                { label: 'White Label aktivieren', desc: 'Eigene Marke, eigene Domain, eigene Briefing-Vorlagen. Premium-Funktion (799 €/Monat).' },
+                { label: 'Festag Delivery Support', desc: 'Für einzelne Projekte zusätzliche Festag-Entwickler dazubuchen.' },
+                { label: 'Kundenbereiche verwalten', desc: 'Pro Kunde ein eigener Bereich mit Briefings, Dateien und Rechten.' },
+              ]
+            : [
+                { label: 'Eigenes Team hinzufügen', desc: 'Lade Co-Founder, Approver, Finance oder Viewer in dein Projekt ein.' },
+                { label: 'Briefing-Zustellung aktivieren', desc: 'Tagro schickt dein Projektbriefing automatisch per E-Mail oder Audio.' },
+                { label: 'Neuen Team Workspace erstellen', desc: 'Falls du langfristig eigene Projekte und Entwickler steuern möchtest.' },
+              ]
+          return (
+            <>
+              <div className="set-card">
+                <div className="set-row">
+                  <div>
+                    <div className="set-label">Aktueller Workspace-Typ</div>
+                    <div className="set-label-sub" style={{ marginTop: 2 }}>{modeDesc}</div>
+                  </div>
+                  <div className="set-value" style={{ textAlign: 'right' }}>{modeLabel}</div>
                 </div>
-                <div className="set-value">Free</div>
+                <div className="set-row">
+                  <div>
+                    <div className="set-label">Workspace-Name</div>
+                    <div className="set-label-sub">Erscheint in Briefings, E-Mails und Workspace-Wechsler.</div>
+                  </div>
+                  <div className="set-value">{wsName || '—'}</div>
+                </div>
+                <div className="set-row">
+                  <div>
+                    <div className="set-label">Plan</div>
+                    <div className="set-label-sub">Festag MVP — auf Anfrage.</div>
+                  </div>
+                  <div className="set-value">Free</div>
+                </div>
               </div>
-              <div className="set-row">
-                <div>
-                  <div className="set-label">Mitglieder</div>
-                  <div className="set-label-sub">Lade andere zu deinem Workspace ein.</div>
+
+              <div className="set-card">
+                <div className="set-row set-row-stack" style={{ paddingBottom: 8 }}>
+                  <div>
+                    <div className="set-label">Workspace erweitern</div>
+                    <div className="set-label-sub">Add-ons erweitern deinen Workspace, ohne den Modus zu wechseln.</div>
+                  </div>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                  <Link href="/invite" className="set-btn">Einladen</Link>
+                {extensions.map(ext => (
+                  <div key={ext.label} className="set-row">
+                    <div>
+                      <div className="set-label" style={{ fontWeight: 500 }}>{ext.label}</div>
+                      <div className="set-label-sub">{ext.desc}</div>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                      <a
+                        className="set-btn"
+                        href={`mailto:hi@festag.app?subject=${encodeURIComponent('Festag — ' + ext.label)}&body=${encodeURIComponent('Hallo Festag,\n\nIch möchte folgendes für meinen Workspace aktivieren: ' + ext.label + '.\n\nWorkspace: ' + (wsName || '') + '\nAktueller Modus: ' + modeLabel + '\n\nViele Grüße')}`}
+                      >
+                        Anfragen
+                      </a>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="set-card">
+                <div className="set-row">
+                  <div>
+                    <div className="set-label">Mitglieder</div>
+                    <div className="set-label-sub">Lade andere zu deinem Workspace ein.</div>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                    <Link href="/invite" className="set-btn">Einladen</Link>
+                  </div>
+                </div>
+                <div className="set-row">
+                  <div>
+                    <div className="set-label">Workspace-Wechsel anfragen</div>
+                    <div className="set-label-sub">
+                      Ein Wechsel des Workspace-Typs kann Rollen, Abrechnung, Kundenbereiche und Projektlogik beeinflussen. Festag prüft den Wechsel, damit keine Daten oder Zugriffsrechte verloren gehen.
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                    <a
+                      className="set-btn"
+                      href={`mailto:hi@festag.app?subject=${encodeURIComponent('Festag — Workspace-Wechsel anfragen')}&body=${encodeURIComponent('Hallo Festag,\n\nIch möchte den Modus meines Workspace wechseln.\n\nAktueller Workspace: ' + (wsName || '') + '\nAktueller Modus: ' + modeLabel + '\nGewünschter Modus: \n\nGrund: \n\nViele Grüße')}`}
+                    >
+                      Wechsel anfragen
+                    </a>
+                  </div>
                 </div>
               </div>
-            </div>
-            <div className="set-card">
-              <div className="set-row">
-                <div>
-                  <div className="set-label">Abmelden</div>
-                  <div className="set-label-sub">Beendet die Sitzung in diesem Browser.</div>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                  <button className="set-btn" onClick={logout}>Abmelden</button>
+
+              <div className="set-card">
+                <div className="set-row">
+                  <div>
+                    <div className="set-label">Abmelden</div>
+                    <div className="set-label-sub">Beendet die Sitzung in diesem Browser.</div>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                    <button className="set-btn" onClick={logout}>Abmelden</button>
+                  </div>
                 </div>
               </div>
-            </div>
-          </>
-        )}
+            </>
+          )
+        })()}
 
         {section === 'company' && (
           <div className="set-card">
