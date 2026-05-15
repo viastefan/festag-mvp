@@ -109,24 +109,25 @@ export default function DevLoginPage() {
           transition:background .3s;
         }
         .dl-shell {
-          width:300px; display:flex; flex-direction:column; gap:32px; align-items:center;
+          width:271px; display:flex; flex-direction:column; gap:32px; align-items:center;
         }
         .dl-header { width:100%; display:flex; flex-direction:column; gap:18px; align-items:center; }
         .dl-logo { font-family:'Qurova DEMO', serif; font-size:24px; font-weight:500; color:#202532; text-align:center; line-height:normal; transition:color .3s; letter-spacing:-0.2px; }
         .dl-title { font-size:21px; font-weight:500; color:#202532; line-height:normal; text-align:center; letter-spacing:0.01em; transition:color .3s; }
         .dl-eyebrow { font-size:11px; font-weight:500; letter-spacing:0.18em; text-transform:uppercase; color:#7B8294; }
 
-        .dl-form { width:100%; display:flex; flex-direction:column; gap:14px; }
+        .dl-form { width:271px; display:flex; flex-direction:column; gap:16px; }
         .dl-error { width:100%; background:rgba(239,68,68,.06); color:#c0362e; border-radius:10px; padding:9px 12px; font-size:12.5px; font-weight:500; text-align:left; letter-spacing:0.01em; line-height:1.45; }
 
         .dl-input {
-          width:100%; height:46px; border-radius:10px;
-          border:1px solid rgba(15,23,42,0.10);
+          width:100%; height:47px; border-radius:8px;
+          border:1px solid #5b647d;
           background:#fff; color:#202532;
-          font-family:inherit; font-size:14px; font-weight:500;
+          font-family:inherit; font-size:14px; font-weight:400;
           letter-spacing:0.01em;
           padding:0 16px; outline:none;
           caret-color:#5b647d;
+          box-shadow:0px 1px 2px 0px rgba(15,23,42,0.03);
           transition:border-color .15s, box-shadow .15s, background .3s, color .3s;
         }
         .dl-input::placeholder { color:#bcbfc2; }
@@ -134,13 +135,15 @@ export default function DevLoginPage() {
         .dl-input.pin { text-align:center; letter-spacing:0.45em; font-size:15px; }
 
         .dl-cta {
-          width:100%; height:46px; border-radius:999px; border:none;
+          width:100%; height:47px; border-radius:32px; border:none;
           display:flex; align-items:center; justify-content:center; gap:8px;
-          font-family:inherit; font-size:14px; font-weight:500; letter-spacing:0.01em;
+          font-family:inherit; font-size:14px; font-weight:500; letter-spacing:0.14px;
+          padding:12px 45px; white-space:nowrap; overflow:hidden;
           background:#202532; color:#FFFFFF;
           cursor:pointer;
           box-shadow:0px 8px 24px 0px rgba(32,37,50,0.18);
-          transition: background .15s, opacity .15s, transform 0.25s cubic-bezier(0.34,1.56,0.64,1);
+          transition: background .15s, opacity .15s, border-color .15s, color .15s, transform 0.25s cubic-bezier(0.34,1.56,0.64,1);
+          transform-origin:center;
         }
         .dl-cta:hover:not(:disabled) { background:#0E1218; }
         .dl-cta:disabled { opacity:.5; cursor:not-allowed; }
