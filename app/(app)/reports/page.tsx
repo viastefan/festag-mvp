@@ -1,7 +1,8 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { Suspense, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import ChatMarkdown from '@/components/ChatMarkdown'
 import AppPageHeader from '@/components/AppPageHeader'
 import AudioBriefingButton from '@/components/AudioBriefingButton'
@@ -189,13 +190,15 @@ function fallbackSuggestions(projectName: string): TaskSuggestion[] {
   ]
 }
 
-export default function ReportsPage() {
+function ReportsPage() {
+  const searchParams = useSearchParams()
+  const initialProject = searchParams?.get('project')
   const supabase = createClient()
   const [projects, setProjects] = useState<Project[]>([])
   const [reports, setReports] = useState<Report[]>([])
   const [devSignals, setDevSignals] = useState<DevSignal[]>([])
   const [tasks, setTasks] = useState<TaskRow[]>([])
-  const [selectedProjectId, setSelectedProjectId] = useState<string>('all')
+  const [selectedProjectId, setSelectedProjectId] = useState<string>(initialProject || 'all')
   const [selectedReportId, setSelectedReportId] = useState<string | null>(null)
   const [period, setPeriod] = useState<Period>('week')
   const [loading, setLoading] = useState(true)
@@ -225,7 +228,7 @@ export default function ReportsPage() {
       setReports((reportRows as Report[]) ?? [])
       setDevSignals((devRows as DevSignal[]) ?? [])
       setTasks((taskRows as TaskRow[]) ?? [])
-      if (list.length === 1) setSelectedProjectId(list[0].id)
+      if (!initialProject && list.length === 1) setSelectedProjectId(list[0].id)
       setLoading(false)
     })
   }, [])
@@ -733,5 +736,13 @@ export default function ReportsPage() {
         </aside>
       </main>
     </div>
+  )
+}
+
+export default function ReportsPageWrapper() {
+  return (
+    <Suspense fallback={<div style={{ padding: 52, color: 'var(--text-muted)' }}>Statusberichte werden geladen…</div>}>
+      <ReportsPage />
+    </Suspense>
   )
 }

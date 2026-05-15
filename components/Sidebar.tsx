@@ -130,6 +130,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
   const [projectListExp, setProjectListExp] = useState(true)
   const [teamsExp, setTeamsExp] = useState(false)
   const [tagroExp, setTagroExp] = useState(true)
+  const [reportsExp, setReportsExp] = useState(false)
   const [toolsExp, setToolsExp] = useState(false)
   const [teamsOpen,  setTeamsOpen] = useState(false)
   const [colorPickId, setColorPickId] = useState<string|null>(null)
@@ -784,7 +785,58 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
                 expanded={tagroExp}
                 onToggle={() => setTagroExp(v => !v)}
               >
-                <NavItems items={tagroNav} />
+                {(() => {
+                  // Statusberichte renders as:
+                  //   ≤ 1 project → direct link (deep-links into that project)
+                  //   > 1 project → expandable, sub-rows are the projects
+                  const reportsHref = projects.length === 1
+                    ? `/reports?project=${projects[0].id}`
+                    : '/reports'
+                  const reportsActive = pathname.startsWith('/reports')
+
+                  if (projects.length > 1) {
+                    return (
+                      <>
+                        <ExpandableNavSection
+                          href={reportsHref}
+                          icon="activity"
+                          label="Statusberichte"
+                          expanded={reportsExp || reportsActive}
+                          onToggle={() => setReportsExp(v => !v)}
+                          activeOverride={reportsActive}
+                        >
+                          <div className="sb-subnav">
+                            {projects.map(p => {
+                              const sp = searchParams?.get('project')
+                              const on = reportsActive && sp === p.id
+                              const dot = p.color || '#64748b'
+                              return (
+                                <Link key={p.id} href={`/reports?project=${p.id}`} className={`proj-row ${on ? 'active' : ''}`}>
+                                  <span style={{
+                                    width:11, height:11, borderRadius:3,
+                                    border:`2px solid ${dot}`, flexShrink:0,
+                                  }}/>
+                                  <span className="proj-label">{p.title}</span>
+                                </Link>
+                              )
+                            })}
+                          </div>
+                        </ExpandableNavSection>
+                        <NavItems items={tagroNav.filter(item => item.href !== '/reports')} />
+                      </>
+                    )
+                  }
+
+                  return (
+                    <>
+                      <Link href={reportsHref} className={`ni ${reportsActive ? 'ni-on' : 'ni-off'}`}>
+                        <Ico name="activity" sz={14} c={reportsActive ? 'var(--text)' : 'var(--text-muted)'} weight={reportsActive ? 'bold' : 'regular'} />
+                        <span style={{ minWidth:0, overflow:'hidden', textOverflow:'ellipsis' }}>Statusberichte</span>
+                      </Link>
+                      <NavItems items={tagroNav.filter(item => item.href !== '/reports')} />
+                    </>
+                  )
+                })()}
               </Section>
             </div>
 
