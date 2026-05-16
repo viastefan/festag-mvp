@@ -149,7 +149,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
   // never hide them. Agency mode layers a "Kunden" top item + White
   // Label tool on top.
   const topNav: NavItem[] = wsMode === 'agency'
-    ? [...CLIENT_TOP, { href: '/teams?view=projects', icon: 'team', label: 'Kunden' }]
+    ? [...CLIENT_TOP, { href: '/clients', icon: 'team', label: 'Kunden' }]
     : CLIENT_TOP
   const coreNav: NavItem[] = CLIENT_CORE
   const teamsNav: NavItem[] = CLIENT_TEAMS
