@@ -24,10 +24,10 @@ export default function ClientAppShell({
   isFullHeight = false,
   scrollId = 'client-main-scroll',
 }: ClientAppShellProps) {
-  const THEME_OPTIONS: Array<{ id: ThemeMode; label: string }> = [
-    { id: 'dark', label: 'Darkmode' },
-    { id: 'light', label: 'Light' },
-    { id: 'read', label: 'Read' },
+  const THEME_OPTIONS: Array<{ id: ThemeMode; label: string; tone: 'dark' | 'light' }> = [
+    { id: 'dark', label: 'Darkmode', tone: 'dark' },
+    { id: 'light', label: 'Light', tone: 'light' },
+    { id: 'read', label: 'Read', tone: 'light' },
   ]
   const pathname = usePathname()
   const [checking, setChecking] = useState(true)
@@ -201,41 +201,105 @@ export default function ClientAppShell({
         .app-footer-btn:hover { color:var(--text); }
         .app-footer-theme-menu {
           position:absolute;
-          right:-2px;
-          bottom:calc(100% + 10px);
-          width:172px;
-          padding:6px;
-          border-radius:14px;
-          border:1px solid var(--border);
-          background:color-mix(in srgb, var(--card) 96%, transparent);
-          box-shadow:0 0 0 1px rgba(255,255,255,.02);
-          backdrop-filter:blur(18px);
-          -webkit-backdrop-filter:blur(18px);
+          right:-8px;
+          bottom:calc(100% + 12px);
+          width:244px;
+          padding:10px;
+          border-radius:24px;
+          border:1px solid color-mix(in srgb, var(--border) 80%, rgba(255,255,255,.12));
+          background:color-mix(in srgb, var(--surface) 92%, rgba(255,255,255,.78));
+          box-shadow:
+            0 22px 52px rgba(15,23,42,.18),
+            0 1px 0 rgba(255,255,255,.42) inset,
+            0 0 0 1px rgba(255,255,255,.08);
+          backdrop-filter:blur(26px) saturate(180%);
+          -webkit-backdrop-filter:blur(26px) saturate(180%);
+          animation:panelFadeIn .18s cubic-bezier(.16,1,.3,1) both;
+        }
+        [data-theme="dark"] .app-footer-theme-menu,
+        [data-theme="classic-dark"] .app-footer-theme-menu,
+        [data-theme="magic-blue"] .app-footer-theme-menu {
+          background:color-mix(in srgb, #101215 88%, rgba(18,22,30,.72));
+          box-shadow:
+            0 24px 58px rgba(0,0,0,.42),
+            0 1px 0 rgba(255,255,255,.06) inset,
+            0 0 0 1px rgba(255,255,255,.04);
         }
         .app-footer-theme-option {
           width:100%;
-          min-height:34px;
+          min-height:52px;
           border:0;
-          border-radius:10px;
+          border-radius:16px;
           background:transparent;
-          color:var(--text-secondary);
+          color:var(--text);
           display:flex;
           align-items:center;
           justify-content:space-between;
-          gap:10px;
-          padding:0 10px;
+          gap:12px;
+          padding:8px 12px;
           font:inherit;
-          font-size:12.5px;
+          font-size:13.5px;
           font-weight:500;
           text-align:left;
+          transition:background .16s ease, color .16s ease, transform .16s ease;
         }
         .app-footer-theme-option:hover {
-          background:var(--hover);
+          background:color-mix(in srgb, var(--surface-2) 82%, transparent);
           color:var(--text);
         }
         .app-footer-theme-option.active {
-          background:color-mix(in srgb, var(--surface-2) 54%, transparent);
+          background:color-mix(in srgb, var(--surface-2) 90%, rgba(255,255,255,.18));
           color:var(--text);
+        }
+        .app-footer-theme-option:active { transform:scale(.988); }
+        .app-footer-theme-chip {
+          width:44px;
+          height:30px;
+          border-radius:12px;
+          border:1px solid rgba(0,0,0,.08);
+          display:inline-flex;
+          align-items:center;
+          justify-content:center;
+          gap:5px;
+          flex-shrink:0;
+          font-size:10px;
+          font-weight:700;
+          letter-spacing:-.02em;
+          box-shadow:0 1px 2px rgba(15,23,42,.08) inset;
+        }
+        .app-footer-theme-chip::before {
+          content:'';
+          width:8px;
+          height:8px;
+          border-radius:999px;
+          background:#6d6afc;
+          box-shadow:0 0 0 3px rgba(109,106,252,.12);
+        }
+        .app-footer-theme-chip.dark {
+          background:linear-gradient(180deg, #17191d 0%, #0f1114 100%);
+          border-color:rgba(255,255,255,.08);
+          color:#f5f7fb;
+        }
+        .app-footer-theme-chip.light {
+          background:linear-gradient(180deg, #ffffff 0%, #f1f4f8 100%);
+          border-color:rgba(16,24,40,.12);
+          color:#344054;
+        }
+        .app-footer-theme-label {
+          flex:1;
+          min-width:0;
+          white-space:nowrap;
+          overflow:hidden;
+          text-overflow:ellipsis;
+        }
+        .app-footer-theme-check {
+          width:20px;
+          height:20px;
+          display:inline-flex;
+          align-items:center;
+          justify-content:center;
+          color:color-mix(in srgb, var(--text) 78%, var(--text-muted));
+          flex-shrink:0;
         }
       `}</style>
 
@@ -309,8 +373,13 @@ export default function ClientAppShell({
                     className={`app-footer-theme-option${active ? ' active' : ''}`}
                     onClick={() => applyThemeChoice(option.id)}
                   >
-                    <span>{option.label}</span>
-                    {active ? <Check size={14} weight="bold" /> : <span />}
+                    <span className={`app-footer-theme-chip ${option.tone}`} aria-hidden="true">
+                      <span>Aa</span>
+                    </span>
+                    <span className="app-footer-theme-label">{option.label}</span>
+                    <span className="app-footer-theme-check" aria-hidden="true">
+                      {active ? <Check size={16} weight="bold" /> : null}
+                    </span>
                   </button>
                 )
               })}
