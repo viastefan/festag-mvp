@@ -172,12 +172,13 @@ export default function ClientAppShell({
         }
         .app-footer-controls {
           position:fixed;
-          right:-12px;
-          bottom:2px;
+          right:6px;
+          bottom:8px;
           z-index:145;
           display:flex;
-          align-items:center;
-          gap:8px;
+          flex-direction:column;
+          align-items:flex-end;
+          gap:4px;
           color:var(--text-muted);
         }
         .app-footer-btn {
@@ -225,8 +226,8 @@ export default function ClientAppShell({
         }
         .app-footer-theme-menu {
           position:absolute;
-          right:-8px;
-          bottom:calc(100% + 12px);
+          right:0;
+          bottom:calc(100% + 8px);
           width:244px;
           padding:10px;
           border-radius:24px;
