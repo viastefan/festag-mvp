@@ -22,6 +22,7 @@ export default function DevLoginPage() {
   const [error, setError] = useState('')
   const [pageExiting, setPageExiting] = useState(false)
   const [theme, setThemeState] = useState<Theme>('dark')
+  const [oauthLoading, setOauthLoading] = useState(false)
 
   const userRef = useRef<HTMLInputElement>(null)
   const pinRef = useRef<HTMLInputElement>(null)
@@ -49,6 +50,22 @@ export default function DevLoginPage() {
     router.prefetch(href)
     setPageExiting(true)
     setTimeout(() => router.push(href), 200)
+  }
+
+  async function handleGithub() {
+    setError('')
+    setOauthLoading(true)
+    const { error: oauthError } = await supabase.auth.signInWithOAuth({
+      provider: 'github',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback?next=/dev`,
+        scopes: 'read:user user:email read:org',
+      },
+    })
+    if (oauthError) {
+      setError('GitHub-Anmeldung fehlgeschlagen. Bitte erneut versuchen.')
+      setOauthLoading(false)
+    }
   }
 
   async function submit() {
@@ -148,6 +165,33 @@ export default function DevLoginPage() {
         .dl-cta:hover:not(:disabled) { background:#F7F8FB; border-color:#DCE1EA; }
         .dl-cta:disabled { opacity:.5; cursor:not-allowed; }
 
+        .dl-divider {
+          width:100%; display:flex; align-items:center; gap:10px;
+          margin:4px 0 0;
+          color:#9aa1ad; font-size:11px; font-weight:500;
+          letter-spacing:0.16em; text-transform:uppercase;
+        }
+        .dl-divider::before, .dl-divider::after { content:''; flex:1; height:1px; background:#e7ebf0; }
+        .dl-root[data-theme="dark"] .dl-divider { color:#5b647d; }
+        .dl-root[data-theme="dark"] .dl-divider::before,
+        .dl-root[data-theme="dark"] .dl-divider::after { background:rgba(255,255,255,0.06); }
+
+        .dl-btn-github {
+          width:100%; height:47px; border-radius:32px; border:none;
+          display:flex; align-items:center; justify-content:center; gap:9px;
+          font-family:inherit; font-size:14px; font-weight:500; letter-spacing:0.14px;
+          background:#202532; color:#fff; cursor:pointer;
+          box-shadow:0px 8px 24px 0px rgba(32,37,50,0.12);
+          transition: background .15s, opacity .15s;
+        }
+        .dl-btn-github:hover:not(:disabled) { background:#0E1218; }
+        .dl-btn-github:disabled { opacity:.5; cursor:not-allowed; }
+        .dl-root[data-theme="dark"] .dl-btn-github { background:#161C27; box-shadow:none; }
+        .dl-root[data-theme="dark"] .dl-btn-github:hover:not(:disabled) { background:#1F2735; }
+        .dl-github-icon { width:18px; height:18px; flex-shrink:0; color:#fff; }
+        .dl-github-hint { font-size:11px; color:#9aa1ad; text-align:center; margin:0; letter-spacing:0.01em; }
+        .dl-root[data-theme="dark"] .dl-github-hint { color:#5b647d; }
+
         .dl-footer { display:flex; flex-direction:column; gap:8px; align-items:center; }
         .dl-link {
           font-size:13px; font-weight:500; letter-spacing:0.01em;
@@ -223,6 +267,18 @@ export default function DevLoginPage() {
               <span>{loading ? 'Wird geprüft…' : 'Anmelden'}</span>
             </button>
           </form>
+
+          <div className="dl-divider"><span>Oder mit GitHub</span></div>
+
+          <div style={{ width:271, display:'flex', flexDirection:'column', gap:8 }}>
+            <button className="dl-btn-github" type="button" onClick={handleGithub} disabled={oauthLoading}>
+              <svg className="dl-github-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.36-3.88-1.36-.52-1.33-1.27-1.69-1.27-1.69-1.04-.71.08-.69.08-.69 1.15.08 1.76 1.18 1.76 1.18 1.02 1.76 2.68 1.25 3.34.96.1-.74.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.7 0-1.26.45-2.3 1.19-3.11-.12-.29-.51-1.48.11-3.08 0 0 .97-.31 3.18 1.18a11 11 0 0 1 5.79 0c2.21-1.49 3.18-1.18 3.18-1.18.62 1.6.23 2.79.11 3.08.74.81 1.19 1.85 1.19 3.11 0 4.43-2.7 5.4-5.27 5.69.41.36.78 1.06.78 2.13v3.16c0 .31.21.67.8.56A11.51 11.51 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z" fill="currentColor"/>
+              </svg>
+              <span>{oauthLoading ? 'Wird geöffnet…' : 'Mit GitHub anmelden'}</span>
+            </button>
+            <p className="dl-github-hint">Für Entwickler:innen mit zugewiesenen Festag-Projekten.</p>
+          </div>
 
           <div className="dl-footer">
             <button
