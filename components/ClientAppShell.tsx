@@ -134,7 +134,7 @@ export default function ClientAppShell({
           overflow: hidden;
           max-height: calc(100dvh - 76px);
           border: 1px solid color-mix(in srgb, var(--border) 84%, transparent);
-          border-radius: 20px;
+          border-radius: 10px;
           background: var(--surface);
           box-shadow: 0 0 0 1px rgba(255,255,255,.03);
           transition: left .18s cubic-bezier(.16,1,.3,1), border-color .18s ease, background .18s ease;
