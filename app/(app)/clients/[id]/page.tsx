@@ -278,7 +278,7 @@ const CSS = `
   .cd-page {
     max-width: 1080px;
     margin: 0 auto;
-    padding: 32px clamp(20px, 4vw, 48px) 80px;
+    padding: 24px clamp(18px, 3vw, 40px) 72px;
     color: var(--text);
     font-family: var(--font-aeonik,'Aeonik',Inter,sans-serif);
   }
@@ -316,7 +316,8 @@ const CSS = `
   }
   .cd-btn:hover { background: var(--surface-2); }
   .cd-btn:disabled { opacity: .5; cursor: not-allowed; }
-  .cd-btn-primary { background: var(--text); color: var(--bg); border-color: var(--text); }
+  .cd-btn-primary { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+  .cd-btn-primary:hover { background: color-mix(in srgb, var(--accent) 88%, #000); }
 
   .cd-stats {
     display: flex; gap: 24px; padding: 14px 0;

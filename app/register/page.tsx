@@ -19,7 +19,7 @@ function mapAuthError(msg: string): string {
   if (msg.includes('sending') || msg.includes('email') || msg.includes('unexpected'))
     return 'E-Mail-Versand vorübergehend nicht möglich. Versuche es gleich erneut oder kontaktiere uns.'
   if (msg.includes('expired'))
-    return 'Code ist abgelaufen. Bitte fordere einen neuen an.'
+    return 'Der Anmeldelink ist nicht mehr gültig. Fordere einen neuen Code an, um fortzufahren.'
   if (msg.includes('invalid') || msg.includes('Invalid'))
     return 'Ungültiger Code oder E-Mail-Adresse.'
   return 'Etwas ist schiefgelaufen. Bitte versuche es erneut.'
@@ -401,7 +401,8 @@ export default function RegisterPage() {
         .reg-ssl-badge svg { width:11px; height:13px; flex-shrink:0; }
         .reg-region-note { position:fixed; left:50%; bottom:18px; transform:translateX(-50%); width:min(520px, calc(100vw - 40px)); text-align:center; color:#98A2B3; font-size:11.5px; line-height:1.45; letter-spacing:.01em; font-weight:400 !important; z-index:30; }
 
-        .reg-error { width:271px; background:rgba(239,68,68,.05); color:#c0362e; border-radius:10px; padding:9px 12px; font-size:12.5px; font-weight:500 !important; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); text-align:left; letter-spacing:0.01em; line-height:1.45; }
+        .reg-error { width:271px; background:transparent; color:var(--text-secondary); border:1px solid var(--border); border-radius:10px; padding:10px 12px; font-size:12.5px; font-weight:500 !important; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); text-align:left; letter-spacing:0.01em; line-height:1.5; display:flex; align-items:flex-start; gap:8px; }
+        .reg-error::before { content:''; display:inline-block; width:6px; height:6px; border-radius:50%; background:var(--accent); margin-top:6px; flex-shrink:0; }
         .reg-success { width:271px; background:rgba(34,197,94,.08); color:#16a34a; border-radius:10px; padding:10px 12px; font-size:12.5px; font-weight:500; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); }
         .reg-loader { width:16px; height:16px; border-radius:999px; border:2px solid rgba(255,255,255,.35); border-top-color:#fff; animation:regSpin .75s linear infinite; flex-shrink:0; }
         @keyframes regSpin { to { transform:rotate(360deg); } }

@@ -21,7 +21,7 @@ function mapAuthError(msg: string): string {
   if (msg.includes('sending') || msg.includes('email') || msg.includes('unexpected'))
     return 'E-Mail-Versand vorübergehend nicht möglich. Versuche es gleich erneut oder kontaktiere uns.'
   if (msg.includes('expired'))
-    return 'Code ist abgelaufen. Bitte fordere einen neuen an.'
+    return 'Der Anmeldelink ist nicht mehr gültig. Fordere einen neuen Code an, um fortzufahren.'
   if (msg.includes('invalid') || msg.includes('Invalid'))
     return 'Ungültiger Code oder E-Mail-Adresse.'
   return 'Etwas ist schiefgelaufen. Bitte versuche es erneut.'
@@ -538,7 +538,8 @@ export default function LoginPage() {
         .log-root[data-theme="dark"] .log-region-note { color:rgba(243,245,247,0.50); }
 
         /* ERROR */
-        .log-error { width:271px; background:rgba(239,68,68,.05); color:#c0362e; border-radius:10px; padding:9px 12px; font-size:12.5px; font-weight:500 !important; font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; text-align:left; letter-spacing:0.01em; line-height:1.45; }
+        .log-error { width:271px; background:transparent; color:var(--text-secondary); border:1px solid var(--border); border-radius:10px; padding:10px 12px; font-size:12.5px; font-weight:500 !important; font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; text-align:left; letter-spacing:0.01em; line-height:1.5; display:flex; align-items:flex-start; gap:8px; }
+        .log-error::before { content:''; display:inline-block; width:6px; height:6px; border-radius:50%; background:var(--accent); margin-top:6px; flex-shrink:0; }
         .log-loader { width:16px; height:16px; border-radius:999px; border:2px solid rgba(255,255,255,.35); border-top-color:#fff; animation:logSpin .75s linear infinite; flex-shrink:0; }
         @keyframes logSpin { to { transform:rotate(360deg); } }
 

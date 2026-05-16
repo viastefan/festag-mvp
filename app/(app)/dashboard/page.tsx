@@ -232,7 +232,7 @@ export default function DashboardPage() {
           min-height:100%;
           background:var(--ed-bg);
           color:var(--ed-text);
-          padding:clamp(42px, 5vw, 70px) clamp(34px, 5.8vw, 76px) 0;
+          padding:clamp(28px, 3.4vw, 48px) clamp(24px, 4vw, 56px) 0;
           overflow:hidden;
         }
         [data-theme="light"] .dash-editorial {
@@ -308,8 +308,8 @@ export default function DashboardPage() {
           background:rgba(255,255,255,.025);
         }
         .ed-hero {
-          max-width:900px;
-          padding:clamp(76px, 9vw, 128px) 0 clamp(62px, 7vw, 98px);
+          max-width:760px;
+          padding:clamp(40px, 5vw, 72px) 0 clamp(34px, 4vw, 56px);
           animation:dashFade .34s .04s cubic-bezier(.16,1,.3,1) both;
         }
         .ed-signal {
@@ -333,33 +333,33 @@ export default function DashboardPage() {
         .ed-title {
           margin:0;
           color:var(--ed-text);
-          font-size:clamp(44px, 6.4vw, 76px);
-          line-height:.98;
+          font-size:clamp(24px, 2.6vw, 32px);
+          line-height:1.1;
           font-weight:600;
-          letter-spacing:-.055em;
+          letter-spacing:-.018em;
         }
         .ed-status-line {
-          margin:8px 0 0;
+          margin:4px 0 0;
           color:var(--ed-soft);
-          font-size:clamp(38px, 5.2vw, 64px);
-          line-height:1.02;
-          font-weight:600;
-          letter-spacing:-.055em;
-          font-style:italic;
+          font-size:clamp(20px, 2.2vw, 26px);
+          line-height:1.2;
+          font-weight:500;
+          letter-spacing:-.012em;
+          font-style:normal;
         }
         .ed-summary {
-          margin:38px 0 0;
-          max-width:760px;
+          margin:20px 0 0;
+          max-width:640px;
           color:color-mix(in srgb, var(--ed-soft) 84%, var(--ed-text));
-          font-size:16px;
-          line-height:1.72;
+          font-size:13.5px;
+          line-height:1.65;
           letter-spacing:.005em;
         }
         .ed-status-row {
           display:grid;
           grid-template-columns:repeat(4, minmax(0, 1fr));
-          gap:44px;
-          padding:34px 0 48px;
+          gap:32px;
+          padding:22px 0 30px;
           border-top:1px solid var(--ed-line);
           animation:dashFade .34s .08s cubic-bezier(.16,1,.3,1) both;
         }
@@ -372,18 +372,18 @@ export default function DashboardPage() {
           text-transform:uppercase;
         }
         .ed-status-value {
-          margin:0 0 8px;
+          margin:0 0 4px;
           color:var(--ed-text);
-          font-size:18px;
-          line-height:1.2;
+          font-size:14.5px;
+          line-height:1.25;
           font-weight:600;
-          letter-spacing:-.015em;
+          letter-spacing:-.005em;
         }
         .ed-status-sub {
           margin:0;
           color:var(--ed-muted);
-          font-size:13px;
-          line-height:1.35;
+          font-size:12px;
+          line-height:1.4;
         }
         .ed-next {
           display:grid;
@@ -500,16 +500,16 @@ export default function DashboardPage() {
           .ed-rail { padding-top:0; max-width:560px; }
         }
         @media (max-width:760px) {
-          .dash-editorial { padding:34px 20px 110px; }
+          .dash-editorial { padding:22px 16px 96px; }
           .ed-top { flex-direction:column; }
           .ed-actions { width:100%; flex-wrap:wrap; }
           .ed-button { flex:1 1 auto; }
-          .ed-hero { padding:62px 0 54px; }
-          .ed-title { font-size:42px; }
-          .ed-status-line { font-size:34px; }
-          .ed-summary { font-size:14.5px; margin-top:28px; }
-          .ed-status-row { grid-template-columns:1fr; gap:24px; padding:28px 0 38px; }
-          .ed-next { padding:38px 0 44px; }
+          .ed-hero { padding:34px 0 28px; }
+          .ed-title { font-size:22px; }
+          .ed-status-line { font-size:19px; }
+          .ed-summary { font-size:13.5px; margin-top:18px; }
+          .ed-status-row { grid-template-columns:1fr 1fr; gap:18px; padding:18px 0 26px; }
+          .ed-next { padding:30px 0 36px; }
           .ed-rail-item { grid-template-columns:1fr; gap:4px; }
           .ed-rail-sub { text-align:left; }
           .ed-project-row { grid-template-columns:1fr 1fr; gap:22px; }

@@ -325,7 +325,7 @@ export default function TasksPage() {
           height:100%;
           min-height:0;
           color:var(--text);
-          padding:36px 34px 0;
+          padding:28px 26px 0;
           display:flex;
           flex-direction:column;
           overflow:hidden;
@@ -474,9 +474,9 @@ export default function TasksPage() {
         .task-head,
         .task-row {
           display:grid;
-          grid-template-columns:72px minmax(320px,1.55fr) minmax(170px,.95fr) 94px 122px 110px 74px 112px;
+          grid-template-columns:60px minmax(220px,1.6fr) minmax(130px,.85fr) 78px 100px 90px 60px 86px;
           align-items:center;
-          gap:14px;
+          gap:10px;
         }
         .task-head {
           position:sticky;
@@ -830,13 +830,17 @@ export default function TasksPage() {
           color:var(--text-muted);
           border-bottom:1px solid var(--border);
         }
-        @media(max-width:1100px) {
-          .task-scroll-body { overflow:auto; }
+        /* Tighten layout instead of forcing horizontal scroll on narrow widths.
+           The grid cells already use min-width:0 internally so text truncates. */
+        @media(max-width:1180px) {
           .task-head,
-          .task-row { min-width:1120px; }
+          .task-row {
+            grid-template-columns:52px minmax(180px,1.8fr) minmax(110px,.8fr) 68px 90px 78px 56px 78px;
+            gap:8px;
+          }
         }
         @media(max-width:760px) {
-          .task-os { padding:18px 16px 0; }
+          .task-os { padding:16px 14px 0; }
           .task-scroll-body { padding-bottom:calc(110px + var(--safe-bottom)); }
           .task-top,
           .task-toolbar { flex-direction:column; align-items:flex-start; }

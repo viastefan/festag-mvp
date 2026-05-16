@@ -197,7 +197,7 @@ export default function ProjectModulesStrip({ projectType, values, emptyHint }: 
                   style={{
                     fontSize: 13,
                     fontWeight: 600,
-                    color: hasValue ? 'var(--text)' : 'var(--text-muted)',
+                    color: hasValue ? 'var(--accent)' : 'var(--text-muted)',
                     opacity: hasValue ? 1 : 0.55,
                     marginTop: 2,
                   }}

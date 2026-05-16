@@ -275,9 +275,9 @@ function ClientComposer({ workspaceId, onClose, onCreated }: { workspaceId: stri
 
 const CLIENTS_CSS = `
   .clients-page {
-    max-width: 980px;
+    max-width: 1040px;
     margin: 0 auto;
-    padding: 48px clamp(20px, 4vw, 48px) 80px;
+    padding: 28px clamp(18px, 3vw, 40px) 72px;
     color: var(--text);
     font-family: var(--font-aeonik,'Aeonik',Inter,sans-serif);
   }
@@ -302,8 +302,8 @@ const CLIENTS_CSS = `
     transition: background .12s, border-color .12s;
   }
   .cl-btn:hover { background: var(--surface-2); }
-  .cl-btn-primary { background: var(--text); color: var(--bg); border-color: var(--text); }
-  .cl-btn-primary:hover { opacity: 0.92; background: var(--text); }
+  .cl-btn-primary { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+  .cl-btn-primary:hover { background: color-mix(in srgb, var(--accent) 88%, #000); }
   .cl-btn:disabled { opacity: .55; cursor: not-allowed; }
 
   .cl-empty {
