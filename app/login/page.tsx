@@ -488,7 +488,7 @@ export default function LoginPage() {
         .log-desktop { display:flex; min-height:100dvh; background:#fcfcfd; align-items:center; justify-content:center; position:relative; transition:background .3s; }
         .log-desktop-shell { width:271px; display:flex; flex-direction:column; gap:24px; align-items:center; min-height:auto; justify-content:center; padding-top:0; transform:translateY(14px); }
         .log-desktop-header { width:100%; display:flex; flex-direction:column; gap:24px; align-items:center; }
-        .log-logo-desktop { font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:24px; font-weight:500; color:#202532; text-align:center; width:100%; line-height:normal; letter-spacing:0.02em; transition:color .3s; }
+        .log-logo-desktop { font-family:'Qurova DEMO', serif; font-size:24px; font-weight:500; color:#202532; text-align:center; width:100%; line-height:normal; letter-spacing:-0.2px; transition:color .3s; }
         .log-desktop-title { font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:21px; font-weight:500; color:#202532; line-height:normal; text-align:center; letter-spacing:0.21px; width:100%; transition:color .3s; }
 
         /* MOBILE */
@@ -496,7 +496,7 @@ export default function LoginPage() {
         .log-mobile-card { position:absolute; left:0; right:0; top:72px; bottom:0; min-height:calc(100svh - 72px); background:#fff; border:0; border-radius:48px 48px 0 0; box-shadow:none; transition:background .3s; }
         .log-mobile-shell { position:relative; z-index:2; width:min(100%, 420px); min-height:calc(100svh - 72px); margin:0 auto; padding:254px 24px 72px; display:flex; flex-direction:column; gap:28px; align-items:center; }
         .log-mobile-logo-title { width:100%; display:flex; flex-direction:column; gap:9px; align-items:center; }
-        .log-logo-mobile { font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:20px; font-weight:500; color:#000; text-align:center; line-height:47px; height:35px; width:100%; letter-spacing:0.02em; transition:color .3s; }
+        .log-logo-mobile { font-family:'Qurova DEMO', serif; font-size:20px; font-weight:500; color:#000; text-align:center; line-height:47px; height:35px; width:100%; letter-spacing:-0.2px; transition:color .3s; }
         .log-mobile-inner { width:100%; display:flex; flex-direction:column; gap:32px; align-items:center; }
         .log-mobile-title { font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:28px; font-weight:500; color:#202532; white-space:nowrap; line-height:47px; text-align:center; letter-spacing:0.28px; height:35px; transition:color .3s; }
         .log-mobile-title-email { font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:20px; font-weight:500; color:#2e2f33; line-height:26px; text-align:center; letter-spacing:0.2px; white-space:pre-line; transition:color .3s; }

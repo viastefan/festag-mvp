@@ -366,7 +366,7 @@ export default function RegisterPage() {
         .reg-desktop { display:flex; min-height:100dvh; background:#fcfcfd; align-items:center; justify-content:center; position:relative; transition:background .3s; }
         .reg-desktop-shell { width:271px; display:flex; flex-direction:column; gap:24px; align-items:center; min-height:auto; justify-content:center; padding-top:0; transform:translateY(14px); }
         .reg-desktop-header { width:100%; display:flex; flex-direction:column; gap:24px; align-items:center; }
-        .reg-logo-desktop { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:24px; font-weight:500; color:#202532; text-align:center; width:100%; line-height:normal; letter-spacing:0.02em; transition:color .3s; }
+        .reg-logo-desktop { font-family:'Qurova DEMO', serif; font-size:24px; font-weight:500; color:#202532; text-align:center; width:100%; line-height:normal; letter-spacing:-0.2px; transition:color .3s; }
         .reg-desktop-title { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:21px; font-weight:500; color:#202532; line-height:normal; text-align:center; letter-spacing:0.21px; width:100%; transition:color .3s; }
         .reg-title-muted { color:inherit; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-weight:500; }
         .reg-dev { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:13px; font-weight:400 !important; line-height:20px; letter-spacing:0.02em; color:#7b8294; text-decoration:none; text-align:center; display:block; transition:color .3s; }
@@ -376,7 +376,7 @@ export default function RegisterPage() {
         .reg-mobile-card { position:absolute; left:12px; right:12px; bottom:10px; top:32px; background:#fff; border:1px solid rgba(99,111,132,.16); border-radius:36px; box-shadow:0px 22px 70px rgba(46,58,82,0.15),0px 4px 18px rgba(46,58,82,0.08),0px 1px 0px rgba(255,255,255,0.85) inset; transition:background .3s, border-color .3s, box-shadow .3s; }
         .reg-mobile-shell { position:absolute; left:50%; transform:translateX(-50%); top:175px; width:271px; display:flex; flex-direction:column; gap:28px; align-items:center; }
         .reg-mobile-logo-title { width:100%; display:flex; flex-direction:column; gap:9px; align-items:center; }
-        .reg-logo-mobile { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:20px; font-weight:500; color:#000; text-align:center; line-height:47px; height:35px; width:100%; letter-spacing:0.02em; transition:color .3s; }
+        .reg-logo-mobile { font-family:'Qurova DEMO', serif; font-size:20px; font-weight:500; color:#000; text-align:center; line-height:47px; height:35px; width:100%; letter-spacing:-0.2px; transition:color .3s; }
         .reg-mobile-inner { width:100%; display:flex; flex-direction:column; gap:32px; align-items:center; }
         .reg-mobile-title { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:28px; font-weight:500; color:#202532; white-space:nowrap; line-height:47px; text-align:center; letter-spacing:0.28px; height:35px; transition:color .3s; }
         .reg-mobile-title-email { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:20px; font-weight:500; color:#2e2f33; line-height:26px; text-align:center; letter-spacing:0.2px; white-space:pre-line; transition:color .3s; }
