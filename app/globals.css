@@ -109,7 +109,7 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --inp-focus-border:rgba(102,112,143,0.50);
   --glow:rgba(102,112,143,0.10);
 
-  --sidebar-bg:#0F141B;
+  --sidebar-bg:var(--bg);
   --sidebar-border:rgba(46,47,51,0.50);
   --nav-on:rgba(255,255,255,0.05);
   --nav-on-text:#E8E8E5;

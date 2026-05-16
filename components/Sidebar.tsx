@@ -691,7 +691,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           bottom:0;
           left:0;
           right:0;
-          padding:10px 10px 12px;
+          padding:10px 16px 12px;
         }
         .sb-pill-action,
         .sb-square-action {
@@ -728,7 +728,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         .sb-monitor-capsule {
           display:inline-flex; align-items:center; gap:7px;
           min-height:34px;
-          padding:0 14px;
+          padding:0 16px;
           border:1px solid var(--border);
           background:color-mix(in srgb, var(--surface) 72%, transparent);
           border-radius:999px;
@@ -806,7 +806,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
 
       {/* ══ DESKTOP SIDEBAR ══ */}
       <aside className="sidebar" style={{ pointerEvents:'none' }}>
-        <div className="sidebar-inner" style={{ pointerEvents:'all', padding:'16px 10px 70px', display:'flex', flexDirection:'column', position:'relative' }}>
+        <div className="sidebar-inner" style={{ pointerEvents:'all', padding:'16px 16px 70px', display:'flex', flexDirection:'column', position:'relative' }}>
 
           <div className="sb-topbar">
             <SidebarProfileFooter
