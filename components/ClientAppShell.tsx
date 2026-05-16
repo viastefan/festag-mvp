@@ -127,7 +127,7 @@ export default function ClientAppShell({
           top: 28px;
           right: 24px;
           bottom: 64px;
-          left: calc(var(--app-sidebar-width) + 24px);
+          left: calc(var(--app-sidebar-width) + 16px);
           min-width: 0;
           display: flex;
           flex-direction: column;
