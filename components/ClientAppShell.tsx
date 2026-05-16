@@ -172,8 +172,8 @@ export default function ClientAppShell({
         }
         .app-footer-controls {
           position:fixed;
-          right:12px;
-          bottom:-4px;
+          right:-12px;
+          bottom:2px;
           z-index:145;
           display:flex;
           align-items:center;
