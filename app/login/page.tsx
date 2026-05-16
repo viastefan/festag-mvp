@@ -351,7 +351,6 @@ export default function LoginPage() {
         Wir haben einen sicheren<br />Anmeldelink geschickt an<br />
         <strong>{email}</strong>
       </p>
-      {newestWarning}
       <button className="log-btn log-btn-outline" type="button" onClick={() => goTo('codeEntry')}>Code manuell eintippen</button>
       <button className="log-link-action" type="button" onClick={handleResend} disabled={resendDisabled}>
         {resendLabel}

@@ -260,7 +260,6 @@ export default function RegisterPage() {
         Wir haben einen sicheren<br />Anmeldelink geschickt an<br />
         <strong>{email}</strong>
       </p>
-      {newestWarning}
       <button className="reg-btn reg-btn-outline" type="button" onClick={() => goTo('codeEntry')}>Code manuell eintippen</button>
       <button className="reg-link-action" type="button" onClick={handleResend} disabled={resendDisabled}>
         {resendLabel}

@@ -241,6 +241,13 @@ export default function ClientDetailPage() {
               <br />
               <Link href="/settings/workspace">→ Workspace-Branding bearbeiten</Link>
             </p>
+            {client.slug && (
+              <p className="cd-side-hint" style={{ marginTop: 10 }}>
+                <Link href={`/c/${client.slug}`} target="_blank" rel="noreferrer">
+                  → Kunden-Portal öffnen (/c/{client.slug})
+                </Link>
+              </p>
+            )}
             <div className="cd-brand-preview" style={{ background: client.brand_color || 'var(--surface-2)' }}>
               <div className="cd-brand-logo">
                 {client.logo_url ? <img src={client.logo_url} alt="" /> : <span>{initials}</span>}

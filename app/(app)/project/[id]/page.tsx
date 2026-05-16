@@ -51,6 +51,7 @@ export default function ProjectPage() {
   const [online, setOnline] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [taskDetail, setTaskDetail] = useState<Task | null>(null)
+  const [myExecutorRole, setMyExecutorRole] = useState<ExecutorRole | null>(null)
   const msgEndRef = useRef<HTMLDivElement>(null)
   const supabase = createClient()
 
@@ -100,6 +101,17 @@ export default function ProjectPage() {
       const { data: prof } = await supabase.from('profiles').select('role').eq('id', uid).single()
       const role = (prof as any)?.role
       if (role === 'admin' || role === 'dev' || role === 'client') setUserRole(role)
+      // Per-project executor role (best-effort; falls back to 'developer' for devs/admins)
+      try {
+        const { data: pm } = await supabase
+          .from('project_members')
+          .select('role')
+          .eq('project_id', id)
+          .eq('user_id', uid)
+          .maybeSingle()
+        const pmRole = (pm as any)?.role as ExecutorRole | undefined
+        if (pmRole) setMyExecutorRole(pmRole)
+      } catch { /* table may not exist yet */ }
       loadAll()
     })
 
@@ -498,12 +510,13 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
       {/* ── Type-specific module strip ── */}
       <ProjectModulesStrip projectType={projectType ?? null} values={stripValues} />
 
-      {/* Executor-side strip — only visible to devs/admins. Until per-project
-          executor role assignment lands, default to 'developer'. */}
+      {/* Executor-side strip — only visible to devs/admins. Per-project role
+          comes from project_members; falls back to 'developer' for the
+          platform-level dev/admin who hasn't been assigned explicitly. */}
       {canEdit && (
         <ExecutorModulesStrip
           projectType={projectType ?? null}
-          role={'developer' as ExecutorRole}
+          role={myExecutorRole ?? ('developer' as ExecutorRole)}
         />
       )}
 

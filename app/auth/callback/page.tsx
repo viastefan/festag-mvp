@@ -172,8 +172,8 @@ function CallbackInner() {
           <p className="cb-brand">festag</p>
           <h1 className="cb-title">Link nicht mehr gültig</h1>
           <p className="cb-text">
-            Dieser Anmeldelink ist abgelaufen oder wurde schon einmal verwendet.
-            Fordere einen neuen Code an und nutze die jüngste E-Mail.
+            Dieser Anmeldelink ist nicht mehr gültig oder wurde schon verwendet.
+            Fordere einfach einen neuen Code an, dann geht es weiter.
           </p>
           <button
             className="cb-btn"

@@ -1,1460 +1,520 @@
 'use client'
 
+/**
+ * Team — calm Linear-style overview.
+ *
+ * Ersetzt die alte Szenarien/Roles/Seats-Tab-Wand durch eine ruhige
+ * Single-Page-Übersicht: Mitglieder, offene Einladungen, Sitz-Status.
+ * Alles in kleinen Schriften, viel Weißraum, kein dekoratives Card-Theater.
+ */
+
 import { useEffect, useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import {
-  Plus, X, CheckCircle, Eye, EyeSlash, Envelope, UserCircle,
-  Code, Database, Globe, ShieldCheck, GitBranch, Rocket,
-  ChatCircle, FileText, ListChecks, Wrench, Star,
-  Users, Briefcase, Buildings, ArrowsClockwise,
-  PencilSimple, CaretRight, Check, Cube, FunnelSimple, SlidersHorizontal,
-} from '@phosphor-icons/react'
-
-// ── Types ──────────────────────────────────────────────────────────────────
+import { Plus, X, ArrowRight, Check } from '@phosphor-icons/react'
 
 type Member = {
   id: string
-  first_name?: string
-  full_name?: string
+  first_name?: string | null
+  full_name?: string | null
   avatar_url?: string | null
-  role?: string
-  email?: string
-}
-
-type TaskArea = {
-  id: string
-  label: string
-  desc: string
-  Icon: React.ComponentType<any>
-}
-
-type Assignment = {
-  areas: string[]          // task area ids the member controls
-  createTasks: boolean     // should create tasks from assigned areas
-  note: string
-}
-
-type TeamTab =
-  | 'overview'
-  | 'tasks'
-  | 'members'
-  | 'scenarios'
-  | 'invitations'
-  | 'roles'
-  | 'seats'
-  | 'assigned'
-  | 'communication'
-
-type TeamTaskRow = {
-  id: string
-  title: string
-  status: string | null
-  priority?: string | null
-  project_id?: string | null
-  assigned_to?: string | null
-  owner?: string | null
-  developer_name?: string | null
-  sprint?: string | null
-  updated_at?: string | null
+  role?: string | null
+  email?: string | null
   created_at?: string | null
 }
 
-type TeamProjectRow = {
+type InviteRow = {
   id: string
-  title: string
-  color?: string | null
+  email: string
+  role: string | null
+  invited_name?: string | null
+  status: string | null
+  created_at: string
 }
 
-// ── Task areas ────────────────────────────────────────────────────────────
-
-const TASK_AREAS: TaskArea[] = [
-  { id: 'frontend',  label: 'Frontend',         desc: 'UI, Komponenten, Styles',        Icon: Globe        },
-  { id: 'backend',   label: 'Backend / API',     desc: 'Routes, Logik, Integrationen',   Icon: Code         },
-  { id: 'database',  label: 'Datenbank',         desc: 'Schema, Migrationen, Queries',   Icon: Database     },
-  { id: 'devops',    label: 'DevOps',            desc: 'CI/CD, Deployments, Infra',      Icon: Rocket       },
-  { id: 'security',  label: 'Security',          desc: 'Auth, RLS, Audits',              Icon: ShieldCheck  },
-  { id: 'review',    label: 'Code Reviews',      desc: 'PRs, Qualitätssicherung',        Icon: GitBranch    },
-  { id: 'docs',      label: 'Dokumentation',     desc: 'Technische Docs, README',        Icon: FileText     },
-  { id: 'sprint',    label: 'Sprint Planning',   desc: 'Roadmap, Prioritäten, Tasks',    Icon: ListChecks   },
-  { id: 'support',   label: 'Client Support',    desc: 'Kommunikation, Rückfragen',      Icon: ChatCircle   },
-  { id: 'bugfix',    label: 'Bug Tracking',      desc: 'Fehleranalyse, Hotfixes',        Icon: Wrench       },
-]
-
-// ── Scenarios (simplified for display) ───────────────────────────────────
-
-const SCENARIOS = [
-  {
-    id: 'client',
-    eyebrow: 'COLLABORATION',
-    title: 'Client Team',
-    subtitle: 'Founder & Co-Founder',
-    desc: 'Maximale Kontrolle für die Führungsebene. 100 % Einsicht in AI-Kontext, Roadmap und tägliche Progress-Reports.',
-    Icon: Star,
-    access: ['AI-Kontext & Roadmap', 'Budget & Strategie', 'Progress-Reports', 'Alle Projekt-Chats'],
-    denied: [],
-    cta: 'Client Team erstellen',
-  },
-  {
-    id: 'dev',
-    eyebrow: 'EXECUTION',
-    title: 'Developer Team',
-    subtitle: 'Lead Dev & Dev-Partner',
-    desc: 'Fokus auf Code-Produktion. Tasks, Deployments und Doku geteilt — Founder-Strategie bleibt unsichtbar.',
-    Icon: Code,
-    access: ['Tasks & Sprint-Board', 'Technische Dokumentation', 'Deployment-Status'],
-    denied: ['Founder-Strategie-Chats'],
-    badge: 'BELIEBT',
-    cta: 'Developer Team einrichten',
-  },
-  {
-    id: 'agency',
-    eyebrow: 'MULTI-CLIENT',
-    title: 'Agency Ecosystem',
-    subtitle: 'Agentur & Clients (isoliert)',
-    desc: 'Jeder Client = ein isolierter Team-Context. Kunde A sieht niemals Projekte von Kunde B.',
-    Icon: Buildings,
-    access: ['Team-Switcher für Admin', 'Eigener AI-Kontext pro Client', 'Container-Trennung'],
-    denied: ['Andere Client-Workspaces'],
-    cta: 'Als Agentur starten',
-  },
-  {
-    id: 'corporate',
-    eyebrow: 'ENTERPRISE',
-    title: 'Corporate Integration',
-    subtitle: 'Unternehmen & Inhouse-Dev',
-    desc: 'Festangestellter Dev erhält dedizierten Zugang — nur zugewiesene Produkte. Read-Only für Strategie.',
-    Icon: Briefcase,
-    access: ['Zugewiesene Projekte', 'Technische Tasks'],
-    denied: ['Öffentliche Marktplätze', 'Strategie-Dashboard'],
-    badge: 'ENTERPRISE',
-    cta: 'Corporate anfragen',
-    mailto: 'mailto:stefandirnberger@viawen.com?subject=Corporate%20Integration',
-  },
-]
-
-const TEAM_TABS: { id: TeamTab; label: string }[] = [
-  { id: 'overview', label: 'Übersicht' },
-  { id: 'tasks', label: 'Aufgaben' },
-  { id: 'members', label: 'Mitglieder' },
-  { id: 'scenarios', label: 'Szenarien' },
-  { id: 'invitations', label: 'Einladungen' },
-  { id: 'roles', label: 'Rollen & Rechte' },
-  { id: 'seats', label: 'Seats' },
-  { id: 'assigned', label: 'Zugewiesene Projekte' },
-  { id: 'communication', label: 'Team-Kommunikation' },
-]
-
-const TEAM_DONE_STATES = new Set(['done', 'completed', 'erledigt'])
-const TEAM_ACTIVE_STATES = new Set(['doing', 'active', 'in_progress', 'review'])
-
-function normalizeTeamTaskStatus(status?: string | null) {
-  const value = (status || 'todo').toLowerCase()
-  if (TEAM_DONE_STATES.has(value)) return 'done'
-  if (TEAM_ACTIVE_STATES.has(value)) return 'active'
-  return 'open'
+type SeatStat = {
+  used: number
+  total: number | null
 }
 
-function teamTaskStatusLabel(status?: string | null) {
-  const normalized = normalizeTeamTaskStatus(status)
-  if (normalized === 'done') return 'DONE'
-  if (normalized === 'active') return 'IN PROGRESS'
-  return 'OPEN'
+const ROLE_LABEL: Record<string, string> = {
+  founder:       'Founder',
+  collaborator:  'Mitarbeitende:r',
+  developer:     'Entwickler:in',
+  designer:      'Designer:in',
+  marketing:     'Marketing',
+  client:        'Kunde',
+  client_admin:  'Kunden-Admin',
+  reviewer:      'Reviewer',
+  admin:         'Admin',
+  dev:           'Entwickler:in',
 }
 
-function teamTaskPriorityLabel(priority?: string | null) {
-  if (!priority) return '---'
-  const value = priority.toLowerCase()
-  if (value === 'critical') return 'CRITICAL'
-  if (value === 'high') return 'HIGH'
-  if (value === 'medium') return 'MEDIUM'
-  if (value === 'low') return 'LOW'
-  return priority.toUpperCase()
+function initials(m: Member) {
+  const name = (m.full_name || m.first_name || m.email || '?').trim()
+  return name.slice(0, 1).toUpperCase()
+}
+function displayName(m: Member) {
+  return m.full_name || m.first_name || m.email || '—'
+}
+function timeAgo(iso?: string | null) {
+  if (!iso) return '—'
+  const d = new Date(iso).getTime()
+  const diff = Date.now() - d
+  const day = 24 * 3600 * 1000
+  if (diff < day) return 'heute'
+  if (diff < 2 * day) return 'gestern'
+  const days = Math.floor(diff / day)
+  if (days < 30) return `vor ${days} Tagen`
+  const months = Math.floor(days / 30)
+  return `vor ${months} Monaten`
 }
 
-function teamTaskShortId(id: string, index: number) {
-  const numeric = Number.parseInt(id.replace(/\D/g, '').slice(0, 5), 10)
-  return `#${Number.isFinite(numeric) && numeric > 0 ? numeric : 10425 + index}`
-}
+export default function TeamsPage() {
+  const supabase = useMemo(() => createClient(), [])
+  const [me, setMe] = useState<Member | null>(null)
+  const [members, setMembers] = useState<Member[]>([])
+  const [invites, setInvites] = useState<InviteRow[]>([])
+  const [seats, setSeats] = useState<SeatStat>({ used: 0, total: null })
+  const [loading, setLoading] = useState(true)
 
-function teamTaskHealthLabel(status?: string | null) {
-  const normalized = normalizeTeamTaskStatus(status)
-  if (normalized === 'done') return 'Vom Developer erledigt'
-  if (normalized === 'active') return 'Update vorhanden'
-  return 'No updates'
-}
-
-function teamTaskProgress(status?: string | null) {
-  const normalized = normalizeTeamTaskStatus(status)
-  if (normalized === 'done') return 100
-  if (normalized === 'active') return 55
-  return 0
-}
-
-function teamTaskDateLabel(value?: string | null) {
-  if (!value) return '---'
-  try {
-    return new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: 'short' }).format(new Date(value))
-  } catch {
-    return '---'
-  }
-}
-
-function tabFromTeamView(view?: string): TeamTab {
-  if (view === 'tasks') return 'tasks'
-  if (view === 'projects') return 'assigned'
-  if (view === 'messages') return 'communication'
-  return 'overview'
-}
-
-function TeamTasksTable({
-  tasks,
-  projects,
-  members,
-  loading,
-  onMarkDone,
-  onAssign,
-}: {
-  tasks: TeamTaskRow[]
-  projects: TeamProjectRow[]
-  members: Member[]
-  loading: boolean
-  onMarkDone: (ids: string[]) => Promise<void>
-  onAssign: (ids: string[], memberId: string) => Promise<void>
-}) {
-  const [selectedTaskIds, setSelectedTaskIds] = useState<string[]>([])
-  const [assignOpen, setAssignOpen] = useState(false)
-  const projectById = useMemo(() => new Map(projects.map((project) => [project.id, project])), [projects])
-  const activeCount = tasks.filter((task) => normalizeTeamTaskStatus(task.status) === 'active').length
-  const doneCount = tasks.filter((task) => normalizeTeamTaskStatus(task.status) === 'done').length
-  const openCount = tasks.filter((task) => normalizeTeamTaskStatus(task.status) === 'open').length
-  const selectedTasks = tasks.filter((task) => selectedTaskIds.includes(task.id))
-
-  const fallbackLead = members.find((member) => member.role === 'dev') ?? members[0] ?? null
-  const leadFor = (task: TeamTaskRow) => {
-    const assignedMember = task.assigned_to ? members.find((member) => member.id === task.assigned_to) : null
-    const display = assignedMember ?? fallbackLead
-    return {
-      name: task.developer_name || display?.first_name || display?.full_name?.split(' ')[0] || task.owner || 'Developer',
-      avatar: display?.avatar_url ?? null,
-    }
-  }
-
-  function toggleTaskSelection(id: string) {
-    setSelectedTaskIds((current) => (
-      current.includes(id) ? current.filter((item) => item !== id) : [...current, id]
-    ))
-  }
-
-  function explainSelectedTask() {
-    const task = selectedTasks[0]
-    if (!task) return
-    window.dispatchEvent(new CustomEvent('open-copilot'))
-    window.dispatchEvent(new CustomEvent('tagro-compose', {
-      detail: {
-        prompt: `Erkläre mir diese Aufgabe im Festag-Kontext und nenne den nächsten sinnvollen Schritt: "${task.title}".`,
-      },
-    }))
-  }
-
-  async function markSelectedDone() {
-    if (selectedTaskIds.length === 0) return
-    await onMarkDone(selectedTaskIds)
-    setSelectedTaskIds([])
-  }
-
-  async function assignSelected(memberId: string) {
-    if (selectedTaskIds.length === 0) return
-    await onAssign(selectedTaskIds, memberId)
-    setAssignOpen(false)
-  }
-
-  return (
-    <section className="team-task-shell" aria-label="Team Aufgaben">
-      <div className="team-task-top">
-        <h2>Aufgaben</h2>
-        <button className="team-task-plus" type="button" aria-label="Neue Team-Aufgabe">+</button>
-      </div>
-
-      <div className="team-task-toolbar">
-        <div className="team-task-filter">
-          <span>All tasks</span>
-        </div>
-        <span className="team-task-counts">{openCount} offen · {activeCount} aktiv · {doneCount} erledigt</span>
-        <div className="team-task-actions" aria-hidden="true">
-          <span><FunnelSimple size={15} /></span>
-          <span><SlidersHorizontal size={15} /></span>
-        </div>
-      </div>
-
-      <div className="team-task-table-wrap">
-        <div className="team-task-head">
-          <span>Name</span>
-          <span>Health</span>
-          <span>Priority</span>
-          <span>Lead</span>
-          <span>Target date</span>
-          <span>Issues</span>
-          <span>Status</span>
-        </div>
-
-        {loading ? (
-          <div className="team-task-empty">Lade Team-Aufgaben…</div>
-        ) : tasks.length === 0 ? (
-          <div className="team-task-empty">Noch keine technischen Team-Aufgaben. Sobald Developer Tasks erledigen oder aktualisieren, erscheinen sie hier.</div>
-        ) : tasks.map((task, index) => {
-          const project = task.project_id ? projectById.get(task.project_id) : null
-          const normalized = normalizeTeamTaskStatus(task.status)
-          const lead = leadFor(task)
-          const progress = teamTaskProgress(task.status)
-          const selected = selectedTaskIds.includes(task.id)
-
-          return (
-            <div key={task.id} className={`team-task-row${selected ? ' selected' : ''}`}>
-              <div className="team-task-name">
-                <button
-                  className={`team-task-select${selected ? ' selected' : ''}`}
-                  type="button"
-                  aria-label={`${task.title} auswählen`}
-                  aria-pressed={selected}
-                  onClick={(event) => {
-                    event.stopPropagation()
-                    toggleTaskSelection(task.id)
-                  }}
-                >
-                  {selected ? <Check size={12} weight="bold" /> : null}
-                </button>
-                <span className="team-task-cube"><Cube size={16} weight="regular" /></span>
-                <span>
-                  <strong>{task.title}</strong>
-                  <small>{teamTaskShortId(task.id, index)} · {project?.title || 'Kein Projekt zugeordnet'}</small>
-                </span>
-              </div>
-              <div className={`team-task-health health-${normalized}`}>
-                <i />
-                <span>{teamTaskHealthLabel(task.status)}</span>
-              </div>
-              <div className={`team-task-priority priority-${(task.priority || '').toLowerCase() || 'none'}`}>
-                {teamTaskPriorityLabel(task.priority)}
-              </div>
-              <div className="team-task-assigned">
-                {lead.avatar ? (
-                  <img src={lead.avatar} alt="" />
-                ) : (
-                  <span>{lead.name.charAt(0).toUpperCase()}</span>
-                )}
-                <em>{lead.name}</em>
-              </div>
-              <div className="team-task-date">{teamTaskDateLabel(task.updated_at || task.created_at)}</div>
-              <div className="team-task-issues">0</div>
-              <div className={`team-task-status status-${normalized}`}>
-                <i />
-                {normalized === 'active' ? teamTaskStatusLabel(task.status) : `${progress}%`}
-              </div>
-            </div>
-          )
-        })}
-      </div>
-
-      {selectedTaskIds.length > 0 && (
-        <div className="team-task-selection-bar" role="toolbar" aria-label="Ausgewählte Aufgaben Aktionen">
-          <span className="team-task-selection-count">{selectedTaskIds.length} selected</span>
-          <button className="team-task-selection-close" type="button" aria-label="Auswahl aufheben" onClick={() => setSelectedTaskIds([])}>
-            <X size={13} weight="bold" />
-          </button>
-          <span className="team-task-selection-sep" />
-          <button type="button" onClick={explainSelectedTask}>Tagro erklären</button>
-          <button type="button" onClick={markSelectedDone}>Als erledigt markieren</button>
-          <div className="team-task-reassign">
-            <button type="button" onClick={() => setAssignOpen((open) => !open)}>Neu zuordnen</button>
-            {assignOpen && (
-              <div className="team-task-reassign-menu">
-                {members.length === 0 ? (
-                  <span>Keine Team Member verfügbar</span>
-                ) : members.map((member) => (
-                  <button key={member.id} type="button" onClick={() => assignSelected(member.id)}>
-                    {member.avatar_url ? <img src={member.avatar_url} alt="" /> : <i>{(member.first_name || member.full_name || member.email || 'M').charAt(0).toUpperCase()}</i>}
-                    <span>{member.first_name || member.full_name || member.email || 'Mitglied'}</span>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-    </section>
-  )
-}
-
-function TeamsTabPlaceholder({ title, description, rows }: { title: string; description: string; rows: string[] }) {
-  return (
-    <div style={{ background:'var(--surface)', border:'1px solid var(--border)', borderRadius:'var(--r-lg)', overflow:'hidden', maxWidth:760 }}>
-      <div style={{ padding:'18px 20px', borderBottom:'1px solid var(--border)' }}>
-        <h3 style={{ margin:0, fontSize:15, fontWeight:700, letterSpacing:'-.2px' }}>{title}</h3>
-        <p style={{ margin:'4px 0 0', fontSize:12.5, color:'var(--text-muted)', lineHeight:1.5 }}>{description}</p>
-      </div>
-      <div>
-        {rows.map((row) => (
-          <div key={row} style={{ display:'flex', alignItems:'center', gap:10, minHeight:44, padding:'0 20px', borderBottom:'1px solid var(--border)' }}>
-            <span style={{ width:6, height:6, borderRadius:'50%', background:'var(--text-muted)', opacity:.42, flexShrink:0 }} />
-            <span style={{ fontSize:12.5, fontWeight:600, color:'var(--text-secondary)' }}>{row}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-// ── Component ─────────────────────────────────────────────────────────────
-
-export default function TeamsPage({ searchParams }: { searchParams?: { view?: string } }) {
-  const [members,    setMembers]    = useState<Member[]>([])
-  const [me,         setMe]         = useState<Member | null>(null)
-  const [loading,    setLoading]    = useState(true)
   const [inviteOpen, setInviteOpen] = useState(false)
-  const [invEmail,   setInvEmail]   = useState('')
-  const [invRole,    setInvRole]    = useState('collaborator')
-  const [invSent,    setInvSent]    = useState(false)
+  const [invEmail, setInvEmail] = useState('')
+  const [invRole, setInvRole] = useState('collaborator')
+  const [invName, setInvName] = useState('')
   const [invSending, setInvSending] = useState(false)
-  const [tab,        setTab]        = useState<TeamTab>(() => tabFromTeamView(searchParams?.view))
-  const [teamTasks,  setTeamTasks]  = useState<TeamTaskRow[]>([])
-  const [teamProjects, setTeamProjects] = useState<TeamProjectRow[]>([])
-  const [teamTasksLoading, setTeamTasksLoading] = useState(true)
-
-  // Assignment state
-  const [assigningMember, setAssigningMember] = useState<Member | null>(null)
-  const [assignments, setAssignments] = useState<Record<string, Assignment>>({})
-  const [editAssignment, setEditAssignment] = useState<Assignment>({ areas: [], createTasks: true, note: '' })
-
-  // Load assignments from localStorage
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem('team_assignments')
-      if (raw) setAssignments(JSON.parse(raw))
-    } catch {}
-  }, [])
-
-  const saveAssignments = (next: Record<string, Assignment>) => {
-    setAssignments(next)
-    try { localStorage.setItem('team_assignments', JSON.stringify(next)) } catch {}
-  }
+  const [invSent, setInvSent] = useState<string | null>(null)
+  const [invError, setInvError] = useState('')
 
   useEffect(() => {
-    const sb = createClient()
-    sb.auth.getSession().then(async ({ data }) => {
-      try {
-        if (!data.session) { window.location.href = '/login'; return }
-        const uid = data.session.user.id
-        const { data: prof } = await sb.from('profiles').select('*').eq('id', uid).single()
-        const myProf = prof as any
-        setMe(myProf ?? null)
-        const { data: tmRows } = await sb.from('team_members').select('member_id').eq('owner_id', uid)
-        const ids = ((tmRows as any[]) ?? []).map((r: any) => r.member_id).filter(Boolean) as string[]
-        if (ids.length > 0) {
-          const { data: profs } = await sb.from('profiles').select('id,first_name,full_name,avatar_url,role,email').in('id', ids)
-          const list: Member[] = (profs as any[]) ?? []
-          if (myProf && !list.find(m => m.id === myProf.id)) list.unshift(myProf as Member)
-          setMembers(list)
-        } else {
-          setMembers(myProf ? [myProf as Member] : [])
-        }
-      } catch (err) { console.error('[teams]', err) }
-      finally { setLoading(false) }
-    }).catch(() => setLoading(false))
-  }, [])
+    let cancelled = false
+    ;(async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) { window.location.href = '/login'; return }
+      const uid = session.user.id
 
-  useEffect(() => {
-    setTab(tabFromTeamView(searchParams?.view))
-  }, [searchParams?.view])
-
-  useEffect(() => {
-    const sb = createClient()
-    let alive = true
-
-    async function loadTeamTasks() {
-      if (alive) setTeamTasksLoading(true)
-      const [{ data: taskData }, { data: projectData }] = await Promise.all([
-        (sb as any).from('tasks').select('*').order('created_at', { ascending: false }).limit(80),
-        (sb as any).from('projects').select('id,title,color'),
+      const [{ data: prof }, { data: tmRows }] = await Promise.all([
+        supabase.from('profiles').select('id,first_name,full_name,avatar_url,role,email,created_at').eq('id', uid).single(),
+        supabase.from('team_members').select('member_id').eq('owner_id', uid),
       ])
-      if (!alive) return
-      setTeamTasks((taskData as TeamTaskRow[]) ?? [])
-      setTeamProjects((projectData as TeamProjectRow[]) ?? [])
-      setTeamTasksLoading(false)
-    }
+      if (cancelled) return
+      const myProf = (prof as Member | null) ?? null
+      setMe(myProf)
 
-    loadTeamTasks()
+      const ids = ((tmRows as any[]) ?? []).map(r => r.member_id).filter(Boolean) as string[]
+      let list: Member[] = []
+      if (ids.length > 0) {
+        const { data: profs } = await supabase
+          .from('profiles')
+          .select('id,first_name,full_name,avatar_url,role,email,created_at')
+          .in('id', ids)
+        list = ((profs as Member[] | null) ?? [])
+      }
+      if (myProf && !list.find(m => m.id === myProf.id)) list.unshift(myProf)
+      if (cancelled) return
+      setMembers(list)
 
-    const channel = sb
-      .channel('team-orchestration-tasks')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, () => {
-        loadTeamTasks()
-      })
-      .subscribe()
+      // Pending invites (best-effort; table may not exist in some envs)
+      try {
+        const { data: inv } = await supabase
+          .from('team_invites')
+          .select('id,email,role,invited_name,status,created_at')
+          .eq('status', 'pending')
+          .order('created_at', { ascending: false })
+        if (!cancelled) setInvites(((inv as InviteRow[] | null) ?? []))
+      } catch { /* ignore */ }
 
-    return () => {
-      alive = false
-      sb.removeChannel(channel)
-    }
-  }, [])
+      // Seats (best-effort)
+      try {
+        const { data: s } = await supabase
+          .from('seats')
+          .select('id,status')
+        if (!cancelled && Array.isArray(s)) {
+          setSeats({
+            used: s.filter((x: any) => x.status === 'active' || x.status === 'invited').length,
+            total: s.length,
+          })
+        }
+      } catch { /* ignore */ }
 
-  async function markTeamTasksDone(ids: string[]) {
-    const now = new Date().toISOString()
-    setTeamTasks((current) => current.map((task) => (
-      ids.includes(task.id) ? { ...task, status: 'done', updated_at: now } : task
-    )))
-    await Promise.all(ids.map((id) => (
-      (createClient() as any).from('tasks').update({ status: 'done', updated_at: now }).eq('id', id)
-    )))
-  }
-
-  async function assignTeamTasks(ids: string[], memberId: string) {
-    setTeamTasks((current) => current.map((task) => (
-      ids.includes(task.id) ? { ...task, assigned_to: memberId } : task
-    )))
-    await Promise.all(ids.map((id) => (
-      (createClient() as any).from('tasks').update({ assigned_to: memberId }).eq('id', id)
-    )))
-  }
+      setLoading(false)
+    })()
+    return () => { cancelled = true }
+  }, [supabase])
 
   async function sendInvite() {
-    if (!invEmail.includes('@')) return
+    setInvError('')
+    const email = invEmail.trim().toLowerCase()
+    if (!email.includes('@')) { setInvError('Bitte eine gültige E-Mail-Adresse eingeben.'); return }
     setInvSending(true)
     try {
-      const sb = createClient()
-      const { data: { user } } = await sb.auth.getUser()
-      await fetch('/api/invites/send', {
+      const { data: { user } } = await supabase.auth.getUser()
+      const res = await fetch('/api/invites/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email: invEmail.trim().toLowerCase(),
+          email,
           role: invRole,
+          name: invName.trim() || undefined,
           fromUserId: user?.id ?? null,
           fromUserEmail: user?.email ?? null,
           accessMode: 'team',
         }),
       })
-      setInvSent(true); setInvEmail('')
-      setTimeout(() => { setInvSent(false); setInviteOpen(false) }, 2500)
-    } catch (e) { console.error(e) }
-    setInvSending(false)
+      const ok = res.ok
+      if (!ok) { setInvError('Einladung konnte nicht gesendet werden.'); setInvSending(false); return }
+      setInvSent(email)
+      // Refresh invites
+      try {
+        const { data: inv } = await supabase
+          .from('team_invites')
+          .select('id,email,role,invited_name,status,created_at')
+          .eq('status', 'pending')
+          .order('created_at', { ascending: false })
+        setInvites(((inv as InviteRow[] | null) ?? []))
+      } catch {}
+      setInvEmail(''); setInvName('')
+      setTimeout(() => { setInvSent(null); setInviteOpen(false) }, 1800)
+    } catch {
+      setInvError('Netzwerkfehler. Versuche es bitte erneut.')
+    } finally {
+      setInvSending(false)
+    }
   }
 
-  function openInvite(e?: React.MouseEvent) {
-    e?.stopPropagation()
-    setInvSent(false); setInvEmail(''); setInvRole('collaborator'); setInviteOpen(true)
+  async function cancelInvite(id: string) {
+    if (!confirm('Einladung zurückziehen?')) return
+    await supabase.from('team_invites').update({ status: 'cancelled' }).eq('id', id)
+    setInvites(prev => prev.filter(i => i.id !== id))
   }
 
-  function openAssign(m: Member) {
-    setEditAssignment(assignments[m.id] ?? { areas: [], createTasks: true, note: '' })
-    setAssigningMember(m)
+  if (loading) {
+    return (
+      <div className="team-page">
+        <style>{CSS}</style>
+        <div className="team-loading">Lade Team…</div>
+      </div>
+    )
   }
-
-  function saveAssign() {
-    if (!assigningMember) return
-    saveAssignments({ ...assignments, [assigningMember.id]: editAssignment })
-    setAssigningMember(null)
-  }
-
-  function toggleArea(id: string) {
-    setEditAssignment(prev => ({
-      ...prev,
-      areas: prev.areas.includes(id) ? prev.areas.filter(a => a !== id) : [...prev.areas, id],
-    }))
-  }
-
-  const nameOf = (m: Member) => m.first_name ?? m.full_name?.split(' ')[0] ?? 'Mitglied'
-  const initOf = (m: Member) => nameOf(m).charAt(0).toUpperCase()
-  const roleLabel = (r?: string) => r === 'dev' ? 'Developer' : r === 'admin' ? 'Admin' : 'Client'
-  const roleColor = (r?: string) => r === 'dev' ? 'var(--green)' : r === 'admin' ? 'var(--amber)' : 'var(--text-muted)'
-  const roleBg    = (r?: string) => r === 'dev' ? 'rgba(52,199,89,.12)' : r === 'admin' ? 'rgba(245,158,11,.12)' : 'var(--surface-2)'
-
-  if (loading) return (
-    <div style={{ padding: 60, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-      <div style={{ width: 22, height: 22, border: '2px solid var(--border)', borderTopColor: 'var(--text)', borderRadius: '50%', animation: 'spin .8s linear infinite' }} />
-      <style>{`@keyframes spin{to{transform:rotate(360deg);}}`}</style>
-    </div>
-  )
 
   return (
-    <div className="page-content animate-fade-up" style={{ maxWidth: undefined }}>
-      <style>{`
-        @keyframes spin     { to { transform: rotate(360deg); } }
-        @keyframes fadeUp   { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
-        @keyframes popIn    { from { opacity:0; transform:scale(.96) translateY(8px); } to { opacity:1; transform:none; } }
-        @keyframes slideIn  { from { opacity:0; transform:translateX(16px); } to { opacity:1; transform:none; } }
-        .tm-card { cursor:pointer; transition:border-color .15s, background .15s; }
-        .tm-card:hover { border-color:var(--border-strong) !important; }
-        .sc-card { transition:border-color .15s, transform .12s; }
-        .sc-card:hover { transform:translateY(-1px); border-color:var(--border-strong) !important; }
-        .area-chip { transition:border-color .12s, background .12s; cursor:pointer; }
-        .area-chip:hover { border-color:var(--border-strong) !important; }
-        .area-chip.on { background:var(--nav-on) !important; border-color:var(--text) !important; }
-        .team-tabs { display:flex; gap:2px; margin-bottom:24px; padding:3px; background:var(--surface-2); border-radius:10px; width:fit-content; max-width:100%; overflow:auto; }
-        .tab-btn { padding:6px 14px; border-radius:8px; font-size:13px; font-weight:600; border:none; background:transparent; color:var(--text-muted); cursor:pointer; font-family:inherit; transition:color .12s, background .12s; white-space:nowrap; }
-        .tab-btn.on { background:var(--surface); color:var(--text); }
-        .inv-overlay { position:fixed; inset:0; z-index:9000; display:flex; align-items:center; justify-content:center; padding:20px; }
-        .inv-backdrop { position:absolute; inset:0; background:rgba(0,0,0,.55); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); }
-        .inv-panel { position:relative; width:100%; max-width:460px; background:var(--surface); border:1px solid var(--border); border-radius:20px; box-shadow:0 32px 80px rgba(0,0,0,.28); overflow:hidden; animation:popIn .22s cubic-bezier(.16,1,.3,1) both; }
-        .assign-panel { position:fixed; top:0; right:0; bottom:0; width:100%; max-width:480px; z-index:8000; background:var(--surface); border-left:1px solid var(--border); box-shadow:-24px 0 64px rgba(0,0,0,.12); animation:slideIn .2s cubic-bezier(.16,1,.3,1) both; display:flex; flex-direction:column; }
-        .assign-backdrop { position:fixed; inset:0; z-index:7999; background:rgba(0,0,0,.3); backdrop-filter:blur(4px); }
-        .team-task-shell {
-          width:100%;
-          min-height:calc(100vh - 176px);
-          color:var(--text);
-          border:1px solid var(--border);
-          border-radius:16px;
-          background:var(--surface);
-          overflow:hidden;
-          box-shadow:0 18px 44px rgba(0,0,0,.07);
-          display:flex;
-          flex-direction:column;
-          position:relative;
-        }
-        .team-task-top {
-          min-height:56px;
-          padding:0 18px 0 22px;
-          display:flex;
-          align-items:center;
-          justify-content:space-between;
-          border-bottom:1px solid var(--border);
-          flex-shrink:0;
-        }
-        .team-task-top h2 {
-          margin:0;
-          font-size:15px;
-          font-weight:700;
-          letter-spacing:-.15px;
-        }
-        .team-task-plus {
-          width:30px;
-          height:30px;
-          border:0;
-          border-radius:9px;
-          background:transparent;
-          color:var(--text-muted);
-          font:inherit;
-          font-size:20px;
-          line-height:1;
-          cursor:pointer;
-        }
-        .team-task-plus:hover { background:var(--surface-2); color:var(--text); }
-        .team-task-toolbar {
-          min-height:58px;
-          padding:0 18px 0 14px;
-          display:flex;
-          align-items:center;
-          gap:10px;
-          border-bottom:1px solid color-mix(in srgb, var(--border) 78%, transparent);
-          flex-shrink:0;
-        }
-        .team-task-filter {
-          height:32px;
-          padding:0 14px;
-          display:flex;
-          align-items:center;
-          border-radius:999px;
-          background:var(--surface-2);
-          border:1px solid var(--border);
-          color:var(--text);
-          font-size:12.5px;
-          font-weight:700;
-          white-space:nowrap;
-        }
-        .team-task-counts {
-          color:var(--text-muted);
-          font-size:12px;
-          font-weight:650;
-          white-space:nowrap;
-        }
-        .team-task-actions {
-          margin-left:auto;
-          display:flex;
-          align-items:center;
-          gap:8px;
-        }
-        .team-task-actions span {
-          width:34px;
-          height:34px;
-          border-radius:999px;
-          display:flex;
-          align-items:center;
-          justify-content:center;
-          background:var(--surface-2);
-          border:1px solid var(--border);
-          color:var(--text-muted);
-        }
-        .team-task-table-wrap {
-          width:100%;
-          overflow:auto;
-          flex:1;
-        }
-        .team-task-head,
-        .team-task-row {
-          min-width:1080px;
-          display:grid;
-          grid-template-columns:minmax(360px,1.55fr) minmax(150px,.8fr) 100px 104px 130px 76px 110px;
-          align-items:center;
-          gap:22px;
-        }
-        .team-task-head {
-          min-height:46px;
-          padding:0 28px 0 42px;
-          color:var(--text-muted);
-          font-size:12.5px;
-          font-weight:650;
-        }
-        .team-task-row {
-          min-height:58px;
-          padding:0 28px 0 42px;
-          color:var(--text-secondary);
-          border-bottom:0;
-          font-size:12.5px;
-        }
-        .team-task-row:hover { background:color-mix(in srgb, var(--surface-2) 42%, transparent); }
-        .team-task-row.selected {
-          background:rgba(99,102,241,.13);
-        }
-        [data-theme="dark"] .team-task-row.selected {
-          background:rgba(99,102,241,.20);
-        }
-        .team-task-name {
-          min-width:0;
-          display:flex;
-          align-items:center;
-          gap:10px;
-        }
-        .team-task-select {
-          width:16px;
-          height:16px;
-          border-radius:4px;
-          border:1.5px solid var(--border-strong);
-          background:transparent;
-          color:#fff;
-          display:flex;
-          align-items:center;
-          justify-content:center;
-          padding:0;
-          cursor:pointer;
-          flex-shrink:0;
-        }
-        .team-task-select.selected {
-          background:#676be8;
-          border-color:#676be8;
-        }
-        .team-task-cube {
-          width:22px;
-          height:22px;
-          display:flex;
-          align-items:center;
-          justify-content:center;
-          color:var(--text-muted);
-          flex-shrink:0;
-        }
-        .team-task-name span:last-child {
-          min-width:0;
-          display:block;
-        }
-        .team-task-name strong {
-          display:block;
-          color:var(--text);
-          font-size:13px;
-          font-weight:700;
-          overflow:hidden;
-          text-overflow:ellipsis;
-          white-space:nowrap;
-        }
-        .team-task-name small {
-          display:block;
-          margin-top:2px;
-          color:var(--text-muted);
-          font-size:11.5px;
-          overflow:hidden;
-          text-overflow:ellipsis;
-          white-space:nowrap;
-        }
-        .team-task-health {
-          min-width:0;
-          display:flex;
-          align-items:center;
-          gap:8px;
-          color:var(--text-muted);
-          font-weight:650;
-        }
-        .team-task-health i {
-          width:15px;
-          height:15px;
-          border-radius:50%;
-          border:2px dashed currentColor;
-          opacity:.7;
-          flex-shrink:0;
-        }
-        .team-task-health span {
-          overflow:hidden;
-          text-overflow:ellipsis;
-          white-space:nowrap;
-        }
-        .team-task-health.health-done {
-          color:var(--green);
-        }
-        .team-task-health.health-done i {
-          border-style:solid;
-          background:currentColor;
-        }
-        .team-task-health.health-active {
-          color:var(--amber);
-        }
-        .team-task-priority {
-          color:var(--text-muted);
-          font-size:11.5px;
-          font-weight:800;
-          letter-spacing:.04em;
-        }
-        .team-task-priority.priority-critical,
-        .team-task-priority.priority-high { color:var(--text); }
-        .team-task-assigned {
-          min-width:0;
-          display:flex;
-          align-items:center;
-          gap:8px;
-        }
-        .team-task-assigned img,
-        .team-task-assigned span {
-          width:24px;
-          height:24px;
-          border-radius:50%;
-          flex-shrink:0;
-          object-fit:cover;
-          background:var(--surface-2);
-          border:1px solid var(--border);
-          color:var(--text-secondary);
-          display:flex;
-          align-items:center;
-          justify-content:center;
-          font-size:10.5px;
-          font-weight:800;
-          font-style:normal;
-        }
-        .team-task-assigned em {
-          min-width:0;
-          overflow:hidden;
-          text-overflow:ellipsis;
-          white-space:nowrap;
-          font-style:normal;
-          color:var(--text-secondary);
-          font-weight:650;
-        }
-        .team-task-date,
-        .team-task-issues {
-          color:var(--text-secondary);
-          font-weight:700;
-          font-variant-numeric:tabular-nums;
-        }
-        .team-task-status {
-          width:max-content;
-          max-width:100%;
-          height:26px;
-          padding:0 10px;
-          display:flex;
-          align-items:center;
-          gap:7px;
-          border-radius:999px;
-          border:1px solid var(--border);
-          background:var(--surface-2);
-          color:var(--text-muted);
-          font-size:10.5px;
-          font-weight:850;
-          letter-spacing:.03em;
-          white-space:nowrap;
-        }
-        .team-task-status i {
-          width:9px;
-          height:9px;
-          border-radius:50%;
-          border:2px dotted currentColor;
-          flex-shrink:0;
-        }
-        .team-task-status.status-active {
-          color:#2f6fb2;
-          background:color-mix(in srgb, #dcecff 52%, var(--surface));
-          border-color:color-mix(in srgb, #8fb7e6 48%, var(--border));
-        }
-        .team-task-status.status-done {
-          color:var(--green);
-          background:color-mix(in srgb, var(--green) 12%, var(--surface));
-          border-color:color-mix(in srgb, var(--green) 32%, var(--border));
-        }
-        .team-task-status.status-done i {
-          border-style:solid;
-          background:currentColor;
-        }
-        .team-task-empty {
-          min-height:calc(100vh - 340px);
-          display:flex;
-          align-items:center;
-          justify-content:center;
-          padding:28px;
-          color:var(--text-muted);
-          font-size:13px;
-          text-align:center;
-          border-bottom:1px solid var(--border);
-        }
-        [data-theme="dark"] .team-task-status.status-active {
-          color:#8dbfff;
-          background:rgba(92, 140, 210, .14);
-          border-color:rgba(141, 191, 255, .22);
-        }
-        [data-theme="dark"] .team-task-shell {
-          background:#101010;
-          border-color:#242424;
-          box-shadow:0 18px 54px rgba(0,0,0,.42);
-        }
-        .team-task-selection-bar {
-          position:absolute;
-          left:50%;
-          bottom:22px;
-          transform:translateX(-50%);
-          z-index:20;
-          display:flex;
-          align-items:center;
-          gap:8px;
-          padding:8px;
-          border-radius:999px;
-          background:color-mix(in srgb, var(--surface) 86%, transparent);
-          border:1px solid var(--border);
-          box-shadow:0 18px 44px rgba(0,0,0,.18);
-          backdrop-filter:blur(20px) saturate(160%);
-          -webkit-backdrop-filter:blur(20px) saturate(160%);
-          animation:taskActionUp .16s cubic-bezier(.16,1,.3,1) both;
-        }
-        @keyframes taskActionUp {
-          from { opacity:0; transform:translateX(-50%) translateY(8px) scale(.98); }
-          to { opacity:1; transform:translateX(-50%) translateY(0) scale(1); }
-        }
-        .team-task-selection-bar button,
-        .team-task-selection-count {
-          height:32px;
-          border-radius:999px;
-          border:1px solid var(--border);
-          background:var(--surface-2);
-          color:var(--text);
-          font:inherit;
-          font-size:12px;
-          font-weight:700;
-          display:flex;
-          align-items:center;
-          justify-content:center;
-          padding:0 12px;
-          white-space:nowrap;
-        }
-        .team-task-selection-bar button {
-          cursor:pointer;
-        }
-        .team-task-selection-bar button:hover {
-          background:var(--nav-on);
-        }
-        .team-task-selection-close {
-          width:32px;
-          padding:0 !important;
-          color:var(--text-muted) !important;
-        }
-        .team-task-selection-sep {
-          width:1px;
-          height:24px;
-          background:var(--border);
-        }
-        .team-task-reassign {
-          position:relative;
-        }
-        .team-task-reassign-menu {
-          position:absolute;
-          left:50%;
-          bottom:calc(100% + 10px);
-          transform:translateX(-50%);
-          width:220px;
-          padding:6px;
-          border:1px solid var(--border);
-          border-radius:14px;
-          background:var(--surface);
-          box-shadow:0 16px 46px rgba(0,0,0,.20);
-          display:flex;
-          flex-direction:column;
-          gap:2px;
-        }
-        .team-task-reassign-menu > span {
-          padding:10px 12px;
-          color:var(--text-muted);
-          font-size:12px;
-        }
-        .team-task-reassign-menu button {
-          width:100%;
-          justify-content:flex-start;
-          gap:8px;
-          border:0;
-          background:transparent;
-          border-radius:10px;
-          padding:0 9px;
-        }
-        .team-task-reassign-menu img,
-        .team-task-reassign-menu i {
-          width:20px;
-          height:20px;
-          border-radius:50%;
-          object-fit:cover;
-          background:var(--surface-2);
-          color:var(--text-secondary);
-          display:flex;
-          align-items:center;
-          justify-content:center;
-          font-style:normal;
-          font-size:10px;
-        }
-      `}</style>
+    <div className="team-page">
+      <style>{CSS}</style>
 
-      {/* ── Invite Modal ── */}
-      {inviteOpen && (
-        <div className="inv-overlay" onClick={() => setInviteOpen(false)}>
-          <div className="inv-backdrop" />
-          <div className="inv-panel" onClick={e => e.stopPropagation()}>
-            <div style={{ padding:'22px 24px 18px', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:12 }}>
-              <div>
-                <h2 style={{ margin:'0 0 3px', fontSize:17, fontWeight:700, letterSpacing:'-.3px' }}>Mitglied einladen</h2>
-                <p style={{ margin:0, fontSize:12.5, color:'var(--text-muted)' }}>Zugang wird nach Prüfung freigeschaltet.</p>
-              </div>
-              <button onClick={() => setInviteOpen(false)} style={{ width:30, height:30, borderRadius:8, border:'1px solid var(--border)', background:'transparent', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:'var(--text-muted)', flexShrink:0 }}>
-                <X size={13} weight="bold" />
-              </button>
-            </div>
-            <div style={{ padding:'20px 24px 24px' }}>
-              {invSent ? (
-                <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:12, padding:'20px 0', textAlign:'center' }}>
-                  <div style={{ width:48, height:48, borderRadius:'50%', background:'rgba(52,199,89,.1)', border:'1px solid rgba(52,199,89,.2)', display:'flex', alignItems:'center', justifyContent:'center' }}>
-                    <Check size={20} weight="bold" color="var(--green)" />
-                  </div>
-                  <div>
-                    <p style={{ fontSize:15, fontWeight:700, color:'var(--text)', margin:'0 0 4px' }}>Einladung gesendet</p>
-                    <p style={{ fontSize:12.5, color:'var(--text-muted)', margin:0 }}>Wir senden den Zugang direkt zu.</p>
-                  </div>
-                </div>
-              ) : (
-                <>
-                  <div style={{ marginBottom:14 }}>
-                    <label style={{ display:'block', fontSize:11, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.07em', marginBottom:6, textTransform:'uppercase' }}>E-Mail-Adresse</label>
-                    <input
-                      value={invEmail} onChange={e => setInvEmail(e.target.value)}
-                      onKeyDown={e => e.key === 'Enter' && sendInvite()}
-                      type="email" placeholder="name@firma.com" autoFocus
-                      style={{ width:'100%', padding:'10px 13px', background:'var(--bg)', border:'1.5px solid var(--border)', borderRadius:10, fontSize:14, color:'var(--text)', fontFamily:'inherit', outline:'none', boxSizing:'border-box', transition:'border-color .15s' }}
-                      onFocus={e => (e.target.style.borderColor = 'var(--border-strong)')}
-                      onBlur={e => (e.target.style.borderColor = 'var(--border)')}
-                    />
-                  </div>
-                  <div style={{ marginBottom:20 }}>
-                    <label style={{ display:'block', fontSize:11, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.07em', marginBottom:6, textTransform:'uppercase' }}>Rolle</label>
-                    <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:7 }}>
-                      {[
-                        { id:'collaborator', label:'Client', desc:'Strategische Sicht, Kommentare' },
-                        { id:'dev',          label:'Developer', desc:'Execution Layer, Tasks, Code' },
-                      ].map(r => (
-                        <button key={r.id} onClick={() => setInvRole(r.id)}
-                          style={{ padding:'10px 12px', borderRadius:10, border:`1.5px solid ${invRole===r.id?'var(--border-strong)':'var(--border)'}`, background:invRole===r.id?'var(--surface-2)':'transparent', cursor:'pointer', textAlign:'left', fontFamily:'inherit', transition:'border-color .12s, background .12s' }}>
-                          <p style={{ fontSize:12.5, fontWeight:700, color:'var(--text)', margin:'0 0 2px' }}>{r.label}</p>
-                          <p style={{ fontSize:11, color:'var(--text-muted)', margin:0, lineHeight:1.4 }}>{r.desc}</p>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  <button onClick={sendInvite} disabled={!invEmail.includes('@') || invSending}
-                    style={{ width:'100%', padding:'12px', background:invEmail.includes('@')?'var(--btn-prim)':'var(--surface-2)', color:invEmail.includes('@')?'var(--btn-prim-text)':'var(--text-muted)', border:'none', borderRadius:11, fontSize:13.5, fontWeight:700, cursor:invEmail.includes('@')?'pointer':'default', fontFamily:'inherit', display:'flex', alignItems:'center', justifyContent:'center', gap:7, transition:'background .15s, color .15s' }}>
-                    {invSending
-                      ? <><span style={{ width:13, height:13, border:'2px solid transparent', borderTopColor:'currentColor', borderRadius:'50%', animation:'spin .7s linear infinite', display:'inline-block' }}/>Wird gesendet…</>
-                      : <><Envelope size={14} weight="bold"/>Einladung senden</>
-                    }
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
+      {/* Header */}
+      <header className="team-head">
+        <div>
+          <p className="team-kicker">Workspace · Team</p>
+          <h1 className="team-title">Team</h1>
+          <p className="team-sub">
+            {members.length} {members.length === 1 ? 'Mitglied' : 'Mitglieder'}
+            {seats.total !== null ? ` · ${seats.used}/${seats.total} Sitze belegt` : ''}
+            {invites.length > 0 ? ` · ${invites.length} offene Einladung${invites.length === 1 ? '' : 'en'}` : ''}
+          </p>
         </div>
-      )}
+        <button className="team-btn team-btn-primary" type="button" onClick={() => setInviteOpen(true)}>
+          <Plus size={12} /> Mitglied einladen
+        </button>
+      </header>
 
-      {/* ── Task Assignment Panel ── */}
-      {assigningMember && (
-        <>
-          <div className="assign-backdrop" onClick={() => setAssigningMember(null)} />
-          <div className="assign-panel">
-            {/* Header */}
-            <div style={{ padding:'20px 24px 16px', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', gap:12 }}>
-              <div style={{ flex:1, minWidth:0 }}>
-                <p style={{ fontSize:10.5, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.08em', textTransform:'uppercase', margin:'0 0 2px' }}>Aufgaben zuweisen</p>
-                <h2 style={{ fontSize:17, fontWeight:700, letterSpacing:'-.3px', margin:0 }}>{nameOf(assigningMember)}</h2>
-              </div>
-              <button onClick={() => setAssigningMember(null)} style={{ width:30, height:30, borderRadius:8, border:'1px solid var(--border)', background:'transparent', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:'var(--text-muted)', flexShrink:0 }}>
-                <X size={13} weight="bold" />
-              </button>
-            </div>
+      {/* Members */}
+      <section className="team-block">
+        <div className="team-block-head">
+          <h2>Mitglieder</h2>
+          <span className="team-block-count">{members.length}</span>
+        </div>
+        {members.length === 0 ? (
+          <p className="team-empty">Noch keine Mitglieder.</p>
+        ) : (
+          <ul className="team-list">
+            {members.map(m => {
+              const isMe = me?.id === m.id
+              return (
+                <li key={m.id} className="team-row">
+                  <div className="team-avatar">
+                    {m.avatar_url ? <img src={m.avatar_url} alt="" /> : <span>{initials(m)}</span>}
+                  </div>
+                  <div className="team-col-name">
+                    <span className="team-name">
+                      {displayName(m)}
+                      {isMe && <span className="team-you">du</span>}
+                    </span>
+                    <span className="team-meta">{m.email || '—'}</span>
+                  </div>
+                  <div className="team-col-role">
+                    <span className="team-chip">{ROLE_LABEL[m.role ?? ''] || m.role || 'Mitglied'}</span>
+                  </div>
+                  <div className="team-col-since">
+                    seit {timeAgo(m.created_at)}
+                  </div>
+                </li>
+              )
+            })}
+          </ul>
+        )}
+      </section>
 
-            {/* Body */}
-            <div style={{ flex:1, overflowY:'auto', padding:'20px 24px', display:'flex', flexDirection:'column', gap:20 }}>
-              {/* Member info */}
-              <div style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 14px', background:'var(--surface-2)', borderRadius:12, border:'1px solid var(--border)' }}>
-                <div style={{ width:40, height:40, borderRadius:'50%', background:'var(--surface)', border:'2px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:15, fontWeight:700, overflow:'hidden', flexShrink:0 }}>
-                  {assigningMember.avatar_url
-                    ? <img src={assigningMember.avatar_url} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }}/>
-                    : initOf(assigningMember)
-                  }
-                </div>
-                <div style={{ flex:1, minWidth:0 }}>
-                  <p style={{ fontSize:13.5, fontWeight:700, color:'var(--text)', margin:0 }}>{nameOf(assigningMember)}</p>
-                  <p style={{ fontSize:11.5, color:'var(--text-muted)', margin:'2px 0 0' }}>{assigningMember.email ?? ''}</p>
-                </div>
-                <span style={{ padding:'3px 8px', borderRadius:6, fontSize:10, fontWeight:700, letterSpacing:'.06em', textTransform:'uppercase', background:roleBg(assigningMember.role), color:roleColor(assigningMember.role) }}>
-                  {roleLabel(assigningMember.role)}
-                </span>
-              </div>
-
-              {/* Task areas */}
-              <div>
-                <p style={{ fontSize:11, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.08em', textTransform:'uppercase', margin:'0 0 10px' }}>
-                  Verantwortungsbereiche <span style={{ fontSize:10, color:'var(--text-muted)', fontWeight:500, letterSpacing:0, textTransform:'none' }}>— welche Bereiche kontrolliert diese Person?</span>
-                </p>
-                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:7 }}>
-                  {TASK_AREAS.map(({ id, label, desc, Icon }) => {
-                    const on = editAssignment.areas.includes(id)
-                    return (
-                      <button key={id} className={`area-chip${on?' on':''}`} onClick={() => toggleArea(id)}
-                        style={{ display:'flex', alignItems:'flex-start', gap:9, padding:'10px 11px', borderRadius:10, border:`1.5px solid ${on?'var(--text)':'var(--border)'}`, background:on?'var(--nav-on)':'transparent', cursor:'pointer', textAlign:'left', fontFamily:'inherit' }}>
-                        <div style={{ width:24, height:24, borderRadius:7, background:on?'var(--text)':'var(--surface-2)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, marginTop:1, transition:'background .12s' }}>
-                          <Icon size={12} weight={on?'bold':'regular'} color={on?'var(--bg)':'var(--text-muted)'} />
-                        </div>
-                        <div style={{ flex:1, minWidth:0 }}>
-                          <p style={{ fontSize:12, fontWeight:700, color:'var(--text)', margin:0 }}>{label}</p>
-                          <p style={{ fontSize:10.5, color:'var(--text-muted)', margin:'1px 0 0', lineHeight:1.35 }}>{desc}</p>
-                        </div>
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-
-              {/* Create tasks toggle */}
-              <div style={{ display:'flex', alignItems:'flex-start', gap:12, padding:'14px 16px', background:'var(--surface-2)', borderRadius:12, border:'1px solid var(--border)' }}>
-                <button onClick={() => setEditAssignment(p => ({ ...p, createTasks: !p.createTasks }))}
-                  style={{ width:38, height:22, borderRadius:999, background:editAssignment.createTasks?'var(--text)':'var(--border)', border:'none', cursor:'pointer', position:'relative', flexShrink:0, marginTop:2, transition:'background .15s' }}>
-                  <span style={{ position:'absolute', top:3, width:16, height:16, borderRadius:'50%', background:'var(--bg)', transition:'left .15s', left:editAssignment.createTasks?19:3, display:'block' }}/>
-                </button>
-                <div>
-                  <p style={{ fontSize:12.5, fontWeight:700, color:'var(--text)', margin:0 }}>Tasks erstellen</p>
-                  <p style={{ fontSize:11.5, color:'var(--text-muted)', margin:'2px 0 0', lineHeight:1.45 }}>
-                    Dieses Mitglied kann in den zugewiesenen Bereichen eigenständig Tasks anlegen und verwalten.
-                  </p>
-                </div>
-              </div>
-
-              {/* Note */}
-              <div>
-                <label style={{ display:'block', fontSize:11, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.07em', textTransform:'uppercase', marginBottom:7 }}>Notiz (optional)</label>
-                <textarea
-                  value={editAssignment.note}
-                  onChange={e => setEditAssignment(p => ({ ...p, note: e.target.value }))}
-                  placeholder="z. B. Fokus auf Backend-Architektur und API-Design…"
-                  rows={3}
-                  style={{ width:'100%', padding:'10px 13px', background:'var(--bg)', border:'1.5px solid var(--border)', borderRadius:10, fontSize:13, color:'var(--text)', fontFamily:'inherit', outline:'none', resize:'vertical', boxSizing:'border-box', transition:'border-color .15s', lineHeight:1.5 }}
-                  onFocus={e => (e.target.style.borderColor = 'var(--border-strong)')}
-                  onBlur={e => (e.target.style.borderColor = 'var(--border)')}
-                />
-              </div>
-            </div>
-
-            {/* Footer */}
-            <div style={{ padding:'14px 24px 20px', borderTop:'1px solid var(--border)', display:'flex', gap:8 }}>
-              <button onClick={() => setAssigningMember(null)} style={{ flex:1, padding:'11px', borderRadius:10, border:'1px solid var(--border)', background:'transparent', color:'var(--text-muted)', fontSize:13.5, fontWeight:600, cursor:'pointer', fontFamily:'inherit', transition:'background .12s' }}>
-                Abbrechen
-              </button>
-              <button onClick={saveAssign} style={{ flex:2, padding:'11px', borderRadius:10, border:'none', background:'var(--btn-prim)', color:'var(--btn-prim-text)', fontSize:13.5, fontWeight:700, cursor:'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', justifyContent:'center', gap:7 }}>
-                <Check size={14} weight="bold" />
-                Speichern
-              </button>
-            </div>
+      {/* Pending invites */}
+      {invites.length > 0 && (
+        <section className="team-block">
+          <div className="team-block-head">
+            <h2>Offene Einladungen</h2>
+            <span className="team-block-count">{invites.length}</span>
           </div>
-        </>
-      )}
-
-      {/* ── Page Header ── */}
-      <div className="page-header" style={{ marginBottom:24 }}>
-        <h1>Teams</h1>
-        <p>Mitglieder einladen, Aufgaben zuweisen und Zugriffsrechte strukturieren.</p>
-      </div>
-
-      {/* ── Tabs ── */}
-      <div className="team-tabs" role="tablist" aria-label="Teams Ansichten">
-        {TEAM_TABS.map(t => (
-          <button key={t.id} className={`tab-btn${tab===t.id?' on':''}`} onClick={() => setTab(t.id)} role="tab" aria-selected={tab === t.id}>
-            {t.label}
-          </button>
-        ))}
-      </div>
-
-      {tab === 'tasks' && (
-        <TeamTasksTable
-          tasks={teamTasks}
-          projects={teamProjects}
-          members={members}
-          loading={teamTasksLoading}
-          onMarkDone={markTeamTasksDone}
-          onAssign={assignTeamTasks}
-        />
-      )}
-
-      {/* ────────────────────────────────────────────
-          TAB — OVERVIEW / MEMBERS
-      ──────────────────────────────────────────── */}
-      {(tab === 'overview' || tab === 'members') && (
-        <div style={{ display:'grid', gridTemplateColumns:'1fr 320px', gap:14, alignItems:'start' }}>
-
-          {/* Members grid */}
-          <div style={{ background:'var(--surface)', border:'1px solid var(--border)', borderRadius:'var(--r-lg)', overflow:'hidden' }}>
-            <div style={{ padding:'16px 20px', borderBottom:'1px solid var(--border)', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-              <div>
-                <h3 style={{ margin:0, fontSize:15, fontWeight:700, letterSpacing:'-.2px' }}>Dein Team</h3>
-                <p style={{ margin:'2px 0 0', fontSize:12, color:'var(--text-muted)' }}>{members.length} {members.length === 1 ? 'Mitglied' : 'Mitglieder'}</p>
-              </div>
-              <button onClick={() => openInvite()}
-                style={{ display:'flex', alignItems:'center', gap:5, fontSize:12.5, fontWeight:700, padding:'7px 13px', background:'var(--btn-prim)', color:'var(--btn-prim-text)', border:'none', borderRadius:9, cursor:'pointer', fontFamily:'inherit' }}>
-                <Plus size={12} weight="bold" />
-                Einladen
-              </button>
-            </div>
-
-            {members.length === 0 ? (
-              <div style={{ padding:'48px 24px', textAlign:'center' }}>
-                <div style={{ width:48, height:48, borderRadius:14, background:'var(--surface-2)', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 12px' }}>
-                  <Users size={22} weight="regular" color="var(--text-muted)" />
+          <ul className="team-list">
+            {invites.map(inv => (
+              <li key={inv.id} className="team-row">
+                <div className="team-avatar team-avatar-ghost">
+                  <span>{(inv.email || '?').slice(0, 1).toUpperCase()}</span>
                 </div>
-                <p style={{ fontSize:14, fontWeight:600, color:'var(--text)', margin:'0 0 5px' }}>Noch keine Mitglieder</p>
-                <p style={{ fontSize:12.5, color:'var(--text-muted)', margin:'0 0 18px', lineHeight:1.5 }}>Lade Entwickler oder Kollaboratoren ein, um zu starten.</p>
-                <button onClick={() => openInvite()} style={{ padding:'9px 18px', background:'var(--btn-prim)', color:'var(--btn-prim-text)', border:'none', borderRadius:9, fontSize:13, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>
-                  Erstes Mitglied einladen
+                <div className="team-col-name">
+                  <span className="team-name">{inv.invited_name || inv.email}</span>
+                  <span className="team-meta">{inv.email}</span>
+                </div>
+                <div className="team-col-role">
+                  <span className="team-chip">{ROLE_LABEL[inv.role ?? ''] || inv.role || 'Mitarbeitende:r'}</span>
+                </div>
+                <div className="team-col-since">
+                  gesendet {timeAgo(inv.created_at)}
+                </div>
+                <button className="team-row-action" type="button" onClick={() => cancelInvite(inv.id)} title="Einladung zurückziehen">
+                  Zurückziehen
                 </button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {/* Footer help line */}
+      <p className="team-foot">
+        Festag-Teams werden über E-Mail-Einladungen erweitert.
+        Eingeladene öffnen den Link und sind direkt im Workspace.
+      </p>
+
+      {/* Invite modal */}
+      {inviteOpen && (
+        <div className="team-modal-backdrop" onMouseDown={() => setInviteOpen(false)}>
+          <div className="team-modal" onMouseDown={e => e.stopPropagation()} role="dialog" aria-modal="true">
+            <header className="team-modal-head">
+              <div>
+                <p className="team-kicker">Einladung</p>
+                <h3>Mitglied einladen</h3>
+              </div>
+              <button className="team-modal-close" type="button" onClick={() => setInviteOpen(false)} aria-label="Schließen">
+                <X size={14} />
+              </button>
+            </header>
+
+            {invSent ? (
+              <div className="team-modal-success">
+                <Check size={14} />
+                <span>Einladung an <strong>{invSent}</strong> gesendet.</span>
               </div>
             ) : (
-              <div style={{ padding:'12px' }}>
-                <div style={{ display:'flex', flexDirection:'column', gap:2 }}>
-                  {members.map(m => {
-                    const isMe = m.id === me?.id
-                    const asgn = assignments[m.id]
-                    const areaCount = asgn?.areas.length ?? 0
-                    return (
-                      <div key={m.id} className="tm-card"
-                        onClick={() => openAssign(m)}
-                        style={{ display:'flex', alignItems:'center', gap:12, padding:'11px 13px', borderRadius:11, border:'1.5px solid transparent', background:'transparent' }}>
-                        <div style={{ width:38, height:38, borderRadius:'50%', background:'var(--surface-2)', border:'2px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, fontWeight:700, overflow:'hidden', flexShrink:0 }}>
-                          {m.avatar_url ? <img src={m.avatar_url} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }}/> : initOf(m)}
-                        </div>
-                        <div style={{ flex:1, minWidth:0 }}>
-                          <div style={{ display:'flex', alignItems:'center', gap:6 }}>
-                            <p style={{ fontSize:13.5, fontWeight:700, color:'var(--text)', margin:0 }}>{nameOf(m)}{isMe?' (Du)':''}</p>
-                            <span style={{ padding:'2px 6px', borderRadius:5, fontSize:9.5, fontWeight:700, letterSpacing:'.05em', textTransform:'uppercase', background:roleBg(m.role), color:roleColor(m.role) }}>
-                              {roleLabel(m.role)}
-                            </span>
-                          </div>
-                          <p style={{ fontSize:11.5, color:'var(--text-muted)', margin:'2px 0 0', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
-                            {areaCount > 0
-                              ? `${areaCount} Bereich${areaCount>1?'e':''} zugewiesen${asgn?.createTasks?' · Tasks aktiv':''}`
-                              : (m.email ?? 'Keine Bereiche zugewiesen')
-                            }
-                          </p>
-                        </div>
-                        <div style={{ display:'flex', alignItems:'center', gap:6 }}>
-                          {areaCount > 0 && (
-                            <span style={{ fontSize:11, fontWeight:600, padding:'3px 7px', borderRadius:6, background:'var(--surface-2)', color:'var(--text-secondary)' }}>
-                              {areaCount} Bereiche
-                            </span>
-                          )}
-                          <PencilSimple size={13} weight="regular" color="var(--text-muted)" />
-                        </div>
-                      </div>
-                    )
-                  })}
+              <>
+                <label className="team-field">
+                  <span>E-Mail-Adresse</span>
+                  <input
+                    type="email"
+                    value={invEmail}
+                    onChange={e => setInvEmail(e.target.value)}
+                    placeholder="name@firma.com"
+                    autoFocus
+                  />
+                </label>
+                <label className="team-field">
+                  <span>Anzeigename (optional)</span>
+                  <input
+                    type="text"
+                    value={invName}
+                    onChange={e => setInvName(e.target.value)}
+                    placeholder="z. B. Anna Schmidt"
+                  />
+                </label>
+                <label className="team-field">
+                  <span>Rolle</span>
+                  <select value={invRole} onChange={e => setInvRole(e.target.value)}>
+                    <option value="collaborator">Mitarbeitende:r</option>
+                    <option value="developer">Entwickler:in</option>
+                    <option value="designer">Designer:in</option>
+                    <option value="marketing">Marketing</option>
+                    <option value="reviewer">Reviewer</option>
+                    <option value="client">Kunde</option>
+                  </select>
+                </label>
 
-                  {/* Add slot */}
-                  <div onClick={() => openInvite()}
-                    style={{ display:'flex', alignItems:'center', gap:12, padding:'11px 13px', borderRadius:11, border:'1.5px dashed var(--border)', cursor:'pointer', opacity:.6, transition:'opacity .12s' }}
-                    onMouseEnter={e => (e.currentTarget.style.opacity='1')}
-                    onMouseLeave={e => (e.currentTarget.style.opacity='.6')}>
-                    <div style={{ width:38, height:38, borderRadius:'50%', background:'var(--surface-2)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                      <Plus size={14} weight="bold" color="var(--text-muted)" />
-                    </div>
-                    <p style={{ fontSize:13, fontWeight:600, color:'var(--text-muted)', margin:0 }}>Mitglied einladen…</p>
-                  </div>
+                {invError && <p className="team-modal-error">{invError}</p>}
+
+                <div className="team-modal-actions">
+                  <button className="team-btn" type="button" onClick={() => setInviteOpen(false)}>Abbrechen</button>
+                  <button className="team-btn team-btn-primary" type="button" onClick={sendInvite} disabled={invSending}>
+                    {invSending ? 'Sende…' : <>Einladung senden <ArrowRight size={11} /></>}
+                  </button>
                 </div>
-              </div>
+              </>
             )}
           </div>
-
-          {/* Right column */}
-          <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-
-            {/* Invite CTA */}
-            <div style={{ background:'var(--surface)', border:'1px solid var(--border)', borderRadius:'var(--r-lg)', padding:'18px 20px' }}>
-              <h3 style={{ margin:'0 0 4px', fontSize:14, fontWeight:700 }}>Team erweitern</h3>
-              <p style={{ fontSize:12.5, color:'var(--text-secondary)', margin:'0 0 14px', lineHeight:1.5 }}>
-                Founder, Developer oder Agency-Client einladen.
-              </p>
-              <button onClick={() => openInvite()}
-                style={{ width:'100%', padding:'11px', background:'var(--btn-prim)', color:'var(--btn-prim-text)', border:'none', borderRadius:10, fontSize:13.5, fontWeight:700, cursor:'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', justifyContent:'center', gap:7 }}>
-                <Envelope size={14} weight="bold" />
-                Einladung senden
-              </button>
-            </div>
-
-            {/* How assignment works */}
-            <div style={{ background:'var(--surface)', border:'1px solid var(--border)', borderRadius:'var(--r-lg)', padding:'18px 20px' }}>
-              <h3 style={{ margin:'0 0 12px', fontSize:13.5, fontWeight:700 }}>Aufgaben-Zuweisung</h3>
-              {[
-                { Icon: ListChecks, text:'Klicke ein Mitglied an, um Verantwortungsbereiche zuzuweisen.' },
-                { Icon: CheckCircle, text:'Definiere, ob das Mitglied Tasks selbst anlegen darf.' },
-                { Icon: ArrowsClockwise, text:'Zuweisungen werden lokal gespeichert und bleiben erhalten.' },
-              ].map(({ Icon, text }, i) => (
-                <div key={i} style={{ display:'flex', gap:10, padding:'8px 0', borderBottom: i < 2 ? '1px solid var(--border)' : 'none' }}>
-                  <div style={{ width:26, height:26, borderRadius:8, background:'var(--surface-2)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                    <Icon size={13} weight="regular" color="var(--text-muted)" />
-                  </div>
-                  <p style={{ fontSize:12, color:'var(--text-secondary)', margin:0, lineHeight:1.5, flex:1 }}>{text}</p>
-                </div>
-              ))}
-            </div>
-
-            {/* Roles */}
-            <div style={{ background:'var(--surface)', border:'1px solid var(--border)', borderRadius:'var(--r-lg)', padding:'18px 20px' }}>
-              <h3 style={{ margin:'0 0 12px', fontSize:13.5, fontWeight:700 }}>Rollen & Zugriff</h3>
-              {[
-                { role:'Owner',          color:'var(--amber)', desc:'Vollzugriff: Strategie, Budget, AI' },
-                { role:'Lead Developer', color:'var(--green)',  desc:'Execution Layer, Code, kein Budget' },
-                { role:'Developer',      color:'var(--green)',  desc:'Tasks & Projekte — kein Strategie-Zugriff' },
-                { role:'Client',         color:'var(--text-muted)', desc:'Strategische Sicht, Kommentare' },
-              ].map(r => (
-                <div key={r.role} style={{ padding:'7px 0', borderBottom:'1px solid var(--border)', display:'flex', gap:8, alignItems:'flex-start' }}>
-                  <span style={{ width:6, height:6, borderRadius:'50%', background:r.color, flexShrink:0, marginTop:5 }}/>
-                  <div>
-                    <p style={{ fontSize:12, fontWeight:700, color:'var(--text)', margin:0 }}>{r.role}</p>
-                    <p style={{ fontSize:11, color:'var(--text-muted)', margin:'1px 0 0', lineHeight:1.35 }}>{r.desc}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
-      )}
-
-      {/* ────────────────────────────────────────────
-          TAB — SZENARIEN
-      ──────────────────────────────────────────── */}
-      {tab === 'scenarios' && (
-        <div>
-          <div style={{ marginBottom:20, maxWidth:580 }}>
-            <p style={{ fontSize:13.5, color:'var(--text-secondary)', margin:0, lineHeight:1.6 }}>
-              Festag strukturiert Zusammenarbeit über kontextbasierte Team-Modelle. Wähle das Modell, das zu deiner Konstellation passt.
-            </p>
-          </div>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(240px, 1fr))', gap:10 }}>
-            {SCENARIOS.map((sc, idx) => (
-              <div key={sc.id} className="sc-card"
-                style={{ background:'var(--surface)', border:'1px solid var(--border)', borderRadius:16, padding:'20px', display:'flex', flexDirection:'column', gap:0, position:'relative', animation:`fadeUp .3s ${idx*.06}s both` }}>
-                {sc.badge && (
-                  <span style={{ position:'absolute', top:14, right:14, padding:'2px 8px', borderRadius:999, background:'var(--surface-2)', color:'var(--text-muted)', fontSize:9, fontWeight:700, letterSpacing:'.1em' }}>
-                    {sc.badge}
-                  </span>
-                )}
-                <div style={{ width:36, height:36, borderRadius:10, background:'var(--surface-2)', display:'flex', alignItems:'center', justifyContent:'center', marginBottom:14, flexShrink:0 }}>
-                  <sc.Icon size={17} weight="regular" color="var(--text-secondary)" />
-                </div>
-                <p style={{ fontSize:9.5, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.1em', margin:'0 0 3px' }}>{sc.eyebrow}</p>
-                <h3 style={{ fontSize:16, fontWeight:700, margin:'0 0 2px', letterSpacing:'-.3px' }}>{sc.title}</h3>
-                <p style={{ fontSize:11.5, color:'var(--text-muted)', margin:'0 0 10px', fontWeight:500 }}>{sc.subtitle}</p>
-                <p style={{ fontSize:12.5, color:'var(--text-secondary)', margin:'0 0 14px', lineHeight:1.55, flex:1 }}>{sc.desc}</p>
-
-                <div style={{ marginBottom:14, display:'flex', flexDirection:'column', gap:1 }}>
-                  {sc.access.map(a => (
-                    <div key={a} style={{ display:'flex', alignItems:'center', gap:7, padding:'4px 0', borderBottom:'1px solid var(--border)' }}>
-                      <Eye size={11} weight="regular" color="var(--green)" />
-                      <span style={{ fontSize:11.5, color:'var(--text-secondary)' }}>{a}</span>
-                    </div>
-                  ))}
-                  {sc.denied.map(d => (
-                    <div key={d} style={{ display:'flex', alignItems:'center', gap:7, padding:'4px 0', borderBottom:'1px solid var(--border)' }}>
-                      <EyeSlash size={11} weight="regular" color="var(--text-muted)" />
-                      <span style={{ fontSize:11.5, color:'var(--text-muted)' }}>{d}</span>
-                    </div>
-                  ))}
-                </div>
-
-                {sc.mailto ? (
-                  <a href={sc.mailto}
-                    style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:6, padding:'9px 14px', background:'var(--surface-2)', color:'var(--text)', borderRadius:10, fontSize:12.5, fontWeight:700, textDecoration:'none', border:'1px solid var(--border)', transition:'background .12s' }}>
-                    {sc.cta} <CaretRight size={11} weight="bold" />
-                  </a>
-                ) : (
-                  <button onClick={() => openInvite()}
-                    style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:6, width:'100%', padding:'9px 14px', background:'var(--surface-2)', color:'var(--text)', borderRadius:10, fontSize:12.5, fontWeight:700, textAlign:'center', border:'1px solid var(--border)', cursor:'pointer', fontFamily:'inherit', transition:'background .12s' }}>
-                    {sc.cta} <CaretRight size={11} weight="bold" />
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
-
-          {/* Architecture note */}
-          <div style={{ marginTop:16, padding:'14px 18px', background:'var(--surface)', border:'1px solid var(--border)', borderRadius:12, display:'flex', gap:12, alignItems:'flex-start' }}>
-            <div style={{ width:30, height:30, borderRadius:8, background:'var(--surface-2)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-              <ArrowsClockwise size={14} weight="regular" color="var(--text-muted)" />
-            </div>
-            <p style={{ fontSize:12.5, color:'var(--text-secondary)', margin:0, lineHeight:1.6 }}>
-              <strong style={{ color:'var(--text)' }}>Team → Projekte → User</strong> — nicht User → Projekte.
-              Agenturen verwalten mehrere Teams, nicht mehrere Projekte. AI hält pro Team einen eigenständigen Kontext.
-            </p>
-          </div>
-        </div>
-      )}
-
-      {tab === 'invitations' && (
-        <TeamsTabPlaceholder
-          title="Einladungen"
-          description="Invite Flow, PIN-Zugang und ausstehende Einladungen liegen hier, nicht in der Hauptsidebar."
-          rows={['E-Mail Einladung vorbereiten', 'PIN Einladung anzeigen', 'Ausstehende Einladungen', 'Einladung erneut senden oder widerrufen']}
-        />
-      )}
-
-      {tab === 'roles' && (
-        <TeamsTabPlaceholder
-          title="Rollen & Rechte"
-          description="Client-seitige Rollen, Sichtbarkeit und Projektzugriffe werden als Administration innerhalb der Teams-Seite geführt."
-          rows={['Owner / Admin', 'Founder / Co-Founder', 'Developer / Lead Developer', 'Agency Developer', 'Viewer']}
-        />
-      )}
-
-      {tab === 'seats' && (
-        <TeamsTabPlaceholder
-          title="Seats"
-          description="Aktive Mitarbeit braucht Seats. Lesen und eingeschränkter Zugriff bleiben sauber davon getrennt."
-          rows={['Aktive Seats', 'Seat erforderlich', 'Free Viewer', 'Upgrade Hinweis']}
-        />
-      )}
-
-      {tab === 'assigned' && (
-        <TeamsTabPlaceholder
-          title="Zugewiesene Projekte"
-          description="Developer und Teammitglieder sehen nur die Projekte, die ihnen wirklich zugewiesen wurden."
-          rows={['Systemische Beratung Praxis-Website', 'Praxis-Website', 'Festag Client Panel']}
-        />
-      )}
-
-      {tab === 'communication' && (
-        <TeamsTabPlaceholder
-          title="Team-Kommunikation"
-          description="Operative Abstimmung bleibt im Teams-Kontext. Die Sidebar bleibt trotzdem ruhig."
-          rows={['Team Update', 'Technische Rückfrage', 'Blocker Meldung', 'Tagro Zusammenfassung']}
-        />
       )}
     </div>
   )
 }
+
+const CSS = `
+  .team-page {
+    max-width: 1040px;
+    margin: 0 auto;
+    padding: 28px clamp(18px, 3vw, 40px) 80px;
+    color: var(--text);
+    font-family: var(--font-aeonik,'Aeonik',Inter,sans-serif);
+  }
+  .team-loading { padding: 64px 0; text-align: center; color: var(--text-muted); font-size: 13px; }
+
+  /* Header */
+  .team-head {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    gap: 16px; flex-wrap: wrap; margin-bottom: 28px;
+  }
+  .team-kicker { margin: 0; font-size: 11px; font-weight: 600; letter-spacing: .04em; color: var(--text-muted); text-transform: uppercase; }
+  .team-title  { margin: 6px 0 4px; font-size: 22px; font-weight: 500; letter-spacing: -.01em; color: var(--text); }
+  .team-sub    { margin: 0; font-size: 12.5px; color: var(--text-secondary); }
+
+  .team-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 13px; border: 1px solid var(--border); border-radius: 8px;
+    background: var(--surface); color: var(--text);
+    font-family: inherit; font-size: 12.5px; font-weight: 500; cursor: pointer;
+    transition: background .12s, border-color .12s;
+  }
+  .team-btn:hover { background: var(--surface-2); }
+  .team-btn:disabled { opacity: .55; cursor: not-allowed; }
+  .team-btn-primary { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+  .team-btn-primary:hover { background: color-mix(in srgb, var(--accent) 88%, #000); }
+
+  /* Blocks */
+  .team-block { margin-bottom: 28px; }
+  .team-block-head {
+    display: flex; align-items: baseline; gap: 8px;
+    padding-bottom: 8px; margin-bottom: 4px;
+    border-bottom: 1px solid var(--border);
+  }
+  .team-block-head h2 {
+    margin: 0; font-size: 12px; font-weight: 600;
+    color: var(--text-muted); letter-spacing: .04em; text-transform: uppercase;
+  }
+  .team-block-count { font-size: 11px; color: var(--text-muted); opacity: .65; }
+
+  .team-empty { margin: 12px 0; font-size: 12.5px; color: var(--text-muted); }
+
+  /* List */
+  .team-list { list-style: none; padding: 0; margin: 0; }
+  .team-row {
+    display: grid;
+    grid-template-columns: 28px minmax(180px, 1.5fr) 180px 1fr auto;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 4px;
+    border-bottom: 1px solid var(--border);
+    font-size: 12.5px;
+  }
+  .team-row:last-child { border-bottom: none; }
+  .team-row:hover { background: color-mix(in srgb, var(--surface-2) 50%, transparent); }
+
+  .team-avatar {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--surface-2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 600; color: var(--text-secondary);
+    overflow: hidden;
+  }
+  .team-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .team-avatar-ghost { background: transparent; border: 1px dashed var(--border); color: var(--text-muted); }
+
+  .team-col-name { display: flex; flex-direction: column; min-width: 0; }
+  .team-name { color: var(--text); font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .team-meta { color: var(--text-muted); font-size: 11.5px; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .team-you {
+    margin-left: 6px; font-size: 10px; font-weight: 600;
+    color: var(--accent); padding: 1px 6px;
+    border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+    border-radius: 4px; letter-spacing: .04em; text-transform: uppercase;
+  }
+
+  .team-col-role { display: flex; }
+  .team-chip {
+    font-size: 11px; font-weight: 500;
+    color: var(--text-secondary);
+    background: var(--surface-2); border: 1px solid var(--border);
+    padding: 2px 8px; border-radius: 5px;
+  }
+  .team-col-since { color: var(--text-muted); font-size: 11.5px; }
+  .team-row-action {
+    font-size: 11px; color: var(--text-muted); background: transparent;
+    border: 1px solid var(--border); border-radius: 6px;
+    padding: 3px 8px; cursor: pointer; font-family: inherit;
+  }
+  .team-row-action:hover { color: var(--text); }
+
+  .team-foot {
+    margin: 36px 0 0; font-size: 12px; color: var(--text-muted);
+    max-width: 480px; line-height: 1.55;
+  }
+
+  /* Modal */
+  .team-modal-backdrop {
+    position: fixed; inset: 0; background: color-mix(in srgb, #000 38%, transparent);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 100; padding: 16px;
+  }
+  .team-modal {
+    width: 100%; max-width: 380px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 18px;
+    box-shadow: 0 18px 60px rgba(0,0,0,.22);
+  }
+  .team-modal-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 14px; }
+  .team-modal-head h3 { margin: 4px 0 0; font-size: 15px; font-weight: 600; color: var(--text); }
+  .team-modal-close {
+    width: 26px; height: 26px; border-radius: 7px;
+    border: 1px solid var(--border); background: transparent;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-muted); cursor: pointer;
+  }
+  .team-modal-close:hover { color: var(--text); }
+
+  .team-field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; font-size: 11.5px; color: var(--text-muted); }
+  .team-field input, .team-field select {
+    background: transparent; border: 1px solid var(--border); border-radius: 7px;
+    padding: 7px 11px; font-size: 13px; color: var(--text); font-family: inherit; outline: none;
+  }
+  .team-field input:focus, .team-field select:focus { border-color: var(--accent); }
+
+  .team-modal-error {
+    margin: 4px 0 8px; padding: 8px 10px;
+    border: 1px solid var(--border); border-radius: 7px;
+    font-size: 12px; color: var(--text-secondary);
+    display: flex; align-items: flex-start; gap: 8px;
+  }
+  .team-modal-error::before {
+    content: ''; display: inline-block;
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--accent); margin-top: 5px; flex-shrink: 0;
+  }
+  .team-modal-success {
+    display: flex; align-items: center; gap: 8px;
+    padding: 14px; border: 1px solid var(--border); border-radius: 8px;
+    color: var(--text-secondary); font-size: 12.5px;
+  }
+  .team-modal-success svg { color: var(--accent); flex-shrink: 0; }
+
+  .team-modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 6px; }
+
+  @media (max-width: 700px) {
+    .team-row {
+      grid-template-columns: 28px 1fr auto;
+      gap: 10px;
+    }
+    .team-col-role, .team-col-since { display: none; }
+    .team-row-action { font-size: 10px; padding: 2px 6px; }
+  }
+`
