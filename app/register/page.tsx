@@ -214,7 +214,7 @@ export default function RegisterPage() {
             <path d="M21.35 11.1H12.18v2.73h6.51c-.33 3.81-3.5 5.44-6.5 5.44-3.83 0-7.19-3.02-7.19-7.27 0-4.1 3.2-7.27 7.2-7.27 3.09 0 4.9 1.97 4.9 1.97l1.9-1.98S16.56 2 12.1 2C6.42 2 2.03 6.8 2.03 12c0 5.05 4.13 10 10.22 10 5.35 0 9.25-3.67 9.25-9.09 0-1.15-.15-1.81-.15-1.81z" fill="currentColor"/>
           </svg>
         )}
-        <span>Mit Google verbinden</span>
+        <span className="reg-btn-label">Mit Google verbinden</span>
       </button>
       <button className="reg-btn reg-btn-outline" type="button" onClick={() => goTo('email')}>E-Mail verwenden</button>
       <div className="reg-dev-divider"><span>Developer access</span></div>
@@ -238,7 +238,7 @@ export default function RegisterPage() {
             <path d="M21.35 11.1H12.18v2.73h6.51c-.33 3.81-3.5 5.44-6.5 5.44-3.83 0-7.19-3.02-7.19-7.27 0-4.1 3.2-7.27 7.2-7.27 3.09 0 4.9 1.97 4.9 1.97l1.9-1.98S16.56 2 12.1 2C6.42 2 2.03 6.8 2.03 12c0 5.05 4.13 10 10.22 10 5.35 0 9.25-3.67 9.25-9.09 0-1.15-.15-1.81-.15-1.81z" fill="currentColor"/>
           </svg>
         )}
-        <span>Mit Google verbinden</span>
+        <span className="reg-btn-label">Mit Google verbinden</span>
       </button>
       <button className="reg-btn reg-btn-outline" type="button" onClick={() => goTo('email')}>E-Mail verwenden</button>
       <div className="reg-dev-divider"><span>Developer access</span></div>
@@ -383,6 +383,7 @@ export default function RegisterPage() {
 
         .reg-btn-stack { width:271px; display:flex; flex-direction:column; gap:20px; }
         .reg-btn { width:100%; height:47px; border-radius:32px; border:none; display:flex; align-items:center; justify-content:center; gap:8px; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:14px; font-weight:500; letter-spacing:0.14px; cursor:pointer; padding:12px 45px; white-space:nowrap; overflow:hidden; transition:background .15s, opacity .15s, border-color .15s, color .15s, transform 0.25s cubic-bezier(0.34,1.56,0.64,1); transform-origin:center; }
+        .reg-btn-label { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-weight:500; }
         .reg-btn:disabled { opacity:.5; cursor:not-allowed; }
         .reg-btn-google { background:#5b647d; color:#fff; box-shadow:0px 8px 24px 0px rgba(200,169,91,0.14); }
         .reg-btn-google:hover:not(:disabled) { background:#505870; }

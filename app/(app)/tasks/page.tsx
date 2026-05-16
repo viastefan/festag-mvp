@@ -453,7 +453,6 @@ export default function TasksPage() {
           justify-content:space-between;
           gap:10px;
           padding:0 10px 12px;
-          border-bottom:1px solid color-mix(in srgb, var(--border) 22%, transparent);
         }
         .task-filters {
           display:flex;
@@ -572,7 +571,6 @@ export default function TasksPage() {
           font-weight:400;
           border-bottom:0;
           background:var(--surface);
-          box-shadow:0 1px 0 color-mix(in srgb, var(--border) 24%, transparent);
           letter-spacing:.02em;
         }
         .task-head > *,
@@ -585,6 +583,7 @@ export default function TasksPage() {
           border-bottom:0;
           color:var(--text-secondary);
           font-size:12px;
+          border-radius:8px;
         }
         .task-row:hover {
           background:color-mix(in srgb, var(--surface-2) 58%, transparent);
