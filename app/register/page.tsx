@@ -53,7 +53,7 @@ export default function RegisterPage() {
     try {
       localStorage.setItem(THEME_KEY, t)
       document.documentElement.setAttribute('data-theme', t)
-      document.documentElement.style.backgroundColor = t === 'dark' ? '#0A0E14' : '#fcfcfd'
+      document.documentElement.style.backgroundColor = t === 'dark' ? '#0A0D14' : '#fcfcfd'
       document.documentElement.style.colorScheme = t
     } catch {}
   }
@@ -408,9 +408,9 @@ export default function RegisterPage() {
         @media (max-width: 640px) { .reg-desktop { display:none; } .reg-mobile { display:block; } }
 
         /* ═══ DARK MODE ═══ */
-        .reg-root[data-theme="dark"] .reg-desktop { background:#0A0E14; }
-        .reg-root[data-theme="dark"] .reg-mobile  { background:#06090E; }
-        .reg-root[data-theme="dark"] .reg-mobile-card { background:#101722; border-color:rgba(255,255,255,0.09); box-shadow:0px 26px 80px rgba(0,0,0,0.55),0px 6px 22px rgba(0,0,0,0.34),0px 1px 0px rgba(255,255,255,0.04) inset; }
+        .reg-root[data-theme="dark"] .reg-desktop { background:#0A0D14; }
+        .reg-root[data-theme="dark"] .reg-mobile  { background:#06080D; }
+        .reg-root[data-theme="dark"] .reg-mobile-card { background:#0E1219; border-color:rgba(255,255,255,0.09); box-shadow:0px 26px 80px rgba(0,0,0,0.55),0px 6px 22px rgba(0,0,0,0.34),0px 1px 0px rgba(255,255,255,0.04) inset; }
         .reg-root[data-theme="dark"] .reg-logo-desktop,
         .reg-root[data-theme="dark"] .reg-logo-mobile,
         .reg-root[data-theme="dark"] .reg-desktop-title,
@@ -419,7 +419,7 @@ export default function RegisterPage() {
         .reg-root[data-theme="dark"] .reg-btn-google { box-shadow:none !important; }
         .reg-root[data-theme="dark"] .reg-btn-outline { background:rgba(243,245,247,0.035); color:#E8E8E5; border:0.7px solid rgba(243,245,247,0.08); box-shadow:none; }
         .reg-root[data-theme="dark"] .reg-btn-outline:hover:not(:disabled) { background:rgba(243,245,247,0.06); border:1px solid rgba(243,245,247,0.14); }
-        .reg-root[data-theme="dark"] .reg-btn-confirm { background:#E8E8E5; color:#0A0E14; box-shadow:0px 8px 24px 0px rgba(0,0,0,0.35); }
+        .reg-root[data-theme="dark"] .reg-btn-confirm { background:#E8E8E5; color:#0A0D14; box-shadow:0px 8px 24px 0px rgba(0,0,0,0.35); }
         .reg-root[data-theme="dark"] .reg-btn-confirm:hover:not(:disabled) { background:#F3F5F7; }
         .reg-root[data-theme="dark"] .reg-email-input { background:rgba(243,245,247,0.035); color:#E8E8E5; border:1px solid rgba(102,112,143,0.10); caret-color:#66708F; }
         .reg-root[data-theme="dark"] .reg-email-input::placeholder { color:rgba(102,112,143,0.5); }

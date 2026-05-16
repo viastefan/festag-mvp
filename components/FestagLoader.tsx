@@ -49,7 +49,7 @@ export default function FestagLoader({ fullscreen = false, label }: Props) {
         }
         .fl-full {
           position:fixed; inset:0;
-          background:var(--legal-bg, #0F141B);
+          background:var(--legal-bg, #0A0D14);
           z-index:9999;
         }
         .fl-cluster {

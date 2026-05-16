@@ -122,7 +122,7 @@ export default function LoginPage() {
     try {
       localStorage.setItem(THEME_KEY, t)
       document.documentElement.setAttribute('data-theme', t)
-      document.documentElement.style.backgroundColor = t === 'dark' ? '#0A0E14' : '#fcfcfd'
+      document.documentElement.style.backgroundColor = t === 'dark' ? '#0A0D14' : '#fcfcfd'
       document.documentElement.style.colorScheme = t
     } catch {}
   }
@@ -563,9 +563,9 @@ export default function LoginPage() {
         }
 
         /* ═══ DARK MODE ══════════════════════════════════════════════ */
-        .log-root[data-theme="dark"] .log-desktop { background:#0A0E14; }
-        .log-root[data-theme="dark"] .log-mobile  { background:#06090E; }
-        .log-root[data-theme="dark"] .log-mobile-card { background:#101722; border-color:transparent; box-shadow:none; }
+        .log-root[data-theme="dark"] .log-desktop { background:#0A0D14; }
+        .log-root[data-theme="dark"] .log-mobile  { background:#06080D; }
+        .log-root[data-theme="dark"] .log-mobile-card { background:#0E1219; border-color:transparent; box-shadow:none; }
 
         .log-root[data-theme="dark"] .log-logo-desktop,
         .log-root[data-theme="dark"] .log-logo-mobile { color:#E8E8E5; }
@@ -578,7 +578,7 @@ export default function LoginPage() {
 
         .log-root[data-theme="dark"] .log-btn-outline { background:rgba(243,245,247,0.035); color:#E8E8E5; border:0.7px solid rgba(243,245,247,0.08); box-shadow:none; }
         .log-root[data-theme="dark"] .log-btn-outline:hover:not(:disabled) { background:rgba(243,245,247,0.06); border:1px solid rgba(243,245,247,0.14); }
-        .log-root[data-theme="dark"] .log-btn-confirm { background:#E8E8E5; color:#0A0E14; box-shadow:0px 8px 24px 0px rgba(0,0,0,0.35); }
+        .log-root[data-theme="dark"] .log-btn-confirm { background:#E8E8E5; color:#0A0D14; box-shadow:0px 8px 24px 0px rgba(0,0,0,0.35); }
         .log-root[data-theme="dark"] .log-btn-confirm:hover:not(:disabled) { background:#F3F5F7; }
 
         .log-root[data-theme="dark"] .log-email-input { background:rgba(243,245,247,0.035); color:#E8E8E5; border:1px solid rgba(102,112,143,0.10); caret-color:#66708F; }
@@ -599,7 +599,7 @@ export default function LoginPage() {
         .log-root[data-theme="dark"] .log-support-note { color:#98A2B3; }
         .log-root[data-theme="dark"] .log-support-note button { color:#F3F5F7; }
         .log-root[data-theme="dark"] .log-support-backdrop { background:rgba(0,0,0,.42); }
-        .log-root[data-theme="dark"] .log-support-modal { background:#0F141B; border-color:rgba(243,245,247,.10); box-shadow:0 24px 70px rgba(0,0,0,.44); }
+        .log-root[data-theme="dark"] .log-support-modal { background:#0A0D14; border-color:rgba(243,245,247,.10); box-shadow:0 24px 70px rgba(0,0,0,.44); }
         .log-root[data-theme="dark"] .log-support-head h2,
         .log-root[data-theme="dark"] .log-support-success { color:#F3F5F7; }
         .log-root[data-theme="dark"] .log-support-head p,

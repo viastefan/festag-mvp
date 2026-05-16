@@ -228,7 +228,7 @@ const CB_CSS = `
   .cb-btn:hover{background:#505870;}
   .cb-btn:active{transform:scale(0.98);}
   .cb-foot{margin-top:0;font-size:12px;color:#98A2B3;line-height:1.5;font-weight:400;}
-  @media (prefers-color-scheme: dark){.cb-page{background:#0A0E14;color:#E8E8E5}.cb-brand,.cb-title{color:#E8E8E5}.cb-text{color:#98A2B3}.cb-btn{background:#E8E8E5;color:#0A0E14;box-shadow:none}.cb-btn:hover{background:#F3F5F7}.cb-foot{color:#7B8294}}
+  @media (prefers-color-scheme: dark){.cb-page{background:#0A0D14;color:#E8E8E5}.cb-brand,.cb-title{color:#E8E8E5}.cb-text{color:#98A2B3}.cb-btn{background:#E8E8E5;color:#0A0D14;box-shadow:none}.cb-btn:hover{background:#F3F5F7}.cb-foot{color:#7B8294}}
 `
 
 export default function AuthCallbackPage() {

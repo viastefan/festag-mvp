@@ -40,7 +40,7 @@ export default function DevLoginPage() {
     try {
       localStorage.setItem(THEME_KEY, t)
       document.documentElement.setAttribute('data-theme', t)
-      document.documentElement.style.backgroundColor = t === 'dark' ? '#0A0E14' : '#fcfcfd'
+      document.documentElement.style.backgroundColor = t === 'dark' ? '#0A0D14' : '#fcfcfd'
       document.documentElement.style.colorScheme = t
     } catch {}
   }
@@ -162,7 +162,7 @@ export default function DevLoginPage() {
         .dl-ssl svg { width:11px; height:13px; flex-shrink:0; }
 
         /* DARK MODE */
-        .dl-root[data-theme="dark"] .dl-frame { background:#0A0E14; }
+        .dl-root[data-theme="dark"] .dl-frame { background:#0A0D14; }
         .dl-root[data-theme="dark"] .dl-logo,
         .dl-root[data-theme="dark"] .dl-title { color:#E8E8E5; }
         .dl-root[data-theme="dark"] .dl-eyebrow { color:#7B8294; }
