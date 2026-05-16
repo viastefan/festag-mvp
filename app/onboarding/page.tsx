@@ -242,7 +242,7 @@ export default function OnboardingPage() {
         }
         .onb-root[data-theme="light"] { background:#EFEFEC; color:#0A0B0A; }
         .onb-root[data-theme="read"]  { background:#E6DFCE; color:#1C1914; }
-        .onb-root[data-theme="dark"]  { background:#0A0B0A; color:#E8E8E5; }
+        .onb-root[data-theme="dark"]  { background:#0F141B; color:#E8E8E5; }
 
         .onb-shell {
           width:100%; max-width:1080px; min-height:640px;
@@ -253,7 +253,7 @@ export default function OnboardingPage() {
         }
         .onb-root[data-theme="light"] .onb-shell { background:#FAFAF9; box-shadow:0 28px 72px -20px rgba(15,23,42,0.10), 0 1px 2px rgba(15,23,42,0.04); }
         .onb-root[data-theme="read"]  .onb-shell { background:#F7F4EC; box-shadow:0 28px 72px -20px rgba(38,33,24,0.12), 0 1px 2px rgba(38,33,24,0.04); }
-        .onb-root[data-theme="dark"]  .onb-shell { background:#141517; box-shadow:0 28px 72px -20px rgba(0,0,0,0.5), 0 1px 2px rgba(0,0,0,0.2); }
+        .onb-root[data-theme="dark"]  .onb-shell { background:#171F2A; box-shadow:0 28px 72px -20px rgba(0,0,0,0.5), 0 1px 2px rgba(0,0,0,0.2); }
 
         /* Subtle vertical rule between the two halves (decorative) */
         .onb-shell::after {
@@ -394,10 +394,10 @@ export default function OnboardingPage() {
         .preview-read   .onb-card-bar.long { background:#6F6248; }
         .preview-read   .onb-card-bar.mid  { background:rgba(111,98,72,0.4); }
         .preview-read   .onb-card-bar.short{ background:rgba(111,98,72,0.22); }
-        .preview-dark   { background:#0E0F0F; }
-        .preview-dark   .onb-card-bar.long { background:#7B7DFF; }
-        .preview-dark   .onb-card-bar.mid  { background:rgba(255,255,255,0.16); }
-        .preview-dark   .onb-card-bar.short{ background:rgba(255,255,255,0.08); }
+        .preview-dark   { background:#0F141B; }
+        .preview-dark   .onb-card-bar.long { background:#5B647D; }
+        .preview-dark   .onb-card-bar.mid  { background:rgba(152,162,179,0.20); }
+        .preview-dark   .onb-card-bar.short{ background:rgba(152,162,179,0.10); }
         .onb-card-title { font-size:14px; font-weight:500; letter-spacing:0; margin-bottom:4px; }
         .onb-card-desc  { font-size:12px; line-height:1.5; font-weight:500; letter-spacing:0.01em; opacity:.55; }
 
