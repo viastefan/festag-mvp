@@ -686,7 +686,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         [data-theme="dark"] .sb-top-icon:hover { background:rgba(255,255,255,0.04); }
         .sb-bottom-actions {
           display:block;
-          padding:14px 6px 18px;
+          padding:14px 6px 26px;
           flex-shrink:0;
         }
         .sb-pill-action,
