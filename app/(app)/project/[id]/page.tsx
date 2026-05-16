@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { useParams } from 'next/navigation'
+import { useParams, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import ChatMarkdown from '@/components/ChatMarkdown'
 import { projectColor } from '@/components/Sidebar'
@@ -38,7 +38,11 @@ export default function ProjectPage() {
   const [userId, setUserId] = useState('')
   const [userEmail, setUserEmail] = useState('')
   const [userRole, setUserRole] = useState<'client'|'dev'|'admin'|''>('')
-  const [activeLeft, setActiveLeft] = useState<'tasks'|'assets'|'updates'>('tasks')
+  const searchParams = useSearchParams()
+  const initialTab = (searchParams?.get('tab') as 'tasks' | 'assets' | 'updates' | null)
+  const [activeLeft, setActiveLeft] = useState<'tasks'|'assets'|'updates'>(
+    initialTab === 'assets' || initialTab === 'updates' ? initialTab : 'tasks'
+  )
   const [aiThinking, setAiThinking] = useState(false)
   const [generatingAI, setGeneratingAI] = useState(false)
   const [online, setOnline] = useState(false)

@@ -71,16 +71,18 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
 [data-theme="dark"] {
   /* Dark mode — Festag Calm Spec (Linear / Vercel / OpenAI-Platform style).
      Low contrast, no neon, no AI glows. Strict surface ladder so layers
-     read but never compete: bg → sidebar → card → input → hover → active. */
-  --bg:#0E0F0F;
-  --surface:#111212;          /* sidebar / panels */
-  --card:#151617;             /* cards on top of surface */
-  --surface-2:#18191A;        /* inputs / secondary layers */
-  --hover:#1B1C1D;
-  --active:#202223;
+     read but never compete: bg → sidebar → card → input → hover → active.
+     Tuned 2026-05: bg pushed darker, card stays grounded, border slightly
+     more visible so content boxes lift cleanly off the page. */
+  --bg:#0A0B0B;
+  --surface:#111213;          /* sidebar / panels — sits one tick above bg */
+  --card:#16181A;             /* cards on top of surface — feel grounded, not bright */
+  --surface-2:#1A1C1E;        /* inputs / secondary layers */
+  --hover:#1E2022;
+  --active:#23262A;
 
-  --border:rgba(255,255,255,0.06);
-  --border-strong:rgba(255,255,255,0.12);
+  --border:rgba(255,255,255,0.09);
+  --border-strong:rgba(255,255,255,0.16);
 
   --text:#ECECEC;
   --text-secondary:#A1A1A1;

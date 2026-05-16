@@ -778,6 +778,9 @@ export default function DashboardPage() {
                     <Link href={`/project/${main.id}`} className="dash-button" style={{ height:32, padding:'0 12px' }}>
                       Tasks
                     </Link>
+                    <Link href={`/project/${main.id}?tab=assets`} className="dash-button" style={{ height:32, padding:'0 12px' }}>
+                      Assets
+                    </Link>
                     {decisionsOpen > 0 && (
                       <Link href="/tasks?status=waiting" className="dash-button" style={{ height:32, padding:'0 12px', borderColor:'rgba(3,105,161,0.4)', color:'#0369A1' }}>
                         Entscheidung ({decisionsOpen})
