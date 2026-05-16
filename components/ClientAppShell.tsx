@@ -172,13 +172,13 @@ export default function ClientAppShell({
         }
         .app-footer-controls {
           position:fixed;
-          right:6px;
-          bottom:8px;
+          right:0px;
+          bottom:14px;
           z-index:145;
           display:flex;
-          flex-direction:column;
-          align-items:flex-end;
-          gap:4px;
+          flex-direction:row;
+          align-items:center;
+          gap:8px;
           color:var(--text-muted);
         }
         .app-footer-btn {
