@@ -124,15 +124,15 @@ export default function ClientAppShell({
         }
         .app-workspace {
           position: fixed;
-          top: 28px;
+          top: 24px;
           right: 24px;
-          bottom: 64px;
+          bottom: 52px;
           left: calc(var(--app-sidebar-width) + 16px);
           min-width: 0;
           display: flex;
           flex-direction: column;
           overflow: hidden;
-          max-height: calc(100dvh - 92px);
+          max-height: calc(100dvh - 76px);
           border: 1px solid color-mix(in srgb, var(--border) 84%, transparent);
           border-radius: 10px;
           background: var(--surface);
@@ -173,7 +173,7 @@ export default function ClientAppShell({
         .app-footer-controls {
           position:fixed;
           right:28px;
-          bottom:20px;
+          bottom:16px;
           z-index:145;
           display:flex;
           align-items:center;
