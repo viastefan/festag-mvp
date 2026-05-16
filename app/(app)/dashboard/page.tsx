@@ -201,17 +201,18 @@ export default function DashboardPage() {
         .kpi-row {
           display: grid;
           grid-template-columns: repeat(4, minmax(0, 1fr));
-          gap: 10px;
-          margin-bottom: 44px;
+          gap: 12px;
+          margin-bottom: 52px;
           animation: fadeUp .34s var(--dash-ease) both;
         }
         .kpi-card {
           display: flex; flex-direction: column; gap: 4px;
-          padding: 14px 16px;
+          padding: 18px 18px;
           border: 1px solid var(--dash-hairline);
-          border-radius: 12px;
-          background: color-mix(in srgb, var(--surface) 60%, transparent);
+          border-radius: 18px;
+          background: var(--card);
           min-width: 0;
+          box-shadow: 0 0 0 1px rgba(255,255,255,0.02);
         }
         .kpi-label {
           font-size: 11px; font-weight: 600; letter-spacing: 0.02em;
@@ -245,9 +246,9 @@ export default function DashboardPage() {
           justify-content:center;
           gap:7px;
           padding:0 15px;
-          border-radius:11px;
-          border:1px solid color-mix(in srgb, var(--border) 54%, transparent);
-          background:color-mix(in srgb, var(--surface) 64%, transparent);
+          border-radius:16px;
+          border:1px solid color-mix(in srgb, var(--border) 72%, transparent);
+          background:color-mix(in srgb, var(--card) 94%, transparent);
           color:var(--text);
           font:inherit;
           font-size:12.5px;
@@ -255,29 +256,29 @@ export default function DashboardPage() {
           letter-spacing:-.01em;
           cursor:pointer;
           text-decoration:none;
-          box-shadow:0 14px 34px rgba(0,0,0,.035);
+          box-shadow:0 0 0 1px rgba(255,255,255,.02);
           transition:transform .24s var(--dash-ease), background .24s var(--dash-ease), border-color .24s var(--dash-ease), box-shadow .24s var(--dash-ease), opacity .24s var(--dash-ease);
         }
         .dash-button:hover {
           transform:translateY(-1px);
-          background:color-mix(in srgb, var(--surface-2) 34%, var(--surface));
+          background:var(--hover);
           border-color:color-mix(in srgb, var(--border-strong) 46%, transparent);
-          box-shadow:0 20px 46px rgba(0,0,0,.055);
+          box-shadow:0 0 0 1px rgba(255,255,255,.03);
         }
         .dash-button.primary {
           background:var(--btn-prim);
           color:var(--btn-prim-text);
           border-color:transparent;
-          box-shadow:0 18px 44px rgba(0,0,0,.11);
+          box-shadow:none;
         }
         .dash-layout {
           display:grid;
           grid-template-columns:minmax(0, 1fr) 286px;
-          gap:56px;
+          gap:64px;
           align-items:start;
         }
         .dash-section {
-          margin-bottom:56px;
+          margin-bottom:64px;
           animation:fadeUp .34s var(--dash-ease) both;
         }
         .dash-section-head {
@@ -313,11 +314,12 @@ export default function DashboardPage() {
         /* ── Heutiges Projektbriefing — primary anchor card ─────── */
         .dash-briefing-section { margin-bottom: 32px; }
         .dash-today-briefing {
-          padding: 22px 24px;
-          border-radius: 16px;
-          background: linear-gradient(135deg, var(--card), color-mix(in srgb, var(--surface-2) 50%, var(--card)));
+          padding: 24px 26px;
+          border-radius: 24px;
+          background: linear-gradient(180deg, color-mix(in srgb, var(--card) 98%, transparent), color-mix(in srgb, var(--surface) 86%, var(--card)));
           border: 1px solid var(--border);
           display: flex; flex-direction: column; gap: 14px;
+          box-shadow: 0 0 0 1px rgba(255,255,255,0.02);
         }
         .dash-today-head {
           display: flex; justify-content: space-between; align-items: baseline;
@@ -346,13 +348,11 @@ export default function DashboardPage() {
         }
 
         .dash-current {
-          border-radius:24px;
+          border-radius:28px;
           overflow:hidden;
-          background:
-            linear-gradient(135deg, color-mix(in srgb, var(--surface) 58%, transparent), transparent 72%),
-            color-mix(in srgb, var(--surface) 36%, transparent);
-          border:1px solid color-mix(in srgb, var(--border) 34%, transparent);
-          box-shadow:0 24px 70px rgba(0,0,0,.045);
+          background: var(--card);
+          border:1px solid color-mix(in srgb, var(--border) 78%, transparent);
+          box-shadow:0 0 0 1px rgba(255,255,255,.02);
           backdrop-filter:blur(18px) saturate(145%);
           -webkit-backdrop-filter:blur(18px) saturate(145%);
         }
@@ -364,7 +364,7 @@ export default function DashboardPage() {
           height:22px;
           padding:0 8px;
           border-radius:999px;
-          background:color-mix(in srgb, var(--surface-2) 48%, transparent);
+          background:color-mix(in srgb, var(--surface-2) 72%, transparent);
           color:var(--text-muted);
           font-size:10.5px;
           font-weight:680;
@@ -419,9 +419,9 @@ export default function DashboardPage() {
           transition:background .28s var(--dash-ease), transform .28s var(--dash-ease), box-shadow .28s var(--dash-ease), opacity .28s var(--dash-ease);
         }
         .dash-row:hover {
-          background:color-mix(in srgb, var(--surface-2) 22%, transparent);
+          background:color-mix(in srgb, var(--surface-2) 38%, transparent);
           transform:translateY(-1px) scale(1.002);
-          box-shadow:0 18px 44px rgba(0,0,0,.035);
+          box-shadow:0 0 0 1px rgba(255,255,255,.02);
           backdrop-filter:blur(12px);
           -webkit-backdrop-filter:blur(12px);
         }
@@ -450,9 +450,9 @@ export default function DashboardPage() {
           transition:background .24s var(--dash-ease), transform .24s var(--dash-ease), box-shadow .24s var(--dash-ease);
         }
         .task-row:hover {
-          background:color-mix(in srgb, var(--surface-2) 20%, transparent);
+          background:color-mix(in srgb, var(--surface-2) 34%, transparent);
           transform:translateY(-1px) scale(1.001);
-          box-shadow:0 14px 34px rgba(0,0,0,.026);
+          box-shadow:0 0 0 1px rgba(255,255,255,.02);
         }
         .dash-report {
           padding:2px 0 0;
@@ -474,10 +474,10 @@ export default function DashboardPage() {
           font-style:italic;
         }
         .cp-card {
-          padding: 14px 16px;
+          padding: 16px 18px;
           border: 1px solid var(--dash-hairline);
-          border-radius: 12px;
-          background: color-mix(in srgb, var(--surface) 60%, transparent);
+          border-radius: 18px;
+          background: var(--card);
         }
         .cp-card .dash-label { margin-bottom: 10px; }
         .cp-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }

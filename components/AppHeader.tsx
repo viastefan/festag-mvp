@@ -28,11 +28,11 @@ export default function AppHeader({
           .ah-cp-label { display:none !important; }
         }
         .ah-search-trigger {
-          width:100%; height:36px;
+          width:100%; height:40px;
           padding:'0 38px 0 30px';
-          background: var(--card);
+          background: var(--surface-2);
           border:1px solid var(--border);
-          border-radius:10px;
+          border-radius:16px;
           font-size:13px; color: var(--text-muted);
           font-family: inherit; font-weight: 500;
           cursor: text;
@@ -41,14 +41,16 @@ export default function AppHeader({
           position: relative;
           transition: border-color .12s, background .12s;
         }
-        .ah-search-trigger:hover { border-color: var(--border-strong); background: var(--surface); }
+        .ah-search-trigger:hover { border-color: var(--border-strong); background: var(--hover); }
       `}</style>
 
       <header style={{
         display: 'flex', alignItems: 'center', gap: 10,
-        padding: '0 24px', borderBottom: '1px solid var(--border)',
-        background: 'var(--bg)', position: 'sticky', top: 0, zIndex: 50,
-        height: 56, flexShrink: 0,
+        padding: '0 28px', borderBottom: '1px solid var(--border)',
+        background: 'color-mix(in srgb, var(--surface) 96%, transparent)', position: 'sticky', top: 0, zIndex: 50,
+        height: 64, flexShrink: 0,
+        backdropFilter: 'blur(18px)',
+        WebkitBackdropFilter: 'blur(18px)',
       }}>
         <div style={{ flex: 1 }} />
 
@@ -66,7 +68,7 @@ export default function AppHeader({
             </svg>
             <span style={{ flex: 1, textAlign: 'left' }}>Suchen oder „tagro: …"</span>
             <span style={{
-              padding:'2px 6px', borderRadius:5,
+              padding:'2px 6px', borderRadius:8,
               fontSize:10, fontWeight:600, color:'var(--text-muted)',
               background:'var(--surface-2)', border:'1px solid var(--border)',
               fontFamily: 'ui-monospace, "SF Mono", Menlo, monospace',
@@ -79,7 +81,7 @@ export default function AppHeader({
         <button
           onClick={onToggleCopilot}
           className="tap-scale"
-          style={{ height:36, padding:'0 13px', background: copilotOpen ? 'var(--accent)' : 'var(--card)', color: copilotOpen ? 'var(--accent-text)' : 'var(--text-secondary)', border:`1px solid ${copilotOpen ? 'transparent' : 'var(--border)'}`, borderRadius:10, fontSize:13, fontWeight:700, cursor:'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', gap:7, transition:'all .15s' }}>
+          style={{ height:40, padding:'0 15px', background: copilotOpen ? 'var(--accent)' : 'var(--card)', color: copilotOpen ? 'var(--accent-text)' : 'var(--text-secondary)', border:`1px solid ${copilotOpen ? 'transparent' : 'var(--border)'}`, borderRadius:16, fontSize:13, fontWeight:700, cursor:'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', gap:7, transition:'all .15s' }}>
           <span style={{ fontSize:14, lineHeight:1 }}>✦</span>
           <span className="ah-cp-label">Copilot</span>
         </button>

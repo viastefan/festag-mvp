@@ -432,17 +432,19 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
     <>
       <style>{`
         :root {
-          --sb-row-h: 27px;
+          --sb-row-h: 30px;
           --sb-icon: 16px;
           --sb-font: 13px;
-          --sb-x: 10px;
+          --sb-x: 12px;
         }
         /* ── Nav item ── */
         .ni {
           display:flex; align-items:center; gap:7px;
           min-height: var(--sb-row-h);
-          padding:0 var(--sb-x); border-radius:8px;
+          padding:0 var(--sb-x); border-radius:14px;
           font-size:var(--sb-font); font-weight:500;
+          font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
+          letter-spacing:.01em;
           cursor:pointer; text-decoration:none; color:inherit;
           transition:background .12s, color .12s;
           white-space:nowrap; overflow:hidden;
@@ -453,18 +455,18 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           margin:0 5px;
         }
         .ni-on  { background:rgba(0,0,0,0.048); font-weight:600; color:var(--text); }
-        [data-theme="dark"] .ni-on { background:rgba(255,255,255,0.075); color:var(--nav-on-text); }
+        [data-theme="dark"] .ni-on { background:var(--nav-on); color:var(--nav-on-text); }
         [data-theme="read"] .ni-on { background:rgba(0,0,0,0.05); color:var(--text); }
         .ni-off { color:var(--text-secondary); }
         .ni-off:hover { background:rgba(0,0,0,0.03); color:var(--text); }
-        [data-theme="dark"] .ni-off:hover { background:rgba(255,255,255,0.045); }
+        [data-theme="dark"] .ni-off:hover { background:rgba(255,255,255,0.04); }
         [data-theme="read"] .ni-off:hover { background:rgba(0,0,0,0.04); }
         .ni:focus { outline: none; }
         .ni:focus-visible {
           box-shadow: 0 0 0 2px var(--focus-ring, rgba(64, 105, 225, 0.35));
         }
         .sb-section {
-          margin: 20px 0 18px;
+          margin: 26px 0 22px;
         }
         .sb-section-head {
           display:flex;
@@ -472,7 +474,11 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           justify-content:space-between;
           gap:8px;
           min-height:22px;
-          padding:0 8px 5px;
+          padding:0 10px 7px;
+        }
+        .sb-section-head span {
+          font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
+          letter-spacing:.01em;
         }
         .sb-section-head button {
           min-height: 18px;
@@ -506,10 +512,12 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           grid-template-columns:16px minmax(0, 1fr);
           align-items:center;
           gap:7px;
-          min-height:25px;
-          padding:0 9px 0 13px;
-          border-radius:8px;
+          min-height:30px;
+          padding:0 10px 0 14px;
+          border-radius:14px;
           font-size:12.5px; font-weight:500;
+          font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
+          letter-spacing:.01em;
           cursor:pointer; text-decoration:none;
           color:var(--text-muted);
           transition:background .08s, color .08s;
@@ -538,7 +546,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           box-sizing:border-box;
         }
         .proj-row:hover { background:rgba(0,0,0,0.04); color:var(--text); }
-        [data-theme="dark"] .proj-row:hover { background:rgba(255,255,255,0.05); }
+        [data-theme="dark"] .proj-row:hover { background:rgba(255,255,255,0.04); }
         .proj-row.active { background:var(--nav-on); color:var(--nav-on-text); font-weight:600; }
         .proj-row.proj-new { opacity:.55; transition:opacity .12s; }
         .proj-row.proj-new:hover { opacity:1; background:rgba(0,0,0,0.035); }
@@ -557,7 +565,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           grid-template-columns:minmax(0, 1fr) 28px 28px;
           align-items:center;
           gap:6px;
-          padding:0 2px 11px;
+          padding:0 4px 16px;
           flex-shrink:0;
           min-width:0;
         }
@@ -567,7 +575,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         .sb-top-icon {
           width:28px;
           height:28px;
-          border-radius:8px;
+          border-radius:12px;
           display:flex;
           align-items:center;
           justify-content:center;
@@ -590,24 +598,24 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           color:var(--text);
           background:rgba(0,0,0,0.035);
         }
-        [data-theme="dark"] .sb-top-icon:hover { background:rgba(255,255,255,0.055); }
+        [data-theme="dark"] .sb-top-icon:hover { background:rgba(255,255,255,0.04); }
         .sb-bottom-actions {
           display:block;
-          padding:10px 6px 2px;
+          padding:14px 8px 6px;
           flex-shrink:0;
         }
         .sb-pill-action,
         .sb-square-action {
           min-height:42px;
           border:1px solid var(--border);
-          background:color-mix(in srgb, var(--surface) 76%, transparent);
+          background:color-mix(in srgb, var(--card) 92%, transparent);
           color:var(--text);
-          border-radius:12px;
+          border-radius:18px;
           display:flex;
           align-items:center;
           justify-content:center;
           text-decoration:none;
-          box-shadow:0 1px 2px rgba(0,0,0,.025);
+          box-shadow:0 0 0 1px rgba(255,255,255,.02);
         }
         .sb-pill-action {
           gap:9px;
@@ -623,18 +631,18 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         }
         .sb-pill-action:hover,
         .sb-square-action:hover {
-          background:var(--surface);
+          background:var(--hover);
           border-color:var(--border-strong);
         }
 
         /* ── Tagro Monitoring Capsule — single-line ── */
         .sb-monitor-capsule {
           display:flex; align-items:center; gap:8px;
-          min-height:32px;
-          padding:6px 12px;
+          min-height:38px;
+          padding:8px 14px;
           border:1px solid var(--border);
-          background:color-mix(in srgb, var(--surface) 76%, transparent);
-          border-radius:8px;
+          background:color-mix(in srgb, var(--card) 92%, transparent);
+          border-radius:16px;
           text-decoration:none;
           color:var(--text);
           min-width:0;
@@ -642,7 +650,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         }
         .sb-monitor-capsule--single { width:100%; }
         .sb-monitor-capsule:hover {
-          background:var(--surface);
+          background:var(--hover);
           border-color:var(--border-strong);
         }
         .sb-monitor-dot {
@@ -650,7 +658,8 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           flex-shrink:0;
         }
         .sb-monitor-line {
-          font-size:12.5px; font-weight:500; letter-spacing:-.005em;
+          font-size:12.5px; font-weight:500; letter-spacing:.01em;
+          font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
           color:var(--text);
           overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
           min-width:0;
@@ -659,29 +668,31 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         /* ── User dropdown row ── */
         .usr-row {
           display:flex; align-items:center; gap:9px;
-          padding:7px 10px; border-radius:8px;
+          padding:9px 12px; border-radius:14px;
           cursor:pointer; transition:background .08s;
           width:100%; border:none; font-family:inherit;
           background:transparent; text-decoration:none; color:var(--text);
           font-size:12.5px; font-weight:500;
+          font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
+          letter-spacing:.01em;
         }
-        .usr-row:hover { background:var(--surface-2); }
+        .usr-row:hover { background:var(--hover); }
 
         /* ── Mobile bar (glass) ── */
         .mob-bar {
           position:fixed; bottom:calc(14px + var(--safe-bottom));
           left:50%; transform:translateX(-50%);
           width:calc(100% - 28px); max-width:380px;
-          background:var(--sidebar-bg);
+          background:color-mix(in srgb, var(--sidebar-bg) 92%, transparent);
           backdrop-filter:blur(36px) saturate(200%);
           -webkit-backdrop-filter:blur(36px) saturate(200%);
           border:1px solid var(--sidebar-border);
-          box-shadow:0 12px 40px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.10);
+          box-shadow:0 0 0 1px rgba(255,255,255,0.04);
           border-radius:30px; z-index:200;
           align-items:center; padding:10px 16px; gap:0;
         }
         [data-theme="dark"] .mob-bar {
-          box-shadow:0 12px 40px rgba(0,0,0,0.55), 0 2px 8px rgba(0,0,0,0.40), inset 0 1px 0 rgba(255,255,255,0.06);
+          box-shadow:0 0 0 1px rgba(255,255,255,0.04);
         }
         .mt  { display:flex; flex-direction:column; align-items:center; gap:3px; flex:1; min-height:44px; justify-content:center; cursor:pointer; text-decoration:none; border:none; background:transparent; font-family:inherit; -webkit-tap-highlight-color:transparent; transition:transform .1s; }
         .mt:active { transform:scale(.88); }
@@ -690,15 +701,15 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         .mt.has-avatar .mti { background:transparent !important; }
         .mt.on .ml   { color:var(--text); font-weight:700; }
         .mt.off .ml  { color:var(--text-muted); font-weight:500; }
-        .ml { font-size:9.5px; letter-spacing:.01em; transition:color .12s; line-height:1; }
-        .mob-fab { width:50px; height:50px; border-radius:50%; background:var(--btn-prim); color:var(--btn-prim-text); display:flex; align-items:center; justify-content:center; margin:-6px 12px; box-shadow:0 4px 18px rgba(0,0,0,.35); border:none; cursor:pointer; transition:transform .15s ease,background .15s; flex-shrink:0; -webkit-tap-highlight-color:transparent; }
+        .ml { font-size:9.5px; font-weight:500; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); letter-spacing:.01em; transition:color .12s; line-height:1; }
+        .mob-fab { width:50px; height:50px; border-radius:50%; background:var(--btn-prim); color:var(--btn-prim-text); display:flex; align-items:center; justify-content:center; margin:-6px 12px; box-shadow:0 0 0 1px rgba(255,255,255,.02); border:none; cursor:pointer; transition:transform .15s ease,background .15s; flex-shrink:0; -webkit-tap-highlight-color:transparent; }
         .mob-fab:active { transform:scale(.88); }
-        .mob-fab.open { background:var(--surface-2); box-shadow:0 2px 8px rgba(0,0,0,.2); }
+        .mob-fab.open { background:var(--surface-2); box-shadow:0 0 0 1px rgba(255,255,255,.03); }
         .mbd { position:fixed; inset:0; z-index:198; background:rgba(0,0,0,.40); backdrop-filter:blur(3px); -webkit-backdrop-filter:blur(3px); }
         .mob-quick { position:fixed; bottom:calc(96px + var(--safe-bottom)); left:50%; transform:translateX(-50%); width:calc(100% - 32px); max-width:340px; z-index:199; display:flex; flex-direction:column; gap:6px; animation:mqUp .2s cubic-bezier(.16,1,.3,1) both; }
         @keyframes mqUp { from{opacity:0;transform:translateX(-50%) translateY(18px);}to{opacity:1;transform:translateX(-50%) translateY(0);} }
-        .mqi { display:flex; align-items:center; gap:14px; padding:13px 16px; background:var(--surface); border:1px solid var(--border); border-radius:16px; text-decoration:none; color:inherit; -webkit-tap-highlight-color:transparent; transition:background .1s; }
-        .mqi:active { background:var(--card); }
+        .mqi { display:flex; align-items:center; gap:14px; padding:13px 16px; background:var(--card); border:1px solid var(--border); border-radius:18px; text-decoration:none; color:inherit; -webkit-tap-highlight-color:transparent; transition:background .1s; }
+        .mqi:active { background:var(--hover); }
         .mqi.primary-action { background:var(--btn-prim); border-color:transparent; }
         .mqi.primary-action .mqi-label { color:var(--btn-prim-text); }
         .mqi.primary-action .mqi-ico { background:rgba(0,0,0,.12); color:var(--btn-prim-text); }
@@ -706,7 +717,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
 
       {/* ══ DESKTOP SIDEBAR ══ */}
       <aside className="sidebar" style={{ pointerEvents:'none' }}>
-        <div className="sidebar-inner" style={{ pointerEvents:'all', padding:'12px 8px 12px', display:'flex', flexDirection:'column' }}>
+        <div className="sidebar-inner" style={{ pointerEvents:'all', padding:'16px 10px 14px', display:'flex', flexDirection:'column' }}>
 
           <div className="sb-topbar">
             <SidebarProfileFooter

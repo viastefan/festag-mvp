@@ -401,7 +401,7 @@ const INBOX_CSS = `
     display: grid;
     grid-template-columns: minmax(320px, 380px) minmax(0, 1fr);
     height: 100%; min-height: 0;
-    background: var(--bg);
+    background: var(--surface);
     color: var(--text);
     font-family: var(--font-aeonik,'Aeonik',Inter,sans-serif);
     letter-spacing: 0.01em;
@@ -412,32 +412,32 @@ const INBOX_CSS = `
     display: flex; flex-direction: column;
     min-height: 0;
     border-right: 1px solid var(--border);
-    background: var(--bg);
+    background: color-mix(in srgb, var(--sidebar-bg) 90%, transparent);
   }
   .ix-list-head {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 18px 20px 12px;
+    padding: 22px 22px 14px;
   }
-  .ix-list-title { font-size: 14.5px; font-weight: 600; color: var(--text); }
+  .ix-list-title { font-size: 15px; font-weight: 650; color: var(--text); }
   .ix-list-actions { display: flex; gap: 4px; }
   .ix-iconbtn {
-    width: 26px; height: 26px;
+    width: 30px; height: 30px;
     display: flex; align-items: center; justify-content: center;
-    border-radius: 6px; border: none; background: transparent;
+    border-radius: 12px; border: none; background: transparent;
     color: var(--text-muted); cursor: pointer;
     transition: background .12s, color .12s;
   }
   .ix-iconbtn:hover { background: rgba(0,0,0,.05); color: var(--text); }
-  [data-theme="dark"] .ix-iconbtn:hover { background: rgba(255,255,255,.06); }
+  [data-theme="dark"] .ix-iconbtn:hover { background: rgba(255,255,255,.04); }
 
   .ix-tabs {
     display: flex; flex-wrap: wrap; gap: 4px;
-    padding: 0 14px 14px;
+    padding: 0 16px 18px;
   }
   .ix-tab {
     display: inline-flex; align-items: center; gap: 6px;
-    padding: 5px 9px;
-    border-radius: 6px;
+    padding: 8px 12px;
+    border-radius: 999px;
     border: 1px solid transparent; background: transparent;
     font-family: inherit;
     font-size: 11.5px; font-weight: 500;
@@ -445,10 +445,10 @@ const INBOX_CSS = `
     transition: background .12s, color .12s, border-color .12s;
   }
   .ix-tab:hover { color: var(--text); background: rgba(0,0,0,.04); }
-  [data-theme="dark"] .ix-tab:hover { background: rgba(255,255,255,.05); }
+  [data-theme="dark"] .ix-tab:hover { background: rgba(255,255,255,.04); }
   .ix-tab.on {
     color: var(--text);
-    background: var(--surface-2);
+    background: var(--card);
     border-color: var(--border);
   }
   .ix-tab-count {
@@ -462,7 +462,7 @@ const INBOX_CSS = `
   .ix-thread-scroll {
     flex: 1; min-height: 0;
     overflow-y: auto;
-    padding: 4px 8px 16px;
+    padding: 6px 10px 18px;
   }
 
   /* ROW */
@@ -470,22 +470,22 @@ const INBOX_CSS = `
     display: flex; align-items: stretch; gap: 8px;
     width: 100%;
     border: none; background: transparent;
-    padding: 10px 10px 10px 6px;
+    padding: 12px 12px 12px 8px;
     text-align: left;
-    border-radius: 8px;
+    border-radius: 18px;
     cursor: pointer;
     font-family: inherit;
     color: var(--text);
     transition: background .12s;
   }
   .ix-row:hover { background: rgba(0,0,0,.03); }
-  [data-theme="dark"] .ix-row:hover { background: rgba(255,255,255,.04); }
-  .ix-row.on { background: var(--surface-2); }
+  [data-theme="dark"] .ix-row:hover { background: rgba(255,255,255,.035); }
+  .ix-row.on { background: var(--card); box-shadow: 0 0 0 1px rgba(255,255,255,.02); }
   .ix-row-marker {
     width: 3px; min-width: 3px; border-radius: 999px;
     align-self: stretch;
   }
-  .ix-row-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+  .ix-row-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px; }
   .ix-row-head {
     display: flex; align-items: center; gap: 6px;
     font-size: 11px; font-weight: 500; color: var(--text-muted);
@@ -499,8 +499,8 @@ const INBOX_CSS = `
   [data-theme="dark"] .ix-row-tag { background: rgba(255,255,255,.06); }
   .ix-row-time { margin-left: auto; font-size: 10.5px; color: var(--text-muted); }
   .ix-row-title {
-    font-size: 13px; font-weight: 500; color: var(--text);
-    line-height: 1.3;
+    font-size: 13.5px; font-weight: 500; color: var(--text);
+    line-height: 1.35;
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
   .ix-row.unread .ix-row-title { font-weight: 600; }
@@ -519,24 +519,25 @@ const INBOX_CSS = `
   /* DETAIL COLUMN */
   .ix-detail {
     display: flex; align-items: flex-start; justify-content: center;
-    padding: 36px clamp(20px, 3vw, 48px);
+    padding: 44px clamp(24px, 4vw, 56px);
     overflow-y: auto;
     min-height: 0;
+    background: var(--surface);
   }
   .ix-detail-card {
-    width: 100%; max-width: 640px;
-    display: flex; flex-direction: column; gap: 24px;
+    width: 100%; max-width: 760px;
+    display: flex; flex-direction: column; gap: 26px;
   }
   .ix-detail-tags { display: flex; align-items: center; gap: 8px; }
   .ix-type-badge {
     display: inline-flex; align-items: center;
-    padding: 2px 8px; border-radius: 4px;
+    padding: 5px 10px; border-radius: 999px;
     font-size: 11px; font-weight: 600; letter-spacing: 0.01em;
     border: 1px solid; background: transparent;
   }
   .ix-detail-project { font-size: 11px; color: var(--text-muted); font-weight: 500; }
   .ix-detail-title {
-    font-size: 22px; font-weight: 600; color: var(--text);
+    font-size: 24px; font-weight: 620; color: var(--text);
     letter-spacing: -0.01em; line-height: 1.25;
     margin-top: 4px;
   }
@@ -546,7 +547,7 @@ const INBOX_CSS = `
     margin-top: -10px;
   }
   .ix-detail-body {
-    font-size: 14px; line-height: 1.65;
+    font-size: 14.5px; line-height: 1.78;
     color: var(--text-secondary);
   }
   .ix-detail-body p { margin: 0; }
@@ -559,17 +560,17 @@ const INBOX_CSS = `
   }
   .ix-btn {
     display: inline-flex; align-items: center; gap: 6px;
-    padding: 7px 14px;
-    border-radius: 7px;
+    padding: 10px 16px;
+    border-radius: 999px;
     border: 1px solid var(--border);
-    background: var(--surface);
+    background: var(--card);
     font-family: inherit;
     font-size: 12.5px; font-weight: 500; letter-spacing: 0.01em;
     color: var(--text);
     cursor: pointer;
     transition: background .12s, border-color .12s, color .12s, transform .15s;
   }
-  .ix-btn:hover { background: var(--surface-2); }
+  .ix-btn:hover { background: var(--hover); }
   .ix-btn:active { transform: scale(0.97); }
   .ix-btn.primary {
     background: var(--text); color: var(--bg); border-color: var(--text);
@@ -602,12 +603,12 @@ const INBOX_CSS = `
     .ix-root { grid-template-columns: 1fr; }
     .ix-detail { display: none; }
     .ix-list { border-right: none; }
-    .ix-list-head { padding: 14px 16px 8px; }
+    .ix-list-head { padding: 16px 16px 10px; }
     .ix-list-title { font-size: 15px; }
     .ix-tabs { padding: 0 12px 10px; gap: 5px; overflow-x: auto; flex-wrap: nowrap; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
     .ix-tabs::-webkit-scrollbar { display: none; }
     .ix-tab { flex-shrink: 0; padding: 7px 11px; font-size: 12px; min-height: 32px; }
-    .ix-row { padding: 12px 12px 12px 8px; min-height: 56px; }
+    .ix-row { padding: 14px 12px 14px 8px; min-height: 60px; }
     .ix-row-title { font-size: 13.5px; }
     .ix-row-preview { font-size: 12.5px; }
     .ix-thread-scroll { padding: 4px 6px 90px; }

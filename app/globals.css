@@ -69,41 +69,38 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
 
 /* ── DARK — True black Apple-style, #0E0F0F base ── */
 [data-theme="dark"] {
-  /* Dark mode — Festag Calm Spec (Linear / Vercel / OpenAI-Platform style).
-     Low contrast, no neon, no AI glows. Strict surface ladder so layers
-     read but never compete: bg → sidebar → card → input → hover → active.
-     Tuned 2026-05: bg pushed darker, card stays grounded, border slightly
-     more visible so content boxes lift cleanly off the page. */
-  --bg:#0A0B0B;
-  --surface:#111213;          /* sidebar / panels — sits one tick above bg */
-  --card:#16181A;             /* cards on top of surface — feel grounded, not bright */
-  --surface-2:#1A1C1E;        /* inputs / secondary layers */
-  --hover:#1E2022;
-  --active:#23262A;
+  /* Dark mode — OpenAI Platform inspired. The canvas stays very dark,
+     but large work areas are lifted a step above the shell so reading
+     feels calmer and more premium. */
+  --bg:#111111;
+  --surface:#181818;          /* primary canvas / main content */
+  --card:#1F1F1F;             /* cards / panels */
+  --surface-2:#232323;        /* inputs / denser controls */
+  --hover:#252525;
+  --active:#2A2A2A;
 
-  --border:rgba(255,255,255,0.09);
-  --border-strong:rgba(255,255,255,0.16);
+  --border:rgba(255,255,255,0.055);
+  --border-strong:rgba(255,255,255,0.09);
 
   --text:#ECECEC;
-  --text-secondary:#A1A1A1;
-  --text-muted:#6F7275;
+  --text-secondary:#A8A8A8;
+  --text-muted:#6F6F6F;
 
-  --btn-prim:#ECECEC; --btn-prim-text:#0E0F0F;
+  --btn-prim:#ECECEC; --btn-prim-text:#111111;
 
-  /* Accent — deep forest pocket with crisp green text */
-  --accent:#17211A; --accent-text:#44CE8C;
+  --accent:#ECECEC; --accent-text:#111111;
 
-  --inp:#18191A;
-  --inp-border:rgba(255,255,255,0.06);
-  --inp-focus:#1B1C1D;
-  --inp-focus-border:rgba(255,255,255,0.16);
-  --glow:rgba(68,206,140,0.02);
+  --inp:#232323;
+  --inp-border:rgba(255,255,255,0.05);
+  --inp-focus:#252525;
+  --inp-focus-border:rgba(255,255,255,0.08);
+  --glow:rgba(255,255,255,0.02);
 
-  --sidebar-bg:#111212;
-  --sidebar-border:rgba(255,255,255,0.06);
-  --nav-on:#202223;
+  --sidebar-bg:#101010;
+  --sidebar-border:rgba(255,255,255,0.04);
+  --nav-on:#252525;
   --nav-on-text:#ECECEC;
-  --nav-off-text:#6F7275;
+  --nav-off-text:#8C8C8C;
 
   /* Green — clean professional */
   --green:#25C47A;
@@ -119,11 +116,11 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --red:#D94545;
   --red-bg:rgba(217,69,69,0.09);
 
-  --shadow-xs:0 1px 3px rgba(0,0,0,.70);
-  --shadow-sm:0 2px 8px rgba(0,0,0,.78);
-  --shadow:0 4px 20px rgba(0,0,0,.88);
-  --shadow-lg:0 8px 40px rgba(0,0,0,.95);
-  --focus-ring:rgba(232,232,229,0.26);
+  --shadow-xs:0 0 0 1px rgba(255,255,255,.025);
+  --shadow-sm:0 0 0 1px rgba(255,255,255,.035);
+  --shadow:0 0 0 1px rgba(255,255,255,.04);
+  --shadow-lg:0 0 0 1px rgba(255,255,255,.05);
+  --focus-ring:rgba(236,236,236,0.16);
 
   --logo-filter:brightness(0) invert(1);
   --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
@@ -223,9 +220,9 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
     var(--bg);
 }
 [data-theme="read"] .sidebar-inner {
-  background: color-mix(in srgb, var(--surface) 88%, #fff9ec 12%);
-  border-color: rgba(38,33,24,0.12);
-  box-shadow: 0 10px 28px rgba(28,25,20,.075), 0 1px 4px rgba(28,25,20,.05);
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
 }
 [data-theme="read"] .ni-on {
   background: color-mix(in srgb, var(--surface-2) 92%, #ddd3bb 8%);
@@ -241,7 +238,7 @@ html,body {
   background:var(--bg); color:var(--text);
   font-family:var(--font-ui);
   font-weight:500; font-size:15px; line-height:1.55;
-  letter-spacing:-.01em;
+  letter-spacing:0;
   -webkit-font-smoothing:antialiased;
   -moz-osx-font-smoothing:grayscale;
   text-rendering:optimizeLegibility;
@@ -260,6 +257,7 @@ body.festag-app-mode {
   }
 }
 p,span,div,label,li,td,th { font-weight:400; font-family:var(--font-ui); }
+[data-font="aeonik"] :where(p,span,div,label,li,td,th) { letter-spacing:.01em; }
 strong,b { font-weight:700; }
 /* Editorial display sizes — Apple keynote feel */
 h1,h2,h3,h4,h5,h6 { font-family:var(--font-ui); }
@@ -359,14 +357,15 @@ button:active, a[role="button"]:active, .tap-scale:active {
   margin-left:0;
   padding:0;
   min-height:0;
+  background:var(--surface);
 }
 
 .page-content {
-  padding: clamp(32px, 4vw, 56px) clamp(38px, 5vw, 72px) 118px;
+  padding: clamp(36px, 4.4vw, 64px) clamp(34px, 4.4vw, 72px) 128px;
   width: 100%;
 }
 .page-content-full {
-  padding: clamp(32px, 4vw, 56px) clamp(38px, 5vw, 72px) 118px;
+  padding: clamp(36px, 4.4vw, 64px) clamp(34px, 4.4vw, 72px) 128px;
   width: 100%;
 }
 .page-header {
@@ -389,7 +388,7 @@ button:active, a[role="button"]:active, .tap-scale:active {
 .sidebar-inner {
   position:fixed; top:0; left:0; bottom:0; width:212px;
   box-sizing:border-box;
-  background:transparent;
+  background:var(--sidebar-bg);
   border:0;
   box-shadow:none;
   border-radius:0;
@@ -418,11 +417,11 @@ button:active, a[role="button"]:active, .tap-scale:active {
     padding:0 !important;
   }
   .page-content {
-    padding: 16px 16px calc(110px + var(--safe-bottom)) !important;
+    padding: 20px 16px calc(118px + var(--safe-bottom)) !important;
     max-width: 100% !important;
   }
   .page-content-full {
-    padding: 16px 16px calc(110px + var(--safe-bottom)) !important;
+    padding: 20px 16px calc(118px + var(--safe-bottom)) !important;
     max-width: 100% !important;
   }
   .grid-cols-4          { grid-template-columns:repeat(2,1fr) !important; }
@@ -658,7 +657,7 @@ body.locked { overflow: hidden; touch-action: none; }
   justify-content:space-between;
   gap:20px;
   width:100%;
-  margin:0 0 24px;
+  margin:0 0 30px;
 }
 .app-page-header__copy { min-width:0; }
 .app-page-header h1 {
@@ -670,10 +669,10 @@ body.locked { overflow: hidden; touch-action: none; }
   letter-spacing:-.035em;
 }
 .app-page-header p {
-  margin:7px 0 0;
+  margin:9px 0 0;
   color:var(--text-secondary);
-  font-size:13px;
-  line-height:1.45;
+  font-size:13.5px;
+  line-height:1.55;
   font-weight:500;
 }
 .app-page-header__action {
@@ -716,21 +715,21 @@ body.locked { overflow: hidden; touch-action: none; }
 .app-header-button,
 .app-page-header__action > a,
 .app-page-header__action > button {
-  min-height:34px;
+  min-height:38px;
   display:inline-flex;
   align-items:center;
   justify-content:center;
   gap:7px;
-  padding:0 13px;
-  border:1px solid var(--border);
-  border-radius:10px;
-  background:var(--surface);
+  padding:0 15px;
+  border:1px solid color-mix(in srgb, var(--border) 90%, transparent);
+  border-radius:16px;
+  background:var(--card);
   color:var(--text);
   font:inherit;
   font-size:12.5px;
   font-weight:700;
   text-decoration:none;
-  box-shadow:none;
+  box-shadow:0 0 0 1px rgba(255,255,255,0.02);
 }
 .app-header-button--primary,
 .app-page-header__action > .primary,

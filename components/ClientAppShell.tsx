@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { usePathname } from 'next/navigation'
 
 import CommandPalette from '@/components/CommandPalette'
@@ -11,7 +11,7 @@ import PwaInstallBanner from '@/components/PwaInstallBanner'
 import Sidebar from '@/components/Sidebar'
 import { createClient } from '@/lib/supabase/client'
 import { getTheme, setTheme, type ThemeMode } from '@/lib/theme'
-import { Moon } from '@phosphor-icons/react'
+import { Check, FunnelSimple, Sparkle } from '@phosphor-icons/react'
 
 type ClientAppShellProps = {
   children: React.ReactNode
@@ -24,11 +24,19 @@ export default function ClientAppShell({
   isFullHeight = false,
   scrollId = 'client-main-scroll',
 }: ClientAppShellProps) {
+  const THEME_OPTIONS: Array<{ id: ThemeMode; label: string }> = [
+    { id: 'dark', label: 'Darkmode' },
+    { id: 'magic-blue', label: 'Blue' },
+    { id: 'light', label: 'Light' },
+    { id: 'read', label: 'Read' },
+  ]
   const pathname = usePathname()
   const [checking, setChecking] = useState(true)
   const [copilotOpen, setCopilotOpen] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [themeMode, setThemeMode] = useState<ThemeMode>('read')
+  const [themeMenuOpen, setThemeMenuOpen] = useState(false)
+  const themeMenuRef = useRef<HTMLDivElement | null>(null)
   const sidebarWidth = sidebarCollapsed ? '0px' : '212px'
 
   useEffect(() => {
@@ -71,10 +79,28 @@ export default function ClientAppShell({
     }
   }, [])
 
-  function cycleReadingTheme() {
-    const next: ThemeMode = themeMode === 'dark' ? 'read' : themeMode === 'read' ? 'light' : 'dark'
+  useEffect(() => {
+    function onPointerDown(event: MouseEvent) {
+      if (!themeMenuOpen) return
+      if (themeMenuRef.current && event.target instanceof Node && !themeMenuRef.current.contains(event.target)) {
+        setThemeMenuOpen(false)
+      }
+    }
+    function onEscape(event: KeyboardEvent) {
+      if (event.key === 'Escape') setThemeMenuOpen(false)
+    }
+    window.addEventListener('mousedown', onPointerDown)
+    window.addEventListener('keydown', onEscape)
+    return () => {
+      window.removeEventListener('mousedown', onPointerDown)
+      window.removeEventListener('keydown', onEscape)
+    }
+  }, [themeMenuOpen])
+
+  function applyThemeChoice(next: ThemeMode) {
     setTheme(next)
     setThemeMode(next)
+    setThemeMenuOpen(false)
   }
 
   if (checking) return <LoadingScreen onDone={() => undefined} />
@@ -95,26 +121,33 @@ export default function ClientAppShell({
           inset: 0;
           height: 100dvh;
           overflow: hidden;
-          background: var(--bg);
+          background:
+            radial-gradient(1200px 540px at 12% -8%, rgba(255,255,255,.025), transparent 55%),
+            linear-gradient(180deg, rgba(255,255,255,.015), transparent 16%),
+            var(--bg);
         }
         .app-workspace {
           position: fixed;
-          top: 24px;
-          right: 10px;
-          bottom: 52px;
-          left: calc(var(--app-sidebar-width) + 8px);
+          top: 14px;
+          right: 14px;
+          bottom: 16px;
+          left: calc(var(--app-sidebar-width) + 14px);
           min-width: 0;
           display: flex;
           flex-direction: column;
           overflow: hidden;
-          border: 1px solid color-mix(in srgb, var(--border) 58%, transparent);
-          border-radius: 12px;
+          border: 1px solid color-mix(in srgb, var(--border-strong) 72%, transparent);
+          border-radius: 28px;
           background: var(--surface);
-          box-shadow: 0 1px 2px rgba(0,0,0,.025), 0 18px 60px rgba(0,0,0,.045);
-          transition: left .18s cubic-bezier(.16,1,.3,1);
+          box-shadow:
+            0 0 0 1px rgba(255,255,255,.035),
+            0 18px 42px rgba(0,0,0,.18);
+          transition: left .18s cubic-bezier(.16,1,.3,1), border-color .18s ease, background .18s ease;
         }
         [data-theme="dark"] .app-workspace {
-          box-shadow: 0 1px 2px rgba(0,0,0,.24), 0 18px 60px rgba(0,0,0,.30);
+          background:
+            linear-gradient(180deg, rgba(255,255,255,.012), rgba(255,255,255,0) 14%),
+            var(--surface);
         }
         .app-workspace-scroll {
           height: 100%;
@@ -151,30 +184,75 @@ export default function ClientAppShell({
           z-index:145;
           display:flex;
           align-items:center;
-          gap:8px;
+          gap:18px;
           color:var(--text-muted);
         }
         .app-footer-btn {
-          height:32px;
-          border-radius:999px;
-          border:1px solid color-mix(in srgb, var(--border) 70%, transparent);
-          background:color-mix(in srgb, var(--surface) 74%, transparent);
+          position:relative;
+          min-height:24px;
+          border:0;
+          background:transparent;
           color:var(--text-secondary);
           display:inline-flex;
           align-items:center;
           justify-content:center;
           gap:7px;
-          padding:0 11px;
+          padding:0;
           font:inherit;
-          font-size:12px;
-          font-weight:600;
+          font-size:13px;
+          font-weight:500;
           text-decoration:none;
+          letter-spacing:.01em;
+        }
+        .app-footer-btn:hover { color:var(--text); }
+        .app-footer-btn--theme {
+          display:flex;
+          align-items:center;
+          gap:8px;
+        }
+        .app-footer-btn--theme-copy {
+          font-size:13px;
+          font-weight:500;
+          color:inherit;
+        }
+        .app-footer-theme-menu {
+          position:absolute;
+          right:-6px;
+          bottom:calc(100% + 12px);
+          width:172px;
+          padding:6px;
+          border-radius:16px;
+          border:1px solid var(--border);
+          background:color-mix(in srgb, var(--card) 96%, transparent);
+          box-shadow:0 0 0 1px rgba(255,255,255,.02);
           backdrop-filter:blur(18px);
           -webkit-backdrop-filter:blur(18px);
-          box-shadow:0 8px 24px -18px rgba(0,0,0,.35);
         }
-        .app-footer-btn.icon { width:32px; padding:0; }
-        .app-footer-btn:hover { color:var(--text); border-color:var(--border-strong); }
+        .app-footer-theme-option {
+          width:100%;
+          min-height:34px;
+          border:0;
+          border-radius:12px;
+          background:transparent;
+          color:var(--text-secondary);
+          display:flex;
+          align-items:center;
+          justify-content:space-between;
+          gap:10px;
+          padding:0 10px;
+          font:inherit;
+          font-size:12.5px;
+          font-weight:500;
+          text-align:left;
+        }
+        .app-footer-theme-option:hover {
+          background:var(--hover);
+          color:var(--text);
+        }
+        .app-footer-theme-option.active {
+          background:color-mix(in srgb, var(--surface-2) 54%, transparent);
+          color:var(--text);
+        }
       `}</style>
 
       {!sidebarCollapsed && (
@@ -196,14 +274,14 @@ export default function ClientAppShell({
             zIndex:210,
             width:34,
             height:34,
-            borderRadius:11,
+            borderRadius:14,
             border:'1px solid var(--sidebar-border)',
             background:'var(--sidebar-bg)',
             color:'var(--text-secondary)',
             display:'inline-flex',
             alignItems:'center',
             justifyContent:'center',
-            boxShadow:'0 8px 24px rgba(0,0,0,.07)',
+            boxShadow:'0 0 0 1px rgba(255,255,255,.03)',
             backdropFilter:'blur(22px) saturate(180%)',
             WebkitBackdropFilter:'blur(22px) saturate(180%)',
             cursor:'pointer',
@@ -223,10 +301,41 @@ export default function ClientAppShell({
       </main>
 
       <div className="app-footer-controls" aria-label="Workspace Schnellzugriff">
-        <button className="app-footer-btn icon" type="button" onClick={cycleReadingTheme} title="Light, Read und Dark wechseln" aria-label="Theme wechseln">
-          <Moon size={15} weight="regular" />
-        </button>
+        <div ref={themeMenuRef} style={{ position: 'relative' }}>
+          <button
+            className="app-footer-btn app-footer-btn--theme"
+            type="button"
+            onClick={() => setThemeMenuOpen((open) => !open)}
+            title="Theme wechseln"
+            aria-label="Theme wechseln"
+            aria-expanded={themeMenuOpen}
+          >
+            <FunnelSimple size={16} weight="regular" />
+            <span className="app-footer-btn--theme-copy">Aa</span>
+          </button>
+          {themeMenuOpen && (
+            <div className="app-footer-theme-menu" role="menu" aria-label="Theme Auswahl">
+              {THEME_OPTIONS.map((option) => {
+                const active = themeMode === option.id
+                return (
+                  <button
+                    key={option.id}
+                    type="button"
+                    role="menuitemradio"
+                    aria-checked={active}
+                    className={`app-footer-theme-option${active ? ' active' : ''}`}
+                    onClick={() => applyThemeChoice(option.id)}
+                  >
+                    <span>{option.label}</span>
+                    {active ? <Check size={14} weight="bold" /> : <span />}
+                  </button>
+                )
+              })}
+            </div>
+          )}
+        </div>
         <button className="app-footer-btn" type="button" onClick={() => setCopilotOpen(true)}>
+          <Sparkle size={16} weight="regular" />
           <span>Copilot</span>
         </button>
       </div>
