@@ -11,7 +11,7 @@ import PwaInstallBanner from '@/components/PwaInstallBanner'
 import Sidebar from '@/components/Sidebar'
 import { createClient } from '@/lib/supabase/client'
 import { getTheme, setTheme, type ThemeMode } from '@/lib/theme'
-import { Moon, SlidersHorizontal } from '@phosphor-icons/react'
+import { Moon } from '@phosphor-icons/react'
 
 type ClientAppShellProps = {
   children: React.ReactNode
@@ -101,7 +101,7 @@ export default function ClientAppShell({
           position: fixed;
           top: 24px;
           right: 10px;
-          bottom: 10px;
+          bottom: 52px;
           left: calc(var(--app-sidebar-width) + 8px);
           min-width: 0;
           display: flex;
@@ -227,7 +227,6 @@ export default function ClientAppShell({
           <Moon size={15} weight="regular" />
         </button>
         <button className="app-footer-btn" type="button" onClick={() => setCopilotOpen(true)}>
-          <SlidersHorizontal size={14} weight="regular" />
           <span>Copilot</span>
         </button>
       </div>

@@ -236,6 +236,8 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
 
 html,body {
   height:100dvh;
+  max-width:100%;
+  overflow-x:hidden;
   background:var(--bg); color:var(--text);
   font-family:var(--font-ui);
   font-weight:500; font-size:15px; line-height:1.55;
@@ -250,6 +252,7 @@ html,body {
 }
 body.festag-app-mode {
   overflow:hidden;
+  overflow-x:hidden;
 }
 @media(max-width:768px) {
   body.festag-app-mode {
@@ -440,6 +443,139 @@ button:active, a[role="button"]:active, .tap-scale:active {
   }
 }
 @media(min-width:769px) { .show-mobile { display:none !important; } }
+
+/* App-wide horizontal overflow guard.
+   Festag should feel like a controlled operating surface, never a sideways
+   canvas. Dense tables collapse columns instead of introducing x-scroll. */
+.festag-app-shell,
+.app-workspace,
+.app-workspace-scroll,
+.page-content,
+.page-content-full,
+.dashboard-os,
+.reports-intelligence,
+.task-os,
+.projects-os,
+.voice-reports-page {
+  min-width:0 !important;
+  max-width:100% !important;
+  overflow-x:hidden !important;
+}
+
+.md pre,
+.md code,
+.report-document,
+.briefing-body,
+.tagro-ai-block,
+.tagro-user-block {
+  max-width:100% !important;
+  overflow-x:hidden !important;
+  white-space:pre-wrap !important;
+  word-break:break-word !important;
+}
+
+.audio-hero-pills,
+.team-tabs,
+.ix-tabs {
+  overflow-x:hidden !important;
+  flex-wrap:wrap !important;
+}
+
+@media(max-width:1180px) {
+  .task-scroll-body,
+  .reports-scroll-body,
+  .projects-scroll,
+  .team-task-table-wrap,
+  .project-status-stream {
+    overflow-x:hidden !important;
+  }
+
+  .task-head,
+  .task-row {
+    min-width:0 !important;
+    max-width:100% !important;
+    grid-template-columns:52px minmax(0, 1.55fr) minmax(118px, .78fr) 78px 98px !important;
+    gap:10px !important;
+  }
+  .task-head > :nth-child(n+6),
+  .task-row > :nth-child(n+6) {
+    display:none !important;
+  }
+
+  .project-line-head,
+  .project-line {
+    min-width:0 !important;
+    max-width:100% !important;
+    grid-template-columns:minmax(0, 1.55fr) 92px 86px 86px !important;
+    gap:12px !important;
+  }
+  .project-line-head > :nth-child(n+5),
+  .project-line > :nth-child(n+5) {
+    display:none !important;
+  }
+
+  .team-task-head,
+  .team-task-row {
+    min-width:0 !important;
+    max-width:100% !important;
+    grid-template-columns:minmax(0, 1.65fr) 112px 82px 90px !important;
+    gap:12px !important;
+    padding-left:18px !important;
+    padding-right:18px !important;
+  }
+  .team-task-head > :nth-child(n+5),
+  .team-task-row > :nth-child(n+5) {
+    display:none !important;
+  }
+}
+
+@media(max-width:980px) {
+  .projects-head,
+  .projects-row {
+    min-width:0 !important;
+    max-width:100% !important;
+    grid-template-columns:minmax(0, 1fr) 86px 74px !important;
+    gap:10px !important;
+  }
+  .projects-head > :nth-child(n+4),
+  .projects-row > :nth-child(n+4) {
+    display:none !important;
+  }
+}
+
+@media(max-width:760px) {
+  .task-head,
+  .task-row {
+    grid-template-columns:34px minmax(0, 1fr) 68px !important;
+    gap:8px !important;
+    padding-left:8px !important;
+    padding-right:8px !important;
+  }
+  .task-head > :nth-child(n+4),
+  .task-row > :nth-child(n+4) {
+    display:none !important;
+  }
+
+  .project-line-head,
+  .project-line,
+  .projects-head,
+  .projects-row,
+  .team-task-head,
+  .team-task-row {
+    grid-template-columns:minmax(0, 1fr) 58px !important;
+    gap:8px !important;
+    padding-left:8px !important;
+    padding-right:8px !important;
+  }
+  .project-line-head > :nth-child(n+3),
+  .project-line > :nth-child(n+3),
+  .projects-head > :nth-child(n+3),
+  .projects-row > :nth-child(n+3),
+  .team-task-head > :nth-child(n+3),
+  .team-task-row > :nth-child(n+3) {
+    display:none !important;
+  }
+}
 
 /* ═══════════════════════════════════════════════
    APP-STORE-READY MOBILE POLISH
