@@ -516,7 +516,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         .ni {
           display:flex; align-items:center; gap:7px;
           min-height: var(--sb-row-h);
-          padding:0 var(--sb-x); border-radius:14px;
+          padding:0 var(--sb-x); border-radius:8px;
           font-size:var(--sb-font); font-weight:500;
           font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
           letter-spacing:.015em;
@@ -596,7 +596,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           gap:7px;
           min-height:30px;
           padding:0 10px 0 14px;
-          border-radius:14px;
+          border-radius:8px;
           font-size:12.5px; font-weight:500;
           font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
           letter-spacing:.015em;
