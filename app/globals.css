@@ -502,18 +502,6 @@ button:active, a[role="button"]:active, .tap-scale:active {
     overflow-x:hidden !important;
   }
 
-  .task-head,
-  .task-row {
-    min-width:0 !important;
-    max-width:100% !important;
-    grid-template-columns:52px minmax(0, 1.55fr) minmax(118px, .78fr) 78px 98px !important;
-    gap:10px !important;
-  }
-  .task-head > :nth-child(n+6),
-  .task-row > :nth-child(n+6) {
-    display:none !important;
-  }
-
   .project-line-head,
   .project-line {
     min-width:0 !important;
@@ -556,18 +544,6 @@ button:active, a[role="button"]:active, .tap-scale:active {
 }
 
 @media(max-width:760px) {
-  .task-head,
-  .task-row {
-    grid-template-columns:34px minmax(0, 1fr) 68px !important;
-    gap:8px !important;
-    padding-left:8px !important;
-    padding-right:8px !important;
-  }
-  .task-head > :nth-child(n+4),
-  .task-row > :nth-child(n+4) {
-    display:none !important;
-  }
-
   .project-line-head,
   .project-line,
   .projects-head,
