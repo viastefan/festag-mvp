@@ -34,8 +34,19 @@
 
 *,*::before,*::after { box-sizing:border-box; padding:0; margin:0; }
 
-/* Linear-like desktop cursor: clickable controls keep the arrow, not the hand. */
-a, button, [role="button"], label[for] { cursor:default; }
+/* Native-tool cursor model: interactive UI keeps the quiet arrow cursor. */
+*,
+*::before,
+*::after {
+  cursor:default !important;
+}
+
+input,
+textarea {
+  cursor:text !important;
+}
+
+a, button, [role="button"], label[for] { cursor:default !important; }
 a { -webkit-tap-highlight-color: transparent; }
 button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
 
@@ -320,8 +331,9 @@ button:active, a[role="button"]:active, .tap-scale:active {
 }
 
 @media (pointer: coarse) {
-  a, button, [role="button"], label[for] { cursor:pointer; }
-  button { cursor:pointer; }
+  a, button, [role="button"], label[for] { cursor:default !important; }
+  button { cursor:default !important; }
+  input, textarea { cursor:text !important; }
 }
 .row-hover { transition: background-color .16s cubic-bezier(.16,1,.3,1); }
 .dash-row  { transition: background-color .16s cubic-bezier(.16,1,.3,1); }
