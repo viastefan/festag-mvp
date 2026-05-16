@@ -1,4 +1,4 @@
-export type ThemeMode = 'system' | 'light' | 'pure-light' | 'read' | 'dark' | 'magic-blue' | 'classic-dark' | 'custom'
+export type ThemeMode = 'system' | 'light' | 'pure-light' | 'read' | 'dark' | 'classic-dark' | 'custom'
 export type FontMode = 'sf-pro' | 'aeonik'
 export type DensityMode = 'comfortable' | 'compact'
 
@@ -27,7 +27,6 @@ function resolvedTheme(mode: ThemeMode) {
     return 'light'
   }
   if (mode === 'pure-light') return 'pure-light'
-  if (mode === 'magic-blue') return 'magic-blue'
   if (mode === 'classic-dark') return 'classic-dark'
   if (mode === 'custom') return 'custom'
   return mode

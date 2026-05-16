@@ -357,12 +357,12 @@ export default function OnboardingPage() {
         .onb-root[data-theme="read"]  .onb-toggle { border-color:rgba(28,25,20,0.18); }
         .onb-root[data-theme="dark"]  .onb-toggle { border-color:rgba(255,255,255,0.14); }
         .onb-toggle.on::after { left:16px; opacity:1; }
-        .onb-root[data-theme="light"] .onb-toggle.on { background:#0A0B0A; border-color:#0A0B0A; }
-        .onb-root[data-theme="light"] .onb-toggle.on::after { background:#FAFAF9; }
+        .onb-root[data-theme="light"] .onb-toggle.on { background:#5B647D; border-color:#5B647D; }
+        .onb-root[data-theme="light"] .onb-toggle.on::after { background:#FFFFFF; }
         .onb-root[data-theme="read"]  .onb-toggle.on { background:#1C1914; border-color:#1C1914; }
         .onb-root[data-theme="read"]  .onb-toggle.on::after { background:#F7F4EC; }
-        .onb-root[data-theme="dark"]  .onb-toggle.on { background:#F3F5F7; border-color:#F3F5F7; }
-        .onb-root[data-theme="dark"]  .onb-toggle.on::after { background:#0A0B0A; }
+        .onb-root[data-theme="dark"]  .onb-toggle.on { background:#5B647D; border-color:#5B647D; }
+        .onb-root[data-theme="dark"]  .onb-toggle.on::after { background:#FFFFFF; }
 
         /* THEME CARDS */
         .onb-cards { display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; }
@@ -418,9 +418,9 @@ export default function OnboardingPage() {
         }
         .onb-cta:active:not(:disabled) { transform:scale(0.97); transition: transform 0.08s ease; }
         .onb-cta:disabled { opacity:.5; cursor:not-allowed; }
-        .onb-root[data-theme="light"] .onb-cta { background:#0A0B0A; color:#FAFAF9; }
+        .onb-root[data-theme="light"] .onb-cta { background:#5B647D; color:#FFFFFF; }
         .onb-root[data-theme="read"]  .onb-cta { background:#1C1914; color:#F7F4EC; }
-        .onb-root[data-theme="dark"]  .onb-cta { background:#F3F5F7; color:#0A0B0A; }
+        .onb-root[data-theme="dark"]  .onb-cta { background:#5B647D; color:#FFFFFF; }
         .onb-cta:hover:not(:disabled) { opacity:.88; }
 
         /* PROGRESS DOTS at bottom of shell */

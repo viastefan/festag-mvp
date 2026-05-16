@@ -26,7 +26,6 @@ export default function ClientAppShell({
 }: ClientAppShellProps) {
   const THEME_OPTIONS: Array<{ id: ThemeMode; label: string }> = [
     { id: 'dark', label: 'Darkmode' },
-    { id: 'magic-blue', label: 'Blue' },
     { id: 'light', label: 'Light' },
     { id: 'read', label: 'Read' },
   ]

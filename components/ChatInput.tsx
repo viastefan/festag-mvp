@@ -63,9 +63,8 @@ export default function ChatInput({
         .ci-mode:hover { background:var(--surface-2); color:var(--text); }
         .ci-send { width:36px; height:36px; border-radius:50%; border:none; flex-shrink:0; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:transform .12s, background .15s; margin-bottom:1px; }
         .ci-send:active:not(:disabled) { transform:scale(.92); }
-        .ci-send.on { background:#0f172a; color:#fff; box-shadow:0 4px 14px rgba(15,23,42,.25); }
+        .ci-send.on { background:var(--btn-prim); color:var(--btn-prim-text); box-shadow:0 4px 14px rgba(91,100,125,.25); }
         .ci-send.off { background:var(--surface-2); color:var(--text-muted); cursor:default; }
-        [data-theme="dark"] .ci-send.on { background:#fff; color:#0f172a; }
       `}</style>
 
       <div className="ci-wrap">

@@ -43,17 +43,17 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
    THEME VARIABLES — set via data-theme on <html>
 ═══════════════════════════════════════════════ */
 :root, [data-theme="light"] {
-  /* Light — Figma source tokens. Cool, clean and almost white. */
-  --bg:#EDF0F4; --surface:#FFFFFF; --card:#FCFCFC;
+  /* Light — Auth-aligned. Cool slate primary, app shell on #F6F9FC. */
+  --bg:#F6F9FC; --surface:#FFFFFF; --card:#FCFCFC;
   --border:#E7EBF0; --border-strong:#C7CDD6;
   --text:#202532; --text-secondary:#7B8294; --text-muted:#C7CDD6;
   --btn-prim:#5B647D; --btn-prim-text:#FFFFFF;
   --accent:#5B647D; --accent-text:#FFFFFF;
   --inp:#FFFFFF; --inp-border:#E7EBF0; --inp-focus:#FFFFFF; --inp-focus-border:#5B647D;
   --glow:rgba(32,37,50,0.05);
-  --sidebar-bg:#EDF0F4; --sidebar-border:#E7EBF0;
-  --nav-on:#F1F3F5; --nav-on-text:#202532; --nav-off-text:#7B8294;
-  --surface-2:#F1F3F5;
+  --sidebar-bg:#F6F9FC; --sidebar-border:#E7EBF0;
+  --nav-on:#EEF2F7; --nav-on-text:#202532; --nav-off-text:#7B8294;
+  --surface-2:#EEF2F7;
   --green:#34C759; --green-bg:rgba(52,199,89,0.08); --green-border:rgba(52,199,89,0.22); --green-dark:#28A745;
   --amber:#B98700; --amber-bg:rgba(185,135,0,0.08); --amber-dark:#8A6500;
   --red:#D14343; --red-bg:rgba(209,67,67,0.07);
@@ -64,40 +64,40 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --r:12px; --r-xs:8px; --r-sm:10px; --r-md:12px; --r-lg:16px; --r-xl:22px;
 }
 
-/* ── DARK — True black Apple-style, #0E0F0F base ── */
+/* ── DARK — Auth-aligned, deep blue-black with slate primary ── */
 [data-theme="dark"] {
-  /* Dark mode — OpenAI Platform inspired. The canvas stays very dark,
-     but large work areas are lifted a step above the shell so reading
-     feels calmer and more premium. */
-  --bg:#111111;
-  --surface:#181818;          /* primary canvas / main content */
-  --card:#1F1F1F;             /* cards / panels */
-  --surface-2:#232323;        /* inputs / denser controls */
-  --hover:#252525;
-  --active:#2A2A2A;
+  /* Dark mode — same design language as the auth screens.
+     Shell sits on #0A0E14, content areas lift to #101722.
+     Primary CTA is the slate (#5B647D) — NEVER a white pill. */
+  --bg:#0A0E14;
+  --surface:#101722;          /* primary canvas / main content */
+  --card:#131A26;             /* cards / panels */
+  --surface-2:#161E2B;        /* inputs / denser controls */
+  --hover:#1A2330;
+  --active:#1F2839;
 
-  --border:rgba(255,255,255,0.055);
-  --border-strong:rgba(255,255,255,0.09);
+  --border:rgba(243,245,247,0.08);
+  --border-strong:rgba(243,245,247,0.14);
 
-  --text:#ECECEC;
-  --text-secondary:#A8A8A8;
-  --text-muted:#6F6F6F;
+  --text:#E8E8E5;
+  --text-secondary:#98A2B3;
+  --text-muted:#66708F;
 
-  --btn-prim:#ECECEC; --btn-prim-text:#111111;
+  --btn-prim:#5B647D; --btn-prim-text:#FFFFFF;
 
-  --accent:#ECECEC; --accent-text:#111111;
+  --accent:#5B647D; --accent-text:#FFFFFF;
 
-  --inp:#232323;
-  --inp-border:rgba(255,255,255,0.05);
-  --inp-focus:#252525;
-  --inp-focus-border:rgba(255,255,255,0.08);
-  --glow:rgba(255,255,255,0.02);
+  --inp:rgba(243,245,247,0.035);
+  --inp-border:rgba(102,112,143,0.10);
+  --inp-focus:rgba(243,245,247,0.05);
+  --inp-focus-border:rgba(102,112,143,0.50);
+  --glow:rgba(102,112,143,0.10);
 
-  --sidebar-bg:#131313;
-  --sidebar-border:rgba(255,255,255,0.04);
-  --nav-on:#252525;
-  --nav-on-text:#ECECEC;
-  --nav-off-text:#8C8C8C;
+  --sidebar-bg:#0A0E14;
+  --sidebar-border:rgba(243,245,247,0.06);
+  --nav-on:rgba(243,245,247,0.06);
+  --nav-on-text:#E8E8E5;
+  --nav-off-text:#98A2B3;
 
   /* Green — clean professional */
   --green:#25C47A;
@@ -113,11 +113,11 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --red:#D94545;
   --red-bg:rgba(217,69,69,0.09);
 
-  --shadow-xs:0 0 0 1px rgba(255,255,255,.025);
-  --shadow-sm:0 0 0 1px rgba(255,255,255,.035);
-  --shadow:0 0 0 1px rgba(255,255,255,.04);
-  --shadow-lg:0 0 0 1px rgba(255,255,255,.05);
-  --focus-ring:rgba(236,236,236,0.16);
+  --shadow-xs:0 1px 2px rgba(0,0,0,.30);
+  --shadow-sm:0 2px 8px rgba(0,0,0,.36);
+  --shadow:0 8px 28px rgba(0,0,0,.40);
+  --shadow-lg:0 18px 56px rgba(0,0,0,.48);
+  --focus-ring:rgba(102,112,143,0.30);
 
   --logo-filter:brightness(0) invert(1);
   --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
@@ -149,42 +149,21 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
 }
 
 [data-theme="pure-light"] {
-  --bg:#EDF0F4; --surface:#FFFFFF; --card:#FCFCFC;
+  --bg:#F6F9FC; --surface:#FFFFFF; --card:#FCFCFC;
   --border:#E7EBF0; --border-strong:#C7CDD6;
   --text:#202532; --text-secondary:#7B8294; --text-muted:#C7CDD6;
   --btn-prim:#5B647D; --btn-prim-text:#FFFFFF;
   --accent:#5B647D; --accent-text:#FFFFFF;
   --inp:#FFFFFF; --inp-border:#E7EBF0; --inp-focus:#FFFFFF; --inp-focus-border:#5B647D;
   --glow:rgba(32,37,50,0.05);
-  --sidebar-bg:#EDF0F4; --sidebar-border:#E7EBF0;
-  --nav-on:#F1F3F5; --nav-on-text:#202532; --nav-off-text:#7B8294;
-  --surface-2:#F1F3F5; --green:#22C55E; --green-bg:rgba(34,197,94,0.08);
+  --sidebar-bg:#F6F9FC; --sidebar-border:#E7EBF0;
+  --nav-on:#EEF2F7; --nav-on-text:#202532; --nav-off-text:#7B8294;
+  --surface-2:#EEF2F7; --green:#22C55E; --green-bg:rgba(34,197,94,0.08);
   --green-border:rgba(34,197,94,0.22); --green-dark:#16A34A;
   --amber:#C18409; --amber-bg:rgba(193,132,9,0.08); --amber-dark:#946100;
   --red:#D14343; --red-bg:rgba(209,67,67,0.07);
   --shadow-xs:0 1px 2px rgba(32,37,50,.03); --shadow-sm:0 2px 6px rgba(32,37,50,.04);
   --shadow:0 4px 16px rgba(32,37,50,.05); --shadow-lg:0 12px 32px rgba(32,37,50,.07);
-  --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
-  --r:12px; --r-xs:8px; --r-sm:10px; --r-md:12px; --r-lg:16px; --r-xl:22px;
-}
-
-[data-theme="magic-blue"] {
-  --bg:#0C1020; --surface:#11172A; --card:#151D34;
-  --border:rgba(170,185,255,0.10); --border-strong:rgba(190,202,255,0.22);
-  --text:#EEF2FF; --text-secondary:#AAB5D8; --text-muted:#687394;
-  --btn-prim:#EAF0FF; --btn-prim-text:#0C1020;
-  --accent:#6574FF; --accent-text:#FFFFFF;
-  --inp:rgba(255,255,255,0.045); --inp-border:rgba(255,255,255,0.09); --inp-focus:rgba(255,255,255,0.07); --inp-focus-border:rgba(142,157,255,0.50);
-  --glow:rgba(101,116,255,0.18);
-  --sidebar-bg:rgba(13,18,34,0.78); --sidebar-border:rgba(170,185,255,0.12);
-  --nav-on:rgba(101,116,255,0.18); --nav-on-text:#F5F7FF; --nav-off-text:#7380A4;
-  --surface-2:#1C2542; --green:#52D38C; --green-bg:rgba(82,211,140,0.10);
-  --green-border:rgba(82,211,140,0.24); --green-dark:#42C47C;
-  --amber:#D5A344; --amber-bg:rgba(213,163,68,0.10); --amber-dark:#C39134;
-  --red:#EF6B7A; --red-bg:rgba(239,107,122,0.10);
-  --shadow-xs:0 1px 3px rgba(0,0,0,.65); --shadow-sm:0 2px 8px rgba(0,0,0,.70);
-  --shadow:0 4px 20px rgba(0,0,0,.78); --shadow-lg:0 16px 48px rgba(0,0,0,.85);
-  --logo-filter:brightness(0) invert(1);
   --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
   --r:12px; --r-xs:8px; --r-sm:10px; --r-md:12px; --r-lg:16px; --r-xl:22px;
 }
