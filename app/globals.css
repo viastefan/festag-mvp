@@ -96,7 +96,7 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --inp-focus-border:rgba(255,255,255,0.08);
   --glow:rgba(255,255,255,0.02);
 
-  --sidebar-bg:#101010;
+  --sidebar-bg:#131313;
   --sidebar-border:rgba(255,255,255,0.04);
   --nav-on:#252525;
   --nav-on-text:#ECECEC;
@@ -124,7 +124,7 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
 
   --logo-filter:brightness(0) invert(1);
   --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
-  --r:12px; --r-xs:8px; --r-sm:10px; --r-md:12px; --r-lg:16px; --r-xl:22px;
+  --r:12px; --r-xs:8px; --r-sm:10px; --r-md:12px; --r-lg:14px; --r-xl:20px;
 }
 
 /* ── READ — Premium warm paper with neutral buttons ── */

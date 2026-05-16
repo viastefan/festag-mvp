@@ -304,8 +304,8 @@ export default function LoginPage() {
         {lastMethod === 'email' && <p className="log-hint">Du hast dich zuletzt damit angemeldet</p>}
       </div>
       <div className="log-btn-group">
-        <button className="log-btn log-btn-outline" type="button" onClick={() => setError('Bitte richte zuerst einen Passkey in deinen Einstellungen ein.')}>Passkey verwenden</button>
-        {lastMethod === 'passkey' && <p className="log-hint">Du hast dich zuletzt damit angemeldet</p>}
+        <button className="log-btn log-btn-outline" type="button" onClick={() => setError('SAM SSO wird für deinen Workspace freigeschaltet. Kontaktiere uns, wenn du Zugriff brauchst.')}>SAM SSO verwenden</button>
+        {lastMethod === 'sso' && <p className="log-hint">Du hast dich zuletzt damit angemeldet</p>}
       </div>
     </div>
   )
@@ -400,11 +400,16 @@ export default function LoginPage() {
   const legal = (
     <div className="log-legal">
       <p className="log-legal-text">
-        Kein Konto?{' '}
-        <a href="/register" onClick={e => { e.preventDefault(); navigateWithFade('/register') }}>Hier&nbsp;registrieren</a>
+        Secure, AI-orchestrated software Delivery.
         <br />
-        oder{' '}
-        <a href="/agb" onClick={e => { e.preventDefault(); navigateWithFade('/agb') }}>mehr&nbsp;dazu</a>
+        Mit Ihrer Anmeldung bestätigen Sie unsere
+        <br />
+        <a href="/agb" onClick={e => { e.preventDefault(); navigateWithFade('/agb') }}>AGB</a>
+        {' '}und Nutzungsbestimmungen.
+        <br />
+        <br />
+        Zugang erstellt?{' '}
+        <a href="/register" onClick={e => { e.preventDefault(); navigateWithFade('/register') }}>Hier&nbsp;anmelden</a>
       </p>
       <a className="log-dev" href="/dev" onClick={e => { e.preventDefault(); navigateWithFade('/dev/login') }}>Dev Zugang</a>
     </div>
@@ -428,7 +433,7 @@ export default function LoginPage() {
     <main className={`log-root${pageExiting ? ' exiting' : ''}`} data-theme={theme}>
       <style>{`
         *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
-        .log-root { min-height:100dvh; width:100%; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); -webkit-font-smoothing:antialiased; text-rendering:geometricPrecision; transition: opacity 0.16s linear; }
+        .log-root { min-height:100dvh; width:100%; font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; -webkit-font-smoothing:antialiased; text-rendering:geometricPrecision; transition: opacity 0.16s linear; }
         .log-root.exiting { opacity:0; pointer-events:none; }
         @keyframes logPageEnter { from { opacity:0; } to { opacity:1; } }
         .log-root:not(.exiting) { animation: logPageEnter 0.18s linear both; }
@@ -442,7 +447,7 @@ export default function LoginPage() {
 
         /* THEME SWITCHER */
         .log-theme-switcher { display:flex; gap:6px; align-items:center; }
-        .log-theme-pill { display:flex; align-items:center; justify-content:center; padding:4px 6px; border-radius:6px; border:0.4px solid #c7cdd6; background:transparent; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:12px; font-weight:500; color:#5b647d; letter-spacing:0.24px; cursor:pointer; transition:background .15s, border-color .15s, color .15s; }
+        .log-theme-pill { display:flex; align-items:center; justify-content:center; padding:4px 6px; border-radius:6px; border:0.4px solid #c7cdd6; background:transparent; font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:12px; font-weight:500; color:#5b647d; letter-spacing:0.24px; cursor:pointer; transition:background .15s, border-color .15s, color .15s; }
         .log-theme-pill.active { background:#f1f3f5; border-color:#fcfcfc; color:#2e2f33; }
         .log-theme-desktop { position:absolute; right:28px; top:24px; z-index:20; }
         .log-theme-mobile  { position:absolute; right:20px; top:48px; z-index:20; }
@@ -452,24 +457,24 @@ export default function LoginPage() {
         .log-desktop-shell { width:271px; display:flex; flex-direction:column; gap:24px; align-items:center; min-height:auto; justify-content:center; padding-top:0; transform:translateY(14px); }
         .log-desktop-header { width:100%; display:flex; flex-direction:column; gap:24px; align-items:center; }
         .log-logo-desktop { font-family:'Qurova DEMO',serif; font-size:24px; font-weight:500; color:#202532; text-align:center; width:100%; line-height:normal; transition:color .3s; }
-        .log-desktop-title { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:21px; font-weight:500; color:#202532; line-height:normal; text-align:center; letter-spacing:0.21px; width:100%; transition:color .3s; }
+        .log-desktop-title { font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:21px; font-weight:500; color:#202532; line-height:normal; text-align:center; letter-spacing:0.21px; width:100%; transition:color .3s; }
 
         /* MOBILE */
-        .log-mobile { display:none; min-height:100dvh; background:#edf1f6; position:relative; overflow:hidden; transition:background .3s; }
-        .log-mobile-card { position:absolute; left:12px; right:12px; bottom:10px; top:32px; background:#fff; border:1px solid rgba(99,111,132,.16); border-radius:36px; box-shadow:0px 22px 70px rgba(46,58,82,0.15),0px 4px 18px rgba(46,58,82,0.08),0px 1px 0px rgba(255,255,255,0.85) inset; transition:background .3s, border-color .3s, box-shadow .3s; }
-        .log-mobile-shell { position:absolute; left:50%; transform:translateX(-50%); top:175px; width:271px; display:flex; flex-direction:column; gap:28px; align-items:center; }
+        .log-mobile { display:none; min-height:100svh; background:#edf1f6; position:relative; overflow-x:hidden; overflow-y:auto; transition:background .3s; padding:72px 0 0; }
+        .log-mobile-card { position:absolute; left:0; right:0; top:72px; bottom:0; min-height:calc(100svh - 72px); background:#fff; border:0; border-radius:48px 48px 0 0; box-shadow:none; transition:background .3s; }
+        .log-mobile-shell { position:relative; z-index:2; width:min(100%, 420px); min-height:calc(100svh - 72px); margin:0 auto; padding:254px 24px 72px; display:flex; flex-direction:column; gap:28px; align-items:center; }
         .log-mobile-logo-title { width:100%; display:flex; flex-direction:column; gap:9px; align-items:center; }
         .log-logo-mobile { font-family:'Qurova DEMO',serif; font-size:20px; font-weight:500; color:#000; text-align:center; line-height:47px; height:35px; width:100%; transition:color .3s; }
         .log-mobile-inner { width:100%; display:flex; flex-direction:column; gap:32px; align-items:center; }
-        .log-mobile-title { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:28px; font-weight:500; color:#202532; white-space:nowrap; line-height:47px; text-align:center; letter-spacing:0.28px; height:35px; transition:color .3s; }
-        .log-mobile-title-email { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:20px; font-weight:500; color:#2e2f33; line-height:26px; text-align:center; letter-spacing:0.2px; white-space:pre-line; transition:color .3s; }
+        .log-mobile-title { font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:28px; font-weight:500; color:#202532; white-space:nowrap; line-height:47px; text-align:center; letter-spacing:0.28px; height:35px; transition:color .3s; }
+        .log-mobile-title-email { font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:20px; font-weight:500; color:#2e2f33; line-height:26px; text-align:center; letter-spacing:0.2px; white-space:pre-line; transition:color .3s; }
 
         /* SHARED BUTTONS */
         .log-btn-stack { width:271px; display:flex; flex-direction:column; gap:20px; }
 
         .log-btn-group { display:flex; flex-direction:column; gap:6px; }
-        .log-hint { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:12px; font-weight:400 !important; color:#7b8294; text-align:center; letter-spacing:0.24px; }
-        .log-btn { width:100%; height:47px; border-radius:32px; border:none; display:flex; align-items:center; justify-content:center; gap:8px; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:14px; font-weight:500; letter-spacing:0.14px; cursor:pointer; padding:12px 45px; white-space:nowrap; overflow:hidden; transition:background .15s, opacity .15s, border-color .15s, color .15s, transform 0.25s cubic-bezier(0.34,1.56,0.64,1); transform-origin:center; }
+        .log-hint { font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:12px; font-weight:400 !important; color:#7b8294; text-align:center; letter-spacing:0.24px; }
+        .log-btn { width:100%; height:47px; border-radius:32px; border:none; display:flex; align-items:center; justify-content:center; gap:8px; font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:14px; font-weight:500; letter-spacing:0.14px; cursor:pointer; padding:12px 45px; white-space:nowrap; overflow:hidden; transition:background .15s, opacity .15s, border-color .15s, color .15s, transform 0.25s cubic-bezier(0.34,1.56,0.64,1); transform-origin:center; }
         .log-btn:disabled { opacity:.5; cursor:not-allowed; }
         .log-btn-google { background:#5b647d; color:#fff; box-shadow:0px 8px 24px 0px rgba(200,169,91,0.14); }
         .log-btn-google:hover:not(:disabled) { background:#505870; }
@@ -483,20 +488,20 @@ export default function LoginPage() {
 
         /* EMAIL FORM */
         .log-email-form { width:271px; display:flex; flex-direction:column; gap:16px; }
-        .log-email-input { width:100%; height:47px; border-radius:8px; border:1px solid #5b647d; background:#fff; color:#202532; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:14px; font-weight:400 !important; letter-spacing:0.01em; padding:0 16px; outline:none; caret-color:#5b647d; box-shadow:0px 1px 2px 0px rgba(15,23,42,0.03); transition:border-color .15s, box-shadow .15s, background .3s, color .3s; }
+        .log-email-input { width:100%; height:47px; border-radius:8px; border:1px solid #5b647d; background:#fff; color:#202532; font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:14px; font-weight:400 !important; letter-spacing:0.01em; padding:0 16px; outline:none; caret-color:#5b647d; box-shadow:0px 1px 2px 0px rgba(15,23,42,0.03); transition:border-color .15s, box-shadow .15s, background .3s, color .3s; }
         .log-email-input::placeholder { color:#bcbfc2; }
         .log-email-input:focus { border-color:#5b647d; box-shadow:0 0 0 3px rgba(91,100,125,0.12); }
-        .log-back { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:13px; font-weight:400 !important; color:#7b8294; background:none; border:none; cursor:pointer; text-align:center; letter-spacing:0.26px; line-height:20px; transition:color .15s; padding:4px; }
+        .log-back { font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:13px; font-weight:400 !important; color:#7b8294; background:none; border:none; cursor:pointer; text-align:center; letter-spacing:0.26px; line-height:20px; transition:color .15s; padding:4px; }
         .log-back:hover { color:#202532; }
-        .log-link-action { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:13px; font-weight:400 !important; color:#7b8294; background:none; border:none; cursor:pointer; text-align:center; letter-spacing:0.26px; line-height:20px; transition:color .15s; padding:4px; }
+        .log-link-action { font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:13px; font-weight:400 !important; color:#7b8294; background:none; border:none; cursor:pointer; text-align:center; letter-spacing:0.26px; line-height:20px; transition:color .15s; padding:4px; }
         .log-link-action:hover { color:#202532; }
         .log-link-action:disabled { opacity:.5; cursor:not-allowed; }
-        .log-sent-info { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:14px; font-weight:400 !important; line-height:20px; letter-spacing:0.14px; text-align:center; color:#7b8294; margin:8px 0 16px; }
+        .log-sent-info { font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:14px; font-weight:400 !important; line-height:20px; letter-spacing:0.14px; text-align:center; color:#7b8294; margin:8px 0 16px; }
         .log-sent-info strong { color:#202532; font-weight:500; }
         .log-code-input { text-align:center; letter-spacing:0.4em; font-size:15px; }
-        .log-support-note { margin:-4px 0 0; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:12.5px; line-height:18px; font-weight:400 !important; color:#7b8294; text-align:center; letter-spacing:0.01em; }
+        .log-support-note { margin:-4px 0 0; font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:12.5px; line-height:18px; font-weight:400 !important; color:#7b8294; text-align:center; letter-spacing:0.01em; }
         .log-support-note button { border:0; background:transparent; padding:0; color:#202532; font:inherit; font-weight:400 !important; text-decoration:underline; cursor:pointer; }
-        .log-newest-hint { margin:-4px 0 -2px; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:12px; line-height:1.5; font-weight:400 !important; color:#7b8294; text-align:center; letter-spacing:0.01em; padding:8px 12px; background:rgba(91,100,125,0.05); border:1px solid rgba(91,100,125,0.10); border-radius:10px; }
+        .log-newest-hint { margin:-4px 0 -2px; font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:12px; line-height:1.5; font-weight:400 !important; color:#7b8294; text-align:center; letter-spacing:0.01em; padding:8px 12px; background:rgba(91,100,125,0.05); border:1px solid rgba(91,100,125,0.10); border-radius:10px; }
         .log-root[data-theme="dark"] .log-newest-hint { color:#98A2B3; background:rgba(243,245,247,0.04); border-color:rgba(243,245,247,0.08); }
 
         /* SUPPORT MODAL */
@@ -509,7 +514,7 @@ export default function LoginPage() {
         .log-support-field { display:flex; flex-direction:column; gap:6px; margin-bottom:10px; }
         .log-support-field span { color:#7b8294; font-size:11px; line-height:16px; font-weight:500 !important; letter-spacing:.04em; text-transform:uppercase; }
         .log-support-field input,
-        .log-support-field textarea { width:100%; border-radius:12px; border:1px solid rgba(91,100,125,.16); background:#fff; color:#202532; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:13.5px; font-weight:400 !important; outline:none; padding:11px 12px; resize:none; box-shadow:0 1px 2px rgba(15,23,42,.03); }
+        .log-support-field textarea { width:100%; border-radius:12px; border:1px solid rgba(91,100,125,.16); background:#fff; color:#202532; font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:13.5px; font-weight:400 !important; outline:none; padding:11px 12px; resize:none; box-shadow:0 1px 2px rgba(15,23,42,.03); }
         .log-support-field input:focus,
         .log-support-field textarea:focus { border-color:rgba(91,100,125,.42); box-shadow:0 0 0 3px rgba(91,100,125,.10); }
         .log-support-actions { display:flex; gap:8px; margin-top:14px; }
@@ -519,31 +524,49 @@ export default function LoginPage() {
         @keyframes logModalPop { from{opacity:0; transform:translateY(8px) scale(.98);} to{opacity:1; transform:none;} }
 
         /* LEGAL */
-        .log-legal { width:271px; display:flex; flex-direction:column; gap:16px; text-align:center; }
-        .log-legal-text { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:13px; font-weight:400 !important; line-height:20px; letter-spacing:0.02em; color:#7b8294; }
+        .log-legal { width:271px; display:flex; flex-direction:column; gap:22px; text-align:center; }
+        .log-legal-text { font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:13px; font-weight:400 !important; line-height:20px; letter-spacing:0.02em; color:#7b8294; }
         .log-legal-text span, .log-legal-text a { font-weight:400 !important; }
         .log-legal-text a { color:#202532; text-decoration:underline; transition:color .3s; }
         .log-legal-text a:hover { opacity:.75; }
-        .log-dev { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:13px; font-weight:400 !important; line-height:20px; letter-spacing:0.02em; color:#7b8294; text-decoration:none; text-align:center; display:block; transition:color .3s; }
+        .log-dev { font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:13px; font-weight:400 !important; line-height:20px; letter-spacing:0.02em; color:#7b8294; text-decoration:none; text-align:center; display:block; transition:color .3s; }
         .log-dev:hover { color:#202532; }
 
-        .log-ssl-badge { position:fixed; left:20px; bottom:18px; display:flex; align-items:center; gap:6px; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:11px; font-weight:400 !important; letter-spacing:0.22px; color:#98A2B3; user-select:none; z-index:30; transition:color .3s; }
+        .log-ssl-badge { position:fixed; left:20px; bottom:18px; display:flex; align-items:center; gap:6px; font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:11px; font-weight:400 !important; letter-spacing:0.22px; color:#98A2B3; user-select:none; z-index:30; transition:color .3s; }
         .log-ssl-badge svg { width:11px; height:13px; flex-shrink:0; }
         .log-root[data-theme="dark"] .log-ssl-badge { color:rgba(243,245,247,0.55); }
         .log-region-note { position:fixed; left:50%; bottom:18px; transform:translateX(-50%); width:min(520px, calc(100vw - 40px)); text-align:center; color:#98A2B3; font-size:11.5px; line-height:1.45; letter-spacing:.01em; font-weight:400 !important; z-index:30; }
         .log-root[data-theme="dark"] .log-region-note { color:rgba(243,245,247,0.50); }
 
         /* ERROR */
-        .log-error { width:271px; background:rgba(239,68,68,.05); color:#c0362e; border-radius:10px; padding:9px 12px; font-size:12.5px; font-weight:500 !important; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); text-align:left; letter-spacing:0.01em; line-height:1.45; }
+        .log-error { width:271px; background:rgba(239,68,68,.05); color:#c0362e; border-radius:10px; padding:9px 12px; font-size:12.5px; font-weight:500 !important; font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; text-align:left; letter-spacing:0.01em; line-height:1.45; }
         .log-loader { width:16px; height:16px; border-radius:999px; border:2px solid rgba(255,255,255,.35); border-top-color:#fff; animation:logSpin .75s linear infinite; flex-shrink:0; }
         @keyframes logSpin { to { transform:rotate(360deg); } }
 
-        @media (max-width: 640px) { .log-desktop { display:none; } .log-mobile { display:block; } }
+        @media (max-width: 640px) {
+          .log-desktop { display:none; }
+          .log-mobile { display:block; }
+          .log-theme-mobile { top:132px; right:54px; }
+          .log-ssl-badge,
+          .log-region-note { display:none; }
+        }
+        @media (max-width: 380px) {
+          .log-mobile { padding-top:60px; }
+          .log-mobile-card { top:60px; min-height:calc(100svh - 60px); border-radius:40px 40px 0 0; }
+          .log-mobile-shell { min-height:calc(100svh - 60px); padding-top:226px; }
+          .log-theme-mobile { top:116px; right:34px; }
+        }
+        @media (max-height: 760px) and (max-width: 640px) {
+          .log-mobile-shell { padding-top:198px; padding-bottom:48px; }
+          .log-mobile-inner { gap:24px; }
+          .log-btn-stack { gap:16px; }
+          .log-legal { gap:16px; }
+        }
 
         /* ═══ DARK MODE ══════════════════════════════════════════════ */
         .log-root[data-theme="dark"] .log-desktop { background:#0A0E14; }
         .log-root[data-theme="dark"] .log-mobile  { background:#06090E; }
-        .log-root[data-theme="dark"] .log-mobile-card { background:#101722; border-color:rgba(255,255,255,0.09); box-shadow:0px 26px 80px rgba(0,0,0,0.55),0px 6px 22px rgba(0,0,0,0.34),0px 1px 0px rgba(255,255,255,0.04) inset; }
+        .log-root[data-theme="dark"] .log-mobile-card { background:#101722; border-color:transparent; box-shadow:none; }
 
         .log-root[data-theme="dark"] .log-logo-desktop,
         .log-root[data-theme="dark"] .log-logo-mobile { color:#E8E8E5; }
@@ -596,7 +619,7 @@ export default function LoginPage() {
         <section className="log-desktop-shell" aria-label="Festag Anmeldung">
           <div className="log-desktop-header">
             <p className="log-logo-desktop">festag</p>
-            <h1 className="log-desktop-title">{emailView ? emailTitle : 'Willkommen zurück'}</h1>
+            <h1 className="log-desktop-title">{emailView ? emailTitle : 'Willkommen'}</h1>
           </div>
           <div className={`log-content${animating ? ' animating' : ''}`}>
             {!emailView && error && <p className="log-error">{error}</p>}
@@ -616,7 +639,7 @@ export default function LoginPage() {
             <div className="log-mobile-inner">
               {emailView
                 ? <h1 className="log-mobile-title-email">{emailTitleMobile}</h1>
-                : <h1 className="log-mobile-title">Willkommen zurück</h1>}
+                : <h1 className="log-mobile-title">Willkommen</h1>}
               <div className={`log-content${animating ? ' animating' : ''}`}>
                 {!emailView && error && <p className="log-error">{error}</p>}
                 {emailView ? currentEmailScreen : mainButtons}
@@ -624,7 +647,6 @@ export default function LoginPage() {
               {!emailView && legal}
             </div>
           </div>
-          {!emailView && <a className="log-dev" href="/dev" onClick={e => { e.preventDefault(); navigateWithFade('/dev/login') }}>Dev Zugang</a>}
         </div>
       </div>
 

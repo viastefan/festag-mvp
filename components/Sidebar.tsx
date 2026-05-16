@@ -42,6 +42,17 @@ function Ico({ name, sz=16, c='currentColor', weight='regular' }: {
 }
 
 type NavItem = { href: string; icon: string; label: string; badge?: number }
+type MonitoringDockState = {
+  loaded: boolean
+  blockers: number
+  decisions: number
+  risks: number
+  latestBriefingAt: string | null
+  latestProjectUpdateAt: string | null
+  hasNewBriefing: boolean
+  audioReady: boolean
+  deliveryAlert: boolean
+}
 
 const CLIENT_TOP: NavItem[] = [
   { href:'/dashboard', icon:'home', label:'Dashboard' },
@@ -113,6 +124,22 @@ const DEV_MOB_QUICK = [
 
 const ROLE_LABEL: Record<string,string> = { client:'Client', dev:'Developer', admin:'Admin' }
 
+function formatRelativeBriefing(value?: string | null) {
+  if (!value) return null
+  const diffMs = Date.now() - new Date(value).getTime()
+  const diffMin = Math.max(0, Math.round(diffMs / 60000))
+  if (diffMin < 1) return 'gerade eben'
+  if (diffMin < 60) return `vor ${diffMin} Min.`
+  const diffHours = Math.round(diffMin / 60)
+  if (diffHours < 24) return `vor ${diffHours}h`
+  const diffDays = Math.round(diffHours / 24)
+  return `vor ${diffDays} Tg.`
+}
+
+function reportHasRisk(content?: string | null) {
+  return /blocker|risiko|kritisch|verzöger|abhängig|eskal/i.test(String(content ?? ''))
+}
+
 export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
   const pathname  = usePathname()
   const searchParams = useSearchParams()
@@ -138,7 +165,17 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
   const [toolsExp, setToolsExp] = useState(false)
   const [teamsOpen,  setTeamsOpen] = useState(false)
   const [colorPickId, setColorPickId] = useState<string|null>(null)
-  const [tagroSignals, setTagroSignals] = useState<{ decisions: number; blockers: number; loaded: boolean }>({ decisions: 0, blockers: 0, loaded: false })
+  const [monitoringDock, setMonitoringDock] = useState<MonitoringDockState>({
+    loaded: false,
+    blockers: 0,
+    decisions: 0,
+    risks: 0,
+    latestBriefingAt: null,
+    latestProjectUpdateAt: null,
+    hasNewBriefing: false,
+    audioReady: false,
+    deliveryAlert: false,
+  })
   const [wsMode, setWsMode] = useState<'delivery' | 'team' | 'agency'>('delivery')
 
   const isClient = true
@@ -233,19 +270,57 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
       if (list.length) {
         const prio: Record<string,number> = { active:0,testing:1,planning:2,intake:3,done:4 }
         setProjId([...list].sort((a,b)=>(prio[a.status]??9)-(prio[b.status]??9))[0].id)
-        // Tagro monitoring capsule signals — current open decisions + blockers
+        // Bottom monitoring dock — always show the most relevant current signal.
         try {
           const ids = list.map(p => p.id)
-          const { data: t } = await createClient()
-            .from('tasks').select('status,project_id').in('project_id', ids)
-          const decisions = (t as any[] | null)?.filter(x => x.status === 'waiting').length ?? 0
-          const blockers  = (t as any[] | null)?.filter(x => x.status === 'blocked').length ?? 0
-          setTagroSignals({ decisions, blockers, loaded: true })
+          const [taskRes, reportRes, updateRes, subscriptionRes] = await Promise.all([
+            createClient().from('tasks').select('status,project_id').in('project_id', ids),
+            createClient().from('ai_updates').select('project_id,content,created_at,type').eq('type', 'status_report').in('project_id', ids).order('created_at', { ascending: false }).limit(12),
+            createClient().from('ai_updates').select('project_id,created_at,type').eq('type', 'dev_progress_update').in('project_id', ids).order('created_at', { ascending: false }).limit(12),
+            createClient().from('briefing_subscriptions').select('format,last_sent_at,next_run_at').order('created_at', { ascending: false }).limit(1).maybeSingle(),
+          ])
+          const tasks = (taskRes.data as Array<{ status?: string | null; project_id: string }> | null) ?? []
+          const reports = (reportRes.data as Array<{ project_id: string; content?: string | null; created_at: string; type?: string | null }> | null) ?? []
+          const updates = (updateRes.data as Array<{ project_id: string; created_at: string; type?: string | null }> | null) ?? []
+          const latestReport = reports[0] ?? null
+          const latestProjectUpdate = updates[0] ?? null
+          const decisions = tasks.filter(x => x.status === 'waiting').length
+          const blockers = tasks.filter(x => x.status === 'blocked').length
+          const risks = latestReport && reportHasRisk(latestReport.content) ? 1 : 0
+          const latestBriefingAt = latestReport?.created_at ?? null
+          const latestProjectUpdateAt = latestProjectUpdate?.created_at ?? null
+          const reportAgeMs = latestBriefingAt ? Date.now() - new Date(latestBriefingAt).getTime() : Number.POSITIVE_INFINITY
+          const updateAgeMs = latestProjectUpdateAt ? Date.now() - new Date(latestProjectUpdateAt).getTime() : Number.POSITIVE_INFINITY
+          const hasNewBriefing = Boolean(latestBriefingAt && reportAgeMs <= 6 * 60 * 60 * 1000)
+          const audioReady = Boolean(latestBriefingAt && reportAgeMs <= 24 * 60 * 60 * 1000)
+          const deliveryAlert = Boolean((subscriptionRes.data as any)?.next_run_at || (subscriptionRes.data as any)?.last_sent_at)
+
+          setMonitoringDock({
+            loaded: true,
+            blockers,
+            decisions,
+            risks,
+            latestBriefingAt,
+            latestProjectUpdateAt,
+            hasNewBriefing,
+            audioReady: audioReady && !hasNewBriefing,
+            deliveryAlert,
+          })
         } catch {
-          setTagroSignals(s => ({ ...s, loaded: true }))
+          setMonitoringDock((state) => ({ ...state, loaded: true }))
         }
       } else {
-        setTagroSignals({ decisions: 0, blockers: 0, loaded: true })
+        setMonitoringDock({
+          loaded: true,
+          blockers: 0,
+          decisions: 0,
+          risks: 0,
+          latestBriefingAt: null,
+          latestProjectUpdateAt: null,
+          hasNewBriefing: false,
+          audioReady: false,
+          deliveryAlert: false,
+        })
       }
     })
   }, [pathname])
@@ -329,7 +404,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
             fontFamily:'inherit', padding:0, textAlign:'left',
             width:'auto', maxWidth:'100%',
           }}>
-            <span style={{ fontSize:11.5, fontWeight:600, color:'var(--text-secondary)', letterSpacing:'.01em', lineHeight:'18px' }}>{label}</span>
+            <span style={{ fontSize:11.5, fontWeight:500, color:'var(--text-secondary)', letterSpacing:'.015em', lineHeight:'18px' }}>{label}</span>
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" strokeWidth="2.4" strokeLinecap="round"
               style={{ flexShrink:0, opacity:.72, transform:expanded?'rotate(90deg)':'rotate(0deg)', transition:'none' }}>
               <path d="M9 6l6 6-6 6"/>
@@ -444,7 +519,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           padding:0 var(--sb-x); border-radius:14px;
           font-size:var(--sb-font); font-weight:500;
           font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
-          letter-spacing:.01em;
+          letter-spacing:.015em;
           cursor:pointer; text-decoration:none; color:inherit;
           transition:background .12s, color .12s;
           white-space:nowrap; overflow:hidden;
@@ -454,7 +529,13 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           box-sizing:border-box;
           margin:0 5px;
         }
-        .ni-on  { background:rgba(0,0,0,0.048); font-weight:600; color:var(--text); }
+        .ni span,
+        .ni button {
+          font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
+          font-weight:500;
+          letter-spacing:.015em;
+        }
+        .ni-on  { background:rgba(0,0,0,0.048); font-weight:500; color:var(--text); }
         [data-theme="dark"] .ni-on { background:var(--nav-on); color:var(--nav-on-text); }
         [data-theme="read"] .ni-on { background:rgba(0,0,0,0.05); color:var(--text); }
         .ni-off { color:var(--text-secondary); }
@@ -478,7 +559,8 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         }
         .sb-section-head span {
           font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
-          letter-spacing:.01em;
+          font-weight:500;
+          letter-spacing:.015em;
         }
         .sb-section-head button {
           min-height: 18px;
@@ -517,7 +599,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           border-radius:14px;
           font-size:12.5px; font-weight:500;
           font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
-          letter-spacing:.01em;
+          letter-spacing:.015em;
           cursor:pointer; text-decoration:none;
           color:var(--text-muted);
           transition:background .08s, color .08s;
@@ -533,6 +615,9 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           overflow:hidden;
           text-overflow:ellipsis;
           white-space:nowrap;
+          font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
+          font-weight:500;
+          letter-spacing:.015em;
         }
         .proj-dot-button {
           width:11px;
@@ -547,7 +632,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         }
         .proj-row:hover { background:rgba(0,0,0,0.04); color:var(--text); }
         [data-theme="dark"] .proj-row:hover { background:rgba(255,255,255,0.04); }
-        .proj-row.active { background:var(--nav-on); color:var(--nav-on-text); font-weight:600; }
+        .proj-row.active { background:var(--nav-on); color:var(--nav-on-text); font-weight:500; }
         .proj-row.proj-new { opacity:.55; transition:opacity .12s; }
         .proj-row.proj-new:hover { opacity:1; background:rgba(0,0,0,0.035); }
         [data-theme="dark"] .proj-row.proj-new:hover { background:rgba(255,255,255,0.05); }
@@ -601,7 +686,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         [data-theme="dark"] .sb-top-icon:hover { background:rgba(255,255,255,0.04); }
         .sb-bottom-actions {
           display:block;
-          padding:14px 8px 6px;
+          padding:14px 6px 6px;
           flex-shrink:0;
         }
         .sb-pill-action,
@@ -639,14 +724,15 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         .sb-monitor-capsule {
           display:flex; align-items:center; gap:8px;
           min-height:38px;
-          padding:8px 14px;
+          padding:8px 16px;
           border:1px solid var(--border);
-          background:color-mix(in srgb, var(--card) 92%, transparent);
-          border-radius:16px;
+          background:color-mix(in srgb, var(--surface) 72%, transparent);
+          border-radius:999px;
           text-decoration:none;
           color:var(--text);
           min-width:0;
-          transition:background .12s, border-color .12s;
+          box-shadow:none;
+          transition:background .12s, border-color .12s, color .12s;
         }
         .sb-monitor-capsule--single { width:100%; }
         .sb-monitor-capsule:hover {
@@ -654,11 +740,11 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           border-color:var(--border-strong);
         }
         .sb-monitor-dot {
-          width:7px; height:7px; border-radius:50%;
+          width:8px; height:8px; border-radius:50%;
           flex-shrink:0;
         }
         .sb-monitor-line {
-          font-size:12.5px; font-weight:500; letter-spacing:.01em;
+          font-size:12.5px; font-weight:500; letter-spacing:.015em;
           font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
           color:var(--text);
           overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
@@ -674,7 +760,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           background:transparent; text-decoration:none; color:var(--text);
           font-size:12.5px; font-weight:500;
           font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
-          letter-spacing:.01em;
+          letter-spacing:.015em;
         }
         .usr-row:hover { background:var(--hover); }
 
@@ -701,7 +787,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         .mt.has-avatar .mti { background:transparent !important; }
         .mt.on .ml   { color:var(--text); font-weight:700; }
         .mt.off .ml  { color:var(--text-muted); font-weight:500; }
-        .ml { font-size:9.5px; font-weight:500; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); letter-spacing:.01em; transition:color .12s; line-height:1; }
+        .ml { font-size:9.5px; font-weight:500; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); letter-spacing:.015em; transition:color .12s; line-height:1; }
         .mob-fab { width:50px; height:50px; border-radius:50%; background:var(--btn-prim); color:var(--btn-prim-text); display:flex; align-items:center; justify-content:center; margin:-6px 12px; box-shadow:0 0 0 1px rgba(255,255,255,.02); border:none; cursor:pointer; transition:transform .15s ease,background .15s; flex-shrink:0; -webkit-tap-highlight-color:transparent; }
         .mob-fab:active { transform:scale(.88); }
         .mob-fab.open { background:var(--surface-2); box-shadow:0 0 0 1px rgba(255,255,255,.03); }
@@ -952,16 +1038,38 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
 
           <div className="sb-bottom-actions">
             {(() => {
-              const { decisions, blockers, loaded } = tagroSignals
+              const {
+                decisions,
+                blockers,
+                risks,
+                loaded,
+                latestBriefingAt,
+                latestProjectUpdateAt,
+                hasNewBriefing,
+                audioReady,
+              } = monitoringDock
+              const latestBriefingLabel = formatRelativeBriefing(latestBriefingAt)
+              const latestUpdateAgeMs = latestProjectUpdateAt ? Date.now() - new Date(latestProjectUpdateAt).getTime() : Number.POSITIVE_INFINITY
+              const projectStatusUpdated = Boolean(latestProjectUpdateAt && latestUpdateAgeMs <= 4 * 60 * 60 * 1000 && !hasNewBriefing && !audioReady)
               const status = !loaded
-                ? { dot: 'var(--text-muted)', text: 'Tagro prüft Status…' }
-                : decisions > 0
-                  ? { dot: '#0369A1', text: `${decisions} Entscheidung${decisions === 1 ? '' : 'en'} offen` }
-                  : blockers > 0
-                    ? { dot: '#D97706', text: `${blockers} Risik${blockers === 1 ? 'o' : 'en'} im Blick` }
-                    : { dot: '#15803D', text: 'Alles auf Kurs' }
+                ? { dot: 'var(--text-muted)', text: 'Projektstatus wird geprüft' }
+                : blockers > 0
+                  ? { dot: '#B56A62', text: 'Blocker erkannt' }
+                  : decisions > 0
+                    ? { dot: '#B38B4A', text: `${decisions} Entscheidung${decisions === 1 ? '' : 'en'} offen` }
+                    : risks > 0
+                      ? { dot: '#B38B4A', text: 'Risiko erkannt' }
+                      : hasNewBriefing
+                        ? { dot: '#8D98A6', text: 'Neues Briefing verfügbar' }
+                        : audioReady
+                          ? { dot: '#8D98A6', text: 'Audio-Briefing bereit' }
+                          : projectStatusUpdated
+                            ? { dot: '#8D98A6', text: 'Projektstatus aktualisiert' }
+                            : latestBriefingLabel
+                              ? { dot: '#2F8F57', text: `Letztes Briefing ${latestBriefingLabel}` }
+                              : { dot: '#2F8F57', text: 'Alles auf Kurs' }
               return (
-                <Link href="/reports" className="sb-monitor-capsule sb-monitor-capsule--single" title={`Tagro Monitoring · ${status.text}`} aria-label={`Tagro Monitoring — ${status.text}`}>
+                <Link href="/reports#monitoring-center" className="sb-monitor-capsule sb-monitor-capsule--single" title={status.text} aria-label={status.text}>
                   <span className="sb-monitor-dot" style={{ background: status.dot }} />
                   <span className="sb-monitor-line">{status.text}</span>
                 </Link>

@@ -950,7 +950,7 @@ Regeln:
           )}
         </section>
 
-        <aside className="signals-rail" aria-label="Tagro Einschätzung">
+        <aside id="monitoring-center" className="signals-rail" aria-label="Monitoring Panel">
           <div className="signals-title">
             <h2>Tagro Einschätzung</h2>
             <SlidersHorizontal size={14} color="var(--text-muted)" />

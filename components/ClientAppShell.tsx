@@ -11,7 +11,7 @@ import PwaInstallBanner from '@/components/PwaInstallBanner'
 import Sidebar from '@/components/Sidebar'
 import { createClient } from '@/lib/supabase/client'
 import { getTheme, setTheme, type ThemeMode } from '@/lib/theme'
-import { Check, FunnelSimple, Sparkle } from '@phosphor-icons/react'
+import { Check, FunnelSimple } from '@phosphor-icons/react'
 
 type ClientAppShellProps = {
   children: React.ReactNode
@@ -121,33 +121,27 @@ export default function ClientAppShell({
           inset: 0;
           height: 100dvh;
           overflow: hidden;
-          background:
-            radial-gradient(1200px 540px at 12% -8%, rgba(255,255,255,.025), transparent 55%),
-            linear-gradient(180deg, rgba(255,255,255,.015), transparent 16%),
-            var(--bg);
+          background: var(--bg);
         }
         .app-workspace {
           position: fixed;
-          top: 14px;
-          right: 14px;
-          bottom: 16px;
-          left: calc(var(--app-sidebar-width) + 14px);
+          top: 28px;
+          right: 24px;
+          bottom: 48px;
+          left: calc(var(--app-sidebar-width) + 24px);
           min-width: 0;
           display: flex;
           flex-direction: column;
           overflow: hidden;
-          border: 1px solid color-mix(in srgb, var(--border-strong) 72%, transparent);
-          border-radius: 28px;
+          max-height: calc(100dvh - 76px);
+          border: 1px solid color-mix(in srgb, var(--border) 84%, transparent);
+          border-radius: 20px;
           background: var(--surface);
-          box-shadow:
-            0 0 0 1px rgba(255,255,255,.035),
-            0 18px 42px rgba(0,0,0,.18);
+          box-shadow: 0 0 0 1px rgba(255,255,255,.03);
           transition: left .18s cubic-bezier(.16,1,.3,1), border-color .18s ease, background .18s ease;
         }
         [data-theme="dark"] .app-workspace {
-          background:
-            linear-gradient(180deg, rgba(255,255,255,.012), rgba(255,255,255,0) 14%),
-            var(--surface);
+          background: var(--surface);
         }
         .app-workspace-scroll {
           height: 100%;
@@ -179,24 +173,25 @@ export default function ClientAppShell({
         }
         .app-footer-controls {
           position:fixed;
-          right:24px;
-          bottom:12px;
+          right:28px;
+          bottom:20px;
           z-index:145;
           display:flex;
           align-items:center;
-          gap:18px;
+          gap:0;
           color:var(--text-muted);
+          opacity:.72;
         }
         .app-footer-btn {
           position:relative;
-          min-height:24px;
+          width:24px;
+          height:24px;
           border:0;
           background:transparent;
-          color:var(--text-secondary);
+          color:var(--text-muted);
           display:inline-flex;
           align-items:center;
           justify-content:center;
-          gap:7px;
           padding:0;
           font:inherit;
           font-size:13px;
@@ -205,23 +200,13 @@ export default function ClientAppShell({
           letter-spacing:.01em;
         }
         .app-footer-btn:hover { color:var(--text); }
-        .app-footer-btn--theme {
-          display:flex;
-          align-items:center;
-          gap:8px;
-        }
-        .app-footer-btn--theme-copy {
-          font-size:13px;
-          font-weight:500;
-          color:inherit;
-        }
         .app-footer-theme-menu {
           position:absolute;
-          right:-6px;
-          bottom:calc(100% + 12px);
+          right:-2px;
+          bottom:calc(100% + 10px);
           width:172px;
           padding:6px;
-          border-radius:16px;
+          border-radius:14px;
           border:1px solid var(--border);
           background:color-mix(in srgb, var(--card) 96%, transparent);
           box-shadow:0 0 0 1px rgba(255,255,255,.02);
@@ -232,7 +217,7 @@ export default function ClientAppShell({
           width:100%;
           min-height:34px;
           border:0;
-          border-radius:12px;
+          border-radius:10px;
           background:transparent;
           color:var(--text-secondary);
           display:flex;
@@ -303,7 +288,7 @@ export default function ClientAppShell({
       <div className="app-footer-controls" aria-label="Workspace Schnellzugriff">
         <div ref={themeMenuRef} style={{ position: 'relative' }}>
           <button
-            className="app-footer-btn app-footer-btn--theme"
+            className="app-footer-btn"
             type="button"
             onClick={() => setThemeMenuOpen((open) => !open)}
             title="Theme wechseln"
@@ -311,7 +296,6 @@ export default function ClientAppShell({
             aria-expanded={themeMenuOpen}
           >
             <FunnelSimple size={16} weight="regular" />
-            <span className="app-footer-btn--theme-copy">Aa</span>
           </button>
           {themeMenuOpen && (
             <div className="app-footer-theme-menu" role="menu" aria-label="Theme Auswahl">
@@ -334,10 +318,6 @@ export default function ClientAppShell({
             </div>
           )}
         </div>
-        <button className="app-footer-btn" type="button" onClick={() => setCopilotOpen(true)}>
-          <Sparkle size={16} weight="regular" />
-          <span>Copilot</span>
-        </button>
       </div>
 
       <CopilotPanel open={copilotOpen} onClose={() => setCopilotOpen(false)} />
