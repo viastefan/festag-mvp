@@ -223,7 +223,6 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
 
 /* Quiet native controls: selected borderless dark-mode actions sit on the
    same subtle surface as the main content container instead of floating. */
-[data-theme="dark"] body .app-footer-btn,
 [data-theme="dark"] body .task-create,
 [data-theme="dark"] body .task-plus,
 [data-theme="dark"] body .projects-plus,
@@ -234,7 +233,6 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   background:var(--flat-control-bg);
 }
 
-[data-theme="dark"] body .app-footer-btn:hover,
 [data-theme="dark"] body .task-create:hover,
 [data-theme="dark"] body .task-plus:hover,
 [data-theme="dark"] body .projects-plus:hover,

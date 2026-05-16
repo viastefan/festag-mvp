@@ -11,7 +11,7 @@ import PwaInstallBanner from '@/components/PwaInstallBanner'
 import Sidebar from '@/components/Sidebar'
 import { createClient } from '@/lib/supabase/client'
 import { getTheme, setTheme, type ThemeMode } from '@/lib/theme'
-import { Check, FunnelSimple, Sparkle } from '@phosphor-icons/react'
+import { Check, FunnelSimple } from '@phosphor-icons/react'
 
 type ClientAppShellProps = {
   children: React.ReactNode
@@ -126,13 +126,13 @@ export default function ClientAppShell({
           position: fixed;
           top: 28px;
           right: 24px;
-          bottom: 48px;
+          bottom: 64px;
           left: calc(var(--app-sidebar-width) + 24px);
           min-width: 0;
           display: flex;
           flex-direction: column;
           overflow: hidden;
-          max-height: calc(100dvh - 76px);
+          max-height: calc(100dvh - 92px);
           border: 1px solid color-mix(in srgb, var(--border) 84%, transparent);
           border-radius: 10px;
           background: var(--surface);
@@ -205,8 +205,8 @@ export default function ClientAppShell({
         }
         .app-footer-btn:hover {
           color:var(--text);
-          border-color:var(--border);
-          background:color-mix(in srgb, var(--surface) 78%, transparent);
+          border-color:transparent;
+          background:transparent;
         }
         [data-theme="light"] .app-footer-btn.icon-only,
         [data-theme="pure-light"] .app-footer-btn.icon-only {
@@ -215,8 +215,8 @@ export default function ClientAppShell({
         [data-theme="light"] .app-footer-btn.icon-only:hover,
         [data-theme="pure-light"] .app-footer-btn.icon-only:hover {
           color:#202532;
-          background:#EEF2F7;
-          border-color:#D8DEE8;
+          background:transparent;
+          border-color:transparent;
         }
         .app-footer-copilot-label {
           display:inline-flex;
@@ -380,7 +380,6 @@ export default function ClientAppShell({
           title="Copilot öffnen"
           aria-label="Copilot öffnen"
         >
-          <Sparkle size={14} weight="regular" />
           <span className="app-footer-copilot-label">Copilot</span>
         </button>
         <div ref={themeMenuRef} style={{ position: 'relative' }}>
