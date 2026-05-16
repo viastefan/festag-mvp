@@ -1276,6 +1276,10 @@ export default function SettingsPage() {
                 </div>
               </div>
 
+              {wsMode === 'agency' && wsId && (
+                <WhiteLabelCard workspaceId={wsId} workspaceName={wsName} />
+              )}
+
               <div className="set-card">
                 <div className="set-row">
                   <div>
@@ -1425,6 +1429,132 @@ export default function SettingsPage() {
           </>
         )}
       </main>
+    </div>
+  )
+}
+
+type WhiteLabelPlan = 'powered_by_festag' | 'full_white_label' | 'agency_os'
+
+function WhiteLabelCard({ workspaceId, workspaceName }: { workspaceId: string; workspaceName: string }) {
+  const supabase = useMemo(() => createClient(), [])
+  const [loading, setLoading] = useState(true)
+  const [plan, setPlan] = useState<WhiteLabelPlan>('powered_by_festag')
+  const [brandName, setBrandName] = useState('')
+  const [brandColor, setBrandColor] = useState('')
+  const [logoUrl, setLogoUrl] = useState('')
+  const [domain, setDomain] = useState('')
+  const [mailFrom, setMailFrom] = useState('')
+  const [audioIntro, setAudioIntro] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      const { data } = await supabase.from('workspace_branding')
+        .select('plan,brand_name,brand_color,logo_url,domain,mail_from,audio_intro')
+        .eq('workspace_id', workspaceId)
+        .maybeSingle()
+      if (cancelled) return
+      if (data) {
+        const d = data as any
+        setPlan((d.plan as WhiteLabelPlan) || 'powered_by_festag')
+        setBrandName(d.brand_name || '')
+        setBrandColor(d.brand_color || '')
+        setLogoUrl(d.logo_url || '')
+        setDomain(d.domain || '')
+        setMailFrom(d.mail_from || '')
+        setAudioIntro(d.audio_intro || '')
+      }
+      setLoading(false)
+    })()
+    return () => { cancelled = true }
+  }, [supabase, workspaceId])
+
+  async function save() {
+    setError(''); setSaving(true); setSaved(false)
+    try {
+      // Plan stays "powered_by_festag" — activation goes through Festag
+      // support so the premium price model + DNS handoff stays gated.
+      const { error: e } = await supabase.from('workspace_branding').upsert({
+        workspace_id: workspaceId,
+        plan,
+        brand_name: brandName.trim() || null,
+        brand_color: brandColor.trim() || null,
+        logo_url: logoUrl.trim() || null,
+        domain: domain.trim() || null,
+        mail_from: mailFrom.trim() || null,
+        audio_intro: audioIntro.trim() || null,
+      }, { onConflict: 'workspace_id' })
+      if (e) throw e
+      setSaved(true)
+      setTimeout(() => setSaved(false), 1800)
+    } catch (e: any) {
+      setError(e?.message || 'Konnte Branding nicht speichern.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const isPremium = plan !== 'powered_by_festag'
+  const planLabel = plan === 'full_white_label' ? 'Full White Label' : plan === 'agency_os' ? 'Agency OS' : 'Powered by Festag'
+
+  return (
+    <div className="set-card">
+      <div className="set-row set-row-stack" style={{ paddingBottom: 8 }}>
+        <div>
+          <div className="set-label">White Label · Branding</div>
+          <div className="set-label-sub">
+            Speichere dein Branding hier. Powered-by-Festag (Standard) zeigt einen kleinen Hinweis im Footer.
+            Full White Label entfernt den Hinweis und bringt deine Marke + Domain in Briefings, Mails und PDFs —
+            Premium-Funktion (799 €/Monat), Aktivierung läuft über Festag-Support.
+          </div>
+        </div>
+      </div>
+      <div className="set-row">
+        <div>
+          <div className="set-label">Aktueller Plan</div>
+          <div className="set-label-sub">{isPremium ? `${planLabel} ist aktiv.` : 'Standard — kein White-Label aktiv.'}</div>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, flexWrap: 'wrap' }}>
+          <span className="set-value" style={{ alignSelf: 'center' }}>{planLabel}</span>
+          {!isPremium && (
+            <a
+              className="set-btn"
+              href={`mailto:hi@festag.app?subject=${encodeURIComponent('Festag White-Label aktivieren')}&body=${encodeURIComponent(`Hallo Festag,\n\nIch möchte White Label für meinen Workspace "${workspaceName}" aktivieren.\n\nGewünschter Plan: Full White Label / Agency OS\nGewünschte Domain: ${domain || '—'}\nMarke: ${brandName || '—'}\n\nViele Grüße`)}`}
+            >
+              Aktivierung anfragen
+            </a>
+          )}
+        </div>
+      </div>
+      <div className="set-row"><div className="set-label">Marken-Name</div><input className="set-input" type="text" value={brandName} onChange={e => setBrandName(e.target.value)} placeholder="Erscheint in Briefings & Mails" /></div>
+      <div className="set-row"><div className="set-label">Marken-Farbe</div><input className="set-input" type="text" value={brandColor} onChange={e => setBrandColor(e.target.value)} placeholder="#0E0F0F" /></div>
+      <div className="set-row"><div className="set-label">Logo URL</div><input className="set-input" type="url" value={logoUrl} onChange={e => setLogoUrl(e.target.value)} placeholder="https://…/logo.svg" /></div>
+      <div className="set-row"><div className="set-label">Domain</div><input className="set-input" type="text" value={domain} onChange={e => setDomain(e.target.value)} placeholder="kunden.deine-agentur.de" /></div>
+      <div className="set-row"><div className="set-label">E-Mail-Absender</div><input className="set-input" type="text" value={mailFrom} onChange={e => setMailFrom(e.target.value)} placeholder="Deine Agentur <hi@agentur.de>" /></div>
+      <div className="set-row set-row-stack">
+        <div>
+          <div className="set-label">Audio-Intro</div>
+          <div className="set-label-sub">Kurzer gesprochener Vorlauf für Audio-Briefings (z. B. „Hier ist dein heutiges Update von Müller Agency").</div>
+        </div>
+        <textarea
+          className="set-input"
+          value={audioIntro}
+          onChange={e => setAudioIntro(e.target.value)}
+          placeholder="Optional"
+          rows={2}
+          style={{ resize: 'vertical', minHeight: 60, fontFamily: 'inherit' }}
+        />
+      </div>
+      {error && <div className="set-error">{error}</div>}
+      <div className="set-row" style={{ justifyContent: 'flex-end', display: 'flex' }}>
+        <span style={{ marginRight: 12, fontSize: 12, color: '#15803D', opacity: saved ? 1 : 0, transition: 'opacity .15s', alignSelf: 'center' }}>Gespeichert</span>
+        <button className="set-btn set-btn-primary" onClick={save} disabled={saving || loading}>
+          {saving ? 'Speichere…' : 'Branding speichern'}
+        </button>
+      </div>
     </div>
   )
 }
