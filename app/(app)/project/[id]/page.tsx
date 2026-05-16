@@ -15,7 +15,8 @@ import TaskDetailModal from '@/components/TaskDetailModal'
 import AudioBriefingButton from '@/components/AudioBriefingButton'
 import AssetsPanel from '@/components/AssetsPanel'
 import ProjectModulesStrip from '@/components/ProjectModulesStrip'
-import { getProjectPreset, type ProjectType } from '@/lib/project-modules'
+import ExecutorModulesStrip from '@/components/ExecutorModulesStrip'
+import { getProjectPreset, type ExecutorRole, type ProjectType } from '@/lib/project-modules'
 
 type Project = { id: string; title: string; description: string|null; status: string; project_type?: ProjectType | null }
 type Task = { id: string; title: string; status: string; priority?: string }
@@ -327,6 +328,22 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
   const projectType = (project as any).project_type as ProjectType | null | undefined
   const typePreset  = getProjectPreset(projectType ?? null)
 
+  // Derived KPI values for the type-strip. Only the cross-cutting + a
+  // few task-driven ones — everything else stays "—" until real data
+  // sources (Vercel, GSC, Meta Ads, …) are wired in Phase 3.
+  const nextMilestone = milestones.find(m => m.status === 'pending') ?? milestones.find(m => m.status === 'locked')
+  const stripValues = {
+    progress_pct:        tasks.length ? `${pct}%` : null,
+    features_done:       doneTasks.length || null,
+    features_open:       (todoTasks.length + doingTasks.length) || null,
+    bugs_open:           tasks.filter(t => /bug|fehler/i.test(t.title)).length || null,
+    pages_ready:         doneTasks.length || null,
+    milestone_amount:    nextMilestone ? `€${nextMilestone.amount.toLocaleString('de')}` : null,
+    next_milestone_eta:  nextMilestone?.title ?? null,
+    open_decisions:      tasks.filter(t => t.status === 'waiting').length || null,
+    open_blockers:       tasks.filter(t => ['blocked','waiting'].includes(t.status)).length || null,
+  } as const
+
   return (
     <div className="page-content animate-fade-up" style={{ maxWidth: undefined }}>
       <style>{`
@@ -479,7 +496,16 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
       </div>
 
       {/* ── Type-specific module strip ── */}
-      <ProjectModulesStrip projectType={projectType ?? null} />
+      <ProjectModulesStrip projectType={projectType ?? null} values={stripValues} />
+
+      {/* Executor-side strip — only visible to devs/admins. Until per-project
+          executor role assignment lands, default to 'developer'. */}
+      {canEdit && (
+        <ExecutorModulesStrip
+          projectType={projectType ?? null}
+          role={'developer' as ExecutorRole}
+        />
+      )}
 
       {/* ── Milestones ── compact list */}
       {milestones.length > 0 && (

@@ -488,6 +488,62 @@ export const KPI_LABEL: Record<KpiKind, string> = {
   progress_pct: 'Fortschritt',
 }
 
+/** Human labels for ExecutorModule ids — used by the executor strip. */
+export const EXECUTOR_MODULE_LABEL: Record<ExecutorModule, string> = {
+  // Generic
+  my_tasks: 'Meine Tasks',
+  project_context: 'Projekt-Kontext',
+  deliverables: 'Deliverables',
+  status_to_tagro: 'Status an Tagro',
+  blockers: 'Blocker',
+  client_feedback: 'Kunden-Feedback',
+  internal_notes: 'Interne Notizen',
+  priorities: 'Prioritäten',
+  deadlines: 'Deadlines',
+  // Developer
+  technical_tasks: 'Technische Tasks',
+  acceptance_criteria: 'Acceptance Criteria',
+  pr_deployment: 'PR / Deployment',
+  bug_tracker: 'Bug-Tracker',
+  testing_checklist: 'Testing-Checkliste',
+  environments: 'Environments',
+  // Designer
+  screens: 'Screens',
+  assets: 'Assets',
+  design_system: 'Design-System',
+  variants: 'Varianten',
+  feedback: 'Feedback',
+  // Marketing
+  campaign_tasks: 'Kampagnen-Tasks',
+  creative_tasks: 'Creative-Tasks',
+  ads_setup: 'Ads-Setup',
+  budget_notes: 'Budget-Notizen',
+  performance_updates: 'Performance-Updates',
+  optimizations: 'Optimierungen',
+  // SEO
+  keyword_tasks: 'Keyword-Tasks',
+  content_briefings: 'Content-Briefings',
+  technical_seo_checks: 'Technische SEO-Checks',
+  meta_titles: 'Meta-Titel',
+  internal_linking: 'Interne Verlinkung',
+  search_console_issues: 'Search-Console-Issues',
+  // Content
+  editorial_pipeline: 'Redaktionspipeline',
+  publishing: 'Veröffentlichung',
+  redaction_status: 'Redaktions-Status',
+  // PM
+  all_tasks: 'Alle Tasks',
+  briefing_review: 'Briefing-Review',
+  team_status: 'Team-Status',
+  risk_overview: 'Risiko-Übersicht',
+  // Automation
+  integration_setup: 'Integration-Setup',
+  api_keys: 'API-Keys',
+  workflow_tasks: 'Workflow-Tasks',
+  test_cases: 'Test-Cases',
+  error_logs: 'Error-Logs',
+}
+
 /** Human labels for ExecutorRole — single source of truth for chips. */
 export const EXECUTOR_ROLE_LABEL: Record<ExecutorRole, string> = {
   developer: 'Developer',

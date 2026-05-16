@@ -273,10 +273,9 @@ export default function RegisterPage() {
     <div className="reg-email-form">
       {error && <p className="reg-error">{error}</p>}
       <p className="reg-sent-info">
-        Code geschickt an<br />
+        Anmeldelink wurde geschickt an<br />
         <strong>{email}</strong>
       </p>
-      {newestWarning}
       <input
         ref={codeRef}
         className="reg-email-input reg-code-input"

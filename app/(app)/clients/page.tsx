@@ -145,7 +145,7 @@ export default function ClientsPage() {
             const active = cp.filter(p => p.status === 'active' || p.status === 'testing' || p.status === 'planning').length
             return (
               <article key={client.id} className="cl-card">
-                <div className="cl-card-head">
+                <Link href={`/clients/${client.id}`} className="cl-card-head" style={{ textDecoration:'none', color:'inherit' }}>
                   <div className="cl-card-avatar" style={{ background: client.brand_color || 'var(--surface-2)' }}>
                     {client.logo_url ? (
                       <img src={client.logo_url} alt="" />
@@ -164,7 +164,7 @@ export default function ClientsPage() {
                     <span>{cp.length} Projekte</span>
                     <span className="cl-card-active">{active} aktiv</span>
                   </div>
-                </div>
+                </Link>
                 {cp.length > 0 && (
                   <div className="cl-projects">
                     {cp.slice(0, 5).map(p => (

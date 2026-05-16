@@ -367,10 +367,9 @@ export default function LoginPage() {
     <div className="log-email-form">
       {error && <p className="log-error">{error}</p>}
       <p className="log-sent-info">
-        Code geschickt an<br />
+        Anmeldelink wurde geschickt an<br />
         <strong>{email}</strong>
       </p>
-      {newestWarning}
       <input
         ref={codeRef}
         className="log-email-input log-code-input"

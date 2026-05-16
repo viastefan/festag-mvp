@@ -22,6 +22,7 @@ import {
   KPI_LABEL,
   getProjectPreset,
   type ClientModule,
+  type KpiKind,
   type ProjectType,
 } from '@/lib/project-modules'
 
@@ -39,11 +40,19 @@ const HIDDEN_IN_STRIP: ReadonlySet<ClientModule> = new Set<ClientModule>([
 
 type Props = {
   projectType: ProjectType | null | undefined
+  /** Optional: live KPI values. Missing keys render as "—". */
+  values?: Partial<Record<KpiKind, string | number | null | undefined>>
   /** Optional: muted/empty hint instead of swallowing the section entirely. */
   emptyHint?: string
 }
 
-export default function ProjectModulesStrip({ projectType, emptyHint }: Props) {
+function formatValue(v: string | number | null | undefined): string {
+  if (v === null || v === undefined || v === '') return '—'
+  if (typeof v === 'number') return Number.isFinite(v) ? String(v) : '—'
+  return v
+}
+
+export default function ProjectModulesStrip({ projectType, values, emptyHint }: Props) {
   const preset = useMemo(() => getProjectPreset(projectType ?? null), [projectType])
 
   const visibleModules = useMemo(
@@ -51,10 +60,13 @@ export default function ProjectModulesStrip({ projectType, emptyHint }: Props) {
     [preset.clientModules],
   )
 
-  const kpiPreview = useMemo(
-    () => preset.kpis.slice(0, 4).filter((k) => k !== 'progress_pct'),
-    [preset.kpis],
-  )
+  // Prefer KPIs that have a value, then fall back to the first preset entries.
+  const kpiPreview = useMemo(() => {
+    const candidates = preset.kpis.filter((k) => k !== 'progress_pct')
+    const withValues = candidates.filter((k) => values && values[k] !== undefined && values[k] !== null && values[k] !== '')
+    const remainder  = candidates.filter((k) => !withValues.includes(k))
+    return [...withValues, ...remainder].slice(0, 4)
+  }, [preset.kpis, values])
 
   if (visibleModules.length === 0 && kpiPreview.length === 0) {
     return emptyHint ? (
@@ -160,36 +172,41 @@ export default function ProjectModulesStrip({ projectType, emptyHint }: Props) {
             borderTop: '1px solid var(--border)',
           }}
         >
-          {kpiPreview.map((k) => (
-            <div
-              key={k}
-              style={{ display: 'flex', flexDirection: 'column', minWidth: 80 }}
-              title={KPI_LABEL[k]}
-            >
-              <span
-                style={{
-                  fontSize: 10,
-                  fontWeight: 600,
-                  color: 'var(--text-muted)',
-                  letterSpacing: '.04em',
-                  textTransform: 'uppercase',
-                }}
+          {kpiPreview.map((k) => {
+            const raw = values?.[k]
+            const display = formatValue(raw)
+            const hasValue = display !== '—'
+            return (
+              <div
+                key={k}
+                style={{ display: 'flex', flexDirection: 'column', minWidth: 80 }}
+                title={KPI_LABEL[k]}
               >
-                {KPI_LABEL[k]}
-              </span>
-              <span
-                style={{
-                  fontSize: 13,
-                  fontWeight: 600,
-                  color: 'var(--text-muted)',
-                  opacity: 0.55,
-                  marginTop: 2,
-                }}
-              >
-                —
-              </span>
-            </div>
-          ))}
+                <span
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 600,
+                    color: 'var(--text-muted)',
+                    letterSpacing: '.04em',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  {KPI_LABEL[k]}
+                </span>
+                <span
+                  style={{
+                    fontSize: 13,
+                    fontWeight: 600,
+                    color: hasValue ? 'var(--text)' : 'var(--text-muted)',
+                    opacity: hasValue ? 1 : 0.55,
+                    marginTop: 2,
+                  }}
+                >
+                  {display}
+                </span>
+              </div>
+            )
+          })}
         </div>
       )}
     </section>
