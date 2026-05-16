@@ -43,26 +43,23 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
    THEME VARIABLES — set via data-theme on <html>
 ═══════════════════════════════════════════════ */
 :root, [data-theme="light"] {
-  /* Light — cleaner, brighter, more technical. Pure white base, sharp text,
-     festag-greige & apple-green only as accents. */
-  --bg:#F1F2F1; --surface:#FFFFFF; --card:#F8F8F6;
-  --border:rgba(0,0,0,0.06); --border-strong:rgba(0,0,0,0.14);
-  --text:#0A0B0A; --text-secondary:#54585A; --text-muted:#9DA1A0;
-  --btn-prim:#0A0B0A; --btn-prim-text:#FFFFFF;
-  --accent:#0A0B0A; --accent-text:#FFFFFF;
-  --inp:#FFFFFF; --inp-border:rgba(0,0,0,0.10); --inp-focus:#FFFFFF; --inp-focus-border:#0A0B0A;
-  --glow:rgba(10,11,10,0.06);
-  --sidebar-bg:rgba(241,242,241,0.78); --sidebar-border:rgba(0,0,0,0.06);
-  --nav-on:#E9E8E4; --nav-on-text:#0A0B0A; --nav-off-text:#6B7280;
-  /* Festag greige */
-  --surface-2:#F0EEE9;
-  /* Apple-green accents */
+  /* Light — Figma source tokens. Cool, clean and almost white. */
+  --bg:#EDF0F4; --surface:#FFFFFF; --card:#FCFCFC;
+  --border:#E7EBF0; --border-strong:#C7CDD6;
+  --text:#202532; --text-secondary:#7B8294; --text-muted:#C7CDD6;
+  --btn-prim:#5B647D; --btn-prim-text:#FFFFFF;
+  --accent:#5B647D; --accent-text:#FFFFFF;
+  --inp:#FFFFFF; --inp-border:#E7EBF0; --inp-focus:#FFFFFF; --inp-focus-border:#5B647D;
+  --glow:rgba(32,37,50,0.05);
+  --sidebar-bg:#EDF0F4; --sidebar-border:#E7EBF0;
+  --nav-on:#F1F3F5; --nav-on-text:#202532; --nav-off-text:#7B8294;
+  --surface-2:#F1F3F5;
   --green:#34C759; --green-bg:rgba(52,199,89,0.08); --green-border:rgba(52,199,89,0.22); --green-dark:#28A745;
   --amber:#B98700; --amber-bg:rgba(185,135,0,0.08); --amber-dark:#8A6500;
   --red:#D14343; --red-bg:rgba(209,67,67,0.07);
-  --shadow-xs:0 1px 2px rgba(10,11,10,.04); --shadow-sm:0 2px 6px rgba(10,11,10,.05);
-  --shadow:0 4px 16px rgba(10,11,10,.06); --shadow-lg:0 12px 32px rgba(10,11,10,.08);
-  --focus-ring:rgba(10,11,10,0.28);
+  --shadow-xs:0 1px 2px rgba(32,37,50,.03); --shadow-sm:0 2px 6px rgba(32,37,50,.04);
+  --shadow:0 4px 16px rgba(32,37,50,.05); --shadow-lg:0 12px 32px rgba(32,37,50,.07);
+  --focus-ring:rgba(91,100,125,0.30);
   --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
   --r:12px; --r-xs:8px; --r-sm:10px; --r-md:12px; --r-lg:16px; --r-xl:22px;
 }
@@ -152,21 +149,21 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
 }
 
 [data-theme="pure-light"] {
-  --bg:#FFFFFF; --surface:#FFFFFF; --card:#F7F7F7;
-  --border:rgba(0,0,0,0.055); --border-strong:rgba(0,0,0,0.14);
-  --text:#111111; --text-secondary:#55585D; --text-muted:#A0A3A8;
-  --btn-prim:#111111; --btn-prim-text:#FFFFFF;
-  --accent:#111111; --accent-text:#FFFFFF;
-  --inp:#FFFFFF; --inp-border:rgba(0,0,0,0.10); --inp-focus:#FFFFFF; --inp-focus-border:#111111;
-  --glow:rgba(0,0,0,0.04);
-  --sidebar-bg:rgba(255,255,255,0.82); --sidebar-border:rgba(0,0,0,0.06);
-  --nav-on:#EFEFEF; --nav-on-text:#111111; --nav-off-text:#63666B;
-  --surface-2:#F1F1F1; --green:#22C55E; --green-bg:rgba(34,197,94,0.08);
+  --bg:#EDF0F4; --surface:#FFFFFF; --card:#FCFCFC;
+  --border:#E7EBF0; --border-strong:#C7CDD6;
+  --text:#202532; --text-secondary:#7B8294; --text-muted:#C7CDD6;
+  --btn-prim:#5B647D; --btn-prim-text:#FFFFFF;
+  --accent:#5B647D; --accent-text:#FFFFFF;
+  --inp:#FFFFFF; --inp-border:#E7EBF0; --inp-focus:#FFFFFF; --inp-focus-border:#5B647D;
+  --glow:rgba(32,37,50,0.05);
+  --sidebar-bg:#EDF0F4; --sidebar-border:#E7EBF0;
+  --nav-on:#F1F3F5; --nav-on-text:#202532; --nav-off-text:#7B8294;
+  --surface-2:#F1F3F5; --green:#22C55E; --green-bg:rgba(34,197,94,0.08);
   --green-border:rgba(34,197,94,0.22); --green-dark:#16A34A;
   --amber:#C18409; --amber-bg:rgba(193,132,9,0.08); --amber-dark:#946100;
   --red:#D14343; --red-bg:rgba(209,67,67,0.07);
-  --shadow-xs:0 1px 2px rgba(0,0,0,.04); --shadow-sm:0 2px 6px rgba(0,0,0,.05);
-  --shadow:0 4px 16px rgba(0,0,0,.06); --shadow-lg:0 12px 32px rgba(0,0,0,.08);
+  --shadow-xs:0 1px 2px rgba(32,37,50,.03); --shadow-sm:0 2px 6px rgba(32,37,50,.04);
+  --shadow:0 4px 16px rgba(32,37,50,.05); --shadow-lg:0 12px 32px rgba(32,37,50,.07);
   --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
   --r:12px; --r-xs:8px; --r-sm:10px; --r-md:12px; --r-lg:16px; --r-xl:22px;
 }

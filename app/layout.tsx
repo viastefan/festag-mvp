@@ -47,7 +47,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   if (t !== 'light' && t !== 'dark' && t !== 'read' && t !== 'magic-blue') t = 'dark';
   var attr = (t === 'read') ? 'read' : t;
   document.documentElement.setAttribute('data-theme', attr);
-  var bg = t === 'dark' ? '#111111' : t === 'magic-blue' ? '#0C1020' : t === 'read' ? '#F7F4EC' : '#fcfcfd';
+  var bg = t === 'dark' ? '#111111' : t === 'magic-blue' ? '#0C1020' : t === 'read' ? '#F7F4EC' : '#EDF0F4';
   document.documentElement.style.backgroundColor = bg;
   document.documentElement.style.colorScheme = (t === 'dark' || t === 'magic-blue') ? 'dark' : 'light';
 }catch(e){}})();
@@ -61,11 +61,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           html[data-theme="dark"]  { background:#111111; color-scheme:dark; }
           html[data-theme="magic-blue"] { background:#0C1020; color-scheme:dark; }
           html[data-theme="read"]  { background:#F7F4EC; color-scheme:light; }
-          html[data-theme="light"] { background:#fcfcfd; color-scheme:light; }
+          html[data-theme="light"] { background:#EDF0F4; color-scheme:light; }
           html[data-theme="dark"]  body { background:#111111; }
           html[data-theme="magic-blue"] body { background:#0C1020; }
           html[data-theme="read"]  body { background:#F7F4EC; }
-          html[data-theme="light"] body { background:#fcfcfd; }
+          html[data-theme="light"] body { background:#EDF0F4; }
         `}} />
       </head>
       <body>
