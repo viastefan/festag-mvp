@@ -14,8 +14,10 @@ import DeleteProjectModal from '@/components/DeleteProjectModal'
 import TaskDetailModal from '@/components/TaskDetailModal'
 import AudioBriefingButton from '@/components/AudioBriefingButton'
 import AssetsPanel from '@/components/AssetsPanel'
+import ProjectModulesStrip from '@/components/ProjectModulesStrip'
+import { getProjectPreset, type ProjectType } from '@/lib/project-modules'
 
-type Project = { id: string; title: string; description: string|null; status: string }
+type Project = { id: string; title: string; description: string|null; status: string; project_type?: ProjectType | null }
 type Task = { id: string; title: string; status: string; priority?: string }
 type Msg = { id: string; message: string; created_at: string; sender_id: string; is_ai?: boolean }
 
@@ -322,6 +324,9 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
   const doingTasks = tasks.filter(t => t.status === 'doing')
   const doneTasks  = tasks.filter(t => t.status === 'done')
 
+  const projectType = (project as any).project_type as ProjectType | null | undefined
+  const typePreset  = getProjectPreset(projectType ?? null)
+
   return (
     <div className="page-content animate-fade-up" style={{ maxWidth: undefined }}>
       <style>{`
@@ -375,6 +380,18 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
           <div style={{ display:'flex', alignItems:'center', gap:10, minWidth:0 }}>
             <span style={{ width:10, height:10, borderRadius:'50%', background:'transparent', border:`2px solid ${pCol}`, flexShrink:0, boxSizing:'border-box' }}/>
             <h1 style={{ margin:0, fontSize:22, fontWeight:600, letterSpacing:'-.4px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{project.title}</h1>
+            {projectType && (
+              <span
+                title={typePreset.positioning}
+                style={{
+                  flexShrink:0, fontSize:10.5, fontWeight:600, letterSpacing:'.04em', textTransform:'uppercase',
+                  color:'var(--text-muted)', padding:'3px 8px', border:'1px solid var(--border)', borderRadius:6,
+                  whiteSpace:'nowrap',
+                }}
+              >
+                {projectType}
+              </span>
+            )}
           </div>
           <div style={{ display:'flex', alignItems:'center', gap:8, flexShrink:0 }}>
             <AudioBriefingButton
@@ -460,6 +477,9 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
           </div>
         </div>
       </div>
+
+      {/* ── Type-specific module strip ── */}
+      <ProjectModulesStrip projectType={projectType ?? null} />
 
       {/* ── Milestones ── compact list */}
       {milestones.length > 0 && (
