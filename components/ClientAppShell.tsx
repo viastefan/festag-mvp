@@ -124,15 +124,15 @@ export default function ClientAppShell({
         }
         .app-workspace {
           position: fixed;
-          top: 24px;
-          right: 24px;
+          top: 8px;
+          right: 8px;
           bottom: 52px;
           left: calc(var(--app-sidebar-width) + 9px);
           min-width: 0;
           display: flex;
           flex-direction: column;
           overflow: hidden;
-          max-height: calc(100dvh - 76px);
+          max-height: calc(100dvh - 60px);
           border: 1px solid color-mix(in srgb, var(--border) 84%, transparent);
           border-radius: 10px;
           background: var(--surface);
