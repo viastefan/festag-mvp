@@ -11,7 +11,7 @@ import PwaInstallBanner from '@/components/PwaInstallBanner'
 import Sidebar from '@/components/Sidebar'
 import { createClient } from '@/lib/supabase/client'
 import { getTheme, setTheme, type ThemeMode } from '@/lib/theme'
-import { Check, FunnelSimple } from '@phosphor-icons/react'
+import { Check, FunnelSimple, Sparkle } from '@phosphor-icons/react'
 
 type ClientAppShellProps = {
   children: React.ReactNode
@@ -177,28 +177,52 @@ export default function ClientAppShell({
           z-index:145;
           display:flex;
           align-items:center;
-          gap:0;
+          gap:8px;
           color:var(--text-muted);
-          opacity:.72;
         }
         .app-footer-btn {
           position:relative;
-          width:24px;
-          height:24px;
-          border:0;
+          height:28px;
+          border:1px solid transparent;
           background:transparent;
-          color:var(--text-muted);
+          color:color-mix(in srgb, var(--text-secondary) 78%, var(--accent));
           display:inline-flex;
           align-items:center;
           justify-content:center;
-          padding:0;
+          gap:7px;
+          padding:0 7px;
+          border-radius:999px;
           font:inherit;
-          font-size:13px;
+          font-size:12px;
           font-weight:500;
           text-decoration:none;
-          letter-spacing:.01em;
+          letter-spacing:.02em;
+          transition:background .16s ease, border-color .16s ease, color .16s ease;
         }
-        .app-footer-btn:hover { color:var(--text); }
+        .app-footer-btn.icon-only {
+          width:28px;
+          padding:0;
+        }
+        .app-footer-btn:hover {
+          color:var(--text);
+          border-color:var(--border);
+          background:color-mix(in srgb, var(--surface) 78%, transparent);
+        }
+        [data-theme="light"] .app-footer-btn.icon-only,
+        [data-theme="pure-light"] .app-footer-btn.icon-only {
+          color:#4F5A74;
+        }
+        [data-theme="light"] .app-footer-btn.icon-only:hover,
+        [data-theme="pure-light"] .app-footer-btn.icon-only:hover {
+          color:#202532;
+          background:#EEF2F7;
+          border-color:#D8DEE8;
+        }
+        .app-footer-copilot-label {
+          display:inline-flex;
+          align-items:center;
+          line-height:1;
+        }
         .app-footer-theme-menu {
           position:absolute;
           right:-8px;
@@ -349,9 +373,19 @@ export default function ClientAppShell({
       </main>
 
       <div className="app-footer-controls" aria-label="Workspace Schnellzugriff">
+        <button
+          className="app-footer-btn"
+          type="button"
+          onClick={() => setCopilotOpen(true)}
+          title="Copilot öffnen"
+          aria-label="Copilot öffnen"
+        >
+          <Sparkle size={14} weight="regular" />
+          <span className="app-footer-copilot-label">Copilot</span>
+        </button>
         <div ref={themeMenuRef} style={{ position: 'relative' }}>
           <button
-            className="app-footer-btn"
+            className="app-footer-btn icon-only"
             type="button"
             onClick={() => setThemeMenuOpen((open) => !open)}
             title="Theme wechseln"

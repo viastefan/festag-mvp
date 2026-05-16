@@ -6,7 +6,7 @@ import TagroLogo from '@/components/TagroLogo'
 
 type Msg = { role: 'user' | 'ai'; text: string }
 
-const QUICK = ['Projektstatus', 'Nächste Steps', 'Offene Tasks', 'Projekt starten']
+const QUICK = ['Status zusammenfassen', 'Nächste Schritte', 'Risiken prüfen', 'Offene Entscheidungen']
 
 const SYSTEM = `Du bist Tagro Copilot von Festag — das AI-native Softwareproduktionssystem.
 Antworte immer auf Deutsch. Maximal 3 prägnante Sätze. Kein Smalltalk, keine Emojis.
@@ -94,8 +94,9 @@ export default function CopilotPanel({ open, onClose }: { open: boolean; onClose
           messages: newMsgs.slice(-8).map(m => ({ role: m.role === 'ai' ? 'assistant' : 'user', content: m.text })),
         }),
       })
+      if (!res.ok) throw new Error('Tagro request failed')
       const d = await res.json()
-      setMsgs(m => [...m, { role: 'ai', text: d.content?.[0]?.text ?? 'Verbindungsfehler.' }])
+      setMsgs(m => [...m, { role: 'ai', text: d.content?.[0]?.text ?? 'Ich konnte gerade keine belastbare Antwort erzeugen. Bitte stelle die Frage noch einmal etwas konkreter.' }])
     } catch {
       setMsgs(m => [...m, { role: 'ai', text: 'Verbindungsfehler. Bitte erneut versuchen.' }])
     }
@@ -103,6 +104,7 @@ export default function CopilotPanel({ open, onClose }: { open: boolean; onClose
   }
 
   if (!mounted || !open) return null
+  const contextReady = context.trim().length > 0
 
   const panel = (
     <div className="cp-wrap" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose() }}>
@@ -115,9 +117,9 @@ export default function CopilotPanel({ open, onClose }: { open: boolean; onClose
           justify-content: flex-end;
           align-items: flex-end;
           pointer-events: all;
-          background: rgba(10,10,10,0.14);
-          backdrop-filter: blur(2px);
-          -webkit-backdrop-filter: blur(2px);
+          background: rgba(10,13,20,0.16);
+          backdrop-filter: blur(5px);
+          -webkit-backdrop-filter: blur(5px);
           animation: cpShade .18s ease-out both;
         }
         @keyframes cpShade {
@@ -128,18 +130,22 @@ export default function CopilotPanel({ open, onClose }: { open: boolean; onClose
           position: fixed;
           right: 20px;
           bottom: 22px;
-          width: 416px;
-          max-width: min(416px, calc(100vw - 30px));
-          height: min(700px, calc(100dvh - 48px));
+          width: 440px;
+          max-width: min(440px, calc(100vw - 30px));
+          height: min(724px, calc(100dvh - 48px));
           z-index: 7101;
           display: flex;
           flex-direction: column;
-          background: color-mix(in srgb, var(--card) 96%, transparent);
-          border: 1px solid var(--border);
-          border-radius: 28px;
-          backdrop-filter: blur(28px) saturate(170%);
-          -webkit-backdrop-filter: blur(28px) saturate(170%);
-          box-shadow: 0 0 0 1px rgba(255,255,255,.03);
+          background:
+            linear-gradient(180deg, color-mix(in srgb, var(--card) 98%, transparent), color-mix(in srgb, var(--surface) 97%, transparent));
+          border: 1px solid color-mix(in srgb, var(--border) 82%, rgba(255,255,255,.16));
+          border-radius: 30px;
+          backdrop-filter: blur(34px) saturate(180%);
+          -webkit-backdrop-filter: blur(34px) saturate(180%);
+          box-shadow:
+            0 28px 80px rgba(10,13,20,.24),
+            0 1px 0 rgba(255,255,255,.18) inset,
+            0 0 0 1px rgba(255,255,255,.04);
           animation: cpSlide .24s cubic-bezier(.16,1,.3,1);
           overflow: hidden;
         }
@@ -172,59 +178,211 @@ export default function CopilotPanel({ open, onClose }: { open: boolean; onClose
         }
         .cp-msg-in { animation: cpFadeUp .18s cubic-bezier(.16,1,.3,1) both; }
         @keyframes cpFadeUp { from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;} }
+        .cp-header {
+          min-height:76px;
+          padding:0 20px;
+          border-bottom:1px solid var(--border);
+          display:flex;
+          align-items:center;
+          justify-content:space-between;
+          flex-shrink:0;
+          background:color-mix(in srgb, var(--card) 92%, transparent);
+        }
+        .cp-brand {
+          display:flex;
+          align-items:center;
+          gap:12px;
+          min-width:0;
+        }
+        .cp-title {
+          margin:0;
+          font-size:14px;
+          line-height:1.05;
+          font-weight:500;
+          letter-spacing:.02em;
+          color:var(--text);
+        }
+        .cp-subtitle {
+          margin:5px 0 0;
+          display:flex;
+          align-items:center;
+          gap:7px;
+          font-size:11px;
+          line-height:1;
+          font-weight:400;
+          letter-spacing:.02em;
+          color:var(--text-secondary);
+        }
+        .cp-status-dot {
+          width:6px;
+          height:6px;
+          border-radius:999px;
+          background:var(--green);
+          box-shadow:0 0 0 3px var(--green-bg);
+        }
+        .cp-close {
+          width:34px;
+          height:34px;
+          border-radius:14px;
+          border:1px solid var(--border);
+          background:var(--surface-2);
+          color:var(--text-muted);
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          transition:background .14s ease, color .14s ease, border-color .14s ease;
+        }
+        .cp-close:hover {
+          background:var(--hover);
+          color:var(--text);
+          border-color:var(--border-strong);
+        }
+        .cp-thread {
+          flex:1;
+          overflow-y:auto;
+          padding:18px 18px 12px;
+          display:flex;
+          flex-direction:column;
+          gap:14px;
+          background:color-mix(in srgb, var(--surface) 96%, transparent);
+        }
+        .cp-message-row {
+          display:flex;
+          gap:10px;
+          align-items:flex-start;
+        }
+        .cp-message-row.user {
+          justify-content:flex-end;
+        }
+        .cp-bubble {
+          max-width:calc(100% - 34px);
+          padding:14px 16px;
+          border-radius:18px;
+          border:1px solid var(--border);
+          color:var(--text);
+          box-shadow:0 1px 0 rgba(255,255,255,.04) inset;
+        }
+        .cp-bubble.ai {
+          background:color-mix(in srgb, var(--card) 96%, transparent);
+          border-top-left-radius:12px;
+        }
+        .cp-bubble.user {
+          background:color-mix(in srgb, var(--surface-2) 92%, transparent);
+          border-top-right-radius:12px;
+        }
+        .cp-bubble p {
+          font-size:13px;
+          line-height:1.62;
+          margin:0;
+          color:var(--text);
+          white-space:pre-wrap;
+          word-break:break-word;
+          font-weight:400;
+          letter-spacing:.02em;
+        }
+        .cp-typing {
+          padding:13px 15px;
+          background:color-mix(in srgb, var(--card) 96%, transparent);
+          border:1px solid var(--border);
+          border-radius:18px;
+          border-top-left-radius:12px;
+          display:flex;
+          gap:4px;
+        }
         .cp-input {
           flex: 1; border: none; outline: none; background: transparent;
           font-size: 13px; color: var(--text); font-family: inherit;
-          font-weight: 500; min-width: 0; -webkit-text-fill-color: var(--text);
+          font-weight: 400; min-width: 0; -webkit-text-fill-color: var(--text);
+          letter-spacing:.02em;
         }
         .cp-input::placeholder { color: var(--text-muted); -webkit-text-fill-color: var(--text-muted); }
+        .cp-quickbar {
+          padding:10px 18px 0;
+          display:flex;
+          gap:8px;
+          overflow-x:auto;
+          flex-shrink:0;
+          border-top:1px solid var(--border);
+          background:color-mix(in srgb, var(--surface) 96%, transparent);
+        }
         .cp-quick-btn {
           padding: 7px 12px; border-radius: 999px; border: 1px solid var(--border);
-          background: var(--surface-2); font-size: 11px; color: var(--text-secondary);
+          background: color-mix(in srgb, var(--surface-2) 88%, transparent); font-size: 11px; color: var(--text-secondary);
           white-space: nowrap; flex-shrink: 0; cursor: pointer;
-          font-family: inherit; font-weight: 500; transition: background .1s;
+          font-family: inherit; font-weight: 400; letter-spacing:.02em;
+          transition: background .14s ease, color .14s ease, border-color .14s ease;
         }
-        .cp-quick-btn:hover { background: var(--hover); }
+        .cp-quick-btn:hover { background: var(--hover); color:var(--text); border-color:var(--border-strong); }
+        .cp-composer {
+          padding:12px 18px 18px;
+          flex-shrink:0;
+          background:color-mix(in srgb, var(--surface) 96%, transparent);
+        }
+        .cp-input-shell {
+          display:flex;
+          gap:8px;
+          align-items:center;
+          background:color-mix(in srgb, var(--surface-2) 90%, transparent);
+          border:1px solid var(--border);
+          border-radius:18px;
+          padding:10px 10px 10px 14px;
+          transition:border-color .15s ease, background .15s ease, box-shadow .15s ease;
+        }
+        .cp-input-shell:focus-within {
+          border-color:var(--inp-focus-border);
+          background:var(--inp-focus);
+          box-shadow:0 0 0 4px var(--focus-ring);
+        }
+        .cp-send {
+          width:36px;
+          height:36px;
+          border-radius:14px;
+          flex-shrink:0;
+          background:var(--hover);
+          color:var(--text-muted);
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          transition:background .15s ease, color .15s ease, transform .15s ease;
+        }
+        .cp-send.ready {
+          background:var(--btn-prim);
+          color:var(--btn-prim-text);
+        }
+        .cp-send.ready:active { transform:scale(.97); }
         @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
         @keyframes spin{to{transform:rotate(360deg);}}
       `}</style>
 
       <div className="copilot-full-panel">
-        {/* Header */}
-        <div style={{ padding: '0 18px', minHeight: 64, borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0, background: 'color-mix(in srgb, var(--card) 94%, transparent)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div className="cp-header">
+          <div className="cp-brand">
             <TagroLogo size={28} thinking={loading} />
             <div>
-              <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', margin: 0, lineHeight: 1 }}>Tagro Workspace</p>
-              <p style={{ fontSize: 10.5, color: 'var(--text-muted)', margin: '3px 0 0', lineHeight: 1 }}>Operations Layer</p>
+              <p className="cp-title">Copilot</p>
+              <p className="cp-subtitle"><span className="cp-status-dot" />{contextReady ? 'Projektkontext aktiv' : 'Workspace bereit'}</p>
             </div>
           </div>
-          <button onClick={onClose}
-            style={{ width: 32, height: 32, borderRadius: 12, border: '1px solid var(--border)', background: 'var(--surface-2)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', transition: 'background .1s, color .1s' }}
-            onMouseEnter={e => { const el = e.currentTarget as HTMLButtonElement; el.style.background = 'var(--hover)'; el.style.color = 'var(--text)' }}
-            onMouseLeave={e => { const el = e.currentTarget as HTMLButtonElement; el.style.background = 'var(--surface-2)'; el.style.color = 'var(--text-muted)' }}
-          >
+          <button className="cp-close" onClick={onClose} aria-label="Copilot schließen" type="button">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
           </button>
         </div>
 
-        {/* Messages */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '18px 18px 12px', display: 'flex', flexDirection: 'column', gap: 14, background: 'var(--surface)' }}>
+        <div className="cp-thread">
         {msgs.map((m, i) => (
-          <div key={i} className={i === msgs.length - 1 ? 'cp-msg-in' : ''} style={{ display: 'flex', gap: 10, justifyContent: 'stretch' }}>
+          <div key={i} className={`${i === msgs.length - 1 ? 'cp-msg-in ' : ''}cp-message-row ${m.role === 'user' ? 'user' : 'ai'}`}>
             {m.role === 'ai' && (
               <TagroLogo size={24} className="cp-msg-avatar" />
             )}
-            <div style={{ width: '100%', maxWidth: '100%', padding: m.role === 'ai' ? '14px 16px' : '12px 14px', borderRadius: 18, background: m.role === 'ai' ? 'var(--card)' : 'color-mix(in srgb, var(--surface-2) 84%, transparent)', border: '1px solid var(--border)', color: 'var(--text)' }}>
-              <p style={{ fontSize: 13, lineHeight: 1.62, margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{m.text}</p>
+            <div className={`cp-bubble ${m.role === 'ai' ? 'ai' : 'user'}`}>
+              <p>{m.text}</p>
             </div>
           </div>
         ))}
         {loading && (
-          <div className="cp-msg-in" style={{ display: 'flex', gap: 9 }}>
+          <div className="cp-msg-in cp-message-row ai">
             <TagroLogo size={24} thinking />
-
-            <div style={{ padding: '13px 15px', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 18, display: 'flex', gap: 4 }}>
+            <div className="cp-typing" aria-label="Copilot antwortet">
               {[0,1,2].map(j => <span key={j} style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--text-muted)', animation: `pulse 1.1s ${j*.18}s ease-in-out infinite` }} />)}
             </div>
           </div>
@@ -232,27 +390,23 @@ export default function CopilotPanel({ open, onClose }: { open: boolean; onClose
         <div ref={bottomRef} />
         </div>
 
-        {/* Quick actions */}
-        <div style={{ padding: '10px 18px 0', display: 'flex', gap: 8, overflowX: 'auto', flexShrink: 0, borderTop: '1px solid var(--border)', background: 'var(--surface)' }}>
+        <div className="cp-quickbar" aria-label="Copilot Schnellaktionen">
           {QUICK.map(q => (
-            <button key={q} className="cp-quick-btn" onClick={() => send(q)} disabled={loading}>{q}</button>
+            <button key={q} className="cp-quick-btn" onClick={() => send(q)} disabled={loading} type="button">{q}</button>
           ))}
         </div>
 
-        {/* Input */}
-        <div style={{ padding: '12px 18px 18px', flexShrink: 0, background: 'var(--surface)' }}>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center', background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 18, padding: '10px 10px 10px 14px', transition: 'border-color .15s' }}
-          >
+        <div className="cp-composer">
+          <div className="cp-input-shell">
             <input
               ref={inputRef}
               className="cp-input"
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); send() }}}
-              placeholder="Notiz, Rückfrage oder Entscheidung eingeben…"
+              placeholder="Frag nach Status, Risiko oder nächstem Schritt..."
             />
-            <button onClick={() => send()} disabled={!input.trim() || loading}
-              style={{ width: 36, height: 36, borderRadius: 14, border: 'none', flexShrink: 0, background: input.trim() && !loading ? 'var(--btn-prim)' : 'var(--hover)', color: input.trim() && !loading ? 'var(--btn-prim-text)' : 'var(--text-muted)', cursor: input.trim() && !loading ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background .15s' }}>
+            <button onClick={() => send()} disabled={!input.trim() || loading} className={`cp-send${input.trim() && !loading ? ' ready' : ''}`} type="button" aria-label="Nachricht senden">
               {loading
                 ? <span style={{ width: 12, height: 12, border: '2px solid rgba(128,128,128,.3)', borderTopColor: 'currentColor', borderRadius: '50%', animation: 'spin .7s linear infinite' }} />
                 : <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M7 17L17 7M9 7h8v8"/></svg>

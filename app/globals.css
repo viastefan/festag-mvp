@@ -216,7 +216,7 @@ html,body {
   background:var(--bg); color:var(--text);
   font-family:var(--font-ui);
   font-weight:500; font-size:15px; line-height:1.55;
-  letter-spacing:0;
+  letter-spacing:.02em;
   -webkit-font-smoothing:antialiased;
   -moz-osx-font-smoothing:grayscale;
   text-rendering:optimizeLegibility;
@@ -235,7 +235,7 @@ body.festag-app-mode {
   }
 }
 p,span,div,label,li,td,th { font-weight:400; font-family:var(--font-ui); }
-[data-font="aeonik"] :where(p,span,div,label,li,td,th) { letter-spacing:.01em; }
+[data-font="aeonik"] :where(p,span,div,label,li,td,th,a,button,input,textarea,select) { letter-spacing:.02em; }
 strong,b { font-weight:700; }
 /* Editorial display sizes — Apple keynote feel */
 h1,h2,h3,h4,h5,h6 { font-family:var(--font-ui); }
