@@ -539,6 +539,8 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         [data-theme="dark"] .ni-on { background:var(--nav-on); color:var(--nav-on-text); }
         [data-theme="read"] .ni-on { background:rgba(0,0,0,0.05); color:var(--text); }
         .ni-off { color:var(--text-secondary); }
+        [data-theme="light"] .ni-off,
+        [data-theme="pure-light"] .ni-off { color:#4E5567; }
         .ni-off:hover { background:rgba(0,0,0,0.03); color:var(--text); }
         [data-theme="dark"] .ni-off:hover { background:rgba(255,255,255,0.04); }
         [data-theme="read"] .ni-off:hover { background:rgba(0,0,0,0.04); }
@@ -685,9 +687,11 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         }
         [data-theme="dark"] .sb-top-icon:hover { background:rgba(255,255,255,0.04); }
         .sb-bottom-actions {
-          display:block;
-          padding:14px 6px 20px;
-          flex-shrink:0;
+          position:absolute;
+          bottom:0;
+          left:0;
+          right:0;
+          padding:10px 10px 12px;
         }
         .sb-pill-action,
         .sb-square-action {
@@ -722,19 +726,18 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
 
         /* ── Tagro Monitoring Capsule — single-line ── */
         .sb-monitor-capsule {
-          display:flex; align-items:center; gap:8px;
-          min-height:38px;
-          padding:8px 16px;
+          display:inline-flex; align-items:center; gap:7px;
+          min-height:34px;
+          padding:0 14px;
           border:1px solid var(--border);
           background:color-mix(in srgb, var(--surface) 72%, transparent);
           border-radius:999px;
           text-decoration:none;
           color:var(--text);
-          min-width:0;
           box-shadow:none;
           transition:background .12s, border-color .12s, color .12s;
         }
-        .sb-monitor-capsule--single { width:100%; }
+        .sb-monitor-capsule--single { width:100%; justify-content:flex-start; }
         .sb-monitor-capsule:hover {
           background:var(--hover);
           border-color:var(--border-strong);
@@ -803,7 +806,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
 
       {/* ══ DESKTOP SIDEBAR ══ */}
       <aside className="sidebar" style={{ pointerEvents:'none' }}>
-        <div className="sidebar-inner" style={{ pointerEvents:'all', padding:'16px 10px 14px', display:'flex', flexDirection:'column' }}>
+        <div className="sidebar-inner" style={{ pointerEvents:'all', padding:'16px 10px 70px', display:'flex', flexDirection:'column', position:'relative' }}>
 
           <div className="sb-topbar">
             <SidebarProfileFooter
@@ -1071,7 +1074,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
               return (
                 <Link href="/reports#monitoring-center" className="sb-monitor-capsule sb-monitor-capsule--single" title={status.text} aria-label={status.text}>
                   <span className="sb-monitor-dot" style={{ background: status.dot }} />
-                  <span className="sb-monitor-line">{status.text}</span>
+                  <span className="sb-monitor-line">Statusabfrage</span>
                 </Link>
               )
             })()}
