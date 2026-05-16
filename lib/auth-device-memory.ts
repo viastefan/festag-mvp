@@ -1,4 +1,4 @@
-export type FestagLoginMethod = 'google' | 'email' | 'sso' | 'passkey'
+export type FestagLoginMethod = 'google' | 'email' | 'sso' | 'passkey' | 'github'
 
 export type FestagDeviceAccount = {
   userId: string
@@ -81,7 +81,7 @@ export function getLastFestagMethod(): FestagLoginMethod | null {
   if (typeof window === 'undefined') return null
   try {
     const method = getLastFestagAccount()?.method ?? window.localStorage.getItem(LAST_METHOD_KEY)
-    return method === 'google' || method === 'email' || method === 'sso' || method === 'passkey' ? method : null
+    return method === 'google' || method === 'email' || method === 'sso' || method === 'passkey' || method === 'github' ? method : null
   } catch {
     return null
   }

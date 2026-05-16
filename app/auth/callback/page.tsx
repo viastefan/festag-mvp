@@ -15,7 +15,10 @@ function safeRedirectPath(value: string | null) {
 }
 
 function inferMethod(user: any): FestagLoginMethod {
-  return user?.app_metadata?.provider === 'google' ? 'google' : 'email'
+  const p = user?.app_metadata?.provider
+  if (p === 'google') return 'google'
+  if (p === 'github') return 'github' as FestagLoginMethod
+  return 'email'
 }
 
 function hashParams() {
@@ -48,18 +51,53 @@ function CallbackInner() {
       const user = session?.user
       if (!user) throw new Error('missing_session')
 
+      // Ensure onboarding_state exists for this user.
       await supabase
         .from('onboarding_state')
         .upsert({ user_id: user.id, updated_at: new Date().toISOString() }, { onConflict: 'user_id' })
+
+      // GitHub-Profil verbinden / pending_developer setzen bei OAuth=github.
+      const provider = user.app_metadata?.provider as string | undefined
+      if (provider === 'github') {
+        try {
+          const meta = (user.user_metadata ?? {}) as Record<string, any>
+          const { data: existing } = await supabase
+            .from('profiles')
+            .select('id,role,approval_status')
+            .eq('id', user.id)
+            .maybeSingle()
+          const ghUserId = meta.provider_id || meta.sub || null
+          const patch: Record<string, any> = {
+            id: user.id,
+            email: user.email ?? null,
+            provider: 'github',
+            github_user_id: ghUserId ? Number(ghUserId) : null,
+            github_username: meta.user_name || meta.preferred_username || null,
+            github_avatar_url: meta.avatar_url || null,
+            github_profile_url: meta.html_url || (meta.user_name ? `https://github.com/${meta.user_name}` : null),
+            github_email: meta.email || user.email || null,
+            github_connected_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          }
+          // Bestehende dev/admin-Rollen nicht überschreiben — sonst pending_developer.
+          const currentRole = (existing as any)?.role
+          if (!currentRole || currentRole === 'client') {
+            patch.role = 'pending_developer'
+            patch.approval_status = 'pending'
+          }
+          await supabase.from('profiles').upsert(patch, { onConflict: 'id' })
+        } catch { /* best-effort — Auth-Flow nicht blockieren */ }
+      }
 
       const target = await resolvePostAuthTarget(supabase, user.id)
       rememberFestagAccount({
         userId: user.id,
         email: user.email ?? null,
         method: inferMethod(user),
-        onboardingCompleted: target === '/dashboard',
+        onboardingCompleted: target === '/dashboard' || target === '/dev',
       })
 
+      // Honor ?next= only when role-routing would otherwise default to /dashboard.
       const resolvedTarget = target === '/dashboard' && next !== '/loading' && next !== '/onboarding'
         ? next
         : target
@@ -228,7 +266,7 @@ const CB_CSS = `
   .cb-btn:hover{background:#505870;}
   .cb-btn:active{transform:scale(0.98);}
   .cb-foot{margin-top:0;font-size:12px;color:#98A2B3;line-height:1.5;font-weight:400;}
-  @media (prefers-color-scheme: dark){.cb-page{background:#0A0D14;color:#E8E8E5}.cb-brand,.cb-title{color:#E8E8E5}.cb-text{color:#98A2B3}.cb-btn{background:#E8E8E5;color:#0A0D14;box-shadow:none}.cb-btn:hover{background:#F3F5F7}.cb-foot{color:#7B8294}}
+  @media (prefers-color-scheme: dark){.cb-page{background:#0F141B;color:#E8E8E5}.cb-brand,.cb-title{color:#E8E8E5}.cb-text{color:#98A2B3}.cb-btn{background:#E8E8E5;color:#0F141B;box-shadow:none}.cb-btn:hover{background:#F3F5F7}.cb-foot{color:#7B8294}}
 `
 
 export default function AuthCallbackPage() {

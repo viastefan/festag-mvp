@@ -20,7 +20,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   MagnifyingGlass, Sparkle, House, UsersThree,
   ChatCircle, Briefcase, GearSix, FolderSimple, FileText,
-  Plus, Brain, Code, Note, ListChecks,
+  Plus, Brain, Code, Note, ListChecks, X,
 } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 
@@ -248,148 +248,188 @@ export default function CommandPalette() {
     <AnimatePresence>
       {open && (
         <>
+          <style>{`
+            .cp-backdrop { position:fixed; inset:0; z-index:9500; background:rgba(8,11,16,0.42); backdrop-filter:blur(6px) saturate(140%); -webkit-backdrop-filter:blur(6px) saturate(140%); }
+            .cp-panel {
+              position:fixed; top:0; right:0; bottom:0;
+              width:min(480px, 100vw);
+              z-index:9501;
+              background:var(--surface);
+              border-left:1px solid var(--border);
+              box-shadow:-32px 0 80px rgba(0,0,0,.36);
+              display:flex; flex-direction:column;
+              overflow:hidden;
+            }
+            .cp-head {
+              display:flex; align-items:center; justify-content:space-between;
+              padding:18px 22px 14px;
+            }
+            .cp-head h2 { margin:0; font-size:17px; font-weight:700; letter-spacing:-.012em; color:var(--text); }
+            .cp-close {
+              width:28px; height:28px; display:inline-flex; align-items:center; justify-content:center;
+              border:0; border-radius:8px; background:transparent; color:var(--text-muted);
+              cursor:pointer; transition:background .12s, color .12s;
+            }
+            .cp-close:hover { background:var(--hover); color:var(--text); }
+            .cp-search-wrap { padding:0 22px 14px; }
+            .cp-search {
+              display:flex; align-items:center; gap:10px;
+              height:40px; padding:0 14px;
+              border:1px solid var(--border); border-radius:10px;
+              background:var(--inp);
+              transition:border-color .12s, box-shadow .12s;
+            }
+            .cp-search:focus-within {
+              border-color:var(--inp-focus-border);
+              box-shadow:0 0 0 3px var(--glow);
+              background:var(--inp-focus);
+            }
+            .cp-search input {
+              flex:1; min-width:0; border:0; outline:0; background:transparent;
+              font:inherit; font-size:14px; font-weight:500; color:var(--text);
+            }
+            .cp-search input::placeholder { color:var(--text-muted); }
+            .cp-results { flex:1; overflow-y:auto; padding:4px 0 12px; }
+            .cp-section { padding:14px 0 6px; }
+            .cp-section-head {
+              padding:0 22px 10px;
+              margin:0;
+              font-size:13px; font-weight:600; color:var(--text);
+              letter-spacing:-.005em;
+            }
+            .cp-row {
+              width:100%;
+              display:flex; align-items:flex-start; gap:14px;
+              padding:11px 22px;
+              background:transparent;
+              border:0; cursor:pointer;
+              font-family:inherit; text-align:left;
+              color:var(--text);
+              transition:background .08s;
+            }
+            .cp-row:hover, .cp-row.active { background:var(--hover); }
+            .cp-row-icon {
+              width:28px; height:28px; flex-shrink:0;
+              display:inline-flex; align-items:center; justify-content:center;
+              color:var(--text-secondary);
+              padding-top:1px;
+            }
+            .cp-row-body { flex:1; min-width:0; display:flex; flex-direction:column; gap:2px; }
+            .cp-row-title { font-size:13.5px; font-weight:600; color:var(--text); line-height:1.35; }
+            .cp-row-hint { font-size:12px; color:var(--text-muted); line-height:1.45; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+            .cp-row-enter {
+              flex-shrink:0; align-self:center;
+              font-size:11px; color:var(--text-muted); font-weight:600; letter-spacing:.06em;
+              font-family:ui-monospace,"SF Mono",Menlo,monospace;
+              opacity:0;
+            }
+            .cp-row.active .cp-row-enter { opacity:1; }
+            .cp-empty {
+              padding:24px 22px;
+              color:var(--text-muted); font-size:13px;
+            }
+            .cp-foot {
+              display:flex; align-items:center; justify-content:space-between;
+              padding:12px 22px;
+              border-top:1px solid var(--border);
+              background:var(--bg);
+              font-size:11px; color:var(--text-muted); font-weight:500;
+            }
+            .cp-foot kbd {
+              padding:2px 6px; border-radius:5px;
+              border:1px solid var(--border); background:var(--surface);
+              font-size:10.5px; font-family:ui-monospace,"SF Mono",Menlo,monospace;
+              margin:0 3px; color:var(--text-secondary);
+            }
+            @media (max-width:640px) {
+              .cp-panel { width:100vw; border-left:0; }
+            }
+          `}</style>
           <motion.div
+            className="cp-backdrop"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
+            transition={{ duration: 0.16 }}
             onClick={() => setOpen(false)}
-            style={{
-              position:'fixed', inset:0, zIndex:9500,
-              background:'rgba(0,0,0,0.45)',
-              backdropFilter:'blur(8px) saturate(140%)',
-              WebkitBackdropFilter:'blur(8px) saturate(140%)',
-            }}
           />
-          <motion.div
-            initial={{ opacity: 0, scale: 0.97, y: -8 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.98, y: -4 }}
-            transition={{ type:'spring', stiffness:380, damping:30 }}
-            style={{
-              position:'fixed',
-              top:'14vh', left:'50%', transform:'translateX(-50%)',
-              width:'min(580px, calc(100vw - 32px))',
-              zIndex: 9501,
-              background:'var(--surface)',
-              border:'1px solid var(--border-strong)',
-              borderRadius: 8,
-              boxShadow:'0 28px 80px rgba(0,0,0,0.32)',
-              overflow:'hidden',
-            }}
+          <motion.aside
+            className="cp-panel"
+            role="dialog"
+            aria-label="Suche"
+            initial={{ x: 40, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: 40, opacity: 0 }}
+            transition={{ type: 'spring', stiffness: 360, damping: 32 }}
           >
-            <div style={{
-              display:'flex', alignItems:'center', gap: 10,
-              padding:'14px 18px',
-              borderBottom: '1px solid var(--border)',
-            }}>
-              {isTagro
-                ? <Sparkle size={16} weight="fill" color="var(--btn-prim)"/>
-                : <MagnifyingGlass size={16} weight="regular" color="var(--text-muted)"/>}
-              <input
-                ref={inputRef}
-                value={q}
-                onChange={e => setQ(e.target.value)}
-                onKeyDown={onKeyDown}
-                placeholder={isTagro ? 'Was soll Tagro tun?' : 'Suche nach Projekt, Task, Dokument, Nachricht oder Einstellung...'}
-                style={{
-                  flex: 1,
-                  border: 'none', outline: 'none',
-                  background:'transparent',
-                  fontSize: 15, color:'var(--text)',
-                  fontFamily:'inherit', fontWeight: 500,
-                }}
-              />
-              <span style={{
-                fontSize: 10.5, color:'var(--text-muted)', fontWeight: 700,
-                letterSpacing: '.08em', padding: '3px 7px',
-                border: '1px solid var(--border)', borderRadius: 6,
-                fontFamily: 'ui-monospace, "SF Mono", Menlo, monospace',
-              }}>
-                ESC
-              </span>
+            <header className="cp-head">
+              <h2>{isTagro ? 'Tagro fragen' : 'Suche'}</h2>
+              <button className="cp-close" type="button" onClick={() => setOpen(false)} aria-label="Schließen">
+                <X size={16} weight="bold" />
+              </button>
+            </header>
+
+            <div className="cp-search-wrap">
+              <div className="cp-search">
+                {isTagro
+                  ? <Sparkle size={15} weight="fill" color="var(--accent)" />
+                  : <MagnifyingGlass size={15} weight="regular" color="var(--text-muted)" />}
+                <input
+                  ref={inputRef}
+                  value={q}
+                  onChange={e => setQ(e.target.value)}
+                  onKeyDown={onKeyDown}
+                  placeholder={isTagro ? 'Was soll Tagro tun?' : 'Projekte, Tasks, Notizen, Einstellungen...'}
+                />
+                <kbd style={kbdStyle}>ESC</kbd>
+              </div>
             </div>
 
-            <div style={{ maxHeight: '50vh', overflowY: 'auto', padding: '6px 0' }}>
-              {groupOrder.map(g => {
+            <div className="cp-results">
+              {results.length === 0 || (results.length === 1 && results[0].id === 'no-result') ? (
+                <p className="cp-empty">{q ? 'Keine Treffer.' : 'Tippe um zu suchen.'}</p>
+              ) : groupOrder.map(g => {
                 const items = grouped[g]
                 if (!items || !items.length) return null
                 return (
-                  <div key={g} style={{ padding: '6px 0' }}>
-                    <p style={{
-                      fontSize: 10, fontWeight: 700, color:'var(--text-muted)',
-                      letterSpacing:'.1em', textTransform:'uppercase',
-                      padding:'4px 18px', margin: 0, opacity: .7,
-                    }}>{g}</p>
+                  <section className="cp-section" key={g}>
+                    <p className="cp-section-head">{g}</p>
                     {items.map(c => {
                       const flatIdx = results.indexOf(c)
-                      const active  = flatIdx === idx
+                      const active = flatIdx === idx
                       return (
                         <button
                           key={c.id}
+                          className={`cp-row${active ? ' active' : ''}`}
                           onMouseEnter={() => setIdx(flatIdx)}
                           onClick={() => pick(c)}
-                          style={{
-                            width:'100%',
-                            display:'flex', alignItems:'center', gap: 11,
-                            padding:'9px 18px',
-                            background: active ? 'var(--card)' : 'transparent',
-                            border:'none', cursor:'pointer',
-                            fontFamily:'inherit', textAlign:'left',
-                            color:'var(--text)',
-                            transition:'background .08s',
-                          }}
+                          type="button"
                         >
-                          <span style={{
-                            width: 26, height: 26, borderRadius: 7,
-                            background: active ? 'var(--surface-2)' : 'transparent',
-                            display:'flex', alignItems:'center', justifyContent:'center',
-                            flexShrink: 0,
-                          }}>
-                            <c.Icon size={13} weight="regular" color="var(--text-secondary)"/>
+                          <span className="cp-row-icon">
+                            <c.Icon size={16} weight="regular" />
                           </span>
-                          <span style={{ flex: 1, minWidth: 0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
-                            <span style={{ fontSize: 13, fontWeight: 500, color:'var(--text)' }}>{c.label}</span>
-                            {c.hint && (
-                              <span style={{ fontSize: 11, color:'var(--text-muted)', marginLeft: 8 }}>
-                                {c.hint}
-                              </span>
-                            )}
+                          <span className="cp-row-body">
+                            <span className="cp-row-title">{c.label}</span>
+                            {c.hint && <span className="cp-row-hint">{c.hint}</span>}
                           </span>
-                          {active && c.id !== 'no-result' && (
-                            <span style={{
-                              fontSize: 10, color:'var(--text-muted)', fontWeight: 700,
-                              letterSpacing: '.06em',
-                              fontFamily: 'ui-monospace, "SF Mono", Menlo, monospace',
-                            }}>
-                              ↵
-                            </span>
-                          )}
+                          {c.id !== 'no-result' && <span className="cp-row-enter">↵</span>}
                         </button>
                       )
                     })}
-                  </div>
+                  </section>
                 )
               })}
             </div>
 
-            <div style={{
-              display:'flex', alignItems:'center', justifyContent:'space-between',
-              padding:'9px 18px',
-              borderTop: '1px solid var(--border)',
-              background: 'var(--bg)',
-              fontSize: 10.5, color:'var(--text-muted)', fontWeight: 600,
-            }}>
-              <span style={{ display:'flex', alignItems:'center', gap: 6 }}>
-                <kbd style={kbdStyle}>↑↓</kbd> navigieren
-                <kbd style={kbdStyle}>↵</kbd> auswählen
+            <footer className="cp-foot">
+              <span>
+                <kbd>↑↓</kbd> navigieren <kbd>↵</kbd> öffnen
               </span>
-              <span style={{ display:'flex', alignItems:'center', gap: 5 }}>
-                <Sparkle size={10} weight="fill" color="var(--text-muted)"/>
-                Tagro mit <kbd style={kbdStyle}>tagro:</kbd>
+              <span style={{ display:'inline-flex', alignItems:'center', gap:4 }}>
+                <Sparkle size={11} weight="fill" /> Tagro mit <kbd>tagro:</kbd>
               </span>
-            </div>
-          </motion.div>
+            </footer>
+          </motion.aside>
         </>
       )}
     </AnimatePresence>

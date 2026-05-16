@@ -1,10 +1,25 @@
 'use client'
 
+/**
+ * /dev — DEV Portal Overview.
+ *
+ * Datenquellen:
+ *   - Supabase Auth-Session als primärer Pfad
+ *     → liest `project_assignments` (echte Zuweisungen)
+ *     → fällt zurück auf assigned-via `tasks.assigned_to` für Backward-Compat
+ *   - Falls keine Supabase-Session, aber legacy PIN-Pool-Session vorliegt,
+ *     wird die alte assigned_dev-Logik weiter unterstützt — bis alle
+ *     Pool-Devs eigene Accounts haben.
+ *
+ * UI bewusst ruhig (Linear-Stil): kleiner Eyebrow, kleine Headline,
+ * 4 KPIs, dann zwei knappe Sektionen. Keine riesigen Hero-Headlines.
+ */
+
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { devDisplayName, getStoredDevSession, type DevSession } from '@/lib/dev-session'
-import { ArrowRight, CheckCircle, GitBranch, Lightning, WarningCircle } from '@phosphor-icons/react'
+import { getStoredDevSession, devDisplayName, type DevSession } from '@/lib/dev-session'
+import { ArrowRight, CheckCircle, GitBranch, Lightning, WarningCircle, Sparkle } from '@phosphor-icons/react'
 
 type Task = {
   id: string
@@ -22,214 +37,268 @@ type Project = {
   status?: string | null
   description?: string | null
   color?: string | null
-  assigned_dev?: string | null
 }
 
 function normalizeStatus(status?: string | null) {
-  const value = String(status || 'todo').toLowerCase()
-  if (['done', 'completed', 'delivered'].includes(value)) return 'done'
-  if (['ready_review', 'ready_for_review', 'review', 'in_review'].includes(value)) return 'review'
-  if (['blocked', 'waiting', 'needs_decision'].includes(value)) return 'blocked'
-  if (['doing', 'active', 'in_progress'].includes(value)) return 'active'
+  const v = String(status || 'todo').toLowerCase()
+  if (['done', 'completed', 'delivered'].includes(v)) return 'done'
+  if (['ready_review', 'ready_for_review', 'review', 'in_review'].includes(v)) return 'review'
+  if (['blocked', 'waiting', 'needs_decision'].includes(v)) return 'blocked'
+  if (['doing', 'active', 'in_progress'].includes(v)) return 'active'
   return 'open'
 }
-
-function statusLabel(status?: string | null) {
-  const value = normalizeStatus(status)
-  if (value === 'done') return 'Erledigt'
-  if (value === 'review') return 'Bereit zur Prüfung'
-  if (value === 'blocked') return 'Blockiert'
-  if (value === 'active') return 'In Entwicklung'
-  return 'Geplant'
+function statusLabel(s?: string | null) {
+  const v = normalizeStatus(s)
+  return v === 'done' ? 'Erledigt' : v === 'review' ? 'Review' : v === 'blocked' ? 'Blockiert' : v === 'active' ? 'In Arbeit' : 'Geplant'
 }
-
-function priorityLabel(priority?: string | null) {
-  if (priority === 'critical') return 'Kritisch'
-  if (priority === 'high') return 'Hoch'
-  if (priority === 'low') return 'Niedrig'
+function priorityLabel(p?: string | null) {
+  if (p === 'critical') return 'Kritisch'
+  if (p === 'high')     return 'Hoch'
+  if (p === 'low')      return 'Niedrig'
   return 'Mittel'
 }
 
-function dateLabel(value?: string | null) {
-  if (!value) return 'Noch kein Update'
-  try {
-    return new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: 'short' }).format(new Date(value))
-  } catch {
-    return 'Noch kein Update'
-  }
-}
-
-export default function DevMissionControlPage() {
-  const [session, setSession] = useState<DevSession | null>(null)
-  const [tasks, setTasks] = useState<Task[]>([])
+export default function DevOverviewPage() {
+  const supabase = useMemo(() => createClient(), [])
+  const [userId, setUserId]   = useState<string | null>(null)
+  const [name, setName]       = useState<string>('')
+  const [tasks, setTasks]     = useState<Task[]>([])
   const [projects, setProjects] = useState<Project[]>([])
+  const [recentCommits, setRecentCommits] = useState<number>(0)
+  const [recentPRs, setRecentPRs] = useState<number>(0)
+  const [lastSync, setLastSync] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
-  const supabase = createClient()
-
-  async function load() {
-    const dev = getStoredDevSession()
-    if (!dev) return
-    setSession(dev)
-
-    const [{ data: taskRows }, { data: projectRows }] = await Promise.all([
-      (supabase as any)
-        .from('tasks')
-        .select('id,title,status,priority,project_id,updated_at,projects(title,status,color)')
-        .eq('assigned_to', dev.user_id)
-        .order('updated_at', { ascending: false })
-        .limit(12),
-      (supabase as any)
-        .from('projects')
-        .select('id,title,status,description,color,assigned_dev')
-        .or(`assigned_dev.eq.${dev.user_id},status.eq.intake,status.eq.planning`)
-        .order('created_at', { ascending: false })
-        .limit(8),
-    ])
-
-    setTasks((taskRows as Task[]) ?? [])
-    setProjects((projectRows as Project[]) ?? [])
-    setLoading(false)
-  }
 
   useEffect(() => {
-    load()
-  }, [])
+    let cancelled = false
+    ;(async () => {
+      // Supabase first
+      const { data: { session } } = await supabase.auth.getSession()
+      let uid: string | null = null
+      let display = ''
+      if (session) {
+        uid = session.user.id
+        const { data: prof } = await supabase
+          .from('profiles')
+          .select('first_name,full_name,github_username,email')
+          .eq('id', uid).maybeSingle()
+        display = (prof as any)?.full_name || (prof as any)?.first_name || (prof as any)?.github_username || session.user.email || 'Developer'
+      } else {
+        const pool: DevSession | null = getStoredDevSession()
+        if (pool) {
+          uid = pool.user_id
+          display = devDisplayName(pool)
+        }
+      }
+      if (cancelled) return
+      if (!uid) { setLoading(false); return }
+      setUserId(uid)
+      setName(display)
+
+      // Project assignments (new model)
+      const { data: pa } = await supabase
+        .from('project_assignments')
+        .select('project_id,projects(id,title,status,description,color)')
+        .eq('user_id', uid).eq('active', true)
+      const assignedProjects = ((pa as any[] | null) ?? [])
+        .map(row => row.projects).filter(Boolean) as Project[]
+
+      // Fallback: legacy assigned_dev model when no assignments exist
+      let projList = assignedProjects
+      if (projList.length === 0) {
+        const { data: legacy } = await supabase
+          .from('projects')
+          .select('id,title,status,description,color')
+          .eq('assigned_dev', uid)
+          .order('created_at', { ascending: false }).limit(10)
+        projList = ((legacy as Project[] | null) ?? [])
+      }
+      if (cancelled) return
+      setProjects(projList)
+
+      // Tasks: any task on assigned projects + any task directly assigned_to me
+      const projIds = projList.map(p => p.id)
+      const taskQ = supabase
+        .from('tasks')
+        .select('id,title,status,priority,project_id,updated_at,projects(title,status,color)')
+        .or(
+          projIds.length > 0
+            ? `assigned_to.eq.${uid},project_id.in.(${projIds.join(',')})`
+            : `assigned_to.eq.${uid}`,
+        )
+        .order('updated_at', { ascending: false }).limit(40)
+      const { data: tRows } = await taskQ
+      if (!cancelled) setTasks((tRows as Task[] | null) ?? [])
+
+      // GitHub activity overview (best-effort)
+      try {
+        const since = new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString()
+        const [{ count: cCount }, { count: prCount }, { data: lastCommit }] = await Promise.all([
+          (supabase as any).from('github_commits').select('*', { count: 'exact', head: true }).gte('committed_at', since),
+          (supabase as any).from('github_pull_requests').select('*', { count: 'exact', head: true }).gte('updated_at_github', since),
+          (supabase as any).from('github_commits').select('committed_at').order('committed_at', { ascending: false }).limit(1).maybeSingle(),
+        ])
+        if (!cancelled) {
+          setRecentCommits(cCount ?? 0)
+          setRecentPRs(prCount ?? 0)
+          setLastSync((lastCommit as any)?.committed_at ?? null)
+        }
+      } catch { /* tables may not exist yet — silently skip */ }
+
+      setLoading(false)
+    })()
+    return () => { cancelled = true }
+  }, [supabase])
 
   const metrics = useMemo(() => {
-    const active = tasks.filter((task) => normalizeStatus(task.status) === 'active').length
-    const review = tasks.filter((task) => normalizeStatus(task.status) === 'review').length
-    const blocked = tasks.filter((task) => normalizeStatus(task.status) === 'blocked').length
-    const done = tasks.filter((task) => normalizeStatus(task.status) === 'done').length
-    return { active, review, blocked, done }
+    const active  = tasks.filter(t => normalizeStatus(t.status) === 'active').length
+    const review  = tasks.filter(t => normalizeStatus(t.status) === 'review').length
+    const blocked = tasks.filter(t => normalizeStatus(t.status) === 'blocked').length
+    const open    = tasks.filter(t => !['done','review'].includes(normalizeStatus(t.status))).length
+    return { active, review, blocked, open }
   }, [tasks])
 
-  const focusTasks = tasks.filter((task) => normalizeStatus(task.status) !== 'done').slice(0, 6)
-  const availableProjects = projects.filter((project) => !project.assigned_dev || project.assigned_dev === session?.user_id).slice(0, 4)
-
-  async function acceptProject(projectId: string) {
-    if (!session) return
-    await supabase.from('projects').update({ assigned_dev: session.user_id, status: 'active' }).eq('id', projectId)
-    await supabase.from('messages').insert({
-      project_id: projectId,
-      sender_id: session.user_id,
-      message: 'Ein Developer hat die Umsetzung übernommen. Tagro übersetzt technische Fortschritte ab jetzt als verständliche Updates.',
-      is_ai: true,
-    }).catch(() => {})
-    load()
-  }
+  const focusTasks = tasks.filter(t => !['done'].includes(normalizeStatus(t.status))).slice(0, 6)
+  const activeProjects = projects.slice(0, 4)
 
   return (
     <div className="dev-page">
       <header className="dev-page-header">
         <div>
-          <p className="dev-eyebrow">Developer Workspace</p>
-          <h1>Guten Tag, {devDisplayName(session)}.</h1>
-          <p className="meta">{tasks.length} technische Tasks · {metrics.review} bereit zur Prüfung · Client Board verbunden</p>
+          <p className="dev-eyebrow">DEV · Overview</p>
+          <h1>Heute, {name ? name.split(' ')[0] : 'Developer'}.</h1>
+          <p className="meta">
+            {loading
+              ? 'Lade deinen Arbeitsbereich…'
+              : `${metrics.open} offene Tasks · ${metrics.review} in Review · ${metrics.blocked} blockiert`}
+          </p>
         </div>
-        <Link href="/dev/jobs" className="dev-primary-btn" style={{ display:'inline-flex', alignItems:'center', gap:8, textDecoration:'none' }}>
-          Execution Board <ArrowRight size={15} />
-        </Link>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <Link href="/dev/plan" className="dev-secondary-btn" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, textDecoration: 'none' }}>
+            <Sparkle size={13} /> Start today's plan
+          </Link>
+          <Link href="/dev/github" className="dev-secondary-btn" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, textDecoration: 'none' }}>
+            <GitBranch size={13} /> Sync GitHub
+          </Link>
+          <Link href="/dev/updates" className="dev-primary-btn" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, textDecoration: 'none' }}>
+            <Lightning size={13} /> Update senden
+          </Link>
+        </div>
       </header>
 
-      <section className="dev-kpi-grid">
-        <div className="dev-kpi dev-surface"><strong>{metrics.active}</strong><span>In Entwicklung</span></div>
-        <div className="dev-kpi dev-surface"><strong>{metrics.review}</strong><span>Bereit zur Prüfung</span></div>
-        <div className="dev-kpi dev-surface"><strong>{metrics.blocked}</strong><span>Blocker</span></div>
-        <div className="dev-kpi dev-surface"><strong>{metrics.done}</strong><span>Erledigt</span></div>
-      </section>
-
-      <section className="dev-flow dev-surface">
-        <div>
-          <p className="dev-section-title">Client Connection</p>
-          <h2>Dev-Arbeit bleibt technisch. Client-Updates bleiben verständlich.</h2>
-          <p>Wenn du Fortschritt meldest, übersetzt Tagro deine Notiz in ein klares Client-Update und spiegelt es in Nachrichten, Projektstatus und später in Projektbriefings.</p>
+      {/* KPI strip */}
+      <div className="dev-kpi-grid">
+        <div className="dev-surface dev-kpi">
+          <strong>{metrics.open}</strong>
+          <span>Offene Tasks</span>
         </div>
-        <div className="flow-steps" aria-label="Festag Dev Client Connection">
-          <span>Workspace Task</span>
-          <ArrowRight size={14} />
-          <span>Team Execution</span>
-          <ArrowRight size={14} />
-          <span>Tagro Update</span>
-          <ArrowRight size={14} />
-          <span>Client Board</span>
+        <div className="dev-surface dev-kpi">
+          <strong>{metrics.review}</strong>
+          <span>Ready for Review</span>
         </div>
-      </section>
+        <div className="dev-surface dev-kpi">
+          <strong>{recentCommits}</strong>
+          <span>Commits · 7 Tage</span>
+        </div>
+        <div className="dev-surface dev-kpi">
+          <strong>{recentPRs}</strong>
+          <span>PR-Aktivität · 7 Tage</span>
+        </div>
+      </div>
 
-      <div className="dev-two-col">
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1.4fr) minmax(0,1fr)', gap: 22 }}>
+        {/* Focus tasks */}
         <section>
-          <div className="dev-section-head">
-            <p className="dev-section-title">Heute relevant</p>
-            <Link href="/dev/tasks">Alle Tasks</Link>
+          <p className="dev-section-title">Heutiger Fokus</p>
+          <div className="dev-surface" style={{ overflow: 'hidden' }}>
+            {focusTasks.length === 0 ? (
+              <p style={{ margin: 0, padding: 16, fontSize: 12.5, color: 'var(--text-muted)' }}>
+                Keine offenen Tasks. {projects.length === 0 ? 'Du bist aktuell keinem Projekt zugeordnet.' : 'Alles abgearbeitet.'}
+              </p>
+            ) : (
+              focusTasks.map((task, i) => (
+                <Link
+                  key={task.id}
+                  href={`/dev/tasks?id=${task.id}`}
+                  className="dev-row"
+                  style={{
+                    textDecoration: 'none', color: 'inherit',
+                    borderTop: i > 0 ? '1px solid var(--border)' : 'none',
+                    borderRadius: 0,
+                    gridTemplateColumns: '8px minmax(0,1fr) 100px 90px 14px',
+                  }}
+                >
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: task.projects?.color ?? 'var(--accent)' }} />
+                  <div style={{ minWidth: 0 }}>
+                    <p style={{ margin: 0, fontSize: 13, color: 'var(--text)', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{task.title}</p>
+                    <p style={{ margin: '2px 0 0', fontSize: 11.5, color: 'var(--text-muted)' }}>{task.projects?.title ?? 'kein Projekt'}</p>
+                  </div>
+                  <span className="dev-chip">{statusLabel(task.status)}</span>
+                  <span style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>{priorityLabel(task.priority)}</span>
+                  <ArrowRight size={12} style={{ color: 'var(--text-muted)' }} />
+                </Link>
+              ))
+            )}
+          </div>
+        </section>
+
+        {/* Right rail */}
+        <aside>
+          <p className="dev-section-title">Aktive Projekte</p>
+          <div className="dev-surface" style={{ overflow: 'hidden', marginBottom: 18 }}>
+            {activeProjects.length === 0 ? (
+              <p style={{ margin: 0, padding: 16, fontSize: 12.5, color: 'var(--text-muted)' }}>
+                Noch keine Zuweisung. Ein Project Owner muss dich einem Projekt zuordnen.
+              </p>
+            ) : (
+              activeProjects.map((p, i) => (
+                <Link
+                  key={p.id}
+                  href={`/dev/jobs?id=${p.id}`}
+                  className="dev-row"
+                  style={{
+                    textDecoration: 'none', color: 'inherit',
+                    borderTop: i > 0 ? '1px solid var(--border)' : 'none',
+                    borderRadius: 0,
+                    gridTemplateColumns: '8px minmax(0,1fr) 14px',
+                  }}
+                >
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: p.color ?? 'var(--accent)' }} />
+                  <div style={{ minWidth: 0 }}>
+                    <p style={{ margin: 0, fontSize: 13, color: 'var(--text)', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.title}</p>
+                    <p style={{ margin: '2px 0 0', fontSize: 11.5, color: 'var(--text-muted)' }}>{p.status ?? 'aktiv'}</p>
+                  </div>
+                  <ArrowRight size={12} style={{ color: 'var(--text-muted)' }} />
+                </Link>
+              ))
+            )}
           </div>
 
-          <div className="dev-list">
-            {loading ? (
-              <p className="empty">Tasks werden geladen…</p>
-            ) : focusTasks.length === 0 ? (
-              <p className="empty">Keine offenen Developer Tasks. Sobald Tagro oder ein Lead etwas zuweist, erscheint es hier.</p>
-            ) : focusTasks.map((task) => (
-              <Link href="/dev/tasks" key={task.id} className="dev-row dev-task-row">
-                <span className={`status-dot ${normalizeStatus(task.status)}`} />
-                <div>
-                  <strong>{task.title}</strong>
-                  <small>{task.projects?.title || 'Kein Projekt'} · {dateLabel(task.updated_at)}</small>
-                </div>
-                <span className="dev-chip">{statusLabel(task.status)}</span>
-                <span className="priority">{priorityLabel(task.priority)}</span>
+          <p className="dev-section-title">Tagro-Sync</p>
+          <div className="dev-surface" style={{ padding: 14 }}>
+            <p style={{ margin: 0, fontSize: 12.5, color: 'var(--text-secondary)' }}>
+              {lastSync
+                ? `Letzter GitHub-Sync: ${new Date(lastSync).toLocaleString('de-DE', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}`
+                : 'Noch keine GitHub-Aktivität synchronisiert.'}
+            </p>
+            <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+              <Link href="/dev/github" className="dev-secondary-btn" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                <GitBranch size={12} /> GitHub
               </Link>
-            ))}
+              <Link href="/dev/updates" className="dev-secondary-btn" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                <CheckCircle size={12} /> Tagesupdate
+              </Link>
+            </div>
           </div>
-        </section>
-
-        <section>
-          <div className="dev-section-head">
-            <p className="dev-section-title">Projektzugriff</p>
-            <Link href="/dev/jobs">Jobs öffnen</Link>
-          </div>
-
-          <div className="dev-list">
-            {availableProjects.length === 0 ? (
-              <p className="empty">Keine offenen Projekte im aktuellen Zugriff.</p>
-            ) : availableProjects.map((project) => (
-              <div className="dev-row dev-project-row" key={project.id}>
-                <span className="project-color" style={{ background: project.color || '#22c55e' }} />
-                <div>
-                  <strong>{project.title}</strong>
-                  <small>{project.description || 'Client-Projekt · bereit für strukturierte Umsetzung'}</small>
-                </div>
-                {project.assigned_dev === session?.user_id ? (
-                  <span className="dev-chip"><CheckCircle size={13} /> Zugewiesen</span>
-                ) : (
-                  <button className="dev-secondary-btn" onClick={() => acceptProject(project.id)}>Übernehmen</button>
-                )}
-              </div>
-            ))}
-          </div>
-        </section>
+        </aside>
       </div>
 
       <style jsx>{`
-        .dev-flow { padding:20px 22px; margin-bottom:30px; display:grid; grid-template-columns:minmax(0, 1fr) auto; gap:22px; align-items:center; }
-        .dev-flow h2 { margin:0; font-size:21px; letter-spacing:-.035em; }
-        .dev-flow p:not(.dev-section-title) { margin:8px 0 0; color:var(--text-muted); font-size:14px; line-height:1.55; max-width:700px; }
-        .flow-steps { display:flex; align-items:center; gap:8px; color:var(--text-muted); font-size:11px; font-weight:750; white-space:nowrap; }
-        .flow-steps span { min-height:26px; display:inline-flex; align-items:center; border:1px solid var(--border); border-radius:999px; padding:0 9px; background:var(--surface-2); color:var(--text-secondary); }
-        .dev-two-col { display:grid; grid-template-columns:minmax(0, 1.05fr) minmax(320px, .95fr); gap:28px; }
-        .dev-section-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
-        .dev-section-head a { color:var(--text-muted); text-decoration:none; font-size:12px; font-weight:750; }
-        .dev-list { display:flex; flex-direction:column; gap:6px; }
-        .dev-task-row, .dev-project-row { grid-template-columns:14px minmax(0, 1fr) auto auto; text-decoration:none; color:var(--text); }
-        .dev-project-row { grid-template-columns:14px minmax(0, 1fr) auto; }
-        .dev-row strong { display:block; font-size:13.5px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
-        .dev-row small { display:block; margin-top:3px; color:var(--text-muted); font-size:11.5px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
-        .status-dot, .project-color { width:8px; height:8px; border-radius:50%; background:var(--text-muted); }
-        .status-dot.active { background:#22c55e; }
-        .status-dot.review { background:#f59e0b; }
-        .status-dot.blocked { background:#ef4444; }
-        .status-dot.done { background:#64748b; }
-        .priority { color:var(--text-muted); font-size:12px; font-weight:700; }
-        .empty { color:var(--text-muted); font-size:13px; line-height:1.55; padding:20px 2px; }
-        @media (max-width: 1050px) { .dev-flow, .dev-two-col { grid-template-columns:1fr; } .flow-steps { flex-wrap:wrap; } }
+        @media (max-width: 980px) {
+          div[style*='grid-template-columns: minmax(0,1.4fr) minmax(0,1fr)'] {
+            grid-template-columns: 1fr !important;
+          }
+        }
       `}</style>
     </div>
   )

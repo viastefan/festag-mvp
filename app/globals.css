@@ -75,7 +75,9 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --r:12px; --r-xs:8px; --r-sm:10px; --r-md:12px; --r-lg:12px; --r-xl:12px;
 }
 
-/* ── DARK — Festag unified deep blue-black, one quiet base ── */
+/* ── DARK — Festag premium dark, one roter Faden ──
+   Page #0F141B, content container #141820, neutral border #2E2F33.
+   Slate #5B647D primary in both modes. Never white pills. */
 [data-theme="dark"] {
   /* Dark mode — single roter Faden across auth / onboarding / dashboard.
      Everything sits in the near-black blue family. Content lifts only a
@@ -90,8 +92,8 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --active:#222D3C;
   --flat-control-bg:var(--surface);
 
-  --border:rgba(152,162,179,0.08);
-  --border-strong:rgba(152,162,179,0.16);
+  --border:rgba(46,47,51,0.85);
+  --border-strong:rgba(70,72,80,0.85);
 
   --text:#E8E8E5;
   --text-secondary:#98A2B3;
@@ -101,15 +103,15 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
 
   --accent:#5B647D; --accent-text:#FFFFFF;
 
-  --inp:rgba(243,245,247,0.028);
-  --inp-border:rgba(102,112,143,0.10);
-  --inp-focus:rgba(243,245,247,0.045);
-  --inp-focus-border:rgba(102,112,143,0.45);
+  --inp:rgba(255,255,255,0.025);
+  --inp-border:rgba(46,47,51,0.85);
+  --inp-focus:rgba(255,255,255,0.04);
+  --inp-focus-border:rgba(102,112,143,0.50);
   --glow:rgba(102,112,143,0.10);
 
-  --sidebar-bg:#0A0D14;
-  --sidebar-border:rgba(152,162,179,0.06);
-  --nav-on:rgba(152,162,179,0.08);
+  --sidebar-bg:#0F141B;
+  --sidebar-border:rgba(46,47,51,0.50);
+  --nav-on:rgba(255,255,255,0.05);
   --nav-on-text:#E8E8E5;
   --nav-off-text:#98A2B3;
 

@@ -53,7 +53,7 @@ export default function RegisterPage() {
     try {
       localStorage.setItem(THEME_KEY, t)
       document.documentElement.setAttribute('data-theme', t)
-      document.documentElement.style.backgroundColor = t === 'dark' ? '#0A0D14' : '#fcfcfd'
+      document.documentElement.style.backgroundColor = t === 'dark' ? '#0F141B' : '#fcfcfd'
       document.documentElement.style.colorScheme = t
     } catch {}
   }
@@ -102,6 +102,19 @@ export default function RegisterPage() {
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: `${window.location.origin}/auth/callback?next=/onboarding` },
+    })
+    if (oauthError) { setError(mapAuthError(oauthError.message)); setOauthLoading(false) }
+  }
+
+  async function handleGithub() {
+    setError('')
+    setOauthLoading(true)
+    const { error: oauthError } = await supabase.auth.signInWithOAuth({
+      provider: 'github',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback?next=/dev`,
+        scopes: 'read:user user:email read:org',
+      },
     })
     if (oauthError) { setError(mapAuthError(oauthError.message)); setOauthLoading(false) }
   }
@@ -204,6 +217,16 @@ export default function RegisterPage() {
         <span>Mit Google verbinden</span>
       </button>
       <button className="reg-btn reg-btn-outline" type="button" onClick={() => goTo('email')}>E-Mail verwenden</button>
+      <div className="reg-dev-divider"><span>Developer access</span></div>
+      <button className="reg-btn reg-btn-github" type="button" onClick={handleGithub} disabled={oauthLoading}>
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" style={{ color:'#fff' }}>
+          <path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.36-3.88-1.36-.52-1.33-1.27-1.69-1.27-1.69-1.04-.71.08-.69.08-.69 1.15.08 1.76 1.18 1.76 1.18 1.02 1.76 2.68 1.25 3.34.96.1-.74.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.7 0-1.26.45-2.3 1.19-3.11-.12-.29-.51-1.48.11-3.08 0 0 .97-.31 3.18 1.18a11 11 0 0 1 5.79 0c2.21-1.49 3.18-1.18 3.18-1.18.62 1.6.23 2.79.11 3.08.74.81 1.19 1.85 1.19 3.11 0 4.43-2.7 5.4-5.27 5.69.41.36.78 1.06.78 2.13v3.16c0 .31.21.67.8.56A11.51 11.51 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z" fill="currentColor"/>
+        </svg>
+        <span>Mit GitHub anmelden</span>
+      </button>
+      <p className="reg-newest-hint" style={{ textAlign:'center', margin:'0' }}>
+        Für Entwickler:innen mit zugewiesenen Festag-Projekten.
+      </p>
     </div>
   )
 
@@ -218,6 +241,13 @@ export default function RegisterPage() {
         <span>Mit Google verbinden</span>
       </button>
       <button className="reg-btn reg-btn-outline" type="button" onClick={() => goTo('email')}>E-Mail verwenden</button>
+      <div className="reg-dev-divider"><span>Developer access</span></div>
+      <button className="reg-btn reg-btn-github" type="button" onClick={handleGithub} disabled={oauthLoading}>
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" style={{ color:'#fff' }}>
+          <path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.36-3.88-1.36-.52-1.33-1.27-1.69-1.27-1.69-1.04-.71.08-.69.08-.69 1.15.08 1.76 1.18 1.76 1.18 1.02 1.76 2.68 1.25 3.34.96.1-.74.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.7 0-1.26.45-2.3 1.19-3.11-.12-.29-.51-1.48.11-3.08 0 0 .97-.31 3.18 1.18a11 11 0 0 1 5.79 0c2.21-1.49 3.18-1.18 3.18-1.18.62 1.6.23 2.79.11 3.08.74.81 1.19 1.85 1.19 3.11 0 4.43-2.7 5.4-5.27 5.69.41.36.78 1.06.78 2.13v3.16c0 .31.21.67.8.56A11.51 11.51 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z" fill="currentColor"/>
+        </svg>
+        <span>Mit GitHub anmelden</span>
+      </button>
     </div>
   )
 
@@ -356,6 +386,20 @@ export default function RegisterPage() {
         .reg-btn:disabled { opacity:.5; cursor:not-allowed; }
         .reg-btn-google { background:#5b647d; color:#fff; box-shadow:0px 8px 24px 0px rgba(200,169,91,0.14); }
         .reg-btn-google:hover:not(:disabled) { background:#505870; }
+        .reg-btn-github { background:#202532; color:#fff; box-shadow:0px 8px 24px 0px rgba(32,37,50,0.12); }
+        .reg-btn-github:hover:not(:disabled) { background:#0E1218; }
+        .reg-dev-divider {
+          width:100%; display:flex; align-items:center; gap:10px;
+          margin:2px 0 -8px;
+          color:#9aa1ad; font-size:11px; font-weight:500;
+          letter-spacing:0.16em; text-transform:uppercase;
+        }
+        .reg-dev-divider::before, .reg-dev-divider::after { content:''; flex:1; height:1px; background:#E7EBF0; }
+        .reg-root[data-theme="dark"] .reg-dev-divider { color:#5b647d; }
+        .reg-root[data-theme="dark"] .reg-dev-divider::before,
+        .reg-root[data-theme="dark"] .reg-dev-divider::after { background:rgba(255,255,255,0.06); }
+        .reg-root[data-theme="dark"] .reg-btn-github { background:#161C27; box-shadow:none; }
+        .reg-root[data-theme="dark"] .reg-btn-github:hover:not(:disabled) { background:#1F2735; }
         .reg-btn-outline { background:#fff; color:#202532; border:0.7px solid #e7ebf0; box-shadow:0px 1px 2px 0px rgba(15,23,42,0.03); }
         .reg-btn-outline:hover:not(:disabled) { background:#F7F8FB; border:1px solid #DCE1EA; }
         .reg-btn-confirm { background:#202532; color:#FFFFFF; border:none; box-shadow:0px 8px 24px 0px rgba(32,37,50,0.18); }
@@ -408,9 +452,9 @@ export default function RegisterPage() {
         @media (max-width: 640px) { .reg-desktop { display:none; } .reg-mobile { display:block; } }
 
         /* ═══ DARK MODE ═══ */
-        .reg-root[data-theme="dark"] .reg-desktop { background:#0A0D14; }
-        .reg-root[data-theme="dark"] .reg-mobile  { background:#06080D; }
-        .reg-root[data-theme="dark"] .reg-mobile-card { background:#0E1219; border-color:rgba(255,255,255,0.09); box-shadow:0px 26px 80px rgba(0,0,0,0.55),0px 6px 22px rgba(0,0,0,0.34),0px 1px 0px rgba(255,255,255,0.04) inset; }
+        .reg-root[data-theme="dark"] .reg-desktop { background:#0F141B; }
+        .reg-root[data-theme="dark"] .reg-mobile  { background:#0A0D14; }
+        .reg-root[data-theme="dark"] .reg-mobile-card { background:#141820; border-color:rgba(255,255,255,0.09); box-shadow:0px 26px 80px rgba(0,0,0,0.55),0px 6px 22px rgba(0,0,0,0.34),0px 1px 0px rgba(255,255,255,0.04) inset; }
         .reg-root[data-theme="dark"] .reg-logo-desktop,
         .reg-root[data-theme="dark"] .reg-logo-mobile,
         .reg-root[data-theme="dark"] .reg-desktop-title,
@@ -419,7 +463,7 @@ export default function RegisterPage() {
         .reg-root[data-theme="dark"] .reg-btn-google { box-shadow:none !important; }
         .reg-root[data-theme="dark"] .reg-btn-outline { background:rgba(243,245,247,0.035); color:#E8E8E5; border:0.7px solid rgba(243,245,247,0.08); box-shadow:none; }
         .reg-root[data-theme="dark"] .reg-btn-outline:hover:not(:disabled) { background:rgba(243,245,247,0.06); border:1px solid rgba(243,245,247,0.14); }
-        .reg-root[data-theme="dark"] .reg-btn-confirm { background:#E8E8E5; color:#0A0D14; box-shadow:0px 8px 24px 0px rgba(0,0,0,0.35); }
+        .reg-root[data-theme="dark"] .reg-btn-confirm { background:#E8E8E5; color:#0F141B; box-shadow:0px 8px 24px 0px rgba(0,0,0,0.35); }
         .reg-root[data-theme="dark"] .reg-btn-confirm:hover:not(:disabled) { background:#F3F5F7; }
         .reg-root[data-theme="dark"] .reg-email-input { background:rgba(243,245,247,0.035); color:#E8E8E5; border:1px solid rgba(102,112,143,0.10); caret-color:#66708F; }
         .reg-root[data-theme="dark"] .reg-email-input::placeholder { color:rgba(102,112,143,0.5); }

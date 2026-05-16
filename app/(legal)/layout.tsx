@@ -27,7 +27,7 @@ export default function LegalLayout({ children }: { children: React.ReactNode })
           text-rendering:geometricPrecision;
         }
         .legal-root[data-theme="dark"] {
-          --legal-bg:#0A0D14;
+          --legal-bg:#0F141B;
           --legal-bg-soft:#141B25;
           --legal-text:#F3F5F7;
           --legal-text-secondary:#98A2B3;

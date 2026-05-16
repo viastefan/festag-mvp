@@ -40,7 +40,7 @@ export default function DevLoginPage() {
     try {
       localStorage.setItem(THEME_KEY, t)
       document.documentElement.setAttribute('data-theme', t)
-      document.documentElement.style.backgroundColor = t === 'dark' ? '#0A0D14' : '#fcfcfd'
+      document.documentElement.style.backgroundColor = t === 'dark' ? '#0F141B' : '#fcfcfd'
       document.documentElement.style.colorScheme = t
     } catch {}
   }
@@ -163,7 +163,7 @@ export default function DevLoginPage() {
         .dl-region-note { position:fixed; right:20px; bottom:18px; max-width:260px; text-align:right; color:#A7AFBF; font-size:10.5px; line-height:1.35; letter-spacing:.02em; font-weight:400 !important; z-index:30; white-space:nowrap; }
 
         /* DARK MODE */
-        .dl-root[data-theme="dark"] .dl-frame { background:#0A0D14; }
+        .dl-root[data-theme="dark"] .dl-frame { background:#0F141B; }
         .dl-root[data-theme="dark"] .dl-logo,
         .dl-root[data-theme="dark"] .dl-title { color:#E8E8E5; }
         .dl-root[data-theme="dark"] .dl-eyebrow { color:#7B8294; }
