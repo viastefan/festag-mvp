@@ -328,7 +328,7 @@ export default function RegisterPage() {
         .reg-content.animating { opacity:0; transform:translateY(6px); }
 
         .reg-theme-switcher { display:flex; gap:6px; align-items:center; }
-        .reg-theme-pill { display:flex; align-items:center; justify-content:center; padding:4px 6px; border-radius:6px; border:0.4px solid #c7cdd6; background:transparent; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:12px; font-weight:500; color:#5b647d; letter-spacing:0.24px; cursor:pointer; transition:background .15s, border-color .15s, color .15s; }
+        .reg-theme-pill { min-width:34px; display:flex; align-items:center; justify-content:center; padding:4px 10px; border-radius:6px; border:0.4px solid #c7cdd6; background:transparent; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:12px; font-weight:500; color:#5b647d; letter-spacing:0.24px; cursor:pointer; transition:background .15s, border-color .15s, color .15s; }
         .reg-theme-pill.active { background:#f1f3f5; border-color:#fcfcfc; color:#2e2f33; }
         .reg-theme-desktop { position:absolute; right:28px; top:24px; z-index:20; }
         .reg-theme-mobile  { position:absolute; right:20px; top:48px; z-index:20; }
@@ -398,7 +398,7 @@ export default function RegisterPage() {
 
         .reg-ssl-badge { position:fixed; left:20px; bottom:18px; display:flex; align-items:center; gap:6px; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:11px; font-weight:400 !important; letter-spacing:0.22px; color:#98A2B3; user-select:none; z-index:30; transition:color .3s; }
         .reg-ssl-badge svg { width:11px; height:13px; flex-shrink:0; }
-        .reg-region-note { position:fixed; left:50%; bottom:18px; transform:translateX(-50%); width:min(520px, calc(100vw - 40px)); text-align:center; color:#98A2B3; font-size:11.5px; line-height:1.45; letter-spacing:.01em; font-weight:400 !important; z-index:30; }
+        .reg-region-note { position:fixed; right:20px; bottom:18px; width:auto; max-width:260px; text-align:right; color:#A7AFBF; font-size:10.5px; line-height:1.35; letter-spacing:.02em; font-weight:400 !important; z-index:30; white-space:nowrap; }
 
         .reg-error { width:271px; background:transparent; color:var(--text-secondary); border:1px solid var(--border); border-radius:10px; padding:10px 12px; font-size:12.5px; font-weight:500 !important; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); text-align:left; letter-spacing:0.01em; line-height:1.5; display:flex; align-items:flex-start; gap:8px; }
         .reg-error::before { content:''; display:inline-block; width:6px; height:6px; border-radius:50%; background:var(--accent); margin-top:6px; flex-shrink:0; }
@@ -491,7 +491,7 @@ export default function RegisterPage() {
         </svg>
         <span>SSL · End-to-End verschlüsselt</span>
       </div>
-      <p className="reg-region-note">Aktuell konzentriert sich Festag bewusst auf die DACH-Region — Deutschland, Österreich und die Schweiz — damit Softwareprojekte nah, zuverlässig und persönlich begleitet werden.</p>
+      <p className="reg-region-note">Aktuell nur in der DACH-Region verfügbar</p>
     </main>
   )
 }

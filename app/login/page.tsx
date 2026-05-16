@@ -445,7 +445,7 @@ export default function LoginPage() {
 
         /* THEME SWITCHER */
         .log-theme-switcher { display:flex; gap:6px; align-items:center; }
-        .log-theme-pill { display:flex; align-items:center; justify-content:center; padding:4px 6px; border-radius:6px; border:0.4px solid #c7cdd6; background:transparent; font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:12px; font-weight:500; color:#5b647d; letter-spacing:0.24px; cursor:pointer; transition:background .15s, border-color .15s, color .15s; }
+        .log-theme-pill { min-width:34px; display:flex; align-items:center; justify-content:center; padding:4px 10px; border-radius:6px; border:0.4px solid #c7cdd6; background:transparent; font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:12px; font-weight:500; color:#5b647d; letter-spacing:0.24px; cursor:pointer; transition:background .15s, border-color .15s, color .15s; }
         .log-theme-pill.active { background:#f1f3f5; border-color:#fcfcfc; color:#2e2f33; }
         .log-theme-desktop { position:absolute; right:28px; top:24px; z-index:20; }
         .log-theme-mobile  { position:absolute; right:20px; top:48px; z-index:20; }
@@ -533,7 +533,7 @@ export default function LoginPage() {
         .log-ssl-badge { position:fixed; left:20px; bottom:18px; display:flex; align-items:center; gap:6px; font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:11px; font-weight:400 !important; letter-spacing:0.22px; color:#98A2B3; user-select:none; z-index:30; transition:color .3s; }
         .log-ssl-badge svg { width:11px; height:13px; flex-shrink:0; }
         .log-root[data-theme="dark"] .log-ssl-badge { color:rgba(243,245,247,0.55); }
-        .log-region-note { position:fixed; left:50%; bottom:18px; transform:translateX(-50%); width:min(520px, calc(100vw - 40px)); text-align:center; color:#98A2B3; font-size:11.5px; line-height:1.45; letter-spacing:.01em; font-weight:400 !important; z-index:30; }
+        .log-region-note { position:fixed; right:20px; bottom:18px; width:auto; max-width:260px; text-align:right; color:#A7AFBF; font-size:10.5px; line-height:1.35; letter-spacing:.02em; font-weight:400 !important; z-index:30; white-space:nowrap; }
         .log-root[data-theme="dark"] .log-region-note { color:rgba(243,245,247,0.50); }
 
         /* ERROR */
@@ -655,7 +655,7 @@ export default function LoginPage() {
         </svg>
         <span>SSL · End-to-End verschlüsselt</span>
       </div>
-      <p className="log-region-note">Aktuell konzentriert sich Festag bewusst auf die DACH-Region — Deutschland, Österreich und die Schweiz — damit Softwareprojekte nah, zuverlässig und persönlich begleitet werden.</p>
+      <p className="log-region-note">Aktuell nur in der DACH-Region verfügbar</p>
 
       {supportOpen && (
         <div className="log-support-backdrop" role="dialog" aria-modal="true" aria-labelledby="login-support-title">

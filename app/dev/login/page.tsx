@@ -98,7 +98,7 @@ export default function DevLoginPage() {
         .dl-btn:active:not(:disabled) { transform:scale(0.97); transition: transform 0.08s ease !important; }
 
         .dl-theme-switcher { display:flex; gap:6px; align-items:center; position:absolute; right:28px; top:24px; z-index:20; }
-        .dl-theme-pill { display:flex; align-items:center; justify-content:center; padding:4px 6px; border-radius:6px; border:0.4px solid #c7cdd6; background:transparent; font-family:inherit; font-size:12px; font-weight:500; color:#5b647d; letter-spacing:0.24px; cursor:pointer; transition:background .15s, border-color .15s, color .15s; }
+        .dl-theme-pill { min-width:34px; display:flex; align-items:center; justify-content:center; padding:4px 10px; border-radius:6px; border:0.4px solid #c7cdd6; background:transparent; font-family:inherit; font-size:12px; font-weight:500; color:#5b647d; letter-spacing:0.24px; cursor:pointer; transition:background .15s, border-color .15s, color .15s; }
         .dl-theme-pill.active { background:#f1f3f5; border-color:#fcfcfc; color:#2e2f33; }
 
         .dl-frame {
@@ -160,6 +160,7 @@ export default function DevLoginPage() {
         /* SSL badge */
         .dl-ssl { position:fixed; left:20px; bottom:18px; display:flex; align-items:center; gap:6px; font-size:11px; font-weight:500; letter-spacing:0.02em; color:#98A2B3; z-index:30; transition:color .3s; user-select:none; }
         .dl-ssl svg { width:11px; height:13px; flex-shrink:0; }
+        .dl-region-note { position:fixed; right:20px; bottom:18px; max-width:260px; text-align:right; color:#A7AFBF; font-size:10.5px; line-height:1.35; letter-spacing:.02em; font-weight:400 !important; z-index:30; white-space:nowrap; }
 
         /* DARK MODE */
         .dl-root[data-theme="dark"] .dl-frame { background:#0A0D14; }
@@ -174,6 +175,7 @@ export default function DevLoginPage() {
         .dl-root[data-theme="dark"] .dl-link { color:#7B8294; }
         .dl-root[data-theme="dark"] .dl-link:hover { color:#E8E8E5; }
         .dl-root[data-theme="dark"] .dl-ssl { color:rgba(232,232,229,0.5); }
+        .dl-root[data-theme="dark"] .dl-region-note { color:rgba(243,245,247,0.50); }
         .dl-root[data-theme="dark"] .dl-error { background:rgba(213,57,57,0.08); color:#ef8377; }
         .dl-root[data-theme="dark"] .dl-theme-pill { border-color:rgba(243,245,247,0.18); color:rgba(243,245,247,0.45); background:transparent; }
         .dl-root[data-theme="dark"] .dl-theme-pill.active { background:#F3F5F7; border-color:#F3F5F7; color:#2e2f33; }
@@ -239,6 +241,7 @@ export default function DevLoginPage() {
           </svg>
           <span>SSL · End-to-End verschlüsselt</span>
         </div>
+        <p className="dl-region-note">Aktuell nur in der DACH-Region verfügbar</p>
       </div>
     </main>
   )
