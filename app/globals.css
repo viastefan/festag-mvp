@@ -83,11 +83,12 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
      loud blue panel on a darker shell.
      Primary CTA is the slate (#5B647D) — NEVER a white pill. */
   --bg:#0A0D14;               /* shell + sidebar */
-  --surface:#0E1219;          /* primary canvas / main content */
-  --card:#11161F;             /* cards / panels */
-  --surface-2:#161C27;        /* inputs / denser controls */
-  --hover:#1A212E;
-  --active:#1F2735;
+  --surface:#10151D;          /* primary canvas / main content */
+  --card:#121821;             /* cards / panels */
+  --surface-2:#18202B;        /* inputs / denser controls */
+  --hover:#1D2633;
+  --active:#222D3C;
+  --flat-control-bg:var(--surface);
 
   --border:rgba(152,162,179,0.08);
   --border-strong:rgba(152,162,179,0.16);
@@ -218,6 +219,30 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
 }
 [data-theme="read"] .proj-row.active {
   background: color-mix(in srgb, var(--surface-2) 86%, #d6ccb3 14%);
+}
+
+/* Quiet native controls: selected borderless dark-mode actions sit on the
+   same subtle surface as the main content container instead of floating. */
+[data-theme="dark"] body .app-footer-btn,
+[data-theme="dark"] body .task-create,
+[data-theme="dark"] body .task-plus,
+[data-theme="dark"] body .projects-plus,
+[data-theme="dark"] body .ix-iconbtn,
+[data-theme="dark"] body .ix-tab,
+[data-theme="dark"] body .tagro-mic,
+[data-theme="dark"] body .ci-mode {
+  background:var(--flat-control-bg);
+}
+
+[data-theme="dark"] body .app-footer-btn:hover,
+[data-theme="dark"] body .task-create:hover,
+[data-theme="dark"] body .task-plus:hover,
+[data-theme="dark"] body .projects-plus:hover,
+[data-theme="dark"] body .ix-iconbtn:hover,
+[data-theme="dark"] body .ix-tab:hover,
+[data-theme="dark"] body .tagro-mic:hover,
+[data-theme="dark"] body .ci-mode:hover {
+  background:var(--surface-2);
 }
 
 html,body {
@@ -844,3 +869,20 @@ input[type="reset"],
 .voice-text-btn { color:var(--text-muted); border-color:transparent; padding:0 4px; }
 .voice-text-btn:hover { color:var(--text); }
 .voice-state, .voice-note { color:var(--text-muted); font-size:11.5px; margin:0; }
+
+/* Final native-cursor lock. Kept at the end so page-local styles, inline-style
+   habits and menu controls cannot reintroduce the web hand cursor. */
+html,
+body,
+body *,
+body *::before,
+body *::after,
+:where(a, button, select, summary, label, option, optgroup, [role="button"], [role="menuitem"], [role="tab"], [role="option"], [role="switch"], [tabindex], [onclick], .tap-scale, .nav-item, .sidebar-item, .menu-item, .dropdown-item, .card, .proj-row, .task-row, .audio-briefing-button, .voice-icon-btn) {
+  cursor:default !important;
+}
+
+input,
+textarea,
+[contenteditable="true"] {
+  cursor:text !important;
+}
