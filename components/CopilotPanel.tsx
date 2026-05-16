@@ -136,15 +136,14 @@ export default function CopilotPanel({ open, onClose }: { open: boolean; onClose
           z-index: 7101;
           display: flex;
           flex-direction: column;
-          background:
-            linear-gradient(180deg, color-mix(in srgb, var(--card) 98%, transparent), color-mix(in srgb, var(--surface) 97%, transparent));
-          border: 1px solid color-mix(in srgb, var(--border) 82%, rgba(255,255,255,.16));
-          border-radius: 30px;
+          background:var(--surface);
+          border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
+          border-radius: 18px;
           backdrop-filter: blur(34px) saturate(180%);
           -webkit-backdrop-filter: blur(34px) saturate(180%);
           box-shadow:
-            0 28px 80px rgba(10,13,20,.24),
-            0 1px 0 rgba(255,255,255,.18) inset,
+            0 28px 80px rgba(10,13,20,.20),
+            0 1px 0 rgba(255,255,255,.08) inset,
             0 0 0 1px rgba(255,255,255,.04);
           animation: cpSlide .24s cubic-bezier(.16,1,.3,1);
           overflow: hidden;
@@ -179,14 +178,14 @@ export default function CopilotPanel({ open, onClose }: { open: boolean; onClose
         .cp-msg-in { animation: cpFadeUp .18s cubic-bezier(.16,1,.3,1) both; }
         @keyframes cpFadeUp { from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;} }
         .cp-header {
-          min-height:76px;
-          padding:0 20px;
-          border-bottom:1px solid var(--border);
+          min-height:74px;
+          padding:0 18px;
+          border-bottom:1px solid color-mix(in srgb, var(--border) 64%, transparent);
           display:flex;
           align-items:center;
           justify-content:space-between;
           flex-shrink:0;
-          background:color-mix(in srgb, var(--card) 92%, transparent);
+          background:color-mix(in srgb, var(--surface) 96%, transparent);
         }
         .cp-brand {
           display:flex;
@@ -221,11 +220,11 @@ export default function CopilotPanel({ open, onClose }: { open: boolean; onClose
           box-shadow:0 0 0 3px var(--green-bg);
         }
         .cp-close {
-          width:34px;
-          height:34px;
-          border-radius:14px;
-          border:1px solid var(--border);
-          background:var(--surface-2);
+          width:30px;
+          height:30px;
+          border-radius:10px;
+          border:1px solid transparent;
+          background:transparent;
           color:var(--text-muted);
           display:flex;
           align-items:center;
@@ -233,18 +232,18 @@ export default function CopilotPanel({ open, onClose }: { open: boolean; onClose
           transition:background .14s ease, color .14s ease, border-color .14s ease;
         }
         .cp-close:hover {
-          background:var(--hover);
+          background:color-mix(in srgb, var(--surface-2) 72%, transparent);
           color:var(--text);
           border-color:var(--border-strong);
         }
         .cp-thread {
           flex:1;
           overflow-y:auto;
-          padding:18px 18px 12px;
+          padding:18px 18px 14px;
           display:flex;
           flex-direction:column;
           gap:14px;
-          background:color-mix(in srgb, var(--surface) 96%, transparent);
+          background:var(--surface);
         }
         .cp-message-row {
           display:flex;
@@ -256,19 +255,19 @@ export default function CopilotPanel({ open, onClose }: { open: boolean; onClose
         }
         .cp-bubble {
           max-width:calc(100% - 34px);
-          padding:14px 16px;
-          border-radius:18px;
-          border:1px solid var(--border);
+          padding:13px 15px;
+          border-radius:14px;
+          border:1px solid color-mix(in srgb, var(--border) 54%, transparent);
           color:var(--text);
           box-shadow:0 1px 0 rgba(255,255,255,.04) inset;
         }
         .cp-bubble.ai {
-          background:color-mix(in srgb, var(--card) 96%, transparent);
-          border-top-left-radius:12px;
+          background:color-mix(in srgb, var(--surface-2) 44%, transparent);
+          border-top-left-radius:9px;
         }
         .cp-bubble.user {
-          background:color-mix(in srgb, var(--surface-2) 92%, transparent);
-          border-top-right-radius:12px;
+          background:color-mix(in srgb, var(--surface-2) 72%, transparent);
+          border-top-right-radius:9px;
         }
         .cp-bubble p {
           font-size:13px;
@@ -297,13 +296,13 @@ export default function CopilotPanel({ open, onClose }: { open: boolean; onClose
         }
         .cp-input::placeholder { color: var(--text-muted); -webkit-text-fill-color: var(--text-muted); }
         .cp-quickbar {
-          padding:10px 18px 0;
+          padding:10px 18px 8px;
           display:flex;
           gap:8px;
           overflow-x:auto;
           flex-shrink:0;
-          border-top:1px solid var(--border);
-          background:color-mix(in srgb, var(--surface) 96%, transparent);
+          border-top:1px solid color-mix(in srgb, var(--border) 52%, transparent);
+          background:var(--surface);
         }
         .cp-quick-btn {
           padding: 7px 12px; border-radius: 999px; border: 1px solid var(--border);
@@ -314,31 +313,32 @@ export default function CopilotPanel({ open, onClose }: { open: boolean; onClose
         }
         .cp-quick-btn:hover { background: var(--hover); color:var(--text); border-color:var(--border-strong); }
         .cp-composer {
-          padding:12px 18px 18px;
+          padding:0;
           flex-shrink:0;
-          background:color-mix(in srgb, var(--surface) 96%, transparent);
+          background:var(--surface);
         }
         .cp-input-shell {
           display:flex;
-          gap:8px;
+          gap:12px;
           align-items:center;
-          background:color-mix(in srgb, var(--surface-2) 90%, transparent);
-          border:1px solid var(--border);
-          border-radius:18px;
-          padding:10px 10px 10px 14px;
-          transition:border-color .15s ease, background .15s ease, box-shadow .15s ease;
+          min-height:70px;
+          background:color-mix(in srgb, var(--surface-2) 38%, transparent);
+          border:0;
+          border-top:1px solid color-mix(in srgb, var(--border) 56%, transparent);
+          border-radius:12px 12px 0 0;
+          padding:13px 16px 14px 22px;
+          transition:background .15s ease, border-color .15s ease;
         }
         .cp-input-shell:focus-within {
-          border-color:var(--inp-focus-border);
-          background:var(--inp-focus);
-          box-shadow:0 0 0 4px var(--focus-ring);
+          border-color:color-mix(in srgb, var(--inp-focus-border) 54%, transparent);
+          background:color-mix(in srgb, var(--surface-2) 48%, transparent);
         }
         .cp-send {
-          width:36px;
-          height:36px;
-          border-radius:14px;
+          width:38px;
+          height:38px;
+          border-radius:999px;
           flex-shrink:0;
-          background:var(--hover);
+          background:color-mix(in srgb, var(--surface-2) 70%, transparent);
           color:var(--text-muted);
           display:flex;
           align-items:center;
