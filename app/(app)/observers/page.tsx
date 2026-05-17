@@ -233,9 +233,9 @@ export default function ObserversPage() {
         .obs-create:disabled { opacity:.46; color:var(--text-muted); }
         .obs-meta-row {
           display:flex; align-items:center; gap:10px;
-          padding:14px 0 14px;
+          padding:14px 22px 14px;
         }
-        .obs-count { color:var(--text-muted); font-size:11.5px; font-weight:400; letter-spacing:.02em; }
+        .obs-count { color:var(--text-secondary); font-size:11.5px; font-weight:400; letter-spacing:.02em; }
         .obs-text-btn {
           height:27px; padding:0 10px;
           border:1px solid var(--border); border-radius:999px;
