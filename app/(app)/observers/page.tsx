@@ -86,6 +86,14 @@ export default function ObserversPage() {
   const [inviteRoleCustom, setInviteRoleCustom] = useState('')
   const [inviteProjects, setInviteProjects] = useState<string[]>([])
   const [inviteAll, setInviteAll] = useState(true)
+  const [invitePerms, setInvitePerms] = useState({
+    read: true,
+    comment: false,
+    create_tasks: false,
+    tagro_propose: false,
+    review_status_reports: false,
+    comment_dev_tasks: false,
+  })
   const [inviting, setInviting] = useState(false)
   const [inviteError, setInviteError] = useState('')
   const [inviteLink, setInviteLink] = useState<string | null>(null)
@@ -136,6 +144,14 @@ export default function ObserversPage() {
       full_name: inviteName.trim() || null,
       role: finalRole,
       access_level: inviteAccess,
+      permissions: {
+        read: true,
+        comment: invitePerms.comment || inviteAccess === 'comment',
+        create_tasks: invitePerms.create_tasks,
+        tagro_propose: invitePerms.tagro_propose,
+        review_status_reports: invitePerms.review_status_reports,
+        comment_dev_tasks: invitePerms.comment_dev_tasks,
+      },
       project_ids: inviteAll ? null : inviteProjects,
       status: 'pending' as const,
     }
@@ -151,6 +167,7 @@ export default function ObserversPage() {
       setInviteLink(`${window.location.origin}/i/${token}`)
     }
     setInviteEmail(''); setInviteName(''); setInviteAccess('read'); setInviteRole(''); setInviteRoleCustom(''); setInviteProjects([]); setInviteAll(true)
+    setInvitePerms({ read:true, comment:false, create_tasks:false, tagro_propose:false, review_status_reports:false, comment_dev_tasks:false })
     setInviting(false)
   }
 
@@ -246,6 +263,72 @@ export default function ObserversPage() {
           transition:background .12s ease, color .12s ease, border-color .12s ease;
         }
         .obs-text-btn:hover { background:var(--surface-2); color:var(--text); }
+
+        /* ── Inline-Composer (Tasks-Style, kein Modal) ── */
+        .obs-composer {
+          border:1px solid var(--border);
+          border-radius:12px;
+          background:color-mix(in srgb, var(--surface) 72%, transparent);
+          box-shadow:0 18px 46px rgba(0,0,0,.06);
+          margin:0 0 18px;
+          overflow:hidden;
+          animation:obsComposerIn .18s cubic-bezier(.16,1,.3,1) both;
+        }
+        @keyframes obsComposerIn { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:none; } }
+        [data-theme="dark"] .obs-composer { background:color-mix(in srgb, var(--surface) 82%, transparent); box-shadow:0 18px 46px rgba(0,0,0,.22); }
+        .obs-composer-top {
+          display:flex; align-items:center; justify-content:space-between;
+          gap:12px; padding:13px 16px 11px;
+          border-bottom:1px solid var(--border);
+        }
+        .obs-composer-title { font-size:13px; font-weight:500; color:var(--text); letter-spacing:.015em; }
+        .obs-composer-sub { font-size:11.5px; font-weight:500; color:var(--text-muted); letter-spacing:.015em; }
+        .obs-composer-x {
+          width:26px; height:26px; border:0; background:transparent; color:var(--text-muted);
+          border-radius:8px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+          transition:background .12s, color .12s;
+        }
+        .obs-composer-x:hover { background:var(--surface-2); color:var(--text); }
+        .obs-composer-body { padding:14px 16px 12px; display:flex; flex-direction:column; gap:14px; }
+        .obs-fld { display:flex; flex-direction:column; gap:6px; }
+        .obs-fld-label { font-size:10.5px; font-weight:500; letter-spacing:.18em; text-transform:uppercase; color:var(--text-muted); }
+        .obs-fld input[type="text"], .obs-fld input[type="email"] {
+          height:36px; padding:0 12px; border-radius:8px;
+          border:1px solid var(--border); background:var(--surface); color:var(--text);
+          font:inherit; font-size:13px; font-weight:500; letter-spacing:.015em; outline:none;
+          transition:border-color .12s, box-shadow .12s;
+        }
+        .obs-fld input:focus { border-color:var(--inp-focus-border); box-shadow:0 0 0 3px var(--focus-ring); }
+        .obs-perm-grid {
+          display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
+          gap:6px;
+        }
+        .obs-perm-row {
+          display:flex; align-items:flex-start; gap:10px; padding:9px 11px;
+          border:1px solid var(--border); border-radius:9px;
+          background:transparent; cursor:pointer;
+          transition:border-color .12s, background .12s;
+        }
+        .obs-perm-row:hover { background:color-mix(in srgb, var(--surface-2) 50%, transparent); }
+        .obs-perm-row.on { border-color:var(--border-strong); background:color-mix(in srgb, var(--surface-2) 60%, transparent); }
+        .obs-perm-checkbox {
+          width:14px; height:14px; border-radius:4px; border:1.5px solid var(--border-strong);
+          margin-top:2px; flex-shrink:0;
+          display:flex; align-items:center; justify-content:center;
+          background:transparent; transition:background .12s, border-color .12s;
+        }
+        .obs-perm-row.on .obs-perm-checkbox { background:var(--text); border-color:var(--text); }
+        .obs-perm-row.on .obs-perm-checkbox svg { color:var(--bg); }
+        .obs-perm-info { display:flex; flex-direction:column; gap:1px; min-width:0; }
+        .obs-perm-title { font-size:12.5px; font-weight:500; color:var(--text); letter-spacing:.015em; }
+        .obs-perm-sub { font-size:11px; font-weight:500; color:var(--text-muted); letter-spacing:.015em; line-height:1.4; }
+        .obs-composer-footer {
+          display:flex; align-items:center; justify-content:space-between;
+          gap:12px; padding:11px 16px 13px;
+          border-top:1px solid var(--border);
+        }
+        .obs-composer-hint { font-size:11.5px; font-weight:500; color:var(--text-muted); letter-spacing:.015em; }
+        .obs-link-row { display:flex; align-items:center; gap:8px; padding:11px 13px; border:1px solid var(--border); border-radius:9px; background:var(--surface-2); }
 
         .obs-table { width:100%; }
         .obs-head-row, .obs-row {
@@ -440,6 +523,144 @@ export default function ObserversPage() {
       </div>
 
       <div className="obs-scroll">
+
+      {inviteOpen && (
+        <section className="obs-composer" aria-label="Mitwirkende einladen">
+          <header className="obs-composer-top">
+            <div style={{ display:'flex', flexDirection:'column', gap:1, minWidth:0 }}>
+              <span className="obs-composer-title">{inviteLink ? 'Einladung erstellt' : 'Mitwirkende einladen'}</span>
+              <span className="obs-composer-sub">{inviteLink ? 'Link teilen — funktioniert nur für die eingeladene E-Mail.' : 'Read-only Basis. Erweiterte Rollen-Permissions optional.'}</span>
+            </div>
+            <button className="obs-composer-x" type="button" onClick={closeInvite} aria-label="Schließen"><X size={14} weight="regular"/></button>
+          </header>
+
+          {inviteLink ? (
+            <>
+              <div className="obs-composer-body">
+                <div className="obs-link-row">
+                  <code style={{ flex:1, fontSize:12.5, color:'var(--text)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', fontFamily:'ui-monospace, "SF Mono", Menlo, monospace', letterSpacing:0 }}>{inviteLink}</code>
+                  <button onClick={copyInviteLink} className="obs-text-btn" type="button">
+                    {linkCopied ? <><Check size={12} weight="regular"/> Kopiert</> : 'Kopieren'}
+                  </button>
+                </div>
+                <p className="obs-composer-hint" style={{ margin:0 }}>Tagro hält die Person danach automatisch auf dem Stand. Keine Mail nötig.</p>
+              </div>
+              <div className="obs-composer-footer">
+                <span className="obs-composer-hint">Fertig — Einladung ist aktiv, sobald die Person den Link öffnet.</span>
+                <button className="obs-text-btn" onClick={closeInvite} type="button"><span>Fertig</span></button>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="obs-composer-body">
+                <div style={{ display:'grid', gridTemplateColumns:'minmax(0, 1.4fr) minmax(0, 1fr)', gap:12 }}>
+                  <div className="obs-fld">
+                    <span className="obs-fld-label">E-Mail</span>
+                    <input type="email" value={inviteEmail} onChange={e => setInviteEmail(e.target.value)} placeholder="anna@firma.de" autoFocus />
+                  </div>
+                  <div className="obs-fld">
+                    <span className="obs-fld-label">Name (optional)</span>
+                    <input type="text" value={inviteName} onChange={e => setInviteName(e.target.value)} placeholder="Anna Berger" />
+                  </div>
+                </div>
+
+                <div className="obs-fld">
+                  <span className="obs-fld-label">Rolle</span>
+                  <div className="obs-role-grid">
+                    {ROLE_PRESETS.map(r => (
+                      <button key={r} type="button" className={`obs-role-pill ${inviteRole === r ? 'on' : ''}`} onClick={() => { setInviteRole(r); setInviteRoleCustom('') }}>
+                        {r}
+                      </button>
+                    ))}
+                    <button type="button" className={`obs-role-pill ${inviteRole === 'custom' ? 'on' : ''}`} onClick={() => setInviteRole('custom')}>Andere…</button>
+                  </div>
+                  {inviteRole === 'custom' && (
+                    <input type="text" placeholder="z.B. Steuerberaterin" value={inviteRoleCustom} onChange={e => setInviteRoleCustom(e.target.value)} style={{ marginTop:6 }} />
+                  )}
+                </div>
+
+                <div className="obs-fld">
+                  <span className="obs-fld-label">Was darf diese Person?</span>
+                  <div className="obs-perm-grid">
+                    {[
+                      { key:'comment', title:'Kommentieren', sub:'Rückfragen & Notizen an Tasks/Briefings.' },
+                      { key:'create_tasks', title:'Tasks erstellen', sub:'Manuell neue Aufgaben in Projekten anlegen.' },
+                      { key:'tagro_propose', title:'Mit Tagro vorschlagen', sub:'Aufgaben/Ideen via Tagro einreichen.' },
+                      { key:'review_status_reports', title:'Statusberichte prüfen', sub:'Briefings freigeben oder zurückspielen.' },
+                      { key:'comment_dev_tasks', title:'Dev-Tasks kontrollieren', sub:'Auf Developer-Updates antworten.' },
+                    ].map(p => {
+                      const on = (invitePerms as any)[p.key] === true
+                      return (
+                        <button
+                          key={p.key} type="button"
+                          className={`obs-perm-row ${on ? 'on' : ''}`}
+                          onClick={() => setInvitePerms(prev => ({ ...prev, [p.key]: !on }))}
+                        >
+                          <span className="obs-perm-checkbox">{on && <Check size={10} weight="bold" />}</span>
+                          <span className="obs-perm-info">
+                            <span className="obs-perm-title">{p.title}</span>
+                            <span className="obs-perm-sub">{p.sub}</span>
+                          </span>
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                <div className="obs-fld">
+                  <span className="obs-fld-label">Sichtbare Projekte</span>
+                  <div className="obs-perm-grid">
+                    <button type="button" className={`obs-perm-row ${inviteAll ? 'on' : ''}`} onClick={() => setInviteAll(true)}>
+                      <span className="obs-perm-checkbox">{inviteAll && <Check size={10} weight="bold" />}</span>
+                      <span className="obs-perm-info">
+                        <span className="obs-perm-title">Alle Projekte</span>
+                        <span className="obs-perm-sub">Inkl. neuer Projekte automatisch.</span>
+                      </span>
+                    </button>
+                    <button type="button" className={`obs-perm-row ${!inviteAll ? 'on' : ''}`} onClick={() => setInviteAll(false)}>
+                      <span className="obs-perm-checkbox">{!inviteAll && <Check size={10} weight="bold" />}</span>
+                      <span className="obs-perm-info">
+                        <span className="obs-perm-title">Auswahl</span>
+                        <span className="obs-perm-sub">Nur freigegebene Projekte sind sichtbar.</span>
+                      </span>
+                    </button>
+                  </div>
+                  {!inviteAll && projects.length > 0 && (
+                    <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginTop:8 }}>
+                      {projects.map(p => {
+                        const checked = inviteProjects.includes(p.id)
+                        return (
+                          <button key={p.id} type="button"
+                            className={`obs-role-pill ${checked ? 'on' : ''}`}
+                            onClick={() => setInviteProjects(prev => checked ? prev.filter(x => x !== p.id) : [...prev, p.id])}
+                          >
+                            <span style={{ width:7, height:7, borderRadius:999, background:p.color || '#64748b', display:'inline-block', marginRight:6 }} />
+                            {p.title}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                {inviteError && <p style={{ margin:0, fontSize:12, color:'var(--red, #c0362e)', letterSpacing:'.015em', fontWeight:500 }}>{inviteError}</p>}
+              </div>
+
+              <div className="obs-composer-footer">
+                <span className="obs-composer-hint">Du kannst Permissions später jederzeit anpassen.</span>
+                <div style={{ display:'flex', gap:8 }}>
+                  <button className="obs-text-btn" onClick={closeInvite} disabled={inviting} type="button">Abbrechen</button>
+                  <button className="obs-text-btn" onClick={handleInvite} disabled={inviting || !inviteEmail.trim()} type="button">
+                    <EnvelopeSimple size={12} weight="regular" />
+                    <span>{inviting ? 'Wird erstellt…' : 'Einladung erstellen'}</span>
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
+        </section>
+      )}
+
       <div className="obs-table" role="table" aria-label="Mitwirkende-Liste">
         <div className="obs-head-row" role="row">
           <span>Name</span>
@@ -521,121 +742,7 @@ export default function ObserversPage() {
       </div>
       </div>
 
-      {/* ── Invite Modal — portal to body to escape workspace overflow ── */}
-      {inviteOpen && typeof document !== 'undefined' && createPortal(
-        <div className="obs-modal-bg" onClick={() => !inviting && closeInvite()}>
-          <div className="obs-modal" style={{ position:'relative' }} onClick={e => e.stopPropagation()}>
-            <button className="obs-modal-close" onClick={closeInvite} aria-label="Schließen"><X size={15} /></button>
-            {inviteLink ? (
-              <>
-                <h2>Einladung erstellt</h2>
-                <p className="obs-modal-sub">Teile diesen Link mit der eingeladenen Person. Sie kann sich damit registrieren und erhält automatisch Zugriff.</p>
-                <div style={{ display:'flex', gap:8, alignItems:'center', padding:'12px 14px', border:'1px solid var(--border)', borderRadius:10, background:'var(--surface-2)', marginBottom:14 }}>
-                  <code style={{ flex:1, fontSize:12.5, color:'var(--text)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', fontFamily:'ui-monospace, "SF Mono", Menlo, monospace' }}>{inviteLink}</code>
-                  <button onClick={copyInviteLink} className="obs-text-btn" type="button">
-                    {linkCopied ? <><Check size={12} weight="bold"/> Kopiert</> : 'Kopieren'}
-                  </button>
-                </div>
-                <p style={{ margin:'0 0 4px', fontSize:11.5, color:'var(--text-muted)', letterSpacing:'.02em' }}>
-                  Der Link funktioniert nur für die eingeladene E-Mail-Adresse. Tagro hält die Person danach automatisch auf dem Stand.
-                </p>
-                <div className="obs-modal-footer">
-                  <button className="obs-text-btn" onClick={closeInvite}>Fertig</button>
-                </div>
-              </>
-            ) : (
-              <>
-            <h2>Mitwirkende einladen</h2>
-            <p className="obs-modal-sub">Read-only Zugriff auf ausgewählte Projekte. Tagro hält die Person automatisch auf dem Stand — du musst nichts senden.</p>
-
-            <div className="obs-modal-row">
-              <label htmlFor="obs-email">E-Mail</label>
-              <input id="obs-email" type="email" value={inviteEmail} onChange={e => setInviteEmail(e.target.value)} placeholder="anna@firma.de" autoFocus />
-            </div>
-            <div className="obs-modal-row">
-              <label htmlFor="obs-name">Name (optional)</label>
-              <input id="obs-name" type="text" value={inviteName} onChange={e => setInviteName(e.target.value)} placeholder="Anna Berger" />
-            </div>
-
-            <div className="obs-modal-row">
-              <label>Rolle</label>
-              <div className="obs-role-grid">
-                {ROLE_PRESETS.map(r => (
-                  <button key={r} type="button" className={`obs-role-pill ${inviteRole === r ? 'on' : ''}`} onClick={() => { setInviteRole(r); setInviteRoleCustom('') }}>
-                    {r}
-                  </button>
-                ))}
-                <button type="button" className={`obs-role-pill ${inviteRole === 'custom' ? 'on' : ''}`} onClick={() => setInviteRole('custom')}>
-                  Andere…
-                </button>
-              </div>
-              {inviteRole === 'custom' && (
-                <input
-                  type="text"
-                  placeholder="z.B. Steuerberaterin"
-                  value={inviteRoleCustom}
-                  onChange={e => setInviteRoleCustom(e.target.value)}
-                  style={{ marginTop: 8 }}
-                />
-              )}
-            </div>
-
-            <div className="obs-modal-row">
-              <label>Zugriffslevel</label>
-              <div className="obs-segment">
-                <button type="button" className={inviteAccess === 'read' ? 'on' : ''} onClick={() => setInviteAccess('read')}>
-                  <Eye size={13} weight="regular" /> Lesen
-                </button>
-                <button type="button" className={inviteAccess === 'comment' ? 'on' : ''} onClick={() => setInviteAccess('comment')}>
-                  <ChatCircle size={13} weight="regular" /> Kommentar
-                </button>
-              </div>
-            </div>
-
-            <div className="obs-modal-row">
-              <label>Sichtbare Projekte</label>
-              <div className="obs-checkbox-row">
-                <input id="obs-all" type="checkbox" checked={inviteAll} onChange={e => setInviteAll(e.target.checked)} />
-                <label htmlFor="obs-all" style={{ fontSize:13, fontWeight:500, color:'var(--text)', letterSpacing:0, textTransform:'none' }}>Alle aktuellen & neuen Projekte</label>
-              </div>
-              {!inviteAll && projects.length > 0 && (
-                <div className="obs-proj-list">
-                  {projects.map(p => {
-                    const checked = inviteProjects.includes(p.id)
-                    return (
-                      <div key={p.id} className="obs-checkbox-row">
-                        <input
-                          id={`p-${p.id}`}
-                          type="checkbox"
-                          checked={checked}
-                          onChange={() => setInviteProjects(prev => checked ? prev.filter(x => x !== p.id) : [...prev, p.id])}
-                        />
-                        <label htmlFor={`p-${p.id}`} style={{ fontSize:13, fontWeight:500, color:'var(--text)', letterSpacing:0, textTransform:'none', display:'inline-flex', alignItems:'center', gap:7 }}>
-                          <span style={{ width:8, height:8, borderRadius:999, background:p.color || '#64748b', display:'inline-block' }} />
-                          {p.title}
-                        </label>
-                      </div>
-                    )
-                  })}
-                </div>
-              )}
-            </div>
-
-            {inviteError && <p className="obs-modal-err">{inviteError}</p>}
-
-            <div className="obs-modal-footer">
-              <button className="obs-text-btn" onClick={closeInvite} disabled={inviting} type="button">Abbrechen</button>
-              <button className="obs-text-btn" onClick={handleInvite} disabled={inviting || !inviteEmail.trim()} type="button">
-                <EnvelopeSimple size={12} weight="regular" />
-                <span>{inviting ? 'Wird erstellt…' : 'Einladung erstellen'}</span>
-              </button>
-            </div>
-              </>
-            )}
-          </div>
-        </div>,
-        document.body
-      )}
+      {/* Invite-Composer wird jetzt INLINE über der Tabelle gerendert (siehe Schreib-Position weiter oben) — kein Modal mehr. */}
 
       {/* ── Help Modal — portal to body ── */}
       {helpOpen && typeof document !== 'undefined' && createPortal(
