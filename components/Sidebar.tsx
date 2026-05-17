@@ -20,6 +20,7 @@ import { autoAvatarColor, avatarInitials } from '@/lib/avatar'
 import { broadcastProfileSync, subscribeProfileSync } from '@/lib/profile-sync'
 
 export function projectColor(_id: string, color?: string | null) { return color || 'var(--text-muted)' }
+const PROJECT_COLOR_SYNC_EVENT = 'festag-project-color-change'
 
 const ICONS: Record<string, React.ElementType> = {
   home: House, project: FolderSimple, sparkle: Sparkle, chat: ChatCircle,
@@ -360,11 +361,23 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
     })
   }, [])
 
+  useEffect(() => {
+    const onProjectColor = (event: Event) => {
+      if (!(event instanceof CustomEvent)) return
+      const projectId = event.detail?.projectId
+      const color = event.detail?.color
+      if (!projectId || !color) return
+      setProjects(prev => prev.map(p => p.id === projectId ? { ...p, color } : p))
+    }
+    window.addEventListener(PROJECT_COLOR_SYNC_EVENT, onProjectColor)
+    return () => window.removeEventListener(PROJECT_COLOR_SYNC_EVENT, onProjectColor)
+  }, [])
+
   const PROJ_COLORS = ['#6366f1','#8b5cf6','#ec4899','#ef4444','#f97316','#eab308','#22c55e','#06b6d4','#3b82f6','#64748b']
 
   async function setProjectColor(id: string, color: string) {
     setProjects(prev => prev.map(p => p.id === id ? { ...p, color } : p))
-    setColorPickId(null)
+    window.dispatchEvent(new CustomEvent(PROJECT_COLOR_SYNC_EVENT, { detail: { projectId: id, color } }))
     await (createClient() as any).from('projects').update({ color }).eq('id', id)
   }
 
@@ -719,11 +732,12 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         }
         [data-theme="dark"] .sb-top-icon:hover { background:rgba(255,255,255,0.04); }
         .sb-bottom-actions {
-          position:absolute;
-          bottom:6px;
-          left:0;
-          right:0;
-          padding:10px 16px 0;
+          position:fixed;
+          bottom:16px;
+          left:16px;
+          width:180px;
+          padding:0;
+          z-index:155;
         }
         .sb-pill-action,
         .sb-square-action {
@@ -760,26 +774,30 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         .sb-monitor-capsule {
           display:inline-flex; align-items:center; gap:7px;
           min-height:34px;
-          padding:0 16px;
-          border:1px solid var(--border);
-          background:color-mix(in srgb, var(--surface) 72%, transparent);
-          border-radius:999px;
+          padding:0 12px;
+          border:1px solid color-mix(in srgb, var(--border) 86%, transparent);
+          background:color-mix(in srgb, var(--surface) 82%, transparent);
+          border-radius:14px;
           text-decoration:none;
           color:var(--text);
-          box-shadow:none;
-          transition:background .12s, border-color .12s, color .12s;
+          box-shadow:0 10px 28px rgba(15,23,42,.05);
+          backdrop-filter:blur(18px) saturate(160%);
+          -webkit-backdrop-filter:blur(18px) saturate(160%);
+          transition:background .12s, border-color .12s, color .12s, transform .12s ease;
         }
         .sb-monitor-capsule--single { width:100%; justify-content:flex-start; }
         .sb-monitor-capsule:hover {
-          background:var(--hover);
+          background:color-mix(in srgb, var(--surface-2) 58%, var(--surface));
           border-color:var(--border-strong);
+          transform:translateY(-1px);
         }
         .sb-monitor-dot {
           width:8px; height:8px; border-radius:50%;
           flex-shrink:0;
+          box-shadow:0 0 0 4px color-mix(in srgb, currentColor 10%, transparent);
         }
         .sb-monitor-line {
-          font-size:12.5px; font-weight:500; letter-spacing:.03em;
+          font-size:12px; font-weight:500; letter-spacing:.03em;
           font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
           color:var(--text);
           overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
@@ -924,6 +942,13 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
                                       style={{ width:18, height:18, borderRadius:5, background:c, border: dot===c?'2px solid var(--text)':'2px solid transparent', cursor:'pointer', padding:0 }}
                                     />
                                   ))}
+                                  <input
+                                    aria-label="Projektfarbe frei wählen"
+                                    type="color"
+                                    value={dot.startsWith('#') ? dot : '#64748b'}
+                                    onChange={(event) => setProjectColor(p.id, event.target.value)}
+                                    style={{ gridColumn:'1 / -1', width:'100%', height:26, border:'1px solid var(--border)', borderRadius:8, background:'transparent', padding:2 }}
+                                  />
                                 </div>
                               </>
                             )}

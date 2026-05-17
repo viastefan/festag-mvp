@@ -95,6 +95,7 @@ const DONE_STATES = new Set(['done', 'completed', 'delivered', 'erledigt'])
 const ACTIVE_STATES = new Set(['doing', 'active', 'in_progress', 'development', 'in_development'])
 const DECISION_STATES = new Set(['blocked', 'waiting', 'needs_decision', 'client_decision', 'waiting_for_client', 'waiting_for_assignment'])
 const REVIEW_STATES = new Set(['review', 'ready_for_review', 'in_review', 'festag_review', 'suggested', 'zur_pruefung', 'verified', 'approved', 'festag_checked'])
+const PROJECT_COLOR_SYNC_EVENT = 'festag-project-color-change'
 
 function normalizeStatus(status?: string | null) {
   const value = (status || 'todo').toLowerCase()
@@ -198,7 +199,7 @@ function taskGroupFor(task: TaskRow) {
     return { label: 'Ablauf', icon: SlidersHorizontal, color: '#64748b' }
   }
 
-  return { label: 'Planung', icon: FileText, color: 'var(--text-muted)' }
+  return { label: 'Planung', icon: FileText, color: '#4E5567' }
 }
 
 export default function TasksPage() {
@@ -222,6 +223,7 @@ export default function TasksPage() {
   const [creatingSuggestion, setCreatingSuggestion] = useState(false)
   const [composerNotice, setComposerNotice] = useState('')
   const [tagroPreview, setTagroPreview] = useState<TagroPreview | null>(null)
+  const [expandedProjectIds, setExpandedProjectIds] = useState<string[]>([])
 
   const supabase = createClient()
 
@@ -252,10 +254,28 @@ export default function TasksPage() {
     }
   }, [])
 
+  useEffect(() => {
+    const onProjectColor = (event: Event) => {
+      if (!(event instanceof CustomEvent)) return
+      const projectId = event.detail?.projectId
+      const color = event.detail?.color
+      if (!projectId || !color) return
+      setProjects((current) => current.map((project) => project.id === projectId ? { ...project, color } : project))
+    }
+    window.addEventListener(PROJECT_COLOR_SYNC_EVENT, onProjectColor)
+    return () => window.removeEventListener(PROJECT_COLOR_SYNC_EVENT, onProjectColor)
+  }, [])
+
   const projectById = useMemo(() => {
     return new Map(projects.map((project) => [project.id, project]))
   }, [projects])
   const hasProjects = projects.length > 0
+
+  function updateProjectColor(projectId: string, color: string) {
+    setProjects((current) => current.map((project) => project.id === projectId ? { ...project, color } : project))
+    window.dispatchEvent(new CustomEvent(PROJECT_COLOR_SYNC_EVENT, { detail: { projectId, color } }))
+    void (supabase as any).from('projects').update({ color }).eq('id', projectId)
+  }
 
   const visibleTasks = useMemo(() => {
     const priorityRank: Record<string, number> = { critical: 0, high: 1, medium: 2, low: 3 }
@@ -277,6 +297,48 @@ export default function TasksPage() {
       })
   }, [tasks, view, sortMode, projectById])
 
+  const taskProjectGroups = useMemo(() => {
+    const fallbackProject = { id: 'projectless', title: 'Ohne Projekt', color: '#4E5567' }
+    const groupMap = new Map<string, { id: string; title: string; color?: string | null; tasks: TaskRow[] }>()
+    const orderedProjects = [...projects].sort((a, b) => a.title.localeCompare(b.title, 'de'))
+
+    for (const project of orderedProjects) {
+      groupMap.set(project.id, { id: project.id, title: project.title, color: project.color, tasks: [] })
+    }
+
+    for (const task of visibleTasks) {
+      const project = task.project_id ? projectById.get(task.project_id) : null
+      const id = project?.id || fallbackProject.id
+      if (!groupMap.has(id)) {
+        groupMap.set(id, {
+          id,
+          title: project?.title || fallbackProject.title,
+          color: project?.color || fallbackProject.color,
+          tasks: [],
+        })
+      }
+      groupMap.get(id)?.tasks.push(task)
+    }
+
+    return Array.from(groupMap.values()).filter((group) => group.tasks.length > 0)
+  }, [projects, projectById, visibleTasks])
+
+  useEffect(() => {
+    if (!taskProjectGroups.length) return
+    setExpandedProjectIds((current) => {
+      const validIds = new Set(taskProjectGroups.map((group) => group.id))
+      const next = new Set(current.filter((id) => validIds.has(id)))
+      let changed = next.size !== current.length
+      for (const group of taskProjectGroups) {
+        if (!next.has(group.id)) {
+          next.add(group.id)
+          changed = true
+        }
+      }
+      return changed ? Array.from(next) : current
+    })
+  }, [taskProjectGroups])
+
   const doneCount = tasks.filter((task) => normalizeStatus(taskState(task)) === 'done').length
   const reviewCount = tasks.filter((task) => normalizeStatus(taskState(task)) === 'review').length
   const decisionCount = tasks.filter((task) => normalizeStatus(taskState(task)) === 'decision').length
@@ -285,6 +347,14 @@ export default function TasksPage() {
 
   function openTaskDetail(task: TaskRow) {
     router.push(task.project_id ? `/projects/${task.project_id}/tasks/${task.id}` : `/tasks/${task.id}`)
+  }
+
+  function toggleProjectGroup(projectId: string) {
+    setExpandedProjectIds((current) => (
+      current.includes(projectId)
+        ? current.filter((id) => id !== projectId)
+        : [...current, projectId]
+    ))
   }
 
   function resetComposer() {
@@ -376,6 +446,7 @@ export default function TasksPage() {
     <div className="task-os">
       <style>{`
         .task-os {
+          --task-soft-text:#4E5567;
           width:100%;
           height:100%;
           min-height:0;
@@ -384,6 +455,11 @@ export default function TasksPage() {
           display:flex;
           flex-direction:column;
           overflow:hidden;
+        }
+        [data-theme="dark"] .task-os,
+        [data-theme="classic-dark"] .task-os,
+        [data-theme="read"] .task-os {
+          --task-soft-text:var(--text-secondary);
         }
         .task-static-top {
           flex:0 0 auto;
@@ -419,7 +495,7 @@ export default function TasksPage() {
           height:28px;
           border:0;
           background:transparent;
-          color:var(--text-muted);
+          color:var(--task-soft-text);
           cursor:pointer;
           border-radius:7px;
           font:inherit;
@@ -448,7 +524,7 @@ export default function TasksPage() {
           border:1px solid var(--border);
           border-radius:999px;
           background:transparent;
-          color:var(--text-secondary);
+          color:var(--task-soft-text);
           font:inherit;
           font-size:11.5px;
           font-weight:400;
@@ -473,7 +549,7 @@ export default function TasksPage() {
           border:1px solid transparent;
           border-radius:8px;
           background:transparent;
-          color:var(--text-secondary);
+          color:var(--task-soft-text);
           display:flex;
           align-items:center;
           gap:8px;
@@ -485,7 +561,7 @@ export default function TasksPage() {
         .task-create:hover { background:var(--surface-2); color:var(--text); }
         .task-create:disabled {
           opacity:.46;
-          color:var(--text-muted);
+          color:var(--task-soft-text);
         }
         .task-create svg { flex-shrink:0; }
         .task-tool-wrap { position:relative; }
@@ -495,7 +571,7 @@ export default function TasksPage() {
           border:1px solid var(--border);
           border-radius:999px;
           background:var(--surface);
-          color:var(--text-muted);
+          color:var(--task-soft-text);
           display:flex;
           align-items:center;
           justify-content:center;
@@ -522,7 +598,7 @@ export default function TasksPage() {
           align-items:center;
           justify-content:space-between;
           padding:0 9px;
-          color:var(--text-secondary);
+          color:var(--task-soft-text);
           font:inherit;
           font-size:12px;
           font-weight:600;
@@ -546,7 +622,7 @@ export default function TasksPage() {
           z-index:5;
           min-height:36px;
           padding:0 10px;
-          color:var(--text-muted);
+          color:var(--task-soft-text);
           font-size:11.5px;
           font-weight:400;
           border-bottom:0;
@@ -561,13 +637,109 @@ export default function TasksPage() {
           min-height:50px;
           padding:0 10px;
           border-bottom:0;
-          color:var(--text-secondary);
+          color:var(--task-soft-text);
           font-size:12px;
           border-radius:8px;
           cursor:pointer;
         }
         .task-row:hover {
           background:color-mix(in srgb, var(--surface-2) 58%, transparent);
+        }
+        .task-project-section {
+          margin:5px 0 8px;
+          animation:taskGroupIn .22s cubic-bezier(.16,1,.3,1) both;
+          animation-delay:calc(var(--section-index, 0) * 34ms);
+        }
+        @keyframes taskGroupIn {
+          from { opacity:0; transform:translateY(7px); }
+          to { opacity:1; transform:none; }
+        }
+        .task-project-row {
+          width:100%;
+          min-height:40px;
+          display:grid;
+          grid-template-columns:54px minmax(220px,1fr) minmax(128px,.55fr) 28px;
+          align-items:center;
+          gap:8px;
+          padding:0 10px;
+          border:0;
+          border-radius:8px;
+          background:color-mix(in srgb, var(--surface-2) 42%, transparent);
+          color:var(--task-soft-text);
+          font:inherit;
+          text-align:left;
+          cursor:pointer;
+        }
+        .task-project-row:hover {
+          background:color-mix(in srgb, var(--surface-2) 62%, transparent);
+          color:var(--text);
+        }
+        .task-project-dot {
+          width:12px;
+          height:12px;
+          border-radius:999px;
+          border:2px solid var(--project-color, var(--task-soft-text));
+          background:transparent;
+          justify-self:center;
+        }
+        .task-project-title {
+          display:flex;
+          align-items:center;
+          gap:9px;
+          min-width:0;
+          color:var(--text);
+          font-size:12.5px;
+          font-weight:500;
+        }
+        .task-project-title span {
+          overflow:hidden;
+          text-overflow:ellipsis;
+          white-space:nowrap;
+        }
+        .task-project-count {
+          color:var(--task-soft-text);
+          font-size:11.5px;
+          font-weight:400;
+        }
+        .task-project-meta {
+          color:var(--task-soft-text);
+          font-size:11.5px;
+          font-weight:400;
+          text-align:right;
+          overflow:hidden;
+          text-overflow:ellipsis;
+          white-space:nowrap;
+        }
+        .task-project-chevron {
+          justify-self:center;
+          color:var(--task-soft-text);
+          transform:rotate(90deg);
+          transition:transform .2s cubic-bezier(.16,1,.3,1), color .12s ease;
+        }
+        .task-project-section:not(.open) .task-project-chevron {
+          transform:rotate(0deg);
+        }
+        .task-project-tasks {
+          display:grid;
+          grid-template-rows:0fr;
+          overflow:hidden;
+          transition:grid-template-rows .28s cubic-bezier(.16,1,.3,1);
+        }
+        .task-project-section.open .task-project-tasks {
+          grid-template-rows:1fr;
+        }
+        .task-project-tasks-inner {
+          min-height:0;
+          overflow:hidden;
+          padding-top:6px;
+        }
+        .task-project-section.open .task-row {
+          animation:taskRowSlideIn .22s cubic-bezier(.16,1,.3,1) both;
+          animation-delay:calc(var(--row-index, 0) * 24ms);
+        }
+        @keyframes taskRowSlideIn {
+          from { opacity:0; transform:translateY(-5px); }
+          to { opacity:1; transform:none; }
         }
         .task-composer {
           border:1px solid var(--border);
@@ -591,7 +763,7 @@ export default function TasksPage() {
           letter-spacing:.02em;
         }
         .task-composer-title span {
-          color:var(--text-muted);
+          color:var(--task-soft-text);
           font-size:11.5px;
           font-weight:400;
         }
@@ -623,6 +795,25 @@ export default function TasksPage() {
           background:color-mix(in srgb, var(--surface-2) 48%, transparent);
           color:var(--text);
         }
+        .task-project-ring {
+          position:relative;
+          width:12px;
+          height:12px;
+          border-radius:999px;
+          border:2px solid var(--project-ring, var(--task-soft-text));
+          background:transparent;
+          flex-shrink:0;
+          display:inline-flex;
+        }
+        .task-project-ring input {
+          position:absolute;
+          inset:-7px;
+          width:26px;
+          height:26px;
+          opacity:0;
+          padding:0;
+          border:0;
+        }
         .task-project-select select,
         .task-composer-field,
         .task-chip-field {
@@ -631,35 +822,36 @@ export default function TasksPage() {
           background:transparent;
           color:inherit;
           font:inherit;
+          font-weight:400;
         }
-        .task-project-select select { max-width:280px; font-size:12.5px; font-weight:600; }
-        .task-composer-body { padding:16px; }
-        .task-mode-tabs { display:flex; gap:8px; margin-bottom:12px; }
+        .task-project-select select { max-width:280px; font-size:12.5px; font-weight:500; }
+        .task-composer-body { padding:13px 16px 12px; }
+        .task-mode-tabs { display:flex; gap:7px; margin-bottom:10px; }
         .task-mode-tabs button {
-          min-height:44px;
-          padding:0 13px;
+          min-height:32px;
+          padding:0 12px;
           border-radius:999px;
           border:1px solid var(--border);
           background:transparent;
-          color:var(--text-secondary);
+          color:var(--task-soft-text);
           font:inherit;
-          font-size:12.5px;
+          font-size:12px;
           font-weight:400;
           cursor:pointer;
         }
         .task-mode-tabs button.on {
-          background:var(--surface-2);
+          background:color-mix(in srgb, var(--surface-2) 62%, transparent);
           color:var(--text);
         }
         .task-tagro-note {
-          padding:12px 13px;
-          border-radius:12px;
+          padding:8px 11px;
+          border-radius:10px;
           border:1px solid var(--border);
-          background:color-mix(in srgb, var(--surface-2) 46%, transparent);
-          color:var(--text-secondary);
-          font-size:12.5px;
-          line-height:1.55;
-          margin-bottom:14px;
+          background:color-mix(in srgb, var(--surface-2) 34%, transparent);
+          color:var(--task-soft-text);
+          font-size:12px;
+          line-height:1.45;
+          margin-bottom:12px;
         }
         .task-preview {
           display:grid;
@@ -677,7 +869,7 @@ export default function TasksPage() {
         }
         .task-preview p,
         .task-preview li {
-          color:var(--text-secondary);
+          color:var(--task-soft-text);
           font-size:12px;
           line-height:1.5;
           margin:0;
@@ -693,7 +885,7 @@ export default function TasksPage() {
           border:1px solid color-mix(in srgb, var(--amber) 28%, var(--border));
           border-radius:10px;
           background:color-mix(in srgb, var(--amber-bg) 72%, transparent);
-          color:var(--text-secondary);
+          color:var(--task-soft-text);
           font-size:12px;
           line-height:1.45;
           margin:0 0 12px;
@@ -701,29 +893,35 @@ export default function TasksPage() {
         .task-composer-field.title {
           width:100%;
           display:block;
-          font-size:22px;
+          font-size:18px;
           font-weight:500;
           letter-spacing:0;
-          margin:0 0 8px;
+          margin:0 0 7px;
         }
         .task-composer-field.description {
           width:100%;
-          min-height:86px;
+          min-height:72px;
           resize:vertical;
-          color:var(--text-secondary);
-          font-size:14px;
-          line-height:1.6;
+          color:var(--task-soft-text);
+          font-size:13px;
+          line-height:1.55;
+          font-weight:400;
+        }
+        .task-composer-field::placeholder,
+        .task-chip-field::placeholder {
+          color:var(--task-soft-text);
+          opacity:1;
         }
         .task-chip-row {
           display:flex;
           align-items:center;
           flex-wrap:wrap;
           gap:7px;
-          padding:12px 16px 14px;
+          padding:10px 16px 11px;
           border-top:1px solid var(--border);
         }
         .task-composer-chip {
-          height:28px;
+          height:26px;
           display:inline-flex;
           align-items:center;
           gap:7px;
@@ -731,41 +929,41 @@ export default function TasksPage() {
           border-radius:9px;
           padding:0 10px;
           background:transparent;
-          color:var(--text-secondary);
+          color:var(--task-soft-text);
           font-size:12px;
-          font-weight:600;
+          font-weight:500;
         }
         .task-composer-chip.has-value { color:var(--text); }
         .task-composer-chip input[type="date"] { color-scheme:inherit; max-width:124px; }
         .task-composer-footer {
-          min-height:46px;
+          min-height:42px;
           display:flex;
           align-items:center;
           justify-content:space-between;
           gap:12px;
           padding:8px 16px;
           border-top:1px solid var(--border);
-          color:var(--text-muted);
-          font-size:12px;
-          font-weight:600;
+          color:var(--task-soft-text);
+          font-size:11.5px;
+          font-weight:400;
         }
         .task-composer-actions { display:flex; align-items:center; gap:8px; }
         .task-composer-actions button {
-          min-height:44px;
-          padding:0 14px;
-          border-radius:9px;
+          min-height:34px;
+          padding:0 13px;
+          border-radius:999px;
           border:1px solid var(--border);
           background:transparent;
-          color:var(--text-secondary);
+          color:var(--task-soft-text);
           font:inherit;
-          font-size:12.5px;
-          font-weight:600;
+          font-size:12px;
+          font-weight:500;
           cursor:pointer;
         }
         .task-composer-actions button.primary {
-          background:var(--btn-prim);
-          color:var(--btn-prim-text);
-          border-color:transparent;
+          background:color-mix(in srgb, var(--surface-2) 74%, transparent);
+          color:var(--text);
+          border-color:var(--border);
         }
         .task-composer-actions button:disabled {
           opacity:.48;
@@ -784,9 +982,9 @@ export default function TasksPage() {
           display:flex;
           align-items:center;
           justify-content:center;
-          background:color-mix(in srgb, currentColor 8%, transparent);
-          color:var(--text-muted);
-          border:1px solid color-mix(in srgb, currentColor 20%, transparent);
+          background:color-mix(in srgb, var(--surface-2) 42%, transparent);
+          color:var(--task-soft-text);
+          border:0;
         }
         .task-name {
           display:flex;
@@ -794,21 +992,66 @@ export default function TasksPage() {
           gap:10px;
           min-width:0;
         }
+        .task-state-wrap {
+          position:relative;
+          flex:0 0 auto;
+          display:inline-flex;
+          align-items:center;
+        }
         .task-state-mark {
-          width:18px;
-          height:18px;
+          width:16px;
+          height:16px;
           border-radius:50%;
-          border:1.5px solid var(--border-strong);
+          border:1.25px solid color-mix(in srgb, var(--task-soft-text) 36%, var(--border));
           color:var(--btn-prim-text);
           display:flex;
           align-items:center;
           justify-content:center;
           flex-shrink:0;
           background:transparent;
+          padding:0;
+          transition:border-color .12s ease, background .12s ease, transform .12s ease;
+        }
+        .task-state-wrap:hover .task-state-mark,
+        .task-state-mark:focus-visible {
+          border-color:color-mix(in srgb, var(--task-soft-text) 78%, var(--border));
+          transform:scale(1.03);
         }
         .task-state-mark.done {
           border-color:var(--btn-prim);
           background:var(--btn-prim);
+        }
+        .task-state-popover {
+          position:absolute;
+          left:24px;
+          top:50%;
+          width:244px;
+          transform:translateY(-50%) translateX(-4px);
+          opacity:0;
+          pointer-events:none;
+          z-index:30;
+          padding:10px 11px;
+          border-radius:10px;
+          border:1px solid color-mix(in srgb, var(--border) 86%, transparent);
+          background:color-mix(in srgb, var(--surface) 96%, transparent);
+          box-shadow:0 16px 36px rgba(15,23,42,.12);
+          color:var(--task-soft-text);
+          font-size:11.5px;
+          line-height:1.45;
+          letter-spacing:.01em;
+          transition:opacity .14s ease, transform .14s ease;
+        }
+        .task-state-popover strong {
+          display:block;
+          margin-bottom:3px;
+          color:var(--text);
+          font-size:11.5px;
+          font-weight:500;
+        }
+        .task-state-wrap:hover .task-state-popover,
+        .task-state-wrap:focus-within .task-state-popover {
+          opacity:1;
+          transform:translateY(-50%) translateX(0);
         }
         .task-name-text {
           min-width:0;
@@ -825,7 +1068,7 @@ export default function TasksPage() {
         .task-name-text span {
           display:block;
           margin-top:2px;
-          color:var(--text-muted);
+          color:var(--task-soft-text);
           font-size:11.5px;
           overflow:hidden;
           text-overflow:ellipsis;
@@ -836,7 +1079,7 @@ export default function TasksPage() {
           align-items:center;
           gap:0;
           min-width:0;
-          color:color-mix(in srgb, var(--text-secondary) 82%, var(--text));
+          color:var(--task-soft-text);
           font-weight:400;
           font-size:12px;
         }
@@ -849,7 +1092,7 @@ export default function TasksPage() {
           align-items:center;
           gap:8px;
           justify-content:flex-start;
-          color:var(--text-secondary);
+          color:var(--task-soft-text);
           font-weight:400;
           font-size:12px;
         }
@@ -881,7 +1124,7 @@ export default function TasksPage() {
           justify-content:center;
           background:var(--surface-2);
           border:1px solid var(--border);
-          color:var(--text-secondary);
+          color:var(--task-soft-text);
           font-size:10px;
           font-weight:600;
           flex-shrink:0;
@@ -889,7 +1132,7 @@ export default function TasksPage() {
         .task-empty {
           padding:44px 12px;
           text-align:center;
-          color:var(--text-muted);
+          color:var(--task-soft-text);
           border-bottom:1px solid color-mix(in srgb, var(--border) 24%, transparent);
           font-size:12px;
           font-weight:400;
@@ -912,7 +1155,7 @@ export default function TasksPage() {
         }
         .task-empty.projectless p {
           margin:0;
-          color:var(--text-secondary);
+          color:var(--task-soft-text);
           font-size:13px;
           line-height:1.5;
         }
@@ -938,7 +1181,7 @@ export default function TasksPage() {
           font-weight:500;
         }
         .task-count-summary {
-          color:var(--text-muted);
+          color:var(--task-soft-text);
           font-size:11.5px;
           font-weight:400;
           padding-left:4px;
@@ -953,6 +1196,10 @@ export default function TasksPage() {
             grid-template-columns:46px minmax(160px,1.6fr) minmax(112px,.8fr) 66px 86px 70px 46px 70px;
             gap:7px;
           }
+          .task-project-row {
+            grid-template-columns:46px minmax(180px,1fr) minmax(100px,.5fr) 26px;
+            gap:7px;
+          }
         }
         @media(max-width:960px) {
           .task-os { padding:16px 14px 0; }
@@ -962,6 +1209,12 @@ export default function TasksPage() {
           .task-row {
             grid-template-columns:42px minmax(150px,1.8fr) minmax(108px,.85fr) 60px 74px 62px 42px 62px;
             gap:6px;
+          }
+          .task-project-row {
+            grid-template-columns:42px minmax(150px,1fr) 26px;
+          }
+          .task-project-meta {
+            display:none;
           }
           .task-head { font-size:10.5px; }
           .task-row { font-size:11.5px; }
@@ -1022,6 +1275,23 @@ export default function TasksPage() {
           .task-head {
             display:none;
           }
+          .task-project-section {
+            margin:7px 0 9px;
+          }
+          .task-project-row {
+            grid-template-columns:24px minmax(0,1fr) 22px;
+            min-height:38px;
+            padding:0 10px;
+          }
+          .task-project-dot {
+            justify-self:start;
+          }
+          .task-project-title {
+            font-size:12.5px;
+          }
+          .task-project-count {
+            margin-left:auto;
+          }
           .task-row {
             display:grid;
             grid-template-columns:minmax(0, 1fr);
@@ -1066,15 +1336,15 @@ export default function TasksPage() {
             align-items:center;
             justify-content:space-between;
             gap:10px;
-            color:var(--text-secondary);
+            color:var(--task-soft-text);
             font-size:11.5px;
           }
-          .task-health::before { content:'Letztes Update'; color:var(--text-muted); }
-          .task-row > div:nth-child(4)::before { content:'Priorität'; color:var(--text-muted); }
-          .task-row > div:nth-child(5)::before { content:'Verantwortlich'; color:var(--text-muted); }
-          .task-row > div:nth-child(6)::before { content:'Datum'; color:var(--text-muted); }
-          .task-row > div:nth-child(7)::before { content:'Quelle'; color:var(--text-muted); }
-          .task-progress::before { content:'Fortschritt'; color:var(--text-muted); margin-right:auto; }
+          .task-health::before { content:'Letztes Update'; color:var(--task-soft-text); }
+          .task-row > div:nth-child(4)::before { content:'Priorität'; color:var(--task-soft-text); }
+          .task-row > div:nth-child(5)::before { content:'Verantwortlich'; color:var(--task-soft-text); }
+          .task-row > div:nth-child(6)::before { content:'Datum'; color:var(--task-soft-text); }
+          .task-row > div:nth-child(7)::before { content:'Quelle'; color:var(--task-soft-text); }
+          .task-progress::before { content:'Fortschritt'; color:var(--task-soft-text); margin-right:auto; }
           .task-empty {
             padding:34px 10px;
             font-size:11.5px;
@@ -1209,24 +1479,27 @@ export default function TasksPage() {
             <div style={{ display:'flex', alignItems:'center', gap:9, minWidth:0 }}>
               <label className="task-project-select">
                 <span
-                  style={{
-                    width:9,
-                    height:9,
-                    borderRadius:3,
-                    background:projectById.get(suggestProjectId)?.color || 'var(--text-muted)',
-                    flexShrink:0,
-                  }}
-                />
+                  className="task-project-ring"
+                  style={{ ['--project-ring' as string]: projectById.get(suggestProjectId)?.color || 'var(--task-soft-text)' }}
+                  title="Projektfarbe ändern"
+                >
+                  <input
+                    aria-label="Projektfarbe ändern"
+                    type="color"
+                    value={(projectById.get(suggestProjectId)?.color || '#64748b').startsWith('#') ? projectById.get(suggestProjectId)?.color || '#64748b' : '#64748b'}
+                    onChange={(event) => suggestProjectId && updateProjectColor(suggestProjectId, event.target.value)}
+                  />
+                </span>
                 <select value={suggestProjectId} onChange={(event) => setSuggestProjectId(event.target.value)}>
                   {projects.map((project) => (
                     <option key={project.id} value={project.id}>{project.title}</option>
                   ))}
                 </select>
               </label>
-              <span style={{ color:'var(--text-muted)', fontSize:12 }}>›</span>
+              <span style={{ color:'var(--task-soft-text)', fontSize:12 }}>›</span>
               <span className="task-composer-title">
                 <strong>Aufgabe oder Wunsch vorschlagen</strong>
-                <span>Beschreibe, was geändert, ergänzt oder geprüft werden soll.</span>
+                <span>Kurz beschreiben, Tagro ordnet ein.</span>
               </span>
             </div>
             <button className="task-plus" type="button" aria-label="Vorschlag schließen" onClick={closeComposer}>
@@ -1246,12 +1519,12 @@ export default function TasksPage() {
 
             {composerMode === 'tagro' && (
               <div className="task-tagro-note">
-                Tagro ordnet deinen Vorschlag dem Projektkontext zu und bereitet ihn sauber für die Umsetzung vor.
+                Tagro prüft Kontext und Übergabe.
               </div>
             )}
             {composerMode === 'manual' && (
               <div className="task-tagro-note">
-                Diese Aufgabe wird direkt an den Projekt-Workflow weitergeleitet und erscheint beim zuständigen Entwickler.
+                Direkt an den Projekt-Workflow.
               </div>
             )}
             {composerNotice ? <div className="task-notice">{composerNotice}</div> : null}
@@ -1275,7 +1548,7 @@ export default function TasksPage() {
               className="task-composer-field title"
               value={suggestTitle}
               onChange={(event) => { setSuggestTitle(event.target.value); setTagroPreview(null) }}
-              placeholder="Welche Aufgabe möchtest du vorschlagen?"
+              placeholder="Aufgabe kurz benennen…"
               autoFocus
             />
             <textarea
@@ -1288,7 +1561,7 @@ export default function TasksPage() {
 
           <div className="task-chip-row">
             <span className="task-composer-chip has-value">
-              <span style={{ width:7, height:7, borderRadius:'50%', background:'#6366f1' }} />
+              <span style={{ width:7, height:7, borderRadius:'50%', border:'1.5px solid currentColor', opacity:.72 }} />
               Zur Prüfung
             </span>
             <label className={`task-composer-chip ${suggestPriority !== 'none' ? 'has-value' : ''}`}>
@@ -1300,7 +1573,7 @@ export default function TasksPage() {
               </select>
             </label>
             <label className={`task-composer-chip ${suggestDueDate ? 'has-value' : ''}`}>
-              Due date
+              Datum
               <input className="task-chip-field" type="date" value={suggestDueDate} onChange={(event) => setSuggestDueDate(event.target.value)} />
             </label>
             <label className="task-composer-chip">
@@ -1315,7 +1588,7 @@ export default function TasksPage() {
                     addSuggestionLabel()
                   }
                 }}
-                placeholder="Enter"
+                placeholder="Hinzufügen"
                 style={{ width:72 }}
               />
             </label>
@@ -1335,7 +1608,7 @@ export default function TasksPage() {
           </div>
 
           <div className="task-composer-footer">
-            <span>{composerMode === 'tagro' ? 'Empfohlen: erst strukturieren, dann als Aufgabe erstellen.' : 'Wenn kein Entwickler zugewiesen ist: Die Aufgabe wird erstellt und wartet auf Zuweisung.'}</span>
+            <span>{composerMode === 'tagro' ? 'Tagro prüft Kontext und Übergabe.' : 'Wartet ggf. auf Zuweisung.'}</span>
             <div className="task-composer-actions">
               <button type="button" onClick={closeComposer}>Abbrechen</button>
               <button
@@ -1367,65 +1640,119 @@ export default function TasksPage() {
           <div className="task-empty">Lade Aufgaben…</div>
         ) : visibleTasks.length === 0 ? (
           <div className="task-empty">Keine Aufgaben in dieser Ansicht.</div>
-        ) : visibleTasks.map((task) => {
-          const project = task.project_id ? projectById.get(task.project_id) : null
-          const normalized = normalizeStatus(taskState(task))
-          const isDone = normalized === 'done'
-          const progress = typeof task.progress === 'number' ? task.progress : progressFor(taskState(task))
-          const lead = task.developer_name || task.owner || task.assigned_to || 'Entwickler'
-          const group = taskGroupFor(task)
-          const GroupIcon = group.icon
+        ) : taskProjectGroups.map((projectGroup, sectionIndex) => {
+          const expanded = expandedProjectIds.includes(projectGroup.id)
+          const doneInGroup = projectGroup.tasks.filter((task) => normalizeStatus(taskState(task)) === 'done').length
+          const latestTask = [...projectGroup.tasks].sort((a, b) => new Date(b.updated_at || b.created_at || 0).getTime() - new Date(a.updated_at || a.created_at || 0).getTime())[0]
 
           return (
-            <div
-              key={task.id}
-              className="task-row"
-              role="button"
-              tabIndex={0}
-              onClick={() => openTaskDetail(task)}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter' || event.key === ' ') {
-                  event.preventDefault()
-                  openTaskDetail(task)
-                }
-              }}
+            <section
+              key={projectGroup.id}
+              className={`task-project-section${expanded ? ' open' : ''}`}
+              style={{ ['--section-index' as string]: sectionIndex }}
             >
-              <div className="task-group-cell" title={`Gruppe: ${group.label}`}>
-                <span className="task-group-icon" style={{ color: group.color }}>
-                  <GroupIcon size={15} weight="regular" />
+              <button
+                type="button"
+                className="task-project-row"
+                aria-expanded={expanded}
+                onClick={() => toggleProjectGroup(projectGroup.id)}
+              >
+                <span className="task-project-dot" style={{ ['--project-color' as string]: projectGroup.color || 'var(--task-soft-text)' }} />
+                <span className="task-project-title">
+                  <span>{projectGroup.title}</span>
+                  <span className="task-project-count">{projectGroup.tasks.length} Aufgabe{projectGroup.tasks.length === 1 ? '' : 'n'}</span>
                 </span>
-              </div>
-              <div className="task-name">
-                <span className={`task-state-mark${isDone ? ' done' : ''}`} aria-label={isDone ? 'Erledigt' : 'Offen'}>
-                  {isDone ? <Check size={11} weight="bold" /> : null}
+                <span className="task-project-meta">
+                  {doneInGroup} erledigt · Update {dateLabel(latestTask?.updated_at || latestTask?.created_at)}
                 </span>
-                <span className="task-name-text">
-                  <strong>{task.title}</strong>
-                  <span>{project?.title || 'Kein Projekt zugeordnet'}</span>
-                </span>
+                <span className="task-project-chevron" aria-hidden="true">›</span>
+              </button>
+
+              <div className="task-project-tasks">
+                <div className="task-project-tasks-inner">
+                  {projectGroup.tasks.map((task, rowIndex) => {
+                    const project = task.project_id ? projectById.get(task.project_id) : null
+                    const normalized = normalizeStatus(taskState(task))
+                    const isDone = normalized === 'done'
+                    const progress = typeof task.progress === 'number' ? task.progress : progressFor(taskState(task))
+                    const lead = task.developer_name || task.owner || task.assigned_to || 'Entwickler'
+                    const group = taskGroupFor(task)
+                    const GroupIcon = group.icon
+
+                    return (
+                      <div
+                        key={task.id}
+                        className="task-row"
+                        role="button"
+                        tabIndex={expanded ? 0 : -1}
+                        style={{ ['--row-index' as string]: rowIndex }}
+                        onClick={() => openTaskDetail(task)}
+                        onKeyDown={(event) => {
+                          if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault()
+                            openTaskDetail(task)
+                          }
+                        }}
+                      >
+                        <div className="task-group-cell" title={`Gruppe: ${group.label}`}>
+                          <span className="task-group-icon">
+                            <GroupIcon size={14} weight="regular" />
+                          </span>
+                        </div>
+                        <div className="task-name">
+                          <span className="task-state-wrap">
+                            <button
+                              type="button"
+                              className={`task-state-mark${isDone ? ' done' : ''}`}
+                              aria-label={isDone ? 'Erledigt-Logik anzeigen' : 'Status-Logik anzeigen'}
+                              tabIndex={expanded ? 0 : -1}
+                              onClick={(event) => {
+                                event.preventDefault()
+                                event.stopPropagation()
+                              }}
+                              onKeyDown={(event) => {
+                                event.stopPropagation()
+                              }}
+                            >
+                              {isDone ? <Check size={9} weight="bold" /> : null}
+                            </button>
+                            <span className="task-state-popover" role="tooltip">
+                              <strong>So funktioniert Erledigt</strong>
+                              Du kannst eigene Aufgaben löschen. Normalerweise haken Tagro oder der Developer die Aufgabe ab. Danach bleibt sie 24h sichtbar und verschwindet dann nur aus den Standardansichten.
+                            </span>
+                          </span>
+                          <span className="task-name-text">
+                            <strong>{task.title}</strong>
+                            <span>{project?.title || 'Kein Projekt zugeordnet'}</span>
+                          </span>
+                        </div>
+
+                        <div className={`task-health ${normalized}`}>
+                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {healthLabel(task)}
+                          </span>
+                        </div>
+
+                        <div>{priorityLabel(task.priority)}</div>
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 7, minWidth: 0 }}>
+                          <span className="task-lead-avatar">{lead.charAt(0).toUpperCase()}</span>
+                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{lead}</span>
+                        </div>
+
+                        <div>{dateLabel(task.updated_at || task.created_at)}</div>
+                        <div>{sourceLabel(task.source)}</div>
+
+                        <div className="task-progress" title={statusLabel(taskState(task))}>
+                          <span className={`task-progress-dot ${normalized}`} />
+                          <span>{normalized === 'done' ? '100%' : `${progress}%`}</span>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
               </div>
-
-              <div className={`task-health ${normalized}`}>
-                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {healthLabel(task)}
-                </span>
-              </div>
-
-              <div>{priorityLabel(task.priority)}</div>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: 7, minWidth: 0 }}>
-                <span className="task-lead-avatar">{lead.charAt(0).toUpperCase()}</span>
-                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{lead}</span>
-              </div>
-
-              <div>{dateLabel(task.updated_at || task.created_at)}</div>
-              <div>{sourceLabel(task.source)}</div>
-
-              <div className="task-progress" title={statusLabel(taskState(task))}>
-                <span className={`task-progress-dot ${normalized}`} />
-                <span>{normalized === 'done' ? '100%' : `${progress}%`}</span>
-              </div>
-            </div>
+            </section>
           )
         })}
       </div>}

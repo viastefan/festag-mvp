@@ -106,7 +106,7 @@ export default function ClientAppShell({
 
   return (
     <div
-      className="festag-app-shell"
+      className={`festag-app-shell${sidebarCollapsed ? ' sidebar-collapsed' : ''}`}
       style={{ '--app-sidebar-width': sidebarWidth } as React.CSSProperties}
     >
       <style>{`
@@ -115,6 +115,10 @@ export default function ClientAppShell({
           to { opacity: 1; transform: translateY(0); }
         }
         .panel-enter { animation: panelFadeIn .22s cubic-bezier(.16,1,.3,1) both; }
+        @keyframes sidebarReturnIn {
+          from { opacity: 0; transform: translateX(-8px); }
+          to { opacity: 1; transform: translateX(0); }
+        }
         .festag-app-shell {
           position: fixed;
           inset: 0;
@@ -138,6 +142,37 @@ export default function ClientAppShell({
           background: var(--surface);
           box-shadow: 0 0 0 1px rgba(255,255,255,.03);
           transition: left .18s cubic-bezier(.16,1,.3,1), border-color .18s ease, background .18s ease;
+        }
+        .sidebar-collapsed .app-workspace :where(.task-top, .projects-top, .reports-commandline, .page-header, .task-detail-crumbs) {
+          padding-left: 44px;
+          transition: padding-left .18s cubic-bezier(.16,1,.3,1);
+        }
+        .app-sidebar-return {
+          position: fixed;
+          top: 22px;
+          left: 18px;
+          z-index: 210;
+          width: 24px;
+          height: 24px;
+          border: 0;
+          border-radius: 8px;
+          background: transparent;
+          color: color-mix(in srgb, var(--text-secondary) 88%, var(--text));
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: none;
+          backdrop-filter: none;
+          -webkit-backdrop-filter: none;
+          animation: sidebarReturnIn .18s cubic-bezier(.16,1,.3,1) both;
+          transition: color .14s ease, transform .14s ease;
+        }
+        .app-sidebar-return:hover {
+          color: var(--text);
+          background: transparent;
+        }
+        .app-sidebar-return:active {
+          transform: scale(.94);
         }
         [data-theme="dark"] .app-workspace {
           background: var(--surface);
@@ -172,8 +207,8 @@ export default function ClientAppShell({
         }
         .app-footer-controls {
           position:fixed;
-          right:0px;
-          bottom:6px;
+          right:12px;
+          bottom:7px;
           z-index:145;
           display:flex;
           flex-direction:row;
@@ -183,7 +218,7 @@ export default function ClientAppShell({
         }
         .app-footer-btn {
           position:relative;
-          height:28px;
+          height:26px;
           border:1px solid transparent;
           background:transparent;
           color:color-mix(in srgb, var(--text-secondary) 78%, var(--accent));
@@ -191,17 +226,17 @@ export default function ClientAppShell({
           align-items:center;
           justify-content:center;
           gap:7px;
-          padding:0 7px;
-          border-radius:999px;
+          padding:0 6px;
+          border-radius:10px;
           font:inherit;
-          font-size:12px;
+          font-size:11.5px;
           font-weight:500;
           text-decoration:none;
           letter-spacing:.02em;
           transition:background .16s ease, border-color .16s ease, color .16s ease;
         }
         .app-footer-btn.icon-only {
-          width:28px;
+          width:26px;
           padding:0;
         }
         .app-footer-btn:hover {
@@ -227,18 +262,18 @@ export default function ClientAppShell({
         .app-footer-theme-menu {
           position:absolute;
           right:0;
-          bottom:calc(100% + 8px);
-          width:244px;
-          padding:10px;
-          border-radius:24px;
+          bottom:calc(100% + 7px);
+          width:196px;
+          padding:7px;
+          border-radius:12px;
           border:1px solid color-mix(in srgb, var(--border) 80%, rgba(255,255,255,.12));
           background:color-mix(in srgb, var(--surface) 92%, rgba(255,255,255,.78));
           box-shadow:
-            0 22px 52px rgba(15,23,42,.18),
-            0 1px 0 rgba(255,255,255,.42) inset,
+            0 16px 38px rgba(15,23,42,.12),
+            0 1px 0 rgba(255,255,255,.32) inset,
             0 0 0 1px rgba(255,255,255,.08);
-          backdrop-filter:blur(26px) saturate(180%);
-          -webkit-backdrop-filter:blur(26px) saturate(180%);
+          backdrop-filter:blur(18px) saturate(150%);
+          -webkit-backdrop-filter:blur(18px) saturate(150%);
           animation:panelFadeIn .18s cubic-bezier(.16,1,.3,1) both;
         }
         [data-theme="dark"] .app-footer-theme-menu,
@@ -246,24 +281,24 @@ export default function ClientAppShell({
         [data-theme="magic-blue"] .app-footer-theme-menu {
           background:color-mix(in srgb, #101215 88%, rgba(18,22,30,.72));
           box-shadow:
-            0 24px 58px rgba(0,0,0,.42),
+            0 18px 42px rgba(0,0,0,.34),
             0 1px 0 rgba(255,255,255,.06) inset,
             0 0 0 1px rgba(255,255,255,.04);
         }
         .app-footer-theme-option {
           width:100%;
-          min-height:52px;
+          min-height:38px;
           border:0;
-          border-radius:16px;
+          border-radius:10px;
           background:transparent;
           color:var(--text);
           display:flex;
           align-items:center;
           justify-content:space-between;
-          gap:12px;
-          padding:8px 12px;
+          gap:9px;
+          padding:6px 8px;
           font:inherit;
-          font-size:13.5px;
+          font-size:12px;
           font-weight:500;
           text-align:left;
           transition:background .16s ease, color .16s ease, transform .16s ease;
@@ -278,27 +313,27 @@ export default function ClientAppShell({
         }
         .app-footer-theme-option:active { transform:scale(.988); }
         .app-footer-theme-chip {
-          width:44px;
-          height:30px;
-          border-radius:12px;
+          width:32px;
+          height:22px;
+          border-radius:8px;
           border:1px solid rgba(0,0,0,.08);
           display:inline-flex;
           align-items:center;
           justify-content:center;
-          gap:5px;
+          gap:3px;
           flex-shrink:0;
-          font-size:10px;
-          font-weight:700;
+          font-size:9px;
+          font-weight:500;
           letter-spacing:-.02em;
           box-shadow:0 1px 2px rgba(15,23,42,.08) inset;
         }
         .app-footer-theme-chip::before {
           content:'';
-          width:8px;
-          height:8px;
+          width:6px;
+          height:6px;
           border-radius:999px;
           background:#6d6afc;
-          box-shadow:0 0 0 3px rgba(109,106,252,.12);
+          box-shadow:0 0 0 2px rgba(109,106,252,.12);
         }
         .app-footer-theme-chip.dark {
           background:linear-gradient(180deg, #17191d 0%, #0f1114 100%);
@@ -318,8 +353,8 @@ export default function ClientAppShell({
           text-overflow:ellipsis;
         }
         .app-footer-theme-check {
-          width:20px;
-          height:20px;
+          width:16px;
+          height:16px;
           display:inline-flex;
           align-items:center;
           justify-content:center;
@@ -336,29 +371,11 @@ export default function ClientAppShell({
 
       {sidebarCollapsed && (
         <button
+          className="app-sidebar-return"
           type="button"
           aria-label="Sidebar ausklappen"
           title="Sidebar ausklappen"
           onClick={() => setSidebarCollapsed(false)}
-          style={{
-            position:'fixed',
-            top:14,
-            left:14,
-            zIndex:210,
-            width:34,
-            height:34,
-            borderRadius:14,
-            border:'1px solid var(--sidebar-border)',
-            background:'var(--sidebar-bg)',
-            color:'var(--text-secondary)',
-            display:'inline-flex',
-            alignItems:'center',
-            justifyContent:'center',
-            boxShadow:'0 0 0 1px rgba(255,255,255,.03)',
-            backdropFilter:'blur(22px) saturate(180%)',
-            WebkitBackdropFilter:'blur(22px) saturate(180%)',
-            cursor:'pointer',
-          }}
         >
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
             <rect x="4" y="5" width="16" height="14" rx="3" />
