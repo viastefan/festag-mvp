@@ -271,6 +271,18 @@ body.festag-app-mode {
   }
 }
 p,span,div,label,li,td,th { font-weight:400; font-family:var(--font-ui); }
+/* ── Festag-Typo-Gesetz ──
+   Aeonik Regular (400) → 2.0% letter-spacing (.02em)
+   Aeonik Medium  (500) → 1.5% letter-spacing (.015em)
+   Bold/headings behalten ihre eigene optisch-engere Spur. */
+:where(p,span,div,label,li,td,th,a,button,input,textarea,select):where(:not([style*="font-weight"])) {
+  letter-spacing:.02em;
+}
+:where(p,span,div,label,li,td,th,a,button,input,textarea,select)[style*="font-weight:5"],
+:where(p,span,div,label,li,td,th,a,button,input,textarea,select)[style*="font-weight: 5"],
+.fw-medium {
+  letter-spacing:.015em;
+}
 [data-font="aeonik"] :where(p,span,div,label,li,td,th,a,button,input,textarea,select) { letter-spacing:.02em; }
 strong,b { font-weight:700; }
 /* Editorial display sizes — Apple keynote feel */

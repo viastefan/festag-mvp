@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { Plus, Question, X, EnvelopeSimple, Eye, ChatCircle, Trash, Check } from '@phosphor-icons/react'
+import { Plus, Question, X, EnvelopeSimple, Eye, ChatCircle, Trash, Check, UsersThree } from '@phosphor-icons/react'
 import { autoAvatarColor, avatarInitials, avatarTextColor } from '@/lib/avatar'
 
 type Observer = {
@@ -601,7 +601,7 @@ export default function ObserversPage() {
                 <path d="M2 10 L30 10" stroke="var(--text-muted)" strokeWidth="1.4" strokeDasharray="3 3" />
                 <path d="M24 4 L30 10 L24 16" stroke="var(--text-muted)" strokeWidth="1.4" fill="none" />
               </svg>
-              <div className="obs-help-graphic-node" style={{ background:'#A0A8B8' }}>👁</div>
+              <div className="obs-help-graphic-node" style={{ background:'#A0A8B8' }}><UsersThree size={20} weight="bold" /></div>
             </div>
 
             <h2>Was sind Mitbeobachter?</h2>
