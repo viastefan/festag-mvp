@@ -96,13 +96,13 @@ export default function ObserverWelcomeModal() {
           animation:owFade .22s ease both;
         }
         .ow-card {
-          width:min(480px, 100%); max-height:90vh; overflow:auto;
+          width:min(440px, 100%); max-height:90vh; overflow:auto;
           background:var(--surface);
           border:1px solid var(--border);
-          border-radius:18px;
-          padding:36px 32px 28px;
+          border-radius:14px;
+          padding:32px 28px 24px;
           position:relative;
-          box-shadow:0 26px 70px rgba(0,0,0,.22);
+          box-shadow:0 24px 60px rgba(0,0,0,.14);
           animation:owPop .32s cubic-bezier(.16,1,.3,1) both;
           text-align:center;
         }
@@ -123,55 +123,51 @@ export default function ObserverWelcomeModal() {
           animation:owRingPulse 1.6s ease-out 1, owIcoFloat 2.2s ease-in-out infinite;
         }
         .ow-eyebrow {
-          color:var(--text-muted); font-size:11px; font-weight:500;
-          letter-spacing:.18em; text-transform:uppercase;
-          margin:0 0 10px;
+          color:var(--text-muted); font-size:10.5px; font-weight:500;
+          letter-spacing:.2em; text-transform:uppercase;
+          margin:0 0 12px;
         }
         .ow-title {
-          font-size:22px; font-weight:500;
-          letter-spacing:-.014em;
-          color:var(--text); margin:0 0 12px;
-          line-height:1.2;
+          font-size:18px; font-weight:500;
+          letter-spacing:.015em;
+          color:var(--text); margin:0 0 14px;
+          line-height:1.32;
         }
+        .ow-title em { font-family:'Editors Note', serif; font-style:italic; font-weight:500; color:var(--text); }
         .ow-role {
           display:inline-flex; align-items:center;
-          padding:5px 12px; border-radius:999px;
-          background:color-mix(in srgb, var(--accent) 12%, transparent);
-          color:var(--accent);
-          font-size:12.5px; font-weight:500; letter-spacing:.015em;
+          padding:5px 11px; border-radius:999px;
+          background:var(--surface-2);
+          color:var(--text-secondary);
+          font-size:11.5px; font-weight:500; letter-spacing:.015em;
           margin:0 0 18px;
         }
         .ow-body {
-          font-size:14.5px; line-height:1.65; color:var(--text-secondary);
-          letter-spacing:.018em;
-          margin:0 0 22px; max-width:380px; margin-left:auto; margin-right:auto;
+          font-size:13px; line-height:1.65; color:var(--text-secondary);
+          letter-spacing:.015em;
+          margin:0 0 22px; max-width:340px; margin-left:auto; margin-right:auto;
+          font-weight:500;
         }
-        .ow-projects {
-          color:var(--text); font-weight:500;
+        .ow-projects em {
+          font-family:'Editors Note', serif; font-style:italic; font-weight:500; color:var(--text);
         }
         .ow-actions {
-          display:flex; justify-content:center; gap:10px;
-          padding-top:6px;
+          display:flex; justify-content:center; gap:8px;
+          padding-top:4px;
         }
         .ow-btn {
-          height:36px; padding:0 16px; border-radius:999px;
-          font:inherit; font-size:13px; font-weight:500; letter-spacing:.02em;
+          height:34px; padding:0 14px; border-radius:999px;
+          font:inherit; font-size:12.5px; font-weight:500; letter-spacing:.015em;
           cursor:pointer; text-decoration:none;
-          display:inline-flex; align-items:center; gap:8px;
+          display:inline-flex; align-items:center; gap:6px;
           transition:background .12s ease, color .12s ease, border-color .12s ease;
-        }
-        .ow-btn.primary {
-          background:var(--text); color:var(--bg);
-          border:0;
-        }
-        .ow-btn.primary:hover {
-          background:color-mix(in srgb, var(--text) 88%, var(--accent));
-        }
-        .ow-btn.ghost {
-          background:transparent; color:var(--text-secondary);
+          background:transparent;
           border:1px solid var(--border);
+          color:var(--text-secondary);
         }
-        .ow-btn.ghost:hover { background:var(--surface-2); color:var(--text); }
+        .ow-btn:hover { background:var(--surface-2); color:var(--text); border-color:var(--border-strong); }
+        .ow-btn.primary { color:var(--text); border-color:var(--border-strong); }
+        .ow-btn.ghost { color:var(--text-muted); }
       `}</style>
       <div className="ow-card" onClick={e => e.stopPropagation()}>
         <button className="ow-close" onClick={close} aria-label="Schließen"><X size={15} /></button>
@@ -179,16 +175,16 @@ export default function ObserverWelcomeModal() {
           <UsersThree size={28} weight="regular" />
         </div>
         <p className="ow-eyebrow">Willkommen bei Festag</p>
-        <h1 className="ow-title">Du wurdest eingeladen{data.ownerName ? `, von ${data.ownerName}` : ''}.</h1>
+        <h1 className="ow-title">Du wurdest <em>eingeladen</em>{data.ownerName ? `, von ${data.ownerName}` : ''}.</h1>
         <span className="ow-role">{data.role}</span>
         <p className="ow-body">
           {titles.length > 0 ? (
             <>
-              Ab jetzt kannst du <span className="ow-projects">{projectLine}</span> still mitverfolgen
+              Ab jetzt kannst du <span className="ow-projects"><em>{projectLine}</em></span> still mitverfolgen
               und in deiner Rolle mitwirken. Tagro hält dich automatisch auf dem Stand.
             </>
           ) : (
-            <>Ab jetzt kannst du als <strong>{data.role}</strong> mitwirken. Tagro hält dich automatisch auf dem Stand.</>
+            <>Ab jetzt kannst du als <em>{data.role}</em> mitwirken. Tagro hält dich automatisch auf dem Stand.</>
           )}
         </p>
         <div className="ow-actions">

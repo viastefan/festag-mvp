@@ -329,15 +329,15 @@ export default function ObserversPage() {
         }
         @keyframes obsFade { from { opacity:0; } to { opacity:1; } }
         .obs-modal {
-          width:min(480px, 92vw); max-height:90vh; overflow:auto;
+          width:min(440px, 92vw); max-height:90vh; overflow:auto;
           background:var(--surface); border:1px solid var(--border);
-          border-radius:14px; padding:22px;
-          box-shadow:0 20px 60px rgba(0,0,0,.2);
+          border-radius:14px; padding:28px 26px 22px;
+          box-shadow:0 20px 60px rgba(0,0,0,.14);
           animation:obsPop .18s cubic-bezier(.16,1,.3,1) both;
         }
         @keyframes obsPop { from { opacity:0; transform:translateY(8px) scale(.98); } to { opacity:1; transform:none; } }
-        .obs-modal h2 { margin:0 0 4px; font-size:17px; font-weight:600; color:var(--text); letter-spacing:-.01em; }
-        .obs-modal .obs-modal-sub { margin:0 0 18px; font-size:12.5px; color:var(--text-secondary); line-height:1.5; }
+        .obs-modal h2 { margin:0 0 6px; font-size:15px; font-weight:500; color:var(--text); letter-spacing:.015em; }
+        .obs-modal .obs-modal-sub { margin:0 0 20px; font-size:12.5px; color:var(--text-secondary); line-height:1.6; font-weight:500; letter-spacing:.015em; }
         .obs-modal-row { display:flex; flex-direction:column; gap:6px; margin-bottom:12px; }
         .obs-modal-row label { font-size:11px; font-weight:600; color:var(--text-muted); letter-spacing:.06em; text-transform:uppercase; }
         .obs-modal-row input[type="text"],
@@ -384,31 +384,35 @@ export default function ObserversPage() {
         .obs-modal-close:hover { background:var(--surface-2); color:var(--text); }
 
         /* Help popover */
-        .obs-help-modal { width:min(560px, 92vw); }
+        .obs-help-modal { width:min(460px, 92vw); }
         .obs-help-graphic {
-          width:100%; padding:24px 0 28px; margin-bottom:8px;
-          display:flex; align-items:center; justify-content:center; gap:14px;
+          width:100%; padding:6px 0 26px; margin-bottom:4px;
+          display:flex; align-items:center; justify-content:center; gap:10px;
         }
         .obs-help-graphic-node {
-          width:46px; height:46px; border-radius:999px;
+          width:38px; height:38px; border-radius:999px;
           display:flex; align-items:center; justify-content:center;
-          font-size:13px; font-weight:700; color:#fff;
-          box-shadow:0 4px 14px rgba(0,0,0,.1);
+          color:#fff; font-size:11px; font-weight:500; letter-spacing:.04em;
         }
-        .obs-help-list { margin:0; padding:0; list-style:none; display:flex; flex-direction:column; gap:10px; }
-        .obs-help-list li { display:flex; gap:10px; font-size:13px; color:var(--text-secondary); line-height:1.55; }
-        .obs-help-list li strong { color:var(--text); font-weight:600; }
+        /* second declaration intentionally left for backwards-compatibility; node sized above */
+        .obs-help-list { margin:0; padding:0; list-style:none; display:flex; flex-direction:column; gap:14px; }
+        .obs-help-list li { display:flex; gap:12px; font-size:12.5px; color:var(--text-secondary); line-height:1.65; font-weight:500; letter-spacing:.015em; }
+        .obs-help-list li strong { color:var(--text); font-weight:500; }
+        .obs-help-list li em { font-family:'Editors Note', serif; font-style:italic; font-weight:500; color:var(--text); }
         .obs-help-bullet {
-          width:18px; height:18px; flex-shrink:0; margin-top:2px;
-          border-radius:5px; background:color-mix(in srgb, var(--accent) 14%, transparent);
+          width:18px; height:18px; flex-shrink:0; margin-top:1px;
+          border-radius:999px;
+          background:transparent;
+          border:1px solid var(--border);
           display:inline-flex; align-items:center; justify-content:center;
-          color:var(--accent); font-size:11px; font-weight:700;
+          color:var(--text-muted); font-size:10.5px; font-weight:500; letter-spacing:0;
         }
         .obs-help-link {
-          margin-top:14px; display:inline-flex; align-items:center; gap:6px;
-          font-size:13px; font-weight:600; color:var(--accent); text-decoration:none;
+          margin-top:18px; display:inline-flex; align-items:center; gap:6px;
+          font-size:12.5px; font-weight:500; letter-spacing:.015em;
+          color:var(--text-secondary); text-decoration:none;
         }
-        .obs-help-link:hover { text-decoration:underline; }
+        .obs-help-link:hover { color:var(--text); }
 
         @media(max-width:760px) {
           .obs-head-row, .obs-row {
@@ -640,26 +644,26 @@ export default function ObserversPage() {
             <button className="obs-modal-close" onClick={() => setHelpOpen(false)} aria-label="Schließen"><X size={15} /></button>
             <div className="obs-help-graphic" aria-hidden="true">
               <div className="obs-help-graphic-node" style={{ background:'#5B647D' }}>DU</div>
-              <svg width="32" height="20" viewBox="0 0 32 20" aria-hidden="true">
-                <path d="M2 10 L30 10" stroke="var(--text-muted)" strokeWidth="1.4" strokeDasharray="3 3" />
-                <path d="M24 4 L30 10 L24 16" stroke="var(--text-muted)" strokeWidth="1.4" fill="none" />
+              <svg width="22" height="14" viewBox="0 0 22 14" aria-hidden="true">
+                <path d="M2 7 L20 7" stroke="var(--text-muted)" strokeWidth="1" strokeDasharray="2 3" />
+                <path d="M16 3 L20 7 L16 11" stroke="var(--text-muted)" strokeWidth="1" fill="none" />
               </svg>
-              <div className="obs-help-graphic-node" style={{ background:'#7B8294' }}><Eye size={20} weight="bold" /></div>
-              <svg width="32" height="20" viewBox="0 0 32 20" aria-hidden="true">
-                <path d="M2 10 L30 10" stroke="var(--text-muted)" strokeWidth="1.4" strokeDasharray="3 3" />
-                <path d="M24 4 L30 10 L24 16" stroke="var(--text-muted)" strokeWidth="1.4" fill="none" />
+              <div className="obs-help-graphic-node" style={{ background:'#7B8294' }}><Eye size={16} weight="regular" /></div>
+              <svg width="22" height="14" viewBox="0 0 22 14" aria-hidden="true">
+                <path d="M2 7 L20 7" stroke="var(--text-muted)" strokeWidth="1" strokeDasharray="2 3" />
+                <path d="M16 3 L20 7 L16 11" stroke="var(--text-muted)" strokeWidth="1" fill="none" />
               </svg>
-              <div className="obs-help-graphic-node" style={{ background:'#A0A8B8' }}><UsersThree size={20} weight="bold" /></div>
+              <div className="obs-help-graphic-node" style={{ background:'#A0A8B8' }}><UsersThree size={16} weight="regular" /></div>
             </div>
 
-            <h2>Was sind Mitwirkende?</h2>
+            <h2>Was sind <em style={{ fontFamily:"'Editors Note', serif", fontWeight:500 }}>Mitwirkende</em>?</h2>
             <p className="obs-modal-sub">Stille Stakeholder, die deine Projekte mitverfolgen — ohne operativ mitzubauen. Co-Founder, Marketing, Investoren, Partner. Lese- oder Kommentar-Zugriff, projekt-genau gewählt.</p>
 
             <ul className="obs-help-list">
-              <li><span className="obs-help-bullet">1</span><span><strong>Read-only Zugriff</strong> — Mitwirkende sehen Status, Briefings und Tasks, können aber nichts ändern. Sie tauchen nirgendwo als „Member" auf.</span></li>
-              <li><span className="obs-help-bullet">2</span><span><strong>Projekt-scoped</strong> — du wählst pro Person aus, welche Projekte sichtbar sind. Andere Projekte bleiben unsichtbar.</span></li>
-              <li><span className="obs-help-bullet">3</span><span><strong>Tagro hält sie informiert</strong> — keine manuellen Status-Mails. Mitwirkende bekommen automatisch das Briefing zum Projektstand.</span></li>
-              <li><span className="obs-help-bullet">4</span><span><strong>Jederzeit entziehbar</strong> — du kannst den Zugriff mit einem Klick widerrufen. Daten bleiben bei dir.</span></li>
+              <li><span className="obs-help-bullet">1</span><span><strong>Read-only Zugriff.</strong> Mitwirkende sehen Status, Briefings und Tasks, können aber nichts ändern.</span></li>
+              <li><span className="obs-help-bullet">2</span><span><strong>Projekt-scoped.</strong> Du wählst pro Person, welche Projekte sichtbar sind. Andere bleiben unsichtbar.</span></li>
+              <li><span className="obs-help-bullet">3</span><span><strong>Tagro hält sie informiert.</strong> Keine manuellen Status-Mails — Briefings landen automatisch.</span></li>
+              <li><span className="obs-help-bullet">4</span><span><strong>Jederzeit entziehbar.</strong> Zugriff per Klick widerrufen. Daten bleiben bei dir.</span></li>
             </ul>
 
             <Link href="/blog/mitbeobachter" className="obs-help-link" target="_blank">

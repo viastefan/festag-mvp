@@ -5,6 +5,14 @@
   font-weight: 500; font-style: normal; font-display: swap;
 }
 
+/* Editors Note — für editorial Kursive (statt Aeonik italic).
+   Verwende ausschließlich für betonte/zitierte Wörter in Blog/Help-UI. */
+@font-face {
+  font-family: 'Editors Note';
+  src: url('/fonts/EditorsNote-MediumItalic.otf') format('opentype');
+  font-weight: 500; font-style: italic; font-display: swap;
+}
+
 /* Aeonik — lokal aus /public/fonts/, Medium als Standardgewicht */
 @font-face {
   font-family: 'Aeonik';
