@@ -55,7 +55,7 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
 ═══════════════════════════════════════════════ */
 :root, [data-theme="light"] {
   /* Light — Auth-aligned. Cool slate primary, app shell on #F6F9FC. */
-  --bg:#F6F9FC; --surface:#FFFFFF; --card:#FCFCFC;
+  --bg:#F6F9FC; --surface:#FFFFFF; --card:#FFFFFF;
   --border:#E7EBF0; --border-strong:#C7CDD6;
   --text:#202532; --text-secondary:#7B8294; --text-muted:#C7CDD6;
   --btn-prim:#5B647D; --btn-prim-text:#FFFFFF;
@@ -165,7 +165,7 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
 }
 
 [data-theme="pure-light"] {
-  --bg:#F6F9FC; --surface:#FFFFFF; --card:#FCFCFC;
+  --bg:#F6F9FC; --surface:#FFFFFF; --card:#FFFFFF;
   --border:#E7EBF0; --border-strong:#C7CDD6;
   --text:#202532; --text-secondary:#7B8294; --text-muted:#C7CDD6;
   --btn-prim:#5B647D; --btn-prim-text:#FFFFFF;
