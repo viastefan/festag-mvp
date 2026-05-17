@@ -662,6 +662,10 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         .sb-topbar .spf-trigger {
           min-height:32px;
         }
+        .sb-topbar .spf-trigger svg {
+          stroke:var(--sb-sidebar-gray);
+          opacity:.72;
+        }
         .sb-top-icon {
           width:28px;
           height:28px;
@@ -669,7 +673,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           display:flex;
           align-items:center;
           justify-content:center;
-          color:var(--text-muted);
+          color:var(--sb-sidebar-gray);
           background:transparent;
           border:1px solid transparent;
           flex-shrink:0;
@@ -678,7 +682,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           background:transparent;
           border-color:transparent;
           box-shadow:none;
-          color:var(--text-muted);
+          color:var(--sb-sidebar-gray);
         }
         [data-theme="dark"] .sb-collapse-icon {
           background:transparent;
