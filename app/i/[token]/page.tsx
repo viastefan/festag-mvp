@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import FestagLoader from '@/components/FestagLoader'
 
-// ── Token-Capture für Mitbeobachter-Einladungen ──
+// ── Token-Capture für Mitwirkenden-Einladungen ──
 //
 // Owner teilt einen Link wie  https://festag.app/i/<token>.
 // Hier passiert:

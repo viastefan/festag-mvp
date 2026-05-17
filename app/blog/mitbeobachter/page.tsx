@@ -1,11 +1,11 @@
 import Link from 'next/link'
 
 export const metadata = {
-  title: 'Mitbeobachter — Stille Stakeholder ohne Lärm | Festag',
+  title: 'Mitwirkende — Stille Stakeholder ohne Lärm | Festag',
   description: 'Wie Festag Co-Founder, Marketing, Investoren und Partner still mitlaufen lässt — ohne dass dein Projekt zum Meeting-Marathon wird.',
 }
 
-export default function BlogMitbeobachterPage() {
+export default function BlogMitwirkendePage() {
   return (
     <main style={{ background:'#FAFBFC', minHeight:'100vh', color:'#202532' }}>
       <style>{`
@@ -263,17 +263,17 @@ export default function BlogMitbeobachterPage() {
           <Link href="/" className="blog-back">← Zurück</Link>
         </header>
 
-        <p className="blog-eyebrow">Produkt — Mitbeobachter</p>
+        <p className="blog-eyebrow">Produkt — Mitwirkende</p>
         <h1 className="blog-title">Stille <em>Stakeholder.</em><br/>Ohne Lärm.</h1>
         <p className="blog-lead">
           Co-Founder, Marketing, Eltern, Investoren, Partner. Es gibt immer Menschen, die wissen wollen wie&apos;s
           läuft — aber nicht im Daily sitzen sollten. Festag macht aus diesem stillen Mitlaufen ein eigenes
-          Konzept: <strong>Mitbeobachter</strong>.
+          Konzept: <strong>Mitwirkende</strong>.
         </p>
         <p className="blog-meta">17. Mai 2026 <span>—</span> 4 Min. Lesezeit <span>—</span> Festag Studio</p>
 
         {/* Hero-Diagramm */}
-        <div className="blog-hero" aria-label="Mitbeobachter-Konzept">
+        <div className="blog-hero" aria-label="Mitwirkende-Konzept">
           <div className="hero-node">
             <div className="hero-circle" style={{ background:'#5B647D' }}>DU</div>
             <span className="hero-label">Inhaber:in</span>
@@ -289,10 +289,10 @@ export default function BlogMitbeobachterPage() {
             <svg width="40" height="14" viewBox="0 0 40 14"><path d="M2 7 H35 M30 2 L37 7 L30 12" stroke="#7B8294" strokeWidth="1.4" fill="none" /></svg>
           </div>
           <div className="hero-node">
-            <div className="hero-circle" style={{ background:'#9aa1ad' }} aria-label="Mitbeobachter">
+            <div className="hero-circle" style={{ background:'#9aa1ad' }} aria-label="Mitwirkende">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><circle cx="9" cy="8" r="3.4"/><path d="M3 20c0-3 2.7-5 6-5s6 2 6 5"/><circle cx="17" cy="9" r="2.4"/><path d="M14 17.5c.4-1.6 1.7-2.5 3-2.5 2 0 3.5 1.5 3.5 3.5"/></svg>
             </div>
-            <span className="hero-label">Mitbeobachter</span>
+            <span className="hero-label">Mitwirkende</span>
           </div>
         </div>
 
@@ -306,9 +306,9 @@ export default function BlogMitbeobachterPage() {
           bleiben sollen. Sie schreiben keine Tasks, machen keine Status-Reviews, brauchen keine Schreibrechte. Aber wenn sie fragen „wie weit seid ihr?",
           willst du nicht 20 Minuten lang erklären müssen.
         </p>
-        <p className="blog-p">Genau dafür gibt es Mitbeobachter.</p>
+        <p className="blog-p">Genau dafür gibt es Mitwirkende.</p>
 
-        <h2 className="blog-h">Was Mitbeobachter können — und was nicht</h2>
+        <h2 className="blog-h">Was Mitwirkende können — und was nicht</h2>
         <div className="blog-cards">
           <div className="blog-card">
             <div className="blog-card-icon">
@@ -372,21 +372,21 @@ export default function BlogMitbeobachterPage() {
 
         <div className="blog-quote">
           „Ich brauche keine zehn Meetings pro Woche. Aber ich will wissen, was meine Co-Founder bauen.
-          Mitbeobachter hat das erste Mal genau diese Lücke geschlossen."
+          Mitwirkende hat das erste Mal genau diese Lücke geschlossen."
           <cite>— Lukas, Co-Founder, Mode-A-Pilot-Workspace</cite>
         </div>
 
-        <h2 className="blog-h">Was Mitbeobachter <em>nicht</em> sind</h2>
+        <h2 className="blog-h">Was Mitwirkende <em>nicht</em> sind</h2>
         <p className="blog-p">
-          Wichtig: Mitbeobachter sind <strong>keine Team-Member</strong>. Sie haben keine Zuständigkeit, keine Tasks zugewiesen,
+          Wichtig: Mitwirkende sind <strong>keine Team-Member</strong>. Sie haben keine Zuständigkeit, keine Tasks zugewiesen,
           tauchen nicht in Workload-Auswertungen auf. Sie sind auch <strong>kein „Team"</strong> im Festag-Sinne — denn ein Team
-          beschreibt die <em>Form</em> deines Workspace (Founder-Squad, Agentur, Inhouse-Crew). Mitbeobachter sind individuelle
+          beschreibt die <em>Form</em> deines Workspace (Founder-Squad, Agentur, Inhouse-Crew). Mitwirkende sind individuelle
           Personen mit Read-Access — nichts mehr, nichts weniger.
         </p>
 
         <h2 className="blog-h">Privatsphäre & Vertrauen</h2>
         <p className="blog-p">
-          Mitbeobachter sehen exakt das, was du freigegeben hast. Andere Projekte? Unsichtbar. Interne Tagro-Notizen? Versteckt.
+          Mitwirkende sehen exakt das, was du freigegeben hast. Andere Projekte? Unsichtbar. Interne Tagro-Notizen? Versteckt.
           Dev-Notizen, die nur dein technisches Team kennt? Bleiben intern. Trennscharf, jederzeit revidierbar.
         </p>
         <p className="blog-p">
@@ -394,11 +394,11 @@ export default function BlogMitbeobachterPage() {
         </p>
 
         <div className="blog-cta">
-          <p className="blog-cta-eyebrow">Festag — Mitbeobachter</p>
+          <p className="blog-cta-eyebrow">Festag — Mitwirkende</p>
           <h3>Bereit, jemanden still mitschauen zu lassen?</h3>
-          <p>Im Dashboard unter „Persönlicher Bereich → Mitbeobachter" einrichten. Dauert keine 30 Sekunden.</p>
+          <p>Im Dashboard unter „Persönlicher Bereich → Mitwirkende" einrichten. Dauert keine 30 Sekunden.</p>
           <Link href="/observers" className="blog-cta-btn">
-            <span>Mitbeobachter öffnen</span>
+            <span>Mitwirkende öffnen</span>
             <svg width="16" height="12" viewBox="0 0 16 12"><path d="M1 6 H13 M9 1 L14 6 L9 11" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round"/></svg>
           </Link>
         </div>

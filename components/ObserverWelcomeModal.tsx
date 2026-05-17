@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { X, UsersThree } from '@phosphor-icons/react'
@@ -47,7 +48,7 @@ export default function ObserverWelcomeModal() {
         ownerName = p?.first_name || p?.full_name?.split(' ')[0] || p?.email?.split('@')[0]
       } catch {}
 
-      setData({ role: row.role || 'Mitbeobachter', projectTitles: titles, ownerName })
+      setData({ role: row.role || 'Mitwirkende:r', projectTitles: titles, ownerName })
       setOpen(true)
     })()
   }, [params])
@@ -60,7 +61,7 @@ export default function ObserverWelcomeModal() {
     router.replace(url.pathname + (url.search || ''))
   }
 
-  if (!open || !data) return null
+  if (!open || !data || typeof document === 'undefined') return null
 
   const titles = data.projectTitles
   const projectLine =
@@ -69,7 +70,7 @@ export default function ObserverWelcomeModal() {
     titles.length === 2 ? `${titles[0]} und ${titles[1]}` :
     `${titles.slice(0, -1).join(', ')} und ${titles[titles.length - 1]}`
 
-  return (
+  const node = (
     <div className="ow-bg" onClick={close}>
       <style>{`
         @keyframes owFade { from { opacity:0; } to { opacity:1; } }
@@ -197,4 +198,5 @@ export default function ObserverWelcomeModal() {
       </div>
     </div>
   )
+  return createPortal(node, document.body)
 }

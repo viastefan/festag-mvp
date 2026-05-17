@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { Plus, Question, X, EnvelopeSimple, Eye, ChatCircle, Trash, Check, UsersThree } from '@phosphor-icons/react'
@@ -416,13 +417,13 @@ export default function ObserversPage() {
 
       <div className="obs-top">
         <div className="obs-title-wrap">
-          <h1 className="obs-title">Mitbeobachter</h1>
-          <button className="obs-help-btn" onClick={() => setHelpOpen(true)} aria-label="Was sind Mitbeobachter?" title="Was sind Mitbeobachter?">
+          <h1 className="obs-title">Mitwirkende</h1>
+          <button className="obs-help-btn" onClick={() => setHelpOpen(true)} aria-label="Was sind Mitwirkende?" title="Was sind Mitwirkende?">
             <Question size={11} weight="bold" />
           </button>
         </div>
-        <button className="obs-create" type="button" onClick={() => setInviteOpen(true)} aria-label="Mitbeobachter einladen">
-          <span>Mitbeobachter einladen</span>
+        <button className="obs-create" type="button" onClick={() => setInviteOpen(true)} aria-label="Mitwirkende einladen">
+          <span>Mitwirkende einladen</span>
           <span style={{ fontSize: 19, lineHeight: 1 }}>+</span>
         </button>
       </div>
@@ -432,7 +433,7 @@ export default function ObserversPage() {
       </div>
 
       <div className="obs-scroll">
-      <div className="obs-table" role="table" aria-label="Mitbeobachter-Liste">
+      <div className="obs-table" role="table" aria-label="Mitwirkende-Liste">
         <div className="obs-head-row" role="row">
           <span>Name</span>
           <span>Zugriff</span>
@@ -513,8 +514,8 @@ export default function ObserversPage() {
       </div>
       </div>
 
-      {/* ── Invite Modal ── */}
-      {inviteOpen && (
+      {/* ── Invite Modal — portal to body to escape workspace overflow ── */}
+      {inviteOpen && typeof document !== 'undefined' && createPortal(
         <div className="obs-modal-bg" onClick={() => !inviting && closeInvite()}>
           <div className="obs-modal" style={{ position:'relative' }} onClick={e => e.stopPropagation()}>
             <button className="obs-modal-close" onClick={closeInvite} aria-label="Schließen"><X size={15} /></button>
@@ -537,7 +538,7 @@ export default function ObserversPage() {
               </>
             ) : (
               <>
-            <h2>Mitbeobachter einladen</h2>
+            <h2>Mitwirkende einladen</h2>
             <p className="obs-modal-sub">Read-only Zugriff auf ausgewählte Projekte. Tagro hält die Person automatisch auf dem Stand — du musst nichts senden.</p>
 
             <div className="obs-modal-row">
@@ -625,11 +626,12 @@ export default function ObserversPage() {
               </>
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
-      {/* ── Help Modal ── */}
-      {helpOpen && (
+      {/* ── Help Modal — portal to body ── */}
+      {helpOpen && typeof document !== 'undefined' && createPortal(
         <div className="obs-modal-bg" onClick={() => setHelpOpen(false)}>
           <div className="obs-modal obs-help-modal" style={{ position:'relative' }} onClick={e => e.stopPropagation()}>
             <button className="obs-modal-close" onClick={() => setHelpOpen(false)} aria-label="Schließen"><X size={15} /></button>
@@ -647,13 +649,13 @@ export default function ObserversPage() {
               <div className="obs-help-graphic-node" style={{ background:'#A0A8B8' }}><UsersThree size={20} weight="bold" /></div>
             </div>
 
-            <h2>Was sind Mitbeobachter?</h2>
-            <p className="obs-modal-sub">Stille Stakeholder, die deine Projekte mitverfolgen — ohne mitzubauen. Co-Founder, Marketing, Eltern, Investoren, Partner. Lese- oder Kommentar-Zugriff, projekt-genau gewählt.</p>
+            <h2>Was sind Mitwirkende?</h2>
+            <p className="obs-modal-sub">Stille Stakeholder, die deine Projekte mitverfolgen — ohne operativ mitzubauen. Co-Founder, Marketing, Investoren, Partner. Lese- oder Kommentar-Zugriff, projekt-genau gewählt.</p>
 
             <ul className="obs-help-list">
-              <li><span className="obs-help-bullet">1</span><span><strong>Read-only Zugriff</strong> — Mitbeobachter sehen Status, Briefings und Tasks, können aber nichts ändern. Sie tauchen nirgendwo als „Member" auf.</span></li>
+              <li><span className="obs-help-bullet">1</span><span><strong>Read-only Zugriff</strong> — Mitwirkende sehen Status, Briefings und Tasks, können aber nichts ändern. Sie tauchen nirgendwo als „Member" auf.</span></li>
               <li><span className="obs-help-bullet">2</span><span><strong>Projekt-scoped</strong> — du wählst pro Person aus, welche Projekte sichtbar sind. Andere Projekte bleiben unsichtbar.</span></li>
-              <li><span className="obs-help-bullet">3</span><span><strong>Tagro hält sie informiert</strong> — keine manuellen Status-Mails. Mitbeobachter bekommen automatisch das Briefing zum Projektstand.</span></li>
+              <li><span className="obs-help-bullet">3</span><span><strong>Tagro hält sie informiert</strong> — keine manuellen Status-Mails. Mitwirkende bekommen automatisch das Briefing zum Projektstand.</span></li>
               <li><span className="obs-help-bullet">4</span><span><strong>Jederzeit entziehbar</strong> — du kannst den Zugriff mit einem Klick widerrufen. Daten bleiben bei dir.</span></li>
             </ul>
 
@@ -661,7 +663,8 @@ export default function ObserversPage() {
               Mehr erfahren im Festag-Blog →
             </Link>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )
