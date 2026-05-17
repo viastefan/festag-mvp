@@ -89,6 +89,22 @@ function CallbackInner() {
         } catch { /* best-effort — Auth-Flow nicht blockieren */ }
       }
 
+      // ── Observer-Invite-Redemption ──
+      // Falls der User über /i/<token> kam, ist der Token im localStorage.
+      // Vor dem Routing einlösen — bei Success direkt ins Dashboard.
+      let observerRedeemed = false
+      try {
+        const pendingToken = typeof window !== 'undefined' ? window.localStorage.getItem('festag_observer_token') : null
+        if (pendingToken) {
+          const { data: redeemed, error: rpcErr } = await supabase.rpc('redeem_observer_invite', { token: pendingToken })
+          const rows = Array.isArray(redeemed) ? redeemed : []
+          if (!rpcErr && rows.length > 0) {
+            observerRedeemed = true
+            try { window.localStorage.removeItem('festag_observer_token') } catch {}
+          }
+        }
+      } catch { /* best-effort */ }
+
       const target = await resolvePostAuthTarget(supabase, user.id)
       rememberFestagAccount({
         userId: user.id,
@@ -98,9 +114,11 @@ function CallbackInner() {
       })
 
       // Honor ?next= only when role-routing would otherwise default to /dashboard.
-      const resolvedTarget = target === '/dashboard' && next !== '/loading' && next !== '/onboarding'
-        ? next
-        : target
+      const resolvedTarget = observerRedeemed
+        ? '/dashboard?welcome=observer'
+        : (target === '/dashboard' && next !== '/loading' && next !== '/onboarding'
+            ? next
+            : target)
       router.replace(resolvedTarget)
     }
 

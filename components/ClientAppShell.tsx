@@ -369,9 +369,18 @@ export default function ClientAppShell({
 
       <main className="main-content app-workspace">
         <div id={scrollId} className="app-workspace-scroll" style={{ overflowY: isFullHeight ? 'hidden' : 'auto' }}>
-          {children}
+          <div key={pathname} className="route-fade" style={{ minHeight: '100%' }}>
+            {children}
+          </div>
         </div>
       </main>
+      <style>{`
+        @keyframes routeFadeIn {
+          from { opacity: 0; transform: translateY(4px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        .route-fade { animation: routeFadeIn .18s cubic-bezier(.16,1,.3,1) both; }
+      `}</style>
 
       <div className="app-footer-controls" aria-label="Workspace Schnellzugriff">
         <button

@@ -84,6 +84,8 @@ export default function ObserversPage() {
   const [inviteAll, setInviteAll] = useState(true)
   const [inviting, setInviting] = useState(false)
   const [inviteError, setInviteError] = useState('')
+  const [inviteLink, setInviteLink] = useState<string | null>(null)
+  const [linkCopied, setLinkCopied] = useState(false)
 
   useEffect(() => {
     (async () => {
@@ -124,9 +126,28 @@ export default function ObserversPage() {
       return
     }
     setObservers(prev => [data as Observer, ...prev])
-    setInviteOpen(false)
+    const token = (data as any).invite_token as string | undefined
+    if (token && typeof window !== 'undefined') {
+      setInviteLink(`${window.location.origin}/i/${token}`)
+    }
     setInviteEmail(''); setInviteName(''); setInviteAccess('read'); setInviteProjects([]); setInviteAll(true)
     setInviting(false)
+  }
+
+  function closeInvite() {
+    setInviteOpen(false)
+    setInviteLink(null)
+    setLinkCopied(false)
+    setInviteError('')
+  }
+
+  async function copyInviteLink() {
+    if (!inviteLink) return
+    try {
+      await navigator.clipboard.writeText(inviteLink)
+      setLinkCopied(true)
+      setTimeout(() => setLinkCopied(false), 2000)
+    } catch {}
   }
 
   async function revokeObserver(id: string) {
@@ -144,40 +165,69 @@ export default function ObserversPage() {
   const totalCount = observers.length + 1 // +1 for owner
 
   return (
-    <div className="page-content" style={{ maxWidth: undefined }}>
+    <div className="obs-os">
       <style>{`
-        .obs-head {
-          display:flex; align-items:center; justify-content:space-between; gap:12px;
-          margin-bottom:18px;
+        .obs-os {
+          width:100%; height:100%; min-height:0;
+          color:var(--text);
+          padding:20px 18px 0;
+          display:flex; flex-direction:column;
+          overflow:hidden;
+          animation: obsEnter .22s cubic-bezier(.16,1,.3,1) both;
+        }
+        @keyframes obsEnter { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+        .obs-scroll {
+          flex:1 1 auto; min-height:0;
+          overflow-y:auto; overflow-x:hidden;
+          padding:0 0 76px;
+          scrollbar-gutter:stable;
+          overscroll-behavior:contain;
+        }
+        .obs-top {
+          display:flex; align-items:center; justify-content:space-between;
+          min-height:34px;
+          border-bottom:1px solid color-mix(in srgb, var(--border) 34%, transparent);
+          padding:0 10px 12px;
+          margin-bottom:10px;
         }
         .obs-title-wrap { display:flex; align-items:center; gap:8px; }
-        .obs-title { margin:0; font-size:18px; font-weight:600; color:var(--text); letter-spacing:-.01em; }
+        .obs-title { margin:0; font-size:14.5px; font-weight:500; letter-spacing:0; color:var(--text); }
         .obs-help-btn {
-          width:22px; height:22px; border-radius:999px;
-          border:1px solid var(--border);
+          width:20px; height:20px; border-radius:999px;
+          border:1px solid color-mix(in srgb, var(--border) 80%, transparent);
           background:transparent; color:var(--text-muted);
           display:inline-flex; align-items:center; justify-content:center;
-          cursor:pointer; transition:background .1s, color .1s;
+          cursor:pointer; transition:background .12s ease, color .12s ease, border-color .12s ease;
         }
-        .obs-help-btn:hover { background:var(--surface-2); color:var(--text); }
-        .obs-actions { display:flex; align-items:center; gap:8px; }
-        .obs-btn {
-          height:30px; padding:0 12px; border-radius:8px;
+        .obs-help-btn:hover { background:var(--surface-2); color:var(--text); border-color:var(--border-strong); }
+        .obs-create {
+          height:30px; padding:0 9px 0 12px;
+          border:1px solid transparent; border-radius:8px;
+          background:transparent; color:var(--text-secondary);
+          display:flex; align-items:center; gap:8px;
+          font:inherit; font-size:12px; font-weight:400;
+          cursor:pointer;
+          transition: background .12s ease, color .12s ease;
+        }
+        .obs-create:hover { background:var(--surface-2); color:var(--text); }
+        .obs-create:disabled { opacity:.46; color:var(--text-muted); }
+        .obs-meta-row {
+          display:flex; align-items:center; gap:10px;
+          padding:0 10px 12px;
+        }
+        .obs-count { color:var(--text-muted); font-size:11.5px; font-weight:400; letter-spacing:.02em; }
+        .obs-text-btn {
+          height:27px; padding:0 10px;
+          border:1px solid var(--border); border-radius:999px;
+          background:transparent; color:var(--text-secondary);
+          font:inherit; font-size:11.5px; font-weight:400;
+          cursor:pointer;
           display:inline-flex; align-items:center; gap:6px;
-          font:inherit; font-size:12.5px; font-weight:600;
-          cursor:pointer; transition:background .1s, border-color .1s, color .1s;
-          border:1px solid var(--border); background:transparent; color:var(--text);
+          transition:background .12s ease, color .12s ease, border-color .12s ease;
         }
-        .obs-btn:hover { background:var(--surface-2); border-color:var(--border-strong); }
-        .obs-btn.primary { background:var(--btn-prim); color:var(--btn-prim-text); border-color:transparent; }
-        .obs-btn.primary:hover { background:color-mix(in srgb, var(--btn-prim) 88%, #000); }
+        .obs-text-btn:hover { background:var(--surface-2); color:var(--text); }
 
-        .obs-meta {
-          margin:0 0 12px; color:var(--text-muted);
-          font-size:12px; font-weight:500;
-        }
-
-        .obs-table { width:100%; }
+        .obs-table { width:100%; padding:0 4px; }
         .obs-head-row, .obs-row {
           display:grid;
           grid-template-columns: minmax(220px, 1.5fr) 120px minmax(120px,.85fr) 92px 88px 32px;
@@ -186,20 +236,21 @@ export default function ObserversPage() {
           padding:0 10px;
         }
         .obs-head-row {
-          min-height:34px;
+          min-height:32px;
           color:var(--text-muted);
-          font-size:11px; font-weight:500;
-          letter-spacing:.04em;
-          border-bottom:1px solid var(--border);
+          font-size:11.5px; font-weight:400;
+          letter-spacing:.02em;
+          border-bottom:1px solid color-mix(in srgb, var(--border) 60%, transparent);
         }
         .obs-row {
-          min-height:52px;
+          min-height:48px;
           border-radius:8px;
           color:var(--text-secondary); font-size:12.5px;
-          border-bottom:1px solid var(--border);
+          border-bottom:1px solid color-mix(in srgb, var(--border) 50%, transparent);
+          transition: background .12s ease;
         }
         .obs-row:last-child { border-bottom:0; }
-        .obs-row:hover { background:color-mix(in srgb, var(--surface-2) 50%, transparent); }
+        .obs-row:hover { background:color-mix(in srgb, var(--surface-2) 58%, transparent); }
         .obs-name-cell { display:flex; align-items:center; gap:10px; min-width:0; }
         .obs-avatar {
           width:28px; height:28px; border-radius:999px; flex-shrink:0;
@@ -343,22 +394,24 @@ export default function ObserversPage() {
         }
       `}</style>
 
-      <div className="obs-head">
+      <div className="obs-top">
         <div className="obs-title-wrap">
           <h1 className="obs-title">Mitbeobachter</h1>
           <button className="obs-help-btn" onClick={() => setHelpOpen(true)} aria-label="Was sind Mitbeobachter?" title="Was sind Mitbeobachter?">
-            <Question size={13} weight="bold" />
+            <Question size={11} weight="bold" />
           </button>
         </div>
-        <div className="obs-actions">
-          <button className="obs-btn primary" onClick={() => setInviteOpen(true)}>
-            <Plus size={13} weight="bold" /> Mitbeobachter einladen
-          </button>
-        </div>
+        <button className="obs-create" type="button" onClick={() => setInviteOpen(true)} aria-label="Mitbeobachter einladen">
+          <span>Mitbeobachter einladen</span>
+          <span style={{ fontSize: 19, lineHeight: 1 }}>+</span>
+        </button>
       </div>
 
-      <p className="obs-meta">{loading ? 'Wird geladen…' : `${totalCount} ${totalCount === 1 ? 'Person' : 'Personen'} mit Zugriff`}</p>
+      <div className="obs-meta-row">
+        <span className="obs-count">{loading ? 'Wird geladen…' : `${totalCount} ${totalCount === 1 ? 'Person' : 'Personen'} mit Zugriff`}</span>
+      </div>
 
+      <div className="obs-scroll">
       <div className="obs-table" role="table" aria-label="Mitbeobachter-Liste">
         <div className="obs-head-row" role="row">
           <span>Name</span>
@@ -429,20 +482,41 @@ export default function ObserversPage() {
 
         {!loading && observers.length === 0 && (
           <div className="obs-empty">
-            <p style={{ margin:'0 0 6px', fontSize:13.5, fontWeight:600, color:'var(--text)' }}>Noch niemand beobachtet mit.</p>
-            <p style={{ margin:'0 0 14px', fontSize:12.5 }}>Lade Co-Founder, Marketing oder Partner ein, deine Projekte still mitzuverfolgen.</p>
-            <button className="obs-btn primary" onClick={() => setInviteOpen(true)}>
-              <Plus size={13} weight="bold" /> Erste Person einladen
+            <p style={{ margin:'0 0 6px', fontSize:13, fontWeight:500, color:'var(--text)' }}>Noch niemand beobachtet mit.</p>
+            <p style={{ margin:'0 0 14px', fontSize:12, color:'var(--text-muted)' }}>Lade Co-Founder, Marketing oder Partner ein, deine Projekte still mitzuverfolgen.</p>
+            <button className="obs-text-btn" onClick={() => setInviteOpen(true)} type="button">
+              <span>Erste Person einladen</span>
+              <span style={{ fontSize: 16, lineHeight: 1 }}>+</span>
             </button>
           </div>
         )}
       </div>
+      </div>
 
       {/* ── Invite Modal ── */}
       {inviteOpen && (
-        <div className="obs-modal-bg" onClick={() => !inviting && setInviteOpen(false)}>
+        <div className="obs-modal-bg" onClick={() => !inviting && closeInvite()}>
           <div className="obs-modal" style={{ position:'relative' }} onClick={e => e.stopPropagation()}>
-            <button className="obs-modal-close" onClick={() => setInviteOpen(false)} aria-label="Schließen"><X size={15} /></button>
+            <button className="obs-modal-close" onClick={closeInvite} aria-label="Schließen"><X size={15} /></button>
+            {inviteLink ? (
+              <>
+                <h2>Einladung erstellt</h2>
+                <p className="obs-modal-sub">Teile diesen Link mit der eingeladenen Person. Sie kann sich damit registrieren und erhält automatisch Zugriff.</p>
+                <div style={{ display:'flex', gap:8, alignItems:'center', padding:'12px 14px', border:'1px solid var(--border)', borderRadius:10, background:'var(--surface-2)', marginBottom:14 }}>
+                  <code style={{ flex:1, fontSize:12.5, color:'var(--text)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', fontFamily:'ui-monospace, "SF Mono", Menlo, monospace' }}>{inviteLink}</code>
+                  <button onClick={copyInviteLink} className="obs-text-btn" type="button">
+                    {linkCopied ? <><Check size={12} weight="bold"/> Kopiert</> : 'Kopieren'}
+                  </button>
+                </div>
+                <p style={{ margin:'0 0 4px', fontSize:11.5, color:'var(--text-muted)', letterSpacing:'.02em' }}>
+                  Der Link funktioniert nur für die eingeladene E-Mail-Adresse. Tagro hält die Person danach automatisch auf dem Stand.
+                </p>
+                <div className="obs-modal-footer">
+                  <button className="obs-text-btn" onClick={closeInvite}>Fertig</button>
+                </div>
+              </>
+            ) : (
+              <>
             <h2>Mitbeobachter einladen</h2>
             <p className="obs-modal-sub">Read-only Zugriff auf ausgewählte Projekte. Tagro hält die Person automatisch auf dem Stand — du musst nichts senden.</p>
 
@@ -499,12 +573,14 @@ export default function ObserversPage() {
             {inviteError && <p className="obs-modal-err">{inviteError}</p>}
 
             <div className="obs-modal-footer">
-              <button className="obs-btn" onClick={() => setInviteOpen(false)} disabled={inviting}>Abbrechen</button>
-              <button className="obs-btn primary" onClick={handleInvite} disabled={inviting || !inviteEmail.trim()}>
-                <EnvelopeSimple size={13} weight="regular" />
-                {inviting ? 'Einladung wird gesendet…' : 'Einladung senden'}
+              <button className="obs-text-btn" onClick={closeInvite} disabled={inviting} type="button">Abbrechen</button>
+              <button className="obs-text-btn" onClick={handleInvite} disabled={inviting || !inviteEmail.trim()} type="button">
+                <EnvelopeSimple size={12} weight="regular" />
+                <span>{inviting ? 'Wird erstellt…' : 'Einladung erstellen'}</span>
               </button>
             </div>
+              </>
+            )}
           </div>
         </div>
       )}

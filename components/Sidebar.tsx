@@ -156,6 +156,8 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
   const [plan,     setPlan]     = useState('free')
   const [projId,   setProjId]   = useState<string|null>(null)
   const [projects, setProjects] = useState<{id:string;title:string;status:string;color:string|null}[]>([])
+  const [observedProjects, setObservedProjects] = useState<{id:string;title:string;color:string|null}[]>([])
+  const [observedExp, setObservedExp] = useState(true)
   const [more, setMore] = useState(false)
   const [workspaceExp, setWorkspaceExp] = useState(true)
   const [projectListExp, setProjectListExp] = useState(true)
@@ -263,6 +265,28 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           .eq('is_personal', true).maybeSingle()
         const m = (ws as any)?.mode
         if (m === 'team' || m === 'agency' || m === 'delivery') setWsMode(m)
+      } catch {}
+      // ── Beobachtete Projekte: Projekte fremder Owner, für die ich joined-Observer bin
+      try {
+        const { data: obs } = await sb
+          .from('workspace_observers')
+          .select('project_ids, owner_user_id, status')
+          .eq('user_id', data.user.id)
+          .eq('status', 'joined')
+        const rows = (obs as any[]) ?? []
+        if (rows.length > 0) {
+          // RLS lässt observed projects durch die select-policy für projects durch
+          const { data: obsProj } = await sb
+            .from('projects')
+            .select('id,title,color,user_id')
+            .neq('user_id', data.user.id)
+            .order('created_at', { ascending: false })
+            .limit(20)
+          const filtered = ((obsProj as any[]) ?? []).filter(p => {
+            return rows.some(r => r.owner_user_id === p.user_id && (r.project_ids === null || (Array.isArray(r.project_ids) && r.project_ids.includes(p.id))))
+          })
+          setObservedProjects(filtered.map(p => ({ id: p.id, title: p.title, color: p.color })))
+        }
       } catch {}
     })
     createClient().from('projects').select('id,title,status,color').order('created_at',{ascending:false}).limit(12).then(async ({ data }) => {
@@ -926,6 +950,29 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
                 <NavItems items={coreNav} />
               </Section>
             </div>
+
+            {observedProjects.length > 0 && (
+              <div>
+                <Section
+                  label="Beobachtete Projekte"
+                  expanded={observedExp}
+                  onToggle={() => setObservedExp(v => !v)}
+                >
+                  <div className="sb-subnav">
+                    {observedProjects.map(p => {
+                      const on = pathname === `/project/${p.id}`
+                      const dot = p.color || '#64748b'
+                      return (
+                        <Link key={p.id} href={`/project/${p.id}`} className={`proj-row ${on?'active':''}`}>
+                          <span className="proj-dot-button" style={{ border:`2px solid ${dot}`, background:'transparent', cursor:'default' }} />
+                          <span className="proj-label">{p.title}</span>
+                        </Link>
+                      )
+                    })}
+                  </div>
+                </Section>
+              </div>
+            )}
 
             <div>
               <Section
