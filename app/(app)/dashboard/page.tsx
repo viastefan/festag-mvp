@@ -211,6 +211,33 @@ export default function DashboardPage() {
   const nextCopy = main
     ? `Tagro kann den Stand von ${main.title} in Fortschritt, Risiken und nächste Schritte verdichten. So bleibt die Projektlage jeden Tag ruhig sichtbar.`
     : 'Sprich kurz darüber, was der Kunde will. Tagro hört zu, gliedert das Gespräch in Status, Risiken und nächste Schritte - und legt die Projektstruktur an.'
+  // ── Today's Focus — Linear-style priority list ──────────────────
+  type FocusItem = { tone: 'crit' | 'warn' | 'ok' | 'neutral'; tag: string; text: string; sub?: string; href: string }
+  const focusItems: FocusItem[] = []
+  allTasks
+    .filter(t => t.status === 'blocked')
+    .slice(0, 3)
+    .forEach(t => {
+      const proj = projects.find(p => p.id === t.project_id)
+      focusItems.push({ tone: 'crit', tag: 'Blocker', text: t.title, sub: proj?.title, href: proj ? `/project/${proj.id}` : '/tasks' })
+    })
+  allTasks
+    .filter(t => t.status === 'waiting')
+    .slice(0, 3)
+    .forEach(t => {
+      const proj = projects.find(p => p.id === t.project_id)
+      focusItems.push({ tone: 'warn', tag: 'Entscheidung', text: t.title, sub: proj?.title, href: proj ? `/project/${proj.id}` : '/tasks' })
+    })
+  if (focusItems.length < 5) {
+    allTasks
+      .filter(t => t.status === 'doing' || t.status === 'todo')
+      .slice(0, 5 - focusItems.length)
+      .forEach(t => {
+        const proj = projects.find(p => p.id === t.project_id)
+        focusItems.push({ tone: t.status === 'doing' ? 'ok' : 'neutral', tag: t.status === 'doing' ? 'Aktiv' : 'Offen', text: t.title, sub: proj?.title, href: proj ? `/project/${proj.id}` : '/tasks' })
+      })
+  }
+
   const latestActivity = activity[0]
   const latestActivityLabel = latestActivity ? timeAgo(latestActivity.created_at) : '—'
   const latestActivityText = latestActivity?.message || 'Noch keine Aktivität'
@@ -227,26 +254,22 @@ export default function DashboardPage() {
           color:var(--text);
           padding:clamp(28px, 3.4vw, 44px) clamp(28px, 4vw, 56px) 0;
           overflow:hidden;
+          --ed-muted:#5A6478;
+          --ed-secondary:#4E5567;
+        }
+        [data-theme="dark"] .dash-editorial,
+        [data-theme="classic-dark"] .dash-editorial {
+          --ed-muted:#8D98A6;
+          --ed-secondary:#B7BDC8;
         }
         .ed-top {
           display:flex;
-          justify-content:space-between;
+          justify-content:flex-end;
           align-items:center;
           gap:24px;
           min-height:42px;
-          padding-bottom:24px;
-          border-bottom:1px solid var(--border);
+          padding-bottom:20px;
           animation:dashFade .28s cubic-bezier(.16,1,.3,1) both;
-        }
-        .ed-meta {
-          margin:0;
-          color:var(--text-muted);
-          font-size:11px;
-          line-height:1;
-          font-weight:600;
-          letter-spacing:.18em;
-          text-transform:uppercase;
-          font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
         }
         .ed-actions {
           display:flex;
@@ -264,7 +287,7 @@ export default function DashboardPage() {
           border-radius:999px;
           border:1px solid var(--border);
           background:transparent;
-          color:var(--text-secondary);
+          color:var(--ed-secondary);
           font:inherit;
           font-size:12.5px;
           font-weight:600;
@@ -288,7 +311,7 @@ export default function DashboardPage() {
           border-radius:999px;
           border:1px solid var(--border);
           background:transparent;
-          color:var(--text-secondary);
+          color:var(--ed-secondary);
           font-size:12.5px;
           font-weight:600;
         }
@@ -310,7 +333,7 @@ export default function DashboardPage() {
           padding:5px 11px;
           border-radius:999px;
           border:1px solid var(--border);
-          color:var(--text-muted);
+          color:var(--ed-muted);
           font-size:10.5px;
           font-weight:600;
           letter-spacing:.14em;
@@ -333,7 +356,7 @@ export default function DashboardPage() {
         }
         .ed-status-line {
           margin:6px 0 0;
-          color:var(--text-secondary);
+          color:var(--ed-secondary);
           font-size:clamp(20px, 2.2vw, 26px);
           line-height:1.2;
           font-weight:500;
@@ -342,10 +365,92 @@ export default function DashboardPage() {
         .ed-summary {
           margin:22px 0 0;
           max-width:640px;
-          color:var(--text-secondary);
+          color:var(--ed-secondary);
           font-size:14px;
           line-height:1.65;
           letter-spacing:.003em;
+        }
+        .ed-focus {
+          padding:28px 0 32px;
+          border-top:1px solid var(--border);
+          animation:dashFade .34s .06s cubic-bezier(.16,1,.3,1) both;
+        }
+        .ed-focus-head {
+          display:flex;
+          align-items:baseline;
+          justify-content:space-between;
+          margin:0 0 14px;
+        }
+        .ed-focus-title {
+          margin:0;
+          color:var(--text);
+          font-size:13.5px;
+          font-weight:600;
+          letter-spacing:-.003em;
+        }
+        .ed-focus-meta {
+          color:var(--ed-muted);
+          font-size:11px;
+          font-weight:500;
+          letter-spacing:.04em;
+        }
+        .ed-focus-list { display:flex; flex-direction:column; }
+        .ed-focus-row {
+          display:grid;
+          grid-template-columns:auto auto minmax(0, 1fr) auto;
+          gap:12px;
+          align-items:center;
+          padding:11px 0;
+          border-bottom:1px solid var(--border);
+          text-decoration:none;
+          color:inherit;
+          transition:padding-left .15s ease;
+        }
+        .ed-focus-row:last-child { border-bottom:0; }
+        .ed-focus-row:hover { padding-left:6px; }
+        .ed-focus-tag {
+          display:inline-flex;
+          align-items:center;
+          height:20px;
+          padding:0 7px;
+          border-radius:5px;
+          font-size:10.5px;
+          font-weight:600;
+          letter-spacing:.06em;
+          text-transform:uppercase;
+          flex-shrink:0;
+        }
+        .ed-focus-tag.crit { background:color-mix(in srgb, var(--red, #d14343) 16%, transparent); color:var(--red, #c0362e); }
+        .ed-focus-tag.warn { background:color-mix(in srgb, var(--amber, #b98700) 18%, transparent); color:var(--amber-dark, #8a6500); }
+        .ed-focus-tag.ok   { background:color-mix(in srgb, var(--green, #34c759) 14%, transparent); color:var(--green-dark, #28a745); }
+        .ed-focus-tag.neutral { background:color-mix(in srgb, var(--ed-secondary) 12%, transparent); color:var(--ed-secondary); }
+        .ed-focus-dot {
+          width:6px; height:6px; border-radius:999px;
+          background:var(--ed-muted);
+          flex-shrink:0;
+        }
+        .ed-focus-text {
+          min-width:0;
+          color:var(--text);
+          font-size:13.5px;
+          font-weight:500;
+          line-height:1.35;
+          overflow:hidden;
+          text-overflow:ellipsis;
+          white-space:nowrap;
+        }
+        .ed-focus-sub {
+          color:var(--ed-muted);
+          font-size:11.5px;
+          font-weight:500;
+          flex-shrink:0;
+          letter-spacing:.005em;
+        }
+        .ed-focus-empty {
+          padding:18px 0;
+          color:var(--ed-muted);
+          font-size:13px;
+          font-weight:500;
         }
         .ed-status-row {
           display:grid;
@@ -357,7 +462,7 @@ export default function DashboardPage() {
         }
         .ed-status-label {
           margin:0 0 12px;
-          color:var(--text-muted);
+          color:var(--ed-muted);
           font-size:10.5px;
           font-weight:600;
           letter-spacing:.16em;
@@ -373,7 +478,7 @@ export default function DashboardPage() {
         }
         .ed-status-sub {
           margin:0;
-          color:var(--text-muted);
+          color:var(--ed-muted);
           font-size:12px;
           line-height:1.4;
         }
@@ -387,7 +492,7 @@ export default function DashboardPage() {
         }
         .ed-section-label {
           margin:0 0 22px;
-          color:var(--text-muted);
+          color:var(--ed-muted);
           font-size:10.5px;
           font-weight:600;
           letter-spacing:.16em;
@@ -404,7 +509,7 @@ export default function DashboardPage() {
         .ed-next-copy {
           max-width:720px;
           margin:16px 0 26px;
-          color:var(--text-secondary);
+          color:var(--ed-secondary);
           font-size:14.5px;
           line-height:1.68;
         }
@@ -435,7 +540,7 @@ export default function DashboardPage() {
           border-bottom:1px solid var(--border);
         }
         .ed-rail-head-meta {
-          color:var(--text-muted);
+          color:var(--ed-muted);
           font-size:10.5px;
           font-weight:600;
           letter-spacing:.14em;
@@ -452,7 +557,7 @@ export default function DashboardPage() {
         .ed-rail-item:last-child { border-bottom:0; padding-bottom:0; }
         .ed-rail-label {
           margin:0 0 4px;
-          color:var(--text-muted);
+          color:var(--ed-muted);
           font-size:10.5px;
           font-weight:600;
           letter-spacing:.12em;
@@ -467,7 +572,7 @@ export default function DashboardPage() {
         }
         .ed-rail-sub {
           margin:0;
-          color:var(--text-muted);
+          color:var(--ed-muted);
           font-size:12px;
           line-height:1.4;
           text-align:right;
@@ -533,7 +638,6 @@ export default function DashboardPage() {
       `}</style>
 
       <div className="ed-top">
-        <p className="ed-meta">HEUTE · {todayMeta}</p>
         <div className="ed-actions">
           <AudioBriefingButton
             type="dashboard_briefing"
@@ -554,10 +658,30 @@ export default function DashboardPage() {
       </div>
 
       <section className="ed-hero" aria-label="Tägliches Briefing">
-        <div className="ed-signal"><span className="ed-dot" /> Heute</div>
         <h1 className="ed-title">{greeting}, {person}.</h1>
         <p className="ed-status-line">{urgentLine}</p>
         <p className="ed-summary">{executiveSummary}</p>
+      </section>
+
+      <section className="ed-focus" aria-label="Heute im Fokus">
+        <div className="ed-focus-head">
+          <p className="ed-focus-title">Heute im Fokus</p>
+          <span className="ed-focus-meta">{focusItems.length === 0 ? 'nichts dringend' : `${focusItems.length} ${focusItems.length === 1 ? 'Eintrag' : 'Einträge'}`}</span>
+        </div>
+        {focusItems.length === 0 ? (
+          <p className="ed-focus-empty">Keine Blocker, keine offenen Entscheidungen. Tagro hält die Lage ruhig.</p>
+        ) : (
+          <div className="ed-focus-list">
+            {focusItems.map((it, i) => (
+              <Link key={`${it.tag}-${i}`} href={it.href} className="ed-focus-row">
+                <span className={`ed-focus-tag ${it.tone}`}>{it.tag}</span>
+                <span className="ed-focus-dot" />
+                <span className="ed-focus-text">{it.text}</span>
+                {it.sub && <span className="ed-focus-sub">{it.sub}</span>}
+              </Link>
+            ))}
+          </div>
+        )}
       </section>
 
       <section className="ed-status-row" aria-label="Lage">
