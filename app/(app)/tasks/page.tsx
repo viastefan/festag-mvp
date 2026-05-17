@@ -96,6 +96,15 @@ const ACTIVE_STATES = new Set(['doing', 'active', 'in_progress', 'development', 
 const DECISION_STATES = new Set(['blocked', 'waiting', 'needs_decision', 'client_decision', 'waiting_for_client', 'waiting_for_assignment'])
 const REVIEW_STATES = new Set(['review', 'ready_for_review', 'in_review', 'festag_review', 'suggested', 'zur_pruefung', 'verified', 'approved', 'festag_checked'])
 const PROJECT_COLOR_SYNC_EVENT = 'festag-project-color-change'
+const PROJECT_FALLBACK_COLORS = ['#4E5567', '#EF4444', '#2563EB', '#16A34A', '#D97706', '#7C3AED', '#0F766E']
+
+function projectAccentColor(id?: string | null, color?: string | null) {
+  if (color && color !== 'var(--text-muted)' && color !== 'var(--task-soft-text)') return color
+  const key = id || 'project'
+  let hash = 0
+  for (let index = 0; index < key.length; index += 1) hash = (hash * 31 + key.charCodeAt(index)) >>> 0
+  return PROJECT_FALLBACK_COLORS[hash % PROJECT_FALLBACK_COLORS.length]
+}
 
 function normalizeStatus(status?: string | null) {
   const value = (status || 'todo').toLowerCase()
@@ -303,7 +312,7 @@ export default function TasksPage() {
     const orderedProjects = [...projects].sort((a, b) => a.title.localeCompare(b.title, 'de'))
 
     for (const project of orderedProjects) {
-      groupMap.set(project.id, { id: project.id, title: project.title, color: project.color, tasks: [] })
+      groupMap.set(project.id, { id: project.id, title: project.title, color: projectAccentColor(project.id, project.color), tasks: [] })
     }
 
     for (const task of visibleTasks) {
@@ -313,7 +322,7 @@ export default function TasksPage() {
         groupMap.set(id, {
           id,
           title: project?.title || fallbackProject.title,
-          color: project?.color || fallbackProject.color,
+          color: projectAccentColor(id, project?.color || fallbackProject.color),
           tasks: [],
         })
       }
@@ -324,17 +333,10 @@ export default function TasksPage() {
   }, [projects, projectById, visibleTasks])
 
   useEffect(() => {
-    if (!taskProjectGroups.length) return
     setExpandedProjectIds((current) => {
       const validIds = new Set(taskProjectGroups.map((group) => group.id))
       const next = new Set(current.filter((id) => validIds.has(id)))
-      let changed = next.size !== current.length
-      for (const group of taskProjectGroups) {
-        if (!next.has(group.id)) {
-          next.add(group.id)
-          changed = true
-        }
-      }
+      const changed = next.size !== current.length
       return changed ? Array.from(next) : current
     })
   }, [taskProjectGroups])
@@ -527,7 +529,7 @@ export default function TasksPage() {
           color:var(--task-soft-text);
           font:inherit;
           font-size:11.5px;
-          font-weight:400;
+          font-weight:500;
           white-space:nowrap;
           cursor:pointer;
           letter-spacing:.02em;
@@ -555,7 +557,7 @@ export default function TasksPage() {
           gap:8px;
           font:inherit;
           font-size:12px;
-          font-weight:400;
+          font-weight:500;
           cursor:pointer;
         }
         .task-create:hover { background:var(--surface-2); color:var(--text); }
@@ -606,7 +608,9 @@ export default function TasksPage() {
         }
         .task-menu button:hover, .task-menu button.on { background:var(--surface-2); color:var(--text); }
         .task-table {
-          width:100%;
+          width:calc(100% + 24px);
+          margin-left:-12px;
+          margin-right:-12px;
           overflow:visible;
         }
         .task-head,
@@ -621,10 +625,10 @@ export default function TasksPage() {
           top:0;
           z-index:5;
           min-height:36px;
-          padding:0 10px;
+          padding:0 16px;
           color:var(--task-soft-text);
           font-size:11.5px;
-          font-weight:400;
+          font-weight:500;
           border-bottom:0;
           background:var(--surface);
           letter-spacing:.02em;
@@ -635,7 +639,7 @@ export default function TasksPage() {
         }
         .task-row {
           min-height:50px;
-          padding:0 10px;
+          padding:0 16px;
           border-bottom:0;
           color:var(--task-soft-text);
           font-size:12px;
@@ -661,10 +665,10 @@ export default function TasksPage() {
           grid-template-columns:54px minmax(220px,1fr) minmax(128px,.55fr) 28px;
           align-items:center;
           gap:8px;
-          padding:0 10px;
+          padding:0 16px;
           border:0;
           border-radius:8px;
-          background:color-mix(in srgb, var(--surface-2) 42%, transparent);
+          background:transparent;
           color:var(--task-soft-text);
           font:inherit;
           text-align:left;
@@ -673,6 +677,9 @@ export default function TasksPage() {
         .task-project-row:hover {
           background:color-mix(in srgb, var(--surface-2) 62%, transparent);
           color:var(--text);
+        }
+        .task-project-section.open .task-project-row {
+          background:color-mix(in srgb, var(--surface-2) 48%, transparent);
         }
         .task-project-dot {
           width:12px;
@@ -699,12 +706,12 @@ export default function TasksPage() {
         .task-project-count {
           color:var(--task-soft-text);
           font-size:11.5px;
-          font-weight:400;
+          font-weight:500;
         }
         .task-project-meta {
           color:var(--task-soft-text);
           font-size:11.5px;
-          font-weight:400;
+          font-weight:500;
           text-align:right;
           overflow:hidden;
           text-overflow:ellipsis;
@@ -765,7 +772,7 @@ export default function TasksPage() {
         .task-composer-title span {
           color:var(--task-soft-text);
           font-size:11.5px;
-          font-weight:400;
+          font-weight:500;
         }
         [data-theme="dark"] .task-composer {
           background:color-mix(in srgb, var(--surface) 82%, transparent);
@@ -822,7 +829,7 @@ export default function TasksPage() {
           background:transparent;
           color:inherit;
           font:inherit;
-          font-weight:400;
+          font-weight:500;
         }
         .task-project-select select { max-width:280px; font-size:12.5px; font-weight:500; }
         .task-composer-body { padding:13px 16px 12px; }
@@ -836,7 +843,7 @@ export default function TasksPage() {
           color:var(--task-soft-text);
           font:inherit;
           font-size:12px;
-          font-weight:400;
+          font-weight:500;
           cursor:pointer;
         }
         .task-mode-tabs button.on {
@@ -905,7 +912,7 @@ export default function TasksPage() {
           color:var(--task-soft-text);
           font-size:13px;
           line-height:1.55;
-          font-weight:400;
+          font-weight:500;
         }
         .task-composer-field::placeholder,
         .task-chip-field::placeholder {
@@ -945,7 +952,7 @@ export default function TasksPage() {
           border-top:1px solid var(--border);
           color:var(--task-soft-text);
           font-size:11.5px;
-          font-weight:400;
+          font-weight:500;
         }
         .task-composer-actions { display:flex; align-items:center; gap:8px; }
         .task-composer-actions button {
@@ -1080,7 +1087,7 @@ export default function TasksPage() {
           gap:0;
           min-width:0;
           color:var(--task-soft-text);
-          font-weight:400;
+          font-weight:500;
           font-size:12px;
         }
         .task-health.done { color:var(--green); }
@@ -1093,7 +1100,7 @@ export default function TasksPage() {
           gap:8px;
           justify-content:flex-start;
           color:var(--task-soft-text);
-          font-weight:400;
+          font-weight:500;
           font-size:12px;
         }
         .task-progress-dot {
@@ -1135,7 +1142,7 @@ export default function TasksPage() {
           color:var(--task-soft-text);
           border-bottom:1px solid color-mix(in srgb, var(--border) 24%, transparent);
           font-size:12px;
-          font-weight:400;
+          font-weight:500;
           letter-spacing:.02em;
         }
         .task-empty.projectless {
@@ -1183,7 +1190,7 @@ export default function TasksPage() {
         .task-count-summary {
           color:var(--task-soft-text);
           font-size:11.5px;
-          font-weight:400;
+          font-weight:500;
           padding-left:4px;
           letter-spacing:.02em;
           white-space:nowrap;
@@ -1270,6 +1277,9 @@ export default function TasksPage() {
             height:30px;
           }
           .task-table {
+            width:100%;
+            margin-left:0;
+            margin-right:0;
             padding-top:8px;
           }
           .task-head {
@@ -1480,13 +1490,13 @@ export default function TasksPage() {
               <label className="task-project-select">
                 <span
                   className="task-project-ring"
-                  style={{ ['--project-ring' as string]: projectById.get(suggestProjectId)?.color || 'var(--task-soft-text)' }}
+                  style={{ ['--project-ring' as string]: projectAccentColor(suggestProjectId, projectById.get(suggestProjectId)?.color) }}
                   title="Projektfarbe ändern"
                 >
                   <input
                     aria-label="Projektfarbe ändern"
                     type="color"
-                    value={(projectById.get(suggestProjectId)?.color || '#64748b').startsWith('#') ? projectById.get(suggestProjectId)?.color || '#64748b' : '#64748b'}
+                    value={projectAccentColor(suggestProjectId, projectById.get(suggestProjectId)?.color).startsWith('#') ? projectAccentColor(suggestProjectId, projectById.get(suggestProjectId)?.color) : '#64748b'}
                     onChange={(event) => suggestProjectId && updateProjectColor(suggestProjectId, event.target.value)}
                   />
                 </span>
