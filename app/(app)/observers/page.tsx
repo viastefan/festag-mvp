@@ -253,7 +253,10 @@ export default function ObserversPage() {
           grid-template-columns: minmax(200px, 1.4fr) 96px minmax(180px, 1.8fr) 80px 88px 28px;
           align-items:center;
           gap:14px;
-          padding:0 4px;
+          /* Row spans 12px breiter als der Inhalt — Hover-Bereich wirkt
+             großzügig, Texte bleiben aber an alter Position */
+          margin:0 -12px;
+          padding:0 16px;
         }
         .obs-head-row {
           min-height:32px;
@@ -267,9 +270,9 @@ export default function ObserversPage() {
           color:var(--text-secondary); font-size:12.5px;
           border-bottom:0;
           transition: background .12s ease;
-          border-radius:6px;
+          border-radius:8px;
         }
-        .obs-row:hover { background:color-mix(in srgb, var(--surface-2) 50%, transparent); }
+        .obs-row:hover { background:color-mix(in srgb, var(--surface-2) 60%, transparent); }
         .obs-name-cell { display:flex; align-items:center; gap:10px; min-width:0; }
         .obs-avatar {
           width:26px; height:26px; border-radius:999px; flex-shrink:0;
