@@ -173,7 +173,7 @@ export default function ClientAppShell({
         .app-footer-controls {
           position:fixed;
           right:0px;
-          bottom:14px;
+          bottom:6px;
           z-index:145;
           display:flex;
           flex-direction:row;

@@ -688,10 +688,10 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         [data-theme="dark"] .sb-top-icon:hover { background:rgba(255,255,255,0.04); }
         .sb-bottom-actions {
           position:absolute;
-          bottom:0;
+          bottom:6px;
           left:0;
           right:0;
-          padding:10px 16px 12px;
+          padding:10px 16px 0;
         }
         .sb-pill-action,
         .sb-square-action {
