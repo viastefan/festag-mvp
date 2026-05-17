@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { Plus, Question, X, EnvelopeSimple, Eye, ChatCircle, Trash, Check, UsersThree } from '@phosphor-icons/react'
 import { autoAvatarColor, avatarInitials, avatarTextColor } from '@/lib/avatar'
+import { subscribeProfileSync } from '@/lib/profile-sync'
 
 type Observer = {
   id: string
@@ -80,12 +81,16 @@ export default function ObserversPage() {
   const [inviteEmail, setInviteEmail] = useState('')
   const [inviteName, setInviteName] = useState('')
   const [inviteAccess, setInviteAccess] = useState<'read' | 'comment'>('read')
+  const [inviteRole, setInviteRole] = useState<string>('')
+  const [inviteRoleCustom, setInviteRoleCustom] = useState('')
   const [inviteProjects, setInviteProjects] = useState<string[]>([])
   const [inviteAll, setInviteAll] = useState(true)
   const [inviting, setInviting] = useState(false)
   const [inviteError, setInviteError] = useState('')
   const [inviteLink, setInviteLink] = useState<string | null>(null)
   const [linkCopied, setLinkCopied] = useState(false)
+
+  const ROLE_PRESETS = ['Co-Founder', 'Marketing', 'Investor', 'Beirat', 'Partner', 'Berater']
 
   useEffect(() => {
     (async () => {
@@ -103,10 +108,23 @@ export default function ObserversPage() {
     })()
   }, [])
 
+  // Live sync: Avatar/Name aus Settings ohne Reload aufnehmen
+  useEffect(() => subscribeProfileSync(payload => {
+    setMe(prev => prev ? {
+      ...prev,
+      full_name: payload.fullName !== undefined ? payload.fullName : prev.full_name,
+      first_name: payload.firstName !== undefined ? payload.firstName : prev.first_name,
+      avatar_url: payload.avatarUrl !== undefined ? payload.avatarUrl : prev.avatar_url,
+      avatar_color: payload.avatarColor !== undefined ? payload.avatarColor : prev.avatar_color,
+    } : prev)
+  }), [])
+
   async function handleInvite() {
     setInviteError('')
     const email = inviteEmail.trim().toLowerCase()
     if (!email || !/\S+@\S+\.\S+/.test(email)) { setInviteError('Bitte gültige E-Mail-Adresse eingeben.'); return }
+    const finalRole = inviteRole === 'custom' ? inviteRoleCustom.trim() : inviteRole
+    if (!finalRole) { setInviteError('Bitte eine Rolle wählen.'); return }
     if (!me) return
     setInviting(true)
     const { data: { user } } = await supabase.auth.getUser()
@@ -115,6 +133,7 @@ export default function ObserversPage() {
       owner_user_id: user.id,
       email,
       full_name: inviteName.trim() || null,
+      role: finalRole,
       access_level: inviteAccess,
       project_ids: inviteAll ? null : inviteProjects,
       status: 'pending' as const,
@@ -130,7 +149,7 @@ export default function ObserversPage() {
     if (token && typeof window !== 'undefined') {
       setInviteLink(`${window.location.origin}/i/${token}`)
     }
-    setInviteEmail(''); setInviteName(''); setInviteAccess('read'); setInviteProjects([]); setInviteAll(true)
+    setInviteEmail(''); setInviteName(''); setInviteAccess('read'); setInviteRole(''); setInviteRoleCustom(''); setInviteProjects([]); setInviteAll(true)
     setInviting(false)
   }
 
@@ -170,7 +189,7 @@ export default function ObserversPage() {
         .obs-os {
           width:100%; height:100%; min-height:0;
           color:var(--text);
-          padding:20px 18px 0;
+          padding:20px 0 0;
           display:flex; flex-direction:column;
           overflow:hidden;
           animation: obsEnter .22s cubic-bezier(.16,1,.3,1) both;
@@ -179,19 +198,19 @@ export default function ObserversPage() {
         .obs-scroll {
           flex:1 1 auto; min-height:0;
           overflow-y:auto; overflow-x:hidden;
-          padding:0 0 76px;
+          padding:0 18px 76px;
           scrollbar-gutter:stable;
           overscroll-behavior:contain;
         }
         .obs-top {
           display:flex; align-items:center; justify-content:space-between;
           min-height:34px;
-          border-bottom:1px solid color-mix(in srgb, var(--border) 34%, transparent);
-          padding:0 10px 12px;
-          margin-bottom:10px;
+          border-bottom:1px solid color-mix(in srgb, var(--border) 60%, transparent);
+          padding:0 18px 12px;
+          margin-bottom:0;
         }
         .obs-title-wrap { display:flex; align-items:center; gap:8px; }
-        .obs-title { margin:0; font-size:14.5px; font-weight:500; letter-spacing:0; color:var(--text); }
+        .obs-title { margin:0; font-size:14.5px; font-weight:500; letter-spacing:.015em; color:var(--text); }
         .obs-help-btn {
           width:20px; height:20px; border-radius:999px;
           border:1px solid color-mix(in srgb, var(--border) 80%, transparent);
@@ -213,7 +232,7 @@ export default function ObserversPage() {
         .obs-create:disabled { opacity:.46; color:var(--text-muted); }
         .obs-meta-row {
           display:flex; align-items:center; gap:10px;
-          padding:0 10px 12px;
+          padding:14px 0 14px;
         }
         .obs-count { color:var(--text-muted); font-size:11.5px; font-weight:400; letter-spacing:.02em; }
         .obs-text-btn {
@@ -227,47 +246,46 @@ export default function ObserversPage() {
         }
         .obs-text-btn:hover { background:var(--surface-2); color:var(--text); }
 
-        .obs-table { width:100%; padding:0 4px; }
+        .obs-table { width:100%; }
         .obs-head-row, .obs-row {
           display:grid;
-          grid-template-columns: minmax(220px, 1.5fr) 120px minmax(120px,.85fr) 92px 88px 32px;
+          grid-template-columns: minmax(200px, 1.4fr) 96px minmax(180px, 1.8fr) 80px 88px 28px;
           align-items:center;
-          gap:12px;
-          padding:0 10px;
+          gap:14px;
+          padding:0 4px;
         }
         .obs-head-row {
           min-height:32px;
           color:var(--text-muted);
           font-size:11.5px; font-weight:400;
           letter-spacing:.02em;
-          border-bottom:1px solid color-mix(in srgb, var(--border) 60%, transparent);
+          border-bottom:0;
         }
         .obs-row {
-          min-height:48px;
-          border-radius:8px;
+          min-height:52px;
           color:var(--text-secondary); font-size:12.5px;
-          border-bottom:1px solid color-mix(in srgb, var(--border) 50%, transparent);
+          border-bottom:0;
           transition: background .12s ease;
+          border-radius:6px;
         }
-        .obs-row:last-child { border-bottom:0; }
-        .obs-row:hover { background:color-mix(in srgb, var(--surface-2) 58%, transparent); }
+        .obs-row:hover { background:color-mix(in srgb, var(--surface-2) 50%, transparent); }
         .obs-name-cell { display:flex; align-items:center; gap:10px; min-width:0; }
         .obs-avatar {
-          width:28px; height:28px; border-radius:999px; flex-shrink:0;
+          width:26px; height:26px; border-radius:999px; flex-shrink:0;
           display:flex; align-items:center; justify-content:center;
-          font-size:10.5px; font-weight:700; letter-spacing:.02em;
+          font-size:10px; font-weight:500; letter-spacing:.015em;
         }
-        .obs-name { color:var(--text); font-size:13px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-        .obs-email { color:var(--text-muted); font-size:11.5px; font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .obs-name { color:var(--text); font-size:13px; font-weight:500; letter-spacing:.015em; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .obs-email { color:var(--text-muted); font-size:11.5px; font-weight:400; letter-spacing:.02em; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
         .obs-pill {
           display:inline-flex; align-items:center; gap:5px;
-          height:22px; padding:0 8px; border-radius:6px;
-          font-size:11px; font-weight:600; letter-spacing:.01em;
+          height:22px; padding:0 9px; border-radius:5px;
+          font-size:11px; font-weight:500; letter-spacing:.015em;
         }
-        .obs-pill.owner    { background:color-mix(in srgb, var(--accent) 14%, transparent); color:var(--accent); }
-        .obs-pill.joined   { background:color-mix(in srgb, var(--green, #34c759) 14%, transparent); color:var(--green-dark, #28a745); }
-        .obs-pill.pending  { background:color-mix(in srgb, var(--amber, #b98700) 16%, transparent); color:var(--amber-dark, #8a6500); }
-        .obs-pill.revoked  { background:color-mix(in srgb, var(--text-muted) 14%, transparent); color:var(--text-muted); }
+        .obs-pill.owner    { background:color-mix(in srgb, var(--surface-2) 70%, transparent); color:var(--text-secondary); }
+        .obs-pill.joined   { background:color-mix(in srgb, var(--green, #34c759) 12%, transparent); color:var(--green-dark, #28a745); }
+        .obs-pill.pending  { background:color-mix(in srgb, var(--amber, #b98700) 14%, transparent); color:var(--amber-dark, #8a6500); }
+        .obs-pill.revoked  { background:color-mix(in srgb, var(--text-muted) 12%, transparent); color:var(--text-muted); }
         .obs-row-action {
           width:24px; height:24px; border-radius:6px;
           display:inline-flex; align-items:center; justify-content:center;
@@ -277,32 +295,25 @@ export default function ObserversPage() {
         .obs-row:hover .obs-row-action { opacity:1; }
         .obs-row-action:hover { background:var(--surface-2); color:var(--text); }
 
-        .obs-proj-tags { display:inline-flex; align-items:center; gap:5px; flex-wrap:wrap; max-width:100%; min-width:0; }
+        .obs-proj-tags { display:flex; align-items:center; gap:4px 10px; flex-wrap:wrap; max-width:100%; min-width:0; padding:6px 0; }
         .obs-proj-tag {
-          display:inline-flex; align-items:center; gap:5px;
-          height:20px; padding:0 7px; border-radius:5px;
-          background:color-mix(in srgb, var(--surface-2) 70%, transparent);
-          border:1px solid var(--border);
-          font-size:11px; font-weight:500;
+          display:inline-flex; align-items:center; gap:6px;
+          font-size:12px; font-weight:400;
           color:var(--text-secondary);
-          max-width:140px;
+          letter-spacing:.02em;
+          max-width:100%;
           white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
         }
-        .obs-proj-tag .dot { width:6px; height:6px; border-radius:999px; flex-shrink:0; }
+        .obs-proj-tag .dot { width:7px; height:7px; border-radius:999px; flex-shrink:0; }
         .obs-proj-more {
-          display:inline-flex; align-items:center;
-          height:20px; padding:0 6px; border-radius:5px;
-          background:transparent; border:1px dashed var(--border);
-          font-size:11px; font-weight:500;
+          font-size:11.5px; font-weight:400;
           color:var(--text-muted);
+          letter-spacing:.02em;
         }
         .obs-empty {
-          padding:32px 16px;
+          padding:40px 16px;
           text-align:center;
           color:var(--text-muted);
-          border:1px dashed var(--border);
-          border-radius:12px;
-          background:color-mix(in srgb, var(--surface) 50%, transparent);
         }
 
         /* Modal */
@@ -333,6 +344,17 @@ export default function ObserversPage() {
           transition:border-color .12s, box-shadow .12s;
         }
         .obs-modal-row input:focus { border-color:var(--inp-focus-border); box-shadow:0 0 0 3px var(--focus-ring); }
+        .obs-role-grid { display:flex; flex-wrap:wrap; gap:6px; }
+        .obs-role-pill {
+          height:30px; padding:0 12px;
+          background:transparent; border:1px solid var(--border); border-radius:999px;
+          color:var(--text-secondary);
+          font:inherit; font-size:12px; font-weight:400; letter-spacing:.02em;
+          cursor:pointer;
+          transition:background .12s ease, color .12s ease, border-color .12s ease;
+        }
+        .obs-role-pill:hover { background:var(--surface-2); color:var(--text); }
+        .obs-role-pill.on { background:var(--surface-2); color:var(--text); border-color:var(--border-strong); }
         .obs-segment { display:flex; gap:6px; }
         .obs-segment button {
           flex:1; height:36px; border-radius:8px; padding:0 12px;
@@ -360,10 +382,8 @@ export default function ObserversPage() {
         /* Help popover */
         .obs-help-modal { width:min(560px, 92vw); }
         .obs-help-graphic {
-          width:100%; height:140px; border-radius:10px; margin-bottom:16px;
-          background:linear-gradient(135deg, color-mix(in srgb, var(--accent) 14%, var(--surface)), color-mix(in srgb, var(--accent) 6%, var(--surface)));
+          width:100%; padding:24px 0 28px; margin-bottom:8px;
           display:flex; align-items:center; justify-content:center; gap:14px;
-          border:1px solid var(--border);
         }
         .obs-help-graphic-node {
           width:46px; height:46px; border-radius:999px;
@@ -438,7 +458,7 @@ export default function ObserversPage() {
             </span>
             <span><span className="obs-pill owner">Inhaber</span></span>
             <span className="obs-col-projects">
-              <ProjectTags ids={null} all={projects} maxVisible={2} />
+              <ProjectTags ids={null} all={projects} maxVisible={4} />
             </span>
             <span className="obs-col-invited">—</span>
             <span className="obs-col-seen">gerade aktiv</span>
@@ -467,7 +487,7 @@ export default function ObserversPage() {
                 </span>
               </span>
               <span className="obs-col-projects">
-                <ProjectTags ids={o.project_ids} all={projects} maxVisible={2} />
+                <ProjectTags ids={o.project_ids} all={projects} maxVisible={4} />
               </span>
               <span className="obs-col-invited">{dateShort(o.invited_at)}</span>
               <span className="obs-col-seen">{timeAgoShort(o.last_seen_at)}</span>
@@ -527,6 +547,29 @@ export default function ObserversPage() {
             <div className="obs-modal-row">
               <label htmlFor="obs-name">Name (optional)</label>
               <input id="obs-name" type="text" value={inviteName} onChange={e => setInviteName(e.target.value)} placeholder="Anna Berger" />
+            </div>
+
+            <div className="obs-modal-row">
+              <label>Rolle</label>
+              <div className="obs-role-grid">
+                {ROLE_PRESETS.map(r => (
+                  <button key={r} type="button" className={`obs-role-pill ${inviteRole === r ? 'on' : ''}`} onClick={() => { setInviteRole(r); setInviteRoleCustom('') }}>
+                    {r}
+                  </button>
+                ))}
+                <button type="button" className={`obs-role-pill ${inviteRole === 'custom' ? 'on' : ''}`} onClick={() => setInviteRole('custom')}>
+                  Andere…
+                </button>
+              </div>
+              {inviteRole === 'custom' && (
+                <input
+                  type="text"
+                  placeholder="z.B. Steuerberaterin"
+                  value={inviteRoleCustom}
+                  onChange={e => setInviteRoleCustom(e.target.value)}
+                  style={{ marginTop: 8 }}
+                />
+              )}
             </div>
 
             <div className="obs-modal-row">

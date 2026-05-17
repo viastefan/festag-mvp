@@ -380,7 +380,7 @@ export default function TasksPage() {
           height:100%;
           min-height:0;
           color:var(--text);
-          padding:20px 18px 0;
+          padding:20px 0 0;
           display:flex;
           flex-direction:column;
           overflow:hidden;
@@ -395,7 +395,7 @@ export default function TasksPage() {
           min-height:0;
           overflow-y:auto;
           overflow-x:hidden;
-          padding:0 0 76px;
+          padding:0 18px 76px;
           scrollbar-gutter:stable;
           overscroll-behavior:contain;
         }
@@ -404,9 +404,9 @@ export default function TasksPage() {
           align-items:center;
           justify-content:space-between;
           min-height:34px;
-          border-bottom:1px solid color-mix(in srgb, var(--border) 34%, transparent);
-          padding:0 10px 12px;
-          margin-bottom:10px;
+          border-bottom:1px solid color-mix(in srgb, var(--border) 60%, transparent);
+          padding:0 18px 12px;
+          margin-bottom:0;
         }
         .task-title {
           margin:0;
@@ -432,7 +432,7 @@ export default function TasksPage() {
           align-items:center;
           justify-content:space-between;
           gap:10px;
-          padding:0 10px 12px;
+          padding:14px 18px 12px;
         }
         .task-filters {
           display:flex;

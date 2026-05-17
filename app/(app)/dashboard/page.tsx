@@ -7,6 +7,7 @@ import LoadingScreen from '@/components/LoadingScreen'
 import NewProjectModal from '@/components/NewProjectModal'
 import NewTaskModal from '@/components/NewTaskModal'
 import AudioBriefingButton from '@/components/AudioBriefingButton'
+import ObserverWelcomeModal from '@/components/ObserverWelcomeModal'
 
 type Project   = { id: string; title: string; description: string | null; status: string; created_at: string; color: string | null }
 type Task      = { id: string; title: string; status: string; priority?: string; project_id: string; updated_at?: string }
@@ -778,6 +779,7 @@ export default function DashboardPage() {
           source="manual"
         />
       )}
+      <ObserverWelcomeModal />
     </div>
   )
 }

@@ -22,6 +22,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { getFontMode, setFontMode as applyFontMode, getTheme, setTheme as applyThemeMode, type FontMode, type ThemeMode } from '@/lib/theme'
 import { AVATAR_COLORS } from '@/lib/avatar'
+import { broadcastProfileSync } from '@/lib/profile-sync'
 
 type SectionId = 'profile' | 'appearance' | 'security' | 'notifications' | 'connected' | 'workspace' | 'company' | 'billing'
 
@@ -253,6 +254,7 @@ export default function SettingsPage() {
         position: position.trim() || null,
         phone: phone.trim() || null,
       }).eq('id', profile.id)
+      broadcastProfileSync({ fullName: fullName.trim() || null, firstName: (fullName.trim().split(' ')[0]) || null })
       flashSaved('Profil gespeichert')
     } catch (e: any) {
       setError(e?.message || 'Konnte nicht speichern.')
@@ -278,6 +280,7 @@ export default function SettingsPage() {
       if (url) {
         await supabase.from('profiles').update({ avatar_url: url }).eq('id', profile.id)
         setAvatarUrl(url)
+        broadcastProfileSync({ avatarUrl: url })
         flashSaved('Profilbild aktualisiert')
       }
     } catch (e: any) {
@@ -349,6 +352,7 @@ export default function SettingsPage() {
         await supabase.from('profiles').update({ avatar_color: color }).eq('id', profile.id)
       } catch {}
     }
+    broadcastProfileSync({ avatarColor: color })
     flashSaved('Profilfarbe gespeichert')
   }
 
