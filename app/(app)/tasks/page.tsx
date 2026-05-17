@@ -3,10 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import {
-  CheckCircle,
   Code,
-  Circle,
-  Cube,
   FileText,
   FunnelSimple,
   Gauge,
@@ -193,8 +190,11 @@ function taskGroupFor(task: TaskRow) {
   if (/code|refactor|service|sdk|schema|database|db/.test(haystack)) {
     return { label: 'Code', icon: Code, color: '#6366f1' }
   }
+  if (/schulung|test|tests|testplan|dokument|dokumentation|prozess|schnittstelle|architektur|konzept/.test(haystack)) {
+    return { label: 'Ablauf', icon: SlidersHorizontal, color: '#64748b' }
+  }
 
-  return { label: 'Projekt', icon: Cube, color: 'var(--text-muted)' }
+  return { label: 'Planung', icon: FileText, color: 'var(--text-muted)' }
 }
 
 export default function TasksPage() {
@@ -202,10 +202,11 @@ export default function TasksPage() {
   const [tasks, setTasks] = useState<TaskRow[]>([])
   const [projects, setProjects] = useState<ProjectRow[]>([])
   const [loading, setLoading] = useState(true)
-  const [selectedTaskIds, setSelectedTaskIds] = useState<string[]>([])
   const [sortMode, setSortMode] = useState<SortMode>('newest')
   const [filterMenuOpen, setFilterMenuOpen] = useState(false)
   const [sortMenuOpen, setSortMenuOpen] = useState(false)
+  const [detailTaskId, setDetailTaskId] = useState<string | null>(null)
+  const [detailBusy, setDetailBusy] = useState(false)
   const [composerOpen, setComposerOpen] = useState(false)
   const [composerMode, setComposerMode] = useState<ComposerMode>('tagro')
   const [suggestProjectId, setSuggestProjectId] = useState('')
@@ -277,34 +278,64 @@ export default function TasksPage() {
   const decisionCount = tasks.filter((task) => normalizeStatus(taskState(task)) === 'decision').length
   const activeCount = tasks.filter((task) => normalizeStatus(taskState(task)) === 'active').length
   const openCount = tasks.filter((task) => normalizeStatus(taskState(task)) === 'open').length
-  const selectedTasks = tasks.filter((task) => selectedTaskIds.includes(task.id))
+  const detailTask = useMemo(() => tasks.find((task) => task.id === detailTaskId) ?? null, [tasks, detailTaskId])
 
-  function toggleTaskSelection(id: string) {
-    setSelectedTaskIds((current) => (
-      current.includes(id) ? current.filter((item) => item !== id) : [...current, id]
-    ))
+  function openTaskDetail(task: TaskRow) {
+    setDetailTaskId(task.id)
   }
 
-  function explainSelectedTask() {
-    const task = selectedTasks[0]
-    if (!task) return
+  function explainTaskInCopilot(task: TaskRow) {
     window.dispatchEvent(new CustomEvent('open-copilot'))
     window.dispatchEvent(new CustomEvent('tagro-compose', {
       detail: {
-        prompt: `Erkläre mir diese Aufgabe aus dem Workspace-Kontext und sage mir, warum Tagro sie jetzt eingeplant hat: "${task.title}".`,
+        prompt: `Erkläre mir diese Aufgabe aus dem Workspace-Kontext und sage mir, was konkret zu erledigen ist: "${task.title}".`,
       },
     }))
   }
 
-  function suggestChangeForSelectedTask() {
-    const task = selectedTasks[0]
-    if (!task) return
+  function suggestTaskChange(task: TaskRow) {
     window.dispatchEvent(new CustomEvent('open-copilot'))
     window.dispatchEvent(new CustomEvent('tagro-compose', {
       detail: {
-        prompt: `Ich möchte zu dieser Aufgabe eine Änderung oder Ergänzung vorschlagen: "${task.title}". Bitte prüfe den Projektkontext, formuliere daraus einen sauberen Vorschlag für Festag/Lead Dev und markiere, welche Entscheidung eventuell vom Client gebraucht wird.`,
+        prompt: `Ich möchte zu dieser Aufgabe eine Änderung oder Ergänzung vorschlagen: "${task.title}". Bitte prüfe den Projektkontext und formuliere daraus einen sauberen Vorschlag.`,
       },
     }))
+  }
+
+  function canManageTask(task: TaskRow) {
+    return task.source === 'client_manual' || task.source === 'client_tagro'
+  }
+
+  async function pauseTask(task: TaskRow) {
+    if (detailBusy || !canManageTask(task)) return
+    setDetailBusy(true)
+    try {
+      await (supabase as any)
+        .from('tasks')
+        .update({
+          status: 'waiting',
+          client_status: 'waiting',
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', task.id)
+      await loadTasks()
+    } finally {
+      setDetailBusy(false)
+    }
+  }
+
+  async function deleteTask(task: TaskRow) {
+    if (detailBusy || !canManageTask(task)) return
+    const confirmed = window.confirm('Diese eigene Aufgabe wirklich löschen?')
+    if (!confirmed) return
+    setDetailBusy(true)
+    try {
+      await (supabase as any).from('tasks').delete().eq('id', task.id)
+      setDetailTaskId(null)
+      await loadTasks()
+    } finally {
+      setDetailBusy(false)
+    }
   }
 
   function resetComposer() {
@@ -584,6 +615,7 @@ export default function TasksPage() {
           color:var(--text-secondary);
           font-size:12px;
           border-radius:8px;
+          cursor:pointer;
         }
         .task-row:hover {
           background:color-mix(in srgb, var(--surface-2) 58%, transparent);
@@ -819,24 +851,6 @@ export default function TasksPage() {
           gap:10px;
           min-width:0;
         }
-        .task-check {
-          width:16px;
-          height:16px;
-          border:1px solid var(--border-strong);
-          border-radius:4px;
-          flex-shrink:0;
-          background:transparent;
-          color:#fff;
-          padding:0;
-          display:flex;
-          align-items:center;
-          justify-content:center;
-          cursor:pointer;
-        }
-        .task-check.selected {
-          background:#676be8;
-          border-color:#676be8;
-        }
         .task-name-text {
           min-width:0;
         }
@@ -861,9 +875,9 @@ export default function TasksPage() {
         .task-health {
           display:flex;
           align-items:center;
-          gap:7px;
+          gap:0;
           min-width:0;
-          color:var(--text-muted);
+          color:color-mix(in srgb, var(--text-secondary) 82%, var(--text));
           font-weight:400;
           font-size:12px;
         }
@@ -871,6 +885,155 @@ export default function TasksPage() {
         .task-health.active { color:var(--amber); }
         .task-health.decision { color:var(--amber); }
         .task-health.review { color:#6366f1; }
+        .task-detail-panel {
+          position:fixed;
+          top:16px;
+          right:16px;
+          bottom:16px;
+          width:min(420px, calc(100vw - 32px));
+          z-index:420;
+          display:flex;
+          flex-direction:column;
+          border:1px solid var(--border);
+          border-radius:16px;
+          background:var(--surface);
+          box-shadow:0 24px 72px rgba(0,0,0,.18), 0 4px 16px rgba(0,0,0,.08);
+          overflow:hidden;
+          animation:taskDetailIn .18s cubic-bezier(.16,1,.3,1) both;
+        }
+        [data-theme="dark"] .task-detail-panel {
+          box-shadow:0 24px 72px rgba(0,0,0,.46), 0 4px 16px rgba(0,0,0,.24);
+        }
+        @keyframes taskDetailIn {
+          from { opacity:0; transform:translateX(12px) scale(.985); }
+          to { opacity:1; transform:none; }
+        }
+        .task-detail-head {
+          display:flex;
+          align-items:flex-start;
+          justify-content:space-between;
+          gap:14px;
+          padding:18px 18px 14px;
+          border-bottom:1px solid var(--border);
+        }
+        .task-detail-kicker {
+          margin:0 0 8px;
+          color:var(--text-muted);
+          font-size:11px;
+          font-weight:650;
+          letter-spacing:.08em;
+          text-transform:uppercase;
+        }
+        .task-detail-title {
+          margin:0;
+          color:var(--text);
+          font-size:22px;
+          line-height:1.14;
+          font-weight:720;
+          letter-spacing:0;
+        }
+        .task-detail-close {
+          width:30px;
+          height:30px;
+          border-radius:9px;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          color:var(--text-muted);
+          background:transparent;
+          border:1px solid transparent;
+          flex-shrink:0;
+        }
+        .task-detail-close:hover { background:var(--surface-2); color:var(--text); }
+        .task-detail-body {
+          flex:1;
+          min-height:0;
+          overflow:auto;
+          padding:16px 18px 18px;
+        }
+        .task-detail-grid {
+          display:grid;
+          grid-template-columns:1fr 1fr;
+          gap:10px;
+          margin-bottom:18px;
+        }
+        .task-detail-meta {
+          border:1px solid var(--border);
+          border-radius:10px;
+          padding:10px 11px;
+          min-width:0;
+        }
+        .task-detail-meta span {
+          display:block;
+          color:var(--text-muted);
+          font-size:10.5px;
+          font-weight:650;
+          letter-spacing:.06em;
+          text-transform:uppercase;
+          margin-bottom:5px;
+        }
+        .task-detail-meta strong {
+          display:block;
+          color:var(--text);
+          font-size:12.5px;
+          font-weight:600;
+          overflow:hidden;
+          text-overflow:ellipsis;
+          white-space:nowrap;
+        }
+        .task-detail-section {
+          padding:16px 0;
+          border-top:1px solid var(--border);
+        }
+        .task-detail-section:first-of-type { border-top:0; padding-top:0; }
+        .task-detail-section h3 {
+          margin:0 0 8px;
+          color:var(--text);
+          font-size:12.5px;
+          font-weight:650;
+          letter-spacing:.03em;
+        }
+        .task-detail-section p {
+          margin:0;
+          color:var(--text-secondary);
+          font-size:13px;
+          line-height:1.58;
+        }
+        .task-detail-actions {
+          display:flex;
+          flex-wrap:wrap;
+          gap:8px;
+          padding:14px 18px 18px;
+          border-top:1px solid var(--border);
+        }
+        .task-detail-actions button {
+          height:34px;
+          border-radius:10px;
+          border:1px solid var(--border);
+          background:transparent;
+          color:var(--text-secondary);
+          padding:0 12px;
+          font:inherit;
+          font-size:12px;
+          font-weight:700;
+        }
+        .task-detail-actions button.primary {
+          background:var(--btn-prim);
+          border-color:transparent;
+          color:var(--btn-prim-text);
+        }
+        .task-detail-actions button.danger { color:var(--red); }
+        .task-detail-actions button:disabled { opacity:.5; }
+        @media (max-width: 760px) {
+          .task-detail-panel {
+            top:auto;
+            left:12px;
+            right:12px;
+            bottom:calc(84px + var(--safe-bottom));
+            width:auto;
+            max-height:min(680px, calc(100dvh - 120px));
+          }
+        }
         .task-progress {
           display:flex;
           align-items:center;
@@ -912,60 +1075,6 @@ export default function TasksPage() {
           font-size:10px;
           font-weight:800;
           flex-shrink:0;
-        }
-        .task-selection-bar {
-          position:fixed;
-          left:50%;
-          bottom:28px;
-          transform:translateX(-50%);
-          z-index:120;
-          display:flex;
-          align-items:center;
-          gap:8px;
-          padding:8px;
-          border-radius:999px;
-          background:color-mix(in srgb, var(--surface) 86%, transparent);
-          border:1px solid var(--border);
-          box-shadow:0 18px 44px rgba(0,0,0,.18);
-          backdrop-filter:blur(20px) saturate(160%);
-          -webkit-backdrop-filter:blur(20px) saturate(160%);
-          animation:taskActionUp .16s cubic-bezier(.16,1,.3,1) both;
-        }
-        @keyframes taskActionUp {
-          from { opacity:0; transform:translateX(-50%) translateY(8px) scale(.98); }
-          to { opacity:1; transform:translateX(-50%) translateY(0) scale(1); }
-        }
-        .task-selection-bar button,
-        .task-selection-count {
-          height:32px;
-          border-radius:999px;
-          border:1px solid var(--border);
-          background:var(--surface-2);
-          color:var(--text);
-          font:inherit;
-          font-size:12px;
-          font-weight:700;
-          display:flex;
-          align-items:center;
-          justify-content:center;
-          padding:0 12px;
-          white-space:nowrap;
-        }
-        .task-selection-bar button {
-          cursor:pointer;
-        }
-        .task-selection-bar button:hover {
-          background:var(--nav-on);
-        }
-        .task-selection-close {
-          width:32px;
-          padding:0 !important;
-          color:var(--text-muted) !important;
-        }
-        .task-selection-sep {
-          width:1px;
-          height:24px;
-          background:var(--border);
         }
         .task-empty {
           padding:44px 12px;
@@ -1449,27 +1558,29 @@ export default function TasksPage() {
           const normalized = normalizeStatus(taskState(task))
           const progress = typeof task.progress === 'number' ? task.progress : progressFor(taskState(task))
           const lead = task.developer_name || task.owner || task.assigned_to || 'Developer'
-          const selected = selectedTaskIds.includes(task.id)
           const group = taskGroupFor(task)
           const GroupIcon = group.icon
 
           return (
-            <div key={task.id} className={`task-row${selected ? ' selected' : ''}`}>
+            <div
+              key={task.id}
+              className={`task-row${detailTaskId === task.id ? ' selected' : ''}`}
+              role="button"
+              tabIndex={0}
+              onClick={() => openTaskDetail(task)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault()
+                  openTaskDetail(task)
+                }
+              }}
+            >
               <div className="task-group-cell" title={`Gruppe: ${group.label}`}>
                 <span className="task-group-icon" style={{ color: group.color }}>
                   <GroupIcon size={15} weight="regular" />
                 </span>
               </div>
               <div className="task-name">
-                <button
-                  className={`task-check${selected ? ' selected' : ''}`}
-                  type="button"
-                  aria-label={`${task.title} auswählen`}
-                  aria-pressed={selected}
-                  onClick={() => toggleTaskSelection(task.id)}
-                >
-                  {selected ? <CheckCircle size={12} weight="bold" /> : null}
-                </button>
                 <span className="task-name-text">
                   <strong>{task.title}</strong>
                   <span>{project?.title || 'Kein Projekt zugeordnet'}</span>
@@ -1477,7 +1588,6 @@ export default function TasksPage() {
               </div>
 
               <div className={`task-health ${normalized}`}>
-                {normalized === 'done' ? <CheckCircle size={16} weight="fill" /> : <Circle size={16} weight="regular" />}
                 <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {healthLabel(task)}
                 </span>
@@ -1502,17 +1612,70 @@ export default function TasksPage() {
         })}
       </div>}
 
-      {selectedTaskIds.length > 0 && (
-        <div className="task-selection-bar" role="toolbar" aria-label="Ausgewählte Aufgaben Aktionen">
-          <span className="task-selection-count">{selectedTaskIds.length} selected</span>
-          <button className="task-selection-close" type="button" aria-label="Auswahl aufheben" onClick={() => setSelectedTaskIds([])}>
-            <X size={13} weight="bold" />
-          </button>
-          <span className="task-selection-sep" />
-          <button type="button" onClick={explainSelectedTask}>Tagro erklären</button>
-          <button type="button" onClick={suggestChangeForSelectedTask}>Änderung vorschlagen</button>
-        </div>
-      )}
+      {detailTask && (() => {
+        const project = detailTask.project_id ? projectById.get(detailTask.project_id) : null
+        const normalized = normalizeStatus(taskState(detailTask))
+        const lead = detailTask.developer_name || detailTask.owner || detailTask.assigned_to || 'Developer'
+        const manageable = canManageTask(detailTask)
+        const detailText = detailTask.latest_client_update || detailTask.customer_update || detailTask.dev_notes || 'Noch keine ausführliche Beschreibung vorhanden. Tagro hat die Aufgabe aus dem Projektkontext geplant und ergänzt Details, sobald neue Informationen vorliegen.'
+
+        return (
+          <aside className="task-detail-panel" aria-label="Aufgabendetails">
+            <div className="task-detail-head">
+              <div style={{ minWidth: 0 }}>
+                <p className="task-detail-kicker">{project?.title || 'Kein Projekt zugeordnet'}</p>
+                <h2 className="task-detail-title">{detailTask.title}</h2>
+              </div>
+              <button className="task-detail-close" type="button" aria-label="Details schließen" onClick={() => setDetailTaskId(null)}>
+                <X size={15} weight="bold" />
+              </button>
+            </div>
+
+            <div className="task-detail-body">
+              <div className="task-detail-grid">
+                <div className="task-detail-meta">
+                  <span>Status</span>
+                  <strong>{statusLabel(taskState(detailTask))}</strong>
+                </div>
+                <div className="task-detail-meta">
+                  <span>Priorität</span>
+                  <strong>{priorityLabel(detailTask.priority)}</strong>
+                </div>
+                <div className="task-detail-meta">
+                  <span>Verantwortlich</span>
+                  <strong>{lead}</strong>
+                </div>
+                <div className="task-detail-meta">
+                  <span>Quelle</span>
+                  <strong>{sourceLabel(detailTask.source)}</strong>
+                </div>
+              </div>
+
+              <section className="task-detail-section">
+                <h3>Was ist zu erledigen?</h3>
+                <p>{detailText}</p>
+              </section>
+
+              <section className="task-detail-section">
+                <h3>Aktueller Stand</h3>
+                <p>{healthLabel(detailTask)} · {normalized === 'done' ? '100' : progressFor(taskState(detailTask))}% Fortschritt · letztes Update {dateLabel(detailTask.updated_at || detailTask.created_at)}</p>
+              </section>
+
+              <section className="task-detail-section">
+                <h3>Hinweis</h3>
+                <p>Abschluss und Projektfortschritt werden von Tagro oder vom zuständigen Developer synchronisiert. Eigene Vorschläge kannst du löschen oder pausieren.</p>
+              </section>
+            </div>
+
+            <div className="task-detail-actions">
+              <button type="button" className="primary" onClick={() => explainTaskInCopilot(detailTask)}>Mit Tagro klären</button>
+              <button type="button" onClick={() => suggestTaskChange(detailTask)}>Änderung vorschlagen</button>
+              {manageable ? <button type="button" onClick={() => pauseTask(detailTask)} disabled={detailBusy}>Aussetzen</button> : null}
+              {manageable ? <button type="button" className="danger" onClick={() => deleteTask(detailTask)} disabled={detailBusy}>Löschen</button> : null}
+            </div>
+          </aside>
+        )
+      })()}
       </div>
     </div>
   )
