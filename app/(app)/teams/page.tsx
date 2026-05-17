@@ -1,7 +1,7 @@
 'use client'
 
 /**
- * Team — calm Linear-style overview.
+ * Team — calm workspace overview.
  *
  * Ersetzt die alte Szenarien/Roles/Seats-Tab-Wand durch eine ruhige
  * Single-Page-Übersicht: Mitglieder, offene Einladungen, Sitz-Status.

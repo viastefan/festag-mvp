@@ -8,7 +8,7 @@
  *   - Tagro-Prefix `tagro:` triggert Tagro-Anfrage (kontextuell, kein floating Button).
  *   - Permissions werden serverseitig erzwungen — hier nur UI-Vorfilter.
  *
- * Linear-Style Regeln:
+ * Command-Palette Regeln:
  *   - keine floating Bubble, keine permanente Sichtbarkeit
  *   - taucht nur per Shortcut auf
  *   - escape oder Klick außerhalb schließt

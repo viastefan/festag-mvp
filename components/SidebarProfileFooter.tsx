@@ -1,7 +1,7 @@
 'use client'
 
 /**
- * Profile footer dropdown — Linear-style minimal.
+ * Profile footer dropdown — calm minimal.
  *
  * The popup is intentionally short (account header + 4 actions). Everything
  * that used to live here — theme picker, font picker, profile colour, news

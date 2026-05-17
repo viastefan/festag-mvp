@@ -1,7 +1,7 @@
 'use client'
 
 /**
- * Settings — Linear-style.
+ * Settings — calm workspace style.
  *
  * Sections:
  *   Konto        : Profil · Erscheinung · Sicherheit · Benachrichtigungen · Verbundene Konten

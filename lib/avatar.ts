@@ -4,7 +4,7 @@
  * User kann diese später überschreiben (profiles.avatar_color).
  */
 
-// Sanfte, marktreife Palette — Linear/Notion-Niveau.
+// Sanfte, marktreife Palette fuer einen ruhigen Executive-Workspace.
 // Keine Neon-Töne, keine Kindergarten-Bonbons.
 export const AVATAR_COLORS = [
   '#6366F1', // Indigo

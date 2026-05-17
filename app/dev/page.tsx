@@ -11,7 +11,7 @@
  *     wird die alte assigned_dev-Logik weiter unterstützt — bis alle
  *     Pool-Devs eigene Accounts haben.
  *
- * UI bewusst ruhig (Linear-Stil): kleiner Eyebrow, kleine Headline,
+ * UI bewusst ruhig: kleiner Eyebrow, kleine Headline,
  * 4 KPIs, dann zwei knappe Sektionen. Keine riesigen Hero-Headlines.
  */
 

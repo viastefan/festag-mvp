@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { useParams, useSearchParams } from 'next/navigation'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import ChatMarkdown from '@/components/ChatMarkdown'
 import { projectColor } from '@/components/Sidebar'
@@ -11,7 +11,6 @@ import MilestoneChart, { Milestone } from '@/components/MilestoneChart'
 import ProjectCompletionCelebration from '@/components/ProjectCompletionCelebration'
 import DevTimer from '@/components/DevTimer'
 import DeleteProjectModal from '@/components/DeleteProjectModal'
-import TaskDetailModal from '@/components/TaskDetailModal'
 import AudioBriefingButton from '@/components/AudioBriefingButton'
 import AssetsPanel from '@/components/AssetsPanel'
 import ProjectModulesStrip from '@/components/ProjectModulesStrip'
@@ -29,6 +28,7 @@ const PRIORITY_COLOR: Record<string,string> = { critical:'#ef4444', high:'#f9731
 
 export default function ProjectPage() {
   const { id } = useParams<{ id: string }>()
+  const router = useRouter()
   const [project, setProject] = useState<Project | null>(null)
   const [tasks, setTasks] = useState<Task[]>([])
   const [messages, setMessages] = useState<Msg[]>([])
@@ -50,7 +50,6 @@ export default function ProjectPage() {
   const [generatingAI, setGeneratingAI] = useState(false)
   const [online, setOnline] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
-  const [taskDetail, setTaskDetail] = useState<Task | null>(null)
   const [myExecutorRole, setMyExecutorRole] = useState<ExecutorRole | null>(null)
   const msgEndRef = useRef<HTMLDivElement>(null)
   const supabase = createClient()
@@ -390,12 +389,6 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m√
         onDeleted={() => { setDeleteOpen(false); window.location.href = '/dashboard' }}
       />
 
-      <TaskDetailModal
-        task={taskDetail}
-        projectTitle={project.title}
-        onClose={() => setTaskDetail(null)}
-      />
-
       {/* Breadcrumb */}
       <p style={{ fontSize:12, color:'var(--text-muted)', marginBottom:20 }}>
         <Link href="/dashboard" style={{ color:'var(--text-muted)', textDecoration:'none' }}>Dashboard</Link>
@@ -618,7 +611,7 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m√
                       const showDelete = canEdit || (eff==='client' && task.status==='todo')
                       const priColor = task.priority ? PRIORITY_COLOR[task.priority] : null
                       return (
-                        <div key={task.id} className="task-row" onClick={() => setTaskDetail(task)} title="Klicken f√ºr Tagro-Erkl√§rung">
+                        <div key={task.id} className="task-row" onClick={() => router.push(`/projects/${id}/tasks/${task.id}`)} title="Task-Detail √∂ffnen">
                           <span style={{ width:6, height:6, borderRadius:'50%', flexShrink:0, background:'transparent', border:`1.5px solid ${group.dot}`, boxSizing:'border-box' }}/>
                           <span style={{ flex:1, fontSize:13, color:'var(--text)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{task.title}</span>
                           {priColor && (

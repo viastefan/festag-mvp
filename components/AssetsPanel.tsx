@@ -5,7 +5,7 @@
  *
  * Lives inside the project detail page as a tab. Reads & writes
  * project_assets and pushes files into the project-assets storage
- * bucket under <projectId>/<assetId>.<ext>. Calm Festag/Linear style;
+ * bucket under <projectId>/<assetId>.<ext>. Calm Festag workspace style;
  * matches the briefing surface tonality, never a Dropbox clone.
  */
 

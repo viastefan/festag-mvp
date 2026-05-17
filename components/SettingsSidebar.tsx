@@ -2,7 +2,7 @@
 
 /**
  * Settings-mode sidebar. Replaces the main app Sidebar while the user
- * is anywhere under /settings — Linear pattern.
+ * is anywhere under /settings.
  *
  * Sections live under /settings/<slug>. The root /settings maps to "profile".
  */

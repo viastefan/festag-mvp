@@ -4,15 +4,45 @@ This document turns the current Festag product direction into an implementation 
 
 ## Core product definition
 
-Festag is one AI-native software production operating system.
+Festag is an AI-powered project visibility and accountability platform that turns complex work across teams, contractors, clients, and connected tools into clear status, risks, decisions, and executive communication.
 
 - Festwerk defines what is being built.
 - Teams defines who is working on it.
 - Relations keeps communication simple for clients.
-- Tagro AI provides planning, context translation, and progress intelligence.
+- Tagro AI provides the interpretation layer: planning, context translation, progress intelligence, risk highlights, decision support, status reports, and optional audio briefings.
 - Workspaces hold the system together.
 
 The product must not feel like three separate apps.
+
+## Product north star
+
+Festag must not be reduced to a task tracker, issue tracker, or Linear clone. Tasks are one data layer inside the system, not the main product promise.
+
+Linear helps internal teams execute work through tickets, cycles, and engineering workflows. Festag helps leaders, CEOs, founders, investors, agencies, clients, contractors, and technical teams understand, monitor, communicate, and steer work.
+
+The product experience should start from leadership questions:
+
+- What is the current status of this project?
+- What changed since the last update?
+- Which areas are moving forward?
+- What is blocked, delayed, or risky?
+- Who owns the next step?
+- Which stakeholder needs to be informed?
+- What needs a decision?
+- What should Tagro summarize, escalate, explain, or turn into a briefing?
+
+Default surfaces should feel like a calm operational cockpit, not a ticket board. Prefer views such as project health overview, today's executive briefing, active risks and blockers, waiting for decision, progress since last update, stakeholder update center, weekly status report, deliverable timeline, and Tagro recommendations.
+
+## Product principles
+
+- Status before tickets: the main objects are project health, progress, ownership, blockers, risks, decisions, and next action.
+- AI as translation layer: Tagro converts raw activity into summaries for CEOs, clients, agency owners, developers, contractors, investors, and team leads.
+- Accountability without surveillance: use language around transparency, operational clarity, accountability, trust, progress visibility, and stakeholder alignment.
+- Client-facing communication: external stakeholders must understand the project without reading internal implementation chatter.
+- Reports as a core feature: executive briefings, weekly summaries, status reports, and audio briefings are central, not secondary.
+- Multi-tool intelligence: Festag can ingest signals from GitHub, Slack, Notion, Google Drive, Jira, Linear, Figma, email, calendars, and other tools, then create a unified status layer.
+- Decision support: the system should identify attention areas, delayed work, ownership gaps, and moments where leadership should intervene.
+- Calm interface: minimal, premium, structured, non-alarming, and suitable for non-technical stakeholders.
 
 ## Non-goals
 

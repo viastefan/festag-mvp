@@ -498,7 +498,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
   }
 
   // Settings-mode: replace the entire main sidebar with the settings nav
-  // while the user is anywhere under /settings (Linear pattern).
+  // while the user is anywhere under /settings.
   // Placed AFTER all hook declarations to keep React's Rules of Hooks intact.
   if (pathname && pathname.startsWith('/settings')) {
     return <SettingsSidebar />

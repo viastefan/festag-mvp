@@ -211,7 +211,7 @@ export default function DashboardPage() {
   const nextCopy = main
     ? `Tagro kann den Stand von ${main.title} in Fortschritt, Risiken und nächste Schritte verdichten. So bleibt die Projektlage jeden Tag ruhig sichtbar.`
     : 'Sprich kurz darüber, was der Kunde will. Tagro hört zu, gliedert das Gespräch in Status, Risiken und nächste Schritte - und legt die Projektstruktur an.'
-  // ── Today's Focus — Linear-style priority list ──────────────────
+  // ── Today's Focus — executive priority list ──────────────────
   type FocusItem = { tone: 'crit' | 'warn' | 'ok' | 'neutral'; tag: string; text: string; sub?: string; href: string }
   const focusItems: FocusItem[] = []
   allTasks
