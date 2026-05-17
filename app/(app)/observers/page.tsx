@@ -225,7 +225,7 @@ export default function ObserversPage() {
           border:1px solid transparent; border-radius:8px;
           background:transparent; color:var(--text-secondary);
           display:flex; align-items:center; gap:8px;
-          font:inherit; font-size:12px; font-weight:400;
+          font:inherit; font-size:12px; font-weight:500; letter-spacing:.015em;
           cursor:pointer;
           transition: background .12s ease, color .12s ease;
         }
@@ -235,12 +235,12 @@ export default function ObserversPage() {
           display:flex; align-items:center; gap:10px;
           padding:14px 22px 14px;
         }
-        .obs-count { color:var(--text-secondary); font-size:11.5px; font-weight:400; letter-spacing:.02em; }
+        .obs-count { color:var(--text-secondary); font-size:11.5px; font-weight:500; letter-spacing:.015em; }
         .obs-text-btn {
           height:27px; padding:0 10px;
           border:1px solid var(--border); border-radius:999px;
           background:transparent; color:var(--text-secondary);
-          font:inherit; font-size:11.5px; font-weight:400;
+          font:inherit; font-size:11.5px; font-weight:500; letter-spacing:.015em;
           cursor:pointer;
           display:inline-flex; align-items:center; gap:6px;
           transition:background .12s ease, color .12s ease, border-color .12s ease;
@@ -261,8 +261,8 @@ export default function ObserversPage() {
         .obs-head-row {
           min-height:32px;
           color:var(--text-muted);
-          font-size:11.5px; font-weight:400;
-          letter-spacing:.02em;
+          font-size:11.5px; font-weight:500;
+          letter-spacing:.015em;
           border-bottom:0;
         }
         .obs-row {
@@ -280,7 +280,7 @@ export default function ObserversPage() {
           font-size:10px; font-weight:500; letter-spacing:.015em;
         }
         .obs-name { color:var(--text); font-size:13px; font-weight:500; letter-spacing:.015em; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-        .obs-email { color:var(--text-muted); font-size:11.5px; font-weight:400; letter-spacing:.02em; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .obs-email { color:var(--text-muted); font-size:11.5px; font-weight:500; letter-spacing:.015em; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
         .obs-pill {
           display:inline-flex; align-items:center; gap:5px;
           height:22px; padding:0 9px; border-radius:5px;
@@ -302,17 +302,17 @@ export default function ObserversPage() {
         .obs-proj-tags { display:flex; align-items:center; gap:4px 10px; flex-wrap:wrap; max-width:100%; min-width:0; padding:6px 0; }
         .obs-proj-tag {
           display:inline-flex; align-items:center; gap:6px;
-          font-size:12px; font-weight:400;
+          font-size:12px; font-weight:500;
           color:var(--text-secondary);
-          letter-spacing:.02em;
+          letter-spacing:.015em;
           max-width:100%;
           white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
         }
         .obs-proj-tag .dot { width:7px; height:7px; border-radius:999px; flex-shrink:0; }
         .obs-proj-more {
-          font-size:11.5px; font-weight:400;
+          font-size:11.5px; font-weight:500;
           color:var(--text-muted);
-          letter-spacing:.02em;
+          letter-spacing:.015em;
         }
         .obs-empty {
           padding:40px 16px;
@@ -353,7 +353,7 @@ export default function ObserversPage() {
           height:30px; padding:0 12px;
           background:transparent; border:1px solid var(--border); border-radius:999px;
           color:var(--text-secondary);
-          font:inherit; font-size:12px; font-weight:400; letter-spacing:.02em;
+          font:inherit; font-size:12px; font-weight:500; letter-spacing:.015em;
           cursor:pointer;
           transition:background .12s ease, color .12s ease, border-color .12s ease;
         }
