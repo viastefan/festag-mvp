@@ -31,6 +31,25 @@ type Profile = {
 
 type Project = { id: string; title: string; color: string | null }
 
+function ProjectTags({ ids, all, maxVisible = 2 }: { ids: string[] | null; all: Project[]; maxVisible?: number }) {
+  // ids === null → alle Projekte
+  const visible = ids === null ? all : all.filter(p => ids.includes(p.id))
+  if (visible.length === 0) return <span style={{ color:'var(--text-muted)', fontSize:11.5 }}>keine</span>
+  const shown = visible.slice(0, maxVisible)
+  const rest = visible.length - shown.length
+  return (
+    <span className="obs-proj-tags">
+      {shown.map(p => (
+        <span key={p.id} className="obs-proj-tag" title={p.title}>
+          <span className="dot" style={{ background: p.color || '#64748b' }} />
+          {p.title}
+        </span>
+      ))}
+      {rest > 0 && <span className="obs-proj-more" title={visible.slice(maxVisible).map(p => p.title).join(', ')}>+{rest}</span>}
+    </span>
+  )
+}
+
 function timeAgoShort(iso: string | null): string {
   if (!iso) return '—'
   const diff = Date.now() - new Date(iso).getTime()
@@ -207,6 +226,25 @@ export default function ObserversPage() {
         .obs-row:hover .obs-row-action { opacity:1; }
         .obs-row-action:hover { background:var(--surface-2); color:var(--text); }
 
+        .obs-proj-tags { display:inline-flex; align-items:center; gap:5px; flex-wrap:wrap; max-width:100%; min-width:0; }
+        .obs-proj-tag {
+          display:inline-flex; align-items:center; gap:5px;
+          height:20px; padding:0 7px; border-radius:5px;
+          background:color-mix(in srgb, var(--surface-2) 70%, transparent);
+          border:1px solid var(--border);
+          font-size:11px; font-weight:500;
+          color:var(--text-secondary);
+          max-width:140px;
+          white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+        }
+        .obs-proj-tag .dot { width:6px; height:6px; border-radius:999px; flex-shrink:0; }
+        .obs-proj-more {
+          display:inline-flex; align-items:center;
+          height:20px; padding:0 6px; border-radius:5px;
+          background:transparent; border:1px dashed var(--border);
+          font-size:11px; font-weight:500;
+          color:var(--text-muted);
+        }
         .obs-empty {
           padding:32px 16px;
           text-align:center;
@@ -346,7 +384,9 @@ export default function ObserversPage() {
               </span>
             </span>
             <span><span className="obs-pill owner">Inhaber</span></span>
-            <span className="obs-col-projects">alle {projects.length}</span>
+            <span className="obs-col-projects">
+              <ProjectTags ids={null} all={projects} maxVisible={2} />
+            </span>
             <span className="obs-col-invited">—</span>
             <span className="obs-col-seen">gerade aktiv</span>
             <span />
@@ -358,9 +398,6 @@ export default function ObserversPage() {
           const bg = autoAvatarColor(o.user_id || o.email)
           const fg = avatarTextColor(bg)
           const init = avatarInitials(null, o.full_name, o.email)
-          const projectScope = o.project_ids === null
-            ? `alle ${projects.length}`
-            : `${o.project_ids.length} von ${projects.length}`
           return (
             <div key={o.id} className="obs-row" role="row">
               <span className="obs-name-cell">
@@ -376,7 +413,9 @@ export default function ObserversPage() {
                   {o.status === 'joined' ? (o.access_level === 'comment' ? 'Kommentar' : 'Lesen') : o.status === 'pending' ? 'Ausstehend' : 'Entfernt'}
                 </span>
               </span>
-              <span className="obs-col-projects">{projectScope}</span>
+              <span className="obs-col-projects">
+                <ProjectTags ids={o.project_ids} all={projects} maxVisible={2} />
+              </span>
               <span className="obs-col-invited">{dateShort(o.invited_at)}</span>
               <span className="obs-col-seen">{timeAgoShort(o.last_seen_at)}</span>
               <span>

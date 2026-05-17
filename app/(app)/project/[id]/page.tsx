@@ -562,7 +562,7 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn mÃ
             {([
               { key:'tasks',   label:`Tasks (${tasks.length})` },
               { key:'assets',  label:'Assets' },
-              { key:'updates', label:'AI Statusbericht' },
+              { key:'updates', label:'Status & Briefings' },
             ] as const).map(tab => (
               <button key={tab.key} className={`tab-btn ${activeLeft===tab.key?'active':''}`} onClick={() => setActiveLeft(tab.key)}>
                 {tab.label}

@@ -59,6 +59,7 @@ const CLIENT_TOP: NavItem[] = [
   { href:'/messages', icon:'inbox', label:'Inbox' },
 ]
 const CLIENT_CORE: NavItem[] = [
+  { href:'/reports', icon:'activity', label:'Statusberichte' },
   { href:'/tasks', icon:'task', label:'Tasks' },
   { href:'/observers', icon:'team', label:'Mitbeobachter' },
 ]
@@ -68,8 +69,7 @@ const CLIENT_TEAMS: NavItem[] = [
   { href:'/teams?view=messages', icon:'chat', label:'Nachrichten' },
 ]
 const CLIENT_TAGRO: NavItem[] = [
-  { href:'/reports', icon:'activity', label:'Projektbriefings' },
-  { href:'/voice-reports', icon:'audio', label:'Audio Briefing' },
+  { href:'/voice-reports', icon:'audio', label:'Briefing aufnehmen' },
   { href:'/ai?view=chat', icon:'chat', label:'Chat' },
   { href:'/ai?view=notes', icon:'card', label:'Notizen' },
 ]
