@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { getStoredDevSession, type DevSession } from '@/lib/dev-session'
+import { taskStatusPatch } from '@/lib/tasks/status'
 import { ArrowRight, CheckSquare, PaperPlaneTilt, WarningCircle } from '@phosphor-icons/react'
 
 type Task = {
@@ -14,6 +15,7 @@ type Task = {
   dev_notes?: string | null
   customer_update?: string | null
   updated_at?: string | null
+  completed_at?: string | null
   projects?: { title?: string | null } | null
 }
 
@@ -63,7 +65,7 @@ export default function DevTasksPage() {
     setLoading(true)
     const { data } = await (supabase as any)
       .from('tasks')
-      .select('id,title,status,priority,project_id,dev_notes,customer_update,updated_at,projects(title)')
+      .select('id,title,status,priority,project_id,dev_notes,customer_update,updated_at,completed_at,projects(title)')
       .eq('assigned_to', dev.user_id)
       .order('updated_at', { ascending: false })
     setTasks((data as Task[]) ?? [])
@@ -73,7 +75,7 @@ export default function DevTasksPage() {
   useEffect(() => { loadTasks() }, [])
 
   async function updateStatus(task: Task, status: string) {
-    await supabase.from('tasks').update({ status, updated_at: new Date().toISOString() }).eq('id', task.id)
+    await supabase.from('tasks').update(taskStatusPatch(status, task.completed_at)).eq('id', task.id)
     setTasks((items) => items.map((item) => item.id === task.id ? { ...item, status } : item))
     if (['ready_review', 'done', 'blocked'].includes(status) && task.project_id) {
       await supabase.from('messages').insert({

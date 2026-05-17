@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { getStoredDevSession, type DevSession } from '@/lib/dev-session'
+import { taskStatusPatch } from '@/lib/tasks/status'
 import { ArrowRight, CheckCircle, Clock, PaperPlaneTilt, WarningCircle, X } from '@phosphor-icons/react'
 
 type Task = {
@@ -21,6 +22,7 @@ type Task = {
   customer_update?: string | null
   assigned_to?: string | null
   updated_at?: string | null
+  completed_at?: string | null
   project?: { title?: string | null; user_id?: string | null } | null
   epic?: { title?: string | null } | null
 }
@@ -106,7 +108,7 @@ export default function DevJobsPage() {
   }
 
   async function updateStatus(taskId: string, status: string, task?: Task) {
-    await supabase.from('tasks').update({ status, updated_at: new Date().toISOString() }).eq('id', taskId)
+    await supabase.from('tasks').update(taskStatusPatch(status, task?.completed_at)).eq('id', taskId)
     setTasks((items) => items.map((item) => item.id === taskId ? { ...item, status } : item))
     if (selected?.id === taskId) setSelected((current) => current ? { ...current, status } : null)
 
@@ -122,10 +124,10 @@ export default function DevJobsPage() {
 
   async function claimTask(task: Task) {
     if (!session) return
+    const nextStatus = task.status && task.status !== 'todo' ? task.status : 'in_progress'
     await supabase.from('tasks').update({
       assigned_to: session.user_id,
-      status: task.status && task.status !== 'todo' ? task.status : 'in_progress',
-      updated_at: new Date().toISOString(),
+      ...taskStatusPatch(nextStatus, task.completed_at),
     }).eq('id', task.id)
     if (task.project_id) {
       await supabase.from('messages').insert({

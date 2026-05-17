@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { taskStatusPatch } from '@/lib/tasks/status'
 
 const SUPABASE_URL = 'https://xsdkoepwuvpuroijjain.supabase.co'
 
@@ -60,7 +61,7 @@ export async function POST(req: NextRequest) {
           customer_update: customerUpdate,
           updated_at: new Date().toISOString(),
         }
-        if (status) updatePayload.status = status
+        if (status) Object.assign(updatePayload, taskStatusPatch(status))
         await sb.from('tasks').update(updatePayload).eq('id', taskId)
       }
 

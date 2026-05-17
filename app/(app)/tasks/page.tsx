@@ -3,7 +3,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { isCompletedTaskStillFresh } from '@/lib/tasks/status'
 import {
+  Check,
   Code,
   FileText,
   FunnelSimple,
@@ -43,6 +45,7 @@ type TaskRow = {
   progress?: number | null
   updated_at?: string | null
   created_at?: string | null
+  completed_at?: string | null
 }
 
 type ProjectRow = {
@@ -129,12 +132,12 @@ function healthLabel(task: TaskRow) {
   if (task.customer_update) return task.customer_update
   const normalized = normalizeStatus(taskState(task))
   const raw = taskState(task).toLowerCase()
-  if (normalized === 'done') return 'Erledigt mit Erklärung'
+  if (normalized === 'done') return 'Erledigt'
   if (raw === 'verified' || raw === 'approved' || raw === 'festag_checked') return 'Von Festag geprüft'
   if (normalized === 'review') return raw === 'suggested' ? 'Zur Prüfung vorgeschlagen' : 'Festag prüft die Umsetzung'
   if (raw === 'waiting_for_assignment') return 'Wartet auf Zuweisung'
   if (normalized === 'decision') return 'Wartet auf deine Entscheidung'
-  if (normalized === 'active') return 'Developer arbeitet daran'
+  if (normalized === 'active') return 'Entwickler arbeitet daran'
   return 'Tagro hat die Aufgabe geplant'
 }
 
@@ -258,7 +261,8 @@ export default function TasksPage() {
     const priorityRank: Record<string, number> = { critical: 0, high: 1, medium: 2, low: 3 }
     return tasks
       .filter((task) => {
-        if (view === 'all') return true
+        const normalized = normalizeStatus(taskState(task))
+        if (view === 'all') return normalized !== 'done' || isCompletedTaskStillFresh(task)
         return normalizeStatus(taskState(task)) === view
       })
       .sort((a, b) => {
@@ -521,7 +525,7 @@ export default function TasksPage() {
           color:var(--text-secondary);
           font:inherit;
           font-size:12px;
-          font-weight:650;
+          font-weight:600;
           cursor:pointer;
         }
         .task-menu button:hover, .task-menu button.on { background:var(--surface-2); color:var(--text); }
@@ -628,7 +632,7 @@ export default function TasksPage() {
           color:inherit;
           font:inherit;
         }
-        .task-project-select select { max-width:280px; font-size:12.5px; font-weight:650; }
+        .task-project-select select { max-width:280px; font-size:12.5px; font-weight:600; }
         .task-composer-body { padding:16px; }
         .task-mode-tabs { display:flex; gap:8px; margin-bottom:12px; }
         .task-mode-tabs button {
@@ -698,7 +702,7 @@ export default function TasksPage() {
           width:100%;
           display:block;
           font-size:22px;
-          font-weight:720;
+          font-weight:500;
           letter-spacing:0;
           margin:0 0 8px;
         }
@@ -729,7 +733,7 @@ export default function TasksPage() {
           background:transparent;
           color:var(--text-secondary);
           font-size:12px;
-          font-weight:650;
+          font-weight:600;
         }
         .task-composer-chip.has-value { color:var(--text); }
         .task-composer-chip input[type="date"] { color-scheme:inherit; max-width:124px; }
@@ -743,7 +747,7 @@ export default function TasksPage() {
           border-top:1px solid var(--border);
           color:var(--text-muted);
           font-size:12px;
-          font-weight:650;
+          font-weight:600;
         }
         .task-composer-actions { display:flex; align-items:center; gap:8px; }
         .task-composer-actions button {
@@ -755,7 +759,7 @@ export default function TasksPage() {
           color:var(--text-secondary);
           font:inherit;
           font-size:12.5px;
-          font-weight:700;
+          font-weight:600;
           cursor:pointer;
         }
         .task-composer-actions button.primary {
@@ -789,6 +793,22 @@ export default function TasksPage() {
           align-items:center;
           gap:10px;
           min-width:0;
+        }
+        .task-state-mark {
+          width:18px;
+          height:18px;
+          border-radius:50%;
+          border:1.5px solid var(--border-strong);
+          color:var(--btn-prim-text);
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          flex-shrink:0;
+          background:transparent;
+        }
+        .task-state-mark.done {
+          border-color:var(--btn-prim);
+          background:var(--btn-prim);
         }
         .task-name-text {
           min-width:0;
@@ -863,7 +883,7 @@ export default function TasksPage() {
           border:1px solid var(--border);
           color:var(--text-secondary);
           font-size:10px;
-          font-weight:800;
+          font-weight:600;
           flex-shrink:0;
         }
         .task-empty {
@@ -1021,6 +1041,10 @@ export default function TasksPage() {
           }
           .task-name {
             gap:8px;
+          }
+          .task-state-mark {
+            width:17px;
+            height:17px;
           }
           .task-name-text strong {
             font-size:12.5px;
@@ -1227,7 +1251,7 @@ export default function TasksPage() {
             )}
             {composerMode === 'manual' && (
               <div className="task-tagro-note">
-                Diese Aufgabe wird direkt an den Projekt-Workflow weitergeleitet und erscheint beim zuständigen Developer.
+                Diese Aufgabe wird direkt an den Projekt-Workflow weitergeleitet und erscheint beim zuständigen Entwickler.
               </div>
             )}
             {composerNotice ? <div className="task-notice">{composerNotice}</div> : null}
@@ -1311,7 +1335,7 @@ export default function TasksPage() {
           </div>
 
           <div className="task-composer-footer">
-            <span>{composerMode === 'tagro' ? 'Empfohlen: erst strukturieren, dann als Aufgabe erstellen.' : 'Wenn kein Developer zugewiesen ist: Die Aufgabe wird erstellt und wartet auf Zuweisung.'}</span>
+            <span>{composerMode === 'tagro' ? 'Empfohlen: erst strukturieren, dann als Aufgabe erstellen.' : 'Wenn kein Entwickler zugewiesen ist: Die Aufgabe wird erstellt und wartet auf Zuweisung.'}</span>
             <div className="task-composer-actions">
               <button type="button" onClick={closeComposer}>Abbrechen</button>
               <button
@@ -1346,8 +1370,9 @@ export default function TasksPage() {
         ) : visibleTasks.map((task) => {
           const project = task.project_id ? projectById.get(task.project_id) : null
           const normalized = normalizeStatus(taskState(task))
+          const isDone = normalized === 'done'
           const progress = typeof task.progress === 'number' ? task.progress : progressFor(taskState(task))
-          const lead = task.developer_name || task.owner || task.assigned_to || 'Developer'
+          const lead = task.developer_name || task.owner || task.assigned_to || 'Entwickler'
           const group = taskGroupFor(task)
           const GroupIcon = group.icon
 
@@ -1371,6 +1396,9 @@ export default function TasksPage() {
                 </span>
               </div>
               <div className="task-name">
+                <span className={`task-state-mark${isDone ? ' done' : ''}`} aria-label={isDone ? 'Erledigt' : 'Offen'}>
+                  {isDone ? <Check size={11} weight="bold" /> : null}
+                </span>
                 <span className="task-name-text">
                   <strong>{task.title}</strong>
                   <span>{project?.title || 'Kein Projekt zugeordnet'}</span>

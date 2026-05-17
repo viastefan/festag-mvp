@@ -7,6 +7,7 @@ import Link from 'next/link'
 import ChatMarkdown from '@/components/ChatMarkdown'
 import { projectColor } from '@/components/Sidebar'
 import { effectiveRole, isDevOrAdmin } from '@/lib/role'
+import { taskStatusPatch } from '@/lib/tasks/status'
 import MilestoneChart, { Milestone } from '@/components/MilestoneChart'
 import ProjectCompletionCelebration from '@/components/ProjectCompletionCelebration'
 import DevTimer from '@/components/DevTimer'
@@ -218,7 +219,8 @@ export default function ProjectPage() {
   }
 
   async function updateTask(taskId: string, status: string) {
-    await supabase.from('tasks').update({ status }).eq('id', taskId)
+    const current = tasks.find((task) => task.id === taskId) as any
+    await supabase.from('tasks').update(taskStatusPatch(status, current?.completed_at)).eq('id', taskId)
     setTasks(tasks.map(t => t.id === taskId ? { ...t, status } : t))
   }
 

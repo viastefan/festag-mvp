@@ -3,6 +3,7 @@ import { classifyClientTask, defaultTaskMeta } from './task-classifier'
 import { clientStatusFromDevStatus } from './status-mapper'
 import { clampPriority, type DevStatus, type TaskProposalOutput, type TaskType } from './task-rules'
 import { createTasksAndDecisionsFromActionItems, extractActionItemsFromStatusReport } from './status-report-actions'
+import { taskStatusPatch } from '@/lib/tasks/status'
 
 export async function ensureProjectAccess(sb: SupabaseClient<any>, projectId: string, actorId: string) {
   if (!projectId) throw new Error('project_id_required')
@@ -316,9 +317,10 @@ export async function updateClientStatusFromDevStatus({
   waitingForClient?: boolean
 }) {
   const clientStatus = clientStatusFromDevStatus(devStatus, { waitingForClient })
+  const status = devStatus === 'done' ? 'done' : devStatus
   const { data, error } = await sb
     .from('tasks')
-    .update({ dev_status: devStatus, client_status: clientStatus, status: devStatus === 'done' ? 'done' : devStatus })
+    .update({ ...taskStatusPatch(status), dev_status: devStatus, client_status: clientStatus })
     .eq('id', taskId)
     .select('*')
     .single()
@@ -329,7 +331,7 @@ export async function updateClientStatusFromDevStatus({
 export async function assignTaskToDeveloper(sb: SupabaseClient<any>, taskId: string, developerId: string, actorId: string) {
   const { data, error } = await sb
     .from('tasks')
-    .update({ assigned_to: developerId, client_status: 'assigned', dev_status: 'todo', status: 'todo' })
+    .update({ assigned_to: developerId, client_status: 'assigned', dev_status: 'todo', ...taskStatusPatch('todo') })
     .eq('id', taskId)
     .select('*')
     .single()
