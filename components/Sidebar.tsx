@@ -404,8 +404,8 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
             fontFamily:'inherit', padding:0, textAlign:'left',
             width:'auto', maxWidth:'100%',
           }}>
-            <span style={{ fontSize:11.5, fontWeight:500, color:'var(--text-secondary)', letterSpacing:'.015em', lineHeight:'18px' }}>{label}</span>
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" strokeWidth="2.4" strokeLinecap="round"
+            <span style={{ fontSize:11.5, fontWeight:500, color:'var(--sb-sidebar-gray)', letterSpacing:'.015em', lineHeight:'18px' }}>{label}</span>
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--sb-sidebar-gray)" strokeWidth="2.4" strokeLinecap="round"
               style={{ flexShrink:0, opacity:.72, transform:expanded?'rotate(90deg)':'rotate(0deg)', transition:'none' }}>
               <path d="M9 6l6 6-6 6"/>
             </svg>
@@ -511,6 +511,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           --sb-icon: 16px;
           --sb-font: 13px;
           --sb-x: 12px;
+          --sb-sidebar-gray: var(--text-secondary);
         }
         /* ── Nav item ── */
         .ni {
@@ -541,6 +542,8 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         .ni-off { color:var(--text-secondary); }
         [data-theme="light"] .ni-off,
         [data-theme="pure-light"] .ni-off { color:#4E5567; }
+        [data-theme="light"] .sidebar-inner,
+        [data-theme="pure-light"] .sidebar-inner { --sb-sidebar-gray:#4E5567; }
         .ni-off:hover { background:rgba(0,0,0,0.03); color:var(--text); }
         [data-theme="dark"] .ni-off:hover { background:rgba(255,255,255,0.04); }
         [data-theme="read"] .ni-off:hover { background:rgba(0,0,0,0.04); }
