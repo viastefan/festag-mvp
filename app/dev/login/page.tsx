@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import AuthBrandLogo from '@/components/AuthBrandLogo'
 
 type Theme = 'light' | 'dark'
 const THEME_KEY = 'festag_theme'
@@ -129,7 +130,7 @@ export default function DevLoginPage() {
           width:271px; display:flex; flex-direction:column; gap:32px; align-items:center;
         }
         .dl-header { width:100%; display:flex; flex-direction:column; gap:18px; align-items:center; }
-        .dl-logo { font-family:'Qurova DEMO', serif; font-size:24px; font-weight:500; color:#202532; text-align:center; line-height:normal; transition:color .3s; letter-spacing:-0.2px; }
+        .dl-logo { display:flex; align-items:center; justify-content:center; width:100%; }
         .dl-title { font-size:21px; font-weight:500; color:#202532; line-height:normal; text-align:center; letter-spacing:0.01em; transition:color .3s; }
         .dl-eyebrow { font-size:11px; font-weight:500; letter-spacing:0.18em; text-transform:uppercase; color:#7B8294; }
 
@@ -208,7 +209,6 @@ export default function DevLoginPage() {
 
         /* DARK MODE */
         .dl-root[data-theme="dark"] .dl-frame { background:#0F141B; }
-        .dl-root[data-theme="dark"] .dl-logo,
         .dl-root[data-theme="dark"] .dl-title { color:#E8E8E5; }
         .dl-root[data-theme="dark"] .dl-eyebrow { color:#7B8294; }
         .dl-root[data-theme="dark"] .dl-input { background:rgba(243,245,247,0.035); color:#E8E8E5; border:1px solid rgba(102,112,143,0.10); caret-color:#66708F; }
@@ -233,7 +233,7 @@ export default function DevLoginPage() {
 
         <section className="dl-shell" aria-label="Developer Login">
           <div className="dl-header">
-            <p className="dl-logo">festag</p>
+            <div className="dl-logo"><AuthBrandLogo size="desktop" /></div>
             <span className="dl-eyebrow">Dev Zugang</span>
             <h1 className="dl-title">Anmeldung für Developer</h1>
           </div>

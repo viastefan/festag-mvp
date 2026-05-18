@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { getLastFestagEmail, getLastFestagMethod, rememberFestagAccount } from '@/lib/auth-device-memory'
 import { resolvePostAuthTarget } from '@/lib/auth-client-routing'
+import AuthBrandLogo from '@/components/AuthBrandLogo'
 
 type Method = 'google' | 'email' | 'sso' | 'passkey' | 'github'
 type Theme = 'light' | 'dark'
@@ -472,7 +473,7 @@ export default function LoginPage() {
         .log-desktop { display:flex; min-height:100dvh; background:#fcfcfd; align-items:center; justify-content:center; position:relative; transition:background .3s; }
         .log-desktop-shell { width:271px; display:flex; flex-direction:column; gap:24px; align-items:center; min-height:auto; justify-content:center; padding-top:0; transform:translateY(14px); }
         .log-desktop-header { width:100%; display:flex; flex-direction:column; gap:24px; align-items:center; }
-        .log-logo-desktop { font-family:'Qurova DEMO', serif; font-size:24px; font-weight:500; color:#202532; text-align:center; width:100%; line-height:normal; letter-spacing:-0.2px; transition:color .3s; }
+        .log-logo-desktop { display:flex; align-items:center; justify-content:center; width:100%; }
         .log-desktop-title { font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:21px; font-weight:500; color:#202532; line-height:normal; text-align:center; letter-spacing:0.21px; width:100%; transition:color .3s; }
 
         /* MOBILE */
@@ -480,7 +481,7 @@ export default function LoginPage() {
         .log-mobile-card { position:absolute; left:0; right:0; top:72px; bottom:0; min-height:calc(100svh - 72px); background:#fff; border:0; border-radius:48px 48px 0 0; box-shadow:none; transition:background .3s; }
         .log-mobile-shell { position:relative; z-index:2; width:min(100%, 420px); min-height:calc(100svh - 72px); margin:0 auto; padding:254px 24px 72px; display:flex; flex-direction:column; gap:28px; align-items:center; }
         .log-mobile-logo-title { width:100%; display:flex; flex-direction:column; gap:9px; align-items:center; }
-        .log-logo-mobile { font-family:'Qurova DEMO', serif; font-size:20px; font-weight:500; color:#000; text-align:center; line-height:47px; height:35px; width:100%; letter-spacing:-0.2px; transition:color .3s; }
+        .log-logo-mobile { display:flex; align-items:center; justify-content:center; width:100%; min-height:62px; }
         .log-mobile-inner { width:100%; display:flex; flex-direction:column; gap:32px; align-items:center; }
         .log-mobile-title { font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:28px; font-weight:500; color:#202532; white-space:nowrap; line-height:47px; text-align:center; letter-spacing:0.28px; height:35px; transition:color .3s; }
         .log-mobile-title-email { font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:20px; font-weight:500; color:#2e2f33; line-height:26px; text-align:center; letter-spacing:0.2px; white-space:pre-line; transition:color .3s; }
@@ -609,8 +610,6 @@ export default function LoginPage() {
         .log-root[data-theme="dark"] .log-mobile  { background:#0A0D14; }
         .log-root[data-theme="dark"] .log-mobile-card { background:#141820; border-color:transparent; box-shadow:none; }
 
-        .log-root[data-theme="dark"] .log-logo-desktop,
-        .log-root[data-theme="dark"] .log-logo-mobile { color:#E8E8E5; }
         .log-root[data-theme="dark"] .log-desktop-title,
         .log-root[data-theme="dark"] .log-mobile-title,
         .log-root[data-theme="dark"] .log-mobile-title-email { color:#E8E8E5; }
@@ -659,7 +658,7 @@ export default function LoginPage() {
         <div className="log-theme-desktop">{themeSwitcher}</div>
         <section className="log-desktop-shell" aria-label="Festag Anmeldung">
           <div className="log-desktop-header">
-            <p className="log-logo-desktop">festag</p>
+            <div className="log-logo-desktop"><AuthBrandLogo size="desktop" /></div>
             <h1 className="log-desktop-title">{emailView ? emailTitle : 'Willkommen'}</h1>
           </div>
           <div className={`log-content${animating ? ' animating' : ''}`}>
@@ -676,7 +675,7 @@ export default function LoginPage() {
         <div className="log-theme-mobile">{themeSwitcher}</div>
         <div className="log-mobile-shell">
           <div className="log-mobile-logo-title">
-            <p className="log-logo-mobile">festag</p>
+            <div className="log-logo-mobile"><AuthBrandLogo size="mobile" /></div>
             <div className="log-mobile-inner">
               {emailView
                 ? <h1 className="log-mobile-title-email">{emailTitleMobile}</h1>

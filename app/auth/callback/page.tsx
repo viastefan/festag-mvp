@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import FestagLoader from '@/components/FestagLoader'
+import AuthBrandLogo from '@/components/AuthBrandLogo'
 import { createClient } from '@/lib/supabase/client'
 import { rememberFestagAccount, type FestagLoginMethod } from '@/lib/auth-device-memory'
 import { resolvePostAuthTarget } from '@/lib/auth-client-routing'
@@ -225,7 +226,7 @@ function CallbackInner() {
       <main className="cb-page">
         <style>{CB_CSS}</style>
         <div className="cb-card">
-          <p className="cb-brand">festag</p>
+          <div className="cb-brand"><AuthBrandLogo size="compact" /></div>
           <h1 className="cb-title">Link nicht mehr gültig</h1>
           <p className="cb-text">
             Dieser Anmeldelink ist nicht mehr gültig oder wurde schon verwendet.
@@ -248,7 +249,7 @@ function CallbackInner() {
       <main className="cb-page">
         <style>{CB_CSS}</style>
         <div className="cb-card">
-          <p className="cb-brand">festag</p>
+          <div className="cb-brand"><AuthBrandLogo size="compact" /></div>
           <h1 className="cb-title">Anmeldung bestätigen</h1>
           <p className="cb-text">
             Tippe einmal auf den Button, um dich sicher anzumelden.
@@ -277,14 +278,14 @@ const CB_CSS = `
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
   .cb-page{min-height:100dvh;display:flex;align-items:center;justify-content:center;background:#FCFCFD;padding:24px;font-family:var(--font-aeonik,'Aeonik',Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif);-webkit-font-smoothing:antialiased;color:#202532;}
   .cb-card{width:271px;display:flex;flex-direction:column;gap:18px;align-items:stretch;text-align:center;transform:translateY(14px);}
-  .cb-brand{font-family:'Qurova DEMO',serif;font-size:24px;font-weight:500;letter-spacing:-0.2px;margin-bottom:16px;color:#202532;}
+  .cb-brand{display:flex;align-items:center;justify-content:center;margin-bottom:8px;}
   .cb-title{font-size:21px;font-weight:500;letter-spacing:0.21px;line-height:1.25;color:#202532;}
   .cb-text{font-size:14px;line-height:1.55;color:#7B8294;margin-bottom:4px;font-weight:400;}
   .cb-btn{appearance:none;width:100%;height:47px;background:#5b647d;color:#fff;border:none;border-radius:32px;padding:0 24px;font-family:inherit;font-size:14px;font-weight:500;letter-spacing:0.14px;cursor:default;transition:background .15s,transform .15s;box-shadow:0px 8px 24px 0px rgba(200,169,91,0.14);}
   .cb-btn:hover{background:#505870;}
   .cb-btn:active{transform:scale(0.98);}
   .cb-foot{margin-top:0;font-size:12px;color:#98A2B3;line-height:1.5;font-weight:400;}
-  @media (prefers-color-scheme: dark){.cb-page{background:#0F141B;color:#E8E8E5}.cb-brand,.cb-title{color:#E8E8E5}.cb-text{color:#98A2B3}.cb-btn{background:#E8E8E5;color:#0F141B;box-shadow:none}.cb-btn:hover{background:#F3F5F7}.cb-foot{color:#7B8294}}
+  @media (prefers-color-scheme: dark){.cb-page{background:#0F141B;color:#E8E8E5}.cb-title{color:#E8E8E5}.cb-text{color:#98A2B3}.cb-btn{background:#E8E8E5;color:#0F141B;box-shadow:none}.cb-btn:hover{background:#F3F5F7}.cb-foot{color:#7B8294}}
 `
 
 export default function AuthCallbackPage() {

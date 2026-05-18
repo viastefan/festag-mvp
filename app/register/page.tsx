@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { rememberFestagAccount } from '@/lib/auth-device-memory'
 import { resolvePostAuthTarget } from '@/lib/auth-client-routing'
+import AuthBrandLogo from '@/components/AuthBrandLogo'
 
 const googleLogoDesktop = "/google-symbol.svg"
 const googleLogoMobile  = "/google-symbol.svg"
@@ -349,7 +350,7 @@ export default function RegisterPage() {
         .reg-desktop { display:flex; min-height:100dvh; background:#fcfcfd; align-items:center; justify-content:center; position:relative; transition:background .3s; }
         .reg-desktop-shell { width:271px; display:flex; flex-direction:column; gap:24px; align-items:center; min-height:auto; justify-content:center; padding-top:0; transform:translateY(14px); }
         .reg-desktop-header { width:100%; display:flex; flex-direction:column; gap:24px; align-items:center; }
-        .reg-logo-desktop { font-family:'Qurova DEMO', serif; font-size:24px; font-weight:500; color:#202532; text-align:center; width:100%; line-height:normal; letter-spacing:-0.2px; transition:color .3s; }
+        .reg-logo-desktop { display:flex; align-items:center; justify-content:center; width:100%; }
         .reg-desktop-title { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:21px; font-weight:500; color:#202532; line-height:normal; text-align:center; letter-spacing:0.21px; width:100%; transition:color .3s; }
         .reg-title-muted { color:inherit; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-weight:500; }
         .reg-dev { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:13px; font-weight:400 !important; line-height:20px; letter-spacing:0.02em; color:#7b8294; text-decoration:none; text-align:center; display:block; transition:color .3s; }
@@ -359,7 +360,7 @@ export default function RegisterPage() {
         .reg-mobile-card { position:absolute; left:12px; right:12px; bottom:10px; top:32px; background:#fff; border:1px solid rgba(99,111,132,.16); border-radius:36px; box-shadow:0px 22px 70px rgba(46,58,82,0.15),0px 4px 18px rgba(46,58,82,0.08),0px 1px 0px rgba(255,255,255,0.85) inset; transition:background .3s, border-color .3s, box-shadow .3s; }
         .reg-mobile-shell { position:absolute; left:50%; transform:translateX(-50%); top:175px; width:271px; display:flex; flex-direction:column; gap:28px; align-items:center; }
         .reg-mobile-logo-title { width:100%; display:flex; flex-direction:column; gap:9px; align-items:center; }
-        .reg-logo-mobile { font-family:'Qurova DEMO', serif; font-size:20px; font-weight:500; color:#000; text-align:center; line-height:47px; height:35px; width:100%; letter-spacing:-0.2px; transition:color .3s; }
+        .reg-logo-mobile { display:flex; align-items:center; justify-content:center; width:100%; min-height:62px; }
         .reg-mobile-inner { width:100%; display:flex; flex-direction:column; gap:32px; align-items:center; }
         .reg-mobile-title { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:28px; font-weight:500; color:#202532; white-space:nowrap; line-height:47px; text-align:center; letter-spacing:0.28px; height:35px; transition:color .3s; }
         .reg-mobile-title-email { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:20px; font-weight:500; color:#2e2f33; line-height:26px; text-align:center; letter-spacing:0.2px; white-space:pre-line; transition:color .3s; }
@@ -439,8 +440,6 @@ export default function RegisterPage() {
         .reg-root[data-theme="dark"] .reg-desktop { background:#0F141B; }
         .reg-root[data-theme="dark"] .reg-mobile  { background:#0A0D14; }
         .reg-root[data-theme="dark"] .reg-mobile-card { background:#141820; border-color:rgba(255,255,255,0.09); box-shadow:0px 26px 80px rgba(0,0,0,0.55),0px 6px 22px rgba(0,0,0,0.34),0px 1px 0px rgba(255,255,255,0.04) inset; }
-        .reg-root[data-theme="dark"] .reg-logo-desktop,
-        .reg-root[data-theme="dark"] .reg-logo-mobile,
         .reg-root[data-theme="dark"] .reg-desktop-title,
         .reg-root[data-theme="dark"] .reg-mobile-title,
         .reg-root[data-theme="dark"] .reg-mobile-title-email { color:#E8E8E5; }
@@ -475,7 +474,7 @@ export default function RegisterPage() {
         <div className="reg-theme-desktop">{themeSwitcher}</div>
         <section className="reg-desktop-shell" aria-label="Festag Registrierung">
           <div className="reg-desktop-header">
-            <p className="reg-logo-desktop">festag</p>
+            <div className="reg-logo-desktop"><AuthBrandLogo size="desktop" /></div>
             <h1 className="reg-desktop-title">{desktopTitle === 'Willkommen bei festag' ? <>Willkommen bei <span className="reg-title-muted">festag</span></> : desktopTitle}</h1>
           </div>
           <div className={`reg-content${animating ? ' animating' : ''}`}>
@@ -495,7 +494,7 @@ export default function RegisterPage() {
         <div className="reg-theme-mobile">{themeSwitcher}</div>
         <div className="reg-mobile-shell">
           <div className="reg-mobile-logo-title">
-            <p className="reg-logo-mobile">festag</p>
+            <div className="reg-logo-mobile"><AuthBrandLogo size="mobile" /></div>
             <div className="reg-mobile-inner">
               {emailStep === 'none'
                 ? <h1 className="reg-mobile-title">Willkommen</h1>
