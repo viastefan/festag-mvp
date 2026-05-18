@@ -363,14 +363,22 @@ export default function ObserversPage() {
         }
         .obs-row:hover { background:color-mix(in srgb, var(--surface-2) 60%, transparent); }
         .obs-row.expandable { cursor:pointer; }
-        .obs-row.is-expanded { background:color-mix(in srgb, var(--surface-2) 50%, transparent); }
+        /* Wenn expandiert: Row hat oben Rundung (8px), unten flach — verbindet sich nahtlos mit dem Detail-Panel.
+           Beide teilen sich denselben Background und ergeben EINEN Block mit 8px Außen-Rundung. */
+        .obs-row.is-expanded {
+          background:color-mix(in srgb, var(--surface-2) 55%, transparent);
+          border-radius:8px 8px 0 0;
+        }
+        .obs-row.is-expanded:hover {
+          background:color-mix(in srgb, var(--surface-2) 55%, transparent);
+        }
 
-        /* ── Expand-Detail-Panel ── */
+        /* ── Expand-Detail-Panel — nahtlos unter der Row ── */
         .obs-detail {
           margin:0 -12px 6px;
           padding:18px 16px 16px;
-          background:color-mix(in srgb, var(--surface-2) 38%, transparent);
-          border-radius:8px;
+          background:color-mix(in srgb, var(--surface-2) 55%, transparent);
+          border-radius:0 0 8px 8px;
           animation:obsExpandIn .2s cubic-bezier(.16,1,.3,1) both;
           display:grid;
           grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));
