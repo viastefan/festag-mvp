@@ -479,7 +479,6 @@ export default function TasksPage() {
           overflow-y:auto;
           overflow-x:hidden;
           padding:0 18px 76px;
-          scrollbar-gutter:stable;
           overscroll-behavior:contain;
         }
         .task-top {
@@ -573,18 +572,37 @@ export default function TasksPage() {
         .task-create svg { flex-shrink:0; }
         .task-tool-wrap { position:relative; }
         .task-tool {
-          width:32px;
-          height:32px;
-          border:1px solid var(--border);
+          width:34px;
+          height:34px;
+          border:0;
           border-radius:999px;
-          background:var(--surface);
+          background:#fff;
           color:var(--task-soft-text);
           display:flex;
           align-items:center;
           justify-content:center;
           cursor:pointer;
+          box-shadow:0 1px 2px rgba(15,23,42,.08), 0 7px 18px rgba(15,23,42,.08);
+          transition:background .12s ease, color .12s ease, box-shadow .12s ease, transform .12s ease;
         }
-        .task-tool:hover, .task-tool.on { background:var(--surface-2); color:var(--text); }
+        .task-tool:hover, .task-tool.on {
+          background:#fff;
+          color:var(--text);
+          box-shadow:0 1px 2px rgba(15,23,42,.10), 0 9px 22px rgba(15,23,42,.11);
+          transform:translateY(-1px);
+        }
+        [data-theme="dark"] .task-tool,
+        [data-theme="classic-dark"] .task-tool {
+          background:color-mix(in srgb, var(--surface) 92%, #fff 8%);
+          box-shadow:0 1px 2px rgba(0,0,0,.28), 0 8px 20px rgba(0,0,0,.20);
+        }
+        [data-theme="dark"] .task-tool:hover,
+        [data-theme="dark"] .task-tool.on,
+        [data-theme="classic-dark"] .task-tool:hover,
+        [data-theme="classic-dark"] .task-tool.on {
+          background:color-mix(in srgb, var(--surface) 88%, #fff 12%);
+          box-shadow:0 1px 2px rgba(0,0,0,.32), 0 10px 24px rgba(0,0,0,.24);
+        }
         .task-menu {
           position:absolute;
           top:38px;
