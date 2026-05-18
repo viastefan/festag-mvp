@@ -740,11 +740,18 @@ const detailStyles = `
     padding:0 11px;
     border-radius:999px;
     color:var(--text-secondary);
-    border:1px solid var(--border);
+    border:0;
+    background:#fff;
+    box-shadow:0 1px 2px rgba(15,23,42,.08), 0 8px 20px rgba(15,23,42,.08);
     font-size:11.5px;
     font-weight:500;
     letter-spacing:.03em;
     margin-bottom:12px;
+  }
+  [data-theme="dark"] .status-pill,
+  [data-theme="classic-dark"] .status-pill {
+    background:color-mix(in srgb, var(--surface) 92%, #fff 8%);
+    box-shadow:0 1px 2px rgba(0,0,0,.28), 0 8px 20px rgba(0,0,0,.20);
   }
   .status-pill span {
     width:8px;

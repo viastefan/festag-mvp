@@ -223,7 +223,9 @@ export default function ObserversPage() {
           padding:0 18px 76px;
           scrollbar-gutter:stable;
           overscroll-behavior:contain;
+          animation:obsContentIn .22s cubic-bezier(.16,1,.3,1) both;
         }
+        @keyframes obsContentIn { from { opacity:0; transform:translateY(7px); } to { opacity:1; transform:none; } }
         .obs-top {
           display:flex; align-items:center; justify-content:space-between;
           min-height:34px;
@@ -336,7 +338,8 @@ export default function ObserversPage() {
         .obs-composer-hint { font-size:11.5px; font-weight:500; color:var(--text-muted); letter-spacing:.015em; }
         .obs-link-row { display:flex; align-items:center; gap:8px; padding:9px 11px; border:1px solid var(--border); border-radius:7px; background:color-mix(in srgb, var(--surface-2) 60%, transparent); }
 
-        .obs-table { width:100%; }
+        .obs-table { width:100%; animation:obsTableIn .24s cubic-bezier(.16,1,.3,1) both; }
+        @keyframes obsTableIn { from { opacity:0; transform:translateY(7px); } to { opacity:1; transform:none; } }
         .obs-head-row, .obs-row {
           display:grid;
           grid-template-columns: minmax(200px, 1.4fr) 96px minmax(180px, 1.8fr) 80px 88px 28px;

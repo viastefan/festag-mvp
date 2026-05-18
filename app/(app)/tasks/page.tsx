@@ -229,6 +229,7 @@ export default function TasksPage() {
   const [composerNotice, setComposerNotice] = useState('')
   const [tagroPreview, setTagroPreview] = useState<TagroPreview | null>(null)
   const [expandedProjectIds, setExpandedProjectIds] = useState<string[]>([])
+  const [activeStatePopoverTaskId, setActiveStatePopoverTaskId] = useState<string | null>(null)
   const hasSeededProjectGroupsRef = useRef(false)
   const taskToolsRef = useRef<HTMLDivElement | null>(null)
 
@@ -263,8 +264,12 @@ export default function TasksPage() {
 
   useEffect(() => {
     function closeFloatingMenus(event: PointerEvent) {
-      const target = event.target as Node | null
-      if (target && taskToolsRef.current?.contains(target)) return
+      const targetNode = event.target as Node | null
+      const targetElement = event.target instanceof Element ? event.target : null
+      if (!targetElement?.closest('.task-state-wrap')) {
+        setActiveStatePopoverTaskId(null)
+      }
+      if (targetNode && taskToolsRef.current?.contains(targetNode)) return
       setFilterMenuOpen(false)
       setSortMenuOpen(false)
     }
@@ -273,6 +278,7 @@ export default function TasksPage() {
       if (event.key !== 'Escape') return
       setFilterMenuOpen(false)
       setSortMenuOpen(false)
+      setActiveStatePopoverTaskId(null)
     }
 
     document.addEventListener('pointerdown', closeFloatingMenus)
@@ -381,9 +387,13 @@ export default function TasksPage() {
 
   function toggleProjectGroup(projectId: string) {
     setExpandedProjectIds((current) => (
+      taskProjectGroups.length === 1
+        ? [projectId]
+        : (
       current.includes(projectId)
         ? current.filter((id) => id !== projectId)
         : [...current, projectId]
+        )
     ))
   }
 
@@ -574,7 +584,7 @@ export default function TasksPage() {
         }
         .task-create {
           height:30px;
-          padding:0 10px 0 12px;
+          padding:0 9px 0 12px;
           border:1px solid transparent;
           border-radius:8px;
           background:transparent;
@@ -588,14 +598,24 @@ export default function TasksPage() {
           cursor:pointer;
         }
         .task-create:hover { background:var(--surface-2); color:var(--text); }
-        .task-create-close {
-          width:16px;
-          height:16px;
+        .task-create:focus,
+        .task-create:focus-visible,
+        .task-create:active {
+          outline:none !important;
+          box-shadow:none !important;
+          border-color:transparent !important;
+        }
+        .task-create-plus {
+          width:14px;
+          height:14px;
           display:inline-flex;
           align-items:center;
           justify-content:center;
           flex-shrink:0;
           color:currentColor;
+          font-size:15px;
+          line-height:1;
+          transform:translateY(-.5px);
         }
         .task-create:disabled {
           opacity:.46;
@@ -674,7 +694,7 @@ export default function TasksPage() {
           color:var(--task-soft-text);
           font:inherit;
           font-size:12px;
-          font-weight:600;
+          font-weight:500;
           cursor:pointer;
         }
         .task-menu button:focus,
@@ -684,9 +704,9 @@ export default function TasksPage() {
         }
         .task-menu button:hover, .task-menu button.on { background:var(--surface-2); color:var(--text); }
         .task-table {
-          width:100%;
+          width:calc(100% + 36px);
           margin-left:0;
-          margin-right:0;
+          margin-right:-36px;
           overflow:visible;
         }
         .task-head,
@@ -695,8 +715,8 @@ export default function TasksPage() {
           grid-template-columns:42px minmax(190px,1.55fr) minmax(128px,.85fr) 76px 104px 84px 58px 82px;
           align-items:center;
           gap:8px;
-          margin:0 -12px;
-          padding:0 16px;
+          margin:0;
+          padding:0 12px 0 0;
           box-sizing:border-box;
         }
         .task-head {
@@ -720,11 +740,15 @@ export default function TasksPage() {
           border-bottom:0;
           color:var(--task-soft-text);
           font-size:12px;
-          border-radius:8px;
+          border-radius:8px !important;
           cursor:pointer;
+          overflow:hidden;
+          background:transparent;
+          transition:background .12s ease;
         }
         .task-row:hover {
           background:color-mix(in srgb, var(--surface-2) 60%, transparent);
+          border-radius:8px !important;
         }
         .task-project-section {
           margin:5px 0 8px;
@@ -736,14 +760,14 @@ export default function TasksPage() {
           to { opacity:1; transform:none; }
         }
         .task-project-row {
-          width:calc(100% + 24px);
+          width:100%;
           min-height:40px;
           display:grid;
           grid-template-columns:42px minmax(190px,1.55fr) minmax(128px,.85fr) 76px 104px 84px 58px 82px;
           align-items:center;
           gap:8px;
-          margin:0 -12px;
-          padding:0 16px;
+          margin:0;
+          padding:0 12px 0 0;
           box-sizing:border-box;
           border:0;
           border-radius:8px !important;
@@ -1100,7 +1124,7 @@ export default function TasksPage() {
           width:16px;
           height:16px;
           border-radius:50%;
-          border:1.25px solid color-mix(in srgb, var(--task-soft-text) 36%, var(--border));
+          border:1px solid color-mix(in srgb, var(--task-soft-text) 30%, var(--border));
           color:var(--btn-prim-text);
           display:flex;
           align-items:center;
@@ -1108,12 +1132,16 @@ export default function TasksPage() {
           flex-shrink:0;
           background:transparent;
           padding:0;
-          transition:border-color .12s ease, background .12s ease, transform .12s ease;
+          transition:border-color .12s ease, background .12s ease;
         }
         .task-state-wrap:hover .task-state-mark,
+        .task-state-wrap.is-open .task-state-mark {
+          border-color:color-mix(in srgb, var(--task-soft-text) 64%, var(--border));
+        }
+        .task-state-mark:focus,
         .task-state-mark:focus-visible {
-          border-color:color-mix(in srgb, var(--task-soft-text) 78%, var(--border));
-          transform:scale(1.03);
+          outline:none !important;
+          box-shadow:none !important;
         }
         .task-state-mark.done {
           border-color:var(--btn-prim);
@@ -1123,16 +1151,16 @@ export default function TasksPage() {
           position:absolute;
           left:24px;
           top:50%;
-          width:244px;
+          width:268px;
           transform:translateY(-50%) translateX(-4px);
           opacity:0;
           pointer-events:none;
-          z-index:30;
-          padding:10px 11px;
-          border-radius:10px;
-          border:1px solid color-mix(in srgb, var(--border) 86%, transparent);
-          background:color-mix(in srgb, var(--surface) 96%, transparent);
-          box-shadow:0 16px 36px rgba(15,23,42,.12);
+          z-index:80;
+          padding:11px 12px;
+          border-radius:12px;
+          border:0;
+          background:var(--surface);
+          box-shadow:0 18px 44px rgba(15,23,42,.16);
           color:var(--task-soft-text);
           font-size:11.5px;
           line-height:1.45;
@@ -1146,10 +1174,12 @@ export default function TasksPage() {
           font-size:11.5px;
           font-weight:500;
         }
-        .task-state-wrap:hover .task-state-popover,
-        .task-state-wrap:focus-within .task-state-popover {
+        .task-state-wrap.is-open .task-state-popover {
           opacity:1;
           transform:translateY(-50%) translateX(0);
+        }
+        .task-state-popover span {
+          display:block;
         }
         .task-name-text {
           min-width:0;
@@ -1404,12 +1434,13 @@ export default function TasksPage() {
             min-height:auto;
             padding:12px 10px;
             margin-bottom:8px;
-            border:1px solid color-mix(in srgb, var(--border) 72%, transparent);
-            border-radius:12px;
+            border:0;
+            border-radius:8px !important;
             background:color-mix(in srgb, var(--surface) 94%, transparent);
           }
           .task-row:hover {
             background:color-mix(in srgb, var(--surface-2) 38%, var(--surface));
+            border-radius:8px !important;
           }
           .task-group-cell {
             display:none;
@@ -1510,9 +1541,7 @@ export default function TasksPage() {
           <h1 className="task-title">Tasks</h1>
           <button className="task-create" type="button" aria-label="Neue Aufgabe vorschlagen" disabled={!hasProjects} onClick={openComposer}>
             <span>Aufgabe vorschlagen</span>
-            <span className="task-create-close" aria-hidden="true">
-              {composerOpen ? <X size={13} weight="bold" /> : <span style={{ fontSize: 18, lineHeight: 1 }}>+</span>}
-            </span>
+            <span className="task-create-plus" aria-hidden="true">+</span>
           </button>
         </div>
 
@@ -1807,15 +1836,18 @@ export default function TasksPage() {
                           </span>
                         </div>
                         <div className="task-name">
-                          <span className="task-state-wrap">
+                          <span className={`task-state-wrap${activeStatePopoverTaskId === task.id ? ' is-open' : ''}`}>
                             <button
                               type="button"
                               className={`task-state-mark${isDone ? ' done' : ''}`}
                               aria-label={isDone ? 'Erledigt-Logik anzeigen' : 'Status-Logik anzeigen'}
+                              aria-expanded={activeStatePopoverTaskId === task.id}
+                              aria-haspopup="dialog"
                               tabIndex={expanded ? 0 : -1}
                               onClick={(event) => {
                                 event.preventDefault()
                                 event.stopPropagation()
+                                setActiveStatePopoverTaskId((current) => current === task.id ? null : task.id)
                               }}
                               onKeyDown={(event) => {
                                 event.stopPropagation()
@@ -1825,7 +1857,7 @@ export default function TasksPage() {
                             </button>
                             <span className="task-state-popover" role="tooltip">
                               <strong>So funktioniert Erledigt</strong>
-                              Du kannst eigene Aufgaben löschen. Normalerweise haken Tagro oder der Developer die Aufgabe ab. Danach bleibt sie 24h sichtbar und verschwindet dann nur aus den Standardansichten.
+                              <span>Tagro oder der Developer haken Aufgaben ab. Danach bleiben sie 24h sichtbar und verschwinden nur aus Standardansichten. Eigene Aufgaben kannst du jederzeit löschen.</span>
                             </span>
                           </span>
                           <span className="task-name-text">
