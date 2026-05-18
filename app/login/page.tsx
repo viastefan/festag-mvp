@@ -14,6 +14,23 @@ const THEME_KEY = 'festag_theme'
 
 type EmailStep = 'main' | 'email' | 'emailSent' | 'codeEntry'
 
+function getInitialAuthTheme(): Theme {
+  if (typeof window === 'undefined') return 'dark'
+  try {
+    const stored = localStorage.getItem(THEME_KEY)
+    if (stored === 'dark') return 'dark'
+    if (stored === 'light' || stored === 'read') return 'light'
+  } catch {}
+  return 'dark'
+}
+
+function applyAuthThemeToDocument(t: Theme) {
+  if (typeof document === 'undefined') return
+  document.documentElement.setAttribute('data-theme', t)
+  document.documentElement.style.backgroundColor = t === 'dark' ? '#0F141B' : '#fcfcfd'
+  document.documentElement.style.colorScheme = t
+}
+
 function mapAuthError(msg: string): string {
   if (msg.includes('rate limit') || msg.includes('too many') || msg.includes('Email rate'))
     return 'Zu viele Versuche. Bitte warte einen Moment.'
@@ -45,7 +62,7 @@ export default function LoginPage() {
   const [resending, setResending] = useState(false)
   const [error, setError] = useState('')
   const [resendCooldown, setResendCooldown] = useState(0)
-  const [theme, setThemeState] = useState<Theme>('dark')
+  const [theme, setThemeState] = useState<Theme>(getInitialAuthTheme)
   const [lastMethod, setLastMethod] = useState<Method | null>(null)
   const [lastEmail, setLastEmail] = useState<string | null>(null)
   const [supportOpen, setSupportOpen] = useState(false)
@@ -85,9 +102,9 @@ export default function LoginPage() {
     routeSessionIfPresent()
     const stored = getLastFestagMethod() as Method | null
     setLastMethod(stored)
-    const storedTheme = localStorage.getItem(THEME_KEY)
-    if (storedTheme === 'light' || storedTheme === 'dark') setThemeState(storedTheme)
-    else if (storedTheme === 'read') setThemeState('light') // reading mode → light auth page
+    const initialTheme = getInitialAuthTheme()
+    applyAuthThemeToDocument(initialTheme)
+    setThemeState(initialTheme)
     try {
       const e = getLastFestagEmail()
       if (e && /\S+@\S+\.\S+/.test(e)) setLastEmail(e)
@@ -122,13 +139,11 @@ export default function LoginPage() {
   }
 
   function setTheme(t: Theme) {
-    setThemeState(t)
     try {
       localStorage.setItem(THEME_KEY, t)
-      document.documentElement.setAttribute('data-theme', t)
-      document.documentElement.style.backgroundColor = t === 'dark' ? '#0F141B' : '#fcfcfd'
-      document.documentElement.style.colorScheme = t
     } catch {}
+    applyAuthThemeToDocument(t)
+    setThemeState(t)
   }
 
   useEffect(() => {

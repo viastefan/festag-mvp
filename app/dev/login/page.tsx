@@ -8,6 +8,23 @@ import AuthBrandLogo from '@/components/AuthBrandLogo'
 type Theme = 'light' | 'dark'
 const THEME_KEY = 'festag_theme'
 
+function getInitialAuthTheme(): Theme {
+  if (typeof window === 'undefined') return 'dark'
+  try {
+    const stored = localStorage.getItem(THEME_KEY)
+    if (stored === 'dark') return 'dark'
+    if (stored === 'light' || stored === 'read') return 'light'
+  } catch {}
+  return 'dark'
+}
+
+function applyAuthThemeToDocument(t: Theme) {
+  if (typeof document === 'undefined') return
+  document.documentElement.setAttribute('data-theme', t)
+  document.documentElement.style.backgroundColor = t === 'dark' ? '#0F141B' : '#fcfcfd'
+  document.documentElement.style.colorScheme = t
+}
+
 function mapError(msg: string): string {
   if (msg.includes('rate') || msg.includes('too many')) return 'Zu viele Versuche. Bitte warte einen Moment.'
   return 'Benutzername oder PIN ist nicht korrekt.'
@@ -22,29 +39,27 @@ export default function DevLoginPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [pageExiting, setPageExiting] = useState(false)
-  const [theme, setThemeState] = useState<Theme>('dark')
+  const [theme, setThemeState] = useState<Theme>(getInitialAuthTheme)
   const [oauthLoading, setOauthLoading] = useState(false)
 
   const userRef = useRef<HTMLInputElement>(null)
   const pinRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    const stored = localStorage.getItem(THEME_KEY)
-    if (stored === 'light' || stored === 'dark') setThemeState(stored as Theme)
-    else if (stored === 'read') setThemeState('light')
+    const initialTheme = getInitialAuthTheme()
+    applyAuthThemeToDocument(initialTheme)
+    setThemeState(initialTheme)
     const tries = [0, 50, 150, 250, 400]
     const timers = tries.map(ms => setTimeout(() => userRef.current?.focus(), ms))
     return () => timers.forEach(clearTimeout)
   }, [])
 
   function setTheme(t: Theme) {
-    setThemeState(t)
     try {
       localStorage.setItem(THEME_KEY, t)
-      document.documentElement.setAttribute('data-theme', t)
-      document.documentElement.style.backgroundColor = t === 'dark' ? '#0F141B' : '#fcfcfd'
-      document.documentElement.style.colorScheme = t
     } catch {}
+    applyAuthThemeToDocument(t)
+    setThemeState(t)
   }
 
   function navigateWithFade(href: string) {

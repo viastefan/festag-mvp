@@ -16,10 +16,12 @@ export default function AuthBrandLogo({ className = '', size = 'desktop' }: Auth
           place-items:center;
           position:relative;
           overflow:hidden;
+          background:transparent;
           border-radius:18px;
           flex-shrink:0;
           line-height:0;
           contain:paint;
+          isolation:isolate;
         }
         .auth-brand-logo.desktop {
           width:70px;
@@ -47,6 +49,8 @@ export default function AuthBrandLogo({ className = '', size = 'desktop' }: Auth
         }
         .auth-brand-logo-dark {
           display:none;
+          transform:scale(1.08);
+          transform-origin:center;
         }
         :global([data-theme="dark"]) .auth-brand-logo-light,
         :global(.log-root[data-theme="dark"]) .auth-brand-logo-light,
@@ -59,26 +63,6 @@ export default function AuthBrandLogo({ className = '', size = 'desktop' }: Auth
         :global(.reg-root[data-theme="dark"]) .auth-brand-logo-dark,
         :global(.dl-root[data-theme="dark"]) .auth-brand-logo-dark {
           display:block;
-        }
-        @media (prefers-color-scheme: dark) {
-          .auth-brand-logo-light {
-            display:none;
-          }
-          .auth-brand-logo-dark {
-            display:block;
-          }
-          :global([data-theme="light"]) .auth-brand-logo-light,
-          :global(.log-root[data-theme="light"]) .auth-brand-logo-light,
-          :global(.reg-root[data-theme="light"]) .auth-brand-logo-light,
-          :global(.dl-root[data-theme="light"]) .auth-brand-logo-light {
-            display:block;
-          }
-          :global([data-theme="light"]) .auth-brand-logo-dark,
-          :global(.log-root[data-theme="light"]) .auth-brand-logo-dark,
-          :global(.reg-root[data-theme="light"]) .auth-brand-logo-dark,
-          :global(.dl-root[data-theme="light"]) .auth-brand-logo-dark {
-            display:none;
-          }
         }
       `}</style>
     </>

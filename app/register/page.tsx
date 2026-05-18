@@ -14,6 +14,23 @@ type EmailStep = 'none' | 'email' | 'emailSent' | 'codeEntry'
 type Theme = 'light' | 'dark'
 const THEME_KEY = 'festag_theme'
 
+function getInitialAuthTheme(): Theme {
+  if (typeof window === 'undefined') return 'dark'
+  try {
+    const stored = localStorage.getItem(THEME_KEY)
+    if (stored === 'dark') return 'dark'
+    if (stored === 'light' || stored === 'read') return 'light'
+  } catch {}
+  return 'dark'
+}
+
+function applyAuthThemeToDocument(t: Theme) {
+  if (typeof document === 'undefined') return
+  document.documentElement.setAttribute('data-theme', t)
+  document.documentElement.style.backgroundColor = t === 'dark' ? '#0F141B' : '#fcfcfd'
+  document.documentElement.style.colorScheme = t
+}
+
 function mapAuthError(msg: string): string {
   if (msg.includes('rate limit') || msg.includes('too many') || msg.includes('Email rate'))
     return 'Zu viele Versuche. Bitte warte einen Moment.'
@@ -39,24 +56,22 @@ export default function RegisterPage() {
   const [resending, setResending] = useState(false)
   const [resendCooldown, setResendCooldown] = useState(0)
   const [error, setError] = useState('')
-  const [theme, setThemeState] = useState<Theme>('dark')
+  const [theme, setThemeState] = useState<Theme>(getInitialAuthTheme)
   const emailRef = useRef<HTMLInputElement>(null)
   const codeRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    const stored = localStorage.getItem(THEME_KEY)
-    if (stored === 'light' || stored === 'dark') setThemeState(stored as Theme)
-    else if (stored === 'read') setThemeState('light') // reading mode → light auth page
+    const initialTheme = getInitialAuthTheme()
+    applyAuthThemeToDocument(initialTheme)
+    setThemeState(initialTheme)
   }, [])
 
   function setTheme(t: Theme) {
-    setThemeState(t)
     try {
       localStorage.setItem(THEME_KEY, t)
-      document.documentElement.setAttribute('data-theme', t)
-      document.documentElement.style.backgroundColor = t === 'dark' ? '#0F141B' : '#fcfcfd'
-      document.documentElement.style.colorScheme = t
     } catch {}
+    applyAuthThemeToDocument(t)
+    setThemeState(t)
   }
 
   function navigateWithFade(href: string) {

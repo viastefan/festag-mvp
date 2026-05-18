@@ -8,15 +8,13 @@ import { useEffect, useState } from 'react'
  * Behavior:
  * - Hidden if the app is already running as an installed PWA
  *   (display-mode: standalone).
- * - Counts one dashboard/app entry per browser session and shows on every
- *   second entry until the app is installed.
+ * - Shows for every non-installed app session so every user can discover
+ *   the Webapp install flow.
  * - Chromium uses the native install prompt when available. Other browsers
  *   get a compact instruction popover.
  */
 
 const INSTALL_STATE_KEY = 'festag_pwa_install_state'
-const ENTRY_COUNT_KEY = 'festag_pwa_entry_count'
-const SESSION_COUNTED_KEY = 'festag_pwa_entry_counted'
 
 type BeforeInstallPromptEvent = Event & {
   prompt: () => Promise<void>
@@ -30,7 +28,6 @@ export default function PwaInstallBanner() {
   const [installing, setInstalling] = useState(false)
 
   useEffect(() => {
-    let shouldShowThisEntry = false
     let fallbackTimer: ReturnType<typeof setTimeout> | null = null
 
     // Already installed?
@@ -46,22 +43,6 @@ export default function PwaInstallBanner() {
     try {
       if (localStorage.getItem(INSTALL_STATE_KEY) === 'installed') return
     } catch {}
-
-    try {
-      if (!sessionStorage.getItem(SESSION_COUNTED_KEY)) {
-        const nextCount = Number(localStorage.getItem(ENTRY_COUNT_KEY) || '0') + 1
-        localStorage.setItem(ENTRY_COUNT_KEY, String(nextCount))
-        sessionStorage.setItem(SESSION_COUNTED_KEY, '1')
-        shouldShowThisEntry = nextCount % 2 === 0
-      } else {
-        shouldShowThisEntry = sessionStorage.getItem('festag_pwa_show_this_entry') === '1'
-      }
-      sessionStorage.setItem('festag_pwa_show_this_entry', shouldShowThisEntry ? '1' : '0')
-    } catch {
-      shouldShowThisEntry = true
-    }
-
-    if (!shouldShowThisEntry) return
 
     // Chromium / Edge / Android Chrome fire this when the app is installable.
     function onBeforePrompt(e: Event) {
@@ -80,7 +61,7 @@ export default function PwaInstallBanner() {
       setVisible(true)
     } else {
       // Desktop Safari and some in-app browsers do not emit beforeinstallprompt.
-      fallbackTimer = setTimeout(() => setVisible(true), 1200)
+      fallbackTimer = setTimeout(() => setVisible(true), 900)
     }
 
     function onInstalled() {
@@ -125,15 +106,21 @@ export default function PwaInstallBanner() {
     <>
       <style>{`
         .pwa-banner {
-          position:fixed; right:24px; bottom:24px; z-index:200;
-          width:min(370px, calc(100vw - 32px));
-          background: color-mix(in srgb, var(--surface) 94%, transparent);
+          position:fixed; right:18px; bottom:18px; z-index:200;
+          width:min(388px, calc(100vw - 24px));
+          background: color-mix(in srgb, var(--surface) 98%, transparent);
           color: var(--text);
-          border: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
+          border:none;
           border-radius:18px;
-          padding:16px;
-          display:flex; gap:12px; align-items:flex-start;
-          box-shadow:0 24px 70px -34px rgba(0,0,0,0.42), 0 1px 2px rgba(0,0,0,0.12);
+          padding:14px;
+          display:grid;
+          grid-template-columns:48px 1fr 24px;
+          gap:12px;
+          align-items:start;
+          box-shadow:
+            0 28px 80px -42px rgba(15,23,42,0.62),
+            0 14px 30px -24px rgba(15,23,42,0.32),
+            0 1px 0 rgba(255,255,255,0.78) inset;
           font-family: var(--font-aeonik,'Aeonik',Inter,sans-serif);
           backdrop-filter: blur(8px);
           -webkit-backdrop-filter: blur(8px);
@@ -141,23 +128,24 @@ export default function PwaInstallBanner() {
         }
         @keyframes pwaIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
         .pwa-icon {
-          width:40px; height:40px; border-radius:12px;
+          width:48px; height:48px; border-radius:14px;
           flex-shrink:0;
-          background: color-mix(in srgb, var(--text) 9%, transparent);
-          display:flex; align-items:center; justify-content:center;
-          font-family:'Qurova DEMO', serif; font-size:16px; font-weight:500;
-          letter-spacing:-0.4px;
+          background: color-mix(in srgb, var(--text) 7%, transparent);
+          display:block;
+          object-fit:cover;
+          object-position:center;
+          box-shadow:0 10px 22px -18px rgba(0,0,0,0.5);
         }
-        .pwa-body { flex:1; min-width:0; }
-        .pwa-title { font-size:14px; font-weight:620; letter-spacing:-0.01em; margin-bottom:3px; }
-        .pwa-sub { font-size:12.5px; font-weight:400; letter-spacing:0.01em; color:var(--text-muted); line-height:1.45; }
-        .pwa-actions { margin-top:12px; display:flex; gap:8px; align-items:center; }
+        .pwa-body { min-width:0; padding-top:1px; }
+        .pwa-title { font-size:14px; font-weight:600; letter-spacing:-0.01em; margin-bottom:4px; }
+        .pwa-sub { font-size:12.5px; font-weight:500; letter-spacing:0.01em; color:var(--text-muted); line-height:1.38; max-width:260px; }
+        .pwa-actions { margin-top:13px; display:flex; gap:8px; align-items:center; }
         .pwa-install {
-          min-width:132px;
           height:34px;
-          font-family:inherit; font-size:12.5px; font-weight:620; letter-spacing:0.01em;
-          padding:0 16px; border-radius:999px; border:1px solid var(--text);
+          font-family:inherit; font-size:12.5px; font-weight:600; letter-spacing:0.01em;
+          padding:0 15px; border-radius:12px; border:none;
           background: var(--text); color: var(--bg);
+          box-shadow:0 14px 26px -20px rgba(0,0,0,.55);
           transition: opacity .15s, transform .25s cubic-bezier(0.34,1.56,0.64,1);
         }
         .pwa-install:active:not(:disabled) { transform: scale(0.97); transition: transform .08s ease; }
@@ -165,12 +153,14 @@ export default function PwaInstallBanner() {
         .pwa-install:disabled { opacity:.55; cursor:not-allowed; }
         .pwa-later {
           height:34px;
-          font-family:inherit; font-size:12.5px; font-weight:580; letter-spacing:0.01em;
-          padding:0 12px; border-radius:999px; border:none;
-          background: transparent; color: inherit; opacity:.5;
-          transition: opacity .15s;
+          font-family:inherit; font-size:12.5px; font-weight:600; letter-spacing:0.01em;
+          padding:0 13px; border-radius:12px; border:none;
+          background: color-mix(in srgb, var(--text) 5%, transparent);
+          color: var(--text-muted);
+          box-shadow:0 1px 0 rgba(255,255,255,.72) inset;
+          transition: opacity .15s, background .15s;
         }
-        .pwa-later:hover { opacity: .9; }
+        .pwa-later:hover { background: color-mix(in srgb, var(--text) 8%, transparent); }
         .pwa-close {
           flex-shrink:0;
           width:22px; height:22px;
@@ -182,24 +172,42 @@ export default function PwaInstallBanner() {
         }
         .pwa-close:hover { opacity:.9; background: color-mix(in srgb, currentColor 8%, transparent); }
         .pwa-tip {
-          margin-top:10px; padding:10px 12px;
-          border-radius:8px;
+          margin-top:10px; padding:10px 11px;
+          border-radius:10px;
           background: color-mix(in srgb, currentColor 6%, transparent);
-          font-size:11.5px; font-weight:400; letter-spacing:0.01em; line-height:1.55;
+          font-size:11.5px; font-weight:500; letter-spacing:0.01em; line-height:1.48;
           color: inherit; opacity:.85;
         }
         .pwa-tip strong { font-weight:500; opacity:1; }
+        :global([data-theme="dark"]) .pwa-banner {
+          background: color-mix(in srgb, var(--surface) 92%, #111722 8%);
+          box-shadow:
+            0 28px 80px -44px rgba(0,0,0,0.78),
+            0 1px 0 rgba(255,255,255,0.05) inset;
+        }
+        @media (max-width: 520px) {
+          .pwa-banner {
+            right:12px;
+            bottom:12px;
+            width:calc(100vw - 24px);
+            grid-template-columns:44px 1fr 24px;
+            border-radius:16px;
+            padding:12px;
+          }
+          .pwa-icon { width:44px; height:44px; border-radius:13px; }
+          .pwa-sub { max-width:none; }
+        }
       `}</style>
       <div className="pwa-banner" role="dialog" aria-label="Festag installieren">
-        <div className="pwa-icon" aria-hidden="true">f</div>
+        <img className="pwa-icon" src="/brand/app-icon.png" alt="" aria-hidden="true" />
         <div className="pwa-body">
-          <div className="pwa-title">Festag als App installieren</div>
+          <div className="pwa-title">Festag als Webapp installieren</div>
           <div className="pwa-sub">
-            Schneller Zugriff, ohne Browser-Leiste. Für macOS, Windows, iOS und Android.
+            Schneller Zugriff ohne Browser-Leiste. Für Desktop und Mobile.
           </div>
           <div className="pwa-actions">
             <button type="button" className="pwa-install" onClick={install} disabled={installing}>
-              {installing ? 'Wird installiert…' : deferred ? 'Installieren' : 'Anleitung zeigen'}
+              {installing ? 'Installiert…' : deferred ? 'Installieren' : 'Anleitung'}
             </button>
             <button type="button" className="pwa-later" onClick={dismiss}>Später</button>
           </div>
