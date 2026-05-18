@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { CLIENT_VISIBLE_LABEL, clientStatusFromDevFlow, type DevFlow } from '@/lib/tasks/work-types'
+import { getServiceClient } from '@/lib/supabase/service'
 
 /**
  * Tagro Sync Bus — the single place that fans dev-side task events out
@@ -46,17 +47,27 @@ export type EmitContext = {
 /**
  * Emit a task event. Idempotent enough for the simple cases — we always
  * append. Callers decide which event kind fits best.
+ *
+ * Writes go through the **service-role client** when available so the
+ * three fan-out tables (task_activity_logs, messages, notifications)
+ * bypass RLS. That's correct here because the *event input* is already
+ * authorised at the calling API route — the bus is just the persistence
+ * fan-out, not a user-driven mutation.
+ *
+ * Falls back to the supplied (user-session) client when the service key
+ * is missing, e.g. local dev without env wiring.
  */
 export async function emitTaskEvent(
   sb: SupabaseClient<any>,
   event: DevEventKind,
   ctx: EmitContext,
 ) {
+  const writer: SupabaseClient<any> = (getServiceClient() as any) ?? sb
   const visibleToClient = isClientVisible(event)
-  const actorKind = ctx.actorKind ?? (event.startsWith('tagro_') || event === 'needs_review' || event === 'proof_missing' || event === 'quality_issue' ? 'tagro' : 'human')
+  const actorKind = ctx.actorKind ?? (event === 'needs_review' || event === 'proof_missing' || event === 'quality_issue' || event === 'tagro_verified' ? 'tagro' : 'human')
 
   // 1) Activity log (always)
-  await sb.from('task_activity_logs').insert({
+  await writer.from('task_activity_logs').insert({
     task_id: ctx.taskId,
     project_id: ctx.projectId,
     actor_id: ctx.actorId,
@@ -70,7 +81,7 @@ export async function emitTaskEvent(
   if (visibleToClient && ctx.projectId) {
     const text = translateForClient(event, ctx)
     if (text) {
-      await sb.from('messages').insert({
+      await writer.from('messages').insert({
         project_id: ctx.projectId,
         sender_id: ctx.actorId,
         message: text,
@@ -80,7 +91,7 @@ export async function emitTaskEvent(
   }
 
   // 3) Notifications — fan out to the right inbox(es)
-  await fanoutNotifications(sb, event, ctx, visibleToClient)
+  await fanoutNotifications(writer, sb, event, ctx, visibleToClient)
 }
 
 function isClientVisible(event: DevEventKind): boolean {
@@ -129,12 +140,16 @@ export function translateForClient(event: DevEventKind, ctx: EmitContext): strin
 type Recipient = { userId: string; audience: 'client' | 'dev' | 'admin' }
 
 async function fanoutNotifications(
-  sb: SupabaseClient<any>,
+  writer: SupabaseClient<any>,
+  reader: SupabaseClient<any>,
   event: DevEventKind,
   ctx: EmitContext,
   visibleToClient: boolean,
 ) {
-  const recipients: Recipient[] = await computeRecipients(sb, event, ctx, visibleToClient)
+  // Recipient lookup runs against the user-session client so RLS still
+  // ensures we can only enumerate projects the caller may see. The
+  // *insert* then goes via the service-role writer.
+  const recipients: Recipient[] = await computeRecipients(reader, event, ctx, visibleToClient)
   if (recipients.length === 0) return
 
   const { title, body, link } = renderNotification(event, ctx)
@@ -155,7 +170,7 @@ async function fanoutNotifications(
       read: false,
     }))
   if (rows.length === 0) return
-  await sb.from('notifications').insert(rows).then(() => null, () => null)
+  await writer.from('notifications').insert(rows).then(() => null, () => null)
 }
 
 async function computeRecipients(
