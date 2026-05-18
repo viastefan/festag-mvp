@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { isCompletedTaskStillFresh } from '@/lib/tasks/status'
@@ -229,6 +229,7 @@ export default function TasksPage() {
   const [composerNotice, setComposerNotice] = useState('')
   const [tagroPreview, setTagroPreview] = useState<TagroPreview | null>(null)
   const [expandedProjectIds, setExpandedProjectIds] = useState<string[]>([])
+  const hasSeededProjectGroupsRef = useRef(false)
 
   const supabase = createClient()
 
@@ -331,7 +332,14 @@ export default function TasksPage() {
   useEffect(() => {
     setExpandedProjectIds((current) => {
       const validIds = new Set(taskProjectGroups.map((group) => group.id))
-      if (taskProjectGroups.length === 1) return [taskProjectGroups[0].id]
+      if (taskProjectGroups.length === 0) {
+        hasSeededProjectGroupsRef.current = false
+        return current.length ? [] : current
+      }
+      if (!hasSeededProjectGroupsRef.current && taskProjectGroups.length === 1) {
+        hasSeededProjectGroupsRef.current = true
+        return [taskProjectGroups[0].id]
+      }
       const next = new Set(current.filter((id) => validIds.has(id)))
       const changed = next.size !== current.length
       return changed ? Array.from(next) : current
@@ -349,10 +357,6 @@ export default function TasksPage() {
   }
 
   function toggleProjectGroup(projectId: string) {
-    if (taskProjectGroups.length === 1) {
-      setExpandedProjectIds([projectId])
-      return
-    }
     setExpandedProjectIds((current) => (
       current.includes(projectId)
         ? current.filter((id) => id !== projectId)
