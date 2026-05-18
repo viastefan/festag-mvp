@@ -40,7 +40,7 @@ export default function AuthBrandLogo({ className = '', size = 'desktop' }: Auth
           width:100%;
           height:100%;
           display:block;
-          object-fit:cover;
+          object-fit:contain;
           object-position:center;
           user-select:none;
           pointer-events:none;
