@@ -667,12 +667,20 @@ export default function TasksPage() {
           gap:8px;
           padding:0 16px;
           border:0;
-          border-radius:8px;
+          border-radius:8px !important;
           background:transparent;
           color:var(--task-soft-text);
           font:inherit;
           text-align:left;
           cursor:pointer;
+        }
+        .task-project-row:focus,
+        .task-project-row:focus-visible {
+          outline:none !important;
+          box-shadow:none !important;
+        }
+        .task-project-row:active {
+          background:color-mix(in srgb, var(--surface-2) 56%, transparent);
         }
         .task-project-row:hover {
           background:color-mix(in srgb, var(--surface-2) 62%, transparent);

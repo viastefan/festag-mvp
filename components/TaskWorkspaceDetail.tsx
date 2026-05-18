@@ -669,14 +669,14 @@ const detailStyles = `
     width:100%;
     min-height:100%;
     color:var(--text);
-    padding:18px 22px 72px;
+    padding:20px 24px 72px;
   }
   .task-detail-topbar {
     display:flex;
     align-items:center;
     justify-content:space-between;
     gap:16px;
-    margin-bottom:18px;
+    margin-bottom:12px;
     min-height:34px;
   }
   .task-back {
@@ -686,8 +686,8 @@ const detailStyles = `
     gap:8px;
     padding:0 12px;
     border-radius:10px;
-    border:1px solid var(--border);
-    background:var(--surface);
+    border:1px solid color-mix(in srgb, var(--border) 58%, transparent);
+    background:transparent;
     color:var(--text-secondary);
     font:inherit;
     font-size:12px;
@@ -718,18 +718,18 @@ const detailStyles = `
   .task-detail-grid-page {
     display:grid;
     grid-template-columns:minmax(0,1fr) minmax(300px,360px);
-    gap:20px;
+    gap:24px;
     align-items:start;
   }
   .task-detail-main {
     min-width:0;
     display:flex;
     flex-direction:column;
-    gap:12px;
+    gap:18px;
   }
   .task-hero {
-    padding:18px 0 16px;
-    border-bottom:1px solid color-mix(in srgb, var(--border) 68%, transparent);
+    padding:16px 0 10px;
+    border-bottom:0;
     background:var(--surface);
   }
   .status-pill {
@@ -760,34 +760,34 @@ const detailStyles = `
     max-width:900px;
     margin:0;
     color:var(--text);
-    font-size:clamp(22px, 2.4vw, 34px);
-    line-height:1.12;
-    letter-spacing:-.025em;
+    font-size:clamp(21px, 1.9vw, 28px);
+    line-height:1.16;
+    letter-spacing:-.012em;
     font-weight:500;
   }
   .task-attribution {
-    margin:10px 0 0;
+    margin:8px 0 0;
     color:var(--text-secondary);
-    font-size:13px;
+    font-size:12.5px;
     line-height:1.55;
   }
   .tagro-explanation-card,
   .task-section,
   .property-card {
-    border:1px solid color-mix(in srgb, var(--border) 72%, transparent);
-    border-radius:14px;
-    background:var(--surface);
+    border:0;
+    border-radius:12px;
+    background:transparent;
   }
   .tagro-explanation-card {
-    padding:16px 18px;
-    background:linear-gradient(135deg, color-mix(in srgb, var(--surface) 88%, var(--green-bg)), var(--surface));
+    padding:15px 16px;
+    background:linear-gradient(135deg, color-mix(in srgb, var(--surface-2) 34%, transparent), color-mix(in srgb, var(--surface) 78%, transparent));
   }
   .section-head {
     display:flex;
     align-items:flex-start;
     justify-content:space-between;
     gap:14px;
-    margin-bottom:12px;
+    margin-bottom:10px;
   }
   .section-head h2,
   .property-head h2,
@@ -829,23 +829,23 @@ const detailStyles = `
   .property-copy {
     margin:0;
     color:var(--text-secondary);
-    font-size:14px;
-    line-height:1.72;
+    font-size:13.5px;
+    line-height:1.68;
   }
   .task-section {
-    padding:16px 18px;
+    padding:2px 0 0;
   }
   .status-grid {
     display:grid;
     grid-template-columns:repeat(3,minmax(0,1fr));
-    gap:8px;
+    gap:9px;
   }
   .status-grid article {
-    min-height:96px;
+    min-height:88px;
     padding:12px;
-    border-radius:12px;
+    border-radius:10px;
     border:0;
-    background:color-mix(in srgb, var(--surface-2) 38%, transparent);
+    background:color-mix(in srgb, var(--surface-2) 26%, transparent);
     display:flex;
     flex-direction:column;
     gap:9px;
@@ -863,16 +863,16 @@ const detailStyles = `
   }
   .insight-list {
     display:grid;
-    gap:9px;
+    gap:8px;
   }
   .insight-list div {
     display:grid;
     grid-template-columns:166px minmax(0,1fr);
     gap:14px;
-    padding:10px 0;
-    border-top:1px solid color-mix(in srgb, var(--border) 64%, transparent);
+    padding:3px 0;
+    border-top:0;
   }
-  .insight-list div:first-child { border-top:0; padding-top:0; }
+  .insight-list div:first-child { padding-top:0; }
   .insight-list strong {
     color:var(--text);
     font-size:12.5px;
@@ -887,7 +887,7 @@ const detailStyles = `
   }
   .timeline {
     display:grid;
-    gap:12px;
+    gap:10px;
   }
   .timeline-item {
     display:grid;
@@ -919,9 +919,9 @@ const detailStyles = `
   }
   .discussion-list article {
     padding:12px;
-    border:1px solid color-mix(in srgb, var(--border) 72%, transparent);
-    border-radius:12px;
-    background:color-mix(in srgb, var(--surface-2) 34%, transparent);
+    border:0;
+    border-radius:10px;
+    background:color-mix(in srgb, var(--surface-2) 24%, transparent);
   }
   .discussion-list strong {
     display:block;
@@ -940,21 +940,22 @@ const detailStyles = `
     top:18px;
     display:flex;
     flex-direction:column;
-    gap:12px;
+    gap:10px;
     min-width:0;
   }
   .property-card {
-    padding:16px;
+    padding:14px 14px;
+    background:color-mix(in srgb, var(--surface-2) 20%, transparent);
   }
   .property-head {
     display:flex;
     align-items:flex-start;
     justify-content:space-between;
     gap:10px;
-    margin-bottom:12px;
+    margin-bottom:10px;
   }
   .property-row {
-    min-height:34px;
+    min-height:32px;
     display:grid;
     grid-template-columns:20px 104px minmax(0,1fr);
     align-items:center;
@@ -1014,7 +1015,7 @@ const detailStyles = `
     height:18px;
     border-radius:6px;
     background:var(--surface-2);
-    border:1px solid var(--border);
+    border:0;
   }
   .origin-badge.client_tagro span,
   .origin-badge.tagro span,
@@ -1031,16 +1032,16 @@ const detailStyles = `
     align-items:center;
     justify-content:center;
     gap:8px;
-    border:1px solid var(--border);
-    border-radius:11px;
-    background:var(--surface-2);
+    border:0;
+    border-radius:10px;
+    background:color-mix(in srgb, var(--surface-2) 44%, transparent);
     color:var(--text);
     font:inherit;
     font-size:12.5px;
     font-weight:500;
     cursor:pointer;
   }
-  .property-card.actions button:hover { border-color:var(--border-strong); }
+  .property-card.actions button:hover { background:color-mix(in srgb, var(--surface-2) 66%, transparent); }
   .property-card.actions button.danger {
     color:var(--red);
     background:transparent;
