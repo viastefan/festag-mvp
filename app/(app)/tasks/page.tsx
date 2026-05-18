@@ -660,10 +660,10 @@ export default function TasksPage() {
           to { opacity:1; transform:none; }
         }
         .task-project-row {
-          width:auto;
+          width:calc(100% + 24px);
           min-height:40px;
           display:grid;
-          grid-template-columns:54px minmax(220px,1fr) minmax(128px,.55fr) 28px;
+          grid-template-columns:54px minmax(190px,1.55fr) minmax(128px,.85fr) 76px 104px 84px 58px 82px;
           align-items:center;
           gap:8px;
           margin:0 -12px;
@@ -705,6 +705,7 @@ export default function TasksPage() {
           align-items:center;
           gap:9px;
           min-width:0;
+          grid-column:2 / 4;
           color:var(--text);
           font-size:12.5px;
           font-weight:500;
@@ -720,6 +721,7 @@ export default function TasksPage() {
           font-weight:500;
         }
         .task-project-meta {
+          grid-column:6 / 8;
           color:var(--task-soft-text);
           font-size:11.5px;
           font-weight:500;
@@ -729,6 +731,7 @@ export default function TasksPage() {
           white-space:nowrap;
         }
         .task-project-chevron {
+          grid-column:8;
           justify-self:center;
           color:var(--task-soft-text);
           transform:rotate(90deg);
@@ -1215,7 +1218,7 @@ export default function TasksPage() {
             gap:7px;
           }
           .task-project-row {
-            grid-template-columns:46px minmax(180px,1fr) minmax(100px,.5fr) 26px;
+            grid-template-columns:46px minmax(160px,1.6fr) minmax(112px,.8fr) 66px 86px 70px 46px 70px;
             gap:7px;
           }
         }
@@ -1229,7 +1232,7 @@ export default function TasksPage() {
             gap:6px;
           }
           .task-project-row {
-            grid-template-columns:42px minmax(150px,1fr) 26px;
+            grid-template-columns:42px minmax(150px,1.8fr) minmax(108px,.85fr) 60px 74px 62px 42px 62px;
           }
           .task-project-meta {
             display:none;
@@ -1303,6 +1306,10 @@ export default function TasksPage() {
             grid-template-columns:24px minmax(0,1fr) 22px;
             min-height:38px;
             padding:0 10px;
+          }
+          .task-project-title,
+          .task-project-chevron {
+            grid-column:auto;
           }
           .task-project-dot {
             justify-self:start;
