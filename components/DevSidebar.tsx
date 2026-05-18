@@ -22,7 +22,7 @@ import { usePathname } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   Article, Briefcase, ChatsCircle, CheckSquare, Compass, GearSix,
-  GitBranch, GithubLogo, GitCommit, Kanban, Pause, Play, SignOut, UsersThree, WarningCircle,
+  GitBranch, GithubLogo, GitCommit, Kanban, Pause, Play, Robot, SignOut, UsersThree, WarningCircle,
 } from '@phosphor-icons/react'
 
 import { createClient } from '@/lib/supabase/client'
@@ -34,6 +34,7 @@ type NavRow = { href: string; icon: React.ElementType; label: string }
 const NAV_MAIN: NavRow[] = [
   { href: '/dev',          icon: Compass,     label: 'Overview' },
   { href: '/dev/tasks',    icon: CheckSquare, label: 'My Tasks' },
+  { href: '/dev/review',   icon: Robot,       label: 'Tagro Review' },
   { href: '/dev/plan',     icon: Kanban,      label: 'Daily Plan' },
   { href: '/dev/jobs',     icon: Briefcase,   label: 'Job Board' },
 ]

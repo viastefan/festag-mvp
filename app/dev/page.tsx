@@ -324,7 +324,10 @@ export default function DevOverviewPage() {
         </section>
 
         <aside>
-          <p className="dev-section-title">Ready for Review</p>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
+            <p className="dev-section-title" style={{ margin: 0 }}>Ready for Review</p>
+            <Link href="/dev/review" style={{ fontSize: 11, color: 'var(--accent)', textDecoration: 'none' }}>Tagro Review Center →</Link>
+          </div>
           <div className="dev-surface" style={{ overflow:'hidden', marginBottom: 18 }}>
             {reviewTasks.length === 0 ? (
               <p className="empty">Nichts wartet auf Prüfung.</p>
