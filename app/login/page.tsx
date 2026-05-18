@@ -449,9 +449,12 @@ export default function LoginPage() {
         .log-content.animating { opacity:0; transform:translateY(6px); }
 
         /* THEME SWITCHER */
-        .log-theme-switcher { display:flex; gap:6px; align-items:center; }
-        .log-theme-pill { min-width:34px; display:flex; align-items:center; justify-content:center; padding:4px 10px; border-radius:6px; border:0.4px solid #c7cdd6; background:transparent; font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:12px; font-weight:500; color:#5b647d; letter-spacing:0.24px; cursor:pointer; transition:background .15s, border-color .15s, color .15s; }
-        .log-theme-pill.active { background:#f1f3f5; border-color:#fcfcfc; color:#2e2f33; }
+        .log-theme-switcher { display:flex; gap:8px; align-items:center; }
+        .log-theme-pill { min-width:40px; height:32px; display:flex; align-items:center; justify-content:center; padding:0 12px; border-radius:14px; border:0; outline:0; background:#fff; font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:12px; font-weight:500; color:#5b647d; letter-spacing:0.24px; cursor:pointer; box-shadow:0 10px 24px rgba(15,23,42,0.10), 0 2px 5px rgba(15,23,42,0.06), 0 1px 0 rgba(255,255,255,0.9) inset; transition:background .15s, color .15s, box-shadow .15s, transform .15s; -webkit-tap-highlight-color:transparent; }
+        .log-theme-pill:hover { background:#FAFBFC; transform:translateY(-1px); }
+        .log-theme-pill.active { background:#EEF2F6; color:#202532; box-shadow:0 8px 18px rgba(15,23,42,0.08), 0 1px 3px rgba(15,23,42,0.06), 0 1px 0 rgba(255,255,255,0.78) inset; }
+        .log-theme-pill:focus,
+        .log-theme-pill:focus-visible { outline:0; box-shadow:0 10px 24px rgba(15,23,42,0.10), 0 2px 5px rgba(15,23,42,0.06), 0 1px 0 rgba(255,255,255,0.9) inset; }
         .log-theme-desktop { position:absolute; right:28px; top:24px; z-index:20; }
         .log-theme-mobile  { position:absolute; right:20px; top:48px; z-index:20; }
 
@@ -635,8 +638,11 @@ export default function LoginPage() {
         .log-root[data-theme="dark"] .log-support-field input,
         .log-root[data-theme="dark"] .log-support-field textarea { background:rgba(243,245,247,0.035); color:#F3F5F7; border-color:rgba(243,245,247,.10); }
 
-        .log-root[data-theme="dark"] .log-theme-pill { border-color:rgba(243,245,247,0.18); color:rgba(243,245,247,0.45); }
-        .log-root[data-theme="dark"] .log-theme-pill.active { background:#F3F5F7; border-color:#F3F5F7; color:#2e2f33; }
+        .log-root[data-theme="dark"] .log-theme-pill { background:#141820; color:rgba(243,245,247,0.58); box-shadow:0 12px 30px rgba(0,0,0,0.32), 0 1px 0 rgba(255,255,255,0.05) inset; }
+        .log-root[data-theme="dark"] .log-theme-pill:hover { background:#18202B; }
+        .log-root[data-theme="dark"] .log-theme-pill.active { background:#202938; color:#F3F5F7; box-shadow:0 10px 24px rgba(0,0,0,0.26), 0 1px 0 rgba(255,255,255,0.07) inset; }
+        .log-root[data-theme="dark"] .log-theme-pill:focus,
+        .log-root[data-theme="dark"] .log-theme-pill:focus-visible { outline:0; box-shadow:0 12px 30px rgba(0,0,0,0.32), 0 1px 0 rgba(255,255,255,0.05) inset; }
       `}</style>
 
       {/* ── DESKTOP ── */}
@@ -645,7 +651,7 @@ export default function LoginPage() {
         <section className="log-desktop-shell" aria-label="Festag Anmeldung">
           <div className="log-desktop-header">
             <div className="log-logo-desktop"><AuthBrandLogo size="desktop" /></div>
-            <h1 className="log-desktop-title">{emailView ? emailTitle : 'Willkommen'}</h1>
+            <h1 className="log-desktop-title">{emailView ? emailTitle : 'Willkommen zurück'}</h1>
           </div>
           <div className={`log-content${animating ? ' animating' : ''}`}>
             {!emailView && error && <p className="log-error">{error}</p>}
@@ -665,7 +671,7 @@ export default function LoginPage() {
             <div className="log-mobile-inner">
               {emailView
                 ? <h1 className="log-mobile-title-email">{emailTitleMobile}</h1>
-                : <h1 className="log-mobile-title">Willkommen</h1>}
+                : <h1 className="log-mobile-title">Willkommen zurück</h1>}
               <div className={`log-content${animating ? ' animating' : ''}`}>
                 {!emailView && error && <p className="log-error">{error}</p>}
                 {emailView ? currentEmailScreen : mainButtons}

@@ -11,7 +11,11 @@ export const metadata: Metadata = {
   applicationName: 'Festag',
   appleWebApp: { capable: true, statusBarStyle: 'default', title: 'Festag' },
   icons: {
-    icon: '/brand/icon-192.png',
+    icon: [
+      { url: '/brand/favicon-16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/brand/favicon-32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/brand/icon-192.png', sizes: '192x192', type: 'image/png' },
+    ],
     apple: [
       { url: '/brand/apple-touch-icon.png', sizes: '180x180' },
       { url: '/brand/icon-152.png', sizes: '152x152' },
@@ -37,6 +41,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="Festag" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/brand/favicon-16.png" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/brand/favicon-32.png" />
+        <link rel="icon" type="image/png" sizes="192x192" href="/brand/icon-192.png" />
         <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png" />
         {/* Pre-paint theme + bg sync — eliminates white flash between auth pages */}
         <script

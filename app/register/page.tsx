@@ -180,12 +180,12 @@ export default function RegisterPage() {
     emailStep === 'email'      ? 'Wie lautet Ihre E-Mail?' :
     emailStep === 'emailSent'  ? 'Prüfen Sie Ihre E-Mails' :
     emailStep === 'codeEntry'  ? 'Prüfen Sie Ihre E-Mails' :
-    'Willkommen bei festag'
+    'Einen Schritt voraus'
   const mobileTitle =
     emailStep === 'email'      ? 'Wie lautet Ihre\nE-Mail-Adresse?' :
     emailStep === 'emailSent'  ? 'Prüfen Sie Ihre\nE-Mails' :
     emailStep === 'codeEntry'  ? 'Prüfen Sie Ihre\nE-Mails' :
-    'Willkommen'
+    'Einen Schritt voraus'
 
   // ── render helpers (not React components — avoids remount on re-render) ──
 
@@ -330,9 +330,12 @@ export default function RegisterPage() {
         .reg-content { width:100%; display:flex; flex-direction:column; gap:20px; transition:opacity 0.18s ease, transform 0.18s ease; }
         .reg-content.animating { opacity:0; transform:translateY(6px); }
 
-        .reg-theme-switcher { display:flex; gap:6px; align-items:center; }
-        .reg-theme-pill { min-width:34px; display:flex; align-items:center; justify-content:center; padding:4px 10px; border-radius:6px; border:0.4px solid #c7cdd6; background:transparent; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:12px; font-weight:500; color:#5b647d; letter-spacing:0.24px; cursor:pointer; transition:background .15s, border-color .15s, color .15s; }
-        .reg-theme-pill.active { background:#f1f3f5; border-color:#fcfcfc; color:#2e2f33; }
+        .reg-theme-switcher { display:flex; gap:8px; align-items:center; }
+        .reg-theme-pill { min-width:40px; height:32px; display:flex; align-items:center; justify-content:center; padding:0 12px; border-radius:14px; border:0; outline:0; background:#fff; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:12px; font-weight:500; color:#5b647d; letter-spacing:0.24px; cursor:pointer; box-shadow:0 10px 24px rgba(15,23,42,0.10), 0 2px 5px rgba(15,23,42,0.06), 0 1px 0 rgba(255,255,255,0.9) inset; transition:background .15s, color .15s, box-shadow .15s, transform .15s; -webkit-tap-highlight-color:transparent; }
+        .reg-theme-pill:hover { background:#FAFBFC; transform:translateY(-1px); }
+        .reg-theme-pill.active { background:#EEF2F6; color:#202532; box-shadow:0 8px 18px rgba(15,23,42,0.08), 0 1px 3px rgba(15,23,42,0.06), 0 1px 0 rgba(255,255,255,0.78) inset; }
+        .reg-theme-pill:focus,
+        .reg-theme-pill:focus-visible { outline:0; box-shadow:0 10px 24px rgba(15,23,42,0.10), 0 2px 5px rgba(15,23,42,0.06), 0 1px 0 rgba(255,255,255,0.9) inset; }
         .reg-theme-desktop { position:absolute; right:28px; top:24px; z-index:20; }
         .reg-theme-mobile  { position:absolute; right:20px; top:48px; z-index:20; }
 
@@ -341,7 +344,6 @@ export default function RegisterPage() {
         .reg-desktop-header { width:100%; display:flex; flex-direction:column; gap:24px; align-items:center; }
         .reg-logo-desktop { display:flex; align-items:center; justify-content:center; width:100%; }
         .reg-desktop-title { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:21px; font-weight:500; color:#202532; line-height:normal; text-align:center; letter-spacing:0.21px; width:100%; transition:color .3s; }
-        .reg-title-muted { color:inherit; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-weight:500; }
         .reg-dev { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:13px; font-weight:400 !important; line-height:20px; letter-spacing:0.02em; color:#7b8294; text-decoration:none; text-align:center; display:block; transition:color .3s; }
         .reg-dev:hover { color:#202532; }
 
@@ -451,10 +453,12 @@ export default function RegisterPage() {
         .reg-root[data-theme="dark"] .reg-sent-info strong { color:#F3F5F7; }
         .reg-root[data-theme="dark"] .reg-dev { color:#98A2B3; }
         .reg-root[data-theme="dark"] .reg-dev:hover { color:#F3F5F7; }
-        .reg-root[data-theme="dark"] .reg-theme-pill { border-color:rgba(243,245,247,0.18); color:rgba(243,245,247,0.45); background:transparent; }
-        .reg-root[data-theme="dark"] .reg-theme-pill.active { background:#F3F5F7; border-color:#F3F5F7; color:#2e2f33; }
+        .reg-root[data-theme="dark"] .reg-theme-pill { background:#141820; color:rgba(243,245,247,0.58); box-shadow:0 12px 30px rgba(0,0,0,0.32), 0 1px 0 rgba(255,255,255,0.05) inset; }
+        .reg-root[data-theme="dark"] .reg-theme-pill:hover { background:#18202B; }
+        .reg-root[data-theme="dark"] .reg-theme-pill.active { background:#202938; color:#F3F5F7; box-shadow:0 10px 24px rgba(0,0,0,0.26), 0 1px 0 rgba(255,255,255,0.07) inset; }
+        .reg-root[data-theme="dark"] .reg-theme-pill:focus,
+        .reg-root[data-theme="dark"] .reg-theme-pill:focus-visible { outline:0; box-shadow:0 12px 30px rgba(0,0,0,0.32), 0 1px 0 rgba(255,255,255,0.05) inset; }
         .reg-root[data-theme="dark"] .reg-ssl-badge { color:rgba(243,245,247,0.55); }
-        .reg-root[data-theme="dark"] .reg-title-muted { color:inherit; }
         .reg-root[data-theme="dark"] .reg-region-note { color:rgba(243,245,247,0.50); }
       `}</style>
 
@@ -464,7 +468,7 @@ export default function RegisterPage() {
         <section className="reg-desktop-shell" aria-label="Festag Registrierung">
           <div className="reg-desktop-header">
             <div className="reg-logo-desktop"><AuthBrandLogo size="desktop" /></div>
-            <h1 className="reg-desktop-title">{desktopTitle === 'Willkommen bei festag' ? <>Willkommen bei <span className="reg-title-muted">festag</span></> : desktopTitle}</h1>
+            <h1 className="reg-desktop-title">{desktopTitle}</h1>
           </div>
           <div className={`reg-content${animating ? ' animating' : ''}`}>
             {emailStep === 'none' && error && <p className="reg-error">{error}</p>}
@@ -486,7 +490,7 @@ export default function RegisterPage() {
             <div className="reg-logo-mobile"><AuthBrandLogo size="mobile" /></div>
             <div className="reg-mobile-inner">
               {emailStep === 'none'
-                ? <h1 className="reg-mobile-title">Willkommen</h1>
+                ? <h1 className="reg-mobile-title">Einen Schritt voraus</h1>
                 : <h1 className="reg-mobile-title-email">{mobileTitle}</h1>}
               <div className={`reg-content${animating ? ' animating' : ''}`}>
                 {emailStep === 'none' && error && <p className="reg-error">{error}</p>}
