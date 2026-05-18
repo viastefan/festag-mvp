@@ -608,9 +608,9 @@ export default function TasksPage() {
         }
         .task-menu button:hover, .task-menu button.on { background:var(--surface-2); color:var(--text); }
         .task-table {
-          width:calc(100% + 24px);
-          margin-left:-12px;
-          margin-right:-12px;
+          width:100%;
+          margin-left:0;
+          margin-right:0;
           overflow:visible;
         }
         .task-head,
@@ -619,13 +619,15 @@ export default function TasksPage() {
           grid-template-columns:54px minmax(190px,1.55fr) minmax(128px,.85fr) 76px 104px 84px 58px 82px;
           align-items:center;
           gap:8px;
+          margin:0 -12px;
+          padding:0 16px;
+          box-sizing:border-box;
         }
         .task-head {
           position:sticky;
           top:0;
           z-index:5;
           min-height:36px;
-          padding:0 16px;
           color:var(--task-soft-text);
           font-size:11.5px;
           font-weight:500;
@@ -639,7 +641,6 @@ export default function TasksPage() {
         }
         .task-row {
           min-height:50px;
-          padding:0 16px;
           border-bottom:0;
           color:var(--task-soft-text);
           font-size:12px;
@@ -647,7 +648,7 @@ export default function TasksPage() {
           cursor:pointer;
         }
         .task-row:hover {
-          background:color-mix(in srgb, var(--surface-2) 58%, transparent);
+          background:color-mix(in srgb, var(--surface-2) 60%, transparent);
         }
         .task-project-section {
           margin:5px 0 8px;
@@ -659,13 +660,15 @@ export default function TasksPage() {
           to { opacity:1; transform:none; }
         }
         .task-project-row {
-          width:100%;
+          width:auto;
           min-height:40px;
           display:grid;
           grid-template-columns:54px minmax(220px,1fr) minmax(128px,.55fr) 28px;
           align-items:center;
           gap:8px;
+          margin:0 -12px;
           padding:0 16px;
+          box-sizing:border-box;
           border:0;
           border-radius:8px !important;
           background:transparent;
@@ -680,14 +683,14 @@ export default function TasksPage() {
           box-shadow:none !important;
         }
         .task-project-row:active {
-          background:color-mix(in srgb, var(--surface-2) 56%, transparent);
+          background:color-mix(in srgb, var(--surface-2) 60%, transparent);
         }
         .task-project-row:hover {
-          background:color-mix(in srgb, var(--surface-2) 62%, transparent);
+          background:color-mix(in srgb, var(--surface-2) 60%, transparent);
           color:var(--text);
         }
         .task-project-section.open .task-project-row {
-          background:color-mix(in srgb, var(--surface-2) 48%, transparent);
+          background:color-mix(in srgb, var(--surface-2) 60%, transparent);
         }
         .task-project-dot {
           width:12px;

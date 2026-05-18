@@ -143,13 +143,13 @@ export default function ClientAppShell({
           box-shadow: 0 0 0 1px rgba(255,255,255,.03);
           transition: left .18s cubic-bezier(.16,1,.3,1), border-color .18s ease, background .18s ease;
         }
-        .sidebar-collapsed .app-workspace :where(.task-top, .projects-top, .reports-commandline, .page-header, .task-detail-crumbs) {
-          padding-left: 44px;
+        .sidebar-collapsed .app-workspace :where(.task-top, .projects-top, .reports-commandline, .page-header, .task-detail-crumbs, .app-page-header) {
+          padding-left: 58px;
           transition: padding-left .18s cubic-bezier(.16,1,.3,1);
         }
         .app-sidebar-return {
-          position: fixed;
-          top: 22px;
+          position: absolute;
+          top: 25px;
           left: 18px;
           z-index: 210;
           width: 24px;
@@ -369,22 +369,21 @@ export default function ClientAppShell({
         </div>
       )}
 
-      {sidebarCollapsed && (
-        <button
-          className="app-sidebar-return"
-          type="button"
-          aria-label="Sidebar ausklappen"
-          title="Sidebar ausklappen"
-          onClick={() => setSidebarCollapsed(false)}
-        >
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="4" y="5" width="16" height="14" rx="3" />
-            <path d="M9 5v14" />
-          </svg>
-        </button>
-      )}
-
       <main className="main-content app-workspace">
+        {sidebarCollapsed && (
+          <button
+            className="app-sidebar-return"
+            type="button"
+            aria-label="Sidebar ausklappen"
+            title="Sidebar ausklappen"
+            onClick={() => setSidebarCollapsed(false)}
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="4" y="5" width="16" height="14" rx="3" />
+              <path d="M9 5v14" />
+            </svg>
+          </button>
+        )}
         <div id={scrollId} className="app-workspace-scroll" style={{ overflowY: isFullHeight ? 'hidden' : 'auto' }}>
           <div key={pathname} className="route-fade" style={{ minHeight: '100%' }}>
             {children}

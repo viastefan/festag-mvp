@@ -401,6 +401,30 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
   const init = avatarInitials(fn, fullName, email)
   const avBg = avatarColor || autoAvatarColor(uid || email)
 
+  function navShortcut(label: string, href?: string) {
+    const key = `${href || ''}|${label}`.toLowerCase()
+    if (key.includes('dashboard')) return 'G D'
+    if (key.includes('inbox')) return 'G I'
+    if (key.includes('statusberichte')) return 'G S'
+    if (key.includes('tasks')) return 'G T'
+    if (key.includes('mitwirkende')) return 'G M'
+    if (key.includes('projekte')) return 'G P'
+    if (key.includes('nachrichten')) return 'G N'
+    if (key.includes('projektbriefings') || key.includes('reports')) return 'G B'
+    if (key.includes('briefing aufnehmen') || key.includes('voice-reports')) return 'G A'
+    if (key.includes('chat')) return 'G C'
+    if (key.includes('notizen')) return 'G O'
+    if (key.includes('preisschätzer')) return 'G R'
+    if (key.includes('connectors')) return 'G L'
+    if (key.includes('add-ons')) return 'G X'
+    if (key.includes('kunden')) return 'G K'
+    return `G ${label.trim().charAt(0).toUpperCase() || '·'}`
+  }
+
+  function projectShortcut(index: number) {
+    return `G ${Math.min(index + 1, 9)}`
+  }
+
   async function changeAvatarColor(c: string) {
     setAvatarColor(c)
     broadcastProfileSync({ avatarColor: c })
@@ -415,7 +439,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         {items.map(item => {
           const on = isOn(item.href)
           return (
-            <Link key={`${item.href}-${item.label}`} href={resolve(item.href)} className={`ni ${on?'ni-on':'ni-off'}`}>
+            <Link key={`${item.href}-${item.label}`} href={resolve(item.href)} className={`ni ${on?'ni-on':'ni-off'}`} data-shortcut={navShortcut(item.label, item.href)}>
               <Ico name={item.icon} sz={14} c={on?'var(--text)':'var(--text-muted)'} weight={on?'bold':'regular'} />
               <span style={{ minWidth:0, overflow:'hidden', textOverflow:'ellipsis' }}>{item.label}</span>
               {item.badge ? (
@@ -488,7 +512,8 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
     return (
       <div style={{ marginBottom: 1 }}>
         <div
-          className={`ni ${active ? 'ni-on' : 'ni-off'}`}
+          className={`ni ni-has-toggle ${active ? 'ni-on' : 'ni-off'}`}
+          data-shortcut={navShortcut(label, href)}
           role="link"
           tabIndex={0}
           onClick={go}
@@ -553,6 +578,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         }
         /* ── Nav item ── */
         .ni {
+          position:relative;
           display:flex; align-items:center; gap:7px;
           min-height: var(--sb-row-h);
           padding:0 var(--sb-x); border-radius:8px;
@@ -573,6 +599,51 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
           font-weight:500;
           letter-spacing:.017em;
+        }
+        .ni[data-shortcut]::after,
+        .proj-row[data-shortcut]::after {
+          content:attr(data-shortcut);
+          position:absolute;
+          right:8px;
+          top:50%;
+          transform:translateY(-50%) translateX(3px);
+          min-width:28px;
+          height:19px;
+          padding:0 6px;
+          border-radius:6px;
+          border:1px solid color-mix(in srgb, var(--border) 82%, transparent);
+          background:color-mix(in srgb, var(--surface) 92%, transparent);
+          color:var(--text-secondary);
+          box-shadow:0 8px 18px rgba(15,23,42,.08);
+          display:inline-flex;
+          align-items:center;
+          justify-content:center;
+          font-size:10.5px;
+          font-weight:500;
+          letter-spacing:.01em;
+          line-height:1;
+          opacity:0;
+          pointer-events:none;
+          transition:opacity .12s ease, transform .12s ease;
+          transition-delay:0s;
+        }
+        .ni.ni-has-toggle[data-shortcut]::after {
+          right:30px;
+        }
+        .ni[data-shortcut]:hover::after,
+        .ni[data-shortcut]:focus-visible::after,
+        .proj-row[data-shortcut]:hover::after,
+        .proj-row[data-shortcut]:focus-visible::after {
+          opacity:1;
+          transform:translateY(-50%) translateX(0);
+          transition-delay:1.5s;
+        }
+        [data-theme="dark"] .ni[data-shortcut]::after,
+        [data-theme="classic-dark"] .ni[data-shortcut]::after,
+        [data-theme="dark"] .proj-row[data-shortcut]::after,
+        [data-theme="classic-dark"] .proj-row[data-shortcut]::after {
+          background:color-mix(in srgb, var(--surface) 88%, black 12%);
+          box-shadow:0 12px 28px rgba(0,0,0,.22);
         }
         .ni-on  { background:rgba(0,0,0,0.048); font-weight:500; color:var(--text); }
         [data-theme="dark"] .ni-on { background:var(--nav-on); color:var(--nav-on-text); }
@@ -633,6 +704,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           padding-top:2px;
         }
         .proj-row {
+          position:relative;
           display:grid;
           grid-template-columns:16px minmax(0, 1fr);
           align-items:center;
@@ -740,6 +812,18 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           padding:0;
           z-index:155;
         }
+        .sb-nav-scroll {
+          flex:1 1 auto;
+          min-height:0;
+          overflow-y:auto;
+          overflow-x:hidden;
+          scrollbar-width:none;
+          padding-bottom:124px;
+          overscroll-behavior:contain;
+        }
+        .sb-nav-scroll::-webkit-scrollbar {
+          display:none;
+        }
         .sb-pill-action,
         .sb-square-action {
           min-height:42px;
@@ -777,11 +861,11 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           min-height:34px;
           padding:0 12px;
           border:1px solid color-mix(in srgb, var(--border) 86%, transparent);
-          background:color-mix(in srgb, var(--surface) 82%, transparent);
+          background:color-mix(in srgb, var(--sidebar-bg) 94%, var(--surface) 6%);
           border-radius:14px;
           text-decoration:none;
           color:var(--text);
-          box-shadow:0 10px 28px rgba(15,23,42,.05);
+          box-shadow:0 12px 28px rgba(15,23,42,.08);
           backdrop-filter:blur(18px) saturate(160%);
           -webkit-backdrop-filter:blur(18px) saturate(160%);
           transition:background .12s, border-color .12s, color .12s, transform .12s ease;
@@ -897,7 +981,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           </div>
 
           {/* Scrollable nav */}
-          <div style={{ flex:1, overflowY:'auto', overflowX:'hidden', scrollbarWidth:'none', paddingBottom:70 }}>
+          <div className="sb-nav-scroll">
 
             <div style={{ marginBottom:8 }}>
               <NavItems items={topNav} />
@@ -919,13 +1003,13 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
                     activeOverride={pathname.startsWith('/project/') || pathname.startsWith('/projects')}
                   >
                     <div className="sb-subnav">
-                      {projects.map(p => {
+                      {projects.map((p, projectIndex) => {
                         const on = pathname === `/project/${p.id}`
                         const dot = p.color || '#64748b'
                         const picking = colorPickId === p.id
                         return (
                           <div key={p.id} style={{ position:'relative', minWidth:0 }}>
-                            <Link href={`/project/${p.id}`} className={`proj-row ${on?'active':''}`}>
+                            <Link href={`/project/${p.id}`} className={`proj-row ${on?'active':''}`} data-shortcut={projectShortcut(projectIndex)}>
                               <button
                                 className="proj-dot-button"
                                 onClick={e => { e.preventDefault(); e.stopPropagation(); setColorPickId(picking ? null : p.id) }}
@@ -957,7 +1041,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
                         )
                       })}
 
-                      <Link href="/projects?new=1" className="proj-row proj-new">
+                      <Link href="/projects?new=1" className="proj-row proj-new" data-shortcut="G +">
                         <span style={{
                           width:11, height:11, borderRadius:3,
                           border:'1px dashed var(--text-muted)',
@@ -985,11 +1069,11 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
                   onToggle={() => setObservedExp(v => !v)}
                 >
                   <div className="sb-subnav">
-                    {observedProjects.map(p => {
+                    {observedProjects.map((p, projectIndex) => {
                       const on = pathname === `/project/${p.id}`
                       const dot = p.color || '#64748b'
                       return (
-                        <Link key={p.id} href={`/project/${p.id}`} className={`proj-row ${on?'active':''}`}>
+                        <Link key={p.id} href={`/project/${p.id}`} className={`proj-row ${on?'active':''}`} data-shortcut={projectShortcut(projectIndex)}>
                           <span className="proj-dot-button" style={{ border:`2px solid ${dot}`, background:'transparent', cursor:'default' }} />
                           <span className="proj-label">{p.title}</span>
                         </Link>
@@ -1019,6 +1103,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
               >
                 <div
                   className={`ni ${isOn('/teams?view=projects') ? 'ni-on' : 'ni-off'}`}
+                  data-shortcut={navShortcut('Projekte', '/teams?view=projects')}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -1074,12 +1159,12 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
                           activeOverride={reportsActive}
                         >
                           <div className="sb-subnav">
-                            {projects.map(p => {
+                            {projects.map((p, projectIndex) => {
                               const sp = searchParams?.get('project')
                               const on = reportsActive && sp === p.id
                               const dot = p.color || '#64748b'
                               return (
-                                <Link key={p.id} href={`/reports?project=${p.id}`} className={`proj-row ${on ? 'active' : ''}`}>
+                                <Link key={p.id} href={`/reports?project=${p.id}`} className={`proj-row ${on ? 'active' : ''}`} data-shortcut={projectShortcut(projectIndex)}>
                                   <span style={{
                                     width:11, height:11, borderRadius:3,
                                     border:`2px solid ${dot}`, flexShrink:0,
@@ -1097,7 +1182,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
 
                   return (
                     <>
-                      <Link href={reportsHref} className={`ni ${reportsActive ? 'ni-on' : 'ni-off'}`}>
+                      <Link href={reportsHref} className={`ni ${reportsActive ? 'ni-on' : 'ni-off'}`} data-shortcut={navShortcut('Projektbriefings', reportsHref)}>
                         <Ico name="activity" sz={14} c={reportsActive ? 'var(--text)' : 'var(--text-muted)'} weight={reportsActive ? 'bold' : 'regular'} />
                         <span style={{ minWidth:0, overflow:'hidden', textOverflow:'ellipsis' }}>Projektbriefings</span>
                       </Link>
