@@ -144,7 +144,7 @@ export default function ClientAppShell({
           transition: left .18s cubic-bezier(.16,1,.3,1), border-color .18s ease, background .18s ease;
         }
         .sidebar-collapsed .app-workspace :where(.task-top, .projects-top, .reports-commandline, .page-header, .task-detail-crumbs, .app-page-header) {
-          padding-left: 58px;
+          padding-left: 52px;
           transition: padding-left .18s cubic-bezier(.16,1,.3,1);
         }
         .app-sidebar-return {
