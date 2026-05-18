@@ -230,6 +230,7 @@ export default function TasksPage() {
   const [tagroPreview, setTagroPreview] = useState<TagroPreview | null>(null)
   const [expandedProjectIds, setExpandedProjectIds] = useState<string[]>([])
   const hasSeededProjectGroupsRef = useRef(false)
+  const taskToolsRef = useRef<HTMLDivElement | null>(null)
 
   const supabase = createClient()
 
@@ -257,6 +258,28 @@ export default function TasksPage() {
 
     return () => {
       supabase.removeChannel(channel)
+    }
+  }, [])
+
+  useEffect(() => {
+    function closeFloatingMenus(event: PointerEvent) {
+      const target = event.target as Node | null
+      if (target && taskToolsRef.current?.contains(target)) return
+      setFilterMenuOpen(false)
+      setSortMenuOpen(false)
+    }
+
+    function closeWithEscape(event: KeyboardEvent) {
+      if (event.key !== 'Escape') return
+      setFilterMenuOpen(false)
+      setSortMenuOpen(false)
+    }
+
+    document.addEventListener('pointerdown', closeFloatingMenus)
+    document.addEventListener('keydown', closeWithEscape)
+    return () => {
+      document.removeEventListener('pointerdown', closeFloatingMenus)
+      document.removeEventListener('keydown', closeWithEscape)
     }
   }, [])
 
@@ -551,7 +574,7 @@ export default function TasksPage() {
         }
         .task-create {
           height:30px;
-          padding:0 9px 0 12px;
+          padding:0 10px 0 12px;
           border:1px solid transparent;
           border-radius:8px;
           background:transparent;
@@ -565,6 +588,15 @@ export default function TasksPage() {
           cursor:pointer;
         }
         .task-create:hover { background:var(--surface-2); color:var(--text); }
+        .task-create-close {
+          width:16px;
+          height:16px;
+          display:inline-flex;
+          align-items:center;
+          justify-content:center;
+          flex-shrink:0;
+          color:currentColor;
+        }
         .task-create:disabled {
           opacity:.46;
           color:var(--task-soft-text);
@@ -585,6 +617,16 @@ export default function TasksPage() {
           box-shadow:0 1px 2px rgba(15,23,42,.08), 0 7px 18px rgba(15,23,42,.08);
           transition:background .12s ease, color .12s ease, box-shadow .12s ease, transform .12s ease;
         }
+        .task-tool:focus,
+        .task-tool:focus-visible,
+        .task-tool:active {
+          outline:none !important;
+          border:0 !important;
+          background:#fff;
+          color:var(--text);
+          box-shadow:0 1px 2px rgba(15,23,42,.10), 0 9px 22px rgba(15,23,42,.11) !important;
+          transform:none;
+        }
         .task-tool:hover, .task-tool.on {
           background:#fff;
           color:var(--text);
@@ -598,10 +640,16 @@ export default function TasksPage() {
         }
         [data-theme="dark"] .task-tool:hover,
         [data-theme="dark"] .task-tool.on,
+        [data-theme="dark"] .task-tool:focus,
+        [data-theme="dark"] .task-tool:focus-visible,
+        [data-theme="dark"] .task-tool:active,
         [data-theme="classic-dark"] .task-tool:hover,
-        [data-theme="classic-dark"] .task-tool.on {
+        [data-theme="classic-dark"] .task-tool.on,
+        [data-theme="classic-dark"] .task-tool:focus,
+        [data-theme="classic-dark"] .task-tool:focus-visible,
+        [data-theme="classic-dark"] .task-tool:active {
           background:color-mix(in srgb, var(--surface) 88%, #fff 12%);
-          box-shadow:0 1px 2px rgba(0,0,0,.32), 0 10px 24px rgba(0,0,0,.24);
+          box-shadow:0 1px 2px rgba(0,0,0,.32), 0 10px 24px rgba(0,0,0,.24) !important;
         }
         .task-menu {
           position:absolute;
@@ -609,7 +657,7 @@ export default function TasksPage() {
           right:0;
           width:190px;
           z-index:20;
-          border:1px solid var(--border);
+          border:0;
           border-radius:12px;
           background:var(--surface);
           box-shadow:0 18px 44px rgba(0,0,0,.16);
@@ -628,6 +676,11 @@ export default function TasksPage() {
           font-size:12px;
           font-weight:600;
           cursor:pointer;
+        }
+        .task-menu button:focus,
+        .task-menu button:focus-visible {
+          outline:none !important;
+          box-shadow:none !important;
         }
         .task-menu button:hover, .task-menu button.on { background:var(--surface-2); color:var(--text); }
         .task-table {
@@ -786,7 +839,7 @@ export default function TasksPage() {
           to { opacity:1; transform:none; }
         }
         .task-composer {
-          border:1px solid var(--border);
+          border:0;
           border-radius:12px;
           background:color-mix(in srgb, var(--surface) 72%, transparent);
           box-shadow:0 18px 46px rgba(0,0,0,.06);
@@ -796,8 +849,9 @@ export default function TasksPage() {
         }
         .task-composer-title {
           display:flex;
-          flex-direction:column;
-          gap:2px;
+          align-items:baseline;
+          flex-wrap:wrap;
+          gap:6px;
           min-width:0;
         }
         .task-composer-title strong {
@@ -808,7 +862,7 @@ export default function TasksPage() {
         }
         .task-composer-title span {
           color:var(--task-soft-text);
-          font-size:11.5px;
+          font-size:12px;
           font-weight:500;
         }
         [data-theme="dark"] .task-composer {
@@ -825,7 +879,7 @@ export default function TasksPage() {
           justify-content:space-between;
           gap:12px;
           padding:13px 16px 10px;
-          border-bottom:1px solid var(--border);
+          border-bottom:0;
         }
         .task-project-select {
           display:inline-flex;
@@ -834,7 +888,7 @@ export default function TasksPage() {
           min-width:0;
           height:28px;
           padding:0 10px;
-          border-radius:9px;
+          border-radius:8px;
           border:1px solid var(--border);
           background:color-mix(in srgb, var(--surface-2) 48%, transparent);
           color:var(--text);
@@ -874,7 +928,7 @@ export default function TasksPage() {
         .task-mode-tabs button {
           min-height:32px;
           padding:0 12px;
-          border-radius:999px;
+          border-radius:8px;
           border:1px solid var(--border);
           background:transparent;
           color:var(--task-soft-text);
@@ -889,8 +943,8 @@ export default function TasksPage() {
         }
         .task-tagro-note {
           padding:8px 11px;
-          border-radius:10px;
-          border:1px solid var(--border);
+          border-radius:8px;
+          border:0;
           background:color-mix(in srgb, var(--surface-2) 34%, transparent);
           color:var(--task-soft-text);
           font-size:12px;
@@ -962,7 +1016,7 @@ export default function TasksPage() {
           flex-wrap:wrap;
           gap:7px;
           padding:10px 16px 11px;
-          border-top:1px solid var(--border);
+          border-top:0;
         }
         .task-composer-chip {
           height:26px;
@@ -970,7 +1024,7 @@ export default function TasksPage() {
           align-items:center;
           gap:7px;
           border:1px solid var(--border);
-          border-radius:9px;
+          border-radius:8px;
           padding:0 10px;
           background:transparent;
           color:var(--task-soft-text);
@@ -986,7 +1040,7 @@ export default function TasksPage() {
           justify-content:space-between;
           gap:12px;
           padding:8px 16px;
-          border-top:1px solid var(--border);
+          border-top:0;
           color:var(--task-soft-text);
           font-size:11.5px;
           font-weight:500;
@@ -1456,7 +1510,9 @@ export default function TasksPage() {
           <h1 className="task-title">Tasks</h1>
           <button className="task-create" type="button" aria-label="Neue Aufgabe vorschlagen" disabled={!hasProjects} onClick={openComposer}>
             <span>Aufgabe vorschlagen</span>
-            <span style={{ fontSize: 19, lineHeight: 1 }}>{composerOpen ? '×' : '+'}</span>
+            <span className="task-create-close" aria-hidden="true">
+              {composerOpen ? <X size={13} weight="bold" /> : <span style={{ fontSize: 18, lineHeight: 1 }}>+</span>}
+            </span>
           </button>
         </div>
 
@@ -1476,7 +1532,7 @@ export default function TasksPage() {
             {openCount} offen · {activeCount} in Arbeit · {decisionCount} warten · {reviewCount} Prüfung · {doneCount} erledigt
           </span>
         </div>
-        <div className="task-tools">
+        <div className="task-tools" ref={taskToolsRef}>
           <div className="task-tool-wrap">
             <button className={`task-tool${filterMenuOpen ? ' on' : ''}`} type="button" aria-label="Aufgaben filtern" onClick={() => { setFilterMenuOpen(v => !v); setSortMenuOpen(false) }}>
               <FunnelSimple size={15} />
