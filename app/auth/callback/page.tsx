@@ -106,7 +106,13 @@ function CallbackInner() {
         }
       } catch { /* best-effort */ }
 
-      const target = await resolvePostAuthTarget(supabase, user.id)
+      // `next` carries the intent of the form the user just submitted:
+      //   /login          → next=/dashboard (client portal)
+      //   /dev/login      → next=/dev (developer portal — role-checked)
+      //   /onboarding/…   → next=/onboarding
+      // Pass it through so an admin who came in via /login lands on
+      // /dashboard, not /dev.
+      const target = await resolvePostAuthTarget(supabase, user.id, next === '/loading' ? null : next)
       rememberFestagAccount({
         userId: user.id,
         email: user.email ?? null,
@@ -114,12 +120,7 @@ function CallbackInner() {
         onboardingCompleted: target === '/dashboard' || target === '/dev',
       })
 
-      // Honor ?next= only when role-routing would otherwise default to /dashboard.
-      const resolvedTarget = observerRedeemed
-        ? '/dashboard?welcome=observer'
-        : (target === '/dashboard' && next !== '/loading' && next !== '/onboarding'
-            ? next
-            : target)
+      const resolvedTarget = observerRedeemed ? '/dashboard?welcome=observer' : target
       router.replace(resolvedTarget)
     }
 

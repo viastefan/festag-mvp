@@ -2,12 +2,17 @@
  * resolvePostAuthTarget — single source of truth for "where should this
  * user land after login / OAuth callback / OTP verify?"
  *
- * Priority order:
- *   1. Not onboarded yet      → /onboarding
- *   2. role = pending_developer → /dev/pending  (waiting for admin approval)
- *   3. role = dev | admin     → /dev            (DEV portal)
- *   4. role = project_owner   → /dev            (admin-side, shares portal for now)
- *   5. role = client (default)→ /dashboard      (client portal)
+ * Behaviour:
+ *   • Onboarding / pending dev approval ALWAYS wins.
+ *   • Otherwise the **intent of the form the user just submitted** wins,
+ *     not the user's role.
+ *     – /login (Client-Portal-Login) sets `next=/dashboard` →
+ *       even an admin lands in /dashboard. They can switch to the dev
+ *       portal explicitly via /dev/login.
+ *     – /dev/login sets `next=/dev` → role must allow it, otherwise the
+ *       user is bounced back to the client side.
+ *   • No `preferredNext` at all → conservative default: /dashboard
+ *     (the client portal is the universal home).
  *
  * Kept defensive: any DB hiccup falls back to /dashboard rather than
  * locking the user out.
@@ -18,6 +23,7 @@ export type PostAuthTarget = '/onboarding' | '/dev' | '/dev/pending' | '/dashboa
 export async function resolvePostAuthTarget(
   supabase: any,
   userId: string,
+  preferredNext?: string | null,
 ): Promise<PostAuthTarget> {
   try {
     const [{ data: onboarding }, { data: profile }] = await Promise.all([
@@ -30,16 +36,25 @@ export async function resolvePostAuthTarget(
     const approval = (profile?.approval_status as string | null) ?? 'approved'
 
     // Pending developers must wait — they reach the pending screen
-    // regardless of onboarding state (no point onboarding twice).
-    if (role === 'pending_developer' || approval === 'pending') {
-      return '/dev/pending'
-    }
+    // regardless of onboarding state.
+    if (role === 'pending_developer' || approval === 'pending') return '/dev/pending'
 
     // Not onboarded yet → guided setup (any role except pending_developer).
     if (!onboarded) return '/onboarding'
 
-    // Role-based dashboards
-    if (role === 'dev' || role === 'admin' || role === 'project_owner') return '/dev'
+    const isDevRole = role === 'dev' || role === 'admin' || role === 'project_owner'
+
+    // Honor an explicit `preferredNext` signal coming from the form the
+    // user just submitted (this carries the *intent*, not the role).
+    if (preferredNext) {
+      if (preferredNext === '/dashboard') return '/dashboard'
+      if (preferredNext.startsWith('/dev')) {
+        return isDevRole ? '/dev' : '/dashboard'
+      }
+    }
+
+    // No preference → universal home is the client portal. Dev/admin
+    // switch to /dev explicitly via /dev/login.
     return '/dashboard'
   } catch {
     return '/dashboard'

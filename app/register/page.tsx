@@ -170,7 +170,9 @@ export default function RegisterPage() {
         .from('onboarding_state')
         .upsert({ user_id: session.user.id, updated_at: new Date().toISOString() }, { onConflict: 'user_id' })
     }
-    const target = session ? await resolvePostAuthTarget(supabase, session.user.id) : '/onboarding'
+    // /register is always client-side. Even if the email is mapped to an
+    // admin/dev role, the new sign-up always begins in the client workspace.
+    const target = session ? await resolvePostAuthTarget(supabase, session.user.id, '/dashboard') : '/onboarding'
     try {
       if (session) {
         rememberFestagAccount({

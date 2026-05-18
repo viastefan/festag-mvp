@@ -67,7 +67,10 @@ export default function LoginPage() {
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) return false
 
-    const target = await resolvePostAuthTarget(supabase, session.user.id)
+    // /login is the *client* portal entry. Pass `/dashboard` as intent so
+    // even an admin/dev who arrived here lands in the client workspace.
+    // They can switch to the dev portal via /dev/login on purpose.
+    const target = await resolvePostAuthTarget(supabase, session.user.id, '/dashboard')
     rememberFestagAccount({
       userId: session.user.id,
       email: session.user.email ?? null,
@@ -237,7 +240,7 @@ export default function LoginPage() {
     if (verifyError) { setError(mapAuthError(verifyError.message)); return }
     saveMethod('email')
     const { data: { session } } = await supabase.auth.getSession()
-    const target = session ? await resolvePostAuthTarget(supabase, session.user.id) : '/dashboard'
+    const target = session ? await resolvePostAuthTarget(supabase, session.user.id, '/dashboard') : '/dashboard'
     if (session) {
       await supabase
         .from('onboarding_state')
