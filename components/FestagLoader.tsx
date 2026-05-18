@@ -38,6 +38,7 @@ export default function FestagLoader({ fullscreen = false, label }: Props) {
     <div className={`fl-wrap${fullscreen ? ' fl-full' : ''}`} role="status" aria-live="polite">
       <style>{`
         .fl-wrap {
+          --fl-duration:7.6s;
           width:100%;
           height:100%;
           min-height:260px;
@@ -66,7 +67,7 @@ export default function FestagLoader({ fullscreen = false, label }: Props) {
           border-radius:50%;
           background:radial-gradient(circle, rgba(124,132,150,.16), rgba(252,252,253,0) 62%);
           filter:blur(10px);
-          animation:flGlow 5.4s cubic-bezier(.16,1,.3,1) infinite;
+          animation:flGlow var(--fl-duration) cubic-bezier(.16,1,.3,1) infinite;
           z-index:-2;
         }
         .fl-wrap::after {
@@ -79,7 +80,7 @@ export default function FestagLoader({ fullscreen = false, label }: Props) {
           transform:translateX(-50%);
           background:radial-gradient(ellipse, rgba(17,24,39,.16), rgba(17,24,39,0) 72%);
           filter:blur(12px);
-          animation:flShadow 5.4s cubic-bezier(.16,1,.3,1) infinite;
+          animation:flShadow var(--fl-duration) cubic-bezier(.16,1,.3,1) infinite;
           z-index:-1;
         }
         .fl-stage {
@@ -87,7 +88,7 @@ export default function FestagLoader({ fullscreen = false, label }: Props) {
           width:320px;
           height:220px;
           transform-style:preserve-3d;
-          animation:flCamera 5.4s cubic-bezier(.16,1,.3,1) infinite;
+          animation:flCamera var(--fl-duration) cubic-bezier(.16,1,.3,1) infinite;
         }
         .fl-mark {
           position:absolute;
@@ -97,7 +98,7 @@ export default function FestagLoader({ fullscreen = false, label }: Props) {
           height:144px;
           transform-style:preserve-3d;
           transform:translate(-50%, -50%) rotateY(-16deg) rotateX(8deg);
-          animation:flMarkFloat 5.4s cubic-bezier(.16,1,.3,1) infinite;
+          animation:flMarkFloat var(--fl-duration) cubic-bezier(.16,1,.3,1) infinite;
         }
         .fl-core {
           position:absolute;
@@ -118,7 +119,7 @@ export default function FestagLoader({ fullscreen = false, label }: Props) {
           inset:-35%;
           background:linear-gradient(105deg, transparent 38%, rgba(255,255,255,.95) 48%, transparent 58%);
           transform:translateX(-72%) rotate(4deg);
-          animation:flSweep 5.4s cubic-bezier(.16,1,.3,1) infinite;
+          animation:flSweep var(--fl-duration) cubic-bezier(.16,1,.3,1) infinite;
         }
         .fl-core::after {
           content:'';
@@ -139,11 +140,11 @@ export default function FestagLoader({ fullscreen = false, label }: Props) {
           will-change:transform, opacity, filter;
         }
         .fl-pixel {
-          animation:flPixelAssemble 5.4s cubic-bezier(.16,1,.3,1) infinite;
+          animation:flPixelAssemble var(--fl-duration) cubic-bezier(.16,1,.3,1) infinite;
           animation-delay:calc(var(--d) * 1s);
         }
         .fl-flyby {
-          animation:flFlyby 5.4s cubic-bezier(.16,1,.3,1) infinite;
+          animation:flFlyby var(--fl-duration) cubic-bezier(.16,1,.3,1) infinite;
           animation-delay:calc(var(--d) * 1s);
           filter:blur(calc(var(--b) * 1px));
         }
@@ -186,52 +187,53 @@ export default function FestagLoader({ fullscreen = false, label }: Props) {
           font-weight:500;
           letter-spacing:.02em;
           color:rgba(78,85,103,.68);
-          animation:flLabel 5.4s ease-in-out infinite;
+          animation:flLabel var(--fl-duration) ease-in-out infinite;
         }
         @keyframes flCamera {
           0%,100% { transform:rotateX(0deg) rotateY(0deg) translateY(0); }
-          26% { transform:rotateX(4deg) rotateY(-8deg) translateY(-2px); }
-          58% { transform:rotateX(1deg) rotateY(10deg) translateY(1px); }
-          78% { transform:rotateX(-3deg) rotateY(5deg) translateY(-1px); }
+          24% { transform:rotateX(4deg) rotateY(-8deg) translateY(-2px); }
+          54% { transform:rotateX(1deg) rotateY(8deg) translateY(1px); }
+          76% { transform:rotateX(-2deg) rotateY(4deg) translateY(-1px); }
         }
         @keyframes flMarkFloat {
-          0%,15% { opacity:0; transform:translate(-50%, -50%) scale(.82) rotateY(-58deg) rotateX(12deg); filter:blur(10px); }
-          34% { opacity:.98; transform:translate(-50%, -50%) scale(.98) rotateY(-24deg) rotateX(9deg); filter:blur(0); }
-          54% { opacity:1; transform:translate(-50%, -50%) scale(1) rotateY(13deg) rotateX(6deg); filter:blur(0); }
-          68% { opacity:1; transform:translate(-50%, -50%) scale(1.025) rotateY(8deg) rotateX(5deg); filter:brightness(1.08); }
-          84% { opacity:.38; transform:translate(-50%, -50%) scale(.94) rotateY(42deg) rotateX(-4deg); filter:blur(2px); }
-          100% { opacity:0; transform:translate(-50%, -50%) scale(.78) rotateY(74deg) rotateX(-10deg); filter:blur(12px); }
+          0%,12% { opacity:0; transform:translate(-50%, -50%) scale(.8) rotateY(-58deg) rotateX(12deg); filter:blur(12px); }
+          30% { opacity:.96; transform:translate(-50%, -50%) scale(.98) rotateY(-24deg) rotateX(9deg); filter:blur(.4px); }
+          45% { opacity:1; transform:translate(-50%, -50%) scale(1) rotateY(9deg) rotateX(6deg); filter:blur(0); }
+          70% { opacity:1; transform:translate(-50%, -50%) scale(1.026) rotateY(6deg) rotateX(5deg); filter:brightness(1.1); }
+          82% { opacity:1; transform:translate(-50%, -50%) scale(1.005) rotateY(12deg) rotateX(3deg); filter:brightness(1.02); }
+          92% { opacity:.38; transform:translate(-50%, -50%) scale(.94) rotateY(42deg) rotateX(-4deg); filter:blur(2px); }
+          100% { opacity:0; transform:translate(-50%, -50%) scale(.78) rotateY(74deg) rotateX(-10deg); filter:blur(13px); }
         }
         @keyframes flPixelAssemble {
           0% { opacity:0; transform:translate3d(calc(var(--sx) * 1px), calc(var(--sy) * 1px), calc(var(--z) * 1px)) rotateX(68deg) rotateY(110deg) scale(calc(var(--s) * .72)); filter:blur(5px); }
-          18% { opacity:.7; transform:translate3d(calc(var(--sx) * .42px), calc(var(--sy) * .42px), calc(var(--z) * .7px)) rotateX(38deg) rotateY(64deg) scale(var(--s)); filter:blur(1.5px); }
-          36%,64% { opacity:1; transform:translate3d(calc(var(--x) * 1px), calc(var(--y) * 1px), 42px) rotateX(12deg) rotateY(-24deg) scale(var(--s)); filter:blur(0); }
-          78% { opacity:.72; transform:translate3d(calc(var(--sx) * .36px), calc(var(--sy) * .36px), calc(var(--z) * .55px)) rotateX(-34deg) rotateY(44deg) scale(calc(var(--s) * .86)); filter:blur(1.2px); }
+          20% { opacity:.76; transform:translate3d(calc(var(--sx) * .42px), calc(var(--sy) * .42px), calc(var(--z) * .7px)) rotateX(38deg) rotateY(64deg) scale(var(--s)); filter:blur(1.5px); }
+          38%,78% { opacity:1; transform:translate3d(calc(var(--x) * 1px), calc(var(--y) * 1px), 42px) rotateX(12deg) rotateY(-24deg) scale(var(--s)); filter:blur(0); }
+          90% { opacity:.7; transform:translate3d(calc(var(--sx) * .36px), calc(var(--sy) * .36px), calc(var(--z) * .55px)) rotateX(-34deg) rotateY(44deg) scale(calc(var(--s) * .86)); filter:blur(1.3px); }
           100% { opacity:0; transform:translate3d(calc(var(--sx) * 1px), calc(var(--sy) * 1px), calc(var(--z) * 1px)) rotateX(-70deg) rotateY(-120deg) scale(calc(var(--s) * .62)); filter:blur(7px); }
         }
         @keyframes flFlyby {
           0%,12% { opacity:0; transform:translate3d(calc(var(--x) * 1px), calc(var(--y) * 1px), -120px) rotateX(70deg) rotateY(40deg) scale(calc(var(--s) * .55)); }
-          32% { opacity:.72; transform:translate3d(calc(var(--x) * -.18px), calc(var(--y) * .18px), 72px) rotateX(10deg) rotateY(96deg) scale(var(--s)); }
-          68% { opacity:.56; transform:translate3d(calc(var(--x) * .18px), calc(var(--y) * -.12px), 130px) rotateX(-18deg) rotateY(180deg) scale(calc(var(--s) * 1.15)); }
+          34% { opacity:.72; transform:translate3d(calc(var(--x) * -.18px), calc(var(--y) * .18px), 72px) rotateX(10deg) rotateY(96deg) scale(var(--s)); }
+          78% { opacity:.5; transform:translate3d(calc(var(--x) * .18px), calc(var(--y) * -.12px), 130px) rotateX(-18deg) rotateY(180deg) scale(calc(var(--s) * 1.15)); }
           100% { opacity:0; transform:translate3d(calc(var(--x) * -1px), calc(var(--y) * -1px), -90px) rotateX(-80deg) rotateY(260deg) scale(calc(var(--s) * .5)); }
         }
         @keyframes flSweep {
-          0%,48% { transform:translateX(-78%) rotate(4deg); opacity:0; }
-          56% { opacity:1; }
-          66%,100% { transform:translateX(76%) rotate(4deg); opacity:0; }
+          0%,54% { transform:translateX(-78%) rotate(4deg); opacity:0; }
+          62% { opacity:1; }
+          74%,100% { transform:translateX(76%) rotate(4deg); opacity:0; }
         }
         @keyframes flGlow {
           0%,100% { opacity:.42; transform:scale(.88); }
-          52% { opacity:1; transform:scale(1); }
-          76% { opacity:.64; transform:scale(.94); }
+          52% { opacity:1; transform:scale(1.02); }
+          82% { opacity:.72; transform:scale(.96); }
         }
         @keyframes flShadow {
           0%,18%,100% { opacity:0; transform:translateX(-50%) scale(.68); }
-          48%,72% { opacity:.9; transform:translateX(-50%) scale(1); }
+          46%,82% { opacity:.88; transform:translateX(-50%) scale(1); }
         }
         @keyframes flLabel {
-          0%,12%,92%,100% { opacity:.32; }
-          45%,72% { opacity:.74; }
+          0%,12%,94%,100% { opacity:.28; }
+          42%,82% { opacity:.74; }
         }
         @media (prefers-reduced-motion: reduce) {
           .fl-stage,

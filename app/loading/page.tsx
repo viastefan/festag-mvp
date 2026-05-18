@@ -34,7 +34,7 @@ function LoadingInner() {
       }
 
       const elapsed = Date.now() - start
-      const hold = Math.max(0, 900 - elapsed)
+      const hold = Math.max(0, 1850 - elapsed)
       setTimeout(() => { if (!cancelled) router.replace(target) }, hold)
     }
 
