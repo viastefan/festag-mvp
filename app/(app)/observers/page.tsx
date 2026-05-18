@@ -143,10 +143,10 @@ export default function ObserversPage() {
       email,
       full_name: inviteName.trim() || null,
       role: finalRole,
-      access_level: inviteAccess,
+      access_level: invitePerms.comment ? 'comment' : 'read',
       permissions: {
         read: true,
-        comment: invitePerms.comment || inviteAccess === 'comment',
+        comment: invitePerms.comment,
         create_tasks: invitePerms.create_tasks,
         tagro_propose: invitePerms.tagro_propose,
         review_status_reports: invitePerms.review_status_reports,
@@ -264,71 +264,70 @@ export default function ObserversPage() {
         }
         .obs-text-btn:hover { background:var(--surface-2); color:var(--text); }
 
-        /* ── Inline-Composer (Tasks-Style, kein Modal) ── */
+        /* ── Inline-Composer — ruhig, schlank, keine inneren Trennlinien ── */
         .obs-composer {
           border:1px solid var(--border);
-          border-radius:12px;
-          background:color-mix(in srgb, var(--surface) 72%, transparent);
-          box-shadow:0 18px 46px rgba(0,0,0,.06);
-          margin:0 0 18px;
+          border-radius:8px;
+          background:var(--surface);
+          margin:0 0 16px;
           overflow:hidden;
           animation:obsComposerIn .18s cubic-bezier(.16,1,.3,1) both;
         }
-        @keyframes obsComposerIn { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:none; } }
-        [data-theme="dark"] .obs-composer { background:color-mix(in srgb, var(--surface) 82%, transparent); box-shadow:0 18px 46px rgba(0,0,0,.22); }
+        @keyframes obsComposerIn { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:none; } }
         .obs-composer-top {
-          display:flex; align-items:center; justify-content:space-between;
-          gap:12px; padding:13px 16px 11px;
-          border-bottom:1px solid var(--border);
+          display:flex; align-items:flex-start; justify-content:space-between;
+          gap:12px; padding:14px 16px 4px;
         }
         .obs-composer-title { font-size:13px; font-weight:500; color:var(--text); letter-spacing:.015em; }
-        .obs-composer-sub { font-size:11.5px; font-weight:500; color:var(--text-muted); letter-spacing:.015em; }
+        .obs-composer-sub { font-size:11.5px; font-weight:500; color:var(--text-muted); letter-spacing:.015em; margin-top:2px; }
         .obs-composer-x {
-          width:26px; height:26px; border:0; background:transparent; color:var(--text-muted);
-          border-radius:8px; cursor:pointer; display:flex; align-items:center; justify-content:center;
-          transition:background .12s, color .12s;
+          width:24px; height:24px; border:0; background:transparent; color:var(--text-muted);
+          border-radius:6px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+          transition:background .12s, color .12s; margin-top:-2px;
         }
         .obs-composer-x:hover { background:var(--surface-2); color:var(--text); }
-        .obs-composer-body { padding:14px 16px 12px; display:flex; flex-direction:column; gap:14px; }
+        .obs-composer-body { padding:10px 16px 8px; display:flex; flex-direction:column; gap:14px; }
         .obs-fld { display:flex; flex-direction:column; gap:6px; }
-        .obs-fld-label { font-size:10.5px; font-weight:500; letter-spacing:.18em; text-transform:uppercase; color:var(--text-muted); }
+        .obs-fld-label { font-size:10.5px; font-weight:500; letter-spacing:.14em; text-transform:uppercase; color:var(--text-muted); }
         .obs-fld input[type="text"], .obs-fld input[type="email"] {
-          height:36px; padding:0 12px; border-radius:8px;
-          border:1px solid var(--border); background:var(--surface); color:var(--text);
-          font:inherit; font-size:13px; font-weight:500; letter-spacing:.015em; outline:none;
-          transition:border-color .12s, box-shadow .12s;
+          height:32px; padding:0 10px; border-radius:7px;
+          border:1px solid var(--border); background:transparent; color:var(--text);
+          font:inherit; font-size:12.5px; font-weight:500; letter-spacing:.015em; outline:none;
+          transition:border-color .12s, box-shadow .12s, background .12s;
         }
-        .obs-fld input:focus { border-color:var(--inp-focus-border); box-shadow:0 0 0 3px var(--focus-ring); }
+        .obs-fld input:focus { border-color:var(--border-strong); background:var(--surface); box-shadow:none; }
         .obs-perm-grid {
-          display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
-          gap:6px;
+          display:flex; flex-wrap:wrap; gap:6px;
         }
         .obs-perm-row {
-          display:flex; align-items:flex-start; gap:10px; padding:9px 11px;
-          border:1px solid var(--border); border-radius:9px;
+          display:inline-flex; align-items:center; gap:8px;
+          padding:7px 11px 7px 9px;
+          border:1px solid var(--border); border-radius:7px;
           background:transparent; cursor:pointer;
-          transition:border-color .12s, background .12s;
+          transition:border-color .12s, background .12s, color .12s;
+          color:var(--text-secondary);
         }
-        .obs-perm-row:hover { background:color-mix(in srgb, var(--surface-2) 50%, transparent); }
-        .obs-perm-row.on { border-color:var(--border-strong); background:color-mix(in srgb, var(--surface-2) 60%, transparent); }
+        .obs-perm-row:hover { background:color-mix(in srgb, var(--surface-2) 50%, transparent); color:var(--text); }
+        .obs-perm-row.on { border-color:var(--border-strong); background:color-mix(in srgb, var(--surface-2) 70%, transparent); color:var(--text); }
         .obs-perm-checkbox {
-          width:14px; height:14px; border-radius:4px; border:1.5px solid var(--border-strong);
-          margin-top:2px; flex-shrink:0;
+          width:13px; height:13px; border-radius:3px; border:1px solid var(--border-strong);
+          flex-shrink:0;
           display:flex; align-items:center; justify-content:center;
           background:transparent; transition:background .12s, border-color .12s;
         }
         .obs-perm-row.on .obs-perm-checkbox { background:var(--text); border-color:var(--text); }
         .obs-perm-row.on .obs-perm-checkbox svg { color:var(--bg); }
-        .obs-perm-info { display:flex; flex-direction:column; gap:1px; min-width:0; }
-        .obs-perm-title { font-size:12.5px; font-weight:500; color:var(--text); letter-spacing:.015em; }
-        .obs-perm-sub { font-size:11px; font-weight:500; color:var(--text-muted); letter-spacing:.015em; line-height:1.4; }
+        .obs-perm-title { font-size:12px; font-weight:500; letter-spacing:.015em; }
+        .obs-perm-hint {
+          font-size:11px; font-weight:500; color:var(--text-muted); letter-spacing:.015em;
+          margin:4px 0 0 1px;
+        }
         .obs-composer-footer {
           display:flex; align-items:center; justify-content:space-between;
-          gap:12px; padding:11px 16px 13px;
-          border-top:1px solid var(--border);
+          gap:12px; padding:10px 16px 12px;
         }
         .obs-composer-hint { font-size:11.5px; font-weight:500; color:var(--text-muted); letter-spacing:.015em; }
-        .obs-link-row { display:flex; align-items:center; gap:8px; padding:11px 13px; border:1px solid var(--border); border-radius:9px; background:var(--surface-2); }
+        .obs-link-row { display:flex; align-items:center; gap:8px; padding:9px 11px; border:1px solid var(--border); border-radius:7px; background:color-mix(in srgb, var(--surface-2) 60%, transparent); }
 
         .obs-table { width:100%; }
         .obs-head-row, .obs-row {
@@ -527,11 +526,11 @@ export default function ObserversPage() {
       {inviteOpen && (
         <section className="obs-composer" aria-label="Mitwirkende einladen">
           <header className="obs-composer-top">
-            <div style={{ display:'flex', flexDirection:'column', gap:1, minWidth:0 }}>
+            <div style={{ display:'flex', flexDirection:'column', minWidth:0 }}>
               <span className="obs-composer-title">{inviteLink ? 'Einladung erstellt' : 'Mitwirkende einladen'}</span>
-              <span className="obs-composer-sub">{inviteLink ? 'Link teilen — funktioniert nur für die eingeladene E-Mail.' : 'Read-only Basis. Erweiterte Rollen-Permissions optional.'}</span>
+              <span className="obs-composer-sub">{inviteLink ? 'Funktioniert nur für die eingeladene E-Mail.' : 'Standard: Lesen. Permissions später jederzeit änderbar.'}</span>
             </div>
-            <button className="obs-composer-x" type="button" onClick={closeInvite} aria-label="Schließen"><X size={14} weight="regular"/></button>
+            <button className="obs-composer-x" type="button" onClick={closeInvite} aria-label="Schließen"><X size={13} weight="regular"/></button>
           </header>
 
           {inviteLink ? (
@@ -583,50 +582,41 @@ export default function ObserversPage() {
                   <span className="obs-fld-label">Was darf diese Person?</span>
                   <div className="obs-perm-grid">
                     {[
-                      { key:'comment', title:'Kommentieren', sub:'Rückfragen & Notizen an Tasks/Briefings.' },
-                      { key:'create_tasks', title:'Tasks erstellen', sub:'Manuell neue Aufgaben in Projekten anlegen.' },
-                      { key:'tagro_propose', title:'Mit Tagro vorschlagen', sub:'Aufgaben/Ideen via Tagro einreichen.' },
-                      { key:'review_status_reports', title:'Statusberichte prüfen', sub:'Briefings freigeben oder zurückspielen.' },
-                      { key:'comment_dev_tasks', title:'Dev-Tasks kontrollieren', sub:'Auf Developer-Updates antworten.' },
+                      { key:'comment',                title:'Kommentieren',         hint:'Rückfragen & Notizen.' },
+                      { key:'create_tasks',           title:'Tasks erstellen',       hint:'Manuell neue Aufgaben anlegen.' },
+                      { key:'tagro_propose',          title:'Mit Tagro vorschlagen', hint:'Ideen via Tagro einreichen.' },
+                      { key:'review_status_reports', title:'Statusberichte prüfen', hint:'Briefings freigeben.' },
+                      { key:'comment_dev_tasks',      title:'Dev-Tasks prüfen',     hint:'Auf Developer-Updates antworten.' },
                     ].map(p => {
                       const on = (invitePerms as any)[p.key] === true
                       return (
-                        <button
-                          key={p.key} type="button"
+                        <button key={p.key} type="button" title={p.hint}
                           className={`obs-perm-row ${on ? 'on' : ''}`}
                           onClick={() => setInvitePerms(prev => ({ ...prev, [p.key]: !on }))}
                         >
-                          <span className="obs-perm-checkbox">{on && <Check size={10} weight="bold" />}</span>
-                          <span className="obs-perm-info">
-                            <span className="obs-perm-title">{p.title}</span>
-                            <span className="obs-perm-sub">{p.sub}</span>
-                          </span>
+                          <span className="obs-perm-checkbox">{on && <Check size={9} weight="bold" />}</span>
+                          <span className="obs-perm-title">{p.title}</span>
                         </button>
                       )
                     })}
                   </div>
+                  <span className="obs-perm-hint">Standard ist nur Read-only. Permissions können später angepasst werden.</span>
                 </div>
 
                 <div className="obs-fld">
                   <span className="obs-fld-label">Sichtbare Projekte</span>
                   <div className="obs-perm-grid">
                     <button type="button" className={`obs-perm-row ${inviteAll ? 'on' : ''}`} onClick={() => setInviteAll(true)}>
-                      <span className="obs-perm-checkbox">{inviteAll && <Check size={10} weight="bold" />}</span>
-                      <span className="obs-perm-info">
-                        <span className="obs-perm-title">Alle Projekte</span>
-                        <span className="obs-perm-sub">Inkl. neuer Projekte automatisch.</span>
-                      </span>
+                      <span className="obs-perm-checkbox">{inviteAll && <Check size={9} weight="bold" />}</span>
+                      <span className="obs-perm-title">Alle Projekte</span>
                     </button>
                     <button type="button" className={`obs-perm-row ${!inviteAll ? 'on' : ''}`} onClick={() => setInviteAll(false)}>
-                      <span className="obs-perm-checkbox">{!inviteAll && <Check size={10} weight="bold" />}</span>
-                      <span className="obs-perm-info">
-                        <span className="obs-perm-title">Auswahl</span>
-                        <span className="obs-perm-sub">Nur freigegebene Projekte sind sichtbar.</span>
-                      </span>
+                      <span className="obs-perm-checkbox">{!inviteAll && <Check size={9} weight="bold" />}</span>
+                      <span className="obs-perm-title">Nur Auswahl</span>
                     </button>
                   </div>
                   {!inviteAll && projects.length > 0 && (
-                    <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginTop:8 }}>
+                    <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginTop:6 }}>
                       {projects.map(p => {
                         const checked = inviteProjects.includes(p.id)
                         return (
