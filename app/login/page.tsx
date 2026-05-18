@@ -181,23 +181,6 @@ export default function LoginPage() {
     if (oauthError) { setError(mapAuthError(oauthError.message)); setOauthLoading(false) }
   }
 
-  async function handleGithub() {
-    setError('')
-    saveMethod('github')
-    setOauthLoading(true)
-    // Developer-flow: kommt im /auth/callback an, dort übernimmt
-    // resolvePostAuthTarget die Routing-Entscheidung (pending_developer →
-    // /dev/pending, dev/admin → /dev, sonst /dashboard / /onboarding).
-    const { error: oauthError } = await supabase.auth.signInWithOAuth({
-      provider: 'github',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback?next=/dev`,
-        scopes: 'read:user user:email read:org',
-      },
-    })
-    if (oauthError) { setError(mapAuthError(oauthError.message)); setOauthLoading(false) }
-  }
-
   async function sendMagicLink(): Promise<boolean> {
     const { error: otpError } = await supabase.auth.signInWithOtp({
       email: email.trim(),

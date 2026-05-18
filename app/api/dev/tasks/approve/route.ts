@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { clientStatusFromDevFlow, progressFromDevFlow } from '@/lib/tasks/work-types'
+import { emitTaskEvent } from '@/lib/sync/bus'
 
 /**
  * POST /api/dev/tasks/approve  { taskId, decision: 'approve' | 'reject', reason?: string }
@@ -52,25 +53,14 @@ export async function POST(req: Request) {
         updated_at: now,
       }).eq('id', taskId)
 
-      await supabase.from('task_activity_logs').insert({
-        task_id: taskId,
-        project_id: (task as any).project_id,
-        actor_id: user.id,
-        actor_kind: 'human',
-        event: 'approved_by_owner',
-        metadata: { reason: reason ?? null },
-        visible_to_client: true,
-      }).then(() => null, () => null)
-
-      // Activity feed entry for the client side — translated message
-      if ((task as any).project_id) {
-        await supabase.from('messages').insert({
-          project_id: (task as any).project_id,
-          sender_id: user.id,
-          message: `„${(task as any).title}" ist abgeschlossen und für den Client sichtbar.`,
-          is_ai: true,
-        }).then(() => null, () => null)
-      }
+      await emitTaskEvent(supabase as any, 'approved_by_owner', {
+        taskId,
+        projectId: (task as any).project_id,
+        actorId: user.id,
+        actorKind: 'human',
+        taskTitle: (task as any).title,
+        payload: { reason: reason ?? null },
+      })
     } else {
       // reject → back to in_progress, log
       const nextFlow = 'in_progress' as const
@@ -85,15 +75,14 @@ export async function POST(req: Request) {
         updated_at: now,
       }).eq('id', taskId)
 
-      await supabase.from('task_activity_logs').insert({
-        task_id: taskId,
-        project_id: (task as any).project_id,
-        actor_id: user.id,
-        actor_kind: 'human',
-        event: 'owner_changes_requested',
-        metadata: { reason: reason ?? null },
-        visible_to_client: false,
-      }).then(() => null, () => null)
+      await emitTaskEvent(supabase as any, 'owner_changes_requested', {
+        taskId,
+        projectId: (task as any).project_id,
+        actorId: user.id,
+        actorKind: 'human',
+        taskTitle: (task as any).title,
+        payload: { reason: reason ?? null },
+      })
     }
 
     await supabase.from('audit_logs').insert({

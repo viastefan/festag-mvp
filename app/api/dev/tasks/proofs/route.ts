@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { emitTaskEvent } from '@/lib/sync/bus'
 
 /**
  * Task proofs — list / add / remove.
@@ -43,7 +44,7 @@ export async function POST(req: Request) {
   const metadata = body?.metadata && typeof body.metadata === 'object' ? body.metadata : {}
   if (!taskId || !proofType) return NextResponse.json({ error: 'task_and_type_required' }, { status: 400 })
 
-  const { data: task } = await supabase.from('tasks').select('id,project_id').eq('id', taskId).maybeSingle()
+  const { data: task } = await supabase.from('tasks').select('id,title,project_id').eq('id', taskId).maybeSingle()
 
   const { data, error } = await supabase
     .from('task_proofs')
@@ -58,16 +59,14 @@ export async function POST(req: Request) {
     .select('*').single()
   if (error) return NextResponse.json({ error: error.message }, { status: 400 })
 
-  // activity log
-  await supabase.from('task_activity_logs').insert({
-    task_id: taskId,
-    project_id: (task as any)?.project_id ?? null,
-    actor_id: user.id,
-    actor_kind: 'human',
-    event: 'proof_added',
-    metadata: { proof_type: proofType, has_url: !!url, has_file: !!filePath },
-    visible_to_client: false,
-  }).then(() => null, () => null)
+  await emitTaskEvent(supabase as any, 'proof_added', {
+    taskId,
+    projectId: (task as any)?.project_id ?? null,
+    actorId: user.id,
+    actorKind: 'human',
+    taskTitle: (task as any)?.title ?? '',
+    payload: { proof_type: proofType, has_url: !!url, has_file: !!filePath },
+  })
 
   // touch task
   await supabase.from('tasks').update({

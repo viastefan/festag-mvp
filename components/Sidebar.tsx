@@ -7,6 +7,7 @@ import { useState, useEffect, useRef } from 'react'
 import SidebarProfileFooter from '@/components/SidebarProfileFooter'
 import SettingsSidebar from '@/components/SettingsSidebar'
 import TeamsModal from '@/components/TeamsModal'
+import NotificationsBell from '@/components/NotificationsBell'
 import {
   House, FolderSimple, Sparkle, ChatCircle, ChartLineUp,
   CreditCard, FileText, UserCircle, GearSix,
@@ -767,7 +768,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         }
         .sb-topbar {
           display:grid;
-          grid-template-columns:minmax(0, 1fr) 28px 28px;
+          grid-template-columns:minmax(0, 1fr) 28px 28px 28px;
           align-items:center;
           gap:6px;
           padding:0 4px 16px;
@@ -979,6 +980,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
             >
               <Ico name="search" sz={14} c="currentColor" weight="regular" />
             </button>
+            <NotificationsBell variant="sidebar" />
             {onCollapse && (
               <button
                 className="sb-icon-btn sb-top-icon sb-collapse-icon"

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { runTaskVerification } from '@/lib/tagro/verify-task'
 import { clientStatusFromDevFlow, devFlowFromLegacy, progressFromDevFlow, type DevFlow } from '@/lib/tasks/work-types'
+import { emitTaskEvent } from '@/lib/sync/bus'
 
 /**
  * POST /api/dev/tasks/finish  { taskId }
@@ -68,13 +69,13 @@ export async function POST(req: Request) {
       updated_at: now,
     }).eq('id', taskId)
 
-    await supabase.from('task_activity_logs').insert({
-      task_id: taskId, project_id: (task as any).project_id ?? null,
-      actor_id: user.id, actor_kind: 'human',
-      event: 'finished_by_dev',
-      metadata: { },
-      visible_to_client: false,
-    }).then(() => null, () => null)
+    await emitTaskEvent(supabase as any, 'finished_by_dev', {
+      taskId,
+      projectId: (task as any).project_id ?? null,
+      actorId: user.id,
+      actorKind: 'human',
+      taskTitle: (task as any).title,
+    })
 
     // 2) Verification
     const verdict = await runTaskVerification(supabase as any, taskId)
@@ -124,25 +125,21 @@ export async function POST(req: Request) {
 
     await supabase.from('tasks').update(taskPatch).eq('id', taskId)
 
-    await supabase.from('task_activity_logs').insert({
-      task_id: taskId,
-      project_id: (task as any).project_id ?? null,
-      actor_id: null,
-      actor_kind: 'tagro',
-      event: verdict.status === 'verified'
-        ? 'tagro_verified'
-        : verdict.status === 'proof_missing'
-          ? 'proof_missing'
-          : verdict.status === 'needs_review' || verdict.status === 'quality_issue'
-            ? 'needs_review'
-            : 'tagro_check',
-      metadata: {
-        confidence: verdict.confidence,
-        issues: verdict.issues,
-        evidence: verdict.evidence,
-      },
-      visible_to_client: verdict.status === 'verified',
-    }).then(() => null, () => null)
+    const tagroEvent = verdict.status === 'verified'
+      ? 'tagro_verified'
+      : verdict.status === 'proof_missing'
+        ? 'proof_missing'
+        : verdict.status === 'quality_issue'
+          ? 'quality_issue'
+          : 'needs_review'
+    await emitTaskEvent(supabase as any, tagroEvent, {
+      taskId,
+      projectId: (task as any).project_id ?? null,
+      actorId: null,
+      actorKind: 'tagro',
+      taskTitle: (task as any).title,
+      payload: { confidence: verdict.confidence, issues: verdict.issues, evidence: verdict.evidence },
+    })
 
     // Audit shadow
     await supabase.from('audit_logs').insert({

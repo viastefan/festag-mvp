@@ -4,6 +4,7 @@ import { completedAtForStatus } from '@/lib/tasks/status'
 import {
   DEV_FLOW, clientStatusFromDevFlow, progressFromDevFlow, type DevFlow,
 } from '@/lib/tasks/work-types'
+import { emitTaskEvent, type DevEventKind } from '@/lib/sync/bus'
 
 /**
  * POST /api/dev/tasks/status
@@ -77,18 +78,22 @@ export async function POST(req: Request) {
     const { error } = await supabase.from('tasks').update(patch).eq('id', taskId)
     if (error) return NextResponse.json({ error: error.message }, { status: 400 })
 
-    // Activity log
-    await supabase.from('task_activity_logs').insert({
-      task_id: taskId,
-      project_id: (task as any).project_id ?? null,
-      actor_id: user.id,
-      actor_kind: 'human',
-      event: 'status_changed',
-      metadata: { from: (task as any).dev_status ?? null, to: devStatus, had_note: !!note },
-      visible_to_client: false,
-    }).then(() => null, () => null)
+    // Determine semantic event — `blocked` is special (visible to client).
+    const semanticEvent: DevEventKind =
+      devStatus === 'blocked' ? 'blocker_reported'
+      : devStatus === 'needs_review' ? 'needs_review'
+      : 'status_changed'
 
-    // Optional work log entry
+    await emitTaskEvent(supabase as any, semanticEvent, {
+      taskId,
+      projectId: (task as any).project_id ?? null,
+      actorId: user.id,
+      actorKind: 'human',
+      taskTitle: (task as any).title,
+      payload: { from: (task as any).dev_status ?? null, to: devStatus, had_note: !!note, blockerDescription },
+    })
+
+    // Optional work log entry (for the dev-side feed)
     if (note || blockerDescription) {
       await supabase.from('developer_updates').insert({
         developer_id: user.id,
@@ -98,19 +103,6 @@ export async function POST(req: Request) {
         status: devStatus === 'blocked' ? 'blocked' : devStatus === 'needs_review' ? 'in_progress' : devStatus,
         blocker: devStatus === 'blocked',
         blocker_description: blockerDescription,
-      }).then(() => null, () => null)
-    }
-
-    // Client mirror message — only on hand-off signals
-    if (['needs_review', 'blocked'].includes(devStatus) && (task as any).project_id) {
-      const msg = devStatus === 'blocked'
-        ? `„${(task as any).title}" ist aktuell blockiert. Tagro bereitet die Einordnung vor.`
-        : `„${(task as any).title}" ist bereit zur Prüfung.`
-      await supabase.from('messages').insert({
-        project_id: (task as any).project_id,
-        sender_id: user.id,
-        message: msg,
-        is_ai: true,
       }).then(() => null, () => null)
     }
 

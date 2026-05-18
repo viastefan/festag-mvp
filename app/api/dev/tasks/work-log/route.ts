@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { emitTaskEvent } from '@/lib/sync/bus'
 
 /**
  *   GET  /api/dev/tasks/work-log?taskId=…
@@ -46,7 +47,7 @@ export async function POST(req: Request) {
   const blockerDescription = body?.blockerDescription ? String(body.blockerDescription).slice(0, 800) : null
   if (!taskId || !text) return NextResponse.json({ error: 'task_and_text_required' }, { status: 400 })
 
-  const { data: task } = await supabase.from('tasks').select('id,project_id').eq('id', taskId).maybeSingle()
+  const { data: task } = await supabase.from('tasks').select('id,title,project_id').eq('id', taskId).maybeSingle()
 
   const { data: log, error } = await supabase.from('developer_updates').insert({
     developer_id: user.id,
@@ -59,15 +60,14 @@ export async function POST(req: Request) {
   }).select('*').single()
   if (error) return NextResponse.json({ error: error.message }, { status: 400 })
 
-  await supabase.from('task_activity_logs').insert({
-    task_id: taskId,
-    project_id: (task as any)?.project_id ?? null,
-    actor_id: user.id,
-    actor_kind: 'human',
-    event: 'work_log',
-    metadata: { status, blocker: status === 'blocked', preview: text.slice(0, 140) },
-    visible_to_client: false,
-  }).then(() => null, () => null)
+  await emitTaskEvent(supabase as any, 'work_log', {
+    taskId,
+    projectId: (task as any)?.project_id ?? null,
+    actorId: user.id,
+    actorKind: 'human',
+    taskTitle: (task as any)?.title ?? '',
+    payload: { status, blocker: status === 'blocked', preview: text.slice(0, 140) },
+  })
 
   await supabase.from('tasks').update({
     latest_dev_update: text.slice(0, 400),

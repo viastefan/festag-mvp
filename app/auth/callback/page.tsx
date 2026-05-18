@@ -57,7 +57,22 @@ function CallbackInner() {
         .from('onboarding_state')
         .upsert({ user_id: user.id, updated_at: new Date().toISOString() }, { onConflict: 'user_id' })
 
-      // GitHub-Profil verbinden / pending_developer setzen bei OAuth=github.
+      // GitHub-Identitätsfelder synchronisieren — die Rolle hängt davon ab,
+      // welcher Login-Pfad benutzt wurde:
+      //
+      //   • `next` startet mit `/dev`  → Developer-Intent. Brandneuer Account
+      //                                  oder bestehender Client wird auf
+      //                                  pending_developer geflaggt, weil
+      //                                  diese Person sich bewusst als Dev
+      //                                  identifiziert.
+      //   • alles andere (`/dashboard`, `/onboarding`, kein next)
+      //                                → reiner Identity-Link. GitHub-Felder
+      //                                  werden gespeichert, die `role`
+      //                                  bleibt unverändert. Ein Client der
+      //                                  versehentlich „mit GitHub einloggen"
+      //                                  klickt verliert nicht seinen
+      //                                  Client-Status.
+      //   • bereits dev/admin/project_owner → niemals downgraden.
       const provider = user.app_metadata?.provider as string | undefined
       if (provider === 'github') {
         try {
@@ -80,11 +95,16 @@ function CallbackInner() {
             github_connected_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
           }
-          // Bestehende dev/admin-Rollen nicht überschreiben — sonst pending_developer.
           const currentRole = (existing as any)?.role
-          if (!currentRole || currentRole === 'client') {
+          const isDevIntent = next.startsWith('/dev')
+          const isProtectedRole = currentRole === 'dev' || currentRole === 'admin' || currentRole === 'project_owner'
+          if (isDevIntent && !isProtectedRole) {
+            // First-time dev applicant or existing client switching sides.
             patch.role = 'pending_developer'
             patch.approval_status = 'pending'
+          } else if (!currentRole) {
+            // Brand-new account via non-dev path → default to client.
+            patch.role = 'client'
           }
           await supabase.from('profiles').upsert(patch, { onConflict: 'id' })
         } catch { /* best-effort — Auth-Flow nicht blockieren */ }

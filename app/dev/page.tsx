@@ -31,6 +31,8 @@ type Task = {
   project_id?: string | null
   updated_at?: string | null
   last_dev_action_at?: string | null
+  task_type?: string | null
+  created_at?: string | null
   projects?: { title?: string | null; color?: string | null } | null
 }
 type Project = { id: string; title: string; status?: string | null; color?: string | null }
@@ -114,12 +116,12 @@ export default function DevOverviewPage() {
       // tasks
       const { data: tRows } = await supabase
         .from('tasks')
-        .select('id,title,status,dev_status,priority,project_id,updated_at,last_dev_action_at,projects(title,color)')
+        .select('id,title,status,dev_status,priority,project_id,updated_at,last_dev_action_at,task_type,created_at,projects(title,color)')
         .or(projIds.length > 0
           ? `assigned_to.eq.${uid},project_id.in.(${projIds.join(',')})`
           : `assigned_to.eq.${uid}`)
         .order('last_dev_action_at', { ascending: false, nullsFirst: false })
-        .order('updated_at', { ascending: false }).limit(60)
+        .order('updated_at', { ascending: false }).limit(80)
       if (cancelled) return
       setTasks((tRows as Task[] | null) ?? [])
 
@@ -189,6 +191,14 @@ export default function DevOverviewPage() {
   [tasks])
 
   const reviewTasks = tasks.filter(t => devStatusOf(t) === 'review').slice(0, 4)
+  // Tasks that the client opened themselves and are still untouched —
+  // these jump to the top because they need owner triage.
+  const clientRequests = useMemo(() =>
+    tasks
+      .filter(t => t.task_type === 'client_request' && ['todo', 'new', 'assigned'].includes(String(t.dev_status || t.status || '').toLowerCase()))
+      .sort((a, b) => String(b.created_at || b.updated_at).localeCompare(String(a.created_at || a.updated_at)))
+      .slice(0, 4),
+  [tasks])
 
   const liveSeconds = openSession ? Math.floor((Date.now() - new Date(openSession.started_at).getTime()) / 1000) : 0
 
@@ -241,6 +251,32 @@ export default function DevOverviewPage() {
         <div className="dev-surface dev-kpi"><strong>{metrics.blocked}</strong><span>Blocker</span></div>
         <div className="dev-surface dev-kpi"><strong>{recentCommits}</strong><span>Commits · 7 Tage</span></div>
       </div>
+
+      {/* Client requests — top-of-feed when present */}
+      {clientRequests.length > 0 && (
+        <section style={{ marginBottom: 22 }}>
+          <p className="dev-section-title">
+            Neue Anfragen vom Client · {clientRequests.length}
+          </p>
+          <div className="dev-surface" style={{ overflow: 'hidden' }}>
+            {clientRequests.map((t, i) => (
+              <Link key={t.id} href={`/dev/tasks?id=${t.id}`} className="row"
+                style={{ borderTop: i > 0 ? '1px solid var(--border)' : 'none' }}>
+                <span className="dot" style={{ background: '#f59e0b' }} />
+                <div className="row-text">
+                  <p className="t-1">{t.title}</p>
+                  <p className="t-2">
+                    {t.projects?.title ?? 'kein Projekt'} · vom Client gestellt
+                  </p>
+                </div>
+                <span className="dev-chip">{priorityLabel(t.priority)}</span>
+                <span className="muted">{dateLabel(t.created_at || t.updated_at)}</span>
+                <ArrowRight size={12} className="muted-icon" />
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       <div className="cols">
         <section>
