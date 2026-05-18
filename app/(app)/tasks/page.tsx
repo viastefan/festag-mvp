@@ -96,14 +96,10 @@ const ACTIVE_STATES = new Set(['doing', 'active', 'in_progress', 'development', 
 const DECISION_STATES = new Set(['blocked', 'waiting', 'needs_decision', 'client_decision', 'waiting_for_client', 'waiting_for_assignment'])
 const REVIEW_STATES = new Set(['review', 'ready_for_review', 'in_review', 'festag_review', 'suggested', 'zur_pruefung', 'verified', 'approved', 'festag_checked'])
 const PROJECT_COLOR_SYNC_EVENT = 'festag-project-color-change'
-const PROJECT_FALLBACK_COLORS = ['#4E5567', '#EF4444', '#2563EB', '#16A34A', '#D97706', '#7C3AED', '#0F766E']
 
 function projectAccentColor(id?: string | null, color?: string | null) {
   if (color && color !== 'var(--text-muted)' && color !== 'var(--task-soft-text)') return color
-  const key = id || 'project'
-  let hash = 0
-  for (let index = 0; index < key.length; index += 1) hash = (hash * 31 + key.charCodeAt(index)) >>> 0
-  return PROJECT_FALLBACK_COLORS[hash % PROJECT_FALLBACK_COLORS.length]
+  return '#64748b'
 }
 
 function normalizeStatus(status?: string | null) {
@@ -335,6 +331,7 @@ export default function TasksPage() {
   useEffect(() => {
     setExpandedProjectIds((current) => {
       const validIds = new Set(taskProjectGroups.map((group) => group.id))
+      if (taskProjectGroups.length === 1) return [taskProjectGroups[0].id]
       const next = new Set(current.filter((id) => validIds.has(id)))
       const changed = next.size !== current.length
       return changed ? Array.from(next) : current
@@ -352,6 +349,10 @@ export default function TasksPage() {
   }
 
   function toggleProjectGroup(projectId: string) {
+    if (taskProjectGroups.length === 1) {
+      setExpandedProjectIds([projectId])
+      return
+    }
     setExpandedProjectIds((current) => (
       current.includes(projectId)
         ? current.filter((id) => id !== projectId)
@@ -616,7 +617,7 @@ export default function TasksPage() {
         .task-head,
         .task-row {
           display:grid;
-          grid-template-columns:54px minmax(190px,1.55fr) minmax(128px,.85fr) 76px 104px 84px 58px 82px;
+          grid-template-columns:42px minmax(190px,1.55fr) minmax(128px,.85fr) 76px 104px 84px 58px 82px;
           align-items:center;
           gap:8px;
           margin:0 -12px;
@@ -663,7 +664,7 @@ export default function TasksPage() {
           width:calc(100% + 24px);
           min-height:40px;
           display:grid;
-          grid-template-columns:54px minmax(190px,1.55fr) minmax(128px,.85fr) 76px 104px 84px 58px 82px;
+          grid-template-columns:42px minmax(190px,1.55fr) minmax(128px,.85fr) 76px 104px 84px 58px 82px;
           align-items:center;
           gap:8px;
           margin:0 -12px;
@@ -683,14 +684,14 @@ export default function TasksPage() {
           box-shadow:none !important;
         }
         .task-project-row:active {
-          background:color-mix(in srgb, var(--surface-2) 60%, transparent);
+          background:transparent;
         }
         .task-project-row:hover {
           background:color-mix(in srgb, var(--surface-2) 60%, transparent);
           color:var(--text);
         }
         .task-project-section.open .task-project-row {
-          background:color-mix(in srgb, var(--surface-2) 60%, transparent);
+          background:transparent;
         }
         .task-project-dot {
           width:12px;
@@ -1214,11 +1215,11 @@ export default function TasksPage() {
         @media(max-width:1180px) {
           .task-head,
           .task-row {
-            grid-template-columns:46px minmax(160px,1.6fr) minmax(112px,.8fr) 66px 86px 70px 46px 70px;
+            grid-template-columns:36px minmax(160px,1.6fr) minmax(112px,.8fr) 66px 86px 70px 46px 70px;
             gap:7px;
           }
           .task-project-row {
-            grid-template-columns:46px minmax(160px,1.6fr) minmax(112px,.8fr) 66px 86px 70px 46px 70px;
+            grid-template-columns:36px minmax(160px,1.6fr) minmax(112px,.8fr) 66px 86px 70px 46px 70px;
             gap:7px;
           }
         }
@@ -1228,11 +1229,11 @@ export default function TasksPage() {
           .task-toolbar { padding-left:4px; padding-right:4px; }
           .task-head,
           .task-row {
-            grid-template-columns:42px minmax(150px,1.8fr) minmax(108px,.85fr) 60px 74px 62px 42px 62px;
+            grid-template-columns:32px minmax(150px,1.8fr) minmax(108px,.85fr) 60px 74px 62px 42px 62px;
             gap:6px;
           }
           .task-project-row {
-            grid-template-columns:42px minmax(150px,1.8fr) minmax(108px,.85fr) 60px 74px 62px 42px 62px;
+            grid-template-columns:32px minmax(150px,1.8fr) minmax(108px,.85fr) 60px 74px 62px 42px 62px;
           }
           .task-project-meta {
             display:none;

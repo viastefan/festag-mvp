@@ -375,8 +375,9 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
 
   const PROJ_COLORS = ['#6366f1','#8b5cf6','#ec4899','#ef4444','#f97316','#eab308','#22c55e','#06b6d4','#3b82f6','#64748b']
 
-  async function setProjectColor(id: string, color: string) {
+  async function setProjectColor(id: string, color: string, closePicker = true) {
     setProjects(prev => prev.map(p => p.id === id ? { ...p, color } : p))
+    if (closePicker) setColorPickId(null)
     window.dispatchEvent(new CustomEvent(PROJECT_COLOR_SYNC_EVENT, { detail: { projectId: id, color } }))
     await (createClient() as any).from('projects').update({ color }).eq('id', id)
   }
@@ -1021,17 +1022,17 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
                             {picking && (
                               <>
                                 <div style={{ position:'fixed', inset:0, zIndex:200 }} onClick={() => setColorPickId(null)} />
-                                <div style={{ position:'absolute', left:22, top:'calc(100% + 4px)', zIndex:201, width:142, background:'var(--card)', border:'1px solid var(--border)', borderRadius:10, padding:8, display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:6, boxShadow:'0 8px 24px rgba(0,0,0,.2)' }}>
+                                <div style={{ position:'absolute', left:30, top:'50%', transform:'translateY(-50%)', zIndex:201, width:142, background:'var(--card)', border:'1px solid var(--border)', borderRadius:10, padding:8, display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:6, boxShadow:'0 12px 30px rgba(15,23,42,.16)' }}>
                                   {PROJ_COLORS.map(c => (
                                     <button key={c} onClick={() => setProjectColor(p.id, c)}
-                                      style={{ width:18, height:18, borderRadius:5, background:c, border: dot===c?'2px solid var(--text)':'2px solid transparent', cursor:'pointer', padding:0 }}
+                                      style={{ width:18, height:18, borderRadius:5, background:c, border:'2px solid transparent', boxShadow:dot===c?'0 0 0 2px var(--surface), 0 0 0 4px var(--text)':'none', cursor:'pointer', padding:0 }}
                                     />
                                   ))}
                                   <input
                                     aria-label="Projektfarbe frei wählen"
                                     type="color"
                                     value={dot.startsWith('#') ? dot : '#64748b'}
-                                    onChange={(event) => setProjectColor(p.id, event.target.value)}
+                                    onChange={(event) => setProjectColor(p.id, event.target.value, false)}
                                     style={{ gridColumn:'1 / -1', width:'100%', height:26, border:'1px solid var(--border)', borderRadius:8, background:'transparent', padding:2 }}
                                   />
                                 </div>
