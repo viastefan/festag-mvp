@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { getStoredDevSession, type DevSession } from '@/lib/dev-session'
 import { taskStatusPatch } from '@/lib/tasks/status'
-import { ArrowRight, CheckCircle, Clock, PaperPlaneTilt, WarningCircle, X } from '@phosphor-icons/react'
+import { ArrowRight, CheckCircle, Clock, Lightning, PaperPlaneTilt, WarningCircle, X } from '@phosphor-icons/react'
 
 type Task = {
   id: string

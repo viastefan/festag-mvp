@@ -1,165 +1,196 @@
 'use client'
 
 /**
- * /dev — DEV Portal Overview.
+ * /dev — Developer Overview.
  *
- * Datenquellen:
- *   - Supabase Auth-Session als primärer Pfad
- *     → liest `project_assignments` (echte Zuweisungen)
- *     → fällt zurück auf assigned-via `tasks.assigned_to` für Backward-Compat
- *   - Falls keine Supabase-Session, aber legacy PIN-Pool-Session vorliegt,
- *     wird die alte assigned_dev-Logik weiter unterstützt — bis alle
- *     Pool-Devs eigene Accounts haben.
+ * Liefert in einem Blick:
+ *   - KPIs (offen, review, blocker, commits 7d)
+ *   - Aktive Work-Session (Timer-Karte, falls offen)
+ *   - Heutiger Fokus (Top offene Tasks, klick → /dev/tasks?id=…)
+ *   - Letzte GitHub-Aktivität (5 jüngste Commits, Task-Link wenn vorhanden)
+ *   - Ready for Review (Tasks, die auf Prüfung warten)
+ *   - Aktive Projekte (kleine Liste rechts)
  *
- * UI bewusst ruhig: kleiner Eyebrow, kleine Headline,
- * 4 KPIs, dann zwei knappe Sektionen. Keine riesigen Hero-Headlines.
+ * Datenquelle: Supabase Auth + project_assignments + tasks + github_commits + dev_work_sessions.
+ * UI bewusst ruhig: kleiner Eyebrow, kleine Headline, 4 KPIs, knappe Sektionen.
  */
 
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { getStoredDevSession, devDisplayName, type DevSession } from '@/lib/dev-session'
-import { ArrowRight, CheckCircle, GitBranch, Lightning, WarningCircle, Sparkle } from '@phosphor-icons/react'
+import {
+  ArrowRight, GitBranch, GitCommit, CheckSquare, Lightning, Pause, Play, Sparkle, WarningCircle,
+} from '@phosphor-icons/react'
 
 type Task = {
   id: string
   title: string
   status?: string | null
+  dev_status?: string | null
   priority?: string | null
   project_id?: string | null
   updated_at?: string | null
-  projects?: { title?: string | null; status?: string | null; color?: string | null } | null
+  last_dev_action_at?: string | null
+  projects?: { title?: string | null; color?: string | null } | null
 }
+type Project = { id: string; title: string; status?: string | null; color?: string | null }
+type Commit = {
+  id: string; commit_sha: string; message: string | null; committed_at: string | null;
+  commit_url: string | null; task_id: string | null; project_id: string | null
+}
+type Session = { id: string; task_id: string | null; started_at: string; ended_at: string | null }
 
-type Project = {
-  id: string
-  title: string
-  status?: string | null
-  description?: string | null
-  color?: string | null
+function devStatusOf(t: Task) {
+  const v = String(t.dev_status || t.status || 'todo').toLowerCase()
+  if (['done','completed'].includes(v)) return 'done'
+  if (['review','ready_review','ready_for_review','in_review'].includes(v)) return 'review'
+  if (['blocked','waiting'].includes(v)) return 'blocked'
+  if (['in_progress','doing','active'].includes(v)) return 'in_progress'
+  if (v === 'accepted') return 'accepted'
+  return 'todo'
 }
-
-function normalizeStatus(status?: string | null) {
-  const v = String(status || 'todo').toLowerCase()
-  if (['done', 'completed', 'delivered'].includes(v)) return 'done'
-  if (['ready_review', 'ready_for_review', 'review', 'in_review'].includes(v)) return 'review'
-  if (['blocked', 'waiting', 'needs_decision'].includes(v)) return 'blocked'
-  if (['doing', 'active', 'in_progress'].includes(v)) return 'active'
-  return 'open'
-}
-function statusLabel(s?: string | null) {
-  const v = normalizeStatus(s)
-  return v === 'done' ? 'Erledigt' : v === 'review' ? 'Review' : v === 'blocked' ? 'Blockiert' : v === 'active' ? 'In Arbeit' : 'Geplant'
+function statusLabel(s: string) {
+  if (s === 'review') return 'Review'
+  if (s === 'blocked') return 'Blockiert'
+  if (s === 'in_progress') return 'In Arbeit'
+  if (s === 'accepted') return 'Angenommen'
+  if (s === 'done') return 'Erledigt'
+  return 'Geplant'
 }
 function priorityLabel(p?: string | null) {
   if (p === 'critical') return 'Kritisch'
-  if (p === 'high')     return 'Hoch'
-  if (p === 'low')      return 'Niedrig'
+  if (p === 'high') return 'Hoch'
+  if (p === 'low') return 'Niedrig'
   return 'Mittel'
+}
+function dateLabel(v?: string | null) {
+  if (!v) return '—'
+  try { return new Intl.DateTimeFormat('de-DE', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' }).format(new Date(v)) }
+  catch { return '—' }
+}
+function shortSha(sha: string) { return sha.slice(0, 7) }
+
+function formatDuration(s: number) {
+  const sec = Math.max(0, Math.floor(s))
+  const h = Math.floor(sec / 3600); const m = Math.floor((sec % 3600) / 60); const r = sec % 60
+  if (h) return `${h}h ${String(m).padStart(2,'0')}m`
+  if (m) return `${m}m ${String(r).padStart(2,'0')}s`
+  return `${r}s`
 }
 
 export default function DevOverviewPage() {
   const supabase = useMemo(() => createClient(), [])
-  const [userId, setUserId]   = useState<string | null>(null)
-  const [name, setName]       = useState<string>('')
-  const [tasks, setTasks]     = useState<Task[]>([])
+  const [name, setName] = useState('')
+  const [tasks, setTasks] = useState<Task[]>([])
   const [projects, setProjects] = useState<Project[]>([])
+  const [commits, setCommits] = useState<Commit[]>([])
+  const [openSession, setOpenSession] = useState<Session | null>(null)
+  const [openSessionTaskTitle, setOpenSessionTaskTitle] = useState<string | null>(null)
   const [recentCommits, setRecentCommits] = useState<number>(0)
-  const [recentPRs, setRecentPRs] = useState<number>(0)
-  const [lastSync, setLastSync] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [tick, setTick] = useState(0)
 
   useEffect(() => {
     let cancelled = false
     ;(async () => {
-      // Supabase first
       const { data: { session } } = await supabase.auth.getSession()
-      let uid: string | null = null
-      let display = ''
-      if (session) {
-        uid = session.user.id
-        const { data: prof } = await supabase
-          .from('profiles')
-          .select('first_name,full_name,github_username,email')
-          .eq('id', uid).maybeSingle()
-        display = (prof as any)?.full_name || (prof as any)?.first_name || (prof as any)?.github_username || session.user.email || 'Developer'
-      } else {
-        const pool: DevSession | null = getStoredDevSession()
-        if (pool) {
-          uid = pool.user_id
-          display = devDisplayName(pool)
-        }
-      }
+      if (!session) { setLoading(false); return }
+      const uid = session.user.id
+      const { data: prof } = await supabase.from('profiles')
+        .select('first_name,full_name,github_username,email').eq('id', uid).maybeSingle()
+      const display = (prof as any)?.full_name || (prof as any)?.first_name || (prof as any)?.github_username || session.user.email || 'Developer'
       if (cancelled) return
-      if (!uid) { setLoading(false); return }
-      setUserId(uid)
       setName(display)
 
-      // Project assignments (new model)
-      const { data: pa } = await supabase
-        .from('project_assignments')
-        .select('project_id,projects(id,title,status,description,color)')
+      // assigned projects
+      const { data: pa } = await supabase.from('project_assignments')
+        .select('project_id,projects(id,title,status,color)')
         .eq('user_id', uid).eq('active', true)
-      const assignedProjects = ((pa as any[] | null) ?? [])
-        .map(row => row.projects).filter(Boolean) as Project[]
-
-      // Fallback: legacy assigned_dev model when no assignments exist
-      let projList = assignedProjects
-      if (projList.length === 0) {
-        const { data: legacy } = await supabase
-          .from('projects')
-          .select('id,title,status,description,color')
-          .eq('assigned_dev', uid)
-          .order('created_at', { ascending: false }).limit(10)
-        projList = ((legacy as Project[] | null) ?? [])
-      }
+      const projList = ((pa as any[] | null) ?? []).map(r => r.projects).filter(Boolean) as Project[]
       if (cancelled) return
       setProjects(projList)
-
-      // Tasks: any task on assigned projects + any task directly assigned_to me
       const projIds = projList.map(p => p.id)
-      const taskQ = supabase
-        .from('tasks')
-        .select('id,title,status,priority,project_id,updated_at,projects(title,status,color)')
-        .or(
-          projIds.length > 0
-            ? `assigned_to.eq.${uid},project_id.in.(${projIds.join(',')})`
-            : `assigned_to.eq.${uid}`,
-        )
-        .order('updated_at', { ascending: false }).limit(40)
-      const { data: tRows } = await taskQ
-      if (!cancelled) setTasks((tRows as Task[] | null) ?? [])
 
-      // GitHub activity overview (best-effort)
+      // tasks
+      const { data: tRows } = await supabase
+        .from('tasks')
+        .select('id,title,status,dev_status,priority,project_id,updated_at,last_dev_action_at,projects(title,color)')
+        .or(projIds.length > 0
+          ? `assigned_to.eq.${uid},project_id.in.(${projIds.join(',')})`
+          : `assigned_to.eq.${uid}`)
+        .order('last_dev_action_at', { ascending: false, nullsFirst: false })
+        .order('updated_at', { ascending: false }).limit(60)
+      if (cancelled) return
+      setTasks((tRows as Task[] | null) ?? [])
+
+      // recent commits (counter + list)
       try {
         const since = new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString()
-        const [{ count: cCount }, { count: prCount }, { data: lastCommit }] = await Promise.all([
+        const [{ count }, { data: list }] = await Promise.all([
           (supabase as any).from('github_commits').select('*', { count: 'exact', head: true }).gte('committed_at', since),
-          (supabase as any).from('github_pull_requests').select('*', { count: 'exact', head: true }).gte('updated_at_github', since),
-          (supabase as any).from('github_commits').select('committed_at').order('committed_at', { ascending: false }).limit(1).maybeSingle(),
+          (supabase as any).from('github_commits')
+            .select('id,commit_sha,message,committed_at,commit_url,task_id,project_id')
+            .order('committed_at', { ascending: false }).limit(8),
         ])
         if (!cancelled) {
-          setRecentCommits(cCount ?? 0)
-          setRecentPRs(prCount ?? 0)
-          setLastSync((lastCommit as any)?.committed_at ?? null)
+          setRecentCommits(count ?? 0)
+          setCommits(((list as Commit[] | null) ?? []))
         }
-      } catch { /* tables may not exist yet — silently skip */ }
+      } catch { /* tolerate */ }
+
+      // open session
+      try {
+        const res = await fetch('/api/dev/work-sessions?open=1&limit=1')
+        const d = await res.json().catch(() => ({}))
+        const s: Session | null = d?.sessions?.[0] ?? null
+        if (!cancelled) {
+          setOpenSession(s)
+          if (s?.task_id) {
+            const found = ((tRows as Task[] | null) ?? []).find(t => t.id === s.task_id)
+            setOpenSessionTaskTitle(found?.title ?? null)
+          } else {
+            setOpenSessionTaskTitle(null)
+          }
+        }
+      } catch { /* noop */ }
 
       setLoading(false)
     })()
     return () => { cancelled = true }
   }, [supabase])
 
+  // tick for live timer
+  useEffect(() => {
+    if (!openSession) return
+    const id = setInterval(() => setTick(t => t + 1), 1000)
+    return () => clearInterval(id)
+  }, [openSession])
+  void tick
+
   const metrics = useMemo(() => {
-    const active  = tasks.filter(t => normalizeStatus(t.status) === 'active').length
-    const review  = tasks.filter(t => normalizeStatus(t.status) === 'review').length
-    const blocked = tasks.filter(t => normalizeStatus(t.status) === 'blocked').length
-    const open    = tasks.filter(t => !['done','review'].includes(normalizeStatus(t.status))).length
-    return { active, review, blocked, open }
+    const open    = tasks.filter(t => !['done'].includes(devStatusOf(t))).length
+    const active  = tasks.filter(t => devStatusOf(t) === 'in_progress').length
+    const review  = tasks.filter(t => devStatusOf(t) === 'review').length
+    const blocked = tasks.filter(t => devStatusOf(t) === 'blocked').length
+    return { open, active, review, blocked }
   }, [tasks])
 
-  const focusTasks = tasks.filter(t => !['done'].includes(normalizeStatus(t.status))).slice(0, 6)
-  const activeProjects = projects.slice(0, 4)
+  const focus = useMemo(() =>
+    tasks
+      .filter(t => !['done','cancelled'].includes(devStatusOf(t)))
+      .filter(t => devStatusOf(t) !== 'review')
+      .sort((a, b) => {
+        const pa = a.priority === 'critical' ? 4 : a.priority === 'high' ? 3 : a.priority === 'low' ? 1 : 2
+        const pb = b.priority === 'critical' ? 4 : b.priority === 'high' ? 3 : b.priority === 'low' ? 1 : 2
+        if (pa !== pb) return pb - pa
+        return String(b.last_dev_action_at || b.updated_at).localeCompare(String(a.last_dev_action_at || a.updated_at))
+      })
+      .slice(0, 5),
+  [tasks])
+
+  const reviewTasks = tasks.filter(t => devStatusOf(t) === 'review').slice(0, 4)
+
+  const liveSeconds = openSession ? Math.floor((Date.now() - new Date(openSession.started_at).getTime()) / 1000) : 0
 
   return (
     <div className="dev-page">
@@ -169,135 +200,191 @@ export default function DevOverviewPage() {
           <h1>Heute, {name ? name.split(' ')[0] : 'Developer'}.</h1>
           <p className="meta">
             {loading
-              ? 'Lade deinen Arbeitsbereich…'
-              : `${metrics.open} offene Tasks · ${metrics.review} in Review · ${metrics.blocked} blockiert`}
+              ? 'Lade Arbeitsbereich…'
+              : `${metrics.open} offen · ${metrics.review} Review · ${metrics.blocked} Blocker · ${recentCommits} Commits (7 Tage)`}
           </p>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
-          <Link href="/dev/plan" className="dev-secondary-btn" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, textDecoration: 'none' }}>
-            <Sparkle size={13} /> Start today's plan
+          <Link href="/dev/plan" className="dev-secondary-btn link-btn">
+            <Sparkle size={13} /> Plan
           </Link>
-          <Link href="/dev/github" className="dev-secondary-btn" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, textDecoration: 'none' }}>
-            <GitBranch size={13} /> Sync GitHub
+          <Link href="/dev/github" className="dev-secondary-btn link-btn">
+            <GitBranch size={13} /> GitHub
           </Link>
-          <Link href="/dev/updates" className="dev-primary-btn" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, textDecoration: 'none' }}>
+          <Link href="/dev/updates" className="dev-primary-btn link-btn">
             <Lightning size={13} /> Update senden
           </Link>
         </div>
       </header>
 
+      {/* Active session card */}
+      {openSession && (
+        <div className="dev-surface session-card">
+          <span className="pulse"><Play size={11} weight="fill" /></span>
+          <div className="session-text">
+            <p className="st-1">
+              Timer läuft · {formatDuration(liveSeconds)}
+              {openSessionTaskTitle ? <> · <strong>{openSessionTaskTitle}</strong></> : null}
+            </p>
+            <p className="st-2">Diese Session wird automatisch geschlossen, sobald du eine neue startest.</p>
+          </div>
+          <Link href={openSession.task_id ? `/dev/tasks?id=${openSession.task_id}` : '/dev/tasks'} className="dev-secondary-btn link-btn">
+            <Pause size={12} /> Verwalten
+          </Link>
+        </div>
+      )}
+
       {/* KPI strip */}
       <div className="dev-kpi-grid">
-        <div className="dev-surface dev-kpi">
-          <strong>{metrics.open}</strong>
-          <span>Offene Tasks</span>
-        </div>
-        <div className="dev-surface dev-kpi">
-          <strong>{metrics.review}</strong>
-          <span>Ready for Review</span>
-        </div>
-        <div className="dev-surface dev-kpi">
-          <strong>{recentCommits}</strong>
-          <span>Commits · 7 Tage</span>
-        </div>
-        <div className="dev-surface dev-kpi">
-          <strong>{recentPRs}</strong>
-          <span>PR-Aktivität · 7 Tage</span>
-        </div>
+        <div className="dev-surface dev-kpi"><strong>{metrics.open}</strong><span>Offene Tasks</span></div>
+        <div className="dev-surface dev-kpi"><strong>{metrics.review}</strong><span>Ready for Review</span></div>
+        <div className="dev-surface dev-kpi"><strong>{metrics.blocked}</strong><span>Blocker</span></div>
+        <div className="dev-surface dev-kpi"><strong>{recentCommits}</strong><span>Commits · 7 Tage</span></div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1.4fr) minmax(0,1fr)', gap: 22 }}>
-        {/* Focus tasks */}
+      <div className="cols">
         <section>
           <p className="dev-section-title">Heutiger Fokus</p>
-          <div className="dev-surface" style={{ overflow: 'hidden' }}>
-            {focusTasks.length === 0 ? (
-              <p style={{ margin: 0, padding: 16, fontSize: 12.5, color: 'var(--text-muted)' }}>
-                Keine offenen Tasks. {projects.length === 0 ? 'Du bist aktuell keinem Projekt zugeordnet.' : 'Alles abgearbeitet.'}
+          <div className="dev-surface" style={{ overflow:'hidden' }}>
+            {focus.length === 0 ? (
+              <p className="empty">
+                Kein offener Fokus.
+                {projects.length === 0 ? ' Du bist aktuell keinem Projekt zugeordnet.' : ' Alles abgearbeitet.'}
               </p>
-            ) : (
-              focusTasks.map((task, i) => (
-                <Link
-                  key={task.id}
-                  href={`/dev/tasks?id=${task.id}`}
-                  className="dev-row"
-                  style={{
-                    textDecoration: 'none', color: 'inherit',
-                    borderTop: i > 0 ? '1px solid var(--border)' : 'none',
-                    borderRadius: 0,
-                    gridTemplateColumns: '8px minmax(0,1fr) 100px 90px 14px',
-                  }}
-                >
-                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: task.projects?.color ?? 'var(--accent)' }} />
-                  <div style={{ minWidth: 0 }}>
-                    <p style={{ margin: 0, fontSize: 13, color: 'var(--text)', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{task.title}</p>
-                    <p style={{ margin: '2px 0 0', fontSize: 11.5, color: 'var(--text-muted)' }}>{task.projects?.title ?? 'kein Projekt'}</p>
+            ) : focus.map((t, i) => {
+              const s = devStatusOf(t)
+              return (
+                <Link key={t.id} href={`/dev/tasks?id=${t.id}`} className="row"
+                  style={{ borderTop: i > 0 ? '1px solid var(--border)' : 'none' }}>
+                  <span className="dot" style={{ background: t.projects?.color ?? 'var(--accent)' }} />
+                  <div className="row-text">
+                    <p className="t-1">{t.title}</p>
+                    <p className="t-2">{t.projects?.title ?? 'kein Projekt'}</p>
                   </div>
-                  <span className="dev-chip">{statusLabel(task.status)}</span>
-                  <span style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>{priorityLabel(task.priority)}</span>
-                  <ArrowRight size={12} style={{ color: 'var(--text-muted)' }} />
+                  <span className="dev-chip">{statusLabel(s)}</span>
+                  <span className="muted">{priorityLabel(t.priority)}</span>
+                  <ArrowRight size={12} className="muted-icon" />
                 </Link>
-              ))
-            )}
+              )
+            })}
+          </div>
+
+          <p className="dev-section-title" style={{ marginTop: 22 }}>Letzte Commits</p>
+          <div className="dev-surface" style={{ overflow:'hidden' }}>
+            {commits.length === 0 ? (
+              <p className="empty">Noch keine Commits sichtbar — synct ein Repo unter <Link href="/dev/github">GitHub</Link>.</p>
+            ) : commits.slice(0, 5).map((c, i) => (
+              <a key={c.id} href={c.commit_url || '#'} target="_blank" rel="noreferrer" className="row"
+                style={{ borderTop: i > 0 ? '1px solid var(--border)' : 'none' }}>
+                <GitCommit size={13} className="muted-icon" />
+                <div className="row-text">
+                  <p className="t-1">{(c.message || c.commit_sha).split('\n')[0].slice(0, 86)}</p>
+                  <p className="t-2">{shortSha(c.commit_sha)} · {dateLabel(c.committed_at)}{c.task_id ? ' · verknüpft' : ''}</p>
+                </div>
+                <span className={`dev-chip ${c.task_id ? 'accent' : ''}`}>{c.task_id ? 'Task' : 'frei'}</span>
+              </a>
+            ))}
           </div>
         </section>
 
-        {/* Right rail */}
         <aside>
-          <p className="dev-section-title">Aktive Projekte</p>
-          <div className="dev-surface" style={{ overflow: 'hidden', marginBottom: 18 }}>
-            {activeProjects.length === 0 ? (
-              <p style={{ margin: 0, padding: 16, fontSize: 12.5, color: 'var(--text-muted)' }}>
-                Noch keine Zuweisung. Ein Project Owner muss dich einem Projekt zuordnen.
-              </p>
-            ) : (
-              activeProjects.map((p, i) => (
-                <Link
-                  key={p.id}
-                  href={`/dev/jobs?id=${p.id}`}
-                  className="dev-row"
-                  style={{
-                    textDecoration: 'none', color: 'inherit',
-                    borderTop: i > 0 ? '1px solid var(--border)' : 'none',
-                    borderRadius: 0,
-                    gridTemplateColumns: '8px minmax(0,1fr) 14px',
-                  }}
-                >
-                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: p.color ?? 'var(--accent)' }} />
-                  <div style={{ minWidth: 0 }}>
-                    <p style={{ margin: 0, fontSize: 13, color: 'var(--text)', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.title}</p>
-                    <p style={{ margin: '2px 0 0', fontSize: 11.5, color: 'var(--text-muted)' }}>{p.status ?? 'aktiv'}</p>
-                  </div>
-                  <ArrowRight size={12} style={{ color: 'var(--text-muted)' }} />
-                </Link>
-              ))
-            )}
+          <p className="dev-section-title">Ready for Review</p>
+          <div className="dev-surface" style={{ overflow:'hidden', marginBottom: 18 }}>
+            {reviewTasks.length === 0 ? (
+              <p className="empty">Nichts wartet auf Prüfung.</p>
+            ) : reviewTasks.map((t, i) => (
+              <Link key={t.id} href={`/dev/tasks?id=${t.id}`} className="row"
+                style={{ borderTop: i > 0 ? '1px solid var(--border)' : 'none' }}>
+                <CheckSquare size={13} className="muted-icon" />
+                <div className="row-text">
+                  <p className="t-1">{t.title}</p>
+                  <p className="t-2">{t.projects?.title ?? 'kein Projekt'}</p>
+                </div>
+                <ArrowRight size={12} className="muted-icon" />
+              </Link>
+            ))}
           </div>
 
-          <p className="dev-section-title">Tagro-Sync</p>
-          <div className="dev-surface" style={{ padding: 14 }}>
-            <p style={{ margin: 0, fontSize: 12.5, color: 'var(--text-secondary)' }}>
-              {lastSync
-                ? `Letzter GitHub-Sync: ${new Date(lastSync).toLocaleString('de-DE', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}`
-                : 'Noch keine GitHub-Aktivität synchronisiert.'}
-            </p>
-            <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
-              <Link href="/dev/github" className="dev-secondary-btn" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                <GitBranch size={12} /> GitHub
+          <p className="dev-section-title">Aktive Projekte</p>
+          <div className="dev-surface" style={{ overflow:'hidden' }}>
+            {projects.length === 0 ? (
+              <p className="empty">Keine Projekte zugewiesen. Ein Project Owner muss dich zuordnen.</p>
+            ) : projects.slice(0, 5).map((p, i) => (
+              <Link key={p.id} href={`/dev/jobs?id=${p.id}`} className="row"
+                style={{ borderTop: i > 0 ? '1px solid var(--border)' : 'none' }}>
+                <span className="dot" style={{ background: p.color ?? 'var(--accent)' }} />
+                <div className="row-text">
+                  <p className="t-1">{p.title}</p>
+                  <p className="t-2">{p.status ?? 'aktiv'}</p>
+                </div>
+                <ArrowRight size={12} className="muted-icon" />
               </Link>
-              <Link href="/dev/updates" className="dev-secondary-btn" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                <CheckCircle size={12} /> Tagesupdate
-              </Link>
-            </div>
+            ))}
           </div>
+
+          {metrics.blocked > 0 && (
+            <div className="dev-surface alert-card">
+              <WarningCircle size={16} />
+              <div>
+                <p className="alert-1">{metrics.blocked} Blocker offen</p>
+                <p className="alert-2">Tagro wartet auf deine Notiz, bevor sie an den Client gespiegelt werden.</p>
+              </div>
+              <Link href="/dev/tasks" className="dev-secondary-btn link-btn">Öffnen</Link>
+            </div>
+          )}
         </aside>
       </div>
 
       <style jsx>{`
+        .link-btn { display:inline-flex; align-items:center; gap:6px; text-decoration:none; }
+        .session-card {
+          margin-bottom:16px; padding:12px 14px;
+          display:flex; gap:12px; align-items:center;
+        }
+        .pulse {
+          width:24px; height:24px; border-radius:8px;
+          display:grid; place-items:center;
+          background: color-mix(in srgb, var(--accent) 18%, transparent);
+          color: var(--accent);
+        }
+        .session-text { flex:1; min-width:0; }
+        .st-1 { margin:0; font-size:13px; color:var(--text); font-weight:500; }
+        .st-1 strong { font-weight:500; }
+        .st-2 { margin:2px 0 0; font-size:11.5px; color:var(--text-muted); }
+
+        .cols {
+          display:grid; grid-template-columns: minmax(0,1.5fr) minmax(0,1fr); gap:22px;
+        }
+        .row {
+          display:grid; grid-template-columns:14px minmax(0,1fr) auto auto 14px;
+          align-items:center; gap:12px;
+          padding:9px 14px;
+          text-decoration:none; color:inherit;
+          transition:background .12s ease;
+        }
+        .row.gh { grid-template-columns:14px minmax(0,1fr) auto; }
+        .row:hover { background: color-mix(in srgb, var(--surface-2) 70%, transparent); }
+        .row .dot { width:7px; height:7px; border-radius:50%; background:var(--accent); }
+        .row-text { min-width:0; }
+        .t-1 { margin:0; font-size:12.8px; font-weight:500; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .t-2 { margin:2px 0 0; font-size:11px; color:var(--text-muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .muted { font-size:11.5px; color:var(--text-muted); }
+        .muted-icon { color: var(--text-muted); }
+        .empty { padding:18px; margin:0; font-size:12.5px; color:var(--text-muted); }
+        .dev-chip.accent { color:var(--accent); border-color:color-mix(in srgb, var(--accent) 35%, transparent); }
+
+        .alert-card {
+          margin-top:16px; padding:12px 14px;
+          display:flex; gap:12px; align-items:center;
+          border-color: color-mix(in srgb, #ef4444 30%, var(--border));
+        }
+        .alert-card svg { color:#dc2626; flex:0 0 auto; }
+        .alert-card > div { flex:1; min-width:0; }
+        .alert-1 { margin:0; font-size:13px; color:var(--text); font-weight:500; }
+        .alert-2 { margin:2px 0 0; font-size:11.5px; color:var(--text-muted); }
+
         @media (max-width: 980px) {
-          div[style*='grid-template-columns: minmax(0,1.4fr) minmax(0,1fr)'] {
-            grid-template-columns: 1fr !important;
-          }
+          .cols { grid-template-columns: 1fr; }
         }
       `}</style>
     </div>
