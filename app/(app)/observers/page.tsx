@@ -14,12 +14,15 @@ type Observer = {
   user_id: string | null
   email: string
   full_name: string | null
+  role: string | null
   access_level: 'read' | 'comment'
   project_ids: string[] | null
+  permissions: Record<string, boolean> | null
   status: 'pending' | 'joined' | 'revoked'
   invited_at: string
   joined_at: string | null
   last_seen_at: string | null
+  invite_token?: string | null
 }
 
 type Profile = {
@@ -73,6 +76,7 @@ export default function ObserversPage() {
   const supabase = createClient()
   const [me, setMe] = useState<Profile | null>(null)
   const [observers, setObservers] = useState<Observer[]>([])
+  const [expandedId, setExpandedId] = useState<string | null>(null)
   const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
   const [inviteOpen, setInviteOpen] = useState(false)
@@ -264,19 +268,20 @@ export default function ObserversPage() {
         }
         .obs-text-btn:hover { background:var(--surface-2); color:var(--text); }
 
-        /* ── Inline-Composer — ruhig, schlank, keine inneren Trennlinien ── */
+        /* ── Inline-Composer — ohne Container-Border, ruhig & seriös ── */
         .obs-composer {
-          border:1px solid var(--border);
-          border-radius:8px;
-          background:var(--surface);
-          margin:0 0 16px;
-          overflow:hidden;
+          border:0;
+          border-radius:0;
+          background:transparent;
+          margin:0 0 18px;
+          padding:0;
           animation:obsComposerIn .18s cubic-bezier(.16,1,.3,1) both;
         }
         @keyframes obsComposerIn { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:none; } }
         .obs-composer-top {
           display:flex; align-items:flex-start; justify-content:space-between;
-          gap:12px; padding:14px 16px 4px;
+          gap:12px; padding:0 0 14px;
+          border-bottom:1px solid color-mix(in srgb, var(--border) 60%, transparent);
         }
         .obs-composer-title { font-size:13px; font-weight:500; color:var(--text); letter-spacing:.015em; }
         .obs-composer-sub { font-size:11.5px; font-weight:500; color:var(--text-muted); letter-spacing:.015em; margin-top:2px; }
@@ -286,7 +291,7 @@ export default function ObserversPage() {
           transition:background .12s, color .12s; margin-top:-2px;
         }
         .obs-composer-x:hover { background:var(--surface-2); color:var(--text); }
-        .obs-composer-body { padding:10px 16px 8px; display:flex; flex-direction:column; gap:14px; }
+        .obs-composer-body { padding:18px 0 6px; display:flex; flex-direction:column; gap:18px; }
         .obs-fld { display:flex; flex-direction:column; gap:6px; }
         .obs-fld-label { font-size:10.5px; font-weight:500; letter-spacing:.14em; text-transform:uppercase; color:var(--text-muted); }
         .obs-fld input[type="text"], .obs-fld input[type="email"] {
@@ -324,7 +329,9 @@ export default function ObserversPage() {
         }
         .obs-composer-footer {
           display:flex; align-items:center; justify-content:space-between;
-          gap:12px; padding:10px 16px 12px;
+          gap:12px; padding:14px 0 0;
+          border-top:1px solid color-mix(in srgb, var(--border) 60%, transparent);
+          margin-top:6px;
         }
         .obs-composer-hint { font-size:11.5px; font-weight:500; color:var(--text-muted); letter-spacing:.015em; }
         .obs-link-row { display:flex; align-items:center; gap:8px; padding:9px 11px; border:1px solid var(--border); border-radius:7px; background:color-mix(in srgb, var(--surface-2) 60%, transparent); }
@@ -355,6 +362,62 @@ export default function ObserversPage() {
           border-radius:8px;
         }
         .obs-row:hover { background:color-mix(in srgb, var(--surface-2) 60%, transparent); }
+        .obs-row.expandable { cursor:pointer; }
+        .obs-row.is-expanded { background:color-mix(in srgb, var(--surface-2) 50%, transparent); }
+
+        /* ── Expand-Detail-Panel ── */
+        .obs-detail {
+          margin:0 -12px 6px;
+          padding:18px 16px 16px;
+          background:color-mix(in srgb, var(--surface-2) 38%, transparent);
+          border-radius:8px;
+          animation:obsExpandIn .2s cubic-bezier(.16,1,.3,1) both;
+          display:grid;
+          grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));
+          gap:18px 24px;
+        }
+        @keyframes obsExpandIn {
+          from { opacity:0; transform:translateY(-4px); }
+          to { opacity:1; transform:none; }
+        }
+        .obs-det-block { display:flex; flex-direction:column; gap:6px; min-width:0; }
+        .obs-det-label {
+          font-size:10.5px; font-weight:500; letter-spacing:.14em;
+          text-transform:uppercase; color:var(--text-muted);
+        }
+        .obs-det-value {
+          font-size:13px; font-weight:500; color:var(--text); letter-spacing:.015em;
+          line-height:1.45; min-width:0;
+        }
+        .obs-det-sub {
+          font-size:11.5px; font-weight:500; color:var(--text-muted); letter-spacing:.015em;
+        }
+        .obs-det-perm-list { display:flex; flex-wrap:wrap; gap:5px; }
+        .obs-det-perm-pill {
+          display:inline-flex; align-items:center; gap:5px;
+          height:22px; padding:0 9px; border-radius:5px;
+          font-size:11px; font-weight:500; letter-spacing:.015em;
+          background:color-mix(in srgb, var(--surface-2) 60%, transparent);
+          color:var(--text-secondary);
+          border:1px solid color-mix(in srgb, var(--border) 70%, transparent);
+        }
+        .obs-det-perm-pill.off {
+          opacity:.45;
+          text-decoration:line-through;
+          text-decoration-color:var(--text-muted);
+          text-decoration-thickness:1px;
+        }
+        .obs-det-actions { display:flex; gap:6px; flex-wrap:wrap; }
+        .obs-det-action {
+          height:28px; padding:0 11px; border-radius:7px;
+          border:1px solid var(--border); background:transparent; color:var(--text-secondary);
+          font:inherit; font-size:11.5px; font-weight:500; letter-spacing:.015em;
+          cursor:pointer;
+          display:inline-flex; align-items:center; gap:6px;
+          transition:background .12s, color .12s, border-color .12s;
+        }
+        .obs-det-action:hover { background:var(--surface-2); color:var(--text); }
+        .obs-det-action.danger:hover { color:var(--red, #c0362e); border-color:color-mix(in srgb, var(--red, #c0362e) 28%, var(--border)); }
         .obs-name-cell { display:flex; align-items:center; gap:10px; min-width:0; }
         .obs-avatar {
           width:26px; height:26px; border-radius:999px; flex-shrink:0;
@@ -368,10 +431,10 @@ export default function ObserversPage() {
           height:22px; padding:0 9px; border-radius:5px;
           font-size:11px; font-weight:500; letter-spacing:.015em;
         }
-        .obs-pill.owner    { background:color-mix(in srgb, var(--surface-2) 70%, transparent); color:var(--text-secondary); }
-        .obs-pill.joined   { background:color-mix(in srgb, var(--green, #34c759) 12%, transparent); color:var(--green-dark, #28a745); }
-        .obs-pill.pending  { background:color-mix(in srgb, var(--amber, #b98700) 14%, transparent); color:var(--amber-dark, #8a6500); }
-        .obs-pill.revoked  { background:color-mix(in srgb, var(--text-muted) 12%, transparent); color:var(--text-muted); }
+        .obs-pill.owner    { background:color-mix(in srgb, var(--surface-2) 80%, transparent); color:var(--text-secondary); }
+        .obs-pill.joined   { background:color-mix(in srgb, var(--green, #34c759) 8%, transparent); color:var(--green-dark, #28a745); }
+        .obs-pill.pending  { background:transparent; color:var(--amber-dark, #8a6500); border:1px solid color-mix(in srgb, var(--amber, #b98700) 28%, transparent); }
+        .obs-pill.revoked  { background:transparent; color:var(--text-muted); border:1px solid var(--border); }
         .obs-row-action {
           width:24px; height:24px; border-radius:6px;
           display:inline-flex; align-items:center; justify-content:center;
@@ -528,7 +591,7 @@ export default function ObserversPage() {
           <header className="obs-composer-top">
             <div style={{ display:'flex', flexDirection:'column', minWidth:0 }}>
               <span className="obs-composer-title">{inviteLink ? 'Einladung erstellt' : 'Mitwirkende einladen'}</span>
-              <span className="obs-composer-sub">{inviteLink ? 'Funktioniert nur für die eingeladene E-Mail.' : 'Standard: Lesen. Permissions später jederzeit änderbar.'}</span>
+              <span className="obs-composer-sub">{inviteLink ? 'Die Person erhält die Einladung per E-Mail.' : 'Standard: Lesen. Permissions später jederzeit änderbar.'}</span>
             </div>
             <button className="obs-composer-x" type="button" onClick={closeInvite} aria-label="Schließen"><X size={13} weight="regular"/></button>
           </header>
@@ -536,16 +599,23 @@ export default function ObserversPage() {
           {inviteLink ? (
             <>
               <div className="obs-composer-body">
-                <div className="obs-link-row">
-                  <code style={{ flex:1, fontSize:12.5, color:'var(--text)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', fontFamily:'ui-monospace, "SF Mono", Menlo, monospace', letterSpacing:0 }}>{inviteLink}</code>
-                  <button onClick={copyInviteLink} className="obs-text-btn" type="button">
-                    {linkCopied ? <><Check size={12} weight="regular"/> Kopiert</> : 'Kopieren'}
-                  </button>
+                <div className="obs-det-block">
+                  <span className="obs-det-label">Primär — E-Mail</span>
+                  <span className="obs-det-value">Wir senden die Einladung an <strong>{inviteEmail || 'die angegebene Adresse'}</strong>. Die Person klickt auf den Link und wird automatisch verknüpft.</span>
                 </div>
-                <p className="obs-composer-hint" style={{ margin:0 }}>Tagro hält die Person danach automatisch auf dem Stand. Keine Mail nötig.</p>
+                <div className="obs-det-block">
+                  <span className="obs-det-label">Alternative — Direkt-Link</span>
+                  <span className="obs-det-sub" style={{ margin:'0 0 4px' }}>Falls die E-Mail nicht ankommt, kannst du diesen Link manuell teilen.</span>
+                  <div className="obs-link-row">
+                    <code style={{ flex:1, fontSize:12.5, color:'var(--text)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', fontFamily:'ui-monospace, "SF Mono", Menlo, monospace', letterSpacing:0 }}>{inviteLink}</code>
+                    <button onClick={copyInviteLink} className="obs-text-btn" type="button">
+                      {linkCopied ? <><Check size={12} weight="regular"/> Kopiert</> : 'Kopieren'}
+                    </button>
+                  </div>
+                </div>
               </div>
               <div className="obs-composer-footer">
-                <span className="obs-composer-hint">Fertig — Einladung ist aktiv, sobald die Person den Link öffnet.</span>
+                <span className="obs-composer-hint">Aktiv, sobald die Person den Link öffnet.</span>
                 <button className="obs-text-btn" onClick={closeInvite} type="button"><span>Fertig</span></button>
               </div>
             </>
@@ -690,31 +760,104 @@ export default function ObserversPage() {
           const bg = autoAvatarColor(o.user_id || o.email)
           const fg = avatarTextColor(bg)
           const init = avatarInitials(null, o.full_name, o.email)
+          const isExpanded = expandedId === o.id
+          const perms = o.permissions || {}
+          const visibleProjects = o.project_ids === null ? projects : projects.filter(p => o.project_ids!.includes(p.id))
           return (
-            <div key={o.id} className="obs-row" role="row">
-              <span className="obs-name-cell">
-                <span className="obs-avatar" style={{ background: bg, color: fg }}>{init}</span>
-                <span style={{ minWidth:0, overflow:'hidden' }}>
-                  <div className="obs-name">{o.full_name || o.email}</div>
-                  <div className="obs-email">{o.email}</div>
+            <div key={o.id}>
+              <div
+                className={`obs-row expandable ${isExpanded ? 'is-expanded' : ''}`}
+                role="row"
+                onClick={() => setExpandedId(isExpanded ? null : o.id)}
+              >
+                <span className="obs-name-cell">
+                  <span className="obs-avatar" style={{ background: bg, color: fg }}>{init}</span>
+                  <span style={{ minWidth:0, overflow:'hidden' }}>
+                    <div className="obs-name">{o.full_name || o.email}</div>
+                    <div className="obs-email">{o.email}</div>
+                  </span>
                 </span>
-              </span>
-              <span>
-                <span className={`obs-pill ${o.status}`}>
-                  {o.status === 'joined' && <Check size={11} weight="bold" />}
-                  {o.status === 'joined' ? (o.access_level === 'comment' ? 'Kommentar' : 'Lesen') : o.status === 'pending' ? 'Ausstehend' : 'Entfernt'}
+                <span>
+                  <span className={`obs-pill ${o.status}`}>
+                    {o.status === 'joined' && <Check size={11} weight="regular" />}
+                    {o.status === 'joined' ? (o.access_level === 'comment' ? 'Kommentar' : 'Lesen') : o.status === 'pending' ? 'Ausstehend' : 'Entfernt'}
+                  </span>
                 </span>
-              </span>
-              <span className="obs-col-projects">
-                <ProjectTags ids={o.project_ids} all={projects} maxVisible={4} />
-              </span>
-              <span className="obs-col-invited">{dateShort(o.invited_at)}</span>
-              <span className="obs-col-seen">{timeAgoShort(o.last_seen_at)}</span>
-              <span>
-                <button className="obs-row-action" onClick={() => revokeObserver(o.id)} title="Zugriff entfernen" aria-label="Zugriff entfernen">
-                  <Trash size={13} weight="regular" />
-                </button>
-              </span>
+                <span className="obs-col-projects">
+                  <ProjectTags ids={o.project_ids} all={projects} maxVisible={4} />
+                </span>
+                <span className="obs-col-invited">{dateShort(o.invited_at)}</span>
+                <span className="obs-col-seen">{timeAgoShort(o.last_seen_at)}</span>
+                <span>
+                  <button className="obs-row-action" onClick={(e) => { e.stopPropagation(); revokeObserver(o.id) }} title="Zugriff entfernen" aria-label="Zugriff entfernen">
+                    <Trash size={13} weight="regular" />
+                  </button>
+                </span>
+              </div>
+
+              {isExpanded && (
+                <div className="obs-detail">
+                  <div className="obs-det-block">
+                    <span className="obs-det-label">Rolle</span>
+                    <span className="obs-det-value">{o.role || '—'}</span>
+                    <span className="obs-det-sub">Eingeladen am {dateShort(o.invited_at)}{o.joined_at ? ` · Beigetreten ${dateShort(o.joined_at)}` : ''}</span>
+                  </div>
+
+                  <div className="obs-det-block">
+                    <span className="obs-det-label">Permissions</span>
+                    <div className="obs-det-perm-list">
+                      {[
+                        { key:'read', label:'Lesen' },
+                        { key:'comment', label:'Kommentieren' },
+                        { key:'create_tasks', label:'Tasks erstellen' },
+                        { key:'tagro_propose', label:'Mit Tagro vorschlagen' },
+                        { key:'review_status_reports', label:'Statusberichte prüfen' },
+                        { key:'comment_dev_tasks', label:'Dev-Tasks prüfen' },
+                      ].map(p => {
+                        const on = perms[p.key] === true || (p.key === 'read')
+                        return <span key={p.key} className={`obs-det-perm-pill ${on ? '' : 'off'}`}>{p.label}</span>
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="obs-det-block">
+                    <span className="obs-det-label">Projekt-Scope</span>
+                    <span className="obs-det-value">
+                      {o.project_ids === null ? `Alle ${projects.length} Projekte (inkl. neuer)` : `${visibleProjects.length} ausgewählt`}
+                    </span>
+                    {o.project_ids !== null && (
+                      <div className="obs-det-perm-list" style={{ marginTop:4 }}>
+                        {visibleProjects.map(p => (
+                          <span key={p.id} className="obs-det-perm-pill" style={{ background:'transparent' }}>
+                            <span style={{ width:6, height:6, borderRadius:999, background:p.color || '#64748b', display:'inline-block' }} />
+                            {p.title}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="obs-det-block">
+                    <span className="obs-det-label">Aktivität</span>
+                    <span className="obs-det-value">{timeAgoShort(o.last_seen_at)}</span>
+                    <span className="obs-det-sub">{o.last_seen_at ? 'Letzte Sicht' : 'Noch nicht angesehen'}</span>
+                  </div>
+
+                  <div className="obs-det-block" style={{ gridColumn:'1 / -1' }}>
+                    <span className="obs-det-label">Aktionen</span>
+                    <div className="obs-det-actions">
+                      {o.status === 'pending' && o.invite_token && (
+                        <button className="obs-det-action" type="button" onClick={(e) => { e.stopPropagation(); navigator.clipboard?.writeText(`${window.location.origin}/i/${o.invite_token}`).catch(() => {}) }}>
+                          <Check size={11} weight="regular" /> Einladungs-Link kopieren
+                        </button>
+                      )}
+                      <button className="obs-det-action danger" type="button" onClick={(e) => { e.stopPropagation(); revokeObserver(o.id) }}>
+                        <Trash size={11} weight="regular" /> Zugriff entfernen
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )
         })}
