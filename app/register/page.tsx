@@ -31,16 +31,30 @@ function applyAuthThemeToDocument(t: Theme) {
   document.documentElement.style.colorScheme = t
 }
 
-function mapAuthError(msg: string): string {
-  if (msg.includes('rate limit') || msg.includes('too many') || msg.includes('Email rate'))
+function mapAuthError(raw: string): string {
+  const msg = String(raw || '').toLowerCase()
+  if (raw && typeof window !== 'undefined') {
+    // eslint-disable-next-line no-console
+    console.warn('[festag/register] auth error:', raw)
+  }
+  if (msg.includes('rate limit') || msg.includes('rate_limit') || msg.includes('too many') || msg.includes('email rate'))
     return 'Zu viele Versuche. Bitte warte einen Moment.'
-  if (msg.includes('sending') || msg.includes('email') || msg.includes('unexpected'))
-    return 'E-Mail-Versand vorübergehend nicht möglich. Versuche es gleich erneut oder kontaktiere uns.'
-  if (msg.includes('expired'))
+  if (msg.includes('user already registered') || msg.includes('already registered'))
+    return 'Diese E-Mail ist bereits registriert. Wechsle zur Anmeldung.'
+  if (msg.includes('expired') || msg.includes('token has expired'))
     return 'Der Anmeldelink ist nicht mehr gültig. Fordere einen neuen Code an, um fortzufahren.'
-  if (msg.includes('invalid') || msg.includes('Invalid'))
-    return 'Ungültiger Code oder E-Mail-Adresse.'
-  return 'Etwas ist schiefgelaufen. Bitte versuche es erneut.'
+  if (msg.includes('invalid token') || msg.includes('invalid otp') || msg.includes('invalid code') || msg.includes('otp_expired'))
+    return 'Ungültiger oder abgelaufener Code. Fordere einen neuen an.'
+  if (msg.includes('invalid email') || msg.includes('email_address_invalid'))
+    return 'Bitte eine gültige E-Mail-Adresse verwenden.'
+  if (msg.includes('network') || msg.includes('failed to fetch'))
+    return 'Netzwerkproblem. Prüfe deine Verbindung und versuche es erneut.'
+  if (msg.includes('captcha'))
+    return 'Sicherheitsprüfung fehlgeschlagen. Lade die Seite neu und versuche es erneut.'
+  if (msg.includes('sending') || msg.includes('mailer') || msg.includes('unexpected'))
+    return 'E-Mail-Versand vorübergehend nicht möglich. Versuche es gleich erneut oder kontaktiere uns.'
+  const hint = raw && raw.length < 80 ? ` (${raw})` : ''
+  return `Registrierung gerade nicht möglich.${hint}`
 }
 
 export default function RegisterPage() {

@@ -1255,7 +1255,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
                               ? { dot: '#2F8F57', text: `Letztes Briefing ${latestBriefingLabel}` }
                               : { dot: '#2F8F57', text: 'Alles auf Kurs' }
               return (
-                <Link href="/reports#monitoring-center" className="sb-monitor-capsule sb-monitor-capsule--single" title={status.text} aria-label={status.text}>
+                <Link href="/reports#status-center" className="sb-monitor-capsule sb-monitor-capsule--single" title={status.text} aria-label={status.text}>
                   <span className="sb-monitor-dot" style={{ background: status.dot }} />
                   <span className="sb-monitor-line">Statusabfrage</span>
                 </Link>

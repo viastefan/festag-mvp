@@ -31,18 +31,34 @@ function applyAuthThemeToDocument(t: Theme) {
   document.documentElement.style.colorScheme = t
 }
 
-function mapAuthError(msg: string): string {
-  if (msg.includes('rate limit') || msg.includes('too many') || msg.includes('Email rate'))
+function mapAuthError(raw: string): string {
+  const msg = String(raw || '').toLowerCase()
+  // Always surface the raw cause to the browser console — makes
+  // production debugging possible without exposing it to the user.
+  if (raw && typeof window !== 'undefined') {
+    // eslint-disable-next-line no-console
+    console.warn('[festag/login] auth error:', raw)
+  }
+  if (msg.includes('rate limit') || msg.includes('rate_limit') || msg.includes('too many') || msg.includes('email rate'))
     return 'Zu viele Versuche. Bitte warte einen Moment.'
-  if (msg.includes('Signups not allowed'))
+  if (msg.includes('signups not allowed') || msg.includes('user not found') || msg.includes('user_not_found'))
     return 'Kein Account mit dieser E-Mail. Registriere dich zuerst.'
-  if (msg.includes('sending') || msg.includes('email') || msg.includes('unexpected'))
-    return 'E-Mail-Versand vorübergehend nicht möglich. Versuche es gleich erneut oder kontaktiere uns.'
-  if (msg.includes('expired'))
+  if (msg.includes('expired') || msg.includes('token has expired'))
     return 'Der Anmeldelink ist nicht mehr gültig. Fordere einen neuen Code an, um fortzufahren.'
-  if (msg.includes('invalid') || msg.includes('Invalid'))
-    return 'Ungültiger Code oder E-Mail-Adresse.'
-  return 'Etwas ist schiefgelaufen. Bitte versuche es erneut.'
+  if (msg.includes('invalid token') || msg.includes('invalid otp') || msg.includes('invalid code') || msg.includes('token_hash') || msg.includes('otp_expired'))
+    return 'Ungültiger oder abgelaufener Code. Fordere einen neuen an.'
+  if (msg.includes('invalid email') || msg.includes('email address') || msg.includes('email_address_invalid'))
+    return 'Bitte eine gültige E-Mail-Adresse verwenden.'
+  if (msg.includes('network') || msg.includes('failed to fetch'))
+    return 'Netzwerkproblem. Prüfe deine Verbindung und versuche es erneut.'
+  if (msg.includes('captcha'))
+    return 'Sicherheitsprüfung fehlgeschlagen. Lade die Seite neu und versuche es erneut.'
+  if (msg.includes('sending') || msg.includes('mailer') || msg.includes('unexpected'))
+    return 'E-Mail-Versand vorübergehend nicht möglich. Versuche es gleich erneut oder kontaktiere uns.'
+  // Generic fallback — *keeps* a short hint from the raw message so the user
+  // can at least describe the issue to support instead of hitting a wall.
+  const hint = raw && raw.length < 80 ? ` (${raw})` : ''
+  return `Anmeldung gerade nicht möglich.${hint}`
 }
 
 function inferSessionMethod(user: any): Method {
@@ -125,7 +141,13 @@ export default function LoginPage() {
       },
     })
     setLoading(false)
-    if (otpError) { setError(mapAuthError(otpError.message)); return }
+    if (otpError) {
+      // Don't strand the user on the main view — switch into the email
+      // step (already prefilled) so they can retry or correct.
+      setError(mapAuthError(otpError.message))
+      goTo('email')
+      return
+    }
     saveMethod('email')
     goTo('emailSent')
   }
@@ -135,6 +157,9 @@ export default function LoginPage() {
       continueAsLastUser()
       return
     }
+    // Even if last-method wasn't email, surface the remembered address so
+    // the user doesn't have to re-type it.
+    if (lastEmail) setEmail(lastEmail)
     switchToEmail()
   }
 
@@ -176,7 +201,12 @@ export default function LoginPage() {
     setTimeout(() => { setEmailStep(step); setAnimating(false) }, 180)
   }
 
-  function switchToEmail() { goTo('email') }
+  function switchToEmail() {
+    // Keep whatever the user already typed; otherwise prefill the last
+    // remembered address. Avoid overwriting a non-empty draft.
+    if (!email && lastEmail) setEmail(lastEmail)
+    goTo('email')
+  }
   function switchBack() {
     if (emailStep === 'codeEntry' || emailStep === 'emailSent') { setCode(''); goTo('email'); return }
     setEmail(''); setCode('')

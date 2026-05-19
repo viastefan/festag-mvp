@@ -715,9 +715,9 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <aside className="ed-rail" aria-label="Monitoring">
+        <aside className="ed-rail" aria-label="Live status">
           <header className="ed-rail-head">
-            <span>Monitoring</span>
+            <span>Live status</span>
             <span className="ed-rail-head-meta">live</span>
           </header>
           {[
