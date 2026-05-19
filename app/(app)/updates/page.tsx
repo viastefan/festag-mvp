@@ -10,9 +10,22 @@ const RELEASES = [
 ]
 
 const BLOG = [
-  'Wie Festag kontrollierte Softwareproduktion statt Tool-Chaos aufbaut.',
-  'Warum Tagro AI als Orchestrierungsschicht für Teams funktioniert.',
-  'Festag Delivery Model: kuratiertes Netzwerk statt offener Freelancer-Logik.',
+  {
+    title: 'Tagro Statusbriefing: vom Dev-Update zum Client-Bericht.',
+    href: '/blog/tagro-statusbriefing',
+  },
+  {
+    title: 'Wie Festag kontrollierte Softwareproduktion statt Tool-Chaos aufbaut.',
+    href: null,
+  },
+  {
+    title: 'Warum Tagro AI als Orchestrierungsschicht für Teams funktioniert.',
+    href: null,
+  },
+  {
+    title: 'Festag Delivery Model: kuratiertes Netzwerk statt offener Freelancer-Logik.',
+    href: null,
+  },
 ]
 
 export default function UpdatesPage() {
@@ -53,8 +66,15 @@ export default function UpdatesPage() {
             </div>
             <div style={{ padding: '8px 0' }}>
               {BLOG.map((item, index) => (
-                <div key={item} style={{ padding: '14px 20px', borderBottom: index < BLOG.length - 1 ? '1px solid var(--border)' : 'none' }}>
-                  <p style={{ margin: 0, fontSize: 14, color: 'var(--text)', lineHeight: 1.55 }}>{item}</p>
+                <div key={item.title} style={{ padding: '14px 20px', borderBottom: index < BLOG.length - 1 ? '1px solid var(--border)' : 'none' }}>
+                  {item.href ? (
+                    <Link href={item.href} style={{ margin: 0, fontSize: 14, color: 'var(--text)', lineHeight: 1.55, textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                      <span>{item.title}</span>
+                      <ArrowSquareOut size={15} weight="regular" />
+                    </Link>
+                  ) : (
+                    <p style={{ margin: 0, fontSize: 14, color: 'var(--text)', lineHeight: 1.55 }}>{item.title}</p>
+                  )}
                 </div>
               ))}
             </div>

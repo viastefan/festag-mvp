@@ -4,23 +4,25 @@ import ThemeProvider from '@/components/ThemeProvider'
 import ServiceWorkerCleanup from '@/components/ServiceWorkerCleanup'
 import AuthSessionMemory from '@/components/AuthSessionMemory'
 
+const brandIconVersion = '20260519-black-mark'
+
 export const metadata: Metadata = {
   title: 'Festag — AI-native Softwareproduktion',
   description: 'Kein Informationsverlust mehr. Die KI versteht, plant und liefert.',
-  manifest: '/manifest.json',
+  manifest: `/manifest.json?v=${brandIconVersion}`,
   applicationName: 'Festag',
   appleWebApp: { capable: true, statusBarStyle: 'default', title: 'Festag' },
   icons: {
     icon: [
-      { url: '/brand/favicon-16.png', sizes: '16x16', type: 'image/png' },
-      { url: '/brand/favicon-32.png', sizes: '32x32', type: 'image/png' },
-      { url: '/brand/favicon-48.png', sizes: '48x48', type: 'image/png' },
-      { url: '/brand/favicon-64.png', sizes: '64x64', type: 'image/png' },
-      { url: '/brand/icon-192.png', sizes: '192x192', type: 'image/png' },
+      { url: `/brand/favicon-16.png?v=${brandIconVersion}`, sizes: '16x16', type: 'image/png' },
+      { url: `/brand/favicon-32.png?v=${brandIconVersion}`, sizes: '32x32', type: 'image/png' },
+      { url: `/brand/favicon-48.png?v=${brandIconVersion}`, sizes: '48x48', type: 'image/png' },
+      { url: `/brand/favicon-64.png?v=${brandIconVersion}`, sizes: '64x64', type: 'image/png' },
+      { url: `/brand/icon-192.png?v=${brandIconVersion}`, sizes: '192x192', type: 'image/png' },
     ],
     apple: [
-      { url: '/brand/apple-touch-icon.png', sizes: '180x180' },
-      { url: '/brand/icon-152.png', sizes: '152x152' },
+      { url: `/brand/apple-touch-icon.png?v=${brandIconVersion}`, sizes: '180x180' },
+      { url: `/brand/icon-152.png?v=${brandIconVersion}`, sizes: '152x152' },
     ],
   },
   formatDetection: { telephone: false, email: false },
@@ -43,12 +45,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="Festag" />
-        <link rel="icon" type="image/png" sizes="16x16" href="/brand/favicon-16.png" />
-        <link rel="icon" type="image/png" sizes="32x32" href="/brand/favicon-32.png" />
-        <link rel="icon" type="image/png" sizes="48x48" href="/brand/favicon-48.png" />
-        <link rel="icon" type="image/png" sizes="64x64" href="/brand/favicon-64.png" />
-        <link rel="icon" type="image/png" sizes="192x192" href="/brand/icon-192.png" />
-        <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png" />
+        <link rel="icon" type="image/png" sizes="16x16" href={`/brand/favicon-16.png?v=${brandIconVersion}`} />
+        <link rel="icon" type="image/png" sizes="32x32" href={`/brand/favicon-32.png?v=${brandIconVersion}`} />
+        <link rel="icon" type="image/png" sizes="48x48" href={`/brand/favicon-48.png?v=${brandIconVersion}`} />
+        <link rel="icon" type="image/png" sizes="64x64" href={`/brand/favicon-64.png?v=${brandIconVersion}`} />
+        <link rel="icon" type="image/png" sizes="192x192" href={`/brand/icon-192.png?v=${brandIconVersion}`} />
+        <link rel="apple-touch-icon" href={`/brand/apple-touch-icon.png?v=${brandIconVersion}`} />
         {/* Pre-paint theme + bg sync — eliminates white flash between auth pages */}
         <script
           dangerouslySetInnerHTML={{

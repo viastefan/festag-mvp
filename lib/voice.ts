@@ -35,7 +35,13 @@ export function getVoicePreferences(): VoicePreferences {
   try {
     const raw = window.localStorage.getItem(VOICE_PREF_KEY)
     if (!raw) return DEFAULT_VOICE_PREFERENCES
-    return { ...DEFAULT_VOICE_PREFERENCES, ...JSON.parse(raw) }
+    const parsed = JSON.parse(raw) as Partial<VoicePreferences>
+    return {
+      ...DEFAULT_VOICE_PREFERENCES,
+      ...parsed,
+      rate: Number.isFinite(Number(parsed.rate)) ? Number(parsed.rate) : DEFAULT_VOICE_PREFERENCES.rate,
+      pitch: Number.isFinite(Number(parsed.pitch)) ? Number(parsed.pitch) : DEFAULT_VOICE_PREFERENCES.pitch,
+    }
   } catch {
     return DEFAULT_VOICE_PREFERENCES
   }
@@ -44,7 +50,11 @@ export function getVoicePreferences(): VoicePreferences {
 export function setVoicePreferences(next: Partial<VoicePreferences>) {
   if (typeof window === 'undefined') return DEFAULT_VOICE_PREFERENCES
   const merged = { ...getVoicePreferences(), ...next }
-  window.localStorage.setItem(VOICE_PREF_KEY, JSON.stringify(merged))
-  window.dispatchEvent(new CustomEvent('festag-voice-preferences', { detail: merged }))
+  try {
+    window.localStorage.setItem(VOICE_PREF_KEY, JSON.stringify(merged))
+    window.dispatchEvent(new CustomEvent('festag-voice-preferences', { detail: merged }))
+  } catch {
+    // Private-mode or locked storage should never crash client/dev boards.
+  }
   return merged
 }

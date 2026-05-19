@@ -60,6 +60,7 @@ export function useSpeechSynthesis(text: string) {
   }, [supported])
 
   useEffect(() => {
+    if (typeof window === 'undefined') return
     const handler = (event: Event) => {
       if (event instanceof CustomEvent) setPreferencesState(event.detail as VoicePreferences)
     }
@@ -98,21 +99,26 @@ export function useSpeechSynthesis(text: string) {
       return
     }
 
-    window.speechSynthesis.cancel()
-    const utterance = new SpeechSynthesisUtterance(text)
-    utterance.lang = 'de-DE'
-    utterance.rate = preferences.rate
-    utterance.pitch = preferences.pitch
-    if (selectedVoice) utterance.voice = selectedVoice
-    utterance.onstart = () => setState('playing')
-    utterance.onpause = () => setState('paused')
-    utterance.onend = () => {
+    try {
+      window.speechSynthesis.cancel()
+      const utterance = new SpeechSynthesisUtterance(text)
+      utterance.lang = 'de-DE'
+      utterance.rate = preferences.rate
+      utterance.pitch = preferences.pitch
+      if (selectedVoice) utterance.voice = selectedVoice
+      utterance.onstart = () => setState('playing')
+      utterance.onpause = () => setState('paused')
+      utterance.onend = () => {
+        utteranceRef.current = null
+        setState('idle')
+      }
+      utterance.onerror = () => setState('error')
+      utteranceRef.current = utterance
+      window.speechSynthesis.speak(utterance)
+    } catch {
       utteranceRef.current = null
-      setState('idle')
+      setState('error')
     }
-    utterance.onerror = () => setState('error')
-    utteranceRef.current = utterance
-    window.speechSynthesis.speak(utterance)
   }, [preferences.enabled, preferences.pitch, preferences.rate, selectedVoice, supported, text])
 
   useEffect(() => stop, [stop])

@@ -53,13 +53,25 @@ export default function ClientAppShell({
   }, [])
 
   useEffect(() => {
-    createClient().auth.getSession().then(({ data }) => {
-      if (!data.session) {
-        window.location.href = '/login'
-        return
+    let cancelled = false
+    ;(async () => {
+      try {
+        const { data } = await createClient().auth.getSession()
+        if (cancelled) return
+        if (!data.session) {
+          window.location.href = '/login'
+          return
+        }
+      } catch (error) {
+        console.error('App shell session check failed', error)
+      } finally {
+        if (!cancelled) setChecking(false)
       }
-      setChecking(false)
-    })
+    })()
+
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   useEffect(() => {

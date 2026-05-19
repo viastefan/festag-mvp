@@ -139,41 +139,75 @@ export default function DashboardPage() {
   void activity
 
   useEffect(() => {
-    supabase.auth.getSession().then(async ({ data }) => {
-      if (!data.session) { window.location.href = '/login'; return }
-      const uid = data.session.user.id
-      const [{ data: p }, { data: briefingSub }] = await Promise.all([
-        supabase.from('profiles').select('first_name,full_name,notif_whatsapp,whatsapp_number').eq('id', uid).single(),
-        (supabase as any).from('briefing_subscriptions').select('format,cadence').eq('user_id', uid).order('created_at', { ascending: false }).limit(1).maybeSingle(),
-      ])
-      if (p) setFirstName((p as any).first_name ?? (p as any).full_name?.split(' ')[0] ?? '')
-      setChannels({
-        whatsapp: Boolean((p as any)?.notif_whatsapp || (p as any)?.whatsapp_number),
-        audioFeed: Boolean(briefingSub && ['audio', 'both'].includes(String((briefingSub as any).format)) && String((briefingSub as any).cadence ?? 'off') !== 'off'),
-        spotify: false,
-      })
+    let cancelled = false
 
-      const { data: projs } = await supabase.from('projects').select('*').order('created_at', { ascending:false })
-      if (projs?.length) {
-        setProjects(projs)
-        const prio: Record<string,number> = { active:0, testing:1, planning:2, intake:3, done:4 }
-        const m = [...(projs as any[])].sort((a,b) => (prio[a.status]??9)-(prio[b.status]??9))[0]
-        setMain(m)
-        const [{ data: t }, { data: at }, { data: ms }] = await Promise.all([
-          supabase.from('tasks').select('*').eq('project_id', m.id),
-          supabase.from('tasks').select('*').in('project_id', (projs as any[]).map(pr => pr.id)),
-          supabase.from('milestones').select('id,project_id,title,amount,currency,status,due_date,paid_at,order_index').in('project_id', (projs as any[]).map(pr => pr.id)).order('order_index', { ascending: true }),
+    ;(async () => {
+      try {
+        const { data } = await supabase.auth.getSession()
+        if (cancelled) return
+
+        if (!data.session) {
+          window.location.href = '/login'
+          return
+        }
+
+        const uid = data.session.user.id
+        const [{ data: p }, { data: briefingSub }] = await Promise.all([
+          supabase.from('profiles').select('first_name,full_name,notif_whatsapp,whatsapp_number').eq('id', uid).maybeSingle(),
+          (supabase as any)
+            .from('briefing_subscriptions')
+            .select('format,cadence')
+            .eq('user_id', uid)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle(),
         ])
-        setTasks(t ?? [])
-        setAllTasks(at ?? [])
-        setMilestones((ms as Milestone[] | null) ?? [])
+        if (cancelled) return
+
+        if (p) setFirstName((p as any).first_name ?? (p as any).full_name?.split(' ')[0] ?? '')
+        setChannels({
+          whatsapp: Boolean((p as any)?.notif_whatsapp || (p as any)?.whatsapp_number),
+          audioFeed: Boolean(briefingSub && ['audio', 'both'].includes(String((briefingSub as any).format)) && String((briefingSub as any).cadence ?? 'off') !== 'off'),
+          spotify: false,
+        })
+
+        const { data: projs } = await supabase.from('projects').select('*').order('created_at', { ascending:false })
+        if (cancelled) return
+
+        if (projs?.length) {
+          setProjects(projs)
+          const prio: Record<string,number> = { active:0, testing:1, planning:2, intake:3, done:4 }
+          const m = [...(projs as any[])].sort((a,b) => (prio[a.status]??9)-(prio[b.status]??9))[0]
+          setMain(m)
+          const projectIds = (projs as any[]).map(pr => pr.id).filter(Boolean)
+          const [{ data: t }, { data: at }, { data: ms }] = await Promise.all([
+            supabase.from('tasks').select('*').eq('project_id', m.id),
+            projectIds.length > 0
+              ? supabase.from('tasks').select('*').in('project_id', projectIds)
+              : Promise.resolve({ data: [] }),
+            projectIds.length > 0
+              ? supabase.from('milestones').select('id,project_id,title,amount,currency,status,due_date,paid_at,order_index').in('project_id', projectIds).order('order_index', { ascending: true })
+              : Promise.resolve({ data: [] }),
+          ])
+          if (cancelled) return
+          setTasks(t ?? [])
+          setAllTasks(at ?? [])
+          setMilestones((ms as Milestone[] | null) ?? [])
+        }
+
+        const { data: feed } = await supabase.from('activity_feed').select('*').order('created_at',{ascending:false}).limit(8)
+        if (!cancelled) setActivity(feed ?? [])
+      } catch (error) {
+        console.error('Dashboard failed to load', error)
+      } finally {
+        if (!cancelled) setLoading(false)
       }
-      const { data: feed } = await supabase.from('activity_feed').select('*').order('created_at',{ascending:false}).limit(8)
-      setActivity(feed ?? [])
-      setLoading(false)
-    })
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+    })()
+
+    return () => {
+      cancelled = true
+    }
+  }, [supabase])
 
   const greeting = useMemo(() => pickGreeting(new Date().getHours(), firstName), [firstName])
 

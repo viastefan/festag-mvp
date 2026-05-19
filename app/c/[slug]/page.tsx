@@ -18,7 +18,7 @@
  * Daten kommt ein PIN-Gate später.
  */
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
@@ -45,7 +45,7 @@ type ProjectRow = {
   id: string
   title: string
   description: string | null
-  status: string
+  status: string | null
   project_type: string | null
   updated_at: string | null
 }
@@ -57,52 +57,88 @@ const PHASE_DOT: Record<string, string> = {
   intake: 'var(--p-soft)', planning: '#f59e0b', active: 'var(--p-brand)', testing: '#0ea5e9', done: 'var(--p-soft)',
 }
 
+function readParam(value: string | string[] | undefined) {
+  return Array.isArray(value) ? value[0] ?? '' : value ?? ''
+}
+
+function safeBrandColor(value: string | null | undefined) {
+  const color = value?.trim()
+  return color && /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(color) ? color : '#5B647D'
+}
+
 export default function ClientPortalPage() {
-  const { slug } = useParams<{ slug: string }>()
-  const supabase = useMemo(() => createClient(), [])
+  const params = useParams<{ slug?: string | string[] }>()
+  const slug = readParam(params?.slug)
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
+  const [errorMessage, setErrorMessage] = useState('')
   const [client, setClient] = useState<ClientRow | null>(null)
   const [branding, setBranding] = useState<Branding | null>(null)
   const [projects, setProjects] = useState<ProjectRow[]>([])
 
   useEffect(() => {
-    if (!slug) return
     let cancelled = false
     ;(async () => {
-      // Lookup client by slug
-      const { data: c } = await supabase
-        .from('agency_clients')
-        .select('id,workspace_id,name,description,industry,brand_color,logo_url,domain')
-        .eq('slug', slug)
-        .maybeSingle()
-      if (cancelled) return
-      if (!c) { setNotFound(true); setLoading(false); return }
-      setClient(c as ClientRow)
+      setLoading(true)
+      setErrorMessage('')
+      setNotFound(false)
 
-      const [{ data: b }, { data: ps }] = await Promise.all([
-        supabase
-          .from('workspace_branding')
-          .select('brand_name,brand_color,logo_url,plan,pdf_footer')
-          .eq('workspace_id', (c as ClientRow).workspace_id)
-          .maybeSingle(),
-        supabase
-          .from('projects')
-          .select('id,title,description,status,project_type,updated_at')
-          .eq('client_id', (c as ClientRow).id)
-          .order('updated_at', { ascending: false }),
-      ])
-      if (cancelled) return
-      setBranding((b as Branding | null) ?? null)
-      setProjects((ps as ProjectRow[] | null) ?? [])
-      setLoading(false)
+      if (!slug) {
+        setNotFound(true)
+        setLoading(false)
+        return
+      }
+
+      try {
+        const supabase = createClient()
+        const { data: c, error: clientError } = await supabase
+          .from('agency_clients')
+          .select('id,workspace_id,name,description,industry,brand_color,logo_url,domain')
+          .eq('slug', slug)
+          .maybeSingle()
+
+        if (cancelled) return
+        if (clientError || !c) {
+          setNotFound(true)
+          return
+        }
+
+        const clientRow = c as ClientRow
+        setClient({
+          ...clientRow,
+          name: clientRow.name || 'Kundenbereich',
+        })
+
+        const [{ data: b }, { data: ps }] = await Promise.all([
+          supabase
+            .from('workspace_branding')
+            .select('brand_name,brand_color,logo_url,plan,pdf_footer')
+            .eq('workspace_id', clientRow.workspace_id)
+            .maybeSingle(),
+          supabase
+            .from('projects')
+            .select('id,title,description,status,project_type,updated_at')
+            .eq('client_id', clientRow.id)
+            .order('updated_at', { ascending: false }),
+        ])
+        if (cancelled) return
+        setBranding((b as Branding | null) ?? null)
+        setProjects((ps as ProjectRow[] | null) ?? [])
+      } catch (error) {
+        if (!cancelled) {
+          console.error('Client portal failed to load', error)
+          setErrorMessage('Das Kunden-Portal konnte gerade nicht geladen werden.')
+        }
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
     })()
     return () => { cancelled = true }
-  }, [slug, supabase])
+  }, [slug])
 
   // Resolve effective brand: client overrides workspace overrides default
   const brandName  = client?.name || branding?.brand_name || 'Festag'
-  const brandColor = client?.brand_color || branding?.brand_color || '#5B647D'
+  const brandColor = safeBrandColor(client?.brand_color || branding?.brand_color)
   const logoUrl    = client?.logo_url || branding?.logo_url || null
   const isWhiteLabel = (branding?.plan && branding.plan !== 'powered_by_festag')
 
@@ -120,8 +156,8 @@ export default function ClientPortalPage() {
         <style>{CSS}</style>
         <div className="cp-notfound">
           <p className="cp-kicker">Festag</p>
-          <h1>Diese Seite existiert nicht</h1>
-          <p>Der Kunden-Link ist möglicherweise veraltet oder wurde entfernt.</p>
+          <h1>{errorMessage ? 'Portal gerade nicht erreichbar' : 'Diese Seite existiert nicht'}</h1>
+          <p>{errorMessage || 'Der Kunden-Link ist möglicherweise veraltet oder wurde entfernt.'}</p>
         </div>
       </main>
     )
@@ -172,17 +208,19 @@ export default function ClientPortalPage() {
           <p className="cp-empty">Aktuell ist noch kein Projekt freigegeben.</p>
         ) : (
           <ul className="cp-list">
-            {projects.map(p => (
+            {projects.map(p => {
+              const status = p.status || 'intake'
+              return (
               <li key={p.id} className="cp-row">
-                <span className="cp-dot" style={{ background: PHASE_DOT[p.status] || 'var(--p-brand)' }} />
+                <span className="cp-dot" style={{ background: PHASE_DOT[status] || 'var(--p-brand)' }} />
                 <div className="cp-row-meta">
                   <span className="cp-row-title">{p.title}</span>
                   {p.description && <span className="cp-row-sub">{p.description}</span>}
                 </div>
                 {p.project_type && <span className="cp-chip">{p.project_type}</span>}
-                <span className="cp-row-status">{PHASE_LABEL[p.status] || p.status}</span>
+                <span className="cp-row-status">{PHASE_LABEL[status] || status}</span>
               </li>
-            ))}
+            )})}
           </ul>
         )}
       </section>
