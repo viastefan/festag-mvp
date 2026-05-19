@@ -35,8 +35,14 @@ export default function VoiceBriefingButton(props: VoiceBriefingButtonProps) {
       const rect = buttonRef.current?.getBoundingClientRect()
       const width = Math.min(420, window.innerWidth - 32)
       if (!rect) return
+      // Anchor the popover's *left edge* to the button so it always
+      // opens out to the right and never overlaps the sidebar (212px
+      // wide on desktop). Clamps respect the viewport edge.
+      const SIDEBAR_GUARD = 228          // 212 + 16px safe margin
+      const desiredLeft = rect.left
+      const maxLeft = Math.max(SIDEBAR_GUARD, window.innerWidth - width - 16)
       setPosition({
-        left: Math.max(16, Math.min(window.innerWidth - width - 16, rect.right - width)),
+        left: Math.min(maxLeft, Math.max(SIDEBAR_GUARD, desiredLeft)),
         top: Math.max(16, Math.min(window.innerHeight - 260, rect.bottom + 10)),
       })
     }

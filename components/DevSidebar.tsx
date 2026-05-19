@@ -28,7 +28,6 @@ import {
 import { createClient } from '@/lib/supabase/client'
 import { devDisplayName } from '@/lib/dev-session'
 import type { DevIdentity } from '@/components/DevAppShell'
-import NotificationsBell from '@/components/NotificationsBell'
 
 type NavRow = { href: string; icon: React.ElementType; label: string }
 const NAV_MAIN: NavRow[] = [
@@ -225,7 +224,6 @@ export default function DevSidebar({
             />
             <span className="ds-badge">DEV</span>
           </div>
-          <NotificationsBell variant="sidebar" />
           <button
             className="ds-icon-btn"
             type="button"

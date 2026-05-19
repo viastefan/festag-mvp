@@ -235,6 +235,45 @@ export default function DevAppShell({
         }
         .app-workspace-inner { padding: 28px clamp(22px, 3vw, 44px) 60px; }
 
+        /* ── Shared /dev page primitives (restored from old layout) ── */
+        .dev-page { max-width: 1180px; margin: 0 auto; }
+        .dev-page-header { display: flex; justify-content: space-between; gap: 24px; align-items: flex-start; margin-bottom: 24px; }
+        .dev-eyebrow { margin: 0 0 6px; color: var(--text-muted); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; font-weight: 500; }
+        .dev-page h1 { margin: 0; font-size: 22px; line-height: 1.15; font-weight: 500; letter-spacing: -.012em; color: var(--text); }
+        .dev-page-header .meta { margin: 6px 0 0; color: var(--text-muted); font-size: 13px; }
+        .dev-primary-btn, .dev-secondary-btn {
+          height: 32px; border-radius: 8px; padding: 0 12px;
+          border: 1px solid var(--border);
+          font: inherit; font-size: 12.5px; font-weight: 500;
+          cursor: pointer;
+        }
+        .dev-primary-btn { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+        .dev-secondary-btn { background: var(--surface); color: var(--text); }
+        .dev-secondary-btn:hover { background: color-mix(in srgb, var(--surface-2) 60%, var(--surface)); }
+        .dev-surface {
+          border: 1px solid var(--border);
+          background: var(--surface);
+          border-radius: 10px;
+        }
+        .dev-row {
+          display: grid; align-items: center; gap: 14px;
+          min-height: 44px; padding: 8px 14px; border-radius: 8px;
+          transition: background .12s ease;
+        }
+        .dev-row:hover { background: color-mix(in srgb, var(--surface-2) 70%, transparent); }
+        .dev-kpi-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 24px; }
+        .dev-kpi { padding: 14px; }
+        .dev-kpi strong { display: block; font-size: 18px; letter-spacing: -.015em; font-weight: 500; }
+        .dev-kpi span { display: block; margin-top: 3px; font-size: 11.5px; color: var(--text-muted); }
+        .dev-section-title { margin: 0 0 8px; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); font-weight: 500; }
+        .dev-chip {
+          display: inline-flex; align-items: center; gap: 6px;
+          min-height: 22px; padding: 0 8px; border-radius: 5px;
+          background: var(--surface-2); color: var(--text-secondary);
+          font-size: 11px; font-weight: 500;
+          border: 1px solid color-mix(in srgb, var(--border) 55%, transparent);
+        }
+
         @media (max-width: 768px) {
           .festag-app-shell { position: relative; min-height: 100dvh; overflow: visible; }
           .app-workspace {
@@ -244,6 +283,8 @@ export default function DevAppShell({
           .app-workspace-scroll { overflow-y: visible; }
           .app-workspace-inner { padding: 18px 14px 110px; }
           .app-footer-controls { display: none; }
+          .dev-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+          .dev-page-header { flex-direction: column; gap: 14px; }
         }
 
         /* ── Footer controls (Copilot + theme toggle) ── */

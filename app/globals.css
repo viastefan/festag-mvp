@@ -263,7 +263,8 @@ html,body {
   background:var(--bg); color:var(--text);
   font-family:var(--font-ui);
   font-weight:500; font-size:15px; line-height:1.55;
-  letter-spacing:.02em;
+  /* Festag Figma-Maß: 1.2% Letter-Spacing als globale Default-Atmung. */
+  letter-spacing:.012em;
   -webkit-font-smoothing:antialiased;
   -moz-osx-font-smoothing:grayscale;
   text-rendering:optimizeLegibility;

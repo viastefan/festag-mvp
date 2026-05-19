@@ -319,7 +319,68 @@ export default function DashboardPage() {
           --ed-muted: #8D98A6;
           --ed-secondary: #B7BDC8;
         }
-        .dash-editorial * { font-weight: 500 !important; }
+        .dash-editorial * { font-weight: 500 !important; letter-spacing: .012em; }
+
+        /* ── Two-column layout (Linear-style) ──────────────── */
+        .ed-layout {
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) 264px;
+          gap: clamp(28px, 3.4vw, 56px);
+          align-items: start;
+        }
+        .ed-main { min-width: 0; }
+        .ed-rail-aside {
+          position: sticky;
+          top: 24px;
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          padding: 16px 16px 14px;
+          border-radius: 14px;
+          background: color-mix(in srgb, var(--surface-2) 38%, transparent);
+        }
+        .ed-rail-eyebrow {
+          margin: 0 0 6px;
+          color: var(--ed-muted);
+          font-size: 10.5px;
+          letter-spacing: .14em;
+          text-transform: uppercase;
+        }
+        .ed-rail-line {
+          margin: 0;
+          font-size: 13px;
+          line-height: 1.55;
+          color: var(--text);
+        }
+        .ed-rail-sub {
+          margin: 4px 0 0;
+          font-size: 12px;
+          color: var(--ed-muted);
+          line-height: 1.5;
+        }
+        .ed-rail-divider {
+          height: 1px;
+          background: color-mix(in srgb, var(--ed-muted) 16%, transparent);
+          margin: 12px 0;
+        }
+        .ed-rail-quick {
+          display: flex; flex-direction: column; gap: 2px;
+        }
+        .ed-rail-quick a {
+          display: flex; justify-content: space-between; align-items: center;
+          padding: 6px 8px; border-radius: 7px;
+          color: var(--ed-secondary);
+          font-size: 12.5px;
+          text-decoration: none;
+          transition: background .12s ease, color .12s ease;
+        }
+        .ed-rail-quick a:hover { background: color-mix(in srgb, var(--surface) 70%, transparent); color: var(--text); }
+        .ed-rail-quick small { color: var(--ed-muted); font-size: 11px; }
+
+        @media (max-width: 980px) {
+          .ed-layout { grid-template-columns: 1fr; }
+          .ed-rail-aside { position: static; }
+        }
 
         /* ── Hero — 24px top breathing room, calm headline ──── */
         .ed-hero {
@@ -817,6 +878,9 @@ export default function DashboardPage() {
         }
       `}</style>
 
+      <div className="ed-layout">
+        <div className="ed-main">
+
       <section className="ed-hero" aria-label="Tägliche Statusabfrage">
         <div className="ed-hero-top">
           <h1 className="ed-title">{greeting}</h1>
@@ -985,6 +1049,31 @@ export default function DashboardPage() {
           </div>
         </section>
       )}
+
+        </div> {/* /ed-main */}
+
+        <aside className="ed-rail-aside" aria-label="Tagro">
+          <p className="ed-rail-eyebrow">Tagro</p>
+          <p className="ed-rail-line">{loading ? 'Verdichte gerade die Lage…' : pulse.label}</p>
+          <p className="ed-rail-sub">{loading ? '' : pulse.explanation.split('. ').slice(0, 2).join('. ') + '.'}</p>
+          <div className="ed-rail-divider" />
+          <p className="ed-rail-eyebrow">Schnell</p>
+          <nav className="ed-rail-quick">
+            <Link href="/reports">
+              <span>Statusberichte</span>
+              <small>{milestoneSub}</small>
+            </Link>
+            <Link href="/messages">
+              <span>Inbox</span>
+              <small>{decisionsOpen === 0 ? 'ruhig' : `${decisionsOpen} offen`}</small>
+            </Link>
+            <Link href="/tasks">
+              <span>Tasks</span>
+              <small>{activeTasks.length === 0 ? 'leer' : `${activeTasks.length} aktiv`}</small>
+            </Link>
+          </nav>
+        </aside>
+      </div> {/* /ed-layout */}
 
       {showNewProject && (
         <NewProjectModal

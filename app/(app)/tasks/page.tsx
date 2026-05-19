@@ -487,6 +487,7 @@ export default function TasksPage() {
       <style>{`
         .task-os {
           --task-soft-text:#4E5567;
+          --task-header-text: color-mix(in srgb, #4E5567 62%, transparent);
           width:100%;
           height:100%;
           min-height:0;
@@ -495,7 +496,10 @@ export default function TasksPage() {
           display:flex;
           flex-direction:column;
           overflow:hidden;
+          /* Figma-style breathing room across every text inside the page */
+          letter-spacing: .012em;
         }
+        .task-os strong { letter-spacing: .012em; }
         [data-theme="dark"] .task-os,
         [data-theme="classic-dark"] .task-os,
         [data-theme="read"] .task-os {

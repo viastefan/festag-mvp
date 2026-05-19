@@ -7,7 +7,7 @@ import { useState, useEffect, useRef } from 'react'
 import SidebarProfileFooter from '@/components/SidebarProfileFooter'
 import SettingsSidebar from '@/components/SettingsSidebar'
 import TeamsModal from '@/components/TeamsModal'
-import NotificationsBell from '@/components/NotificationsBell'
+import { useNotifications } from '@/hooks/useNotifications'
 import {
   House, FolderSimple, Sparkle, ChatCircle, ChartLineUp,
   CreditCard, FileText, UserCircle, GearSix,
@@ -57,7 +57,7 @@ type MonitoringDockState = {
 }
 
 const CLIENT_TOP: NavItem[] = [
-  { href:'/dashboard', icon:'home', label:'Dashboard' },
+  { href:'/dashboard', icon:'home', label:'Statusabfrage' },
   { href:'/messages', icon:'inbox', label:'Inbox' },
 ]
 const CLIENT_CORE: NavItem[] = [
@@ -189,10 +189,16 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
   // Every workspace mode keeps the full default nav. Delivery clients
   // need Teams for Client-Teamrollen and Tasks for visibility, so we
   // never hide them. Agency mode layers a "Kunden" top item + White
+  // Inbox unread count piggy-backs on the global notifications hook so
+  // the badge updates in realtime without a second subscription.
+  const { unread: inboxUnread } = useNotifications({ limit: 1 })
   // Label tool on top.
-  const topNav: NavItem[] = wsMode === 'agency'
+  const topNavBase: NavItem[] = wsMode === 'agency'
     ? [...CLIENT_TOP, { href: '/clients', icon: 'team', label: 'Kunden' }]
     : CLIENT_TOP
+  const topNav: NavItem[] = topNavBase.map(item =>
+    item.href === '/messages' && inboxUnread > 0 ? { ...item, badge: inboxUnread } : item,
+  )
   const coreNav: NavItem[] = CLIENT_CORE
   const teamsNav: NavItem[] = CLIENT_TEAMS
   const tagroNav = CLIENT_TAGRO
@@ -445,7 +451,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
               <Ico name={item.icon} sz={14} c={on?'var(--text)':'var(--text-muted)'} weight={on?'bold':'regular'} />
               <span style={{ minWidth:0, overflow:'hidden', textOverflow:'ellipsis' }}>{item.label}</span>
               {item.badge ? (
-                <span style={{ fontSize:9.5, fontWeight:700, color:'var(--text-muted)', background:'var(--border)', borderRadius:10, padding:'0 5px', minWidth:16, textAlign:'center', lineHeight:'16px' }}>{item.badge}</span>
+                <span style={{ fontSize:9.5, fontWeight:500, color:'#fff', background:'var(--red, #d14343)', borderRadius:999, padding:'0 5px', minWidth:16, textAlign:'center', lineHeight:'16px', letterSpacing:'.012em' }}>{item.badge > 9 ? '9+' : item.badge}</span>
               ) : null}
             </Link>
           )
