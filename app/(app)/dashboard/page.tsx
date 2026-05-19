@@ -14,13 +14,88 @@
  *   • Kein „Workspace wird vorbereitet" Splash — Hero degradiert inline.
  */
 
-import { useEffect, useMemo, useState, type CSSProperties } from 'react'
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import NewProjectModal from '@/components/NewProjectModal'
 import NewTaskModal from '@/components/NewTaskModal'
 import AudioBriefingButton from '@/components/AudioBriefingButton'
 import ObserverWelcomeModal from '@/components/ObserverWelcomeModal'
+
+// ─────────────────────────────────────────────────────────────────────
+// Greeting + Pulse helpers
+// ─────────────────────────────────────────────────────────────────────
+
+/**
+ * Day-stable greeting. Same wording within a calendar day, fresh on the
+ * next one. Variant pool depends on whether we know the first name; if
+ * not, we fall back to "Chef" / "Boss" for a calm, slightly playful tone.
+ */
+function pickGreeting(hour: number, first: string): string {
+  const partOfDay = hour < 12 ? 'Morgen' : hour < 18 ? 'Tag' : 'Abend'
+  const name = first ? first.charAt(0).toUpperCase() + first.slice(1) : 'Chef'
+  const variants = first
+    ? [
+        `Guten ${partOfDay}, ${name}.`,
+        `Hallo ${name}.`,
+        `Schön, dass du da bist, ${name}.`,
+        `Bereit für heute, ${name}?`,
+        `${partOfDay}, ${name}.`,
+      ]
+    : [
+        `Guten ${partOfDay}, Chef.`,
+        `Hallo Chef.`,
+        `Schön, dass du da bist.`,
+        `Bereit für heute, Chef?`,
+        `${partOfDay}, Chef.`,
+      ]
+  const today = new Date()
+  const seed = today.getFullYear() * 1000 + (today.getMonth() + 1) * 50 + today.getDate()
+  return variants[seed % variants.length]
+}
+
+type PulseTone = 'green' | 'amber' | 'red'
+type Pulse = { tone: PulseTone; label: string; explanation: string }
+
+function buildPulse(args: { blockers: number; decisions: number; activeProjects: number; mainTitle: string | undefined; phaseLabel: string | undefined; openTasks: number }): Pulse {
+  const { blockers, decisions, activeProjects, mainTitle, phaseLabel, openTasks } = args
+  if (blockers > 0) {
+    return {
+      tone: 'red',
+      label: blockers === 1 ? 'Risiko erkannt' : `${blockers} Risiken erkannt`,
+      explanation:
+        `Tagro hat ${blockers === 1 ? 'einen Blocker' : `${blockers} Blocker`} erkannt, ` +
+        `der den Zeitplan beeinflusst. Ich priorisiere die nächsten Schritte und halte Entscheidungen, ` +
+        `Risiken und Zustellungen in der Übersicht.`,
+    }
+  }
+  if (decisions > 0) {
+    return {
+      tone: 'amber',
+      label: decisions === 1 ? 'Entscheidung offen' : `${decisions} Entscheidungen offen`,
+      explanation:
+        `${decisions === 1 ? 'Eine offene Entscheidung wartet' : `${decisions} offene Entscheidungen warten`} auf deine Freigabe. ` +
+        `Sobald geklärt, aktualisiere ich Projektstatus, Risiken und nächste Schritte automatisch.`,
+    }
+  }
+  if (activeProjects > 0 && mainTitle) {
+    return {
+      tone: 'green',
+      label: 'Alles im Plan',
+      explanation:
+        `${mainTitle} ist aktuell in ${phaseLabel ?? 'Bearbeitung'}. ` +
+        `${openTasks === 0 ? 'Keine offenen Tasks' : `${openTasks} offene Tasks`}, keine Blocker. ` +
+        `Du kannst durchatmen.`,
+    }
+  }
+  return {
+    tone: 'green',
+    label: 'Heute ist nichts dringend',
+    explanation:
+      'Keine Blocker, keine offenen Entscheidungen, kein aktives Projekt im Stress. ' +
+      'Sobald sich etwas ändert, melde ich mich hier mit konkreten nächsten Schritten.',
+  }
+}
 
 type Project   = { id: string; title: string; description: string | null; status: string; created_at: string; color: string | null }
 type Task      = { id: string; title: string; status: string; priority?: string; project_id: string; updated_at?: string }
@@ -79,9 +154,28 @@ export default function DashboardPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const h = new Date().getHours()
-  const greeting = h < 12 ? 'Guten Morgen' : h < 18 ? 'Guten Tag' : 'Guten Abend'
-  const displayName = firstName ? firstName.charAt(0).toUpperCase() + firstName.slice(1) : ''
+  const greeting = useMemo(() => pickGreeting(new Date().getHours(), firstName), [firstName])
+  // Pulse popover state (Tagro explains the current vibe)
+  const [pulseOpen, setPulseOpen] = useState(false)
+  const [typed, setTyped] = useState('')
+  const pulseRef = useRef<HTMLDivElement | null>(null)
+
+  // Outside-click + Escape close
+  useEffect(() => {
+    if (!pulseOpen) return
+    function onDown(e: MouseEvent) {
+      if (pulseRef.current && e.target instanceof Node && !pulseRef.current.contains(e.target)) {
+        setPulseOpen(false)
+      }
+    }
+    function onEsc(e: KeyboardEvent) { if (e.key === 'Escape') setPulseOpen(false) }
+    window.addEventListener('mousedown', onDown)
+    window.addEventListener('keydown', onEsc)
+    return () => {
+      window.removeEventListener('mousedown', onDown)
+      window.removeEventListener('keydown', onEsc)
+    }
+  }, [pulseOpen])
 
   const phase       = main ? (PHASE[main.status] ?? PHASE.intake) : null
   const done        = tasks.filter(t => t.status==='done').length
@@ -99,21 +193,37 @@ export default function DashboardPage() {
     : null
   const milestoneDue = nextMilestone?.due_date ? new Date(nextMilestone.due_date).toLocaleDateString('de-DE', { day: '2-digit', month: 'short' }) : null
 
-  const person = displayName || ''
-  const urgentLine = blockersOpen > 0
-    ? `${blockersOpen === 1 ? 'Ein Blocker beeinflusst' : `${blockersOpen} Blocker beeinflussen`} den Zeitplan.`
-    : decisionsOpen > 0
-      ? `${decisionsOpen === 1 ? 'Eine Entscheidung wartet' : `${decisionsOpen} Entscheidungen warten`} auf dich.`
-      : activeProjects.length > 0
-        ? 'Heute braucht ein Projekt deine Aufmerksamkeit.'
-        : 'Heute ist nichts dringend.'
-  const executiveSummary = blockersOpen > 0
-    ? `${blockersOpen === 1 ? 'Ein Blocker wurde' : `${blockersOpen} Blocker wurden`} erkannt. Tagro priorisiert die nächsten Schritte und hält Entscheidungen, Risiken und Zustellungen in der Übersicht.`
-    : decisionsOpen > 0
-      ? `${decisionsOpen === 1 ? 'Eine offene Entscheidung wartet' : `${decisionsOpen} offene Entscheidungen warten`} auf Freigabe. Sobald sie geklärt ${decisionsOpen === 1 ? 'ist' : 'sind'}, aktualisiert Tagro Projektstatus, Risiken und nächste Schritte.`
-      : main
-        ? `${main.title} ist aktuell in ${phase?.label ?? 'Bearbeitung'}. ${activeTasks.length === 0 ? 'Keine offenen Tasks' : `${activeTasks.length} offene Tasks`} und ${blockersOpen === 0 ? 'keine akuten Blocker' : `${blockersOpen} Blocker`} liegen vor.`
-        : 'Kein aktives Projekt, keine offene Entscheidung, keine Blocker. Sobald die erste Statusabfrage vorliegt, fasst Tagro Fortschritt, Risiken und nächste Schritte hier zusammen.'
+  const pulse = useMemo(() => buildPulse({
+    blockers: blockersOpen,
+    decisions: decisionsOpen,
+    activeProjects: activeProjects.length,
+    mainTitle: main?.title,
+    phaseLabel: phase?.label,
+    openTasks: activeTasks.length,
+  }), [blockersOpen, decisionsOpen, activeProjects.length, main?.title, phase?.label, activeTasks.length])
+
+  // Audio briefing payload (no longer rendered as a long paragraph in the
+  // hero — kept so the voice button can read out the same context).
+  const executiveSummary = pulse.explanation
+
+  // Typewriter: types the explanation char-by-char each time the popover
+  // opens, so Tagro feels like it's writing live. Pauses on close.
+  useEffect(() => {
+    if (!pulseOpen) { setTyped(''); return }
+    const target = pulse.explanation
+    setTyped('')
+    let i = 0
+    const id = setInterval(() => {
+      i += 2  // 2 chars at a time keeps it lively but readable
+      if (i >= target.length) {
+        setTyped(target)
+        clearInterval(id)
+      } else {
+        setTyped(target.slice(0, i))
+      }
+    }, 14)
+    return () => clearInterval(id)
+  }, [pulseOpen, pulse.explanation])
 
   const projectStatusValue = activeProjects.length === 0 ? 'ruhig' : `${activeProjects.length} aktiv`
   const projectStatusSub = activeProjects.length === 0
@@ -169,38 +279,140 @@ export default function DashboardPage() {
         }
         .dash-editorial * { font-weight: 500 !important; }
 
-        /* ── Hero — sits flush to the top edge ───────────────── */
+        /* ── Hero — 24px top breathing room, calm headline ──── */
         .ed-hero {
-          max-width:760px;
-          padding: 6px 0 28px;
-          animation:dashFade .3s cubic-bezier(.16,1,.3,1) both;
+          padding: 24px 0 28px;
+          animation: dashFade .3s cubic-bezier(.16,1,.3,1) both;
+        }
+        .ed-hero-top {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          gap: 16px;
         }
         .ed-title {
-          margin:0;
-          color:var(--text);
-          font-size:clamp(24px, 2.4vw, 30px);
-          line-height:1.12;
-          letter-spacing:-.018em;
-        }
-        .ed-status-line {
-          margin:6px 0 0;
-          color:var(--ed-secondary);
-          font-size:clamp(18px, 1.8vw, 22px);
-          line-height:1.25;
-          letter-spacing:-.01em;
-        }
-        .ed-summary {
-          margin:18px 0 0;
-          max-width:620px;
-          color:var(--ed-secondary);
-          font-size:14px;
-          line-height:1.6;
+          margin: 0;
+          color: var(--text);
+          font-size: clamp(18px, 1.7vw, 21px);
+          line-height: 1.25;
+          letter-spacing: -.005em;
+          flex: 1;
+          min-width: 0;
         }
         .ed-hero-actions {
-          margin-top: 20px;
-          display:flex; align-items:center; gap:8px;
+          margin-top: 18px;
+          display: flex; align-items: center; gap: 8px;
           flex-wrap: wrap;
         }
+
+        /* ── Status pulse — floating badge in the corner ────── */
+        .ed-pulse-wrap { position: relative; flex-shrink: 0; }
+        .ed-pulse {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          height: 28px;
+          padding: 0 12px 0 10px;
+          border-radius: 999px;
+          border: 0;
+          background: #fff;
+          color: var(--ed-secondary);
+          font: inherit;
+          font-size: 12px;
+          letter-spacing: .005em;
+          cursor: pointer;
+          box-shadow: 0 1px 2px rgba(15,23,42,.08), 0 7px 18px rgba(15,23,42,.08);
+          transition: box-shadow .14s ease, transform .14s ease, color .14s ease;
+        }
+        .ed-pulse:hover, .ed-pulse.open {
+          color: var(--text);
+          transform: translateY(-1px);
+          box-shadow: 0 1px 2px rgba(15,23,42,.10), 0 9px 22px rgba(15,23,42,.11);
+        }
+        [data-theme="dark"] .ed-pulse,
+        [data-theme="classic-dark"] .ed-pulse {
+          background: color-mix(in srgb, var(--surface) 92%, #fff 8%);
+          box-shadow: 0 1px 2px rgba(0,0,0,.28), 0 8px 20px rgba(0,0,0,.20);
+        }
+        [data-theme="dark"] .ed-pulse:hover,
+        [data-theme="dark"] .ed-pulse.open,
+        [data-theme="classic-dark"] .ed-pulse:hover,
+        [data-theme="classic-dark"] .ed-pulse.open {
+          box-shadow: 0 1px 2px rgba(0,0,0,.34), 0 10px 24px rgba(0,0,0,.26);
+        }
+        .ed-pulse-dot {
+          width: 8px; height: 8px; border-radius: 999px;
+          background: currentColor;
+          flex-shrink: 0;
+          animation: pulseGlow 2.4s ease-in-out infinite;
+        }
+        @keyframes pulseGlow {
+          0%, 100% { box-shadow: 0 0 0 0 currentColor; opacity: 1; }
+          50%      { box-shadow: 0 0 0 5px transparent;  opacity: .55; }
+        }
+        .ed-pulse.tone-green .ed-pulse-dot { color: #22c55e; }
+        .ed-pulse.tone-amber .ed-pulse-dot { color: #f59e0b; }
+        .ed-pulse.tone-red   .ed-pulse-dot { color: #ef4444; }
+        .ed-pulse-label { white-space: nowrap; }
+
+        /* ── Pulse popover — Tagro types live ────────────────── */
+        .ed-pulse-pop {
+          position: absolute;
+          top: calc(100% + 8px);
+          right: 0;
+          width: min(340px, calc(100vw - 32px));
+          padding: 14px 16px 15px;
+          border-radius: 14px;
+          background: color-mix(in srgb, var(--surface) 96%, transparent);
+          backdrop-filter: blur(20px) saturate(160%);
+          -webkit-backdrop-filter: blur(20px) saturate(160%);
+          box-shadow:
+            0 18px 44px rgba(15,23,42,.14),
+            0 1px 0 rgba(255,255,255,.34) inset,
+            0 0 0 1px rgba(15,23,42,.06);
+          z-index: 60;
+          animation: popIn .22s cubic-bezier(.16,1,.3,1) both;
+        }
+        @keyframes popIn {
+          from { opacity: 0; transform: translateY(-4px) scale(.98); }
+          to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        [data-theme="dark"] .ed-pulse-pop,
+        [data-theme="classic-dark"] .ed-pulse-pop {
+          background: color-mix(in srgb, #14181f 95%, rgba(20,24,31,.7));
+          box-shadow:
+            0 18px 44px rgba(0,0,0,.42),
+            0 0 0 1px rgba(255,255,255,.05);
+        }
+        .ed-pulse-author {
+          display: inline-flex; align-items: center; gap: 6px;
+          margin: 0 0 8px;
+          color: var(--ed-muted);
+          font-size: 10.5px;
+          letter-spacing: .14em;
+          text-transform: uppercase;
+        }
+        .ed-pulse-author-dot {
+          width: 5px; height: 5px; border-radius: 999px;
+          background: var(--ed-secondary);
+        }
+        .ed-pulse-text {
+          margin: 0;
+          color: var(--text);
+          font-size: 13px;
+          line-height: 1.55;
+          min-height: 3.4em;
+        }
+        .ed-pulse-caret {
+          display: inline-block;
+          width: 1px; height: 1.05em;
+          margin-left: 2px;
+          background: var(--text);
+          vertical-align: -.18em;
+          animation: caretBlink 1s steps(2, end) infinite;
+        }
+        @keyframes caretBlink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
         /* Audio briefing button — single primary surface on the page,
            still neutral: floats with the Tasks-style shadow. */
         .dash-editorial .audio-briefing-button {
@@ -374,9 +586,10 @@ export default function DashboardPage() {
         }
         @media (max-width:760px) {
           .dash-editorial { padding: 0 14px 88px; }
-          .ed-title { font-size:21px; }
-          .ed-status-line { font-size:17.5px; }
-          .ed-summary { font-size:13.5px; margin-top:14px; }
+          .ed-hero { padding: 20px 0 22px; }
+          .ed-title { font-size: 17px; }
+          .ed-pulse-label { display: none; }
+          .ed-pulse { padding: 0; width: 28px; justify-content: center; }
           .ed-status-row { grid-template-columns:1fr 1fr; gap:18px; padding:14px 0 22px; }
           .ed-project-row { grid-template-columns:1fr 1fr; gap:18px; }
           .ed-focus-row { grid-template-columns: 70px 6px minmax(0,1fr); }
@@ -385,9 +598,32 @@ export default function DashboardPage() {
       `}</style>
 
       <section className="ed-hero" aria-label="Tägliche Statusabfrage">
-        <h1 className="ed-title">{greeting}{person ? `, ${person}` : ''}.</h1>
-        <p className="ed-status-line">{loading ? 'Tagro verdichtet die Lage…' : urgentLine}</p>
-        <p className="ed-summary">{loading ? '' : executiveSummary}</p>
+        <div className="ed-hero-top">
+          <h1 className="ed-title">{greeting}</h1>
+          <div className="ed-pulse-wrap" ref={pulseRef}>
+            <button
+              type="button"
+              className={`ed-pulse tone-${pulse.tone}${pulseOpen ? ' open' : ''}`}
+              aria-expanded={pulseOpen}
+              onClick={() => setPulseOpen(v => !v)}
+            >
+              <span className="ed-pulse-dot" />
+              <span className="ed-pulse-label">{loading ? 'wird geprüft…' : pulse.label}</span>
+            </button>
+            {pulseOpen && !loading && (
+              <div className="ed-pulse-pop" role="dialog" aria-label="Tagro Einschätzung">
+                <p className="ed-pulse-author">
+                  <span className="ed-pulse-author-dot" />
+                  Tagro
+                </p>
+                <p className="ed-pulse-text">
+                  {typed}
+                  {typed.length < pulse.explanation.length && <span className="ed-pulse-caret" />}
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
         <div className="ed-hero-actions">
           <AudioBriefingButton
             type="dashboard_briefing"
