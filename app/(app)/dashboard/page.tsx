@@ -19,9 +19,10 @@ import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import NewProjectModal from '@/components/NewProjectModal'
 import NewTaskModal from '@/components/NewTaskModal'
-import VoiceControls from '@/components/VoiceControls'
 import ObserverWelcomeModal from '@/components/ObserverWelcomeModal'
 import { generateBriefingText } from '@/lib/briefings'
+import { speechVoiceId, useSpeechSynthesis } from '@/hooks/useSpeechSynthesis'
+import { Pause, Play, SlidersHorizontal, Stop } from '@phosphor-icons/react'
 
 // ─────────────────────────────────────────────────────────────────────
 // Greeting + Pulse helpers
@@ -104,6 +105,11 @@ type Activity  = { id: string; type: string; message: string; created_at: string
 type Milestone = { id: string; project_id: string; title: string; amount: number | null; currency: string | null; status: string | null; due_date: string | null; paid_at: string | null; order_index: number | null }
 type BriefingChannels = { whatsapp: boolean; audioFeed: boolean; spotify: boolean }
 
+function formatVoiceLabel(voice: SpeechSynthesisVoice) {
+  const language = voice.lang.toLowerCase().startsWith('de') ? 'Deutsch' : voice.lang
+  return `${voice.name.replace(/\s*\(.*?\)\s*/g, '')} · ${language}`
+}
+
 const PHASE: Record<string, { label: string; pct: number }> = {
   intake:   { label: 'Intake',        pct: 10  },
   planning: { label: 'Planung',       pct: 28  },
@@ -124,6 +130,7 @@ export default function DashboardPage() {
   const [showNewProject, setShowNewProject] = useState(false)
   const [showNewTask,    setShowNewTask]    = useState(false)
   const [channels, setChannels] = useState<BriefingChannels>({ whatsapp: false, audioFeed: false, spotify: false })
+  const [briefingSettingsOpen, setBriefingSettingsOpen] = useState(false)
   const supabase = useMemo(() => createClient(), [])
   void activity
 
@@ -226,11 +233,6 @@ export default function DashboardPage() {
   })()
 
   const agencyMode = projects.length >= 5
-  const projectSegments = projects.slice(0, agencyMode ? 3 : 4).map(project => {
-    const projectTaskCount = allTasks.filter(task => task.project_id === project.id).length
-    const phaseLabel = PHASE[project.status]?.label ?? 'Intake'
-    return `${project.title}: ${phaseLabel}${projectTaskCount ? `, ${projectTaskCount} Tasks` : ''}`
-  })
   const nextStep = focusItems[0]?.text ?? (main ? `${main.title} kurz prüfen` : 'erstes Projekt anlegen')
   const briefingLines = [
     agencyMode
@@ -254,6 +256,30 @@ export default function DashboardPage() {
     decisionCount: decisionsOpen,
     nextSteps: [nextStep],
   })
+  const {
+    supported: speechSupported,
+    state: speechState,
+    voices,
+    selectedVoice,
+    preferences,
+    play: playBriefing,
+    pause: pauseBriefing,
+    stop: stopBriefing,
+    updatePreferences,
+  } = useSpeechSynthesis(briefingText)
+  const selectedVoiceId = selectedVoice ? speechVoiceId(selectedVoice) : ''
+  const voiceChoices = useMemo(() => {
+    const germanVoices = voices.filter(voice => voice.lang.toLowerCase().startsWith('de'))
+    return (germanVoices.length ? germanVoices : voices).slice(0, 12)
+  }, [voices])
+  const isBriefingPlaying = speechState === 'playing'
+  const isBriefingActive = speechState === 'playing' || speechState === 'paused'
+  const listenLabel = isBriefingPlaying ? 'Pausieren' : speechState === 'paused' ? 'Weiterhören' : 'Bericht anhören'
+  const transcriptLines = briefingLines.slice(0, 3)
+  const handleBriefingToggle = () => {
+    if (isBriefingPlaying) pauseBriefing()
+    else playBriefing()
+  }
   const attentionItems = [
     {
       label: 'Risiken',
@@ -363,21 +389,21 @@ export default function DashboardPage() {
         .ed-briefing {
           margin-top: 18px;
           display: grid;
-          grid-template-columns: minmax(0, 1fr) minmax(270px, .46fr);
-          gap: 22px;
+          grid-template-columns: minmax(0, 1.08fr) minmax(245px, .42fr);
+          gap: 18px;
           padding: 18px;
           border-radius: 12px;
           background:
-            radial-gradient(circle at 12% 0%, color-mix(in srgb, var(--text) 5%, transparent), transparent 42%),
-            color-mix(in srgb, var(--surface) 92%, transparent);
+            radial-gradient(circle at 14% 8%, color-mix(in srgb, var(--text) 4%, transparent), transparent 44%),
+            #fff;
           box-shadow:
             0 1px 2px rgba(15,23,42,.05),
-            0 18px 46px rgba(15,23,42,.08);
+            0 18px 46px rgba(15,23,42,.075);
         }
         [data-theme="dark"] .ed-briefing,
         [data-theme="classic-dark"] .ed-briefing {
           background:
-            radial-gradient(circle at 16% 0%, color-mix(in srgb, #fff 8%, transparent), transparent 42%),
+            radial-gradient(circle at 16% 5%, color-mix(in srgb, #fff 7%, transparent), transparent 44%),
             color-mix(in srgb, var(--surface) 92%, #fff 4%);
           box-shadow:
             0 1px 2px rgba(0,0,0,.28),
@@ -386,44 +412,99 @@ export default function DashboardPage() {
         .ed-briefing-main,
         .ed-briefing-side { min-width: 0; }
         .ed-briefing-kicker {
-          margin: 0 0 7px;
+          margin: 0 0 6px;
           color: var(--ed-muted);
           font-size: 10.5px;
-          letter-spacing: .15em;
+          letter-spacing: .14em;
           text-transform: uppercase;
         }
         .ed-briefing-title {
           margin: 0;
           color: var(--text);
-          font-size: clamp(17px, 1.5vw, 20px);
-          line-height: 1.22;
+          font-size: clamp(18px, 1.65vw, 22px);
+          line-height: 1.18;
           letter-spacing: -.008em;
         }
-        .ed-briefing-copy {
-          margin: 10px 0 14px;
-          display: grid;
-          gap: 4px;
+        .ed-briefing-sub {
+          margin: 7px 0 0;
+          max-width: 560px;
           color: var(--ed-secondary);
-          font-size: 13px;
+          font-size: 12.5px;
           line-height: 1.45;
         }
-        .ed-briefing-copy p { margin: 0; }
-        .ed-briefing-controls {
+        .ed-listen-row {
+          position: relative;
+          margin-top: 15px;
           display: flex;
           align-items: center;
           gap: 8px;
           flex-wrap: wrap;
         }
-        .dash-editorial .ed-briefing .voice-controls { gap: 8px; }
-        .dash-editorial .ed-briefing .voice-icon-btn,
-        .dash-editorial .ed-briefing .voice-field {
-          height: 32px;
+        .ed-listen-button,
+        .ed-mini-control,
+        .ed-listen-settings-toggle,
+        .ed-briefing-link {
+          appearance: none;
           border: 0;
           border-radius: 8px;
           background: #fff;
           color: var(--text);
+          font: inherit;
+          cursor: pointer;
+          text-decoration: none;
           box-shadow: 0 1px 2px rgba(15,23,42,.08), 0 7px 18px rgba(15,23,42,.08);
+          transition: transform .14s ease, box-shadow .14s ease, background .14s ease, opacity .14s ease;
+        }
+        .ed-listen-button:hover,
+        .ed-mini-control:hover,
+        .ed-listen-settings-toggle:hover,
+        .ed-briefing-link:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 1px 2px rgba(15,23,42,.09), 0 10px 24px rgba(15,23,42,.11);
+        }
+        .ed-listen-button:focus-visible,
+        .ed-mini-control:focus-visible,
+        .ed-listen-settings-toggle:focus-visible,
+        .ed-briefing-link:focus-visible {
+          outline: 2px solid color-mix(in srgb, #6b7cff 60%, transparent);
+          outline-offset: 2px;
+        }
+        .ed-listen-button {
+          min-width: min(100%, 260px);
+          height: 46px;
+          padding: 0 18px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          background: color-mix(in srgb, var(--text) 91%, #fff 9%);
+          color: color-mix(in srgb, var(--surface) 96%, #fff 4%);
+          font-size: 13.5px;
+          letter-spacing: -.002em;
+        }
+        .ed-listen-button[disabled] {
+          opacity: .56;
+          cursor: not-allowed;
+          transform: none;
+        }
+        .ed-mini-control,
+        .ed-briefing-link {
+          height: 34px;
+          padding: 0 12px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 7px;
           font-size: 11.5px;
+          color: var(--ed-secondary);
+        }
+        .ed-listen-settings-toggle {
+          width: 34px;
+          height: 34px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          color: var(--ed-secondary);
         }
         [data-theme="dark"] .dash-editorial .ed-briefing .voice-icon-btn,
         [data-theme="dark"] .dash-editorial .ed-briefing .voice-field,
@@ -432,23 +513,91 @@ export default function DashboardPage() {
           background: color-mix(in srgb, var(--surface) 88%, #fff 8%);
           box-shadow: 0 1px 2px rgba(0,0,0,.28), 0 8px 20px rgba(0,0,0,.20);
         }
-        .ed-briefing-link {
-          height: 32px;
-          padding: 0 11px;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          border-radius: 8px;
-          background: #fff;
-          color: var(--text);
-          text-decoration: none;
-          font-size: 11.5px;
-          box-shadow: 0 1px 2px rgba(15,23,42,.08), 0 7px 18px rgba(15,23,42,.08);
+        [data-theme="dark"] .ed-listen-button,
+        [data-theme="classic-dark"] .ed-listen-button {
+          background: color-mix(in srgb, #fff 90%, var(--surface) 10%);
+          color: #111827;
         }
+        [data-theme="dark"] .ed-mini-control,
+        [data-theme="dark"] .ed-listen-settings-toggle,
         [data-theme="dark"] .ed-briefing-link,
+        [data-theme="classic-dark"] .ed-mini-control,
+        [data-theme="classic-dark"] .ed-listen-settings-toggle,
         [data-theme="classic-dark"] .ed-briefing-link {
           background: color-mix(in srgb, var(--surface) 88%, #fff 8%);
           box-shadow: 0 1px 2px rgba(0,0,0,.28), 0 8px 20px rgba(0,0,0,.20);
+        }
+        [data-theme="dark"] .ed-briefing-link,
+        [data-theme="classic-dark"] .ed-briefing-link {
+          color: var(--ed-secondary);
+        }
+        .ed-briefing-settings {
+          position: absolute;
+          z-index: 5;
+          top: calc(100% + 10px);
+          left: 0;
+          width: min(320px, calc(100vw - 56px));
+          padding: 10px;
+          border-radius: 12px;
+          background: #fff;
+          box-shadow: 0 1px 2px rgba(15,23,42,.06), 0 24px 60px rgba(15,23,42,.16);
+        }
+        [data-theme="dark"] .ed-briefing-settings,
+        [data-theme="classic-dark"] .ed-briefing-settings {
+          background: color-mix(in srgb, var(--surface) 94%, #fff 6%);
+          box-shadow: 0 1px 2px rgba(0,0,0,.32), 0 24px 60px rgba(0,0,0,.28);
+        }
+        .ed-setting-row {
+          display: grid;
+          grid-template-columns: 78px minmax(0, 1fr);
+          gap: 10px;
+          align-items: center;
+          padding: 6px;
+        }
+        .ed-setting-label {
+          color: var(--ed-muted);
+          font-size: 10.5px;
+          letter-spacing: .12em;
+          text-transform: uppercase;
+        }
+        .ed-setting-select {
+          width: 100%;
+          height: 34px;
+          border: 0;
+          border-radius: 8px;
+          padding: 0 10px;
+          background: color-mix(in srgb, var(--surface-2) 58%, transparent);
+          color: var(--text);
+          font: inherit;
+          font-size: 12px;
+          outline: none;
+        }
+        .ed-transcript {
+          margin-top: 16px;
+          padding: 13px 14px;
+          border-radius: 12px;
+          background: color-mix(in srgb, var(--surface-2) 38%, transparent);
+        }
+        .ed-transcript-label {
+          display: block;
+          margin-bottom: 7px;
+          color: var(--ed-muted);
+          font-size: 10.5px;
+          letter-spacing: .14em;
+          text-transform: uppercase;
+        }
+        .ed-transcript p {
+          margin: 0;
+          color: var(--ed-secondary);
+          font-size: 12.5px;
+          line-height: 1.5;
+        }
+        .ed-transcript p + p { margin-top: 4px; }
+        .ed-briefing-actions {
+          margin-top: 11px;
+          display: flex;
+          gap: 8px;
+          flex-wrap: wrap;
         }
         .ed-attention {
           display: grid;
@@ -510,26 +659,6 @@ export default function DashboardPage() {
           background: var(--ed-muted);
         }
         .ed-channel.on .ed-channel-dot { background: #2f7df6; }
-        .ed-segments {
-          margin-top: 11px;
-          display: flex;
-          gap: 6px;
-          flex-wrap: wrap;
-        }
-        .ed-segment {
-          max-width: 100%;
-          height: 25px;
-          display: inline-flex;
-          align-items: center;
-          border-radius: 8px;
-          padding: 0 9px;
-          background: color-mix(in srgb, var(--surface-2) 44%, transparent);
-          color: var(--ed-muted);
-          font-size: 10.5px;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-        }
 
         /* ── Focus list ──────────────────────────────────────── */
         .ed-focus {
@@ -700,21 +829,76 @@ export default function DashboardPage() {
         </div>
         <section className="ed-briefing" aria-label="Heute von Tagro">
           <div className="ed-briefing-main">
-            <p className="ed-briefing-kicker">Heute von Tagro · {agencyMode ? 'Portfolio Pulse' : 'Statusbriefing'} · {agencyMode ? '45–60 Sek.' : '30–60 Sek.'}</p>
-            <h2 className="ed-briefing-title">{agencyMode ? 'Die wichtigsten Signale, ohne jedes Projekt einzeln aufzublähen.' : 'Ein kurzer Status, damit du nicht in jedes Detail springen musst.'}</h2>
-            <div className="ed-briefing-copy">
-              {briefingLines.map(line => <p key={line}>{line}</p>)}
+            <p className="ed-briefing-kicker">Heute von Tagro · {agencyMode ? 'Portfolio Pulse' : 'Statusbriefing'}</p>
+            <h2 className="ed-briefing-title">{agencyMode ? 'Der wichtigste Stand in einer Minute.' : 'Dein aktueller Stand, ruhig zusammengefasst.'}</h2>
+            <p className="ed-briefing-sub">Audio zuerst. Der Text bleibt darunter als klare Quelle.</p>
+            <div className="ed-listen-row">
+              <button
+                className="ed-listen-button"
+                type="button"
+                onClick={handleBriefingToggle}
+                disabled={!speechSupported || !briefingText.trim()}
+                aria-label={listenLabel}
+              >
+                {isBriefingPlaying ? <Pause size={17} weight="fill" /> : <Play size={17} weight="fill" />}
+                <span>{listenLabel}</span>
+              </button>
+              {isBriefingActive && (
+                <button className="ed-mini-control" type="button" onClick={stopBriefing}>
+                  <Stop size={13} weight="fill" /> Stopp
+                </button>
+              )}
+              <button
+                className={`ed-listen-settings-toggle${briefingSettingsOpen ? ' open' : ''}`}
+                type="button"
+                onClick={() => setBriefingSettingsOpen(open => !open)}
+                aria-label="Stimme und Tempo einstellen"
+                aria-expanded={briefingSettingsOpen}
+              >
+                <SlidersHorizontal size={16} />
+              </button>
+              {briefingSettingsOpen && (
+                <div className="ed-briefing-settings" role="dialog" aria-label="Audioeinstellungen">
+                  <label className="ed-setting-row">
+                    <span className="ed-setting-label">Tempo</span>
+                    <select
+                      className="ed-setting-select"
+                      value={preferences.rate}
+                      onChange={(event) => updatePreferences({ rate: Number(event.target.value) })}
+                    >
+                      <option value={0.85}>0.85x</option>
+                      <option value={0.95}>0.95x</option>
+                      <option value={1}>1.00x</option>
+                      <option value={1.1}>1.10x</option>
+                      <option value={1.15}>1.15x</option>
+                    </select>
+                  </label>
+                  <label className="ed-setting-row">
+                    <span className="ed-setting-label">Stimme</span>
+                    <select
+                      className="ed-setting-select"
+                      value={selectedVoiceId}
+                      onChange={(event) => updatePreferences({ voiceId: event.target.value || undefined, voiceName: undefined })}
+                    >
+                      {voiceChoices.length === 0 && <option value="">Systemstimme</option>}
+                      {voiceChoices.map(voice => (
+                        <option key={speechVoiceId(voice)} value={speechVoiceId(voice)}>
+                          {formatVoiceLabel(voice)}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+              )}
             </div>
-            <div className="ed-briefing-controls">
-              <VoiceControls text={briefingText} compact />
+            <div className="ed-transcript" aria-label="Transkript">
+              <span className="ed-transcript-label">Transkript</span>
+              {transcriptLines.map(line => <p key={line}>{line}</p>)}
+            </div>
+            <div className="ed-briefing-actions">
               <Link className="ed-briefing-link" href="/reports">Lesen</Link>
               <Link className="ed-briefing-link" href={main ? `/project/${main.id}` : '/projects'}>Projekt öffnen</Link>
             </div>
-            {projectSegments.length > 0 && (
-              <div className="ed-segments" aria-label="Projektsegmente im Briefing">
-                {projectSegments.map(segment => <span className="ed-segment" key={segment}>{segment}</span>)}
-              </div>
-            )}
           </div>
           <aside className="ed-briefing-side" aria-label="Status und Kanäle">
             <div className="ed-attention">
