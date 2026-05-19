@@ -148,7 +148,7 @@ export default function PwaInstallBanner() {
           user-select:none;
           pointer-events:none;
         }
-        .pwa-logo-dark { display:none; transform:scale(1.08); transform-origin:center; }
+        .pwa-logo-dark { display:none; }
         [data-theme="dark"] .pwa-logo-light,
         [data-theme="classic-dark"] .pwa-logo-light { display:none; }
         [data-theme="dark"] .pwa-logo-dark,
@@ -222,8 +222,8 @@ export default function PwaInstallBanner() {
       `}</style>
       <div className="pwa-banner" role="dialog" aria-label="Festag installieren">
         <span className="pwa-logo" aria-hidden="true">
-          <img className="pwa-logo-light" src="/brand/auth-logo-light.png" alt="" />
-          <img className="pwa-logo-dark" src="/brand/auth-logo-dark.png" alt="" />
+          <img className="pwa-logo-light" src="/brand/app-icon.png?v=20260519-frame57-mark" alt="" />
+          <img className="pwa-logo-dark" src="/brand/app-icon.png?v=20260519-frame57-mark" alt="" />
         </span>
         <div className="pwa-body">
           <div className="pwa-title">Festag als Webapp installieren</div>

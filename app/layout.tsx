@@ -4,7 +4,7 @@ import ThemeProvider from '@/components/ThemeProvider'
 import ServiceWorkerCleanup from '@/components/ServiceWorkerCleanup'
 import AuthSessionMemory from '@/components/AuthSessionMemory'
 
-const brandIconVersion = '20260519-black-mark'
+const brandIconVersion = '20260519-frame57-mark'
 
 export const metadata: Metadata = {
   title: 'Festag — AI-native Softwareproduktion',
@@ -19,6 +19,7 @@ export const metadata: Metadata = {
       { url: `/brand/favicon-48.png?v=${brandIconVersion}`, sizes: '48x48', type: 'image/png' },
       { url: `/brand/favicon-64.png?v=${brandIconVersion}`, sizes: '64x64', type: 'image/png' },
       { url: `/brand/icon-192.png?v=${brandIconVersion}`, sizes: '192x192', type: 'image/png' },
+      { url: `/brand/icon-512.png?v=${brandIconVersion}`, sizes: '512x512', type: 'image/png' },
     ],
     apple: [
       { url: `/brand/apple-touch-icon.png?v=${brandIconVersion}`, sizes: '180x180' },
@@ -50,6 +51,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="icon" type="image/png" sizes="48x48" href={`/brand/favicon-48.png?v=${brandIconVersion}`} />
         <link rel="icon" type="image/png" sizes="64x64" href={`/brand/favicon-64.png?v=${brandIconVersion}`} />
         <link rel="icon" type="image/png" sizes="192x192" href={`/brand/icon-192.png?v=${brandIconVersion}`} />
+        <link rel="icon" type="image/png" sizes="512x512" href={`/brand/icon-512.png?v=${brandIconVersion}`} />
+        <link rel="shortcut icon" href={`/brand/favicon-64.png?v=${brandIconVersion}`} />
         <link rel="apple-touch-icon" href={`/brand/apple-touch-icon.png?v=${brandIconVersion}`} />
         {/* Pre-paint theme + bg sync — eliminates white flash between auth pages */}
         <script
