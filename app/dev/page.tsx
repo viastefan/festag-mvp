@@ -92,6 +92,13 @@ export default function DevOverviewPage() {
   const [loading, setLoading] = useState(true)
   const [tick, setTick] = useState(0)
 
+  // Daily prompt from Tagro (16:00 cron)
+  type DailyPrompt = { id: string; project_id: string | null; prompt_date: string; state: string; payload: any }
+  const [dailyPrompts, setDailyPrompts] = useState<DailyPrompt[]>([])
+  const [promptDraft, setPromptDraft] = useState('')
+  const [promptBusy, setPromptBusy] = useState(false)
+  const [promptDone, setPromptDone] = useState(false)
+
   useEffect(() => {
     let cancelled = false
     ;(async () => {
@@ -154,6 +161,17 @@ export default function DevOverviewPage() {
             setOpenSessionTaskTitle(null)
           }
         }
+      } catch { /* noop */ }
+
+      // open daily prompts (Tagro 16:00 ping)
+      try {
+        const { data: prompts } = await (supabase as any)
+          .from('dev_daily_prompts')
+          .select('id, project_id, prompt_date, state, payload')
+          .eq('developer_id', uid)
+          .eq('state', 'open')
+          .order('created_at', { ascending: false }).limit(4)
+        if (!cancelled) setDailyPrompts(((prompts as any[]) ?? []) as DailyPrompt[])
       } catch { /* noop */ }
 
       setLoading(false)
@@ -226,6 +244,75 @@ export default function DevOverviewPage() {
           </Link>
         </div>
       </header>
+
+      {/* Tagro daily prompt — appears around 16:00 once per day per project */}
+      {dailyPrompts.length > 0 && !promptDone && (
+        <div className="dev-surface" style={{ padding: 16, marginBottom: 18 }}>
+          <p className="dev-section-title" style={{ marginBottom: 6, color: 'var(--accent)' }}>Tagro fragt</p>
+          <p style={{ margin: '0 0 12px', fontSize: 14, lineHeight: 1.5, color: 'var(--text)' }}>
+            Was hast du heute an {dailyPrompts.length === 1
+              ? (projects.find(p => p.id === dailyPrompts[0].project_id)?.title ?? 'deinem Projekt')
+              : `${dailyPrompts.length} Projekten`} gemacht?
+            Ein Satz reicht — ich übersetze ihn ruhig für deinen Client.
+          </p>
+          <textarea
+            value={promptDraft}
+            onChange={(e) => setPromptDraft(e.target.value)}
+            placeholder="z. B. Hero-Section auf Mobile gefixt, Deploy steht. Morgen Login-Flow."
+            rows={3}
+            style={{
+              width: '100%', resize: 'vertical',
+              padding: '10px 12px', borderRadius: 8,
+              border: '1px solid var(--border)',
+              background: 'var(--surface-2)', color: 'var(--text)',
+              fontFamily: 'inherit', fontSize: 13.5, lineHeight: 1.5,
+              letterSpacing: '.012em',
+            }}
+          />
+          <div style={{ display: 'flex', gap: 8, marginTop: 10, justifyContent: 'flex-end' }}>
+            <button
+              className="dev-secondary-btn"
+              type="button"
+              disabled={promptBusy}
+              onClick={async () => {
+                setPromptBusy(true)
+                try {
+                  await Promise.all(dailyPrompts.map(p => fetch('/api/dev/daily-update', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ promptId: p.id, skip: true }),
+                  })))
+                  setDailyPrompts([]); setPromptDone(true)
+                } finally { setPromptBusy(false) }
+              }}
+            >
+              Heute nicht
+            </button>
+            <button
+              className="dev-secondary-btn"
+              type="button"
+              disabled={promptBusy || !promptDraft.trim()}
+              style={{
+                background: 'var(--accent)', color: 'var(--accent-text)', borderColor: 'var(--accent)',
+                opacity: promptBusy || !promptDraft.trim() ? 0.55 : 1,
+              }}
+              onClick={async () => {
+                if (!promptDraft.trim()) return
+                setPromptBusy(true)
+                try {
+                  // Send the same text against each open prompt (one per project).
+                  await Promise.all(dailyPrompts.map(p => fetch('/api/dev/daily-update', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ promptId: p.id, text: promptDraft.trim() }),
+                  })))
+                  setDailyPrompts([]); setPromptDraft(''); setPromptDone(true)
+                } finally { setPromptBusy(false) }
+              }}
+            >
+              {promptBusy ? 'Sende…' : 'An Tagro schicken'}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Active session card */}
       {openSession && (

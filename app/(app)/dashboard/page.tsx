@@ -131,6 +131,10 @@ export default function DashboardPage() {
   const [showNewTask,    setShowNewTask]    = useState(false)
   const [channels, setChannels] = useState<BriefingChannels>({ whatsapp: false, audioFeed: false, spotify: false })
   const [briefingSettingsOpen, setBriefingSettingsOpen] = useState(false)
+  // On-demand status query state
+  const [statusBusy, setStatusBusy] = useState(false)
+  const [statusHint, setStatusHint] = useState<string | null>(null)
+  const [liveReport, setLiveReport] = useState<{ summary: string | null; title: string | null; created_at?: string } | null>(null)
   const supabase = useMemo(() => createClient(), [])
   void activity
 
@@ -376,6 +380,29 @@ export default function DashboardPage() {
         }
         .ed-rail-quick a:hover { background: color-mix(in srgb, var(--surface) 70%, transparent); color: var(--text); }
         .ed-rail-quick small { color: var(--ed-muted); font-size: 11px; }
+        .ed-rail-refresh {
+          margin-top: 12px;
+          width: 100%;
+          height: 32px;
+          padding: 0 12px;
+          border-radius: 999px;
+          border: 0;
+          background: #fff;
+          color: var(--text);
+          font: inherit;
+          font-size: 12.5px;
+          cursor: pointer;
+          box-shadow: 0 1px 2px rgba(15,23,42,.08), 0 7px 18px rgba(15,23,42,.08);
+          transition: box-shadow .14s ease, transform .14s ease, opacity .14s ease;
+        }
+        .ed-rail-refresh:hover { transform: translateY(-1px); box-shadow: 0 1px 2px rgba(15,23,42,.10), 0 9px 22px rgba(15,23,42,.11); }
+        .ed-rail-refresh:disabled { opacity: .55; cursor: default; transform: none; }
+        [data-theme="dark"] .ed-rail-refresh,
+        [data-theme="classic-dark"] .ed-rail-refresh {
+          background: color-mix(in srgb, var(--surface) 92%, #fff 8%);
+          color: var(--text);
+          box-shadow: 0 1px 2px rgba(0,0,0,.28), 0 8px 20px rgba(0,0,0,.20);
+        }
 
         @media (max-width: 980px) {
           .ed-layout { grid-template-columns: 1fr; }
@@ -1056,6 +1083,35 @@ export default function DashboardPage() {
           <p className="ed-rail-eyebrow">Tagro</p>
           <p className="ed-rail-line">{loading ? 'Verdichte gerade die Lage…' : pulse.label}</p>
           <p className="ed-rail-sub">{loading ? '' : pulse.explanation.split('. ').slice(0, 2).join('. ') + '.'}</p>
+
+          {/* On-demand status query */}
+          <button
+            type="button"
+            className="ed-rail-refresh"
+            disabled={statusBusy}
+            onClick={async () => {
+              setStatusBusy(true)
+              try {
+                const res = await fetch('/api/client/status-now', {
+                  method: 'POST', headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(main ? { projectId: main.id } : {}),
+                })
+                const d = await res.json().catch(() => ({}))
+                if (d?.report) setLiveReport(d.report)
+                if (d?.cooldown) setStatusHint('Stand wurde gerade aktualisiert — gleicher Inhalt.')
+                else setStatusHint(null)
+              } finally { setStatusBusy(false) }
+            }}
+          >
+            {statusBusy ? 'Tagro fragt nach…' : 'Status jetzt abrufen'}
+          </button>
+          {statusHint && <p className="ed-rail-sub" style={{ marginTop: 4, fontSize: 11.5 }}>{statusHint}</p>}
+          {liveReport && (
+            <p className="ed-rail-sub" style={{ marginTop: 6, color: 'var(--text)', fontSize: 12.5, lineHeight: 1.55 }}>
+              {liveReport.summary}
+            </p>
+          )}
+
           <div className="ed-rail-divider" />
           <p className="ed-rail-eyebrow">Schnell</p>
           <nav className="ed-rail-quick">

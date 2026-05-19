@@ -4,6 +4,14 @@
     {
       "path": "/api/cron/briefings",
       "schedule": "0 6 * * *"
+    },
+    {
+      "path": "/api/cron/tagro-daily-dev-prompt",
+      "schedule": "0 14 * * *"
+    },
+    {
+      "path": "/api/cron/tagro-daily-dev-prompt",
+      "schedule": "0 15 * * *"
     }
   ]
 }
