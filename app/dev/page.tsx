@@ -262,7 +262,7 @@ export default function DevOverviewPage() {
             {clientRequests.map((t, i) => (
               <Link key={t.id} href={`/dev/tasks?id=${t.id}`} className="row"
                 style={{ borderTop: i > 0 ? '1px solid var(--border)' : 'none' }}>
-                <span className="dot" style={{ background: '#f59e0b' }} />
+                <span className="dot" style={{ '--project-color': '#f59e0b' } as any} />
                 <div className="row-text">
                   <p className="t-1">{t.title}</p>
                   <p className="t-2">
@@ -292,7 +292,7 @@ export default function DevOverviewPage() {
               return (
                 <Link key={t.id} href={`/dev/tasks?id=${t.id}`} className="row"
                   style={{ borderTop: i > 0 ? '1px solid var(--border)' : 'none' }}>
-                  <span className="dot" style={{ background: t.projects?.color ?? 'var(--accent)' }} />
+                  <span className="dot" style={{ '--project-color': t.projects?.color ?? 'var(--accent)' } as any} />
                   <div className="row-text">
                     <p className="t-1">{t.title}</p>
                     <p className="t-2">{t.projects?.title ?? 'kein Projekt'}</p>
@@ -351,7 +351,7 @@ export default function DevOverviewPage() {
             ) : projects.slice(0, 5).map((p, i) => (
               <Link key={p.id} href={`/dev/jobs?id=${p.id}`} className="row"
                 style={{ borderTop: i > 0 ? '1px solid var(--border)' : 'none' }}>
-                <span className="dot" style={{ background: p.color ?? 'var(--accent)' }} />
+                <span className="dot" style={{ '--project-color': p.color ?? 'var(--accent)' } as any} />
                 <div className="row-text">
                   <p className="t-1">{p.title}</p>
                   <p className="t-2">{p.status ?? 'aktiv'}</p>
@@ -403,7 +403,12 @@ export default function DevOverviewPage() {
         }
         .row.gh { grid-template-columns:14px minmax(0,1fr) auto; }
         .row:hover { background: color-mix(in srgb, var(--surface-2) 70%, transparent); }
-        .row .dot { width:7px; height:7px; border-radius:50%; background:var(--accent); }
+        .row .dot {
+          width:9px; height:9px; border-radius:50%;
+          border:2px solid var(--project-color, var(--accent));
+          background:transparent;
+          box-sizing:border-box;
+        }
         .row-text { min-width:0; }
         .t-1 { margin:0; font-size:12.8px; font-weight:500; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
         .t-2 { margin:2px 0 0; font-size:11px; color:var(--text-muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }

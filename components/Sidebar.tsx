@@ -768,7 +768,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         }
         .sb-topbar {
           display:grid;
-          grid-template-columns:minmax(0, 1fr) 28px 28px 28px;
+          grid-template-columns:minmax(0, 1fr) 28px 28px;
           align-items:center;
           gap:6px;
           padding:0 4px 16px;
@@ -814,9 +814,14 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           bottom:16px;
           left:16px;
           width:auto;
-          max-width:180px;
+          max-width:220px;
           padding:0;
           z-index:155;
+        }
+        .sb-monitor-dock {
+          display:flex;
+          align-items:center;
+          gap:8px;
         }
         .sb-nav-scroll {
           flex:1 1 auto;
@@ -980,7 +985,6 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
             >
               <Ico name="search" sz={14} c="currentColor" weight="regular" />
             </button>
-            <NotificationsBell variant="sidebar" />
             {onCollapse && (
               <button
                 className="sb-icon-btn sb-top-icon sb-collapse-icon"
@@ -1255,10 +1259,13 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
                               ? { dot: '#2F8F57', text: `Letztes Briefing ${latestBriefingLabel}` }
                               : { dot: '#2F8F57', text: 'Alles auf Kurs' }
               return (
-                <Link href="/reports#status-center" className="sb-monitor-capsule sb-monitor-capsule--single" title={status.text} aria-label={status.text}>
-                  <span className="sb-monitor-dot" style={{ background: status.dot }} />
-                  <span className="sb-monitor-line">Statusabfrage</span>
-                </Link>
+                <div className="sb-monitor-dock">
+                  <Link href="/reports#status-center" className="sb-monitor-capsule sb-monitor-capsule--single" title={status.text} aria-label={status.text}>
+                    <span className="sb-monitor-dot" style={{ background: '#3B82F6' }} />
+                    <span className="sb-monitor-line">Statusabfrage</span>
+                  </Link>
+                  <NotificationsBell variant="dock" />
+                </div>
               )
             })()}
           </div>

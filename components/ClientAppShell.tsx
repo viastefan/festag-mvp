@@ -143,8 +143,8 @@ export default function ClientAppShell({
           box-shadow: 0 0 0 1px rgba(255,255,255,.03);
           transition: left .18s cubic-bezier(.16,1,.3,1), border-color .18s ease, background .18s ease;
         }
-        .sidebar-collapsed .app-workspace :where(.task-top, .projects-top, .reports-commandline, .page-header, .task-detail-crumbs, .app-page-header) {
-          padding-left: 52px;
+        .sidebar-collapsed .app-workspace :where(.task-top, .projects-top, .reports-commandline, .page-header, .task-detail-crumbs, .app-page-header, .obs-top) {
+          padding-left: 58px;
           transition: padding-left .18s cubic-bezier(.16,1,.3,1);
         }
         .app-sidebar-return {

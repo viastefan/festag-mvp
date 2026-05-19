@@ -678,7 +678,7 @@ export default function TasksPage() {
           width:190px;
           z-index:20;
           border:0;
-          border-radius:12px;
+          border-radius:12px !important;
           background:var(--surface);
           box-shadow:0 18px 44px rgba(0,0,0,.16);
           padding:6px;
@@ -686,7 +686,7 @@ export default function TasksPage() {
         .task-menu button {
           width:100%;
           height:30px;
-          border-radius:8px;
+          border-radius:8px !important;
           display:flex;
           align-items:center;
           justify-content:space-between;
@@ -704,9 +704,9 @@ export default function TasksPage() {
         }
         .task-menu button:hover, .task-menu button.on { background:var(--surface-2); color:var(--text); }
         .task-table {
-          width:calc(100% + 36px);
+          width:calc(100% + 52px);
           margin-left:0;
-          margin-right:-36px;
+          margin-right:-52px;
           overflow:visible;
         }
         .task-head,
@@ -742,7 +742,8 @@ export default function TasksPage() {
           font-size:12px;
           border-radius:8px !important;
           cursor:pointer;
-          overflow:hidden;
+          overflow:visible;
+          position:relative;
           background:transparent;
           transition:background .12s ease;
         }
@@ -848,10 +849,11 @@ export default function TasksPage() {
         }
         .task-project-section.open .task-project-tasks {
           grid-template-rows:1fr;
+          overflow:visible;
         }
         .task-project-tasks-inner {
           min-height:0;
-          overflow:hidden;
+          overflow:visible;
           padding-top:6px;
         }
         .task-project-section.open .task-row {
@@ -1119,6 +1121,8 @@ export default function TasksPage() {
           flex:0 0 auto;
           display:inline-flex;
           align-items:center;
+          justify-content:center;
+          z-index:3;
         }
         .task-state-mark {
           width:16px;
@@ -1149,23 +1153,32 @@ export default function TasksPage() {
         }
         .task-state-popover {
           position:absolute;
-          left:24px;
+          left:calc(100% + 12px);
           top:50%;
-          width:268px;
-          transform:translateY(-50%) translateX(-4px);
+          width:min(250px, calc(100vw - 96px));
+          transform:translateY(-50%) translateX(-6px);
           opacity:0;
+          visibility:hidden;
           pointer-events:none;
-          z-index:80;
-          padding:11px 12px;
+          z-index:220;
+          padding:12px 14px;
           border-radius:12px;
           border:0;
-          background:var(--surface);
-          box-shadow:0 18px 44px rgba(15,23,42,.16);
+          background:color-mix(in srgb, var(--surface) 96%, #fff 4%);
+          box-shadow:0 22px 58px rgba(15,23,42,.16), 0 1px 0 rgba(255,255,255,.58) inset;
           color:var(--task-soft-text);
           font-size:11.5px;
           line-height:1.45;
           letter-spacing:.01em;
-          transition:opacity .14s ease, transform .14s ease;
+          white-space:normal;
+          max-height:none;
+          overflow:visible;
+          transition:opacity .14s ease, visibility .14s ease, transform .14s ease;
+        }
+        [data-theme="dark"] .task-state-popover,
+        [data-theme="classic-dark"] .task-state-popover {
+          background:color-mix(in srgb, var(--surface) 92%, #fff 8%);
+          box-shadow:0 22px 58px rgba(0,0,0,.34), 0 1px 0 rgba(255,255,255,.06) inset;
         }
         .task-state-popover strong {
           display:block;
@@ -1176,6 +1189,7 @@ export default function TasksPage() {
         }
         .task-state-wrap.is-open .task-state-popover {
           opacity:1;
+          visibility:visible;
           transform:translateY(-50%) translateX(0);
         }
         .task-state-popover span {
@@ -1857,7 +1871,7 @@ export default function TasksPage() {
                             </button>
                             <span className="task-state-popover" role="tooltip">
                               <strong>So funktioniert Erledigt</strong>
-                              <span>Tagro oder der Developer haken Aufgaben ab. Danach bleiben sie 24h sichtbar und verschwinden nur aus Standardansichten. Eigene Aufgaben kannst du jederzeit löschen.</span>
+                              <span>Tagro oder der Developer haken Aufgaben ab. Erledigte Aufgaben bleiben 24h sichtbar und verschwinden dann nur aus Standardansichten. Eigene Aufgaben kannst du löschen.</span>
                             </span>
                           </span>
                           <span className="task-name-text">

@@ -107,14 +107,14 @@ export default function PwaInstallBanner() {
       <style>{`
         .pwa-banner {
           position:fixed; right:18px; bottom:18px; z-index:200;
-          width:min(388px, calc(100vw - 24px));
+          width:min(430px, calc(100vw - 24px));
           background: color-mix(in srgb, var(--surface) 98%, transparent);
           color: var(--text);
           border:none;
           border-radius:18px;
           padding:14px;
           display:grid;
-          grid-template-columns:48px 1fr 24px;
+          grid-template-columns:56px minmax(0, 1fr) 24px;
           gap:12px;
           align-items:start;
           box-shadow:
@@ -127,18 +127,39 @@ export default function PwaInstallBanner() {
           animation: pwaIn .22s ease both;
         }
         @keyframes pwaIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
-        .pwa-icon {
-          width:48px; height:48px; border-radius:14px;
+        .pwa-logo {
+          width:56px; height:56px;
           flex-shrink:0;
-          background: color-mix(in srgb, var(--text) 7%, transparent);
-          display:block;
-          object-fit:cover;
-          object-position:center;
-          box-shadow:0 10px 22px -18px rgba(0,0,0,0.5);
+          display:grid;
+          place-items:center;
+          background:transparent;
+          border-radius:16px;
+          overflow:visible;
+          line-height:0;
+          filter:drop-shadow(0 12px 18px rgba(15,23,42,.10));
         }
-        .pwa-body { min-width:0; padding-top:1px; }
+        .pwa-logo img {
+          grid-area:1 / 1;
+          width:100%;
+          height:100%;
+          object-fit:contain;
+          object-position:center;
+          display:block;
+          user-select:none;
+          pointer-events:none;
+        }
+        .pwa-logo-dark { display:none; transform:scale(1.08); transform-origin:center; }
+        [data-theme="dark"] .pwa-logo-light,
+        [data-theme="classic-dark"] .pwa-logo-light { display:none; }
+        [data-theme="dark"] .pwa-logo-dark,
+        [data-theme="classic-dark"] .pwa-logo-dark { display:block; }
+        [data-theme="dark"] .pwa-logo,
+        [data-theme="classic-dark"] .pwa-logo {
+          filter:drop-shadow(0 12px 18px rgba(0,0,0,.24));
+        }
+        .pwa-body { min-width:0; padding-top:1px; overflow:hidden; }
         .pwa-title { font-size:14px; font-weight:600; letter-spacing:-0.01em; margin-bottom:4px; }
-        .pwa-sub { font-size:12.5px; font-weight:500; letter-spacing:0.01em; color:var(--text-muted); line-height:1.38; max-width:260px; }
+        .pwa-sub { font-size:12.5px; font-weight:500; letter-spacing:0.01em; color:var(--text-muted); line-height:1.38; max-width:none; }
         .pwa-actions { margin-top:13px; display:flex; gap:8px; align-items:center; }
         .pwa-install {
           height:34px;
@@ -179,7 +200,8 @@ export default function PwaInstallBanner() {
           color: inherit; opacity:.85;
         }
         .pwa-tip strong { font-weight:500; opacity:1; }
-        :global([data-theme="dark"]) .pwa-banner {
+        [data-theme="dark"] .pwa-banner,
+        [data-theme="classic-dark"] .pwa-banner {
           background: color-mix(in srgb, var(--surface) 92%, #111722 8%);
           box-shadow:
             0 28px 80px -44px rgba(0,0,0,0.78),
@@ -190,16 +212,19 @@ export default function PwaInstallBanner() {
             right:12px;
             bottom:12px;
             width:calc(100vw - 24px);
-            grid-template-columns:44px 1fr 24px;
+            grid-template-columns:50px 1fr 24px;
             border-radius:16px;
             padding:12px;
           }
-          .pwa-icon { width:44px; height:44px; border-radius:13px; }
+          .pwa-logo { width:50px; height:50px; }
           .pwa-sub { max-width:none; }
         }
       `}</style>
       <div className="pwa-banner" role="dialog" aria-label="Festag installieren">
-        <img className="pwa-icon" src="/brand/app-icon.png" alt="" aria-hidden="true" />
+        <span className="pwa-logo" aria-hidden="true">
+          <img className="pwa-logo-light" src="/brand/auth-logo-light.png" alt="" />
+          <img className="pwa-logo-dark" src="/brand/auth-logo-dark.png" alt="" />
+        </span>
         <div className="pwa-body">
           <div className="pwa-title">Festag als Webapp installieren</div>
           <div className="pwa-sub">

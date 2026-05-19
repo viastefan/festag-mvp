@@ -365,7 +365,14 @@ const CLIENTS_CSS = `
   }
   .cl-project-row:first-child { border-top: none; }
   .cl-project-row:hover { background: var(--surface-2); }
-  .cl-project-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text-muted); }
+  .cl-project-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    border: 2px solid var(--text-muted);
+    background: transparent;
+    box-sizing: border-box;
+  }
   .cl-project-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
   .cl-project-status { color: var(--text-muted); font-size: 11.5px; }
 

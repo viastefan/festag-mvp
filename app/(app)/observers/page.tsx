@@ -46,7 +46,7 @@ function ProjectTags({ ids, all, maxVisible = 2 }: { ids: string[] | null; all: 
     <span className="obs-proj-tags">
       {shown.map(p => (
         <span key={p.id} className="obs-proj-tag" title={p.title}>
-          <span className="dot" style={{ background: p.color || '#64748b' }} />
+          <span className="dot" style={{ '--project-color': p.color || '#64748b' } as any} />
           {p.title}
         </span>
       ))}
@@ -244,46 +244,73 @@ export default function ObserversPage() {
         }
         .obs-help-btn:hover { background:var(--surface-2); color:var(--text); border-color:var(--border-strong); }
         .obs-create {
-          height:30px; padding:0 9px 0 12px;
-          border:1px solid transparent; border-radius:8px;
-          background:transparent; color:var(--text-secondary);
+          height:32px; padding:0 9px 0 13px;
+          border:0; border-radius:8px;
+          background:#fff; color:var(--text-secondary);
           display:flex; align-items:center; gap:8px;
           font:inherit; font-size:12px; font-weight:500; letter-spacing:.015em;
           cursor:pointer;
-          transition: background .12s ease, color .12s ease;
+          box-shadow:0 1px 2px rgba(15,23,42,.08), 0 9px 22px rgba(15,23,42,.10);
+          transition: background .12s ease, color .12s ease, transform .12s ease, box-shadow .12s ease;
         }
-        .obs-create:hover { background:var(--surface-2); color:var(--text); }
+        [data-theme="dark"] .obs-create,
+        [data-theme="classic-dark"] .obs-create {
+          background:color-mix(in srgb, var(--surface) 90%, #fff 10%);
+          box-shadow:0 1px 2px rgba(0,0,0,.28), 0 8px 20px rgba(0,0,0,.20);
+        }
+        .obs-create:hover { background:#fff; color:var(--text); transform:translateY(-1px); }
+        [data-theme="dark"] .obs-create:hover,
+        [data-theme="classic-dark"] .obs-create:hover { background:color-mix(in srgb, var(--surface) 86%, #fff 14%); }
         .obs-create:disabled { opacity:.46; color:var(--text-muted); }
+        .obs-create-plus {
+          width:20px; height:20px; border-radius:999px;
+          display:inline-flex; align-items:center; justify-content:center;
+          color:var(--text);
+          flex-shrink:0;
+        }
         .obs-meta-row {
           display:flex; align-items:center; gap:10px;
-          padding:14px 22px 14px;
+          padding:14px 18px 14px;
         }
         .obs-count { color:var(--text-secondary); font-size:11.5px; font-weight:500; letter-spacing:.015em; }
         .obs-text-btn {
           height:27px; padding:0 10px;
-          border:1px solid var(--border); border-radius:999px;
-          background:transparent; color:var(--text-secondary);
+          border:0; border-radius:8px;
+          background:#fff; color:var(--text-secondary);
           font:inherit; font-size:11.5px; font-weight:500; letter-spacing:.015em;
           cursor:pointer;
           display:inline-flex; align-items:center; gap:6px;
-          transition:background .12s ease, color .12s ease, border-color .12s ease;
+          box-shadow:0 1px 2px rgba(15,23,42,.07), 0 7px 18px rgba(15,23,42,.08);
+          transition:background .12s ease, color .12s ease, transform .12s ease, box-shadow .12s ease;
         }
-        .obs-text-btn:hover { background:var(--surface-2); color:var(--text); }
+        [data-theme="dark"] .obs-text-btn,
+        [data-theme="classic-dark"] .obs-text-btn {
+          background:color-mix(in srgb, var(--surface) 90%, #fff 10%);
+          box-shadow:0 1px 2px rgba(0,0,0,.24), 0 7px 18px rgba(0,0,0,.18);
+        }
+        .obs-text-btn:hover { background:#fff; color:var(--text); transform:translateY(-1px); }
 
-        /* ── Inline-Composer — ohne Container-Border, ruhig & seriös ── */
+        /* ── Invite composer — 3D, ruhig, ohne harte Linien ── */
         .obs-composer {
           border:0;
-          border-radius:0;
-          background:transparent;
-          margin:0 0 18px;
+          border-radius:12px;
+          background:color-mix(in srgb, var(--surface) 94%, #fff 6%);
+          box-shadow:0 18px 46px rgba(15,23,42,.08), 0 1px 0 rgba(255,255,255,.66) inset;
+          margin:0 0 20px;
           padding:0;
+          overflow:hidden;
           animation:obsComposerIn .18s cubic-bezier(.16,1,.3,1) both;
+        }
+        [data-theme="dark"] .obs-composer,
+        [data-theme="classic-dark"] .obs-composer {
+          background:color-mix(in srgb, var(--surface) 90%, #fff 10%);
+          box-shadow:0 20px 48px rgba(0,0,0,.28), 0 1px 0 rgba(255,255,255,.06) inset;
         }
         @keyframes obsComposerIn { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:none; } }
         .obs-composer-top {
           display:flex; align-items:flex-start; justify-content:space-between;
-          gap:12px; padding:0 0 14px;
-          border-bottom:1px solid color-mix(in srgb, var(--border) 60%, transparent);
+          gap:12px; padding:14px 16px 8px;
+          border-bottom:0;
         }
         .obs-composer-title { font-size:13px; font-weight:500; color:var(--text); letter-spacing:.015em; }
         .obs-composer-sub { font-size:11.5px; font-weight:500; color:var(--text-muted); letter-spacing:.015em; margin-top:2px; }
@@ -293,29 +320,30 @@ export default function ObserversPage() {
           transition:background .12s, color .12s; margin-top:-2px;
         }
         .obs-composer-x:hover { background:var(--surface-2); color:var(--text); }
-        .obs-composer-body { padding:18px 0 6px; display:flex; flex-direction:column; gap:18px; }
+        .obs-composer-body { padding:12px 16px 8px; display:flex; flex-direction:column; gap:15px; }
         .obs-fld { display:flex; flex-direction:column; gap:6px; }
         .obs-fld-label { font-size:10.5px; font-weight:500; letter-spacing:.14em; text-transform:uppercase; color:var(--text-muted); }
         .obs-fld input[type="text"], .obs-fld input[type="email"] {
-          height:32px; padding:0 10px; border-radius:7px;
-          border:1px solid var(--border); background:transparent; color:var(--text);
+          height:32px; padding:0 10px; border-radius:8px;
+          border:0; background:color-mix(in srgb, var(--surface-2) 62%, transparent); color:var(--text);
           font:inherit; font-size:12.5px; font-weight:500; letter-spacing:.015em; outline:none;
           transition:border-color .12s, box-shadow .12s, background .12s;
         }
-        .obs-fld input:focus { border-color:var(--border-strong); background:var(--surface); box-shadow:none; }
+        .obs-fld input:focus { background:color-mix(in srgb, var(--surface-2) 78%, transparent); box-shadow:0 0 0 1px color-mix(in srgb, var(--text) 12%, transparent) inset; }
         .obs-perm-grid {
           display:flex; flex-wrap:wrap; gap:6px;
         }
         .obs-perm-row {
           display:inline-flex; align-items:center; gap:8px;
           padding:7px 11px 7px 9px;
-          border:1px solid var(--border); border-radius:7px;
-          background:transparent; cursor:pointer;
-          transition:border-color .12s, background .12s, color .12s;
+          border:0; border-radius:8px;
+          background:color-mix(in srgb, var(--surface-2) 56%, transparent); cursor:pointer;
+          box-shadow:0 1px 0 rgba(255,255,255,.42) inset, 0 1px 2px rgba(15,23,42,.04);
+          transition:background .12s, color .12s, transform .12s ease;
           color:var(--text-secondary);
         }
-        .obs-perm-row:hover { background:color-mix(in srgb, var(--surface-2) 50%, transparent); color:var(--text); }
-        .obs-perm-row.on { border-color:var(--border-strong); background:color-mix(in srgb, var(--surface-2) 70%, transparent); color:var(--text); }
+        .obs-perm-row:hover { background:color-mix(in srgb, var(--surface-2) 74%, transparent); color:var(--text); transform:translateY(-1px); }
+        .obs-perm-row.on { background:color-mix(in srgb, var(--surface-2) 82%, transparent); color:var(--text); }
         .obs-perm-checkbox {
           width:13px; height:13px; border-radius:3px; border:1px solid var(--border-strong);
           flex-shrink:0;
@@ -331,12 +359,12 @@ export default function ObserversPage() {
         }
         .obs-composer-footer {
           display:flex; align-items:center; justify-content:space-between;
-          gap:12px; padding:14px 0 0;
-          border-top:1px solid color-mix(in srgb, var(--border) 60%, transparent);
-          margin-top:6px;
+          gap:12px; padding:10px 16px 14px;
+          border-top:0;
+          margin-top:0;
         }
         .obs-composer-hint { font-size:11.5px; font-weight:500; color:var(--text-muted); letter-spacing:.015em; }
-        .obs-link-row { display:flex; align-items:center; gap:8px; padding:9px 11px; border:1px solid var(--border); border-radius:7px; background:color-mix(in srgb, var(--surface-2) 60%, transparent); }
+        .obs-link-row { display:flex; align-items:center; gap:8px; padding:9px 11px; border:0; border-radius:8px; background:color-mix(in srgb, var(--surface-2) 60%, transparent); }
 
         .obs-table { width:100%; animation:obsTableIn .24s cubic-bezier(.16,1,.3,1) both; }
         @keyframes obsTableIn { from { opacity:0; transform:translateY(7px); } to { opacity:1; transform:none; } }
@@ -464,7 +492,12 @@ export default function ObserversPage() {
           max-width:100%;
           white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
         }
-        .obs-proj-tag .dot { width:7px; height:7px; border-radius:999px; flex-shrink:0; }
+        .obs-proj-tag .dot {
+          width:9px; height:9px; border-radius:999px; flex-shrink:0;
+          border:2px solid var(--project-color, #64748b);
+          background:transparent;
+          box-sizing:border-box;
+        }
         .obs-proj-more {
           font-size:11.5px; font-weight:500;
           color:var(--text-muted);
@@ -507,14 +540,14 @@ export default function ObserversPage() {
         .obs-role-grid { display:flex; flex-wrap:wrap; gap:6px; }
         .obs-role-pill {
           height:30px; padding:0 12px;
-          background:transparent; border:1px solid var(--border); border-radius:999px;
+          background:color-mix(in srgb, var(--surface-2) 56%, transparent); border:0; border-radius:8px;
           color:var(--text-secondary);
           font:inherit; font-size:12px; font-weight:500; letter-spacing:.015em;
           cursor:pointer;
-          transition:background .12s ease, color .12s ease, border-color .12s ease;
+          transition:background .12s ease, color .12s ease, transform .12s ease;
         }
-        .obs-role-pill:hover { background:var(--surface-2); color:var(--text); }
-        .obs-role-pill.on { background:var(--surface-2); color:var(--text); border-color:var(--border-strong); }
+        .obs-role-pill:hover { background:color-mix(in srgb, var(--surface-2) 74%, transparent); color:var(--text); transform:translateY(-1px); }
+        .obs-role-pill.on { background:color-mix(in srgb, var(--surface-2) 82%, transparent); color:var(--text); }
         .obs-segment { display:flex; gap:6px; }
         .obs-segment button {
           flex:1; height:36px; border-radius:8px; padding:0 12px;
@@ -587,7 +620,7 @@ export default function ObserversPage() {
         </div>
         <button className="obs-create" type="button" onClick={() => setInviteOpen(true)} aria-label="Mitwirkende einladen">
           <span>Mitwirkende einladen</span>
-          <span style={{ fontSize: 19, lineHeight: 1 }}>+</span>
+          <span className="obs-create-plus" aria-hidden="true"><Plus size={13} weight="bold" /></span>
         </button>
       </div>
 
@@ -705,7 +738,7 @@ export default function ObserversPage() {
                             className={`obs-role-pill ${checked ? 'on' : ''}`}
                             onClick={() => setInviteProjects(prev => checked ? prev.filter(x => x !== p.id) : [...prev, p.id])}
                           >
-                            <span style={{ width:7, height:7, borderRadius:999, background:p.color || '#64748b', display:'inline-block', marginRight:6 }} />
+                            <span style={{ width:9, height:9, borderRadius:999, border:`2px solid ${p.color || '#64748b'}`, background:'transparent', boxSizing:'border-box', display:'inline-block', marginRight:6, flexShrink:0 }} />
                             {p.title}
                           </button>
                         )
@@ -840,7 +873,7 @@ export default function ObserversPage() {
                       <div className="obs-det-perm-list" style={{ marginTop:4 }}>
                         {visibleProjects.map(p => (
                           <span key={p.id} className="obs-det-perm-pill" style={{ background:'transparent' }}>
-                            <span style={{ width:6, height:6, borderRadius:999, background:p.color || '#64748b', display:'inline-block' }} />
+                            <span style={{ width:9, height:9, borderRadius:999, border:`2px solid ${p.color || '#64748b'}`, background:'transparent', boxSizing:'border-box', display:'inline-block', flexShrink:0 }} />
                             {p.title}
                           </span>
                         ))}

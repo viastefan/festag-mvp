@@ -506,7 +506,12 @@ Regeln:
         .project-line:last-child { border-bottom:1px solid color-mix(in srgb, var(--border) 42%, transparent); }
         .project-line:hover { background:color-mix(in srgb, var(--surface-2) 46%, transparent); }
         .project-title-cell { display:flex; align-items:center; gap:10px; min-width:0; }
-        .project-dot { width:7px; height:7px; border-radius:50%; flex:0 0 auto; }
+        .project-dot {
+          width:9px; height:9px; border-radius:50%; flex:0 0 auto;
+          border:2px solid var(--project-color, #64748b);
+          background:transparent;
+          box-sizing:border-box;
+        }
         .project-name-wrap { min-width:0; }
         .project-name-wrap strong { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--text); font-size:13.5px; font-weight:730; letter-spacing:-.015em; }
         .project-name-wrap span { display:block; color:var(--text-muted); font-size:11.5px; font-weight:620; margin-top:3px; }
@@ -521,7 +526,12 @@ Regeln:
         .live-report-shell { min-width:0; max-width:890px; }
         .report-context { display:flex; align-items:center; justify-content:space-between; gap:18px; margin-bottom:30px; }
         .report-meta-title { display:flex; align-items:center; gap:9px; min-width:0; color:var(--text-muted); font-size:12px; font-weight:690; }
-        .report-meta-title span { width:8px; height:8px; border-radius:50%; flex:0 0 auto; }
+        .report-meta-title span {
+          width:9px; height:9px; border-radius:50%; flex:0 0 auto;
+          border:2px solid var(--project-color, var(--text-muted));
+          background:transparent;
+          box-sizing:border-box;
+        }
         .report-meta-title strong { color:var(--text); font-size:14px; font-weight:730; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
         .report-actions { display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
         .report-document { max-width:780px; }
@@ -593,7 +603,12 @@ Regeln:
         }
         .audio-hero-pill:hover { color: var(--text); border-color: var(--border-strong); }
         .audio-hero-pill.on { background: var(--text); color: var(--bg); border-color: var(--text); }
-        .audio-hero-pill-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+        .audio-hero-pill-dot {
+          width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0;
+          border:2px solid var(--project-color, #64748b);
+          background:transparent;
+          box-sizing:border-box;
+        }
         .audio-hero-pill-label { max-width: 110px; overflow: hidden; text-overflow: ellipsis; }
         @media (max-width: 880px) {
           .audio-hero { flex-direction: column; align-items: stretch; gap: 10px; padding: 12px 14px; }
@@ -753,7 +768,7 @@ Regeln:
                 className={`audio-hero-pill${selectedProjectId === p.id ? ' on' : ''}`}
                 onClick={() => setSelectedProjectId(p.id)}
               >
-                <span className="audio-hero-pill-dot" style={{ background: p.color || '#64748b' }} />
+                <span className="audio-hero-pill-dot" style={{ '--project-color': p.color || '#64748b' } as any} />
                 <span className="audio-hero-pill-label">{p.title}</span>
               </button>
             ))}
@@ -806,7 +821,7 @@ Regeln:
           return (
             <button className="project-line" key={row.project.id} type="button" onClick={() => openProjectReport(row)}>
               <span className="project-title-cell">
-                <span className="project-dot" style={{ background: color }} />
+                <span className="project-dot" style={{ '--project-color': color } as any} />
                 <span className="project-name-wrap">
                   <strong>{row.project.title}</strong>
                   <span>{row.taskCount} Tasks im Workspace</span>
@@ -830,7 +845,7 @@ Regeln:
         <section className="live-report-shell" id="aktueller-bericht">
           <div className="report-context">
             <div className="report-meta-title">
-              <span style={{ background: currentProject ? projectColor(currentProject.id, currentProject.color) : 'var(--text-muted)' }} />
+              <span style={{ '--project-color': currentProject ? projectColor(currentProject.id, currentProject.color) : 'var(--text-muted)' } as any} />
               <strong>{currentProject?.title ?? 'Aktueller Bericht'}</strong>
               <small>{currentReport ? dateLabel(currentReport.created_at) : 'Noch nicht generiert'}</small>
             </div>

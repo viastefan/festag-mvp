@@ -19,7 +19,7 @@ export default function NotificationsBell({
   variant = 'sidebar',
   limit = 18,
 }: {
-  variant?: 'sidebar' | 'header'
+  variant?: 'sidebar' | 'header' | 'dock'
   limit?: number
 }) {
   const { items, unread, markRead, markAllRead } = useNotifications({ limit })
@@ -43,7 +43,7 @@ export default function NotificationsBell({
   }, [open])
 
   return (
-    <div className="nb" ref={popRef}>
+    <div className={`nb ${variant}`} ref={popRef}>
       <button
         className={`nb-trigger ${variant}`}
         type="button"
@@ -87,6 +87,34 @@ export default function NotificationsBell({
         }
         .nb-trigger:hover { color: var(--text); background: color-mix(in srgb, var(--surface-2) 70%, transparent); }
         .nb-trigger.header { color: var(--text-secondary); }
+        .nb-trigger.dock {
+          width:34px;
+          min-width:34px;
+          height:34px;
+          padding:0;
+          border-radius:12px;
+          background:#fff;
+          color:var(--text-secondary);
+          box-shadow:0 1px 2px rgba(15,23,42,.08), 0 9px 22px rgba(15,23,42,.09);
+        }
+        .nb-trigger.dock:hover,
+        .nb-trigger.dock[aria-expanded="true"] {
+          background:#fff;
+          color:var(--text);
+          transform:translateY(-1px);
+          box-shadow:0 1px 2px rgba(15,23,42,.1), 0 11px 24px rgba(15,23,42,.11);
+        }
+        [data-theme="dark"] .nb-trigger.dock,
+        [data-theme="classic-dark"] .nb-trigger.dock {
+          background:color-mix(in srgb, var(--surface) 90%, #fff 10%);
+          box-shadow:0 1px 2px rgba(0,0,0,.28), 0 10px 24px rgba(0,0,0,.25);
+        }
+        [data-theme="dark"] .nb-trigger.dock:hover,
+        [data-theme="dark"] .nb-trigger.dock[aria-expanded="true"],
+        [data-theme="classic-dark"] .nb-trigger.dock:hover,
+        [data-theme="classic-dark"] .nb-trigger.dock[aria-expanded="true"] {
+          background:color-mix(in srgb, var(--surface) 86%, #fff 14%);
+        }
         .nb-pill {
           position: absolute; top: 2px; right: 2px;
           min-width: 14px; height: 14px; padding: 0 4px;
@@ -106,6 +134,10 @@ export default function NotificationsBell({
           backdrop-filter: blur(18px) saturate(150%);
           z-index: 9999;
           animation: nbIn .18s cubic-bezier(.16,1,.3,1) both;
+        }
+        .nb.dock .nb-pop {
+          top:auto;
+          bottom:calc(100% + 8px);
         }
         @keyframes nbIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
         .nb-head {
