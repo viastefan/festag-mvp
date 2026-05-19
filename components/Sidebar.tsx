@@ -1270,7 +1270,6 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
                     <span className="sb-monitor-dot" style={{ background: '#3B82F6' }} />
                     <span className="sb-monitor-line">Statusabfrage</span>
                   </Link>
-                  <NotificationsBell variant="dock" />
                 </div>
               )
             })()}
