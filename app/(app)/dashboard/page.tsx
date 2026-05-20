@@ -257,12 +257,12 @@ export default function DashboardPage() {
         .dash-calm * { font-weight:500 !important; letter-spacing:.012em; }
 
         /* ── Greeting full-width, then a calm two-column body ────── */
-        .dc-wrap { max-width: 1040px; }
+        .dc-wrap { max-width: 980px; }
         .dc-body {
-          margin-top: 22px;
+          margin-top: 20px;
           display:grid;
-          grid-template-columns: minmax(0,1fr) 304px;
-          column-gap: 48px;
+          grid-template-columns: minmax(0,1fr) 300px;
+          column-gap: 40px;
           align-items:start;
         }
 
@@ -271,15 +271,15 @@ export default function DashboardPage() {
         .dc-greeting {
           margin:0;
           color:var(--text);
-          font-size:clamp(20px, 1.9vw, 24px);
-          line-height:1.2;
-          letter-spacing:-.012em;
+          font-size:clamp(19px, 1.55vw, 21px);
+          line-height:1.22;
+          letter-spacing:-.016em;
         }
         .dc-greeting-sub {
-          margin:9px 0 0;
+          margin:8px 0 0;
           max-width:420px;
           color:var(--dc-soft);
-          font-size:13px;
+          font-size:12.5px;
           line-height:1.5;
         }
 
@@ -288,7 +288,7 @@ export default function DashboardPage() {
            written notebook page. Clean, calm, no frame. */
         .dc-note {
           grid-column:1; grid-row:1;
-          min-width:0; min-height:240px;
+          min-width:0; min-height:150px;
           animation:dcFade .3s .04s cubic-bezier(.16,1,.3,1) both;
         }
         .dc-note-head {
@@ -372,13 +372,16 @@ export default function DashboardPage() {
           box-shadow:0 1px 2px rgba(0,0,0,.28), 0 5px 16px rgba(0,0,0,.2);
         }
         .dc-pulse {
-          display:inline-flex; align-items:center; gap:8px;
+          display:inline-flex; align-items:center; gap:7px;
+          height:24px; padding:0 10px;
           margin-bottom:13px;
+          border-radius:999px;
+          background:color-mix(in srgb, var(--surface-2) 52%, transparent);
           color:var(--dc-soft);
-          font-size:12px;
+          font-size:11.5px;
         }
         .dc-pulse-dot {
-          width:8px; height:8px; border-radius:999px;
+          width:7px; height:7px; border-radius:999px;
           background:currentColor; flex-shrink:0;
         }
         .dc-pulse.tone-green .dc-pulse-dot { color:#22c55e; }
@@ -403,30 +406,38 @@ export default function DashboardPage() {
 
         .dc-audio { margin-top:8px; display:flex; gap:7px; }
         .dc-audio-play {
-          appearance:none; border:0; flex:1;
+          appearance:none; flex:1;
           height:38px; padding:0 12px;
           display:inline-flex; align-items:center; justify-content:center; gap:8px;
-          border-radius:10px;
-          background:color-mix(in srgb, var(--surface-2) 60%, transparent);
+          border-radius:9px;
+          border:1px solid color-mix(in srgb, var(--border) 85%, transparent);
+          background:transparent;
           color:var(--text);
           font:inherit; font-size:12.5px;
           cursor:pointer;
-          transition:background .13s ease, transform .13s ease;
+          transition:background .13s ease, border-color .13s ease;
         }
-        .dc-audio-play:hover { background:color-mix(in srgb, var(--surface-2) 86%, transparent); transform:translateY(-1px); }
-        .dc-audio-play:disabled { opacity:.5; cursor:default; transform:none; }
+        .dc-audio-play:hover {
+          background:color-mix(in srgb, var(--surface-2) 50%, transparent);
+          border-color:var(--border);
+        }
+        .dc-audio-play:disabled { opacity:.45; cursor:default; }
         .dc-audio-stop, .dc-audio-cfg {
-          appearance:none; border:0;
+          appearance:none;
           width:38px; height:38px;
           display:inline-flex; align-items:center; justify-content:center;
-          border-radius:10px;
-          background:color-mix(in srgb, var(--surface-2) 60%, transparent);
+          border-radius:9px;
+          border:1px solid color-mix(in srgb, var(--border) 85%, transparent);
+          background:transparent;
           color:var(--dc-soft);
           cursor:pointer;
-          transition:background .13s ease;
+          transition:background .13s ease, color .13s ease;
         }
-        .dc-audio-stop:hover, .dc-audio-cfg:hover { background:color-mix(in srgb, var(--surface-2) 86%, transparent); }
-        .dc-audio-cfg.open { background:color-mix(in srgb, var(--surface-2) 92%, transparent); color:var(--text); }
+        .dc-audio-stop:hover, .dc-audio-cfg:hover {
+          background:color-mix(in srgb, var(--surface-2) 50%, transparent);
+          color:var(--text);
+        }
+        .dc-audio-cfg.open { background:color-mix(in srgb, var(--surface-2) 60%, transparent); color:var(--text); }
 
         .dc-settings {
           position:absolute; z-index:6;
