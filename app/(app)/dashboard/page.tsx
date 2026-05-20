@@ -255,6 +255,11 @@ export default function DashboardPage() {
           --dc-soft: #B7BDC8;
         }
         .dash-calm * { font-weight:500 !important; letter-spacing:.012em; }
+        /* Spalten-/Sektionslabels dürfen leicht zurücktreten — Regular,
+           aber bewusst nicht zu hellgrau (Farbe bleibt --dc-muted). */
+        .dash-calm .dc-note-label,
+        .dash-calm .dc-note-next-label,
+        .dash-calm .dc-block-label { font-weight:400 !important; }
 
         /* ── Grid: note left, action box right · stacks on mobile ── */
         .dc-grid {

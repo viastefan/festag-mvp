@@ -315,7 +315,7 @@ export default function ProjectsPage() {
           grid-template-columns:14px minmax(0,1.7fr) 150px 132px 90px 14px;
           gap:14px; align-items:center;
           padding:8px 10px 6px;
-          color:var(--text-muted); font-size:10px;
+          color:var(--text-muted); font-size:10px; font-weight:400;
           letter-spacing:.1em; text-transform:uppercase;
         }
         .pj-row {
