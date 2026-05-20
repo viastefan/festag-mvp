@@ -399,19 +399,32 @@ export default function ProjectsPage() {
 
         @media (max-width:900px) {
           .pj-head, .pj-row, .pj-group-row {
-            grid-template-columns:34px minmax(150px,1.8fr) minmax(96px,.9fr) 60px;
-            gap:7px;
+            grid-template-columns:34px minmax(0,1.7fr) minmax(96px,1fr) 62px;
+            gap:8px;
           }
           .pj-head .col-progress, .pj-head .col-tasks,
           .pj-row > .pj-progress, .pj-row > .pj-tasks { display:none; }
           .pj-group-chevron { grid-column:4; }
+          .pj-group-row .pj-date { display:none; }
         }
         @media (max-width:760px) {
-          .pj-os { padding:14px 6px 0; }
-          .pj-top, .pj-toolbar { padding-left:6px; padding-right:6px; }
-          .pj-scroll { padding:0 6px 90px; }
-          .pj-toolbar { flex-wrap:wrap; }
+          .pj-os { padding:14px 4px 0; }
+          .pj-top, .pj-toolbar { padding-left:8px; padding-right:8px; }
+          .pj-scroll { padding:0 8px 96px; }
+          .pj-toolbar { flex-wrap:wrap; gap:8px; }
           .pj-count-summary { flex-basis:100%; padding-left:0; }
+        }
+        @media (max-width:560px) {
+          .pj-head, .pj-row, .pj-group-row {
+            grid-template-columns:24px minmax(0,1fr) 50px;
+            gap:9px;
+          }
+          .pj-head .col-status, .pj-row > .pj-health { display:none; }
+          .pj-group-title { grid-column:2 / 3; }
+          .pj-group-chevron { grid-column:3; }
+          .pj-count-summary { display:none; }
+          .pj-filter { font-size:11px; }
+          .pj-row { min-height:56px; }
         }
       `}</style>
 
@@ -509,11 +522,11 @@ export default function ProjectsPage() {
           <div className="pj-table">
             <div className="pj-head">
               <span className="ctr" />
-              <span>Projekt</span>
-              <span>Status</span>
+              <span className="col-name">Projekt</span>
+              <span className="col-status">Status</span>
               <span className="col-progress">Fortschritt</span>
               <span className="col-tasks">Aufgaben</span>
-              <span>Update</span>
+              <span className="col-update">Update</span>
             </div>
 
             {groups.map(g => {

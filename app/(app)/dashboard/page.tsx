@@ -539,6 +539,13 @@ export default function DashboardPage() {
           .dash-calm { padding:0 14px 88px; }
           .dc-head { padding-top:20px; }
         }
+        @media (max-width:600px) {
+          .dash-calm { padding:0 16px 92px; }
+          .dc-greeting { font-size:20px; }
+          .dc-greeting-sub { font-size:12.5px; }
+          .dc-note-text { font-size:15px; line-height:1.7; }
+          .dc-card { padding:14px; }
+        }
       `}</style>
 
       <div className="dc-wrap">

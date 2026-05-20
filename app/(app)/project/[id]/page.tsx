@@ -635,8 +635,27 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m√
         .pv-guarantee-row .s { font-size:10px; font-weight:400; letter-spacing:.04em; }
 
         @media (max-width:880px) {
-          .pv-grid { grid-template-columns:1fr; }
+          .pv-grid { grid-template-columns:1fr; gap:24px; }
           .pv-head-top { flex-wrap:wrap; }
+          .pv-head-actions { flex-wrap:wrap; justify-content:flex-end; }
+        }
+        @media (max-width:600px) {
+          .pv { padding:0 14px 64px; }
+          .pv-title { font-size:19px; }
+          .pv-head { margin-bottom:22px; }
+          .pv-head-top { gap:12px; }
+          .pv-progress { gap:14px; }
+          .pv-stats { gap:13px; }
+          .pv-ms-row { flex-wrap:wrap; gap:7px 10px; padding:12px; }
+          .pv-ms-desc { display:none; }
+          .pv-ms-title { flex:1; min-width:120px; }
+          .pv-ms-amount { min-width:auto; }
+          .pv-tabs { flex-wrap:wrap; }
+          .pv-section { margin-top:24px; }
+          .pv-chat { height:440px; }
+        }
+        @media (max-width:420px) {
+          .pv-section-head { flex-wrap:wrap; gap:8px; }
         }
       `}</style>
 
