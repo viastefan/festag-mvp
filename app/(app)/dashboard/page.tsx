@@ -159,6 +159,19 @@ export default function DashboardPage() {
   const riskTasks = allTasks.filter((t) => t.status === 'blocked')
   const phaseLabel = main ? (PHASE[main.status] ?? 'Intake') : null
 
+  const activeProjectCount = projects.filter((p) => {
+    const s = (p.status || '').toLowerCase()
+    return s === 'active' || s === 'testing' || s === 'planning'
+  }).length
+  const openTaskCount = allTasks.filter((t) => t.status !== 'done').length
+  const doneTaskCount = allTasks.filter((t) => t.status === 'done').length
+  const overview = [
+    { label: 'Projekte', value: projects.length },
+    { label: 'Aktiv', value: activeProjectCount },
+    { label: 'Offene Aufgaben', value: openTaskCount },
+    { label: 'Erledigt', value: doneTaskCount },
+  ]
+
   const pulse = useMemo(
     () => buildPulse({ blockers: riskTasks.length, decisions: decisionTasks.length }),
     [riskTasks.length, decisionTasks.length],
@@ -257,12 +270,12 @@ export default function DashboardPage() {
         .dash-calm * { font-weight:500 !important; letter-spacing:.012em; }
 
         /* ── Greeting full-width, then a calm two-column body ────── */
-        .dc-wrap { max-width: 1140px; }
+        .dc-wrap { max-width: 1320px; }
         .dc-body {
           margin-top: 20px;
           display:grid;
-          grid-template-columns: minmax(0,1fr) 300px;
-          column-gap: 40px;
+          grid-template-columns: minmax(0,1fr) 360px;
+          column-gap: 44px;
           align-items:start;
         }
 
@@ -302,7 +315,7 @@ export default function DashboardPage() {
         .dc-note-stamp { color:var(--dc-muted); font-size:11.5px; }
         .dc-note-text {
           margin:0;
-          max-width:720px;
+          max-width:760px;
           color:var(--text);
           font-size:15.5px;
           line-height:1.74;
@@ -460,8 +473,19 @@ export default function DashboardPage() {
           outline:none;
         }
 
+        /* ── Overview: 4 calm stats under the action box ──────────── */
+        .dc-overview { margin-top:22px; }
+        .dc-overview .dc-block-label { display:block; margin-bottom:11px; }
+        .dc-stats {
+          display:grid;
+          grid-template-columns:1fr 1fr;
+          gap:16px 14px;
+        }
+        .dc-stat-value { color:var(--text); font-size:19px; line-height:1.1; }
+        .dc-stat-label { margin-top:5px; color:var(--dc-muted); font-size:11px; }
+
         /* ── Blocks: decisions + risks ────────────────────────────── */
-        .dc-blocks { margin-top:20px; }
+        .dc-blocks { margin-top:22px; }
         .dc-block { padding:14px 4px 4px; }
         .dc-block-head {
           display:flex; align-items:baseline; justify-content:space-between;
@@ -675,6 +699,19 @@ export default function DashboardPage() {
                 </label>
               </div>
             )}
+          </div>
+
+          {/* ── Overview: 4 calm stats ───────────────────────────── */}
+          <div className="dc-overview">
+            <span className="dc-block-label">Überblick</span>
+            <div className="dc-stats">
+              {overview.map((s) => (
+                <div className="dc-stat" key={s.label}>
+                  <div className="dc-stat-value">{s.value}</div>
+                  <div className="dc-stat-label">{s.label}</div>
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* ── Decisions + risks ────────────────────────────────── */}
