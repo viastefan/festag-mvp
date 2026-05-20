@@ -261,16 +261,16 @@ export default function ProjectsPage() {
           width:34px; height:34px; border:0; border-radius:999px;
           background:#fff; color:var(--pj-soft);
           display:flex; align-items:center; justify-content:center; cursor:pointer;
-          box-shadow:0 1px 2px rgba(15,23,42,.08), 0 7px 18px rgba(15,23,42,.08);
+          box-shadow:0 1px 2px rgba(15,23,42,.08), 0 2px 6px rgba(15,23,42,.05);
           transition:color .12s ease, box-shadow .12s ease, transform .12s ease;
         }
         .pj-tool:hover, .pj-tool.on {
           color:var(--text); transform:translateY(-1px);
-          box-shadow:0 1px 2px rgba(15,23,42,.10), 0 9px 22px rgba(15,23,42,.11);
+          box-shadow:0 1px 2px rgba(15,23,42,.10), 0 3px 9px rgba(15,23,42,.07);
         }
         [data-theme="dark"] .pj-tool, [data-theme="classic-dark"] .pj-tool {
           background:color-mix(in srgb, var(--surface) 92%, #fff 8%);
-          box-shadow:0 1px 2px rgba(0,0,0,.28), 0 8px 20px rgba(0,0,0,.2);
+          box-shadow:0 1px 2px rgba(0,0,0,.28), 0 2px 7px rgba(0,0,0,.16);
         }
         .pj-menu {
           position:absolute; top:38px; right:0; width:198px; z-index:20;

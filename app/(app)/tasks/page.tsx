@@ -638,7 +638,7 @@ export default function TasksPage() {
           align-items:center;
           justify-content:center;
           cursor:pointer;
-          box-shadow:0 1px 2px rgba(15,23,42,.08), 0 7px 18px rgba(15,23,42,.08);
+          box-shadow:0 1px 2px rgba(15,23,42,.08), 0 2px 6px rgba(15,23,42,.05);
           transition:background .12s ease, color .12s ease, box-shadow .12s ease, transform .12s ease;
         }
         .task-tool:focus,
@@ -648,19 +648,19 @@ export default function TasksPage() {
           border:0 !important;
           background:#fff;
           color:var(--text);
-          box-shadow:0 1px 2px rgba(15,23,42,.10), 0 9px 22px rgba(15,23,42,.11) !important;
+          box-shadow:0 1px 2px rgba(15,23,42,.10), 0 3px 9px rgba(15,23,42,.07) !important;
           transform:none;
         }
         .task-tool:hover, .task-tool.on {
           background:#fff;
           color:var(--text);
-          box-shadow:0 1px 2px rgba(15,23,42,.10), 0 9px 22px rgba(15,23,42,.11);
+          box-shadow:0 1px 2px rgba(15,23,42,.10), 0 3px 9px rgba(15,23,42,.07);
           transform:translateY(-1px);
         }
         [data-theme="dark"] .task-tool,
         [data-theme="classic-dark"] .task-tool {
           background:color-mix(in srgb, var(--surface) 92%, #fff 8%);
-          box-shadow:0 1px 2px rgba(0,0,0,.28), 0 8px 20px rgba(0,0,0,.20);
+          box-shadow:0 1px 2px rgba(0,0,0,.28), 0 2px 7px rgba(0,0,0,.16);
         }
         [data-theme="dark"] .task-tool:hover,
         [data-theme="dark"] .task-tool.on,
@@ -673,7 +673,7 @@ export default function TasksPage() {
         [data-theme="classic-dark"] .task-tool:focus-visible,
         [data-theme="classic-dark"] .task-tool:active {
           background:color-mix(in srgb, var(--surface) 88%, #fff 12%);
-          box-shadow:0 1px 2px rgba(0,0,0,.32), 0 10px 24px rgba(0,0,0,.24) !important;
+          box-shadow:0 1px 2px rgba(0,0,0,.32), 0 3px 9px rgba(0,0,0,.2) !important;
         }
         .task-menu {
           position:absolute;

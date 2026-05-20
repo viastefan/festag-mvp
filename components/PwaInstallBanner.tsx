@@ -158,24 +158,23 @@ export default function PwaInstallBanner() {
           filter:drop-shadow(0 12px 18px rgba(0,0,0,.24));
         }
         .pwa-body { min-width:0; padding-top:1px; overflow:hidden; }
-        .pwa-title { font-size:14px; font-weight:600; letter-spacing:-0.01em; margin-bottom:4px; }
+        .pwa-title { font-size:14px; font-weight:500; letter-spacing:-0.01em; margin-bottom:4px; }
         .pwa-sub { font-size:12.5px; font-weight:500; letter-spacing:0.01em; color:var(--text-muted); line-height:1.38; max-width:none; }
         .pwa-actions { margin-top:13px; display:flex; gap:8px; align-items:center; }
         .pwa-install {
           height:34px;
-          font-family:inherit; font-size:12.5px; font-weight:600; letter-spacing:0.01em;
-          padding:0 15px; border-radius:12px; border:none;
-          background: var(--text); color: var(--bg);
-          box-shadow:0 14px 26px -20px rgba(0,0,0,.55);
-          transition: opacity .15s, transform .25s cubic-bezier(0.34,1.56,0.64,1);
+          font-family:inherit; font-size:12.5px; font-weight:500; letter-spacing:.012em;
+          padding:0 15px; border-radius:8px; border:none; cursor:pointer;
+          background:#383C44; color:#fff;
+          box-shadow:0 1px 2px rgba(15,23,42,.12);
+          transition: background .15s ease;
         }
-        .pwa-install:active:not(:disabled) { transform: scale(0.97); transition: transform .08s ease; }
-        .pwa-install:hover:not(:disabled) { opacity: .88; }
+        .pwa-install:hover:not(:disabled) { background:#2c2f36; }
         .pwa-install:disabled { opacity:.55; cursor:not-allowed; }
         .pwa-later {
           height:34px;
-          font-family:inherit; font-size:12.5px; font-weight:600; letter-spacing:0.01em;
-          padding:0 13px; border-radius:12px; border:none;
+          font-family:inherit; font-size:12.5px; font-weight:500; letter-spacing:.012em;
+          padding:0 13px; border-radius:8px; border:none;
           background: color-mix(in srgb, var(--text) 5%, transparent);
           color: var(--text-muted);
           box-shadow:0 1px 0 rgba(255,255,255,.72) inset;

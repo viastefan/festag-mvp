@@ -882,7 +882,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           border-radius:14px;
           text-decoration:none;
           color:var(--text);
-          box-shadow:0 1px 2px rgba(15,23,42,.08), 0 9px 22px rgba(15,23,42,.10);
+          box-shadow:0 1px 2px rgba(15,23,42,.08), 0 2px 6px rgba(15,23,42,.06);
           backdrop-filter:blur(18px) saturate(160%);
           -webkit-backdrop-filter:blur(18px) saturate(160%);
           transition:background .12s, color .12s, transform .12s ease, box-shadow .12s ease;
@@ -890,18 +890,18 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         .sb-monitor-capsule--single { width:auto; max-width:100%; justify-content:flex-start; }
         .sb-monitor-capsule:hover {
           background:#fff;
-          box-shadow:0 1px 2px rgba(15,23,42,.10), 0 11px 26px rgba(15,23,42,.12);
+          box-shadow:0 1px 2px rgba(15,23,42,.10), 0 3px 9px rgba(15,23,42,.07);
           transform:translateY(-1px);
         }
         [data-theme="dark"] .sb-monitor-capsule,
         [data-theme="classic-dark"] .sb-monitor-capsule {
           background:color-mix(in srgb, var(--surface) 92%, #fff 8%);
-          box-shadow:0 1px 2px rgba(0,0,0,.28), 0 8px 20px rgba(0,0,0,.20);
+          box-shadow:0 1px 2px rgba(0,0,0,.28), 0 2px 7px rgba(0,0,0,.16);
         }
         [data-theme="dark"] .sb-monitor-capsule:hover,
         [data-theme="classic-dark"] .sb-monitor-capsule:hover {
           background:color-mix(in srgb, var(--surface) 88%, #fff 12%);
-          box-shadow:0 1px 2px rgba(0,0,0,.32), 0 10px 24px rgba(0,0,0,.24);
+          box-shadow:0 1px 2px rgba(0,0,0,.32), 0 3px 9px rgba(0,0,0,.2);
         }
         .sb-monitor-dot {
           width:8px; height:8px; border-radius:50%;

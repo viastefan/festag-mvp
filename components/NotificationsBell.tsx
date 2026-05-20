@@ -95,19 +95,19 @@ export default function NotificationsBell({
           border-radius:12px;
           background:#fff;
           color:var(--text-secondary);
-          box-shadow:0 1px 2px rgba(15,23,42,.08), 0 9px 22px rgba(15,23,42,.09);
+          box-shadow:0 1px 2px rgba(15,23,42,.08), 0 2px 6px rgba(15,23,42,.05);
         }
         .nb-trigger.dock:hover,
         .nb-trigger.dock[aria-expanded="true"] {
           background:#fff;
           color:var(--text);
           transform:translateY(-1px);
-          box-shadow:0 1px 2px rgba(15,23,42,.1), 0 11px 24px rgba(15,23,42,.11);
+          box-shadow:0 1px 2px rgba(15,23,42,.1), 0 3px 9px rgba(15,23,42,.07);
         }
         [data-theme="dark"] .nb-trigger.dock,
         [data-theme="classic-dark"] .nb-trigger.dock {
           background:color-mix(in srgb, var(--surface) 90%, #fff 10%);
-          box-shadow:0 1px 2px rgba(0,0,0,.28), 0 10px 24px rgba(0,0,0,.25);
+          box-shadow:0 1px 2px rgba(0,0,0,.28), 0 2px 7px rgba(0,0,0,.16);
         }
         [data-theme="dark"] .nb-trigger.dock:hover,
         [data-theme="dark"] .nb-trigger.dock[aria-expanded="true"],

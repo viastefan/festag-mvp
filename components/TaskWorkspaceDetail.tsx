@@ -742,7 +742,7 @@ const detailStyles = `
     color:var(--text-secondary);
     border:0;
     background:#fff;
-    box-shadow:0 1px 2px rgba(15,23,42,.08), 0 8px 20px rgba(15,23,42,.08);
+    box-shadow:0 1px 2px rgba(15,23,42,.08), 0 2px 6px rgba(15,23,42,.05);
     font-size:11.5px;
     font-weight:500;
     letter-spacing:.03em;
@@ -751,7 +751,7 @@ const detailStyles = `
   [data-theme="dark"] .status-pill,
   [data-theme="classic-dark"] .status-pill {
     background:color-mix(in srgb, var(--surface) 92%, #fff 8%);
-    box-shadow:0 1px 2px rgba(0,0,0,.28), 0 8px 20px rgba(0,0,0,.20);
+    box-shadow:0 1px 2px rgba(0,0,0,.28), 0 2px 7px rgba(0,0,0,.16);
   }
   .status-pill span {
     width:8px;

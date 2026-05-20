@@ -236,13 +236,20 @@ export default function ObserversPage() {
         .obs-title-wrap { display:flex; align-items:center; gap:8px; }
         .obs-title { margin:0; font-size:14.5px; font-weight:500; letter-spacing:.015em; color:var(--text); }
         .obs-help-btn {
-          width:20px; height:20px; border-radius:999px;
-          border:1px solid color-mix(in srgb, var(--border) 80%, transparent);
-          background:transparent; color:var(--text-muted);
+          width:21px; height:21px; border-radius:999px;
+          border:0;
+          background:#fff; color:var(--text-muted);
           display:inline-flex; align-items:center; justify-content:center;
-          cursor:pointer; transition:background .12s ease, color .12s ease, border-color .12s ease;
+          cursor:pointer;
+          box-shadow:0 1px 2px rgba(15,23,42,.07), 0 2px 6px rgba(15,23,42,.05);
+          transition:color .12s ease, box-shadow .12s ease;
         }
-        .obs-help-btn:hover { background:var(--surface-2); color:var(--text); border-color:var(--border-strong); }
+        .obs-help-btn:hover { color:var(--text); }
+        [data-theme="dark"] .obs-help-btn,
+        [data-theme="classic-dark"] .obs-help-btn {
+          background:color-mix(in srgb, var(--surface) 90%, #fff 10%);
+          box-shadow:0 1px 2px rgba(0,0,0,.26), 0 2px 7px rgba(0,0,0,.16);
+        }
         .obs-create {
           height:32px; padding:0 9px 0 13px;
           border:0; border-radius:8px;
@@ -250,13 +257,13 @@ export default function ObserversPage() {
           display:flex; align-items:center; gap:8px;
           font:inherit; font-size:12px; font-weight:500; letter-spacing:.015em;
           cursor:pointer;
-          box-shadow:0 1px 2px rgba(15,23,42,.08), 0 9px 22px rgba(15,23,42,.10);
+          box-shadow:0 1px 2px rgba(15,23,42,.08), 0 2px 6px rgba(15,23,42,.06);
           transition: background .12s ease, color .12s ease, transform .12s ease, box-shadow .12s ease;
         }
         [data-theme="dark"] .obs-create,
         [data-theme="classic-dark"] .obs-create {
           background:color-mix(in srgb, var(--surface) 90%, #fff 10%);
-          box-shadow:0 1px 2px rgba(0,0,0,.28), 0 8px 20px rgba(0,0,0,.20);
+          box-shadow:0 1px 2px rgba(0,0,0,.28), 0 2px 7px rgba(0,0,0,.16);
         }
         .obs-create:hover { background:#fff; color:var(--text); transform:translateY(-1px); }
         [data-theme="dark"] .obs-create:hover,
@@ -280,13 +287,13 @@ export default function ObserversPage() {
           font:inherit; font-size:11.5px; font-weight:500; letter-spacing:.015em;
           cursor:pointer;
           display:inline-flex; align-items:center; gap:6px;
-          box-shadow:0 1px 2px rgba(15,23,42,.07), 0 7px 18px rgba(15,23,42,.08);
+          box-shadow:0 1px 2px rgba(15,23,42,.07), 0 2px 6px rgba(15,23,42,.05);
           transition:background .12s ease, color .12s ease, transform .12s ease, box-shadow .12s ease;
         }
         [data-theme="dark"] .obs-text-btn,
         [data-theme="classic-dark"] .obs-text-btn {
           background:color-mix(in srgb, var(--surface) 90%, #fff 10%);
-          box-shadow:0 1px 2px rgba(0,0,0,.24), 0 7px 18px rgba(0,0,0,.18);
+          box-shadow:0 1px 2px rgba(0,0,0,.24), 0 2px 7px rgba(0,0,0,.15);
         }
         .obs-text-btn:hover { background:#fff; color:var(--text); transform:translateY(-1px); }
 
