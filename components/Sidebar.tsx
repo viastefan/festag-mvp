@@ -61,6 +61,8 @@ const CLIENT_TOP: NavItem[] = [
   { href:'/messages', icon:'inbox', label:'Inbox' },
 ]
 const CLIENT_CORE: NavItem[] = [
+  { href:'/projects', icon:'project', label:'Projekte' },
+  { href:'/projects?new=1', icon:'plus', label:'Neues Projekt' },
   { href:'/reports', icon:'activity', label:'Statusberichte' },
   { href:'/tasks', icon:'task', label:'Tasks' },
   { href:'/observers', icon:'team', label:'Mitwirkende' },
@@ -1020,70 +1022,6 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
                 expanded={workspaceExp}
                 onToggle={() => setWorkspaceExp(v => !v)}
               >
-                {isClient && (
-                  <ExpandableNavSection
-                    href="/projects"
-                    icon="project"
-                    label="Projekte"
-                    expanded={projectListExp}
-                    onToggle={() => setProjectListExp(v => !v)}
-                    activeOverride={pathname.startsWith('/project/') || pathname.startsWith('/projects')}
-                  >
-                    <div className="sb-subnav">
-                      {projects.map((p, projectIndex) => {
-                        const on = pathname === `/project/${p.id}`
-                        const dot = p.color || '#64748b'
-                        const picking = colorPickId === p.id
-                        return (
-                          <div key={p.id} style={{ position:'relative', minWidth:0 }}>
-                            <Link href={`/project/${p.id}`} className={`proj-row ${on?'active':''}`} data-shortcut={projectShortcut(projectIndex)}>
-                              <button
-                                className="proj-dot-button"
-                                onClick={e => { e.preventDefault(); e.stopPropagation(); setColorPickId(picking ? null : p.id) }}
-                                title="Farbe ändern"
-                                style={{ border:`2px solid ${dot}` }}
-                              />
-                              <span className="proj-label">{p.title}</span>
-                            </Link>
-                            {picking && (
-                              <>
-                                <div style={{ position:'fixed', inset:0, zIndex:200 }} onClick={() => setColorPickId(null)} />
-                                <div style={{ position:'absolute', left:30, top:'50%', transform:'translateY(-50%)', zIndex:201, width:142, background:'var(--card)', border:'1px solid var(--border)', borderRadius:10, padding:8, display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:6, boxShadow:'0 12px 30px rgba(15,23,42,.16)' }}>
-                                  {PROJ_COLORS.map(c => (
-                                    <button key={c} onClick={() => setProjectColor(p.id, c)}
-                                      style={{ width:18, height:18, borderRadius:5, background:c, border:'2px solid transparent', boxShadow:dot===c?'0 0 0 2px var(--surface), 0 0 0 4px var(--text)':'none', cursor:'pointer', padding:0 }}
-                                    />
-                                  ))}
-                                  <input
-                                    aria-label="Projektfarbe frei wählen"
-                                    type="color"
-                                    value={dot.startsWith('#') ? dot : '#64748b'}
-                                    onChange={(event) => setProjectColor(p.id, event.target.value, false)}
-                                    style={{ gridColumn:'1 / -1', width:'100%', height:26, border:'1px solid var(--border)', borderRadius:8, background:'transparent', padding:2 }}
-                                  />
-                                </div>
-                              </>
-                            )}
-                          </div>
-                        )
-                      })}
-
-                      <Link href="/projects?new=1" className="proj-row proj-new" data-shortcut="G +">
-                        <span style={{
-                          width:11, height:11, borderRadius:3,
-                          border:'1px dashed var(--text-muted)',
-                          opacity:.6,
-                          display:'flex', alignItems:'center', justifyContent:'center',
-                        }}>
-                          <span style={{ fontSize:9, color:'var(--text-muted)', lineHeight:1, fontWeight:600 }}>+</span>
-                        </span>
-                        <span className="proj-label" style={{ fontStyle:'normal', fontSize:12, color:'var(--text-muted)' }}>
-                          {projects.length === 0 ? 'Erstes Projekt anlegen…' : 'Neues Projekt…'}
-                        </span>
-                      </Link>
-                    </div>
-                  </ExpandableNavSection>
-                )}
                 <NavItems items={coreNav} />
               </Section>
             </div>

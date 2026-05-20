@@ -123,7 +123,14 @@ export default function ProjectsPage() {
       (supabase as any).from('projects').select('*').order('created_at', { ascending: false }),
       (supabase as any).from('tasks').select('id,project_id,status,updated_at'),
     ])
-    setProjects((projectData as ProjectRow[]) ?? [])
+    const projs = (projectData as ProjectRow[]) ?? []
+    // Mit genau einem Projekt gibt es nichts auszuwählen — direkt ins Projekt.
+    // (Ausnahme: der „Neues Projekt"-Flow ist über ?new=1 geöffnet.)
+    if (projs.length === 1 && searchParams.get('new') !== '1') {
+      window.location.href = `/project/${projs[0].id}`
+      return
+    }
+    setProjects(projs)
     setTasks((taskData as TaskRow[]) ?? [])
     setLoading(false)
   }
