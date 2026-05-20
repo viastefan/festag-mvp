@@ -3,297 +3,175 @@
 /**
  * Client Dashboard — Festag „Statusabfrage".
  *
- * Designziele (verbindlich):
- *   • Aeonik Medium (500) durchgehend, kein Bold, kein Regular.
- *   • Keine Trennlinien zwischen Sektionen, keine Primary-Buttons.
- *   • Header sitzt knapp unter der Workspace-Kante. Rechts oben bleibt
- *     leer — keine Werkzeugleiste, keine Glocke, keine Filter.
- *   • Voice-Briefing („Statusabfrage anhören") sitzt direkt unter dem
- *     Hero-Text als einzige primäre Aktion auf der Seite.
- *   • Sprache: „Statusabfrage" ersetzt „Briefing" im sichtbaren Text.
- *   • Kein „Workspace wird vorbereitet" Splash — Hero degradiert inline.
+ * Designziel (verbindlich): ein ruhiger Notizblock, kein Cockpit.
+ *   • Links steht der Statusblock — ein Notion-artiges Notizfeld. Es ist
+ *     leer, bis der Client rechts auf „Status abrufen" tippt; dann
+ *     schreibt Tagro den aktuellen Stand Wort für Wort hinein.
+ *   • Rechts sitzt eine Linear-artige Box: Puls, der eine Button
+ *     „Status abrufen", „Bericht anhören" — plus Entscheidungen & Risiken.
+ *   • Kein „Heute im Fokus", keine KPI-Leiste, kein „Aktives Projekt".
+ *   • Aeonik Medium (500) durchgehend, 1.2% letter-spacing, keine
+ *     Trennlinien zwischen Sektionen, keine schwarzen Buttons.
  */
 
-import { useEffect, useMemo, useState, type CSSProperties } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
-import NewProjectModal from '@/components/NewProjectModal'
-import NewTaskModal from '@/components/NewTaskModal'
 import ObserverWelcomeModal from '@/components/ObserverWelcomeModal'
-import { generateBriefingText } from '@/lib/briefings'
 import { speechVoiceId, useSpeechSynthesis } from '@/hooks/useSpeechSynthesis'
-import { Pause, Play, SlidersHorizontal, Stop } from '@phosphor-icons/react'
+import { ArrowClockwise, ArrowRight, Pause, Play, SlidersHorizontal, Stop } from '@phosphor-icons/react'
 
 // ─────────────────────────────────────────────────────────────────────
-// Greeting + Pulse helpers
+// Helpers
 // ─────────────────────────────────────────────────────────────────────
 
-/**
- * Day-stable greeting. Same wording within a calendar day, fresh on the
- * next one. Variant pool depends on whether we know the first name; if
- * not, we fall back to "Chef" / "Boss" for a calm, slightly playful tone.
- */
+/** Day-stable greeting — same wording within a calendar day. */
 function pickGreeting(hour: number, first: string): string {
   const partOfDay = hour < 12 ? 'Morgen' : hour < 18 ? 'Tag' : 'Abend'
   const name = first ? first.charAt(0).toUpperCase() + first.slice(1) : 'Chef'
   const variants = first
-    ? [
-        `Guten ${partOfDay}, ${name}.`,
-        `Hallo ${name}.`,
-        `Schön, dass du da bist, ${name}.`,
-        `Bereit für heute, ${name}?`,
-        `${partOfDay}, ${name}.`,
-      ]
-    : [
-        `Guten ${partOfDay}, Chef.`,
-        `Hallo Chef.`,
-        `Schön, dass du da bist.`,
-        `Bereit für heute, Chef?`,
-        `${partOfDay}, Chef.`,
-      ]
+    ? [`Guten ${partOfDay}, ${name}.`, `Hallo ${name}.`, `Schön, dass du da bist, ${name}.`, `${partOfDay}, ${name}.`]
+    : [`Guten ${partOfDay}, Chef.`, `Hallo Chef.`, `Schön, dass du da bist.`, `${partOfDay}, Chef.`]
   const today = new Date()
   const seed = today.getFullYear() * 1000 + (today.getMonth() + 1) * 50 + today.getDate()
   return variants[seed % variants.length]
 }
 
 type PulseTone = 'green' | 'amber' | 'red'
-type Pulse = { tone: PulseTone; label: string; explanation: string }
+type Pulse = { tone: PulseTone; label: string }
 
-function buildPulse(args: { blockers: number; decisions: number; activeProjects: number; mainTitle: string | undefined; phaseLabel: string | undefined; openTasks: number }): Pulse {
-  const { blockers, decisions, activeProjects, mainTitle, phaseLabel, openTasks } = args
-  if (blockers > 0) {
-    return {
-      tone: 'red',
-      label: blockers === 1 ? 'Risiko erkannt' : `${blockers} Risiken erkannt`,
-      explanation:
-        `Tagro hat ${blockers === 1 ? 'einen Blocker' : `${blockers} Blocker`} erkannt, ` +
-        `der den Zeitplan beeinflusst. Ich priorisiere die nächsten Schritte und halte Entscheidungen, ` +
-        `Risiken und Zustellungen in der Übersicht.`,
-    }
-  }
-  if (decisions > 0) {
-    return {
-      tone: 'amber',
-      label: decisions === 1 ? 'Entscheidung offen' : `${decisions} Entscheidungen offen`,
-      explanation:
-        `${decisions === 1 ? 'Eine offene Entscheidung wartet' : `${decisions} offene Entscheidungen warten`} auf deine Freigabe. ` +
-        `Sobald geklärt, aktualisiere ich Projektstatus, Risiken und nächste Schritte automatisch.`,
-    }
-  }
-  if (activeProjects > 0 && mainTitle) {
-    return {
-      tone: 'green',
-      label: 'Alles im Plan',
-      explanation:
-        `${mainTitle} ist aktuell in ${phaseLabel ?? 'Bearbeitung'}. ` +
-        `${openTasks === 0 ? 'Keine offenen Tasks' : `${openTasks} offene Tasks`}, keine Blocker. ` +
-        `Du kannst durchatmen.`,
-    }
-  }
-  return {
-    tone: 'green',
-    label: 'Heute ist nichts dringend',
-    explanation:
-      'Keine Blocker, keine offenen Entscheidungen, kein aktives Projekt im Stress. ' +
-      'Sobald sich etwas ändert, melde ich mich hier mit konkreten nächsten Schritten.',
-  }
+function buildPulse(args: { blockers: number; decisions: number }): Pulse {
+  const { blockers, decisions } = args
+  if (blockers > 0) return { tone: 'red', label: blockers === 1 ? 'Ein Risiko erkannt' : `${blockers} Risiken erkannt` }
+  if (decisions > 0) return { tone: 'amber', label: decisions === 1 ? 'Eine Entscheidung offen' : `${decisions} Entscheidungen offen` }
+  return { tone: 'green', label: 'Heute ist nichts dringend' }
 }
 
-type Project   = { id: string; title: string; description: string | null; status: string; created_at: string; color: string | null }
-type Task      = { id: string; title: string; status: string; priority?: string; project_id: string; updated_at?: string }
-type Activity  = { id: string; type: string; message: string; created_at: string; project_id?: string }
-type Milestone = { id: string; project_id: string; title: string; amount: number | null; currency: string | null; status: string | null; due_date: string | null; paid_at: string | null; order_index: number | null }
-type BriefingChannels = { whatsapp: boolean; audioFeed: boolean; spotify: boolean }
+type Project = { id: string; title: string; status: string; created_at: string; color: string | null }
+type Task    = { id: string; title: string; status: string; priority?: string; project_id: string; updated_at?: string }
+
+type NoteReport = {
+  summary: string
+  nextSteps: string[]
+  blockers: string[]
+  createdAt?: string
+}
+
+function normalizeReport(raw: any): NoteReport {
+  const arr = (v: any): string[] => (Array.isArray(v) ? v.map((x) => String(x)).filter(Boolean) : [])
+  return {
+    summary: String(raw?.summary ?? raw?.content ?? '').trim(),
+    nextSteps: arr(raw?.next_steps_json),
+    blockers: arr(raw?.blockers_json),
+    createdAt: raw?.created_at,
+  }
+}
 
 function formatVoiceLabel(voice: SpeechSynthesisVoice) {
   const language = voice.lang.toLowerCase().startsWith('de') ? 'Deutsch' : voice.lang
   return `${voice.name.replace(/\s*\(.*?\)\s*/g, '')} · ${language}`
 }
 
-const PHASE: Record<string, { label: string; pct: number }> = {
-  intake:   { label: 'Intake',        pct: 10  },
-  planning: { label: 'Planung',       pct: 28  },
-  active:   { label: 'In Arbeit',     pct: 62  },
-  testing:  { label: 'Testing',       pct: 85  },
-  done:     { label: 'Abgeschlossen', pct: 100 },
+const PHASE: Record<string, string> = {
+  intake: 'Intake', planning: 'Planung', active: 'In Arbeit', testing: 'Testing', done: 'Abgeschlossen',
 }
 
 export default function DashboardPage() {
-  const [projects,  setProjects]  = useState<Project[]>([])
-  const [main,      setMain]      = useState<Project|null>(null)
-  const [tasks,     setTasks]     = useState<Task[]>([])
-  const [allTasks,  setAllTasks]  = useState<Task[]>([])
-  const [activity,  setActivity]  = useState<Activity[]>([])
-  const [milestones, setMilestones] = useState<Milestone[]>([])
-  const [firstName, setFirstName] = useState('')
-  const [loading,   setLoading]   = useState(true)
-  const [showNewProject, setShowNewProject] = useState(false)
-  const [showNewTask,    setShowNewTask]    = useState(false)
-  const [channels, setChannels] = useState<BriefingChannels>({ whatsapp: false, audioFeed: false, spotify: false })
-  const [briefingSettingsOpen, setBriefingSettingsOpen] = useState(false)
-  // On-demand status query state
-  const [statusBusy, setStatusBusy] = useState(false)
-  const [statusHint, setStatusHint] = useState<string | null>(null)
-  const [liveReport, setLiveReport] = useState<{ summary: string | null; title: string | null; created_at?: string } | null>(null)
   const supabase = useMemo(() => createClient(), [])
-  void activity
 
+  const [projects, setProjects] = useState<Project[]>([])
+  const [main, setMain] = useState<Project | null>(null)
+  const [allTasks, setAllTasks] = useState<Task[]>([])
+  const [firstName, setFirstName] = useState('')
+  const [loading, setLoading] = useState(true)
+
+  // Notepad state
+  const [noteReport, setNoteReport] = useState<NoteReport | null>(null)
+  const [noteRevealed, setNoteRevealed] = useState('')
+  const [noteWriting, setNoteWriting] = useState(false)
+  const [statusBusy, setStatusBusy] = useState(false)
+  const [briefingSettingsOpen, setBriefingSettingsOpen] = useState(false)
+  const writeToken = useRef(0)
+
+  // ── Load projects + tasks ───────────────────────────────────────
   useEffect(() => {
     let cancelled = false
-
     ;(async () => {
       try {
         const { data } = await supabase.auth.getSession()
         if (cancelled) return
-
-        if (!data.session) {
-          window.location.href = '/login'
-          return
-        }
+        if (!data.session) { window.location.href = '/login'; return }
 
         const uid = data.session.user.id
-        const [{ data: p }, { data: briefingSub }] = await Promise.all([
-          supabase.from('profiles').select('first_name,full_name,notif_whatsapp,whatsapp_number').eq('id', uid).maybeSingle(),
-          (supabase as any)
-            .from('briefing_subscriptions')
-            .select('format,cadence')
-            .eq('user_id', uid)
-            .order('created_at', { ascending: false })
-            .limit(1)
-            .maybeSingle(),
-        ])
+        const { data: p } = await supabase
+          .from('profiles').select('first_name,full_name').eq('id', uid).maybeSingle()
         if (cancelled) return
-
         if (p) setFirstName((p as any).first_name ?? (p as any).full_name?.split(' ')[0] ?? '')
-        setChannels({
-          whatsapp: Boolean((p as any)?.notif_whatsapp || (p as any)?.whatsapp_number),
-          audioFeed: Boolean(briefingSub && ['audio', 'both'].includes(String((briefingSub as any).format)) && String((briefingSub as any).cadence ?? 'off') !== 'off'),
-          spotify: false,
-        })
 
-        const { data: projs } = await supabase.from('projects').select('*').order('created_at', { ascending:false })
+        const { data: projs } = await supabase
+          .from('projects').select('id,title,status,created_at,color')
+          .order('created_at', { ascending: false })
         if (cancelled) return
 
         if (projs?.length) {
-          setProjects(projs)
-          const prio: Record<string,number> = { active:0, testing:1, planning:2, intake:3, done:4 }
-          const m = [...(projs as any[])].sort((a,b) => (prio[a.status]??9)-(prio[b.status]??9))[0]
+          setProjects(projs as Project[])
+          const prio: Record<string, number> = { active: 0, testing: 1, planning: 2, intake: 3, done: 4 }
+          const m = [...(projs as any[])].sort((a, b) => (prio[a.status] ?? 9) - (prio[b.status] ?? 9))[0]
           setMain(m)
-          const projectIds = (projs as any[]).map(pr => pr.id).filter(Boolean)
-          const [{ data: t }, { data: at }, { data: ms }] = await Promise.all([
-            supabase.from('tasks').select('*').eq('project_id', m.id),
-            projectIds.length > 0
-              ? supabase.from('tasks').select('*').in('project_id', projectIds)
-              : Promise.resolve({ data: [] }),
-            projectIds.length > 0
-              ? supabase.from('milestones').select('id,project_id,title,amount,currency,status,due_date,paid_at,order_index').in('project_id', projectIds).order('order_index', { ascending: true })
-              : Promise.resolve({ data: [] }),
-          ])
+          const ids = (projs as any[]).map((pr) => pr.id).filter(Boolean)
+          const { data: at } = ids.length
+            ? await supabase.from('tasks').select('id,title,status,priority,project_id,updated_at').in('project_id', ids)
+            : { data: [] }
           if (cancelled) return
-          setTasks(t ?? [])
-          setAllTasks(at ?? [])
-          setMilestones((ms as Milestone[] | null) ?? [])
+          setAllTasks((at as Task[]) ?? [])
         }
-
-        const { data: feed } = await supabase.from('activity_feed').select('*').order('created_at',{ascending:false}).limit(8)
-        if (!cancelled) setActivity(feed ?? [])
       } catch (error) {
         console.error('Dashboard failed to load', error)
       } finally {
         if (!cancelled) setLoading(false)
       }
     })()
-
-    return () => {
-      cancelled = true
-    }
+    return () => { cancelled = true }
   }, [supabase])
 
+  // ── Load the latest status note (no animation on first paint) ───
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      try {
+        const res = await fetch('/api/client/status-now', { method: 'GET' })
+        const d = await res.json().catch(() => ({}))
+        if (cancelled || !d?.report) return
+        const r = normalizeReport(d.report)
+        if (!r.summary) return
+        setNoteReport(r)
+        setNoteRevealed(r.summary)
+      } catch { /* notepad simply stays empty */ }
+    })()
+    return () => { cancelled = true }
+  }, [])
+
+  // ── Derived ─────────────────────────────────────────────────────
   const greeting = useMemo(() => pickGreeting(new Date().getHours(), firstName), [firstName])
+  const projectTitle = (id: string) => projects.find((p) => p.id === id)?.title ?? null
 
-  const phase       = main ? (PHASE[main.status] ?? PHASE.intake) : null
-  const done        = tasks.filter(t => t.status==='done').length
-  const activeTasks = tasks.filter(t => t.status!=='done')
-  const completePct = tasks.length ? Math.round(done/tasks.length*100) : 0
+  const decisionTasks = allTasks.filter((t) => t.status === 'waiting')
+  const riskTasks = allTasks.filter((t) => t.status === 'blocked')
+  const phaseLabel = main ? (PHASE[main.status] ?? 'Intake') : null
 
-  // ── KPI bar values ────────────────────────────────────────────
-  const activeProjects = projects.filter(p => p.status === 'active' || p.status === 'testing' || p.status === 'planning')
-  const decisionsOpen  = allTasks.filter(t => t.status === 'waiting').length
-  const blockersOpen   = allTasks.filter(t => t.status === 'blocked').length
-  const nextMilestone  = main
-    ? milestones
-        .filter(m => m.project_id === main.id && !m.paid_at && m.status !== 'completed' && m.status !== 'paid')
-        .sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0))[0]
-    : null
-  const milestoneDue = nextMilestone?.due_date ? new Date(nextMilestone.due_date).toLocaleDateString('de-DE', { day: '2-digit', month: 'short' }) : null
+  const pulse = useMemo(
+    () => buildPulse({ blockers: riskTasks.length, decisions: decisionTasks.length }),
+    [riskTasks.length, decisionTasks.length],
+  )
 
-  const pulse = useMemo(() => buildPulse({
-    blockers: blockersOpen,
-    decisions: decisionsOpen,
-    activeProjects: activeProjects.length,
-    mainTitle: main?.title,
-    phaseLabel: phase?.label,
-    openTasks: activeTasks.length,
-  }), [blockersOpen, decisionsOpen, activeProjects.length, main?.title, phase?.label, activeTasks.length])
+  // ── Audio text — the note when present, a calm fallback otherwise ─
+  const fallbackBriefing = main
+    ? `${greeting} ${main.title} ist aktuell ${phaseLabel ?? 'in Bearbeitung'}. ` +
+      `${riskTasks.length > 0 ? `${riskTasks.length} Risiken brauchen Aufmerksamkeit.` : 'Keine akuten Risiken sichtbar.'} ` +
+      `${decisionTasks.length > 0 ? `${decisionTasks.length} Entscheidungen warten auf dich.` : 'Keine offene Entscheidung wartet auf dich.'}`
+    : 'Noch kein aktives Projekt. Sobald jemand am Projekt arbeitet, fasse ich den Stand hier ruhig zusammen.'
+  const audioText = noteReport?.summary?.trim() ? noteReport.summary : fallbackBriefing
 
-  const projectStatusValue = activeProjects.length === 0 ? 'ruhig' : `${activeProjects.length} aktiv`
-  const projectStatusSub = activeProjects.length === 0
-    ? 'kein aktives Projekt'
-    : main ? `${main.title}${phase ? ` · ${phase.label}` : ''}` : 'Projektstatus wird geprüft'
-  const decisionValue = decisionsOpen === 0 ? 'keine' : String(decisionsOpen)
-  const decisionSub = decisionsOpen === 0 ? 'nichts wartet auf dich' : 'wartet auf Freigabe'
-  const blockerValue = blockersOpen === 0 ? 'keine' : String(blockersOpen)
-  const blockerSub = blockersOpen === 0 ? 'keine akute Verzögerung' : 'Zeitplan prüfen'
-  const milestoneValue = nextMilestone ? nextMilestone.title : '—'
-  const milestoneSub = nextMilestone
-    ? milestoneDue ? `fällig ${milestoneDue}` : 'noch ohne Datum'
-    : 'noch nicht geplant'
-
-  // ── Today's Focus ─────────────────────────────────────────────
-  type FocusItem = { tone: 'crit' | 'warn' | 'ok' | 'neutral'; tag: string; text: string; sub?: string; href: string; sortKey: number }
-  const priorityScore: Record<string, number> = { critical: 4, high: 3, medium: 2, low: 1 }
-  const focusItems: FocusItem[] = (() => {
-    const out: FocusItem[] = []
-    allTasks.forEach(t => {
-      const proj = projects.find(p => p.id === t.project_id)
-      const subTitle = proj?.title
-      if (t.status === 'blocked') {
-        out.push({ tone: 'crit', tag: 'Blocker', text: t.title, sub: subTitle, href: proj ? `/project/${proj.id}` : '/tasks', sortKey: 100 })
-      } else if (t.status === 'waiting') {
-        out.push({ tone: 'warn', tag: 'Entscheidung', text: t.title, sub: subTitle, href: proj ? `/project/${proj.id}` : '/tasks', sortKey: 80 })
-      } else if (t.status === 'doing') {
-        out.push({ tone: 'ok', tag: 'Aktiv', text: t.title, sub: subTitle, href: proj ? `/project/${proj.id}` : '/tasks', sortKey: priorityScore[t.priority ?? 'medium'] ?? 2 })
-      } else if (t.status === 'todo') {
-        out.push({ tone: 'neutral', tag: 'Offen', text: t.title, sub: subTitle, href: proj ? `/project/${proj.id}` : '/tasks', sortKey: (priorityScore[t.priority ?? 'medium'] ?? 2) - 0.5 })
-      }
-    })
-    return out.sort((a, b) => b.sortKey - a.sortKey).slice(0, 6)
-  })()
-
-  const agencyMode = projects.length >= 5
-  const nextStep = focusItems[0]?.text ?? (main ? `${main.title} kurz prüfen` : 'erstes Projekt anlegen')
-  const briefingLines = [
-    agencyMode
-      ? `${projects.length} Projekte im Blick. Tagro fasst nur das Wichtigste als Portfolio-Pulse zusammen.`
-      : projects.length > 1
-        ? `${projects.length} Projekte im Blick. Das Briefing bleibt kurz und teilt sich nach Projekten.`
-        : main
-          ? `${main.title} ist aktuell ${phase?.label ?? 'im Intake'}.`
-          : 'Noch kein aktives Projekt. Tagro wartet auf erste Projektsignale.',
-    blockersOpen > 0 ? `${blockersOpen} Risiko${blockersOpen === 1 ? '' : 'en'} brauchen Aufmerksamkeit.` : 'Keine akuten Risiken sichtbar.',
-    decisionsOpen > 0 ? `${decisionsOpen} Entscheidung${decisionsOpen === 1 ? '' : 'en'} warten auf dich.` : 'Keine offene Entscheidung wartet auf dich.',
-    `Nächster Schritt: ${nextStep}.`,
-  ]
-  const briefingText = generateBriefingText({
-    type: 'dashboard_briefing',
-    projectTitle: agencyMode ? 'dein Portfolio' : main?.title,
-    report: briefingLines.join(' '),
-    projectStatus: agencyMode ? 'Portfolio Pulse' : phase?.label,
-    progress: completePct,
-    blockerCount: blockersOpen,
-    decisionCount: decisionsOpen,
-    nextSteps: [nextStep],
-  })
   const {
     supported: speechSupported,
     state: speechState,
@@ -304,739 +182,586 @@ export default function DashboardPage() {
     pause: pauseBriefing,
     stop: stopBriefing,
     updatePreferences,
-  } = useSpeechSynthesis(briefingText)
+  } = useSpeechSynthesis(audioText)
   const selectedVoiceId = selectedVoice ? speechVoiceId(selectedVoice) : ''
   const voiceChoices = useMemo(() => {
-    const germanVoices = voices.filter(voice => voice.lang.toLowerCase().startsWith('de'))
-    return (germanVoices.length ? germanVoices : voices).slice(0, 12)
+    const german = voices.filter((v) => v.lang.toLowerCase().startsWith('de'))
+    return (german.length ? german : voices).slice(0, 12)
   }, [voices])
   const isBriefingPlaying = speechState === 'playing'
   const isBriefingActive = speechState === 'playing' || speechState === 'paused'
   const listenLabel = isBriefingPlaying ? 'Pausieren' : speechState === 'paused' ? 'Weiterhören' : 'Bericht anhören'
-  const transcriptLines = briefingLines.slice(0, 3)
-  const handleBriefingToggle = () => {
-    if (isBriefingPlaying) pauseBriefing()
-    else playBriefing()
+  const handleBriefingToggle = () => { if (isBriefingPlaying) pauseBriefing(); else playBriefing() }
+
+  // ── Notepad writing animation ───────────────────────────────────
+  async function streamNote(text: string) {
+    const token = ++writeToken.current
+    setNoteWriting(true)
+    setNoteRevealed('')
+    const words = text.split(/(\s+)/)
+    let acc = ''
+    for (const word of words) {
+      if (writeToken.current !== token) return
+      acc += word
+      setNoteRevealed(acc)
+      await new Promise((r) => setTimeout(r, word.trim() ? 24 : 10))
+    }
+    if (writeToken.current === token) setNoteWriting(false)
   }
-  const attentionItems = [
-    {
-      label: 'Risiken',
-      value: blockersOpen === 0 ? 'keine' : String(blockersOpen),
-      tone: blockersOpen > 0 ? 'warn' : 'calm',
-      href: blockersOpen > 0 ? '/tasks?status=blocked' : '/tasks',
-    },
-    {
-      label: 'Entscheidungen',
-      value: decisionsOpen === 0 ? 'keine' : String(decisionsOpen),
-      tone: decisionsOpen > 0 ? 'warn' : 'calm',
-      href: decisionsOpen > 0 ? '/tasks?status=waiting' : '/tasks',
-    },
-    {
-      label: 'Nächster Schritt',
-      value: nextStep,
-      tone: 'neutral',
-      href: focusItems[0]?.href ?? (main ? `/project/${main.id}` : '/projects'),
-    },
-  ]
+
+  async function refreshStatus() {
+    if (statusBusy) return
+    setStatusBusy(true)
+    try {
+      const res = await fetch('/api/client/status-now', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(main ? { projectId: main.id } : {}),
+      })
+      const d = await res.json().catch(() => ({}))
+      if (d?.report) {
+        const r = normalizeReport(d.report)
+        setNoteReport(r)
+        if (r.summary) await streamNote(r.summary)
+      }
+    } finally {
+      setStatusBusy(false)
+    }
+  }
+
+  const noteStamp = noteReport?.createdAt
+    ? new Date(noteReport.createdAt).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })
+    : null
 
   return (
-    <div className="page-content dashboard-os dash-editorial" style={{ maxWidth: undefined }}>
+    <div className="page-content dashboard-os dash-calm">
       <style>{`
-        @keyframes dashFade { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
-        .dash-editorial {
+        @keyframes dcFade { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+        @keyframes dcBlink { 0%,49% { opacity:1; } 50%,100% { opacity:0; } }
+        @keyframes dcSpin { to { transform:rotate(360deg); } }
+
+        .dash-calm {
           min-height:100%;
           background:transparent;
           color:var(--text);
-          padding: 0 clamp(20px, 2.4vw, 32px) 56px;
-          overflow:hidden;
-          --ed-muted: #5A6478;
-          --ed-secondary: #4E5567;
+          padding: 0 clamp(20px, 2.4vw, 32px) 64px;
+          --dc-muted: #5A6478;
+          --dc-soft: #4E5567;
+          --dc-slate: #5B647D;
         }
-        [data-theme="dark"] .dash-editorial,
-        [data-theme="classic-dark"] .dash-editorial {
-          --ed-muted: #8D98A6;
-          --ed-secondary: #B7BDC8;
+        [data-theme="dark"] .dash-calm,
+        [data-theme="classic-dark"] .dash-calm {
+          --dc-muted: #8D98A6;
+          --dc-soft: #B7BDC8;
         }
-        .dash-editorial * { font-weight: 500 !important; letter-spacing: .012em; }
+        .dash-calm * { font-weight:500 !important; letter-spacing:.012em; }
 
-        /* ── Single calm column — one page, one width ──────── */
-        .ed-layout { display: block; }
-        .ed-main { max-width: 680px; }
+        /* ── Grid: note left, action box right · stacks on mobile ── */
+        .dc-grid {
+          max-width: 1060px;
+          display:grid;
+          grid-template-columns: minmax(0,1fr) 308px;
+          grid-template-areas:
+            "head   action"
+            "note   blocks";
+          column-gap: 44px;
+          align-items:start;
+        }
 
-        /* ── Hero — 24px top breathing room, calm headline ──── */
-        .ed-hero {
-          padding: 24px 0 28px;
-          animation: dashFade .3s cubic-bezier(.16,1,.3,1) both;
-        }
-        .ed-hero-top {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
-          gap: 16px;
-        }
-        .ed-title {
-          margin: 0;
-          color: var(--text);
-          font-size: clamp(18px, 1.7vw, 21px);
-          line-height: 1.25;
-          letter-spacing: -.005em;
-          flex: 1;
-          min-width: 0;
-        }
-        .ed-hero-actions { margin-top: 18px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-
-        /* ── Status pulse — floating badge in the corner ────── */
-        .ed-pulse-wrap { position: relative; flex-shrink: 0; }
-        .ed-pulse {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          height: 28px;
-          padding: 0 12px 0 10px;
-          border-radius: 999px;
-          border: 0;
-          background: #fff;
-          color: var(--ed-secondary);
-          font: inherit;
-          font-size: 12px;
-          letter-spacing: .005em;
-          cursor: default;
-          box-shadow: 0 1px 2px rgba(15,23,42,.08), 0 7px 18px rgba(15,23,42,.08);
-          transition: box-shadow .14s ease, transform .14s ease, color .14s ease;
-        }
-        .ed-pulse:hover { color: var(--text); transform: translateY(-1px); box-shadow: 0 1px 2px rgba(15,23,42,.10), 0 9px 22px rgba(15,23,42,.11); }
-        [data-theme="dark"] .ed-pulse,
-        [data-theme="classic-dark"] .ed-pulse {
-          background: color-mix(in srgb, var(--surface) 92%, #fff 8%);
-          box-shadow: 0 1px 2px rgba(0,0,0,.28), 0 8px 20px rgba(0,0,0,.20);
-        }
-        [data-theme="dark"] .ed-pulse:hover,
-        [data-theme="classic-dark"] .ed-pulse:hover { box-shadow: 0 1px 2px rgba(0,0,0,.34), 0 10px 24px rgba(0,0,0,.26); }
-        .ed-pulse-dot {
-          width: 8px; height: 8px; border-radius: 999px;
-          background: currentColor;
-          flex-shrink: 0;
-          animation: pulseGlow 2.4s ease-in-out infinite;
-        }
-        @keyframes pulseGlow {
-          0%, 100% { box-shadow: 0 0 0 0 currentColor; opacity: 1; }
-          50%      { box-shadow: 0 0 0 5px transparent;  opacity: .55; }
-        }
-        .ed-pulse.tone-green .ed-pulse-dot { color: #22c55e; }
-        .ed-pulse.tone-amber .ed-pulse-dot { color: #f59e0b; }
-        .ed-pulse.tone-red   .ed-pulse-dot { color: #ef4444; }
-        .ed-pulse-label { white-space: nowrap; }
-
-        /* ── Tagro status briefing — like a Notion note, calm ─── */
-        .ed-briefing {
-          margin-top: 14px;
-          padding: 4px 0 0;
-          background: transparent;
-          box-shadow: none;
-        }
-        .ed-briefing-main { min-width: 0; max-width: 640px; }
-        .ed-briefing-kicker {
-          margin: 0 0 6px;
-          color: var(--ed-muted);
-          font-size: 10.5px;
-          letter-spacing: .14em;
-          text-transform: uppercase;
-        }
-        .ed-briefing-title {
-          margin: 0;
-          color: var(--text);
-          font-size: clamp(18px, 1.65vw, 22px);
-          line-height: 1.18;
-          letter-spacing: -.008em;
-        }
-        .ed-briefing-sub {
-          margin: 7px 0 0;
-          max-width: 560px;
-          color: var(--ed-secondary);
-          font-size: 12.5px;
-          line-height: 1.45;
-        }
-        .ed-listen-row {
-          position: relative;
-          margin-top: 15px;
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          flex-wrap: wrap;
-        }
-        .ed-listen-button,
-        .ed-mini-control,
-        .ed-listen-settings-toggle,
-        .ed-briefing-link {
-          appearance: none;
-          border: 0;
-          border-radius: 8px;
-          background: #fff;
-          color: var(--text);
-          font: inherit;
-          cursor: pointer;
-          text-decoration: none;
-          box-shadow: 0 1px 2px rgba(15,23,42,.08), 0 7px 18px rgba(15,23,42,.08);
-          transition: transform .14s ease, box-shadow .14s ease, background .14s ease, opacity .14s ease;
-        }
-        .ed-listen-button:hover,
-        .ed-mini-control:hover,
-        .ed-listen-settings-toggle:hover,
-        .ed-briefing-link:hover {
-          transform: translateY(-1px);
-          box-shadow: 0 1px 2px rgba(15,23,42,.09), 0 10px 24px rgba(15,23,42,.11);
-        }
-        .ed-listen-button:focus-visible,
-        .ed-mini-control:focus-visible,
-        .ed-listen-settings-toggle:focus-visible,
-        .ed-briefing-link:focus-visible {
-          outline: 2px solid color-mix(in srgb, #6b7cff 60%, transparent);
-          outline-offset: 2px;
-        }
-        .ed-listen-button {
-          min-width: min(100%, 240px);
-          height: 42px;
-          padding: 0 18px;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          gap: 9px;
-          background: var(--surface);
-          color: var(--text);
-          font-size: 13px;
-          letter-spacing: -.002em;
-          border-radius: 999px;
-          border: 1px solid var(--border);
-          box-shadow: 0 1px 2px rgba(15,23,42,.06), 0 8px 22px rgba(15,23,42,.06);
-          transition: transform .12s ease, box-shadow .12s ease;
-        }
-        .ed-listen-button:hover {
-          transform: translateY(-1px);
-          box-shadow: 0 1px 2px rgba(15,23,42,.08), 0 10px 26px rgba(15,23,42,.08);
-        }
-        .ed-listen-button[disabled] {
-          opacity: .55;
-          cursor: not-allowed;
-          transform: none;
-        }
-        .ed-mini-control,
-        .ed-briefing-link {
-          height: 34px;
-          padding: 0 12px;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          gap: 7px;
-          font-size: 11.5px;
-          color: var(--ed-secondary);
-        }
-        .ed-briefing-link[disabled] { opacity: .55; cursor: not-allowed; transform: none; }
-        .ed-briefing-hint {
-          margin: 8px 0 0;
-          font-size: 11.5px;
-          color: var(--ed-muted);
-          letter-spacing: .012em;
-        }
-        .ed-listen-settings-toggle {
-          width: 34px;
-          height: 34px;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          color: var(--ed-secondary);
-        }
-        [data-theme="dark"] .dash-editorial .ed-briefing .voice-icon-btn,
-        [data-theme="dark"] .dash-editorial .ed-briefing .voice-field,
-        [data-theme="classic-dark"] .dash-editorial .ed-briefing .voice-icon-btn,
-        [data-theme="classic-dark"] .dash-editorial .ed-briefing .voice-field {
-          background: color-mix(in srgb, var(--surface) 88%, #fff 8%);
-          box-shadow: 0 1px 2px rgba(0,0,0,.28), 0 8px 20px rgba(0,0,0,.20);
-        }
-        [data-theme="dark"] .ed-listen-button,
-        [data-theme="classic-dark"] .ed-listen-button {
-          background: color-mix(in srgb, var(--surface) 92%, #fff 8%);
-          color: var(--text);
-          box-shadow: 0 1px 2px rgba(0,0,0,.28), 0 10px 24px rgba(0,0,0,.22);
-        }
-        [data-theme="dark"] .ed-mini-control,
-        [data-theme="dark"] .ed-listen-settings-toggle,
-        [data-theme="dark"] .ed-briefing-link,
-        [data-theme="classic-dark"] .ed-mini-control,
-        [data-theme="classic-dark"] .ed-listen-settings-toggle,
-        [data-theme="classic-dark"] .ed-briefing-link {
-          background: color-mix(in srgb, var(--surface) 88%, #fff 8%);
-          box-shadow: 0 1px 2px rgba(0,0,0,.28), 0 8px 20px rgba(0,0,0,.20);
-        }
-        [data-theme="dark"] .ed-briefing-link,
-        [data-theme="classic-dark"] .ed-briefing-link {
-          color: var(--ed-secondary);
-        }
-        .ed-briefing-settings {
-          position: absolute;
-          z-index: 5;
-          top: calc(100% + 10px);
-          left: 0;
-          width: min(320px, calc(100vw - 56px));
-          padding: 10px;
-          border-radius: 12px;
-          background: #fff;
-          box-shadow: 0 1px 2px rgba(15,23,42,.06), 0 24px 60px rgba(15,23,42,.16);
-        }
-        [data-theme="dark"] .ed-briefing-settings,
-        [data-theme="classic-dark"] .ed-briefing-settings {
-          background: color-mix(in srgb, var(--surface) 94%, #fff 6%);
-          box-shadow: 0 1px 2px rgba(0,0,0,.32), 0 24px 60px rgba(0,0,0,.28);
-        }
-        .ed-setting-row {
-          display: grid;
-          grid-template-columns: 78px minmax(0, 1fr);
-          gap: 10px;
-          align-items: center;
-          padding: 6px;
-        }
-        .ed-setting-label {
-          color: var(--ed-muted);
-          font-size: 10.5px;
-          letter-spacing: .12em;
-          text-transform: uppercase;
-        }
-        .ed-setting-select {
-          width: 100%;
-          height: 34px;
-          border: 0;
-          border-radius: 8px;
-          padding: 0 10px;
-          background: color-mix(in srgb, var(--surface-2) 58%, transparent);
-          color: var(--text);
-          font: inherit;
-          font-size: 12px;
-          outline: none;
-        }
-        .ed-transcript {
-          margin-top: 14px;
-          padding: 0;
-        }
-        .ed-transcript p {
-          margin: 0;
-          color: var(--ed-secondary);
-          font-size: 13.5px;
-          line-height: 1.62;
-        }
-        .ed-transcript p + p { margin-top: 8px; }
-        .ed-briefing-actions {
-          margin-top: 11px;
-          display: flex;
-          gap: 8px;
-          flex-wrap: wrap;
-        }
-        .ed-attention {
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: 6px;
-        }
-        .ed-attention-row {
-          min-height: 43px;
-          display: grid;
-          grid-template-columns: 86px minmax(0, 1fr);
-          gap: 10px;
-          align-items: center;
-          padding: 8px 10px;
-          border-radius: 8px;
-          background: color-mix(in srgb, var(--surface-2) 42%, transparent);
-          text-decoration: none;
-          color: inherit;
-          transition: background .14s ease, transform .14s ease;
-        }
-        .ed-attention-row:hover { background: color-mix(in srgb, var(--surface-2) 68%, transparent); transform: translateY(-1px); }
-        .ed-attention-label {
-          color: var(--ed-muted);
-          font-size: 10.5px;
-          letter-spacing: .12em;
-          text-transform: uppercase;
-        }
-        .ed-attention-value {
-          min-width: 0;
-          color: var(--text);
-          font-size: 12.5px;
-          line-height: 1.25;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-        }
-        .ed-attention-row.warn .ed-attention-value { color: var(--text); }
-        .ed-channel-row {
-          margin-top: 10px;
-          display: flex;
-          gap: 7px;
-          flex-wrap: wrap;
-        }
-        .ed-channel {
-          height: 28px;
-          padding: 0 9px;
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          border-radius: 8px;
-          background: color-mix(in srgb, var(--surface-2) 48%, transparent);
-          color: var(--ed-secondary);
-          font-size: 11px;
-          text-decoration: none;
-        }
-        .ed-channel-dot {
-          width: 6px;
-          height: 6px;
-          border-radius: 999px;
-          background: var(--ed-muted);
-        }
-        .ed-channel.on .ed-channel-dot { background: #2f7df6; }
-
-        /* ── Focus list ──────────────────────────────────────── */
-        .ed-focus {
-          padding: 12px 0 28px;
-          animation:dashFade .3s .04s cubic-bezier(.16,1,.3,1) both;
-        }
-        .ed-focus-head {
-          display:flex; align-items:baseline; justify-content:space-between;
-          margin:0 0 8px;
-        }
-        .ed-focus-title {
+        /* ── Header ───────────────────────────────────────────────── */
+        .dc-head { grid-area:head; padding:26px 0 0; animation:dcFade .3s cubic-bezier(.16,1,.3,1) both; }
+        .dc-greeting {
           margin:0;
           color:var(--text);
+          font-size:clamp(20px, 1.9vw, 24px);
+          line-height:1.2;
+          letter-spacing:-.012em;
+        }
+        .dc-greeting-sub {
+          margin:9px 0 0;
+          max-width:420px;
+          color:var(--dc-soft);
           font-size:13px;
-          letter-spacing:-.002em;
+          line-height:1.5;
         }
-        .ed-focus-meta {
-          color:var(--ed-muted);
-          font-size:11px;
-          letter-spacing:.04em;
+
+        /* ── Notepad ──────────────────────────────────────────────── */
+        .dc-note {
+          grid-area:note;
+          margin-top:22px;
+          min-height:340px;
+          padding:24px 26px 28px;
+          border-radius:16px;
+          background:var(--surface);
+          box-shadow:0 1px 2px rgba(15,23,42,.05), 0 12px 34px rgba(15,23,42,.06);
+          animation:dcFade .3s .04s cubic-bezier(.16,1,.3,1) both;
         }
-        .ed-focus-list { display:flex; flex-direction:column; gap:2px; }
-        .ed-focus-row {
-          display:grid;
-          grid-template-columns:74px 6px minmax(0, 1fr) auto;
-          gap:12px; align-items:center;
-          padding:9px 10px; border-radius:9px;
-          text-decoration:none; color:inherit;
-          transition: background .12s ease;
+        [data-theme="dark"] .dc-note,
+        [data-theme="classic-dark"] .dc-note {
+          background:color-mix(in srgb, var(--surface) 92%, #fff 8%);
+          box-shadow:0 1px 2px rgba(0,0,0,.3), 0 12px 34px rgba(0,0,0,.24);
         }
-        .ed-focus-row:hover { background: color-mix(in srgb, var(--surface-2) 55%, transparent); }
-        .ed-focus-tag {
-          display:inline-flex; align-items:center; justify-content:center;
-          height:20px; padding:0 9px; border-radius:5px;
-          font-size:10.5px; letter-spacing:.06em; text-transform:uppercase;
+        .dc-note-head {
+          display:flex; align-items:baseline; justify-content:space-between;
+          gap:12px; margin-bottom:16px;
+        }
+        .dc-note-label {
+          color:var(--dc-muted);
+          font-size:10.5px;
+          letter-spacing:.15em;
+          text-transform:uppercase;
+        }
+        .dc-note-stamp { color:var(--dc-muted); font-size:11.5px; }
+        .dc-note-text {
+          margin:0;
+          color:var(--text);
+          font-size:15.5px;
+          line-height:1.74;
+          white-space:pre-wrap;
+        }
+        .dc-caret {
+          display:inline-block;
+          width:2px; height:1.05em;
+          margin-left:1.5px;
+          vertical-align:-2px;
+          background:var(--dc-slate);
+          animation:dcBlink 1s steps(1) infinite;
+        }
+        .dc-note-empty {
+          margin:0;
+          max-width:380px;
+          color:var(--dc-muted);
+          font-size:14px;
+          line-height:1.6;
+        }
+        .dc-note-empty-cue {
+          margin-top:18px;
+          display:inline-flex; align-items:center; gap:7px;
+          color:var(--dc-muted);
+          font-size:12px;
+        }
+        .dc-note-next { margin-top:22px; }
+        .dc-note-next-label {
+          margin:0 0 9px;
+          color:var(--dc-muted);
+          font-size:10.5px;
+          letter-spacing:.14em;
+          text-transform:uppercase;
+        }
+        .dc-note-next-item {
+          display:flex; align-items:flex-start; gap:9px;
+          padding:5px 0;
+          color:var(--dc-soft);
+          font-size:13.5px;
+          line-height:1.5;
+        }
+        .dc-note-next-item span.dot {
+          margin-top:7px;
+          width:5px; height:5px; border-radius:999px;
+          background:var(--dc-slate);
           flex-shrink:0;
         }
-        .ed-focus-tag.crit    { background: color-mix(in srgb, var(--red,    #d14343) 16%, transparent); color: var(--red, #c0362e); }
-        .ed-focus-tag.warn    { background: color-mix(in srgb, var(--amber,  #b98700) 18%, transparent); color: var(--amber-dark, #8a6500); }
-        .ed-focus-tag.ok      { background: color-mix(in srgb, var(--green,  #34c759) 14%, transparent); color: var(--green-dark, #28a745); }
-        .ed-focus-tag.neutral { background: color-mix(in srgb, var(--ed-secondary) 12%, transparent); color: var(--ed-secondary); }
-        .ed-focus-dot {
-          width:6px; height:6px; border-radius:999px;
-          background:var(--ed-muted); flex-shrink:0;
+
+        /* ── Right action box ─────────────────────────────────────── */
+        .dc-action { grid-area:action; padding-top:26px; animation:dcFade .3s .04s cubic-bezier(.16,1,.3,1) both; }
+        .dc-card {
+          position:relative;
+          padding:16px;
+          border-radius:14px;
+          background:var(--surface);
+          box-shadow:0 1px 2px rgba(15,23,42,.05), 0 10px 28px rgba(15,23,42,.06);
         }
-        .ed-focus-text {
-          min-width:0; color:var(--text); font-size:13.5px;
-          line-height:1.35;
+        [data-theme="dark"] .dc-card,
+        [data-theme="classic-dark"] .dc-card {
+          background:color-mix(in srgb, var(--surface) 92%, #fff 8%);
+          box-shadow:0 1px 2px rgba(0,0,0,.3), 0 10px 28px rgba(0,0,0,.22);
+        }
+        .dc-pulse {
+          display:inline-flex; align-items:center; gap:8px;
+          margin-bottom:13px;
+          color:var(--dc-soft);
+          font-size:12px;
+        }
+        .dc-pulse-dot {
+          width:8px; height:8px; border-radius:999px;
+          background:currentColor; flex-shrink:0;
+        }
+        .dc-pulse.tone-green .dc-pulse-dot { color:#22c55e; }
+        .dc-pulse.tone-amber .dc-pulse-dot { color:#f59e0b; }
+        .dc-pulse.tone-red   .dc-pulse-dot { color:#ef4444; }
+
+        .dc-primary {
+          appearance:none; border:0; width:100%;
+          height:44px; padding:0 16px;
+          display:inline-flex; align-items:center; justify-content:center; gap:9px;
+          border-radius:11px;
+          background:var(--dc-slate);
+          color:#fff;
+          font:inherit; font-size:13.5px;
+          cursor:pointer;
+          box-shadow:0 1px 2px rgba(15,23,42,.14), 0 8px 20px rgba(91,100,125,.26);
+          transition:transform .13s ease, box-shadow .13s ease, opacity .13s ease;
+        }
+        .dc-primary:hover { transform:translateY(-1px); box-shadow:0 1px 2px rgba(15,23,42,.16), 0 11px 26px rgba(91,100,125,.32); }
+        .dc-primary:disabled { opacity:.62; cursor:default; transform:none; }
+        .dc-primary .spin { animation:dcSpin .9s linear infinite; }
+
+        .dc-audio { margin-top:8px; display:flex; gap:7px; }
+        .dc-audio-play {
+          appearance:none; border:0; flex:1;
+          height:38px; padding:0 12px;
+          display:inline-flex; align-items:center; justify-content:center; gap:8px;
+          border-radius:10px;
+          background:color-mix(in srgb, var(--surface-2) 60%, transparent);
+          color:var(--text);
+          font:inherit; font-size:12.5px;
+          cursor:pointer;
+          transition:background .13s ease, transform .13s ease;
+        }
+        .dc-audio-play:hover { background:color-mix(in srgb, var(--surface-2) 86%, transparent); transform:translateY(-1px); }
+        .dc-audio-play:disabled { opacity:.5; cursor:default; transform:none; }
+        .dc-audio-stop, .dc-audio-cfg {
+          appearance:none; border:0;
+          width:38px; height:38px;
+          display:inline-flex; align-items:center; justify-content:center;
+          border-radius:10px;
+          background:color-mix(in srgb, var(--surface-2) 60%, transparent);
+          color:var(--dc-soft);
+          cursor:pointer;
+          transition:background .13s ease;
+        }
+        .dc-audio-stop:hover, .dc-audio-cfg:hover { background:color-mix(in srgb, var(--surface-2) 86%, transparent); }
+        .dc-audio-cfg.open { background:color-mix(in srgb, var(--surface-2) 92%, transparent); color:var(--text); }
+
+        .dc-settings {
+          position:absolute; z-index:6;
+          top:calc(100% + 8px); right:0;
+          width:100%;
+          padding:8px;
+          border-radius:12px;
+          background:var(--surface);
+          box-shadow:0 1px 2px rgba(15,23,42,.07), 0 20px 50px rgba(15,23,42,.16);
+        }
+        [data-theme="dark"] .dc-settings,
+        [data-theme="classic-dark"] .dc-settings {
+          background:color-mix(in srgb, var(--surface) 95%, #fff 5%);
+          box-shadow:0 1px 2px rgba(0,0,0,.34), 0 20px 50px rgba(0,0,0,.3);
+        }
+        .dc-setting-row {
+          display:grid; grid-template-columns:62px minmax(0,1fr);
+          gap:9px; align-items:center; padding:5px;
+        }
+        .dc-setting-label {
+          color:var(--dc-muted); font-size:10px;
+          letter-spacing:.11em; text-transform:uppercase;
+        }
+        .dc-setting-select {
+          width:100%; height:32px;
+          border:0; border-radius:8px; padding:0 9px;
+          background:color-mix(in srgb, var(--surface-2) 58%, transparent);
+          color:var(--text); font:inherit; font-size:11.5px;
+          outline:none;
+        }
+
+        /* ── Blocks: decisions + risks ────────────────────────────── */
+        .dc-blocks { grid-area:blocks; margin-top:14px; animation:dcFade .3s .08s cubic-bezier(.16,1,.3,1) both; }
+        .dc-block { padding:14px 4px 4px; }
+        .dc-block-head {
+          display:flex; align-items:baseline; justify-content:space-between;
+          gap:10px; margin-bottom:8px;
+        }
+        .dc-block-label {
+          color:var(--dc-muted); font-size:10.5px;
+          letter-spacing:.15em; text-transform:uppercase;
+        }
+        .dc-block-count { color:var(--dc-muted); font-size:11.5px; }
+        .dc-block-empty {
+          margin:0; padding:2px 6px 6px;
+          color:var(--dc-muted); font-size:12.5px; line-height:1.5;
+        }
+        .dc-block-list { display:flex; flex-direction:column; }
+        .dc-block-row {
+          display:grid;
+          grid-template-columns:6px minmax(0,1fr) 14px;
+          gap:9px; align-items:center;
+          padding:8px 6px;
+          border-radius:9px;
+          text-decoration:none; color:inherit;
+          transition:background .12s ease;
+        }
+        .dc-block-row:hover { background:color-mix(in srgb, var(--surface-2) 58%, transparent); }
+        .dc-block-row:hover .dc-block-go { opacity:1; transform:none; }
+        .dc-row-dot { width:6px; height:6px; border-radius:999px; flex-shrink:0; }
+        .dc-row-dot.warn { background:#f59e0b; }
+        .dc-row-dot.risk { background:#ef4444; }
+        .dc-row-main { min-width:0; }
+        .dc-row-title {
+          color:var(--text); font-size:13px; line-height:1.35;
           overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
         }
-        .ed-focus-sub {
-          color:var(--ed-muted); font-size:11.5px;
-          flex-shrink:0; letter-spacing:.005em;
+        .dc-row-sub {
+          color:var(--dc-muted); font-size:11px; line-height:1.3;
+          overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
         }
-        .ed-focus-empty {
-          padding:14px 10px; color:var(--ed-muted); font-size:13px;
-        }
-
-        /* ── KPI strip ───────────────────────────────────────── */
-        .ed-status-row {
-          display:grid;
-          grid-template-columns:repeat(4, minmax(0, 1fr));
-          gap:24px;
-          padding: 10px 4px 32px;
-          animation:dashFade .3s .06s cubic-bezier(.16,1,.3,1) both;
-        }
-        .ed-status-label {
-          margin:0 0 10px;
-          color:var(--ed-muted);
-          font-size:10.5px;
-          letter-spacing:.16em;
-          text-transform:uppercase;
-        }
-        .ed-status-value {
-          margin:0 0 4px;
-          color:var(--text);
-          font-size:15px;
-          line-height:1.25;
-          letter-spacing:-.003em;
-        }
-        .ed-status-sub {
-          margin:0;
-          color:var(--ed-muted);
-          font-size:12px;
-          line-height:1.4;
-        }
-
-        /* ── Active project ──────────────────────────────────── */
-        .ed-project { padding: 12px 0 24px; }
-        .ed-project-head {
-          display:flex; justify-content:space-between; align-items:flex-end;
-          gap:20px; margin-bottom:18px;
-        }
-        .ed-section-label {
-          margin:0 0 12px;
-          color:var(--ed-muted);
-          font-size:10.5px;
-          letter-spacing:.16em;
-          text-transform:uppercase;
-        }
-        .ed-project-title {
-          margin:0; color:var(--text);
-          font-size:20px; line-height:1.2; letter-spacing:-.02em;
-        }
-        .ed-progress {
-          height:3px; width:100%;
-          background: color-mix(in srgb, var(--surface-2) 60%, transparent);
-          border-radius:999px; overflow:hidden;
-        }
-        .ed-progress span {
-          display:block; height:100%;
-          width:var(--progress);
-          background: color-mix(in srgb, var(--ed-secondary) 60%, transparent);
-        }
-        .ed-project-row {
-          display:grid;
-          grid-template-columns:repeat(4, minmax(0,1fr));
-          gap:24px;
-          margin-top:18px;
-        }
-
-        .ed-button {
-          height:32px; padding:0 14px;
-          display:inline-flex; align-items:center; gap:7px;
-          border-radius:999px;
-          border:1px solid color-mix(in srgb, var(--border) 80%, transparent);
-          background:transparent;
-          color:var(--ed-secondary);
-          font:inherit;
-          font-size:12.5px;
+        .dc-block-go { color:var(--dc-muted); opacity:0; transform:translateX(-2px); transition:opacity .12s ease, transform .12s ease; }
+        .dc-block-more {
+          display:inline-flex; align-items:center; gap:5px;
+          margin:5px 6px 0;
+          color:var(--dc-muted); font-size:11.5px;
           text-decoration:none;
-          cursor:pointer;
-          transition: background .12s ease, color .12s ease, border-color .12s ease;
         }
-        .ed-button:hover {
-          color:var(--text);
-          background: color-mix(in srgb, var(--surface-2) 60%, transparent);
-        }
+        .dc-block-more:hover { color:var(--text); }
 
-        @media (max-width:960px) {
-          .ed-status-row { grid-template-columns:repeat(2, minmax(0,1fr)); gap:22px; }
-          .ed-briefing { grid-template-columns: 1fr; }
+        .dc-foot {
+          display:flex; flex-wrap:wrap; gap:6px;
+          margin:16px 4px 0;
+        }
+        .dc-foot-link {
+          display:inline-flex; align-items:center; gap:6px;
+          height:30px; padding:0 11px;
+          border-radius:8px;
+          background:color-mix(in srgb, var(--surface-2) 48%, transparent);
+          color:var(--dc-soft);
+          font-size:11.5px; text-decoration:none;
+          transition:background .12s ease, color .12s ease;
+        }
+        .dc-foot-link:hover { background:color-mix(in srgb, var(--surface-2) 80%, transparent); color:var(--text); }
+
+        /* ── Responsive ───────────────────────────────────────────── */
+        @media (max-width:920px) {
+          .dc-grid {
+            grid-template-columns:1fr;
+            grid-template-areas:"head" "action" "note" "blocks";
+          }
+          .dc-action { padding-top:18px; }
+          .dc-note { margin-top:16px; min-height:240px; }
+          .dc-blocks { margin-top:6px; }
         }
         @media (max-width:760px) {
-          .dash-editorial { padding: 0 14px 88px; }
-          .ed-hero { padding: 20px 0 22px; }
-          .ed-title { font-size: 17px; }
-          .ed-pulse-label { display: none; }
-          .ed-pulse { padding: 0; width: 28px; justify-content: center; }
-          .ed-status-row { grid-template-columns:1fr 1fr; gap:18px; padding:14px 0 22px; }
-          .ed-project-row { grid-template-columns:1fr 1fr; gap:18px; }
-          .ed-focus-row { grid-template-columns: 70px 6px minmax(0,1fr); }
-          .ed-focus-sub { display:none; }
-          .ed-briefing { padding: 14px; gap: 14px; }
-          .ed-attention-row { grid-template-columns: 1fr; gap: 2px; }
+          .dash-calm { padding:0 14px 88px; }
+          .dc-head { padding-top:20px; }
+          .dc-note { padding:20px 18px 24px; }
         }
       `}</style>
 
-      <div className="ed-layout">
-        <div className="ed-main">
+      <div className="dc-grid">
 
-      <section className="ed-hero" aria-label="Tägliche Statusabfrage">
-        <div className="ed-hero-top">
-          <h1 className="ed-title">{greeting}</h1>
-          <div className="ed-pulse-wrap">
-            <div className={`ed-pulse tone-${pulse.tone}`} aria-label={loading ? 'Status wird geprüft' : pulse.label}>
-              <span className="ed-pulse-dot" />
-              <span className="ed-pulse-label">{loading ? 'wird geprüft…' : pulse.label}</span>
-            </div>
+        {/* ── Header ─────────────────────────────────────────────── */}
+        <header className="dc-head">
+          <h1 className="dc-greeting">{greeting}</h1>
+          <p className="dc-greeting-sub">
+            Ein Klick — und Tagro schreibt dir den aktuellen Projektstand hierher.
+          </p>
+        </header>
+
+        {/* ── Notepad ────────────────────────────────────────────── */}
+        <article className="dc-note" aria-label="Statusnotiz">
+          <div className="dc-note-head">
+            <span className="dc-note-label">Statusnotiz</span>
+            {noteStamp && <span className="dc-note-stamp">Stand {noteStamp} Uhr</span>}
           </div>
-        </div>
-        <section className="ed-briefing" aria-label="Heute von Tagro">
-          <div className="ed-briefing-main">
-            <p className="ed-briefing-kicker">Heute von Tagro · {agencyMode ? 'Portfolio Pulse' : 'Statusbriefing'}</p>
-            <h2 className="ed-briefing-title">{agencyMode ? 'Der wichtigste Stand in einer Minute.' : 'Dein aktueller Stand, ruhig zusammengefasst.'}</h2>
-            <p className="ed-briefing-sub">Audio zuerst. Der Text bleibt darunter als klare Quelle.</p>
-            <div className="ed-listen-row">
+          {noteRevealed ? (
+            <>
+              <p className="dc-note-text">
+                {noteRevealed}
+                {noteWriting && <span className="dc-caret" aria-hidden />}
+              </p>
+              {!noteWriting && (noteReport?.nextSteps?.length ?? 0) > 0 && (
+                <div className="dc-note-next">
+                  <p className="dc-note-next-label">Nächste Schritte</p>
+                  {noteReport!.nextSteps.slice(0, 4).map((step, i) => (
+                    <div className="dc-note-next-item" key={`${i}-${step}`}>
+                      <span className="dot" aria-hidden />
+                      <span>{step}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              <p className="dc-note-empty">
+                {loading
+                  ? 'Tagro prüft gerade deine Projekte…'
+                  : 'Hier ist noch nichts notiert. Tippe rechts auf „Status abrufen" — Tagro fasst den heutigen Stand ruhig zusammen und schreibt ihn hierher.'}
+              </p>
+              {!loading && (
+                <div className="dc-note-empty-cue">
+                  <ArrowClockwise size={14} />
+                  <span>Bereit, sobald du es bist.</span>
+                </div>
+              )}
+            </>
+          )}
+        </article>
+
+        {/* ── Right action box ───────────────────────────────────── */}
+        <aside className="dc-action">
+          <div className="dc-card">
+            <div className={`dc-pulse tone-${pulse.tone}`} title={pulse.label}>
+              <span className="dc-pulse-dot" aria-hidden />
+              <span>{loading ? 'Status wird geprüft…' : pulse.label}</span>
+            </div>
+
+            <button
+              type="button"
+              className="dc-primary"
+              onClick={refreshStatus}
+              disabled={statusBusy}
+            >
+              <ArrowClockwise size={16} className={statusBusy ? 'spin' : ''} />
+              <span>{statusBusy ? 'Tagro schreibt…' : 'Status abrufen'}</span>
+            </button>
+
+            <div className="dc-audio">
               <button
-                className="ed-listen-button"
                 type="button"
+                className="dc-audio-play"
                 onClick={handleBriefingToggle}
-                disabled={!speechSupported || !briefingText.trim()}
+                disabled={!speechSupported || !audioText.trim()}
                 aria-label={listenLabel}
               >
-                {isBriefingPlaying ? <Pause size={17} weight="fill" /> : <Play size={17} weight="fill" />}
+                {isBriefingPlaying ? <Pause size={15} weight="fill" /> : <Play size={15} weight="fill" />}
                 <span>{listenLabel}</span>
               </button>
               {isBriefingActive && (
-                <button className="ed-mini-control" type="button" onClick={stopBriefing}>
-                  <Stop size={13} weight="fill" /> Stopp
+                <button type="button" className="dc-audio-stop" onClick={stopBriefing} aria-label="Stopp">
+                  <Stop size={13} weight="fill" />
                 </button>
               )}
               <button
-                className={`ed-listen-settings-toggle${briefingSettingsOpen ? ' open' : ''}`}
                 type="button"
-                onClick={() => setBriefingSettingsOpen(open => !open)}
-                aria-label="Stimme und Tempo einstellen"
+                className={`dc-audio-cfg${briefingSettingsOpen ? ' open' : ''}`}
+                onClick={() => setBriefingSettingsOpen((o) => !o)}
+                aria-label="Stimme und Tempo"
                 aria-expanded={briefingSettingsOpen}
               >
-                <SlidersHorizontal size={16} />
+                <SlidersHorizontal size={15} />
               </button>
-              {briefingSettingsOpen && (
-                <div className="ed-briefing-settings" role="dialog" aria-label="Audioeinstellungen">
-                  <label className="ed-setting-row">
-                    <span className="ed-setting-label">Tempo</span>
-                    <select
-                      className="ed-setting-select"
-                      value={preferences.rate}
-                      onChange={(event) => updatePreferences({ rate: Number(event.target.value) })}
-                    >
-                      <option value={0.85}>0.85x</option>
-                      <option value={0.95}>0.95x</option>
-                      <option value={1}>1.00x</option>
-                      <option value={1.1}>1.10x</option>
-                      <option value={1.15}>1.15x</option>
-                    </select>
-                  </label>
-                  <label className="ed-setting-row">
-                    <span className="ed-setting-label">Stimme</span>
-                    <select
-                      className="ed-setting-select"
-                      value={selectedVoiceId}
-                      onChange={(event) => updatePreferences({ voiceId: event.target.value || undefined, voiceName: undefined })}
-                    >
-                      {voiceChoices.length === 0 && <option value="">Systemstimme</option>}
-                      {voiceChoices.map(voice => (
-                        <option key={speechVoiceId(voice)} value={speechVoiceId(voice)}>
-                          {formatVoiceLabel(voice)}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                </div>
-              )}
             </div>
-            <div className="ed-transcript" aria-label="Transkript">
-              {(liveReport?.summary ? [liveReport.summary] : transcriptLines).map(line => <p key={line}>{line}</p>)}
-            </div>
-            <div className="ed-briefing-actions">
-              <button
-                type="button"
-                className="ed-briefing-link"
-                disabled={statusBusy}
-                onClick={async () => {
-                  setStatusBusy(true)
-                  try {
-                    const res = await fetch('/api/client/status-now', {
-                      method: 'POST', headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify(main ? { projectId: main.id } : {}),
-                    })
-                    const d = await res.json().catch(() => ({}))
-                    if (d?.report) setLiveReport(d.report)
-                    setStatusHint(d?.cooldown ? 'Gerade aktualisiert.' : null)
-                  } finally { setStatusBusy(false) }
-                }}
-              >
-                {statusBusy ? 'Tagro fragt nach…' : 'Status jetzt abrufen'}
-              </button>
-              <Link className="ed-briefing-link" href="/reports">Vollständig lesen</Link>
-              {main && <Link className="ed-briefing-link" href={`/project/${main.id}`}>Projekt öffnen</Link>}
-            </div>
-            {statusHint && <p className="ed-briefing-hint">{statusHint}</p>}
-          </div>
-        </section>
-      </section>
 
-      <section className="ed-focus" aria-label="Heute im Fokus">
-        <div className="ed-focus-head">
-          <p className="ed-focus-title">Heute im Fokus</p>
-          <span className="ed-focus-meta">
-            {focusItems.length === 0 ? 'nichts dringend' : `${focusItems.length} ${focusItems.length === 1 ? 'Eintrag' : 'Einträge'}`}
-          </span>
-        </div>
-        {focusItems.length === 0 ? (
-          <p className="ed-focus-empty">Keine Blocker, keine offenen Entscheidungen. Tagro hält die Lage ruhig.</p>
-        ) : (
-          <div className="ed-focus-list">
-            {focusItems.map((it, i) => (
-              <Link key={`${it.tag}-${i}-${it.text}`} href={it.href} className="ed-focus-row">
-                <span className={`ed-focus-tag ${it.tone}`}>{it.tag}</span>
-                <span className="ed-focus-dot" />
-                <span className="ed-focus-text">{it.text}</span>
-                {it.sub && <span className="ed-focus-sub">{it.sub}</span>}
-              </Link>
-            ))}
-          </div>
-        )}
-      </section>
-
-      <section className="ed-status-row" aria-label="Lage">
-        {[
-          ['Projektstatus',  projectStatusValue, projectStatusSub],
-          ['Entscheidungen', decisionValue,      decisionSub],
-          ['Blocker',        blockerValue,       blockerSub],
-          ['Meilenstein',    milestoneValue,     milestoneSub],
-        ].map(([label, value, sub]) => (
-          <div key={label}>
-            <p className="ed-status-label">{label}</p>
-            <p className="ed-status-value">{value}</p>
-            <p className="ed-status-sub">{sub}</p>
-          </div>
-        ))}
-      </section>
-
-      {main && (
-        <section className="ed-project" aria-label="Aktives Projekt">
-          <div className="ed-project-head">
-            <div>
-              <p className="ed-section-label">Aktives Projekt</p>
-              <h2 className="ed-project-title">{main.title}</h2>
-            </div>
-            <Link href={`/project/${main.id}`} className="ed-button">Projekt öffnen</Link>
-          </div>
-          <div className="ed-progress" style={{ '--progress': `${completePct}%` } as CSSProperties}><span /></div>
-          <div className="ed-project-row">
-            {[
-              ['Fortschritt', `${completePct}%`, `${done} von ${tasks.length} Tasks erledigt`],
-              ['Phase',       phase?.label ?? 'Intake', 'aktueller Projektstatus'],
-              ['Risiken',     blockersOpen === 0 ? 'keine' : String(blockersOpen), blockerSub],
-              ['Tasks',       String(activeTasks.length), activeTasks.length === 0 ? 'nichts offen' : 'in Arbeit oder geplant'],
-            ].map(([label, value, sub]) => (
-              <div key={label}>
-                <p className="ed-status-label">{label}</p>
-                <p className="ed-status-value">{value}</p>
-                <p className="ed-status-sub">{sub}</p>
+            {briefingSettingsOpen && (
+              <div className="dc-settings" role="dialog" aria-label="Audioeinstellungen">
+                <label className="dc-setting-row">
+                  <span className="dc-setting-label">Tempo</span>
+                  <select
+                    className="dc-setting-select"
+                    value={preferences.rate}
+                    onChange={(e) => updatePreferences({ rate: Number(e.target.value) })}
+                  >
+                    <option value={0.85}>0.85x</option>
+                    <option value={0.95}>0.95x</option>
+                    <option value={1}>1.00x</option>
+                    <option value={1.1}>1.10x</option>
+                    <option value={1.15}>1.15x</option>
+                  </select>
+                </label>
+                <label className="dc-setting-row">
+                  <span className="dc-setting-label">Stimme</span>
+                  <select
+                    className="dc-setting-select"
+                    value={selectedVoiceId}
+                    onChange={(e) => updatePreferences({ voiceId: e.target.value || undefined, voiceName: undefined })}
+                  >
+                    {voiceChoices.length === 0 && <option value="">Systemstimme</option>}
+                    {voiceChoices.map((voice) => (
+                      <option key={speechVoiceId(voice)} value={speechVoiceId(voice)}>
+                        {formatVoiceLabel(voice)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
               </div>
-            ))}
+            )}
           </div>
-        </section>
-      )}
+        </aside>
 
-        </div> {/* /ed-main */}
-      </div> {/* /ed-layout */}
+        {/* ── Decisions + risks ──────────────────────────────────── */}
+        <div className="dc-blocks">
+          <section className="dc-block" aria-label="Entscheidungen">
+            <div className="dc-block-head">
+              <span className="dc-block-label">Entscheidungen</span>
+              {decisionTasks.length > 0 && <span className="dc-block-count">{decisionTasks.length}</span>}
+            </div>
+            {decisionTasks.length === 0 ? (
+              <p className="dc-block-empty">Nichts wartet auf deine Freigabe.</p>
+            ) : (
+              <>
+                <div className="dc-block-list">
+                  {decisionTasks.slice(0, 4).map((t) => (
+                    <Link
+                      key={t.id}
+                      href={t.project_id ? `/project/${t.project_id}` : '/tasks'}
+                      className="dc-block-row"
+                    >
+                      <span className="dc-row-dot warn" aria-hidden />
+                      <span className="dc-row-main">
+                        <span className="dc-row-title">{t.title}</span>
+                        {projectTitle(t.project_id) && (
+                          <span className="dc-row-sub">{projectTitle(t.project_id)}</span>
+                        )}
+                      </span>
+                      <ArrowRight size={13} className="dc-block-go" />
+                    </Link>
+                  ))}
+                </div>
+                {decisionTasks.length > 4 && (
+                  <Link href="/tasks?status=waiting" className="dc-block-more">
+                    {decisionTasks.length - 4} weitere ansehen <ArrowRight size={11} />
+                  </Link>
+                )}
+              </>
+            )}
+          </section>
 
-      {showNewProject && (
-        <NewProjectModal
-          onClose={() => setShowNewProject(false)}
-          onCreated={(id) => { setShowNewProject(false); window.location.href = `/project/${id}` }}
-        />
-      )}
-      {showNewTask && main && (
-        <NewTaskModal
-          onClose={() => setShowNewTask(false)}
-          onCreated={() => { setShowNewTask(false); window.location.reload() }}
-          defaultProjectId={main.id}
-          source="manual"
-        />
-      )}
+          <section className="dc-block" aria-label="Risiken">
+            <div className="dc-block-head">
+              <span className="dc-block-label">Risiken</span>
+              {riskTasks.length > 0 && <span className="dc-block-count">{riskTasks.length}</span>}
+            </div>
+            {riskTasks.length === 0 ? (
+              <p className="dc-block-empty">Keine Verzögerung sichtbar.</p>
+            ) : (
+              <>
+                <div className="dc-block-list">
+                  {riskTasks.slice(0, 4).map((t) => (
+                    <Link
+                      key={t.id}
+                      href={t.project_id ? `/project/${t.project_id}` : '/tasks'}
+                      className="dc-block-row"
+                    >
+                      <span className="dc-row-dot risk" aria-hidden />
+                      <span className="dc-row-main">
+                        <span className="dc-row-title">{t.title}</span>
+                        {projectTitle(t.project_id) && (
+                          <span className="dc-row-sub">{projectTitle(t.project_id)}</span>
+                        )}
+                      </span>
+                      <ArrowRight size={13} className="dc-block-go" />
+                    </Link>
+                  ))}
+                </div>
+                {riskTasks.length > 4 && (
+                  <Link href="/tasks?status=blocked" className="dc-block-more">
+                    {riskTasks.length - 4} weitere ansehen <ArrowRight size={11} />
+                  </Link>
+                )}
+              </>
+            )}
+          </section>
+
+          <div className="dc-foot">
+            <Link href="/reports" className="dc-foot-link">Vollständig lesen <ArrowRight size={11} /></Link>
+            {main && (
+              <Link href={`/project/${main.id}`} className="dc-foot-link">
+                Projekt öffnen <ArrowRight size={11} />
+              </Link>
+            )}
+          </div>
+        </div>
+
+      </div>
+
       <ObserverWelcomeModal />
     </div>
   )
