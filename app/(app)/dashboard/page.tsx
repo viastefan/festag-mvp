@@ -261,20 +261,18 @@ export default function DashboardPage() {
         .dash-calm .dc-note-next-label,
         .dash-calm .dc-block-label { font-weight:400 !important; }
 
-        /* ── Grid: note left, action box right · stacks on mobile ── */
-        .dc-grid {
-          max-width: 1060px;
+        /* ── Greeting full-width, then a calm two-column body ────── */
+        .dc-wrap { max-width: 1040px; }
+        .dc-body {
+          margin-top: 22px;
           display:grid;
-          grid-template-columns: minmax(0,1fr) 308px;
-          grid-template-areas:
-            "head   action"
-            "note   blocks";
-          column-gap: 44px;
+          grid-template-columns: minmax(0,1fr) 304px;
+          column-gap: 48px;
           align-items:start;
         }
 
         /* ── Header ───────────────────────────────────────────────── */
-        .dc-head { grid-area:head; padding:26px 0 0; animation:dcFade .3s cubic-bezier(.16,1,.3,1) both; }
+        .dc-head { padding:26px 0 0; animation:dcFade .3s cubic-bezier(.16,1,.3,1) both; }
         .dc-greeting {
           margin:0;
           color:var(--text);
@@ -291,20 +289,12 @@ export default function DashboardPage() {
         }
 
         /* ── Notepad ──────────────────────────────────────────────── */
+        /* The status note is NOT a card — it sits on the page like a
+           written notebook page. Clean, calm, no frame. */
         .dc-note {
-          grid-area:note;
-          margin-top:22px;
-          min-height:340px;
-          padding:24px 26px 28px;
-          border-radius:16px;
-          background:var(--surface);
-          box-shadow:0 1px 2px rgba(15,23,42,.05), 0 12px 34px rgba(15,23,42,.06);
+          grid-column:1; grid-row:1;
+          min-width:0; min-height:300px;
           animation:dcFade .3s .04s cubic-bezier(.16,1,.3,1) both;
-        }
-        [data-theme="dark"] .dc-note,
-        [data-theme="classic-dark"] .dc-note {
-          background:color-mix(in srgb, var(--surface) 92%, #fff 8%);
-          box-shadow:0 1px 2px rgba(0,0,0,.3), 0 12px 34px rgba(0,0,0,.24);
         }
         .dc-note-head {
           display:flex; align-items:baseline; justify-content:space-between;
@@ -319,6 +309,7 @@ export default function DashboardPage() {
         .dc-note-stamp { color:var(--dc-muted); font-size:11.5px; }
         .dc-note-text {
           margin:0;
+          max-width:600px;
           color:var(--text);
           font-size:15.5px;
           line-height:1.74;
@@ -367,8 +358,12 @@ export default function DashboardPage() {
           flex-shrink:0;
         }
 
-        /* ── Right action box ─────────────────────────────────────── */
-        .dc-action { grid-area:action; padding-top:26px; animation:dcFade .3s .04s cubic-bezier(.16,1,.3,1) both; }
+        /* ── Right column: action card + decisions/risks ─────────── */
+        .dc-side {
+          grid-column:2; grid-row:1;
+          display:flex; flex-direction:column;
+          animation:dcFade .3s .06s cubic-bezier(.16,1,.3,1) both;
+        }
         .dc-card {
           position:relative;
           padding:16px;
@@ -469,7 +464,7 @@ export default function DashboardPage() {
         }
 
         /* ── Blocks: decisions + risks ────────────────────────────── */
-        .dc-blocks { grid-area:blocks; margin-top:14px; animation:dcFade .3s .08s cubic-bezier(.16,1,.3,1) both; }
+        .dc-blocks { margin-top:20px; }
         .dc-block { padding:14px 4px 4px; }
         .dc-block-head {
           display:flex; align-items:baseline; justify-content:space-between;
@@ -534,22 +529,19 @@ export default function DashboardPage() {
 
         /* ── Responsive ───────────────────────────────────────────── */
         @media (max-width:920px) {
-          .dc-grid {
-            grid-template-columns:1fr;
-            grid-template-areas:"head" "action" "note" "blocks";
-          }
-          .dc-action { padding-top:18px; }
-          .dc-note { margin-top:16px; min-height:240px; }
-          .dc-blocks { margin-top:6px; }
+          .dc-body { display:flex; flex-direction:column; margin-top:16px; }
+          .dc-side { display:contents; }
+          .dc-card { order:1; }
+          .dc-note { order:2; min-height:auto; margin-top:24px; }
+          .dc-blocks { order:3; margin-top:22px; }
         }
         @media (max-width:760px) {
           .dash-calm { padding:0 14px 88px; }
           .dc-head { padding-top:20px; }
-          .dc-note { padding:20px 18px 24px; }
         }
       `}</style>
 
-      <div className="dc-grid">
+      <div className="dc-wrap">
 
         {/* ── Header ─────────────────────────────────────────────── */}
         <header className="dc-head">
@@ -559,7 +551,9 @@ export default function DashboardPage() {
           </p>
         </header>
 
-        {/* ── Notepad ────────────────────────────────────────────── */}
+        <div className="dc-body">
+
+        {/* ── Statusnotiz — notebook page, no frame ──────────────── */}
         <article className="dc-note" aria-label="Statusnotiz">
           <div className="dc-note-head">
             <span className="dc-note-label">Statusnotiz</span>
@@ -588,7 +582,7 @@ export default function DashboardPage() {
               <p className="dc-note-empty">
                 {loading
                   ? 'Tagro prüft gerade deine Projekte…'
-                  : 'Hier ist noch nichts notiert. Tippe rechts auf „Status abrufen" — Tagro fasst den heutigen Stand ruhig zusammen und schreibt ihn hierher.'}
+                  : 'Hier ist noch nichts notiert. Tippe auf „Status abrufen“ und Tagro fasst den heutigen Stand ruhig hier zusammen.'}
               </p>
               {!loading && (
                 <div className="dc-note-empty-cue">
@@ -600,8 +594,8 @@ export default function DashboardPage() {
           )}
         </article>
 
-        {/* ── Right action box ───────────────────────────────────── */}
-        <aside className="dc-action">
+        {/* ── Right column ───────────────────────────────────────── */}
+        <aside className="dc-side">
           <div className="dc-card">
             <div className={`dc-pulse tone-${pulse.tone}`} title={pulse.label}>
               <span className="dc-pulse-dot" aria-hidden />
@@ -679,10 +673,9 @@ export default function DashboardPage() {
               </div>
             )}
           </div>
-        </aside>
 
-        {/* ── Decisions + risks ──────────────────────────────────── */}
-        <div className="dc-blocks">
+          {/* ── Decisions + risks ────────────────────────────────── */}
+          <div className="dc-blocks">
           <section className="dc-block" aria-label="Entscheidungen">
             <div className="dc-block-head">
               <span className="dc-block-label">Entscheidungen</span>
@@ -763,6 +756,9 @@ export default function DashboardPage() {
               </Link>
             )}
           </div>
+          </div>
+        </aside>
+
         </div>
 
       </div>
