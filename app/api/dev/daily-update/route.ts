@@ -80,6 +80,7 @@ export async function POST(req: Request) {
     // from seeing it via the project policy.
     let projectTitle: string | null = null
     let clientReportId: string | null = null
+    let clientSummary = ''
     if (effectiveProjectId) {
       const { data: projectRow } = await supabase.from('projects')
         .select('id,title').eq('id', effectiveProjectId).maybeSingle()
@@ -93,6 +94,7 @@ export async function POST(req: Request) {
       const recentContext = ((recent as any[]) ?? []).map(r => String(r.update_text)).filter(Boolean)
 
       const translated = await translateDevUpdate({ devText: text, projectTitle, recentContext })
+      clientSummary = translated.clientSummary
 
       const sb = getServiceClient() ?? supabase
       const { data: reportRow } = await sb.from('status_reports').insert({
@@ -157,6 +159,21 @@ export async function POST(req: Request) {
           link: `/reports?project=${effectiveProjectId}`,
           payload: { source: 'daily_update', statusReportId: clientReportId },
           read: false,
+        }).then(() => null, () => null)
+
+        // Live dev → client connection: the translated update also lands
+        // in the client's structured inbox as a project status entry.
+        await sb.rpc('create_inbox_item', {
+          p_user_id: clientId,
+          p_project_id: effectiveProjectId,
+          p_category: 'client',
+          p_type: 'status_update',
+          p_title: projectTitle ? `${projectTitle} · neuer Stand` : 'Neuer Tagesstand',
+          p_body: clientSummary || 'Es gibt einen neuen Projektstand.',
+          p_actor_id: user.id,
+          p_source_table: 'status_reports',
+          p_source_id: clientReportId,
+          p_metadata: { source_label: 'Dein Team', thread_title: projectTitle ?? 'Projekt' },
         }).then(() => null, () => null)
       }
     }

@@ -3,38 +3,27 @@
 /**
  * Festag Posteingang — strukturierte Projekt-Kommunikation.
  *
- * Modell:
- *   Vier Kategorien:
- *     · Projekt              — Updates, Deliverables, Fragen, Milestone-Approvals
- *     · Rechnungen & Verträge — Invoices, Vertragsversand
- *     · Konto & Team          — Seats, Einladungen, Rollen, Domains
- *     · Tagro Assist          — Wochen-Zusammenfassungen, Vorschläge (selten, kuratiert)
+ * Liest aus `inbox_items` (RLS: nur eigene). Eingänge entstehen durch:
+ *   · die Willkommensnachricht (POST /api/inbox/welcome, idempotent)
+ *   · Entwickler-Tagesstände (Tagro übersetzt → create_inbox_item)
+ *   · System-Events (Garantie, Rechnungen) via DB-Trigger
  *
- *   Item-Typen: update · action · question · deliverable · note
- *   "action" ist der einzige Typ, der eine echte E-Mail triggert.
- *
- * Phase 1 (dieser Stand) liefert nur die UI + Empty States. Persistenz
- * (Tabellen `inbox_threads`, `inbox_items`, RLS, system-event-trigger)
- * folgt im nächsten Push, sobald das Design steht.
+ * UI-Regeln: corner-radius ≤ 8px, Aeonik Medium (500), keine schwarzen
+ * Buttons — Slate ist der einzige Akzent.
  */
 
 import { useEffect, useMemo, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import {
   Tray, Briefcase, Receipt, UsersThree, Sparkle,
-  CheckCircle, ChatCircle, ArrowSquareOut,
-  SlidersHorizontal, Funnel,
+  CheckCircle, ChatCircle, ArrowSquareOut, Play, Funnel,
 } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 
 type Category = 'all' | 'project' | 'billing' | 'account' | 'tagro'
 type ItemType = 'update' | 'action' | 'question' | 'deliverable' | 'note'
 
-type CategoryDef = {
-  id: Category
-  label: string
-  icon: React.ElementType
-  hint: string
-}
+type CategoryDef = { id: Category; label: string; icon: React.ElementType; hint: string }
 
 const CATEGORIES: CategoryDef[] = [
   { id: 'all',     label: 'Alle',                  icon: Tray,       hint: 'Alle Eingänge zusammen.' },
@@ -50,28 +39,19 @@ type Item = {
   type: ItemType
   source: string
   project?: string
+  projectId?: string
   title: string
   preview: string
   body?: string
+  videoUrl?: string
   createdAt: Date
   unread: boolean
   actionable: boolean
 }
 
 const ITEM_TYPE_LABEL: Record<ItemType, string> = {
-  update:      'Update',
-  action:      'Aktion erforderlich',
-  question:    'Frage',
-  deliverable: 'Deliverable',
-  note:        'Notiz',
-}
-
-const ITEM_TYPE_COLOR: Record<ItemType, string> = {
-  update:      'var(--text-muted)',
-  action:      '#D97706',
-  question:    '#0369A1',
-  deliverable: '#15803D',
-  note:        'var(--text-muted)',
+  update: 'Update', action: 'Aktion erforderlich', question: 'Frage',
+  deliverable: 'Deliverable', note: 'Notiz',
 }
 
 type DbInboxRow = {
@@ -115,16 +95,17 @@ function sourceLabel(c: DbInboxRow['category']): string {
 }
 
 function dbRowToItem(row: DbInboxRow, projectTitles: Record<string, string>): Item {
-  const cat = dbCategoryToUi(row.category)
   return {
     id: row.id,
-    category: cat,
+    category: dbCategoryToUi(row.category),
     type: dbTypeToUi(row.type, row.metadata),
     source: row.metadata?.source_label || sourceLabel(row.category),
     project: row.project_id ? projectTitles[row.project_id] : undefined,
+    projectId: row.project_id ?? undefined,
     title: row.title,
-    preview: (row.body ?? '').slice(0, 200),
+    preview: (row.body ?? '').replace(/\s+/g, ' ').slice(0, 200),
     body: row.body ?? undefined,
+    videoUrl: row.metadata?.video_url || undefined,
     createdAt: new Date(row.created_at),
     unread: !row.read_at,
     actionable: Boolean(row.metadata?.actionable),
@@ -132,14 +113,13 @@ function dbRowToItem(row: DbInboxRow, projectTitles: Record<string, string>): It
 }
 
 function formatTime(d: Date) {
-  const now = Date.now()
-  const diffMin = Math.round((now - d.getTime()) / 60000)
-  if (diffMin < 1)   return 'gerade eben'
-  if (diffMin < 60)  return `vor ${diffMin} min`
+  const diffMin = Math.round((Date.now() - d.getTime()) / 60000)
+  if (diffMin < 1)  return 'gerade eben'
+  if (diffMin < 60) return `vor ${diffMin} min`
   const diffH = Math.round(diffMin / 60)
-  if (diffH < 24)    return `vor ${diffH} h`
+  if (diffH < 24)   return `vor ${diffH} h`
   const diffD = Math.round(diffH / 24)
-  if (diffD < 7)     return `vor ${diffD} Tg.`
+  if (diffD < 7)    return `vor ${diffD} Tg.`
   return d.toLocaleDateString('de-DE', { day: '2-digit', month: 'short' })
 }
 
@@ -150,13 +130,18 @@ export default function InboxPage() {
   const [items, setItems] = useState<Item[]>([])
   const [projectTitles, setProjectTitles] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(true)
+  const [unreadOnly, setUnreadOnly] = useState(false)
 
-  // Load inbox items + project titles for the project tag.
+  // Load: ensure the welcome message exists, then pull inbox items.
   useEffect(() => {
     let cancelled = false
     ;(async () => {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) { setLoading(false); return }
+
+      // Idempotent — yields exactly one welcome item per account.
+      await fetch('/api/inbox/welcome', { method: 'POST' }).catch(() => {})
+      if (cancelled) return
 
       const [{ data: rows }, { data: projs }] = await Promise.all([
         supabase.from('inbox_items')
@@ -182,11 +167,7 @@ export default function InboxPage() {
   // Realtime: prepend new inbox items, update changed ones.
   useEffect(() => {
     let userId: string | null = null
-    const init = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      userId = session?.user.id ?? null
-    }
-    init()
+    supabase.auth.getSession().then(({ data }) => { userId = data.session?.user.id ?? null })
 
     const channel = supabase
       .channel('inbox-stream')
@@ -202,19 +183,18 @@ export default function InboxPage() {
       })
       .subscribe()
 
-    return () => {
-      supabase.removeChannel(channel)
-    }
+    return () => { supabase.removeChannel(channel) }
   }, [supabase, projectTitles])
 
-  const filtered = active === 'all' ? items : items.filter(i => i.category === active)
+  const filtered = items
+    .filter(i => active === 'all' || i.category === active)
+    .filter(i => !unreadOnly || i.unread)
   const selected = filtered.find(i => i.id === selectedId) || null
 
   async function markRead(itemId: string) {
-    const now = new Date().toISOString()
     setItems(prev => prev.map(i => i.id === itemId ? { ...i, unread: false } : i))
     try {
-      await supabase.from('inbox_items').update({ read_at: now }).eq('id', itemId)
+      await supabase.from('inbox_items').update({ read_at: new Date().toISOString() }).eq('id', itemId)
     } catch {}
   }
 
@@ -226,10 +206,10 @@ export default function InboxPage() {
     tagro:   items.filter(i => i.unread && i.category === 'tagro').length,
   }
 
-  // Default-select the top item when the list changes.
+  // Keep a valid selection as the list changes.
   useEffect(() => {
-    setSelectedId(filtered[0]?.id ?? null)
-  }, [active, filtered.length]) // eslint-disable-line react-hooks/exhaustive-deps
+    setSelectedId(prev => (filtered.some(i => i.id === prev) ? prev : filtered[0]?.id ?? null))
+  }, [active, unreadOnly, filtered.length]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="ix-root">
@@ -238,14 +218,15 @@ export default function InboxPage() {
       <section className="ix-list" aria-label="Posteingang">
         <header className="ix-list-head">
           <div className="ix-list-title">Posteingang</div>
-          <div className="ix-list-actions">
-            <button className="ix-iconbtn" type="button" title="Filter" aria-label="Filter">
-              <Funnel size={15} weight="regular" />
-            </button>
-            <button className="ix-iconbtn" type="button" title="Anzeige" aria-label="Anzeige">
-              <SlidersHorizontal size={15} weight="regular" />
-            </button>
-          </div>
+          <button
+            type="button"
+            className={`ix-iconbtn${unreadOnly ? ' on' : ''}`}
+            onClick={() => setUnreadOnly(v => !v)}
+            title={unreadOnly ? 'Alle anzeigen' : 'Nur ungelesene'}
+            aria-pressed={unreadOnly}
+          >
+            <Funnel size={15} weight={unreadOnly ? 'fill' : 'regular'} />
+          </button>
         </header>
 
         <nav className="ix-tabs" aria-label="Kategorien">
@@ -261,7 +242,7 @@ export default function InboxPage() {
                 onClick={() => setActive(cat.id)}
                 title={cat.hint}
               >
-                <Icon size={13} weight={isOn ? 'bold' : 'regular'} />
+                <Icon size={13} weight="regular" />
                 <span>{cat.label}</span>
                 {unread > 0 && <span className="ix-tab-count">{unread}</span>}
               </button>
@@ -271,11 +252,9 @@ export default function InboxPage() {
 
         <div className="ix-thread-scroll">
           {loading ? (
-            <div className="ix-empty-list">
-              <span className="ix-empty-sub">Posteingang wird geladen…</span>
-            </div>
+            <div className="ix-empty-list"><span className="ix-empty-sub">Posteingang wird geladen…</span></div>
           ) : filtered.length === 0 ? (
-            <EmptyList active={active} />
+            <EmptyList active={active} unreadOnly={unreadOnly} />
           ) : (
             filtered.map(item => (
               <ThreadRow
@@ -299,19 +278,14 @@ export default function InboxPage() {
   )
 }
 
-function ThreadRow({ item, selected, onClick }: {
-  item: Item; selected: boolean; onClick: () => void
-}) {
+function ThreadRow({ item, selected, onClick }: { item: Item; selected: boolean; onClick: () => void }) {
   return (
     <button
       type="button"
       className={`ix-row${selected ? ' on' : ''}${item.unread ? ' unread' : ''}`}
       onClick={onClick}
     >
-      <div
-        className="ix-row-marker"
-        style={{ background: item.unread ? ITEM_TYPE_COLOR[item.type] : 'transparent' }}
-      />
+      <div className="ix-row-marker" style={{ background: item.unread ? 'var(--ix-slate)' : 'transparent' }} />
       <div className="ix-row-body">
         <div className="ix-row-head">
           <span className="ix-row-source">{item.source}</span>
@@ -331,54 +305,67 @@ function ThreadRow({ item, selected, onClick }: {
 }
 
 function ThreadDetail({ item }: { item: Item }) {
+  const router = useRouter()
+  const openHref = item.projectId
+    ? `/project/${item.projectId}`
+    : item.category === 'billing' ? '/reports' : '/dashboard'
+  const openLabel = item.category === 'project'
+    ? 'Projekt öffnen'
+    : item.category === 'billing' ? 'Rechnungen öffnen' : 'Im Workspace öffnen'
+
   return (
     <article className="ix-detail-card">
       <header className="ix-detail-head">
         <div className="ix-detail-tags">
-          <span
-            className="ix-type-badge"
-            style={{ color: ITEM_TYPE_COLOR[item.type], borderColor: 'currentColor' }}
-          >
-            {ITEM_TYPE_LABEL[item.type]}
-          </span>
+          <span className="ix-type-badge">{ITEM_TYPE_LABEL[item.type]}</span>
           {item.project && <span className="ix-detail-project">{item.project}</span>}
         </div>
         <h1 className="ix-detail-title">{item.title}</h1>
         <div className="ix-detail-meta">
-          <span>{item.source}</span>
-          <span>·</span>
-          <span>{formatTime(item.createdAt)}</span>
+          <span>{item.source}</span><span>·</span><span>{formatTime(item.createdAt)}</span>
         </div>
       </header>
 
       <div className="ix-detail-body">
-        {item.body ? <p>{item.body}</p> : <p className="ix-muted">{item.preview}</p>}
+        <p>{item.body || item.preview}</p>
       </div>
 
+      {item.videoUrl && (
+        <a className="ix-video" href={item.videoUrl} target="_blank" rel="noreferrer">
+          <span className="ix-video-play"><Play size={14} weight="fill" /></span>
+          <span>
+            <strong>Einführung ansehen</strong>
+            <small>So funktioniert Festag — in 2 Minuten erklärt.</small>
+          </span>
+        </a>
+      )}
+
       <footer className="ix-detail-actions">
-        {item.actionable && <button type="button" className="ix-btn primary">Freigeben</button>}
-        <button type="button" className="ix-btn">Antworten</button>
-        <button type="button" className="ix-btn ghost">
-          <ArrowSquareOut size={13} weight="regular" />
-          {item.category === 'project' ? 'Projekt öffnen'
-            : item.category === 'billing' ? 'Rechnung öffnen'
-            : 'Im Kontext öffnen'}
+        {item.actionable && item.projectId && (
+          <button type="button" className="ix-btn primary" onClick={() => router.push(`/project/${item.projectId}`)}>
+            Im Projekt ansehen
+          </button>
+        )}
+        <button type="button" className="ix-btn" onClick={() => router.push(openHref)}>
+          <ArrowSquareOut size={13} weight="regular" /> {openLabel}
         </button>
       </footer>
     </article>
   )
 }
 
-function EmptyList({ active }: { active: Category }) {
+function EmptyList({ active, unreadOnly }: { active: Category; unreadOnly: boolean }) {
   const cat = CATEGORIES.find(c => c.id === active)
   return (
     <div className="ix-empty-list">
-      <Tray size={26} weight="regular" />
-      <p className="ix-empty-title">Noch nichts hier</p>
+      <Tray size={24} weight="regular" />
+      <p className="ix-empty-title">{unreadOnly ? 'Alles gelesen' : 'Noch nichts hier'}</p>
       <p className="ix-empty-sub">
-        {active === 'all'
-          ? 'Sobald deine Projekte starten, landen Updates, Deliverables und Entscheidungs-Anfragen hier.'
-          : cat?.hint || ''}
+        {unreadOnly
+          ? 'Keine ungelesenen Eingänge in dieser Ansicht.'
+          : active === 'all'
+            ? 'Sobald deine Projekte starten, landen Updates, Deliverables und Entscheidungs-Anfragen hier.'
+            : cat?.hint || ''}
       </p>
     </div>
   )
@@ -387,10 +374,10 @@ function EmptyList({ active }: { active: Category }) {
 function EmptyDetail() {
   return (
     <div className="ix-empty-detail">
-      <ChatCircle size={28} weight="regular" />
+      <ChatCircle size={26} weight="regular" />
       <p className="ix-empty-title">Wähle einen Eintrag</p>
       <p className="ix-empty-sub">
-        Eingänge sind nach Projekt und Thema strukturiert. Tagro postet hier nur kuratierte Zusammenfassungen — für freie Fragen nutze den Tagro-Chat.
+        Eingänge sind nach Projekt und Thema strukturiert. Für freie Fragen nutze den Tagro-Chat im jeweiligen Projekt.
       </p>
     </div>
   )
@@ -398,219 +385,177 @@ function EmptyDetail() {
 
 const INBOX_CSS = `
   .ix-root {
+    --ix-slate:#5B647D;
     display: grid;
-    grid-template-columns: minmax(320px, 380px) minmax(0, 1fr);
+    grid-template-columns: minmax(312px, 372px) minmax(0, 1fr);
     height: 100%; min-height: 0;
     background: var(--surface);
     color: var(--text);
     font-family: var(--font-aeonik,'Aeonik',Inter,sans-serif);
-    letter-spacing: 0.01em;
   }
+  .ix-root *, .ix-root *::before, .ix-root *::after { letter-spacing: .012em; }
 
   /* LIST COLUMN */
   .ix-list {
-    display: flex; flex-direction: column;
-    min-height: 0;
-    border-right: 1px solid var(--border);
+    display: flex; flex-direction: column; min-height: 0;
     background: color-mix(in srgb, var(--sidebar-bg) 90%, transparent);
   }
   .ix-list-head {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 22px 22px 14px;
+    padding: 20px 18px 12px;
   }
-  .ix-list-title { font-size: 15px; font-weight: 650; color: var(--text); }
-  .ix-list-actions { display: flex; gap: 4px; }
+  .ix-list-title { font-size: 14.5px; font-weight: 500; color: var(--text); }
   .ix-iconbtn {
     width: 30px; height: 30px;
     display: flex; align-items: center; justify-content: center;
-    border-radius: 12px; border: none; background: transparent;
+    border-radius: 8px; border: none; background: transparent;
     color: var(--text-muted); cursor: pointer;
-    transition: background .12s, color .12s;
+    transition: background .12s ease, color .12s ease;
   }
-  .ix-iconbtn:hover { background: rgba(0,0,0,.05); color: var(--text); }
-  [data-theme="dark"] .ix-iconbtn:hover { background: rgba(255,255,255,.04); }
+  .ix-iconbtn:hover { background: color-mix(in srgb, var(--surface-2) 70%, transparent); color: var(--text); }
+  .ix-iconbtn.on { background: color-mix(in srgb, var(--surface-2) 90%, transparent); color: var(--text); }
 
-  .ix-tabs {
-    display: flex; flex-wrap: wrap; gap: 4px;
-    padding: 0 16px 18px;
-  }
+  .ix-tabs { display: flex; flex-wrap: wrap; gap: 5px; padding: 0 14px 14px; }
   .ix-tab {
     display: inline-flex; align-items: center; gap: 6px;
-    padding: 8px 12px;
-    border-radius: 999px;
-    border: 1px solid transparent; background: transparent;
-    font-family: inherit;
-    font-size: 11.5px; font-weight: 500;
+    height: 28px; padding: 0 10px;
+    border-radius: 8px; border: 1px solid transparent; background: transparent;
+    font-family: inherit; font-size: 11.5px; font-weight: 500;
     color: var(--text-muted); cursor: pointer;
-    transition: background .12s, color .12s, border-color .12s;
+    transition: background .12s ease, color .12s ease;
   }
-  .ix-tab:hover { color: var(--text); background: rgba(0,0,0,.04); }
-  [data-theme="dark"] .ix-tab:hover { background: rgba(255,255,255,.04); }
-  .ix-tab.on {
-    color: var(--text);
-    background: var(--card);
-    border-color: var(--border);
-  }
+  .ix-tab:hover { color: var(--text); background: color-mix(in srgb, var(--surface-2) 55%, transparent); }
+  .ix-tab.on { color: var(--text); background: color-mix(in srgb, var(--surface-2) 90%, transparent); }
   .ix-tab-count {
-    font-size: 10px; font-weight: 600;
-    padding: 0 5px; border-radius: 999px;
-    background: rgba(0,0,0,.08); color: var(--text);
-    min-width: 14px; text-align: center; line-height: 14px;
+    font-size: 10px; font-weight: 500;
+    padding: 0 5px; border-radius: 6px; min-width: 15px;
+    text-align: center; line-height: 15px;
+    background: color-mix(in srgb, var(--ix-slate) 16%, transparent);
+    color: var(--ix-slate);
   }
-  [data-theme="dark"] .ix-tab-count { background: rgba(255,255,255,.10); }
 
-  .ix-thread-scroll {
-    flex: 1; min-height: 0;
-    overflow-y: auto;
-    padding: 6px 10px 18px;
-  }
+  .ix-thread-scroll { flex: 1; min-height: 0; overflow-y: auto; padding: 4px 10px 18px; }
 
   /* ROW */
   .ix-row {
-    display: flex; align-items: stretch; gap: 8px;
-    width: 100%;
-    border: none; background: transparent;
-    padding: 12px 12px 12px 8px;
-    text-align: left;
-    border-radius: 18px;
-    cursor: pointer;
-    font-family: inherit;
-    color: var(--text);
-    transition: background .12s;
+    display: flex; align-items: stretch; gap: 9px;
+    width: 100%; border: none; background: transparent;
+    padding: 11px 11px 11px 8px;
+    text-align: left; border-radius: 8px; cursor: pointer;
+    font-family: inherit; color: var(--text);
+    transition: background .12s ease;
   }
-  .ix-row:hover { background: rgba(0,0,0,.03); }
-  [data-theme="dark"] .ix-row:hover { background: rgba(255,255,255,.035); }
-  .ix-row.on { background: var(--card); box-shadow: 0 0 0 1px rgba(255,255,255,.02); }
-  .ix-row-marker {
-    width: 3px; min-width: 3px; border-radius: 999px;
-    align-self: stretch;
-  }
-  .ix-row-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px; }
+  .ix-row:hover { background: color-mix(in srgb, var(--surface-2) 55%, transparent); }
+  .ix-row.on { background: color-mix(in srgb, var(--surface-2) 92%, transparent); }
+  .ix-row-marker { width: 3px; min-width: 3px; border-radius: 2px; align-self: stretch; }
+  .ix-row-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
   .ix-row-head {
     display: flex; align-items: center; gap: 6px;
-    font-size: 11px; font-weight: 500; color: var(--text-muted);
-    line-height: 1.3;
+    font-size: 11px; font-weight: 500; color: var(--text-muted); line-height: 1.3;
   }
-  .ix-row-source { color: var(--text-secondary); font-weight: 600; }
+  .ix-row-source { color: var(--text-secondary); }
   .ix-row-tag {
-    font-size: 10.5px; padding: 1px 6px; border-radius: 4px;
-    background: rgba(0,0,0,.05); color: var(--text-secondary);
+    font-size: 10.5px; padding: 1px 6px; border-radius: 5px;
+    background: color-mix(in srgb, var(--surface-2) 80%, transparent);
+    color: var(--text-secondary);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 130px;
   }
-  [data-theme="dark"] .ix-row-tag { background: rgba(255,255,255,.06); }
-  .ix-row-time { margin-left: auto; font-size: 10.5px; color: var(--text-muted); }
+  .ix-row-time { margin-left: auto; font-size: 10.5px; color: var(--text-muted); flex-shrink: 0; }
   .ix-row-title {
-    font-size: 13.5px; font-weight: 500; color: var(--text);
-    line-height: 1.35;
+    font-size: 13px; font-weight: 500; color: var(--text); line-height: 1.35;
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
-  .ix-row.unread .ix-row-title { font-weight: 600; }
+  .ix-row.unread .ix-row-title { color: var(--text); }
+  .ix-row:not(.unread) .ix-row-title { color: var(--text-secondary); }
   .ix-row-preview {
     font-size: 12px; color: var(--text-muted); line-height: 1.4;
     overflow: hidden; text-overflow: ellipsis;
     display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical;
   }
   .ix-row-actionable {
-    display: inline-flex; align-items: center; gap: 4px;
-    margin-top: 3px;
-    font-size: 10.5px; font-weight: 600;
-    color: #D97706;
+    display: inline-flex; align-items: center; gap: 4px; margin-top: 3px;
+    font-size: 10.5px; font-weight: 500; color: var(--ix-slate);
   }
 
   /* DETAIL COLUMN */
   .ix-detail {
     display: flex; align-items: flex-start; justify-content: center;
-    padding: 44px clamp(24px, 4vw, 56px);
-    overflow-y: auto;
-    min-height: 0;
-    background: var(--surface);
+    padding: 40px clamp(20px, 4vw, 52px);
+    overflow-y: auto; min-height: 0; background: var(--surface);
   }
-  .ix-detail-card {
-    width: 100%; max-width: 760px;
-    display: flex; flex-direction: column; gap: 26px;
-  }
-  .ix-detail-tags { display: flex; align-items: center; gap: 8px; }
+  .ix-detail-card { width: 100%; max-width: 680px; display: flex; flex-direction: column; gap: 20px; }
+  .ix-detail-tags { display: flex; align-items: center; gap: 9px; }
   .ix-type-badge {
     display: inline-flex; align-items: center;
-    padding: 5px 10px; border-radius: 999px;
-    font-size: 11px; font-weight: 600; letter-spacing: 0.01em;
-    border: 1px solid; background: transparent;
+    height: 22px; padding: 0 9px; border-radius: 6px;
+    font-size: 10.5px; font-weight: 500;
+    background: color-mix(in srgb, var(--surface-2) 80%, transparent);
+    color: var(--text-secondary);
   }
   .ix-detail-project { font-size: 11px; color: var(--text-muted); font-weight: 500; }
   .ix-detail-title {
-    font-size: 24px; font-weight: 620; color: var(--text);
-    letter-spacing: -0.01em; line-height: 1.25;
-    margin-top: 4px;
+    margin: 0; font-size: 21px; font-weight: 500; color: var(--text);
+    letter-spacing: -.014em; line-height: 1.25;
   }
   .ix-detail-meta {
     display: flex; align-items: center; gap: 6px;
-    font-size: 12px; color: var(--text-muted);
-    margin-top: -10px;
+    font-size: 12px; color: var(--text-muted); margin-top: -12px;
   }
-  .ix-detail-body {
-    font-size: 14.5px; line-height: 1.78;
-    color: var(--text-secondary);
-  }
-  .ix-detail-body p { margin: 0; }
-  .ix-muted { color: var(--text-muted); }
+  .ix-detail-body { font-size: 14px; line-height: 1.7; color: var(--text-secondary); }
+  .ix-detail-body p { margin: 0; white-space: pre-wrap; }
 
-  .ix-detail-actions {
-    display: flex; gap: 8px; align-items: center;
-    padding-top: 8px; border-top: 1px solid var(--border);
-    margin-top: 8px;
+  .ix-video {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 14px; border-radius: 8px; text-decoration: none;
+    background: color-mix(in srgb, var(--surface-2) 55%, transparent);
+    transition: background .12s ease;
   }
+  .ix-video:hover { background: color-mix(in srgb, var(--surface-2) 85%, transparent); }
+  .ix-video-play {
+    width: 32px; height: 32px; flex-shrink: 0; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--ix-slate); color: #fff;
+  }
+  .ix-video strong { display: block; font-size: 12.5px; font-weight: 500; color: var(--text); }
+  .ix-video small { display: block; margin-top: 1px; font-size: 11.5px; color: var(--text-muted); }
+
+  .ix-detail-actions { display: flex; gap: 8px; align-items: center; padding-top: 4px; }
   .ix-btn {
     display: inline-flex; align-items: center; gap: 6px;
-    padding: 10px 16px;
-    border-radius: 999px;
-    border: 1px solid var(--border);
-    background: var(--card);
-    font-family: inherit;
-    font-size: 12.5px; font-weight: 500; letter-spacing: 0.01em;
-    color: var(--text);
-    cursor: pointer;
-    transition: background .12s, border-color .12s, color .12s, transform .15s;
+    height: 36px; padding: 0 14px; border-radius: 8px;
+    border: 1px solid var(--border); background: transparent;
+    font-family: inherit; font-size: 12.5px; font-weight: 500;
+    color: var(--text); cursor: pointer;
+    transition: background .12s ease, border-color .12s ease;
   }
-  .ix-btn:hover { background: var(--hover); }
-  .ix-btn:active { transform: scale(0.97); }
+  .ix-btn:hover { background: color-mix(in srgb, var(--surface-2) 60%, transparent); }
   .ix-btn.primary {
-    background: var(--text); color: var(--bg); border-color: var(--text);
+    background: var(--ix-slate); color: #fff; border-color: var(--ix-slate);
   }
-  .ix-btn.primary:hover { opacity: .9; }
-  .ix-btn.ghost {
-    background: transparent; border-color: transparent; color: var(--text-muted);
-  }
-  .ix-btn.ghost:hover { color: var(--text); background: var(--surface-2); }
+  .ix-btn.primary:hover { background: color-mix(in srgb, var(--ix-slate) 90%, #000 10%); }
 
   /* EMPTY STATES */
   .ix-empty-list, .ix-empty-detail {
     display: flex; flex-direction: column; align-items: center;
-    text-align: center; gap: 8px;
-    color: var(--text-muted);
+    text-align: center; gap: 7px; color: var(--text-muted);
   }
-  .ix-empty-list { padding: 56px 24px 24px; }
-  .ix-empty-detail { padding: 80px 32px; max-width: 380px; margin: 0 auto; }
-  .ix-empty-title {
-    font-size: 13.5px; font-weight: 600; color: var(--text-secondary);
-    margin-top: 6px;
-  }
-  .ix-empty-sub {
-    font-size: 12.5px; line-height: 1.55; color: var(--text-muted);
-    max-width: 320px;
-  }
+  .ix-empty-list { padding: 52px 24px 24px; }
+  .ix-empty-detail { padding: 76px 32px; max-width: 360px; margin: 0 auto; }
+  .ix-empty-title { font-size: 13px; font-weight: 500; color: var(--text-secondary); margin: 6px 0 0; }
+  .ix-empty-sub { font-size: 12.5px; line-height: 1.55; color: var(--text-muted); max-width: 320px; margin: 0; }
 
   /* MOBILE */
   @media (max-width: 760px) {
     .ix-root { grid-template-columns: 1fr; }
     .ix-detail { display: none; }
-    .ix-list { border-right: none; }
-    .ix-list-head { padding: 16px 16px 10px; }
-    .ix-list-title { font-size: 15px; }
-    .ix-tabs { padding: 0 12px 10px; gap: 5px; overflow-x: auto; flex-wrap: nowrap; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+    .ix-list-head { padding: 16px 14px 10px; }
+    .ix-tabs {
+      padding: 0 12px 10px; gap: 5px; overflow-x: auto;
+      flex-wrap: nowrap; scrollbar-width: none; -webkit-overflow-scrolling: touch;
+    }
     .ix-tabs::-webkit-scrollbar { display: none; }
-    .ix-tab { flex-shrink: 0; padding: 7px 11px; font-size: 12px; min-height: 32px; }
-    .ix-row { padding: 14px 12px 14px 8px; min-height: 60px; }
-    .ix-row-title { font-size: 13.5px; }
-    .ix-row-preview { font-size: 12.5px; }
-    .ix-thread-scroll { padding: 4px 6px 90px; }
+    .ix-tab { flex-shrink: 0; }
+    .ix-row { padding: 13px 10px 13px 8px; min-height: 58px; }
+    .ix-thread-scroll { padding: 4px 8px 92px; }
   }
 `
