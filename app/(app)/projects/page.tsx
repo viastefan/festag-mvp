@@ -252,7 +252,7 @@ export default function ProjectsPage() {
         .pj-filter:hover { color:var(--text); }
         .pj-filter.on { background:var(--surface-2); color:var(--text); }
         .pj-count-summary {
-          color:var(--pj-soft); font-size:11.5px; font-weight:400;
+          color:var(--pj-soft); font-size:11.5px; font-weight:500;
           padding-left:4px; letter-spacing:.02em; white-space:nowrap;
         }
         .pj-tools { display:flex; align-items:center; gap:8px; flex-shrink:0; }
@@ -304,7 +304,7 @@ export default function ProjectsPage() {
         .pj-head {
           position:sticky; top:0; z-index:5; min-height:36px;
           background:var(--surface);
-          color:var(--pj-soft); font-size:11px; font-weight:400;
+          color:var(--pj-soft); font-size:11px; font-weight:500;
           letter-spacing:.02em;
         }
         .pj-head > *, .pj-row > * { min-width:0; }

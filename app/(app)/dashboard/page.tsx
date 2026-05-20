@@ -255,11 +255,6 @@ export default function DashboardPage() {
           --dc-soft: #B7BDC8;
         }
         .dash-calm * { font-weight:500 !important; letter-spacing:.012em; }
-        /* Spalten-/Sektionslabels dürfen leicht zurücktreten — Regular,
-           aber bewusst nicht zu hellgrau (Farbe bleibt --dc-muted). */
-        .dash-calm .dc-note-label,
-        .dash-calm .dc-note-next-label,
-        .dash-calm .dc-block-label { font-weight:400 !important; }
 
         /* ── Greeting full-width, then a calm two-column body ────── */
         .dc-wrap { max-width: 1040px; }
@@ -293,7 +288,7 @@ export default function DashboardPage() {
            written notebook page. Clean, calm, no frame. */
         .dc-note {
           grid-column:1; grid-row:1;
-          min-width:0; min-height:300px;
+          min-width:0; min-height:240px;
           animation:dcFade .3s .04s cubic-bezier(.16,1,.3,1) both;
         }
         .dc-note-head {
@@ -366,15 +361,15 @@ export default function DashboardPage() {
         }
         .dc-card {
           position:relative;
-          padding:16px;
-          border-radius:14px;
+          padding:15px;
+          border-radius:13px;
           background:var(--surface);
-          box-shadow:0 1px 2px rgba(15,23,42,.05), 0 10px 28px rgba(15,23,42,.06);
+          box-shadow:0 1px 2px rgba(15,23,42,.05), 0 5px 16px rgba(15,23,42,.05);
         }
         [data-theme="dark"] .dc-card,
         [data-theme="classic-dark"] .dc-card {
-          background:color-mix(in srgb, var(--surface) 92%, #fff 8%);
-          box-shadow:0 1px 2px rgba(0,0,0,.3), 0 10px 28px rgba(0,0,0,.22);
+          background:color-mix(in srgb, var(--surface) 93%, #fff 7%);
+          box-shadow:0 1px 2px rgba(0,0,0,.28), 0 5px 16px rgba(0,0,0,.2);
         }
         .dc-pulse {
           display:inline-flex; align-items:center; gap:8px;
@@ -392,18 +387,18 @@ export default function DashboardPage() {
 
         .dc-primary {
           appearance:none; border:0; width:100%;
-          height:44px; padding:0 16px;
+          height:42px; padding:0 16px;
           display:inline-flex; align-items:center; justify-content:center; gap:9px;
-          border-radius:11px;
+          border-radius:10px;
           background:var(--dc-slate);
           color:#fff;
-          font:inherit; font-size:13.5px;
+          font:inherit; font-size:13px;
           cursor:pointer;
-          box-shadow:0 1px 2px rgba(15,23,42,.14), 0 8px 20px rgba(91,100,125,.26);
-          transition:transform .13s ease, box-shadow .13s ease, opacity .13s ease;
+          box-shadow:0 1px 2px rgba(15,23,42,.12);
+          transition:background .14s ease, opacity .14s ease;
         }
-        .dc-primary:hover { transform:translateY(-1px); box-shadow:0 1px 2px rgba(15,23,42,.16), 0 11px 26px rgba(91,100,125,.32); }
-        .dc-primary:disabled { opacity:.62; cursor:default; transform:none; }
+        .dc-primary:hover { background:color-mix(in srgb, var(--dc-slate) 90%, #000 10%); }
+        .dc-primary:disabled { opacity:.55; cursor:default; }
         .dc-primary .spin { animation:dcSpin .9s linear infinite; }
 
         .dc-audio { margin-top:8px; display:flex; gap:7px; }

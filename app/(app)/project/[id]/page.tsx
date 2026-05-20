@@ -395,7 +395,7 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m√
           overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
         }
         .pv-type {
-          flex-shrink:0; font-size:10px; font-weight:400; letter-spacing:.06em;
+          flex-shrink:0; font-size:10px; font-weight:500; letter-spacing:.06em;
           text-transform:uppercase; color:var(--pv-muted);
           padding:3px 8px; border-radius:6px;
           background:color-mix(in srgb, var(--surface-2) 60%, transparent);
@@ -478,7 +478,7 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m√
         }
         .pv-ms-amount { font-size:13px; color:var(--text); flex-shrink:0; min-width:64px; text-align:right; }
         .pv-chip {
-          flex-shrink:0; font-size:10px; font-weight:400; letter-spacing:.04em;
+          flex-shrink:0; font-size:10px; font-weight:500; letter-spacing:.04em;
           padding:3px 9px; border-radius:999px;
         }
         .pv-chip.paid    { color:#16a34a; background:rgba(34,197,94,.12); }
@@ -567,7 +567,7 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m√
           display:flex; justify-content:space-between; align-items:baseline;
           margin-bottom:7px;
         }
-        .pv-update-tag { font-size:10.5px; font-weight:400; letter-spacing:.08em; color:var(--pv-muted); text-transform:uppercase; }
+        .pv-update-tag { font-size:10.5px; font-weight:500; letter-spacing:.08em; color:var(--pv-muted); text-transform:uppercase; }
         .pv-update-time { font-size:11px; color:var(--pv-muted); }
         .pv-update-body { font-size:13.5px; color:var(--text); line-height:1.7; }
 
@@ -624,7 +624,7 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m√
         }
         .pv-guarantee { margin-top:24px; }
         .pv-guarantee-label {
-          margin:0 0 6px; font-size:10.5px; font-weight:400; letter-spacing:.08em;
+          margin:0 0 6px; font-size:10.5px; font-weight:500; letter-spacing:.08em;
           color:var(--pv-muted); text-transform:uppercase;
         }
         .pv-guarantee-row {
@@ -632,7 +632,7 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m√
           padding:8px 4px;
         }
         .pv-guarantee-row .l { font-size:12.5px; color:var(--pv-soft); }
-        .pv-guarantee-row .s { font-size:10px; font-weight:400; letter-spacing:.04em; }
+        .pv-guarantee-row .s { font-size:10px; font-weight:500; letter-spacing:.04em; }
 
         @media (max-width:880px) {
           .pv-grid { grid-template-columns:1fr; gap:24px; }
