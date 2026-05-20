@@ -196,18 +196,19 @@ export default function DevLoginPage() {
         .dl-root[data-theme="dark"] .dl-divider::after { background:rgba(255,255,255,0.06); }
 
         .dl-btn-github {
-          width:100%; height:47px; border-radius:32px; border:none;
+          width:100%; height:47px; border-radius:32px;
+          border:1px solid #e7ebf0;
           display:flex; align-items:center; justify-content:center; gap:9px;
           font-family:inherit; font-size:14px; font-weight:500; letter-spacing:0.14px;
-          background:#202532; color:#fff; cursor:pointer;
-          box-shadow:0px 8px 24px 0px rgba(32,37,50,0.12);
-          transition: background .15s, opacity .15s;
+          background:#fff; color:#202532; cursor:pointer;
+          box-shadow:0px 1px 2px 0px rgba(15,23,42,0.03);
+          transition: background .15s, border-color .15s, opacity .15s;
         }
-        .dl-btn-github:hover:not(:disabled) { background:#0E1218; }
+        .dl-btn-github:hover:not(:disabled) { background:#F7F8FB; border-color:#DCE1EA; }
         .dl-btn-github:disabled { opacity:.5; cursor:not-allowed; }
-        .dl-root[data-theme="dark"] .dl-btn-github { background:#161C27; box-shadow:none; }
-        .dl-root[data-theme="dark"] .dl-btn-github:hover:not(:disabled) { background:#1F2735; }
-        .dl-github-icon { width:18px; height:18px; flex-shrink:0; color:#fff; }
+        .dl-root[data-theme="dark"] .dl-btn-github { background:rgba(243,245,247,0.035); color:#E8E8E5; border:0.7px solid rgba(243,245,247,0.08); box-shadow:none; }
+        .dl-root[data-theme="dark"] .dl-btn-github:hover:not(:disabled) { background:rgba(243,245,247,0.06); border-color:rgba(243,245,247,0.14); }
+        .dl-github-icon { width:18px; height:18px; flex-shrink:0; }
         .dl-github-hint { font-size:11px; color:#9aa1ad; text-align:center; margin:0; letter-spacing:0.01em; }
         .dl-root[data-theme="dark"] .dl-github-hint { color:#5b647d; }
 

@@ -391,8 +391,8 @@ export default function RegisterPage() {
         .reg-btn:disabled { opacity:.5; cursor:not-allowed; }
         .reg-btn-google { background:#5b647d; color:#fff; box-shadow:0px 8px 24px 0px rgba(200,169,91,0.14); }
         .reg-btn-google:hover:not(:disabled) { background:#505870; }
-        .reg-btn-github { background:#202532; color:#fff; box-shadow:0px 8px 24px 0px rgba(32,37,50,0.12); }
-        .reg-btn-github:hover:not(:disabled) { background:#0E1218; }
+        .reg-btn-github { background:#fff; color:#202532; border:0.7px solid #e7ebf0; box-shadow:0px 1px 2px 0px rgba(15,23,42,0.03); }
+        .reg-btn-github:hover:not(:disabled) { background:#F7F8FB; border-color:#DCE1EA; }
         .reg-dev-divider {
           width:100%; display:flex; align-items:center; gap:10px;
           margin:2px 0 -8px;
@@ -403,12 +403,12 @@ export default function RegisterPage() {
         .reg-root[data-theme="dark"] .reg-dev-divider { color:#5b647d; }
         .reg-root[data-theme="dark"] .reg-dev-divider::before,
         .reg-root[data-theme="dark"] .reg-dev-divider::after { background:rgba(255,255,255,0.06); }
-        .reg-root[data-theme="dark"] .reg-btn-github { background:#161C27; box-shadow:none; }
-        .reg-root[data-theme="dark"] .reg-btn-github:hover:not(:disabled) { background:#1F2735; }
+        .reg-root[data-theme="dark"] .reg-btn-github { background:rgba(243,245,247,0.035); color:#E8E8E5; border:0.7px solid rgba(243,245,247,0.08); box-shadow:none; }
+        .reg-root[data-theme="dark"] .reg-btn-github:hover:not(:disabled) { background:rgba(243,245,247,0.06); border-color:rgba(243,245,247,0.14); }
         .reg-btn-outline { background:#fff; color:#202532; border:0.7px solid #e7ebf0; box-shadow:0px 1px 2px 0px rgba(15,23,42,0.03); }
         .reg-btn-outline:hover:not(:disabled) { background:#F7F8FB; border:1px solid #DCE1EA; }
-        .reg-btn-confirm { background:#202532; color:#FFFFFF; border:none; box-shadow:0px 8px 24px 0px rgba(32,37,50,0.18); }
-        .reg-btn-confirm:hover:not(:disabled) { background:#0E1218; }
+        .reg-btn-confirm { background:#5b647d; color:#FFFFFF; border:none; box-shadow:0px 1px 2px 0px rgba(15,23,42,0.06); }
+        .reg-btn-confirm:hover:not(:disabled) { background:#505870; }
         .reg-google-icon { width:18px; height:18px; display:block; flex-shrink:0; color:#fff; }
 
         .reg-email-form { width:271px; display:flex; flex-direction:column; gap:16px; }
@@ -466,8 +466,8 @@ export default function RegisterPage() {
         .reg-root[data-theme="dark"] .reg-btn-google { box-shadow:none !important; }
         .reg-root[data-theme="dark"] .reg-btn-outline { background:rgba(243,245,247,0.035); color:#E8E8E5; border:0.7px solid rgba(243,245,247,0.08); box-shadow:none; }
         .reg-root[data-theme="dark"] .reg-btn-outline:hover:not(:disabled) { background:rgba(243,245,247,0.06); border:1px solid rgba(243,245,247,0.14); }
-        .reg-root[data-theme="dark"] .reg-btn-confirm { background:#E8E8E5; color:#0F141B; box-shadow:0px 8px 24px 0px rgba(0,0,0,0.35); }
-        .reg-root[data-theme="dark"] .reg-btn-confirm:hover:not(:disabled) { background:#F3F5F7; }
+        .reg-root[data-theme="dark"] .reg-btn-confirm { background:#5b647d; color:#fff; box-shadow:none; }
+        .reg-root[data-theme="dark"] .reg-btn-confirm:hover:not(:disabled) { background:#69748f; }
         .reg-root[data-theme="dark"] .reg-email-input { background:rgba(243,245,247,0.035); color:#E8E8E5; border:1px solid rgba(102,112,143,0.10); caret-color:#66708F; }
         .reg-root[data-theme="dark"] .reg-email-input::placeholder { color:rgba(102,112,143,0.5); }
         .reg-root[data-theme="dark"] .reg-email-input:focus { border-color:rgba(102,112,143,0.5); box-shadow:0 0 0 3px rgba(102,112,143,0.10); }

@@ -507,29 +507,15 @@ export default function DashboardPage() {
         .ed-pulse.tone-red   .ed-pulse-dot { color: #ef4444; }
         .ed-pulse-label { white-space: nowrap; }
 
-        /* ── Tagro status briefing — dashboard core surface ───── */
+        /* ── Tagro status briefing — like a Notion note, calm ─── */
         .ed-briefing {
           margin-top: 18px;
           display: grid;
           grid-template-columns: minmax(0, 1.08fr) minmax(245px, .42fr);
           gap: 18px;
-          padding: 18px;
-          border-radius: 12px;
-          background:
-            radial-gradient(circle at 14% 8%, color-mix(in srgb, var(--text) 4%, transparent), transparent 44%),
-            #fff;
-          box-shadow:
-            0 1px 2px rgba(15,23,42,.05),
-            0 18px 46px rgba(15,23,42,.075);
-        }
-        [data-theme="dark"] .ed-briefing,
-        [data-theme="classic-dark"] .ed-briefing {
-          background:
-            radial-gradient(circle at 16% 5%, color-mix(in srgb, #fff 7%, transparent), transparent 44%),
-            color-mix(in srgb, var(--surface) 92%, #fff 4%);
-          box-shadow:
-            0 1px 2px rgba(0,0,0,.28),
-            0 20px 56px rgba(0,0,0,.24);
+          padding: 4px 0 0;
+          background: transparent;
+          box-shadow: none;
         }
         .ed-briefing-main,
         .ed-briefing-side { min-width: 0; }
@@ -592,20 +578,28 @@ export default function DashboardPage() {
           outline-offset: 2px;
         }
         .ed-listen-button {
-          min-width: min(100%, 260px);
-          height: 46px;
+          min-width: min(100%, 240px);
+          height: 42px;
           padding: 0 18px;
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          gap: 10px;
-          background: color-mix(in srgb, var(--text) 91%, #fff 9%);
-          color: color-mix(in srgb, var(--surface) 96%, #fff 4%);
-          font-size: 13.5px;
+          gap: 9px;
+          background: var(--surface);
+          color: var(--text);
+          font-size: 13px;
           letter-spacing: -.002em;
+          border-radius: 999px;
+          border: 1px solid var(--border);
+          box-shadow: 0 1px 2px rgba(15,23,42,.06), 0 8px 22px rgba(15,23,42,.06);
+          transition: transform .12s ease, box-shadow .12s ease;
+        }
+        .ed-listen-button:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 1px 2px rgba(15,23,42,.08), 0 10px 26px rgba(15,23,42,.08);
         }
         .ed-listen-button[disabled] {
-          opacity: .56;
+          opacity: .55;
           cursor: not-allowed;
           transform: none;
         }
@@ -637,8 +631,9 @@ export default function DashboardPage() {
         }
         [data-theme="dark"] .ed-listen-button,
         [data-theme="classic-dark"] .ed-listen-button {
-          background: color-mix(in srgb, #fff 90%, var(--surface) 10%);
-          color: #111827;
+          background: color-mix(in srgb, var(--surface) 92%, #fff 8%);
+          color: var(--text);
+          box-shadow: 0 1px 2px rgba(0,0,0,.28), 0 10px 24px rgba(0,0,0,.22);
         }
         [data-theme="dark"] .ed-mini-control,
         [data-theme="dark"] .ed-listen-settings-toggle,

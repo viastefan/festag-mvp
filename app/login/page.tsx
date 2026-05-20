@@ -533,9 +533,9 @@ export default function LoginPage() {
         .log-btn-outline { background:#fff; color:#202532; border:0.7px solid #e7ebf0; box-shadow:0px 1px 2px 0px rgba(15,23,42,0.03); }
         .log-btn-outline:hover:not(:disabled) { background:#F7F8FB; border:1px solid #DCE1EA; }
 
-        /* CONFIRM (light mode default: dark pill, white text — inverted) */
-        .log-btn-confirm { background:#202532; color:#FFFFFF; border:none; box-shadow:0px 8px 24px 0px rgba(32,37,50,0.18); }
-        .log-btn-confirm:hover:not(:disabled) { background:#0E1218; }
+        /* CONFIRM — Slate pill, consistent with Google/primary actions */
+        .log-btn-confirm { background:#5b647d; color:#FFFFFF; border:none; box-shadow:0px 1px 2px 0px rgba(15,23,42,0.06); }
+        .log-btn-confirm:hover:not(:disabled) { background:#505870; }
         .log-google-icon { width:18px; height:18px; display:block; flex-shrink:0; color:#fff; }
 
         /* DEVELOPER ACCESS */
@@ -552,14 +552,15 @@ export default function LoginPage() {
         .log-root[data-theme="dark"] .log-dev-divider::before,
         .log-root[data-theme="dark"] .log-dev-divider::after { background:rgba(255,255,255,0.06); }
         .log-btn-github {
-          background:#202532; color:#fff;
-          box-shadow:0px 8px 24px 0px rgba(32,37,50,0.12);
+          background:#fff; color:#202532;
+          border:0.7px solid #e7ebf0;
+          box-shadow:0px 1px 2px 0px rgba(15,23,42,0.03);
         }
-        .log-btn-github:hover:not(:disabled) { background:#0E1218; }
-        .log-github-icon { width:18px; height:18px; display:block; flex-shrink:0; color:#fff; }
+        .log-btn-github:hover:not(:disabled) { background:#F7F8FB; border-color:#DCE1EA; }
+        .log-github-icon { width:18px; height:18px; display:block; flex-shrink:0; }
         .log-hint-muted { color:#9aa1ad; font-size:11px; }
-        .log-root[data-theme="dark"] .log-btn-github { background:#161C27; box-shadow:none; }
-        .log-root[data-theme="dark"] .log-btn-github:hover:not(:disabled) { background:#1F2735; }
+        .log-root[data-theme="dark"] .log-btn-github { background:rgba(243,245,247,0.035); color:#E8E8E5; border:0.7px solid rgba(243,245,247,0.08); box-shadow:none; }
+        .log-root[data-theme="dark"] .log-btn-github:hover:not(:disabled) { background:rgba(243,245,247,0.06); border-color:rgba(243,245,247,0.14); }
 
         /* EMAIL FORM */
         .log-email-form { width:271px; display:flex; flex-direction:column; gap:16px; }
@@ -653,8 +654,8 @@ export default function LoginPage() {
 
         .log-root[data-theme="dark"] .log-btn-outline { background:rgba(243,245,247,0.035); color:#E8E8E5; border:0.7px solid rgba(243,245,247,0.08); box-shadow:none; }
         .log-root[data-theme="dark"] .log-btn-outline:hover:not(:disabled) { background:rgba(243,245,247,0.06); border:1px solid rgba(243,245,247,0.14); }
-        .log-root[data-theme="dark"] .log-btn-confirm { background:#E8E8E5; color:#0F141B; box-shadow:0px 8px 24px 0px rgba(0,0,0,0.35); }
-        .log-root[data-theme="dark"] .log-btn-confirm:hover:not(:disabled) { background:#F3F5F7; }
+        .log-root[data-theme="dark"] .log-btn-confirm { background:#5b647d; color:#fff; box-shadow:none; }
+        .log-root[data-theme="dark"] .log-btn-confirm:hover:not(:disabled) { background:#69748f; }
 
         .log-root[data-theme="dark"] .log-email-input { background:rgba(243,245,247,0.035); color:#E8E8E5; border:1px solid rgba(102,112,143,0.10); caret-color:#66708F; }
         .log-root[data-theme="dark"] .log-email-input::placeholder { color:rgba(102,112,143,0.5); }
