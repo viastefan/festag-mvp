@@ -257,7 +257,7 @@ export default function DashboardPage() {
         .dash-calm * { font-weight:500 !important; letter-spacing:.012em; }
 
         /* ── Greeting full-width, then a calm two-column body ────── */
-        .dc-wrap { max-width: 980px; }
+        .dc-wrap { max-width: 1140px; }
         .dc-body {
           margin-top: 20px;
           display:grid;
@@ -297,14 +297,12 @@ export default function DashboardPage() {
         }
         .dc-note-label {
           color:var(--dc-muted);
-          font-size:10.5px;
-          letter-spacing:.15em;
-          text-transform:uppercase;
+          font-size:11.5px;
         }
         .dc-note-stamp { color:var(--dc-muted); font-size:11.5px; }
         .dc-note-text {
           margin:0;
-          max-width:600px;
+          max-width:720px;
           color:var(--text);
           font-size:15.5px;
           line-height:1.74;
@@ -315,12 +313,12 @@ export default function DashboardPage() {
           width:2px; height:1.05em;
           margin-left:1.5px;
           vertical-align:-2px;
-          background:var(--dc-slate);
+          background:var(--text);
           animation:dcBlink 1s steps(1) infinite;
         }
         .dc-note-empty {
           margin:0;
-          max-width:380px;
+          max-width:560px;
           color:var(--dc-muted);
           font-size:14px;
           line-height:1.6;
@@ -335,9 +333,7 @@ export default function DashboardPage() {
         .dc-note-next-label {
           margin:0 0 9px;
           color:var(--dc-muted);
-          font-size:10.5px;
-          letter-spacing:.14em;
-          text-transform:uppercase;
+          font-size:11.5px;
         }
         .dc-note-next-item {
           display:flex; align-items:flex-start; gap:9px;
@@ -349,7 +345,7 @@ export default function DashboardPage() {
         .dc-note-next-item span.dot {
           margin-top:7px;
           width:5px; height:5px; border-radius:999px;
-          background:var(--dc-slate);
+          background:var(--dc-muted);
           flex-shrink:0;
         }
 
@@ -359,18 +355,9 @@ export default function DashboardPage() {
           display:flex; flex-direction:column;
           animation:dcFade .3s .06s cubic-bezier(.16,1,.3,1) both;
         }
-        .dc-card {
-          position:relative;
-          padding:15px;
-          border-radius:13px;
-          background:var(--surface);
-          box-shadow:0 1px 2px rgba(15,23,42,.05), 0 5px 16px rgba(15,23,42,.05);
-        }
-        [data-theme="dark"] .dc-card,
-        [data-theme="classic-dark"] .dc-card {
-          background:color-mix(in srgb, var(--surface) 93%, #fff 7%);
-          box-shadow:0 1px 2px rgba(0,0,0,.28), 0 5px 16px rgba(0,0,0,.2);
-        }
+        /* The right column is frameless too — no floating box, just a
+           calm stack that mirrors the notebook on the left. */
+        .dc-card { position:relative; }
         .dc-pulse {
           display:inline-flex; align-items:center; gap:7px;
           height:24px; padding:0 10px;
@@ -384,7 +371,8 @@ export default function DashboardPage() {
           width:7px; height:7px; border-radius:999px;
           background:currentColor; flex-shrink:0;
         }
-        .dc-pulse.tone-green .dc-pulse-dot { color:#22c55e; }
+        /* Calm = no colour. Colour only appears when something needs you. */
+        .dc-pulse.tone-green .dc-pulse-dot { color:var(--dc-muted); }
         .dc-pulse.tone-amber .dc-pulse-dot { color:#f59e0b; }
         .dc-pulse.tone-red   .dc-pulse-dot { color:#ef4444; }
 
@@ -393,16 +381,19 @@ export default function DashboardPage() {
           height:42px; padding:0 16px;
           display:inline-flex; align-items:center; justify-content:center; gap:9px;
           border-radius:10px;
-          background:var(--dc-slate);
+          background:#383C44;
           color:#fff;
           font:inherit; font-size:13px;
           cursor:pointer;
-          box-shadow:0 1px 2px rgba(15,23,42,.12);
           transition:background .14s ease, opacity .14s ease;
         }
-        .dc-primary:hover { background:color-mix(in srgb, var(--dc-slate) 90%, #000 10%); }
-        .dc-primary:disabled { opacity:.55; cursor:default; }
+        .dc-primary:hover { background:#2c2f36; }
+        .dc-primary:disabled { opacity:.5; cursor:default; }
         .dc-primary .spin { animation:dcSpin .9s linear infinite; }
+        [data-theme="dark"] .dc-primary,
+        [data-theme="classic-dark"] .dc-primary { background:#3f444e; }
+        [data-theme="dark"] .dc-primary:hover,
+        [data-theme="classic-dark"] .dc-primary:hover { background:#4a505b; }
 
         .dc-audio { margin-top:8px; display:flex; gap:7px; }
         .dc-audio-play {
@@ -477,8 +468,7 @@ export default function DashboardPage() {
           gap:10px; margin-bottom:8px;
         }
         .dc-block-label {
-          color:var(--dc-muted); font-size:10.5px;
-          letter-spacing:.15em; text-transform:uppercase;
+          color:var(--dc-muted); font-size:11.5px;
         }
         .dc-block-count { color:var(--dc-muted); font-size:11.5px; }
         .dc-block-empty {
