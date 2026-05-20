@@ -509,16 +509,12 @@ export default function DashboardPage() {
 
         /* ── Tagro status briefing — like a Notion note, calm ─── */
         .ed-briefing {
-          margin-top: 18px;
-          display: grid;
-          grid-template-columns: minmax(0, 1.08fr) minmax(245px, .42fr);
-          gap: 18px;
+          margin-top: 14px;
           padding: 4px 0 0;
           background: transparent;
           box-shadow: none;
         }
-        .ed-briefing-main,
-        .ed-briefing-side { min-width: 0; }
+        .ed-briefing-main { min-width: 0; max-width: 640px; }
         .ed-briefing-kicker {
           margin: 0 0 6px;
           color: var(--ed-muted);
@@ -690,26 +686,16 @@ export default function DashboardPage() {
           outline: none;
         }
         .ed-transcript {
-          margin-top: 16px;
-          padding: 13px 14px;
-          border-radius: 12px;
-          background: color-mix(in srgb, var(--surface-2) 38%, transparent);
-        }
-        .ed-transcript-label {
-          display: block;
-          margin-bottom: 7px;
-          color: var(--ed-muted);
-          font-size: 10.5px;
-          letter-spacing: .14em;
-          text-transform: uppercase;
+          margin-top: 14px;
+          padding: 0;
         }
         .ed-transcript p {
           margin: 0;
           color: var(--ed-secondary);
-          font-size: 12.5px;
-          line-height: 1.5;
+          font-size: 13.5px;
+          line-height: 1.62;
         }
-        .ed-transcript p + p { margin-top: 4px; }
+        .ed-transcript p + p { margin-top: 8px; }
         .ed-briefing-actions {
           margin-top: 11px;
           display: flex;
@@ -1012,32 +998,13 @@ export default function DashboardPage() {
               )}
             </div>
             <div className="ed-transcript" aria-label="Transkript">
-              <span className="ed-transcript-label">Transkript</span>
               {transcriptLines.map(line => <p key={line}>{line}</p>)}
             </div>
             <div className="ed-briefing-actions">
-              <Link className="ed-briefing-link" href="/reports">Lesen</Link>
-              <Link className="ed-briefing-link" href={main ? `/project/${main.id}` : '/projects'}>Projekt öffnen</Link>
+              <Link className="ed-briefing-link" href="/reports">Vollständig lesen</Link>
+              {main && <Link className="ed-briefing-link" href={`/project/${main.id}`}>Projekt öffnen</Link>}
             </div>
           </div>
-          <aside className="ed-briefing-side" aria-label="Status und Kanäle">
-            <div className="ed-attention">
-              {attentionItems.map(item => (
-                <Link key={item.label} className={`ed-attention-row ${item.tone}`} href={item.href}>
-                  <span className="ed-attention-label">{item.label}</span>
-                  <span className="ed-attention-value">{item.value}</span>
-                </Link>
-              ))}
-            </div>
-            <div className="ed-channel-row" aria-label="Briefing-Kanäle">
-              <Link className={`ed-channel${channels.whatsapp ? ' on' : ''}`} href="/connectors">
-                <span className="ed-channel-dot" /> {channels.whatsapp ? 'WhatsApp aktiv' : 'WhatsApp verbinden'}
-              </Link>
-              <Link className={`ed-channel${channels.audioFeed || channels.spotify ? ' on' : ''}`} href="/voice-reports">
-                <span className="ed-channel-dot" /> {channels.audioFeed || channels.spotify ? 'Audio-Feed aktiv' : 'Audio-Feed verbinden'}
-              </Link>
-            </div>
-          </aside>
         </section>
       </section>
 
