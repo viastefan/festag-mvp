@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getServiceClient } from '@/lib/supabase/service'
+import { translateDevUpdate } from '@/lib/tagro/translate-update'
 
 /**
  * POST /api/dev/daily-update
@@ -10,28 +11,16 @@ import { getServiceClient } from '@/lib/supabase/service'
  * Persists the developer's daily status:
  *   • marks the matching `dev_daily_prompts` row as submitted / skipped
  *   • inserts a `developer_updates` row (the raw text — internal only)
- *   • generates a calm, client-safe `status_reports` row so the client
- *     can see the same translated copy. (Heuristic translation now;
- *     Tagro LLM rewrite is plugged in later via the existing
- *     /api/tagro/* infrastructure.)
- *   • emits a 'work_log' event through the sync bus — owner + relevant
- *     parties get the inbox entry.
+ *   • runs the raw note through Tagro's LLM translation
+ *     (lib/tagro/translate-update → OpenAI, heuristic fallback when no key)
+ *   • writes a calm, client-safe `status_reports` row
+ *   • notifies the client's project owner
  */
 export const runtime = 'nodejs'
 
 function todayBerlin(): string {
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Berlin', year: 'numeric', month: '2-digit', day: '2-digit' })
     .format(new Date())
-}
-
-function translateForClient(devText: string, projectTitle: string | null): string {
-  const clean = devText.trim()
-  // Keep simple: strip dev jargon-y leading verbs, lower the temperature.
-  const trimmed = clean.replace(/^(heute|today|today's)\s*[:\-,]?\s*/i, '')
-  const intro = projectTitle ? `Update zu ${projectTitle}: ` : 'Heutiger Stand: '
-  // Cap length so we don't accidentally surface long internal notes.
-  const sentence = trimmed.length > 280 ? trimmed.slice(0, 277) + '…' : trimmed
-  return `${intro}${sentence}`
 }
 
 export async function POST(req: Request) {
@@ -86,8 +75,8 @@ export async function POST(req: Request) {
     }).select('*').single()
     if (duErr) return NextResponse.json({ error: duErr.message, stage: 'dev_update' }, { status: 400 })
 
-    // 2) Client-safe status_report row.
-    // Generated through the service role so RLS doesn't block the client
+    // 2) Tagro translates the raw note → calm, client-safe status_report.
+    // Written through the service role so RLS doesn't block the client
     // from seeing it via the project policy.
     let projectTitle: string | null = null
     let clientReportId: string | null = null
@@ -96,20 +85,28 @@ export async function POST(req: Request) {
         .select('id,title').eq('id', effectiveProjectId).maybeSingle()
       projectTitle = (projectRow as any)?.title ?? null
 
+      // Recent context for continuity (last 3 dev updates on this project).
+      const { data: recent } = await supabase.from('developer_updates')
+        .select('update_text').eq('project_id', effectiveProjectId)
+        .neq('id', (devUpdate as any).id)
+        .order('created_at', { ascending: false }).limit(3)
+      const recentContext = ((recent as any[]) ?? []).map(r => String(r.update_text)).filter(Boolean)
+
+      const translated = await translateDevUpdate({ devText: text, projectTitle, recentContext })
+
       const sb = getServiceClient() ?? supabase
-      const summary = translateForClient(text, projectTitle)
       const { data: reportRow } = await sb.from('status_reports').insert({
         project_id: effectiveProjectId,
         created_by: user.id,
         generated_by: 'tagro',
         audience: 'client',
         title: projectTitle ? `${projectTitle} · Tagesstand` : 'Tagesstand',
-        content: summary,
-        summary,
+        content: translated.clientSummary,
+        summary: translated.clientSummary,
         completed_work_json: [],
-        current_work_json: [text.slice(0, 400)],
-        next_steps_json: [],
-        blockers_json: /blocker|blockiert/i.test(text) ? [text.slice(0, 200)] : [],
+        current_work_json: translated.currentWork,
+        next_steps_json: translated.nextSteps,
+        blockers_json: translated.blockers,
         risks_json: [],
         client_actions_json: [],
         dev_followups_json: [],
@@ -119,6 +116,16 @@ export async function POST(req: Request) {
         generated_on: todayBerlin(),
       }).select('id').maybeSingle()
       clientReportId = (reportRow as any)?.id ?? null
+
+      // Audit the Tagro run so the translation has a trace.
+      await sb.from('tagro_runs').insert({
+        project_id: effectiveProjectId,
+        run_type: 'status_translation',
+        input_json: { dev_text: text },
+        output_json: { client_summary: translated.clientSummary, confidence: translated.confidence },
+        model: translated.model,
+        status: 'completed',
+      }).then(() => null, () => null)
     }
 
     // 3) Mark the prompt submitted.

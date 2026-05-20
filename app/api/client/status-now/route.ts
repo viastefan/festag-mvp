@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getServiceClient } from '@/lib/supabase/service'
+import { translateStatusDigest } from '@/lib/tagro/translate-update'
 
 /**
  * GET  /api/client/status-now?projectId=…   → fetch the latest client-safe status
@@ -110,25 +111,17 @@ export async function POST(req: Request) {
       .order('created_at', { ascending: false }).limit(8)
 
     const rows = ((updates as any[]) ?? [])
-    const blockerNotes = rows.filter(r => r.blocker || /blockiert|blocker/i.test(r.update_text)).map(r => r.blocker_description || r.update_text).filter(Boolean)
-    const currentWork = rows.filter(r => !r.blocker).map(r => clamp(r.update_text, 220))
-
     const projectTitle = (project as any).title || 'das Projekt'
-    let summary: string
-    if (rows.length === 0) {
-      summary = `Heute gibt es noch keine neuen Updates zu ${projectTitle}. Sobald jemand am Projekt arbeitet, fasse ich den Stand hier ruhig zusammen.`
-    } else {
-      const lead = blockerNotes.length > 0
-        ? `Aktuell läuft die Arbeit an ${projectTitle}; ein Punkt wartet auf Klärung.`
-        : `Die Arbeit an ${projectTitle} ist heute vorangekommen.`
-      const detail = currentWork.length > 0
-        ? ` Zuletzt: ${currentWork[0]}.`
-        : ''
-      const blocker = blockerNotes.length > 0
-        ? ` Offener Punkt: ${clamp(blockerNotes[0], 140)}.`
-        : ''
-      summary = `${lead}${detail}${blocker}`
-    }
+
+    // Tagro digests the last 24h into one calm reading (LLM, heuristic fallback).
+    const digest = await translateStatusDigest({
+      projectTitle,
+      updates: rows.map(r => ({
+        text: clamp(String(r.update_text ?? ''), 400),
+        blocker: !!r.blocker || /blockiert|blocker/i.test(String(r.update_text ?? '')),
+      })),
+    })
+    const summary = digest.clientSummary
 
     // Write a fresh status_report via service role so RLS lets the client see it.
     const sb = getServiceClient() ?? supabase
@@ -141,9 +134,9 @@ export async function POST(req: Request) {
       content: summary,
       summary,
       completed_work_json: [],
-      current_work_json: currentWork.slice(0, 3),
-      next_steps_json: [],
-      blockers_json: blockerNotes.slice(0, 2),
+      current_work_json: digest.currentWork,
+      next_steps_json: digest.nextSteps,
+      blockers_json: digest.blockers,
       risks_json: [],
       client_actions_json: [],
       dev_followups_json: [],
