@@ -18,8 +18,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import { useSpeechRecognition } from '@/hooks/useSpeechRecognition'
 import {
-  ArrowRight, GitBranch, GitCommit, CheckSquare, Lightning, Pause, Play, Sparkle, WarningCircle,
+  ArrowRight, GitBranch, GitCommit, CheckSquare, Lightning, Microphone,
+  Pause, Play, Sparkle, WarningCircle,
 } from '@phosphor-icons/react'
 
 type Task = {
@@ -98,6 +100,26 @@ export default function DevOverviewPage() {
   const [promptDraft, setPromptDraft] = useState('')
   const [promptBusy, setPromptBusy] = useState(false)
   const [promptDone, setPromptDone] = useState(false)
+  const [interim, setInterim] = useState('')
+
+  // Voice input for the daily update — on-device, Web Speech API.
+  // Final chunks are appended to the draft; interim text is a live preview.
+  const voice = useSpeechRecognition({
+    lang: 'de-DE',
+    onResult: (text, isFinal) => {
+      if (isFinal) {
+        setPromptDraft(prev => (prev ? `${prev} ${text}` : text).replace(/\s+/g, ' ').trimStart())
+        setInterim('')
+      } else {
+        setInterim(text)
+      }
+    },
+    onError: () => setInterim(''),
+  })
+  function toggleVoice() {
+    if (voice.listening) { voice.stop(); setInterim('') }
+    else voice.start()
+  }
 
   useEffect(() => {
     let cancelled = false
@@ -263,26 +285,53 @@ export default function DevOverviewPage() {
               : `${dailyPrompts.length} Projekten`} gemacht?
             Ein Satz reicht — ich übersetze ihn ruhig für deinen Client.
           </p>
-          <textarea
-            value={promptDraft}
-            onChange={(e) => setPromptDraft(e.target.value)}
-            placeholder="z. B. Hero-Section auf Mobile gefixt, Deploy steht. Morgen Login-Flow."
-            rows={3}
-            style={{
-              width: '100%', resize: 'vertical',
-              padding: '10px 12px', borderRadius: 8,
-              border: '1px solid var(--border)',
-              background: 'var(--surface-2)', color: 'var(--text)',
-              fontFamily: 'inherit', fontSize: 13.5, lineHeight: 1.5,
-              letterSpacing: '.012em',
-            }}
-          />
+          <div style={{ position: 'relative' }}>
+            <textarea
+              value={promptDraft}
+              onChange={(e) => setPromptDraft(e.target.value)}
+              placeholder="z. B. Hero-Section auf Mobile gefixt, Deploy steht. Morgen Login-Flow."
+              rows={3}
+              style={{
+                width: '100%', resize: 'vertical',
+                padding: '10px 44px 10px 12px', borderRadius: 8,
+                border: voice.listening ? '1px solid var(--accent)' : '1px solid var(--border)',
+                background: 'var(--surface-2)', color: 'var(--text)',
+                fontFamily: 'inherit', fontSize: 13.5, lineHeight: 1.5,
+                letterSpacing: '.012em', boxSizing: 'border-box',
+              }}
+            />
+            {voice.supported && (
+              <button
+                type="button"
+                onClick={toggleVoice}
+                aria-label={voice.listening ? 'Aufnahme stoppen' : 'Per Stimme diktieren'}
+                aria-pressed={voice.listening}
+                style={{
+                  position: 'absolute', top: 8, right: 8,
+                  width: 30, height: 30, borderRadius: 8,
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                  border: '1px solid ' + (voice.listening ? 'var(--accent)' : 'var(--border)'),
+                  background: voice.listening ? 'var(--accent)' : 'var(--surface)',
+                  color: voice.listening ? 'var(--accent-text)' : 'var(--text-secondary)',
+                  cursor: 'pointer',
+                }}
+              >
+                <Microphone size={15} weight={voice.listening ? 'fill' : 'regular'} />
+              </button>
+            )}
+          </div>
+          {voice.listening && (
+            <p style={{ margin: '6px 2px 0', fontSize: 11.5, color: 'var(--accent)', letterSpacing: '.012em' }}>
+              Tagro hört zu… {interim ? <span style={{ color: 'var(--text-muted)' }}>„{interim}"</span> : 'sprich einfach.'}
+            </p>
+          )}
           <div style={{ display: 'flex', gap: 8, marginTop: 10, justifyContent: 'flex-end' }}>
             <button
               className="dev-secondary-btn"
               type="button"
               disabled={promptBusy}
               onClick={async () => {
+                voice.stop(); setInterim('')
                 setPromptBusy(true)
                 try {
                   await Promise.all(dailyPrompts.map(p => fetch('/api/dev/daily-update', {
@@ -305,6 +354,7 @@ export default function DevOverviewPage() {
               }}
               onClick={async () => {
                 if (!promptDraft.trim()) return
+                voice.stop(); setInterim('')
                 setPromptBusy(true)
                 try {
                   // Send the same text against each open prompt (one per project).
