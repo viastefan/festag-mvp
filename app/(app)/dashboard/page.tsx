@@ -99,6 +99,7 @@ export default function DashboardPage() {
   const [briefingSettingsOpen, setBriefingSettingsOpen] = useState(false)
   const [taskState, setTaskState] = useState<Record<string, 'idle' | 'busy' | 'done'>>({})
   const [allTasksBusy, setAllTasksBusy] = useState(false)
+  const [bulkProgress, setBulkProgress] = useState(0)
   const writeToken = useRef(0)
 
   // ── Load projects + tasks ───────────────────────────────────────
@@ -237,9 +238,14 @@ export default function DashboardPage() {
 
   async function createAllTasks() {
     if (!main || !noteReport || allTasksBusy) return
+    const steps = noteReport.nextSteps
     setAllTasksBusy(true)
-    for (let i = 0; i < noteReport.nextSteps.length; i++) {
-      await createTaskFromText(`next-${i}`, noteReport.nextSteps[i])
+    setBulkProgress(0)
+    // Filed one after another — the rows check off in a calm cascade.
+    for (let i = 0; i < steps.length; i++) {
+      await createTaskFromText(`next-${i}`, steps[i])
+      setBulkProgress(i + 1)
+      if (i < steps.length - 1) await new Promise((r) => setTimeout(r, 200))
     }
     setAllTasksBusy(false)
   }
@@ -253,29 +259,44 @@ export default function DashboardPage() {
         {items.slice(0, 6).map((it, i) => {
           const k = `${prefix}-${i}`
           const st = taskState[k] ?? 'idle'
+          const done = st === 'done'
           return (
-            <div className={`dc-sec-item${blocker ? ' blocker' : ''}`} key={k}>
-              <span className="dot" aria-hidden />
+            <div className={`dc-sec-item${blocker ? ' blocker' : ''}${done ? ' done' : ''}`} key={k}>
+              <span className="dc-sec-mark" aria-hidden>
+                {done ? (
+                  <svg className="dc-check" viewBox="0 0 16 16" fill="none">
+                    <path d="M3.4 8.6l3 3 6.2-7.2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                ) : (
+                  <span className="dot" />
+                )}
+              </span>
               <span className="dc-sec-text">{it}</span>
-              <button
-                type="button"
-                className={`dc-task-btn ${st}`}
-                onClick={() => createTaskFromText(k, it)}
-                disabled={st !== 'idle' || !main}
-                title={main ? 'Als Aufgabe anlegen' : 'Kein Projekt verknüpft'}
-              >
-                {st === 'done'
-                  ? <><Check size={11} weight="bold" /> Angelegt</>
-                  : st === 'busy'
-                    ? 'Lege an…'
+              {done ? (
+                <span className="dc-task-done">Aufgabe angelegt</span>
+              ) : (
+                <button
+                  type="button"
+                  className={`dc-task-btn ${st}`}
+                  onClick={() => createTaskFromText(k, it)}
+                  disabled={st !== 'idle' || !main}
+                  title={main ? 'Als Aufgabe anlegen' : 'Kein Projekt verknüpft'}
+                >
+                  {st === 'busy'
+                    ? <span className="dc-task-spin" aria-hidden />
                     : <><Plus size={11} weight="bold" /> Aufgabe</>}
-              </button>
+                </button>
+              )}
             </div>
           )
         })}
       </div>
     )
   }
+
+  const allNextDone =
+    (noteReport?.nextSteps.length ?? 0) > 0 &&
+    (noteReport?.nextSteps ?? []).every((_, i) => (taskState[`next-${i}`] ?? 'idle') === 'done')
 
   // ── Notepad writing animation ───────────────────────────────────
   async function streamNote(text: string) {
@@ -325,6 +346,10 @@ export default function DashboardPage() {
         @keyframes dcBlink { 0%,49% { opacity:1; } 50%,100% { opacity:0; } }
         @keyframes dcSpin { to { transform:rotate(360deg); } }
         @keyframes dcWave { 0%,100% { transform:scaleY(.22); } 50% { transform:scaleY(1); } }
+        @keyframes dcCheckDraw { to { stroke-dashoffset:0; } }
+        @keyframes dcPop { 0% { transform:scale(.55); opacity:0; } 62% { transform:scale(1.14); } 100% { transform:scale(1); opacity:1; } }
+        @keyframes dcTaskFlash { 0% { background:color-mix(in srgb, var(--surface-2) 80%, transparent); } 100% { background:transparent; } }
+        @keyframes dcRowIn { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:none; } }
 
         .dash-calm {
           min-height:100%;
@@ -421,46 +446,77 @@ export default function DashboardPage() {
           display:flex; flex-direction:column; gap:22px;
           animation:dcFade .3s cubic-bezier(.16,1,.3,1) both;
         }
-        .dc-sec-label { margin:0 0 5px; color:var(--dc-muted); font-size:11.5px; }
+        .dc-sec-label { margin:0 0 6px; color:var(--dc-muted); font-size:11.5px; }
         .dc-sec-item {
           display:flex; align-items:flex-start; gap:9px;
-          padding:5px 0; min-height:30px;
+          padding:6px 8px; margin:0 -8px;
+          border-radius:8px; min-height:32px;
           color:var(--dc-soft); font-size:13.5px; line-height:1.5;
+          transition:background .14s ease;
         }
-        .dc-sec-item .dot {
-          margin-top:7px;
+        .dc-sec-item:hover { background:color-mix(in srgb, var(--surface-2) 38%, transparent); }
+        .dc-sec-item.done { animation:dcTaskFlash 1.5s cubic-bezier(.16,1,.3,1); }
+        .dc-sec-mark {
+          width:13px; height:13px; margin-top:3px; flex-shrink:0;
+          display:flex; align-items:center; justify-content:center;
+        }
+        .dc-sec-mark .dot {
           width:5px; height:5px; border-radius:999px;
-          background:var(--dc-muted); flex-shrink:0;
+          background:var(--dc-muted);
         }
-        .dc-sec-item.blocker .dot { background:#ef4444; }
-        .dc-sec-text { flex:1; min-width:0; }
+        .dc-sec-item.blocker .dc-sec-mark .dot { background:#ef4444; }
+        .dc-check { width:13px; height:13px; color:var(--text); animation:dcPop .28s ease both; }
+        .dc-check path {
+          stroke-dasharray:17; stroke-dashoffset:17;
+          animation:dcCheckDraw .42s .05s cubic-bezier(.16,1,.3,1) forwards;
+        }
+        .dc-sec-text { flex:1; min-width:0; transition:color .35s ease; }
+        .dc-sec-item.done .dc-sec-text { color:var(--dc-muted); }
+        .dc-task-done {
+          flex-shrink:0; display:inline-flex; align-items:center; height:24px;
+          color:var(--dc-muted); font-size:11px;
+          animation:dcPop .32s .06s ease both;
+        }
         .dc-task-btn {
           flex-shrink:0;
-          display:inline-flex; align-items:center; gap:5px;
-          height:24px; padding:0 9px;
+          display:inline-flex; align-items:center; justify-content:center; gap:5px;
+          height:24px; min-width:82px; padding:0 9px;
           border:0; border-radius:6px;
           background:color-mix(in srgb, var(--surface-2) 60%, transparent);
           color:var(--dc-muted);
           font:inherit; font-size:11px; cursor:pointer;
-          opacity:0;
-          transition:opacity .13s ease, background .13s ease, color .13s ease;
+          opacity:0; transform:translateX(4px);
+          transition:opacity .15s ease, transform .15s ease, background .12s ease, color .12s ease;
         }
         .dc-sec-item:hover .dc-task-btn,
-        .dc-task-btn.busy, .dc-task-btn.done { opacity:1; }
-        .dc-task-btn:hover { background:color-mix(in srgb, var(--surface-2) 95%, transparent); color:var(--text); }
-        .dc-task-btn.done { color:var(--dc-soft); cursor:default; }
+        .dc-task-btn.busy { opacity:1; transform:none; }
+        .dc-task-btn:hover { background:color-mix(in srgb, var(--surface-2) 96%, transparent); color:var(--text); }
+        .dc-task-btn:active { transform:scale(.94); }
         .dc-task-btn:disabled { cursor:default; }
-        .dc-note-actions { margin-top:18px; display:flex; gap:8px; flex-wrap:wrap; }
+        .dc-task-spin {
+          width:11px; height:11px; border-radius:999px;
+          border:2px solid color-mix(in srgb, var(--dc-muted) 30%, transparent);
+          border-top-color:var(--dc-soft);
+          animation:dcSpin .7s linear infinite;
+        }
+        .dc-note-actions { margin-top:20px; display:flex; gap:8px; flex-wrap:wrap; }
         .dc-note-action {
           display:inline-flex; align-items:center; gap:7px;
-          height:32px; padding:0 13px;
+          height:34px; padding:0 14px;
           border:1px solid color-mix(in srgb, var(--border) 85%, transparent);
           border-radius:8px; background:transparent;
           color:var(--dc-soft); font:inherit; font-size:12px; cursor:pointer;
-          transition:background .12s ease, color .12s ease;
+          transition:background .14s ease, color .14s ease, border-color .14s ease, transform .1s ease;
         }
         .dc-note-action:hover { background:color-mix(in srgb, var(--surface-2) 50%, transparent); color:var(--text); }
-        .dc-note-action:disabled { opacity:.5; cursor:default; }
+        .dc-note-action:active { transform:scale(.98); }
+        .dc-note-action:disabled { cursor:default; }
+        .dc-note-action.done {
+          border-color:transparent;
+          background:color-mix(in srgb, var(--surface-2) 55%, transparent);
+          color:var(--dc-soft);
+        }
+        .dc-note-action.done svg { animation:dcPop .3s ease both; }
 
         /* ── Tagro voice — orb + speech waveform ──────────────────── */
         .dc-voice {
@@ -724,12 +780,26 @@ export default function DashboardPage() {
                     <div className="dc-note-actions">
                       <button
                         type="button"
-                        className="dc-note-action"
+                        className={`dc-note-action${allNextDone ? ' done' : ''}`}
                         onClick={createAllTasks}
-                        disabled={allTasksBusy}
+                        disabled={allTasksBusy || allNextDone}
                       >
-                        <Plus size={12} weight="bold" />
-                        {allTasksBusy ? 'Tagro legt Aufgaben an…' : 'Nächste Schritte als Aufgaben anlegen'}
+                        {allTasksBusy ? (
+                          <>
+                            <span className="dc-task-spin" aria-hidden />
+                            Tagro legt an… {bulkProgress}/{noteReport.nextSteps.length}
+                          </>
+                        ) : allNextDone ? (
+                          <>
+                            <Check size={13} weight="bold" />
+                            Alle als Aufgaben angelegt
+                          </>
+                        ) : (
+                          <>
+                            <Plus size={12} weight="bold" />
+                            Nächste Schritte als Aufgaben anlegen
+                          </>
+                        )}
                       </button>
                     </div>
                   )}
