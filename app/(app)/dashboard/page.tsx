@@ -18,8 +18,12 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import ObserverWelcomeModal from '@/components/ObserverWelcomeModal'
+import TagroLogo from '@/components/TagroLogo'
 import { speechVoiceId, useSpeechSynthesis } from '@/hooks/useSpeechSynthesis'
-import { ArrowClockwise, ArrowRight, Pause, Play, SlidersHorizontal, Stop } from '@phosphor-icons/react'
+import { ArrowClockwise, ArrowRight, Check, Pause, Play, Plus, SlidersHorizontal, Stop } from '@phosphor-icons/react'
+
+// 20 thin bars that form Tagro's speech waveform.
+const WAVE_BARS = Array.from({ length: 20 }, (_, i) => i)
 
 // ─────────────────────────────────────────────────────────────────────
 // Helpers
@@ -52,6 +56,7 @@ type Task    = { id: string; title: string; status: string; priority?: string; p
 
 type NoteReport = {
   summary: string
+  currentWork: string[]
   nextSteps: string[]
   blockers: string[]
   createdAt?: string
@@ -61,6 +66,7 @@ function normalizeReport(raw: any): NoteReport {
   const arr = (v: any): string[] => (Array.isArray(v) ? v.map((x) => String(x)).filter(Boolean) : [])
   return {
     summary: String(raw?.summary ?? raw?.content ?? '').trim(),
+    currentWork: arr(raw?.current_work_json),
     nextSteps: arr(raw?.next_steps_json),
     blockers: arr(raw?.blockers_json),
     createdAt: raw?.created_at,
@@ -91,6 +97,8 @@ export default function DashboardPage() {
   const [noteWriting, setNoteWriting] = useState(false)
   const [statusBusy, setStatusBusy] = useState(false)
   const [briefingSettingsOpen, setBriefingSettingsOpen] = useState(false)
+  const [taskState, setTaskState] = useState<Record<string, 'idle' | 'busy' | 'done'>>({})
+  const [allTasksBusy, setAllTasksBusy] = useState(false)
   const writeToken = useRef(0)
 
   // ── Load projects + tasks ───────────────────────────────────────
@@ -206,6 +214,69 @@ export default function DashboardPage() {
   const listenLabel = isBriefingPlaying ? 'Pausieren' : speechState === 'paused' ? 'Weiterhören' : 'Bericht anhören'
   const handleBriefingToggle = () => { if (isBriefingPlaying) pauseBriefing(); else playBriefing() }
 
+  // Tagro is "active" while writing the note or reading it aloud — the
+  // orb spins and the speech waveform dances during that time.
+  const tagroActive = isBriefingPlaying || noteWriting || statusBusy
+
+  // ── Turn a line of Tagro's reading into a real task ─────────────
+  async function createTaskFromText(key: string, text: string) {
+    if (!main || (taskState[key] ?? 'idle') !== 'idle') return
+    setTaskState((s) => ({ ...s, [key]: 'busy' }))
+    try {
+      const res = await fetch('/api/client/tasks/request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projectId: main.id, title: text.slice(0, 200) }),
+      })
+      const d = await res.json().catch(() => ({}))
+      setTaskState((s) => ({ ...s, [key]: d?.ok ? 'done' : 'idle' }))
+    } catch {
+      setTaskState((s) => ({ ...s, [key]: 'idle' }))
+    }
+  }
+
+  async function createAllTasks() {
+    if (!main || !noteReport || allTasksBusy) return
+    setAllTasksBusy(true)
+    for (let i = 0; i < noteReport.nextSteps.length; i++) {
+      await createTaskFromText(`next-${i}`, noteReport.nextSteps[i])
+    }
+    setAllTasksBusy(false)
+  }
+
+  // Renders one calm section of Tagro's structured reading.
+  const renderSection = (label: string, items: string[], prefix: string, blocker = false) => {
+    if (!items.length) return null
+    return (
+      <div className="dc-sec" key={prefix}>
+        <p className="dc-sec-label">{label}</p>
+        {items.slice(0, 6).map((it, i) => {
+          const k = `${prefix}-${i}`
+          const st = taskState[k] ?? 'idle'
+          return (
+            <div className={`dc-sec-item${blocker ? ' blocker' : ''}`} key={k}>
+              <span className="dot" aria-hidden />
+              <span className="dc-sec-text">{it}</span>
+              <button
+                type="button"
+                className={`dc-task-btn ${st}`}
+                onClick={() => createTaskFromText(k, it)}
+                disabled={st !== 'idle' || !main}
+                title={main ? 'Als Aufgabe anlegen' : 'Kein Projekt verknüpft'}
+              >
+                {st === 'done'
+                  ? <><Check size={11} weight="bold" /> Angelegt</>
+                  : st === 'busy'
+                    ? 'Lege an…'
+                    : <><Plus size={11} weight="bold" /> Aufgabe</>}
+              </button>
+            </div>
+          )
+        })}
+      </div>
+    )
+  }
+
   // ── Notepad writing animation ───────────────────────────────────
   async function streamNote(text: string) {
     const token = ++writeToken.current
@@ -235,6 +306,7 @@ export default function DashboardPage() {
       if (d?.report) {
         const r = normalizeReport(d.report)
         setNoteReport(r)
+        setTaskState({})
         if (r.summary) await streamNote(r.summary)
       }
     } finally {
@@ -252,6 +324,7 @@ export default function DashboardPage() {
         @keyframes dcFade { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
         @keyframes dcBlink { 0%,49% { opacity:1; } 50%,100% { opacity:0; } }
         @keyframes dcSpin { to { transform:rotate(360deg); } }
+        @keyframes dcWave { 0%,100% { transform:scaleY(.22); } 50% { transform:scaleY(1); } }
 
         .dash-calm {
           min-height:100%;
@@ -342,24 +415,71 @@ export default function DashboardPage() {
           color:var(--dc-muted);
           font-size:12px;
         }
-        .dc-note-next { margin-top:22px; }
-        .dc-note-next-label {
-          margin:0 0 9px;
-          color:var(--dc-muted);
-          font-size:11.5px;
+        /* ── Note sections — Tagro's structured reading ───────────── */
+        .dc-note-sections {
+          margin-top:24px;
+          display:flex; flex-direction:column; gap:22px;
+          animation:dcFade .3s cubic-bezier(.16,1,.3,1) both;
         }
-        .dc-note-next-item {
+        .dc-sec-label { margin:0 0 5px; color:var(--dc-muted); font-size:11.5px; }
+        .dc-sec-item {
           display:flex; align-items:flex-start; gap:9px;
-          padding:5px 0;
-          color:var(--dc-soft);
-          font-size:13.5px;
-          line-height:1.5;
+          padding:5px 0; min-height:30px;
+          color:var(--dc-soft); font-size:13.5px; line-height:1.5;
         }
-        .dc-note-next-item span.dot {
+        .dc-sec-item .dot {
           margin-top:7px;
           width:5px; height:5px; border-radius:999px;
-          background:var(--dc-muted);
+          background:var(--dc-muted); flex-shrink:0;
+        }
+        .dc-sec-item.blocker .dot { background:#ef4444; }
+        .dc-sec-text { flex:1; min-width:0; }
+        .dc-task-btn {
           flex-shrink:0;
+          display:inline-flex; align-items:center; gap:5px;
+          height:24px; padding:0 9px;
+          border:0; border-radius:6px;
+          background:color-mix(in srgb, var(--surface-2) 60%, transparent);
+          color:var(--dc-muted);
+          font:inherit; font-size:11px; cursor:pointer;
+          opacity:0;
+          transition:opacity .13s ease, background .13s ease, color .13s ease;
+        }
+        .dc-sec-item:hover .dc-task-btn,
+        .dc-task-btn.busy, .dc-task-btn.done { opacity:1; }
+        .dc-task-btn:hover { background:color-mix(in srgb, var(--surface-2) 95%, transparent); color:var(--text); }
+        .dc-task-btn.done { color:var(--dc-soft); cursor:default; }
+        .dc-task-btn:disabled { cursor:default; }
+        .dc-note-actions { margin-top:18px; display:flex; gap:8px; flex-wrap:wrap; }
+        .dc-note-action {
+          display:inline-flex; align-items:center; gap:7px;
+          height:32px; padding:0 13px;
+          border:1px solid color-mix(in srgb, var(--border) 85%, transparent);
+          border-radius:8px; background:transparent;
+          color:var(--dc-soft); font:inherit; font-size:12px; cursor:pointer;
+          transition:background .12s ease, color .12s ease;
+        }
+        .dc-note-action:hover { background:color-mix(in srgb, var(--surface-2) 50%, transparent); color:var(--text); }
+        .dc-note-action:disabled { opacity:.5; cursor:default; }
+
+        /* ── Tagro voice — orb + speech waveform ──────────────────── */
+        .dc-voice {
+          display:flex; align-items:center; gap:13px;
+          height:32px; margin-bottom:16px;
+        }
+        .dc-wave { display:flex; align-items:center; gap:3px; height:22px; flex:1; }
+        .dc-wave-bar {
+          flex:1; max-width:4px; height:100%;
+          border-radius:2px;
+          background:var(--dc-muted);
+          opacity:.4;
+          transform:scaleY(.2);
+          transform-origin:center;
+          transition:transform .3s ease, opacity .3s ease;
+        }
+        .dc-voice.playing .dc-wave-bar {
+          opacity:.85;
+          animation:dcWave .85s ease-in-out infinite;
         }
 
         /* ── Right column: action card + decisions/risks ─────────── */
@@ -592,16 +712,28 @@ export default function DashboardPage() {
                 {noteRevealed}
                 {noteWriting && <span className="dc-caret" aria-hidden />}
               </p>
-              {!noteWriting && (noteReport?.nextSteps?.length ?? 0) > 0 && (
-                <div className="dc-note-next">
-                  <p className="dc-note-next-label">Nächste Schritte</p>
-                  {noteReport!.nextSteps.slice(0, 4).map((step, i) => (
-                    <div className="dc-note-next-item" key={`${i}-${step}`}>
-                      <span className="dot" aria-hidden />
-                      <span>{step}</span>
+              {!noteWriting && noteReport &&
+                (noteReport.currentWork.length + noteReport.blockers.length + noteReport.nextSteps.length) > 0 && (
+                <>
+                  <div className="dc-note-sections">
+                    {renderSection('Aktuell in Arbeit', noteReport.currentWork, 'work')}
+                    {renderSection('Blocker', noteReport.blockers, 'blocker', true)}
+                    {renderSection('Nächste Schritte', noteReport.nextSteps, 'next')}
+                  </div>
+                  {noteReport.nextSteps.length > 0 && main && (
+                    <div className="dc-note-actions">
+                      <button
+                        type="button"
+                        className="dc-note-action"
+                        onClick={createAllTasks}
+                        disabled={allTasksBusy}
+                      >
+                        <Plus size={12} weight="bold" />
+                        {allTasksBusy ? 'Tagro legt Aufgaben an…' : 'Nächste Schritte als Aufgaben anlegen'}
+                      </button>
                     </div>
-                  ))}
-                </div>
+                  )}
+                </>
               )}
             </>
           ) : (
@@ -623,6 +755,14 @@ export default function DashboardPage() {
 
         {/* ── Right column ───────────────────────────────────────── */}
         <aside className="dc-side">
+          <div className={`dc-voice${tagroActive ? ' playing' : ''}`} aria-hidden>
+            <TagroLogo size={30} thinking={tagroActive} />
+            <div className="dc-wave">
+              {WAVE_BARS.map((i) => (
+                <span key={i} className="dc-wave-bar" style={{ animationDelay: `${(i % 7) * 0.09}s` }} />
+              ))}
+            </div>
+          </div>
           <div className="dc-card">
             <div className={`dc-pulse tone-${pulse.tone}`} title={pulse.label}>
               <span className="dc-pulse-dot" aria-hidden />
