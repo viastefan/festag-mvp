@@ -508,10 +508,12 @@ export default function DashboardPage() {
         @keyframes dcRowIn { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:none; } }
 
         .dash-calm {
-          min-height:100%;
+          height:100%;
+          min-height:0;
+          overflow:hidden;
           background:transparent;
           color:var(--text);
-          padding: 0 clamp(20px, 2.4vw, 32px) 34px;
+          padding: 0 clamp(18px, 2.2vw, 30px) 10px;
           --dc-muted: #5A6478;
           --dc-soft: #4E5567;
           --dc-slate: #5B647D;
@@ -524,9 +526,17 @@ export default function DashboardPage() {
         .dash-calm * { font-weight:500 !important; letter-spacing:.012em; }
 
         /* ── Greeting full-width, then a calm two-column body ────── */
-        .dc-wrap { max-width: 1280px; height:100%; min-height:0; }
+        .dc-wrap {
+          max-width: 1280px;
+          height:100%;
+          min-height:0;
+          display:flex;
+          flex-direction:column;
+        }
         .dc-body {
-          margin-top: 20px;
+          flex:1 1 auto;
+          min-height:0;
+          margin-top: 12px;
           display:grid;
           grid-template-columns: minmax(0,1fr) minmax(360px, 400px);
           column-gap: clamp(36px, 4.6vw, 70px);
@@ -534,7 +544,11 @@ export default function DashboardPage() {
         }
 
         /* ── Header ───────────────────────────────────────────────── */
-        .dc-head { padding:26px 0 0; animation:dcFade .3s cubic-bezier(.16,1,.3,1) both; }
+        .dc-head {
+          flex-shrink:0;
+          padding:14px 0 0;
+          animation:dcFade .3s cubic-bezier(.16,1,.3,1) both;
+        }
         .dc-greeting {
           margin:0;
           color:var(--text);
@@ -555,7 +569,11 @@ export default function DashboardPage() {
            written notebook page. Clean, calm, no frame. */
         .dc-note {
           grid-column:1; grid-row:1;
-          min-width:0; min-height:150px;
+          min-width:0; min-height:0;
+          max-height:100%;
+          overflow:auto;
+          padding-bottom:18px;
+          scrollbar-width:thin;
           animation:dcFade .3s .04s cubic-bezier(.16,1,.3,1) both;
         }
         .dc-note-head {
@@ -698,6 +716,11 @@ export default function DashboardPage() {
         .dc-side {
           grid-column:2; grid-row:1;
           display:flex; flex-direction:column;
+          height:100%;
+          min-height:0;
+          overflow:auto;
+          padding:0 4px 20px 0;
+          scrollbar-width:thin;
           animation:dcFade .3s .06s cubic-bezier(.16,1,.3,1) both;
         }
         /* The right column is frameless too — no floating box, just a
@@ -812,8 +835,9 @@ export default function DashboardPage() {
           background:
             radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--surface-2) 42%, transparent), transparent 48%),
             color-mix(in srgb, var(--card) 92%, var(--surface) 8%);
-          padding: 24px 24px 22px;
-          display: flex; flex-direction: column; gap: 16px;
+          padding: 20px 22px 18px;
+          display: flex; flex-direction: column; gap: 12px;
+          min-height:0;
           box-shadow:
             0 18px 58px -44px color-mix(in srgb, var(--text) 32%, transparent),
             inset 0 1px 0 color-mix(in srgb, #fff 20%, transparent);
@@ -835,7 +859,7 @@ export default function DashboardPage() {
           color: var(--dc-muted);
         }
         .dc-brief-title {
-          margin: 5px 0 4px; font-size: 17px; line-height: 1.25;
+          margin: 4px 0 3px; font-size: 16px; line-height: 1.22;
           font-weight: 500 !important; letter-spacing: -.005em !important;
           color: var(--text);
           display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
@@ -854,7 +878,7 @@ export default function DashboardPage() {
 
         .dc-brief-filterbar {
           display:flex; align-items:center; justify-content:space-between;
-          gap:10px;
+          gap:8px;
         }
 
         /* Scope dropdown */
@@ -945,7 +969,7 @@ export default function DashboardPage() {
         }
 
         .dc-current-report {
-          display:flex; flex-direction:column; gap:10px;
+          display:flex; flex-direction:column; gap:8px;
           padding:2px 0 0;
         }
         .dc-current-kicker {
@@ -957,14 +981,14 @@ export default function DashboardPage() {
         .dc-current-report p {
           margin:0;
           color:var(--dc-soft);
-          font-size:13px;
-          line-height:1.58;
+          font-size:12.5px;
+          line-height:1.48;
         }
         .dc-current-facts {
           display:grid;
           grid-template-columns:repeat(4, minmax(0,1fr));
-          gap:8px;
-          margin-top:2px;
+          gap:7px;
+          margin-top:0;
         }
         .dc-current-facts span {
           min-width:0;
@@ -975,7 +999,7 @@ export default function DashboardPage() {
         .dc-current-facts strong {
           display:block;
           color:var(--text);
-          font-size:15px;
+          font-size:14px;
           line-height:1.2;
           margin-bottom:2px;
         }
@@ -983,12 +1007,12 @@ export default function DashboardPage() {
         /* Tagro bubble — breathing ring + outer pulses */
         .dc-orb-stage {
           position: relative;
-          width: 100%; aspect-ratio: 1.7 / 1; max-height: 180px;
+          width: 100%; aspect-ratio: 2.35 / 1; max-height: 128px;
           display: flex; align-items: center; justify-content: center;
         }
         .dc-orb-bubble {
           position: relative; z-index: 3;
-          width: 78px; height: 78px;
+          width: 64px; height: 64px;
           border-radius: 50%;
           display: flex; align-items: center; justify-content: center;
           background:
@@ -1008,8 +1032,8 @@ export default function DashboardPage() {
         }
         .dc-orb-ring {
           position: absolute; left: 50%; top: 50%;
-          width: 112px; height: 112px;
-          margin: -56px 0 0 -56px;
+          width: 94px; height: 94px;
+          margin: -47px 0 0 -47px;
           border-radius: 50%;
           border: 1px solid color-mix(in srgb, var(--dc-muted) 18%, transparent);
           z-index: 2;
@@ -1025,8 +1049,8 @@ export default function DashboardPage() {
         }
         .dc-orb-pulse {
           position: absolute; left: 50%; top: 50%;
-          width: 76px; height: 76px;
-          margin: -38px 0 0 -38px;
+          width: 64px; height: 64px;
+          margin: -32px 0 0 -32px;
           border-radius: 50%;
           background: radial-gradient(circle, color-mix(in srgb, var(--dc-slate, #5B647D) 11%, transparent), transparent 62%);
           border: 1px solid color-mix(in srgb, var(--dc-slate, #5B647D) 16%, transparent);
@@ -1094,7 +1118,7 @@ export default function DashboardPage() {
 
         .dc-brief-meta {
           display: flex; align-items: center; justify-content: space-between;
-          gap: 10px;
+          gap: 8px;
         }
         .dc-brief-pulse {
           display: inline-flex; align-items: center; gap: 6px;
@@ -1126,7 +1150,7 @@ export default function DashboardPage() {
 
         .dc-brief-focus {
           display:flex; flex-direction:column; gap:5px;
-          margin-top:2px;
+          margin-top:0;
         }
         .dc-brief-focus span {
           color:var(--dc-muted);
@@ -1138,14 +1162,14 @@ export default function DashboardPage() {
         .dc-brief-focus p {
           margin:0;
           color:var(--dc-soft);
-          font-size:12.5px;
-          line-height:1.48;
+          font-size:12px;
+          line-height:1.42;
         }
 
         .dc-brief-actions { display: flex; flex-direction: column; gap: 8px; }
         .dc-brief-primary {
           appearance: none; border: 0;
-          width: 100%; height: 44px; padding: 0 18px;
+          width: 100%; height: 40px; padding: 0 16px;
           display: inline-flex; align-items: center; justify-content: center; gap: 9px;
           border-radius: 12px;
           background: color-mix(in srgb, var(--surface-2) 74%, transparent);
@@ -1167,7 +1191,7 @@ export default function DashboardPage() {
         .dc-brief-secondary {
           flex: 1;
           display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-          height: 36px; padding: 0 12px;
+          height: 34px; padding: 0 12px;
           border-radius: 10px;
           background: transparent;
           color: var(--dc-soft);
@@ -1181,7 +1205,7 @@ export default function DashboardPage() {
           color: var(--text);
         }
         .dc-brief-icon {
-          width: 36px; height: 36px;
+          width: 34px; height: 34px;
           border-radius: 10px;
           background: transparent;
           color: var(--dc-soft);
@@ -1243,7 +1267,7 @@ export default function DashboardPage() {
           display:flex;
           flex-direction:column;
           gap:2px;
-          max-height:176px;
+          max-height:132px;
           overflow:auto;
           scrollbar-width:thin;
         }
