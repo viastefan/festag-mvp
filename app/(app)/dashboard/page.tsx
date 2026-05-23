@@ -18,6 +18,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import ObserverWelcomeModal from '@/components/ObserverWelcomeModal'
+import WelcomeTour from '@/components/WelcomeTour'
 import TagroLogo from '@/components/TagroLogo'
 import { speechVoiceId, useSpeechSynthesis } from '@/hooks/useSpeechSynthesis'
 import { ArrowClockwise, ArrowRight, CaretDown, Check, FileText, Pause, Play, Plus, SlidersHorizontal, Stop } from '@phosphor-icons/react'
@@ -1523,6 +1524,7 @@ export default function DashboardPage() {
       </div>
 
       <ObserverWelcomeModal />
+      <WelcomeTour />
     </div>
   )
 }

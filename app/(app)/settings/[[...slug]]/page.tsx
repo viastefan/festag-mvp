@@ -1049,6 +1049,35 @@ export default function SettingsPage() {
               </div>
             </div>
 
+            {/* Einführung erneut starten */}
+            <div className="set-card">
+              <div className="set-row set-row-stack">
+                <div>
+                  <div className="set-label">Einführung erneut starten</div>
+                  <div className="set-label-sub">
+                    Spielt die kurze Tour ab, die Dashboard, Projekte, Statusabfrage, Tagro und Teams erklärt. Bestehende Daten bleiben unberührt.
+                  </div>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'flex-start', width: '100%' }}>
+                  <button
+                    className="set-btn"
+                    onClick={async () => {
+                      const { data: { user } } = await supabase.auth.getUser()
+                      if (!user) { alert('Bitte erneut anmelden.'); return }
+                      await supabase
+                        .from('profiles')
+                        .update({ tour_completed_at: null, tour_step: 0 })
+                        .eq('id', user.id)
+                      try { window.localStorage.removeItem('festag_tour_completed') } catch {}
+                      window.location.href = '/dashboard'
+                    }}
+                  >
+                    Tour starten
+                  </button>
+                </div>
+              </div>
+            </div>
+
             {/* Konto löschen */}
             <div className="set-card">
               <div className="set-row set-row-stack">
