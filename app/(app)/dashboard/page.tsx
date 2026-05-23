@@ -20,7 +20,7 @@ import Link from 'next/link'
 import ObserverWelcomeModal from '@/components/ObserverWelcomeModal'
 import TagroLogo from '@/components/TagroLogo'
 import { speechVoiceId, useSpeechSynthesis } from '@/hooks/useSpeechSynthesis'
-import { ArrowClockwise, ArrowRight, Check, Pause, Play, Plus, SlidersHorizontal, Stop } from '@phosphor-icons/react'
+import { ArrowClockwise, ArrowRight, CaretDown, Check, FileText, Pause, Play, Plus, SlidersHorizontal, Stop } from '@phosphor-icons/react'
 
 // 20 thin bars that form Tagro's speech waveform.
 const WAVE_BARS = Array.from({ length: 20 }, (_, i) => i)
@@ -186,13 +186,72 @@ export default function DashboardPage() {
     [riskTasks.length, decisionTasks.length],
   )
 
+  // ── Scope: overall report vs single-project report ──────────────
+  // Drives the briefing card header label, audio text and duration
+  // estimate. Defaults to 'overall' — explicit clarity per spec, the
+  // user must never wonder if they're hearing one project or all.
+  const [scope, setScope] = useState<'overall' | string>('overall')
+  const [scopeOpen, setScopeOpen] = useState(false)
+  const [showTranscript, setShowTranscript] = useState(false)
+
+  // Reset to overall if the picked project disappears.
+  useEffect(() => {
+    if (scope === 'overall') return
+    if (!projects.find(p => p.id === scope)) setScope('overall')
+  }, [projects, scope])
+
+  const activeProjects = useMemo(() => projects.filter(p => {
+    const s = (p.status || '').toLowerCase()
+    return s !== 'done' && s !== 'archived'
+  }), [projects])
+
+  const selectedProject = scope === 'overall' ? null : projects.find(p => p.id === scope) ?? null
+  const isOverall = scope === 'overall'
+
   // ── Audio text — the note when present, a calm fallback otherwise ─
-  const fallbackBriefing = main
-    ? `${greeting} ${main.title} ist aktuell ${phaseLabel ?? 'in Bearbeitung'}. ` +
-      `${riskTasks.length > 0 ? `${riskTasks.length} Risiken brauchen Aufmerksamkeit.` : 'Keine akuten Risiken sichtbar.'} ` +
-      `${decisionTasks.length > 0 ? `${decisionTasks.length} Entscheidungen warten auf dich.` : 'Keine offene Entscheidung wartet auf dich.'}`
-    : 'Noch kein aktives Projekt. Sobald jemand am Projekt arbeitet, fasse ich den Stand hier ruhig zusammen.'
-  const audioText = noteReport?.summary?.trim() ? noteReport.summary : fallbackBriefing
+  function buildProjectBriefing(p: typeof projects[number]) {
+    const phase = PHASE[p.status] ?? 'Intake'
+    const projTasks = allTasks.filter(t => t.project_id === p.id)
+    const risks = projTasks.filter(t => t.status === 'blocked').length
+    const decisions = projTasks.filter(t => t.status === 'waiting').length
+    const open = projTasks.filter(t => t.status !== 'done').length
+    return (
+      `Statusbericht: ${p.title}. ` +
+      `Aktuell in Phase ${phase}. ${open} offene Aufgabe${open === 1 ? '' : 'n'}. ` +
+      `${risks > 0 ? `${risks} Risiken brauchen Aufmerksamkeit. ` : 'Keine akuten Risiken sichtbar. '}` +
+      `${decisions > 0 ? `${decisions} Entscheidung${decisions === 1 ? '' : 'en'} warten auf dich.` : 'Keine offene Entscheidung wartet auf dich.'}`
+    )
+  }
+
+  function buildOverallBriefing() {
+    if (activeProjects.length === 0) return 'Noch kein aktives Projekt. Sobald jemand am Projekt arbeitet, fasse ich den Stand hier ruhig zusammen.'
+    const lead = `Gesamtbericht. Du hast ${activeProjects.length} aktive Projekt${activeProjects.length === 1 ? '' : 'e'}. `
+    const open = allTasks.filter(t => t.status !== 'done').length
+    const risks = riskTasks.length
+    const decisions = decisionTasks.length
+    return (
+      lead +
+      `${open} offene Aufgaben insgesamt. ` +
+      `${risks > 0 ? `${risks} Risiken brauchen Aufmerksamkeit. ` : 'Keine akuten Risiken über alle Projekte. '}` +
+      `${decisions > 0 ? `${decisions} Entscheidungen warten auf dich.` : 'Keine offene Entscheidung wartet auf dich.'}`
+    )
+  }
+
+  const fallbackBriefing = isOverall
+    ? buildOverallBriefing()
+    : selectedProject ? buildProjectBriefing(selectedProject) : buildOverallBriefing()
+  const audioText = noteReport?.summary?.trim() && isOverall
+    ? noteReport.summary
+    : fallbackBriefing
+
+  // German average ≈ 150 wpm → ~2.5 words per second.
+  const briefingDurationLabel = useMemo(() => {
+    const words = audioText.trim().split(/\s+/).filter(Boolean).length
+    const seconds = Math.max(20, Math.round((words / 150) * 60))
+    const m = Math.floor(seconds / 60)
+    const s = seconds % 60
+    return `${m}:${String(s).padStart(2, '0')} min`
+  }, [audioText])
 
   const {
     supported: speechSupported,
@@ -318,10 +377,12 @@ export default function DashboardPage() {
     if (statusBusy) return
     setStatusBusy(true)
     try {
+      // Honour the scope dropdown: 'overall' → no projectId, single → that project.
+      const scopedBody = isOverall ? {} : { projectId: scope }
       const res = await fetch('/api/client/status-now', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(main ? { projectId: main.id } : {}),
+        body: JSON.stringify(scopedBody),
       })
       const d = await res.json().catch(() => ({}))
       if (d?.report) {
@@ -649,6 +710,331 @@ export default function DashboardPage() {
           outline:none;
         }
 
+        /* ── New Briefing Card — premium, executive-feel ──────────── */
+        .dc-brief {
+          border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+          border-radius: 22px;
+          background: color-mix(in srgb, var(--card) 92%, var(--surface) 8%);
+          padding: 22px 22px 20px;
+          display: flex; flex-direction: column; gap: 18px;
+          box-shadow: 0 1px 2px color-mix(in srgb, var(--text) 4%, transparent),
+                      0 18px 48px -28px color-mix(in srgb, var(--text) 24%, transparent);
+        }
+        [data-theme="dark"] .dc-brief,
+        [data-theme="classic-dark"] .dc-brief {
+          background: color-mix(in srgb, var(--card) 96%, #fff 2%);
+          box-shadow: 0 1px 2px rgba(0,0,0,.35), 0 24px 60px -28px rgba(0,0,0,.5);
+        }
+
+        .dc-brief-head {
+          display: flex; justify-content: space-between; align-items: flex-start;
+          gap: 14px;
+        }
+        .dc-brief-headline { min-width: 0; flex: 1; }
+        .dc-brief-eyebrow {
+          margin: 0; font-size: 10.5px; font-weight: 500 !important;
+          letter-spacing: .14em !important; text-transform: uppercase;
+          color: var(--dc-muted);
+        }
+        .dc-brief-title {
+          margin: 5px 0 4px; font-size: 17px; line-height: 1.25;
+          font-weight: 500 !important; letter-spacing: -.005em !important;
+          color: var(--text);
+          display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+        .dc-brief-sub {
+          margin: 0; font-size: 11.5px; font-weight: 500 !important;
+          color: var(--dc-muted); letter-spacing: .015em !important;
+        }
+
+        /* Scope dropdown */
+        .dc-scope { position: relative; flex-shrink: 0; }
+        .dc-scope-trigger {
+          display: inline-flex; align-items: center; gap: 7px;
+          max-width: 170px;
+          height: 30px; padding: 0 11px 0 12px;
+          border-radius: 999px;
+          border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+          background: color-mix(in srgb, var(--surface-2) 35%, transparent);
+          color: var(--text); font: inherit; font-size: 11.5px;
+          font-weight: 500 !important; letter-spacing: .015em !important;
+          cursor: pointer; transition: background .12s, border-color .12s;
+        }
+        .dc-scope-trigger:hover {
+          background: color-mix(in srgb, var(--surface-2) 65%, transparent);
+          border-color: var(--border);
+        }
+        .dc-scope-trigger span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .dc-scope-trigger svg { color: var(--dc-muted); flex-shrink: 0; }
+
+        .dc-scope-backdrop {
+          position: fixed; inset: 0; z-index: 14;
+          background: transparent; border: 0; padding: 0; cursor: default;
+        }
+        .dc-scope-menu {
+          position: absolute; top: calc(100% + 6px); right: 0; z-index: 15;
+          min-width: 240px; max-width: 280px;
+          padding: 6px;
+          background: var(--surface);
+          border: 1px solid var(--border);
+          border-radius: 12px;
+          box-shadow: 0 1px 2px rgba(15,23,42,.06), 0 20px 50px rgba(15,23,42,.14);
+          display: flex; flex-direction: column; gap: 2px;
+          animation: dcFade .14s ease both;
+        }
+        [data-theme="dark"] .dc-scope-menu,
+        [data-theme="classic-dark"] .dc-scope-menu {
+          background: color-mix(in srgb, var(--surface) 95%, #fff 5%);
+          box-shadow: 0 1px 2px rgba(0,0,0,.35), 0 24px 60px rgba(0,0,0,.4);
+        }
+        .dc-scope-opt {
+          display: grid; grid-template-columns: 8px 1fr auto;
+          gap: 9px; align-items: center;
+          width: 100%; padding: 8px 10px;
+          border: 0; background: transparent; border-radius: 8px;
+          color: var(--text); font: inherit; font-size: 12.5px;
+          font-weight: 500 !important; letter-spacing: .015em !important;
+          cursor: pointer; text-align: left;
+          transition: background .1s;
+        }
+        .dc-scope-opt:hover { background: color-mix(in srgb, var(--surface-2) 55%, transparent); }
+        .dc-scope-opt.on { background: color-mix(in srgb, var(--surface-2) 70%, transparent); }
+        .dc-scope-dot {
+          width: 8px; height: 8px; border-radius: 50%;
+          background: var(--dc-muted);
+        }
+        .dc-scope-opt-main { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+        .dc-scope-opt-main strong {
+          font-size: 12.5px; font-weight: 500 !important;
+          overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .dc-scope-opt-main small {
+          font-size: 10.5px; color: var(--dc-muted);
+          font-weight: 500 !important; letter-spacing: .015em !important;
+          overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .dc-scope-divider {
+          height: 1px;
+          background: color-mix(in srgb, var(--border) 60%, transparent);
+          margin: 4px 6px;
+        }
+
+        /* Tagro bubble — breathing ring + outer pulses */
+        .dc-orb-stage {
+          position: relative;
+          width: 100%; aspect-ratio: 1.7 / 1; max-height: 180px;
+          display: flex; align-items: center; justify-content: center;
+        }
+        .dc-orb-bubble {
+          position: relative; z-index: 3;
+          width: 76px; height: 76px;
+          border-radius: 50%;
+          display: flex; align-items: center; justify-content: center;
+          background: var(--card);
+          border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+          box-shadow:
+            inset 0 1px 0 color-mix(in srgb, #fff 20%, transparent),
+            0 8px 28px -10px color-mix(in srgb, var(--text) 30%, transparent);
+        }
+        [data-theme="dark"] .dc-orb-bubble,
+        [data-theme="classic-dark"] .dc-orb-bubble {
+          background: color-mix(in srgb, var(--card) 92%, #fff 8%);
+          box-shadow:
+            inset 0 1px 0 rgba(255,255,255,.06),
+            0 10px 38px -14px rgba(0,0,0,.6);
+        }
+        .dc-orb-ring {
+          position: absolute; left: 50%; top: 50%;
+          width: 112px; height: 112px;
+          margin: -56px 0 0 -56px;
+          border-radius: 50%;
+          border: 1px solid color-mix(in srgb, var(--border) 65%, transparent);
+          z-index: 2;
+          animation: dcOrbBreathe 4.6s ease-in-out infinite;
+        }
+        .dc-orb-stage.speaking .dc-orb-ring {
+          border-color: color-mix(in srgb, var(--dc-slate, #5B647D) 45%, var(--border));
+          animation-duration: 2.4s;
+        }
+        .dc-orb-stage.loading .dc-orb-ring {
+          border-style: dashed;
+          animation: dcOrbSpin 8s linear infinite;
+        }
+        .dc-orb-pulse {
+          position: absolute; left: 50%; top: 50%;
+          width: 76px; height: 76px;
+          margin: -38px 0 0 -38px;
+          border-radius: 50%;
+          border: 1px solid color-mix(in srgb, var(--dc-slate, #5B647D) 30%, transparent);
+          opacity: 0;
+          z-index: 1;
+        }
+        .dc-orb-stage.speaking .dc-orb-pulse-1 {
+          animation: dcOrbPulse 3.4s ease-out infinite;
+        }
+        .dc-orb-stage.speaking .dc-orb-pulse-2 {
+          animation: dcOrbPulse 3.4s ease-out 1.7s infinite;
+        }
+        @keyframes dcOrbBreathe {
+          0%,100% { transform: scale(1); opacity: .85; }
+          50%     { transform: scale(1.04); opacity: 1; }
+        }
+        @keyframes dcOrbSpin { to { transform: rotate(360deg); } }
+        @keyframes dcOrbPulse {
+          0%   { transform: scale(1);    opacity: .55; }
+          70%  { transform: scale(2.1);  opacity: 0; }
+          100% { transform: scale(2.3);  opacity: 0; }
+        }
+
+        /* Minimalist voice line — no equaliser bars */
+        .dc-voice-line {
+          width: 100%; height: 14px;
+          stroke: color-mix(in srgb, var(--dc-muted) 60%, transparent);
+          stroke-width: 1.4; fill: none;
+          stroke-linecap: round; stroke-linejoin: round;
+          opacity: .55;
+          transition: opacity .3s ease, stroke .3s ease;
+        }
+        .dc-voice-line.on {
+          stroke: color-mix(in srgb, var(--dc-slate, #5B647D) 60%, var(--text));
+          opacity: 1;
+          animation: dcLineDrift 5s ease-in-out infinite;
+        }
+        @keyframes dcLineDrift {
+          0%,100% { transform: translateX(0); }
+          50%     { transform: translateX(-3px); }
+        }
+
+        .dc-brief-meta {
+          display: flex; align-items: center; justify-content: space-between;
+          gap: 10px;
+        }
+        .dc-brief-pulse {
+          display: inline-flex; align-items: center; gap: 6px;
+          height: 24px; padding: 0 10px;
+          border-radius: 999px;
+          background: color-mix(in srgb, var(--surface-2) 50%, transparent);
+          color: var(--dc-soft);
+          font-size: 11px; font-weight: 500 !important; letter-spacing: .015em !important;
+        }
+        .dc-brief-pulse-dot {
+          width: 6px; height: 6px; border-radius: 999px;
+          background: currentColor; flex-shrink: 0;
+        }
+        .dc-brief-pulse.tone-green  { color: #22a06b; }
+        .dc-brief-pulse.tone-amber  { color: #d4882b; }
+        .dc-brief-pulse.tone-red    { color: #d44b4b; }
+        .dc-brief-pulse.tone-green .dc-brief-pulse-dot { animation: dcOrbBreathe 1.8s ease-in-out infinite; }
+        .dc-brief-duration {
+          font-size: 11.5px; color: var(--dc-muted);
+          font-weight: 500 !important; letter-spacing: .015em !important;
+          font-variant-numeric: tabular-nums;
+        }
+
+        .dc-brief-body {
+          margin: 0; font-size: 13px; line-height: 1.6;
+          color: var(--dc-soft);
+          font-weight: 500 !important; letter-spacing: .015em !important;
+        }
+
+        .dc-brief-actions { display: flex; flex-direction: column; gap: 8px; }
+        .dc-brief-primary {
+          appearance: none; border: 0;
+          width: 100%; height: 44px; padding: 0 18px;
+          display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+          border-radius: 12px;
+          background: var(--text); color: var(--bg);
+          font: inherit; font-size: 13.5px;
+          font-weight: 500 !important; letter-spacing: .015em !important;
+          cursor: pointer;
+          transition: opacity .14s, transform .14s;
+        }
+        [data-theme="dark"] .dc-brief-primary,
+        [data-theme="classic-dark"] .dc-brief-primary {
+          background: #E8EAEF; color: #0F141B;
+        }
+        .dc-brief-primary:hover:not(:disabled) { opacity: .9; }
+        .dc-brief-primary:active:not(:disabled) { transform: scale(.985); }
+        .dc-brief-primary:disabled { opacity: .45; cursor: default; }
+        .dc-brief-primary .spin { animation: dcSpin 1s linear infinite; }
+
+        .dc-brief-secondary-row {
+          display: flex; align-items: center; gap: 6px;
+        }
+        .dc-brief-secondary {
+          flex: 1;
+          display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+          height: 36px; padding: 0 12px;
+          border-radius: 10px;
+          border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+          background: transparent;
+          color: var(--dc-soft);
+          font: inherit; font-size: 12px;
+          font-weight: 500 !important; letter-spacing: .015em !important;
+          cursor: pointer;
+          transition: background .12s, color .12s, border-color .12s;
+        }
+        .dc-brief-secondary:hover {
+          background: color-mix(in srgb, var(--surface-2) 45%, transparent);
+          color: var(--text);
+          border-color: var(--border);
+        }
+        .dc-brief-icon {
+          width: 36px; height: 36px;
+          border-radius: 10px;
+          border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+          background: transparent;
+          color: var(--dc-soft);
+          display: inline-flex; align-items: center; justify-content: center;
+          cursor: pointer; transition: background .12s, color .12s, border-color .12s;
+        }
+        .dc-brief-icon:hover:not(:disabled) {
+          background: color-mix(in srgb, var(--surface-2) 50%, transparent);
+          color: var(--text);
+        }
+        .dc-brief-icon.on {
+          background: color-mix(in srgb, var(--surface-2) 70%, transparent);
+          color: var(--text);
+        }
+        .dc-brief-icon:disabled { opacity: .45; cursor: default; }
+        .dc-brief-icon .spin { animation: dcSpin 1s linear infinite; }
+
+        .dc-brief-transcript {
+          margin-top: 4px; padding: 14px 16px;
+          border-radius: 14px;
+          background: color-mix(in srgb, var(--surface-2) 45%, transparent);
+          border: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+        }
+        .dc-brief-transcript-label {
+          margin: 0 0 6px; font-size: 10.5px; font-weight: 500 !important;
+          letter-spacing: .14em !important; text-transform: uppercase;
+          color: var(--dc-muted);
+        }
+        .dc-brief-transcript-text {
+          margin: 0; font-size: 13px; line-height: 1.65;
+          color: var(--text);
+          font-weight: 500 !important; letter-spacing: .015em !important;
+        }
+
+        .dc-brief-settings {
+          margin-top: 4px; padding: 10px;
+          border-radius: 12px;
+          background: color-mix(in srgb, var(--surface-2) 50%, transparent);
+          border: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+        }
+
+        @media (max-width: 920px) {
+          .dc-brief { padding: 18px 16px 18px; }
+          .dc-brief-head { flex-direction: column; align-items: stretch; }
+          .dc-scope-trigger { max-width: none; width: 100%; justify-content: space-between; }
+          .dc-scope-menu { left: 0; right: 0; min-width: 0; }
+          .dc-orb-stage { aspect-ratio: 2 / 1; max-height: 140px; }
+          .dc-orb-bubble { width: 64px; height: 64px; }
+          .dc-orb-ring { width: 96px; height: 96px; margin: -48px 0 0 -48px; }
+          .dc-orb-pulse { width: 64px; height: 64px; margin: -32px 0 0 -32px; }
+        }
+
         /* ── Overview: 4 calm stats under the action box ──────────── */
         .dc-overview { margin-top:22px; }
         .dc-overview .dc-block-label { display:block; margin-bottom:11px; }
@@ -825,59 +1211,182 @@ export default function DashboardPage() {
 
         {/* ── Right column ───────────────────────────────────────── */}
         <aside className="dc-side">
-          <div className={`dc-voice${tagroActive ? ' playing' : ''}`} aria-hidden>
-            <TagroLogo size={30} thinking={tagroActive} />
-            <div className="dc-wave">
-              {WAVE_BARS.map((i) => (
-                <span key={i} className="dc-wave-bar" style={{ animationDelay: `${(i % 7) * 0.09}s` }} />
-              ))}
-            </div>
-          </div>
-          <div className="dc-card">
-            <div className={`dc-pulse tone-${pulse.tone}`} title={pulse.label}>
-              <span className="dc-pulse-dot" aria-hidden />
-              <span>{loading ? 'Status wird geprüft…' : pulse.label}</span>
-            </div>
+          {/* Premium briefing card — scope-aware, ChatGPT-calm */}
+          <section className="dc-brief" aria-label="Tagro Voice Briefing">
+            <header className="dc-brief-head">
+              <div className="dc-brief-headline">
+                <p className="dc-brief-eyebrow">Tagro Voice Briefing</p>
+                <h2 className="dc-brief-title">
+                  {isOverall
+                    ? 'Gesamtbericht für alle Projekte'
+                    : `Statusbericht: ${selectedProject?.title ?? '—'}`}
+                </h2>
+                <p className="dc-brief-sub">
+                  {noteStamp
+                    ? <>Letzte Aktualisierung · heute, {noteStamp} Uhr</>
+                    : 'Noch kein Bericht abgerufen.'}
+                </p>
+              </div>
 
-            <button
-              type="button"
-              className="dc-primary"
-              onClick={refreshStatus}
-              disabled={statusBusy}
-            >
-              <ArrowClockwise size={16} className={statusBusy ? 'spin' : ''} />
-              <span>{statusBusy ? 'Tagro schreibt…' : 'Status abrufen'}</span>
-            </button>
-
-            <div className="dc-audio">
-              <button
-                type="button"
-                className="dc-audio-play"
-                onClick={handleBriefingToggle}
-                disabled={!speechSupported || !audioText.trim()}
-                aria-label={listenLabel}
-              >
-                {isBriefingPlaying ? <Pause size={15} weight="fill" /> : <Play size={15} weight="fill" />}
-                <span>{listenLabel}</span>
-              </button>
-              {isBriefingActive && (
-                <button type="button" className="dc-audio-stop" onClick={stopBriefing} aria-label="Stopp">
-                  <Stop size={13} weight="fill" />
+              {/* Scope dropdown */}
+              <div className="dc-scope">
+                <button
+                  type="button"
+                  className="dc-scope-trigger"
+                  onClick={() => setScopeOpen(o => !o)}
+                  aria-expanded={scopeOpen}
+                  aria-haspopup="listbox"
+                >
+                  <span>{isOverall ? 'Gesamtbericht' : selectedProject?.title ?? 'Projekt wählen'}</span>
+                  <CaretDown size={11} weight="bold" />
                 </button>
-              )}
+                {scopeOpen && (
+                  <>
+                    <button type="button" className="dc-scope-backdrop" aria-hidden onClick={() => setScopeOpen(false)} />
+                    <div className="dc-scope-menu" role="listbox">
+                      <button
+                        type="button"
+                        role="option"
+                        aria-selected={isOverall}
+                        className={`dc-scope-opt${isOverall ? ' on' : ''}`}
+                        onClick={() => { setScope('overall'); setScopeOpen(false); setShowTranscript(false) }}
+                      >
+                        <span className="dc-scope-dot" />
+                        <span className="dc-scope-opt-main">
+                          <strong>Gesamtbericht</strong>
+                          <small>Alle aktiven Projekte zusammengefasst</small>
+                        </span>
+                        {isOverall && <Check size={12} weight="bold" />}
+                      </button>
+                      {activeProjects.length > 0 && <div className="dc-scope-divider" />}
+                      {activeProjects.map(p => (
+                        <button
+                          key={p.id}
+                          type="button"
+                          role="option"
+                          aria-selected={scope === p.id}
+                          className={`dc-scope-opt${scope === p.id ? ' on' : ''}`}
+                          onClick={() => { setScope(p.id); setScopeOpen(false); setShowTranscript(false) }}
+                        >
+                          <span className="dc-scope-dot" style={{ background: (p as any).color || 'var(--dc-muted)' }} />
+                          <span className="dc-scope-opt-main">
+                            <strong>{p.title}</strong>
+                            <small>{PHASE[p.status] ?? 'Intake'}</small>
+                          </span>
+                          {scope === p.id && <Check size={12} weight="bold" />}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            </header>
+
+            {/* Tagro bubble — breathing ring + soft outer pulses */}
+            <div className={`dc-orb-stage${tagroActive ? ' speaking' : ''}${statusBusy ? ' loading' : ''}`}>
+              <span className="dc-orb-pulse dc-orb-pulse-1" aria-hidden />
+              <span className="dc-orb-pulse dc-orb-pulse-2" aria-hidden />
+              <span className="dc-orb-ring" aria-hidden />
+              <span className="dc-orb-bubble" aria-hidden>
+                <TagroLogo size={28} thinking={tagroActive} />
+              </span>
+            </div>
+
+            {/* Minimalist voice line — soft rounded segments, not an equaliser */}
+            <svg className={`dc-voice-line${tagroActive ? ' on' : ''}`} viewBox="0 0 240 14" preserveAspectRatio="none" aria-hidden>
+              <path d="M0 7 L70 7 Q78 7 82 4 Q86 1 90 4 Q94 7 102 7 L150 7 Q158 7 162 10 Q166 13 170 10 Q174 7 182 7 L240 7" />
+            </svg>
+
+            {/* Status + duration row */}
+            <div className="dc-brief-meta">
+              <span className={`dc-brief-pulse tone-${
+                statusBusy ? 'amber' : isBriefingPlaying ? 'green' : speechState === 'paused' ? 'amber' : pulse.tone
+              }`}>
+                <span className="dc-brief-pulse-dot" aria-hidden />
+                <span>
+                  {statusBusy
+                    ? 'Wird generiert'
+                    : isBriefingPlaying
+                      ? 'Wird abgespielt'
+                      : speechState === 'paused'
+                        ? 'Pausiert'
+                        : audioText.trim() ? 'Bereit zum Anhören' : pulse.label}
+                </span>
+              </span>
+              <span className="dc-brief-duration">{briefingDurationLabel}</span>
+            </div>
+
+            <p className="dc-brief-body">
+              {isOverall
+                ? 'Tagro fasst alle aktiven Projekte in einem ruhigen Audio-Briefing zusammen.'
+                : 'Tagro erklärt den aktuellen Fortschritt, offene Punkte und nächste Schritte für dieses Projekt.'}
+            </p>
+
+            {/* Primary + secondary action stack */}
+            <div className="dc-brief-actions">
               <button
                 type="button"
-                className={`dc-audio-cfg${briefingSettingsOpen ? ' open' : ''}`}
-                onClick={() => setBriefingSettingsOpen((o) => !o)}
-                aria-label="Stimme und Tempo"
-                aria-expanded={briefingSettingsOpen}
+                className="dc-brief-primary"
+                onClick={audioText.trim() ? handleBriefingToggle : refreshStatus}
+                disabled={statusBusy || (!speechSupported && audioText.trim().length > 0)}
               >
-                <SlidersHorizontal size={15} />
+                {statusBusy ? (
+                  <><ArrowClockwise size={15} className="spin" /> Tagro generiert…</>
+                ) : isBriefingPlaying ? (
+                  <><Pause size={15} weight="fill" /> Pausieren</>
+                ) : speechState === 'paused' ? (
+                  <><Play size={15} weight="fill" /> Weiterhören</>
+                ) : (
+                  <><Play size={15} weight="fill" /> Bericht anhören</>
+                )}
               </button>
+
+              <div className="dc-brief-secondary-row">
+                <button
+                  type="button"
+                  className="dc-brief-secondary"
+                  onClick={() => setShowTranscript(v => !v)}
+                >
+                  <FileText size={13} />
+                  {showTranscript ? 'Transkript ausblenden' : 'Transkript anzeigen'}
+                </button>
+                {isBriefingActive && (
+                  <button type="button" className="dc-brief-icon" onClick={stopBriefing} title="Stopp" aria-label="Stopp">
+                    <Stop size={12} weight="fill" />
+                  </button>
+                )}
+                <button
+                  type="button"
+                  className={`dc-brief-icon${briefingSettingsOpen ? ' on' : ''}`}
+                  onClick={() => setBriefingSettingsOpen(o => !o)}
+                  title="Stimme und Tempo"
+                  aria-label="Stimme und Tempo"
+                  aria-expanded={briefingSettingsOpen}
+                >
+                  <SlidersHorizontal size={13} />
+                </button>
+                <button
+                  type="button"
+                  className="dc-brief-icon"
+                  onClick={refreshStatus}
+                  disabled={statusBusy}
+                  title="Neu generieren"
+                  aria-label="Neu generieren"
+                >
+                  <ArrowClockwise size={13} className={statusBusy ? 'spin' : ''} />
+                </button>
+              </div>
             </div>
+
+            {showTranscript && (
+              <div className="dc-brief-transcript" role="region" aria-label="Transkript">
+                <p className="dc-brief-transcript-label">Transkript</p>
+                <p className="dc-brief-transcript-text">{audioText}</p>
+              </div>
+            )}
 
             {briefingSettingsOpen && (
-              <div className="dc-settings" role="dialog" aria-label="Audioeinstellungen">
+              <div className="dc-brief-settings" role="dialog" aria-label="Audioeinstellungen">
                 <label className="dc-setting-row">
                   <span className="dc-setting-label">Tempo</span>
                   <select
@@ -909,7 +1418,7 @@ export default function DashboardPage() {
                 </label>
               </div>
             )}
-          </div>
+          </section>
 
           {/* ── Overview: 4 calm stats ───────────────────────────── */}
           <div className="dc-overview">
