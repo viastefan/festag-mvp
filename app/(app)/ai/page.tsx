@@ -1,543 +1,857 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
-import { ArrowUp, DotsThree, Microphone, Plus, Sparkle } from '@phosphor-icons/react'
+/**
+ * /ai — Tagro Chat, ChatGPT-style.
+ *
+ * Layout:
+ *   • Left rail (260 px): "Neuer Chat" button, conversation list
+ *     grouped by recency (Heute / Letzte 7 Tage / Älter).
+ *   • Main pane: message stream with rounded soft bubbles, sticky
+ *     composer at the bottom centred to a comfortable reading column.
+ *   • Empty state: centred "Wie kann ich dir helfen?" headline + a
+ *     couple of calm prompt-starter cards.
+ *
+ * Everything theme-aware via the global tokens. No Apple emojis,
+ * Phosphor + inline SVG. Sidebar of the surrounding app stays — the
+ * conversation rail lives inside the page.
+ */
+
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import {
+  ArrowUp, ChatCircleDots, DotsThreeOutline, PencilSimple, PushPin,
+  PushPinSimple, Sparkle, Trash, X,
+} from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 import ChatMarkdown from '@/components/ChatMarkdown'
+import TagroLogo from '@/components/TagroLogo'
 
-type Msg = { role: 'user' | 'ai'; text: string; time: string; thinking?: string | null }
-type Project = { id: string; title: string; status: string; description?: string }
-type Task = { id: string; title: string; status: string; project_id: string }
-
-const PHASE: Record<string, string> = {
-  intake: 'Intake',
-  planning: 'Planning',
-  active: 'In Arbeit',
-  testing: 'Testing',
-  done: 'Abgeschlossen',
+type Conversation = {
+  id: string
+  title: string
+  pinned: boolean
+  created_at: string
+  updated_at: string
 }
 
-const TEST_TRIGGER = /^\s*test[\s\-_]*projekt\s*$/i
+type Message = {
+  id: string
+  role: 'user' | 'assistant' | 'system'
+  content: string
+  thinking?: string | null
+  created_at: string
+  pending?: boolean
+}
 
-const SYSTEM = `Du bist Tagro, das AI-Produktionssystem von Festag.
-Verhalte dich wie ein erfahrener CTO und Projektmanager in einem.
-Beantworte Fragen klar und direkt. Maximal 5 Sätze pro Antwort.
-Wenn du Projektdaten hast, nutze sie konkret.
-Sprache: Deutsch. Kein Smalltalk. Keine Emojis.
+const PROMPT_STARTERS = [
+  'Was ist mein aktueller Projektstand?',
+  'Welche Risiken sollte ich diese Woche im Blick haben?',
+  'Strukturiere mir eine neue Projektidee.',
+  'Was sind die nächsten Entscheidungen, die ich freigeben muss?',
+]
 
-FORMATIERUNG: Nutze Markdown wenn es Klarheit schafft.
-- **fett** für Schlüsselbegriffe
-- Listen (- oder 1.) für mehrere Punkte
-- \`code\` für Datei-, Feld- oder Statusnamen
-- Überschriften (### oder ####) nur bei längeren Berichten
-Halte den Text trotzdem knapp.`
+function formatGroup(iso: string): 'heute' | 'last7' | 'older' {
+  const t = new Date(iso).getTime()
+  const diffDays = (Date.now() - t) / (24 * 3600 * 1000)
+  if (diffDays < 1) return 'heute'
+  if (diffDays < 7) return 'last7'
+  return 'older'
+}
+
+function formatTimeAgo(iso: string) {
+  const t = new Date(iso).getTime()
+  const m = Math.floor((Date.now() - t) / 60000)
+  if (m < 1) return 'gerade eben'
+  if (m < 60) return `vor ${m} min`
+  const h = Math.floor(m / 60)
+  if (h < 24) return `vor ${h} Std`
+  const d = Math.floor(h / 24)
+  if (d < 7) return `vor ${d} Tag${d === 1 ? '' : 'en'}`
+  return new Date(iso).toLocaleDateString('de-DE')
+}
 
 export default function AIPage() {
-  const [msgs, setMsgs] = useState<Msg[]>([])
+  const supabase = useMemo(() => createClient(), [])
+  const [convs, setConvs] = useState<Conversation[]>([])
+  const [activeId, setActiveId] = useState<string | null>(null)
+  const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [projects, setProjects] = useState<Project[]>([])
-  const [tasks, setTasks] = useState<Task[]>([])
-  const feedRef = useRef<HTMLDivElement>(null)
-  const inputRef = useRef<HTMLTextAreaElement>(null)
-  const sb = createClient()
+  const [sending, setSending] = useState(false)
+  const [loadingConv, setLoadingConv] = useState(false)
+  const [authChecked, setAuthChecked] = useState(false)
+  const [railCollapsed, setRailCollapsed] = useState(false)
+  const [menuFor, setMenuFor] = useState<string | null>(null)
+  const [renaming, setRenaming] = useState<string | null>(null)
+  const [renameValue, setRenameValue] = useState('')
 
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLTextAreaElement>(null)
+
+  // Auth + initial fetch.
   useEffect(() => {
-    sb.auth.getSession().then(async ({ data }) => {
-      if (!data.session) {
+    let cancelled = false
+    ;(async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) {
         window.location.href = '/login'
         return
       }
-      const { data: p } = await sb.from('projects').select('id,title,status,description').order('created_at', { ascending: false }).limit(8)
-      const { data: t } = await sb.from('tasks').select('id,title,status,project_id').order('created_at', { ascending: false }).limit(50)
-      setProjects(p ?? [])
-      setTasks(t ?? [])
-      setMsgs([
-        {
-          role: 'ai',
-          text: p?.length
-            ? `Ich bin Tagro — dein AI-Projektmanager.\n\nDu hast ${p.length} aktives Projekt${p.length !== 1 ? 'e' : ''}. Wie kann ich dir helfen?`
-            : 'Ich bin Tagro — dein AI-Projektmanager.\n\nDu hast noch keine Projekte. Starte ein Projekt um loszulegen.',
-          time: fmt(),
-        },
-      ])
-    })
+      if (cancelled) return
+      setAuthChecked(true)
+      await reloadConversations()
+    })()
+    return () => { cancelled = true }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  useEffect(() => {
-    if (feedRef.current) feedRef.current.scrollTop = feedRef.current.scrollHeight
-  }, [msgs, loading])
+  const reloadConversations = useCallback(async () => {
+    const res = await fetch('/api/ai/conversations', { credentials: 'include' })
+    if (!res.ok) return
+    const data = await res.json()
+    setConvs(data.conversations ?? [])
+  }, [])
 
+  // Load messages for the active conversation.
   useEffect(() => {
-    const textarea = inputRef.current
-    if (!textarea) return
-    textarea.style.height = 'auto'
-    textarea.style.height = `${Math.min(textarea.scrollHeight, 176)}px`
+    if (!activeId) { setMessages([]); return }
+    let cancelled = false
+    setLoadingConv(true)
+    ;(async () => {
+      const res = await fetch(`/api/ai/conversations/${activeId}`, { credentials: 'include' })
+      if (!res.ok) { setLoadingConv(false); return }
+      const data = await res.json()
+      if (cancelled) return
+      setMessages(data.messages ?? [])
+      setLoadingConv(false)
+    })()
+    return () => { cancelled = true }
+  }, [activeId])
+
+  // Autoscroll on new messages.
+  useEffect(() => {
+    const el = scrollRef.current
+    if (el) el.scrollTop = el.scrollHeight
+  }, [messages.length, sending])
+
+  // Autosize the composer.
+  useEffect(() => {
+    const el = inputRef.current
+    if (!el) return
+    el.style.height = '0px'
+    el.style.height = Math.min(220, el.scrollHeight) + 'px'
   }, [input])
 
-  function fmt() {
-    return new Date().toLocaleTimeString('de', { hour: '2-digit', minute: '2-digit' })
+  // Esc closes the row menu.
+  useEffect(() => {
+    if (!menuFor) return
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setMenuFor(null) }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [menuFor])
+
+  const grouped = useMemo(() => {
+    const groups: { heute: Conversation[]; last7: Conversation[]; older: Conversation[]; pinned: Conversation[] } = {
+      pinned: [], heute: [], last7: [], older: [],
+    }
+    for (const c of convs) {
+      if (c.pinned) { groups.pinned.push(c); continue }
+      groups[formatGroup(c.updated_at)].push(c)
+    }
+    return groups
+  }, [convs])
+
+  async function newChat() {
+    const res = await fetch('/api/ai/conversations', {
+      method: 'POST', credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    })
+    if (!res.ok) return
+    const data = await res.json()
+    const c = data.conversation as Conversation
+    setConvs(curr => [c, ...curr])
+    setActiveId(c.id)
+    setMessages([])
+    setInput('')
+    inputRef.current?.focus()
   }
 
-  function buildContext() {
-    if (!projects.length) return ''
-    return '\n\nAktuelle Projekte:\n' + projects.map(p =>
-      `- ${p.title} (${PHASE[p.status] ?? p.status})${p.description ? ': ' + p.description : ''}`
-    ).join('\n')
-  }
+  async function sendMessage(prompt?: string) {
+    const text = (prompt ?? input).trim()
+    if (!text || sending) return
 
-  async function createTestProject() {
-    setLoading(true)
+    // Make sure we have a conversation to land in.
+    let convId = activeId
+    if (!convId) {
+      const res = await fetch('/api/ai/conversations', {
+        method: 'POST', credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      })
+      if (!res.ok) return
+      const data = await res.json()
+      const c = data.conversation as Conversation
+      setConvs(curr => [c, ...curr])
+      setActiveId(c.id)
+      convId = c.id
+    }
+
+    setSending(true)
+    setInput('')
+    const optimisticUser: Message = {
+      id: `optim-${Date.now()}`,
+      role: 'user', content: text,
+      created_at: new Date().toISOString(),
+    }
+    const optimisticPending: Message = {
+      id: 'pending',
+      role: 'assistant', content: '',
+      created_at: new Date().toISOString(),
+      pending: true,
+    }
+    setMessages(curr => [...curr, optimisticUser, optimisticPending])
+
     try {
-      const { data: { session } } = await sb.auth.getSession()
-      const userId = session?.user.id
-      if (!userId) {
-        setLoading(false)
+      const res = await fetch(`/api/ai/conversations/${convId}/messages`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: text }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setMessages(curr => curr.filter(m => m.id !== 'pending').map(m =>
+          m.id === optimisticUser.id ? { ...m, id: m.id } : m,
+        ).concat([{
+          id: `err-${Date.now()}`, role: 'assistant',
+          content: data?.error ? `Tagro hat gerade gestreikt: ${data.error}` : 'Da war ein Problem. Probier es bitte gleich nochmal.',
+          created_at: new Date().toISOString(),
+        }]))
         return
       }
-      const res = await fetch('/api/ai/test-project', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId }),
-      })
-      const d = await res.json()
-      if (d.projectId) {
-        const title = d.decomposed?.project_title ?? 'Demo-Projekt'
-        const epics = d.decomposed?.epics?.length ?? 0
-        const ntasks = d.decomposed?.epics?.reduce((a: number, e: any) => a + (e.tasks?.length ?? 0), 0) ?? 0
-        setMsgs(m => [...m, { role: 'ai', text: `**Demo-Projekt erstellt: "${title}"**\n\n- ${epics} Epics\n- ${ntasks} Tasks\n- Status: \`intake\`\n\n[Projekt öffnen →](/project/${d.projectId})`, time: fmt() }])
-        const { data: p } = await sb.from('projects').select('id,title,status,description').order('created_at', { ascending: false }).limit(8)
-        setProjects(p ?? [])
-      } else {
-        setMsgs(m => [...m, { role: 'ai', text: `Konnte Demo-Projekt nicht anlegen: ${d.error ?? 'unbekannter Fehler'}`, time: fmt() }])
-      }
+      const realUser: Message = data.user
+      const realAssistant: Message = data.assistant
+      setMessages(curr => [
+        ...curr.filter(m => m.id !== optimisticUser.id && m.id !== 'pending'),
+        realUser, realAssistant,
+      ])
+      // Refresh conv list (updated_at, possibly a new title).
+      reloadConversations()
     } catch {
-      setMsgs(m => [...m, { role: 'ai', text: 'Verbindungsfehler beim Anlegen des Demo-Projekts.', time: fmt() }])
+      setMessages(curr => curr.filter(m => m.id !== 'pending').concat([{
+        id: `err-${Date.now()}`, role: 'assistant',
+        content: 'Verbindung kurz unterbrochen. Probier es bitte gleich nochmal.',
+        created_at: new Date().toISOString(),
+      }]))
+    } finally {
+      setSending(false)
     }
-    setLoading(false)
   }
 
-  async function send(text?: string) {
-    const msg = (text ?? input).trim()
-    if (!msg || loading) return
-    setInput('')
-
-    const userMsg: Msg = { role: 'user', text: msg, time: fmt() }
-    setMsgs(m => [...m, userMsg])
-
-    if (TEST_TRIGGER.test(msg)) {
-      setMsgs(m => [...m, { role: 'ai', text: 'Tagro generiert ein realistisches Demo-Projekt — einen Moment…', time: fmt() }])
-      createTestProject()
-      return
-    }
-
-    setLoading(true)
-    try {
-      const history = [...msgs.slice(-8), userMsg]
-      const res = await fetch('/api/ai/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          system: SYSTEM + buildContext(),
-          max_tokens: 500,
-          messages: history.map(m => ({ role: m.role === 'ai' ? 'assistant' : 'user', content: m.text })),
-        }),
-      })
-      const d = await res.json()
-      const text = d.content?.[0]?.text
-      if (text) {
-        setMsgs(m => [...m, { role: 'ai', text, time: fmt(), thinking: d.thinking ?? null }])
-      } else {
-        const errMsg = d?.message || d?.error || 'Unbekannter Fehler'
-        setMsgs(m => [...m, { role: 'ai', text: `**AI-Fehler:** ${errMsg}`, time: fmt() }])
-      }
-    } catch (e: any) {
-      setMsgs(m => [...m, { role: 'ai', text: `**Verbindungsfehler:** ${e?.message ?? 'unbekannt'}`, time: fmt() }])
-    }
-    setLoading(false)
+  async function deleteConv(id: string) {
+    if (!confirm('Diesen Chat endgültig löschen?')) return
+    const res = await fetch(`/api/ai/conversations/${id}`, { method: 'DELETE', credentials: 'include' })
+    if (!res.ok) return
+    setConvs(curr => curr.filter(c => c.id !== id))
+    if (activeId === id) setActiveId(null)
   }
 
-  function submit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    send()
+  async function togglePin(id: string, pinned: boolean) {
+    const res = await fetch(`/api/ai/conversations/${id}`, {
+      method: 'PATCH', credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pinned: !pinned }),
+    })
+    if (!res.ok) return
+    const data = await res.json()
+    setConvs(curr => curr.map(c => c.id === id ? data.conversation : c))
   }
 
-  function onKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+  async function commitRename(id: string) {
+    const value = renameValue.trim()
+    if (!value) { setRenaming(null); return }
+    const res = await fetch(`/api/ai/conversations/${id}`, {
+      method: 'PATCH', credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: value }),
+    })
+    if (res.ok) {
+      const data = await res.json()
+      setConvs(curr => curr.map(c => c.id === id ? data.conversation : c))
+    }
+    setRenaming(null)
+  }
+
+  function onKeyDownInput(e: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
-      send()
+      sendMessage()
     }
   }
 
-  const totalTasks = tasks.length
-  const doneTasks = tasks.filter(t => t.status === 'done').length
-  const inProgress = tasks.filter(t => t.status === 'doing').length
-  const activeProjectName = projects[0]?.title ?? 'kein Projekt gewählt'
+  if (!authChecked) {
+    return <div className="ai-loading">Lade…</div>
+  }
+
+  const activeConv = activeId ? convs.find(c => c.id === activeId) : null
+  const hasMessages = messages.length > 0
 
   return (
-    <div className="tagro-operating-root">
-      <style>{`
-        .tagro-operating-root {
-          height: 100%;
-          min-height: 0;
-          overflow: hidden;
-          display: flex;
-          flex-direction: column;
-          color: #e8e7e3;
-          background:
-            radial-gradient(circle at 18% 8%, rgba(115, 129, 164, 0.13), transparent 34%),
-            radial-gradient(circle at 78% 2%, rgba(255, 255, 255, 0.045), transparent 26%),
-            linear-gradient(180deg, #0b0d0f 0%, #0a0c0e 100%);
-        }
-        .tagro-head {
-          min-height: 82px;
-          padding: 23px 36px 15px;
-          display: flex;
-          align-items: flex-start;
-          justify-content: space-between;
-          gap: 18px;
-          flex-shrink: 0;
-        }
-        .tagro-title-wrap { display: flex; align-items: center; gap: 13px; min-width: 0; }
-        .tagro-mark {
-          width: 38px;
-          height: 38px;
-          border-radius: 14px;
-          display: grid;
-          place-items: center;
-          color: #f4f3ee;
-          background: linear-gradient(145deg, rgba(255,255,255,.13), rgba(255,255,255,.035));
-          border: 1px solid rgba(255,255,255,.075);
-          box-shadow: inset 0 1px 0 rgba(255,255,255,.08);
-        }
-        .tagro-title { margin: 0; color: #f1f0ec; font-size: 17px; font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
-        .tagro-sub { margin: 4px 0 0; color: rgba(232,231,227,.48); font-size: 12.5px; font-weight: 500; letter-spacing: -.01em; }
-        .tagro-actions { display: flex; align-items: center; gap: 10px; padding-top: 2px; }
-        .tagro-live {
-          display: inline-flex;
-          align-items: center;
-          gap: 7px;
-          height: 34px;
-          padding: 0 14px;
-          border-radius: 32px;
-          color: #d9f7dd;
-          background: rgba(51, 195, 91, .09);
-          border: 1px solid rgba(78, 210, 119, .18);
-          font-size: 12px;
-          font-weight: 700;
-        }
-        .tagro-live-dot { width: 7px; height: 7px; border-radius: 50%; background: #50d56d; box-shadow: 0 0 18px rgba(80,213,109,.48); }
-        .tagro-menu-btn {
-          width: 34px;
-          height: 34px;
-          border: 1px solid rgba(255,255,255,.075);
-          border-radius: 32px;
-          background: rgba(255,255,255,.025);
-          color: rgba(232,231,227,.72);
-          display: grid;
-          place-items: center;
-          padding: 0;
-        }
-        .tagro-flow {
-          flex: 1;
-          min-height: 0;
-          overflow-y: auto;
-          padding: 22px 36px 168px;
-          display: flex;
-          flex-direction: column;
-          gap: 40px;
-          scrollbar-width: thin;
-          scrollbar-color: rgba(255,255,255,.12) transparent;
-        }
-        .tagro-flow::-webkit-scrollbar { width: 7px; }
-        .tagro-flow::-webkit-scrollbar-thumb { background: rgba(255,255,255,.12); border-radius: 20px; }
-        .tagro-message {
-          display: grid;
-          grid-template-columns: 42px minmax(0, 1fr);
-          gap: 16px;
-          width: min(720px, 76vw);
-          animation: fadeUp .35s cubic-bezier(.16,1,.3,1) both;
-        }
-        .tagro-message.user {
-          align-self: flex-end;
-          display: flex;
-          justify-content: flex-end;
-          width: min(560px, 58vw);
-        }
-        .tagro-avatar {
-          width: 34px;
-          height: 34px;
-          border-radius: 32px;
-          display: grid;
-          place-items: center;
-          background: rgba(255,255,255,.035);
-          border: 1px solid rgba(255,255,255,.07);
-          color: rgba(244,243,238,.92);
-          margin-top: 2px;
-        }
-        .tagro-ai-block {
-          color: rgba(239,238,234,.88);
-          background:
-            radial-gradient(circle at 10% 0%, rgba(255,255,255,.07), transparent 45%),
-            linear-gradient(145deg, rgba(21,24,27,.92), rgba(14,16,18,.96));
-          border: 1px solid rgba(255,255,255,.06);
-          border-radius: 22px;
-          padding: 20px 24px;
-          box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
-          font-size: 15px;
-          line-height: 1.68;
-        }
-        .tagro-ai-block p { margin-top: 0; }
-        .tagro-user-wrap { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
-        .tagro-user-block {
-          color: rgba(245,244,239,.92);
-          background: linear-gradient(145deg, rgba(38,41,45,.96), rgba(28,31,34,.94));
-          border: 1px solid rgba(255,255,255,.055);
-          border-radius: 22px 22px 6px 22px;
-          padding: 16px 20px;
-          font-size: 14.5px;
-          line-height: 1.55;
-          font-weight: 560;
-          box-shadow: inset 0 1px 0 rgba(255,255,255,.045);
-        }
-        .tagro-time {
-          color: rgba(232,231,227,.34);
-          font-size: 11px;
-          letter-spacing: -.01em;
-        }
-        .tagro-meta-row {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          margin-top: 10px;
-          color: rgba(232,231,227,.34);
-          font-size: 11px;
-        }
-        .tagro-thinking {
-          margin-bottom: 10px;
-          display: inline-flex;
-          align-items: center;
-          gap: 9px;
-          color: rgba(232,231,227,.32);
-          font-size: 10px;
-          font-weight: 700;
-          letter-spacing: .14em;
-          text-transform: uppercase;
-          user-select: none;
-        }
-        .tagro-thinking-line { width: 26px; height: 1px; background: rgba(255,255,255,.09); }
-        .tagro-loading {
-          width: 54px;
-          height: 22px;
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-        }
-        .tagro-loading span {
-          width: 6px;
-          height: 6px;
-          border-radius: 50%;
-          background: rgba(232,231,227,.46);
-          animation: pulse 1.2s ease-in-out infinite;
-        }
-        .tagro-loading span:nth-child(2) { animation-delay: .15s; }
-        .tagro-loading span:nth-child(3) { animation-delay: .3s; }
-        .tagro-command-shell {
-          flex-shrink: 0;
-          margin-top: auto;
-          padding: 18px 26px calc(18px + env(safe-area-inset-bottom));
-          border-radius: 32px 32px 0 0;
-          background:
-            radial-gradient(circle at 22% 0%, rgba(255,255,255,.055), transparent 34%),
-            linear-gradient(180deg, rgba(21,24,27,.98), rgba(15,17,19,.98));
-          box-shadow:
-            inset 0 1px 0 rgba(255,255,255,.07),
-            0 -28px 90px rgba(0,0,0,.42);
-        }
-        .tagro-context-line {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          color: rgba(232,231,227,.42);
-          font-size: 11px;
-          font-weight: 600;
-          letter-spacing: .02em;
-          margin: 0 0 12px 6px;
-        }
-        .tagro-context-line strong { color: rgba(232,231,227,.72); font-weight: 700; }
-        .tagro-command {
-          min-height: 74px;
-          display: flex;
-          align-items: flex-start;
-          gap: 14px;
-        }
-        .tagro-command-icon {
-          width: 42px;
-          height: 42px;
-          border-radius: 32px;
-          border: 1px solid rgba(255,255,255,.07);
-          background: rgba(255,255,255,.035);
-          color: rgba(232,231,227,.68);
-          display: grid;
-          place-items: center;
-          flex-shrink: 0;
-          margin-top: 3px;
-        }
-        .tagro-textarea {
-          flex: 1;
-          min-height: 48px;
-          max-height: 176px;
-          resize: none;
-          border: 0;
-          outline: none;
-          padding: 13px 0 8px;
-          background: transparent;
-          color: rgba(244,243,238,.92);
-          font: inherit;
-          font-size: 17px;
-          font-weight: 520;
-          line-height: 1.55;
-          overflow-y: auto;
-        }
-        .tagro-textarea::placeholder { color: rgba(232,231,227,.28); transition: opacity .18s ease; }
-        .tagro-textarea:focus::placeholder { opacity: .55; }
-        .tagro-submit {
-          width: 44px;
-          height: 44px;
-          border-radius: 32px;
-          border: 1px solid rgba(255,255,255,.08);
-          background: rgba(255,255,255,.9);
-          color: #0b0d0f;
-          display: grid;
-          place-items: center;
-          padding: 0;
-          flex-shrink: 0;
-          margin-top: 2px;
-          opacity: 1;
-          transform: scale(1);
-          transition: transform .18s ease, opacity .18s ease, background .18s ease;
-        }
-        .tagro-submit:disabled { opacity: .38; transform: scale(.96); }
-        .tagro-mic {
-          width: 44px;
-          height: 44px;
-          border-radius: 32px;
-          border: 0;
-          background: transparent;
-          color: rgba(232,231,227,.62);
-          display: grid;
-          place-items: center;
-          padding: 0;
-          flex-shrink: 0;
-          margin-top: 2px;
-        }
-        @media (max-width: 760px) {
-          .tagro-head { padding: 20px 20px 12px; min-height: 74px; }
-          .tagro-flow { padding: 18px 20px 156px; gap: 30px; }
-          .tagro-message, .tagro-message.user { width: 100%; }
-          .tagro-message { grid-template-columns: 34px minmax(0, 1fr); gap: 11px; }
-          .tagro-ai-block { padding: 17px 18px; border-radius: 20px; }
-          .tagro-command-shell { padding-left: 18px; padding-right: 18px; }
-          .tagro-textarea { font-size: 15.5px; }
-        }
-      `}</style>
+    <div className={`ai-shell${railCollapsed ? ' rail-collapsed' : ''}`}>
+      {/* ── Conversation rail ─────────────────────────────────── */}
+      <aside className="ai-rail" aria-label="Chats">
+        <div className="ai-rail-top">
+          <button
+            type="button"
+            className="ai-new"
+            onClick={newChat}
+            title="Neuer Chat"
+          >
+            <ChatCircleDots size={14} />
+            <span>Neuer Chat</span>
+          </button>
+          <button
+            type="button"
+            className="ai-rail-collapse"
+            onClick={() => setRailCollapsed(v => !v)}
+            title={railCollapsed ? 'Liste einblenden' : 'Liste ausblenden'}
+            aria-label="Toggle"
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <rect x="4" y="5" width="16" height="14" rx="3" />
+              <path d="M9 5v14" />
+            </svg>
+          </button>
+        </div>
 
-      <header className="tagro-head">
-        <div className="tagro-title-wrap">
-          <div className="tagro-mark" aria-hidden="true"><Sparkle size={18} weight="bold" /></div>
-          <div>
-            <h1 className="tagro-title">Tagro AI</h1>
-            <p className="tagro-sub">AI Project Operations</p>
+        <div className="ai-rail-scroll">
+          {convs.length === 0 ? (
+            <p className="ai-rail-empty">Noch keine Chats. Starte einen mit „Neuer Chat" oder schreib unten gleich los.</p>
+          ) : (
+            <>
+              {grouped.pinned.length > 0 && (
+                <ConversationGroup label="Angepinnt" rows={grouped.pinned}
+                  activeId={activeId} onPick={setActiveId}
+                  onPin={togglePin} onDelete={deleteConv}
+                  menuFor={menuFor} setMenuFor={setMenuFor}
+                  renaming={renaming} setRenaming={(id) => { setRenaming(id); setRenameValue(convs.find(c => c.id === id)?.title || '') }}
+                  renameValue={renameValue} setRenameValue={setRenameValue}
+                  commitRename={commitRename}
+                />
+              )}
+              {grouped.heute.length > 0 && (
+                <ConversationGroup label="Heute" rows={grouped.heute}
+                  activeId={activeId} onPick={setActiveId}
+                  onPin={togglePin} onDelete={deleteConv}
+                  menuFor={menuFor} setMenuFor={setMenuFor}
+                  renaming={renaming} setRenaming={(id) => { setRenaming(id); setRenameValue(convs.find(c => c.id === id)?.title || '') }}
+                  renameValue={renameValue} setRenameValue={setRenameValue}
+                  commitRename={commitRename}
+                />
+              )}
+              {grouped.last7.length > 0 && (
+                <ConversationGroup label="Letzte 7 Tage" rows={grouped.last7}
+                  activeId={activeId} onPick={setActiveId}
+                  onPin={togglePin} onDelete={deleteConv}
+                  menuFor={menuFor} setMenuFor={setMenuFor}
+                  renaming={renaming} setRenaming={(id) => { setRenaming(id); setRenameValue(convs.find(c => c.id === id)?.title || '') }}
+                  renameValue={renameValue} setRenameValue={setRenameValue}
+                  commitRename={commitRename}
+                />
+              )}
+              {grouped.older.length > 0 && (
+                <ConversationGroup label="Älter" rows={grouped.older}
+                  activeId={activeId} onPick={setActiveId}
+                  onPin={togglePin} onDelete={deleteConv}
+                  menuFor={menuFor} setMenuFor={setMenuFor}
+                  renaming={renaming} setRenaming={(id) => { setRenaming(id); setRenameValue(convs.find(c => c.id === id)?.title || '') }}
+                  renameValue={renameValue} setRenameValue={setRenameValue}
+                  commitRename={commitRename}
+                />
+              )}
+            </>
+          )}
+        </div>
+      </aside>
+
+      {/* ── Main pane ─────────────────────────────────────────── */}
+      <main className="ai-main">
+        <header className="ai-main-head">
+          <div className="ai-main-head-left">
+            <TagroLogo size={20} thinking={sending} />
+            <h1>{activeConv?.title || 'Tagro'}</h1>
           </div>
-        </div>
-        <div className="tagro-actions">
-          <span className="tagro-live"><span className="tagro-live-dot" />Aktiv</span>
-          <button className="tagro-menu-btn" type="button" aria-label="Tagro Optionen"><DotsThree size={21} weight="bold" /></button>
-        </div>
-      </header>
+          {activeConv && (
+            <span className="ai-main-time">Aktualisiert {formatTimeAgo(activeConv.updated_at)}</span>
+          )}
+        </header>
 
-      <main ref={feedRef} className="tagro-flow">
-        {msgs.map((m, i) => (
-          <div key={`${m.time}-${i}`} className={`tagro-message ${m.role === 'user' ? 'user' : 'ai'}`}>
-            {m.role === 'ai' ? (
-              <>
-                <div className="tagro-avatar" aria-hidden="true"><Sparkle size={15} weight="bold" /></div>
-                <div>
-                  {m.thinking && <ThinkingBlock text={m.thinking} />}
-                  <div className="tagro-ai-block"><ChatMarkdown text={m.text} /></div>
-                  <div className="tagro-meta-row"><span>Tagro</span><span>·</span><span>{m.time}</span></div>
-                </div>
-              </>
-            ) : (
-              <div className="tagro-user-wrap">
-                <div className="tagro-user-block"><p style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{m.text}</p></div>
-                <span className="tagro-time">{m.time} ✓✓</span>
+        <div className="ai-feed" ref={scrollRef}>
+          {!activeId && !hasMessages ? (
+            <div className="ai-empty">
+              <div className="ai-empty-mark">
+                <TagroLogo size={36} />
               </div>
-            )}
-          </div>
-        ))}
-
-        {loading && (
-          <div className="tagro-message ai">
-            <div className="tagro-avatar" aria-hidden="true"><Sparkle size={15} weight="bold" /></div>
-            <div>
-              <div className="tagro-thinking"><span className="tagro-thinking-line" />System verarbeitet Projektkontext</div>
-              <div className="tagro-ai-block" style={{ width: 118 }}>
-                <span className="tagro-loading"><span /><span /><span /></span>
+              <h2>Wie kann ich dir helfen?</h2>
+              <p>Schreib unten los oder wähl einen Einstieg. Ich kenne deine Projekte, Tasks und letzten Briefings.</p>
+              <div className="ai-starters">
+                {PROMPT_STARTERS.map(s => (
+                  <button
+                    key={s}
+                    type="button"
+                    className="ai-starter"
+                    onClick={() => sendMessage(s)}
+                  >
+                    <Sparkle size={12} weight="fill" />
+                    <span>{s}</span>
+                  </button>
+                ))}
               </div>
             </div>
+          ) : loadingConv ? (
+            <p className="ai-loading-inline">Lade Chat…</p>
+          ) : (
+            <div className="ai-thread">
+              {messages.map(m => (
+                <article key={m.id} className={`ai-msg ${m.role}`}>
+                  {m.role === 'assistant' && (
+                    <div className="ai-msg-avatar">
+                      <TagroLogo size={16} thinking={m.pending} />
+                    </div>
+                  )}
+                  <div className="ai-msg-body">
+                    {m.pending ? (
+                      <span className="ai-typing"><span /><span /><span /></span>
+                    ) : m.role === 'assistant' ? (
+                      <ChatMarkdown text={m.content} />
+                    ) : (
+                      <p className="ai-user-text">{m.content}</p>
+                    )}
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="ai-composer-wrap">
+          <div className="ai-composer">
+            <textarea
+              ref={inputRef}
+              className="ai-input"
+              placeholder="Frag Tagro…"
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              onKeyDown={onKeyDownInput}
+              rows={1}
+              disabled={sending}
+            />
+            <button
+              type="button"
+              className="ai-send"
+              onClick={() => sendMessage()}
+              disabled={!input.trim() || sending}
+              aria-label="Senden"
+            >
+              <ArrowUp size={15} weight="bold" />
+            </button>
           </div>
-        )}
+          <p className="ai-foot">
+            Tagro kann sich irren. Wichtiges immer kurz gegenprüfen.
+          </p>
+        </div>
       </main>
 
-      <section className="tagro-command-shell" aria-label="Tagro Eingabe">
-        <p className="tagro-context-line">
-          Kontext <strong>{activeProjectName}</strong>
-          <span>·</span>
-          <span>{projects.length} Projekte</span>
-          <span>·</span>
-          <span>{doneTasks}/{totalTasks} Tasks erledigt</span>
-          <span>·</span>
-          <span>{inProgress} aktiv</span>
-        </p>
-        <form className="tagro-command" onSubmit={submit}>
-          <button className="tagro-command-icon" type="button" aria-label="Kontext hinzufügen"><Plus size={22} /></button>
-          <textarea
-            ref={inputRef}
-            className="tagro-textarea"
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            onKeyDown={onKeyDown}
-            placeholder="Frag Tagro — was soll dein Projekt können?"
-            rows={1}
-            autoFocus
-          />
-          {input.trim() ? (
-            <button className="tagro-submit" type="submit" disabled={loading} aria-label="An Tagro senden"><ArrowUp size={19} weight="bold" /></button>
-          ) : (
-            <button className="tagro-mic" type="button" aria-label="Voice Input vorbereitet"><Microphone size={21} /></button>
-          )}
-        </form>
-      </section>
+      <style jsx>{CSS}</style>
     </div>
   )
 }
 
-function ThinkingBlock({ text }: { text: string }) {
+function ConversationGroup({
+  label, rows, activeId, onPick,
+  onPin, onDelete, menuFor, setMenuFor,
+  renaming, setRenaming, renameValue, setRenameValue, commitRename,
+}: {
+  label: string
+  rows: Conversation[]
+  activeId: string | null
+  onPick: (id: string) => void
+  onPin: (id: string, pinned: boolean) => void
+  onDelete: (id: string) => void
+  menuFor: string | null
+  setMenuFor: (id: string | null) => void
+  renaming: string | null
+  setRenaming: (id: string | null) => void
+  renameValue: string
+  setRenameValue: (v: string) => void
+  commitRename: (id: string) => void
+}) {
   return (
-    <div>
-      <div className="tagro-thinking"><span className="tagro-thinking-line" />Denkprozess · Tagro</div>
-      <div style={{
-        marginBottom: 12,
-        maxWidth: 620,
-        color: 'rgba(232,231,227,.36)',
-        fontSize: 12,
-        lineHeight: 1.55,
-        fontStyle: 'italic',
-        whiteSpace: 'pre-wrap',
-      }}>
-        {text}
+    <section className="ai-group">
+      <p className="ai-group-label">{label}</p>
+      <div className="ai-group-list">
+        {rows.map(c => {
+          const active = c.id === activeId
+          const isRenaming = renaming === c.id
+          return (
+            <div
+              key={c.id}
+              className={`ai-row${active ? ' active' : ''}`}
+            >
+              {isRenaming ? (
+                <input
+                  className="ai-rename"
+                  value={renameValue}
+                  autoFocus
+                  onChange={e => setRenameValue(e.target.value)}
+                  onBlur={() => commitRename(c.id)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') (e.currentTarget as HTMLInputElement).blur()
+                    if (e.key === 'Escape') setRenaming(null)
+                  }}
+                />
+              ) : (
+                <button
+                  type="button"
+                  className="ai-row-pick"
+                  onClick={() => onPick(c.id)}
+                  title={c.title}
+                >
+                  <span className="ai-row-title">{c.title}</span>
+                </button>
+              )}
+              <button
+                type="button"
+                className="ai-row-menu"
+                onClick={() => setMenuFor(menuFor === c.id ? null : c.id)}
+                aria-label="Optionen"
+                aria-expanded={menuFor === c.id}
+              >
+                <DotsThreeOutline size={12} weight="bold" />
+              </button>
+              {menuFor === c.id && (
+                <>
+                  <button type="button" className="ai-menu-back" onClick={() => setMenuFor(null)} aria-hidden />
+                  <div className="ai-menu" role="menu">
+                    <button type="button" role="menuitem" onClick={() => { setMenuFor(null); onPin(c.id, c.pinned) }}>
+                      {c.pinned ? <PushPinSimple size={12} /> : <PushPin size={12} />}
+                      {c.pinned ? 'Anheften aufheben' : 'Anheften'}
+                    </button>
+                    <button type="button" role="menuitem" onClick={() => { setMenuFor(null); setRenaming(c.id) }}>
+                      <PencilSimple size={12} />
+                      Umbenennen
+                    </button>
+                    <button type="button" role="menuitem" className="ai-menu-danger" onClick={() => { setMenuFor(null); onDelete(c.id) }}>
+                      <Trash size={12} />
+                      Löschen
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          )
+        })}
       </div>
-    </div>
+    </section>
   )
 }
+
+const CSS = `
+  .ai-shell {
+    height: 100dvh;
+    display: grid;
+    grid-template-columns: 264px minmax(0, 1fr);
+    background: var(--bg); color: var(--text);
+    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+  }
+  .ai-shell.rail-collapsed { grid-template-columns: 0 minmax(0, 1fr); }
+  .ai-shell.rail-collapsed .ai-rail { transform: translateX(-100%); pointer-events: none; opacity: 0; }
+  .ai-loading { padding: 80px; color: var(--text-muted); }
+
+  /* Rail */
+  .ai-rail {
+    border-right: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+    display: flex; flex-direction: column;
+    transition: transform .2s ease, opacity .2s ease;
+    overflow: hidden;
+  }
+  .ai-rail-top {
+    display: flex; align-items: center; gap: 6px;
+    padding: 12px 12px 10px;
+    border-bottom: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+  }
+  .ai-new {
+    flex: 1;
+    display: inline-flex; align-items: center; gap: 8px;
+    height: 34px; padding: 0 12px;
+    border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+    background: var(--card);
+    color: var(--text);
+    border-radius: 10px;
+    font: inherit; font-size: 12.5px; font-weight: 500; letter-spacing: .015em;
+    cursor: pointer; transition: background .12s, border-color .12s;
+  }
+  .ai-new:hover { background: var(--surface-2); border-color: var(--border); }
+  .ai-rail-collapse {
+    width: 32px; height: 34px; border: 0; background: transparent;
+    color: var(--text-muted); border-radius: 8px; cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: background .12s, color .12s;
+  }
+  .ai-rail-collapse:hover { background: color-mix(in srgb, var(--surface-2) 60%, transparent); color: var(--text); }
+
+  .ai-rail-scroll { flex: 1 1 auto; overflow-y: auto; padding: 6px 6px 14px; }
+  .ai-rail-scroll::-webkit-scrollbar { width: 4px; }
+  .ai-rail-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  .ai-rail-empty {
+    padding: 14px 14px 0; font-size: 11.5px; color: var(--text-muted);
+    font-weight: 500; line-height: 1.5; letter-spacing: .015em;
+  }
+
+  .ai-group { padding-top: 10px; }
+  .ai-group-label {
+    margin: 0 8px 4px;
+    font-size: 10.5px; font-weight: 500; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--text-muted);
+  }
+  .ai-group-list { display: flex; flex-direction: column; gap: 1px; }
+  .ai-row {
+    position: relative;
+    display: grid; grid-template-columns: 1fr 22px; align-items: center;
+    border-radius: 8px;
+    transition: background .1s;
+  }
+  .ai-row:hover { background: color-mix(in srgb, var(--surface-2) 55%, transparent); }
+  .ai-row.active { background: color-mix(in srgb, var(--surface-2) 80%, transparent); }
+  .ai-row-pick {
+    width: 100%; border: 0; background: transparent;
+    color: var(--text); font: inherit; text-align: left;
+    padding: 7px 4px 7px 10px;
+    cursor: pointer;
+    min-width: 0;
+  }
+  .ai-row-title {
+    display: block;
+    font-size: 12.5px; font-weight: 500; letter-spacing: .015em;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .ai-row-menu {
+    width: 22px; height: 24px; border: 0; background: transparent;
+    color: var(--text-muted); border-radius: 6px; cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center;
+    margin-right: 4px;
+    opacity: 0; transition: opacity .12s, color .12s, background .12s;
+  }
+  .ai-row:hover .ai-row-menu, .ai-row.active .ai-row-menu { opacity: 1; }
+  .ai-row-menu:hover { color: var(--text); background: var(--card); }
+  .ai-menu-back {
+    position: fixed; inset: 0; z-index: 12;
+    background: transparent; border: 0; padding: 0; cursor: default;
+  }
+  .ai-menu {
+    position: absolute; top: calc(100% - 2px); right: 4px; z-index: 13;
+    min-width: 168px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 4px;
+    box-shadow: 0 1px 2px rgba(15,23,42,.06), 0 12px 32px rgba(15,23,42,.12);
+    display: flex; flex-direction: column; gap: 1px;
+    animation: aiFade .12s ease both;
+  }
+  [data-theme="dark"] .ai-menu, [data-theme="classic-dark"] .ai-menu {
+    background: color-mix(in srgb, var(--surface) 95%, #fff 5%);
+    box-shadow: 0 1px 2px rgba(0,0,0,.35), 0 18px 44px rgba(0,0,0,.4);
+  }
+  .ai-menu button {
+    display: flex; align-items: center; gap: 8px;
+    width: 100%; padding: 7px 10px;
+    border: 0; background: transparent;
+    color: var(--text); font: inherit; font-size: 12px;
+    font-weight: 500; letter-spacing: .015em; cursor: pointer;
+    border-radius: 6px; text-align: left;
+  }
+  .ai-menu button:hover { background: color-mix(in srgb, var(--surface-2) 70%, transparent); }
+  .ai-menu button.ai-menu-danger { color: #ef4444; }
+  .ai-menu button.ai-menu-danger:hover { background: color-mix(in srgb, #ef4444 12%, transparent); }
+  .ai-rename {
+    width: 100%; height: 30px; padding: 0 10px; margin: 0 4px;
+    border: 1px solid color-mix(in srgb, var(--text) 30%, var(--border));
+    border-radius: 6px;
+    background: var(--card); color: var(--text);
+    font: inherit; font-size: 12.5px; font-weight: 500; letter-spacing: .015em;
+    outline: 0;
+  }
+
+  /* Main */
+  .ai-main {
+    display: grid; grid-template-rows: auto 1fr auto;
+    min-height: 0; min-width: 0;
+  }
+  .ai-main-head {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 22px;
+    border-bottom: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+  }
+  .ai-main-head-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .ai-main-head h1 {
+    margin: 0; font-size: 14px; font-weight: 500; letter-spacing: -.005em;
+    color: var(--text);
+    max-width: 60ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .ai-main-time {
+    font-size: 11.5px; color: var(--text-muted);
+    font-weight: 500; letter-spacing: .015em;
+  }
+
+  .ai-feed { overflow-y: auto; padding: 28px 0 16px; }
+  .ai-loading-inline { padding: 40px; color: var(--text-muted); font-size: 13px; text-align: center; }
+
+  .ai-empty {
+    max-width: 580px; margin: 56px auto 0;
+    padding: 0 24px;
+    text-align: center;
+    display: flex; flex-direction: column; align-items: center; gap: 14px;
+  }
+  .ai-empty-mark {
+    width: 72px; height: 72px; border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: var(--card);
+    border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+    box-shadow: 0 8px 28px -10px color-mix(in srgb, var(--text) 18%, transparent);
+  }
+  .ai-empty h2 {
+    margin: 8px 0 0; font-size: 24px; font-weight: 500; letter-spacing: -.015em;
+    color: var(--text);
+  }
+  .ai-empty p {
+    margin: 0; font-size: 13.5px; line-height: 1.6;
+    color: var(--text-muted); font-weight: 500; letter-spacing: .015em;
+    max-width: 460px;
+  }
+  .ai-starters {
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px; width: 100%; margin-top: 8px;
+  }
+  .ai-starter {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 12px 14px; text-align: left;
+    border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+    background: var(--card);
+    color: var(--text-secondary);
+    border-radius: 12px;
+    font: inherit; font-size: 12.5px; font-weight: 500; letter-spacing: .015em;
+    cursor: pointer;
+    transition: border-color .12s, background .12s, color .12s, transform .15s;
+  }
+  .ai-starter:hover {
+    border-color: var(--border-strong);
+    background: color-mix(in srgb, var(--surface-2) 35%, var(--card));
+    color: var(--text);
+    transform: translateY(-1px);
+  }
+  .ai-starter svg { color: var(--text-muted); flex-shrink: 0; }
+  @media (max-width: 640px) { .ai-starters { grid-template-columns: 1fr; } }
+
+  .ai-thread {
+    max-width: 760px; margin: 0 auto;
+    padding: 0 22px;
+    display: flex; flex-direction: column; gap: 22px;
+  }
+  .ai-msg {
+    display: flex; gap: 12px;
+    animation: aiMsgIn .25s cubic-bezier(.16,1,.3,1) both;
+  }
+  .ai-msg.user { justify-content: flex-end; }
+  .ai-msg-avatar {
+    width: 30px; height: 30px; flex-shrink: 0;
+    border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: var(--card);
+    border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+    margin-top: 2px;
+  }
+  .ai-msg-body { min-width: 0; max-width: 100%; }
+  .ai-msg.user .ai-msg-body {
+    max-width: 80%;
+    background: color-mix(in srgb, var(--surface-2) 75%, transparent);
+    border: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+    padding: 11px 14px;
+    border-radius: 16px;
+    border-top-right-radius: 5px;
+  }
+  .ai-msg.assistant .ai-msg-body {
+    flex: 1; min-width: 0;
+    padding-top: 4px;
+    font-size: 14px; line-height: 1.65; color: var(--text); font-weight: 500;
+  }
+  .ai-user-text {
+    margin: 0; font-size: 13.5px; line-height: 1.55; color: var(--text);
+    font-weight: 500; letter-spacing: .015em; white-space: pre-wrap; word-wrap: break-word;
+  }
+
+  .ai-typing { display: inline-flex; gap: 5px; padding: 6px 0; }
+  .ai-typing span {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--text-muted); opacity: .5;
+    animation: aiDot 1.2s ease-in-out infinite;
+  }
+  .ai-typing span:nth-child(2) { animation-delay: .15s; }
+  .ai-typing span:nth-child(3) { animation-delay: .3s; }
+  @keyframes aiDot { 0%,80%,100% { transform: translateY(0); opacity: .35 } 40% { transform: translateY(-3px); opacity: .9 } }
+  @keyframes aiMsgIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  @keyframes aiFade { from { opacity: 0; transform: translateY(2px); } to { opacity: 1; transform: none; } }
+
+  .ai-composer-wrap {
+    border-top: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+    padding: 14px 22px 18px;
+    background: var(--bg);
+  }
+  .ai-composer {
+    max-width: 760px; margin: 0 auto;
+    display: flex; gap: 10px; align-items: flex-end;
+    padding: 11px 12px 11px 16px;
+    border-radius: 22px;
+    border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+    background: color-mix(in srgb, var(--surface) 65%, var(--card) 35%);
+    transition: border-color .12s, box-shadow .12s;
+  }
+  .ai-composer:focus-within {
+    border-color: color-mix(in srgb, var(--text) 30%, var(--border));
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--text) 5%, transparent);
+  }
+  .ai-input {
+    flex: 1; min-width: 0;
+    background: transparent; border: 0; outline: 0; resize: none;
+    color: var(--text); font: inherit;
+    font-size: 14px; line-height: 1.55; font-weight: 500; letter-spacing: .015em;
+    max-height: 220px;
+    padding: 6px 0;
+  }
+  .ai-input::placeholder { color: var(--text-muted); opacity: .6; }
+  .ai-send {
+    width: 32px; height: 32px; border: 0; border-radius: 10px;
+    background: var(--btn-prim); color: var(--btn-prim-text);
+    display: inline-flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: opacity .12s, transform .12s;
+    flex-shrink: 0;
+  }
+  .ai-send:hover:not(:disabled) { opacity: .92; }
+  .ai-send:active:not(:disabled) { transform: scale(.95); }
+  .ai-send:disabled { opacity: .4; cursor: not-allowed; }
+  .ai-foot {
+    max-width: 760px; margin: 8px auto 0; text-align: center;
+    font-size: 11px; color: var(--text-muted);
+    font-weight: 500; letter-spacing: .015em;
+  }
+
+  @media (max-width: 820px) {
+    .ai-shell { grid-template-columns: 56px minmax(0, 1fr); }
+    .ai-rail-top .ai-new span { display: none; }
+    .ai-row-title { font-size: 12px; }
+    .ai-rail-scroll { padding-left: 4px; padding-right: 4px; }
+  }
+  @media (max-width: 640px) {
+    .ai-shell { grid-template-columns: 0 minmax(0, 1fr); }
+    .ai-shell .ai-rail { transform: translateX(-100%); }
+  }
+`
