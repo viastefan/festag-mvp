@@ -367,9 +367,11 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn mÃ
           --pv-muted:#5A6478;
           --pv-soft:#4E5567;
           --pv-slate:#5B647D;
-          max-width:1080px;
+          max-width:1320px;        /* matches /tasks and /observers â€” */
+          width:100%;              /* and lets the content breathe */
+          margin:0 auto;
           color:var(--text);
-          padding:0 clamp(16px,2vw,28px) 72px;
+          padding:0 clamp(20px,2.4vw,32px) 72px;
           animation:pvFade .3s cubic-bezier(.16,1,.3,1) both;
         }
         [data-theme="dark"] .pv, [data-theme="classic-dark"] .pv {

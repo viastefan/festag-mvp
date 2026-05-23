@@ -68,6 +68,16 @@ function normalizeStatus(status?: string | null) {
   if (ACTIVE_STATES.has(value)) return 'active'
   return 'open'
 }
+
+// Projects created within the last 2 hours get a quiet "Neu" badge.
+// The label automatically falls off after that — no manual clean-up.
+const FRESH_WINDOW_MS = 2 * 60 * 60 * 1000
+function isFreshProject(createdAt: string | null | undefined): boolean {
+  if (!createdAt) return false
+  const t = new Date(createdAt).getTime()
+  if (Number.isNaN(t)) return false
+  return Date.now() - t < FRESH_WINDOW_MS
+}
 function statusGroupOf(project: ProjectRow): string {
   const raw = (project.status || 'intake').toLowerCase()
   return STATUS_GROUPS.find(g => g.match(raw))?.id ?? 'planning'
@@ -362,17 +372,32 @@ export default function ProjectsPage() {
           text-decoration:none; cursor:pointer;
           background:transparent; transition:background .12s ease;
         }
+        .pj-row { position:relative; }
         .pj-row:hover { background:color-mix(in srgb, var(--surface-2) 60%, transparent); }
-        .pj-color {
-          width:12px; height:12px; border-radius:4px;
-          border:2px solid var(--pj-c, var(--border-strong));
-          background:transparent; justify-self:center;
+        .pj-accent {
+          width:3px; height:22px; border-radius:2px;
+          background:var(--pj-c, color-mix(in srgb, var(--border-strong) 70%, transparent));
+          justify-self:center;
+          opacity:.85;
         }
+        .pj-row:hover .pj-accent { opacity:1; height:26px; transition:height .15s ease, opacity .15s ease; }
         .pj-name { min-width:0; }
+        .pj-name-row { display:flex; align-items:center; gap:8px; min-width:0; }
         .pj-name strong {
           display:block; color:var(--text); font-size:12.5px; font-weight:500;
           overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
         }
+        .pj-new {
+          display:inline-flex; align-items:center;
+          height:16px; padding:0 7px;
+          border-radius:999px;
+          background:color-mix(in srgb, var(--btn-prim) 12%, transparent);
+          border:1px solid color-mix(in srgb, var(--btn-prim) 26%, transparent);
+          color:var(--btn-prim);
+          font-size:9.5px; font-weight:500; letter-spacing:.08em; text-transform:uppercase;
+          flex-shrink:0;
+        }
+        [data-theme="dark"] .pj-new, [data-theme="classic-dark"] .pj-new { color:#A0AAC2; }
         .pj-name small {
           display:block; margin-top:2px; color:var(--pj-soft); font-size:11.5px;
           overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
@@ -571,16 +596,22 @@ export default function ProjectsPage() {
                         return (
                           <Link key={project.id} href={`/project/${project.id}`} className="pj-row">
                             <span
-                              className="pj-color"
+                              className="pj-accent"
                               style={{ ['--pj-c' as string]: project.color || 'var(--border-strong)' }}
+                              aria-hidden
                             />
                             <span className="pj-name">
-                              <strong>{project.title}</strong>
+                              <span className="pj-name-row">
+                                <strong>{project.title}</strong>
+                                {project.created_at && isFreshProject(project.created_at) && (
+                                  <span className="pj-new">Neu</span>
+                                )}
+                              </span>
                               <small>{related.length} {related.length === 1 ? 'Aufgabe' : 'Aufgaben'}</small>
                             </span>
                             <span className={`pj-health ${health.tone}`}>
                               <span className="pj-health-dot" />
-                              <span>{statusLabel(project)} · {health.label}</span>
+                              <span>{health.label}</span>
                             </span>
                             <span className="pj-progress">
                               <span className="pj-progress-bar"><span style={{ width: `${progress}%` }} /></span>
