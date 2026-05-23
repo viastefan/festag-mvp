@@ -15,6 +15,7 @@ import DeleteProjectModal from '@/components/DeleteProjectModal'
 import AudioBriefingButton from '@/components/AudioBriefingButton'
 import AssetsPanel from '@/components/AssetsPanel'
 import ProjectModulesStrip from '@/components/ProjectModulesStrip'
+import ProjectDevAvatars from '@/components/ProjectDevAvatars'
 import ExecutorModulesStrip from '@/components/ExecutorModulesStrip'
 import { getProjectPreset, type ExecutorRole, type ProjectType } from '@/lib/project-modules'
 
@@ -723,6 +724,7 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
               {project.status==='active' && <span className="pv-status-dot" style={{ background:'#22c55e', animation:'pvPulse 2s infinite' }}/>}
               {PHASE_LABEL[project.status] ?? project.status}
             </span>
+            <ProjectDevAvatars projectId={project.id} accentColor={pCol} />
             <button className="pv-del" onClick={() => setDeleteOpen(true)} title="Projekt löschen" aria-label="Projekt löschen">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z"/>

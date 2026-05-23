@@ -21,7 +21,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
-  Article, Briefcase, ChatsCircle, CheckSquare, Compass, GearSix,
+  Article, Briefcase, ChatsCircle, CheckSquare, Compass, FolderOpen, GearSix,
   GitBranch, GithubLogo, GitCommit, Kanban, Pause, Play, Robot, SignOut, UsersThree, WarningCircle,
 } from '@phosphor-icons/react'
 
@@ -32,6 +32,7 @@ import type { DevIdentity } from '@/components/DevAppShell'
 type NavRow = { href: string; icon: React.ElementType; label: string }
 const NAV_MAIN: NavRow[] = [
   { href: '/dev',          icon: Compass,     label: 'Overview' },
+  { href: '/dev/projects', icon: FolderOpen,  label: 'Projects' },
   { href: '/dev/tasks',    icon: CheckSquare, label: 'My Tasks' },
   { href: '/dev/review',   icon: Robot,       label: 'Tagro Review' },
   { href: '/dev/plan',     icon: Kanban,      label: 'Daily Plan' },
