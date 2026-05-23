@@ -16,15 +16,11 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import Link from 'next/link'
 import ObserverWelcomeModal from '@/components/ObserverWelcomeModal'
 import WelcomeTour from '@/components/WelcomeTour'
 import TagroLogo from '@/components/TagroLogo'
 import { speechVoiceId, useSpeechSynthesis } from '@/hooks/useSpeechSynthesis'
-import { ArrowClockwise, ArrowRight, CaretDown, Check, FileText, Pause, Play, Plus, SlidersHorizontal, Stop } from '@phosphor-icons/react'
-
-// 20 thin bars that form Tagro's speech waveform.
-const WAVE_BARS = Array.from({ length: 20 }, (_, i) => i)
+import { ArrowClockwise, CaretDown, Check, FileText, Pause, Play, Plus, SlidersHorizontal, Stop } from '@phosphor-icons/react'
 
 // ─────────────────────────────────────────────────────────────────────
 // Helpers
@@ -180,11 +176,9 @@ export default function DashboardPage() {
 
   // ── Derived ─────────────────────────────────────────────────────
   const greeting = useMemo(() => pickGreeting(new Date().getHours(), firstName), [firstName])
-  const projectTitle = (id: string) => projects.find((p) => p.id === id)?.title ?? null
 
   const decisionTasks = allTasks.filter((t) => t.status === 'waiting')
   const riskTasks = allTasks.filter((t) => t.status === 'blocked')
-  const phaseLabel = main ? (PHASE[main.status] ?? 'Intake') : null
 
   const activeProjectCount = projects.filter((p) => {
     const s = (p.status || '').toLowerCase()
@@ -210,6 +204,7 @@ export default function DashboardPage() {
   // user must never wonder if they're hearing one project or all.
   const [scope, setScope] = useState<'overall' | string>('overall')
   const [scopeOpen, setScopeOpen] = useState(false)
+  const [period, setPeriod] = useState<'Heute' | 'Letzte 7 Tage' | 'Letzte 30 Tage' | 'Letzte 90 Tage'>('Letzte 30 Tage')
   const [showTranscript, setShowTranscript] = useState(false)
   const [briefingLog, setBriefingLog] = useState<BriefingLogEntry[]>([])
   const [activeLogId, setActiveLogId] = useState<string | null>(null)
@@ -324,12 +319,52 @@ export default function DashboardPage() {
   }, [voices])
   const isBriefingPlaying = speechState === 'playing'
   const isBriefingActive = speechState === 'playing' || speechState === 'paused'
-  const listenLabel = isBriefingPlaying ? 'Pausieren' : speechState === 'paused' ? 'Weiterhören' : 'Bericht anhören'
   const handleBriefingToggle = () => { if (isBriefingPlaying) pauseBriefing(); else playBriefing() }
 
   // Tagro is "active" while writing the note or reading it aloud — the
   // orb spins and the speech waveform dances during that time.
   const tagroActive = isBriefingPlaying || noteWriting || statusBusy
+
+  const briefingStatusLabel = statusBusy
+    ? 'Bericht wird vorbereitet'
+    : isBriefingPlaying
+      ? 'Wiedergabe läuft'
+      : speechState === 'paused'
+        ? 'Wiedergabe pausiert'
+        : audioText.trim()
+          ? 'Bereit zum Anhören'
+          : 'Noch kein Bericht verfügbar'
+
+  const currentReportTitle = isOverall
+    ? 'Gesamtbericht für alle Projekte'
+    : `Statusbericht: ${selectedProject?.title ?? 'Projekt'}`
+
+  const currentReportSummary = isOverall
+    ? 'Tagro fasst aktive Projekte, offene Aufgaben, Risiken und Entscheidungen in einem ruhigen Briefing zusammen.'
+    : 'Tagro verdichtet Fortschritt, offene Punkte und nächste Schritte für diesen Projektkontext.'
+
+  const executiveFocus = [
+    riskTasks.length > 0
+      ? `${riskTasks.length} ${riskTasks.length === 1 ? 'Risiko braucht' : 'Risiken brauchen'} Aufmerksamkeit.`
+      : 'Keine akuten Risiken sichtbar.',
+    decisionTasks.length > 0
+      ? `${decisionTasks.length} ${decisionTasks.length === 1 ? 'Entscheidung wartet' : 'Entscheidungen warten'} auf Freigabe.`
+      : 'Keine Entscheidung wartet auf Freigabe.',
+    openTaskCount > 0
+      ? `${openTaskCount} offene ${openTaskCount === 1 ? 'Aufgabe' : 'Aufgaben'} sind im System sichtbar.`
+      : 'Keine offenen Aufgaben sichtbar.',
+  ]
+
+  const periodOptions = ['Heute', 'Letzte 7 Tage', 'Letzte 30 Tage', 'Letzte 90 Tage'] as const
+  const visibleTranscriptBody = activeLog?.body ?? audioText
+
+  function handleTranscriptToggle() {
+    if (showTranscript) {
+      setShowTranscript(false)
+      return
+    }
+    addTranscriptToLog()
+  }
 
   // ── Turn a line of Tagro's reading into a real task ─────────────
   async function createTaskFromText(key: string, text: string) {
@@ -476,7 +511,7 @@ export default function DashboardPage() {
           min-height:100%;
           background:transparent;
           color:var(--text);
-          padding: 0 clamp(20px, 2.4vw, 32px) 64px;
+          padding: 0 clamp(20px, 2.4vw, 32px) 34px;
           --dc-muted: #5A6478;
           --dc-soft: #4E5567;
           --dc-slate: #5B647D;
@@ -489,12 +524,12 @@ export default function DashboardPage() {
         .dash-calm * { font-weight:500 !important; letter-spacing:.012em; }
 
         /* ── Greeting full-width, then a calm two-column body ────── */
-        .dc-wrap { max-width: 1320px; }
+        .dc-wrap { max-width: 1280px; height:100%; min-height:0; }
         .dc-body {
           margin-top: 20px;
           display:grid;
-          grid-template-columns: minmax(0,1fr) 360px;
-          column-gap: 44px;
+          grid-template-columns: minmax(0,1fr) minmax(360px, 400px);
+          column-gap: clamp(36px, 4.6vw, 70px);
           align-items:start;
         }
 
@@ -772,18 +807,21 @@ export default function DashboardPage() {
 
         /* ── New Briefing Card — premium, executive-feel ──────────── */
         .dc-brief {
-          border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
-          border-radius: 22px;
-          background: color-mix(in srgb, var(--card) 92%, var(--surface) 8%);
-          padding: 22px 22px 20px;
-          display: flex; flex-direction: column; gap: 18px;
-          box-shadow: 0 1px 2px color-mix(in srgb, var(--text) 4%, transparent),
-                      0 18px 48px -28px color-mix(in srgb, var(--text) 24%, transparent);
+          border: 0;
+          border-radius: 28px;
+          background:
+            radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--surface-2) 42%, transparent), transparent 48%),
+            color-mix(in srgb, var(--card) 92%, var(--surface) 8%);
+          padding: 24px 24px 22px;
+          display: flex; flex-direction: column; gap: 16px;
+          box-shadow:
+            0 18px 58px -44px color-mix(in srgb, var(--text) 32%, transparent),
+            inset 0 1px 0 color-mix(in srgb, #fff 20%, transparent);
         }
         [data-theme="dark"] .dc-brief,
         [data-theme="classic-dark"] .dc-brief {
           background: color-mix(in srgb, var(--card) 96%, #fff 2%);
-          box-shadow: 0 1px 2px rgba(0,0,0,.35), 0 24px 60px -28px rgba(0,0,0,.5);
+          box-shadow: 0 24px 70px -38px rgba(0,0,0,.65), inset 0 1px 0 rgba(255,255,255,.05);
         }
 
         .dc-brief-head {
@@ -807,6 +845,17 @@ export default function DashboardPage() {
           margin: 0; font-size: 11.5px; font-weight: 500 !important;
           color: var(--dc-muted); letter-spacing: .015em !important;
         }
+        .dc-period {
+          flex-shrink:0;
+          display:inline-flex; align-items:center;
+          min-height:26px; padding:0 2px;
+          color:var(--dc-muted); font-size:11px;
+        }
+
+        .dc-brief-filterbar {
+          display:flex; align-items:center; justify-content:space-between;
+          gap:10px;
+        }
 
         /* Scope dropdown */
         .dc-scope { position: relative; flex-shrink: 0; }
@@ -815,15 +864,14 @@ export default function DashboardPage() {
           max-width: 170px;
           height: 30px; padding: 0 11px 0 12px;
           border-radius: 999px;
-          border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
-          background: color-mix(in srgb, var(--surface-2) 35%, transparent);
+          border: 0;
+          background: color-mix(in srgb, var(--surface-2) 42%, transparent);
           color: var(--text); font: inherit; font-size: 11.5px;
           font-weight: 500 !important; letter-spacing: .015em !important;
           cursor: pointer; transition: background .12s, border-color .12s;
         }
         .dc-scope-trigger:hover {
-          background: color-mix(in srgb, var(--surface-2) 65%, transparent);
-          border-color: var(--border);
+          background: color-mix(in srgb, var(--surface-2) 68%, transparent);
         }
         .dc-scope-trigger span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .dc-scope-trigger svg { color: var(--dc-muted); flex-shrink: 0; }
@@ -837,9 +885,8 @@ export default function DashboardPage() {
           min-width: 240px; max-width: 280px;
           padding: 6px;
           background: var(--surface);
-          border: 1px solid var(--border);
           border-radius: 12px;
-          box-shadow: 0 1px 2px rgba(15,23,42,.06), 0 20px 50px rgba(15,23,42,.14);
+          box-shadow: 0 20px 50px rgba(15,23,42,.14);
           display: flex; flex-direction: column; gap: 2px;
           animation: dcFade .14s ease both;
         }
@@ -875,9 +922,62 @@ export default function DashboardPage() {
           overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
         }
         .dc-scope-divider {
-          height: 1px;
-          background: color-mix(in srgb, var(--border) 60%, transparent);
-          margin: 4px 6px;
+          height: 4px;
+          margin: 2px 6px;
+        }
+        .dc-period-options {
+          display:flex; align-items:center; gap:2px;
+          padding:3px;
+          border-radius:999px;
+          background:color-mix(in srgb, var(--surface-2) 34%, transparent);
+        }
+        .dc-period-options button {
+          appearance:none; border:0; background:transparent;
+          min-width:34px; height:24px; padding:0 8px;
+          border-radius:999px; color:var(--dc-muted);
+          font:inherit; font-size:10.5px; cursor:pointer;
+          transition:background .14s ease, color .14s ease;
+        }
+        .dc-period-options button:hover,
+        .dc-period-options button.on {
+          background:color-mix(in srgb, var(--surface) 72%, transparent);
+          color:var(--text);
+        }
+
+        .dc-current-report {
+          display:flex; flex-direction:column; gap:10px;
+          padding:2px 0 0;
+        }
+        .dc-current-kicker {
+          color:var(--dc-muted);
+          font-size:10.5px;
+          letter-spacing:.13em !important;
+          text-transform:uppercase;
+        }
+        .dc-current-report p {
+          margin:0;
+          color:var(--dc-soft);
+          font-size:13px;
+          line-height:1.58;
+        }
+        .dc-current-facts {
+          display:grid;
+          grid-template-columns:repeat(4, minmax(0,1fr));
+          gap:8px;
+          margin-top:2px;
+        }
+        .dc-current-facts span {
+          min-width:0;
+          color:var(--dc-muted);
+          font-size:10.5px;
+          line-height:1.25;
+        }
+        .dc-current-facts strong {
+          display:block;
+          color:var(--text);
+          font-size:15px;
+          line-height:1.2;
+          margin-bottom:2px;
         }
 
         /* Tagro bubble — breathing ring + outer pulses */
@@ -888,14 +988,16 @@ export default function DashboardPage() {
         }
         .dc-orb-bubble {
           position: relative; z-index: 3;
-          width: 76px; height: 76px;
+          width: 78px; height: 78px;
           border-radius: 50%;
           display: flex; align-items: center; justify-content: center;
-          background: var(--card);
-          border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+          background:
+            radial-gradient(circle at 48% 38%, color-mix(in srgb, #fff 82%, transparent), transparent 46%),
+            var(--card);
+          border: 0;
           box-shadow:
             inset 0 1px 0 color-mix(in srgb, #fff 20%, transparent),
-            0 8px 28px -10px color-mix(in srgb, var(--text) 30%, transparent);
+            0 10px 36px -14px color-mix(in srgb, var(--text) 28%, transparent);
         }
         [data-theme="dark"] .dc-orb-bubble,
         [data-theme="classic-dark"] .dc-orb-bubble {
@@ -909,7 +1011,7 @@ export default function DashboardPage() {
           width: 112px; height: 112px;
           margin: -56px 0 0 -56px;
           border-radius: 50%;
-          border: 1px solid color-mix(in srgb, var(--border) 65%, transparent);
+          border: 1px solid color-mix(in srgb, var(--dc-muted) 18%, transparent);
           z-index: 2;
           animation: dcOrbBreathe 4.6s ease-in-out infinite;
         }
@@ -926,7 +1028,8 @@ export default function DashboardPage() {
           width: 76px; height: 76px;
           margin: -38px 0 0 -38px;
           border-radius: 50%;
-          border: 1px solid color-mix(in srgb, var(--dc-slate, #5B647D) 30%, transparent);
+          background: radial-gradient(circle, color-mix(in srgb, var(--dc-slate, #5B647D) 11%, transparent), transparent 62%);
+          border: 1px solid color-mix(in srgb, var(--dc-slate, #5B647D) 16%, transparent);
           opacity: 0;
           z-index: 1;
         }
@@ -935,6 +1038,9 @@ export default function DashboardPage() {
         }
         .dc-orb-stage.speaking .dc-orb-pulse-2 {
           animation: dcOrbPulse 3.4s ease-out 1.7s infinite;
+        }
+        .dc-orb-stage.speaking .dc-orb-pulse-3 {
+          animation: dcOrbPulseSoft 4.6s ease-in-out .5s infinite;
         }
         @keyframes dcOrbBreathe {
           0%,100% { transform: scale(1); opacity: .85; }
@@ -946,20 +1052,40 @@ export default function DashboardPage() {
           70%  { transform: scale(2.1);  opacity: 0; }
           100% { transform: scale(2.3);  opacity: 0; }
         }
+        @keyframes dcOrbPulseSoft {
+          0%,100% { transform: scale(1.38); opacity: .16; }
+          50% { transform: scale(1.72); opacity: .28; }
+        }
 
         /* Minimalist voice line — no equaliser bars */
         .dc-voice-line {
           width: 100%; height: 14px;
-          stroke: color-mix(in srgb, var(--dc-muted) 60%, transparent);
           stroke-width: 1.4; fill: none;
           stroke-linecap: round; stroke-linejoin: round;
           opacity: .55;
           transition: opacity .3s ease, stroke .3s ease;
         }
+        .dc-voice-base {
+          stroke: color-mix(in srgb, var(--dc-muted) 44%, transparent);
+        }
+        .dc-voice-live {
+          stroke: color-mix(in srgb, var(--dc-slate, #5B647D) 48%, transparent);
+          opacity:0;
+          stroke-dasharray:64 260;
+          stroke-dashoffset:0;
+        }
         .dc-voice-line.on {
-          stroke: color-mix(in srgb, var(--dc-slate, #5B647D) 60%, var(--text));
           opacity: 1;
           animation: dcLineDrift 5s ease-in-out infinite;
+        }
+        .dc-voice-line.on .dc-voice-live {
+          opacity:.9;
+          animation:dcVoiceTrace 2.8s ease-in-out infinite;
+        }
+        @keyframes dcVoiceTrace {
+          0% { stroke-dashoffset:0; opacity:.45; }
+          45% { opacity:.95; }
+          100% { stroke-dashoffset:-220; opacity:.45; }
         }
         @keyframes dcLineDrift {
           0%,100% { transform: translateX(0); }
@@ -998,19 +1124,39 @@ export default function DashboardPage() {
           font-weight: 500 !important; letter-spacing: .015em !important;
         }
 
+        .dc-brief-focus {
+          display:flex; flex-direction:column; gap:5px;
+          margin-top:2px;
+        }
+        .dc-brief-focus span {
+          color:var(--dc-muted);
+          font-size:10.5px;
+          letter-spacing:.13em !important;
+          text-transform:uppercase;
+          margin-bottom:2px;
+        }
+        .dc-brief-focus p {
+          margin:0;
+          color:var(--dc-soft);
+          font-size:12.5px;
+          line-height:1.48;
+        }
+
         .dc-brief-actions { display: flex; flex-direction: column; gap: 8px; }
         .dc-brief-primary {
           appearance: none; border: 0;
           width: 100%; height: 44px; padding: 0 18px;
           display: inline-flex; align-items: center; justify-content: center; gap: 9px;
           border-radius: 12px;
-          background: var(--btn-prim); color: var(--btn-prim-text);
+          background: color-mix(in srgb, var(--surface-2) 74%, transparent);
+          color: var(--text);
           font: inherit; font-size: 13.5px;
           font-weight: 500 !important; letter-spacing: .015em !important;
           cursor: pointer;
-          transition: opacity .14s, transform .14s;
+          box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 18%, transparent);
+          transition: background .14s, transform .14s;
         }
-        .dc-brief-primary:hover:not(:disabled) { opacity: .92; }
+        .dc-brief-primary:hover:not(:disabled) { background: color-mix(in srgb, var(--surface-2) 92%, transparent); }
         .dc-brief-primary:active:not(:disabled) { transform: scale(.985); }
         .dc-brief-primary:disabled { opacity: .45; cursor: default; }
         .dc-brief-primary .spin { animation: dcSpin 1s linear infinite; }
@@ -1023,27 +1169,24 @@ export default function DashboardPage() {
           display: inline-flex; align-items: center; justify-content: center; gap: 6px;
           height: 36px; padding: 0 12px;
           border-radius: 10px;
-          border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
           background: transparent;
           color: var(--dc-soft);
           font: inherit; font-size: 12px;
           font-weight: 500 !important; letter-spacing: .015em !important;
           cursor: pointer;
-          transition: background .12s, color .12s, border-color .12s;
+          transition: background .12s, color .12s;
         }
         .dc-brief-secondary:hover {
           background: color-mix(in srgb, var(--surface-2) 45%, transparent);
           color: var(--text);
-          border-color: var(--border);
         }
         .dc-brief-icon {
           width: 36px; height: 36px;
           border-radius: 10px;
-          border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
           background: transparent;
           color: var(--dc-soft);
           display: inline-flex; align-items: center; justify-content: center;
-          cursor: pointer; transition: background .12s, color .12s, border-color .12s;
+          cursor: pointer; transition: background .12s, color .12s;
         }
         .dc-brief-icon:hover:not(:disabled) {
           background: color-mix(in srgb, var(--surface-2) 50%, transparent);
@@ -1060,7 +1203,9 @@ export default function DashboardPage() {
           margin-top: 4px; padding: 14px 16px;
           border-radius: 14px;
           background: color-mix(in srgb, var(--surface-2) 45%, transparent);
-          border: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+          max-height: 168px;
+          overflow:auto;
+          scrollbar-width:thin;
         }
         .dc-brief-transcript-label {
           margin: 0 0 6px; font-size: 10.5px; font-weight: 500 !important;
@@ -1077,12 +1222,86 @@ export default function DashboardPage() {
           margin-top: 4px; padding: 10px;
           border-radius: 12px;
           background: color-mix(in srgb, var(--surface-2) 50%, transparent);
-          border: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+        }
+
+        .dc-history {
+          margin-top:2px;
+          display:flex;
+          flex-direction:column;
+          gap:8px;
+        }
+        .dc-history-head {
+          display:flex;
+          align-items:baseline;
+          justify-content:space-between;
+          gap:10px;
+          color:var(--dc-muted);
+          font-size:11px;
+        }
+        .dc-history-head small { font-size:10.5px; color:var(--dc-muted); }
+        .dc-history-list {
+          display:flex;
+          flex-direction:column;
+          gap:2px;
+          max-height:176px;
+          overflow:auto;
+          scrollbar-width:thin;
+        }
+        .dc-history-row {
+          appearance:none;
+          border:0;
+          width:100%;
+          text-align:left;
+          background:transparent;
+          color:inherit;
+          border-radius:12px;
+          padding:8px 9px;
+          cursor:pointer;
+          transition:background .14s ease;
+        }
+        .dc-history-row:hover,
+        .dc-history-row.active {
+          background:color-mix(in srgb, var(--surface-2) 38%, transparent);
+        }
+        .dc-history-row span {
+          display:block;
+          color:var(--dc-muted);
+          font-size:10px;
+          letter-spacing:.12em !important;
+          text-transform:uppercase;
+          margin-bottom:2px;
+        }
+        .dc-history-row strong {
+          display:block;
+          color:var(--text);
+          font-size:12.5px;
+          line-height:1.32;
+          overflow:hidden;
+          text-overflow:ellipsis;
+          white-space:nowrap;
+        }
+        .dc-history-row small {
+          display:block;
+          color:var(--dc-muted);
+          font-size:10.5px;
+          line-height:1.35;
+          overflow:hidden;
+          text-overflow:ellipsis;
+          white-space:nowrap;
+        }
+        .dc-history-empty {
+          margin:0;
+          color:var(--dc-muted);
+          font-size:12px;
+          line-height:1.5;
+          padding:6px 2px 2px;
         }
 
         @media (max-width: 920px) {
           .dc-brief { padding: 18px 16px 18px; }
           .dc-brief-head { flex-direction: column; align-items: stretch; }
+          .dc-brief-filterbar { flex-direction:column; align-items:stretch; }
+          .dc-period-options { justify-content:space-between; }
           .dc-scope-trigger { max-width: none; width: 100%; justify-content: space-between; }
           .dc-scope-menu { left: 0; right: 0; min-width: 0; }
           .dc-orb-stage { aspect-ratio: 2 / 1; max-height: 140px; }
@@ -1169,7 +1388,7 @@ export default function DashboardPage() {
         @media (max-width:920px) {
           .dc-body { display:flex; flex-direction:column; margin-top:16px; }
           .dc-side { display:contents; }
-          .dc-card { order:1; }
+          .dc-brief { order:1; }
           .dc-note { order:2; min-height:auto; margin-top:24px; }
           .dc-blocks { order:3; margin-top:22px; }
         }
@@ -1182,7 +1401,7 @@ export default function DashboardPage() {
           .dc-greeting { font-size:20px; }
           .dc-greeting-sub { font-size:12.5px; }
           .dc-note-text { font-size:15px; line-height:1.7; }
-          .dc-card { padding:14px; }
+          .dc-brief { padding:18px 16px; }
         }
       `}</style>
 
@@ -1202,157 +1421,78 @@ export default function DashboardPage() {
         </header>
 
         <div className="dc-body">
+          <article className="dc-note" aria-label="Statusnotiz">
+            <div className="dc-note-head">
+              <span className="dc-note-label">Statusnotiz</span>
+              {noteStamp && <span className="dc-note-stamp">Heute, {noteStamp} Uhr</span>}
+            </div>
 
-        <aside className="dc-log-panel" aria-label="Briefing-Historie">
-          <div className="dc-left-summary">
-            <section className="dc-summary-block" aria-label="Überblick">
-              <span className="dc-block-label">Überblick</span>
-              <div className="dc-stats">
-                {overview.map((s) => (
-                  <div className="dc-stat" key={s.label}>
-                    <div className="dc-stat-value">{s.value}</div>
-                    <div className="dc-stat-label">{s.label}</div>
-                  </div>
-                ))}
-              </div>
-            </section>
+            {noteRevealed ? (
+              <>
+                <p className="dc-note-text">
+                  {noteRevealed}
+                  {noteWriting && <span className="dc-caret" aria-hidden />}
+                </p>
 
-            <section className="dc-summary-block" aria-label="Entscheidungen">
-              <div className="dc-block-head">
-                <span className="dc-block-label">Entscheidungen</span>
-                {decisionTasks.length > 0 && <span className="dc-block-count">{decisionTasks.length}</span>}
-              </div>
-              {decisionTasks.length === 0 ? (
-                <p className="dc-block-empty">Nichts wartet auf deine Freigabe.</p>
-              ) : (
-                <div className="dc-mini-list">
-                  {decisionTasks.slice(0, 2).map((t) => (
-                    <Link key={t.id} href={t.project_id ? `/project/${t.project_id}` : '/tasks'} className="dc-mini-row">
-                      <span className="dc-row-dot warn" aria-hidden />
-                      <span>{t.title}</span>
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </section>
-
-            <section className="dc-summary-block" aria-label="Risiken">
-              <div className="dc-block-head">
-                <span className="dc-block-label">Risiken</span>
-                {riskTasks.length > 0 && <span className="dc-block-count">{riskTasks.length}</span>}
-              </div>
-              {riskTasks.length === 0 ? (
-                <p className="dc-block-empty">Keine Verzögerung sichtbar.</p>
-              ) : (
-                <div className="dc-mini-list">
-                  {riskTasks.slice(0, 2).map((t) => (
-                    <Link key={t.id} href={t.project_id ? `/project/${t.project_id}` : '/tasks'} className="dc-mini-row">
-                      <span className="dc-row-dot risk" aria-hidden />
-                      <span>{t.title}</span>
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </section>
-          </div>
-
-          <div className="dc-log-head">
-            <span>Berichte & Transkripte</span>
-            <small>{briefingLog.length || 'Noch leer'}</small>
-          </div>
-          <div className="dc-log-list">
-            {briefingLog.length === 0 ? (
-              <div className="dc-log-empty">
-                <FileText size={17} />
-                <p>Noch kein schriftlicher Bericht.</p>
-                <span>Statusberichte und Transkripte erscheinen hier als ruhige Historie.</span>
-              </div>
-            ) : briefingLog.map((entry) => (
-              <button
-                type="button"
-                key={entry.id}
-                className={`dc-log-entry${activeLog?.id === entry.id ? ' active' : ''}`}
-                onClick={() => setActiveLogId(entry.id)}
-              >
-                <span className={`dc-log-kind ${entry.kind}`}>{entry.kind === 'transcript' ? 'Transkript' : 'Statusbericht'}</span>
-                <strong>{entry.title}</strong>
-                <small>{entry.scope} · {new Date(entry.createdAt).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })} Uhr</small>
-                <p>{entry.body}</p>
-              </button>
-            ))}
-          </div>
-        </aside>
-
-        <main className="dc-focus" aria-label="Berichtsanzeige">
-          {activeLog ? (
-            <article className="dc-focus-doc">
-              <div className="dc-focus-kicker">{activeLog.kind === 'transcript' ? 'Transkript' : 'Statusbericht'}</div>
-              <h2>{activeLog.title}</h2>
-              <p className="dc-focus-meta">{activeLog.scope} · {new Date(activeLog.createdAt).toLocaleString('de-DE', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })} Uhr</p>
-              <p className="dc-focus-text">
-                {activeLog.kind === 'report' && noteWriting && activeLog.id === activeLogId ? noteRevealed : activeLog.body}
-                {noteWriting && activeLog.kind === 'report' && <span className="dc-caret" aria-hidden />}
-              </p>
-              {!noteWriting && activeLog.kind === 'report' && noteReport &&
-                (noteReport.currentWork.length + noteReport.blockers.length + noteReport.nextSteps.length) > 0 && (
-                <>
-                  <div className="dc-note-sections">
-                    {renderSection('Aktuell in Arbeit', noteReport.currentWork, 'work')}
-                    {renderSection('Blocker', noteReport.blockers, 'blocker', true)}
-                    {renderSection('Nächste Schritte', noteReport.nextSteps, 'next')}
-                  </div>
-                  {noteReport.nextSteps.length > 0 && main && (
-                    <div className="dc-note-actions">
-                      <button
-                        type="button"
-                        className={`dc-note-action${allNextDone ? ' done' : ''}`}
-                        onClick={createAllTasks}
-                        disabled={allTasksBusy || allNextDone}
-                      >
-                        {allTasksBusy ? (
-                          <>
-                            <span className="dc-task-spin" aria-hidden />
-                            Tagro legt an… {bulkProgress}/{noteReport.nextSteps.length}
-                          </>
-                        ) : allNextDone ? (
-                          <>
-                            <Check size={13} weight="bold" />
-                            Alle als Aufgaben angelegt
-                          </>
-                        ) : (
-                          <>
-                            <Plus size={12} weight="bold" />
-                            Nächste Schritte als Aufgaben anlegen
-                          </>
-                        )}
-                      </button>
+                {!noteWriting && noteReport &&
+                  (noteReport.currentWork.length + noteReport.blockers.length + noteReport.nextSteps.length) > 0 && (
+                  <>
+                    <div className="dc-note-sections">
+                      {renderSection('Aktuell in Arbeit', noteReport.currentWork, 'work')}
+                      {renderSection('Blocker', noteReport.blockers, 'blocker', true)}
+                      {renderSection('Nächste Schritte', noteReport.nextSteps, 'next')}
                     </div>
-                  )}
-                </>
-              )}
-            </article>
-          ) : (
-            <section className="dc-focus-empty">
-              <TagroLogo size={30} thinking={tagroActive} />
-              <h2>Wähle links einen Bericht.</h2>
-              <p>
-                Oder starte rechts ein Voice Briefing. Das Transkript wird links als Eintrag abgelegt und hier lesbar geöffnet.
-              </p>
-            </section>
-          )}
-        </main>
+                    {noteReport.nextSteps.length > 0 && main && (
+                      <div className="dc-note-actions">
+                        <button
+                          type="button"
+                          className={`dc-note-action${allNextDone ? ' done' : ''}`}
+                          onClick={createAllTasks}
+                          disabled={allTasksBusy || allNextDone}
+                        >
+                          {allTasksBusy ? (
+                            <>
+                              <span className="dc-task-spin" aria-hidden />
+                              Tagro legt an… {bulkProgress}/{noteReport.nextSteps.length}
+                            </>
+                          ) : allNextDone ? (
+                            <>
+                              <Check size={13} weight="bold" />
+                              Alle als Aufgaben angelegt
+                            </>
+                          ) : (
+                            <>
+                              <Plus size={12} weight="bold" />
+                              Nächste Schritte als Aufgaben anlegen
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    )}
+                  </>
+                )}
+              </>
+            ) : (
+              <>
+                <p className="dc-note-empty">
+                  {loading
+                    ? 'Tagro prüft deine Projekte und bereitet den aktuellen Status vor.'
+                    : 'Hier ist noch nichts notiert. Starte rechts ein Voice Briefing, dann schreibt Tagro den aktuellen Status ruhig als Bericht mit.'}
+                </p>
+                <span className="dc-note-empty-cue">
+                  <TagroLogo size={15} thinking={tagroActive} />
+                  Bericht, Transkript und nächste Schritte bleiben hier lesbar.
+                </span>
+              </>
+            )}
+          </article>
 
-        <aside className="dc-side">
-          {/* Premium briefing card — scope-aware, ChatGPT-calm */}
+          <aside className="dc-side">
           <section className="dc-brief" aria-label="Tagro Voice Briefing">
             <header className="dc-brief-head">
               <div className="dc-brief-headline">
                 <p className="dc-brief-eyebrow">Tagro Voice Briefing</p>
-                <h2 className="dc-brief-title">
-                  {isOverall
-                    ? 'Gesamtbericht für alle Projekte'
-                    : `Statusbericht: ${selectedProject?.title ?? '—'}`}
-                </h2>
+                <h2 className="dc-brief-title">{currentReportTitle}</h2>
                 <p className="dc-brief-sub">
                   {noteStamp
                     ? <>Letzte Aktualisierung · heute, {noteStamp} Uhr</>
@@ -1360,7 +1500,12 @@ export default function DashboardPage() {
                 </p>
               </div>
 
-              {/* Scope dropdown */}
+              <div className="dc-period">
+                <span>{period}</span>
+              </div>
+            </header>
+
+            <div className="dc-brief-filterbar">
               <div className="dc-scope">
                 <button
                   type="button"
@@ -1412,49 +1557,64 @@ export default function DashboardPage() {
                   </>
                 )}
               </div>
-            </header>
 
-            {/* Tagro bubble — breathing ring + soft outer pulses */}
+              <div className="dc-period-options" aria-label="Zeitraum">
+                {periodOptions.map((option) => (
+                  <button
+                    type="button"
+                    key={option}
+                    className={period === option ? 'on' : ''}
+                    onClick={() => setPeriod(option)}
+                  >
+                    {option.replace('Letzte ', '')}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="dc-current-report">
+              <span className="dc-current-kicker">Aktueller Bericht</span>
+              <p>{currentReportSummary}</p>
+              <div className="dc-current-facts">
+                {overview.map((s) => (
+                  <span key={s.label}>
+                    <strong>{s.value}</strong>
+                    {s.label}
+                  </span>
+                ))}
+              </div>
+            </div>
+
             <div className={`dc-orb-stage${tagroActive ? ' speaking' : ''}${statusBusy ? ' loading' : ''}`}>
               <span className="dc-orb-pulse dc-orb-pulse-1" aria-hidden />
               <span className="dc-orb-pulse dc-orb-pulse-2" aria-hidden />
+              <span className="dc-orb-pulse dc-orb-pulse-3" aria-hidden />
               <span className="dc-orb-ring" aria-hidden />
               <span className="dc-orb-bubble" aria-hidden>
                 <TagroLogo size={28} thinking={tagroActive} />
               </span>
             </div>
 
-            {/* Minimalist voice line — soft rounded segments, not an equaliser */}
             <svg className={`dc-voice-line${tagroActive ? ' on' : ''}`} viewBox="0 0 240 14" preserveAspectRatio="none" aria-hidden>
-              <path d="M0 7 L70 7 Q78 7 82 4 Q86 1 90 4 Q94 7 102 7 L150 7 Q158 7 162 10 Q166 13 170 10 Q174 7 182 7 L240 7" />
+              <path className="dc-voice-base" d="M0 7 L66 7 Q77 7 83 4.4 Q89 1.8 95 4.4 Q101 7 112 7 L146 7 Q156 7 162 9.6 Q168 12.2 174 9.6 Q180 7 190 7 L240 7" />
+              <path className="dc-voice-live" d="M0 7 L42 7 Q52 7 58 5 Q64 3 70 5 Q76 7 90 7 L126 7 Q138 7 144 3.8 Q150 .9 156 3.8 Q162 7 176 7 L240 7" />
             </svg>
 
-            {/* Status + duration row */}
             <div className="dc-brief-meta">
               <span className={`dc-brief-pulse tone-${
                 statusBusy ? 'amber' : isBriefingPlaying ? 'green' : speechState === 'paused' ? 'amber' : pulse.tone
               }`}>
                 <span className="dc-brief-pulse-dot" aria-hidden />
-                <span>
-                  {statusBusy
-                    ? 'Wird generiert'
-                    : isBriefingPlaying
-                      ? 'Wird abgespielt'
-                      : speechState === 'paused'
-                        ? 'Pausiert'
-                        : audioText.trim() ? 'Bereit zum Anhören' : pulse.label}
-                </span>
+                <span>{briefingStatusLabel}</span>
               </span>
               <span className="dc-brief-duration">{briefingDurationLabel}</span>
             </div>
 
-            <p className="dc-brief-body">
-              {isOverall
-                ? 'Tagro fasst alle aktiven Projekte in einem ruhigen Audio-Briefing zusammen.'
-                : 'Tagro erklärt den aktuellen Fortschritt, offene Punkte und nächste Schritte für dieses Projekt.'}
-            </p>
+            <div className="dc-brief-focus" aria-label="Heute im Fokus">
+              <span>Heute im Fokus</span>
+              {executiveFocus.map((item) => <p key={item}>{item}</p>)}
+            </div>
 
-            {/* Primary + secondary action stack */}
             <div className="dc-brief-actions">
               <button
                 type="button"
@@ -1477,10 +1637,10 @@ export default function DashboardPage() {
                 <button
                   type="button"
                   className="dc-brief-secondary"
-                  onClick={addTranscriptToLog}
+                  onClick={handleTranscriptToggle}
                 >
                   <FileText size={13} />
-                  {showTranscript ? 'Transkript links aktualisieren' : 'Transkript anzeigen'}
+                  {showTranscript ? 'Transkript ausblenden' : 'Transkript anzeigen'}
                 </button>
                 {isBriefingActive && (
                   <button type="button" className="dc-brief-icon" onClick={stopBriefing} title="Stopp" aria-label="Stopp">
@@ -1509,6 +1669,13 @@ export default function DashboardPage() {
                 </button>
               </div>
             </div>
+
+            {showTranscript && (
+              <div className="dc-brief-transcript">
+                <p className="dc-brief-transcript-label">Transkript</p>
+                <p className="dc-brief-transcript-text">{visibleTranscriptBody}</p>
+              </div>
+            )}
 
             {briefingSettingsOpen && (
               <div className="dc-brief-settings" role="dialog" aria-label="Audioeinstellungen">
@@ -1543,28 +1710,31 @@ export default function DashboardPage() {
                 </label>
               </div>
             )}
-          </section>
 
-          <section className="dc-project-mini" aria-label="Kompakte Projektübersicht">
-            <div className="dc-project-mini-head">
-              <span>Projektübersicht</span>
-              <Link href="/projects">Alle öffnen</Link>
-            </div>
-            <div className="dc-project-mini-list">
-              {activeProjects.slice(0, 4).map((project) => {
-                const projectTasks = allTasks.filter((task) => task.project_id === project.id)
-                const openTasks = projectTasks.filter((task) => task.status !== 'done').length
-                return (
-                  <Link key={project.id} href={`/project/${project.id}`} className="dc-project-mini-row">
-                    <span className="dc-project-dot" style={{ background: project.color || 'var(--dc-muted)' }} />
-                    <span>
-                      <strong>{project.title}</strong>
-                      <small>{PHASE[project.status] ?? 'Intake'} · {openTasks} offen</small>
-                    </span>
-                    <ArrowRight size={12} />
-                  </Link>
-                )}
-              )}
+            <div className="dc-history" aria-label="Frühere Berichte">
+              <div className="dc-history-head">
+                <span>Frühere Berichte</span>
+                <small>{period}</small>
+              </div>
+              <div className="dc-history-list">
+                {briefingLog.length === 0 ? (
+                  <p className="dc-history-empty">Sobald Tagro einen Bericht schreibt oder ein Transkript erzeugt, erscheint es hier.</p>
+                ) : briefingLog.slice(0, 5).map((entry) => (
+                  <button
+                    type="button"
+                    key={entry.id}
+                    className={`dc-history-row${activeLog?.id === entry.id ? ' active' : ''}`}
+                    onClick={() => {
+                      setActiveLogId(entry.id)
+                      setShowTranscript(true)
+                    }}
+                  >
+                    <span>{entry.kind === 'transcript' ? 'Transkript' : 'Bericht'}</span>
+                    <strong>{entry.title}</strong>
+                    <small>{new Date(entry.createdAt).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })} Uhr · {entry.scope}</small>
+                  </button>
+                ))}
+              </div>
             </div>
           </section>
         </aside>
