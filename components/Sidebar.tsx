@@ -534,12 +534,12 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: 6,
+            gap: 8,
             paddingRight: 6,
           }}
         >
           <span
-            style={{ display: 'flex', alignItems: 'center', gap: 7, minWidth: 0, flex: 1, textDecoration: 'none', color: 'inherit', height: '100%' }}
+            style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0, flex: 1, textDecoration: 'none', color: 'inherit', height: '100%' }}
           >
             <span style={{ display:'flex', alignItems:'center', justifyContent:'center' }}>
               <Ico name={icon} sz={14} c={active ? 'var(--text)' : 'var(--text-muted)'} weight={active ? 'bold' : 'regular'} />
@@ -551,7 +551,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
             type="button"
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggle() }}
             aria-label={`${label} ein- oder ausklappen`}
-            style={{ width: 20, height: 20, border: 'none', background: 'transparent', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', borderRadius: 6, flexShrink: 0 }}
+            style={{ width: 22, height: 22, border: 'none', background: 'transparent', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', borderRadius: 7, flexShrink: 0 }}
           >
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" style={{ transform: expanded ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform .18s cubic-bezier(.16,1,.3,1)' }}>
               <path d="M9 6l6 6-6 6"/>
@@ -578,7 +578,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
     <>
       <style>{`
         :root {
-          --sb-row-h: 30px;
+          --sb-row-h: 32px;
           --sb-icon: 16px;
           --sb-font: 13px;
           --sb-x: 12px;
@@ -591,7 +591,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         /* ── Nav item ── */
         .ni {
           position:relative;
-          display:flex; align-items:center; gap:7px;
+          display:flex; align-items:center; gap:8px;
           min-height: var(--sb-row-h);
           padding:0 var(--sb-x); border-radius:8px;
           font-size:var(--sb-font); font-weight:500;
@@ -720,8 +720,8 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           display:grid;
           grid-template-columns:16px minmax(0, 1fr);
           align-items:center;
-          gap:7px;
-          min-height:30px;
+          gap:8px;
+          min-height:32px;
           padding:0 var(--sb-x) 0 calc(var(--sb-x) + 4px);
           border-radius:8px;
           font-size:12.5px; font-weight:500;
@@ -1070,13 +1070,13 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: 6,
+                    gap: 8,
                     paddingRight: 6,
                   }}
                 >
                   <Link
                     href={resolve('/teams?view=projects')}
-                    style={{ display: 'flex', alignItems: 'center', gap: 7, minWidth: 0, flex: 1, textDecoration: 'none', color: 'inherit', height: '100%' }}
+                    style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0, flex: 1, textDecoration: 'none', color: 'inherit', height: '100%' }}
                   >
                     <span style={{ display:'flex', alignItems:'center', justifyContent:'center' }}>
                       <Ico name="project" sz={14} c={isOn('/teams?view=projects') ? 'var(--text)' : 'var(--text-muted)'} weight={isOn('/teams?view=projects') ? 'bold' : 'regular'} />
