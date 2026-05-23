@@ -63,6 +63,15 @@ type NoteReport = {
   createdAt?: string
 }
 
+type BriefingLogEntry = {
+  id: string
+  kind: 'report' | 'transcript'
+  title: string
+  scope: string
+  createdAt: string
+  body: string
+}
+
 function normalizeReport(raw: any): NoteReport {
   const arr = (v: any): string[] => (Array.isArray(v) ? v.map((x) => String(x)).filter(Boolean) : [])
   return {
@@ -156,6 +165,14 @@ export default function DashboardPage() {
         if (!r.summary) return
         setNoteReport(r)
         setNoteRevealed(r.summary)
+        addBriefingLogEntry({
+          id: `report-latest-${r.createdAt ?? 'initial'}`,
+          kind: 'report',
+          title: 'Statusbericht – Heute',
+          scope: 'Gesamtbericht für alle Projekte',
+          body: r.summary,
+          createdAt: r.createdAt,
+        })
       } catch { /* notepad simply stays empty */ }
     })()
     return () => { cancelled = true }
@@ -194,6 +211,8 @@ export default function DashboardPage() {
   const [scope, setScope] = useState<'overall' | string>('overall')
   const [scopeOpen, setScopeOpen] = useState(false)
   const [showTranscript, setShowTranscript] = useState(false)
+  const [briefingLog, setBriefingLog] = useState<BriefingLogEntry[]>([])
+  const [activeLogId, setActiveLogId] = useState<string | null>(null)
 
   // Reset to overall if the picked project disappears.
   useEffect(() => {
@@ -208,6 +227,7 @@ export default function DashboardPage() {
 
   const selectedProject = scope === 'overall' ? null : projects.find(p => p.id === scope) ?? null
   const isOverall = scope === 'overall'
+  const scopeLabel = isOverall ? 'Gesamtbericht' : selectedProject?.title ?? 'Projektbericht'
 
   // ── Audio text — the note when present, a calm fallback otherwise ─
   function buildProjectBriefing(p: typeof projects[number]) {
@@ -244,6 +264,38 @@ export default function DashboardPage() {
   const audioText = noteReport?.summary?.trim() && isOverall
     ? noteReport.summary
     : fallbackBriefing
+
+  const activeLog = useMemo(
+    () => briefingLog.find((entry) => entry.id === activeLogId) ?? briefingLog[0] ?? null,
+    [activeLogId, briefingLog],
+  )
+
+  function addBriefingLogEntry(entry: Omit<BriefingLogEntry, 'id' | 'createdAt'> & { id?: string; createdAt?: string }) {
+    const id = entry.id ?? `${entry.kind}-${scope}-${Date.now()}`
+    const next: BriefingLogEntry = {
+      id,
+      kind: entry.kind,
+      title: entry.title,
+      scope: entry.scope,
+      body: entry.body,
+      createdAt: entry.createdAt ?? new Date().toISOString(),
+    }
+    setBriefingLog((items) => [next, ...items.filter((item) => item.id !== id)].slice(0, 24))
+    setActiveLogId(id)
+  }
+
+  function addTranscriptToLog() {
+    const body = audioText.trim()
+    if (!body) return
+    addBriefingLogEntry({
+      id: `transcript-${scope}`,
+      kind: 'transcript',
+      title: isOverall ? 'Transkript – Gesamtbericht' : `Transkript – ${scopeLabel}`,
+      scope: scopeLabel,
+      body,
+    })
+    setShowTranscript(true)
+  }
 
   // German average ≈ 150 wpm → ~2.5 words per second.
   const briefingDurationLabel = useMemo(() => {
@@ -390,6 +442,13 @@ export default function DashboardPage() {
         const r = normalizeReport(d.report)
         setNoteReport(r)
         setTaskState({})
+        addBriefingLogEntry({
+          kind: 'report',
+          title: isOverall ? 'Statusbericht – Heute' : `Statusbericht – ${scopeLabel}`,
+          scope: isOverall ? 'Gesamtbericht für alle Projekte' : scopeLabel,
+          body: r.summary || fallbackBriefing,
+          createdAt: r.createdAt,
+        })
         if (r.summary) await streamNote(r.summary)
       }
     } finally {
@@ -1129,29 +1188,112 @@ export default function DashboardPage() {
 
       <div className="dc-wrap">
 
-        {/* ── Header ─────────────────────────────────────────────── */}
         <header className="dc-head">
-          <h1 className="dc-greeting">{greeting}</h1>
-          <p className="dc-greeting-sub">
-            Ein Klick — und Tagro schreibt dir den aktuellen Projektstand hierher.
-          </p>
+          <div>
+            <h1 className="dc-greeting">{greeting}</h1>
+            <p className="dc-greeting-sub">
+              Status, Berichte und Audio-Briefings in einem festen Arbeitsfenster.
+            </p>
+          </div>
+          <span className={`dc-head-pulse tone-${pulse.tone}`}>
+            <span />
+            {pulse.label}
+          </span>
         </header>
 
         <div className="dc-body">
 
-        {/* ── Statusnotiz — notebook page, no frame ──────────────── */}
-        <article className="dc-note" aria-label="Statusnotiz">
-          <div className="dc-note-head">
-            <span className="dc-note-label">Statusnotiz</span>
-            {noteStamp && <span className="dc-note-stamp">Stand {noteStamp} Uhr</span>}
+        <aside className="dc-log-panel" aria-label="Briefing-Historie">
+          <div className="dc-left-summary">
+            <section className="dc-summary-block" aria-label="Überblick">
+              <span className="dc-block-label">Überblick</span>
+              <div className="dc-stats">
+                {overview.map((s) => (
+                  <div className="dc-stat" key={s.label}>
+                    <div className="dc-stat-value">{s.value}</div>
+                    <div className="dc-stat-label">{s.label}</div>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            <section className="dc-summary-block" aria-label="Entscheidungen">
+              <div className="dc-block-head">
+                <span className="dc-block-label">Entscheidungen</span>
+                {decisionTasks.length > 0 && <span className="dc-block-count">{decisionTasks.length}</span>}
+              </div>
+              {decisionTasks.length === 0 ? (
+                <p className="dc-block-empty">Nichts wartet auf deine Freigabe.</p>
+              ) : (
+                <div className="dc-mini-list">
+                  {decisionTasks.slice(0, 2).map((t) => (
+                    <Link key={t.id} href={t.project_id ? `/project/${t.project_id}` : '/tasks'} className="dc-mini-row">
+                      <span className="dc-row-dot warn" aria-hidden />
+                      <span>{t.title}</span>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </section>
+
+            <section className="dc-summary-block" aria-label="Risiken">
+              <div className="dc-block-head">
+                <span className="dc-block-label">Risiken</span>
+                {riskTasks.length > 0 && <span className="dc-block-count">{riskTasks.length}</span>}
+              </div>
+              {riskTasks.length === 0 ? (
+                <p className="dc-block-empty">Keine Verzögerung sichtbar.</p>
+              ) : (
+                <div className="dc-mini-list">
+                  {riskTasks.slice(0, 2).map((t) => (
+                    <Link key={t.id} href={t.project_id ? `/project/${t.project_id}` : '/tasks'} className="dc-mini-row">
+                      <span className="dc-row-dot risk" aria-hidden />
+                      <span>{t.title}</span>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </section>
           </div>
-          {noteRevealed ? (
-            <>
-              <p className="dc-note-text">
-                {noteRevealed}
-                {noteWriting && <span className="dc-caret" aria-hidden />}
+
+          <div className="dc-log-head">
+            <span>Berichte & Transkripte</span>
+            <small>{briefingLog.length || 'Noch leer'}</small>
+          </div>
+          <div className="dc-log-list">
+            {briefingLog.length === 0 ? (
+              <div className="dc-log-empty">
+                <FileText size={17} />
+                <p>Noch kein schriftlicher Bericht.</p>
+                <span>Statusberichte und Transkripte erscheinen hier als ruhige Historie.</span>
+              </div>
+            ) : briefingLog.map((entry) => (
+              <button
+                type="button"
+                key={entry.id}
+                className={`dc-log-entry${activeLog?.id === entry.id ? ' active' : ''}`}
+                onClick={() => setActiveLogId(entry.id)}
+              >
+                <span className={`dc-log-kind ${entry.kind}`}>{entry.kind === 'transcript' ? 'Transkript' : 'Statusbericht'}</span>
+                <strong>{entry.title}</strong>
+                <small>{entry.scope} · {new Date(entry.createdAt).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })} Uhr</small>
+                <p>{entry.body}</p>
+              </button>
+            ))}
+          </div>
+        </aside>
+
+        <main className="dc-focus" aria-label="Berichtsanzeige">
+          {activeLog ? (
+            <article className="dc-focus-doc">
+              <div className="dc-focus-kicker">{activeLog.kind === 'transcript' ? 'Transkript' : 'Statusbericht'}</div>
+              <h2>{activeLog.title}</h2>
+              <p className="dc-focus-meta">{activeLog.scope} · {new Date(activeLog.createdAt).toLocaleString('de-DE', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })} Uhr</p>
+              <p className="dc-focus-text">
+                {activeLog.kind === 'report' && noteWriting && activeLog.id === activeLogId ? noteRevealed : activeLog.body}
+                {noteWriting && activeLog.kind === 'report' && <span className="dc-caret" aria-hidden />}
               </p>
-              {!noteWriting && noteReport &&
+              {!noteWriting && activeLog.kind === 'report' && noteReport &&
                 (noteReport.currentWork.length + noteReport.blockers.length + noteReport.nextSteps.length) > 0 && (
                 <>
                   <div className="dc-note-sections">
@@ -1188,25 +1330,18 @@ export default function DashboardPage() {
                   )}
                 </>
               )}
-            </>
+            </article>
           ) : (
-            <>
-              <p className="dc-note-empty">
-                {loading
-                  ? 'Tagro prüft gerade deine Projekte…'
-                  : 'Hier ist noch nichts notiert. Tippe auf „Status abrufen“ und Tagro fasst den heutigen Stand ruhig hier zusammen.'}
+            <section className="dc-focus-empty">
+              <TagroLogo size={30} thinking={tagroActive} />
+              <h2>Wähle links einen Bericht.</h2>
+              <p>
+                Oder starte rechts ein Voice Briefing. Das Transkript wird links als Eintrag abgelegt und hier lesbar geöffnet.
               </p>
-              {!loading && (
-                <div className="dc-note-empty-cue">
-                  <ArrowClockwise size={14} />
-                  <span>Bereit, sobald du es bist.</span>
-                </div>
-              )}
-            </>
+            </section>
           )}
-        </article>
+        </main>
 
-        {/* ── Right column ───────────────────────────────────────── */}
         <aside className="dc-side">
           {/* Premium briefing card — scope-aware, ChatGPT-calm */}
           <section className="dc-brief" aria-label="Tagro Voice Briefing">
@@ -1342,10 +1477,10 @@ export default function DashboardPage() {
                 <button
                   type="button"
                   className="dc-brief-secondary"
-                  onClick={() => setShowTranscript(v => !v)}
+                  onClick={addTranscriptToLog}
                 >
                   <FileText size={13} />
-                  {showTranscript ? 'Transkript ausblenden' : 'Transkript anzeigen'}
+                  {showTranscript ? 'Transkript links aktualisieren' : 'Transkript anzeigen'}
                 </button>
                 {isBriefingActive && (
                   <button type="button" className="dc-brief-icon" onClick={stopBriefing} title="Stopp" aria-label="Stopp">
@@ -1374,13 +1509,6 @@ export default function DashboardPage() {
                 </button>
               </div>
             </div>
-
-            {showTranscript && (
-              <div className="dc-brief-transcript" role="region" aria-label="Transkript">
-                <p className="dc-brief-transcript-label">Transkript</p>
-                <p className="dc-brief-transcript-text">{audioText}</p>
-              </div>
-            )}
 
             {briefingSettingsOpen && (
               <div className="dc-brief-settings" role="dialog" aria-label="Audioeinstellungen">
@@ -1417,102 +1545,28 @@ export default function DashboardPage() {
             )}
           </section>
 
-          {/* ── Overview: 4 calm stats ───────────────────────────── */}
-          <div className="dc-overview">
-            <span className="dc-block-label">Überblick</span>
-            <div className="dc-stats">
-              {overview.map((s) => (
-                <div className="dc-stat" key={s.label}>
-                  <div className="dc-stat-value">{s.value}</div>
-                  <div className="dc-stat-label">{s.label}</div>
-                </div>
-              ))}
+          <section className="dc-project-mini" aria-label="Kompakte Projektübersicht">
+            <div className="dc-project-mini-head">
+              <span>Projektübersicht</span>
+              <Link href="/projects">Alle öffnen</Link>
             </div>
-          </div>
-
-          {/* ── Decisions + risks ────────────────────────────────── */}
-          <div className="dc-blocks">
-          <section className="dc-block" aria-label="Entscheidungen">
-            <div className="dc-block-head">
-              <span className="dc-block-label">Entscheidungen</span>
-              {decisionTasks.length > 0 && <span className="dc-block-count">{decisionTasks.length}</span>}
-            </div>
-            {decisionTasks.length === 0 ? (
-              <p className="dc-block-empty">Nichts wartet auf deine Freigabe.</p>
-            ) : (
-              <>
-                <div className="dc-block-list">
-                  {decisionTasks.slice(0, 4).map((t) => (
-                    <Link
-                      key={t.id}
-                      href={t.project_id ? `/project/${t.project_id}` : '/tasks'}
-                      className="dc-block-row"
-                    >
-                      <span className="dc-row-dot warn" aria-hidden />
-                      <span className="dc-row-main">
-                        <span className="dc-row-title">{t.title}</span>
-                        {projectTitle(t.project_id) && (
-                          <span className="dc-row-sub">{projectTitle(t.project_id)}</span>
-                        )}
-                      </span>
-                      <ArrowRight size={13} className="dc-block-go" />
-                    </Link>
-                  ))}
-                </div>
-                {decisionTasks.length > 4 && (
-                  <Link href="/tasks?status=waiting" className="dc-block-more">
-                    {decisionTasks.length - 4} weitere ansehen <ArrowRight size={11} />
+            <div className="dc-project-mini-list">
+              {activeProjects.slice(0, 4).map((project) => {
+                const projectTasks = allTasks.filter((task) => task.project_id === project.id)
+                const openTasks = projectTasks.filter((task) => task.status !== 'done').length
+                return (
+                  <Link key={project.id} href={`/project/${project.id}`} className="dc-project-mini-row">
+                    <span className="dc-project-dot" style={{ background: project.color || 'var(--dc-muted)' }} />
+                    <span>
+                      <strong>{project.title}</strong>
+                      <small>{PHASE[project.status] ?? 'Intake'} · {openTasks} offen</small>
+                    </span>
+                    <ArrowRight size={12} />
                   </Link>
                 )}
-              </>
-            )}
-          </section>
-
-          <section className="dc-block" aria-label="Risiken">
-            <div className="dc-block-head">
-              <span className="dc-block-label">Risiken</span>
-              {riskTasks.length > 0 && <span className="dc-block-count">{riskTasks.length}</span>}
+              )}
             </div>
-            {riskTasks.length === 0 ? (
-              <p className="dc-block-empty">Keine Verzögerung sichtbar.</p>
-            ) : (
-              <>
-                <div className="dc-block-list">
-                  {riskTasks.slice(0, 4).map((t) => (
-                    <Link
-                      key={t.id}
-                      href={t.project_id ? `/project/${t.project_id}` : '/tasks'}
-                      className="dc-block-row"
-                    >
-                      <span className="dc-row-dot risk" aria-hidden />
-                      <span className="dc-row-main">
-                        <span className="dc-row-title">{t.title}</span>
-                        {projectTitle(t.project_id) && (
-                          <span className="dc-row-sub">{projectTitle(t.project_id)}</span>
-                        )}
-                      </span>
-                      <ArrowRight size={13} className="dc-block-go" />
-                    </Link>
-                  ))}
-                </div>
-                {riskTasks.length > 4 && (
-                  <Link href="/tasks?status=blocked" className="dc-block-more">
-                    {riskTasks.length - 4} weitere ansehen <ArrowRight size={11} />
-                  </Link>
-                )}
-              </>
-            )}
           </section>
-
-          <div className="dc-foot">
-            <Link href="/reports" className="dc-foot-link">Vollständig lesen <ArrowRight size={11} /></Link>
-            {main && (
-              <Link href={`/project/${main.id}`} className="dc-foot-link">
-                Projekt öffnen <ArrowRight size={11} />
-              </Link>
-            )}
-          </div>
-          </div>
         </aside>
 
         </div>

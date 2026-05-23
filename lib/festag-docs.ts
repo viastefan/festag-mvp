@@ -1,0 +1,623 @@
+export type FestagDocSection =
+  | 'Erste Schritte'
+  | 'Projekte'
+  | 'Aufgaben & operative Arbeit'
+  | 'Statusabfragen'
+  | 'Tagro AI'
+  | 'Reports & Briefings'
+  | 'Teams & Rollen'
+  | 'Whitelabel & Agenturen'
+  | 'Sicherheit & Vertrauen'
+
+export type FestagDocArticle = {
+  title: string
+  slug: string
+  category: FestagDocSection
+  description: string
+  readingTime: string
+  tags: string[]
+  popular?: boolean
+  content: {
+    overview: string
+    explanation: string[]
+    example: string
+    nextStep: string
+  }
+}
+
+export const docsCategories: Array<{ title: FestagDocSection | 'Best Practices' | 'Hilfe & Support'; description: string }> = [
+  { title: 'Erste Schritte', description: 'Grundlagen, Navigation und die ersten Minuten in Festag.' },
+  { title: 'Projekte', description: 'Projektanlage, Projektstatus, Detailansichten und nächste Schritte.' },
+  { title: 'Aufgaben & operative Arbeit', description: 'Tasks, Prioritäten, Verantwortlichkeiten und Fortschritt.' },
+  { title: 'Statusabfragen', description: 'Strukturierte Updates statt verstreuter Nachrichten.' },
+  { title: 'Tagro AI', description: 'Wie Tagro Informationen sortiert, bewertet und verdichtet.' },
+  { title: 'Teams & Rollen', description: 'Zusammenarbeit, externe Personen und klare Zugriffe.' },
+  { title: 'Reports & Briefings', description: 'Statusberichte, Executive Summaries, Audio und Transkripte.' },
+  { title: 'Whitelabel & Agenturen', description: 'Kundenportale, Agenturprozesse und diskrete Projektsteuerung.' },
+  { title: 'Sicherheit & Vertrauen', description: 'Transparenz, Accountability, Datenschutz und professionelle Kommunikation.' },
+  { title: 'Best Practices', description: 'Ruhige Arbeitsweisen für bessere Projektübersicht.' },
+  { title: 'Hilfe & Support', description: 'Wenn etwas unklar ist oder ein Setup besprochen werden soll.' },
+]
+
+const article = (
+  category: FestagDocSection,
+  title: string,
+  slug: string,
+  description: string,
+  tags: string[],
+  content: FestagDocArticle['content'],
+  popular = false,
+  readingTime = '4 Min.',
+): FestagDocArticle => ({ title, slug, category, description, tags, content, popular, readingTime })
+
+export const festagDocsArticles: FestagDocArticle[] = [
+  article('Erste Schritte', 'Was ist Festag?', 'was-ist-festag',
+    'Ein Überblick über Festag als Plattform für Projekte, Teams, Statusberichte und operative Transparenz.',
+    ['Grundlagen', 'Plattform', 'Transparenz', 'Projekte'],
+    {
+      overview: 'Festag bündelt Projekte, Aufgaben, Statusabfragen und Tagro-Briefings in einer ruhigen Arbeitsoberfläche.',
+      explanation: [
+        'Der Kern von Festag ist operative Übersicht. Projekte werden nicht nur abgelegt, sondern laufend in verständliche Statussignale übersetzt.',
+        'Teams, Kunden und externe Umsetzer arbeiten mit denselben Projektinformationen, ohne dass alles in Chats oder Tabellen verteilt werden muss.',
+      ],
+      example: 'Eine Agentur sieht in Festag, welche Kundenprojekte aktiv sind, welche Aufgaben offen sind und welche Entscheidungen gerade blockieren.',
+      nextStep: 'Starte mit dem Dashboard und lege danach dein erstes Projekt an.',
+    }, true),
+  article('Erste Schritte', 'Schnellstart mit Festag', 'schnellstart-mit-festag',
+    'Die wichtigsten ersten Schritte nach der Registrierung.',
+    ['Start', 'Onboarding', 'Projektanlage'],
+    {
+      overview: 'Nach der Registrierung geht es darum, ein erstes Projekt, ein Team und den passenden Statusrhythmus aufzusetzen.',
+      explanation: [
+        'Lege zuerst ein Projekt an und beschreibe knapp Ziel, Umfang und aktuelle Lage.',
+        'Ergänze anschließend Mitwirkende oder Teams, damit Verantwortlichkeiten früh sichtbar werden.',
+        'Nutze Statusabfragen und Reports, sobald echte Arbeit läuft. So entstehen Berichte aus realen Signalen statt aus Bauchgefühl.',
+      ],
+      example: 'Ein neues Website-Projekt startet mit Titel, Ziel, nächstem Meilenstein und zwei Mitwirkenden. Danach kann Tagro erste nächste Schritte ableiten.',
+      nextStep: 'Öffne Projekte und erstelle ein erstes Projekt mit klarer Kurzbeschreibung.',
+    }, true, '3 Min.'),
+  article('Erste Schritte', 'Das Dashboard verstehen', 'dashboard-verstehen',
+    'Wie Projekte, Aufgaben, Statusmeldungen und Tagro-Hinweise zusammenlaufen.',
+    ['Dashboard', 'Statusabfrage', 'Überblick'],
+    {
+      overview: 'Das Dashboard ist die tägliche Lagefläche für Fortschritt, Risiken, Entscheidungen und Briefings.',
+      explanation: [
+        'Die Statusabfrage zeigt nicht jede Detailinformation, sondern die wichtigsten Signale für Steuerung und nächste Schritte.',
+        'Tagro verdichtet Aufgaben, Projektstatus und Berichte zu einer verständlichen Lage, die schnell gelesen oder gehört werden kann.',
+      ],
+      example: 'Wenn ein Projekt blockiert ist, erscheint der Hinweis nicht irgendwo tief in einer Aufgabe, sondern als Signal im Dashboard.',
+      nextStep: 'Prüfe im Dashboard zuerst Risiken und Entscheidungen, dann öffne bei Bedarf das Projekt.',
+    }, true),
+  article('Erste Schritte', 'Die wichtigsten Bereiche in Festag', 'wichtigste-bereiche',
+    'Kurzer Überblick über Projekte, Tasks, Statusabfragen, Teams, Reports und Tagro.',
+    ['Navigation', 'Projekte', 'Tasks', 'Tagro'],
+    {
+      overview: 'Festag ist in wenige Kernbereiche gegliedert: Projekte, Tasks, Teams, Reports, Statusabfrage und Tagro AI.',
+      explanation: [
+        'Projekte bilden den Kontext. Tasks zeigen operative Arbeit. Teams und Rollen klären Verantwortlichkeiten.',
+        'Reports und Audio-Briefings übersetzen laufende Arbeit in eine Form, die Entscheider und Stakeholder schnell verstehen.',
+      ],
+      example: 'Ein CEO öffnet nicht jedes Ticket, sondern liest den Report, hört das Briefing und prüft nur die offenen Entscheidungen.',
+      nextStep: 'Nutze die Sidebar als feste Orientierung: erst Status, dann Projekte, dann Reports.',
+    }),
+  article('Erste Schritte', 'Festag für neue Nutzer erklärt', 'festag-fuer-neue-nutzer',
+    'Eine einfache Einführung für Nutzer, die das Produkt zum ersten Mal verwenden.',
+    ['Einführung', 'Neue Nutzer', 'Produkt'],
+    {
+      overview: 'Festag hilft neuen Nutzern, Projektarbeit ohne lange Einarbeitung zu verstehen.',
+      explanation: [
+        'Die Oberfläche ist bewusst ruhig aufgebaut. Wichtige Bereiche bleiben in der Sidebar stabil erreichbar.',
+        'Neue Nutzer müssen nicht alle Details kennen. Sie können mit Projektübersicht, Statusberichten und Tagro-Briefings starten.',
+      ],
+      example: 'Ein Kunde sieht, was passiert ist, was offen ist und welche Freigabe von ihm erwartet wird, ohne ein Projektmanagement-Tool lernen zu müssen.',
+      nextStep: 'Lies danach den Artikel zu Statusabfragen, weil sie den täglichen Informationsfluss erklären.',
+    }),
+
+  article('Projekte', 'Ein neues Projekt anlegen', 'projekt-anlegen',
+    'Wie ein Projekt erstellt, beschrieben und vorbereitet wird.',
+    ['Projekte', 'Projektanlage', 'Start'],
+    {
+      overview: 'Ein Projekt braucht einen verständlichen Namen, eine kurze Beschreibung und einen klaren Startkontext.',
+      explanation: [
+        'Beschreibe nicht jedes Detail, sondern Ziel, aktuelles Problem, gewünschtes Ergebnis und bekannte Rahmenbedingungen.',
+        'Diese Informationen helfen Tagro später, Statusberichte, nächste Schritte und Risiken sinnvoll einzuordnen.',
+      ],
+      example: 'Statt "Website" ist "Praxis-Website für systemische Beratung mit Termin-Anfrage" deutlich besser.',
+      nextStep: 'Nach der Anlage solltest du erste Aufgaben oder Mitwirkende hinzufügen.',
+    }, true),
+  article('Projekte', 'Projektfarben und Projektakzente nutzen', 'projektfarben-und-akzente',
+    'Wie Projektakzente helfen, Projekte schneller wiederzuerkennen.',
+    ['Projektfarben', 'Organisation', 'UI'],
+    {
+      overview: 'Projektakzente sind Orientierungshilfen, keine Dekoration.',
+      explanation: [
+        'Farben helfen, Projekte in Listen und Übersichten schneller wiederzuerkennen.',
+        'Nutze Farben sparsam und konsistent, besonders wenn mehrere Kunden oder Teams parallel arbeiten.',
+      ],
+      example: 'Eine Agentur kann pro Kunde eine ruhige Akzentfarbe verwenden und interne Projekte neutral halten.',
+      nextStep: 'Setze Akzente dort, wo viele Projekte gleichzeitig sichtbar sind.',
+    }, false, '2 Min.'),
+  article('Projekte', 'Projektstatus richtig verstehen', 'projektstatus-verstehen',
+    'Wie Statusfilter genutzt werden und warum nicht jede Information in der Tabelle doppelt angezeigt werden muss.',
+    ['Projektstatus', 'Filter', 'Übersicht'],
+    {
+      overview: 'Der Projektstatus zeigt die grobe operative Phase, nicht jeden einzelnen Arbeitsschritt.',
+      explanation: [
+        'Statuswerte helfen beim Filtern und Priorisieren. Details gehören in Aufgaben, Berichte und Projektansichten.',
+        'So bleibt die Projektliste lesbar und wird nicht zu einer überladenen Tabelle.',
+      ],
+      example: 'Ein Projekt kann "In Arbeit" sein, während einzelne Tasks auf Review oder Freigabe warten.',
+      nextStep: 'Nutze die Projektansicht, wenn du die Gründe hinter einem Status verstehen willst.',
+    }),
+  article('Projekte', 'Projektansicht verstehen', 'projektansicht-verstehen',
+    'Welche Informationen in der Detailansicht sichtbar sind und wie sie gelesen werden.',
+    ['Projektansicht', 'Details', 'Tasks'],
+    {
+      overview: 'Die Projektansicht sammelt Kontext, Aufgaben, Mitwirkende, Updates und relevante Hinweise an einem Ort.',
+      explanation: [
+        'Sie ist der richtige Ort, wenn du nicht nur wissen willst, dass etwas offen ist, sondern warum.',
+        'Statusberichte und Tagro-Hinweise helfen, die Detailinformationen in eine verständliche Lage zu übersetzen.',
+      ],
+      example: 'Bei einem offenen Review zeigt die Projektansicht Aufgabe, Verantwortliche und Kontext des letzten Updates.',
+      nextStep: 'Öffne ein aktives Projekt und prüfe Aufgaben, Status und letzte Updates zusammen.',
+    }),
+  article('Projekte', 'Nächste Schritte in Projekten planen', 'naechste-schritte-planen',
+    'Wie aus einer Projektbeschreibung konkrete nächste Aktionen entstehen.',
+    ['Nächste Schritte', 'Planung', 'Tagro'],
+    {
+      overview: 'Nächste Schritte verbinden Projektziel und operative Arbeit.',
+      explanation: [
+        'Gute nächste Schritte sind konkret, prüfbar und einer Person oder Rolle zuordenbar.',
+        'Tagro kann aus Beschreibungen und Statusberichten Vorschläge ableiten, die vor dem Ausführen bestätigt werden.',
+      ],
+      example: 'Aus "Mobile Ansicht prüfen" wird eine Aufgabe wie "Navigation auf kleinen Screens testen und Abstände korrigieren".',
+      nextStep: 'Erstelle wenige klare Schritte statt viele vage Aufgaben.',
+    }),
+  article('Projekte', 'Mitwirkende einem Projekt zuordnen', 'mitwirkende-zuordnen',
+    'Wie Personen, Teams oder Entwickler einem Projekt zugeordnet werden.',
+    ['Mitwirkende', 'Teams', 'Zuständigkeit'],
+    {
+      overview: 'Mitwirkende machen sichtbar, wer im Projekt beteiligt ist und wer Informationen erhalten sollte.',
+      explanation: [
+        'Festag trennt Projektkontext, Aufgaben und Rollen. Eine Person kann sichtbar beteiligt sein, ohne überall Zugriff zu haben.',
+        'Dadurch bleiben Zuständigkeiten klar, während sensible Bereiche geschützt bleiben.',
+      ],
+      example: 'Ein externer Entwickler sieht die relevanten Aufgaben, aber nicht automatisch alle Kundendaten oder Abrechnungsinformationen.',
+      nextStep: 'Ordne Mitwirkende erst nach Rolle und Verantwortlichkeit zu, nicht nach Gewohnheit.',
+    }),
+  article('Projekte', 'Interne und externe Projekte unterscheiden', 'interne-und-externe-projekte',
+    'Wie Festag zwischen eigenen Teams, externen Entwicklern und Whitelabel-Projekten unterscheidet.',
+    ['Intern', 'Extern', 'Whitelabel', 'Agenturen'],
+    {
+      overview: 'Nicht jedes Projekt hat dieselbe Sichtbarkeit und denselben Kommunikationsbedarf.',
+      explanation: [
+        'Interne Projekte brauchen andere Transparenz als Kundenprojekte oder Whitelabel-Setups.',
+        'Festag hilft dabei, operative Arbeit sichtbar zu machen, ohne unnötig viele interne Details nach außen zu geben.',
+      ],
+      example: 'Eine Agentur kann ein Kundenportal anbieten, während die tatsächliche Umsetzung im Hintergrund organisiert wird.',
+      nextStep: 'Entscheide beim Projektstart, wer Fortschritt sehen darf und wer nur Ergebnisse braucht.',
+    }),
+
+  article('Aufgaben & operative Arbeit', 'Tasks in Festag verstehen', 'tasks-verstehen',
+    'Wie Aufgaben strukturiert und verfolgt werden.',
+    ['Tasks', 'Aufgaben', 'Operative Arbeit'],
+    {
+      overview: 'Tasks sind die operative Ebene unter Projekten.',
+      explanation: [
+        'Eine Aufgabe sollte beschreiben, was konkret zu tun ist und in welchem Projektkontext sie steht.',
+        'Status, Priorität und Verantwortlichkeit helfen, Arbeit steuerbar zu machen, ohne jeden Schritt zu mikromanagen.',
+      ],
+      example: 'Eine Aufgabe wie "Dashboard Layout freigeben" ist klarer als "Dashboard anschauen".',
+      nextStep: 'Achte darauf, dass jede wichtige Aufgabe einen Owner oder nächsten Prüfschritt hat.',
+    }, true),
+  article('Aufgaben & operative Arbeit', 'Aufgaben sinnvoll priorisieren', 'aufgaben-priorisieren',
+    'Wie Prioritäten helfen, operative Arbeit klarer zu steuern.',
+    ['Priorität', 'Tasks', 'Steuerung'],
+    {
+      overview: 'Prioritäten sind nur hilfreich, wenn sie Entscheidungen erleichtern.',
+      explanation: [
+        'Nicht jede Aufgabe ist dringend. Gute Priorisierung unterscheidet Blocker, Review-Punkte, nächste Schritte und spätere Verbesserungen.',
+        'Festag nutzt Prioritäten als Signal für Übersicht und Berichte, nicht als starres Kontrollsystem.',
+      ],
+      example: 'Ein blockierter Login ist höher zu priorisieren als eine optionale Textkorrektur im Footer.',
+      nextStep: 'Priorisiere nach Risiko, Nutzerwirkung und Abhängigkeiten.',
+    }),
+  article('Aufgaben & operative Arbeit', 'Verantwortlichkeiten sichtbar machen', 'verantwortlichkeiten-sichtbar-machen',
+    'Wie Festag zeigt, wer für welche Aufgabe zuständig ist.',
+    ['Verantwortlichkeit', 'Owner', 'Accountability'],
+    {
+      overview: 'Klare Verantwortlichkeiten reduzieren Rückfragen und stille Blockaden.',
+      explanation: [
+        'Festag macht sichtbar, wer an einer Aufgabe arbeitet, wer prüft und wer eine Entscheidung treffen muss.',
+        'Das schafft Accountability, ohne Menschen permanent kontrollieren zu müssen.',
+      ],
+      example: 'Wenn ein Review offen ist, sieht der Nutzer nicht nur die Aufgabe, sondern auch, wer sie freigeben soll.',
+      nextStep: 'Weise Aufgaben so zu, dass der nächste konkrete Schritt klar ist.',
+    }),
+  article('Aufgaben & operative Arbeit', 'Offene Punkte erkennen', 'offene-punkte-erkennen',
+    'Wie aus Projektinformationen konkrete offene Punkte entstehen.',
+    ['Offene Punkte', 'Risiken', 'Entscheidungen'],
+    {
+      overview: 'Offene Punkte entstehen oft aus unklaren Entscheidungen, fehlendem Feedback oder blockierten Aufgaben.',
+      explanation: [
+        'Festag sammelt diese Signale aus Projekten, Tasks und Statusberichten.',
+        'Tagro kann sie in Berichten sichtbar machen und daraus bestätigungspflichtige Vorschläge ableiten.',
+      ],
+      example: 'Wenn mehrere Aufgaben auf Kundenfeedback warten, wird daraus ein Entscheidungs- oder Review-Signal.',
+      nextStep: 'Prüfe offene Punkte regelmäßig in Statusabfrage und Reports.',
+    }),
+  article('Aufgaben & operative Arbeit', 'Fortschritt ohne Mikromanagement verfolgen', 'fortschritt-ohne-mikromanagement',
+    'Wie Führungskräfte Überblick behalten, ohne ständig nachfragen zu müssen.',
+    ['Führung', 'Fortschritt', 'Übersicht'],
+    {
+      overview: 'Festag soll Überblick schaffen, nicht Kontrolle simulieren.',
+      explanation: [
+        'Führungskräfte brauchen verlässliche Signale: Fortschritt, Blocker, Entscheidungen und nächste Schritte.',
+        'Statusabfragen und Reports ersetzen viele kurze Nachfragen, weil Informationen regelmäßig strukturiert eintreffen.',
+      ],
+      example: 'Ein CEO hört ein Audio-Briefing und öffnet nur die zwei Projekte, bei denen Entscheidungen nötig sind.',
+      nextStep: 'Nutze Reports als Entscheidungsgrundlage statt als Tätigkeitsprotokoll.',
+    }),
+
+  article('Statusabfragen', 'Was ist eine Statusabfrage?', 'was-ist-eine-statusabfrage',
+    'Statusabfragen helfen dabei, klare Updates von Beteiligten einzuholen, ohne lange Rückfragen oder unübersichtliche Chats.',
+    ['Statusabfrage', 'Updates', 'Transparenz'],
+    {
+      overview: 'Eine Statusabfrage ist eine strukturierte Nachfrage nach dem aktuellen Arbeitsstand.',
+      explanation: [
+        'Sie ersetzt unklare Chat-Nachrichten wie "Wie sieht es aus?" durch wiederholbare, kurze und auswertbare Updates.',
+        'Tagro kann Antworten später zusammenfassen und daraus Statusberichte, Risiken oder nächste Schritte ableiten.',
+      ],
+      example: 'Ein Entwickler meldet Fortschritt, Blocker und nächste Schritte. Der Kunde sieht daraus eine klare Zusammenfassung.',
+      nextStep: 'Erstelle Statusabfragen für Projekte, bei denen du regelmäßig Überblick brauchst.',
+    }, true),
+  article('Statusabfragen', 'Statusabfragen erstellen', 'statusabfragen-erstellen',
+    'Wie eine neue Statusabfrage angelegt wird.',
+    ['Statusabfragen', 'Erstellen', 'Updates'],
+    {
+      overview: 'Eine gute Statusabfrage ist kurz und fragt nur nach Informationen, die wirklich helfen.',
+      explanation: [
+        'Frage nach Fortschritt, offenen Punkten und nächsten Schritten. Vermeide zu viele Felder.',
+        'Je klarer die Abfrage, desto besser kann Tagro die Antworten später strukturieren.',
+      ],
+      example: 'Eine wöchentliche Abfrage fragt: Was wurde erledigt? Was blockiert? Was ist als Nächstes geplant?',
+      nextStep: 'Starte mit einer einfachen Abfrage und passe sie erst an, wenn echte Antworten vorliegen.',
+    }),
+  article('Statusabfragen', 'Statusabfragen an Teammitglieder senden', 'statusabfragen-senden',
+    'Wie Beteiligte regelmäßig kurze Updates geben können.',
+    ['Team', 'Updates', 'Rhythmus'],
+    {
+      overview: 'Statusabfragen wirken am besten, wenn sie in einem festen Rhythmus verschickt werden.',
+      explanation: [
+        'Beteiligte müssen wissen, was von ihnen erwartet wird und wie knapp die Antwort sein darf.',
+        'Regelmäßigkeit ist wichtiger als Länge. Kurze Updates sind oft wertvoller als seltene lange Berichte.',
+      ],
+      example: 'Ein Team gibt jeden Freitag kurze Projektupdates ab, aus denen Tagro eine Wochenübersicht erstellt.',
+      nextStep: 'Lege einen Rhythmus fest, der zur Projektgeschwindigkeit passt.',
+    }),
+  article('Statusabfragen', 'Antworten aus Statusabfragen verstehen', 'antworten-aus-statusabfragen',
+    'Wie Rückmeldungen gesammelt und lesbar gemacht werden.',
+    ['Antworten', 'Auswertung', 'Tagro'],
+    {
+      overview: 'Antworten sind Rohsignale, die erst durch Struktur wirklich nützlich werden.',
+      explanation: [
+        'Festag sammelt Rückmeldungen und ordnet sie Projekt, Person und Zeitpunkt zu.',
+        'Tagro kann daraus lesbare Zusammenfassungen und Hinweise auf Risiken oder Entscheidungen erstellen.',
+      ],
+      example: 'Drei einzelne Updates werden zu einer kurzen Lage: Fortschritt stabil, ein Review offen, kein Blocker.',
+      nextStep: 'Lies Antworten nicht isoliert, sondern im Kontext von Projekt und Aufgaben.',
+    }),
+  article('Statusabfragen', 'Statusabfragen für Kundenprojekte nutzen', 'statusabfragen-fuer-kundenprojekte',
+    'Wie Agenturen oder Dienstleister Kundenprojekte transparenter steuern können.',
+    ['Kundenprojekte', 'Agenturen', 'Status'],
+    {
+      overview: 'Bei Kundenprojekten reduzieren Statusabfragen Unsicherheit auf beiden Seiten.',
+      explanation: [
+        'Kunden erhalten klare Updates, ohne permanent nachfragen zu müssen.',
+        'Dienstleister können Fortschritt dokumentieren und Entscheidungen rechtzeitig sichtbar machen.',
+      ],
+      example: 'Eine Agentur sendet wöchentlich eine Statusabfrage an das Umsetzungsteam und teilt danach einen ruhigen Kundenreport.',
+      nextStep: 'Nutze Statusabfragen vor allem dort, wo mehrere Stakeholder auf denselben Stand gebracht werden müssen.',
+    }),
+  article('Statusabfragen', 'Statusabfragen für interne Teams nutzen', 'statusabfragen-fuer-interne-teams',
+    'Wie Unternehmen interne Arbeit besser sichtbar machen.',
+    ['Interne Teams', 'Unternehmen', 'Updates'],
+    {
+      overview: 'Interne Statusabfragen schaffen Übersicht, ohne Meetings zu verlängern.',
+      explanation: [
+        'Teams können kurze Updates geben, bevor Führungskräfte oder Projektleitungen in Details gehen.',
+        'So entstehen bessere Entscheidungsgrundlagen für Prioritäten, Ressourcen und Freigaben.',
+      ],
+      example: 'Ein internes Produktteam sammelt montags Updates und nutzt sie für eine kurze Executive Summary.',
+      nextStep: 'Starte intern mit wenigen Fragen und einem festen wöchentlichen Rhythmus.',
+    }),
+
+  article('Tagro AI', 'Was ist Tagro?', 'was-ist-tagro',
+    'Lerne, wie Tagro Projektinformationen in klare Statusberichte, Einschätzungen und Briefings übersetzt.',
+    ['Tagro', 'AI', 'Briefings', 'Statusberichte'],
+    {
+      overview: 'Tagro ist die intelligente Strukturierungsschicht von Festag.',
+      explanation: [
+        'Tagro liest Projektinformationen, Aufgaben, Updates und Statusberichte im jeweiligen Kontext.',
+        'Das Ziel ist nicht Smalltalk, sondern operative Klarheit: Was passiert, was ist offen, was ist riskant, was kommt als Nächstes?',
+      ],
+      example: 'Aus verstreuten Aufgaben und Updates formuliert Tagro eine kurze Lage mit offenen Reviews und Risiken.',
+      nextStep: 'Öffne Tagro Chat, wenn du eine konkrete Frage zu Projekten oder Entscheidungen hast.',
+    }, true),
+  article('Tagro AI', 'Wie Tagro Projektinformationen strukturiert', 'wie-tagro-projektinformationen-strukturiert',
+    'Wie aus Eingaben, Aufgaben und Updates klare Zusammenfassungen entstehen.',
+    ['Tagro', 'Struktur', 'Zusammenfassungen'],
+    {
+      overview: 'Tagro sortiert Informationen nach Projekt, Status, Risiko, Entscheidung und nächstem Schritt.',
+      explanation: [
+        'Nicht jede Information ist gleich wichtig. Tagro trennt Fortschritt von Blockern und konkrete Entscheidungen von allgemeinem Kontext.',
+        'Dadurch werden Berichte kürzer und besser lesbar.',
+      ],
+      example: 'Ein langer Projektverlauf wird zu vier Punkten: erledigt, offen, Risiko, nächste Entscheidung.',
+      nextStep: 'Nutze klare Projekt- und Taskdaten, damit Tagro präzisere Zusammenfassungen erstellen kann.',
+    }),
+  article('Tagro AI', 'Warum Tagro nicht wie ein klassischer Chatbot arbeitet', 'tagro-kein-klassischer-chatbot',
+    'Tagro fragt nicht unnötig viel, sondern registriert, strukturiert und bereitet nächste Schritte vor.',
+    ['Tagro', 'Chat', 'Arbeitsweise'],
+    {
+      overview: 'Tagro ist kein Support-Chat, sondern eine Arbeitsoberfläche für Projektsteuerung.',
+      explanation: [
+        'Viele Chatbots reagieren nur auf einzelne Fragen. Tagro arbeitet mit dem vorhandenen Festag-Kontext.',
+        'Wichtige Aktionen wie Tasks erstellen oder Reviews freigeben werden vorbereitet, aber nicht ohne Bestätigung ausgeführt.',
+      ],
+      example: 'Wenn du nach Risiken fragst, prüft Tagro Projektlage und Aufgaben statt eine allgemeine Antwort zu geben.',
+      nextStep: 'Formuliere Fragen projektbezogen, zum Beispiel: "Welche Entscheidungen blockieren Client Portal?"',
+    }),
+  article('Tagro AI', 'Tagro Einschätzungen verstehen', 'tagro-einschaetzungen-verstehen',
+    'Wie Tagro Risiken, Fortschritt und nächste Schritte zusammenfasst.',
+    ['Risiken', 'Fortschritt', 'Tagro'],
+    {
+      overview: 'Tagro-Einschätzungen sind Hinweise, keine unsichtbaren Entscheidungen.',
+      explanation: [
+        'Tagro zeigt, warum ein Thema relevant sein könnte: blockierte Aufgaben, wartende Freigaben oder fehlende Updates.',
+        'Die finale Entscheidung bleibt beim Nutzer oder der verantwortlichen Rolle.',
+      ],
+      example: 'Tagro kann sagen: "Ein Review ist seit drei Tagen offen und blockiert den nächsten Schritt."',
+      nextStep: 'Nutze Einschätzungen als Startpunkt für Prüfung, nicht als automatische Wahrheit.',
+    }),
+  article('Tagro AI', 'Tagro bei neuen Projekten', 'tagro-bei-neuen-projekten',
+    'Wie Tagro Projektbeschreibungen verarbeitet und abhängig von der Umsetzungsart reagiert.',
+    ['Neue Projekte', 'Tagro', 'Projektanlage'],
+    {
+      overview: 'Bei neuen Projekten hilft Tagro, aus einer Beschreibung eine erste Struktur zu machen.',
+      explanation: [
+        'Je nach Projektart kann Tagro nächste Schritte, offene Fragen oder mögliche Aufgaben vorschlagen.',
+        'Die Vorschläge bleiben bestätigungspflichtig, damit keine ungewollten Aktionen entstehen.',
+      ],
+      example: 'Aus einer App-Idee werden erste Bereiche wie Anforderungen, Design, Entwicklung, Review und Launch.',
+      nextStep: 'Beschreibe ein neues Projekt so konkret wie möglich und prüfe Tagros Vorschläge.',
+    }),
+  article('Tagro AI', 'Tagro für Führungskräfte', 'tagro-fuer-fuehrungskraefte',
+    'Wie CEOs, Gründer und Entscheider schnell Überblick über laufende Arbeit erhalten.',
+    ['CEO', 'Führung', 'Entscheidungen'],
+    {
+      overview: 'Für Führungskräfte reduziert Tagro die Zeit zwischen Information und Entscheidung.',
+      explanation: [
+        'Statt Einzelupdates zu lesen, können Entscheider Projektstände, Risiken und Freigaben zusammengefasst prüfen.',
+        'Audio-Briefings und Executive Summaries helfen, die Lage schnell zu erfassen.',
+      ],
+      example: 'Ein Gründer hört morgens ein Briefing und öffnet nur die Projekte mit offenen Entscheidungen.',
+      nextStep: 'Nutze Tagro für Fragen wie: "Was ist heute wichtig?" oder "Was blockiert Delivery?"',
+    }),
+
+  article('Reports & Briefings', 'Statusberichte in Festag', 'statusberichte-in-festag',
+    'Wie regelmäßige Berichte aus Projektinformationen entstehen.',
+    ['Statusberichte', 'Reports', 'Projektinformationen'],
+    {
+      overview: 'Statusberichte übersetzen laufende Projektarbeit in verständliche Kommunikation.',
+      explanation: [
+        'Sie entstehen aus Aufgaben, Updates, Statusabfragen und Projektdaten.',
+        'Ein guter Bericht zeigt Fortschritt, offene Punkte, Risiken und nächste Schritte, ohne jedes Detail zu wiederholen.',
+      ],
+      example: 'Ein Kunde erhält einen Bericht, der erklärt, was fertig ist und welche Freigabe als Nächstes nötig ist.',
+      nextStep: 'Erstelle Statusberichte erst, wenn echte Projektinformationen vorhanden sind.',
+    }, true),
+  article('Reports & Briefings', 'Executive Weekly Summary', 'executive-weekly-summary',
+    'Wie wöchentliche Zusammenfassungen für Entscheider aufgebaut sind.',
+    ['Executive Summary', 'Weekly', 'Führung'],
+    {
+      overview: 'Eine Executive Weekly Summary fasst die Woche entscheidungsorientiert zusammen.',
+      explanation: [
+        'Sie priorisiert Fortschritt, Risiken, Blocker und Entscheidungen über Detailaktivität.',
+        'Der Zweck ist Führung und Klarheit, nicht Tätigkeitsnachweis.',
+      ],
+      example: 'Eine Zusammenfassung zeigt: zwei Projekte im Plan, ein Review offen, ein Risiko ohne akute Verzögerung.',
+      nextStep: 'Nutze Weekly Summaries für regelmäßige Steuerungstermine.',
+    }),
+  article('Reports & Briefings', 'Audio-Briefings mit Tagro', 'audio-briefings-mit-tagro',
+    'Wie kurze Audio-Zusammenfassungen aus Statusberichten entstehen.',
+    ['Audio', 'Briefings', 'Tagro'],
+    {
+      overview: 'Audio-Briefings machen Statusberichte hörbar.',
+      explanation: [
+        'Tagro nutzt den schriftlichen Bericht oder den Projektkontext und erstellt daraus eine kurze gesprochene Lage.',
+        'Das eignet sich für schnelle Übersicht, nicht für vollständige Detailprüfung.',
+      ],
+      example: 'Ein Entscheider hört in unter zwei Minuten, welche Projekte stabil sind und wo eine Freigabe fehlt.',
+      nextStep: 'Höre Audio-Briefings als Einstieg und öffne danach bei Bedarf den schriftlichen Report.',
+    }, true),
+  article('Reports & Briefings', 'Text-Transkripte zu Audio-Briefings', 'transkripte-zu-audio-briefings',
+    'Warum jedes Audio-Briefing auch als Text gespeichert wird.',
+    ['Transkript', 'Audio', 'Dokumentation'],
+    {
+      overview: 'Transkripte machen Audio-Briefings nachvollziehbar und zitierbar.',
+      explanation: [
+        'Nicht jeder kann oder will Audio hören. Ein Text-Transkript sorgt dafür, dass die Information dokumentiert bleibt.',
+        'Transkripte können später als Briefing-Historie oder Grundlage für Reports dienen.',
+      ],
+      example: 'Nach einem Gesamtbriefing wird das Transkript links in der Statusabfrage als schriftlicher Eintrag abgelegt.',
+      nextStep: 'Nutze Transkripte, wenn du Inhalte teilen, prüfen oder später wiederfinden willst.',
+    }),
+  article('Reports & Briefings', 'Reports für Kunden und Stakeholder', 'reports-fuer-kunden-und-stakeholder',
+    'Wie Fortschritt verständlich nach außen kommuniziert werden kann.',
+    ['Kunden', 'Stakeholder', 'Reports'],
+    {
+      overview: 'Externe Reports sollten verständlich, ruhig und handlungsorientiert sein.',
+      explanation: [
+        'Kunden brauchen nicht jedes interne Detail, sondern Fortschritt, offene Entscheidungen und Risiken.',
+        'Festag hilft, interne Arbeit in professionelle Projektkommunikation zu übersetzen.',
+      ],
+      example: 'Ein Kunde sieht, dass Design abgeschlossen ist, Entwicklung läuft und eine Inhaltsfreigabe benötigt wird.',
+      nextStep: 'Prüfe vor dem Teilen, ob der Report für die externe Zielgruppe geschrieben ist.',
+    }),
+
+  article('Teams & Rollen', 'Teams in Festag verwalten', 'teams-verwalten',
+    'Wie Teams angelegt und organisiert werden.',
+    ['Teams', 'Organisation', 'Rollen'],
+    {
+      overview: 'Teams bündeln Personen, Projekte und Verantwortlichkeiten.',
+      explanation: [
+        'Ein Team kann intern, kundenbezogen oder projektbezogen organisiert sein.',
+        'Saubere Teamstrukturen helfen, Einladungen, Zugriffe und Projektübersicht konsistent zu halten.',
+      ],
+      example: 'Eine Agentur trennt internes Delivery-Team, Kunden-Team und externe Entwickler.',
+      nextStep: 'Lege Teams so an, wie Arbeit tatsächlich organisiert wird.',
+    }),
+  article('Teams & Rollen', 'Rollen und Berechtigungen verstehen', 'rollen-und-berechtigungen',
+    'Wie Zugriffe und Verantwortlichkeiten geregelt werden.',
+    ['Rollen', 'Berechtigungen', 'Zugriff'],
+    {
+      overview: 'Rollen bestimmen, wer sehen, bearbeiten, prüfen oder freigeben kann.',
+      explanation: [
+        'Nicht jede Person braucht dieselben Informationen. Festag trennt Sichtbarkeit und Verantwortung.',
+        'Das schützt sensible Daten und macht Zuständigkeiten klarer.',
+      ],
+      example: 'Ein Client Approver kann Entscheidungen freigeben, ohne interne Entwicklernotizen zu sehen.',
+      nextStep: 'Vergib Rollen nach Aufgabe, nicht nach Hierarchie allein.',
+    }, true),
+  article('Teams & Rollen', 'Mit externen Entwicklern arbeiten', 'mit-externen-entwicklern-arbeiten',
+    'Wie externe Personen kontrolliert und transparent eingebunden werden.',
+    ['Externe Entwickler', 'Teams', 'Transparenz'],
+    {
+      overview: 'Externe Entwickler können produktiv eingebunden werden, ohne die Projektübersicht zu verlieren.',
+      explanation: [
+        'Festag macht Aufgaben, Updates und Fortschritt sichtbar, ohne jeden Arbeitsschritt zu überwachen.',
+        'Klare Rollen und Statusabfragen reduzieren Unsicherheit in externer Zusammenarbeit.',
+      ],
+      example: 'Ein externer Entwickler gibt Updates ab, Tagro macht daraus eine kurze Kundenlage.',
+      nextStep: 'Definiere Aufgaben, Update-Rhythmus und Review-Verantwortung vor dem Start.',
+    }),
+  article('Teams & Rollen', 'Zusammenarbeit zwischen Kunden und Umsetzern', 'zusammenarbeit-kunden-umsetzer',
+    'Wie Festag Missverständnisse reduziert und klare Kommunikation unterstützt.',
+    ['Kunden', 'Umsetzer', 'Kommunikation'],
+    {
+      overview: 'Festag schafft eine gemeinsame, ruhige Sicht auf Projektarbeit.',
+      explanation: [
+        'Kunden sehen Fortschritt und Entscheidungen, Umsetzer behalten operative Aufgaben im Blick.',
+        'So müssen beide Seiten weniger interpretieren und können konkreter handeln.',
+      ],
+      example: 'Eine offene Freigabe wird als Entscheidung sichtbar, statt in einem Chatverlauf unterzugehen.',
+      nextStep: 'Nutze Reports, um Kommunikation regelmäßig zu ordnen.',
+    }),
+
+  article('Whitelabel & Agenturen', 'Festag für Agenturen', 'festag-fuer-agenturen',
+    'Wie Agenturen Festag nutzen können, um Kundenprojekte professioneller zu steuern.',
+    ['Agenturen', 'Kundenprojekte', 'Projektsteuerung'],
+    {
+      overview: 'Agenturen können Festag als operative Projektzentrale und Kundenportal nutzen.',
+      explanation: [
+        'Kunden erhalten klare Sicht auf Fortschritt, offene Punkte und Reports.',
+        'Das interne Team behält Aufgaben, externe Mitwirkende und Statusabfragen strukturiert im Griff.',
+      ],
+      example: 'Eine Agentur betreut fünf Kundenprojekte und verschickt wöchentlich klare Briefings statt langer E-Mail-Updates.',
+      nextStep: 'Starte mit einem Kundenprojekt und prüfe, welche Informationen extern sichtbar sein sollen.',
+    }, true),
+  article('Whitelabel & Agenturen', 'Whitelabel-Projekte in Festag', 'whitelabel-projekte',
+    'Wie Projekte diskret im Hintergrund verwaltet werden können, ohne Festag sichtbar in den Vordergrund zu stellen.',
+    ['Whitelabel', 'Agenturen', 'Kundenportal'],
+    {
+      overview: 'Whitelabel-Projekte erlauben diskrete Projektsteuerung im Hintergrund.',
+      explanation: [
+        'Die Agentur kann Festag intern nutzen und Kunden dennoch eine professionelle Übersicht anbieten.',
+        'Dabei geht es nicht um Verstecken von Arbeit, sondern um konsistente Kundenerfahrung.',
+      ],
+      example: 'Ein Kunde sieht das Portal der Agenturmarke, während Festag die operative Struktur liefert.',
+      nextStep: 'Definiere, welche Marke, Domain und Sichtbarkeit im Kundenkontext gelten sollen.',
+    }),
+  article('Whitelabel & Agenturen', 'Eigene Entwickler oder Festag-Entwickler?', 'eigene-oder-festag-entwickler',
+    'Wie bei der Projektanlage entschieden wird, wer ein Projekt umsetzt.',
+    ['Entwickler', 'Projektanlage', 'Delivery'],
+    {
+      overview: 'Die Umsetzungsart sollte früh klar sein, weil sie Aufgaben, Rollen und Kommunikation beeinflusst.',
+      explanation: [
+        'Eigene Entwickler brauchen andere Workflows als externe oder Festag-Entwickler.',
+        'Festag kann beide Modelle unterstützen, solange Verantwortlichkeiten und Zugriff sauber definiert sind.',
+      ],
+      example: 'Ein internes Team übernimmt Design, ein externer Entwickler die Umsetzung und der Kunde prüft Reviews.',
+      nextStep: 'Lege beim Projektstart fest, wer liefert, wer prüft und wer entscheidet.',
+    }),
+  article('Whitelabel & Agenturen', 'Festag als Kundenportal für Agenturen', 'kundenportal-fuer-agenturen',
+    'Wie Agenturen ihren Kunden eine professionelle Projektübersicht bieten können.',
+    ['Kundenportal', 'Agenturen', 'Reports'],
+    {
+      overview: 'Als Kundenportal macht Festag Projektfortschritt verständlich und professionell sichtbar.',
+      explanation: [
+        'Kunden müssen nicht in interne Tools eintauchen. Sie sehen Status, Reports, Entscheidungen und relevante Aufgaben.',
+        'Das reduziert Rückfragen und stärkt Vertrauen in die Projektführung.',
+      ],
+      example: 'Ein Kunde öffnet das Portal und sieht sofort, was abgeschlossen ist und welche Entscheidung offen ist.',
+      nextStep: 'Nutze Reports und klare Rollen, bevor du ein Kundenportal breit ausrollst.',
+    }),
+
+  article('Sicherheit & Vertrauen', 'Transparenz ohne Überwachung', 'transparenz-ohne-ueberwachung',
+    'Wie Festag operative Sichtbarkeit schafft, ohne wie ein Überwachungstool zu wirken.',
+    ['Transparenz', 'Vertrauen', 'Teams'],
+    {
+      overview: 'Festag unterscheidet zwischen sinnvoller Sichtbarkeit und Überwachung.',
+      explanation: [
+        'Das Produkt zeigt Arbeitsstände, Verantwortlichkeiten und Blocker, aber nicht jede persönliche Aktivität als Kontrollsignal.',
+        'So entsteht Vertrauen durch Klarheit statt Druck durch permanente Beobachtung.',
+      ],
+      example: 'Ein Team gibt strukturierte Updates, ohne dass jede Minute oder jeder Klick bewertet wird.',
+      nextStep: 'Kommuniziere im Team, welche Informationen sichtbar sind und wofür sie genutzt werden.',
+    }, true),
+  article('Sicherheit & Vertrauen', 'Accountability in Projekten', 'accountability-in-projekten',
+    'Warum klare Zuständigkeiten zu besseren Ergebnissen führen.',
+    ['Accountability', 'Verantwortlichkeit', 'Projektsteuerung'],
+    {
+      overview: 'Accountability bedeutet, dass der nächste verantwortliche Schritt sichtbar ist.',
+      explanation: [
+        'Festag hilft, Aufgaben, Entscheidungen und Reviews nicht im Unklaren zu lassen.',
+        'Dadurch entsteht weniger Schuldzuweisung und mehr gemeinsame Orientierung.',
+      ],
+      example: 'Wenn eine Entscheidung offen ist, ist klar, wer sie geben muss und welches Projekt davon abhängt.',
+      nextStep: 'Achte bei Aufgaben und Reviews immer auf eine klare nächste Verantwortung.',
+    }),
+  article('Sicherheit & Vertrauen', 'Datenschutz und Zugriffskontrolle', 'datenschutz-und-zugriffskontrolle',
+    'Wie sensible Projektinformationen geschützt und Rollen sauber getrennt werden.',
+    ['Datenschutz', 'Zugriff', 'Rollen'],
+    {
+      overview: 'Sensible Projektinformationen brauchen klare Grenzen.',
+      explanation: [
+        'Rollen und Berechtigungen helfen, Informationen nur den Personen zugänglich zu machen, die sie benötigen.',
+        'Das ist besonders wichtig bei Kundenprojekten, Whitelabel-Setups und externer Zusammenarbeit.',
+      ],
+      example: 'Ein externer Entwickler erhält Task-Kontext, aber keine Abrechnungsdaten oder interne Kundenkommunikation.',
+      nextStep: 'Prüfe Rollen regelmäßig, wenn neue Mitwirkende in Projekte kommen.',
+    }),
+  article('Sicherheit & Vertrauen', 'Seriöse Projektkommunikation mit Festag', 'serioese-projektkommunikation',
+    'Wie Festag hilft, professioneller und ruhiger zu kommunizieren.',
+    ['Kommunikation', 'Reports', 'Vertrauen'],
+    {
+      overview: 'Gute Projektkommunikation ist klar, regelmäßig und frei von unnötiger Dramatik.',
+      explanation: [
+        'Festag hilft, Fortschritt, Risiken und Entscheidungen sachlich zu formulieren.',
+        'Dadurch werden Kunden, Teams und Führungskräfte besser informiert, ohne von Details überflutet zu werden.',
+      ],
+      example: 'Statt hektischer Chat-Nachrichten erhält ein Stakeholder einen strukturierten Report mit konkretem nächsten Schritt.',
+      nextStep: 'Nutze Statusberichte als Standardformat für externe Kommunikation.',
+    }),
+]
+
+export function getDocArticle(slug: string) {
+  return festagDocsArticles.find((articleItem) => articleItem.slug === slug) ?? null
+}
+
+export function getDocArticlesByCategory(category: string) {
+  return festagDocsArticles.filter((articleItem) => articleItem.category === category)
+}

@@ -72,6 +72,7 @@ type HelpEntry = {
 }
 const HELP_ITEMS: HelpEntry[] = [
   { kind: 'action', action: 'replay-tour', icon: Sparkle,          title: 'Einführung starten',    meta: 'Spielt die kurze Festag-Tour erneut ab.' },
+  { kind: 'link',   href: '/docs',         icon: FileText,         title: 'Festag Dokumente',      meta: 'Produktwissen, Guides und Erklärungen zu Festag.' },
   { kind: 'link',   href: '/whats-new',    icon: Newspaper,        title: 'News',                  meta: 'Releases, Änderungen und neue Produktflächen.' },
   { kind: 'link',   href: '/blog',         icon: Article,          title: 'Blogbeiträge',          meta: 'Hintergründe, Guides und ruhig erklärte Artikel.' },
   { kind: 'link',   href: '/download',     icon: DownloadSimple,   title: 'Hilfeartikel',          meta: 'App-Setup für Webapp & Mobile.' },
@@ -107,6 +108,7 @@ const CLIENT_MOB_QUICK = [
   { href:'/new-project', icon:'plus',     label:'Neues Projekt', primary: true },
   { href:'/messages',    icon:'chat',     label:'Nachrichten' },
   { href:'/documents',   icon:'doc',      label:'Dokumente' },
+  { href:'/docs',        icon:'doc',      label:'Docs' },
   { href:'/estimator',   icon:'estimate', label:'Preisschätzer' },
   { href:'/addons',      icon:'grid',     label:'Add-ons' },
   { href:'/reports',     icon:'activity', label:'Projektbriefings' },
