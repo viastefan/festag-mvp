@@ -62,7 +62,6 @@ const CLIENT_TOP: NavItem[] = [
 ]
 const CLIENT_CORE: NavItem[] = [
   { href:'/projects', icon:'project', label:'Projekte' },
-  { href:'/projects?new=1', icon:'plus', label:'Neues Projekt' },
   { href:'/reports', icon:'activity', label:'Statusberichte' },
   { href:'/tasks', icon:'task', label:'Tasks' },
   { href:'/observers', icon:'team', label:'Mitwirkende' },
