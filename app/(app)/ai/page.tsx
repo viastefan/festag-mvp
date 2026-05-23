@@ -17,12 +17,14 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import {
   ArrowUp, ChatCircleDots, DotsThreeOutline, PencilSimple, PushPin,
   PushPinSimple, Sparkle, Trash, X,
 } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 import ChatMarkdown from '@/components/ChatMarkdown'
+import NotesWorkspace from '@/components/NotesWorkspace'
 import TagroLogo from '@/components/TagroLogo'
 
 type Conversation = {
@@ -70,6 +72,15 @@ function formatTimeAgo(iso: string) {
 }
 
 export default function AIPage() {
+  const searchParams = useSearchParams()
+  if ((searchParams.get('view') ?? 'chat') === 'notes') {
+    return <NotesWorkspace />
+  }
+
+  return <AIChatPage />
+}
+
+function AIChatPage() {
   const supabase = useMemo(() => createClient(), [])
   const [convs, setConvs] = useState<Conversation[]>([])
   const [activeId, setActiveId] = useState<string | null>(null)
