@@ -118,7 +118,7 @@ export default function ClientAppShell({
 
   return (
     <div
-      className={`festag-app-shell${sidebarCollapsed ? ' sidebar-collapsed' : ''}`}
+      className={`festag-app-shell${sidebarCollapsed ? ' sidebar-collapsed' : ''}${isFullHeight ? ' full-height' : ''}`}
       style={{ '--app-sidebar-width': sidebarWidth } as React.CSSProperties}
     >
       <style>{`
@@ -214,6 +214,26 @@ export default function ClientAppShell({
           }
           .app-workspace-scroll {
             overflow-y: visible;
+          }
+          .festag-app-shell.full-height {
+            position: fixed;
+            inset: 0;
+            height: 100dvh;
+            min-height: 0;
+            overflow: hidden;
+          }
+          .festag-app-shell.full-height .app-workspace {
+            position: fixed;
+            inset: 0;
+            height: 100dvh;
+            min-height: 0;
+            max-height: 100dvh;
+            overflow: hidden;
+          }
+          .festag-app-shell.full-height .app-workspace-scroll {
+            height: 100%;
+            min-height: 0;
+            overflow: hidden;
           }
           .app-footer-controls { display:none; }
         }
@@ -397,7 +417,7 @@ export default function ClientAppShell({
           </button>
         )}
         <div id={scrollId} className="app-workspace-scroll" style={{ overflowY: isFullHeight ? 'hidden' : 'auto' }}>
-          <div key={pathname} className="route-fade" style={{ minHeight: '100%' }}>
+          <div key={pathname} className="route-fade" style={{ minHeight: '100%', height: isFullHeight ? '100%' : undefined }}>
             {children}
           </div>
         </div>

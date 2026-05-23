@@ -19,8 +19,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import {
-  ArrowUp, ChatCircleDots, DotsThreeOutline, PencilSimple, PushPin,
-  PushPinSimple, Sparkle, Trash, X,
+  ArrowUp, Briefcase, CaretDown, ChatCircleDots, CheckCircle, DotsThreeOutline,
+  FileText, Microphone, PencilSimple, PushPin, PushPinSimple, Sparkle, Trash, X,
 } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 import ChatMarkdown from '@/components/ChatMarkdown'
@@ -44,11 +44,46 @@ type Message = {
   pending?: boolean
 }
 
+type ProjectContext = {
+  id: string
+  title: string
+}
+
 const PROMPT_STARTERS = [
   'Was ist mein aktueller Projektstand?',
   'Welche Risiken sollte ich diese Woche im Blick haben?',
   'Strukturiere mir eine neue Projektidee.',
   'Was sind die nächsten Entscheidungen, die ich freigeben muss?',
+]
+
+const STATIC_CONTEXTS: ProjectContext[] = [
+  { id: 'all', title: 'Alle Projekte' },
+  { id: 'reviews', title: 'Offene Reviews' },
+  { id: 'briefings', title: 'Statusberichte' },
+]
+
+const EMPTY_ACTIONS = [
+  {
+    tone: 'task',
+    title: 'Tasks aus Statusbericht',
+    meta: 'Tagro erkennt nächste Schritte, Owner und Risiko.',
+    primary: 'Tasks vorbereiten',
+    secondary: 'Bericht wählen',
+  },
+  {
+    tone: 'report',
+    title: 'Wochenbriefing erstellen',
+    meta: 'Fortschritt, Blocker und Entscheidungen verdichten.',
+    primary: 'Briefing starten',
+    secondary: 'Vorschau',
+  },
+  {
+    tone: 'review',
+    title: 'Reviews prüfen',
+    meta: 'Offene Freigaben nach Dringlichkeit sortieren.',
+    primary: 'Reviews öffnen',
+    secondary: 'Risiken ansehen',
+  },
 ]
 
 function formatGroup(iso: string): 'heute' | 'last7' | 'older' {
@@ -93,6 +128,9 @@ function AIChatPage() {
   const [menuFor, setMenuFor] = useState<string | null>(null)
   const [renaming, setRenaming] = useState<string | null>(null)
   const [renameValue, setRenameValue] = useState('')
+  const [projectContexts, setProjectContexts] = useState<ProjectContext[]>(STATIC_CONTEXTS)
+  const [activeContextId, setActiveContextId] = useState('all')
+  const [contextMenuOpen, setContextMenuOpen] = useState(false)
 
   const scrollRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
@@ -108,7 +146,17 @@ function AIChatPage() {
       }
       if (cancelled) return
       setAuthChecked(true)
-      await reloadConversations()
+      const [{ data: projects }] = await Promise.all([
+        supabase.from('projects').select('id,title').order('created_at', { ascending: false }).limit(8),
+        reloadConversations(),
+      ])
+      if (!cancelled && projects?.length) {
+        setProjectContexts([
+          STATIC_CONTEXTS[0],
+          ...(projects as any[]).map(project => ({ id: project.id, title: project.title })),
+          ...STATIC_CONTEXTS.slice(1),
+        ])
+      }
     })()
     return () => { cancelled = true }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -170,6 +218,10 @@ function AIChatPage() {
     return groups
   }, [convs])
 
+  const activeContext = useMemo(() => (
+    projectContexts.find(context => context.id === activeContextId) ?? projectContexts[0]
+  ), [activeContextId, projectContexts])
+
   async function newChat() {
     const res = await fetch('/api/ai/conversations', {
       method: 'POST', credentials: 'include',
@@ -226,7 +278,13 @@ function AIChatPage() {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: text }),
+        body: JSON.stringify({
+          content: text,
+          projectContext: {
+            id: activeContext.id,
+            title: activeContext.title,
+          },
+        }),
       })
       const data = await res.json()
       if (!res.ok) {
@@ -388,12 +446,52 @@ function AIChatPage() {
       <main className="ai-main">
         <header className="ai-main-head">
           <div className="ai-main-head-left">
-            <TagroLogo size={20} thinking={sending} />
-            <h1>{activeConv?.title || 'Tagro'}</h1>
+            <span className="ai-head-mark">
+              <TagroLogo size={18} thinking={sending} />
+            </span>
+            <div className="ai-head-title">
+              <h1>{activeConv?.title || 'Tagro'}</h1>
+              <span>AI-Steuerung für Projekte, Tasks, Reviews und Briefings</span>
+            </div>
           </div>
-          {activeConv && (
-            <span className="ai-main-time">Aktualisiert {formatTimeAgo(activeConv.updated_at)}</span>
-          )}
+          <div className="ai-main-head-right">
+            {activeConv && (
+              <span className="ai-main-time">Aktualisiert {formatTimeAgo(activeConv.updated_at)}</span>
+            )}
+            <div className="ai-context-wrap">
+              <button
+                type="button"
+                className="ai-context-button"
+                onClick={() => setContextMenuOpen(open => !open)}
+                aria-expanded={contextMenuOpen}
+              >
+                <Briefcase size={13} />
+                <span>Kontext: {activeContext.title}</span>
+                <CaretDown size={12} weight="bold" />
+              </button>
+              {contextMenuOpen && (
+                <>
+                  <button className="ai-context-backdrop" type="button" aria-hidden onClick={() => setContextMenuOpen(false)} />
+                  <div className="ai-context-menu">
+                    {projectContexts.map(context => (
+                      <button
+                        key={context.id}
+                        type="button"
+                        className={context.id === activeContextId ? 'on' : ''}
+                        onClick={() => {
+                          setActiveContextId(context.id)
+                          setContextMenuOpen(false)
+                        }}
+                      >
+                        <span>{context.title}</span>
+                        {context.id === activeContextId ? <CheckCircle size={13} weight="fill" /> : null}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
         </header>
 
         <div className="ai-feed" ref={scrollRef}>
@@ -417,6 +515,11 @@ function AIChatPage() {
                   </button>
                 ))}
               </div>
+              <div className="ai-action-grid" aria-label="Tagro Aktionen">
+                {EMPTY_ACTIONS.map(action => (
+                  <TagroActionCard key={action.title} {...action} compact />
+                ))}
+              </div>
             </div>
           ) : loadingConv ? (
             <p className="ai-loading-inline">Lade Chat…</p>
@@ -433,7 +536,13 @@ function AIChatPage() {
                     {m.pending ? (
                       <span className="ai-typing"><span /><span /><span /></span>
                     ) : m.role === 'assistant' ? (
-                      <ChatMarkdown text={m.content} />
+                      <>
+                        <span className="ai-context-pill">Kontext: {activeContext.title}</span>
+                        <ChatMarkdown text={m.content} />
+                        {actionForMessage(m.content) ? (
+                          <TagroActionCard {...actionForMessage(m.content)!} />
+                        ) : null}
+                      </>
                     ) : (
                       <p className="ai-user-text">{m.content}</p>
                     )}
@@ -449,7 +558,7 @@ function AIChatPage() {
             <textarea
               ref={inputRef}
               className="ai-input"
-              placeholder="Frag Tagro…"
+              placeholder="Frag Tagro alles über deine Projekte …"
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={onKeyDownInput}
@@ -472,7 +581,7 @@ function AIChatPage() {
         </div>
       </main>
 
-      <style jsx>{CSS}</style>
+      <style jsx global>{CSS}</style>
     </div>
   )
 }
@@ -566,42 +675,138 @@ function ConversationGroup({
   )
 }
 
+function actionForMessage(content: string) {
+  const lower = content.toLowerCase()
+  if (lower.includes('task') || lower.includes('aufgabe')) {
+    return {
+      tone: 'task',
+      title: 'Task-Vorschlag erkannt',
+      meta: 'Tagro kann daraus eine konkrete Aufgabe mit Kontext und Owner vorbereiten.',
+      primary: 'Task erstellen',
+      secondary: 'Bearbeiten',
+    }
+  }
+  if (lower.includes('bericht') || lower.includes('briefing') || lower.includes('status')) {
+    return {
+      tone: 'report',
+      title: 'Statusbericht vorbereiten',
+      meta: 'Zusammenfassung mit Fortschritt, Risiken und nächsten Schritten erzeugen.',
+      primary: 'Bericht öffnen',
+      secondary: 'Audio-Briefing',
+    }
+  }
+  if (lower.includes('review') || lower.includes('freigabe') || lower.includes('entscheidung')) {
+    return {
+      tone: 'review',
+      title: 'Review oder Entscheidung offen',
+      meta: 'Tagro kann die Freigabe bündeln oder Korrekturen formulieren.',
+      primary: 'Details öffnen',
+      secondary: 'Korrektur anfordern',
+    }
+  }
+  if (lower.includes('blocker') || lower.includes('risiko')) {
+    return {
+      tone: 'blocker',
+      title: 'Blocker-Analyse',
+      meta: 'Risiko einordnen, Verantwortliche klären und nächsten Schritt ableiten.',
+      primary: 'Blocker prüfen',
+      secondary: 'Team fragen',
+    }
+  }
+  return null
+}
+
+function TagroActionCard({
+  tone,
+  title,
+  meta,
+  primary,
+  secondary,
+  compact = false,
+}: {
+  tone: string
+  title: string
+  meta: string
+  primary: string
+  secondary: string
+  compact?: boolean
+}) {
+  const Icon = tone === 'report' ? FileText : tone === 'review' ? CheckCircle : tone === 'blocker' ? Briefcase : Microphone
+  return (
+    <section className={`ai-action-card ${tone}${compact ? ' compact' : ''}`}>
+      <span className="ai-action-icon"><Icon size={15} weight="regular" /></span>
+      <span className="ai-action-copy">
+        <strong>{title}</strong>
+        <span>{meta}</span>
+      </span>
+      <span className="ai-action-buttons">
+        <button type="button">{primary}</button>
+        <button type="button" className="ghost">{secondary}</button>
+      </span>
+    </section>
+  )
+}
+
 const CSS = `
   .ai-shell {
-    height: 100dvh;
+    height: 100%;
+    max-height: 100%;
+    min-height: 0;
     display: grid;
-    grid-template-columns: 264px minmax(0, 1fr);
-    background: var(--bg); color: var(--text);
+    grid-template-columns: minmax(258px, 286px) minmax(0, 1fr);
+    overflow: hidden;
+    background:
+      radial-gradient(circle at 74% 18%, color-mix(in srgb, var(--accent) 5%, transparent), transparent 30%),
+      linear-gradient(180deg, color-mix(in srgb, var(--surface) 96%, #fff 4%), var(--surface));
+    color: var(--text);
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
   }
   .ai-shell.rail-collapsed { grid-template-columns: 0 minmax(0, 1fr); }
   .ai-shell.rail-collapsed .ai-rail { transform: translateX(-100%); pointer-events: none; opacity: 0; }
-  .ai-loading { padding: 80px; color: var(--text-muted); }
+  .ai-loading {
+    height: 100%;
+    display: grid;
+    place-items: center;
+    color: var(--text-muted);
+    overflow: hidden;
+  }
 
   /* Rail */
   .ai-rail {
-    border-right: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
-    display: flex; flex-direction: column;
+    height: 100%;
+    min-height: 0;
+    border-right: 1px solid color-mix(in srgb, var(--border) 62%, transparent);
+    display: flex;
+    flex-direction: column;
     transition: transform .2s ease, opacity .2s ease;
     overflow: hidden;
+    background: color-mix(in srgb, var(--sidebar-bg) 72%, transparent);
   }
   .ai-rail-top {
     display: flex; align-items: center; gap: 6px;
-    padding: 12px 12px 10px;
+    flex-shrink: 0;
+    min-height: 58px;
+    padding: 11px 12px;
     border-bottom: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
   }
   .ai-new {
     flex: 1;
     display: inline-flex; align-items: center; gap: 8px;
-    height: 34px; padding: 0 12px;
-    border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
-    background: var(--card);
+    height: 36px; padding: 0 14px;
+    border: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
+    background: color-mix(in srgb, var(--card) 88%, #fff 12%);
     color: var(--text);
-    border-radius: 10px;
-    font: inherit; font-size: 12.5px; font-weight: 500; letter-spacing: .015em;
-    cursor: pointer; transition: background .12s, border-color .12s;
+    border-radius: 999px;
+    font: inherit; font-size: 12.5px; font-weight: 620; letter-spacing: .01em;
+    cursor: pointer;
+    box-shadow: 0 1px 2px rgba(15,23,42,.05);
+    transition: background .12s, border-color .12s, transform .12s;
   }
-  .ai-new:hover { background: var(--surface-2); border-color: var(--border); }
+  .ai-new:hover {
+    background: #fff;
+    border-color: color-mix(in srgb, var(--border-strong) 55%, var(--border));
+    transform: translateY(-1px);
+  }
   .ai-rail-collapse {
     width: 32px; height: 34px; border: 0; background: transparent;
     color: var(--text-muted); border-radius: 8px; cursor: pointer;
@@ -610,39 +815,55 @@ const CSS = `
   }
   .ai-rail-collapse:hover { background: color-mix(in srgb, var(--surface-2) 60%, transparent); color: var(--text); }
 
-  .ai-rail-scroll { flex: 1 1 auto; overflow-y: auto; padding: 6px 6px 14px; }
+  .ai-rail-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 10px 8px 16px;
+  }
   .ai-rail-scroll::-webkit-scrollbar { width: 4px; }
   .ai-rail-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
   .ai-rail-empty {
-    padding: 14px 14px 0; font-size: 11.5px; color: var(--text-muted);
-    font-weight: 500; line-height: 1.5; letter-spacing: .015em;
+    margin: 18px 10px 0;
+    padding: 14px;
+    border-radius: 16px;
+    background: color-mix(in srgb, var(--surface-2) 48%, transparent);
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 600; line-height: 1.55; letter-spacing: .01em;
   }
 
-  .ai-group { padding-top: 10px; }
+  .ai-group { padding-top: 13px; }
   .ai-group-label {
-    margin: 0 8px 4px;
-    font-size: 10.5px; font-weight: 500; letter-spacing: .12em;
+    margin: 0 9px 6px;
+    font-size: 10px; font-weight: 720; letter-spacing: .13em;
     text-transform: uppercase; color: var(--text-muted);
   }
-  .ai-group-list { display: flex; flex-direction: column; gap: 1px; }
+  .ai-group-list { display: flex; flex-direction: column; gap: 2px; }
   .ai-row {
     position: relative;
-    display: grid; grid-template-columns: 1fr 22px; align-items: center;
-    border-radius: 8px;
-    transition: background .1s;
+    display: grid;
+    grid-template-columns: 1fr 24px;
+    align-items: center;
+    border-radius: 10px;
+    transition: background .12s, color .12s;
   }
   .ai-row:hover { background: color-mix(in srgb, var(--surface-2) 55%, transparent); }
-  .ai-row.active { background: color-mix(in srgb, var(--surface-2) 80%, transparent); }
+  .ai-row.active {
+    background: color-mix(in srgb, var(--surface-2) 88%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--border) 42%, transparent);
+  }
   .ai-row-pick {
     width: 100%; border: 0; background: transparent;
     color: var(--text); font: inherit; text-align: left;
-    padding: 7px 4px 7px 10px;
+    padding: 8px 4px 8px 11px;
     cursor: pointer;
     min-width: 0;
   }
   .ai-row-title {
     display: block;
-    font-size: 12.5px; font-weight: 500; letter-spacing: .015em;
+    font-size: 12.5px; font-weight: 560; letter-spacing: .01em;
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
   .ai-row-menu {
@@ -695,77 +916,216 @@ const CSS = `
 
   /* Main */
   .ai-main {
-    display: grid; grid-template-rows: auto 1fr auto;
-    min-height: 0; min-width: 0;
+    height: 100%;
+    min-height: 0;
+    min-width: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--surface) 96%, #fff 4%) 0%, var(--surface) 45%),
+      var(--surface);
   }
   .ai-main-head {
     display: flex; justify-content: space-between; align-items: center;
-    padding: 14px 22px;
+    flex-shrink: 0;
+    height: 58px;
+    padding: 0 22px;
     border-bottom: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
   }
   .ai-main-head-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .ai-head-mark {
+    width: 30px;
+    height: 30px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: color-mix(in srgb, var(--card) 86%, #fff 14%);
+    border: 1px solid color-mix(in srgb, var(--border) 66%, transparent);
+    box-shadow: 0 8px 26px -20px rgba(15,23,42,.32);
+  }
+  .ai-head-title {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
   .ai-main-head h1 {
-    margin: 0; font-size: 14px; font-weight: 500; letter-spacing: -.005em;
+    margin: 0; font-size: 14px; font-weight: 680; letter-spacing: -.01em;
     color: var(--text);
     max-width: 60ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
+  .ai-head-title span {
+    color: var(--text-muted);
+    font-size: 10.8px;
+    font-weight: 560;
+    letter-spacing: .012em;
+  }
+  .ai-main-head-right {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    min-width: 0;
+  }
   .ai-main-time {
     font-size: 11.5px; color: var(--text-muted);
-    font-weight: 500; letter-spacing: .015em;
+    font-weight: 560; letter-spacing: .01em;
+    white-space: nowrap;
+  }
+  .ai-context-wrap { position: relative; flex-shrink: 0; }
+  .ai-context-button {
+    height: 32px;
+    max-width: 260px;
+    border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--card) 86%, #fff 14%);
+    color: var(--text-secondary);
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 0 11px;
+    font: inherit;
+    font-size: 11.5px;
+    font-weight: 640;
+    cursor: pointer;
+    box-shadow: 0 1px 2px rgba(15,23,42,.04);
+  }
+  .ai-context-button span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .ai-context-button:hover { color: var(--text); background: #fff; }
+  .ai-context-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 19;
+    border: 0;
+    background: transparent;
+  }
+  .ai-context-menu {
+    position: absolute;
+    top: 38px;
+    right: 0;
+    z-index: 20;
+    width: 240px;
+    max-height: 310px;
+    overflow-y: auto;
+    padding: 6px;
+    border-radius: 14px;
+    border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
+    background: var(--surface);
+    box-shadow: 0 20px 46px -28px rgba(15,23,42,.34);
+  }
+  .ai-context-menu button {
+    width: 100%;
+    min-height: 32px;
+    border: 0;
+    border-radius: 9px;
+    background: transparent;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 0 9px;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: left;
+  }
+  .ai-context-menu button:hover,
+  .ai-context-menu button.on {
+    background: color-mix(in srgb, var(--surface-2) 62%, transparent);
+    color: var(--text);
   }
 
-  .ai-feed { overflow-y: auto; padding: 28px 0 16px; }
+  .ai-feed {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 28px 0 16px;
+  }
+  .ai-feed::-webkit-scrollbar { width: 8px; }
+  .ai-feed::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--border) 74%, transparent); border-radius: 999px; }
   .ai-loading-inline { padding: 40px; color: var(--text-muted); font-size: 13px; text-align: center; }
 
   .ai-empty {
-    max-width: 580px; margin: 56px auto 0;
-    padding: 0 24px;
+    width: min(760px, calc(100% - 48px));
+    min-height: 100%;
+    margin: 0 auto;
+    padding: 30px 0 26px;
     text-align: center;
-    display: flex; flex-direction: column; align-items: center; gap: 14px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
   }
   .ai-empty-mark {
-    width: 72px; height: 72px; border-radius: 50%;
+    width: 76px; height: 76px; border-radius: 50%;
     display: inline-flex; align-items: center; justify-content: center;
-    background: var(--card);
+    background:
+      radial-gradient(circle at 50% 42%, #fff 0%, color-mix(in srgb, var(--card) 92%, #fff 8%) 70%);
     border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
-    box-shadow: 0 8px 28px -10px color-mix(in srgb, var(--text) 18%, transparent);
+    box-shadow: 0 18px 44px -28px color-mix(in srgb, var(--text) 32%, transparent);
+    position: relative;
+  }
+  .ai-empty-mark::after {
+    content: '';
+    position: absolute;
+    inset: -7px;
+    border-radius: inherit;
+    border: 1px solid color-mix(in srgb, var(--border) 42%, transparent);
+    opacity: .72;
+    animation: aiBreath 3.4s ease-in-out infinite;
   }
   .ai-empty h2 {
-    margin: 8px 0 0; font-size: 24px; font-weight: 500; letter-spacing: -.015em;
+    margin: 10px 0 0; font-size: clamp(28px, 3vw, 40px); font-weight: 740; letter-spacing: -.045em;
     color: var(--text);
   }
   .ai-empty p {
-    margin: 0; font-size: 13.5px; line-height: 1.6;
-    color: var(--text-muted); font-weight: 500; letter-spacing: .015em;
-    max-width: 460px;
+    margin: 0; font-size: 14.5px; line-height: 1.65;
+    color: var(--text-muted); font-weight: 600; letter-spacing: .005em;
+    max-width: 560px;
   }
   .ai-starters {
     display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px; width: 100%; margin-top: 8px;
+    gap: 10px; width: min(100%, 650px); margin-top: 10px;
   }
   .ai-starter {
     display: inline-flex; align-items: center; gap: 8px;
-    padding: 12px 14px; text-align: left;
-    border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
-    background: var(--card);
+    min-height: 70px;
+    padding: 15px 17px; text-align: left;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    background: rgba(255, 255, 255, 0.72);
     color: var(--text-secondary);
-    border-radius: 12px;
-    font: inherit; font-size: 12.5px; font-weight: 500; letter-spacing: .015em;
+    border-radius: 18px;
+    font: inherit; font-size: 13.5px; font-weight: 650; letter-spacing: .005em;
     cursor: pointer;
-    transition: border-color .12s, background .12s, color .12s, transform .15s;
+    box-shadow: 0 10px 30px -28px rgba(15,23,42,.22);
+    transition: border-color .12s, background .12s, color .12s, transform .15s, box-shadow .15s;
   }
   .ai-starter:hover {
-    border-color: var(--border-strong);
-    background: color-mix(in srgb, var(--surface-2) 35%, var(--card));
+    border-color: rgba(15, 23, 42, 0.14);
+    background: rgba(255, 255, 255, 0.92);
     color: var(--text);
     transform: translateY(-1px);
+    box-shadow: 0 16px 34px -30px rgba(15,23,42,.30);
   }
   .ai-starter svg { color: var(--text-muted); flex-shrink: 0; }
+  .ai-action-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    width: min(100%, 740px);
+    margin-top: 4px;
+  }
   @media (max-width: 640px) { .ai-starters { grid-template-columns: 1fr; } }
 
   .ai-thread {
-    max-width: 760px; margin: 0 auto;
-    padding: 0 22px;
+    max-width: 840px; margin: 0 auto;
+    padding: 0 24px 18px;
     display: flex; flex-direction: column; gap: 22px;
   }
   .ai-msg {
@@ -774,7 +1134,7 @@ const CSS = `
   }
   .ai-msg.user { justify-content: flex-end; }
   .ai-msg-avatar {
-    width: 30px; height: 30px; flex-shrink: 0;
+    width: 32px; height: 32px; flex-shrink: 0;
     border-radius: 50%;
     display: inline-flex; align-items: center; justify-content: center;
     background: var(--card);
@@ -783,17 +1143,18 @@ const CSS = `
   }
   .ai-msg-body { min-width: 0; max-width: 100%; }
   .ai-msg.user .ai-msg-body {
-    max-width: 80%;
-    background: color-mix(in srgb, var(--surface-2) 75%, transparent);
+    max-width: min(680px, 82%);
+    background: rgba(255, 255, 255, 0.78);
     border: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
-    padding: 11px 14px;
-    border-radius: 16px;
-    border-top-right-radius: 5px;
+    padding: 12px 15px;
+    border-radius: 18px;
+    border-top-right-radius: 7px;
+    box-shadow: 0 12px 32px -30px rgba(15,23,42,.25);
   }
   .ai-msg.assistant .ai-msg-body {
     flex: 1; min-width: 0;
     padding-top: 4px;
-    font-size: 14px; line-height: 1.65; color: var(--text); font-weight: 500;
+    font-size: 14.2px; line-height: 1.72; color: var(--text); font-weight: 540;
   }
   .ai-user-text {
     margin: 0; font-size: 13.5px; line-height: 1.55; color: var(--text);
@@ -808,51 +1169,152 @@ const CSS = `
   }
   .ai-typing span:nth-child(2) { animation-delay: .15s; }
   .ai-typing span:nth-child(3) { animation-delay: .3s; }
+  .ai-context-pill {
+    width: max-content;
+    display: inline-flex;
+    align-items: center;
+    height: 22px;
+    padding: 0 9px;
+    margin: 0 0 8px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--surface-2) 62%, transparent);
+    color: var(--text-muted);
+    font-size: 10.8px;
+    font-weight: 680;
+    letter-spacing: .02em;
+  }
+  .ai-action-card {
+    margin-top: 14px;
+    display: grid;
+    grid-template-columns: 34px minmax(0, 1fr);
+    gap: 10px 12px;
+    padding: 13px;
+    border: 1px solid rgba(15,23,42,.08);
+    border-radius: 18px;
+    background: rgba(255,255,255,.76);
+    box-shadow: 0 14px 42px -38px rgba(15,23,42,.28);
+    text-align: left;
+  }
+  .ai-action-card.compact {
+    grid-template-columns: 28px minmax(0, 1fr);
+    padding: 12px;
+    margin-top: 0;
+  }
+  .ai-action-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #475569;
+    background: rgba(148,163,184,.16);
+    border: 1px solid rgba(148,163,184,.22);
+  }
+  .ai-action-card.compact .ai-action-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 10px;
+  }
+  .ai-action-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+  }
+  .ai-action-copy strong {
+    color: var(--text);
+    font-size: 12.8px;
+    font-weight: 720;
+    letter-spacing: -.01em;
+  }
+  .ai-action-copy span {
+    color: var(--text-muted);
+    font-size: 11.8px;
+    font-weight: 570;
+    line-height: 1.45;
+  }
+  .ai-action-buttons {
+    grid-column: 2;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-top: 2px;
+  }
+  .ai-action-buttons button {
+    height: 29px;
+    border-radius: 999px;
+    border: 1px solid rgba(148, 163, 184, 0.28);
+    background: rgba(148, 163, 184, 0.18);
+    color: #475569;
+    padding: 0 11px;
+    font: inherit;
+    font-size: 11.6px;
+    font-weight: 680;
+    cursor: pointer;
+  }
+  .ai-action-buttons button:hover { background: rgba(148, 163, 184, 0.28); }
+  .ai-action-buttons button.ghost {
+    background: transparent;
+    color: var(--text-muted);
+  }
   @keyframes aiDot { 0%,80%,100% { transform: translateY(0); opacity: .35 } 40% { transform: translateY(-3px); opacity: .9 } }
   @keyframes aiMsgIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
   @keyframes aiFade { from { opacity: 0; transform: translateY(2px); } to { opacity: 1; transform: none; } }
+  @keyframes aiBreath { 0%,100% { transform: scale(.96); opacity:.42; } 50% { transform: scale(1.08); opacity:.82; } }
 
   .ai-composer-wrap {
-    border-top: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
-    padding: 14px 22px 18px;
-    background: var(--bg);
+    flex-shrink: 0;
+    padding: 16px 24px 18px;
+    background: linear-gradient(
+      to top,
+      color-mix(in srgb, var(--surface) 98%, #fff 2%) 72%,
+      color-mix(in srgb, var(--surface) 0%, transparent)
+    );
   }
   .ai-composer {
-    max-width: 760px; margin: 0 auto;
+    max-width: 800px; width: 100%; margin: 0 auto;
     display: flex; gap: 10px; align-items: flex-end;
-    padding: 11px 12px 11px 16px;
+    min-height: 58px;
+    padding: 10px 11px 10px 17px;
     border-radius: 22px;
-    border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
-    background: color-mix(in srgb, var(--surface) 65%, var(--card) 35%);
-    transition: border-color .12s, box-shadow .12s;
+    border: 1px solid rgba(15, 23, 42, 0.10);
+    background: rgba(255, 255, 255, 0.88);
+    box-shadow: 0 12px 36px rgba(15, 23, 42, 0.08);
+    transition: border-color .12s, box-shadow .12s, background .12s;
   }
   .ai-composer:focus-within {
-    border-color: color-mix(in srgb, var(--text) 30%, var(--border));
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--text) 5%, transparent);
+    border-color: rgba(100,116,139,.30);
+    background: rgba(255,255,255,.96);
+    box-shadow: 0 16px 44px rgba(15, 23, 42, 0.10), 0 0 0 3px rgba(148,163,184,.10);
   }
   .ai-input {
     flex: 1; min-width: 0;
     background: transparent; border: 0; outline: 0; resize: none;
     color: var(--text); font: inherit;
-    font-size: 14px; line-height: 1.55; font-weight: 500; letter-spacing: .015em;
-    max-height: 220px;
+    font-size: 14.5px; line-height: 1.55; font-weight: 560; letter-spacing: .005em;
+    max-height: 172px;
+    overflow-y: auto;
     padding: 6px 0;
   }
   .ai-input::placeholder { color: var(--text-muted); opacity: .6; }
   .ai-send {
-    width: 32px; height: 32px; border: 0; border-radius: 10px;
-    background: var(--btn-prim); color: var(--btn-prim-text);
+    width: 36px; height: 36px;
+    border: 1px solid rgba(148, 163, 184, 0.28);
+    border-radius: 999px;
+    background: rgba(148, 163, 184, 0.18);
+    color: #475569;
     display: inline-flex; align-items: center; justify-content: center;
-    cursor: pointer; transition: opacity .12s, transform .12s;
+    cursor: pointer; transition: background .12s, color .12s, opacity .12s, transform .12s;
     flex-shrink: 0;
   }
-  .ai-send:hover:not(:disabled) { opacity: .92; }
+  .ai-send:hover:not(:disabled) { background: rgba(148, 163, 184, 0.28); color: #334155; }
   .ai-send:active:not(:disabled) { transform: scale(.95); }
   .ai-send:disabled { opacity: .4; cursor: not-allowed; }
   .ai-foot {
-    max-width: 760px; margin: 8px auto 0; text-align: center;
+    max-width: 800px; margin: 8px auto 0; text-align: center;
     font-size: 11px; color: var(--text-muted);
-    font-weight: 500; letter-spacing: .015em;
+    font-weight: 560; letter-spacing: .01em;
   }
 
   @media (max-width: 820px) {
@@ -860,9 +1322,24 @@ const CSS = `
     .ai-rail-top .ai-new span { display: none; }
     .ai-row-title { font-size: 12px; }
     .ai-rail-scroll { padding-left: 4px; padding-right: 4px; }
+    .ai-head-title span,
+    .ai-main-time { display: none; }
+    .ai-action-grid { grid-template-columns: 1fr; }
   }
   @media (max-width: 640px) {
     .ai-shell { grid-template-columns: 0 minmax(0, 1fr); }
     .ai-shell .ai-rail { transform: translateX(-100%); }
+    .ai-main-head { padding: 0 14px; }
+    .ai-context-button { max-width: 160px; }
+    .ai-empty {
+      width: min(100% - 28px, 520px);
+      justify-content: flex-start;
+      padding-top: 46px;
+    }
+    .ai-starters { grid-template-columns: 1fr; }
+    .ai-thread { padding-left: 14px; padding-right: 14px; }
+    .ai-composer-wrap { padding: 12px 12px calc(14px + env(safe-area-inset-bottom)); }
+    .ai-action-card { grid-template-columns: 30px minmax(0, 1fr); }
+    .ai-action-buttons { grid-column: 1 / -1; }
   }
 `

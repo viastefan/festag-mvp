@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 export const runtime = 'nodejs'
 
 /**
- * POST /api/ai/conversations/:id/messages  { content: string }
+ * POST /api/ai/conversations/:id/messages  { content: string, projectContext?: { id: string, title: string } }
  *
  * One turn:
  *   1. Persist the user's message.
@@ -37,6 +37,21 @@ FORMATIERUNG: Markdown wenn es Klarheit schafft.
   - Überschriften (### oder ####) nur bei längeren Berichten
 Halte den Text trotzdem knapp.`
 
+function buildSystemPrompt(projectContextTitle: string): string {
+  return `${SYSTEM}
+
+Aktiver Festag-Kontext: ${projectContextTitle}.
+Wenn der Kontext nicht "Alle Projekte" ist, antworte projektbezogen und mache sichtbar, dass du nur diesen Kontext bewertest.
+
+Tagro kann in Festag später konkrete Aktionen vorbereiten:
+- Tasks aus Statusberichten erstellen
+- Reviews freigeben oder Korrekturen anfordern
+- Statusberichte und Audio-Briefings vorbereiten
+- Blocker, Risiken und Entscheidungen priorisieren
+
+Wichtige Aktionen werden nie sofort ausgeführt. Schlage sie als bestätigungspflichtigen nächsten Schritt vor.`
+}
+
 function stripThink(s: string): string {
   return s.replace(/<think>[\s\S]*?<\/think>\s*/g, '').trim()
 }
@@ -58,6 +73,10 @@ export async function POST(req: NextRequest, ctx: { params: { id: string } }) {
   const body = await req.json().catch(() => ({}))
   const content = typeof body?.content === 'string' ? body.content.trim() : ''
   if (!content) return NextResponse.json({ error: 'empty message' }, { status: 400 })
+  const rawProjectContext = body?.projectContext
+  const projectContextTitle = typeof rawProjectContext?.title === 'string' && rawProjectContext.title.trim()
+    ? rawProjectContext.title.trim().slice(0, 140)
+    : 'Alle Projekte'
 
   // Verify conversation ownership (RLS would also block, but explicit).
   const { data: conv } = await (supa as any)
@@ -96,7 +115,7 @@ export async function POST(req: NextRequest, ctx: { params: { id: string } }) {
   let thinking: string | null = null
   try {
     const messages = [
-      { role: 'system' as const, content: SYSTEM },
+      { role: 'system' as const, content: buildSystemPrompt(projectContextTitle) },
       ...((history as any[]) ?? []).map(m => ({
         role: m.role as 'user' | 'assistant' | 'system',
         content: m.content,
