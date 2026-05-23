@@ -43,9 +43,13 @@ export default function ProjectPage() {
   const [userEmail, setUserEmail] = useState('')
   const [userRole, setUserRole] = useState<'client'|'dev'|'admin'|''>('')
   const searchParams = useSearchParams()
-  const initialTab = (searchParams?.get('tab') as 'tasks' | 'assets' | 'updates' | null)
-  const [activeLeft, setActiveLeft] = useState<'tasks'|'assets'|'updates'>(
-    initialTab === 'assets' || initialTab === 'updates' ? initialTab : 'tasks'
+  const initialTab = searchParams?.get('tab') as null
+    | 'overview' | 'tasks' | 'decisions' | 'risks' | 'briefings' | 'assets' | 'updates'
+  const [activeLeft, setActiveLeft] = useState<'overview'|'tasks'|'decisions'|'risks'|'briefings'|'assets'>(
+    initialTab === 'assets' || initialTab === 'overview' || initialTab === 'decisions'
+      || initialTab === 'risks' || initialTab === 'briefings'
+        ? initialTab
+        : initialTab === 'updates' ? 'briefings' : 'tasks'
   )
   const [aiThinking, setAiThinking] = useState(false)
   const [generatingAI, setGeneratingAI] = useState(false)
@@ -356,6 +360,53 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
     open_blockers:       tasks.filter(t => ['blocked','waiting'].includes(t.status)).length || null,
   } as const
 
+  // ─── Command Center derived signals ───────────────────────────
+  // Decisions + risks come from task statuses; payment + quality gate
+  // are mapped from milestones + project phase. Pure derivation, no DB.
+  const decisionTasks = tasks.filter(t => t.status === 'waiting') as any[]
+  const riskTasks = tasks.filter(t => t.status === 'blocked') as any[]
+
+  const paymentState: { tone: 'ok' | 'due' | 'locked'; label: string } = (() => {
+    const pending = milestones.find(m => m.status === 'pending')
+    if (pending) return { tone: 'due', label: `${pending.title} · €${pending.amount.toLocaleString('de')}` }
+    if (milestones.every(m => m.status === 'paid')) return { tone: 'ok', label: 'Alle Gates bezahlt' }
+    if (milestones.length === 0) return { tone: 'locked', label: '—' }
+    return { tone: 'locked', label: 'Gesperrt' }
+  })()
+
+  const riskState: { tone: 'low' | 'medium' | 'critical'; label: string } = (() => {
+    if (riskTasks.length === 0 && decisionTasks.length === 0) return { tone: 'low', label: 'Stabil' }
+    if (riskTasks.length > 0) return { tone: 'critical', label: `${riskTasks.length} Blocker` }
+    return { tone: 'medium', label: `${decisionTasks.length} offene Entscheidung${decisionTasks.length === 1 ? '' : 'en'}` }
+  })()
+
+  const qualityGate: { tone: 'pending' | 'review' | 'passed'; label: string } = (() => {
+    if (project.status === 'done') return { tone: 'passed', label: 'Approved' }
+    if (project.status === 'testing') return { tone: 'review', label: 'In Review' }
+    if (doneTasks.length === 0) return { tone: 'pending', label: 'Pending Review' }
+    return { tone: 'review', label: 'Tagro Check' }
+  })()
+
+  // Tagro Intelligence — calm executive summary derived from state.
+  const tagroNextAction = (() => {
+    if (decisionTasks.length > 0) return decisionTasks[0].title
+    if (riskTasks.length > 0)     return `Blocker beheben: ${riskTasks[0].title}`
+    if (todoTasks.length > 0)     return todoTasks[0].title
+    if (doingTasks.length > 0)    return `Weiter an: ${doingTasks[0].title}`
+    if (nextMilestone)            return `Meilenstein „${nextMilestone.title}" vorbereiten`
+    return 'Projekt-Scope schärfen und nächsten Meilenstein definieren'
+  })()
+  const tagroSummary = (() => {
+    if (tasks.length === 0) return `Das Projekt steht ganz am Anfang. Tagro wartet auf Scope und erste Aufgaben.`
+    const sentenceA = `Aktuell ${PHASE_LABEL[project.status] ?? project.status} · ${pct}% Fortschritt · ${doingTasks.length} aktive Tasks.`
+    const sentenceB = riskTasks.length > 0
+      ? `${riskTasks.length} Blocker brauchen Aufmerksamkeit.`
+      : decisionTasks.length > 0
+        ? `${decisionTasks.length} offene Entscheidung wartet auf Freigabe.`
+        : `Keine akuten Risiken im Blick.`
+    return `${sentenceA} ${sentenceB}`
+  })()
+
   return (
     <div className="pv">
       <style>{`
@@ -660,6 +711,130 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
         @media (max-width:420px) {
           .pv-section-head { flex-wrap:wrap; gap:8px; }
         }
+
+        /* ─── Project Control Strip (calm KPI band) ────────────── */
+        .pv-control {
+          margin-top: 22px;
+          display: grid;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          gap: 1px;
+          border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+          border-radius: 14px;
+          overflow: hidden;
+          background: color-mix(in srgb, var(--border) 70%, transparent);
+        }
+        .pv-control-cell {
+          padding: 11px 14px;
+          background: var(--surface);
+          display: flex; flex-direction: column; gap: 4px;
+          min-width: 0;
+        }
+        [data-theme="dark"] .pv-control-cell,
+        [data-theme="classic-dark"] .pv-control-cell {
+          background: color-mix(in srgb, var(--surface) 92%, #fff 8%);
+        }
+        .pv-control-label {
+          font-size: 9.5px; font-weight: 500;
+          letter-spacing: .14em; text-transform: uppercase; color: var(--pv-muted);
+        }
+        .pv-control-value {
+          font-size: 14px; font-weight: 500; letter-spacing: -.005em; color: var(--text);
+          display: inline-flex; align-items: center; gap: 6px;
+          overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .pv-control-value small {
+          font-size: 11.5px; color: var(--pv-muted); font-weight: 500; letter-spacing: .015em;
+          overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .pv-control-pill {
+          display: inline-flex; align-items: center; gap: 5px;
+          height: 22px; padding: 0 9px; border-radius: 999px;
+          font-size: 11px; font-weight: 500; letter-spacing: .015em;
+          color: var(--pv-soft);
+          background: color-mix(in srgb, var(--surface-2) 55%, transparent);
+          border: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+        }
+        .pv-control-pill::before {
+          content: ''; width: 6px; height: 6px; border-radius: 50%;
+          background: currentColor;
+        }
+        .pv-control-pill.ok       { color: #22a06b; background: color-mix(in srgb, #22a06b 8%, transparent); border-color: color-mix(in srgb, #22a06b 20%, transparent); }
+        .pv-control-pill.due      { color: #d4882b; background: color-mix(in srgb, #d4882b 10%, transparent); border-color: color-mix(in srgb, #d4882b 24%, transparent); }
+        .pv-control-pill.critical { color: #d44b4b; background: color-mix(in srgb, #d44b4b 10%, transparent); border-color: color-mix(in srgb, #d44b4b 24%, transparent); }
+        .pv-control-pill.review   { color: #5b647d; background: color-mix(in srgb, #5b647d 14%, transparent); border-color: color-mix(in srgb, #5b647d 28%, transparent); }
+        .pv-control-pill.medium   { color: #d4882b; background: color-mix(in srgb, #d4882b 10%, transparent); border-color: color-mix(in srgb, #d4882b 24%, transparent); }
+        .pv-control-pill.low      { color: #22a06b; background: color-mix(in srgb, #22a06b 8%, transparent); border-color: color-mix(in srgb, #22a06b 20%, transparent); }
+        .pv-control-pill.passed   { color: #22a06b; background: color-mix(in srgb, #22a06b 8%, transparent); border-color: color-mix(in srgb, #22a06b 20%, transparent); }
+        .pv-control-pill.pending  { color: var(--pv-muted); }
+        .pv-control-pill.locked   { color: var(--pv-muted); }
+
+        @media (max-width: 980px) {
+          .pv-control { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+        @media (max-width: 520px) {
+          .pv-control { grid-template-columns: 1fr; }
+        }
+
+        /* ─── Milestone gates (calm timeline) ─────────────────── */
+        .pv-ms-row .pv-ms-gate {
+          font-size: 10.5px; color: var(--pv-muted);
+          letter-spacing: .015em; font-weight: 500;
+          padding: 2px 8px; border-radius: 999px;
+          background: color-mix(in srgb, var(--surface-2) 55%, transparent);
+          border: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+          flex-shrink: 0;
+          overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+          max-width: 160px;
+        }
+
+        /* ─── Right column: Tagro Intelligence panel ─────────── */
+        .pv-intel { margin-bottom: 14px; }
+        .pv-intel-block {
+          padding: 12px 14px;
+          border-radius: 12px;
+          background: color-mix(in srgb, var(--surface-2) 30%, transparent);
+          border: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+          margin-bottom: 8px;
+        }
+        .pv-intel-block.accent {
+          background: color-mix(in srgb, var(--pv-slate) 8%, transparent);
+          border-color: color-mix(in srgb, var(--pv-slate) 22%, transparent);
+        }
+        .pv-intel-label {
+          margin: 0 0 4px;
+          font-size: 9.5px; font-weight: 500; letter-spacing: .14em; text-transform: uppercase;
+          color: var(--pv-muted);
+        }
+        .pv-intel-text {
+          margin: 0; font-size: 12.5px; line-height: 1.55;
+          color: var(--text); font-weight: 500; letter-spacing: .015em;
+        }
+        .pv-intel-row {
+          display: flex; align-items: center; gap: 6px;
+          font-size: 11.5px; color: var(--pv-soft);
+          font-weight: 500; letter-spacing: .015em;
+          padding: 4px 0;
+        }
+        .pv-intel-row::before {
+          content: ''; width: 5px; height: 5px; border-radius: 50%; background: currentColor; opacity: .4;
+        }
+
+        /* Decisions / Risks list inside tabs */
+        .pv-list { display: flex; flex-direction: column; gap: 6px; }
+        .pv-list-row {
+          display: flex; align-items: center; gap: 10px;
+          padding: 10px 12px; border-radius: 10px;
+          background: color-mix(in srgb, var(--surface) 70%, var(--card));
+          border: 1px solid color-mix(in srgb, var(--border) 55%, transparent);
+          cursor: pointer;
+          transition: background .12s, border-color .12s;
+        }
+        .pv-list-row:hover { background: color-mix(in srgb, var(--surface-2) 55%, transparent); border-color: var(--border); }
+        .pv-list-row .d { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+        .pv-list-row.decision .d { background: #d4882b; }
+        .pv-list-row.risk .d { background: #d44b4b; }
+        .pv-list-row .t { flex: 1; font-size: 13px; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .pv-list-row .meta { font-size: 11px; color: var(--pv-muted); flex-shrink: 0; }
       `}</style>
 
       <ProjectCompletionCelebration
@@ -667,7 +842,7 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
         projectTitle={project.title}
         deliveryDate={new Date().toISOString()}
         onClose={() => setCelebrationOpen(false)}
-        onContinue={() => { setCelebrationOpen(false); setActiveLeft('updates'); generateAIUpdate() }}
+        onContinue={() => { setCelebrationOpen(false); setActiveLeft('briefings'); generateAIUpdate() }}
       />
       <DevTimer projectId={project.id} projectTitle={project.title}/>
 
@@ -757,6 +932,50 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
         </div>
       </div>
 
+      {/* ── Project Control Strip — calm command KPIs ── */}
+      <section className="pv-control" aria-label="Project Control">
+        <div className="pv-control-cell">
+          <span className="pv-control-label">Progress</span>
+          <span className="pv-control-value">{pct}% <small>{doneTasks.length} von {tasks.length || 0}</small></span>
+        </div>
+        <div className="pv-control-cell">
+          <span className="pv-control-label">Open Tasks</span>
+          <span className="pv-control-value">{todoTasks.length + doingTasks.length}
+            <small>{doingTasks.length} aktiv · {todoTasks.length} offen</small>
+          </span>
+        </div>
+        <div className="pv-control-cell">
+          <span className="pv-control-label">Next Milestone</span>
+          <span className="pv-control-value">{nextMilestone?.title ?? '—'}
+            <small>{nextMilestone ? `€${nextMilestone.amount.toLocaleString('de')}` : 'Keine offenen Meilensteine'}</small>
+          </span>
+        </div>
+        <div className="pv-control-cell">
+          <span className="pv-control-label">ETA</span>
+          <span className="pv-control-value">{nextMilestone?.title ?? '—'}
+            <small>{project.status === 'done' ? 'Geliefert' : PHASE_LABEL[project.status]}</small>
+          </span>
+        </div>
+        <div className="pv-control-cell">
+          <span className="pv-control-label">Risk</span>
+          <span className={`pv-control-pill ${riskState.tone}`}>{riskState.label}</span>
+        </div>
+        <div className="pv-control-cell">
+          <span className="pv-control-label">Payment</span>
+          <span className={`pv-control-pill ${paymentState.tone}`}>{paymentState.label}</span>
+        </div>
+        <div className="pv-control-cell">
+          <span className="pv-control-label">Quality Gate</span>
+          <span className={`pv-control-pill ${qualityGate.tone}`}>{qualityGate.label}</span>
+        </div>
+        <div className="pv-control-cell">
+          <span className="pv-control-label">Decisions</span>
+          <span className={`pv-control-pill ${decisionTasks.length > 0 ? 'medium' : 'low'}`}>
+            {decisionTasks.length > 0 ? `${decisionTasks.length} offen` : 'Keine offen'}
+          </span>
+        </div>
+      </section>
+
       {/* ── Type-specific module strip ── */}
       <ProjectModulesStrip projectType={projectType ?? null} values={stripValues} />
 
@@ -780,11 +999,17 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
               const isPending = ms.status === 'pending'
               const isLocked  = ms.status === 'locked'
               const dot = isPaid ? '#22c55e' : isPending ? '#f59e0b' : 'var(--border-strong)'
+              const gate = isPaid
+                ? 'Gate ✓ freigegeben'
+                : isPending
+                  ? 'Gate: Freischalten zum Start'
+                  : 'Gate: vorheriger Schritt nötig'
               return (
                 <div key={ms.id} className="pv-ms-row">
                   <span className="pv-ms-dot" style={{ background:'transparent', border:`2px solid ${dot}` }}/>
                   <span className={`pv-ms-title${isLocked ? ' locked' : ''}`}>{ms.title}</span>
                   {ms.description && <span className="pv-ms-desc">{ms.description}</span>}
+                  <span className="pv-ms-gate" title={gate}>{gate}</span>
                   <span className="pv-ms-amount">€{ms.amount.toLocaleString('de')}</span>
                   <span className={`pv-chip ${isPaid ? 'paid' : isPending ? 'pending' : 'locked'}`}>
                     {isPaid ? 'Bezahlt' : isPending ? 'Fällig' : 'Gesperrt'}
@@ -808,15 +1033,114 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
         <div>
           <div className="pv-tabs">
             {([
-              { key:'tasks',   label:`Tasks (${tasks.length})` },
-              { key:'assets',  label:'Assets' },
-              { key:'updates', label:'Status & Briefings' },
+              { key:'overview',  label:'Overview' },
+              { key:'tasks',     label:`Tasks (${tasks.length})` },
+              { key:'decisions', label:decisionTasks.length > 0 ? `Decisions (${decisionTasks.length})` : 'Decisions' },
+              { key:'risks',     label:riskTasks.length > 0 ? `Risks (${riskTasks.length})` : 'Risks' },
+              { key:'briefings', label:`Briefings${aiUpdates.length > 0 ? ` (${aiUpdates.length})` : ''}` },
+              { key:'assets',    label:'Assets' },
             ] as const).map(tab => (
               <button key={tab.key} className={`pv-tab ${activeLeft===tab.key?'active':''}`} onClick={() => setActiveLeft(tab.key)}>
                 {tab.label}
               </button>
             ))}
           </div>
+
+          {/* OVERVIEW */}
+          {activeLeft === 'overview' && (
+            <div>
+              <div className="pv-intel-block accent">
+                <p className="pv-intel-label">Tagro · Project Summary</p>
+                <p className="pv-intel-text">{tagroSummary}</p>
+              </div>
+              <div className="pv-intel-block">
+                <p className="pv-intel-label">Was als Nächstes wichtig ist</p>
+                <p className="pv-intel-text">{tagroNextAction}</p>
+              </div>
+              <div className="pv-intel-block">
+                <p className="pv-intel-label">Letzte Aktivität</p>
+                {messages.length === 0 ? (
+                  <p className="pv-intel-text" style={{ color:'var(--pv-muted)' }}>Noch keine Konversation oder Updates.</p>
+                ) : (
+                  <p className="pv-intel-text">
+                    {messages[messages.length - 1]?.message?.slice(0, 220) ?? '—'}
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* DECISIONS */}
+          {activeLeft === 'decisions' && (
+            <div>
+              {decisionTasks.length === 0 ? (
+                <p className="pv-empty">Keine offenen Entscheidungen.</p>
+              ) : (
+                <div className="pv-list">
+                  {decisionTasks.map(t => (
+                    <div key={t.id} className="pv-list-row decision" onClick={() => router.push(`/projects/${id}/tasks/${t.id}`)}>
+                      <span className="d" />
+                      <span className="t">{t.title}</span>
+                      <span className="meta">Wartet auf Freigabe</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* RISKS */}
+          {activeLeft === 'risks' && (
+            <div>
+              {riskTasks.length === 0 ? (
+                <p className="pv-empty">Keine aktiven Blocker oder Risiken.</p>
+              ) : (
+                <div className="pv-list">
+                  {riskTasks.map(t => (
+                    <div key={t.id} className="pv-list-row risk" onClick={() => router.push(`/projects/${id}/tasks/${t.id}`)}>
+                      <span className="d" />
+                      <span className="t">{t.title}</span>
+                      <span className="meta">Blockiert</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* BRIEFINGS (formerly "Status & Briefings") */}
+          {activeLeft === 'briefings' && (
+            <div>
+              <div className="pv-section-head">
+                <span className="pv-section-meta">Tagro fasst den Projektstand verständlich zusammen.</span>
+                <button className="pv-btn-primary" style={{ height:30 }} onClick={generateAIUpdate} disabled={generatingAI}>
+                  {generatingAI ? (
+                    <>
+                      <span style={{ width:10, height:10, border:'2px solid rgba(255,255,255,.35)', borderTopColor:'#fff', borderRadius:'50%', animation:'spin .7s linear infinite' }}/>
+                      Generiert…
+                    </>
+                  ) : '+ Bericht erstellen'}
+                </button>
+              </div>
+              {aiUpdates.length === 0 ? (
+                <p className="pv-empty">Noch keine Berichte erstellt.</p>
+              ) : (
+                <div style={{ marginTop:8 }}>
+                  {aiUpdates.map(u => (
+                    <div key={u.id} className="pv-update">
+                      <div className="pv-update-head">
+                        <span className="pv-update-tag">Tagro AI</span>
+                        <span className="pv-update-time">
+                          {new Date(u.created_at).toLocaleDateString('de',{day:'2-digit',month:'short'})} · {new Date(u.created_at).toLocaleTimeString('de',{hour:'2-digit',minute:'2-digit'})}
+                        </span>
+                      </div>
+                      <div className="pv-update-body"><ChatMarkdown text={u.content} /></div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* TASKS */}
           {activeLeft === 'tasks' && (
@@ -892,48 +1216,42 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
             <AssetsPanel projectId={project.id} workspaceId={(project as any).workspace_id ?? null} />
           )}
 
-          {/* AI UPDATES */}
-          {activeLeft === 'updates' && (
-            <div>
-              <div className="pv-section-head">
-                <span className="pv-section-meta">Tagro fasst den Projektstand verständlich zusammen.</span>
-                <button className="pv-btn-primary" style={{ height:30 }} onClick={generateAIUpdate} disabled={generatingAI}>
-                  {generatingAI ? (
-                    <>
-                      <span style={{ width:10, height:10, border:'2px solid rgba(255,255,255,.35)', borderTopColor:'#fff', borderRadius:'50%', animation:'spin .7s linear infinite' }}/>
-                      Generiert…
-                    </>
-                  ) : '+ Bericht erstellen'}
-                </button>
-              </div>
-              {aiUpdates.length === 0 ? (
-                <p className="pv-empty">Noch keine Berichte erstellt.</p>
-              ) : (
-                <div style={{ marginTop:8 }}>
-                  {aiUpdates.map(u => (
-                    <div key={u.id} className="pv-update">
-                      <div className="pv-update-head">
-                        <span className="pv-update-tag">Tagro AI</span>
-                        <span className="pv-update-time">
-                          {new Date(u.created_at).toLocaleDateString('de',{day:'2-digit',month:'short'})} · {new Date(u.created_at).toLocaleTimeString('de',{hour:'2-digit',minute:'2-digit'})}
-                        </span>
-                      </div>
-                      <div className="pv-update-body"><ChatMarkdown text={u.content} /></div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
         </div>
 
-        {/* RIGHT — Chat + Garantie */}
+        {/* RIGHT — Tagro Project Intelligence + Chat + Garantie */}
         <div>
+          <div className="pv-intel">
+            <div className="pv-intel-block accent">
+              <p className="pv-intel-label">Current Summary</p>
+              <p className="pv-intel-text">{tagroSummary}</p>
+            </div>
+            <div className="pv-intel-block">
+              <p className="pv-intel-label">Next Action</p>
+              <p className="pv-intel-text">{tagroNextAction}</p>
+            </div>
+            <div className="pv-intel-block">
+              <p className="pv-intel-label">Decisions Needed</p>
+              {decisionTasks.length === 0 ? (
+                <p className="pv-intel-text" style={{ color:'var(--pv-muted)' }}>Keine Freigabe ausstehend.</p>
+              ) : decisionTasks.slice(0, 3).map((t, i) => (
+                <div key={t.id ?? i} className="pv-intel-row">{t.title}</div>
+              ))}
+            </div>
+            <div className="pv-intel-block">
+              <p className="pv-intel-label">Risks · Blockers</p>
+              {riskTasks.length === 0 ? (
+                <p className="pv-intel-text" style={{ color:'var(--pv-muted)' }}>Keine aktiven Blocker.</p>
+              ) : riskTasks.slice(0, 3).map((t, i) => (
+                <div key={t.id ?? i} className="pv-intel-row" style={{ color:'#d44b4b' }}>{t.title}</div>
+              ))}
+            </div>
+          </div>
+
           <div className="pv-chat">
             <div className="pv-chat-head">
               <div>
                 <p className="ttl">Tagro AI</p>
-                <p className="sub">Projektkommunikation</p>
+                <p className="sub">Live project intelligence</p>
               </div>
               <span className="pv-chat-live" style={{ color: online?'#16a34a':'var(--pv-muted)' }}>
                 <span style={{ width:5, height:5, borderRadius:'50%', background:online?'#22c55e':'var(--border-strong)', animation:online?'pvPulse 1.5s infinite':'none' }}/>
