@@ -209,7 +209,10 @@ export default function OnboardingPage() {
           })
         }
         setDone(true)
-        setTimeout(() => router.replace('/dashboard'), 900)
+        // Append ?tour=1 so the WelcomeTour auto-runs exactly once, right
+        // after the very first registration → onboarding → dashboard hop.
+        // Login afterwards has no ?tour=1 in the URL, so the tour stays quiet.
+        setTimeout(() => router.replace('/dashboard?tour=1'), 900)
       }
     } catch (e: any) {
       setError(e?.message || 'Speichern fehlgeschlagen.')

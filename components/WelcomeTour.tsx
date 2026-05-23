@@ -23,6 +23,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { ArrowLeft, ArrowRight, Check, X } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 import TagroLogo from '@/components/TagroLogo'
@@ -34,7 +35,7 @@ interface Props {
   onDone?: () => void
 }
 
-type Phase = 'idle' | 'welcome' | 'modal' | 'anchored' | 'done'
+type Phase = 'idle' | 'modal' | 'anchored' | 'done'
 
 type Step = {
   title: string
@@ -43,24 +44,28 @@ type Step = {
 
 const STEPS: Step[] = [
   {
-    title: 'Alles auf einen Blick',
-    body: 'Hier befindet sich die zentrale Übersicht. Projekte, offene Aufgaben, aktuelle Statusmeldungen und wichtige Hinweise werden an einem Ort gesammelt.',
+    title: 'Willkommen bei Festag',
+    body: 'Festag hilft dabei, Projekte, Aufgaben, Statusmeldungen und Verantwortlichkeiten zentral zu überblicken — ruhig, klar und an einem Ort.',
   },
   {
-    title: 'Projekte verwalten',
-    body: 'In Projekten werden alle relevanten Aufgaben, Beteiligten, Dateien und Fortschritte gebündelt. So bleibt sichtbar, woran gearbeitet wird und welcher Stand aktuell ist.',
+    title: 'Dashboard',
+    body: 'Die zentrale Übersicht. Aktuelle Projekte, offene Aufgaben, Statusmeldungen und wichtige Updates landen hier — auf einen Blick.',
   },
   {
-    title: 'Statusabfragen verstehen',
-    body: 'Statusabfragen helfen dabei, regelmäßig aktuelle Informationen von Teammitgliedern, Dienstleistern oder Projektbeteiligten einzuholen. Dadurch entstehen klare Updates ohne lange Rückfragen.',
+    title: 'Projekte',
+    body: 'Der zentrale Arbeitsbereich. Jedes Projekt bündelt Aufgaben, Beteiligte, Dateien, Fortschritt und Verantwortlichkeiten.',
   },
   {
-    title: 'Verständliche Zusammenfassungen durch Tagro',
-    body: 'Tagro übersetzt Projektinformationen in klare Statusberichte, Zusammenfassungen und auf Wunsch auch Audio-Briefings. So werden Fortschritt, Risiken und nächste Schritte schnell verständlich.',
+    title: 'Statusabfragen',
+    body: 'Hole regelmäßig klare Updates von Teammitgliedern, Dienstleistern oder Projektbeteiligten ein — ohne lange Rückfragen.',
   },
   {
-    title: 'Zusammenarbeit klar strukturieren',
-    body: 'Über Teams und Rollen lässt sich festlegen, wer welche Informationen sieht, wer Aufgaben bearbeitet und wer Statusberichte erhält.',
+    title: 'Tagro Briefings',
+    body: 'Tagro übersetzt Projektinformationen in verständliche Statusberichte, Zusammenfassungen und auf Wunsch auch Audio-Briefings.',
+  },
+  {
+    title: 'Teams & Rollen',
+    body: 'Verwalte Personen, Rollen, Berechtigungen und Verantwortlichkeiten — wer sieht was, wer entscheidet was.',
   },
 ]
 
@@ -77,6 +82,7 @@ const TOTAL_STEPS = STEPS.length
 
 export default function WelcomeTour({ forceOpen = false, onDone }: Props) {
   const supabase = useMemo(() => createClient(), [])
+  const searchParams = useSearchParams()
   const [phase, setPhase] = useState<Phase>('idle')
   const [stepIdx, setStepIdx] = useState(0)
   const [hintIdx, setHintIdx] = useState(0)
@@ -84,7 +90,15 @@ export default function WelcomeTour({ forceOpen = false, onDone }: Props) {
   const [userId, setUserId] = useState<string | null>(null)
   const checkedRef = useRef(false)
 
-  // Initial gate: should we run?
+  // Trigger rule (per spec, 2026-05-23):
+  //   • Auto-run ONLY when the URL carries ?tour=1 — that flag is set
+  //     by the /onboarding redirect right after a fresh registration.
+  //     Plain logins or clicks on /dashboard never carry it, so the
+  //     tour stays quiet for returning users.
+  //   • forceOpen=true (replay link from settings) bypasses everything.
+  //   • The DB flag tour_completed_at still gets written on finish so
+  //     a manual replay knows the tour was seen, but auto-trigger no
+  //     longer depends on it.
   useEffect(() => {
     if (checkedRef.current) return
     checkedRef.current = true
@@ -93,27 +107,18 @@ export default function WelcomeTour({ forceOpen = false, onDone }: Props) {
       if (!user) return
       setUserId(user.id)
       if (forceOpen) {
-        setPhase('welcome')
+        setPhase('modal')
         setStepIdx(0)
         return
       }
+      const wantsTour = searchParams?.get('tour') === '1'
+      if (!wantsTour) return
       try {
         const stored = window.localStorage.getItem('festag_tour_completed')
         if (stored === '1') return
       } catch {}
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('tour_completed_at,tour_step')
-        .eq('id', user.id)
-        .maybeSingle()
-      const completed = (profile as any)?.tour_completed_at
-      if (completed) {
-        try { window.localStorage.setItem('festag_tour_completed', '1') } catch {}
-        return
-      }
-      const step = Math.max(0, Math.min(((profile as any)?.tour_step ?? 0) as number, TOTAL_STEPS))
-      setStepIdx(Math.min(step, TOTAL_STEPS - 1))
-      setPhase('welcome')
+      setStepIdx(0)
+      setPhase('modal')
     })()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [forceOpen])
@@ -160,7 +165,7 @@ export default function WelcomeTour({ forceOpen = false, onDone }: Props) {
     if (phase === 'idle' || phase === 'done') return
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        if (phase === 'welcome' || phase === 'modal') postpone()
+        if (phase === 'modal') postpone()
         else if (phase === 'anchored') finishAnchored()
       }
       if (phase === 'modal' && e.key === 'ArrowRight') next()
@@ -171,13 +176,9 @@ export default function WelcomeTour({ forceOpen = false, onDone }: Props) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, stepIdx])
 
-  // Lock body scroll while modal/welcome is up.
-  useEffect(() => {
-    if (phase !== 'welcome' && phase !== 'modal') return
-    const prev = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => { document.body.style.overflow = prev }
-  }, [phase])
+  // No body-scroll lock — locking causes the surrounding layout to
+  // jump (scrollbar disappears, sidebar shifts). The modal has its own
+  // backdrop and the page underneath stays put on its own.
 
   const markComplete = useCallback(async () => {
     setPhase('done')
@@ -216,72 +217,57 @@ export default function WelcomeTour({ forceOpen = false, onDone }: Props) {
 
   if (phase === 'idle' || phase === 'done') return null
 
-  // ──────────────────────────────── Welcome / Modal ────────────────
-  if (phase === 'welcome' || phase === 'modal') {
-    const isWelcome = phase === 'welcome'
+  // ──────────────────────────────── Modal ──────────────────────────
+  if (phase === 'modal') {
     const step = STEPS[stepIdx]
+    const isFirst = stepIdx === 0
+    const isLast  = stepIdx === TOTAL_STEPS - 1
     return (
       <div className="wt-overlay" role="dialog" aria-modal="true" aria-label="Willkommen bei Festag">
         <style>{CSS}</style>
         <div className="wt-backdrop" onClick={postpone} />
-        <div className={`wt-card${isWelcome ? ' welcome' : ''}`}>
+        <div className={`wt-card${isFirst ? ' welcome' : ''}`}>
           <button className="wt-close" type="button" onClick={postpone} aria-label="Schließen">
             <X size={16} />
           </button>
 
-          {isWelcome ? (
-            <>
-              <div className="wt-mark">
-                <TagroLogo size={36} />
-              </div>
-              <h2 className="wt-title">Willkommen bei Festag</h2>
-              <p className="wt-body">
-                In wenigen Schritten zeige ich, wie Projekte, Statusabfragen und Tagro funktionieren.
-              </p>
-              <div className="wt-actions">
-                <button className="wt-primary" type="button" onClick={() => setPhase('modal')}>
-                  Einführung starten
-                  <ArrowRight size={13} />
-                </button>
-              </div>
-              <button className="wt-skip" type="button" onClick={postpone}>
-                Später ansehen
-              </button>
-            </>
-          ) : (
-            <>
-              <p className="wt-eyebrow">Schritt {stepIdx + 1} von {TOTAL_STEPS}</p>
-              <h2 className="wt-title">{step.title}</h2>
-              <p className="wt-body">{step.body}</p>
-
-              <div className="wt-progress" aria-hidden>
-                {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
-                  <span key={i} className={`wt-dot${i === stepIdx ? ' active' : i < stepIdx ? ' done' : ''}`} />
-                ))}
-              </div>
-
-              <div className="wt-actions">
-                <button
-                  className="wt-secondary"
-                  type="button"
-                  onClick={prev}
-                  disabled={stepIdx === 0}
-                >
-                  <ArrowLeft size={13} /> Zurück
-                </button>
-                <button className="wt-primary" type="button" onClick={next}>
-                  {stepIdx === TOTAL_STEPS - 1 ? (
-                    <>Fertigstellen <Check size={13} weight="bold" /></>
-                  ) : (
-                    <>Weiter <ArrowRight size={13} /></>
-                  )}
-                </button>
-              </div>
-              <button className="wt-skip" type="button" onClick={postpone}>
-                Tour überspringen
-              </button>
-            </>
+          {isFirst && (
+            <div className="wt-mark">
+              <TagroLogo size={36} />
+            </div>
           )}
+          <p className="wt-eyebrow">
+            {isFirst ? 'Erster Eindruck' : `Schritt ${stepIdx + 1} von ${TOTAL_STEPS}`}
+          </p>
+          <h2 className="wt-title">{step.title}</h2>
+          <p className="wt-body">{step.body}</p>
+
+          <div className="wt-progress" aria-hidden>
+            {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
+              <span key={i} className={`wt-dot${i === stepIdx ? ' active' : i < stepIdx ? ' done' : ''}`} />
+            ))}
+          </div>
+
+          <div className="wt-actions">
+            <button
+              className="wt-secondary"
+              type="button"
+              onClick={prev}
+              disabled={isFirst}
+            >
+              <ArrowLeft size={13} /> Zurück
+            </button>
+            <button className="wt-primary" type="button" onClick={next}>
+              {isLast
+                ? <>Tour abschließen <Check size={13} weight="bold" /></>
+                : isFirst
+                  ? <>Einführung starten <ArrowRight size={13} /></>
+                  : <>Weiter <ArrowRight size={13} /></>}
+            </button>
+          </div>
+          <button className="wt-skip" type="button" onClick={postpone}>
+            {isFirst ? 'Später ansehen' : 'Tour überspringen'}
+          </button>
         </div>
       </div>
     )
@@ -421,7 +407,7 @@ const CSS = `
     transition: width .2s ease, opacity .2s ease, background .2s ease;
   }
   .wt-dot.done { opacity: .55; }
-  .wt-dot.active { width: 22px; border-radius: 999px; opacity: .85; background: var(--text); }
+  .wt-dot.active { width: 22px; border-radius: 999px; opacity: .9; background: var(--btn-prim); }
 
   .wt-actions {
     display: flex; gap: 8px; margin-top: 10px;
@@ -432,15 +418,11 @@ const CSS = `
     display: inline-flex; align-items: center; gap: 7px;
     height: 38px; padding: 0 18px;
     border: 0; border-radius: 999px;
-    background: var(--text); color: var(--bg);
+    background: var(--btn-prim); color: var(--btn-prim-text);
     font: inherit; font-size: 13.5px; font-weight: 500; letter-spacing: .015em;
     cursor: pointer; transition: opacity .12s, transform .12s;
   }
-  [data-theme="dark"] .wt-primary,
-  [data-theme="classic-dark"] .wt-primary {
-    background: #E8EAEF; color: #0F141B;
-  }
-  .wt-primary:hover { opacity: .9; }
+  .wt-primary:hover { opacity: .92; }
   .wt-primary:active { transform: scale(.97); }
   .wt-secondary {
     display: inline-flex; align-items: center; gap: 6px;
@@ -475,8 +457,8 @@ const CSS = `
     position: fixed; z-index: 13001;
     border-radius: 12px;
     box-shadow:
-      0 0 0 9999px rgba(8,10,14,.45),
-      0 0 0 2px color-mix(in srgb, var(--text) 60%, transparent);
+      0 0 0 9999px rgba(15,20,30,.35),
+      0 0 0 2px var(--btn-prim);
     pointer-events: none;
     transition: top .2s ease, left .2s ease, width .2s ease, height .2s ease;
   }
@@ -524,15 +506,11 @@ const CSS = `
     display: inline-flex; align-items: center; gap: 5px;
     height: 30px; padding: 0 14px;
     border: 0; border-radius: 999px;
-    background: var(--text); color: var(--bg);
+    background: var(--btn-prim); color: var(--btn-prim-text);
     font: inherit; font-size: 12px; font-weight: 500; letter-spacing: .015em;
     cursor: pointer; transition: opacity .12s, transform .12s;
   }
-  [data-theme="dark"] .wt-hint-cta,
-  [data-theme="classic-dark"] .wt-hint-cta {
-    background: #E8EAEF; color: #0F141B;
-  }
-  .wt-hint-cta:hover { opacity: .9; }
+  .wt-hint-cta:hover { opacity: .92; }
 
   /* Mobile / narrow viewport — collapse hint cards next to the anchor
      if the anchor disappears; centred floating fallback handles the

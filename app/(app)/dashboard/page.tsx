@@ -945,17 +945,13 @@ export default function DashboardPage() {
           width: 100%; height: 44px; padding: 0 18px;
           display: inline-flex; align-items: center; justify-content: center; gap: 9px;
           border-radius: 12px;
-          background: var(--text); color: var(--bg);
+          background: var(--btn-prim); color: var(--btn-prim-text);
           font: inherit; font-size: 13.5px;
           font-weight: 500 !important; letter-spacing: .015em !important;
           cursor: pointer;
           transition: opacity .14s, transform .14s;
         }
-        [data-theme="dark"] .dc-brief-primary,
-        [data-theme="classic-dark"] .dc-brief-primary {
-          background: #E8EAEF; color: #0F141B;
-        }
-        .dc-brief-primary:hover:not(:disabled) { opacity: .9; }
+        .dc-brief-primary:hover:not(:disabled) { opacity: .92; }
         .dc-brief-primary:active:not(:disabled) { transform: scale(.985); }
         .dc-brief-primary:disabled { opacity: .45; cursor: default; }
         .dc-brief-primary .spin { animation: dcSpin 1s linear infinite; }

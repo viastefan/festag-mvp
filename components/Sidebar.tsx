@@ -16,6 +16,7 @@ import {
   SignOut, UsersThree, Bell, Briefcase,
   Clock, CheckSquare, Code, FileCode,
   Tray, MagnifyingGlass, SpeakerHigh, Pulse,
+  Question, Newspaper, Article, DownloadSimple, ChatTeardropDots,
 } from '@phosphor-icons/react'
 import { autoAvatarColor, avatarInitials } from '@/lib/avatar'
 import { broadcastProfileSync, subscribeProfileSync } from '@/lib/profile-sync'
@@ -61,11 +62,21 @@ const CLIENT_TOP: NavItem[] = [
   { href:'/messages', icon:'inbox', label:'Inbox' },
 ]
 
-const WHATS_NEW_ITEMS = [
-  { href: '/whats-new', title: 'News', meta: 'Releases, Änderungen und neue Produktflächen.' },
-  { href: '/blog', title: 'Blogbeiträge', meta: 'Hintergründe, Guides und ruhig erklärte Artikel.' },
-  { href: '/download', title: 'Hilfeartikel', meta: 'Installationshilfe und App-Setup für Webapp & Mobile.' },
-] as const
+type HelpEntry = {
+  kind: 'link' | 'action'
+  href?: string
+  action?: 'replay-tour' | 'support'
+  icon: React.ElementType
+  title: string
+  meta: string
+}
+const HELP_ITEMS: HelpEntry[] = [
+  { kind: 'action', action: 'replay-tour', icon: Sparkle,          title: 'Einführung starten',    meta: 'Spielt die kurze Festag-Tour erneut ab.' },
+  { kind: 'link',   href: '/whats-new',    icon: Newspaper,        title: 'News',                  meta: 'Releases, Änderungen und neue Produktflächen.' },
+  { kind: 'link',   href: '/blog',         icon: Article,          title: 'Blogbeiträge',          meta: 'Hintergründe, Guides und ruhig erklärte Artikel.' },
+  { kind: 'link',   href: '/download',     icon: DownloadSimple,   title: 'Hilfeartikel',          meta: 'App-Setup für Webapp & Mobile.' },
+  { kind: 'action', action: 'support',     icon: ChatTeardropDots, title: 'Support kontaktieren',  meta: 'Schreib uns an hi@festag.io.' },
+]
 const CLIENT_CORE: NavItem[] = [
   { href:'/projects', icon:'project', label:'Projekte' },
   { href:'/reports', icon:'activity', label:'Statusberichte' },
@@ -838,69 +849,94 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           z-index:168;
           background:transparent;
         }
-        .sb-whatsnew-pop {
-          position:absolute;
-          left:0;
-          bottom:52px;
-          width:min(320px, calc(100vw - 32px));
-          padding:10px;
-          border-radius:18px;
-          border:1px solid var(--sidebar-border);
-          background:color-mix(in srgb, var(--sidebar-bg) 94%, transparent);
-          backdrop-filter:blur(28px) saturate(175%);
-          -webkit-backdrop-filter:blur(28px) saturate(175%);
-          box-shadow:0 28px 72px -42px rgba(15,23,42,.34);
+        .sb-help-dock { display:flex; align-items:center; gap:8px; }
+        .sb-help-trigger {
+          width: 32px; height: 32px; border-radius: 999px;
+          display: inline-flex; align-items: center; justify-content: center;
+          border: 1px solid color-mix(in srgb, var(--border) 75%, transparent);
+          background: color-mix(in srgb, var(--card) 94%, transparent);
+          color: var(--text-secondary);
+          cursor: pointer;
+          transition: color .12s, background .12s, border-color .12s, transform .12s;
+          box-shadow: 0 1px 2px rgba(15,23,42,.04);
         }
-        .sb-whatsnew-head {
-          padding:6px 6px 10px;
+        .sb-help-trigger:hover {
+          color: var(--text);
+          background: color-mix(in srgb, var(--surface-2) 70%, transparent);
+          border-color: var(--border-strong);
         }
-        .sb-whatsnew-kicker {
-          color:var(--text-muted);
-          font-size:10px;
-          font-weight:760;
-          letter-spacing:.12em;
-          text-transform:uppercase;
+        .sb-help-trigger[aria-expanded="true"] {
+          color: var(--text);
+          background: color-mix(in srgb, var(--surface-2) 85%, transparent);
         }
-        .sb-whatsnew-title {
-          margin-top:4px;
-          color:var(--text);
-          font-size:13.5px;
-          font-weight:700;
-          letter-spacing:-.015em;
+
+        .sb-help-pop {
+          position: absolute; left: 0; bottom: 44px;
+          width: 282px;
+          padding: 8px;
+          border-radius: 16px;
+          border: 1px solid color-mix(in srgb, var(--border) 75%, transparent);
+          background: var(--card);
+          box-shadow:
+            0 1px 2px rgba(15,23,42,.06),
+            0 22px 56px -22px rgba(15,23,42,.32);
+          animation: sbHelpIn .14s cubic-bezier(.16,1,.3,1) both;
         }
-        .sb-whatsnew-list {
-          display:flex;
-          flex-direction:column;
-          gap:4px;
+        [data-theme="dark"] .sb-help-pop,
+        [data-theme="classic-dark"] .sb-help-pop {
+          background: color-mix(in srgb, var(--card) 96%, #fff 4%);
+          box-shadow:
+            0 1px 2px rgba(0,0,0,.45),
+            0 24px 60px -22px rgba(0,0,0,.6);
         }
-        .sb-whatsnew-item {
-          display:flex;
-          flex-direction:column;
-          gap:3px;
-          padding:10px 12px;
-          border-radius:14px;
-          color:var(--text);
-          text-decoration:none;
-          transition:background .12s ease, transform .12s ease;
+        @keyframes sbHelpIn { from { opacity:0; transform: translateY(4px); } to { opacity:1; transform: none; } }
+
+        .sb-help-head { padding: 6px 8px 8px; }
+        .sb-help-kicker {
+          font-size: 10px; font-weight: 500;
+          letter-spacing: .14em; text-transform: uppercase;
+          color: var(--text-muted);
         }
-        .sb-whatsnew-item:hover {
-          background:color-mix(in srgb, var(--surface-2) 76%, transparent);
-          transform:translateY(-1px);
+        .sb-help-title {
+          margin-top: 2px;
+          font-size: 12.5px; font-weight: 500; letter-spacing: -.005em;
+          color: var(--text);
         }
-        .sb-whatsnew-item strong {
-          font-size:12.5px;
-          font-weight:680;
-          letter-spacing:-.01em;
+        .sb-help-list { display: flex; flex-direction: column; gap: 1px; }
+        .sb-help-item {
+          width: 100%;
+          display: grid; grid-template-columns: 26px 1fr; gap: 9px;
+          align-items: center;
+          padding: 8px 8px;
+          border: 0; background: transparent;
+          border-radius: 10px;
+          color: var(--text);
+          text-decoration: none;
+          font: inherit;
+          text-align: left;
+          cursor: pointer;
+          transition: background .12s;
         }
-        .sb-whatsnew-item span {
-          color:var(--text-muted);
-          font-size:11.5px;
-          line-height:1.45;
+        .sb-help-item:hover {
+          background: color-mix(in srgb, var(--surface-2) 70%, transparent);
         }
-        .sb-monitor-dock {
-          display:flex;
-          align-items:center;
-          gap:8px;
+        .sb-help-icon {
+          width: 26px; height: 26px; border-radius: 8px;
+          display: inline-flex; align-items: center; justify-content: center;
+          background: color-mix(in srgb, var(--surface-2) 60%, transparent);
+          color: var(--text-secondary);
+        }
+        .sb-help-item:hover .sb-help-icon { color: var(--text); }
+        .sb-help-text { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+        .sb-help-text strong {
+          font-size: 12.5px; font-weight: 500; letter-spacing: -.005em;
+          color: var(--text);
+          overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .sb-help-text span {
+          font-size: 11px; line-height: 1.45;
+          color: var(--text-muted);
+          font-weight: 500; letter-spacing: .015em;
         }
         .sb-nav-scroll {
           flex:1 1 auto;
@@ -1185,32 +1221,82 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
 
           <div className="sb-bottom-actions">
             {whatsNewOpen ? <div className="sb-bottom-backdrop" onClick={() => setWhatsNewOpen(false)} /> : null}
-            <div className="sb-monitor-dock" style={{ position:'relative' }}>
+            <div className="sb-help-dock" style={{ position:'relative' }}>
               {whatsNewOpen ? (
-                <div className="sb-whatsnew-pop">
-                  <div className="sb-whatsnew-head">
-                    <div className="sb-whatsnew-kicker">Festag</div>
-                    <div className="sb-whatsnew-title">What’s New</div>
+                <div className="sb-help-pop" role="menu" aria-label="Hilfe und Einführung">
+                  <div className="sb-help-head">
+                    <div className="sb-help-kicker">Hilfe</div>
+                    <div className="sb-help-title">Einführung & Ressourcen</div>
                   </div>
-                  <div className="sb-whatsnew-list">
-                    {WHATS_NEW_ITEMS.map((item) => (
-                      <Link key={item.href} href={item.href} className="sb-whatsnew-item" onClick={() => setWhatsNewOpen(false)}>
-                        <strong>{item.title}</strong>
-                        <span>{item.meta}</span>
-                      </Link>
-                    ))}
+                  <div className="sb-help-list">
+                    {HELP_ITEMS.map((item) => {
+                      const Icon = item.icon
+                      const inner = (
+                        <>
+                          <span className="sb-help-icon">
+                            <Icon size={14} weight="regular" />
+                          </span>
+                          <span className="sb-help-text">
+                            <strong>{item.title}</strong>
+                            <span>{item.meta}</span>
+                          </span>
+                        </>
+                      )
+                      if (item.kind === 'link' && item.href) {
+                        return (
+                          <Link
+                            key={item.title}
+                            href={item.href}
+                            className="sb-help-item"
+                            role="menuitem"
+                            onClick={() => setWhatsNewOpen(false)}
+                          >
+                            {inner}
+                          </Link>
+                        )
+                      }
+                      // Actions
+                      return (
+                        <button
+                          key={item.title}
+                          type="button"
+                          className="sb-help-item"
+                          role="menuitem"
+                          onClick={async () => {
+                            setWhatsNewOpen(false)
+                            if (item.action === 'replay-tour') {
+                              try {
+                                const sb = createClient()
+                                const { data: { user } } = await sb.auth.getUser()
+                                if (user) {
+                                  await sb.from('profiles').update({
+                                    tour_completed_at: null, tour_step: 0,
+                                  }).eq('id', user.id)
+                                }
+                              } catch {}
+                              try { window.localStorage.removeItem('festag_tour_completed') } catch {}
+                              window.location.href = '/dashboard?tour=1'
+                            } else if (item.action === 'support') {
+                              window.location.href = 'mailto:hi@festag.io?subject=Festag%20Support'
+                            }
+                          }}
+                        >
+                          {inner}
+                        </button>
+                      )
+                    })}
                   </div>
                 </div>
               ) : null}
               <button
                 type="button"
-                className="sb-monitor-capsule sb-monitor-capsule--single"
-                title="What's New öffnen"
-                aria-label="What's New öffnen"
+                className="sb-help-trigger"
+                title="Hilfe & Einführung"
+                aria-label="Hilfe & Einführung öffnen"
+                aria-expanded={whatsNewOpen}
                 onClick={() => setWhatsNewOpen((value) => !value)}
               >
-                <span className="sb-monitor-dot" style={{ background: '#7C93FF' }} />
-                <span className="sb-monitor-line">What’s New</span>
+                <Question size={15} weight="bold" />
               </button>
             </div>
           </div>
