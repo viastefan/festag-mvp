@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { setTheme, getTheme, type ThemeMode } from '@/lib/theme'
 import FestagLoader from '@/components/FestagLoader'
+import TagroLogo from '@/components/TagroLogo'
 import { rememberFestagAccount } from '@/lib/auth-device-memory'
 
 type StepId = 'mode' | 'design' | 'profile' | 'project' | 'team' | 'invite'
@@ -437,8 +438,205 @@ export default function OnboardingPage() {
         .onb-dot.active { width:22px; opacity:.7; }
         .onb-dot.done   { opacity:.5; }
 
-        /* DECORATIVE RIGHT PANEL — intentionally empty per Figma */
-        .onb-decor { position:relative; }
+        /* DECORATIVE RIGHT PANEL — calm, step-aware preview */
+        .onb-decor {
+          position:relative;
+          padding:56px 48px;
+          display:flex; align-items:center; justify-content:center;
+        }
+        .onb-preview {
+          width:100%; max-width:340px;
+          transition: opacity .22s ease, transform .22s ease;
+        }
+        .onb-preview.animating { opacity:0; transform:translateY(8px); }
+
+        /* MODE step — stacked portal cards */
+        .ob-mode-stack { position:relative; display:flex; flex-direction:column; gap:14px; align-items:stretch; }
+        .ob-mode-card {
+          display:flex; align-items:center; gap:12px;
+          padding:14px 16px; border-radius:14px;
+          border:1px solid;
+          transition: transform .35s cubic-bezier(.16,1,.3,1), border-color .2s, background .2s, opacity .2s;
+          opacity:.55;
+        }
+        .onb-root[data-theme="light"] .ob-mode-card { border-color:rgba(10,11,10,0.08); background:#FFFFFF; }
+        .onb-root[data-theme="read"]  .ob-mode-card { border-color:rgba(28,25,20,0.10); background:#FFFDF7; }
+        .onb-root[data-theme="dark"]  .ob-mode-card { border-color:rgba(255,255,255,0.07); background:#1A2030; }
+        .ob-mode-card.on { opacity:1; }
+        .onb-root[data-theme="light"] .ob-mode-card.on { border-color:rgba(91,100,125,0.45); }
+        .onb-root[data-theme="read"]  .ob-mode-card.on { border-color:rgba(28,25,20,0.30); }
+        .onb-root[data-theme="dark"]  .ob-mode-card.on { border-color:rgba(91,100,125,0.55); }
+        .ob-mode-dot {
+          width:10px; height:10px; border-radius:50%;
+          background:currentColor; opacity:.22; flex-shrink:0;
+        }
+        .ob-mode-card.on .ob-mode-dot { opacity:.7; }
+        .ob-mode-title { margin:0; font-size:13px; font-weight:500; letter-spacing:-.005em; }
+        .ob-mode-sub   { margin:1px 0 0; font-size:11.5px; font-weight:500; letter-spacing:.015em; opacity:.55; }
+
+        /* DESIGN step — miniature mock */
+        .ob-design-mock {
+          width:100%; aspect-ratio:1.45/1;
+          border-radius:14px; padding:14px;
+          display:grid; grid-template-columns:64px 1fr; gap:12px;
+          transition: background .2s;
+        }
+        .ob-design-mock.preview-light { background:#FAFAF9; box-shadow:0 8px 32px -10px rgba(15,23,42,0.10); }
+        .ob-design-mock.preview-read  { background:#F1EDE3; box-shadow:0 8px 32px -10px rgba(38,33,24,0.12); }
+        .ob-design-mock.preview-dark  { background:#1A2030; box-shadow:0 8px 32px -10px rgba(0,0,0,0.4); }
+        .ob-mock-side { display:flex; flex-direction:column; gap:8px; padding-top:4px; }
+        .ob-mock-logo { width:22px; height:22px; border-radius:6px; }
+        .ob-mock-nav  { height:6px; border-radius:3px; }
+        .ob-mock-nav.short { width:60%; }
+        .ob-mock-main { display:flex; flex-direction:column; gap:8px; padding-top:4px; }
+        .ob-mock-h    { height:10px; width:50%; border-radius:4px; }
+        .ob-mock-row  { display:flex; gap:8px; }
+        .ob-mock-card { flex:1; height:36px; border-radius:8px; }
+        .ob-mock-bar  { height:6px; border-radius:3px; }
+        .ob-mock-bar.long  { width:78%; }
+        .ob-mock-bar.mid   { width:54%; }
+        .ob-mock-bar.short { width:36%; }
+        .preview-light .ob-mock-logo,
+        .preview-light .ob-mock-h    { background:#1C1914; }
+        .preview-light .ob-mock-nav,
+        .preview-light .ob-mock-bar  { background:rgba(28,25,20,0.18); }
+        .preview-light .ob-mock-card { background:rgba(28,25,20,0.08); }
+        .preview-read  .ob-mock-logo,
+        .preview-read  .ob-mock-h    { background:#6F6248; }
+        .preview-read  .ob-mock-nav,
+        .preview-read  .ob-mock-bar  { background:rgba(111,98,72,0.32); }
+        .preview-read  .ob-mock-card { background:rgba(111,98,72,0.12); }
+        .preview-dark  .ob-mock-logo,
+        .preview-dark  .ob-mock-h    { background:#5B647D; }
+        .preview-dark  .ob-mock-nav,
+        .preview-dark  .ob-mock-bar  { background:rgba(152,162,179,0.20); }
+        .preview-dark  .ob-mock-card { background:rgba(152,162,179,0.10); }
+
+        /* PROFILE step */
+        .ob-profile-card {
+          padding:28px 22px; border-radius:18px;
+          border:1px solid;
+          text-align:center;
+          display:flex; flex-direction:column; align-items:center; gap:10px;
+        }
+        .onb-root[data-theme="light"] .ob-profile-card { border-color:rgba(10,11,10,0.08); background:#FFFFFF; }
+        .onb-root[data-theme="read"]  .ob-profile-card { border-color:rgba(28,25,20,0.10); background:#FFFDF7; }
+        .onb-root[data-theme="dark"]  .ob-profile-card { border-color:rgba(255,255,255,0.07); background:#1A2030; }
+        .ob-profile-avatar {
+          width:64px; height:64px; border-radius:50%;
+          display:flex; align-items:center; justify-content:center;
+          border:1px solid; opacity:.7;
+          font-size:18px; font-weight:500; letter-spacing:.01em;
+        }
+        .onb-root[data-theme="light"] .ob-profile-avatar { border-color:rgba(10,11,10,0.14); color:rgba(10,11,10,0.55); }
+        .onb-root[data-theme="read"]  .ob-profile-avatar { border-color:rgba(28,25,20,0.18); color:rgba(28,25,20,0.55); }
+        .onb-root[data-theme="dark"]  .ob-profile-avatar { border-color:rgba(255,255,255,0.10); color:rgba(255,255,255,0.55); }
+        .ob-profile-name { margin:6px 0 0; font-size:14px; font-weight:500; letter-spacing:-.005em; }
+        .ob-profile-pos  { margin:1px 0 4px; font-size:12px; font-weight:500; letter-spacing:.015em; opacity:.55; }
+        .ob-profile-chip {
+          margin-top:4px; padding:3px 9px; border-radius:999px;
+          border:1px solid; font-size:10.5px; font-weight:500;
+          letter-spacing:.08em; text-transform:uppercase; opacity:.55;
+        }
+        .onb-root[data-theme="light"] .ob-profile-chip { border-color:rgba(10,11,10,0.10); }
+        .onb-root[data-theme="read"]  .ob-profile-chip { border-color:rgba(28,25,20,0.14); }
+        .onb-root[data-theme="dark"]  .ob-profile-chip { border-color:rgba(255,255,255,0.10); }
+
+        /* PROJECT step — Tagro presence card */
+        .ob-project-card {
+          padding:20px 20px 22px; border-radius:18px;
+          border:1px solid;
+        }
+        .onb-root[data-theme="light"] .ob-project-card { border-color:rgba(10,11,10,0.08); background:#FFFFFF; }
+        .onb-root[data-theme="read"]  .ob-project-card { border-color:rgba(28,25,20,0.10); background:#FFFDF7; }
+        .onb-root[data-theme="dark"]  .ob-project-card { border-color:rgba(255,255,255,0.07); background:#1A2030; }
+        .ob-project-head { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+        .ob-project-kicker {
+          margin:0; font-size:10.5px; font-weight:500;
+          letter-spacing:.14em; text-transform:uppercase; opacity:.55;
+        }
+        .ob-project-title { margin:2px 0 0; font-size:13px; font-weight:500; letter-spacing:-.005em; }
+        .ob-project-list {
+          list-style:none; margin:0; padding:0;
+          display:flex; flex-direction:column; gap:8px;
+          margin-bottom:14px;
+        }
+        .ob-project-list li {
+          display:flex; align-items:center; gap:9px;
+          font-size:12.5px; font-weight:500; letter-spacing:.015em;
+          opacity:.65;
+        }
+        .ob-li-dot {
+          width:6px; height:6px; border-radius:50%;
+          background:currentColor; opacity:.4;
+        }
+        .ob-project-foot {
+          margin:0; padding-top:10px;
+          border-top:1px solid;
+          font-size:11.5px; font-weight:500; letter-spacing:.015em;
+          opacity:.5; line-height:1.5;
+        }
+        .onb-root[data-theme="light"] .ob-project-foot { border-color:rgba(10,11,10,0.06); }
+        .onb-root[data-theme="read"]  .ob-project-foot { border-color:rgba(28,25,20,0.08); }
+        .onb-root[data-theme="dark"]  .ob-project-foot { border-color:rgba(255,255,255,0.05); }
+
+        /* TEAM step — small constellation */
+        .ob-team-preview {
+          display:flex; flex-direction:column; align-items:center; gap:18px;
+        }
+        .ob-team-graph {
+          position:relative; width:220px; height:220px;
+          display:flex; align-items:center; justify-content:center;
+        }
+        .ob-team-center {
+          width:48px; height:48px; border-radius:50%;
+          display:flex; align-items:center; justify-content:center;
+          font-size:14px; font-weight:500; letter-spacing:.01em;
+          border:1px solid;
+        }
+        .onb-root[data-theme="light"] .ob-team-center { background:#FFFFFF; border-color:rgba(10,11,10,0.12); color:rgba(10,11,10,0.7); }
+        .onb-root[data-theme="read"]  .ob-team-center { background:#FFFDF7; border-color:rgba(28,25,20,0.16); color:rgba(28,25,20,0.7); }
+        .onb-root[data-theme="dark"]  .ob-team-center { background:#1A2030; border-color:rgba(255,255,255,0.12); color:rgba(255,255,255,0.7); }
+        .ob-team-node {
+          position:absolute; left:50%; top:50%; margin:-12px;
+          width:24px; height:24px; border-radius:50%;
+          border:1px solid; opacity:.7;
+          animation: obTeamPop .45s cubic-bezier(.16,1,.3,1) both;
+        }
+        .onb-root[data-theme="light"] .ob-team-node { background:#FFFFFF; border-color:rgba(10,11,10,0.10); }
+        .onb-root[data-theme="read"]  .ob-team-node { background:#FFFDF7; border-color:rgba(28,25,20,0.12); }
+        .onb-root[data-theme="dark"]  .ob-team-node { background:#1A2030; border-color:rgba(255,255,255,0.08); }
+        @keyframes obTeamPop { from { opacity:0; transform:translate(0,0) scale(.4); } to { opacity:.7; } }
+        .ob-team-caption {
+          margin:0; font-size:12px; font-weight:500; letter-spacing:.015em;
+          opacity:.6; text-align:center; max-width:240px; line-height:1.5;
+        }
+
+        /* INVITE step */
+        .ob-invite-preview {
+          padding:20px; border-radius:18px;
+          border:1px solid;
+        }
+        .onb-root[data-theme="light"] .ob-invite-preview { border-color:rgba(10,11,10,0.08); background:#FFFFFF; }
+        .onb-root[data-theme="read"]  .ob-invite-preview { border-color:rgba(28,25,20,0.10); background:#FFFDF7; }
+        .onb-root[data-theme="dark"]  .ob-invite-preview { border-color:rgba(255,255,255,0.07); background:#1A2030; }
+        .ob-invite-kicker {
+          margin:0; font-size:10.5px; font-weight:500;
+          letter-spacing:.14em; text-transform:uppercase; opacity:.55;
+        }
+        .ob-invite-count { margin:4px 0 14px; font-size:18px; font-weight:500; letter-spacing:-.005em; }
+        .ob-invite-list { display:flex; flex-wrap:wrap; gap:6px; }
+        .ob-invite-chip {
+          display:inline-flex; align-items:center; height:24px;
+          padding:0 10px; border-radius:999px;
+          border:1px solid; font-size:11.5px; font-weight:500; letter-spacing:.015em;
+        }
+        .onb-root[data-theme="light"] .ob-invite-chip { border-color:rgba(10,11,10,0.10); }
+        .onb-root[data-theme="read"]  .ob-invite-chip { border-color:rgba(28,25,20,0.14); }
+        .onb-root[data-theme="dark"]  .ob-invite-chip { border-color:rgba(255,255,255,0.10); }
+        .ob-invite-empty {
+          font-size:12px; opacity:.4; font-weight:500; letter-spacing:.015em;
+        }
 
         @media (max-width: 880px) {
           .onb-shell { grid-template-columns:1fr; min-height:0; }
@@ -626,7 +824,143 @@ export default function OnboardingPage() {
           </div>
         </aside>
 
-        <div className="onb-decor" aria-hidden="true" />
+        <aside className="onb-decor" aria-hidden="true">
+          <div className={`onb-preview${animating ? ' animating' : ''}`}>
+            {current === 'mode' && (
+              <div className="ob-mode-stack">
+                {WORKSPACE_MODES.map((m, i) => (
+                  <div
+                    key={m.id}
+                    className={`ob-mode-card${workspaceMode === m.id ? ' on' : ''}`}
+                    style={{ transform: `translateY(${i * 14}px) rotate(${(i - 1) * 1.4}deg)`, zIndex: workspaceMode === m.id ? 3 : 3 - i }}
+                  >
+                    <span className="ob-mode-dot" />
+                    <div>
+                      <p className="ob-mode-title">{m.id === 'delivery' ? 'Client' : m.id === 'team' ? 'Team' : 'Agentur'}</p>
+                      <p className="ob-mode-sub">{m.id === 'delivery' ? 'Festag setzt um' : m.id === 'team' ? 'Eigene Devs steuern' : 'Kunden + White Label'}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {current === 'design' && (
+              <div className={`ob-design-mock preview-${theme}`} aria-hidden="true">
+                <div className="ob-mock-side">
+                  <span className="ob-mock-logo" />
+                  <span className="ob-mock-nav" />
+                  <span className="ob-mock-nav short" />
+                  <span className="ob-mock-nav" />
+                </div>
+                <div className="ob-mock-main">
+                  <span className="ob-mock-h" />
+                  <div className="ob-mock-row">
+                    <span className="ob-mock-card" />
+                    <span className="ob-mock-card" />
+                  </div>
+                  <span className="ob-mock-bar long" />
+                  <span className="ob-mock-bar mid" />
+                  <span className="ob-mock-bar short" />
+                </div>
+              </div>
+            )}
+
+            {current === 'profile' && (
+              <div className="ob-profile-card">
+                <div className="ob-profile-avatar">
+                  <span>
+                    {(fullName.trim() || ' ')
+                      .split(/\s+/).filter(Boolean).slice(0, 2)
+                      .map(s => s[0]?.toUpperCase()).join('') || '·'}
+                  </span>
+                </div>
+                <p className="ob-profile-name">{fullName.trim() || 'Dein Name'}</p>
+                <p className="ob-profile-pos">{position.trim() || 'Deine Rolle'}</p>
+                <span className="ob-profile-chip">Profil-Vorschau</span>
+              </div>
+            )}
+
+            {current === 'project' && (
+              <div className="ob-project-card">
+                <div className="ob-project-head">
+                  <TagroLogo size={26} thinking={project.trim().length > 12} />
+                  <div>
+                    <p className="ob-project-kicker">Tagro</p>
+                    <p className="ob-project-title">
+                      {project.trim().length > 12
+                        ? 'Struktur wird beim Start abgeleitet…'
+                        : 'Wartet auf deine Beschreibung.'}
+                    </p>
+                  </div>
+                </div>
+                <ul className="ob-project-list">
+                  <li><span className="ob-li-dot" /> Scope & Ziele</li>
+                  <li><span className="ob-li-dot" /> Erste prüfbare Aufgaben</li>
+                  <li><span className="ob-li-dot" /> Offene Fragen & Risiken</li>
+                  <li><span className="ob-li-dot" /> Vorgeschlagene Milestones</li>
+                </ul>
+                <p className="ob-project-foot">
+                  Du kannst alles später anpassen — Tagro übergibt strukturiert, nicht starr.
+                </p>
+              </div>
+            )}
+
+            {current === 'team' && (
+              <div className="ob-team-preview">
+                <div className="ob-team-graph">
+                  <span className="ob-team-center">
+                    {(fullName.trim() || ' ')
+                      .split(/\s+/).filter(Boolean).slice(0, 2)
+                      .map(s => s[0]?.toUpperCase()).join('') || '·'}
+                  </span>
+                  {(workMode === 'alone' ? [] :
+                    workMode === 'existing_team' ? [0, 1, 2] :
+                    workMode === 'clients_partners' ? [0, 1, 2, 3] :
+                    workMode === 'festag_support' ? [0, 1] :
+                    []
+                  ).map((_, i, arr) => {
+                    const angle = (360 / arr.length) * i - 90
+                    const x = Math.cos(angle * Math.PI / 180) * 86
+                    const y = Math.sin(angle * Math.PI / 180) * 86
+                    return (
+                      <span
+                        key={i}
+                        className="ob-team-node"
+                        style={{ transform: `translate(${x}px, ${y}px)` }}
+                      />
+                    )
+                  })}
+                </div>
+                <p className="ob-team-caption">
+                  {workMode === 'alone' ? 'Du alleine — Tagro übernimmt die Struktur.'
+                    : workMode === 'existing_team' ? 'Du + dein Entwicklerteam.'
+                    : workMode === 'clients_partners' ? 'Du, Kunden und Beteiligte.'
+                    : workMode === 'festag_support' ? 'Du + Festag-Support.'
+                    : 'Wähle, wer mit dir arbeitet.'}
+                </p>
+              </div>
+            )}
+
+            {current === 'invite' && (() => {
+              const emails = invites.split(/[,;\s\n]+/).map(s => s.trim()).filter(s => /\S+@\S+\.\S+/.test(s)).slice(0, 6)
+              return (
+                <div className="ob-invite-preview">
+                  <p className="ob-invite-kicker">Einladungen</p>
+                  <p className="ob-invite-count">
+                    {emails.length === 0 ? 'Noch niemand' : `${emails.length} ${emails.length === 1 ? 'Einladung' : 'Einladungen'}`}
+                  </p>
+                  <div className="ob-invite-list">
+                    {emails.length === 0 ? (
+                      <span className="ob-invite-empty">cofounder@firma.de</span>
+                    ) : emails.map(e => (
+                      <span key={e} className="ob-invite-chip">{e}</span>
+                    ))}
+                  </div>
+                </div>
+              )
+            })()}
+          </div>
+        </aside>
       </section>
     </main>
   )
