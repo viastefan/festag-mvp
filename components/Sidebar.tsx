@@ -72,9 +72,8 @@ const CLIENT_TEAMS: NavItem[] = [
   { href:'/teams?view=messages', icon:'chat', label:'Nachrichten' },
 ]
 const CLIENT_TAGRO: NavItem[] = [
-  { href:'/voice-reports', icon:'audio', label:'Briefing aufnehmen' },
-  { href:'/ai?view=chat', icon:'chat', label:'Chat' },
-  { href:'/ai?view=notes', icon:'card', label:'Notizen' },
+  { href:'/ai',    icon:'chat', label:'Chat' },
+  { href:'/notes', icon:'card', label:'Notizen' },
 ]
 const CLIENT_TOOLS: NavItem[] = [
   { href:'/estimator',  icon:'estimate', label:'Preisschätzer' },
@@ -1095,65 +1094,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
                 expanded={tagroExp}
                 onToggle={() => setTagroExp(v => !v)}
               >
-                {(() => {
-                  // Projektbriefings renders as:
-                  //   ≤ 1 project → direct link (deep-links into that project)
-                  //   > 1 project → expandable, sub-rows are the projects
-                  const reportsHref = projects.length === 1
-                    ? `/reports?project=${projects[0].id}`
-                    : '/reports'
-                  const reportsActive = pathname.startsWith('/reports')
-                  // Seed expand the first time the user arrives at /reports,
-                  // but afterwards let the user freely collapse without us
-                  // forcing it back open. Persists across navigations.
-                  if (reportsActive && !reportsAutoSeededRef.current) {
-                    reportsAutoSeededRef.current = true
-                    if (!reportsExp) setReportsExp(true)
-                  }
-
-                  if (projects.length > 1) {
-                    return (
-                      <>
-                        <ExpandableNavSection
-                          href={reportsHref}
-                          icon="activity"
-                          label="Projektbriefings"
-                          expanded={reportsExp}
-                          onToggle={() => setReportsExp(v => !v)}
-                          activeOverride={reportsActive}
-                        >
-                          <div className="sb-subnav">
-                            {projects.map((p, projectIndex) => {
-                              const sp = searchParams?.get('project')
-                              const on = reportsActive && sp === p.id
-                              const dot = p.color || '#64748b'
-                              return (
-                                <Link key={p.id} href={`/reports?project=${p.id}`} className={`proj-row ${on ? 'active' : ''}`} data-shortcut={projectShortcut(projectIndex)}>
-                                  <span style={{
-                                    width:11, height:11, borderRadius:3,
-                                    border:`2px solid ${dot}`, flexShrink:0,
-                                  }}/>
-                                  <span className="proj-label">{p.title}</span>
-                                </Link>
-                              )
-                            })}
-                          </div>
-                        </ExpandableNavSection>
-                        <NavItems items={tagroNav.filter(item => item.href !== '/reports')} />
-                      </>
-                    )
-                  }
-
-                  return (
-                    <>
-                      <Link href={reportsHref} className={`ni ${reportsActive ? 'ni-on' : 'ni-off'}`} data-shortcut={navShortcut('Projektbriefings', reportsHref)}>
-                        <Ico name="activity" sz={14} c={reportsActive ? 'var(--text)' : 'var(--text-muted)'} weight={reportsActive ? 'bold' : 'regular'} />
-                        <span style={{ minWidth:0, overflow:'hidden', textOverflow:'ellipsis' }}>Projektbriefings</span>
-                      </Link>
-                      <NavItems items={tagroNav.filter(item => item.href !== '/reports')} />
-                    </>
-                  )
-                })()}
+                <NavItems items={tagroNav} />
               </Section>
             </div>
 
