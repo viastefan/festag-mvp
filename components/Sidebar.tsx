@@ -15,7 +15,7 @@ import {
   Plus, CaretRight, DotsThreeOutline, X,
   SignOut, UsersThree, Bell, Briefcase,
   Clock, CheckSquare, Code, FileCode,
-  Tray, MagnifyingGlass, SpeakerHigh,
+  Tray, MagnifyingGlass, SpeakerHigh, Pulse,
 } from '@phosphor-icons/react'
 import { autoAvatarColor, avatarInitials } from '@/lib/avatar'
 import { broadcastProfileSync, subscribeProfileSync } from '@/lib/profile-sync'
@@ -31,7 +31,7 @@ const ICONS: Record<string, React.ElementType> = {
   more: DotsThreeOutline, close: X, logout: SignOut, team: UsersThree,
   bell: Bell, briefcase: Briefcase, clock: Clock, check: CheckSquare,
   code: Code, task: FileCode, inbox: Tray, search: MagnifyingGlass,
-  audio: SpeakerHigh,
+  audio: SpeakerHigh, pulse: Pulse,
 }
 
 function Ico({ name, sz=16, c='currentColor', weight='regular' }: {
@@ -57,9 +57,15 @@ type MonitoringDockState = {
 }
 
 const CLIENT_TOP: NavItem[] = [
-  { href:'/dashboard', icon:'home', label:'Statusabfrage' },
+  { href:'/dashboard', icon:'pulse', label:'Statusabfrage' },
   { href:'/messages', icon:'inbox', label:'Inbox' },
 ]
+
+const WHATS_NEW_ITEMS = [
+  { href: '/whats-new', title: 'News', meta: 'Releases, Änderungen und neue Produktflächen.' },
+  { href: '/blog', title: 'Blogbeiträge', meta: 'Hintergründe, Guides und ruhig erklärte Artikel.' },
+  { href: '/download', title: 'Hilfeartikel', meta: 'Installationshilfe und App-Setup für Webapp & Mobile.' },
+] as const
 const CLIENT_CORE: NavItem[] = [
   { href:'/projects', icon:'project', label:'Projekte' },
   { href:'/reports', icon:'activity', label:'Statusberichte' },
@@ -169,6 +175,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
   const reportsAutoSeededRef = useRef(false)
   const [toolsExp, setToolsExp] = useState(false)
   const [teamsOpen,  setTeamsOpen] = useState(false)
+  const [whatsNewOpen, setWhatsNewOpen] = useState(false)
   const [colorPickId, setColorPickId] = useState<string|null>(null)
   const [monitoringDock, setMonitoringDock] = useState<MonitoringDockState>({
     loaded: false,
@@ -251,6 +258,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
 
   useEffect(() => {
     setMore(false)
+    setWhatsNewOpen(false)
     const sb = createClient()
     sb.auth.getUser().then(async ({ data }) => {
       if (!data.user) return
@@ -822,7 +830,72 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           width:auto;
           max-width:220px;
           padding:0;
-          z-index:155;
+          z-index:170;
+        }
+        .sb-bottom-backdrop {
+          position:fixed;
+          inset:0;
+          z-index:168;
+          background:transparent;
+        }
+        .sb-whatsnew-pop {
+          position:absolute;
+          left:0;
+          bottom:52px;
+          width:min(320px, calc(100vw - 32px));
+          padding:10px;
+          border-radius:18px;
+          border:1px solid var(--sidebar-border);
+          background:color-mix(in srgb, var(--sidebar-bg) 94%, transparent);
+          backdrop-filter:blur(28px) saturate(175%);
+          -webkit-backdrop-filter:blur(28px) saturate(175%);
+          box-shadow:0 28px 72px -42px rgba(15,23,42,.34);
+        }
+        .sb-whatsnew-head {
+          padding:6px 6px 10px;
+        }
+        .sb-whatsnew-kicker {
+          color:var(--text-muted);
+          font-size:10px;
+          font-weight:760;
+          letter-spacing:.12em;
+          text-transform:uppercase;
+        }
+        .sb-whatsnew-title {
+          margin-top:4px;
+          color:var(--text);
+          font-size:13.5px;
+          font-weight:700;
+          letter-spacing:-.015em;
+        }
+        .sb-whatsnew-list {
+          display:flex;
+          flex-direction:column;
+          gap:4px;
+        }
+        .sb-whatsnew-item {
+          display:flex;
+          flex-direction:column;
+          gap:3px;
+          padding:10px 12px;
+          border-radius:14px;
+          color:var(--text);
+          text-decoration:none;
+          transition:background .12s ease, transform .12s ease;
+        }
+        .sb-whatsnew-item:hover {
+          background:color-mix(in srgb, var(--surface-2) 76%, transparent);
+          transform:translateY(-1px);
+        }
+        .sb-whatsnew-item strong {
+          font-size:12.5px;
+          font-weight:680;
+          letter-spacing:-.01em;
+        }
+        .sb-whatsnew-item span {
+          color:var(--text-muted);
+          font-size:11.5px;
+          line-height:1.45;
         }
         .sb-monitor-dock {
           display:flex;
@@ -1111,46 +1184,35 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           </div>
 
           <div className="sb-bottom-actions">
-            {(() => {
-              const {
-                decisions,
-                blockers,
-                risks,
-                loaded,
-                latestBriefingAt,
-                latestProjectUpdateAt,
-                hasNewBriefing,
-                audioReady,
-              } = monitoringDock
-              const latestBriefingLabel = formatRelativeBriefing(latestBriefingAt)
-              const latestUpdateAgeMs = latestProjectUpdateAt ? Date.now() - new Date(latestProjectUpdateAt).getTime() : Number.POSITIVE_INFINITY
-              const projectStatusUpdated = Boolean(latestProjectUpdateAt && latestUpdateAgeMs <= 4 * 60 * 60 * 1000 && !hasNewBriefing && !audioReady)
-              const status = !loaded
-                ? { dot: 'var(--text-muted)', text: 'Projektstatus wird geprüft' }
-                : blockers > 0
-                  ? { dot: '#B56A62', text: 'Blocker erkannt' }
-                  : decisions > 0
-                    ? { dot: '#B38B4A', text: `${decisions} Entscheidung${decisions === 1 ? '' : 'en'} offen` }
-                    : risks > 0
-                      ? { dot: '#B38B4A', text: 'Risiko erkannt' }
-                      : hasNewBriefing
-                        ? { dot: '#8D98A6', text: 'Neues Briefing verfügbar' }
-                        : audioReady
-                          ? { dot: '#8D98A6', text: 'Audio-Briefing bereit' }
-                          : projectStatusUpdated
-                            ? { dot: '#8D98A6', text: 'Projektstatus aktualisiert' }
-                            : latestBriefingLabel
-                              ? { dot: '#2F8F57', text: `Letztes Briefing ${latestBriefingLabel}` }
-                              : { dot: '#2F8F57', text: 'Alles auf Kurs' }
-              return (
-                <div className="sb-monitor-dock">
-                  <Link href="/reports#status-center" className="sb-monitor-capsule sb-monitor-capsule--single" title={status.text} aria-label={status.text}>
-                    <span className="sb-monitor-dot" style={{ background: '#3B82F6' }} />
-                    <span className="sb-monitor-line">Statusabfrage</span>
-                  </Link>
+            {whatsNewOpen ? <div className="sb-bottom-backdrop" onClick={() => setWhatsNewOpen(false)} /> : null}
+            <div className="sb-monitor-dock" style={{ position:'relative' }}>
+              {whatsNewOpen ? (
+                <div className="sb-whatsnew-pop">
+                  <div className="sb-whatsnew-head">
+                    <div className="sb-whatsnew-kicker">Festag</div>
+                    <div className="sb-whatsnew-title">What’s New</div>
+                  </div>
+                  <div className="sb-whatsnew-list">
+                    {WHATS_NEW_ITEMS.map((item) => (
+                      <Link key={item.href} href={item.href} className="sb-whatsnew-item" onClick={() => setWhatsNewOpen(false)}>
+                        <strong>{item.title}</strong>
+                        <span>{item.meta}</span>
+                      </Link>
+                    ))}
+                  </div>
                 </div>
-              )
-            })()}
+              ) : null}
+              <button
+                type="button"
+                className="sb-monitor-capsule sb-monitor-capsule--single"
+                title="What's New öffnen"
+                aria-label="What's New öffnen"
+                onClick={() => setWhatsNewOpen((value) => !value)}
+              >
+                <span className="sb-monitor-dot" style={{ background: '#7C93FF' }} />
+                <span className="sb-monitor-line">What’s New</span>
+              </button>
+            </div>
           </div>
         </div>
       </aside>
