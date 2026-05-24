@@ -883,13 +883,13 @@ export default function DashboardPage() {
         [data-theme="light"] .dc-brief,
         [data-theme="pure-light"] .dc-brief {
           background:
-            radial-gradient(circle at 50% 0%, rgba(241,244,249,.86), transparent 50%),
-            rgba(248,250,253,.92);
-          border-color:rgba(15,23,42,.075);
+            radial-gradient(circle at 50% 0%, rgba(248,250,252,.82), transparent 48%),
+            rgba(255,255,255,.98);
+          border-color:rgba(15,23,42,.105);
           box-shadow:
-            0 28px 78px -54px rgba(15,23,42,.34),
-            0 1px 2px rgba(15,23,42,.045),
-            inset 0 1px 0 rgba(255,255,255,.82);
+            0 34px 90px -58px rgba(15,23,42,.38),
+            0 1px 2px rgba(15,23,42,.07),
+            inset 0 1px 0 rgba(255,255,255,.95);
         }
 
         .dc-brief-head {
@@ -926,7 +926,7 @@ export default function DashboardPage() {
         }
 
         /* Scope dropdown */
-        .dc-scope { position: relative; flex-shrink: 0; }
+        .dc-scope { position: relative; flex-shrink: 0; z-index: 18; }
         .dc-scope-trigger {
           display: inline-flex; align-items: center; gap: 7px;
           max-width: 170px;
@@ -945,22 +945,27 @@ export default function DashboardPage() {
         .dc-scope-trigger svg { color: var(--dc-muted); flex-shrink: 0; }
 
         .dc-scope-backdrop {
-          position: fixed; inset: 0; z-index: 14;
+          position: fixed; inset: 0; z-index: 16;
           background: transparent; border: 0; padding: 0; cursor: default;
         }
         .dc-scope-menu {
-          position: absolute; top: calc(100% + 6px); right: 0; z-index: 15;
-          min-width: 240px; max-width: 280px;
+          position: absolute; top: calc(100% + 8px); left: 0; right: auto; z-index: 17;
+          width: min(254px, calc(100vw - 40px));
+          max-height: 268px;
+          overflow-y: auto;
           padding: 6px;
-          background: var(--surface);
+          background: #fff;
+          border: 1px solid rgba(15,23,42,.07);
           border-radius: 12px;
-          box-shadow: 0 20px 50px rgba(15,23,42,.14);
+          box-shadow: 0 20px 50px rgba(15,23,42,.12), 0 1px 2px rgba(15,23,42,.05);
           display: flex; flex-direction: column; gap: 2px;
           animation: dcFade .14s ease both;
+          scrollbar-width: thin;
         }
         [data-theme="dark"] .dc-scope-menu,
         [data-theme="classic-dark"] .dc-scope-menu {
           background: color-mix(in srgb, var(--surface) 95%, #fff 5%);
+          border-color: rgba(255,255,255,.06);
           box-shadow: 0 1px 2px rgba(0,0,0,.35), 0 24px 60px rgba(0,0,0,.4);
         }
         .dc-scope-opt {
@@ -975,6 +980,14 @@ export default function DashboardPage() {
         }
         .dc-scope-opt:hover { background: color-mix(in srgb, var(--surface-2) 55%, transparent); }
         .dc-scope-opt.on { background: color-mix(in srgb, var(--surface-2) 70%, transparent); }
+        [data-theme="light"] .dc-scope-opt:hover,
+        [data-theme="pure-light"] .dc-scope-opt:hover {
+          background: rgba(241,245,249,.86);
+        }
+        [data-theme="light"] .dc-scope-opt.on,
+        [data-theme="pure-light"] .dc-scope-opt.on {
+          background: rgba(238,242,247,.92);
+        }
         .dc-scope-dot {
           width: 8px; height: 8px; border-radius: 50%;
           background: var(--dc-muted);
@@ -1157,6 +1170,19 @@ export default function DashboardPage() {
           animation-delay:.18s;
           opacity:.58;
         }
+        [data-theme="light"] .dc-voice-base,
+        [data-theme="pure-light"] .dc-voice-base {
+          stroke: rgba(71,85,105,.34);
+        }
+        [data-theme="light"] .dc-voice-live,
+        [data-theme="pure-light"] .dc-voice-live {
+          stroke: rgba(71,85,105,.58);
+          opacity:.56;
+        }
+        [data-theme="light"] .dc-voice-line.on .dc-voice-live,
+        [data-theme="pure-light"] .dc-voice-line.on .dc-voice-live {
+          opacity:.86;
+        }
         @keyframes dcVoiceIdle {
           0%,100% { stroke-dashoffset:0; opacity:.32; }
           50% { stroke-dashoffset:-46; opacity:.5; }
@@ -1236,6 +1262,15 @@ export default function DashboardPage() {
           transition: background .14s, transform .14s;
         }
         .dc-brief-primary:hover:not(:disabled) { background: color-mix(in srgb, var(--surface-2) 92%, transparent); }
+        [data-theme="light"] .dc-brief-primary,
+        [data-theme="pure-light"] .dc-brief-primary {
+          background: #eef2f7;
+          box-shadow: inset 0 1px 0 rgba(255,255,255,.72);
+        }
+        [data-theme="light"] .dc-brief-primary:hover:not(:disabled),
+        [data-theme="pure-light"] .dc-brief-primary:hover:not(:disabled) {
+          background: #e7edf5;
+        }
         .dc-brief-primary:focus,
         .dc-brief-primary:focus-visible {
           outline:none;
@@ -1413,7 +1448,7 @@ export default function DashboardPage() {
           .dc-brief-filterbar { flex-direction:column; align-items:stretch; }
           .dc-period-options { justify-content:space-between; }
           .dc-scope-trigger { max-width: none; width: 100%; justify-content: space-between; }
-          .dc-scope-menu { left: 0; right: 0; min-width: 0; }
+          .dc-scope-menu { left: 0; right: 0; width:auto; min-width: 0; }
           .dc-orb-stage { aspect-ratio: 2 / 1; max-height: 140px; }
           .dc-orb-bubble { width: 64px; height: 64px; }
           .dc-orb-ring { width: 96px; height: 96px; margin: -48px 0 0 -48px; }
