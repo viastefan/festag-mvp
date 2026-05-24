@@ -20,7 +20,7 @@ import ObserverWelcomeModal from '@/components/ObserverWelcomeModal'
 import WelcomeTour from '@/components/WelcomeTour'
 import TagroLogo from '@/components/TagroLogo'
 import { speechVoiceId, useSpeechSynthesis } from '@/hooks/useSpeechSynthesis'
-import { ArrowClockwise, CaretDown, Check, FileText, Pause, Play, Plus, SlidersHorizontal, Stop } from '@phosphor-icons/react'
+import { ArrowClockwise, CaretDown, Check, Pause, Play, Plus, SlidersHorizontal, Stop } from '@phosphor-icons/react'
 
 // ─────────────────────────────────────────────────────────────────────
 // Helpers
@@ -205,7 +205,6 @@ export default function DashboardPage() {
   const [scope, setScope] = useState<'overall' | string>('overall')
   const [scopeOpen, setScopeOpen] = useState(false)
   const [period, setPeriod] = useState<'Heute' | 'Letzte 7 Tage' | 'Letzte 30 Tage' | 'Letzte 90 Tage'>('Letzte 30 Tage')
-  const [showTranscript, setShowTranscript] = useState(false)
   const [briefingLog, setBriefingLog] = useState<BriefingLogEntry[]>([])
   const [activeLogId, setActiveLogId] = useState<string | null>(null)
 
@@ -279,19 +278,6 @@ export default function DashboardPage() {
     setActiveLogId(id)
   }
 
-  function addTranscriptToLog() {
-    const body = audioText.trim()
-    if (!body) return
-    addBriefingLogEntry({
-      id: `transcript-${scope}`,
-      kind: 'transcript',
-      title: isOverall ? 'Transkript – Gesamtbericht' : `Transkript – ${scopeLabel}`,
-      scope: scopeLabel,
-      body,
-    })
-    setShowTranscript(true)
-  }
-
   // German average ≈ 150 wpm → ~2.5 words per second.
   const briefingDurationLabel = useMemo(() => {
     const words = audioText.trim().split(/\s+/).filter(Boolean).length
@@ -356,15 +342,6 @@ export default function DashboardPage() {
   ]
 
   const periodOptions = ['Heute', 'Letzte 7 Tage', 'Letzte 30 Tage', 'Letzte 90 Tage'] as const
-  const visibleTranscriptBody = activeLog?.body ?? audioText
-
-  function handleTranscriptToggle() {
-    if (showTranscript) {
-      setShowTranscript(false)
-      return
-    }
-    addTranscriptToLog()
-  }
 
   // ── Turn a line of Tagro's reading into a real task ─────────────
   async function createTaskFromText(key: string, text: string) {
@@ -546,7 +523,7 @@ export default function DashboardPage() {
         /* ── Header ───────────────────────────────────────────────── */
         .dc-head {
           flex-shrink:0;
-          padding:14px 0 0;
+          padding:32px 0 0;
           animation:dcFade .3s cubic-bezier(.16,1,.3,1) both;
         }
         .dc-greeting {
@@ -1223,25 +1200,6 @@ export default function DashboardPage() {
         .dc-brief-icon:disabled { opacity: .45; cursor: default; }
         .dc-brief-icon .spin { animation: dcSpin 1s linear infinite; }
 
-        .dc-brief-transcript {
-          margin-top: 4px; padding: 14px 16px;
-          border-radius: 14px;
-          background: color-mix(in srgb, var(--surface-2) 45%, transparent);
-          max-height: 168px;
-          overflow:auto;
-          scrollbar-width:thin;
-        }
-        .dc-brief-transcript-label {
-          margin: 0 0 6px; font-size: 10.5px; font-weight: 500 !important;
-          letter-spacing: .14em !important; text-transform: uppercase;
-          color: var(--dc-muted);
-        }
-        .dc-brief-transcript-text {
-          margin: 0; font-size: 13px; line-height: 1.65;
-          color: var(--text);
-          font-weight: 500 !important; letter-spacing: .015em !important;
-        }
-
         .dc-brief-settings {
           margin-top: 4px; padding: 10px;
           border-radius: 12px;
@@ -1505,7 +1463,7 @@ export default function DashboardPage() {
                 </p>
                 <span className="dc-note-empty-cue">
                   <TagroLogo size={15} thinking={tagroActive} />
-                  Bericht, Transkript und nächste Schritte bleiben hier lesbar.
+                  Statusbericht und nächste Schritte bleiben hier lesbar.
                 </span>
               </>
             )}
@@ -1550,7 +1508,7 @@ export default function DashboardPage() {
                         role="option"
                         aria-selected={isOverall}
                         className={`dc-scope-opt${isOverall ? ' on' : ''}`}
-                        onClick={() => { setScope('overall'); setScopeOpen(false); setShowTranscript(false) }}
+                        onClick={() => { setScope('overall'); setScopeOpen(false) }}
                       >
                         <span className="dc-scope-dot" />
                         <span className="dc-scope-opt-main">
@@ -1567,7 +1525,7 @@ export default function DashboardPage() {
                           role="option"
                           aria-selected={scope === p.id}
                           className={`dc-scope-opt${scope === p.id ? ' on' : ''}`}
-                          onClick={() => { setScope(p.id); setScopeOpen(false); setShowTranscript(false) }}
+                          onClick={() => { setScope(p.id); setScopeOpen(false) }}
                         >
                           <span className="dc-scope-dot" style={{ background: (p as any).color || 'var(--dc-muted)' }} />
                           <span className="dc-scope-opt-main">
@@ -1658,14 +1616,6 @@ export default function DashboardPage() {
               </button>
 
               <div className="dc-brief-secondary-row">
-                <button
-                  type="button"
-                  className="dc-brief-secondary"
-                  onClick={handleTranscriptToggle}
-                >
-                  <FileText size={13} />
-                  {showTranscript ? 'Transkript ausblenden' : 'Transkript anzeigen'}
-                </button>
                 {isBriefingActive && (
                   <button type="button" className="dc-brief-icon" onClick={stopBriefing} title="Stopp" aria-label="Stopp">
                     <Stop size={12} weight="fill" />
@@ -1693,13 +1643,6 @@ export default function DashboardPage() {
                 </button>
               </div>
             </div>
-
-            {showTranscript && (
-              <div className="dc-brief-transcript">
-                <p className="dc-brief-transcript-label">Transkript</p>
-                <p className="dc-brief-transcript-text">{visibleTranscriptBody}</p>
-              </div>
-            )}
 
             {briefingSettingsOpen && (
               <div className="dc-brief-settings" role="dialog" aria-label="Audioeinstellungen">
@@ -1742,7 +1685,7 @@ export default function DashboardPage() {
               </div>
               <div className="dc-history-list">
                 {briefingLog.length === 0 ? (
-                  <p className="dc-history-empty">Sobald Tagro einen Bericht schreibt oder ein Transkript erzeugt, erscheint es hier.</p>
+                  <p className="dc-history-empty">Sobald Tagro einen Bericht schreibt, erscheint er hier als früherer Statusbericht.</p>
                 ) : briefingLog.slice(0, 5).map((entry) => (
                   <button
                     type="button"
@@ -1750,10 +1693,9 @@ export default function DashboardPage() {
                     className={`dc-history-row${activeLog?.id === entry.id ? ' active' : ''}`}
                     onClick={() => {
                       setActiveLogId(entry.id)
-                      setShowTranscript(true)
                     }}
                   >
-                    <span>{entry.kind === 'transcript' ? 'Transkript' : 'Bericht'}</span>
+                    <span>Bericht</span>
                     <strong>{entry.title}</strong>
                     <small>{new Date(entry.createdAt).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })} Uhr · {entry.scope}</small>
                   </button>
