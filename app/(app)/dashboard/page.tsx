@@ -20,7 +20,7 @@ import ObserverWelcomeModal from '@/components/ObserverWelcomeModal'
 import WelcomeTour from '@/components/WelcomeTour'
 import TagroLogo from '@/components/TagroLogo'
 import { speechVoiceId, useSpeechSynthesis } from '@/hooks/useSpeechSynthesis'
-import { ArrowClockwise, CaretDown, Check, Pause, Play, Plus, SlidersHorizontal, Stop } from '@phosphor-icons/react'
+import { ArrowClockwise, CalendarCheck, CaretDown, Check, DownloadSimple, EnvelopeSimple, Pause, Play, Plus, SlidersHorizontal, Stop } from '@phosphor-icons/react'
 
 // ─────────────────────────────────────────────────────────────────────
 // Helpers
@@ -61,7 +61,7 @@ type NoteReport = {
 
 type BriefingLogEntry = {
   id: string
-  kind: 'report' | 'transcript'
+  kind: 'report'
   title: string
   scope: string
   createdAt: string
@@ -205,6 +205,7 @@ export default function DashboardPage() {
   const [scope, setScope] = useState<'overall' | string>('overall')
   const [scopeOpen, setScopeOpen] = useState(false)
   const [period, setPeriod] = useState<'Heute' | 'Letzte 7 Tage' | 'Letzte 30 Tage' | 'Letzte 90 Tage'>('Letzte 30 Tage')
+  const [dailyDeliveryEnabled, setDailyDeliveryEnabled] = useState(false)
   const [briefingLog, setBriefingLog] = useState<BriefingLogEntry[]>([])
   const [activeLogId, setActiveLogId] = useState<string | null>(null)
 
@@ -310,6 +311,7 @@ export default function DashboardPage() {
   // Tagro is "active" while writing the note or reading it aloud — the
   // orb spins and the speech waveform dances during that time.
   const tagroActive = isBriefingPlaying || noteWriting || statusBusy
+  const voiceLineActive = isBriefingActive || tagroActive
 
   const briefingStatusLabel = statusBusy
     ? 'Bericht wird vorbereitet'
@@ -342,6 +344,47 @@ export default function DashboardPage() {
   ]
 
   const periodOptions = ['Heute', 'Letzte 7 Tage', 'Letzte 30 Tage', 'Letzte 90 Tage'] as const
+  const writtenReportText = noteRevealed.trim() || audioText.trim()
+
+  function buildBriefingExportText() {
+    return [
+      currentReportTitle,
+      `Zeitraum: ${period}`,
+      `Erstellt: ${new Date().toLocaleString('de-DE', { dateStyle: 'medium', timeStyle: 'short' })}`,
+      '',
+      currentReportSummary,
+      '',
+      'Heute im Fokus',
+      ...executiveFocus.map((item) => `- ${item}`),
+      '',
+      'Statusbericht',
+      writtenReportText || 'Noch kein Statusbericht vorhanden.',
+    ].join('\n')
+  }
+
+  function downloadBriefing() {
+    const content = buildBriefingExportText()
+    const slug = currentReportTitle
+      .toLowerCase()
+      .replace(/[^a-z0-9äöüß]+/gi, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 64) || 'tagro-bericht'
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `${slug}.txt`
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    URL.revokeObjectURL(url)
+  }
+
+  function sendBriefingToSelf() {
+    const subject = encodeURIComponent(`Festag Bericht: ${currentReportTitle}`)
+    const body = encodeURIComponent(buildBriefingExportText())
+    window.location.href = `mailto:?subject=${subject}&body=${body}`
+  }
 
   // ── Turn a line of Tagro's reading into a real task ─────────────
   async function createTaskFromText(key: string, text: string) {
@@ -501,6 +544,16 @@ export default function DashboardPage() {
           --dc-soft: #B7BDC8;
         }
         .dash-calm * { font-weight:500 !important; letter-spacing:.012em; }
+        .dash-calm button,
+        .dash-calm select {
+          -webkit-tap-highlight-color:transparent;
+        }
+        .dash-calm button:focus,
+        .dash-calm button:focus-visible,
+        .dash-calm select:focus,
+        .dash-calm select:focus-visible {
+          outline:none;
+        }
 
         /* ── Greeting full-width, then a calm two-column body ────── */
         .dc-wrap {
@@ -807,22 +860,36 @@ export default function DashboardPage() {
 
         /* ── New Briefing Card — premium, executive-feel ──────────── */
         .dc-brief {
-          border: 0;
+          position:relative;
+          border: 1px solid color-mix(in srgb, var(--border) 58%, transparent);
           border-radius: 28px;
           background:
-            radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--surface-2) 42%, transparent), transparent 48%),
-            color-mix(in srgb, var(--card) 92%, var(--surface) 8%);
+            radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--surface-2) 54%, transparent), transparent 48%),
+            color-mix(in srgb, var(--card) 86%, var(--surface-2) 14%);
           padding: 20px 22px 18px;
           display: flex; flex-direction: column; gap: 12px;
           min-height:0;
           box-shadow:
-            0 18px 58px -44px color-mix(in srgb, var(--text) 32%, transparent),
-            inset 0 1px 0 color-mix(in srgb, #fff 20%, transparent);
+            0 22px 64px -46px color-mix(in srgb, var(--text) 38%, transparent),
+            0 1px 2px color-mix(in srgb, var(--text) 6%, transparent),
+            inset 0 1px 0 color-mix(in srgb, #fff 34%, transparent);
         }
         [data-theme="dark"] .dc-brief,
         [data-theme="classic-dark"] .dc-brief {
+          border-color:transparent;
           background: color-mix(in srgb, var(--card) 96%, #fff 2%);
           box-shadow: 0 24px 70px -38px rgba(0,0,0,.65), inset 0 1px 0 rgba(255,255,255,.05);
+        }
+        [data-theme="light"] .dc-brief,
+        [data-theme="pure-light"] .dc-brief {
+          background:
+            radial-gradient(circle at 50% 0%, rgba(241,244,249,.86), transparent 50%),
+            rgba(248,250,253,.92);
+          border-color:rgba(15,23,42,.075);
+          box-shadow:
+            0 28px 78px -54px rgba(15,23,42,.34),
+            0 1px 2px rgba(15,23,42,.045),
+            inset 0 1px 0 rgba(255,255,255,.82);
         }
 
         .dc-brief-head {
@@ -1060,28 +1127,39 @@ export default function DashboardPage() {
 
         /* Minimalist voice line — no equaliser bars */
         .dc-voice-line {
-          width: 100%; height: 14px;
-          stroke-width: 1.4; fill: none;
+          width: 100%; height: 20px;
+          stroke-width: 1.55; fill: none;
           stroke-linecap: round; stroke-linejoin: round;
-          opacity: .55;
+          opacity: .92;
           transition: opacity .3s ease, stroke .3s ease;
+          filter: drop-shadow(0 6px 12px color-mix(in srgb, var(--text) 6%, transparent));
         }
         .dc-voice-base {
-          stroke: color-mix(in srgb, var(--dc-muted) 44%, transparent);
+          stroke: color-mix(in srgb, var(--dc-muted) 64%, transparent);
         }
         .dc-voice-live {
-          stroke: color-mix(in srgb, var(--dc-slate, #5B647D) 48%, transparent);
-          opacity:0;
-          stroke-dasharray:64 260;
+          stroke: color-mix(in srgb, var(--dc-slate, #5B647D) 74%, var(--text));
+          opacity:.42;
+          stroke-dasharray:58 182;
           stroke-dashoffset:0;
+          animation:dcVoiceIdle 5.8s ease-in-out infinite;
         }
         .dc-voice-line.on {
           opacity: 1;
           animation: dcLineDrift 5s ease-in-out infinite;
         }
         .dc-voice-line.on .dc-voice-live {
-          opacity:.9;
-          animation:dcVoiceTrace 2.8s ease-in-out infinite;
+          opacity:.95;
+          animation:dcVoiceTrace 2.2s ease-in-out infinite;
+        }
+        .dc-voice-line.on .dc-voice-live.alt {
+          animation-duration:2.8s;
+          animation-delay:.18s;
+          opacity:.58;
+        }
+        @keyframes dcVoiceIdle {
+          0%,100% { stroke-dashoffset:0; opacity:.32; }
+          50% { stroke-dashoffset:-46; opacity:.5; }
         }
         @keyframes dcVoiceTrace {
           0% { stroke-dashoffset:0; opacity:.45; }
@@ -1143,7 +1221,7 @@ export default function DashboardPage() {
           line-height:1.42;
         }
 
-        .dc-brief-actions { display: flex; flex-direction: column; gap: 8px; }
+        .dc-brief-actions { position:relative; display: flex; flex-direction: column; gap: 8px; }
         .dc-brief-primary {
           appearance: none; border: 0;
           width: 100%; height: 40px; padding: 0 16px;
@@ -1158,12 +1236,22 @@ export default function DashboardPage() {
           transition: background .14s, transform .14s;
         }
         .dc-brief-primary:hover:not(:disabled) { background: color-mix(in srgb, var(--surface-2) 92%, transparent); }
+        .dc-brief-primary:focus,
+        .dc-brief-primary:focus-visible {
+          outline:none;
+          box-shadow:inset 0 1px 0 color-mix(in srgb, #fff 18%, transparent);
+        }
         .dc-brief-primary:active:not(:disabled) { transform: scale(.985); }
         .dc-brief-primary:disabled { opacity: .45; cursor: default; }
         .dc-brief-primary .spin { animation: dcSpin 1s linear infinite; }
 
         .dc-brief-secondary-row {
-          display: flex; align-items: center; gap: 6px;
+          display: flex; align-items: center; justify-content:space-between; gap: 8px;
+          flex-wrap:wrap;
+        }
+        .dc-brief-action-group {
+          display:flex; align-items:center; gap:6px;
+          flex-wrap:wrap; min-width:0;
         }
         .dc-brief-secondary {
           flex: 1;
@@ -1180,6 +1268,35 @@ export default function DashboardPage() {
         .dc-brief-secondary:hover {
           background: color-mix(in srgb, var(--surface-2) 45%, transparent);
           color: var(--text);
+        }
+        .dc-brief-chip {
+          height:34px;
+          display:inline-flex; align-items:center; justify-content:center; gap:6px;
+          padding:0 10px;
+          border:0;
+          border-radius:10px;
+          background:transparent;
+          color:var(--dc-soft);
+          font:inherit;
+          font-size:11.5px;
+          cursor:pointer;
+          transition:background .12s ease, color .12s ease;
+        }
+        .dc-brief-chip:hover,
+        .dc-brief-chip.on {
+          background:color-mix(in srgb, var(--surface-2) 48%, transparent);
+          color:var(--text);
+        }
+        .dc-brief-chip:focus,
+        .dc-brief-chip:focus-visible,
+        .dc-brief-icon:focus,
+        .dc-brief-icon:focus-visible,
+        .dc-scope-trigger:focus,
+        .dc-scope-trigger:focus-visible,
+        .dc-period-options button:focus,
+        .dc-period-options button:focus-visible {
+          outline:none;
+          box-shadow:none;
         }
         .dc-brief-icon {
           width: 34px; height: 34px;
@@ -1201,9 +1318,20 @@ export default function DashboardPage() {
         .dc-brief-icon .spin { animation: dcSpin 1s linear infinite; }
 
         .dc-brief-settings {
-          margin-top: 4px; padding: 10px;
-          border-radius: 12px;
-          background: color-mix(in srgb, var(--surface-2) 50%, transparent);
+          position:absolute;
+          right:0;
+          bottom:42px;
+          z-index:8;
+          width:min(278px, 100%);
+          padding:8px;
+          border-radius:14px;
+          background:color-mix(in srgb, var(--surface) 90%, var(--surface-2) 10%);
+          box-shadow:0 18px 44px -28px color-mix(in srgb, var(--text) 42%, transparent), inset 0 1px 0 color-mix(in srgb, #fff 12%, transparent);
+          animation:dcFade .14s ease both;
+        }
+        .dc-brief-settings .dc-setting-row {
+          grid-template-columns:58px minmax(0,1fr);
+          padding:4px;
         }
 
         .dc-history {
@@ -1577,9 +1705,10 @@ export default function DashboardPage() {
               </span>
             </div>
 
-            <svg className={`dc-voice-line${tagroActive ? ' on' : ''}`} viewBox="0 0 240 14" preserveAspectRatio="none" aria-hidden>
-              <path className="dc-voice-base" d="M0 7 L66 7 Q77 7 83 4.4 Q89 1.8 95 4.4 Q101 7 112 7 L146 7 Q156 7 162 9.6 Q168 12.2 174 9.6 Q180 7 190 7 L240 7" />
-              <path className="dc-voice-live" d="M0 7 L42 7 Q52 7 58 5 Q64 3 70 5 Q76 7 90 7 L126 7 Q138 7 144 3.8 Q150 .9 156 3.8 Q162 7 176 7 L240 7" />
+            <svg className={`dc-voice-line${voiceLineActive ? ' on' : ''}`} viewBox="0 0 240 20" preserveAspectRatio="none" aria-hidden>
+              <path className="dc-voice-base" d="M0 10 L58 10 Q70 10 77 7 Q84 4.2 91 7 Q98 10 110 10 L142 10 Q154 10 161 13 Q168 15.8 175 13 Q182 10 194 10 L240 10" />
+              <path className="dc-voice-live" d="M0 10 L36 10 Q47 10 54 7.8 Q61 5.6 68 7.8 Q75 10 90 10 L122 10 Q135 10 142 5.8 Q149 1.9 156 5.8 Q163 10 178 10 L240 10" />
+              <path className="dc-voice-live alt" d="M0 10 L48 10 Q60 10 66 12.7 Q72 15.4 78 12.7 Q84 10 98 10 L151 10 Q162 10 169 7.1 Q176 4.4 183 7.1 Q190 10 204 10 L240 10" />
             </svg>
 
             <div className="dc-brief-meta">
@@ -1616,67 +1745,88 @@ export default function DashboardPage() {
               </button>
 
               <div className="dc-brief-secondary-row">
-                {isBriefingActive && (
-                  <button type="button" className="dc-brief-icon" onClick={stopBriefing} title="Stopp" aria-label="Stopp">
-                    <Stop size={12} weight="fill" />
+                <div className="dc-brief-action-group" aria-label="Bericht exportieren und senden">
+                  <button type="button" className="dc-brief-chip" onClick={downloadBriefing}>
+                    <DownloadSimple size={13} />
+                    Download
                   </button>
-                )}
-                <button
-                  type="button"
-                  className={`dc-brief-icon${briefingSettingsOpen ? ' on' : ''}`}
-                  onClick={() => setBriefingSettingsOpen(o => !o)}
-                  title="Stimme und Tempo"
-                  aria-label="Stimme und Tempo"
-                  aria-expanded={briefingSettingsOpen}
-                >
-                  <SlidersHorizontal size={13} />
-                </button>
-                <button
-                  type="button"
-                  className="dc-brief-icon"
-                  onClick={refreshStatus}
-                  disabled={statusBusy}
-                  title="Neu generieren"
-                  aria-label="Neu generieren"
-                >
-                  <ArrowClockwise size={13} className={statusBusy ? 'spin' : ''} />
-                </button>
-              </div>
-            </div>
+                  <button type="button" className="dc-brief-chip" onClick={sendBriefingToSelf}>
+                    <EnvelopeSimple size={13} />
+                    An mich
+                  </button>
+                  <button
+                    type="button"
+                    className={`dc-brief-chip${dailyDeliveryEnabled ? ' on' : ''}`}
+                    onClick={() => setDailyDeliveryEnabled((enabled) => !enabled)}
+                  >
+                    <CalendarCheck size={13} />
+                    Täglich
+                  </button>
+                </div>
 
-            {briefingSettingsOpen && (
-              <div className="dc-brief-settings" role="dialog" aria-label="Audioeinstellungen">
-                <label className="dc-setting-row">
-                  <span className="dc-setting-label">Tempo</span>
-                  <select
-                    className="dc-setting-select"
-                    value={preferences.rate}
-                    onChange={(e) => updatePreferences({ rate: Number(e.target.value) })}
+                <div className="dc-brief-action-group" aria-label="Briefing Optionen">
+                  {isBriefingActive && (
+                    <button type="button" className="dc-brief-icon" onClick={stopBriefing} title="Stopp" aria-label="Stopp">
+                      <Stop size={12} weight="fill" />
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className={`dc-brief-icon${briefingSettingsOpen ? ' on' : ''}`}
+                    onClick={() => setBriefingSettingsOpen(o => !o)}
+                    title="Stimme und Tempo"
+                    aria-label="Stimme und Tempo"
+                    aria-expanded={briefingSettingsOpen}
                   >
-                    <option value={0.85}>0.85x</option>
-                    <option value={0.95}>0.95x</option>
-                    <option value={1}>1.00x</option>
-                    <option value={1.1}>1.10x</option>
-                    <option value={1.15}>1.15x</option>
-                  </select>
-                </label>
-                <label className="dc-setting-row">
-                  <span className="dc-setting-label">Stimme</span>
-                  <select
-                    className="dc-setting-select"
-                    value={selectedVoiceId}
-                    onChange={(e) => updatePreferences({ voiceId: e.target.value || undefined, voiceName: undefined })}
+                    <SlidersHorizontal size={13} />
+                  </button>
+                  <button
+                    type="button"
+                    className="dc-brief-icon"
+                    onClick={refreshStatus}
+                    disabled={statusBusy}
+                    title="Neu generieren"
+                    aria-label="Neu generieren"
                   >
-                    {voiceChoices.length === 0 && <option value="">Systemstimme</option>}
-                    {voiceChoices.map((voice) => (
-                      <option key={speechVoiceId(voice)} value={speechVoiceId(voice)}>
-                        {formatVoiceLabel(voice)}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                    <ArrowClockwise size={13} className={statusBusy ? 'spin' : ''} />
+                  </button>
+                </div>
               </div>
-            )}
+
+              {briefingSettingsOpen && (
+                <div className="dc-brief-settings" role="dialog" aria-label="Audioeinstellungen">
+                  <label className="dc-setting-row">
+                    <span className="dc-setting-label">Tempo</span>
+                    <select
+                      className="dc-setting-select"
+                      value={preferences.rate}
+                      onChange={(e) => updatePreferences({ rate: Number(e.target.value) })}
+                    >
+                      <option value={0.85}>0.85x</option>
+                      <option value={0.95}>0.95x</option>
+                      <option value={1}>1.00x</option>
+                      <option value={1.1}>1.10x</option>
+                      <option value={1.15}>1.15x</option>
+                    </select>
+                  </label>
+                  <label className="dc-setting-row">
+                    <span className="dc-setting-label">Stimme</span>
+                    <select
+                      className="dc-setting-select"
+                      value={selectedVoiceId}
+                      onChange={(e) => updatePreferences({ voiceId: e.target.value || undefined, voiceName: undefined })}
+                    >
+                      {voiceChoices.length === 0 && <option value="">Systemstimme</option>}
+                      {voiceChoices.map((voice) => (
+                        <option key={speechVoiceId(voice)} value={speechVoiceId(voice)}>
+                          {formatVoiceLabel(voice)}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+              )}
+            </div>
 
             <div className="dc-history" aria-label="Frühere Berichte">
               <div className="dc-history-head">

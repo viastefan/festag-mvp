@@ -72,7 +72,7 @@ type HelpEntry = {
 }
 const HELP_ITEMS: HelpEntry[] = [
   { kind: 'action', action: 'replay-tour', icon: Sparkle,          title: 'Einführung starten',    meta: 'Spielt die kurze Festag-Tour erneut ab.' },
-  { kind: 'link',   href: '/docs',         icon: FileText,         title: 'Festag Dokumente',      meta: 'Produktwissen, Guides und Erklärungen zu Festag.' },
+  { kind: 'link',   href: '/docs',         icon: FileText,         title: 'Festag Docs',           meta: 'Produktwissen, Guides und Erklärungen zu Festag.' },
   { kind: 'link',   href: '/whats-new',    icon: Newspaper,        title: 'News',                  meta: 'Releases, Änderungen und neue Produktflächen.' },
   { kind: 'link',   href: '/blog',         icon: Article,          title: 'Blogbeiträge',          meta: 'Hintergründe, Guides und ruhig erklärte Artikel.' },
   { kind: 'link',   href: '/download',     icon: DownloadSimple,   title: 'Hilfeartikel',          meta: 'App-Setup für Webapp & Mobile.' },
@@ -893,7 +893,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         }
         @keyframes sbHelpIn { from { opacity:0; transform: translateY(4px); } to { opacity:1; transform: none; } }
 
-        .sb-help-head { padding: 6px 8px 8px; }
+        .sb-help-head { display:none; }
         .sb-help-kicker {
           font-size: 10px; font-weight: 500;
           letter-spacing: .14em; text-transform: uppercase;
@@ -917,18 +917,26 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           font: inherit;
           text-align: left;
           cursor: pointer;
-          transition: background .12s;
+          transition: background .14s ease, color .14s ease, transform .14s ease;
         }
         .sb-help-item:hover {
-          background: color-mix(in srgb, var(--surface-2) 70%, transparent);
+          background: color-mix(in srgb, var(--surface-2) 82%, transparent);
+          transform: translateX(2px);
+          color: var(--text);
         }
+        .sb-help-item:active { transform: translateX(2px) scale(.99); }
+        .sb-help-item:focus,
+        .sb-help-item:focus-visible { outline:none; }
         .sb-help-icon {
           width: 26px; height: 26px; border-radius: 8px;
           display: inline-flex; align-items: center; justify-content: center;
           background: color-mix(in srgb, var(--surface-2) 60%, transparent);
           color: var(--text-secondary);
         }
-        .sb-help-item:hover .sb-help-icon { color: var(--text); }
+        .sb-help-item:hover .sb-help-icon {
+          color: var(--text);
+          background: color-mix(in srgb, var(--surface-2) 100%, transparent);
+        }
         .sb-help-text { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
         .sb-help-text strong {
           font-size: 12.5px; font-weight: 500; letter-spacing: -.005em;
@@ -1226,10 +1234,6 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
             <div className="sb-help-dock" style={{ position:'relative' }}>
               {whatsNewOpen ? (
                 <div className="sb-help-pop" role="menu" aria-label="Hilfe und Einführung">
-                  <div className="sb-help-head">
-                    <div className="sb-help-kicker">Hilfe</div>
-                    <div className="sb-help-title">Einführung & Ressourcen</div>
-                  </div>
                   <div className="sb-help-list">
                     {HELP_ITEMS.map((item) => {
                       const Icon = item.icon
@@ -1244,20 +1248,6 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
                           </span>
                         </>
                       )
-                      if (item.kind === 'link' && item.href) {
-                        return (
-                          <Link
-                            key={item.title}
-                            href={item.href}
-                            className="sb-help-item"
-                            role="menuitem"
-                            onClick={() => setWhatsNewOpen(false)}
-                          >
-                            {inner}
-                          </Link>
-                        )
-                      }
-                      // Actions
                       return (
                         <button
                           key={item.title}
@@ -1266,7 +1256,9 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
                           role="menuitem"
                           onClick={async () => {
                             setWhatsNewOpen(false)
-                            if (item.action === 'replay-tour') {
+                            if (item.kind === 'link' && item.href) {
+                              router.push(item.href)
+                            } else if (item.action === 'replay-tour') {
                               try {
                                 const sb = createClient()
                                 const { data: { user } } = await sb.auth.getUser()
