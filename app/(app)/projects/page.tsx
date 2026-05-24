@@ -561,70 +561,40 @@ export default function ProjectsPage() {
               <span className="col-update">Update</span>
             </div>
 
-            {groups.map(g => {
-              const isCollapsed = collapsed.has(g.id)
-              const latest = [...g.items].sort(
-                (a, b) => new Date(b.updated_at || b.created_at || 0).getTime() - new Date(a.updated_at || a.created_at || 0).getTime(),
-              )[0]
+            {/* Flat list — the top filter pills (Alle / Aktiv / Planung /
+                Abgeschlossen) already group by status, so an extra in-row
+                section header would only repeat what the filter says. */}
+            {visible.map(project => {
+              const related = tasks.filter(t => t.project_id === project.id)
+              const progress = projectProgress(project, related)
+              const health = projectHealth(project, related)
               return (
-                <section className={`pj-section${isCollapsed ? ' collapsed' : ''}`} key={g.id}>
-                  <button
-                    type="button"
-                    className="pj-group-row"
-                    aria-expanded={!isCollapsed}
-                    onClick={() => toggleGroup(g.id)}
-                  >
-                    <span className="pj-group-dot" style={{ ['--g-dot' as string]: g.dot }} />
-                    <span className="pj-group-title">
-                      <span>{g.label}</span>
-                      <span className="pj-group-count">
-                        {g.items.length} Projekt{g.items.length === 1 ? '' : 'e'}
-                      </span>
+                <Link key={project.id} href={`/project/${project.id}`} className="pj-row">
+                  <span
+                    className="pj-accent"
+                    style={{ ['--pj-c' as string]: project.color || 'var(--border-strong)' }}
+                    aria-hidden
+                  />
+                  <span className="pj-name">
+                    <span className="pj-name-row">
+                      <strong>{project.title}</strong>
+                      {project.created_at && isFreshProject(project.created_at) && (
+                        <span className="pj-new">Neu</span>
+                      )}
                     </span>
-                    <span className="pj-date" style={{ gridColumn: '5 / 6', textAlign: 'right' }}>
-                      {dateLabel(latest?.updated_at || latest?.created_at)}
-                    </span>
-                    <span className="pj-group-chevron" aria-hidden="true">›</span>
-                  </button>
-
-                  <div className="pj-section-body">
-                    <div className="pj-section-body-inner">
-                      {g.items.map(project => {
-                        const related = tasks.filter(t => t.project_id === project.id)
-                        const progress = projectProgress(project, related)
-                        const health = projectHealth(project, related)
-                        return (
-                          <Link key={project.id} href={`/project/${project.id}`} className="pj-row">
-                            <span
-                              className="pj-accent"
-                              style={{ ['--pj-c' as string]: project.color || 'var(--border-strong)' }}
-                              aria-hidden
-                            />
-                            <span className="pj-name">
-                              <span className="pj-name-row">
-                                <strong>{project.title}</strong>
-                                {project.created_at && isFreshProject(project.created_at) && (
-                                  <span className="pj-new">Neu</span>
-                                )}
-                              </span>
-                              <small>{related.length} {related.length === 1 ? 'Aufgabe' : 'Aufgaben'}</small>
-                            </span>
-                            <span className={`pj-health ${health.tone}`}>
-                              <span className="pj-health-dot" />
-                              <span>{health.label}</span>
-                            </span>
-                            <span className="pj-progress">
-                              <span className="pj-progress-bar"><span style={{ width: `${progress}%` }} /></span>
-                              <small>{progress}%</small>
-                            </span>
-                            <span className="pj-tasks">{related.length}</span>
-                            <span className="pj-date">{dateLabel(project.updated_at || project.created_at)}</span>
-                          </Link>
-                        )
-                      })}
-                    </div>
-                  </div>
-                </section>
+                    <small>{related.length} {related.length === 1 ? 'Aufgabe' : 'Aufgaben'}</small>
+                  </span>
+                  <span className={`pj-health ${health.tone}`}>
+                    <span className="pj-health-dot" />
+                    <span>{health.label}</span>
+                  </span>
+                  <span className="pj-progress">
+                    <span className="pj-progress-bar"><span style={{ width: `${progress}%` }} /></span>
+                    <small>{progress}%</small>
+                  </span>
+                  <span className="pj-tasks">{related.length}</span>
+                  <span className="pj-date">{dateLabel(project.updated_at || project.created_at)}</span>
+                </Link>
               )
             })}
           </div>

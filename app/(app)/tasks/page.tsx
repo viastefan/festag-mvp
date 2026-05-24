@@ -860,10 +860,14 @@ export default function TasksPage() {
           overflow:visible;
           padding-top:6px;
         }
-        .task-project-section.open .task-row {
+        .task-project-section.open .task-row,
+        .task-row-flat {
           animation:taskRowSlideIn .22s cubic-bezier(.16,1,.3,1) both;
           animation-delay:calc(var(--row-index, 0) * 24ms);
         }
+        /* Flat rows live directly inside .task-table (no project section
+           wrapper), so they don't inherit the slide-in default rules. */
+        .task-row-flat { cursor:pointer; }
         @keyframes taskRowSlideIn {
           from { opacity:0; transform:translateY(-5px); }
           to { opacity:1; transform:none; }
@@ -1780,7 +1784,7 @@ export default function TasksPage() {
 
       {hasProjects && <div className="task-table">
         <div className="task-head">
-          <span style={{ textAlign: 'center' }}>Gruppe</span>
+          <span aria-hidden />
           <span>Task</span>
           <span>Letztes Update</span>
           <span>Priorität</span>
@@ -1794,124 +1798,93 @@ export default function TasksPage() {
           <div className="task-empty">Lade Aufgaben…</div>
         ) : visibleTasks.length === 0 ? (
           <div className="task-empty">Keine Aufgaben in dieser Ansicht.</div>
-        ) : taskProjectGroups.map((projectGroup, sectionIndex) => {
-          const expanded = expandedProjectIds.includes(projectGroup.id)
-          const doneInGroup = projectGroup.tasks.filter((task) => normalizeStatus(taskState(task)) === 'done').length
-          const latestTask = [...projectGroup.tasks].sort((a, b) => new Date(b.updated_at || b.created_at || 0).getTime() - new Date(a.updated_at || a.created_at || 0).getTime())[0]
+        ) : (
+          /* Flat list — top filter pills (Alle / Offen / In Arbeit / …)
+             already segment the table, so per-project collapse sections
+             would only repeat what the filter says. */
+          visibleTasks.map((task, rowIndex) => {
+            const project = task.project_id ? projectById.get(task.project_id) : null
+            const normalized = normalizeStatus(taskState(task))
+            const isDone = normalized === 'done'
+            const progress = typeof task.progress === 'number' ? task.progress : progressFor(taskState(task))
+            const lead = task.developer_name || task.owner || task.assigned_to || 'Entwickler'
+            const group = taskGroupFor(task)
+            const GroupIcon = group.icon
 
-          return (
-            <section
-              key={projectGroup.id}
-              className={`task-project-section${expanded ? ' open' : ''}`}
-              style={{ ['--section-index' as string]: sectionIndex }}
-            >
-              <button
-                type="button"
-                className="task-project-row"
-                aria-expanded={expanded}
-                onClick={() => toggleProjectGroup(projectGroup.id)}
+            return (
+              <div
+                key={task.id}
+                className="task-row task-row-flat"
+                role="button"
+                tabIndex={0}
+                style={{ ['--row-index' as string]: rowIndex }}
+                onClick={() => openTaskDetail(task)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault()
+                    openTaskDetail(task)
+                  }
+                }}
               >
-                <span className="task-project-dot" style={{ ['--project-color' as string]: projectGroup.color || 'var(--task-soft-text)' }} />
-                <span className="task-project-title">
-                  <span>{projectGroup.title}</span>
-                  <span className="task-project-count">{projectGroup.tasks.length} Aufgabe{projectGroup.tasks.length === 1 ? '' : 'n'}</span>
-                </span>
-                <span className="task-project-meta">
-                  {doneInGroup} erledigt · Update {dateLabel(latestTask?.updated_at || latestTask?.created_at)}
-                </span>
-                <span className="task-project-chevron" aria-hidden="true">›</span>
-              </button>
+                <div className="task-group-cell" title={group.label}>
+                  <span className="task-group-icon">
+                    <GroupIcon size={14} weight="regular" />
+                  </span>
+                </div>
+                <div className="task-name">
+                  <span className={`task-state-wrap${activeStatePopoverTaskId === task.id ? ' is-open' : ''}`}>
+                    <button
+                      type="button"
+                      className={`task-state-mark${isDone ? ' done' : ''}`}
+                      aria-label={isDone ? 'Erledigt-Logik anzeigen' : 'Status-Logik anzeigen'}
+                      aria-expanded={activeStatePopoverTaskId === task.id}
+                      aria-haspopup="dialog"
+                      onClick={(event) => {
+                        event.preventDefault()
+                        event.stopPropagation()
+                        setActiveStatePopoverTaskId((current) => current === task.id ? null : task.id)
+                      }}
+                      onKeyDown={(event) => {
+                        event.stopPropagation()
+                      }}
+                    >
+                      {isDone ? <Check size={9} weight="bold" /> : null}
+                    </button>
+                    <span className="task-state-popover" role="tooltip">
+                      <strong>So funktioniert Erledigt</strong>
+                      <span>Tagro oder der Developer haken Aufgaben ab. Erledigte Aufgaben bleiben 24h sichtbar und verschwinden dann nur aus Standardansichten. Eigene Aufgaben kannst du löschen.</span>
+                    </span>
+                  </span>
+                  <span className="task-name-text">
+                    <strong>{task.title}</strong>
+                    <span>{project?.title || 'Kein Projekt zugeordnet'}</span>
+                  </span>
+                </div>
 
-              <div className="task-project-tasks">
-                <div className="task-project-tasks-inner">
-                  {projectGroup.tasks.map((task, rowIndex) => {
-                    const project = task.project_id ? projectById.get(task.project_id) : null
-                    const normalized = normalizeStatus(taskState(task))
-                    const isDone = normalized === 'done'
-                    const progress = typeof task.progress === 'number' ? task.progress : progressFor(taskState(task))
-                    const lead = task.developer_name || task.owner || task.assigned_to || 'Entwickler'
-                    const group = taskGroupFor(task)
-                    const GroupIcon = group.icon
+                <div className={`task-health ${normalized}`}>
+                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {healthLabel(task)}
+                  </span>
+                </div>
 
-                    return (
-                      <div
-                        key={task.id}
-                        className="task-row"
-                        role="button"
-                        tabIndex={expanded ? 0 : -1}
-                        style={{ ['--row-index' as string]: rowIndex }}
-                        onClick={() => openTaskDetail(task)}
-                        onKeyDown={(event) => {
-                          if (event.key === 'Enter' || event.key === ' ') {
-                            event.preventDefault()
-                            openTaskDetail(task)
-                          }
-                        }}
-                      >
-                        <div className="task-group-cell" title={`Gruppe: ${group.label}`}>
-                          <span className="task-group-icon">
-                            <GroupIcon size={14} weight="regular" />
-                          </span>
-                        </div>
-                        <div className="task-name">
-                          <span className={`task-state-wrap${activeStatePopoverTaskId === task.id ? ' is-open' : ''}`}>
-                            <button
-                              type="button"
-                              className={`task-state-mark${isDone ? ' done' : ''}`}
-                              aria-label={isDone ? 'Erledigt-Logik anzeigen' : 'Status-Logik anzeigen'}
-                              aria-expanded={activeStatePopoverTaskId === task.id}
-                              aria-haspopup="dialog"
-                              tabIndex={expanded ? 0 : -1}
-                              onClick={(event) => {
-                                event.preventDefault()
-                                event.stopPropagation()
-                                setActiveStatePopoverTaskId((current) => current === task.id ? null : task.id)
-                              }}
-                              onKeyDown={(event) => {
-                                event.stopPropagation()
-                              }}
-                            >
-                              {isDone ? <Check size={9} weight="bold" /> : null}
-                            </button>
-                            <span className="task-state-popover" role="tooltip">
-                              <strong>So funktioniert Erledigt</strong>
-                              <span>Tagro oder der Developer haken Aufgaben ab. Erledigte Aufgaben bleiben 24h sichtbar und verschwinden dann nur aus Standardansichten. Eigene Aufgaben kannst du löschen.</span>
-                            </span>
-                          </span>
-                          <span className="task-name-text">
-                            <strong>{task.title}</strong>
-                            <span>{project?.title || 'Kein Projekt zugeordnet'}</span>
-                          </span>
-                        </div>
+                <div>{priorityLabel(task.priority)}</div>
 
-                        <div className={`task-health ${normalized}`}>
-                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            {healthLabel(task)}
-                          </span>
-                        </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 7, minWidth: 0 }}>
+                  <span className="task-lead-avatar">{lead.charAt(0).toUpperCase()}</span>
+                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{lead}</span>
+                </div>
 
-                        <div>{priorityLabel(task.priority)}</div>
+                <div>{dateLabel(task.updated_at || task.created_at)}</div>
+                <div>{sourceLabel(task.source)}</div>
 
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 7, minWidth: 0 }}>
-                          <span className="task-lead-avatar">{lead.charAt(0).toUpperCase()}</span>
-                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{lead}</span>
-                        </div>
-
-                        <div>{dateLabel(task.updated_at || task.created_at)}</div>
-                        <div>{sourceLabel(task.source)}</div>
-
-                        <div className="task-progress" title={statusLabel(taskState(task))}>
-                          <span className={`task-progress-dot ${normalized}`} />
-                          <span>{normalized === 'done' ? '100%' : `${progress}%`}</span>
-                        </div>
-                      </div>
-                    )
-                  })}
+                <div className="task-progress" title={statusLabel(taskState(task))}>
+                  <span className={`task-progress-dot ${normalized}`} />
+                  <span>{normalized === 'done' ? '100%' : `${progress}%`}</span>
                 </div>
               </div>
-            </section>
-          )
-        })}
+            )
+          })
+        )}
       </div>}
 
       </div>
