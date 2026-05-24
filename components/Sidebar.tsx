@@ -848,10 +848,20 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         .sb-bottom-backdrop {
           position:fixed;
           inset:0;
-          z-index:168;
+          /* Stay below the help-pop. The backdrop only catches outside
+             clicks; if it sat above the popup (as it did before) every
+             menu click hit the backdrop instead, closing the menu
+             without firing the row action — and no hover ever landed. */
+          z-index:0;
           background:transparent;
         }
-        .sb-help-dock { display:flex; align-items:center; gap:8px; }
+        .sb-help-dock {
+          display:flex; align-items:center; gap:8px;
+          position:relative;
+          /* Lifts the dock + its absolutely-positioned popup above the
+             backdrop's stacking neighbour. */
+          z-index:2;
+        }
         .sb-help-trigger {
           width: 32px; height: 32px; border-radius: 999px;
           display: inline-flex; align-items: center; justify-content: center;
