@@ -4,7 +4,7 @@ import ThemeProvider from '@/components/ThemeProvider'
 import ServiceWorkerCleanup from '@/components/ServiceWorkerCleanup'
 import AuthSessionMemory from '@/components/AuthSessionMemory'
 
-const brandIconVersion = '20260523-tab-mark-big'
+const brandIconVersion = '20260523-tab-mark-xl'
 
 export const metadata: Metadata = {
   title: 'Festag — AI-native Softwareproduktion',
