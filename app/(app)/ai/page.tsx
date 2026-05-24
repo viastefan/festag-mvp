@@ -492,6 +492,24 @@ function AIChatPage() {
         </div>
       )}
 
+      {/* Floating expand handle — only visible when rail is collapsed
+          so the user always has a way back. Sits at the left edge of
+          the main pane, doesn't shift any other layout. */}
+      {railCollapsed && (
+        <button
+          type="button"
+          className="ai-rail-expand"
+          onClick={() => setRailCollapsed(false)}
+          aria-label="Chat-Liste einblenden"
+          title="Chat-Liste einblenden"
+        >
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <rect x="4" y="5" width="16" height="14" rx="3" />
+            <path d="M9 5v14" />
+          </svg>
+        </button>
+      )}
+
       {/* ── Conversation rail ─────────────────────────────────── */}
       <aside className="ai-rail" aria-label="Chats">
         <div className="ai-rail-top">
@@ -1908,5 +1926,112 @@ const CSS = `
 
   @media (max-width: 980px) {
     .ai-mode-switch { display: none; }
+  }
+
+  /* ─── 2026-05-23 medium-weight pass + composer calm + collapse fix ───
+   * Festag design rule: Aeonik Medium (500) durchgehend, kein Bold.
+   * Letter-spacing leicht negativ für Headlines, +1.5% für Body.
+   * Override all earlier weights with a single floor. */
+  .ai-shell, .ai-shell * { font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif); }
+
+  .ai-empty h2 {
+    font-size: clamp(20px, 1.8vw, 26px);
+    font-weight: 500;
+    letter-spacing: -.014em;
+    color: var(--text);
+  }
+  .ai-empty p {
+    font-size: 13px; font-weight: 500; letter-spacing: .012em;
+    color: var(--text-muted);
+    max-width: 480px;
+  }
+  .ai-main-head h1 { font-weight: 500; letter-spacing: -.005em; }
+  .ai-head-title span { font-weight: 500; letter-spacing: .012em; }
+  .ai-new { font-weight: 500; letter-spacing: .012em; }
+  .ai-context-button { font-weight: 500; letter-spacing: .012em; }
+  .ai-rail-empty { font-weight: 500; letter-spacing: .012em; }
+  .ai-group-label { font-weight: 500; letter-spacing: .12em; }
+  .ai-row-title { font-weight: 500; letter-spacing: .012em; }
+  .ai-rail-filter { font-weight: 500; letter-spacing: .012em; }
+  .ai-mode-segment { font-weight: 500; letter-spacing: .012em; }
+  .ai-end-chat { font-weight: 500; letter-spacing: .012em; }
+  .ai-starter { font-weight: 500; letter-spacing: .012em; font-size: 13px; }
+  .ai-action-copy strong { font-weight: 500; letter-spacing: -.005em; }
+  .ai-action-copy span { font-weight: 500; letter-spacing: .012em; }
+  .ai-action-buttons button { font-weight: 500; letter-spacing: .012em; }
+  .ai-input { font-weight: 500; letter-spacing: .012em; font-size: 14px; }
+  .ai-msg.assistant .ai-msg-body { font-weight: 500; }
+  .ai-user-text { font-weight: 500; letter-spacing: .012em; }
+  .ai-foot { font-weight: 500; letter-spacing: .012em; }
+  .ai-context-pill { font-weight: 500; letter-spacing: .04em; }
+  .ai-row-badge { font-weight: 500; letter-spacing: .08em; }
+  .ai-toast { font-weight: 500; letter-spacing: .012em; }
+  .ai-ended-banner { font-weight: 500; letter-spacing: .012em; }
+  .ai-ended-banner button { font-weight: 500; letter-spacing: .012em; }
+  .ai-empty-cta { font-weight: 500; letter-spacing: .012em; }
+
+  /* Calmer empty mark — no breathing aura, just a tiny mark */
+  .ai-empty-mark { width: 56px; height: 56px; }
+  .ai-empty-mark::after { display: none; }
+
+  /* Starter cards — less boxy, more like a calm pill */
+  .ai-starter {
+    min-height: 0;
+    padding: 11px 14px;
+    border-radius: 12px;
+  }
+  .ai-starter:hover { transform: none; }
+  .ai-action-card { border-radius: 14px; padding: 12px; }
+  .ai-action-card.compact { border-radius: 14px; }
+
+  /* Composer — flat, dense, modern. No drop-shadow, no border glow. */
+  .ai-composer {
+    min-height: 52px;
+    padding: 8px 8px 8px 16px;
+    border-radius: 16px;
+    background: color-mix(in srgb, var(--surface-2) 35%, transparent);
+    border: 1px solid color-mix(in srgb, var(--border) 55%, transparent);
+    box-shadow: none;
+    transition: border-color .15s, background .15s;
+  }
+  .ai-composer:focus-within {
+    background: color-mix(in srgb, var(--surface-2) 55%, transparent);
+    border-color: color-mix(in srgb, var(--text) 24%, var(--border));
+    box-shadow: none;
+  }
+  .ai-input {
+    padding: 8px 4px;
+    line-height: 1.55;
+  }
+  .ai-send {
+    width: 32px; height: 32px;
+    border-radius: 10px;
+  }
+  .ai-foot {
+    margin-top: 9px;
+    font-size: 11px;
+    opacity: .75;
+  }
+
+  /* Floating expand handle for collapsed rail */
+  .ai-rail-expand {
+    position: fixed;
+    top: 76px;
+    left: 8px;
+    z-index: 30;
+    width: 30px; height: 30px;
+    border: 1px solid color-mix(in srgb, var(--border) 65%, transparent);
+    background: var(--card);
+    color: var(--text-muted);
+    border-radius: 10px;
+    display: inline-flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: color .12s, background .12s, transform .12s;
+    box-shadow: 0 8px 24px -16px color-mix(in srgb, var(--text) 28%, transparent);
+  }
+  .ai-rail-expand:hover {
+    color: var(--text);
+    background: color-mix(in srgb, var(--surface-2) 80%, var(--card));
+    transform: translateX(2px);
   }
 `
