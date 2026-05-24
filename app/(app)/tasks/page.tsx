@@ -601,8 +601,11 @@ export default function TasksPage() {
         .task-scope-opt {
           display:grid; grid-template-columns:8px 1fr auto;
           gap:10px; align-items:center;
-          width:100%; padding:8px 10px;
-          border:0; background:transparent; border-radius:8px;
+          width:100%; padding:10px 12px;
+          border:0; background:transparent;
+          /* Festag rule: items inherit the outer container's radius
+             — task-scope-menu is 12px, items match. No pill, no 32px. */
+          border-radius:12px !important;
           color:var(--text); font:inherit; font-size:12.5px;
           font-weight:500; letter-spacing:.012em;
           cursor:pointer; text-align:left;

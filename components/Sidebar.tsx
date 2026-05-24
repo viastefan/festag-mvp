@@ -919,9 +919,11 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           width: 100%;
           display: grid; grid-template-columns: 26px 1fr; gap: 9px;
           align-items: center;
-          padding: 8px 8px;
+          padding: 10px 10px;
           border: 0; background: transparent;
-          border-radius: 10px;
+          /* Festag rule: items inherit the outer container's radius —
+             sb-help-pop is 16px, items match. */
+          border-radius: 14px !important;
           color: var(--text);
           text-decoration: none;
           font: inherit;
