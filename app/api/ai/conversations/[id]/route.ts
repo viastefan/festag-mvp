@@ -9,6 +9,10 @@ export const runtime = 'nodejs'
  * DELETE /api/ai/conversations/:id   → hard delete (messages cascade)
  */
 
+const VALID_MODES = ['tagro', 'developer', 'owner', 'support']
+const VALID_STATUS = ['active', 'ended', 'sent_to_inbox', 'archived']
+const FULL_SELECT = 'id,title,pinned,mode,project_id,status,summary,created_at,updated_at,ended_at'
+
 export async function GET(_req: NextRequest, ctx: { params: { id: string } }) {
   const supa = createClient()
   const { data: { user } } = await supa.auth.getUser()
@@ -16,7 +20,7 @@ export async function GET(_req: NextRequest, ctx: { params: { id: string } }) {
 
   const { data: conv, error: convErr } = await (supa as any)
     .from('tagro_conversations')
-    .select('id,title,pinned,created_at,updated_at')
+    .select(FULL_SELECT)
     .eq('id', ctx.params.id)
     .maybeSingle()
   if (convErr) return NextResponse.json({ error: convErr.message }, { status: 500 })
@@ -40,6 +44,9 @@ export async function PATCH(req: NextRequest, ctx: { params: { id: string } }) {
   const patch: Record<string, unknown> = {}
   if (typeof body?.title === 'string') patch.title = body.title.trim().slice(0, 120) || 'Neuer Chat'
   if (typeof body?.pinned === 'boolean') patch.pinned = body.pinned
+  if (typeof body?.mode === 'string' && VALID_MODES.includes(body.mode)) patch.mode = body.mode
+  if (typeof body?.status === 'string' && VALID_STATUS.includes(body.status)) patch.status = body.status
+  if ('project_id' in body) patch.project_id = body.project_id || null
 
   if (!Object.keys(patch).length) {
     return NextResponse.json({ error: 'nothing to patch' }, { status: 400 })
@@ -49,7 +56,7 @@ export async function PATCH(req: NextRequest, ctx: { params: { id: string } }) {
     .from('tagro_conversations')
     .update(patch)
     .eq('id', ctx.params.id)
-    .select('id,title,pinned,created_at,updated_at')
+    .select(FULL_SELECT)
     .single()
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ conversation: data })

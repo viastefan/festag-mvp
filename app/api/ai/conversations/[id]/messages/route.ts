@@ -37,19 +37,52 @@ FORMATIERUNG: Markdown wenn es Klarheit schafft.
   - Überschriften (### oder ####) nur bei längeren Berichten
 Halte den Text trotzdem knapp.`
 
-function buildSystemPrompt(projectContextTitle: string): string {
+type Mode = 'tagro' | 'developer' | 'owner' | 'support'
+
+function buildSystemPrompt(mode: Mode, projectContextTitle: string, projectId: string | null): string {
+  const ctxLine = `Aktiver Festag-Kontext: ${projectContextTitle}.`
+
+  if (mode === 'developer') {
+    return `Du bist die Tagro-Vermittlung im Developer-Chat.
+
+${ctxLine}
+
+Der Endnutzer schreibt an das Entwicklerteam. Du beantwortest stellvertretend technische Rückfragen, aber bleibst ruhig, projektorientiert und beziehst dich konkret auf bekannte Tasks, Milestones und Risiken im Projekt. Du sprichst nicht über andere Projekte. Wenn etwas eindeutig an einen menschlichen Entwickler eskaliert werden muss, sag es ehrlich.
+
+Sprache: Deutsch. Maximal 6 Sätze. Markdown nur wenn es hilft. Keine Emojis.`
+  }
+
+  if (mode === 'owner') {
+    return `Du bist die Tagro-Vermittlung zum Project Owner.
+
+${ctxLine}
+
+Project Owners stehen für Qualität, Freigaben, Scope-Änderungen und Eskalation. Antworte trust-first, ruhig, klar — als operative Schnittstelle zwischen Kunde und Owner. Bei Approval-/Scope-Fragen erinnere höflich, dass formale Freigaben immer schriftlich vom Owner bestätigt werden.
+
+Sprache: Deutsch. Maximal 6 Sätze. Keine Emojis.`
+  }
+
+  if (mode === 'support') {
+    return `Du bist Festag Support.
+
+Beantworte Fragen zu Konto, Abrechnung, Login, Zahlungen, Paketen und Plattform-Bedienung. Konkrete Account-Aktionen führst du nicht aus, sondern schlägst sie als Schritt vor (Settings öffnen, Rechnungs-Mail prüfen etc.). Bei tieferen Anliegen verweise auf hi@festag.io.
+
+Sprache: Deutsch. Maximal 6 Sätze. Markdown nur wenn nötig. Keine Emojis.`
+  }
+
+  // tagro default
   return `${SYSTEM}
 
-Aktiver Festag-Kontext: ${projectContextTitle}.
+${ctxLine}
 Wenn der Kontext nicht "Alle Projekte" ist, antworte projektbezogen und mache sichtbar, dass du nur diesen Kontext bewertest.
 
-Tagro kann in Festag später konkrete Aktionen vorbereiten:
+Tagro kann in Festag konkrete Aktionen vorbereiten:
 - Tasks aus Statusberichten erstellen
 - Reviews freigeben oder Korrekturen anfordern
 - Statusberichte und Audio-Briefings vorbereiten
 - Blocker, Risiken und Entscheidungen priorisieren
 
-Wichtige Aktionen werden nie sofort ausgeführt. Schlage sie als bestätigungspflichtigen nächsten Schritt vor.`
+Wichtige Aktionen werden nie sofort ausgeführt. Schlage sie als bestätigungspflichtigen nächsten Schritt vor.${projectId ? `\n\nDie Conversation ist an Projekt-ID ${projectId} gekoppelt.` : ''}`
 }
 
 function stripThink(s: string): string {
@@ -81,12 +114,13 @@ export async function POST(req: NextRequest, ctx: { params: { id: string } }) {
   // Verify conversation ownership (RLS would also block, but explicit).
   const { data: conv } = await (supa as any)
     .from('tagro_conversations')
-    .select('id,title,user_id')
+    .select('id,title,user_id,mode,project_id')
     .eq('id', ctx.params.id)
     .maybeSingle()
   if (!conv || conv.user_id !== user.id) {
     return NextResponse.json({ error: 'not found' }, { status: 404 })
   }
+  const mode = (conv.mode || 'tagro') as Mode
 
   // 1. Persist user message.
   const { data: userMsg, error: insErr } = await (supa as any)
@@ -115,7 +149,7 @@ export async function POST(req: NextRequest, ctx: { params: { id: string } }) {
   let thinking: string | null = null
   try {
     const messages = [
-      { role: 'system' as const, content: buildSystemPrompt(projectContextTitle) },
+      { role: 'system' as const, content: buildSystemPrompt(mode, projectContextTitle, conv.project_id) },
       ...((history as any[]) ?? []).map(m => ({
         role: m.role as 'user' | 'assistant' | 'system',
         content: m.content,

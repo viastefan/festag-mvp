@@ -27,13 +27,73 @@ import ChatMarkdown from '@/components/ChatMarkdown'
 import NotesWorkspace from '@/components/NotesWorkspace'
 import TagroLogo from '@/components/TagroLogo'
 
+type Mode = 'tagro' | 'developer' | 'owner' | 'support'
+
 type Conversation = {
   id: string
   title: string
   pinned: boolean
+  mode?: Mode
+  project_id?: string | null
+  status?: 'active' | 'ended' | 'sent_to_inbox' | 'archived'
+  summary?: string | null
+  ended_at?: string | null
   created_at: string
   updated_at: string
 }
+
+type ModeDescriptor = {
+  id: Mode
+  label: string
+  short: string
+  helper: string
+  composerPlaceholder: string
+  composerLabel: (ctx: string) => string
+}
+
+const MODES: ModeDescriptor[] = [
+  {
+    id: 'tagro',
+    label: 'Tagro AI',
+    short: 'Tagro',
+    helper: 'AI-Steuerung für Projekte, Tasks, Reviews und Briefings',
+    composerPlaceholder: 'Frag Tagro über Projekte, Tasks, Risiken oder Briefings …',
+    composerLabel: ctx => `An Tagro AI · Kontext: ${ctx}`,
+  },
+  {
+    id: 'developer',
+    label: 'Developer',
+    short: 'Dev',
+    helper: 'Direkte Abstimmung mit dem Entwicklerteam des Projekts',
+    composerPlaceholder: 'Nachricht ans Developer-Team …',
+    composerLabel: ctx => `An Developer Team · Projekt: ${ctx}`,
+  },
+  {
+    id: 'owner',
+    label: 'Project Owner',
+    short: 'Owner',
+    helper: 'Freigaben, Scope-Änderungen, Qualität, Eskalation',
+    composerPlaceholder: 'Nachricht an deinen Project Owner …',
+    composerLabel: ctx => `An Project Owner · Projekt: ${ctx}`,
+  },
+  {
+    id: 'support',
+    label: 'Support',
+    short: 'Support',
+    helper: 'Konto, Abrechnung, Zugang, Zahlungen, Plattform-Hilfe',
+    composerPlaceholder: 'Nachricht an Festag Support …',
+    composerLabel: ctx => `An Festag Support · ${ctx === 'Alle Projekte' ? 'Account' : 'Projekt: ' + ctx}`,
+  },
+]
+const MODE_BY_ID: Record<Mode, ModeDescriptor> = Object.fromEntries(MODES.map(m => [m.id, m])) as Record<Mode, ModeDescriptor>
+const MODE_FILTERS: Array<{ id: 'all' | Mode | 'archived'; label: string }> = [
+  { id: 'all', label: 'Alle' },
+  { id: 'tagro', label: 'Tagro' },
+  { id: 'developer', label: 'Dev' },
+  { id: 'owner', label: 'Owner' },
+  { id: 'support', label: 'Support' },
+  { id: 'archived', label: 'Archiv' },
+]
 
 type Message = {
   id: string
@@ -131,6 +191,10 @@ function AIChatPage() {
   const [projectContexts, setProjectContexts] = useState<ProjectContext[]>(STATIC_CONTEXTS)
   const [activeContextId, setActiveContextId] = useState('all')
   const [contextMenuOpen, setContextMenuOpen] = useState(false)
+  const [activeMode, setActiveMode] = useState<Mode>('tagro')
+  const [railFilter, setRailFilter] = useState<'all' | Mode | 'archived'>('all')
+  const [endingChat, setEndingChat] = useState(false)
+  const [endToast, setEndToast] = useState<string | null>(null)
 
   const scrollRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
@@ -163,7 +227,9 @@ function AIChatPage() {
   }, [])
 
   const reloadConversations = useCallback(async () => {
-    const res = await fetch('/api/ai/conversations', { credentials: 'include' })
+    // Always include archived too — the rail itself filters via railFilter,
+    // and we don't want a fresh-end conversation disappearing mid-flow.
+    const res = await fetch('/api/ai/conversations?archived=1', { credentials: 'include' })
     if (!res.ok) return
     const data = await res.json()
     setConvs(data.conversations ?? [])
@@ -222,11 +288,17 @@ function AIChatPage() {
     projectContexts.find(context => context.id === activeContextId) ?? projectContexts[0]
   ), [activeContextId, projectContexts])
 
-  async function newChat() {
+  async function newChat(modeOverride?: Mode, projectIdOverride?: string | null) {
+    const mode = modeOverride ?? activeMode
+    const projectId = projectIdOverride !== undefined
+      ? projectIdOverride
+      : (activeContext.id !== 'all' && activeContext.id !== 'reviews' && activeContext.id !== 'briefings'
+          ? activeContext.id
+          : null)
     const res = await fetch('/api/ai/conversations', {
       method: 'POST', credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({}),
+      body: JSON.stringify({ mode, projectId }),
     })
     if (!res.ok) return
     const data = await res.json()
@@ -236,6 +308,26 @@ function AIChatPage() {
     setMessages([])
     setInput('')
     inputRef.current?.focus()
+  }
+
+  async function endChat(convId: string) {
+    if (endingChat) return
+    if (!confirm('Diesen Chat beenden? Tagro erzeugt eine Zusammenfassung und schickt sie in die Inbox. Das Transkript bleibt im Verlauf.')) return
+    setEndingChat(true)
+    try {
+      const res = await fetch(`/api/ai/conversations/${convId}/end`, {
+        method: 'POST', credentials: 'include',
+      })
+      if (!res.ok) return
+      const data = await res.json()
+      setConvs(curr => curr.map(c => c.id === convId
+        ? { ...c, status: 'sent_to_inbox', summary: data.summary, ended_at: data.ended_at }
+        : c))
+      setEndToast('Zusammenfassung an Inbox gesendet')
+      setTimeout(() => setEndToast(null), 3200)
+    } finally {
+      setEndingChat(false)
+    }
   }
 
   async function sendMessage(prompt?: string) {
@@ -363,16 +455,50 @@ function AIChatPage() {
 
   const activeConv = activeId ? convs.find(c => c.id === activeId) : null
   const hasMessages = messages.length > 0
+  // Conversation's own mode wins over the switcher when one is open —
+  // so the user always sees the correct mode for the active chat.
+  const effectiveMode: Mode = (activeConv?.mode as Mode | undefined) ?? activeMode
+  const mode = MODE_BY_ID[effectiveMode]
+
+  const projectById = useMemo(() => {
+    const m = new Map<string, ProjectContext>()
+    for (const p of projectContexts) m.set(p.id, p)
+    return m
+  }, [projectContexts])
+  const isEnded = activeConv?.status === 'sent_to_inbox' || activeConv?.status === 'ended' || activeConv?.status === 'archived'
+
+  // Conversation rail — filter the loaded list by mode + status.
+  const visibleConvs = useMemo(() => {
+    if (railFilter === 'all')      return convs.filter(c => c.status !== 'archived')
+    if (railFilter === 'archived') return convs.filter(c => c.status === 'archived' || c.status === 'sent_to_inbox')
+    return convs.filter(c => (c.mode ?? 'tagro') === railFilter && c.status !== 'archived')
+  }, [convs, railFilter])
+  const railGrouped = useMemo(() => {
+    const g: { pinned: Conversation[]; heute: Conversation[]; last7: Conversation[]; older: Conversation[] } = {
+      pinned: [], heute: [], last7: [], older: [],
+    }
+    for (const c of visibleConvs) {
+      if (c.pinned) { g.pinned.push(c); continue }
+      g[formatGroup(c.updated_at)].push(c)
+    }
+    return g
+  }, [visibleConvs])
 
   return (
     <div className={`ai-shell${railCollapsed ? ' rail-collapsed' : ''}`}>
+      {endToast && (
+        <div className="ai-toast" role="status">
+          <CheckCircle size={13} weight="fill" /> {endToast}
+        </div>
+      )}
+
       {/* ── Conversation rail ─────────────────────────────────── */}
       <aside className="ai-rail" aria-label="Chats">
         <div className="ai-rail-top">
           <button
             type="button"
             className="ai-new"
-            onClick={newChat}
+            onClick={() => newChat()}
             title="Neuer Chat"
           >
             <ChatCircleDots size={14} />
@@ -392,13 +518,34 @@ function AIChatPage() {
           </button>
         </div>
 
+        <div className="ai-rail-filters" role="tablist" aria-label="Chat-Filter">
+          {MODE_FILTERS.map(f => (
+            <button
+              key={f.id}
+              type="button"
+              role="tab"
+              aria-selected={railFilter === f.id}
+              className={`ai-rail-filter${railFilter === f.id ? ' on' : ''}`}
+              onClick={() => setRailFilter(f.id)}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+
         <div className="ai-rail-scroll">
-          {convs.length === 0 ? (
-            <p className="ai-rail-empty">Noch keine Chats. Starte einen mit „Neuer Chat" oder schreib unten gleich los.</p>
+          {visibleConvs.length === 0 ? (
+            <p className="ai-rail-empty">
+              {railFilter === 'all'
+                ? 'Noch keine Chats. Starte einen mit „Neuer Chat" oder schreib unten gleich los.'
+                : railFilter === 'archived'
+                  ? 'Keine archivierten oder beendeten Chats.'
+                  : `Keine ${MODE_BY_ID[railFilter as Mode]?.label ?? ''}-Chats in dieser Sicht.`}
+            </p>
           ) : (
             <>
-              {grouped.pinned.length > 0 && (
-                <ConversationGroup label="Angepinnt" rows={grouped.pinned}
+              {railGrouped.pinned.length > 0 && (
+                <ConversationGroup label="Angepinnt" rows={railGrouped.pinned}
                   activeId={activeId} onPick={setActiveId}
                   onPin={togglePin} onDelete={deleteConv}
                   menuFor={menuFor} setMenuFor={setMenuFor}
@@ -407,8 +554,8 @@ function AIChatPage() {
                   commitRename={commitRename}
                 />
               )}
-              {grouped.heute.length > 0 && (
-                <ConversationGroup label="Heute" rows={grouped.heute}
+              {railGrouped.heute.length > 0 && (
+                <ConversationGroup label="Heute" rows={railGrouped.heute}
                   activeId={activeId} onPick={setActiveId}
                   onPin={togglePin} onDelete={deleteConv}
                   menuFor={menuFor} setMenuFor={setMenuFor}
@@ -417,8 +564,8 @@ function AIChatPage() {
                   commitRename={commitRename}
                 />
               )}
-              {grouped.last7.length > 0 && (
-                <ConversationGroup label="Letzte 7 Tage" rows={grouped.last7}
+              {railGrouped.last7.length > 0 && (
+                <ConversationGroup label="Letzte 7 Tage" rows={railGrouped.last7}
                   activeId={activeId} onPick={setActiveId}
                   onPin={togglePin} onDelete={deleteConv}
                   menuFor={menuFor} setMenuFor={setMenuFor}
@@ -427,8 +574,8 @@ function AIChatPage() {
                   commitRename={commitRename}
                 />
               )}
-              {grouped.older.length > 0 && (
-                <ConversationGroup label="Älter" rows={grouped.older}
+              {railGrouped.older.length > 0 && (
+                <ConversationGroup label="Älter" rows={railGrouped.older}
                   activeId={activeId} onPick={setActiveId}
                   onPin={togglePin} onDelete={deleteConv}
                   menuFor={menuFor} setMenuFor={setMenuFor}
@@ -450,13 +597,56 @@ function AIChatPage() {
               <TagroLogo size={18} thinking={sending} />
             </span>
             <div className="ai-head-title">
-              <h1>{activeConv?.title || 'Tagro'}</h1>
-              <span>AI-Steuerung für Projekte, Tasks, Reviews und Briefings</span>
+              <h1>{activeConv?.title || mode.label}</h1>
+              <span>{mode.helper}</span>
             </div>
           </div>
+
+          {/* Mode switcher — disabled while a conversation is open
+              (the chat's own mode wins); creating a new chat uses the
+              active mode from this segmented control. */}
+          <div className="ai-mode-switch" role="tablist" aria-label="Communication mode">
+            {MODES.map(m => {
+              const isActive = activeConv ? m.id === effectiveMode : m.id === activeMode
+              return (
+                <button
+                  key={m.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={isActive}
+                  className={`ai-mode-segment${isActive ? ' on' : ''}`}
+                  onClick={() => {
+                    if (activeConv) {
+                      // Hand off into a fresh chat in the picked mode so we don't
+                      // silently rewire the open conversation's history.
+                      newChat(m.id)
+                    } else {
+                      setActiveMode(m.id)
+                    }
+                  }}
+                  disabled={!!activeConv && m.id === effectiveMode}
+                  title={m.label}
+                >
+                  {m.label}
+                </button>
+              )
+            })}
+          </div>
+
           <div className="ai-main-head-right">
             {activeConv && (
               <span className="ai-main-time">Aktualisiert {formatTimeAgo(activeConv.updated_at)}</span>
+            )}
+            {activeConv && !isEnded && (
+              <button
+                type="button"
+                className="ai-end-chat"
+                onClick={() => endChat(activeConv.id)}
+                disabled={endingChat}
+                title="Chat beenden — Tagro fasst zusammen und sendet an Inbox"
+              >
+                {endingChat ? 'Beende…' : 'Chat beenden'}
+              </button>
             )}
             <div className="ai-context-wrap">
               <button
@@ -496,31 +686,12 @@ function AIChatPage() {
 
         <div className="ai-feed" ref={scrollRef}>
           {!activeId && !hasMessages ? (
-            <div className="ai-empty">
-              <div className="ai-empty-mark">
-                <TagroLogo size={36} />
-              </div>
-              <h2>Wie kann ich dir helfen?</h2>
-              <p>Schreib unten los oder wähl einen Einstieg. Ich kenne deine Projekte, Tasks und letzten Briefings.</p>
-              <div className="ai-starters">
-                {PROMPT_STARTERS.map(s => (
-                  <button
-                    key={s}
-                    type="button"
-                    className="ai-starter"
-                    onClick={() => sendMessage(s)}
-                  >
-                    <Sparkle size={12} weight="fill" />
-                    <span>{s}</span>
-                  </button>
-                ))}
-              </div>
-              <div className="ai-action-grid" aria-label="Tagro Aktionen">
-                {EMPTY_ACTIONS.map(action => (
-                  <TagroActionCard key={action.title} {...action} compact />
-                ))}
-              </div>
-            </div>
+            <ModeEmptyState
+              mode={effectiveMode}
+              projectTitle={activeContext.title}
+              onPickProject={() => setContextMenuOpen(true)}
+              onStarter={(prompt) => sendMessage(prompt)}
+            />
           ) : loadingConv ? (
             <p className="ai-loading-inline">Lade Chat…</p>
           ) : (
@@ -554,29 +725,41 @@ function AIChatPage() {
         </div>
 
         <div className="ai-composer-wrap">
-          <div className="ai-composer">
-            <textarea
-              ref={inputRef}
-              className="ai-input"
-              placeholder="Frag Tagro alles über deine Projekte …"
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              onKeyDown={onKeyDownInput}
-              rows={1}
-              disabled={sending}
-            />
-            <button
-              type="button"
-              className="ai-send"
-              onClick={() => sendMessage()}
-              disabled={!input.trim() || sending}
-              aria-label="Senden"
-            >
-              <ArrowUp size={15} weight="bold" />
-            </button>
-          </div>
+          {isEnded && activeConv && (
+            <div className="ai-ended-banner" role="status">
+              <CheckCircle size={13} weight="fill" />
+              <span>Konversation beendet · Zusammenfassung liegt in deiner Inbox.</span>
+              <button type="button" onClick={() => newChat(effectiveMode)}>Neuen Chat starten</button>
+            </div>
+          )}
+          {!isEnded && (
+            <div className="ai-composer">
+              <textarea
+                ref={inputRef}
+                className="ai-input"
+                placeholder={mode.composerPlaceholder}
+                value={input}
+                onChange={e => setInput(e.target.value)}
+                onKeyDown={onKeyDownInput}
+                rows={1}
+                disabled={sending}
+              />
+              <button
+                type="button"
+                className="ai-send"
+                onClick={() => sendMessage()}
+                disabled={!input.trim() || sending}
+                aria-label="Senden"
+              >
+                <ArrowUp size={15} weight="bold" />
+              </button>
+            </div>
+          )}
           <p className="ai-foot">
-            Tagro kann sich irren. Wichtiges immer kurz gegenprüfen.
+            {mode.composerLabel(activeContext.title)} ·
+            {effectiveMode === 'tagro'
+              ? ' Tagro kann sich irren — Wichtiges kurz gegenprüfen.'
+              : ' Tagro speichert Nachrichten und kann sie zu Tasks oder Briefings verlinken.'}
           </p>
         </div>
       </main>
@@ -637,6 +820,17 @@ function ConversationGroup({
                   title={c.title}
                 >
                   <span className="ai-row-title">{c.title}</span>
+                  <span className="ai-row-meta">
+                    <span className={`ai-row-badge mode-${(c.mode ?? 'tagro')}`}>
+                      {MODE_BY_ID[(c.mode ?? 'tagro') as Mode]?.short ?? 'Tagro'}
+                    </span>
+                    {c.status === 'sent_to_inbox' && (
+                      <span className="ai-row-badge muted">In Inbox</span>
+                    )}
+                    {c.status === 'archived' && (
+                      <span className="ai-row-badge muted">Archiviert</span>
+                    )}
+                  </span>
                 </button>
               )}
               <button
@@ -672,6 +866,122 @@ function ConversationGroup({
         })}
       </div>
     </section>
+  )
+}
+
+/* ────────────────────────────────────────────────────────────────
+ * ModeEmptyState — calm, mode-aware first-screen for /ai.
+ * Replaces the old huge white-card empty cluster.
+ * ──────────────────────────────────────────────────────────── */
+function ModeEmptyState({
+  mode, projectTitle, onStarter, onPickProject,
+}: {
+  mode: Mode
+  projectTitle: string
+  onStarter: (prompt: string) => void
+  onPickProject: () => void
+}) {
+  const isAllProjects = projectTitle === 'Alle Projekte'
+
+  if (mode === 'tagro') {
+    return (
+      <div className="ai-empty">
+        <div className="ai-empty-mark"><TagroLogo size={32} /></div>
+        <h2>Wie kann Tagro helfen?</h2>
+        <p>Frag nach Projektstatus, Risiken, Entscheidungen, Tasks oder Briefings — Kontext: <strong>{projectTitle}</strong>.</p>
+        <div className="ai-starters">
+          {[
+            'Was ist mein aktueller Projektstand?',
+            'Welche Risiken sollte ich diese Woche im Blick haben?',
+            'Strukturiere mir eine neue Projektidee.',
+            'Welche Entscheidungen blockieren gerade Fortschritt?',
+          ].map(s => (
+            <button key={s} type="button" className="ai-starter" onClick={() => onStarter(s)}>
+              <Sparkle size={12} weight="fill" />
+              <span>{s}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  if (mode === 'developer') {
+    if (isAllProjects) {
+      return (
+        <div className="ai-empty narrow">
+          <div className="ai-empty-mark"><Briefcase size={22} /></div>
+          <h2>Projekt auswählen</h2>
+          <p>Developer-Chats sind immer projektgebunden, damit Tagro Nachrichten mit Tasks, Milestones und Berichten verknüpfen kann.</p>
+          <button type="button" className="ai-empty-cta" onClick={onPickProject}>
+            <Briefcase size={13} /> Projekt wählen
+          </button>
+        </div>
+      )
+    }
+    return (
+      <div className="ai-empty">
+        <div className="ai-empty-mark"><Briefcase size={22} /></div>
+        <h2>Chat mit dem Projektteam</h2>
+        <p>Nachrichten bleiben am Projekt <strong>{projectTitle}</strong> hängen und können in Tasks, Briefings oder Milestones übersetzt werden.</p>
+        <div className="ai-starters">
+          {[
+            'Bitte gib mir kurz den aktuellen Implementierungsstand.',
+            'Wo stehen wir mit dem nächsten Milestone?',
+            'Welche offenen Fragen blockieren euch?',
+          ].map(s => (
+            <button key={s} type="button" className="ai-starter" onClick={() => onStarter(s)}>
+              <Sparkle size={12} weight="fill" />
+              <span>{s}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  if (mode === 'owner') {
+    return (
+      <div className="ai-empty">
+        <div className="ai-empty-mark"><CheckCircle size={22} /></div>
+        <h2>Mit dem Project Owner sprechen</h2>
+        <p>Für Freigaben, Qualitätsfragen, Scope-Änderungen oder Eskalation — Kontext: <strong>{projectTitle}</strong>.</p>
+        <div className="ai-starters">
+          {[
+            'Bitte Freigabe für den aktuellen Stand.',
+            'Ich brauche eine Scope-Anpassung — wie gehen wir vor?',
+            'Wer prüft die nächste Lieferung?',
+          ].map(s => (
+            <button key={s} type="button" className="ai-starter" onClick={() => onStarter(s)}>
+              <Sparkle size={12} weight="fill" />
+              <span>{s}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  // support
+  return (
+    <div className="ai-empty">
+      <div className="ai-empty-mark"><FileText size={22} /></div>
+      <h2>Wobei kann Festag Support helfen?</h2>
+      <p>Konto, Abrechnung, Zugang, Zahlungen oder Plattform-Fragen — schreib uns einfach.</p>
+      <div className="ai-starters">
+        {[
+          'Ich habe eine Frage zur Rechnung.',
+          'Wie ändere ich meine Zahlungsmethode?',
+          'Ich komme nicht in mein Konto rein.',
+          'Welche Pakete gibt es?',
+        ].map(s => (
+          <button key={s} type="button" className="ai-starter" onClick={() => onStarter(s)}>
+            <Sparkle size={12} weight="fill" />
+            <span>{s}</span>
+          </button>
+        ))}
+      </div>
+    </div>
   )
 }
 
@@ -1341,5 +1651,262 @@ const CSS = `
     .ai-composer-wrap { padding: 12px 12px calc(14px + env(safe-area-inset-bottom)); }
     .ai-action-card { grid-template-columns: 30px minmax(0, 1fr); }
     .ai-action-buttons { grid-column: 1 / -1; }
+  }
+
+  /* ─── 2026-05-23 dark-fix + mode-switcher ──────────────────
+   * Override the white-heavy defaults further up. All surfaces
+   * resolved through tokens so light/dark/read all behave. */
+
+  /* Rail filter pills */
+  .ai-rail-filters {
+    display: flex; flex-wrap: wrap; gap: 4px;
+    padding: 8px 10px 4px;
+    border-bottom: 1px solid color-mix(in srgb, var(--border) 40%, transparent);
+  }
+  .ai-rail-filter {
+    height: 24px; padding: 0 9px;
+    border: 0; border-radius: 999px;
+    background: transparent;
+    color: var(--text-muted);
+    font: inherit; font-size: 11px; font-weight: 560; letter-spacing: .015em;
+    cursor: pointer;
+    transition: background .12s, color .12s;
+  }
+  .ai-rail-filter:hover { color: var(--text); }
+  .ai-rail-filter.on {
+    background: color-mix(in srgb, var(--surface-2) 80%, transparent);
+    color: var(--text);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--border) 40%, transparent);
+  }
+
+  /* Conversation row mode + status badges */
+  .ai-row-meta { display: flex; gap: 4px; padding: 2px 0 4px; flex-wrap: wrap; }
+  .ai-row-badge {
+    display: inline-flex; align-items: center;
+    height: 16px; padding: 0 6px;
+    border-radius: 999px;
+    font-size: 9.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase;
+  }
+  .ai-row-badge.mode-tagro     { background: color-mix(in srgb, var(--btn-prim) 14%, transparent); color: var(--btn-prim); }
+  .ai-row-badge.mode-developer { background: color-mix(in srgb, #22a06b 14%, transparent); color: #22a06b; }
+  .ai-row-badge.mode-owner     { background: color-mix(in srgb, #6c8cff 14%, transparent); color: #6c8cff; }
+  .ai-row-badge.mode-support   { background: color-mix(in srgb, #d4882b 14%, transparent); color: #d4882b; }
+  .ai-row-badge.muted          { background: color-mix(in srgb, var(--surface-2) 70%, transparent); color: var(--text-muted); }
+
+  /* Top mode switcher — segmented control */
+  .ai-mode-switch {
+    display: inline-flex; align-items: center;
+    gap: 2px; padding: 3px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--surface-2) 60%, transparent);
+    border: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+  }
+  .ai-mode-segment {
+    height: 26px; padding: 0 12px;
+    border: 0; border-radius: 999px;
+    background: transparent;
+    color: var(--text-muted);
+    font: inherit; font-size: 11.5px; font-weight: 600; letter-spacing: .015em;
+    cursor: pointer;
+    transition: background .12s, color .12s;
+  }
+  .ai-mode-segment:hover { color: var(--text); }
+  .ai-mode-segment.on {
+    background: var(--card);
+    color: var(--text);
+    box-shadow: 0 1px 2px color-mix(in srgb, var(--text) 6%, transparent);
+  }
+  .ai-mode-segment:disabled { cursor: default; }
+
+  /* End-chat button */
+  .ai-end-chat {
+    height: 28px; padding: 0 12px;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+    background: transparent;
+    color: var(--text-muted);
+    font: inherit; font-size: 11.5px; font-weight: 580; letter-spacing: .015em;
+    cursor: pointer; transition: background .12s, color .12s, border-color .12s;
+    white-space: nowrap;
+  }
+  .ai-end-chat:hover:not(:disabled) {
+    color: var(--text);
+    background: color-mix(in srgb, var(--surface-2) 55%, transparent);
+  }
+  .ai-end-chat:disabled { opacity: .55; cursor: default; }
+
+  /* Toast (Inbox handoff) */
+  .ai-toast {
+    position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+    z-index: 14000;
+    display: inline-flex; align-items: center; gap: 7px;
+    height: 36px; padding: 0 16px;
+    background: var(--card);
+    color: var(--text);
+    border: 1px solid color-mix(in srgb, var(--btn-prim) 30%, var(--border));
+    border-radius: 999px;
+    font-size: 12.5px; font-weight: 560; letter-spacing: .015em;
+    box-shadow: 0 18px 48px -20px rgba(0,0,0,.4);
+    animation: aiToastIn .25s cubic-bezier(.16,1,.3,1) both;
+  }
+  .ai-toast svg { color: #22a06b; }
+  @keyframes aiToastIn { from { opacity:0; transform:translate(-50%, 8px); } to { opacity:1; transform:translate(-50%,0); } }
+
+  /* Ended-conversation banner replaces composer */
+  .ai-ended-banner {
+    max-width: 800px; margin: 0 auto;
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 16px;
+    border-radius: 14px;
+    background: color-mix(in srgb, #22a06b 8%, transparent);
+    border: 1px solid color-mix(in srgb, #22a06b 24%, transparent);
+    color: var(--text); font-size: 12.5px; font-weight: 560; letter-spacing: .015em;
+  }
+  .ai-ended-banner svg { color: #22a06b; flex-shrink: 0; }
+  .ai-ended-banner span { flex: 1; }
+  .ai-ended-banner button {
+    height: 28px; padding: 0 12px;
+    border: 0; border-radius: 999px;
+    background: var(--btn-prim); color: var(--btn-prim-text);
+    font: inherit; font-size: 11.5px; font-weight: 600; letter-spacing: .015em;
+    cursor: pointer;
+  }
+  .ai-ended-banner button:hover { opacity: .92; }
+
+  /* Empty CTA */
+  .ai-empty.narrow { max-width: 480px; }
+  .ai-empty-cta {
+    display: inline-flex; align-items: center; gap: 7px;
+    height: 36px; padding: 0 16px; margin-top: 8px;
+    border: 0; border-radius: 999px;
+    background: var(--btn-prim); color: var(--btn-prim-text);
+    font: inherit; font-size: 12.5px; font-weight: 600; letter-spacing: .015em;
+    cursor: pointer; transition: opacity .12s;
+  }
+  .ai-empty-cta:hover { opacity: .92; }
+
+  /* ============ DARK FIX ============
+   * Replace the white-heavy bubbles, starters, action cards and composer
+   * with token-driven surfaces. The earlier rules pinned literal white
+   * which broke dark mode. */
+  .ai-shell {
+    background:
+      radial-gradient(circle at 74% 18%, color-mix(in srgb, var(--btn-prim) 6%, transparent), transparent 30%),
+      var(--bg);
+  }
+  .ai-main { background: var(--bg); }
+  .ai-rail { background: color-mix(in srgb, var(--surface) 50%, transparent); }
+
+  .ai-new {
+    background: var(--card);
+    border-color: color-mix(in srgb, var(--border) 70%, transparent);
+    box-shadow: none;
+  }
+  .ai-new:hover {
+    background: color-mix(in srgb, var(--surface-2) 70%, var(--card));
+  }
+
+  .ai-head-mark {
+    background: color-mix(in srgb, var(--surface-2) 65%, transparent);
+    border-color: color-mix(in srgb, var(--border) 60%, transparent);
+    box-shadow: none;
+  }
+
+  .ai-context-button {
+    background: color-mix(in srgb, var(--surface-2) 50%, transparent);
+    border-color: color-mix(in srgb, var(--border) 70%, transparent);
+    box-shadow: none;
+  }
+  .ai-context-button:hover {
+    background: color-mix(in srgb, var(--surface-2) 80%, transparent);
+    color: var(--text);
+  }
+
+  .ai-empty h2 {
+    font-size: clamp(22px, 2.4vw, 30px);
+    font-weight: 600;
+    letter-spacing: -.018em;
+  }
+  .ai-empty p { font-size: 13.5px; font-weight: 540; }
+  .ai-empty-mark {
+    background: color-mix(in srgb, var(--surface-2) 70%, transparent);
+    box-shadow: none;
+    color: var(--text-secondary);
+  }
+  .ai-empty-mark::after { border-color: color-mix(in srgb, var(--btn-prim) 22%, transparent); }
+
+  .ai-starter {
+    background: color-mix(in srgb, var(--surface-2) 50%, transparent);
+    border: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+    color: var(--text-secondary);
+    box-shadow: none;
+    border-radius: 14px;
+    min-height: 58px;
+    padding: 12px 14px;
+    font-size: 13px;
+  }
+  .ai-starter:hover {
+    background: color-mix(in srgb, var(--surface-2) 80%, transparent);
+    border-color: var(--border);
+    color: var(--text);
+    box-shadow: none;
+  }
+
+  .ai-action-card {
+    background: color-mix(in srgb, var(--surface-2) 45%, transparent);
+    border: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+    box-shadow: none;
+  }
+  .ai-action-icon {
+    background: color-mix(in srgb, var(--surface-2) 70%, transparent);
+    border-color: color-mix(in srgb, var(--border) 60%, transparent);
+    color: var(--text-secondary);
+  }
+  .ai-action-buttons button {
+    background: var(--btn-prim);
+    color: var(--btn-prim-text);
+    border-color: transparent;
+  }
+  .ai-action-buttons button:hover { opacity: .92; }
+  .ai-action-buttons button.ghost {
+    background: transparent;
+    color: var(--text-muted);
+    border-color: color-mix(in srgb, var(--border) 65%, transparent);
+  }
+
+  .ai-msg.user .ai-msg-body {
+    background: color-mix(in srgb, var(--surface-2) 75%, transparent);
+    border-color: color-mix(in srgb, var(--border) 55%, transparent);
+    box-shadow: none;
+  }
+
+  .ai-composer {
+    background: color-mix(in srgb, var(--surface) 70%, var(--card));
+    border-color: color-mix(in srgb, var(--border) 60%, transparent);
+    box-shadow: none;
+  }
+  .ai-composer:focus-within {
+    background: color-mix(in srgb, var(--surface) 90%, var(--card));
+    border-color: color-mix(in srgb, var(--btn-prim) 45%, var(--border));
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--btn-prim) 12%, transparent);
+  }
+  .ai-composer-wrap {
+    background: linear-gradient(to top,
+      color-mix(in srgb, var(--bg) 98%, transparent) 70%,
+      transparent);
+  }
+  .ai-send {
+    background: var(--btn-prim);
+    color: var(--btn-prim-text);
+    border-color: transparent;
+  }
+  .ai-send:hover:not(:disabled) {
+    background: var(--btn-prim);
+    color: var(--btn-prim-text);
+    opacity: .92;
+  }
+
+  @media (max-width: 980px) {
+    .ai-mode-switch { display: none; }
   }
 `
