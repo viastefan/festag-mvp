@@ -216,6 +216,11 @@ export default function TasksPage() {
   const [sortMode, setSortMode] = useState<SortMode>('newest')
   const [filterMenuOpen, setFilterMenuOpen] = useState(false)
   const [sortMenuOpen, setSortMenuOpen] = useState(false)
+  // Project scope — 'all' (default) or a single project id. Same UX
+  // pattern as the dashboard briefing dropdown so users don't have to
+  // re-learn how scoping works across the app.
+  const [projectScope, setProjectScope] = useState<string>('all')
+  const [scopeMenuOpen, setScopeMenuOpen] = useState(false)
   const [composerOpen, setComposerOpen] = useState(false)
   const [composerMode, setComposerMode] = useState<ComposerMode>('tagro')
   const [suggestProjectId, setSuggestProjectId] = useState('')
@@ -312,10 +317,17 @@ export default function TasksPage() {
     void (supabase as any).from('projects').update({ color }).eq('id', projectId)
   }
 
+  // Reset scope if the selected project disappears (e.g. deleted).
+  useEffect(() => {
+    if (projectScope === 'all') return
+    if (!projects.find(p => p.id === projectScope)) setProjectScope('all')
+  }, [projects, projectScope])
+
   const visibleTasks = useMemo(() => {
     const priorityRank: Record<string, number> = { critical: 0, high: 1, medium: 2, low: 3 }
     return tasks
       .filter((task) => {
+        if (projectScope !== 'all' && task.project_id !== projectScope) return false
         const normalized = normalizeStatus(taskState(task))
         if (view === 'all') return normalized !== 'done' || isCompletedTaskStillFresh(task)
         return normalizeStatus(taskState(task)) === view
@@ -330,7 +342,10 @@ export default function TasksPage() {
         const field = sortMode === 'updated' ? 'updated_at' : 'created_at'
         return new Date((b as any)[field] || b.created_at || 0).getTime() - new Date((a as any)[field] || a.created_at || 0).getTime()
       })
-  }, [tasks, view, sortMode, projectById])
+  }, [tasks, view, sortMode, projectById, projectScope])
+
+  const scopedProject = projectScope === 'all' ? null : projects.find(p => p.id === projectScope)
+  const scopeLabel = scopedProject?.title ?? 'Alle Projekte'
 
   const taskProjectGroups = useMemo(() => {
     const fallbackProject = { id: 'projectless', title: 'Ohne Projekt', color: '#4E5567' }
@@ -527,11 +542,98 @@ export default function TasksPage() {
           padding:0 18px 12px;
           margin-bottom:0;
         }
+        .task-top-left {
+          display:flex; align-items:center; gap:12px; min-width:0;
+        }
         .task-title {
           margin:0;
           font-size:14.5px;
           font-weight:500;
           letter-spacing:0;
+        }
+
+        /* Project scope dropdown — mirrors the dashboard's
+           dc-scope pattern so users know the gesture. */
+        .task-scope { position:relative; }
+        .task-scope-trigger {
+          display:inline-flex; align-items:center; gap:7px;
+          max-width:240px;
+          height:28px; padding:0 11px 0 12px;
+          border-radius:999px;
+          border:1px solid color-mix(in srgb, var(--border) 70%, transparent);
+          background:color-mix(in srgb, var(--surface-2) 30%, transparent);
+          color:var(--text); font:inherit; font-size:12px;
+          font-weight:500; letter-spacing:.012em;
+          cursor:pointer; transition:background .12s, border-color .12s;
+        }
+        .task-scope-trigger:hover {
+          background:color-mix(in srgb, var(--surface-2) 65%, transparent);
+          border-color:var(--border);
+        }
+        .task-scope-trigger span {
+          overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+        }
+        .task-scope-trigger svg { color:var(--text-muted); flex-shrink:0; }
+
+        .task-scope-backdrop {
+          position:fixed; inset:0; z-index:14;
+          background:transparent; border:0; padding:0; cursor:default;
+        }
+        .task-scope-menu {
+          position:absolute; top:calc(100% + 6px); left:0; z-index:15;
+          min-width:260px; max-width:320px;
+          max-height:340px; overflow-y:auto;
+          padding:6px;
+          background:var(--card);
+          border:1px solid color-mix(in srgb, var(--border) 70%, transparent);
+          border-radius:12px;
+          box-shadow:0 1px 2px rgba(15,23,42,.06), 0 20px 50px rgba(15,23,42,.14);
+          display:flex; flex-direction:column; gap:2px;
+          animation:scopeIn .14s cubic-bezier(.16,1,.3,1) both;
+        }
+        [data-theme="dark"] .task-scope-menu,
+        [data-theme="classic-dark"] .task-scope-menu {
+          background:color-mix(in srgb, var(--card) 95%, #fff 5%);
+          box-shadow:0 1px 2px rgba(0,0,0,.4), 0 24px 60px rgba(0,0,0,.45);
+        }
+        @keyframes scopeIn { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:none; } }
+
+        .task-scope-opt {
+          display:grid; grid-template-columns:8px 1fr auto;
+          gap:10px; align-items:center;
+          width:100%; padding:8px 10px;
+          border:0; background:transparent; border-radius:8px;
+          color:var(--text); font:inherit; font-size:12.5px;
+          font-weight:500; letter-spacing:.012em;
+          cursor:pointer; text-align:left;
+          transition:background .1s;
+        }
+        .task-scope-opt:hover {
+          background:color-mix(in srgb, var(--surface-2) 55%, transparent);
+        }
+        .task-scope-opt.on {
+          background:color-mix(in srgb, var(--surface-2) 75%, transparent);
+        }
+        .task-scope-dot {
+          width:8px; height:8px; border-radius:50%;
+          background:var(--text-muted);
+        }
+        .task-scope-main {
+          min-width:0; display:flex; flex-direction:column; gap:1px;
+        }
+        .task-scope-main strong {
+          font-size:12.5px; font-weight:500;
+          overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+        }
+        .task-scope-main small {
+          font-size:10.5px; color:var(--text-muted);
+          font-weight:500; letter-spacing:.012em;
+          overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+        }
+        .task-scope-divider {
+          height:1px;
+          background:color-mix(in srgb, var(--border) 60%, transparent);
+          margin:4px 6px;
         }
         .task-plus {
           width:28px;
@@ -1560,7 +1662,70 @@ export default function TasksPage() {
 
       <div className="task-static-top">
         <div className="task-top">
-          <h1 className="task-title">Tasks</h1>
+          <div className="task-top-left">
+            <h1 className="task-title">Tasks</h1>
+            {/* Project scope dropdown — same UX as the dashboard's
+                "Gesamtbericht für alle Projekte" so users can narrow
+                down to a single project without losing the table. */}
+            {hasProjects && (
+              <div className="task-scope">
+                <button
+                  type="button"
+                  className="task-scope-trigger"
+                  onClick={() => setScopeMenuOpen(v => !v)}
+                  aria-expanded={scopeMenuOpen}
+                  aria-haspopup="listbox"
+                >
+                  <span>{scopeLabel}</span>
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                    <path d="M6 9l6 6 6-6" />
+                  </svg>
+                </button>
+                {scopeMenuOpen && (
+                  <>
+                    <button type="button" className="task-scope-backdrop" aria-hidden onClick={() => setScopeMenuOpen(false)} />
+                    <div className="task-scope-menu" role="listbox">
+                      <button
+                        type="button"
+                        role="option"
+                        aria-selected={projectScope === 'all'}
+                        className={`task-scope-opt${projectScope === 'all' ? ' on' : ''}`}
+                        onClick={() => { setProjectScope('all'); setScopeMenuOpen(false) }}
+                      >
+                        <span className="task-scope-dot" />
+                        <span className="task-scope-main">
+                          <strong>Alle Projekte</strong>
+                          <small>{tasks.length} Task{tasks.length === 1 ? '' : 's'} insgesamt</small>
+                        </span>
+                        {projectScope === 'all' ? <Check size={12} weight="bold" /> : null}
+                      </button>
+                      {projects.length > 0 && <div className="task-scope-divider" />}
+                      {projects.map(p => {
+                        const taskCount = tasks.filter(t => t.project_id === p.id).length
+                        return (
+                          <button
+                            key={p.id}
+                            type="button"
+                            role="option"
+                            aria-selected={projectScope === p.id}
+                            className={`task-scope-opt${projectScope === p.id ? ' on' : ''}`}
+                            onClick={() => { setProjectScope(p.id); setScopeMenuOpen(false) }}
+                          >
+                            <span className="task-scope-dot" style={{ background: p.color || 'var(--text-muted)' }} />
+                            <span className="task-scope-main">
+                              <strong>{p.title}</strong>
+                              <small>{taskCount} Task{taskCount === 1 ? '' : 's'}</small>
+                            </span>
+                            {projectScope === p.id ? <Check size={12} weight="bold" /> : null}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
           <button className="task-create" type="button" aria-label="Neue Aufgabe vorschlagen" disabled={!hasProjects} onClick={openComposer}>
             <span>Aufgabe vorschlagen</span>
             <span className="task-create-plus" aria-hidden="true">+</span>
