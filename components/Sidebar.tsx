@@ -424,7 +424,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
     const [cleanHref, query] = h.split('?')
     const targetParams = new URLSearchParams(query ?? '')
     const targetView = targetParams.get('view')
-    const currentView = searchParams.get('view') || (cleanHref === '/ai' ? 'chat' : null)
+    const currentView = searchParams?.get('view') || (cleanHref === '/ai' ? 'chat' : null)
 
     if (targetView) {
       return pathname === cleanHref && currentView === targetView

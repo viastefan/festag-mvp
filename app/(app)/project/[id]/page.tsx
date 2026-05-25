@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import { Suspense, useEffect, useState, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
@@ -28,6 +28,17 @@ const PHASE_LABEL: Record<string,string> = { intake:'Intake', planning:'Planung'
 const PRIORITY_COLOR: Record<string,string> = { critical:'#ef4444', high:'#f97316', medium:'#f59e0b', low:'#22c55e' }
 
 export default function ProjectPage() {
+  // useSearchParams() requires a Suspense boundary or Next 14 fails to
+  // defer the page, prerenders it with null params, and the page crashes
+  // on hydrate into the (app)/error.tsx wall.
+  return (
+    <Suspense fallback={<div style={{ padding:48, color:'var(--text-muted)' }}>Projekt wird geladen…</div>}>
+      <ProjectPageInner />
+    </Suspense>
+  )
+}
+
+function ProjectPageInner() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
   const [project, setProject] = useState<Project | null>(null)

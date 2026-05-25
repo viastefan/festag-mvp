@@ -9,7 +9,7 @@
  * baren Sektionen. Keine Tabellen-Linien, ruhige Hover-Flächen.
  */
 
-import { useEffect, useMemo, useState } from 'react'
+import { Suspense, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
@@ -114,6 +114,17 @@ function dateLabel(value?: string | null) {
 }
 
 export default function ProjectsPage() {
+  // useSearchParams() forces this route to defer; wrapping in <Suspense>
+  // keeps Next 14 from misclassifying the page as fully static, which
+  // would otherwise prerender with null searchParams and crash on hydrate.
+  return (
+    <Suspense fallback={<div style={{ padding:48, color:'var(--text-muted)' }}>Projekte werden geladen…</div>}>
+      <ProjectsPageInner />
+    </Suspense>
+  )
+}
+
+function ProjectsPageInner() {
   const [projects, setProjects] = useState<ProjectRow[]>([])
   const [tasks, setTasks] = useState<TaskRow[]>([])
   const [loading, setLoading] = useState(true)
@@ -136,7 +147,7 @@ export default function ProjectsPage() {
     const projs = (projectData as ProjectRow[]) ?? []
     // Mit genau einem Projekt gibt es nichts auszuwählen — direkt ins Projekt.
     // (Ausnahme: der „Neues Projekt"-Flow ist über ?new=1 geöffnet.)
-    if (projs.length === 1 && searchParams.get('new') !== '1') {
+    if (projs.length === 1 && searchParams?.get('new') !== '1') {
       window.location.href = `/project/${projs[0].id}`
       return
     }
@@ -157,7 +168,7 @@ export default function ProjectsPage() {
   }, [])
 
   useEffect(() => {
-    if (searchParams.get('new') === '1') setShowNewProject(true)
+    if (searchParams?.get('new') === '1') setShowNewProject(true)
   }, [searchParams])
 
   // Close menus on outside click / Escape

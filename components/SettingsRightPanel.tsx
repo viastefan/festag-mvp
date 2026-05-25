@@ -192,13 +192,13 @@ export default function SettingsRightPanel() {
       <section className="rail-panel">
         <p className="rail-kicker">Schnellzugriff</p>
         <div className="rail-list">
-          {[
-            ['Dashboard', '/dashboard', 'project' as const],
-            ['Projektbriefings', '/reports', 'ai' as const],
-            ['Activity Feed', '/activity', 'activity' as const],
-            ['Billing', '/billing', 'billing' as const],
-            ['Dokumente', '/documents', 'document' as const],
-          ].map(([label, href, icon]) => (
+          {([
+            ['Dashboard', '/dashboard', 'project'],
+            ['Projektbriefings', '/reports', 'ai'],
+            ['Activity Feed', '/activity', 'activity'],
+            ['Billing', '/billing', 'billing'],
+            ['Dokumente', '/documents', 'document'],
+          ] as Array<[string, string, 'project'|'message'|'ai'|'document'|'billing'|'activity'|'task'|'arrow']>).map(([label, href, icon]) => (
             <Link key={href} href={href} className="rail-action">
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 9 }}>
                 <Icon name={icon} />
