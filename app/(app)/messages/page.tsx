@@ -12,11 +12,11 @@
  * Buttons — Slate ist der einzige Akzent.
  */
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   Tray, Briefcase, Receipt, UsersThree, Sparkle,
-  CheckCircle, ChatCircle, ArrowSquareOut, Play, Funnel,
+  CheckCircle, ChatCircle, ArrowSquareOut, Play, Funnel, CaretDown, Check,
 } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 
@@ -131,6 +131,23 @@ export default function InboxPage() {
   const [projectTitles, setProjectTitles] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(true)
   const [unreadOnly, setUnreadOnly] = useState(false)
+  const [catMenuOpen, setCatMenuOpen] = useState(false)
+  const catMenuRef = useRef<HTMLDivElement | null>(null)
+
+  // Close the category popover on outside click + Esc
+  useEffect(() => {
+    if (!catMenuOpen) return
+    const onDown = (e: MouseEvent) => {
+      if (catMenuRef.current && !catMenuRef.current.contains(e.target as Node)) setCatMenuOpen(false)
+    }
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setCatMenuOpen(false) }
+    document.addEventListener('mousedown', onDown)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('mousedown', onDown)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [catMenuOpen])
 
   // Load: ensure the welcome message exists, then pull inbox items.
   useEffect(() => {
@@ -218,37 +235,75 @@ export default function InboxPage() {
       <section className="ix-list" aria-label="Posteingang">
         <header className="ix-list-head">
           <div className="ix-list-title">Posteingang</div>
-          <button
-            type="button"
-            className={`ix-iconbtn${unreadOnly ? ' on' : ''}`}
-            onClick={() => setUnreadOnly(v => !v)}
-            title={unreadOnly ? 'Alle anzeigen' : 'Nur ungelesene'}
-            aria-pressed={unreadOnly}
-          >
-            <Funnel size={15} weight={unreadOnly ? 'fill' : 'regular'} />
-          </button>
-        </header>
-
-        <nav className="ix-tabs" aria-label="Kategorien">
-          {CATEGORIES.map(cat => {
-            const Icon = cat.icon
-            const isOn = active === cat.id
-            const unread = unreadByCategory[cat.id]
-            return (
+          <div className="ix-head-tools">
+            {/* Kategorien-Popover-Trigger — ersetzt die alte 5-Pill-Reihe.
+                Zeigt aktive Kategorie + Caret, öffnet Popover mit allen
+                Kategorien und ihren Ungelesen-Countern. */}
+            <div className="ix-cat" ref={catMenuRef}>
               <button
-                key={cat.id}
                 type="button"
-                className={`ix-tab${isOn ? ' on' : ''}`}
-                onClick={() => setActive(cat.id)}
-                title={cat.hint}
+                className={`ix-cat-trigger${catMenuOpen ? ' on' : ''}`}
+                onClick={() => setCatMenuOpen(v => !v)}
+                aria-expanded={catMenuOpen}
+                aria-haspopup="listbox"
+                title="Kategorie wählen"
               >
-                <Icon size={13} weight="regular" />
-                <span>{cat.label}</span>
-                {unread > 0 && <span className="ix-tab-count">{unread}</span>}
+                {(() => {
+                  const cur = CATEGORIES.find(c => c.id === active) || CATEGORIES[0]
+                  const Icon = cur.icon
+                  return (
+                    <>
+                      <Icon size={13} weight="regular" />
+                      <span>{cur.label}</span>
+                    </>
+                  )
+                })()}
+                {unreadByCategory[active] > 0 && (
+                  <span className="ix-cat-count">{unreadByCategory[active]}</span>
+                )}
+                <CaretDown size={10} weight="bold" />
               </button>
-            )
-          })}
-        </nav>
+
+              {catMenuOpen && (
+                <div className="ix-cat-menu" role="listbox" aria-label="Kategorien">
+                  {CATEGORIES.map(cat => {
+                    const Icon = cat.icon
+                    const isOn = active === cat.id
+                    const unread = unreadByCategory[cat.id]
+                    return (
+                      <button
+                        key={cat.id}
+                        type="button"
+                        role="option"
+                        aria-selected={isOn}
+                        className={`ix-cat-opt${isOn ? ' on' : ''}`}
+                        onClick={() => { setActive(cat.id); setCatMenuOpen(false) }}
+                      >
+                        <Icon size={13} weight="regular" />
+                        <span className="ix-cat-opt-main">
+                          <strong>{cat.label}</strong>
+                          <small>{cat.hint}</small>
+                        </span>
+                        {unread > 0 && <span className="ix-cat-count">{unread}</span>}
+                        {isOn && <Check size={11} weight="bold" />}
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+
+            <button
+              type="button"
+              className={`ix-iconbtn${unreadOnly ? ' on' : ''}`}
+              onClick={() => setUnreadOnly(v => !v)}
+              title={unreadOnly ? 'Alle anzeigen' : 'Nur ungelesene'}
+              aria-pressed={unreadOnly}
+            >
+              <Funnel size={15} weight={unreadOnly ? 'fill' : 'regular'} />
+            </button>
+          </div>
+        </header>
 
         <div className="ix-thread-scroll">
           {loading ? (
@@ -395,16 +450,19 @@ const INBOX_CSS = `
   }
   .ix-root *, .ix-root *::before, .ix-root *::after { letter-spacing: .012em; }
 
-  /* LIST COLUMN */
+  /* LIST COLUMN — shares the surface background with the detail pane
+     for a calm, single-canvas feel. Divider line is the only seam. */
   .ix-list {
     display: flex; flex-direction: column; min-height: 0;
-    background: color-mix(in srgb, var(--sidebar-bg) 90%, transparent);
+    background: var(--surface);
+    border-right: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
   }
   .ix-list-head {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 20px 18px 12px;
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    padding: 20px 18px 14px;
   }
   .ix-list-title { font-size: 14.5px; font-weight: 500; color: var(--text); }
+  .ix-head-tools { display: flex; align-items: center; gap: 6px; }
   .ix-iconbtn {
     width: 30px; height: 30px;
     display: flex; align-items: center; justify-content: center;
@@ -415,23 +473,70 @@ const INBOX_CSS = `
   .ix-iconbtn:hover { background: color-mix(in srgb, var(--surface-2) 70%, transparent); color: var(--text); }
   .ix-iconbtn.on { background: color-mix(in srgb, var(--surface-2) 90%, transparent); color: var(--text); }
 
-  .ix-tabs { display: flex; flex-wrap: wrap; gap: 5px; padding: 0 14px 14px; }
-  .ix-tab {
+  /* Category trigger — collapses the old 5-pill nav into one chip. */
+  .ix-cat { position: relative; }
+  .ix-cat-trigger {
     display: inline-flex; align-items: center; gap: 6px;
-    height: 28px; padding: 0 10px;
-    border-radius: 8px; border: 1px solid transparent; background: transparent;
-    font-family: inherit; font-size: 11.5px; font-weight: 500;
-    color: var(--text-muted); cursor: pointer;
-    transition: background .12s ease, color .12s ease;
+    height: 30px; padding: 0 9px 0 11px;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--border) 65%, transparent);
+    background: color-mix(in srgb, var(--surface-2) 35%, transparent);
+    color: var(--text); font-family: inherit;
+    font-size: 12px; font-weight: 500; letter-spacing: .012em;
+    cursor: pointer; transition: background .12s, border-color .12s;
   }
-  .ix-tab:hover { color: var(--text); background: color-mix(in srgb, var(--surface-2) 55%, transparent); }
-  .ix-tab.on { color: var(--text); background: color-mix(in srgb, var(--surface-2) 90%, transparent); }
-  .ix-tab-count {
-    font-size: 10px; font-weight: 500;
-    padding: 0 5px; border-radius: 6px; min-width: 15px;
-    text-align: center; line-height: 15px;
-    background: color-mix(in srgb, var(--ix-slate) 16%, transparent);
+  .ix-cat-trigger:hover, .ix-cat-trigger.on {
+    background: color-mix(in srgb, var(--surface-2) 70%, transparent); border-color: var(--border);
+  }
+  .ix-cat-trigger > svg { color: var(--text-muted); flex-shrink: 0; }
+  .ix-cat-trigger > svg:last-of-type { color: var(--text-muted); margin-left: 1px; }
+  .ix-cat-count {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 16px; height: 16px; padding: 0 5px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--ix-slate) 18%, transparent);
     color: var(--ix-slate);
+    font-size: 9.5px; font-weight: 500; letter-spacing: .04em;
+  }
+
+  .ix-cat-menu {
+    position: absolute; top: calc(100% + 6px); left: 0; z-index: 20;
+    min-width: 280px; max-width: 340px; padding: 6px;
+    background: var(--card);
+    border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+    border-radius: 12px;
+    box-shadow: 0 1px 2px rgba(15,23,42,.08), 0 18px 44px rgba(15,23,42,.16);
+    display: flex; flex-direction: column; gap: 2px;
+    animation: ixMenuIn .14s cubic-bezier(.16,1,.3,1) both;
+  }
+  [data-theme="dark"] .ix-cat-menu,
+  [data-theme="classic-dark"] .ix-cat-menu {
+    background: color-mix(in srgb, var(--card) 94%, #fff 6%);
+    box-shadow: 0 1px 2px rgba(0,0,0,.4), 0 22px 52px rgba(0,0,0,.42);
+  }
+  @keyframes ixMenuIn { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:none; } }
+
+  .ix-cat-opt {
+    display: grid; grid-template-columns: 16px 1fr auto auto;
+    gap: 9px; align-items: center;
+    width: 100%; padding: 9px 10px;
+    border: 0; background: transparent;
+    /* Festag rule: inherit menu radius minus the inner gap — keeps the
+       hover surface flush with the card edge. */
+    border-radius: 10px !important;
+    color: var(--text); font-family: inherit; font-size: 12.5px; font-weight: 500;
+    letter-spacing: .012em; cursor: pointer; text-align: left;
+    transition: background .1s;
+  }
+  .ix-cat-opt > svg { color: var(--text-muted); }
+  .ix-cat-opt.on > svg { color: var(--text); }
+  .ix-cat-opt:hover { background: color-mix(in srgb, var(--surface-2) 60%, transparent); }
+  .ix-cat-opt.on { background: color-mix(in srgb, var(--surface-2) 85%, transparent); }
+  .ix-cat-opt-main { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+  .ix-cat-opt-main strong { font-size: 12.5px; font-weight: 500; letter-spacing: .012em; color: var(--text); }
+  .ix-cat-opt-main small {
+    font-size: 11px; font-weight: 500; color: var(--text-muted); letter-spacing: .012em;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 220px;
   }
 
   .ix-thread-scroll { flex: 1; min-height: 0; overflow-y: auto; padding: 4px 10px 18px; }
