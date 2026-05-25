@@ -41,6 +41,8 @@ function mapAuthError(raw: string): string {
   }
   if (msg.includes('rate limit') || msg.includes('rate_limit') || msg.includes('too many') || msg.includes('email rate'))
     return 'Zu viele Versuche. Bitte warte einen Moment.'
+  if (msg.includes('security purposes') || msg.includes('can only request this after'))
+    return 'Bitte warte kurz, bevor du einen neuen Code anforderst.'
   if (msg.includes('signups not allowed') || msg.includes('user not found') || msg.includes('user_not_found'))
     return 'Kein Account mit dieser E-Mail. Registriere dich zuerst.'
   if (msg.includes('expired') || msg.includes('token has expired'))
@@ -55,10 +57,7 @@ function mapAuthError(raw: string): string {
     return 'Sicherheitsprüfung fehlgeschlagen. Lade die Seite neu und versuche es erneut.'
   if (msg.includes('sending') || msg.includes('mailer') || msg.includes('unexpected'))
     return 'E-Mail-Versand vorübergehend nicht möglich. Versuche es gleich erneut oder kontaktiere uns.'
-  // Generic fallback — *keeps* a short hint from the raw message so the user
-  // can at least describe the issue to support instead of hitting a wall.
-  const hint = raw && raw.length < 80 ? ` (${raw})` : ''
-  return `Anmeldung gerade nicht möglich.${hint}`
+  return 'Anmeldung gerade nicht möglich. Bitte versuche es gleich erneut.'
 }
 
 function inferSessionMethod(user: any): Method {
@@ -352,11 +351,6 @@ export default function LoginPage() {
         </button>
         {lastMethod === 'email' && <p className="log-hint">Du hast dich zuletzt damit angemeldet</p>}
       </div>
-      <div className="log-btn-group">
-        <button className="log-btn log-btn-outline" type="button" onClick={() => setError('SAM SSO wird für deinen Workspace freigeschaltet. Kontaktiere uns, wenn du Zugriff brauchst.')}>SAM SSO verwenden</button>
-        {lastMethod === 'sso' && <p className="log-hint">Du hast dich zuletzt damit angemeldet</p>}
-      </div>
-
     </div>
   )
 
@@ -375,7 +369,7 @@ export default function LoginPage() {
         onKeyDown={e => { if (e.key === 'Enter') handleEmailSubmit() }}
       />
       <button className="log-btn log-btn-outline" type="button" onClick={handleEmailSubmit} disabled={loading}>
-        <span>{loading ? 'Link wird gesendet…' : 'E-Mail verwenden'}</span>
+        <span>{loading ? 'Link wird gesendet…' : 'Magic Link senden'}</span>
       </button>
       <button className="log-back" type="button" onClick={switchBack}>Zurück</button>
     </div>
@@ -453,11 +447,12 @@ export default function LoginPage() {
         Mit Ihrer Anmeldung bestätigen Sie unsere
         <br />
         <a href="/agb" onClick={e => { e.preventDefault(); navigateWithFade('/agb') }}>AGB</a>
-        {' '}und Nutzungsbestimmungen.
+        {' '}und{' '}
+        <a href="/nutzungsbedingungen" onClick={e => { e.preventDefault(); navigateWithFade('/nutzungsbedingungen') }}>Nutzungsbestimmungen</a>.
         <br />
         <br />
-        Zugang erstellt?{' '}
-        <a href="/register" onClick={e => { e.preventDefault(); navigateWithFade('/register') }}>Hier&nbsp;anmelden</a>
+        Noch kein Zugang?{' '}
+        <a href="/register" onClick={e => { e.preventDefault(); navigateWithFade('/register') }}>Hier&nbsp;registrieren</a>
       </p>
       <a className="log-dev" href="/dev" onClick={e => { e.preventDefault(); navigateWithFade('/dev/login') }}>Dev Zugang</a>
     </div>
@@ -534,8 +529,8 @@ export default function LoginPage() {
         .log-btn-outline:hover:not(:disabled) { background:#F7F8FB; border:1px solid #DCE1EA; }
 
         /* CONFIRM — Slate pill, consistent with Google/primary actions */
-        .log-btn-confirm { background:#5b647d; color:#FFFFFF; border:none; box-shadow:0px 1px 2px 0px rgba(15,23,42,0.06); }
-        .log-btn-confirm:hover:not(:disabled) { background:#505870; }
+        .log-btn-confirm { background:#fff; color:#202532; border:0.7px solid #e7ebf0; box-shadow:0px 1px 2px 0px rgba(15,23,42,0.03); }
+        .log-btn-confirm:hover:not(:disabled) { background:#F7F8FB; border-color:#DCE1EA; }
         .log-google-icon { width:18px; height:18px; display:block; flex-shrink:0; color:#fff; }
 
         /* DEVELOPER ACCESS */
@@ -603,7 +598,7 @@ export default function LoginPage() {
         .log-legal { width:271px; display:flex; flex-direction:column; gap:22px; text-align:center; }
         .log-legal-text { font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:13px; font-weight:400 !important; line-height:20px; letter-spacing:0.02em; color:#7b8294; }
         .log-legal-text span, .log-legal-text a { font-weight:400 !important; }
-        .log-legal-text a { color:#202532; text-decoration:underline; transition:color .3s; }
+        .log-legal-text a { color:#202532; text-decoration:underline; text-underline-offset:3px; transition:color .3s; }
         .log-legal-text a:hover { opacity:.75; }
         .log-dev { font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:13px; font-weight:400 !important; line-height:20px; letter-spacing:0.02em; color:#7b8294; text-decoration:none; text-align:center; display:block; transition:color .3s; }
         .log-dev:hover { color:#202532; }
@@ -654,8 +649,8 @@ export default function LoginPage() {
 
         .log-root[data-theme="dark"] .log-btn-outline { background:rgba(243,245,247,0.035); color:#E8E8E5; border:0.7px solid rgba(243,245,247,0.08); box-shadow:none; }
         .log-root[data-theme="dark"] .log-btn-outline:hover:not(:disabled) { background:rgba(243,245,247,0.06); border:1px solid rgba(243,245,247,0.14); }
-        .log-root[data-theme="dark"] .log-btn-confirm { background:#5b647d; color:#fff; box-shadow:none; }
-        .log-root[data-theme="dark"] .log-btn-confirm:hover:not(:disabled) { background:#69748f; }
+        .log-root[data-theme="dark"] .log-btn-confirm { background:rgba(243,245,247,0.035); color:#E8E8E5; border:0.7px solid rgba(243,245,247,0.08); box-shadow:none; }
+        .log-root[data-theme="dark"] .log-btn-confirm:hover:not(:disabled) { background:rgba(243,245,247,0.06); border-color:rgba(243,245,247,0.14); }
 
         .log-root[data-theme="dark"] .log-email-input { background:rgba(243,245,247,0.035); color:#E8E8E5; border:1px solid rgba(102,112,143,0.10); caret-color:#66708F; }
         .log-root[data-theme="dark"] .log-email-input::placeholder { color:rgba(102,112,143,0.5); }

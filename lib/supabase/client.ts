@@ -9,5 +9,12 @@ const SUPABASE_KEY =
 // createBrowserClient from @supabase/ssr stores session in cookies,
 // making it accessible to the server-side middleware.
 export function createClient() {
-  return createBrowserClient(SUPABASE_URL, SUPABASE_KEY)
+  return createBrowserClient(SUPABASE_URL, SUPABASE_KEY, {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+      flowType: 'pkce',
+    },
+  })
 }

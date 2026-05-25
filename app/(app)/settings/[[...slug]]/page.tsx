@@ -1068,8 +1068,11 @@ export default function SettingsPage() {
                         .from('profiles')
                         .update({ tour_completed_at: null, tour_step: 0 })
                         .eq('id', user.id)
-                      try { window.localStorage.removeItem('festag_tour_completed') } catch {}
-                      window.location.href = '/dashboard'
+                      try {
+                        window.localStorage.removeItem('festag_tour_completed')
+                        window.localStorage.setItem('festag_onboarding_status', 'not_started')
+                      } catch {}
+                      window.location.href = '/dashboard?tour=1'
                     }}
                   >
                     Tour starten

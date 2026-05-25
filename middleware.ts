@@ -1,18 +1,22 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 
-const PUBLIC_PATHS = ['/', '/login', '/register', '/auth', '/loading', '/redeem', '/invite', '/agb', '/datenschutz', '/impressum', '/widerruf', '/nutzungsbedingungen', '/_next', '/api', '/brand', '/fonts', '/bg-office.jpg', '/manifest.json', '/favicon']
+const PUBLIC_PATHS = ['/', '/login', '/register', '/auth', '/loading', '/redeem', '/invite', '/agb', '/terms', '/terms-of-use', '/privacy', '/datenschutz', '/impressum', '/widerruf', '/nutzungsbedingungen', '/dev-login', '/dev-access', '/_next', '/api', '/brand', '/fonts', '/bg-office.jpg', '/manifest.json', '/favicon']
 const SUPABASE_URL =
   process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'https://xsdkoepwuvpuroijjain.supabase.co'
 const SUPABASE_ANON_KEY =
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhzZGtvZXB3dXZwdXJvaWpqYWluIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyOTMyNTksImV4cCI6MjA5MTg2OTI1OX0.XL6nisBsFNkxCKAGKdYfdqsXGytEOrWPfBzxqjsPcRk'
 
+function isPublicPath(pathname: string) {
+  return PUBLIC_PATHS.some(path => (path === '/' ? pathname === '/' : pathname.startsWith(path)))
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // Allow public paths
-  if (PUBLIC_PATHS.some(p => pathname.startsWith(p))) {
+  if (isPublicPath(pathname)) {
     return NextResponse.next()
   }
 
@@ -38,10 +42,12 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  const { data: { session } } = await supabase.auth.getSession()
+  const { data: { user } } = await supabase.auth.getUser()
 
-  if (!session) {
-    return NextResponse.redirect(new URL('/login', request.url))
+  if (!user) {
+    const loginUrl = new URL('/login', request.url)
+    loginUrl.searchParams.set('returnTo', `${request.nextUrl.pathname}${request.nextUrl.search}`)
+    return NextResponse.redirect(loginUrl)
   }
 
   // Onboarding gating: send users with incomplete onboarding to /onboarding
@@ -50,7 +56,7 @@ export async function middleware(request: NextRequest) {
     const { data: onboarding } = await supabase
       .from('onboarding_state')
       .select('completed_at')
-      .eq('user_id', session.user.id)
+      .eq('user_id', user.id)
       .maybeSingle()
     if (!onboarding || !onboarding.completed_at) {
       return NextResponse.redirect(new URL('/onboarding', request.url))

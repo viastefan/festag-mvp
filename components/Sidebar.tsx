@@ -462,6 +462,14 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
     return `G ${Math.min(index + 1, 9)}`
   }
 
+  function tourTargetForItem(item: NavItem) {
+    if (item.href === '/dashboard') return 'sidebar-status'
+    if (item.href === '/messages') return 'sidebar-inbox'
+    if (item.href === '/projects') return 'sidebar-projects'
+    if (item.href === '/ai') return 'sidebar-tagro-chat'
+    return undefined
+  }
+
   async function changeAvatarColor(c: string) {
     setAvatarColor(c)
     broadcastProfileSync({ avatarColor: c })
@@ -475,20 +483,14 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
       <>
         {items.map(item => {
           const on = isOn(item.href)
-          // data-tour hooks — picked up by the WelcomeTour for specific
-          // anchored steps. Other entries just stay untagged.
-          const tourTag = item.href === '/dashboard' ? 'sidebar-status'
-                         : item.href === '/messages' || item.href === '/inbox' ? 'sidebar-inbox'
-                         : item.href === '/projects' ? 'sidebar-projects'
-                         : item.href === '/ai' ? 'sidebar-tagro'
-                         : undefined
+          const tourTarget = tourTargetForItem(item)
           return (
             <Link
               key={`${item.href}-${item.label}`}
               href={resolve(item.href)}
               className={`ni ${on?'ni-on':'ni-off'}`}
               data-shortcut={navShortcut(item.label, item.href)}
-              data-tour={tourTag}
+              data-tour={tourTarget}
             >
               <Ico name={item.icon} sz={14} c={on?'var(--text)':'var(--text-muted)'} weight={on?'bold':'regular'} />
               <span style={{ minWidth:0, overflow:'hidden', textOverflow:'ellipsis' }}>{item.label}</span>
@@ -1301,7 +1303,10 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
                                   }).eq('id', user.id)
                                 }
                               } catch {}
-                              try { window.localStorage.removeItem('festag_tour_completed') } catch {}
+                              try {
+                                window.localStorage.removeItem('festag_tour_completed')
+                                window.localStorage.setItem('festag_onboarding_status', 'not_started')
+                              } catch {}
                               window.location.href = '/dashboard?tour=1'
                             } else if (item.action === 'support') {
                               window.location.href = 'mailto:hi@festag.io?subject=Festag%20Support'

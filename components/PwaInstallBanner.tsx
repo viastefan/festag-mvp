@@ -26,9 +26,11 @@ export default function PwaInstallBanner() {
   const [iosTip, setIosTip] = useState(false)
   const [visible, setVisible] = useState(false)
   const [installing, setInstalling] = useState(false)
+  const [onboardingBlocked, setOnboardingBlocked] = useState(false)
 
   useEffect(() => {
     let fallbackTimer: ReturnType<typeof setTimeout> | null = null
+    let unblockTimer: ReturnType<typeof setTimeout> | null = null
 
     // Already installed?
     if (typeof window !== 'undefined' && window.matchMedia?.('(display-mode: standalone)').matches) {
@@ -44,26 +46,40 @@ export default function PwaInstallBanner() {
       if (localStorage.getItem(INSTALL_STATE_KEY) === 'installed') return
     } catch {}
 
-    // Respect the onboarding tour — if it's mid-flow OR we're still in
-    // the post-tour grace window, don't show the banner. The tour sets
-    // body.tour-active + writes festag_install_banner_unmute_at to
-    // localStorage on finish/skip.
-    function tourGate(then: () => void): () => void {
-      return () => {
-        if (typeof document !== 'undefined' && document.body.classList.contains('tour-active')) return
-        try {
-          const stamp = Number(localStorage.getItem('festag_install_banner_unmute_at') || '0')
-          if (stamp && Date.now() < stamp) return
-        } catch {}
-        then()
+    function blockForOnboarding(active: boolean) {
+      if (unblockTimer) clearTimeout(unblockTimer)
+      if (active) {
+        setOnboardingBlocked(true)
+        setVisible(false)
+        return
       }
+      unblockTimer = setTimeout(() => setOnboardingBlocked(false), 3000)
+    }
+
+    if (document.documentElement.hasAttribute('data-onboarding-active')) {
+      blockForOnboarding(true)
+    }
+
+    function onOnboardingActive(e: Event) {
+      const active = Boolean((e as CustomEvent<{ active?: boolean }>).detail?.active)
+      blockForOnboarding(active)
+    }
+    function onOnboardingEnded() {
+      blockForOnboarding(false)
+    }
+    window.addEventListener('festag:onboarding-active', onOnboardingActive)
+    window.addEventListener('festag:onboarding-ended', onOnboardingEnded)
+
+    function showWhenAllowed() {
+      if (document.documentElement.hasAttribute('data-onboarding-active')) return
+      setVisible(true)
     }
 
     // Chromium / Edge / Android Chrome fire this when the app is installable.
     function onBeforePrompt(e: Event) {
       e.preventDefault()
       setDeferred(e as BeforeInstallPromptEvent)
-      tourGate(() => setVisible(true))()
+      showWhenAllowed()
     }
     window.addEventListener('beforeinstallprompt', onBeforePrompt)
 
@@ -73,10 +89,10 @@ export default function PwaInstallBanner() {
     const isIos = /iPad|iPhone|iPod/.test(ua) && !(window as any).MSStream
     const isSafari = /^((?!chrome|android|crios|fxios).)*safari/i.test(ua)
     if (isIos && isSafari) {
-      tourGate(() => setVisible(true))()
+      showWhenAllowed()
     } else {
       // Desktop Safari and some in-app browsers do not emit beforeinstallprompt.
-      fallbackTimer = setTimeout(tourGate(() => setVisible(true)), 900)
+      fallbackTimer = setTimeout(showWhenAllowed, 900)
     }
 
     function onInstalled() {
@@ -85,21 +101,13 @@ export default function PwaInstallBanner() {
     }
     window.addEventListener('appinstalled', onInstalled)
 
-    // Observe body.tour-active — if the tour starts while the banner
-    // was already visible, hide it instantly.
-    let observer: MutationObserver | null = null
-    if (typeof document !== 'undefined' && 'MutationObserver' in window) {
-      observer = new MutationObserver(() => {
-        if (document.body.classList.contains('tour-active')) setVisible(false)
-      })
-      observer.observe(document.body, { attributes: true, attributeFilter: ['class'] })
-    }
-
     return () => {
       window.removeEventListener('beforeinstallprompt', onBeforePrompt)
       window.removeEventListener('appinstalled', onInstalled)
+      window.removeEventListener('festag:onboarding-active', onOnboardingActive)
+      window.removeEventListener('festag:onboarding-ended', onOnboardingEnded)
       if (fallbackTimer) clearTimeout(fallbackTimer)
-      if (observer) observer.disconnect()
+      if (unblockTimer) clearTimeout(unblockTimer)
     }
   }, [])
 
@@ -126,7 +134,7 @@ export default function PwaInstallBanner() {
     setVisible(false)
   }
 
-  if (!visible) return null
+  if (!visible || onboardingBlocked) return null
 
   return (
     <>

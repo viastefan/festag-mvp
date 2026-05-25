@@ -39,6 +39,8 @@ function mapAuthError(raw: string): string {
   }
   if (msg.includes('rate limit') || msg.includes('rate_limit') || msg.includes('too many') || msg.includes('email rate'))
     return 'Zu viele Versuche. Bitte warte einen Moment.'
+  if (msg.includes('security purposes') || msg.includes('can only request this after'))
+    return 'Bitte warte kurz, bevor du einen neuen Code anforderst.'
   if (msg.includes('user already registered') || msg.includes('already registered'))
     return 'Diese E-Mail ist bereits registriert. Wechsle zur Anmeldung.'
   if (msg.includes('expired') || msg.includes('token has expired'))
@@ -53,8 +55,7 @@ function mapAuthError(raw: string): string {
     return 'Sicherheitsprüfung fehlgeschlagen. Lade die Seite neu und versuche es erneut.'
   if (msg.includes('sending') || msg.includes('mailer') || msg.includes('unexpected'))
     return 'E-Mail-Versand vorübergehend nicht möglich. Versuche es gleich erneut oder kontaktiere uns.'
-  const hint = raw && raw.length < 80 ? ` (${raw})` : ''
-  return `Registrierung gerade nicht möglich.${hint}`
+  return 'Registrierung gerade nicht möglich. Bitte versuche es gleich erneut.'
 }
 
 export default function RegisterPage() {
@@ -267,7 +268,9 @@ export default function RegisterPage() {
         onChange={e => setEmail(e.target.value)}
         onKeyDown={e => { if (e.key === 'Enter') handleEmailNext() }}
       />
-      <button className="reg-btn reg-btn-outline" type="button" onClick={handleEmailNext}>E-Mail verwenden</button>
+      <button className="reg-btn reg-btn-outline" type="button" onClick={handleEmailNext} disabled={loading}>
+        {loading ? 'Link wird gesendet…' : 'Magic Link senden'}
+      </button>
       <button className="reg-back" type="button" onClick={goBack}>Zurück</button>
     </div>
   )
@@ -340,7 +343,7 @@ export default function RegisterPage() {
         <span className="reg-legal-muted">.</span>
       </p>
       <p className="reg-login-link">
-        Zugang erstellt?{' '}
+        Schon Zugang erstellt?{' '}
         <a href="/login" onClick={e => { e.preventDefault(); navigateWithFade('/login') }}>Hier&nbsp;anmelden</a>
       </p>
       <a className="reg-dev" href="/dev" onClick={e => { e.preventDefault(); navigateWithFade('/dev/login') }}>Dev Zugang</a>
@@ -407,8 +410,8 @@ export default function RegisterPage() {
         .reg-root[data-theme="dark"] .reg-btn-github:hover:not(:disabled) { background:rgba(243,245,247,0.06); border-color:rgba(243,245,247,0.14); }
         .reg-btn-outline { background:#fff; color:#202532; border:0.7px solid #e7ebf0; box-shadow:0px 1px 2px 0px rgba(15,23,42,0.03); }
         .reg-btn-outline:hover:not(:disabled) { background:#F7F8FB; border:1px solid #DCE1EA; }
-        .reg-btn-confirm { background:#5b647d; color:#FFFFFF; border:none; box-shadow:0px 1px 2px 0px rgba(15,23,42,0.06); }
-        .reg-btn-confirm:hover:not(:disabled) { background:#505870; }
+        .reg-btn-confirm { background:#fff; color:#202532; border:0.7px solid #e7ebf0; box-shadow:0px 1px 2px 0px rgba(15,23,42,0.03); }
+        .reg-btn-confirm:hover:not(:disabled) { background:#F7F8FB; border-color:#DCE1EA; }
         .reg-google-icon { width:18px; height:18px; display:block; flex-shrink:0; color:#fff; }
 
         .reg-email-form { width:271px; display:flex; flex-direction:column; gap:16px; }
@@ -440,8 +443,8 @@ export default function RegisterPage() {
         .reg-legal-text { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:13px; font-weight:400 !important; line-height:20px; letter-spacing:0.02em; color:#98A2B3; }
         .reg-legal-text span, .reg-legal-text a { font-weight:400 !important; }
         .reg-legal-muted { color:#98A2B3; font-weight:400 !important; }
-        .reg-legal-text a { color:#202532; text-decoration:none; transition:color .3s; }
-        .reg-legal-text a:hover { text-decoration:underline; }
+        .reg-legal-text a { color:#202532; text-decoration:underline; text-underline-offset:3px; transition:color .3s; }
+        .reg-legal-text a:hover { opacity:.75; }
         .reg-login-link { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:13px; font-weight:400 !important; line-height:20px; letter-spacing:0.02em; color:#7b8294; }
         .reg-login-link a { color:#202532; text-decoration:underline; font-weight:400 !important; transition:color .3s; }
 
@@ -466,8 +469,8 @@ export default function RegisterPage() {
         .reg-root[data-theme="dark"] .reg-btn-google { box-shadow:none !important; }
         .reg-root[data-theme="dark"] .reg-btn-outline { background:rgba(243,245,247,0.035); color:#E8E8E5; border:0.7px solid rgba(243,245,247,0.08); box-shadow:none; }
         .reg-root[data-theme="dark"] .reg-btn-outline:hover:not(:disabled) { background:rgba(243,245,247,0.06); border:1px solid rgba(243,245,247,0.14); }
-        .reg-root[data-theme="dark"] .reg-btn-confirm { background:#5b647d; color:#fff; box-shadow:none; }
-        .reg-root[data-theme="dark"] .reg-btn-confirm:hover:not(:disabled) { background:#69748f; }
+        .reg-root[data-theme="dark"] .reg-btn-confirm { background:rgba(243,245,247,0.035); color:#E8E8E5; border:0.7px solid rgba(243,245,247,0.08); box-shadow:none; }
+        .reg-root[data-theme="dark"] .reg-btn-confirm:hover:not(:disabled) { background:rgba(243,245,247,0.06); border-color:rgba(243,245,247,0.14); }
         .reg-root[data-theme="dark"] .reg-email-input { background:rgba(243,245,247,0.035); color:#E8E8E5; border:1px solid rgba(102,112,143,0.10); caret-color:#66708F; }
         .reg-root[data-theme="dark"] .reg-email-input::placeholder { color:rgba(102,112,143,0.5); }
         .reg-root[data-theme="dark"] .reg-email-input:focus { border-color:rgba(102,112,143,0.5); box-shadow:0 0 0 3px rgba(102,112,143,0.10); }

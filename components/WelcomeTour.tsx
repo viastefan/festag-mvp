@@ -1,35 +1,7 @@
 'use client'
 
-/**
- * WelcomeTour — premium guided product tour for Festag.
- *
- * Behaviour (2026-05-23 rebuild per spec):
- *   • Anchored steps: each step targets a [data-tour="<id>"] element.
- *     The component reads the bounding rect, picks the best of
- *     right/left/top/bottom that actually fits the viewport, falls back
- *     to a centred modal card when none does. Recomputes on resize,
- *     scroll, route change.
- *   • Clean spotlight ring around the target (10 px padding, 14 px
- *     radius, 2 px Slate ring + soft outer dim) — no disconnected
- *     white rectangle.
- *   • Mobile (≤ 720 px): floats become a bottom sheet with safe-area-
- *     aware padding instead of a side tooltip. Anchor still gets the
- *     spotlight when visible.
- *   • Body-level class `tour-active` while running — the PWA install
- *     banner and other overlays hide themselves via CSS while this is
- *     true. After the tour ends, the banner is given a 4 s grace
- *     period before it can pop back in.
- *   • Persistence: profiles.tour_completed_at / tour_step + a
- *     localStorage flag. ?tour=1 triggers auto-run for fresh
- *     registrations; otherwise the tour stays quiet until manually
- *     restarted from More / Help.
- *
- * Falls back gracefully when a target selector can't be resolved —
- * shows the centred modal variant instead of crashing.
- */
-
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { usePathname, useSearchParams } from 'next/navigation'
 import { ArrowLeft, ArrowRight, Check, X } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 import TagroLogo from '@/components/TagroLogo'
@@ -39,181 +11,180 @@ interface Props {
   onDone?: () => void
 }
 
-type Placement = 'right' | 'left' | 'top' | 'bottom' | 'center'
-type Step = {
+type OnboardingState = 'idle' | 'welcome' | 'tour' | 'completed' | 'skipped'
+type StoredStatus = 'not_started' | 'welcome_seen' | 'tour_active' | 'completed' | 'skipped'
+type Placement = 'left' | 'right' | 'top' | 'bottom' | 'center' | 'sheet'
+
+type TourStep = {
   id: string
-  target?: string                  // data-tour selector value
+  target: string
   title: string
-  body: string
-  preferred?: Placement
-  isWelcome?: boolean              // first step renders bigger / TagroLogo
+  description: string
+  preferred: 'left' | 'right' | 'top' | 'bottom'
 }
 
-const STEPS: Step[] = [
+const STATUS_KEY = 'festag_onboarding_status'
+const LEGACY_DONE_KEY = 'festag_tour_completed'
+const TOOLTIP_WIDTH = 344
+const TOOLTIP_GAP = 12
+const VIEWPORT_PAD = 14
+
+const TOUR_STEPS: TourStep[] = [
   {
-    id: 'welcome',
-    title: 'Willkommen bei Festag',
-    body: 'Festag bündelt Projekte, Aufgaben und Statusmeldungen in einem ruhigen Arbeitsfenster — keine WhatsApp-Updates, keine PDF-Schleifen.',
-    isWelcome: true,
+    id: 'status',
+    target: 'sidebar-status',
+    title: 'Deine Statuszentrale',
+    description: 'Hier siehst du, was heute wichtig ist: Status, Berichte, offene Aufgaben und nächste Schritte.',
+    preferred: 'right',
   },
   {
-    id: 'status-note',
-    target: 'status-note',
-    title: 'Dein ruhiges Arbeitsfenster',
-    body: 'Hier fasst Tagro Status, Berichte und Audio-Briefings in einem festen Bereich zusammen.',
-    preferred: 'bottom',
-  },
-  {
-    id: 'voice-briefing',
+    id: 'voice',
     target: 'voice-briefing',
     title: 'Briefings statt Projektchaos',
-    body: 'Tagro verdichtet aktive Projekte, offene Aufgaben und Entscheidungen zu einem klaren Bericht — auf Wunsch auch als Audio.',
+    description: 'Tagro fasst aktive Projekte, Aufgaben, Risiken und Entscheidungen in einem klaren Bericht zusammen.',
     preferred: 'left',
-  },
-  {
-    id: 'sidebar-status',
-    target: 'sidebar-status',
-    title: 'Alles bleibt erreichbar',
-    body: 'Projekte, Inbox, Tasks, Mitwirkende und Tagro bleiben über die Navigation schnell zugänglich.',
-    preferred: 'right',
   },
   {
     id: 'inbox',
     target: 'sidebar-inbox',
     title: 'Wichtige Ergebnisse landen in der Inbox',
-    body: 'Beendete Chats, Briefings und offene Entscheidungen werden dort als prüfbare Zusammenfassung gespeichert.',
+    description: 'Beendete Chats, offene Entscheidungen, Briefings und Zusammenfassungen werden hier gesammelt.',
+    preferred: 'right',
+  },
+  {
+    id: 'projects',
+    target: 'sidebar-projects',
+    title: 'Projekte bleiben nachvollziehbar',
+    description: 'Jedes Projekt verbindet Aufgaben, Team, Statusberichte, Entscheidungen, Risiken und Kommunikation.',
+    preferred: 'right',
+  },
+  {
+    id: 'tagro-chat',
+    target: 'sidebar-tagro-chat',
+    title: 'Frag Tagro jederzeit',
+    description: 'Tagro übersetzt Projektarbeit in klare Antworten, nächste Schritte und Briefings.',
     preferred: 'right',
   },
 ]
 
-const TOTAL_STEPS = STEPS.length
-const PADDING = 10                  // around the spotlight target
-const VIEWPORT_MARGIN = 24
-const VIEWPORT_MARGIN_MOBILE = 16
-
-// Read tooltip dimensions per device so placement maths is honest.
-function tooltipBox(isMobile: boolean) {
-  return { w: isMobile ? Math.min(window.innerWidth - 32, 360) : 340, h: 220 }
+function readStoredStatus(): StoredStatus {
+  try {
+    const status = window.localStorage.getItem(STATUS_KEY)
+    if (status === 'welcome_seen' || status === 'tour_active' || status === 'completed' || status === 'skipped') return status
+    if (window.localStorage.getItem(LEGACY_DONE_KEY) === '1') return 'completed'
+  } catch {}
+  return 'not_started'
 }
 
-type Position = {
+function writeStoredStatus(status: StoredStatus) {
+  try {
+    window.localStorage.setItem(STATUS_KEY, status)
+    if (status === 'completed' || status === 'skipped') window.localStorage.setItem(LEGACY_DONE_KEY, '1')
+    else window.localStorage.removeItem(LEGACY_DONE_KEY)
+  } catch {}
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(Math.max(value, min), max)
+}
+
+function getWorkspaceRect() {
+  if (typeof window === 'undefined') return null
+  const workspace = document.querySelector('.app-workspace') as HTMLElement | null
+  return workspace?.getBoundingClientRect() ?? new DOMRect(0, 0, window.innerWidth, window.innerHeight)
+}
+
+function getTarget(target: string) {
+  return document.querySelector(`[data-tour="${target}"]`) as HTMLElement | null
+}
+
+function targetIsUsable(el: HTMLElement | null) {
+  if (!el) return false
+  const rect = el.getBoundingClientRect()
+  const style = window.getComputedStyle(el)
+  return rect.width > 4 && rect.height > 4 && style.visibility !== 'hidden' && style.display !== 'none'
+}
+
+function calculatePlacement(rect: DOMRect | null, preferred: TourStep['preferred']): {
   placement: Placement
   top: number
   left: number
-  width: number
-  // anchor rect we should highlight (in viewport coords)
-  anchor: { top: number; left: number; width: number; height: number } | null
-}
+} {
+  if (!rect || typeof window === 'undefined') {
+    return { placement: 'center', top: window.innerHeight / 2, left: window.innerWidth / 2 - TOOLTIP_WIDTH / 2 }
+  }
 
-function computePosition(rect: DOMRect | null, preferred: Placement | undefined, isMobile: boolean): Position {
-  const box = tooltipBox(isMobile)
+  const isMobile = window.innerWidth <= 720
+  if (isMobile) {
+    return { placement: 'sheet', top: 0, left: 0 }
+  }
+
   const vw = window.innerWidth
   const vh = window.innerHeight
-  const m = isMobile ? VIEWPORT_MARGIN_MOBILE : VIEWPORT_MARGIN
+  const maxLeft = vw - TOOLTIP_WIDTH - VIEWPORT_PAD
+  const approxHeight = 210
+  const maxTop = vh - approxHeight - VIEWPORT_PAD
 
-  if (!rect || isMobile) {
+  const canRight = rect.right + TOOLTIP_GAP + TOOLTIP_WIDTH <= vw - VIEWPORT_PAD
+  const canLeft = rect.left - TOOLTIP_GAP - TOOLTIP_WIDTH >= VIEWPORT_PAD
+  const canBottom = rect.bottom + TOOLTIP_GAP + approxHeight <= vh - VIEWPORT_PAD
+  const canTop = rect.top - TOOLTIP_GAP - approxHeight >= VIEWPORT_PAD
+
+  let placement: Placement = preferred
+  if (preferred === 'right' && !canRight) placement = canLeft ? 'left' : canBottom ? 'bottom' : 'top'
+  if (preferred === 'left' && !canLeft) placement = canRight ? 'right' : canBottom ? 'bottom' : 'top'
+  if (preferred === 'bottom' && !canBottom) placement = canTop ? 'top' : canRight ? 'right' : 'left'
+  if (preferred === 'top' && !canTop) placement = canBottom ? 'bottom' : canRight ? 'right' : 'left'
+
+  if (placement === 'right') {
     return {
-      placement: 'center',
-      top: 0, left: 0,
-      width: isMobile ? vw - 32 : box.w,
-      anchor: rect ? { top: rect.top, left: rect.left, width: rect.width, height: rect.height } : null,
+      placement,
+      left: clamp(rect.right + TOOLTIP_GAP, VIEWPORT_PAD, maxLeft),
+      top: clamp(rect.top + rect.height / 2 - approxHeight / 2, VIEWPORT_PAD, maxTop),
     }
   }
-
-  const candidates: Array<{ p: Placement; top: number; left: number; ok: boolean }> = []
-
-  // bottom
-  candidates.push({
-    p: 'bottom',
-    top: rect.bottom + 14,
-    left: clamp(rect.left + rect.width / 2 - box.w / 2, m, vw - box.w - m),
-    ok: rect.bottom + 14 + box.h <= vh - m,
-  })
-  // top
-  candidates.push({
-    p: 'top',
-    top: rect.top - 14 - box.h,
-    left: clamp(rect.left + rect.width / 2 - box.w / 2, m, vw - box.w - m),
-    ok: rect.top - 14 - box.h >= m,
-  })
-  // right
-  candidates.push({
-    p: 'right',
-    top: clamp(rect.top + rect.height / 2 - box.h / 2, m, vh - box.h - m),
-    left: rect.right + 14,
-    ok: rect.right + 14 + box.w <= vw - m,
-  })
-  // left
-  candidates.push({
-    p: 'left',
-    top: clamp(rect.top + rect.height / 2 - box.h / 2, m, vh - box.h - m),
-    left: rect.left - 14 - box.w,
-    ok: rect.left - 14 - box.w >= m,
-  })
-
-  // Honour preferred placement if it fits.
-  const ordered = preferred
-    ? [...candidates.sort((a, b) => (a.p === preferred ? -1 : b.p === preferred ? 1 : 0))]
-    : candidates
-
-  const fit = ordered.find(c => c.ok)
-  if (fit) {
+  if (placement === 'left') {
     return {
-      placement: fit.p,
-      top: fit.top,
-      left: fit.left,
-      width: box.w,
-      anchor: { top: rect.top, left: rect.left, width: rect.width, height: rect.height },
+      placement,
+      left: clamp(rect.left - TOOLTIP_GAP - TOOLTIP_WIDTH, VIEWPORT_PAD, maxLeft),
+      top: clamp(rect.top + rect.height / 2 - approxHeight / 2, VIEWPORT_PAD, maxTop),
     }
   }
-
-  // No placement fits — fall back to centred card but still spotlight the target.
+  if (placement === 'bottom') {
+    return {
+      placement,
+      left: clamp(rect.left + rect.width / 2 - TOOLTIP_WIDTH / 2, VIEWPORT_PAD, maxLeft),
+      top: clamp(rect.bottom + TOOLTIP_GAP, VIEWPORT_PAD, maxTop),
+    }
+  }
   return {
-    placement: 'center',
-    top: 0, left: 0,
-    width: box.w,
-    anchor: { top: rect.top, left: rect.left, width: rect.width, height: rect.height },
+    placement: 'top',
+    left: clamp(rect.left + rect.width / 2 - TOOLTIP_WIDTH / 2, VIEWPORT_PAD, maxLeft),
+    top: clamp(rect.top - TOOLTIP_GAP - approxHeight, VIEWPORT_PAD, maxTop),
   }
-}
-
-function clamp(n: number, min: number, max: number) {
-  return Math.max(min, Math.min(max, n))
-}
-
-function findTarget(selector: string | undefined): HTMLElement | null {
-  if (!selector || typeof document === 'undefined') return null
-  return document.querySelector<HTMLElement>(`[data-tour="${selector}"]`)
 }
 
 export default function WelcomeTour({ forceOpen = false, onDone }: Props) {
   const supabase = useMemo(() => createClient(), [])
   const searchParams = useSearchParams()
-  const [phase, setPhase] = useState<'idle' | 'running' | 'done'>('idle')
+  const pathname = usePathname()
+  const [state, setState] = useState<OnboardingState>('idle')
   const [stepIdx, setStepIdx] = useState(0)
-  const [pos, setPos] = useState<Position | null>(null)
+  const [targetRect, setTargetRect] = useState<DOMRect | null>(null)
+  const [workspaceRect, setWorkspaceRect] = useState<DOMRect | null>(null)
   const [userId, setUserId] = useState<string | null>(null)
-  const [isMobile, setIsMobile] = useState(false)
   const checkedRef = useRef(false)
-  const reducedMotion = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
 
-  // Reduced-motion CSS hook via body class.
-  useEffect(() => {
-    if (reducedMotion && typeof document !== 'undefined') {
-      document.body.classList.add('tour-reduced-motion')
-    }
-    return () => document.body.classList.remove('tour-reduced-motion')
-  }, [reducedMotion])
+  const step = TOUR_STEPS[stepIdx]
+  const tooltip = calculatePlacement(targetRect, step?.preferred ?? 'bottom')
+  const total = TOUR_STEPS.length
 
-  // Mobile detection.
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-    const update = () => setIsMobile(window.innerWidth <= 720)
-    update()
-    window.addEventListener('resize', update)
-    return () => window.removeEventListener('resize', update)
+  const setOnboardingActive = useCallback((active: boolean) => {
+    if (typeof document === 'undefined') return
+    document.documentElement.toggleAttribute('data-onboarding-active', active)
+    window.dispatchEvent(new CustomEvent('festag:onboarding-active', { detail: { active } }))
   }, [])
 
-  // Trigger gate — only run with forceOpen or ?tour=1.
   useEffect(() => {
     if (checkedRef.current) return
     checkedRef.current = true
@@ -221,417 +192,577 @@ export default function WelcomeTour({ forceOpen = false, onDone }: Props) {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
       setUserId(user.id)
-      if (forceOpen) {
-        setPhase('running'); setStepIdx(0); return
-      }
+
       const wantsTour = searchParams?.get('tour') === '1'
-      if (!wantsTour) return
-      try {
-        const stored = window.localStorage.getItem('festag_onboarding_tour_status')
-        if (stored === 'completed') return
-      } catch {}
-      setStepIdx(0)
-      setPhase('running')
+      const stored = readStoredStatus()
+      if (forceOpen || wantsTour) {
+        writeStoredStatus('not_started')
+        setStepIdx(0)
+        setState('welcome')
+        return
+      }
+      if (stored === 'completed' || stored === 'skipped') return
     })()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [forceOpen])
 
-  // Body-class management — drives the install-banner suppression CSS
-  // and any other "tour-active" gates added later.
   useEffect(() => {
-    if (typeof document === 'undefined') return
-    if (phase === 'running') {
-      document.body.classList.add('tour-active')
-      try { window.localStorage.setItem('festag_onboarding_tour_status', 'active') } catch {}
-    } else {
-      document.body.classList.remove('tour-active')
-    }
-    return () => document.body.classList.remove('tour-active')
-  }, [phase])
-
-  // Compute / recompute position when step changes or viewport shifts.
-  const recompute = useCallback(() => {
-    if (phase !== 'running') return
-    const step = STEPS[stepIdx]
-    if (!step) return
-    if (step.isWelcome) {
-      setPos({ placement: 'center', top: 0, left: 0, width: isMobile ? window.innerWidth - 32 : 460, anchor: null })
-      return
-    }
-    const el = findTarget(step.target)
-    if (!el) {
-      // Target missing — fall back to centred without anchor.
-      setPos({ placement: 'center', top: 0, left: 0, width: isMobile ? window.innerWidth - 32 : 360, anchor: null })
-      return
-    }
-    // Scroll into view if substantially off-screen.
-    const rect = el.getBoundingClientRect()
-    const fullyVisible = rect.top >= 0 && rect.bottom <= window.innerHeight
-    if (!fullyVisible) {
-      el.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'center' })
-      // Recompute after the scroll settles.
-      requestAnimationFrame(() => {
-        const r2 = el.getBoundingClientRect()
-        setPos(computePosition(r2, step.preferred, isMobile))
-      })
-      return
-    }
-    setPos(computePosition(rect, step.preferred, isMobile))
-  }, [phase, stepIdx, isMobile, reducedMotion])
+    const active = state === 'welcome' || state === 'tour'
+    setOnboardingActive(active)
+    return () => setOnboardingActive(false)
+  }, [state, setOnboardingActive])
 
   useEffect(() => {
-    if (phase !== 'running') return
-    recompute()
-    const onResize = () => recompute()
-    const onScroll = () => recompute()
-    window.addEventListener('resize', onResize)
-    window.addEventListener('scroll', onScroll, true)
-    const id = setInterval(recompute, 800)
+    if (state !== 'welcome') return
+    const measure = () => setWorkspaceRect(getWorkspaceRect())
+    measure()
+    window.addEventListener('resize', measure)
+    window.addEventListener('orientationchange', measure)
     return () => {
-      window.removeEventListener('resize', onResize)
-      window.removeEventListener('scroll', onScroll, true)
-      clearInterval(id)
+      window.removeEventListener('resize', measure)
+      window.removeEventListener('orientationchange', measure)
     }
-  }, [phase, stepIdx, recompute])
+  }, [state])
 
-  // Keyboard navigation.
   useEffect(() => {
-    if (phase !== 'running') return
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape')      skip()
-      if (e.key === 'ArrowRight')  next()
-      if (e.key === 'ArrowLeft')   prev()
+    if (state !== 'tour' || !step) return
+
+    let cancelled = false
+    const measure = () => {
+      if (cancelled) return
+      const el = getTarget(step.target)
+      if (!targetIsUsable(el)) {
+        setTargetRect(null)
+        return
+      }
+      el?.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' })
+      requestAnimationFrame(() => {
+        if (cancelled) return
+        const target = getTarget(step.target)
+        setTargetRect(targetIsUsable(target) ? target!.getBoundingClientRect() : null)
+      })
+    }
+
+    measure()
+    window.addEventListener('resize', measure)
+    window.addEventListener('orientationchange', measure)
+    window.addEventListener('scroll', measure, true)
+    const interval = window.setInterval(measure, 450)
+    return () => {
+      cancelled = true
+      window.removeEventListener('resize', measure)
+      window.removeEventListener('orientationchange', measure)
+      window.removeEventListener('scroll', measure, true)
+      window.clearInterval(interval)
+    }
+  }, [state, stepIdx, step, pathname])
+
+  useEffect(() => {
+    if (state !== 'tour' || !step) return
+    const timer = window.setTimeout(() => {
+      const el = getTarget(step.target)
+      if (targetIsUsable(el)) return
+      let next = stepIdx + 1
+      while (next < total) {
+        const nextEl = getTarget(TOUR_STEPS[next].target)
+        if (targetIsUsable(nextEl)) {
+          setStepIdx(next)
+          void persistProfile('tour', next + 1)
+          return
+        }
+        next += 1
+      }
+      complete()
+    }, 650)
+    return () => window.clearTimeout(timer)
+  }, [complete, persistProfile, state, step, stepIdx, total])
+
+  useEffect(() => {
+    if (state === 'idle' || state === 'completed' || state === 'skipped') return
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        if (state === 'welcome') skip()
+        else endTour()
+      }
+      if (state === 'tour' && event.key === 'ArrowRight') nextStep()
+      if (state === 'tour' && event.key === 'ArrowLeft') prevStep()
     }
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phase, stepIdx])
+  }, [state, stepIdx])
 
-  const markComplete = useCallback(async () => {
-    setPhase('done')
-    try { window.localStorage.setItem('festag_onboarding_tour_status', 'completed') } catch {}
-    try { window.localStorage.setItem('festag_tour_completed', '1') } catch {}
-    if (userId) {
+  const persistProfile = useCallback(async (status: OnboardingState, tourStep: number) => {
+    if (!userId) return
+    if (status === 'completed') {
       await supabase.from('profiles').update({
         tour_completed_at: new Date().toISOString(),
-        tour_step: TOTAL_STEPS,
+        tour_step: total,
       }).eq('id', userId)
+      return
     }
-    // Give the install banner a 4 s grace period — set a stamp that
-    // the banner reads (see PwaInstallBanner).
-    try { window.localStorage.setItem('festag_install_banner_unmute_at', String(Date.now() + 4000)) } catch {}
-    onDone?.()
-  }, [supabase, userId, onDone])
+    if (status === 'skipped') {
+      await supabase.from('profiles').update({
+        tour_step: tourStep,
+      }).eq('id', userId)
+      return
+    }
+    await supabase.from('profiles').update({ tour_step: tourStep }).eq('id', userId)
+  }, [supabase, total, userId])
+
+  const startTour = useCallback(() => {
+    writeStoredStatus('tour_active')
+    setStepIdx(0)
+    setState('tour')
+    void persistProfile('tour', 1)
+  }, [persistProfile])
 
   const skip = useCallback(() => {
-    try { window.localStorage.setItem('festag_onboarding_tour_status', 'skipped') } catch {}
-    try { window.localStorage.setItem('festag_install_banner_unmute_at', String(Date.now() + 4000)) } catch {}
-    setPhase('done')
+    writeStoredStatus('skipped')
+    setState('skipped')
+    void persistProfile('skipped', stepIdx)
+    window.setTimeout(() => {
+      window.dispatchEvent(new CustomEvent('festag:onboarding-ended'))
+    }, 3000)
     onDone?.()
-  }, [onDone])
+  }, [onDone, persistProfile, stepIdx])
 
-  const next = useCallback(() => {
-    setStepIdx(i => {
-      if (i < TOTAL_STEPS - 1) return i + 1
-      void markComplete()
-      return i
-    })
-  }, [markComplete])
+  const complete = useCallback(() => {
+    writeStoredStatus('completed')
+    setState('completed')
+    void persistProfile('completed', total)
+    window.setTimeout(() => {
+      window.dispatchEvent(new CustomEvent('festag:onboarding-ended'))
+    }, 3000)
+    onDone?.()
+  }, [onDone, persistProfile, total])
 
-  const prev = useCallback(() => {
-    setStepIdx(i => Math.max(0, i - 1))
-  }, [])
+  const endTour = useCallback(() => {
+    skip()
+  }, [skip])
 
-  if (phase !== 'running' || !pos) return null
+  const nextStep = useCallback(() => {
+    let next = stepIdx + 1
+    while (next < total) {
+      const el = getTarget(TOUR_STEPS[next].target)
+      if (targetIsUsable(el)) break
+      next += 1
+    }
+    if (next >= total) {
+      complete()
+      return
+    }
+    setStepIdx(next)
+    void persistProfile('tour', next + 1)
+  }, [complete, persistProfile, stepIdx, total])
 
-  const step = STEPS[stepIdx]
-  const isFirst = stepIdx === 0
-  const isLast = stepIdx === TOTAL_STEPS - 1
-  const isCenter = pos.placement === 'center'
+  const prevStep = useCallback(() => {
+    let prev = stepIdx - 1
+    while (prev >= 0) {
+      const el = getTarget(TOUR_STEPS[prev].target)
+      if (targetIsUsable(el)) break
+      prev -= 1
+    }
+    if (prev < 0) return
+    setStepIdx(prev)
+    void persistProfile('tour', prev + 1)
+  }, [persistProfile, stepIdx])
 
-  // Spotlight rect: anchor + padding.
-  const spot = pos.anchor
-    ? {
-        top: pos.anchor.top - PADDING,
-        left: pos.anchor.left - PADDING,
-        width: pos.anchor.width + PADDING * 2,
-        height: pos.anchor.height + PADDING * 2,
-      }
-    : null
+  if (state === 'idle' || state === 'completed' || state === 'skipped') return null
 
-  return (
-    <div
-      className={`wt-root placement-${pos.placement}${isMobile ? ' mobile' : ''}`}
-      role="dialog"
-      aria-modal="true"
-      aria-label={step.title}
-    >
-      <style>{CSS}</style>
+  if (state === 'welcome') {
+    const stageStyle = workspaceRect ? {
+      top: workspaceRect.top,
+      right: window.innerWidth - workspaceRect.right,
+      bottom: window.innerHeight - workspaceRect.bottom,
+      left: workspaceRect.left,
+    } : undefined
 
-      {/* Dim overlay — single rect, no double-layer mess */}
-      <div className="wt-overlay" onClick={skip} aria-hidden />
-
-      {/* Spotlight ring around the anchor */}
-      {spot && (
-        <div
-          className="wt-spotlight"
-          style={{
-            top: spot.top, left: spot.left,
-            width: spot.width, height: spot.height,
-          }}
-          aria-hidden
-        />
-      )}
-
-      {/* Tooltip (desktop) or bottom sheet (mobile / center fallback) */}
-      <div
-        className={`wt-card ${isCenter ? 'centered' : 'floating'}${isMobile ? ' sheet' : ''}${step.isWelcome ? ' welcome' : ''}`}
-        style={isCenter ? undefined : { top: pos.top, left: pos.left, width: pos.width }}
-        role="document"
-      >
-        {isMobile && !isCenter && <div className="wt-handle" aria-hidden />}
-
-        <button type="button" className="wt-close" onClick={skip} aria-label="Tour beenden">
-          <X size={14} />
-        </button>
-
-        {step.isWelcome && (
-          <div className="wt-mark"><TagroLogo size={28} /></div>
-        )}
-        <p className="wt-eyebrow">
-          {step.isWelcome ? 'Erster Eindruck' : `Hinweis ${stepIdx + 1} von ${TOTAL_STEPS}`}
-        </p>
-        <h2 className="wt-title">{step.title}</h2>
-        <p className="wt-body">{step.body}</p>
-
-        <div className="wt-progress" aria-hidden>
-          {STEPS.map((_, i) => (
-            <span key={i} className={`wt-dot${i === stepIdx ? ' active' : i < stepIdx ? ' done' : ''}`} />
-          ))}
-        </div>
-
-        <div className="wt-actions">
-          {!isFirst ? (
-            <button type="button" className="wt-secondary" onClick={prev}>
-              <ArrowLeft size={12} /> Zurück
-            </button>
-          ) : (
-            <button type="button" className="wt-skip-inline" onClick={skip}>Tour beenden</button>
-          )}
-          <button type="button" className="wt-primary" onClick={next}>
-            {isLast
-              ? <>Tour abschließen <Check size={12} weight="bold" /></>
-              : isFirst
-                ? <>Einführung starten <ArrowRight size={12} /></>
-                : <>Weiter <ArrowRight size={12} /></>}
+    return (
+      <div className="wt-welcome-stage" style={stageStyle} role="dialog" aria-modal="true" aria-label="Willkommen bei Festag">
+        <style>{CSS}</style>
+        <div className="wt-welcome-backdrop" aria-hidden />
+        <section className="wt-welcome-card">
+          <button className="wt-close" type="button" onClick={skip} aria-label="Schließen">
+            <X size={15} />
           </button>
-        </div>
+          <div className="wt-mark" aria-hidden>
+            <TagroLogo size={32} />
+          </div>
+          <p className="wt-eyebrow">ERSTER EINSTIEG</p>
+          <h2 className="wt-title">Willkommen bei Festag</h2>
+          <p className="wt-body">
+            Festag bündelt Projekte, Aufgaben, Statusmeldungen und Briefings in einem ruhigen Arbeitsfenster.
+          </p>
+          <div className="wt-welcome-actions">
+            <button className="wt-muted" type="button" onClick={skip}>Überspringen</button>
+            <button className="wt-primary" type="button" onClick={startTour}>
+              Tour starten <ArrowRight size={13} />
+            </button>
+          </div>
+        </section>
       </div>
-    </div>
-  )
+    )
+  }
+
+  if (state === 'tour') {
+    const usableTarget = Boolean(targetRect && step)
+    const spot = targetRect ? {
+      top: targetRect.top - 8,
+      left: targetRect.left - 8,
+      width: targetRect.width + 16,
+      height: targetRect.height + 16,
+      borderRadius: Math.min(22, Math.max(10, targetRect.height / 4)),
+    } : undefined
+
+    return (
+      <div className={`wt-tour-layer wt-placement-${tooltip.placement}`} role="dialog" aria-modal="true" aria-label="Festag Tour">
+        <style>{CSS}</style>
+        {usableTarget ? (
+          <div className="wt-spotlight" style={spot} aria-hidden />
+        ) : (
+          <div className="wt-tour-dim" aria-hidden />
+        )}
+        <section
+          className={`wt-tooltip${tooltip.placement === 'sheet' ? ' sheet' : ''}${!usableTarget ? ' centered' : ''}`}
+          style={usableTarget && tooltip.placement !== 'sheet' ? { top: tooltip.top, left: tooltip.left } : undefined}
+        >
+          <p className="wt-hint-eyebrow">HINWEIS {stepIdx + 1} VON {total}</p>
+          <h3 className="wt-hint-title">{step?.title}</h3>
+          <p className="wt-hint-text">{step?.description}</p>
+          <div className="wt-dots" aria-hidden>
+            {TOUR_STEPS.map((item, idx) => (
+              <span key={item.id} className={idx === stepIdx ? 'on' : idx < stepIdx ? 'done' : ''} />
+            ))}
+          </div>
+          <div className="wt-hint-actions">
+            <button type="button" className="wt-hint-end" onClick={endTour}>Tour beenden</button>
+            <div className="wt-hint-nav">
+              {stepIdx > 0 && (
+                <button type="button" className="wt-hint-back" onClick={prevStep}>
+                  <ArrowLeft size={11} /> Zurück
+                </button>
+              )}
+              <button type="button" className="wt-hint-next" onClick={stepIdx === total - 1 ? complete : nextStep}>
+                {stepIdx === total - 1 ? <>Fertig <Check size={11} weight="bold" /></> : <>Weiter <ArrowRight size={11} /></>}
+              </button>
+            </div>
+          </div>
+        </section>
+      </div>
+    )
+  }
+
+  return null
 }
 
 const CSS = `
-  .wt-root {
-    position: fixed; inset: 0;
-    z-index: 14000;
-    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
-    pointer-events: none;
+  html[data-onboarding-active] .pwa-banner,
+  html[data-onboarding-active] [class*="toast"],
+  html[data-onboarding-active] [class*="copilot"],
+  html[data-onboarding-active] [class*="install"] {
+    display: none !important;
   }
-  .wt-overlay {
-    position: absolute; inset: 0;
-    background: rgba(0, 0, 0, .56);
-    backdrop-filter: blur(2px);
-    -webkit-backdrop-filter: blur(2px);
-    pointer-events: auto;
-    cursor: default;
-    animation: wtFade .2s ease both;
+
+  .wt-welcome-stage {
+    position: fixed;
+    inset: 0;
+    z-index: 13000;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+    animation: wtFade .18s ease both;
+  }
+  .wt-welcome-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,.35);
+  }
+  [data-theme="dark"] .wt-welcome-backdrop,
+  [data-theme="classic-dark"] .wt-welcome-backdrop {
+    background: rgba(0,0,0,.50);
+  }
+  .wt-welcome-card {
+    position: relative;
+    width: min(420px, calc(100vw - 40px));
+    border-radius: 22px;
+    padding: 28px 28px 24px;
+    background: rgba(255,255,255,.98);
+    color: var(--text);
+    text-align: center;
+    border: 1px solid rgba(15,23,42,.08);
+    box-shadow: 0 32px 90px -48px rgba(15,23,42,.50), 0 1px 2px rgba(15,23,42,.06);
+    animation: wtPop .24s cubic-bezier(.16,1,.3,1) both;
+  }
+  [data-theme="dark"] .wt-welcome-card,
+  [data-theme="classic-dark"] .wt-welcome-card {
+    background: color-mix(in srgb, var(--card) 94%, #fff 6%);
+    border-color: rgba(255,255,255,.07);
+    box-shadow: 0 36px 100px -44px rgba(0,0,0,.72), inset 0 1px 0 rgba(255,255,255,.05);
   }
   @keyframes wtFade { from { opacity: 0; } to { opacity: 1; } }
-  body.tour-reduced-motion .wt-overlay { animation: none; }
-
-  /* Spotlight ring — clean rounded outline around the anchor.
-     Two layers: an inner ring (Slate, 2 px) and an outer soft glow. */
-  .wt-spotlight {
-    position: absolute;
-    z-index: 1;
-    border-radius: 14px;
-    pointer-events: none;
-    box-shadow:
-      0 0 0 2px color-mix(in srgb, var(--btn-prim) 80%, transparent),
-      0 0 0 6px color-mix(in srgb, var(--btn-prim) 22%, transparent),
-      0 18px 60px -10px color-mix(in srgb, var(--btn-prim) 30%, transparent);
-    transition: top .22s ease, left .22s ease, width .22s ease, height .22s ease;
-  }
-  body.tour-reduced-motion .wt-spotlight { transition: none; }
-
-  /* Card */
-  .wt-card {
-    position: absolute;
-    pointer-events: auto;
-    background: var(--card);
-    color: var(--text);
-    border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
-    border-radius: 16px;
-    padding: 18px 18px 16px;
-    box-shadow:
-      0 1px 2px rgba(0,0,0,.18),
-      0 26px 60px -22px rgba(0,0,0,.55);
-    animation: wtPop .24s cubic-bezier(.16,1,.3,1) both;
-    max-width: calc(100vw - 32px);
-  }
-  body.tour-reduced-motion .wt-card { animation: none; }
-  [data-theme="dark"] .wt-card,
-  [data-theme="classic-dark"] .wt-card {
-    background: color-mix(in srgb, var(--card) 96%, #fff 4%);
-    box-shadow:
-      0 1px 2px rgba(0,0,0,.45),
-      0 32px 70px -22px rgba(0,0,0,.7);
-  }
-  @keyframes wtPop {
-    from { opacity: 0; transform: translateY(6px) scale(.985); }
-    to { opacity: 1; transform: none; }
-  }
-
-  .wt-card.centered {
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    width: min(440px, calc(100vw - 32px));
-  }
-  .wt-card.centered.welcome {
-    width: min(460px, calc(100vw - 32px));
-    padding: 26px 22px 20px;
-    text-align: center;
-  }
-  .wt-card.welcome .wt-mark {
-    margin: 0 auto 6px;
-    width: 56px; height: 56px;
-    border-radius: 999px;
-    display: inline-flex; align-items: center; justify-content: center;
-    background: color-mix(in srgb, var(--surface-2) 65%, transparent);
-    border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
-  }
+  @keyframes wtPop { from { opacity: 0; transform: translateY(8px) scale(.985); } to { opacity: 1; transform: none; } }
 
   .wt-close {
-    position: absolute; top: 10px; right: 10px;
-    width: 26px; height: 26px;
-    border: 0; background: transparent;
-    color: var(--text-muted); border-radius: 8px;
-    display: inline-flex; align-items: center; justify-content: center;
-    cursor: pointer;
-    transition: background .12s, color .12s;
-  }
-  .wt-close:hover {
-    background: color-mix(in srgb, var(--surface-2) 60%, transparent);
-    color: var(--text);
-  }
-
-  .wt-handle {
-    width: 36px; height: 4px; border-radius: 999px;
-    background: color-mix(in srgb, var(--text-muted) 55%, transparent);
-    opacity: .5;
-    margin: -2px auto 8px;
-  }
-
-  .wt-eyebrow {
-    margin: 0 0 4px;
-    font-size: 10px; font-weight: 500;
-    letter-spacing: .14em; text-transform: uppercase;
+    position: absolute;
+    top: 13px;
+    right: 13px;
+    width: 30px;
+    height: 30px;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
     color: var(--text-muted);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background .12s ease, color .12s ease;
+  }
+  .wt-close:hover { background: color-mix(in srgb, var(--surface-2) 64%, transparent); color: var(--text); }
+  .wt-mark {
+    width: 58px;
+    height: 58px;
+    margin: 0 auto 16px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: color-mix(in srgb, var(--surface-2) 62%, transparent);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.58);
+  }
+  .wt-eyebrow,
+  .wt-hint-eyebrow {
+    margin: 0 0 8px;
+    color: var(--text-muted);
+    font-size: 10.5px;
+    font-weight: 500;
+    letter-spacing: .16em;
+    text-transform: uppercase;
   }
   .wt-title {
     margin: 0;
-    font-size: 16px; font-weight: 500; letter-spacing: -.005em;
     color: var(--text);
-    line-height: 1.35;
+    font-size: 21px;
+    line-height: 1.22;
+    font-weight: 500;
+    letter-spacing: -.012em;
   }
-  .wt-card.welcome .wt-title { font-size: 19px; margin-top: 4px; }
   .wt-body {
-    margin: 6px 0 0;
-    font-size: 13px; line-height: 1.55;
-    color: var(--text-muted);
-    font-weight: 500; letter-spacing: .012em;
-  }
-
-  .wt-progress { display: flex; gap: 4px; margin-top: 12px; }
-  .wt-dot {
-    width: 5px; height: 5px; border-radius: 999px;
-    background: var(--text-muted); opacity: .22;
-    transition: width .2s, opacity .2s, background .2s;
-  }
-  .wt-dot.done { opacity: .42; }
-  .wt-dot.active {
-    width: 18px; border-radius: 999px;
-    background: var(--btn-prim); opacity: .85;
-  }
-
-  .wt-actions {
-    display: flex; gap: 8px; align-items: center;
-    margin-top: 14px;
-    justify-content: space-between;
-  }
-  .wt-card.welcome .wt-actions { justify-content: center; }
-  .wt-primary {
-    display: inline-flex; align-items: center; gap: 6px;
-    height: 34px; padding: 0 14px;
-    border: 0; border-radius: 999px;
-    background: var(--btn-prim); color: var(--btn-prim-text);
-    font: inherit; font-size: 12.5px; font-weight: 500; letter-spacing: .012em;
-    cursor: pointer; transition: opacity .12s, transform .12s;
-    min-height: 34px;
-    flex-shrink: 0;
-  }
-  .wt-primary:hover { opacity: .92; }
-  .wt-primary:active { transform: scale(.97); }
-  .wt-secondary {
-    display: inline-flex; align-items: center; gap: 5px;
-    height: 32px; padding: 0 12px;
-    border: 1px solid color-mix(in srgb, var(--border) 65%, transparent);
-    background: transparent;
+    margin: 12px auto 0;
+    max-width: 340px;
     color: var(--text-secondary);
-    border-radius: 999px;
-    font: inherit; font-size: 11.5px; font-weight: 500; letter-spacing: .012em;
-    cursor: pointer; transition: background .12s, color .12s;
+    font-size: 14px;
+    line-height: 1.6;
+    font-weight: 500;
+    letter-spacing: .012em;
   }
-  .wt-secondary:hover {
-    background: color-mix(in srgb, var(--surface-2) 55%, transparent);
-    color: var(--text);
+  .wt-welcome-actions {
+    margin-top: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
   }
-  .wt-skip-inline {
-    background: transparent; border: 0;
-    padding: 4px 0;
-    color: var(--text-muted);
-    font: inherit; font-size: 11.5px; font-weight: 500; letter-spacing: .012em;
+  .wt-muted,
+  .wt-primary,
+  .wt-hint-end,
+  .wt-hint-back,
+  .wt-hint-next {
+    font-family: inherit;
+    font-weight: 500;
+    letter-spacing: .012em;
     cursor: pointer;
   }
-  .wt-skip-inline:hover { color: var(--text); }
-
-  /* Mobile bottom-sheet variant */
-  .wt-root.mobile .wt-card.floating,
-  .wt-root.mobile .wt-card.centered {
-    position: fixed;
-    bottom: 0; left: 0; right: 0;
-    top: auto;
-    transform: none;
-    width: 100%;
-    max-width: 100%;
-    border-radius: 22px 22px 0 0;
-    padding: 14px 18px calc(env(safe-area-inset-bottom, 0px) + 16px);
-    box-shadow: 0 -28px 60px -28px rgba(0,0,0,.6);
-    animation: wtSheet .26s cubic-bezier(.16,1,.3,1) both;
-    max-height: 55dvh;
-    overflow-y: auto;
+  .wt-muted {
+    height: 38px;
+    padding: 0 15px;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text-muted);
   }
-  body.tour-reduced-motion .wt-root.mobile .wt-card.floating,
-  body.tour-reduced-motion .wt-root.mobile .wt-card.centered { animation: none; }
-  @keyframes wtSheet { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+  .wt-muted:hover { color: var(--text); background: color-mix(in srgb, var(--surface-2) 48%, transparent); }
+  .wt-primary {
+    height: 40px;
+    padding: 0 18px;
+    border: 0;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: var(--btn-prim);
+    color: var(--btn-prim-text);
+    box-shadow: 0 10px 22px -18px rgba(15,23,42,.4);
+  }
+  .wt-primary:hover,
+  .wt-hint-next:hover { opacity: .92; }
+
+  .wt-tour-layer {
+    position: fixed;
+    inset: 0;
+    z-index: 13000;
+    pointer-events: none;
+    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+  }
+  .wt-spotlight {
+    position: fixed;
+    z-index: 13001;
+    pointer-events: none;
+    border-radius: 14px;
+    box-shadow:
+      0 0 0 9999px rgba(0,0,0,.35),
+      0 0 0 2px color-mix(in srgb, var(--btn-prim) 80%, #fff 20%),
+      0 14px 38px -22px color-mix(in srgb, var(--btn-prim) 70%, transparent);
+    transition: top .18s ease, left .18s ease, width .18s ease, height .18s ease;
+  }
+  [data-theme="dark"] .wt-spotlight,
+  [data-theme="classic-dark"] .wt-spotlight {
+    box-shadow:
+      0 0 0 9999px rgba(0,0,0,.50),
+      0 0 0 2px color-mix(in srgb, var(--btn-prim) 78%, #fff 22%),
+      0 14px 42px -20px color-mix(in srgb, var(--btn-prim) 54%, transparent);
+  }
+  .wt-tour-dim {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,.35);
+  }
+  [data-theme="dark"] .wt-tour-dim,
+  [data-theme="classic-dark"] .wt-tour-dim { background: rgba(0,0,0,.50); }
+
+  .wt-tooltip {
+    position: fixed;
+    z-index: 13002;
+    width: min(344px, calc(100vw - 28px));
+    padding: 17px 17px 15px;
+    border-radius: 16px;
+    background: rgba(255,255,255,.98);
+    color: var(--text);
+    border: 1px solid rgba(15,23,42,.08);
+    box-shadow: 0 30px 80px -42px rgba(15,23,42,.55), 0 1px 2px rgba(15,23,42,.08);
+    pointer-events: auto;
+    animation: wtPop .2s cubic-bezier(.16,1,.3,1) both;
+  }
+  [data-theme="dark"] .wt-tooltip,
+  [data-theme="classic-dark"] .wt-tooltip {
+    background: color-mix(in srgb, var(--card) 94%, #fff 6%);
+    border-color: rgba(255,255,255,.07);
+    box-shadow: 0 32px 88px -40px rgba(0,0,0,.78), inset 0 1px 0 rgba(255,255,255,.05);
+  }
+  .wt-tooltip.centered {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+  .wt-hint-title {
+    margin: 0;
+    color: var(--text);
+    font-size: 16px;
+    line-height: 1.28;
+    font-weight: 500;
+    letter-spacing: -.006em;
+  }
+  .wt-hint-text {
+    margin: 9px 0 0;
+    color: var(--text-secondary);
+    font-size: 13px;
+    line-height: 1.55;
+    font-weight: 500;
+    letter-spacing: .012em;
+  }
+  .wt-dots {
+    margin-top: 14px;
+    display: flex;
+    gap: 6px;
+  }
+  .wt-dots span {
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--text-muted);
+    opacity: .25;
+    transition: width .16s ease, opacity .16s ease;
+  }
+  .wt-dots span.done { opacity: .48; }
+  .wt-dots span.on {
+    width: 20px;
+    opacity: .9;
+    background: var(--btn-prim);
+  }
+  .wt-hint-actions {
+    margin-top: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .wt-hint-nav {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .wt-hint-end,
+  .wt-hint-back {
+    height: 32px;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text-muted);
+    padding: 0 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .wt-hint-end:hover,
+  .wt-hint-back:hover {
+    color: var(--text);
+    background: color-mix(in srgb, var(--surface-2) 46%, transparent);
+  }
+  .wt-hint-next {
+    height: 34px;
+    padding: 0 14px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--btn-prim);
+    color: var(--btn-prim-text);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
 
   @media (max-width: 720px) {
-    .wt-card.welcome { text-align: left; padding-top: 14px; }
-    .wt-card.welcome .wt-mark { margin: 4px 0 6px; }
-    .wt-title { font-size: 17px; }
+    .wt-welcome-stage {
+      inset: 0 !important;
+      padding: 18px;
+    }
+    .wt-welcome-card {
+      padding: 26px 20px 20px;
+    }
+    .wt-welcome-actions {
+      flex-direction: column-reverse;
+      align-items: stretch;
+    }
+    .wt-muted,
+    .wt-primary {
+      width: 100%;
+      justify-content: center;
+    }
+    .wt-tooltip.sheet {
+      left: max(12px, env(safe-area-inset-left));
+      right: max(12px, env(safe-area-inset-right));
+      bottom: max(12px, env(safe-area-inset-bottom));
+      top: auto;
+      width: auto;
+      border-radius: 18px;
+    }
+    .wt-hint-actions {
+      align-items: stretch;
+      flex-direction: column;
+    }
+    .wt-hint-nav {
+      justify-content: flex-end;
+    }
   }
-
-  /* Install banner suppression while tour runs. */
-  body.tour-active .pwa-banner { display: none !important; }
 `
