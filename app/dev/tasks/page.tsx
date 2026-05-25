@@ -65,6 +65,7 @@ type Task = {
   verified_by_tagro_at?: string | null
   approved_by_owner_at?: string | null
   last_dev_action_at?: string | null
+  created_at?: string | null
   updated_at?: string | null
   deadline?: string | null
   due_date?: string | null
@@ -148,6 +149,17 @@ function dueLabel(v?: string | null) {
   if (!v) return null
   try { return new Intl.DateTimeFormat('de-DE', { day:'2-digit', month:'short' }).format(new Date(v)) }
   catch { return null }
+}
+
+// Mirrors the /projects "Neu" pattern — tasks created within the last
+// 2h get a quiet pill on the dev row so freshly-dropped client work is
+// recognisable at a glance.
+const FRESH_TASK_WINDOW_MS = 2 * 60 * 60 * 1000
+function isFreshTask(createdAt?: string | null): boolean {
+  if (!createdAt) return false
+  const t = new Date(createdAt).getTime()
+  if (Number.isNaN(t)) return false
+  return Date.now() - t < FRESH_TASK_WINDOW_MS
 }
 function shortSha(s?: string | null) { return (s || '').slice(0, 7) }
 function slugify(s: string) {
@@ -264,7 +276,7 @@ export default function DevTasksPage() {
 
     let q = supabase
       .from('tasks')
-      .select('id,title,description,dev_description,client_description,status,dev_status,client_status,client_visible_status,priority,project_id,parent_task_id,assigned_to,estimated_hours,branch_name,work_type,definition_of_done,expected_outcome,required_proof_types,tagro_verification_status,tagro_confidence,tagro_verification_summary,tagro_internal_notes,tagro_client_summary,finished_by_dev_at,verified_by_tagro_at,approved_by_owner_at,last_dev_action_at,updated_at,due_date,projects(title,color,user_id,client_id)')
+      .select('id,title,description,dev_description,client_description,status,dev_status,client_status,client_visible_status,priority,project_id,parent_task_id,assigned_to,estimated_hours,branch_name,work_type,definition_of_done,expected_outcome,required_proof_types,tagro_verification_status,tagro_confidence,tagro_verification_summary,tagro_internal_notes,tagro_client_summary,finished_by_dev_at,verified_by_tagro_at,approved_by_owner_at,last_dev_action_at,created_at,updated_at,due_date,projects(title,color,user_id,client_id)')
       .order('last_dev_action_at', { ascending: false, nullsFirst: false })
       .order('updated_at', { ascending: false }).limit(300)
     if (projIds.length > 0) {
@@ -276,6 +288,42 @@ export default function DevTasksPage() {
     setTasks((data as Task[] | null) ?? [])
     setLoading(false)
   }
+
+  // ──────── realtime: new tasks land here without manual reload
+  // Subscribes once we know the user's assigned projects. We don't
+  // filter the channel by project at the wire level (Supabase only
+  // accepts a single `eq` filter); instead we accept all inserts and
+  // drop the ones that don't belong. Cheap, and it covers the
+  // "client just created a task on a project I'm on" case end-to-end.
+  useEffect(() => {
+    if (!userId) return
+    const projectIds = projects.map(p => p.id)
+    const channel = supabase
+      .channel(`dev-tasks-${userId}`)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'tasks' },
+        (payload: any) => {
+          const row = payload?.new as Task | undefined
+          if (!row) return
+          // Only care about tasks on a project the user is on, or directly assigned.
+          if (row.assigned_to !== userId && !projectIds.includes(row.project_id ?? '')) return
+          setTasks(prev => prev.some(t => t.id === row.id) ? prev : [row, ...prev])
+        },
+      )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'tasks' },
+        (payload: any) => {
+          const row = payload?.new as Task | undefined
+          if (!row) return
+          if (row.assigned_to !== userId && !projectIds.includes(row.project_id ?? '')) return
+          setTasks(prev => prev.map(t => t.id === row.id ? { ...t, ...row } : t))
+        },
+      )
+      .subscribe()
+    return () => { supabase.removeChannel(channel) }
+  }, [userId, projects, supabase])
 
   // ──────── drawer data load
   useEffect(() => {
@@ -1489,7 +1537,10 @@ function TaskList({ tasks, onSelect, userId }: { tasks: Task[]; onSelect: (t: Ta
             style={{ borderTop: i > 0 ? '1px solid var(--border)' : 'none' }}>
             <span className="dot" style={{ background: dotColor(flow) }} />
             <div className="tt">
-              <strong>{t.title}</strong>
+              <strong>
+                {t.title}
+                {isFreshTask(t.created_at) && <span className="t-new">Neu</span>}
+              </strong>
               <small>
                 {workTypeOf(t.work_type).label}
                 {t.estimated_hours ? ` · ~${t.estimated_hours}h` : ''}
@@ -1527,8 +1578,19 @@ function TaskList({ tasks, onSelect, userId }: { tasks: Task[]; onSelect: (t: Ta
         .t-row:hover { background: color-mix(in srgb, var(--surface-2) 60%, transparent); }
         .dot { width: 7px; height: 7px; border-radius: 50%; flex: 0 0 auto; }
         .tt { min-width: 0; }
-        .tt strong { display: block; font-size: 12.8px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .tt strong { display: flex; align-items: center; gap: 8px; font-size: 12.8px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .tt small { display: block; margin-top: 2px; color: var(--text-muted); font-size: 10.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .t-new {
+          display: inline-flex; align-items: center;
+          height: 16px; padding: 0 7px;
+          border-radius: 999px;
+          background: color-mix(in srgb, var(--btn-prim) 14%, transparent);
+          border: 1px solid color-mix(in srgb, var(--btn-prim) 28%, transparent);
+          color: var(--btn-prim);
+          font-size: 9.5px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase;
+          flex-shrink: 0;
+        }
+        [data-theme="dark"] .t-new, [data-theme="classic-dark"] .t-new { color: #A0AAC2; }
         .t-project, .t-prio, .t-status, .t-deadline { font-size: 11.5px; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .t-ver { font-size: 11px; }
         .t-ver .muted { color: var(--text-muted); }

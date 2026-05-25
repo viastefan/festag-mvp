@@ -196,6 +196,23 @@ async function computeRecipients(
   //    the ones THEY caused (filtered later in fanout).
   if (assignedDev) out.push({ userId: assignedDev, audience: 'dev' })
 
+  // 1b) On client-driven creation events the task usually has no
+  //     assigned_to yet — fan out to every active project_assignment
+  //     dev so the whole pool team sees the request land. This is what
+  //     wires "client creates task → dev panel" end-to-end.
+  const projectWideEvents: DevEventKind[] = ['client_request_created']
+  if (projectWideEvents.includes(event) && (task as any).project_id) {
+    const { data: paRows } = await sb.from('project_assignments')
+      .select('user_id')
+      .eq('project_id', (task as any).project_id)
+      .eq('active', true)
+    for (const row of (paRows as any[]) ?? []) {
+      if (row?.user_id && row.user_id !== ctx.actorId) {
+        out.push({ userId: row.user_id, audience: 'dev' })
+      }
+    }
+  }
+
   // 2) Owner / admin — for handoff events (finished, verified, blocker,
   //    needs review, quality issue, owner-actionable).
   const ownerEvents: DevEventKind[] = [
