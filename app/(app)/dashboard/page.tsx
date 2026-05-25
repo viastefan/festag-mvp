@@ -526,6 +526,12 @@ export default function DashboardPage() {
     }
   }
 
+  function handleVoicePress() {
+    if (statusBusy) return
+    if (audioText.trim()) handleBriefingToggle()
+    else void refreshStatus()
+  }
+
   const noteStamp = noteReport?.createdAt
     ? new Date(noteReport.createdAt).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })
     : null
@@ -572,7 +578,9 @@ export default function DashboardPage() {
 
         /* ── Greeting full-width, then a calm two-column body ────── */
         .dc-wrap {
-          max-width: 1280px;
+          width:100%;
+          max-width: 1480px;
+          margin:0 auto;
           height:100%;
           min-height:0;
           display:flex;
@@ -592,6 +600,10 @@ export default function DashboardPage() {
         .dc-head {
           flex-shrink:0;
           padding:32px 0 0;
+          display:flex;
+          align-items:flex-start;
+          justify-content:space-between;
+          gap:24px;
           animation:dcFade .3s cubic-bezier(.16,1,.3,1) both;
         }
         .dc-greeting {
@@ -608,6 +620,77 @@ export default function DashboardPage() {
           font-size:12.5px;
           line-height:1.5;
         }
+        .dc-head-actions {
+          flex-shrink:0;
+          display:flex;
+          align-items:center;
+          gap:10px;
+          padding-top:2px;
+        }
+        .dc-head-status {
+          appearance:none;
+          height:40px;
+          padding:0 15px;
+          border:1px solid color-mix(in srgb, var(--border) 72%, transparent);
+          border-radius:999px;
+          background:rgba(255,255,255,.72);
+          color:var(--text);
+          box-shadow:
+            0 12px 34px -24px color-mix(in srgb, var(--text) 32%, transparent),
+            inset 0 1px 0 rgba(255,255,255,.72);
+          display:inline-flex;
+          align-items:center;
+          justify-content:center;
+          gap:8px;
+          font:inherit;
+          font-size:12.5px;
+          cursor:pointer;
+          transition:background .16s ease, border-color .16s ease, transform .14s ease, box-shadow .16s ease;
+        }
+        .dc-head-status:hover:not(:disabled) {
+          background:#fff;
+          border-color:color-mix(in srgb, var(--border) 92%, transparent);
+          box-shadow:
+            0 16px 42px -25px color-mix(in srgb, var(--text) 40%, transparent),
+            inset 0 1px 0 rgba(255,255,255,.88);
+        }
+        .dc-head-status:active:not(:disabled) { transform:translateY(1px) scale(.99); }
+        .dc-head-status:disabled { opacity:.58; cursor:default; }
+        .dc-head-status .spin { animation:dcSpin 1s linear infinite; }
+        [data-theme="dark"] .dc-head-status,
+        [data-theme="classic-dark"] .dc-head-status {
+          background:color-mix(in srgb, var(--card) 86%, #fff 5%);
+          border-color:rgba(255,255,255,.07);
+          box-shadow:
+            0 16px 42px -24px rgba(0,0,0,.66),
+            inset 0 1px 0 rgba(255,255,255,.05);
+        }
+        [data-theme="dark"] .dc-head-status:hover:not(:disabled),
+        [data-theme="classic-dark"] .dc-head-status:hover:not(:disabled) {
+          background:color-mix(in srgb, var(--card) 80%, #fff 9%);
+        }
+        .dc-head-pulse {
+          display:inline-flex;
+          align-items:center;
+          gap:7px;
+          height:32px;
+          padding:0 11px;
+          border-radius:999px;
+          background:color-mix(in srgb, var(--surface-2) 46%, transparent);
+          color:var(--dc-soft);
+          font-size:11.5px;
+          white-space:nowrap;
+        }
+        .dc-head-pulse span {
+          width:7px;
+          height:7px;
+          border-radius:999px;
+          background:currentColor;
+          flex-shrink:0;
+        }
+        .dc-head-pulse.tone-green { color:#22a06b; }
+        .dc-head-pulse.tone-amber { color:#d4882b; }
+        .dc-head-pulse.tone-red { color:#d44b4b; }
 
         /* ── Notepad ──────────────────────────────────────────────── */
         /* The status note is NOT a card — it sits on the page like a
@@ -1277,7 +1360,6 @@ export default function DashboardPage() {
           outline-offset: 8px;
           border-radius: 24px;
         }
-
         /* Minimalist voice line — no equaliser bars */
         .dc-voice-line {
           width: 100%; height: 20px;
@@ -1589,10 +1671,7 @@ export default function DashboardPage() {
           .dc-period-options { justify-content:space-between; }
           .dc-scope-trigger { max-width: none; width: 100%; justify-content: space-between; }
           .dc-scope-menu { left: 0; right: 0; width:auto; min-width: 0; }
-          .dc-orb-stage { aspect-ratio: 2 / 1; max-height: 140px; }
-          .dc-orb-bubble { width: 64px; height: 64px; }
-          .dc-orb-ring { width: 96px; height: 96px; margin: -48px 0 0 -48px; }
-          .dc-orb-pulse { width: 64px; height: 64px; margin: -32px 0 0 -32px; }
+          .dc-orb-stage { aspect-ratio: 2 / 1; max-height: 148px; }
         }
 
         /* ── Overview: 4 calm stats under the action box ──────────── */
@@ -1679,7 +1758,9 @@ export default function DashboardPage() {
         }
         @media (max-width:760px) {
           .dash-calm { padding:0 14px 88px; }
-          .dc-head { padding-top:20px; }
+          .dc-head { padding-top:20px; flex-direction:column; gap:14px; }
+          .dc-head-actions { width:100%; justify-content:space-between; }
+          .dc-head-status { flex:1; }
         }
         @media (max-width:600px) {
           .dash-calm { padding:0 16px 92px; }
@@ -1699,10 +1780,25 @@ export default function DashboardPage() {
               Status, Berichte und Audio-Briefings in einem festen Arbeitsfenster.
             </p>
           </div>
-          <span className={`dc-head-pulse tone-${pulse.tone}`}>
-            <span />
-            {pulse.label}
-          </span>
+          <div className="dc-head-actions">
+            <button type="button" className="dc-head-status" onClick={refreshStatus} disabled={statusBusy}>
+              {statusBusy ? (
+                <>
+                  <ArrowClockwise size={14} className="spin" />
+                  Statusbericht läuft…
+                </>
+              ) : (
+                <>
+                  <TagroLogo size={16} />
+                  Statusbericht erstellen
+                </>
+              )}
+            </button>
+            <span className={`dc-head-pulse tone-${pulse.tone}`}>
+              <span />
+              {pulse.label}
+            </span>
+          </div>
         </header>
 
         <div className="dc-body">
@@ -1873,9 +1969,17 @@ export default function DashboardPage() {
             <button
               type="button"
               className={`dc-orb-stage${tagroActive ? ' speaking' : ''}${statusBusy ? ' loading' : ''}${isBriefingPlaying ? ' playing' : ''}`}
-              onClick={handleBriefingToggle}
-              disabled={!speechSupported || !audioText.trim() || statusBusy}
-              aria-label={isBriefingPlaying ? 'Briefing pausieren' : speechState === 'paused' ? 'Briefing fortsetzen' : 'Briefing anhören'}
+              onClick={handleVoicePress}
+              disabled={statusBusy || (!speechSupported && audioText.trim().length > 0)}
+              aria-label={
+                statusBusy
+                  ? 'Statusbericht wird vorbereitet'
+                  : isBriefingPlaying
+                    ? 'Briefing pausieren'
+                    : speechState === 'paused'
+                      ? 'Briefing weiterhören'
+                      : 'Briefing anhören'
+              }
               aria-pressed={isBriefingPlaying}
             >
               {/* Sine-wave ripples — sit behind the orb, animate only while speaking */}
@@ -1898,16 +2002,9 @@ export default function DashboardPage() {
 
               {/* Inner play/Tagro core */}
               <span className="dc-orb-core" aria-hidden>
-                {isBriefingPlaying ? (
-                  <svg className="dc-orb-glyph pause" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
-                    <rect x="7" y="5" width="3.6" height="14" rx="1.6" fill="currentColor" />
-                    <rect x="13.4" y="5" width="3.6" height="14" rx="1.6" fill="currentColor" />
-                  </svg>
-                ) : (
-                  <span className="dc-orb-play">
-                    <TagroLogo size={18} thinking={statusBusy} />
-                  </span>
-                )}
+                <span className="dc-orb-play">
+                  <TagroLogo size={20} thinking={tagroActive} />
+                </span>
               </span>
             </button>
 
