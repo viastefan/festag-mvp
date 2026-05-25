@@ -21,12 +21,14 @@
  * visibility terms (workload, responsibility, gaps).
  */
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Suspense, useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import {
   ArrowRight, ArrowsClockwise, ChatCircleDots, CheckCircle, MagnifyingGlass,
   PaperPlaneTilt, Sparkle, UserPlus, UsersThree, X,
+  Chat,
 } from '@phosphor-icons/react'
 import { autoAvatarColor, avatarInitials, avatarTextColor } from '@/lib/avatar'
 
@@ -131,15 +133,27 @@ const WORKLOAD_TONE: Record<WorkloadState, 'muted' | 'good' | 'amber' | 'red'> =
   idle: 'muted', light: 'good', balanced: 'good', high: 'amber', overloaded: 'red',
 }
 
-type TabId = 'overview' | 'members' | 'projects' | 'responsibilities' | 'activity' | 'invites'
+type TabId = 'overview' | 'projects' | 'tasks' | 'messages' | 'members' | 'responsibilities' | 'activity' | 'invites'
 const TABS: Array<{ id: TabId; label: string }> = [
-  { id: 'overview',         label: 'Overview' },
-  { id: 'members',          label: 'Mitglieder' },
+  { id: 'overview',         label: 'Übersicht' },
   { id: 'projects',         label: 'Projekte' },
+  { id: 'tasks',            label: 'Tasks' },
+  { id: 'messages',         label: 'Nachrichten' },
+  { id: 'members',          label: 'Mitglieder' },
   { id: 'responsibilities', label: 'Verantwortlichkeiten' },
   { id: 'activity',         label: 'Aktivität' },
   { id: 'invites',          label: 'Einladungen' },
 ]
+
+// Sidebar links use ?view=projects|tasks|messages. Map those onto tab IDs.
+const VIEW_TO_TAB: Record<string, TabId> = {
+  projects: 'projects',
+  tasks:    'tasks',
+  messages: 'messages',
+  overview: 'overview',
+  members:  'members',
+  invites:  'invites',
+}
 
 /* ─────────────────────────────────────────────────────────────
  * Helpers
@@ -193,9 +207,28 @@ function workloadOf(active: number, blocked: number): WorkloadState {
  * ─────────────────────────────────────────────────────────── */
 
 export default function TeamsPage() {
+  // useSearchParams forces dynamic rendering — wrap in Suspense or the
+  // page would prerender with null params and crash on hydrate.
+  return (
+    <Suspense fallback={<div style={{ padding:48, color:'var(--text-muted)' }}>Team wird geladen…</div>}>
+      <TeamsPageInner />
+    </Suspense>
+  )
+}
+
+function TeamsPageInner() {
   const supabase = useMemo(() => createClient(), [])
+  const searchParams = useSearchParams()
+  const viewParam = searchParams?.get('view') || ''
+  const initialTab: TabId = VIEW_TO_TAB[viewParam] || 'overview'
   const [me, setMe] = useState<Profile | null>(null)
-  const [activeTab, setActiveTab] = useState<TabId>('overview')
+  const [activeTab, setActiveTab] = useState<TabId>(initialTab)
+
+  // Keep tab in sync with URL ?view= changes (sidebar nav clicks).
+  useEffect(() => {
+    const next = VIEW_TO_TAB[viewParam] || 'overview'
+    setActiveTab(next)
+  }, [viewParam])
   const [members, setMembers] = useState<MemberRow[]>([])
   const [projects, setProjects] = useState<ProjectLite[]>([])
   const [allTasks, setAllTasks] = useState<Task[]>([])
@@ -427,118 +460,124 @@ export default function TeamsPage() {
   const memberOpen = openMemberId ? members.find(m => m.profile.id === openMemberId) ?? null : null
 
   // ─── Render ──────────────────────────────────────────────────
+  // Flat helpers for the new chrome
+  const projectsById = new Map(projects.map(p => [p.id, p]))
+
   return (
-    <div className="team-page">
-      <header className="tm-head">
-        <div>
-          <p className="tm-eyebrow">Workspace · Team</p>
-          <h1>Team</h1>
-          <p className="tm-sub">Verwalte Mitglieder, Rollen und Verantwortlichkeiten in deinem Workspace.</p>
-          {!loading && <p className="tm-summary">{teamSummary}</p>}
-        </div>
-        <div className="tm-head-actions">
-          <button type="button" className="tm-ghost" onClick={load} disabled={loading}>
-            <ArrowsClockwise size={12} className={loading ? 'tm-spin' : ''} />
-            {loading ? 'Lade…' : 'Aktualisieren'}
-          </button>
-          <Link href="/ai?prompt=team" className="tm-ghost">
-            <Sparkle size={12} /> Tagro fragen
-          </Link>
-          <button type="button" className="tm-primary" onClick={() => setInviteOpen(true)}>
-            <UserPlus size={13} weight="bold" /> Mitglied einladen
-          </button>
-        </div>
-      </header>
+    <div className="team-os">
+      <style jsx>{CSS}</style>
 
-      <section className="tm-intel">
-        <span className="tm-intel-mark"><Sparkle size={13} weight="fill" /></span>
-        <div className="tm-intel-text">
-          <p className="tm-intel-label">Tagro Team Intelligence</p>
-          <p className="tm-intel-line">{tagroSentence}</p>
+      {/* Sticky top — same shell as /tasks (.task-static-top).
+          14.5px title, soft #4E5567, pill tabs, no eyebrow wall. */}
+      <div className="team-static-top">
+        <div className="team-top">
+          <div className="team-top-left">
+            <h1 className="team-title">Team</h1>
+            <span className="team-count-pill">
+              {loading ? '…' : `${members.length} Mitglied${members.length === 1 ? '' : 'er'} · ${activeProjects.length} Projekt${activeProjects.length === 1 ? '' : 'e'}`}
+            </span>
+          </div>
+          <div className="team-top-actions">
+            <button type="button" className="team-ghost" onClick={load} disabled={loading}>
+              <ArrowsClockwise size={11} className={loading ? 'team-spin' : ''} />
+              {loading ? 'Lade…' : 'Aktualisieren'}
+            </button>
+            <Link href="/ai?prompt=team" className="team-ghost">
+              <Sparkle size={11} /> Tagro
+            </Link>
+            <button type="button" className="team-primary" onClick={() => setInviteOpen(true)}>
+              <UserPlus size={11} weight="bold" /> Einladen
+            </button>
+          </div>
         </div>
-      </section>
 
-      <nav className="tm-tabs" role="tablist">
-        {TABS.map(t => (
-          <button
-            key={t.id}
-            type="button"
-            role="tab"
-            aria-selected={activeTab === t.id}
-            className={`tm-tab${activeTab === t.id ? ' on' : ''}`}
-            onClick={() => setActiveTab(t.id)}
-          >
-            {t.label}
-            {t.id === 'invites' && invites.length > 0 && <span className="tm-tab-count">{invites.length}</span>}
-          </button>
-        ))}
-      </nav>
+        <nav className="team-tabs" role="tablist" aria-label="Team-Ansichten">
+          {TABS.map(t => (
+            <button
+              key={t.id}
+              type="button"
+              role="tab"
+              aria-selected={activeTab === t.id}
+              className={`team-tab${activeTab === t.id ? ' on' : ''}`}
+              onClick={() => setActiveTab(t.id)}
+            >
+              {t.label}
+              {t.id === 'invites' && invites.length > 0 && <span className="team-tab-count">{invites.length}</span>}
+            </button>
+          ))}
+        </nav>
+      </div>
 
-      <main className="tm-main">
+      <main className="team-scroll-body">
 
         {activeTab === 'overview' && (
-          <div className="tm-overview">
-            <div className="tm-metrics">
-              <MetricCard label="Mitglieder"      value={members.length} />
-              <MetricCard label="Aktive Projekte" value={activeProjects.length} />
-              <MetricCard label="Offene Tasks"    value={allTasks.filter(taskOpen).length} />
-              <MetricCard label="In Prüfung"      value={allTasks.filter(taskReview).length} />
-              <MetricCard label="Blocker"         value={allTasks.filter(taskBlocked).length} tone={allTasks.filter(taskBlocked).length > 0 ? 'red' : 'muted'} />
-              <MetricCard label="Einladungen"     value={invites.length} />
+          <div className="team-pane">
+            {/* Tagro line — flat, no card */}
+            <div className="team-intel">
+              <Sparkle size={12} weight="fill" />
+              <p>{tagroSentence}</p>
             </div>
 
-            <section className="tm-section">
-              <header className="tm-section-head">
+            {/* Stat strip — numbers + labels, no boxes */}
+            <div className="team-stats">
+              <Stat v={members.length} l="Mitglieder" />
+              <Stat v={activeProjects.length} l="Aktive Projekte" />
+              <Stat v={allTasks.filter(taskOpen).length} l="Offene Tasks" />
+              <Stat v={allTasks.filter(taskReview).length} l="In Prüfung" />
+              <Stat v={allTasks.filter(taskBlocked).length} l="Blocker" tone={allTasks.filter(taskBlocked).length > 0 ? 'red' : undefined} />
+              <Stat v={invites.length} l="Einladungen" />
+            </div>
+
+            <section className="team-section">
+              <header className="team-section-head">
                 <h2>Aktive Projektteams</h2>
-                <span className="tm-section-meta">{projectTeams.length}</span>
+                <span>{projectTeams.length}</span>
               </header>
               {projectTeams.length === 0 ? (
-                <p className="tm-empty-line">Noch kein aktives Projektteam. Lege ein Projekt an, dann erscheint es hier.</p>
+                <p className="team-empty">Noch kein aktives Projektteam.</p>
               ) : (
-                <div className="tm-grid">
-                  {projectTeams.slice(0, 6).map(t => (
-                    <Link key={t.project.id} href={`/project/${t.project.id}`} className="tm-project-card">
-                      <div className="tm-project-head">
-                        <span className="tm-project-dot" style={{ background: t.project.color || 'var(--text-muted)' }} />
-                        <span className="tm-project-title">{t.project.title}</span>
-                      </div>
-                      <p className="tm-project-meta">
-                        {t.owner ? `Owner: ${displayName(t.owner.profile)}` : 'Owner fehlt'} · {t.devs.length} Entw. · {t.openTasks} offen
-                      </p>
-                      <div className="tm-coverage-row">
-                        <span className={`tm-pill tone-${t.coverage.tone}`}>{t.coverage.label}</span>
-                        <ArrowRight size={11} className="tm-go" />
-                      </div>
+                <div className="team-list">
+                  {projectTeams.slice(0, 8).map(t => (
+                    <Link key={t.project.id} href={`/project/${t.project.id}`} className="team-row team-row-project">
+                      <span className="team-row-dot" style={{ background: t.project.color || 'var(--text-muted)' }} />
+                      <span className="team-row-main">
+                        <strong>{t.project.title}</strong>
+                        <small>{t.owner ? `Owner: ${displayName(t.owner.profile)}` : 'Owner fehlt'} · {t.devs.length} Entw.</small>
+                      </span>
+                      <span className="team-row-mute">{t.openTasks} offen</span>
+                      <span className="team-row-mute">{t.blockedTasks} Blocker</span>
+                      <span className={`team-pill tone-${t.coverage.tone}`}>{t.coverage.label}</span>
+                      <ArrowRight size={11} className="team-row-go" />
                     </Link>
                   ))}
                 </div>
               )}
             </section>
 
-            <section className="tm-section">
-              <header className="tm-section-head">
+            <section className="team-section">
+              <header className="team-section-head">
                 <h2>Verantwortungs-Lücken</h2>
-                <span className="tm-section-meta">{responsibilityGaps.length}</span>
+                <span>{responsibilityGaps.length}</span>
               </header>
               {responsibilityGaps.length === 0 ? (
-                <p className="tm-empty-line">Keine offenen Verantwortungs-Lücken.</p>
+                <p className="team-empty">Keine offenen Verantwortungs-Lücken.</p>
               ) : (
-                <div className="tm-list">
+                <div className="team-list">
                   {responsibilityGaps.slice(0, 6).map((g, i) => <ResponsibilityRow key={i} gap={g} />)}
                 </div>
               )}
             </section>
 
-            <section className="tm-section">
-              <header className="tm-section-head">
+            <section className="team-section">
+              <header className="team-section-head">
                 <h2>Letzte Team-Aktivität</h2>
               </header>
               {activity.length === 0 ? (
-                <p className="tm-empty-line">Team-Aktivität erscheint hier — Task-Zuweisungen, Freigaben, Briefings, neue Einladungen.</p>
+                <p className="team-empty">Team-Aktivität erscheint hier — Task-Zuweisungen, Freigaben, Briefings.</p>
               ) : (
-                <div className="tm-list">
+                <div className="team-list">
                   {activity.slice(0, 8).map(a => (
-                    <ActivityRowView key={a.id} row={a} projectsById={new Map(projects.map(p => [p.id, p]))} />
+                    <ActivityRowView key={a.id} row={a} projectsById={projectsById} />
                   ))}
                 </div>
               )}
@@ -547,10 +586,10 @@ export default function TeamsPage() {
         )}
 
         {activeTab === 'members' && (
-          <div className="tm-members">
-            <div className="tm-toolbar">
-              <label className="tm-search">
-                <MagnifyingGlass size={13} />
+          <div className="team-pane">
+            <div className="team-pane-toolbar">
+              <label className="team-search-inline">
+                <MagnifyingGlass size={11} />
                 <input
                   type="text"
                   placeholder="Mitglied suchen…"
@@ -559,7 +598,7 @@ export default function TeamsPage() {
                 />
               </label>
               <select
-                className="tm-select"
+                className="team-select"
                 value={roleFilter}
                 onChange={e => setRoleFilter(e.target.value)}
                 aria-label="Rolle filtern"
@@ -569,149 +608,186 @@ export default function TeamsPage() {
               </select>
             </div>
 
-            <section className="tm-table">
-              <div className="tm-table-head">
-                <span>Mitglied</span>
-                <span>Rolle</span>
-                <span>Projekte</span>
-                <span>Tasks</span>
-                <span>Workload</span>
-                <span>Letzte Aktivität</span>
-              </div>
+            <div className="team-table-head team-row-member">
+              <span>Mitglied</span><span>Rolle</span><span>Projekte</span><span>Tasks</span><span>Workload</span><span>Aktivität</span>
+            </div>
 
-              {loading && filteredMembers.length === 0 ? (
-                <p className="tm-empty">Lade Team…</p>
-              ) : filteredMembers.length === 0 ? (
-                <EmptyState
-                  title="Baue dein erstes Projektteam auf."
-                  body="Lade Entwickler, Projektverantwortliche oder Kunden ein, damit Festag Aufgaben, Kommunikation und Freigaben sauber verbinden kann."
-                  cta="Mitglied einladen"
-                  onCta={() => setInviteOpen(true)}
-                />
-              ) : filteredMembers.map(m => (
-                <button
-                  key={m.profile.id}
-                  className="tm-row"
-                  type="button"
-                  onClick={() => setOpenMemberId(m.profile.id)}
-                  id={`member-${m.profile.id}`}
-                >
-                  <span className="tm-row-member">
-                    <Avatar profile={m.profile} />
-                    <span className="tm-row-name">
-                      <strong>
-                        {displayName(m.profile)}
-                        {m.isYou && <span className="tm-badge-you">Du</span>}
-                      </strong>
-                      <small>{m.profile.email || '—'}</small>
-                    </span>
-                  </span>
-                  <span className="tm-row-role">{roleLabel(m.profile.role)}</span>
-                  <span className="tm-row-projects">
-                    {m.projects.length === 0
-                      ? <span className="tm-cell-empty">—</span>
-                      : m.projects.slice(0, 2).map(p => (
-                          <span key={p.id} className="tm-proj-tag">
-                            <span className="tm-proj-dot" style={{ background: p.color || 'var(--text-muted)' }} />
-                            {p.title}
-                          </span>
-                        ))
-                    }
-                    {m.projects.length > 2 && <span className="tm-proj-more">+{m.projects.length - 2}</span>}
-                  </span>
-                  <span className="tm-row-tasks">
-                    {m.activeTasks === 0 ? <span className="tm-cell-empty">—</span> : `${m.activeTasks} aktiv`}
-                  </span>
-                  <span className="tm-row-workload">
-                    <span className={`tm-pill tone-${WORKLOAD_TONE[m.workload]}`}>{WORKLOAD_LABEL[m.workload]}</span>
-                  </span>
-                  <span className="tm-row-update">{fmtTimeAgo(m.lastUpdate)}</span>
-                </button>
-              ))}
-            </section>
-          </div>
-        )}
-
-        {activeTab === 'projects' && (
-          <div className="tm-projects">
-            {projectTeams.length === 0 ? (
-              <EmptyState
-                title="Noch keine Projektteams."
-                body="Lege ein Projekt an, dann erscheint hier die Team-Zuordnung mit Owner, Entwicklern und Coverage-Status."
-                cta="Neues Projekt"
-                href="/projects?new=1"
-              />
+            {loading && filteredMembers.length === 0 ? (
+              <p className="team-empty">Lade Team…</p>
+            ) : filteredMembers.length === 0 ? (
+              <p className="team-empty">
+                Noch keine Mitglieder. <button className="team-inline-link" type="button" onClick={() => setInviteOpen(true)}>Mitglied einladen</button>.
+              </p>
             ) : (
-              <div className="tm-grid tm-grid-wide">
-                {projectTeams.map(t => (
-                  <article key={t.project.id} className="tm-project-card big">
-                    <header className="tm-project-card-head">
-                      <span className="tm-project-dot" style={{ background: t.project.color || 'var(--text-muted)' }} />
-                      <div className="tm-project-title-block">
-                        <h3>{t.project.title}</h3>
-                        <p>{(t.project.status || 'intake')} · {t.openTasks} offen · {t.blockedTasks} Blocker</p>
-                      </div>
-                      <span className={`tm-pill tone-${t.coverage.tone}`}>{t.coverage.label}</span>
-                    </header>
-                    <div className="tm-project-team">
-                      {t.owner ? (
-                        <div className="tm-team-line">
-                          <span className="tm-team-label">Owner</span>
-                          <span className="tm-team-value"><Avatar profile={t.owner.profile} size={20} />{displayName(t.owner.profile)}</span>
-                        </div>
-                      ) : (
-                        <div className="tm-team-line missing">
-                          <span className="tm-team-label">Owner</span>
-                          <span className="tm-team-value">— nicht zugewiesen —</span>
-                        </div>
-                      )}
-                      <div className="tm-team-line">
-                        <span className="tm-team-label">Entwickler</span>
-                        <span className="tm-team-value">
-                          {t.devs.length === 0
-                            ? <span className="tm-team-missing">keine zugewiesen</span>
-                            : (
-                              <span className="tm-avatar-stack">
-                                {t.devs.slice(0, 4).map(d => <Avatar key={d.profile.id} profile={d.profile} size={20} />)}
-                                {t.devs.length > 4 && <span className="tm-avatar-more">+{t.devs.length - 4}</span>}
-                              </span>
-                            )
-                          }
-                        </span>
-                      </div>
-                    </div>
-                    <footer className="tm-project-card-foot">
-                      <Link href={`/project/${t.project.id}`}>Projekt öffnen <ArrowRight size={11} /></Link>
-                      <Link href={`/ai?project=${t.project.id}&mode=developer`}>Team schreiben <ChatCircleDots size={11} /></Link>
-                    </footer>
-                  </article>
+              <div className="team-list flat">
+                {filteredMembers.map(m => (
+                  <button
+                    key={m.profile.id}
+                    type="button"
+                    className="team-row team-row-member"
+                    onClick={() => setOpenMemberId(m.profile.id)}
+                  >
+                    <span className="team-row-name">
+                      <Avatar profile={m.profile} size={22} />
+                      <span>
+                        <strong>{displayName(m.profile)}{m.isYou && <span className="team-row-you">Du</span>}</strong>
+                        <small>{m.profile.email || '—'}</small>
+                      </span>
+                    </span>
+                    <span className="team-row-mute">{roleLabel(m.profile.role)}</span>
+                    <span className="team-row-projects">
+                      {m.projects.length === 0
+                        ? <span className="team-row-missing">—</span>
+                        : m.projects.slice(0, 2).map(p => (
+                            <span key={p.id} className="team-proj-tag">
+                              <span className="team-row-dot small" style={{ background: p.color || 'var(--text-muted)' }} />
+                              {p.title}
+                            </span>
+                          ))}
+                      {m.projects.length > 2 && <span className="team-row-mute">+{m.projects.length - 2}</span>}
+                    </span>
+                    <span className="team-row-mute">{m.activeTasks === 0 ? '—' : `${m.activeTasks} aktiv`}</span>
+                    <span className={`team-pill tone-${WORKLOAD_TONE[m.workload]}`}>{WORKLOAD_LABEL[m.workload]}</span>
+                    <span className="team-row-mute">{fmtTimeAgo(m.lastUpdate)}</span>
+                  </button>
                 ))}
               </div>
             )}
           </div>
         )}
 
+        {activeTab === 'projects' && (
+          <div className="team-pane">
+            <div className="team-table-head team-row-project-full">
+              <span /><span>Projekt</span><span>Owner</span><span>Entwickler</span><span>Tasks</span><span>Coverage</span><span />
+            </div>
+            {projectTeams.length === 0 ? (
+              <p className="team-empty">
+                Noch keine Projektteams. <Link href="/projects?new=1" className="team-inline-link">Neues Projekt anlegen</Link>.
+              </p>
+            ) : (
+              <div className="team-list flat">
+                {projectTeams.map(t => (
+                  <Link key={t.project.id} href={`/project/${t.project.id}`} className="team-row team-row-project-full">
+                    <span className="team-row-dot" style={{ background: t.project.color || 'var(--text-muted)' }} />
+                    <span className="team-row-main">
+                      <strong>{t.project.title}</strong>
+                      <small>{t.project.status || 'intake'} · {t.blockedTasks} Blocker</small>
+                    </span>
+                    <span className="team-row-owner">
+                      {t.owner ? (
+                        <><Avatar profile={t.owner.profile} size={18} />{displayName(t.owner.profile)}</>
+                      ) : <span className="team-row-missing">— nicht zugewiesen —</span>}
+                    </span>
+                    <span className="team-row-devs">
+                      {t.devs.length === 0 ? (
+                        <span className="team-row-missing">keine</span>
+                      ) : (
+                        <span className="team-avatar-stack">
+                          {t.devs.slice(0, 4).map(d => <Avatar key={d.profile.id} profile={d.profile} size={18} />)}
+                          {t.devs.length > 4 && <span className="team-avatar-more">+{t.devs.length - 4}</span>}
+                        </span>
+                      )}
+                    </span>
+                    <span className="team-row-mute">{t.openTasks} offen</span>
+                    <span className={`team-pill tone-${t.coverage.tone}`}>{t.coverage.label}</span>
+                    <ArrowRight size={11} className="team-row-go" />
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'tasks' && (
+          <div className="team-pane">
+            <div className="team-table-head team-row-task">
+              <span>Aufgabe</span><span>Projekt</span><span>Verantwortlich</span><span>Status</span><span>Update</span>
+            </div>
+            {allTasks.length === 0 ? (
+              <p className="team-empty">Keine Tasks im Team. Sobald Aufgaben Mitgliedern zugewiesen werden, erscheinen sie hier.</p>
+            ) : (
+              <div className="team-list flat">
+                {allTasks.slice(0, 200).map(t => {
+                  const proj = t.project_id ? projectsById.get(t.project_id) : null
+                  const assignee = members.find(m => m.profile.id === t.assigned_to)
+                  const statusLabel = taskDone(t) ? 'Erledigt'
+                    : taskReview(t) ? 'In Prüfung'
+                    : taskBlocked(t) ? 'Blocker'
+                    : taskOpen(t) ? 'Offen' : '—'
+                  const tone = taskDone(t) ? 'good' : taskBlocked(t) ? 'red' : taskReview(t) ? 'amber' : 'muted'
+                  return (
+                    <Link key={t.id} href={`/project/${t.project_id ?? ''}?task=${t.id}`} className="team-row team-row-task">
+                      <span className="team-row-main">
+                        <strong>{t.title}</strong>
+                      </span>
+                      <span className="team-row-proj">
+                        {proj ? (
+                          <><span className="team-row-dot small" style={{ background: proj.color || 'var(--text-muted)' }} />{proj.title}</>
+                        ) : <span className="team-row-missing">—</span>}
+                      </span>
+                      <span className="team-row-assignee">
+                        {assignee ? <><Avatar profile={assignee.profile} size={18} />{displayName(assignee.profile)}</> : <span className="team-row-missing">—</span>}
+                      </span>
+                      <span className={`team-pill tone-${tone}`}>{statusLabel}</span>
+                      <span className="team-row-mute">{fmtTimeAgo(t.updated_at)}</span>
+                    </Link>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'messages' && (
+          <div className="team-pane">
+            {activity.length === 0 ? (
+              <p className="team-empty">
+                Noch keine Team-Nachrichten. Tagro fasst Chat-Threads und Status-Updates hier zusammen.
+                <Link href="/messages" className="team-inline-link"> Voller Posteingang →</Link>
+              </p>
+            ) : (
+              <div className="team-list flat">
+                {activity.map(a => {
+                  const proj = a.project_id ? projectsById.get(a.project_id) : null
+                  return (
+                    <Link key={a.id} href={proj ? `/project/${proj.id}` : '/messages'} className="team-row team-row-msg">
+                      <span className="team-row-icon"><Chat size={13} /></span>
+                      <span className="team-row-main">
+                        <strong>{a.title || a.kind || 'Nachricht'}</strong>
+                        {a.body && <small>{a.body.slice(0, 160)}</small>}
+                        {proj && <span className="team-row-proj-inline"><span className="team-row-dot small" style={{ background: proj.color || 'var(--text-muted)' }} />{proj.title}</span>}
+                      </span>
+                      <span className="team-row-mute">{fmtTimeAgo(a.created_at)}</span>
+                    </Link>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
         {activeTab === 'responsibilities' && (
-          <div className="tm-resp">
-            <section className="tm-section">
-              <header className="tm-section-head">
+          <div className="team-pane">
+            <section className="team-section">
+              <header className="team-section-head">
                 <h2>Offene Verantwortungen</h2>
-                <span className="tm-section-meta">{responsibilityGaps.length}</span>
+                <span>{responsibilityGaps.length}</span>
               </header>
               {responsibilityGaps.length === 0 ? (
-                <p className="tm-empty-line">Keine offenen Verantwortungs-Lücken. Tagro hat alle Rollen-Pflichten im Blick.</p>
+                <p className="team-empty">Keine offenen Verantwortungs-Lücken.</p>
               ) : (
-                <div className="tm-list">
+                <div className="team-list">
                   {responsibilityGaps.map((g, i) => <ResponsibilityRow key={i} gap={g} />)}
                 </div>
               )}
             </section>
 
-            <section className="tm-section">
-              <header className="tm-section-head">
+            <section className="team-section">
+              <header className="team-section-head">
                 <h2>Rollen-Verantwortungen</h2>
               </header>
-              <div className="tm-grid tm-grid-3">
+              <div className="team-grid-3">
                 <RoleCard title="Project Owner" items={[
                   'Verantwortet Liefer-Qualität',
                   'Gibt Meilensteine frei',
@@ -752,16 +828,13 @@ export default function TeamsPage() {
         )}
 
         {activeTab === 'activity' && (
-          <div className="tm-activity">
+          <div className="team-pane">
             {activity.length === 0 ? (
-              <EmptyState
-                title="Team-Aktivität erscheint hier."
-                body="Task-Zuweisungen, Freigaben, Nachrichten und Briefing-Events werden in dieser Timeline angezeigt."
-              />
+              <p className="team-empty">Team-Aktivität erscheint hier — Task-Zuweisungen, Freigaben, Briefings.</p>
             ) : (
-              <div className="tm-list">
+              <div className="team-list">
                 {activity.map(a => (
-                  <ActivityRowView key={a.id} row={a} projectsById={new Map(projects.map(p => [p.id, p]))} />
+                  <ActivityRowView key={a.id} row={a} projectsById={projectsById} />
                 ))}
               </div>
             )}
@@ -769,37 +842,31 @@ export default function TeamsPage() {
         )}
 
         {activeTab === 'invites' && (
-          <div className="tm-invites">
-            <section className="tm-section">
-              <header className="tm-section-head">
+          <div className="team-pane">
+            <section className="team-section">
+              <header className="team-section-head">
                 <h2>Ausstehende Einladungen</h2>
-                <span className="tm-section-meta">{invites.length}</span>
+                <span>{invites.length}</span>
               </header>
               {invites.length === 0 ? (
-                <EmptyState
-                  title="Keine ausstehenden Einladungen."
-                  body="Eingeladene Personen erscheinen hier, bis sie den Link öffnen und beitreten."
-                  cta="Mitglied einladen"
-                  onCta={() => setInviteOpen(true)}
-                />
+                <p className="team-empty">
+                  Keine ausstehenden Einladungen. <button type="button" className="team-inline-link" onClick={() => setInviteOpen(true)}>Mitglied einladen</button>.
+                </p>
               ) : (
-                <div className="tm-list">
+                <div className="team-list flat">
                   {invites.map(inv => (
-                    <div key={inv.id} className="tm-invite-row">
-                      <span className="tm-invite-icon"><PaperPlaneTilt size={14} /></span>
-                      <div className="tm-invite-main">
+                    <div key={inv.id} className="team-row team-row-invite">
+                      <span className="team-row-icon"><PaperPlaneTilt size={12} /></span>
+                      <span className="team-row-main">
                         <strong>{inv.invited_name || inv.email}</strong>
                         <small>{inv.email} · {roleLabel(inv.role)} · gesendet {fmtTimeAgo(inv.created_at)}</small>
-                      </div>
-                      <span className="tm-pill tone-amber">Ausstehend</span>
+                      </span>
+                      <span className="team-pill tone-amber">Ausstehend</span>
                     </div>
                   ))}
                 </div>
               )}
             </section>
-            <p className="tm-note">
-              Einladungen werden per E-Mail versendet. Eingeladene Personen öffnen den Link und treten direkt dem Workspace bei.
-            </p>
           </div>
         )}
 
@@ -822,7 +889,16 @@ export default function TeamsPage() {
         />
       )}
 
-      <style jsx>{CSS}</style>
+    </div>
+  )
+}
+
+/* Inline stat for the overview strip — flat number + label, no box. */
+function Stat({ v, l, tone }: { v: number | string; l: string; tone?: 'red' }) {
+  return (
+    <div className={`team-stat${tone === 'red' ? ' red' : ''}`}>
+      <span className="team-stat-v">{v}</span>
+      <span className="team-stat-l">{l}</span>
     </div>
   )
 }
@@ -1172,11 +1248,333 @@ function InviteDrawer({
  * ─────────────────────────────────────────────────────────── */
 
 const CSS = `
-  .team-page { padding: 26px 28px 64px; max-width: 1320px; margin: 0 auto; }
-  @media (max-width: 768px) { .team-page { padding: 18px 16px calc(96px + env(safe-area-inset-bottom, 0px)); } }
+  /* ═══════════════════════════════════════════════════════════
+   * .team-os — same shell DNA as /tasks .task-os.
+   * Sticky top, flat scroll body, no cards. Aeonik Medium only,
+   * 1.7% letter-spacing for the Figma-style breathing room.
+   * ═══════════════════════════════════════════════════════════ */
+  .team-os {
+    --team-soft:#4E5567;
+    width: 100%; height: 100%; min-height: 0;
+    color: var(--text); padding: 20px 0 0;
+    display: flex; flex-direction: column; overflow: hidden;
+    letter-spacing: .017em;
+    font-family: var(--font-aeonik,'Aeonik',Inter,sans-serif);
+    font-weight: 500;
+  }
+  .team-os, .team-os * { font-weight: 500; letter-spacing: .017em; }
+  .team-os strong { font-weight: 500; }
+  [data-theme="dark"] .team-os,
+  [data-theme="classic-dark"] .team-os,
+  [data-theme="read"] .team-os {
+    --team-soft: var(--text-secondary);
+  }
 
-  .tm-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 14px; flex-wrap: wrap; }
-  .tm-eyebrow { margin: 0 0 4px; font-size: 10.5px; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; color: var(--text-muted); }
+  /* ── Sticky top ─────────────────────────────────────────── */
+  .team-static-top { flex: 0 0 auto; position: relative; z-index: 8; }
+  .team-top {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; min-height: 34px; padding: 0 18px 12px;
+    border-bottom: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+  }
+  .team-top-left { display: flex; align-items: center; gap: 10px; min-width: 0; flex-wrap: wrap; }
+  .team-title { margin: 0; font-size: 14.5px; font-weight: 500; letter-spacing: .017em; color: var(--text); }
+  .team-count-pill {
+    height: 20px; padding: 0 8px; border-radius: 999px;
+    background: color-mix(in srgb, var(--surface-2) 50%, transparent);
+    color: var(--team-soft); font-size: 10.5px;
+    display: inline-flex; align-items: center;
+  }
+  .team-top-actions { display: flex; align-items: center; gap: 6px; }
+
+  .team-ghost {
+    display: inline-flex; align-items: center; gap: 5px;
+    height: 28px; padding: 0 11px; border-radius: 8px;
+    background: transparent; border: 0; color: var(--team-soft);
+    font: inherit; font-size: 12px; font-weight: 500;
+    text-decoration: none; cursor: pointer;
+    transition: background .12s, color .12s;
+  }
+  .team-ghost:hover { background: var(--surface-2); color: var(--text); }
+  .team-ghost:disabled { opacity: .5; cursor: not-allowed; }
+  .team-spin { animation: teamSpin 1s linear infinite; }
+  @keyframes teamSpin { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+
+  .team-primary {
+    display: inline-flex; align-items: center; gap: 5px;
+    height: 28px; padding: 0 13px; border-radius: 999px;
+    background: var(--btn-prim); color: var(--btn-prim-text); border: 0;
+    font: inherit; font-size: 12px; font-weight: 500;
+    cursor: pointer; transition: opacity .12s, transform .12s;
+  }
+  .team-primary:hover { opacity: .92; }
+  .team-primary:active { transform: scale(.97); }
+
+  /* Tabs — pill chips, same density as /tasks */
+  .team-tabs {
+    display: flex; gap: 5px; padding: 12px 18px 10px;
+    overflow-x: auto; -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .team-tabs::-webkit-scrollbar { display: none; }
+  .team-tab {
+    display: inline-flex; align-items: center; gap: 5px;
+    height: 27px; padding: 0 11px;
+    border: 1px solid var(--border); border-radius: 999px;
+    background: transparent; color: var(--team-soft);
+    font: inherit; font-size: 11.5px; font-weight: 500;
+    cursor: pointer; white-space: nowrap; flex-shrink: 0;
+    transition: background .12s, color .12s, border-color .12s;
+  }
+  .team-tab:hover { color: var(--text); }
+  .team-tab.on { background: var(--surface-2); color: var(--text); }
+  .team-tab-count {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 15px; height: 15px; padding: 0 4px; border-radius: 999px;
+    background: color-mix(in srgb, var(--text) 12%, transparent);
+    color: var(--text); font-size: 9.5px;
+  }
+
+  /* ── Scroll body ────────────────────────────────────────── */
+  .team-scroll-body {
+    flex: 1 1 auto; min-height: 0;
+    overflow-y: auto; overflow-x: hidden;
+    padding: 0 18px 80px; overscroll-behavior: contain;
+  }
+  .team-pane { display: flex; flex-direction: column; gap: 4px; }
+
+  /* Intel banner — flat line, no card */
+  .team-intel {
+    display: flex; align-items: center; gap: 8px;
+    padding: 14px 0 12px;
+    border-bottom: 1px solid color-mix(in srgb, var(--border) 30%, transparent);
+  }
+  .team-intel svg { color: var(--btn-prim); flex-shrink: 0; }
+  .team-intel p { margin: 0; font-size: 12.5px; color: var(--text); line-height: 1.5; }
+
+  /* Stat strip — flat numbers, no boxes */
+  .team-stats {
+    display: flex; gap: 28px; padding: 16px 0;
+    border-bottom: 1px solid color-mix(in srgb, var(--border) 30%, transparent);
+    flex-wrap: wrap;
+  }
+  .team-stat { display: flex; flex-direction: column; gap: 2px; }
+  .team-stat.red .team-stat-v { color: #ef4444; }
+  .team-stat-v { font-size: 18px; font-weight: 500; color: var(--text); letter-spacing: -.008em; }
+  .team-stat-l { font-size: 10px; color: var(--team-soft); letter-spacing: .14em; text-transform: uppercase; }
+
+  /* Section heading inside a pane */
+  .team-section { padding: 18px 0 4px; display: flex; flex-direction: column; gap: 4px; }
+  .team-section-head {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 4px;
+  }
+  .team-section-head h2 { margin: 0; font-size: 12.5px; font-weight: 500; color: var(--team-soft); }
+  .team-section-head > span { font-size: 11px; color: var(--team-soft); }
+
+  /* Table head — column labels above flat list */
+  .team-table-head {
+    display: grid; gap: 14px;
+    padding: 11px 8px 9px;
+    font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--team-soft);
+    border-bottom: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+    margin-top: 6px;
+  }
+
+  /* Flat list of rows */
+  .team-list { display: flex; flex-direction: column; gap: 0; }
+  .team-list.flat .team-row { border-radius: 0; }
+
+  /* Generic row baseline */
+  .team-row {
+    display: grid; gap: 14px; align-items: center;
+    padding: 11px 8px;
+    border: 0; background: transparent;
+    border-bottom: 1px solid color-mix(in srgb, var(--border) 26%, transparent);
+    color: var(--text); font: inherit; font-size: 12.5px; font-weight: 500;
+    letter-spacing: .017em; text-align: left;
+    cursor: pointer; width: 100%; text-decoration: none;
+    transition: background .1s;
+  }
+  .team-row:hover { background: color-mix(in srgb, var(--surface-2) 45%, transparent); }
+  .team-row strong { font-size: 13px; font-weight: 500; color: var(--text); letter-spacing: .017em; }
+  .team-row small { display: block; font-size: 11px; color: var(--team-soft); font-weight: 500; margin-top: 1px; letter-spacing: .017em; }
+  .team-row-go { color: var(--team-soft); justify-self: end; }
+  .team-row-mute { font-size: 11.5px; color: var(--team-soft); }
+  .team-row-missing { color: var(--team-soft); opacity: .65; font-size: 11.5px; }
+  .team-row-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .team-row-dot.small { width: 6px; height: 6px; display: inline-block; margin-right: 4px; vertical-align: middle; }
+
+  /* Project rows (overview compact) */
+  .team-row-project { grid-template-columns: 8px minmax(220px, 1.8fr) 90px 90px 100px 14px; }
+  /* Project rows (projects tab — full) */
+  .team-row-project-full { grid-template-columns: 8px minmax(200px, 1.6fr) minmax(140px, 1fr) minmax(120px, 1fr) 80px 100px 14px; }
+  .team-row-main { display: flex; flex-direction: column; min-width: 0; }
+  .team-row-owner, .team-row-assignee {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12px; color: var(--text); overflow: hidden;
+    text-overflow: ellipsis; white-space: nowrap; min-width: 0;
+  }
+  .team-row-devs { display: inline-flex; align-items: center; gap: 6px; }
+  .team-avatar-stack { display: inline-flex; align-items: center; gap: -3px; }
+  .team-avatar-stack > * + * { margin-left: -6px; box-shadow: 0 0 0 2px var(--bg); }
+  .team-avatar-more {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 18px; height: 18px; border-radius: 999px;
+    background: var(--surface-2); color: var(--team-soft);
+    font-size: 9.5px;
+  }
+
+  /* Task rows */
+  .team-row-task { grid-template-columns: minmax(220px, 1.8fr) minmax(140px, 1fr) minmax(140px, 1fr) 100px 100px; }
+  .team-row-proj { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* Message rows */
+  .team-row-msg { grid-template-columns: 22px 1fr 100px; }
+  .team-row-icon {
+    width: 22px; height: 22px; border-radius: 7px;
+    background: color-mix(in srgb, var(--surface-2) 70%, transparent);
+    color: var(--team-soft);
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .team-row-proj-inline { display: inline-flex; align-items: center; margin-top: 3px; font-size: 10.5px; color: var(--team-soft); }
+
+  /* Member rows */
+  .team-row-member { grid-template-columns: minmax(200px, 1.5fr) 110px minmax(140px, 1.2fr) 90px 100px 100px; }
+  .team-row-name { display: inline-flex; align-items: center; gap: 9px; min-width: 0; }
+  .team-row-name > span { min-width: 0; }
+  .team-row-name strong { display: inline-flex; align-items: center; gap: 5px; }
+  .team-row-you {
+    font-size: 9px; letter-spacing: .12em; text-transform: uppercase;
+    padding: 1px 5px; border-radius: 4px;
+    background: color-mix(in srgb, var(--surface-2) 80%, transparent);
+    color: var(--team-soft);
+  }
+  .team-row-projects { display: inline-flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+  .team-proj-tag {
+    display: inline-flex; align-items: center;
+    height: 18px; padding: 0 7px; border-radius: 999px;
+    background: color-mix(in srgb, var(--surface-2) 55%, transparent);
+    color: var(--text); font-size: 10.5px;
+    max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+
+  /* Invite rows */
+  .team-row-invite { grid-template-columns: 22px 1fr 100px; cursor: default; }
+
+  /* Pills (status, coverage, workload) */
+  .team-pill {
+    display: inline-flex; align-items: center;
+    height: 18px; padding: 0 8px; border-radius: 999px;
+    font-size: 10px; letter-spacing: .04em; text-transform: uppercase;
+    background: color-mix(in srgb, var(--surface-2) 70%, transparent);
+    color: var(--text); white-space: nowrap;
+  }
+  .team-pill.tone-red    { background: color-mix(in srgb, #ef4444 14%, transparent); color: #ef4444; }
+  .team-pill.tone-amber  { background: color-mix(in srgb, #f59e0b 14%, transparent); color: #f59e0b; }
+  .team-pill.tone-good   { background: color-mix(in srgb, #22c55e 14%, transparent); color: #22c55e; }
+  .team-pill.tone-muted  { background: color-mix(in srgb, var(--surface-2) 70%, transparent); color: var(--team-soft); }
+  .team-pill.tone-default { background: color-mix(in srgb, var(--surface-2) 70%, transparent); color: var(--text); }
+
+  /* Empty */
+  .team-empty {
+    padding: 28px 6px; color: var(--team-soft);
+    font-size: 12.5px; font-weight: 500; letter-spacing: .017em; margin: 0;
+  }
+  .team-inline-link {
+    background: transparent; border: 0; padding: 0;
+    color: var(--text); font: inherit; cursor: pointer;
+    text-decoration: underline; text-underline-offset: 3px;
+  }
+
+  /* Toolbar inside a pane (search + filter) */
+  .team-pane-toolbar { display: flex; gap: 8px; padding: 14px 0 6px; align-items: center; flex-wrap: wrap; }
+  .team-search-inline {
+    display: inline-flex; align-items: center; gap: 6px;
+    height: 28px; padding: 0 10px;
+    border-radius: 999px; background: color-mix(in srgb, var(--surface-2) 45%, transparent);
+    border: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+    min-width: 220px;
+  }
+  .team-search-inline input {
+    flex: 1; min-width: 0; border: 0; outline: 0; background: transparent;
+    color: var(--text); font: inherit; font-size: 12px; font-weight: 500;
+  }
+  .team-search-inline svg { color: var(--team-soft); }
+  .team-select {
+    height: 28px; padding: 0 10px;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+    background: color-mix(in srgb, var(--surface-2) 45%, transparent);
+    color: var(--text); font: inherit; font-size: 12px; font-weight: 500;
+    cursor: pointer;
+  }
+  .team-select:focus { outline: 0; border-color: var(--border); }
+
+  /* Responsibilities role cards stay subtle */
+  .team-grid-3 {
+    display: grid; gap: 10px;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    padding: 8px 0 4px;
+  }
+
+  /* ════════════════════════════════════════════════════════
+   * Compat — sub-component helpers that still emit .tm-* classes
+   * (Avatar, ResponsibilityRow, ActivityRowView, RoleCard).
+   * Flat versions only, no card chrome.
+   * ════════════════════════════════════════════════════════ */
+  .tm-avatar {
+    border-radius: 50%; flex-shrink: 0;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-weight: 500; letter-spacing: .017em;
+  }
+  .tm-avatar.img { object-fit: cover; }
+  .tm-list-row {
+    display: grid; grid-template-columns: 8px 1fr auto auto;
+    gap: 10px; align-items: center;
+    padding: 10px 8px;
+    border-bottom: 1px solid color-mix(in srgb, var(--border) 26%, transparent);
+    color: var(--text); font-size: 12.5px;
+    text-decoration: none;
+  }
+  .tm-list-row:hover { background: color-mix(in srgb, var(--surface-2) 45%, transparent); }
+  .tm-list-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--team-soft); }
+  .tm-list-row.severity-high   .tm-list-dot { background: #ef4444; }
+  .tm-list-row.severity-medium .tm-list-dot { background: #f59e0b; }
+  .tm-list-row.severity-low    .tm-list-dot { background: var(--team-soft); }
+  .tm-list-main { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+  .tm-list-main strong { font-size: 12.5px; font-weight: 500; color: var(--text); }
+  .tm-list-main small { font-size: 11px; color: var(--team-soft); }
+  .tm-list-meta { font-size: 11px; color: var(--team-soft); }
+  .tm-go { color: var(--team-soft); }
+  .tm-proj-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 4px; vertical-align: middle; }
+
+  .tm-role-card {
+    display: flex; flex-direction: column; gap: 4px;
+    padding: 12px 0; border-top: 1px solid color-mix(in srgb, var(--border) 26%, transparent);
+  }
+  .tm-role-card:first-child { border-top: 0; }
+  .tm-role-card h3 { margin: 0 0 4px; font-size: 12.5px; font-weight: 500; color: var(--text); }
+  .tm-role-card ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 2px; }
+  .tm-role-card li { font-size: 12px; color: var(--team-soft); line-height: 1.5; padding-left: 12px; position: relative; }
+  .tm-role-card li::before { content: "·"; position: absolute; left: 4px; color: var(--team-soft); }
+
+  /* Mobile */
+  @media (max-width: 900px) {
+    .team-table-head { display: none; }
+    .team-row { grid-template-columns: 1fr !important; gap: 4px; padding: 12px 8px; }
+    .team-row > * + * { font-size: 11.5px; }
+    .team-stats { gap: 18px; }
+  }
+`
+
+
+/* Legacy CSS from the previous box-heavy team layout — kept as an unused
+   string so the orphan block parses cleanly. Safe to delete in a future
+   pass once we're sure no `tm-*` class outside this file still depends
+   on these rules. */
+const _legacyTeamCSS = `
   h1 { margin: 0; font-size: 22px; font-weight: 500; letter-spacing: -.01em; color: var(--text); }
   .tm-sub { margin: 4px 0 0; font-size: 13px; color: var(--text-muted); font-weight: 500; max-width: 60ch; line-height: 1.5; }
   .tm-summary { margin: 6px 0 0; font-size: 11.5px; color: var(--text-muted); font-weight: 500; letter-spacing: .015em; }
