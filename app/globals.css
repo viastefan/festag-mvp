@@ -885,3 +885,114 @@ textarea,
 [contenteditable="true"] {
   cursor:text !important;
 }
+
+/* ════════════════════════════════════════════════════════════════════
+ * MOBILE LAYER — phone-first behaviour for everything ≤ 768 px.
+ * Hides the desktop sidebar, pads content above the bottom nav,
+ * blocks horizontal scroll, single-columns common grids, lets filter
+ * chip rails scroll without the page going sideways.
+ * ════════════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  html, body { overflow-x: hidden !important; width: 100%; }
+  body { min-height: 100dvh; }
+  * { max-width: 100%; }
+  img, video, canvas, iframe { max-width: 100%; height: auto; }
+
+  /* Hide the client-app desktop rail entirely. The mob-bar at the
+     bottom + the /more page replace it. .ds-inner (DEV portal rail)
+     stays — it has its own mobile rules. */
+  .sidebar,
+  .sidebar-inner:not(.ds-inner),
+  aside.sidebar {
+    display: none !important;
+  }
+
+  /* Clear the fixed bottom nav (~72 px) + iOS home indicator. */
+  .main-content,
+  .app-workspace,
+  .app-workspace-scroll,
+  main.main-content {
+    padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+  .app-sidebar-return { display: none !important; }
+
+  /* Native-feel page padding. */
+  .page-content,
+  .dash-calm {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+
+  /* Force common desktop grids to a single column on phones. */
+  .dc-body { grid-template-columns: 1fr !important; }
+  .dc-grid,
+  .pv-grid,
+  .npm-meta-row {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+  .pv-control { grid-template-columns: 1fr 1fr !important; }
+
+  /* Horizontal-scrolling filter / tab rails — let them scroll without
+     the document itself going sideways. */
+  .tp-filters,
+  .ai-rail-filters,
+  .pv-tabs,
+  .ix-filters,
+  .task-filters,
+  .np-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    max-width: 100%;
+  }
+  .tp-filters::-webkit-scrollbar,
+  .ai-rail-filters::-webkit-scrollbar,
+  .pv-tabs::-webkit-scrollbar,
+  .ix-filters::-webkit-scrollbar,
+  .task-filters::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Mobile header rhythm */
+  h1 { font-size: 20px !important; letter-spacing: -.012em; }
+  h2 { font-size: 16px !important; }
+
+  /* Tame oversized hero text in the chat empty state. */
+  .ai-empty h2 { font-size: 22px !important; letter-spacing: -.014em; }
+  .ai-empty p  { font-size: 13.5px !important; }
+  .ai-empty-mark { width: 52px !important; height: 52px !important; }
+
+  /* Strip any leftover literal-white surfaces — old rules pinned
+     rgba(255,255,255,…) on starters, action cards, user bubbles and
+     composer, which looked broken in dark. */
+  .ai-starter,
+  .ai-action-card,
+  .ai-msg.user .ai-msg-body,
+  .ai-composer {
+    background: color-mix(in srgb, var(--surface-2) 60%, var(--card) 40%) !important;
+    border-color: color-mix(in srgb, var(--border) 60%, transparent) !important;
+    box-shadow: none !important;
+  }
+
+  a, button, [role="button"] { -webkit-tap-highlight-color: transparent; }
+
+  /* Bottom nav safe-area + ensure it sits above floating widgets. */
+  .mob-bar,
+  .bottom-nav {
+    padding-bottom: max(env(safe-area-inset-bottom, 0px), 8px) !important;
+  }
+
+  /* While the chat composer holds focus, retract the mobile bottom
+     nav so the soft keyboard + composer never overlap it. */
+  body.chat-composer-focused .mob-bar,
+  body.chat-composer-focused .bottom-nav {
+    transform: translateY(120%);
+    transition: transform .2s ease;
+  }
+}
+
+/* Seatbelt against future regressions — never let the document scroll
+   horizontally even on desktop. */
+html { overflow-x: hidden; }
+

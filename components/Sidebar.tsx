@@ -7,6 +7,8 @@ import { useState, useEffect, useRef } from 'react'
 import SidebarProfileFooter from '@/components/SidebarProfileFooter'
 import SettingsSidebar from '@/components/SettingsSidebar'
 import TeamsModal from '@/components/TeamsModal'
+import MobileActionSheet from '@/components/MobileActionSheet'
+import { mobileFabActions, mobileFabTitle } from '@/lib/mobile-actions'
 import { useNotifications } from '@/hooks/useNotifications'
 import {
   House, FolderSimple, Sparkle, ChatCircle, ChartLineUp,
@@ -98,11 +100,16 @@ const CLIENT_TOOLS: NavItem[] = [
   { href:'/connectors', icon:'link',     label:'Connectors' },
   { href:'/addons',     icon:'grid',     label:'Add-ons' },
 ]
+// Mobile bottom-nav — five tabs + centre FAB layout.
+// The FAB sits between the second and third nav item; the rest are
+// rendered as four icon+label items split 2 / 2 around it.
 const CLIENT_MOB_PRIMARY: NavItem[] = [
-  { href:'/dashboard',       icon:'home',    label:'Home' },
-  { href:'/projects',        icon:'project', label:'Projekt' },
-  { href:'/ai',              icon:'sparkle', label:'AI' },
-  { href:'/settings',        icon:'user',    label:'Profil' },
+  { href:'/dashboard', icon:'home',    label:'Home' },
+  { href:'/projects',  icon:'project', label:'Projekte' },
+  // FAB sits here in the JSX
+  { href:'/inbox',     icon:'inbox',   label:'Inbox' },
+  { href:'/ai',        icon:'sparkle', label:'Tagro' },
+  { href:'/more',      icon:'more',    label:'Mehr' },
 ]
 const CLIENT_MOB_QUICK = [
   { href:'/new-project', icon:'plus',     label:'Neues Projekt', primary: true },
@@ -180,6 +187,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
   const [observedProjects, setObservedProjects] = useState<{id:string;title:string;color:string|null}[]>([])
   const [observedExp, setObservedExp] = useState(true)
   const [more, setMore] = useState(false)
+  const [actionSheetOpen, setActionSheetOpen] = useState(false)
   const [workspaceExp, setWorkspaceExp] = useState(true)
   const [projectListExp, setProjectListExp] = useState(true)
   const [teamsExp, setTeamsExp] = useState(false)
@@ -1320,9 +1328,14 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
             </Link>
           )
         })}
-        <button className={`mob-fab ${more?'open':''}`} onClick={() => setMore(v => !v)} aria-label="Menü">
-          {more
-            ? <Ico name="close" sz={20} c="var(--text)"          weight="bold" />
+        <button
+          className={`mob-fab ${actionSheetOpen?'open':''}`}
+          onClick={() => setActionSheetOpen(v => !v)}
+          aria-label="Schnellaktion"
+          aria-expanded={actionSheetOpen}
+        >
+          {actionSheetOpen
+            ? <Ico name="close" sz={20} c="var(--btn-prim-text)" weight="bold" />
             : <Ico name="plus"  sz={22} c="var(--btn-prim-text)" weight="regular" />
           }
         </button>
@@ -1342,6 +1355,20 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           )
         })}
       </nav>
+
+      {/* Mobile context-aware action sheet (FAB target) */}
+      {(() => {
+        const sheetCtx = mobileFabTitle({ pathname })
+        return (
+          <MobileActionSheet
+            open={actionSheetOpen}
+            onClose={() => setActionSheetOpen(false)}
+            title={sheetCtx.title}
+            subtitle={sheetCtx.subtitle}
+            items={mobileFabActions({ pathname })}
+          />
+        )
+      })()}
 
       <TeamsModal open={teamsOpen} onClose={() => setTeamsOpen(false)} />
 

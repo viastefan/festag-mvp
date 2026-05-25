@@ -195,9 +195,41 @@ function AIChatPage() {
   const [railFilter, setRailFilter] = useState<'all' | Mode | 'archived'>('all')
   const [endingChat, setEndingChat] = useState(false)
   const [endToast, setEndToast] = useState<string | null>(null)
+  const [kbInset, setKbInset] = useState(0)
+  const [composerFocused, setComposerFocused] = useState(false)
 
   const scrollRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+
+  // visualViewport tracking — iOS Safari + Android Chrome both shrink
+  // window.innerHeight when the soft keyboard opens. visualViewport.
+  // height gives us the actual visible area so we can lift the
+  // composer above the keyboard. Only relevant on mobile.
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const vv = (window as any).visualViewport as VisualViewport | undefined
+    if (!vv) return
+    const update = () => {
+      const inset = Math.max(0, window.innerHeight - vv.height - vv.offsetTop)
+      setKbInset(inset)
+    }
+    update()
+    vv.addEventListener('resize', update)
+    vv.addEventListener('scroll', update)
+    return () => {
+      vv.removeEventListener('resize', update)
+      vv.removeEventListener('scroll', update)
+    }
+  }, [])
+
+  // Toggle a body-level class while the composer holds focus — the
+  // global mobile CSS hides the bottom nav while typing so the input
+  // never collides with it on iOS PWA.
+  useEffect(() => {
+    if (typeof document === 'undefined') return
+    document.body.classList.toggle('chat-composer-focused', composerFocused)
+    return () => document.body.classList.remove('chat-composer-focused')
+  }, [composerFocused])
 
   // Auth + initial fetch.
   useEffect(() => {
@@ -742,7 +774,10 @@ function AIChatPage() {
           )}
         </div>
 
-        <div className="ai-composer-wrap">
+        <div
+          className={`ai-composer-wrap${composerFocused ? ' kb-focused' : ''}`}
+          style={kbInset > 0 ? { transform: `translateY(-${kbInset}px)`, transition: 'transform .18s ease' } : undefined}
+        >
           {isEnded && activeConv && (
             <div className="ai-ended-banner" role="status">
               <CheckCircle size={13} weight="fill" />
@@ -759,6 +794,8 @@ function AIChatPage() {
                 value={input}
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={onKeyDownInput}
+                onFocus={() => setComposerFocused(true)}
+                onBlur={() => setComposerFocused(false)}
                 rows={1}
                 disabled={sending}
               />
