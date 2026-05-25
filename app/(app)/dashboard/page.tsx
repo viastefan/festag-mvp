@@ -1953,9 +1953,9 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            <div className="dc-current-report">
-              <span className="dc-current-kicker">Aktueller Bericht</span>
-              <p>{currentReportSummary}</p>
+            {/* Stats only — the panel title already says what this is,
+                no need for an "Aktueller Bericht" eyebrow + paragraph. */}
+            <div className="dc-current-report compact">
               <div className="dc-current-facts">
                 {overview.map((s) => (
                   <span key={s.label}>
@@ -2018,10 +2018,18 @@ export default function DashboardPage() {
               <span className="dc-brief-duration">{briefingDurationLabel}</span>
             </div>
 
-            <div className="dc-brief-focus" aria-label="Heute im Fokus">
-              <span>Heute im Fokus</span>
-              {executiveFocus.map((item) => <p key={item}>{item}</p>)}
-            </div>
+            {/* "Heute im Fokus" — only show when Tagro actually has
+                something to say. Empty placeholder lines (Keine Risiken,
+                Keine Entscheidung, ...) bloat the panel and read as
+                noise. Hide the whole block when there's no real focus. */}
+            {executiveFocus.length > 0 && executiveFocus.some(item => !item.startsWith('Keine ') && !item.includes('sind im System')) && (
+              <div className="dc-brief-focus" aria-label="Heute im Fokus">
+                <span>Heute im Fokus</span>
+                {executiveFocus
+                  .filter(item => !item.startsWith('Keine ') && !item.includes('sind im System'))
+                  .map((item) => <p key={item}>{item}</p>)}
+              </div>
+            )}
 
             <div className="dc-brief-actions">
               <button
@@ -2125,30 +2133,33 @@ export default function DashboardPage() {
               )}
             </div>
 
-            <div className="dc-history" aria-label="Frühere Berichte">
-              <div className="dc-history-head">
-                <span>Frühere Berichte</span>
-                <small>{period}</small>
+            {/* Frühere Berichte — only mount when there's history to show.
+                The empty-state line bloated the panel below the rounded
+                container in Stefan's screenshot. No history → no section. */}
+            {briefingLog.length > 0 && (
+              <div className="dc-history" aria-label="Frühere Berichte">
+                <div className="dc-history-head">
+                  <span>Frühere Berichte</span>
+                  <small>{period}</small>
+                </div>
+                <div className="dc-history-list">
+                  {briefingLog.slice(0, 5).map((entry) => (
+                    <button
+                      type="button"
+                      key={entry.id}
+                      className={`dc-history-row${activeLog?.id === entry.id ? ' active' : ''}`}
+                      onClick={() => {
+                        setActiveLogId(entry.id)
+                      }}
+                    >
+                      <span>Bericht</span>
+                      <strong>{entry.title}</strong>
+                      <small>{new Date(entry.createdAt).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })} Uhr · {entry.scope}</small>
+                    </button>
+                  ))}
+                </div>
               </div>
-              <div className="dc-history-list">
-                {briefingLog.length === 0 ? (
-                  <p className="dc-history-empty">Sobald Tagro einen Bericht schreibt, erscheint er hier als früherer Statusbericht.</p>
-                ) : briefingLog.slice(0, 5).map((entry) => (
-                  <button
-                    type="button"
-                    key={entry.id}
-                    className={`dc-history-row${activeLog?.id === entry.id ? ' active' : ''}`}
-                    onClick={() => {
-                      setActiveLogId(entry.id)
-                    }}
-                  >
-                    <span>Bericht</span>
-                    <strong>{entry.title}</strong>
-                    <small>{new Date(entry.createdAt).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })} Uhr · {entry.scope}</small>
-                  </button>
-                ))}
-              </div>
-            </div>
+            )}
           </section>
         </aside>
 

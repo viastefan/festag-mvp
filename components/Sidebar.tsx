@@ -640,7 +640,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           padding:0 var(--sb-x); border-radius:8px;
           font-size:var(--sb-font); font-weight:500;
           font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
-          letter-spacing:.017em;
+          letter-spacing:.025em;
           cursor:pointer; text-decoration:none; color:inherit;
           transition:background .12s, color .12s;
           white-space:nowrap; overflow:hidden;
@@ -654,7 +654,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         .ni button {
           font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
           font-weight:500;
-          letter-spacing:.017em;
+          letter-spacing:.025em;
         }
         .ni[data-shortcut]::after,
         .proj-row[data-shortcut]::after {
@@ -730,7 +730,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         .sb-section-head span {
           font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
           font-weight:500;
-          letter-spacing:.017em;
+          letter-spacing:.025em;
         }
         .sb-section-head button {
           min-height: 18px;
@@ -770,7 +770,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           border-radius:8px;
           font-size:12.5px; font-weight:500;
           font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
-          letter-spacing:.017em;
+          letter-spacing:.025em;
           cursor:pointer; text-decoration:none;
           color:var(--text-muted);
           transition:background .08s, color .08s;
@@ -788,7 +788,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           white-space:nowrap;
           font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
           font-weight:500;
-          letter-spacing:.017em;
+          letter-spacing:.025em;
         }
         .proj-dot-button {
           width:11px;
