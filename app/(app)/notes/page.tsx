@@ -131,6 +131,8 @@ export default function NotesPage() {
   const [creating, setCreating] = useState(false)
   const [editorWide, setEditorWide] = useState(false)
   const [railOpen, setRailOpen] = useState(true)
+  const [searchFocused, setSearchFocused] = useState(false)
+  const searchInputRef = useRef<HTMLInputElement | null>(null)
 
   /* ── Initial loads ───────────────────────────────────────── */
   useEffect(() => {
@@ -315,27 +317,43 @@ export default function NotesPage() {
           </div>
 
           <div className="notes-top-right">
-            <div className="notes-search">
-              <MagnifyingGlass size={12} />
-              <input
-                type="text"
-                value={query}
-                onChange={e => setQuery(e.target.value)}
-                placeholder="Notiz suchen…"
-                aria-label="Notiz suchen"
-              />
-              {query && (
-                <button type="button" aria-label="Suche leeren" onClick={() => setQuery('')}>
-                  <X size={11} weight="bold" />
-                </button>
-              )}
-            </div>
             <button className="notes-create" type="button" disabled={creating} onClick={() => createNote()}>
               <span>{creating ? 'Lege an…' : 'Neue Notiz'}</span>
               <span className="notes-create-plus" aria-hidden>+</span>
             </button>
           </div>
         </div>
+      </div>
+
+      {/* ── Floating search — Festag-pill, anchored top-right ──
+          Collapses to a 32px circular tool when empty + unfocused
+          (matches the .task-tool floating chrome on /tasks). Expands
+          smoothly on focus or when a query is present. Sits above the
+          three-pane body without taking inline space. */}
+      <div
+        className={`notes-search-float${searchFocused || query ? ' open' : ''}`}
+        onClick={() => { if (!searchFocused) searchInputRef.current?.focus() }}
+      >
+        <MagnifyingGlass size={13} weight="bold" />
+        <input
+          ref={searchInputRef}
+          type="text"
+          value={query}
+          onChange={e => setQuery(e.target.value)}
+          onFocus={() => setSearchFocused(true)}
+          onBlur={() => setSearchFocused(false)}
+          placeholder="Notiz suchen…"
+          aria-label="Notiz suchen"
+        />
+        {query && (
+          <button
+            type="button"
+            aria-label="Suche leeren"
+            onMouseDown={e => { e.preventDefault(); setQuery(''); searchInputRef.current?.focus() }}
+          >
+            <X size={11} weight="bold" />
+          </button>
+        )}
       </div>
 
       {/* ── Three-pane body ──────────────────────────────────── */}
@@ -929,6 +947,7 @@ const NOTES_CSS = `
     width:100%; height:100%; min-height:0; color:var(--text);
     padding:20px 0 0; display:flex; flex-direction:column; overflow:hidden;
     letter-spacing:.012em;
+    position:relative; /* anchor for the floating .notes-search-float pill */
   }
   [data-theme="dark"] .notes-os,
   [data-theme="classic-dark"] .notes-os,
@@ -960,28 +979,65 @@ const NOTES_CSS = `
   }
 
   .notes-top-right { display:flex; align-items:center; gap:8px; }
-  .notes-search {
+
+  /* ── Floating search pill — Festag .task-tool DNA.
+       Sits above the page chrome, anchored top-right. Collapsed
+       state is a 32px round chip with the magnifier glyph; on focus
+       (or while a query is present) it grows to 240px with the
+       input revealed. Same shadow recipe used everywhere in the
+       app to elevate floating tools. */
+  .notes-search-float {
+    position:absolute;
+    top:18px; right:22px; z-index:18;
     display:inline-flex; align-items:center; gap:6px;
-    height:28px; padding:0 9px 0 11px; min-width:200px; max-width:280px;
-    border-radius:999px; background:color-mix(in srgb, var(--surface-2) 35%, transparent);
-    border:1px solid color-mix(in srgb, var(--border) 60%, transparent);
-    color:var(--notes-soft);
-    transition:border-color .12s, background .12s;
+    height:32px; width:32px; padding:0;
+    border-radius:999px; border:0;
+    background:#fff; color:var(--notes-soft);
+    box-shadow:0 1px 2px rgba(15,23,42,.08), 0 4px 12px rgba(15,23,42,.07);
+    overflow:hidden; cursor:text;
+    transition:width .22s cubic-bezier(.16,1,.3,1),
+               padding .22s cubic-bezier(.16,1,.3,1),
+               box-shadow .14s ease, color .14s ease;
   }
-  .notes-search:focus-within {
-    border-color:var(--border); background:color-mix(in srgb, var(--surface-2) 65%, transparent);
+  .notes-search-float:hover { color:var(--text); box-shadow:0 1px 2px rgba(15,23,42,.1), 0 6px 14px rgba(15,23,42,.09); }
+  .notes-search-float.open {
+    width:260px; padding:0 9px 0 11px; cursor:default;
+    box-shadow:0 1px 2px rgba(15,23,42,.1), 0 10px 26px rgba(15,23,42,.12);
   }
-  .notes-search input {
+  .notes-search-float > svg {
+    flex-shrink:0;
+    margin-left:9px;
+    transition:margin .22s cubic-bezier(.16,1,.3,1);
+  }
+  .notes-search-float.open > svg { margin-left:0; color:var(--text); }
+  .notes-search-float input {
     flex:1; min-width:0; border:0; outline:0; background:transparent;
-    color:var(--text); font:inherit; font-size:12px; font-weight:500;
+    color:var(--text); font:inherit; font-size:12.5px; font-weight:500;
+    letter-spacing:.012em;
+    width:0; padding:0; transition:width .22s, padding .22s;
   }
-  .notes-search input::placeholder { color:var(--notes-soft); }
-  .notes-search button {
-    width:18px; height:18px; border:0; background:transparent;
+  .notes-search-float.open input { width:auto; padding:0 0 0 2px; }
+  .notes-search-float input::placeholder { color:var(--notes-soft); }
+  .notes-search-float button {
+    width:20px; height:20px; border:0; background:transparent;
     color:var(--notes-soft); cursor:pointer; border-radius:50%;
-    display:inline-flex; align-items:center; justify-content:center;
+    display:none; align-items:center; justify-content:center;
+    flex-shrink:0; transition:background .12s, color .12s;
   }
-  .notes-search button:hover { background:color-mix(in srgb, var(--surface-2) 80%, transparent); color:var(--text); }
+  .notes-search-float.open button { display:inline-flex; }
+  .notes-search-float button:hover {
+    background:color-mix(in srgb, var(--surface-2) 80%, transparent); color:var(--text);
+  }
+
+  [data-theme="dark"] .notes-search-float,
+  [data-theme="classic-dark"] .notes-search-float {
+    background:color-mix(in srgb, var(--surface) 92%, #fff 8%);
+    box-shadow:0 1px 2px rgba(0,0,0,.28), 0 6px 14px rgba(0,0,0,.18);
+  }
+  [data-theme="dark"] .notes-search-float.open,
+  [data-theme="classic-dark"] .notes-search-float.open {
+    box-shadow:0 1px 2px rgba(0,0,0,.32), 0 12px 30px rgba(0,0,0,.32);
+  }
 
   .notes-create {
     height:30px; padding:0 9px 0 12px;
@@ -1346,5 +1402,8 @@ const NOTES_CSS = `
     .notes-rail-toggle { display:none; }
     .editor-body { padding:18px 18px 50px; }
     .editor-head, .editor-meta { padding-left:18px; padding-right:18px; }
+    /* Float-Search bleibt sichtbar; rückt aus Kollision mit "Neue Notiz" */
+    .notes-search-float { top:13px; right:14px; }
+    .notes-search-float.open { width:min(260px, calc(100vw - 80px)); }
   }
 `
