@@ -119,7 +119,9 @@ export default function ProjectPage() {
       loadAll()
     })
 
-    // Realtime
+    // Realtime — chat + task changes belonging to this project.
+    // Tasks are already on the supabase_realtime publication
+    // (migration 20260518_sync_realtime_policies.sql).
     const channel = supabase
       .channel(`proj-${id}`)
       .on('postgres_changes', {
@@ -127,6 +129,27 @@ export default function ProjectPage() {
       }, (payload) => {
         setMessages(prev => [...prev.filter(m => !m.id.startsWith('tmp-')), payload.new as Msg])
         setAiThinking(false)
+      })
+      .on('postgres_changes', {
+        event: 'INSERT', schema: 'public', table: 'tasks', filter: `project_id=eq.${id}`
+      }, (payload: any) => {
+        const row = payload?.new
+        if (!row) return
+        setTasks(prev => prev.some(t => t.id === row.id) ? prev : [...prev, row])
+      })
+      .on('postgres_changes', {
+        event: 'UPDATE', schema: 'public', table: 'tasks', filter: `project_id=eq.${id}`
+      }, (payload: any) => {
+        const row = payload?.new
+        if (!row) return
+        setTasks(prev => prev.map(t => t.id === row.id ? { ...t, ...row } : t))
+      })
+      .on('postgres_changes', {
+        event: 'DELETE', schema: 'public', table: 'tasks', filter: `project_id=eq.${id}`
+      }, (payload: any) => {
+        const oldId = payload?.old?.id
+        if (!oldId) return
+        setTasks(prev => prev.filter(t => t.id !== oldId))
       })
       .subscribe(status => setOnline(status === 'SUBSCRIBED'))
 
@@ -365,6 +388,35 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
   // are mapped from milestones + project phase. Pure derivation, no DB.
   const decisionTasks = tasks.filter(t => t.status === 'waiting') as any[]
   const riskTasks = tasks.filter(t => t.status === 'blocked') as any[]
+
+  // Tasks awaiting owner approval — dev finished or Tagro verified.
+  // Only admins see the inline approve/reject buttons (the route
+  // 403s anyone else anyway).
+  const approvalTasks = tasks.filter((t: any) => {
+    const flow = String(t.dev_status || '').toLowerCase()
+    return flow === 'finished_by_dev' || flow === 'verified_by_tagro' || flow === 'needs_review'
+  }) as any[]
+  const canApprove = userRole === 'admin'
+
+  async function reviewTask(taskId: string, decision: 'approve' | 'reject') {
+    const reason = decision === 'reject' ? (prompt('Begründung für die Rückgabe (sichtbar für Dev und Owner):') || undefined) : undefined
+    if (decision === 'reject' && !reason) return
+    try {
+      const res = await fetch('/api/dev/tasks/approve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ taskId, decision, reason }),
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        alert(data?.error || 'Aktion fehlgeschlagen.')
+        return
+      }
+      await loadAll()
+    } catch {
+      alert('Verbindungsfehler.')
+    }
+  }
 
   const paymentState: { tone: 'ok' | 'due' | 'locked'; label: string } = (() => {
     const pending = milestones.find(m => m.status === 'pending')
@@ -835,6 +887,30 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
         .pv-list-row.risk .d { background: #d44b4b; }
         .pv-list-row .t { flex: 1; font-size: 13px; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .pv-list-row .meta { font-size: 11px; color: var(--pv-muted); flex-shrink: 0; }
+
+        /* Inline owner approve / reject buttons */
+        .pv-approve-actions {
+          display: inline-flex; align-items: center; gap: 6px;
+          flex-shrink: 0;
+        }
+        .pv-approve-btn {
+          height: 26px; padding: 0 11px;
+          border-radius: 999px; border: 0;
+          background: var(--btn-prim); color: var(--btn-prim-text);
+          font: inherit; font-size: 11px; font-weight: 500; letter-spacing: .012em;
+          cursor: pointer; transition: opacity .12s, transform .12s, background .12s;
+        }
+        .pv-approve-btn:hover { opacity: .92; }
+        .pv-approve-btn:active { transform: scale(.97); }
+        .pv-approve-btn.ghost {
+          background: transparent;
+          color: var(--pv-soft);
+          border: 1px solid color-mix(in srgb, var(--border) 65%, transparent);
+        }
+        .pv-approve-btn.ghost:hover {
+          color: var(--text);
+          background: color-mix(in srgb, var(--surface-2) 55%, transparent);
+        }
       `}</style>
 
       <ProjectCompletionCelebration
@@ -1073,18 +1149,78 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
           {/* DECISIONS */}
           {activeLeft === 'decisions' && (
             <div>
-              {decisionTasks.length === 0 ? (
-                <p className="pv-empty">Keine offenen Entscheidungen.</p>
-              ) : (
-                <div className="pv-list">
-                  {decisionTasks.map(t => (
-                    <div key={t.id} className="pv-list-row decision" onClick={() => router.push(`/projects/${id}/tasks/${t.id}`)}>
-                      <span className="d" />
-                      <span className="t">{t.title}</span>
-                      <span className="meta">Wartet auf Freigabe</span>
-                    </div>
-                  ))}
+              {/* Owner approval queue — dev finished, Tagro verified, or needs review */}
+              {approvalTasks.length > 0 && (
+                <div style={{ marginBottom: 18 }}>
+                  <p className="pv-section-title" style={{ marginBottom: 10 }}>
+                    Bereit zur Prüfung · {approvalTasks.length}
+                  </p>
+                  <div className="pv-list">
+                    {approvalTasks.map((t: any) => {
+                      const flow = String(t.dev_status || '').toLowerCase()
+                      const flowLabel = flow === 'finished_by_dev'
+                        ? 'Vom Dev abgeschlossen'
+                        : flow === 'verified_by_tagro'
+                          ? 'Tagro verifiziert'
+                          : flow === 'needs_review'
+                            ? 'Tagro: Review nötig'
+                            : flow
+                      return (
+                        <div key={t.id} className="pv-list-row decision">
+                          <span className="d" />
+                          <span className="t" onClick={() => router.push(`/projects/${id}/tasks/${t.id}`)} style={{ cursor: 'pointer' }}>
+                            {t.title}
+                          </span>
+                          <span className="meta">{flowLabel}</span>
+                          {canApprove ? (
+                            <span className="pv-approve-actions" onClick={e => e.stopPropagation()}>
+                              <button
+                                type="button"
+                                className="pv-approve-btn"
+                                onClick={() => reviewTask(t.id, 'approve')}
+                                title="Freigeben — Client sieht den Task danach als abgeschlossen"
+                              >
+                                Freigeben
+                              </button>
+                              <button
+                                type="button"
+                                className="pv-approve-btn ghost"
+                                onClick={() => reviewTask(t.id, 'reject')}
+                                title="Änderungen anfordern — Task geht zurück an den Dev"
+                              >
+                                Änderungen
+                              </button>
+                            </span>
+                          ) : (
+                            <span className="meta" style={{ opacity: .55 }}>Owner gefordert</span>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
                 </div>
+              )}
+
+              {/* Generic waiting decisions */}
+              {decisionTasks.length > 0 && (
+                <div>
+                  <p className="pv-section-title" style={{ marginBottom: 10 }}>
+                    Offene Entscheidungen · {decisionTasks.length}
+                  </p>
+                  <div className="pv-list">
+                    {decisionTasks.map(t => (
+                      <div key={t.id} className="pv-list-row decision" onClick={() => router.push(`/projects/${id}/tasks/${t.id}`)}>
+                        <span className="d" />
+                        <span className="t">{t.title}</span>
+                        <span className="meta">Wartet auf Freigabe</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {approvalTasks.length === 0 && decisionTasks.length === 0 && (
+                <p className="pv-empty">Nichts wartet auf eine Entscheidung.</p>
               )}
             </div>
           )}

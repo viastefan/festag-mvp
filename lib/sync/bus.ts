@@ -171,6 +171,63 @@ async function fanoutNotifications(
     }))
   if (rows.length === 0) return
   await writer.from('notifications').insert(rows).then(() => null, () => null)
+
+  // Email fan-out for the loud events. Best-effort, fire-and-forget,
+  // never blocks the response or the notifications insert above.
+  if (EMAIL_TRIGGERING_EVENTS.has(event)) {
+    void sendEmailFanout(writer, recipients, event, title, body, link).catch(() => undefined)
+  }
+}
+
+// Events that earn an email on top of the in-app inbox row. Anything
+// outside this set stays in-app only — we don't want to spam.
+const EMAIL_TRIGGERING_EVENTS = new Set<DevEventKind>([
+  'client_request_created' as DevEventKind,
+  'finished_by_dev' as DevEventKind,
+  'needs_review' as DevEventKind,
+  'blocker_reported' as DevEventKind,
+  'owner_changes_requested' as DevEventKind,
+  'approved_by_owner' as DevEventKind,
+])
+
+async function sendEmailFanout(
+  writer: SupabaseClient<any>,
+  recipients: Recipient[],
+  event: DevEventKind,
+  title: string,
+  body: string | null,
+  link: string,
+) {
+  // Look up emails for the recipients via service-role-safe profiles read.
+  const ids = recipients.map(r => r.userId).filter(Boolean)
+  if (!ids.length) return
+  const { data: profs } = await writer
+    .from('profiles')
+    .select('id,email,full_name,notif_email')
+    .in('id', ids)
+
+  // Respect the user's notif_email opt-out when the column exists; if
+  // it's null (legacy rows) default to allow.
+  const eligible = ((profs as any[]) ?? [])
+    .filter(p => p?.email && p.notif_email !== false)
+    .map(p => p.email as string)
+
+  if (!eligible.length) return
+
+  try {
+    const { sendGenericEmail } = await import('@/lib/email/send')
+    const origin = process.env.NEXT_PUBLIC_FESTAG_URL || 'https://festag.app'
+    await sendGenericEmail({
+      to: eligible,
+      title,
+      subtitle: 'Festag · Tagro Update',
+      preheader: body ?? undefined,
+      body: `<p>${(body || '').replace(/</g, '&lt;')}</p>
+<p style="margin-top:18px;"><a href="${origin}${link}" style="display:inline-block;padding:10px 18px;border-radius:999px;background:#5B647D;color:#FFFFFF;text-decoration:none;font-weight:500;">In Festag öffnen</a></p>`,
+    })
+  } catch {
+    // swallow — email backend down should never break the in-app flow
+  }
 }
 
 async function computeRecipients(
