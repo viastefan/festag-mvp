@@ -1566,7 +1566,7 @@ export default function DashboardPage() {
         </header>
 
         <div className="dc-body">
-          <article className="dc-note" aria-label="Statusnotiz">
+          <article className="dc-note" aria-label="Statusnotiz" data-tour="status-note">
             <div className="dc-note-head">
               <span className="dc-note-label">Statusnotiz</span>
               {noteStamp && <span className="dc-note-stamp">Heute, {noteStamp} Uhr</span>}
@@ -1633,7 +1633,7 @@ export default function DashboardPage() {
           </article>
 
           <aside className="dc-side">
-          <section className="dc-brief" aria-label="Tagro Voice Briefing">
+          <section className="dc-brief" aria-label="Tagro Voice Briefing" data-tour="voice-briefing">
             <header className="dc-brief-head">
               <div className="dc-brief-headline">
                 <p className="dc-brief-eyebrow">Tagro Voice Briefing</p>

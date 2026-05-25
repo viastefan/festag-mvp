@@ -44,11 +44,26 @@ export default function PwaInstallBanner() {
       if (localStorage.getItem(INSTALL_STATE_KEY) === 'installed') return
     } catch {}
 
+    // Respect the onboarding tour — if it's mid-flow OR we're still in
+    // the post-tour grace window, don't show the banner. The tour sets
+    // body.tour-active + writes festag_install_banner_unmute_at to
+    // localStorage on finish/skip.
+    function tourGate(then: () => void): () => void {
+      return () => {
+        if (typeof document !== 'undefined' && document.body.classList.contains('tour-active')) return
+        try {
+          const stamp = Number(localStorage.getItem('festag_install_banner_unmute_at') || '0')
+          if (stamp && Date.now() < stamp) return
+        } catch {}
+        then()
+      }
+    }
+
     // Chromium / Edge / Android Chrome fire this when the app is installable.
     function onBeforePrompt(e: Event) {
       e.preventDefault()
       setDeferred(e as BeforeInstallPromptEvent)
-      setVisible(true)
+      tourGate(() => setVisible(true))()
     }
     window.addEventListener('beforeinstallprompt', onBeforePrompt)
 
@@ -58,10 +73,10 @@ export default function PwaInstallBanner() {
     const isIos = /iPad|iPhone|iPod/.test(ua) && !(window as any).MSStream
     const isSafari = /^((?!chrome|android|crios|fxios).)*safari/i.test(ua)
     if (isIos && isSafari) {
-      setVisible(true)
+      tourGate(() => setVisible(true))()
     } else {
       // Desktop Safari and some in-app browsers do not emit beforeinstallprompt.
-      fallbackTimer = setTimeout(() => setVisible(true), 900)
+      fallbackTimer = setTimeout(tourGate(() => setVisible(true)), 900)
     }
 
     function onInstalled() {
@@ -70,10 +85,21 @@ export default function PwaInstallBanner() {
     }
     window.addEventListener('appinstalled', onInstalled)
 
+    // Observe body.tour-active — if the tour starts while the banner
+    // was already visible, hide it instantly.
+    let observer: MutationObserver | null = null
+    if (typeof document !== 'undefined' && 'MutationObserver' in window) {
+      observer = new MutationObserver(() => {
+        if (document.body.classList.contains('tour-active')) setVisible(false)
+      })
+      observer.observe(document.body, { attributes: true, attributeFilter: ['class'] })
+    }
+
     return () => {
       window.removeEventListener('beforeinstallprompt', onBeforePrompt)
       window.removeEventListener('appinstalled', onInstalled)
       if (fallbackTimer) clearTimeout(fallbackTimer)
+      if (observer) observer.disconnect()
     }
   }, [])
 

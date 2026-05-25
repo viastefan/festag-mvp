@@ -475,8 +475,21 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
       <>
         {items.map(item => {
           const on = isOn(item.href)
+          // data-tour hooks — picked up by the WelcomeTour for specific
+          // anchored steps. Other entries just stay untagged.
+          const tourTag = item.href === '/dashboard' ? 'sidebar-status'
+                         : item.href === '/messages' || item.href === '/inbox' ? 'sidebar-inbox'
+                         : item.href === '/projects' ? 'sidebar-projects'
+                         : item.href === '/ai' ? 'sidebar-tagro'
+                         : undefined
           return (
-            <Link key={`${item.href}-${item.label}`} href={resolve(item.href)} className={`ni ${on?'ni-on':'ni-off'}`} data-shortcut={navShortcut(item.label, item.href)}>
+            <Link
+              key={`${item.href}-${item.label}`}
+              href={resolve(item.href)}
+              className={`ni ${on?'ni-on':'ni-off'}`}
+              data-shortcut={navShortcut(item.label, item.href)}
+              data-tour={tourTag}
+            >
               <Ico name={item.icon} sz={14} c={on?'var(--text)':'var(--text-muted)'} weight={on?'bold':'regular'} />
               <span style={{ minWidth:0, overflow:'hidden', textOverflow:'ellipsis' }}>{item.label}</span>
               {item.badge ? (
