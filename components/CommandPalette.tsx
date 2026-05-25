@@ -250,15 +250,31 @@ export default function CommandPalette() {
         <>
           <style>{`
             .cp-backdrop { position:fixed; inset:0; z-index:9500; background:rgba(8,11,16,0.42); backdrop-filter:blur(6px) saturate(140%); -webkit-backdrop-filter:blur(6px) saturate(140%); }
+            /* Floating right-anchored container with breathing room
+               on all four sides — Festag pattern (see /notes search,
+               /tasks tool pill). 16px gap, 16px corner-radius. */
             .cp-panel {
-              position:fixed; top:0; right:0; bottom:0;
-              width:min(480px, 100vw);
+              position:fixed;
+              top:16px; right:16px; bottom:16px;
+              width:min(480px, calc(100vw - 32px));
               z-index:9501;
               background:var(--surface);
-              border-left:1px solid var(--border);
-              box-shadow:-32px 0 80px rgba(0,0,0,.36);
+              border:1px solid var(--border);
+              border-radius:16px;
+              box-shadow:
+                0 1px 2px rgba(15,23,42,.08),
+                0 24px 60px rgba(15,23,42,.22);
               display:flex; flex-direction:column;
               overflow:hidden;
+            }
+            [data-theme="dark"] .cp-panel,
+            [data-theme="classic-dark"] .cp-panel {
+              box-shadow:
+                0 1px 2px rgba(0,0,0,.36),
+                0 28px 70px rgba(0,0,0,.46);
+            }
+            @media (max-width: 720px) {
+              .cp-panel { top:12px; right:12px; bottom:12px; width:calc(100vw - 24px); border-radius:14px; }
             }
             .cp-head {
               display:flex; align-items:center; justify-content:space-between;
