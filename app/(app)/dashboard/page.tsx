@@ -27,15 +27,18 @@ import { ArrowClockwise, CalendarCheck, CaretDown, Check, DownloadSimple, Envelo
 // ─────────────────────────────────────────────────────────────────────
 
 /** Day-stable greeting — same wording within a calendar day. */
-function pickGreeting(hour: number, first: string): string {
+function pickGreeting(hour: number, first: string, seed: number): string {
   const partOfDay = hour < 12 ? 'Morgen' : hour < 18 ? 'Tag' : 'Abend'
   const name = first ? first.charAt(0).toUpperCase() + first.slice(1) : 'Chef'
   const variants = first
     ? [`Guten ${partOfDay}, ${name}.`, `Hallo ${name}.`, `Schön, dass du da bist, ${name}.`, `${partOfDay}, ${name}.`]
     : [`Guten ${partOfDay}, Chef.`, `Hallo Chef.`, `Schön, dass du da bist.`, `${partOfDay}, Chef.`]
-  const today = new Date()
-  const seed = today.getFullYear() * 1000 + (today.getMonth() + 1) * 50 + today.getDate()
-  return variants[seed % variants.length]
+  return variants[Math.abs(seed) % variants.length]
+}
+
+function fallbackGreeting(first: string): string {
+  const name = first ? first.charAt(0).toUpperCase() + first.slice(1) : ''
+  return name ? `Hallo ${name}.` : 'Hallo Chef.'
 }
 
 type PulseTone = 'green' | 'amber' | 'red'
@@ -106,7 +109,16 @@ export default function DashboardPage() {
   const [taskState, setTaskState] = useState<Record<string, 'idle' | 'busy' | 'done'>>({})
   const [allTasksBusy, setAllTasksBusy] = useState(false)
   const [bulkProgress, setBulkProgress] = useState(0)
+  const [greetingClock, setGreetingClock] = useState<{ hour: number; seed: number } | null>(null)
   const writeToken = useRef(0)
+
+  useEffect(() => {
+    const now = new Date()
+    setGreetingClock({
+      hour: now.getHours(),
+      seed: now.getFullYear() * 1000 + (now.getMonth() + 1) * 50 + now.getDate(),
+    })
+  }, [])
 
   // ── Load projects + tasks ───────────────────────────────────────
   useEffect(() => {
@@ -175,7 +187,10 @@ export default function DashboardPage() {
   }, [])
 
   // ── Derived ─────────────────────────────────────────────────────
-  const greeting = useMemo(() => pickGreeting(new Date().getHours(), firstName), [firstName])
+  const greeting = useMemo(() => {
+    if (!greetingClock) return fallbackGreeting(firstName)
+    return pickGreeting(greetingClock.hour, firstName, greetingClock.seed)
+  }, [firstName, greetingClock])
 
   const decisionTasks = allTasks.filter((t) => t.status === 'waiting')
   const riskTasks = allTasks.filter((t) => t.status === 'blocked')

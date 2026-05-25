@@ -257,41 +257,6 @@ export default function WelcomeTour({ forceOpen = false, onDone }: Props) {
     }
   }, [state, stepIdx, step, pathname])
 
-  useEffect(() => {
-    if (state !== 'tour' || !step) return
-    const timer = window.setTimeout(() => {
-      const el = getTarget(step.target)
-      if (targetIsUsable(el)) return
-      let next = stepIdx + 1
-      while (next < total) {
-        const nextEl = getTarget(TOUR_STEPS[next].target)
-        if (targetIsUsable(nextEl)) {
-          setStepIdx(next)
-          void persistProfile('tour', next + 1)
-          return
-        }
-        next += 1
-      }
-      complete()
-    }, 650)
-    return () => window.clearTimeout(timer)
-  }, [complete, persistProfile, state, step, stepIdx, total])
-
-  useEffect(() => {
-    if (state === 'idle' || state === 'completed' || state === 'skipped') return
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        if (state === 'welcome') skip()
-        else endTour()
-      }
-      if (state === 'tour' && event.key === 'ArrowRight') nextStep()
-      if (state === 'tour' && event.key === 'ArrowLeft') prevStep()
-    }
-    document.addEventListener('keydown', onKey)
-    return () => document.removeEventListener('keydown', onKey)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state, stepIdx])
-
   const persistProfile = useCallback(async (status: OnboardingState, tourStep: number) => {
     if (!userId) return
     if (status === 'completed') {
@@ -367,6 +332,40 @@ export default function WelcomeTour({ forceOpen = false, onDone }: Props) {
     setStepIdx(prev)
     void persistProfile('tour', prev + 1)
   }, [persistProfile, stepIdx])
+
+  useEffect(() => {
+    if (state !== 'tour' || !step) return
+    const timer = window.setTimeout(() => {
+      const el = getTarget(step.target)
+      if (targetIsUsable(el)) return
+      let next = stepIdx + 1
+      while (next < total) {
+        const nextEl = getTarget(TOUR_STEPS[next].target)
+        if (targetIsUsable(nextEl)) {
+          setStepIdx(next)
+          void persistProfile('tour', next + 1)
+          return
+        }
+        next += 1
+      }
+      complete()
+    }, 650)
+    return () => window.clearTimeout(timer)
+  }, [complete, persistProfile, state, step, stepIdx, total])
+
+  useEffect(() => {
+    if (state === 'idle' || state === 'completed' || state === 'skipped') return
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        if (state === 'welcome') skip()
+        else endTour()
+      }
+      if (state === 'tour' && event.key === 'ArrowRight') nextStep()
+      if (state === 'tour' && event.key === 'ArrowLeft') prevStep()
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [endTour, nextStep, prevStep, skip, state])
 
   if (state === 'idle' || state === 'completed' || state === 'skipped') return null
 
