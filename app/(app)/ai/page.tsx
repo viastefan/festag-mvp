@@ -16,7 +16,7 @@
  * conversation rail lives inside the page.
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import {
   ArrowUp, Briefcase, CaretDown, ChatCircleDots, CheckCircle, DotsThreeOutline,
@@ -166,18 +166,24 @@ function formatTimeAgo(iso: string) {
   return new Date(iso).toLocaleDateString('de-DE')
 }
 
-export default function AIPage() {
-  // useSearchParams() can momentarily return null during the initial
-  // client render in Next 14+. Calling .get() on it without the null
-  // guard throws "Cannot read properties of null" and the surrounding
-  // error boundary catches it as "Diese Ansicht konnte nicht sauber
-  // geladen werden" — that's the bug we just hit.
+// `useSearchParams()` requires a <Suspense> boundary in Next 14+. Without
+// one the page tries to statically prerender, the hook bails, and the app
+// error boundary catches it as "Diese Ansicht konnte gerade nicht sauber
+// geladen werden" — that's the bug Stefan kept seeing. Wrapping the
+// switcher in Suspense lets Next defer the segment to the client cleanly.
+function AISwitcher() {
   const searchParams = useSearchParams()
   const view = searchParams?.get('view') ?? 'chat'
-  if (view === 'notes') {
-    return <NotesWorkspace />
-  }
+  if (view === 'notes') return <NotesWorkspace />
   return <AIChatPage />
+}
+
+export default function AIPage() {
+  return (
+    <Suspense fallback={<AIChatPage />}>
+      <AISwitcher />
+    </Suspense>
+  )
 }
 
 function AIChatPage() {
@@ -486,23 +492,26 @@ function AIChatPage() {
     }
   }
 
-  if (!authChecked) {
-    return <div className="ai-loading">Lade…</div>
-  }
-
+  // ⚠ All hooks must run on every render. Previously there was an
+  // `if (!authChecked) return …` early-return BEFORE the useMemo blocks
+  // below, which mounted hooks conditionally and broke the Rules of
+  // Hooks on the second render → React threw, the (app)/error.tsx
+  // boundary caught it as the dreaded "Diese Ansicht konnte gerade
+  // nicht sauber geladen werden" wall. All useMemo calls now sit above
+  // the conditional render guard.
   const activeConv = activeId ? convs.find(c => c.id === activeId) : null
   const hasMessages = messages.length > 0
   // Conversation's own mode wins over the switcher when one is open —
   // so the user always sees the correct mode for the active chat.
   const effectiveMode: Mode = (activeConv?.mode as Mode | undefined) ?? activeMode
   const mode = MODE_BY_ID[effectiveMode]
+  const isEnded = activeConv?.status === 'sent_to_inbox' || activeConv?.status === 'ended' || activeConv?.status === 'archived'
 
   const projectById = useMemo(() => {
     const m = new Map<string, ProjectContext>()
     for (const p of projectContexts) m.set(p.id, p)
     return m
   }, [projectContexts])
-  const isEnded = activeConv?.status === 'sent_to_inbox' || activeConv?.status === 'ended' || activeConv?.status === 'archived'
 
   // Conversation rail — filter the loaded list by mode + status.
   const visibleConvs = useMemo(() => {
@@ -520,6 +529,10 @@ function AIChatPage() {
     }
     return g
   }, [visibleConvs])
+
+  if (!authChecked) {
+    return <div className="ai-loading">Lade…</div>
+  }
 
   return (
     <div className={`ai-shell${railCollapsed ? ' rail-collapsed' : ''}`}>
