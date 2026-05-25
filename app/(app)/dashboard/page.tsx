@@ -1076,81 +1076,206 @@ export default function DashboardPage() {
           margin-bottom:2px;
         }
 
-        /* Tagro bubble — breathing ring + outer pulses */
+        /* ─── Tagro Voice Orb · play-button with stacked glass discs ─── */
         .dc-orb-stage {
           position: relative;
-          width: 100%; aspect-ratio: 2.35 / 1; max-height: 128px;
+          width: 100%; aspect-ratio: 2.35 / 1; max-height: 156px;
           display: flex; align-items: center; justify-content: center;
+          border: 0; background: transparent; padding: 0;
+          font-family: inherit; cursor: pointer;
+          -webkit-tap-highlight-color: transparent;
+          transition: transform .18s cubic-bezier(.16,1,.3,1);
         }
-        .dc-orb-bubble {
-          position: relative; z-index: 3;
-          width: 64px; height: 64px;
+        .dc-orb-stage:disabled { cursor: default; opacity: .55; }
+        .dc-orb-stage:not(:disabled):hover { transform: translateY(-1px); }
+        .dc-orb-stage:not(:disabled):active { transform: scale(.97); }
+
+        /* Ambient outer halo — soft white bleed behind everything */
+        .dc-orb-halo {
+          position: absolute; left: 50%; top: 50%;
+          width: 180px; height: 180px;
+          margin: -90px 0 0 -90px;
           border-radius: 50%;
-          display: flex; align-items: center; justify-content: center;
           background:
-            radial-gradient(circle at 48% 38%, color-mix(in srgb, #fff 82%, transparent), transparent 46%),
-            var(--card);
-          border: 0;
-          box-shadow:
-            inset 0 1px 0 color-mix(in srgb, #fff 20%, transparent),
-            0 10px 36px -14px color-mix(in srgb, var(--text) 28%, transparent);
+            radial-gradient(circle at 50% 45%, rgba(255,255,255,.55), rgba(255,255,255,0) 62%),
+            radial-gradient(circle at 50% 60%, color-mix(in srgb, #A8E6CF 22%, transparent), transparent 65%);
+          filter: blur(2px);
+          opacity: .55;
+          z-index: 0;
+          pointer-events: none;
+          transition: opacity .35s ease;
         }
-        [data-theme="dark"] .dc-orb-bubble,
-        [data-theme="classic-dark"] .dc-orb-bubble {
-          background: color-mix(in srgb, var(--card) 92%, #fff 8%);
-          box-shadow:
-            inset 0 1px 0 rgba(255,255,255,.06),
-            0 10px 38px -14px rgba(0,0,0,.6);
+        [data-theme="dark"] .dc-orb-halo,
+        [data-theme="classic-dark"] .dc-orb-halo {
+          background:
+            radial-gradient(circle at 50% 45%, rgba(255,255,255,.10), rgba(255,255,255,0) 62%),
+            radial-gradient(circle at 50% 60%, rgba(168,230,207,.16), transparent 65%);
+          opacity: .8;
         }
-        .dc-orb-ring {
+        .dc-orb-stage.speaking .dc-orb-halo { opacity: 1; }
+
+        /* Three stacked glass discs — biggest at back, smallest with the
+           mint→lavender gradient on top. Centred via absolute positioning
+           so all three stay perfectly concentric regardless of stage size. */
+        .dc-orb-disc {
           position: absolute; left: 50%; top: 50%;
-          width: 94px; height: 94px;
-          margin: -47px 0 0 -47px;
           border-radius: 50%;
-          border: 1px solid color-mix(in srgb, var(--dc-muted) 18%, transparent);
+          background:
+            radial-gradient(circle at 50% 30%, rgba(255,255,255,.95), rgba(255,255,255,.55) 50%, rgba(255,255,255,.18) 100%);
+          box-shadow:
+            inset 0 1px 0 rgba(255,255,255,.95),
+            inset 0 -8px 18px -8px rgba(255,255,255,.6),
+            0 14px 38px -16px rgba(60,80,110,.32);
+          border: 1px solid rgba(255,255,255,.7);
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
           z-index: 2;
-          animation: dcOrbBreathe 4.6s ease-in-out infinite;
         }
-        .dc-orb-stage.speaking .dc-orb-ring {
-          border-color: color-mix(in srgb, var(--dc-slate, #5B647D) 45%, var(--border));
-          animation-duration: 2.4s;
+        .dc-orb-disc.disc-3 {
+          width: 132px; height: 132px;
+          margin: -66px 0 0 -66px;
+          opacity: .62;
+          background:
+            radial-gradient(circle at 50% 35%, rgba(255,255,255,.7), rgba(255,255,255,.25) 60%, rgba(255,255,255,.05) 100%);
         }
-        .dc-orb-stage.loading .dc-orb-ring {
-          border-style: dashed;
-          animation: dcOrbSpin 8s linear infinite;
+        .dc-orb-disc.disc-2 {
+          width: 104px; height: 104px;
+          margin: -52px 0 0 -52px;
+          opacity: .85;
         }
-        .dc-orb-pulse {
-          position: absolute; left: 50%; top: 50%;
-          width: 64px; height: 64px;
-          margin: -32px 0 0 -32px;
+        .dc-orb-disc.disc-1 {
+          width: 78px; height: 78px;
+          margin: -39px 0 0 -39px;
+          z-index: 3;
+          overflow: hidden;
+        }
+        .dc-orb-gradient {
+          position: absolute; inset: 0;
           border-radius: 50%;
-          background: radial-gradient(circle, color-mix(in srgb, var(--dc-slate, #5B647D) 11%, transparent), transparent 62%);
-          border: 1px solid color-mix(in srgb, var(--dc-slate, #5B647D) 16%, transparent);
-          opacity: 0;
-          z-index: 1;
+          background:
+            radial-gradient(circle at 50% 28%, rgba(255,255,255,.9), transparent 32%),
+            radial-gradient(circle at 50% 72%, rgba(199,182,255,.55), transparent 58%),
+            radial-gradient(circle at 50% 50%, rgba(168,230,207,.65), rgba(255,255,255,.2) 75%);
+          opacity: .85;
         }
-        .dc-orb-stage.speaking .dc-orb-pulse-1 {
-          animation: dcOrbPulse 3.4s ease-out infinite;
+
+        /* Dark-mode variants — quieter glass, deeper shadow */
+        [data-theme="dark"] .dc-orb-disc,
+        [data-theme="classic-dark"] .dc-orb-disc {
+          background:
+            radial-gradient(circle at 50% 30%, rgba(255,255,255,.16), rgba(255,255,255,.04) 60%, rgba(255,255,255,0) 100%);
+          border-color: rgba(255,255,255,.10);
+          box-shadow:
+            inset 0 1px 0 rgba(255,255,255,.10),
+            inset 0 -8px 18px -8px rgba(255,255,255,.06),
+            0 18px 50px -16px rgba(0,0,0,.6);
         }
-        .dc-orb-stage.speaking .dc-orb-pulse-2 {
-          animation: dcOrbPulse 3.4s ease-out 1.7s infinite;
+        [data-theme="dark"] .dc-orb-gradient,
+        [data-theme="classic-dark"] .dc-orb-gradient {
+          background:
+            radial-gradient(circle at 50% 28%, rgba(255,255,255,.18), transparent 36%),
+            radial-gradient(circle at 50% 72%, rgba(166,148,232,.42), transparent 58%),
+            radial-gradient(circle at 50% 50%, rgba(120,200,170,.40), rgba(255,255,255,.02) 78%);
+          opacity: .92;
         }
-        .dc-orb-stage.speaking .dc-orb-pulse-3 {
-          animation: dcOrbPulseSoft 4.6s ease-in-out .5s infinite;
+
+        /* Centre core — the actual play surface */
+        .dc-orb-core {
+          position: relative;
+          z-index: 4;
+          width: 50px; height: 50px;
+          border-radius: 50%;
+          display: inline-flex; align-items: center; justify-content: center;
+          background:
+            radial-gradient(circle at 50% 32%, rgba(255,255,255,1), rgba(255,255,255,.85) 55%, rgba(225,222,250,.95) 100%);
+          box-shadow:
+            inset 0 1px 0 rgba(255,255,255,.95),
+            inset 0 -4px 10px -3px rgba(190,180,230,.5),
+            0 8px 20px -8px rgba(60,80,110,.28);
+          border: 1px solid rgba(255,255,255,.85);
+          color: #4A5168;
         }
+        [data-theme="dark"] .dc-orb-core,
+        [data-theme="classic-dark"] .dc-orb-core {
+          background:
+            radial-gradient(circle at 50% 32%, rgba(255,255,255,.22), rgba(255,255,255,.10) 55%, rgba(190,180,230,.22) 100%);
+          border-color: rgba(255,255,255,.18);
+          box-shadow:
+            inset 0 1px 0 rgba(255,255,255,.18),
+            inset 0 -4px 10px -3px rgba(190,180,230,.20),
+            0 10px 24px -8px rgba(0,0,0,.6);
+          color: rgba(255,255,255,.85);
+        }
+        .dc-orb-play {
+          display: inline-flex; align-items: center; justify-content: center;
+        }
+        .dc-orb-glyph { color: inherit; }
+
+        /* Breathing — entire orb gently inflates while idle, faster when speaking */
+        .dc-orb-disc.disc-1,
+        .dc-orb-disc.disc-2,
+        .dc-orb-disc.disc-3 {
+          transform: translate(0, 0) scale(1);
+          transform-origin: center center;
+          animation: dcOrbBreathe 5.4s ease-in-out infinite;
+        }
+        .dc-orb-disc.disc-2 { animation-delay: .25s; animation-duration: 4.8s; }
+        .dc-orb-disc.disc-3 { animation-delay: .5s;  animation-duration: 6.2s; }
+        .dc-orb-stage.speaking .dc-orb-disc.disc-1 { animation-duration: 1.9s; }
+        .dc-orb-stage.speaking .dc-orb-disc.disc-2 { animation-duration: 2.3s; }
+        .dc-orb-stage.speaking .dc-orb-disc.disc-3 { animation-duration: 2.7s; }
+
         @keyframes dcOrbBreathe {
-          0%,100% { transform: scale(1); opacity: .85; }
-          50%     { transform: scale(1.04); opacity: 1; }
+          0%,100% { transform: scale(1);    }
+          50%     { transform: scale(1.025); }
         }
         @keyframes dcOrbSpin { to { transform: rotate(360deg); } }
-        @keyframes dcOrbPulse {
-          0%   { transform: scale(1);    opacity: .55; }
-          70%  { transform: scale(2.1);  opacity: 0; }
-          100% { transform: scale(2.3);  opacity: 0; }
+        .dc-orb-stage.loading .dc-orb-disc.disc-3 { animation: dcOrbSpin 6s linear infinite; }
+
+        /* ─── Sine-wave ripples — only visible while speaking ─── */
+        .dc-orb-wave {
+          position: absolute; left: 0; right: 0; top: 50%;
+          width: 100%; height: 110px;
+          margin-top: -55px;
+          opacity: 0;
+          pointer-events: none;
+          z-index: 1;
+          transition: opacity .35s ease;
         }
-        @keyframes dcOrbPulseSoft {
-          0%,100% { transform: scale(1.38); opacity: .16; }
-          50% { transform: scale(1.72); opacity: .28; }
+        .dc-orb-stage.speaking .dc-orb-wave { opacity: 1; }
+        .dc-orb-wave-path {
+          fill: none;
+          stroke-linecap: round;
+          stroke-linejoin: round;
+          stroke: color-mix(in srgb, var(--text-muted) 38%, transparent);
+        }
+        [data-theme="dark"] .dc-orb-wave-path,
+        [data-theme="classic-dark"] .dc-orb-wave-path {
+          stroke: rgba(255,255,255,.18);
+        }
+        .dc-orb-wave-path.back  { stroke-width: .9;  opacity: .35; animation: dcWaveDriftA 4.6s ease-in-out infinite; }
+        .dc-orb-wave-path.mid   { stroke-width: 1.1; opacity: .55; animation: dcWaveDriftB 3.4s ease-in-out infinite; }
+        .dc-orb-wave-path.front { stroke-width: 1.4; opacity: .8;  animation: dcWaveDriftC 2.6s ease-in-out infinite; }
+
+        @keyframes dcWaveDriftA {
+          0%,100% { transform: scaleY(.9) translateX(0); }
+          50%     { transform: scaleY(1.25) translateX(-6px); }
+        }
+        @keyframes dcWaveDriftB {
+          0%,100% { transform: scaleY(1.1) translateX(0); }
+          50%     { transform: scaleY(.75) translateX(6px); }
+        }
+        @keyframes dcWaveDriftC {
+          0%,100% { transform: scaleY(1) translateX(0); }
+          33%     { transform: scaleY(1.45) translateX(-4px); }
+          66%     { transform: scaleY(.65) translateX(4px); }
+        }
+
+        /* Focus outline — visible only on keyboard focus */
+        .dc-orb-stage:focus-visible {
+          outline: 2px solid color-mix(in srgb, var(--btn-prim) 55%, transparent);
+          outline-offset: 8px;
+          border-radius: 24px;
         }
 
         /* Minimalist voice line — no equaliser bars */
@@ -1745,21 +1870,46 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            <div className={`dc-orb-stage${tagroActive ? ' speaking' : ''}${statusBusy ? ' loading' : ''}`}>
-              <span className="dc-orb-pulse dc-orb-pulse-1" aria-hidden />
-              <span className="dc-orb-pulse dc-orb-pulse-2" aria-hidden />
-              <span className="dc-orb-pulse dc-orb-pulse-3" aria-hidden />
-              <span className="dc-orb-ring" aria-hidden />
-              <span className="dc-orb-bubble" aria-hidden>
-                <TagroLogo size={28} thinking={tagroActive} />
-              </span>
-            </div>
+            <button
+              type="button"
+              className={`dc-orb-stage${tagroActive ? ' speaking' : ''}${statusBusy ? ' loading' : ''}${isBriefingPlaying ? ' playing' : ''}`}
+              onClick={handleBriefingToggle}
+              disabled={!speechSupported || !audioText.trim() || statusBusy}
+              aria-label={isBriefingPlaying ? 'Briefing pausieren' : speechState === 'paused' ? 'Briefing fortsetzen' : 'Briefing anhören'}
+              aria-pressed={isBriefingPlaying}
+            >
+              {/* Sine-wave ripples — sit behind the orb, animate only while speaking */}
+              <svg className="dc-orb-wave" viewBox="0 0 360 100" preserveAspectRatio="none" aria-hidden>
+                <path className="dc-orb-wave-path back" d="M0 50 Q30 28 60 50 T120 50 T180 50 T240 50 T300 50 T360 50" />
+                <path className="dc-orb-wave-path mid"  d="M0 50 Q30 72 60 50 T120 50 T180 50 T240 50 T300 50 T360 50" />
+                <path className="dc-orb-wave-path front" d="M0 50 Q24 36 48 50 T96 50 T144 50 T192 50 T240 50 T288 50 T336 50 T360 50" />
+              </svg>
 
-            <svg className={`dc-voice-line${voiceLineActive ? ' on' : ''}`} viewBox="0 0 240 20" preserveAspectRatio="none" aria-hidden>
-              <path className="dc-voice-base" d="M0 10 L58 10 Q70 10 77 7 Q84 4.2 91 7 Q98 10 110 10 L142 10 Q154 10 161 13 Q168 15.8 175 13 Q182 10 194 10 L240 10" />
-              <path className="dc-voice-live" d="M0 10 L36 10 Q47 10 54 7.8 Q61 5.6 68 7.8 Q75 10 90 10 L122 10 Q135 10 142 5.8 Q149 1.9 156 5.8 Q163 10 178 10 L240 10" />
-              <path className="dc-voice-live alt" d="M0 10 L48 10 Q60 10 66 12.7 Q72 15.4 78 12.7 Q84 10 98 10 L151 10 Q162 10 169 7.1 Q176 4.4 183 7.1 Q190 10 204 10 L240 10" />
-            </svg>
+              {/* Outer ambient halo */}
+              <span className="dc-orb-halo" aria-hidden />
+
+              {/* Three stacked translucent glass discs (largest → smallest) */}
+              <span className="dc-orb-disc disc-3" aria-hidden />
+              <span className="dc-orb-disc disc-2" aria-hidden />
+              <span className="dc-orb-disc disc-1" aria-hidden>
+                {/* Mint→lavender gradient lit from above */}
+                <span className="dc-orb-gradient" aria-hidden />
+              </span>
+
+              {/* Inner play/Tagro core */}
+              <span className="dc-orb-core" aria-hidden>
+                {isBriefingPlaying ? (
+                  <svg className="dc-orb-glyph pause" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+                    <rect x="7" y="5" width="3.6" height="14" rx="1.6" fill="currentColor" />
+                    <rect x="13.4" y="5" width="3.6" height="14" rx="1.6" fill="currentColor" />
+                  </svg>
+                ) : (
+                  <span className="dc-orb-play">
+                    <TagroLogo size={18} thinking={statusBusy} />
+                  </span>
+                )}
+              </span>
+            </button>
 
             <div className="dc-brief-meta">
               <span className={`dc-brief-pulse tone-${
