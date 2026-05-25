@@ -167,11 +167,16 @@ function formatTimeAgo(iso: string) {
 }
 
 export default function AIPage() {
+  // useSearchParams() can momentarily return null during the initial
+  // client render in Next 14+. Calling .get() on it without the null
+  // guard throws "Cannot read properties of null" and the surrounding
+  // error boundary catches it as "Diese Ansicht konnte nicht sauber
+  // geladen werden" — that's the bug we just hit.
   const searchParams = useSearchParams()
-  if ((searchParams.get('view') ?? 'chat') === 'notes') {
+  const view = searchParams?.get('view') ?? 'chat'
+  if (view === 'notes') {
     return <NotesWorkspace />
   }
-
   return <AIChatPage />
 }
 
