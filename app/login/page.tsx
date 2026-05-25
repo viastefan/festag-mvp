@@ -127,37 +127,10 @@ export default function LoginPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  async function continueAsLastUser() {
-    if (await routeSessionIfPresent()) return
-    if (!lastEmail) return
-    setEmail(lastEmail)
-    setError(''); setLoading(true)
-    const { error: otpError } = await supabase.auth.signInWithOtp({
-      email: lastEmail.trim(),
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
-        shouldCreateUser: false,
-      },
-    })
-    setLoading(false)
-    if (otpError) {
-      // Don't strand the user on the main view — switch into the email
-      // step (already prefilled) so they can retry or correct.
-      setError(mapAuthError(otpError.message))
-      goTo('email')
-      return
-    }
-    saveMethod('email')
-    goTo('emailSent')
-  }
-
   function handleEmailButton() {
-    if (lastEmail && lastMethod === 'email') {
-      continueAsLastUser()
-      return
-    }
-    // Even if last-method wasn't email, surface the remembered address so
-    // the user doesn't have to re-type it.
+    // Do not auto-request a magic link from the main button. Reopening the
+    // email form keeps the flow predictable and avoids Supabase rate-limit
+    // states that made the login screen look disabled.
     if (lastEmail) setEmail(lastEmail)
     switchToEmail()
   }
@@ -346,8 +319,8 @@ export default function LoginPage() {
         {lastMethod === 'google' && <p className="log-hint">Du hast dich zuletzt damit angemeldet</p>}
       </div>
       <div className="log-btn-group">
-        <button className="log-btn log-btn-outline" type="button" onClick={handleEmailButton} disabled={loading}>
-          {loading && lastEmail && lastMethod === 'email' ? 'Wird geöffnet…' : 'E-Mail verwenden'}
+        <button className="log-btn log-btn-outline" type="button" onClick={handleEmailButton}>
+          E-Mail verwenden
         </button>
         {lastMethod === 'email' && <p className="log-hint">Du hast dich zuletzt damit angemeldet</p>}
       </div>
