@@ -1553,6 +1553,18 @@ export default function DashboardPage() {
         .dc-focus-line.tone-risk:not(.zero) .dc-focus-count { color:#d44b4b; }
 
         .dc-brief-actions { position:relative; display: flex; flex-direction: column; gap: 8px; }
+        /* Inline duration meta inside the play button label, separated
+           by a soft middle-dot in the muted tone. Keeps the duration
+           visible without a redundant status row above. */
+        .dc-btn-meta {
+          margin-left: 8px;
+          padding-left: 9px;
+          border-left: 1px solid color-mix(in srgb, var(--text) 14%, transparent);
+          color: var(--dc-muted);
+          font-size: 12px; font-weight: 500;
+          font-variant-numeric: tabular-nums;
+        }
+
         /* Play button — white 3D Festag pill. Two-stage shadow
            (1 px contact + 6/18 ambient), translateY(-1px) on hover.
            Secondary action next to the Slate primary CTA. */
@@ -1962,19 +1974,18 @@ export default function DashboardPage() {
 
           <aside className="dc-side">
           <section className="dc-brief" aria-label="Tagro Voice Briefing" data-tour="voice-briefing">
+            {/* Header — one truth source per piece of info. Eyebrow
+                "TAGRO VOICE BRIEFING" and top-right period chip both
+                dropped; the filter row underneath already names the
+                scope + period. */}
             <header className="dc-brief-head">
               <div className="dc-brief-headline">
-                <p className="dc-brief-eyebrow">Tagro Voice Briefing</p>
                 <h2 className="dc-brief-title">{currentReportTitle}</h2>
                 <p className="dc-brief-sub">
                   {noteStamp
                     ? <>Letzte Aktualisierung · heute, {noteStamp} Uhr</>
                     : 'Noch kein Bericht abgerufen.'}
                 </p>
-              </div>
-
-              <div className="dc-period">
-                <span>{period}</span>
               </div>
             </header>
 
@@ -2100,15 +2111,9 @@ export default function DashboardPage() {
               </span>
             </button>
 
-            <div className="dc-brief-meta">
-              <span className={`dc-brief-pulse tone-${
-                statusBusy ? 'amber' : isBriefingPlaying ? 'green' : speechState === 'paused' ? 'amber' : pulse.tone
-              }`}>
-                <span className="dc-brief-pulse-dot" aria-hidden />
-                <span>{briefingStatusLabel}</span>
-              </span>
-              <span className="dc-brief-duration">{briefingDurationLabel}</span>
-            </div>
+            {/* Status row removed — the page-level pulse top-right and
+                the play button's own label cover the same info. Two
+                green dots was decorative noise. */}
 
             {/* Heute im Fokus — always rendered. Even at zero it shows
                 "0 Entscheidungen warten" so the block functions as a
@@ -2136,13 +2141,13 @@ export default function DashboardPage() {
                 disabled={statusBusy || (!speechSupported && audioText.trim().length > 0)}
               >
                 {statusBusy ? (
-                  <><ArrowClockwise size={15} className="spin" /> Tagro generiert…</>
+                  <><ArrowClockwise size={14} className="spin" /> Tagro generiert…</>
                 ) : isBriefingPlaying ? (
-                  <><Pause size={15} weight="fill" /> Pausieren</>
+                  <><Pause size={14} weight="fill" /> Pausieren</>
                 ) : speechState === 'paused' ? (
-                  <><Play size={15} weight="fill" /> Weiterhören</>
+                  <><Play size={14} weight="fill" /> Weiterhören<span className="dc-btn-meta">{briefingDurationLabel}</span></>
                 ) : (
-                  <><Play size={15} weight="fill" /> Bericht anhören</>
+                  <><Play size={14} weight="fill" /> Bericht anhören<span className="dc-btn-meta">{briefingDurationLabel}</span></>
                 )}
               </button>
 
