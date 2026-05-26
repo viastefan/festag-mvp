@@ -469,7 +469,7 @@ export default function SettingsPage() {
       <style>{`
         .set {
           --set-bg: var(--bg);
-          --set-surface: color-mix(in srgb, var(--surface) 60%, var(--bg));
+          --set-surface: var(--surface);
           --set-card: var(--surface);
           --set-border: var(--border);
           --set-text: var(--text);
@@ -479,18 +479,38 @@ export default function SettingsPage() {
           color: var(--set-text);
           font-family: var(--font-aeonik,'Aeonik',Inter,sans-serif);
           font-weight: 500;
-          letter-spacing: 0.01em;
+          letter-spacing: .017em;
           min-height: 100dvh;
           display: flex;
           justify-content: flex-start;
+          padding: 20px 18px 40px;
         }
+        .set, .set * { letter-spacing: .017em; }
 
-        /* ── MAIN (centered, no inner sidebar) ──────────────────── */
+        /* ── MAIN — wide white surface like the dashboard content cards.
+             ~100 px inner padding, generous max width so forms breathe. */
         .set-main {
-          padding: 56px clamp(20px, 4vw, 48px) 80px;
-          max-width: 760px;
           width: 100%;
+          max-width: 1240px;
           margin: 0 auto;
+          background: var(--surface);
+          border: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+          border-radius: 20px;
+          padding: 48px clamp(28px, 7vw, 100px) 56px;
+          box-shadow:
+            0 1px 2px rgba(15,23,42,.04),
+            0 18px 50px -20px rgba(15,23,42,.10);
+        }
+        [data-theme="dark"] .set-main,
+        [data-theme="classic-dark"] .set-main {
+          background: color-mix(in srgb, var(--surface) 96%, #fff 4%);
+          box-shadow:
+            0 1px 2px rgba(0,0,0,.32),
+            0 22px 60px -22px rgba(0,0,0,.45);
+        }
+        @media (max-width: 720px) {
+          .set { padding: 12px 10px 32px; }
+          .set-main { border-radius: 14px; padding: 28px 20px 36px; }
         }
         .set-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px; gap: 16px; }
         .set-title { font-size: 22px; font-weight: 500; letter-spacing: -0.01em; }
@@ -515,9 +535,12 @@ export default function SettingsPage() {
         .set-card:first-of-type { border-top: 0; }
         .set-profile-layout {
           display: grid;
-          grid-template-columns: minmax(0, 760px) minmax(240px, 300px);
-          gap: 28px;
+          grid-template-columns: minmax(0, 1fr) minmax(260px, 320px);
+          gap: 56px;
           align-items: start;
+        }
+        @media (max-width: 960px) {
+          .set-profile-layout { grid-template-columns: 1fr; gap: 28px; }
         }
         .set-side-stack {
           display: flex;
@@ -583,13 +606,16 @@ export default function SettingsPage() {
         }
         .set-row {
           display: grid;
-          grid-template-columns: minmax(180px, 1fr) minmax(0, 1.6fr);
-          gap: 16px;
+          grid-template-columns: minmax(200px, 1fr) minmax(0, 1.4fr);
+          gap: 28px;
           align-items: center;
-          padding: 16px 22px;
-          border-bottom: 1px solid var(--set-border);
+          padding: 18px 0;
+          border-bottom: 1px solid color-mix(in srgb, var(--set-border) 50%, transparent);
         }
         .set-row:last-child { border-bottom: none; }
+        @media (max-width: 720px) {
+          .set-row { grid-template-columns: 1fr; gap: 8px; padding: 14px 0; }
+        }
         .set-row-stack { align-items: flex-start; }
         .set-label { font-size: 13.5px; font-weight: 500; letter-spacing: 0.01em; }
         .set-label-sub { font-size: 12px; font-weight: 400; letter-spacing: 0.01em; color: var(--set-text-muted); margin-top: 3px; line-height: 1.5; }
