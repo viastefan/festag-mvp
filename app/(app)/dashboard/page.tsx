@@ -1086,7 +1086,7 @@ export default function DashboardPage() {
         .dc-scope { position: relative; flex-shrink: 0; z-index: 18; }
         .dc-scope-trigger {
           display: inline-flex; align-items: center; gap: 7px;
-          max-width: 170px;
+          max-width: 152px;
           height: 30px; padding: 0 11px 0 12px;
           border-radius: 999px;
           border: 0;
@@ -1164,16 +1164,21 @@ export default function DashboardPage() {
           margin: 2px 6px;
         }
         .dc-period-options {
-          display:flex; align-items:center; gap:2px;
+          display:flex; align-items:center; justify-content:space-between; gap:2px;
+          flex:1 1 auto;
+          min-width:0;
           padding:3px;
           border-radius:999px;
           background:color-mix(in srgb, var(--surface-2) 34%, transparent);
         }
         .dc-period-options button {
           appearance:none; border:0; background:transparent;
-          min-width:34px; height:24px; padding:0 8px;
+          flex:1 1 0;
+          min-width:0; height:24px; padding:0 7px;
           border-radius:999px; color:var(--dc-muted);
           font:inherit; font-size:10.5px; cursor:pointer;
+          display:inline-flex; align-items:center; justify-content:center;
+          white-space:nowrap; line-height:1;
           transition:background .14s ease, color .14s ease;
         }
         .dc-period-options button:hover,
@@ -1906,11 +1911,12 @@ export default function DashboardPage() {
         </header>
 
         <div className="dc-body">
-          <article className="dc-note" aria-label="Statusnotiz" data-tour="status-note">
-            <div className="dc-note-head">
-              <span className="dc-note-label">Statusnotiz</span>
-              {noteStamp && <span className="dc-note-stamp">Heute, {noteStamp} Uhr</span>}
-            </div>
+          <article className="dc-note" aria-label="Statusbericht" data-tour="status-note">
+            {noteStamp && (
+              <div className="dc-note-head">
+                <span className="dc-note-stamp">Heute, {noteStamp} Uhr</span>
+              </div>
+            )}
 
             {noteRevealed ? (
               <>
@@ -1962,11 +1968,11 @@ export default function DashboardPage() {
                 <p className="dc-note-empty">
                   {loading
                     ? 'Tagro prüft deine Projekte und bereitet den aktuellen Status vor.'
-                    : 'Hier ist noch nichts notiert. Starte rechts ein Voice Briefing, dann schreibt Tagro den aktuellen Status ruhig als Bericht mit.'}
+                    : 'Starte rechts ein Voice Briefing. Tagro schreibt den aktuellen Status hier als Bericht mit.'}
                 </p>
                 <span className="dc-note-empty-cue">
                   <TagroLogo size={15} thinking={tagroActive} />
-                  Statusbericht und nächste Schritte bleiben hier lesbar.
+                  Bericht und nächste Schritte bleiben hier lesbar.
                 </span>
               </>
             )}
