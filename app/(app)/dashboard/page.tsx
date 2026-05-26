@@ -894,42 +894,32 @@ export default function DashboardPage() {
            WHITE 3D Festag pill, same chrome as .task-tool: white card bg,
            two-stage shadow (1px contact + 8/22 ambient), translateY lift
            on hover. NO black buttons in light mode (Festag rule). */
-        /* "Neuer Statusbericht" CTA — minimalist GPT-style. White card
-           on the grey canvas, hairline border instead of shadow stack,
-           no arrow glyph. Hover only swaps the border tone, no lift. */
+        /* "Neuer Statusbericht" CTA — Festag PRIMARY action.
+           Slate #5B647D solid, white text, no arrow glyph, calm 1 px
+           contact shadow so it sits on the canvas without floating. */
         .dc-write-cta {
-          appearance: none;
+          appearance: none; border: 0;
           width: 100%;
           display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-          height: 42px; padding: 0 18px;
+          height: 44px; padding: 0 18px;
           border-radius: 12px;
-          background: #fff;
-          color: var(--text);
-          border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+          background: var(--btn-prim);
+          color: var(--btn-prim-text);
           font: inherit; font-size: 13px; font-weight: 500;
           letter-spacing: .017em;
           cursor: pointer;
-          transition: border-color .14s ease, background .14s ease;
+          box-shadow: 0 1px 2px rgba(15,23,42,.10);
+          transition: background .14s ease, box-shadow .14s ease;
         }
         .dc-write-cta:hover:not(:disabled) {
-          border-color: color-mix(in srgb, var(--text) 22%, var(--border));
-          background: color-mix(in srgb, #fff 92%, var(--surface-2) 8%);
+          background: color-mix(in srgb, var(--btn-prim) 88%, #000 12%);
+          box-shadow: 0 1px 2px rgba(15,23,42,.16), 0 4px 12px rgba(15,23,42,.08);
         }
         .dc-write-cta:active:not(:disabled) {
-          background: color-mix(in srgb, #fff 84%, var(--surface-2) 16%);
+          background: color-mix(in srgb, var(--btn-prim) 80%, #000 20%);
         }
         .dc-write-cta:disabled { opacity: .55; cursor: not-allowed; }
-        .dc-write-cta.busy { background: color-mix(in srgb, #fff 92%, var(--surface-2) 8%); }
-        [data-theme="dark"] .dc-write-cta,
-        [data-theme="classic-dark"] .dc-write-cta {
-          background: color-mix(in srgb, var(--surface) 94%, #fff 6%);
-          border-color: color-mix(in srgb, var(--border) 80%, transparent);
-        }
-        [data-theme="dark"] .dc-write-cta:hover:not(:disabled),
-        [data-theme="classic-dark"] .dc-write-cta:hover:not(:disabled) {
-          background: color-mix(in srgb, var(--surface) 88%, #fff 12%);
-          border-color: color-mix(in srgb, #fff 18%, var(--border));
-        }
+        .dc-write-cta.busy { background: color-mix(in srgb, var(--btn-prim) 85%, var(--surface-2) 15%); }
         .dc-write-cta .dc-write-arrow { display: none; }
         /* The right column is frameless too — no floating box, just a
            calm stack that mirrors the notebook on the left. */
@@ -1563,32 +1553,46 @@ export default function DashboardPage() {
         .dc-focus-line.tone-risk:not(.zero) .dc-focus-count { color:#d44b4b; }
 
         .dc-brief-actions { position:relative; display: flex; flex-direction: column; gap: 8px; }
-        /* Play button — GPT-cleaner: hairline outline, transparent fill,
-           no inset highlight. Reads as a quiet action, not a chip. */
+        /* Play button — white 3D Festag pill. Two-stage shadow
+           (1 px contact + 6/18 ambient), translateY(-1px) on hover.
+           Secondary action next to the Slate primary CTA. */
         .dc-brief-primary {
-          appearance: none;
+          appearance: none; border: 0;
           width: 100%; height: 40px; padding: 0 16px;
           display: inline-flex; align-items: center; justify-content: center; gap: 9px;
           border-radius: 10px;
-          background: transparent;
+          background: #fff;
           color: var(--text);
-          border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
           font: inherit; font-size: 13px;
           font-weight: 500 !important; letter-spacing: .017em !important;
           cursor: pointer;
-          transition: background .14s, border-color .14s;
+          box-shadow:
+            0 1px 2px rgba(15,23,42,.08),
+            0 6px 18px rgba(15,23,42,.07);
+          transition: transform .14s ease, box-shadow .14s ease, background .14s ease;
         }
         .dc-brief-primary:hover:not(:disabled) {
-          background: color-mix(in srgb, var(--surface-2) 30%, transparent);
-          border-color: color-mix(in srgb, var(--text) 20%, var(--border));
+          transform: translateY(-1px);
+          box-shadow:
+            0 1px 2px rgba(15,23,42,.1),
+            0 10px 24px rgba(15,23,42,.10);
         }
-        [data-theme="light"] .dc-brief-primary,
-        [data-theme="pure-light"] .dc-brief-primary {
-          border-color: color-mix(in srgb, var(--border) 65%, transparent);
+        .dc-brief-primary:active:not(:disabled) {
+          transform: translateY(0);
+          box-shadow: 0 1px 2px rgba(15,23,42,.12), 0 4px 12px rgba(15,23,42,.10);
         }
-        [data-theme="light"] .dc-brief-primary:hover:not(:disabled),
-        [data-theme="pure-light"] .dc-brief-primary:hover:not(:disabled) {
-          background: rgba(15,23,42,.03);
+        [data-theme="dark"] .dc-brief-primary,
+        [data-theme="classic-dark"] .dc-brief-primary {
+          background: color-mix(in srgb, var(--surface) 92%, #fff 8%);
+          box-shadow:
+            0 1px 2px rgba(0,0,0,.32),
+            0 6px 18px rgba(0,0,0,.22);
+        }
+        [data-theme="dark"] .dc-brief-primary:hover:not(:disabled),
+        [data-theme="classic-dark"] .dc-brief-primary:hover:not(:disabled) {
+          box-shadow:
+            0 1px 2px rgba(0,0,0,.36),
+            0 12px 28px rgba(0,0,0,.32);
         }
         .dc-brief-primary:focus,
         .dc-brief-primary:focus-visible {
