@@ -373,19 +373,26 @@ export default function DashboardPage() {
     ? 'Tagro fasst aktive Projekte, offene Aufgaben, Risiken und Entscheidungen in einem ruhigen Briefing zusammen.'
     : 'Tagro verdichtet Fortschritt, offene Punkte und nächste Schritte für diesen Projektkontext.'
 
-  // Focus items now include real decisions (from the decisions table)
-  // alongside risk-tagged tasks. Decisions are surfaced as links — same
-  // single-line pattern, click jumps to /decisions.
+  // Focus items ALWAYS render — even at zero. The user wants the daily
+  // "0 Entscheidungen / 0 Risiken" pulse so the block reads as a calm
+  // check-in: nothing dringend if both are 0. Both lines link to
+  // /decisions — risks live there too, the table filters by tone.
   const combinedDecisionsCount = openDecisionsCount + decisionTasks.length
-  type FocusItem = { text: string; tone: 'risk' | 'decision' | 'task'; href?: string }
+  type FocusItem = { count: number; label: string; tone: 'risk' | 'decision'; href: string }
   const executiveFocus: FocusItem[] = [
-    riskTasks.length > 0
-      ? { text: `${riskTasks.length} ${riskTasks.length === 1 ? 'Risiko braucht' : 'Risiken brauchen'} Aufmerksamkeit.`, tone: 'risk', href: '/tasks?view=open' }
-      : null,
-    combinedDecisionsCount > 0
-      ? { text: `${combinedDecisionsCount} ${combinedDecisionsCount === 1 ? 'Entscheidung wartet' : 'Entscheidungen warten'} auf dich.`, tone: 'decision', href: '/decisions' }
-      : null,
-  ].filter(Boolean) as FocusItem[]
+    {
+      count: combinedDecisionsCount,
+      label: combinedDecisionsCount === 1 ? 'Entscheidung wartet auf dich' : 'Entscheidungen warten auf dich',
+      tone: 'decision',
+      href: '/decisions',
+    },
+    {
+      count: riskTasks.length,
+      label: riskTasks.length === 1 ? 'Risiko braucht Aufmerksamkeit' : 'Risiken brauchen Aufmerksamkeit',
+      tone: 'risk',
+      href: '/decisions?tone=risk',
+    },
+  ]
 
   const periodOptions = ['Heute', 'Letzte 7 Tage', 'Letzte 30 Tage', 'Letzte 90 Tage'] as const
   const writtenReportText = noteRevealed.trim() || audioText.trim()
@@ -399,7 +406,7 @@ export default function DashboardPage() {
       currentReportSummary,
       '',
       'Heute im Fokus',
-      ...executiveFocus.map((item) => `- ${item.text}`),
+      ...executiveFocus.map((item) => `- ${item.count} ${item.label}`),
       '',
       'Statusbericht',
       writtenReportText || 'Noch kein Statusbericht vorhanden.',
@@ -882,44 +889,60 @@ export default function DashboardPage() {
           animation:dcFade .3s .06s cubic-bezier(.16,1,.3,1) both;
         }
 
-        /* Full-width "Schreib mir den Bericht" CTA — sits under .dc-brief,
-           matches its width exactly, calmer height. Click writes into the
-           left .dc-note (Statusnotiz). */
+        /* Full-width "Schreib mir den Bericht" CTA — sits under .dc-brief.
+           WHITE 3D Festag pill, same chrome as .task-tool: white card bg,
+           two-stage shadow (1px contact + 8/22 ambient), translateY lift
+           on hover. NO black buttons in light mode (Festag rule). */
         .dc-write-cta {
           appearance: none; border: 0;
           width: 100%;
           display: inline-flex; align-items: center; justify-content: center; gap: 9px;
           height: 44px; padding: 0 18px;
           border-radius: 14px;
-          background: var(--btn-prim);
-          color: var(--btn-prim-text);
+          background: #fff;
+          color: var(--text);
           font: inherit; font-size: 13px; font-weight: 500;
           letter-spacing: .017em;
           cursor: pointer;
           box-shadow:
-            0 1px 2px color-mix(in srgb, var(--text) 6%, transparent),
-            0 8px 22px color-mix(in srgb, var(--text) 10%, transparent);
-          transition: opacity .14s, transform .12s, box-shadow .14s;
+            0 1px 2px rgba(15,23,42,.08),
+            0 6px 18px rgba(15,23,42,.07);
+          transition: transform .14s ease, box-shadow .14s ease, background .14s ease;
         }
         .dc-write-cta:hover:not(:disabled) {
-          opacity: .94;
+          transform: translateY(-1px);
           box-shadow:
-            0 1px 2px color-mix(in srgb, var(--text) 8%, transparent),
-            0 12px 28px color-mix(in srgb, var(--text) 14%, transparent);
+            0 1px 2px rgba(15,23,42,.1),
+            0 10px 24px rgba(15,23,42,.10);
         }
-        .dc-write-cta:active:not(:disabled) { transform: scale(.985); }
+        .dc-write-cta:active:not(:disabled) {
+          transform: translateY(0);
+          box-shadow: 0 1px 2px rgba(15,23,42,.12), 0 4px 12px rgba(15,23,42,.10);
+        }
         .dc-write-cta:disabled { opacity: .65; cursor: not-allowed; }
-        .dc-write-cta.busy { background: color-mix(in srgb, var(--btn-prim) 78%, var(--surface-2) 22%); }
-        .dc-write-cta .dc-write-arrow {
-          margin-left: 2px; font-size: 14px; line-height: 1;
-          opacity: .8; transition: transform .14s, opacity .14s;
-        }
-        .dc-write-cta:hover:not(:disabled) .dc-write-arrow { transform: translateX(-3px); opacity: 1; }
+        .dc-write-cta.busy { background: color-mix(in srgb, #fff 88%, var(--surface-2) 12%); }
         [data-theme="dark"] .dc-write-cta,
         [data-theme="classic-dark"] .dc-write-cta {
+          background: color-mix(in srgb, var(--surface) 92%, #fff 8%);
+          color: var(--text);
           box-shadow:
             0 1px 2px rgba(0,0,0,.32),
-            0 14px 32px rgba(0,0,0,.30);
+            0 6px 18px rgba(0,0,0,.22);
+        }
+        [data-theme="dark"] .dc-write-cta:hover:not(:disabled),
+        [data-theme="classic-dark"] .dc-write-cta:hover:not(:disabled) {
+          box-shadow:
+            0 1px 2px rgba(0,0,0,.36),
+            0 12px 28px rgba(0,0,0,.32);
+        }
+        .dc-write-cta .dc-write-arrow {
+          margin-left: 2px; font-size: 14px; line-height: 1;
+          color: var(--dc-muted);
+          transition: transform .14s ease, color .14s ease;
+        }
+        .dc-write-cta:hover:not(:disabled) .dc-write-arrow {
+          transform: translateX(-3px);
+          color: var(--text);
         }
         @media (max-width:960px) {
           .dc-write-cta .dc-write-arrow { display: none; }
@@ -1538,35 +1561,37 @@ export default function DashboardPage() {
         .dc-brief-focus p,
         .dc-brief-focus .dc-focus-line {
           margin:0;
-          color:var(--dc-soft);
-          font-size:12px;
-          line-height:1.42;
-          display:flex; align-items:center; gap:8px;
+          color:var(--text);
+          font-size:12.5px;
+          line-height:1.4;
+          display:flex; align-items:center; gap:10px;
           text-decoration:none;
-          padding:5px 9px;
+          padding:7px 10px;
           border-radius:8px;
           transition:background .12s, color .12s;
         }
-        .dc-brief-focus .dc-focus-text { flex:1 1 auto; min-width:0; }
+        .dc-brief-focus .dc-focus-count {
+          min-width:22px; text-align:right;
+          font-size:14px; font-weight:500; letter-spacing:-.006em;
+          color:var(--text); font-variant-numeric:tabular-nums;
+          flex-shrink:0;
+        }
+        .dc-brief-focus .dc-focus-text { flex:1 1 auto; min-width:0; color:var(--dc-soft); }
         .dc-brief-focus .dc-focus-go {
-          color:var(--dc-muted); font-size:11px; opacity:.7;
+          color:var(--dc-muted); font-size:12px; opacity:.6;
           flex-shrink:0;
         }
         a.dc-focus-line { cursor:pointer; }
         a.dc-focus-line:hover {
           background:color-mix(in srgb, var(--surface-2) 55%, transparent);
-          color:var(--text);
         }
         a.dc-focus-line:hover .dc-focus-go { opacity:1; }
-        .dc-focus-line.tone-risk { color:#d44b4b; }
-        .dc-focus-line.tone-decision { color:var(--text); }
-        .dc-focus-line.tone-decision::before,
-        .dc-focus-line.tone-risk::before {
-          content:""; width:6px; height:6px; border-radius:50%;
-          flex-shrink:0;
-        }
-        .dc-focus-line.tone-decision::before { background:var(--btn-prim, #5B647D); }
-        .dc-focus-line.tone-risk::before     { background:#d44b4b; }
+        a.dc-focus-line:hover .dc-focus-text { color:var(--text); }
+        /* Zero state: number greys out, link still works. */
+        .dc-focus-line.zero .dc-focus-count { color:var(--dc-muted); }
+        .dc-focus-line.zero .dc-focus-text { color:var(--dc-muted); }
+        /* Tone accent — risk count goes red, decision count stays text. */
+        .dc-focus-line.tone-risk:not(.zero) .dc-focus-count { color:#d44b4b; }
 
         .dc-brief-actions { position:relative; display: flex; flex-direction: column; gap: 8px; }
         .dc-brief-primary {
@@ -2108,19 +2133,24 @@ export default function DashboardPage() {
               <span className="dc-brief-duration">{briefingDurationLabel}</span>
             </div>
 
-            {/* Heute im Fokus — only shows real items (risks + open
-                decisions). Empty array → block hidden. Each item links
-                to its surface so the user can act in one click. */}
-            {executiveFocus.length > 0 && (
-              <div className="dc-brief-focus" aria-label="Heute im Fokus">
-                <span>Heute im Fokus</span>
-                {executiveFocus.map((item) => (
-                  item.href
-                    ? <a key={item.text} href={item.href} className={`dc-focus-line tone-${item.tone}`}><span className="dc-focus-text">{item.text}</span><span className="dc-focus-go" aria-hidden>→</span></a>
-                    : <p key={item.text} className={`dc-focus-line tone-${item.tone}`}><span className="dc-focus-text">{item.text}</span></p>
-                ))}
-              </div>
-            )}
+            {/* Heute im Fokus — always rendered. Even at zero it shows
+                "0 Entscheidungen warten" so the block functions as a
+                daily check-in. Both lines link into /decisions where
+                risks + open requests live in the same table. */}
+            <div className="dc-brief-focus" aria-label="Heute im Fokus">
+              <span>Heute im Fokus</span>
+              {executiveFocus.map((item) => (
+                <a
+                  key={item.tone}
+                  href={item.href}
+                  className={`dc-focus-line tone-${item.tone}${item.count === 0 ? ' zero' : ''}`}
+                >
+                  <span className="dc-focus-count">{item.count}</span>
+                  <span className="dc-focus-text">{item.label}</span>
+                  <span className="dc-focus-go" aria-hidden>→</span>
+                </a>
+              ))}
+            </div>
 
             <div className="dc-brief-actions">
               <button
