@@ -612,6 +612,68 @@ export const festagDocsArticles: FestagDocArticle[] = [
       example: 'Statt hektischer Chat-Nachrichten erhält ein Stakeholder einen strukturierten Report mit konkretem nächsten Schritt.',
       nextStep: 'Nutze Statusberichte als Standardformat für externe Kommunikation.',
     }),
+
+  // ─── New (2026-05) — Decisions / Notes / Focus / Inbox ──────────
+
+  article('Aufgaben & operative Arbeit', 'Entscheidungen als eigene Fläche', 'entscheidungen',
+    'Wie Festag Entscheidungen aus dem Chat raushebt und zu einer eigenen Tabelle macht — vom Developer-Request bis zur ruhigen Antwort des Kunden.',
+    ['Entscheidungen', 'Workflow', 'Tagro', 'Verantwortung'],
+    {
+      overview: 'Entscheidungen sind in Festag ein eigenes Surface neben Tasks. Sie entstehen dort, wo Arbeit blockiert, weil eine Antwort vom Kunden fehlt — und sie verschwinden, sobald die Antwort vorliegt.',
+      explanation: [
+        'Ein Developer fordert die Entscheidung direkt aus seinem Task-Drawer an: Frage in einem Satz, optionalen Kontext, bis zu sechs Optionen und eine Dringlichkeit. Mit einem Klick landet sie als „offen" beim Entscheider.',
+        'Der Kunde sieht die Entscheidung sofort an drei Stellen: als Eintrag in der Sidebar mit Counter-Badge, als Zeile in „Heute im Fokus" auf dem Dashboard und als Inbox-Benachrichtigung. Push, E-Mail und WhatsApp sind als Kanäle vorgesehen, damit Antworten auch unterwegs gegeben werden können.',
+        'Auf `/decisions` öffnet ein Klick auf die Zeile einen Drawer mit Frage, Kontext und Optionen. Tagro kann auf Knopfdruck eine Empfehlung mit kurzer Begründung liefern; der Kunde übernimmt sie mit einem weiteren Klick oder schreibt eine eigene Antwort.',
+        'Sobald die Entscheidung getroffen ist, fließt sie zurück an den Developer als Benachrichtigung — die Arbeit kann ohne Übersetzungsverlust weitergehen.',
+      ],
+      example: 'Ein Developer fragt: „Welcher Hosting-Provider soll es werden?" mit drei Optionen. Tagro empfiehlt nach kurzer Analyse Option B und nennt den Grund. Der Kunde bestätigt mit einem Klick — der Developer bekommt sofort die Antwort und arbeitet weiter, ohne dass jemand im Chat nachfragen musste.',
+      nextStep: 'Probiere Entscheidungen aus, sobald in einem Projekt eine Frage offen ist. Erfahrungsgemäß sammeln sich diese Punkte schnell in unstrukturierten Chats — hier bleiben sie klar adressiert und nachvollziehbar.',
+    }, true, '5 Min.'),
+
+  article('Tagro AI', 'Notizen mit Tagro', 'notizen-mit-tagro',
+    'Wie der Notizbereich in Festag funktioniert: vier Typen, [[Backlinks]], Tagro-Analyse und eine direkte Übergabe an den Chat.',
+    ['Notizen', 'Tagro', 'Backlinks', 'Workflow'],
+    {
+      overview: 'Notizen sind nicht einfach Textblöcke, sondern eine eigene Arbeitsfläche mit klarer Logik. Beim Anlegen wird ein Typ gewählt — Journal, Brief, Meeting oder Research — der bestimmt, wie Tagro die Notiz später liest.',
+      explanation: [
+        'Beim Klick auf „Neue Notiz" öffnet sich ein Composer-Modal, das nach Titel, Inhalt, Typ, Projekt und Tags fragt. Direkt unten sitzen drei Pfade: ruhig anlegen, mit Tagro analysieren oder als Kontext an den Tagro-Chat übergeben.',
+        'Im Editor erkennt Tagro die Notiz typabhängig: Briefs werden in konkrete Tasks zerlegt, Journals in Themen, Meeting-Protokolle in Folgepunkte, Research in Risiken und Lücken. Die Vorschläge erscheinen in einem ruhigen Panel innerhalb der Notiz.',
+        'Mit der Syntax `[[Notiz-Titel]]` lassen sich Notizen untereinander verlinken. Ein Typeahead zeigt passende Treffer; im Editor-Footer erscheint später automatisch ein „Erwähnt von"-Block — Festag baut so einen leichtgewichtigen Wissensgraphen mit, ohne dass Stefan oder das Team manuell verlinken muss.',
+        'Das Tastenkürzel ⌘⇧N öffnet das Composer-Modal überall in der App, sodass Gedanken direkt im Flow festgehalten werden können.',
+      ],
+      example: 'Während eines Kundencalls wird eine Meeting-Notiz angelegt. Tagro liest sie anschließend und schlägt drei Folgepunkte sowie eine Risiko-Frage vor. Mit einem Klick werden die Folgepunkte zu echten Tasks im verknüpften Projekt.',
+      nextStep: 'Öffne die Daily Note über die Sidebar oder ⌘⇧N — die idempotente Tagesnotiz wird automatisch angeheftet und bleibt der ruhige Capture-Buffer für lose Gedanken.',
+    }, true, '5 Min.'),
+
+  article('Statusabfragen', '„Heute im Fokus" auf dem Dashboard', 'heute-im-fokus',
+    'Ein ruhiger täglicher Check-in: offene Entscheidungen und Risiken sichtbar auch bei Null.',
+    ['Dashboard', 'Statusabfrage', 'Entscheidungen', 'Risiken'],
+    {
+      overview: 'Der Block „Heute im Fokus" im rechten Briefing-Panel ist als täglicher Pulse-Check gedacht. Er zeigt zwei Zahlen: offene Entscheidungen, die auf den User warten, und Risiken, die Aufmerksamkeit brauchen — auch wenn beide bei Null stehen.',
+      explanation: [
+        'Die Zahlen werden live aus den Tabellen `decisions` (Status `offen`, `in_progress` oder `waiting_for_client`) und `tasks` (Status `blocked`) abgeleitet. Eine Realtime-Subscription auf Postgres aktualisiert beide ohne Reload.',
+        'Beide Zeilen sind klickbar — sie führen direkt nach `/decisions`, wo Entscheidungen und Risiken in einer einheitlichen Tabelle erscheinen. Damit wird der tägliche Check zu einem Ein-Klick-Sprung an den Punkt, wo Aktion nötig ist.',
+        'Im Zero-Zustand wird die Zahl in Grau gerendert, die Zeile bleibt aber als Hover-Element aktiv. So liest sich der Block als ruhiges „nichts dringend" statt als leerer Platz.',
+        'Die fette weiße CTA darunter — „Statusbericht schreiben" oder „Neuen Statusbericht schreiben" — schreibt mit einem Klick einen frischen Tagro-Bericht direkt in den Notizblock links. Kein zusätzlicher Dialog, keine Wartezeit.',
+      ],
+      example: 'Vor dem ersten Meeting öffnet eine Kundin das Dashboard und sieht: 0 Entscheidungen warten · 0 Risiken brauchen Aufmerksamkeit. Sie klickt auf „Statusbericht schreiben", liest die Zusammenfassung und geht beruhigt ins Meeting.',
+      nextStep: 'Nutze den Block als morgendlichen Anker. Wenn eine Zahl > 0 ist, klick sie an, bevor du irgendetwas anderes öffnest.',
+    }, false, '3 Min.'),
+
+  article('Erste Schritte', 'Posteingang verstehen', 'posteingang-verstehen',
+    'Wie der Festag-Posteingang strukturiert ist und warum er ruhiger lesbar ist als ein klassischer Chat.',
+    ['Posteingang', 'Inbox', 'Kommunikation', 'Übersicht'],
+    {
+      overview: 'Der Festag-Posteingang ist kein Chat-Strom, sondern eine kategorisierte Liste strukturierter Eingänge: Projekt-Updates, Rechnungen, Konto-Events und Tagro-Assists liegen sauber getrennt in einer einzigen Spalte.',
+      explanation: [
+        'Statt der bisherigen Reihe aus fünf Filter-Pills sitzt rechts oben ein Festag-Trigger, der ein 12px-Radius-Popover öffnet. Darin stehen alle Kategorien mit Hint-Text und einem eigenen Ungelesen-Badge — die aktive Kategorie ist im Trigger selbst sichtbar.',
+        'Links die Liste, rechts der Detail-Pane: beide teilen sich dieselbe weiße Surface, getrennt nur durch eine feine Border-Right. Das Auge ruht statt auf zwei Boxen auf einer Leinwand.',
+        'Eingänge entstehen automatisch — aus Status-Updates des Developer-Teams, aus Tagro-Zusammenfassungen, aus Decision-Requests und aus System-Events wie Rechnungen oder Vertragsversand. Manuelles Sortieren fällt weg.',
+        'Ein optionaler Funnel-Knopf oben rechts blendet alle bereits gelesenen Items aus, sodass nur noch das Offene sichtbar bleibt.',
+      ],
+      example: 'Nach dem Mittag öffnet ein Kunde den Posteingang. Drei Eingänge sind ungelesen: ein Tagro-Briefing zum Stand der Landingpage, eine Rechnung des Vormonats und eine Entscheidungsanfrage. Mit drei Klicks ist alles eingeordnet.',
+      nextStep: 'Wähle eine Kategorie über das Popover oben rechts — der Detail-Pane zeigt den Eintrag, danach kannst du direkt ins Projekt springen.',
+    }),
 ]
 
 export function getDocArticle(slug: string) {
