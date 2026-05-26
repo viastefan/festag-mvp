@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { usePathname, useSearchParams } from 'next/navigation'
 import { ArrowLeft, ArrowRight, Check, X } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
@@ -88,12 +89,6 @@ function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max)
 }
 
-function getWorkspaceRect() {
-  if (typeof window === 'undefined') return null
-  const workspace = document.querySelector('.app-workspace') as HTMLElement | null
-  return workspace?.getBoundingClientRect() ?? new DOMRect(0, 0, window.innerWidth, window.innerHeight)
-}
-
 function getTarget(target: string) {
   return document.querySelector(`[data-tour="${target}"]`) as HTMLElement | null
 }
@@ -171,7 +166,6 @@ export default function WelcomeTour({ forceOpen = false, onDone }: Props) {
   const [state, setState] = useState<OnboardingState>('idle')
   const [stepIdx, setStepIdx] = useState(0)
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null)
-  const [workspaceRect, setWorkspaceRect] = useState<DOMRect | null>(null)
   const [userId, setUserId] = useState<string | null>(null)
   const checkedRef = useRef(false)
 
@@ -211,18 +205,6 @@ export default function WelcomeTour({ forceOpen = false, onDone }: Props) {
     setOnboardingActive(active)
     return () => setOnboardingActive(false)
   }, [state, setOnboardingActive])
-
-  useEffect(() => {
-    if (state !== 'welcome') return
-    const measure = () => setWorkspaceRect(getWorkspaceRect())
-    measure()
-    window.addEventListener('resize', measure)
-    window.addEventListener('orientationchange', measure)
-    return () => {
-      window.removeEventListener('resize', measure)
-      window.removeEventListener('orientationchange', measure)
-    }
-  }, [state])
 
   useEffect(() => {
     if (state !== 'tour' || !step) return
@@ -370,15 +352,8 @@ export default function WelcomeTour({ forceOpen = false, onDone }: Props) {
   if (state === 'idle' || state === 'completed' || state === 'skipped') return null
 
   if (state === 'welcome') {
-    const stageStyle = workspaceRect ? {
-      top: workspaceRect.top,
-      right: window.innerWidth - workspaceRect.right,
-      bottom: window.innerHeight - workspaceRect.bottom,
-      left: workspaceRect.left,
-    } : undefined
-
-    return (
-      <div className="wt-welcome-stage" style={stageStyle} role="dialog" aria-modal="true" aria-label="Willkommen bei Festag">
+    const node = (
+      <div className="wt-welcome-stage" role="dialog" aria-modal="true" aria-label="Willkommen bei Festag">
         <style>{CSS}</style>
         <div className="wt-welcome-backdrop" aria-hidden />
         <section className="wt-welcome-card">
@@ -402,6 +377,7 @@ export default function WelcomeTour({ forceOpen = false, onDone }: Props) {
         </section>
       </div>
     )
+    return typeof document === 'undefined' ? node : createPortal(node, document.body)
   }
 
   if (state === 'tour') {
@@ -414,7 +390,7 @@ export default function WelcomeTour({ forceOpen = false, onDone }: Props) {
       borderRadius: Math.min(22, Math.max(10, targetRect.height / 4)),
     } : undefined
 
-    return (
+    const node = (
       <div className={`wt-tour-layer wt-placement-${tooltip.placement}`} role="dialog" aria-modal="true" aria-label="Festag Tour">
         <style>{CSS}</style>
         {usableTarget ? (
@@ -450,6 +426,7 @@ export default function WelcomeTour({ forceOpen = false, onDone }: Props) {
         </section>
       </div>
     )
+    return typeof document === 'undefined' ? node : createPortal(node, document.body)
   }
 
   return null
