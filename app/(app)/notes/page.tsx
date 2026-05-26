@@ -39,6 +39,7 @@ import {
   ArrowsOut, ArrowsIn, CaretLeft, CaretRight,
 } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
+import NewNoteModal from '@/components/NewNoteModal'
 
 type NoteType = 'journal' | 'brief' | 'meeting' | 'research'
 
@@ -129,6 +130,7 @@ export default function NotesPage() {
   // Selection
   const [openId, setOpenId] = useState<string | null>(null)
   const [creating, setCreating] = useState(false)
+  const [composerOpen, setComposerOpen] = useState(false)
   const [editorWide, setEditorWide] = useState(false)
   const [railOpen, setRailOpen] = useState(true)
   const [searchFocused, setSearchFocused] = useState(false)
@@ -180,16 +182,15 @@ export default function NotesPage() {
     return () => { (supabase as any).removeChannel(channel) }
   }, [supabase, me])
 
-  /* ── Global ⌘⇧N quick capture ────────────────────────────── */
+  /* ── Global ⌘⇧N quick capture → opens the modal composer ──── */
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'n') {
-        e.preventDefault(); createNote()
+        e.preventDefault(); setComposerOpen(true)
       }
     }
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   /* ── Derived list ────────────────────────────────────────── */
@@ -326,8 +327,8 @@ export default function NotesPage() {
               <Notepad size={11} weight="regular" />
               Heute
             </button>
-            <button className="notes-create" type="button" disabled={creating} onClick={() => createNote()}>
-              <span>{creating ? 'Lege an…' : 'Neue Notiz'}</span>
+            <button className="notes-create" type="button" disabled={creating} onClick={() => setComposerOpen(true)}>
+              <span>Neue Notiz</span>
               <span className="notes-create-plus" aria-hidden>+</span>
             </button>
           </div>
@@ -414,7 +415,7 @@ export default function NotesPage() {
         ) : visible.length === 0 ? (
           <div className="notes-empty">
             <p>Hier ist es ruhig.</p>
-            <button className="notes-empty-cta" type="button" onClick={() => createNote()}>
+            <button className="notes-empty-cta" type="button" onClick={() => setComposerOpen(true)}>
               <Plus size={11} /> Erste Notiz anlegen
             </button>
             <small>⌘⇧N legt überall in der App eine neue Notiz an.</small>
@@ -475,6 +476,31 @@ export default function NotesPage() {
             onTogglePin={() => togglePin(openNote)}
           />
         </div>
+      )}
+
+      {/* Create modal — proper composer (title/body/type/project/tags)
+          with three submit paths: plain, Tagro-analyse, or hand-to-AI. */}
+      {composerOpen && (
+        <NewNoteModal
+          projects={projects}
+          defaultProjectId={projectFilter}
+          onClose={() => setComposerOpen(false)}
+          onCreated={(noteId) => {
+            // Re-fetch the row + slide the drawer in. If Tagro just ran,
+            // the suggestions will be on the row already.
+            setComposerOpen(false)
+            ;(async () => {
+              const res = await fetch(`/api/notes/${noteId}`, { credentials: 'include' })
+              if (res.ok) {
+                const data = await res.json()
+                setNotes(curr => curr.some(n => n.id === noteId)
+                  ? curr.map(n => n.id === noteId ? data.note : n)
+                  : [data.note, ...curr])
+              }
+              setOpenId(noteId)
+            })()
+          }}
+        />
       )}
     </div>
   )
