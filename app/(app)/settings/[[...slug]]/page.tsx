@@ -467,6 +467,9 @@ export default function SettingsPage() {
   return (
     <div className="set">
       <style>{`
+        /* ── Outer surface — the WHOLE content area is the lighter
+             gray. No nested box-in-box. White cards sit directly on
+             this surface, exactly like Linear's settings page. */
         .set {
           --set-bg: var(--bg);
           --set-surface: var(--surface);
@@ -475,7 +478,7 @@ export default function SettingsPage() {
           --set-text: var(--text);
           --set-text-secondary: var(--text-secondary);
           --set-text-muted: var(--text-muted);
-          background: var(--set-bg);
+          background: color-mix(in srgb, var(--sidebar-bg, #F6F9FC) 35%, #fff 65%);
           color: var(--set-text);
           font-family: var(--font-aeonik,'Aeonik',Inter,sans-serif);
           font-weight: 500;
@@ -483,31 +486,27 @@ export default function SettingsPage() {
           min-height: 100dvh;
           display: flex;
           justify-content: center;
-          padding: 20px 18px 40px;
+          padding: 0;
         }
         .set, .set * { letter-spacing: .017em; }
+        [data-theme="dark"] .set,
+        [data-theme="classic-dark"] .set {
+          background: color-mix(in srgb, var(--surface) 88%, #fff 4%);
+        }
 
-        /* ── MAIN — centered, slightly LIGHTER than the sidebar so the
-             surface reads as a calm canvas while the inner cards pop in
-             white. Stefan's request: outer = lighter gray, inner cards
-             = pure white. */
+        /* ── MAIN — pure content wrapper, no chrome. Just centers and
+             pads the cards. */
         .set-main {
           width: 100%;
           max-width: 1180px;
           margin: 0 auto;
-          background: color-mix(in srgb, var(--sidebar-bg, #F6F9FC) 40%, #fff 60%);
-          border: 1px solid color-mix(in srgb, var(--border) 40%, transparent);
-          border-radius: 20px;
-          padding: 48px clamp(28px, 7vw, 100px) 56px;
-        }
-        [data-theme="dark"] .set-main,
-        [data-theme="classic-dark"] .set-main {
-          background: color-mix(in srgb, var(--surface) 88%, #fff 4%);
-          border-color: color-mix(in srgb, var(--border) 50%, transparent);
+          background: transparent;
+          border: 0;
+          border-radius: 0;
+          padding: 48px clamp(20px, 5vw, 64px) 56px;
         }
         @media (max-width: 720px) {
-          .set { padding: 12px 10px 32px; }
-          .set-main { border-radius: 14px; padding: 28px 20px 36px; }
+          .set-main { padding: 28px 16px 36px; }
         }
         .set-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px; gap: 16px; }
         .set-title { font-size: 22px; font-weight: 500; letter-spacing: -0.01em; }
