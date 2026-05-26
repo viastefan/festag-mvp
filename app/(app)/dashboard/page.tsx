@@ -1577,15 +1577,10 @@ export default function DashboardPage() {
           flex-shrink:0;
         }
         .dc-brief-focus .dc-focus-text { flex:1 1 auto; min-width:0; color:var(--dc-soft); }
-        .dc-brief-focus .dc-focus-go {
-          color:var(--dc-muted); font-size:12px; opacity:.6;
-          flex-shrink:0;
-        }
         a.dc-focus-line { cursor:pointer; }
         a.dc-focus-line:hover {
           background:color-mix(in srgb, var(--surface-2) 55%, transparent);
         }
-        a.dc-focus-line:hover .dc-focus-go { opacity:1; }
         a.dc-focus-line:hover .dc-focus-text { color:var(--text); }
         /* Zero state: number greys out, link still works. */
         .dc-focus-line.zero .dc-focus-count { color:var(--dc-muted); }
@@ -2147,7 +2142,6 @@ export default function DashboardPage() {
                 >
                   <span className="dc-focus-count">{item.count}</span>
                   <span className="dc-focus-text">{item.label}</span>
-                  <span className="dc-focus-go" aria-hidden>→</span>
                 </a>
               ))}
             </div>

@@ -572,7 +572,8 @@ const CSS = `
     padding:14px 8px 9px;
     font-size:10px; letter-spacing:.14em; text-transform:uppercase;
     color:var(--dec-soft);
-    border-bottom:1px solid color-mix(in srgb, var(--border) 50%, transparent);
+    /* No border-bottom — the first row's border-top already separates
+       the header from the data. Stefan flagged the extra divider line. */
   }
 
   .dec-row {
