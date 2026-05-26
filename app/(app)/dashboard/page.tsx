@@ -873,12 +873,56 @@ export default function DashboardPage() {
         .dc-side {
           grid-column:2; grid-row:1;
           display:flex; flex-direction:column;
+          gap:10px;
           height:100%;
           min-height:0;
           overflow:auto;
           padding:0 4px 20px 0;
           scrollbar-width:thin;
           animation:dcFade .3s .06s cubic-bezier(.16,1,.3,1) both;
+        }
+
+        /* Full-width "Schreib mir den Bericht" CTA — sits under .dc-brief,
+           matches its width exactly, calmer height. Click writes into the
+           left .dc-note (Statusnotiz). */
+        .dc-write-cta {
+          appearance: none; border: 0;
+          width: 100%;
+          display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+          height: 44px; padding: 0 18px;
+          border-radius: 14px;
+          background: var(--btn-prim);
+          color: var(--btn-prim-text);
+          font: inherit; font-size: 13px; font-weight: 500;
+          letter-spacing: .017em;
+          cursor: pointer;
+          box-shadow:
+            0 1px 2px color-mix(in srgb, var(--text) 6%, transparent),
+            0 8px 22px color-mix(in srgb, var(--text) 10%, transparent);
+          transition: opacity .14s, transform .12s, box-shadow .14s;
+        }
+        .dc-write-cta:hover:not(:disabled) {
+          opacity: .94;
+          box-shadow:
+            0 1px 2px color-mix(in srgb, var(--text) 8%, transparent),
+            0 12px 28px color-mix(in srgb, var(--text) 14%, transparent);
+        }
+        .dc-write-cta:active:not(:disabled) { transform: scale(.985); }
+        .dc-write-cta:disabled { opacity: .65; cursor: not-allowed; }
+        .dc-write-cta.busy { background: color-mix(in srgb, var(--btn-prim) 78%, var(--surface-2) 22%); }
+        .dc-write-cta .dc-write-arrow {
+          margin-left: 2px; font-size: 14px; line-height: 1;
+          opacity: .8; transition: transform .14s, opacity .14s;
+        }
+        .dc-write-cta:hover:not(:disabled) .dc-write-arrow { transform: translateX(-3px); opacity: 1; }
+        [data-theme="dark"] .dc-write-cta,
+        [data-theme="classic-dark"] .dc-write-cta {
+          box-shadow:
+            0 1px 2px rgba(0,0,0,.32),
+            0 14px 32px rgba(0,0,0,.30);
+        }
+        @media (max-width:960px) {
+          .dc-write-cta .dc-write-arrow { display: none; }
         }
         /* The right column is frameless too — no floating box, just a
            calm stack that mirrors the notebook on the left. */
@@ -1836,19 +1880,10 @@ export default function DashboardPage() {
             </p>
           </div>
           <div className="dc-head-actions">
-            <button type="button" className="dc-head-status" onClick={refreshStatus} disabled={statusBusy}>
-              {statusBusy ? (
-                <>
-                  <ArrowClockwise size={14} className="spin" />
-                  Statusbericht läuft…
-                </>
-              ) : (
-                <>
-                  <TagroLogo size={16} />
-                  Statusbericht erstellen
-                </>
-              )}
-            </button>
+            {/* Status-Pulse stays in the header — calm signal,
+                no action. The "Neuen Bericht erstellen" CTA moved
+                under the briefing card so it reads as a clear
+                "this writes into the left notepad" action. */}
             <span className={`dc-head-pulse tone-${pulse.tone}`}>
               <span />
               {pulse.label}
@@ -2217,6 +2252,29 @@ export default function DashboardPage() {
               </div>
             )}
           </section>
+
+          {/* Full-width CTA under the briefing card. Click → Tagro
+              composes a fresh status report and writes it into the
+              left .dc-note panel. Width matches the card above. */}
+          <button
+            type="button"
+            className={`dc-write-cta${statusBusy ? ' busy' : ''}`}
+            onClick={refreshStatus}
+            disabled={statusBusy}
+          >
+            {statusBusy ? (
+              <>
+                <ArrowClockwise size={14} className="spin" />
+                Tagro schreibt …
+              </>
+            ) : (
+              <>
+                <TagroLogo size={16} thinking={tagroActive} />
+                {noteRevealed ? 'Neuen Statusbericht schreiben' : 'Statusbericht schreiben'}
+                <span className="dc-write-arrow" aria-hidden>←</span>
+              </>
+            )}
+          </button>
         </aside>
 
         </div>
