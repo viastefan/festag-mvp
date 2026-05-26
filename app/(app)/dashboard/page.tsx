@@ -10,7 +10,8 @@
  *   • Rechts sitzt eine Linear-artige Box: Puls, der eine Button
  *     „Status abrufen", „Bericht anhören" — plus Entscheidungen & Risiken.
  *   • Kein „Heute im Fokus", keine KPI-Leiste, kein „Aktives Projekt".
- *   • Aeonik Medium (500) durchgehend, 1.2% letter-spacing, keine
+ *   • Aeonik Medium (500) durchgehend, Header 1.5% / Texte 1.7%
+ *     letter-spacing im Figma-Stil, keine
  *     Trennlinien zwischen Sektionen, keine schwarzen Buttons.
  */
 
@@ -600,7 +601,7 @@ export default function DashboardPage() {
           --dc-muted: #8D98A6;
           --dc-soft: #B7BDC8;
         }
-        .dash-calm * { font-weight:500 !important; letter-spacing:.012em; }
+        .dash-calm * { font-weight:500 !important; letter-spacing:.017em; }
         .dash-calm button,
         .dash-calm select {
           -webkit-tap-highlight-color:transparent;
@@ -647,7 +648,7 @@ export default function DashboardPage() {
           color:var(--text);
           font-size:clamp(19px, 1.55vw, 21px);
           line-height:1.22;
-          letter-spacing:-.016em;
+          letter-spacing:.015em !important;
         }
         .dc-greeting-sub {
           margin:8px 0 0;
@@ -1098,14 +1099,14 @@ export default function DashboardPage() {
         }
         .dc-brief-title {
           margin: 4px 0 3px; font-size: 16px; line-height: 1.22;
-          font-weight: 500 !important; letter-spacing: -.005em !important;
+          font-weight: 500 !important; letter-spacing: .015em !important;
           color: var(--text);
           display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
           overflow: hidden;
         }
         .dc-brief-sub {
           margin: 0; font-size: 11.5px; font-weight: 500 !important;
-          color: var(--dc-muted); letter-spacing: .015em !important;
+          color: var(--dc-muted); letter-spacing: .017em !important;
         }
         .dc-period {
           flex-shrink:0;
@@ -1129,7 +1130,7 @@ export default function DashboardPage() {
           border: 0;
           background: color-mix(in srgb, var(--surface-2) 42%, transparent);
           color: var(--text); font: inherit; font-size: 11.5px;
-          font-weight: 500 !important; letter-spacing: .015em !important;
+          font-weight: 500 !important; letter-spacing: .017em !important;
           cursor: pointer; transition: background .12s, border-color .12s;
         }
         .dc-scope-trigger:hover {
@@ -1168,7 +1169,7 @@ export default function DashboardPage() {
           width: 100%; padding: 8px 10px;
           border: 0; background: transparent; border-radius: 8px;
           color: var(--text); font: inherit; font-size: 12.5px;
-          font-weight: 500 !important; letter-spacing: .015em !important;
+          font-weight: 500 !important; letter-spacing: .017em !important;
           cursor: pointer; text-align: left;
           transition: background .1s;
         }
@@ -1193,7 +1194,7 @@ export default function DashboardPage() {
         }
         .dc-scope-opt-main small {
           font-size: 10.5px; color: var(--dc-muted);
-          font-weight: 500 !important; letter-spacing: .015em !important;
+          font-weight: 500 !important; letter-spacing: .017em !important;
           overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
         }
         .dc-scope-divider {
@@ -1525,7 +1526,7 @@ export default function DashboardPage() {
           border-radius: 999px;
           background: color-mix(in srgb, var(--surface-2) 50%, transparent);
           color: var(--dc-soft);
-          font-size: 11px; font-weight: 500 !important; letter-spacing: .015em !important;
+          font-size: 11px; font-weight: 500 !important; letter-spacing: .017em !important;
         }
         .dc-brief-pulse-dot {
           width: 6px; height: 6px; border-radius: 999px;
@@ -1537,14 +1538,14 @@ export default function DashboardPage() {
         .dc-brief-pulse.tone-green .dc-brief-pulse-dot { animation: dcOrbBreathe 1.8s ease-in-out infinite; }
         .dc-brief-duration {
           font-size: 11.5px; color: var(--dc-muted);
-          font-weight: 500 !important; letter-spacing: .015em !important;
+          font-weight: 500 !important; letter-spacing: .017em !important;
           font-variant-numeric: tabular-nums;
         }
 
         .dc-brief-body {
           margin: 0; font-size: 13px; line-height: 1.6;
           color: var(--dc-soft);
-          font-weight: 500 !important; letter-spacing: .015em !important;
+          font-weight: 500 !important; letter-spacing: .017em !important;
         }
 
         .dc-brief-focus {
@@ -1572,7 +1573,7 @@ export default function DashboardPage() {
         }
         .dc-brief-focus .dc-focus-count {
           min-width:22px; text-align:right;
-          font-size:14px; font-weight:500; letter-spacing:-.006em;
+          font-size:14px; font-weight:500; letter-spacing:.017em;
           color:var(--text); font-variant-numeric:tabular-nums;
           flex-shrink:0;
         }
@@ -1597,7 +1598,7 @@ export default function DashboardPage() {
           background: color-mix(in srgb, var(--surface-2) 74%, transparent);
           color: var(--text);
           font: inherit; font-size: 13.5px;
-          font-weight: 500 !important; letter-spacing: .015em !important;
+          font-weight: 500 !important; letter-spacing: .017em !important;
           cursor: pointer;
           box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 18%, transparent);
           transition: background .14s, transform .14s;
@@ -1637,7 +1638,7 @@ export default function DashboardPage() {
           background: transparent;
           color: var(--dc-soft);
           font: inherit; font-size: 12px;
-          font-weight: 500 !important; letter-spacing: .015em !important;
+          font-weight: 500 !important; letter-spacing: .017em !important;
           cursor: pointer;
           transition: background .12s, color .12s;
         }
