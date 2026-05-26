@@ -186,6 +186,33 @@ export default function DashboardPage() {
     return () => { cancelled = true }
   }, [])
 
+  // Open decisions count for the current user — feeds the "Heute im Fokus"
+  // block + matches the sidebar badge. Realtime so newly-requested
+  // decisions show up immediately.
+  const [openDecisionsCount, setOpenDecisionsCount] = useState(0)
+  useEffect(() => {
+    let cancelled = false
+    const sb = createClient()
+    ;(async () => {
+      const { data: { user } } = await sb.auth.getUser()
+      if (!user || cancelled) return
+      const refresh = async () => {
+        const { count } = await (sb as any).from('decisions')
+          .select('id', { count: 'exact', head: true })
+          .eq('requested_for', user.id)
+          .in('status', ['open', 'waiting_for_client', 'in_progress'])
+        if (!cancelled) setOpenDecisionsCount(count ?? 0)
+      }
+      refresh()
+      const ch = (sb as any)
+        .channel(`dashboard-decisions-${user.id}`)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'decisions' }, refresh)
+        .subscribe()
+      return () => { (sb as any).removeChannel(ch) }
+    })()
+    return () => { cancelled = true }
+  }, [])
+
   // ── Derived ─────────────────────────────────────────────────────
   const greeting = useMemo(() => {
     if (!greetingClock) return fallbackGreeting(firstName)
@@ -346,17 +373,19 @@ export default function DashboardPage() {
     ? 'Tagro fasst aktive Projekte, offene Aufgaben, Risiken und Entscheidungen in einem ruhigen Briefing zusammen.'
     : 'Tagro verdichtet Fortschritt, offene Punkte und nächste Schritte für diesen Projektkontext.'
 
-  const executiveFocus = [
+  // Focus items now include real decisions (from the decisions table)
+  // alongside risk-tagged tasks. Decisions are surfaced as links — same
+  // single-line pattern, click jumps to /decisions.
+  const combinedDecisionsCount = openDecisionsCount + decisionTasks.length
+  type FocusItem = { text: string; tone: 'risk' | 'decision' | 'task'; href?: string }
+  const executiveFocus: FocusItem[] = [
     riskTasks.length > 0
-      ? `${riskTasks.length} ${riskTasks.length === 1 ? 'Risiko braucht' : 'Risiken brauchen'} Aufmerksamkeit.`
-      : 'Keine akuten Risiken sichtbar.',
-    decisionTasks.length > 0
-      ? `${decisionTasks.length} ${decisionTasks.length === 1 ? 'Entscheidung wartet' : 'Entscheidungen warten'} auf Freigabe.`
-      : 'Keine Entscheidung wartet auf Freigabe.',
-    openTaskCount > 0
-      ? `${openTaskCount} offene ${openTaskCount === 1 ? 'Aufgabe' : 'Aufgaben'} sind im System sichtbar.`
-      : 'Keine offenen Aufgaben sichtbar.',
-  ]
+      ? { text: `${riskTasks.length} ${riskTasks.length === 1 ? 'Risiko braucht' : 'Risiken brauchen'} Aufmerksamkeit.`, tone: 'risk', href: '/tasks?view=open' }
+      : null,
+    combinedDecisionsCount > 0
+      ? { text: `${combinedDecisionsCount} ${combinedDecisionsCount === 1 ? 'Entscheidung wartet' : 'Entscheidungen warten'} auf dich.`, tone: 'decision', href: '/decisions' }
+      : null,
+  ].filter(Boolean) as FocusItem[]
 
   const periodOptions = ['Heute', 'Letzte 7 Tage', 'Letzte 30 Tage', 'Letzte 90 Tage'] as const
   const writtenReportText = noteRevealed.trim() || audioText.trim()
@@ -370,7 +399,7 @@ export default function DashboardPage() {
       currentReportSummary,
       '',
       'Heute im Fokus',
-      ...executiveFocus.map((item) => `- ${item}`),
+      ...executiveFocus.map((item) => `- ${item.text}`),
       '',
       'Statusbericht',
       writtenReportText || 'Noch kein Statusbericht vorhanden.',
@@ -1462,12 +1491,38 @@ export default function DashboardPage() {
           text-transform:uppercase;
           margin-bottom:2px;
         }
-        .dc-brief-focus p {
+        .dc-brief-focus p,
+        .dc-brief-focus .dc-focus-line {
           margin:0;
           color:var(--dc-soft);
           font-size:12px;
           line-height:1.42;
+          display:flex; align-items:center; gap:8px;
+          text-decoration:none;
+          padding:5px 9px;
+          border-radius:8px;
+          transition:background .12s, color .12s;
         }
+        .dc-brief-focus .dc-focus-text { flex:1 1 auto; min-width:0; }
+        .dc-brief-focus .dc-focus-go {
+          color:var(--dc-muted); font-size:11px; opacity:.7;
+          flex-shrink:0;
+        }
+        a.dc-focus-line { cursor:pointer; }
+        a.dc-focus-line:hover {
+          background:color-mix(in srgb, var(--surface-2) 55%, transparent);
+          color:var(--text);
+        }
+        a.dc-focus-line:hover .dc-focus-go { opacity:1; }
+        .dc-focus-line.tone-risk { color:#d44b4b; }
+        .dc-focus-line.tone-decision { color:var(--text); }
+        .dc-focus-line.tone-decision::before,
+        .dc-focus-line.tone-risk::before {
+          content:""; width:6px; height:6px; border-radius:50%;
+          flex-shrink:0;
+        }
+        .dc-focus-line.tone-decision::before { background:var(--btn-prim, #5B647D); }
+        .dc-focus-line.tone-risk::before     { background:#d44b4b; }
 
         .dc-brief-actions { position:relative; display: flex; flex-direction: column; gap: 8px; }
         .dc-brief-primary {
@@ -2018,16 +2073,17 @@ export default function DashboardPage() {
               <span className="dc-brief-duration">{briefingDurationLabel}</span>
             </div>
 
-            {/* "Heute im Fokus" — only show when Tagro actually has
-                something to say. Empty placeholder lines (Keine Risiken,
-                Keine Entscheidung, ...) bloat the panel and read as
-                noise. Hide the whole block when there's no real focus. */}
-            {executiveFocus.length > 0 && executiveFocus.some(item => !item.startsWith('Keine ') && !item.includes('sind im System')) && (
+            {/* Heute im Fokus — only shows real items (risks + open
+                decisions). Empty array → block hidden. Each item links
+                to its surface so the user can act in one click. */}
+            {executiveFocus.length > 0 && (
               <div className="dc-brief-focus" aria-label="Heute im Fokus">
                 <span>Heute im Fokus</span>
-                {executiveFocus
-                  .filter(item => !item.startsWith('Keine ') && !item.includes('sind im System'))
-                  .map((item) => <p key={item}>{item}</p>)}
+                {executiveFocus.map((item) => (
+                  item.href
+                    ? <a key={item.text} href={item.href} className={`dc-focus-line tone-${item.tone}`}><span className="dc-focus-text">{item.text}</span><span className="dc-focus-go" aria-hidden>→</span></a>
+                    : <p key={item.text} className={`dc-focus-line tone-${item.tone}`}><span className="dc-focus-text">{item.text}</span></p>
+                ))}
               </div>
             )}
 

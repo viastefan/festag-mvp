@@ -23,7 +23,7 @@ import {
   Clock, Copy, FunnelSimple, GitBranch, GitCommit, GitPullRequest, Image as ImageIcon,
   Lightning, Link as LinkIcon, ListChecks, MagnifyingGlass, Paperclip,
   PaperPlaneTilt, Pause, Play, PlusCircle, Robot, Sparkle, Square, TrashSimple,
-  WarningCircle, X,
+  WarningCircle, X, Scales,
 } from '@phosphor-icons/react'
 
 import {
@@ -215,6 +215,16 @@ export default function DevTasksPage() {
   // editors
   const [noteText, setNoteText] = useState('')
   const [blockerText, setBlockerText] = useState('')
+  // Decision-request composer state — opens an inline panel inside the
+  // task drawer. POSTs to /api/decisions, the DB trigger fans an inbox
+  // notification to the client.
+  const [decOpen, setDecOpen] = useState(false)
+  const [decTitle, setDecTitle] = useState('')
+  const [decBody, setDecBody] = useState('')
+  const [decOptions, setDecOptions] = useState('')
+  const [decUrgency, setDecUrgency] = useState<'low'|'normal'|'high'|'critical'>('normal')
+  const [decSubmitting, setDecSubmitting] = useState(false)
+  const [decError, setDecError] = useState('')
   const [branchInput, setBranchInput] = useState('')
   const [newProofType, setNewProofType] = useState<ProofType>('comment')
   const [newProofUrl, setNewProofUrl] = useState('')
@@ -844,7 +854,91 @@ export default function DevTasksPage() {
               <button className="t-btn" onClick={postWorkLog} disabled={busy || !noteText.trim()}>
                 <PaperPlaneTilt size={13} /> Update posten
               </button>
+              <button
+                className="t-btn ghost"
+                type="button"
+                onClick={() => { setDecOpen(v => !v); setDecError('') }}
+              >
+                <Scales size={13} /> Entscheidung anfordern
+              </button>
             </div>
+
+            {decOpen && (
+              <div className="dec-composer">
+                <p className="dec-composer-label">Entscheidung an den Kunden</p>
+                <input
+                  className="dec-composer-input"
+                  value={decTitle}
+                  onChange={e => setDecTitle(e.target.value)}
+                  placeholder="Frage in einem Satz, z. B. „Welcher Hosting-Anbieter soll es werden?"
+                  maxLength={200}
+                />
+                <textarea
+                  className="dec-composer-area"
+                  value={decBody}
+                  onChange={e => setDecBody(e.target.value)}
+                  placeholder="Kontext: warum braucht es diese Entscheidung jetzt? Was ist die Auswirkung?"
+                  rows={3}
+                />
+                <input
+                  className="dec-composer-input"
+                  value={decOptions}
+                  onChange={e => setDecOptions(e.target.value)}
+                  placeholder="Optionen (durch | getrennt) — leer lassen für Freitext-Antwort"
+                />
+                <div className="dec-composer-row">
+                  <label className="dec-composer-urg">
+                    Dringlichkeit
+                    <select value={decUrgency} onChange={e => setDecUrgency(e.target.value as any)}>
+                      <option value="low">Niedrig</option>
+                      <option value="normal">Normal</option>
+                      <option value="high">Hoch</option>
+                      <option value="critical">Kritisch</option>
+                    </select>
+                  </label>
+                  <button
+                    type="button"
+                    className="t-btn"
+                    disabled={decSubmitting || !decTitle.trim()}
+                    onClick={async () => {
+                      if (!selected) return
+                      setDecSubmitting(true); setDecError('')
+                      try {
+                        const options = decOptions
+                          .split('|')
+                          .map(s => s.trim())
+                          .filter(Boolean)
+                          .map((label, i) => ({ id: `opt-${i + 1}`, label }))
+                        const res = await fetch('/api/decisions', {
+                          method: 'POST', credentials: 'include',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
+                            project_id: selected.project_id,
+                            title: decTitle.trim(),
+                            description: decBody.trim() || undefined,
+                            options,
+                            urgency: decUrgency,
+                            source_task_id: selected.id,
+                          }),
+                        })
+                        if (!res.ok) {
+                          const j = await res.json().catch(() => ({}))
+                          setDecError(j.error || 'Konnte nicht senden.'); return
+                        }
+                        setDecOpen(false); setDecTitle(''); setDecBody(''); setDecOptions(''); setDecUrgency('normal')
+                        setToast('Entscheidung an Kunde gesendet')
+                      } finally {
+                        setDecSubmitting(false)
+                      }
+                    }}
+                  >
+                    <PaperPlaneTilt size={12} />
+                    {decSubmitting ? 'Sende…' : 'Anfrage senden'}
+                  </button>
+                </div>
+                {decError && <p className="dec-composer-err"><WarningCircle size={11} /> {decError}</p>}
+              </div>
+            )}
 
             {/* Activity */}
             <SectionTitle icon={<Lightning size={11} />} label="Verlauf" />
@@ -1010,6 +1104,48 @@ export default function DevTasksPage() {
         .blocker-input {
           width: 100%; background: transparent; border: 1px solid var(--border); border-radius: 8px;
           padding: 7px 10px; font: inherit; font-size: 12.5px; color: var(--text); margin-top: 6px;
+        }
+
+        /* Decision-request composer */
+        .dec-composer {
+          margin-top: 10px;
+          display: flex; flex-direction: column; gap: 8px;
+          padding: 12px;
+          border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--border));
+          border-radius: 12px;
+          background: color-mix(in srgb, var(--accent) 4%, transparent);
+        }
+        .dec-composer-label {
+          margin: 0; font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase;
+          color: var(--text-muted); font-weight: 500;
+        }
+        .dec-composer-input {
+          width: 100%; height: 32px; padding: 0 11px;
+          background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+          font: inherit; font-size: 12.5px; color: var(--text); outline: 0;
+        }
+        .dec-composer-input:focus { border-color: color-mix(in srgb, var(--text) 30%, var(--border)); }
+        .dec-composer-area {
+          width: 100%; min-height: 70px; resize: vertical;
+          padding: 9px 11px;
+          background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+          font: inherit; font-size: 12.5px; color: var(--text); line-height: 1.5; outline: 0;
+        }
+        .dec-composer-row {
+          display: flex; align-items: center; justify-content: space-between; gap: 8px;
+        }
+        .dec-composer-urg {
+          display: inline-flex; align-items: center; gap: 6px;
+          font-size: 11.5px; color: var(--text-muted); font-weight: 500;
+        }
+        .dec-composer-urg select {
+          height: 26px; padding: 0 8px; border-radius: 7px;
+          background: var(--card); border: 1px solid var(--border);
+          color: var(--text); font: inherit; font-size: 11.5px;
+        }
+        .dec-composer-err {
+          margin: 0; display: inline-flex; align-items: center; gap: 4px;
+          font-size: 11.5px; color: var(--red, #ef4444);
         }
         .hint { margin: 0; font-size: 11.5px; color: var(--text-muted); line-height: 1.45; }
 

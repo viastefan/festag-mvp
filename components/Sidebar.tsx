@@ -19,6 +19,7 @@ import {
   Clock, CheckSquare, Code, FileCode,
   Tray, MagnifyingGlass, SpeakerHigh, Pulse,
   Question, Newspaper, Article, DownloadSimple, ChatTeardropDots,
+  Scales,
 } from '@phosphor-icons/react'
 import { autoAvatarColor, avatarInitials } from '@/lib/avatar'
 import { broadcastProfileSync, subscribeProfileSync } from '@/lib/profile-sync'
@@ -35,6 +36,7 @@ const ICONS: Record<string, React.ElementType> = {
   bell: Bell, briefcase: Briefcase, clock: Clock, check: CheckSquare,
   code: Code, task: FileCode, inbox: Tray, search: MagnifyingGlass,
   audio: SpeakerHigh, pulse: Pulse,
+  scales: Scales,
 }
 
 function Ico({ name, sz=16, c='currentColor', weight='regular' }: {
@@ -84,6 +86,7 @@ const CLIENT_CORE: NavItem[] = [
   { href:'/projects', icon:'project', label:'Projekte' },
   { href:'/reports', icon:'activity', label:'Statusberichte' },
   { href:'/tasks', icon:'task', label:'Tasks' },
+  { href:'/decisions', icon:'scales', label:'Entscheidungen' },
   { href:'/observers', icon:'team', label:'Mitwirkende' },
 ]
 const CLIENT_TEAMS: NavItem[] = [
@@ -220,6 +223,37 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
   // Inbox unread count piggy-backs on the global notifications hook so
   // the badge updates in realtime without a second subscription.
   const { unread: inboxUnread } = useNotifications({ limit: 1 })
+
+  // Decisions: open count for the current user — drives the sidebar
+  // badge so the client sees how many decisions await them without
+  // visiting /decisions. Realtime subscription keeps it live.
+  const [decisionsOpen, setDecisionsOpen] = useState(0)
+  useEffect(() => {
+    let cancelled = false
+    const sb = createClient()
+    ;(async () => {
+      const { data: { user } } = await sb.auth.getUser()
+      if (!user || cancelled) return
+      const { count } = await (sb as any).from('decisions')
+        .select('id', { count: 'exact', head: true })
+        .eq('requested_for', user.id)
+        .in('status', ['open', 'waiting_for_client', 'in_progress'])
+      if (!cancelled) setDecisionsOpen(count ?? 0)
+
+      const ch = (sb as any)
+        .channel(`sidebar-decisions-${user.id}`)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'decisions' }, async () => {
+          const { count: c2 } = await (sb as any).from('decisions')
+            .select('id', { count: 'exact', head: true })
+            .eq('requested_for', user.id)
+            .in('status', ['open', 'waiting_for_client', 'in_progress'])
+          if (!cancelled) setDecisionsOpen(c2 ?? 0)
+        })
+        .subscribe()
+      return () => { (sb as any).removeChannel(ch) }
+    })()
+    return () => { cancelled = true }
+  }, [])
   // Label tool on top.
   const topNavBase: NavItem[] = wsMode === 'agency'
     ? [...CLIENT_TOP, { href: '/clients', icon: 'team', label: 'Kunden' }]
@@ -227,7 +261,9 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
   const topNav: NavItem[] = topNavBase.map(item =>
     item.href === '/messages' && inboxUnread > 0 ? { ...item, badge: inboxUnread } : item,
   )
-  const coreNav: NavItem[] = CLIENT_CORE
+  const coreNav: NavItem[] = CLIENT_CORE.map(item =>
+    item.href === '/decisions' && decisionsOpen > 0 ? { ...item, badge: decisionsOpen } : item,
+  )
   const teamsNav: NavItem[] = CLIENT_TEAMS
   const tagroNav = CLIENT_TAGRO
   const toolsNav: NavItem[] = wsMode === 'agency'
