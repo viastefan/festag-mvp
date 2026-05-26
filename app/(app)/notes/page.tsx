@@ -294,22 +294,22 @@ export default function NotesPage() {
 
   const openNote = visible.find(n => n.id === openId) || null
 
+  const SMART_FILTERS: Array<{ id: SmartList; label: string }> = [
+    { id: 'all',      label: 'Alle' },
+    { id: 'today',    label: 'Heute' },
+    { id: 'pinned',   label: 'Angeheftet' },
+    { id: 'shared',   label: 'Geteilt' },
+    { id: 'archived', label: 'Archiv' },
+  ]
+
   return (
     <div className="notes-os">
       <style jsx>{NOTES_CSS}</style>
 
-      {/* ── Sticky top bar (matches /tasks .task-static-top) ── */}
+      {/* ── Sticky top: same chrome as /tasks + /decisions ── */}
       <div className="notes-static-top">
         <div className="notes-top">
           <div className="notes-top-left">
-            <button
-              className="notes-rail-toggle"
-              type="button"
-              aria-label={railOpen ? 'Linke Spalte einklappen' : 'Linke Spalte ausklappen'}
-              onClick={() => setRailOpen(v => !v)}
-            >
-              {railOpen ? <CaretLeft size={13} weight="bold" /> : <CaretRight size={13} weight="bold" />}
-            </button>
             <h1 className="notes-title">Notizen</h1>
             <span className="notes-count-pill">
               {loading ? '…' : `${visible.length} sichtbar`}
@@ -317,19 +317,61 @@ export default function NotesPage() {
           </div>
 
           <div className="notes-top-right">
+            <button
+              className="notes-ghost"
+              type="button"
+              onClick={openTodayNote}
+              title="Daily Note öffnen"
+            >
+              <Notepad size={11} weight="regular" />
+              Heute
+            </button>
             <button className="notes-create" type="button" disabled={creating} onClick={() => createNote()}>
               <span>{creating ? 'Lege an…' : 'Neue Notiz'}</span>
               <span className="notes-create-plus" aria-hidden>+</span>
             </button>
           </div>
         </div>
+
+        <nav className="notes-tabs" role="tablist">
+          {SMART_FILTERS.map(f => {
+            const count = (counts as any)[f.id]
+            return (
+              <button
+                key={f.id}
+                type="button"
+                role="tab"
+                aria-selected={smartList === f.id}
+                className={`notes-tab${smartList === f.id ? ' on' : ''}`}
+                onClick={() => {
+                  setSmartList(f.id)
+                  setProjectFilter(null); setTypeFilter(null); setTagFilter(null)
+                }}
+              >
+                {f.label}
+                {typeof count === 'number' && count > 0 && f.id !== 'all' && (
+                  <span className="notes-tab-count">{count}</span>
+                )}
+              </button>
+            )
+          })}
+          {(projectFilter || typeFilter || tagFilter) && (
+            <button
+              type="button"
+              className="notes-tab clear"
+              onClick={() => { setProjectFilter(null); setTypeFilter(null); setTagFilter(null) }}
+              title="Filter zurücksetzen"
+            >
+              <X size={10} weight="bold" />
+              {projectFilter && projects.find(p => p.id === projectFilter)?.title}
+              {typeFilter && NOTE_TYPES.find(t => t.id === typeFilter)?.label}
+              {tagFilter && `#${tagFilter}`}
+            </button>
+          )}
+        </nav>
       </div>
 
-      {/* ── Floating search — Festag-pill, anchored top-right ──
-          Collapses to a 32px circular tool when empty + unfocused
-          (matches the .task-tool floating chrome on /tasks). Expands
-          smoothly on focus or when a query is present. Sits above the
-          three-pane body without taking inline space. */}
+      {/* Floating Festag search pill — unchanged. */}
       <div
         className={`notes-search-float${searchFocused || query ? ' open' : ''}`}
         onClick={() => { if (!searchFocused) searchInputRef.current?.focus() }}
@@ -356,156 +398,70 @@ export default function NotesPage() {
         )}
       </div>
 
-      {/* ── Three-pane body ──────────────────────────────────── */}
-      <div className={`notes-shell${railOpen ? '' : ' rail-collapsed'}${editorWide ? ' editor-wide' : ''}${openId ? ' has-open' : ''}`}>
+      {/* Flat table body ────────────────────────────────────────── */}
+      <div className="notes-scroll-body">
+        <div className="notes-table-head">
+          <span>Titel</span>
+          <span>Projekt</span>
+          <span>Typ</span>
+          <span>Tags</span>
+          <span>Tagro</span>
+          <span>Aktualisiert</span>
+        </div>
 
-        {/* LEFT RAIL ─────────────────────────────────────────── */}
-        <aside className="notes-rail" data-open={railOpen}>
-          <div className="rail-group">
-            <p className="rail-label">Heute</p>
-            <button className="rail-row daily" type="button" onClick={openTodayNote}>
-              <Notepad size={13} weight="duotone" />
-              <span>Daily Note öffnen</span>
-              <small>{new Date().toLocaleDateString('de-DE', { day: '2-digit', month: 'short' })}</small>
+        {loading && visible.length === 0 ? (
+          <p className="notes-empty">Notizen werden geladen…</p>
+        ) : visible.length === 0 ? (
+          <div className="notes-empty">
+            <p>Hier ist es ruhig.</p>
+            <button className="notes-empty-cta" type="button" onClick={() => createNote()}>
+              <Plus size={11} /> Erste Notiz anlegen
             </button>
+            <small>⌘⇧N legt überall in der App eine neue Notiz an.</small>
           </div>
+        ) : visible.map(n => {
+          const project = projects.find(p => p.id === n.project_id)
+          const fresh = Date.now() - new Date(n.created_at).getTime() < 1000 * 60 * 60 * 12
+          const hasTagro = n.tagro_last_run_at && (n.tagro_suggestions?.tasks?.length ?? 0) > 0
+          return (
+            <button
+              key={n.id}
+              type="button"
+              className={`notes-row${openId === n.id ? ' on' : ''}`}
+              onClick={() => setOpenId(n.id)}
+            >
+              <span className="notes-row-title">
+                {n.pinned && <PushPin size={10} weight="fill" className="notes-row-pin" />}
+                <strong>{n.title || 'Ohne Titel'}</strong>
+                {fresh && smartList !== 'archived' && <span className="notes-row-fresh">Neu</span>}
+              </span>
+              <span className="notes-row-proj">
+                {project ? (
+                  <><span className="notes-row-dot" style={{ background: project.color || 'var(--text-muted)' }} />{project.title}</>
+                ) : <span className="notes-cell-mute">—</span>}
+              </span>
+              <span className="notes-cell-mute">{NOTE_TYPES.find(t => t.id === n.note_type)?.label || 'Journal'}</span>
+              <span className="notes-row-tags">
+                {(n.tags || []).length === 0
+                  ? <span className="notes-cell-mute">—</span>
+                  : (n.tags || []).slice(0, 2).map(t => <span key={t} className="notes-tag-chip">#{t}</span>)}
+                {(n.tags || []).length > 2 && <span className="notes-cell-mute">+{n.tags.length - 2}</span>}
+              </span>
+              <span className="notes-row-tagro">
+                {hasTagro
+                  ? <><Sparkle size={10} weight="fill" /> {n.tagro_suggestions?.tasks?.length} Idee{(n.tagro_suggestions?.tasks?.length || 0) === 1 ? '' : 'n'}</>
+                  : <span className="notes-cell-mute">—</span>}
+              </span>
+              <span className="notes-cell-mute">{formatTimeAgo(n.updated_at)}</span>
+            </button>
+          )
+        })}
+      </div>
 
-          <div className="rail-group">
-            <p className="rail-label">Ansichten</p>
-            {SMART_LISTS.filter(s => s.id !== 'today').map(s => {
-              const Icon = s.icon
-              const count = (counts as any)[s.id] ?? 0
-              return (
-                <button
-                  key={s.id}
-                  type="button"
-                  className={`rail-row${smartList === s.id ? ' on' : ''}`}
-                  onClick={() => { setSmartList(s.id); setProjectFilter(null); setTypeFilter(null); setTagFilter(null) }}
-                >
-                  <Icon size={13} />
-                  <span>{s.label}</span>
-                  <small>{count > 0 ? count : ''}</small>
-                </button>
-              )
-            })}
-          </div>
-
-          {projectsWithCounts.length > 0 && (
-            <div className="rail-group">
-              <p className="rail-label">Projekte</p>
-              {projectsWithCounts.map(p => (
-                <button
-                  key={p.id}
-                  type="button"
-                  className={`rail-row${projectFilter === p.id ? ' on' : ''}`}
-                  onClick={() => { setProjectFilter(projectFilter === p.id ? null : p.id); setSmartList('all') }}
-                >
-                  <span className="rail-dot" style={{ background: p.color || 'var(--text-muted)' }} />
-                  <span>{p.title}</span>
-                  <small>{p.count}</small>
-                </button>
-              ))}
-            </div>
-          )}
-
-          <div className="rail-group">
-            <p className="rail-label">Typen</p>
-            {NOTE_TYPES.map(t => {
-              const Icon = t.icon
-              const count = notes.filter(n => n.note_type === t.id && n.status !== 'archived').length
-              return (
-                <button
-                  key={t.id}
-                  type="button"
-                  className={`rail-row${typeFilter === t.id ? ' on' : ''}`}
-                  onClick={() => { setTypeFilter(typeFilter === t.id ? null : t.id); setSmartList('all') }}
-                >
-                  <Icon size={13} />
-                  <span>{t.label}</span>
-                  <small>{count > 0 ? count : ''}</small>
-                </button>
-              )
-            })}
-          </div>
-
-          {tagsCloud.length > 0 && (
-            <div className="rail-group">
-              <p className="rail-label">Tags</p>
-              <div className="rail-tags">
-                {tagsCloud.map(([t, c]) => (
-                  <button
-                    key={t}
-                    type="button"
-                    className={`rail-tag${tagFilter === t ? ' on' : ''}`}
-                    onClick={() => setTagFilter(tagFilter === t ? null : t)}
-                  >
-                    <Tag size={9} /> {t}<small>{c}</small>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-        </aside>
-
-        {/* MIDDLE LIST ────────────────────────────────────────── */}
-        <section className="notes-list">
-          <header className="list-head">
-            <FunnelSimple size={11} />
-            <span>
-              {smartList === 'today'    && 'Heute'}
-              {smartList === 'all'      && 'Alle aktiven'}
-              {smartList === 'pinned'   && 'Angeheftet'}
-              {smartList === 'shared'   && 'Geteilt'}
-              {smartList === 'archived' && 'Archiv'}
-              {projectFilter && ` · ${projects.find(p => p.id === projectFilter)?.title || ''}`}
-              {typeFilter    && ` · ${NOTE_TYPES.find(t => t.id === typeFilter)?.label}`}
-              {tagFilter     && ` · #${tagFilter}`}
-            </span>
-          </header>
-
-          {loading && visible.length === 0 ? (
-            <p className="list-empty">Notizen werden geladen…</p>
-          ) : visible.length === 0 ? (
-            <div className="list-empty">
-              <p>Hier ist es ruhig.</p>
-              <button className="list-empty-cta" type="button" onClick={() => createNote()}>
-                <Plus size={11} /> Erste Notiz anlegen
-              </button>
-              <small>Tipp: ⌘⇧N erstellt überall in der App eine neue Notiz.</small>
-            </div>
-          ) : visible.map(n => {
-            const project = projects.find(p => p.id === n.project_id)
-            const fresh = Date.now() - new Date(n.created_at).getTime() < 1000 * 60 * 60 * 12
-            const hasTagro = n.tagro_last_run_at && (n.tagro_suggestions?.tasks?.length ?? 0) > 0
-            return (
-              <button
-                key={n.id}
-                className={`list-row${openId === n.id ? ' on' : ''}`}
-                type="button"
-                onClick={() => setOpenId(n.id)}
-              >
-                <div className="row-meta">
-                  {n.pinned && <PushPin size={10} weight="fill" className="row-pin" />}
-                  {project && <span className="row-project-dot" style={{ background: project.color || 'var(--text-muted)' }} title={project.title} />}
-                  <strong>{n.title || 'Ohne Titel'}</strong>
-                  {fresh && smartList !== 'archived' && <span className="row-fresh">Neu</span>}
-                </div>
-                <div className="row-preview">{(n.body || '').replace(/\[\[|\]\]/g, '') .slice(0, 140) || 'Leere Notiz — klick zum Schreiben.'}</div>
-                <div className="row-foot">
-                  <span className="row-type">{NOTE_TYPES.find(t => t.id === n.note_type)?.label || 'Journal'}</span>
-                  {(n.tags || []).slice(0, 2).map(t => <span key={t} className="row-tag">#{t}</span>)}
-                  {hasTagro && <span className="row-tagro"><Sparkle size={9} weight="fill" /> {n.tagro_suggestions?.tasks?.length}</span>}
-                  {(n.shared_with?.length || 0) > 0 && <span className="row-shared"><Share size={9} /> {n.shared_with.length}</span>}
-                  <span className="row-spacer" />
-                  <span className="row-time">{formatTimeAgo(n.updated_at)}</span>
-                </div>
-              </button>
-            )
-          })}
-        </section>
-
-        {/* RIGHT EDITOR ──────────────────────────────────────── */}
-        {openNote ? (
+      {/* Detail drawer overlay — right-anchored, slides in */}
+      {openNote && (
+        <div className="notes-overlay" role="dialog" aria-modal="true">
+          <div className="notes-overlay-backdrop" onClick={() => setOpenId(null)} />
           <Editor
             key={openNote.id}
             note={openNote}
@@ -518,16 +474,8 @@ export default function NotesPage() {
             onClose={() => setOpenId(null)}
             onTogglePin={() => togglePin(openNote)}
           />
-        ) : (
-          <section className="notes-editor empty">
-            <div className="editor-empty">
-              <Notepad size={26} weight="duotone" />
-              <p>Wähle eine Notiz oder starte eine neue.</p>
-              <small>⌘⇧N — schnelle Notiz · ⌘K — Suchen</small>
-            </div>
-          </section>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -946,9 +894,12 @@ const NOTES_CSS = `
     --notes-soft-faint: color-mix(in srgb, #4E5567 62%, transparent);
     width:100%; height:100%; min-height:0; color:var(--text);
     padding:20px 0 0; display:flex; flex-direction:column; overflow:hidden;
-    letter-spacing:.012em;
+    letter-spacing:.017em;
+    font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
+    font-weight:500;
     position:relative; /* anchor for the floating .notes-search-float pill */
   }
+  .notes-os, .notes-os * { font-weight:500; letter-spacing:.017em; }
   [data-theme="dark"] .notes-os,
   [data-theme="classic-dark"] .notes-os,
   [data-theme="read"] .notes-os {
@@ -1051,130 +1002,142 @@ const NOTES_CSS = `
   .notes-create:disabled { opacity:.46; }
   .notes-create-plus { width:14px; height:14px; font-size:15px; line-height:1; display:inline-flex; align-items:center; justify-content:center; transform:translateY(-.5px); }
 
-  /* ─── Three-pane shell ─────────────────────────────────── */
-  .notes-shell {
-    flex:1 1 auto; min-height:0;
-    display:grid; grid-template-columns:220px 360px 1fr;
-    overflow:hidden;
+  /* ─── Filter-Tabs unter dem Title (Festag pill chips) ────── */
+  .notes-tabs {
+    display:flex; gap:5px; padding:12px 18px 10px;
+    overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none;
   }
-  .notes-shell.rail-collapsed { grid-template-columns:0 360px 1fr; }
-  .notes-shell.editor-wide   { grid-template-columns:220px 0 1fr; }
-  .notes-shell.rail-collapsed.editor-wide { grid-template-columns:0 0 1fr; }
-
-  /* ─── Rail ─────────────────────────────────────────────── */
-  .notes-rail {
-    overflow:hidden auto;
-    border-right:1px solid color-mix(in srgb, var(--border) 50%, transparent);
-    padding:14px 10px 30px;
-    transition:opacity .14s;
-  }
-  .notes-shell.rail-collapsed .notes-rail { opacity:0; pointer-events:none; padding:0; }
-  .rail-group { display:flex; flex-direction:column; gap:2px; margin-bottom:14px; }
-  .rail-label {
-    margin:0 0 4px 8px; font-size:10px; font-weight:500;
-    letter-spacing:.12em; text-transform:uppercase; color:var(--notes-soft);
-  }
-  .rail-row {
-    display:grid; grid-template-columns:14px 1fr auto; align-items:center;
-    gap:9px; height:28px; padding:0 10px;
-    border:0; background:transparent; border-radius:8px;
-    color:var(--text); font:inherit; font-size:12.5px; font-weight:500;
-    cursor:pointer; text-align:left; letter-spacing:.012em;
-    transition:background .1s, color .1s;
-  }
-  .rail-row:hover { background:color-mix(in srgb, var(--surface-2) 55%, transparent); }
-  .rail-row.on { background:color-mix(in srgb, var(--surface-2) 78%, transparent); color:var(--text); }
-  .rail-row svg { color:var(--notes-soft); }
-  .rail-row.on svg { color:var(--text); }
-  .rail-row small { color:var(--notes-soft); font-size:10.5px; font-weight:500; }
-  .rail-row.daily { background:color-mix(in srgb, var(--accent) 8%, transparent); border:1px solid color-mix(in srgb, var(--accent) 22%, transparent); }
-  .rail-row.daily:hover { background:color-mix(in srgb, var(--accent) 14%, transparent); }
-  .rail-row.daily svg { color:var(--accent); }
-  .rail-dot { width:8px; height:8px; border-radius:50%; justify-self:center; }
-  .rail-tags { display:flex; flex-wrap:wrap; gap:4px; padding:0 6px; }
-  .rail-tag {
-    display:inline-flex; align-items:center; gap:3px;
-    height:22px; padding:0 8px; border-radius:999px;
-    background:transparent; border:1px solid color-mix(in srgb, var(--border) 60%, transparent);
-    color:var(--notes-soft); font:inherit; font-size:10.5px; font-weight:500;
-    cursor:pointer; letter-spacing:.012em;
-    transition:background .1s, color .1s, border-color .1s;
-  }
-  .rail-tag:hover { background:var(--surface-2); color:var(--text); border-color:var(--border); }
-  .rail-tag.on { background:var(--text); color:var(--bg); border-color:var(--text); }
-  .rail-tag small { color:inherit; opacity:.6; font-size:9.5px; margin-left:3px; }
-
-  /* ─── List ─────────────────────────────────────────────── */
-  .notes-list {
-    overflow:hidden auto;
-    border-right:1px solid color-mix(in srgb, var(--border) 50%, transparent);
-    padding:4px 0 30px;
-  }
-  .list-head {
-    display:flex; align-items:center; gap:6px;
-    padding:10px 16px 8px;
-    font-size:10.5px; font-weight:500; letter-spacing:.12em; text-transform:uppercase;
-    color:var(--notes-soft);
-    position:sticky; top:0;
-    background:linear-gradient(var(--bg) 70%, transparent);
-    z-index:2;
-  }
-  .list-empty {
-    padding:32px 18px; text-align:center;
-    display:flex; flex-direction:column; align-items:center; gap:10px;
-    color:var(--notes-soft); font-size:12.5px;
-  }
-  .list-empty small { color:var(--notes-soft); font-size:11px; opacity:.75; }
-  .list-empty-cta {
+  .notes-tabs::-webkit-scrollbar { display:none; }
+  .notes-tab {
     display:inline-flex; align-items:center; gap:5px;
-    height:28px; padding:0 12px; border-radius:8px;
-    background:var(--surface-2); border:1px solid var(--border);
-    color:var(--text); font:inherit; font-size:12px; font-weight:500; cursor:pointer;
+    height:27px; padding:0 11px;
+    border:1px solid var(--border); border-radius:999px;
+    background:transparent; color:var(--notes-soft);
+    font:inherit; font-size:11.5px; font-weight:500;
+    cursor:pointer; white-space:nowrap; flex-shrink:0;
+    transition:background .12s, color .12s;
   }
-  .list-empty-cta:hover { background:var(--card); }
+  .notes-tab:hover { color:var(--text); }
+  .notes-tab.on { background:var(--surface-2); color:var(--text); }
+  .notes-tab.clear { border-style:dashed; color:var(--notes-soft); }
+  .notes-tab.clear:hover { color:var(--text); border-style:solid; }
+  .notes-tab-count {
+    display:inline-flex; align-items:center; justify-content:center;
+    min-width:15px; height:15px; padding:0 4px; border-radius:999px;
+    background:color-mix(in srgb, var(--text) 12%, transparent);
+    color:var(--text); font-size:9.5px;
+  }
 
-  .list-row {
-    display:flex; flex-direction:column; gap:3px;
-    width:100%; padding:10px 16px;
-    border:0; border-bottom:1px solid color-mix(in srgb, var(--border) 30%, transparent);
-    background:transparent; color:var(--text); font:inherit;
-    text-align:left; cursor:pointer;
-    transition:background .1s;
+  /* "Heute" ghost button next to "Neue Notiz" */
+  .notes-ghost {
+    display:inline-flex; align-items:center; gap:5px;
+    height:28px; padding:0 11px; border-radius:8px;
+    background:transparent; border:0; color:var(--notes-soft);
+    font:inherit; font-size:12px; font-weight:500;
+    cursor:pointer; transition:background .12s, color .12s;
   }
-  .list-row:hover { background:color-mix(in srgb, var(--surface-2) 45%, transparent); }
-  .list-row.on { background:color-mix(in srgb, var(--surface-2) 78%, transparent); }
-  .row-meta { display:flex; align-items:center; gap:6px; min-width:0; }
-  .row-meta strong { font-size:13px; font-weight:500; letter-spacing:.012em; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0; }
-  .row-pin { color:var(--notes-soft); flex-shrink:0; }
-  .row-project-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
-  .row-fresh {
+  .notes-ghost:hover { background:var(--surface-2); color:var(--text); }
+
+  /* ─── Flat scroll body + table ────────────────────────────── */
+  .notes-scroll-body {
+    flex:1 1 auto; min-height:0;
+    overflow-y:auto; overflow-x:hidden;
+    padding:0 18px 80px; overscroll-behavior:contain;
+  }
+
+  .notes-table-head {
+    display:grid; gap:14px;
+    grid-template-columns:minmax(240px, 2fr) minmax(140px, 1fr) 90px minmax(120px, 1fr) 110px 110px;
+    padding:14px 8px 9px;
+    font-size:10px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--notes-soft);
+  }
+
+  .notes-row {
+    display:grid; gap:14px; align-items:center;
+    grid-template-columns:minmax(240px, 2fr) minmax(140px, 1fr) 90px minmax(120px, 1fr) 110px 110px;
+    padding:11px 8px;
+    border:0; border-bottom:1px solid color-mix(in srgb, var(--border) 26%, transparent);
+    background:transparent; color:var(--text); font:inherit; font-size:12.5px;
+    text-align:left; cursor:pointer; width:100%; transition:background .1s;
+  }
+  .notes-row:hover { background:color-mix(in srgb, var(--surface-2) 45%, transparent); }
+  .notes-row.on { background:color-mix(in srgb, var(--surface-2) 80%, transparent); }
+  .notes-row-title { display:inline-flex; align-items:center; gap:6px; min-width:0; }
+  .notes-row-title strong {
+    font-size:13px; font-weight:500; color:var(--text);
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0;
+  }
+  .notes-row-pin { color:var(--notes-soft); flex-shrink:0; }
+  .notes-row-fresh {
     height:15px; padding:0 5px; border-radius:4px; flex-shrink:0;
     background:color-mix(in srgb, var(--accent) 18%, transparent);
-    color:var(--accent); font-size:9.5px; font-weight:500; letter-spacing:.04em;
-    text-transform:uppercase; display:inline-flex; align-items:center;
-  }
-  .row-preview {
-    font-size:11.5px; font-weight:500; color:var(--notes-soft);
-    line-height:1.4; overflow:hidden; text-overflow:ellipsis;
-    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
-  }
-  .row-foot {
-    display:flex; align-items:center; gap:5px; margin-top:2px;
-    font-size:10.5px; color:var(--notes-soft); font-weight:500;
-  }
-  .row-foot .row-spacer { flex:1 1 auto; }
-  .row-type {
-    height:15px; padding:0 6px; border-radius:4px;
-    background:color-mix(in srgb, var(--surface-2) 55%, transparent);
-    color:var(--notes-soft); font-size:9.5px; font-weight:500;
+    color:var(--accent); font-size:9.5px; font-weight:500;
     letter-spacing:.04em; text-transform:uppercase;
     display:inline-flex; align-items:center;
   }
-  .row-tag { font-size:10.5px; color:var(--notes-soft); }
-  .row-tagro, .row-shared {
-    display:inline-flex; align-items:center; gap:2px;
-    color:var(--notes-soft); font-size:10px;
+  .notes-row-proj {
+    display:inline-flex; align-items:center; gap:5px;
+    font-size:12px; color:var(--text);
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
   }
+  .notes-row-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+  .notes-row-tags { display:inline-flex; flex-wrap:wrap; gap:4px; align-items:center; }
+  .notes-tag-chip {
+    display:inline-flex; align-items:center;
+    height:18px; padding:0 7px; border-radius:999px;
+    background:color-mix(in srgb, var(--surface-2) 55%, transparent);
+    color:var(--text); font-size:10.5px; font-weight:500;
+  }
+  .notes-row-tagro {
+    display:inline-flex; align-items:center; gap:4px;
+    font-size:11.5px; color:var(--text);
+  }
+  .notes-row-tagro svg { color:var(--accent); }
+  .notes-cell-mute { color:var(--notes-soft); font-size:11.5px; }
+
+  .notes-empty {
+    padding:38px 6px; color:var(--notes-soft);
+    font-size:12.5px; text-align:center;
+    display:flex; flex-direction:column; align-items:center; gap:8px;
+  }
+  .notes-empty p { margin:0; }
+  .notes-empty small { font-size:11.5px; opacity:.75; }
+  .notes-empty-cta {
+    display:inline-flex; align-items:center; gap:5px;
+    height:28px; padding:0 12px; border-radius:999px;
+    background:#fff; color:var(--text);
+    border:0; font:inherit; font-size:12px; font-weight:500; cursor:pointer;
+    box-shadow:0 1px 2px rgba(15,23,42,.08), 0 4px 12px rgba(15,23,42,.07);
+    transition:transform .12s, box-shadow .12s;
+  }
+  .notes-empty-cta:hover { transform:translateY(-1px); box-shadow:0 1px 2px rgba(15,23,42,.1), 0 8px 18px rgba(15,23,42,.10); }
+  [data-theme="dark"] .notes-empty-cta,
+  [data-theme="classic-dark"] .notes-empty-cta {
+    background:color-mix(in srgb, var(--surface) 92%, #fff 8%);
+    box-shadow:0 1px 2px rgba(0,0,0,.3), 0 6px 16px rgba(0,0,0,.22);
+  }
+
+  /* ─── Overlay drawer for the Editor ──────────────────────── */
+  .notes-overlay {
+    position:fixed; inset:0; z-index:1200;
+    display:flex; justify-content:flex-end;
+  }
+  .notes-overlay-backdrop {
+    flex:1; background:rgba(8,10,14,.42);
+    backdrop-filter:blur(4px); cursor:pointer;
+  }
+  /* The Editor renders a <section.notes-editor>. Inside the overlay
+     it becomes the right-anchored drawer (matches /tasks task drawer). */
+  .notes-overlay .notes-editor {
+    width:min(640px, 100vw); height:100%;
+    background:var(--bg); color:var(--text);
+    border-left:1px solid var(--border);
+    display:flex; flex-direction:column;
+    box-shadow:-24px 0 64px -20px rgba(0,0,0,.45);
+    animation:notesDrawerIn .22s cubic-bezier(.16,1,.3,1) both;
+  }
+  @keyframes notesDrawerIn { from { transform:translateX(20px); opacity:0; } to { transform:none; opacity:1; } }
   .row-tagro svg { color:var(--accent); }
   .row-time { font-size:10.5px; color:var(--notes-soft); }
 
@@ -1382,27 +1345,18 @@ const NOTES_CSS = `
   }
 
   /* ─── Responsive ───────────────────────────────────────── */
-  @media (max-width: 1100px) {
-    .notes-shell { grid-template-columns:200px 320px 1fr; }
-    .notes-shell.rail-collapsed { grid-template-columns:0 320px 1fr; }
-  }
-  @media (max-width: 860px) {
-    .notes-shell { grid-template-columns:1fr; }
-    .notes-shell.rail-collapsed { grid-template-columns:1fr; }
-    .notes-rail { display:none; }
-    .notes-list { display:block; }
-    .notes-editor {
-      display:none;
-      position:fixed; inset:0; z-index:1100;
-      background:var(--bg);
+  @media (max-width: 900px) {
+    /* On narrow screens drop Typ/Tags/Tagro columns; keep title + project + time. */
+    .notes-table-head,
+    .notes-row {
+      grid-template-columns:minmax(180px, 2fr) minmax(110px, 1fr) 90px;
     }
-    .notes-shell.has-open .notes-list { display:none; }
-    .notes-shell.has-open .notes-editor { display:flex; }
+    .notes-table-head > :nth-child(n+4),
+    .notes-row > :nth-child(n+4) { display:none; }
+  }
+  @media (max-width: 600px) {
+    .notes-overlay .notes-editor { width:100vw; }
     .editor-icon-btn.close-mobile { display:inline-flex; }
-    .notes-rail-toggle { display:none; }
-    .editor-body { padding:18px 18px 50px; }
-    .editor-head, .editor-meta { padding-left:18px; padding-right:18px; }
-    /* Float-Search bleibt sichtbar; rückt aus Kollision mit "Neue Notiz" */
     .notes-search-float { top:13px; right:14px; }
     .notes-search-float.open { width:min(260px, calc(100vw - 80px)); }
   }
