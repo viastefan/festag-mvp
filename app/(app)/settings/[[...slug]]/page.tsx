@@ -522,17 +522,27 @@ export default function SettingsPage() {
         }
         .set-saved.show { opacity: .8; }
 
-        /* CARD = a section group. Flat Festag chrome — soft border-top
-           as the only separator, no boxed background. */
-        .set-card {
-          background: transparent;
-          border: 0;
-          border-top: 1px solid color-mix(in srgb, var(--set-border) 60%, transparent);
-          border-radius: 0;
-          padding: 4px 0;
-          margin-bottom: 18px;
+        /* CARD = a section group inside the white .set-main surface.
+           Bordered card with rounded corners, rows separated by inner
+           dividers — same DNA Linear uses on its preferences screen. */
+        .set-section-title {
+          margin: 28px 0 12px;
+          font-size: 13px; font-weight: 500;
+          color: var(--set-text-secondary);
+          letter-spacing: .017em;
         }
-        .set-card:first-of-type { border-top: 0; }
+        .set-section-title:first-of-type { margin-top: 8px; }
+        .set-card {
+          background: color-mix(in srgb, var(--set-bg) 55%, transparent);
+          border: 1px solid color-mix(in srgb, var(--set-border) 70%, transparent);
+          border-radius: 12px;
+          padding: 2px 18px;
+          margin-bottom: 8px;
+        }
+        [data-theme="dark"] .set-card,
+        [data-theme="classic-dark"] .set-card {
+          background: color-mix(in srgb, var(--surface) 88%, #fff 4%);
+        }
         .set-profile-layout {
           display: grid;
           grid-template-columns: minmax(0, 1fr) minmax(260px, 320px);
@@ -547,8 +557,9 @@ export default function SettingsPage() {
           flex-direction: column;
           gap: 22px;
         }
-        /* Side cards: flat data lists, no box chrome. Just label rows
-           with a small top eyebrow + spacing. */
+        /* Side cards — calm meta column. No box chrome (the outer
+           .set-main surface is already white), only a thin separator
+           between groups. */
         .set-mini-card {
           background: transparent;
           border: 0;
@@ -556,8 +567,16 @@ export default function SettingsPage() {
           padding: 0;
         }
         .set-mini-card + .set-mini-card {
-          padding-top: 18px;
+          padding-top: 22px;
+          margin-top: 22px;
           border-top: 1px solid color-mix(in srgb, var(--set-border) 50%, transparent);
+        }
+
+        /* Sticky-feeling save bar that lives at the bottom of a section. */
+        .set-save-bar {
+          display: flex; justify-content: flex-end;
+          margin-top: 18px; padding-top: 16px;
+          border-top: 1px solid color-mix(in srgb, var(--set-border) 40%, transparent);
         }
         .set-mini-title {
           font-size: 13.5px;
@@ -851,6 +870,8 @@ export default function SettingsPage() {
 
         {section === 'profile' && (
           <div className="set-profile-layout">
+            <div>
+            <p className="set-section-title">Grunddaten</p>
             <div className="set-card">
               <div className="set-row">
                 <div>
@@ -931,6 +952,10 @@ export default function SettingsPage() {
                   placeholder="z. B. Stefan Dirnberger"
                 />
               </div>
+            </div>
+
+            <p className="set-section-title">Kontakt</p>
+            <div className="set-card">
               <div className="set-row">
                 <div>
                   <div className="set-label">Position</div>
@@ -954,6 +979,23 @@ export default function SettingsPage() {
                   placeholder="Optional, z. B. +49 151 23456789"
                 />
               </div>
+              <div className="set-row">
+                <div>
+                  <div className="set-label">LinkedIn</div>
+                  <div className="set-label-sub">Optional. Wird Mitwirkenden in deinem Workspace angezeigt.</div>
+                </div>
+                <input
+                  className="set-input"
+                  type="url"
+                  value={linkedinUrl}
+                  onChange={e => setLinkedinUrl(e.target.value)}
+                  placeholder="https://linkedin.com/in/…"
+                />
+              </div>
+            </div>
+
+            <p className="set-section-title">Über dich</p>
+            <div className="set-card">
               <div className="set-row set-row-stack">
                 <div>
                   <div className="set-label">Kurze Bio</div>
@@ -969,19 +1011,10 @@ export default function SettingsPage() {
                   style={{ resize: 'vertical', minHeight: 76, lineHeight: 1.55 }}
                 />
               </div>
-              <div className="set-row">
-                <div>
-                  <div className="set-label">LinkedIn</div>
-                  <div className="set-label-sub">Optional. Wird Mitwirkenden in deinem Workspace angezeigt.</div>
-                </div>
-                <input
-                  className="set-input"
-                  type="url"
-                  value={linkedinUrl}
-                  onChange={e => setLinkedinUrl(e.target.value)}
-                  placeholder="https://linkedin.com/in/…"
-                />
-              </div>
+            </div>
+
+            <p className="set-section-title">Lokale Einstellungen</p>
+            <div className="set-card">
               <div className="set-row">
                 <div>
                   <div className="set-label">Zeitzone</div>
@@ -1021,11 +1054,13 @@ export default function SettingsPage() {
                   >English</button>
                 </div>
               </div>
-              <div className="set-row" style={{ justifyContent: 'flex-end', display: 'flex' }}>
-                <button className="set-btn set-btn-primary" onClick={saveProfile} disabled={saving}>
-                  {saving ? 'Speichere…' : 'Profil speichern'}
-                </button>
-              </div>
+            </div>
+
+            <div className="set-save-bar">
+              <button className="set-btn set-btn-primary" onClick={saveProfile} disabled={saving}>
+                {saving ? 'Speichere…' : 'Profil speichern'}
+              </button>
+            </div>
             </div>
             <aside className="set-side-stack" aria-label="Profil Kontext">
               <div className="set-mini-card">
