@@ -1320,15 +1320,6 @@ export default function TasksPage() {
           text-overflow:ellipsis;
           white-space:nowrap;
         }
-        .task-name-text span {
-          display:block;
-          margin-top:2px;
-          color:var(--task-soft-text);
-          font-size:11.5px;
-          overflow:hidden;
-          text-overflow:ellipsis;
-          white-space:nowrap;
-        }
         .task-health {
           display:flex;
           align-items:center;
@@ -1583,10 +1574,6 @@ export default function TasksPage() {
             font-size:12.5px;
             white-space:normal;
             line-height:1.35;
-          }
-          .task-name-text span {
-            font-size:11px;
-            white-space:normal;
           }
           .task-health,
           .task-progress,
@@ -1971,7 +1958,6 @@ export default function TasksPage() {
              already segment the table, so per-project collapse sections
              would only repeat what the filter says. */
           visibleTasks.map((task, rowIndex) => {
-            const project = task.project_id ? projectById.get(task.project_id) : null
             const normalized = normalizeStatus(taskState(task))
             const isDone = normalized === 'done'
             const progress = typeof task.progress === 'number' ? task.progress : progressFor(taskState(task))
@@ -2025,7 +2011,6 @@ export default function TasksPage() {
                   </span>
                   <span className="task-name-text">
                     <strong>{task.title}</strong>
-                    <span>{project?.title || 'Kein Projekt zugeordnet'}</span>
                   </span>
                 </div>
 

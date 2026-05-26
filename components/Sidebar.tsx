@@ -6,7 +6,6 @@ import { createClient } from '@/lib/supabase/client'
 import { useState, useEffect, useRef } from 'react'
 import SidebarProfileFooter from '@/components/SidebarProfileFooter'
 import SettingsSidebar from '@/components/SettingsSidebar'
-import TeamsModal from '@/components/TeamsModal'
 import MobileActionSheet from '@/components/MobileActionSheet'
 import { mobileFabActions, mobileFabTitle } from '@/lib/mobile-actions'
 import { useNotifications } from '@/hooks/useNotifications'
@@ -90,9 +89,9 @@ const CLIENT_CORE: NavItem[] = [
   { href:'/observers', icon:'team', label:'Mitwirkende' },
 ]
 const CLIENT_TEAMS: NavItem[] = [
-  { href:'/teams?view=projects', icon:'project', label:'Projekte' },
-  { href:'/teams?view=tasks', icon:'task', label:'Tasks' },
-  { href:'/teams?view=messages', icon:'chat', label:'Nachrichten' },
+  { href:'/teams/projects', icon:'project', label:'Projekte' },
+  { href:'/teams/tasks', icon:'task', label:'Tasks' },
+  { href:'/teams/reports', icon:'activity', label:'Statusberichte' },
 ]
 const CLIENT_TAGRO: NavItem[] = [
   { href:'/ai',    icon:'chat', label:'Chat' },
@@ -198,7 +197,6 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
   const [reportsExp, setReportsExp] = useState(false)
   const reportsAutoSeededRef = useRef(false)
   const [toolsExp, setToolsExp] = useState(false)
-  const [teamsOpen,  setTeamsOpen] = useState(false)
   const [whatsNewOpen, setWhatsNewOpen] = useState(false)
   const [colorPickId, setColorPickId] = useState<string|null>(null)
   const [monitoringDock, setMonitoringDock] = useState<MonitoringDockState>({
@@ -271,12 +269,6 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
     : CLIENT_TOOLS
   const mobPrimary = CLIENT_MOB_PRIMARY
   const mobQuick = CLIENT_MOB_QUICK
-
-  useEffect(() => {
-    const handler = () => setTeamsOpen(true)
-    window.addEventListener('open-teams-modal', handler)
-    return () => window.removeEventListener('open-teams-modal', handler)
-  }, [])
 
   useEffect(() => {
     try {
@@ -1242,39 +1234,8 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
                 label={wsMode === 'agency' ? 'Kunden-Teams' : 'Teams'}
                 expanded={teamsExp}
                 onToggle={() => setTeamsExp(v => !v)}
-                action={
-                  <button
-                    className="sb-icon-btn"
-                    type="button"
-                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setTeamsOpen(true) }}
-                    title="Neues Team erstellen"
-                    style={{ width: 18, height: 18, border: 'none', background: 'transparent', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', borderRadius: 6 }}
-                  >
-                    <Ico name="plus" sz={11} c="currentColor" weight="regular" />
-                  </button>
-                }
               >
-                <div
-                  className={`ni ${isOn('/teams?view=projects') ? 'ni-on' : 'ni-off'}`}
-                  data-shortcut={navShortcut('Projekte', '/teams?view=projects')}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 8,
-                    paddingRight: 6,
-                  }}
-                >
-                  <Link
-                    href={resolve('/teams?view=projects')}
-                    style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0, flex: 1, textDecoration: 'none', color: 'inherit', height: '100%' }}
-                  >
-                    <span style={{ display:'flex', alignItems:'center', justifyContent:'center' }}>
-                      <Ico name="project" sz={14} c={isOn('/teams?view=projects') ? 'var(--text)' : 'var(--text-muted)'} weight={isOn('/teams?view=projects') ? 'bold' : 'regular'} />
-                    </span>
-                    <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Projekte</span>
-                  </Link>
-                </div>
-                <NavItems items={teamsNav.slice(1)} />
+                <NavItems items={teamsNav} />
               </Section>
             </div>
 
@@ -1423,8 +1384,6 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           />
         )
       })()}
-
-      <TeamsModal open={teamsOpen} onClose={() => setTeamsOpen(false)} />
 
       {more && (
         <>
