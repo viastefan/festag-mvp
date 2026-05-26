@@ -425,6 +425,37 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
     })
   }, [])
 
+  // Belt-and-suspenders: re-pull the profile when the tab regains
+  // focus. If the broadcast somehow missed (rare race, cross-window
+  // weirdness), this guarantees the chip reflects the latest DB state
+  // the moment the user clicks back to the app.
+  useEffect(() => {
+    function refetch() {
+      if (typeof document === 'undefined' || document.visibilityState !== 'visible') return
+      const sb = createClient()
+      sb.auth.getUser().then(async ({ data }) => {
+        if (!data.user) return
+        const { data: p } = await sb
+          .from('profiles')
+          .select('first_name,full_name,avatar_url,avatar_color,plan')
+          .eq('id', data.user.id)
+          .maybeSingle()
+        if (!p) return
+        setFn((p as any).first_name ?? (p as any).full_name?.split(' ')[0] ?? '')
+        setFullName((p as any).full_name ?? '')
+        setAvatar((p as any).avatar_url ?? null)
+        if ((p as any).avatar_color) setAvatarColor((p as any).avatar_color)
+        if ((p as any).plan) setPlan((p as any).plan)
+      })
+    }
+    window.addEventListener('focus', refetch)
+    document.addEventListener('visibilitychange', refetch)
+    return () => {
+      window.removeEventListener('focus', refetch)
+      document.removeEventListener('visibilitychange', refetch)
+    }
+  }, [])
+
   useEffect(() => {
     const onProjectColor = (event: Event) => {
       if (!(event instanceof CustomEvent)) return

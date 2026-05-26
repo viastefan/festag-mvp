@@ -167,32 +167,43 @@ export default function SettingsPage() {
         .maybeSingle()
 
       if (cancelled) return
-      if (p) {
-        setProfile(p as Profile)
-        setFullName(p.full_name || '')
-        setPosition(p.position || '')
-        setPhone(p.phone || '')
-        setBio((p as any).bio || '')
-        setLinkedinUrl((p as any).linkedin_url || '')
-        setTimezone((p as any).timezone || 'Europe/Berlin')
-        const lang = (p as any).language_pref
+      // Self-heal: some legacy accounts never got a profiles row created.
+      // Without one, saveProfile silently no-ops because `profile` stays
+      // null. Insert a stub row so saves always have something to update.
+      let row = p
+      if (!row) {
+        const { data: created } = await (supabase as any).from('profiles').insert({
+          id: uid,
+          email: session.user.email ?? null,
+        }).select('*').single()
+        row = created
+      }
+      if (row) {
+        setProfile(row as Profile)
+        setFullName(row.full_name || '')
+        setPosition(row.position || '')
+        setPhone(row.phone || '')
+        setBio((row as any).bio || '')
+        setLinkedinUrl((row as any).linkedin_url || '')
+        setTimezone((row as any).timezone || 'Europe/Berlin')
+        const lang = (row as any).language_pref
         if (lang === 'de' || lang === 'en') setLanguagePref(lang)
-        setAvatarUrl(p.avatar_url || null)
-        if (p.avatar_color) setLocalAvatarColor(p.avatar_color)
-        setCompName(p.company_name || '')
-        setCompDesc(p.company_desc || '')
-        setCompIndustry(p.company_industry || '')
-        setCompSize(p.company_size || '')
-        setCompWebsite(p.company_website || '')
-        setLegalForm(p.legal_form || '')
-        setVatNumber(p.vat_number || '')
-        setTaxNumber(p.tax_number || '')
-        setBillAddress(p.company_address || '')
-        setBillCity(p.company_city || '')
-        setBillZip(p.company_zip || '')
-        setBillCountry(p.company_country || 'Deutschland')
-        if (typeof p.notif_email === 'boolean') setNotifEmail(p.notif_email)
-        if (typeof p.notif_push === 'boolean') setNotifPush(p.notif_push)
+        setAvatarUrl(row.avatar_url || null)
+        if (row.avatar_color) setLocalAvatarColor(row.avatar_color)
+        setCompName(row.company_name || '')
+        setCompDesc(row.company_desc || '')
+        setCompIndustry(row.company_industry || '')
+        setCompSize(row.company_size || '')
+        setCompWebsite(row.company_website || '')
+        setLegalForm(row.legal_form || '')
+        setVatNumber(row.vat_number || '')
+        setTaxNumber(row.tax_number || '')
+        setBillAddress(row.company_address || '')
+        setBillCity(row.company_city || '')
+        setBillZip(row.company_zip || '')
+        setBillCountry(row.company_country || 'Deutschland')
+        if (typeof row.notif_email === 'boolean') setNotifEmail(row.notif_email)
+        if (typeof row.notif_push === 'boolean') setNotifPush(row.notif_push)
       }
 
       // Workspace (Primary Mode + name + members) — Settings → Workspace card
