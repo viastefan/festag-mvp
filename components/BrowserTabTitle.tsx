@@ -55,13 +55,14 @@ export default function BrowserTabTitle() {
     })()
 
     // Profile edits elsewhere in the app broadcast via profile-sync;
-    // pick up the change without a re-fetch.
+    // pick up the change without a re-fetch. The payload uses camelCase
+    // (fullName / firstName) — earlier this read snake_case which is
+    // why renames weren't propagating to the tab title live.
     const unsub = subscribeProfileSync((payload) => {
       if (!payload) return
       const next = nameFromProfile({
-        full_name: (payload as any).full_name,
-        first_name: (payload as any).first_name,
-        email: (payload as any).email,
+        full_name: payload.fullName,
+        first_name: payload.firstName,
       })
       apply(next)
     })

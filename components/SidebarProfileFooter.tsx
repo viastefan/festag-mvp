@@ -70,7 +70,11 @@ export default function SidebarProfileFooter({
 
   const currentPlanLabel = planLabel(plan)
   const avatarFg = avatarTextColor(avatarColor)
-  const triggerName = displayName.length > 8 ? `${displayName.slice(0, 8)}...` : displayName
+  // Trigger label fits the narrow sidebar top — 14 chars is enough to
+  // show a short name in full ("Stefan", "Anna Schulz") and gracefully
+  // truncates longer ones ("Stefan Dirnber…") instead of cutting at 8
+  // and reading like a random initialism.
+  const triggerName = displayName.length > 14 ? `${displayName.slice(0, 14)}…` : displayName
 
   const closeAndGo = () => setOpen(false)
 

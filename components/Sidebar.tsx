@@ -462,7 +462,11 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
     if (cleanHref==='/project/current') return pathname.startsWith('/project/')
     return pathname.startsWith(cleanHref)
   }
-  const name = fn || email.split('@')[0] || 'Konto'
+  // Display fallback chain — first_name → full_name → email-local-part.
+  // The middle step is what was missing: a user with no first_name but
+  // a full_name like "Stefan Dirnberger" used to drop straight to the
+  // email prefix, so the sidebar showed "ww…" instead of the name.
+  const name = fn || fullName.trim() || email.split('@')[0] || 'Konto'
   const init = avatarInitials(fn, fullName, email)
   const avBg = avatarColor || autoAvatarColor(uid || email)
 
