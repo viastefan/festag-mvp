@@ -116,6 +116,10 @@ export default function SettingsPage() {
   const [fullName, setFullName] = useState('')
   const [position, setPosition] = useState('')
   const [phone, setPhone] = useState('')
+  const [bio, setBio] = useState('')
+  const [linkedinUrl, setLinkedinUrl] = useState('')
+  const [timezone, setTimezone] = useState('Europe/Berlin')
+  const [languagePref, setLanguagePref] = useState<'de' | 'en'>('de')
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const [avatarUploading, setAvatarUploading] = useState(false)
 
@@ -158,7 +162,7 @@ export default function SettingsPage() {
       const uid = session.user.id
       const { data: p } = await supabase
         .from('profiles')
-        .select('id,email,full_name,position,phone,avatar_url,avatar_color,role,theme_pref,notif_email,notif_push,company_name,company_desc,company_industry,company_size,company_website,legal_form,vat_number,tax_number,company_address,company_city,company_zip,company_country')
+        .select('id,email,full_name,position,phone,bio,linkedin_url,timezone,language_pref,avatar_url,avatar_color,role,theme_pref,notif_email,notif_push,company_name,company_desc,company_industry,company_size,company_website,legal_form,vat_number,tax_number,company_address,company_city,company_zip,company_country')
         .eq('id', uid)
         .maybeSingle()
 
@@ -168,6 +172,11 @@ export default function SettingsPage() {
         setFullName(p.full_name || '')
         setPosition(p.position || '')
         setPhone(p.phone || '')
+        setBio((p as any).bio || '')
+        setLinkedinUrl((p as any).linkedin_url || '')
+        setTimezone((p as any).timezone || 'Europe/Berlin')
+        const lang = (p as any).language_pref
+        if (lang === 'de' || lang === 'en') setLanguagePref(lang)
         setAvatarUrl(p.avatar_url || null)
         if (p.avatar_color) setLocalAvatarColor(p.avatar_color)
         setCompName(p.company_name || '')
@@ -249,11 +258,16 @@ export default function SettingsPage() {
     if (!profile) return
     setError(''); setSaving(true)
     try {
-      await supabase.from('profiles').update({
+      const { error: upErr } = await (supabase as any).from('profiles').update({
         full_name: fullName.trim() || null,
         position: position.trim() || null,
         phone: phone.trim() || null,
+        bio: bio.trim() || null,
+        linkedin_url: linkedinUrl.trim() || null,
+        timezone: timezone.trim() || null,
+        language_pref: languagePref,
       }).eq('id', profile.id)
+      if (upErr) throw upErr
       broadcastProfileSync({ fullName: fullName.trim() || null, firstName: (fullName.trim().split(' ')[0]) || null })
       flashSaved('Profil gespeichert')
     } catch (e: any) {
@@ -430,14 +444,19 @@ export default function SettingsPage() {
 
   const initials = (fullName || profile?.email || 'F')
     .split(' ').map(s => s[0]).filter(Boolean).slice(0,2).join('').toUpperCase() || 'F'
-  const profileCompletion = [
-    avatarUrl,
-    fullName.trim(),
-    position.trim(),
-    phone.trim(),
-    profile?.email,
-  ].filter(Boolean).length
-  const profileCompletionPct = Math.round((profileCompletion / 5) * 100)
+  // Profile completion: avatar, name, position, phone, email, bio,
+  // linkedin → 7 slots, each contributes equally.
+  const completionChecks = [
+    !!avatarUrl,
+    !!fullName.trim(),
+    !!position.trim(),
+    !!phone.trim(),
+    !!profile?.email,
+    !!bio.trim(),
+    !!linkedinUrl.trim(),
+  ]
+  const profileCompletion = completionChecks.filter(Boolean).length
+  const profileCompletionPct = Math.round((profileCompletion / completionChecks.length) * 100)
   const roleLabel = profile?.role === 'dev'
     ? 'Developer'
     : profile?.role === 'admin'
@@ -483,30 +502,39 @@ export default function SettingsPage() {
         }
         .set-saved.show { opacity: .8; }
 
-        /* CARD = a section group */
+        /* CARD = a section group. Flat Festag chrome — soft border-top
+           as the only separator, no boxed background. */
         .set-card {
-          background: var(--set-card);
-          border: 1px solid var(--set-border);
-          border-radius: 12px;
+          background: transparent;
+          border: 0;
+          border-top: 1px solid color-mix(in srgb, var(--set-border) 60%, transparent);
+          border-radius: 0;
           padding: 4px 0;
           margin-bottom: 18px;
         }
+        .set-card:first-of-type { border-top: 0; }
         .set-profile-layout {
           display: grid;
           grid-template-columns: minmax(0, 760px) minmax(240px, 300px);
-          gap: 18px;
+          gap: 28px;
           align-items: start;
         }
         .set-side-stack {
           display: flex;
           flex-direction: column;
-          gap: 18px;
+          gap: 22px;
         }
+        /* Side cards: flat data lists, no box chrome. Just label rows
+           with a small top eyebrow + spacing. */
         .set-mini-card {
-          background: var(--set-card);
-          border: 1px solid var(--set-border);
-          border-radius: 12px;
-          padding: 18px;
+          background: transparent;
+          border: 0;
+          border-radius: 0;
+          padding: 0;
+        }
+        .set-mini-card + .set-mini-card {
+          padding-top: 18px;
+          border-top: 1px solid color-mix(in srgb, var(--set-border) 50%, transparent);
         }
         .set-mini-title {
           font-size: 13.5px;
@@ -625,10 +653,43 @@ export default function SettingsPage() {
         .set-btn:active:not(:disabled) { transform: scale(0.97); transition: transform .08s ease; }
         .set-btn:hover:not(:disabled) { background: color-mix(in srgb, var(--set-text) 6%, var(--set-bg)); }
         .set-btn:disabled { opacity: .5; cursor: not-allowed; }
+        /* WHITE 3D Festag pill — same DNA as .task-tool + dashboard CTA.
+           NO black buttons in light mode (Festag rule). */
         .set-btn-primary {
-          background: var(--set-text); color: var(--set-bg); border-color: var(--set-text);
+          background: #fff;
+          color: var(--set-text);
+          border: 0;
+          border-radius: 999px;
+          padding: 8px 16px;
+          box-shadow:
+            0 1px 2px rgba(15,23,42,.08),
+            0 6px 18px rgba(15,23,42,.07);
+          transition: transform .14s ease, box-shadow .14s ease;
         }
-        .set-btn-primary:hover:not(:disabled) { opacity: .88; }
+        .set-btn-primary:hover:not(:disabled) {
+          transform: translateY(-1px);
+          box-shadow:
+            0 1px 2px rgba(15,23,42,.1),
+            0 10px 24px rgba(15,23,42,.10);
+        }
+        .set-btn-primary:active:not(:disabled) {
+          transform: translateY(0);
+          box-shadow: 0 1px 2px rgba(15,23,42,.12), 0 4px 12px rgba(15,23,42,.10);
+        }
+        [data-theme="dark"] .set-btn-primary,
+        [data-theme="classic-dark"] .set-btn-primary {
+          background: color-mix(in srgb, var(--surface) 92%, #fff 8%);
+          color: var(--set-text);
+          box-shadow:
+            0 1px 2px rgba(0,0,0,.32),
+            0 6px 18px rgba(0,0,0,.22);
+        }
+        [data-theme="dark"] .set-btn-primary:hover:not(:disabled),
+        [data-theme="classic-dark"] .set-btn-primary:hover:not(:disabled) {
+          box-shadow:
+            0 1px 2px rgba(0,0,0,.36),
+            0 12px 28px rgba(0,0,0,.32);
+        }
         .set-btn-danger {
           color: #c0362e;
           border-color: color-mix(in srgb, #c0362e 30%, var(--set-border));
@@ -864,12 +925,79 @@ export default function SettingsPage() {
                   type="tel"
                   value={phone}
                   onChange={e => setPhone(e.target.value)}
-                  placeholder="Optional"
+                  placeholder="Optional, z. B. +49 151 23456789"
                 />
+              </div>
+              <div className="set-row set-row-stack">
+                <div>
+                  <div className="set-label">Kurze Bio</div>
+                  <div className="set-label-sub">Ein bis zwei Sätze über dich. Tagro nutzt das als Kontext, wenn neue Mitwirkende dazukommen.</div>
+                </div>
+                <textarea
+                  className="set-input"
+                  rows={3}
+                  maxLength={400}
+                  value={bio}
+                  onChange={e => setBio(e.target.value)}
+                  placeholder="z. B. „Startupgründer aus München, Schwerpunkt SaaS und Operations."
+                  style={{ resize: 'vertical', minHeight: 76, lineHeight: 1.55 }}
+                />
+              </div>
+              <div className="set-row">
+                <div>
+                  <div className="set-label">LinkedIn</div>
+                  <div className="set-label-sub">Optional. Wird Mitwirkenden in deinem Workspace angezeigt.</div>
+                </div>
+                <input
+                  className="set-input"
+                  type="url"
+                  value={linkedinUrl}
+                  onChange={e => setLinkedinUrl(e.target.value)}
+                  placeholder="https://linkedin.com/in/…"
+                />
+              </div>
+              <div className="set-row">
+                <div>
+                  <div className="set-label">Zeitzone</div>
+                  <div className="set-label-sub">Beeinflusst, wann Tagro Daily-Notes und tägliche Briefings ausspielt.</div>
+                </div>
+                <select
+                  className="set-select"
+                  value={timezone}
+                  onChange={e => setTimezone(e.target.value)}
+                >
+                  <option value="Europe/Berlin">Europe/Berlin (Berlin, Wien, Zürich)</option>
+                  <option value="Europe/London">Europe/London</option>
+                  <option value="Europe/Lisbon">Europe/Lisbon</option>
+                  <option value="Europe/Athens">Europe/Athens</option>
+                  <option value="America/New_York">America/New_York</option>
+                  <option value="America/Los_Angeles">America/Los_Angeles</option>
+                  <option value="Asia/Tokyo">Asia/Tokyo</option>
+                  <option value="Asia/Singapore">Asia/Singapore</option>
+                  <option value="Australia/Sydney">Australia/Sydney</option>
+                </select>
+              </div>
+              <div className="set-row">
+                <div>
+                  <div className="set-label">Sprache</div>
+                  <div className="set-label-sub">In welcher Sprache Tagro mit dir spricht.</div>
+                </div>
+                <div className="set-segment">
+                  <button
+                    type="button"
+                    className={`set-segment-btn${languagePref === 'de' ? ' on' : ''}`}
+                    onClick={() => setLanguagePref('de')}
+                  >Deutsch</button>
+                  <button
+                    type="button"
+                    className={`set-segment-btn${languagePref === 'en' ? ' on' : ''}`}
+                    onClick={() => setLanguagePref('en')}
+                  >English</button>
+                </div>
               </div>
               <div className="set-row" style={{ justifyContent: 'flex-end', display: 'flex' }}>
                 <button className="set-btn set-btn-primary" onClick={saveProfile} disabled={saving}>
-                  {saving ? 'Speichere…' : 'Speichern'}
+                  {saving ? 'Speichere…' : 'Profil speichern'}
                 </button>
               </div>
             </div>
