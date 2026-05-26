@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { usePathname } from 'next/navigation'
 
+import BrowserTabTitle from '@/components/BrowserTabTitle'
 import CommandPalette from '@/components/CommandPalette'
 import CopilotPanel from '@/components/CopilotPanel'
 import FeedbackWidget from '@/components/FeedbackWidget'
@@ -483,6 +484,7 @@ export default function ClientAppShell({
       <FeedbackWidget />
       <CommandPalette />
       <PwaInstallBanner />
+      <BrowserTabTitle />
     </div>
   )
 }
