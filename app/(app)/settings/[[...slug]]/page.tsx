@@ -482,31 +482,28 @@ export default function SettingsPage() {
           letter-spacing: .017em;
           min-height: 100dvh;
           display: flex;
-          justify-content: flex-start;
+          justify-content: center;
           padding: 20px 18px 40px;
         }
         .set, .set * { letter-spacing: .017em; }
 
-        /* ── MAIN — wide white surface like the dashboard content cards.
-             ~100 px inner padding, generous max width so forms breathe. */
+        /* ── MAIN — centered, slightly LIGHTER than the sidebar so the
+             surface reads as a calm canvas while the inner cards pop in
+             white. Stefan's request: outer = lighter gray, inner cards
+             = pure white. */
         .set-main {
           width: 100%;
-          max-width: 1240px;
+          max-width: 1180px;
           margin: 0 auto;
-          background: var(--surface);
-          border: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+          background: color-mix(in srgb, var(--sidebar-bg, #F6F9FC) 40%, #fff 60%);
+          border: 1px solid color-mix(in srgb, var(--border) 40%, transparent);
           border-radius: 20px;
           padding: 48px clamp(28px, 7vw, 100px) 56px;
-          box-shadow:
-            0 1px 2px rgba(15,23,42,.04),
-            0 18px 50px -20px rgba(15,23,42,.10);
         }
         [data-theme="dark"] .set-main,
         [data-theme="classic-dark"] .set-main {
-          background: color-mix(in srgb, var(--surface) 96%, #fff 4%);
-          box-shadow:
-            0 1px 2px rgba(0,0,0,.32),
-            0 22px 60px -22px rgba(0,0,0,.45);
+          background: color-mix(in srgb, var(--surface) 88%, #fff 4%);
+          border-color: color-mix(in srgb, var(--border) 50%, transparent);
         }
         @media (max-width: 720px) {
           .set { padding: 12px 10px 32px; }
@@ -532,16 +529,21 @@ export default function SettingsPage() {
           letter-spacing: .017em;
         }
         .set-section-title:first-of-type { margin-top: 8px; }
+        /* Inner setting cards: solid white in light mode, popping above
+           the lighter-gray .set-main canvas. Soft border + subtle shadow
+           for the calm Festag 3-D feel. */
         .set-card {
-          background: color-mix(in srgb, var(--set-bg) 55%, transparent);
-          border: 1px solid color-mix(in srgb, var(--set-border) 70%, transparent);
+          background: #fff;
+          border: 1px solid color-mix(in srgb, var(--set-border) 55%, transparent);
           border-radius: 12px;
-          padding: 2px 18px;
-          margin-bottom: 8px;
+          padding: 2px 22px;
+          margin-bottom: 10px;
+          box-shadow: 0 1px 2px rgba(15,23,42,.04);
         }
         [data-theme="dark"] .set-card,
         [data-theme="classic-dark"] .set-card {
-          background: color-mix(in srgb, var(--surface) 88%, #fff 4%);
+          background: color-mix(in srgb, var(--surface) 96%, #fff 6%);
+          box-shadow: 0 1px 2px rgba(0,0,0,.32);
         }
         .set-profile-layout {
           display: grid;
