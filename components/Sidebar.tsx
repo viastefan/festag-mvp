@@ -713,7 +713,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
             fontFamily:'inherit', padding:0, textAlign:'left',
             width:'auto', maxWidth:'100%',
           }}>
-            <span style={{ fontSize:11.5, fontWeight:500, color:'var(--sb-sidebar-gray)', letterSpacing:'.017em', lineHeight:'18px' }}>{label}</span>
+            <span style={{ fontSize:11.5, fontWeight:500, color:'var(--sb-sidebar-gray)', letterSpacing:'.02em', lineHeight:'18px' }}>{label}</span>
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--sb-sidebar-gray)" strokeWidth="2.4" strokeLinecap="round"
               style={{ flexShrink:0, opacity:.72, transform:expanded?'rotate(90deg)':'rotate(0deg)', transition:'none' }}>
               <path d="M9 6l6 6-6 6"/>
@@ -835,7 +835,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           padding:0 var(--sb-x); border-radius:8px;
           font-size:var(--sb-font); font-weight:500;
           font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
-          letter-spacing:.017em;
+          letter-spacing:.02em;
           cursor:pointer; text-decoration:none; color:inherit;
           transition:background .12s, color .12s;
           white-space:nowrap; overflow:hidden;
@@ -849,7 +849,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         .ni button {
           font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
           font-weight:500;
-          letter-spacing:.017em;
+          letter-spacing:.02em;
         }
         .ni-label {
           min-width:0;
@@ -889,7 +889,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           justify-content:center;
           font-size:10.5px;
           font-weight:500;
-          letter-spacing:.017em;
+          letter-spacing:.02em;
           line-height:1;
           opacity:0;
           pointer-events:none;
@@ -943,7 +943,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         .sb-section-head span {
           font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
           font-weight:500;
-          letter-spacing:.017em;
+          letter-spacing:.02em;
         }
         .sb-section-head button {
           min-height: 18px;
@@ -983,7 +983,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           border-radius:8px;
           font-size:12.5px; font-weight:500;
           font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
-          letter-spacing:.017em;
+          letter-spacing:.02em;
           cursor:pointer; text-decoration:none;
           color:var(--text-muted);
           transition:background .08s, color .08s;
@@ -1001,7 +1001,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           white-space:nowrap;
           font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
           font-weight:500;
-          letter-spacing:.017em;
+          letter-spacing:.02em;
         }
         .proj-dot-button {
           width:11px;
@@ -1126,7 +1126,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           padding: 0 10px;
           background: transparent; border: 0; cursor: pointer;
           color: var(--text-muted);
-          font: inherit; font-size: 12.5px; font-weight: 500; letter-spacing: .017em;
+          font: inherit; font-size: 12.5px; font-weight: 500; letter-spacing: .02em;
           border-radius: 8px;
           margin-top: 1px;
           transition: background .12s, color .12s;
@@ -1167,7 +1167,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           display: flex; align-items: center; gap: 9px;
           background: transparent; border: 0;
           color: var(--text);
-          font: inherit; font-size: 12.5px; font-weight: 500; letter-spacing: .017em;
+          font: inherit; font-size: 12.5px; font-weight: 500; letter-spacing: .02em;
           text-decoration: none;
           border-radius: 8px;
           cursor: pointer;
@@ -1234,14 +1234,14 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         }
         .sb-help-title {
           min-width: 0;
-          font-size: 13.5px; font-weight: 500; letter-spacing: .017em;
+          font-size: 13.5px; font-weight: 500; letter-spacing: .02em;
           color: var(--text);
           overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
         }
         .sb-help-shortcut {
           font-size: 11.5px;
           font-weight: 500;
-          letter-spacing: .017em;
+          letter-spacing: .02em;
           color: var(--text-muted);
           white-space: nowrap;
         }
@@ -1249,7 +1249,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           margin: 12px 10px 6px;
           font-size: 12.5px;
           font-weight: 500;
-          letter-spacing: .017em;
+          letter-spacing: .02em;
           color: var(--text-secondary);
         }
         .sb-help-news-list {
@@ -1305,7 +1305,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           white-space: nowrap;
           font-size: 13.5px;
           font-weight: 500;
-          letter-spacing: .017em;
+          letter-spacing: .02em;
         }
         .sb-nav-scroll {
           flex:1 1 auto;
@@ -1337,13 +1337,13 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           padding:0 13px;
           font-size:13px;
           font-weight:660;
-          letter-spacing:.017em;
+          letter-spacing:.02em;
         }
         .sb-square-action {
           color:var(--text-secondary);
           font-size:12px;
           font-weight:720;
-          letter-spacing:.017em;
+          letter-spacing:.02em;
         }
         .sb-pill-action:hover,
         .sb-square-action:hover {
@@ -1388,7 +1388,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           box-shadow:0 0 0 4px color-mix(in srgb, currentColor 10%, transparent);
         }
         .sb-monitor-line {
-          font-size:12px; font-weight:500; letter-spacing:.017em;
+          font-size:12px; font-weight:500; letter-spacing:.02em;
           font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
           color:var(--text);
           overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
@@ -1404,7 +1404,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           background:transparent; text-decoration:none; color:var(--text);
           font-size:12.5px; font-weight:500;
           font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
-          letter-spacing:.017em;
+          letter-spacing:.02em;
         }
         .usr-row:hover { background:var(--hover); }
 
@@ -1431,7 +1431,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         .mt.has-avatar .mti { background:transparent !important; }
         .mt.on .ml   { color:var(--text); font-weight:700; }
         .mt.off .ml  { color:var(--text-muted); font-weight:500; }
-        .ml { font-size:9.5px; font-weight:500; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); letter-spacing:.017em; transition:color .12s; line-height:1; }
+        .ml { font-size:9.5px; font-weight:500; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); letter-spacing:.02em; transition:color .12s; line-height:1; }
         .mob-fab { width:50px; height:50px; border-radius:50%; background:var(--btn-prim); color:var(--btn-prim-text); display:flex; align-items:center; justify-content:center; margin:-6px 12px; box-shadow:0 0 0 1px rgba(255,255,255,.02); border:none; cursor:pointer; transition:transform .15s ease,background .15s; flex-shrink:0; -webkit-tap-highlight-color:transparent; }
         .mob-fab:active { transform:scale(.88); }
         .mob-fab.open { background:var(--surface-2); box-shadow:0 0 0 1px rgba(255,255,255,.03); }

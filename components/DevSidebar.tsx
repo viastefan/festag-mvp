@@ -342,7 +342,7 @@ export default function DevSidebar({
         .ds-brand { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
         .ds-logo { height: 14px; display: block; }
         .ds-badge {
-          font-size: 9px; letter-spacing: .14em; font-weight: 500;
+          font-size: 9px; letter-spacing: .02em; font-weight: 500;
           color: var(--text-muted);
           border: 1px solid var(--border);
           border-radius: 999px;
@@ -370,14 +370,14 @@ export default function DevSidebar({
           width: 28px; height: 28px; border-radius: 8px;
           background: var(--accent); color: var(--accent-text);
           display: grid; place-items: center;
-          font-size: 11px; font-weight: 500; letter-spacing: .015em;
+          font-size: 11px; font-weight: 500; letter-spacing: .02em;
           flex: 0 0 auto; overflow: hidden;
         }
         .ds-avatar.img { background: transparent; }
         .ds-identity-text { min-width: 0; flex: 1; }
         .ds-identity-text strong {
           display: block; font-size: 12.5px; line-height: 1.2; font-weight: 500;
-          letter-spacing: .015em;
+          letter-spacing: .02em;
           color: var(--text);
           max-width: 138px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
         }
@@ -396,7 +396,7 @@ export default function DevSidebar({
           padding: 6px 7px; border-radius: 7px;
           background: color-mix(in srgb, var(--surface-2) 35%, transparent);
         }
-        .ds-kpi strong { font-size: 14px; font-weight: 500; letter-spacing: -.01em; color: var(--text); line-height: 1.1; }
+        .ds-kpi strong { font-size: 14px; font-weight: 500; letter-spacing: .02em; color: var(--text); line-height: 1.1; }
         .ds-kpi span { font-size: 9.5px; color: var(--text-muted); letter-spacing: .02em; }
 
         .ds-session {
@@ -415,7 +415,7 @@ export default function DevSidebar({
         }
         .ds-session-text { min-width: 0; }
         .ds-session-text strong {
-          display: block; font-size: 12px; font-weight: 500; letter-spacing: .015em;
+          display: block; font-size: 12px; font-weight: 500; letter-spacing: .02em;
           color: var(--text);
         }
         .ds-session-text span {
@@ -441,7 +441,7 @@ export default function DevSidebar({
 
         .ds-section-label {
           margin: 6px 6px 2px;
-          font-size: 9.5px; font-weight: 500; letter-spacing: .12em;
+          font-size: 9.5px; font-weight: 500; letter-spacing: .02em;
           text-transform: uppercase; color: var(--text-muted);
         }
 
@@ -479,7 +479,7 @@ export default function DevSidebar({
           color: var(--text-secondary);
           border-radius: 8px;
           text-decoration: none;
-          font: inherit; font-size: 12.5px; font-weight: 500; letter-spacing: .015em;
+          font: inherit; font-size: 12.5px; font-weight: 500; letter-spacing: .02em;
           font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
           transition: background .1s ease, color .1s ease;
         }
@@ -515,7 +515,7 @@ function NavGroup({
       <style jsx>{`
         .ds-section-label {
           margin: 6px 6px 2px;
-          font-size: 9.5px; font-weight: 500; letter-spacing: .12em;
+          font-size: 9.5px; font-weight: 500; letter-spacing: .02em;
           text-transform: uppercase; color: var(--text-muted);
         }
       `}</style>

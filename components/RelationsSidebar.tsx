@@ -294,7 +294,7 @@ export default function RelationsSidebar() {
           display:flex; align-items:center; gap:7px;
           padding:5px 9px; border-radius:7px;
           font-size:13px; font-weight:500;
-          letter-spacing:.017em;
+          letter-spacing:.02em;
           cursor:pointer; text-decoration:none; color:inherit;
           transition:background .12s, color .12s;
           white-space:nowrap; overflow:hidden;
