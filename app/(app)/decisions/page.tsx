@@ -18,29 +18,75 @@ import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'rea
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import {
-  ArrowsClockwise, CheckCircle, Clock, FunnelSimple, Sparkle, Warning, X,
+  ArrowsClockwise, ChatCircleText, CheckCircle, Clock, FunnelSimple,
+  Sparkle, Warning, X,
 } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 
 type Option = { id: string; label: string; hint?: string }
 
+type ResponseType = 'binary' | 'single_choice' | 'multi_choice' | 'free_text'
+
+type DecOption = {
+  id: string
+  external_id?: string | null
+  ordinal?: number
+  label: string
+  client_label?: string | null
+  description?: string | null
+  technical_notes?: string | null
+  implications_json?: Record<string, unknown> | null
+  recommended_by_tagro?: boolean
+}
+
+type ResponseValue =
+  | { selected_option_id: string }
+  | { binary_value: 'yes' | 'no' }
+  | { selected_option_ids: string[] }
+  | { free_text: string }
+  | null
+
 type Decision = {
   id: string
   project_id: string | null
+  // Legacy + v1 framing — UI prefers client_* and falls back to title/description.
   title: string
   description: string | null
+  client_title?: string | null
+  client_summary?: string | null
+  internal_title?: string | null
+  internal_description?: string | null
+  // Legacy unstructured options. New code uses `decision_options` rows via expand.
   options_json: Option[]
   recommended_option: string | null
+  // Tagro signals
   tagro_reasoning: string | null
   tagro_run_at: string | null
+  tagro_recommendation_reason?: string | null
+  tagro_confidence_in_framing?: number | null
+  // v1 typology + response shape
+  decision_type?: string | null
+  response_type?: ResponseType | null
+  authority?: string | null
+  delegate_allowed?: boolean | null
+  // State + answer
   status: string
   selected_option: string | null
   decision_note: string | null
+  response_value?: ResponseValue
+  rationale?: string | null
+  // Tagro delegation
+  tagro_delegation_reason?: string | null
+  override_window_until?: string | null
+  // Lifecycle
+  applied_at?: string | null
+  // Meta
   urgency: 'low' | 'normal' | 'high' | 'critical'
   due_date: string | null
   source_task_id: string | null
   created_by: string | null
   requested_for: string | null
+  decided_by?: string | null
   decided_at: string | null
   created_at: string
   updated_at: string
@@ -63,7 +109,44 @@ const URGENCY_TONE: Record<string, 'good' | 'amber' | 'red' | 'muted'> = {
   low: 'muted', normal: 'muted', high: 'amber', critical: 'red',
 }
 
-const OPEN_STATES = new Set(['open', 'waiting_for_client', 'in_progress'])
+const OPEN_STATES = new Set([
+  'drafted', 'pending_client', 'awaiting_clarification',
+  'open', 'waiting_for_client', 'in_progress',
+])
+
+const STATUS_LABEL: Record<string, string> = {
+  drafted: 'Entwurf',
+  pending_client: 'Offen',
+  awaiting_clarification: 'Rückfrage',
+  open: 'Offen',
+  waiting_for_client: 'Offen',
+  in_progress: 'In Arbeit',
+  decided: 'Entschieden',
+  applied: 'Umgesetzt',
+  archived: 'Archiviert',
+  rejected: 'Abgelehnt',
+  superseded: 'Ersetzt',
+  expired: 'Abgelaufen',
+  cancelled: 'Abgebrochen',
+  closed: 'Geschlossen',
+}
+
+const STATUS_TONE: Record<string, 'good' | 'amber' | 'red' | 'muted'> = {
+  drafted: 'muted',
+  pending_client: 'amber',
+  awaiting_clarification: 'amber',
+  open: 'amber',
+  waiting_for_client: 'amber',
+  in_progress: 'amber',
+  decided: 'good',
+  applied: 'good',
+  archived: 'muted',
+  rejected: 'red',
+  superseded: 'muted',
+  expired: 'muted',
+  cancelled: 'muted',
+  closed: 'muted',
+}
 
 function fmtAgo(iso: string) {
   const m = Math.floor((Date.now() - new Date(iso).getTime()) / 60000)
@@ -237,12 +320,10 @@ function DecisionsPageInner() {
         ) : filtered.map(d => {
           const proj = d.project_id ? projects[d.project_id] : null
           const dueIn = fmtDueIn(d.due_date)
-          const isOpen = OPEN_STATES.has(d.status)
-          const statusLabel = d.status === 'decided' ? 'Entschieden'
-            : d.status === 'cancelled' ? 'Abgebrochen'
-            : d.status === 'in_progress' ? 'In Arbeit'
-            : 'Offen'
-          const statusTone = d.status === 'decided' ? 'good' : d.status === 'cancelled' ? 'muted' : isOpen ? 'amber' : 'muted'
+          const statusLabel = STATUS_LABEL[d.status] || d.status
+          const statusTone = STATUS_TONE[d.status] || 'muted'
+          const displayTitle = d.client_title || d.title
+          const displayDesc = d.client_summary || d.description
           return (
             <button
               key={d.id}
@@ -251,8 +332,8 @@ function DecisionsPageInner() {
               onClick={() => setOpenId(d.id)}
             >
               <span className="dec-row-main">
-                <strong>{d.title}</strong>
-                {d.description && <small>{d.description.slice(0, 140)}</small>}
+                <strong>{displayTitle}</strong>
+                {displayDesc && <small>{displayDesc.slice(0, 140)}</small>}
               </span>
               <span className="dec-row-proj">
                 {proj ? (
@@ -296,17 +377,62 @@ function Drawer({
   onClose: () => void
   onPatch: (p: Partial<Decision>) => void
 }) {
+  // Response type drives the answer form. Default to single_choice for
+  // back-compat with legacy decisions where the field is null.
+  const responseType: ResponseType = (decision.response_type as ResponseType) || 'single_choice'
+
+  // Structured options live in decision_options (loaded via expand);
+  // legacy options_json acts as a fallback for older decisions.
+  const [structuredOptions, setStructuredOptions] = useState<DecOption[]>([])
+  const [optionsLoading, setOptionsLoading] = useState(false)
+
+  // Form state, keyed by response_type.
   const [selected, setSelected] = useState<string>(decision.selected_option || '')
+  const [multiSelected, setMultiSelected] = useState<Set<string>>(new Set())
+  const [binaryValue, setBinaryValue] = useState<'yes' | 'no' | ''>('')
   const [note, setNote] = useState<string>(decision.decision_note || '')
+  const [rationale, setRationale] = useState<string>('')
+
+  // Action state.
   const [suggesting, setSuggesting] = useState(false)
   const [deciding, setDeciding] = useState(false)
+  const [delegating, setDelegating] = useState(false)
+  const [discussing, setDiscussing] = useState(false)
+  const [discussOpen, setDiscussOpen] = useState(false)
+  const [discussQuestion, setDiscussQuestion] = useState('')
   const [error, setError] = useState<string>('')
+
+  // Pre-populate from existing response_value when re-opening a decided
+  // decision.
+  useEffect(() => {
+    if (!decision.response_value) return
+    const rv = decision.response_value as any
+    if ('selected_option_id' in rv) setSelected(String(rv.selected_option_id))
+    if ('binary_value' in rv) setBinaryValue(rv.binary_value === 'no' ? 'no' : 'yes')
+    if ('selected_option_ids' in rv && Array.isArray(rv.selected_option_ids)) setMultiSelected(new Set(rv.selected_option_ids))
+    if ('free_text' in rv && typeof rv.free_text === 'string') setNote(rv.free_text)
+  }, [decision.response_value])
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
   }, [onClose])
+
+  // Pull structured options when drawer opens.
+  useEffect(() => {
+    let abort = false
+    setOptionsLoading(true)
+    fetch(`/api/decisions/${decision.id}?expand=options`, { credentials: 'include' })
+      .then((res) => res.ok ? res.json() : null)
+      .then((data) => {
+        if (abort) return
+        const rows = Array.isArray(data?.options) ? data.options as DecOption[] : []
+        setStructuredOptions(rows)
+      })
+      .finally(() => { if (!abort) setOptionsLoading(false) })
+    return () => { abort = true }
+  }, [decision.id])
 
   async function runTagro() {
     if (suggesting) return
@@ -332,15 +458,47 @@ function Drawer({
     }
   }
 
+  // Build response_value from the active form state.
+  function buildResponseValue(): ResponseValue {
+    switch (responseType) {
+      case 'binary':
+        if (binaryValue === 'yes' || binaryValue === 'no') return { binary_value: binaryValue }
+        return null
+      case 'single_choice':
+        return selected ? { selected_option_id: selected } : null
+      case 'multi_choice':
+        return multiSelected.size > 0 ? { selected_option_ids: Array.from(multiSelected) } : null
+      case 'free_text':
+        return note.trim() ? { free_text: note.trim() } : null
+      default:
+        return null
+    }
+  }
+
   async function submitDecision() {
     if (deciding) return
-    if (!selected && !note.trim()) { setError('Wähle eine Option oder schreibe eine Antwort.'); return }
+    const responseValue = buildResponseValue()
+    if (!responseValue) {
+      setError(responseType === 'free_text' ? 'Schreibe eine Antwort.' : 'Wähle eine Option.')
+      return
+    }
     setDeciding(true); setError('')
     try {
       const res = await fetch(`/api/decisions/${decision.id}/decide`, {
         method: 'POST', credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ selected_option: selected || null, decision_note: note.trim() || null }),
+        body: JSON.stringify({
+          response_value: responseValue,
+          rationale: rationale.trim() || undefined,
+          // Legacy mirrors for older /decide expectations.
+          selected_option:
+            'selected_option_id' in responseValue ? responseValue.selected_option_id
+            : 'binary_value' in responseValue ? responseValue.binary_value
+            : null,
+          decision_note:
+            'free_text' in responseValue ? responseValue.free_text
+            : rationale.trim() || null,
+        }),
       })
       if (!res.ok) { setError('Konnte nicht speichern.'); return }
       const data = await res.json()
@@ -351,9 +509,55 @@ function Drawer({
     }
   }
 
-  const options = decision.options_json || []
+  async function delegateToTagro() {
+    if (delegating) return
+    setDelegating(true); setError('')
+    try {
+      const res = await fetch(`/api/decisions/${decision.id}/delegate`, {
+        method: 'POST', credentials: 'include',
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        setError(data?.reason || 'Delegation gerade nicht möglich.')
+        return
+      }
+      const data = await res.json()
+      onPatch(data.decision)
+      onClose()
+    } finally {
+      setDelegating(false)
+    }
+  }
+
+  async function submitDiscuss() {
+    if (discussing || !discussQuestion.trim()) return
+    setDiscussing(true); setError('')
+    try {
+      const res = await fetch(`/api/decisions/${decision.id}/discuss`, {
+        method: 'POST', credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question: discussQuestion.trim() }),
+      })
+      if (!res.ok) { setError('Rückfrage konnte nicht gesendet werden.'); return }
+      const data = await res.json()
+      onPatch(data.decision)
+      setDiscussOpen(false)
+      setDiscussQuestion('')
+    } finally {
+      setDiscussing(false)
+    }
+  }
+
+  // Use structured options when present, fall back to legacy.
+  const renderOptions: DecOption[] = structuredOptions.length > 0
+    ? structuredOptions
+    : (decision.options_json || []).map((o) => ({ id: o.id, label: o.label, description: o.hint }))
+
   const tagroRec = decision.recommended_option
-  const isAnswered = decision.status === 'decided'
+  const isAnswered = decision.status === 'decided' || decision.status === 'applied'
+  const isDelegated = !!decision.tagro_delegation_reason && !decision.decided_by
+  const isAwaitingClarification = decision.status === 'awaiting_clarification'
+  const canDelegate = !!decision.delegate_allowed && responseType !== 'free_text' && !isAnswered && isDecider
 
   return (
     <div className="dec-overlay" role="dialog" aria-modal="true">
@@ -375,8 +579,10 @@ function Drawer({
         </header>
 
         <div className="dec-drawer-body">
-          <h2 className="dec-d-title">{decision.title}</h2>
-          {decision.description && <p className="dec-d-desc">{decision.description}</p>}
+          <h2 className="dec-d-title">{decision.client_title || decision.title}</h2>
+          {(decision.client_summary || decision.description) && (
+            <p className="dec-d-desc">{decision.client_summary || decision.description}</p>
+          )}
 
           <div className="dec-d-meta">
             <span className={`dec-pill tone-${URGENCY_TONE[decision.urgency] || 'muted'}`}>
@@ -385,8 +591,29 @@ function Drawer({
             {decision.due_date && (
               <span className="dec-pill tone-muted"><Clock size={10} /> {fmtDueIn(decision.due_date)}</span>
             )}
-            {isAnswered && <span className="dec-pill tone-good"><CheckCircle size={10} weight="fill" /> Entschieden</span>}
+            {isAnswered && (
+              <span className="dec-pill tone-good">
+                <CheckCircle size={10} weight="fill" />
+                {decision.status === 'applied' ? 'Umgesetzt' : 'Entschieden'}
+              </span>
+            )}
+            {isDelegated && (
+              <span className="dec-pill tone-muted">
+                <Sparkle size={10} weight="fill" /> Von Tagro entschieden
+              </span>
+            )}
+            {isAwaitingClarification && (
+              <span className="dec-pill tone-amber">
+                <ChatCircleText size={10} /> Rückfrage
+              </span>
+            )}
           </div>
+
+          {isAwaitingClarification && (
+            <div className="dec-clarification">
+              Diese Entscheidung wartet aktuell auf eine Klärung. Tagro überarbeitet die Optionen, sobald die offene Frage beantwortet ist.
+            </div>
+          )}
 
           {/* Tagro suggestion panel */}
           <section className="dec-tagro">
@@ -411,7 +638,9 @@ function Drawer({
               <div className="dec-tagro-rec">
                 {tagroRec && tagroRec !== 'freeform' && (
                   <div className="dec-tagro-pick">
-                    <strong>Empfohlene Option:</strong> {options.find(o => o.id === tagroRec)?.label || tagroRec}
+                    <strong>Empfohlene Option:</strong> {renderOptions.find((o) => (o.external_id || o.id) === tagroRec)?.client_label
+                      || renderOptions.find((o) => (o.external_id || o.id) === tagroRec)?.label
+                      || tagroRec}
                   </div>
                 )}
                 <p className="dec-tagro-text">{decision.tagro_reasoning}</p>
@@ -429,33 +658,92 @@ function Drawer({
             <section className="dec-answer">
               <p className="dec-answer-label">Deine Antwort</p>
 
-              {options.length > 0 && (
-                <div className="dec-options">
-                  {options.map(o => (
-                    <label key={o.id} className={`dec-option${selected === o.id ? ' on' : ''}${tagroRec === o.id ? ' tagro' : ''}`}>
-                      <input
-                        type="radio"
-                        name="dec-option"
-                        value={o.id}
-                        checked={selected === o.id}
-                        onChange={() => setSelected(o.id)}
-                      />
-                      <span className="dec-option-body">
-                        <strong>{o.label}</strong>
-                        {o.hint && <small>{o.hint}</small>}
-                      </span>
-                      {tagroRec === o.id && <span className="dec-option-tagro"><Sparkle size={10} weight="fill" /> Tagro</span>}
-                    </label>
-                  ))}
+              {responseType === 'binary' && (
+                <div className="dec-binary">
+                  <button
+                    type="button"
+                    className={`dec-binary-btn${binaryValue === 'yes' ? ' on' : ''}`}
+                    onClick={() => setBinaryValue('yes')}
+                  >Ja</button>
+                  <button
+                    type="button"
+                    className={`dec-binary-btn${binaryValue === 'no' ? ' on' : ''}`}
+                    onClick={() => setBinaryValue('no')}
+                  >Nein</button>
                 </div>
               )}
 
-              <textarea
-                className="dec-note"
-                placeholder={options.length ? 'Optional: zusätzliche Begründung…' : 'Schreib hier deine Antwort…'}
-                value={note}
-                onChange={e => setNote(e.target.value)}
-              />
+              {responseType === 'single_choice' && renderOptions.length > 0 && (
+                <div className="dec-options">
+                  {renderOptions.map((o) => {
+                    const id = o.external_id || o.id
+                    const isRec = o.recommended_by_tagro || tagroRec === id
+                    return (
+                      <label key={o.id} className={`dec-option${selected === id ? ' on' : ''}${isRec ? ' tagro' : ''}`}>
+                        <input
+                          type="radio"
+                          name="dec-option"
+                          value={id}
+                          checked={selected === id}
+                          onChange={() => setSelected(id)}
+                        />
+                        <span className="dec-option-body">
+                          <strong>{o.client_label || o.label}</strong>
+                          {(o.description || (o as any).hint) && <small>{o.description || (o as any).hint}</small>}
+                        </span>
+                        {isRec && <span className="dec-option-tagro"><Sparkle size={10} weight="fill" /> Tagro</span>}
+                      </label>
+                    )
+                  })}
+                </div>
+              )}
+
+              {responseType === 'multi_choice' && renderOptions.length > 0 && (
+                <div className="dec-options">
+                  {renderOptions.map((o) => {
+                    const id = o.external_id || o.id
+                    const checked = multiSelected.has(id)
+                    const isRec = o.recommended_by_tagro || tagroRec === id
+                    return (
+                      <label key={o.id} className={`dec-option${checked ? ' on' : ''}${isRec ? ' tagro' : ''}`}>
+                        <input
+                          type="checkbox"
+                          value={id}
+                          checked={checked}
+                          onChange={(e) => {
+                            const next = new Set(multiSelected)
+                            if (e.target.checked) next.add(id); else next.delete(id)
+                            setMultiSelected(next)
+                          }}
+                        />
+                        <span className="dec-option-body">
+                          <strong>{o.client_label || o.label}</strong>
+                          {(o.description || (o as any).hint) && <small>{o.description || (o as any).hint}</small>}
+                        </span>
+                        {isRec && <span className="dec-option-tagro"><Sparkle size={10} weight="fill" /> Tagro</span>}
+                      </label>
+                    )
+                  })}
+                </div>
+              )}
+
+              {responseType === 'free_text' && (
+                <textarea
+                  className="dec-note"
+                  placeholder="Schreib hier deine Antwort…"
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                />
+              )}
+
+              {responseType !== 'free_text' && (
+                <textarea
+                  className="dec-note dec-rationale"
+                  placeholder="Optional: kurze Begründung…"
+                  value={rationale}
+                  onChange={(e) => setRationale(e.target.value)}
+                />
+              )}
 
               {error && <p className="dec-error"><Warning size={11} /> {error}</p>}
 
@@ -464,21 +752,66 @@ function Drawer({
                   <CheckCircle size={12} weight="bold" />
                   {deciding ? 'Speichere…' : 'Entscheidung absenden'}
                 </button>
+                {canDelegate && (
+                  <button type="button" className="dec-secondary" onClick={delegateToTagro} disabled={delegating}>
+                    <Sparkle size={11} weight="fill" />
+                    {delegating ? 'Tagro entscheidet…' : 'Tagro entscheiden lassen'}
+                  </button>
+                )}
+                {!isAwaitingClarification && (
+                  <button type="button" className="dec-secondary dec-secondary-quiet" onClick={() => setDiscussOpen((v) => !v)}>
+                    <ChatCircleText size={11} />
+                    Diskutieren
+                  </button>
+                )}
               </div>
+
+              {discussOpen && (
+                <div className="dec-discuss">
+                  <textarea
+                    className="dec-note"
+                    placeholder="Worum geht es noch? Tagro nimmt die Frage auf und schärft das Framing."
+                    value={discussQuestion}
+                    onChange={(e) => setDiscussQuestion(e.target.value)}
+                  />
+                  <div className="dec-discuss-actions">
+                    <button
+                      type="button"
+                      className="dec-secondary"
+                      onClick={submitDiscuss}
+                      disabled={discussing || !discussQuestion.trim()}
+                    >
+                      {discussing ? 'Sende…' : 'Rückfrage absenden'}
+                    </button>
+                  </div>
+                </div>
+              )}
             </section>
           )}
 
           {isAnswered && (
             <section className="dec-final">
-              <p className="dec-answer-label">Getroffene Entscheidung</p>
-              {decision.selected_option && decision.selected_option !== 'freeform' && (
-                <div className="dec-final-pick">
-                  <CheckCircle size={12} weight="fill" />
-                  {options.find(o => o.id === decision.selected_option)?.label || decision.selected_option}
-                </div>
+              <p className="dec-answer-label">
+                {isDelegated ? 'Von Tagro getroffene Entscheidung' : 'Getroffene Entscheidung'}
+              </p>
+              {renderResponseValue(decision, renderOptions)}
+              {(decision.rationale || decision.decision_note) && (
+                <p className="dec-final-note">{decision.rationale || decision.decision_note}</p>
               )}
-              {decision.decision_note && <p className="dec-final-note">{decision.decision_note}</p>}
-              <small className="dec-final-meta">{decision.decided_at && `Entschieden ${fmtAgo(decision.decided_at)}`}</small>
+              {isDelegated && decision.tagro_delegation_reason && (
+                <p className="dec-final-note dec-delegation-reason">
+                  <Sparkle size={11} weight="fill" /> {decision.tagro_delegation_reason}
+                </p>
+              )}
+              {isDelegated && decision.override_window_until && (
+                <small className="dec-final-meta">
+                  Du kannst diese Entscheidung bis {new Date(decision.override_window_until).toLocaleString('de-DE')} überstimmen.
+                </small>
+              )}
+              <small className="dec-final-meta">
+                {decision.decided_at && `Entschieden ${fmtAgo(decision.decided_at)}`}
+                {decision.applied_at && ` · umgesetzt ${fmtAgo(decision.applied_at)}`}
+              </small>
             </section>
           )}
 
@@ -492,6 +825,59 @@ function Drawer({
       </aside>
     </div>
   )
+}
+
+function renderResponseValue(decision: Decision, options: DecOption[]) {
+  const rv = decision.response_value as any
+  if (!rv) {
+    // Legacy fallback.
+    if (decision.selected_option && decision.selected_option !== 'freeform') {
+      const match = options.find((o) => (o.external_id || o.id) === decision.selected_option)
+      return (
+        <div className="dec-final-pick">
+          <CheckCircle size={12} weight="fill" />
+          {match?.client_label || match?.label || decision.selected_option}
+        </div>
+      )
+    }
+    return null
+  }
+  if ('binary_value' in rv) {
+    return (
+      <div className="dec-final-pick">
+        <CheckCircle size={12} weight="fill" />
+        {rv.binary_value === 'yes' ? 'Ja' : 'Nein'}
+      </div>
+    )
+  }
+  if ('selected_option_id' in rv) {
+    const match = options.find((o) => (o.external_id || o.id) === rv.selected_option_id)
+    return (
+      <div className="dec-final-pick">
+        <CheckCircle size={12} weight="fill" />
+        {match?.client_label || match?.label || rv.selected_option_id}
+      </div>
+    )
+  }
+  if ('selected_option_ids' in rv && Array.isArray(rv.selected_option_ids)) {
+    return (
+      <div className="dec-final-multi">
+        {rv.selected_option_ids.map((id: string) => {
+          const match = options.find((o) => (o.external_id || o.id) === id)
+          return (
+            <span key={id} className="dec-final-pick">
+              <CheckCircle size={12} weight="fill" />
+              {match?.client_label || match?.label || id}
+            </span>
+          )
+        })}
+      </div>
+    )
+  }
+  if ('free_text' in rv) {
+    return <p className="dec-final-text">{rv.free_text}</p>
+  }
+  return null
 }
 
 const CSS = `
@@ -748,9 +1134,80 @@ const CSS = `
   .dec-final-note { margin:0; font-size:12.5px; color:var(--text); line-height:1.55; }
   .dec-final-meta { font-size:11px; color:var(--dec-soft); }
 
+  /* ── v1 additions: binary / multi / delegate / discuss / clarification ── */
+  .dec-clarification {
+    border:1px solid color-mix(in srgb, #f59e0b 28%, var(--border));
+    background:color-mix(in srgb, #f59e0b 6%, transparent);
+    border-radius:12px; padding:12px 14px;
+    font-size:12.5px; line-height:1.55; color:var(--text); font-weight:500;
+  }
+
+  .dec-binary { display:flex; gap:8px; }
+  .dec-binary-btn {
+    flex:1; height:46px; padding:0 16px;
+    border:1px solid var(--border); border-radius:12px;
+    background:var(--card); color:var(--text);
+    font:inherit; font-size:14px; font-weight:500;
+    cursor:pointer; transition:border-color .12s, background .12s;
+  }
+  .dec-binary-btn:hover { border-color:color-mix(in srgb, var(--text) 25%, var(--border)); }
+  .dec-binary-btn.on {
+    border-color:var(--text);
+    background:color-mix(in srgb, var(--surface-2) 50%, transparent);
+  }
+
+  .dec-rationale { min-height:60px; margin-top:2px; }
+
+  .dec-secondary {
+    display:inline-flex; align-items:center; gap:5px;
+    height:32px; padding:0 14px; border-radius:999px;
+    background:var(--card); color:var(--text);
+    border:1px solid var(--border);
+    font:inherit; font-size:12px; font-weight:500; cursor:pointer;
+    transition:background .12s, border-color .12s;
+  }
+  .dec-secondary:hover:not(:disabled) {
+    background:var(--surface-2);
+    border-color:color-mix(in srgb, var(--text) 25%, var(--border));
+  }
+  .dec-secondary:disabled { opacity:.5; cursor:not-allowed; }
+  .dec-secondary-quiet {
+    background:transparent;
+    color:var(--dec-soft);
+    border-color:transparent;
+  }
+  .dec-secondary-quiet:hover:not(:disabled) {
+    background:var(--surface-2);
+    color:var(--text);
+    border-color:var(--border);
+  }
+
+  .dec-discuss {
+    display:flex; flex-direction:column; gap:8px;
+    padding-top:6px;
+  }
+  .dec-discuss-actions { display:flex; justify-content:flex-end; }
+
+  .dec-final-multi { display:flex; flex-direction:column; gap:5px; }
+  .dec-final-text {
+    margin:0; padding:10px 12px;
+    border:1px solid var(--border); border-radius:10px;
+    background:color-mix(in srgb, var(--surface-2) 30%, transparent);
+    font-size:13px; color:var(--text); line-height:1.55; font-weight:500;
+    white-space:pre-wrap;
+  }
+  .dec-delegation-reason {
+    display:flex; align-items:flex-start; gap:6px;
+    color:var(--dec-soft); font-style:italic;
+  }
+  .dec-delegation-reason svg { margin-top:3px; flex-shrink:0; color:var(--accent); }
+
   @media (max-width: 900px) {
     .dec-table-head { display:none; }
     .dec-row { grid-template-columns:1fr; gap:5px; padding:12px 8px; }
     .dec-panel { width:100vw; }
+    .dec-answer-actions { flex-direction:column; align-items:stretch; }
+    .dec-answer-actions > button { width:100%; justify-content:center; }
+    .dec-binary-btn { height:52px; font-size:15px; }
   }
 `
