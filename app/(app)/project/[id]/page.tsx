@@ -574,11 +574,11 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m√
         .pv-card {
           border-radius:14px; padding:6px;
           background:var(--surface);
-          box-shadow:0 1px 2px rgba(15,23,42,.05), 0 10px 30px rgba(15,23,42,.05);
+          box-shadow:var(--content-shadow);
         }
         [data-theme="dark"] .pv-card, [data-theme="classic-dark"] .pv-card {
           background:color-mix(in srgb, var(--surface) 92%, #fff 8%);
-          box-shadow:0 1px 2px rgba(0,0,0,.3), 0 10px 30px rgba(0,0,0,.22);
+          box-shadow:var(--content-shadow);
         }
         .pv-ms-row {
           display:flex; align-items:center; gap:14px;
@@ -694,11 +694,11 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m√
           display:flex; flex-direction:column; height:512px;
           border-radius:14px; overflow:hidden;
           background:var(--surface);
-          box-shadow:0 1px 2px rgba(15,23,42,.05), 0 10px 30px rgba(15,23,42,.05);
+          box-shadow:var(--content-shadow);
         }
         [data-theme="dark"] .pv-chat, [data-theme="classic-dark"] .pv-chat {
           background:color-mix(in srgb, var(--surface) 92%, #fff 8%);
-          box-shadow:0 1px 2px rgba(0,0,0,.3), 0 10px 30px rgba(0,0,0,.22);
+          box-shadow:var(--content-shadow);
         }
         .pv-chat-head {
           display:flex; align-items:center; justify-content:space-between;
@@ -785,6 +785,7 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m√
           border-radius: 14px;
           overflow: hidden;
           background: color-mix(in srgb, var(--border) 70%, transparent);
+          box-shadow: var(--content-shadow);
         }
         .pv-control-cell {
           padding: 11px 14px;

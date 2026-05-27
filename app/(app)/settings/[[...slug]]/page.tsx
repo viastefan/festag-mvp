@@ -129,9 +129,6 @@ const PROFILE_MIN_SELECT = [
   'id',
   'email',
   'full_name',
-  'avatar_url',
-  'avatar_color',
-  'role',
 ].join(',')
 
 function firstNameFromFullName(value: string) {
@@ -144,11 +141,12 @@ function jsonKey(value: Record<string, unknown>) {
 
 function missingProfileColumn(error: unknown) {
   const message = String((error as any)?.message ?? '')
-  return (
+  const raw = (
     message.match(/'([^']+)' column/)?.[1] ||
-    message.match(/column "?([a-zA-Z0-9_]+)"? does not exist/)?.[1] ||
+    message.match(/column "?([a-zA-Z0-9_.]+)"? does not exist/)?.[1] ||
     null
   )
+  return raw?.split('.').pop() ?? null
 }
 
 function profileFallback(id: string, email: string | null): Profile {
@@ -809,12 +807,12 @@ export default function SettingsPage() {
           border-radius: 12px;
           padding: 2px 22px;
           margin-bottom: 10px;
-          box-shadow: 0 1px 2px rgba(15,23,42,.04);
+          box-shadow: var(--content-shadow);
         }
         [data-theme="dark"] .set-card,
         [data-theme="classic-dark"] .set-card {
           background: color-mix(in srgb, var(--surface) 96%, #fff 6%);
-          box-shadow: 0 1px 2px rgba(0,0,0,.32);
+          box-shadow: var(--content-shadow);
         }
         .set-profile-layout {
           display: grid;

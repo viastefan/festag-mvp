@@ -13,6 +13,7 @@ alter table public.profiles
   add column if not exists timezone text default 'Europe/Berlin',
   add column if not exists language_pref text default 'de',
   add column if not exists theme_pref text default 'read',
+  add column if not exists avatar_color text,
   add column if not exists notif_email boolean default true,
   add column if not exists notif_push boolean default false,
   add column if not exists company_name text,

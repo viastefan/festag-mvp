@@ -81,6 +81,7 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --red:#D14343; --red-bg:rgba(209,67,67,0.07);
   --shadow-xs:0 1px 2px rgba(32,37,50,.03); --shadow-sm:0 2px 6px rgba(32,37,50,.04);
   --shadow:0 4px 16px rgba(32,37,50,.05); --shadow-lg:0 12px 32px rgba(32,37,50,.07);
+  --content-shadow:0 1px 2px rgba(15,23,42,.035), 0 18px 46px -42px rgba(15,23,42,.42);
   --focus-ring:rgba(91,100,125,0.30);
   --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
   --r:12px; --r-xs:8px; --r-sm:10px; --r-md:12px; --r-lg:12px; --r-xl:12px;
@@ -144,6 +145,7 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --shadow-sm:0 2px 8px rgba(0,0,0,.36);
   --shadow:0 8px 28px rgba(0,0,0,.40);
   --shadow-lg:0 18px 56px rgba(0,0,0,.48);
+  --content-shadow:0 1px 2px rgba(0,0,0,.26), 0 18px 46px -36px rgba(0,0,0,.58);
   --focus-ring:rgba(102,112,143,0.30);
 
   --logo-filter:brightness(0) invert(1);
@@ -170,6 +172,7 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --red:#6E2E2E; --red-bg:rgba(110,46,46,0.09);
   --shadow-xs:0 1px 3px rgba(28,25,20,.06); --shadow-sm:0 3px 10px rgba(28,25,20,.08);
   --shadow:0 8px 28px rgba(28,25,20,.10); --shadow-lg:0 16px 40px rgba(28,25,20,.12);
+  --content-shadow:0 1px 2px rgba(28,25,20,.045), 0 18px 46px -40px rgba(28,25,20,.44);
   --focus-ring:rgba(28,25,20,0.20);
   --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
   --r:12px; --r-xs:8px; --r-sm:10px; --r-md:12px; --r-lg:12px; --r-xl:12px;
@@ -191,6 +194,7 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --red:#D14343; --red-bg:rgba(209,67,67,0.07);
   --shadow-xs:0 1px 2px rgba(32,37,50,.03); --shadow-sm:0 2px 6px rgba(32,37,50,.04);
   --shadow:0 4px 16px rgba(32,37,50,.05); --shadow-lg:0 12px 32px rgba(32,37,50,.07);
+  --content-shadow:0 1px 2px rgba(15,23,42,.035), 0 18px 46px -42px rgba(15,23,42,.42);
   --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
   --r:12px; --r-xs:8px; --r-sm:10px; --r-md:12px; --r-lg:12px; --r-xl:12px;
 }
@@ -212,6 +216,7 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --red:#E25D5D; --red-bg:rgba(226,93,93,0.09);
   --shadow-xs:0 1px 3px rgba(0,0,0,.70); --shadow-sm:0 2px 8px rgba(0,0,0,.78);
   --shadow:0 4px 20px rgba(0,0,0,.86); --shadow-lg:0 12px 40px rgba(0,0,0,.92);
+  --content-shadow:0 1px 2px rgba(0,0,0,.34), 0 18px 46px -36px rgba(0,0,0,.72);
   --logo-filter:brightness(0) invert(1);
   --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
   --r:12px; --r-xs:8px; --r-sm:10px; --r-md:12px; --r-lg:12px; --r-xl:12px;
@@ -387,6 +392,28 @@ button:active, a[role="button"]:active, .tap-scale:active {
 .dash-row  { transition: background-color .16s cubic-bezier(.16,1,.3,1); }
 .tm-card, .sc-card, .area-chip { transition: border-color .18s cubic-bezier(.16,1,.3,1), background-color .18s cubic-bezier(.16,1,.3,1), transform .18s cubic-bezier(.16,1,.3,1); }
 .proj-row, .ni, .usr-row, .quick-link { transition: background-color .08s ease, color .08s ease; }
+
+/* Almost-flat content lift. This keeps the app visually quiet while giving
+   large white containers the same barely-there grounding as Linear. */
+:where(
+  .pv-card,
+  .pv-chat,
+  .pv-control,
+  .pv-intel-block,
+  .dc-card,
+  .dc-brief,
+  .ix-row,
+  .ix-detail-card,
+  .set-card,
+  .ad-card,
+  .dev-surface,
+  .vr-panel,
+  .vr-box,
+  .vr-snapshot-card,
+  .b-card
+) {
+  box-shadow: var(--content-shadow);
+}
 
 /* ═══ DESKTOP ═══ */
 .sidebar    { display:flex; }
@@ -995,4 +1022,3 @@ textarea,
 /* Seatbelt against future regressions — never let the document scroll
    horizontally even on desktop. */
 html { overflow-x: hidden; }
-

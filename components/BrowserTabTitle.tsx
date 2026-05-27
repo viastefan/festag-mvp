@@ -28,11 +28,12 @@ function nameFromProfile(p: { full_name?: string | null; first_name?: string | n
 
 function missingProfileColumn(error: unknown) {
   const message = String((error as any)?.message ?? '')
-  return (
+  const raw = (
     message.match(/'([^']+)' column/)?.[1] ||
-    message.match(/column "?([a-zA-Z0-9_]+)"? does not exist/)?.[1] ||
+    message.match(/column "?([a-zA-Z0-9_.]+)"? does not exist/)?.[1] ||
     null
   )
+  return raw?.split('.').pop() ?? null
 }
 
 export default function BrowserTabTitle() {

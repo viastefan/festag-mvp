@@ -1037,6 +1037,7 @@ export default function DashboardPage() {
           padding: 22px 22px 18px;
           display: flex; flex-direction: column; gap: 14px;
           min-height:0;
+          box-shadow: var(--content-shadow);
         }
         [data-theme="dark"] .dc-brief,
         [data-theme="classic-dark"] .dc-brief {

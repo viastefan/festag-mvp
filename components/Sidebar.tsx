@@ -181,11 +181,12 @@ function reportHasRisk(content?: string | null) {
 
 function missingProfileColumn(error: unknown) {
   const message = String((error as any)?.message ?? '')
-  return (
+  const raw = (
     message.match(/'([^']+)' column/)?.[1] ||
-    message.match(/column "?([a-zA-Z0-9_]+)"? does not exist/)?.[1] ||
+    message.match(/column "?([a-zA-Z0-9_.]+)"? does not exist/)?.[1] ||
     null
   )
+  return raw?.split('.').pop() ?? null
 }
 
 async function readSidebarProfile(sb: any, userId: string) {
@@ -198,7 +199,7 @@ async function readSidebarProfile(sb: any, userId: string) {
   if (result.error && missingProfileColumn(result.error)) {
     result = await sb
       .from('profiles')
-      .select('full_name,avatar_url,avatar_color,role,plan')
+      .select('full_name,avatar_url,role,plan')
       .eq('id', userId)
       .maybeSingle()
   }
@@ -618,9 +619,9 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
               data-tour={tourTarget}
             >
               <Ico name={item.icon} sz={14} c={on?'var(--text)':'var(--text-muted)'} weight={on?'bold':'regular'} />
-              <span style={{ minWidth:0, overflow:'hidden', textOverflow:'ellipsis' }}>{item.label}</span>
+              <span className="ni-label">{item.label}</span>
               {item.badge ? (
-                <span style={{ fontSize:9.5, fontWeight:500, color:'#fff', background:'var(--red, #d14343)', borderRadius:999, padding:'0 5px', minWidth:16, textAlign:'center', lineHeight:'16px', letterSpacing:'.012em' }}>{item.badge > 9 ? '9+' : item.badge}</span>
+                <span className="ni-count">{item.badge > 99 ? '99+' : item.badge}</span>
               ) : null}
             </Link>
           )
@@ -780,6 +781,24 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
           font-weight:500;
           letter-spacing:.025em;
+        }
+        .ni-label {
+          min-width:0;
+          overflow:hidden;
+          text-overflow:ellipsis;
+        }
+        .ni-count {
+          margin-left:auto;
+          min-width:16px;
+          padding-left:8px;
+          text-align:right;
+          color:var(--text-secondary);
+          font-size:12px;
+          line-height:1;
+          font-variant-numeric:tabular-nums;
+        }
+        .ni-on .ni-count {
+          color:var(--text);
         }
         .ni[data-shortcut]::after,
         .proj-row[data-shortcut]::after {

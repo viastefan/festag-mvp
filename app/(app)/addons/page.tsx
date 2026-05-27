@@ -119,7 +119,8 @@ export default function AddonsPage() {
           border:1px solid var(--border);
           border-radius:8px;
           background:var(--surface);
-          transition:border-color .12s ease;
+          box-shadow:var(--content-shadow);
+          transition:border-color .12s ease, box-shadow .12s ease;
         }
         .ad-card:hover { border-color:var(--border-strong); }
         [data-theme="dark"] .ad-card,
