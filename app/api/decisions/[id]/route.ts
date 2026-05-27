@@ -20,10 +20,15 @@ const PATCHABLE = new Set([
   'notification_channels',
 ])
 
-export async function GET(_req: NextRequest, ctx: { params: { id: string } }) {
+export async function GET(req: NextRequest, ctx: { params: { id: string } }) {
   const supa = createClient()
   const { data: { user } } = await supa.auth.getUser()
   if (!user) return NextResponse.json({ error: 'unauthenticated' }, { status: 401 })
+
+  const expand = new URL(req.url).searchParams.get('expand')?.split(',') ?? []
+  const wantOptions = expand.includes('options')
+  const wantEvents = expand.includes('events')
+  const wantLinks = expand.includes('links')
 
   const { data, error } = await (supa as any)
     .from('decisions').select('*').eq('id', ctx.params.id).maybeSingle()
@@ -35,7 +40,43 @@ export async function GET(_req: NextRequest, ctx: { params: { id: string } }) {
     const { data: p } = await (supa as any).from('projects').select('id,title,color,status').eq('id', data.project_id).maybeSingle()
     project = p
   }
-  return NextResponse.json({ decision: data, project })
+
+  // Optional expansions — pulled in parallel.
+  const expansions: Record<string, unknown> = {}
+  const tasks: Promise<unknown>[] = []
+  if (wantOptions) {
+    tasks.push((async () => {
+      const { data: opts } = await (supa as any)
+        .from('decision_options')
+        .select('*')
+        .eq('decision_id', ctx.params.id)
+        .order('ordinal', { ascending: true })
+      expansions.options = opts ?? []
+    })())
+  }
+  if (wantEvents) {
+    tasks.push((async () => {
+      const { data: evts } = await (supa as any)
+        .from('decision_events')
+        .select('*')
+        .eq('decision_id', ctx.params.id)
+        .order('created_at', { ascending: false })
+        .limit(50)
+      expansions.events = evts ?? []
+    })())
+  }
+  if (wantLinks) {
+    tasks.push((async () => {
+      const { data: links } = await (supa as any)
+        .from('decision_links')
+        .select('*')
+        .eq('decision_id', ctx.params.id)
+      expansions.links = links ?? []
+    })())
+  }
+  if (tasks.length > 0) await Promise.all(tasks)
+
+  return NextResponse.json({ decision: data, project, ...expansions })
 }
 
 export async function PATCH(req: NextRequest, ctx: { params: { id: string } }) {
