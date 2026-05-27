@@ -83,6 +83,11 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --shadow:0 4px 16px rgba(32,37,50,.05); --shadow-lg:0 12px 32px rgba(32,37,50,.07);
   --content-shadow:0 1px 2px rgba(15,23,42,.035), 0 18px 46px -42px rgba(15,23,42,.42);
   --focus-ring:rgba(91,100,125,0.30);
+  /* Modal backdrop — soft slate tint over the page, theme-aware.
+     Replaces the old generic rgba(0,0,0,.45) so the dimmed wall feels
+     like the theme rather than a black wash. */
+  --modal-backdrop:rgba(32,37,50,0.38);
+  --modal-backdrop-blur:8px;
   --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
   --r:12px; --r-xs:8px; --r-sm:10px; --r-md:12px; --r-lg:12px; --r-xl:12px;
 }
@@ -96,6 +101,8 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
      hair above the shell so it feels like one continuous surface, not a
      loud blue panel on a darker shell.
      Primary CTA is the slate (#5B647D) — NEVER a white pill. */
+  --modal-backdrop:rgba(4,7,12,0.62);
+  --modal-backdrop-blur:10px;
   --bg:#0A0D14;               /* shell + sidebar */
   --surface:#10151D;          /* primary canvas / main content */
   --card:#121821;             /* cards / panels */

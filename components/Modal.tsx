@@ -91,9 +91,9 @@ export default function Modal({
             position: 'fixed', inset: 0, zIndex: 9000,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             padding: 16,
-            background: 'rgba(0,0,0,.45)',
-            backdropFilter: 'blur(8px) saturate(140%)',
-            WebkitBackdropFilter: 'blur(8px) saturate(140%)',
+            background: 'var(--modal-backdrop, rgba(15,20,27,.45))',
+            backdropFilter: 'blur(var(--modal-backdrop-blur, 8px)) saturate(140%)',
+            WebkitBackdropFilter: 'blur(var(--modal-backdrop-blur, 8px)) saturate(140%)',
           }}
           onClick={() => { if (!noBackdropClose) onClose() }}
         >

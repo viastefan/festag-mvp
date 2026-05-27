@@ -22,6 +22,12 @@ import {
 } from '@phosphor-icons/react'
 import { autoAvatarColor, avatarInitials } from '@/lib/avatar'
 import { broadcastProfileSync, subscribeProfileSync } from '@/lib/profile-sync'
+import CustomizeSidebarModal from '@/components/CustomizeSidebarModal'
+import {
+  loadPrefs, onPrefsChange, shouldShowInSidebar,
+  ITEM_LABELS,
+  type SidebarItemId, type SidebarPrefs,
+} from '@/lib/sidebar-prefs'
 
 export function projectColor(_id: string, color?: string | null) { return color || 'var(--text-muted)' }
 const PROJECT_COLOR_SYNC_EVENT = 'festag-project-color-change'
@@ -234,6 +240,12 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
   const reportsAutoSeededRef = useRef(false)
   const [toolsExp, setToolsExp] = useState(false)
   const [whatsNewOpen, setWhatsNewOpen] = useState(false)
+  // Sidebar customisation: prefs control which items show, which hide
+  // into the "Mehr" popover, and how badges render. Default behaviour
+  // is unchanged until the user touches the modal.
+  const [sidebarPrefs, setSidebarPrefs] = useState<SidebarPrefs>(() => loadPrefs())
+  const [moreOpen, setMoreOpen] = useState(false)
+  const [customizeOpen, setCustomizeOpen] = useState(false)
   const [colorPickId, setColorPickId] = useState<string|null>(null)
   const [monitoringDock, setMonitoringDock] = useState<MonitoringDockState>({
     loaded: false,
@@ -288,6 +300,23 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
     })()
     return () => { cancelled = true }
   }, [])
+  // Map href → SidebarItemId so the prefs store can decide what to show
+  // and what to push into the "Mehr" popover.
+  const HREF_TO_ITEM_ID: Record<string, SidebarItemId> = {
+    '/dashboard': 'statusabfrage',
+    '/messages':  'inbox',
+    '/projects':  'projects',
+    '/reports':   'reports',
+    '/tasks':     'tasks',
+    '/decisions': 'decisions',
+    '/observers': 'observers',
+    '/ai':        'tagro-chat',
+    '/notes':     'tagro-notes',
+    '/estimator': 'estimator',
+    '/connectors':'connectors',
+    '/addons':    'addons',
+  }
+
   // Label tool on top.
   const topNavBase: NavItem[] = wsMode === 'agency'
     ? [...CLIENT_TOP, { href: '/clients', icon: 'team', label: 'Kunden' }]
@@ -295,14 +324,45 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
   const topNav: NavItem[] = topNavBase.map(item =>
     item.href === '/messages' && inboxUnread > 0 ? { ...item, badge: inboxUnread } : item,
   )
-  const coreNav: NavItem[] = CLIENT_CORE.map(item =>
+
+  // Filter a nav list through the sidebar prefs. Items set to 'never'
+  // disappear entirely; items set to 'badged' only show if their badge
+  // count is > 0.
+  function applyPrefs(items: NavItem[]): NavItem[] {
+    return items.filter((item) => {
+      const id = HREF_TO_ITEM_ID[item.href]
+      if (!id) return true // unknown href: stay visible (back-compat)
+      const hasBadge = (item.badge ?? 0) > 0
+      return shouldShowInSidebar(id, sidebarPrefs, hasBadge)
+    })
+  }
+
+  const coreNavRaw: NavItem[] = CLIENT_CORE.map(item =>
     item.href === '/decisions' && decisionsOpen > 0 ? { ...item, badge: decisionsOpen } : item,
   )
-  const teamsNav: NavItem[] = CLIENT_TEAMS
-  const tagroNav = CLIENT_TAGRO
-  const toolsNav: NavItem[] = wsMode === 'agency'
+  const coreNav = applyPrefs(coreNavRaw)
+  const teamsNav: NavItem[] = applyPrefs(CLIENT_TEAMS)
+  const tagroNav: NavItem[] = applyPrefs(CLIENT_TAGRO)
+  const toolsNavBase: NavItem[] = wsMode === 'agency'
     ? [...CLIENT_TOOLS, { href: '/settings/workspace', icon: 'sparkle', label: 'White Label' }]
     : CLIENT_TOOLS
+  const toolsNav: NavItem[] = applyPrefs(toolsNavBase)
+
+  // Items hidden from the workspace section by current prefs — they
+  // surface in the "Mehr" popover so nothing is unreachable.
+  const moreItems: NavItem[] = coreNavRaw.filter((item) => {
+    const id = HREF_TO_ITEM_ID[item.href]
+    if (!id) return false
+    const hasBadge = (item.badge ?? 0) > 0
+    return !shouldShowInSidebar(id, sidebarPrefs, hasBadge)
+  })
+
+  // Listen for prefs changes from the modal so the sidebar reflects
+  // immediately without a reload.
+  useEffect(() => {
+    const off = onPrefsChange(() => setSidebarPrefs(loadPrefs()))
+    return off
+  }, [])
   const mobPrimary = CLIENT_MOB_PRIMARY
   const mobQuick = CLIENT_MOB_QUICK
 
@@ -1049,6 +1109,68 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           background: color-mix(in srgb, var(--surface-2) 85%, transparent);
         }
 
+        /* ── "Mehr" trigger + popover ─────────────────────────────── */
+        .sb-more-wrap { position: relative; }
+        .sb-more-trigger {
+          width: 100%; min-height: 28px;
+          display: flex; align-items: center; gap: 8px;
+          padding: 0 10px;
+          background: transparent; border: 0; cursor: pointer;
+          color: var(--text-muted);
+          font: inherit; font-size: 12.5px; font-weight: 500; letter-spacing: .015em;
+          border-radius: 8px;
+          margin-top: 1px;
+          transition: background .12s, color .12s;
+        }
+        .sb-more-trigger:hover { background: color-mix(in srgb, var(--surface-2) 70%, transparent); color: var(--text); }
+        .sb-more-icon {
+          width: 22px; display: inline-flex; align-items: center; justify-content: center;
+          color: var(--text-muted);
+        }
+        .sb-more-label { flex: 1; text-align: left; }
+        .sb-more-backdrop {
+          position: fixed; inset: 0; z-index: 1100;
+          background: transparent;
+        }
+        .sb-more-pop {
+          position: absolute; left: 8px; top: 32px;
+          width: 232px; z-index: 1110;
+          padding: 6px;
+          border-radius: 12px;
+          border: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
+          background: color-mix(in srgb, var(--card) 98%, #fff 2%);
+          box-shadow:
+            0 1px 2px rgba(15,23,42,.06),
+            0 18px 44px -20px rgba(15,23,42,.36);
+          animation: sbHelpIn .14s cubic-bezier(.16,1,.3,1) both;
+          display: flex; flex-direction: column; gap: 1px;
+        }
+        [data-theme="dark"] .sb-more-pop,
+        [data-theme="classic-dark"] .sb-more-pop {
+          background: color-mix(in srgb, var(--card) 94%, #fff 6%);
+          box-shadow:
+            0 1px 2px rgba(0,0,0,.45),
+            0 24px 60px -22px rgba(0,0,0,.6);
+        }
+        .sb-more-item {
+          width: 100%; min-height: 32px;
+          padding: 0 10px;
+          display: flex; align-items: center; gap: 9px;
+          background: transparent; border: 0;
+          color: var(--text);
+          font: inherit; font-size: 12.5px; font-weight: 500; letter-spacing: .015em;
+          text-decoration: none;
+          border-radius: 8px;
+          cursor: pointer;
+          transition: background .1s;
+        }
+        .sb-more-item:hover { background: color-mix(in srgb, var(--surface-2) 70%, transparent); }
+        .sb-more-item svg { color: var(--text-muted); flex-shrink: 0; }
+        .sb-more-divider {
+          height: 1px; margin: 4px 6px;
+          background: color-mix(in srgb, var(--border) 70%, transparent);
+        }
+
         .sb-help-pop {
           position: absolute; left: 0; bottom: 44px;
           width: 272px;
@@ -1368,6 +1490,52 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
                 onToggle={() => setWorkspaceExp(v => !v)}
               >
                 <NavItems items={coreNav} />
+                {workspaceExp && (
+                  <div className="sb-more-wrap">
+                    <button
+                      type="button"
+                      className="sb-more-trigger"
+                      onClick={() => setMoreOpen((v) => !v)}
+                      aria-haspopup="menu"
+                      aria-expanded={moreOpen}
+                    >
+                      <span className="sb-more-icon"><DotsThreeOutline size={14} weight="bold" /></span>
+                      <span className="sb-more-label">Mehr</span>
+                    </button>
+                    {moreOpen && (
+                      <>
+                        <div className="sb-more-backdrop" onClick={() => setMoreOpen(false)} />
+                        <div className="sb-more-pop" role="menu" aria-label="Mehr">
+                          {moreItems.map((item) => {
+                            const Icon = ICONS[item.icon] ?? FolderSimple
+                            return (
+                              <Link
+                                key={item.href}
+                                href={item.href}
+                                role="menuitem"
+                                className="sb-more-item"
+                                onClick={() => setMoreOpen(false)}
+                              >
+                                <Icon size={14} />
+                                <span>{item.label}</span>
+                              </Link>
+                            )
+                          })}
+                          {moreItems.length > 0 && <div className="sb-more-divider" />}
+                          <button
+                            type="button"
+                            role="menuitem"
+                            className="sb-more-item"
+                            onClick={() => { setMoreOpen(false); setCustomizeOpen(true) }}
+                          >
+                            <GearSix size={14} />
+                            <span>Sidebar anpassen</span>
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
               </Section>
             </div>
 
@@ -1577,6 +1745,11 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           </div>
         </>
       )}
+
+      <CustomizeSidebarModal
+        open={customizeOpen}
+        onClose={() => setCustomizeOpen(false)}
+      />
     </>
   )
 }

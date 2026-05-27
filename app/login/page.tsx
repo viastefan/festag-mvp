@@ -479,9 +479,8 @@ export default function LoginPage() {
         .log-desktop-title { font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:21px; font-weight:500; color:#202532; line-height:normal; text-align:center; letter-spacing:0.21px; width:100%; transition:color .3s; }
 
         /* MOBILE */
-        .log-mobile { display:none; min-height:100svh; background:#edf1f6; position:relative; overflow-x:hidden; overflow-y:auto; transition:background .3s; padding:72px 0 0; }
-        .log-mobile-card { position:absolute; left:0; right:0; top:72px; bottom:0; min-height:calc(100svh - 72px); background:#fff; border:0; border-radius:48px 48px 0 0; box-shadow:none; transition:background .3s; }
-        .log-mobile-shell { position:relative; z-index:2; width:min(100%, 420px); min-height:calc(100svh - 72px); margin:0 auto; padding:254px 24px 72px; display:flex; flex-direction:column; gap:28px; align-items:center; }
+        .log-mobile { display:none; min-height:100svh; background:#fcfcfd; position:relative; overflow-x:hidden; overflow-y:auto; transition:background .3s; padding:32px 0 0; }
+        .log-mobile-shell { position:relative; z-index:2; width:min(100%, 420px); min-height:calc(100svh - 32px); margin:0 auto; padding:96px 24px 60px; display:flex; flex-direction:column; gap:28px; align-items:center; }
         .log-mobile-logo-title { width:100%; display:flex; flex-direction:column; gap:9px; align-items:center; }
         .log-logo-mobile { display:flex; align-items:center; justify-content:center; width:100%; min-height:62px; }
         .log-mobile-inner { width:100%; display:flex; flex-direction:column; gap:32px; align-items:center; }
@@ -596,8 +595,7 @@ export default function LoginPage() {
           .log-region-note { display:none; }
         }
         @media (max-width: 380px) {
-          .log-mobile { padding-top:60px; }
-          .log-mobile-card { top:60px; min-height:calc(100svh - 60px); border-radius:40px 40px 0 0; }
+          .log-mobile { padding-top:24px; }
           .log-mobile-shell { min-height:calc(100svh - 60px); padding-top:226px; }
           .log-theme-mobile { top:116px; right:34px; }
         }
@@ -611,7 +609,7 @@ export default function LoginPage() {
         /* ═══ DARK MODE ══════════════════════════════════════════════ */
         .log-root[data-theme="dark"] .log-desktop { background:#0F141B; }
         .log-root[data-theme="dark"] .log-mobile  { background:#0A0D14; }
-        .log-root[data-theme="dark"] .log-mobile-card { background:#141820; border-color:transparent; box-shadow:none; }
+        .log-root[data-theme="dark"] .log-mobile { background:#0E1218; }
 
         .log-root[data-theme="dark"] .log-desktop-title,
         .log-root[data-theme="dark"] .log-mobile-title,
@@ -677,7 +675,6 @@ export default function LoginPage() {
 
       {/* ── MOBILE ── */}
       <div className="log-mobile" aria-label="Festag Anmeldung">
-        <div className="log-mobile-card" />
         <div className="log-theme-mobile">{themeSwitcher}</div>
         <div className="log-mobile-shell">
           <div className="log-mobile-logo-title">
