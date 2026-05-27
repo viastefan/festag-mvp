@@ -51,6 +51,8 @@ export type DecisionSignal =
       suggestedOptions?: string[]
       suggestedResponseType?: ResponseType
       suggestedDecisionType?: DecisionType
+      // Devs can hint urgency; engine respects it.
+      urgency?: DecisionUrgency
     }
   | {
       kind: 'scope_drift'

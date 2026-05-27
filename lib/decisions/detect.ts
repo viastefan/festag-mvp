@@ -116,7 +116,7 @@ function detectDevRequest(signal: Extract<DecisionSignal, { kind: 'dev_request' 
   return {
     projectId: signal.projectId,
     decisionType: signal.suggestedDecisionType || 'direction',
-    urgency: 'normal',
+    urgency: signal.urgency || 'normal',
     origin: { kind: 'dev_request', id: signal.taskId ?? null, reason: 'Entwickler hat eine Entscheidung angefordert' },
     rawTitle: question.length > 80 ? question.slice(0, 78) + '…' : question,
     rawQuestion: question,

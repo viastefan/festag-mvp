@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { runDecisionPipeline } from '@/lib/decisions'
 import type { DecisionSignal } from '@/lib/decisions'
-import type { DecisionType, ResponseType } from '@/lib/decisions/types'
+import type { DecisionType, DecisionUrgency, ResponseType } from '@/lib/decisions/types'
+
+const URGENCIES = new Set<DecisionUrgency>(['low', 'normal', 'high', 'critical'])
 
 export const runtime = 'nodejs'
 
@@ -38,6 +40,7 @@ type Body = {
   suggested_options?: unknown
   suggested_response_type?: ResponseType
   suggested_decision_type?: DecisionType
+  urgency?: DecisionUrgency
   requested_for?: string
   owner_review?: boolean
 }
@@ -63,6 +66,8 @@ export async function POST(req: NextRequest) {
     ? (b.suggested_options as unknown[]).filter((x): x is string => typeof x === 'string' && x.trim().length > 0).slice(0, 4)
     : undefined
 
+  const urgency = b.urgency && URGENCIES.has(b.urgency) ? b.urgency : undefined
+
   const signal: DecisionSignal = {
     kind: 'dev_request',
     projectId: b.project_id,
@@ -72,6 +77,7 @@ export async function POST(req: NextRequest) {
     suggestedOptions,
     suggestedResponseType: b.suggested_response_type,
     suggestedDecisionType: b.suggested_decision_type,
+    urgency,
   }
 
   try {

@@ -210,6 +210,14 @@ export default function DevTasksPage() {
   const [verifications, setVerifications] = useState<Verification[]>([])
   const [openSession, setOpenSession] = useState<WorkSession | null>(null)
   const [taskSessions, setTaskSessions] = useState<WorkSession[]>([])
+  // Decisions linked to the currently-selected task (loaded on drawer open).
+  // Lets the dev see open decisions before composing a new one and read
+  // the result on already-decided ones inline.
+  const [linkedDecisions, setLinkedDecisions] = useState<Array<{
+    id: string; title: string | null; client_title: string | null;
+    status: string; urgency: string; response_type: string | null;
+    decided_at: string | null; tagro_delegation_reason: string | null;
+  }>>([])
   const [tick, setTick] = useState(0)
 
   // editors
@@ -341,7 +349,7 @@ export default function DevTasksPage() {
     let cancelled = false
     ;(async () => {
       try {
-        const [p, c, gh, wl, vs, ws] = await Promise.all([
+        const [p, c, gh, wl, vs, ws, ld] = await Promise.all([
           fetch(`/api/dev/tasks/proofs?taskId=${selectedId}`).then(r => r.json()),
           fetch(`/api/dev/tasks/checklist?taskId=${selectedId}`).then(r => r.json()),
           fetch(`/api/github/activity?taskId=${selectedId}&limit=20`).then(r => r.json()),
@@ -350,6 +358,11 @@ export default function DevTasksPage() {
             .select('id,status,confidence,summary,client_summary,issues_json,evidence_json,recommended_next_action,created_at')
             .eq('task_id', selectedId).order('created_at', { ascending: false }).limit(6),
           fetch(`/api/dev/work-sessions?taskId=${selectedId}&limit=10`).then(r => r.json()),
+          (supabase as any).from('decisions')
+            .select('id,title,client_title,status,urgency,response_type,decided_at,tagro_delegation_reason')
+            .eq('source_task_id', selectedId)
+            .order('created_at', { ascending: false })
+            .limit(10),
         ])
         if (cancelled) return
         setProofs(p?.proofs ?? [])
@@ -360,6 +373,7 @@ export default function DevTasksPage() {
         setActivity(wl?.activity ?? [])
         setVerifications((vs?.data as Verification[]) ?? [])
         setTaskSessions(ws?.sessions ?? [])
+        setLinkedDecisions((ld?.data as any[]) ?? [])
       } catch {}
     })()
     return () => { cancelled = true }
@@ -850,6 +864,37 @@ export default function DevTasksPage() {
                 placeholder="Worauf wartet die Arbeit?"
               />
             )}
+            {linkedDecisions.length > 0 && (
+              <div className="linked-decisions">
+                <p className="linked-decisions-label">Entscheidungen zu diesem Task</p>
+                <ul>
+                  {linkedDecisions.map((d) => {
+                    const isOpen = ['drafted','pending_client','awaiting_clarification','open','waiting_for_client','in_progress'].includes(d.status)
+                    const statusTone = isOpen ? 'amber' : (d.status === 'rejected' ? 'red' : 'good')
+                    const statusLabel =
+                      d.status === 'awaiting_clarification' ? 'Rückfrage'
+                      : d.status === 'decided' ? 'Entschieden'
+                      : d.status === 'applied' ? 'Umgesetzt'
+                      : d.status === 'rejected' ? 'Abgelehnt'
+                      : d.status === 'superseded' ? 'Ersetzt'
+                      : isOpen ? 'Offen' : d.status
+                    const isDelegated = !!d.tagro_delegation_reason
+                    return (
+                      <li key={d.id}>
+                        <a href={`/decisions?open=${d.id}`} className="linked-decision">
+                          <span className={`linked-pill tone-${statusTone}`}>{statusLabel}</span>
+                          <span className="linked-decision-title">{d.client_title || d.title || 'Entscheidung'}</span>
+                          {isDelegated && <span className="linked-pill tone-muted"><Sparkle size={9} weight="fill" /> Tagro</span>}
+                          {d.urgency === 'critical' && <span className="linked-pill tone-red">Kritisch</span>}
+                          {d.urgency === 'high' && <span className="linked-pill tone-amber">Hoch</span>}
+                        </a>
+                      </li>
+                    )
+                  })}
+                </ul>
+              </div>
+            )}
+
             <div className="row-actions">
               <button className="t-btn" onClick={postWorkLog} disabled={busy || !noteText.trim()}>
                 <PaperPlaneTilt size={13} /> Update posten
@@ -904,29 +949,50 @@ export default function DevTasksPage() {
                       if (!selected) return
                       setDecSubmitting(true); setDecError('')
                       try {
-                        const options = decOptions
+                        const optionSeeds = decOptions
                           .split('|')
-                          .map(s => s.trim())
+                          .map((s) => s.trim())
                           .filter(Boolean)
-                          .map((label, i) => ({ id: `opt-${i + 1}`, label }))
-                        const res = await fetch('/api/decisions', {
+                        // Combine title + body into the dev-language question
+                        // the engine will frame for the client.
+                        const question = decBody.trim()
+                          ? `${decTitle.trim()} — ${decBody.trim()}`
+                          : decTitle.trim()
+                        // Hint the response type: empty seeds → free text,
+                        // exactly 2 → binary, more → single choice. The framer
+                        // can still override based on context.
+                        const suggestedResponseType =
+                          optionSeeds.length === 0 ? 'free_text'
+                          : optionSeeds.length === 2 ? 'binary'
+                          : 'single_choice'
+                        const res = await fetch('/api/decisions/request', {
                           method: 'POST', credentials: 'include',
                           headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify({
                             project_id: selected.project_id,
-                            title: decTitle.trim(),
-                            description: decBody.trim() || undefined,
-                            options,
+                            task_id: selected.id,
+                            question,
+                            suggested_options: optionSeeds,
+                            suggested_response_type: suggestedResponseType,
                             urgency: decUrgency,
-                            source_task_id: selected.id,
                           }),
                         })
                         if (!res.ok) {
                           const j = await res.json().catch(() => ({}))
                           setDecError(j.error || 'Konnte nicht senden.'); return
                         }
+                        const data = await res.json().catch(() => ({}))
                         setDecOpen(false); setDecTitle(''); setDecBody(''); setDecOptions(''); setDecUrgency('normal')
-                        setToast('Entscheidung an Kunde gesendet')
+                        const outcomeStatus = data?.outcome?.status
+                        if (outcomeStatus === 'refreshed') {
+                          setToast('Tagro hat die Anfrage einer offenen Entscheidung zugeordnet')
+                        } else if (outcomeStatus === 'skipped') {
+                          setToast(data?.outcome?.reason === 'limit_reached'
+                            ? 'Tageslimit für automatische Anfragen erreicht'
+                            : 'Anfrage wurde übersprungen')
+                        } else {
+                          setToast('Entscheidung an Tagro übergeben — wird gerahmt und zum Kunden geroutet')
+                        }
                       } finally {
                         setDecSubmitting(false)
                       }
@@ -1105,6 +1171,40 @@ export default function DevTasksPage() {
           width: 100%; background: transparent; border: 1px solid var(--border); border-radius: 8px;
           padding: 7px 10px; font: inherit; font-size: 12.5px; color: var(--text); margin-top: 6px;
         }
+
+        /* Linked decisions list — shows decisions tied to this task */
+        .linked-decisions {
+          margin-top: 6px;
+          padding: 10px 12px;
+          border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+          border-radius: 10px;
+          background: color-mix(in srgb, var(--surface-2) 30%, transparent);
+        }
+        .linked-decisions-label {
+          margin: 0 0 6px;
+          font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase;
+          color: var(--text-muted); font-weight: 500;
+        }
+        .linked-decisions ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 4px; }
+        .linked-decision {
+          display: flex; align-items: center; gap: 8px;
+          padding: 6px 8px; border-radius: 8px;
+          text-decoration: none; color: var(--text);
+          font-size: 12.5px; font-weight: 500;
+          transition: background .1s;
+        }
+        .linked-decision:hover { background: color-mix(in srgb, var(--surface-2) 50%, transparent); }
+        .linked-decision-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .linked-pill {
+          display: inline-flex; align-items: center; gap: 3px;
+          height: 17px; padding: 0 7px; border-radius: 999px;
+          font-size: 9.5px; letter-spacing: .04em; text-transform: uppercase;
+          white-space: nowrap; flex-shrink: 0;
+        }
+        .linked-pill.tone-amber { background: color-mix(in srgb, #f59e0b 14%, transparent); color: #f59e0b; }
+        .linked-pill.tone-good  { background: color-mix(in srgb, #22c55e 14%, transparent); color: #22c55e; }
+        .linked-pill.tone-red   { background: color-mix(in srgb, #ef4444 14%, transparent); color: #ef4444; }
+        .linked-pill.tone-muted { background: color-mix(in srgb, var(--surface-2) 70%, transparent); color: var(--text-muted); }
 
         /* Decision-request composer */
         .dec-composer {
