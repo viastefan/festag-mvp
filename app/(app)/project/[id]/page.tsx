@@ -360,6 +360,45 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
     setGeneratingAI(false)
   }
 
+  // ─── Activity feed: messages + AI updates merged chronologically ───
+  // useMemo MUST run unconditionally on every render (Rules of Hooks),
+  // so it lives BEFORE the project-loading guard. It safely handles
+  // empty arrays during the initial load.
+  const feedEvents = useMemo(() => {
+    const events: Array<{
+      id: string
+      ts: number
+      kind: 'message' | 'ai_update' | 'milestone' | 'created'
+      title: string
+      body?: string
+      tone?: 'good' | 'amber' | 'muted'
+    }> = []
+    for (const m of messages) {
+      events.push({
+        id: `m-${m.id}`, ts: new Date(m.created_at).getTime(),
+        kind: 'message', title: m.is_ai ? 'Tagro' : 'Du',
+        body: m.message,
+      })
+    }
+    for (const u of aiUpdates) {
+      events.push({
+        id: `u-${u.id}`, ts: new Date(u.created_at).getTime(),
+        kind: 'ai_update', title: 'Statusbericht',
+        body: u.content, tone: 'good',
+      })
+    }
+    return events.sort((a, b) => b.ts - a.ts)
+  }, [messages, aiUpdates])
+
+  const sidebarPreview = feedEvents.slice(0, 3)
+  const latestUpdate = aiUpdates[0]
+
+  // Display name for breadcrumb workspace mark.
+  const displayName = userEmail
+    ? userEmail.split('@')[0].charAt(0).toUpperCase() + userEmail.split('@')[0].slice(1)
+    : 'Workspace'
+  const displayInitial = (displayName.charAt(0) || 'W').toUpperCase()
+
   if (!project) return (
     <div style={{ display: 'flex', justifyContent: 'center', padding: 60 }}>
       <div style={{ width: 28, height: 28, border: '2px solid var(--border)', borderTopColor: 'var(--text)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
@@ -469,42 +508,6 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
         : `Keine akuten Risiken im Blick.`
     return `${sentenceA} ${sentenceB}`
   })()
-
-  // ─── Activity feed: messages + AI updates merged chronologically ───
-  const feedEvents = useMemo(() => {
-    const events: Array<{
-      id: string
-      ts: number
-      kind: 'message' | 'ai_update' | 'milestone' | 'created'
-      title: string
-      body?: string
-      tone?: 'good' | 'amber' | 'muted'
-    }> = []
-    for (const m of messages) {
-      events.push({
-        id: `m-${m.id}`, ts: new Date(m.created_at).getTime(),
-        kind: 'message', title: m.is_ai ? 'Tagro' : 'Du',
-        body: m.message,
-      })
-    }
-    for (const u of aiUpdates) {
-      events.push({
-        id: `u-${u.id}`, ts: new Date(u.created_at).getTime(),
-        kind: 'ai_update', title: 'Statusbericht',
-        body: u.content, tone: 'good',
-      })
-    }
-    return events.sort((a, b) => b.ts - a.ts)
-  }, [messages, aiUpdates])
-
-  const sidebarPreview = feedEvents.slice(0, 3)
-  const latestUpdate = aiUpdates[0]
-
-  // Display name for breadcrumb workspace mark.
-  const displayName = userEmail
-    ? userEmail.split('@')[0].charAt(0).toUpperCase() + userEmail.split('@')[0].slice(1)
-    : 'Workspace'
-  const displayInitial = (displayName.charAt(0) || 'W').toUpperCase()
 
   return (
     <div className="pv">

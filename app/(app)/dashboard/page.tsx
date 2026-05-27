@@ -1380,43 +1380,42 @@ export default function DashboardPage() {
         @keyframes dcOrbSpin { to { transform: rotate(360deg); } }
         .dc-orb-stage.loading .dc-orb-disc.disc-3 { animation: dcOrbSpin 6s linear infinite; }
 
-        /* ─── Sine-wave ripples — only visible while speaking ─── */
-        .dc-orb-wave {
-          position: absolute; left: 0; right: 0; top: 50%;
-          width: 100%; height: 110px;
-          margin-top: -55px;
+        /* ─── Pulsierende Welle — concentric rings bloom outward ───
+           Three rings start at the inner disc size and expand to roughly
+           2.3× while fading from ~55% opacity to 0. Staggered by ~1/3 of
+           the cycle so the surface always shows one ring mid-flight.
+           Only visible while Tagro speaks; idle state stays calm. */
+        .dc-orb-pulse {
+          position: absolute; left: 50%; top: 50%;
+          width: 78px; height: 78px;
+          margin: -39px 0 0 -39px;
+          border-radius: 50%;
+          border: 1px solid color-mix(in srgb, var(--text) 16%, transparent);
+          background: transparent;
           opacity: 0;
-          pointer-events: none;
+          transform: scale(0.85);
           z-index: 1;
-          transition: opacity .35s ease;
+          pointer-events: none;
+          will-change: transform, opacity;
         }
-        .dc-orb-stage.speaking .dc-orb-wave { opacity: 1; }
-        .dc-orb-wave-path {
-          fill: none;
-          stroke-linecap: round;
-          stroke-linejoin: round;
-          stroke: color-mix(in srgb, var(--text-muted) 38%, transparent);
+        [data-theme="dark"] .dc-orb-pulse,
+        [data-theme="classic-dark"] .dc-orb-pulse {
+          border-color: rgba(255,255,255,.18);
         }
-        [data-theme="dark"] .dc-orb-wave-path,
-        [data-theme="classic-dark"] .dc-orb-wave-path {
-          stroke: rgba(255,255,255,.18);
+        .dc-orb-stage.speaking .dc-orb-pulse {
+          animation: dcOrbPulse 3.2s cubic-bezier(.22,.65,.35,1) infinite;
         }
-        .dc-orb-wave-path.back  { stroke-width: .9;  opacity: .35; animation: dcWaveDriftA 4.6s ease-in-out infinite; }
-        .dc-orb-wave-path.mid   { stroke-width: 1.1; opacity: .55; animation: dcWaveDriftB 3.4s ease-in-out infinite; }
-        .dc-orb-wave-path.front { stroke-width: 1.4; opacity: .8;  animation: dcWaveDriftC 2.6s ease-in-out infinite; }
+        .dc-orb-stage.speaking .dc-orb-pulse.pulse-2 { animation-delay: 1.07s; }
+        .dc-orb-stage.speaking .dc-orb-pulse.pulse-3 { animation-delay: 2.14s; }
 
-        @keyframes dcWaveDriftA {
-          0%,100% { transform: scaleY(.9) translateX(0); }
-          50%     { transform: scaleY(1.25) translateX(-6px); }
+        @keyframes dcOrbPulse {
+          0%   { transform: scale(0.85); opacity: 0; }
+          12%  { opacity: 0.55; }
+          100% { transform: scale(2.3);  opacity: 0; }
         }
-        @keyframes dcWaveDriftB {
-          0%,100% { transform: scaleY(1.1) translateX(0); }
-          50%     { transform: scaleY(.75) translateX(6px); }
-        }
-        @keyframes dcWaveDriftC {
-          0%,100% { transform: scaleY(1) translateX(0); }
-          33%     { transform: scaleY(1.45) translateX(-4px); }
-          66%     { transform: scaleY(.65) translateX(4px); }
+
+        @media (prefers-reduced-motion: reduce) {
+          .dc-orb-stage.speaking .dc-orb-pulse { animation: none; opacity: 0; }
         }
 
         /* Focus outline — visible only on keyboard focus */
@@ -2092,12 +2091,12 @@ export default function DashboardPage() {
               }
               aria-pressed={isBriefingPlaying}
             >
-              {/* Sine-wave ripples — sit behind the orb, animate only while speaking */}
-              <svg className="dc-orb-wave" viewBox="0 0 360 100" preserveAspectRatio="none" aria-hidden>
-                <path className="dc-orb-wave-path back" d="M0 50 Q30 28 60 50 T120 50 T180 50 T240 50 T300 50 T360 50" />
-                <path className="dc-orb-wave-path mid"  d="M0 50 Q30 72 60 50 T120 50 T180 50 T240 50 T300 50 T360 50" />
-                <path className="dc-orb-wave-path front" d="M0 50 Q24 36 48 50 T96 50 T144 50 T192 50 T240 50 T288 50 T336 50 T360 50" />
-              </svg>
+              {/* Pulsierende Welle — three concentric rings expanding outward from
+                  the orb centre while fading. Sit behind the discs, only animate
+                  while speaking. Calm and natural, never distracting. */}
+              <span className="dc-orb-pulse pulse-1" aria-hidden />
+              <span className="dc-orb-pulse pulse-2" aria-hidden />
+              <span className="dc-orb-pulse pulse-3" aria-hidden />
 
               {/* Outer ambient halo */}
               <span className="dc-orb-halo" aria-hidden />
