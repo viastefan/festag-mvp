@@ -1,22 +1,19 @@
 'use client'
 
-import { Suspense, useEffect, useState, useRef } from 'react'
+import { Suspense, useEffect, useMemo, useState, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import ChatMarkdown from '@/components/ChatMarkdown'
+import {
+  Bell, CaretRight, CheckCircle, Circle, Cube, DotsThree, LinkSimple,
+  PaperPlaneTilt, Plus, Sparkle, Star, Target, Trash, Warning,
+} from '@phosphor-icons/react'
 import { projectColor } from '@/components/Sidebar'
 import { effectiveRole, isDevOrAdmin } from '@/lib/role'
 import { taskStatusPatch } from '@/lib/tasks/status'
 import { Milestone } from '@/components/MilestoneChart'
 import ProjectCompletionCelebration from '@/components/ProjectCompletionCelebration'
-import DevTimer from '@/components/DevTimer'
 import DeleteProjectModal from '@/components/DeleteProjectModal'
-import AudioBriefingButton from '@/components/AudioBriefingButton'
-import AssetsPanel from '@/components/AssetsPanel'
-import ProjectModulesStrip from '@/components/ProjectModulesStrip'
-import ProjectDevAvatars from '@/components/ProjectDevAvatars'
-import ExecutorModulesStrip from '@/components/ExecutorModulesStrip'
 import { getProjectPreset, type ExecutorRole, type ProjectType } from '@/lib/project-modules'
 
 type Project = { id: string; title: string; description: string|null; status: string; project_type?: ProjectType | null }
@@ -54,14 +51,17 @@ function ProjectPageInner() {
   const [userEmail, setUserEmail] = useState('')
   const [userRole, setUserRole] = useState<'client'|'dev'|'admin'|''>('')
   const searchParams = useSearchParams()
+  // Linear-style 3-tab layout. Legacy ?tab values map to the closest match:
+  // decisions / risks / briefings / assets are surfaced as right-sidebar
+  // sections + deep links from inside Overview; they no longer have their
+  // own primary tab.
   const initialTab = searchParams?.get('tab') as null
-    | 'overview' | 'tasks' | 'decisions' | 'risks' | 'briefings' | 'assets' | 'updates'
-  const [activeLeft, setActiveLeft] = useState<'overview'|'tasks'|'decisions'|'risks'|'briefings'|'assets'>(
-    initialTab === 'assets' || initialTab === 'overview' || initialTab === 'decisions'
-      || initialTab === 'risks' || initialTab === 'briefings'
-        ? initialTab
-        : initialTab === 'updates' ? 'briefings' : 'tasks'
-  )
+    | 'overview' | 'activity' | 'tasks' | 'decisions' | 'risks' | 'briefings' | 'assets' | 'updates'
+  const [activeLeft, setActiveLeft] = useState<'overview'|'activity'|'tasks'>(() => {
+    if (initialTab === 'activity' || initialTab === 'updates' || initialTab === 'briefings') return 'activity'
+    if (initialTab === 'tasks') return 'tasks'
+    return 'overview'
+  })
   const [aiThinking, setAiThinking] = useState(false)
   const [generatingAI, setGeneratingAI] = useState(false)
   const [online, setOnline] = useState(false)
@@ -470,458 +470,525 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
     return `${sentenceA} ${sentenceB}`
   })()
 
+  // ─── Activity feed: messages + AI updates merged chronologically ───
+  const feedEvents = useMemo(() => {
+    const events: Array<{
+      id: string
+      ts: number
+      kind: 'message' | 'ai_update' | 'milestone' | 'created'
+      title: string
+      body?: string
+      tone?: 'good' | 'amber' | 'muted'
+    }> = []
+    for (const m of messages) {
+      events.push({
+        id: `m-${m.id}`, ts: new Date(m.created_at).getTime(),
+        kind: 'message', title: m.is_ai ? 'Tagro' : 'Du',
+        body: m.message,
+      })
+    }
+    for (const u of aiUpdates) {
+      events.push({
+        id: `u-${u.id}`, ts: new Date(u.created_at).getTime(),
+        kind: 'ai_update', title: 'Statusbericht',
+        body: u.content, tone: 'good',
+      })
+    }
+    return events.sort((a, b) => b.ts - a.ts)
+  }, [messages, aiUpdates])
+
+  const sidebarPreview = feedEvents.slice(0, 3)
+  const latestUpdate = aiUpdates[0]
+
+  // Display name for breadcrumb workspace mark.
+  const displayName = userEmail
+    ? userEmail.split('@')[0].charAt(0).toUpperCase() + userEmail.split('@')[0].slice(1)
+    : 'Workspace'
+  const displayInitial = (displayName.charAt(0) || 'W').toUpperCase()
+
   return (
     <div className="pv">
       <style>{`
-        @keyframes spin  { to { transform:rotate(360deg); } }
-        @keyframes pvPulse { 0%,100%{opacity:1;} 50%{opacity:.3;} }
-        @keyframes pvFade { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
-
         .pv {
-          --pv-muted:#5A6478;
-          --pv-soft:#4E5567;
-          --pv-slate:#5B647D;
-          max-width:1320px;        /* matches /tasks and /observers — */
-          width:100%;              /* and lets the content breathe */
-          margin:0 auto;
-          color:var(--text);
-          padding:0 clamp(20px,2.4vw,32px) 72px;
-          animation:pvFade .3s cubic-bezier(.16,1,.3,1) both;
-        }
-        [data-theme="dark"] .pv, [data-theme="classic-dark"] .pv {
-          --pv-muted:#8D98A6; --pv-soft:#B7BDC8;
-        }
-        .pv * { font-weight:500; letter-spacing:.012em; }
-
-        /* breadcrumb */
-        .pv-crumb { margin:0 0 18px; font-size:12px; color:var(--pv-muted); }
-        .pv-crumb a { color:var(--pv-muted); text-decoration:none; }
-        .pv-crumb a:hover { color:var(--text); }
-        .pv-crumb .sep { margin:0 7px; opacity:.45; }
-
-        /* header */
-        .pv-head { margin-bottom:26px; }
-        .pv-head-top {
-          display:flex; align-items:flex-start; justify-content:space-between;
-          gap:16px; margin-bottom:14px;
-        }
-        .pv-title-row { display:flex; align-items:center; gap:11px; min-width:0; }
-        .pv-dot { width:11px; height:11px; border-radius:50%; flex-shrink:0; box-sizing:border-box; }
-        .pv-title {
-          margin:0; font-size:21px; font-weight:500; letter-spacing:-.014em;
-          overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
-        }
-        .pv-type {
-          flex-shrink:0; font-size:10px; font-weight:500; letter-spacing:.06em;
-          text-transform:uppercase; color:var(--pv-muted);
-          padding:3px 8px; border-radius:6px;
-          background:color-mix(in srgb, var(--surface-2) 60%, transparent);
-          white-space:nowrap;
-        }
-        .pv-head-actions { display:flex; align-items:center; gap:8px; flex-shrink:0; }
-        .pv-phase { display:flex; gap:3px; align-items:center; padding:4px 0; }
-        .pv-phase-seg {
-          height:6px; border-radius:3px; border:0; padding:0;
-          transition:all .2s ease;
-        }
-        .pv-status {
-          display:inline-flex; align-items:center; gap:6px;
-          height:26px; padding:0 11px; border-radius:999px;
-          background:color-mix(in srgb, var(--surface-2) 62%, transparent);
-          color:var(--pv-soft); font-size:11.5px;
-        }
-        .pv-status-dot { width:6px; height:6px; border-radius:50%; }
-        .pv-del {
-          width:28px; height:28px; border-radius:8px; border:0;
-          background:color-mix(in srgb, var(--surface-2) 56%, transparent);
-          color:var(--pv-muted); cursor:pointer;
-          display:flex; align-items:center; justify-content:center;
-          transition:color .12s ease, background .12s ease;
-        }
-        .pv-del:hover { color:#d14343; background:rgba(209,67,67,.1); }
-
-        .pv-desc {
-          margin:0 0 18px; max-width:660px;
-          font-size:13.5px; line-height:1.62; color:var(--pv-soft);
-        }
-
-        /* progress — no rules, just a soft bar */
-        .pv-progress {
-          display:flex; align-items:center; gap:20px; flex-wrap:wrap;
-        }
-        .pv-bar-wrap { flex:1; min-width:200px; display:flex; align-items:center; gap:11px; }
-        .pv-bar {
-          flex:1; height:4px; border-radius:999px; overflow:hidden;
-          background:color-mix(in srgb, var(--surface-2) 70%, transparent);
-        }
-        .pv-bar span { display:block; height:100%; transition:width .6s ease; }
-        .pv-pct { font-size:12px; color:var(--pv-soft); flex-shrink:0; }
-        .pv-stats { display:flex; gap:16px; flex-shrink:0; }
-        .pv-stat { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--pv-muted); }
-        .pv-stat b { color:var(--text); font-weight:500; }
-        .pv-stat .d { width:6px; height:6px; border-radius:50%; box-sizing:border-box; }
-
-        /* generic section */
-        .pv-section { margin-top:28px; }
-        .pv-section-head {
-          display:flex; align-items:center; justify-content:space-between;
-          gap:12px; margin-bottom:11px;
-        }
-        .pv-section-title { margin:0; font-size:13px; font-weight:500; color:var(--text); }
-        .pv-section-meta { font-size:11px; color:var(--pv-muted); }
-
-        /* milestones — borderless rows */
-        .pv-card {
-          border-radius:14px; padding:6px;
-          background:var(--surface);
-          box-shadow:var(--content-shadow);
-        }
-        [data-theme="dark"] .pv-card, [data-theme="classic-dark"] .pv-card {
-          background:color-mix(in srgb, var(--surface) 92%, #fff 8%);
-          box-shadow:var(--content-shadow);
-        }
-        .pv-ms-row {
-          display:flex; align-items:center; gap:14px;
-          padding:11px 12px; border-radius:10px;
-          transition:background .12s ease;
-        }
-        .pv-ms-row:hover { background:color-mix(in srgb, var(--surface-2) 50%, transparent); }
-        .pv-ms-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; box-sizing:border-box; }
-        .pv-ms-title { font-size:13px; color:var(--text); }
-        .pv-ms-title.locked { color:var(--pv-muted); }
-        .pv-ms-desc {
-          flex:1; min-width:0; font-size:11.5px; color:var(--pv-muted);
-          overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
-        }
-        .pv-ms-amount { font-size:13px; color:var(--text); flex-shrink:0; min-width:64px; text-align:right; }
-        .pv-chip {
-          flex-shrink:0; font-size:10px; font-weight:500; letter-spacing:.04em;
-          padding:3px 9px; border-radius:999px;
-        }
-        .pv-chip.paid    { color:#16a34a; background:rgba(34,197,94,.12); }
-        .pv-chip.pending { color:#c2790b; background:rgba(245,158,11,.14); }
-        .pv-chip.locked  { color:var(--pv-muted); background:color-mix(in srgb, var(--surface-2) 60%, transparent); }
-
-        /* buttons */
-        .pv-btn-primary {
-          appearance:none; border:0; cursor:pointer;
-          display:inline-flex; align-items:center; justify-content:center; gap:7px;
-          height:34px; padding:0 14px; border-radius:9px;
-          background:var(--pv-slate); color:#fff;
-          font:inherit; font-size:12px;
-          box-shadow:0 1px 2px rgba(15,23,42,.12), 0 6px 16px rgba(91,100,125,.22);
-          transition:transform .12s ease, box-shadow .12s ease, opacity .12s ease;
-        }
-        .pv-btn-primary:hover { transform:translateY(-1px); }
-        .pv-btn-primary:disabled { opacity:.55; cursor:default; transform:none; }
-        .pv-btn-ghost {
-          appearance:none; cursor:pointer;
-          height:26px; padding:0 10px; border-radius:7px; border:0;
-          background:color-mix(in srgb, var(--surface-2) 62%, transparent);
-          color:var(--pv-soft); font:inherit; font-size:11px;
-          transition:background .12s ease, color .12s ease;
-        }
-        .pv-btn-ghost:hover { background:color-mix(in srgb, var(--surface-2) 92%, transparent); color:var(--text); }
-
-        /* tabs — pill style, no underline rule */
-        .pv-tabs { display:flex; gap:6px; margin-bottom:18px; }
-        .pv-tab {
-          appearance:none; border:0; cursor:pointer;
-          height:30px; padding:0 12px; border-radius:8px;
-          background:transparent; color:var(--pv-muted);
-          font:inherit; font-size:12.5px;
-          transition:background .12s ease, color .12s ease;
-        }
-        .pv-tab:hover { color:var(--text); }
-        .pv-tab.active {
-          background:color-mix(in srgb, var(--surface-2) 70%, transparent);
-          color:var(--text);
-        }
-
-        /* task list — borderless rows */
-        .pv-add { display:flex; gap:8px; margin-bottom:14px; }
-        .pv-input {
-          flex:1; height:36px; padding:0 13px; border:0; border-radius:9px;
-          background:color-mix(in srgb, var(--surface-2) 55%, transparent);
-          color:var(--text); font:inherit; font-size:13px; outline:none;
-        }
-        .pv-input::placeholder { color:var(--pv-muted); }
-        .pv-input:disabled { opacity:.55; }
-        .pv-quota {
-          display:flex; align-items:center; gap:6px;
-          margin:-4px 0 16px; font-size:11px; color:var(--pv-muted);
-        }
-        .pv-quota .d { width:5px; height:5px; border-radius:50%; box-sizing:border-box; }
-        .pv-task-group { margin-bottom:18px; }
-        .pv-task-group-head {
-          display:flex; align-items:center; gap:7px; margin:0 0 4px; padding:0 4px;
-        }
-        .pv-task-group-head .d { width:6px; height:6px; border-radius:50%; box-sizing:border-box; }
-        .pv-task-group-head span.l { font-size:11px; color:var(--pv-muted); letter-spacing:.04em; }
-        .pv-task-group-head span.c { font-size:11px; color:var(--pv-muted); opacity:.7; }
-        .pv-task-row {
-          display:flex; align-items:center; gap:10px;
-          padding:9px 12px; border-radius:9px; cursor:pointer;
-          transition:background .12s ease;
-        }
-        .pv-task-row:hover { background:color-mix(in srgb, var(--surface-2) 55%, transparent); }
-        .pv-task-row .d { width:6px; height:6px; border-radius:50%; flex-shrink:0; box-sizing:border-box; }
-        .pv-task-row .t {
-          flex:1; font-size:13px; color:var(--text);
-          overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
-        }
-        .pv-task-actions { display:flex; gap:4px; flex-shrink:0; }
-        .pv-task-del {
-          background:none; border:0; cursor:pointer; color:var(--pv-muted);
-          padding:2px 4px; font-size:12px; opacity:.5; transition:opacity .1s ease;
-        }
-        .pv-task-del:hover { opacity:1; }
-        .pv-empty { font-size:13px; color:var(--pv-muted); padding:22px 4px; }
-
-        /* updates */
-        .pv-update { margin-bottom:18px; }
-        .pv-update-head {
-          display:flex; justify-content:space-between; align-items:baseline;
-          margin-bottom:7px;
-        }
-        .pv-update-tag { font-size:10.5px; font-weight:500; letter-spacing:.08em; color:var(--pv-muted); text-transform:uppercase; }
-        .pv-update-time { font-size:11px; color:var(--pv-muted); }
-        .pv-update-body { font-size:13.5px; color:var(--text); line-height:1.7; }
-
-        /* right column */
-        .pv-grid { display:grid; grid-template-columns:1fr 332px; gap:30px; margin-top:26px; }
-        .pv-chat {
-          display:flex; flex-direction:column; height:512px;
-          border-radius:14px; overflow:hidden;
-          background:var(--surface);
-          box-shadow:var(--content-shadow);
-        }
-        [data-theme="dark"] .pv-chat, [data-theme="classic-dark"] .pv-chat {
-          background:color-mix(in srgb, var(--surface) 92%, #fff 8%);
-          box-shadow:var(--content-shadow);
-        }
-        .pv-chat-head {
-          display:flex; align-items:center; justify-content:space-between;
-          padding:13px 16px 9px;
-        }
-        .pv-chat-head .ttl { margin:0; font-size:13px; font-weight:500; color:var(--text); }
-        .pv-chat-head .sub { margin:1px 0 0; font-size:11px; color:var(--pv-muted); }
-        .pv-chat-live { font-size:10px; display:inline-flex; align-items:center; gap:4px; }
-        .pv-chat-body {
-          flex:1; overflow-y:auto; padding:8px 16px 14px;
-          display:flex; flex-direction:column; gap:14px;
-        }
-        .pv-msg { display:flex; gap:9px; }
-        .pv-msg-av {
-          width:24px; height:24px; border-radius:50%; flex-shrink:0;
-          display:flex; align-items:center; justify-content:center;
-          font-size:10px; font-weight:500;
-        }
-        .pv-msg-av.ai { background:var(--pv-slate); color:#fff; }
-        .pv-msg-av.me { background:color-mix(in srgb, var(--surface-2) 80%, transparent); color:var(--pv-soft); }
-        .pv-msg-name { font-size:12px; font-weight:500; color:var(--text); }
-        .pv-msg-time { font-size:10px; color:var(--pv-muted); }
-        .pv-msg-text { font-size:13px; color:var(--pv-soft); margin:2px 0 0; line-height:1.55; }
-        .pv-chat-foot { display:flex; gap:7px; padding:10px 12px 12px; }
-        .pv-chat-input {
-          flex:1; height:34px; padding:0 12px; border:0; border-radius:9px;
-          background:color-mix(in srgb, var(--surface-2) 55%, transparent);
-          color:var(--text); font:inherit; font-size:13px; outline:none;
-        }
-        .pv-chat-input::placeholder { color:var(--pv-muted); }
-        .pv-chat-send {
-          width:34px; height:34px; border-radius:9px; border:0; flex-shrink:0;
-          display:flex; align-items:center; justify-content:center; cursor:pointer;
-          background:var(--pv-slate); color:#fff;
-          transition:opacity .12s ease;
-        }
-        .pv-chat-send:disabled {
-          background:color-mix(in srgb, var(--surface-2) 75%, transparent);
-          color:var(--pv-muted); cursor:default;
-        }
-        .pv-guarantee { margin-top:24px; }
-        .pv-guarantee-label {
-          margin:0 0 6px; font-size:10.5px; font-weight:500; letter-spacing:.08em;
-          color:var(--pv-muted); text-transform:uppercase;
-        }
-        .pv-guarantee-row {
-          display:flex; justify-content:space-between; align-items:center;
-          padding:8px 4px;
-        }
-        .pv-guarantee-row .l { font-size:12.5px; color:var(--pv-soft); }
-        .pv-guarantee-row .s { font-size:10px; font-weight:500; letter-spacing:.04em; }
-
-        @media (max-width:880px) {
-          .pv-grid { grid-template-columns:1fr; gap:24px; }
-          .pv-head-top { flex-wrap:wrap; }
-          .pv-head-actions { flex-wrap:wrap; justify-content:flex-end; }
-        }
-        @media (max-width:600px) {
-          .pv { padding:0 14px 64px; }
-          .pv-title { font-size:19px; }
-          .pv-head { margin-bottom:22px; }
-          .pv-head-top { gap:12px; }
-          .pv-progress { gap:14px; }
-          .pv-stats { gap:13px; }
-          .pv-ms-row { flex-wrap:wrap; gap:7px 10px; padding:12px; }
-          .pv-ms-desc { display:none; }
-          .pv-ms-title { flex:1; min-width:120px; }
-          .pv-ms-amount { min-width:auto; }
-          .pv-tabs { flex-wrap:wrap; }
-          .pv-section { margin-top:24px; }
-          .pv-chat { height:440px; }
-        }
-        @media (max-width:420px) {
-          .pv-section-head { flex-wrap:wrap; gap:8px; }
-        }
-
-        /* ─── Project Control Strip (calm KPI band) ────────────── */
-        .pv-control {
-          margin-top: 22px;
+          --pv-muted: var(--text-muted, #7B8294);
+          --pv-soft:  var(--text-secondary, #4E5567);
+          --pv-slate: var(--accent, #5B647D);
+          --pv-page-bg: var(--bg);
+          height: 100%;
+          min-height: 0;
           display: grid;
-          grid-template-columns: repeat(4, minmax(0, 1fr));
-          gap: 1px;
-          border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
-          border-radius: 14px;
+          grid-template-rows: 44px 44px minmax(0, 1fr);
+          background: var(--pv-page-bg);
+          color: var(--text);
+          font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+          font-weight: 500;
+          letter-spacing: .015em;
           overflow: hidden;
-          background: color-mix(in srgb, var(--border) 70%, transparent);
-          box-shadow: var(--content-shadow);
         }
-        .pv-control-cell {
-          padding: 11px 14px;
-          background: var(--surface);
-          display: flex; flex-direction: column; gap: 4px;
+        .pv * { font-weight: 500; letter-spacing: .015em; }
+        [data-theme="dark"] .pv, [data-theme="classic-dark"] .pv {
+          --pv-muted: #8D98A6;
+          --pv-soft:  #B7BDC8;
+        }
+
+        /* ── TOP BAR — breadcrumb + actions ───────────────────────── */
+        .pv-topbar {
+          display: flex; align-items: center; justify-content: space-between;
+          padding: 0 14px;
+          border-bottom: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+          font-size: 12.5px;
+        }
+        .pv-crumbs {
+          display: flex; align-items: center; gap: 6px;
+          min-width: 0; flex: 1;
+          overflow: hidden;
+        }
+        .pv-crumb {
+          display: inline-flex; align-items: center; gap: 5px;
+          color: var(--pv-soft);
+          text-decoration: none;
+          white-space: nowrap;
+          padding: 4px 6px; border-radius: 6px;
+          transition: background .12s, color .12s;
+        }
+        .pv-crumb:hover { color: var(--text); background: var(--surface-2); }
+        .pv-crumb-current {
+          color: var(--text);
+          overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
           min-width: 0;
         }
-        [data-theme="dark"] .pv-control-cell,
-        [data-theme="classic-dark"] .pv-control-cell {
-          background: color-mix(in srgb, var(--surface) 92%, #fff 8%);
-        }
-        .pv-control-label {
-          font-size: 9.5px; font-weight: 500;
-          letter-spacing: .14em; text-transform: uppercase; color: var(--pv-muted);
-        }
-        .pv-control-value {
-          font-size: 14px; font-weight: 500; letter-spacing: -.005em; color: var(--text);
-          display: inline-flex; align-items: center; gap: 6px;
-          overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-        }
-        .pv-control-value small {
-          font-size: 11.5px; color: var(--pv-muted); font-weight: 500; letter-spacing: .015em;
-          overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-        }
-        .pv-control-pill {
-          display: inline-flex; align-items: center; gap: 5px;
-          height: 22px; padding: 0 9px; border-radius: 999px;
-          font-size: 11px; font-weight: 500; letter-spacing: .015em;
-          color: var(--pv-soft);
-          background: color-mix(in srgb, var(--surface-2) 55%, transparent);
-          border: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
-        }
-        .pv-control-pill::before {
-          content: ''; width: 6px; height: 6px; border-radius: 50%;
-          background: currentColor;
-        }
-        .pv-control-pill.ok       { color: #22a06b; background: color-mix(in srgb, #22a06b 8%, transparent); border-color: color-mix(in srgb, #22a06b 20%, transparent); }
-        .pv-control-pill.due      { color: #d4882b; background: color-mix(in srgb, #d4882b 10%, transparent); border-color: color-mix(in srgb, #d4882b 24%, transparent); }
-        .pv-control-pill.critical { color: #d44b4b; background: color-mix(in srgb, #d44b4b 10%, transparent); border-color: color-mix(in srgb, #d44b4b 24%, transparent); }
-        .pv-control-pill.review   { color: #5b647d; background: color-mix(in srgb, #5b647d 14%, transparent); border-color: color-mix(in srgb, #5b647d 28%, transparent); }
-        .pv-control-pill.medium   { color: #d4882b; background: color-mix(in srgb, #d4882b 10%, transparent); border-color: color-mix(in srgb, #d4882b 24%, transparent); }
-        .pv-control-pill.low      { color: #22a06b; background: color-mix(in srgb, #22a06b 8%, transparent); border-color: color-mix(in srgb, #22a06b 20%, transparent); }
-        .pv-control-pill.passed   { color: #22a06b; background: color-mix(in srgb, #22a06b 8%, transparent); border-color: color-mix(in srgb, #22a06b 20%, transparent); }
-        .pv-control-pill.pending  { color: var(--pv-muted); }
-        .pv-control-pill.locked   { color: var(--pv-muted); }
-
-        @media (max-width: 980px) {
-          .pv-control { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-        }
-        @media (max-width: 520px) {
-          .pv-control { grid-template-columns: 1fr; }
-        }
-
-        /* ─── Milestone gates (calm timeline) ─────────────────── */
-        .pv-ms-row .pv-ms-gate {
-          font-size: 10.5px; color: var(--pv-muted);
-          letter-spacing: .015em; font-weight: 500;
-          padding: 2px 8px; border-radius: 999px;
-          background: color-mix(in srgb, var(--surface-2) 55%, transparent);
-          border: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
-          flex-shrink: 0;
-          overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-          max-width: 160px;
-        }
-
-        /* ─── Right column: Tagro Intelligence panel ─────────── */
-        .pv-intel { margin-bottom: 14px; }
-        .pv-intel-block {
-          padding: 12px 14px;
-          border-radius: 12px;
-          background: color-mix(in srgb, var(--surface-2) 30%, transparent);
-          border: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
-          margin-bottom: 8px;
-        }
-        .pv-intel-block.accent {
-          background: color-mix(in srgb, var(--pv-slate) 8%, transparent);
-          border-color: color-mix(in srgb, var(--pv-slate) 22%, transparent);
-        }
-        .pv-intel-label {
-          margin: 0 0 4px;
-          font-size: 9.5px; font-weight: 500; letter-spacing: .14em; text-transform: uppercase;
+        .pv-crumb-sep {
           color: var(--pv-muted);
+          flex-shrink: 0; opacity: .55;
         }
-        .pv-intel-text {
-          margin: 0; font-size: 12.5px; line-height: 1.55;
-          color: var(--text); font-weight: 500; letter-spacing: .015em;
+        .pv-crumb-mark {
+          display: inline-flex; align-items: center; justify-content: center;
+          width: 17px; height: 17px; border-radius: 5px;
+          background: #2EA053; color: #fff;
+          font-size: 10px; font-weight: 500;
         }
-        .pv-intel-row {
-          display: flex; align-items: center; gap: 6px;
-          font-size: 11.5px; color: var(--pv-soft);
-          font-weight: 500; letter-spacing: .015em;
-          padding: 4px 0;
-        }
-        .pv-intel-row::before {
-          content: ''; width: 5px; height: 5px; border-radius: 50%; background: currentColor; opacity: .4;
-        }
-
-        /* Decisions / Risks list inside tabs */
-        .pv-list { display: flex; flex-direction: column; gap: 6px; }
-        .pv-list-row {
-          display: flex; align-items: center; gap: 10px;
-          padding: 10px 12px; border-radius: 10px;
-          background: color-mix(in srgb, var(--surface) 70%, var(--card));
-          border: 1px solid color-mix(in srgb, var(--border) 55%, transparent);
-          cursor: pointer;
-          transition: background .12s, border-color .12s;
-        }
-        .pv-list-row:hover { background: color-mix(in srgb, var(--surface-2) 55%, transparent); border-color: var(--border); }
-        .pv-list-row .d { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
-        .pv-list-row.decision .d { background: #d4882b; }
-        .pv-list-row.risk .d { background: #d44b4b; }
-        .pv-list-row .t { flex: 1; font-size: 13px; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .pv-list-row .meta { font-size: 11px; color: var(--pv-muted); flex-shrink: 0; }
-
-        /* Inline owner approve / reject buttons */
-        .pv-approve-actions {
-          display: inline-flex; align-items: center; gap: 6px;
+        .pv-icon-square {
+          display: inline-flex; align-items: center; justify-content: center;
+          width: 18px; height: 18px; border-radius: 5px;
           flex-shrink: 0;
         }
-        .pv-approve-btn {
-          height: 26px; padding: 0 11px;
-          border-radius: 999px; border: 0;
-          background: var(--btn-prim); color: var(--btn-prim-text);
-          font: inherit; font-size: 11px; font-weight: 500; letter-spacing: .012em;
-          cursor: pointer; transition: opacity .12s, transform .12s, background .12s;
+        .pv-icon-btn {
+          width: 26px; height: 26px;
+          display: inline-flex; align-items: center; justify-content: center;
+          background: transparent; border: 0; border-radius: 6px;
+          color: var(--pv-muted); cursor: pointer; padding: 0;
+          transition: background .12s, color .12s;
+          flex-shrink: 0;
         }
-        .pv-approve-btn:hover { opacity: .92; }
-        .pv-approve-btn:active { transform: scale(.97); }
-        .pv-approve-btn.ghost {
+        .pv-icon-btn:hover { background: var(--surface-2); color: var(--text); }
+        .pv-topbar-right { display: flex; align-items: center; gap: 2px; flex-shrink: 0; }
+
+        /* ── TABS — pill-style segmented control ───────────────────── */
+        .pv-tabs {
+          display: flex; align-items: center; gap: 4px;
+          padding: 0 14px;
+          border-bottom: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+        }
+        .pv-tab {
+          display: inline-flex; align-items: center; gap: 6px;
+          height: 28px; padding: 0 11px;
+          border: 1px solid transparent; border-radius: 999px;
           background: transparent;
           color: var(--pv-soft);
-          border: 1px solid color-mix(in srgb, var(--border) 65%, transparent);
+          font: inherit; font-size: 12px; font-weight: 500;
+          cursor: pointer;
+          transition: background .1s, color .1s, border-color .1s;
         }
-        .pv-approve-btn.ghost:hover {
+        .pv-tab:hover { color: var(--text); background: var(--surface-2); }
+        .pv-tab.on {
+          background: var(--surface-2);
           color: var(--text);
-          background: color-mix(in srgb, var(--surface-2) 55%, transparent);
+          border-color: color-mix(in srgb, var(--border) 50%, transparent);
+        }
+        .pv-tab-count {
+          display: inline-flex; align-items: center; justify-content: center;
+          min-width: 16px; height: 15px; padding: 0 4px; border-radius: 999px;
+          background: color-mix(in srgb, var(--text) 8%, transparent);
+          font-size: 10px;
+        }
+
+        /* ── BODY — main + right sidebar, fixed-height ─────────────── */
+        .pv-body {
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) 320px;
+          min-height: 0; overflow: hidden;
+        }
+        .pv-main {
+          min-width: 0; min-height: 0;
+          overflow-y: auto; overflow-x: hidden;
+          padding: 40px clamp(20px, 4vw, 56px) 60px;
+        }
+        .pv-sidebar {
+          border-left: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+          min-width: 0; min-height: 0;
+          overflow-y: auto;
+          padding: 16px 18px 24px;
+          display: flex; flex-direction: column; gap: 16px;
+        }
+
+        /* ── OVERVIEW ─────────────────────────────────────────────── */
+        .pv-overview {
+          max-width: 720px;
+          display: flex; flex-direction: column; gap: 22px;
+        }
+        .pv-hero-icon {
+          width: 44px; height: 44px; border-radius: 12px;
+          display: inline-flex; align-items: center; justify-content: center;
+        }
+        .pv-hero-title {
+          margin: 0;
+          font-size: 30px; font-weight: 500;
+          letter-spacing: -.012em;
+          color: var(--text);
+        }
+        .pv-hero-summary {
+          margin: 0;
+          font-size: 14px; line-height: 1.55;
+          color: var(--pv-muted);
+        }
+        .pv-prop-row {
+          display: flex; align-items: center; flex-wrap: wrap; gap: 8px;
+        }
+        .pv-prop-label {
+          width: 96px;
+          color: var(--pv-muted);
+          font-size: 12px;
+        }
+        .pv-chip {
+          display: inline-flex; align-items: center; gap: 5px;
+          height: 24px; padding: 0 9px; border-radius: 6px;
+          background: color-mix(in srgb, var(--surface-2) 50%, transparent);
+          color: var(--text);
+          font-size: 11.5px;
+          border: 1px solid transparent;
+          cursor: pointer;
+          transition: background .1s, border-color .1s;
+        }
+        .pv-chip:hover { background: var(--surface-2); border-color: var(--border); }
+        .pv-chip-mute { color: var(--pv-muted); }
+        .pv-link-add {
+          display: inline-flex; align-items: center; gap: 5px;
+          height: 24px; padding: 0 8px; border-radius: 6px;
+          background: transparent; border: 0;
+          color: var(--pv-muted); font: inherit; font-size: 12px;
+          cursor: pointer;
+        }
+        .pv-link-add:hover { background: var(--surface-2); color: var(--text); }
+
+        .pv-latest {
+          border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+          border-radius: 10px;
+          background: color-mix(in srgb, var(--surface-2) 22%, transparent);
+          padding: 14px 16px;
+          display: flex; flex-direction: column; gap: 8px;
+        }
+        .pv-latest > header {
+          display: flex; align-items: center; justify-content: space-between;
+          gap: 12px;
+        }
+        .pv-latest-label { font-size: 12px; color: var(--text); }
+        .pv-update-btn {
+          display: inline-flex; align-items: center; gap: 5px;
+          height: 26px; padding: 0 10px; border-radius: 6px;
+          border: 1px solid var(--border); background: var(--card);
+          color: var(--text); font: inherit; font-size: 11.5px;
+          cursor: pointer;
+        }
+        .pv-update-btn:hover:not(:disabled) { background: var(--surface-2); }
+        .pv-update-btn:disabled { opacity: .5; cursor: not-allowed; }
+        .pv-latest-meta {
+          display: flex; align-items: center; gap: 5px;
+          font-size: 11.5px; color: var(--pv-muted);
+        }
+        .pv-status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+        .pv-status-dot.tone-good { background: #22c55e; }
+        .pv-status-dot.tone-amber { background: #f59e0b; }
+        .pv-status-dot.tone-red { background: #ef4444; }
+        .pv-status-dot.tone-muted { background: var(--pv-muted); }
+        .pv-sep { color: var(--pv-muted); opacity: .55; }
+        .pv-latest-body {
+          font-size: 13px; color: var(--text); line-height: 1.55;
+          white-space: pre-wrap;
+          max-height: 180px; overflow-y: auto;
+        }
+
+        .pv-section-title {
+          margin: 0;
+          font-size: 13.5px; color: var(--text);
+        }
+        .pv-desc-block { display: flex; flex-direction: column; gap: 8px; }
+        .pv-desc-text { margin: 0; font-size: 13.5px; line-height: 1.6; color: var(--text); }
+        .pv-desc-placeholder { margin: 0; font-size: 13.5px; color: var(--pv-muted); }
+
+        .pv-add-milestone-btn {
+          align-self: flex-start;
+          display: inline-flex; align-items: center; gap: 5px;
+          height: 26px; padding: 0 10px; border-radius: 6px;
+          border: 0; background: transparent;
+          color: var(--pv-muted); font: inherit; font-size: 12px;
+          cursor: pointer;
+        }
+        .pv-add-milestone-btn:hover { background: var(--surface-2); color: var(--text); }
+
+        /* ── ACTIVITY ─────────────────────────────────────────────── */
+        .pv-activity {
+          max-width: 720px;
+          display: flex; flex-direction: column; gap: 18px;
+        }
+        .pv-composer {
+          border: 1px solid var(--border);
+          border-radius: 10px;
+          background: var(--card);
+          overflow: hidden;
+          display: flex; flex-direction: column;
+        }
+        .pv-composer-tabs {
+          display: flex; gap: 4px;
+          padding: 8px 8px 0;
+        }
+        .pv-composer-tab {
+          height: 24px; padding: 0 10px; border-radius: 999px;
+          border: 0; background: transparent;
+          color: var(--pv-muted); font: inherit; font-size: 11.5px;
+          cursor: pointer;
+        }
+        .pv-composer-tab.on { background: var(--surface-2); color: var(--text); }
+        .pv-composer-area {
+          width: 100%; min-height: 100px; resize: vertical;
+          border: 0; outline: 0; background: transparent;
+          padding: 10px 14px;
+          font: inherit; font-size: 13px;
+          color: var(--text); line-height: 1.55;
+        }
+        .pv-composer-area::placeholder { color: var(--pv-muted); }
+        .pv-composer-actions {
+          display: flex; align-items: center; justify-content: flex-end; gap: 8px;
+          padding: 6px 8px 8px;
+          border-top: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+        }
+        .pv-composer-submit {
+          height: 26px; padding: 0 12px; border-radius: 6px;
+          border: 1px solid var(--border); background: var(--card);
+          color: var(--text); font: inherit; font-size: 12px;
+          cursor: pointer;
+        }
+        .pv-composer-submit:hover:not(:disabled) { background: var(--surface-2); }
+        .pv-composer-submit:disabled { opacity: .5; cursor: not-allowed; }
+
+        .pv-feed { display: flex; flex-direction: column; }
+        .pv-feed-row {
+          display: flex; flex-direction: column; gap: 6px;
+          padding: 14px 0;
+          border-bottom: 1px solid color-mix(in srgb, var(--border) 35%, transparent);
+        }
+        .pv-feed-row:last-child { border-bottom: 0; }
+        .pv-feed-meta {
+          display: flex; align-items: center; gap: 6px;
+          font-size: 11.5px; color: var(--pv-muted);
+        }
+        .pv-feed-meta strong { color: var(--text); font-weight: 500; }
+        .pv-feed-body {
+          font-size: 13px; color: var(--text); line-height: 1.55;
+          white-space: pre-wrap;
+        }
+
+        /* ── TASKS ────────────────────────────────────────────────── */
+        .pv-tasks {
+          max-width: 760px;
+          display: flex; flex-direction: column; gap: 16px;
+        }
+        .pv-tasks-add {
+          display: flex; gap: 6px;
+          padding: 6px;
+          border: 1px solid var(--border); border-radius: 10px;
+          background: var(--card);
+        }
+        .pv-tasks-input {
+          flex: 1; border: 0; outline: 0; background: transparent;
+          padding: 6px 10px;
+          font: inherit; font-size: 13px;
+          color: var(--text);
+        }
+        .pv-tasks-input::placeholder { color: var(--pv-muted); }
+        .pv-tasks-input:disabled { opacity: .5; }
+        .pv-tasks-btn {
+          height: 30px; padding: 0 16px; border-radius: 7px;
+          border: 0; background: var(--btn-prim, var(--pv-slate)); color: var(--btn-prim-text, #fff);
+          font: inherit; font-size: 12px;
+          cursor: pointer;
+        }
+        .pv-tasks-btn:hover:not(:disabled) { opacity: .92; }
+        .pv-tasks-btn:disabled { opacity: .45; cursor: not-allowed; }
+        .pv-quota {
+          display: inline-flex; align-items: center; gap: 6px;
+          font-size: 11.5px; color: var(--pv-muted);
+        }
+        .pv-task-group { display: flex; flex-direction: column; }
+        .pv-task-group-head {
+          display: flex; align-items: center; gap: 7px;
+          height: 28px; padding: 0 6px;
+          font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase;
+          color: var(--pv-muted);
+        }
+        .pv-task-row {
+          display: flex; align-items: center; gap: 9px;
+          padding: 8px 8px;
+          border-radius: 6px;
+          cursor: pointer;
+          transition: background .1s;
+        }
+        .pv-task-row:hover { background: var(--surface-2); }
+        .pv-task-check {
+          width: 16px; height: 16px;
+          display: inline-flex; align-items: center; justify-content: center;
+          color: var(--pv-muted);
+          flex-shrink: 0;
+        }
+        .pv-task-row.done .pv-task-check { color: #22c55e; }
+        .pv-task-title {
+          flex: 1; min-width: 0;
+          font-size: 13px; color: var(--text);
+          overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .pv-task-row.done .pv-task-title { color: var(--pv-muted); text-decoration: line-through; }
+        .pv-task-priority {
+          font-size: 10px; letter-spacing: .06em;
+          padding: 1px 6px; border-radius: 4px;
+          flex-shrink: 0;
+        }
+        .pv-task-actions {
+          display: inline-flex; gap: 3px; flex-shrink: 0;
+          opacity: 0; transition: opacity .12s;
+        }
+        .pv-task-row:hover .pv-task-actions { opacity: 1; }
+        .pv-task-state-btn {
+          height: 22px; padding: 0 8px; border-radius: 4px;
+          border: 1px solid transparent; background: transparent;
+          color: var(--pv-muted); font: inherit; font-size: 11px;
+          cursor: pointer;
+        }
+        .pv-task-state-btn:hover {
+          background: var(--card);
+          border-color: var(--border);
+          color: var(--text);
+        }
+        .pv-task-trash {
+          width: 22px; height: 22px;
+          display: inline-flex; align-items: center; justify-content: center;
+          border: 0; background: transparent;
+          color: var(--pv-muted); cursor: pointer; border-radius: 4px;
+        }
+        .pv-task-trash:hover { background: color-mix(in srgb, #ef4444 14%, transparent); color: #ef4444; }
+        .pv-empty {
+          font-size: 13px; color: var(--pv-muted);
+          padding: 22px 4px;
+        }
+
+        /* ── SIDEBAR — sections ───────────────────────────────────── */
+        .pv-side-section { display: flex; flex-direction: column; gap: 6px; }
+        .pv-side-section > header {
+          display: flex; align-items: center; justify-content: space-between;
+          height: 26px;
+          font-size: 12px; color: var(--text);
+        }
+        .pv-side-section > header button {
+          border: 0; background: transparent;
+          color: var(--pv-muted); cursor: pointer;
+          font: inherit; font-size: 11px;
+        }
+        .pv-side-section > header button:hover { color: var(--text); }
+        .pv-side-rows { display: flex; flex-direction: column; }
+        .pv-side-row {
+          display: flex; align-items: center; justify-content: space-between;
+          min-height: 28px;
+          font-size: 12px;
+          gap: 8px;
+        }
+        .pv-side-row-key { color: var(--pv-muted); flex-shrink: 0; }
+        .pv-side-row-val {
+          color: var(--text);
+          text-align: right;
+          min-width: 0;
+          overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .pv-side-link { color: var(--text); text-decoration: none; }
+        .pv-side-link:hover { text-decoration: underline; }
+
+        .pv-side-milestones {
+          list-style: none; padding: 0; margin: 0;
+          display: flex; flex-direction: column; gap: 4px;
+        }
+        .pv-side-milestone {
+          display: flex; align-items: center; gap: 7px;
+          padding: 5px 0;
+          font-size: 12px; color: var(--text);
+          min-width: 0;
+        }
+        .pv-side-milestone .mtitle {
+          flex: 1; min-width: 0;
+          overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .pv-side-milestone.locked .mtitle { color: var(--pv-muted); }
+        .pv-side-milestone .mamount {
+          color: var(--pv-muted); font-size: 11px; flex-shrink: 0;
+        }
+
+        .pv-side-activity {
+          list-style: none; padding: 0; margin: 0;
+          display: flex; flex-direction: column; gap: 8px;
+        }
+        .pv-side-activity li {
+          display: flex; align-items: flex-start; gap: 8px;
+          font-size: 11.5px; color: var(--pv-muted);
+        }
+        .pv-side-activity li strong { color: var(--text); font-weight: 500; }
+        .pv-side-activity li .dot {
+          width: 6px; height: 6px; border-radius: 50%;
+          margin-top: 6px; flex-shrink: 0;
+          background: var(--pv-muted); opacity: .6;
+        }
+        .pv-side-activity li.tone-good .dot { background: #22c55e; opacity: 1; }
+        .pv-side-activity li .body {
+          min-width: 0; overflow: hidden;
+          text-overflow: ellipsis; display: -webkit-box;
+          -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+        }
+
+        .pv-pill {
+          display: inline-flex; align-items: center; gap: 4px;
+          height: 19px; padding: 0 8px; border-radius: 999px;
+          font-size: 10.5px;
+        }
+        .pv-pill.tone-good, .pv-pill.tone-low,
+        .pv-pill.tone-ok, .pv-pill.tone-passed {
+          background: color-mix(in srgb, #22c55e 14%, transparent); color: #16a34a;
+        }
+        .pv-pill.tone-medium, .pv-pill.tone-amber, .pv-pill.tone-due, .pv-pill.tone-review {
+          background: color-mix(in srgb, #f59e0b 14%, transparent); color: #b45309;
+        }
+        .pv-pill.tone-critical, .pv-pill.tone-red {
+          background: color-mix(in srgb, #ef4444 14%, transparent); color: #b91c1c;
+        }
+        .pv-pill.tone-locked, .pv-pill.tone-muted, .pv-pill.tone-pending {
+          background: color-mix(in srgb, var(--pv-muted) 12%, transparent); color: var(--pv-muted);
+        }
+
+        /* ── Responsive ───────────────────────────────────────────── */
+        @media (max-width: 920px) {
+          .pv-body { grid-template-columns: 1fr; }
+          .pv-sidebar { display: none; }
+          .pv-main { padding: 24px 18px 60px; }
+          .pv-tabs { overflow-x: auto; }
+          .pv-tabs::-webkit-scrollbar { display: none; }
+        }
+        @media (max-width: 600px) {
+          .pv-hero-title { font-size: 24px; }
+          .pv-prop-label { width: 80px; font-size: 11.5px; }
         }
       `}</style>
 
@@ -930,9 +997,8 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
         projectTitle={project.title}
         deliveryDate={new Date().toISOString()}
         onClose={() => setCelebrationOpen(false)}
-        onContinue={() => { setCelebrationOpen(false); setActiveLeft('briefings'); generateAIUpdate() }}
+        onContinue={() => { setCelebrationOpen(false); setActiveLeft('activity'); generateAIUpdate() }}
       />
-      <DevTimer projectId={project.id} projectTitle={project.title}/>
 
       <DeleteProjectModal
         open={deleteOpen}
@@ -942,348 +1008,192 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
         onDeleted={() => { setDeleteOpen(false); window.location.href = '/dashboard' }}
       />
 
-      {/* Breadcrumb */}
-      <p className="pv-crumb">
-        <Link href="/dashboard">Dashboard</Link>
-        <span className="sep">/</span>
-        <span>{project.title}</span>
-      </p>
-
-      {/* ── Header ── */}
-      <div className="pv-head">
-        <div className="pv-head-top">
-          <div className="pv-title-row">
-            <span className="pv-dot" style={{ background:'transparent', border:`2px solid ${pCol}` }}/>
-            <h1 className="pv-title">{project.title}</h1>
-            {projectType && (
-              <span className="pv-type" title={typePreset.positioning}>{projectType}</span>
-            )}
-          </div>
-          <div className="pv-head-actions">
-            <AudioBriefingButton
-              type="project_briefing"
-              label="Projektbriefing"
-              projectTitle={project.title}
-              report={aiUpdates[0]?.content || `${project.title}: ${done} von ${tasks.length} Tasks erledigt. Aktuelle Phase: ${PHASE_LABEL[project.status] ?? project.status}.`}
-              projectStatus={PHASE_LABEL[project.status] ?? project.status}
-              progress={pct}
-              blockerCount={tasks.filter((task) => ['blocked', 'waiting'].includes(task.status)).length}
-              decisionCount={tasks.filter((task) => task.status === 'waiting').length}
-              nextSteps={[todoTasks[0]?.title ?? 'nächste Projektaufgaben prüfen']}
-            />
-            <div className="pv-phase" title={canEdit ? 'Phase ändern' : 'Phase wird vom Entwicklerteam gesteuert'}>
-              {PHASES.map((phase, i) => {
-                const isActive = i === phaseIdx
-                const isPast   = i < phaseIdx
-                const bg = isPast || isActive ? pCol : 'var(--border)'
-                return canEdit ? (
-                  <button key={phase} className="pv-phase-seg" onClick={() => updateStatus(phase)} title={PHASE_LABEL[phase]}
-                    style={{ width:isActive?20:6, cursor:'pointer', background:bg }}/>
-                ) : (
-                  <span key={phase} className="pv-phase-seg" title={PHASE_LABEL[phase]}
-                    style={{ width:isActive?20:6, display:'block', background:bg }}/>
-                )
-              })}
-            </div>
-            <span className="pv-status">
-              {project.status==='active' && <span className="pv-status-dot" style={{ background:'#22c55e', animation:'pvPulse 2s infinite' }}/>}
-              {PHASE_LABEL[project.status] ?? project.status}
+      {/* ─── TOP BAR — workspace breadcrumb ─── */}
+      <header className="pv-topbar">
+        <div className="pv-crumbs">
+          <Link href="/dashboard" className="pv-crumb">
+            <span className="pv-crumb-mark">{displayInitial}</span>
+            <span>{displayName}</span>
+          </Link>
+          <CaretRight size={11} weight="bold" className="pv-crumb-sep" />
+          <Link href="/dashboard" className="pv-crumb">Projects</Link>
+          <CaretRight size={11} weight="bold" className="pv-crumb-sep" />
+          <span className="pv-crumb pv-crumb-current">
+            <span className="pv-icon-square" style={{ background: `${pCol}24`, color: pCol }}>
+              <Cube size={11} weight="duotone" />
             </span>
-            <ProjectDevAvatars projectId={project.id} accentColor={pCol} />
-            <button className="pv-del" onClick={() => setDeleteOpen(true)} title="Projekt löschen" aria-label="Projekt löschen">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z"/>
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        {project.description && <p className="pv-desc">{project.description}</p>}
-
-        <div className="pv-progress">
-          <div className="pv-bar-wrap">
-            <div className="pv-bar"><span style={{ width:`${pct}%`, background:pCol }}/></div>
-            <span className="pv-pct">{pct}%</span>
-          </div>
-          <div className="pv-stats">
-            {[
-              { label:'Todo',   count: todoTasks.length,  dot:'var(--border-strong)' },
-              { label:'Aktiv',  count: doingTasks.length, dot:'#f59e0b' },
-              { label:'Fertig', count: doneTasks.length,  dot:'#22c55e' },
-            ].map(s => (
-              <span key={s.label} className="pv-stat">
-                <span className="d" style={{ background:'transparent', border:`1.5px solid ${s.dot}` }}/>
-                <b>{s.count}</b> {s.label}
-              </span>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* ── Project Control Strip — calm command KPIs ── */}
-      <section className="pv-control" aria-label="Project Control">
-        <div className="pv-control-cell">
-          <span className="pv-control-label">Progress</span>
-          <span className="pv-control-value">{pct}% <small>{doneTasks.length} von {tasks.length || 0}</small></span>
-        </div>
-        <div className="pv-control-cell">
-          <span className="pv-control-label">Open Tasks</span>
-          <span className="pv-control-value">{todoTasks.length + doingTasks.length}
-            <small>{doingTasks.length} aktiv · {todoTasks.length} offen</small>
+            {project.title}
           </span>
+          <button className="pv-icon-btn" title="Favorit"><Star size={13} /></button>
+          <button
+            className="pv-icon-btn"
+            title="Projekt löschen"
+            onClick={() => setDeleteOpen(true)}
+          ><DotsThree size={14} weight="bold" /></button>
         </div>
-        <div className="pv-control-cell">
-          <span className="pv-control-label">Next Milestone</span>
-          <span className="pv-control-value">{nextMilestone?.title ?? '—'}
-            <small>{nextMilestone ? `€${nextMilestone.amount.toLocaleString('de')}` : 'Keine offenen Meilensteine'}</small>
-          </span>
+        <div className="pv-topbar-right">
+          <button className="pv-icon-btn" title="Link kopieren"><LinkSimple size={13} /></button>
+          <button className="pv-icon-btn" title="Benachrichtigungen"><Bell size={13} /></button>
         </div>
-        <div className="pv-control-cell">
-          <span className="pv-control-label">ETA</span>
-          <span className="pv-control-value">{nextMilestone?.title ?? '—'}
-            <small>{project.status === 'done' ? 'Geliefert' : PHASE_LABEL[project.status]}</small>
-          </span>
-        </div>
-        <div className="pv-control-cell">
-          <span className="pv-control-label">Risk</span>
-          <span className={`pv-control-pill ${riskState.tone}`}>{riskState.label}</span>
-        </div>
-        <div className="pv-control-cell">
-          <span className="pv-control-label">Payment</span>
-          <span className={`pv-control-pill ${paymentState.tone}`}>{paymentState.label}</span>
-        </div>
-        <div className="pv-control-cell">
-          <span className="pv-control-label">Quality Gate</span>
-          <span className={`pv-control-pill ${qualityGate.tone}`}>{qualityGate.label}</span>
-        </div>
-        <div className="pv-control-cell">
-          <span className="pv-control-label">Decisions</span>
-          <span className={`pv-control-pill ${decisionTasks.length > 0 ? 'medium' : 'low'}`}>
-            {decisionTasks.length > 0 ? `${decisionTasks.length} offen` : 'Keine offen'}
-          </span>
-        </div>
-      </section>
+      </header>
 
-      {/* ── Type-specific module strip ── */}
-      <ProjectModulesStrip projectType={projectType ?? null} values={stripValues} />
+      {/* ─── TABS ─── */}
+      <nav className="pv-tabs" role="tablist">
+        <button
+          role="tab" aria-selected={activeLeft === 'overview'}
+          className={`pv-tab${activeLeft === 'overview' ? ' on' : ''}`}
+          onClick={() => setActiveLeft('overview')}
+        >Overview</button>
+        <button
+          role="tab" aria-selected={activeLeft === 'activity'}
+          className={`pv-tab${activeLeft === 'activity' ? ' on' : ''}`}
+          onClick={() => setActiveLeft('activity')}
+        >Activity</button>
+        <button
+          role="tab" aria-selected={activeLeft === 'tasks'}
+          className={`pv-tab${activeLeft === 'tasks' ? ' on' : ''}`}
+          onClick={() => setActiveLeft('tasks')}
+        >
+          Tasks
+          {tasks.length > 0 && <span className="pv-tab-count">{tasks.length}</span>}
+        </button>
+      </nav>
 
-      {canEdit && (
-        <ExecutorModulesStrip
-          projectType={projectType ?? null}
-          role={myExecutorRole ?? ('developer' as ExecutorRole)}
-        />
-      )}
-
-      {/* ── Milestones ── */}
-      {milestones.length > 0 && (
-        <div className="pv-section">
-          <div className="pv-section-head">
-            <h3 className="pv-section-title">Meilensteine & Zahlungen</h3>
-            <span className="pv-section-meta">Mollie · SEPA · DSGVO</span>
-          </div>
-          <div className="pv-card">
-            {milestones.map((ms) => {
-              const isPaid    = ms.status === 'paid'
-              const isPending = ms.status === 'pending'
-              const isLocked  = ms.status === 'locked'
-              const dot = isPaid ? '#22c55e' : isPending ? '#f59e0b' : 'var(--border-strong)'
-              const gate = isPaid
-                ? 'Gate ✓ freigegeben'
-                : isPending
-                  ? 'Gate: Freischalten zum Start'
-                  : 'Gate: vorheriger Schritt nötig'
-              return (
-                <div key={ms.id} className="pv-ms-row">
-                  <span className="pv-ms-dot" style={{ background:'transparent', border:`2px solid ${dot}` }}/>
-                  <span className={`pv-ms-title${isLocked ? ' locked' : ''}`}>{ms.title}</span>
-                  {ms.description && <span className="pv-ms-desc">{ms.description}</span>}
-                  <span className="pv-ms-gate" title={gate}>{gate}</span>
-                  <span className="pv-ms-amount">€{ms.amount.toLocaleString('de')}</span>
-                  <span className={`pv-chip ${isPaid ? 'paid' : isPending ? 'pending' : 'locked'}`}>
-                    {isPaid ? 'Bezahlt' : isPending ? 'Fällig' : 'Gesperrt'}
-                  </span>
-                  {isPending && !canEdit && (
-                    <button className="pv-btn-primary" style={{ height:26, padding:'0 12px' }} onClick={() => payMilestone(ms)}>
-                      Freischalten →
-                    </button>
-                  )}
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* ── Main 2-col ── */}
-      <div className="pv-grid">
-
-        {/* LEFT */}
-        <div>
-          <div className="pv-tabs">
-            {([
-              { key:'overview',  label:'Overview' },
-              { key:'tasks',     label:`Tasks (${tasks.length})` },
-              { key:'decisions', label:decisionTasks.length > 0 ? `Decisions (${decisionTasks.length})` : 'Decisions' },
-              { key:'risks',     label:riskTasks.length > 0 ? `Risks (${riskTasks.length})` : 'Risks' },
-              { key:'briefings', label:`Briefings${aiUpdates.length > 0 ? ` (${aiUpdates.length})` : ''}` },
-              { key:'assets',    label:'Assets' },
-            ] as const).map(tab => (
-              <button key={tab.key} className={`pv-tab ${activeLeft===tab.key?'active':''}`} onClick={() => setActiveLeft(tab.key)}>
-                {tab.label}
-              </button>
-            ))}
-          </div>
+      {/* ─── BODY: main + right sidebar ─── */}
+      <div className="pv-body">
+        <main className="pv-main">
 
           {/* OVERVIEW */}
           {activeLeft === 'overview' && (
-            <div>
-              <div className="pv-intel-block accent">
-                <p className="pv-intel-label">Tagro · Project Summary</p>
-                <p className="pv-intel-text">{tagroSummary}</p>
+            <div className="pv-overview">
+              <div className="pv-hero-icon" style={{ background: `${pCol}26`, color: pCol }}>
+                <Cube size={22} weight="duotone" />
               </div>
-              <div className="pv-intel-block">
-                <p className="pv-intel-label">Was als Nächstes wichtig ist</p>
-                <p className="pv-intel-text">{tagroNextAction}</p>
-              </div>
-              <div className="pv-intel-block">
-                <p className="pv-intel-label">Letzte Aktivität</p>
-                {messages.length === 0 ? (
-                  <p className="pv-intel-text" style={{ color:'var(--pv-muted)' }}>Noch keine Konversation oder Updates.</p>
-                ) : (
-                  <p className="pv-intel-text">
-                    {messages[messages.length - 1]?.message?.slice(0, 220) ?? '—'}
-                  </p>
+
+              <h1 className="pv-hero-title">{project.title}</h1>
+
+              {project.description
+                ? <p className="pv-hero-summary">{project.description}</p>
+                : <p className="pv-hero-summary">Add a short summary…</p>}
+
+              <div className="pv-prop-row">
+                <span className="pv-prop-label">Properties</span>
+                <span className="pv-chip">
+                  <span className={`pv-status-dot tone-${project.status === 'done' ? 'good' : project.status === 'active' ? 'amber' : 'muted'}`} />
+                  {PHASE_LABEL[project.status] ?? project.status}
+                </span>
+                {projectType && (
+                  <span className="pv-chip pv-chip-mute">{typePreset?.label || projectType}</span>
                 )}
+                <span className="pv-chip pv-chip-mute">Lead</span>
+                <span className="pv-chip pv-chip-mute"><Target size={11} /> Target date</span>
+                <span className="pv-chip">{displayName}</span>
+                <button className="pv-icon-btn" title="Mehr"><DotsThree size={13} weight="bold" /></button>
               </div>
-            </div>
-          )}
 
-          {/* DECISIONS */}
-          {activeLeft === 'decisions' && (
-            <div>
-              {/* Owner approval queue — dev finished, Tagro verified, or needs review */}
-              {approvalTasks.length > 0 && (
-                <div style={{ marginBottom: 18 }}>
-                  <p className="pv-section-title" style={{ marginBottom: 10 }}>
-                    Bereit zur Prüfung · {approvalTasks.length}
-                  </p>
-                  <div className="pv-list">
-                    {approvalTasks.map((t: any) => {
-                      const flow = String(t.dev_status || '').toLowerCase()
-                      const flowLabel = flow === 'finished_by_dev'
-                        ? 'Vom Dev abgeschlossen'
-                        : flow === 'verified_by_tagro'
-                          ? 'Tagro verifiziert'
-                          : flow === 'needs_review'
-                            ? 'Tagro: Review nötig'
-                            : flow
-                      return (
-                        <div key={t.id} className="pv-list-row decision">
-                          <span className="d" />
-                          <span className="t" onClick={() => router.push(`/projects/${id}/tasks/${t.id}`)} style={{ cursor: 'pointer' }}>
-                            {t.title}
-                          </span>
-                          <span className="meta">{flowLabel}</span>
-                          {canApprove ? (
-                            <span className="pv-approve-actions" onClick={e => e.stopPropagation()}>
-                              <button
-                                type="button"
-                                className="pv-approve-btn"
-                                onClick={() => reviewTask(t.id, 'approve')}
-                                title="Freigeben — Client sieht den Task danach als abgeschlossen"
-                              >
-                                Freigeben
-                              </button>
-                              <button
-                                type="button"
-                                className="pv-approve-btn ghost"
-                                onClick={() => reviewTask(t.id, 'reject')}
-                                title="Änderungen anfordern — Task geht zurück an den Dev"
-                              >
-                                Änderungen
-                              </button>
-                            </span>
-                          ) : (
-                            <span className="meta" style={{ opacity: .55 }}>Owner gefordert</span>
-                          )}
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {/* Generic waiting decisions */}
-              {decisionTasks.length > 0 && (
-                <div>
-                  <p className="pv-section-title" style={{ marginBottom: 10 }}>
-                    Offene Entscheidungen · {decisionTasks.length}
-                  </p>
-                  <div className="pv-list">
-                    {decisionTasks.map(t => (
-                      <div key={t.id} className="pv-list-row decision" onClick={() => router.push(`/projects/${id}/tasks/${t.id}`)}>
-                        <span className="d" />
-                        <span className="t">{t.title}</span>
-                        <span className="meta">Wartet auf Freigabe</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {approvalTasks.length === 0 && decisionTasks.length === 0 && (
-                <p className="pv-empty">Nichts wartet auf eine Entscheidung.</p>
-              )}
-            </div>
-          )}
-
-          {/* RISKS */}
-          {activeLeft === 'risks' && (
-            <div>
-              {riskTasks.length === 0 ? (
-                <p className="pv-empty">Keine aktiven Blocker oder Risiken.</p>
-              ) : (
-                <div className="pv-list">
-                  {riskTasks.map(t => (
-                    <div key={t.id} className="pv-list-row risk" onClick={() => router.push(`/projects/${id}/tasks/${t.id}`)}>
-                      <span className="d" />
-                      <span className="t">{t.title}</span>
-                      <span className="meta">Blockiert</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* BRIEFINGS (formerly "Status & Briefings") */}
-          {activeLeft === 'briefings' && (
-            <div>
-              <div className="pv-section-head">
-                <span className="pv-section-meta">Tagro fasst den Projektstand verständlich zusammen.</span>
-                <button className="pv-btn-primary" style={{ height:30 }} onClick={generateAIUpdate} disabled={generatingAI}>
-                  {generatingAI ? (
-                    <>
-                      <span style={{ width:10, height:10, border:'2px solid rgba(255,255,255,.35)', borderTopColor:'#fff', borderRadius:'50%', animation:'spin .7s linear infinite' }}/>
-                      Generiert…
-                    </>
-                  ) : '+ Bericht erstellen'}
-                </button>
+              <div className="pv-prop-row">
+                <span className="pv-prop-label">Resources</span>
+                <button className="pv-link-add"><Plus size={11} weight="bold" /> Dokument oder Link hinzufügen…</button>
               </div>
-              {aiUpdates.length === 0 ? (
-                <p className="pv-empty">Noch keine Berichte erstellt.</p>
+
+              {latestUpdate && (
+                <section className="pv-latest">
+                  <header>
+                    <span className="pv-latest-label">Letztes Update</span>
+                    <button className="pv-update-btn" onClick={generateAIUpdate} disabled={generatingAI}>
+                      {generatingAI ? 'Erstellt…' : 'Update'}
+                    </button>
+                  </header>
+                  <div className="pv-latest-meta">
+                    <span className="pv-status-dot tone-good" />
+                    <span>On track</span>
+                    <span className="pv-sep">·</span>
+                    <span>{displayName}</span>
+                    <span className="pv-sep">·</span>
+                    <span>{fmtAgo(latestUpdate.created_at)}</span>
+                  </div>
+                  <div className="pv-latest-body">{latestUpdate.content?.slice(0, 800)}</div>
+                </section>
+              )}
+
+              {!latestUpdate && (
+                <section className="pv-latest">
+                  <header>
+                    <span className="pv-latest-label">Letztes Update</span>
+                    <button className="pv-update-btn" onClick={generateAIUpdate} disabled={generatingAI}>
+                      {generatingAI ? 'Erstellt…' : 'Update'}
+                    </button>
+                  </header>
+                  <div className="pv-latest-meta">
+                    <span className="pv-status-dot tone-muted" />
+                    <span>Noch keine Updates</span>
+                  </div>
+                  <div className="pv-latest-body" style={{ color: 'var(--pv-muted)' }}>
+                    Klick auf „Update", damit Tagro einen ruhigen Statusbericht aus dem aktuellen Projektstand erstellt.
+                  </div>
+                </section>
+              )}
+
+              <section className="pv-desc-block">
+                <h2 className="pv-section-title">Beschreibung</h2>
+                {project.description
+                  ? <p className="pv-desc-text">{project.description}</p>
+                  : <p className="pv-desc-placeholder">Beschreibung hinzufügen…</p>}
+              </section>
+
+              {canEdit && (
+                <button className="pv-add-milestone-btn"><Plus size={11} weight="bold" /> Meilenstein</button>
+              )}
+            </div>
+          )}
+
+          {/* ACTIVITY */}
+          {activeLeft === 'activity' && (
+            <div className="pv-activity">
+              <div className="pv-composer">
+                <div className="pv-composer-tabs">
+                  <button className="pv-composer-tab on">Kommentar</button>
+                  <button className="pv-composer-tab" onClick={generateAIUpdate} disabled={generatingAI}>
+                    {generatingAI ? 'Tagro schreibt…' : 'Update'}
+                  </button>
+                </div>
+                <textarea
+                  className="pv-composer-area"
+                  placeholder="Kommentar hinterlassen…"
+                  value={newMsg}
+                  onChange={(e) => setNewMsg(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                      e.preventDefault()
+                      sendMessage()
+                    }
+                  }}
+                />
+                <div className="pv-composer-actions">
+                  <button
+                    className="pv-composer-submit"
+                    onClick={sendMessage}
+                    disabled={!newMsg.trim() || aiThinking}
+                  >
+                    {aiThinking ? 'Sende…' : 'Kommentar'}
+                  </button>
+                </div>
+              </div>
+
+              {feedEvents.length === 0 ? (
+                <p className="pv-empty">Noch keine Aktivität. Schreibe einen Kommentar oder lass Tagro einen Statusbericht erzeugen.</p>
               ) : (
-                <div style={{ marginTop:8 }}>
-                  {aiUpdates.map(u => (
-                    <div key={u.id} className="pv-update">
-                      <div className="pv-update-head">
-                        <span className="pv-update-tag">Tagro AI</span>
-                        <span className="pv-update-time">
-                          {new Date(u.created_at).toLocaleDateString('de',{day:'2-digit',month:'short'})} · {new Date(u.created_at).toLocaleTimeString('de',{hour:'2-digit',minute:'2-digit'})}
-                        </span>
+                <div className="pv-feed">
+                  {feedEvents.map((ev) => (
+                    <article key={ev.id} className="pv-feed-row">
+                      <div className="pv-feed-meta">
+                        <span className={`pv-status-dot tone-${ev.tone || 'muted'}`} />
+                        <strong>{ev.title}</strong>
+                        <span className="pv-sep">·</span>
+                        <span>{fmtAgo(new Date(ev.ts).toISOString())}</span>
                       </div>
-                      <div className="pv-update-body"><ChatMarkdown text={u.content} /></div>
-                    </div>
+                      {ev.body && <div className="pv-feed-body">{ev.body.slice(0, 800)}</div>}
+                    </article>
                   ))}
                 </div>
               )}
@@ -1292,61 +1202,76 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
 
           {/* TASKS */}
           {activeLeft === 'tasks' && (
-            <div>
-              <div className="pv-add">
+            <div className="pv-tasks">
+              <div className="pv-tasks-add">
                 <input
-                  className="pv-input"
-                  value={newTask} onChange={e => setNewTask(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && addTask()}
-                  placeholder={eff==='client' && clientRemaining===0 ? 'Wochenlimit erreicht' : 'Task hinzufügen…'}
-                  disabled={eff==='client' && clientRemaining===0}
+                  className="pv-tasks-input"
+                  value={newTask}
+                  onChange={(e) => setNewTask(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && addTask()}
+                  placeholder={eff === 'client' && clientRemaining === 0 ? 'Wochenlimit erreicht' : 'Task hinzufügen…'}
+                  disabled={eff === 'client' && clientRemaining === 0}
                 />
-                <button className="pv-btn-primary" onClick={addTask} disabled={!newTask.trim() || (eff==='client' && clientRemaining===0)}>
-                  Hinzufügen
-                </button>
+                <button
+                  className="pv-tasks-btn"
+                  onClick={addTask}
+                  disabled={!newTask.trim() || (eff === 'client' && clientRemaining === 0)}
+                >Hinzufügen</button>
               </div>
-              {eff==='client' && (
+              {eff === 'client' && (
                 <p className="pv-quota">
-                  <span className="d" style={{ background:'transparent', border:`1.5px solid ${clientRemaining>5?'#22c55e':clientRemaining>0?'#f59e0b':'#ef4444'}` }}/>
+                  <span className={`pv-status-dot tone-${clientRemaining > 5 ? 'good' : clientRemaining > 0 ? 'amber' : 'red'}`} />
                   {clientRemaining} von {TASK_WEEK_LIMIT} Tasks diese Woche übrig
                 </p>
               )}
 
               {[
-                { status:'doing', label:'In Arbeit', dot:'#f59e0b',              list: doingTasks },
-                { status:'todo',  label:'To Do',     dot:'var(--border-strong)', list: todoTasks  },
-                { status:'done',  label:'Fertig',    dot:'#22c55e',              list: doneTasks  },
-              ].map(group => group.list.length === 0 ? null : (
+                { status: 'doing', label: 'In Arbeit', list: doingTasks },
+                { status: 'todo',  label: 'To Do',     list: todoTasks  },
+                { status: 'done',  label: 'Fertig',    list: doneTasks  },
+              ].map((group) => group.list.length === 0 ? null : (
                 <div key={group.status} className="pv-task-group">
                   <div className="pv-task-group-head">
-                    <span className="d" style={{ background:'transparent', border:`1.5px solid ${group.dot}` }}/>
-                    <span className="l">{group.label}</span>
-                    <span className="c">{group.list.length}</span>
+                    <span>{group.label}</span>
+                    <span style={{ opacity: .55 }}>{group.list.length}</span>
                   </div>
                   <div>
-                    {group.list.map(task => {
-                      const showDelete = canEdit || (eff==='client' && task.status==='todo')
-                      const priColor = task.priority ? PRIORITY_COLOR[task.priority] : null
+                    {group.list.map((task) => {
+                      const showDelete = canEdit || (eff === 'client' && task.status === 'todo')
+                      const isDone = task.status === 'done'
                       return (
-                        <div key={task.id} className="pv-task-row" onClick={() => router.push(`/projects/${id}/tasks/${task.id}`)} title="Task-Detail öffnen">
-                          <span className="d" style={{ background:'transparent', border:`1.5px solid ${group.dot}` }}/>
-                          <span className="t">{task.title}</span>
-                          {priColor && (
-                            <span style={{ fontSize:10, color:priColor, flexShrink:0 }}>{task.priority?.toUpperCase()}</span>
+                        <div
+                          key={task.id}
+                          className={`pv-task-row${isDone ? ' done' : ''}`}
+                          onClick={() => router.push(`/projects/${id}/tasks/${task.id}`)}
+                        >
+                          <span className="pv-task-check">
+                            {isDone ? <CheckCircle size={14} weight="fill" /> : <Circle size={14} />}
+                          </span>
+                          <span className="pv-task-title">{task.title}</span>
+                          {task.priority && (
+                            <span
+                              className="pv-task-priority"
+                              style={{ color: PRIORITY_COLOR[task.priority] || 'var(--pv-muted)' }}
+                            >{task.priority.toUpperCase()}</span>
                           )}
                           {canEdit && (
-                            <div className="pv-task-actions" onClick={e => e.stopPropagation()}>
-                              {['todo','doing','done'].filter(s => s !== task.status).map(s => (
-                                <button key={s} className="pv-btn-ghost" onClick={() => updateTask(task.id, s)}>
-                                  {{ todo:'Todo', doing:'Aktiv', done:'Fertig' }[s]}
-                                </button>
+                            <div className="pv-task-actions" onClick={(e) => e.stopPropagation()}>
+                              {['todo', 'doing', 'done'].filter((s) => s !== task.status).map((s) => (
+                                <button
+                                  key={s}
+                                  className="pv-task-state-btn"
+                                  onClick={() => updateTask(task.id, s)}
+                                >{({ todo: 'Todo', doing: 'Aktiv', done: 'Fertig' } as Record<string, string>)[s]}</button>
                               ))}
                             </div>
                           )}
                           {showDelete && (
-                            <button className="pv-task-del" onClick={e => { e.stopPropagation(); deleteTask(task.id) }} aria-label="Task löschen">
-                              ✕
-                            </button>
+                            <button
+                              className="pv-task-trash"
+                              onClick={(e) => { e.stopPropagation(); deleteTask(task.id) }}
+                              title="Task löschen"
+                            ><Trash size={12} /></button>
                           )}
                         </div>
                       )
@@ -1359,117 +1284,138 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
             </div>
           )}
 
-          {/* ASSETS */}
-          {activeLeft === 'assets' && (
-            <AssetsPanel projectId={project.id} workspaceId={(project as any).workspace_id ?? null} />
-          )}
+        </main>
 
-        </div>
-
-        {/* RIGHT — Tagro Project Intelligence + Chat + Garantie */}
-        <div>
-          <div className="pv-intel">
-            <div className="pv-intel-block accent">
-              <p className="pv-intel-label">Current Summary</p>
-              <p className="pv-intel-text">{tagroSummary}</p>
-            </div>
-            <div className="pv-intel-block">
-              <p className="pv-intel-label">Next Action</p>
-              <p className="pv-intel-text">{tagroNextAction}</p>
-            </div>
-            <div className="pv-intel-block">
-              <p className="pv-intel-label">Decisions Needed</p>
-              {decisionTasks.length === 0 ? (
-                <p className="pv-intel-text" style={{ color:'var(--pv-muted)' }}>Keine Freigabe ausstehend.</p>
-              ) : decisionTasks.slice(0, 3).map((t, i) => (
-                <div key={t.id ?? i} className="pv-intel-row">{t.title}</div>
-              ))}
-            </div>
-            <div className="pv-intel-block">
-              <p className="pv-intel-label">Risks · Blockers</p>
-              {riskTasks.length === 0 ? (
-                <p className="pv-intel-text" style={{ color:'var(--pv-muted)' }}>Keine aktiven Blocker.</p>
-              ) : riskTasks.slice(0, 3).map((t, i) => (
-                <div key={t.id ?? i} className="pv-intel-row" style={{ color:'#d44b4b' }}>{t.title}</div>
-              ))}
-            </div>
-          </div>
-
-          <div className="pv-chat">
-            <div className="pv-chat-head">
-              <div>
-                <p className="ttl">Tagro AI</p>
-                <p className="sub">Live project intelligence</p>
-              </div>
-              <span className="pv-chat-live" style={{ color: online?'#16a34a':'var(--pv-muted)' }}>
-                <span style={{ width:5, height:5, borderRadius:'50%', background:online?'#22c55e':'var(--border-strong)', animation:online?'pvPulse 1.5s infinite':'none' }}/>
-                {online ? 'Live' : 'Offline'}
-              </span>
-            </div>
-
-            <div className="pv-chat-body">
-              {messages.length === 0 && !aiThinking && (
-                <p style={{ fontSize:12.5, color:'var(--pv-muted)', margin:0, paddingTop:6 }}>Starte eine Konversation mit Tagro…</p>
-              )}
-              {messages.map(m => {
-                const isAI = m.is_ai
-                return (
-                  <div key={m.id} className="pv-msg">
-                    <div className={`pv-msg-av ${isAI ? 'ai' : 'me'}`}>
-                      {isAI ? 'T' : (userEmail.charAt(0)||'U').toUpperCase()}
-                    </div>
-                    <div style={{ flex:1, minWidth:0 }}>
-                      <div style={{ display:'flex', gap:6, alignItems:'baseline' }}>
-                        <span className="pv-msg-name">{isAI?'Tagro':'Du'}</span>
-                        <span className="pv-msg-time">{new Date(m.created_at).toLocaleTimeString('de',{hour:'2-digit',minute:'2-digit'})}</span>
-                      </div>
-                      <p className="pv-msg-text">{m.message}</p>
-                    </div>
-                  </div>
-                )
-              })}
-              {aiThinking && (
-                <div className="pv-msg">
-                  <div className="pv-msg-av ai">T</div>
-                  <div style={{ paddingTop:8, display:'flex', gap:4 }}>
-                    {[0,1,2].map(i => <span key={i} style={{ width:4, height:4, borderRadius:'50%', background:'var(--pv-muted)', animation:`pvPulse 1s ${i*0.2}s infinite` }}/>)}
-                  </div>
-                </div>
-              )}
-              <div ref={msgEndRef}/>
-            </div>
-
-            <div className="pv-chat-foot">
-              <input
-                className="pv-chat-input"
-                value={newMsg} onChange={e => setNewMsg(e.target.value)}
-                onKeyDown={e => e.key==='Enter' && !e.shiftKey && sendMessage()}
-                placeholder="Nachricht…"
-              />
-              <button className="pv-chat-send" onClick={sendMessage} disabled={!newMsg.trim()} aria-label="Senden">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M7 17L17 7M9 7h8v8"/></svg>
-              </button>
-            </div>
-          </div>
-
-          {/* Garantie */}
-          <div className="pv-guarantee">
-            <p className="pv-guarantee-label">Festag Garantie</p>
-            {[
-              { label:'AI Check',             done: pct>30 },
-              { label:'Project Owner Review', done: pct>70 },
-              { label:'Controlled Release',   done: project.status==='done' },
-            ].map((item) => (
-              <div key={item.label} className="pv-guarantee-row">
-                <span className="l">{item.label}</span>
-                <span className="s" style={{ color:item.done?'#16a34a':'var(--pv-muted)' }}>
-                  {item.done ? '✓ Geprüft' : 'Ausstehend'}
+        {/* ─── RIGHT SIDEBAR — Properties / Milestones / Activity ─── */}
+        <aside className="pv-sidebar">
+          <section className="pv-side-section">
+            <header>
+              <span>Properties</span>
+              <button title="Mehr">▾</button>
+            </header>
+            <div className="pv-side-rows">
+              <div className="pv-side-row">
+                <span className="pv-side-row-key">Status</span>
+                <span className="pv-side-row-val">
+                  <span className={`pv-status-dot tone-${project.status === 'done' ? 'good' : project.status === 'active' ? 'amber' : 'muted'}`} style={{ display: 'inline-block', marginRight: 5 }} />
+                  {PHASE_LABEL[project.status] ?? project.status}
                 </span>
               </div>
-            ))}
-          </div>
-        </div>
+              <div className="pv-side-row">
+                <span className="pv-side-row-key">Type</span>
+                <span className="pv-side-row-val">{typePreset?.label || projectType || '—'}</span>
+              </div>
+              <div className="pv-side-row">
+                <span className="pv-side-row-key">Owner</span>
+                <span className="pv-side-row-val">{displayName}</span>
+              </div>
+              <div className="pv-side-row">
+                <span className="pv-side-row-key">Target date</span>
+                <span className="pv-side-row-val" style={{ color: 'var(--pv-muted)' }}>—</span>
+              </div>
+              <div className="pv-side-row">
+                <span className="pv-side-row-key">Risk</span>
+                <span className="pv-side-row-val">
+                  <span className={`pv-pill tone-${riskState.tone}`}>{riskState.label}</span>
+                </span>
+              </div>
+              <div className="pv-side-row">
+                <span className="pv-side-row-key">Payment</span>
+                <span className="pv-side-row-val">
+                  <span className={`pv-pill tone-${paymentState.tone}`}>{paymentState.label}</span>
+                </span>
+              </div>
+              <div className="pv-side-row">
+                <span className="pv-side-row-key">Quality</span>
+                <span className="pv-side-row-val">
+                  <span className={`pv-pill tone-${qualityGate.tone}`}>{qualityGate.label}</span>
+                </span>
+              </div>
+              <div className="pv-side-row">
+                <span className="pv-side-row-key">Decisions</span>
+                <span className="pv-side-row-val">
+                  <Link href={`/decisions?project=${id}`} className="pv-side-link">
+                    {decisionTasks.length > 0 ? `${decisionTasks.length} offen` : 'Keine offen'}
+                  </Link>
+                </span>
+              </div>
+              <div className="pv-side-row">
+                <span className="pv-side-row-key">Issues</span>
+                <span className="pv-side-row-val">{tasks.length}</span>
+              </div>
+            </div>
+          </section>
+
+          <section className="pv-side-section">
+            <header>
+              <span>Milestones</span>
+              {canEdit && <button title="Meilenstein hinzufügen">+</button>}
+            </header>
+            {milestones.length === 0 ? (
+              <p style={{ margin: 0, fontSize: 11.5, color: 'var(--pv-muted)', lineHeight: 1.5 }}>
+                Meilensteine strukturieren die Lieferung in Phasen. Lege den ersten an, um Zahlungen freizugeben.
+              </p>
+            ) : (
+              <ul className="pv-side-milestones">
+                {milestones.slice(0, 5).map((m) => {
+                  const isPaid = m.status === 'paid'
+                  const isPending = m.status === 'pending'
+                  const isLocked = m.status === 'locked'
+                  return (
+                    <li key={m.id} className={`pv-side-milestone ${m.status}`}>
+                      <span className={`pv-status-dot tone-${isPaid ? 'good' : isPending ? 'amber' : 'muted'}`} />
+                      <span className="mtitle">{m.title}</span>
+                      <span className="mamount">€{m.amount.toLocaleString('de')}</span>
+                      {isPending && !canEdit && (
+                        <button
+                          className="pv-update-btn"
+                          style={{ height: 22, padding: '0 8px', fontSize: 11 }}
+                          onClick={() => payMilestone(m)}
+                        >Freischalten</button>
+                      )}
+                    </li>
+                  )
+                })}
+              </ul>
+            )}
+          </section>
+
+          <section className="pv-side-section">
+            <header>
+              <span>Activity</span>
+              <button onClick={() => setActiveLeft('activity')}>Alle</button>
+            </header>
+            {sidebarPreview.length === 0 ? (
+              <p style={{ margin: 0, fontSize: 11.5, color: 'var(--pv-muted)' }}>Noch keine Aktivität.</p>
+            ) : (
+              <ul className="pv-side-activity">
+                {sidebarPreview.map((ev) => (
+                  <li key={ev.id} className={ev.tone === 'good' ? 'tone-good' : ''}>
+                    <span className="dot" />
+                    <div className="body">
+                      <strong>{ev.title}</strong> · {fmtAgo(new Date(ev.ts).toISOString())}
+                      {ev.body && <div style={{ marginTop: 2 }}>{ev.body.slice(0, 90)}{ev.body.length > 90 ? '…' : ''}</div>}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        </aside>
       </div>
     </div>
   )
+}
+
+// ─── Date formatter — used across the project view ──────────────────
+function fmtAgo(iso: string) {
+  const ms = Date.now() - new Date(iso).getTime()
+  const m = Math.floor(ms / 60000)
+  if (m < 1) return 'gerade eben'
+  if (m < 60) return `vor ${m} min`
+  const h = Math.floor(m / 60)
+  if (h < 24) return `vor ${h} Std`
+  const d = Math.floor(h / 24)
+  if (d < 7) return `vor ${d} Tag${d === 1 ? '' : 'en'}`
+  return new Date(iso).toLocaleDateString('de-DE')
 }
