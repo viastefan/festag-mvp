@@ -20,6 +20,7 @@ import {
 import {
   docsCategories,
   festagDocsArticles,
+  type ArticleBlock,
   type FestagDocArticle,
 } from '@/lib/festag-docs'
 
@@ -41,16 +42,45 @@ const iconMap: Record<string, React.ElementType> = {
 }
 
 function articleSearchText(article: FestagDocArticle) {
-  return [
-    article.title,
-    article.description,
-    article.category,
-    article.tags.join(' '),
-    article.content.overview,
-    article.content.explanation.join(' '),
-    article.content.example,
-    article.content.nextStep,
-  ].join(' ').toLowerCase()
+  const legacy = article.content
+    ? [
+        article.content.overview,
+        article.content.explanation.join(' '),
+        article.content.example,
+        article.content.nextStep,
+      ]
+    : []
+  const blocks = article.body
+    ? article.body.map((block) => {
+        switch (block.type) {
+          case 'lead':
+          case 'paragraph':
+          case 'note':
+          case 'quote':
+          case 'mono':
+            return block.text
+          case 'heading':
+            return block.text
+          case 'list':
+            return block.items.join(' ')
+          case 'kvtable':
+            return block.rows.map((row) => row.join(' ')).join(' ')
+          default:
+            return ''
+        }
+      })
+    : []
+  return [article.title, article.description, article.category, article.tags.join(' '), ...legacy, ...blocks]
+    .join(' ')
+    .toLowerCase()
+}
+
+function slugify(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
 }
 
 export default function FestagDocs({ article }: FestagDocsProps) {
@@ -220,6 +250,19 @@ function ArticleView({ article }: { article: FestagDocArticle }) {
   const related = festagDocsArticles
     .filter((item) => item.slug !== article.slug && item.category === article.category)
     .slice(0, 3)
+
+  const useBlocks = !!article.body && article.body.length > 0
+  const tocEntries = useBlocks
+    ? article.body!
+        .filter((block): block is Extract<ArticleBlock, { type: 'heading' }> => block.type === 'heading' && block.level === 2)
+        .map((block) => ({ id: block.id || slugify(block.text), label: block.text }))
+    : [
+        { id: 'ueberblick', label: 'Überblick' },
+        { id: 'erklaerung', label: 'Erklärung' },
+        { id: 'beispiel', label: 'Beispiel' },
+        { id: 'naechster-schritt', label: 'Nächster Schritt' },
+      ]
+
   return (
     <div className="docs-article-layout">
       <article className="docs-article">
@@ -228,22 +271,7 @@ function ArticleView({ article }: { article: FestagDocArticle }) {
         <h1>{article.title}</h1>
         <p className="docs-article-summary">{article.description}</p>
 
-        <section id="ueberblick">
-          <h2>Überblick</h2>
-          <p>{article.content.overview}</p>
-        </section>
-        <section id="erklaerung">
-          <h2>Erklärung</h2>
-          {article.content.explanation.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
-        </section>
-        <section id="beispiel">
-          <h2>Beispiel aus Festag</h2>
-          <div className="docs-note">{article.content.example}</div>
-        </section>
-        <section id="naechster-schritt">
-          <h2>Nächster sinnvoller Schritt</h2>
-          <p>{article.content.nextStep}</p>
-        </section>
+        {useBlocks ? renderBlocks(article.body!) : article.content ? renderLegacyContent(article.content) : null}
 
         {related.length > 0 ? (
           <section className="docs-related">
@@ -262,13 +290,113 @@ function ArticleView({ article }: { article: FestagDocArticle }) {
 
       <aside className="docs-toc" aria-label="Inhaltsnavigation">
         <span>Auf dieser Seite</span>
-        <a href="#ueberblick">Überblick</a>
-        <a href="#erklaerung">Erklärung</a>
-        <a href="#beispiel">Beispiel</a>
-        <a href="#naechster-schritt">Nächster Schritt</a>
+        {tocEntries.map((entry) => (
+          <a key={entry.id} href={`#${entry.id}`}>{entry.label}</a>
+        ))}
       </aside>
     </div>
   )
+}
+
+function renderLegacyContent(content: NonNullable<FestagDocArticle['content']>) {
+  return (
+    <>
+      <section id="ueberblick">
+        <h2>Überblick</h2>
+        <p>{content.overview}</p>
+      </section>
+      <section id="erklaerung">
+        <h2>Erklärung</h2>
+        {content.explanation.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+      </section>
+      <section id="beispiel">
+        <h2>Beispiel aus Festag</h2>
+        <div className="docs-note">{content.example}</div>
+      </section>
+      <section id="naechster-schritt">
+        <h2>Nächster sinnvoller Schritt</h2>
+        <p>{content.nextStep}</p>
+      </section>
+    </>
+  )
+}
+
+function renderBlocks(blocks: ArticleBlock[]) {
+  const out: React.ReactNode[] = []
+  let currentSection: { id: string; nodes: React.ReactNode[] } | null = null
+
+  const flush = () => {
+    if (currentSection) {
+      out.push(
+        <section key={currentSection.id} id={currentSection.id}>
+          {currentSection.nodes}
+        </section>,
+      )
+      currentSection = null
+    }
+  }
+
+  blocks.forEach((block, index) => {
+    if (block.type === 'heading' && block.level === 2) {
+      flush()
+      const id = block.id || slugify(block.text)
+      currentSection = { id, nodes: [<h2 key={`h-${index}`}>{block.text}</h2>] }
+      return
+    }
+    const node = renderBlockNode(block, index)
+    if (!node) return
+    if (currentSection) {
+      currentSection.nodes.push(node)
+    } else {
+      out.push(node)
+    }
+  })
+
+  flush()
+  return out
+}
+
+function renderBlockNode(block: ArticleBlock, index: number): React.ReactNode {
+  const key = `b-${index}`
+  switch (block.type) {
+    case 'lead':
+      return <p key={key} className="docs-lead">{block.text}</p>
+    case 'paragraph':
+      return <p key={key}>{block.text}</p>
+    case 'heading':
+      return <h3 key={key} id={block.id || slugify(block.text)}>{block.text}</h3>
+    case 'list':
+      return block.ordered ? (
+        <ol key={key} className="docs-block-list">
+          {block.items.map((item, i) => <li key={i}>{item}</li>)}
+        </ol>
+      ) : (
+        <ul key={key} className="docs-block-list">
+          {block.items.map((item, i) => <li key={i}>{item}</li>)}
+        </ul>
+      )
+    case 'note':
+      return <div key={key} className={`docs-note${block.kind === 'warning' ? ' docs-note-warning' : ''}`}>{block.text}</div>
+    case 'quote':
+      return <blockquote key={key} className="docs-quote">{block.text}</blockquote>
+    case 'mono':
+      return <pre key={key} className="docs-mono">{block.text}</pre>
+    case 'kvtable':
+      return (
+        <dl key={key} className="docs-kvtable">
+          {block.rows.map(([label, value], i) => (
+            <div key={i} className="docs-kvrow">
+              <dt>{label}</dt>
+              <dd>{value}</dd>
+            </div>
+          ))}
+        </dl>
+      )
+    case 'divider':
+      return <hr key={key} className="docs-divider" />
+    default:
+      return null
+  }
 }
 
 const CSS = `
@@ -279,10 +407,10 @@ const CSS = `
     grid-template-columns: 282px minmax(0, 1fr);
     overflow: hidden;
     color: var(--text);
-    background:
-      radial-gradient(circle at 80% 0%, color-mix(in srgb, var(--accent) 5%, transparent), transparent 32%),
-      var(--surface);
+    background: var(--surface);
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+    font-weight: 500;
+    letter-spacing: .015em;
   }
   .docs-nav {
     min-height: 0;
@@ -301,8 +429,8 @@ const CSS = `
     gap: 10px;
     color: var(--text);
     font-size: 14px;
-    font-weight: 700;
-    letter-spacing: -.015em;
+    font-weight: 500;
+    letter-spacing: .005em;
   }
   .docs-brand-mark,
   .docs-card-icon {
@@ -338,7 +466,8 @@ const CSS = `
     color: var(--text);
     font: inherit;
     font-size: 12.5px;
-    font-weight: 560;
+    font-weight: 500;
+    letter-spacing: .015em;
   }
   .docs-search input::placeholder { color: var(--text-muted); opacity: .75; }
   .docs-category-list {
@@ -360,7 +489,8 @@ const CSS = `
     color: var(--text-secondary);
     text-decoration: none;
     font-size: 12.5px;
-    font-weight: 600;
+    font-weight: 500;
+    letter-spacing: .015em;
     transition: background .12s ease, color .12s ease;
   }
   .docs-category-list a span {
@@ -402,7 +532,8 @@ const CSS = `
     gap: 7px;
     color: var(--text-muted);
     font-size: 12.5px;
-    font-weight: 600;
+    font-weight: 500;
+    letter-spacing: .015em;
   }
   .docs-crumb a {
     color: var(--text-secondary);
@@ -423,14 +554,15 @@ const CSS = `
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border-radius: 999px;
+    border-radius: 12px;
     border: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
     background: color-mix(in srgb, var(--card) 84%, transparent);
     color: var(--text-secondary);
-    padding: 0 12px;
+    padding: 0 14px;
     font: inherit;
     font-size: 12px;
-    font-weight: 680;
+    font-weight: 500;
+    letter-spacing: .015em;
     text-decoration: none;
   }
   .docs-mobile-menu { display: none; }
@@ -453,19 +585,28 @@ const CSS = `
   .docs-article h1 {
     margin: 0;
     color: var(--text);
-    font-size: clamp(42px, 6vw, 78px);
-    line-height: .96;
-    letter-spacing: -.065em;
-    font-weight: 760;
+    font-size: clamp(38px, 5vw, 60px);
+    line-height: 1.05;
+    letter-spacing: -.012em;
+    font-weight: 500;
   }
-  .docs-hero p,
-  .docs-article-summary {
-    margin: 18px 0 0;
+  .docs-hero p {
+    margin: 20px 0 0;
     color: var(--text-secondary);
-    font-size: clamp(16px, 1.8vw, 21px);
+    font-size: clamp(16px, 1.4vw, 18px);
+    line-height: 1.6;
+    font-weight: 500;
+    letter-spacing: .012em;
+  }
+  .docs-article-summary {
+    margin: 22px 0 0;
+    color: var(--text-secondary);
+    font-family: 'Editors Note', Georgia, serif;
+    font-style: italic;
+    font-size: clamp(17px, 1.6vw, 20px);
     line-height: 1.55;
-    font-weight: 560;
-    letter-spacing: -.01em;
+    font-weight: 500;
+    letter-spacing: .003em;
   }
   .docs-section {
     margin-top: 54px;
@@ -482,18 +623,19 @@ const CSS = `
   .docs-related h2 {
     margin: 0;
     color: var(--text);
-    font-size: 22px;
-    line-height: 1.2;
-    letter-spacing: -.025em;
-    font-weight: 720;
+    font-size: 20px;
+    line-height: 1.25;
+    letter-spacing: -.005em;
+    font-weight: 500;
   }
   .docs-section-head p {
     max-width: 520px;
     margin: 0;
     color: var(--text-muted);
     font-size: 12.5px;
-    line-height: 1.5;
-    font-weight: 580;
+    line-height: 1.55;
+    font-weight: 500;
+    letter-spacing: .015em;
     text-align: right;
   }
   .docs-card-grid {
@@ -537,22 +679,23 @@ const CSS = `
   .docs-focus-kicker {
     color: var(--text-muted);
     font-size: 10.5px;
-    font-weight: 720;
-    letter-spacing: .08em;
+    font-weight: 500;
+    letter-spacing: .14em;
     text-transform: uppercase;
   }
   .docs-card strong {
     color: var(--text);
     font-size: 15px;
-    line-height: 1.28;
-    letter-spacing: -.016em;
-    font-weight: 710;
+    line-height: 1.32;
+    letter-spacing: -.005em;
+    font-weight: 500;
   }
   .docs-card-body > span:last-child {
     color: var(--text-secondary);
     font-size: 12.7px;
-    line-height: 1.5;
-    font-weight: 560;
+    line-height: 1.55;
+    font-weight: 500;
+    letter-spacing: .015em;
   }
   .docs-card-arrow {
     color: var(--text-muted);
@@ -599,36 +742,169 @@ const CSS = `
     margin: 0 0 13px;
   }
   .docs-article h1 {
-    font-size: clamp(38px, 5vw, 64px);
+    font-size: clamp(36px, 4.4vw, 52px);
+    letter-spacing: -.008em;
   }
   .docs-article section {
     margin-top: 42px;
     scroll-margin-top: 82px;
   }
   .docs-article h2 {
-    margin: 0 0 12px;
+    margin: 0 0 14px;
     color: var(--text);
-    font-size: 21px;
-    line-height: 1.28;
-    letter-spacing: -.026em;
-    font-weight: 730;
+    font-size: 20px;
+    line-height: 1.3;
+    letter-spacing: -.005em;
+    font-weight: 500;
+  }
+  .docs-article h3 {
+    margin: 22px 0 10px;
+    color: var(--text);
+    font-size: 15.5px;
+    line-height: 1.4;
+    letter-spacing: .005em;
+    font-weight: 500;
   }
   .docs-article p {
-    margin: 0 0 16px;
+    margin: 0 0 18px;
     color: var(--text-secondary);
     font-size: 15.5px;
     line-height: 1.78;
-    font-weight: 540;
+    font-weight: 500;
+    letter-spacing: .012em;
+  }
+  .docs-lead {
+    margin: 0 0 32px !important;
+    color: var(--text);
+    font-family: 'Editors Note', Georgia, serif;
+    font-style: italic;
+    font-size: clamp(19px, 1.9vw, 23px);
+    line-height: 1.5;
+    font-weight: 500;
+    letter-spacing: .003em;
+  }
+  .docs-block-list {
+    margin: 0 0 20px;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    color: var(--text-secondary);
+    font-size: 15px;
+    line-height: 1.7;
+    font-weight: 500;
+    letter-spacing: .012em;
+    counter-reset: docs-ol;
+  }
+  .docs-block-list li {
+    position: relative;
+    padding-left: 22px;
+  }
+  .docs-block-list li::before {
+    content: '';
+    position: absolute;
+    left: 5px;
+    top: 13px;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--text-muted);
+    opacity: .55;
+  }
+  ol.docs-block-list { counter-reset: docs-ol; }
+  ol.docs-block-list li { counter-increment: docs-ol; }
+  ol.docs-block-list li::before {
+    content: counter(docs-ol) '.';
+    width: auto;
+    height: auto;
+    top: 0;
+    left: 0;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: .015em;
+    border-radius: 0;
+    opacity: .9;
   }
   .docs-note {
     border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
-    background: color-mix(in srgb, var(--surface-2) 40%, transparent);
-    border-radius: 18px;
-    padding: 18px 20px;
+    background: color-mix(in srgb, var(--surface-2) 38%, transparent);
+    border-radius: 14px;
+    padding: 16px 18px;
     color: var(--text);
     font-size: 14px;
-    line-height: 1.68;
-    font-weight: 590;
+    line-height: 1.7;
+    font-weight: 500;
+    letter-spacing: .012em;
+    margin: 0 0 22px;
+  }
+  .docs-note-warning {
+    border-color: color-mix(in srgb, var(--red, #D14343) 28%, var(--border));
+    background: color-mix(in srgb, var(--red, #D14343) 5%, transparent);
+  }
+  .docs-quote {
+    margin: 32px 0;
+    padding: 6px 0 6px 18px;
+    border-left: 2px solid color-mix(in srgb, var(--text) 40%, transparent);
+    color: var(--text);
+    font-family: 'Editors Note', Georgia, serif;
+    font-style: italic;
+    font-size: clamp(17px, 1.7vw, 21px);
+    line-height: 1.55;
+    font-weight: 500;
+    letter-spacing: .003em;
+  }
+  .docs-mono {
+    margin: 0 0 22px;
+    padding: 16px 18px;
+    border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+    border-radius: 14px;
+    background: color-mix(in srgb, var(--surface-2) 42%, transparent);
+    color: var(--text);
+    font-family: 'Berkeley Mono', 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 12.5px;
+    line-height: 1.65;
+    font-weight: 500;
+    letter-spacing: .005em;
+    white-space: pre;
+    overflow-x: auto;
+  }
+  .docs-kvtable {
+    margin: 0 0 24px;
+    display: flex;
+    flex-direction: column;
+    border-top: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+  }
+  .docs-kvrow {
+    display: grid;
+    grid-template-columns: 200px minmax(0, 1fr);
+    gap: 24px;
+    padding: 14px 0;
+    border-bottom: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+  }
+  .docs-kvrow dt {
+    margin: 0;
+    color: var(--text);
+    font-size: 13.5px;
+    line-height: 1.5;
+    font-weight: 500;
+    letter-spacing: .005em;
+  }
+  .docs-kvrow dd {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 14.5px;
+    line-height: 1.7;
+    font-weight: 500;
+    letter-spacing: .012em;
+  }
+  .docs-divider {
+    margin: 32px 0;
+    border: 0;
+    height: 1px;
+    background: color-mix(in srgb, var(--border) 78%, transparent);
   }
   .docs-related {
     margin-top: 54px;
@@ -651,7 +927,8 @@ const CSS = `
     gap: 12px;
     padding: 0 14px;
     font-size: 13px;
-    font-weight: 640;
+    font-weight: 500;
+    letter-spacing: .015em;
   }
   .docs-toc {
     position: sticky;
@@ -665,8 +942,8 @@ const CSS = `
   .docs-toc span {
     color: var(--text-muted);
     font-size: 10.5px;
-    font-weight: 740;
-    letter-spacing: .1em;
+    font-weight: 500;
+    letter-spacing: .14em;
     text-transform: uppercase;
     margin-bottom: 5px;
   }
@@ -674,13 +951,22 @@ const CSS = `
     color: var(--text-secondary);
     text-decoration: none;
     font-size: 12.5px;
-    font-weight: 600;
+    font-weight: 500;
+    letter-spacing: .015em;
   }
   .docs-toc a:hover { color: var(--text); }
   @media (max-width: 1180px) {
     .docs-card-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     .docs-article-layout { grid-template-columns: minmax(0, 1fr); }
     .docs-toc { display: none; }
+  }
+  @media (max-width: 760px) {
+    .docs-kvrow {
+      grid-template-columns: 1fr;
+      gap: 4px;
+      padding: 12px 0;
+    }
+    .docs-kvrow dt { font-size: 12.5px; color: var(--text-muted); letter-spacing: .07em; text-transform: uppercase; }
   }
   @media (max-width: 900px) {
     .docs-shell { grid-template-columns: minmax(0, 1fr); }

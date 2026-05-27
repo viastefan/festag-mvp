@@ -9,6 +9,20 @@ export type FestagDocSection =
   | 'Whitelabel & Agenturen'
   | 'Sicherheit & Vertrauen'
 
+// Editorial block types for the magazine-style long-form articles.
+// Articles use either the legacy four-section `content` shape or the
+// richer `body` block list. Both stay supported.
+export type ArticleBlock =
+  | { type: 'lead'; text: string }
+  | { type: 'heading'; level: 2 | 3; text: string; id?: string }
+  | { type: 'paragraph'; text: string }
+  | { type: 'list'; ordered?: boolean; items: string[] }
+  | { type: 'note'; text: string; kind?: 'default' | 'warning' }
+  | { type: 'quote'; text: string }
+  | { type: 'mono'; text: string }
+  | { type: 'kvtable'; rows: Array<[string, string]> }
+  | { type: 'divider' }
+
 export type FestagDocArticle = {
   title: string
   slug: string
@@ -17,12 +31,13 @@ export type FestagDocArticle = {
   readingTime: string
   tags: string[]
   popular?: boolean
-  content: {
+  content?: {
     overview: string
     explanation: string[]
     example: string
     nextStep: string
   }
+  body?: ArticleBlock[]
 }
 
 export const docsCategories: Array<{ title: FestagDocSection | 'Best Practices' | 'Hilfe & Support'; description: string }> = [
@@ -49,6 +64,17 @@ const article = (
   popular = false,
   readingTime = '4 Min.',
 ): FestagDocArticle => ({ title, slug, category, description, tags, content, popular, readingTime })
+
+const richArticle = (
+  category: FestagDocSection,
+  title: string,
+  slug: string,
+  description: string,
+  tags: string[],
+  body: ArticleBlock[],
+  popular = false,
+  readingTime = '6 Min.',
+): FestagDocArticle => ({ title, slug, category, description, tags, body, popular, readingTime })
 
 export const festagDocsArticles: FestagDocArticle[] = [
   article('Erste Schritte', 'Was ist Festag?', 'was-ist-festag',
@@ -674,6 +700,99 @@ export const festagDocsArticles: FestagDocArticle[] = [
       example: 'Nach dem Mittag öffnet ein Kunde den Posteingang. Drei Eingänge sind ungelesen: ein Tagro-Briefing zum Stand der Landingpage, eine Rechnung des Vormonats und eine Entscheidungsanfrage. Mit drei Klicks ist alles eingeordnet.',
       nextStep: 'Wähle eine Kategorie über das Popover oben rechts — der Detail-Pane zeigt den Eintrag, danach kannst du direkt ins Projekt springen.',
     }),
+
+  richArticle('Tagro AI', 'Entscheidungen in Festag', 'entscheidungen-in-festag',
+    'Wie Auftraggeber und Auftragnehmer über Tagro saubere Entscheidungen treffen — ohne Chat-Chaos, ohne Missverständnisse, mit klarer Verantwortung.',
+    ['Entscheidungen', 'Decision Engine', 'Tagro', 'Trust Layer', 'Dev Panel', 'Client Board'],
+    [
+      { type: 'lead', text: 'Eine Entscheidung ist die einzige formale Form, in der Auftraggeber und Auftragnehmer einander wirklich verpflichten. Tagro ist die Sprache, in der diese Verpflichtung geschrieben wird.' },
+
+      { type: 'heading', level: 2, text: 'Warum Entscheidungen ein eigener Bereich sind', id: 'warum' },
+      { type: 'paragraph', text: 'Die meisten Projekte scheitern nicht an der Arbeit, sondern an der Kommunikation rund um die Arbeit. Eine Frage des Devs landet in WhatsApp, die Antwort drei Tage später per E-Mail, der Kontext ist verschollen, niemand weiß mehr, was eigentlich entschieden wurde.' },
+      { type: 'paragraph', text: 'Festag löst das, indem Entscheidungen nicht in Chats oder Mails stattfinden, sondern in einem eigenen, strukturierten Objekt. Eine Entscheidung hat einen Titel, eine Frage, mögliche Antworten, eine zuständige Rolle, eine Wirkung und einen Audit-Trail. Sie ist kein Nachrichten-Stream, sondern ein Vertrag im Kleinen.' },
+      { type: 'paragraph', text: 'Tagro übersetzt zwischen den beiden Seiten. Was der Dev technisch fragt, wird für den Auftraggeber ruhig und verständlich. Was der Auftraggeber entscheidet, kommt beim Dev als klare Anweisung mit allen relevanten technischen Implikationen an. Niemand muss die Sprache der anderen Seite lernen.' },
+
+      { type: 'heading', level: 2, text: 'Drei Sichten, eine Wahrheit', id: 'drei-sichten' },
+      { type: 'paragraph', text: 'Eine Entscheidung existiert als ein einziges Objekt im System. Die drei Beteiligten sehen sie in jeweils ihrer eigenen Projektion — ohne dass die Information dabei wandert, kopiert oder verfälscht wird.' },
+      { type: 'kvtable', rows: [
+        ['Client Board', 'Ruhig und entscheidungsorientiert. Titel und Zusammenfassung in normaler Sprache, zwei bis vier Optionen, eine primäre Aktion. Keine technischen Details, keine Confidence-Prozente, keine Dev-Begriffe.'],
+        ['Tagro Backend', 'Notar und Übersetzer. Rahmt die Entscheidung, formuliert beide Sichten, routet an die richtige Rolle, propagiert das Ergebnis. Selbst nie Entscheidungsträger, außer es ist explizit erlaubt.'],
+        ['Dev Panel', 'Technisch und vollständig. Verlinkte Tasks, Begründung, Tagro-Vorschlag mit Reasoning, mögliche Verfeinerung vor dem Versand an den Client.'],
+      ]},
+
+      { type: 'heading', level: 2, text: 'Wer eine Entscheidung erzeugt', id: 'erzeugung' },
+      { type: 'paragraph', text: 'Am Projektstart kommen Entscheidungen fast ausschließlich vom Dev. Er weiß, welche technischen oder organisatorischen Fragen beantwortet werden müssen, bevor er weiterarbeiten kann. Tagro hat in dieser Phase noch keinen ausreichenden Kontext, um eigenständig zu erkennen, was offen ist — sie ist hier reine Übersetzerin und Routerin.' },
+      { type: 'paragraph', text: 'Sobald das Projekt läuft, kommen weitere Quellen dazu. Statusberichte, Blocker, Risikoindikatoren und Scope-Vergleiche füttern Tagro mit genug Signal, um Entscheidungsbedarf eigenständig zu erkennen. Auch dann bleibt der Dev der dominante Ursprung — Tagro ergänzt, sie ersetzt nicht.' },
+      { type: 'list', items: [
+        'Vage Tasks ohne klare Akzeptanzkriterien — Tagro fragt nach, statt zu raten.',
+        'Blocker, deren Auflösung eine externe Wahl voraussetzt.',
+        'Explizite Dev-Anfrage über die Aktion „Entscheidung anfragen" an einem Task.',
+        'Scope-Drift, erkannt aus dem Vergleich aktueller Tasks mit dem ursprünglichen Auftrag.',
+        'Überschrittene Risikoschwellen, etwa drohende Deadlines oder Budgetabweichungen.',
+        'Statusbericht-Signale wie offene Fragen oder neue Anforderungen.',
+      ]},
+      { type: 'note', text: 'Tagro erzeugt maximal drei automatische Entscheidungen pro Projekt und Tag. Mehr wäre eine Belastung statt einer Hilfe. Nur kritische Themen umgehen dieses Limit.' },
+
+      { type: 'heading', level: 2, text: 'Was Tagro für jede Entscheidung liefert', id: 'framing' },
+      { type: 'paragraph', text: 'Bevor eine Entscheidung dem Auftraggeber gezeigt wird, prüft Tagro, ob sie vollständig gerahmt ist. Ohne die folgenden Elemente bleibt sie im Entwurf und erreicht das Client Board nicht.' },
+      { type: 'list', ordered: true, items: [
+        'Ein ruhiger Titel in normaler Sprache, höchstens ein Satz.',
+        'Eine Zusammenfassung in zwei bis vier Sätzen: was zu entscheiden ist und warum jetzt.',
+        'Zwischen zwei und vier Optionen, formuliert in der Sprache des Auftraggebers.',
+        'Pro Option die strukturierte Auswirkung: zeitlicher Effekt, Kosten, Risiko, Scope.',
+        'Eine Tagro-Empfehlung in einer einzigen Zeile — oder die ehrliche Aussage, dass keine Empfehlung möglich ist.',
+      ]},
+
+      { type: 'heading', level: 2, text: 'Wie der Auftraggeber antwortet', id: 'antworten' },
+      { type: 'paragraph', text: 'Nicht jede Entscheidung sieht gleich aus. Manche brauchen ein einfaches Ja oder Nein, andere eine Auswahl, andere einen kurzen Text. Tagro erkennt den passenden Antworttyp aus dem Kontext und schlägt ihn dem Dev vor, der die Frage stellt.' },
+      { type: 'kvtable', rows: [
+        ['Ja / Nein', 'Binäre Entscheidung mit zwei klaren Konsequenzen. Beispiel: Soll diese Website ein Impressum erhalten?'],
+        ['Auswahl', 'Zwei bis vier vorbereitete Optionen mit Auswirkung. Beispiel: Welche Hero-Variante soll umgesetzt werden?'],
+        ['Mehrfachauswahl', 'Mehrere Optionen können gemeinsam gelten. Beispiel: Welche Sprachen soll die Plattform unterstützen?'],
+        ['Freier Text', 'Eine eigene Eingabe ist sinnvoller als jede vorbereitete Option. Beispiel: Wie soll der Footer-Claim lauten?'],
+      ]},
+
+      { type: 'heading', level: 2, text: 'Tagro entscheiden lassen', id: 'delegation' },
+      { type: 'paragraph', text: 'Neben den vier Antworttypen gibt es eine fünfte Möglichkeit, die jede Entscheidung still im Hintergrund mitführt: Der Auftraggeber kann Tagro bitten, für ihn zu entscheiden.' },
+      { type: 'paragraph', text: 'Das ist kein Verzicht auf Kontrolle, sondern das Gegenteil. Der Auftraggeber entscheidet pro Entscheidung neu, wem er die Wahl überlässt. Tagro lernt mit jeder Delegation die Präferenzen des Projekts kennen — Tonalität, Risikoneigung, Designgeschmack — und kann zukünftige Vorschläge präziser rahmen.' },
+      { type: 'paragraph', text: 'Jede delegierte Entscheidung wird mit einer kurzen Begründung dokumentiert. Der Auftraggeber sieht das Ergebnis sofort und kann es innerhalb von 48 Stunden überschreiben. Audit-Trail bleibt vollständig.' },
+      { type: 'note', kind: 'warning', text: 'Bei rechtlichen Themen, Zahlungsfreigaben, Vertragsbedingungen und Datenschutzfragen steht die Delegationsoption nicht zur Verfügung. Diese Entscheidungen müssen immer von einem Menschen mit der nötigen Autorität getroffen werden.' },
+
+      { type: 'heading', level: 2, text: 'Wenn die Entscheidung gefallen ist', id: 'propagation' },
+      { type: 'paragraph', text: 'Eine Entscheidung im Status „decided" ist erst der zweite Schritt von dreien. Anschließend übersetzt Tagro die Wahl in konkrete Wirkung im Projekt — atomar, idempotent, mit vollständigem Audit-Trail.' },
+      { type: 'mono', text: [
+        'decision.state = decided',
+        '   |',
+        '   v',
+        '[apply, transaktional]',
+        '   |',
+        '   +-- blockierte Tasks: wechseln zurück in ihren vorherigen Status',
+        '   +-- betroffene Tasks: Tagro hängt eine Notiz an, ggf. neue Akzeptanzkriterien',
+        '   +-- Statusbericht: enthält die Entscheidung in der naechsten Generation',
+        '   +-- Progress: gewichtete Neuberechnung, Decision-Drag faellt weg',
+        '   +-- Sync-Bus: Events fan-out an Client Board und Dev Panel',
+        '   |',
+        '   v',
+        'decision.state = applied',
+      ].join('\n') },
+      { type: 'paragraph', text: 'Erst der Übergang zu „applied" bedeutet, dass die Entscheidung wirklich im Projekt angekommen ist. Schlägt eine Teiloperation fehl, rollt das System zurück und ein erneuter Versuch ist möglich. Der Auftraggeber bekommt davon nichts mit — er sieht nur, dass seine Entscheidung Wirkung gezeigt hat.' },
+
+      { type: 'heading', level: 2, text: 'Was Tagro niemals tut', id: 'grenzen' },
+      { type: 'list', items: [
+        'Tagro erfindet keine Fragen, die der Dev nicht gestellt hat. Halluzination im Trust Layer wäre fatal.',
+        'Tagro entscheidet nicht eigenständig, außer der Auftraggeber hat die Entscheidung explizit an sie delegiert oder es handelt sich um einen ausdrücklich erlaubten Trivial-Default.',
+        'Tagro schätzt keine Auswirkungen, die sie nicht belegen kann. Unbekanntes wird als unbekannt markiert, nicht geraten.',
+        'Tagro umgeht niemals die Autoritätsregeln. Wer entscheiden darf, ist im Datenmodell fixiert — Rolle, nicht Person.',
+        'Tagro entscheidet nie rechtliche, finanzielle oder vertragliche Fragen. Diese sind explizit ausgeschlossen.',
+      ]},
+
+      { type: 'quote', text: 'Kontrolle ohne Überwachung. Klarheit ohne Bürokratie. Geschwindigkeit ohne Chaos.' },
+
+      { type: 'heading', level: 2, text: 'Wo das im Produkt sichtbar wird', id: 'surfaces' },
+      { type: 'paragraph', text: 'Auf dem Client Board liegt eine Entscheidung als ruhige Karte im Bereich „Entscheidungen". Maximal drei Karten sind primär sichtbar, weiteres rutscht in einen sekundären Bereich. Eine Karte zeigt Titel, Zusammenfassung, Optionen und eine einzelne Empfehlung. Daneben gibt es die Möglichkeit, die Entscheidung zu diskutieren — eine Rückfrage, die wieder bei Tagro landet und in eine geschärfte Version mündet.' },
+      { type: 'paragraph', text: 'Im Dev Panel taucht jede aktive Entscheidung am Kopf des Projekt-Workspaces auf. Blockierte Tasks zeigen direkt, welche Entscheidung sie aufhält. Mit der Aktion „Entscheidung anfragen" an einem Task lässt sich eine neue Frage anstoßen — Tagro übernimmt das Rahmen und Übersetzen.' },
+      { type: 'paragraph', text: 'Hinter beidem läuft Tagro als stille Schicht. Sie hat kein eigenes UI, sie ist die Schreibweise des Systems. Sichtbar wird sie nur im Audit-Log und in der ruhigen Tatsache, dass beide Seiten verstanden haben, was die andere meint.' },
+    ], true, '7 Min.'),
 ]
 
 export function getDocArticle(slug: string) {
