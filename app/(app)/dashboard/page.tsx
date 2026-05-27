@@ -21,7 +21,11 @@ import ObserverWelcomeModal from '@/components/ObserverWelcomeModal'
 import WelcomeTour from '@/components/WelcomeTour'
 import TagroLogo from '@/components/TagroLogo'
 import { speechVoiceId, useSpeechSynthesis } from '@/hooks/useSpeechSynthesis'
-import { ArrowClockwise, CalendarCheck, CaretDown, Check, DownloadSimple, EnvelopeSimple, Pause, Play, Plus, SlidersHorizontal, Stop } from '@phosphor-icons/react'
+import {
+  ArrowClockwise, CalendarCheck, CaretDown, CaretRight, Check, CheckCircle,
+  Cube, DotsThree, DownloadSimple, EnvelopeSimple, Pause, PencilSimple,
+  Play, Plus, Pulse as PulseIcon, SlidersHorizontal, Stop,
+} from '@phosphor-icons/react'
 
 // ─────────────────────────────────────────────────────────────────────
 // Helpers
@@ -247,7 +251,7 @@ export default function DashboardPage() {
   // user must never wonder if they're hearing one project or all.
   const [scope, setScope] = useState<'overall' | string>('overall')
   const [scopeOpen, setScopeOpen] = useState(false)
-  const [period, setPeriod] = useState<'Heute' | 'Letzte 7 Tage' | 'Letzte 30 Tage' | 'Letzte 90 Tage'>('Letzte 30 Tage')
+  const [period, setPeriod] = useState<'Heute' | 'Letzte 7 Tage' | 'Letzte 30 Tage' | 'Letzte 90 Tage'>('Heute')
   const [dailyDeliveryEnabled, setDailyDeliveryEnabled] = useState(false)
   const [briefingLog, setBriefingLog] = useState<BriefingLogEntry[]>([])
   const [activeLogId, setActiveLogId] = useState<string | null>(null)
@@ -614,49 +618,100 @@ export default function DashboardPage() {
         }
 
         /* ── Greeting full-width, then a calm two-column body ────── */
-        .dc-wrap {
+        /* ── New shell: greeting + audio briefing card, Linear-calm ── */
+        .dc-shell {
           width:100%;
-          max-width: 1480px;
+          max-width: 1320px;
           margin:0 auto;
           height:100%;
           min-height:0;
+          position:relative;
           display:flex;
           flex-direction:column;
+          padding-top: 28px;
         }
-        .dc-body {
+        .dc-shell-top {
+          position: absolute;
+          top: 22px;
+          right: 0;
+          z-index: 4;
+        }
+        .dc-shell-body {
           flex:1 1 auto;
           min-height:0;
-          margin-top: 12px;
           display:grid;
-          grid-template-columns: minmax(0,1fr) minmax(360px, 400px);
-          column-gap: clamp(36px, 4.6vw, 70px);
+          grid-template-columns: minmax(0, 1fr) minmax(360px, 420px);
+          column-gap: clamp(36px, 4.6vw, 64px);
           align-items:start;
-        }
-
-        /* ── Header ───────────────────────────────────────────────── */
-        .dc-head {
-          flex-shrink:0;
-          padding:32px 0 0;
-          display:flex;
-          align-items:flex-start;
-          justify-content:space-between;
-          gap:24px;
           animation:dcFade .3s cubic-bezier(.16,1,.3,1) both;
         }
+        .dc-left {
+          padding-top: 36px;
+          display: flex;
+          flex-direction: column;
+          gap: 14px;
+          min-width: 0;
+        }
+        .dc-pulse-pill {
+          display: inline-flex; align-items: center; gap: 8px;
+          height: 26px; padding: 0 12px;
+          border-radius: 999px;
+          background: color-mix(in srgb, var(--surface-2) 50%, transparent);
+          color: var(--dc-soft);
+          font-size: 12px; font-weight: 500; letter-spacing: .015em;
+        }
+        .dc-pulse-pill .dot {
+          width: 7px; height: 7px; border-radius: 50%;
+          background: currentColor;
+        }
+        .dc-pulse-pill.tone-green { color: #22a06b; }
+        .dc-pulse-pill.tone-amber { color: #d4882b; }
+        .dc-pulse-pill.tone-red   { color: #d44b4b; }
+
+        /* Backwards-compat wrappers for the old class names still used
+           inside renderSection() and elsewhere in this page. */
+        .dc-wrap { width:100%; max-width:1480px; margin:0 auto; height:100%; min-height:0; display:flex; flex-direction:column; }
+        .dc-body { flex:1 1 auto; min-height:0; margin-top:12px; display:grid; grid-template-columns:minmax(0,1fr) minmax(360px,400px); column-gap:clamp(36px,4.6vw,70px); align-items:start; }
+        .dc-head { flex-shrink:0; padding:32px 0 0; display:flex; align-items:flex-start; justify-content:space-between; gap:24px; }
+
         .dc-greeting {
           margin:0;
           color:var(--text);
-          font-size:clamp(19px, 1.55vw, 21px);
-          line-height:1.22;
-          letter-spacing:.015em !important;
+          font-size: clamp(26px, 2.5vw, 34px);
+          font-weight: 500;
+          line-height:1.15;
+          letter-spacing:-.01em;
         }
         .dc-greeting-sub {
-          margin:8px 0 0;
-          max-width:420px;
-          color:var(--dc-soft);
-          font-size:12.5px;
-          line-height:1.5;
+          margin:6px 0 0;
+          max-width: 540px;
+          color: var(--text);
+          font-size: 14px;
+          line-height: 1.55;
+          font-weight: 500;
         }
+        .dc-greeting-sub2 {
+          margin: 10px 0 0;
+          max-width: 540px;
+          color: var(--dc-soft);
+          font-size: 13.5px;
+          line-height: 1.6;
+        }
+        .dc-empty-line {
+          margin-top: 24px;
+          display: flex; align-items: center; gap: 10px;
+          color: var(--dc-muted);
+          font-size: 13px;
+          font-weight: 500;
+        }
+        .dc-empty-icon {
+          width: 28px; height: 28px; border-radius: 8px;
+          border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+          display: inline-flex; align-items: center; justify-content: center;
+          color: var(--dc-muted);
+          flex-shrink: 0;
+        }
+        .dc-note-inline { margin-top: 28px; padding: 0; background: transparent; box-shadow: none; border: 0; }
         .dc-head-actions {
           flex-shrink:0;
           display:flex;
@@ -1026,9 +1081,164 @@ export default function DashboardPage() {
           outline:none;
         }
 
-        /* ── New Briefing Card — premium, executive-feel ──────────── */
-        /* Briefing card — GPT-style minimal: flat white, hairline border,
-           18px radius, no decorative gradient or ambient shadow. */
+        /* ── Audio Briefing Card (.dc-card) — calm right column ──── */
+        .dc-card {
+          position: relative;
+          border: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+          border-radius: 16px;
+          background: color-mix(in srgb, var(--card) 94%, transparent);
+          padding: 22px 22px 18px;
+          display: flex; flex-direction: column; gap: 14px;
+          min-height: 0;
+          box-shadow: var(--content-shadow);
+        }
+        [data-theme="dark"] .dc-card,
+        [data-theme="classic-dark"] .dc-card {
+          background: color-mix(in srgb, var(--card) 92%, #fff 4%);
+          border-color: color-mix(in srgb, var(--border) 80%, transparent);
+        }
+        .dc-card-head { display: flex; flex-direction: column; gap: 2px; }
+        .dc-card-title {
+          margin: 0;
+          font-size: 18px; font-weight: 500;
+          letter-spacing: -.005em;
+          color: var(--text);
+        }
+        .dc-card-sub {
+          margin: 0;
+          font-size: 12.5px; font-weight: 500;
+          color: var(--dc-soft);
+          line-height: 1.5;
+        }
+
+        /* Period segmented control */
+        .dc-period {
+          display: flex; gap: 2px;
+          padding: 3px;
+          border: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+          background: color-mix(in srgb, var(--surface-2) 35%, transparent);
+          border-radius: 999px;
+          align-self: flex-start;
+        }
+        .dc-period-btn {
+          height: 26px; padding: 0 10px;
+          border: 0; background: transparent;
+          color: var(--dc-soft);
+          font: inherit; font-size: 11.5px; font-weight: 500; letter-spacing: .015em;
+          border-radius: 999px;
+          cursor: pointer;
+          transition: background .12s, color .12s;
+        }
+        .dc-period-btn:hover { color: var(--text); }
+        .dc-period-btn.on {
+          background: var(--card);
+          color: var(--text);
+          box-shadow: 0 1px 2px rgba(15,23,42,.08);
+        }
+        [data-theme="dark"] .dc-period-btn.on,
+        [data-theme="classic-dark"] .dc-period-btn.on {
+          background: color-mix(in srgb, var(--surface-2) 80%, #fff 6%);
+          box-shadow: 0 1px 2px rgba(0,0,0,.4);
+        }
+
+        /* Stat rows under the orb */
+        .dc-stats {
+          list-style: none; padding: 0; margin: 0;
+          display: flex; flex-direction: column;
+          border-top: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+        }
+        .dc-stats li {
+          border-bottom: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+        }
+        .dc-stat {
+          display: grid;
+          grid-template-columns: auto auto 1fr auto;
+          align-items: center;
+          gap: 12px;
+          padding: 10px 4px;
+          color: var(--text);
+          text-decoration: none;
+          font: inherit; font-size: 13px;
+          transition: background .1s;
+          border-radius: 6px;
+        }
+        .dc-stat:hover { background: color-mix(in srgb, var(--surface-2) 35%, transparent); }
+        .dc-stat-ico {
+          width: 22px; height: 22px;
+          display: inline-flex; align-items: center; justify-content: center;
+          color: var(--dc-soft);
+        }
+        .dc-stat-num {
+          font-size: 18px; font-weight: 500; color: var(--text);
+          letter-spacing: -.005em;
+          min-width: 28px;
+        }
+        .dc-stat-label {
+          color: var(--dc-soft);
+          font-size: 13px; font-weight: 500;
+          overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .dc-stat-arrow { color: var(--dc-muted); }
+
+        /* Play bar — primary action under stats */
+        .dc-play-bar {
+          display: grid;
+          grid-template-columns: 28px 1fr auto;
+          align-items: center;
+          gap: 10px;
+          width: 100%;
+          height: 44px; padding: 0 14px;
+          border-radius: 12px;
+          border: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+          background: color-mix(in srgb, var(--surface-2) 35%, transparent);
+          color: var(--text);
+          font: inherit; font-size: 13px; font-weight: 500; letter-spacing: .015em;
+          cursor: pointer;
+          transition: background .12s, border-color .12s;
+        }
+        .dc-play-bar:hover:not(:disabled) {
+          background: color-mix(in srgb, var(--surface-2) 60%, transparent);
+          border-color: color-mix(in srgb, var(--border-strong) 70%, var(--border));
+        }
+        .dc-play-bar:disabled { opacity: .55; cursor: not-allowed; }
+        .dc-play-ico {
+          width: 28px; height: 28px; border-radius: 50%;
+          display: inline-flex; align-items: center; justify-content: center;
+          background: color-mix(in srgb, var(--card) 90%, transparent);
+          border: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+          color: var(--text);
+        }
+        .dc-play-label { text-align: left; }
+        .dc-play-meta {
+          color: var(--dc-muted);
+          font-size: 12px;
+          font-variant-numeric: tabular-nums;
+        }
+        .dc-play-bar .spin { animation: dcSpin 1s linear infinite; }
+
+        /* Chip row */
+        .dc-chip-row {
+          display: flex; flex-wrap: wrap; align-items: center;
+          gap: 6px;
+        }
+        .dc-chip {
+          display: inline-flex; align-items: center; gap: 5px;
+          height: 28px; padding: 0 11px;
+          border: 0; background: transparent;
+          color: var(--dc-soft);
+          font: inherit; font-size: 12px; font-weight: 500; letter-spacing: .015em;
+          border-radius: 999px;
+          cursor: pointer;
+          transition: background .12s, color .12s;
+        }
+        .dc-chip:hover { color: var(--text); background: color-mix(in srgb, var(--surface-2) 40%, transparent); }
+        .dc-chip.on {
+          background: color-mix(in srgb, var(--surface-2) 60%, transparent);
+          color: var(--text);
+        }
+        .dc-chip-icon { width: 28px; padding: 0; justify-content: center; }
+
+        /* Old brief class kept for any leftover references (audio settings popover) */
         .dc-brief {
           position:relative;
           border: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
@@ -1382,9 +1592,9 @@ export default function DashboardPage() {
 
         /* ─── Pulsierende Welle — concentric rings bloom outward ───
            Three rings start at the inner disc size and expand to roughly
-           2.3× while fading from ~55% opacity to 0. Staggered by ~1/3 of
+           2.3× while fading from ~50% opacity to 0. Staggered by ~1/3 of
            the cycle so the surface always shows one ring mid-flight.
-           Only visible while Tagro speaks; idle state stays calm. */
+           Visible at idle (subtle), strengthens while Tagro speaks. */
         .dc-orb-pulse {
           position: absolute; left: 50%; top: 50%;
           width: 78px; height: 78px;
@@ -1397,10 +1607,13 @@ export default function DashboardPage() {
           z-index: 1;
           pointer-events: none;
           will-change: transform, opacity;
+          animation: dcOrbPulseIdle 5.2s cubic-bezier(.22,.65,.35,1) infinite;
         }
+        .dc-orb-pulse.pulse-2 { animation-delay: 1.73s; }
+        .dc-orb-pulse.pulse-3 { animation-delay: 3.46s; }
         [data-theme="dark"] .dc-orb-pulse,
         [data-theme="classic-dark"] .dc-orb-pulse {
-          border-color: rgba(255,255,255,.18);
+          border-color: rgba(255,255,255,.20);
         }
         .dc-orb-stage.speaking .dc-orb-pulse {
           animation: dcOrbPulse 3.2s cubic-bezier(.22,.65,.35,1) infinite;
@@ -1408,9 +1621,14 @@ export default function DashboardPage() {
         .dc-orb-stage.speaking .dc-orb-pulse.pulse-2 { animation-delay: 1.07s; }
         .dc-orb-stage.speaking .dc-orb-pulse.pulse-3 { animation-delay: 2.14s; }
 
+        @keyframes dcOrbPulseIdle {
+          0%   { transform: scale(0.85); opacity: 0; }
+          18%  { opacity: 0.32; }
+          100% { transform: scale(2.1);  opacity: 0; }
+        }
         @keyframes dcOrbPulse {
           0%   { transform: scale(0.85); opacity: 0; }
-          12%  { opacity: 0.55; }
+          12%  { opacity: 0.6; }
           100% { transform: scale(2.3);  opacity: 0; }
         }
 
@@ -1889,37 +2107,34 @@ export default function DashboardPage() {
         }
       `}</style>
 
-      <div className="dc-wrap">
+      <div className="dc-shell">
 
-        <header className="dc-head">
-          <div>
+        {/* Top-right status pill — calm signal, no action. */}
+        <div className="dc-shell-top">
+          <span className={`dc-pulse-pill tone-${pulse.tone}`}>
+            <span className="dot" />
+            {pulse.label}
+          </span>
+        </div>
+
+        <div className="dc-shell-body">
+          {/* ── LEFT: greeting + status note area ── */}
+          <main className="dc-left">
             <h1 className="dc-greeting">{greeting}</h1>
             <p className="dc-greeting-sub">
               Status, Berichte und Audio-Briefings in einem festen Arbeitsfenster.
             </p>
-          </div>
-          <div className="dc-head-actions">
-            {/* Status-Pulse stays in the header — calm signal,
-                no action. The "Neuen Bericht erstellen" CTA moved
-                under the briefing card so it reads as a clear
-                "this writes into the left notepad" action. */}
-            <span className={`dc-head-pulse tone-${pulse.tone}`}>
-              <span />
-              {pulse.label}
-            </span>
-          </div>
-        </header>
-
-        <div className="dc-body">
-          <article className="dc-note" aria-label="Statusbericht" data-tour="status-note">
-            {noteStamp && (
-              <div className="dc-note-head">
-                <span className="dc-note-stamp">Heute, {noteStamp} Uhr</span>
-              </div>
-            )}
+            <p className="dc-greeting-sub2">
+              Starte rechts ein Voice Briefing oder lasse Tagro einen Statusbericht schreiben.
+            </p>
 
             {noteRevealed ? (
-              <>
+              <article className="dc-note dc-note-inline" aria-label="Statusbericht" data-tour="status-note">
+                {noteStamp && (
+                  <div className="dc-note-head">
+                    <span className="dc-note-stamp">Heute, {noteStamp} Uhr</span>
+                  </div>
+                )}
                 <p className="dc-note-text">
                   {noteRevealed}
                   {noteWriting && <span className="dc-caret" aria-hidden />}
@@ -1962,118 +2177,41 @@ export default function DashboardPage() {
                     )}
                   </>
                 )}
-              </>
+              </article>
             ) : (
-              <>
-                <p className="dc-note-empty">
-                  {loading
-                    ? 'Tagro prüft deine Projekte und bereitet den aktuellen Status vor.'
-                    : 'Starte rechts ein Voice Briefing. Tagro schreibt den aktuellen Status hier als Bericht mit.'}
-                </p>
-                <span className="dc-note-empty-cue">
-                  <TagroLogo size={15} thinking={tagroActive} />
-                  Bericht und nächste Schritte bleiben hier lesbar.
-                </span>
-              </>
-            )}
-          </article>
-
-          <aside className="dc-side">
-          <section className="dc-brief" aria-label="Tagro Voice Briefing" data-tour="voice-briefing">
-            {/* Header — one truth source per piece of info. Eyebrow
-                "TAGRO VOICE BRIEFING" and top-right period chip both
-                dropped; the filter row underneath already names the
-                scope + period. */}
-            <header className="dc-brief-head">
-              <div className="dc-brief-headline">
-                <h2 className="dc-brief-title">{currentReportTitle}</h2>
-                <p className="dc-brief-sub">
-                  {noteStamp
-                    ? <>Letzte Aktualisierung · heute, {noteStamp} Uhr</>
-                    : 'Noch kein Bericht abgerufen.'}
-                </p>
+              <div className="dc-empty-line">
+                <span className="dc-empty-icon" aria-hidden><PencilSimple size={14} /></span>
+                <span>{loading
+                  ? 'Tagro prüft deine Projekte und bereitet den aktuellen Status vor.'
+                  : 'Dein Bericht erscheint hier, sobald er fertig ist.'}</span>
               </div>
+            )}
+          </main>
+
+          {/* ── RIGHT: Audio Briefing card ── */}
+          <aside className="dc-card" aria-label="Tagro Audio Briefing" data-tour="voice-briefing">
+            <header className="dc-card-head">
+              <h2 className="dc-card-title">Audio Briefing</h2>
+              <p className="dc-card-sub">Dein täglicher Überblick.</p>
             </header>
 
-            <div className="dc-brief-filterbar">
-              <div className="dc-scope">
+            <nav className="dc-period" aria-label="Zeitraum">
+              {([
+                { v: 'Heute',          l: 'Heute' },
+                { v: 'Letzte 7 Tage',  l: '7 Tage' },
+                { v: 'Letzte 30 Tage', l: '30 Tage' },
+                { v: 'Letzte 90 Tage', l: '90 Tage' },
+              ] as const).map((opt) => (
                 <button
+                  key={opt.v}
                   type="button"
-                  className="dc-scope-trigger"
-                  onClick={() => setScopeOpen(o => !o)}
-                  aria-expanded={scopeOpen}
-                  aria-haspopup="listbox"
+                  className={`dc-period-btn${period === opt.v ? ' on' : ''}`}
+                  onClick={() => setPeriod(opt.v)}
                 >
-                  <span>{isOverall ? 'Gesamtbericht' : selectedProject?.title ?? 'Projekt wählen'}</span>
-                  <CaretDown size={11} weight="bold" />
+                  {opt.l}
                 </button>
-                {scopeOpen && (
-                  <>
-                    <button type="button" className="dc-scope-backdrop" aria-hidden onClick={() => setScopeOpen(false)} />
-                    <div className="dc-scope-menu" role="listbox">
-                      <button
-                        type="button"
-                        role="option"
-                        aria-selected={isOverall}
-                        className={`dc-scope-opt${isOverall ? ' on' : ''}`}
-                        onClick={() => { setScope('overall'); setScopeOpen(false) }}
-                      >
-                        <span className="dc-scope-dot" />
-                        <span className="dc-scope-opt-main">
-                          <strong>Gesamtbericht</strong>
-                          <small>Alle aktiven Projekte zusammengefasst</small>
-                        </span>
-                        {isOverall && <Check size={12} weight="bold" />}
-                      </button>
-                      {activeProjects.length > 0 && <div className="dc-scope-divider" />}
-                      {activeProjects.map(p => (
-                        <button
-                          key={p.id}
-                          type="button"
-                          role="option"
-                          aria-selected={scope === p.id}
-                          className={`dc-scope-opt${scope === p.id ? ' on' : ''}`}
-                          onClick={() => { setScope(p.id); setScopeOpen(false) }}
-                        >
-                          <span className="dc-scope-dot" style={{ background: (p as any).color || 'var(--dc-muted)' }} />
-                          <span className="dc-scope-opt-main">
-                            <strong>{p.title}</strong>
-                            <small>{PHASE[p.status] ?? 'Intake'}</small>
-                          </span>
-                          {scope === p.id && <Check size={12} weight="bold" />}
-                        </button>
-                      ))}
-                    </div>
-                  </>
-                )}
-              </div>
-
-              <div className="dc-period-options" aria-label="Zeitraum">
-                {periodOptions.map((option) => (
-                  <button
-                    type="button"
-                    key={option}
-                    className={period === option ? 'on' : ''}
-                    onClick={() => setPeriod(option)}
-                  >
-                    {option.replace('Letzte ', '')}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Stats only — the panel title already says what this is,
-                no need for an "Aktueller Bericht" eyebrow + paragraph. */}
-            <div className="dc-current-report compact">
-              <div className="dc-current-facts">
-                {overview.map((s) => (
-                  <span key={s.label}>
-                    <strong>{s.value}</strong>
-                    {s.label}
-                  </span>
-                ))}
-              </div>
-            </div>
+              ))}
+            </nav>
 
             <button
               type="button"
@@ -2091,25 +2229,20 @@ export default function DashboardPage() {
               }
               aria-pressed={isBriefingPlaying}
             >
-              {/* Pulsierende Welle — three concentric rings expanding outward from
-                  the orb centre while fading. Sit behind the discs, only animate
-                  while speaking. Calm and natural, never distracting. */}
+              {/* Pulsierende Welle — three concentric rings always animate gently,
+                  strengthen while Tagro speaks. Soft, never distracting. */}
               <span className="dc-orb-pulse pulse-1" aria-hidden />
               <span className="dc-orb-pulse pulse-2" aria-hidden />
               <span className="dc-orb-pulse pulse-3" aria-hidden />
 
-              {/* Outer ambient halo */}
               <span className="dc-orb-halo" aria-hidden />
 
-              {/* Three stacked translucent glass discs (largest → smallest) */}
               <span className="dc-orb-disc disc-3" aria-hidden />
               <span className="dc-orb-disc disc-2" aria-hidden />
               <span className="dc-orb-disc disc-1" aria-hidden>
-                {/* Mint→lavender gradient lit from above */}
                 <span className="dc-orb-gradient" aria-hidden />
               </span>
 
-              {/* Inner play/Tagro core */}
               <span className="dc-orb-core" aria-hidden>
                 <span className="dc-orb-play">
                   <TagroLogo size={20} thinking={tagroActive} />
@@ -2117,183 +2250,128 @@ export default function DashboardPage() {
               </span>
             </button>
 
-            {/* Status row removed — the page-level pulse top-right and
-                the play button's own label cover the same info. Two
-                green dots was decorative noise. */}
-
-            {/* Heute im Fokus — always rendered. Even at zero it shows
-                "0 Entscheidungen warten" so the block functions as a
-                daily check-in. Both lines link into /decisions where
-                risks + open requests live in the same table. */}
-            <div className="dc-brief-focus" aria-label="Heute im Fokus">
-              <span>Heute im Fokus</span>
-              {executiveFocus.map((item) => (
-                <a
-                  key={item.tone}
-                  href={item.href}
-                  className={`dc-focus-line tone-${item.tone}${item.count === 0 ? ' zero' : ''}`}
-                >
-                  <span className="dc-focus-count">{item.count}</span>
-                  <span className="dc-focus-text">{item.label}</span>
+            <ul className="dc-stats" aria-label="Übersicht">
+              <li>
+                <a className="dc-stat" href="/tasks">
+                  <span className="dc-stat-ico"><PulseIcon size={14} /></span>
+                  <strong className="dc-stat-num">{openTaskCount}</strong>
+                  <span className="dc-stat-label">Offene Aufgaben</span>
+                  <CaretRight size={12} className="dc-stat-arrow" />
                 </a>
-              ))}
-            </div>
+              </li>
+              <li>
+                <a className="dc-stat" href="/projects">
+                  <span className="dc-stat-ico"><Cube size={14} weight="duotone" /></span>
+                  <strong className="dc-stat-num">{projects.length}</strong>
+                  <span className="dc-stat-label">Projekte</span>
+                  <CaretRight size={12} className="dc-stat-arrow" />
+                </a>
+              </li>
+              <li>
+                <a className="dc-stat" href="/tasks?filter=done">
+                  <span className="dc-stat-ico"><CheckCircle size={14} weight="duotone" /></span>
+                  <strong className="dc-stat-num">{doneTaskCount}</strong>
+                  <span className="dc-stat-label">Erledigt</span>
+                  <CaretRight size={12} className="dc-stat-arrow" />
+                </a>
+              </li>
+            </ul>
 
-            <div className="dc-brief-actions">
+            <button
+              type="button"
+              className="dc-play-bar"
+              onClick={audioText.trim() ? handleBriefingToggle : refreshStatus}
+              disabled={statusBusy || (!speechSupported && audioText.trim().length > 0)}
+            >
+              <span className="dc-play-ico">
+                {statusBusy ? (
+                  <ArrowClockwise size={14} className="spin" />
+                ) : isBriefingPlaying ? (
+                  <Pause size={14} weight="fill" />
+                ) : (
+                  <Play size={14} weight="fill" />
+                )}
+              </span>
+              <span className="dc-play-label">
+                {statusBusy
+                  ? 'Tagro generiert…'
+                  : isBriefingPlaying
+                    ? 'Pausieren'
+                    : speechState === 'paused'
+                      ? 'Weiterhören'
+                      : 'Bericht anhören'}
+              </span>
+              <span className="dc-play-meta">{briefingDurationLabel}</span>
+            </button>
+
+            <div className="dc-chip-row">
+              <button type="button" className="dc-chip" onClick={downloadBriefing}>
+                <DownloadSimple size={12} />
+                Download
+              </button>
+              <button type="button" className="dc-chip" onClick={sendBriefingToSelf}>
+                <EnvelopeSimple size={12} />
+                An mich
+              </button>
               <button
                 type="button"
-                className="dc-brief-primary"
-                onClick={audioText.trim() ? handleBriefingToggle : refreshStatus}
-                disabled={statusBusy || (!speechSupported && audioText.trim().length > 0)}
+                className={`dc-chip${dailyDeliveryEnabled ? ' on' : ''}`}
+                onClick={() => setDailyDeliveryEnabled((enabled) => !enabled)}
               >
-                {statusBusy ? (
-                  <><ArrowClockwise size={14} className="spin" /> Tagro generiert…</>
-                ) : isBriefingPlaying ? (
-                  <><Pause size={14} weight="fill" /> Pausieren</>
-                ) : speechState === 'paused' ? (
-                  <><Play size={14} weight="fill" /> Weiterhören<span className="dc-btn-meta">{briefingDurationLabel}</span></>
-                ) : (
-                  <><Play size={14} weight="fill" /> Bericht anhören<span className="dc-btn-meta">{briefingDurationLabel}</span></>
-                )}
+                <CalendarCheck size={12} />
+                Täglich
               </button>
-
-              <div className="dc-brief-secondary-row">
-                <div className="dc-brief-action-group" aria-label="Bericht exportieren und senden">
-                  <button type="button" className="dc-brief-chip" onClick={downloadBriefing}>
-                    <DownloadSimple size={13} />
-                    Download
-                  </button>
-                  <button type="button" className="dc-brief-chip" onClick={sendBriefingToSelf}>
-                    <EnvelopeSimple size={13} />
-                    An mich
-                  </button>
-                  <button
-                    type="button"
-                    className={`dc-brief-chip${dailyDeliveryEnabled ? ' on' : ''}`}
-                    onClick={() => setDailyDeliveryEnabled((enabled) => !enabled)}
-                  >
-                    <CalendarCheck size={13} />
-                    Täglich
-                  </button>
-                </div>
-
-                <div className="dc-brief-action-group" aria-label="Briefing Optionen">
-                  {isBriefingActive && (
-                    <button type="button" className="dc-brief-icon" onClick={stopBriefing} title="Stopp" aria-label="Stopp">
-                      <Stop size={12} weight="fill" />
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    className={`dc-brief-icon${briefingSettingsOpen ? ' on' : ''}`}
-                    onClick={() => setBriefingSettingsOpen(o => !o)}
-                    title="Stimme und Tempo"
-                    aria-label="Stimme und Tempo"
-                    aria-expanded={briefingSettingsOpen}
-                  >
-                    <SlidersHorizontal size={13} />
-                  </button>
-                  <button
-                    type="button"
-                    className="dc-brief-icon"
-                    onClick={refreshStatus}
-                    disabled={statusBusy}
-                    title="Neu generieren"
-                    aria-label="Neu generieren"
-                  >
-                    <ArrowClockwise size={13} className={statusBusy ? 'spin' : ''} />
-                  </button>
-                </div>
-              </div>
-
-              {briefingSettingsOpen && (
-                <div className="dc-brief-settings" role="dialog" aria-label="Audioeinstellungen">
-                  <label className="dc-setting-row">
-                    <span className="dc-setting-label">Tempo</span>
-                    <select
-                      className="dc-setting-select"
-                      value={preferences.rate}
-                      onChange={(e) => updatePreferences({ rate: Number(e.target.value) })}
-                    >
-                      <option value={0.85}>0.85x</option>
-                      <option value={0.95}>0.95x</option>
-                      <option value={1}>1.00x</option>
-                      <option value={1.1}>1.10x</option>
-                      <option value={1.15}>1.15x</option>
-                    </select>
-                  </label>
-                  <label className="dc-setting-row">
-                    <span className="dc-setting-label">Stimme</span>
-                    <select
-                      className="dc-setting-select"
-                      value={selectedVoiceId}
-                      onChange={(e) => updatePreferences({ voiceId: e.target.value || undefined, voiceName: undefined })}
-                    >
-                      {voiceChoices.length === 0 && <option value="">Systemstimme</option>}
-                      {voiceChoices.map((voice) => (
-                        <option key={speechVoiceId(voice)} value={speechVoiceId(voice)}>
-                          {formatVoiceLabel(voice)}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                </div>
-              )}
+              <button
+                type="button"
+                className={`dc-chip dc-chip-icon${briefingSettingsOpen ? ' on' : ''}`}
+                onClick={() => setBriefingSettingsOpen((o) => !o)}
+                title="Optionen"
+                aria-label="Optionen"
+                aria-expanded={briefingSettingsOpen}
+              >
+                <DotsThree size={14} weight="bold" />
+              </button>
             </div>
 
-            {/* Frühere Berichte — only mount when there's history to show.
-                The empty-state line bloated the panel below the rounded
-                container in Stefan's screenshot. No history → no section. */}
-            {briefingLog.length > 0 && (
-              <div className="dc-history" aria-label="Frühere Berichte">
-                <div className="dc-history-head">
-                  <span>Frühere Berichte</span>
-                  <small>{period}</small>
-                </div>
-                <div className="dc-history-list">
-                  {briefingLog.slice(0, 5).map((entry) => (
-                    <button
-                      type="button"
-                      key={entry.id}
-                      className={`dc-history-row${activeLog?.id === entry.id ? ' active' : ''}`}
-                      onClick={() => {
-                        setActiveLogId(entry.id)
-                      }}
-                    >
-                      <span>Bericht</span>
-                      <strong>{entry.title}</strong>
-                      <small>{new Date(entry.createdAt).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })} Uhr · {entry.scope}</small>
-                    </button>
-                  ))}
-                </div>
+            {briefingSettingsOpen && (
+              <div className="dc-brief-settings" role="dialog" aria-label="Audioeinstellungen">
+                <label className="dc-setting-row">
+                  <span className="dc-setting-label">Tempo</span>
+                  <select
+                    className="dc-setting-select"
+                    value={preferences.rate}
+                    onChange={(e) => updatePreferences({ rate: Number(e.target.value) })}
+                  >
+                    <option value={0.85}>0.85x</option>
+                    <option value={0.95}>0.95x</option>
+                    <option value={1}>1.00x</option>
+                    <option value={1.1}>1.10x</option>
+                    <option value={1.15}>1.15x</option>
+                  </select>
+                </label>
+                <label className="dc-setting-row">
+                  <span className="dc-setting-label">Stimme</span>
+                  <select
+                    className="dc-setting-select"
+                    value={selectedVoiceId}
+                    onChange={(e) => updatePreferences({ voiceId: e.target.value || undefined, voiceName: undefined })}
+                  >
+                    {voiceChoices.length === 0 && <option value="">Systemstimme</option>}
+                    {voiceChoices.map((voice) => (
+                      <option key={speechVoiceId(voice)} value={speechVoiceId(voice)}>
+                        {formatVoiceLabel(voice)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                {isBriefingActive && (
+                  <button type="button" className="dc-chip" onClick={stopBriefing}>
+                    <Stop size={12} weight="fill" /> Stopp
+                  </button>
+                )}
               </div>
             )}
-          </section>
-
-          {/* Full-width CTA under the briefing card. Click → Tagro
-              composes a fresh status report and writes it into the
-              left .dc-note panel. Width matches the card above. */}
-          <button
-            type="button"
-            className={`dc-write-cta${statusBusy ? ' busy' : ''}`}
-            onClick={refreshStatus}
-            disabled={statusBusy}
-          >
-            {statusBusy ? (
-              <>
-                <ArrowClockwise size={14} className="spin" />
-                Tagro schreibt …
-              </>
-            ) : (
-              <>
-                <TagroLogo size={16} thinking={tagroActive} />
-                {noteRevealed ? 'Neuen Statusbericht schreiben' : 'Statusbericht schreiben'}
-                <span className="dc-write-arrow" aria-hidden>←</span>
-              </>
-            )}
-          </button>
-        </aside>
-
+          </aside>
         </div>
 
       </div>
