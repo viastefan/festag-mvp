@@ -163,7 +163,7 @@ export default function SidebarProfileFooter({
             background: avatarColor,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: 9.5, fontWeight: 500, color: avatarFg,
-            flexShrink: 0, letterSpacing: 0,
+            flexShrink: 0, letterSpacing: '0.017em',
           }}>
             {initials}
           </div>
@@ -171,7 +171,7 @@ export default function SidebarProfileFooter({
 
         <span style={{ flex: '1 1 auto', minWidth: 0, maxWidth: 82, display: 'inline-flex', alignItems: 'center', gap: 6, overflow: 'hidden' }}>
           <span style={{
-            fontSize: 12.5, fontWeight: 500, color: 'var(--text)', letterSpacing: 0,
+            fontSize: 12.5, fontWeight: 500, color: 'var(--text)', letterSpacing: '0.017em',
             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
           }}>
             {triggerName}
@@ -179,7 +179,7 @@ export default function SidebarProfileFooter({
           {currentPlanLabel && (
             <>
               <span style={{ color: 'var(--text-muted)', fontSize: 11 }}>·</span>
-              <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--text-muted)', flexShrink: 0 }}>
+              <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--text-muted)', letterSpacing: '0.017em', flexShrink: 0 }}>
                 {currentPlanLabel}
               </span>
             </>
@@ -214,18 +214,18 @@ export default function SidebarProfileFooter({
           width: 32px; height: 32px; border-radius: 50%;
           object-fit: cover;
           display: flex; align-items: center; justify-content: center;
-          font-size: 12px; font-weight: 500; letter-spacing: 0;
+          font-size: 12px; font-weight: 500; letter-spacing: .017em;
           flex-shrink: 0;
         }
         .spf-account-text { min-width: 0; line-height: 1.3; }
         .spf-account-name {
           font-size: 13px; font-weight: 500; color: var(--text);
-          letter-spacing: 0;
+          letter-spacing: .017em;
           overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
         }
         .spf-account-email {
           font-size: 11.5px; font-weight: 400; color: var(--text-muted);
-          letter-spacing: 0;
+          letter-spacing: .017em;
           overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
         }
         .spf-divider {
@@ -239,7 +239,7 @@ export default function SidebarProfileFooter({
           border: none; background: transparent;
           font-family: inherit;
           font-size: 12.5px; font-weight: 500;
-          letter-spacing: 0;
+          letter-spacing: .017em;
           color: var(--text);
           text-decoration: none;
           border-radius: 8px;
@@ -260,6 +260,7 @@ export default function SidebarProfileFooter({
           flex-shrink: 0;
           color: var(--text-muted);
           font-size: 10.5px;
+          letter-spacing: .017em;
           font-family: ui-monospace, "SF Mono", Menlo, monospace;
         }
         .spf-trigger:focus { outline: none; }

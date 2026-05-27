@@ -1,6 +1,7 @@
 'use client'
 
 export type ProfileSyncPayload = {
+  email?: string | null
   firstName?: string | null
   fullName?: string | null
   avatarUrl?: string | null
@@ -10,6 +11,28 @@ export type ProfileSyncPayload = {
 
 const PROFILE_SYNC_EVENT = 'festag-profile-sync'
 const PROFILE_SYNC_STORAGE_KEY = 'festag-profile-sync'
+const PROFILE_AVATAR_COLOR_KEY = 'festag-profile-avatar-color'
+
+function avatarColorKey(userId: string) {
+  return `${PROFILE_AVATAR_COLOR_KEY}:${userId}`
+}
+
+export function rememberProfileAvatarColor(userId: string | null | undefined, color: string | null | undefined) {
+  if (typeof window === 'undefined' || !userId) return
+  try {
+    if (color) window.localStorage.setItem(avatarColorKey(userId), color)
+    else window.localStorage.removeItem(avatarColorKey(userId))
+  } catch {}
+}
+
+export function getRememberedProfileAvatarColor(userId: string | null | undefined) {
+  if (typeof window === 'undefined' || !userId) return null
+  try {
+    return window.localStorage.getItem(avatarColorKey(userId))
+  } catch {
+    return null
+  }
+}
 
 export function broadcastProfileSync(payload: ProfileSyncPayload) {
   if (typeof window === 'undefined') return

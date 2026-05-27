@@ -66,14 +66,14 @@ export default function SettingsSidebar() {
           color: var(--text);
           font-family: var(--font-aeonik,'Aeonik',Inter,sans-serif);
           font-weight: 500;
-          letter-spacing: 0;
+          letter-spacing: .017em;
           pointer-events: all;
         }
         .sset-back {
           display: inline-flex; align-items: center; gap: 6px;
           padding: 7px 10px; margin: 0 4px 18px;
           border-radius: 8px;
-          font-size: 13px; font-weight: 500; letter-spacing: 0;
+          font-size: 13px; font-weight: 500; letter-spacing: .017em;
           color: var(--text-secondary);
           text-decoration: none;
           transition: background .12s, color .12s;
@@ -83,7 +83,7 @@ export default function SettingsSidebar() {
         .sset-group { margin-bottom: 14px; }
         .sset-group-label {
           padding: 6px 14px 6px;
-          font-size: 11.5px; font-weight: 500; letter-spacing: 0;
+          font-size: 11.5px; font-weight: 500; letter-spacing: .017em;
           color: var(--text-secondary);
         }
         .sset-item {
@@ -93,6 +93,7 @@ export default function SettingsSidebar() {
           min-height: 29px;
           border-radius: 8px;
           font-size: 13px; font-weight: 500;
+          letter-spacing: .017em;
           color: var(--text-secondary);
           text-decoration: none;
           transition: background .12s, color .12s;

@@ -22,8 +22,13 @@ import { useEffect, useMemo, useRef, useState, type MutableRefObject } from 'rea
 import { createClient } from '@/lib/supabase/client'
 import { getFontMode, setFontMode as applyFontMode, getTheme, setTheme as applyThemeMode, type FontMode, type ThemeMode } from '@/lib/theme'
 import { getLanguageMode, setLanguageMode, type LanguageMode } from '@/lib/language'
-import { AVATAR_COLORS } from '@/lib/avatar'
-import { broadcastProfileSync } from '@/lib/profile-sync'
+import { AVATAR_COLORS, avatarTextColor } from '@/lib/avatar'
+import { rememberFestagEmail } from '@/lib/auth-device-memory'
+import {
+  broadcastProfileSync,
+  getRememberedProfileAvatarColor,
+  rememberProfileAvatarColor,
+} from '@/lib/profile-sync'
 
 type SectionId = 'profile' | 'appearance' | 'security' | 'notifications' | 'connected' | 'workspace' | 'company' | 'billing'
 
@@ -113,18 +118,6 @@ const PROFILE_FULL_SELECT = [
   'company_country',
 ].join(',')
 
-const PROFILE_BASE_SELECT = [
-  'id',
-  'email',
-  'first_name',
-  'full_name',
-  'position',
-  'phone',
-  'avatar_url',
-  'avatar_color',
-  'role',
-].join(',')
-
 const PROFILE_MIN_SELECT = [
   'id',
   'email',
@@ -137,6 +130,15 @@ function firstNameFromFullName(value: string) {
 
 function jsonKey(value: Record<string, unknown>) {
   return JSON.stringify(value)
+}
+
+function normalizeEmail(value: string | null | undefined) {
+  const trimmed = (value ?? '').trim().toLowerCase()
+  return trimmed || null
+}
+
+function isValidEmail(value: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())
 }
 
 function missingProfileColumn(error: unknown) {
@@ -228,6 +230,9 @@ export default function SettingsPage() {
   const billingSnapshotRef = useRef('')
 
   // form state mirrors profile fields so we can edit without rerouting
+  const [emailValue, setEmailValue] = useState('')
+  const [emailSaving, setEmailSaving] = useState(false)
+  const [emailStatus, setEmailStatus] = useState('')
   const [fullName, setFullName] = useState('')
   const [position, setPosition] = useState('')
   const [phone, setPhone] = useState('')
@@ -275,6 +280,7 @@ export default function SettingsPage() {
       if (!session) { window.location.href = '/login'; return }
 
       const uid = session.user.id
+      const sessionEmail = normalizeEmail(session.user.email)
       async function readProfile(select: string) {
         return (supabase as any)
           .from('profiles')
@@ -284,12 +290,17 @@ export default function SettingsPage() {
       }
 
       let row: any = null
-      let loaded = await readProfile(PROFILE_FULL_SELECT)
-      if (loaded.error && missingProfileColumn(loaded.error)) {
-        loaded = await readProfile(PROFILE_BASE_SELECT)
-      }
-      if (loaded.error && missingProfileColumn(loaded.error)) {
-        loaded = await readProfile(PROFILE_MIN_SELECT)
+      let selectColumns = PROFILE_FULL_SELECT.split(',')
+      let loaded: any = null
+      for (let attempt = 0; attempt < 16; attempt += 1) {
+        loaded = await readProfile(selectColumns.join(','))
+        const missing = loaded.error ? missingProfileColumn(loaded.error) : null
+        if (!missing) break
+
+        const nextColumns = selectColumns.filter(column => column !== missing)
+        selectColumns = nextColumns.length && nextColumns.length !== selectColumns.length
+          ? nextColumns
+          : PROFILE_MIN_SELECT.split(',')
       }
       if (loaded.error && !missingProfileColumn(loaded.error)) {
         throw loaded.error
@@ -303,13 +314,15 @@ export default function SettingsPage() {
       if (!row) {
         const { data: created } = await (supabase as any)
           .from('profiles')
-          .upsert({ id: uid, email: session.user.email ?? null }, { onConflict: 'id' })
+          .upsert({ id: uid, email: sessionEmail }, { onConflict: 'id' })
           .select(PROFILE_MIN_SELECT)
           .maybeSingle()
-        row = created ?? profileFallback(uid, session.user.email ?? null)
+        row = created ?? profileFallback(uid, sessionEmail)
       }
 
-      const normalized = { ...profileFallback(uid, session.user.email ?? null), ...row } as Profile
+      const normalized = { ...profileFallback(uid, sessionEmail), ...row } as Profile
+      normalized.email = normalizeEmail((row as any)?.email) ?? sessionEmail
+      normalized.avatar_color = normalized.avatar_color || getRememberedProfileAvatarColor(uid)
       const lang = normalized.language_pref === 'en' || normalized.language_pref === 'de'
         ? normalized.language_pref
         : getLanguageMode()
@@ -343,6 +356,8 @@ export default function SettingsPage() {
       })
 
       setProfile(normalized)
+      setEmailValue(normalized.email || '')
+      setEmailStatus('')
       setFullName(loadedName)
       setPosition(normalized.position || '')
       setPhone(normalized.phone || '')
@@ -435,25 +450,28 @@ export default function SettingsPage() {
   }
 
   async function updateProfileFields(patch: Record<string, any>) {
-    if (!profile) return
+    const dropped: string[] = []
+    if (!profile) return { dropped: Object.keys(patch) }
     let payload = { ...patch }
 
     for (let attempt = 0; attempt < 12; attempt += 1) {
-      if (Object.keys(payload).length === 0) return
+      if (Object.keys(payload).length === 0) return { dropped }
       const { error: updateError } = await (supabase as any)
         .from('profiles')
         .update(payload)
         .eq('id', profile.id)
-      if (!updateError) return
+      if (!updateError) return { dropped }
 
       const missing = missingProfileColumn(updateError)
       if (missing && Object.prototype.hasOwnProperty.call(payload, missing)) {
         const { [missing]: _removed, ...rest } = payload
         payload = rest
+        dropped.push(missing)
         continue
       }
       throw updateError
     }
+    return { dropped }
   }
 
   function queueAutosave(
@@ -597,6 +615,7 @@ export default function SettingsPage() {
       if (url) {
         await updateProfileFields({ avatar_url: url })
         setAvatarUrl(url)
+        setProfile(prev => prev ? { ...prev, avatar_url: url } as Profile : prev)
         broadcastProfileSync({ avatarUrl: url })
         flashSaved('Profilbild aktualisiert')
       }
@@ -604,6 +623,71 @@ export default function SettingsPage() {
       setError(e?.message || 'Bild konnte nicht hochgeladen werden.')
     } finally {
       setAvatarUploading(false)
+    }
+  }
+
+  async function removeAvatarImage() {
+    if (!profile || !avatarUrl || avatarUploading) return
+    const previous = avatarUrl
+    setError('')
+    setAvatarUrl(null)
+    setProfile(prev => prev ? { ...prev, avatar_url: null } as Profile : prev)
+    broadcastProfileSync({ avatarUrl: null })
+    try {
+      await updateProfileFields({ avatar_url: null })
+      flashSaved('Profilbild entfernt')
+    } catch (e: any) {
+      setAvatarUrl(previous)
+      setProfile(prev => prev ? { ...prev, avatar_url: previous } as Profile : prev)
+      broadcastProfileSync({ avatarUrl: previous })
+      setError(e?.message || 'Profilbild konnte nicht entfernt werden.')
+    }
+  }
+
+  async function commitEmailChange() {
+    if (!profile || emailSaving) return
+    const nextEmail = normalizeEmail(emailValue)
+    const currentEmail = normalizeEmail(profile.email)
+
+    if (!nextEmail) {
+      setEmailValue(currentEmail || '')
+      setEmailStatus('E-Mail kann nicht leer sein.')
+      return
+    }
+    if (!isValidEmail(nextEmail)) {
+      setEmailStatus('Bitte eine gültige E-Mail-Adresse eingeben.')
+      return
+    }
+    if (nextEmail === currentEmail) {
+      setEmailStatus('')
+      setEmailValue(currentEmail || '')
+      return
+    }
+
+    setEmailSaving(true)
+    setEmailStatus('')
+    setError('')
+    try {
+      const { error: updateError } = await (supabase.auth as any).updateUser(
+        { email: nextEmail },
+        { emailRedirectTo: `${window.location.origin}/auth/callback?next=/settings` },
+      )
+      if (updateError) throw updateError
+
+      rememberFestagEmail(
+        profile.id,
+        nextEmail,
+        identities.find(i => i.provider === 'google') ? 'google' : 'email',
+      )
+      setProfile(prev => prev ? { ...prev, email: nextEmail } as Profile : prev)
+      setEmailValue(nextEmail)
+      broadcastProfileSync({ email: nextEmail })
+      setEmailStatus('Bestätigungslink gesendet. Danach nutzt der Login diese Adresse.')
+      flashSaved('E-Mail-Bestätigung gesendet')
+    } catch (e: any) {
+      setEmailStatus(e?.message || 'E-Mail konnte nicht geändert werden.')
+    } finally {
+      setEmailSaving(false)
     }
   }
 
@@ -624,13 +708,19 @@ export default function SettingsPage() {
 
   async function pickAvatarColor(color: string) {
     setLocalAvatarColor(color)
+    if (profile) rememberProfileAvatarColor(profile.id, color)
+    broadcastProfileSync({ avatarColor: color })
     if (profile) {
       try {
-        await updateProfileFields({ avatar_color: color })
+        const result = await updateProfileFields({ avatar_color: color })
+        setProfile(prev => prev ? { ...prev, avatar_color: color } as Profile : prev)
+        flashSaved(result.dropped.includes('avatar_color')
+          ? 'Profilfarbe auf diesem Gerät gespeichert'
+          : 'Profilfarbe gespeichert')
       } catch {}
+    } else {
+      flashSaved('Profilfarbe gespeichert')
     }
-    broadcastProfileSync({ avatarColor: color })
-    flashSaved('Profilfarbe gespeichert')
   }
 
   async function changeMemberRole(userId: string, role: string) {
@@ -705,7 +795,7 @@ export default function SettingsPage() {
     window.location.href = '/login'
   }
 
-  const initials = (fullName || profile?.email || 'F')
+  const initials = (fullName || emailValue || profile?.email || 'F')
     .split(' ').map(s => s[0]).filter(Boolean).slice(0,2).join('').toUpperCase() || 'F'
   // Profile completion: avatar, name, position, phone, email, bio,
   // linkedin → 7 slots, each contributes equally.
@@ -714,7 +804,7 @@ export default function SettingsPage() {
     !!fullName.trim(),
     !!position.trim(),
     !!phone.trim(),
-    !!profile?.email,
+    !!(emailValue || profile?.email),
     !!bio.trim(),
     !!linkedinUrl.trim(),
   ]
@@ -726,6 +816,7 @@ export default function SettingsPage() {
       ? 'Admin'
       : 'Client'
   const loginLabel = identities.find(i => i.provider === 'google') ? 'Google + Magic-Link' : 'Magic-Link'
+  const avatarFg = avatarTextColor(avatarColor)
 
   return (
     <div className="set">
@@ -745,13 +836,13 @@ export default function SettingsPage() {
           color: var(--set-text);
           font-family: var(--font-aeonik,'Aeonik',Inter,sans-serif);
           font-weight: 500;
-          letter-spacing: 0;
+          letter-spacing: .017em;
           min-height: 100dvh;
           display: flex;
           justify-content: center;
           padding: 0;
         }
-        .set, .set * { letter-spacing: 0; }
+        .set, .set * { letter-spacing: .017em; }
         [data-theme="dark"] .set,
         [data-theme="classic-dark"] .set {
           background: color-mix(in srgb, var(--surface) 88%, #fff 4%);
@@ -772,7 +863,7 @@ export default function SettingsPage() {
           .set-main { padding: 28px 16px 36px; }
         }
         .set-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; gap: 16px; }
-        .set-title { font-size: 22px; font-weight: 500; letter-spacing: 0; }
+        .set-title { font-size: 22px; font-weight: 500; letter-spacing: .015em; }
         .set-saved {
           min-height: 24px;
           display: inline-flex;
@@ -781,7 +872,7 @@ export default function SettingsPage() {
           border: 1px solid color-mix(in srgb, var(--set-border) 60%, transparent);
           border-radius: 999px;
           background: color-mix(in srgb, var(--set-card) 78%, transparent);
-          font-size: 12px; font-weight: 500; letter-spacing: 0;
+          font-size: 12px; font-weight: 500; letter-spacing: .017em;
           color: var(--set-text-secondary);
           opacity: 0;
           transition: opacity .2s;
@@ -795,7 +886,7 @@ export default function SettingsPage() {
           margin: 28px 0 12px;
           font-size: 13px; font-weight: 500;
           color: var(--set-text-secondary);
-          letter-spacing: 0;
+          letter-spacing: .017em;
         }
         .set-section-title:first-of-type { margin-top: 8px; }
         /* Inner setting cards: solid white in light mode, popping above
@@ -846,7 +937,7 @@ export default function SettingsPage() {
         .set-mini-title {
           font-size: 13.5px;
           font-weight: 500;
-          letter-spacing: 0;
+          letter-spacing: .017em;
           margin-bottom: 8px;
         }
         .set-mini-copy {
@@ -901,9 +992,21 @@ export default function SettingsPage() {
           .set-row { grid-template-columns: 1fr; gap: 8px; padding: 14px 0; }
         }
         .set-row-stack { align-items: flex-start; }
-        .set-label { font-size: 13.5px; font-weight: 500; letter-spacing: 0; }
-        .set-label-sub { font-size: 12px; font-weight: 400; letter-spacing: 0; color: var(--set-text-muted); margin-top: 3px; line-height: 1.5; }
-        .set-value { font-size: 13.5px; font-weight: 500; letter-spacing: 0; color: var(--set-text-secondary); }
+        .set-label { font-size: 13.5px; font-weight: 500; letter-spacing: .017em; }
+        .set-label-sub { font-size: 12px; font-weight: 400; letter-spacing: .017em; color: var(--set-text-muted); margin-top: 3px; line-height: 1.5; }
+        .set-value { font-size: 13.5px; font-weight: 500; letter-spacing: .017em; color: var(--set-text-secondary); }
+        .set-field-stack {
+          width: 100%;
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        }
+        .set-field-note {
+          color: var(--set-text-muted);
+          font-size: 11.5px;
+          font-weight: 400;
+          line-height: 1.35;
+        }
 
         .set-input, .set-select {
           width: 100%;
@@ -913,7 +1016,7 @@ export default function SettingsPage() {
           border: 1px solid var(--set-border);
           color: var(--set-text);
           font-family: inherit; font-size: 13.5px; font-weight: 500;
-          letter-spacing: 0;
+          letter-spacing: .017em;
           transition: border-color .15s, box-shadow .15s;
         }
         .set-input:focus, .set-select:focus {
@@ -928,7 +1031,7 @@ export default function SettingsPage() {
           display: flex; align-items: center; justify-content: center;
           background: color-mix(in srgb, var(--set-text) 12%, transparent);
           color: var(--set-text);
-          font-size: 16px; font-weight: 500; letter-spacing: 0;
+          font-size: 16px; font-weight: 500; letter-spacing: .017em;
           flex-shrink: 0;
         }
 
@@ -954,7 +1057,7 @@ export default function SettingsPage() {
         /* Buttons */
         .set-btn {
           font-family: inherit; font-size: 13px; font-weight: 500;
-          letter-spacing: 0;
+          letter-spacing: .017em;
           padding: 7px 14px; border-radius: 8px; cursor: pointer;
           border: 1px solid var(--set-border);
           background: var(--set-bg); color: var(--set-text);
@@ -1020,7 +1123,7 @@ export default function SettingsPage() {
         }
         .set-segment button {
           font-family: inherit; font-size: 12.5px; font-weight: 500;
-          letter-spacing: 0;
+          letter-spacing: .017em;
           color: var(--set-text-secondary);
           padding: 6px 14px;
           border: none; background: transparent;
@@ -1080,7 +1183,7 @@ export default function SettingsPage() {
         .preview-dark .set-theme-preview-bar.long { background: #7B7DFF; width: 70%; }
         .preview-dark .set-theme-preview-bar.short { background: rgba(255,255,255,0.12); width: 40%; }
         .set-theme-name { font-size: 13px; font-weight: 500; }
-        .set-theme-desc { font-size: 11.5px; font-weight: 400; color: var(--set-text-muted); margin-top: 2px; letter-spacing: 0; }
+        .set-theme-desc { font-size: 11.5px; font-weight: 400; color: var(--set-text-muted); margin-top: 2px; letter-spacing: .017em; }
 
         /* Passkey list */
         .set-passkey {
@@ -1106,7 +1209,7 @@ export default function SettingsPage() {
           border-radius: 8px;
           background: rgba(239,68,68,0.05);
           color: #c0362e;
-          font-size: 12.5px; font-weight: 500; letter-spacing: 0;
+          font-size: 12.5px; font-weight: 500; letter-spacing: .017em;
         }
 
         /* Mobile */
@@ -1154,6 +1257,8 @@ export default function SettingsPage() {
                     style={{
                       cursor: avatarUploading ? 'wait' : 'pointer',
                       backgroundImage: avatarUrl ? `url(${avatarUrl})` : undefined,
+                      backgroundColor: avatarUrl ? undefined : avatarColor,
+                      color: avatarUrl ? undefined : avatarFg,
                       backgroundSize: 'cover',
                       backgroundPosition: 'center',
                       opacity: avatarUploading ? 0.6 : 1,
@@ -1175,14 +1280,51 @@ export default function SettingsPage() {
                   <label htmlFor="set-avatar-input" className="set-btn" style={{ cursor: 'pointer' }}>
                     {avatarUploading ? 'Lade hoch…' : (avatarUrl ? 'Ersetzen' : 'Hochladen')}
                   </label>
+                  {avatarUrl && (
+                    <button
+                      type="button"
+                      className="set-btn"
+                      onClick={removeAvatarImage}
+                      disabled={avatarUploading}
+                    >
+                      Bild entfernen
+                    </button>
+                  )}
                 </div>
               </div>
               <div className="set-row">
                 <div>
                   <div className="set-label">E-Mail</div>
-                  <div className="set-label-sub">Wird für Magic-Link-Anmeldungen genutzt.</div>
+                  <div className="set-label-sub">Wird für Magic-Link-Anmeldungen genutzt. Änderungen müssen per Link bestätigt werden.</div>
                 </div>
-                <div className="set-value">{profile?.email || '—'}</div>
+                <div className="set-field-stack">
+                  <input
+                    className="set-input"
+                    type="email"
+                    autoComplete="email"
+                    value={emailValue}
+                    disabled={emailSaving}
+                    onChange={e => {
+                      setEmailValue(e.target.value)
+                      if (emailStatus) setEmailStatus('')
+                    }}
+                    onBlur={commitEmailChange}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') e.currentTarget.blur()
+                      if (e.key === 'Escape') {
+                        setEmailValue(profile?.email || '')
+                        setEmailStatus('')
+                        e.currentTarget.blur()
+                      }
+                    }}
+                    placeholder="name@firma.de"
+                  />
+                  {(emailSaving || emailStatus) && (
+                    <div className="set-field-note">
+                      {emailSaving ? 'E-Mail-Änderung wird vorbereitet…' : emailStatus}
+                    </div>
+                  )}
+                </div>
               </div>
               <div className="set-row">
                 <div>
@@ -1207,7 +1349,7 @@ export default function SettingsPage() {
                   <div className="set-label">Anzeigename</div>
                   <div className="set-label-sub">So erscheint dein Profil in Kommentaren und Projektfreigaben.</div>
                 </div>
-                <div className="set-value">{fullName.trim() || profile?.email?.split('@')[0] || 'Noch nicht gesetzt'}</div>
+                <div className="set-value">{fullName.trim() || (emailValue || profile?.email || '').split('@')[0] || 'Noch nicht gesetzt'}</div>
               </div>
               <div className="set-row">
                 <div className="set-label">Vollständiger Name</div>
@@ -1750,7 +1892,7 @@ export default function SettingsPage() {
                               </div>
                               <div style={{ fontSize: 11.5, color: 'var(--set-text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.email}</div>
                             </div>
-                            <span style={{ display: 'inline-flex', alignItems: 'center', padding: '2px 8px', borderRadius: 4, fontSize: 10.5, fontWeight: 500, letterSpacing: 0, color: roleColor(m.role), border: `1px solid ${roleColor(m.role)}`, textTransform: 'uppercase', flexShrink: 0 }}>
+                            <span style={{ display: 'inline-flex', alignItems: 'center', padding: '2px 8px', borderRadius: 4, fontSize: 10.5, fontWeight: 500, letterSpacing: '0.017em', color: roleColor(m.role), border: `1px solid ${roleColor(m.role)}`, textTransform: 'uppercase', flexShrink: 0 }}>
                               {rolesForMode.find(r => r.id === m.role)?.label || m.role}
                             </span>
                             <select
@@ -2125,8 +2267,8 @@ function AccountDeleteModal({ onClose }: { onClose: () => void }) {
           max-height: calc(100dvh - 40px);
           overflow-y: auto;
         }
-        .acc-del-kicker { font-size: 11px; font-weight: 500; letter-spacing: 0; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; }
-        .acc-del-title { margin: 0 0 6px; font-size: 18px; font-weight: 500; letter-spacing: 0; }
+        .acc-del-kicker { font-size: 11px; font-weight: 500; letter-spacing: .017em; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; }
+        .acc-del-title { margin: 0 0 6px; font-size: 18px; font-weight: 500; letter-spacing: .015em; }
         .acc-del-sub { margin: 0; font-size: 13px; line-height: 1.55; color: var(--text-secondary); }
         .acc-del-reasons { display: flex; flex-direction: column; gap: 8px; margin: 16px 0 4px; }
         .acc-del-reason {

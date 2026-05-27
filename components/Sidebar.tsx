@@ -21,7 +21,12 @@ import {
   Scales, Keyboard, CheckCircle,
 } from '@phosphor-icons/react'
 import { autoAvatarColor, avatarInitials } from '@/lib/avatar'
-import { broadcastProfileSync, subscribeProfileSync } from '@/lib/profile-sync'
+import {
+  broadcastProfileSync,
+  getRememberedProfileAvatarColor,
+  rememberProfileAvatarColor,
+  subscribeProfileSync,
+} from '@/lib/profile-sync'
 import CustomizeSidebarModal from '@/components/CustomizeSidebarModal'
 import {
   loadPrefs, onPrefsChange, shouldShowInSidebar,
@@ -205,7 +210,7 @@ async function readSidebarProfile(sb: any, userId: string) {
   if (result.error && missingProfileColumn(result.error)) {
     result = await sb
       .from('profiles')
-      .select('full_name,avatar_url,role,plan')
+      .select('first_name,full_name,avatar_url,role,plan')
       .eq('id', userId)
       .maybeSingle()
   }
@@ -411,10 +416,11 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
       setEmail(data.user.email ?? '')
       const p = await readSidebarProfile(sb, data.user.id)
       if (p) {
+        const rememberedColor = getRememberedProfileAvatarColor(data.user.id)
         setFn((p as any).first_name ?? (p as any).full_name?.split(' ')[0] ?? '')
         setFullName((p as any).full_name ?? '')
         setAvatar((p as any).avatar_url ?? null)
-        setAvatarColor((p as any).avatar_color ?? null)
+        setAvatarColor((p as any).avatar_color ?? rememberedColor ?? null)
         setRole((p as any).role ?? 'client')
         setPlan((p as any).plan ?? 'free')
       }
@@ -513,6 +519,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
 
   useEffect(() => {
     return subscribeProfileSync((payload) => {
+      if (payload.email !== undefined) setEmail(payload.email ?? '')
       if (payload.firstName !== undefined) setFn(payload.firstName ?? '')
       if (payload.fullName !== undefined) setFullName(payload.fullName ?? '')
       if (payload.avatarUrl !== undefined) setAvatar(payload.avatarUrl ?? null)
@@ -533,10 +540,11 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         if (!data.user) return
         const p = await readSidebarProfile(sb, data.user.id)
         if (!p) return
+        const rememberedColor = getRememberedProfileAvatarColor(data.user.id)
         setFn((p as any).first_name ?? (p as any).full_name?.split(' ')[0] ?? '')
         setFullName((p as any).full_name ?? '')
         setAvatar((p as any).avatar_url ?? null)
-        if ((p as any).avatar_color) setAvatarColor((p as any).avatar_color)
+        setAvatarColor((p as any).avatar_color ?? rememberedColor ?? null)
         if ((p as any).plan) setPlan((p as any).plan)
       })
     }
@@ -626,6 +634,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
 
   async function changeAvatarColor(c: string) {
     setAvatarColor(c)
+    rememberProfileAvatarColor(uid, c)
     broadcastProfileSync({ avatarColor: c })
     if (!uid) return
     try { await (createClient() as any).from('profiles').update({ avatar_color: c }).eq('id', uid) } catch {}
@@ -826,7 +835,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           padding:0 var(--sb-x); border-radius:8px;
           font-size:var(--sb-font); font-weight:500;
           font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
-          letter-spacing:.025em;
+          letter-spacing:.017em;
           cursor:pointer; text-decoration:none; color:inherit;
           transition:background .12s, color .12s;
           white-space:nowrap; overflow:hidden;
@@ -840,7 +849,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         .ni button {
           font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
           font-weight:500;
-          letter-spacing:.025em;
+          letter-spacing:.017em;
         }
         .ni-label {
           min-width:0;
@@ -880,7 +889,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           justify-content:center;
           font-size:10.5px;
           font-weight:500;
-          letter-spacing:.01em;
+          letter-spacing:.017em;
           line-height:1;
           opacity:0;
           pointer-events:none;
@@ -934,7 +943,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         .sb-section-head span {
           font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
           font-weight:500;
-          letter-spacing:.025em;
+          letter-spacing:.017em;
         }
         .sb-section-head button {
           min-height: 18px;
@@ -974,7 +983,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           border-radius:8px;
           font-size:12.5px; font-weight:500;
           font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
-          letter-spacing:.025em;
+          letter-spacing:.017em;
           cursor:pointer; text-decoration:none;
           color:var(--text-muted);
           transition:background .08s, color .08s;
@@ -992,7 +1001,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           white-space:nowrap;
           font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
           font-weight:500;
-          letter-spacing:.025em;
+          letter-spacing:.017em;
         }
         .proj-dot-button {
           width:11px;
@@ -1117,7 +1126,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           padding: 0 10px;
           background: transparent; border: 0; cursor: pointer;
           color: var(--text-muted);
-          font: inherit; font-size: 12.5px; font-weight: 500; letter-spacing: .015em;
+          font: inherit; font-size: 12.5px; font-weight: 500; letter-spacing: .017em;
           border-radius: 8px;
           margin-top: 1px;
           transition: background .12s, color .12s;
@@ -1158,7 +1167,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           display: flex; align-items: center; gap: 9px;
           background: transparent; border: 0;
           color: var(--text);
-          font: inherit; font-size: 12.5px; font-weight: 500; letter-spacing: .015em;
+          font: inherit; font-size: 12.5px; font-weight: 500; letter-spacing: .017em;
           text-decoration: none;
           border-radius: 8px;
           cursor: pointer;
@@ -1225,14 +1234,14 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         }
         .sb-help-title {
           min-width: 0;
-          font-size: 13.5px; font-weight: 500; letter-spacing: 0;
+          font-size: 13.5px; font-weight: 500; letter-spacing: .017em;
           color: var(--text);
           overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
         }
         .sb-help-shortcut {
           font-size: 11.5px;
           font-weight: 500;
-          letter-spacing: 0;
+          letter-spacing: .017em;
           color: var(--text-muted);
           white-space: nowrap;
         }
@@ -1240,7 +1249,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           margin: 12px 10px 6px;
           font-size: 12.5px;
           font-weight: 500;
-          letter-spacing: 0;
+          letter-spacing: .017em;
           color: var(--text-secondary);
         }
         .sb-help-news-list {
@@ -1296,7 +1305,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           white-space: nowrap;
           font-size: 13.5px;
           font-weight: 500;
-          letter-spacing: 0;
+          letter-spacing: .017em;
         }
         .sb-nav-scroll {
           flex:1 1 auto;
@@ -1328,12 +1337,13 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           padding:0 13px;
           font-size:13px;
           font-weight:660;
+          letter-spacing:.017em;
         }
         .sb-square-action {
           color:var(--text-secondary);
           font-size:12px;
           font-weight:720;
-          letter-spacing:-.01em;
+          letter-spacing:.017em;
         }
         .sb-pill-action:hover,
         .sb-square-action:hover {

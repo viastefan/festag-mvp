@@ -5,7 +5,12 @@ import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { autoAvatarColor, avatarInitials } from '@/lib/avatar'
-import { broadcastProfileSync, subscribeProfileSync } from '@/lib/profile-sync'
+import {
+  broadcastProfileSync,
+  getRememberedProfileAvatarColor,
+  rememberProfileAvatarColor,
+  subscribeProfileSync,
+} from '@/lib/profile-sync'
 import {
   House, Briefcase, FileText, ChatCircle,
   Notebook, Brain, List, X,
@@ -31,6 +36,16 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/relations/ai', label: 'Tagro AI', Icon: Brain },
 ]
 
+function missingProfileColumn(error: unknown) {
+  const message = String((error as any)?.message ?? '')
+  const raw = (
+    message.match(/'([^']+)' column/)?.[1] ||
+    message.match(/column "?([a-zA-Z0-9_.]+)"? does not exist/)?.[1] ||
+    null
+  )
+  return raw?.split('.').pop() ?? null
+}
+
 export default function RelationsSidebar() {
   const pathname = usePathname()
   const [email, setEmail] = useState('')
@@ -54,25 +69,36 @@ export default function RelationsSidebar() {
       if (!data.user) return
 
       setEmail(data.user.email ?? '')
+      const rememberedColor = getRememberedProfileAvatarColor(data.user.id)
 
-      const { data: profile } = await createClient()
+      let result = await createClient()
         .from('profiles')
         .select('first_name,full_name,avatar_url,avatar_color,plan')
         .eq('id', data.user.id)
         .single()
+      if (result.error && missingProfileColumn(result.error)) {
+        result = await createClient()
+          .from('profiles')
+          .select('first_name,full_name,avatar_url,plan')
+          .eq('id', data.user.id)
+          .single()
+      }
+
+      const profile = result.data
 
       if (!profile) return
 
       setFirstName((profile as any).first_name ?? '')
       setFullName((profile as any).full_name ?? '')
       setAvatar((profile as any).avatar_url ?? null)
-      setAvatarColor((profile as any).avatar_color ?? null)
+      setAvatarColor((profile as any).avatar_color ?? rememberedColor ?? null)
       setPlan((profile as any).plan ?? 'free')
     })
   }, [pathname])
 
   useEffect(() => {
     return subscribeProfileSync((payload) => {
+      if (payload.email !== undefined) setEmail(payload.email ?? '')
       if (payload.firstName !== undefined) setFirstName(payload.firstName ?? '')
       if (payload.fullName !== undefined) setFullName(payload.fullName ?? '')
       if (payload.avatarUrl !== undefined) setAvatar(payload.avatarUrl ?? null)
@@ -100,6 +126,7 @@ export default function RelationsSidebar() {
     const { data } = await createClient().auth.getUser()
     if (!data.user) return
 
+    rememberProfileAvatarColor(data.user.id, color)
     try {
       await (createClient() as any).from('profiles').update({ avatar_color: color }).eq('id', data.user.id)
     } catch {}
@@ -267,6 +294,7 @@ export default function RelationsSidebar() {
           display:flex; align-items:center; gap:7px;
           padding:5px 9px; border-radius:7px;
           font-size:13px; font-weight:500;
+          letter-spacing:.017em;
           cursor:pointer; text-decoration:none; color:inherit;
           transition:background .12s, color .12s;
           white-space:nowrap; overflow:hidden;

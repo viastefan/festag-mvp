@@ -63,6 +63,27 @@ export function rememberFestagAccount(account: Omit<FestagDeviceAccount, 'lastSe
   } catch {}
 }
 
+export function rememberFestagEmail(userId: string, email: string | null, method: FestagLoginMethod = 'email') {
+  const nextEmail = email?.trim() || null
+  const memory = readMemory()
+  const existing = memory.accounts.find(account => account.userId === userId)
+  const nextAccount: FestagDeviceAccount = {
+    userId,
+    email: nextEmail,
+    method: existing?.method ?? method,
+    onboardingCompleted: existing?.onboardingCompleted ?? false,
+    lastSeenAt: new Date().toISOString(),
+  }
+  const accounts = [nextAccount, ...memory.accounts.filter(item => item.userId !== userId)].slice(0, 6)
+  writeMemory({ version: 1, activeUserId: userId, accounts })
+
+  if (typeof window === 'undefined') return
+  try {
+    if (nextEmail) window.localStorage.setItem(LAST_EMAIL_KEY, nextEmail)
+    window.localStorage.setItem(LAST_METHOD_KEY, nextAccount.method)
+  } catch {}
+}
+
 export function getLastFestagAccount(): FestagDeviceAccount | null {
   const memory = readMemory()
   return memory.accounts.find(account => account.userId === memory.activeUserId) ?? memory.accounts[0] ?? null
