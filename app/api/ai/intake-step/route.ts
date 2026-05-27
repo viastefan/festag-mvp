@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { hasGeminiKey, runGeminiText } from '@/lib/tagro/gemini'
 
 export const runtime = 'nodejs'
 
@@ -65,6 +66,12 @@ function stripCodeFence(s: string): string {
   return s.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/i, '').trim()
 }
 
+function parseJsonPayload(raw: string) {
+  const cleaned = stripCodeFence(raw).replace(/<think>[\s\S]*?<\/think>/g, '').trim()
+  const match = cleaned.match(/\{[\s\S]*\}/)
+  return JSON.parse(match?.[0] ?? cleaned)
+}
+
 function deriveFallbackTitle(history: ChatTurn[]): string | null {
   const userTexts = history.filter(h => h.role === 'user').map(h => h.text)
   if (!userTexts.length) return null
@@ -111,6 +118,34 @@ export async function POST(req: NextRequest) {
       content: t.text,
     }))
 
+    if (hasGeminiKey()) {
+      const gemini = await runGeminiText({
+        system: SYSTEM_PROMPT,
+        messages: conversation.map(message => ({
+          role: message.role === 'assistant' ? 'model' as const : 'user' as const,
+          text: message.content,
+        })),
+        prompt: `So weit der bisherige Chat. Wir sind in Turn ${userTurnCount + 1}. Antworte mit dem JSON-Schema.`,
+        maxTokens: 1200,
+        temperature: 0.2,
+        responseMimeType: 'application/json',
+      })
+      if (gemini.ok && gemini.text) {
+        let parsed: any
+        try { parsed = parseJsonPayload(gemini.text) } catch { parsed = null }
+        if (parsed) {
+          const complete = Boolean(parsed?.complete) || userTurnCount >= 6
+          return NextResponse.json({
+            question: complete ? null : (typeof parsed?.question === 'string' ? parsed.question.trim() : null),
+            title: typeof parsed?.title === 'string' ? parsed.title.trim() || null : null,
+            summary: typeof parsed?.summary === 'string' ? parsed.summary.trim() || null : null,
+            complete,
+            reasoning: typeof parsed?.reasoning === 'string' ? parsed.reasoning.slice(0, 200) : '',
+          })
+        }
+      }
+    }
+
     const res = await fetch('https://api.minimax.io/v1/text/chatcompletion_v2', {
       method: 'POST',
       headers: {
@@ -138,9 +173,8 @@ export async function POST(req: NextRequest) {
     const raw: string | undefined = ai?.choices?.[0]?.message?.content
     if (!raw) return fallback()
 
-    const cleaned = stripCodeFence(raw).replace(/<think>[\s\S]*?<\/think>/g, '').trim()
     let parsed: any
-    try { parsed = JSON.parse(cleaned) } catch { return fallback() }
+    try { parsed = parseJsonPayload(raw) } catch { return fallback() }
 
     // Force-complete after 6 user turns regardless of model output.
     const complete = Boolean(parsed?.complete) || userTurnCount >= 6

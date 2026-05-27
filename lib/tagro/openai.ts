@@ -1,10 +1,6 @@
-export type JsonObject = Record<string, unknown>
+import { extractJsonObject, type JsonObject } from '@/lib/tagro/json'
 
-export function extractJsonObject(text: string): JsonObject {
-  const clean = text.replace(/<think>[\s\S]*?<\/think>\s*/g, '').trim()
-  const match = clean.match(/\{[\s\S]*\}/)
-  return JSON.parse(match?.[0] ?? clean) as JsonObject
-}
+export type { JsonObject }
 
 export async function runOpenAIJson({
   prompt,
@@ -15,6 +11,11 @@ export async function runOpenAIJson({
   runType: string
   fallback: () => JsonObject
 }) {
+  if (process.env.GEMINI_API_KEY) {
+    const { runGeminiJson } = await import('@/lib/tagro/gemini')
+    return runGeminiJson({ prompt, runType, fallback })
+  }
+
   const apiKey = process.env.OPENAI_API_KEY
   if (!apiKey) {
     return { output: fallback(), model: 'heuristic', status: 'completed' as const }

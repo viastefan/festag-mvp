@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useDeferredValue, useMemo, useState } from 'react'
+import { useDeferredValue, useEffect, useMemo, useState } from 'react'
 import {
   ArrowRight,
   BookOpenText,
@@ -102,6 +102,12 @@ export default function FestagDocs({ article }: FestagDocsProps) {
     }))
     .filter((section) => section.articles.length > 0)
 
+  useEffect(() => {
+    if (!article?.slug) return
+    const active = document.querySelector('.docs-nav-articles a.active')
+    active?.scrollIntoView({ block: 'center' })
+  }, [article?.slug])
+
   return (
     <div className="docs-shell">
       <aside className={`docs-nav${mobileNavOpen ? ' open' : ''}`}>
@@ -118,18 +124,30 @@ export default function FestagDocs({ article }: FestagDocsProps) {
             aria-label="Festag Docs durchsuchen"
           />
         </label>
-        <nav className="docs-category-list" aria-label="Docs Kategorien">
+        <nav className="docs-category-list" aria-label="Docs Navigation">
           <Link className={!article ? 'active' : ''} href="/docs" onClick={() => setMobileNavOpen(false)}>
             <span>Home</span>
             <CaretRight size={13} />
           </Link>
-          {docsCategories.map((category) => {
-            const Icon = iconMap[category.title] ?? iconMap.default
+          {sections.map((category) => {
             return (
-              <a key={category.title} href={`/docs#${encodeURIComponent(category.title)}`} onClick={() => setMobileNavOpen(false)}>
-                <span><Icon size={14} /> {category.title}</span>
-                <CaretRight size={13} />
-              </a>
+              <div key={category.title} className="docs-nav-section">
+                <a className="docs-nav-section-title" href={`/docs#${encodeURIComponent(category.title)}`} onClick={() => setMobileNavOpen(false)}>
+                  {category.title}
+                </a>
+                <div className="docs-nav-articles">
+                  {category.articles.map((item) => (
+                    <Link
+                      key={item.slug}
+                      href={`/docs/${item.slug}`}
+                      className={article?.slug === item.slug ? 'active' : ''}
+                      onClick={() => setMobileNavOpen(false)}
+                    >
+                      {item.title}
+                    </Link>
+                  ))}
+                </div>
+              </div>
             )
           })}
         </nav>
@@ -140,13 +158,11 @@ export default function FestagDocs({ article }: FestagDocsProps) {
           <button type="button" className="docs-mobile-menu" onClick={() => setMobileNavOpen((open) => !open)}>
             Kategorien
           </button>
-          <div className="docs-crumb">
-            <Link href="/docs">Docs</Link>
-            <CaretRight size={12} />
-            <span>{article ? article.title : 'Home'}</span>
-          </div>
-          <div className="docs-actions">
-            <Link href="/dashboard">App öffnen</Link>
+          <Link href="/docs" className="docs-top-brand">festag <span>Docs</span></Link>
+          <div className="docs-top-links">
+            <Link href="/docs">Alle Docs</Link>
+            <Link href="/blog">Blog</Link>
+            <Link href="/">Zur App</Link>
           </div>
         </header>
 
@@ -401,33 +417,68 @@ function renderBlockNode(block: ArticleBlock, index: number): React.ReactNode {
 
 const CSS = `
   .docs-shell {
-    height: 100%;
+    height: 100dvh;
     min-height: 0;
     display: grid;
-    grid-template-columns: 282px minmax(0, 1fr);
+    grid-template-columns: 304px minmax(0, 1fr);
     overflow: hidden;
-    color: var(--text);
-    background: var(--surface);
+    color: var(--docs-text);
+    background: var(--docs-bg);
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
     font-weight: 500;
-    letter-spacing: .015em;
+    letter-spacing: .012em;
+    --docs-bg: #FCFCFD;
+    --docs-surface: #FFFFFF;
+    --docs-soft: #F4F5F7;
+    --docs-text: #1A1F2C;
+    --docs-secondary: #4E5567;
+    --docs-muted: #8A93A4;
+    --docs-border: rgba(15, 23, 42, 0.08);
+    --docs-border-strong: rgba(15, 23, 42, 0.14);
+    --docs-hover: rgba(15, 23, 42, 0.04);
+    --docs-shadow: rgba(15, 23, 42, 0.08);
+  }
+  [data-theme="read"] .docs-shell {
+    --docs-bg: #F7F4EC;
+    --docs-surface: #FFFDF7;
+    --docs-soft: #F1EDE3;
+    --docs-text: #1C1914;
+    --docs-secondary: #4E493F;
+    --docs-muted: #8D8678;
+    --docs-border: rgba(38, 33, 24, 0.10);
+    --docs-border-strong: rgba(38, 33, 24, 0.18);
+    --docs-hover: rgba(38, 33, 24, 0.05);
+    --docs-shadow: rgba(38, 33, 24, 0.09);
+  }
+  [data-theme="dark"] .docs-shell,
+  [data-theme="classic-dark"] .docs-shell {
+    --docs-bg: #0A0F18;
+    --docs-surface: #11161F;
+    --docs-soft: #171D27;
+    --docs-text: #E8EBF1;
+    --docs-secondary: #A8B0BD;
+    --docs-muted: #6B7488;
+    --docs-border: rgba(255, 255, 255, 0.08);
+    --docs-border-strong: rgba(255, 255, 255, 0.16);
+    --docs-hover: rgba(255, 255, 255, 0.05);
+    --docs-shadow: rgba(0, 0, 0, 0.22);
   }
   .docs-nav {
     min-height: 0;
-    border-right: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
-    padding: 18px 16px;
+    border-right: 1px solid var(--docs-border);
+    padding: 22px 20px;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 18px;
     overflow: hidden;
-    background: color-mix(in srgb, var(--sidebar-bg) 72%, transparent);
+    background: var(--docs-bg);
   }
   .docs-brand {
     height: 34px;
     display: flex;
     align-items: center;
     gap: 10px;
-    color: var(--text);
+    color: var(--docs-text);
     font-size: 14px;
     font-weight: 500;
     letter-spacing: .005em;
@@ -437,9 +488,9 @@ const CSS = `
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
-    background: color-mix(in srgb, var(--card) 84%, transparent);
-    color: var(--text-secondary);
+    border: 1px solid var(--docs-border);
+    background: var(--docs-surface);
+    color: var(--docs-secondary);
   }
   .docs-brand-mark {
     width: 30px;
@@ -448,14 +499,14 @@ const CSS = `
   }
   .docs-search {
     height: 38px;
-    border: 1px solid color-mix(in srgb, var(--border) 76%, transparent);
-    background: color-mix(in srgb, var(--card) 82%, transparent);
-    border-radius: 13px;
+    border: 1px solid var(--docs-border);
+    background: var(--docs-surface);
+    border-radius: 999px;
     display: flex;
     align-items: center;
     gap: 8px;
     padding: 0 11px;
-    color: var(--text-muted);
+    color: var(--docs-muted);
   }
   .docs-search input {
     min-width: 0;
@@ -463,30 +514,30 @@ const CSS = `
     border: 0;
     outline: 0;
     background: transparent;
-    color: var(--text);
+    color: var(--docs-text);
     font: inherit;
     font-size: 12.5px;
     font-weight: 500;
     letter-spacing: .015em;
   }
-  .docs-search input::placeholder { color: var(--text-muted); opacity: .75; }
+  .docs-search input::placeholder { color: var(--docs-muted); opacity: .75; }
   .docs-category-list {
     min-height: 0;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 22px;
     padding-right: 2px;
   }
-  .docs-category-list a {
+  .docs-category-list > a {
     min-height: 34px;
-    border-radius: 10px;
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    padding: 0 10px;
-    color: var(--text-secondary);
+    padding: 0 9px;
+    color: var(--docs-secondary);
     text-decoration: none;
     font-size: 12.5px;
     font-weight: 500;
@@ -502,11 +553,47 @@ const CSS = `
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-  .docs-category-list a svg { flex-shrink: 0; color: var(--text-muted); }
-  .docs-category-list a:hover,
-  .docs-category-list a.active {
-    background: color-mix(in srgb, var(--surface-2) 64%, transparent);
-    color: var(--text);
+  .docs-category-list a svg { flex-shrink: 0; color: var(--docs-muted); }
+  .docs-category-list > a:hover,
+  .docs-category-list > a.active {
+    background: var(--docs-hover);
+    color: var(--docs-text);
+  }
+  .docs-nav-section {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .docs-nav-section-title {
+    color: var(--docs-text);
+    text-decoration: none;
+    font-size: 13px;
+    line-height: 1.35;
+    font-weight: 500;
+    letter-spacing: -.005em;
+  }
+  .docs-nav-articles {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .docs-nav-articles a {
+    display: block;
+    margin-left: -9px;
+    padding: 5px 9px;
+    border-radius: 7px;
+    color: var(--docs-secondary);
+    text-decoration: none;
+    font-size: 12.5px;
+    line-height: 1.4;
+    font-weight: 500;
+    letter-spacing: .012em;
+    transition: background .12s ease, color .12s ease;
+  }
+  .docs-nav-articles a:hover,
+  .docs-nav-articles a.active {
+    background: var(--docs-hover);
+    color: var(--docs-text);
   }
   .docs-main {
     min-width: 0;
@@ -518,35 +605,53 @@ const CSS = `
   .docs-topbar {
     height: 58px;
     flex-shrink: 0;
-    border-bottom: 1px solid color-mix(in srgb, var(--border) 64%, transparent);
+    border-bottom: 1px solid var(--docs-border);
+    background: color-mix(in srgb, var(--docs-bg) 88%, transparent);
+    backdrop-filter: blur(14px) saturate(140%);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 14px;
     padding: 0 26px;
   }
-  .docs-crumb {
-    min-width: 0;
+  .docs-top-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    color: var(--docs-text);
+    text-decoration: none;
+    font-size: 14.5px;
+    font-weight: 500;
+    letter-spacing: -.005em;
+  }
+  .docs-top-brand span {
+    padding: 2px 8px;
+    border-radius: 999px;
+    border: 1px solid var(--docs-border);
+    color: var(--docs-secondary);
+    font-size: 10.5px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+  }
+  .docs-top-links {
     display: flex;
     align-items: center;
-    gap: 7px;
-    color: var(--text-muted);
-    font-size: 12.5px;
-    font-weight: 500;
-    letter-spacing: .015em;
+    gap: 6px;
   }
-  .docs-crumb a {
-    color: var(--text-secondary);
+  .docs-top-links a {
+    padding: 6px 12px;
+    border-radius: 999px;
+    color: var(--docs-secondary);
     text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: .012em;
   }
-  .docs-crumb span {
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    color: var(--text);
+  .docs-top-links a:hover {
+    background: var(--docs-hover);
+    color: var(--docs-text);
   }
-  .docs-actions a,
   .docs-mobile-menu,
   .docs-back,
   .docs-empty a {
@@ -555,9 +660,9 @@ const CSS = `
     align-items: center;
     justify-content: center;
     border-radius: 12px;
-    border: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
-    background: color-mix(in srgb, var(--card) 84%, transparent);
-    color: var(--text-secondary);
+    border: 1px solid var(--docs-border);
+    background: var(--docs-surface);
+    color: var(--docs-secondary);
     padding: 0 14px;
     font: inherit;
     font-size: 12px;
@@ -584,7 +689,7 @@ const CSS = `
   .docs-hero h1,
   .docs-article h1 {
     margin: 0;
-    color: var(--text);
+    color: var(--docs-text);
     font-size: clamp(38px, 5vw, 60px);
     line-height: 1.05;
     letter-spacing: -.012em;
@@ -592,7 +697,7 @@ const CSS = `
   }
   .docs-hero p {
     margin: 20px 0 0;
-    color: var(--text-secondary);
+    color: var(--docs-secondary);
     font-size: clamp(16px, 1.4vw, 18px);
     line-height: 1.6;
     font-weight: 500;
@@ -600,13 +705,11 @@ const CSS = `
   }
   .docs-article-summary {
     margin: 22px 0 0;
-    color: var(--text-secondary);
-    font-family: 'Editors Note', Georgia, serif;
-    font-style: italic;
+    color: var(--docs-secondary);
     font-size: clamp(17px, 1.6vw, 20px);
     line-height: 1.55;
     font-weight: 500;
-    letter-spacing: .003em;
+    letter-spacing: .012em;
   }
   .docs-section {
     margin-top: 54px;
@@ -622,7 +725,7 @@ const CSS = `
   .docs-section-head h2,
   .docs-related h2 {
     margin: 0;
-    color: var(--text);
+    color: var(--docs-text);
     font-size: 20px;
     line-height: 1.25;
     letter-spacing: -.005em;
@@ -631,7 +734,7 @@ const CSS = `
   .docs-section-head p {
     max-width: 520px;
     margin: 0;
-    color: var(--text-muted);
+    color: var(--docs-muted);
     font-size: 12.5px;
     line-height: 1.55;
     font-weight: 500;
@@ -645,24 +748,24 @@ const CSS = `
   }
   .docs-card {
     min-height: 224px;
-    border: 1px solid color-mix(in srgb, var(--border) 76%, transparent);
+    border: 1px solid color-mix(in srgb, var(--docs-border) 76%, transparent);
     border-radius: 18px;
-    background: color-mix(in srgb, var(--card) 84%, transparent);
-    color: var(--text);
+    background: color-mix(in srgb, var(--docs-surface) 84%, transparent);
+    color: var(--docs-text);
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     gap: 18px;
     padding: 20px;
     text-decoration: none;
-    box-shadow: 0 16px 44px -42px color-mix(in srgb, var(--text) 24%, transparent);
+    box-shadow: 0 16px 44px -42px color-mix(in srgb, var(--docs-text) 24%, transparent);
     transition: transform .16s ease, background .16s ease, border-color .16s ease, box-shadow .16s ease;
   }
   .docs-card:hover {
     transform: translateY(-2px);
-    background: color-mix(in srgb, var(--card) 96%, var(--surface-2) 4%);
-    border-color: color-mix(in srgb, var(--border-strong) 74%, var(--border));
-    box-shadow: 0 22px 54px -44px color-mix(in srgb, var(--text) 32%, transparent);
+    background: color-mix(in srgb, var(--docs-surface) 96%, var(--docs-soft) 4%);
+    border-color: color-mix(in srgb, var(--docs-border-strong) 74%, var(--docs-border));
+    box-shadow: 0 22px 54px -44px color-mix(in srgb, var(--docs-text) 32%, transparent);
   }
   .docs-card-icon {
     width: 34px;
@@ -677,28 +780,28 @@ const CSS = `
   .docs-card-meta,
   .docs-article-category,
   .docs-focus-kicker {
-    color: var(--text-muted);
+    color: var(--docs-muted);
     font-size: 10.5px;
     font-weight: 500;
     letter-spacing: .14em;
     text-transform: uppercase;
   }
   .docs-card strong {
-    color: var(--text);
+    color: var(--docs-text);
     font-size: 15px;
     line-height: 1.32;
     letter-spacing: -.005em;
     font-weight: 500;
   }
   .docs-card-body > span:last-child {
-    color: var(--text-secondary);
+    color: var(--docs-secondary);
     font-size: 12.7px;
     line-height: 1.55;
     font-weight: 500;
     letter-spacing: .015em;
   }
   .docs-card-arrow {
-    color: var(--text-muted);
+    color: var(--docs-muted);
     opacity: .55;
     transition: transform .16s ease, opacity .16s ease;
   }
@@ -711,11 +814,11 @@ const CSS = `
     display: grid;
     place-items: center;
     text-align: center;
-    color: var(--text-muted);
+    color: var(--docs-muted);
   }
   .docs-empty h2 {
     margin: 12px 0 0;
-    color: var(--text);
+    color: var(--docs-text);
     font-size: 22px;
   }
   .docs-empty p {
@@ -751,7 +854,7 @@ const CSS = `
   }
   .docs-article h2 {
     margin: 0 0 14px;
-    color: var(--text);
+    color: var(--docs-text);
     font-size: 20px;
     line-height: 1.3;
     letter-spacing: -.005em;
@@ -759,7 +862,7 @@ const CSS = `
   }
   .docs-article h3 {
     margin: 22px 0 10px;
-    color: var(--text);
+    color: var(--docs-text);
     font-size: 15.5px;
     line-height: 1.4;
     letter-spacing: .005em;
@@ -767,7 +870,7 @@ const CSS = `
   }
   .docs-article p {
     margin: 0 0 18px;
-    color: var(--text-secondary);
+    color: var(--docs-secondary);
     font-size: 15.5px;
     line-height: 1.78;
     font-weight: 500;
@@ -775,13 +878,11 @@ const CSS = `
   }
   .docs-lead {
     margin: 0 0 32px !important;
-    color: var(--text);
-    font-family: 'Editors Note', Georgia, serif;
-    font-style: italic;
-    font-size: clamp(19px, 1.9vw, 23px);
-    line-height: 1.5;
+    color: var(--docs-text);
+    font-size: clamp(17px, 1.55vw, 20px);
+    line-height: 1.65;
     font-weight: 500;
-    letter-spacing: .003em;
+    letter-spacing: .012em;
   }
   .docs-block-list {
     margin: 0 0 20px;
@@ -790,7 +891,7 @@ const CSS = `
     display: flex;
     flex-direction: column;
     gap: 9px;
-    color: var(--text-secondary);
+    color: var(--docs-secondary);
     font-size: 15px;
     line-height: 1.7;
     font-weight: 500;
@@ -809,7 +910,7 @@ const CSS = `
     width: 5px;
     height: 5px;
     border-radius: 50%;
-    background: var(--text-muted);
+    background: var(--docs-muted);
     opacity: .55;
   }
   ol.docs-block-list { counter-reset: docs-ol; }
@@ -821,7 +922,7 @@ const CSS = `
     top: 0;
     left: 0;
     background: transparent;
-    color: var(--text-muted);
+    color: var(--docs-muted);
     font-size: 13px;
     font-weight: 500;
     letter-spacing: .015em;
@@ -829,11 +930,11 @@ const CSS = `
     opacity: .9;
   }
   .docs-note {
-    border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
-    background: color-mix(in srgb, var(--surface-2) 38%, transparent);
+    border: 1px solid color-mix(in srgb, var(--docs-border) 70%, transparent);
+    background: color-mix(in srgb, var(--docs-soft) 38%, transparent);
     border-radius: 14px;
     padding: 16px 18px;
-    color: var(--text);
+    color: var(--docs-text);
     font-size: 14px;
     line-height: 1.7;
     font-weight: 500;
@@ -841,28 +942,26 @@ const CSS = `
     margin: 0 0 22px;
   }
   .docs-note-warning {
-    border-color: color-mix(in srgb, var(--red, #D14343) 28%, var(--border));
+    border-color: color-mix(in srgb, var(--red, #D14343) 28%, var(--docs-border));
     background: color-mix(in srgb, var(--red, #D14343) 5%, transparent);
   }
   .docs-quote {
     margin: 32px 0;
     padding: 6px 0 6px 18px;
-    border-left: 2px solid color-mix(in srgb, var(--text) 40%, transparent);
-    color: var(--text);
-    font-family: 'Editors Note', Georgia, serif;
-    font-style: italic;
-    font-size: clamp(17px, 1.7vw, 21px);
+    border-left: 2px solid color-mix(in srgb, var(--docs-text) 40%, transparent);
+    color: var(--docs-text);
+    font-size: clamp(16px, 1.45vw, 19px);
     line-height: 1.55;
     font-weight: 500;
-    letter-spacing: .003em;
+    letter-spacing: .012em;
   }
   .docs-mono {
     margin: 0 0 22px;
     padding: 16px 18px;
-    border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+    border: 1px solid color-mix(in srgb, var(--docs-border) 70%, transparent);
     border-radius: 14px;
-    background: color-mix(in srgb, var(--surface-2) 42%, transparent);
-    color: var(--text);
+    background: color-mix(in srgb, var(--docs-soft) 42%, transparent);
+    color: var(--docs-text);
     font-family: 'Berkeley Mono', 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
     font-size: 12.5px;
     line-height: 1.65;
@@ -875,18 +974,18 @@ const CSS = `
     margin: 0 0 24px;
     display: flex;
     flex-direction: column;
-    border-top: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+    border-top: 1px solid color-mix(in srgb, var(--docs-border) 70%, transparent);
   }
   .docs-kvrow {
     display: grid;
     grid-template-columns: 200px minmax(0, 1fr);
     gap: 24px;
     padding: 14px 0;
-    border-bottom: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+    border-bottom: 1px solid color-mix(in srgb, var(--docs-border) 70%, transparent);
   }
   .docs-kvrow dt {
     margin: 0;
-    color: var(--text);
+    color: var(--docs-text);
     font-size: 13.5px;
     line-height: 1.5;
     font-weight: 500;
@@ -894,7 +993,7 @@ const CSS = `
   }
   .docs-kvrow dd {
     margin: 0;
-    color: var(--text-secondary);
+    color: var(--docs-secondary);
     font-size: 14.5px;
     line-height: 1.7;
     font-weight: 500;
@@ -904,7 +1003,7 @@ const CSS = `
     margin: 32px 0;
     border: 0;
     height: 1px;
-    background: color-mix(in srgb, var(--border) 78%, transparent);
+    background: color-mix(in srgb, var(--docs-border) 78%, transparent);
   }
   .docs-related {
     margin-top: 54px;
@@ -918,8 +1017,8 @@ const CSS = `
   .docs-related a {
     min-height: 42px;
     border-radius: 12px;
-    background: color-mix(in srgb, var(--surface-2) 42%, transparent);
-    color: var(--text);
+    background: color-mix(in srgb, var(--docs-soft) 42%, transparent);
+    color: var(--docs-text);
     text-decoration: none;
     display: flex;
     align-items: center;
@@ -940,7 +1039,7 @@ const CSS = `
     padding-top: 8px;
   }
   .docs-toc span {
-    color: var(--text-muted);
+    color: var(--docs-muted);
     font-size: 10.5px;
     font-weight: 500;
     letter-spacing: .14em;
@@ -948,13 +1047,13 @@ const CSS = `
     margin-bottom: 5px;
   }
   .docs-toc a {
-    color: var(--text-secondary);
+    color: var(--docs-secondary);
     text-decoration: none;
     font-size: 12.5px;
     font-weight: 500;
     letter-spacing: .015em;
   }
-  .docs-toc a:hover { color: var(--text); }
+  .docs-toc a:hover { color: var(--docs-text); }
   @media (max-width: 1180px) {
     .docs-card-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     .docs-article-layout { grid-template-columns: minmax(0, 1fr); }
@@ -966,7 +1065,7 @@ const CSS = `
       gap: 4px;
       padding: 12px 0;
     }
-    .docs-kvrow dt { font-size: 12.5px; color: var(--text-muted); letter-spacing: .07em; text-transform: uppercase; }
+    .docs-kvrow dt { font-size: 12.5px; color: var(--docs-muted); letter-spacing: .07em; text-transform: uppercase; }
   }
   @media (max-width: 900px) {
     .docs-shell { grid-template-columns: minmax(0, 1fr); }
@@ -982,8 +1081,9 @@ const CSS = `
     .docs-nav.open { transform: translateX(0); }
     .docs-mobile-menu { display: inline-flex; }
     .docs-topbar { padding: 0 16px; }
+    .docs-top-links { display: none; }
     .docs-actions { display: none; }
-    .docs-home { padding: 42px 18px 82px; }
+    .docs-home { padding: 38px 18px 78px; }
     .docs-card-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .docs-section-head {
       align-items: flex-start;
@@ -991,11 +1091,36 @@ const CSS = `
       gap: 6px;
     }
     .docs-section-head p { text-align: left; }
-    .docs-article-layout { padding: 38px 18px 82px; }
+    .docs-article-layout { padding: 34px 18px 78px; }
   }
   @media (max-width: 600px) {
     .docs-card-grid { grid-template-columns: 1fr; }
     .docs-card { min-height: 182px; }
     .docs-hero h1 { font-size: 46px; }
+    .docs-back { margin-bottom: 28px; }
+    .docs-article-summary {
+      margin-top: 14px;
+      font-size: 14.5px;
+      line-height: 1.58;
+    }
+    .docs-lead {
+      margin-bottom: 26px !important;
+      font-size: 14.8px;
+      line-height: 1.66;
+    }
+    .docs-article h1 {
+      font-size: clamp(27px, 8.1vw, 34px);
+      line-height: 1.12;
+    }
+    .docs-article p {
+      font-size: 14.2px;
+      line-height: 1.7;
+    }
+    .docs-mono {
+      font-size: 11.3px;
+      line-height: 1.58;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
   }
 `

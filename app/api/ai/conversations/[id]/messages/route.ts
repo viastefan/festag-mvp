@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { hasGeminiKey, runGeminiText } from '@/lib/tagro/gemini'
 
 export const runtime = 'nodejs'
 
@@ -141,38 +142,59 @@ export async function POST(req: NextRequest, ctx: { params: { id: string } }) {
     .eq('conversation_id', ctx.params.id)
     .order('created_at', { ascending: true })
 
-  // 3. Call MiniMax.
+  // 3. Call Tagro provider.
   const apiKey = process.env.MINIMAX_API_KEY
     || 'sk-cp-i7jkWRarSBe8qM82Zj2YXxHh7bXCCUAwciPjL5t-WrYRF3WHR4tgVXeJk-Y27k62RDsp7hrb1RJS2nr9rqXB-Q6GBMCKXU6-igQu2pPH6gerajhYbZySzHA'
 
   let aiText = 'Tagro ist gerade kurz nicht erreichbar. Versuch es bitte gleich nochmal.'
   let thinking: string | null = null
   try {
+    const systemPrompt = buildSystemPrompt(mode, projectContextTitle, conv.project_id)
     const messages = [
-      { role: 'system' as const, content: buildSystemPrompt(mode, projectContextTitle, conv.project_id) },
       ...((history as any[]) ?? []).map(m => ({
         role: m.role as 'user' | 'assistant' | 'system',
         content: m.content,
       })),
     ]
-    const res = await fetch(MINIMAX_ENDPOINT, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
-      body: JSON.stringify({
-        model: MINIMAX_MODEL,
-        max_tokens: 1200,
-        reasoning_effort: 'none',
-        messages,
-      }),
-    })
-    if (res.ok) {
-      const ai = await res.json().catch(() => null)
-      const raw = ai?.choices?.[0]?.message?.content as string | undefined
-      if (raw) {
-        // Capture any think block separately, then strip from the visible reply.
-        const thinkMatch = raw.match(/<think>([\s\S]*?)<\/think>/)
-        thinking = thinkMatch ? thinkMatch[1].trim().slice(0, 4000) : null
-        aiText = stripThink(raw)
+
+    if (hasGeminiKey()) {
+      const gemini = await runGeminiText({
+        system: systemPrompt,
+        messages: messages.map(message => ({
+          role: message.role === 'assistant' ? 'model' as const : 'user' as const,
+          text: message.content,
+        })),
+        maxTokens: 1200,
+        temperature: 0.2,
+      })
+      if (gemini.ok && gemini.text) {
+        aiText = gemini.text
+      }
+    }
+
+    if (aiText === 'Tagro ist gerade kurz nicht erreichbar. Versuch es bitte gleich nochmal.') {
+      const res = await fetch(MINIMAX_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+        body: JSON.stringify({
+          model: MINIMAX_MODEL,
+          max_tokens: 1200,
+          reasoning_effort: 'none',
+          messages: [
+            { role: 'system' as const, content: systemPrompt },
+            ...messages,
+          ],
+        }),
+      })
+      if (res.ok) {
+        const ai = await res.json().catch(() => null)
+        const raw = ai?.choices?.[0]?.message?.content as string | undefined
+        if (raw) {
+          // Capture any think block separately, then strip from the visible reply.
+          const thinkMatch = raw.match(/<think>([\s\S]*?)<\/think>/)
+          thinking = thinkMatch ? thinkMatch[1].trim().slice(0, 4000) : null
+          aiText = stripThink(raw)
+        }
       }
     }
   } catch {

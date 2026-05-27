@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { loadTagroMemoryContext, rememberTagroMemory } from '@/lib/tagro-memory'
+import { hasGeminiKey, runGeminiText } from '@/lib/tagro/gemini'
 
 /**
  * Festag AI proxy — leitet an Minimax weiter, behaelt aber das Anthropic-
@@ -61,6 +62,29 @@ export async function POST(req: NextRequest) {
             ? m.content.map((c: any) => c?.text ?? '').join('')
             : ''
         mmMessages.push({ role: m?.role ?? 'user', content })
+      }
+    }
+
+    if (hasGeminiKey()) {
+      const geminiMessages = mmMessages
+        .filter(message => message.role !== 'system')
+        .map(message => ({
+          role: message.role === 'assistant' ? 'model' as const : 'user' as const,
+          text: message.content,
+        }))
+      const gemini = await runGeminiText({
+        system: enrichedSystem,
+        messages: geminiMessages,
+        maxTokens: max_tokens,
+        temperature: 0.2,
+      })
+      if (gemini.ok) {
+        return NextResponse.json({
+          content: [{ type: 'text', text: gemini.text }],
+          thinking: null,
+          usage: gemini.usage ?? null,
+          model: gemini.model,
+        })
       }
     }
 

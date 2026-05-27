@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { hasGeminiKey, runGeminiText } from '@/lib/tagro/gemini'
 
 export const runtime = 'nodejs'
 
@@ -86,44 +87,61 @@ export async function POST(_req: NextRequest, ctx: { params: { id: string } }) {
 
   let suggestions = emptyResult()
   try {
-    const res = await fetch('https://api.minimax.io/v1/text/chatcompletion_v2', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
-      body: JSON.stringify({
-        model: 'MiniMax-M2.7',
-        max_tokens: 2000,
-        reasoning_effort: 'none',
-        response_format: { type: 'json_object' },
-        messages: [
-          { role: 'system', content: SYSTEM },
-          { role: 'user', content: `Titel: ${note.title || '(ohne)'}\n\n${context ? context + '\n\n' : ''}Notiz:\n${body}` },
-        ],
-      }),
-    })
-    if (res.ok) {
-      const ai = await res.json().catch(() => null)
-      const raw: string | undefined = ai?.choices?.[0]?.message?.content
-      if (raw) {
-        const cleaned = stripCodeFence(raw).replace(/<think>[\s\S]*?<\/think>/g, '').trim()
-        try {
-          const parsed = JSON.parse(cleaned)
-          suggestions = {
-            summary: typeof parsed?.summary === 'string' ? parsed.summary.trim() : '',
-            themes: Array.isArray(parsed?.themes) ? parsed.themes.slice(0, 4).map(String) : [],
-            tasks: Array.isArray(parsed?.tasks) ? parsed.tasks.slice(0, 5).map((t: any) => ({
-              title: String(t?.title || '').trim().slice(0, 140),
-              why: String(t?.why || '').trim().slice(0, 280),
-              priority: ['high', 'medium', 'low'].includes(t?.priority) ? t.priority : 'medium',
-              estimated_hours: typeof t?.estimated_hours === 'number' && Number.isFinite(t.estimated_hours)
-                ? Math.max(0.25, Math.min(80, t.estimated_hours)) : undefined,
-            })).filter((t: any) => t.title) : [],
-            followups: Array.isArray(parsed?.followups) ? parsed.followups.slice(0, 3).map(String) : [],
-            risks: Array.isArray(parsed?.risks) ? parsed.risks.slice(0, 3).map(String) : [],
-            tags: Array.isArray(parsed?.tags) ? parsed.tags.slice(0, 6).map((t: any) => String(t).toLowerCase().replace(/^#/, '')) : [],
-          }
-        } catch {
-          // keep empty fallback
+    const userPrompt = `Titel: ${note.title || '(ohne)'}\n\n${context ? context + '\n\n' : ''}Notiz:\n${body}`
+    let raw: string | null = null
+
+    if (hasGeminiKey()) {
+      const gemini = await runGeminiText({
+        system: SYSTEM,
+        prompt: userPrompt,
+        maxTokens: 2000,
+        temperature: 0.2,
+        responseMimeType: 'application/json',
+      })
+      if (gemini.ok && gemini.text) raw = gemini.text
+    }
+
+    if (!raw) {
+      const res = await fetch('https://api.minimax.io/v1/text/chatcompletion_v2', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+        body: JSON.stringify({
+          model: 'MiniMax-M2.7',
+          max_tokens: 2000,
+          reasoning_effort: 'none',
+          response_format: { type: 'json_object' },
+          messages: [
+            { role: 'system', content: SYSTEM },
+            { role: 'user', content: userPrompt },
+          ],
+        }),
+      })
+      if (res.ok) {
+        const ai = await res.json().catch(() => null)
+        raw = ai?.choices?.[0]?.message?.content ?? null
+      }
+    }
+
+    if (raw) {
+      const cleaned = stripCodeFence(raw).replace(/<think>[\s\S]*?<\/think>/g, '').trim()
+      try {
+        const parsed = JSON.parse(cleaned)
+        suggestions = {
+          summary: typeof parsed?.summary === 'string' ? parsed.summary.trim() : '',
+          themes: Array.isArray(parsed?.themes) ? parsed.themes.slice(0, 4).map(String) : [],
+          tasks: Array.isArray(parsed?.tasks) ? parsed.tasks.slice(0, 5).map((t: any) => ({
+            title: String(t?.title || '').trim().slice(0, 140),
+            why: String(t?.why || '').trim().slice(0, 280),
+            priority: ['high', 'medium', 'low'].includes(t?.priority) ? t.priority : 'medium',
+            estimated_hours: typeof t?.estimated_hours === 'number' && Number.isFinite(t.estimated_hours)
+              ? Math.max(0.25, Math.min(80, t.estimated_hours)) : undefined,
+          })).filter((t: any) => t.title) : [],
+          followups: Array.isArray(parsed?.followups) ? parsed.followups.slice(0, 3).map(String) : [],
+          risks: Array.isArray(parsed?.risks) ? parsed.risks.slice(0, 3).map(String) : [],
+          tags: Array.isArray(parsed?.tags) ? parsed.tags.slice(0, 6).map((t: any) => String(t).toLowerCase().replace(/^#/, '')) : [],
         }
+      } catch {
+        // keep empty fallback
       }
     }
   } catch {

@@ -3,6 +3,8 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 import { PROJECT_MODULE_REGISTRY, getProjectPreset, type ProjectType, type ExecutorRole, type DataSource } from '@/lib/project-modules'
+import { hasGeminiKey, runGeminiText } from '@/lib/tagro/gemini'
+import { extractJsonObject } from '@/lib/tagro/json'
 
 export const runtime = 'nodejs'
 
@@ -183,10 +185,9 @@ function heuristicClassify(description: string, industryContext?: string) {
   return { type: top[0], confidence: Math.min(0.95, 0.55 + top[1] * 0.1), reason: `Top-Match per Keyword: ${top[0]} (${top[1]} Signals).` }
 }
 
-// ── AI classifier — OpenAI Chat, JSON-only ──────────────────────────
+// ── AI classifier — Gemini first, OpenAI fallback, JSON-only ────────
 async function classifyWithAI(description: string, industryContext?: string): Promise<{ type: ProjectType; confidence: number; reason: string } | null> {
-  const key = process.env.OPENAI_API_KEY
-  if (!key || !description.trim()) return null
+  if (!description.trim()) return null
   try {
     const prompt = `Du bist Tagro, ein Klassifizierer für Festag. Lies die Projektbeschreibung und entscheide den Projekt-Typ.
 
@@ -207,28 +208,43 @@ Projektbeschreibung: ${description}
 Antworte AUSSCHLIESSLICH als JSON-Objekt mit dem Schema:
 {"type": "<einer der Typen>", "confidence": <0..1>, "reason": "<ein deutscher Satz, knapp>"}`
 
-    const res = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${key}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
+    let content: string | null = null
+    if (hasGeminiKey()) {
+      const gemini = await runGeminiText({
+        system: 'Du klassifizierst Projekte für Festag. Nur JSON ausgeben.',
+        prompt,
+        maxTokens: 200,
         temperature: 0.2,
-        response_format: { type: 'json_object' },
-        max_tokens: 200,
-        messages: [
-          { role: 'system', content: 'Du klassifizierst Projekte für Festag. Nur JSON ausgeben.' },
-          { role: 'user',   content: prompt },
-        ],
-      }),
-    })
-    if (!res.ok) return null
-    const json = await res.json()
-    const content = json?.choices?.[0]?.message?.content
+        responseMimeType: 'application/json',
+      })
+      if (gemini.ok && gemini.text) content = gemini.text
+    }
+
+    const key = process.env.OPENAI_API_KEY
+    if (!content && key) {
+      const res = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${key}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          temperature: 0.2,
+          response_format: { type: 'json_object' },
+          max_tokens: 200,
+          messages: [
+            { role: 'system', content: 'Du klassifizierst Projekte für Festag. Nur JSON ausgeben.' },
+            { role: 'user',   content: prompt },
+          ],
+        }),
+      })
+      if (!res.ok) return null
+      const json = await res.json()
+      content = json?.choices?.[0]?.message?.content ?? null
+    }
     if (!content) return null
-    const parsed = JSON.parse(content) as { type?: string; confidence?: number; reason?: string }
+    const parsed = extractJsonObject(content) as { type?: string; confidence?: number; reason?: string }
     const t = parsed.type as ProjectType | undefined
     if (!t || !PROJECT_TYPES.includes(t)) return null
     return {

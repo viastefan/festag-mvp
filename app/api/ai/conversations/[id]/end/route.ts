@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getServiceClient } from '@/lib/supabase/service'
+import { hasGeminiKey, runGeminiText } from '@/lib/tagro/gemini'
 
 export const runtime = 'nodejs'
 
@@ -68,26 +69,38 @@ export async function POST(_req: NextRequest, ctx: { params: { id: string } }) {
   // if the model errors — Inbox should still receive *something*.
   let summary = 'Konversation beendet. Keine Inhalte zum Zusammenfassen vorhanden.'
   if (transcript.trim().length > 0) {
-    const apiKey = process.env.MINIMAX_API_KEY
-      || 'sk-cp-i7jkWRarSBe8qM82Zj2YXxHh7bXCCUAwciPjL5t-WrYRF3WHR4tgVXeJk-Y27k62RDsp7hrb1RJS2nr9rqXB-Q6GBMCKXU6-igQu2pPH6gerajhYbZySzHA'
     try {
-      const res = await fetch(MINIMAX_ENDPOINT, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
-        body: JSON.stringify({
-          model: MINIMAX_MODEL,
-          max_tokens: 600,
-          reasoning_effort: 'none',
-          messages: [
-            { role: 'system', content: SUMMARY_SYSTEM },
-            { role: 'user', content: `Modus: ${conv.mode}\nTitel: ${conv.title}\n\nTranskript:\n${transcript.slice(0, 12000)}` },
-          ],
-        }),
-      })
-      if (res.ok) {
-        const ai = await res.json().catch(() => null)
-        const raw = ai?.choices?.[0]?.message?.content as string | undefined
-        if (raw) summary = stripThink(raw).slice(0, 4000) || summary
+      if (hasGeminiKey()) {
+        const gemini = await runGeminiText({
+          system: SUMMARY_SYSTEM,
+          prompt: `Modus: ${conv.mode}\nTitel: ${conv.title}\n\nTranskript:\n${transcript.slice(0, 12000)}`,
+          maxTokens: 600,
+          temperature: 0.2,
+        })
+        if (gemini.ok && gemini.text) summary = gemini.text.slice(0, 4000) || summary
+      }
+
+      if (summary === 'Konversation beendet. Keine Inhalte zum Zusammenfassen vorhanden.') {
+        const apiKey = process.env.MINIMAX_API_KEY
+          || 'sk-cp-i7jkWRarSBe8qM82Zj2YXxHh7bXCCUAwciPjL5t-WrYRF3WHR4tgVXeJk-Y27k62RDsp7hrb1RJS2nr9rqXB-Q6GBMCKXU6-igQu2pPH6gerajhYbZySzHA'
+        const res = await fetch(MINIMAX_ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+          body: JSON.stringify({
+            model: MINIMAX_MODEL,
+            max_tokens: 600,
+            reasoning_effort: 'none',
+            messages: [
+              { role: 'system', content: SUMMARY_SYSTEM },
+              { role: 'user', content: `Modus: ${conv.mode}\nTitel: ${conv.title}\n\nTranskript:\n${transcript.slice(0, 12000)}` },
+            ],
+          }),
+        })
+        if (res.ok) {
+          const ai = await res.json().catch(() => null)
+          const raw = ai?.choices?.[0]?.message?.content as string | undefined
+          if (raw) summary = stripThink(raw).slice(0, 4000) || summary
+        }
       }
     } catch {
       // keep fallback

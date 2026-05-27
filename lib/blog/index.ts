@@ -32,15 +32,6 @@ export const BLOG_SECTIONS: BlogSection[] = [
     label: 'Produkt-Architektur',
     articles: [
       {
-        slug: 'tagro-statusbriefing',
-        title: 'Vom Dev-Update zur ruhigen Client-Lage',
-        eyebrow: 'Tagro Statusbriefing',
-        description: 'Wie der tägliche 16:00-Loop funktioniert, was Tagro aus Dev-Updates baut und warum Reporting bei Festag operative Steuerung ist, nicht Doku.',
-        date: '2026-05-19',
-        readingMinutes: 6,
-        audience: ['client', 'dev', 'website'],
-      },
-      {
         slug: 'daily-status-loop',
         title: 'Der tägliche Statusloop, technisch erklärt',
         eyebrow: 'Engineering Deep Dive',

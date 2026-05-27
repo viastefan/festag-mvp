@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { hasGeminiKey, runGeminiText } from '@/lib/tagro/gemini'
 
 const SUPABASE_URL = 'https://xsdkoepwuvpuroijjain.supabase.co'
 
@@ -26,28 +27,40 @@ export async function POST(req: NextRequest) {
     const { reportId, projectId, content, autoInsert = false } = await req.json()
     if (!content) return NextResponse.json({ error:'no content' }, { status:400 })
 
-    const apiKey = process.env.MINIMAX_API_KEY || 'sk-cp-i7jkWRarSBe8qM82Zj2YXxHh7bXCCUAwciPjL5t-WrYRF3WHR4tgVXeJk-Y27k62RDsp7hrb1RJS2nr9rqXB-Q6GBMCKXU6-igQu2pPH6gerajhYbZySzHA'
-    if (!apiKey) return NextResponse.json({ error:'AI not configured' }, { status:500 })
+    let raw = ''
+    if (hasGeminiKey()) {
+      const gemini = await runGeminiText({
+        system: SYSTEM,
+        prompt: `Statusbericht:\n\n${content}\n\nExtrahiere die Verbesserungs-Tasks.`,
+        maxTokens: 4000,
+        temperature: 0.2,
+        responseMimeType: 'application/json',
+      })
+      if (gemini.ok) raw = gemini.text.replace(/<think>[\s\S]*?<\/think>\s*/g, '').trim()
+    }
 
-    const res = await fetch('https://api.minimax.io/v1/text/chatcompletion_v2', {
-      method:'POST',
-      headers: {
-        'Content-Type':'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model:'MiniMax-M2.7',
-        max_tokens: 4000,
-        reasoning_effort: 'none',
-        messages: [
-          { role: 'system', content: SYSTEM },
-          { role:'user', content: `Statusbericht:\n\n${content}\n\nExtrahiere die Verbesserungs-Tasks.` },
-        ],
-      }),
-    })
-    const data = await res.json()
-    // <think>...</think> Reasoning-Block strippen (MiniMax-M2.x)
-    const raw = (data?.choices?.[0]?.message?.content ?? '').replace(/<think>[\s\S]*?<\/think>\s*/g, '').trim()
+    if (!raw) {
+      const apiKey = process.env.MINIMAX_API_KEY || 'sk-cp-i7jkWRarSBe8qM82Zj2YXxHh7bXCCUAwciPjL5t-WrYRF3WHR4tgVXeJk-Y27k62RDsp7hrb1RJS2nr9rqXB-Q6GBMCKXU6-igQu2pPH6gerajhYbZySzHA'
+      if (!apiKey) return NextResponse.json({ error:'AI not configured' }, { status:500 })
+      const res = await fetch('https://api.minimax.io/v1/text/chatcompletion_v2', {
+        method:'POST',
+        headers: {
+          'Content-Type':'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model:'MiniMax-M2.7',
+          max_tokens: 4000,
+          reasoning_effort: 'none',
+          messages: [
+            { role: 'system', content: SYSTEM },
+            { role:'user', content: `Statusbericht:\n\n${content}\n\nExtrahiere die Verbesserungs-Tasks.` },
+          ],
+        }),
+      })
+      const data = await res.json()
+      raw = (data?.choices?.[0]?.message?.content ?? '').replace(/<think>[\s\S]*?<\/think>\s*/g, '').trim()
+    }
 
     let parsed: any
     try {

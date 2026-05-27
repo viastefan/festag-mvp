@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { hasGeminiKey, runGeminiText } from '@/lib/tagro/gemini'
 
 const SUPABASE_URL = 'https://xsdkoepwuvpuroijjain.supabase.co'
 
@@ -50,33 +51,45 @@ Anforderungen:
 export async function POST(req: NextRequest) {
   try {
     const { userId } = await req.json()
-    const apiKey = process.env.MINIMAX_API_KEY || 'sk-cp-i7jkWRarSBe8qM82Zj2YXxHh7bXCCUAwciPjL5t-WrYRF3WHR4tgVXeJk-Y27k62RDsp7hrb1RJS2nr9rqXB-Q6GBMCKXU6-igQu2pPH6gerajhYbZySzHA'
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-    if (!apiKey) return NextResponse.json({ error: 'AI not configured' }, { status: 500 })
     if (!serviceKey) return NextResponse.json({ error: 'service key missing' }, { status: 500 })
     if (!userId) return NextResponse.json({ error: 'userId required' }, { status: 400 })
 
-    // 1. Minimax generiert ein komplettes Demo-Projekt
-    const aiRes = await fetch('https://api.minimax.io/v1/text/chatcompletion_v2', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: 'MiniMax-M2.7',
-        max_tokens: 8000,
-        reasoning_effort: 'none',
-        messages: [
-          { role: 'system', content: GENERATE_SYSTEM },
-          { role: 'user', content: 'Generiere jetzt ein realistisches Demo-Software-Projekt mit allen Epics und Tasks. Würfle eine kreative, neue Idee.' },
-        ],
-      }),
-    })
+    let rawText = ''
+    if (hasGeminiKey()) {
+      const gemini = await runGeminiText({
+        system: GENERATE_SYSTEM,
+        prompt: 'Generiere jetzt ein realistisches Demo-Software-Projekt mit allen Epics und Tasks. Würfle eine kreative, neue Idee.',
+        maxTokens: 8000,
+        temperature: 0.4,
+        responseMimeType: 'application/json',
+      })
+      if (gemini.ok) rawText = gemini.text.replace(/<think>[\s\S]*?<\/think>\s*/g, '').trim()
+    }
 
-    const aiData = await aiRes.json()
-    // <think>...</think> Reasoning-Block strippen (MiniMax-M2.x)
-    const rawText = (aiData?.choices?.[0]?.message?.content ?? '').replace(/<think>[\s\S]*?<\/think>\s*/g, '').trim()
+    if (!rawText) {
+      const apiKey = process.env.MINIMAX_API_KEY || 'sk-cp-i7jkWRarSBe8qM82Zj2YXxHh7bXCCUAwciPjL5t-WrYRF3WHR4tgVXeJk-Y27k62RDsp7hrb1RJS2nr9rqXB-Q6GBMCKXU6-igQu2pPH6gerajhYbZySzHA'
+      if (!apiKey) return NextResponse.json({ error: 'AI not configured' }, { status: 500 })
+      const aiRes = await fetch('https://api.minimax.io/v1/text/chatcompletion_v2', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: 'MiniMax-M2.7',
+          max_tokens: 8000,
+          reasoning_effort: 'none',
+          messages: [
+            { role: 'system', content: GENERATE_SYSTEM },
+            { role: 'user', content: 'Generiere jetzt ein realistisches Demo-Software-Projekt mit allen Epics und Tasks. Würfle eine kreative, neue Idee.' },
+          ],
+        }),
+      })
+
+      const aiData = await aiRes.json()
+      rawText = (aiData?.choices?.[0]?.message?.content ?? '').replace(/<think>[\s\S]*?<\/think>\s*/g, '').trim()
+    }
 
     let decomposed: any
     try {

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { hasGeminiKey, runGeminiText } from '@/lib/tagro/gemini'
 
 export const runtime = 'nodejs'
 
@@ -42,6 +43,10 @@ function stripFence(s: string) {
   return s.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/i, '').trim()
 }
 
+function parseSuggestion(raw: string) {
+  return JSON.parse(stripFence(raw).replace(/<think>[\s\S]*?<\/think>/g, '').trim())
+}
+
 export async function POST(_req: NextRequest, ctx: { params: { id: string } }) {
   const supa = createClient()
   const { data: { user } } = await supa.auth.getUser()
@@ -72,38 +77,52 @@ export async function POST(_req: NextRequest, ctx: { params: { id: string } }) {
   let urgency_hint: string | null = null
 
   try {
-    const res = await fetch('https://api.minimax.io/v1/text/chatcompletion_v2', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
-      body: JSON.stringify({
-        model: 'MiniMax-M2.7',
-        max_tokens: 1200,
-        reasoning_effort: 'none',
-        response_format: { type: 'json_object' },
-        messages: [
-          { role: 'system', content: SYSTEM },
-          {
-            role: 'user',
-            content:
-              `Entscheidung: ${d.title}\n\n` +
-              `Kontext (Dev hat geschrieben):\n${d.description || '—'}\n\n` +
-              `Optionen:\n${optionsBlock}\n\n` +
-              (projectContext ? `Projekt-Kontext:\n${projectContext}\n` : ''),
-          },
-        ],
-      }),
-    })
-    if (res.ok) {
-      const ai = await res.json().catch(() => null)
-      const raw: string | undefined = ai?.choices?.[0]?.message?.content
-      if (raw) {
-        try {
-          const parsed = JSON.parse(stripFence(raw).replace(/<think>[\s\S]*?<\/think>/g, '').trim())
-          recommended_option_id = typeof parsed?.recommended_option_id === 'string' ? parsed.recommended_option_id : null
-          reasoning = typeof parsed?.reasoning === 'string' ? parsed.reasoning.trim() : ''
-          urgency_hint = ['low', 'normal', 'high', 'critical'].includes(parsed?.urgency_hint) ? parsed.urgency_hint : null
-        } catch {/* keep empty */}
+    const userPrompt =
+      `Entscheidung: ${d.title}\n\n` +
+      `Kontext (Dev hat geschrieben):\n${d.description || '—'}\n\n` +
+      `Optionen:\n${optionsBlock}\n\n` +
+      (projectContext ? `Projekt-Kontext:\n${projectContext}\n` : '')
+
+    let raw: string | null = null
+    if (hasGeminiKey()) {
+      const gemini = await runGeminiText({
+        system: SYSTEM,
+        prompt: userPrompt,
+        maxTokens: 1200,
+        temperature: 0.2,
+        responseMimeType: 'application/json',
+      })
+      if (gemini.ok && gemini.text) raw = gemini.text
+    }
+
+    if (!raw) {
+      const res = await fetch('https://api.minimax.io/v1/text/chatcompletion_v2', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+        body: JSON.stringify({
+          model: 'MiniMax-M2.7',
+          max_tokens: 1200,
+          reasoning_effort: 'none',
+          response_format: { type: 'json_object' },
+          messages: [
+            { role: 'system', content: SYSTEM },
+            { role: 'user', content: userPrompt },
+          ],
+        }),
+      })
+      if (res.ok) {
+        const ai = await res.json().catch(() => null)
+        raw = ai?.choices?.[0]?.message?.content ?? null
       }
+    }
+
+    if (raw) {
+      try {
+        const parsed = parseSuggestion(raw)
+        recommended_option_id = typeof parsed?.recommended_option_id === 'string' ? parsed.recommended_option_id : null
+        reasoning = typeof parsed?.reasoning === 'string' ? parsed.reasoning.trim() : ''
+        urgency_hint = ['low', 'normal', 'high', 'critical'].includes(parsed?.urgency_hint) ? parsed.urgency_hint : null
+      } catch {/* keep empty */}
     }
   } catch {/* network */}
 

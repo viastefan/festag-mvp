@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { hasGeminiKey, runGeminiText } from '@/lib/tagro/gemini'
 
 const SUPABASE_URL = 'https://xsdkoepwuvpuroijjain.supabase.co'
 
@@ -41,34 +42,46 @@ export async function POST(req: NextRequest) {
   try {
     const { chatHistory, userId } = await req.json()
 
-    const apiKey = process.env.MINIMAX_API_KEY || 'sk-cp-i7jkWRarSBe8qM82Zj2YXxHh7bXCCUAwciPjL5t-WrYRF3WHR4tgVXeJk-Y27k62RDsp7hrb1RJS2nr9rqXB-Q6GBMCKXU6-igQu2pPH6gerajhYbZySzHA'
-    if (!apiKey) return NextResponse.json({ error: 'not configured' }, { status: 500 })
-
     // Build conversation summary for decomposition
     const chatText = (chatHistory ?? [])
       .map((m: any) => `${m.role === 'ai' ? 'Tagro' : 'Kunde'}: ${m.text}`)
       .join('\n')
 
-    const res = await fetch('https://api.minimax.io/v1/text/chatcompletion_v2', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: 'MiniMax-M2.7',
-        max_tokens: 8000,
-        reasoning_effort: 'none',
-        messages: [
-          { role: 'system', content: DECOMPOSE_SYSTEM },
-          { role: 'user', content: `Hier ist das Onboarding-Gespräch mit dem Kunden:\n\n${chatText}\n\nZerlege dieses Projekt strukturiert.` },
-        ],
-      }),
-    })
+    let rawText = ''
+    if (hasGeminiKey()) {
+      const gemini = await runGeminiText({
+        system: DECOMPOSE_SYSTEM,
+        prompt: `Hier ist das Onboarding-Gespräch mit dem Kunden:\n\n${chatText}\n\nZerlege dieses Projekt strukturiert.`,
+        maxTokens: 8000,
+        temperature: 0.2,
+        responseMimeType: 'application/json',
+      })
+      if (gemini.ok) rawText = gemini.text.replace(/<think>[\s\S]*?<\/think>\s*/g, '').trim()
+    }
 
-    const aiData = await res.json()
-    // <think>...</think> Reasoning-Block strippen (MiniMax-M2.x)
-    const rawText = (aiData?.choices?.[0]?.message?.content ?? '').replace(/<think>[\s\S]*?<\/think>\s*/g, '').trim()
+    if (!rawText) {
+      const apiKey = process.env.MINIMAX_API_KEY || 'sk-cp-i7jkWRarSBe8qM82Zj2YXxHh7bXCCUAwciPjL5t-WrYRF3WHR4tgVXeJk-Y27k62RDsp7hrb1RJS2nr9rqXB-Q6GBMCKXU6-igQu2pPH6gerajhYbZySzHA'
+      if (!apiKey) return NextResponse.json({ error: 'not configured' }, { status: 500 })
+      const res = await fetch('https://api.minimax.io/v1/text/chatcompletion_v2', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: 'MiniMax-M2.7',
+          max_tokens: 8000,
+          reasoning_effort: 'none',
+          messages: [
+            { role: 'system', content: DECOMPOSE_SYSTEM },
+            { role: 'user', content: `Hier ist das Onboarding-Gespräch mit dem Kunden:\n\n${chatText}\n\nZerlege dieses Projekt strukturiert.` },
+          ],
+        }),
+      })
+
+      const aiData = await res.json()
+      rawText = (aiData?.choices?.[0]?.message?.content ?? '').replace(/<think>[\s\S]*?<\/think>\s*/g, '').trim()
+    }
 
     // Parse JSON from AI response
     let decomposed: any

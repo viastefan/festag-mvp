@@ -12,7 +12,7 @@ const RELEASES = [
 const BLOG = [
   {
     title: 'Tagro Statusbriefing: vom Dev-Update zum Client-Bericht.',
-    href: '/blog/tagro-statusbriefing',
+    href: '/docs/tagro-statusbriefing',
   },
   {
     title: 'Wie Festag kontrollierte Softwareproduktion statt Tool-Chaos aufbaut.',

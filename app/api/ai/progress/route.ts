@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { taskStatusPatch } from '@/lib/tasks/status'
+import { hasGeminiKey, runGeminiText } from '@/lib/tagro/gemini'
 
 const SUPABASE_URL = 'https://xsdkoepwuvpuroijjain.supabase.co'
 
@@ -11,6 +12,18 @@ function fallbackCustomerUpdate(devNote: string) {
 }
 
 async function translateWithTagro(devNote: string) {
+  const system = 'Du bist Tagro, die Übersetzungsschicht von Festag. Übersetze technische Developer-Notizen in kundenfreundliche Projekt-Updates. Maximal 2 kurze Sätze. Deutsch. Kein Fachjargon. Ehrlich, ruhig, konkret.'
+
+  if (hasGeminiKey()) {
+    const gemini = await runGeminiText({
+      system,
+      prompt: `Developer-Notiz: ${devNote}`,
+      maxTokens: 700,
+      temperature: 0.2,
+    })
+    if (gemini.ok && gemini.text) return gemini.text.trim()
+  }
+
   const apiKey = process.env.MINIMAX_API_KEY
   if (!apiKey) return fallbackCustomerUpdate(devNote)
 
@@ -28,7 +41,7 @@ async function translateWithTagro(devNote: string) {
         messages: [
           {
             role: 'system',
-            content: 'Du bist Tagro, die Übersetzungsschicht von Festag. Übersetze technische Developer-Notizen in kundenfreundliche Projekt-Updates. Maximal 2 kurze Sätze. Deutsch. Kein Fachjargon. Ehrlich, ruhig, konkret.',
+            content: system,
           },
           { role: 'user', content: `Developer-Notiz: ${devNote}` },
         ],
