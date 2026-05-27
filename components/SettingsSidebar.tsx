@@ -62,16 +62,18 @@ export default function SettingsSidebar() {
         .sset {
           display: flex; flex-direction: column;
           height: 100%; min-height: 0;
-          padding: 14px 8px 18px;
+          padding: 16px 8px 18px;
           color: var(--text);
           font-family: var(--font-aeonik,'Aeonik',Inter,sans-serif);
+          font-weight: 500;
+          letter-spacing: 0;
           pointer-events: all;
         }
         .sset-back {
           display: inline-flex; align-items: center; gap: 6px;
-          padding: 7px 10px; margin: 0 4px 16px;
+          padding: 7px 10px; margin: 0 4px 18px;
           border-radius: 8px;
-          font-size: 13px; font-weight: 500; letter-spacing: 0.01em;
+          font-size: 13px; font-weight: 500; letter-spacing: 0;
           color: var(--text-secondary);
           text-decoration: none;
           transition: background .12s, color .12s;
@@ -81,14 +83,14 @@ export default function SettingsSidebar() {
         .sset-group { margin-bottom: 14px; }
         .sset-group-label {
           padding: 6px 14px 6px;
-          font-size: 11.5px; font-weight: 600; letter-spacing: 0.01em;
+          font-size: 11.5px; font-weight: 500; letter-spacing: 0;
           color: var(--text-secondary);
         }
         .sset-item {
           display: flex; align-items: center; gap: 8px;
           margin: 0 4px;
           padding: 0 10px;
-          min-height: 27px;
+          min-height: 29px;
           border-radius: 8px;
           font-size: 13px; font-weight: 500;
           color: var(--text-secondary);
@@ -98,7 +100,7 @@ export default function SettingsSidebar() {
         .sset-item:hover { background: rgba(0,0,0,.04); color: var(--text); }
         [data-theme="dark"] .sset-item:hover { background: rgba(255,255,255,.05); }
         .sset-item.on {
-          background: rgba(0,0,0,.05); color: var(--text); font-weight: 600;
+          background: rgba(0,0,0,.045); color: var(--text); font-weight: 500;
         }
         [data-theme="dark"] .sset-item.on { background: rgba(255,255,255,.075); }
       `}</style>
@@ -106,7 +108,7 @@ export default function SettingsSidebar() {
       <aside className="sset-shell" aria-label="Einstellungen">
         <div className="sset">
           <Link href="/dashboard" className="sset-back">
-            <CaretLeft size={13} weight="bold" />
+            <CaretLeft size={13} weight="regular" />
             <span>Zurück zur App</span>
           </Link>
 
@@ -122,7 +124,7 @@ export default function SettingsSidebar() {
                     href={href}
                     className={`sset-item${isActive ? ' on' : ''}`}
                   >
-                    <item.icon size={14} weight={isActive ? 'bold' : 'regular'} />
+                    <item.icon size={14} weight="regular" />
                     <span>{item.label}</span>
                   </Link>
                 )

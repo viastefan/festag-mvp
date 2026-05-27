@@ -162,8 +162,8 @@ export default function SidebarProfileFooter({
             width: 24, height: 24, borderRadius: '50%',
             background: avatarColor,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 9.5, fontWeight: 700, color: avatarFg,
-            flexShrink: 0, letterSpacing: '.02em',
+            fontSize: 9.5, fontWeight: 500, color: avatarFg,
+            flexShrink: 0, letterSpacing: 0,
           }}>
             {initials}
           </div>
@@ -171,7 +171,7 @@ export default function SidebarProfileFooter({
 
         <span style={{ flex: '1 1 auto', minWidth: 0, maxWidth: 82, display: 'inline-flex', alignItems: 'center', gap: 6, overflow: 'hidden' }}>
           <span style={{
-            fontSize: 12.5, fontWeight: 600, color: 'var(--text)',
+            fontSize: 12.5, fontWeight: 500, color: 'var(--text)', letterSpacing: 0,
             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
           }}>
             {triggerName}
@@ -214,16 +214,18 @@ export default function SidebarProfileFooter({
           width: 32px; height: 32px; border-radius: 50%;
           object-fit: cover;
           display: flex; align-items: center; justify-content: center;
-          font-size: 12px; font-weight: 700; letter-spacing: .02em;
+          font-size: 12px; font-weight: 500; letter-spacing: 0;
           flex-shrink: 0;
         }
         .spf-account-text { min-width: 0; line-height: 1.3; }
         .spf-account-name {
-          font-size: 13px; font-weight: 600; color: var(--text);
+          font-size: 13px; font-weight: 500; color: var(--text);
+          letter-spacing: 0;
           overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
         }
         .spf-account-email {
           font-size: 11.5px; font-weight: 400; color: var(--text-muted);
+          letter-spacing: 0;
           overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
         }
         .spf-divider {
@@ -237,6 +239,7 @@ export default function SidebarProfileFooter({
           border: none; background: transparent;
           font-family: inherit;
           font-size: 12.5px; font-weight: 500;
+          letter-spacing: 0;
           color: var(--text);
           text-decoration: none;
           border-radius: 8px;

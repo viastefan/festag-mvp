@@ -18,9 +18,10 @@
 
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, type MutableRefObject } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { getFontMode, setFontMode as applyFontMode, getTheme, setTheme as applyThemeMode, type FontMode, type ThemeMode } from '@/lib/theme'
+import { getLanguageMode, setLanguageMode, type LanguageMode } from '@/lib/language'
 import { AVATAR_COLORS } from '@/lib/avatar'
 import { broadcastProfileSync } from '@/lib/profile-sync'
 
@@ -51,9 +52,14 @@ const SECTION_TITLE: Record<SectionId, string> = {
 type Profile = {
   id: string
   email: string | null
+  first_name: string | null
   full_name: string | null
   position: string | null
   phone: string | null
+  bio: string | null
+  linkedin_url: string | null
+  timezone: string | null
+  language_pref: LanguageMode | null
   avatar_url: string | null
   avatar_color: string | null
   role: string | null
@@ -74,6 +80,108 @@ type Profile = {
   company_city: string | null
   company_zip: string | null
   company_country: string | null
+}
+
+const PROFILE_FULL_SELECT = [
+  'id',
+  'email',
+  'first_name',
+  'full_name',
+  'position',
+  'phone',
+  'bio',
+  'linkedin_url',
+  'timezone',
+  'language_pref',
+  'avatar_url',
+  'avatar_color',
+  'role',
+  'theme_pref',
+  'notif_email',
+  'notif_push',
+  'company_name',
+  'company_desc',
+  'company_industry',
+  'company_size',
+  'company_website',
+  'legal_form',
+  'vat_number',
+  'tax_number',
+  'company_address',
+  'company_city',
+  'company_zip',
+  'company_country',
+].join(',')
+
+const PROFILE_BASE_SELECT = [
+  'id',
+  'email',
+  'first_name',
+  'full_name',
+  'position',
+  'phone',
+  'avatar_url',
+  'avatar_color',
+  'role',
+].join(',')
+
+const PROFILE_MIN_SELECT = [
+  'id',
+  'email',
+  'full_name',
+  'avatar_url',
+  'avatar_color',
+  'role',
+].join(',')
+
+function firstNameFromFullName(value: string) {
+  return value.trim().split(/\s+/).filter(Boolean)[0] || null
+}
+
+function jsonKey(value: Record<string, unknown>) {
+  return JSON.stringify(value)
+}
+
+function missingProfileColumn(error: unknown) {
+  const message = String((error as any)?.message ?? '')
+  return (
+    message.match(/'([^']+)' column/)?.[1] ||
+    message.match(/column "?([a-zA-Z0-9_]+)"? does not exist/)?.[1] ||
+    null
+  )
+}
+
+function profileFallback(id: string, email: string | null): Profile {
+  return {
+    id,
+    email,
+    first_name: null,
+    full_name: null,
+    position: null,
+    phone: null,
+    bio: null,
+    linkedin_url: null,
+    timezone: 'Europe/Berlin',
+    language_pref: 'de',
+    avatar_url: null,
+    avatar_color: null,
+    role: 'client',
+    theme_pref: null,
+    notif_email: true,
+    notif_push: false,
+    company_name: null,
+    company_desc: null,
+    company_industry: null,
+    company_size: null,
+    company_website: null,
+    legal_form: null,
+    vat_number: null,
+    tax_number: null,
+    company_address: null,
+    company_city: null,
+    company_zip: null,
+    company_country: 'Deutschland',
+  }
 }
 
 const THEME_OPTIONS: Array<{ id: ThemeMode; label: string; sub: string }> = [
@@ -111,6 +219,15 @@ export default function SettingsPage() {
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [savedTick, setSavedTick] = useState<string | null>(null)
   const [error, setError] = useState('')
+  const [profileReady, setProfileReady] = useState(false)
+  const savedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const profileAutosaveRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const companyAutosaveRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const billingAutosaveRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const saveRunRef = useRef(0)
+  const profileSnapshotRef = useRef('')
+  const companySnapshotRef = useRef('')
+  const billingSnapshotRef = useRef('')
 
   // form state mirrors profile fields so we can edit without rerouting
   const [fullName, setFullName] = useState('')
@@ -119,7 +236,7 @@ export default function SettingsPage() {
   const [bio, setBio] = useState('')
   const [linkedinUrl, setLinkedinUrl] = useState('')
   const [timezone, setTimezone] = useState('Europe/Berlin')
-  const [languagePref, setLanguagePref] = useState<'de' | 'en'>('de')
+  const [languagePref, setLanguagePref] = useState<LanguageMode>('de')
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const [avatarUploading, setAvatarUploading] = useState(false)
 
@@ -160,51 +277,99 @@ export default function SettingsPage() {
       if (!session) { window.location.href = '/login'; return }
 
       const uid = session.user.id
-      const { data: p } = await supabase
-        .from('profiles')
-        .select('id,email,full_name,position,phone,bio,linkedin_url,timezone,language_pref,avatar_url,avatar_color,role,theme_pref,notif_email,notif_push,company_name,company_desc,company_industry,company_size,company_website,legal_form,vat_number,tax_number,company_address,company_city,company_zip,company_country')
-        .eq('id', uid)
-        .maybeSingle()
+      async function readProfile(select: string) {
+        return (supabase as any)
+          .from('profiles')
+          .select(select)
+          .eq('id', uid)
+          .maybeSingle()
+      }
+
+      let row: any = null
+      let loaded = await readProfile(PROFILE_FULL_SELECT)
+      if (loaded.error && missingProfileColumn(loaded.error)) {
+        loaded = await readProfile(PROFILE_BASE_SELECT)
+      }
+      if (loaded.error && missingProfileColumn(loaded.error)) {
+        loaded = await readProfile(PROFILE_MIN_SELECT)
+      }
+      if (loaded.error && !missingProfileColumn(loaded.error)) {
+        throw loaded.error
+      }
+      row = loaded.data
 
       if (cancelled) return
       // Self-heal: some legacy accounts never got a profiles row created.
-      // Without one, saveProfile silently no-ops because `profile` stays
+      // Without one, autosave silently no-ops because `profile` stays
       // null. Insert a stub row so saves always have something to update.
-      let row = p
       if (!row) {
-        const { data: created } = await (supabase as any).from('profiles').insert({
-          id: uid,
-          email: session.user.email ?? null,
-        }).select('*').single()
-        row = created
+        const { data: created } = await (supabase as any)
+          .from('profiles')
+          .upsert({ id: uid, email: session.user.email ?? null }, { onConflict: 'id' })
+          .select(PROFILE_MIN_SELECT)
+          .maybeSingle()
+        row = created ?? profileFallback(uid, session.user.email ?? null)
       }
-      if (row) {
-        setProfile(row as Profile)
-        setFullName(row.full_name || '')
-        setPosition(row.position || '')
-        setPhone(row.phone || '')
-        setBio((row as any).bio || '')
-        setLinkedinUrl((row as any).linkedin_url || '')
-        setTimezone((row as any).timezone || 'Europe/Berlin')
-        const lang = (row as any).language_pref
-        if (lang === 'de' || lang === 'en') setLanguagePref(lang)
-        setAvatarUrl(row.avatar_url || null)
-        if (row.avatar_color) setLocalAvatarColor(row.avatar_color)
-        setCompName(row.company_name || '')
-        setCompDesc(row.company_desc || '')
-        setCompIndustry(row.company_industry || '')
-        setCompSize(row.company_size || '')
-        setCompWebsite(row.company_website || '')
-        setLegalForm(row.legal_form || '')
-        setVatNumber(row.vat_number || '')
-        setTaxNumber(row.tax_number || '')
-        setBillAddress(row.company_address || '')
-        setBillCity(row.company_city || '')
-        setBillZip(row.company_zip || '')
-        setBillCountry(row.company_country || 'Deutschland')
-        if (typeof row.notif_email === 'boolean') setNotifEmail(row.notif_email)
-        if (typeof row.notif_push === 'boolean') setNotifPush(row.notif_push)
-      }
+
+      const normalized = { ...profileFallback(uid, session.user.email ?? null), ...row } as Profile
+      const lang = normalized.language_pref === 'en' || normalized.language_pref === 'de'
+        ? normalized.language_pref
+        : getLanguageMode()
+
+      const loadedName = normalized.full_name || normalized.first_name || ''
+      profileSnapshotRef.current = jsonKey({
+        full_name: loadedName.trim() || null,
+        first_name: firstNameFromFullName(loadedName),
+        position: normalized.position?.trim() || null,
+        phone: normalized.phone?.trim() || null,
+        bio: normalized.bio?.trim() || null,
+        linkedin_url: normalized.linkedin_url?.trim() || null,
+        timezone: normalized.timezone?.trim() || 'Europe/Berlin',
+        language_pref: lang,
+      })
+      companySnapshotRef.current = jsonKey({
+        company_name: normalized.company_name?.trim() || null,
+        company_desc: normalized.company_desc?.trim() || null,
+        company_industry: normalized.company_industry || null,
+        company_size: normalized.company_size || null,
+        company_website: normalized.company_website?.trim() || null,
+        legal_form: normalized.legal_form || null,
+      })
+      billingSnapshotRef.current = jsonKey({
+        vat_number: normalized.vat_number?.trim() || null,
+        tax_number: normalized.tax_number?.trim() || null,
+        company_address: normalized.company_address?.trim() || null,
+        company_city: normalized.company_city?.trim() || null,
+        company_zip: normalized.company_zip?.trim() || null,
+        company_country: normalized.company_country || 'Deutschland',
+      })
+
+      setProfile(normalized)
+      setFullName(loadedName)
+      setPosition(normalized.position || '')
+      setPhone(normalized.phone || '')
+      setBio(normalized.bio || '')
+      setLinkedinUrl(normalized.linkedin_url || '')
+      setTimezone(normalized.timezone || 'Europe/Berlin')
+      setLanguagePref(lang)
+      setLanguageMode(lang)
+      setAvatarUrl(normalized.avatar_url || null)
+      if (normalized.avatar_color) setLocalAvatarColor(normalized.avatar_color)
+      setCompName(normalized.company_name || '')
+      setCompDesc(normalized.company_desc || '')
+      setCompIndustry(normalized.company_industry || '')
+      setCompSize(normalized.company_size || '')
+      setCompWebsite(normalized.company_website || '')
+      setLegalForm(normalized.legal_form || '')
+      setVatNumber(normalized.vat_number || '')
+      setTaxNumber(normalized.tax_number || '')
+      setBillAddress(normalized.company_address || '')
+      setBillCity(normalized.company_city || '')
+      setBillZip(normalized.company_zip || '')
+      setBillCountry(normalized.company_country || 'Deutschland')
+      if (typeof normalized.notif_email === 'boolean') setNotifEmail(normalized.notif_email)
+      if (typeof normalized.notif_push === 'boolean') setNotifPush(normalized.notif_push)
+      setProfileReady(true)
 
       // Workspace (Primary Mode + name + members) — Settings → Workspace card
       try {
@@ -256,37 +421,166 @@ export default function SettingsPage() {
 
       // identities (Google etc.)
       setIdentities((session.user.identities || []).map(i => ({ id: i.id, provider: i.provider })))
-    })()
+    })().catch((e: any) => {
+      if (!cancelled) {
+        setError(e?.message || 'Konnte Einstellungen nicht laden.')
+        setProfileReady(true)
+      }
+    })
     return () => { cancelled = true }
   }, [supabase])
 
   function flashSaved(label: string) {
+    if (savedTimerRef.current) clearTimeout(savedTimerRef.current)
     setSavedTick(label)
-    setTimeout(() => setSavedTick(null), 1600)
+    savedTimerRef.current = setTimeout(() => setSavedTick(null), 1600)
   }
 
-  async function saveProfile() {
+  async function updateProfileFields(patch: Record<string, any>) {
     if (!profile) return
-    setError(''); setSaving(true)
-    try {
-      const { error: upErr } = await (supabase as any).from('profiles').update({
-        full_name: fullName.trim() || null,
-        position: position.trim() || null,
-        phone: phone.trim() || null,
-        bio: bio.trim() || null,
-        linkedin_url: linkedinUrl.trim() || null,
-        timezone: timezone.trim() || null,
-        language_pref: languagePref,
-      }).eq('id', profile.id)
-      if (upErr) throw upErr
-      broadcastProfileSync({ fullName: fullName.trim() || null, firstName: (fullName.trim().split(' ')[0]) || null })
-      flashSaved('Profil gespeichert')
-    } catch (e: any) {
-      setError(e?.message || 'Konnte nicht speichern.')
-    } finally {
-      setSaving(false)
+    let payload = { ...patch }
+
+    for (let attempt = 0; attempt < 12; attempt += 1) {
+      if (Object.keys(payload).length === 0) return
+      const { error: updateError } = await (supabase as any)
+        .from('profiles')
+        .update(payload)
+        .eq('id', profile.id)
+      if (!updateError) return
+
+      const missing = missingProfileColumn(updateError)
+      if (missing && Object.prototype.hasOwnProperty.call(payload, missing)) {
+        const { [missing]: _removed, ...rest } = payload
+        payload = rest
+        continue
+      }
+      throw updateError
     }
   }
+
+  function queueAutosave(
+    ref: MutableRefObject<ReturnType<typeof setTimeout> | null>,
+    task: () => Promise<void>,
+    delay = 650,
+  ) {
+    if (ref.current) clearTimeout(ref.current)
+    setError('')
+    setSaving(true)
+    setSavedTick('Speichert automatisch…')
+    ref.current = setTimeout(() => {
+      ref.current = null
+      const runId = ++saveRunRef.current
+      task()
+        .then(() => {
+          if (runId === saveRunRef.current) {
+            setSaving(false)
+            flashSaved('Alle Änderungen gespeichert')
+          }
+        })
+        .catch((e: any) => {
+          if (runId === saveRunRef.current) setSaving(false)
+          setError(e?.message || 'Konnte nicht speichern.')
+        })
+    }, delay)
+  }
+
+  function profilePatch() {
+    const trimmedName = fullName.trim()
+    return {
+      full_name: trimmedName || null,
+      first_name: firstNameFromFullName(trimmedName),
+      position: position.trim() || null,
+      phone: phone.trim() || null,
+      bio: bio.trim() || null,
+      linkedin_url: linkedinUrl.trim() || null,
+      timezone: timezone.trim() || 'Europe/Berlin',
+      language_pref: languagePref,
+    }
+  }
+
+  function companyPatch() {
+    return {
+      company_name: compName.trim() || null,
+      company_desc: compDesc.trim() || null,
+      company_industry: compIndustry || null,
+      company_size: compSize || null,
+      company_website: compWebsite.trim() || null,
+      legal_form: legalForm || null,
+    }
+  }
+
+  function billingPatch() {
+    return {
+      vat_number: vatNumber.trim() || null,
+      tax_number: taxNumber.trim() || null,
+      company_address: billAddress.trim() || null,
+      company_city: billCity.trim() || null,
+      company_zip: billZip.trim() || null,
+      company_country: billCountry || null,
+    }
+  }
+
+  useEffect(() => {
+    return () => {
+      if (savedTimerRef.current) clearTimeout(savedTimerRef.current)
+      if (profileAutosaveRef.current) clearTimeout(profileAutosaveRef.current)
+      if (companyAutosaveRef.current) clearTimeout(companyAutosaveRef.current)
+      if (billingAutosaveRef.current) clearTimeout(billingAutosaveRef.current)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!profileReady || !profile) return
+    const trimmedName = fullName.trim()
+    broadcastProfileSync({
+      fullName: trimmedName || null,
+      firstName: firstNameFromFullName(trimmedName),
+    })
+  }, [fullName, profileReady, profile])
+
+  useEffect(() => {
+    if (!profileReady) return
+    setLanguageMode(languagePref)
+  }, [languagePref, profileReady])
+
+  useEffect(() => {
+    if (!profileReady || !profile) return
+    const patch = profilePatch()
+    const key = jsonKey(patch)
+    if (key === profileSnapshotRef.current) return
+
+    queueAutosave(profileAutosaveRef, async () => {
+      await updateProfileFields(patch)
+      profileSnapshotRef.current = key
+      setProfile(prev => prev ? { ...prev, ...patch } as Profile : prev)
+    })
+  }, [fullName, position, phone, bio, linkedinUrl, timezone, languagePref, profileReady, profile])
+
+  useEffect(() => {
+    if (!profileReady || !profile) return
+    const patch = companyPatch()
+    const key = jsonKey(patch)
+    if (key === companySnapshotRef.current) return
+
+    queueAutosave(companyAutosaveRef, async () => {
+      await updateProfileFields(patch)
+      companySnapshotRef.current = key
+      setProfile(prev => prev ? { ...prev, ...patch } as Profile : prev)
+    })
+  }, [compName, compDesc, compIndustry, compSize, compWebsite, legalForm, profileReady, profile])
+
+  useEffect(() => {
+    if (!profileReady || !profile) return
+    const patch = billingPatch()
+    const key = jsonKey(patch)
+    if (key === billingSnapshotRef.current) return
+
+    queueAutosave(billingAutosaveRef, async () => {
+      await updateProfileFields(patch)
+      billingSnapshotRef.current = key
+      setProfile(prev => prev ? { ...prev, ...patch } as Profile : prev)
+    })
+  }, [vatNumber, taxNumber, billAddress, billZip, billCity, billCountry, profileReady, profile])
 
   async function uploadAvatar(file: File) {
     if (!profile) return
@@ -303,7 +597,7 @@ export default function SettingsPage() {
       const { data: pub } = supabase.storage.from('avatars').getPublicUrl(path)
       const url = pub?.publicUrl || null
       if (url) {
-        await supabase.from('profiles').update({ avatar_url: url }).eq('id', profile.id)
+        await updateProfileFields({ avatar_url: url })
         setAvatarUrl(url)
         broadcastProfileSync({ avatarUrl: url })
         flashSaved('Profilbild aktualisiert')
@@ -315,51 +609,11 @@ export default function SettingsPage() {
     }
   }
 
-  async function saveCompany() {
-    if (!profile) return
-    setError(''); setSaving(true)
-    try {
-      await supabase.from('profiles').update({
-        company_name:     compName.trim()     || null,
-        company_desc:     compDesc.trim()     || null,
-        company_industry: compIndustry        || null,
-        company_size:     compSize            || null,
-        company_website:  compWebsite.trim()  || null,
-        legal_form:       legalForm           || null,
-      }).eq('id', profile.id)
-      flashSaved('Unternehmen gespeichert')
-    } catch (e: any) {
-      setError(e?.message || 'Konnte nicht speichern.')
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  async function saveBilling() {
-    if (!profile) return
-    setError(''); setSaving(true)
-    try {
-      await supabase.from('profiles').update({
-        vat_number:      vatNumber.trim()    || null,
-        tax_number:      taxNumber.trim()    || null,
-        company_address: billAddress.trim()  || null,
-        company_city:    billCity.trim()     || null,
-        company_zip:     billZip.trim()      || null,
-        company_country: billCountry         || null,
-      }).eq('id', profile.id)
-      flashSaved('Abrechnung gespeichert')
-    } catch (e: any) {
-      setError(e?.message || 'Konnte nicht speichern.')
-    } finally {
-      setSaving(false)
-    }
-  }
-
   function pickTheme(mode: ThemeMode) {
     setLocalTheme(mode)
     applyThemeMode(mode)
     if (profile) {
-      supabase.from('profiles').update({ theme_pref: mode }).eq('id', profile.id)
+      updateProfileFields({ theme_pref: mode }).catch(() => undefined)
     }
     flashSaved('Design gespeichert')
   }
@@ -374,7 +628,7 @@ export default function SettingsPage() {
     setLocalAvatarColor(color)
     if (profile) {
       try {
-        await supabase.from('profiles').update({ avatar_color: color }).eq('id', profile.id)
+        await updateProfileFields({ avatar_color: color })
       } catch {}
     }
     broadcastProfileSync({ avatarColor: color })
@@ -403,10 +657,10 @@ export default function SettingsPage() {
     if (!profile) return
     if (typeof next.email === 'boolean') setNotifEmail(next.email)
     if (typeof next.push === 'boolean')  setNotifPush(next.push)
-    await supabase.from('profiles').update({
+    await updateProfileFields({
       notif_email: next.email ?? notifEmail,
       notif_push:  next.push  ?? notifPush,
-    }).eq('id', profile.id)
+    })
     flashSaved('Benachrichtigungen gespeichert')
   }
 
@@ -493,13 +747,13 @@ export default function SettingsPage() {
           color: var(--set-text);
           font-family: var(--font-aeonik,'Aeonik',Inter,sans-serif);
           font-weight: 500;
-          letter-spacing: .017em;
+          letter-spacing: 0;
           min-height: 100dvh;
           display: flex;
           justify-content: center;
           padding: 0;
         }
-        .set, .set * { letter-spacing: .017em; }
+        .set, .set * { letter-spacing: 0; }
         [data-theme="dark"] .set,
         [data-theme="classic-dark"] .set {
           background: color-mix(in srgb, var(--surface) 88%, #fff 4%);
@@ -519,10 +773,17 @@ export default function SettingsPage() {
         @media (max-width: 720px) {
           .set-main { padding: 28px 16px 36px; }
         }
-        .set-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px; gap: 16px; }
-        .set-title { font-size: 22px; font-weight: 500; letter-spacing: -0.01em; }
+        .set-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; gap: 16px; }
+        .set-title { font-size: 22px; font-weight: 500; letter-spacing: 0; }
         .set-saved {
-          font-size: 12px; font-weight: 500; letter-spacing: 0.01em;
+          min-height: 24px;
+          display: inline-flex;
+          align-items: center;
+          padding: 0 9px;
+          border: 1px solid color-mix(in srgb, var(--set-border) 60%, transparent);
+          border-radius: 999px;
+          background: color-mix(in srgb, var(--set-card) 78%, transparent);
+          font-size: 12px; font-weight: 500; letter-spacing: 0;
           color: var(--set-text-secondary);
           opacity: 0;
           transition: opacity .2s;
@@ -536,7 +797,7 @@ export default function SettingsPage() {
           margin: 28px 0 12px;
           font-size: 13px; font-weight: 500;
           color: var(--set-text-secondary);
-          letter-spacing: .017em;
+          letter-spacing: 0;
         }
         .set-section-title:first-of-type { margin-top: 8px; }
         /* Inner setting cards: solid white in light mode, popping above
@@ -584,15 +845,9 @@ export default function SettingsPage() {
           border-top: 1px solid color-mix(in srgb, var(--set-border) 50%, transparent);
         }
 
-        /* Sticky-feeling save bar that lives at the bottom of a section. */
-        .set-save-bar {
-          display: flex; justify-content: flex-end;
-          margin-top: 18px; padding-top: 16px;
-          border-top: 1px solid color-mix(in srgb, var(--set-border) 40%, transparent);
-        }
         .set-mini-title {
           font-size: 13.5px;
-          font-weight: 650;
+          font-weight: 500;
           letter-spacing: 0;
           margin-bottom: 8px;
         }
@@ -632,7 +887,7 @@ export default function SettingsPage() {
         .set-meta-row strong {
           color: var(--set-text-secondary);
           font-size: 12.5px;
-          font-weight: 650;
+          font-weight: 500;
           text-align: right;
         }
         .set-row {
@@ -648,9 +903,9 @@ export default function SettingsPage() {
           .set-row { grid-template-columns: 1fr; gap: 8px; padding: 14px 0; }
         }
         .set-row-stack { align-items: flex-start; }
-        .set-label { font-size: 13.5px; font-weight: 500; letter-spacing: 0.01em; }
-        .set-label-sub { font-size: 12px; font-weight: 400; letter-spacing: 0.01em; color: var(--set-text-muted); margin-top: 3px; line-height: 1.5; }
-        .set-value { font-size: 13.5px; font-weight: 500; letter-spacing: 0.01em; color: var(--set-text-secondary); }
+        .set-label { font-size: 13.5px; font-weight: 500; letter-spacing: 0; }
+        .set-label-sub { font-size: 12px; font-weight: 400; letter-spacing: 0; color: var(--set-text-muted); margin-top: 3px; line-height: 1.5; }
+        .set-value { font-size: 13.5px; font-weight: 500; letter-spacing: 0; color: var(--set-text-secondary); }
 
         .set-input, .set-select {
           width: 100%;
@@ -660,7 +915,7 @@ export default function SettingsPage() {
           border: 1px solid var(--set-border);
           color: var(--set-text);
           font-family: inherit; font-size: 13.5px; font-weight: 500;
-          letter-spacing: 0.01em;
+          letter-spacing: 0;
           transition: border-color .15s, box-shadow .15s;
         }
         .set-input:focus, .set-select:focus {
@@ -675,7 +930,7 @@ export default function SettingsPage() {
           display: flex; align-items: center; justify-content: center;
           background: color-mix(in srgb, var(--set-text) 12%, transparent);
           color: var(--set-text);
-          font-size: 16px; font-weight: 500; letter-spacing: 0.01em;
+          font-size: 16px; font-weight: 500; letter-spacing: 0;
           flex-shrink: 0;
         }
 
@@ -701,7 +956,7 @@ export default function SettingsPage() {
         /* Buttons */
         .set-btn {
           font-family: inherit; font-size: 13px; font-weight: 500;
-          letter-spacing: 0.01em;
+          letter-spacing: 0;
           padding: 7px 14px; border-radius: 8px; cursor: pointer;
           border: 1px solid var(--set-border);
           background: var(--set-bg); color: var(--set-text);
@@ -767,7 +1022,7 @@ export default function SettingsPage() {
         }
         .set-segment button {
           font-family: inherit; font-size: 12.5px; font-weight: 500;
-          letter-spacing: 0.01em;
+          letter-spacing: 0;
           color: var(--set-text-secondary);
           padding: 6px 14px;
           border: none; background: transparent;
@@ -827,7 +1082,7 @@ export default function SettingsPage() {
         .preview-dark .set-theme-preview-bar.long { background: #7B7DFF; width: 70%; }
         .preview-dark .set-theme-preview-bar.short { background: rgba(255,255,255,0.12); width: 40%; }
         .set-theme-name { font-size: 13px; font-weight: 500; }
-        .set-theme-desc { font-size: 11.5px; font-weight: 400; color: var(--set-text-muted); margin-top: 2px; letter-spacing: 0.01em; }
+        .set-theme-desc { font-size: 11.5px; font-weight: 400; color: var(--set-text-muted); margin-top: 2px; letter-spacing: 0; }
 
         /* Passkey list */
         .set-passkey {
@@ -853,7 +1108,7 @@ export default function SettingsPage() {
           border-radius: 8px;
           background: rgba(239,68,68,0.05);
           color: #c0362e;
-          font-size: 12.5px; font-weight: 500; letter-spacing: 0.01em;
+          font-size: 12.5px; font-weight: 500; letter-spacing: 0;
         }
 
         /* Mobile */
@@ -876,7 +1131,9 @@ export default function SettingsPage() {
       <main className="set-main">
         <div className="set-header">
           <h1 className="set-title">{SECTION_TITLE[section]}</h1>
-          <span className={`set-saved${savedTick ? ' show' : ''}`}>{savedTick || 'Gespeichert'}</span>
+          <span className={`set-saved${saving || savedTick ? ' show' : ''}`}>
+            {saving ? 'Speichert automatisch…' : (savedTick || 'Alle Änderungen gespeichert')}
+          </span>
         </div>
         {error && <div className="set-error">{error}</div>}
 
@@ -1068,11 +1325,6 @@ export default function SettingsPage() {
               </div>
             </div>
 
-            <div className="set-save-bar">
-              <button className="set-btn set-btn-primary" onClick={saveProfile} disabled={saving}>
-                {saving ? 'Speichere…' : 'Profil speichern'}
-              </button>
-            </div>
             </div>
             <aside className="set-side-stack" aria-label="Profil Kontext">
               <div className="set-mini-card">
@@ -1489,18 +1741,18 @@ export default function SettingsPage() {
                             {m.avatar_url ? (
                               <img src={m.avatar_url} alt="" style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
                             ) : (
-                              <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--set-surface)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 600, color: 'var(--set-text)', flexShrink: 0 }}>
+                              <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--set-surface)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 500, color: 'var(--set-text)', flexShrink: 0 }}>
                                 {initials}
                               </div>
                             )}
                             <div style={{ flex: 1, minWidth: 0 }}>
                               <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--set-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                 {m.full_name || m.email || '—'}
-                                {isSelfOwner && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 600, color: 'var(--set-text-muted)' }}>(du)</span>}
+                                {isSelfOwner && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 500, color: 'var(--set-text-muted)' }}>(du)</span>}
                               </div>
                               <div style={{ fontSize: 11.5, color: 'var(--set-text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.email}</div>
                             </div>
-                            <span style={{ display: 'inline-flex', alignItems: 'center', padding: '2px 8px', borderRadius: 4, fontSize: 10.5, fontWeight: 600, letterSpacing: '0.02em', color: roleColor(m.role), border: `1px solid ${roleColor(m.role)}`, textTransform: 'uppercase', flexShrink: 0 }}>
+                            <span style={{ display: 'inline-flex', alignItems: 'center', padding: '2px 8px', borderRadius: 4, fontSize: 10.5, fontWeight: 500, letterSpacing: 0, color: roleColor(m.role), border: `1px solid ${roleColor(m.role)}`, textTransform: 'uppercase', flexShrink: 0 }}>
                               {rolesForMode.find(r => r.id === m.role)?.label || m.role}
                             </span>
                             <select
@@ -1610,11 +1862,6 @@ export default function SettingsPage() {
                 style={{ resize: 'vertical', minHeight: 80, fontFamily: 'inherit', lineHeight: 1.5 }}
               />
             </div>
-            <div className="set-row" style={{ justifyContent: 'flex-end', display: 'flex' }}>
-              <button className="set-btn set-btn-primary" onClick={saveCompany} disabled={saving}>
-                {saving ? 'Speichere…' : 'Speichern'}
-              </button>
-            </div>
           </div>
         )}
 
@@ -1684,11 +1931,6 @@ export default function SettingsPage() {
                 <select className="set-select" value={billCountry} onChange={e => setBillCountry(e.target.value)}>
                   {COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
-              </div>
-              <div className="set-row" style={{ justifyContent: 'flex-end', display: 'flex' }}>
-                <button className="set-btn set-btn-primary" onClick={saveBilling} disabled={saving}>
-                  {saving ? 'Speichere…' : 'Speichern'}
-                </button>
               </div>
             </div>
           </>
@@ -1885,8 +2127,8 @@ function AccountDeleteModal({ onClose }: { onClose: () => void }) {
           max-height: calc(100dvh - 40px);
           overflow-y: auto;
         }
-        .acc-del-kicker { font-size: 11px; font-weight: 600; letter-spacing: .04em; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; }
-        .acc-del-title { margin: 0 0 6px; font-size: 18px; font-weight: 600; letter-spacing: -.005em; }
+        .acc-del-kicker { font-size: 11px; font-weight: 500; letter-spacing: 0; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; }
+        .acc-del-title { margin: 0 0 6px; font-size: 18px; font-weight: 500; letter-spacing: 0; }
         .acc-del-sub { margin: 0; font-size: 13px; line-height: 1.55; color: var(--text-secondary); }
         .acc-del-reasons { display: flex; flex-direction: column; gap: 8px; margin: 16px 0 4px; }
         .acc-del-reason {

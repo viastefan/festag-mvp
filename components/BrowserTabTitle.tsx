@@ -26,6 +26,15 @@ function nameFromProfile(p: { full_name?: string | null; first_name?: string | n
   return 'Festag'
 }
 
+function missingProfileColumn(error: unknown) {
+  const message = String((error as any)?.message ?? '')
+  return (
+    message.match(/'([^']+)' column/)?.[1] ||
+    message.match(/column "?([a-zA-Z0-9_]+)"? does not exist/)?.[1] ||
+    null
+  )
+}
+
 export default function BrowserTabTitle() {
   const lastNameRef = useRef<string>('')
 
@@ -45,13 +54,20 @@ export default function BrowserTabTitle() {
     ;(async () => {
       const { data: { user } } = await sb.auth.getUser()
       if (!user || cancelled) return
-      const { data } = await (sb as any)
+      let result = await (sb as any)
         .from('profiles')
         .select('full_name,first_name,email')
         .eq('id', user.id)
         .maybeSingle()
+      if (result.error && missingProfileColumn(result.error)) {
+        result = await (sb as any)
+          .from('profiles')
+          .select('full_name,email')
+          .eq('id', user.id)
+          .maybeSingle()
+      }
       if (cancelled) return
-      apply(nameFromProfile(data ?? { email: user.email }))
+      apply(nameFromProfile(result.data ?? { email: user.email }))
     })()
 
     // Profile edits elsewhere in the app broadcast via profile-sync;
@@ -60,6 +76,7 @@ export default function BrowserTabTitle() {
     // why renames weren't propagating to the tab title live.
     const unsub = subscribeProfileSync((payload) => {
       if (!payload) return
+      if (payload.fullName === undefined && payload.firstName === undefined) return
       const next = nameFromProfile({
         full_name: payload.fullName,
         first_name: payload.firstName,

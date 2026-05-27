@@ -17,8 +17,8 @@ import {
   SignOut, UsersThree, Bell, Briefcase,
   Clock, CheckSquare, Code, FileCode,
   Tray, MagnifyingGlass, SpeakerHigh, Pulse,
-  Question, Newspaper, Article, DownloadSimple, ChatTeardropDots,
-  Scales,
+  Question, DownloadSimple, ChatTeardropDots,
+  Scales, Keyboard, CheckCircle,
 } from '@phosphor-icons/react'
 import { autoAvatarColor, avatarInitials } from '@/lib/avatar'
 import { broadcastProfileSync, subscribeProfileSync } from '@/lib/profile-sync'
@@ -68,18 +68,26 @@ const CLIENT_TOP: NavItem[] = [
 type HelpEntry = {
   kind: 'link' | 'action'
   href?: string
-  action?: 'replay-tour' | 'support'
+  action?: 'replay-tour' | 'support' | 'search'
   icon: React.ElementType
   title: string
-  meta: string
+  shortcut?: string
 }
 const HELP_ITEMS: HelpEntry[] = [
-  { kind: 'action', action: 'replay-tour', icon: Sparkle,          title: 'Einführung starten',    meta: 'Spielt die kurze Festag-Tour erneut ab.' },
-  { kind: 'link',   href: '/docs',         icon: FileText,         title: 'Festag Docs',           meta: 'Produktwissen, Guides und Erklärungen zu Festag.' },
-  { kind: 'link',   href: '/whats-new',    icon: Newspaper,        title: 'News',                  meta: 'Releases, Änderungen und neue Produktflächen.' },
-  { kind: 'link',   href: '/blog',         icon: Article,          title: 'Blogbeiträge',          meta: 'Hintergründe, Guides und ruhig erklärte Artikel.' },
-  { kind: 'link',   href: '/download',     icon: DownloadSimple,   title: 'Hilfeartikel',          meta: 'App-Setup für Webapp & Mobile.' },
-  { kind: 'action', action: 'support',     icon: ChatTeardropDots, title: 'Support kontaktieren',  meta: 'Schreib uns an hi@festag.io.' },
+  { kind: 'action', action: 'search',      icon: MagnifyingGlass,   title: 'Hilfe suchen...',      shortcut: '⌘ K' },
+  { kind: 'link',   href: '/docs',         icon: FileText,          title: 'Docs' },
+  { kind: 'action', action: 'support',     icon: ChatTeardropDots,  title: 'Kontakt' },
+  { kind: 'link',   href: '/docs/schnellstart-mit-festag', icon: Keyboard, title: 'Tastenkürzel', shortcut: '⌘ /' },
+  { kind: 'link',   href: '/updates',      icon: CheckCircle,       title: 'Festag Status' },
+  { kind: 'link',   href: '/download',     icon: DownloadSimple,    title: 'Apps laden' },
+  { kind: 'link',   href: '/settings',     icon: GearSix,           title: 'Einstellungen',       shortcut: 'G dann S' },
+  { kind: 'action', action: 'replay-tour', icon: Sparkle,           title: 'Einführung starten' },
+]
+
+const HELP_NEWS_ITEMS = [
+  { title: 'Projektbriefings', href: '/whats-new' },
+  { title: 'Code Intelligence', href: '/whats-new' },
+  { title: 'Vollständiger Changelog', href: '/whats-new' },
 ]
 const CLIENT_CORE: NavItem[] = [
   { href:'/projects', icon:'project', label:'Projekte' },
@@ -169,6 +177,33 @@ function formatRelativeBriefing(value?: string | null) {
 
 function reportHasRisk(content?: string | null) {
   return /blocker|risiko|kritisch|verzöger|abhängig|eskal/i.test(String(content ?? ''))
+}
+
+function missingProfileColumn(error: unknown) {
+  const message = String((error as any)?.message ?? '')
+  return (
+    message.match(/'([^']+)' column/)?.[1] ||
+    message.match(/column "?([a-zA-Z0-9_]+)"? does not exist/)?.[1] ||
+    null
+  )
+}
+
+async function readSidebarProfile(sb: any, userId: string) {
+  let result = await sb
+    .from('profiles')
+    .select('first_name,full_name,avatar_url,avatar_color,role,plan')
+    .eq('id', userId)
+    .maybeSingle()
+
+  if (result.error && missingProfileColumn(result.error)) {
+    result = await sb
+      .from('profiles')
+      .select('full_name,avatar_url,avatar_color,role,plan')
+      .eq('id', userId)
+      .maybeSingle()
+  }
+
+  return result.data
 }
 
 export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
@@ -313,7 +348,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
       if (!data.user) return
       setUid(data.user.id)
       setEmail(data.user.email ?? '')
-      const { data: p } = await sb.from('profiles').select('first_name,full_name,avatar_url,avatar_color,role,plan').eq('id', data.user.id).single()
+      const p = await readSidebarProfile(sb, data.user.id)
       if (p) {
         setFn((p as any).first_name ?? (p as any).full_name?.split(' ')[0] ?? '')
         setFullName((p as any).full_name ?? '')
@@ -435,11 +470,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
       const sb = createClient()
       sb.auth.getUser().then(async ({ data }) => {
         if (!data.user) return
-        const { data: p } = await sb
-          .from('profiles')
-          .select('first_name,full_name,avatar_url,avatar_color,plan')
-          .eq('id', data.user.id)
-          .maybeSingle()
+        const p = await readSidebarProfile(sb, data.user.id)
         if (!p) return
         setFn((p as any).first_name ?? (p as any).full_name?.split(' ')[0] ?? '')
         setFullName((p as any).full_name ?? '')
@@ -493,11 +524,10 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
     if (cleanHref==='/project/current') return pathname.startsWith('/project/')
     return pathname.startsWith(cleanHref)
   }
-  // Display fallback chain — first_name → full_name → email-local-part.
-  // The middle step is what was missing: a user with no first_name but
-  // a full_name like "Stefan Dirnberger" used to drop straight to the
-  // email prefix, so the sidebar showed "ww…" instead of the name.
-  const name = fn || fullName.trim() || email.split('@')[0] || 'Konto'
+  // Display the account name the way the user typed it in Settings, then
+  // fall back to first name and email. This keeps the sidebar profile chip
+  // aligned with the browser tab title after autosave.
+  const name = fullName.trim() || fn || email.split('@')[0] || 'Konto'
   const init = avatarInitials(fn, fullName, email)
   const avBg = avatarColor || autoAvatarColor(uid || email)
 
@@ -538,6 +568,38 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
     broadcastProfileSync({ avatarColor: c })
     if (!uid) return
     try { await (createClient() as any).from('profiles').update({ avatar_color: c }).eq('id', uid) } catch {}
+  }
+
+  async function handleHelpItem(item: HelpEntry) {
+    setWhatsNewOpen(false)
+    if (item.kind === 'link' && item.href) {
+      router.push(item.href)
+      return
+    }
+    if (item.action === 'search') {
+      window.dispatchEvent(new CustomEvent('open-command-palette'))
+      return
+    }
+    if (item.action === 'replay-tour') {
+      try {
+        const sb = createClient()
+        const { data: { user } } = await sb.auth.getUser()
+        if (user) {
+          await sb.from('profiles').update({
+            tour_completed_at: null, tour_step: 0,
+          }).eq('id', user.id)
+        }
+      } catch {}
+      try {
+        window.localStorage.removeItem('festag_tour_completed')
+        window.localStorage.setItem('festag_onboarding_status', 'not_started')
+      } catch {}
+      window.location.href = '/dashboard?tour=1'
+      return
+    }
+    if (item.action === 'support') {
+      window.location.href = 'mailto:hi@festag.io?subject=Festag%20Support'
+    }
   }
 
   // ── NavItems list (no section header) ──
@@ -970,81 +1032,130 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
 
         .sb-help-pop {
           position: absolute; left: 0; bottom: 44px;
-          width: 282px;
-          padding: 8px;
-          border-radius: 16px;
-          border: 1px solid color-mix(in srgb, var(--border) 75%, transparent);
-          background: var(--card);
+          width: 272px;
+          padding: 10px;
+          border-radius: 14px;
+          border: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
+          background: color-mix(in srgb, var(--card) 98%, #fff 2%);
           box-shadow:
             0 1px 2px rgba(15,23,42,.06),
-            0 22px 56px -22px rgba(15,23,42,.32);
+            0 18px 44px -20px rgba(15,23,42,.36);
           animation: sbHelpIn .14s cubic-bezier(.16,1,.3,1) both;
         }
         [data-theme="dark"] .sb-help-pop,
         [data-theme="classic-dark"] .sb-help-pop {
-          background: color-mix(in srgb, var(--card) 96%, #fff 4%);
+          background: color-mix(in srgb, var(--card) 94%, #fff 6%);
           box-shadow:
             0 1px 2px rgba(0,0,0,.45),
             0 24px 60px -22px rgba(0,0,0,.6);
         }
         @keyframes sbHelpIn { from { opacity:0; transform: translateY(4px); } to { opacity:1; transform: none; } }
 
-        .sb-help-head { display:none; }
-        .sb-help-kicker {
-          font-size: 10px; font-weight: 500;
-          letter-spacing: .14em; text-transform: uppercase;
-          color: var(--text-muted);
-        }
-        .sb-help-title {
-          margin-top: 2px;
-          font-size: 12.5px; font-weight: 500; letter-spacing: -.005em;
-          color: var(--text);
-        }
-        .sb-help-list { display: flex; flex-direction: column; gap: 1px; }
+        .sb-help-list { display: flex; flex-direction: column; gap: 2px; }
         .sb-help-item {
           width: 100%;
-          display: grid; grid-template-columns: 26px 1fr; gap: 9px;
+          display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; gap: 10px;
           align-items: center;
-          padding: 10px 10px;
+          min-height: 34px;
+          padding: 0 10px;
           border: 0; background: transparent;
-          /* Festag rule: items inherit the outer container's radius —
-             sb-help-pop is 16px, items match. */
-          border-radius: 14px !important;
+          border-radius: 10px !important;
           color: var(--text);
           text-decoration: none;
           font: inherit;
           text-align: left;
           cursor: pointer;
-          transition: background .14s ease, color .14s ease, transform .14s ease;
+          transition: background .12s ease, color .12s ease;
         }
         .sb-help-item:hover {
-          background: color-mix(in srgb, var(--surface-2) 82%, transparent);
-          transform: translateX(2px);
+          background: color-mix(in srgb, var(--surface-2) 76%, transparent);
           color: var(--text);
         }
-        .sb-help-item:active { transform: translateX(2px) scale(.99); }
+        .sb-help-item:active { background: color-mix(in srgb, var(--surface-2) 92%, transparent); }
         .sb-help-item:focus,
         .sb-help-item:focus-visible { outline:none; }
         .sb-help-icon {
-          width: 26px; height: 26px; border-radius: 8px;
+          width: 22px; height: 22px; border-radius: 7px;
           display: inline-flex; align-items: center; justify-content: center;
-          background: color-mix(in srgb, var(--surface-2) 60%, transparent);
           color: var(--text-secondary);
         }
         .sb-help-item:hover .sb-help-icon {
           color: var(--text);
-          background: color-mix(in srgb, var(--surface-2) 100%, transparent);
         }
-        .sb-help-text { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
-        .sb-help-text strong {
-          font-size: 12.5px; font-weight: 500; letter-spacing: -.005em;
+        .sb-help-title {
+          min-width: 0;
+          font-size: 13.5px; font-weight: 500; letter-spacing: 0;
           color: var(--text);
           overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
         }
-        .sb-help-text span {
-          font-size: 11px; line-height: 1.45;
+        .sb-help-shortcut {
+          font-size: 11.5px;
+          font-weight: 500;
+          letter-spacing: 0;
           color: var(--text-muted);
-          font-weight: 500; letter-spacing: .015em;
+          white-space: nowrap;
+        }
+        .sb-help-section-title {
+          margin: 12px 10px 6px;
+          font-size: 12.5px;
+          font-weight: 500;
+          letter-spacing: 0;
+          color: var(--text-secondary);
+        }
+        .sb-help-news-list {
+          position: relative;
+          display: flex;
+          flex-direction: column;
+          gap: 1px;
+        }
+        .sb-help-news-list::before {
+          content: "";
+          position: absolute;
+          left: 20px;
+          top: 16px;
+          bottom: 16px;
+          border-left: 1px dashed color-mix(in srgb, var(--border-strong) 62%, transparent);
+          opacity: .55;
+        }
+        .sb-help-news-item {
+          width: 100%;
+          min-height: 32px;
+          display: grid;
+          grid-template-columns: 22px minmax(0, 1fr);
+          align-items: center;
+          gap: 10px;
+          padding: 0 10px;
+          border: 0;
+          border-radius: 10px;
+          background: transparent;
+          color: var(--text);
+          text-align: left;
+          text-decoration: none;
+          font-family: inherit;
+          cursor: pointer;
+          transition: background .12s ease;
+          position: relative;
+        }
+        .sb-help-news-item:hover {
+          background: color-mix(in srgb, var(--surface-2) 76%, transparent);
+        }
+        .sb-help-dot {
+          width: 6px;
+          height: 6px;
+          border-radius: 999px;
+          background: var(--text);
+          justify-self: center;
+          position: relative;
+          z-index: 1;
+        }
+        .sb-help-news-label {
+          min-width: 0;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          font-size: 13.5px;
+          font-weight: 500;
+          letter-spacing: 0;
         }
         .sb-nav-scroll {
           flex:1 1 auto;
@@ -1304,51 +1415,39 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
                   <div className="sb-help-list">
                     {HELP_ITEMS.map((item) => {
                       const Icon = item.icon
-                      const inner = (
-                        <>
-                          <span className="sb-help-icon">
-                            <Icon size={14} weight="regular" />
-                          </span>
-                          <span className="sb-help-text">
-                            <strong>{item.title}</strong>
-                            <span>{item.meta}</span>
-                          </span>
-                        </>
-                      )
                       return (
                         <button
                           key={item.title}
                           type="button"
                           className="sb-help-item"
                           role="menuitem"
-                          onClick={async () => {
-                            setWhatsNewOpen(false)
-                            if (item.kind === 'link' && item.href) {
-                              router.push(item.href)
-                            } else if (item.action === 'replay-tour') {
-                              try {
-                                const sb = createClient()
-                                const { data: { user } } = await sb.auth.getUser()
-                                if (user) {
-                                  await sb.from('profiles').update({
-                                    tour_completed_at: null, tour_step: 0,
-                                  }).eq('id', user.id)
-                                }
-                              } catch {}
-                              try {
-                                window.localStorage.removeItem('festag_tour_completed')
-                                window.localStorage.setItem('festag_onboarding_status', 'not_started')
-                              } catch {}
-                              window.location.href = '/dashboard?tour=1'
-                            } else if (item.action === 'support') {
-                              window.location.href = 'mailto:hi@festag.io?subject=Festag%20Support'
-                            }
-                          }}
+                          onClick={() => { void handleHelpItem(item) }}
                         >
-                          {inner}
+                          <span className="sb-help-icon">
+                            <Icon size={15} weight="regular" />
+                          </span>
+                          <span className="sb-help-title">{item.title}</span>
+                          {item.shortcut ? <span className="sb-help-shortcut">{item.shortcut}</span> : null}
                         </button>
                       )
                     })}
+                    <div className="sb-help-section-title">Was ist neu</div>
+                    <div className="sb-help-news-list" role="group" aria-label="Was ist neu">
+                      {HELP_NEWS_ITEMS.map((item) => (
+                        <button
+                          key={item.title}
+                          type="button"
+                          className="sb-help-news-item"
+                          onClick={() => {
+                            setWhatsNewOpen(false)
+                            router.push(item.href)
+                          }}
+                        >
+                          <span className="sb-help-dot" />
+                          <span className="sb-help-news-label">{item.title}</span>
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
               ) : null}

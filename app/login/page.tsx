@@ -77,7 +77,7 @@ export default function LoginPage() {
   const [resending, setResending] = useState(false)
   const [error, setError] = useState('')
   const [resendCooldown, setResendCooldown] = useState(0)
-  const [theme, setThemeState] = useState<Theme>(getInitialAuthTheme)
+  const [theme, setThemeState] = useState<Theme>('dark')
   const [lastMethod, setLastMethod] = useState<Method | null>(null)
   const [lastEmail, setLastEmail] = useState<string | null>(null)
   const [supportOpen, setSupportOpen] = useState(false)

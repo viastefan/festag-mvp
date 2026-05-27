@@ -1,6 +1,7 @@
 import './globals.css'
 import type { Metadata, Viewport } from 'next'
 import ThemeProvider from '@/components/ThemeProvider'
+import LanguageProvider from '@/components/LanguageProvider'
 import ServiceWorkerCleanup from '@/components/ServiceWorkerCleanup'
 import AuthSessionMemory from '@/components/AuthSessionMemory'
 
@@ -67,6 +68,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   var bg = t === 'dark' ? '#0F141B' : t === 'read' ? '#F7F4EC' : '#F6F9FC';
   document.documentElement.style.backgroundColor = bg;
   document.documentElement.style.colorScheme = (t === 'dark') ? 'dark' : 'light';
+  var lang = localStorage.getItem('festag_language');
+  if (lang !== 'en' && lang !== 'de') lang = 'de';
+  document.documentElement.lang = lang;
+  document.documentElement.setAttribute('data-language', lang);
 }catch(e){}})();
             `.trim(),
           }}
@@ -86,7 +91,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <ServiceWorkerCleanup />
         <AuthSessionMemory />
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          <LanguageProvider>{children}</LanguageProvider>
+        </ThemeProvider>
       </body>
     </html>
   )
