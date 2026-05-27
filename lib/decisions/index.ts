@@ -39,6 +39,7 @@ export { frameDecision } from './frame'
 export { checkAutoDecisionLimit } from './limiter'
 export { findDuplicateOpenDecision } from './duplicate'
 export { persistFramedDecision, refreshExistingDecision } from './create'
+export { computeDecisionDrag, applyDecisionDrag, type DecisionDrag } from './progress'
 
 // ── detect + frame, no persistence ──────────────────────────────────────────
 

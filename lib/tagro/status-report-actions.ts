@@ -5,6 +5,7 @@ import { runOpenAIJson } from './openai'
 import { normalizeActionItem, taskShapeForActionItem } from './task-classifier'
 import { findSimilarOpenTasks } from './deduplication'
 import { clampPriority, type TagroActionItem } from './task-rules'
+import { runDecisionPipeline } from '@/lib/decisions'
 
 function fallbackActionItems(reportContent: string) {
   const text = reportContent.toLowerCase()
@@ -99,21 +100,30 @@ export async function createTasksAndDecisionsFromActionItems({
     if (rawItem.type === 'no_action' || !rawItem.title) continue
 
     if (rawItem.type === 'decision') {
-      const { data: decision } = await sb.from('decisions').insert({
-        project_id: projectId,
-        source: 'status_report',
-        source_report_id: sourceReportId ?? null,
-        title: rawItem.title,
-        description: rawItem.description || null,
-        impact_summary: rawItem.related_reason || null,
-        status: 'waiting_for_client',
-        visible_to_client: true,
-        created_by: actorId,
-        options_json: [],
-      }).select('id,title').single()
+      // Route through the engine: status_report signal → detect → frame →
+      // anti-spam check → duplicate match → persist or refresh. Tagro
+      // produces bidirectional framing (client_summary + internal_*) and
+      // structured options instead of dropping a raw insert.
+      try {
+        const outcome = await runDecisionPipeline(sb, {
+          kind: 'status_report',
+          projectId,
+          reportId: sourceReportId ?? rawItem.title.slice(0, 32),
+          openQuestion: rawItem.title,
+          excerpt: rawItem.description || rawItem.related_reason || undefined,
+        }, {
+          createdBy: actorId,
+        })
 
-      if (decision?.id) {
-        created.push({ type: 'decision', id: decision.id, title: decision.title })
+        if (outcome.status === 'created') {
+          created.push({ type: 'decision', id: outcome.result.decision.id, title: outcome.framed.clientTitle })
+        } else if (outcome.status === 'refreshed') {
+          created.push({ type: 'decision_refreshed', id: outcome.existing.id, title: outcome.existing.client_title || outcome.existing.title })
+        }
+        // status === 'skipped' (limit_reached / no_intent) → don't push anything.
+      } catch (error) {
+        // Engine failure must not stop the rest of the report processing.
+        console.error('status-report-actions: decision pipeline failed', error)
       }
       continue
     }
