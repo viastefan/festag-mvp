@@ -22,10 +22,11 @@ import WelcomeTour from '@/components/WelcomeTour'
 import TagroLogo from '@/components/TagroLogo'
 import { speechVoiceId, useSpeechSynthesis } from '@/hooks/useSpeechSynthesis'
 import {
-  ArrowClockwise, CalendarCheck, CaretDown, CaretRight, Check, CheckCircle,
-  Cube, DotsThree, DownloadSimple, EnvelopeSimple, Lightbulb, Pause, PencilSimple,
+  ArrowClockwise, Article, CalendarCheck, CaretDown, CaretRight, Check, CheckCircle,
+  Cube, DownloadSimple, EnvelopeSimple, Lightbulb, Pause, PencilSimple,
   Play, Plus, Pulse as PulseIcon, SlidersHorizontal, Stop,
 } from '@phosphor-icons/react'
+import Modal from '@/components/Modal'
 
 // ── Left-side contextual layer ─────────────────────────────────────────
 // One calm line by time of day + one rotating "Wusstest du…" fact. Both
@@ -140,6 +141,7 @@ export default function DashboardPage() {
   const [noteWriting, setNoteWriting] = useState(false)
   const [statusBusy, setStatusBusy] = useState(false)
   const [briefingSettingsOpen, setBriefingSettingsOpen] = useState(false)
+  const [readOpen, setReadOpen] = useState(false)
   const [taskState, setTaskState] = useState<Record<string, 'idle' | 'busy' | 'done'>>({})
   const [allTasksBusy, setAllTasksBusy] = useState(false)
   const [bulkProgress, setBulkProgress] = useState(0)
@@ -434,6 +436,13 @@ export default function DashboardPage() {
 
   const periodOptions = ['Heute', 'Letzte 7 Tage', 'Letzte 30 Tage', 'Letzte 90 Tage'] as const
   const writtenReportText = noteRevealed.trim() || audioText.trim()
+
+  // Read instead of listen — opens the written report. Generates one first
+  // when none exists yet, so the action always leads somewhere.
+  function openWrittenReport() {
+    if (!writtenReportText.trim() && !statusBusy) { void refreshStatus() }
+    setReadOpen(true)
+  }
 
   function buildBriefingExportText() {
     return [
@@ -1167,25 +1176,31 @@ export default function DashboardPage() {
         .dc-card {
           position: relative;
           width: 100%;
-          min-height: clamp(640px, 78vh, 760px);
+          /* Height follows the content — the card ends at the lower content
+             edge instead of leaving dead space below the actions. */
           border: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
           border-radius: 24px;
           background: color-mix(in srgb, var(--card) 94%, transparent);
-          padding: 26px 26px 22px;
-          display: flex; flex-direction: column; gap: 20px;
+          padding: 24px 24px 20px;
+          display: flex; flex-direction: column; gap: 18px;
           box-shadow: var(--content-shadow);
           -webkit-backdrop-filter: blur(8px);
           backdrop-filter: blur(8px);
         }
         [data-theme="dark"] .dc-card,
         [data-theme="classic-dark"] .dc-card {
-          background: rgba(20, 28, 42, 0.82);
-          border-color: rgba(255,255,255,0.08);
+          background: rgba(12, 16, 24, 0.94);
+          border-color: rgba(255,255,255,0.06);
           box-shadow:
-            0 1px 0 rgba(255,255,255,0.04) inset,
-            0 30px 80px -40px rgba(0,0,0,0.7);
+            0 1px 0 rgba(255,255,255,0.03) inset,
+            0 30px 80px -42px rgba(0,0,0,0.78);
         }
-        .dc-card-head { display: flex; flex-direction: column; gap: 3px; }
+        .dc-card-head {
+          display: flex; align-items: flex-start; justify-content: space-between;
+          gap: 12px;
+        }
+        .dc-card-head-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+        .dc-card-head .dc-pulse-pill { flex-shrink: 0; margin-top: 2px; }
         .dc-card-title {
           margin: 0;
           font-size: 19px; font-weight: 500;
@@ -1282,8 +1297,9 @@ export default function DashboardPage() {
 
         /* Orb wrapper — generous vertical room, the centerpiece. */
         .dc-orb-zone {
-          flex: 1 1 auto;
-          min-height: 220px;
+          flex: 0 0 auto;
+          min-height: 186px;
+          padding: 6px 0;
           display: flex; align-items: center; justify-content: center;
         }
 
@@ -1366,19 +1382,46 @@ export default function DashboardPage() {
         }
         .dc-play-bar .spin { animation: dcSpin 1s linear infinite; }
 
-        /* Chip row */
-        .dc-chip-row {
-          display: flex; flex-wrap: wrap; align-items: center;
-          gap: 4px;
-          justify-content: space-between;
+        /* Read instead of listen — calm secondary action under the play bar. */
+        .dc-read-bar {
+          display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+          width: 100%; height: 40px; padding: 0 16px;
+          margin-top: -6px;
+          border-radius: 12px;
+          border: 1px solid color-mix(in srgb, var(--border) 42%, transparent);
+          background: transparent;
+          color: var(--dc-soft);
+          font: inherit; font-size: 13px; font-weight: 500; letter-spacing: var(--ls-body, .017em);
+          cursor: pointer;
+          transition: background .18s ease, color .18s ease, border-color .18s ease;
         }
+        .dc-read-bar:hover:not(:disabled) {
+          color: var(--text);
+          background: color-mix(in srgb, var(--surface-2) 28%, transparent);
+        }
+        .dc-read-bar:disabled { opacity: .55; cursor: not-allowed; }
+
+        /* Read-report modal body */
+        .dc-read-body {
+          margin: 0; white-space: pre-line;
+          font-size: 14px; line-height: 1.7; color: var(--text);
+          letter-spacing: var(--ls-body, .017em);
+        }
+        .dc-read-empty { margin: 0; font-size: 13px; color: var(--dc-muted); line-height: 1.6; }
+
+        /* Chip row — calm one-line footer, settings icon pinned right. */
+        .dc-chip-row {
+          display: flex; flex-wrap: nowrap; align-items: center;
+          gap: 2px;
+        }
+        .dc-chip-row .dc-chip-icon { margin-left: auto; }
         .dc-chip {
           display: inline-flex; align-items: center; gap: 6px;
-          height: 30px; padding: 0 11px;
+          height: 30px; padding: 0 9px;
           border: 0; background: transparent;
           color: var(--dc-soft);
           font: inherit; font-size: 12px; font-weight: 500; letter-spacing: var(--ls-body, .017em);
-          border-radius: 999px;
+          border-radius: 9px;
           cursor: pointer;
           transition: background .2s ease, color .2s ease, opacity .2s ease;
         }
@@ -2055,16 +2098,19 @@ export default function DashboardPage() {
         .dc-brief-icon:disabled { opacity: .45; cursor: default; }
         .dc-brief-icon .spin { animation: dcSpin 1s linear infinite; }
 
+        /* Click-away layer so the popover closes on outside click. */
+        .dc-brief-backdrop { position: fixed; inset: 0; z-index: 7; }
         .dc-brief-settings {
           position:absolute;
-          right:0;
-          bottom:42px;
+          right:20px;
+          bottom:54px;
           z-index:8;
-          width:min(278px, 100%);
-          padding:8px;
-          border-radius:14px;
-          background:color-mix(in srgb, var(--surface) 90%, var(--surface-2) 10%);
-          box-shadow:0 18px 44px -28px color-mix(in srgb, var(--text) 42%, transparent), inset 0 1px 0 color-mix(in srgb, #fff 12%, transparent);
+          width:236px;
+          padding:6px;
+          border:1px solid var(--border);
+          border-radius:12px;
+          background:var(--card);
+          box-shadow:0 16px 40px -22px rgba(0,0,0,.5);
           animation:dcFade .14s ease both;
         }
         .dc-brief-settings .dc-setting-row {
@@ -2260,15 +2306,6 @@ export default function DashboardPage() {
       `}</style>
 
       <div className="dc-shell">
-
-        {/* Top-right status pill — calm signal, no action. */}
-        <div className="dc-shell-top">
-          <span className={`dc-pulse-pill tone-${pulse.tone}`}>
-            <span className="dot" />
-            {pulse.label}
-          </span>
-        </div>
-
         <div className="dc-shell-body">
           {/* ── LEFT: daytime header + fact + report ── */}
           <main className="dc-left">
@@ -2341,8 +2378,15 @@ export default function DashboardPage() {
           {/* ── RIGHT: Audio Briefing card ── */}
           <aside className="dc-card" aria-label="Tagro Audio Briefing" data-tour="voice-briefing">
             <header className="dc-card-head">
-              <h2 className="dc-card-title">Audio Briefing</h2>
-              <p className="dc-card-sub">Dein täglicher Überblick.</p>
+              <div className="dc-card-head-text">
+                <h2 className="dc-card-title">Audio Briefing</h2>
+                <p className="dc-card-sub">Dein täglicher Überblick.</p>
+              </div>
+              {/* Status signal — aligned to the heading line. */}
+              <span className={`dc-pulse-pill tone-${pulse.tone}`}>
+                <span className="dot" />
+                {pulse.label}
+              </span>
             </header>
 
             {/* Scope — which project this briefing covers. Defaults to the
@@ -2508,6 +2552,17 @@ export default function DashboardPage() {
               <span className="dc-play-meta">{briefingDurationLabel}</span>
             </button>
 
+            {/* Read instead of listen — for when you can't play audio. */}
+            <button
+              type="button"
+              className="dc-read-bar"
+              onClick={openWrittenReport}
+              disabled={statusBusy && !writtenReportText.trim()}
+            >
+              <Article size={15} weight="regular" />
+              <span>Bericht lesen</span>
+            </button>
+
             <div className="dc-chip-row">
               <button type="button" className="dc-chip" onClick={refreshStatus} disabled={statusBusy}>
                 <ArrowClockwise size={12} className={statusBusy ? 'spin' : ''} />
@@ -2537,10 +2592,13 @@ export default function DashboardPage() {
                 aria-label="Stimme & Tempo"
                 aria-expanded={briefingSettingsOpen}
               >
-                <DotsThree size={14} weight="bold" />
+                <SlidersHorizontal size={14} weight="regular" />
               </button>
             </div>
 
+            {briefingSettingsOpen && (
+              <div className="dc-brief-backdrop" onClick={() => setBriefingSettingsOpen(false)} />
+            )}
             {briefingSettingsOpen && (
               <div className="dc-brief-settings" role="dialog" aria-label="Audioeinstellungen">
                 <label className="dc-setting-row">
@@ -2583,6 +2641,24 @@ export default function DashboardPage() {
         </div>
 
       </div>
+
+      {readOpen && (
+        <Modal
+          open
+          onClose={() => setReadOpen(false)}
+          size="lg"
+          title={currentReportTitle || 'Statusbericht'}
+          subtitle={`${scopeLabel} · ${period}`}
+        >
+          {statusBusy && !writtenReportText.trim() ? (
+            <p className="dc-read-empty">Tagro erstellt den Bericht…</p>
+          ) : writtenReportText.trim() ? (
+            <p className="dc-read-body">{writtenReportText}</p>
+          ) : (
+            <p className="dc-read-empty">Noch kein Statusbericht vorhanden. Tippe auf „Aktualisieren", um einen zu erstellen.</p>
+          )}
+        </Modal>
+      )}
 
       <ObserverWelcomeModal />
       <WelcomeTour />
