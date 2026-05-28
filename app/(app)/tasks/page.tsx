@@ -96,6 +96,7 @@ const ACTIVE_STATES = new Set(['doing', 'active', 'in_progress', 'development', 
 const DECISION_STATES = new Set(['blocked', 'waiting', 'needs_decision', 'client_decision', 'waiting_for_client', 'waiting_for_assignment'])
 const REVIEW_STATES = new Set(['review', 'ready_for_review', 'in_review', 'festag_review', 'suggested', 'zur_pruefung', 'verified', 'approved', 'festag_checked'])
 const PROJECT_COLOR_SYNC_EVENT = 'festag-project-color-change'
+const STATE_POPOVER_ID = 'task-state-popover'
 
 function projectAccentColor(id?: string | null, color?: string | null) {
   if (color && color !== 'var(--text-muted)' && color !== 'var(--task-soft-text)') return color
@@ -271,8 +272,8 @@ export default function TasksPage() {
     function closeFloatingMenus(event: PointerEvent) {
       const targetNode = event.target as Node | null
       const targetElement = event.target instanceof Element ? event.target : null
-      if (!targetElement?.closest('.task-state-wrap')) {
-        setActiveStatePopoverTaskId(null)
+      if (!targetElement?.closest('.task-state-wrap, .task-state-popover')) {
+        closeStatePopover()
       }
       if (targetNode && taskToolsRef.current?.contains(targetNode)) return
       setFilterMenuOpen(false)
@@ -283,7 +284,7 @@ export default function TasksPage() {
       if (event.key !== 'Escape') return
       setFilterMenuOpen(false)
       setSortMenuOpen(false)
-      setActiveStatePopoverTaskId(null)
+      closeStatePopover()
     }
 
     document.addEventListener('pointerdown', closeFloatingMenus)
@@ -293,6 +294,21 @@ export default function TasksPage() {
       document.removeEventListener('keydown', closeWithEscape)
     }
   }, [])
+
+  useEffect(() => {
+    if (!activeStatePopoverTaskId) return
+
+    function closeOnViewportMove() {
+      closeStatePopover()
+    }
+
+    window.addEventListener('resize', closeOnViewportMove)
+    window.addEventListener('scroll', closeOnViewportMove, true)
+    return () => {
+      window.removeEventListener('resize', closeOnViewportMove)
+      window.removeEventListener('scroll', closeOnViewportMove, true)
+    }
+  }, [activeStatePopoverTaskId])
 
   useEffect(() => {
     const onProjectColor = (event: Event) => {
@@ -398,6 +414,14 @@ export default function TasksPage() {
 
   function openTaskDetail(task: TaskRow) {
     router.push(task.project_id ? `/projects/${task.project_id}/tasks/${task.id}` : `/tasks/${task.id}`)
+  }
+
+  function closeStatePopover() {
+    setActiveStatePopoverTaskId(null)
+  }
+
+  function openStatePopover(taskId: string) {
+    setActiveStatePopoverTaskId(taskId)
   }
 
   function toggleProjectGroup(projectId: string) {
@@ -1265,27 +1289,27 @@ export default function TasksPage() {
           background:var(--btn-prim);
         }
         .task-state-popover {
-          position:absolute;
-          left:calc(100% + 12px);
-          top:50%;
-          width:min(250px, calc(100vw - 96px));
-          transform:translateY(-50%) translateX(-6px);
+          position:fixed;
+          top:86px;
+          right:24px;
+          width:min(360px, calc(100vw - 48px));
+          max-height:calc(100vh - 24px);
+          transform:translateY(-6px) scale(.985);
           opacity:0;
           visibility:hidden;
           pointer-events:none;
-          z-index:220;
-          padding:12px 14px;
+          z-index:360;
+          padding:13px 15px;
           border-radius:12px;
-          border:0;
+          border:1px solid color-mix(in srgb, var(--border) 82%, transparent);
           background:color-mix(in srgb, var(--surface) 96%, #fff 4%);
-          box-shadow:0 22px 58px rgba(15,23,42,.16), 0 1px 0 rgba(255,255,255,.58) inset;
+          box-shadow:0 22px 58px rgba(15,23,42,.18), 0 1px 0 rgba(255,255,255,.58) inset;
           color:var(--task-soft-text);
-          font-size:11.5px;
-          line-height:1.45;
-          letter-spacing:.01em;
+          font-size:12px;
+          line-height:1.5;
+          letter-spacing:0;
           white-space:normal;
-          max-height:none;
-          overflow:visible;
+          overflow:auto;
           transition:opacity .14s ease, visibility .14s ease, transform .14s ease;
         }
         [data-theme="dark"] .task-state-popover,
@@ -1295,15 +1319,17 @@ export default function TasksPage() {
         }
         .task-state-popover strong {
           display:block;
-          margin-bottom:3px;
+          margin-bottom:5px;
           color:var(--text);
-          font-size:11.5px;
+          font-size:12px;
+          line-height:1.35;
           font-weight:500;
         }
-        .task-state-wrap.is-open .task-state-popover {
+        .task-state-popover.is-open {
           opacity:1;
           visibility:visible;
-          transform:translateY(-50%) translateX(0);
+          transform:none;
+          pointer-events:auto;
         }
         .task-state-popover span {
           display:block;
@@ -1569,6 +1595,19 @@ export default function TasksPage() {
           .task-state-mark {
             width:17px;
             height:17px;
+          }
+          .task-state-popover {
+            left:12px;
+            right:12px;
+            top:auto;
+            bottom:calc(12px + var(--safe-bottom));
+            width:auto !important;
+            max-width:none;
+            max-height:min(260px, calc(100vh - 24px - var(--safe-bottom)));
+            transform:translateY(8px) scale(.985);
+          }
+          .task-state-popover.is-open {
+            transform:none;
           }
           .task-name-text strong {
             font-size:12.5px;
@@ -1992,11 +2031,16 @@ export default function TasksPage() {
                       className={`task-state-mark${isDone ? ' done' : ''}`}
                       aria-label={isDone ? 'Erledigt-Logik anzeigen' : 'Status-Logik anzeigen'}
                       aria-expanded={activeStatePopoverTaskId === task.id}
+                      aria-controls={STATE_POPOVER_ID}
                       aria-haspopup="dialog"
                       onClick={(event) => {
                         event.preventDefault()
                         event.stopPropagation()
-                        setActiveStatePopoverTaskId((current) => current === task.id ? null : task.id)
+                        if (activeStatePopoverTaskId === task.id) {
+                          closeStatePopover()
+                        } else {
+                          openStatePopover(task.id)
+                        }
                       }}
                       onKeyDown={(event) => {
                         event.stopPropagation()
@@ -2004,10 +2048,6 @@ export default function TasksPage() {
                     >
                       {isDone ? <Check size={9} weight="bold" /> : null}
                     </button>
-                    <span className="task-state-popover" role="tooltip">
-                      <strong>So funktioniert Erledigt</strong>
-                      <span>Tagro oder der Developer haken Aufgaben ab. Erledigte Aufgaben bleiben 24h sichtbar und verschwinden dann nur aus Standardansichten. Eigene Aufgaben kannst du löschen.</span>
-                    </span>
                   </span>
                   <span className="task-name-text">
                     <strong>{task.title}</strong>
@@ -2039,6 +2079,18 @@ export default function TasksPage() {
           })
         )}
       </div>}
+
+      {activeStatePopoverTaskId ? (
+        <div
+          id={STATE_POPOVER_ID}
+          className="task-state-popover is-open"
+          role="dialog"
+          aria-label="Erledigt-Logik"
+        >
+          <strong>So funktioniert Erledigt</strong>
+          <span>Tagro oder der Developer haken Aufgaben ab. Erledigte Aufgaben bleiben 24h sichtbar und verschwinden dann nur aus Standardansichten. Eigene Aufgaben kannst du löschen.</span>
+        </div>
+      ) : null}
 
       </div>
     </div>
