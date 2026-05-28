@@ -5,6 +5,7 @@ import type { ReactNode } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { getTaskGroup, type TaskGroupKey } from '@/lib/tasks/groups'
 import { taskStatusPatch } from '@/lib/tasks/status'
 import TagroLogo from '@/components/TagroLogo'
 import NewTaskModal from '@/components/NewTaskModal'
@@ -14,14 +15,19 @@ import {
   CalendarBlank,
   CheckCircle,
   Clock,
+  Code,
   FileText,
   Flag,
+  Gauge,
   GitBranch,
+  Globe,
   Link as LinkIcon,
   Pause,
+  Palette,
   Plugs,
   Plus,
   ShieldCheck,
+  SlidersHorizontal,
   Sparkle,
   Tag,
   Trash,
@@ -106,6 +112,23 @@ const DONE_STATES = new Set(['done', 'completed', 'delivered', 'erledigt'])
 const ACTIVE_STATES = new Set(['doing', 'active', 'in_progress', 'development', 'in_development'])
 const DECISION_STATES = new Set(['blocked', 'waiting', 'needs_decision', 'client_decision', 'waiting_for_client', 'waiting_for_assignment'])
 const REVIEW_STATES = new Set(['review', 'ready_for_review', 'in_review', 'festag_review', 'suggested', 'zur_pruefung', 'verified', 'approved', 'festag_checked'])
+
+const TASK_DETAIL_GROUP_ICONS: Record<TaskGroupKey, typeof FileText> = {
+  legal: ShieldCheck,
+  tech: Gauge,
+  integration: Plugs,
+  design: Palette,
+  content: FileText,
+  web: Globe,
+  code: Code,
+  process: SlidersHorizontal,
+  decision: ShieldCheck,
+  blocker: WarningCircle,
+  client_action: UserCircle,
+  follow_up: GitBranch,
+  admin: UsersThree,
+  planning: FileText,
+}
 
 function normalizeStatus(status?: string | null) {
   const value = (status || 'todo').toLowerCase()
@@ -361,7 +384,6 @@ export default function TaskWorkspaceDetail({ taskId, projectId }: TaskWorkspace
   const ownerName = task?.developer_name || task?.owner || displayName(assignedProfile, task?.assigned_to ? 'Zugewiesenes Teammitglied' : 'Nicht zugewiesen')
   const createdBy = displayName(createdProfile, sourceActor(task?.source))
   const requestedBy = task?.source === 'client_manual' || task?.source === 'client_tagro' ? 'Kunde' : task?.source === 'decision' ? 'Projektverantwortliche:r' : task?.source === 'github_activity' ? 'GitHub Integration' : 'Projektteam'
-  const normalized = normalizeStatus(taskState(task))
   const decisionNeeded = task ? hasDecisionNeed(task) : false
   const riskVisible = task ? hasRisk(task) : false
   const manageable = task?.source === 'client_manual' || task?.source === 'client_tagro'
@@ -481,6 +503,8 @@ export default function TaskWorkspaceDetail({ taskId, projectId }: TaskWorkspace
   const latestUpdate = safeText(task.latest_client_update) || safeText(task.customer_update) || safeText(task.latest_dev_update) || safeText(task.dev_notes) || 'Noch kein belastbares Update vorhanden.'
   const tags = [...(task.tags ?? []), task.label].filter(Boolean) as string[]
   const source = sourceLabel(task.source, task.origin)
+  const taskGroup = getTaskGroup(task)
+  const TaskGroupIcon = TASK_DETAIL_GROUP_ICONS[taskGroup.key]
 
   return (
     <div className="task-detail-shell">
@@ -525,7 +549,9 @@ export default function TaskWorkspaceDetail({ taskId, projectId }: TaskWorkspace
             <>
               <div className="task-overview-head">
                 <div className="task-title-head">
-                  <span className={`task-dot ${normalized}`} aria-hidden />
+                  <span className="task-title-icon" title={taskGroup.label} aria-label={taskGroup.label}>
+                    <TaskGroupIcon size={18} weight="regular" />
+                  </span>
                   <h1>{task.title}</h1>
                 </div>
                 <p className="task-attribution">Angefragt von {requestedBy} · Verantwortlich {ownerName}</p>
@@ -602,7 +628,6 @@ export default function TaskWorkspaceDetail({ taskId, projectId }: TaskWorkspace
                 <div className="timeline">
                   {timeline.map((item) => (
                     <div key={item.id} className="timeline-item">
-                      <span className={`timeline-dot ${item.kind}`} />
                       <div>
                         <strong>{item.label}</strong>
                         <p>{item.meta}</p>
@@ -777,16 +802,23 @@ const detailStyles = `
     align-items:center;
     gap:12px;
   }
-  .task-dot {
-    width:11px; height:11px;
-    border-radius:50%;
-    flex-shrink:0;
-    background:var(--text-muted);
+  .task-title-icon {
+    width:34px;
+    height:34px;
+    border-radius:10px;
+    flex:0 0 34px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--text-secondary);
+    background:color-mix(in srgb, var(--surface-2) 34%, transparent);
+    border:1px solid color-mix(in srgb, var(--border) 58%, transparent);
   }
-  .task-dot.active   { background:var(--amber); }
-  .task-dot.decision { background:var(--amber); }
-  .task-dot.review   { background:#6366f1; }
-  .task-dot.done     { background:var(--green); }
+  .task-title-icon svg {
+    display:block;
+    width:18px;
+    height:18px;
+  }
   .status-pill {
     height:28px;
     display:inline-flex;
@@ -1006,20 +1038,9 @@ const detailStyles = `
     gap:10px;
   }
   .timeline-item {
-    display:grid;
-    grid-template-columns:20px minmax(0,1fr);
-    gap:10px;
+    display:block;
+    padding-left:0;
   }
-  .timeline-dot {
-    width:10px;
-    height:10px;
-    border-radius:50%;
-    margin:4px 0 0 5px;
-    background:var(--text-muted);
-  }
-  .timeline-dot.tagro { background:var(--green); }
-  .timeline-dot.owner { background:#6366f1; }
-  .timeline-dot.update { background:var(--amber); }
   .timeline-item strong {
     color:var(--text-secondary);
     font-size:13px;

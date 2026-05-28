@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { getTaskGroup, type TaskGroupKey } from '@/lib/tasks/groups'
 import { isCompletedTaskStillFresh } from '@/lib/tasks/status'
 import {
   Check,
@@ -35,6 +36,7 @@ type TaskRow = {
   developer_name?: string | null
   source?: string | null
   task_type?: string | null
+  group_key?: string | null
   client_status?: string | null
   dev_status?: string | null
   audience?: string | null
@@ -103,6 +105,23 @@ const DECISION_STATES = new Set(['blocked', 'waiting', 'needs_decision', 'client
 const REVIEW_STATES = new Set(['review', 'ready_for_review', 'in_review', 'festag_review', 'suggested', 'zur_pruefung', 'verified', 'approved', 'festag_checked'])
 const PROJECT_COLOR_SYNC_EVENT = 'festag-project-color-change'
 const STATE_POPOVER_ID = 'task-state-popover'
+
+const TASK_GROUP_ICONS: Record<TaskGroupKey, typeof FileText> = {
+  legal: ShieldCheck,
+  tech: Gauge,
+  integration: Plugs,
+  design: Palette,
+  content: FileText,
+  web: Globe,
+  code: Code,
+  process: SlidersHorizontal,
+  decision: ShieldCheck,
+  blocker: Gauge,
+  client_action: FileText,
+  follow_up: SlidersHorizontal,
+  admin: ShieldCheck,
+  planning: FileText,
+}
 
 function projectAccentColor(id?: string | null, color?: string | null) {
   if (color && color !== 'var(--text-muted)' && color !== 'var(--task-soft-text)') return color
@@ -181,37 +200,6 @@ function dateLabel(value?: string | null) {
   } catch {
     return '---'
   }
-}
-
-function taskGroupFor(task: TaskRow) {
-  const haystack = `${task.title} ${task.priority ?? ''}`.toLowerCase()
-
-  if (/datenschutz|impressum|agb|recht|legal|security|sicherheit|compliance/.test(haystack)) {
-    return { label: 'Recht', icon: ShieldCheck, color: '#64748b' }
-  }
-  if (/performance|optimierung|hosting|wordpress|installation|setup|cache|server|deploy/.test(haystack)) {
-    return { label: 'Technik', icon: Gauge, color: '#0ea5e9' }
-  }
-  if (/login|stripe|api|webhook|integration|google|connector|payment|billing/.test(haystack)) {
-    return { label: 'Integration', icon: Plugs, color: '#8b5cf6' }
-  }
-  if (/responsive|theme|design|gestaltung|ui|ux|layout/.test(haystack)) {
-    return { label: 'Design', icon: Palette, color: '#ec4899' }
-  }
-  if (/seo|landing|seite|kontakt|formular|blog|content|inhalt|leistung|über-mich|about/.test(haystack)) {
-    return { label: 'Inhalt', icon: FileText, color: '#f97316' }
-  }
-  if (/domain|website|web|page/.test(haystack)) {
-    return { label: 'Web', icon: Globe, color: '#22c55e' }
-  }
-  if (/code|refactor|service|sdk|schema|database|db/.test(haystack)) {
-    return { label: 'Code', icon: Code, color: '#6366f1' }
-  }
-  if (/schulung|test|tests|testplan|dokument|dokumentation|prozess|schnittstelle|architektur|konzept/.test(haystack)) {
-    return { label: 'Ablauf', icon: SlidersHorizontal, color: '#64748b' }
-  }
-
-  return { label: 'Planung', icon: FileText, color: '#4E5567' }
 }
 
 export default function TasksPage() {
@@ -2029,8 +2017,8 @@ export default function TasksPage() {
             const isDone = normalized === 'done'
             const progress = typeof task.progress === 'number' ? task.progress : progressFor(taskState(task))
             const lead = task.developer_name || task.owner || task.assigned_to || 'Entwickler'
-            const group = taskGroupFor(task)
-            const GroupIcon = group.icon
+            const group = getTaskGroup(task)
+            const GroupIcon = TASK_GROUP_ICONS[group.key]
 
             return (
               <div
