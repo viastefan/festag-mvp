@@ -596,16 +596,18 @@ const CSS = `
     color: #E8E8E5;
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
     font-weight: 500;
-    letter-spacing: .015em;
+    letter-spacing: var(--ls-body, 0.017em);
     -webkit-font-smoothing: antialiased;
     text-rendering: geometricPrecision;
-    display: flex; align-items: center; justify-content: center;
-    padding: 32px 20px 56px;
+    display: flex; align-items: stretch; justify-content: center;
+    position: relative;
+    padding: 32px 20px 96px;
   }
   .onb-stage {
     width: 100%; max-width: 480px;
-    display: flex; flex-direction: column; gap: 32px;
+    display: flex; flex-direction: column;
     align-items: stretch;
+    margin: auto 0;
   }
   .onb-card {
     display: flex; flex-direction: column;
@@ -615,25 +617,26 @@ const CSS = `
 
   .onb-title {
     margin: 0;
-    font-size: 26px; font-weight: 500;
-    letter-spacing: -.012em;
-    line-height: 1.25;
+    font-size: 28px; font-weight: 500;
+    letter-spacing: var(--ls-header, 0.012em);
+    line-height: 1.2;
     text-align: center;
     color: #FFFFFF;
   }
   .onb-lede {
-    margin: 8px 0 32px;
-    font-size: 14px;
-    color: rgba(255,255,255,.55);
+    margin: 10px 0 36px;
+    font-size: 14.5px;
+    color: rgba(255,255,255,.58);
     text-align: center;
     line-height: 1.55;
+    letter-spacing: var(--ls-body, 0.017em);
   }
 
   .onb-field { display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px; }
   .onb-label {
     font-size: 12.5px; font-weight: 500;
-    color: rgba(255,255,255,.55);
-    letter-spacing: .015em;
+    color: rgba(255,255,255,.58);
+    letter-spacing: var(--ls-body, 0.017em);
   }
 
   .onb-input {
@@ -767,42 +770,63 @@ const CSS = `
   }
   .onb-switch.is-on .onb-switch-thumb { transform: translateX(14px); }
 
-  /* Actions */
+  /* Actions — Linear-style: größer, mit weichem 3D-Touch (Inset-Highlight
+     + Soft-Shadow), aktiv-state senkt sich leicht ein. */
   .onb-actions {
     display: flex; align-items: center; justify-content: flex-end;
-    gap: 8px; margin-top: 10px;
+    gap: 10px; margin-top: 18px;
   }
   .onb-actions-full { justify-content: stretch; }
   .onb-primary {
-    height: 36px; padding: 0 18px;
+    height: 42px; padding: 0 22px;
     border-radius: 999px;
-    border: 0;
-    background: #1F2630;
+    border: 1px solid rgba(255,255,255,.08);
+    background: linear-gradient(180deg, #262E3A 0%, #1B222B 100%);
     color: #FFFFFF;
-    font: inherit; font-size: 13px; font-weight: 500; letter-spacing: .015em;
+    font: inherit; font-size: 13.5px; font-weight: 500;
+    letter-spacing: var(--ls-body, 0.017em);
     cursor: pointer;
-    transition: background .14s ease, transform .14s ease, opacity .14s ease;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.08),
+      0 1px 2px rgba(0,0,0,.35),
+      0 6px 18px -6px rgba(0,0,0,.45);
+    transition: transform .14s ease, box-shadow .14s ease, background .14s ease, opacity .14s ease;
   }
-  .onb-primary:hover:not(:disabled) { background: #2A3240; }
-  .onb-primary:active:not(:disabled) { transform: scale(.98); }
-  .onb-primary:disabled { opacity: .45; cursor: not-allowed; }
+  .onb-primary:hover:not(:disabled) {
+    background: linear-gradient(180deg, #2D3543 0%, #1F2731 100%);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.10),
+      0 2px 4px rgba(0,0,0,.40),
+      0 10px 24px -8px rgba(0,0,0,.55);
+    transform: translateY(-1px);
+  }
+  .onb-primary:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.04),
+      0 1px 1px rgba(0,0,0,.30);
+  }
+  .onb-primary:disabled { opacity: .42; cursor: not-allowed; }
   .onb-primary-full {
-    width: 100%; height: 44px; padding: 0 24px; font-size: 14px;
-    background: #1F2630;
+    width: 100%; height: 48px; padding: 0 28px; font-size: 14.5px;
   }
-  .onb-primary-full:hover:not(:disabled) { background: #2A3240; }
 
   .onb-ghost {
-    height: 36px; padding: 0 14px;
+    height: 42px; padding: 0 18px;
     border-radius: 999px;
-    border: 0;
+    border: 1px solid transparent;
     background: transparent;
     color: rgba(255,255,255,.55);
-    font: inherit; font-size: 13px; font-weight: 500; letter-spacing: .015em;
+    font: inherit; font-size: 13.5px; font-weight: 500;
+    letter-spacing: var(--ls-body, 0.017em);
     cursor: pointer;
-    transition: color .14s ease, background .14s ease;
+    transition: color .14s ease, background .14s ease, border-color .14s ease;
   }
-  .onb-ghost:hover:not(:disabled) { color: rgba(255,255,255,.85); background: rgba(255,255,255,.04); }
+  .onb-ghost:hover:not(:disabled) {
+    color: rgba(255,255,255,.92);
+    background: rgba(255,255,255,.04);
+    border-color: rgba(255,255,255,.06);
+  }
   .onb-ghost:disabled { opacity: .4; cursor: not-allowed; }
 
   .onb-fine {
@@ -823,29 +847,38 @@ const CSS = `
     text-align: center;
   }
 
-  /* Step dots */
+  /* Step dots — pinned to the viewport bottom, centred horizontally. */
   .onb-dots {
     list-style: none; padding: 0; margin: 0;
+    position: fixed;
+    left: 50%;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 28px);
+    transform: translateX(-50%);
     display: flex; align-items: center; justify-content: center;
     gap: 8px;
+    z-index: 5;
+    pointer-events: none;
   }
   .onb-dot {
     width: 6px; height: 6px;
     border-radius: 999px;
     background: rgba(255,255,255,.15);
-    transition: width .2s ease, background .2s ease;
+    transition: width .25s ease, background .25s ease;
   }
   .onb-dot.is-active {
-    width: 22px;
+    width: 24px;
     background: rgba(255,255,255,.85);
   }
   .onb-dot.is-done { background: rgba(255,255,255,.35); }
 
   @media (max-width: 520px) {
-    .onb { padding: 24px 16px 40px; }
-    .onb-title { font-size: 22px; }
-    .onb-lede { margin-bottom: 24px; font-size: 13.5px; }
+    .onb { padding: 24px 16px 84px; }
+    .onb-title { font-size: 24px; }
+    .onb-lede { margin-bottom: 26px; font-size: 14px; }
     .onb-input { height: 46px; font-size: 15px; }
-    .onb-primary-full { height: 48px; font-size: 15px; }
+    .onb-primary-full { height: 50px; font-size: 15px; }
+    .onb-primary { height: 44px; font-size: 14px; }
+    .onb-ghost { height: 44px; font-size: 14px; }
+    .onb-dots { bottom: calc(env(safe-area-inset-bottom, 0px) + 18px); }
   }
 `
