@@ -23,9 +23,38 @@ import TagroLogo from '@/components/TagroLogo'
 import { speechVoiceId, useSpeechSynthesis } from '@/hooks/useSpeechSynthesis'
 import {
   ArrowClockwise, CalendarCheck, CaretDown, CaretRight, Check, CheckCircle,
-  Cube, DotsThree, DownloadSimple, EnvelopeSimple, Pause, PencilSimple,
+  Cube, DotsThree, DownloadSimple, EnvelopeSimple, Lightbulb, Pause, PencilSimple,
   Play, Plus, Pulse as PulseIcon, SlidersHorizontal, Stop,
 } from '@phosphor-icons/react'
+
+// ── Left-side contextual layer ─────────────────────────────────────────
+// One calm line by time of day + one rotating "Wusstest du…" fact. Both
+// resolve once per mount so they don't flicker on re-render.
+function daytimeLine(hour: number): string {
+  if (hour >= 5 && hour < 12) return 'Guten Morgen. Ein ruhiger Überblick hilft dir, klar in den Tag zu starten.'
+  if (hour >= 12 && hour < 18) return 'Ein kurzer Statusblick zur Mittagszeit kann Entscheidungen leichter machen.'
+  if (hour >= 18 && hour < 24) return 'Am Abend lohnt sich ein klarer Überblick über offene Themen und nächste Schritte.'
+  return 'Späte Stunde. Ein letzter ruhiger Blick auf den Stand — dann Feierabend.'
+}
+
+const FUN_FACTS = [
+  'Die Erde dreht sich am Äquator mit etwa 1.670 km/h.',
+  'Honig ist eines der wenigen Lebensmittel, das nahezu unbegrenzt haltbar ist.',
+  'Ein Oktopus hat drei Herzen.',
+  'Es gibt mehr Sterne im Universum als Sandkörner auf der Erde.',
+  'Licht von der Sonne braucht etwa 8 Minuten bis zur Erde.',
+  'Bananen sind botanisch gesehen Beeren — Erdbeeren hingegen nicht.',
+  'Das menschliche Gehirn verbraucht rund 20 % der gesamten Körperenergie.',
+  'Ein Tag auf der Venus ist länger als ein Jahr auf der Venus.',
+  'Wombat-Kot ist würfelförmig — einzigartig im Tierreich.',
+  'Es gibt mehr mögliche Schachpartien als Atome im beobachtbaren Universum.',
+  'Die Eiffelturm-Höhe wächst im Sommer durch Wärmeausdehnung um bis zu 15 cm.',
+  'Ein Blitz ist rund fünfmal heißer als die Oberfläche der Sonne.',
+  'Tintenfische können ihre Hautfarbe in Millisekunden ändern.',
+  'Wasser kann gleichzeitig kochen und gefrieren — am sogenannten Tripelpunkt.',
+  'Der kürzeste Krieg der Geschichte dauerte etwa 38 Minuten.',
+  'Ein Löffel eines Neutronensterns würde auf der Erde Milliarden Tonnen wiegen.',
+]
 
 // ─────────────────────────────────────────────────────────────────────
 // Helpers
@@ -244,6 +273,10 @@ export default function DashboardPage() {
     () => buildPulse({ blockers: riskTasks.length, decisions: decisionTasks.length }),
     [riskTasks.length, decisionTasks.length],
   )
+
+  // Contextual left-side layer — resolved once per mount.
+  const contextLine = useMemo(() => daytimeLine(new Date().getHours()), [])
+  const funFact = useMemo(() => FUN_FACTS[Math.floor(Math.random() * FUN_FACTS.length)], [])
 
   // ── Scope: overall report vs single-project report ──────────────
   // Drives the briefing card header label, audio text and duration
@@ -640,18 +673,41 @@ export default function DashboardPage() {
           flex:1 1 auto;
           min-height:0;
           display:grid;
-          grid-template-columns: minmax(0, 1fr) minmax(360px, 420px);
-          column-gap: clamp(36px, 4.6vw, 64px);
+          grid-template-columns: minmax(0, 1fr) minmax(380px, 420px);
+          column-gap: clamp(32px, 4vw, 60px);
           align-items:start;
           animation:dcFade .3s cubic-bezier(.16,1,.3,1) both;
         }
         .dc-left {
-          padding-top: 36px;
+          padding-top: 40px;
           display: flex;
           flex-direction: column;
           gap: 14px;
           min-width: 0;
         }
+
+        /* Contextual layer — daytime line + fun fact, subtle inline. */
+        .dc-context { margin-top: 14px; display: flex; flex-direction: column; gap: 12px; }
+        .dc-context-line {
+          margin: 0;
+          font-size: 13.5px; line-height: 1.6;
+          color: var(--dc-soft);
+          max-width: 540px;
+          letter-spacing: var(--ls-body, .017em);
+        }
+        .dc-fact {
+          margin: 0;
+          display: flex; align-items: flex-start; gap: 8px;
+          font-size: 12.5px; line-height: 1.55;
+          color: var(--dc-muted);
+          max-width: 540px;
+          letter-spacing: var(--ls-body, .017em);
+        }
+        .dc-fact-ico {
+          flex-shrink: 0; margin-top: 1px;
+          color: var(--dc-muted); opacity: .8;
+        }
+        .dc-fact-lead { color: var(--dc-soft); }
         .dc-pulse-pill {
           display: inline-flex; align-items: center; gap: 8px;
           height: 26px; padding: 0 12px;
@@ -1081,53 +1137,61 @@ export default function DashboardPage() {
           outline:none;
         }
 
-        /* ── Audio Briefing Card (.dc-card) — calm right column ──── */
+        /* ── Audio Briefing Card (.dc-card) — premium, spacious ──── */
         .dc-card {
           position: relative;
+          width: 100%;
+          min-height: clamp(640px, 78vh, 760px);
           border: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
-          border-radius: 16px;
+          border-radius: 24px;
           background: color-mix(in srgb, var(--card) 94%, transparent);
-          padding: 22px 22px 18px;
-          display: flex; flex-direction: column; gap: 14px;
-          min-height: 0;
+          padding: 26px 26px 22px;
+          display: flex; flex-direction: column; gap: 20px;
           box-shadow: var(--content-shadow);
+          -webkit-backdrop-filter: blur(8px);
+          backdrop-filter: blur(8px);
         }
         [data-theme="dark"] .dc-card,
         [data-theme="classic-dark"] .dc-card {
-          background: color-mix(in srgb, var(--card) 92%, #fff 4%);
-          border-color: color-mix(in srgb, var(--border) 80%, transparent);
+          background: rgba(20, 28, 42, 0.82);
+          border-color: rgba(255,255,255,0.08);
+          box-shadow:
+            0 1px 0 rgba(255,255,255,0.04) inset,
+            0 30px 80px -40px rgba(0,0,0,0.7);
         }
-        .dc-card-head { display: flex; flex-direction: column; gap: 2px; }
+        .dc-card-head { display: flex; flex-direction: column; gap: 3px; }
         .dc-card-title {
           margin: 0;
-          font-size: 18px; font-weight: 500;
-          letter-spacing: -.005em;
+          font-size: 19px; font-weight: 500;
+          letter-spacing: var(--ls-header, .012em);
           color: var(--text);
         }
         .dc-card-sub {
           margin: 0;
-          font-size: 12.5px; font-weight: 500;
+          font-size: 13px; font-weight: 500;
           color: var(--dc-soft);
           line-height: 1.5;
+          letter-spacing: var(--ls-body, .017em);
         }
 
         /* Period segmented control */
         .dc-period {
-          display: flex; gap: 2px;
-          padding: 3px;
-          border: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
-          background: color-mix(in srgb, var(--surface-2) 35%, transparent);
+          display: flex; gap: 3px;
+          padding: 4px;
+          border: 1px solid color-mix(in srgb, var(--border) 55%, transparent);
+          background: color-mix(in srgb, var(--surface-2) 30%, transparent);
           border-radius: 999px;
-          align-self: flex-start;
+          align-self: stretch;
         }
         .dc-period-btn {
-          height: 26px; padding: 0 10px;
+          flex: 1;
+          height: 30px; padding: 0 10px;
           border: 0; background: transparent;
           color: var(--dc-soft);
-          font: inherit; font-size: 11.5px; font-weight: 500; letter-spacing: .015em;
+          font: inherit; font-size: 12px; font-weight: 500; letter-spacing: var(--ls-body, .017em);
           border-radius: 999px;
           cursor: pointer;
-          transition: background .12s, color .12s;
+          transition: background .2s ease, color .2s ease;
         }
         .dc-period-btn:hover { color: var(--text); }
         .dc-period-btn.on {
@@ -1137,81 +1201,101 @@ export default function DashboardPage() {
         }
         [data-theme="dark"] .dc-period-btn.on,
         [data-theme="classic-dark"] .dc-period-btn.on {
-          background: color-mix(in srgb, var(--surface-2) 80%, #fff 6%);
+          background: rgba(255,255,255,0.07);
           box-shadow: 0 1px 2px rgba(0,0,0,.4);
         }
 
-        /* Stat rows under the orb */
+        /* Orb wrapper — generous vertical room, the centerpiece. */
+        .dc-orb-zone {
+          flex: 1 1 auto;
+          min-height: 220px;
+          display: flex; align-items: center; justify-content: center;
+        }
+
+        /* Stat rows — always stacked, never compressed. */
         .dc-stats {
           list-style: none; padding: 0; margin: 0;
           display: flex; flex-direction: column;
-          border-top: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+          border-top: 1px solid color-mix(in srgb, var(--border) 45%, transparent);
         }
         .dc-stats li {
-          border-bottom: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+          border-bottom: 1px solid color-mix(in srgb, var(--border) 45%, transparent);
         }
         .dc-stat {
           display: grid;
-          grid-template-columns: auto auto 1fr auto;
+          grid-template-columns: 24px auto 1fr auto;
           align-items: center;
-          gap: 12px;
-          padding: 10px 4px;
+          gap: 14px;
+          padding: 13px 8px;
           color: var(--text);
           text-decoration: none;
           font: inherit; font-size: 13px;
-          transition: background .1s;
-          border-radius: 6px;
+          transition: background .2s ease;
+          border-radius: 8px;
         }
-        .dc-stat:hover { background: color-mix(in srgb, var(--surface-2) 35%, transparent); }
+        .dc-stat:hover { background: color-mix(in srgb, var(--surface-2) 38%, transparent); }
         .dc-stat-ico {
-          width: 22px; height: 22px;
+          width: 24px; height: 24px;
           display: inline-flex; align-items: center; justify-content: center;
           color: var(--dc-soft);
         }
         .dc-stat-num {
-          font-size: 18px; font-weight: 500; color: var(--text);
-          letter-spacing: -.005em;
-          min-width: 28px;
+          font-size: 20px; font-weight: 500; color: var(--text);
+          letter-spacing: var(--ls-header, .012em);
+          min-width: 26px;
+          font-variant-numeric: tabular-nums;
         }
         .dc-stat-label {
           color: var(--dc-soft);
-          font-size: 13px; font-weight: 500;
+          font-size: 13.5px; font-weight: 500;
+          letter-spacing: var(--ls-body, .017em);
           overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
         }
-        .dc-stat-arrow { color: var(--dc-muted); }
+        .dc-stat-arrow {
+          color: var(--dc-muted);
+          opacity: .4;
+          transform: translateX(-2px);
+          transition: opacity .2s ease, transform .2s ease;
+        }
+        .dc-stat:hover .dc-stat-arrow { opacity: 1; transform: translateX(0); }
 
-        /* Play bar — primary action under stats */
+        /* Play bar — primary action. */
         .dc-play-bar {
           display: grid;
-          grid-template-columns: 28px 1fr auto;
+          grid-template-columns: 30px 1fr auto;
           align-items: center;
-          gap: 10px;
+          gap: 12px;
           width: 100%;
-          height: 44px; padding: 0 14px;
-          border-radius: 12px;
-          border: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+          height: 52px; padding: 0 16px;
+          border-radius: 14px;
+          border: 1px solid color-mix(in srgb, var(--border) 55%, transparent);
           background: color-mix(in srgb, var(--surface-2) 35%, transparent);
           color: var(--text);
-          font: inherit; font-size: 13px; font-weight: 500; letter-spacing: .015em;
+          font: inherit; font-size: 14px; font-weight: 500; letter-spacing: var(--ls-body, .017em);
           cursor: pointer;
-          transition: background .12s, border-color .12s;
+          transition: background .2s ease, border-color .2s ease, transform .2s ease, box-shadow .2s ease;
         }
         .dc-play-bar:hover:not(:disabled) {
-          background: color-mix(in srgb, var(--surface-2) 60%, transparent);
+          background: color-mix(in srgb, var(--surface-2) 62%, transparent);
           border-color: color-mix(in srgb, var(--border-strong) 70%, var(--border));
+          transform: scale(1.01);
+          box-shadow: 0 8px 24px -12px rgba(0,0,0,.5);
         }
+        .dc-play-bar:active:not(:disabled) { transform: scale(.995); }
         .dc-play-bar:disabled { opacity: .55; cursor: not-allowed; }
         .dc-play-ico {
-          width: 28px; height: 28px; border-radius: 50%;
+          width: 30px; height: 30px; border-radius: 50%;
           display: inline-flex; align-items: center; justify-content: center;
           background: color-mix(in srgb, var(--card) 90%, transparent);
           border: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
           color: var(--text);
+          transition: transform .2s ease;
         }
+        .dc-play-bar:hover:not(:disabled) .dc-play-ico { transform: scale(1.06); }
         .dc-play-label { text-align: left; }
         .dc-play-meta {
           color: var(--dc-muted);
-          font-size: 12px;
+          font-size: 12.5px;
           font-variant-numeric: tabular-nums;
         }
         .dc-play-bar .spin { animation: dcSpin 1s linear infinite; }
@@ -1219,24 +1303,25 @@ export default function DashboardPage() {
         /* Chip row */
         .dc-chip-row {
           display: flex; flex-wrap: wrap; align-items: center;
-          gap: 6px;
+          gap: 4px;
+          justify-content: space-between;
         }
         .dc-chip {
-          display: inline-flex; align-items: center; gap: 5px;
-          height: 28px; padding: 0 11px;
+          display: inline-flex; align-items: center; gap: 6px;
+          height: 30px; padding: 0 11px;
           border: 0; background: transparent;
           color: var(--dc-soft);
-          font: inherit; font-size: 12px; font-weight: 500; letter-spacing: .015em;
+          font: inherit; font-size: 12px; font-weight: 500; letter-spacing: var(--ls-body, .017em);
           border-radius: 999px;
           cursor: pointer;
-          transition: background .12s, color .12s;
+          transition: background .2s ease, color .2s ease, opacity .2s ease;
         }
-        .dc-chip:hover { color: var(--text); background: color-mix(in srgb, var(--surface-2) 40%, transparent); }
+        .dc-chip:hover { color: var(--text); background: color-mix(in srgb, var(--surface-2) 45%, transparent); }
         .dc-chip.on {
-          background: color-mix(in srgb, var(--surface-2) 60%, transparent);
+          background: color-mix(in srgb, var(--surface-2) 62%, transparent);
           color: var(--text);
         }
-        .dc-chip-icon { width: 28px; padding: 0; justify-content: center; }
+        .dc-chip-icon { width: 30px; padding: 0; justify-content: center; }
 
         /* Old brief class kept for any leftover references (audio settings popover) */
         .dc-brief {
@@ -1437,7 +1522,7 @@ export default function DashboardPage() {
         /* ─── Tagro Voice Orb · play-button with stacked glass discs ─── */
         .dc-orb-stage {
           position: relative;
-          width: 100%; aspect-ratio: 2.35 / 1; max-height: 156px;
+          width: 100%; aspect-ratio: 1.55 / 1; max-height: 240px; min-height: 200px;
           display: flex; align-items: center; justify-content: center;
           border: 0; background: transparent; padding: 0;
           font-family: inherit; cursor: pointer;
@@ -1490,20 +1575,20 @@ export default function DashboardPage() {
           z-index: 2;
         }
         .dc-orb-disc.disc-3 {
-          width: 132px; height: 132px;
-          margin: -66px 0 0 -66px;
-          opacity: .62;
+          width: 176px; height: 176px;
+          margin: -88px 0 0 -88px;
+          opacity: .55;
           background:
             radial-gradient(circle at 50% 35%, rgba(255,255,255,.7), rgba(255,255,255,.25) 60%, rgba(255,255,255,.05) 100%);
         }
         .dc-orb-disc.disc-2 {
-          width: 104px; height: 104px;
-          margin: -52px 0 0 -52px;
-          opacity: .85;
+          width: 134px; height: 134px;
+          margin: -67px 0 0 -67px;
+          opacity: .82;
         }
         .dc-orb-disc.disc-1 {
-          width: 78px; height: 78px;
-          margin: -39px 0 0 -39px;
+          width: 100px; height: 100px;
+          margin: -50px 0 0 -50px;
           z-index: 3;
           overflow: hidden;
         }
@@ -1541,7 +1626,7 @@ export default function DashboardPage() {
         .dc-orb-core {
           position: relative;
           z-index: 4;
-          width: 50px; height: 50px;
+          width: 64px; height: 64px;
           border-radius: 50%;
           display: inline-flex; align-items: center; justify-content: center;
           background:
@@ -1597,8 +1682,8 @@ export default function DashboardPage() {
            Visible at idle (subtle), strengthens while Tagro speaks. */
         .dc-orb-pulse {
           position: absolute; left: 50%; top: 50%;
-          width: 78px; height: 78px;
-          margin: -39px 0 0 -39px;
+          width: 100px; height: 100px;
+          margin: -50px 0 0 -50px;
           border-radius: 50%;
           border: 1px solid color-mix(in srgb, var(--text) 16%, transparent);
           background: transparent;
@@ -1622,14 +1707,14 @@ export default function DashboardPage() {
         .dc-orb-stage.speaking .dc-orb-pulse.pulse-3 { animation-delay: 2.14s; }
 
         @keyframes dcOrbPulseIdle {
-          0%   { transform: scale(0.85); opacity: 0; }
-          18%  { opacity: 0.32; }
-          100% { transform: scale(2.1);  opacity: 0; }
+          0%   { transform: scale(0.8); opacity: 0; }
+          18%  { opacity: 0.3; }
+          100% { transform: scale(1.85); opacity: 0; }
         }
         @keyframes dcOrbPulse {
-          0%   { transform: scale(0.85); opacity: 0; }
-          12%  { opacity: 0.6; }
-          100% { transform: scale(2.3);  opacity: 0; }
+          0%   { transform: scale(0.8); opacity: 0; }
+          12%  { opacity: 0.55; }
+          100% { transform: scale(2.0); opacity: 0; }
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -2092,18 +2177,34 @@ export default function DashboardPage() {
           .dc-note { order:2; min-height:auto; margin-top:24px; }
           .dc-blocks { order:3; margin-top:22px; }
         }
+        /* New shell: stack the audio card under the greeting on narrow
+           widths so the card never gets crushed below its min width. */
+        @media (max-width:980px) {
+          .dc-shell-body {
+            display:flex; flex-direction:column; gap:28px;
+          }
+          .dc-left { padding-top:24px; }
+          .dc-card {
+            order:-1;
+            width:100%; max-width:520px; margin:0 auto;
+            min-height:auto;
+          }
+          .dc-shell-top { position:static; align-self:flex-end; margin-bottom:4px; }
+        }
         @media (max-width:760px) {
           .dash-calm { padding:0 14px 88px; }
           .dc-head { padding-top:20px; flex-direction:column; gap:14px; }
           .dc-head-actions { width:100%; justify-content:space-between; }
           .dc-head-status { flex:1; }
+          .dc-card { padding:22px 18px 18px; border-radius:20px; }
         }
         @media (max-width:600px) {
           .dash-calm { padding:0 16px 92px; }
-          .dc-greeting { font-size:20px; }
-          .dc-greeting-sub { font-size:12.5px; }
+          .dc-greeting { font-size:24px; }
+          .dc-greeting-sub { font-size:13.5px; }
           .dc-note-text { font-size:15px; line-height:1.7; }
           .dc-brief { padding:18px 16px; }
+          .dc-card { max-width:100%; }
         }
       `}</style>
 
@@ -2127,6 +2228,14 @@ export default function DashboardPage() {
             <p className="dc-greeting-sub2">
               Starte rechts ein Voice Briefing oder lasse Tagro einen Statusbericht schreiben.
             </p>
+
+            <div className="dc-context">
+              <p className="dc-context-line">{contextLine}</p>
+              <p className="dc-fact">
+                <span className="dc-fact-ico" aria-hidden><Lightbulb size={13} weight="regular" /></span>
+                <span><span className="dc-fact-lead">Wusstest du?</span> {funFact}</span>
+              </p>
+            </div>
 
             {noteRevealed ? (
               <article className="dc-note dc-note-inline" aria-label="Statusbericht" data-tour="status-note">
@@ -2213,42 +2322,44 @@ export default function DashboardPage() {
               ))}
             </nav>
 
-            <button
-              type="button"
-              className={`dc-orb-stage${tagroActive ? ' speaking' : ''}${statusBusy ? ' loading' : ''}${isBriefingPlaying ? ' playing' : ''}`}
-              onClick={handleVoicePress}
-              disabled={statusBusy || (!speechSupported && audioText.trim().length > 0)}
-              aria-label={
-                statusBusy
-                  ? 'Statusbericht wird vorbereitet'
-                  : isBriefingPlaying
-                    ? 'Briefing pausieren'
-                    : speechState === 'paused'
-                      ? 'Briefing weiterhören'
-                      : 'Briefing anhören'
-              }
-              aria-pressed={isBriefingPlaying}
-            >
-              {/* Pulsierende Welle — three concentric rings always animate gently,
-                  strengthen while Tagro speaks. Soft, never distracting. */}
-              <span className="dc-orb-pulse pulse-1" aria-hidden />
-              <span className="dc-orb-pulse pulse-2" aria-hidden />
-              <span className="dc-orb-pulse pulse-3" aria-hidden />
+            <div className="dc-orb-zone">
+              <button
+                type="button"
+                className={`dc-orb-stage${tagroActive ? ' speaking' : ''}${statusBusy ? ' loading' : ''}${isBriefingPlaying ? ' playing' : ''}`}
+                onClick={handleVoicePress}
+                disabled={statusBusy || (!speechSupported && audioText.trim().length > 0)}
+                aria-label={
+                  statusBusy
+                    ? 'Statusbericht wird vorbereitet'
+                    : isBriefingPlaying
+                      ? 'Briefing pausieren'
+                      : speechState === 'paused'
+                        ? 'Briefing weiterhören'
+                        : 'Briefing anhören'
+                }
+                aria-pressed={isBriefingPlaying}
+              >
+                {/* Pulsierende Welle — concentric rings always animate gently,
+                    strengthen while Tagro speaks. Soft, never distracting. */}
+                <span className="dc-orb-pulse pulse-1" aria-hidden />
+                <span className="dc-orb-pulse pulse-2" aria-hidden />
+                <span className="dc-orb-pulse pulse-3" aria-hidden />
 
-              <span className="dc-orb-halo" aria-hidden />
+                <span className="dc-orb-halo" aria-hidden />
 
-              <span className="dc-orb-disc disc-3" aria-hidden />
-              <span className="dc-orb-disc disc-2" aria-hidden />
-              <span className="dc-orb-disc disc-1" aria-hidden>
-                <span className="dc-orb-gradient" aria-hidden />
-              </span>
-
-              <span className="dc-orb-core" aria-hidden>
-                <span className="dc-orb-play">
-                  <TagroLogo size={20} thinking={tagroActive} />
+                <span className="dc-orb-disc disc-3" aria-hidden />
+                <span className="dc-orb-disc disc-2" aria-hidden />
+                <span className="dc-orb-disc disc-1" aria-hidden>
+                  <span className="dc-orb-gradient" aria-hidden />
                 </span>
-              </span>
-            </button>
+
+                <span className="dc-orb-core" aria-hidden>
+                  <span className="dc-orb-play">
+                    <TagroLogo size={22} thinking={tagroActive} />
+                  </span>
+                </span>
+              </button>
+            </div>
 
             <ul className="dc-stats" aria-label="Übersicht">
               <li>
