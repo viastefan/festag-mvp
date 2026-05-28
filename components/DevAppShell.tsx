@@ -102,13 +102,26 @@ export default function DevAppShell({
     }
   }, [themeMenuOpen])
 
+  // Once we've resolved a valid identity we never re-run the full auth
+  // gate again — otherwise every in-/dev navigation (pathname changes)
+  // re-queried the session and, on a transient null read during client
+  // nav, bounced the user to /login. That was the "click anywhere in the
+  // dev panel → thrown out" bug. We resolve once; pending↔dev redirects
+  // are handled separately below.
+  const authResolvedRef = useRef(false)
+
   // auth / role check
   useEffect(() => {
     if (isDevLogin) { setChecking(false); return }
+    if (authResolvedRef.current) { setChecking(false); return }
     let cancelled = false
     ;(async () => {
       const supabase = createClient()
-      const { data: { session } } = await supabase.auth.getSession()
+      // Prefer getUser() — it validates the token with the server and
+      // triggers a refresh, instead of trusting a possibly-stale local
+      // session snapshot.
+      const { data: { user: authedUser } } = await supabase.auth.getUser()
+      const session = authedUser ? { user: authedUser } : null
       if (session) {
         const { data: prof } = await supabase
           .from('profiles')
@@ -128,6 +141,7 @@ export default function DevAppShell({
             avatarUrl: (prof as any)?.github_avatar_url ?? null,
             githubUsername: (prof as any)?.github_username ?? null,
           })
+          authResolvedRef.current = true
           setChecking(false)
           return
         }
@@ -142,6 +156,7 @@ export default function DevAppShell({
             avatarUrl: (prof as any)?.github_avatar_url ?? null,
             githubUsername: (prof as any)?.github_username ?? null,
           })
+          authResolvedRef.current = true
           setChecking(false)
           return
         }
@@ -156,13 +171,18 @@ export default function DevAppShell({
         if (cancelled) return
         if (isDevPending) { router.replace('/dev'); return }
         setIdentity({ kind: 'pool', session: pool })
+        authResolvedRef.current = true
         setChecking(false)
         return
       }
       router.replace('/login')
     })()
     return () => { cancelled = true }
-  }, [isDevLogin, isDevPending, pathname, router])
+    // Intentionally NOT depending on `pathname`: the auth gate resolves
+    // once and must not re-run (and risk a transient /login bounce) on
+    // every in-/dev navigation. isDevLogin only flips on the login route.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isDevLogin])
 
   async function logout() {
     if (identity?.kind === 'supabase') {

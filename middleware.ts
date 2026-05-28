@@ -11,17 +11,14 @@ const SUPABASE_ANON_KEY =
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // Allow public paths
-  if (PUBLIC_PATHS.some(p => pathname.startsWith(p))) {
-    return NextResponse.next()
-  }
-
-  // Dev routes: check dev session header (client-side only, handled in layout)
-  if (pathname.startsWith('/dev')) {
-    return NextResponse.next()
-  }
-
-  // Protected app routes: check Supabase session
+  // IMPORTANT: a single Supabase client + getUser() runs on EVERY request so
+  // the auth cookie is refreshed continuously. Skipping the refresh on
+  // public / dev paths (the old behaviour) let the access token silently
+  // expire while the user was browsing those routes — which then surfaced
+  // as "logged out / thrown to /login" on the next protected fetch, and as
+  // "login not remembered". The standard @supabase/ssr pattern is: always
+  // create the client, always getUser(), always return the response that
+  // carries the refreshed Set-Cookie headers.
   const response = NextResponse.next()
   const supabase = createServerClient(
     SUPABASE_URL,
@@ -38,8 +35,29 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  const { data: { user } } = await supabase.auth.getUser()
+  // Always refresh the session. Wrapped so a transient network hiccup on
+  // an already-public path never turns into a hard failure.
+  let user: { id: string } | null = null
+  try {
+    const { data } = await supabase.auth.getUser()
+    user = data.user ?? null
+  } catch {
+    user = null
+  }
 
+  // Public paths: refreshed cookies are attached, no gating.
+  if (PUBLIC_PATHS.some(p => pathname.startsWith(p))) {
+    return response
+  }
+
+  // Dev routes: role gating happens client-side in DevAppShell, but we
+  // still return the refreshed-cookie response so the session stays alive
+  // while the developer navigates inside /dev.
+  if (pathname.startsWith('/dev')) {
+    return response
+  }
+
+  // Protected app routes: require a session.
   if (!user) {
     const loginUrl = new URL('/login', request.url)
     loginUrl.searchParams.set('returnTo', `${request.nextUrl.pathname}${request.nextUrl.search}`)
@@ -47,15 +65,20 @@ export async function middleware(request: NextRequest) {
   }
 
   // Onboarding gating: send users with incomplete onboarding to /onboarding
-  // (except when they're already there, or on /logout)
+  // (except when they're already there, or on /logout).
   if (!pathname.startsWith('/onboarding') && !pathname.startsWith('/logout')) {
-    const { data: onboarding } = await supabase
-      .from('onboarding_state')
-      .select('completed_at')
-      .eq('user_id', user.id)
-      .maybeSingle()
-    if (!onboarding || !onboarding.completed_at) {
-      return NextResponse.redirect(new URL('/onboarding', request.url))
+    try {
+      const { data: onboarding } = await supabase
+        .from('onboarding_state')
+        .select('completed_at')
+        .eq('user_id', user.id)
+        .maybeSingle()
+      if (!onboarding || !onboarding.completed_at) {
+        return NextResponse.redirect(new URL('/onboarding', request.url))
+      }
+    } catch {
+      // If the onboarding lookup fails, don't bounce the user — let the
+      // app load and resolve onboarding client-side.
     }
   }
 

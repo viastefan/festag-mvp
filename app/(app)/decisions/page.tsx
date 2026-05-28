@@ -196,8 +196,12 @@ function DecisionsPageInner() {
     setLoading(true)
     try {
       const res = await fetch('/api/decisions', { credentials: 'include' })
-      if (!res.ok) { setLoading(false); return }
-      const data = await res.json()
+      if (!res.ok) return
+      // Guard the JSON parse: if the session expired mid-session, fetch
+      // may have followed a /login redirect and returned HTML — parsing
+      // that as JSON used to throw and crash the whole (app) shell.
+      const data = await res.json().catch(() => null)
+      if (!data) return
       setDecisions(data.decisions ?? [])
 
       // Pull projects in one round-trip
@@ -208,6 +212,9 @@ function DecisionsPageInner() {
         for (const p of (projs as ProjectLite[]) ?? []) map[p.id] = p
         setProjects(map)
       }
+    } catch {
+      // Never let a transient fetch/parse error take down the page —
+      // the empty state is a safe fallback.
     } finally {
       setLoading(false)
     }
