@@ -96,72 +96,93 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --r:12px; --r-xs:8px; --r-sm:10px; --r-md:12px; --r-lg:12px; --r-xl:12px;
 }
 
-/* ── DARK — Festag premium dark, one roter Faden ──
-   Page #0F141B, content container #141820, neutral border #2E2F33.
-   Slate #5B647D primary in both modes. Never white pills. */
+/* ── DARK — Festag graphite dark, global design system ──
+   Premium near-black graphite for operational visibility. Calm surfaces
+   that lift only a hair above the shell. Violet (#8b8dff) is a SUBTLE
+   accent only (focus ring, active nav, highlights) — never a coloured
+   button fill. Primary buttons are dark-elevated neutral surfaces. */
 [data-theme="dark"] {
-  /* Dark mode — single roter Faden across auth / onboarding / dashboard.
-     Everything sits in the near-black blue family. Content lifts only a
-     hair above the shell so it feels like one continuous surface, not a
-     loud blue panel on a darker shell.
-     Primary CTA is the slate (#5B647D) — NEVER a white pill. */
-  --modal-backdrop:rgba(4,7,12,0.62);
+  --modal-backdrop:rgba(3,4,5,0.66);
   --modal-backdrop-blur:10px;
-  --bg:#0A0D14;               /* shell + sidebar */
-  --surface:#10151D;          /* primary canvas / main content */
-  --card:#121821;             /* cards / panels */
-  --surface-2:#18202B;        /* inputs / denser controls */
-  --hover:#1D2633;
-  --active:#222D3C;
+
+  /* Core surfaces — existing names remapped to graphite so the whole app
+     adopts the system at once. */
+  --bg:#0a0b0c;               /* main workspace */
+  --surface:#0f1012;          /* primary canvas / cards */
+  --card:#0f1012;             /* cards / panels */
+  --surface-2:#15161a;        /* hover fills / denser controls / overlays */
+  --hover:#17181b;
+  --active:#1d1e23;
   --flat-control-bg:var(--surface);
 
-  --border:rgba(46,47,51,0.85);
-  --border-strong:rgba(70,72,80,0.85);
+  --border:rgba(255,255,255,0.07);
+  --border-strong:rgba(255,255,255,0.16);
 
-  --text:#E8E8E5;
-  --text-secondary:#98A2B3;
-  --text-muted:#5A6478;
+  --text:#e7e8eb;
+  --text-secondary:#a6a8ad;
+  --text-muted:#7b7e85;
 
-  --btn-prim:#5B647D; --btn-prim-text:#FFFFFF;
+  /* Buttons — dark elevated, never coloured. Hover lifts with a soft
+     accent glow (applied per-component). */
+  --btn-prim:#232429; --btn-prim-text:#e7e8eb;
+  --accent:#8b8dff; --accent-text:#ffffff;
 
-  --accent:#5B647D; --accent-text:#FFFFFF;
+  --inp:#101114;
+  --inp-border:rgba(255,255,255,0.07);
+  --inp-focus:#131417;
+  --inp-focus-border:rgba(139,141,255,0.45);
+  --glow:rgba(139,141,255,0.10);
 
-  --inp:rgba(255,255,255,0.025);
-  --inp-border:rgba(46,47,51,0.85);
-  --inp-focus:rgba(255,255,255,0.04);
-  --inp-focus-border:rgba(102,112,143,0.50);
-  --glow:rgba(102,112,143,0.10);
+  --sidebar-bg:#060707;
+  --sidebar-border:rgba(255,255,255,0.06);
+  --nav-on:#1d1e23;
+  --nav-on-text:#e7e8eb;
+  --nav-off-text:#a6a8ad;
 
-  --sidebar-bg:var(--bg);
-  --sidebar-border:rgba(46,47,51,0.50);
-  --nav-on:rgba(255,255,255,0.05);
-  --nav-on-text:#E8E8E5;
-  --nav-off-text:#98A2B3;
+  /* Green */
+  --green:#35c878;
+  --green-bg:rgba(53,200,120,0.12);
+  --green-border:rgba(53,200,120,0.22);
+  --green-dark:#2bb069;
 
-  /* Green — clean professional */
-  --green:#25C47A;
-  --green-bg:rgba(37,196,122,0.09);
-  --green-border:rgba(37,196,122,0.18);
-  --green-dark:#20B06C;
+  /* Amber */
+  --amber:#d6a64f;
+  --amber-bg:rgba(214,166,79,0.12);
+  --amber-dark:#bd9040;
 
-  /* Amber — restrained warm gold */
-  --amber:#C89430;
-  --amber-bg:rgba(200,148,48,0.09);
-  --amber-dark:#B38226;
+  --red:#e06262;
+  --red-bg:rgba(224,98,98,0.12);
 
-  --red:#D94545;
-  --red-bg:rgba(217,69,69,0.09);
-
-  --shadow-xs:0 1px 2px rgba(0,0,0,.30);
-  --shadow-sm:0 2px 8px rgba(0,0,0,.36);
-  --shadow:0 8px 28px rgba(0,0,0,.40);
-  --shadow-lg:0 18px 56px rgba(0,0,0,.48);
-  --content-shadow:0 1px 2px rgba(0,0,0,.26), 0 18px 46px -36px rgba(0,0,0,.58);
-  --focus-ring:rgba(102,112,143,0.30);
+  --shadow-xs:0 1px 2px rgba(0,0,0,.34);
+  --shadow-sm:0 2px 8px rgba(0,0,0,.40);
+  --shadow:0 8px 28px rgba(0,0,0,.42);
+  --shadow-lg:0 20px 80px rgba(0,0,0,.5);
+  --content-shadow:0 1px 2px rgba(0,0,0,.30), 0 18px 46px -36px rgba(0,0,0,.62);
+  --focus-ring:rgba(139,141,255,0.32);
 
   --logo-filter:brightness(0) invert(1);
   --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
-  --r:12px; --r-xs:8px; --r-sm:10px; --r-md:12px; --r-lg:12px; --r-xl:12px;
+  --r:12px; --r-xs:8px; --r-sm:10px; --r-md:12px; --r-lg:14px; --r-xl:18px;
+
+  /* ── Graphite design-system tokens (spec names) — available app-wide so
+     new components can use them directly. ── */
+  --bg-app:#080909; --bg-shell:#050606; --bg-sidebar:#060707; --bg-main:#0a0b0c;
+  --surface-0:#0b0c0d; --surface-1:#0f1012; --surface-3:#18191d;
+  --surface-raised:#101114; --surface-overlay:#15161a;
+  --state-hover:#17181b; --state-active:#1d1e23; --state-selected:#202127; --state-pressed:#25262d;
+  --border-hairline:rgba(255,255,255,0.045); --border-subtle:rgba(255,255,255,0.07); --border-medium:rgba(255,255,255,0.11);
+  --text-primary:#e7e8eb; --text-tertiary:#7b7e85; --text-faint:#5e626a; --text-disabled:#42454c;
+  --accent-primary:#8b8dff; --accent-primary-soft:rgba(139,141,255,0.15); --accent-primary-border:rgba(139,141,255,0.28);
+  --accent-blue:#54a7ff; --accent-green:#35c878; --accent-amber:#d6a64f; --accent-red:#e06262;
+  --success-bg:rgba(53,200,120,0.12); --success-text:#a8e7c2; --success-dot:#35c878;
+  --warning-bg:rgba(214,166,79,0.12); --warning-text:#ead29d; --warning-dot:#d6a64f;
+  --danger-bg:rgba(224,98,98,0.12); --danger-text:#efb0b0; --danger-dot:#e06262;
+  --info-bg:rgba(84,167,255,0.12); --info-text:#afd4ff; --info-dot:#54a7ff;
+  --shadow-soft:0 8px 28px rgba(0,0,0,0.28); --shadow-panel:0 20px 80px rgba(0,0,0,0.38);
+  --shadow-focus:0 0 0 1px rgba(139,141,255,0.32), 0 0 0 4px rgba(139,141,255,0.10);
+  --radius-2xl:24px;
+  --ease-premium:cubic-bezier(0.16,1,0.3,1);
+  --motion-fast:140ms var(--ease-premium); --motion-base:220ms var(--ease-premium); --motion-slow:360ms var(--ease-premium);
 }
 
 /* ── READ — Premium warm paper with neutral buttons ── */
