@@ -26,6 +26,7 @@ import { User } from '@phosphor-icons/react'
 type StepId = 'workspace' | 'profile' | 'project' | 'team' | 'done'
 type WorkspaceRegion = 'eu' | 'us' | 'global'
 type TeamFlag = 'alone' | 'existing_team' | 'clients_partners' | 'festag_support'
+type WorkspaceMode = 'delivery' | 'team' | 'agency'
 
 const STEPS: StepId[] = ['workspace', 'profile', 'project', 'team', 'done']
 
@@ -41,6 +42,47 @@ const TEAM_OPTIONS: Array<{ id: TeamFlag; title: string; desc: string }> = [
   { id: 'clients_partners', title: 'Mit Kunden oder mehreren Beteiligten', desc: 'Mehrere Personen sollen Fortschritt und Aufgaben verfolgen.' },
   { id: 'festag_support',   title: 'Unterstützung durch Festag',     desc: 'Wir benötigen technische oder operative Unterstützung.' },
 ]
+
+// The team choice configures the workspace mode and the follow-up invite.
+const WORKSPACE_MODE_FOR: Record<TeamFlag, WorkspaceMode> = {
+  alone:            'team',      // solo founder steering their own project
+  existing_team:    'team',      // internal dev team
+  clients_partners: 'agency',    // multiple stakeholders / client portals
+  festag_support:   'delivery',  // wants Festag to plan + deliver
+}
+
+type InviteNeed = 'devs' | 'clients' | 'none'
+const INVITE_NEED_FOR: Record<TeamFlag, InviteNeed> = {
+  alone:            'none',
+  existing_team:    'devs',
+  clients_partners: 'clients',
+  festag_support:   'none',
+}
+
+// Per-choice copy for the final step.
+const DONE_COPY: Record<TeamFlag, { title: string; lede: string; inviteLabel?: string; invitePlaceholder?: string; note?: string }> = {
+  alone: {
+    title: 'Festag ist bereit',
+    lede: 'Du startest alleine — du kannst jederzeit später Mitwirkende oder ein Team einladen.',
+  },
+  existing_team: {
+    title: 'Entwickler einladen',
+    lede: 'Lade dein Entwicklerteam ein. Sie bekommen Zugriff aufs Execution Panel und ihre Tasks.',
+    inviteLabel: 'Entwickler-E-Mails',
+    invitePlaceholder: 'dev1@team.de, dev2@team.de',
+  },
+  clients_partners: {
+    title: 'Beteiligte einladen',
+    lede: 'Lade Kunden oder Stakeholder ein. Sie sehen ruhige, geprüfte Statusberichte — keine Roh-Arbeit.',
+    inviteLabel: 'E-Mails der Beteiligten',
+    invitePlaceholder: 'kunde@firma.com, partner@agentur.de',
+  },
+  festag_support: {
+    title: 'Festag übernimmt',
+    lede: 'Unser Team meldet sich, um dein Projekt mit geprüften Entwicklern aufzusetzen. Du musst nichts weiter tun.',
+    note: 'Du bekommst innerhalb von 24 Stunden eine Nachricht von Festag.',
+  },
+}
 
 function slugify(value: string): string {
   return value
@@ -79,9 +121,10 @@ export default function OnboardingPage() {
 
   const [project, setProject]   = useState('')
 
-  const [teamFlags, setTeamFlags] = useState<Record<TeamFlag, boolean>>({
-    alone: true, existing_team: false, clients_partners: false, festag_support: false,
-  })
+  // Single-select: exactly one working mode at a time. This is the
+  // architectural choice that configures the workspace, so it must be
+  // unambiguous (not multiple toggles on at once).
+  const [teamChoice, setTeamChoice] = useState<TeamFlag>('alone')
 
   const [invites, setInvites]   = useState('')
 
@@ -127,14 +170,10 @@ export default function OnboardingPage() {
         if (ws.name) setWsName(ws.name)
         if (ws.slug) { setWsSlug(ws.slug); setWsSlugTouched(true) }
         if (ws.region) setWsRegion(ws.region as WorkspaceRegion)
-        const flags = (ws.metadata as any)?.team_flags
-        if (flags && typeof flags === 'object') {
-          setTeamFlags((curr) => ({
-            alone:            !!flags.alone,
-            existing_team:    !!flags.existing_team,
-            clients_partners: !!flags.clients_partners,
-            festag_support:   !!flags.festag_support,
-          }))
+        const savedChoice = (ws.metadata as any)?.team_choice
+        if (savedChoice === 'alone' || savedChoice === 'existing_team'
+            || savedChoice === 'clients_partners' || savedChoice === 'festag_support') {
+          setTeamChoice(savedChoice)
         }
       }
 
@@ -234,19 +273,27 @@ export default function OnboardingPage() {
           user_id: userId, current_step: 'team', updated_at: new Date().toISOString(),
         })
       } else if (step === 'team') {
-        // Map multi-select team flags into:
-        //   profiles.work_mode  — primary self-declared mode (single value)
-        //   workspace.metadata.team_flags  — full set, lossless
-        const primary: TeamFlag = teamFlags.existing_team ? 'existing_team'
-          : teamFlags.clients_partners ? 'clients_partners'
-          : teamFlags.festag_support ? 'festag_support'
-          : 'alone'
+        // The single team choice configures the whole workspace:
+        //   - profiles.work_mode      : self-declared mode (drives sidebar nav)
+        //   - workspaces.mode         : delivery | team | agency (architecture)
+        //   - workspaces.metadata     : team_choice + derived needs flags
+        // and decides which invite step follows (devs vs clients vs none).
+        const wsMode = WORKSPACE_MODE_FOR[teamChoice]
+        const needs = INVITE_NEED_FOR[teamChoice]
 
-        await supabase.from('profiles').update({ work_mode: primary }).eq('id', userId)
+        await supabase.from('profiles').update({ work_mode: teamChoice }).eq('id', userId)
         if (workspaceId) {
           const { data: ws } = await supabase.from('workspaces').select('metadata').eq('id', workspaceId).maybeSingle()
-          const merged = { ...((ws?.metadata as any) || {}), team_flags: teamFlags }
-          await supabase.from('workspaces').update({ metadata: merged }).eq('id', workspaceId)
+          const merged = {
+            ...((ws?.metadata as any) || {}),
+            team_choice: teamChoice,
+            needs_devs: needs === 'devs',
+            needs_clients: needs === 'clients',
+            festag_managed: teamChoice === 'festag_support',
+          }
+          await supabase.from('workspaces')
+            .update({ mode: wsMode, metadata: merged })
+            .eq('id', workspaceId)
         }
         await supabase.from('onboarding_state').upsert({
           user_id: userId, current_step: 'done', updated_at: new Date().toISOString(),
@@ -286,7 +333,7 @@ export default function OnboardingPage() {
       setError(e?.message || 'Speichern fehlgeschlagen.')
       return false
     }
-  }, [userId, workspaceId, wsName, wsSlug, wsRegion, fullName, position, project, teamFlags, invites, supabase])
+  }, [userId, workspaceId, wsName, wsSlug, wsRegion, fullName, position, project, teamChoice, invites, supabase])
 
   async function handleContinue() {
     if (submitting || animating) return
@@ -461,25 +508,26 @@ export default function OnboardingPage() {
               <h1 className="onb-title">Managst du im Team oder alleine?</h1>
               <p className="onb-lede">Lade Co-Founder, Mitarbeiter oder Externe später per Teams ein.</p>
 
-              <ul className="onb-toggle-list">
+              <ul className="onb-toggle-list" role="radiogroup" aria-label="Arbeitsweise">
                 {TEAM_OPTIONS.map((opt) => {
-                  const active = !!teamFlags[opt.id]
+                  const active = teamChoice === opt.id
                   return (
-                    <li key={opt.id} className="onb-toggle-row">
+                    <li
+                      key={opt.id}
+                      className={`onb-toggle-row${active ? ' is-active' : ''}`}
+                      role="radio"
+                      aria-checked={active}
+                      tabIndex={0}
+                      onClick={() => setTeamChoice(opt.id)}
+                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setTeamChoice(opt.id) } }}
+                    >
                       <div className="onb-toggle-text">
                         <p className="onb-toggle-title">{opt.title}</p>
                         <p className="onb-toggle-desc">{opt.desc}</p>
                       </div>
-                      <button
-                        type="button"
-                        role="switch"
-                        aria-checked={active}
-                        aria-label={opt.title}
-                        className={`onb-switch${active ? ' is-on' : ''}`}
-                        onClick={() => setTeamFlags((curr) => ({ ...curr, [opt.id]: !active }))}
-                      >
-                        <span className="onb-switch-thumb" />
-                      </button>
+                      <span className={`onb-radio${active ? ' is-on' : ''}`} aria-hidden>
+                        <span className="onb-radio-dot" />
+                      </span>
                     </li>
                   )
                 })}
@@ -494,44 +542,59 @@ export default function OnboardingPage() {
             </>
           )}
 
-          {current === 'done' && (
-            <>
-              <h1 className="onb-title">Festag ist bereit</h1>
-              <p className="onb-lede">Lade optional Mitwirkende ein — du kannst das später jederzeit nachholen.</p>
+          {current === 'done' && (() => {
+            const copy = DONE_COPY[teamChoice]
+            const wantsInvite = INVITE_NEED_FOR[teamChoice] !== 'none'
+            return (
+              <>
+                <h1 className="onb-title">{copy.title}</h1>
+                <p className="onb-lede">{copy.lede}</p>
 
-              <Field label="E-Mails einladen">
-                <textarea
-                  className="onb-input onb-textarea"
-                  value={invites}
-                  onChange={(e) => setInvites(e.target.value)}
-                  placeholder="anna@firma.com, max@agentur.de, lukas@dev.team"
-                  rows={4}
-                  maxLength={2000}
-                />
-              </Field>
+                {wantsInvite && (
+                  <Field label={copy.inviteLabel || 'E-Mails einladen'}>
+                    <textarea
+                      className="onb-input onb-textarea"
+                      value={invites}
+                      onChange={(e) => setInvites(e.target.value)}
+                      placeholder={copy.invitePlaceholder || 'anna@firma.com, max@agentur.de'}
+                      rows={4}
+                      maxLength={2000}
+                      autoFocus
+                    />
+                  </Field>
+                )}
 
-              <p className="onb-fine">Wir senden eine ruhige E-Mail mit einem Beitrittslink. Keine Werbung.</p>
+                {wantsInvite && (
+                  <p className="onb-fine">Wir senden eine ruhige E-Mail mit einem Beitrittslink. Keine Werbung.</p>
+                )}
 
-              <div className="onb-actions">
-                <button
-                  type="button"
-                  className="onb-ghost"
-                  onClick={handleContinue}
-                  disabled={submitting}
-                >
-                  Ohne Einladung weiter
-                </button>
-                <button
-                  type="button"
-                  className="onb-primary"
-                  onClick={handleContinue}
-                  disabled={submitting}
-                >
-                  {submitting ? 'Speichere…' : 'Zum Dashboard'}
-                </button>
-              </div>
-            </>
-          )}
+                {copy.note && (
+                  <div className="onb-note">{copy.note}</div>
+                )}
+
+                <div className="onb-actions">
+                  {wantsInvite && (
+                    <button
+                      type="button"
+                      className="onb-ghost"
+                      onClick={() => { setInvites(''); handleContinue() }}
+                      disabled={submitting}
+                    >
+                      Ohne Einladung weiter
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className="onb-primary"
+                    onClick={handleContinue}
+                    disabled={submitting}
+                  >
+                    {submitting ? 'Speichere…' : 'Zum Dashboard'}
+                  </button>
+                </div>
+              </>
+            )
+          })()}
 
           {error && <p className="onb-error" role="alert">{error}</p>}
         </div>
@@ -739,36 +802,50 @@ const CSS = `
     display: flex; align-items: center; gap: 16px;
     padding: 14px 16px;
     border-top: 1px solid rgba(255,255,255,.06);
+    cursor: pointer;
+    transition: background .12s ease;
+    outline: none;
   }
   .onb-toggle-row:first-child { border-top: 0; }
+  .onb-toggle-row:hover { background: rgba(255,255,255,.025); }
+  .onb-toggle-row.is-active { background: rgba(91,100,125,.12); }
+  .onb-toggle-row:focus-visible { box-shadow: inset 0 0 0 1px rgba(140,148,170,.5); }
   .onb-toggle-text { flex: 1; min-width: 0; }
   .onb-toggle-title {
     margin: 0; font-size: 13.5px; color: #FFFFFF;
-    font-weight: 500; letter-spacing: .005em;
+    font-weight: 500; letter-spacing: var(--ls-body, 0.017em);
   }
   .onb-toggle-desc {
     margin: 2px 0 0; font-size: 12px; color: rgba(255,255,255,.45);
-    line-height: 1.45;
+    line-height: 1.45; letter-spacing: var(--ls-body, 0.017em);
   }
-  .onb-switch {
+  /* Single-select radio — only one choice can be active. */
+  .onb-radio {
     flex-shrink: 0;
-    width: 32px; height: 18px;
-    border-radius: 999px;
-    background: rgba(255,255,255,.10);
-    border: 0; padding: 2px;
-    cursor: pointer;
-    transition: background .14s ease;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(255,255,255,.22);
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: border-color .14s ease, background .14s ease;
   }
-  .onb-switch.is-on { background: #5B647D; }
-  .onb-switch-thumb {
-    display: block;
-    width: 14px; height: 14px; border-radius: 50%;
+  .onb-radio.is-on { border-color: #8C94AA; background: rgba(91,100,125,.20); }
+  .onb-radio-dot {
+    width: 8px; height: 8px; border-radius: 50%;
     background: #FFFFFF;
-    transform: translateX(0);
+    transform: scale(0);
     transition: transform .15s cubic-bezier(.22,.65,.35,1);
-    box-shadow: 0 1px 2px rgba(0,0,0,.4);
   }
-  .onb-switch.is-on .onb-switch-thumb { transform: translateX(14px); }
+  .onb-radio.is-on .onb-radio-dot { transform: scale(1); }
+
+  .onb-note {
+    margin: -4px 0 22px;
+    padding: 12px 14px;
+    border: 1px solid rgba(91,100,125,.28);
+    background: rgba(91,100,125,.10);
+    border-radius: 10px;
+    font-size: 12.5px; color: rgba(255,255,255,.78);
+    line-height: 1.5; letter-spacing: var(--ls-body, 0.017em);
+  }
 
   /* Actions — Linear-style: größer, mit weichem 3D-Touch (Inset-Highlight
      + Soft-Shadow), aktiv-state senkt sich leicht ein. */

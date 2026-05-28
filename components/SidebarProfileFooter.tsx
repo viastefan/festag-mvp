@@ -20,6 +20,9 @@ type SidebarProfileFooterProps = {
   avatarColor: string
   avatarUrl: string | null
   displayName: string
+  /** Workspace name shown on the top switcher trigger (Linear-style).
+      Falls back to displayName when not provided. */
+  workspaceName?: string
   email: string
   initials: string
   isClient: boolean
@@ -41,6 +44,7 @@ export default function SidebarProfileFooter({
   avatarColor,
   avatarUrl,
   displayName,
+  workspaceName,
   email,
   initials,
   onLogout,
@@ -74,7 +78,8 @@ export default function SidebarProfileFooter({
   // show a short name in full ("Stefan", "Anna Schulz") and gracefully
   // truncates longer ones ("Stefan Dirnber…") instead of cutting at 8
   // and reading like a random initialism.
-  const triggerName = displayName.length > 14 ? `${displayName.slice(0, 14)}…` : displayName
+  const triggerLabel = (workspaceName && workspaceName.trim()) || displayName
+  const triggerName = triggerLabel.length > 14 ? `${triggerLabel.slice(0, 14)}…` : triggerLabel
 
   const closeAndGo = () => setOpen(false)
 

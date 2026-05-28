@@ -227,6 +227,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
   const [email,    setEmail]    = useState('')
   const [fn,       setFn]       = useState('')
   const [fullName, setFullName] = useState('')
+  const [workspaceName, setWorkspaceName] = useState('')
   const [avatar,   setAvatar]   = useState<string|null>(null)
   const [avatarColor, setAvatarColor] = useState<string|null>(null)
   const [role,     setRole]     = useState('client')
@@ -424,14 +425,18 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         setRole((p as any).role ?? 'client')
         setPlan((p as any).plan ?? 'free')
       }
-      // Workspace mode drives which nav items are visible.
+      // Workspace mode drives which nav items are visible; the workspace
+      // NAME is what the top switcher shows (Linear-style: workspace on
+      // the trigger, user identity in the dropdown).
       try {
         const { data: ws } = await sb
-          .from('workspaces').select('mode')
+          .from('workspaces').select('mode,name')
           .eq('primary_owner_id', data.user.id)
           .eq('is_personal', true).maybeSingle()
         const m = (ws as any)?.mode
         if (m === 'team' || m === 'agency' || m === 'delivery') setWsMode(m)
+        const wn = (ws as any)?.name
+        if (wn && typeof wn === 'string') setWorkspaceName(wn.trim())
       } catch {}
       // ── Beobachtete Projekte: Projekte fremder Owner, für die ich joined-Observer bin
       try {
@@ -599,6 +604,9 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
   const name = fullName.trim() || fn || email.split('@')[0] || 'Konto'
   const init = avatarInitials(fn, fullName, email)
   const avBg = avatarColor || autoAvatarColor(uid || email)
+  // Top switcher shows the workspace name (Linear-style). Falls back to
+  // the user name only if no workspace name was set during onboarding.
+  const workspaceLabel = workspaceName.trim() || name
 
   function navShortcut(label: string, href?: string) {
     const key = `${href || ''}|${label}`.toLowerCase()
@@ -1454,6 +1462,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
               avatarColor={avBg}
               avatarUrl={avatar}
               displayName={name}
+              workspaceName={workspaceLabel}
               email={email}
               initials={init}
               isClient={isClient}
