@@ -254,6 +254,7 @@ export default function TaskWorkspaceDetail({ taskId, projectId }: TaskWorkspace
   const [busy, setBusy] = useState(false)
   const [tagroExplanation, setTagroExplanation] = useState('')
   const [tagroLoading, setTagroLoading] = useState(false)
+  const [tab, setTab] = useState<'overview' | 'tagro' | 'verlauf'>('overview')
 
   useEffect(() => {
     let cancelled = false
@@ -459,126 +460,153 @@ export default function TaskWorkspaceDetail({ taskId, projectId }: TaskWorkspace
           Zurück
         </button>
         <div className="task-breadcrumb">
-          <Link href="/projects">Projekte</Link>
-          <span>/</span>
-          {project ? <Link href={`/project/${project.id}?tab=tasks`}>{project.title}</Link> : <Link href="/tasks">Tasks</Link>}
+          <Link href="/tasks">Aufgaben</Link>
+          {project ? <><span>/</span><Link href={`/project/${project.id}?tab=tasks`}>{project.title}</Link></> : null}
           <span>/</span>
           <strong>{task.title}</strong>
         </div>
       </div>
 
+      {/* Header — set lower, calm. Meta line first, then the title. */}
+      <header className="task-head">
+        <div className="task-head-meta">
+          <span className={`status-pill ${normalized}`}>
+            <span />
+            {statusLabel(taskState(task))}
+          </span>
+          <span className="task-head-dim">{priorityLabel(task.priority)} Priorität</span>
+          {project ? <span className="task-head-dim">{project.title}</span> : null}
+        </div>
+        <h1>{task.title}</h1>
+        <p className="task-attribution">Angefragt von {requestedBy} · Verantwortlich {ownerName}</p>
+      </header>
+
+      {/* Tabs — like the project view: calm, clear where to look. */}
+      <nav className="task-tabs" role="tablist" aria-label="Aufgaben-Ansicht">
+        {([
+          { id: 'overview', label: 'Übersicht' },
+          { id: 'tagro', label: 'Tagro-Einordnung' },
+          { id: 'verlauf', label: 'Verlauf' },
+        ] as const).map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            role="tab"
+            aria-selected={tab === t.id}
+            className={`task-tab${tab === t.id ? ' on' : ''}`}
+            onClick={() => setTab(t.id)}
+          >
+            {t.label}
+          </button>
+        ))}
+      </nav>
+
       <div className="task-detail-grid-page">
         <main className="task-detail-main">
-          <section className="task-hero">
-            <div className={`status-pill ${normalized}`}>
-              <span />
-              {statusLabel(taskState(task))}
-            </div>
-            <h1>{task.title}</h1>
-            <p className="task-attribution">
-              Angefragt von {requestedBy} · Erstellt von {createdBy} · Verantwortlich {ownerName}
-            </p>
-          </section>
-
-          <section className="tagro-explanation-card">
-            <div className="section-head">
-              <div className="tagro-title">
-                <TagroLogo size={28} thinking={tagroLoading} />
-                <div>
-                  <p>Von Tagro erklärt</p>
-                  <span>{tagroLoading ? 'Tagro schreibt eine klare Einordnung...' : `Aktualisiert ${relativeDate(task.updated_at || task.created_at)}`}</span>
-                </div>
-              </div>
-              <Sparkle size={17} weight="fill" />
-            </div>
-            <p>{tagroExplanation}</p>
-          </section>
-
-          <section className="task-section">
-            <div className="section-head">
-              <h2>Aktueller Stand</h2>
-              <span>{progressFor(task)}% Fortschritt</span>
-            </div>
-            <div className="status-grid">
-              <article>
-                <Clock size={17} />
-                <strong>{statusLabel(taskState(task))}</strong>
-                <span>{latestUpdate}</span>
-              </article>
-              <article>
-                <WarningCircle size={17} />
-                <strong>{riskVisible ? 'Risiko sichtbar' : 'Kein klarer Blocker'}</strong>
-                <span>{riskVisible ? 'Tagro sollte diese Aufgabe im nächsten Statusbericht beachten.' : 'Aktuell gibt es kein klares Risikosignal in den Aufgabendaten.'}</span>
-              </article>
-              <article>
-                <ShieldCheck size={17} />
-                <strong>{decisionNeeded ? 'Entscheidung nötig' : 'Keine Entscheidung nötig'}</strong>
-                <span>{decisionNeeded ? 'Eine Rückmeldung kann nötig sein, bevor es weitergeht.' : 'Der nächste Schritt kann ohne sichtbare Freigabe weiterlaufen.'}</span>
-              </article>
-            </div>
-          </section>
-
-          <section className="task-section">
-            <h2>Beschreibung</h2>
-            <p>{description}</p>
-          </section>
-
-          <section className="task-section">
-            <h2>Letztes Update</h2>
-            <p>{latestUpdate}</p>
-          </section>
-
-          <section className="task-section">
-            <div className="section-head">
-              <h2>Tagro Einordnung</h2>
-              <span>Berichtsebene</span>
-            </div>
-            <div className="insight-list">
-              <div><strong>Was hat sich geändert?</strong><span>{latestUpdate}</span></div>
-              <div><strong>Risiko oder Blocker</strong><span>{riskVisible ? 'Aus Status oder Formulierung ist ein mögliches Risiko erkennbar.' : 'Kein klarer Blocker erkennbar.'}</span></div>
-              <div><strong>Nächster Schritt</strong><span>{decisionNeeded ? 'Zuständige Stakeholder um Entscheidung oder Freigabe bitten.' : 'Verantwortliche Person weiterarbeiten lassen und beim nächsten Fortschritt ein kurzes Update anfordern.'}</span></div>
-              <div><strong>Wer sollte reagieren?</strong><span>{decisionNeeded ? requestedBy : ownerName}</span></div>
-              <div><strong>In den Statusbericht?</strong><span>{riskVisible || decisionNeeded ? 'Ja, im nächsten Statusbericht erwähnen.' : 'Nur erwähnen, wenn detaillierter Kontext gewünscht ist.'}</span></div>
-            </div>
-          </section>
-
-          <section className="task-section">
-            <div className="section-head">
-              <h2>Verlauf</h2>
-              <span>{timeline.length} Einträge</span>
-            </div>
-            <div className="timeline">
-              {timeline.map((item) => (
-                <div key={item.id} className="timeline-item">
-                  <span className={`timeline-dot ${item.kind}`} />
-                  <div>
-                    <strong>{item.label}</strong>
-                    <p>{item.meta}</p>
+          {tab === 'overview' && (
+            <>
+              <section className="tagro-explanation-card">
+                <div className="section-head">
+                  <div className="tagro-title">
+                    <TagroLogo size={28} thinking={tagroLoading} />
+                    <div>
+                      <p>Von Tagro erklärt</p>
+                      <span>{tagroLoading ? 'Tagro schreibt eine klare Einordnung...' : `Aktualisiert ${relativeDate(task.updated_at || task.created_at)}`}</span>
+                    </div>
                   </div>
+                  <Sparkle size={17} weight="fill" />
                 </div>
-              ))}
-            </div>
-          </section>
+                <p>{tagroExplanation}</p>
+              </section>
 
-          <section className="task-section">
-            <div className="section-head">
-              <h2>Kommentare und Kontext</h2>
-              <span>Projektkontext</span>
-            </div>
-            {messages.length ? (
-              <div className="discussion-list">
-                {messages.slice().reverse().map((message) => (
-                  <article key={message.id}>
-                    <strong>{message.is_ai ? 'Tagro' : 'Nachricht aus dem Arbeitsbereich'}</strong>
-                    <p>{message.message || 'Keine Nachricht vorhanden'}</p>
-                    <span>{relativeDate(message.created_at)}</span>
-                  </article>
-                ))}
-              </div>
-            ) : (
-              <p>Noch keine aufgabenspezifische Diskussion. Projektmeldungen und Tagro-Updates erscheinen hier, sobald mehr Signale vorliegen.</p>
-            )}
-          </section>
+              <section className="task-section">
+                <h2>Beschreibung</h2>
+                <p>{description}</p>
+              </section>
+
+              <section className="task-section">
+                <h2>Letztes Update</h2>
+                <p>{latestUpdate}</p>
+              </section>
+            </>
+          )}
+
+          {tab === 'tagro' && (
+            <>
+              <section className="task-section">
+                <div className="section-head">
+                  <h2>Signale</h2>
+                  <span>{progressFor(task)}% Fortschritt</span>
+                </div>
+                <div className="signal-row">
+                  <span className={`signal ${riskVisible ? 'warn' : 'ok'}`}>
+                    <WarningCircle size={14} />
+                    {riskVisible ? 'Risiko sichtbar' : 'Kein klarer Blocker'}
+                  </span>
+                  <span className={`signal ${decisionNeeded ? 'warn' : 'ok'}`}>
+                    <ShieldCheck size={14} />
+                    {decisionNeeded ? 'Entscheidung nötig' : 'Keine Entscheidung nötig'}
+                  </span>
+                </div>
+              </section>
+
+              <section className="task-section">
+                <div className="section-head">
+                  <h2>Tagro Einordnung</h2>
+                  <span>Berichtsebene</span>
+                </div>
+                <div className="insight-list">
+                  <div><strong>Was hat sich geändert?</strong><span>{latestUpdate}</span></div>
+                  <div><strong>Risiko oder Blocker</strong><span>{riskVisible ? 'Aus Status oder Formulierung ist ein mögliches Risiko erkennbar.' : 'Kein klarer Blocker erkennbar.'}</span></div>
+                  <div><strong>Nächster Schritt</strong><span>{decisionNeeded ? 'Zuständige Stakeholder um Entscheidung oder Freigabe bitten.' : 'Verantwortliche Person weiterarbeiten lassen und beim nächsten Fortschritt ein kurzes Update anfordern.'}</span></div>
+                  <div><strong>Wer sollte reagieren?</strong><span>{decisionNeeded ? requestedBy : ownerName}</span></div>
+                  <div><strong>In den Statusbericht?</strong><span>{riskVisible || decisionNeeded ? 'Ja, im nächsten Statusbericht erwähnen.' : 'Nur erwähnen, wenn detaillierter Kontext gewünscht ist.'}</span></div>
+                </div>
+              </section>
+            </>
+          )}
+
+          {tab === 'verlauf' && (
+            <>
+              <section className="task-section">
+                <div className="section-head">
+                  <h2>Verlauf</h2>
+                  <span>{timeline.length} Einträge</span>
+                </div>
+                <div className="timeline">
+                  {timeline.map((item) => (
+                    <div key={item.id} className="timeline-item">
+                      <span className={`timeline-dot ${item.kind}`} />
+                      <div>
+                        <strong>{item.label}</strong>
+                        <p>{item.meta}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+
+              <section className="task-section">
+                <div className="section-head">
+                  <h2>Kommentare und Kontext</h2>
+                  <span>Projektkontext</span>
+                </div>
+                {messages.length ? (
+                  <div className="discussion-list">
+                    {messages.slice().reverse().map((message) => (
+                      <article key={message.id}>
+                        <strong>{message.is_ai ? 'Tagro' : 'Nachricht aus dem Arbeitsbereich'}</strong>
+                        <p>{message.message || 'Keine Nachricht vorhanden'}</p>
+                        <span>{relativeDate(message.created_at)}</span>
+                      </article>
+                    ))}
+                  </div>
+                ) : (
+                  <p>Noch keine aufgabenspezifische Diskussion. Projektmeldungen und Tagro-Updates erscheinen hier, sobald mehr Signale vorliegen.</p>
+                )}
+              </section>
+            </>
+          )}
         </main>
 
         <aside className="task-properties">
@@ -589,44 +617,19 @@ export default function TaskWorkspaceDetail({ taskId, projectId }: TaskWorkspace
             </div>
             <PropertyRow icon={<CheckCircle size={16} />} label="Status" value={statusLabel(taskState(task))} />
             <PropertyRow icon={<Flag size={16} />} label="Priorität" value={priorityLabel(task.priority)} />
-            <PropertyRow icon={<UserCircle size={16} />} label="Erstellt von" value={createdBy} />
-            <PropertyRow icon={<UsersThree size={16} />} label="Angefragt von" value={requestedBy} />
             <PropertyRow
               icon={<span className="mini-avatar">{avatarFor(assignedProfile, ownerName)}</span>}
               label="Verantwortlich"
               value={`${ownerName}${assignedProfile?.role ? ` · ${assignedProfile.role}` : ''}`}
             />
-            <PropertyRow icon={<Brain size={16} />} label="Erklärt von" value={`Tagro · ${relativeDate(task.updated_at || task.created_at)}`} />
-            <PropertyRow icon={<Plugs size={16} />} label="Quelle" value={source} />
             <PropertyRow icon={<CalendarBlank size={16} />} label="Fällig" value={dateLabel(task.due_date)} />
             <PropertyRow icon={<FileText size={16} />} label="Projekt" value={project?.title || 'Kein Projekt'} />
             <PropertyRow icon={<ShieldCheck size={16} />} label="Sichtbarkeit" value={task.client_visible === false ? 'Nur intern' : 'Für Client sichtbar'} />
             <PropertyRow icon={<WarningCircle size={16} />} label="Risiko" value={riskVisible ? 'Aufmerksamkeit nötig' : 'Niedrig'} />
             <PropertyRow icon={<Clock size={16} />} label="Entscheidung" value={decisionNeeded ? 'Ja' : 'Nein'} />
+            <PropertyRow icon={<Plugs size={16} />} label="Quelle" value={source} />
+            {tags.length ? <PropertyRow icon={<Tag size={16} />} label="Tags" value={tags.join(', ')} /> : null}
             <PropertyRow icon={<GitBranch size={16} />} label="Aktualisiert" value={dateLabel(task.updated_at || task.created_at)} />
-            {approvedProfile ? <PropertyRow icon={<CheckCircle size={16} />} label="Freigegeben von" value={displayName(approvedProfile)} /> : null}
-          </section>
-
-          <section className="property-card">
-            <div className="property-head">
-              <h2>Verantwortung</h2>
-              <span>Klarheit</span>
-            </div>
-            <p className="property-copy">Hier siehst du, wer die Aufgabe angefragt hat, wer sie erstellt hat, wer die Umsetzung verantwortet und was Tagro zur Einordnung ergänzt.</p>
-            <div className="origin-stack">
-              <OriginBadge label={task.source === 'client_tagro' ? 'Von Tagro vorgeschlagen' : source} kind={task.source || 'manual'} />
-              <OriginBadge label={`Verantwortlich: ${ownerName}`} kind="owner" />
-              <OriginBadge label="Von Tagro erklärt" kind="tagro" />
-            </div>
-          </section>
-
-          <section className="property-card">
-            <div className="property-head">
-              <h2>Dateien und Links</h2>
-              <span>Signale</span>
-            </div>
-            <PropertyRow icon={<LinkIcon size={16} />} label="Verbundene Quelle" value={task.origin || task.source || 'Arbeitsbereich'} />
-            <PropertyRow icon={<Tag size={16} />} label="Tags" value={tags.length ? tags.join(', ') : 'Keine Tags'} />
           </section>
 
           <section className="property-card actions">
@@ -637,7 +640,7 @@ export default function TaskWorkspaceDetail({ taskId, projectId }: TaskWorkspace
               Relevanz für Bericht prüfen
             </button>
             {manageable ? <button type="button" onClick={pauseTask} disabled={busy}><Pause size={14} /> Aussetzen</button> : null}
-            {manageable ? <button type="button" className="danger" onClick={deleteTask} disabled={busy}><Trash size={14} /> Loeschen</button> : null}
+            {manageable ? <button type="button" className="danger" onClick={deleteTask} disabled={busy}><Trash size={14} /> Löschen</button> : null}
           </section>
         </aside>
       </div>
@@ -727,10 +730,22 @@ const detailStyles = `
     flex-direction:column;
     gap:18px;
   }
-  .task-hero {
-    padding:16px 0 10px;
-    border-bottom:0;
-    background:var(--surface);
+  /* Header — sits lower, calm meta line above the title. */
+  .task-head {
+    padding:30px 0 6px;
+  }
+  .task-head-meta {
+    display:flex;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:12px;
+    margin-bottom:14px;
+  }
+  .task-head-dim {
+    color:var(--text-muted);
+    font-size:12px;
+    font-weight:500;
+    letter-spacing:var(--ls-body,.017em);
   }
   .status-pill {
     height:28px;
@@ -746,7 +761,7 @@ const detailStyles = `
     font-size:11.5px;
     font-weight:500;
     letter-spacing:.03em;
-    margin-bottom:12px;
+    margin-bottom:0;
   }
   [data-theme="dark"] .status-pill,
   [data-theme="classic-dark"] .status-pill {
@@ -763,21 +778,76 @@ const detailStyles = `
   .status-pill.decision span { background:var(--amber); box-shadow:0 0 0 4px color-mix(in srgb, var(--amber) 14%, transparent); }
   .status-pill.review span { background:#6366f1; }
   .status-pill.done span { background:var(--green); }
-  .task-hero h1 {
+  .task-head h1 {
     max-width:900px;
     margin:0;
     color:var(--text);
-    font-size:clamp(21px, 1.9vw, 28px);
+    font-size:clamp(22px, 2vw, 30px);
     line-height:1.16;
-    letter-spacing:-.012em;
+    letter-spacing:var(--ls-header,.012em);
     font-weight:500;
   }
   .task-attribution {
-    margin:8px 0 0;
+    margin:9px 0 0;
     color:var(--text-secondary);
     font-size:12.5px;
     line-height:1.55;
+    letter-spacing:var(--ls-body,.017em);
   }
+
+  /* Tabs — calm segmented control, like the project view. */
+  .task-tabs {
+    display:flex;
+    align-items:center;
+    gap:4px;
+    margin:18px 0 22px;
+    border-bottom:1px solid color-mix(in srgb, var(--border) 70%, transparent);
+  }
+  .task-tab {
+    position:relative;
+    height:36px;
+    padding:0 4px 0;
+    margin-right:14px;
+    border:0;
+    background:transparent;
+    color:var(--text-muted);
+    font:inherit;
+    font-size:13px;
+    font-weight:500;
+    letter-spacing:var(--ls-body,.017em);
+    cursor:pointer;
+    transition:color .15s ease;
+  }
+  .task-tab:hover { color:var(--text-secondary); }
+  .task-tab.on { color:var(--text); }
+  .task-tab.on::after {
+    content:"";
+    position:absolute;
+    left:0; right:0; bottom:-1px;
+    height:2px;
+    border-radius:2px 2px 0 0;
+    background:var(--text);
+  }
+
+  /* Signal chips — compact, replace the old 3 big status cards. */
+  .signal-row { display:flex; flex-wrap:wrap; gap:8px; }
+  .signal {
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+    height:30px;
+    padding:0 12px;
+    border-radius:9px;
+    border:1px solid color-mix(in srgb, var(--border) 60%, transparent);
+    background:color-mix(in srgb, var(--surface-2) 24%, transparent);
+    color:var(--text-secondary);
+    font-size:12px;
+    font-weight:500;
+    letter-spacing:var(--ls-body,.017em);
+  }
+  .signal svg { color:var(--text-muted); }
+  .signal.warn { color:var(--amber); }
+  .signal.warn svg { color:var(--amber); }
   .tagro-explanation-card,
   .task-section,
   .property-card {
@@ -1099,18 +1169,15 @@ const detailStyles = `
       justify-content:flex-start;
       width:100%;
     }
-    .task-hero,
     .tagro-explanation-card,
     .task-section,
     .property-card {
       border-radius:14px;
     }
-    .task-hero {
-      padding:24px 18px;
+    .task-head {
+      padding:18px 0 4px;
     }
-    .status-grid {
-      grid-template-columns:1fr;
-    }
+    .task-tabs { overflow-x:auto; }
     .insight-list div {
       grid-template-columns:1fr;
       gap:5px;

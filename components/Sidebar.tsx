@@ -604,6 +604,13 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
     if (cleanHref==='/dashboard') return pathname==='/dashboard'
     if (cleanHref==='/dev')       return pathname==='/dev'
     if (cleanHref==='/project/current') return pathname.startsWith('/project/')
+    // A task opened from a project lives at /projects/<id>/tasks/<id>, but it
+    // belongs to the Tasks section — never make "Projekte" jump active there.
+    const nestedTask = /^\/projects\/[^/]+\/tasks\/[^/]+/.test(pathname || '')
+    if (nestedTask) {
+      if (cleanHref === '/projects') return false
+      if (cleanHref === '/tasks')    return true
+    }
     return pathname.startsWith(cleanHref)
   }
   // Display the account name the way the user typed it in Settings, then
