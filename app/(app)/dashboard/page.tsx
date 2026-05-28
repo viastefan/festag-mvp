@@ -451,22 +451,46 @@ export default function DashboardPage() {
     ].join('\n')
   }
 
+  // Export as PDF — opens a clean print window. The browser's print
+  // dialog offers "Als PDF speichern", so this is a dependency-free PDF
+  // path that always works.
   function downloadBriefing() {
     const content = buildBriefingExportText()
-    const slug = currentReportTitle
-      .toLowerCase()
-      .replace(/[^a-z0-9äöüß]+/gi, '-')
-      .replace(/^-+|-+$/g, '')
-      .slice(0, 64) || 'tagro-bericht'
-    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = `${slug}.txt`
-    document.body.appendChild(link)
-    link.click()
-    link.remove()
-    URL.revokeObjectURL(url)
+    const title = currentReportTitle || 'Festag Statusbericht'
+    const escaped = content
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    const win = window.open('', '_blank', 'width=820,height=1000')
+    if (!win) {
+      // Pop-up blocked → fall back to a plain text download so the user
+      // still gets the report.
+      const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = 'tagro-bericht.txt'
+      document.body.appendChild(link); link.click(); link.remove()
+      URL.revokeObjectURL(url)
+      return
+    }
+    win.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${title}</title>
+      <style>
+        @page { margin: 28mm 22mm; }
+        body { font-family: 'Aeonik', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+               color: #1A1F2B; line-height: 1.7; letter-spacing: .012em; font-size: 13.5px; max-width: 680px; margin: 0 auto; }
+        h1 { font-size: 20px; font-weight: 500; letter-spacing: -.01em; margin: 0 0 6px; }
+        .meta { color: #7B8294; font-size: 12px; margin: 0 0 24px; }
+        pre { white-space: pre-wrap; font-family: inherit; font-size: 13.5px; margin: 0; }
+        .brand { margin-top: 36px; padding-top: 14px; border-top: 1px solid #E7EBF0; color: #98A2B3; font-size: 11px; }
+      </style></head>
+      <body>
+        <h1>${title}</h1>
+        <p class="meta">${new Date().toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' })} · Festag · Tagro AI</p>
+        <pre>${escaped}</pre>
+        <p class="brand">Erstellt mit Festag — Delivery Intelligence Platform.</p>
+      </body></html>`)
+    win.document.close()
+    win.focus()
+    setTimeout(() => { win.print() }, 350)
   }
 
   function sendBriefingToSelf() {
@@ -658,16 +682,17 @@ export default function DashboardPage() {
           margin:0 auto;
           height:100%;
           min-height:0;
-          position:relative;
           display:flex;
           flex-direction:column;
-          padding-top: 28px;
+          padding-top: 20px;
         }
+        /* Status pill sits in its OWN top row, right-aligned — never
+           overlapping the audio card anymore. */
         .dc-shell-top {
-          position: absolute;
-          top: 22px;
-          right: 0;
-          z-index: 4;
+          display: flex;
+          justify-content: flex-end;
+          height: 30px;
+          flex-shrink: 0;
         }
         .dc-shell-body {
           flex:1 1 auto;
@@ -679,10 +704,10 @@ export default function DashboardPage() {
           animation:dcFade .3s cubic-bezier(.16,1,.3,1) both;
         }
         .dc-left {
-          padding-top: 40px;
+          padding-top: 16px;
           display: flex;
           flex-direction: column;
-          gap: 14px;
+          gap: 16px;
           min-width: 0;
         }
 
@@ -733,10 +758,11 @@ export default function DashboardPage() {
         .dc-greeting {
           margin:0;
           color:var(--text);
-          font-size: clamp(26px, 2.5vw, 34px);
+          font-size: clamp(26px, 2.4vw, 33px);
           font-weight: 500;
-          line-height:1.15;
-          letter-spacing:-.01em;
+          line-height:1.2;
+          letter-spacing: var(--ls-header, .012em);
+          max-width: 620px;
         }
         .dc-greeting-sub {
           margin:6px 0 0;
@@ -1174,24 +1200,25 @@ export default function DashboardPage() {
           letter-spacing: var(--ls-body, .017em);
         }
 
-        /* Period segmented control */
+        /* Period segmented control — rounded-rect segments, crisp + even. */
         .dc-period {
-          display: flex; gap: 3px;
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 4px;
           padding: 4px;
           border: 1px solid color-mix(in srgb, var(--border) 55%, transparent);
           background: color-mix(in srgb, var(--surface-2) 30%, transparent);
-          border-radius: 999px;
-          align-self: stretch;
+          border-radius: 12px;
         }
         .dc-period-btn {
-          flex: 1;
-          height: 30px; padding: 0 10px;
+          height: 30px; padding: 0;
+          display: inline-flex; align-items: center; justify-content: center;
           border: 0; background: transparent;
           color: var(--dc-soft);
           font: inherit; font-size: 12px; font-weight: 500; letter-spacing: var(--ls-body, .017em);
-          border-radius: 999px;
+          border-radius: 8px;
           cursor: pointer;
-          transition: background .2s ease, color .2s ease;
+          transition: background .18s ease, color .18s ease;
         }
         .dc-period-btn:hover { color: var(--text); }
         .dc-period-btn.on {
@@ -1201,7 +1228,7 @@ export default function DashboardPage() {
         }
         [data-theme="dark"] .dc-period-btn.on,
         [data-theme="classic-dark"] .dc-period-btn.on {
-          background: rgba(255,255,255,0.07);
+          background: rgba(255,255,255,0.08);
           box-shadow: 0 1px 2px rgba(0,0,0,.4);
         }
 
@@ -1212,54 +1239,50 @@ export default function DashboardPage() {
           display: flex; align-items: center; justify-content: center;
         }
 
-        /* Stat rows — always stacked, never compressed. */
+        /* Stat tiles — clean 2x2 grid, no divider lines. */
         .dc-stats {
           list-style: none; padding: 0; margin: 0;
-          display: flex; flex-direction: column;
-          border-top: 1px solid color-mix(in srgb, var(--border) 45%, transparent);
-        }
-        .dc-stats li {
-          border-bottom: 1px solid color-mix(in srgb, var(--border) 45%, transparent);
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 6px;
         }
         .dc-stat {
           display: grid;
-          grid-template-columns: 24px auto 1fr auto;
+          grid-template-columns: 22px auto 1fr auto;
           align-items: center;
-          gap: 14px;
-          padding: 13px 8px;
+          gap: 10px;
+          padding: 12px 10px;
           color: var(--text);
           text-decoration: none;
           font: inherit; font-size: 13px;
-          transition: background .2s ease;
-          border-radius: 8px;
+          transition: background .18s ease;
+          border-radius: 10px;
         }
-        .dc-stat:hover { background: color-mix(in srgb, var(--surface-2) 38%, transparent); }
+        .dc-stat:hover { background: color-mix(in srgb, var(--surface-2) 42%, transparent); }
         .dc-stat-ico {
-          width: 24px; height: 24px;
+          width: 22px; height: 22px;
           display: inline-flex; align-items: center; justify-content: center;
           color: var(--dc-soft);
         }
         .dc-stat-num {
-          font-size: 20px; font-weight: 500; color: var(--text);
+          font-size: 19px; font-weight: 500; color: var(--text);
           letter-spacing: var(--ls-header, .012em);
-          min-width: 26px;
           font-variant-numeric: tabular-nums;
         }
         .dc-stat-label {
           color: var(--dc-soft);
-          font-size: 13.5px; font-weight: 500;
+          font-size: 12.5px; font-weight: 500;
           letter-spacing: var(--ls-body, .017em);
           overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
         }
         .dc-stat-arrow {
           color: var(--dc-muted);
-          opacity: .4;
-          transform: translateX(-2px);
-          transition: opacity .2s ease, transform .2s ease;
+          opacity: .35;
+          transition: opacity .18s ease;
         }
-        .dc-stat:hover .dc-stat-arrow { opacity: 1; transform: translateX(0); }
+        .dc-stat:hover .dc-stat-arrow { opacity: 1; }
 
-        /* Play bar — primary action. */
+        /* Play bar — primary action. Calm hover: only a gentle brighten. */
         .dc-play-bar {
           display: grid;
           grid-template-columns: 30px 1fr auto;
@@ -1273,15 +1296,12 @@ export default function DashboardPage() {
           color: var(--text);
           font: inherit; font-size: 14px; font-weight: 500; letter-spacing: var(--ls-body, .017em);
           cursor: pointer;
-          transition: background .2s ease, border-color .2s ease, transform .2s ease, box-shadow .2s ease;
+          transition: background .18s ease, border-color .18s ease;
         }
         .dc-play-bar:hover:not(:disabled) {
-          background: color-mix(in srgb, var(--surface-2) 62%, transparent);
-          border-color: color-mix(in srgb, var(--border-strong) 70%, var(--border));
-          transform: scale(1.01);
-          box-shadow: 0 8px 24px -12px rgba(0,0,0,.5);
+          background: color-mix(in srgb, var(--surface-2) 55%, transparent);
+          border-color: color-mix(in srgb, var(--border-strong) 60%, var(--border));
         }
-        .dc-play-bar:active:not(:disabled) { transform: scale(.995); }
         .dc-play-bar:disabled { opacity: .55; cursor: not-allowed; }
         .dc-play-ico {
           width: 30px; height: 30px; border-radius: 50%;
@@ -1289,9 +1309,7 @@ export default function DashboardPage() {
           background: color-mix(in srgb, var(--card) 90%, transparent);
           border: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
           color: var(--text);
-          transition: transform .2s ease;
         }
-        .dc-play-bar:hover:not(:disabled) .dc-play-ico { transform: scale(1.06); }
         .dc-play-label { text-align: left; }
         .dc-play-meta {
           color: var(--dc-muted);
@@ -2095,16 +2113,7 @@ export default function DashboardPage() {
           .dc-orb-stage { aspect-ratio: 2 / 1; max-height: 148px; }
         }
 
-        /* ── Overview: 4 calm stats under the action box ──────────── */
-        .dc-overview { margin-top:22px; }
-        .dc-overview .dc-block-label { display:block; margin-bottom:11px; }
-        .dc-stats {
-          display:grid;
-          grid-template-columns:1fr 1fr;
-          gap:16px 14px;
-        }
-        .dc-stat-value { color:var(--text); font-size:19px; line-height:1.1; }
-        .dc-stat-label { margin-top:5px; color:var(--dc-muted); font-size:11px; }
+        /* (legacy .dc-overview stats removed — the audio card owns stats now) */
 
         /* ── Blocks: decisions + risks ────────────────────────────── */
         .dc-blocks { margin-top:22px; }
@@ -2219,23 +2228,13 @@ export default function DashboardPage() {
         </div>
 
         <div className="dc-shell-body">
-          {/* ── LEFT: greeting + status note area ── */}
+          {/* ── LEFT: daytime header + fact + report ── */}
           <main className="dc-left">
-            <h1 className="dc-greeting">{greeting}</h1>
-            <p className="dc-greeting-sub">
-              Status, Berichte und Audio-Briefings in einem festen Arbeitsfenster.
+            <h1 className="dc-greeting">{contextLine}</h1>
+            <p className="dc-fact">
+              <span className="dc-fact-ico" aria-hidden><Lightbulb size={13} weight="regular" /></span>
+              <span><span className="dc-fact-lead">Wusstest du?</span> {funFact}</span>
             </p>
-            <p className="dc-greeting-sub2">
-              Starte rechts ein Voice Briefing oder lasse Tagro einen Statusbericht schreiben.
-            </p>
-
-            <div className="dc-context">
-              <p className="dc-context-line">{contextLine}</p>
-              <p className="dc-fact">
-                <span className="dc-fact-ico" aria-hidden><Lightbulb size={13} weight="regular" /></span>
-                <span><span className="dc-fact-lead">Wusstest du?</span> {funFact}</span>
-              </p>
-            </div>
 
             {noteRevealed ? (
               <article className="dc-note dc-note-inline" aria-label="Statusbericht" data-tour="status-note">
@@ -2290,9 +2289,7 @@ export default function DashboardPage() {
             ) : (
               <div className="dc-empty-line">
                 <span className="dc-empty-icon" aria-hidden><PencilSimple size={14} /></span>
-                <span>{loading
-                  ? 'Tagro prüft deine Projekte und bereitet den aktuellen Status vor.'
-                  : 'Dein Bericht erscheint hier, sobald er fertig ist.'}</span>
+                <span>Tagro prüft deine Projekte und bereitet den aktuellen Status vor.</span>
               </div>
             )}
           </main>
@@ -2355,7 +2352,7 @@ export default function DashboardPage() {
 
                 <span className="dc-orb-core" aria-hidden>
                   <span className="dc-orb-play">
-                    <TagroLogo size={22} thinking={tagroActive} />
+                    <TagroLogo size={30} thinking={tagroActive} />
                   </span>
                 </span>
               </button>
@@ -2373,8 +2370,8 @@ export default function DashboardPage() {
               <li>
                 <a className="dc-stat" href="/projects">
                   <span className="dc-stat-ico"><Cube size={14} weight="duotone" /></span>
-                  <strong className="dc-stat-num">{projects.length}</strong>
-                  <span className="dc-stat-label">Projekte</span>
+                  <strong className="dc-stat-num">{activeProjectCount}</strong>
+                  <span className="dc-stat-label">Aktiv</span>
                   <CaretRight size={12} className="dc-stat-arrow" />
                 </a>
               </li>
@@ -2383,6 +2380,14 @@ export default function DashboardPage() {
                   <span className="dc-stat-ico"><CheckCircle size={14} weight="duotone" /></span>
                   <strong className="dc-stat-num">{doneTaskCount}</strong>
                   <span className="dc-stat-label">Erledigt</span>
+                  <CaretRight size={12} className="dc-stat-arrow" />
+                </a>
+              </li>
+              <li>
+                <a className="dc-stat" href="/projects">
+                  <span className="dc-stat-ico"><Cube size={14} /></span>
+                  <strong className="dc-stat-num">{projects.length}</strong>
+                  <span className="dc-stat-label">Projekte</span>
                   <CaretRight size={12} className="dc-stat-arrow" />
                 </a>
               </li>
@@ -2416,9 +2421,13 @@ export default function DashboardPage() {
             </button>
 
             <div className="dc-chip-row">
+              <button type="button" className="dc-chip" onClick={refreshStatus} disabled={statusBusy}>
+                <ArrowClockwise size={12} className={statusBusy ? 'spin' : ''} />
+                Aktualisieren
+              </button>
               <button type="button" className="dc-chip" onClick={downloadBriefing}>
                 <DownloadSimple size={12} />
-                Download
+                PDF
               </button>
               <button type="button" className="dc-chip" onClick={sendBriefingToSelf}>
                 <EnvelopeSimple size={12} />
@@ -2436,8 +2445,8 @@ export default function DashboardPage() {
                 type="button"
                 className={`dc-chip dc-chip-icon${briefingSettingsOpen ? ' on' : ''}`}
                 onClick={() => setBriefingSettingsOpen((o) => !o)}
-                title="Optionen"
-                aria-label="Optionen"
+                title="Stimme & Tempo"
+                aria-label="Stimme & Tempo"
                 aria-expanded={briefingSettingsOpen}
               >
                 <DotsThree size={14} weight="bold" />
