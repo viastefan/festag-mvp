@@ -467,21 +467,7 @@ export default function TaskWorkspaceDetail({ taskId, projectId }: TaskWorkspace
         </div>
       </div>
 
-      {/* Header — set lower, calm. Meta line first, then the title. */}
-      <header className="task-head">
-        <div className="task-head-meta">
-          <span className={`status-pill ${normalized}`}>
-            <span />
-            {statusLabel(taskState(task))}
-          </span>
-          <span className="task-head-dim">{priorityLabel(task.priority)} Priorität</span>
-          {project ? <span className="task-head-dim">{project.title}</span> : null}
-        </div>
-        <h1>{task.title}</h1>
-        <p className="task-attribution">Angefragt von {requestedBy} · Verantwortlich {ownerName}</p>
-      </header>
-
-      {/* Tabs — like the project view: calm, clear where to look. */}
+      {/* Tabs — pill-style, identical to the project view. */}
       <nav className="task-tabs" role="tablist" aria-label="Aufgaben-Ansicht">
         {([
           { id: 'overview', label: 'Übersicht' },
@@ -505,6 +491,14 @@ export default function TaskWorkspaceDetail({ taskId, projectId }: TaskWorkspace
         <main className="task-detail-main">
           {tab === 'overview' && (
             <>
+              <div className="task-overview-head">
+                <div className="task-title-head">
+                  <span className={`task-dot ${normalized}`} aria-hidden />
+                  <h1>{task.title}</h1>
+                </div>
+                <p className="task-attribution">Angefragt von {requestedBy} · Verantwortlich {ownerName}</p>
+              </div>
+
               <section className="tagro-explanation-card">
                 <div className="section-head">
                   <div className="tagro-title">
@@ -677,9 +671,9 @@ const detailStyles = `
   .task-detail-topbar {
     display:flex;
     align-items:center;
-    justify-content:space-between;
-    gap:16px;
-    margin-bottom:12px;
+    justify-content:flex-start;
+    gap:14px;
+    margin-bottom:6px;
     min-height:34px;
   }
   .task-back {
@@ -730,23 +724,23 @@ const detailStyles = `
     flex-direction:column;
     gap:18px;
   }
-  /* Header — sits lower, calm meta line above the title. */
-  .task-head {
-    padding:30px 0 6px;
-  }
-  .task-head-meta {
+  /* Title — sits below the tabs (like the project view's overview). */
+  .task-overview-head { display:flex; flex-direction:column; gap:9px; }
+  .task-title-head {
     display:flex;
     align-items:center;
-    flex-wrap:wrap;
     gap:12px;
-    margin-bottom:14px;
   }
-  .task-head-dim {
-    color:var(--text-muted);
-    font-size:12px;
-    font-weight:500;
-    letter-spacing:var(--ls-body,.017em);
+  .task-dot {
+    width:11px; height:11px;
+    border-radius:50%;
+    flex-shrink:0;
+    background:var(--text-muted);
   }
+  .task-dot.active   { background:var(--amber); }
+  .task-dot.decision { background:var(--amber); }
+  .task-dot.review   { background:#6366f1; }
+  .task-dot.done     { background:var(--green); }
   .status-pill {
     height:28px;
     display:inline-flex;
@@ -778,7 +772,7 @@ const detailStyles = `
   .status-pill.decision span { background:var(--amber); box-shadow:0 0 0 4px color-mix(in srgb, var(--amber) 14%, transparent); }
   .status-pill.review span { background:#6366f1; }
   .status-pill.done span { background:var(--green); }
-  .task-head h1 {
+  .task-title-head h1 {
     max-width:900px;
     margin:0;
     color:var(--text);
@@ -788,45 +782,44 @@ const detailStyles = `
     font-weight:500;
   }
   .task-attribution {
-    margin:9px 0 0;
+    margin:0;
     color:var(--text-secondary);
     font-size:12.5px;
     line-height:1.55;
     letter-spacing:var(--ls-body,.017em);
   }
 
-  /* Tabs — calm segmented control, like the project view. */
+  /* Tabs — pill-style segmented control, identical to the project view. */
   .task-tabs {
     display:flex;
     align-items:center;
     gap:4px;
-    margin:18px 0 22px;
-    border-bottom:1px solid color-mix(in srgb, var(--border) 70%, transparent);
+    margin:16px 0 22px;
+    padding-bottom:12px;
+    border-bottom:1px solid color-mix(in srgb, var(--border) 60%, transparent);
   }
   .task-tab {
-    position:relative;
-    height:36px;
-    padding:0 4px 0;
-    margin-right:14px;
-    border:0;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    height:28px;
+    padding:0 12px;
+    border:1px solid transparent;
+    border-radius:999px;
     background:transparent;
-    color:var(--text-muted);
+    color:var(--text-secondary);
     font:inherit;
-    font-size:13px;
+    font-size:12px;
     font-weight:500;
     letter-spacing:var(--ls-body,.017em);
     cursor:pointer;
-    transition:color .15s ease;
+    transition:background .1s, color .1s, border-color .1s;
   }
-  .task-tab:hover { color:var(--text-secondary); }
-  .task-tab.on { color:var(--text); }
-  .task-tab.on::after {
-    content:"";
-    position:absolute;
-    left:0; right:0; bottom:-1px;
-    height:2px;
-    border-radius:2px 2px 0 0;
-    background:var(--text);
+  .task-tab:hover { color:var(--text); background:var(--surface-2); }
+  .task-tab.on {
+    background:var(--surface-2);
+    color:var(--text);
+    border-color:color-mix(in srgb, var(--border) 50%, transparent);
   }
 
   /* Signal chips — compact, replace the old 3 big status cards. */
