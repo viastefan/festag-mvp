@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { taskStatusPatch } from '@/lib/tasks/status'
 import TagroLogo from '@/components/TagroLogo'
+import NewTaskModal from '@/components/NewTaskModal'
 import {
   ArrowLeft,
   Brain,
@@ -19,6 +20,7 @@ import {
   Link as LinkIcon,
   Pause,
   Plugs,
+  Plus,
   ShieldCheck,
   Sparkle,
   Tag,
@@ -255,6 +257,9 @@ export default function TaskWorkspaceDetail({ taskId, projectId }: TaskWorkspace
   const [tagroExplanation, setTagroExplanation] = useState('')
   const [tagroLoading, setTagroLoading] = useState(false)
   const [tab, setTab] = useState<'overview' | 'tagro' | 'verlauf'>('overview')
+  const [newTaskOpen, setNewTaskOpen] = useState(false)
+  const [decisionBusy, setDecisionBusy] = useState(false)
+  const [decisionDone, setDecisionDone] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -395,6 +400,33 @@ export default function TaskWorkspaceDetail({ taskId, projectId }: TaskWorkspace
   function openCopilot(prompt: string) {
     window.dispatchEvent(new CustomEvent('open-copilot'))
     window.dispatchEvent(new CustomEvent('tagro-compose', { detail: { prompt } }))
+  }
+
+  // Raise a decision off this task — it flows through the engine and lands in
+  // the Entscheidungen section, exactly like decisions from anywhere else.
+  async function requestDecision() {
+    const pid = project?.id ?? task?.project_id
+    if (!task || !pid || decisionBusy) return
+    setDecisionBusy(true)
+    try {
+      const res = await fetch('/api/decisions/request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          project_id: pid,
+          task_id: task.id,
+          question: `Entscheidung zu „${task.title}": Wie soll hier weiter vorgegangen werden?`,
+        }),
+      })
+      if (res.ok) {
+        setDecisionDone(true)
+        setTimeout(() => router.push('/decisions'), 600)
+      }
+    } catch {
+      /* keep calm — the button stays available */
+    } finally {
+      setDecisionBusy(false)
+    }
   }
 
   async function pauseTask() {
@@ -626,18 +658,30 @@ export default function TaskWorkspaceDetail({ taskId, projectId }: TaskWorkspace
             <PropertyRow icon={<GitBranch size={16} />} label="Aktualisiert" value={dateLabel(task.updated_at || task.created_at)} />
           </section>
 
-          <section className="property-card actions">
-            <button type="button" onClick={() => openCopilot(`Erkläre diese Aufgabe für einen CEO oder Kunden und sage, was als nächstes entschieden oder kommuniziert werden sollte: "${task.title}"`)}>
-              Tagro fragen
+          <div className="task-actions">
+            <button type="button" className="task-action task-action-primary" onClick={() => setNewTaskOpen(true)} disabled={!(project?.id ?? task.project_id)}>
+              <Plus size={14} weight="bold" /> Folgeaufgabe anlegen
             </button>
-            <button type="button" onClick={() => openCopilot(`Soll diese Aufgabe im nächsten Statusbericht auftauchen? Prüfe Risiko, Blocker, Entscheidung und Stakeholder-Kommunikation: "${task.title}"`)}>
-              Relevanz für Bericht prüfen
+            <button type="button" className="task-action" onClick={requestDecision} disabled={decisionBusy || decisionDone || !(project?.id ?? task.project_id)}>
+              <ShieldCheck size={14} /> {decisionDone ? 'Entscheidung erstellt' : decisionBusy ? 'Wird angefragt…' : 'Entscheidung anfordern'}
             </button>
-            {manageable ? <button type="button" onClick={pauseTask} disabled={busy}><Pause size={14} /> Aussetzen</button> : null}
-            {manageable ? <button type="button" className="danger" onClick={deleteTask} disabled={busy}><Trash size={14} /> Löschen</button> : null}
-          </section>
+            <button type="button" className="task-action" onClick={() => openCopilot(`Erkläre diese Aufgabe für einen CEO oder Kunden und sage, was als nächstes entschieden oder kommuniziert werden sollte: "${task.title}"`)}>
+              <Sparkle size={14} /> Tagro fragen
+            </button>
+            {manageable ? <button type="button" className="task-action" onClick={pauseTask} disabled={busy}><Pause size={14} /> Aussetzen</button> : null}
+            {manageable ? <button type="button" className="task-action danger" onClick={deleteTask} disabled={busy}><Trash size={14} /> Löschen</button> : null}
+          </div>
         </aside>
       </div>
+
+      {newTaskOpen && (
+        <NewTaskModal
+          defaultProjectId={(project?.id ?? task.project_id) || undefined}
+          defaultDescription={`Folgeaufgabe aus „${task.title}".`}
+          onClose={() => setNewTaskOpen(false)}
+          onCreated={() => setNewTaskOpen(false)}
+        />
+      )}
     </div>
   )
 }
@@ -673,8 +717,10 @@ const detailStyles = `
     align-items:center;
     justify-content:flex-start;
     gap:14px;
-    margin-bottom:6px;
+    margin-bottom:0;
+    padding-bottom:14px;
     min-height:34px;
+    border-bottom:1px solid color-mix(in srgb, var(--border) 60%, transparent);
   }
   .task-back {
     height:32px;
@@ -1120,6 +1166,45 @@ const detailStyles = `
     opacity:.5;
     cursor:not-allowed;
   }
+  /* Actions — no card container, consistent Festag buttons. */
+  .task-actions {
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    margin-top:2px;
+  }
+  .task-action {
+    height:38px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    padding:0 14px;
+    border:1px solid var(--border);
+    border-radius:10px;
+    background:var(--surface);
+    color:var(--text);
+    font:inherit;
+    font-size:12.5px;
+    font-weight:500;
+    letter-spacing:var(--ls-body,.017em);
+    cursor:pointer;
+    transition:background .14s ease, border-color .14s ease, opacity .14s ease;
+  }
+  .task-action:hover:not(:disabled) { background:var(--surface-2); border-color:var(--border-strong); }
+  .task-action-primary {
+    background:var(--btn-prim);
+    color:var(--btn-prim-text);
+    border-color:var(--btn-prim);
+  }
+  .task-action-primary:hover:not(:disabled) {
+    background:color-mix(in srgb, var(--btn-prim) 88%, #000);
+    border-color:color-mix(in srgb, var(--btn-prim) 88%, #000);
+  }
+  .task-action.danger { color:var(--red); border-color:color-mix(in srgb, var(--red) 30%, var(--border)); }
+  .task-action.danger:hover:not(:disabled) { background:color-mix(in srgb, var(--red) 8%, transparent); }
+  .task-action:disabled { opacity:.5; cursor:not-allowed; }
+
   .task-detail-loading,
   .task-detail-empty {
     max-width:520px;
