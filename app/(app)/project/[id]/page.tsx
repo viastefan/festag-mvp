@@ -5,8 +5,8 @@ import { createClient } from '@/lib/supabase/client'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import {
-  Bell, CaretRight, CheckCircle, Circle, Cube, DotsThree, LinkSimple,
-  PaperPlaneTilt, Plus, Sparkle, Star, Target, Trash, Warning,
+  Bell, CaretRight, Check, CheckCircle, Circle, DotsThree, LinkSimple,
+  Plus, Star, Target, Trash,
 } from '@phosphor-icons/react'
 import { projectColor } from '@/components/Sidebar'
 import { effectiveRole, isDevOrAdmin } from '@/lib/role'
@@ -14,6 +14,8 @@ import { taskStatusPatch } from '@/lib/tasks/status'
 import { Milestone } from '@/components/MilestoneChart'
 import ProjectCompletionCelebration from '@/components/ProjectCompletionCelebration'
 import DeleteProjectModal from '@/components/DeleteProjectModal'
+import NewTaskModal from '@/components/NewTaskModal'
+import ChatMarkdown from '@/components/ChatMarkdown'
 import { getProjectPreset, type ExecutorRole, type ProjectType } from '@/lib/project-modules'
 
 type Project = { id: string; title: string; description: string|null; status: string; project_type?: ProjectType | null }
@@ -22,7 +24,16 @@ type Msg = { id: string; message: string; created_at: string; sender_id: string;
 
 const PHASES = ['intake','planning','active','testing','done']
 const PHASE_LABEL: Record<string,string> = { intake:'Intake', planning:'Planung', active:'In Arbeit', testing:'Testing', done:'Abgeschlossen' }
+const PHASE_TONE: Record<string,'good'|'amber'|'muted'> = { intake:'muted', planning:'muted', active:'amber', testing:'amber', done:'good' }
 const PRIORITY_COLOR: Record<string,string> = { critical:'#ef4444', high:'#f97316', medium:'#f59e0b', low:'#22c55e' }
+// Curated project color palette — calm, Festag-aligned (no neon).
+const PROJECT_COLORS = ['#5B647D','#6E8FB8','#5BA88C','#C18409','#C0744C','#B5566B','#8B6FB0','#5F7A8A','#94A0AE']
+
+function fmtDate(value?: string | null) {
+  if (!value) return null
+  try { return new Date(value).toLocaleDateString('de-DE', { day: '2-digit', month: 'short', year: 'numeric' }) }
+  catch { return null }
+}
 
 export default function ProjectPage() {
   // useSearchParams() requires a Suspense boundary or Next 14 fails to
@@ -56,12 +67,17 @@ function ProjectPageInner() {
   // sections + deep links from inside Overview; they no longer have their
   // own primary tab.
   const initialTab = searchParams?.get('tab') as null
-    | 'overview' | 'activity' | 'tasks' | 'decisions' | 'risks' | 'briefings' | 'assets' | 'updates'
-  const [activeLeft, setActiveLeft] = useState<'overview'|'activity'|'tasks'>(() => {
-    if (initialTab === 'activity' || initialTab === 'updates' || initialTab === 'briefings') return 'activity'
+    | 'overview' | 'tasks' | 'milestones' | 'activity' | 'decisions' | 'risks' | 'briefings' | 'assets' | 'updates'
+  const [activeLeft, setActiveLeft] = useState<'overview'|'tasks'|'milestones'>(() => {
     if (initialTab === 'tasks') return 'tasks'
+    if (initialTab === 'milestones') return 'milestones'
     return 'overview'
   })
+  // Property popovers + task modal — all interactive now.
+  const [statusMenuOpen, setStatusMenuOpen] = useState(false)
+  const [colorMenuOpen, setColorMenuOpen] = useState(false)
+  const [targetOpen, setTargetOpen] = useState(false)
+  const [taskModalOpen, setTaskModalOpen] = useState(false)
   const [aiThinking, setAiThinking] = useState(false)
   const [generatingAI, setGeneratingAI] = useState(false)
   const [online, setOnline] = useState(false)
@@ -274,6 +290,7 @@ function ProjectPageInner() {
   }
 
   async function updateStatus(status: string) {
+    setStatusMenuOpen(false)
     await supabase.from('projects').update({ status }).eq('id', id)
     setProject(p => p ? { ...p, status } : p)
     // Trigger celebration when transitioning to 'done' (and previous wasn't 'done')
@@ -285,6 +302,24 @@ function ProjectPageInner() {
         window.localStorage.setItem(seenKey, '1')
       }
     }
+  }
+
+  // ── Project color — editable from the title dot + sidebar ──────────
+  async function updateColor(color: string) {
+    setColorMenuOpen(false)
+    await supabase.from('projects').update({ color }).eq('id', id)
+    setProject(p => p ? ({ ...p, color } as any) : p)
+    // Keep the sidebar project dots in sync.
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('festag-project-color-change', { detail: { id, color } }))
+    }
+  }
+
+  // ── Target date — date picker in Properties ───────────────────────
+  async function updateTargetDate(value: string | null) {
+    setTargetOpen(false)
+    await supabase.from('projects').update({ target_date: value }).eq('id', id)
+    setProject(p => p ? ({ ...p, target_date: value } as any) : p)
   }
 
   // If project was already 'done' on first load and we haven't celebrated yet, show once
@@ -981,6 +1016,165 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
           background: color-mix(in srgb, var(--pv-muted) 12%, transparent); color: var(--pv-muted);
         }
 
+        /* ── v2 rebuild: color dot, popovers, notepad report, tabs ─── */
+        .pv-crumb-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+
+        .pv-title-head { display: flex; align-items: center; gap: 12px; }
+        .pv-color-wrap { position: relative; }
+        .pv-color-dot {
+          width: 16px; height: 16px; border-radius: 50%;
+          border: 0; padding: 0; cursor: pointer;
+          box-shadow: 0 0 0 4px color-mix(in srgb, currentColor 0%, transparent);
+          transition: transform .15s ease, box-shadow .15s ease;
+        }
+        .pv-color-dot:hover { transform: scale(1.12); }
+        .pv-color-pop {
+          position: absolute; left: 0; top: calc(100% + 8px); z-index: 60;
+          display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+          padding: 10px; border-radius: 12px;
+          background: var(--surface); border: 1px solid var(--border);
+          box-shadow: 0 16px 40px rgba(0,0,0,.3);
+        }
+        .pv-color-swatch {
+          width: 22px; height: 22px; border-radius: 50%;
+          border: 2px solid transparent; cursor: pointer; padding: 0;
+          transition: transform .12s ease;
+        }
+        .pv-color-swatch:hover { transform: scale(1.12); }
+        .pv-color-swatch.on { border-color: var(--text); }
+
+        /* Popover primitives */
+        .pv-pop-wrap { position: relative; }
+        .pv-pop-backdrop { position: fixed; inset: 0; z-index: 55; }
+        .pv-menu {
+          position: absolute; left: 0; top: calc(100% + 6px); z-index: 60;
+          min-width: 190px; padding: 5px;
+          background: var(--surface); border: 1px solid var(--border);
+          border-radius: 10px; box-shadow: 0 16px 40px rgba(0,0,0,.3);
+          display: flex; flex-direction: column; gap: 1px;
+        }
+        .pv-menu-pad { padding: 10px; gap: 8px; }
+        .pv-menu-item {
+          display: flex; align-items: center; gap: 8px;
+          min-height: 32px; padding: 0 9px;
+          border: 0; background: transparent; border-radius: 7px;
+          color: var(--text); font: inherit; font-size: 12.5px;
+          letter-spacing: var(--ls-body, .017em); cursor: pointer;
+          text-align: left;
+        }
+        .pv-menu-item:hover { background: var(--surface-2); }
+        .pv-menu-item.on { color: var(--text); }
+        .pv-menu-check { margin-left: auto; color: var(--pv-muted); }
+        .pv-date-input {
+          width: 100%; height: 36px; padding: 0 10px;
+          border: 1px solid var(--border); border-radius: 8px;
+          background: var(--card); color: var(--text);
+          font: inherit; font-size: 13px; outline: none;
+          color-scheme: dark;
+        }
+
+        .pv-chip-btn { cursor: pointer; }
+        .pv-chip-btn:disabled { cursor: default; opacity: .8; }
+        .pv-chip-btn:hover:not(:disabled) { background: var(--surface-2); border-color: var(--border); }
+
+        /* Status report — notepad, no box */
+        .pv-report {
+          display: flex; flex-direction: column; gap: 12px;
+          padding-top: 8px;
+          border-top: 1px solid color-mix(in srgb, var(--border) 45%, transparent);
+        }
+        .pv-report-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+        .pv-report-label {
+          font-size: 13px; color: var(--text);
+          letter-spacing: var(--ls-body, .017em);
+        }
+        .pv-report-meta {
+          display: flex; align-items: center; gap: 6px;
+          font-size: 11.5px; color: var(--pv-muted);
+        }
+        .pv-report-body {
+          font-size: 14.5px; line-height: 1.75; color: var(--text);
+          letter-spacing: var(--ls-body, .017em);
+          max-width: 680px;
+        }
+        .pv-report-body p { margin: 0 0 12px; color: var(--pv-soft); }
+        .pv-report-body strong { color: var(--text); font-weight: 500; }
+        .pv-report-body h1, .pv-report-body h2, .pv-report-body h3 {
+          font-size: 14.5px; color: var(--text); margin: 18px 0 8px;
+          letter-spacing: var(--ls-header, .012em);
+        }
+        .pv-report-body ul, .pv-report-body ol { margin: 0 0 12px; padding-left: 18px; color: var(--pv-soft); }
+        .pv-report-body li { margin: 0 0 5px; }
+        .pv-report-empty {
+          margin: 0; font-size: 13.5px; line-height: 1.6;
+          color: var(--pv-muted); max-width: 560px;
+          letter-spacing: var(--ls-body, .017em);
+        }
+        .pv-spin {
+          display: inline-block; width: 11px; height: 11px; margin-right: 6px;
+          border: 1.5px solid currentColor; border-top-color: transparent;
+          border-radius: 50%; animation: spin .7s linear infinite; vertical-align: -1px;
+        }
+
+        /* Tasks tab bar */
+        .pv-tasks-bar {
+          display: flex; align-items: center; justify-content: space-between;
+          gap: 12px;
+        }
+        .pv-tasks-count { font-size: 12.5px; color: var(--pv-muted); letter-spacing: var(--ls-body, .017em); }
+        .pv-tasks-add-btn {
+          display: inline-flex; align-items: center; gap: 6px;
+          height: 32px; padding: 0 14px; border-radius: 8px;
+          border: 0; background: var(--btn-prim, #5B647D); color: var(--btn-prim-text, #fff);
+          font: inherit; font-size: 12.5px; font-weight: 500; letter-spacing: var(--ls-body, .017em);
+          cursor: pointer; transition: opacity .15s ease, transform .15s ease;
+        }
+        .pv-tasks-add-btn:hover:not(:disabled) { opacity: .92; transform: translateY(-1px); }
+        .pv-tasks-add-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+        /* Milestones tab */
+        .pv-ms-tab { max-width: 760px; display: flex; flex-direction: column; gap: 18px; }
+        .pv-ms-tab-head {
+          display: flex; align-items: flex-start; justify-content: space-between; gap: 20px;
+        }
+        .pv-ms-tab-title { margin: 0; font-size: 18px; font-weight: 500; color: var(--text); letter-spacing: var(--ls-header, .012em); }
+        .pv-ms-tab-sub { margin: 4px 0 0; font-size: 12.5px; color: var(--pv-muted); letter-spacing: var(--ls-body, .017em); }
+        .pv-ms-tab-total { text-align: right; flex-shrink: 0; }
+        .pv-ms-tab-total-num { display: block; font-size: 22px; font-weight: 500; color: var(--text); letter-spacing: var(--ls-header, .012em); font-variant-numeric: tabular-nums; }
+        .pv-ms-tab-total-label { font-size: 11px; color: var(--pv-muted); letter-spacing: var(--ls-body, .017em); }
+        .pv-ms-list { display: flex; flex-direction: column; gap: 8px; }
+        .pv-ms-card {
+          display: flex; align-items: flex-start; gap: 14px;
+          padding: 16px 18px; border-radius: 14px;
+          border: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+          background: color-mix(in srgb, var(--surface-2) 28%, transparent);
+          flex-wrap: wrap;
+        }
+        .pv-ms-card.locked { opacity: .62; }
+        .pv-ms-card .pv-status-dot { margin-top: 5px; }
+        .pv-ms-card-main { flex: 1; min-width: 180px; }
+        .pv-ms-card-title { margin: 0; font-size: 14px; color: var(--text); letter-spacing: var(--ls-body, .017em); }
+        .pv-ms-card-desc { margin: 3px 0 0; font-size: 12.5px; color: var(--pv-muted); line-height: 1.5; }
+        .pv-ms-card-gate { display: inline-block; margin-top: 8px; font-size: 11px; color: var(--pv-muted); }
+        .pv-ms-card-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0; }
+        .pv-ms-card-amount { font-size: 15px; color: var(--text); font-variant-numeric: tabular-nums; letter-spacing: var(--ls-header, .012em); }
+        .pv-ms-pay {
+          height: 30px; padding: 0 14px; border-radius: 8px;
+          border: 0; background: var(--btn-prim, #5B647D); color: var(--btn-prim-text, #fff);
+          font: inherit; font-size: 12px; font-weight: 500; cursor: pointer;
+          align-self: center;
+        }
+        .pv-ms-pay:hover { opacity: .92; }
+
+        /* Sidebar clickable values */
+        .pv-side-btn {
+          border: 0; background: transparent; cursor: pointer;
+          font: inherit; padding: 2px 0; text-align: right;
+          transition: color .12s ease;
+        }
+        .pv-side-btn:hover:not(:disabled) { color: var(--text); text-decoration: underline; text-underline-offset: 2px; }
+        .pv-side-btn:disabled { cursor: default; }
+
         /* ── Responsive ───────────────────────────────────────────── */
         @media (max-width: 920px) {
           .pv-body { grid-template-columns: 1fr; }
@@ -1000,7 +1194,7 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
         projectTitle={project.title}
         deliveryDate={new Date().toISOString()}
         onClose={() => setCelebrationOpen(false)}
-        onContinue={() => { setCelebrationOpen(false); setActiveLeft('activity'); generateAIUpdate() }}
+        onContinue={() => { setCelebrationOpen(false); setActiveLeft('overview'); generateAIUpdate() }}
       />
 
       <DeleteProjectModal
@@ -1022,9 +1216,7 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
           <Link href="/dashboard" className="pv-crumb">Projects</Link>
           <CaretRight size={11} weight="bold" className="pv-crumb-sep" />
           <span className="pv-crumb pv-crumb-current">
-            <span className="pv-icon-square" style={{ background: `${pCol}24`, color: pCol }}>
-              <Cube size={11} weight="duotone" />
-            </span>
+            <span className="pv-crumb-dot" style={{ background: pCol }} />
             {project.title}
           </span>
           <button className="pv-icon-btn" title="Favorit"><Star size={13} /></button>
@@ -1046,12 +1238,7 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
           role="tab" aria-selected={activeLeft === 'overview'}
           className={`pv-tab${activeLeft === 'overview' ? ' on' : ''}`}
           onClick={() => setActiveLeft('overview')}
-        >Overview</button>
-        <button
-          role="tab" aria-selected={activeLeft === 'activity'}
-          className={`pv-tab${activeLeft === 'activity' ? ' on' : ''}`}
-          onClick={() => setActiveLeft('activity')}
-        >Activity</button>
+        >Übersicht</button>
         <button
           role="tab" aria-selected={activeLeft === 'tasks'}
           className={`pv-tab${activeLeft === 'tasks' ? ' on' : ''}`}
@@ -1059,6 +1246,14 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
         >
           Tasks
           {tasks.length > 0 && <span className="pv-tab-count">{tasks.length}</span>}
+        </button>
+        <button
+          role="tab" aria-selected={activeLeft === 'milestones'}
+          className={`pv-tab${activeLeft === 'milestones' ? ' on' : ''}`}
+          onClick={() => setActiveLeft('milestones')}
+        >
+          Meilensteine
+          {milestones.length > 0 && <span className="pv-tab-count">{milestones.length}</span>}
         </button>
       </nav>
 
@@ -1069,136 +1264,151 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
           {/* OVERVIEW */}
           {activeLeft === 'overview' && (
             <div className="pv-overview">
-              <div className="pv-hero-icon" style={{ background: `${pCol}26`, color: pCol }}>
-                <Cube size={22} weight="duotone" />
+              {/* Title row — color dot (editable) replaces the cube icon */}
+              <div className="pv-title-head">
+                <div className="pv-color-wrap">
+                  <button
+                    type="button"
+                    className="pv-color-dot"
+                    style={{ background: pCol }}
+                    onClick={() => canEdit && setColorMenuOpen((v) => !v)}
+                    title={canEdit ? 'Projektfarbe ändern' : undefined}
+                    aria-label="Projektfarbe"
+                  />
+                  {colorMenuOpen && (
+                    <>
+                      <div className="pv-pop-backdrop" onClick={() => setColorMenuOpen(false)} />
+                      <div className="pv-color-pop" role="menu">
+                        {PROJECT_COLORS.map((c) => (
+                          <button
+                            key={c}
+                            type="button"
+                            className={`pv-color-swatch${(project as any).color === c ? ' on' : ''}`}
+                            style={{ background: c }}
+                            onClick={() => updateColor(c)}
+                            aria-label={`Farbe ${c}`}
+                          />
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+                <h1 className="pv-hero-title">{project.title}</h1>
               </div>
 
-              <h1 className="pv-hero-title">{project.title}</h1>
+              {project.description && <p className="pv-hero-summary">{project.description}</p>}
 
-              {project.description
-                ? <p className="pv-hero-summary">{project.description}</p>
-                : <p className="pv-hero-summary">Add a short summary…</p>}
-
+              {/* Properties — every chip is interactive */}
               <div className="pv-prop-row">
-                <span className="pv-prop-label">Properties</span>
-                <span className="pv-chip">
-                  <span className={`pv-status-dot tone-${project.status === 'done' ? 'good' : project.status === 'active' ? 'amber' : 'muted'}`} />
-                  {PHASE_LABEL[project.status] ?? project.status}
-                </span>
+                <span className="pv-prop-label">Eigenschaften</span>
+
+                {/* Status */}
+                <div className="pv-pop-wrap">
+                  <button
+                    type="button"
+                    className="pv-chip pv-chip-btn"
+                    onClick={() => canEdit && setStatusMenuOpen((v) => !v)}
+                    disabled={!canEdit}
+                  >
+                    <span className={`pv-status-dot tone-${PHASE_TONE[project.status] || 'muted'}`} />
+                    {PHASE_LABEL[project.status] ?? project.status}
+                  </button>
+                  {statusMenuOpen && (
+                    <>
+                      <div className="pv-pop-backdrop" onClick={() => setStatusMenuOpen(false)} />
+                      <div className="pv-menu" role="menu">
+                        {PHASES.map((ph) => (
+                          <button
+                            key={ph}
+                            type="button"
+                            className={`pv-menu-item${project.status === ph ? ' on' : ''}`}
+                            onClick={() => updateStatus(ph)}
+                          >
+                            <span className={`pv-status-dot tone-${PHASE_TONE[ph] || 'muted'}`} />
+                            {PHASE_LABEL[ph]}
+                            {project.status === ph && <Check size={12} weight="bold" className="pv-menu-check" />}
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+
                 {projectType && (
                   <span className="pv-chip pv-chip-mute">{typePreset?.label || projectType}</span>
                 )}
-                <span className="pv-chip pv-chip-mute">Lead</span>
-                <span className="pv-chip pv-chip-mute"><Target size={11} /> Target date</span>
-                <span className="pv-chip">{displayName}</span>
-                <button className="pv-icon-btn" title="Mehr"><DotsThree size={13} weight="bold" /></button>
+
+                {/* Target date */}
+                <div className="pv-pop-wrap">
+                  <button
+                    type="button"
+                    className="pv-chip pv-chip-btn"
+                    onClick={() => canEdit && setTargetOpen((v) => !v)}
+                    disabled={!canEdit}
+                  >
+                    <Target size={11} />
+                    {fmtDate((project as any).target_date) || 'Zieldatum'}
+                  </button>
+                  {targetOpen && (
+                    <>
+                      <div className="pv-pop-backdrop" onClick={() => setTargetOpen(false)} />
+                      <div className="pv-menu pv-menu-pad" role="menu">
+                        <input
+                          type="date"
+                          className="pv-date-input"
+                          defaultValue={(project as any).target_date || ''}
+                          onChange={(e) => updateTargetDate(e.target.value || null)}
+                          autoFocus
+                        />
+                        {(project as any).target_date && (
+                          <button type="button" className="pv-menu-item" onClick={() => updateTargetDate(null)}>
+                            Zieldatum entfernen
+                          </button>
+                        )}
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                <span className="pv-chip pv-chip-mute">{displayName}</span>
               </div>
 
-              <div className="pv-prop-row">
-                <span className="pv-prop-label">Resources</span>
-                <button className="pv-link-add"><Plus size={11} weight="bold" /> Dokument oder Link hinzufügen…</button>
-              </div>
+              {/* Statusbericht — notepad style, no box. When a report exists
+                  it stands alone; the rest of overview stays minimal. */}
+              <section className="pv-report">
+                <div className="pv-report-head">
+                  <span className="pv-report-label">Statusbericht</span>
+                  <button className="pv-update-btn" onClick={generateAIUpdate} disabled={generatingAI}>
+                    {generatingAI
+                      ? <><span className="pv-spin" aria-hidden />Tagro schreibt…</>
+                      : latestUpdate ? 'Neu erzeugen' : 'Statusbericht erzeugen'}
+                  </button>
+                </div>
 
-              {latestUpdate && (
-                <section className="pv-latest">
-                  <header>
-                    <span className="pv-latest-label">Letztes Update</span>
-                    <button className="pv-update-btn" onClick={generateAIUpdate} disabled={generatingAI}>
-                      {generatingAI ? 'Erstellt…' : 'Update'}
-                    </button>
-                  </header>
-                  <div className="pv-latest-meta">
-                    <span className="pv-status-dot tone-good" />
-                    <span>On track</span>
-                    <span className="pv-sep">·</span>
-                    <span>{displayName}</span>
-                    <span className="pv-sep">·</span>
-                    <span>{fmtAgo(latestUpdate.created_at)}</span>
-                  </div>
-                  <div className="pv-latest-body">{latestUpdate.content?.slice(0, 800)}</div>
-                </section>
-              )}
-
-              {!latestUpdate && (
-                <section className="pv-latest">
-                  <header>
-                    <span className="pv-latest-label">Letztes Update</span>
-                    <button className="pv-update-btn" onClick={generateAIUpdate} disabled={generatingAI}>
-                      {generatingAI ? 'Erstellt…' : 'Update'}
-                    </button>
-                  </header>
-                  <div className="pv-latest-meta">
-                    <span className="pv-status-dot tone-muted" />
-                    <span>Noch keine Updates</span>
-                  </div>
-                  <div className="pv-latest-body" style={{ color: 'var(--pv-muted)' }}>
-                    Klick auf „Update", damit Tagro einen ruhigen Statusbericht aus dem aktuellen Projektstand erstellt.
-                  </div>
-                </section>
-              )}
-
-              <section className="pv-desc-block">
-                <h2 className="pv-section-title">Beschreibung</h2>
-                {project.description
-                  ? <p className="pv-desc-text">{project.description}</p>
-                  : <p className="pv-desc-placeholder">Beschreibung hinzufügen…</p>}
+                {latestUpdate ? (
+                  <>
+                    <div className="pv-report-meta">
+                      <span className="pv-status-dot tone-good" />
+                      <span>{displayName}</span>
+                      <span className="pv-sep">·</span>
+                      <span>{fmtAgo(latestUpdate.created_at)}</span>
+                    </div>
+                    <div className="pv-report-body">
+                      <ChatMarkdown text={latestUpdate.content || ''} />
+                    </div>
+                  </>
+                ) : (
+                  <p className="pv-report-empty">
+                    Tagro verdichtet den aktuellen Projektstand in einen ruhigen Bericht — Fortschritt, offene Punkte, nächste Schritte. Klick auf „Statusbericht erzeugen".
+                  </p>
+                )}
               </section>
 
-              {canEdit && (
-                <button className="pv-add-milestone-btn"><Plus size={11} weight="bold" /> Meilenstein</button>
-              )}
-            </div>
-          )}
-
-          {/* ACTIVITY */}
-          {activeLeft === 'activity' && (
-            <div className="pv-activity">
-              <div className="pv-composer">
-                <div className="pv-composer-tabs">
-                  <button className="pv-composer-tab on">Kommentar</button>
-                  <button className="pv-composer-tab" onClick={generateAIUpdate} disabled={generatingAI}>
-                    {generatingAI ? 'Tagro schreibt…' : 'Update'}
-                  </button>
-                </div>
-                <textarea
-                  className="pv-composer-area"
-                  placeholder="Kommentar hinterlassen…"
-                  value={newMsg}
-                  onChange={(e) => setNewMsg(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
-                      e.preventDefault()
-                      sendMessage()
-                    }
-                  }}
-                />
-                <div className="pv-composer-actions">
-                  <button
-                    className="pv-composer-submit"
-                    onClick={sendMessage}
-                    disabled={!newMsg.trim() || aiThinking}
-                  >
-                    {aiThinking ? 'Sende…' : 'Kommentar'}
-                  </button>
-                </div>
-              </div>
-
-              {feedEvents.length === 0 ? (
-                <p className="pv-empty">Noch keine Aktivität. Schreibe einen Kommentar oder lass Tagro einen Statusbericht erzeugen.</p>
-              ) : (
-                <div className="pv-feed">
-                  {feedEvents.map((ev) => (
-                    <article key={ev.id} className="pv-feed-row">
-                      <div className="pv-feed-meta">
-                        <span className={`pv-status-dot tone-${ev.tone || 'muted'}`} />
-                        <strong>{ev.title}</strong>
-                        <span className="pv-sep">·</span>
-                        <span>{fmtAgo(new Date(ev.ts).toISOString())}</span>
-                      </div>
-                      {ev.body && <div className="pv-feed-body">{ev.body.slice(0, 800)}</div>}
-                    </article>
-                  ))}
-                </div>
+              {project.description && (
+                <section className="pv-desc-block">
+                  <h2 className="pv-section-title">Beschreibung</h2>
+                  <p className="pv-desc-text">{project.description}</p>
+                </section>
               )}
             </div>
           )}
@@ -1206,20 +1416,16 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
           {/* TASKS */}
           {activeLeft === 'tasks' && (
             <div className="pv-tasks">
-              <div className="pv-tasks-add">
-                <input
-                  className="pv-tasks-input"
-                  value={newTask}
-                  onChange={(e) => setNewTask(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && addTask()}
-                  placeholder={eff === 'client' && clientRemaining === 0 ? 'Wochenlimit erreicht' : 'Task hinzufügen…'}
-                  disabled={eff === 'client' && clientRemaining === 0}
-                />
+              <div className="pv-tasks-bar">
+                <span className="pv-tasks-count">{tasks.length} {tasks.length === 1 ? 'Task' : 'Tasks'}</span>
                 <button
-                  className="pv-tasks-btn"
-                  onClick={addTask}
-                  disabled={!newTask.trim() || (eff === 'client' && clientRemaining === 0)}
-                >Hinzufügen</button>
+                  className="pv-tasks-add-btn"
+                  onClick={() => setTaskModalOpen(true)}
+                  disabled={eff === 'client' && clientRemaining === 0}
+                >
+                  <Plus size={13} weight="bold" />
+                  {eff === 'client' && clientRemaining === 0 ? 'Wochenlimit erreicht' : 'Task hinzufügen'}
+                </button>
               </div>
               {eff === 'client' && (
                 <p className="pv-quota">
@@ -1287,125 +1493,141 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
             </div>
           )}
 
+          {/* MEILENSTEINE */}
+          {activeLeft === 'milestones' && (
+            <div className="pv-ms-tab">
+              <div className="pv-ms-tab-head">
+                <div>
+                  <h2 className="pv-ms-tab-title">Meilensteine & Zahlungen</h2>
+                  <p className="pv-ms-tab-sub">Mollie · SEPA · DSGVO-konform abgewickelt.</p>
+                </div>
+                <div className="pv-ms-tab-total">
+                  <span className="pv-ms-tab-total-num">€{milestones.reduce((s, m) => s + (m.amount || 0), 0).toLocaleString('de')}</span>
+                  <span className="pv-ms-tab-total-label">Gesamtbudget</span>
+                </div>
+              </div>
+
+              {milestones.length === 0 ? (
+                <p className="pv-empty">Noch keine Meilensteine angelegt.</p>
+              ) : (
+                <div className="pv-ms-list">
+                  {milestones.map((m) => {
+                    const isPaid = m.status === 'paid'
+                    const isPending = m.status === 'pending'
+                    const isLocked = m.status === 'locked'
+                    const tone = isPaid ? 'good' : isPending ? 'amber' : 'muted'
+                    const gateLabel = isPaid ? 'Freigegeben' : isPending ? 'Freischalten zum Start' : 'Vorheriger Schritt nötig'
+                    return (
+                      <div key={m.id} className={`pv-ms-card${isLocked ? ' locked' : ''}`}>
+                        <span className={`pv-status-dot tone-${tone}`} />
+                        <div className="pv-ms-card-main">
+                          <p className="pv-ms-card-title">{m.title}</p>
+                          {m.description && <p className="pv-ms-card-desc">{m.description}</p>}
+                          <span className="pv-ms-card-gate">{gateLabel}</span>
+                        </div>
+                        <div className="pv-ms-card-right">
+                          <span className="pv-ms-card-amount">€{m.amount.toLocaleString('de')}</span>
+                          <span className={`pv-pill tone-${tone}`}>
+                            {isPaid ? 'Bezahlt' : isPending ? 'Fällig' : 'Gesperrt'}
+                          </span>
+                        </div>
+                        {isPending && !canEdit && (
+                          <button className="pv-ms-pay" onClick={() => payMilestone(m)}>
+                            Freischalten →
+                          </button>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
         </main>
 
-        {/* ─── RIGHT SIDEBAR — Properties / Milestones / Activity ─── */}
+        {/* ─── RIGHT SIDEBAR — Properties only (clickable) ─── */}
         <aside className="pv-sidebar">
           <section className="pv-side-section">
-            <header>
-              <span>Properties</span>
-              <button title="Mehr">▾</button>
-            </header>
+            <header><span>Eigenschaften</span></header>
             <div className="pv-side-rows">
+              {/* Status — jumps to Overview where the phase menu is anchored */}
               <div className="pv-side-row">
                 <span className="pv-side-row-key">Status</span>
-                <span className="pv-side-row-val">
-                  <span className={`pv-status-dot tone-${project.status === 'done' ? 'good' : project.status === 'active' ? 'amber' : 'muted'}`} style={{ display: 'inline-block', marginRight: 5 }} />
+                <button
+                  type="button"
+                  className="pv-side-row-val pv-side-btn"
+                  onClick={() => { if (canEdit) { setActiveLeft('overview'); setStatusMenuOpen(true) } }}
+                  disabled={!canEdit}
+                >
+                  <span className={`pv-status-dot tone-${PHASE_TONE[project.status] || 'muted'}`} style={{ display: 'inline-block', marginRight: 6 }} />
                   {PHASE_LABEL[project.status] ?? project.status}
-                </span>
+                </button>
               </div>
               <div className="pv-side-row">
-                <span className="pv-side-row-key">Type</span>
+                <span className="pv-side-row-key">Typ</span>
                 <span className="pv-side-row-val">{typePreset?.label || projectType || '—'}</span>
               </div>
               <div className="pv-side-row">
                 <span className="pv-side-row-key">Owner</span>
                 <span className="pv-side-row-val">{displayName}</span>
               </div>
+              {/* Target date — jumps to Overview where the picker is anchored */}
               <div className="pv-side-row">
-                <span className="pv-side-row-key">Target date</span>
-                <span className="pv-side-row-val" style={{ color: 'var(--pv-muted)' }}>—</span>
+                <span className="pv-side-row-key">Zieldatum</span>
+                <button
+                  type="button"
+                  className="pv-side-row-val pv-side-btn"
+                  onClick={() => { if (canEdit) { setActiveLeft('overview'); setTargetOpen(true) } }}
+                  disabled={!canEdit}
+                  style={{ color: (project as any).target_date ? 'var(--text)' : 'var(--pv-muted)' }}
+                >
+                  {fmtDate((project as any).target_date) || 'Festlegen'}
+                </button>
               </div>
               <div className="pv-side-row">
-                <span className="pv-side-row-key">Risk</span>
-                <span className="pv-side-row-val">
-                  <span className={`pv-pill tone-${riskState.tone}`}>{riskState.label}</span>
-                </span>
+                <span className="pv-side-row-key">Risiko</span>
+                <span className="pv-side-row-val"><span className={`pv-pill tone-${riskState.tone}`}>{riskState.label}</span></span>
               </div>
               <div className="pv-side-row">
-                <span className="pv-side-row-key">Payment</span>
-                <span className="pv-side-row-val">
-                  <span className={`pv-pill tone-${paymentState.tone}`}>{paymentState.label}</span>
-                </span>
+                <span className="pv-side-row-key">Zahlung</span>
+                <span className="pv-side-row-val"><span className={`pv-pill tone-${paymentState.tone}`}>{paymentState.label}</span></span>
               </div>
               <div className="pv-side-row">
-                <span className="pv-side-row-key">Quality</span>
-                <span className="pv-side-row-val">
-                  <span className={`pv-pill tone-${qualityGate.tone}`}>{qualityGate.label}</span>
-                </span>
+                <span className="pv-side-row-key">Qualität</span>
+                <span className="pv-side-row-val"><span className={`pv-pill tone-${qualityGate.tone}`}>{qualityGate.label}</span></span>
               </div>
               <div className="pv-side-row">
-                <span className="pv-side-row-key">Decisions</span>
-                <span className="pv-side-row-val">
-                  <Link href={`/decisions?project=${id}`} className="pv-side-link">
-                    {decisionTasks.length > 0 ? `${decisionTasks.length} offen` : 'Keine offen'}
-                  </Link>
-                </span>
+                <span className="pv-side-row-key">Entscheidungen</span>
+                <Link href={`/decisions?project=${id}`} className="pv-side-row-val pv-side-link">
+                  {decisionTasks.length > 0 ? `${decisionTasks.length} offen` : 'Keine offen'}
+                </Link>
               </div>
               <div className="pv-side-row">
-                <span className="pv-side-row-key">Issues</span>
-                <span className="pv-side-row-val">{tasks.length}</span>
+                <span className="pv-side-row-key">Meilensteine</span>
+                <button type="button" className="pv-side-row-val pv-side-btn" onClick={() => setActiveLeft('milestones')}>
+                  {milestones.length} · ansehen
+                </button>
+              </div>
+              <div className="pv-side-row">
+                <span className="pv-side-row-key">Tasks</span>
+                <button type="button" className="pv-side-row-val pv-side-btn" onClick={() => setActiveLeft('tasks')}>
+                  {tasks.length}
+                </button>
               </div>
             </div>
           </section>
-
-          <section className="pv-side-section">
-            <header>
-              <span>Milestones</span>
-              {canEdit && <button title="Meilenstein hinzufügen">+</button>}
-            </header>
-            {milestones.length === 0 ? (
-              <p style={{ margin: 0, fontSize: 11.5, color: 'var(--pv-muted)', lineHeight: 1.5 }}>
-                Meilensteine strukturieren die Lieferung in Phasen. Lege den ersten an, um Zahlungen freizugeben.
-              </p>
-            ) : (
-              <ul className="pv-side-milestones">
-                {milestones.slice(0, 5).map((m) => {
-                  const isPaid = m.status === 'paid'
-                  const isPending = m.status === 'pending'
-                  const isLocked = m.status === 'locked'
-                  return (
-                    <li key={m.id} className={`pv-side-milestone ${m.status}`}>
-                      <span className={`pv-status-dot tone-${isPaid ? 'good' : isPending ? 'amber' : 'muted'}`} />
-                      <span className="mtitle">{m.title}</span>
-                      <span className="mamount">€{m.amount.toLocaleString('de')}</span>
-                      {isPending && !canEdit && (
-                        <button
-                          className="pv-update-btn"
-                          style={{ height: 22, padding: '0 8px', fontSize: 11 }}
-                          onClick={() => payMilestone(m)}
-                        >Freischalten</button>
-                      )}
-                    </li>
-                  )
-                })}
-              </ul>
-            )}
-          </section>
-
-          <section className="pv-side-section">
-            <header>
-              <span>Activity</span>
-              <button onClick={() => setActiveLeft('activity')}>Alle</button>
-            </header>
-            {sidebarPreview.length === 0 ? (
-              <p style={{ margin: 0, fontSize: 11.5, color: 'var(--pv-muted)' }}>Noch keine Aktivität.</p>
-            ) : (
-              <ul className="pv-side-activity">
-                {sidebarPreview.map((ev) => (
-                  <li key={ev.id} className={ev.tone === 'good' ? 'tone-good' : ''}>
-                    <span className="dot" />
-                    <div className="body">
-                      <strong>{ev.title}</strong> · {fmtAgo(new Date(ev.ts).toISOString())}
-                      {ev.body && <div style={{ marginTop: 2 }}>{ev.body.slice(0, 90)}{ev.body.length > 90 ? '…' : ''}</div>}
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
         </aside>
       </div>
+
+      {/* Task creation — opens with this project pre-assigned + locked. */}
+      {taskModalOpen && (
+        <NewTaskModal
+          defaultProjectId={project.id}
+          onClose={() => setTaskModalOpen(false)}
+          onCreated={() => { setTaskModalOpen(false); loadAll() }}
+        />
+      )}
     </div>
   )
 }

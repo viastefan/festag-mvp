@@ -135,10 +135,18 @@ export default function NewTaskModal({ onClose, onCreated, defaultProjectId, def
               {currentProject && (
                 <div style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'3px 7px', borderRadius:6, background:'color-mix(in srgb, var(--surface-2) 72%, transparent)', maxWidth:220, minWidth:0 }}>
                   <span style={{ width:8, height:8, borderRadius:2, background: currentProject.color || 'var(--text-muted)', flexShrink:0 }}/>
-                  <select value={projectId} onChange={e => setProjectId(e.target.value)}
-                    style={{ background:'transparent', border:'none', outline:'none', color:'var(--text)', fontSize:11.5, fontWeight:600, fontFamily:'inherit', cursor:'pointer', padding:0, maxWidth:170, minWidth:0, overflow:'hidden', textOverflow:'ellipsis' }}>
-                    {projects.map(p => <option key={p.id} value={p.id}>{p.title}</option>)}
-                  </select>
+                  {defaultProjectId ? (
+                    // Project is locked (opened from a project view) — show
+                    // the name, no picker. The task is already assigned here.
+                    <span style={{ color:'var(--text)', fontSize:11.5, fontWeight:500, maxWidth:170, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                      {currentProject.title}
+                    </span>
+                  ) : (
+                    <select value={projectId} onChange={e => setProjectId(e.target.value)}
+                      style={{ background:'transparent', border:'none', outline:'none', color:'var(--text)', fontSize:11.5, fontWeight:500, fontFamily:'inherit', cursor:'pointer', padding:0, maxWidth:170, minWidth:0, overflow:'hidden', textOverflow:'ellipsis' }}>
+                      {projects.map(p => <option key={p.id} value={p.id}>{p.title}</option>)}
+                    </select>
+                  )}
                 </div>
               )}
               <span style={{ fontSize:11, color:'var(--text-muted)' }}>›</span>
