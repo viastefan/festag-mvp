@@ -1079,16 +1079,23 @@ export default function DashboardPage() {
         }
 
         .dc-brief-filterbar {
-          display:flex; align-items:center; justify-content:space-between;
-          gap:8px;
+          display:flex; flex-direction:column; align-items:stretch;
+          gap:10px;
         }
 
         /* Scope dropdown */
-        .dc-scope { position: relative; flex-shrink: 0; z-index: 18; }
+        .dc-scope {
+          position: relative;
+          width:100%;
+          flex-shrink: 0;
+          z-index: 18;
+        }
         .dc-scope-trigger {
           display: inline-flex; align-items: center; gap: 7px;
-          max-width: 152px;
-          height: 30px; padding: 0 11px 0 12px;
+          width:100%;
+          max-width:none;
+          justify-content:space-between;
+          height: 34px; padding: 0 12px 0 14px;
           border-radius: 999px;
           border: 0;
           background: color-mix(in srgb, var(--surface-2) 42%, transparent);
@@ -1165,27 +1172,35 @@ export default function DashboardPage() {
           margin: 2px 6px;
         }
         .dc-period-options {
-          display:flex; align-items:center; justify-content:space-between; gap:2px;
-          flex:1 1 auto;
+          display:grid;
+          grid-template-columns:repeat(4, minmax(0, 1fr));
+          align-items:center;
+          width:100%;
           min-width:0;
-          padding:3px;
+          gap:3px;
+          padding:4px;
+          min-height:38px;
           border-radius:999px;
+          border:1px solid color-mix(in srgb, var(--border) 58%, transparent);
           background:color-mix(in srgb, var(--surface-2) 34%, transparent);
+          overflow:hidden;
         }
         .dc-period-options button {
           appearance:none; border:0; background:transparent;
-          flex:1 1 0;
-          min-width:0; height:24px; padding:0 7px;
+          width:100%;
+          min-width:0; height:28px; padding:0 8px;
           border-radius:999px; color:var(--dc-muted);
-          font:inherit; font-size:10.5px; cursor:pointer;
+          font:inherit; font-size:11.5px; cursor:pointer;
           display:inline-flex; align-items:center; justify-content:center;
           white-space:nowrap; line-height:1;
-          transition:background .14s ease, color .14s ease;
+          overflow:hidden; text-overflow:ellipsis;
+          transition:background .14s ease, color .14s ease, box-shadow .14s ease;
         }
         .dc-period-options button:hover,
         .dc-period-options button.on {
           background:color-mix(in srgb, var(--surface) 72%, transparent);
           color:var(--text);
+          box-shadow:0 1px 1px color-mix(in srgb, var(--text) 8%, transparent);
         }
 
         .dc-current-report {
@@ -1785,9 +1800,6 @@ export default function DashboardPage() {
         @media (max-width: 920px) {
           .dc-brief { padding: 18px 16px 18px; }
           .dc-brief-head { flex-direction: column; align-items: stretch; }
-          .dc-brief-filterbar { flex-direction:column; align-items:stretch; }
-          .dc-period-options { justify-content:space-between; }
-          .dc-scope-trigger { max-width: none; width: 100%; justify-content: space-between; }
           .dc-scope-menu { left: 0; right: 0; width:auto; min-width: 0; }
           .dc-orb-stage { aspect-ratio: 2 / 1; max-height: 148px; }
         }
@@ -2054,6 +2066,7 @@ export default function DashboardPage() {
                     type="button"
                     key={option}
                     className={period === option ? 'on' : ''}
+                    aria-pressed={period === option}
                     onClick={() => setPeriod(option)}
                   >
                     {option.replace('Letzte ', '')}
