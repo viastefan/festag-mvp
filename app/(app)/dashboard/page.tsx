@@ -1251,6 +1251,8 @@ export default function DashboardPage() {
           display: grid;
           grid-template-columns: repeat(4, 1fr);
           gap: 4px;
+          width: 100%;
+          min-width: 0;
           padding: 4px;
           border: 1px solid color-mix(in srgb, var(--border) 55%, transparent);
           background: color-mix(in srgb, var(--surface-2) 30%, transparent);
@@ -1429,12 +1431,6 @@ export default function DashboardPage() {
         .dc-brief-sub {
           margin: 0; font-size: 11.5px; font-weight: 500 !important;
           color: var(--dc-muted); letter-spacing: .017em !important;
-        }
-        .dc-period {
-          flex-shrink:0;
-          display:inline-flex; align-items:center;
-          min-height:26px; padding:0 2px;
-          color:var(--dc-muted); font-size:11px;
         }
 
         .dc-brief-filterbar {
@@ -2403,6 +2399,7 @@ export default function DashboardPage() {
                   key={opt.v}
                   type="button"
                   className={`dc-period-btn${period === opt.v ? ' on' : ''}`}
+                  aria-pressed={period === opt.v}
                   onClick={() => setPeriod(opt.v)}
                 >
                   {opt.l}

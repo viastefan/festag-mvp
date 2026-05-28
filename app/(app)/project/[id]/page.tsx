@@ -551,7 +551,7 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m√
           --pv-muted: var(--text-muted, #7B8294);
           --pv-soft:  var(--text-secondary, #4E5567);
           --pv-slate: var(--accent, #5B647D);
-          --pv-page-bg: var(--bg);
+          --pv-page-bg: var(--surface);
           height: 100%;
           min-height: 0;
           display: grid;
