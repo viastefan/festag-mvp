@@ -67,6 +67,12 @@ type TagroPreview = {
   confidence_score?: number
 }
 
+type StatePopoverPosition = {
+  left: number
+  top: number
+  width: number
+}
+
 const PRIORITY_OPTIONS = [
   { id: 'none', label: 'Keine Priorität' },
   { id: 'critical', label: 'Kritisch' },
@@ -236,6 +242,7 @@ export default function TasksPage() {
   const [tagroPreview, setTagroPreview] = useState<TagroPreview | null>(null)
   const [expandedProjectIds, setExpandedProjectIds] = useState<string[]>([])
   const [activeStatePopoverTaskId, setActiveStatePopoverTaskId] = useState<string | null>(null)
+  const [statePopoverPosition, setStatePopoverPosition] = useState<StatePopoverPosition | null>(null)
   const hasSeededProjectGroupsRef = useRef(false)
   const taskToolsRef = useRef<HTMLDivElement | null>(null)
 
@@ -418,9 +425,29 @@ export default function TasksPage() {
 
   function closeStatePopover() {
     setActiveStatePopoverTaskId(null)
+    setStatePopoverPosition(null)
   }
 
-  function openStatePopover(taskId: string) {
+  function openStatePopover(taskId: string, trigger: HTMLElement) {
+    const rect = trigger.getBoundingClientRect()
+    const viewportPadding = 12
+    const gap = 14
+    const width = Math.min(330, Math.max(220, window.innerWidth - viewportPadding * 2))
+    const estimatedHeight = 136
+
+    let left = rect.right + gap
+    if (left + width > window.innerWidth - viewportPadding) {
+      left = rect.left - width - gap
+    }
+    left = Math.max(viewportPadding, Math.min(left, window.innerWidth - width - viewportPadding))
+
+    let top = rect.top - estimatedHeight - 12
+    if (top < viewportPadding) {
+      top = rect.bottom + 12
+    }
+    top = Math.max(viewportPadding, Math.min(top, window.innerHeight - estimatedHeight - viewportPadding))
+
+    setStatePopoverPosition({ left, top, width })
     setActiveStatePopoverTaskId(taskId)
   }
 
@@ -1290,11 +1317,12 @@ export default function TasksPage() {
         }
         .task-state-popover {
           position:fixed;
-          top:86px;
-          right:24px;
-          width:min(360px, calc(100vw - 48px));
+          left:0;
+          top:0;
+          width:min(330px, calc(100vw - 24px));
+          max-width:calc(100vw - 24px);
           max-height:calc(100vh - 24px);
-          transform:translateY(-6px) scale(.985);
+          transform:translateY(6px) scale(.985);
           opacity:0;
           visibility:hidden;
           pointer-events:none;
@@ -1597,9 +1625,9 @@ export default function TasksPage() {
             height:17px;
           }
           .task-state-popover {
-            left:12px;
+            left:12px !important;
             right:12px;
-            top:auto;
+            top:auto !important;
             bottom:calc(12px + var(--safe-bottom));
             width:auto !important;
             max-width:none;
@@ -2039,7 +2067,7 @@ export default function TasksPage() {
                         if (activeStatePopoverTaskId === task.id) {
                           closeStatePopover()
                         } else {
-                          openStatePopover(task.id)
+                          openStatePopover(task.id, event.currentTarget)
                         }
                       }}
                       onKeyDown={(event) => {
@@ -2080,12 +2108,17 @@ export default function TasksPage() {
         )}
       </div>}
 
-      {activeStatePopoverTaskId ? (
+      {activeStatePopoverTaskId && statePopoverPosition ? (
         <div
           id={STATE_POPOVER_ID}
           className="task-state-popover is-open"
           role="dialog"
           aria-label="Erledigt-Logik"
+          style={{
+            left: statePopoverPosition.left,
+            top: statePopoverPosition.top,
+            width: statePopoverPosition.width,
+          }}
         >
           <strong>So funktioniert Erledigt</strong>
           <span>Tagro oder der Developer haken Aufgaben ab. Erledigte Aufgaben bleiben 24h sichtbar und verschwinden dann nur aus Standardansichten. Eigene Aufgaben kannst du löschen.</span>
