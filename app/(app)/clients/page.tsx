@@ -10,9 +10,10 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { Plus, ArrowRight, UsersThree } from '@phosphor-icons/react'
+import { Plus, ArrowRight, UsersThree, LinkSimple } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 import Modal, { ModalButton } from '@/components/Modal'
+import InviteLinkModal from '@/components/InviteLinkModal'
 
 type WorkspaceMode = 'delivery' | 'team' | 'agency'
 
@@ -45,6 +46,7 @@ export default function ClientsPage() {
   const [clients, setClients] = useState<ClientRow[]>([])
   const [projects, setProjects] = useState<ProjectStub[]>([])
   const [composerOpen, setComposerOpen] = useState(false)
+  const [inviteOpen, setInviteOpen] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -86,6 +88,11 @@ export default function ClientsPage() {
   }, [projects])
 
   const unassignedProjects = useMemo(() => projects.filter(p => !p.client_id), [projects])
+  const activeProjectsCount = useMemo(
+    () => projects.filter(p => p.status === 'active' || p.status === 'testing' || p.status === 'planning').length,
+    [projects],
+  )
+  const inviteProjects = useMemo(() => projects.map(p => ({ id: p.id, title: p.title })), [projects])
 
   if (loading) {
     return <div className="clients-page"><style>{CLIENTS_CSS}</style><div className="cl-loading">Lade Kunden…</div></div>
@@ -115,17 +122,32 @@ export default function ClientsPage() {
       <style>{CLIENTS_CSS}</style>
 
       <header className="cl-head">
-        <div>
+        <div className="cl-head-text">
           <p className="cl-kicker">Agency · Kunden</p>
           <h1 className="cl-title">Kunden</h1>
           <p className="cl-sub">
             Bündle Kundenprojekte unter einer eigenen Kunden-Identität — eigenes Branding optional via White-Label.
           </p>
         </div>
-        <button type="button" className="cl-btn cl-btn-primary" onClick={() => setComposerOpen(true)}>
-          <Plus size={14} /> Kunde anlegen
-        </button>
+        <div className="cl-head-actions">
+          <button type="button" className="cl-btn" onClick={() => setInviteOpen(true)}>
+            <LinkSimple size={14} /> Kunde einladen
+          </button>
+          <button type="button" className="cl-btn cl-btn-primary" onClick={() => setComposerOpen(true)}>
+            <Plus size={14} weight="bold" /> Kunde anlegen
+          </button>
+        </div>
       </header>
+
+      {clients.length > 0 && (
+        <div className="cl-meta">
+          <span><strong>{clients.length}</strong> {clients.length === 1 ? 'Kunde' : 'Kunden'}</span>
+          <span className="cl-meta-dot" />
+          <span><strong>{projects.length}</strong> {projects.length === 1 ? 'Projekt' : 'Projekte'}</span>
+          <span className="cl-meta-dot" />
+          <span><strong>{activeProjectsCount}</strong> aktiv</span>
+        </div>
+      )}
 
       {clients.length === 0 ? (
         <div className="cl-empty">
@@ -135,9 +157,14 @@ export default function ClientsPage() {
             Leg deinen ersten Kunden an. Du kannst danach bestehende Projekte zuordnen oder
             ein neues Projekt direkt unter diesem Kunden starten.
           </p>
-          <button type="button" className="cl-btn cl-btn-primary" onClick={() => setComposerOpen(true)}>
-            <Plus size={13} /> Ersten Kunden anlegen
-          </button>
+          <div className="cl-empty-actions">
+            <button type="button" className="cl-btn cl-btn-primary" onClick={() => setComposerOpen(true)}>
+              <Plus size={13} weight="bold" /> Ersten Kunden anlegen
+            </button>
+            <button type="button" className="cl-btn" onClick={() => setInviteOpen(true)}>
+              <LinkSimple size={13} /> Per Link einladen
+            </button>
+          </div>
         </div>
       ) : (
         <section className="cl-list">
@@ -207,6 +234,14 @@ export default function ClientsPage() {
       {composerOpen && wsId && (
         <ClientComposer workspaceId={wsId} onClose={() => setComposerOpen(false)} onCreated={c => { setClients(prev => [c, ...prev]); setComposerOpen(false) }} />
       )}
+
+      <InviteLinkModal
+        open={inviteOpen}
+        onClose={() => setInviteOpen(false)}
+        allowClient
+        defaultKind="client"
+        projects={inviteProjects}
+      />
     </div>
   )
 }
@@ -286,27 +321,41 @@ const CLIENTS_CSS = `
   }
   .cl-loading { padding: 80px 0; text-align: center; color: var(--text-muted); font-size: 13px; }
   .cl-head {
-    display: flex; align-items: flex-end; justify-content: space-between;
-    gap: 16px; flex-wrap: wrap; margin-bottom: 28px;
+    display: flex; align-items: flex-start; justify-content: space-between;
+    gap: 16px; flex-wrap: wrap; margin-bottom: 16px;
   }
-  .cl-kicker { margin: 0; font-size: 11px; font-weight: 600; letter-spacing: .04em; color: var(--text-muted); text-transform: uppercase; }
-  .cl-title { margin: 6px 0 4px; font-size: 22px; font-weight: 500; letter-spacing: -.01em; color: var(--text); }
-  .cl-sub { margin: 0; max-width: 540px; font-size: 13px; line-height: 1.6; color: var(--text-secondary); }
+  .cl-head-text { min-width: 0; }
+  .cl-head-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; flex-wrap: wrap; }
+  .cl-kicker { margin: 0; font-size: 11px; font-weight: 500; letter-spacing: .06em; color: var(--text-muted); text-transform: uppercase; }
+  .cl-title { margin: 7px 0 5px; font-size: 22px; font-weight: 500; letter-spacing: var(--ls-header, .012em); color: var(--text); }
+  .cl-sub { margin: 0; max-width: 560px; font-size: 13px; line-height: 1.6; color: var(--text-secondary); letter-spacing: var(--ls-body, .017em); }
+  .cl-meta {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    margin-bottom: 22px; font-size: 12.5px; color: var(--text-muted);
+    letter-spacing: var(--ls-body, .017em);
+  }
+  .cl-meta strong { color: var(--text-secondary); font-weight: 500; }
+  .cl-meta-dot { width: 3px; height: 3px; border-radius: 50%; background: var(--border-strong); }
   .cl-btn {
     display: inline-flex; align-items: center; gap: 6px;
     padding: 8px 14px;
     border: 1px solid var(--border);
-    border-radius: 8px;
+    border-radius: 9px;
     background: var(--surface);
     color: var(--text);
     font-family: inherit; font-size: 13px; font-weight: 500;
+    letter-spacing: var(--ls-body, .017em);
     cursor: pointer;
     text-decoration: none;
-    transition: background .12s, border-color .12s;
+    transition: background .14s, border-color .14s;
   }
-  .cl-btn:hover { background: var(--surface-2); }
-  .cl-btn-primary { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
-  .cl-btn-primary:hover { background: color-mix(in srgb, var(--accent) 88%, #000); }
+  .cl-btn:hover { background: var(--surface-2); border-color: var(--border-strong); }
+  /* Slate primary — never a coloured/accent button (theme-stable). */
+  .cl-btn-primary { background: var(--btn-prim); color: var(--btn-prim-text); border-color: var(--btn-prim); }
+  .cl-btn-primary:hover {
+    background: color-mix(in srgb, var(--btn-prim) 88%, #000);
+    border-color: color-mix(in srgb, var(--btn-prim) 88%, #000);
+  }
   .cl-btn:disabled { opacity: .55; cursor: not-allowed; }
 
   .cl-empty {
@@ -314,11 +363,12 @@ const CLIENTS_CSS = `
     padding: 64px 24px;
     border: 1px dashed var(--border);
     border-radius: 14px;
-    background: color-mix(in srgb, var(--surface) 35%, transparent);
+    background: color-mix(in srgb, var(--surface) 45%, transparent);
     color: var(--text-muted);
   }
-  .cl-empty-title { margin: 12px 0 6px; font-size: 14px; font-weight: 600; color: var(--text-secondary); }
-  .cl-empty-sub { margin: 0 0 18px; max-width: 420px; font-size: 12.5px; line-height: 1.55; color: var(--text-muted); }
+  .cl-empty-title { margin: 12px 0 6px; font-size: 14px; font-weight: 500; color: var(--text-secondary); letter-spacing: var(--ls-body, .017em); }
+  .cl-empty-sub { margin: 0 0 18px; max-width: 420px; font-size: 12.5px; line-height: 1.6; color: var(--text-muted); letter-spacing: var(--ls-body, .017em); }
+  .cl-empty-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center; }
 
   .cl-list { display: flex; flex-direction: column; gap: 10px; }
   .cl-card {
@@ -326,7 +376,12 @@ const CLIENTS_CSS = `
     border-radius: 12px;
     background: var(--surface);
     overflow: hidden;
+    box-shadow: var(--content-shadow);
+    transition: border-color .14s ease;
   }
+  .cl-card:hover { border-color: var(--border-strong); }
+  .cl-card-head { transition: background .14s ease; }
+  .cl-card-head:hover { background: color-mix(in srgb, var(--surface-2) 45%, transparent); }
   .cl-card-head {
     display: grid;
     grid-template-columns: 44px minmax(0, 1fr) auto;
@@ -342,7 +397,7 @@ const CLIENTS_CSS = `
   }
   .cl-card-avatar img { width: 100%; height: 100%; object-fit: cover; }
   .cl-card-meta { min-width: 0; }
-  .cl-card-name { margin: 0; font-size: 14px; font-weight: 600; color: var(--text); }
+  .cl-card-name { margin: 0; font-size: 14px; font-weight: 500; color: var(--text); letter-spacing: var(--ls-body, .017em); }
   .cl-card-sub { margin: 2px 0 0; font-size: 12px; color: var(--text-muted); line-height: 1.45; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .cl-card-stats {
     display: flex; flex-direction: column; align-items: flex-end; gap: 2px;
