@@ -198,6 +198,34 @@ export default function LoginPage() {
     if (oauthError) { setError(mapAuthError(oauthError.message)); setOauthLoading(false) }
   }
 
+  // Single Sign-On via SAML. Resolves the IdP from the user's work-email
+  // domain. If none is configured for that domain, we surface a calm hint
+  // rather than a raw error.
+  async function handleSSO() {
+    setError('')
+    const raw = (email.trim() || (typeof window !== 'undefined' ? window.prompt('Arbeits-E-Mail für Single Sign-On:') : '') || '').trim()
+    if (!raw) { setError('Bitte gib deine Arbeits-E-Mail an, um SSO zu nutzen.'); return }
+    const domain = raw.includes('@') ? raw.split('@')[1] : raw
+    if (!domain || !domain.includes('.')) { setError('Bitte gib eine gültige Arbeits-Domain für SSO an.'); return }
+    saveMethod('sso')
+    setOauthLoading(true)
+    try {
+      const { data, error: ssoError } = await (supabase.auth as any).signInWithSSO({
+        domain,
+        options: { redirectTo: `${window.location.origin}/auth/callback?next=/dashboard` },
+      })
+      if (ssoError || !data?.url) {
+        setError('Für diese Domain ist noch kein SSO eingerichtet. Nutze Google oder E-Mail.')
+        setOauthLoading(false)
+        return
+      }
+      window.location.href = data.url
+    } catch {
+      setError('SSO ist gerade nicht verfügbar. Nutze Google oder E-Mail.')
+      setOauthLoading(false)
+    }
+  }
+
   async function sendMagicLink(): Promise<boolean> {
     const { error: otpError } = await supabase.auth.signInWithOtp({
       email: email.trim(),
@@ -323,6 +351,12 @@ export default function LoginPage() {
           E-Mail verwenden
         </button>
         {lastMethod === 'email' && <p className="log-hint">Du hast dich zuletzt damit angemeldet</p>}
+      </div>
+      <div className="log-btn-group">
+        <button className="log-btn log-btn-outline" type="button" onClick={handleSSO} disabled={oauthLoading}>
+          Single Sign-On (SSO)
+        </button>
+        {lastMethod === 'sso' && <p className="log-hint">Du hast dich zuletzt damit angemeldet</p>}
       </div>
     </div>
   )
