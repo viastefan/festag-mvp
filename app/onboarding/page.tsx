@@ -343,7 +343,12 @@ export default function OnboardingPage() {
       if (!ok) return
       if (isLast) {
         setDone(true)
-        setTimeout(() => router.replace('/dashboard?tour=1'), 900)
+        // Land on the workspace-home slug (canonical URL), fall back to
+        // /dashboard if no slug was set.
+        const target = wsSlug.trim()
+          ? `/${slugify(wsSlug.trim())}?tour=1`
+          : '/dashboard?tour=1'
+        setTimeout(() => router.replace(target), 900)
       } else {
         transition(+1)
       }
