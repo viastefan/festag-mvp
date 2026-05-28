@@ -1200,6 +1200,52 @@ export default function DashboardPage() {
           letter-spacing: var(--ls-body, .017em);
         }
 
+        .dc-history-link {
+          margin-top: 18px;
+          font-size: 12.5px; color: var(--dc-muted);
+          text-decoration: none; letter-spacing: var(--ls-body, .017em);
+          transition: color .15s ease;
+          align-self: flex-start;
+        }
+        .dc-history-link:hover { color: var(--text); }
+
+        /* Scope selector — which project the briefing covers. */
+        .dc-scope2 { position: relative; }
+        .dc-scope2-trigger {
+          display: flex; align-items: center; gap: 8px;
+          width: 100%; height: 34px; padding: 0 12px;
+          border: 1px solid color-mix(in srgb, var(--border) 55%, transparent);
+          border-radius: 10px;
+          background: color-mix(in srgb, var(--surface-2) 28%, transparent);
+          color: var(--text);
+          font: inherit; font-size: 12.5px; font-weight: 500; letter-spacing: var(--ls-body, .017em);
+          cursor: pointer;
+          transition: background .18s ease, border-color .18s ease;
+        }
+        .dc-scope2-trigger:hover { background: color-mix(in srgb, var(--surface-2) 45%, transparent); }
+        .dc-scope2-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+        .dc-scope2-label { flex: 1; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .dc-scope2-backdrop { position: fixed; inset: 0; z-index: 30; }
+        .dc-scope2-menu {
+          position: absolute; left: 0; right: 0; top: calc(100% + 6px); z-index: 31;
+          max-height: 280px; overflow-y: auto;
+          padding: 5px; border-radius: 12px;
+          background: var(--card); border: 1px solid var(--border);
+          box-shadow: 0 18px 44px -18px rgba(0,0,0,.5);
+          display: flex; flex-direction: column; gap: 1px;
+        }
+        .dc-scope2-opt {
+          display: flex; align-items: center; gap: 9px;
+          padding: 8px 9px; border: 0; background: transparent;
+          border-radius: 8px; cursor: pointer; text-align: left;
+          color: var(--text); font: inherit; font-size: 12.5px;
+        }
+        .dc-scope2-opt:hover { background: var(--surface-2); }
+        .dc-scope2-opt > span:nth-child(2) { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+        .dc-scope2-opt strong { font-weight: 500; letter-spacing: var(--ls-body, .017em); }
+        .dc-scope2-opt small { color: var(--dc-muted); font-size: 11px; }
+        .dc-scope2-opt svg { color: var(--dc-soft); }
+
         /* Period segmented control — rounded-rect segments, crisp + even. */
         .dc-period {
           display: grid;
@@ -2292,6 +2338,8 @@ export default function DashboardPage() {
                 <span>Tagro prüft deine Projekte und bereitet den aktuellen Status vor.</span>
               </div>
             )}
+
+            <a href="/reports" className="dc-history-link">Alle Statusberichte ansehen →</a>
           </main>
 
           {/* ── RIGHT: Audio Briefing card ── */}
@@ -2300,6 +2348,49 @@ export default function DashboardPage() {
               <h2 className="dc-card-title">Audio Briefing</h2>
               <p className="dc-card-sub">Dein täglicher Überblick.</p>
             </header>
+
+            {/* Scope — which project this briefing covers. Defaults to the
+                overall report; lets you pick a single project too. */}
+            <div className="dc-scope2">
+              <button
+                type="button"
+                className="dc-scope2-trigger"
+                onClick={() => setScopeOpen((o) => !o)}
+                aria-haspopup="listbox"
+                aria-expanded={scopeOpen}
+              >
+                <span className="dc-scope2-dot" style={{ background: selectedProject ? ((selectedProject as any).color || 'var(--dc-muted)') : 'var(--dc-soft)' }} />
+                <span className="dc-scope2-label">{isOverall ? 'Gesamtbericht' : (selectedProject?.title ?? 'Projekt wählen')}</span>
+                <CaretDown size={11} weight="bold" />
+              </button>
+              {scopeOpen && (
+                <>
+                  <div className="dc-scope2-backdrop" onClick={() => setScopeOpen(false)} />
+                  <div className="dc-scope2-menu" role="listbox">
+                    <button
+                      type="button" role="option" aria-selected={isOverall}
+                      className={`dc-scope2-opt${isOverall ? ' on' : ''}`}
+                      onClick={() => { setScope('overall'); setScopeOpen(false) }}
+                    >
+                      <span className="dc-scope2-dot" style={{ background: 'var(--dc-soft)' }} />
+                      <span><strong>Gesamtbericht</strong><small>Alle aktiven Projekte zusammengefasst</small></span>
+                      {isOverall && <Check size={12} weight="bold" />}
+                    </button>
+                    {activeProjects.map((p) => (
+                      <button
+                        key={p.id} type="button" role="option" aria-selected={scope === p.id}
+                        className={`dc-scope2-opt${scope === p.id ? ' on' : ''}`}
+                        onClick={() => { setScope(p.id); setScopeOpen(false) }}
+                      >
+                        <span className="dc-scope2-dot" style={{ background: (p as any).color || 'var(--dc-muted)' }} />
+                        <span><strong>{p.title}</strong></span>
+                        {scope === p.id && <Check size={12} weight="bold" />}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
 
             <nav className="dc-period" aria-label="Zeitraum">
               {([

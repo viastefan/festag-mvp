@@ -12,6 +12,7 @@ import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { Plus, ArrowRight, UsersThree } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
+import Modal, { ModalButton } from '@/components/Modal'
 
 type WorkspaceMode = 'delivery' | 'team' | 'agency'
 
@@ -247,29 +248,31 @@ function ClientComposer({ workspaceId, onClose, onCreated }: { workspaceId: stri
   }
 
   return (
-    <div className="cl-modal-backdrop" onMouseDown={onClose}>
-      <div className="cl-modal" onMouseDown={e => e.stopPropagation()} role="dialog" aria-modal="true">
-        <p className="cl-kicker">Neuer Kunde</p>
-        <h3 className="cl-modal-title">Kunde anlegen</h3>
-
-        <label className="cl-field"><span>Name</span><input className="cl-input" value={name} onChange={e => setName(e.target.value)} placeholder="z. B. Müller GmbH" /></label>
-        <label className="cl-field"><span>Branche</span><input className="cl-input" value={industry} onChange={e => setIndustry(e.target.value)} placeholder="z. B. Immobilien" /></label>
-        <div className="cl-grid">
-          <label className="cl-field"><span>Hauptkontakt</span><input className="cl-input" value={contactName} onChange={e => setContactName(e.target.value)} placeholder="Name" /></label>
-          <label className="cl-field"><span>Kontakt-E-Mail</span><input className="cl-input" type="email" value={contactEmail} onChange={e => setContactEmail(e.target.value)} placeholder="name@firma.com" /></label>
-        </div>
-        <label className="cl-field"><span>Brand-Farbe (Hex)</span><input className="cl-input" value={brandColor} onChange={e => setBrandColor(e.target.value)} placeholder="#0E0F0F (optional)" /></label>
-
-        {error && <p className="cl-error">{error}</p>}
-
-        <div className="cl-modal-actions">
-          <button type="button" className="cl-btn" onClick={onClose}>Abbrechen</button>
-          <button type="button" className="cl-btn cl-btn-primary" onClick={save} disabled={saving}>
-            {saving ? 'Speichere…' : 'Kunden anlegen'}
-          </button>
-        </div>
+    <Modal
+      open
+      onClose={onClose}
+      size="md"
+      title="Kunde anlegen"
+      subtitle="Bündle Projekte unter einer Kunden-Identität."
+      footer={
+        <>
+          <ModalButton variant="secondary" onClick={onClose}>Abbrechen</ModalButton>
+          <ModalButton variant="primary" onClick={save} loading={saving} disabled={!name.trim()}>
+            Kunde anlegen
+          </ModalButton>
+        </>
+      }
+    >
+      <label className="cl-field"><span>Name</span><input className="cl-input" value={name} onChange={e => setName(e.target.value)} placeholder="z. B. Müller GmbH" autoFocus /></label>
+      <label className="cl-field"><span>Branche</span><input className="cl-input" value={industry} onChange={e => setIndustry(e.target.value)} placeholder="z. B. Immobilien" /></label>
+      <div className="cl-grid">
+        <label className="cl-field"><span>Hauptkontakt</span><input className="cl-input" value={contactName} onChange={e => setContactName(e.target.value)} placeholder="Name" /></label>
+        <label className="cl-field"><span>Kontakt-E-Mail</span><input className="cl-input" type="email" value={contactEmail} onChange={e => setContactEmail(e.target.value)} placeholder="name@firma.com" /></label>
       </div>
-    </div>
+      <label className="cl-field"><span>Brand-Farbe (Hex)</span><input className="cl-input" value={brandColor} onChange={e => setBrandColor(e.target.value)} placeholder="#5B647D (optional)" /></label>
+
+      {error && <p className="cl-error">{error}</p>}
+    </Modal>
   )
 }
 

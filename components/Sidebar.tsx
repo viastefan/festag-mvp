@@ -102,10 +102,10 @@ const HELP_NEWS_ITEMS = [
 ]
 const CLIENT_CORE: NavItem[] = [
   { href:'/projects', icon:'project', label:'Projekte' },
-  { href:'/reports', icon:'activity', label:'Statusberichte' },
   { href:'/tasks', icon:'task', label:'Tasks' },
   { href:'/decisions', icon:'scales', label:'Entscheidungen' },
-  { href:'/observers', icon:'team', label:'Mitwirkende' },
+  // Statusberichte live now under Statusabfrage (dashboard) → full history;
+  // no separate sidebar entry. Mitwirkende moved into the "Mehr" popover.
 ]
 const CLIENT_TEAMS: NavItem[] = [
   { href:'/teams/projects', icon:'project', label:'Projekte' },
@@ -251,7 +251,15 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
   // is unchanged until the user touches the modal.
   const [sidebarPrefs, setSidebarPrefs] = useState<SidebarPrefs>(() => loadPrefs())
   const [moreOpen, setMoreOpen] = useState(false)
+  const [morePos, setMorePos] = useState<{ left: number; top: number }>({ left: 0, top: 0 })
+  const moreTriggerRef = useRef<HTMLButtonElement>(null)
   const [customizeOpen, setCustomizeOpen] = useState(false)
+
+  function openMore() {
+    const r = moreTriggerRef.current?.getBoundingClientRect()
+    if (r) setMorePos({ left: r.left, top: r.bottom + 6 })
+    setMoreOpen((v) => !v)
+  }
   const [colorPickId, setColorPickId] = useState<string|null>(null)
   const [monitoringDock, setMonitoringDock] = useState<MonitoringDockState>({
     loaded: false,
@@ -1146,12 +1154,13 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         }
         .sb-more-label { flex: 1; text-align: left; }
         .sb-more-backdrop {
-          position: fixed; inset: 0; z-index: 1100;
+          position: fixed; inset: 0; z-index: 120000;
           background: transparent;
         }
         .sb-more-pop {
-          position: absolute; left: 8px; top: 32px;
-          width: 232px; z-index: 1110;
+          /* position:fixed + coords are set inline so the menu escapes the
+             scroll container and never gets clipped. */
+          width: 232px; z-index: 121000;
           padding: 6px;
           border-radius: 12px;
           border: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
@@ -1512,9 +1521,10 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
                 {workspaceExp && (
                   <div className="sb-more-wrap">
                     <button
+                      ref={moreTriggerRef}
                       type="button"
                       className="sb-more-trigger"
-                      onClick={() => setMoreOpen((v) => !v)}
+                      onClick={openMore}
                       aria-haspopup="menu"
                       aria-expanded={moreOpen}
                     >
@@ -1524,7 +1534,32 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
                     {moreOpen && (
                       <>
                         <div className="sb-more-backdrop" onClick={() => setMoreOpen(false)} />
-                        <div className="sb-more-pop" role="menu" aria-label="Mehr">
+                        <div
+                          className="sb-more-pop"
+                          role="menu"
+                          aria-label="Mehr"
+                          style={{ position: 'fixed', left: morePos.left, top: morePos.top }}
+                        >
+                          {/* Kunden — agency-mode client management. Always present. */}
+                          <Link
+                            href="/clients"
+                            role="menuitem"
+                            className="sb-more-item"
+                            onClick={() => setMoreOpen(false)}
+                          >
+                            <Ico name="team" sz={14} c="currentColor" weight="regular" />
+                            <span>Kunden</span>
+                          </Link>
+                          {/* Mitwirkende — separate from clients: invite contributors. */}
+                          <Link
+                            href="/observers"
+                            role="menuitem"
+                            className="sb-more-item"
+                            onClick={() => setMoreOpen(false)}
+                          >
+                            <UsersThree size={14} />
+                            <span>Mitwirkende</span>
+                          </Link>
                           {moreItems.map((item) => {
                             const Icon = ICONS[item.icon] ?? FolderSimple
                             return (
@@ -1540,7 +1575,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
                               </Link>
                             )
                           })}
-                          {moreItems.length > 0 && <div className="sb-more-divider" />}
+                          <div className="sb-more-divider" />
                           <button
                             type="button"
                             role="menuitem"
