@@ -89,6 +89,15 @@ export default function LoginPage() {
   const codeRef = useRef<HTMLInputElement>(null)
   const emailView = emailStep !== 'main'
 
+  // Invite passthrough: when the user arrived via festag.app/invite/<token>,
+  // carry the token so post-auth lands back on the join screen instead of the
+  // dashboard. Read fresh in handlers (client-only).
+  const inviteToken =
+    typeof window !== 'undefined'
+      ? new URLSearchParams(window.location.search).get('invite')
+      : null
+  const postAuthNext = inviteToken ? `/invite/${inviteToken}` : '/dashboard'
+
   function navigateWithFade(href: string) {
     router.prefetch(href)
     setPageExiting(true)
@@ -109,7 +118,7 @@ export default function LoginPage() {
       method: lastMethod ?? inferSessionMethod(session.user),
       onboardingCompleted: target === '/dashboard',
     })
-    window.location.href = target
+    window.location.href = inviteToken ? `/invite/${inviteToken}` : target
     return true
   }
 
@@ -193,7 +202,7 @@ export default function LoginPage() {
     setOauthLoading(true)
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/auth/callback?next=/dashboard` },
+      options: { redirectTo: `${window.location.origin}/auth/callback?next=${postAuthNext}` },
     })
     if (oauthError) { setError(mapAuthError(oauthError.message)); setOauthLoading(false) }
   }
@@ -212,7 +221,7 @@ export default function LoginPage() {
     try {
       const { data, error: ssoError } = await (supabase.auth as any).signInWithSSO({
         domain,
-        options: { redirectTo: `${window.location.origin}/auth/callback?next=/dashboard` },
+        options: { redirectTo: `${window.location.origin}/auth/callback?next=${postAuthNext}` },
       })
       if (ssoError || !data?.url) {
         setError('Für diese Domain ist noch kein SSO eingerichtet. Nutze Google oder E-Mail.')
@@ -230,7 +239,7 @@ export default function LoginPage() {
     const { error: otpError } = await supabase.auth.signInWithOtp({
       email: email.trim(),
       options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
+        emailRedirectTo: `${window.location.origin}/auth/callback?next=${postAuthNext}`,
         shouldCreateUser: false,
       },
     })
@@ -284,7 +293,7 @@ export default function LoginPage() {
     } else {
       try { localStorage.setItem('festag_last_email', email.trim()) } catch {}
     }
-    window.location.href = target
+    window.location.href = inviteToken ? `/invite/${inviteToken}` : target
   }
 
   function openSupportModal() {

@@ -126,6 +126,20 @@ function CallbackInner() {
         }
       } catch { /* best-effort */ }
 
+      // Invite passthrough — when the auth flow originated from an invite link
+      // (next=/invite/<token>), honor it directly. The join screen wires the
+      // shared project and routes onward; never force onboarding ahead of it.
+      if (next.startsWith('/invite/')) {
+        rememberFestagAccount({
+          userId: user.id,
+          email: user.email ?? null,
+          method: inferMethod(user),
+          onboardingCompleted: false,
+        })
+        router.replace(next)
+        return
+      }
+
       // `next` carries the intent of the form the user just submitted:
       //   /login          → next=/dashboard (client portal)
       //   /dev/login      → next=/dev (developer portal — role-checked)

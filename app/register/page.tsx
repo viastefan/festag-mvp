@@ -115,6 +115,14 @@ export default function RegisterPage() {
     return () => clearInterval(t)
   }, [resendCooldown])
 
+  // Invite passthrough — carry festag.app/invite/<token> through signup so the
+  // new account lands back on the join screen (project pre-assigned there).
+  const inviteToken =
+    typeof window !== 'undefined'
+      ? new URLSearchParams(window.location.search).get('invite')
+      : null
+  const postAuthNext = inviteToken ? `/invite/${inviteToken}` : '/onboarding'
+
   function goTo(step: EmailStep) {
     setError('')
     setAnimating(true)
@@ -132,7 +140,7 @@ export default function RegisterPage() {
     setOauthLoading(true)
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/auth/callback?next=/onboarding` },
+      options: { redirectTo: `${window.location.origin}/auth/callback?next=${postAuthNext}` },
     })
     if (oauthError) { setError(mapAuthError(oauthError.message)); setOauthLoading(false) }
   }
@@ -141,7 +149,7 @@ export default function RegisterPage() {
     const { error: otpError } = await supabase.auth.signInWithOtp({
       email: email.trim(),
       options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback?next=/onboarding`,
+        emailRedirectTo: `${window.location.origin}/auth/callback?next=${postAuthNext}`,
         shouldCreateUser: true,
       },
     })
@@ -189,7 +197,9 @@ export default function RegisterPage() {
     }
     // /register is always client-side. Even if the email is mapped to an
     // admin/dev role, the new sign-up always begins in the client workspace.
-    const target = session ? await resolvePostAuthTarget(supabase, session.user.id, '/dashboard') : '/onboarding'
+    const target = inviteToken
+      ? `/invite/${inviteToken}`
+      : (session ? await resolvePostAuthTarget(supabase, session.user.id, '/dashboard') : '/onboarding')
     try {
       if (session) {
         rememberFestagAccount({

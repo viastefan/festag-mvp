@@ -11,8 +11,10 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { LinkSimple } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 import { effectiveRole, isDevOrAdmin } from '@/lib/role'
+import InviteLinkModal from '@/components/InviteLinkModal'
 
 type WorkspaceMode = 'delivery' | 'team' | 'agency' | null
 
@@ -64,6 +66,8 @@ export default function InvitePage() {
   const [sending, setSending] = useState(false)
   const [sent, setSent] = useState(false)
   const [error, setError] = useState('')
+  const [linkOpen, setLinkOpen] = useState(false)
+  const [projects, setProjects] = useState<Array<{ id: string; title: string; color?: string | null }>>([])
 
   useEffect(() => {
     let cancelled = false
@@ -75,13 +79,21 @@ export default function InvitePage() {
       // Profile role (legacy) + workspace primary mode (modular)
       const [{ data: profile }, { data: ws }] = await Promise.all([
         sb.from('profiles').select('role').eq('id', uid).maybeSingle(),
-        sb.from('workspaces').select('mode').eq('primary_owner_id', uid).eq('is_personal', true).maybeSingle(),
+        sb.from('workspaces').select('id,mode').eq('primary_owner_id', uid).eq('is_personal', true).maybeSingle(),
       ])
       if (cancelled) return
       const r = (profile as any)?.role ?? 'client'
       setUserRole(r)
       const mode = ((ws as any)?.mode as WorkspaceMode) ?? 'delivery'
       setWsMode(mode)
+
+      // Projects this person can assign an invite to (own + workspace).
+      const wsId = (ws as any)?.id ?? null
+      const projQuery = wsId
+        ? sb.from('projects').select('id,title,color').eq('workspace_id', wsId).is('deleted_at', null)
+        : sb.from('projects').select('id,title,color').eq('user_id', uid).is('deleted_at', null)
+      const { data: ps } = await projQuery
+      if (!cancelled && ps) setProjects(ps as any)
       setRole(
         mode === 'team'   ? TEAM_DEFAULT_ROLE
         : mode === 'agency' ? AGENCY_DEFAULT_ROLE
@@ -156,6 +168,27 @@ export default function InvitePage() {
               : 'Lade interne Stakeholder ein — Approver, Finance oder Lesezugriff. Festag liefert wie gewohnt.'}
         </p>
       </header>
+
+      <div className="inv-linkcta">
+        <div className="inv-linkcta-text">
+          <p className="inv-linkcta-title">Schneller: per Link einladen</p>
+          <p className="inv-linkcta-sub">
+            Erstelle einen Beitritts-Link und teile ihn selbst — kein PIN, keine Pflicht-Mail.
+            Die Person erstellt ihr eigenes Konto und das gewählte Projekt ist sofort sichtbar.
+          </p>
+        </div>
+        <button type="button" className="inv-btn-primary" onClick={() => setLinkOpen(true)}>
+          <LinkSimple size={14} /> Einladungslink erstellen
+        </button>
+      </div>
+
+      <InviteLinkModal
+        open={linkOpen}
+        onClose={() => setLinkOpen(false)}
+        allowClient={wsMode === 'agency'}
+        defaultKind={isStaff ? 'contributor' : (wsMode === 'agency' ? 'client' : 'contributor')}
+        projects={projects}
+      />
 
       {sent ? (
         <section className="inv-card inv-sent">
@@ -291,6 +324,20 @@ const INVITE_CSS = `
     line-height: 1.6;
     color: var(--text-secondary);
   }
+
+  .inv-linkcta {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 18px; flex-wrap: wrap;
+    margin-bottom: 22px;
+    padding: 16px 18px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+  }
+  .inv-linkcta-text { min-width: 0; flex: 1; }
+  .inv-linkcta-title { margin: 0 0 3px; font-size: 13.5px; font-weight: 600; color: var(--text); }
+  .inv-linkcta-sub { margin: 0; font-size: 12.5px; line-height: 1.55; color: var(--text-muted); max-width: 460px; }
+  .inv-linkcta .inv-btn-primary { flex-shrink: 0; display: inline-flex; align-items: center; gap: 6px; }
 
   .inv-card {
     display: grid;
