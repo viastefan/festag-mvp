@@ -18,7 +18,7 @@ import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'rea
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import {
-  ArrowsClockwise, ChatCircleText, CheckCircle, Clock, FunnelSimple,
+  ArrowsClockwise, ChatCircleText, Check, CheckCircle, Clock, FunnelSimple,
   Sparkle, Warning, X,
 } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
@@ -185,6 +185,8 @@ function DecisionsPageInner() {
   const [projects, setProjects] = useState<Record<string, ProjectLite>>({})
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<Filter>('open')
+  const [projectScope, setProjectScope] = useState<string>('all')
+  const [scopeMenuOpen, setScopeMenuOpen] = useState(false)
   const [openId, setOpenId] = useState<string | null>(searchParams?.get('open') || null)
   const [me, setMe] = useState<string>('')
 
@@ -211,6 +213,8 @@ function DecisionsPageInner() {
         const map: Record<string, ProjectLite> = {}
         for (const p of (projs as ProjectLite[]) ?? []) map[p.id] = p
         setProjects(map)
+      } else {
+        setProjects({})
       }
     } catch {
       // Never let a transient fetch/parse error take down the page —
@@ -240,8 +244,26 @@ function DecisionsPageInner() {
     return () => { (supabase as any).removeChannel(ch) }
   }, [supabase, me])
 
+  const projectList = useMemo(
+    () => Object.values(projects).sort((a, b) => a.title.localeCompare(b.title, 'de')),
+    [projects]
+  )
+  const scopedProject = projectScope === 'all' ? null : projects[projectScope] ?? null
+  const scopeLabel = scopedProject?.title ?? 'Alle Projekte'
+  const hasProjects = projectList.length > 0
+
+  useEffect(() => {
+    if (projectScope === 'all') return
+    if (!projects[projectScope]) setProjectScope('all')
+  }, [projectScope, projects])
+
+  const scopedDecisions = useMemo(() => {
+    if (projectScope === 'all') return decisions
+    return decisions.filter(d => d.project_id === projectScope)
+  }, [decisions, projectScope])
+
   const filtered = useMemo(() => {
-    let xs = decisions
+    let xs = scopedDecisions
     if (filter === 'open')    xs = xs.filter(d => OPEN_STATES.has(d.status))
     if (filter === 'urgent')  xs = xs.filter(d => OPEN_STATES.has(d.status) && (d.urgency === 'high' || d.urgency === 'critical'))
     if (filter === 'decided') xs = xs.filter(d => d.status === 'decided')
@@ -261,13 +283,13 @@ function DecisionsPageInner() {
       if (aDue !== bDue) return aDue - bDue
       return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     })
-  }, [decisions, filter])
+  }, [filter, scopedDecisions])
 
   const counts = useMemo(() => ({
-    open: decisions.filter(d => OPEN_STATES.has(d.status)).length,
-    urgent: decisions.filter(d => OPEN_STATES.has(d.status) && (d.urgency === 'high' || d.urgency === 'critical')).length,
-    decided: decisions.filter(d => d.status === 'decided').length,
-  }), [decisions])
+    open: scopedDecisions.filter(d => OPEN_STATES.has(d.status)).length,
+    urgent: scopedDecisions.filter(d => OPEN_STATES.has(d.status) && (d.urgency === 'high' || d.urgency === 'critical')).length,
+    decided: scopedDecisions.filter(d => d.status === 'decided').length,
+  }), [scopedDecisions])
 
   const openDecision = openId ? decisions.find(d => d.id === openId) ?? null : null
 
@@ -283,9 +305,75 @@ function DecisionsPageInner() {
         <div className="dec-top">
           <div className="dec-top-left">
             <h1 className="dec-title">Entscheidungen</h1>
-            <span className="dec-count-pill">
-              {loading ? '…' : `${counts.open} offen${counts.urgent > 0 ? ` · ${counts.urgent} dringend` : ''}`}
-            </span>
+            {hasProjects && (
+              <div className="dec-scope">
+                <button
+                  type="button"
+                  className="dec-scope-trigger"
+                  aria-haspopup="listbox"
+                  aria-expanded={scopeMenuOpen}
+                  onClick={() => setScopeMenuOpen(open => !open)}
+                >
+                  <span>{scopeLabel}</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </button>
+                {scopeMenuOpen && (
+                  <>
+                    <button
+                      type="button"
+                      className="dec-scope-backdrop"
+                      aria-hidden="true"
+                      onClick={() => setScopeMenuOpen(false)}
+                    />
+                    <div className="dec-scope-menu" role="listbox" aria-label="Projektfilter">
+                      <button
+                        type="button"
+                        role="option"
+                        aria-selected={projectScope === 'all'}
+                        className={`dec-scope-opt${projectScope === 'all' ? ' on' : ''}`}
+                        onClick={() => {
+                          setProjectScope('all')
+                          setScopeMenuOpen(false)
+                        }}
+                      >
+                        <span className="dec-scope-dot" />
+                        <span className="dec-scope-main">
+                          <strong>Alle Projekte</strong>
+                          <small>{decisions.length} Entscheidung{decisions.length === 1 ? '' : 'en'} insgesamt</small>
+                        </span>
+                        {projectScope === 'all' ? <Check size={12} weight="bold" /> : null}
+                      </button>
+                      <div className="dec-scope-divider" />
+                      {projectList.map(project => {
+                        const decisionCount = decisions.filter(d => d.project_id === project.id).length
+                        return (
+                          <button
+                            key={project.id}
+                            type="button"
+                            role="option"
+                            aria-selected={projectScope === project.id}
+                            className={`dec-scope-opt${projectScope === project.id ? ' on' : ''}`}
+                            onClick={() => {
+                              setProjectScope(project.id)
+                              setScopeMenuOpen(false)
+                            }}
+                          >
+                            <span className="dec-scope-dot" style={{ background: project.color || 'var(--text-muted)' }} />
+                            <span className="dec-scope-main">
+                              <strong>{project.title}</strong>
+                              <small>{decisionCount} Entscheidung{decisionCount === 1 ? '' : 'en'}</small>
+                            </span>
+                            {projectScope === project.id ? <Check size={12} weight="bold" /> : null}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
           </div>
           <button className="dec-ghost" type="button" onClick={load} disabled={loading}>
             <ArrowsClockwise size={11} className={loading ? 'dec-spin' : ''} />
@@ -912,11 +1000,80 @@ const CSS = `
   }
   .dec-top-left { display:flex; align-items:center; gap:10px; min-width:0; }
   .dec-title { margin:0; font-size:14.5px; font-weight:500; color:var(--text); }
-  .dec-count-pill {
-    height:20px; padding:0 8px; border-radius:999px;
-    background:color-mix(in srgb, var(--surface-2) 50%, transparent);
-    color:var(--dec-soft); font-size:10.5px;
-    display:inline-flex; align-items:center;
+  .dec-scope { position:relative; min-width:0; }
+  .dec-scope-trigger {
+    display:inline-flex; align-items:center; gap:7px;
+    max-width:240px; height:28px; padding:0 11px 0 12px;
+    border-radius:999px;
+    border:1px solid color-mix(in srgb, var(--border) 70%, transparent);
+    background:color-mix(in srgb, var(--surface-2) 30%, transparent);
+    color:var(--text); font:inherit; font-size:12px; font-weight:500;
+    letter-spacing:.012em; cursor:pointer;
+    transition:background .12s, border-color .12s;
+  }
+  .dec-scope-trigger:hover {
+    background:color-mix(in srgb, var(--surface-2) 65%, transparent);
+    border-color:var(--border);
+  }
+  .dec-scope-trigger span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .dec-scope-trigger svg { color:var(--dec-soft); flex-shrink:0; }
+  .dec-scope-backdrop {
+    position:fixed; inset:0; z-index:14;
+    background:transparent; border:0; padding:0; cursor:default;
+  }
+  .dec-scope-menu {
+    position:absolute; top:calc(100% + 6px); left:0; z-index:15;
+    min-width:260px; max-width:320px; max-height:340px;
+    overflow-y:auto; padding:6px;
+    background:var(--card);
+    border:1px solid color-mix(in srgb, var(--border) 70%, transparent);
+    border-radius:12px;
+    box-shadow:0 1px 2px rgba(15,23,42,.06), 0 20px 50px rgba(15,23,42,.14);
+    display:flex; flex-direction:column; gap:2px;
+    animation:decScopeIn .14s cubic-bezier(.16,1,.3,1) both;
+  }
+  [data-theme="dark"] .dec-scope-menu,
+  [data-theme="classic-dark"] .dec-scope-menu,
+  [data-theme="read"] .dec-scope-menu {
+    background:color-mix(in srgb, var(--card) 95%, #fff 5%);
+    box-shadow:0 1px 2px rgba(0,0,0,.2), 0 20px 50px rgba(0,0,0,.34);
+  }
+  @keyframes decScopeIn {
+    from { opacity:0; transform:translateY(-4px) scale(.98); }
+    to { opacity:1; transform:translateY(0) scale(1); }
+  }
+  .dec-scope-opt {
+    display:grid; grid-template-columns:8px 1fr auto;
+    gap:10px; align-items:center;
+    width:100%; padding:10px 12px;
+    border:0; background:transparent; border-radius:12px !important;
+    color:var(--text); font:inherit; font-size:12.5px; font-weight:500;
+    letter-spacing:.012em; cursor:pointer; text-align:left;
+    transition:background .1s;
+  }
+  .dec-scope-opt:hover { background:color-mix(in srgb, var(--surface-2) 55%, transparent); }
+  .dec-scope-opt.on { background:color-mix(in srgb, var(--surface-2) 75%, transparent); }
+  .dec-scope-opt svg { color:var(--text); }
+  .dec-scope-dot {
+    width:8px; height:8px; border-radius:50%;
+    background:var(--dec-soft);
+  }
+  .dec-scope-main {
+    min-width:0; display:flex; flex-direction:column; gap:1px;
+  }
+  .dec-scope-main strong {
+    font-size:12.5px; font-weight:500;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+  .dec-scope-main small {
+    font-size:10.5px; color:var(--dec-soft); font-weight:500;
+    letter-spacing:.012em;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+  .dec-scope-divider {
+    height:1px;
+    background:color-mix(in srgb, var(--border) 60%, transparent);
+    margin:4px 6px;
   }
   .dec-ghost {
     display:inline-flex; align-items:center; gap:5px;
