@@ -31,7 +31,7 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: '#080909',
+  themeColor: '#07090b',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
@@ -65,7 +65,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   if (t !== 'light' && t !== 'dark' && t !== 'read') t = 'dark';
   var attr = (t === 'read') ? 'read' : t;
   document.documentElement.setAttribute('data-theme', attr);
-  var bg = t === 'dark' ? '#080909' : t === 'read' ? '#F7F4EC' : '#F6F9FC';
+  var bg = t === 'dark' ? '#07090b' : t === 'read' ? '#F7F4EC' : '#F6F9FC';
   document.documentElement.style.backgroundColor = bg;
   document.documentElement.style.colorScheme = (t === 'dark') ? 'dark' : 'light';
   var lang = localStorage.getItem('festag_language');
@@ -80,10 +80,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           /* Force scrollbar track always visible so content width never jumps
              when navigating between pages of different scroll height. */
           html { overflow-y: scroll; }
-          html[data-theme="dark"]  { background:#080909; color-scheme:dark; }
+          html[data-theme="dark"]  { background:#07090b; color-scheme:dark; }
           html[data-theme="read"]  { background:#F7F4EC; color-scheme:light; }
           html[data-theme="light"] { background:#F6F9FC; color-scheme:light; }
-          html[data-theme="dark"]  body { background:#080909; }
+          html[data-theme="dark"]  body { background:#07090b; }
           html[data-theme="read"]  body { background:#F7F4EC; }
           html[data-theme="light"] body { background:#F6F9FC; }
         `}} />

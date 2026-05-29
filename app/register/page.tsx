@@ -27,7 +27,7 @@ function getInitialAuthTheme(): Theme {
 function applyAuthThemeToDocument(t: Theme) {
   if (typeof document === 'undefined') return
   document.documentElement.setAttribute('data-theme', t)
-  document.documentElement.style.backgroundColor = t === 'dark' ? '#0F141B' : '#fcfcfd'
+  document.documentElement.style.backgroundColor = t === 'dark' ? '#07090b' : '#fcfcfd'
   document.documentElement.style.colorScheme = t
 }
 
@@ -416,8 +416,8 @@ export default function RegisterPage() {
         .reg-root[data-theme="dark"] .reg-dev-divider { color:#5b647d; }
         .reg-root[data-theme="dark"] .reg-dev-divider::before,
         .reg-root[data-theme="dark"] .reg-dev-divider::after { background:rgba(255,255,255,0.06); }
-        .reg-root[data-theme="dark"] .reg-btn-github { background:rgba(243,245,247,0.035); color:#E8E8E5; border:0.7px solid rgba(243,245,247,0.08); box-shadow:none; }
-        .reg-root[data-theme="dark"] .reg-btn-github:hover:not(:disabled) { background:rgba(243,245,247,0.06); border-color:rgba(243,245,247,0.14); }
+        .reg-root[data-theme="dark"] .reg-btn-github { background:#111720; color:#e8ebf1; border:1px solid rgba(210,225,255,0.085); box-shadow:none; }
+        .reg-root[data-theme="dark"] .reg-btn-github:hover:not(:disabled) { background:#171e28; border-color:rgba(210,225,255,0.13); }
         .reg-btn-outline { background:#fff; color:#202532; border:0.7px solid #e7ebf0; box-shadow:0px 1px 2px 0px rgba(15,23,42,0.03); }
         .reg-btn-outline:hover:not(:disabled) { background:#F7F8FB; border:1px solid #DCE1EA; }
         .reg-btn-confirm { background:#fff; color:#202532; border:0.7px solid #e7ebf0; box-shadow:0px 1px 2px 0px rgba(15,23,42,0.03); }
@@ -470,20 +470,21 @@ export default function RegisterPage() {
         @media (max-width: 640px) { .reg-desktop { display:none; } .reg-mobile { display:block; } }
 
         /* ═══ DARK MODE ═══ */
-        .reg-root[data-theme="dark"] .reg-desktop { background:#0F141B; }
-        .reg-root[data-theme="dark"] .reg-mobile  { background:#0A0D14; }
-        .reg-root[data-theme="dark"] .reg-mobile-card { background:#141820; border-color:rgba(255,255,255,0.09); box-shadow:0px 26px 80px rgba(0,0,0,0.55),0px 6px 22px rgba(0,0,0,0.34),0px 1px 0px rgba(255,255,255,0.04) inset; }
+        .reg-root[data-theme="dark"] .reg-desktop { background:#07090b; }
+        .reg-root[data-theme="dark"] .reg-mobile  { background:#07090b; }
+        .reg-root[data-theme="dark"] .reg-mobile-card { background:#10141a; border-color:rgba(210,225,255,0.09); box-shadow:0px 26px 80px rgba(0,0,0,0.55),0px 6px 22px rgba(0,0,0,0.34),0px 1px 0px rgba(255,255,255,0.04) inset; }
         .reg-root[data-theme="dark"] .reg-desktop-title,
         .reg-root[data-theme="dark"] .reg-mobile-title,
-        .reg-root[data-theme="dark"] .reg-mobile-title-email { color:#E8E8E5; }
-        .reg-root[data-theme="dark"] .reg-btn-google { box-shadow:none !important; }
-        .reg-root[data-theme="dark"] .reg-btn-outline { background:rgba(243,245,247,0.035); color:#E8E8E5; border:0.7px solid rgba(243,245,247,0.08); box-shadow:none; }
-        .reg-root[data-theme="dark"] .reg-btn-outline:hover:not(:disabled) { background:rgba(243,245,247,0.06); border:1px solid rgba(243,245,247,0.14); }
-        .reg-root[data-theme="dark"] .reg-btn-confirm { background:rgba(243,245,247,0.035); color:#E8E8E5; border:0.7px solid rgba(243,245,247,0.08); box-shadow:none; }
-        .reg-root[data-theme="dark"] .reg-btn-confirm:hover:not(:disabled) { background:rgba(243,245,247,0.06); border-color:rgba(243,245,247,0.14); }
-        .reg-root[data-theme="dark"] .reg-email-input { background:rgba(243,245,247,0.035); color:#E8E8E5; border:1px solid rgba(102,112,143,0.10); caret-color:#66708F; }
-        .reg-root[data-theme="dark"] .reg-email-input::placeholder { color:rgba(102,112,143,0.5); }
-        .reg-root[data-theme="dark"] .reg-email-input:focus { border-color:rgba(102,112,143,0.5); box-shadow:0 0 0 3px rgba(102,112,143,0.10); }
+        .reg-root[data-theme="dark"] .reg-mobile-title-email { color:#e8ebf1; }
+        .reg-root[data-theme="dark"] .reg-btn-google { background:#69748d; color:#f1f3f7; border:1px solid rgba(210,225,255,0.10); box-shadow:inset 0 1px 0 rgba(255,255,255,0.08), 0 2px 10px rgba(0,0,0,0.32) !important; }
+        .reg-root[data-theme="dark"] .reg-btn-google:hover:not(:disabled) { background:#727e98; transform:translateY(-1px); box-shadow:inset 0 1px 0 rgba(255,255,255,0.10), 0 8px 22px -6px rgba(0,0,0,0.5) !important; }
+        .reg-root[data-theme="dark"] .reg-btn-google:active:not(:disabled) { background:#5f697f; transform:translateY(0); }
+        .reg-root[data-theme="dark"] .reg-btn-outline, .reg-root[data-theme="dark"] .reg-btn-confirm { background:#111720; color:#e8ebf1; border:1px solid rgba(210,225,255,0.085); box-shadow:none; }
+        .reg-root[data-theme="dark"] .reg-btn-outline:hover:not(:disabled), .reg-root[data-theme="dark"] .reg-btn-confirm:hover:not(:disabled) { background:#171e28; border-color:rgba(210,225,255,0.13); transform:translateY(-1px); }
+        .reg-root[data-theme="dark"] .reg-btn-outline:active:not(:disabled), .reg-root[data-theme="dark"] .reg-btn-confirm:active:not(:disabled) { background:#1c2430; transform:translateY(0); }
+        .reg-root[data-theme="dark"] .reg-email-input { background:#111720; color:#e8ebf1; border:1px solid rgba(210,225,255,0.085); caret-color:#8e96ff; }
+        .reg-root[data-theme="dark"] .reg-email-input::placeholder { color:#606a77; }
+        .reg-root[data-theme="dark"] .reg-email-input:focus { border-color:rgba(142,150,255,0.45); box-shadow:0 0 0 3px rgba(142,150,255,0.12); }
         .reg-root[data-theme="dark"] .reg-legal-text, .reg-root[data-theme="dark"] .reg-legal-muted { color:#7B8294; }
         .reg-root[data-theme="dark"] .reg-legal-text a, .reg-root[data-theme="dark"] .reg-login-link a { color:#E8E8E5; }
         .reg-root[data-theme="dark"] .reg-login-link { color:#7B8294; }

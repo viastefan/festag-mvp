@@ -423,12 +423,12 @@ export default function MembersPage() {
 
 const CSS = `
 .ms {
-  --bg-app:#080909; --bg-sidebar:#050606; --bg-panel:#0d0e0f; --bg-panel-soft:#111214;
-  --bg-row:#111214; --bg-row-hover:#17181b; --bg-active:#1c1d21;
-  --border-subtle:rgba(255,255,255,.055); --border-soft:rgba(255,255,255,.085); --border-medium:rgba(255,255,255,.12);
-  --text-primary:#e6e7ea; --text-secondary:#a1a3a8; --text-muted:#74777d; --text-faint:#55585f;
-  --accent-primary:#8b8dff; --accent-primary-soft:rgba(139,141,255,.16);
-  --accent-blue:#4aa8ff; --accent-green:#2fc66d; --accent-warning:#d8a84f;
+  --bg-app:#07090b; --bg-sidebar:#07090b; --bg-panel:#10141a; --bg-panel-soft:#131922;
+  --bg-row:#10141a; --bg-row-hover:#171e28; --bg-active:#1c2430;
+  --border-subtle:rgba(210,225,255,.07); --border-soft:rgba(210,225,255,.11); --border-medium:rgba(210,225,255,.16);
+  --text-primary:#e8ebf1; --text-secondary:#a8b0bc; --text-muted:#7f8997; --text-faint:#606a77;
+  --accent-primary:#8e96ff; --accent-primary-soft:rgba(142,150,255,.16);
+  --accent-blue:#5ba8ff; --accent-green:#35c878; --accent-warning:#d5a655;
   --r-sm:8px; --r-md:12px; --r-lg:16px;
   --ease:cubic-bezier(.16,1,.3,1);
   --fast:140ms var(--ease); --base:220ms var(--ease);

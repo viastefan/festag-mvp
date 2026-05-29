@@ -96,48 +96,48 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --r:12px; --r-xs:8px; --r-sm:10px; --r-md:12px; --r-lg:12px; --r-xl:12px;
 }
 
-/* ── DARK — Festag graphite dark, global design system ──
-   Premium near-black graphite for operational visibility. Calm surfaces
-   that lift only a hair above the shell. Violet (#8b8dff) is a SUBTLE
-   accent only (focus ring, active nav, highlights) — never a coloured
-   button fill. Primary buttons are dark-elevated neutral surfaces. */
+/* ── DARK — Festag cool-graphite dark, global design system ──
+   Premium near-black graphite with a VERY restrained cool-blue undertone in
+   the neutrals + borders. Reads as graphite first, never visibly blue.
+   Violet (#8e96ff) is a SUBTLE accent only (focus ring, active nav,
+   highlights) — never a coloured button fill. Primary buttons are
+   dark-elevated cool-neutral surfaces. */
 [data-theme="dark"] {
-  --modal-backdrop:rgba(3,4,5,0.66);
+  --modal-backdrop:rgba(4,6,9,0.66);
   --modal-backdrop-blur:10px;
 
-  /* Core surfaces — existing names remapped to graphite so the whole app
-     adopts the system at once. */
-  --bg:#0a0b0c;               /* main workspace */
-  --surface:#0f1012;          /* primary canvas / cards */
-  --card:#0f1012;             /* cards / panels */
-  --surface-2:#15161a;        /* hover fills / denser controls / overlays */
-  --hover:#17181b;
-  --active:#1d1e23;
+  /* Core surfaces — cool graphite (subtle blue cast inside the neutrals). */
+  --bg:#0a0d11;               /* main workspace */
+  --surface:#10141a;          /* primary canvas / cards */
+  --card:#10141a;             /* cards / panels */
+  --surface-2:#131922;        /* hover fills / denser controls / overlays */
+  --hover:#171e28;
+  --active:#1c2430;
   --flat-control-bg:var(--surface);
 
-  --border:rgba(255,255,255,0.07);
-  --border-strong:rgba(255,255,255,0.16);
+  --border:rgba(210,225,255,0.075);
+  --border-strong:rgba(210,225,255,0.16);
 
-  --text:#e7e8eb;
-  --text-secondary:#a6a8ad;
-  --text-muted:#7b7e85;
+  --text:#e8ebf1;
+  --text-secondary:#a8b0bc;
+  --text-muted:#7f8997;
 
-  /* Buttons — dark elevated, never coloured. Hover lifts with a soft
-     accent glow (applied per-component). */
-  --btn-prim:#232429; --btn-prim-text:#e7e8eb;
-  --accent:#8b8dff; --accent-text:#ffffff;
+  /* Buttons — dark elevated cool-neutral, never coloured. Hover lifts with
+     a soft accent response (applied per-component). */
+  --btn-prim:#1c2430; --btn-prim-text:#e8ebf1;
+  --accent:#8e96ff; --accent-text:#ffffff;
 
-  --inp:#101114;
-  --inp-border:rgba(255,255,255,0.07);
-  --inp-focus:#131417;
-  --inp-focus-border:rgba(139,141,255,0.45);
-  --glow:rgba(139,141,255,0.10);
+  --inp:#111720;
+  --inp-border:rgba(210,225,255,0.085);
+  --inp-focus:#131922;
+  --inp-focus-border:rgba(142,150,255,0.45);
+  --glow:rgba(142,150,255,0.10);
 
-  --sidebar-bg:#060707;
-  --sidebar-border:rgba(255,255,255,0.06);
-  --nav-on:#1d1e23;
-  --nav-on-text:#e7e8eb;
-  --nav-off-text:#a6a8ad;
+  --sidebar-bg:#07090b;
+  --sidebar-border:rgba(210,225,255,0.06);
+  --nav-on:#1c2430;
+  --nav-on-text:#e8ebf1;
+  --nav-off-text:#a8b0bc;
 
   /* Green */
   --green:#35c878;
@@ -146,40 +146,39 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --green-dark:#2bb069;
 
   /* Amber */
-  --amber:#d6a64f;
-  --amber-bg:rgba(214,166,79,0.12);
-  --amber-dark:#bd9040;
+  --amber:#d5a655;
+  --amber-bg:rgba(213,166,85,0.12);
+  --amber-dark:#bb9047;
 
-  --red:#e06262;
-  --red-bg:rgba(224,98,98,0.12);
+  --red:#e06666;
+  --red-bg:rgba(224,102,102,0.12);
 
   --shadow-xs:0 1px 2px rgba(0,0,0,.34);
   --shadow-sm:0 2px 8px rgba(0,0,0,.40);
   --shadow:0 8px 28px rgba(0,0,0,.42);
   --shadow-lg:0 20px 80px rgba(0,0,0,.5);
   --content-shadow:0 1px 2px rgba(0,0,0,.30), 0 18px 46px -36px rgba(0,0,0,.62);
-  --focus-ring:rgba(139,141,255,0.32);
+  --focus-ring:rgba(142,150,255,0.32);
 
   --logo-filter:brightness(0) invert(1);
   --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
   --r:12px; --r-xs:8px; --r-sm:10px; --r-md:12px; --r-lg:14px; --r-xl:18px;
 
-  /* ── Graphite design-system tokens (spec names) — available app-wide so
-     new components can use them directly. ── */
-  --bg-app:#080909; --bg-shell:#050606; --bg-sidebar:#060707; --bg-main:#0a0b0c;
-  --surface-0:#0b0c0d; --surface-1:#0f1012; --surface-3:#18191d;
-  --surface-raised:#101114; --surface-overlay:#15161a;
-  --state-hover:#17181b; --state-active:#1d1e23; --state-selected:#202127; --state-pressed:#25262d;
-  --border-hairline:rgba(255,255,255,0.045); --border-subtle:rgba(255,255,255,0.07); --border-medium:rgba(255,255,255,0.11);
-  --text-primary:#e7e8eb; --text-tertiary:#7b7e85; --text-faint:#5e626a; --text-disabled:#42454c;
-  --accent-primary:#8b8dff; --accent-primary-soft:rgba(139,141,255,0.15); --accent-primary-border:rgba(139,141,255,0.28);
-  --accent-blue:#54a7ff; --accent-green:#35c878; --accent-amber:#d6a64f; --accent-red:#e06262;
-  --success-bg:rgba(53,200,120,0.12); --success-text:#a8e7c2; --success-dot:#35c878;
-  --warning-bg:rgba(214,166,79,0.12); --warning-text:#ead29d; --warning-dot:#d6a64f;
-  --danger-bg:rgba(224,98,98,0.12); --danger-text:#efb0b0; --danger-dot:#e06262;
-  --info-bg:rgba(84,167,255,0.12); --info-text:#afd4ff; --info-dot:#54a7ff;
+  /* ── Cool-graphite design-system tokens (spec names) — available app-wide. ── */
+  --bg-app:#07090b; --bg-shell:#06080a; --bg-sidebar:#07090b; --bg-main:#0a0d11;
+  --surface-0:#0c0f13; --surface-1:#10141a; --surface-3:#18202a;
+  --surface-raised:#111720; --surface-overlay:#151c26;
+  --state-hover:#171e28; --state-active:#1c2430; --state-selected:#202a36; --state-pressed:#25303d;
+  --border-hairline:rgba(210,225,255,0.045); --border-subtle:rgba(210,225,255,0.075); --border-medium:rgba(210,225,255,0.11);
+  --text-primary:#e8ebf1; --text-tertiary:#7f8997; --text-faint:#606a77; --text-disabled:#444c57;
+  --accent-primary:#8e96ff; --accent-primary-soft:rgba(142,150,255,0.14); --accent-primary-border:rgba(142,150,255,0.28);
+  --accent-blue:#5ba8ff; --accent-green:#35c878; --accent-amber:#d5a655; --accent-red:#e06666;
+  --success-bg:rgba(53,200,120,0.12); --success-text:#a9e7c1; --success-dot:#35c878;
+  --warning-bg:rgba(213,166,85,0.12); --warning-text:#ead3a6; --warning-dot:#d5a655;
+  --danger-bg:rgba(224,102,102,0.12); --danger-text:#efb2b2; --danger-dot:#e06666;
+  --info-bg:rgba(91,168,255,0.12); --info-text:#b4d7ff; --info-dot:#5ba8ff;
   --shadow-soft:0 8px 28px rgba(0,0,0,0.28); --shadow-panel:0 20px 80px rgba(0,0,0,0.38);
-  --shadow-focus:0 0 0 1px rgba(139,141,255,0.32), 0 0 0 4px rgba(139,141,255,0.10);
+  --shadow-focus:0 0 0 1px rgba(142,150,255,0.30), 0 0 0 4px rgba(142,150,255,0.10);
   --radius-2xl:24px;
   --ease-premium:cubic-bezier(0.16,1,0.3,1);
   --motion-fast:140ms var(--ease-premium); --motion-base:220ms var(--ease-premium); --motion-slow:360ms var(--ease-premium);

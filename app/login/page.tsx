@@ -27,7 +27,7 @@ function getInitialAuthTheme(): Theme {
 function applyAuthThemeToDocument(t: Theme) {
   if (typeof document === 'undefined') return
   document.documentElement.setAttribute('data-theme', t)
-  document.documentElement.style.backgroundColor = t === 'dark' ? '#0F141B' : '#fcfcfd'
+  document.documentElement.style.backgroundColor = t === 'dark' ? '#07090b' : '#fcfcfd'
   document.documentElement.style.colorScheme = t
 }
 
@@ -569,8 +569,8 @@ export default function LoginPage() {
         .log-btn-github:hover:not(:disabled) { background:#F7F8FB; border-color:#DCE1EA; }
         .log-github-icon { width:18px; height:18px; display:block; flex-shrink:0; }
         .log-hint-muted { color:#9aa1ad; font-size:11px; }
-        .log-root[data-theme="dark"] .log-btn-github { background:rgba(243,245,247,0.035); color:#E8E8E5; border:0.7px solid rgba(243,245,247,0.08); box-shadow:none; }
-        .log-root[data-theme="dark"] .log-btn-github:hover:not(:disabled) { background:rgba(243,245,247,0.06); border-color:rgba(243,245,247,0.14); }
+        .log-root[data-theme="dark"] .log-btn-github { background:#111720; color:#e8ebf1; border:1px solid rgba(210,225,255,0.085); box-shadow:none; }
+        .log-root[data-theme="dark"] .log-btn-github:hover:not(:disabled) { background:#171e28; border-color:rgba(210,225,255,0.13); }
 
         /* EMAIL FORM */
         .log-email-form { width:271px; display:flex; flex-direction:column; gap:16px; }
@@ -649,53 +649,68 @@ export default function LoginPage() {
           .log-legal { gap:16px; }
         }
 
-        /* ═══ DARK MODE ══════════════════════════════════════════════ */
-        .log-root[data-theme="dark"] .log-desktop { background:#0F141B; }
-        .log-root[data-theme="dark"] .log-mobile  { background:#0A0D14; }
-        .log-root[data-theme="dark"] .log-mobile { background:#0E1218; }
+        /* ═══ DARK MODE — cool graphite, matches the app ════════════ */
+        .log-root[data-theme="dark"] .log-desktop { background:#07090b; }
+        .log-root[data-theme="dark"] .log-mobile  { background:#07090b; }
 
         .log-root[data-theme="dark"] .log-desktop-title,
         .log-root[data-theme="dark"] .log-mobile-title,
-        .log-root[data-theme="dark"] .log-mobile-title-email { color:#E8E8E5; }
+        .log-root[data-theme="dark"] .log-mobile-title-email { color:#e8ebf1; }
 
-        /* Google primary button in dark mode: NO shadow at all — sits flat */
-        .log-root[data-theme="dark"] .log-btn-google { box-shadow:none !important; }
+        /* Google — premium cool-gray-blue material with a subtle inner highlight */
+        .log-root[data-theme="dark"] .log-btn-google {
+          background:#69748d; color:#f1f3f7; border:1px solid rgba(210,225,255,0.10);
+          box-shadow:inset 0 1px 0 rgba(255,255,255,0.08), 0 2px 10px rgba(0,0,0,0.32) !important;
+        }
+        .log-root[data-theme="dark"] .log-btn-google:hover:not(:disabled) {
+          background:#727e98; transform:translateY(-1px);
+          box-shadow:inset 0 1px 0 rgba(255,255,255,0.10), 0 8px 22px -6px rgba(0,0,0,0.5) !important;
+        }
+        .log-root[data-theme="dark"] .log-btn-google:active:not(:disabled) { background:#5f697f; transform:translateY(0); }
 
-        .log-root[data-theme="dark"] .log-btn-outline { background:rgba(243,245,247,0.035); color:#E8E8E5; border:0.7px solid rgba(243,245,247,0.08); box-shadow:none; }
-        .log-root[data-theme="dark"] .log-btn-outline:hover:not(:disabled) { background:rgba(243,245,247,0.06); border:1px solid rgba(243,245,247,0.14); }
-        .log-root[data-theme="dark"] .log-btn-confirm { background:rgba(243,245,247,0.035); color:#E8E8E5; border:0.7px solid rgba(243,245,247,0.08); box-shadow:none; }
-        .log-root[data-theme="dark"] .log-btn-confirm:hover:not(:disabled) { background:rgba(243,245,247,0.06); border-color:rgba(243,245,247,0.14); }
+        /* Email / SSO / Confirm — dark elevated cool surface */
+        .log-root[data-theme="dark"] .log-btn-outline,
+        .log-root[data-theme="dark"] .log-btn-confirm {
+          background:#111720; color:#e8ebf1; border:1px solid rgba(210,225,255,0.085); box-shadow:none;
+        }
+        .log-root[data-theme="dark"] .log-btn-outline:hover:not(:disabled),
+        .log-root[data-theme="dark"] .log-btn-confirm:hover:not(:disabled) {
+          background:#171e28; border-color:rgba(210,225,255,0.13); transform:translateY(-1px);
+        }
+        .log-root[data-theme="dark"] .log-btn-outline:active:not(:disabled),
+        .log-root[data-theme="dark"] .log-btn-confirm:active:not(:disabled) { background:#1c2430; transform:translateY(0); }
 
-        .log-root[data-theme="dark"] .log-email-input { background:rgba(243,245,247,0.035); color:#E8E8E5; border:1px solid rgba(102,112,143,0.10); caret-color:#66708F; }
-        .log-root[data-theme="dark"] .log-email-input::placeholder { color:rgba(102,112,143,0.5); }
-        .log-root[data-theme="dark"] .log-email-input:focus { border-color:rgba(102,112,143,0.5); box-shadow:0 0 0 3px rgba(102,112,143,0.10); }
+        .log-root[data-theme="dark"] .log-email-input { background:#111720; color:#e8ebf1; border:1px solid rgba(210,225,255,0.085); caret-color:#8e96ff; }
+        .log-root[data-theme="dark"] .log-email-input::placeholder { color:#606a77; }
+        .log-root[data-theme="dark"] .log-email-input:focus { border-color:rgba(142,150,255,0.45); box-shadow:0 0 0 3px rgba(142,150,255,0.12); }
 
-        .log-root[data-theme="dark"] .log-hint { color:#7B8294; }
-        .log-root[data-theme="dark"] .log-legal-text { color:#7B8294; }
-        .log-root[data-theme="dark"] .log-legal-text a { color:#E8E8E5; }
-        .log-root[data-theme="dark"] .log-dev { color:#7B8294; }
-        .log-root[data-theme="dark"] .log-dev:hover { color:#F3F5F7; }
-        .log-root[data-theme="dark"] .log-back { color:#98A2B3; }
-        .log-root[data-theme="dark"] .log-back:hover { color:#F3F5F7; }
-        .log-root[data-theme="dark"] .log-link-action { color:#98A2B3; }
-        .log-root[data-theme="dark"] .log-link-action:hover { color:#F3F5F7; }
-        .log-root[data-theme="dark"] .log-sent-info { color:#98A2B3; }
-        .log-root[data-theme="dark"] .log-sent-info strong { color:#F3F5F7; }
-        .log-root[data-theme="dark"] .log-support-note { color:#98A2B3; }
-        .log-root[data-theme="dark"] .log-support-note button { color:#F3F5F7; }
-        .log-root[data-theme="dark"] .log-support-backdrop { background:rgba(0,0,0,.42); }
-        .log-root[data-theme="dark"] .log-support-modal { background:#0F141B; border-color:rgba(243,245,247,.10); box-shadow:0 24px 70px rgba(0,0,0,.44); }
+        .log-root[data-theme="dark"] .log-hint { color:#7f8997; }
+        .log-root[data-theme="dark"] .log-legal-text { color:#a8b0bc; }
+        .log-root[data-theme="dark"] .log-legal-text a { color:#e8ebf1; }
+        .log-root[data-theme="dark"] .log-legal-text a:hover { color:#b9c4d6; }
+        .log-root[data-theme="dark"] .log-dev { color:#a8b0bc; }
+        .log-root[data-theme="dark"] .log-dev:hover { color:#e8ebf1; }
+        .log-root[data-theme="dark"] .log-back { color:#a8b0bc; }
+        .log-root[data-theme="dark"] .log-back:hover { color:#e8ebf1; }
+        .log-root[data-theme="dark"] .log-link-action { color:#a8b0bc; }
+        .log-root[data-theme="dark"] .log-link-action:hover { color:#e8ebf1; }
+        .log-root[data-theme="dark"] .log-sent-info { color:#a8b0bc; }
+        .log-root[data-theme="dark"] .log-sent-info strong { color:#e8ebf1; }
+        .log-root[data-theme="dark"] .log-support-note { color:#a8b0bc; }
+        .log-root[data-theme="dark"] .log-support-note button { color:#e8ebf1; }
+        .log-root[data-theme="dark"] .log-support-backdrop { background:rgba(0,0,0,.5); }
+        .log-root[data-theme="dark"] .log-support-modal { background:#10141a; border-color:rgba(210,225,255,.10); box-shadow:0 24px 70px rgba(0,0,0,.5); }
         .log-root[data-theme="dark"] .log-support-head h2,
-        .log-root[data-theme="dark"] .log-support-success { color:#F3F5F7; }
+        .log-root[data-theme="dark"] .log-support-success { color:#e8ebf1; }
         .log-root[data-theme="dark"] .log-support-head p,
-        .log-root[data-theme="dark"] .log-support-field span { color:#98A2B3; }
-        .log-root[data-theme="dark"] .log-support-close { border-color:rgba(243,245,247,.10); color:#98A2B3; }
+        .log-root[data-theme="dark"] .log-support-field span { color:#a8b0bc; }
+        .log-root[data-theme="dark"] .log-support-close { border-color:rgba(210,225,255,.10); color:#a8b0bc; }
         .log-root[data-theme="dark"] .log-support-field input,
-        .log-root[data-theme="dark"] .log-support-field textarea { background:rgba(243,245,247,0.035); color:#F3F5F7; border-color:rgba(243,245,247,.10); }
+        .log-root[data-theme="dark"] .log-support-field textarea { background:#111720; color:#e8ebf1; border-color:rgba(210,225,255,.10); }
 
-        .log-root[data-theme="dark"] .log-theme-pill { background:#141820; color:rgba(243,245,247,0.58); box-shadow:0 12px 30px rgba(0,0,0,0.32), 0 1px 0 rgba(255,255,255,0.05) inset; }
-        .log-root[data-theme="dark"] .log-theme-pill:hover { background:#18202B; }
-        .log-root[data-theme="dark"] .log-theme-pill.active { background:#202938; color:#F3F5F7; box-shadow:0 10px 24px rgba(0,0,0,0.26), 0 1px 0 rgba(255,255,255,0.07) inset; }
+        .log-root[data-theme="dark"] .log-theme-pill { background:#111720; color:#a8b0bc; box-shadow:0 12px 30px rgba(0,0,0,0.32), 0 1px 0 rgba(255,255,255,0.05) inset; }
+        .log-root[data-theme="dark"] .log-theme-pill:hover { background:#171e28; }
+        .log-root[data-theme="dark"] .log-theme-pill.active { background:#1c2430; color:#e8ebf1; box-shadow:0 10px 24px rgba(0,0,0,0.26), 0 1px 0 rgba(255,255,255,0.07) inset; }
         .log-root[data-theme="dark"] .log-theme-pill:focus,
         .log-root[data-theme="dark"] .log-theme-pill:focus-visible { outline:0; box-shadow:0 12px 30px rgba(0,0,0,0.32), 0 1px 0 rgba(255,255,255,0.05) inset; }
       `}</style>
