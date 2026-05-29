@@ -17,11 +17,13 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useSpeechRecognition } from '@/hooks/useSpeechRecognition'
+import DevNewProjectModal from '@/components/DevNewProjectModal'
 import {
   ArrowRight, GitBranch, GitCommit, CheckSquare, Lightning, Microphone,
-  Pause, Play, Sparkle, WarningCircle,
+  Pause, Play, Plus, WarningCircle,
 } from '@phosphor-icons/react'
 
 type Task = {
@@ -84,6 +86,8 @@ function formatDuration(s: number) {
 
 export default function DevOverviewPage() {
   const supabase = useMemo(() => createClient(), [])
+  const router = useRouter()
+  const [newOpen, setNewOpen] = useState(false)
   const [name, setName] = useState('')
   const [tasks, setTasks] = useState<Task[]>([])
   const [projects, setProjects] = useState<Project[]>([])
@@ -264,16 +268,16 @@ export default function DevOverviewPage() {
               : `${metrics.open} offen · ${metrics.review} Review · ${metrics.blocked} Blocker · ${recentCommits} Commits (7 Tage)`}
           </p>
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <Link href="/dev/plan" className="dev-secondary-btn link-btn">
-            <Sparkle size={13} /> Plan
-          </Link>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           <Link href="/dev/github" className="dev-secondary-btn link-btn">
             <GitBranch size={13} /> GitHub
           </Link>
-          <Link href="/dev/updates" className="dev-primary-btn link-btn">
+          <Link href="/dev/updates" className="dev-secondary-btn link-btn">
             <Lightning size={13} /> Update senden
           </Link>
+          <button className="dev-primary-btn link-btn" onClick={() => setNewOpen(true)}>
+            <Plus size={13} /> Neues Projekt
+          </button>
         </div>
       </header>
 
@@ -494,9 +498,9 @@ export default function DevOverviewPage() {
           <p className="dev-section-title">Aktive Projekte</p>
           <div className="dev-surface" style={{ overflow:'hidden' }}>
             {projects.length === 0 ? (
-              <p className="empty">Keine Projekte zugewiesen. Ein Project Owner muss dich zuordnen.</p>
+              <p className="empty">Noch keine Projekte. Leg über „Neues Projekt" eins an und lade deinen Kunden ein.</p>
             ) : projects.slice(0, 5).map((p, i) => (
-              <Link key={p.id} href={`/dev/jobs?id=${p.id}`} className="row"
+              <Link key={p.id} href={`/dev/projects/${p.id}`} className="row"
                 style={{ borderTop: i > 0 ? '1px solid var(--border)' : 'none' }}>
                 <span className="dot" style={{ '--project-color': p.color ?? 'var(--accent)' } as any} />
                 <div className="row-text">
@@ -520,6 +524,12 @@ export default function DevOverviewPage() {
           )}
         </aside>
       </div>
+
+      <DevNewProjectModal
+        open={newOpen}
+        onClose={() => setNewOpen(false)}
+        onCreated={(p) => { setNewOpen(false); router.push(`/dev/projects/${p.id}`) }}
+      />
 
       <style jsx>{`
         .link-btn { display:inline-flex; align-items:center; gap:6px; text-decoration:none; }
