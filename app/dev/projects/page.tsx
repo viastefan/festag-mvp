@@ -185,7 +185,7 @@ export default function DevProjectsPage() {
         ) : (
           <div className="dp-grid">
             {pools.mine.map(p => (
-              <Link href={`/dev/jobs?project=${p.id}`} key={p.id} className="dp-card mine" style={{ borderTop: `2px solid ${p.color || '#5B647D'}` }}>
+              <Link href={`/dev/projects/${p.id}`} key={p.id} className="dp-card mine" style={{ borderTop: `2px solid ${p.color || '#5B647D'}` }}>
                 <header>
                   <span className="dp-status">
                     <CheckCircle size={12} weight="fill" /> Angenommen
@@ -200,7 +200,7 @@ export default function DevProjectsPage() {
                   <span className="dp-count">
                     <Users size={12} /> {p.assigned_count} {p.assigned_count === 1 ? 'Dev' : 'Devs'}
                   </span>
-                  <span className="dp-arrow">Tasks ansehen <ArrowRight size={13} /></span>
+                  <span className="dp-arrow">Öffnen <ArrowRight size={13} /></span>
                 </footer>
               </Link>
             ))}
