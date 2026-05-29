@@ -711,9 +711,9 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         {items.map(item => {
           const on = isOn(item.href)
           const tourTarget = tourTargetForItem(item)
-          return (
+          const k = `${item.href}-${item.label}`
+          const link = (
             <Link
-              key={`${item.href}-${item.label}`}
               href={resolve(item.href)}
               className={`ni ${on?'ni-on':'ni-off'}`}
               data-shortcut={navShortcut(item.label, item.href)}
@@ -726,6 +726,25 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
               ) : null}
             </Link>
           )
+          // Projekte: reveal a quiet "+" on hover so a new project can be
+          // created without first reaching the projects list page.
+          if (item.href === '/projects') {
+            return (
+              <div className="ni-wrap ni-wrap-add" key={k}>
+                {link}
+                <button
+                  type="button"
+                  className="ni-add"
+                  title="Neues Projekt anlegen"
+                  aria-label="Neues Projekt anlegen"
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); router.push('/new-project') }}
+                >
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                </button>
+              </div>
+            )
+          }
+          return <div className="ni-wrap" key={k}>{link}</div>
         })}
       </>
     )
@@ -901,6 +920,19 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         .ni-on .ni-count {
           color:var(--text);
         }
+        /* Quiet hover "+" to create a new project from the Projekte row. */
+        .ni-wrap { position:relative; }
+        .ni-add {
+          position:absolute; right:6px; top:50%; transform:translateY(-50%);
+          width:22px; height:22px; display:inline-flex; align-items:center; justify-content:center;
+          border:0; border-radius:6px; background:transparent; color:var(--text-muted);
+          cursor:pointer; opacity:0; pointer-events:none;
+          transition:opacity .12s ease, background .12s ease, color .12s ease;
+        }
+        .ni-wrap:hover .ni-add { opacity:1; pointer-events:auto; }
+        .ni-add:hover { background:var(--surface-2); color:var(--text); }
+        /* On the Projekte row the "+" replaces the shortcut chip on hover. */
+        .ni-wrap-add:hover .ni[data-shortcut]::after { display:none; }
         .ni[data-shortcut]::after,
         .proj-row[data-shortcut]::after {
           content:attr(data-shortcut);
@@ -1556,6 +1588,17 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
                           aria-label="Mehr"
                           style={{ position: 'fixed', left: morePos.left, top: morePos.top }}
                         >
+                          {/* Neues Projekt — always reachable, even with one project. */}
+                          <Link
+                            href="/new-project"
+                            role="menuitem"
+                            className="sb-more-item"
+                            onClick={() => setMoreOpen(false)}
+                          >
+                            <Ico name="plus" sz={14} c="currentColor" weight="regular" />
+                            <span>Neues Projekt anlegen</span>
+                          </Link>
+                          <div className="sb-more-divider" />
                           {/* Mitglieder — workspace team management. */}
                           <Link
                             href="/members"

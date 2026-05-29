@@ -681,6 +681,7 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
         .pv-hero-title {
           margin: 0;
           font-size: 30px; font-weight: 500;
+          line-height: 1.12;
           letter-spacing: -.012em;
           color: var(--text);
         }
@@ -1019,15 +1020,15 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
         /* ── v2 rebuild: color dot, popovers, notepad report, tabs ─── */
         .pv-crumb-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
 
-        .pv-title-head { display: flex; align-items: center; gap: 12px; }
-        .pv-color-wrap { position: relative; }
-        .pv-color-dot {
-          width: 16px; height: 16px; border-radius: 50%;
-          border: 0; padding: 0; cursor: pointer;
-          box-shadow: 0 0 0 4px color-mix(in srgb, currentColor 0%, transparent);
-          transition: transform .15s ease, box-shadow .15s ease;
+        .pv-title-head { display: flex; align-items: center; gap: 13px; }
+        .pv-color-wrap { position: relative; display: flex; align-items: center; flex-shrink: 0; }
+        /* Vertical accent bar (editable) — centered to the title, not a dot. */
+        .pv-color-bar {
+          width: 5px; height: 26px; border-radius: 3px;
+          border: 0; padding: 0; cursor: pointer; flex-shrink: 0;
+          transition: opacity .15s ease;
         }
-        .pv-color-dot:hover { transform: scale(1.12); }
+        .pv-color-bar:hover { opacity: .82; }
         .pv-color-pop {
           position: absolute; left: 0; top: calc(100% + 8px); z-index: 60;
           display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
@@ -1269,7 +1270,7 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
                 <div className="pv-color-wrap">
                   <button
                     type="button"
-                    className="pv-color-dot"
+                    className="pv-color-bar"
                     style={{ background: pCol }}
                     onClick={() => canEdit && setColorMenuOpen((v) => !v)}
                     title={canEdit ? 'Projektfarbe ändern' : undefined}
