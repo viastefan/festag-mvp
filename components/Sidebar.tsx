@@ -14,7 +14,7 @@ import {
   CreditCard, FileText, UserCircle, GearSix,
   SunHorizon, GridFour, Stack, LinkSimple,
   Plus, CaretRight, DotsThreeOutline, X,
-  SignOut, UsersThree, Bell, Briefcase,
+  SignOut, UsersThree, IdentificationBadge, Bell, Briefcase,
   Clock, CheckSquare, Code, FileCode,
   Tray, MagnifyingGlass, SpeakerHigh, Pulse,
   Question, DownloadSimple, ChatTeardropDots,
@@ -1556,6 +1556,16 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
                           aria-label="Mehr"
                           style={{ position: 'fixed', left: morePos.left, top: morePos.top }}
                         >
+                          {/* Mitglieder — workspace team management. */}
+                          <Link
+                            href="/members"
+                            role="menuitem"
+                            className="sb-more-item"
+                            onClick={() => setMoreOpen(false)}
+                          >
+                            <IdentificationBadge size={14} />
+                            <span>Mitglieder</span>
+                          </Link>
                           {/* Kunden — agency-mode client management. Always present. */}
                           <Link
                             href="/clients"

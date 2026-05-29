@@ -10,6 +10,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     || pathname === '/reports'
     || pathname === '/ai'
     || pathname === '/dashboard'
+    || pathname === '/members'
     || pathname.startsWith('/project/')
     || pathname.startsWith('/docs')
 
