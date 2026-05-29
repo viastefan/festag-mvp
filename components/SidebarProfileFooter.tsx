@@ -78,7 +78,9 @@ export default function SidebarProfileFooter({
   // show a short name in full ("Stefan", "Anna Schulz") and gracefully
   // truncates longer ones ("Stefan Dirnber…") instead of cutting at 8
   // and reading like a random initialism.
-  const triggerLabel = (workspaceName && workspaceName.trim()) || displayName
+  // Show the PERSON'S name first (what the user sets in Settings and expects
+  // to see here); fall back to the workspace name only if no name is set.
+  const triggerLabel = (displayName && displayName.trim()) || (workspaceName && workspaceName.trim()) || 'Festag'
   const triggerName = triggerLabel.length > 14 ? `${triggerLabel.slice(0, 14)}…` : triggerLabel
 
   const closeAndGo = () => setOpen(false)

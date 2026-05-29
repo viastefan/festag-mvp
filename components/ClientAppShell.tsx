@@ -137,7 +137,10 @@ export default function ClientAppShell({
           inset: 0;
           height: 100dvh;
           overflow: hidden;
-          background: var(--bg);
+          /* Match the app-shell base (= sidebar + html) so the strips around
+             the floating workspace never read as a different, half-filled
+             shade. The workspace box is the only lifted surface. */
+          background: var(--bg-app, var(--bg));
         }
         .app-workspace {
           position: fixed;

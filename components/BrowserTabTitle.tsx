@@ -12,6 +12,7 @@
  */
 
 import { useEffect, useRef } from 'react'
+import { usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { subscribeProfileSync } from '@/lib/profile-sync'
 
@@ -38,6 +39,7 @@ function missingProfileColumn(error: unknown) {
 
 export default function BrowserTabTitle() {
   const lastNameRef = useRef<string>('')
+  const pathname = usePathname()
 
   function apply(name: string) {
     if (!name || name === lastNameRef.current) return
@@ -90,6 +92,12 @@ export default function BrowserTabTitle() {
       try { unsub?.() } catch {}
     }
   }, [])
+
+  // Next re-applies the route's metadata <title> on client navigation, which
+  // would wipe the resolved name. Re-assert it whenever the route changes.
+  useEffect(() => {
+    if (lastNameRef.current) document.title = `${lastNameRef.current} — Festag`
+  }, [pathname])
 
   return null
 }

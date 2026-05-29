@@ -415,9 +415,17 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
     try { window.localStorage.setItem('sidebar-tools-expanded', String(toolsExp)) } catch {}
   }, [toolsExp])
 
+  // Close transient popovers on navigation — cheap + route-coupled.
   useEffect(() => {
     setMore(false)
     setWhatsNewOpen(false)
+  }, [pathname])
+
+  // Load sidebar data ONCE on mount, NOT on every navigation. Re-pulling
+  // profile + workspace + projects + monitoring on each route change made
+  // the whole sidebar flicker. Live updates arrive via the profile-sync
+  // broadcast and the visibility/focus refetch below.
+  useEffect(() => {
     const sb = createClient()
     sb.auth.getUser().then(async ({ data }) => {
       if (!data.user) return
@@ -528,7 +536,8 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         })
       }
     })
-  }, [pathname])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   useEffect(() => {
     return subscribeProfileSync((payload) => {
