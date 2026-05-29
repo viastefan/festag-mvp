@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { getStoredDevSession } from '@/lib/dev-session'
 
 type Member = { id: string; email?: string | null; full_name?: string | null; role?: string | null; created_at?: string | null }
 
@@ -11,7 +10,7 @@ export default function DevTeamPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!getStoredDevSession()) { window.location.href = '/login'; return }
+    // Access is gated by DevAppShell — never hard-bounce to /login from here.
     const supabase = createClient()
     supabase.from('profiles').select('id, email, full_name, role, created_at').in('role', ['dev', 'admin']).order('created_at').then(({ data }) => {
       setMembers((data as Member[]) ?? [])

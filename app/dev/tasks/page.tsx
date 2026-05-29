@@ -251,8 +251,11 @@ export default function DevTasksPage() {
   useEffect(() => {
     let cancelled = false
     ;(async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) { window.location.href = '/login'; return }
+      // Server-validated + refreshes; DevAppShell already gates access, so a
+      // transient null must NOT hard-bounce to /login.
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      const session = { user }
       const uid = session.user.id
       const { data: prof } = await supabase.from('profiles').select('role').eq('id', uid).maybeSingle()
       if (cancelled) return

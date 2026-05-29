@@ -78,6 +78,9 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const [resendCooldown, setResendCooldown] = useState(0)
   const [theme, setThemeState] = useState<Theme>('dark')
+  // Gate the form until we know whether a session exists — a logged-in user
+  // never sees the login panel, they're sent straight in.
+  const [booting, setBooting] = useState(true)
   const [lastMethod, setLastMethod] = useState<Method | null>(null)
   const [lastEmail, setLastEmail] = useState<string | null>(null)
   const [supportOpen, setSupportOpen] = useState(false)
@@ -105,17 +108,26 @@ export default function LoginPage() {
   }
 
   async function routeSessionIfPresent() {
-    const { data: { session } } = await supabase.auth.getSession()
-    if (!session) return false
+    // getUser() validates with the server AND refreshes an expired access
+    // token via the refresh token. getSession() only reads the local
+    // snapshot — which could be null/expired, wrongly showing the login form
+    // (the "ab und zu keine Session" bug). With getUser() a returning user
+    // with a valid refresh token is sent straight in.
+    let user: { id: string; email?: string | null } | null = null
+    try {
+      const { data } = await supabase.auth.getUser()
+      user = data.user ?? null
+    } catch { user = null }
+    if (!user) { setBooting(false); return false }
 
     // /login is the *client* portal entry. Pass `/dashboard` as intent so
     // even an admin/dev who arrived here lands in the client workspace.
     // They can switch to the dev portal via /dev/login on purpose.
-    const target = await resolvePostAuthTarget(supabase, session.user.id, '/dashboard')
+    const target = await resolvePostAuthTarget(supabase, user.id, '/dashboard')
     rememberFestagAccount({
-      userId: session.user.id,
-      email: session.user.email ?? null,
-      method: lastMethod ?? inferSessionMethod(session.user),
+      userId: user.id,
+      email: user.email ?? null,
+      method: lastMethod ?? inferSessionMethod(user),
       onboardingCompleted: target === '/dashboard',
     })
     window.location.href = inviteToken ? `/invite/${inviteToken}` : target
@@ -124,6 +136,8 @@ export default function LoginPage() {
 
   useEffect(() => {
     routeSessionIfPresent()
+    // Safety net: never let the boot loader hang if getUser() stalls.
+    const bootTimer = setTimeout(() => setBooting(false), 2500)
     const stored = getLastFestagMethod() as Method | null
     setLastMethod(stored)
     const initialTheme = getInitialAuthTheme()
@@ -133,6 +147,7 @@ export default function LoginPage() {
       const e = getLastFestagEmail()
       if (e && /\S+@\S+\.\S+/.test(e)) setLastEmail(e)
     } catch {}
+    return () => clearTimeout(bootTimer)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -487,6 +502,17 @@ export default function LoginPage() {
     emailStep === 'email'     ? emailForm :
     emailStep === 'emailSent' ? emailSentScreen :
     emailStep === 'codeEntry' ? codeEntryScreen : null
+
+  // While we resolve the session, show a calm loader instead of flashing the
+  // login form — a returning, still-authenticated user goes straight in.
+  if (booting) {
+    return (
+      <main data-theme={theme} style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: theme === 'dark' ? '#07090b' : '#fcfcfd' }}>
+        <style>{`@keyframes lgboot{to{transform:rotate(360deg)}}`}</style>
+        <span style={{ width: 20, height: 20, borderRadius: '50%', border: '2px solid rgba(168,176,188,.25)', borderTopColor: 'rgba(168,176,188,.9)', animation: 'lgboot .8s linear infinite' }} />
+      </main>
+    )
+  }
 
   return (
     <main className={`log-root${pageExiting ? ' exiting' : ''}`} data-theme={theme}>

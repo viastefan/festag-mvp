@@ -43,8 +43,9 @@ export default function DevUpdatesPage() {
   useEffect(() => {
     let cancelled = false
     ;(async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) { window.location.href = '/login'; return }
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      const session = { user }
       const [{ data: u }, { data: pa }] = await Promise.all([
         supabase
           .from('developer_updates')

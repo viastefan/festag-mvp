@@ -120,8 +120,9 @@ export default function DevReviewPage() {
 
   const load = useCallback(async () => {
     setLoading(true)
-    const { data: { session } } = await supabase.auth.getSession()
-    if (!session) { window.location.href = '/login'; return }
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+    const session = { user }
     const uid = session.user.id
     setUserId(uid)
 

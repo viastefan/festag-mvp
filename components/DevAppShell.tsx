@@ -262,14 +262,19 @@ export default function DevAppShell({
         .dev-page h1 { margin: 0; font-size: 22px; line-height: 1.15; font-weight: 500; letter-spacing: -.012em; color: var(--text); }
         .dev-page-header .meta { margin: 6px 0 0; color: var(--text-muted); font-size: 13px; }
         .dev-primary-btn, .dev-secondary-btn {
-          height: 32px; border-radius: 8px; padding: 0 12px;
+          height: 34px; border-radius: 8px; padding: 0 14px;
+          display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+          line-height: 1; white-space: nowrap;
           border: 1px solid var(--border);
           font: inherit; font-size: 12.5px; font-weight: 500;
+          letter-spacing: var(--ls-body, .017em);
           cursor: pointer;
+          transition: background .14s ease, border-color .14s ease;
         }
-        .dev-primary-btn { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+        .dev-primary-btn { background: var(--btn-prim); color: var(--btn-prim-text); border-color: var(--btn-prim); }
+        .dev-primary-btn:hover { background: color-mix(in srgb, var(--btn-prim) 86%, #fff); }
         .dev-secondary-btn { background: var(--surface); color: var(--text); }
-        .dev-secondary-btn:hover { background: color-mix(in srgb, var(--surface-2) 60%, var(--surface)); }
+        .dev-secondary-btn:hover { background: color-mix(in srgb, var(--surface-2) 60%, var(--surface)); border-color: var(--border-strong); }
         .dev-surface {
           border: 1px solid var(--border);
           background: var(--surface);
