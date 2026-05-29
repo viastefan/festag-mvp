@@ -459,7 +459,7 @@ export default function DevOverviewPage() {
                 style={{ borderTop: i > 0 ? '1px solid var(--border)' : 'none' }}>
                 <GitCommit size={13} className="muted-icon" />
                 <div className="row-text">
-                  <p className="t-1">{(c.message || c.commit_sha).split('\n')[0].slice(0, 86)}</p>
+                  <p className="t-1">{String(c.message || c.commit_sha || '').split('\n')[0].slice(0, 86)}</p>
                   <p className="t-2">{shortSha(c.commit_sha)} · {dateLabel(c.committed_at)}{c.task_id ? ' · verknüpft' : ''}</p>
                 </div>
                 <span className={`dev-chip ${c.task_id ? 'accent' : ''}`}>{c.task_id ? 'Task' : 'frei'}</span>

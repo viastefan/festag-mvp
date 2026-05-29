@@ -217,7 +217,7 @@ export default function DevAppShell({
 
         .festag-app-shell {
           position: fixed; inset: 0; height: 100dvh; overflow: hidden;
-          background: var(--bg);
+          background: var(--bg-app, var(--bg));
         }
         .app-workspace {
           position: fixed;

@@ -22,6 +22,12 @@ export default function DevError({
         <p>
           Eine Datenabfrage oder Browser-Funktion hat gerade einen Fehler ausgelöst. Der Workspace bleibt erreichbar, du kannst die Ansicht neu laden oder direkt zu den Tasks wechseln.
         </p>
+        {(error?.message || error?.digest) && (
+          <details className="dev-error-details">
+            <summary>Technische Details</summary>
+            <pre>{error.message}{error.digest ? `\n\ndigest: ${error.digest}` : ''}{error.stack ? `\n\n${error.stack}` : ''}</pre>
+          </details>
+        )}
         <div className="dev-error-actions">
           <button type="button" onClick={reset}>Erneut laden</button>
           <Link href="/dev/tasks">Zu Dev Tasks</Link>
@@ -66,6 +72,30 @@ export default function DevError({
           font-size: 14px;
           line-height: 1.62;
           font-weight: 500;
+        }
+        .dev-error-details {
+          margin-top: 16px;
+          border: 1px solid var(--border, rgba(255,255,255,.1));
+          border-radius: 8px;
+          background: var(--surface-2, #1d1f22);
+          padding: 8px 12px;
+        }
+        .dev-error-details summary {
+          cursor: pointer;
+          font-size: 12px;
+          color: var(--text-muted, #8d96aa);
+          font-weight: 500;
+        }
+        .dev-error-details pre {
+          margin: 10px 0 2px;
+          max-height: 220px;
+          overflow: auto;
+          white-space: pre-wrap;
+          word-break: break-word;
+          font-size: 11.5px;
+          line-height: 1.5;
+          color: var(--text-secondary, #b8bdc8);
+          font-family: ui-monospace, "SF Mono", Menlo, monospace;
         }
         .dev-error-actions {
           margin-top: 22px;
