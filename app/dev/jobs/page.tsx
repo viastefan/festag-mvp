@@ -118,7 +118,7 @@ export default function DevJobsPage() {
         : status === 'done'
           ? `Developer hat „${task.title}” abgeschlossen. Tagro bereitet die verständliche Zusammenfassung vor.`
           : `Developer hat „${task.title}” als bereit zur Prüfung markiert.`
-      await supabase.from('messages').insert({ project_id: task.project_id, sender_id: session?.user_id, message: label, is_ai: true }).catch(() => {})
+      try { await supabase.from('messages').insert({ project_id: task.project_id, sender_id: session?.user_id, message: label, is_ai: true }) } catch { /* best-effort sync */ }
     }
   }
 
@@ -130,12 +130,14 @@ export default function DevJobsPage() {
       ...taskStatusPatch(nextStatus, task.completed_at),
     }).eq('id', task.id)
     if (task.project_id) {
-      await supabase.from('messages').insert({
-        project_id: task.project_id,
-        sender_id: session.user_id,
-        message: `Ein Developer hat „${task.title}” übernommen. Die Umsetzung ist jetzt im Execution Board aktiv.`,
-        is_ai: true,
-      }).catch(() => {})
+      try {
+        await supabase.from('messages').insert({
+          project_id: task.project_id,
+          sender_id: session.user_id,
+          message: `Ein Developer hat „${task.title}” übernommen. Die Umsetzung ist jetzt im Execution Board aktiv.`,
+          is_ai: true,
+        })
+      } catch { /* best-effort sync */ }
     }
     await loadTasks()
   }

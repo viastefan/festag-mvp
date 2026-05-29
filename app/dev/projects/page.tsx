@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { ArrowRight, CheckCircle, Lightning, Plus, Users } from '@phosphor-icons/react'
 import DevMatchAnimation from '@/components/DevMatchAnimation'
+import DevNewProjectModal from '@/components/DevNewProjectModal'
 
 type ProjectRow = {
   id: string
@@ -56,6 +57,7 @@ export default function DevProjectsPage() {
   const [accepted, setAccepted] = useState<AcceptedView | null>(null)
   const [animPhase, setAnimPhase] = useState<'scanning' | 'matched' | 'assigned'>('scanning')
   const [error, setError] = useState('')
+  const [newOpen, setNewOpen] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -116,9 +118,14 @@ export default function DevProjectsPage() {
             {pools.available.length} offen · {pools.mine.length} aktiv bei dir
           </p>
         </div>
-        <button className="dev-secondary-btn" onClick={load} disabled={loading}>
-          {loading ? 'Lade…' : 'Aktualisieren'}
-        </button>
+        <div className="dp-head-actions">
+          <button className="dev-secondary-btn" onClick={load} disabled={loading}>
+            {loading ? 'Lade…' : 'Aktualisieren'}
+          </button>
+          <button className="dev-primary-btn" onClick={() => setNewOpen(true)}>
+            <Plus size={14} /> Neues Projekt
+          </button>
+        </div>
       </header>
 
       {error && <p className="dp-error">{error}</p>}
@@ -171,7 +178,10 @@ export default function DevProjectsPage() {
           <h2>Bei dir aktiv</h2>
         </header>
         {pools.mine.length === 0 ? (
-          <p className="dp-empty">Noch keine Projekte übernommen.</p>
+          <div className="dp-empty dp-empty-cta">
+            <span>Noch keine Projekte übernommen. Leg dein erstes Projekt an und lade einen Kunden ein.</span>
+            <button className="dev-primary-btn" onClick={() => setNewOpen(true)}><Plus size={14} /> Neues Projekt</button>
+          </div>
         ) : (
           <div className="dp-grid">
             {pools.mine.map(p => (
@@ -215,8 +225,17 @@ export default function DevProjectsPage() {
         </div>
       )}
 
+      <DevNewProjectModal
+        open={newOpen}
+        onClose={() => setNewOpen(false)}
+        onCreated={() => load()}
+      />
+
       <style jsx>{`
         .compact { margin-bottom: 18px; }
+        .dp-head-actions { display: flex; align-items: center; gap: 8px; }
+        .dp-empty-cta { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+        .dp-empty-cta .dev-primary-btn { flex-shrink: 0; }
         .dp-error {
           margin: 0 0 14px; color: #d53939;
           font-size: 13px; font-weight: 500;

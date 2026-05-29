@@ -30,12 +30,15 @@ export default function DevPendingPage() {
   useEffect(() => {
     let cancelled = false
     ;(async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) { router.replace('/login'); return }
+      // Access is gated by DevAppShell — never hard-bounce to /login from
+      // here (a transient null read would throw an authed user out). If
+      // there is genuinely no user the shell handles the redirect.
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { setLoading(false); return }
       const { data: prof } = await supabase
         .from('profiles')
         .select('email,github_username,github_avatar_url,approval_status,role')
-        .eq('id', session.user.id)
+        .eq('id', user.id)
         .maybeSingle()
       if (cancelled) return
       if (prof && (prof as any).role === 'dev') {

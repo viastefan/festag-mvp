@@ -125,12 +125,14 @@ export default function DevOverviewPage() {
     let cancelled = false
     ;(async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession()
-        if (!session) return
-        const uid = session.user.id
+        // getUser() validates + refreshes the token; getSession() can read
+        // a stale/null snapshot mid-hydration and leave the dashboard empty.
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return
+        const uid = user.id
         const { data: prof } = await supabase.from('profiles')
           .select('first_name,full_name,github_username,email').eq('id', uid).maybeSingle()
-        const display = (prof as any)?.full_name || (prof as any)?.first_name || (prof as any)?.github_username || session.user.email || 'Developer'
+        const display = (prof as any)?.full_name || (prof as any)?.first_name || (prof as any)?.github_username || user.email || 'Developer'
         if (cancelled) return
         setName(display)
 
