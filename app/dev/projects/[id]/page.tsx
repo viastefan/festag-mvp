@@ -113,9 +113,16 @@ export default function DevProjectDetailPage() {
 
   useEffect(() => { load() }, [load])
 
-  // Keep the feed pinned to the latest message.
+  // Track whether the dev is reading scrollback, so realtime messages don't yank the view.
+  const nearBottomRef = useRef(true)
+  function onFeedScroll() {
+    const el = feedRef.current
+    if (el) nearBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 120
+  }
+  // Pin to the newest message only when already near the bottom (or on first load).
   useEffect(() => {
-    if (feedRef.current) feedRef.current.scrollTop = feedRef.current.scrollHeight
+    const el = feedRef.current
+    if (el && nearBottomRef.current) el.scrollTop = el.scrollHeight
   }, [messages.length])
 
   // Mirror profiles into a ref so the realtime callback never reads a stale map.
@@ -251,7 +258,7 @@ export default function DevProjectDetailPage() {
             Brief &amp; Verlauf
             {live && <span className="pd-live" title="Live · Updates erscheinen sofort"><span /></span>}
           </p>
-          <div className="pd-feed" ref={feedRef}>
+          <div className="pd-feed" ref={feedRef} onScroll={onFeedScroll}>
             {loading ? (
               <p className="pd-empty">Verlauf wird geladen…</p>
             ) : messages.length === 0 ? (
