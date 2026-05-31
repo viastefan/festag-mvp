@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { Buildings, Sparkle } from '@phosphor-icons/react'
 
 /**
  * Three-mode dev assignment visualization:
@@ -65,7 +66,8 @@ export default function DevMatchAnimation({ mode, candidates=[], matched=null, s
       <div className="dm-radar-ring"/>
       <div className="dm-center">
         {client?.avatar ? <img src={client.avatar} alt="" style={{ width:'100%', height:'100%', borderRadius:'50%', objectFit:'cover' }}/> :
-         <span>{client?.name?.charAt(0)?.toUpperCase() ?? '✦'}</span>}
+         client?.name ? <span>{client.name.charAt(0).toUpperCase()}</span> :
+         <Buildings size={30} weight="regular" />}
       </div>
 
       {/* Mode-specific rendering */}
@@ -121,7 +123,7 @@ export default function DevMatchAnimation({ mode, candidates=[], matched=null, s
       )}
       {phase === 'matched' && matched && mode === 'pool' && (
         <p className="dm-pop" style={{ position:'absolute', bottom:24, left:'50%', transform:'translateX(-50%)', fontSize:13.5, color:'var(--text)', textAlign:'center', margin:0, fontWeight:700 }}>
-          ✨ Dein Match: <span style={{ color:'#22c55e' }}>{matched.name}</span>
+          <Sparkle size={14} weight="fill" style={{ color:'#22c55e', verticalAlign:'-2px', marginRight:5 }} />Dein Match: <span style={{ color:'#22c55e' }}>{matched.name}</span>
         </p>
       )}
     </div>
