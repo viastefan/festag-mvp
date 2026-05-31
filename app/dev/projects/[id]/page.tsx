@@ -72,6 +72,8 @@ export default function DevProjectDetailPage() {
   const [copied, setCopied] = useState(false)
 
   const feedRef = useRef<HTMLDivElement | null>(null)
+  const profilesRef = useRef<Record<string, ProfileLite>>({})
+  const [live, setLive] = useState(false)
 
   const load = useCallback(async () => {
     if (!projectId) return
@@ -115,6 +117,32 @@ export default function DevProjectDetailPage() {
   useEffect(() => {
     if (feedRef.current) feedRef.current.scrollTop = feedRef.current.scrollHeight
   }, [messages.length])
+
+  // Mirror profiles into a ref so the realtime callback never reads a stale map.
+  useEffect(() => { profilesRef.current = profiles }, [profiles])
+
+  // Realtime — client / Tagro / co-dev messages on this project land instantly.
+  useEffect(() => {
+    if (!projectId) return
+    const channel = supabase
+      .channel(`dev-proj-${projectId}`)
+      .on('postgres_changes', {
+        event: 'INSERT', schema: 'public', table: 'messages', filter: `project_id=eq.${projectId}`,
+      }, (payload: any) => {
+        const row = payload?.new as Message
+        if (!row?.id) return
+        setMessages(prev => prev.some(m => m.id === row.id) ? prev : [...prev, row])
+        // Resolve a sender we haven't loaded yet (e.g. a client who joined after open).
+        if (row.sender_id && !row.is_ai && !profilesRef.current[row.sender_id]) {
+          supabase.from('profiles').select('id,full_name,email').eq('id', row.sender_id).maybeSingle()
+            .then(({ data }) => {
+              if (data) setProfiles(p => ({ ...p, [(data as ProfileLite).id]: data as ProfileLite }))
+            })
+        }
+      })
+      .subscribe(status => setLive(status === 'SUBSCRIBED'))
+    return () => { supabase.removeChannel(channel) }
+  }, [projectId, supabase])
 
   const clientMember = members.find(m => m.role === 'client')
   const clientName = clientMember
@@ -219,7 +247,10 @@ export default function DevProjectDetailPage() {
       <div className="pd-grid">
         {/* Conversation */}
         <section className="pd-conv dev-surface">
-          <p className="dev-section-title">Brief & Verlauf</p>
+          <p className="dev-section-title pd-conv-title">
+            Brief &amp; Verlauf
+            {live && <span className="pd-live" title="Live · Updates erscheinen sofort"><span /></span>}
+          </p>
           <div className="pd-feed" ref={feedRef}>
             {loading ? (
               <p className="pd-empty">Verlauf wird geladen…</p>
@@ -309,6 +340,10 @@ export default function DevProjectDetailPage() {
 
         .pd-grid { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 16px; align-items: start; }
         .pd-conv { display: flex; flex-direction: column; padding: 16px; min-height: 480px; }
+        .pd-conv-title { display: flex; align-items: center; gap: 8px; }
+        .pd-live { display: inline-flex; align-items: center; }
+        .pd-live span { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 0 color-mix(in srgb, var(--green) 55%, transparent); animation: pd-live-pulse 2s infinite; }
+        @keyframes pd-live-pulse { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--green) 50%, transparent); } 70% { box-shadow: 0 0 0 6px transparent; } 100% { box-shadow: 0 0 0 0 transparent; } }
         .pd-feed { flex: 1; overflow-y: auto; max-height: 56vh; display: flex; flex-direction: column; gap: 12px; padding: 6px 2px 10px; }
         .pd-empty { color: var(--text-muted); font-size: 13px; line-height: 1.55; padding: 18px 4px; }
         .pd-msg { border: 1px solid var(--border); border-radius: 13px; padding: 11px 13px; max-width: 88%; }
