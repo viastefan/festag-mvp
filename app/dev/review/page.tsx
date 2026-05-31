@@ -75,11 +75,11 @@ const FILTER_LABEL: Record<FilterKey, string> = {
 
 function verificationTone(s: string) {
   switch (s) {
-    case 'verified':       return { color: '#16A34A', label: 'Verified' }
-    case 'needs_review':   return { color: '#f59e0b', label: 'Needs Review' }
-    case 'proof_missing':  return { color: '#ef4444', label: 'Proof Missing' }
-    case 'quality_issue':  return { color: '#ef4444', label: 'Quality Issue' }
-    case 'blocked':        return { color: '#ef4444', label: 'Blocked' }
+    case 'verified':       return { color: 'var(--green-dark)', label: 'Verified' }
+    case 'needs_review':   return { color: 'var(--amber)', label: 'Needs Review' }
+    case 'proof_missing':  return { color: 'var(--red)', label: 'Proof Missing' }
+    case 'quality_issue':  return { color: 'var(--red)', label: 'Quality Issue' }
+    case 'blocked':        return { color: 'var(--red)', label: 'Blocked' }
     case 'cannot_verify':  return { color: 'var(--text-muted)', label: 'Manual Review' }
     default:               return { color: 'var(--text-muted)', label: s }
   }
@@ -479,8 +479,8 @@ function ReviewCard({
           color: var(--text-secondary);
           border: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
         }
-        .chip.good { color: #16A34A; border-color: color-mix(in srgb, #16A34A 35%, var(--border)); }
-        .chip.bad { color: #ef4444; border-color: color-mix(in srgb, #ef4444 40%, var(--border)); }
+        .chip.good { color: var(--green-dark); border-color: color-mix(in srgb, var(--green-dark) 35%, var(--border)); }
+        .chip.bad { color: var(--red); border-color: color-mix(in srgb, var(--red) 40%, var(--border)); }
         .chip.muted { color: var(--text-muted); }
         .chip svg { flex: 0 0 auto; }
 
@@ -492,7 +492,7 @@ function ReviewCard({
           display: inline-flex; align-items: flex-start; gap: 5px;
           font-size: 11.5px; color: var(--text-secondary); line-height: 1.45;
         }
-        .rc-issues svg { color: #f59e0b; margin-top: 2px; flex: 0 0 auto; }
+        .rc-issues svg { color: var(--amber); margin-top: 2px; flex: 0 0 auto; }
         .rc-issues li.more { color: var(--text-muted); font-style: italic; }
 
         .rc-next {

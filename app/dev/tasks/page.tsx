@@ -108,14 +108,14 @@ const SETTABLE_BY_DEV: DevFlow[] = ['new','assigned','in_progress','needs_review
 
 function dotColor(flow: DevFlow) {
   switch (flow) {
-    case 'in_progress': return '#22c55e'
+    case 'in_progress': return 'var(--green)'
     case 'needs_review':
-    case 'finished_by_dev': return '#f59e0b'
+    case 'finished_by_dev': return 'var(--amber)'
     case 'verified_by_tagro': return 'var(--accent)'
     case 'approved_by_owner':
-    case 'completed': return '#16A34A'
-    case 'blocked': return '#ef4444'
-    case 'cancelled': return '#64748b'
+    case 'completed': return 'var(--green-dark)'
+    case 'blocked': return 'var(--red)'
+    case 'cancelled': return 'var(--text-muted)'
     case 'assigned': return 'var(--text-secondary)'
     default: return 'var(--text-muted)'
   }
@@ -123,11 +123,11 @@ function dotColor(flow: DevFlow) {
 
 function verificationTone(s?: string | null) {
   switch (s) {
-    case 'verified': return { color: '#16A34A', label: 'Tagro Verified' }
-    case 'needs_review': return { color: '#f59e0b', label: 'Needs Review' }
-    case 'proof_missing': return { color: '#ef4444', label: 'Proof Missing' }
-    case 'quality_issue': return { color: '#ef4444', label: 'Quality Issue' }
-    case 'blocked': return { color: '#ef4444', label: 'Blocked' }
+    case 'verified': return { color: 'var(--green-dark)', label: 'Tagro Verified' }
+    case 'needs_review': return { color: 'var(--amber)', label: 'Needs Review' }
+    case 'proof_missing': return { color: 'var(--red)', label: 'Proof Missing' }
+    case 'quality_issue': return { color: 'var(--red)', label: 'Quality Issue' }
+    case 'blocked': return { color: 'var(--red)', label: 'Blocked' }
     case 'cannot_verify': return { color: 'var(--text-muted)', label: 'Manual Review' }
     default: return null
   }
@@ -1204,9 +1204,9 @@ export default function DevTasksPage() {
           font-size: 9.5px; letter-spacing: .04em; text-transform: uppercase;
           white-space: nowrap; flex-shrink: 0;
         }
-        .linked-pill.tone-amber { background: color-mix(in srgb, #f59e0b 14%, transparent); color: #f59e0b; }
-        .linked-pill.tone-good  { background: color-mix(in srgb, #22c55e 14%, transparent); color: #22c55e; }
-        .linked-pill.tone-red   { background: color-mix(in srgb, #ef4444 14%, transparent); color: #ef4444; }
+        .linked-pill.tone-amber { background: color-mix(in srgb, var(--amber) 14%, transparent); color: var(--amber); }
+        .linked-pill.tone-good  { background: color-mix(in srgb, var(--green-dark) 14%, transparent); color: var(--green-dark); }
+        .linked-pill.tone-red   { background: color-mix(in srgb, var(--red) 16%, transparent); color: var(--red); }
         .linked-pill.tone-muted { background: color-mix(in srgb, var(--surface-2) 70%, transparent); color: var(--text-muted); }
 
         /* Decision-request composer */
@@ -1283,9 +1283,9 @@ export default function DevTasksPage() {
 
 function StatPill({ value, label, tone }: { value: number; label: string; tone: 'green'|'amber'|'red'|'accent' }) {
   const color =
-    tone === 'green' ? '#22c55e' :
-    tone === 'amber' ? '#f59e0b' :
-    tone === 'red' ? '#ef4444' :
+    tone === 'green' ? 'var(--green)' :
+    tone === 'amber' ? 'var(--amber)' :
+    tone === 'red' ? 'var(--red)' :
     'var(--accent)'
   return (
     <div className="stat-pill">

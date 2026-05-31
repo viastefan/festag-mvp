@@ -282,10 +282,10 @@ export default function DevJobsPage() {
         .job-title strong { display:block; font-size:13.5px; }
         .job-title small { display:block; margin-top:3px; color:var(--text-muted); font-size:11.5px; }
         .job-dot { width:8px; height:8px; border-radius:50%; background:var(--text-muted); }
-        .job-dot.active { background:#22c55e; }
-        .job-dot.review { background:#f59e0b; }
-        .job-dot.blocked { background:#ef4444; }
-        .job-dot.done { background:#64748b; }
+        .job-dot.active { background:var(--green); }
+        .job-dot.review { background:var(--amber); }
+        .job-dot.blocked { background:var(--red); }
+        .job-dot.done { background:var(--text-muted); }
         .handoff { display:inline-flex; align-items:center; gap:5px; color:var(--text-muted); font-size:12px; font-weight:700; }
         .empty { padding:32px; color:var(--text-muted); font-size:13px; }
         .task-drawer { position:fixed; inset:0; z-index:9000; display:flex; justify-content:flex-end; }
@@ -304,13 +304,13 @@ export default function DevJobsPage() {
         .status-actions button.on, .status-actions button:hover { background:var(--surface-2); color:var(--text); }
         .criteria-list { display:flex; flex-direction:column; gap:8px; }
         .criteria-list div { display:flex; gap:8px; color:var(--text-secondary); font-size:13px; line-height:1.45; }
-        .criteria-list svg { color:#22c55e; flex:0 0 auto; margin-top:1px; }
+        .criteria-list svg { color:var(--green-dark); flex:0 0 auto; margin-top:1px; }
         .client-sync-box { border-radius:18px; padding:16px; background:var(--surface); border:1px solid var(--border); }
         .client-sync-box p:not(.dev-section-title) { color:var(--text-muted); margin:0 0 12px; font-size:13px; line-height:1.5; }
         .client-sync-box textarea { width:100%; min-height:116px; resize:vertical; border:0; outline:0; background:var(--surface-2); border-radius:14px; padding:13px; color:var(--text); font:inherit; font-size:13px; line-height:1.5; margin-bottom:10px; }
         .client-sync-box button { width:100%; display:flex; justify-content:center; align-items:center; gap:7px; }
         .client-sync-box button:disabled { opacity:.45; cursor:not-allowed; }
-        .client-sync-box blockquote { margin:12px 0 0; padding:11px 12px; border-left:2px solid #22c55e; color:var(--text-secondary); background:var(--surface-2); border-radius:10px; font-size:13px; line-height:1.5; }
+        .client-sync-box blockquote { margin:12px 0 0; padding:11px 12px; border-left:2px solid var(--green-dark); color:var(--text-secondary); background:var(--surface-2); border-radius:10px; font-size:13px; line-height:1.5; }
         @media (max-width: 980px) { .job-head { display:none; } .job-row { grid-template-columns:12px minmax(0,1fr); } .job-row > span:not(.job-dot), .handoff { display:none; } }
       `}</style>
     </div>

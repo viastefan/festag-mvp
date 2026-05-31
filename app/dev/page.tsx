@@ -413,7 +413,7 @@ export default function DevOverviewPage() {
             {clientRequests.map((t, i) => (
               <Link key={t.id} href={`/dev/tasks?id=${t.id}`} className="row"
                 style={{ borderTop: i > 0 ? '1px solid var(--border)' : 'none' }}>
-                <span className="dot" style={{ '--project-color': '#f59e0b' } as any} />
+                <span className="dot" style={{ '--project-color': 'var(--amber)' } as any} />
                 <div className="row-text">
                   <p className="t-1">{t.title}</p>
                   <p className="t-2">
@@ -577,9 +577,9 @@ export default function DevOverviewPage() {
         .alert-card {
           margin-top:16px; padding:12px 14px;
           display:flex; gap:12px; align-items:center;
-          border-color: color-mix(in srgb, #ef4444 30%, var(--border));
+          border-color: color-mix(in srgb, var(--red) 38%, var(--border));
         }
-        .alert-card svg { color:#dc2626; flex:0 0 auto; }
+        .alert-card svg { color:var(--red); flex:0 0 auto; }
         .alert-card > div { flex:1; min-width:0; }
         .alert-1 { margin:0; font-size:13px; color:var(--text); font-weight:500; }
         .alert-2 { margin:2px 0 0; font-size:11.5px; color:var(--text-muted); }
