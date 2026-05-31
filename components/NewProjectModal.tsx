@@ -1,30 +1,31 @@
 'use client'
 
 /**
- * NewProjectModal — calm centred dialog for creating a new project.
+ * NewProjectModal — calm, canvas-style dialog for creating a new project.
  *
- * Design (per 2026-05-23 spec):
- *   • True modal — dim + blur backdrop over the whole viewport. The
- *     sidebar stays visible behind the dim but is locked. The dialog
- *     sits dead-centre on the page (not inside the content column).
- *   • One concise form, no chat back-and-forth. Title, calm
- *     description textarea, three umsetzungsart cards, a quiet colour
- *     accent picker.
- *   • Tagro doesn't ask follow-up questions here — it confirms,
- *     structures and bows out. Follow-ups go through the project
- *     surface afterwards.
- *   • Submit lifecycle: idle → "Projekt vorbereiten" → loading
- *     "Tagro strukturiert…" → success "Projekt angelegt" with a calm
- *     four-step progress strip → onCreated.
- *   • No black buttons anywhere. Slate (var(--btn-prim)) is the only
- *     primary tone.
+ * Design (2026-06 revision — Linear-style canvas, Tagro logic):
+ *   • A true modal: dim + blur backdrop over the whole viewport, dialog
+ *     dead-centre. The sidebar stays visible behind the dim but locked.
+ *   • The project NAME is the hero — a large, borderless input with a
+ *     colour glyph to its left (the glyph opens the accent picker).
+ *   • Below the name sits a quiet row of inline property pills —
+ *     Status · Umsetzung · Zieltermin — each opening a small floating
+ *     popover. These are functional and persist on the project row.
+ *   • A calm brief area is where the user describes the work. Tagro
+ *     structures it; it does NOT chat back here.
+ *   • Milestones & next steps are NOT hand-entered — Tagro derives them
+ *     while structuring. We say so, rather than faking a manual list.
+ *   • Every button / pill / chip uses an 8px corner — no pills, no 32px
+ *     (per the binding radius rule). Colour swatches are rounded squares.
+ *   • No black / white / coloured buttons. Slate (var(--btn-prim)) is the
+ *     only primary tone; accent colour is the project's own marker.
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import {
-  ArrowRight, ArrowsClockwise, Buildings, Check, CodeBlock,
-  Sparkle, UsersThree, X,
+  ArrowRight, ArrowsClockwise, Buildings, CalendarBlank, CaretDown,
+  Check, CodeBlock, ListChecks, Sparkle, UsersThree, X,
 } from '@phosphor-icons/react'
 
 interface Props {
@@ -66,8 +67,19 @@ const DELIVERY_OPTIONS: DeliveryOption[] = [
   },
 ]
 
-// Calm accent palette. The colour shows up only as a thin row marker in
-// the projects table and as a soft tint in the project header.
+// Project lifecycle phases — mirrors the project view (intake → done).
+// A brand-new project starts in 'intake', matching /api/ai/decompose.
+type Tone = 'muted' | 'amber' | 'good'
+const PROJECT_STATES: { id: string; label: string; tone: Tone }[] = [
+  { id: 'intake',   label: 'Intake',        tone: 'muted' },
+  { id: 'planning', label: 'Planung',       tone: 'muted' },
+  { id: 'active',   label: 'In Arbeit',     tone: 'amber' },
+  { id: 'testing',  label: 'Testing',       tone: 'amber' },
+  { id: 'done',     label: 'Abgeschlossen', tone: 'good'  },
+]
+
+// Calm accent palette. The colour shows up as the project glyph, a thin
+// row marker in the projects table and a soft tint in the project header.
 const ACCENT_COLOURS = [
   { id: 'slate',   value: '#5B647D', label: 'Slate' },
   { id: 'indigo',  value: '#6366F1', label: 'Indigo' },
@@ -87,6 +99,8 @@ const EXAMPLE_PROMPTS = [
 ]
 
 type Phase = 'form' | 'loading' | 'success' | 'error'
+type PopKind = 'status' | 'delivery' | 'date' | 'accent'
+type PopState = { kind: PopKind; top: number; left: number }
 
 const LOADING_STEPS = [
   'Projekt wird vorbereitet',
@@ -95,40 +109,54 @@ const LOADING_STEPS = [
   'Projekt wurde erstellt',
 ] as const
 
+function fmtDate(iso: string) {
+  try {
+    return new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: 'short', year: 'numeric' })
+      .format(new Date(iso + 'T00:00:00'))
+  } catch { return iso }
+}
+
 export default function NewProjectModal({ onClose, onCreated }: Props) {
   const supabase = useMemo(() => createClient(), [])
+  const today = useMemo(() => new Date().toISOString().slice(0, 10), [])
+
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [accent, setAccent] = useState(ACCENT_COLOURS[0].value)
   const [delivery, setDelivery] = useState<DeliveryModel>('festag_delivery')
+  const [status, setStatus] = useState('intake')
+  const [targetDate, setTargetDate] = useState('')
 
   const [phase, setPhase] = useState<Phase>('form')
   const [loadingStep, setLoadingStep] = useState(0)
   const [error, setError] = useState('')
+  const [pop, setPop] = useState<PopState | null>(null)
 
   const dialogRef = useRef<HTMLDivElement>(null)
   const titleRef = useRef<HTMLInputElement>(null)
   const descRef = useRef<HTMLTextAreaElement>(null)
 
-  // Focus the title on open.
+  // Focus the name on open.
   useEffect(() => { titleRef.current?.focus() }, [])
 
-  // Esc closes — but only when not mid-loading, so a half-finished
-  // submit can't be abandoned accidentally.
+  // Esc: close an open popover first, otherwise close the dialog (never
+  // mid-loading, so a half-finished submit can't be abandoned).
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && phase !== 'loading') onClose()
+      if (e.key !== 'Escape') return
+      if (pop) { setPop(null); return }
+      if (phase !== 'loading') onClose()
     }
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
-  }, [onClose, phase])
+  }, [onClose, phase, pop])
 
   // Autosize the description textarea.
   useEffect(() => {
     const el = descRef.current
     if (!el) return
     el.style.height = '0px'
-    el.style.height = Math.min(280, Math.max(120, el.scrollHeight)) + 'px'
+    el.style.height = Math.min(300, Math.max(132, el.scrollHeight)) + 'px'
   }, [description])
 
   // Body scroll lock with scrollbar-gutter compensation — keeps the
@@ -145,6 +173,14 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
     }
   }, [])
 
+  // Close popovers if the viewport changes under them.
+  useEffect(() => {
+    if (!pop) return
+    const close = () => setPop(null)
+    window.addEventListener('resize', close)
+    return () => window.removeEventListener('resize', close)
+  }, [pop])
+
   // Loading step ticker — purely visual, the actual work runs in submit().
   useEffect(() => {
     if (phase !== 'loading') return
@@ -154,11 +190,20 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
     return () => { timers.forEach(clearTimeout) }
   }, [phase])
 
+  function openPop(kind: PopKind, e: React.MouseEvent<HTMLButtonElement>) {
+    if (pop?.kind === kind) { setPop(null); return }
+    const r = e.currentTarget.getBoundingClientRect()
+    const width = kind === 'delivery' ? 336 : kind === 'accent' ? 184 : 224
+    const left = Math.max(14, Math.min(r.left, window.innerWidth - width - 14))
+    setPop({ kind, top: r.bottom + 6, left })
+  }
+
   const canSubmit = title.trim().length >= 2 && description.trim().length >= 12
 
   async function submit() {
     if (!canSubmit || phase === 'loading') return
     setError('')
+    setPop(null)
     setPhase('loading')
 
     try {
@@ -190,7 +235,9 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
         title: title.trim(),
         scope_summary: description.trim().slice(0, 1200),
         color: accent,
+        status,
       }
+      if (targetDate) patch.target_date = targetDate
       // delivery_model column added by the modular-project-types migration.
       try { (patch as any).delivery_model = delivery } catch {}
       await (supabase as any).from('projects').update(patch).eq('id', projectId)
@@ -214,6 +261,8 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
   }
 
   const selectedDelivery = DELIVERY_OPTIONS.find(d => d.id === delivery)!
+  const DeliveryIcon = selectedDelivery.icon
+  const curState = PROJECT_STATES.find(s => s.id === status) ?? PROJECT_STATES[0]
 
   return (
     <div className="npm-overlay" role="dialog" aria-modal="true" aria-label="Neues Projekt">
@@ -230,10 +279,7 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
 
       <div className="npm-card" ref={dialogRef} role="document" onMouseDown={e => e.stopPropagation()}>
         <header className="npm-head">
-          <div className="npm-head-meta">
-            <p className="npm-eyebrow">Neues Projekt</p>
-            <h2>Was möchtest du umsetzen?</h2>
-          </div>
+          <p className="npm-eyebrow">Neues Projekt</p>
           <button
             type="button"
             className="npm-icon-btn"
@@ -246,46 +292,70 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
         </header>
 
         {(phase === 'form' || phase === 'error') && (
-          <div className="npm-body">
-            <section className="npm-section">
-              <div className="npm-title-row">
+          <div className="npm-body" onScroll={() => pop && setPop(null)}>
+            {/* Hero canvas — name + property pills */}
+            <div className="npm-canvas">
+              <div className="npm-name-row">
                 <button
                   type="button"
-                  className="npm-accent-trigger"
+                  className="npm-glyph"
                   style={{ background: accent }}
-                  aria-label={`Projektakzent gewählt: ${accent}`}
-                  title="Akzentfarbe anpassen"
-                  onClick={() => titleRef.current?.focus()}
+                  aria-label="Projektfarbe wählen"
+                  title="Projektfarbe"
+                  onClick={e => openPop('accent', e)}
                 />
                 <input
                   ref={titleRef}
-                  className="npm-title"
+                  className="npm-name"
                   placeholder="Projektname"
                   value={title}
                   onChange={e => setTitle(e.target.value)}
                   maxLength={120}
                 />
               </div>
-              <div className="npm-accent-row" role="radiogroup" aria-label="Projektakzent">
-                {ACCENT_COLOURS.map(c => (
-                  <button
-                    key={c.id}
-                    type="button"
-                    role="radio"
-                    aria-checked={accent === c.value}
-                    aria-label={c.label}
-                    title={c.label}
-                    className={`npm-accent-chip${accent === c.value ? ' on' : ''}`}
-                    onClick={() => setAccent(c.value)}
-                  >
-                    <span style={{ background: c.value }} />
-                  </button>
-                ))}
-              </div>
-            </section>
 
-            <section className="npm-section">
-              <label className="npm-label" htmlFor="npm-desc">Projekt kurz beschreiben</label>
+              <div className="npm-props" role="group" aria-label="Projekteigenschaften">
+                <button
+                  type="button"
+                  className="npm-pill"
+                  aria-haspopup="listbox"
+                  aria-expanded={pop?.kind === 'status'}
+                  onClick={e => openPop('status', e)}
+                >
+                  <span className={`npm-dot t-${curState.tone}`} aria-hidden />
+                  <span>{curState.label}</span>
+                  <CaretDown size={11} weight="bold" className="npm-pill-caret" />
+                </button>
+
+                <button
+                  type="button"
+                  className="npm-pill"
+                  aria-haspopup="listbox"
+                  aria-expanded={pop?.kind === 'delivery'}
+                  onClick={e => openPop('delivery', e)}
+                >
+                  <DeliveryIcon size={13} weight="regular" />
+                  <span>{selectedDelivery.label}</span>
+                  <CaretDown size={11} weight="bold" className="npm-pill-caret" />
+                </button>
+
+                <button
+                  type="button"
+                  className={`npm-pill${targetDate ? ' set' : ''}`}
+                  aria-haspopup="dialog"
+                  aria-expanded={pop?.kind === 'date'}
+                  onClick={e => openPop('date', e)}
+                >
+                  <CalendarBlank size={13} weight="regular" />
+                  <span>{targetDate ? fmtDate(targetDate) : 'Zieltermin'}</span>
+                  <CaretDown size={11} weight="bold" className="npm-pill-caret" />
+                </button>
+              </div>
+            </div>
+
+            {/* Brief */}
+            <section className="npm-field">
+              <label className="npm-label" htmlFor="npm-desc">Worum geht es?</label>
               <p className="npm-helper">
                 Beschreibe, was umgesetzt werden soll. Tagro strukturiert daraus Ziel, Umfang, nächste Schritte und die passende Umsetzung.
               </p>
@@ -296,7 +366,7 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
                 placeholder="Zum Beispiel: Eine Landingpage für ein Beratungsangebot — Hero, Leistungen, Kontaktformular und einfache SEO-Grundstruktur."
                 value={description}
                 onChange={e => setDescription(e.target.value)}
-                rows={5}
+                rows={6}
                 maxLength={2000}
               />
               <div className="npm-examples">
@@ -314,35 +384,14 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
               </div>
             </section>
 
-            <section className="npm-section">
-              <p className="npm-label as-block">Wie soll das Projekt umgesetzt werden?</p>
-              <div className="npm-delivery">
-                {DELIVERY_OPTIONS.map(opt => {
-                  const Icon = opt.icon
-                  return (
-                    <button
-                      key={opt.id}
-                      type="button"
-                      role="radio"
-                      aria-checked={delivery === opt.id}
-                      className={`npm-delivery-card${delivery === opt.id ? ' on' : ''}`}
-                      onClick={() => setDelivery(opt.id)}
-                    >
-                      <span className="npm-delivery-icon">
-                        <Icon size={16} weight="regular" />
-                      </span>
-                      <span className="npm-delivery-main">
-                        <strong>{opt.label}</strong>
-                        <small>{opt.meta}</small>
-                      </span>
-                      <span className="npm-delivery-tick" aria-hidden>
-                        <Check size={11} weight="bold" />
-                      </span>
-                    </button>
-                  )
-                })}
-              </div>
-            </section>
+            {/* Milestones — Tagro derives these, the user doesn't hand-enter them */}
+            <div className="npm-milestones" aria-hidden>
+              <span className="npm-milestones-ico"><ListChecks size={15} weight="regular" /></span>
+              <span className="npm-milestones-text">
+                <strong>Meilensteine &amp; nächste Schritte</strong>
+                <small>Tagro leitet sie beim Strukturieren aus deiner Beschreibung ab.</small>
+              </span>
+            </div>
 
             {error && (
               <p className="npm-error" role="alert">{error}</p>
@@ -405,6 +454,97 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
           </footer>
         )}
       </div>
+
+      {/* Floating property popovers — fixed to the viewport so the card's
+          rounded clip never cuts them off. */}
+      {pop && (phase === 'form' || phase === 'error') && (
+        <div className="npm-pop-layer" onMouseDown={() => setPop(null)}>
+          <div
+            className={`npm-pop k-${pop.kind}`}
+            style={{ top: pop.top, left: pop.left }}
+            onMouseDown={e => e.stopPropagation()}
+            role={pop.kind === 'date' ? 'dialog' : 'listbox'}
+          >
+            {pop.kind === 'status' && PROJECT_STATES.map(s => (
+              <button
+                key={s.id}
+                type="button"
+                role="option"
+                aria-selected={status === s.id}
+                className={`npm-pop-item${status === s.id ? ' on' : ''}`}
+                onClick={() => { setStatus(s.id); setPop(null) }}
+              >
+                <span className={`npm-dot t-${s.tone}`} aria-hidden />
+                <span className="npm-pop-label">{s.label}</span>
+                {status === s.id && <Check size={12} weight="bold" className="npm-pop-check" />}
+              </button>
+            ))}
+
+            {pop.kind === 'delivery' && DELIVERY_OPTIONS.map(opt => {
+              const Icon = opt.icon
+              return (
+                <button
+                  key={opt.id}
+                  type="button"
+                  role="option"
+                  aria-selected={delivery === opt.id}
+                  className={`npm-pop-item wide${delivery === opt.id ? ' on' : ''}`}
+                  onClick={() => { setDelivery(opt.id); setPop(null) }}
+                >
+                  <span className="npm-pop-ico"><Icon size={14} weight="regular" /></span>
+                  <span className="npm-pop-text">
+                    <strong>{opt.label}</strong>
+                    <small>{opt.meta}</small>
+                  </span>
+                  {delivery === opt.id && <Check size={12} weight="bold" className="npm-pop-check" />}
+                </button>
+              )
+            })}
+
+            {pop.kind === 'date' && (
+              <div className="npm-pop-date">
+                <label className="npm-pop-date-label">Zieltermin</label>
+                <input
+                  type="date"
+                  className="npm-date-input"
+                  value={targetDate}
+                  min={today}
+                  onChange={e => setTargetDate(e.target.value)}
+                />
+                {targetDate && (
+                  <button
+                    type="button"
+                    className="npm-pop-clear"
+                    onClick={() => { setTargetDate(''); setPop(null) }}
+                  >
+                    Termin entfernen
+                  </button>
+                )}
+              </div>
+            )}
+
+            {pop.kind === 'accent' && (
+              <div className="npm-pop-accents" role="radiogroup" aria-label="Projektfarbe">
+                {ACCENT_COLOURS.map(c => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={accent === c.value}
+                    aria-label={c.label}
+                    title={c.label}
+                    className={`npm-swatch${accent === c.value ? ' on' : ''}`}
+                    style={{ ['--sw' as any]: c.value }}
+                    onClick={() => { setAccent(c.value); setPop(null) }}
+                  >
+                    {accent === c.value && <Check size={11} weight="bold" />}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -428,11 +568,11 @@ const CSS = `
 
   .npm-card {
     position: relative; z-index: 1;
-    width: min(780px, calc(100vw - 32px));
+    width: min(720px, calc(100vw - 32px));
     max-height: calc(100dvh - 64px);
     background: var(--card);
     border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
-    border-radius: 20px;
+    border-radius: 16px;
     box-shadow:
       0 1px 2px rgba(15,23,42,.06),
       0 32px 80px -28px rgba(15,23,42,.35);
@@ -449,21 +589,16 @@ const CSS = `
   }
 
   .npm-head {
-    display: flex; justify-content: space-between; align-items: flex-start;
-    padding: 20px 22px 14px;
-    border-bottom: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 16px 12px 22px;
   }
   .npm-eyebrow {
     margin: 0; font-size: 10.5px; font-weight: 500;
     letter-spacing: .14em; text-transform: uppercase; color: var(--text-muted);
   }
-  .npm-head-meta h2 {
-    margin: 4px 0 0; font-size: 19px; font-weight: 500; letter-spacing: -.01em;
-    color: var(--text);
-  }
   .npm-icon-btn {
-    width: 32px; height: 32px; border: 0; background: transparent;
-    color: var(--text-muted); border-radius: 10px; cursor: pointer;
+    width: 30px; height: 30px; border: 0; background: transparent;
+    color: var(--text-muted); border-radius: 8px; cursor: pointer;
     display: inline-flex; align-items: center; justify-content: center;
     transition: background .12s, color .12s;
   }
@@ -474,61 +609,89 @@ const CSS = `
   .npm-icon-btn:disabled { opacity: .35; cursor: not-allowed; }
 
   .npm-body {
-    padding: 18px 22px 20px;
+    padding: 4px 22px 22px;
     overflow-y: auto;
-    display: flex; flex-direction: column; gap: 22px;
+    display: flex; flex-direction: column; gap: 20px;
   }
-  .npm-section { display: flex; flex-direction: column; gap: 8px; }
+
+  /* Hero canvas */
+  .npm-canvas { display: flex; flex-direction: column; gap: 14px; }
+  .npm-name-row { display: flex; align-items: center; gap: 13px; }
+  .npm-glyph {
+    width: 30px; height: 30px; border-radius: 8px; border: 0;
+    box-shadow:
+      inset 0 0 0 1px color-mix(in srgb, #000 12%, transparent),
+      0 1px 2px rgba(15,23,42,.18);
+    cursor: pointer; flex-shrink: 0;
+    transition: transform .12s, box-shadow .12s;
+  }
+  .npm-glyph:hover { transform: translateY(-1px); }
+  .npm-glyph:focus-visible {
+    outline: 0;
+    box-shadow: 0 0 0 2px var(--card), 0 0 0 4px color-mix(in srgb, var(--btn-prim) 55%, transparent);
+  }
+  .npm-name {
+    flex: 1; min-width: 0;
+    background: transparent; border: 0; outline: 0;
+    color: var(--text); font: inherit;
+    font-size: 23px; font-weight: 500; letter-spacing: -.015em;
+    padding: 4px 0;
+  }
+  .npm-name::placeholder { color: var(--text-muted); opacity: .5; }
+
+  /* Property pills */
+  .npm-props { display: flex; flex-wrap: wrap; gap: 7px; }
+  .npm-pill {
+    display: inline-flex; align-items: center; gap: 7px;
+    height: 30px; padding: 0 10px;
+    border-radius: 8px;
+    border: 1px solid color-mix(in srgb, var(--border) 75%, transparent);
+    background: color-mix(in srgb, var(--surface-2) 30%, transparent);
+    color: var(--text-secondary);
+    font: inherit; font-size: 12.5px; font-weight: 500; letter-spacing: .01em;
+    cursor: pointer; white-space: nowrap;
+    transition: background .12s, color .12s, border-color .12s;
+  }
+  .npm-pill:hover {
+    background: color-mix(in srgb, var(--surface-2) 60%, transparent);
+    border-color: var(--border-strong);
+    color: var(--text);
+  }
+  .npm-pill[aria-expanded="true"] {
+    border-color: color-mix(in srgb, var(--btn-prim) 50%, var(--border));
+    background: color-mix(in srgb, var(--btn-prim) 8%, transparent);
+    color: var(--text);
+  }
+  .npm-pill.set { color: var(--text); }
+  .npm-pill svg { color: var(--text-muted); flex-shrink: 0; }
+  .npm-pill-caret { margin-left: -1px; opacity: .8; }
+
+  .npm-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+    background: color-mix(in srgb, var(--text-muted) 80%, transparent); }
+  .npm-dot.t-muted { background: color-mix(in srgb, var(--text-muted) 78%, transparent); }
+  .npm-dot.t-amber { background: var(--amber); }
+  .npm-dot.t-good  { background: var(--green-dark); }
+
+  /* Brief */
+  .npm-field { display: flex; flex-direction: column; gap: 8px; }
   .npm-label {
     font-size: 11px; font-weight: 500; letter-spacing: .14em;
     text-transform: uppercase; color: var(--text-muted);
   }
-  .npm-label.as-block { display: block; }
   .npm-helper {
     margin: -4px 0 4px; font-size: 12.5px; line-height: 1.55;
     color: var(--text-muted); font-weight: 500; letter-spacing: .015em;
-    max-width: 56ch;
+    max-width: 58ch;
   }
-
-  /* Title row */
-  .npm-title-row { display: flex; align-items: center; gap: 12px; }
-  .npm-accent-trigger {
-    width: 24px; height: 24px; border-radius: 7px; border: 0;
-    box-shadow: 0 0 0 1px color-mix(in srgb, var(--border) 80%, transparent);
-    cursor: pointer; flex-shrink: 0;
-  }
-  .npm-title {
-    flex: 1; min-width: 0;
-    background: transparent; border: 0; outline: 0;
-    color: var(--text); font: inherit;
-    font-size: 22px; font-weight: 500; letter-spacing: -.015em;
-    padding: 6px 0;
-  }
-  .npm-title::placeholder { color: var(--text-muted); opacity: .55; }
-
-  .npm-accent-row { display: flex; flex-wrap: wrap; gap: 6px; padding-left: 36px; }
-  .npm-accent-chip {
-    width: 22px; height: 22px; padding: 3px;
-    border: 0; background: transparent; border-radius: 999px;
-    cursor: pointer; transition: box-shadow .12s;
-  }
-  .npm-accent-chip > span {
-    display: block; width: 100%; height: 100%; border-radius: 999px;
-    box-shadow: 0 0 0 1px color-mix(in srgb, var(--border) 70%, transparent);
-  }
-  .npm-accent-chip:hover > span { transform: scale(1.08); transition: transform .12s; }
-  .npm-accent-chip.on { box-shadow: 0 0 0 2px color-mix(in srgb, var(--btn-prim) 60%, transparent); }
-
-  /* Description textarea */
   .npm-textarea {
-    width: 100%; padding: 14px 16px;
+    width: 100%; padding: 13px 15px;
     background: color-mix(in srgb, var(--surface) 55%, var(--card) 45%);
     border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
-    border-radius: 14px;
+    border-radius: 10px;
     color: var(--text); font: inherit;
     font-size: 14px; line-height: 1.6; font-weight: 500; letter-spacing: .015em;
     outline: 0; resize: vertical;
-    min-height: 120px; max-height: 280px;
+    min-height: 132px; max-height: 300px;
     transition: border-color .14s, box-shadow .14s;
   }
   .npm-textarea::placeholder { color: var(--text-muted); opacity: .6; }
@@ -541,7 +704,7 @@ const CSS = `
   .npm-example {
     display: inline-flex; align-items: center; gap: 5px;
     max-width: 100%;
-    padding: 5px 10px; border-radius: 999px;
+    padding: 5px 10px; border-radius: 8px;
     border: 1px solid color-mix(in srgb, var(--border) 65%, transparent);
     background: color-mix(in srgb, var(--surface-2) 35%, transparent);
     color: var(--text-secondary);
@@ -558,71 +721,36 @@ const CSS = `
   }
   .npm-example svg { color: var(--text-muted); flex-shrink: 0; }
 
-  /* Delivery cards */
-  .npm-delivery {
-    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;
-  }
-  .npm-delivery-card {
-    display: grid; grid-template-columns: 32px 1fr 16px;
-    gap: 10px; align-items: flex-start;
+  /* Milestones hint (Tagro derives — not hand-entered) */
+  .npm-milestones {
+    display: flex; align-items: center; gap: 11px;
     padding: 12px 14px;
-    border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
-    background: var(--card);
-    border-radius: 14px;
-    text-align: left;
-    cursor: pointer;
-    transition: border-color .14s, background .14s, transform .14s;
-    color: var(--text);
-    font: inherit;
+    border: 1px dashed color-mix(in srgb, var(--border) 80%, transparent);
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--surface-2) 22%, transparent);
   }
-  .npm-delivery-card:hover {
-    border-color: var(--border-strong);
-    transform: translateY(-1px);
-  }
-  .npm-delivery-card.on {
-    border-color: color-mix(in srgb, var(--btn-prim) 50%, var(--border));
-    background: color-mix(in srgb, var(--btn-prim) 7%, var(--card));
-  }
-  .npm-delivery-icon {
-    width: 32px; height: 32px; border-radius: 10px;
+  .npm-milestones-ico {
+    width: 30px; height: 30px; border-radius: 8px; flex-shrink: 0;
     display: inline-flex; align-items: center; justify-content: center;
-    background: color-mix(in srgb, var(--surface-2) 65%, transparent);
+    background: color-mix(in srgb, var(--surface-2) 60%, transparent);
     color: var(--text-secondary);
   }
-  .npm-delivery-card.on .npm-delivery-icon {
-    background: color-mix(in srgb, var(--btn-prim) 14%, transparent);
-    color: var(--btn-prim);
+  .npm-milestones-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .npm-milestones-text strong {
+    font-size: 12.5px; font-weight: 500; letter-spacing: -.003em; color: var(--text);
   }
-  .npm-delivery-main { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
-  .npm-delivery-main strong {
-    font-size: 13px; font-weight: 500; letter-spacing: -.005em; color: var(--text);
-  }
-  .npm-delivery-main small {
-    font-size: 11.5px; line-height: 1.5;
-    color: var(--text-muted); font-weight: 500; letter-spacing: .015em;
-  }
-  .npm-delivery-tick {
-    width: 16px; height: 16px; border-radius: 999px;
-    border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
-    display: inline-flex; align-items: center; justify-content: center;
-    color: transparent; background: transparent; flex-shrink: 0; margin-top: 1px;
-    transition: all .14s;
-  }
-  .npm-delivery-card.on .npm-delivery-tick {
-    background: var(--btn-prim); border-color: var(--btn-prim); color: var(--btn-prim-text);
-  }
-
-  @media (max-width: 720px) {
-    .npm-delivery { grid-template-columns: 1fr; }
+  .npm-milestones-text small {
+    font-size: 11.5px; line-height: 1.45; color: var(--text-muted);
+    font-weight: 500; letter-spacing: .015em;
   }
 
   /* Error inline */
   .npm-error {
     margin: 0; padding: 10px 14px;
-    background: color-mix(in srgb, #ef4444 10%, transparent);
-    color: #d44b4b;
-    border: 1px solid color-mix(in srgb, #ef4444 22%, transparent);
-    border-radius: 12px;
+    background: color-mix(in srgb, var(--red) 10%, transparent);
+    color: var(--red);
+    border: 1px solid color-mix(in srgb, var(--red) 22%, transparent);
+    border-radius: 8px;
     font-size: 12.5px; font-weight: 500; line-height: 1.5;
   }
 
@@ -649,9 +777,9 @@ const CSS = `
     border: 1px solid color-mix(in srgb, var(--btn-prim) 24%, transparent);
   }
   .npm-busy-mark.success {
-    background: color-mix(in srgb, #22a06b 14%, transparent);
-    border-color: color-mix(in srgb, #22a06b 28%, transparent);
-    color: #22a06b;
+    background: color-mix(in srgb, var(--green-dark) 14%, transparent);
+    border-color: color-mix(in srgb, var(--green-dark) 28%, transparent);
+    color: var(--green-dark);
   }
   .npm-spin { animation: npmSpin 1s linear infinite; }
   @keyframes npmSpin { to { transform: rotate(360deg); } }
@@ -659,15 +787,15 @@ const CSS = `
   .npm-steps {
     margin: 6px 0 0; padding: 0; list-style: none;
     display: flex; flex-direction: column; gap: 6px;
-    max-width: 320px;
+    max-width: 320px; width: 100%;
   }
   .npm-steps li {
     display: grid; grid-template-columns: 22px 1fr; gap: 10px; align-items: center;
     padding: 8px 12px;
-    border-radius: 10px;
+    border-radius: 8px;
     background: color-mix(in srgb, var(--surface-2) 35%, transparent);
     font-size: 12.5px; font-weight: 500; letter-spacing: .015em;
-    color: var(--text-muted);
+    color: var(--text-muted); text-align: left;
     transition: background .2s, color .2s;
   }
   .npm-steps li.active {
@@ -676,7 +804,7 @@ const CSS = `
   }
   .npm-steps li.done { color: var(--text); }
   .npm-step-mark {
-    width: 22px; height: 22px; border-radius: 999px;
+    width: 22px; height: 22px; border-radius: 6px;
     display: inline-flex; align-items: center; justify-content: center;
     background: var(--card); border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
     color: var(--btn-prim);
@@ -709,7 +837,7 @@ const CSS = `
   .npm-primary, .npm-secondary {
     display: inline-flex; align-items: center; gap: 6px;
     height: 38px; padding: 0 18px;
-    border-radius: 999px;
+    border-radius: 8px;
     font: inherit; font-size: 13px; font-weight: 500; letter-spacing: .015em;
     cursor: pointer;
     transition: opacity .12s, transform .12s, background .12s, color .12s, border-color .12s;
@@ -730,14 +858,114 @@ const CSS = `
   }
   .npm-secondary:disabled { opacity: .4; cursor: not-allowed; }
 
+  /* Floating popovers */
+  .npm-pop-layer { position: fixed; inset: 0; z-index: 12600; }
+  .npm-pop {
+    position: fixed;
+    background: var(--card);
+    border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+    border-radius: 12px;
+    box-shadow:
+      0 1px 2px rgba(15,23,42,.08),
+      0 18px 44px -16px rgba(15,23,42,.4);
+    padding: 5px;
+    animation: npmPopIn .14s cubic-bezier(.16,1,.3,1) both;
+  }
+  [data-theme="dark"] .npm-pop,
+  [data-theme="classic-dark"] .npm-pop {
+    background: color-mix(in srgb, var(--card) 92%, #fff 8%);
+    box-shadow: 0 1px 2px rgba(0,0,0,.5), 0 20px 50px -18px rgba(0,0,0,.75);
+  }
+  @keyframes npmPopIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+  .npm-pop.k-status   { width: 224px; }
+  .npm-pop.k-delivery { width: 336px; }
+  .npm-pop.k-date     { width: 224px; }
+  .npm-pop.k-accent   { width: 184px; }
+
+  .npm-pop-item {
+    display: flex; align-items: center; gap: 10px; width: 100%;
+    padding: 8px 10px; border: 0; border-radius: 8px;
+    background: transparent; color: var(--text);
+    font: inherit; font-size: 13px; font-weight: 500; letter-spacing: .01em;
+    text-align: left; cursor: pointer;
+    transition: background .1s;
+  }
+  .npm-pop-item:hover { background: color-mix(in srgb, var(--surface-2) 60%, transparent); }
+  .npm-pop-item.on { background: color-mix(in srgb, var(--btn-prim) 9%, transparent); }
+  .npm-pop-label { flex: 1; min-width: 0; }
+  .npm-pop-check { color: var(--btn-prim); flex-shrink: 0; }
+  .npm-pop-item.wide { align-items: flex-start; }
+  .npm-pop-ico {
+    width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0; margin-top: 1px;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: color-mix(in srgb, var(--surface-2) 60%, transparent);
+    color: var(--text-secondary);
+  }
+  .npm-pop-item.on .npm-pop-ico {
+    background: color-mix(in srgb, var(--btn-prim) 14%, transparent);
+    color: var(--btn-prim);
+  }
+  .npm-pop-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+  .npm-pop-text strong { font-size: 12.5px; font-weight: 500; letter-spacing: -.003em; color: var(--text); }
+  .npm-pop-text small { font-size: 11px; line-height: 1.45; color: var(--text-muted); font-weight: 500; letter-spacing: .015em; }
+  .npm-pop-item.wide .npm-pop-check { margin-top: 8px; }
+
+  /* Date popover */
+  .npm-pop-date { display: flex; flex-direction: column; gap: 7px; padding: 7px; }
+  .npm-pop-date-label {
+    font-size: 10.5px; font-weight: 500; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--text-muted); padding: 2px 2px 0;
+  }
+  .npm-date-input {
+    width: 100%; padding: 8px 10px;
+    background: color-mix(in srgb, var(--surface) 55%, var(--card) 45%);
+    border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+    border-radius: 8px;
+    color: var(--text); font: inherit; font-size: 13px; font-weight: 500;
+    outline: 0; cursor: pointer;
+    transition: border-color .14s, box-shadow .14s;
+  }
+  .npm-date-input:focus {
+    border-color: color-mix(in srgb, var(--btn-prim) 45%, var(--border));
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--btn-prim) 14%, transparent);
+  }
+  [data-theme="dark"] .npm-date-input,
+  [data-theme="classic-dark"] .npm-date-input { color-scheme: dark; }
+  .npm-pop-clear {
+    width: 100%; padding: 7px 10px; border: 0; border-radius: 8px;
+    background: transparent; color: var(--text-secondary);
+    font: inherit; font-size: 12px; font-weight: 500; letter-spacing: .01em;
+    cursor: pointer; text-align: left;
+    transition: background .1s, color .1s;
+  }
+  .npm-pop-clear:hover { background: color-mix(in srgb, var(--surface-2) 60%, transparent); color: var(--text); }
+
+  /* Accent popover */
+  .npm-pop-accents {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; padding: 6px;
+  }
+  .npm-swatch {
+    width: 36px; height: 30px; border-radius: 8px; border: 0; padding: 0;
+    cursor: pointer; position: relative;
+    background: var(--sw);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, #000 12%, transparent);
+    display: inline-flex; align-items: center; justify-content: center;
+    color: #fff;
+    transition: transform .1s, box-shadow .1s;
+  }
+  .npm-swatch:hover { transform: translateY(-1px); }
+  .npm-swatch.on { box-shadow: inset 0 0 0 1px color-mix(in srgb, #000 14%, transparent), 0 0 0 2px var(--card), 0 0 0 4px color-mix(in srgb, var(--btn-prim) 60%, transparent); }
+  .npm-swatch svg { filter: drop-shadow(0 1px 1px rgba(0,0,0,.35)); }
+
   @media (max-width: 720px) {
     .npm-overlay { padding: 16px; align-items: flex-end; }
     .npm-card {
       width: 100%;
       max-height: calc(100dvh - 24px);
-      border-radius: 22px 22px 14px 14px;
+      border-radius: 16px 16px 12px 12px;
     }
     .npm-foot { flex-direction: column; align-items: stretch; }
     .npm-primary, .npm-secondary { justify-content: center; width: 100%; }
+    .npm-pop.k-delivery { width: min(336px, calc(100vw - 28px)); }
   }
 `
