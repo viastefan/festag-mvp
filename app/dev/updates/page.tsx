@@ -1,16 +1,24 @@
 'use client'
 
 /**
- * /dev/updates — Tägliche Developer-Status-Updates.
+ * /dev/updates — Developer-Reports & Status-Updates.
  *
- * Liest und schreibt aus `developer_updates`. Tagro nutzt diese
- * Einträge später, um daraus die client-safe Statusberichte zu
- * erzeugen — der Developer selbst schreibt aber nur Roh-Text.
+ * Drei Dinge an einem Ort (festag_dev_panel.md → Reports):
+ *   1. Offene Risiken — blockierte Tasks, die Aufmerksamkeit brauchen.
+ *   2. Von Tagro erzeugt — automatisch angelegte Tasks, die noch auf
+ *      Annahme warten (created_by_tagro).
+ *   3. Updates — der Developer schreibt Roh-Text; Tagro erzeugt daraus
+ *      später die client-safe Statusberichte. Hier nur die Roh-Eingabe.
+ *
+ * Risiken + Tagro-Tasks kommen aus EINER tasks-Query (assigned_to = me),
+ * gebucketet über devFlowFromLegacy — dieselbe Statuslogik wie überall.
  */
 
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import { ArrowRight, Sparkle, WarningCircle } from '@phosphor-icons/react'
+import { devFlowFromLegacy, type DevFlow } from '@/lib/tasks/work-types'
 
 type Update = {
   id: string
@@ -26,10 +34,31 @@ type Update = {
 
 type ProjectLite = { id: string; title: string }
 
+type TaskLite = {
+  id: string
+  title: string
+  dev_status: string | null
+  status: string | null
+  priority: string | null
+  project_id: string | null
+  created_by_tagro: boolean | null
+  created_at: string | null
+  updated_at: string | null
+  projects?: { title: string | null } | null
+}
+
+function priorityLabel(p?: string | null) {
+  if (p === 'critical') return 'Kritisch'
+  if (p === 'high') return 'Hoch'
+  if (p === 'low') return 'Niedrig'
+  return 'Mittel'
+}
+
 export default function DevUpdatesPage() {
   const supabase = useMemo(() => createClient(), [])
   const [updates, setUpdates] = useState<Update[]>([])
   const [projects, setProjects] = useState<ProjectLite[]>([])
+  const [tasks, setTasks] = useState<TaskLite[]>([])
   const [loading, setLoading] = useState(true)
 
   const [text, setText] = useState('')
@@ -40,31 +69,46 @@ export default function DevUpdatesPage() {
   const [posting, setPosting] = useState(false)
   const [error, setError] = useState('')
 
-  useEffect(() => {
-    let cancelled = false
-    ;(async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-      const session = { user }
-      const [{ data: u }, { data: pa }] = await Promise.all([
-        supabase
-          .from('developer_updates')
-          .select('id,project_id,task_id,update_text,status,blocker,blocker_description,github_refs_json,created_at')
-          .eq('developer_id', session.user.id).order('created_at', { ascending: false }).limit(40),
-        supabase
-          .from('project_assignments')
-          .select('project_id,projects(id,title)')
-          .eq('user_id', session.user.id).eq('active', true),
-      ])
-      if (cancelled) return
-      setUpdates(((u as Update[] | null) ?? []))
-      const ps = ((pa as any[] | null) ?? [])
-        .map(row => row.projects).filter(Boolean) as ProjectLite[]
-      setProjects(ps)
-      setLoading(false)
-    })()
-    return () => { cancelled = true }
+  const load = useCallback(async () => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+    const uid = user.id
+    const [{ data: u }, { data: pa }, { data: tk }] = await Promise.all([
+      supabase
+        .from('developer_updates')
+        .select('id,project_id,task_id,update_text,status,blocker,blocker_description,github_refs_json,created_at')
+        .eq('developer_id', uid).order('created_at', { ascending: false }).limit(40),
+      supabase
+        .from('project_assignments')
+        .select('project_id,projects(id,title)')
+        .eq('user_id', uid).eq('active', true),
+      (supabase as any)
+        .from('tasks')
+        .select('id,title,dev_status,status,priority,project_id,created_by_tagro,created_at,updated_at,projects(title)')
+        .eq('assigned_to', uid)
+        .order('updated_at', { ascending: false })
+        .limit(200),
+    ])
+    setUpdates(((u as Update[] | null) ?? []))
+    const ps = ((pa as any[] | null) ?? []).map(row => row.projects).filter(Boolean) as ProjectLite[]
+    setProjects(ps)
+    setTasks(((tk as TaskLite[] | null) ?? []))
+    setLoading(false)
   }, [supabase])
+
+  useEffect(() => { load() }, [load])
+
+  // Bucket the dev's tasks once — risks + freshly-generated work.
+  const { risks, tagroNew } = useMemo(() => {
+    const risks: TaskLite[] = []
+    const tagroNew: TaskLite[] = []
+    for (const t of tasks) {
+      const flow: DevFlow = devFlowFromLegacy(t.status, t.dev_status)
+      if (flow === 'blocked') risks.push(t)
+      if (t.created_by_tagro && (flow === 'new' || flow === 'assigned')) tagroNew.push(t)
+    }
+    return { risks, tagroNew: tagroNew.slice(0, 6) }
+  }, [tasks])
 
   async function post() {
     setError('')
@@ -96,12 +140,65 @@ export default function DevUpdatesPage() {
           <p className="dev-eyebrow">DEV · Updates</p>
           <h1>Updates</h1>
           <p className="meta">
-            Write a short technical update. Tagro will convert it into a clear project status when needed.
+            Offene Risiken, von Tagro angelegte Arbeit und deine technischen Updates — an einer Stelle.
           </p>
         </div>
       </header>
 
+      {/* Signals: risks + auto-generated work */}
+      <div className="u-signals">
+        <section className={`u-card${risks.length > 0 ? ' alert' : ''}`}>
+          <div className="u-card-head">
+            <span className="u-card-title"><WarningCircle size={13} /> Offene Risiken</span>
+            <span className="u-count">{risks.length}</span>
+          </div>
+          {loading ? (
+            <p className="u-muted">Lade…</p>
+          ) : risks.length === 0 ? (
+            <p className="u-muted">Keine blockierten Tasks. Wenn etwas hängt, melde es unten als Blocker.</p>
+          ) : (
+            <ul className="u-list">
+              {risks.slice(0, 6).map(t => (
+                <li key={t.id}>
+                  <Link href={`/dev/tasks?id=${t.id}`}>
+                    <span className="u-li-title">{t.title}</span>
+                    <span className="u-li-meta">{t.projects?.title || 'kein Projekt'} · {priorityLabel(t.priority)}</span>
+                    <ArrowRight size={12} />
+                  </Link>
+                </li>
+              ))}
+              {risks.length > 6 && <li className="u-more">+{risks.length - 6} weitere blockiert</li>}
+            </ul>
+          )}
+        </section>
+
+        <section className="u-card">
+          <div className="u-card-head">
+            <span className="u-card-title"><Sparkle size={13} /> Von Tagro erzeugt</span>
+            <span className="u-count">{tagroNew.length}</span>
+          </div>
+          {loading ? (
+            <p className="u-muted">Lade…</p>
+          ) : tagroNew.length === 0 ? (
+            <p className="u-muted">Keine neuen automatisch angelegten Tasks. Tagro erzeugt sie aus Statusberichten und Entscheidungen.</p>
+          ) : (
+            <ul className="u-list">
+              {tagroNew.map(t => (
+                <li key={t.id}>
+                  <Link href={`/dev/tasks?id=${t.id}`}>
+                    <span className="u-li-title">{t.title}</span>
+                    <span className="u-li-meta">{t.projects?.title || 'kein Projekt'} · neu zugewiesen</span>
+                    <ArrowRight size={12} />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      </div>
+
       {/* Composer */}
+      <p className="dev-section-title">Update schreiben</p>
       <div className="dev-surface" style={{ padding: 14, marginBottom: 22 }}>
         <textarea
           value={text}
@@ -182,6 +279,47 @@ export default function DevUpdatesPage() {
       <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 18 }}>
         <Link href="/dev" style={{ color: 'inherit' }}>← zurück zur Übersicht</Link>
       </p>
+
+      <style jsx>{`
+        .u-signals {
+          display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px;
+        }
+        .u-card {
+          border: 1px solid var(--border); border-radius: 12px;
+          background: var(--surface); padding: 13px 14px; min-height: 96px;
+        }
+        .u-card.alert { border-color: color-mix(in srgb, #8A6B5B 38%, var(--border)); }
+        .u-card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+        .u-card-title {
+          display: inline-flex; align-items: center; gap: 6px;
+          font-size: 12px; font-weight: 600; color: var(--text-secondary);
+        }
+        .u-card.alert .u-card-title { color: #B08160; }
+        .u-card.alert .u-card-title :global(svg) { color: #B08160; }
+        .u-count {
+          min-width: 20px; height: 18px; padding: 0 6px; border-radius: 6px;
+          display: inline-flex; align-items: center; justify-content: center;
+          background: color-mix(in srgb, var(--surface-2) 70%, transparent);
+          color: var(--text-secondary); font-size: 11px; font-weight: 600;
+        }
+        .u-card.alert .u-count { background: color-mix(in srgb, #8A6B5B 16%, transparent); color: #B08160; }
+        .u-muted { margin: 0; font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+        .u-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 2px; }
+        .u-list li :global(a) {
+          display: flex; align-items: center; gap: 8px; padding: 6px 7px; border-radius: 8px;
+          text-decoration: none; color: var(--text); transition: background .12s ease;
+        }
+        .u-list li :global(a:hover) { background: color-mix(in srgb, var(--surface-2) 60%, transparent); }
+        .u-li-title { font-size: 12.5px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1 1 auto; min-width: 0; }
+        .u-li-meta { font-size: 11px; color: var(--text-muted); flex: 0 0 auto; white-space: nowrap; }
+        .u-list li :global(a svg) { color: var(--text-muted); flex: 0 0 auto; }
+        .u-more { font-size: 11px; color: var(--text-muted); padding: 4px 7px; }
+
+        @media (max-width: 760px) {
+          .u-signals { grid-template-columns: 1fr; }
+          .u-li-meta { display: none; }
+        }
+      `}</style>
     </div>
   )
 }
