@@ -237,7 +237,7 @@ export default function DevProjectsPage() {
         .dp-empty-cta { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
         .dp-empty-cta .dev-primary-btn { flex-shrink: 0; }
         .dp-error {
-          margin: 0 0 14px; color: #d53939;
+          margin: 0 0 14px; color: var(--red);
           font-size: 13px; font-weight: 500;
         }
         .dp-section { margin-bottom: 28px; }

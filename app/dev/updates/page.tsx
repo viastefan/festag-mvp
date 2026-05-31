@@ -288,21 +288,21 @@ export default function DevUpdatesPage() {
           border: 1px solid var(--border); border-radius: 12px;
           background: var(--surface); padding: 13px 14px; min-height: 96px;
         }
-        .u-card.alert { border-color: color-mix(in srgb, #8A6B5B 38%, var(--border)); }
+        .u-card.alert { border-color: color-mix(in srgb, var(--red) 38%, var(--border)); }
         .u-card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
         .u-card-title {
           display: inline-flex; align-items: center; gap: 6px;
           font-size: 12px; font-weight: 600; color: var(--text-secondary);
         }
-        .u-card.alert .u-card-title { color: #B08160; }
-        .u-card.alert .u-card-title :global(svg) { color: #B08160; }
+        .u-card.alert .u-card-title { color: var(--red); }
+        .u-card.alert .u-card-title :global(svg) { color: var(--red); }
         .u-count {
           min-width: 20px; height: 18px; padding: 0 6px; border-radius: 6px;
           display: inline-flex; align-items: center; justify-content: center;
           background: color-mix(in srgb, var(--surface-2) 70%, transparent);
           color: var(--text-secondary); font-size: 11px; font-weight: 600;
         }
-        .u-card.alert .u-count { background: color-mix(in srgb, #8A6B5B 16%, transparent); color: #B08160; }
+        .u-card.alert .u-count { background: color-mix(in srgb, var(--red) 16%, transparent); color: var(--red); }
         .u-muted { margin: 0; font-size: 12px; color: var(--text-muted); line-height: 1.5; }
         .u-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 2px; }
         .u-list li :global(a) {

@@ -289,9 +289,9 @@ function KpiCard({ label, value, hint, warn }: { label: string; value: number; h
           padding: 13px 14px; border-radius: 12px;
           border: 1px solid var(--border); background: var(--surface);
         }
-        .kpi.warn { border-color: color-mix(in srgb, #8A6B5B 40%, var(--border)); }
+        .kpi.warn { border-color: color-mix(in srgb, var(--red) 40%, var(--border)); }
         .kpi-val { font-size: 24px; font-weight: 500; letter-spacing: -.02em; line-height: 1; color: var(--text); }
-        .kpi.warn .kpi-val { color: #B08160; }
+        .kpi.warn .kpi-val { color: var(--red); }
         .kpi-label { margin-top: 6px; font-size: 12px; font-weight: 500; color: var(--text-secondary); }
         .kpi-hint { font-size: 10.5px; color: var(--text-muted); }
       `}</style>
@@ -382,9 +382,9 @@ function MemberRow({ member, workload }: { member: Member; workload?: Workload }
         .stat b { font-weight: 600; color: var(--text); }
         .stat.muted { color: var(--text-muted); background: transparent; border-color: transparent; }
         .stat.muted b { color: var(--text-secondary); }
-        .stat.warn { color: #B08160; border-color: color-mix(in srgb, #8A6B5B 40%, var(--border)); }
-        .stat.warn b { color: #B08160; }
-        .stat.warn svg { color: #B08160; flex: 0 0 auto; }
+        .stat.warn { color: var(--red); border-color: color-mix(in srgb, var(--red) 40%, var(--border)); }
+        .stat.warn b { color: var(--red); }
+        .stat.warn svg { color: var(--red); flex: 0 0 auto; }
 
         .mr-last { font-size: 12px; color: var(--text-muted); }
 

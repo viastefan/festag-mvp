@@ -357,9 +357,9 @@ export default function DevMessagesPage() {
           background: color-mix(in srgb, var(--surface-2) 70%, transparent);
           color: var(--text-secondary); flex-shrink: 0;
         }
-        .im-row.tone-good .im-row-icon   { background: color-mix(in srgb, #2f9e6f 16%, transparent); color: #38b07e; }
-        .im-row.tone-warn .im-row-icon   { background: color-mix(in srgb, #c2872f 16%, transparent); color: #d49a45; }
-        .im-row.tone-risk .im-row-icon   { background: color-mix(in srgb, #c25151 18%, transparent); color: #d96a6a; }
+        .im-row.tone-good .im-row-icon   { background: color-mix(in srgb, var(--green-dark) 16%, transparent); color: var(--green-dark); }
+        .im-row.tone-warn .im-row-icon   { background: color-mix(in srgb, var(--amber) 16%, transparent); color: var(--amber); }
+        .im-row.tone-risk .im-row-icon   { background: color-mix(in srgb, var(--red) 18%, transparent); color: var(--red); }
         .im-row.tone-accent .im-row-icon { background: color-mix(in srgb, var(--accent) 18%, transparent); color: var(--accent); }
 
         .im-row-main { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
@@ -369,9 +369,9 @@ export default function DevMessagesPage() {
           font-size: 9.5px; font-weight: 500; letter-spacing: .07em; text-transform: uppercase;
           background: color-mix(in srgb, var(--surface-2) 70%, transparent); color: var(--text-secondary);
         }
-        .im-badge.tone-good   { color: #38b07e; background: color-mix(in srgb, #2f9e6f 13%, transparent); }
-        .im-badge.tone-warn   { color: #d49a45; background: color-mix(in srgb, #c2872f 13%, transparent); }
-        .im-badge.tone-risk   { color: #d96a6a; background: color-mix(in srgb, #c25151 14%, transparent); }
+        .im-badge.tone-good   { color: var(--green-dark); background: color-mix(in srgb, var(--green-dark) 13%, transparent); }
+        .im-badge.tone-warn   { color: var(--amber); background: color-mix(in srgb, var(--amber) 13%, transparent); }
+        .im-badge.tone-risk   { color: var(--red); background: color-mix(in srgb, var(--red) 14%, transparent); }
         .im-badge.tone-accent { color: var(--accent); background: color-mix(in srgb, var(--accent) 15%, transparent); }
         .im-project {
           display: inline-flex; align-items: center; gap: 5px;

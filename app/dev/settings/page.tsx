@@ -342,8 +342,8 @@ export default function DevSettingsPage() {
           opacity: 0; transition: opacity .18s ease, color .18s ease;
         }
         .st-save.st-saving, .st-save.st-saved, .st-save.st-error { opacity: 1; }
-        .st-save.st-saved { color: #38b07e; }
-        .st-save.st-error { color: #d96a6a; }
+        .st-save.st-saved { color: var(--green-dark); }
+        .st-save.st-error { color: var(--red); }
         .st-save :global(.spin) { animation: stspin 1s linear infinite; }
         @keyframes stspin { to { transform: rotate(360deg); } }
 
@@ -436,7 +436,7 @@ export default function DevSettingsPage() {
         .st-account strong { display: block; font-size: 13px; font-weight: 500; color: var(--text); }
         .st-account-sub { font-size: 11.5px; color: var(--text-muted); }
         .st-signout { text-decoration: none; }
-        .st-signout:hover { border-color: color-mix(in srgb, #d96a6a 60%, var(--border)); color: #d96a6a; }
+        .st-signout:hover { border-color: color-mix(in srgb, var(--red) 60%, var(--border)); color: var(--red); }
 
         @media (max-width: 640px) {
           .st-avail-grid { grid-template-columns: 1fr; }

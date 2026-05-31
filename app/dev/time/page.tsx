@@ -318,26 +318,26 @@ export default function DevTimePage() {
 
         .tt-active {
           display: flex; align-items: center; gap: 14px; padding: 15px 16px; margin-bottom: 8px;
-          border-color: color-mix(in srgb, #c25151 45%, var(--border));
-          background: color-mix(in srgb, #c25151 7%, var(--surface));
+          border-color: color-mix(in srgb, var(--red) 45%, var(--border));
+          background: color-mix(in srgb, var(--red) 7%, var(--surface));
         }
         .tt-active-pulse span {
           display: block; width: 10px; height: 10px; border-radius: 50%;
-          background: #d96a6a; box-shadow: 0 0 0 0 color-mix(in srgb, #d96a6a 60%, transparent);
+          background: var(--red); box-shadow: 0 0 0 0 color-mix(in srgb, var(--red) 60%, transparent);
           animation: ttpulse 1.6s infinite;
         }
-        @keyframes ttpulse { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, #d96a6a 55%, transparent); } 70% { box-shadow: 0 0 0 9px transparent; } 100% { box-shadow: 0 0 0 0 transparent; } }
+        @keyframes ttpulse { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--red) 55%, transparent); } 70% { box-shadow: 0 0 0 9px transparent; } 100% { box-shadow: 0 0 0 0 transparent; } }
         .tt-active-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
         .tt-active-label { margin: 0; font-size: 11px; color: var(--text-muted); letter-spacing: .04em; text-transform: uppercase; }
         .tt-active-task { margin: 0; font-size: 14px; font-weight: 500; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .tt-active-timer { font-size: 26px; font-weight: 500; letter-spacing: -.01em; color: #d96a6a; font-variant-numeric: tabular-nums; font-family: ui-monospace, monospace; }
+        .tt-active-timer { font-size: 26px; font-weight: 500; letter-spacing: -.01em; color: var(--red); font-variant-numeric: tabular-nums; font-family: ui-monospace, monospace; }
         .tt-stop {
           flex-shrink: 0; height: 36px; padding: 0 14px; border-radius: 8px; cursor: pointer;
           display: inline-flex; align-items: center; gap: 7px;
-          background: #c25151; color: #fff; border: 1px solid #c25151;
+          background: var(--red); color: #fff; border: 1px solid var(--red);
           font: inherit; font-size: 12.5px; font-weight: 500;
         }
-        .tt-stop:hover:not(:disabled) { background: #b34646; }
+        .tt-stop:hover:not(:disabled) { background: color-mix(in srgb, var(--red) 85%, #000); }
         .tt-stop:disabled { opacity: .6; cursor: not-allowed; }
 
         .tt-start { display: flex; align-items: center; gap: 10px; padding: 13px 14px; margin-bottom: 8px; }
@@ -367,7 +367,7 @@ export default function DevTimePage() {
           display: flex; align-items: center; gap: 12px; padding: 11px 13px; border-radius: 10px;
           border: 1px solid color-mix(in srgb, var(--border) 60%, transparent); background: var(--surface);
         }
-        .tt-row.running { border-color: color-mix(in srgb, #c25151 40%, var(--border)); }
+        .tt-row.running { border-color: color-mix(in srgb, var(--red) 40%, var(--border)); }
         .tt-row-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
         .tt-row-task { margin: 0; font-size: 13px; font-weight: 500; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .tt-row-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
@@ -399,7 +399,7 @@ export default function DevTimePage() {
         }
         .tt-note-edit button:hover { color: var(--text); }
         .tt-row-dur { font-size: 13px; font-weight: 500; color: var(--text-secondary); font-variant-numeric: tabular-nums; flex-shrink: 0; }
-        .tt-row-dur.running { color: #d96a6a; font-family: ui-monospace, monospace; }
+        .tt-row-dur.running { color: var(--red); font-family: ui-monospace, monospace; }
 
         @media (max-width: 640px) {
           .tt-active { flex-wrap: wrap; }
