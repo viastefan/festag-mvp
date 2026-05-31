@@ -259,7 +259,7 @@ export default function DevProjectsPage() {
         }
         .dp-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+          grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
           gap: 12px;
         }
         .dp-card {

@@ -1272,6 +1272,10 @@ export default function DevTasksPage() {
           .grid-2 { grid-template-columns: 1fr; }
           .drawer-panel { width: 100vw; padding: 18px 14px 80px; }
         }
+        @media (max-width: 540px) {
+          /* Let the KPI strip fill the wrapped row instead of forcing 320px (overflow on small phones). */
+          .head-stats { min-width: 0; width: 100%; }
+        }
       `}</style>
     </div>
   )
@@ -1954,7 +1958,7 @@ function FocusView({ tasks, onSelect, userId }: { tasks: Task[]; onSelect: (t: T
         <p className="empty">Nichts dringend offen. Tagro plant deinen nächsten Block.</p>
       )}
       <style jsx>{`
-        .focus { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
+        .focus { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); gap: 10px; }
         .focus-card {
           text-align: left; border: 1px solid var(--border); background: var(--surface);
           border-radius: 10px; padding: 12px 14px; color: var(--text); font: inherit; cursor: pointer;
