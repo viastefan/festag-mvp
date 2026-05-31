@@ -850,7 +850,7 @@ body.locked { overflow: hidden; touch-action: none; }
   --font-ui: var(--font-primary);
   --font-mono: 'SF Mono', 'Geist Mono', ui-monospace, Menlo, Monaco, Consolas, monospace;
   --ui-density-scale: 1;
-  --button-radius: 32px;
+  --button-radius: 8px;
 }
 [data-font="sf-pro"] { --font-primary: var(--font-sf-pro); --font-ui: var(--font-sf-pro); letter-spacing: -0.012em; }
 [data-font="aeonik"],
@@ -861,8 +861,9 @@ body.locked { overflow: hidden; touch-action: none; }
 html, body, button, input, select, textarea { font-family: var(--font-ui); }
 code, pre, kbd, samp { font-family: var(--font-mono); }
 
-/* Festag button language: every button is a soft 32px pill.
-   Text inputs keep their own field geometry. */
+/* Festag button language: every button is a soft 8px rounded rect — no
+   pills, no 32px (binding radius rule). Text inputs keep their own field
+   geometry. */
 button,
 a[role="button"],
 input[type="button"],
@@ -891,7 +892,7 @@ input[type="reset"],
 .audio-briefing-button {
   height: 32px; display:inline-flex; align-items:center; gap:7px;
   border:1px solid color-mix(in srgb, var(--border) 70%, transparent);
-  border-radius:999px; background:transparent; color:var(--text-secondary);
+  border-radius:8px; background:transparent; color:var(--text-secondary);
   padding:0 11px; font-size:12.5px; font-weight:680;
 }
 .audio-briefing-button:hover { color:var(--text); background:color-mix(in srgb, var(--surface-2) 64%, transparent); }
@@ -933,7 +934,7 @@ input[type="reset"],
 .audio-briefing-head button:hover { background:var(--surface-2); color:var(--text); }
 .audio-briefing-text { margin:0 0 12px; color:var(--text-secondary); font-size:12.5px; line-height:1.58; }
 .voice-controls { display:flex; align-items:center; gap:7px; flex-wrap:wrap; }
-.voice-icon-btn, .voice-field, .voice-text-btn { height:30px; display:inline-flex; align-items:center; gap:6px; border:1px solid var(--border); border-radius:999px; background:transparent; color:var(--text); padding:0 10px; font-size:11.5px; font-weight:700; }
+.voice-icon-btn, .voice-field, .voice-text-btn { height:30px; display:inline-flex; align-items:center; gap:6px; border:1px solid var(--border); border-radius:8px; background:transparent; color:var(--text); padding:0 10px; font-size:11.5px; font-weight:700; }
 .voice-icon-btn:disabled { opacity:.42; cursor:default; }
 .voice-field { color:var(--text-muted); padding-right:8px; }
 .voice-field span { font-size:10.5px; }
