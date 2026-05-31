@@ -21,7 +21,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
-  Article, Briefcase, ChatsCircle, CheckSquare, Compass, FolderOpen, GearSix,
+  Article, Briefcase, ChatsCircle, CheckSquare, Clock, Compass, FolderOpen, GearSix,
   GitBranch, GithubLogo, GitCommit, Kanban, Pause, Play, Robot, SignOut, UsersThree, WarningCircle,
 } from '@phosphor-icons/react'
 
@@ -36,6 +36,7 @@ const NAV_MAIN: NavRow[] = [
   { href: '/dev/tasks',    icon: CheckSquare, label: 'My Tasks' },
   { href: '/dev/review',   icon: Robot,       label: 'Tagro Review' },
   { href: '/dev/plan',     icon: Kanban,      label: 'Daily Plan' },
+  { href: '/dev/time',     icon: Clock,       label: 'Zeiterfassung' },
   { href: '/dev/jobs',     icon: Briefcase,   label: 'Job Board' },
 ]
 const NAV_INTEGRATIONS: NavRow[] = [
@@ -274,7 +275,7 @@ export default function DevSidebar({
 
         {/* Active session */}
         {openSession && (
-          <Link href={openSession.task_id ? `/dev/tasks?id=${openSession.task_id}` : '/dev/tasks'} className="ds-session">
+          <Link href="/dev/time" className="ds-session">
             <span className="ds-session-pulse"><Play size={9} weight="fill" /></span>
             <div className="ds-session-text">
               <strong>{formatDuration(liveSeconds)}</strong>
