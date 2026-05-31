@@ -2,11 +2,31 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import {
+  ArrowsClockwise, ChartBar, ChatCircle, CheckCircle, Circle, ClipboardText,
+  FileText, Flag, Key, Lock, PuzzlePiece, Target, Tray, UserPlus,
+  type Icon,
+} from '@phosphor-icons/react'
 
-const EVENT_ICONS: Record<string,string> = {
-  task_created:'📋', task_done:'✅', task_status:'🔄', dev_joined:'👨‍💻',
-  ai_report:'🤖', project_status:'🚀', message_sent:'💬', addon_added:'⚡',
-  ai_priority:'🎯', login:'🔐', password_changed:'🔐', report_generated:'📊',
+// Phosphor only — never Apple emojis (festag_design_rules.md, verbindlich).
+const EVENT_ICONS: Record<string, Icon> = {
+  task_created: ClipboardText,
+  task_done: CheckCircle,
+  task_status: ArrowsClockwise,
+  dev_joined: UserPlus,
+  ai_report: FileText,
+  project_status: Flag,
+  message_sent: ChatCircle,
+  addon_added: PuzzlePiece,
+  ai_priority: Target,
+  login: Lock,
+  password_changed: Key,
+  report_generated: ChartBar,
+}
+
+function EventIcon({ type }: { type: string }) {
+  const Ico = EVENT_ICONS[type] ?? Circle
+  return <Ico size={17} weight="regular" color="var(--text-secondary)" />
 }
 
 const EVENT_ACTOR_COLORS: Record<string,string> = {
@@ -83,7 +103,7 @@ export default function ActivityPage() {
         </div>
       ) : filtered.length===0 ? (
         <div className="animate-fade-up-2" style={{ background:'var(--surface)',border:'1px solid var(--border)',borderRadius:20,padding:'56px 24px',textAlign:'center' }}>
-          <div style={{ fontSize:40,marginBottom:16 }}>📭</div>
+          <div style={{ marginBottom:16,display:'flex',justifyContent:'center' }}><Tray size={34} color="var(--text-muted)" /></div>
           <h2 style={{ marginBottom:8 }}>Noch keine Aktivitäten</h2>
           <p style={{ fontSize:14,color:'var(--text-secondary)' }}>Sobald Tasks erstellt, AI-Berichte generiert oder Developer aktiv werden, erscheint es hier.</p>
         </div>
@@ -98,8 +118,8 @@ export default function ActivityPage() {
                     onMouseEnter={e => (e.currentTarget as HTMLElement).style.background='var(--bg)'}
                     onMouseLeave={e => (e.currentTarget as HTMLElement).style.background='transparent'}>
                     {/* Icon bubble */}
-                    <div style={{ width:38,height:38,borderRadius:11,background:'var(--surface-2)',border:'1px solid var(--border)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,flexShrink:0 }}>
-                      {item.icon || EVENT_ICONS[item.event_type] || '•'}
+                    <div style={{ width:38,height:38,borderRadius:11,background:'var(--surface-2)',border:'1px solid var(--border)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0 }}>
+                      <EventIcon type={item.event_type} />
                     </div>
                     <div style={{ flex:1,minWidth:0 }}>
                       <div style={{ display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:10 }}>
