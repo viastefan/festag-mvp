@@ -17,12 +17,6 @@ export const runtime = 'nodejs'
  * RLS gates who may do what (structure = owner/dev, values = any member).
  */
 
-function isFilled(v: unknown): boolean {
-  if (v == null) return false
-  if (typeof v === 'string') return v.trim().length > 0
-  return true
-}
-
 export async function GET(_req: NextRequest, ctx: { params: { id: string } }) {
   const supa = createClient()
   const { data: { user } } = await supa.auth.getUser()
@@ -102,26 +96,9 @@ export async function POST(req: NextRequest, ctx: { params: { id: string } }) {
     }, { onConflict: 'field_id' })
     if (upErr) return NextResponse.json({ error: upErr.message }, { status: 403 })
 
-    // Recompute the parent section's status from its required fields.
-    const { data: field } = await (supa as any).from('cms_fields').select('section_id').eq('id', fieldId).maybeSingle()
-    if (field?.section_id) {
-      const [{ data: secFields }, { data: secVals }, { data: section }] = await Promise.all([
-        (supa as any).from('cms_fields').select('id,required').eq('section_id', field.section_id),
-        (supa as any).from('cms_values').select('field_id,value').eq('project_id', projectId),
-        (supa as any).from('cms_sections').select('id,status').eq('id', field.section_id).maybeSingle(),
-      ])
-      const valMap = new Map<string, any>(((secVals ?? []) as any[]).map(v => [v.field_id, v.value]))
-      const required = ((secFields ?? []) as any[]).filter(f => f.required)
-      const allRequiredFilled = required.length > 0 && required.every(f => isFilled(valMap.get(f.id)))
-      const anyFilled = ((secFields ?? []) as any[]).some(f => isFilled(valMap.get(f.id)))
-      const nextStatus = allRequiredFilled ? 'ausgefuellt' : anyFilled ? 'offen' : 'offen'
-      if (section && section.status !== 'uebernommen' && section.status !== nextStatus) {
-        await (supa as any).from('cms_sections').update({ status: nextStatus }).eq('id', field.section_id)
-      } else if (section && section.status === 'uebernommen' && nextStatus === 'ausgefuellt') {
-        // client edited after handoff — flag it as freshly filled again
-        await (supa as any).from('cms_sections').update({ status: 'ausgefuellt' }).eq('id', field.section_id)
-      }
-    }
+    // Section status + dev notification are handled by DB triggers
+    // (recompute_cms_section_status → notify_cms_section_filled), so a client
+    // who can't write cms_sections still flips the status server-side.
     return NextResponse.json({ ok: true })
   }
 
