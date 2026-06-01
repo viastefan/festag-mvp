@@ -10,11 +10,10 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { Plus, ArrowRight, UsersThree, LinkSimple } from '@phosphor-icons/react'
+import { Plus, ArrowRight, UsersThree, LinkSimple, Check } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 import Modal, { ModalButton } from '@/components/Modal'
 import InviteLinkModal from '@/components/InviteLinkModal'
-import EmptyState from '@/components/EmptyState'
 
 type WorkspaceMode = 'delivery' | 'team' | 'agency'
 
@@ -151,16 +150,33 @@ export default function ClientsPage() {
       )}
 
       {clients.length === 0 ? (
-        <EmptyState
-          icon={UsersThree}
-          kicker="Kunden"
-          title="Noch keine Kunden im Workspace"
-          description="Leg deinen ersten Kunden an. Du kannst danach bestehende Projekte zuordnen oder ein neues Projekt direkt unter diesem Kunden starten."
-          actions={[
-            { label: 'Ersten Kunden anlegen', icon: Plus, primary: true, onClick: () => setComposerOpen(true) },
-            { label: 'Per Link einladen', icon: LinkSimple, onClick: () => setInviteOpen(true) },
-          ]}
-        />
+        <div className="cl-empty">
+          {/* Custom Kunden illustration — layered client cards with brand-colour
+              avatar tiles. Calm, on-brand, slate-only (no accent fills). */}
+          <div className="cle-art" aria-hidden>
+            <span className="cle-card cle-card-3" />
+            <span className="cle-card cle-card-2" />
+            <span className="cle-card cle-card-1">
+              <span className="cle-avatar"><UsersThree size={15} weight="regular" /></span>
+              <span className="cle-lines"><span /><span /></span>
+              <span className="cle-dots"><i /><i /><i /></span>
+            </span>
+          </div>
+          <p className="cl-kicker">Kunden</p>
+          <p className="cl-empty-title">Noch keine Kunden im Workspace</p>
+          <p className="cl-empty-sub">
+            Leg deinen ersten Kunden an. Du kannst danach bestehende Projekte zuordnen
+            oder ein neues Projekt direkt unter diesem Kunden starten.
+          </p>
+          <div className="cl-empty-actions">
+            <button type="button" className="cl-btn cl-btn-primary" onClick={() => setComposerOpen(true)}>
+              <Plus size={14} weight="bold" /> Ersten Kunden anlegen
+            </button>
+            <button type="button" className="cl-btn" onClick={() => setInviteOpen(true)}>
+              <LinkSimple size={14} /> Per Link einladen
+            </button>
+          </div>
+        </div>
       ) : (
         <section className="cl-list">
           {clients.map(client => {
@@ -241,6 +257,9 @@ export default function ClientsPage() {
   )
 }
 
+// Curated brand-colour swatches — pick directly. Slate primary first.
+const BRAND_SWATCHES = ['#5B647D', '#3B6FB0', '#2E8B6B', '#C9803A', '#B0524E', '#7A5AA8', '#455A64', '#C2417F']
+
 function ClientComposer({ workspaceId, onClose, onCreated }: { workspaceId: string; onClose: () => void; onCreated: (c: ClientRow) => void }) {
   const supabase = useMemo(() => createClient(), [])
   const [name, setName] = useState('')
@@ -248,6 +267,7 @@ function ClientComposer({ workspaceId, onClose, onCreated }: { workspaceId: stri
   const [contactName, setContactName] = useState('')
   const [contactEmail, setContactEmail] = useState('')
   const [brandColor, setBrandColor] = useState('')
+  const isCustomColor = !!brandColor && !BRAND_SWATCHES.some(c => c.toLowerCase() === brandColor.toLowerCase())
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
@@ -299,7 +319,36 @@ function ClientComposer({ workspaceId, onClose, onCreated }: { workspaceId: stri
         <label className="cl-field"><span>Hauptkontakt</span><input className="cl-input" value={contactName} onChange={e => setContactName(e.target.value)} placeholder="Name" /></label>
         <label className="cl-field"><span>Kontakt-E-Mail</span><input className="cl-input" type="email" value={contactEmail} onChange={e => setContactEmail(e.target.value)} placeholder="name@firma.com" /></label>
       </div>
-      <label className="cl-field"><span>Brand-Farbe (Hex)</span><input className="cl-input" value={brandColor} onChange={e => setBrandColor(e.target.value)} placeholder="#5B647D (optional)" /></label>
+
+      {/* Brand colour — pick directly, no hex typing (nobody knows their hex). */}
+      <div className="cl-field">
+        <span>Brand-Farbe</span>
+        <div className="cl-swatches">
+          {BRAND_SWATCHES.map(c => (
+            <button
+              key={c}
+              type="button"
+              className={`cl-swatch${brandColor.toLowerCase() === c.toLowerCase() ? ' on' : ''}`}
+              style={{ background: c }}
+              onClick={() => setBrandColor(c)}
+              aria-label={`Farbe ${c}`}
+            >
+              {brandColor.toLowerCase() === c.toLowerCase() && <Check size={12} weight="bold" />}
+            </button>
+          ))}
+          <label className="cl-swatch cl-swatch-custom" title="Eigene Farbe wählen">
+            <span className="cl-swatch-custom-fill" style={{ background: isCustomColor ? brandColor : undefined }}>
+              {isCustomColor ? <Check size={12} weight="bold" /> : <Plus size={12} weight="bold" />}
+            </span>
+            <input
+              type="color"
+              value={brandColor || '#5B647D'}
+              onChange={e => setBrandColor(e.target.value)}
+              aria-label="Eigene Brand-Farbe"
+            />
+          </label>
+        </div>
+      </div>
 
       {error && <p className="cl-error">{error}</p>}
     </Modal>
@@ -307,10 +356,14 @@ function ClientComposer({ workspaceId, onClose, onCreated }: { workspaceId: stri
 }
 
 const CLIENTS_CSS = `
+  /* Match the other workspace pages (tasks / projekte / entscheidungen /
+     persönlicher Bereich): full-width inside the panel with the same calm side
+     padding and top spacing — keeps the content's left/right "red line"
+     consistent across the app. */
   .clients-page {
-    max-width: 1040px;
-    margin: 0 auto;
-    padding: 28px clamp(18px, 3vw, 40px) 72px;
+    width: 100%;
+    margin: 0;
+    padding: 20px clamp(16px, 2vw, 24px) 80px;
     color: var(--text);
     font-family: var(--font-aeonik,'Aeonik',Inter,sans-serif);
   }
@@ -355,15 +408,58 @@ const CLIENTS_CSS = `
 
   .cl-empty {
     display: flex; flex-direction: column; align-items: center; text-align: center;
-    padding: 64px 24px;
-    border: 1px dashed var(--border);
-    border-radius: 14px;
-    background: color-mix(in srgb, var(--surface) 45%, transparent);
+    padding: 72px 24px;
     color: var(--text-muted);
+    animation: clFade .4s cubic-bezier(.16,1,.3,1) both;
   }
-  .cl-empty-title { margin: 12px 0 6px; font-size: 14px; font-weight: 500; color: var(--text-secondary); letter-spacing: var(--ls-body, .017em); }
-  .cl-empty-sub { margin: 0 0 18px; max-width: 420px; font-size: 12.5px; line-height: 1.6; color: var(--text-muted); letter-spacing: var(--ls-body, .017em); }
+  @keyframes clFade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  .cl-empty .cl-kicker { margin-bottom: 8px; }
+  .cl-empty-title { margin: 0 0 8px; font-size: 16px; font-weight: 500; color: var(--text); letter-spacing: var(--ls-header, .012em); }
+  .cl-empty-sub { margin: 0 0 22px; max-width: 440px; font-size: 13px; line-height: 1.62; color: var(--text-secondary); letter-spacing: var(--ls-body, .017em); }
   .cl-empty-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center; }
+
+  /* Custom Kunden illustration — softly stacked client cards. */
+  .cle-art {
+    position: relative; width: 200px; height: 132px; margin-bottom: 26px;
+    animation: cleFloat 7s ease-in-out infinite;
+  }
+  @keyframes cleFloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+  .cle-card {
+    position: absolute; left: 50%; border-radius: 14px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    box-shadow: 0 12px 30px -20px rgba(15,23,42,.5);
+  }
+  .cle-card-3 {
+    width: 150px; height: 64px; top: 0; margin-left: -75px;
+    transform: rotate(-7deg); opacity: .45;
+    background: color-mix(in srgb, var(--surface-2) 60%, var(--surface));
+  }
+  .cle-card-2 {
+    width: 162px; height: 70px; top: 10px; margin-left: -81px;
+    transform: rotate(4deg); opacity: .7;
+    background: color-mix(in srgb, var(--surface-2) 40%, var(--surface));
+  }
+  .cle-card-1 {
+    width: 176px; height: 78px; top: 30px; margin-left: -88px;
+    display: grid; grid-template-columns: 38px 1fr auto; align-items: center; gap: 12px;
+    padding: 0 16px;
+  }
+  .cle-avatar {
+    width: 38px; height: 38px; border-radius: 10px;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: color-mix(in srgb, var(--btn-prim) 16%, var(--surface-2));
+    color: var(--btn-prim);
+    border: 1px solid color-mix(in srgb, var(--btn-prim) 28%, var(--border));
+  }
+  .cle-lines { display: flex; flex-direction: column; gap: 7px; }
+  .cle-lines span { height: 6px; border-radius: 4px; background: color-mix(in srgb, var(--text-muted) 28%, transparent); }
+  .cle-lines span:first-child { width: 76px; }
+  .cle-lines span:last-child { width: 48px; opacity: .6; }
+  .cle-dots { display: inline-flex; gap: 5px; }
+  .cle-dots i { width: 7px; height: 7px; border-radius: 50%; border: 1.5px solid color-mix(in srgb, var(--text-muted) 45%, transparent); }
+  .cle-dots i:nth-child(1) { background: color-mix(in srgb, var(--btn-prim) 60%, transparent); border-color: transparent; }
+  [data-theme="dark"] .cle-card { box-shadow: 0 18px 44px -24px rgba(0,0,0,.7); }
 
   .cl-list { display: flex; flex-direction: column; gap: 10px; }
   .cl-card {
@@ -474,6 +570,34 @@ const CLIENTS_CSS = `
   }
   .cl-input:focus { outline: none; border-color: color-mix(in srgb, var(--text) 35%, var(--border)); }
   .cl-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  /* Brand-colour swatch picker — select directly, no hex typing. */
+  .cl-swatches { display: flex; flex-wrap: wrap; gap: 8px; }
+  .cl-swatch {
+    position: relative; width: 28px; height: 28px; border-radius: 8px;
+    border: 1px solid color-mix(in srgb, #000 14%, transparent);
+    cursor: pointer; padding: 0;
+    display: inline-flex; align-items: center; justify-content: center;
+    color: #fff;
+    box-shadow: 0 1px 2px rgba(15,23,42,.12);
+    transition: transform .12s ease, box-shadow .12s ease;
+  }
+  .cl-swatch:hover { transform: translateY(-1px); }
+  .cl-swatch.on { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px color-mix(in srgb, var(--text) 45%, var(--border)); }
+  .cl-swatch-custom {
+    background: var(--surface-2);
+    border-style: dashed;
+    border-color: var(--border-strong);
+    color: var(--text-muted);
+    overflow: hidden;
+  }
+  .cl-swatch-custom-fill {
+    position: absolute; inset: 0; display: inline-flex; align-items: center; justify-content: center;
+  }
+  .cl-swatch-custom input[type="color"] {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    opacity: 0; cursor: pointer; border: 0; padding: 0;
+  }
   .cl-error {
     margin: 0 0 10px;
     padding: 8px 11px;
