@@ -5,7 +5,6 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useState, useEffect, useRef } from 'react'
 import SidebarProfileFooter from '@/components/SidebarProfileFooter'
-import HowFestagWorks from '@/components/HowFestagWorks'
 import SettingsSidebar from '@/components/SettingsSidebar'
 import MobileActionSheet from '@/components/MobileActionSheet'
 import { mobileFabActions, mobileFabTitle } from '@/lib/mobile-actions'
@@ -1177,17 +1176,16 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         }
         [data-theme="dark"] .sb-top-icon:hover { background:rgba(255,255,255,0.04); }
         .sb-bottom-actions {
-          position:fixed;
-          bottom:20px;
-          left:28px;
-          width:min(236px, calc(100vw - 56px));
+          position:relative;
+          width:100%;
           max-width:none;
-          padding:0;
+          padding:10px 0 16px;
           z-index:170;
           display:flex;
           flex-direction:column;
           align-items:flex-start;
-          gap:12px;
+          gap:10px;
+          flex-shrink:0;
         }
         .sb-bottom-backdrop {
           position:fixed;
@@ -1218,14 +1216,14 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           display:flex;
           flex-direction:column !important;
           padding:0;
-          border:1px solid color-mix(in srgb, var(--border) 88%, transparent);
+          border:1px solid color-mix(in srgb, var(--border) 42%, transparent);
           border-radius:18px !important;
           background:var(--card) !important;
           color:var(--text);
           text-align:left;
           cursor:pointer;
           box-shadow:0 1px 2px rgba(15,23,42,.05);
-          min-height:158px;
+          min-height:206px;
           transform-origin:left bottom;
           transition:transform .16s ease, border-color .16s ease, box-shadow .16s ease;
         }
@@ -1236,8 +1234,8 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         }
         .sb-video-thumb {
           position:relative;
-          height:86px;
-          flex:0 0 86px;
+          height:118px;
+          flex:0 0 118px;
           display:block;
           overflow:hidden;
           background:
@@ -1283,12 +1281,12 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           z-index:2;
         }
         .sb-video-copy {
-          min-height:72px;
+          min-height:88px;
           display:flex;
           flex-direction:column;
           justify-content:center;
           gap:5px;
-          padding:12px 14px 14px;
+          padding:15px 16px 16px;
           background:var(--card) !important;
         }
         .sb-video-copy strong {
@@ -1360,7 +1358,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         }
         .sb-video-teaser-wrap .sb-video-teaser {
           width:100% !important;
-          min-height:158px !important;
+          min-height:206px !important;
           display:flex !important;
           flex-direction:column !important;
           align-items:stretch !important;
@@ -1371,12 +1369,12 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         .sb-video-teaser-wrap .sb-video-thumb {
           display:block !important;
           width:100% !important;
-          height:86px !important;
-          flex:0 0 86px !important;
+          height:118px !important;
+          flex:0 0 118px !important;
         }
         .sb-video-teaser-wrap .sb-video-copy {
           width:100% !important;
-          min-height:72px !important;
+          min-height:88px !important;
           background:var(--card) !important;
         }
         .sb-help-dock .sb-help-trigger {
@@ -1605,7 +1603,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           display:flex;
           flex-direction:column;
           border-radius:18px;
-          border:1px solid color-mix(in srgb, var(--border) 88%, transparent);
+          border:1px solid color-mix(in srgb, var(--border) 34%, transparent);
           background:var(--card);
           color:var(--text);
           box-shadow:0 32px 100px rgba(15,23,42,.24);
@@ -1621,7 +1619,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           grid-template-columns:1fr auto 1fr;
           align-items:center;
           padding:0 20px;
-          border-bottom:1px solid color-mix(in srgb, var(--border) 72%, transparent);
+          border-bottom:0;
           color:var(--text-muted);
           font-size:18px;
           letter-spacing:0;
@@ -1757,7 +1755,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           overflow:hidden;
           border-radius:4px;
           background:var(--surface);
-          border:1px solid color-mix(in srgb, var(--border) 80%, transparent);
+          border:1px solid color-mix(in srgb, var(--border) 28%, transparent);
         }
         .sb-video-feature-visual {
           position:relative;
@@ -1800,7 +1798,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           overflow-y:auto;
           overflow-x:hidden;
           scrollbar-width:none;
-          padding-bottom:132px;
+          padding-bottom:12px;
           overscroll-behavior:contain;
         }
         .sb-nav-scroll::-webkit-scrollbar {
@@ -2139,8 +2137,6 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
             </div>
 
           </div>
-
-          <HowFestagWorks />
 
           <div className="sb-bottom-actions">
             {whatsNewOpen ? <div className="sb-bottom-backdrop" onClick={() => setWhatsNewOpen(false)} /> : null}
