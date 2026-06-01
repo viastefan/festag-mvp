@@ -106,6 +106,7 @@ const CLIENT_CORE: NavItem[] = [
   { href:'/projects', icon:'project', label:'Projekte' },
   { href:'/tasks', icon:'task', label:'Tasks' },
   { href:'/decisions', icon:'scales', label:'Entscheidungen' },
+  { href:'/documents', icon:'doc', label:'Dokumente' },
   // Statusberichte live now under Statusabfrage (dashboard) → full history;
   // no separate sidebar entry. Mitwirkende moved into the "Mehr" popover.
 ]
