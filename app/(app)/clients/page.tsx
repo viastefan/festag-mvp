@@ -14,6 +14,7 @@ import { Plus, ArrowRight, UsersThree, LinkSimple, Check } from '@phosphor-icons
 import { createClient } from '@/lib/supabase/client'
 import Modal, { ModalButton } from '@/components/Modal'
 import InviteLinkModal from '@/components/InviteLinkModal'
+import PageHeader from '@/components/ui/PageHeader'
 
 type WorkspaceMode = 'delivery' | 'team' | 'agency'
 
@@ -121,24 +122,22 @@ export default function ClientsPage() {
     <div className="clients-page">
       <style>{CLIENTS_CSS}</style>
 
-      <header className="cl-head">
-        <div className="cl-head-text">
-          <p className="cl-kicker">Agency · Kunden</p>
-          <h1 className="cl-title">Kunden</h1>
-          <p className="cl-sub">
-            Bündle Kundenprojekte unter einer eigenen Kunden-Identität — eigenes Branding optional via White-Label.
-          </p>
-        </div>
-        <div className="cl-head-actions">
-          <button type="button" className="cl-btn" onClick={() => setInviteOpen(true)}>
-            <LinkSimple size={14} /> Kunde einladen
-          </button>
-          <button type="button" className="cl-btn cl-btn-primary" onClick={() => setComposerOpen(true)}>
-            <Plus size={14} weight="bold" /> Kunde anlegen
-          </button>
-        </div>
-      </header>
+      <PageHeader
+        title="Kunden"
+        subtitle="Kundenprojekte unter einer Kunden-Identität bündeln — Branding optional via White-Label."
+        actions={
+          <>
+            <button type="button" className="fui-action" onClick={() => setInviteOpen(true)}>
+              <LinkSimple size={14} /> Kunde einladen
+            </button>
+            <button type="button" className="fui-action fui-action--primary" onClick={() => setComposerOpen(true)}>
+              <Plus size={14} weight="bold" /> Kunde anlegen
+            </button>
+          </>
+        }
+      />
 
+      <div className="cl-body">
       {clients.length > 0 && (
         <div className="cl-meta">
           <span><strong>{clients.length}</strong> {clients.length === 1 ? 'Kunde' : 'Kunden'}</span>
@@ -244,6 +243,7 @@ export default function ClientsPage() {
           </div>
         </section>
       )}
+      </div>
 
       {composerOpen && wsId && (
         <ClientComposer workspaceId={wsId} onClose={() => setComposerOpen(false)} onCreated={c => { setClients(prev => [c, ...prev]); setComposerOpen(false) }} />
@@ -363,14 +363,16 @@ const CLIENTS_CSS = `
      persönlicher Bereich): full-width inside the panel with the same calm side
      padding and top spacing — keeps the content's left/right "red line"
      consistent across the app. */
-  /* Same red-line as Projekte/Tasks: 18px horizontal, calm top spacing. */
+  /* Shared shell: PageHeader (.fui-top) owns the top bar + hairline; the body
+     keeps the 18px red-line consistent with Tasks/Entscheidungen. */
   .clients-page {
     width: 100%;
     margin: 0;
-    padding: 20px 18px 80px;
+    padding: 20px 0 80px;
     color: var(--text);
     font-family: var(--font-aeonik,'Aeonik',Inter,sans-serif);
   }
+  .cl-body { padding: 18px 18px 0; }
   .cl-loading { padding: 80px 0; text-align: center; color: var(--text-muted); font-size: 13px; }
   .cl-head {
     display: flex; align-items: flex-start; justify-content: space-between;
@@ -620,7 +622,8 @@ const CLIENTS_CSS = `
   .cl-modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; flex-wrap: wrap; }
 
   @media (max-width: 720px) {
-    .clients-page { padding: 28px 18px 100px; }
+    .clients-page { padding: 16px 0 100px; }
+    .cl-body { padding: 16px 14px 0; }
     .cl-card-head { grid-template-columns: 40px minmax(0, 1fr); }
     .cl-card-stats { grid-column: 1 / -1; flex-direction: row; gap: 10px; }
     .cl-grid { grid-template-columns: 1fr; }

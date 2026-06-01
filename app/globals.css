@@ -871,8 +871,8 @@ code, pre, kbd, samp { font-family: var(--font-mono); }
      • Pop-up / dialog action buttons (.modal-cta) — a tight 6px corner (Bild 5).
    The 32px "items inherit the container radius" rule now lives ONLY inside
    pop-ups (Bild 3) — it is not a global behaviour. */
-button:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]):not(.dc-play-bar):not(.dc-read-bar):not(.modal-cta):not(.set-btn),
-a[role="button"]:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]),
+button:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]):not(.dc-play-bar):not(.dc-read-bar):not(.modal-cta):not(.set-btn):not([class*="fui-"]),
+a[role="button"]:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]):not([class*="fui-"]),
 input[type="button"],
 input[type="submit"],
 input[type="reset"],
@@ -937,6 +937,58 @@ button.sb-help-trigger {
 
 /* Settings buttons — full 32px pill across the settings surfaces. */
 .set-btn { border-radius: 32px; }
+
+/* ───────── Festag UI primitives — one design language across pages ─────────
+   Mirrors the Tasks/Entscheidungen pattern: a thin header bar with a hairline
+   underline, 999px pill filters, status tags and a quiet body. Used via the
+   components in components/ui/. Exempt from the blanket radius rule above so
+   each primitive controls its own geometry. */
+.fui-page { width:100%; padding:20px 0 80px; color:var(--text); font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); }
+.fui-top {
+  display:flex; align-items:flex-start; justify-content:space-between; gap:16px;
+  min-height:34px; padding:2px 18px 12px;
+  border-bottom:1px solid color-mix(in srgb, var(--border) 60%, transparent);
+}
+.fui-top-left { display:flex; flex-direction:column; gap:2px; min-width:0; }
+.fui-title { margin:0; font-size:14.5px; font-weight:500; letter-spacing:0; color:var(--text); }
+.fui-sub { margin:0; font-size:12px; color:var(--text-muted); letter-spacing:.012em; line-height:1.45; }
+.fui-actions { display:flex; align-items:center; gap:8px; flex-shrink:0; }
+.fui-action {
+  display:inline-flex; align-items:center; gap:6px;
+  height:30px; padding:0 14px; border-radius:32px;
+  border:1px solid var(--border); background:transparent;
+  color:var(--text); font:inherit; font-size:12.5px; font-weight:500; cursor:pointer;
+  transition:background .12s, border-color .12s;
+}
+.fui-action:hover { background:var(--surface-2); }
+.fui-action--primary { background:var(--btn-prim); color:var(--btn-prim-text); border-color:var(--btn-prim); }
+.fui-action--primary:hover { background:color-mix(in srgb, var(--btn-prim) 88%, #000); border-color:color-mix(in srgb, var(--btn-prim) 88%, #000); }
+
+.fui-bar { display:flex; align-items:center; gap:6px; flex-wrap:wrap; padding:14px 18px 0; }
+.fui-tab {
+  height:27px; padding:0 11px; border:1px solid var(--border); border-radius:999px;
+  background:transparent; color:var(--text-secondary);
+  font:inherit; font-size:11.5px; font-weight:500; letter-spacing:.02em; white-space:nowrap; cursor:pointer;
+  transition:background .12s, color .12s;
+}
+.fui-tab.on { background:var(--surface-2); color:var(--text); }
+.fui-tab:hover:not(.on) { color:var(--text); }
+
+.fui-body { padding:14px 18px 0; }
+
+/* Status tag (chip) — consistent across pages. */
+.fui-tag {
+  display:inline-flex; align-items:center; gap:6px;
+  height:22px; padding:0 9px; border-radius:999px;
+  font-size:11px; font-weight:500; letter-spacing:.01em;
+  border:1px solid var(--border); color:var(--text-muted); white-space:nowrap;
+}
+.fui-tag-dot { width:6px; height:6px; border-radius:50%; background:currentColor; flex:0 0 auto; }
+.fui-tag.tone-good   { color:var(--green-dark,#2bb069); border-color:color-mix(in srgb, var(--green-dark,#2bb069) 38%, var(--border)); }
+.fui-tag.tone-warn   { color:var(--amber,#d5a655);      border-color:color-mix(in srgb, var(--amber,#d5a655) 40%, var(--border)); }
+.fui-tag.tone-risk   { color:var(--red,#e06666);        border-color:color-mix(in srgb, var(--red,#e06666) 40%, var(--border)); }
+.fui-tag.tone-accent { color:#6a738c;                   border-color:color-mix(in srgb, #6a738c 45%, var(--border)); }
+.fui-tag.tone-muted  { color:var(--text-muted); }
 
 /* Veyra Audio Briefings */
 .audio-briefing-wrap { position: relative; display: inline-flex; }
