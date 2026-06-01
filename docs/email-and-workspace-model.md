@@ -92,11 +92,45 @@ shape so the surfaces stay consistent.
   Tagro's classification. ✅ shipped (workspace row added 2026-06-01).
 - **Decisions**: can be delegated to a specific teammate (e.g. a co-founder in
   the client portal) when a team exists. ✅ shipped (`/api/decisions/:id/assign`).
-- **Dev panel**: must mirror this model cleanly — a dev sees the workspace(s)
-  and clients a project belongs to, and which projects they are the responsible
-  dev on. (Follow-up: audit the dev panel surfaces against this model.)
+- **Dev panel**: mirrors this model — the project pool cards and the project
+  detail header show which **workspace** and **client** each project belongs to,
+  and "mine" lists the projects the dev is the responsible dev on. ✅ shipped
+  2026-06-01 (`/api/dev/projects/available` resolves workspace + client names).
 
 ### Invariants
 - `project_assignments` is the single source of truth for "who builds this".
 - Workspace membership gates visibility (RLS), but responsibility (the dev) is
   surfaced across workspace boundaries to whoever can see the project.
+
+---
+
+## 3. Festag as an embeddable API / platform (direction — AFTER the portal)
+
+Not now — **finish the portal first**. Captured so the architecture trends in
+the right direction.
+
+### Goal
+Let other apps embed Festag: create projects, push updates, read status /
+decisions / reports, and surface Tagro intelligence — so Festag becomes a
+**delivery-intelligence layer other products build on**, not only a portal.
+
+### Shape (when we get there)
+- **Public REST API** over the same surfaces the portal uses (projects, tasks,
+  decisions, status reports, briefings). Reuse existing route handlers where
+  possible; keep one domain layer, two callers (portal UI + API).
+- **API keys / OAuth scopes** per workspace; every call is workspace-scoped and
+  RLS-gated exactly like the portal. No new trust boundary.
+- **Webhooks** for outbound events (status changed, decision needed, report
+  ready) — mirrors the inbound email pipeline in reverse.
+- **Embeddable widgets / SDK**: a drop-in client status panel + Tagro briefing
+  another app can render (iframe or React component) without rebuilding the UI.
+- **Idempotency + versioning** from day one (`/v1`, idempotency keys on writes).
+
+### Prereqs the portal should already satisfy (so this stays cheap later)
+- Keep business logic in `lib/` + API route handlers, not in page components,
+  so the same logic backs both portal and public API.
+- Stable workspace scoping + RLS on every table (already the pattern).
+- Consistent entity shapes (the typed rows the portal already uses).
+
+This is a **post-portal** track. Do not start it until the portal is feature-
+complete and stable.
