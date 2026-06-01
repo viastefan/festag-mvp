@@ -12,6 +12,11 @@ const COLORS = {
   accent:  '#0A0B0A',
 }
 
+// Hosted Festag logo mark (public/festag-mark.png on the brand domain). Shown
+// in the email header next to the wordmark; the wordmark stays as a fallback
+// for clients that block images.
+const LOGO_URL = 'https://festag.io/festag-mark.png'
+
 function layout(opts: {
   preheader?: string
   title:     string
@@ -32,7 +37,10 @@ ${opts.preheader ? `<div style="display:none;max-height:0;overflow:hidden;font-s
     <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;background:${COLORS.surface};border:1px solid ${COLORS.border};border-radius:16px;overflow:hidden;">
       <!-- Header -->
       <tr><td style="padding:28px 32px 0 32px;">
-        <p style="margin:0;font-size:13px;font-weight:700;letter-spacing:-.2px;color:${COLORS.text};">festag</p>
+        <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+          <td style="vertical-align:middle;"><img src="${LOGO_URL}" width="22" height="22" alt="" style="display:block;border:0;outline:none;text-decoration:none;"></td>
+          <td style="vertical-align:middle;padding-left:9px;"><p style="margin:0;font-size:14px;font-weight:700;letter-spacing:-.2px;color:${COLORS.text};">festag</p></td>
+        </tr></table>
       </td></tr>
       <!-- Title -->
       <tr><td style="padding:18px 32px 0 32px;">
