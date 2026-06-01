@@ -158,8 +158,11 @@ export default function ClientsPage() {
             <span className="cle-card cle-card-2" />
             <span className="cle-card cle-card-1">
               <span className="cle-avatar"><UsersThree size={15} weight="regular" /></span>
-              <span className="cle-lines"><span /><span /></span>
-              <span className="cle-dots"><i /><i /><i /></span>
+              <span className="cle-lines">
+                <span className="cle-line cle-line-primary" />
+                <span className="cle-line cle-line-silver" />
+                <span className="cle-line cle-line-primary cle-line-short" />
+              </span>
             </span>
           </div>
           <p className="cl-kicker">Kunden</p>
@@ -360,10 +363,11 @@ const CLIENTS_CSS = `
      persönlicher Bereich): full-width inside the panel with the same calm side
      padding and top spacing — keeps the content's left/right "red line"
      consistent across the app. */
+  /* Same red-line as Projekte/Tasks: 18px horizontal, calm top spacing. */
   .clients-page {
     width: 100%;
     margin: 0;
-    padding: 20px clamp(16px, 2vw, 24px) 80px;
+    padding: 20px 18px 80px;
     color: var(--text);
     font-family: var(--font-aeonik,'Aeonik',Inter,sans-serif);
   }
@@ -452,13 +456,20 @@ const CLIENTS_CSS = `
     color: var(--btn-prim);
     border: 1px solid color-mix(in srgb, var(--btn-prim) 28%, var(--border));
   }
-  .cle-lines { display: flex; flex-direction: column; gap: 7px; }
-  .cle-lines span { height: 6px; border-radius: 4px; background: color-mix(in srgb, var(--text-muted) 28%, transparent); }
-  .cle-lines span:first-child { width: 76px; }
-  .cle-lines span:last-child { width: 48px; opacity: .6; }
-  .cle-dots { display: inline-flex; gap: 5px; }
-  .cle-dots i { width: 7px; height: 7px; border-radius: 50%; border: 1.5px solid color-mix(in srgb, var(--text-muted) 45%, transparent); }
-  .cle-dots i:nth-child(1) { background: color-mix(in srgb, var(--btn-prim) 60%, transparent); border-color: transparent; }
+  /* Living lines on the front card — primary + silver, looping shimmer. */
+  .cle-lines { display: flex; flex-direction: column; gap: 8px; }
+  .cle-line {
+    height: 6px; border-radius: 4px; transform-origin: left center;
+    animation: cleLine 2.8s ease-in-out infinite;
+  }
+  .cle-line-primary { width: 80px; background: linear-gradient(90deg, #6a738c, color-mix(in srgb, #6a738c 35%, transparent)); }
+  .cle-line-silver  { width: 60px; background: linear-gradient(90deg, #b9c0cc, color-mix(in srgb, #8f96a4 50%, transparent)); animation-delay: .45s; }
+  .cle-line-short   { width: 42px; animation-delay: .9s; }
+  @keyframes cleLine {
+    0%, 100% { transform: scaleX(.66); opacity: .5; }
+    50%      { transform: scaleX(1);   opacity: 1; }
+  }
+  @media (prefers-reduced-motion: reduce) { .cle-line { animation: none; opacity: .85; } }
   [data-theme="dark"] .cle-card { box-shadow: 0 18px 44px -24px rgba(0,0,0,.7); }
 
   .cl-list { display: flex; flex-direction: column; gap: 10px; }
