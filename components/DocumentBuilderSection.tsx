@@ -10,7 +10,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Modal, { ModalButton } from '@/components/Modal'
-import { Plus, FileText, FilePdf, Receipt, Scroll } from '@phosphor-icons/react'
+import { Plus, FileText, FilePdf, Receipt, Scroll, Sparkle } from '@phosphor-icons/react'
 import {
   DOC_TEMPLATES, getDocTemplate, renderDocumentHtml, positionsTotal, eur,
   type DocKind, type DocPosition, type DocTemplate,
@@ -142,6 +142,23 @@ function DocumentBuilder({ kind, workspaceId, clients, projects, onClose, onCrea
   const [projectId, setProjectId] = useState('')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [brief, setBrief] = useState('')
+  const [drafting, setDrafting] = useState(false)
+
+  async function draftWithVeyra() {
+    if (!brief.trim() || drafting) return
+    setDrafting(true); setError('')
+    try {
+      const res = await fetch('/api/documents/draft', {
+        method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ kind, brief: brief.trim() }),
+      })
+      const j = await res.json().catch(() => ({}))
+      if (j?.data && typeof j.data === 'object') {
+        setData(prev => ({ ...prev, ...j.data }))
+      }
+    } finally { setDrafting(false) }
+  }
 
   const positions: DocPosition[] = Array.isArray(data.positions) ? data.positions : []
   const total = positionsTotal(positions)
@@ -176,6 +193,27 @@ function DocumentBuilder({ kind, workspaceId, clients, projects, onClose, onCrea
         <ModalButton variant="primary" onClick={save} loading={saving}>Erstellen & PDF öffnen</ModalButton>
       </>}>
       <style>{BUILDER_CSS}</style>
+
+      {/* Veyra assistant — describe the document, Veyra fills the fields. */}
+      <div className="db-veyra">
+        <div className="db-veyra-head"><Sparkle size={13} weight="fill" /> Mit Veyra ausfüllen</div>
+        <textarea
+          className="db-input db-veyra-input"
+          placeholder={kind === 'rechnung'
+            ? 'z. B. „Rechnung an Anna Kipp-Menke für eine Praxis-Website, 2500 €, zahlbar in 14 Tagen."'
+            : kind === 'angebot'
+              ? 'z. B. „Angebot an Anna Kipp-Menke: Praxis-Website mit 5 Seiten, 2500 €, gültig 30 Tage."'
+              : 'z. B. „Dienstleistungsvertrag mit Anna Kipp-Menke über die Erstellung einer Praxis-Website, 2500 € pauschal."'}
+          value={brief}
+          onChange={e => setBrief(e.target.value)}
+          rows={2}
+        />
+        <button type="button" className="db-veyra-btn" onClick={draftWithVeyra} disabled={drafting || !brief.trim()}>
+          {drafting ? 'Veyra füllt aus…' : 'Felder ausfüllen'}
+        </button>
+        <p className="db-veyra-hint">Veyra füllt die Felder unten aus — prüfe und passe sie an, bevor du erstellst.</p>
+      </div>
+
       <div className="db-grid">
         <label className="db-field"><span>Kunde (optional)</span>
           <select className="db-input" value={clientId} onChange={e => setClientId(e.target.value)}>
@@ -247,6 +285,12 @@ const CSS = `
 `
 
 const BUILDER_CSS = `
+  .db-veyra { padding:12px 14px; border-radius:12px; border:1px solid color-mix(in srgb, var(--btn-prim) 30%, var(--border)); background:color-mix(in srgb, var(--btn-prim) 7%, var(--surface)); margin-bottom:16px; }
+  .db-veyra-head { display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600; color:var(--btn-prim); margin-bottom:8px; }
+  .db-veyra-input { background:var(--surface) !important; margin-bottom:8px; resize:vertical; min-height:48px; line-height:1.5; }
+  .db-veyra-btn { height:32px; padding:0 14px; border-radius:8px; border:1px solid var(--btn-prim); background:var(--btn-prim); color:var(--btn-prim-text); font:inherit; font-size:12.5px; font-weight:500; cursor:pointer; }
+  .db-veyra-btn:disabled { opacity:.5; cursor:not-allowed; }
+  .db-veyra-hint { margin:8px 0 0; font-size:11px; color:var(--text-muted); line-height:1.5; }
   .db-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px; }
   .db-field { display:flex; flex-direction:column; gap:5px; margin-bottom:12px; }
   .db-field > span { font-size:11.5px; font-weight:600; color:var(--text-secondary); }
