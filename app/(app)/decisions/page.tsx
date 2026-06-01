@@ -19,7 +19,7 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import {
   ArrowsClockwise, ChatCircleText, Check, CheckCircle, Clock, FunnelSimple,
-  Sparkle, Warning, X,
+  Sparkle, Warning, X, UserCircle, CaretDown,
 } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 
@@ -92,7 +92,7 @@ type Decision = {
   updated_at: string
 }
 
-type ProjectLite = { id: string; title: string; color?: string | null; status?: string | null }
+type ProjectLite = { id: string; title: string; color?: string | null; status?: string | null; workspace_id?: string | null }
 
 type Filter = 'open' | 'all' | 'decided' | 'urgent'
 const FILTERS: { id: Filter; label: string }[] = [
@@ -209,7 +209,7 @@ function DecisionsPageInner() {
       // Pull projects in one round-trip
       const projIds = Array.from(new Set((data.decisions ?? []).map((d: Decision) => d.project_id).filter(Boolean)))
       if (projIds.length) {
-        const { data: projs } = await (supabase as any).from('projects').select('id,title,color,status').in('id', projIds)
+        const { data: projs } = await (supabase as any).from('projects').select('id,title,color,status,workspace_id').in('id', projIds)
         const map: Record<string, ProjectLite> = {}
         for (const p of (projs as ProjectLite[]) ?? []) map[p.id] = p
         setProjects(map)
@@ -450,6 +450,7 @@ function DecisionsPageInner() {
         <Drawer
           decision={openDecision}
           project={openDecision.project_id ? projects[openDecision.project_id] : null}
+          me={me}
           isDecider={openDecision.requested_for === me || (!openDecision.requested_for && openDecision.created_by !== me)}
           onClose={() => setOpenId(null)}
           onPatch={patch => patchLocal(openDecision.id, patch)}
@@ -463,11 +464,14 @@ function DecisionsPageInner() {
  * Drawer
  * ─────────────────────────────────────────────────────────── */
 
+type WorkspaceMember = { id: string; full_name: string | null; email: string | null; avatar_url: string | null; role?: string | null }
+
 function Drawer({
-  decision, project, isDecider, onClose, onPatch,
+  decision, project, me, isDecider, onClose, onPatch,
 }: {
   decision: Decision
   project: ProjectLite | null
+  me: string
   isDecider: boolean
   onClose: () => void
   onPatch: (p: Partial<Decision>) => void
@@ -496,6 +500,48 @@ function Drawer({
   const [discussOpen, setDiscussOpen] = useState(false)
   const [discussQuestion, setDiscussQuestion] = useState('')
   const [error, setError] = useState<string>('')
+
+  // ── Delegation to a teammate (e.g. a co-founder once a team exists) ──
+  const supabase = useMemo(() => createClient(), [])
+  const [members, setMembers] = useState<WorkspaceMember[]>([])
+  const [assignOpen, setAssignOpen] = useState(false)
+  const [assigning, setAssigning] = useState(false)
+
+  // Load the workspace members of this decision's project so the decider can
+  // hand the decision to a specific teammate. RLS gates non-members.
+  useEffect(() => {
+    const wsId = project?.workspace_id
+    if (!wsId) { setMembers([]); return }
+    let cancelled = false
+    ;(async () => {
+      const { data: rows } = await (supabase as any)
+        .from('workspace_members').select('user_id').eq('workspace_id', wsId)
+      const ids = Array.from(new Set(((rows ?? []) as any[]).map(r => r.user_id))).filter(Boolean)
+      if (!ids.length) { if (!cancelled) setMembers([]); return }
+      const { data: profs } = await (supabase as any)
+        .from('profiles').select('id,full_name,email,avatar_url,role').in('id', ids)
+      if (!cancelled) setMembers(((profs ?? []) as WorkspaceMember[]))
+    })()
+    return () => { cancelled = true }
+  }, [project?.workspace_id, supabase])
+
+  async function assignTo(userId: string) {
+    if (assigning) return
+    setAssigning(true); setError('')
+    try {
+      const res = await fetch(`/api/decisions/${decision.id}/assign`, {
+        method: 'POST', credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ assignee_id: userId }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) { setError(data?.reason || 'Zuweisung gerade nicht möglich.'); return }
+      onPatch(data.decision)
+      setAssignOpen(false)
+    } finally {
+      setAssigning(false)
+    }
+  }
 
   // Pre-populate from existing response_value when re-opening a decided
   // decision.
@@ -858,6 +904,47 @@ function Drawer({
                     <ChatCircleText size={11} />
                     Diskutieren
                   </button>
+                )}
+                {isDecider && members.length > 0 && (
+                  <div className="dec-assign-wrap">
+                    <button
+                      type="button"
+                      className="dec-secondary dec-secondary-quiet"
+                      onClick={() => setAssignOpen((v) => !v)}
+                      disabled={assigning}
+                    >
+                      <UserCircle size={12} />
+                      {assigning ? 'Weise zu…' : 'Zuweisen'}
+                      <CaretDown size={10} />
+                    </button>
+                    {assignOpen && (
+                      <div className="dec-assign-menu" role="menu">
+                        <p className="dec-assign-head">An Teammitglied übergeben</p>
+                        {members.map((m) => {
+                          const name = m.full_name || m.email || 'Teammitglied'
+                          const isCurrent = decision.requested_for === m.id
+                          return (
+                            <button
+                              key={m.id}
+                              type="button"
+                              className={`dec-assign-opt${isCurrent ? ' on' : ''}`}
+                              onClick={() => assignTo(m.id)}
+                              disabled={assigning || isCurrent}
+                            >
+                              <span className="dec-assign-av">
+                                {m.avatar_url ? <img src={m.avatar_url} alt="" /> : (name[0] || '·').toUpperCase()}
+                              </span>
+                              <span className="dec-assign-name">
+                                {name}{m.id === me ? ' (du)' : ''}
+                                {m.role ? <small>{m.role}</small> : null}
+                              </span>
+                              {isCurrent && <Check size={12} weight="bold" />}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
 
@@ -1345,6 +1432,38 @@ const CSS = `
     color:var(--text);
     border-color:var(--border);
   }
+
+  /* Assign-to-teammate dropdown */
+  .dec-assign-wrap { position:relative; display:inline-flex; }
+  .dec-assign-menu {
+    position:absolute; bottom:calc(100% + 8px); right:0; z-index:40;
+    min-width:230px; max-height:280px; overflow-y:auto;
+    padding:6px; border-radius:14px;
+    background:var(--card); border:1px solid var(--border);
+    box-shadow:0 18px 44px -18px rgba(0,0,0,.5);
+    display:flex; flex-direction:column; gap:2px;
+  }
+  .dec-assign-head {
+    margin:2px 6px 4px; font-size:10.5px; font-weight:500;
+    letter-spacing:.08em; text-transform:uppercase; color:var(--dec-soft);
+  }
+  .dec-assign-opt {
+    display:flex; align-items:center; gap:9px;
+    padding:8px 9px; border:0; background:transparent; border-radius:10px;
+    text-align:left; cursor:pointer; color:var(--text); font:inherit; font-size:12.5px;
+  }
+  .dec-assign-opt:hover:not(:disabled) { background:var(--surface-2); }
+  .dec-assign-opt:disabled { cursor:default; }
+  .dec-assign-opt.on { color:var(--text); }
+  .dec-assign-av {
+    width:24px; height:24px; border-radius:50%; flex:0 0 auto;
+    display:inline-flex; align-items:center; justify-content:center; overflow:hidden;
+    background:var(--surface-2); color:var(--text-secondary);
+    font-size:10px; font-weight:600;
+  }
+  .dec-assign-av img { width:100%; height:100%; object-fit:cover; display:block; }
+  .dec-assign-name { flex:1; min-width:0; display:flex; flex-direction:column; }
+  .dec-assign-name small { color:var(--dec-soft); font-size:10.5px; margin-top:1px; }
 
   .dec-discuss {
     display:flex; flex-direction:column; gap:8px;
