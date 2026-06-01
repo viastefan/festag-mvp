@@ -19,7 +19,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import ObserverWelcomeModal from '@/components/ObserverWelcomeModal'
 import WelcomeTour from '@/components/WelcomeTour'
-import VeyraLogo from '@/components/VeyraLogo'
+import VeyraOrb, { type VeyraOrbState } from '@/components/VeyraOrb'
 import { speechVoiceId, useSpeechSynthesis } from '@/hooks/useSpeechSynthesis'
 import {
   ArrowClockwise, Article, CalendarCheck, CaretDown, CaretRight, Check, CheckCircle,
@@ -411,6 +411,13 @@ export default function DashboardPage() {
   // orb spins and the speech waveform dances during that time.
   const tagroActive = isBriefingPlaying || noteWriting || statusBusy
   const voiceLineActive = isBriefingActive || tagroActive
+  const orbState: VeyraOrbState = statusBusy
+    ? 'thinking'
+    : isBriefingPlaying || noteWriting
+      ? 'speaking'
+      : speechState === 'paused'
+        ? 'listening'
+        : 'idle'
 
   const briefingStatusLabel = statusBusy
     ? 'Bericht wird vorbereitet'
@@ -2548,29 +2555,8 @@ export default function DashboardPage() {
                 }
                 aria-pressed={isBriefingPlaying}
               >
-                {/* Pulsierende Welle — concentric rings always animate gently,
-                    strengthen while Veyra speaks. Soft, never distracting. */}
-                <span className="dc-orb-pulse pulse-1" aria-hidden />
-                <span className="dc-orb-pulse pulse-2" aria-hidden />
-                <span className="dc-orb-pulse pulse-3" aria-hidden />
-
-                <span className="dc-orb-halo" aria-hidden />
-
-                <span className="dc-orb-disc disc-3" aria-hidden />
-                <span className="dc-orb-disc disc-2" aria-hidden />
-
-                {/* 3D sphere — a shaded ball with a continuously rotating
-                    surface sheen + drifting specular highlight. Reads as a
-                    slowly spinning premium-AI orb. */}
-                <span className="dc-orb-core" aria-hidden>
-                  <span className="dc-orb-spin" aria-hidden />
-                  <span className="dc-orb-spin spin-b" aria-hidden />
-                  <span className="dc-orb-spec" aria-hidden />
-                  <span className="dc-orb-rim" aria-hidden />
-                  <span className="dc-orb-play">
-                    <VeyraLogo size={34} thinking={tagroActive} />
-                  </span>
-                </span>
+                {/* Veyra node-network — idle / listening / thinking / speaking. */}
+                <VeyraOrb state={orbState} size={188} />
               </button>
             </div>
 
