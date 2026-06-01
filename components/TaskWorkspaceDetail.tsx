@@ -80,6 +80,7 @@ type Project = {
   status?: string | null
   color?: string | null
   client_id?: string | null
+  workspace_id?: string | null
 }
 
 type Profile = {
@@ -272,6 +273,9 @@ export default function TaskWorkspaceDetail({ taskId, projectId }: TaskWorkspace
   const supabase = createClient()
   const [task, setTask] = useState<TaskDetail | null>(null)
   const [project, setProject] = useState<Project | null>(null)
+  // Workspace the task's project belongs to — surfaced in the properties rail
+  // so it's clear which workspace a task lives in (relevant across agencies).
+  const [workspaceName, setWorkspaceName] = useState<string | null>(null)
   const [profiles, setProfiles] = useState<Record<string, Profile>>({})
   const [activity, setActivity] = useState<ActivityItem[]>([])
   const [messages, setMessages] = useState<MessageItem[]>([])
@@ -321,8 +325,17 @@ export default function TaskWorkspaceDetail({ taskId, projectId }: TaskWorkspace
       const profileMap = new Map<string, Profile>()
       ;((profilesResult.data as Profile[]) ?? []).forEach((profile) => profileMap.set(profile.id, profile))
 
+      const loadedProject = (projectResult.data as Project | null) ?? null
       setTask(loadedTask)
-      setProject((projectResult.data as Project | null) ?? null)
+      setProject(loadedProject)
+      // Resolve the workspace name (best-effort; RLS-gated).
+      if (loadedProject?.workspace_id) {
+        ;(supabase as any)
+          .from('workspaces').select('name').eq('id', loadedProject.workspace_id).maybeSingle()
+          .then((r: any) => { if (!cancelled) setWorkspaceName((r?.data?.name as string) ?? null) }, () => {})
+      } else {
+        setWorkspaceName(null)
+      }
       setActivity((activityResult.data as ActivityItem[]) ?? [])
       setMessages((messagesResult.data as MessageItem[]) ?? [])
       setProfiles(Object.fromEntries(profileMap))
@@ -675,6 +688,7 @@ export default function TaskWorkspaceDetail({ taskId, projectId }: TaskWorkspace
             />
             <PropertyRow icon={<CalendarBlank size={16} />} label="Fällig" value={dateLabel(task.due_date)} />
             <PropertyRow icon={<FileText size={16} />} label="Projekt" value={project?.title || 'Kein Projekt'} />
+            <PropertyRow icon={<UsersThree size={16} />} label="Workspace" value={workspaceName || 'Persönlicher Workspace'} />
             <PropertyRow icon={<ShieldCheck size={16} />} label="Sichtbarkeit" value={task.client_visible === false ? 'Nur intern' : 'Für Client sichtbar'} />
             <PropertyRow icon={<WarningCircle size={16} />} label="Risiko" value={riskVisible ? 'Aufmerksamkeit nötig' : 'Niedrig'} />
             <PropertyRow icon={<Clock size={16} />} label="Entscheidung" value={decisionNeeded ? 'Ja' : 'Nein'} />
