@@ -911,7 +911,7 @@ button.sb-video-teaser {
   display: flex !important;
   flex-direction: column !important;
   align-items: stretch !important;
-  min-height: 206px !important;
+  min-height: 172px !important;
   background: var(--card) !important;
   color: var(--text) !important;
 }
