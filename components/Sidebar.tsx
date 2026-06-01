@@ -1359,21 +1359,33 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           overflow:hidden !important;
           clip-path:circle(50% at 50% 50%);
           display: inline-flex; align-items: center; justify-content: center;
-          border: 1px solid color-mix(in srgb, var(--border) 75%, transparent);
-          background: color-mix(in srgb, var(--card) 94%, transparent);
+          border: 1px solid color-mix(in srgb, var(--border) 48%, transparent);
+          background: color-mix(in srgb, var(--surface-2) 36%, transparent);
           color: var(--text-secondary);
           cursor: pointer;
           transition: color .12s, background .12s, border-color .12s;
-          box-shadow:none;
+          box-shadow:none !important;
+          outline:none !important;
+          transform:none !important;
         }
         .sb-help-trigger:hover {
           color: var(--text-secondary);
-          background: color-mix(in srgb, var(--surface-2) 38%, transparent);
-          border-color: color-mix(in srgb, var(--border-strong) 58%, transparent);
+          background: color-mix(in srgb, var(--surface-2) 48%, transparent);
+          border-color: color-mix(in srgb, var(--border) 48%, transparent);
+          box-shadow:none !important;
+          transform:none !important;
+        }
+        .sb-help-trigger:focus,
+        .sb-help-trigger:focus-visible,
+        .sb-help-trigger:active {
+          outline:none !important;
+          box-shadow:none !important;
+          transform:none !important;
         }
         .sb-help-trigger[aria-expanded="true"] {
           color: var(--text);
-          background: color-mix(in srgb, var(--surface-2) 52%, transparent);
+          background: color-mix(in srgb, var(--surface-2) 56%, transparent);
+          border-color: color-mix(in srgb, var(--border) 50%, transparent);
         }
         .sb-video-teaser-wrap .sb-video-teaser {
           width:100% !important;
@@ -1472,7 +1484,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
 
         .sb-help-pop {
           position: absolute; left: 0; bottom: 44px;
-          width: min(180px, calc(100vw - 32px));
+          width: min(318px, calc(100vw - 32px));
           max-height: min(520px, calc(100dvh - 96px));
           overflow:auto;
           scrollbar-width:none;
@@ -1498,7 +1510,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         .sb-help-list { display: flex; flex-direction: column; gap: 2px; }
         .sb-help-item {
           width: 100%;
-          display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; gap: 10px;
+          display: grid; grid-template-columns: 24px minmax(0, 1fr) max-content; gap: 11px;
           align-items: center;
           min-height: 34px;
           padding: 0 10px;
@@ -1530,7 +1542,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           min-width: 0;
           font-size: 13.5px; font-weight: 500; letter-spacing: .02em;
           color: var(--text);
-          overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+          white-space: nowrap;
         }
         .sb-help-shortcut {
           font-size: 11.5px;
@@ -1594,8 +1606,6 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         }
         .sb-help-news-label {
           min-width: 0;
-          overflow: hidden;
-          text-overflow: ellipsis;
           white-space: nowrap;
           font-size: 13.5px;
           font-weight: 500;

@@ -6,7 +6,7 @@ import { useEffect } from 'react'
  *
  * Suche → öffnet Cmd+K Command Palette (CommandPalette.tsx).
  * Keine eigene Search-Logik mehr im Header — das wäre Doppellogik.
- * Veyra-Hinweis: per `tagro: …` Prefix in der Palette.
+ * Veyra-Hinweis: per `veyra: …` Prefix in der Palette.
  */
 export default function AppHeader({
   copilotOpen,
@@ -66,7 +66,7 @@ export default function AppHeader({
               width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2" strokeLinecap="round">
               <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
             </svg>
-            <span style={{ flex: 1, textAlign: 'left' }}>Suchen oder „tagro: …"</span>
+            <span style={{ flex: 1, textAlign: 'left' }}>Suchen oder „veyra: …"</span>
             <span style={{
               padding:'2px 6px', borderRadius:8,
               fontSize:10, fontWeight:600, color:'var(--text-muted)',

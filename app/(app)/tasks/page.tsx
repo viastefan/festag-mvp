@@ -234,6 +234,7 @@ export default function TasksPage() {
   const [composerNotice, setComposerNotice] = useState('')
   const [tagroPreview, setVeyraPreview] = useState<VeyraPreview | null>(null)
   const [activeStatePopoverTaskId, setActiveStatePopoverTaskId] = useState<string | null>(null)
+  const [statePopoverAnchor, setStatePopoverAnchor] = useState<{ left: number; top: number } | null>(null)
   const taskToolsRef = useRef<HTMLDivElement | null>(null)
 
   const supabase = createClient()
@@ -393,10 +394,18 @@ export default function TasksPage() {
 
   function closeStatePopover() {
     setActiveStatePopoverTaskId(null)
+    setStatePopoverAnchor(null)
   }
 
-  function openStatePopover(taskId: string) {
+  function openStatePopover(taskId: string, anchor: HTMLElement) {
+    const rect = anchor.getBoundingClientRect()
+    const preferredLeft = rect.right + 8
+    const maxLeft = Math.max(12, window.innerWidth - 292)
     setActiveStatePopoverTaskId(taskId)
+    setStatePopoverAnchor({
+      left: Math.min(preferredLeft, maxLeft),
+      top: rect.top + rect.height / 2,
+    })
   }
 
   function resetComposer() {
@@ -460,7 +469,7 @@ export default function TasksPage() {
                 if (activeStatePopoverTaskId === task.id) {
                   closeStatePopover()
                 } else {
-                  openStatePopover(task.id)
+                  openStatePopover(task.id, event.currentTarget)
                 }
               }}
               onKeyDown={(event) => {
@@ -475,6 +484,10 @@ export default function TasksPage() {
                 className="task-state-popover is-open"
                 role="dialog"
                 aria-label="Erledigt-Logik"
+                style={statePopoverAnchor ? {
+                  ['--state-popover-left' as string]: `${statePopoverAnchor.left}px`,
+                  ['--state-popover-top' as string]: `${statePopoverAnchor.top}px`,
+                } : undefined}
                 onClick={(event) => event.stopPropagation()}
               >
                 <strong>So funktioniert Erledigt</strong>
@@ -614,7 +627,8 @@ export default function TasksPage() {
           min-height:0;
           overflow-y:auto;
           overflow-x:hidden;
-          padding:0 18px 76px;
+          padding:0 32px 76px 18px;
+          scrollbar-gutter:stable;
           overscroll-behavior:contain;
         }
         .task-top {
@@ -840,7 +854,7 @@ export default function TasksPage() {
           background:#fff;
           color:var(--text);
           box-shadow:0 1px 2px rgba(15,23,42,.10), 0 3px 9px rgba(15,23,42,.07);
-          transform:translateY(-1px);
+          transform:none;
         }
         [data-theme="dark"] .task-tool,
         [data-theme="classic-dark"] .task-tool {
@@ -897,7 +911,7 @@ export default function TasksPage() {
           max-width:100%;
           margin-left:0;
           margin-right:0;
-          padding-right:14px;
+          padding-right:0;
           box-sizing:border-box;
           overflow:visible;
         }
@@ -1085,8 +1099,8 @@ export default function TasksPage() {
         }
         .task-project-section.open .task-row,
         .task-row-flat {
-          animation:taskRowSlideIn .22s cubic-bezier(.16,1,.3,1) both;
-          animation-delay:calc(var(--row-index, 0) * 24ms);
+          animation:taskRowSlideIn .12s cubic-bezier(.16,1,.3,1) both;
+          animation-delay:calc(var(--row-index, 0) * 8ms);
         }
         /* Flat rows live directly inside .task-table (no project section
            wrapper), so they don't inherit the slide-in default rules. */
@@ -1435,10 +1449,10 @@ export default function TasksPage() {
           background:var(--btn-prim);
         }
         .task-state-popover {
-          position:absolute;
-          left:calc(100% + 10px);
-          top:50%;
-          width:min(300px, calc(100vw - 48px));
+          position:fixed;
+          left:var(--state-popover-left, 0);
+          top:var(--state-popover-top, 50%);
+          width:min(276px, calc(100vw - 48px));
           max-width:calc(100vw - 48px);
           max-height:260px;
           transform:translateY(-50%) scale(.985);
@@ -1450,7 +1464,7 @@ export default function TasksPage() {
           border-radius:12px;
           border:1px solid color-mix(in srgb, var(--border) 82%, transparent);
           background:color-mix(in srgb, var(--card) 98%, var(--surface-2) 2%);
-          box-shadow:var(--shadow-sm), 0 0 0 1px color-mix(in srgb, var(--accent-primary, #6a738c) 5%, transparent);
+          box-shadow:0 10px 26px rgba(15,23,42,.10), 0 0 0 1px color-mix(in srgb, var(--accent-primary, #6a738c) 5%, transparent);
           color:var(--task-soft-text);
           font-size:12px;
           line-height:1.5;
@@ -1473,9 +1487,9 @@ export default function TasksPage() {
         }
         [data-theme="dark"] .task-state-popover,
         [data-theme="classic-dark"] .task-state-popover {
-          background:color-mix(in srgb, var(--surface-2) 84%, var(--card) 16%);
+          background:color-mix(in srgb, var(--surface-2) 72%, var(--card) 28%);
           border-color:color-mix(in srgb, var(--border-strong) 58%, transparent);
-          box-shadow:0 14px 34px rgba(0,0,0,.26), 0 1px 0 rgba(255,255,255,.04) inset;
+          box-shadow:0 12px 28px rgba(0,0,0,.22), 0 1px 0 rgba(255,255,255,.035) inset;
         }
         .task-state-popover strong {
           display:block;
@@ -1493,6 +1507,9 @@ export default function TasksPage() {
         }
         .task-state-popover span {
           display:block;
+          color:var(--task-soft-text);
+          font-size:12px;
+          line-height:1.5;
         }
         .task-name-text {
           min-width:0;
@@ -1524,9 +1541,15 @@ export default function TasksPage() {
           align-items:center;
           gap:8px;
           justify-content:flex-start;
+          min-width:0;
+          white-space:nowrap;
           color:var(--task-soft-text);
           font-weight:500;
           font-size:12px;
+        }
+        .task-progress span:last-child {
+          overflow:hidden;
+          text-overflow:ellipsis;
         }
         .task-progress-dot {
           width:11px;
