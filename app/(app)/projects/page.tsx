@@ -14,7 +14,8 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import NewProjectModal from '@/components/NewProjectModal'
-import { FunnelSimple, SlidersHorizontal } from '@phosphor-icons/react'
+import { FunnelSimple, SlidersHorizontal, Stack, Plus } from '@phosphor-icons/react'
+import EmptyState from '@/components/EmptyState'
 
 type ProjectRow = {
   id: string
@@ -555,12 +556,24 @@ function ProjectsPageInner() {
         {loading ? (
           <div className="pj-empty">Projekte werden geladen…</div>
         ) : visible.length === 0 ? (
-          <div className="pj-empty">
-            <strong>{filter === 'all' ? 'Noch kein Projekt' : 'Keine Projekte in dieser Sicht'}</strong>
-            <p>{filter === 'all'
-              ? 'Erstelle ein Projekt, damit Tagro Roadmap und Aufgaben vorbereiten kann.'
-              : 'Wechsle den Filter, um andere Projekte zu sehen.'}</p>
-          </div>
+          filter === 'all' ? (
+            <EmptyState
+              icon={Stack}
+              kicker="Projekte"
+              title="Noch kein Projekt"
+              description="Erstelle ein Projekt, damit Tagro Roadmap und Aufgaben vorbereiten kann."
+              actions={[
+                { label: 'Projekt anlegen', icon: Plus, primary: true, onClick: () => setShowNewProject(true) },
+              ]}
+            />
+          ) : (
+            <EmptyState
+              icon={Stack}
+              kicker="Projekte"
+              title="Keine Projekte in dieser Sicht"
+              description="Wechsle den Filter, um andere Projekte zu sehen."
+            />
+          )
         ) : (
           <div className="pj-table">
             <div className="pj-head">

@@ -3,6 +3,8 @@ import { useEffect, useState, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { isDevOrAdmin } from '@/lib/role'
 import Link from 'next/link'
+import { FileText } from '@phosphor-icons/react'
+import EmptyState from '@/components/EmptyState'
 
 export default function DocumentsPage() {
   const [documents, setDocuments] = useState<any[]>([])
@@ -130,15 +132,12 @@ export default function DocumentsPage() {
           <div style={{ width: 24, height: 24, border: '2px solid var(--border)', borderTopColor: 'var(--text)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
         </div>
       ) : shown.length === 0 ? (
-        <div className="animate-fade-up-2" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', padding: '56px 24px', textAlign: 'center' }}>
-          <div style={{ width: 48, height: 48, borderRadius: 12, background: 'var(--surface-2)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" style={{color:"var(--text)"}} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>
-          </div>
-          <h2 style={{ marginBottom: 8 }}>Noch keine Dokumente</h2>
-          <p style={{ fontSize: 14, color: 'var(--text-secondary)', margin: '0 auto', maxWidth: 380 }}>
-            Sobald dein Projekt aktiv wird, findest du hier Rechnungen, Briefings und Verträge.
-          </p>
-        </div>
+        <EmptyState
+          icon={FileText}
+          kicker="Dokumente"
+          title="Noch keine Dokumente"
+          description="Sobald dein Projekt aktiv wird, findest du hier Rechnungen, Briefings und Verträge."
+        />
       ) : (
         <div className="animate-fade-up-2" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', overflow: 'hidden' }}>
           {shown.map((item, i) => (

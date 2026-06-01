@@ -12,12 +12,16 @@ import {
   FunnelSimple,
   Gauge,
   Globe,
+  ListChecks,
   Palette,
   Plugs,
+  Plus,
   ShieldCheck,
+  Sparkle,
   SlidersHorizontal,
   X,
 } from '@phosphor-icons/react'
+import EmptyState from '@/components/EmptyState'
 
 type TaskView = 'all' | 'open' | 'active' | 'decision' | 'review' | 'done'
 type SortMode = 'newest' | 'updated' | 'priority' | 'project'
@@ -1830,14 +1834,18 @@ export default function TasksPage() {
 
       <div className="task-scroll-body">
       {!loading && !hasProjects && (
-        <div className="task-empty projectless">
-          <h2>Noch kein Projekt vorhanden</h2>
-          <p>Tasks entstehen innerhalb eines Projekts. Lege zuerst ein Projekt an oder starte ein Briefing mit Tagro.</p>
-          <div className="task-empty-actions">
-            <a href="/new-project">Erstes Projekt anlegen</a>
-            <a href="/ai">Projektbriefing starten</a>
-          </div>
-          {composerNotice ? <div className="task-notice" style={{ marginTop: 14 }}>{composerNotice}</div> : null}
+        <div>
+          <EmptyState
+            icon={ListChecks}
+            kicker="Aufgaben"
+            title="Noch kein Projekt vorhanden"
+            description="Aufgaben entstehen innerhalb eines Projekts. Lege zuerst ein Projekt an oder starte ein Briefing mit Tagro."
+            actions={[
+              { label: 'Erstes Projekt anlegen', icon: Plus, primary: true, href: '/new-project' },
+              { label: 'Projektbriefing starten', icon: Sparkle, href: '/ai' },
+            ]}
+          />
+          {composerNotice ? <div className="task-notice" style={{ marginTop: 14, textAlign:'center' }}>{composerNotice}</div> : null}
         </div>
       )}
 

@@ -46,8 +46,10 @@ import {
   PaperPlaneTilt,
   SlidersHorizontal,
   Sparkle,
+  ChartBar,
   WarningCircle,
 } from '@phosphor-icons/react'
+import EmptyState from '@/components/EmptyState'
 
 type Project = { id: string; title: string; status: string; description?: string | null; color?: string | null; project_type?: ProjectType | null }
 type Report = { id: string; project_id: string; content: string; created_at: string; type?: string | null }
@@ -812,10 +814,12 @@ Regeln:
           <span>Aktion</span>
         </div>
         {projectStatusRows.length === 0 ? (
-          <div className="report-empty">
-            <strong>Noch keine Projekte</strong>
-            <span>Sobald Projekte existieren, werden sie hier als Status-Zentrale angezeigt.</span>
-          </div>
+          <EmptyState
+            icon={ChartBar}
+            kicker="Statusberichte"
+            title="Noch keine Projekte"
+            description="Sobald Projekte existieren, werden sie hier als Status-Zentrale angezeigt."
+          />
         ) : projectStatusRows.map((row) => {
           const color = projectColor(row.project.id, row.project.color)
           return (

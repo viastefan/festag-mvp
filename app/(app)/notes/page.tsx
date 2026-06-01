@@ -40,6 +40,7 @@ import {
 } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 import NewNoteModal from '@/components/NewNoteModal'
+import EmptyState from '@/components/EmptyState'
 
 type NoteType = 'journal' | 'brief' | 'meeting' | 'research'
 
@@ -413,13 +414,15 @@ export default function NotesPage() {
         {loading && visible.length === 0 ? (
           <p className="notes-empty">Notizen werden geladen…</p>
         ) : visible.length === 0 ? (
-          <div className="notes-empty">
-            <p>Hier ist es ruhig.</p>
-            <button className="notes-empty-cta" type="button" onClick={() => setComposerOpen(true)}>
-              <Plus size={11} /> Erste Notiz anlegen
-            </button>
-            <small>⌘⇧N legt überall in der App eine neue Notiz an.</small>
-          </div>
+          <EmptyState
+            icon={Notepad}
+            kicker="Notizen"
+            title="Hier ist es ruhig"
+            description="Halte einen Gedanken fest — Tagro findet daraus Themen, Tasks und Risiken. ⌘⇧N legt überall in der App eine neue Notiz an."
+            actions={[
+              { label: 'Erste Notiz anlegen', icon: Plus, primary: true, onClick: () => setComposerOpen(true) },
+            ]}
+          />
         ) : visible.map(n => {
           const project = projects.find(p => p.id === n.project_id)
           const fresh = Date.now() - new Date(n.created_at).getTime() < 1000 * 60 * 60 * 12

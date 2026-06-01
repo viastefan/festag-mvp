@@ -14,6 +14,7 @@ import { Plus, ArrowRight, UsersThree, LinkSimple } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 import Modal, { ModalButton } from '@/components/Modal'
 import InviteLinkModal from '@/components/InviteLinkModal'
+import EmptyState from '@/components/EmptyState'
 
 type WorkspaceMode = 'delivery' | 'team' | 'agency'
 
@@ -150,22 +151,16 @@ export default function ClientsPage() {
       )}
 
       {clients.length === 0 ? (
-        <div className="cl-empty">
-          <UsersThree size={26} weight="regular" />
-          <p className="cl-empty-title">Noch keine Kunden im Workspace</p>
-          <p className="cl-empty-sub">
-            Leg deinen ersten Kunden an. Du kannst danach bestehende Projekte zuordnen oder
-            ein neues Projekt direkt unter diesem Kunden starten.
-          </p>
-          <div className="cl-empty-actions">
-            <button type="button" className="cl-btn cl-btn-primary" onClick={() => setComposerOpen(true)}>
-              <Plus size={13} weight="bold" /> Ersten Kunden anlegen
-            </button>
-            <button type="button" className="cl-btn" onClick={() => setInviteOpen(true)}>
-              <LinkSimple size={13} /> Per Link einladen
-            </button>
-          </div>
-        </div>
+        <EmptyState
+          icon={UsersThree}
+          kicker="Kunden"
+          title="Noch keine Kunden im Workspace"
+          description="Leg deinen ersten Kunden an. Du kannst danach bestehende Projekte zuordnen oder ein neues Projekt direkt unter diesem Kunden starten."
+          actions={[
+            { label: 'Ersten Kunden anlegen', icon: Plus, primary: true, onClick: () => setComposerOpen(true) },
+            { label: 'Per Link einladen', icon: LinkSimple, onClick: () => setInviteOpen(true) },
+          ]}
+        />
       ) : (
         <section className="cl-list">
           {clients.map(client => {
