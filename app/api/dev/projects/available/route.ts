@@ -37,7 +37,7 @@ export async function GET() {
   // Recent intake/planning/active projects — what a dev would plausibly pick up.
   const { data: projects } = await (service as any)
     .from('projects')
-    .select('id,title,description,scope_summary,color,status,project_type,delivery_model,created_at,user_id')
+    .select('id,title,description,scope_summary,color,status,project_type,delivery_model,created_at,user_id,workspace_id,client_id')
     .neq('status', 'archived')
     .order('created_at', { ascending: false })
     .limit(80)
@@ -63,6 +63,22 @@ export async function GET() {
     countByProject.set(row.project_id, (countByProject.get(row.project_id) ?? 0) + 1)
   })
 
+  // Resolve workspace + client names so the dev panel can show which workspace
+  // and client each project belongs to (the workspace model — see
+  // docs/email-and-workspace-model.md). Batched: one query per lookup table.
+  const workspaceIds = Array.from(new Set((projects ?? []).map((p: any) => p.workspace_id).filter(Boolean)))
+  const clientIds = Array.from(new Set((projects ?? []).map((p: any) => p.client_id).filter(Boolean)))
+  const workspaceName = new Map<string, string>()
+  const clientName = new Map<string, string>()
+  if (workspaceIds.length) {
+    const { data: ws } = await (service as any).from('workspaces').select('id,name').in('id', workspaceIds)
+    ;(ws ?? []).forEach((w: any) => workspaceName.set(w.id, w.name))
+  }
+  if (clientIds.length) {
+    const { data: cp } = await (service as any).from('profiles').select('id,full_name,email').in('id', clientIds)
+    ;(cp ?? []).forEach((c: any) => clientName.set(c.id, c.full_name || c.email || null))
+  }
+
   const available: any[] = []
   const mine: any[] = []
   for (const p of (projects ?? [])) {
@@ -76,6 +92,8 @@ export async function GET() {
       project_type: p.project_type,
       created_at: p.created_at,
       assigned_count: countByProject.get(p.id) ?? 0,
+      workspace_name: p.workspace_id ? (workspaceName.get(p.workspace_id) ?? null) : null,
+      client_name: p.client_id ? (clientName.get(p.client_id) ?? null) : null,
     }
     if (mineIds.has(p.id)) { mine.push(shape); continue }
     // The open pool only holds Festag-directed jobs. White-label and

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
-import { ArrowRight, CheckCircle, Lightning, Plus, Users } from '@phosphor-icons/react'
+import { ArrowRight, CheckCircle, Lightning, Plus, Users, Buildings, UserCircle } from '@phosphor-icons/react'
 import DevMatchAnimation from '@/components/DevMatchAnimation'
 import DevNewProjectModal from '@/components/DevNewProjectModal'
 
@@ -16,6 +16,8 @@ type ProjectRow = {
   project_type: string | null
   created_at: string
   assigned_count: number
+  workspace_name: string | null
+  client_name: string | null
 }
 
 type Pools = {
@@ -152,6 +154,12 @@ export default function DevProjectsPage() {
                   <span className="dp-time">{timeAgo(p.created_at)}</span>
                 </header>
                 <h3>{p.title || 'Unbenanntes Projekt'}</h3>
+                {(p.workspace_name || p.client_name) && (
+                  <p className="dp-org">
+                    {p.workspace_name && <span className="dp-org-ws"><Buildings size={11} /> {p.workspace_name}</span>}
+                    {p.client_name && <span className="dp-org-client"><UserCircle size={11} /> {p.client_name}</span>}
+                  </p>
+                )}
                 <p className="dp-desc">
                   {p.scope_summary || p.description || 'Keine Beschreibung — Tagro klassifiziert beim Eintragen.'}
                 </p>
@@ -193,6 +201,12 @@ export default function DevProjectsPage() {
                   <span className="dp-time">{timeAgo(p.created_at)}</span>
                 </header>
                 <h3>{p.title || 'Unbenanntes Projekt'}</h3>
+                {(p.workspace_name || p.client_name) && (
+                  <p className="dp-org">
+                    {p.workspace_name && <span className="dp-org-ws"><Buildings size={11} /> {p.workspace_name}</span>}
+                    {p.client_name && <span className="dp-org-client"><UserCircle size={11} /> {p.client_name}</span>}
+                  </p>
+                )}
                 <p className="dp-desc">
                   {p.scope_summary || p.description || 'Keine Beschreibung.'}
                 </p>
@@ -240,6 +254,15 @@ export default function DevProjectsPage() {
           margin: 0 0 14px; color: var(--red);
           font-size: 13px; font-weight: 500;
         }
+        /* Workspace · client line — which workspace and client a project
+           belongs to (the workspace model; dev sees it across boundaries). */
+        .dp-org {
+          display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px;
+          margin: 0 0 8px; font-size: 11.5px; color: var(--text-muted);
+        }
+        .dp-org-ws, .dp-org-client { display: inline-flex; align-items: center; gap: 4px; min-width: 0; }
+        .dp-org :global(svg) { flex-shrink: 0; opacity: .8; }
+
         .dp-section { margin-bottom: 28px; }
         .dp-section-head {
           display: flex; align-items: center; justify-content: space-between;

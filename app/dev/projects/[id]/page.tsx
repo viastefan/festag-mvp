@@ -27,6 +27,7 @@ type Project = {
   work_type: string | null
   color: string | null
   user_id: string
+  workspace_id: string | null
   created_at: string | null
 }
 
@@ -58,6 +59,7 @@ export default function DevProjectDetailPage() {
 
   const [me, setMe] = useState<string>('')
   const [project, setProject] = useState<Project | null>(null)
+  const [workspaceName, setWorkspaceName] = useState<string | null>(null)
   const [messages, setMessages] = useState<Message[]>([])
   const [members, setMembers] = useState<MemberRow[]>([])
   const [profiles, setProfiles] = useState<Record<string, ProfileLite>>({})
@@ -83,11 +85,21 @@ export default function DevProjectDetailPage() {
 
     const { data: proj } = await supabase
       .from('projects')
-      .select('id,title,description,scope_summary,status,work_type,color,user_id,created_at')
+      .select('id,title,description,scope_summary,status,work_type,color,user_id,workspace_id,created_at')
       .eq('id', projectId)
       .maybeSingle()
     if (!proj) { setNotFound(true); setLoading(false); return }
     setProject(proj as Project)
+
+    // Resolve the workspace name so the dev sees which workspace this project
+    // lives in (the workspace model — relevant across agencies/clients).
+    const wsId = (proj as Project).workspace_id
+    if (wsId) {
+      supabase.from('workspaces').select('name').eq('id', wsId).maybeSingle()
+        .then(({ data }) => setWorkspaceName((data as any)?.name ?? null))
+    } else {
+      setWorkspaceName(null)
+    }
 
     const [{ data: msgs }, { data: mem }] = await Promise.all([
       supabase.from('messages').select('id,sender_id,message,is_ai,created_at')
@@ -236,6 +248,7 @@ export default function DevProjectDetailPage() {
           <div className="pd-meta">
             <span className="dev-chip">{statusLabel(project?.status)}</span>
             <span className="dev-chip subtle">{workTypeLabel(project?.work_type)}</span>
+            {workspaceName && <span className="pd-client">Workspace · {workspaceName}</span>}
             {clientName
               ? <span className="pd-client">Kunde · {clientName}</span>
               : <span className="pd-client muted">Noch kein Kunde verbunden</span>}
