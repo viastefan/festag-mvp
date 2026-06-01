@@ -318,6 +318,11 @@ export default function OnboardingPage() {
         try {
           fetch('/api/onboarding/seed-memory', { method: 'POST', credentials: 'include' })
         } catch {}
+        // Fire the two welcome emails (welcome + how-it-works). The route is
+        // idempotent, so this only ever sends once per account.
+        try {
+          fetch('/api/onboarding/welcome-emails', { method: 'POST', credentials: 'include' })
+        } catch {}
         const { data: { session } } = await supabase.auth.getSession()
         if (session) {
           rememberFestagAccount({

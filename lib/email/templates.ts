@@ -282,3 +282,219 @@ export function tplGeneric(opts: {
     html: layout(opts),
   }
 }
+
+// ════════════════════════════════════════════════════════════════
+// WELCOME (jeder neu registrierte Nutzer erhält zwei Mails)
+// ════════════════════════════════════════════════════════════════
+
+/** Mail 1 — warmes Willkommen, ruhig und kurz. */
+export function tplWelcome(opts: {
+  firstName?: string | null
+  appUrl:     string
+}): { subject: string; html: string } {
+  const greeting = opts.firstName?.trim() ? `Hi ${escape(opts.firstName.trim())},` : 'Hi,'
+  return {
+    subject: 'Willkommen bei Festag',
+    html: layout({
+      preheader: 'Dein ruhiger Projektraum ist bereit.',
+      title:     'Willkommen bei Festag',
+      subtitle:  'Schön, dass du da bist.',
+      body: `
+        <p style="margin:0 0 14px;">${greeting}</p>
+        <p style="margin:0 0 14px;">Festag ist dein ruhiger Projektraum — kein Cockpit, kein Fachchinesisch. Du beschreibst dein Vorhaben, Tagro übersetzt und zerlegt es, und du siehst jederzeit verständlich, wo dein Projekt steht.</p>
+        <p style="margin:0 0 18px;">Leg direkt los — oben links auf „Neues Projekt".</p>
+        <p style="margin:0 0 18px;text-align:center;">${button(opts.appUrl, 'Festag öffnen')}</p>
+        <p style="margin:18px 0 0;font-size:12px;color:${COLORS.muted};">In Kürze bekommst du eine zweite Mail mit einer kleinen Tour durch alles Wichtige.</p>
+      `,
+    }),
+  }
+}
+
+/** Mail 2 — „So funktioniert alles", die kompakte Tour. */
+export function tplGettingStarted(opts: {
+  firstName?: string | null
+  appUrl:     string
+}): { subject: string; html: string } {
+  const greeting = opts.firstName?.trim() ? `Hi ${escape(opts.firstName.trim())},` : 'Hi,'
+  const item = (title: string, text: string) =>
+    `<tr><td style="padding:0 0 16px;">
+       <p style="margin:0 0 4px;font-size:14px;font-weight:700;color:${COLORS.text};">${escape(title)}</p>
+       <p style="margin:0;font-size:13.5px;color:${COLORS.muted};line-height:1.55;">${escape(text)}</p>
+     </td></tr>`
+  return {
+    subject: 'So funktioniert Festag',
+    html: layout({
+      preheader: 'Statusabfrage, Posteingang, Projekte — in einer Minute erklärt.',
+      title:     'So funktioniert Festag',
+      subtitle:  'Das Wichtigste in vier Punkten.',
+      body: `
+        <p style="margin:0 0 18px;">${greeting}</p>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+          ${item('Neues Projekt', 'Beschreibe dein Vorhaben in eigenen Worten. Tagro macht daraus klare Schritte — du musst nichts Technisches formulieren.')}
+          ${item('Statusabfrage', 'Auf dem Dashboard tippst du auf „Status abrufen", und Tagro schreibt dir den aktuellen Projektstand ruhig zusammen.')}
+          ${item('Posteingang', 'Hier landen strukturierte Eingänge: neue Projektstände deines Teams, Rechnungen und Entscheidungen, die auf dich warten.')}
+          ${item('Dein Team meldet sich', 'Jedes Entwickler-Update wird von Tagro in einen klaren Stand übersetzt — geprüft, verständlich, ohne Fachjargon.')}
+        </table>
+        <p style="margin:6px 0 18px;text-align:center;">${button(opts.appUrl, 'Zum Dashboard')}</p>
+        <p style="margin:18px 0 0;font-size:12px;color:${COLORS.muted};">Eine Frage? Antworte einfach auf diese Mail — sie landet direkt bei uns.</p>
+      `,
+    }),
+  }
+}
+
+// ════════════════════════════════════════════════════════════════
+// DEV PROVISIONING & FESTAG-AUFTRAG (Agentur / White-Label)
+// ════════════════════════════════════════════════════════════════
+
+/** Zugangsdaten für einen frisch in Supabase angelegten Entwickler-Account. */
+export function tplDevCredentials(opts: {
+  devName?:   string | null
+  email:      string
+  password:   string
+  loginUrl:   string
+  fromName?:  string | null
+}): { subject: string; html: string } {
+  const greeting = opts.devName?.trim() ? `Hi ${escape(opts.devName.trim())},` : 'Hi,'
+  const from = opts.fromName?.trim() ? escape(opts.fromName.trim()) : 'Festag'
+  return {
+    subject: 'Dein Festag-Entwicklerzugang',
+    html: layout({
+      preheader: 'Login-Daten für dein Festag-Dev-Konto.',
+      title:     'Dein Entwicklerzugang',
+      subtitle:  `${from} hat dir ein Festag-Dev-Konto eingerichtet.`,
+      body: `
+        <p style="margin:0 0 14px;">${greeting}</p>
+        <p style="margin:0 0 14px;">Für dich wurde ein Festag-Entwicklerkonto angelegt. Melde dich mit diesen Zugangsdaten an:</p>
+        <div style="background:${COLORS.bg};border:1px solid ${COLORS.border};border-radius:12px;padding:16px;margin:14px 0;">
+          <p style="margin:0 0 8px;font-size:11px;font-weight:700;letter-spacing:.1em;color:${COLORS.muted};">E-MAIL</p>
+          <p style="margin:0 0 14px;font-size:15px;color:${COLORS.text};font-family:ui-monospace,Menlo,monospace;">${escape(opts.email)}</p>
+          <p style="margin:0 0 8px;font-size:11px;font-weight:700;letter-spacing:.1em;color:${COLORS.muted};">TEMPORÄRES PASSWORT</p>
+          <p style="margin:0;font-size:18px;color:${COLORS.text};font-weight:700;font-family:ui-monospace,Menlo,monospace;letter-spacing:.06em;">${escape(opts.password)}</p>
+        </div>
+        <p style="margin:0 0 18px;text-align:center;">${button(opts.loginUrl, 'Beim Dev-Panel anmelden')}</p>
+        <p style="margin:18px 0 0;font-size:12px;color:${COLORS.muted};">Bitte ändere dein Passwort nach dem ersten Login. Die Details zum Auftrag findest du in einer separaten Mail.</p>
+      `,
+    }),
+  }
+}
+
+/** Auftragszustellung an den ausgewählten Entwickler (Agentur-Modus). */
+export function tplDevAssignment(opts: {
+  devName?:     string | null
+  projectTitle: string
+  scope?:       string | null
+  devPanelUrl:  string
+  fromName?:    string | null
+}): { subject: string; html: string } {
+  const greeting = opts.devName?.trim() ? `Hi ${escape(opts.devName.trim())},` : 'Hi,'
+  const from = opts.fromName?.trim() ? escape(opts.fromName.trim()) : 'Festag'
+  return {
+    subject: `Neuer Auftrag: ${opts.projectTitle}`,
+    html: layout({
+      preheader: `${from} hat dir ein Projekt zugewiesen.`,
+      title:     'Neuer Auftrag für dich',
+      subtitle:  `${from} hat dir „${escape(opts.projectTitle)}" zugewiesen.`,
+      body: `
+        <p style="margin:0 0 14px;">${greeting}</p>
+        <p style="margin:0 0 14px;">Du wurdest als Entwickler für ein neues Projekt ausgewählt. Tagro hat das Briefing bereits in klare Schritte zerlegt — du findest alles in deinem Dev-Panel.</p>
+        <div style="background:${COLORS.bg};border:1px solid ${COLORS.border};border-radius:12px;padding:16px;margin:14px 0;">
+          <p style="margin:0 0 4px;font-size:11px;font-weight:700;letter-spacing:.1em;color:${COLORS.muted};">PROJEKT</p>
+          <p style="margin:0 0 ${opts.scope ? '12px' : '0'};font-size:15px;font-weight:700;color:${COLORS.text};">${escape(opts.projectTitle)}</p>
+          ${opts.scope ? `<p style="margin:0;font-size:13.5px;color:${COLORS.muted};line-height:1.55;">${escape(opts.scope)}</p>` : ''}
+        </div>
+        <p style="margin:0 0 18px;text-align:center;">${button(opts.devPanelUrl, 'Auftrag im Dev-Panel ansehen')}</p>
+      `,
+    }),
+  }
+}
+
+// ════════════════════════════════════════════════════════════════
+// FESTAG-AUFTRAG ANGENOMMEN (an den Client)
+// ════════════════════════════════════════════════════════════════
+
+/** Ein Festag-Entwickler hat den Auftrag angenommen. */
+export function tplProjectAccepted(opts: {
+  clientName?:  string | null
+  projectTitle: string
+  devName:      string
+  projectUrl:   string
+}): { subject: string; html: string } {
+  const greeting = opts.clientName?.trim() ? `Hi ${escape(opts.clientName.trim())},` : 'Hi,'
+  return {
+    subject: `Dein Projekt hat einen Entwickler: ${opts.projectTitle}`,
+    html: layout({
+      preheader: `${opts.devName} übernimmt „${opts.projectTitle}".`,
+      title:     'Dein Projekt ist startklar',
+      subtitle:  `${escape(opts.devName)} übernimmt die Umsetzung.`,
+      body: `
+        <p style="margin:0 0 14px;">${greeting}</p>
+        <p style="margin:0 0 14px;">gute Neuigkeiten — <strong>${escape(opts.devName)}</strong> hat deinen Auftrag „${escape(opts.projectTitle)}" angenommen und beginnt mit der Umsetzung.</p>
+        <p style="margin:0 0 18px;">Tagro begleitet das Projekt von hier an: Jeder Schritt wird für dich verständlich zusammengefasst. Du musst nichts Technisches lesen.</p>
+        <p style="margin:0 0 18px;text-align:center;">${button(opts.projectUrl, 'Projekt öffnen')}</p>
+      `,
+    }),
+  }
+}
+
+/** Wie es jetzt weitergeht. */
+export function tplProjectNextSteps(opts: {
+  clientName?:  string | null
+  projectTitle: string
+  projectUrl:   string
+}): { subject: string; html: string } {
+  const greeting = opts.clientName?.trim() ? `Hi ${escape(opts.clientName.trim())},` : 'Hi,'
+  const step = (n: string, title: string, text: string) =>
+    `<tr><td style="padding:0 0 14px;vertical-align:top;width:28px;">
+       <span style="display:inline-block;width:22px;height:22px;border-radius:50%;background:${COLORS.text};color:#fff;text-align:center;line-height:22px;font-size:12px;font-weight:700;">${n}</span>
+     </td><td style="padding:0 0 14px;">
+       <p style="margin:0 0 2px;font-size:14px;font-weight:700;color:${COLORS.text};">${escape(title)}</p>
+       <p style="margin:0;font-size:13px;color:${COLORS.muted};line-height:1.5;">${escape(text)}</p>
+     </td></tr>`
+  return {
+    subject: `So geht es weiter: ${opts.projectTitle}`,
+    html: layout({
+      preheader: 'Die nächsten Schritte für dein Projekt.',
+      title:     'So geht es jetzt weiter',
+      subtitle:  `Dein Projekt „${escape(opts.projectTitle)}".`,
+      body: `
+        <p style="margin:0 0 18px;">${greeting}</p>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+          ${step('1', 'Tagro strukturiert', 'Dein Briefing ist in klare Aufgaben und Meilensteine zerlegt.')}
+          ${step('2', 'Umsetzung beginnt', 'Dein Entwickler arbeitet die Schritte ab. Jedes Update wird geprüft.')}
+          ${step('3', 'Du bleibst im Bild', 'Auf dem Dashboard fragst du jederzeit den ruhigen Projektstand ab.')}
+        </table>
+        <p style="margin:6px 0 18px;text-align:center;">${button(opts.projectUrl, 'Projekt ansehen')}</p>
+      `,
+    }),
+  }
+}
+
+/** Die Festag-Garantie. */
+export function tplFestagGuarantee(opts: {
+  clientName?:  string | null
+  projectTitle: string
+  docUrl:       string
+}): { subject: string; html: string } {
+  const greeting = opts.clientName?.trim() ? `Hi ${escape(opts.clientName.trim())},` : 'Hi,'
+  const point = (text: string) =>
+    `<tr><td style="padding:0 0 12px;font-size:13.5px;color:${COLORS.text};line-height:1.55;">— ${escape(text)}</td></tr>`
+  return {
+    subject: 'Die Festag-Garantie',
+    html: layout({
+      preheader: 'Was Festag dir für dein Projekt zusichert.',
+      title:     'Die Festag-Garantie',
+      subtitle:  `Für dein Projekt „${escape(opts.projectTitle)}".`,
+      body: `
+        <p style="margin:0 0 14px;">${greeting}</p>
+        <p style="margin:0 0 16px;">Mit Festag gehst du kein Risiko ein. Das sichern wir dir zu:</p>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 8px;">
+          ${point('Geprüfter Fortschritt: Jeder Arbeitsstand wird von Tagro kontrolliert, bevor er bei dir ankommt.')}
+          ${point('Volle Transparenz: Du siehst jederzeit verständlich, wo dein Projekt steht — ohne Fachjargon.')}
+          ${point('Kein Informationsverlust: Tagro übersetzt zwischen dir und dem Entwickler in beide Richtungen.')}
+          ${point('Verlässliche Umsetzung: Festag steuert die Lieferung und steht für die Qualität gerade.')}
+        </table>
+        <p style="margin:8px 0 18px;text-align:center;">${button(opts.docUrl, 'Festag-Garantie im Detail')}</p>
+      `,
+    }),
+  }
+}

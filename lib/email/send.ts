@@ -8,6 +8,9 @@ import {
   tplInvite, tplInviteAccept, tplInvitePin,
   tplSupportAck, tplSupportNotify,
   tplPaymentReceipt, tplPaymentPending, tplGeneric,
+  tplWelcome, tplGettingStarted,
+  tplDevCredentials, tplDevAssignment,
+  tplProjectAccepted, tplProjectNextSteps, tplFestagGuarantee,
 } from './templates'
 
 // ── Invite (Legacy, PIN sofort — nur Fallback) ──────────────────────────
@@ -149,6 +152,87 @@ export async function sendGenericEmail(opts: {
 }): Promise<SendResult> {
   const { subject, html } = tplGeneric(opts)
   return sendMail({ to: opts.to, cc: opts.cc, subject, html, replyTo: getFounderMail() ?? undefined })
+}
+
+// ── Welcome (zwei Mails pro neu registriertem Nutzer) ───────────────────
+export async function sendWelcomeEmail(opts: {
+  to:         string
+  firstName?: string | null
+  appUrl:     string
+}): Promise<SendResult> {
+  const { subject, html } = tplWelcome({ firstName: opts.firstName, appUrl: opts.appUrl })
+  return sendMail({ to: opts.to, subject, html, replyTo: getFounderMail() ?? undefined })
+}
+
+export async function sendGettingStartedEmail(opts: {
+  to:         string
+  firstName?: string | null
+  appUrl:     string
+}): Promise<SendResult> {
+  const { subject, html } = tplGettingStarted({ firstName: opts.firstName, appUrl: opts.appUrl })
+  return sendMail({ to: opts.to, subject, html, replyTo: getFounderMail() ?? undefined })
+}
+
+// ── Dev provisioning / Auftragszustellung (Agentur, White-Label) ────────
+export async function sendDevCredentialsEmail(opts: {
+  to:        string
+  devName?:  string | null
+  password:  string
+  loginUrl:  string
+  fromName?: string | null
+}): Promise<SendResult> {
+  const { subject, html } = tplDevCredentials({
+    devName: opts.devName, email: opts.to, password: opts.password,
+    loginUrl: opts.loginUrl, fromName: opts.fromName,
+  })
+  return sendMail({ to: opts.to, subject, html, replyTo: getFounderMail() ?? undefined })
+}
+
+export async function sendDevAssignmentEmail(opts: {
+  to:           string
+  devName?:     string | null
+  projectTitle: string
+  scope?:       string | null
+  devPanelUrl:  string
+  fromName?:    string | null
+}): Promise<SendResult> {
+  const { subject, html } = tplDevAssignment({
+    devName: opts.devName, projectTitle: opts.projectTitle, scope: opts.scope,
+    devPanelUrl: opts.devPanelUrl, fromName: opts.fromName,
+  })
+  return sendMail({ to: opts.to, subject, html, replyTo: getFounderMail() ?? undefined })
+}
+
+// ── Festag-Auftrag angenommen (drei Mails + Garantie an den Client) ─────
+export async function sendProjectAcceptedEmail(opts: {
+  to:           string
+  clientName?:  string | null
+  projectTitle: string
+  devName:      string
+  projectUrl:   string
+}): Promise<SendResult> {
+  const { subject, html } = tplProjectAccepted(opts)
+  return sendMail({ to: opts.to, subject, html, replyTo: getFounderMail() ?? undefined })
+}
+
+export async function sendProjectNextStepsEmail(opts: {
+  to:           string
+  clientName?:  string | null
+  projectTitle: string
+  projectUrl:   string
+}): Promise<SendResult> {
+  const { subject, html } = tplProjectNextSteps(opts)
+  return sendMail({ to: opts.to, subject, html, replyTo: getFounderMail() ?? undefined })
+}
+
+export async function sendFestagGuaranteeEmail(opts: {
+  to:           string
+  clientName?:  string | null
+  projectTitle: string
+  docUrl:       string
+}): Promise<SendResult> {
+  const { subject, html } = tplFestagGuarantee(opts)
+  return sendMail({ to: opts.to, subject, html, replyTo: getFounderMail() ?? undefined })
 }
 
 // Re-export low-level for advanced flows
