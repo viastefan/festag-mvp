@@ -173,16 +173,16 @@ const CSS = `
   .ilm-seg-btn {
     display: flex; align-items: center; gap: 10px;
     padding: 12px 14px; border-radius: 11px;
-    border: 1px solid transparent;
-    background: color-mix(in srgb, var(--surface-2) 50%, transparent);
+    border: none;
+    background: color-mix(in srgb, var(--text) 8%, var(--surface-2));
     color: var(--text); cursor: pointer; text-align: left;
-    font-family: inherit; transition: box-shadow .12s, background .12s;
+    font-family: inherit; transition: background .12s, transform .08s;
   }
-  .ilm-seg-btn:hover { background: color-mix(in srgb, var(--surface-2) 80%, transparent); }
-  .ilm-seg-btn.is-on {
-    background: var(--surface-2);
-    box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--text) 30%, var(--border));
-  }
+  .ilm-seg-btn:hover { background: color-mix(in srgb, var(--text) 12%, var(--surface-2)); }
+  .ilm-seg-btn:active { transform: scale(.99); }
+  /* No focus-ring flash on click and no border — selection is shown by fill. */
+  .ilm-seg-btn:focus, .ilm-seg-btn:focus-visible { outline: none !important; box-shadow: none; }
+  .ilm-seg-btn.is-on { background: color-mix(in srgb, var(--text) 18%, var(--surface-2)); }
   .ilm-seg-btn span span { display: block; }
   .ilm-seg-title { font-size: 13px; font-weight: 600; color: var(--text); }
   .ilm-seg-sub { font-size: 11.5px; color: var(--text-muted); margin-top: 1px; }
