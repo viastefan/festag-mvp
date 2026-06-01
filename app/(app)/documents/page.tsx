@@ -2,10 +2,138 @@
 import { useEffect, useState, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { isDevOrAdmin } from '@/lib/role'
-import Link from 'next/link'
-import { FileText } from '@phosphor-icons/react'
-import EmptyState from '@/components/EmptyState'
 import DocumentBuilderSection from '@/components/DocumentBuilderSection'
+
+function DocumentsEmptyState() {
+  return (
+    <div className="docs-empty">
+      <style>{`
+        .docs-empty {
+          min-height:430px;
+          display:flex;
+          flex-direction:column;
+          align-items:center;
+          justify-content:center;
+          text-align:center;
+          padding:64px 24px;
+          color:var(--text);
+        }
+        .docs-empty-art {
+          position:relative;
+          width:230px;
+          height:150px;
+          margin:0 0 30px;
+          transform:translateX(4px);
+        }
+        .docs-empty-sheet {
+          position:absolute;
+          inset:auto;
+          border:1px solid color-mix(in srgb, var(--border) 78%, transparent);
+          border-radius:16px;
+          background:
+            linear-gradient(180deg, color-mix(in srgb, var(--card) 96%, var(--surface) 4%), color-mix(in srgb, var(--surface) 86%, var(--card) 14%));
+          box-shadow:0 18px 50px -34px rgba(15,23,42,.42);
+          overflow:hidden;
+        }
+        .docs-empty-sheet.back {
+          width:174px;
+          height:106px;
+          left:30px;
+          top:0;
+          opacity:.46;
+          transform:rotate(-4deg);
+        }
+        .docs-empty-sheet.mid {
+          width:190px;
+          height:118px;
+          left:18px;
+          top:14px;
+          opacity:.72;
+          transform:rotate(3deg);
+        }
+        .docs-empty-sheet.front {
+          width:212px;
+          height:128px;
+          left:0;
+          top:22px;
+          transform:rotate(-1deg);
+        }
+        .docs-empty-sheet.front::before {
+          content:"";
+          position:absolute;
+          left:0;
+          right:0;
+          top:0;
+          height:34px;
+          background:linear-gradient(90deg, rgba(106,115,140,.18), rgba(106,115,140,.04));
+          border-bottom:1px solid color-mix(in srgb, var(--border) 55%, transparent);
+        }
+        .docs-empty-line {
+          position:absolute;
+          left:22px;
+          height:6px;
+          border-radius:999px;
+          background:color-mix(in srgb, var(--text-secondary) 44%, transparent);
+        }
+        .docs-empty-line.a { top:52px; width:118px; }
+        .docs-empty-line.b { top:70px; width:154px; opacity:.68; }
+        .docs-empty-line.c { top:88px; width:94px; opacity:.46; }
+        .docs-empty-total {
+          position:absolute;
+          right:18px;
+          bottom:18px;
+          width:48px;
+          height:20px;
+          border-radius:999px;
+          background:rgba(106,115,140,.13);
+          border:1px solid rgba(106,115,140,.20);
+        }
+        [data-theme="dark"] .docs-empty-sheet,
+        [data-theme="classic-dark"] .docs-empty-sheet {
+          box-shadow:0 18px 50px -30px rgba(0,0,0,.66);
+        }
+        .docs-empty-kicker {
+          margin:0 0 10px;
+          color:var(--text-muted);
+          font-size:11px;
+          font-weight:600;
+          letter-spacing:.12em;
+          text-transform:uppercase;
+        }
+        .docs-empty h2 {
+          margin:0 0 12px;
+          color:var(--text);
+          font-size:22px;
+          line-height:1.2;
+          font-weight:500;
+          letter-spacing:0;
+        }
+        .docs-empty p {
+          max-width:430px;
+          margin:0;
+          color:var(--text-secondary);
+          font-size:15px;
+          line-height:1.55;
+          font-weight:500;
+          letter-spacing:0;
+        }
+      `}</style>
+      <div className="docs-empty-art" aria-hidden="true">
+        <span className="docs-empty-sheet back" />
+        <span className="docs-empty-sheet mid" />
+        <span className="docs-empty-sheet front">
+          <span className="docs-empty-line a" />
+          <span className="docs-empty-line b" />
+          <span className="docs-empty-line c" />
+          <span className="docs-empty-total" />
+        </span>
+      </div>
+      <p className="docs-empty-kicker">Dokumente</p>
+      <h2>Noch keine Dokumente</h2>
+      <p>Sobald dein Projekt aktiv wird, findest du hier Rechnungen, Briefings und Verträge.</p>
+    </div>
+  )
+}
 
 export default function DocumentsPage() {
   const [documents, setDocuments] = useState<any[]>([])
@@ -136,12 +264,7 @@ export default function DocumentsPage() {
           <div style={{ width: 24, height: 24, border: '2px solid var(--border)', borderTopColor: 'var(--text)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
         </div>
       ) : shown.length === 0 ? (
-        <EmptyState
-          icon={FileText}
-          kicker="Dokumente"
-          title="Noch keine Dokumente"
-          description="Sobald dein Projekt aktiv wird, findest du hier Rechnungen, Briefings und Verträge."
-        />
+        <DocumentsEmptyState />
       ) : (
         <div className="animate-fade-up-2" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', overflow: 'hidden' }}>
           {shown.map((item, i) => (

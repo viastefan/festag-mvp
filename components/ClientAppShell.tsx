@@ -368,8 +368,8 @@ export default function ClientAppShell({
           width:6px;
           height:6px;
           border-radius:999px;
-          background:#6d6afc;
-          box-shadow:0 0 0 2px rgba(109,106,252,.12);
+          background:#6a738c;
+          box-shadow:0 0 0 2px rgba(106,115,140,.14);
         }
         .app-footer-theme-chip.dark {
           background:linear-gradient(180deg, #17191d 0%, #0f1114 100%);

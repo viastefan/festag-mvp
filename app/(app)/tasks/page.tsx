@@ -27,7 +27,7 @@ import {
 import EmptyState from '@/components/EmptyState'
 
 type TaskView = 'all' | 'open' | 'active' | 'decision' | 'review' | 'done'
-type SortMode = 'newest' | 'updated' | 'priority' | 'project'
+type SortMode = 'newest' | 'updated' | 'priority' | 'project' | 'group'
 type ComposerMode = 'tagro' | 'manual'
 
 type TaskRow = {
@@ -98,6 +98,7 @@ const SORT_OPTIONS: { id: SortMode; label: string }[] = [
   { id: 'updated', label: 'Letztes Update' },
   { id: 'priority', label: 'Priorität' },
   { id: 'project', label: 'Projekt' },
+  { id: 'group', label: 'Nach Gruppen ordnen' },
 ]
 
 const DONE_STATES = new Set(['done', 'completed', 'delivered', 'erledigt'])
@@ -232,9 +233,7 @@ export default function TasksPage() {
   const [creatingSuggestion, setCreatingSuggestion] = useState(false)
   const [composerNotice, setComposerNotice] = useState('')
   const [tagroPreview, setVeyraPreview] = useState<VeyraPreview | null>(null)
-  const [expandedProjectIds, setExpandedProjectIds] = useState<string[]>([])
   const [activeStatePopoverTaskId, setActiveStatePopoverTaskId] = useState<string | null>(null)
-  const hasSeededProjectGroupsRef = useRef(false)
   const taskToolsRef = useRef<HTMLDivElement | null>(null)
 
   const supabase = createClient()
@@ -353,12 +352,19 @@ export default function TasksPage() {
           const pb = b.project_id ? projectById.get(b.project_id)?.title || '' : ''
           return pa.localeCompare(pb)
         }
+        if (sortMode === 'group') {
+          const ga = getTaskGroup(a)
+          const gb = getTaskGroup(b)
+          if (ga.sortWeight !== gb.sortWeight) return ga.sortWeight - gb.sortWeight
+          return new Date(b.created_at || b.updated_at || 0).getTime() - new Date(a.created_at || a.updated_at || 0).getTime()
+        }
         const field = sortMode === 'updated' ? 'updated_at' : 'created_at'
         return new Date((b as any)[field] || b.created_at || 0).getTime() - new Date((a as any)[field] || a.created_at || 0).getTime()
       })
   }, [tasks, view, sortMode, projectById, projectScope])
 
   const taskCategoryGroups = useMemo(() => {
+    if (sortMode !== 'group') return []
     const groups = new Map<TaskGroupKey, { group: ReturnType<typeof getTaskGroup>; tasks: TaskRow[] }>()
     for (const task of visibleTasks) {
       const group = getTaskGroup(task)
@@ -370,53 +376,10 @@ export default function TasksPage() {
       }
     }
     return Array.from(groups.values()).sort((a, b) => a.group.sortWeight - b.group.sortWeight)
-  }, [visibleTasks])
+  }, [visibleTasks, sortMode])
 
   const scopedProject = projectScope === 'all' ? null : projects.find(p => p.id === projectScope)
   const scopeLabel = scopedProject?.title ?? 'Alle Projekte'
-
-  const taskProjectGroups = useMemo(() => {
-    const fallbackProject = { id: 'projectless', title: 'Ohne Projekt', color: '#4E5567' }
-    const groupMap = new Map<string, { id: string; title: string; color?: string | null; tasks: TaskRow[] }>()
-    const orderedProjects = [...projects].sort((a, b) => a.title.localeCompare(b.title, 'de'))
-
-    for (const project of orderedProjects) {
-      groupMap.set(project.id, { id: project.id, title: project.title, color: projectAccentColor(project.id, project.color), tasks: [] })
-    }
-
-    for (const task of visibleTasks) {
-      const project = task.project_id ? projectById.get(task.project_id) : null
-      const id = project?.id || fallbackProject.id
-      if (!groupMap.has(id)) {
-        groupMap.set(id, {
-          id,
-          title: project?.title || fallbackProject.title,
-          color: projectAccentColor(id, project?.color || fallbackProject.color),
-          tasks: [],
-        })
-      }
-      groupMap.get(id)?.tasks.push(task)
-    }
-
-    return Array.from(groupMap.values()).filter((group) => group.tasks.length > 0)
-  }, [projects, projectById, visibleTasks])
-
-  useEffect(() => {
-    setExpandedProjectIds((current) => {
-      const validIds = new Set(taskProjectGroups.map((group) => group.id))
-      if (taskProjectGroups.length === 0) {
-        hasSeededProjectGroupsRef.current = false
-        return current.length ? [] : current
-      }
-      if (!hasSeededProjectGroupsRef.current && taskProjectGroups.length === 1) {
-        hasSeededProjectGroupsRef.current = true
-        return [taskProjectGroups[0].id]
-      }
-      const next = new Set(current.filter((id) => validIds.has(id)))
-      const changed = next.size !== current.length
-      return changed ? Array.from(next) : current
-    })
-  }, [taskProjectGroups])
 
   const doneCount = tasks.filter((task) => normalizeStatus(taskState(task)) === 'done').length
   const reviewCount = tasks.filter((task) => normalizeStatus(taskState(task)) === 'review').length
@@ -434,18 +397,6 @@ export default function TasksPage() {
 
   function openStatePopover(taskId: string) {
     setActiveStatePopoverTaskId(taskId)
-  }
-
-  function toggleProjectGroup(projectId: string) {
-    setExpandedProjectIds((current) => (
-      taskProjectGroups.length === 1
-        ? [projectId]
-        : (
-      current.includes(projectId)
-        ? current.filter((id) => id !== projectId)
-        : [...current, projectId]
-        )
-    ))
   }
 
   function resetComposer() {
@@ -472,6 +423,7 @@ export default function TasksPage() {
     const lead = task.developer_name || task.owner || task.assigned_to || 'Entwickler'
     const group = getTaskGroup(task)
     const GroupIcon = TASK_GROUP_ICONS[group.key]
+    const motionIndex = Math.min(rowIndex, 6)
 
     return (
       <div
@@ -479,7 +431,7 @@ export default function TasksPage() {
         className={`task-row task-row-flat${activeStatePopoverTaskId === task.id ? ' state-open' : ''}`}
         role="button"
         tabIndex={0}
-        style={{ ['--row-index' as string]: rowIndex, ['--task-group-color' as string]: group.color }}
+        style={{ ['--row-index' as string]: motionIndex, ['--task-group-color' as string]: group.color }}
         onClick={() => openTaskDetail(task)}
         onKeyDown={(event) => {
           if (event.key === 'Enter' || event.key === ' ') {
@@ -2223,6 +2175,8 @@ export default function TasksPage() {
           <div className="task-empty">Lade Aufgaben…</div>
         ) : visibleTasks.length === 0 ? (
           <div className="task-empty">Keine Aufgaben in dieser Ansicht.</div>
+        ) : sortMode !== 'group' ? (
+          visibleTasks.map((task, rowIndex) => renderTaskRow(task, rowIndex))
         ) : taskCategoryGroups.map((category, sectionIndex) => {
           const GroupIcon = TASK_GROUP_ICONS[category.group.key]
           return (

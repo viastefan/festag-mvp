@@ -39,24 +39,24 @@ export default function ProjectCreationIntroAnimation({
       return () => {}
     }
 
-    timers.push(setTimeout(() => setTitleStarted(true), compact ? 820 : 2780))
+    timers.push(setTimeout(() => setTitleStarted(true), compact ? 160 : 2180))
     return () => timers.forEach(clearTimeout)
   }, [compact, reduceMotion])
 
   const { value: typedTitle, done: titleDone } = useTypewriter(TITLE, {
     start: titleStarted,
-    speed: compact ? 34 : 52,
+    speed: compact ? 26 : 52,
   })
 
   const { value: typedDescription, done: descriptionDone } = useTypewriter(DESCRIPTION, {
     start: descriptionStarted,
-    speed: compact ? 18 : 28,
+    speed: compact ? 14 : 28,
   })
 
   useEffect(() => {
     if (!titleDone) return
-    const colorTimer = setTimeout(() => setColorSelected(true), compact ? 90 : 240)
-    const descriptionTimer = setTimeout(() => setDescriptionStarted(true), compact ? 260 : 720)
+    const colorTimer = setTimeout(() => setColorSelected(true), compact ? 60 : 240)
+    const descriptionTimer = setTimeout(() => setDescriptionStarted(true), compact ? 150 : 720)
     return () => {
       clearTimeout(colorTimer)
       clearTimeout(descriptionTimer)
@@ -65,15 +65,15 @@ export default function ProjectCreationIntroAnimation({
 
   useEffect(() => {
     if (!descriptionDone) return
-    const milestonesTimer = setTimeout(() => setMilestonesVisible(true), compact ? 120 : 320)
-    const ctaTimer = setTimeout(() => setCtaActive(true), compact ? 240 : 860)
+    const milestonesTimer = setTimeout(() => setMilestonesVisible(true), compact ? 80 : 320)
+    const ctaTimer = setTimeout(() => setCtaActive(true), compact ? 160 : 860)
     return () => {
       clearTimeout(milestonesTimer)
       clearTimeout(ctaTimer)
     }
   }, [compact, descriptionDone])
 
-  const animationDuration = compact ? 1.05 : 3.15
+  const animationDuration = compact ? 0.92 : 3
 
   return (
     <div className={`pci pci-${variant} ${className}`} aria-label="Festag Projektstart Animation">
@@ -455,58 +455,119 @@ export default function ProjectCreationIntroAnimation({
           pointer-events:none;
         }
         .pci-teaser .pci-modal {
-          left:24px;
-          top:12px;
+          left:12px;
+          top:7px;
           translate:0 0;
-          width:390px;
-          min-height:276px;
-          padding:22px 24px 0;
-          border-radius:16px;
+          width:250px;
+          min-height:174px;
+          padding:12px 14px 0;
+          border-radius:13px;
           background:rgba(19,25,34,.84);
-          box-shadow:0 20px 70px rgba(0,0,0,.16);
+          box-shadow:0 10px 34px rgba(0,0,0,.13);
           transform-origin:left top;
+        }
+        :global([data-theme="light"]) .pci-teaser,
+        :global([data-theme="pure-light"]) .pci-teaser,
+        :global([data-theme="read"]) .pci-teaser {
+          background:
+            radial-gradient(260px 150px at 70% 14%, rgba(106,115,140,.12), transparent 56%),
+            linear-gradient(135deg, #edf2f7 0%, #f8fafc 58%, #ffffff 100%);
+        }
+        :global([data-theme="light"]) .pci-teaser::before,
+        :global([data-theme="pure-light"]) .pci-teaser::before,
+        :global([data-theme="read"]) .pci-teaser::before {
+          background:
+            radial-gradient(80% 86% at 50% 44%, transparent 42%, rgba(106,115,140,.20) 100%),
+            linear-gradient(90deg, rgba(106,115,140,.14), transparent 24%, transparent 74%, rgba(106,115,140,.16));
+        }
+        :global([data-theme="light"]) .pci-teaser::after,
+        :global([data-theme="pure-light"]) .pci-teaser::after,
+        :global([data-theme="read"]) .pci-teaser::after {
+          opacity:.16;
+        }
+        :global([data-theme="light"]) .pci-teaser .pci-depth,
+        :global([data-theme="pure-light"]) .pci-teaser .pci-depth,
+        :global([data-theme="read"]) .pci-teaser .pci-depth {
+          opacity:.26;
+        }
+        :global([data-theme="light"]) .pci-teaser .pci-modal,
+        :global([data-theme="pure-light"]) .pci-teaser .pci-modal,
+        :global([data-theme="read"]) .pci-teaser .pci-modal {
+          background:rgba(255,255,255,.78);
+          border-color:rgba(106,115,140,.16);
+          color:#202532;
+          box-shadow:0 10px 30px rgba(15,23,42,.08);
+        }
+        :global([data-theme="light"]) .pci-teaser .pci-head span,
+        :global([data-theme="light"]) .pci-teaser .pci-label,
+        :global([data-theme="pure-light"]) .pci-teaser .pci-head span,
+        :global([data-theme="pure-light"]) .pci-teaser .pci-label,
+        :global([data-theme="read"]) .pci-teaser .pci-head span,
+        :global([data-theme="read"]) .pci-teaser .pci-label {
+          color:rgba(78,85,103,.52);
+        }
+        :global([data-theme="light"]) .pci-teaser .pci-head h2,
+        :global([data-theme="light"]) .pci-teaser .pci-title-value,
+        :global([data-theme="pure-light"]) .pci-teaser .pci-head h2,
+        :global([data-theme="pure-light"]) .pci-teaser .pci-title-value,
+        :global([data-theme="read"]) .pci-teaser .pci-head h2,
+        :global([data-theme="read"]) .pci-teaser .pci-title-value {
+          color:#202532;
+        }
+        :global([data-theme="light"]) .pci-teaser .pci-title-placeholder,
+        :global([data-theme="light"]) .pci-teaser .pci-description-placeholder,
+        :global([data-theme="pure-light"]) .pci-teaser .pci-title-placeholder,
+        :global([data-theme="pure-light"]) .pci-teaser .pci-description-placeholder,
+        :global([data-theme="read"]) .pci-teaser .pci-title-placeholder,
+        :global([data-theme="read"]) .pci-teaser .pci-description-placeholder {
+          color:rgba(78,85,103,.36);
+        }
+        :global([data-theme="light"]) .pci-teaser .pci-description p,
+        :global([data-theme="pure-light"]) .pci-teaser .pci-description p,
+        :global([data-theme="read"]) .pci-teaser .pci-description p {
+          color:#4e5567;
         }
         .pci-teaser .pci-head span,
         .pci-teaser .pci-label {
-          font-size:7px;
+          font-size:6px;
         }
         .pci-teaser .pci-head h2 {
-          margin:8px 0 23px;
-          font-size:14px;
+          margin:5px 0 12px;
+          font-size:12px;
         }
         .pci-teaser .pci-title-row {
-          gap:10px;
-          margin-bottom:22px;
+          gap:7px;
+          margin-bottom:10px;
         }
         .pci-teaser .pci-title-line {
           width:2px;
-          height:32px;
+          height:24px;
         }
         .pci-teaser .pci-title-placeholder,
         .pci-teaser .pci-title-value {
-          min-height:25px;
-          font-size:20px;
+          min-height:18px;
+          font-size:15px;
         }
         .pci-teaser .pci-colors {
-          gap:7px;
-          margin-top:6px;
+          gap:5px;
+          margin-top:5px;
         }
         .pci-teaser .pci-colors span {
-          width:20px;
-          height:3px;
+          width:14px;
+          height:2px;
         }
         .pci-teaser .pci-actions {
-          margin-bottom:24px;
+          margin-bottom:10px;
         }
         .pci-teaser .pci-button-row {
-          gap:7px;
-          margin-top:9px;
+          gap:5px;
+          margin-top:6px;
         }
         .pci-teaser .pci-button-row button {
-          height:25px;
+          height:20px;
           gap:5px;
-          padding:0 9px;
-          font-size:8px;
+          padding:0 7px;
+          font-size:7px;
           border-radius:6px;
         }
         .pci-teaser .pci-button-row svg {
@@ -514,13 +575,13 @@ export default function ProjectCreationIntroAnimation({
           height:10px;
         }
         .pci-teaser .pci-description {
-          min-height:70px;
+          min-height:36px;
         }
         .pci-teaser .pci-description-placeholder,
         .pci-teaser .pci-description p {
-          font-size:12px;
-          line-height:1.35;
-          max-width:310px;
+          font-size:8px;
+          line-height:1.32;
+          max-width:208px;
         }
         .pci-teaser .pci-milestones,
         .pci-teaser .pci-footer {

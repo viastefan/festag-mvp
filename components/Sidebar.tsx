@@ -1184,7 +1184,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           bottom:0;
           width:auto;
           max-width:none;
-          padding:6px 0 18px;
+          padding:6px 0 calc(18px + env(safe-area-inset-bottom, 0px));
           z-index:170;
           display:flex;
           flex-direction:column;
@@ -1238,13 +1238,19 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           border-color:color-mix(in srgb, var(--border-strong) 58%, transparent);
           box-shadow:0 2px 8px rgba(15,23,42,.07);
         }
+        [data-theme="light"] .sb-video-teaser,
+        [data-theme="pure-light"] .sb-video-teaser,
+        [data-theme="read"] .sb-video-teaser {
+          background:color-mix(in srgb, var(--card) 96%, #fff 4%) !important;
+          border-color:color-mix(in srgb, var(--border) 74%, transparent);
+        }
         .sb-video-thumb {
           position:relative;
           height:94px;
           flex:0 0 94px;
           display:block;
           overflow:hidden;
-          background:#101821;
+          background:color-mix(in srgb, var(--surface-2) 76%, #101821 24%);
         }
         .sb-video-thumb::before {
           display:none;
@@ -1300,7 +1306,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           justify-content:center;
           gap:5px;
           padding:12px 14px 14px;
-          background:#050608 !important;
+          background:color-mix(in srgb, var(--card) 94%, var(--surface) 6%) !important;
         }
         .sb-video-copy strong {
           display:block;
@@ -1308,7 +1314,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           line-height:1.16;
           font-weight:500;
           letter-spacing:0;
-          color:#f8fafc;
+          color:var(--text);
           white-space:normal;
         }
         .sb-video-copy span {
@@ -1318,7 +1324,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           line-height:1.18;
           font-weight:500;
           letter-spacing:0;
-          color:rgba(226,232,240,.58);
+          color:var(--text-secondary);
           white-space:normal;
         }
         .sb-video-dismiss {
@@ -1376,7 +1382,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           flex-direction:column !important;
           align-items:stretch !important;
           border-radius:18px !important;
-          background:#050608 !important;
+          background:var(--card) !important;
           color:var(--text) !important;
         }
         .sb-video-teaser-wrap .sb-video-thumb {
@@ -1388,7 +1394,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         .sb-video-teaser-wrap .sb-video-copy {
           width:100% !important;
           min-height:78px !important;
-          background:#050608 !important;
+          background:color-mix(in srgb, var(--card) 94%, var(--surface) 6%) !important;
         }
         .sb-help-dock .sb-help-trigger {
           border-radius:50% !important;
@@ -1955,7 +1961,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
 
       {/* ══ DESKTOP SIDEBAR ══ */}
       <aside className="sidebar" style={{ pointerEvents:'none' }}>
-        <div className="sidebar-inner" style={{ pointerEvents:'all', padding:'16px 16px 0', display:'flex', flexDirection:'column', position:'relative' }}>
+        <div className="sidebar-inner" style={{ pointerEvents:'all', padding:'16px 16px 0', display:'flex', flexDirection:'column', position:'fixed' }}>
 
           <div className="sb-topbar">
             <SidebarProfileFooter

@@ -424,3 +424,149 @@ Final one-liner:
 Festag turns project delivery into a clear client experience - under our brand
 or yours.
 ```
+
+## Expanded Architecture Direction
+
+Festag should be built as the AI control layer for client projects, not as a
+software-only project management app. Software and digital delivery remain the
+first high-value use case, but the platform model must support other complex
+client work such as agency projects, minijobs, maintenance, consulting,
+marketing, construction-like work, and recurring operations.
+
+Product sentence:
+
+```text
+Festag is the AI control layer for client projects - turning scattered work,
+time, evidence, decisions, risks, and updates into clear operational visibility
+for project managers, clients, executives, agencies, and teams.
+```
+
+German product sentence:
+
+```text
+Festag ist die AI-Kontrollschicht für Kundenprojekte - sie macht aus
+verstreuter Arbeit, Zeiten, Nachweisen, Entscheidungen, Risiken und Updates
+eine klare operative Übersicht.
+```
+
+### Core Control Objects
+
+The platform should converge around these durable objects:
+
+- `Project` with `project_type`, `phase`, `health_score`, `status`,
+  `client_id`, owner, target date, and visibility settings.
+- `ProjectModule` for enabled modules such as tasks, milestones, decisions,
+  risks, evidence, status reports, client portal, time tracking, approvals,
+  file uploads, photo evidence, invoices, budget tracking, code tracking,
+  deployment tracking, design review, campaign tracking, maintenance logs, and
+  handover.
+- `ProjectTypeTemplate` for default modules, default fields, default views, and
+  type-specific status logic.
+- `CustomField` for project-type-specific fields without hardcoding every
+  industry into the UI.
+- `Task`, `Milestone`, `Decision`, `Risk`, `Blocker`, `Evidence`,
+  `StatusReport`, `Briefing`, `Integration`, `ActivityLog`, and `AIInsight`.
+- `WorkSession`, `WorkLog`, `Approval`, and `TimeCalculation` for non-software
+  execution flows such as minijobs, field work, maintenance, and client
+  approvals.
+
+Do not assume every project has developers, GitHub, PRs, deployments, or code.
+Assume every project has work, executors, progress, evidence, updates, risks,
+decisions, and client-facing clarity.
+
+### Modular Project Types
+
+Initial project types should stay focused:
+
+1. `software_project` / `web_project`
+2. `agency_project`
+3. `minijob_project` / `work_order`
+
+Long-term types can include design, marketing, construction-like work,
+maintenance, hospitality, real estate, consulting, event projects, and custom
+projects. Each type activates only the modules it needs, so the interface never
+becomes a wall of tabs.
+
+### Execution Panel
+
+The old idea of a pure "Dev Panel" should evolve into a modular Execution
+Panel. In software projects the UI can still label parts as developer-oriented,
+but internally the product should use more flexible concepts:
+
+- executor / assignee instead of only developer
+- execution panel instead of only dev panel
+- work session instead of coding session
+- evidence instead of commit/proof only
+- module configuration instead of software-only hardcoding
+
+Examples:
+
+- Software project: tasks, PR links, bugs, reviews, deployments.
+- Minijob/work order: start, end, pause, duration, activity note, evidence,
+  approval, time calculation.
+- Maintenance/field work: steps, materials, photos, defects, work time,
+  handover.
+- Marketing project: assets, approvals, campaign status, publication dates,
+  results.
+
+### Veyra Rules
+
+Veyra is the intelligence layer, not a generic chatbot. It should be calm,
+precise, evidence-backed, and action-oriented.
+
+Veyra should always classify:
+
+- What changed?
+- What is done?
+- What is blocked?
+- What needs a decision?
+- What is risky?
+- What happens next?
+- What evidence supports this?
+
+Good Veyra output is short and useful:
+
+```text
+Der Login-Milestone ist gefährdet. Drei Tasks hängen am fehlenden API-Zugang.
+Wenn heute keine Entscheidung getroffen wird, verschiebt sich der Meilenstein
+voraussichtlich um 3-5 Tage.
+```
+
+Avoid hype, emojis, magic language, long filler, and vague AI confidence. Every
+important status should have a reason, evidence, impact, and recommended next
+action.
+
+### Design System Rules
+
+The interface must stay calm, premium, and systemized:
+
+- Accent color: `#6a738c`.
+- No purple, violet, neon blue, cyberpunk gradients, or loud AI colors.
+- Dark mode: `#070B12`, `#0A0F18`, `#0B1118`, `#0D141D`, surfaces around
+  `#101821`, `#121A24`, and `#151E2A`.
+- Border: subtle rgba white/black mixes through design tokens.
+- Text: primary `#E8EDF4`, secondary `#9AA4B2`, muted `#6F7A89`.
+- Hover states should be quiet and should not jump upward for ordinary controls.
+- Modals, cards, buttons, sidebars, tables, popovers, empty states, loading
+  states, and report surfaces must share one visual system.
+- No cut-off labels, clipped menus, overlapping UI, stray shadows, dead
+  buttons, or layout shifts.
+
+### MVP Priority
+
+Keep the first strong version focused:
+
+1. Projects
+2. Milestones
+3. Decisions
+4. Risks
+5. Evidence
+6. Status reports
+7. Veyra summary
+8. Project health
+9. Client view
+10. Clean UI system
+
+Do not let the broader strategy dilute the MVP. The first visible product must
+prove one thing: scattered project work becomes clear, evidence-based status,
+decisions, risks, and briefings.
