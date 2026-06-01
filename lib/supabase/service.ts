@@ -4,7 +4,7 @@ import { createClient as createServiceClient } from '@supabase/supabase-js'
  * Service-role Supabase client.
  *
  * Bypasses RLS. Use it ONLY for trusted server-side fan-out work where we
- * decide what gets written (audit logs, notifications, Tagro mirrors).
+ * decide what gets written (audit logs, notifications, Veyra mirrors).
  * Never thread untrusted user input through this client without
  * application-level checks.
  *

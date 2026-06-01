@@ -1,6 +1,6 @@
 -- Festag — DEV portal GitHub workflow
 --
--- Adds the join between Tagro's task layer and GitHub activity, plus a
+-- Adds the join between Veyra's task layer and GitHub activity, plus a
 -- lightweight work-session table so a developer can:
 --   1. link a commit / PR to a task they were working on
 --   2. start / stop a timed work session against a task

@@ -84,7 +84,7 @@ export default function ActivityPage() {
       <div className="animate-fade-up-1" style={{ display:'flex',gap:6,marginBottom:20,flexWrap:'wrap' }}>
         {([
           { k:'all',    l:`Alle (${feed.length})` },
-          { k:'ai',     l:'Tagro AI' },
+          { k:'ai',     l:'Veyra AI' },
           { k:'dev',    l:'Developer' },
           { k:'system', l:'System' },
         ] as const).map(f => (

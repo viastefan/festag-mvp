@@ -1,7 +1,7 @@
 -- Festag — Daily status loop
 --
 -- Workflow:
---   1. Tagro fires once a day at 16:00 local time.
+--   1. Veyra fires once a day at 16:00 local time.
 --   2. For every active developer on a non-archived project a row in
 --      `dev_daily_prompts` is created (one per dev+date).
 --   3. The dev sees a calm prompt card in /dev, posts a short status

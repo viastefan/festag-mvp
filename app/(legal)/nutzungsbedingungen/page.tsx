@@ -15,7 +15,7 @@ export default function NutzungPage() {
       <p>
         Festag ist ein AI-natives Software-Produktionssystem für Unternehmer, Founder,
         Agenturen und interne Teams. Wir orchestrieren die Software-Entwicklung über
-        ein kuratiertes Entwicklernetzwerk, Tagro (unsere KI-Logik) und ein Dashboard,
+        ein kuratiertes Entwicklernetzwerk, Veyra (unsere KI-Logik) und ein Dashboard,
         das den gesamten Produktionsprozess transparent macht.
       </p>
 
@@ -54,9 +54,9 @@ export default function NutzungPage() {
         und Verbesserung des Dienstes zu verarbeiten.
       </p>
 
-      <h2>6. KI-Outputs (Tagro)</h2>
+      <h2>6. KI-Outputs (Veyra)</h2>
       <p>
-        Tagro generiert Vorschläge, Code-Strukturen, Zeitpläne und Decomposition.
+        Veyra generiert Vorschläge, Code-Strukturen, Zeitpläne und Decomposition.
         Diese Outputs sind <strong>Werkzeuge</strong>, keine garantierten Endprodukte.
         Du bist verpflichtet, sie vor produktivem Einsatz inhaltlich zu prüfen.
         Wir übernehmen keine Garantie für die Korrektheit, Vollständigkeit oder

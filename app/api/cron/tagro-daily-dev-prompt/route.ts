@@ -90,7 +90,7 @@ export async function GET(req: Request) {
       audience: 'dev',
       title: count === 1
         ? `Wie weit bist du heute mit ${projects[0].projects.title} gekommen?`
-        : `Tagro fragt: dein Stand zu ${count} Projekten`,
+        : `Veyra fragt: dein Stand zu ${count} Projekten`,
       body: 'Schick einen kurzen Satz oder eine kleine Aufnahme — ich übersetze es ruhig für deinen Client.',
       message: 'Schick einen kurzen Satz oder eine kleine Aufnahme — ich übersetze es ruhig für deinen Client.',
       link: '/dev',

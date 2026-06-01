@@ -278,7 +278,7 @@ export default function InvitePage() {
               <li>Festag prüft die Einladung intern auf Plausibilität.</li>
               <li>Empfänger erhält eine ruhige Mail mit Link und initialem PIN.</li>
               <li>Beim ersten Login wird der PIN geändert, das Profil eingerichtet.</li>
-              <li>Tagro lernt die neue Rolle und passt Briefings sowie Sichtbarkeit automatisch an.</li>
+              <li>Veyra lernt die neue Rolle und passt Briefings sowie Sichtbarkeit automatisch an.</li>
             </ol>
           </aside>
         </section>

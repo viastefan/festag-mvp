@@ -47,7 +47,7 @@ export default function DevMatchAnimation({ mode, candidates=[], matched=null, s
     <div style={{ position:'relative', width:'100%', maxWidth:480, height:340, margin:'0 auto', display:'flex', alignItems:'center', justifyContent:'center' }}>
       <style>{`
         @keyframes dm-orbit { from{transform:rotate(0deg) translateX(120px) rotate(0deg);} to{transform:rotate(360deg) translateX(120px) rotate(-360deg);} }
-        @keyframes dm-pulse { 0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(99,102,241,.5);} 50%{transform:scale(1.04);box-shadow:0 0 0 16px rgba(99,102,241,0);} }
+        @keyframes dm-pulse { 0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(106,115,140,.5);} 50%{transform:scale(1.04);box-shadow:0 0 0 16px rgba(106,115,140,0);} }
         @keyframes dm-line  { 0%{stroke-dashoffset:240;opacity:0;} 30%{opacity:1;} 100%{stroke-dashoffset:0;opacity:1;} }
         @keyframes dm-pop   { from{transform:scale(0);opacity:0;} 60%{transform:scale(1.15);opacity:1;} to{transform:scale(1);opacity:1;} }
         @keyframes dm-fade  { from{opacity:0;transform:translateY(8px);} to{opacity:1;transform:none;} }
@@ -118,7 +118,7 @@ export default function DevMatchAnimation({ mode, candidates=[], matched=null, s
 
       {phase === 'scanning' && mode === 'pool' && (
         <p style={{ position:'absolute', bottom:24, left:'50%', transform:'translateX(-50%)', fontSize:13, color:'var(--text-muted)', textAlign:'center', margin:0, fontWeight:600 }}>
-          Tagro analysiert {candidates.length} Festag-Developer…
+          Veyra analysiert {candidates.length} Festag-Developer…
         </p>
       )}
       {phase === 'matched' && matched && mode === 'pool' && (

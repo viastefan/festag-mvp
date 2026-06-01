@@ -55,7 +55,7 @@ export default function ProjectCompletionCelebration({ open, projectTitle, onClo
       aria-label="Projekt abgeschlossen"
       style={{
         position:'fixed', inset:0, zIndex:9999,
-        background:'radial-gradient(circle at 50% 30%, rgba(99,102,241,.18), rgba(15,23,42,.85) 70%)',
+        background:'radial-gradient(circle at 50% 30%, rgba(106,115,140,.18), rgba(15,23,42,.85) 70%)',
         backdropFilter:'blur(8px)',
         display:'flex', alignItems:'center', justifyContent:'center',
         opacity: visible ? 1 : 0,
@@ -118,7 +118,7 @@ export default function ProjectCompletionCelebration({ open, projectTitle, onClo
             width:8, height:8,
             borderRadius:'50%',
             background:'#fff',
-            boxShadow:'0 0 16px #fff, 0 0 32px rgba(167,139,250,.7)',
+            boxShadow:'0 0 16px #fff, 0 0 32px rgba(106,115,140,.7)',
             animation: `pcc-spark-orbit 3.6s linear infinite ${i * 0.72}s`,
             transformOrigin:'-110px 0',
           }}/>
@@ -174,7 +174,7 @@ export default function ProjectCompletionCelebration({ open, projectTitle, onClo
           animation:'pcc-fade-up .5s .55s both',
         }}>
           <strong style={{ color:'#fff' }}>{projectTitle}</strong> ist fertig.<br/>
-          Tagro AI hat alles dokumentiert.
+          Veyra AI hat alles dokumentiert.
         </p>
 
         {deliveryDate && (
@@ -197,7 +197,7 @@ export default function ProjectCompletionCelebration({ open, projectTitle, onClo
               color:'#fff', border:'none', borderRadius:13,
               fontSize:14, fontWeight:800, cursor:'pointer',
               fontFamily:'inherit', letterSpacing:'.02em',
-              boxShadow:'0 10px 30px rgba(99,102,241,.4)',
+              boxShadow:'0 10px 30px rgba(106,115,140,.4)',
             }}>
               Übergabe-Bericht öffnen →
             </button>

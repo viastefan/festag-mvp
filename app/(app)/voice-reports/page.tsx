@@ -199,9 +199,9 @@ export default function VoiceReportsPage() {
       <section className="vr-sticky">
         <div className="vr-head">
           <div>
-            <p className="vr-kicker">Tagro Kontrollsystem</p>
+            <p className="vr-kicker">Veyra Kontrollsystem</p>
             <h1 className="vr-title">Voice Reports</h1>
-            <p className="vr-sub">Höre, was in deinen Projekten passiert — als ruhiges Executive Briefing von Tagro. Text bleibt die Quelle, Voice ist die hochwertige Kurzfassung für unterwegs.</p>
+            <p className="vr-sub">Höre, was in deinen Projekten passiert — als ruhiges Executive Briefing von Veyra. Text bleibt die Quelle, Voice ist die hochwertige Kurzfassung für unterwegs.</p>
           </div>
           <div className="vr-actions">
             <Link className="vr-btn" href="/reports"><ReadCvLogo size={15} /> Projektbriefings lesen</Link>
@@ -211,11 +211,11 @@ export default function VoiceReportsPage() {
       </section>
 
       <div className="vr-scroll">
-        <section className="vr-hero" aria-label="Tagro Voice Report">
+        <section className="vr-hero" aria-label="Veyra Voice Report">
           <div className="vr-panel">
-            <span className="vr-card-kicker"><Sparkle size={14} /> Tagro Voice Report</span>
+            <span className="vr-card-kicker"><Sparkle size={14} /> Veyra Voice Report</span>
             <h2 className="vr-card-title">Höre den aktuellen Projektstand als ruhiges Executive Update.</h2>
-            <p className="vr-card-sub">Tagro verdichtet Projekt, Tasks, Blocker und Entscheidungen zu einem klaren Voice Report. Keine erfundenen Updates: Wenn kein Projektbriefing existiert, bleibt der Report leer.</p>
+            <p className="vr-card-sub">Veyra verdichtet Projekt, Tasks, Blocker und Entscheidungen zu einem klaren Voice Report. Keine erfundenen Updates: Wenn kein Projektbriefing existiert, bleibt der Report leer.</p>
             <div className="vr-meta">
               <span><Clock size={13} /> {hasVoiceReport ? `Heute generiert · ${durationLabel(duration)}` : 'Noch kein Voice Report verfügbar'}</span>
               <span>{selectedProject?.title ?? 'Kein Projekt'}</span>
@@ -227,7 +227,7 @@ export default function VoiceReportsPage() {
                 <button className={`vr-chip${mode === 'full' ? ' on' : ''}`} type="button" onClick={() => setMode('full')}>Report abspielen</button>
                 <button className={`vr-chip${mode === 'short' ? ' on' : ''}`} type="button" onClick={() => setMode('short')}>60 Sekunden</button>
                 <button className={`vr-chip${mode === 'decision_only' ? ' on' : ''}`} type="button" onClick={() => setMode('decision_only')}>Entscheidungen</button>
-                <button className="vr-chip" type="button" disabled><Microphone size={13} /> Mit Tagro sprechen · bald</button>
+                <button className="vr-chip" type="button" disabled><Microphone size={13} /> Mit Veyra sprechen · bald</button>
               </div>
               {hasVoiceReport ? (
                 <>
@@ -239,14 +239,14 @@ export default function VoiceReportsPage() {
                   )}
                 </>
               ) : (
-                <div className="vr-empty">Noch kein Voice Report verfügbar. Erstelle zuerst ein Projekt oder aktualisiere dein Projektbriefing. Tagro spielt keinen Fake-Status ab.</div>
+                <div className="vr-empty">Noch kein Voice Report verfügbar. Erstelle zuerst ein Projekt oder aktualisiere dein Projektbriefing. Veyra spielt keinen Fake-Status ab.</div>
               )}
             </div>
           </div>
 
-          <aside className="vr-avatar" aria-label="Tagro Voice Persona">
+          <aside className="vr-avatar" aria-label="Veyra Voice Persona">
             <div className="vr-orb"><Headphones size={48} weight="light" /></div>
-            <strong>Tagro hört mit.</strong>
+            <strong>Veyra hört mit.</strong>
             <span>ruhig, knapp, entscheidungsorientiert</span>
           </aside>
         </section>

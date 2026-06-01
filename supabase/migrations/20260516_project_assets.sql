@@ -1,11 +1,11 @@
 -- Festag — Intelligentes Asset-, Upload- und Produktionssystem
 --
--- Foundation per the strategic spec: Tagro should not just see "files"
+-- Foundation per the strategic spec: Veyra should not just see "files"
 -- — it should see production context. Each asset has a typed category,
 -- kind, visibility, and is linkable to tasks. The analysis_result field
--- holds what Tagro inferred (affected roles, suggested tasks, etc.).
+-- holds what Veyra inferred (affected roles, suggested tasks, etc.).
 --
--- This migration is additive + idempotent. UI / Tagro analysis / Figma
+-- This migration is additive + idempotent. UI / Veyra analysis / Figma
 -- integration land in follow-up pushes; the schema is in place so they
 -- can stack cleanly.
 
@@ -39,7 +39,7 @@ create table if not exists project_assets (
   project_id uuid not null references projects(id) on delete cascade,
   workspace_id uuid references workspaces(id) on delete cascade,
   uploaded_by uuid not null references auth.users(id) on delete set null,
-  -- Classification (Tagro fills these on analysis; defaults are safe)
+  -- Classification (Veyra fills these on analysis; defaults are safe)
   category asset_category not null default 'other',
   kind asset_kind not null default 'file',
   visibility asset_visibility not null default 'team_only',
@@ -57,7 +57,7 @@ create table if not exists project_assets (
   -- Free-form tags (sprint, phase, version, etc.)
   tags text[] not null default '{}',
   metadata jsonb not null default '{}'::jsonb,
-  -- Tagro analysis output
+  -- Veyra analysis output
   analyzed_at timestamptz,
   analysis_result jsonb,
   -- Audit

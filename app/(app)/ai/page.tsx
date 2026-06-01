@@ -1,7 +1,7 @@
 'use client'
 
 /**
- * /ai — Tagro Chat, ChatGPT-style.
+ * /ai — Veyra Chat, ChatGPT-style.
  *
  * Layout:
  *   • Left rail (260 px): "Neuer Chat" button, conversation list
@@ -25,7 +25,7 @@ import {
 import { createClient } from '@/lib/supabase/client'
 import ChatMarkdown from '@/components/ChatMarkdown'
 import NotesWorkspace from '@/components/NotesWorkspace'
-import TagroLogo from '@/components/TagroLogo'
+import VeyraLogo from '@/components/VeyraLogo'
 
 type Mode = 'tagro' | 'developer' | 'owner' | 'support'
 
@@ -54,11 +54,11 @@ type ModeDescriptor = {
 const MODES: ModeDescriptor[] = [
   {
     id: 'tagro',
-    label: 'Tagro AI',
-    short: 'Tagro',
+    label: 'Veyra AI',
+    short: 'Veyra',
     helper: 'AI-Steuerung für Projekte, Tasks, Reviews und Briefings',
-    composerPlaceholder: 'Frag Tagro über Projekte, Tasks, Risiken oder Briefings …',
-    composerLabel: ctx => `An Tagro AI · Kontext: ${ctx}`,
+    composerPlaceholder: 'Frag Veyra über Projekte, Tasks, Risiken oder Briefings …',
+    composerLabel: ctx => `An Veyra AI · Kontext: ${ctx}`,
   },
   {
     id: 'developer',
@@ -88,7 +88,7 @@ const MODES: ModeDescriptor[] = [
 const MODE_BY_ID: Record<Mode, ModeDescriptor> = Object.fromEntries(MODES.map(m => [m.id, m])) as Record<Mode, ModeDescriptor>
 const MODE_FILTERS: Array<{ id: 'all' | Mode | 'archived'; label: string }> = [
   { id: 'all', label: 'Alle' },
-  { id: 'tagro', label: 'Tagro' },
+  { id: 'tagro', label: 'Veyra' },
   { id: 'developer', label: 'Dev' },
   { id: 'owner', label: 'Owner' },
   { id: 'support', label: 'Support' },
@@ -126,7 +126,7 @@ const EMPTY_ACTIONS = [
   {
     tone: 'task',
     title: 'Tasks aus Statusbericht',
-    meta: 'Tagro erkennt nächste Schritte, Owner und Risiko.',
+    meta: 'Veyra erkennt nächste Schritte, Owner und Risiko.',
     primary: 'Tasks vorbereiten',
     secondary: 'Bericht wählen',
   },
@@ -355,7 +355,7 @@ function AIChatPage() {
 
   async function endChat(convId: string) {
     if (endingChat) return
-    if (!confirm('Diesen Chat beenden? Tagro erzeugt eine Zusammenfassung und schickt sie in die Inbox. Das Transkript bleibt im Verlauf.')) return
+    if (!confirm('Diesen Chat beenden? Veyra erzeugt eine Zusammenfassung und schickt sie in die Inbox. Das Transkript bleibt im Verlauf.')) return
     setEndingChat(true)
     try {
       const res = await fetch(`/api/ai/conversations/${convId}/end`, {
@@ -427,7 +427,7 @@ function AIChatPage() {
           m.id === optimisticUser.id ? { ...m, id: m.id } : m,
         ).concat([{
           id: `err-${Date.now()}`, role: 'assistant',
-          content: data?.error ? `Tagro hat gerade gestreikt: ${data.error}` : 'Da war ein Problem. Probier es bitte gleich nochmal.',
+          content: data?.error ? `Veyra hat gerade gestreikt: ${data.error}` : 'Da war ein Problem. Probier es bitte gleich nochmal.',
           created_at: new Date().toISOString(),
         }]))
         return
@@ -662,7 +662,7 @@ function AIChatPage() {
         <header className="ai-main-head">
           <div className="ai-main-head-left">
             <span className="ai-head-mark">
-              <TagroLogo size={18} thinking={sending} />
+              <VeyraLogo size={18} thinking={sending} />
             </span>
             <div className="ai-head-title">
               <h1>{activeConv?.title || mode.label}</h1>
@@ -711,7 +711,7 @@ function AIChatPage() {
                 className="ai-end-chat"
                 onClick={() => endChat(activeConv.id)}
                 disabled={endingChat}
-                title="Chat beenden — Tagro fasst zusammen und sendet an Inbox"
+                title="Chat beenden — Veyra fasst zusammen und sendet an Inbox"
               >
                 {endingChat ? 'Beende…' : 'Chat beenden'}
               </button>
@@ -768,7 +768,7 @@ function AIChatPage() {
                 <article key={m.id} className={`ai-msg ${m.role}`}>
                   {m.role === 'assistant' && (
                     <div className="ai-msg-avatar">
-                      <TagroLogo size={16} thinking={m.pending} />
+                      <VeyraLogo size={16} thinking={m.pending} />
                     </div>
                   )}
                   <div className="ai-msg-body">
@@ -779,7 +779,7 @@ function AIChatPage() {
                         <span className="ai-context-pill">Kontext: {activeContext.title}</span>
                         <ChatMarkdown text={m.content} />
                         {actionForMessage(m.content) ? (
-                          <TagroActionCard {...actionForMessage(m.content)!} />
+                          <VeyraActionCard {...actionForMessage(m.content)!} />
                         ) : null}
                       </>
                     ) : (
@@ -831,8 +831,8 @@ function AIChatPage() {
           <p className="ai-foot">
             {mode.composerLabel(activeContext.title)} ·
             {effectiveMode === 'tagro'
-              ? ' Tagro kann sich irren — Wichtiges kurz gegenprüfen.'
-              : ' Tagro speichert Nachrichten und kann sie zu Tasks oder Briefings verlinken.'}
+              ? ' Veyra kann sich irren — Wichtiges kurz gegenprüfen.'
+              : ' Veyra speichert Nachrichten und kann sie zu Tasks oder Briefings verlinken.'}
           </p>
         </div>
       </main>
@@ -895,7 +895,7 @@ function ConversationGroup({
                   <span className="ai-row-title">{c.title}</span>
                   <span className="ai-row-meta">
                     <span className={`ai-row-badge mode-${(c.mode ?? 'tagro')}`}>
-                      {MODE_BY_ID[(c.mode ?? 'tagro') as Mode]?.short ?? 'Tagro'}
+                      {MODE_BY_ID[(c.mode ?? 'tagro') as Mode]?.short ?? 'Veyra'}
                     </span>
                     {c.status === 'sent_to_inbox' && (
                       <span className="ai-row-badge muted">In Inbox</span>
@@ -959,8 +959,8 @@ function ModeEmptyState({
   if (mode === 'tagro') {
     return (
       <div className="ai-empty">
-        <div className="ai-empty-mark"><TagroLogo size={32} /></div>
-        <h2>Wie kann Tagro helfen?</h2>
+        <div className="ai-empty-mark"><VeyraLogo size={32} /></div>
+        <h2>Wie kann Veyra helfen?</h2>
         <p>Frag nach Projektstatus, Risiken, Entscheidungen, Tasks oder Briefings — Kontext: <strong>{projectTitle}</strong>.</p>
         <div className="ai-starters">
           {[
@@ -985,7 +985,7 @@ function ModeEmptyState({
         <div className="ai-empty narrow">
           <div className="ai-empty-mark"><Briefcase size={22} /></div>
           <h2>Projekt auswählen</h2>
-          <p>Developer-Chats sind immer projektgebunden, damit Tagro Nachrichten mit Tasks, Milestones und Berichten verknüpfen kann.</p>
+          <p>Developer-Chats sind immer projektgebunden, damit Veyra Nachrichten mit Tasks, Milestones und Berichten verknüpfen kann.</p>
           <button type="button" className="ai-empty-cta" onClick={onPickProject}>
             <Briefcase size={13} /> Projekt wählen
           </button>
@@ -1064,7 +1064,7 @@ function actionForMessage(content: string) {
     return {
       tone: 'task',
       title: 'Task-Vorschlag erkannt',
-      meta: 'Tagro kann daraus eine konkrete Aufgabe mit Kontext und Owner vorbereiten.',
+      meta: 'Veyra kann daraus eine konkrete Aufgabe mit Kontext und Owner vorbereiten.',
       primary: 'Task erstellen',
       secondary: 'Bearbeiten',
     }
@@ -1082,7 +1082,7 @@ function actionForMessage(content: string) {
     return {
       tone: 'review',
       title: 'Review oder Entscheidung offen',
-      meta: 'Tagro kann die Freigabe bündeln oder Korrekturen formulieren.',
+      meta: 'Veyra kann die Freigabe bündeln oder Korrekturen formulieren.',
       primary: 'Details öffnen',
       secondary: 'Korrektur anfordern',
     }
@@ -1099,7 +1099,7 @@ function actionForMessage(content: string) {
   return null
 }
 
-function TagroActionCard({
+function VeyraActionCard({
   tone,
   title,
   meta,

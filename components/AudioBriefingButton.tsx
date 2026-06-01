@@ -68,10 +68,10 @@ export default function VoiceBriefingButton(props: VoiceBriefingButtonProps) {
   const popover = open && mounted ? createPortal(
     <>
       <div className="audio-briefing-backdrop" onMouseDown={() => setOpen(false)} />
-      <div className="audio-briefing-layer" style={{ left: position.left, top: position.top }} role="dialog" aria-label="Tagro Voice Report">
+      <div className="audio-briefing-layer" style={{ left: position.left, top: position.top }} role="dialog" aria-label="Veyra Voice Report">
         <div className="audio-briefing-head">
           <div>
-            <p>Tagro Voice Report</p>
+            <p>Veyra Voice Report</p>
             <span>Executive Summary · startet nur manuell</span>
           </div>
           <button type="button" onClick={() => setOpen(false)} aria-label="Voice Report schließen"><X size={14} /></button>

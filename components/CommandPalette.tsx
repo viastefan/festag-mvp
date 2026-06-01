@@ -5,7 +5,7 @@
  *
  * Architektur-Prinzip:
  *   - Eine zentrale Suche innerhalb des aktuellen echten Workspaces.
- *   - Tagro-Prefix `tagro:` triggert Tagro-Anfrage (kontextuell, kein floating Button).
+ *   - Veyra-Prefix `veyra:` triggert Veyra-Anfrage (kontextuell, kein floating Button).
  *   - Permissions werden serverseitig erzwungen — hier nur UI-Vorfilter.
  *
  * Command-Palette Regeln:
@@ -31,7 +31,7 @@ type Cmd = {
   href?:     string
   action?:   () => void
   Icon:      React.ComponentType<any>
-  group:     'Navigation' | 'Tagro' | 'Aktionen' | 'Workspace' | 'Projekte' | 'Tasks' | 'Notizen'
+  group:     'Navigation' | 'Veyra' | 'Aktionen' | 'Workspace' | 'Projekte' | 'Tasks' | 'Notizen'
   keywords?: string[]
 }
 
@@ -52,8 +52,8 @@ const STATIC_COMMANDS: Cmd[] = [
   { id:'act-new-proj', group:'Aktionen',   label:'Neues Projekt anlegen', href:'/projects?new=1',        Icon: Plus,    keywords:['create','start'] },
   { id:'act-invite',   group:'Aktionen',   label:'Mitglied einladen',     href:'/teams', Icon: Plus, keywords:['invite','seat','team'] },
 
-  // Tagro hint (immer sichtbar wenn Query leer ist)
-  { id:'tagro-hint',   group:'Tagro',      label:'Mit "tagro: …" Tagro fragen', hint:'z. B. tagro: Status zusammenfassen', Icon: Brain, keywords:['ai','assistent'] },
+  // Veyra hint (immer sichtbar wenn Query leer ist)
+  { id:'tagro-hint',   group:'Veyra',      label:'Mit "veyra: …" Veyra fragen', hint:'z. B. veyra: Status zusammenfassen', Icon: Brain, keywords:['ai','assistent'] },
 ]
 
 function fuzzy(text: string, q: string): boolean {
@@ -160,7 +160,8 @@ export default function CommandPalette() {
   useEffect(() => {
     if (!open) { setDynamic([]); return }
     const term = q.trim()
-    if (!term || term.toLowerCase().startsWith('tagro:')) { setDynamic([]); return }
+    const lowerTerm = term.toLowerCase()
+    if (!term || lowerTerm.startsWith('veyra:') || lowerTerm.startsWith('tagro:')) { setDynamic([]); return }
     const t = setTimeout(async () => {
       const sb = createClient()
       const like = `%${term.replace(/[%_]/g, '\\$&')}%`
@@ -190,20 +191,23 @@ export default function CommandPalette() {
     return () => clearTimeout(t)
   }, [q, open])
 
-  const isTagro = q.trim().toLowerCase().startsWith('tagro:')
-  const tagroQuery = isTagro ? q.trim().slice(6).trim() : ''
+  const trimmedQuery = q.trim()
+  const lowerQuery = trimmedQuery.toLowerCase()
+  const veyraPrefix = lowerQuery.startsWith('veyra:') ? 'veyra:' : lowerQuery.startsWith('tagro:') ? 'tagro:' : null
+  const isVeyra = !!veyraPrefix
+  const tagroQuery = veyraPrefix ? trimmedQuery.slice(veyraPrefix.length).trim() : ''
 
   let results: Cmd[]
-  if (isTagro) {
+  if (isVeyra) {
     results = [{
       id: 'tagro-run',
-      group: 'Tagro',
-      label: tagroQuery ? `Tagro fragen: "${tagroQuery}"` : 'Tagro fragen …',
+      group: 'Veyra',
+      label: tagroQuery ? `Veyra fragen: "${tagroQuery}"` : 'Veyra fragen …',
       hint:  tagroQuery ? 'Enter zum Senden' : 'Frage eingeben',
       Icon:  Sparkle,
       action: () => {
         if (!tagroQuery) return
-        // Route Tagro-Aufruf an die AI-Chat-Page mit Pre-Fill
+        // Route Veyra-Aufruf an die AI-Chat-Page mit Pre-Fill
         router.push(`/ai?q=${encodeURIComponent(tagroQuery)}`)
         setOpen(false)
         setQ('')
@@ -242,7 +246,7 @@ export default function CommandPalette() {
   // Group results
   const grouped: Record<string, Cmd[]> = {}
   results.forEach(c => { (grouped[c.group] ??= []).push(c) })
-  const groupOrder = ['Tagro', 'Projekte', 'Tasks', 'Notizen', 'Workspace', 'Navigation', 'Aktionen']
+  const groupOrder = ['Veyra', 'Projekte', 'Tasks', 'Notizen', 'Workspace', 'Navigation', 'Aktionen']
 
   return (
     <AnimatePresence>
@@ -379,7 +383,7 @@ export default function CommandPalette() {
             transition={{ type: 'spring', stiffness: 360, damping: 32 }}
           >
             <header className="cp-head">
-              <h2>{isTagro ? 'Tagro fragen' : 'Suche'}</h2>
+              <h2>{isVeyra ? 'Veyra fragen' : 'Suche'}</h2>
               <button className="cp-close" type="button" onClick={() => setOpen(false)} aria-label="Schließen">
                 <X size={16} weight="bold" />
               </button>
@@ -387,7 +391,7 @@ export default function CommandPalette() {
 
             <div className="cp-search-wrap">
               <div className="cp-search">
-                {isTagro
+                {isVeyra
                   ? <Sparkle size={15} weight="fill" color="var(--accent)" />
                   : <MagnifyingGlass size={15} weight="regular" color="var(--text-muted)" />}
                 <input
@@ -395,7 +399,7 @@ export default function CommandPalette() {
                   value={q}
                   onChange={e => setQ(e.target.value)}
                   onKeyDown={onKeyDown}
-                  placeholder={isTagro ? 'Was soll Tagro tun?' : 'Projekte, Tasks, Notizen, Einstellungen...'}
+                  placeholder={isVeyra ? 'Was soll Veyra tun?' : 'Projekte, Tasks, Notizen, Einstellungen...'}
                 />
                 <kbd style={kbdStyle}>ESC</kbd>
               </div>
@@ -442,7 +446,7 @@ export default function CommandPalette() {
                 <kbd>↑↓</kbd> navigieren <kbd>↵</kbd> öffnen
               </span>
               <span style={{ display:'inline-flex', alignItems:'center', gap:4 }}>
-                <Sparkle size={11} weight="fill" /> Tagro mit <kbd>tagro:</kbd>
+                <Sparkle size={11} weight="fill" /> Veyra mit <kbd>veyra:</kbd>
               </span>
             </footer>
           </motion.aside>

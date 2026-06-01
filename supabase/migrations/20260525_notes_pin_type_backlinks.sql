@@ -4,7 +4,7 @@
 --
 --   1. pinned + pinned_at    → "Anheften" sortiert Pinned-Items immer nach oben
 --   2. note_type             → 4 Modi (journal | brief | meeting | research),
---                              die Tagro anders interpretiert (z.B. "brief"
+--                              die Veyra anders interpretiert (z.B. "brief"
 --                              spawnt aggressiver Tasks, "journal" eher Themen).
 --   3. is_daily + daily_date → "Daily Note" Sonderform — ein Eintrag pro Tag.
 --                              Der UI-Today-Quick-Capture findet/erstellt diesen

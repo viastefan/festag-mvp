@@ -21,15 +21,15 @@ const WELCOME_BODY = `Schön, dass du da bist.
 
 Festag ist dein ruhiger Projektraum — kein Cockpit, kein Fachchinesisch. So funktioniert es:
 
-· Statusabfrage — auf dem Dashboard tippst du auf „Status abrufen", und Tagro schreibt dir den aktuellen Projektstand ruhig zusammen. Ein Klick genügt.
+· Statusabfrage — auf dem Dashboard tippst du auf „Status abrufen", und Veyra schreibt dir den aktuellen Projektstand ruhig zusammen. Ein Klick genügt.
 
 · Posteingang — hier landen strukturierte Eingänge: neue Projektstände von deinem Team, Rechnungen und Entscheidungen, die auf dich warten.
 
-· Projekte — jedes Projekt hat seine eigene Seite mit Aufgaben, Meilensteinen und einem direkten Draht zu Tagro.
+· Projekte — jedes Projekt hat seine eigene Seite mit Aufgaben, Meilensteinen und einem direkten Draht zu Veyra.
 
-· Dein Team meldet sich. Jedes Entwickler-Update wird von Tagro in einen klaren Stand für dich übersetzt — du musst nichts Technisches lesen.
+· Dein Team meldet sich. Jedes Entwickler-Update wird von Veyra in einen klaren Stand für dich übersetzt — du musst nichts Technisches lesen.
 
-Hast du eine Frage? Stell sie einfach im Tagro-Chat des jeweiligen Projekts. Wir sind da.`
+Hast du eine Frage? Stell sie einfach im Veyra-Chat des jeweiligen Projekts. Wir sind da.`
 
 // Sobald das Einführungsvideo steht: URL hier eintragen — der Posteingang
 // blendet dann automatisch einen „Einführung ansehen"-Button ein.

@@ -1,7 +1,7 @@
 import { runOpenAIJson } from '@/lib/tagro/openai'
 
 /**
- * Tagro update translation.
+ * Veyra update translation.
  *
  * Turns a raw developer note ("hero section mobile gefixt, deploy steht,
  * morgen login") into a calm, client-safe status — the voice the client

@@ -4,10 +4,10 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
 const STATUS_OPTIONS = [
-  { value: 'suggested', label: 'Zur Prüfung',  dot: '#6366f1'            },
+  { value: 'suggested', label: 'Zur Prüfung',  dot: '#6a738c'            },
   { value: 'todo',      label: 'Geplant',      dot: 'var(--text-muted)'  },
   { value: 'doing',     label: 'In Entwicklung', dot: '#f59e0b'          },
-  { value: 'review',    label: 'Bereit zur Prüfung', dot: '#8b5cf6'      },
+  { value: 'review',    label: 'Bereit zur Prüfung', dot: '#6a738c'      },
   { value: 'done',      label: 'Erledigt',     dot: '#22c55e'            },
 ]
 const PRIORITY_OPTIONS = [
@@ -158,15 +158,15 @@ export default function NewTaskModal({ onClose, onCreated, defaultProjectId, def
           </div>
 
           <div className="nt-mode" role="tablist" aria-label="Task-Erstellung">
-            <button type="button" className={entryMode === 'tagro' ? 'on' : ''} onClick={() => setEntryMode('tagro')}>{isSuggestion ? 'Tagro prüfen lassen' : 'Tagro generieren'}</button>
+            <button type="button" className={entryMode === 'tagro' ? 'on' : ''} onClick={() => setEntryMode('tagro')}>{isSuggestion ? 'Veyra prüfen lassen' : 'Veyra generieren'}</button>
             <button type="button" className={entryMode === 'manual' ? 'on' : ''} onClick={() => setEntryMode('manual')}>Manuell</button>
           </div>
 
           {entryMode === 'tagro' && (
             <div className="nt-tagro-box">
               {isSuggestion
-                ? 'Tagro ist Standard: Dein Vorschlag wird erst in Projektkontext übersetzt und zur Prüfung vorbereitet. Er geht nicht direkt ungeprüft in den Dev-Workflow.'
-                : 'Tagro ist Standard: Beschreibe kurz das Ziel oder den Blocker. Daraus werden Titel, Priorität und nächste Schritte für den Developer ableitbar.'}
+                ? 'Veyra ist Standard: Dein Vorschlag wird erst in Projektkontext übersetzt und zur Prüfung vorbereitet. Er geht nicht direkt ungeprüft in den Dev-Workflow.'
+                : 'Veyra ist Standard: Beschreibe kurz das Ziel oder den Blocker. Daraus werden Titel, Priorität und nächste Schritte für den Developer ableitbar.'}
             </div>
           )}
 
@@ -174,7 +174,7 @@ export default function NewTaskModal({ onClose, onCreated, defaultProjectId, def
           <div style={{ padding:'14px 18px 4px' }}>
             <input
               className="nt-input"
-              placeholder={entryMode === 'tagro' ? (isSuggestion ? 'Welche Aufgabe möchtest du vorschlagen?' : 'Was soll Tagro als Aufgabe vorbereiten?') : 'Aufgabentitel'}
+              placeholder={entryMode === 'tagro' ? (isSuggestion ? 'Welche Aufgabe möchtest du vorschlagen?' : 'Was soll Veyra als Aufgabe vorbereiten?') : 'Aufgabentitel'}
               value={title}
               onChange={e => setTitle(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleCreate() } }}
@@ -183,7 +183,7 @@ export default function NewTaskModal({ onClose, onCreated, defaultProjectId, def
             />
             <textarea
               className="nt-input"
-              placeholder={entryMode === 'tagro' ? (isSuggestion ? 'Beschreibe Ziel, Kontext oder gewünschte Änderung. Tagro formuliert daraus einen prüfbaren Vorschlag…' : 'Beschreibe Kontext, Ziel, Akzeptanzkriterien oder was der Developer wissen muss…') : 'Beschreibung hinzufügen…'}
+              placeholder={entryMode === 'tagro' ? (isSuggestion ? 'Beschreibe Ziel, Kontext oder gewünschte Änderung. Veyra formuliert daraus einen prüfbaren Vorschlag…' : 'Beschreibe Kontext, Ziel, Akzeptanzkriterien oder was der Developer wissen muss…') : 'Beschreibung hinzufügen…'}
               value={description}
               onChange={e => setDescription(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); handleCreate() } }}
@@ -196,7 +196,7 @@ export default function NewTaskModal({ onClose, onCreated, defaultProjectId, def
           <div style={{ padding:'10px 18px 14px', display:'flex', flexWrap:'wrap', gap:5 }}>
             {isSuggestion ? (
               <span className="nt-chip has-value" title="Client-Vorschläge bleiben bis zur Prüfung gesperrt.">
-                <span style={{ width:7, height:7, borderRadius:'50%', background:'#6366f1', flexShrink:0 }}/>
+                <span style={{ width:7, height:7, borderRadius:'50%', background:'#6a738c', flexShrink:0 }}/>
                 Zur Prüfung
               </span>
             ) : (
@@ -243,7 +243,7 @@ export default function NewTaskModal({ onClose, onCreated, defaultProjectId, def
           {/* Footer */}
           <div style={{ borderTop:'1px solid var(--border)', padding:'8px 12px', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
             <span style={{ fontSize:11, color:'var(--text-muted)' }}>
-              {isSuggestion ? 'Status: Zur Prüfung' : (entryMode === 'tagro' ? 'Tagro Auto-Generate' : (source === 'status_report' ? 'Aus Statusbericht' : 'Manuell erstellt'))}
+              {isSuggestion ? 'Status: Zur Prüfung' : (entryMode === 'tagro' ? 'Veyra Auto-Generate' : (source === 'status_report' ? 'Aus Statusbericht' : 'Manuell erstellt'))}
             </span>
             <div style={{ display:'flex', gap:6 }}>
               <button onClick={onClose}
@@ -261,7 +261,7 @@ export default function NewTaskModal({ onClose, onCreated, defaultProjectId, def
                   fontFamily:'inherit', opacity: creating ? .7 : 1,
                   display:'flex', alignItems:'center', gap:6,
                 }}>
-                {creating ? (isSuggestion ? 'Sende…' : 'Erstelle…') : (isSuggestion ? (entryMode === 'tagro' ? 'Mit Tagro vorschlagen' : 'Vorschlag senden') : (entryMode === 'tagro' ? 'Mit Tagro erstellen' : 'Task erstellen'))}
+                {creating ? (isSuggestion ? 'Sende…' : 'Erstelle…') : (isSuggestion ? (entryMode === 'tagro' ? 'Mit Veyra vorschlagen' : 'Vorschlag senden') : (entryMode === 'tagro' ? 'Mit Veyra erstellen' : 'Task erstellen'))}
                 {!creating && <span style={{ fontSize:10, opacity:.6 }}>↵</span>}
               </button>
             </div>

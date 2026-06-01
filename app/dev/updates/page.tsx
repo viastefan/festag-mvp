@@ -5,12 +5,12 @@
  *
  * Drei Dinge an einem Ort (festag_dev_panel.md → Reports):
  *   1. Offene Risiken — blockierte Tasks, die Aufmerksamkeit brauchen.
- *   2. Von Tagro erzeugt — automatisch angelegte Tasks, die noch auf
+ *   2. Von Veyra erzeugt — automatisch angelegte Tasks, die noch auf
  *      Annahme warten (created_by_tagro).
- *   3. Updates — der Developer schreibt Roh-Text; Tagro erzeugt daraus
+ *   3. Updates — der Developer schreibt Roh-Text; Veyra erzeugt daraus
  *      später die client-safe Statusberichte. Hier nur die Roh-Eingabe.
  *
- * Risiken + Tagro-Tasks kommen aus EINER tasks-Query (assigned_to = me),
+ * Risiken + Veyra-Tasks kommen aus EINER tasks-Query (assigned_to = me),
  * gebucketet über devFlowFromLegacy — dieselbe Statuslogik wie überall.
  */
 
@@ -140,7 +140,7 @@ export default function DevUpdatesPage() {
           <p className="dev-eyebrow">DEV · Updates</p>
           <h1>Updates</h1>
           <p className="meta">
-            Offene Risiken, von Tagro angelegte Arbeit und deine technischen Updates — an einer Stelle.
+            Offene Risiken, von Veyra angelegte Arbeit und deine technischen Updates — an einer Stelle.
           </p>
         </div>
       </header>
@@ -174,13 +174,13 @@ export default function DevUpdatesPage() {
 
         <section className="u-card">
           <div className="u-card-head">
-            <span className="u-card-title"><Sparkle size={13} /> Von Tagro erzeugt</span>
+            <span className="u-card-title"><Sparkle size={13} /> Von Veyra erzeugt</span>
             <span className="u-count">{tagroNew.length}</span>
           </div>
           {loading ? (
             <p className="u-muted">Lade…</p>
           ) : tagroNew.length === 0 ? (
-            <p className="u-muted">Keine neuen automatisch angelegten Tasks. Tagro erzeugt sie aus Statusberichten und Entscheidungen.</p>
+            <p className="u-muted">Keine neuen automatisch angelegten Tasks. Veyra erzeugt sie aus Statusberichten und Entscheidungen.</p>
           ) : (
             <ul className="u-list">
               {tagroNew.map(t => (

@@ -482,9 +482,9 @@ export default function RegisterPage() {
         .reg-root[data-theme="dark"] .reg-btn-outline, .reg-root[data-theme="dark"] .reg-btn-confirm { background:#111720; color:#e8ebf1; border:1px solid rgba(210,225,255,0.085); box-shadow:none; }
         .reg-root[data-theme="dark"] .reg-btn-outline:hover:not(:disabled), .reg-root[data-theme="dark"] .reg-btn-confirm:hover:not(:disabled) { background:#171e28; border-color:rgba(210,225,255,0.13); transform:translateY(-1px); }
         .reg-root[data-theme="dark"] .reg-btn-outline:active:not(:disabled), .reg-root[data-theme="dark"] .reg-btn-confirm:active:not(:disabled) { background:#1c2430; transform:translateY(0); }
-        .reg-root[data-theme="dark"] .reg-email-input { background:#111720; color:#e8ebf1; border:1px solid rgba(210,225,255,0.085); caret-color:#8e96ff; }
+        .reg-root[data-theme="dark"] .reg-email-input { background:#111720; color:#e8ebf1; border:1px solid rgba(210,225,255,0.085); caret-color:#6a738c; }
         .reg-root[data-theme="dark"] .reg-email-input::placeholder { color:#606a77; }
-        .reg-root[data-theme="dark"] .reg-email-input:focus { border-color:rgba(142,150,255,0.45); box-shadow:0 0 0 3px rgba(142,150,255,0.12); }
+        .reg-root[data-theme="dark"] .reg-email-input:focus { border-color:rgba(106,115,140,0.45); box-shadow:0 0 0 3px rgba(106,115,140,0.12); }
         .reg-root[data-theme="dark"] .reg-legal-text, .reg-root[data-theme="dark"] .reg-legal-muted { color:#7B8294; }
         .reg-root[data-theme="dark"] .reg-legal-text a, .reg-root[data-theme="dark"] .reg-login-link a { color:#E8E8E5; }
         .reg-root[data-theme="dark"] .reg-login-link { color:#7B8294; }

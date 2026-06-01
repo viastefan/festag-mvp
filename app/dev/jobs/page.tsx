@@ -114,9 +114,9 @@ export default function DevJobsPage() {
 
     if (['ready_review', 'done', 'blocked'].includes(status) && task?.project_id) {
       const label = status === 'blocked'
-        ? `Developer meldet einen Blocker bei „${task.title}”. Tagro bereitet eine verständliche Erklärung vor.`
+        ? `Developer meldet einen Blocker bei „${task.title}”. Veyra bereitet eine verständliche Erklärung vor.`
         : status === 'done'
-          ? `Developer hat „${task.title}” abgeschlossen. Tagro bereitet die verständliche Zusammenfassung vor.`
+          ? `Developer hat „${task.title}” abgeschlossen. Veyra bereitet die verständliche Zusammenfassung vor.`
           : `Developer hat „${task.title}” als bereit zur Prüfung markiert.`
       try { await supabase.from('messages').insert({ project_id: task.project_id, sender_id: session?.user_id, message: label, is_ai: true }) } catch { /* best-effort sync */ }
     }
@@ -204,7 +204,7 @@ export default function DevJobsPage() {
             <span>{task.project?.title || 'Kein Projekt'}</span>
             <span className="dev-chip">{statusLabel(task.status)}</span>
             <span>{priorityLabel(task.priority)}</span>
-            <span className="handoff">{task.assigned_to === session?.user_id ? 'Tagro bereit' : 'Übernehmbar'} <ArrowRight size={13} /></span>
+            <span className="handoff">{task.assigned_to === session?.user_id ? 'Veyra bereit' : 'Übernehmbar'} <ArrowRight size={13} /></span>
           </button>
         ))}
       </section>
@@ -221,7 +221,7 @@ export default function DevJobsPage() {
               <button className="icon-close" onClick={() => setSelected(null)}><X size={18} /></button>
             </div>
 
-            <p className="drawer-desc">{selected.description || 'Keine technische Beschreibung hinterlegt. Nutze die Acceptance Criteria oder sende ein Update über Tagro.'}</p>
+            <p className="drawer-desc">{selected.description || 'Keine technische Beschreibung hinterlegt. Nutze die Acceptance Criteria oder sende ein Update über Veyra.'}</p>
 
             <div className="drawer-meta">
               <span><Clock size={14} /> {selected.estimated_hours || '—'}h</span>
@@ -257,11 +257,11 @@ export default function DevJobsPage() {
             )}
 
             <div className="client-sync-box">
-              <p className="dev-section-title">Client Sync via Tagro</p>
-              <p>Schreibe technisch, was passiert ist. Tagro übersetzt es kurz, freundlich und ohne Fachjargon ins Client Board.</p>
+              <p className="dev-section-title">Client Sync via Veyra</p>
+              <p>Schreibe technisch, was passiert ist. Veyra übersetzt es kurz, freundlich und ohne Fachjargon ins Client Board.</p>
               <textarea value={devNote} onChange={(event) => setDevNote(event.target.value)} placeholder="z.B. API angebunden, Webhook getestet, noch offen ist Error Handling…" />
               <button className="dev-primary-btn" onClick={sendProgressUpdate} disabled={!devNote.trim() || sending}>
-                {sending ? 'Tagro übersetzt…' : <><PaperPlaneTilt size={14} /> Update ans Client Board senden</>}
+                {sending ? 'Veyra übersetzt…' : <><PaperPlaneTilt size={14} /> Update ans Client Board senden</>}
               </button>
               {selected.customer_update && <blockquote>{selected.customer_update}</blockquote>}
             </div>

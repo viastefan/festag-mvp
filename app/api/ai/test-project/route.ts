@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { hasTagroAI as hasGeminiKey, runTagroText as runGeminiText } from '@/lib/tagro/text'
+import { hasVeyraAI as hasGeminiKey, runVeyraText as runGeminiText } from '@/lib/tagro/text'
 
 const SUPABASE_URL = 'https://xsdkoepwuvpuroijjain.supabase.co'
 
-const GENERATE_SYSTEM = `Du bist Tagro, der AI-Projektmanager von Festag.
+const GENERATE_SYSTEM = `Du bist Veyra, der AI-Projektmanager von Festag.
 Deine Aufgabe: Erfinde ein realistisches, kreatives Demo-Software-Projekt und zerlege es vollständig in eine strukturierte Projekt-Definition.
 
 Wähle eine spannende, realistische Produktidee aus dem SaaS- oder B2C-Web/Mobile-Bereich (z.B. Booking-Tool, Marktplatz, Community-App, Workflow-SaaS, KI-Tool, Analytics-Dashboard, Local Business App). Würfle die Idee — nicht jedes Mal das gleiche.
@@ -155,7 +155,7 @@ export async function POST(req: NextRequest) {
         user_id: userId,
         project_id: projectId,
         type: 'project_status',
-        message: `Demo-Projekt "${decomposed.project_title}" wurde von Tagro AI generiert (${(decomposed.epics ?? []).length} Epics, ${taskCount} Tasks)`,
+        message: `Demo-Projekt "${decomposed.project_title}" wurde von Veyra AI generiert (${(decomposed.epics ?? []).length} Epics, ${taskCount} Tasks)`,
       })
     } catch {
       /* activity_feed ist optional — Projekt-Insert ist schon erfolgt */

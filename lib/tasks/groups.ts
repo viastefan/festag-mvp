@@ -37,12 +37,12 @@ const GROUPS: Record<TaskGroupKey, TaskGroup> = {
   decision: { key: 'decision', label: 'Entscheidung', color: '#f59e0b', sortWeight: 20 },
   client_action: { key: 'client_action', label: 'Kunde', color: '#14b8a6', sortWeight: 30 },
   launch: { key: 'launch', label: 'Launch', color: '#22c55e', sortWeight: 38 },
-  code: { key: 'code', label: 'Code', color: '#6366f1', sortWeight: 40 },
+  code: { key: 'code', label: 'Code', color: '#6a738c', sortWeight: 40 },
   tech: { key: 'tech', label: 'Technik', color: '#0ea5e9', sortWeight: 45 },
   qa: { key: 'qa', label: 'Prüfung', color: '#06b6d4', sortWeight: 48 },
-  integration: { key: 'integration', label: 'Integration', color: '#8b5cf6', sortWeight: 50 },
+  integration: { key: 'integration', label: 'Integration', color: '#6a738c', sortWeight: 50 },
   seo: { key: 'seo', label: 'SEO', color: '#84cc16', sortWeight: 52 },
-  design: { key: 'design', label: 'Design', color: '#ec4899', sortWeight: 55 },
+  design: { key: 'design', label: 'Design', color: '#8790a5', sortWeight: 55 },
   web: { key: 'web', label: 'Web', color: '#22c55e', sortWeight: 60 },
   content: { key: 'content', label: 'Inhalt', color: '#f97316', sortWeight: 65 },
   process: { key: 'process', label: 'Ablauf', color: '#64748b', sortWeight: 70 },
@@ -74,7 +74,8 @@ function normalizeTaskGroupKey(value?: string | null): TaskGroupKey | null {
 
 export function getTaskGroup(task: TaskGroupInput): TaskGroup {
   const explicitKey = normalizeTaskGroupKey(task.group_key)
-  if (explicitKey) return GROUPS[explicitKey]
+  const genericExplicit = explicitKey && ['code', 'tech', 'process'].includes(explicitKey)
+  if (explicitKey && !genericExplicit) return GROUPS[explicitKey]
 
   const taskTypeKey = normalizeTaskGroupKey(task.task_type)
   const genericType = taskTypeKey && ['code', 'tech', 'process'].includes(taskTypeKey)
@@ -95,6 +96,7 @@ export function getTaskGroup(task: TaskGroupInput): TaskGroup {
   if (/code|refactor|service|sdk|schema|database|db/.test(haystack)) return GROUPS.code
   if (/schulung|test|tests|testplan|dokument|dokumentation|prozess|schnittstelle|architektur|konzept/.test(haystack)) return GROUPS.process
 
+  if (explicitKey) return GROUPS[explicitKey]
   if (taskTypeKey && !genericType) return GROUPS[taskTypeKey]
   if (taskTypeKey) return GROUPS[taskTypeKey]
 

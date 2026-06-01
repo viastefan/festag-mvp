@@ -126,9 +126,9 @@ export default function ProjectModulesStrip({ projectType, values, emptyHint }: 
             opacity: 0.65,
             flexShrink: 0,
           }}
-          title="Tagro klassifiziert den Projekttyp und blendet die passenden Module ein."
+          title="Veyra klassifiziert den Projekttyp und blendet die passenden Module ein."
         >
-          Tagro · auto
+          Veyra · auto
         </span>
       </header>
 

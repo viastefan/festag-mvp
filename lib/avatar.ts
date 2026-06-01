@@ -7,9 +7,9 @@
 // Sanfte, marktreife Palette fuer einen ruhigen Executive-Workspace.
 // Keine Neon-Töne, keine Kindergarten-Bonbons.
 export const AVATAR_COLORS = [
-  '#6366F1', // Indigo
-  '#8B5CF6', // Violet
-  '#EC4899', // Pink
+  '#6a738c', // Primary
+  '#5B647D', // Slate
+  '#B5566B', // Pink
   '#F43F5E', // Rose
   '#EF4444', // Red
   '#F97316', // Orange

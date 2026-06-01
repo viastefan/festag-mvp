@@ -90,7 +90,7 @@ export async function GET(req: NextRequest) {
             .eq('type', 'status_report')
             .order('created_at', { ascending: false }).limit(1).maybeSingle()
           body = (latest as any)?.content
-            || `Für "${projectTitle}" liegt noch kein generierter Statusbericht vor. Sobald Tagro neue Signale aus dem Projekt erkennt, landet hier eine Zusammenfassung.`
+            || `Für "${projectTitle}" liegt noch kein generierter Statusbericht vor. Sobald Veyra neue Signale aus dem Projekt erkennt, landet hier eine Zusammenfassung.`
         }
       } else {
         // Workspace-level briefing: list all active projects briefly
@@ -112,7 +112,7 @@ export async function GET(req: NextRequest) {
         : 'https://festag.app/reports'
       const bodyHtml = `
         <p style="margin:0 0 14px 0;font-size:14px;line-height:1.6;color:#1c1914;">${greeting}</p>
-        <p style="margin:0 0 14px 0;font-size:14px;line-height:1.6;color:#1c1914;">hier ist dein aktuelles Briefing zu <strong>${projectTitle}</strong>. Tagro hat die letzten Signale verdichtet — ruhig und auf den Punkt.</p>
+        <p style="margin:0 0 14px 0;font-size:14px;line-height:1.6;color:#1c1914;">hier ist dein aktuelles Briefing zu <strong>${projectTitle}</strong>. Veyra hat die letzten Signale verdichtet — ruhig und auf den Punkt.</p>
         <pre style="white-space:pre-wrap;font:inherit;font-size:13.5px;line-height:1.7;color:#1c1914;margin:0 0 18px 0;background:#f7f5ee;border:1px solid #ebe6d5;border-radius:10px;padding:14px 16px;">${body.replace(/</g, '&lt;')}</pre>
         <p style="margin:0;font-size:13px;line-height:1.6;color:#54585A;">
           <a href="${ctaUrl}" style="display:inline-block;padding:10px 16px;background:#1c1914;color:#fff;text-decoration:none;border-radius:8px;font-weight:600;">Im Festag öffnen</a>

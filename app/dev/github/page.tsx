@@ -9,7 +9,7 @@
  *   3. Aktivität — die letzten Commits + PRs der eigenen Repos,
  *      jeweils mit "verknüpfen"-Aktion zu offenen eigenen Tasks.
  *
- * Tagro fasst die Aktivität später in Statusberichte um — diese Seite ist
+ * Veyra fasst die Aktivität später in Statusberichte um — diese Seite ist
  * der ehrliche, technische Blick für den Developer.
  */
 
@@ -222,7 +222,7 @@ export default function DevGithubPage() {
           <p className="dev-eyebrow">DEV · GitHub</p>
           <h1>GitHub-Aktivität</h1>
           <p className="meta">
-            Tagro liest Commits und PRs read-only und übersetzt sie für Clients in verständliche Statusberichte. Du verknüpfst hier manuell, was automatisch nicht zugeordnet wurde.
+            Veyra liest Commits und PRs read-only und übersetzt sie für Clients in verständliche Statusberichte. Du verknüpfst hier manuell, was automatisch nicht zugeordnet wurde.
           </p>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
@@ -254,7 +254,7 @@ export default function DevGithubPage() {
           <>
             <div className="conn-text">
               <p className="ct-1">GitHub ist noch nicht verbunden.</p>
-              <p className="ct-2">Verbinde dein GitHub-Konto, damit Tagro deine Commits & PRs lesen und übersetzen kann.</p>
+              <p className="ct-2">Verbinde dein GitHub-Konto, damit Veyra deine Commits & PRs lesen und übersetzen kann.</p>
             </div>
             <button className="dev-primary-btn" type="button" onClick={connectGitHub}>
               GitHub verbinden
@@ -437,7 +437,7 @@ export default function DevGithubPage() {
       </section>
 
       <p className="foot-text">
-        Tagro liest read-only — Festag pusht oder kommentiert nicht in deinem Repository. Webhooks aktivieren wir auf Wunsch (siehe <Link href="/dev">Overview</Link>).
+        Veyra liest read-only — Festag pusht oder kommentiert nicht in deinem Repository. Webhooks aktivieren wir auf Wunsch (siehe <Link href="/dev">Overview</Link>).
       </p>
 
       <style jsx>{`

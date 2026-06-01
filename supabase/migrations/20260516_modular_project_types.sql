@@ -1,6 +1,6 @@
 -- Festag — Modular Project Operating System (Phase 1)
 --
--- Foundation for "Tagro klassifiziert das Projekt → richtige Module/Rollen/
+-- Foundation for "Veyra klassifiziert das Projekt → richtige Module/Rollen/
 -- Portale". Every project gets a typed classification + a module set + a
 -- visibility level + a list of connected data sources. The values are
 -- additive — old queries that ignore them keep working unchanged.
@@ -18,7 +18,7 @@ do $$ begin
     'branding',     -- Design / Identity / Asset System
     'automation',   -- AI-Workflows / Integrations / Operations
     'consulting',   -- Strategy / Digital Advisory
-    'hybrid'        -- mehrere der oben (Tagro pickt das passendste Preset)
+    'hybrid'        -- mehrere der oben (Veyra pickt das passendste Preset)
   );
 exception when duplicate_object then null; end $$;
 
@@ -57,13 +57,13 @@ alter table projects
 -- ── classifier audit log ──────────────────────────────────────
 -- Optional but very cheap. Lets us tune the classifier later by reviewing
 -- which raw inputs led to which preset, and keeps the door open for
--- "Tagro re-classified this project" history.
+-- "Veyra re-classified this project" history.
 create table if not exists project_classifier_runs (
   id uuid primary key default gen_random_uuid(),
   project_id uuid references projects(id) on delete cascade,
   user_id uuid not null references auth.users(id) on delete cascade,
   workspace_id uuid references workspaces(id) on delete cascade,
-  input jsonb not null,           -- the raw answers fed to Tagro
+  input jsonb not null,           -- the raw answers fed to Veyra
   output jsonb not null,          -- the chosen preset
   source text not null default 'tagro_classifier', -- 'tagro_classifier' / 'manual_override' / 'heuristic'
   confidence numeric check (confidence is null or (confidence >= 0 and confidence <= 1)),

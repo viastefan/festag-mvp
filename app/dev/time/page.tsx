@@ -10,7 +10,7 @@
  * is always at most one running timer.
  *
  * Time is internal evidence of activity — never surfaced raw to the
- * client. Tagro folds it into progress/effort signals, not billing
+ * client. Veyra folds it into progress/effort signals, not billing
  * theatre. Mobile-first: cards, no horizontal scroll.
  */
 
@@ -191,7 +191,7 @@ export default function DevTimePage() {
         <div>
           <p className="dev-eyebrow">Execution · Zeiterfassung</p>
           <h1>Zeiterfassung</h1>
-          <p className="meta">Erfasste Zeit pro Aufgabe. Bleibt intern — Tagro nutzt sie als Aktivitätssignal, nicht als Abrechnungsbühne.</p>
+          <p className="meta">Erfasste Zeit pro Aufgabe. Bleibt intern — Veyra nutzt sie als Aktivitätssignal, nicht als Abrechnungsbühne.</p>
         </div>
         <button type="button" className="dev-secondary-btn" onClick={load} disabled={loading}>
           <ArrowClockwise size={14} weight="regular" /> {loading ? 'Lade…' : 'Aktualisieren'}

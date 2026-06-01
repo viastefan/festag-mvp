@@ -6,7 +6,7 @@
  * Designziel (verbindlich): ein ruhiger Notizblock, kein Cockpit.
  *   • Links steht der Statusblock — ein Notion-artiges Notizfeld. Es ist
  *     leer, bis der Client rechts auf „Status abrufen" tippt; dann
- *     schreibt Tagro den aktuellen Stand Wort für Wort hinein.
+ *     schreibt Veyra den aktuellen Stand Wort für Wort hinein.
  *   • Rechts sitzt eine Linear-artige Box: Puls, der eine Button
  *     „Status abrufen", „Bericht anhören" — plus Entscheidungen & Risiken.
  *   • Kein „Heute im Fokus", keine KPI-Leiste, kein „Aktives Projekt".
@@ -19,7 +19,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import ObserverWelcomeModal from '@/components/ObserverWelcomeModal'
 import WelcomeTour from '@/components/WelcomeTour'
-import TagroLogo from '@/components/TagroLogo'
+import VeyraLogo from '@/components/VeyraLogo'
 import { speechVoiceId, useSpeechSynthesis } from '@/hooks/useSpeechSynthesis'
 import {
   ArrowClockwise, Article, CalendarCheck, CaretDown, CaretRight, Check, CheckCircle,
@@ -407,7 +407,7 @@ export default function DashboardPage() {
   const isBriefingActive = speechState === 'playing' || speechState === 'paused'
   const handleBriefingToggle = () => { if (isBriefingPlaying) pauseBriefing(); else playBriefing() }
 
-  // Tagro is "active" while writing the note or reading it aloud — the
+  // Veyra is "active" while writing the note or reading it aloud — the
   // orb spins and the speech waveform dances during that time.
   const tagroActive = isBriefingPlaying || noteWriting || statusBusy
   const voiceLineActive = isBriefingActive || tagroActive
@@ -427,8 +427,8 @@ export default function DashboardPage() {
     : `Statusbericht: ${selectedProject?.title ?? 'Projekt'}`
 
   const currentReportSummary = isOverall
-    ? 'Tagro fasst aktive Projekte, offene Aufgaben, Risiken und Entscheidungen in einem ruhigen Briefing zusammen.'
-    : 'Tagro verdichtet Fortschritt, offene Punkte und nächste Schritte für diesen Projektkontext.'
+    ? 'Veyra fasst aktive Projekte, offene Aufgaben, Risiken und Entscheidungen in einem ruhigen Briefing zusammen.'
+    : 'Veyra verdichtet Fortschritt, offene Punkte und nächste Schritte für diesen Projektkontext.'
 
   // Focus items ALWAYS render — even at zero. The user wants the daily
   // "0 Entscheidungen / 0 Risiken" pulse so the block reads as a calm
@@ -510,7 +510,7 @@ export default function DashboardPage() {
       </style></head>
       <body>
         <h1>${title}</h1>
-        <p class="meta">${new Date().toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' })} · Festag · Tagro AI</p>
+        <p class="meta">${new Date().toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' })} · Festag · Veyra AI</p>
         <pre>${escaped}</pre>
         <p class="brand">Erstellt mit Festag — Delivery Intelligence Platform.</p>
       </body></html>`)
@@ -525,7 +525,7 @@ export default function DashboardPage() {
     window.location.href = `mailto:?subject=${subject}&body=${body}`
   }
 
-  // ── Turn a line of Tagro's reading into a real task ─────────────
+  // ── Turn a line of Veyra's reading into a real task ─────────────
   async function createTaskFromText(key: string, text: string) {
     if (!main || (taskState[key] ?? 'idle') !== 'idle') return
     setTaskState((s) => ({ ...s, [key]: 'busy' }))
@@ -556,7 +556,7 @@ export default function DashboardPage() {
     setAllTasksBusy(false)
   }
 
-  // Renders one calm section of Tagro's structured reading.
+  // Renders one calm section of Veyra's structured reading.
   const renderSection = (label: string, items: string[], prefix: string, blocker = false) => {
     if (!items.length) return null
     return (
@@ -942,7 +942,7 @@ export default function DashboardPage() {
           color:var(--dc-muted);
           font-size:12px;
         }
-        /* ── Note sections — Tagro's structured reading ───────────── */
+        /* ── Note sections — Veyra's structured reading ───────────── */
         .dc-note-sections {
           margin-top:24px;
           display:flex; flex-direction:column; gap:22px;
@@ -1020,7 +1020,7 @@ export default function DashboardPage() {
         }
         .dc-note-action.done svg { animation:dcPop .3s ease both; }
 
-        /* ── Tagro voice — orb + speech waveform ──────────────────── */
+        /* ── Veyra voice — orb + speech waveform ──────────────────── */
         .dc-voice {
           display:flex; align-items:center; gap:13px;
           height:32px; margin-bottom:16px;
@@ -1639,7 +1639,7 @@ export default function DashboardPage() {
           margin-bottom:2px;
         }
 
-        /* ─── Tagro Voice Orb · play-button with stacked glass discs ─── */
+        /* ─── Veyra Voice Orb · play-button with stacked glass discs ─── */
         .dc-orb-stage {
           position: relative;
           width: 100%; aspect-ratio: 1.55 / 1; max-height: 240px; min-height: 200px;
@@ -1810,7 +1810,7 @@ export default function DashboardPage() {
             inset 0 -12px 26px -12px rgba(0,0,0,.6),
             inset 0 -2px 7px -1px rgba(140,152,180,.4);
         }
-        /* Spin speeds up when Tagro is active. */
+        /* Spin speeds up when Veyra is active. */
         .dc-orb-stage.speaking .dc-orb-spin { animation-duration: 3.6s; }
         .dc-orb-stage.speaking .dc-orb-spin.spin-b { animation-duration: 5.4s; }
         .dc-orb-stage.loading .dc-orb-spin { animation-duration: 2.2s; }
@@ -1862,7 +1862,7 @@ export default function DashboardPage() {
            Three rings start at the inner disc size and expand to roughly
            2.3× while fading from ~50% opacity to 0. Staggered by ~1/3 of
            the cycle so the surface always shows one ring mid-flight.
-           Visible at idle (subtle), strengthens while Tagro speaks. */
+           Visible at idle (subtle), strengthens while Veyra speaks. */
         .dc-orb-pulse {
           position: absolute; left: 50%; top: 50%;
           width: 116px; height: 116px;
@@ -2426,7 +2426,7 @@ export default function DashboardPage() {
                           {allTasksBusy ? (
                             <>
                               <span className="dc-task-spin" aria-hidden />
-                              Tagro legt an… {bulkProgress}/{noteReport.nextSteps.length}
+                              Veyra legt an… {bulkProgress}/{noteReport.nextSteps.length}
                             </>
                           ) : allNextDone ? (
                             <>
@@ -2448,7 +2448,7 @@ export default function DashboardPage() {
             ) : (
               <div className="dc-empty-line">
                 <span className="dc-empty-icon" aria-hidden><PencilSimple size={14} /></span>
-                <span>Tagro prüft deine Projekte und bereitet den aktuellen Status vor.</span>
+                <span>Veyra prüft deine Projekte und bereitet den aktuellen Status vor.</span>
               </div>
             )}
 
@@ -2456,7 +2456,7 @@ export default function DashboardPage() {
           </main>
 
           {/* ── RIGHT: Audio Briefing card ── */}
-          <aside className="dc-card" aria-label="Tagro Audio Briefing" data-tour="voice-briefing">
+          <aside className="dc-card" aria-label="Veyra Audio Briefing" data-tour="voice-briefing">
             <header className="dc-card-head">
               <div className="dc-card-head-text">
                 <h2 className="dc-card-title">Audio Briefing</h2>
@@ -2549,7 +2549,7 @@ export default function DashboardPage() {
                 aria-pressed={isBriefingPlaying}
               >
                 {/* Pulsierende Welle — concentric rings always animate gently,
-                    strengthen while Tagro speaks. Soft, never distracting. */}
+                    strengthen while Veyra speaks. Soft, never distracting. */}
                 <span className="dc-orb-pulse pulse-1" aria-hidden />
                 <span className="dc-orb-pulse pulse-2" aria-hidden />
                 <span className="dc-orb-pulse pulse-3" aria-hidden />
@@ -2568,7 +2568,7 @@ export default function DashboardPage() {
                   <span className="dc-orb-spec" aria-hidden />
                   <span className="dc-orb-rim" aria-hidden />
                   <span className="dc-orb-play">
-                    <TagroLogo size={34} thinking={tagroActive} />
+                    <VeyraLogo size={34} thinking={tagroActive} />
                   </span>
                 </span>
               </button>
@@ -2626,7 +2626,7 @@ export default function DashboardPage() {
               </span>
               <span className="dc-play-label">
                 {statusBusy
-                  ? 'Tagro generiert…'
+                  ? 'Veyra generiert…'
                   : isBriefingPlaying
                     ? 'Pausieren'
                     : speechState === 'paused'
@@ -2735,7 +2735,7 @@ export default function DashboardPage() {
           subtitle={`${scopeLabel} · ${period}`}
         >
           {statusBusy && !writtenReportText.trim() ? (
-            <p className="dc-read-empty">Tagro erstellt den Bericht…</p>
+            <p className="dc-read-empty">Veyra erstellt den Bericht…</p>
           ) : writtenReportText.trim() ? (
             <p className="dc-read-body">{writtenReportText}</p>
           ) : (

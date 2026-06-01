@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { getTaskGroup, type TaskGroupKey } from '@/lib/tasks/groups'
 import { taskStatusPatch } from '@/lib/tasks/status'
-import TagroLogo from '@/components/TagroLogo'
+import VeyraLogo from '@/components/VeyraLogo'
 import NewTaskModal from '@/components/NewTaskModal'
 import {
   ArrowLeft,
@@ -22,10 +22,13 @@ import {
   GitBranch,
   Globe,
   Link as LinkIcon,
+  ListChecks,
+  MagnifyingGlass,
   Pause,
   Palette,
   Plugs,
   Plus,
+  RocketLaunch,
   ShieldCheck,
   SlidersHorizontal,
   Sparkle,
@@ -117,6 +120,9 @@ const REVIEW_STATES = new Set(['review', 'ready_for_review', 'in_review', 'festa
 const TASK_DETAIL_GROUP_ICONS: Record<TaskGroupKey, typeof FileText> = {
   legal: ShieldCheck,
   tech: Gauge,
+  qa: ListChecks,
+  seo: MagnifyingGlass,
+  launch: RocketLaunch,
   integration: Plugs,
   design: Palette,
   content: FileText,
@@ -165,21 +171,21 @@ function priorityLabel(priority?: string | null) {
 function sourceLabel(source?: string | null, origin?: string | null) {
   const value = source || origin
   if (value === 'client_manual') return 'Manuell erstellt'
-  if (value === 'client_tagro') return 'Von Tagro vorgeschlagen'
+  if (value === 'client_tagro') return 'Von Veyra vorgeschlagen'
   if (value === 'status_report' || value === 'ai_report') return 'Aus Statusbericht'
   if (value === 'decision') return 'Aus Entscheidung'
   if (value === 'briefing') return 'Aus Briefing'
   if (value === 'github_activity') return 'Aus GitHub importiert'
   if (value === 'admin' || value === 'developer') return 'Vom Projektteam erstellt'
-  if (value === 'tagro_internal') return 'Von Tagro erstellt'
+  if (value === 'tagro_internal') return 'Von Veyra erstellt'
   if (value === 'system') return 'Vom System erstellt'
   return 'Manuell erstellt'
 }
 
 function sourceActor(source?: string | null) {
-  if (source === 'client_tagro' || source === 'tagro_internal') return 'Tagro'
+  if (source === 'client_tagro' || source === 'tagro_internal') return 'Veyra'
   if (source === 'github_activity') return 'GitHub Integration'
-  if (source === 'briefing') return 'Tagro Briefing'
+  if (source === 'briefing') return 'Veyra Briefing'
   if (source === 'status_report' || source === 'ai_report') return 'Statusbericht'
   if (source === 'client_manual') return 'Kundenportal'
   if (source === 'system') return 'System'
@@ -281,8 +287,8 @@ export default function TaskWorkspaceDetail({ taskId, projectId }: TaskWorkspace
   const [messages, setMessages] = useState<MessageItem[]>([])
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
-  const [tagroExplanation, setTagroExplanation] = useState('')
-  const [tagroLoading, setTagroLoading] = useState(false)
+  const [tagroExplanation, setVeyraExplanation] = useState('')
+  const [tagroLoading, setVeyraLoading] = useState(false)
   const [tab, setTab] = useState<'overview' | 'tagro' | 'verlauf'>('overview')
   const [newTaskOpen, setNewTaskOpen] = useState(false)
   const [decisionBusy, setDecisionBusy] = useState(false)
@@ -361,14 +367,14 @@ export default function TaskWorkspaceDetail({ taskId, projectId }: TaskWorkspace
     if (!task) return
     let cancelled = false
     const fallback = buildFallbackExplanation(task, project)
-    setTagroExplanation(fallback)
-    setTagroLoading(true)
+    setVeyraExplanation(fallback)
+    setVeyraLoading(true)
 
     fetch('/api/ai/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        system: 'Du bist Tagro, die Verständlichkeitsschicht von Festag. Erkläre Tasks in ruhiger, einfacher, executive-freundlicher Sprache. Keine internen Annahmen, keine Fachbegriffe ohne kurze Einordnung. Antworte auf Deutsch in 3-5 kurzen Sätzen.',
+        system: 'Du bist Veyra, die Verständlichkeitsschicht von Festag. Erkläre Tasks in ruhiger, einfacher, executive-freundlicher Sprache. Keine internen Annahmen, keine Fachbegriffe ohne kurze Einordnung. Antworte auf Deutsch in 3-5 kurzen Sätzen.',
         messages: [{
           role: 'user',
           content: `Projekt: ${project?.title ?? 'Unbekannt'}\nAufgabe: ${task.title}\nStatus: ${statusLabel(taskState(task))}\nPriorität: ${priorityLabel(task.priority)}\nBeschreibung: ${task.client_description || task.description || task.dev_description || 'Keine Beschreibung'}\nLetztes Update: ${task.latest_client_update || task.customer_update || task.latest_dev_update || 'Kein Update'}\n\nErkläre: worum es geht, warum es für das Projekt wichtig ist, was noch fehlt, ob Risiko/Blocker/Entscheidung sichtbar ist und was der nächste sinnvolle Schritt ist.`,
@@ -377,13 +383,13 @@ export default function TaskWorkspaceDetail({ taskId, projectId }: TaskWorkspace
     })
       .then((response) => response.json())
       .then((data) => {
-        if (!cancelled) setTagroExplanation(data.content?.[0]?.text || fallback)
+        if (!cancelled) setVeyraExplanation(data.content?.[0]?.text || fallback)
       })
       .catch(() => {
-        if (!cancelled) setTagroExplanation(fallback)
+        if (!cancelled) setVeyraExplanation(fallback)
       })
       .finally(() => {
-        if (!cancelled) setTagroLoading(false)
+        if (!cancelled) setVeyraLoading(false)
       })
 
     return () => {
@@ -540,7 +546,7 @@ export default function TaskWorkspaceDetail({ taskId, projectId }: TaskWorkspace
       <nav className="task-tabs" role="tablist" aria-label="Aufgaben-Ansicht">
         {([
           { id: 'overview', label: 'Übersicht' },
-          { id: 'tagro', label: 'Tagro-Einordnung' },
+          { id: 'tagro', label: 'Veyra-Einordnung' },
           { id: 'verlauf', label: 'Verlauf' },
         ] as const).map((t) => (
           <button
@@ -573,10 +579,10 @@ export default function TaskWorkspaceDetail({ taskId, projectId }: TaskWorkspace
               <section className="tagro-explanation-card">
                 <div className="section-head">
                   <div className="tagro-title">
-                    <TagroLogo size={28} thinking={tagroLoading} />
+                    <VeyraLogo size={28} thinking={tagroLoading} />
                     <div>
-                      <p>Von Tagro erklärt</p>
-                      <span>{tagroLoading ? 'Tagro schreibt eine klare Einordnung...' : `Aktualisiert ${relativeDate(task.updated_at || task.created_at)}`}</span>
+                      <p>Von Veyra erklärt</p>
+                      <span>{tagroLoading ? 'Veyra schreibt eine klare Einordnung...' : `Aktualisiert ${relativeDate(task.updated_at || task.created_at)}`}</span>
                     </div>
                   </div>
                   <Sparkle size={17} weight="fill" />
@@ -617,7 +623,7 @@ export default function TaskWorkspaceDetail({ taskId, projectId }: TaskWorkspace
 
               <section className="task-section">
                 <div className="section-head">
-                  <h2>Tagro Einordnung</h2>
+                  <h2>Veyra Einordnung</h2>
                   <span>Berichtsebene</span>
                 </div>
                 <div className="insight-list">
@@ -659,14 +665,14 @@ export default function TaskWorkspaceDetail({ taskId, projectId }: TaskWorkspace
                   <div className="discussion-list">
                     {messages.slice().reverse().map((message) => (
                       <article key={message.id}>
-                        <strong>{message.is_ai ? 'Tagro' : 'Nachricht aus dem Arbeitsbereich'}</strong>
+                        <strong>{message.is_ai ? 'Veyra' : 'Nachricht aus dem Arbeitsbereich'}</strong>
                         <p>{message.message || 'Keine Nachricht vorhanden'}</p>
                         <span>{relativeDate(message.created_at)}</span>
                       </article>
                     ))}
                   </div>
                 ) : (
-                  <p>Noch keine aufgabenspezifische Diskussion. Projektmeldungen und Tagro-Updates erscheinen hier, sobald mehr Signale vorliegen.</p>
+                  <p>Noch keine aufgabenspezifische Diskussion. Projektmeldungen und Veyra-Updates erscheinen hier, sobald mehr Signale vorliegen.</p>
                 )}
               </section>
             </>
@@ -705,7 +711,7 @@ export default function TaskWorkspaceDetail({ taskId, projectId }: TaskWorkspace
               <ShieldCheck size={14} /> {decisionDone ? 'Entscheidung erstellt' : decisionBusy ? 'Wird angefragt…' : 'Entscheidung anfordern'}
             </button>
             <button type="button" className="task-action" onClick={() => openCopilot(`Erkläre diese Aufgabe für einen CEO oder Kunden und sage, was als nächstes entschieden oder kommuniziert werden sollte: "${task.title}"`)}>
-              <Sparkle size={14} /> Tagro fragen
+              <Sparkle size={14} /> Veyra fragen
             </button>
             {manageable ? <button type="button" className="task-action" onClick={pauseTask} disabled={busy}><Pause size={14} /> Aussetzen</button> : null}
             {manageable ? <button type="button" className="task-action danger" onClick={deleteTask} disabled={busy}><Trash size={14} /> Löschen</button> : null}
@@ -862,7 +868,7 @@ const detailStyles = `
   }
   .status-pill.active span { background:var(--amber); }
   .status-pill.decision span { background:var(--amber); box-shadow:0 0 0 4px color-mix(in srgb, var(--amber) 14%, transparent); }
-  .status-pill.review span { background:#6366f1; }
+  .status-pill.review span { background:#6a738c; }
   .status-pill.done span { background:var(--green); }
   .task-title-head h1 {
     max-width:900px;

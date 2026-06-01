@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // Decision Engine — Anti-Spam Limiter
 //
-// Caps Tagro-auto-generated decisions per project per day. Without this,
+// Caps Veyra-auto-generated decisions per project per day. Without this,
 // noisy signal sources (status reports, scope drift, risk reclassification)
 // could pile decisions on the client faster than they can read them. Trust
 // Layer dies if the client tunes out.
@@ -10,7 +10,7 @@
 //   - Default cap: 3 auto-decisions per project per UTC day.
 //   - Bypass when urgency = 'critical'.
 //   - Bypass when source kind = 'dev_request' (explicit human request,
-//     not Tagro's own initiative — humans set the cadence here).
+//     not Veyra's own initiative — humans set the cadence here).
 //   - Configurable via env DECISION_AUTOLIMIT_PER_DAY for ops tuning.
 // ─────────────────────────────────────────────────────────────────────────────
 

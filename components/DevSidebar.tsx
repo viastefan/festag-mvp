@@ -34,7 +34,7 @@ const NAV_MAIN: NavRow[] = [
   { href: '/dev',          icon: Compass,     label: 'Overview' },
   { href: '/dev/projects', icon: FolderOpen,  label: 'Projects' },
   { href: '/dev/tasks',    icon: CheckSquare, label: 'My Tasks' },
-  { href: '/dev/review',   icon: Robot,       label: 'Tagro Review' },
+  { href: '/dev/review',   icon: Robot,       label: 'Veyra Review' },
   { href: '/dev/plan',     icon: Kanban,      label: 'Daily Plan' },
   { href: '/dev/time',     icon: Clock,       label: 'Zeiterfassung' },
   { href: '/dev/jobs',     icon: Briefcase,   label: 'Job Board' },
@@ -326,7 +326,7 @@ export default function DevSidebar({
         {stats.blocked > 0 && (
           <Link href="/dev/tasks" className="ds-banner">
             <WarningCircle size={13} weight="regular" />
-            <span>{stats.blocked} Blocker — Tagro wartet auf deine Notiz.</span>
+            <span>{stats.blocked} Blocker — Veyra wartet auf deine Notiz.</span>
           </Link>
         )}
       </div>

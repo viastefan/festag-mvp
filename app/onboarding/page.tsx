@@ -6,7 +6,7 @@
  * 5 Schritte:
  *   1. workspace  — Name, URL (slug), Region
  *   2. profile    — Name, Titel (optional Avatar später)
- *   3. project    — „Woran arbeitest du gerade?" (Tagro-Briefing)
+ *   3. project    — „Woran arbeitest du gerade?" (Veyra-Briefing)
  *   4. team       — Mehrfachauswahl: Alleine / Entwicklerteam / Kunden / Festag-Support
  *   5. done       — Bereit, optional E-Mail-Einladungen, „Zum Dashboard"
  *
@@ -390,7 +390,7 @@ export default function OnboardingPage() {
           {current === 'workspace' && (
             <>
               <h1 className="onb-title">Workspace erstellen</h1>
-              <p className="onb-lede">Dein zentraler Bereich für Projekte, Teams und Tagro-Briefings.</p>
+              <p className="onb-lede">Dein zentraler Bereich für Projekte, Teams und Veyra-Briefings.</p>
 
               <Field label="Name">
                 <input
@@ -491,7 +491,7 @@ export default function OnboardingPage() {
           {current === 'project' && (
             <>
               <h1 className="onb-title">Woran arbeitest du gerade?</h1>
-              <p className="onb-lede">Tagro organisiert daraus die nächsten Schritte.</p>
+              <p className="onb-lede">Veyra organisiert daraus die nächsten Schritte.</p>
 
               <Field label="Projekt">
                 <textarea

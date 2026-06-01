@@ -12,7 +12,7 @@ const OPTIONS = [
   },
   {
     title: 'Desktop',
-    copy: 'Mac und Windows als fokussierter Workspace mit klaren Projekt-, Team- und Tagro-Flows.',
+    copy: 'Mac und Windows als fokussierter Workspace mit klaren Projekt-, Team- und Veyra-Flows.',
     icon: Desktop,
     note: 'Native Desktop-App in Vorbereitung',
   },
@@ -29,7 +29,7 @@ export default function DownloadPage() {
     <div className="page-content">
       <div className="page-header">
         <h1>Download App</h1>
-        <p>Installiere Festag auf deinen Geräten und halte Teams, Clients und Tagro in einem Flow.</p>
+        <p>Installiere Festag auf deinen Geräten und halte Teams, Clients und Veyra in einem Flow.</p>
       </div>
 
       <div style={{ display: 'grid', gap: 16, gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>

@@ -3,7 +3,7 @@
 //
 // Each project has a broad work_type that drives which modules surface in
 // the Execution Panel (Phase: rename of "Dev Panel" — same routes, new
-// concept) and which Work Signal types Tagro accepts.
+// concept) and which Work Signal types Veyra accepts.
 //
 // MVP work types: software / design / marketing / general.
 // V2 work types (architecture reserves these, but no UI yet):
@@ -11,7 +11,7 @@
 //
 // Principle:
 //   The interface changes by work type.
-//   The intelligence (Tagro) stays the same.
+//   The intelligence (Veyra) stays the same.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const WORK_TYPES_MVP = ['software', 'design', 'marketing', 'general'] as const
@@ -60,9 +60,9 @@ export type WorkTypeConfig = {
   positioning: string
   /** Modules the Execution Panel surfaces for this type. Order = render order. */
   executionModules: ExecutionModuleId[]
-  /** Work Signal types Tagro accepts from this project. */
+  /** Work Signal types Veyra accepts from this project. */
   allowedSignalTypes: WorkSignalType[]
-  /** Tagro question seeds — what the interpreter primarily looks for. */
+  /** Veyra question seeds — what the interpreter primarily looks for. */
   tagroQuestions: string[]
 }
 

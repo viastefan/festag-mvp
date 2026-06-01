@@ -1,11 +1,11 @@
 /**
  * Festag work types — single source of truth for what kind of work a task
- * represents and which proofs Tagro should expect on "Mark as finished".
+ * represents and which proofs Veyra should expect on "Mark as finished".
  *
  * The shape is intentionally additive: each work type names
  *   • required proof types   — at least one must be present to pass verification
  *   • optional proof types   — accepted, contribute to confidence
- *   • verification hints     — short rules Tagro applies on top of generic checks
+ *   • verification hints     — short rules Veyra applies on top of generic checks
  *
  * UI uses the labels + descriptions. The verification engine only looks at
  * `requiredProofs` / `optionalProofs` and the hint flags.
@@ -57,7 +57,7 @@ export type WorkTypeDef = {
   id: WorkTypeId
   label: string
   description: string
-  /** at least one of these is required by Tagro before verification can pass */
+  /** at least one of these is required by Veyra before verification can pass */
   requiredProofs: ProofType[]
   /** allowed extras — count toward confidence but not strictly required */
   optionalProofs: ProofType[]
@@ -233,7 +233,7 @@ export const PROOF_LABELS: Record<ProofType, string> = {
 
 /**
  * Dev workflow status — finer than the legacy `status` column. The
- * UI maps it to a step bar and Tagro uses it to decide which checks to run.
+ * UI maps it to a step bar and Veyra uses it to decide which checks to run.
  */
 export const DEV_FLOW = [
   'new',
@@ -256,7 +256,7 @@ export const DEV_FLOW_LABEL: Record<DevFlow, string> = {
   needs_review: 'Needs Review',
   blocked: 'Blocked',
   finished_by_dev: 'Finished by Dev',
-  verified_by_tagro: 'Verified by Tagro',
+  verified_by_tagro: 'Verified by Veyra',
   approved_by_owner: 'Approved by Project Owner',
   completed: 'Completed · visible to Client',
   cancelled: 'Cancelled',

@@ -3,7 +3,7 @@
 /**
  * /more — mobile menu replacement for the desktop sidebar.
  *
- * Sectioned list (Personal, Workspace, Tagro, System) of every
+ * Sectioned list (Personal, Workspace, Veyra, System) of every
  * destination that used to live in the left rail. Designed for
  * thumb navigation: 44 px rows, chevrons, calm icons.
  *
@@ -64,16 +64,16 @@ export default function MorePage() {
       rows: [
         { label: 'Projekte',             meta: 'Alle Projekte ansehen',                 href: '/projects',           icon: <Briefcase size={16} /> },
         { label: 'Tasks',                meta: 'Offene Aufgaben',                       href: '/tasks',              icon: <NotePencil size={16} /> },
-        { label: 'Statusberichte',       meta: 'Tagro-Briefings & Audio',               href: '/reports',            icon: <ChartLineUp size={16} /> },
+        { label: 'Statusberichte',       meta: 'Veyra-Briefings & Audio',               href: '/reports',            icon: <ChartLineUp size={16} /> },
         { label: 'Teams & Mitwirkende',  meta: 'Personen, Rollen, Sitzplätze',          href: '/observers',          icon: <UsersThree size={16} /> },
         { label: 'Abrechnung',           meta: 'Mollie · SEPA · Rechnungen',            href: '/billing',            icon: <CreditCard size={16} /> },
       ],
     },
     {
-      label: 'Tagro',
+      label: 'Veyra',
       rows: [
-        { label: 'Tagro Chat',           meta: 'AI-Steuerung',                          href: '/ai',                 icon: <Sparkle size={16} /> },
-        { label: 'Notizen',              meta: 'Mit Tagro-Vorschlägen',                 href: '/notes',              icon: <NotePencil size={16} /> },
+        { label: 'Veyra Chat',           meta: 'AI-Steuerung',                          href: '/ai',                 icon: <Sparkle size={16} /> },
+        { label: 'Notizen',              meta: 'Mit Veyra-Vorschlägen',                 href: '/notes',              icon: <NotePencil size={16} /> },
         { label: 'Audio-Briefing',       meta: 'Aufnehmen oder anhören',                href: '/voice-reports',      icon: <SpeakerHigh size={16} /> },
       ],
     },

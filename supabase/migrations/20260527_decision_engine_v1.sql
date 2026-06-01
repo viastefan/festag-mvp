@@ -2,7 +2,7 @@
 -- Decision Engine v1
 --
 -- Extends the existing `decisions` table with bidirectional framing
--- (Tagro translates between client and dev), structured response types,
+-- (Veyra translates between client and dev), structured response types,
 -- explicit authority + delegation, full lifecycle states, and audit trail.
 --
 -- Adds three companion tables:
@@ -19,7 +19,7 @@
 
 -- ── 1. decisions: extend in place ────────────────────────────────────────────
 alter table decisions
-  -- Bidirectional framing. Tagro produces both sides.
+  -- Bidirectional framing. Veyra produces both sides.
   add column if not exists client_title text,
   add column if not exists client_summary text,
   add column if not exists internal_title text,
@@ -54,7 +54,7 @@ alter table decisions
   add column if not exists response_value jsonb,
   add column if not exists rationale text,
 
-  -- Tagro-delegated decisions. When the client picked "Tagro entscheiden
+  -- Veyra-delegated decisions. When the client picked "Veyra entscheiden
   -- lassen", `decided_by` stays null and these fields carry the audit.
   add column if not exists tagro_delegation_reason text,
   add column if not exists override_window_until timestamptz,

@@ -39,7 +39,7 @@ const CONNECTORS: Connector[] = [
     authMode:'webhook', docs:'https://zapier.com/apps/webhook' },
 
   { id:'slack',   name:'Slack',   category:'Kommunikation',
-    description:'Tagro postet Status-Updates und Alerts in deinen Channel.',
+    description:'Veyra postet Status-Updates und Alerts in deinen Channel.',
     iconBg:'#4A154B', iconText:'#fff', iconImg:'/brand/slack.svg',
     authMode:'oauth', docs:'https://api.slack.com/messaging/webhooks' },
 
@@ -139,7 +139,7 @@ export default function ConnectorsPage() {
 
       <div className="page-header">
         <h1>Connectors</h1>
-        <p>Verbinde Festag mit deinen Tools. Tagro AI nutzt sie automatisch in Workflows.</p>
+        <p>Verbinde Festag mit deinen Tools. Veyra AI nutzt sie automatisch in Workflows.</p>
       </div>
 
       <div style={{ display:'flex', gap:6, flexWrap:'wrap', marginBottom:18 }}>

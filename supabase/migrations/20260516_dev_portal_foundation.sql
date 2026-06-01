@@ -1,7 +1,7 @@
 -- Festag — DEV Portal foundation
 --
 -- Schafft die Backend-Grundlage für den Developer-Bereich, GitHub-
--- Integration und Tagro-Reports. Bewusst additiv: keine bestehenden
+-- Integration und Veyra-Reports. Bewusst additiv: keine bestehenden
 -- Spalten/Policies werden umgeschrieben.
 --
 -- Lifecycle:
@@ -13,7 +13,7 @@
 -- Neue Tabellen:
 --   project_assignments     — wer ist auf welchem Projekt
 --   developer_updates       — tägliche/projektbezogene Status-Updates
---   developer_daily_plans   — von Tagro generierte Tages-Pläne
+--   developer_daily_plans   — von Veyra generierte Tages-Pläne
 --   github_connections      — verschlüsselte OAuth-Tokens (server-only)
 --   github_repositories     — verbundene Repos pro Projekt
 --   github_commits          — synchronisierte Commits

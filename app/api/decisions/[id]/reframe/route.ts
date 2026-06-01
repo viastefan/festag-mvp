@@ -8,7 +8,7 @@ export const runtime = 'nodejs'
 /**
  * POST /api/decisions/:id/reframe
  *
- * Re-runs Tagro framing on an existing decision and moves it back to
+ * Re-runs Veyra framing on an existing decision and moves it back to
  * 'pending_client'. Used after a clarification:
  *
  *   1. Client asks a question via /discuss → state = awaiting_clarification.
@@ -127,7 +127,7 @@ export async function POST(req: NextRequest, ctx: { params: { id: string } }) {
       description: o.description ?? null,
       technical_notes: o.technicalNotes ?? null,
       implications_json: o.implications,
-      recommended_by_tagro: o.recommendedByTagro,
+      recommended_by_tagro: o.recommendedByVeyra,
     }))
     await (supa as any).from('decision_options').insert(rows)
   }

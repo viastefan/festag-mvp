@@ -156,7 +156,7 @@ export default function BlogIndexPage() {
       <section className="bi-hero">
         <h1>Festag, in Ruhe erklärt.</h1>
         <p>
-          Produktarchitektur, operative Praxis und das, was Tagro hinter jedem Statusbericht macht. Jeder Beitrag ist eine in sich geschlossene Erklärung — mit Diagrammen, ohne Hype.
+          Produktarchitektur, operative Praxis und das, was Veyra hinter jedem Statusbericht macht. Jeder Beitrag ist eine in sich geschlossene Erklärung — mit Diagrammen, ohne Hype.
         </p>
       </section>
 

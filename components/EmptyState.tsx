@@ -6,7 +6,7 @@
  *
  * Design language (our own — not a stock icon on a grey card):
  *   • A custom "Festag panel" illustration: softly layered surfaces with a
- *     few quiet rows and a glowing Tagro orb. The orb breathes slowly.
+ *     few quiet rows and a glowing Veyra orb. The orb breathes slowly.
  *   • The section's own Phosphor glyph sits in a small badge on the panel,
  *     so each section feels distinct while the graphic language stays one.
  *   • Accent colour flows from the workspace/brand colour (passed in) so

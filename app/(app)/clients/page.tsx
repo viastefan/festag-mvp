@@ -261,7 +261,7 @@ export default function ClientsPage() {
 }
 
 // Curated brand-colour swatches — pick directly. Slate primary first.
-const BRAND_SWATCHES = ['#5B647D', '#3B6FB0', '#2E8B6B', '#C9803A', '#B0524E', '#7A5AA8', '#455A64', '#C2417F']
+const BRAND_SWATCHES = ['#6A738C', '#53616F', '#2F6F89', '#3F7D63', '#8A754D', '#994A55', '#455A64', '#8790A5']
 
 function ClientComposer({ workspaceId, onClose, onCreated }: { workspaceId: string; onClose: () => void; onCreated: (c: ClientRow) => void }) {
   const supabase = useMemo(() => createClient(), [])

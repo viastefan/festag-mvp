@@ -1,22 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { hasTagroAI as hasGeminiKey, runTagroText as runGeminiText } from '@/lib/tagro/text'
+import { hasVeyraAI as hasGeminiKey, runVeyraText as runGeminiText } from '@/lib/tagro/text'
 
 export const runtime = 'nodejs'
 
 /**
  * POST /api/decisions/:id/suggest
  *
- * Runs Tagro across the decision (title + description + options) and
+ * Runs Veyra across the decision (title + description + options) and
  * stores a recommendation back as `recommended_option` (id) + the calm
  * one-paragraph `tagro_reasoning`. Pulls minimal project context so
- * Tagro can reason about scope before suggesting.
+ * Veyra can reason about scope before suggesting.
  *
  * Does NOT decide — that's the client's call. This route only enriches
- * the decision row with Tagro's view.
+ * the decision row with Veyra's view.
  */
 
-const SYSTEM = `Du bist Tagro, der ruhige AI-Projektmanager von Festag.
+const SYSTEM = `Du bist Veyra, der ruhige AI-Projektmanager von Festag.
 
 Du liest eine konkrete Entscheidung, die der Kunde gleich treffen soll.
 Du kennst Titel, Beschreibung, die angebotenen Optionen und etwas
@@ -67,7 +67,7 @@ export async function POST(_req: NextRequest, ctx: { params: { id: string } }) {
   const options = Array.isArray(d.options_json) ? d.options_json : []
   const optionsBlock = options.length
     ? options.map((o: any, i: number) => `  • [${o.id || `opt-${i + 1}`}] ${o.label || ''}${o.hint ? ` — ${o.hint}` : ''}`).join('\n')
-    : '  (keine vordefinierten Optionen — Tagro darf "freeform" empfehlen)'
+    : '  (keine vordefinierten Optionen — Veyra darf "freeform" empfehlen)'
 
   const apiKey = process.env.MINIMAX_API_KEY
     || 'sk-cp-i7jkWRarSBe8qM82Zj2YXxHh7bXCCUAwciPjL5t-WrYRF3WHR4tgVXeJk-Y27k62RDsp7hrb1RJS2nr9rqXB-Q6GBMCKXU6-igQu2pPH6gerajhYbZySzHA'

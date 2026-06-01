@@ -12,7 +12,7 @@ export async function runOpenAIJson({
   fallback: () => JsonObject
 }) {
   // Provider priority: Claude (Anthropic) → Gemini → OpenAI → heuristic.
-  // Tagro runs on Claude whenever ANTHROPIC_API_KEY is set.
+  // Veyra runs on Claude whenever ANTHROPIC_API_KEY is set.
   if (process.env.ANTHROPIC_API_KEY) {
     const { runClaudeJson } = await import('@/lib/tagro/claude')
     return runClaudeJson({ prompt, runType, fallback })
@@ -36,11 +36,11 @@ export async function runOpenAIJson({
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: process.env.TAGRO_OPENAI_MODEL || 'gpt-4o-mini',
+        model: process.env.VEYRA_OPENAI_MODEL || 'gpt-4o-mini',
         response_format: { type: 'json_object' },
         temperature: 0.2,
         messages: [
-          { role: 'system', content: `Du bist Tagro Backend Orchestration. Antworte fuer ${runType} strikt als valides JSON.` },
+          { role: 'system', content: `Du bist Veyra Backend Orchestration. Antworte fuer ${runType} strikt als valides JSON.` },
           { role: 'user', content: prompt },
         ],
       }),
@@ -50,7 +50,7 @@ export async function runOpenAIJson({
     if (!response.ok) {
       return {
         output: fallback(),
-        model: process.env.TAGRO_OPENAI_MODEL || 'gpt-4o-mini',
+        model: process.env.VEYRA_OPENAI_MODEL || 'gpt-4o-mini',
         status: 'fallback' as const,
         error: data?.error?.message ?? 'openai_request_failed',
       }
@@ -59,13 +59,13 @@ export async function runOpenAIJson({
     const text = data?.choices?.[0]?.message?.content ?? '{}'
     return {
       output: extractJsonObject(text),
-      model: data?.model ?? process.env.TAGRO_OPENAI_MODEL ?? 'gpt-4o-mini',
+      model: data?.model ?? process.env.VEYRA_OPENAI_MODEL ?? 'gpt-4o-mini',
       status: 'completed' as const,
     }
   } catch (error: any) {
     return {
       output: fallback(),
-      model: process.env.TAGRO_OPENAI_MODEL || 'gpt-4o-mini',
+      model: process.env.VEYRA_OPENAI_MODEL || 'gpt-4o-mini',
       status: 'fallback' as const,
       error: error?.message ?? 'openai_failed',
     }

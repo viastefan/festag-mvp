@@ -1,17 +1,17 @@
--- Festag — DEV Tasks workflow (Tagro verification + proof + checklist)
+-- Festag — DEV Tasks workflow (Veyra verification + proof + checklist)
 --
 -- Lifts the `tasks` table from "status enum" into a real production
 -- control system:
 --   • work_type        — what kind of work this is (dev / website / marketing …)
 --   • definition_of_done, expected_outcome
---   • required_proof_types — which proofs Tagro will demand on finish
+--   • required_proof_types — which proofs Veyra will demand on finish
 --   • tagro_verification_status / tagro_confidence — the AI quality gate
 --   • client_visible_status — the *translated* status the client sees
 --
 -- Plus three new tables:
 --   • task_proofs            — proof items (commit / preview / screenshot / …)
 --   • task_checklist_items   — explicit acceptance checklist
---   • tagro_verifications    — every run of the Tagro verification engine
+--   • tagro_verifications    — every run of the Veyra verification engine
 --   • task_activity_logs     — per-task audit trail (replaces casual messages)
 --
 -- All additive + idempotent.

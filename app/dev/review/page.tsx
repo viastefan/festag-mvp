@@ -1,10 +1,10 @@
 'use client'
 
 /**
- * /dev/review — Tagro Review Center.
+ * /dev/review — Veyra Review Center.
  *
  * Spec (festag_dev_panel.md):
- *   Listet alle finished_by_dev Tasks der Person mit Tagro-Verdict, Evidence-
+ *   Listet alle finished_by_dev Tasks der Person mit Veyra-Verdict, Evidence-
  *   Coverage, Missing-Proofs, Client-Impact und Next Action. Filterbar nach
  *   Verification-Status. Klick auf einen Eintrag öffnet /dev/tasks?id=… mit
  *   dem vollständigen Drawer (Re-Verify, Owner-Approve, Proof-Composer).
@@ -229,7 +229,7 @@ export default function DevReviewPage() {
       <header className="r-head">
         <div>
           <p className="dev-eyebrow">DEV · Review</p>
-          <h1>Tagro Review Center</h1>
+          <h1>Veyra Review Center</h1>
           <p className="meta">
             Geprüfte Tasks, fehlende Belege und Empfehlungen — bevor etwas an den Client geht.
           </p>
@@ -257,7 +257,7 @@ export default function DevReviewPage() {
 
       {/* Trust hint */}
       <p className="r-trust">
-        <Robot size={12} /> Tagro prüft Plausibilität, Aktivität und grobe Übereinstimmung — niemals echte Qualität.
+        <Robot size={12} /> Veyra prüft Plausibilität, Aktivität und grobe Übereinstimmung — niemals echte Qualität.
         Bei Unsicherheit wird ehrlich „needs review" gesetzt.
       </p>
 

@@ -1,9 +1,9 @@
 'use client'
 
 /**
- * Tagro AI — animiertes Logo.
+ * Veyra AI — animiertes Logo.
  *
- * Verwendet `/brand/tagro-logo.png` (User-Asset). Während Tagro "denkt"/"schreibt"
+ * Verwendet `/brand/tagro-logo.png` (User-Asset). Während Veyra "denkt"/"schreibt"
  * rotiert das Logo sanft mit leichtem Glow. Im Idle-Zustand: still, leicht
  * pulsierend.
  *
@@ -19,7 +19,7 @@ interface Props {
   className?: string
 }
 
-export default function TagroLogo({ size = 28, thinking = false, className = '' }: Props) {
+export default function VeyraLogo({ size = 28, thinking = false, className = '' }: Props) {
   const [imgFailed, setImgFailed] = useState(false)
 
   return (
@@ -33,7 +33,7 @@ export default function TagroLogo({ size = 28, thinking = false, className = '' 
         position: 'relative',
         flexShrink: 0,
       }}
-      aria-label="Tagro AI"
+      aria-label="Veyra AI"
     >
       <style>{`
         .tagro-logo .tagro-img,

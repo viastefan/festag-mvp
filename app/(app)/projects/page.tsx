@@ -631,7 +631,7 @@ function ProjectsPageInner() {
               icon={Stack}
               kicker="Projekte"
               title="Noch kein Projekt"
-              description="Erstelle ein Projekt, damit Tagro Roadmap und Aufgaben vorbereiten kann."
+              description="Erstelle ein Projekt, damit Veyra Roadmap und Aufgaben vorbereiten kann."
               actions={[
                 { label: 'Projekt anlegen', icon: Plus, primary: true, onClick: () => setShowNewProject(true) },
               ]}

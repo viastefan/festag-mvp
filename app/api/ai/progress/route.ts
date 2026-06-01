@@ -1,18 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { taskStatusPatch } from '@/lib/tasks/status'
-import { hasTagroAI as hasGeminiKey, runTagroText as runGeminiText } from '@/lib/tagro/text'
+import { hasVeyraAI as hasGeminiKey, runVeyraText as runGeminiText } from '@/lib/tagro/text'
 
 const SUPABASE_URL = 'https://xsdkoepwuvpuroijjain.supabase.co'
 
 function fallbackCustomerUpdate(devNote: string) {
   const note = devNote.trim()
-  if (!note) return 'Es gibt ein neues Developer-Update. Tagro bereitet die verständliche Einordnung vor.'
+  if (!note) return 'Es gibt ein neues Developer-Update. Veyra bereitet die verständliche Einordnung vor.'
   return `Es gibt ein neues Update aus der Umsetzung: ${note.length > 220 ? `${note.slice(0, 220)}…` : note}`
 }
 
-async function translateWithTagro(devNote: string) {
-  const system = 'Du bist Tagro, die Übersetzungsschicht von Festag. Übersetze technische Developer-Notizen in kundenfreundliche Projekt-Updates. Maximal 2 kurze Sätze. Deutsch. Kein Fachjargon. Ehrlich, ruhig, konkret.'
+async function translateWithVeyra(devNote: string) {
+  const system = 'Du bist Veyra, die Übersetzungsschicht von Festag. Übersetze technische Developer-Notizen in kundenfreundliche Projekt-Updates. Maximal 2 kurze Sätze. Deutsch. Kein Fachjargon. Ehrlich, ruhig, konkret.'
 
   if (hasGeminiKey()) {
     const gemini = await runGeminiText({
@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
     const { taskId, devNote, projectId, status } = await req.json()
     if (!devNote?.trim()) return NextResponse.json({ error: 'devNote missing' }, { status: 400 })
 
-    const customerUpdate = await translateWithTagro(devNote)
+    const customerUpdate = await translateWithVeyra(devNote)
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
     if (serviceKey) {
@@ -80,7 +80,7 @@ export async function POST(req: NextRequest) {
 
       if (projectId) {
         await sb.from('messages').insert({ project_id: projectId, message: customerUpdate, is_ai: true }).catch(() => {})
-        await sb.from('activity_feed').insert({ project_id: projectId, type: 'dev_update', message: `Tagro Client Update: ${customerUpdate}` }).catch(() => {})
+        await sb.from('activity_feed').insert({ project_id: projectId, type: 'dev_update', message: `Veyra Client Update: ${customerUpdate}` }).catch(() => {})
         await sb.from('ai_updates').insert({ project_id: projectId, type: 'dev_progress_update', content: customerUpdate }).catch(() => {})
       }
     }

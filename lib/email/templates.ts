@@ -309,7 +309,7 @@ export function tplWelcome(opts: {
       subtitle:  'Schön, dass du da bist.',
       body: `
         <p style="margin:0 0 14px;">${greeting}</p>
-        <p style="margin:0 0 14px;">Festag ist dein ruhiger Projektraum — kein Cockpit, kein Fachchinesisch. Du beschreibst dein Vorhaben, Tagro übersetzt und zerlegt es, und du siehst jederzeit verständlich, wo dein Projekt steht.</p>
+        <p style="margin:0 0 14px;">Festag ist dein ruhiger Projektraum — kein Cockpit, kein Fachchinesisch. Du beschreibst dein Vorhaben, Veyra übersetzt und zerlegt es, und du siehst jederzeit verständlich, wo dein Projekt steht.</p>
         <p style="margin:0 0 18px;">Leg direkt los — oben links auf „Neues Projekt".</p>
         <p style="margin:0 0 18px;text-align:center;">${button(opts.appUrl, 'Festag öffnen')}</p>
         <p style="margin:18px 0 0;font-size:12px;color:${COLORS.muted};">In Kürze bekommst du eine zweite Mail mit einer kleinen Tour durch alles Wichtige.</p>
@@ -338,10 +338,10 @@ export function tplGettingStarted(opts: {
       body: `
         <p style="margin:0 0 18px;">${greeting}</p>
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-          ${item('Neues Projekt', 'Beschreibe dein Vorhaben in eigenen Worten. Tagro macht daraus klare Schritte — du musst nichts Technisches formulieren.')}
-          ${item('Statusabfrage', 'Auf dem Dashboard tippst du auf „Status abrufen", und Tagro schreibt dir den aktuellen Projektstand ruhig zusammen.')}
+          ${item('Neues Projekt', 'Beschreibe dein Vorhaben in eigenen Worten. Veyra macht daraus klare Schritte — du musst nichts Technisches formulieren.')}
+          ${item('Statusabfrage', 'Auf dem Dashboard tippst du auf „Status abrufen", und Veyra schreibt dir den aktuellen Projektstand ruhig zusammen.')}
           ${item('Posteingang', 'Hier landen strukturierte Eingänge: neue Projektstände deines Teams, Rechnungen und Entscheidungen, die auf dich warten.')}
-          ${item('Dein Team meldet sich', 'Jedes Entwickler-Update wird von Tagro in einen klaren Stand übersetzt — geprüft, verständlich, ohne Fachjargon.')}
+          ${item('Dein Team meldet sich', 'Jedes Entwickler-Update wird von Veyra in einen klaren Stand übersetzt — geprüft, verständlich, ohne Fachjargon.')}
         </table>
         <p style="margin:6px 0 18px;text-align:center;">${button(opts.appUrl, 'Zum Dashboard')}</p>
         <p style="margin:18px 0 0;font-size:12px;color:${COLORS.muted};">Eine Frage? Antworte einfach auf diese Mail — sie landet direkt bei uns.</p>
@@ -404,7 +404,7 @@ export function tplDevAssignment(opts: {
       subtitle:  `${from} hat dir „${escape(opts.projectTitle)}" zugewiesen.`,
       body: `
         <p style="margin:0 0 14px;">${greeting}</p>
-        <p style="margin:0 0 14px;">Du wurdest als Entwickler für ein neues Projekt ausgewählt. Tagro hat das Briefing bereits in klare Schritte zerlegt — du findest alles in deinem Dev-Panel.</p>
+        <p style="margin:0 0 14px;">Du wurdest als Entwickler für ein neues Projekt ausgewählt. Veyra hat das Briefing bereits in klare Schritte zerlegt — du findest alles in deinem Dev-Panel.</p>
         <div style="background:${COLORS.bg};border:1px solid ${COLORS.border};border-radius:12px;padding:16px;margin:14px 0;">
           <p style="margin:0 0 4px;font-size:11px;font-weight:700;letter-spacing:.1em;color:${COLORS.muted};">PROJEKT</p>
           <p style="margin:0 0 ${opts.scope ? '12px' : '0'};font-size:15px;font-weight:700;color:${COLORS.text};">${escape(opts.projectTitle)}</p>
@@ -437,7 +437,7 @@ export function tplProjectAccepted(opts: {
       body: `
         <p style="margin:0 0 14px;">${greeting}</p>
         <p style="margin:0 0 14px;">gute Neuigkeiten — <strong>${escape(opts.devName)}</strong> hat deinen Auftrag „${escape(opts.projectTitle)}" angenommen und beginnt mit der Umsetzung.</p>
-        <p style="margin:0 0 18px;">Tagro begleitet das Projekt von hier an: Jeder Schritt wird für dich verständlich zusammengefasst. Du musst nichts Technisches lesen.</p>
+        <p style="margin:0 0 18px;">Veyra begleitet das Projekt von hier an: Jeder Schritt wird für dich verständlich zusammengefasst. Du musst nichts Technisches lesen.</p>
         <p style="margin:0 0 18px;text-align:center;">${button(opts.projectUrl, 'Projekt öffnen')}</p>
       `,
     }),
@@ -467,7 +467,7 @@ export function tplProjectNextSteps(opts: {
       body: `
         <p style="margin:0 0 18px;">${greeting}</p>
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-          ${step('1', 'Tagro strukturiert', 'Dein Briefing ist in klare Aufgaben und Meilensteine zerlegt.')}
+          ${step('1', 'Veyra strukturiert', 'Dein Briefing ist in klare Aufgaben und Meilensteine zerlegt.')}
           ${step('2', 'Umsetzung beginnt', 'Dein Entwickler arbeitet die Schritte ab. Jedes Update wird geprüft.')}
           ${step('3', 'Du bleibst im Bild', 'Auf dem Dashboard fragst du jederzeit den ruhigen Projektstand ab.')}
         </table>
@@ -496,9 +496,9 @@ export function tplFestagGuarantee(opts: {
         <p style="margin:0 0 14px;">${greeting}</p>
         <p style="margin:0 0 16px;">Mit Festag gehst du kein Risiko ein. Das sichern wir dir zu:</p>
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 8px;">
-          ${point('Geprüfter Fortschritt: Jeder Arbeitsstand wird von Tagro kontrolliert, bevor er bei dir ankommt.')}
+          ${point('Geprüfter Fortschritt: Jeder Arbeitsstand wird von Veyra kontrolliert, bevor er bei dir ankommt.')}
           ${point('Volle Transparenz: Du siehst jederzeit verständlich, wo dein Projekt steht — ohne Fachjargon.')}
-          ${point('Kein Informationsverlust: Tagro übersetzt zwischen dir und dem Entwickler in beide Richtungen.')}
+          ${point('Kein Informationsverlust: Veyra übersetzt zwischen dir und dem Entwickler in beide Richtungen.')}
           ${point('Verlässliche Umsetzung: Festag steuert die Lieferung und steht für die Qualität gerade.')}
         </table>
         <p style="margin:8px 0 18px;text-align:center;">${button(opts.docUrl, 'Festag-Garantie im Detail')}</p>

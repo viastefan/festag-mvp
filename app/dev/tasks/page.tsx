@@ -6,11 +6,11 @@
  * Drei Layer:
  *   1. Liste / Board / Focus — drei Sichten auf dieselben Daten
  *   2. Filter — Projekt, Client, Status, Priorität, Arbeitstyp, Verification
- *   3. Drawer — Beschreibung, Tagro-Context, Checklist, Proof, Work-Log,
+ *   3. Drawer — Beschreibung, Veyra-Context, Checklist, Proof, Work-Log,
  *               Activity, Status-Step-Bar, Mark-as-Finished, Approve
  *
  * Status-Mapping erfolgt 1:1 nach `lib/tasks/work-types.ts`. Schreibwege
- * gehen ausschließlich über die /api/dev/tasks/* Endpoints, damit Tagro
+ * gehen ausschließlich über die /api/dev/tasks/* Endpoints, damit Veyra
  * Spiegelung + Activity-Log konsistent geschrieben werden.
  *
  * Mobile: Tabellenzeilen werden zu Cards, Drawer wird Fullscreen.
@@ -123,7 +123,7 @@ function dotColor(flow: DevFlow) {
 
 function verificationTone(s?: string | null) {
   switch (s) {
-    case 'verified': return { color: 'var(--green-dark)', label: 'Tagro Verified' }
+    case 'verified': return { color: 'var(--green-dark)', label: 'Veyra Verified' }
     case 'needs_review': return { color: 'var(--amber)', label: 'Needs Review' }
     case 'proof_missing': return { color: 'var(--red)', label: 'Proof Missing' }
     case 'quality_issue': return { color: 'var(--red)', label: 'Quality Issue' }
@@ -425,7 +425,7 @@ export default function DevTasksPage() {
   async function setStatus(devStatus: DevFlow) {
     if (!selected) return
     if (!SETTABLE_BY_DEV.includes(devStatus)) {
-      setToast('Diesen Status kann nur Tagro / Project Owner setzen.')
+      setToast('Diesen Status kann nur Veyra / Project Owner setzen.')
       return
     }
     setBusy(true)
@@ -560,11 +560,11 @@ export default function DevTasksPage() {
       } : t))
       if (ver?.status === 'proof_missing') {
         setProofMissingHint(ver.evidence?.requiredMissing || [])
-        setToast('Tagro: Nachweise fehlen.')
+        setToast('Veyra: Nachweise fehlen.')
       } else if (ver?.status === 'verified') {
-        setToast('Tagro hat verifiziert.')
+        setToast('Veyra hat verifiziert.')
       } else {
-        setToast(`Tagro: ${ver?.status}`)
+        setToast(`Veyra: ${ver?.status}`)
       }
     } finally { setBusy(false) }
   }
@@ -587,7 +587,7 @@ export default function DevTasksPage() {
           tagro_confidence: ver?.confidence,
           tagro_verification_summary: ver?.summary,
         } : t))
-        setToast(`Tagro: ${ver?.status}`)
+        setToast(`Veyra: ${ver?.status}`)
       }
     } finally { setBusy(false) }
   }
@@ -640,7 +640,7 @@ export default function DevTasksPage() {
         <div>
           <p className="dev-eyebrow">DEV · Tasks</p>
           <h1>Tasks</h1>
-          <p className="meta">Your assigned work, verified by Tagro and synced with the client workspace.</p>
+          <p className="meta">Your assigned work, verified by Veyra and synced with the client workspace.</p>
         </div>
         <div className="head-stats">
           <StatPill value={stats.active}  label="In Progress" tone="green" />
@@ -700,7 +700,7 @@ export default function DevTasksPage() {
         <Robot size={13} />
         <span>
           Tasks werden nicht sofort als abgeschlossen angezeigt. Jede fertige Aufgabe wird über Nachweise,
-          Kontext und Tagro-Verifizierung geprüft, bevor sie im Client Workspace als erledigt erscheint.
+          Kontext und Veyra-Verifizierung geprüft, bevor sie im Client Workspace als erledigt erscheint.
         </span>
       </div>
 
@@ -709,7 +709,7 @@ export default function DevTasksPage() {
         <p className="t-empty">Tasks werden geladen…</p>
       ) : filteredTasks.length === 0 ? (
         <p className="t-empty">
-          Keine Tasks in dieser Sicht. Tagro legt neue Aufgaben an, sobald ein Projekt in die Execution geht.
+          Keine Tasks in dieser Sicht. Veyra legt neue Aufgaben an, sobald ein Projekt in die Execution geht.
         </p>
       ) : view === 'list' ? (
         <TaskList tasks={filteredTasks} onSelect={t => setSelectedId(t.id)} userId={userId} />
@@ -770,15 +770,15 @@ export default function DevTasksPage() {
               </div>
             )}
 
-            {/* Tagro context */}
-            <SectionTitle icon={<Robot size={11} />} label="Tagro Context" />
-            <TagroContext task={selected} verifications={verifications} />
+            {/* Veyra context */}
+            <SectionTitle icon={<Robot size={11} />} label="Veyra Context" />
+            <VeyraContext task={selected} verifications={verifications} />
 
             {/* Checklist */}
             <SectionTitle icon={<CheckSquare size={11} />} label="Checklist" />
             <div className="checklist">
               {checklist.length === 0 ? (
-                <p className="hint">Noch keine Punkte. Tagro empfiehlt Akzeptanzkriterien hier hinzuzufügen.</p>
+                <p className="hint">Noch keine Punkte. Veyra empfiehlt Akzeptanzkriterien hier hinzuzufügen.</p>
               ) : checklist.map(item => (
                 <button key={item.id} className="check-row" onClick={() => toggleChecklist(item)}>
                   {item.done ? <CheckSquare size={14} weight="fill" /> : <Square size={14} />}
@@ -887,7 +887,7 @@ export default function DevTasksPage() {
                         <a href={`/decisions?open=${d.id}`} className="linked-decision">
                           <span className={`linked-pill tone-${statusTone}`}>{statusLabel}</span>
                           <span className="linked-decision-title">{d.client_title || d.title || 'Entscheidung'}</span>
-                          {isDelegated && <span className="linked-pill tone-muted"><Sparkle size={9} weight="fill" /> Tagro</span>}
+                          {isDelegated && <span className="linked-pill tone-muted"><Sparkle size={9} weight="fill" /> Veyra</span>}
                           {d.urgency === 'critical' && <span className="linked-pill tone-red">Kritisch</span>}
                           {d.urgency === 'high' && <span className="linked-pill tone-amber">Hoch</span>}
                         </a>
@@ -988,13 +988,13 @@ export default function DevTasksPage() {
                         setDecOpen(false); setDecTitle(''); setDecBody(''); setDecOptions(''); setDecUrgency('normal')
                         const outcomeStatus = data?.outcome?.status
                         if (outcomeStatus === 'refreshed') {
-                          setToast('Tagro hat die Anfrage einer offenen Entscheidung zugeordnet')
+                          setToast('Veyra hat die Anfrage einer offenen Entscheidung zugeordnet')
                         } else if (outcomeStatus === 'skipped') {
                           setToast(data?.outcome?.reason === 'limit_reached'
                             ? 'Tageslimit für automatische Anfragen erreicht'
                             : 'Anfrage wurde übersprungen')
                         } else {
-                          setToast('Entscheidung an Tagro übergeben — wird gerahmt und zum Kunden geroutet')
+                          setToast('Entscheidung an Veyra übergeben — wird gerahmt und zum Kunden geroutet')
                         }
                       } finally {
                         setDecSubmitting(false)
@@ -1014,7 +1014,7 @@ export default function DevTasksPage() {
             <Timeline activity={activity} updates={updates} verifications={verifications} />
 
             <p className="drawer-foot">
-              Tagro spiegelt verständliche Updates ins Client Panel — interne Notizen bleiben hier.
+              Veyra spiegelt verständliche Updates ins Client Panel — interne Notizen bleiben hier.
             </p>
           </aside>
         </div>
@@ -1503,7 +1503,7 @@ function DrawerHeader({
   )
 }
 
-function TagroContext({ task, verifications }: { task: Task; verifications: Verification[] }) {
+function VeyraContext({ task, verifications }: { task: Task; verifications: Verification[] }) {
   const latest = verifications[0]
   const wt = workTypeOf(task.work_type)
   const required = (task.required_proof_types && task.required_proof_types.length > 0
@@ -1521,7 +1521,7 @@ function TagroContext({ task, verifications }: { task: Task; verifications: Veri
       {latest && (
         <div className="tc-card">
           <p className="tc-status">
-            <Robot size={11} /> Letzter Tagro-Lauf: <strong>{latest.status}</strong>
+            <Robot size={11} /> Letzter Veyra-Lauf: <strong>{latest.status}</strong>
             {typeof latest.confidence === 'number' ? ` · ${Math.round(latest.confidence * 100)}%` : ''}
           </p>
           {latest.summary && <p className="tc-text">{latest.summary}</p>}
@@ -1532,7 +1532,7 @@ function TagroContext({ task, verifications }: { task: Task; verifications: Veri
       )}
       {!latest && (
         <p className="tc-line muted">
-          Tagro hat diesen Task noch nicht verifiziert. „Mark as Finished" startet die Prüfung.
+          Veyra hat diesen Task noch nicht verifiziert. „Mark as Finished" startet die Prüfung.
         </p>
       )}
       <style jsx>{`
@@ -1718,7 +1718,7 @@ function Timeline({ activity, updates, verifications }: { activity: Activity[]; 
           <span className={`dot ${i.kind}`} />
           <div className="tl-text">
             <p>{i.text}</p>
-            <small>{i.kind === 'tagro' ? 'Tagro' : i.kind === 'system' ? 'System' : 'Developer'} · {dateLabel(i.when)}</small>
+            <small>{i.kind === 'tagro' ? 'Veyra' : i.kind === 'system' ? 'System' : 'Developer'} · {dateLabel(i.when)}</small>
           </div>
         </li>
       ))}
@@ -1746,10 +1746,10 @@ function eventLabel(a: Activity): string {
     case 'proof_removed':  return `Proof entfernt: ${m.proof_type}`
     case 'checklist_toggled': return `Checklist: „${m.item}" ${m.done ? 'erledigt' : 'wieder offen'}`
     case 'finished_by_dev':return 'Dev hat als finished markiert'
-    case 'tagro_verified': return `Tagro verified · ${Math.round((m.confidence ?? 0) * 100)}%`
-    case 'needs_review':   return `Tagro: Needs Review`
-    case 'proof_missing':  return `Tagro: Proof Missing`
-    case 'tagro_check':    return `Tagro Re-Check`
+    case 'tagro_verified': return `Veyra verified · ${Math.round((m.confidence ?? 0) * 100)}%`
+    case 'needs_review':   return `Veyra: Needs Review`
+    case 'proof_missing':  return `Veyra: Proof Missing`
+    case 'tagro_check':    return `Veyra Re-Check`
     case 'approved_by_owner': return 'Project Owner approved'
     case 'owner_changes_requested': return `Owner fordert Änderungen${m.reason ? ': ' + m.reason : ''}`
     case 'work_log':       return m.preview ? `Update: „${m.preview}"` : 'Update gepostet'
@@ -1955,7 +1955,7 @@ function FocusView({ tasks, onSelect, userId }: { tasks: Task[]; onSelect: (t: T
         )
       })}
       {today.length === 0 && (
-        <p className="empty">Nichts dringend offen. Tagro plant deinen nächsten Block.</p>
+        <p className="empty">Nichts dringend offen. Veyra plant deinen nächsten Block.</p>
       )}
       <style jsx>{`
         .focus { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); gap: 10px; }

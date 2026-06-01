@@ -366,7 +366,7 @@ export default function TeamWorkspacePanel({ mode }: { mode: TeamPanelMode }) {
             {loading ? <LoadingRows /> : filteredReports.length === 0 ? (
               <Empty
                 title="Noch keine Team-Statusberichte"
-                body="Wenn Tagro Team-Updates, Briefings oder schriftliche Statusberichte erstellt, liegen sie hier gesammelt."
+                body="Wenn Veyra Team-Updates, Briefings oder schriftliche Statusberichte erstellt, liegen sie hier gesammelt."
               />
             ) : filteredReports.map(report => {
               const project = report.project_id ? projectsById.get(report.project_id) : null

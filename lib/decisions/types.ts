@@ -2,7 +2,7 @@
 // Decision Engine — canonical TypeScript types
 //
 // Mirrors the Supabase schema set up by 20260527_decision_engine_v1.sql.
-// API handlers, Tagro framing code, and UI surfaces all import from here.
+// API handlers, Veyra framing code, and UI surfaces all import from here.
 //
 // The decisions table carries both legacy columns (open / waiting_for_client
 // statuses, options_json, etc.) and the v1 extension (state machine, response
@@ -73,7 +73,7 @@ export const DECISION_TYPES = [
 ] as const
 export type DecisionType = (typeof DECISION_TYPES)[number]
 
-// Types where delegation to Tagro is forbidden — humans must decide.
+// Types where delegation to Veyra is forbidden — humans must decide.
 export const DECISION_TYPES_NO_DELEGATE: ReadonlySet<DecisionType> = new Set<DecisionType>([
   'legal',
   'payment',

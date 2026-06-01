@@ -3,7 +3,7 @@
 Festag is a client-facing Delivery Intelligence Platform. Treat
 `docs/festag-product-north-star.md` as the product north star before changing
 core product flows, UI copy, IA, dashboard concepts, client portal behavior,
-Execution Panel behavior, Tagro behavior, or white-label features.
+Execution Panel behavior, Veyra behavior, or white-label features.
 
 Do not build Festag as another Notion, Slack, Monday, ClickUp, Asana, Jira,
 Linear, generic project manager, wiki, workspace, chat app, or AI agent
@@ -18,7 +18,7 @@ Always bias product decisions toward:
 - Creating trust through status, risks, decisions, approvals, and next steps.
 - Keeping execution work in existing tools while Festag sits above them as the
   delivery intelligence layer.
-- Tagro as a Project Interpreter, not a chatbot.
+- Veyra as a Project Interpreter, not a chatbot.
 
 Before adding a feature, ask:
 

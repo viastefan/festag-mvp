@@ -44,7 +44,7 @@ export default function RelationsLayout({ children }: { children: React.ReactNod
         style={{
           marginTop: 8,
           padding: '8px 20px',
-          background: 'var(--primary, #6366f1)',
+          background: 'var(--primary, #6a738c)',
           color: '#fff',
           border: 'none',
           borderRadius: 8,

@@ -4,7 +4,7 @@
 // Takes a DecisionIntent (dev-language) and produces a FramedDecision with:
 //   - internal_title / internal_description (tech-language, dev sees)
 //   - client_title / client_summary         (calm prose, client sees)
-//   - 0–4 structured options + implications + Tagro recommendation
+//   - 0–4 structured options + implications + Veyra recommendation
 //   - tagro_reasoning                       (audit, "why this decision now")
 //   - tagro_confidence_in_framing           (honest 0..1)
 //
@@ -31,7 +31,7 @@ import {
 } from './types'
 
 const FRAMER_SYSTEM = [
-  'Du bist Tagro, der operative Übersetzer zwischen Entwickler-Team (Dev) und Auftraggeber (Client) in einem Festag-Softwareprojekt.',
+  'Du bist Veyra, der operative Übersetzer zwischen Entwickler-Team (Dev) und Auftraggeber (Client) in einem Festag-Softwareprojekt.',
   'Deine Aufgabe: Eine Entscheidungsfrage so rahmen, dass beide Seiten sie verstehen, ohne Tech-Jargon für den Client und ohne Marketing-Floskeln für den Dev.',
   '',
   'Sprache: Aeonik-tonal, ruhig, präzise, deutsch. Niemals "Hey", "Lass uns", keine Emojis, keine Ausrufezeichen.',
@@ -68,7 +68,7 @@ type FramerOutput = {
 }
 
 export type FrameOptions = {
-  // When the project owner wants to review every Tagro framing before
+  // When the project owner wants to review every Veyra framing before
   // publishing, set this to true. The persisted decision will land in
   // 'drafted' instead of 'pending_client'.
   ownerReviewBeforePublish?: boolean
@@ -224,7 +224,7 @@ function sanitizeOptions(
     description: o.description,
     technicalNotes: o.technical_notes,
     implications: normalizeImplications(o.implications),
-    recommendedByTagro: !!o.recommended_by_tagro,
+    recommendedByVeyra: !!o.recommended_by_tagro,
   }))
 }
 

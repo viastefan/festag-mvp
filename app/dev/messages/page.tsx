@@ -10,7 +10,7 @@
  * assignments. Every actionable kind carries a calm "next action" hint
  * (festag_task_flow → Next Actions) so the dev always knows the move.
  *
- * Tagro is a writing layer, never a chat partner — so this surface stays
+ * Veyra is a writing layer, never a chat partner — so this surface stays
  * a quiet operations feed, not a messenger. Click a row → mark read +
  * jump to the underlying task or project.
  */
@@ -300,7 +300,7 @@ export default function DevMessagesPage() {
 
       <p className="im-foot">
         <Sliders size={12} weight="regular" />
-        Tagro übersetzt operative Ereignisse in geprüfte Statusinformationen. Diese Inbox zeigt deine internen Hinweise — der Client sieht nur die freigegebene Sicht.
+        Veyra übersetzt operative Ereignisse in geprüfte Statusinformationen. Diese Inbox zeigt deine internen Hinweise — der Client sieht nur die freigegebene Sicht.
       </p>
 
       <style jsx>{`

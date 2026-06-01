@@ -2,7 +2,7 @@
 -- Festag work_type + work_signals foundation
 --
 -- Work type is the broad Festag category that drives which Execution Panel
--- modules surface and which Work Signal types Tagro accepts. project_type
+-- modules surface and which Work Signal types Veyra accepts. project_type
 -- stays as the granular preset (Landingpage, Mobile App, SEO, etc.).
 --
 -- MVP work types: software / design / marketing / general.
@@ -21,7 +21,7 @@ alter table projects
 
 create index if not exists idx_projects_work_type on projects(work_type);
 
--- work_signals: raw inputs Tagro interprets into status / risks /
+-- work_signals: raw inputs Veyra interprets into status / risks /
 -- decisions / next actions / client translations.
 create table if not exists work_signals (
   id uuid primary key default gen_random_uuid(),

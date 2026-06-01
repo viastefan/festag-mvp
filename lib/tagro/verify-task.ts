@@ -2,7 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { workTypeOf, type ProofType, type WorkTypeDef } from '@/lib/tasks/work-types'
 
 /**
- * Tagro Verification Engine.
+ * Veyra Verification Engine.
  *
  * Runs heuristically (no LLM call yet) against:
  *   • the task's required + optional proof types
@@ -107,7 +107,7 @@ export function verifyTaskHeuristic(input: Inputs): VerificationVerdict {
 
   // Cross-checks for code work
   if (workType.hints.expectsCodeChange && input.commits.length === 0) {
-    issues.push('Software-Task ohne sichtbaren Commit — Tagro kann nicht verifizieren.')
+    issues.push('Software-Task ohne sichtbaren Commit — Veyra kann nicht verifizieren.')
   }
 
   // Commits after finish marker get extra trust
@@ -129,7 +129,7 @@ export function verifyTaskHeuristic(input: Inputs): VerificationVerdict {
   if (requiredMissing.length === required.length && !hasProofs && inferred.length === 0) {
     status = 'proof_missing'
     confidence = 0
-    recommendedNextAction = `Tagro benötigt mindestens einen der Nachweise: ${required.join(', ')}.`
+    recommendedNextAction = `Veyra benötigt mindestens einen der Nachweise: ${required.join(', ')}.`
   } else if (requiredMissing.length > 0) {
     // Partial coverage
     status = 'needs_review'
@@ -161,7 +161,7 @@ export function verifyTaskHeuristic(input: Inputs): VerificationVerdict {
       recommendedNextAction = 'Bereit für Owner-Approval — danach an den Client gespiegelt.'
     } else {
       status = 'needs_review'
-      recommendedNextAction = 'Tagro fand teilweise Hinweise — Owner sollte prüfen, bevor es zum Client geht.'
+      recommendedNextAction = 'Veyra fand teilweise Hinweise — Owner sollte prüfen, bevor es zum Client geht.'
     }
   }
 
@@ -217,12 +217,12 @@ function buildInternalSummary(p: { status: VerificationStatus; confidence: numbe
 function buildClientSummary(p: { status: VerificationStatus; taskTitle: string }) {
   const tail = p.taskTitle ? ` für „${p.taskTitle}".` : '.'
   switch (p.status) {
-    case 'verified':       return `Tagro hat die Arbeit verifiziert${tail}`
-    case 'needs_review':   return `Tagro hat Hinweise gefunden, ein Project Owner prüft${tail}`
-    case 'proof_missing':  return `Tagro wartet noch auf Nachweise${tail}`
-    case 'quality_issue':  return `Tagro hat eine Qualitätsfrage${tail}`
+    case 'verified':       return `Veyra hat die Arbeit verifiziert${tail}`
+    case 'needs_review':   return `Veyra hat Hinweise gefunden, ein Project Owner prüft${tail}`
+    case 'proof_missing':  return `Veyra wartet noch auf Nachweise${tail}`
+    case 'quality_issue':  return `Veyra hat eine Qualitätsfrage${tail}`
     case 'blocked':        return `Aufgabe ist blockiert${tail}`
-    case 'cannot_verify':  return `Tagro kann diese Aufgabe nicht automatisch prüfen — manuelles Review${tail}`
+    case 'cannot_verify':  return `Veyra kann diese Aufgabe nicht automatisch prüfen — manuelles Review${tail}`
   }
 }
 

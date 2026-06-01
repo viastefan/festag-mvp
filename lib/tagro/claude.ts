@@ -1,9 +1,9 @@
 import { extractJsonObject, type JsonObject } from '@/lib/tagro/json'
 
 /**
- * Claude (Anthropic) provider for Tagro.
+ * Claude (Anthropic) provider for Veyra.
  *
- * Tagro uses Claude as its AI backend whenever `ANTHROPIC_API_KEY` is set —
+ * Veyra uses Claude as its AI backend whenever `ANTHROPIC_API_KEY` is set —
  * it takes priority over Gemini/OpenAI in the dispatcher (lib/tagro/openai.ts).
  *
  * The per-runType system prompt is sent with `cache_control: ephemeral` so the
@@ -14,7 +14,7 @@ import { extractJsonObject, type JsonObject } from '@/lib/tagro/json'
 const ANTHROPIC_ENDPOINT = 'https://api.anthropic.com/v1/messages'
 
 export function getClaudeModel() {
-  return process.env.TAGRO_CLAUDE_MODEL || process.env.ANTHROPIC_MODEL || 'claude-sonnet-4-6'
+  return process.env.VEYRA_CLAUDE_MODEL || process.env.ANTHROPIC_MODEL || 'claude-sonnet-4-6'
 }
 
 export function hasClaudeKey() {
@@ -109,7 +109,7 @@ export async function runClaudeJson({
     const result = await runClaudeText({
       system:
         system ??
-        `Du bist Tagro Backend Orchestration. Antworte für ${runType} ausschließlich als valides JSON-Objekt — kein Markdown, keine Code-Fences, kein Fließtext.`,
+        `Du bist Veyra Backend Orchestration. Antworte für ${runType} ausschließlich als valides JSON-Objekt — kein Markdown, keine Code-Fences, kein Fließtext.`,
       prompt,
       maxTokens,
       temperature: 0.2,

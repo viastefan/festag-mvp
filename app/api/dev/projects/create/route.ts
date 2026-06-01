@@ -20,7 +20,7 @@ type WorkType = typeof WORK_TYPES[number]
 
 // Calm, distinct accent colors — picked round-robin by created count so a dev's
 // projects don't all look identical.
-const PALETTE = ['#5B647D', '#6F7B96', '#5E8B7E', '#9A7B6B', '#7E6F96', '#4F7CA4']
+const PALETTE = ['#5B647D', '#6F7B96', '#5E8B7E', '#9A7B6B', '#6a738c', '#4F7CA4']
 
 export async function POST(req: Request) {
   const supa = createClient()

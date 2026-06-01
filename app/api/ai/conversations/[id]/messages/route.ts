@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { hasTagroAI as hasGeminiKey, runTagroText as runGeminiText } from '@/lib/tagro/text'
+import { hasVeyraAI as hasGeminiKey, runVeyraText as runGeminiText } from '@/lib/tagro/text'
 
 export const runtime = 'nodejs'
 
@@ -9,7 +9,7 @@ export const runtime = 'nodejs'
  *
  * One turn:
  *   1. Persist the user's message.
- *   2. Pull the full conversation so Tagro has context.
+ *   2. Pull the full conversation so Veyra has context.
  *   3. Hand it to MiniMax, strip <think>, return the assistant reply.
  *   4. Persist the assistant reply.
  *   5. If the conversation is still on the default "Neuer Chat" title
@@ -23,7 +23,7 @@ export const runtime = 'nodejs'
 const MINIMAX_ENDPOINT = 'https://api.minimax.io/v1/text/chatcompletion_v2'
 const MINIMAX_MODEL = 'MiniMax-M2.7'
 
-const SYSTEM = `Du bist Tagro, das AI-Produktionssystem von Festag.
+const SYSTEM = `Du bist Veyra, das AI-Produktionssystem von Festag.
 
 Verhalte dich wie ein erfahrener CTO und Projektmanager in einem.
 Antworten klar, ruhig, direkt. Maximal 6 Sätze, wenn nicht ausdrücklich
@@ -44,7 +44,7 @@ function buildSystemPrompt(mode: Mode, projectContextTitle: string, projectId: s
   const ctxLine = `Aktiver Festag-Kontext: ${projectContextTitle}.`
 
   if (mode === 'developer') {
-    return `Du bist die Tagro-Vermittlung im Developer-Chat.
+    return `Du bist die Veyra-Vermittlung im Developer-Chat.
 
 ${ctxLine}
 
@@ -54,7 +54,7 @@ Sprache: Deutsch. Maximal 6 Sätze. Markdown nur wenn es hilft. Keine Emojis.`
   }
 
   if (mode === 'owner') {
-    return `Du bist die Tagro-Vermittlung zum Project Owner.
+    return `Du bist die Veyra-Vermittlung zum Project Owner.
 
 ${ctxLine}
 
@@ -77,7 +77,7 @@ Sprache: Deutsch. Maximal 6 Sätze. Markdown nur wenn nötig. Keine Emojis.`
 ${ctxLine}
 Wenn der Kontext nicht "Alle Projekte" ist, antworte projektbezogen und mache sichtbar, dass du nur diesen Kontext bewertest.
 
-Tagro kann in Festag konkrete Aktionen vorbereiten:
+Veyra kann in Festag konkrete Aktionen vorbereiten:
 - Tasks aus Statusberichten erstellen
 - Reviews freigeben oder Korrekturen anfordern
 - Statusberichte und Audio-Briefings vorbereiten
@@ -142,11 +142,11 @@ export async function POST(req: NextRequest, ctx: { params: { id: string } }) {
     .eq('conversation_id', ctx.params.id)
     .order('created_at', { ascending: true })
 
-  // 3. Call Tagro provider.
+  // 3. Call Veyra provider.
   const apiKey = process.env.MINIMAX_API_KEY
     || 'sk-cp-i7jkWRarSBe8qM82Zj2YXxHh7bXCCUAwciPjL5t-WrYRF3WHR4tgVXeJk-Y27k62RDsp7hrb1RJS2nr9rqXB-Q6GBMCKXU6-igQu2pPH6gerajhYbZySzHA'
 
-  let aiText = 'Tagro ist gerade kurz nicht erreichbar. Versuch es bitte gleich nochmal.'
+  let aiText = 'Veyra ist gerade kurz nicht erreichbar. Versuch es bitte gleich nochmal.'
   let thinking: string | null = null
   try {
     const systemPrompt = buildSystemPrompt(mode, projectContextTitle, conv.project_id)
@@ -172,7 +172,7 @@ export async function POST(req: NextRequest, ctx: { params: { id: string } }) {
       }
     }
 
-    if (aiText === 'Tagro ist gerade kurz nicht erreichbar. Versuch es bitte gleich nochmal.') {
+    if (aiText === 'Veyra ist gerade kurz nicht erreichbar. Versuch es bitte gleich nochmal.') {
       const res = await fetch(MINIMAX_ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },

@@ -9,7 +9,7 @@
 --    the client subscriptions in hooks/useNotifications + useRealtimeTasks
 --    actually receive postgres_changes.
 
--- ── task_activity_logs: allow Tagro/system rows where actor_id is null ─
+-- ── task_activity_logs: allow Veyra/system rows where actor_id is null ─
 drop policy if exists tal_write on task_activity_logs;
 create policy tal_write on task_activity_logs for insert
   with check (
@@ -17,7 +17,7 @@ create policy tal_write on task_activity_logs for insert
     exists (select 1 from profiles where id = auth.uid() and role in ('admin','project_owner'))
     -- Or the row records the caller's own action.
     or actor_id = auth.uid()
-    -- Or it's a Tagro/system event that the caller may legitimately
+    -- Or it's a Veyra/system event that the caller may legitimately
     -- trigger — they must at least be able to see the task.
     or (
       actor_kind in ('tagro','system') and actor_id is null

@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { hasTagroAI as hasGeminiKey, runTagroText as runGeminiText } from '@/lib/tagro/text'
+import { hasVeyraAI as hasGeminiKey, runVeyraText as runGeminiText } from '@/lib/tagro/text'
 
 export const runtime = 'nodejs'
 
 /**
  * POST /api/notes/:id/suggest
  *
- * Runs Tagro across the note body and stores structured suggestions
+ * Runs Veyra across the note body and stores structured suggestions
  * back onto notes.tagro_suggestions. The shape we standardise on:
  *
  *   {
@@ -24,7 +24,7 @@ export const runtime = 'nodejs'
  * outside of the notes table.
  */
 
-const SYSTEM = `Du bist Tagro, der AI-Projektmanager von Festag.
+const SYSTEM = `Du bist Veyra, der AI-Projektmanager von Festag.
 
 Du liest eine Notiz und gibst dem Nutzer ruhige, konkrete Vorschläge:
   • summary:   2–3 Sätze, was die Notiz inhaltlich sagt (ohne sie zu wiederholen)

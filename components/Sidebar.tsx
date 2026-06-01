@@ -7,6 +7,7 @@ import { useState, useEffect, useRef } from 'react'
 import SidebarProfileFooter from '@/components/SidebarProfileFooter'
 import SettingsSidebar from '@/components/SettingsSidebar'
 import MobileActionSheet from '@/components/MobileActionSheet'
+import ProjectCreationIntroAnimation from '@/components/ProjectCreationIntroAnimation'
 import { mobileFabActions, mobileFabTitle } from '@/lib/mobile-actions'
 import { useNotifications } from '@/hooks/useNotifications'
 import {
@@ -18,7 +19,7 @@ import {
   Clock, CheckSquare, Code, FileCode,
   Tray, MagnifyingGlass, SpeakerHigh, Pulse,
   Question, DownloadSimple, ChatTeardropDots,
-  Scales, Keyboard, CheckCircle, PlayCircle,
+  Scales, Keyboard, CheckCircle,
   ArrowSquareOut,
 } from '@phosphor-icons/react'
 import { autoAvatarColor, avatarInitials } from '@/lib/avatar'
@@ -113,7 +114,7 @@ const CLIENT_TEAMS: NavItem[] = [
   { href:'/teams/tasks', icon:'task', label:'Tasks' },
   { href:'/teams/reports', icon:'activity', label:'Statusberichte' },
 ]
-const CLIENT_TAGRO: NavItem[] = [
+const CLIENT_VEYRA: NavItem[] = [
   { href:'/ai',    icon:'chat', label:'Chat' },
   { href:'/notes', icon:'card', label:'Notizen' },
 ]
@@ -130,7 +131,7 @@ const CLIENT_MOB_PRIMARY: NavItem[] = [
   { href:'/projects',  icon:'project', label:'Projekte' },
   // FAB sits here in the JSX
   { href:'/inbox',     icon:'inbox',   label:'Inbox' },
-  { href:'/ai',        icon:'sparkle', label:'Tagro' },
+  { href:'/ai',        icon:'sparkle', label:'Veyra' },
   { href:'/more',      icon:'more',    label:'Mehr' },
 ]
 const CLIENT_MOB_QUICK = [
@@ -243,7 +244,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
   const [workspaceExp, setWorkspaceExp] = useState(true)
   const [projectListExp, setProjectListExp] = useState(true)
   const [teamsExp, setTeamsExp] = useState(false)
-  const [tagroExp, setTagroExp] = useState(true)
+  const [tagroExp, setVeyraExp] = useState(true)
   const [reportsExp, setReportsExp] = useState(false)
   const reportsAutoSeededRef = useRef(false)
   const [toolsExp, setToolsExp] = useState(false)
@@ -374,7 +375,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
   )
   const coreNav = applyPrefs(coreNavRaw)
   const teamsNav: NavItem[] = applyPrefs(CLIENT_TEAMS)
-  const tagroNav: NavItem[] = applyPrefs(CLIENT_TAGRO)
+  const tagroNav: NavItem[] = applyPrefs(CLIENT_VEYRA)
   const toolsNavBase: NavItem[] = wsMode === 'agency'
     ? [...CLIENT_TOOLS, { href: '/settings/workspace', icon: 'sparkle', label: 'White Label' }]
     : CLIENT_TOOLS
@@ -403,12 +404,12 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
       const storedTeams = window.localStorage.getItem('sidebar-teams-expanded')
       const storedWorkspace = window.localStorage.getItem('sidebar-workspace-expanded')
       const storedProjects = window.localStorage.getItem('sidebar-project-list-expanded')
-      const storedTagro = window.localStorage.getItem('sidebar-tagro-expanded')
+      const storedVeyra = window.localStorage.getItem('sidebar-tagro-expanded')
       const storedTools = window.localStorage.getItem('sidebar-tools-expanded')
       if (storedTeams !== null) setTeamsExp(storedTeams === 'true')
       if (storedWorkspace !== null) setWorkspaceExp(storedWorkspace === 'true')
       if (storedProjects !== null) setProjectListExp(storedProjects === 'true')
-      if (storedTagro !== null) setTagroExp(storedTagro === 'true')
+      if (storedVeyra !== null) setVeyraExp(storedVeyra === 'true')
       if (storedTools !== null) setToolsExp(false)
     } catch {}
   }, [])
@@ -629,7 +630,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
     return () => window.removeEventListener(PROJECT_COLOR_SYNC_EVENT, onProjectColor)
   }, [])
 
-  const PROJ_COLORS = ['#6366f1','#8b5cf6','#ec4899','#ef4444','#f97316','#eab308','#22c55e','#06b6d4','#3b82f6','#64748b']
+  const PROJ_COLORS = ['#6a738c','#5b647d','#64748b','#ef4444','#f97316','#eab308','#22c55e','#06b6d4','#3b82f6','#94a3b8']
 
   async function setProjectColor(id: string, color: string, closePicker = true) {
     setProjects(prev => prev.map(p => p.id === id ? { ...p, color } : p))
@@ -1030,7 +1031,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         [data-theme="read"] .ni-off:hover { background:rgba(0,0,0,0.04); }
         .ni:focus { outline: none; }
         .ni:focus-visible {
-          box-shadow: 0 0 0 2px var(--focus-ring, rgba(64, 105, 225, 0.35));
+          box-shadow: 0 0 0 2px var(--focus-ring, rgba(106, 115, 140, 0.35));
         }
         .sb-section {
           margin: 26px 0 22px;
@@ -1125,12 +1126,12 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         [data-theme="dark"] .proj-row.proj-new:hover { background:rgba(255,255,255,0.05); }
         .proj-row:focus { outline: none; }
         .proj-row:focus-visible {
-          box-shadow: 0 0 0 2px var(--focus-ring, rgba(64, 105, 225, 0.35));
+          box-shadow: 0 0 0 2px var(--focus-ring, rgba(106, 115, 140, 0.35));
         }
 
         .sb-icon-btn:focus { outline: none; }
         .sb-icon-btn:focus-visible {
-          box-shadow: 0 0 0 2px var(--focus-ring, rgba(64, 105, 225, 0.35));
+          box-shadow: 0 0 0 2px var(--focus-ring, rgba(106, 115, 140, 0.35));
         }
         .sb-topbar {
           display:grid;
@@ -1857,7 +1858,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           border-color:var(--border-strong);
         }
 
-        /* ── Tagro Monitoring Capsule — single-line ── */
+        /* ── Veyra Monitoring Capsule — single-line ── */
         .sb-monitor-capsule {
           display:inline-flex; align-items:center; gap:7px;
           min-height:34px;
@@ -2139,9 +2140,9 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
 
             <div>
               <Section
-                label="Tagro AI"
+                label="Veyra AI"
                 expanded={tagroExp}
-                onToggle={() => setTagroExp(v => !v)}
+                onToggle={() => setVeyraExp(v => !v)}
               >
                 <NavItems items={tagroNav} />
               </Section>
@@ -2173,8 +2174,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
                   aria-label="So funktioniert Festag öffnen"
                 >
                   <span className="sb-video-thumb" aria-hidden>
-                    <img src="/media/festag-guide-thumb.png" alt="" />
-                    <span className="sb-video-play"><PlayCircle size={25} weight="fill" /></span>
+                    <ProjectCreationIntroAnimation variant="teaser" />
                   </span>
                   <span className="sb-video-copy">
                     <strong>So funktioniert Festag</strong>
@@ -2361,10 +2361,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
               <h1>So funktioniert Festag</h1>
 
               <div className="sb-video-stage">
-                <div className="sb-video-stage-placeholder">
-                  <img className="sb-video-stage-image" src="/media/festag-guide-preview.png" alt="" />
-                  <span className="sb-stage-play"><PlayCircle size={56} weight="fill" /></span>
-                </div>
+                <ProjectCreationIntroAnimation variant="stage" />
               </div>
 
               <section className="sb-video-copy-block">
@@ -2374,11 +2371,11 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
                 </p>
                 <p>
                   Statt jeden Status manuell zusammenzusuchen, bekommst du eine ruhige Übersicht:
-                  Projekte, Tasks, Meilensteine und Tagro liegen an einem Ort und bleiben für Kunden
+                  Projekte, Tasks, Meilensteine und Veyra liegen an einem Ort und bleiben für Kunden
                   verständlich.
                 </p>
                 <p>
-                  Wenn ein Projekt startet, strukturiert Tagro dein Briefing, bereitet Aufgaben vor
+                  Wenn ein Projekt startet, strukturiert Veyra dein Briefing, bereitet Aufgaben vor
                   und hält die Kommunikation so nah am echten Lieferstand wie möglich.
                 </p>
               </section>

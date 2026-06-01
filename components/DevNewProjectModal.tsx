@@ -220,7 +220,7 @@ export default function DevNewProjectModal({
           font: inherit; font-size: 13.5px; outline: 0; margin-bottom: 16px;
           transition: border-color .14s, box-shadow .14s;
         }
-        .np-input:focus, .np-textarea:focus { border-color: var(--border-strong); box-shadow: 0 0 0 3px var(--accent-soft, rgba(142,150,255,.14)); }
+        .np-input:focus, .np-textarea:focus { border-color: var(--border-strong); box-shadow: 0 0 0 3px var(--accent-soft, rgba(106,115,140,.14)); }
         .np-textarea { min-height: 78px; resize: vertical; line-height: 1.5; }
         .np-types { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 18px; }
         .np-types button {

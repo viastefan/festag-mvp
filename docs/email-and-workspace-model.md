@@ -12,7 +12,7 @@ schema already supports and how the surfaces should reflect it.
 ### Vision
 Every client or developer can connect their own email so Festag becomes a
 **triage inbox**, not a full mail client. The point is not "read all mail in
-Festag" — it is that **Tagro reads inbound mail, understands it, and routes the
+Festag" — it is that **Veyra reads inbound mail, understands it, and routes the
 relevant ones** to the right project / task / client, and can spin up new
 projects, tasks, decisions or status points from them.
 
@@ -21,9 +21,9 @@ projects, tasks, decisions or status points from them.
 **A) Connect existing accounts (BYO email) — preferred first step**
 - The user links their existing mailbox (Gmail / Outlook / IMAP) via OAuth.
 - Festag pulls inbound mail through the provider API.
-- Tagro classifies each message: which project / task / client it belongs to,
+- Veyra classifies each message: which project / task / client it belongs to,
   whether it is an update, a question, a decision trigger, or noise.
-- Only **relevant** mail (Tagro-matched or rule-matched) surfaces in Festag —
+- Only **relevant** mail (Veyra-matched or rule-matched) surfaces in Festag —
   the rest stays in the user's normal inbox. No attempt to be the primary inbox.
 - Pros: low backend cost, no deliverability/domain burden, fast to ship,
   meets users where they already are.
@@ -37,15 +37,15 @@ projects, tasks, decisions or status points from them.
   outbound deliverability (SPF/DKIM/DMARC), spam handling, storage, cost.
 - Treat as a **later** layer, likely white-label only (agency's own domain).
 
-**Decision: start with (A).** Ship BYO connection + Tagro triage first; revisit
+**Decision: start with (A).** Ship BYO connection + Veyra triage first; revisit
 (B) when white-label demand justifies the inbound-mail infrastructure.
 
-### Tagro routing pipeline (both variants)
+### Veyra routing pipeline (both variants)
 1. Inbound message arrives (provider API poll/webhook, or Festag MX).
-2. Tagro classifies: `{ project_id?, task_id?, client_id?, intent }`
+2. Veyra classifies: `{ project_id?, task_id?, client_id?, intent }`
    where `intent ∈ update | question | decision | new_project | task | noise`.
-3. Rules layer (user-defined) can force-route or suppress before Tagro.
-4. Relevant messages become inbox items; from one the user (or Tagro) can
+3. Rules layer (user-defined) can force-route or suppress before Veyra.
+4. Relevant messages become inbox items; from one the user (or Veyra) can
    **create** a project, task, decision, or status point in one action.
 5. Audit: every auto-created entity links back to the source message.
 
@@ -63,7 +63,7 @@ projects, tasks, decisions or status points from them.
 - Connecting a mailbox + ingesting its content is sending data to an external
   service — surface that clearly at connect time; store the minimum.
 - "Only relevant mail enters Festag" is a **promise**: default to suppress, not
-  surface, when Tagro is unsure.
+  surface, when Veyra is unsure.
 
 ---
 
@@ -89,7 +89,7 @@ shape so the surfaces stay consistent.
 - **Projects table & project header**: responsible dev avatar(s),
   workspace-independent. ✅ shipped.
 - **Task detail**: who is responsible, which project, **which workspace**, and
-  Tagro's classification. ✅ shipped (workspace row added 2026-06-01).
+  Veyra's classification. ✅ shipped (workspace row added 2026-06-01).
 - **Decisions**: can be delegated to a specific teammate (e.g. a co-founder in
   the client portal) when a team exists. ✅ shipped (`/api/decisions/:id/assign`).
 - **Dev panel**: mirrors this model — the project pool cards and the project
@@ -111,7 +111,7 @@ the right direction.
 
 ### Goal
 Let other apps embed Festag: create projects, push updates, read status /
-decisions / reports, and surface Tagro intelligence — so Festag becomes a
+decisions / reports, and surface Veyra intelligence — so Festag becomes a
 **delivery-intelligence layer other products build on**, not only a portal.
 
 ### Shape (when we get there)
@@ -122,7 +122,7 @@ decisions / reports, and surface Tagro intelligence — so Festag becomes a
   RLS-gated exactly like the portal. No new trust boundary.
 - **Webhooks** for outbound events (status changed, decision needed, report
   ready) — mirrors the inbound email pipeline in reverse.
-- **Embeddable widgets / SDK**: a drop-in client status panel + Tagro briefing
+- **Embeddable widgets / SDK**: a drop-in client status panel + Veyra briefing
   another app can render (iframe or React component) without rebuilding the UI.
 - **Idempotency + versioning** from day one (`/v1`, idempotency keys on writes).
 

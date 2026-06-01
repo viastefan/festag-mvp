@@ -1,7 +1,7 @@
--- Festag — Notizen mit Tagro-Vorschlägen, Teilen, Task-Spawning
+-- Festag — Notizen mit Veyra-Vorschlägen, Teilen, Task-Spawning
 --
--- Notizen sind das Schwester-Surface zum Tagro Chat: längere
--- Gedanken, die der Nutzer ablegen will und an die Tagro
+-- Notizen sind das Schwester-Surface zum Veyra Chat: längere
+-- Gedanken, die der Nutzer ablegen will und an die Veyra
 -- Vorschläge anhängt (mögliche Tasks, Folgefragen, Risiken).
 --
 -- Eine Notiz kann:
@@ -9,7 +9,7 @@
 --   2. in echte Tasks verwandelt werden (notes_spawned_tasks)
 --   3. an ein Projekt gehängt werden (project_id, nullable)
 --
--- Tagro speichert seine Vorschläge als JSONB-Spalte auf der Notiz —
+-- Veyra speichert seine Vorschläge als JSONB-Spalte auf der Notiz —
 -- so bleibt eine Notiz eine atomare Einheit (kein Join nötig).
 
 -- ── notes ────────────────────────────────────────────────────

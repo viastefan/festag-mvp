@@ -30,7 +30,7 @@ const PHASE_LABEL: Record<string,string> = { intake:'Intake', planning:'Planung'
 const PHASE_TONE: Record<string,'good'|'amber'|'muted'> = { intake:'muted', planning:'muted', active:'amber', testing:'amber', done:'good' }
 const PRIORITY_COLOR: Record<string,string> = { critical:'#ef4444', high:'#f97316', medium:'#f59e0b', low:'#22c55e' }
 // Curated project color palette — calm, Festag-aligned (no neon).
-const PROJECT_COLORS = ['#5B647D','#6E8FB8','#5BA88C','#C18409','#C0744C','#B5566B','#8B6FB0','#5F7A8A','#94A0AE']
+const PROJECT_COLORS = ['#5B647D','#6E8FB8','#5BA88C','#C18409','#C0744C','#B5566B','#6a738c','#5F7A8A','#94A0AE']
 
 function fmtDate(value?: string | null) {
   if (!value) return null
@@ -265,7 +265,7 @@ function ProjectPageInner() {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             max_tokens: 200,
-            system: `Du bist Tagro, AI-System von Festag. Antworte klar, max 2 Sätze. Kein Smalltalk. Projekt: "${project?.title || 'Unbekannt'}"`,
+            system: `Du bist Veyra, AI-System von Festag. Antworte klar, max 2 Sätze. Kein Smalltalk. Projekt: "${project?.title || 'Unbekannt'}"`,
             messages: [{ role: 'user', content: msg }],
             userId,
             projectId: id,
@@ -389,7 +389,7 @@ function ProjectPageInner() {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           max_tokens: 500,
-          system: `Du bist Tagro, der AI-Projektmanager von Festag. Erstelle einen professionellen Statusbericht auf Deutsch.
+          system: `Du bist Veyra, der AI-Projektmanager von Festag. Erstelle einen professionellen Statusbericht auf Deutsch.
 Struktur (nutze Markdown):
 **Erledigt:** Was wurde abgeschlossen
 **In Arbeit:** Was läuft gerade
@@ -410,7 +410,7 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
       }
       const content = data.content?.[0]?.text
       if (!content) {
-        alert('Tagro hat keinen Inhalt zurückgegeben. Bitte erneut versuchen.')
+        alert('Veyra hat keinen Inhalt zurückgegeben. Bitte erneut versuchen.')
         setGeneratingAI(false)
         return
       }
@@ -439,7 +439,7 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
     for (const m of messages) {
       events.push({
         id: `m-${m.id}`, ts: new Date(m.created_at).getTime(),
-        kind: 'message', title: m.is_ai ? 'Tagro' : 'Du',
+        kind: 'message', title: m.is_ai ? 'Veyra' : 'Du',
         body: m.message,
       })
     }
@@ -505,7 +505,7 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
   const decisionTasks = tasks.filter(t => t.status === 'waiting') as any[]
   const riskTasks = tasks.filter(t => t.status === 'blocked') as any[]
 
-  // Tasks awaiting owner approval — dev finished or Tagro verified.
+  // Tasks awaiting owner approval — dev finished or Veyra verified.
   // Only admins see the inline approve/reject buttons (the route
   // 403s anyone else anyway).
   const approvalTasks = tasks.filter((t: any) => {
@@ -552,10 +552,10 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
     if (project.status === 'done') return { tone: 'passed', label: 'Approved' }
     if (project.status === 'testing') return { tone: 'review', label: 'In Review' }
     if (doneTasks.length === 0) return { tone: 'pending', label: 'Pending Review' }
-    return { tone: 'review', label: 'Tagro Check' }
+    return { tone: 'review', label: 'Veyra Check' }
   })()
 
-  // Tagro Intelligence — calm executive summary derived from state.
+  // Veyra Intelligence — calm executive summary derived from state.
   const tagroNextAction = (() => {
     if (decisionTasks.length > 0) return decisionTasks[0].title
     if (riskTasks.length > 0)     return `Blocker beheben: ${riskTasks[0].title}`
@@ -565,7 +565,7 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
     return 'Projekt-Scope schärfen und nächsten Meilenstein definieren'
   })()
   const tagroSummary = (() => {
-    if (tasks.length === 0) return `Das Projekt steht ganz am Anfang. Tagro wartet auf Scope und erste Aufgaben.`
+    if (tasks.length === 0) return `Das Projekt steht ganz am Anfang. Veyra wartet auf Scope und erste Aufgaben.`
     const sentenceA = `Aktuell ${PHASE_LABEL[project.status] ?? project.status} · ${pct}% Fortschritt · ${doingTasks.length} aktive Tasks.`
     const sentenceB = riskTasks.length > 0
       ? `${riskTasks.length} Blocker brauchen Aufmerksamkeit.`
@@ -1418,7 +1418,7 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
                   <span className="pv-report-label">Statusbericht</span>
                   <button className="pv-update-btn" onClick={generateAIUpdate} disabled={generatingAI}>
                     {generatingAI
-                      ? <><span className="pv-spin" aria-hidden />Tagro schreibt…</>
+                      ? <><span className="pv-spin" aria-hidden />Veyra schreibt…</>
                       : latestUpdate ? 'Neu erzeugen' : 'Statusbericht erzeugen'}
                   </button>
                 </div>
@@ -1437,7 +1437,7 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
                   </>
                 ) : (
                   <p className="pv-report-empty">
-                    Tagro verdichtet den aktuellen Projektstand in einen ruhigen Bericht — Fortschritt, offene Punkte, nächste Schritte. Klick auf „Statusbericht erzeugen".
+                    Veyra verdichtet den aktuellen Projektstand in einen ruhigen Bericht — Fortschritt, offene Punkte, nächste Schritte. Klick auf „Statusbericht erzeugen".
                   </p>
                 )}
               </section>

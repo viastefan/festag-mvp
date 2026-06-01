@@ -25,7 +25,7 @@ type TeamMember = { id: string; email: string; name: string; role: string }
 const STATUS_META: Record<string, { label: string; color: string; bg: string }> = {
   open:        { label: 'Offen',     color: '#94a3b8', bg: 'rgba(148,163,184,.12)' },
   in_progress: { label: 'In Arbeit', color: '#f97316', bg: 'rgba(249,115,22,.12)'  },
-  review:      { label: 'Review',    color: '#8b5cf6', bg: 'rgba(139,92,246,.12)'  },
+  review:      { label: 'Review',    color: '#6a738c', bg: 'rgba(106,115,140,.12)'  },
   done:        { label: 'Erledigt',  color: '#22c55e', bg: 'rgba(34,197,94,.12)'   },
 }
 const PRIORITY_META: Record<string, { label: string; color: string }> = {
@@ -157,7 +157,7 @@ export default function RelProjectDetailPage() {
   async function generateBericht() {
     setGenerating(true)
     await new Promise(r => setTimeout(r, 1800))
-    const content = `**Tagro Statusbericht – ${new Date().toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' })}**
+    const content = `**Veyra Statusbericht – ${new Date().toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' })}**
 
 Das Projekt "${project?.title}" befindet sich aktuell in Phase "${project?.phase || project?.status}".
 
@@ -175,7 +175,7 @@ Das Projekt "${project?.title}" befindet sich aktuell in Phase "${project?.phase
 Das Team sollte die offenen Punkte prüfen und konkrete Tasks zuweisen.`
 
     await (createClient() as any).from('rel_statusberichte').insert({
-      project_id: id, content, summary: 'Automatischer Tagro-Statusbericht', source: 'tagro', created_by: userId,
+      project_id: id, content, summary: 'Automatischer Veyra-Statusbericht', source: 'tagro', created_by: userId,
     })
     setGenerating(false); load(); setTab('Projektbriefings')
   }
@@ -203,7 +203,7 @@ Das Team sollte die offenen Punkte prüfen und konkrete Tasks zuweisen.`
   const openTasks   = tasks.filter(t => t.status === 'open')
   const activeTasks = tasks.filter(t => t.status === 'in_progress' || t.status === 'review')
   const doneTasks   = tasks.filter(t => t.status === 'done')
-  const pColor      = project?.color || '#6366f1'
+  const pColor      = project?.color || '#6a738c'
 
   if (loading) return (
     <div className="page-content" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 300 }}>
@@ -261,19 +261,19 @@ Das Team sollte die offenen Punkte prüfen und konkrete Tasks zuweisen.`
       {/* ══ ÜBERSICHT ══ */}
       {tab === 'Übersicht' && (
         <div>
-          {/* Tagro CTA */}
+          {/* Veyra CTA */}
           <div style={{ border: `1px solid ${pColor}33`, borderRadius: 12, padding: '18px 20px', marginBottom: 24, background: `${pColor}07`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
             <div>
-              <p style={{ margin: '0 0 3px', fontSize: 13.5, fontWeight: 600, color: 'var(--text)' }}>Tagro Statusbericht</p>
+              <p style={{ margin: '0 0 3px', fontSize: 13.5, fontWeight: 600, color: 'var(--text)' }}>Veyra Statusbericht</p>
               <p style={{ margin: 0, fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.55 }}>
-                Tagro analysiert den Projektstatus und erstellt automatisch Tasks für dein Entwicklerteam.
+                Veyra analysiert den Projektstatus und erstellt automatisch Tasks für dein Entwicklerteam.
               </p>
             </div>
             <button onClick={generateBericht} disabled={generating}
               style={{ flexShrink: 0, height: 33, padding: '0 15px', background: pColor, color: '#fff', border: 'none', borderRadius: 8, fontSize: 12.5, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 6, opacity: generating ? .7 : 1 }}>
               {generating
                 ? <><span style={{ width: 11, height: 11, border: '2px solid rgba(255,255,255,.3)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin .7s linear infinite' }}/> Analysiere…</>
-                : <><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 2L9 9H2l5.5 4-2 7L12 16l6.5 4-2-7L22 9h-7z"/></svg> Tagro starten</>
+                : <><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 2L9 9H2l5.5 4-2 7L12 16l6.5 4-2-7L22 9h-7z"/></svg> Veyra starten</>
               }
             </button>
           </div>
@@ -286,7 +286,7 @@ Das Team sollte die offenen Punkte prüfen und konkrete Tasks zuweisen.`
             </div>
             {tasks.length === 0 ? (
               <div style={{ border: '1px dashed var(--border)', borderRadius: 8, padding: '28px 0', textAlign: 'center' }}>
-                <p style={{ margin: '0 0 10px', fontSize: 13, color: 'var(--text-muted)' }}>Noch keine Tasks — starte Tagro oder erstelle manuell.</p>
+                <p style={{ margin: '0 0 10px', fontSize: 13, color: 'var(--text-muted)' }}>Noch keine Tasks — starte Veyra oder erstelle manuell.</p>
                 <button onClick={() => openNewTask()} style={{ height: 30, padding: '0 14px', background: 'var(--btn-prim)', color: 'var(--btn-prim-text)', border: 'none', borderRadius: 6, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>Task erstellen</button>
               </div>
             ) : (
@@ -310,7 +310,7 @@ Das Team sollte die offenen Punkte prüfen und konkrete Tasks zuweisen.`
               <div className="b-card">
                 <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 10 }}>
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke={pColor} strokeWidth="2.2" strokeLinecap="round"><path d="M12 2L9 9H2l5.5 4-2 7L12 16l6.5 4-2-7L22 9h-7z"/></svg>
-                  <span style={{ fontSize: 12, fontWeight: 600, color: pColor }}>Tagro</span>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: pColor }}>Veyra</span>
                   <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{timeAgo(berichte[0].created_at)}</span>
                 </div>
                 <p style={{ margin: '0 0 10px', fontSize: 12.5, color: 'var(--text-secondary)', lineHeight: 1.65, whiteSpace: 'pre-wrap' }}>
@@ -339,10 +339,10 @@ Das Team sollte die offenen Punkte prüfen und konkrete Tasks zuweisen.`
           {tasks.length === 0 ? (
             <div style={{ border: '1px dashed var(--border)', borderRadius: 10, padding: '50px 0', textAlign: 'center' }}>
               <p style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--text)', margin: '0 0 5px' }}>Noch keine Tasks</p>
-              <p style={{ fontSize: 12.5, color: 'var(--text-muted)', margin: '0 0 16px' }}>Erstelle Tasks manuell oder lass Tagro aus einem Statusbericht Tasks generieren.</p>
+              <p style={{ fontSize: 12.5, color: 'var(--text-muted)', margin: '0 0 16px' }}>Erstelle Tasks manuell oder lass Veyra aus einem Statusbericht Tasks generieren.</p>
               <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
                 <button onClick={() => openNewTask()} style={{ height: 32, padding: '0 14px', background: 'var(--btn-prim)', color: 'var(--btn-prim-text)', border: 'none', borderRadius: 7, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>Manuell erstellen</button>
-                <button onClick={generateBericht} style={{ height: 32, padding: '0 14px', background: 'transparent', color: 'var(--text-secondary)', border: '1px solid var(--border)', borderRadius: 7, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>Tagro starten</button>
+                <button onClick={generateBericht} style={{ height: 32, padding: '0 14px', background: 'transparent', color: 'var(--text-secondary)', border: '1px solid var(--border)', borderRadius: 7, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>Veyra starten</button>
               </div>
             </div>
           ) : (
@@ -363,13 +363,13 @@ Das Team sollte die offenen Punkte prüfen und konkrete Tasks zuweisen.`
             <button onClick={generateBericht} disabled={generating}
               style={{ height: 30, padding: '0 12px', background: pColor, color: '#fff', border: 'none', borderRadius: 7, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 5, opacity: generating ? .7 : 1 }}>
               {generating ? <span style={{ width: 10, height: 10, border: '2px solid rgba(255,255,255,.3)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin .7s linear infinite' }}/> : <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 2L9 9H2l5.5 4-2 7L12 16l6.5 4-2-7L22 9h-7z"/></svg>}
-              Tagro Bericht
+              Veyra Bericht
             </button>
           </div>
           {berichte.length === 0 ? (
             <div style={{ border: '1px dashed var(--border)', borderRadius: 10, padding: '50px 0', textAlign: 'center' }}>
               <p style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--text)', margin: '0 0 5px' }}>Noch keine Berichte</p>
-              <p style={{ fontSize: 12.5, color: 'var(--text-muted)', margin: '0 0 16px' }}>Tagro analysiert deinen Projektstatus und erstellt strukturierte Berichte mit konkreten Handlungsempfehlungen.</p>
+              <p style={{ fontSize: 12.5, color: 'var(--text-muted)', margin: '0 0 16px' }}>Veyra analysiert deinen Projektstatus und erstellt strukturierte Berichte mit konkreten Handlungsempfehlungen.</p>
               <button onClick={generateBericht} disabled={generating} style={{ height: 32, padding: '0 16px', background: pColor, color: '#fff', border: 'none', borderRadius: 7, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
                 Ersten Bericht generieren
               </button>
@@ -382,7 +382,7 @@ Das Team sollte die offenen Punkte prüfen und konkrete Tasks zuweisen.`
                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke={pColor} strokeWidth="2.2" strokeLinecap="round"><path d="M12 2L9 9H2l5.5 4-2 7L12 16l6.5 4-2-7L22 9h-7z"/></svg>
                   </div>
                   <div>
-                    <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--text)' }}>Tagro Analyse</span>
+                    <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--text)' }}>Veyra Analyse</span>
                     <span style={{ fontSize: 11, color: 'var(--text-muted)', marginLeft: 8 }}>{timeAgo(b.created_at)}</span>
                   </div>
                 </div>
@@ -488,7 +488,7 @@ function TaskRow({ task, last, onClick, onCycle }: { task: Task; last: boolean; 
         {task.title}
       </span>
       {task.source === 'tagro' && (
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" strokeWidth="2" strokeLinecap="round" title="Von Tagro"><path d="M12 2L9 9H2l5.5 4-2 7L12 16l6.5 4-2-7L22 9h-7z"/></svg>
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#6a738c" strokeWidth="2" strokeLinecap="round" title="Von Veyra"><path d="M12 2L9 9H2l5.5 4-2 7L12 16l6.5 4-2-7L22 9h-7z"/></svg>
       )}
       {task.assignee_name && (
         <span style={{ fontSize: 10.5, fontWeight: 600, color: 'var(--text-muted)', background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 8, padding: '1px 7px', flexShrink: 0 }}>{task.assignee_name}</span>

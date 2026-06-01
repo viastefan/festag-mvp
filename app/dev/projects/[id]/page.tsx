@@ -140,7 +140,7 @@ export default function DevProjectDetailPage() {
   // Mirror profiles into a ref so the realtime callback never reads a stale map.
   useEffect(() => { profilesRef.current = profiles }, [profiles])
 
-  // Realtime — client / Tagro / co-dev messages on this project land instantly.
+  // Realtime — client / Veyra / co-dev messages on this project land instantly.
   useEffect(() => {
     if (!projectId) return
     const channel = supabase
@@ -174,7 +174,7 @@ export default function DevProjectDetailPage() {
     return 'dev'
   }
   function senderName(m: Message): string {
-    if (m.is_ai) return 'Tagro'
+    if (m.is_ai) return 'Veyra'
     const p = profiles[m.sender_id]
     return p?.full_name || p?.email || (m.sender_id === me ? 'Du' : 'Developer')
   }
@@ -368,7 +368,7 @@ export default function DevProjectDetailPage() {
         .pd-empty { color: var(--text-muted); font-size: 13px; line-height: 1.55; padding: 18px 4px; }
         .pd-msg { border: 1px solid var(--border); border-radius: 13px; padding: 11px 13px; max-width: 88%; }
         .pd-msg.client { align-self: flex-start; background: var(--surface-2); border-color: var(--border-strong); }
-        .pd-msg.dev { align-self: flex-end; background: color-mix(in srgb, var(--accent, #8e96ff) 12%, var(--card)); }
+        .pd-msg.dev { align-self: flex-end; background: color-mix(in srgb, var(--accent, #6a738c) 12%, var(--card)); }
         .pd-msg.tagro { align-self: flex-start; background: transparent; border-style: dashed; }
         .pd-msg-head { display: flex; align-items: center; gap: 7px; margin-bottom: 4px; }
         .pd-msg-author { font-size: 12px; font-weight: 700; color: var(--text); }

@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
           .select('content').eq('project_id', body.projectId).eq('type', 'status_report')
           .order('created_at', { ascending: false }).limit(1).maybeSingle()
         bodyText = (latest as any)?.content
-          || `Für "${projectTitle}" liegt noch kein generierter Statusbericht vor. Sobald Tagro neue Signale erkennt, landet hier eine Zusammenfassung.`
+          || `Für "${projectTitle}" liegt noch kein generierter Statusbericht vor. Sobald Veyra neue Signale erkennt, landet hier eine Zusammenfassung.`
       }
     } else {
       const { data: projs } = await sb.from('projects').select('id,title,status').eq('user_id', user.id)

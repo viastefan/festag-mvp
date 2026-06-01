@@ -1,6 +1,6 @@
 'use client'
 
-import RelationsTagro from '@/components/RelationsTagro'
+import RelationsVeyra from '@/components/RelationsVeyra'
 import { motion } from 'framer-motion'
 
 export default function RelationsAIPage() {
@@ -12,7 +12,7 @@ export default function RelationsAIPage() {
         transition={{ duration: .3, ease: [.16, 1, .3, 1] }}
         style={{ height: 'calc(100dvh - 0px)' }}
       >
-        <RelationsTagro />
+        <RelationsVeyra />
       </motion.div>
     </div>
   )

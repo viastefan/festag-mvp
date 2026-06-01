@@ -63,7 +63,7 @@ type ProjectRow = {
   color?: string | null
 }
 
-type TagroPreview = {
+type VeyraPreview = {
   client_summary?: string
   suggested_title?: string
   suggested_description?: string
@@ -74,12 +74,6 @@ type TagroPreview = {
   open_questions?: string[]
   recommended_next_step?: string
   confidence_score?: number
-}
-
-type StatePopoverPosition = {
-  left: number
-  top: number
-  width: number
 }
 
 const PRIORITY_OPTIONS = [
@@ -180,7 +174,7 @@ function healthLabel(task: TaskRow) {
   if (raw === 'waiting_for_assignment') return 'Wartet auf Zuweisung'
   if (normalized === 'decision') return 'Wartet auf deine Entscheidung'
   if (normalized === 'active') return 'Entwickler arbeitet daran'
-  return 'Tagro hat die Aufgabe geplant'
+  return 'Veyra hat die Aufgabe geplant'
 }
 
 function priorityLabel(priority?: string | null) {
@@ -194,7 +188,7 @@ function priorityLabel(priority?: string | null) {
 
 function sourceLabel(source?: string | null) {
   if (source === 'client_manual') return 'Manuell erstellt'
-  if (source === 'client_tagro') return 'Von Tagro vorbereitet'
+  if (source === 'client_tagro') return 'Von Veyra vorbereitet'
   if (source === 'status_report') return 'Aus Statusbericht'
   if (source === 'decision') return 'Aus Entscheidung'
   if (source === 'admin' || source === 'developer') return 'Vom Projektteam'
@@ -237,10 +231,9 @@ export default function TasksPage() {
   const [suggestLabels, setSuggestLabels] = useState<string[]>([])
   const [creatingSuggestion, setCreatingSuggestion] = useState(false)
   const [composerNotice, setComposerNotice] = useState('')
-  const [tagroPreview, setTagroPreview] = useState<TagroPreview | null>(null)
+  const [tagroPreview, setVeyraPreview] = useState<VeyraPreview | null>(null)
   const [expandedProjectIds, setExpandedProjectIds] = useState<string[]>([])
   const [activeStatePopoverTaskId, setActiveStatePopoverTaskId] = useState<string | null>(null)
-  const [statePopoverPosition, setStatePopoverPosition] = useState<StatePopoverPosition | null>(null)
   const hasSeededProjectGroupsRef = useRef(false)
   const taskToolsRef = useRef<HTMLDivElement | null>(null)
 
@@ -437,29 +430,9 @@ export default function TasksPage() {
 
   function closeStatePopover() {
     setActiveStatePopoverTaskId(null)
-    setStatePopoverPosition(null)
   }
 
-  function openStatePopover(taskId: string, trigger: HTMLElement) {
-    const rect = trigger.getBoundingClientRect()
-    const viewportPadding = 12
-    const gap = 14
-    const width = Math.min(330, Math.max(220, window.innerWidth - viewportPadding * 2))
-    const estimatedHeight = 136
-
-    let left = rect.right + gap
-    if (left + width > window.innerWidth - viewportPadding) {
-      left = rect.left - width - gap
-    }
-    left = Math.max(viewportPadding, Math.min(left, window.innerWidth - width - viewportPadding))
-
-    let top = rect.top - estimatedHeight - 12
-    if (top < viewportPadding) {
-      top = rect.bottom + 12
-    }
-    top = Math.max(viewportPadding, Math.min(top, window.innerHeight - estimatedHeight - viewportPadding))
-
-    setStatePopoverPosition({ left, top, width })
+  function openStatePopover(taskId: string) {
     setActiveStatePopoverTaskId(taskId)
   }
 
@@ -484,7 +457,7 @@ export default function TasksPage() {
     setSuggestLabels([])
     setComposerMode('tagro')
     setComposerNotice('')
-    setTagroPreview(null)
+    setVeyraPreview(null)
   }
 
   function closeComposer() {
@@ -503,7 +476,7 @@ export default function TasksPage() {
     return (
       <div
         key={task.id}
-        className="task-row task-row-flat"
+        className={`task-row task-row-flat${activeStatePopoverTaskId === task.id ? ' state-open' : ''}`}
         role="button"
         tabIndex={0}
         style={{ ['--row-index' as string]: rowIndex, ['--task-group-color' as string]: group.color }}
@@ -535,7 +508,7 @@ export default function TasksPage() {
                 if (activeStatePopoverTaskId === task.id) {
                   closeStatePopover()
                 } else {
-                  openStatePopover(task.id, event.currentTarget)
+                  openStatePopover(task.id)
                 }
               }}
               onKeyDown={(event) => {
@@ -544,6 +517,18 @@ export default function TasksPage() {
             >
               {isDone ? <Check size={9} weight="bold" /> : null}
             </button>
+            {activeStatePopoverTaskId === task.id ? (
+              <span
+                id={STATE_POPOVER_ID}
+                className="task-state-popover is-open"
+                role="dialog"
+                aria-label="Erledigt-Logik"
+                onClick={(event) => event.stopPropagation()}
+              >
+                <strong>So funktioniert Erledigt</strong>
+                <span>Veyra oder der Developer haken Aufgaben ab. Erledigte Aufgaben bleiben 24h sichtbar und verschwinden dann nur aus Standardansichten. Eigene Aufgaben kannst du löschen.</span>
+              </span>
+            ) : null}
           </span>
           <span className="task-name-text">
             <strong>{task.title}</strong>
@@ -619,7 +604,7 @@ export default function TasksPage() {
       }
 
       if (composerMode === 'tagro' && !tagroPreview && result.proposal) {
-        setTagroPreview(result.proposal)
+        setVeyraPreview(result.proposal)
         return
       }
 
@@ -954,15 +939,18 @@ export default function TasksPage() {
         }
         .task-menu button:hover, .task-menu button.on { background:var(--surface-2); color:var(--text); }
         .task-table {
-          width:calc(100% + 52px);
+          width:100%;
+          max-width:100%;
           margin-left:0;
-          margin-right:-52px;
+          margin-right:0;
+          padding-right:14px;
+          box-sizing:border-box;
           overflow:visible;
         }
         .task-head,
         .task-row {
           display:grid;
-          grid-template-columns:42px minmax(190px,1.55fr) minmax(128px,.85fr) 76px 104px 84px 58px 82px;
+          grid-template-columns:42px minmax(185px,1.7fr) minmax(132px,.95fr) minmax(62px,.42fr) minmax(96px,.58fr) minmax(74px,.48fr) minmax(64px,.42fr) minmax(68px,.42fr);
           align-items:center;
           gap:8px;
           margin:0;
@@ -996,6 +984,9 @@ export default function TasksPage() {
           position:relative;
           background:transparent;
           transition:background .12s ease;
+        }
+        .task-row.state-open {
+          z-index:80;
         }
         .task-row:hover {
           background:color-mix(in srgb, var(--surface-2) 60%, transparent);
@@ -1046,7 +1037,7 @@ export default function TasksPage() {
           width:100%;
           min-height:40px;
           display:grid;
-          grid-template-columns:42px minmax(190px,1.55fr) minmax(128px,.85fr) 76px 104px 84px 58px 82px;
+          grid-template-columns:42px minmax(185px,1.7fr) minmax(132px,.95fr) minmax(62px,.42fr) minmax(96px,.58fr) minmax(74px,.48fr) minmax(64px,.42fr) minmax(68px,.42fr);
           align-items:center;
           gap:8px;
           margin:0;
@@ -1438,22 +1429,22 @@ export default function TasksPage() {
           background:var(--btn-prim);
         }
         .task-state-popover {
-          position:fixed;
-          left:0;
-          top:0;
-          width:min(330px, calc(100vw - 24px));
-          max-width:calc(100vw - 24px);
-          max-height:calc(100vh - 24px);
-          transform:translateY(6px) scale(.985);
+          position:absolute;
+          left:calc(100% + 10px);
+          top:50%;
+          width:min(300px, calc(100vw - 48px));
+          max-width:calc(100vw - 48px);
+          max-height:260px;
+          transform:translateY(-50%) scale(.985);
           opacity:0;
           visibility:hidden;
           pointer-events:none;
-          z-index:360;
-          padding:13px 15px;
+          z-index:90;
+          padding:12px 14px;
           border-radius:12px;
           border:1px solid color-mix(in srgb, var(--border) 82%, transparent);
-          background:color-mix(in srgb, var(--surface) 96%, #fff 4%);
-          box-shadow:0 22px 58px rgba(15,23,42,.18), 0 1px 0 rgba(255,255,255,.58) inset;
+          background:color-mix(in srgb, var(--card) 98%, var(--surface-2) 2%);
+          box-shadow:var(--shadow-sm), 0 0 0 1px color-mix(in srgb, var(--accent-primary, #6a738c) 5%, transparent);
           color:var(--task-soft-text);
           font-size:12px;
           line-height:1.5;
@@ -1462,10 +1453,23 @@ export default function TasksPage() {
           overflow:auto;
           transition:opacity .14s ease, visibility .14s ease, transform .14s ease;
         }
+        .task-state-popover::before {
+          content:"";
+          position:absolute;
+          left:-5px;
+          top:50%;
+          width:9px;
+          height:9px;
+          transform:translateY(-50%) rotate(45deg);
+          background:inherit;
+          border-left:1px solid color-mix(in srgb, var(--border) 82%, transparent);
+          border-bottom:1px solid color-mix(in srgb, var(--border) 82%, transparent);
+        }
         [data-theme="dark"] .task-state-popover,
         [data-theme="classic-dark"] .task-state-popover {
-          background:color-mix(in srgb, var(--surface) 92%, #fff 8%);
-          box-shadow:0 22px 58px rgba(0,0,0,.34), 0 1px 0 rgba(255,255,255,.06) inset;
+          background:color-mix(in srgb, var(--surface-2) 84%, var(--card) 16%);
+          border-color:color-mix(in srgb, var(--border-strong) 58%, transparent);
+          box-shadow:0 14px 34px rgba(0,0,0,.26), 0 1px 0 rgba(255,255,255,.04) inset;
         }
         .task-state-popover strong {
           display:block;
@@ -1478,7 +1482,7 @@ export default function TasksPage() {
         .task-state-popover.is-open {
           opacity:1;
           visibility:visible;
-          transform:none;
+          transform:translateY(-50%);
           pointer-events:auto;
         }
         .task-state-popover span {
@@ -1508,7 +1512,7 @@ export default function TasksPage() {
         .task-health.done { color:var(--green); }
         .task-health.active { color:var(--amber); }
         .task-health.decision { color:var(--amber); }
-        .task-health.review { color:#6366f1; }
+        .task-health.review { color:#6a738c; }
         .task-progress {
           display:flex;
           align-items:center;
@@ -1526,7 +1530,7 @@ export default function TasksPage() {
         }
         .task-health.review ~ .task-progress .task-progress-dot,
         .task-progress-dot.review {
-          border-color:#6366f1;
+          border-color:#6a738c;
         }
         .task-health.decision ~ .task-progress .task-progress-dot,
         .task-progress-dot.decision {
@@ -1747,6 +1751,7 @@ export default function TasksPage() {
             height:17px;
           }
           .task-state-popover {
+            position:fixed;
             left:12px !important;
             right:12px;
             top:auto !important;
@@ -1755,6 +1760,9 @@ export default function TasksPage() {
             max-width:none;
             max-height:min(260px, calc(100vh - 24px - var(--safe-bottom)));
             transform:translateY(8px) scale(.985);
+          }
+          .task-state-popover::before {
+            display:none;
           }
           .task-state-popover.is-open {
             transform:none;
@@ -1969,7 +1977,7 @@ export default function TasksPage() {
             icon={ListChecks}
             kicker="Aufgaben"
             title="Noch kein Projekt vorhanden"
-            description="Aufgaben entstehen innerhalb eines Projekts. Lege zuerst ein Projekt an oder starte ein Briefing mit Tagro."
+            description="Aufgaben entstehen innerhalb eines Projekts. Lege zuerst ein Projekt an oder starte ein Briefing mit Veyra."
             actions={[
               { label: 'Erstes Projekt anlegen', icon: Plus, primary: true, href: '/new-project' },
               { label: 'Projektbriefing starten', icon: Sparkle, href: '/ai' },
@@ -2005,7 +2013,7 @@ export default function TasksPage() {
               <span style={{ color:'var(--task-soft-text)', fontSize:12 }}>›</span>
               <span className="task-composer-title">
                 <strong>Aufgabe oder Wunsch vorschlagen</strong>
-                <span>Kurz beschreiben, Tagro ordnet ein.</span>
+                <span>Kurz beschreiben, Veyra ordnet ein.</span>
               </span>
             </div>
             <button className="task-plus" type="button" aria-label="Vorschlag schließen" onClick={closeComposer}>
@@ -2015,17 +2023,17 @@ export default function TasksPage() {
 
           <div className="task-composer-body">
             <div className="task-mode-tabs" role="tablist" aria-label="Vorschlagmodus">
-              <button type="button" className={composerMode === 'tagro' ? 'on' : ''} onClick={() => { setComposerMode('tagro'); setTagroPreview(null); setComposerNotice('') }}>
-                Mit Tagro prüfen
+              <button type="button" className={composerMode === 'tagro' ? 'on' : ''} onClick={() => { setComposerMode('tagro'); setVeyraPreview(null); setComposerNotice('') }}>
+                Mit Veyra prüfen
               </button>
-              <button type="button" className={composerMode === 'manual' ? 'on' : ''} onClick={() => { setComposerMode('manual'); setTagroPreview(null); setComposerNotice('') }}>
+              <button type="button" className={composerMode === 'manual' ? 'on' : ''} onClick={() => { setComposerMode('manual'); setVeyraPreview(null); setComposerNotice('') }}>
                 Manuell
               </button>
             </div>
 
             {composerMode === 'tagro' && (
               <div className="task-tagro-note">
-                Tagro prüft Kontext und Übergabe.
+                Veyra prüft Kontext und Übergabe.
               </div>
             )}
             {composerMode === 'manual' && (
@@ -2036,7 +2044,7 @@ export default function TasksPage() {
             {composerNotice ? <div className="task-notice">{composerNotice}</div> : null}
             {tagroPreview && (
               <div className="task-preview">
-                <strong>{tagroPreview.suggested_title || 'Tagro Preview'}</strong>
+                <strong>{tagroPreview.suggested_title || 'Veyra Preview'}</strong>
                 <p>{tagroPreview.client_summary || tagroPreview.suggested_description}</p>
                 {tagroPreview.possible_dev_interpretation ? <p>Mögliche Umsetzung: {tagroPreview.possible_dev_interpretation}</p> : null}
                 {tagroPreview.open_questions?.length ? (
@@ -2053,14 +2061,14 @@ export default function TasksPage() {
             <input
               className="task-composer-field title"
               value={suggestTitle}
-              onChange={(event) => { setSuggestTitle(event.target.value); setTagroPreview(null) }}
+              onChange={(event) => { setSuggestTitle(event.target.value); setVeyraPreview(null) }}
               placeholder="Aufgabe kurz benennen…"
               autoFocus
             />
             <textarea
               className="task-composer-field description"
               value={suggestDescription}
-              onChange={(event) => { setSuggestDescription(event.target.value); setTagroPreview(null) }}
+              onChange={(event) => { setSuggestDescription(event.target.value); setVeyraPreview(null) }}
               placeholder="Beschreibe Ziel, Kontext oder gewünschte Änderung…"
             />
           </div>
@@ -2114,7 +2122,7 @@ export default function TasksPage() {
           </div>
 
           <div className="task-composer-footer">
-            <span>{composerMode === 'tagro' ? 'Tagro prüft Kontext und Übergabe.' : 'Wartet ggf. auf Zuweisung.'}</span>
+            <span>{composerMode === 'tagro' ? 'Veyra prüft Kontext und Übergabe.' : 'Wartet ggf. auf Zuweisung.'}</span>
             <div className="task-composer-actions">
               <button type="button" onClick={closeComposer}>Abbrechen</button>
               <button
@@ -2123,7 +2131,7 @@ export default function TasksPage() {
                 onClick={createSuggestedTask}
                 disabled={creatingSuggestion || !suggestProjectId || (!suggestTitle.trim() && !suggestDescription.trim())}
               >
-                {creatingSuggestion ? 'Sende...' : composerMode === 'tagro' ? (tagroPreview ? 'Als Aufgabe erstellen' : 'Mit Tagro vorbereiten') : 'Manuell erstellen'}
+                {creatingSuggestion ? 'Sende...' : composerMode === 'tagro' ? (tagroPreview ? 'Als Aufgabe erstellen' : 'Mit Veyra vorbereiten') : 'Manuell erstellen'}
               </button>
             </div>
           </div>
@@ -2169,23 +2177,6 @@ export default function TasksPage() {
           )
         })}
       </div>}
-
-      {activeStatePopoverTaskId && statePopoverPosition ? (
-        <div
-          id={STATE_POPOVER_ID}
-          className="task-state-popover is-open"
-          role="dialog"
-          aria-label="Erledigt-Logik"
-          style={{
-            left: statePopoverPosition.left,
-            top: statePopoverPosition.top,
-            width: statePopoverPosition.width,
-          }}
-        >
-          <strong>So funktioniert Erledigt</strong>
-          <span>Tagro oder der Developer haken Aufgaben ab. Erledigte Aufgaben bleiben 24h sichtbar und verschwinden dann nur aus Standardansichten. Eigene Aufgaben kannst du löschen.</span>
-        </div>
-      ) : null}
 
       </div>
     </div>

@@ -6,7 +6,7 @@ import { useEffect } from 'react'
  *
  * Suche → öffnet Cmd+K Command Palette (CommandPalette.tsx).
  * Keine eigene Search-Logik mehr im Header — das wäre Doppellogik.
- * Tagro-Hinweis: per `tagro: …` Prefix in der Palette.
+ * Veyra-Hinweis: per `tagro: …` Prefix in der Palette.
  */
 export default function AppHeader({
   copilotOpen,

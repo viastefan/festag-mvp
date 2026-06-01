@@ -7,10 +7,10 @@
  *   • True modal — dim + blur backdrop over the whole viewport. The
  *     sidebar stays visible behind the dim but is locked. The dialog
  *     sits dead-centre on the page (not inside the content column).
- *   • One concise form that opens a focused Tagro briefing chat. The
+ *   • One concise form that opens a focused Veyra briefing chat. The
  *     first user message is carried into the chat as the starting point.
  *   • Submit lifecycle: idle → "Projekt vorbereiten" → loading
- *     "Tagro strukturiert…" → success "Projekt angelegt" with a calm
+ *     "Veyra strukturiert…" → success "Projekt angelegt" with a calm
  *     four-step progress strip → onCreated.
  *   • No black buttons anywhere. Slate (var(--btn-prim)) is the only
  *     primary tone.
@@ -19,7 +19,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { ElementType } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import TagroLogo from '@/components/TagroLogo'
+import VeyraLogo from '@/components/VeyraLogo'
 import {
   ArrowRight, ArrowsClockwise, Buildings, ChatCircleText, Check,
   ListChecks, PaperPlaneTilt, Plus, Sparkle, Trash, UsersThree, X,
@@ -67,13 +67,12 @@ const DELIVERY_OPTIONS: DeliveryOption[] = [
 // Calm accent palette. The colour shows up only as a thin row marker in
 // the projects table and as a soft tint in the project header.
 const ACCENT_COLOURS = [
+  { id: 'primary', value: '#6a738c', label: 'Primary' },
   { id: 'slate',   value: '#5B647D', label: 'Slate' },
-  { id: 'indigo',  value: '#6366F1', label: 'Indigo' },
   { id: 'sky',     value: '#0EA5E9', label: 'Sky' },
   { id: 'emerald', value: '#22A06B', label: 'Emerald' },
   { id: 'amber',   value: '#D4882B', label: 'Amber' },
   { id: 'rose',    value: '#E11D48', label: 'Rose' },
-  { id: 'violet',  value: '#8B5CF6', label: 'Violet' },
   { id: 'mist',    value: '#94A3B8', label: 'Mist' },
 ]
 
@@ -83,7 +82,7 @@ type ChatTurn = { role: 'user' | 'tagro'; text: string }
 
 const LOADING_STEPS = [
   'Projekt wird vorbereitet',
-  'Tagro strukturiert die Angaben',
+  'Veyra strukturiert die Angaben',
   'Nächste Schritte werden angelegt',
   'Projekt wurde erstellt',
 ] as const
@@ -102,8 +101,8 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
   const [chatInput, setChatInput] = useState('')
   const [chatLoading, setChatLoading] = useState(false)
   const [chatComplete, setChatComplete] = useState(false)
-  const [tagroTitle, setTagroTitle] = useState<string | null>(null)
-  const [tagroSummary, setTagroSummary] = useState<string | null>(null)
+  const [tagroTitle, setVeyraTitle] = useState<string | null>(null)
+  const [tagroSummary, setVeyraSummary] = useState<string | null>(null)
 
   const [phase, setPhase] = useState<Phase>('form')
   const [loadingStep, setLoadingStep] = useState(0)
@@ -224,7 +223,7 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
     return [{ role: 'user', text: parts.join('\n\n') }]
   }
 
-  async function askTagro(history: ChatTurn[]) {
+  async function askVeyra(history: ChatTurn[]) {
     setChatLoading(true)
     setError('')
     try {
@@ -234,17 +233,17 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
         body: JSON.stringify({ chatHistory: history }),
       })
       const data = await res.json()
-      if (!res.ok) throw new Error(data?.error || 'Tagro konnte gerade nicht antworten.')
+      if (!res.ok) throw new Error(data?.error || 'Veyra konnte gerade nicht antworten.')
 
-      setTagroTitle(typeof data?.title === 'string' ? data.title : null)
-      setTagroSummary(typeof data?.summary === 'string' ? data.summary : null)
+      setVeyraTitle(typeof data?.title === 'string' ? data.title : null)
+      setVeyraSummary(typeof data?.summary === 'string' ? data.summary : null)
       setChatComplete(Boolean(data?.complete))
 
       const question = typeof data?.question === 'string' ? data.question.trim() : ''
       const tagroText = question || 'Ich habe genug Kontext. Du kannst das Projekt jetzt vorbereiten.'
       setChatHistory([...history, { role: 'tagro', text: tagroText }])
     } catch (e: any) {
-      setError(e?.message || 'Tagro konnte gerade nicht antworten.')
+      setError(e?.message || 'Veyra konnte gerade nicht antworten.')
       setChatHistory([...history, {
         role: 'tagro',
         text: 'Ich habe deine Nachricht übernommen. Du kannst noch Details ergänzen oder das Projekt direkt vorbereiten.',
@@ -254,12 +253,12 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
     }
   }
 
-  async function openTagroChat() {
+  async function openVeyraChat() {
     if (!canStartChat || phase === 'loading') return
     const initialHistory = buildInitialChatHistory()
     setChatHistory(initialHistory)
     setPhase('chat')
-    await askTagro(initialHistory)
+    await askVeyra(initialHistory)
   }
 
   async function sendChatMessage() {
@@ -268,7 +267,7 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
     const nextHistory = [...chatHistory, { role: 'user' as const, text }]
     setChatInput('')
     setChatHistory(nextHistory)
-    await askTagro(nextHistory)
+    await askVeyra(nextHistory)
   }
 
   function addMilestone() {
@@ -303,7 +302,7 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
         body: JSON.stringify({ chatHistory: decomposerHistory, userId }),
       })
       const data = await res.json()
-      if (!res.ok) throw new Error(data?.error || 'Tagro konnte das Projekt nicht strukturieren.')
+      if (!res.ok) throw new Error(data?.error || 'Veyra konnte das Projekt nicht strukturieren.')
       const projectId: string | undefined = data?.projectId
       if (!projectId) throw new Error('Projekt wurde analysiert, aber noch nicht gespeichert.')
 
@@ -371,8 +370,8 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
       >
         <header className="npm-head">
           <div className="npm-head-meta">
-            <p className="npm-eyebrow">{phase === 'chat' ? 'Tagro Briefing' : 'Neues Projekt'}</p>
-            <h2>{phase === 'chat' ? 'Mit Tagro strukturieren' : 'Was möchtest du umsetzen?'}</h2>
+            <p className="npm-eyebrow">{phase === 'chat' ? 'Veyra Briefing' : 'Neues Projekt'}</p>
+            <h2>{phase === 'chat' ? 'Mit Veyra strukturieren' : 'Was möchtest du umsetzen?'}</h2>
           </div>
           <button
             type="button"
@@ -523,7 +522,7 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
               {chatHistory.map((turn, index) => (
                 <div key={`${turn.role}-${index}`} className={`npm-chat-row ${turn.role}`}>
                   {turn.role === 'tagro' && (
-                    <span className="npm-chat-avatar"><TagroLogo size={22} thinking={chatLoading && index === chatHistory.length - 1} /></span>
+                    <span className="npm-chat-avatar"><VeyraLogo size={22} thinking={chatLoading && index === chatHistory.length - 1} /></span>
                   )}
                   <div className="npm-chat-bubble">
                     <p>{turn.text}</p>
@@ -532,7 +531,7 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
               ))}
               {chatLoading && (
                 <div className="npm-chat-row tagro">
-                  <span className="npm-chat-avatar"><TagroLogo size={22} thinking /></span>
+                  <span className="npm-chat-avatar"><VeyraLogo size={22} thinking /></span>
                   <div className="npm-chat-bubble muted">
                     <span className="npm-typing"><span /><span /><span /></span>
                   </div>
@@ -546,7 +545,7 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
               {chatComplete && (
                 <div className="npm-chat-ready">
                   <Check size={13} weight="bold" />
-                  <span>Tagro hat genug Kontext für die Projektstruktur.</span>
+                  <span>Veyra hat genug Kontext für die Projektstruktur.</span>
                 </div>
               )}
               <div className="npm-chat-input">
@@ -561,7 +560,7 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
                       sendChatMessage()
                     }
                   }}
-                  placeholder="Schreibe Tagro eine Antwort..."
+                  placeholder="Schreibe Veyra eine Antwort..."
                   rows={1}
                 />
                 <button type="button" onClick={sendChatMessage} disabled={!chatInput.trim() || chatLoading} aria-label="Nachricht senden">
@@ -577,7 +576,7 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
             <div className="npm-busy-mark">
               <ArrowsClockwise size={20} className="npm-spin" />
             </div>
-            <h3>Tagro strukturiert dein Projekt…</h3>
+            <h3>Veyra strukturiert dein Projekt…</h3>
             <ol className="npm-steps">
               {LOADING_STEPS.map((step, i) => (
                 <li key={step} className={i < loadingStep ? 'done' : i === loadingStep ? 'active' : 'todo'}>
@@ -614,15 +613,15 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
             <button
               type="button"
               className="npm-primary"
-              onClick={phase === 'chat' ? createProject : openTagroChat}
+              onClick={phase === 'chat' ? createProject : openVeyraChat}
               disabled={phase === 'chat' ? (!canCreate || chatLoading) : !canStartChat}
               aria-busy={phase === 'chat' ? chatLoading : undefined}
             >
               {phase === 'chat'
                 ? <>Projekt vorbereiten <ArrowRight size={13} /></>
                 : phase === 'error'
-                  ? <>Mit Tagro fortfahren <ArrowRight size={13} /></>
-                  : <>Mit Tagro fortfahren <ArrowRight size={13} /></>}
+                  ? <>Mit Veyra fortfahren <ArrowRight size={13} /></>
+                  : <>Mit Veyra fortfahren <ArrowRight size={13} /></>}
             </button>
           </footer>
         )}

@@ -23,7 +23,7 @@ const NOTE_STATUS: Record<string, { label: string; color: string }> = {
   done: { label: 'Erledigt', color: '#22c55e' },
 }
 
-const COLORS = ['#6366f1', '#8b5cf6', '#ec4899', '#ef4444', '#f97316', '#eab308', '#22c55e', '#06b6d4', '#3b82f6', '#64748b']
+const COLORS = ['#6a738c', '#6a738c', '#8790a5', '#ef4444', '#f97316', '#eab308', '#22c55e', '#06b6d4', '#3b82f6', '#64748b']
 const FILTERS = [
   { id: 'all', label: 'Alle' },
   { id: 'mine', label: 'Meine' },
@@ -54,7 +54,7 @@ export default function NotesWorkspace() {
   const [editNote, setEditNote] = useState<RelNote | null>(null)
   const [nTitle, setNTitle] = useState('')
   const [nContent, setNContent] = useState('')
-  const [nColor, setNColor] = useState('#6366f1')
+  const [nColor, setNColor] = useState('#6a738c')
   const [nDue, setNDue] = useState('')
   const [nShared, setNShared] = useState(false)
   const [nSaving, setNSaving] = useState(false)
@@ -103,7 +103,7 @@ export default function NotesWorkspace() {
     setEditNote(null)
     setNTitle('')
     setNContent('')
-    setNColor('#6366f1')
+    setNColor('#6a738c')
     setNDue('')
     setNShared(false)
     setShowModal(true)
@@ -113,7 +113,7 @@ export default function NotesWorkspace() {
     setEditNote(note)
     setNTitle(note.title)
     setNContent(note.content ?? '')
-    setNColor(note.color ?? '#6366f1')
+    setNColor(note.color ?? '#6a738c')
     setNDue(note.due_date ?? '')
     setNShared(note.shared)
     setShowModal(true)
@@ -157,11 +157,11 @@ export default function NotesWorkspace() {
     setNotes(current => current.map(item => item.id === note.id ? { ...item, status: next } : item))
   }
 
-  async function generateWithTagro() {
+  async function generateWithVeyra() {
     setGenerating(true)
     await new Promise(resolve => setTimeout(resolve, 900))
     setNTitle('Projektanalyse - ' + new Date().toLocaleDateString('de-DE', { day: '2-digit', month: 'short' }))
-    setNContent('Tagro hat folgende Punkte aus dem aktuellen Projektstatus zusammengefasst:\n\n- Aktueller Fortschritt läuft planmäßig\n- Nächster Milestone steht an\n- Offene Fragen wurden identifiziert\n\nBitte prüfen und ergänzen.')
+    setNContent('Veyra hat folgende Punkte aus dem aktuellen Projektstatus zusammengefasst:\n\n- Aktueller Fortschritt läuft planmäßig\n- Nächster Milestone steht an\n- Offene Fragen wurden identifiziert\n\nBitte prüfen und ergänzen.')
     setNShared(false)
     setGenerating(false)
   }
@@ -840,9 +840,9 @@ export default function NotesWorkspace() {
               </button>
               <input className="notes-date" type="date" value={nDue} onChange={event => setNDue(event.target.value)} />
               {!editNote && (
-                <button className="notes-option" type="button" onClick={generateWithTagro} disabled={generating}>
+                <button className="notes-option" type="button" onClick={generateWithVeyra} disabled={generating}>
                   <Sparkle size={12} weight="regular" />
-                  {generating ? 'Tagro schreibt...' : 'Tagro'}
+                  {generating ? 'Veyra schreibt...' : 'Veyra'}
                 </button>
               )}
             </div>

@@ -1,4 +1,4 @@
--- Tagro Voice Reports are persisted as auditable status snapshots.
+-- Veyra Voice Reports are persisted as auditable status snapshots.
 -- The transcript is the generated audio script, not a later speech-to-text guess.
 
 create table if not exists voice_reports (

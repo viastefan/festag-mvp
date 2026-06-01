@@ -28,7 +28,7 @@ const NOTE_STATUS: Record<string, { label:string; color:string }> = {
   in_progress: { label:'In Arbeit',    color:'#f97316' },
   done:        { label:'Erledigt',     color:'#22c55e' },
 }
-const COLORS = ['#6366f1','#8b5cf6','#ec4899','#ef4444','#f97316','#eab308','#22c55e','#06b6d4','#3b82f6','#64748b']
+const COLORS = ['#6a738c','#6a738c','#8790a5','#ef4444','#f97316','#eab308','#22c55e','#06b6d4','#3b82f6','#64748b']
 
 function fmt(d: string) {
   return new Date(d).toLocaleDateString('de-DE', { day:'2-digit', month:'short' })
@@ -48,7 +48,7 @@ export default function RelProjectsPage() {
   const [showNote,     setShowNote]     = useState(false)
   const [nTitle,       setNTitle]       = useState('')
   const [nContent,     setNContent]     = useState('')
-  const [nColor,       setNColor]       = useState('#6366f1')
+  const [nColor,       setNColor]       = useState('#6a738c')
   const [nDue,         setNDue]         = useState('')
   const [nShared,      setNShared]      = useState(true)
   const [nSaving,      setNSaving]      = useState(false)
@@ -63,7 +63,7 @@ export default function RelProjectsPage() {
   const [aSaving,      setASaving]      = useState(false)
   const [aMsg,         setAMsg]         = useState('')
 
-  // Tagro generate
+  // Veyra generate
   const [generating,   setGenerating]   = useState(false)
 
   const titleRef = useRef<HTMLInputElement>(null)
@@ -113,11 +113,11 @@ export default function RelProjectsPage() {
   }
 
   function openNew() {
-    setEditNote(null); setNTitle(''); setNContent(''); setNColor('#6366f1'); setNDue(''); setNShared(true)
+    setEditNote(null); setNTitle(''); setNContent(''); setNColor('#6a738c'); setNDue(''); setNShared(true)
     setShowNote(true)
   }
   function openEdit(n: RelNote) {
-    setEditNote(n); setNTitle(n.title); setNContent(n.content ?? ''); setNColor(n.color ?? '#6366f1')
+    setEditNote(n); setNTitle(n.title); setNContent(n.content ?? ''); setNColor(n.color ?? '#6a738c')
     setNDue(n.due_date ?? ''); setNShared(n.shared)
     setShowNote(true)
   }
@@ -148,12 +148,12 @@ export default function RelProjectsPage() {
     setNotes(ns => ns.map(n => n.id === note.id ? { ...n, status: next } : n))
   }
 
-  async function generateWithTagro() {
+  async function generateWithVeyra() {
     setGenerating(true)
-    // Simulate Tagro generating a note from project context
+    // Simulate Veyra generating a note from project context
     await new Promise(r => setTimeout(r, 1400))
     setNTitle('Projektanalyse – ' + new Date().toLocaleDateString('de-DE', { day:'2-digit', month:'short' }))
-    setNContent('Tagro hat folgende Punkte aus dem aktuellen Projektstatus zusammengefasst:\n\n• Aktueller Fortschritt läuft planmäßig\n• Nächste Milestone steht an\n• Offene Fragen wurden identifiziert\n\nBitte prüfen und ergänzen.')
+    setNContent('Veyra hat folgende Punkte aus dem aktuellen Projektstatus zusammengefasst:\n\n• Aktueller Fortschritt läuft planmäßig\n• Nächste Milestone steht an\n• Offene Fragen wurden identifiziert\n\nBitte prüfen und ergänzen.')
     setNShared(true)
     setGenerating(false)
   }
@@ -255,7 +255,7 @@ export default function RelProjectsPage() {
         {notes.length === 0 ? (
           <div style={{ border:'1px solid var(--border)', borderRadius:10, padding:'40px 0', textAlign:'center' }}>
             <p style={{ fontSize:13.5, fontWeight:600, color:'var(--text)', margin:'0 0 5px' }}>Noch keine Notizen</p>
-            <p style={{ fontSize:12.5, color:'var(--text-muted)', margin:'0 0 18px' }}>Erstelle eine Notiz, teile sie mit deinem Festag-Team oder lass Tagro eine Analyse erstellen.</p>
+            <p style={{ fontSize:12.5, color:'var(--text-muted)', margin:'0 0 18px' }}>Erstelle eine Notiz, teile sie mit deinem Festag-Team oder lass Veyra eine Analyse erstellen.</p>
             <button onClick={openNew}
               style={{ height:32, padding:'0 16px', background:'var(--btn-prim)', color:'var(--btn-prim-text)', border:'none', borderRadius:7, fontSize:12, fontWeight:600, cursor:'pointer', fontFamily:'inherit' }}>
               Erste Notiz erstellen
@@ -271,7 +271,7 @@ export default function RelProjectsPage() {
                   style={{ display:'flex', alignItems:'center', gap:12, padding:'11px 16px', borderBottom: i < notes.length-1 ? '1px solid var(--border)' : 'none', background:'var(--card)' }}>
                   {/* Status toggle */}
                   <button className="note-status-btn" onClick={e => cycleStatus(n, e)} title="Status wechseln">
-                    <span style={{ width:8, height:8, borderRadius:'50%', background:n.color||'#6366f1', flexShrink:0 }}/>
+                    <span style={{ width:8, height:8, borderRadius:'50%', background:n.color||'#6a738c', flexShrink:0 }}/>
                   </button>
                   <span style={{ flex:1, fontSize:13.5, fontWeight:500, color:'var(--text)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{n.title}</span>
                   {n.content && (
@@ -281,7 +281,7 @@ export default function RelProjectsPage() {
                     <span style={{ fontSize:10.5, color:'var(--text-muted)', flexShrink:0 }}>{n.user_name}</span>
                   )}
                   {n.shared && (
-                    <span style={{ fontSize:10, fontWeight:600, color:'#6366f1', border:'1px solid #6366f133', borderRadius:4, padding:'1px 6px', flexShrink:0, background:'#6366f108' }}>Geteilt</span>
+                    <span style={{ fontSize:10, fontWeight:600, color:'#6a738c', border:'1px solid #6a738c33', borderRadius:4, padding:'1px 6px', flexShrink:0, background:'#6a738c08' }}>Geteilt</span>
                   )}
                   {n.due_date && (
                     <span style={{ fontSize:11.5, color:'var(--text-muted)', flexShrink:0 }}>{fmtDate(n.due_date)}</span>
@@ -309,13 +309,13 @@ export default function RelProjectsPage() {
               </div>
               <div style={{ display:'flex', alignItems:'center', gap:6 }}>
                 {!editNote && (
-                  <button onClick={generateWithTagro} disabled={generating}
+                  <button onClick={generateWithVeyra} disabled={generating}
                     style={{ height:26, padding:'0 10px', background:'var(--surface-2)', border:'1px solid var(--border)', borderRadius:6, fontSize:11, fontWeight:600, color:'var(--text-secondary)', cursor:'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', gap:5 }}>
                     {generating
                       ? <span style={{ width:9, height:9, border:'1.5px solid var(--border)', borderTopColor:'var(--text)', borderRadius:'50%', animation:'spin .7s linear infinite' }}/>
                       : <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 2L9 9H2l5.5 4-2 7L12 16l6.5 4-2-7L22 9h-7z"/></svg>
                     }
-                    Tagro
+                    Veyra
                   </button>
                 )}
                 <button onClick={() => setShowNote(false)} style={{ background:'none', border:'none', cursor:'pointer', color:'var(--text-muted)', padding:4, display:'flex' }}>

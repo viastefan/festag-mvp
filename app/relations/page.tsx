@@ -315,7 +315,7 @@ export default function RelationsPage() {
             >
               <Brain size={18} weight="duotone" color="var(--text-muted)" />
               <div>
-                <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', margin: '0 0 1px' }}>Tagro AI</p>
+                <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', margin: '0 0 1px' }}>Veyra AI</p>
                 <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: 0 }}>AI-Assistent starten</p>
               </div>
             </div>

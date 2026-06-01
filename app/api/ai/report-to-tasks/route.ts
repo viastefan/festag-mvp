@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { hasTagroAI as hasGeminiKey, runTagroText as runGeminiText } from '@/lib/tagro/text'
+import { hasVeyraAI as hasGeminiKey, runVeyraText as runGeminiText } from '@/lib/tagro/text'
 
 const SUPABASE_URL = 'https://xsdkoepwuvpuroijjain.supabase.co'
 
-const SYSTEM = `Du bist Tagro, der AI-Projektmanager von Festag.
+const SYSTEM = `Du bist Veyra, der AI-Projektmanager von Festag.
 
 Deine Aufgabe: Lies den folgenden Statusbericht und extrahiere konkrete, umsetzbare Verbesserungs-Tasks.
 

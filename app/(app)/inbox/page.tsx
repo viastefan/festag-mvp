@@ -207,7 +207,7 @@ export default function InboxPage() {
             <Tray size={20} weight="regular" />
             <p><strong>Inbox ist leer.</strong></p>
             <p>Wichtige Zusammenfassungen, Freigaben und Updates landen hier.</p>
-            <Link href="/ai" className="ix-primary">Tagro fragen</Link>
+            <Link href="/ai" className="ix-primary">Veyra fragen</Link>
           </div>
         ) : filtered.map(n => {
           const t = tone(n.kind ?? n.type ?? '')

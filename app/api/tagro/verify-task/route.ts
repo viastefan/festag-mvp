@@ -10,7 +10,7 @@ import { runTaskVerification } from '@/lib/tagro/verify-task'
  * die Task-Felder und legt einen Activity-Log an.
  *
  * Im Gegensatz zu /api/dev/tasks/finish wird hier der `dev_status` NICHT
- * angefasst — nur der Tagro-Layer aktualisiert. Verwendung typisch:
+ * angefasst — nur der Veyra-Layer aktualisiert. Verwendung typisch:
  *   • Dev hat Proof ergänzt nach „proof_missing" und will neu prüfen
  *   • Owner reviewt Tasks Stunden später erneut
  */

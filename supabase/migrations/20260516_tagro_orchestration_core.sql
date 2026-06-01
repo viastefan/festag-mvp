@@ -1,6 +1,6 @@
--- Festag — Tagro orchestration core
+-- Festag — Veyra orchestration core
 --
--- Backend foundation for Tagro as the AI orchestration and product-logic
+-- Backend foundation for Veyra as the AI orchestration and product-logic
 -- layer. This migration is additive and idempotent so it can be applied on
 -- the current MVP schema without breaking existing ai_updates/tasks flows.
 
@@ -116,7 +116,7 @@ create table if not exists task_links (
 create index if not exists idx_task_links_source on task_links(source_task_id);
 create index if not exists idx_task_links_target on task_links(target_task_id);
 
--- ── Project-level Tagro memory table requested by product spec.
+-- ── Project-level Veyra memory table requested by product spec.
 -- Existing tagro_memories remains for account-scoped memory.
 create table if not exists tagro_memory (
   id uuid primary key default gen_random_uuid(),
@@ -132,7 +132,7 @@ create table if not exists tagro_memory (
 
 create index if not exists idx_tagro_memory_project_type on tagro_memory(project_id, memory_type, updated_at desc);
 
--- ── Tagro runs / audit ─────────────────────────────────────────
+-- ── Veyra runs / audit ─────────────────────────────────────────
 create table if not exists tagro_runs (
   id uuid primary key default gen_random_uuid(),
   project_id uuid references projects(id) on delete cascade,
@@ -224,5 +224,5 @@ do $$ begin
   );
 exception when duplicate_object then null; end $$;
 
--- Server-side Tagro writes use the service role. Client writes stay disabled
+-- Server-side Veyra writes use the service role. Client writes stay disabled
 -- until the dedicated Server Actions validate role/project access.

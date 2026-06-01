@@ -99,7 +99,7 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
 /* ── DARK — Festag cool-graphite dark, global design system ──
    Premium near-black graphite with a VERY restrained cool-blue undertone in
    the neutrals + borders. Reads as graphite first, never visibly blue.
-   Violet (#8e96ff) is a SUBTLE accent only (focus ring, active nav,
+   Primary (#6a738c) is a SUBTLE accent only (focus ring, active nav,
    highlights) — never a coloured button fill. Primary buttons are
    dark-elevated cool-neutral surfaces. */
 [data-theme="dark"] {
@@ -125,13 +125,13 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   /* Buttons — dark elevated cool-neutral, never coloured. Hover lifts with
      a soft accent response (applied per-component). */
   --btn-prim:#1c2430; --btn-prim-text:#e8ebf1;
-  --accent:#8e96ff; --accent-text:#ffffff;
+  --accent:#6a738c; --accent-text:#ffffff;
 
   --inp:#111720;
   --inp-border:rgba(210,225,255,0.085);
   --inp-focus:#131922;
-  --inp-focus-border:rgba(142,150,255,0.45);
-  --glow:rgba(142,150,255,0.10);
+  --inp-focus-border:rgba(106,115,140,0.45);
+  --glow:rgba(106,115,140,0.10);
 
   --sidebar-bg:#07090b;
   --sidebar-border:rgba(210,225,255,0.06);
@@ -158,7 +158,7 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --shadow:0 8px 28px rgba(0,0,0,.42);
   --shadow-lg:0 20px 80px rgba(0,0,0,.5);
   --content-shadow:0 1px 2px rgba(0,0,0,.30), 0 18px 46px -36px rgba(0,0,0,.62);
-  --focus-ring:rgba(142,150,255,0.32);
+  --focus-ring:rgba(106,115,140,0.32);
 
   --logo-filter:brightness(0) invert(1);
   --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
@@ -171,14 +171,14 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --state-hover:#171e28; --state-active:#1c2430; --state-selected:#202a36; --state-pressed:#25303d;
   --border-hairline:rgba(210,225,255,0.045); --border-subtle:rgba(210,225,255,0.075); --border-medium:rgba(210,225,255,0.11);
   --text-primary:#e8ebf1; --text-tertiary:#7f8997; --text-faint:#606a77; --text-disabled:#444c57;
-  --accent-primary:#8e96ff; --accent-primary-soft:rgba(142,150,255,0.14); --accent-primary-border:rgba(142,150,255,0.28);
+  --accent-primary:#6a738c; --accent-primary-soft:rgba(106,115,140,0.14); --accent-primary-border:rgba(106,115,140,0.28);
   --accent-blue:#5ba8ff; --accent-green:#35c878; --accent-amber:#d5a655; --accent-red:#e06666;
   --success-bg:rgba(53,200,120,0.12); --success-text:#a9e7c1; --success-dot:#35c878;
   --warning-bg:rgba(213,166,85,0.12); --warning-text:#ead3a6; --warning-dot:#d5a655;
   --danger-bg:rgba(224,102,102,0.12); --danger-text:#efb2b2; --danger-dot:#e06666;
   --info-bg:rgba(91,168,255,0.12); --info-text:#b4d7ff; --info-dot:#5ba8ff;
   --shadow-soft:0 8px 28px rgba(0,0,0,0.28); --shadow-panel:0 20px 80px rgba(0,0,0,0.38);
-  --shadow-focus:0 0 0 1px rgba(142,150,255,0.30), 0 0 0 4px rgba(142,150,255,0.10);
+  --shadow-focus:0 0 0 1px rgba(106,115,140,0.30), 0 0 0 4px rgba(106,115,140,0.10);
   --radius-2xl:24px;
   --ease-premium:cubic-bezier(0.16,1,0.3,1);
   --motion-fast:140ms var(--ease-premium); --motion-base:220ms var(--ease-premium); --motion-slow:360ms var(--ease-premium);
@@ -236,9 +236,9 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --border:rgba(255,255,255,0.08); --border-strong:rgba(255,255,255,0.16);
   --text:#F0F0F0; --text-secondary:#A0A0A0; --text-muted:#636363;
   --btn-prim:#F0F0F0; --btn-prim-text:#111111;
-  --accent:#7C86E8; --accent-text:#FFFFFF;
+  --accent:#6a738c; --accent-text:#FFFFFF;
   --inp:rgba(255,255,255,0.05); --inp-border:rgba(255,255,255,0.10); --inp-focus:rgba(255,255,255,0.07); --inp-focus-border:rgba(255,255,255,0.22);
-  --glow:rgba(124,134,232,0.07);
+  --glow:rgba(106,115,140,0.07);
   --sidebar-bg:rgba(18,18,18,0.78); --sidebar-border:rgba(255,255,255,0.09);
   --nav-on:rgba(255,255,255,0.10); --nav-on-text:#F0F0F0; --nav-off-text:#707070;
   --surface-2:#262626; --green:#32D583; --green-bg:rgba(50,213,131,0.09);
@@ -938,7 +938,7 @@ button.sb-help-trigger {
 /* Settings buttons — full 32px pill across the settings surfaces. */
 .set-btn { border-radius: 32px; }
 
-/* Tagro Audio Briefings */
+/* Veyra Audio Briefings */
 .audio-briefing-wrap { position: relative; display: inline-flex; }
 .audio-briefing-button {
   height: 32px; display:inline-flex; align-items:center; gap:7px;

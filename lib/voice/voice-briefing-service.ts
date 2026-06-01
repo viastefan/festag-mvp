@@ -238,7 +238,7 @@ export class VoiceBriefingService {
     if (mode === 'short') return [`Guten Morgen.`, status, risks, decisions, next].join(' ')
 
     return [
-      'Guten Morgen. Hier ist dein Tagro Voice Report.',
+      'Guten Morgen. Hier ist dein Veyra Voice Report.',
       status,
       summary,
       completed,
@@ -247,7 +247,7 @@ export class VoiceBriefingService {
       decisions,
       budget,
       next,
-      'Kurz gesagt: Tagro hält den Projektstand im Blick, damit du nicht täglich in Tickets eintauchen musst.',
+      'Kurz gesagt: Veyra hält den Projektstand im Blick, damit du nicht täglich in Tickets eintauchen musst.',
     ].filter(Boolean).join(' ')
   }
 

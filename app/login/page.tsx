@@ -706,9 +706,9 @@ export default function LoginPage() {
         .log-root[data-theme="dark"] .log-btn-outline:active:not(:disabled),
         .log-root[data-theme="dark"] .log-btn-confirm:active:not(:disabled) { background:#1c2430; transform:translateY(0); }
 
-        .log-root[data-theme="dark"] .log-email-input { background:#111720; color:#e8ebf1; border:1px solid rgba(210,225,255,0.085); caret-color:#8e96ff; }
+        .log-root[data-theme="dark"] .log-email-input { background:#111720; color:#e8ebf1; border:1px solid rgba(210,225,255,0.085); caret-color:#6a738c; }
         .log-root[data-theme="dark"] .log-email-input::placeholder { color:#606a77; }
-        .log-root[data-theme="dark"] .log-email-input:focus { border-color:rgba(142,150,255,0.45); box-shadow:0 0 0 3px rgba(142,150,255,0.12); }
+        .log-root[data-theme="dark"] .log-email-input:focus { border-color:rgba(106,115,140,0.45); box-shadow:0 0 0 3px rgba(106,115,140,0.12); }
 
         .log-root[data-theme="dark"] .log-hint { color:#7f8997; }
         .log-root[data-theme="dark"] .log-legal-text { color:#a8b0bc; }

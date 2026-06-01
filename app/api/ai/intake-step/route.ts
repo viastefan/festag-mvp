@@ -1,19 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { hasTagroAI as hasGeminiKey, runTagroText as runGeminiText } from '@/lib/tagro/text'
+import { hasVeyraAI as hasGeminiKey, runVeyraText as runGeminiText } from '@/lib/tagro/text'
 
 export const runtime = 'nodejs'
 
 /**
  * POST /api/ai/intake-step  { chatHistory: [{role:'tagro'|'user', text}] }
  *
- * One turn of the project-intake conversation. Tagro asks one focused
+ * One turn of the project-intake conversation. Veyra asks one focused
  * question at a time, extracts the title + summary as they crystallise,
  * and flags when it has enough to hand the chatHistory off to
  * /api/ai/decompose for the full structuring.
  *
  * Returns:
  *   {
- *     question:  string | null,    // next thing for Tagro to say (null when complete)
+ *     question:  string | null,    // next thing for Veyra to say (null when complete)
  *     title:     string | null,    // best current guess of the project title
  *     summary:   string | null,    // 1–2 sentence project summary
  *     complete:  boolean,          // true → caller should call decompose now
@@ -24,7 +24,7 @@ export const runtime = 'nodejs'
  * the surface is never empty.
  */
 
-const SYSTEM_PROMPT = `Du bist Tagro, der AI-Projektmanager von Festag.
+const SYSTEM_PROMPT = `Du bist Veyra, der AI-Projektmanager von Festag.
 
 Du führst einen kurzen, ruhigen Intake-Chat mit einem Kunden, um sein neues Softwareprojekt zu verstehen. Deine Aufgabe: pro Antwort EINE konkrete, kurze Folgefrage stellen — bis du genug Substanz hast.
 

@@ -1251,7 +1251,7 @@ export default function SettingsPage() {
         .preview-read .set-theme-preview-bar.long { background: #6F6248; width: 70%; }
         .preview-read .set-theme-preview-bar.short { background: rgba(111,98,72,0.3); width: 40%; }
         .preview-dark { background: #0E0F0F; }
-        .preview-dark .set-theme-preview-bar.long { background: #7B7DFF; width: 70%; }
+        .preview-dark .set-theme-preview-bar.long { background: #6a738c; width: 70%; }
         .preview-dark .set-theme-preview-bar.short { background: rgba(255,255,255,0.12); width: 40%; }
         .set-theme-name { font-size: 13px; font-weight: 500; }
         .set-theme-desc { font-size: 11.5px; font-weight: 400; color: var(--set-text-muted); margin-top: 2px; letter-spacing: .017em; }
@@ -1479,7 +1479,7 @@ export default function SettingsPage() {
               <div className="set-row set-row-stack">
                 <div>
                   <div className="set-label">Kurze Bio</div>
-                  <div className="set-label-sub">Ein bis zwei Sätze über dich. Tagro nutzt das als Kontext, wenn neue Mitwirkende dazukommen.</div>
+                  <div className="set-label-sub">Ein bis zwei Sätze über dich. Veyra nutzt das als Kontext, wenn neue Mitwirkende dazukommen.</div>
                 </div>
                 <textarea
                   className="set-input"
@@ -1498,7 +1498,7 @@ export default function SettingsPage() {
               <div className="set-row">
                 <div>
                   <div className="set-label">Zeitzone</div>
-                  <div className="set-label-sub">Beeinflusst, wann Tagro Daily-Notes und tägliche Briefings ausspielt.</div>
+                  <div className="set-label-sub">Beeinflusst, wann Veyra Daily-Notes und tägliche Briefings ausspielt.</div>
                 </div>
                 <select
                   className="set-select"
@@ -1519,7 +1519,7 @@ export default function SettingsPage() {
               <div className="set-row">
                 <div>
                   <div className="set-label">Sprache</div>
-                  <div className="set-label-sub">In welcher Sprache Tagro mit dir spricht.</div>
+                  <div className="set-label-sub">In welcher Sprache Veyra mit dir spricht.</div>
                 </div>
                 <div className="set-segment">
                   <button
@@ -1541,7 +1541,7 @@ export default function SettingsPage() {
               <div className="set-mini-card">
                 <div className="set-mini-title">Profilvollständigkeit</div>
                 <p className="set-mini-copy">
-                  Ein vollständiges Profil hilft Tagro bei Zuordnung, Kommunikation und Projektkontext.
+                  Ein vollständiges Profil hilft Veyra bei Zuordnung, Kommunikation und Projektkontext.
                 </p>
                 <div className="set-progress" aria-hidden="true">
                   <span style={{ width: `${profileCompletionPct}%` }} />
@@ -1719,7 +1719,7 @@ export default function SettingsPage() {
                 <div>
                   <div className="set-label">Einführung erneut starten</div>
                   <div className="set-label-sub">
-                    Spielt die kurze Tour ab, die Dashboard, Projekte, Statusabfrage, Tagro und Teams erklärt. Bestehende Daten bleiben unberührt.
+                    Spielt die kurze Tour ab, die Dashboard, Projekte, Statusabfrage, Veyra und Teams erklärt. Bestehende Daten bleiben unberührt.
                   </div>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'flex-start', width: '100%' }}>
@@ -1751,7 +1751,7 @@ export default function SettingsPage() {
                 <div>
                   <div className="set-label">Konto löschen</div>
                   <div className="set-label-sub">
-                    Beendet deinen Festag-Zugang endgültig. Workspaces, Projekte, Briefings, Inbox-Items und Tagro-Memory werden mitgelöscht. Diese Aktion ist nicht rückgängig zu machen.
+                    Beendet deinen Festag-Zugang endgültig. Workspaces, Projekte, Briefings, Inbox-Items und Veyra-Memory werden mitgelöscht. Diese Aktion ist nicht rückgängig zu machen.
                   </div>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'flex-start', width: '100%' }}>
@@ -1773,7 +1773,7 @@ export default function SettingsPage() {
             <div className="set-row">
               <div>
                 <div className="set-label">E-Mail-Benachrichtigungen</div>
-                <div className="set-label-sub">Tagro-Updates, Aufgaben, Projektbriefings.</div>
+                <div className="set-label-sub">Veyra-Updates, Aufgaben, Projektbriefings.</div>
               </div>
               <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                 <button
@@ -1842,7 +1842,7 @@ export default function SettingsPage() {
               ]
             : [
                 { label: 'Eigenes Team hinzufügen', desc: 'Lade Co-Founder, Approver, Finance oder Viewer in dein Projekt ein.' },
-                { label: 'Briefing-Zustellung aktivieren', desc: 'Tagro schickt dein Projektbriefing automatisch per E-Mail oder Voice.' },
+                { label: 'Briefing-Zustellung aktivieren', desc: 'Veyra schickt dein Projektbriefing automatisch per E-Mail oder Voice.' },
                 { label: 'Neuen Team Workspace erstellen', desc: 'Falls du langfristig eigene Projekte und Entwickler steuern möchtest.' },
               ]
           return (
@@ -1915,7 +1915,7 @@ export default function SettingsPage() {
                   const rolesForMode: { id: string; label: string; color: string }[] = wsMode === 'team'
                     ? [
                         { id: 'owner',           label: 'Owner',           color: '#202532' },
-                        { id: 'admin',           label: 'Admin',           color: '#4338CA' },
+                        { id: 'admin',           label: 'Admin',           color: '#6a738c' },
                         { id: 'project_manager', label: 'Project Manager', color: '#0369A1' },
                         { id: 'developer',       label: 'Developer',       color: '#15803D' },
                         { id: 'reviewer',        label: 'Reviewer',        color: '#B45309' },
@@ -1924,11 +1924,11 @@ export default function SettingsPage() {
                     : wsMode === 'agency'
                     ? [
                         { id: 'agency_owner',         label: 'Agency Owner',     color: '#202532' },
-                        { id: 'agency_admin',         label: 'Agency Admin',     color: '#4338CA' },
+                        { id: 'agency_admin',         label: 'Agency Admin',     color: '#6a738c' },
                         { id: 'project_manager',      label: 'Project Manager',  color: '#0369A1' },
                         { id: 'developer',            label: 'Developer',        color: '#15803D' },
-                        { id: 'client_owner',         label: 'Client Owner',     color: '#7E22CE' },
-                        { id: 'client_approver',      label: 'Client Approver',  color: '#9333EA' },
+                        { id: 'client_owner',         label: 'Client Owner',     color: '#6a738c' },
+                        { id: 'client_approver',      label: 'Client Approver',  color: '#6a738c' },
                         { id: 'client_viewer',        label: 'Client Viewer',    color: '#6B7280' },
                         { id: 'finance',              label: 'Finance',          color: '#0F766E' },
                         { id: 'white_label_manager',  label: 'White Label',      color: '#D97706' },
@@ -1936,7 +1936,7 @@ export default function SettingsPage() {
                     : [
                         // delivery
                         { id: 'owner',     label: 'Owner',     color: '#202532' },
-                        { id: 'approver',  label: 'Approver',  color: '#4338CA' },
+                        { id: 'approver',  label: 'Approver',  color: '#6a738c' },
                         { id: 'finance',   label: 'Finance',   color: '#0F766E' },
                         { id: 'member',    label: 'Member',    color: '#15803D' },
                         { id: 'viewer',    label: 'Viewer',    color: '#6B7280' },
@@ -2106,7 +2106,7 @@ export default function SettingsPage() {
             <div className="set-row set-row-stack">
               <div>
                 <div className="set-label">Beschreibung</div>
-                <div className="set-label-sub">Kurze Beschreibung, die Tagro für Kontext nutzt.</div>
+                <div className="set-label-sub">Kurze Beschreibung, die Veyra für Kontext nutzt.</div>
               </div>
               <textarea
                 className="set-input"
@@ -2127,7 +2127,7 @@ export default function SettingsPage() {
                 <div>
                   <div className="set-label">Briefing & Voice Reports</div>
                   <div className="set-label-sub">
-                    Tagro Briefings sind das tägliche Kontrollsystem für Softwareprojekte. API-basierte Voice Reports werden separat kalkuliert; ein ChatGPT-Abo deckt die Festag-App-API nicht automatisch ab.
+                    Veyra Briefings sind das tägliche Kontrollsystem für Softwareprojekte. API-basierte Voice Reports werden separat kalkuliert; ein ChatGPT-Abo deckt die Festag-App-API nicht automatisch ab.
                   </div>
                 </div>
                 <div className="set-value" style={{ textAlign: 'right' }}>Growth Care / Business</div>
@@ -2579,7 +2579,7 @@ function AccountDeleteModal({ onClose }: { onClose: () => void }) {
             <h2 className="acc-del-title">Endgültig löschen?</h2>
             <p className="acc-del-sub">
               Mit dem Klick auf „Endgültig löschen" werden dein Konto, alle Workspaces, Projekte,
-              Briefings, Inbox-Items, Dateien und Tagro-Memory unwiderruflich entfernt. Niemand kann
+              Briefings, Inbox-Items, Dateien und Veyra-Memory unwiderruflich entfernt. Niemand kann
               das danach zurückholen — auch Festag nicht.
             </p>
             <div className="acc-del-warning">

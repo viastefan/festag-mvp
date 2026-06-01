@@ -33,7 +33,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/relations/messages', label: 'Nachrichten', Icon: ChatCircle },
   { href: '/relations/documents', label: 'Dokumente', Icon: FileText },
   { href: '/relations/notes', label: 'Notizen', Icon: Notebook },
-  { href: '/relations/ai', label: 'Tagro AI', Icon: Brain },
+  { href: '/relations/ai', label: 'Veyra AI', Icon: Brain },
 ]
 
 function missingProfileColumn(error: unknown) {

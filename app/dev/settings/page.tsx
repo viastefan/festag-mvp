@@ -229,7 +229,7 @@ export default function DevSettingsPage() {
       {/* Skills */}
       <p className="dev-section-title">Skill-Profil</p>
       <section className="st-card dev-surface">
-        <p className="st-card-hint">Wofür wirst du eingesetzt? Tagro nutzt das beim Matching von Projekten.</p>
+        <p className="st-card-hint">Wofür wirst du eingesetzt? Veyra nutzt das beim Matching von Projekten.</p>
         <div className="st-skills">
           {(p.skills ?? []).length === 0 && <span className="st-skills-empty">Noch keine Skills hinterlegt.</span>}
           {(p.skills ?? []).map(s => (
@@ -310,7 +310,7 @@ export default function DevSettingsPage() {
             <span className="st-integration-sub">
               {ghConnected
                 ? `Verbunden als @${p.github_username}${p.github_connected_at ? ` · seit ${new Date(p.github_connected_at).toLocaleDateString('de-DE')}` : ''}`
-                : 'Read-only — Tagro liest Commits & PRs, pusht oder kommentiert nie.'}
+                : 'Read-only — Veyra liest Commits & PRs, pusht oder kommentiert nie.'}
             </span>
           </div>
           <Link href="/dev/github" className="dev-secondary-btn">

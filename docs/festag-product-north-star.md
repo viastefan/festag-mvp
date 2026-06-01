@@ -129,11 +129,11 @@ Everything becomes a Work Signal before it becomes a report, risk, decision,
 task, timeline change, or client briefing. This is the key data model principle
 that makes Festag extensible.
 
-## Tagro
+## Veyra
 
-Tagro is not a chatbot. Tagro is a Project Interpreter.
+Veyra is not a chatbot. Veyra is a Project Interpreter.
 
-Tagro's job:
+Veyra's job:
 
 1. Read work signals.
 2. Understand what happened.
@@ -144,7 +144,7 @@ Tagro's job:
 7. Generate status reports, briefings, and next actions.
 8. Keep the client informed without forcing the team into constant meetings.
 
-For every signal, Tagro must ask:
+For every signal, Veyra must ask:
 
 1. What happened?
 2. Is it relevant?
@@ -246,9 +246,9 @@ Execution users should be able to:
 
 The interface changes by work type. The intelligence stays the same.
 
-### 3. Tagro Intelligence Layer
+### 3. Veyra Intelligence Layer
 
-Tagro receives:
+Veyra receives:
 
 - Manual updates.
 - Execution updates.
@@ -259,7 +259,7 @@ Tagro receives:
 - Later: GitHub, Figma, Slack, Notion, Linear, Jira, Gmail, Drive, Calendar,
   and meeting transcript signals.
 
-Tagro outputs:
+Veyra outputs:
 
 - Client status report.
 - Risk summary.
@@ -288,8 +288,8 @@ Your brand in front. Festag intelligence underneath.
 
 White-label modes:
 
-- Co-branded: visible "Powered by Festag" or "Powered by Tagro AI".
-- Subtle branded: agency brand in front, Tagro visible as briefing engine.
+- Co-branded: visible "Powered by Festag" or "Powered by Veyra AI".
+- Subtle branded: agency brand in front, Veyra visible as briefing engine.
 - Full white label: no visible Festag brand for clients; higher pricing.
 
 Festag is not selling AI. Festag is selling client trust, reduced status work,
@@ -351,7 +351,7 @@ Priority:
 4. Tasks.
 5. Decisions.
 6. Risks.
-7. Tagro report generator.
+7. Veyra report generator.
 8. Client Panel.
 9. Execution Panel.
 10. White-label settings.

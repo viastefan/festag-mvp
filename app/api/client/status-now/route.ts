@@ -113,7 +113,7 @@ export async function POST(req: Request) {
     const rows = ((updates as any[]) ?? [])
     const projectTitle = (project as any).title || 'das Projekt'
 
-    // Tagro digests the last 24h into one calm reading (LLM, heuristic fallback).
+    // Veyra digests the last 24h into one calm reading (LLM, heuristic fallback).
     const digest = await translateStatusDigest({
       projectTitle,
       updates: rows.map(r => ({

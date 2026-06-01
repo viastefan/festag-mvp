@@ -1,4 +1,4 @@
--- Festag — Inbox Phase 2, Tagro Memory, Avatar Storage RLS hardening
+-- Festag — Inbox Phase 2, Veyra Memory, Avatar Storage RLS hardening
 -- Idempotent migration. Safe to re-run.
 
 -- ──────────────────────────────────────────────────────────────
@@ -148,7 +148,7 @@ begin
     when p_category = 'support' then 'Support'
     when p_category = 'client' then 'Client-Kommunikation'
     when p_category = 'team' then 'Team-Kommunikation'
-    else 'Tagro Chat'
+    else 'Veyra Chat'
   end;
 
   v_thread_id := ensure_inbox_thread(
@@ -280,7 +280,7 @@ after insert or update of status on payments
 for each row execute function inbox_payment_invoice_event();
 
 -- ──────────────────────────────────────────────────────────────
--- 3. Migrate legacy /messages project chat into Tagro inbox threads
+-- 3. Migrate legacy /messages project chat into Veyra inbox threads
 -- ──────────────────────────────────────────────────────────────
 do $$
 declare
@@ -307,9 +307,9 @@ begin
       v_owner,
       r.project_id,
       'tagro',
-      'Tagro Chat',
+      'Veyra Chat',
       r.project_title,
-      jsonb_build_object('thread_title', 'Tagro Chat', 'project_title', r.project_title)
+      jsonb_build_object('thread_title', 'Veyra Chat', 'project_title', r.project_title)
     );
 
     insert into inbox_items(
@@ -321,7 +321,7 @@ begin
       r.project_id,
       'tagro',
       'chat_message',
-      case when coalesce(r.is_ai, false) then 'Tagro' else 'Nachricht' end,
+      case when coalesce(r.is_ai, false) then 'Veyra' else 'Nachricht' end,
       r.message,
       r.sender_id,
       'messages',
@@ -335,7 +335,7 @@ begin
 end $$;
 
 -- ──────────────────────────────────────────────────────────────
--- 4. Tagro Memory per client account/project
+-- 4. Veyra Memory per client account/project
 -- ──────────────────────────────────────────────────────────────
 do $$ begin
   create type tagro_memory_scope as enum ('account','project','preference','fact','constraint','handoff');

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { loadTagroMemoryContext, rememberTagroMemory } from '@/lib/tagro-memory'
-import { hasTagroAI as hasGeminiKey, runTagroText as runGeminiText } from '@/lib/tagro/text'
+import { loadVeyraMemoryContext, rememberVeyraMemory } from '@/lib/tagro-memory'
+import { hasVeyraAI as hasGeminiKey, runVeyraText as runGeminiText } from '@/lib/tagro/text'
 
 /**
  * Festag AI proxy — leitet an Minimax weiter, behaelt aber das Anthropic-
@@ -30,9 +30,9 @@ export async function POST(req: NextRequest) {
       }, { status: 500 })
     }
 
-    const memoryContext = await loadTagroMemoryContext({ userId, projectId })
+    const memoryContext = await loadVeyraMemoryContext({ userId, projectId })
     if (remember && typeof remember?.content === 'string' && typeof userId === 'string') {
-      await rememberTagroMemory({
+      await rememberVeyraMemory({
         userId,
         projectId: typeof projectId === 'string' ? projectId : null,
         scope: remember.scope ?? (projectId ? 'project' : 'account'),
@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
 
     const enrichedSystem = [
       typeof system === 'string' ? system.trim() : '',
-      memoryContext ? `\nTagro Memory / Account-Kontext:\n${memoryContext}\n\nNutze diesen Kontext aktiv. Sage nicht, dass du keinen Zugriff auf Profil, Projekt oder bisherigen Kontext hast, wenn relevante Informationen oben stehen.` : '',
+      memoryContext ? `\nVeyra Memory / Account-Kontext:\n${memoryContext}\n\nNutze diesen Kontext aktiv. Sage nicht, dass du keinen Zugriff auf Profil, Projekt oder bisherigen Kontext hast, wenn relevante Informationen oben stehen.` : '',
     ].filter(Boolean).join('\n\n')
 
     // Anthropic-Format -> OpenAI/Minimax-Format

@@ -5,12 +5,12 @@
  *
  * Linear-style flat table (mirrors .task-os DNA) where the client sees
  * every open + recently-decided decision they own. Clicking opens a
- * right-side drawer with the dev's context, Tagro's recommendation
+ * right-side drawer with the dev's context, Veyra's recommendation
  * (on-demand), and the answer form (option select + free-text note).
  *
  * Data flow: devs POST /api/decisions from their dev panel → DB trigger
  * fans an inbox notification + populates the sidebar badge → client
- * lands here, clicks Tagro, picks an answer → /decide route notifies
+ * lands here, clicks Veyra, picks an answer → /decide route notifies
  * the dev back.
  */
 
@@ -59,7 +59,7 @@ type Decision = {
   // Legacy unstructured options. New code uses `decision_options` rows via expand.
   options_json: Option[]
   recommended_option: string | null
-  // Tagro signals
+  // Veyra signals
   tagro_reasoning: string | null
   tagro_run_at: string | null
   tagro_recommendation_reason?: string | null
@@ -75,7 +75,7 @@ type Decision = {
   decision_note: string | null
   response_value?: ResponseValue
   rationale?: string | null
-  // Tagro delegation
+  // Veyra delegation
   tagro_delegation_reason?: string | null
   override_window_until?: string | null
   // Lifecycle
@@ -575,12 +575,12 @@ function Drawer({
     return () => { abort = true }
   }, [decision.id])
 
-  async function runTagro() {
+  async function runVeyra() {
     if (suggesting) return
     setSuggesting(true); setError('')
     try {
       const res = await fetch(`/api/decisions/${decision.id}/suggest`, { method: 'POST', credentials: 'include' })
-      if (!res.ok) { setError('Tagro konnte gerade nicht antworten.'); return }
+      if (!res.ok) { setError('Veyra konnte gerade nicht antworten.'); return }
       const data = await res.json()
       onPatch({
         recommended_option: data.recommended_option || null,
@@ -593,7 +593,7 @@ function Drawer({
     }
   }
 
-  async function applyTagro() {
+  async function applyVeyra() {
     if (decision.recommended_option && decision.recommended_option !== 'freeform') {
       setSelected(decision.recommended_option)
     }
@@ -650,7 +650,7 @@ function Drawer({
     }
   }
 
-  async function delegateToTagro() {
+  async function delegateToVeyra() {
     if (delegating) return
     setDelegating(true); setError('')
     try {
@@ -740,7 +740,7 @@ function Drawer({
             )}
             {isDelegated && (
               <span className="dec-pill tone-muted">
-                <Sparkle size={10} weight="fill" /> Von Tagro entschieden
+                <Sparkle size={10} weight="fill" /> Von Veyra entschieden
               </span>
             )}
             {isAwaitingClarification && (
@@ -752,27 +752,27 @@ function Drawer({
 
           {isAwaitingClarification && (
             <div className="dec-clarification">
-              Diese Entscheidung wartet aktuell auf eine Klärung. Tagro überarbeitet die Optionen, sobald die offene Frage beantwortet ist.
+              Diese Entscheidung wartet aktuell auf eine Klärung. Veyra überarbeitet die Optionen, sobald die offene Frage beantwortet ist.
             </div>
           )}
 
-          {/* Tagro suggestion panel */}
+          {/* Veyra suggestion panel */}
           <section className="dec-tagro">
             <header className="dec-tagro-head">
               <div>
-                <span className="dec-tagro-kicker"><Sparkle size={11} weight="fill" /> Tagro-Empfehlung</span>
+                <span className="dec-tagro-kicker"><Sparkle size={11} weight="fill" /> Veyra-Empfehlung</span>
                 {decision.tagro_run_at
                   ? <span className="dec-tagro-time">Zuletzt {fmtAgo(decision.tagro_run_at)}</span>
                   : <span className="dec-tagro-time">Noch nicht analysiert</span>}
               </div>
-              <button className="dec-tagro-run" type="button" onClick={runTagro} disabled={suggesting}>
+              <button className="dec-tagro-run" type="button" onClick={runVeyra} disabled={suggesting}>
                 <ArrowsClockwise size={11} className={suggesting ? 'dec-spin' : ''} />
-                {suggesting ? 'Tagro liest…' : decision.tagro_run_at ? 'Neu analysieren' : 'Tagro analysieren'}
+                {suggesting ? 'Veyra liest…' : decision.tagro_run_at ? 'Neu analysieren' : 'Veyra analysieren'}
               </button>
             </header>
 
             {!decision.tagro_run_at && !suggesting && (
-              <p className="dec-tagro-empty">Lass Tagro die Optionen einmal durchgehen — bekommt einen ruhigen Vorschlag mit Begründung.</p>
+              <p className="dec-tagro-empty">Lass Veyra die Optionen einmal durchgehen — bekommt einen ruhigen Vorschlag mit Begründung.</p>
             )}
 
             {decision.tagro_reasoning && (
@@ -786,8 +786,8 @@ function Drawer({
                 )}
                 <p className="dec-tagro-text">{decision.tagro_reasoning}</p>
                 {tagroRec && tagroRec !== 'freeform' && !isAnswered && isDecider && (
-                  <button type="button" className="dec-tagro-apply" onClick={applyTagro}>
-                    Tagros Vorschlag übernehmen
+                  <button type="button" className="dec-tagro-apply" onClick={applyVeyra}>
+                    Veyras Vorschlag übernehmen
                   </button>
                 )}
               </div>
@@ -832,7 +832,7 @@ function Drawer({
                           <strong>{o.client_label || o.label}</strong>
                           {(o.description || (o as any).hint) && <small>{o.description || (o as any).hint}</small>}
                         </span>
-                        {isRec && <span className="dec-option-tagro"><Sparkle size={10} weight="fill" /> Tagro</span>}
+                        {isRec && <span className="dec-option-tagro"><Sparkle size={10} weight="fill" /> Veyra</span>}
                       </label>
                     )
                   })}
@@ -861,7 +861,7 @@ function Drawer({
                           <strong>{o.client_label || o.label}</strong>
                           {(o.description || (o as any).hint) && <small>{o.description || (o as any).hint}</small>}
                         </span>
-                        {isRec && <span className="dec-option-tagro"><Sparkle size={10} weight="fill" /> Tagro</span>}
+                        {isRec && <span className="dec-option-tagro"><Sparkle size={10} weight="fill" /> Veyra</span>}
                       </label>
                     )
                   })}
@@ -894,9 +894,9 @@ function Drawer({
                   {deciding ? 'Speichere…' : 'Entscheidung absenden'}
                 </button>
                 {canDelegate && (
-                  <button type="button" className="dec-secondary" onClick={delegateToTagro} disabled={delegating}>
+                  <button type="button" className="dec-secondary" onClick={delegateToVeyra} disabled={delegating}>
                     <Sparkle size={11} weight="fill" />
-                    {delegating ? 'Tagro entscheidet…' : 'Tagro entscheiden lassen'}
+                    {delegating ? 'Veyra entscheidet…' : 'Veyra entscheiden lassen'}
                   </button>
                 )}
                 {!isAwaitingClarification && (
@@ -952,7 +952,7 @@ function Drawer({
                 <div className="dec-discuss">
                   <textarea
                     className="dec-note"
-                    placeholder="Worum geht es noch? Tagro nimmt die Frage auf und schärft das Framing."
+                    placeholder="Worum geht es noch? Veyra nimmt die Frage auf und schärft das Framing."
                     value={discussQuestion}
                     onChange={(e) => setDiscussQuestion(e.target.value)}
                   />
@@ -974,7 +974,7 @@ function Drawer({
           {isAnswered && (
             <section className="dec-final">
               <p className="dec-answer-label">
-                {isDelegated ? 'Von Tagro getroffene Entscheidung' : 'Getroffene Entscheidung'}
+                {isDelegated ? 'Von Veyra getroffene Entscheidung' : 'Getroffene Entscheidung'}
               </p>
               {renderResponseValue(decision, renderOptions)}
               {(decision.rationale || decision.decision_note) && (

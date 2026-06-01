@@ -6,7 +6,7 @@
  * Runs inside the app shell (real sidebar + graphite theme). Loads real
  * workspace members from workspace_members + profiles, includes the owner
  * and any pending invites, and lazily resolves each member's assigned
- * projects + open tasks for the detail panel. Tagro Visibility is derived
+ * projects + open tasks for the detail panel. Veyra Visibility is derived
  * honestly from that activity — no fabricated presence/sync data.
  */
 
@@ -35,7 +35,7 @@ type Row = {
   signal: { kind: 'active' | 'invited' | 'idle'; label: string }
 }
 
-const AV_TINTS = ['#8e96ff', '#5ba8ff', '#35c878', '#d5a655', '#a8b0bc']
+const AV_TINTS = ['#6a738c', '#5ba8ff', '#35c878', '#d5a655', '#a8b0bc']
 
 function initialsOf(name: string, email: string) {
   const base = (name || email || '?').trim()
@@ -232,11 +232,11 @@ export default function MembersPage() {
   function closeDetails() { setOverlayOpen(false) }
 
   const tagroLine = (() => {
-    if (!selected || selected.pending) return 'Sobald die Einladung angenommen wird, beginnt Tagro mit der Sichtbarkeit.'
-    if (detailBusy || !detail) return 'Tagro liest die Aktivität…'
+    if (!selected || selected.pending) return 'Sobald die Einladung angenommen wird, beginnt Veyra mit der Sichtbarkeit.'
+    if (detailBusy || !detail) return 'Veyra liest die Aktivität…'
     const p = detail.projects.length, t = detail.openTasks
     if (p === 0 && t === 0) return 'Noch keine zugewiesenen Projekte oder offenen Aufgaben — keine Signale.'
-    return `Tagro verfolgt ${t} ${t === 1 ? 'offene Aufgabe' : 'offene Aufgaben'} über ${p} ${p === 1 ? 'Projekt' : 'Projekte'}. Keine kritischen Blocker erkannt.`
+    return `Veyra verfolgt ${t} ${t === 1 ? 'offene Aufgabe' : 'offene Aufgaben'} über ${p} ${p === 1 ? 'Projekt' : 'Projekte'}. Keine kritischen Blocker erkannt.`
   })()
 
   return (
@@ -318,7 +318,7 @@ export default function MembersPage() {
               </div>
 
               <section className="mb-tagro">
-                <div className="mb-tagro-head"><Sparkle size={13} weight="fill" /><span>Tagro Visibility</span></div>
+                <div className="mb-tagro-head"><Sparkle size={13} weight="fill" /><span>Veyra Visibility</span></div>
                 <p className="mb-tagro-insight">{tagroLine}</p>
                 <div className="mb-tagro-rows">
                   <div><span className="mb-k"><Warning size={12} /> Blocker</span><span className="mb-v">{selected.pending ? '—' : 'Keine kritischen Blocker'}</span></div>
@@ -406,13 +406,13 @@ const CSS = `
   .mb-cell { min-width: 0; display: flex; align-items: center; font-size: 13px; }
   .mb-dim { color: var(--text-muted); font-size: 12.5px; }
   .mb-cell-name { gap: 11px; }
-  .mb-avatar { width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; object-fit: cover; font-size: 11px; font-weight: 600; color: color-mix(in srgb, var(--a,#8e96ff) 80%, #fff 20%); background: color-mix(in srgb, var(--a,#8e96ff) 18%, transparent); border: 1px solid color-mix(in srgb, var(--a,#8e96ff) 30%, transparent); }
+  .mb-avatar { width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; object-fit: cover; font-size: 11px; font-weight: 600; color: color-mix(in srgb, var(--a,#6a738c) 80%, #fff 20%); background: color-mix(in srgb, var(--a,#6a738c) 18%, transparent); border: 1px solid color-mix(in srgb, var(--a,#6a738c) 30%, transparent); }
   .mb-avatar.lg { width: 46px; height: 46px; font-size: 15px; }
   .mb-name-block { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
   .mb-name { color: var(--text); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .mb-email { color: var(--text-muted); font-size: 11.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .mb-role { display: inline-flex; align-items: center; height: 21px; padding: 0 9px; border-radius: 6px; font-size: 11.5px; color: var(--text-secondary); background: var(--surface-2); border: 1px solid var(--border); }
-  .mb-role.is-owner { color: #b7b8ff; background: var(--accent-primary-soft, rgba(142,150,255,.14)); border-color: var(--accent-primary-border, rgba(142,150,255,.28)); }
+  .mb-role.is-owner { color: #b7b8ff; background: var(--accent-primary-soft, rgba(106,115,140,.14)); border-color: var(--accent-primary-border, rgba(106,115,140,.28)); }
   .mb-status { display: inline-flex; align-items: center; gap: 7px; color: var(--text-secondary); font-size: 12.5px; }
   .mb-status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text-muted); flex-shrink: 0; }
   .mb-status-dot.s-active { background: var(--accent-green, #35c878); box-shadow: 0 0 0 3px rgba(53,200,120,.14); }
@@ -449,9 +449,9 @@ const CSS = `
   .mb-stat { padding: 11px 12px; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--border); display: flex; flex-direction: column; gap: 3px; }
   .mb-stat-num { font-size: 15px; font-weight: 500; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .mb-stat-key { font-size: 11px; color: var(--text-muted); }
-  .mb-tagro { padding: 14px; border-radius: 10px; background: linear-gradient(180deg, rgba(142,150,255,.06), rgba(142,150,255,.015)); border: 1px solid rgba(142,150,255,.16); }
+  .mb-tagro { padding: 14px; border-radius: 10px; background: linear-gradient(180deg, rgba(106,115,140,.06), rgba(106,115,140,.015)); border: 1px solid rgba(106,115,140,.16); }
   .mb-tagro-head { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text); }
-  .mb-tagro-head > svg { color: var(--accent-primary, #8e96ff); }
+  .mb-tagro-head > svg { color: var(--accent-primary, #6a738c); }
   .mb-tagro-insight { margin: 11px 0 13px; font-size: 12.5px; line-height: 1.6; color: var(--text-secondary); }
   .mb-tagro-rows { display: flex; flex-direction: column; gap: 9px; }
   .mb-tagro-rows > div { display: grid; grid-template-columns: 120px 1fr; gap: 10px; align-items: start; }

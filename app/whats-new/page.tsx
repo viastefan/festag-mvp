@@ -10,7 +10,7 @@ type Article = {
   date: string
   category: string
   section: string
-  tone: 'blue' | 'green' | 'amber' | 'rose' | 'violet' | 'slate' | 'cyan' | 'paper'
+  tone: 'blue' | 'green' | 'amber' | 'rose' | 'primary' | 'slate' | 'cyan' | 'paper'
 }
 
 const sections = [
@@ -25,19 +25,19 @@ const sections = [
 ]
 
 const articles: Article[] = [
-  { id:'tagro-voice-reports', title:'Tagro Voice Reports', summary:'Projektstände als ruhiges Executive Update hören, inklusive Transkript und Datenbasis.', date:'15. Mai 2026', category:'Voice', section:'voice', tone:'violet' },
+  { id:'tagro-voice-reports', title:'Veyra Voice Reports', summary:'Projektstände als ruhiges Executive Update hören, inklusive Transkript und Datenbasis.', date:'15. Mai 2026', category:'Voice', section:'voice', tone:'primary' },
   { id:'morning-report', title:'Morning Report für Entscheider', summary:'Automatische tägliche Briefings als E-Mail, Voice Report oder beides vorbereitet.', date:'15. Mai 2026', category:'Briefings', section:'voice', tone:'amber' },
   { id:'project-briefings-core', title:'Projektbriefings werden Kernsystem', summary:'Statusberichte werden zu verständlichen Projektbriefings für Kontrolle statt Ticket-Chaos.', date:'15. Mai 2026', category:'Briefings', section:'briefings', tone:'blue' },
   { id:'voice-transcripts', title:'Jeder Voice Report hat ein Transkript', summary:'Audio, Textstatus, Datenbasis und Zustellstatus gehören jetzt zu einem prüfbaren Snapshot.', date:'15. Mai 2026', category:'Voice', section:'voice', tone:'green' },
   { id:'dashboard-control-system', title:'Dashboard als Kontrollsystem', summary:'Festag zeigt, was gebaut wurde, was blockiert und welche Entscheidung offen ist.', date:'14. Mai 2026', category:'Dashboard', section:'highlights', tone:'slate' },
   { id:'delivery-without-blackbox', title:'Softwareentwicklung ohne Blackbox', summary:'Neue Produktlogik für KMUs und Unternehmer, die Software bauen lassen wollen.', date:'14. Mai 2026', category:'Positionierung', section:'delivery', tone:'paper' },
-  { id:'guided-project-intake', title:'Geführte Projektanalyse', summary:'Tagro fragt nicht nur nach einer Idee, sondern hilft beim Herausfinden des echten Bedarfs.', date:'14. Mai 2026', category:'Tagro', section:'delivery', tone:'rose' },
+  { id:'guided-project-intake', title:'Geführte Projektanalyse', summary:'Veyra fragt nicht nur nach einer Idee, sondern hilft beim Herausfinden des echten Bedarfs.', date:'14. Mai 2026', category:'Veyra', section:'delivery', tone:'rose' },
   { id:'client-dashboard-refresh', title:'Client Dashboard Refresh', summary:'Ruhigere Flächen, klarere Prioritäten und bessere Projektkarten für Kunden.', date:'13. Mai 2026', category:'Dashboard', section:'workspace', tone:'cyan' },
   { id:'sticky-task-headers', title:'Fixierte Task-Header', summary:'Filter, Titel und Tabellenkopf bleiben beim Scrollen sichtbar.', date:'13. Mai 2026', category:'Tasks', section:'workspace', tone:'blue' },
   { id:'project-table-scroll', title:'Projektlisten mit ruhigem Scroll', summary:'Projektseiten folgen dem gleichen geordneten Scrollmodell wie Tasks.', date:'13. Mai 2026', category:'Projects', section:'workspace', tone:'green' },
   { id:'sidebar-compact', title:'Kompaktere Sidebar', summary:'Navigation, Profilname und Controls wurden dichter und klarer ausgerichtet.', date:'12. Mai 2026', category:'Navigation', section:'workspace', tone:'slate' },
   { id:'sidebar-teams-return', title:'Teams zurück im Workspace', summary:'Teams bleiben als eigener Arbeitsbereich sichtbar und getrennt von Projektlisten.', date:'12. Mai 2026', category:'Teams', section:'workspace', tone:'amber' },
-  { id:'voice-provider-layer', title:'Austauschbare Voice Provider', summary:'OpenAI, ElevenLabs und Cartesia sind als Provider-Schicht vorbereitet.', date:'12. Mai 2026', category:'Architecture', section:'developer', tone:'violet' },
+  { id:'voice-provider-layer', title:'Austauschbare Voice Provider', summary:'OpenAI, ElevenLabs und Cartesia sind als Provider-Schicht vorbereitet.', date:'12. Mai 2026', category:'Architecture', section:'developer', tone:'primary' },
   { id:'audio-cost-awareness', title:'API-Kosten bewusst eingebaut', summary:'Voice Reports werden nicht als unbegrenztes Free-Feature behandelt.', date:'12. Mai 2026', category:'Billing', section:'billing', tone:'paper' },
   { id:'briefing-billing-card', title:'Briefing & Voice im Planbereich', summary:'Settings zeigen, welche Briefing- und Audiofunktionen enthalten oder Premium sind.', date:'12. Mai 2026', category:'Billing', section:'billing', tone:'green' },
   { id:'pwa-install-reminder', title:'App-Install Hinweis verbessert', summary:'Das Install-Popup erscheint ruhiger und nur sinnvoll im Nutzungsfluss.', date:'11. Mai 2026', category:'App', section:'workspace', tone:'rose' },
@@ -46,22 +46,22 @@ const articles: Article[] = [
   { id:'magic-link-callback', title:'Magic-Link Screen angeglichen', summary:'Der Bestätigungsscreen folgt dem Login-Design statt isoliert zu wirken.', date:'11. Mai 2026', category:'Auth', section:'security', tone:'paper' },
   { id:'developer-login-align', title:'Developer Login konsistent', summary:'Dev-Zugang übernimmt Breite, Button-Logik und Input-Verhalten aus dem Client Login.', date:'10. Mai 2026', category:'Dev', section:'developer', tone:'cyan' },
   { id:'lightmode-contrast', title:'Lightmode-Kontrast verbessert', summary:'Hintergrund und Inhaltsboxen trennen sich klarer, ohne hart zu wirken.', date:'10. Mai 2026', category:'Design', section:'highlights', tone:'green' },
-  { id:'button-radius-system', title:'32px Button-System', summary:'Buttons, Pills und Chips folgen jetzt einer weicheren globalen Rundung.', date:'10. Mai 2026', category:'Design', section:'highlights', tone:'violet' },
+  { id:'button-radius-system', title:'32px Button-System', summary:'Buttons, Pills und Chips folgen jetzt einer weicheren globalen Rundung.', date:'10. Mai 2026', category:'Design', section:'highlights', tone:'primary' },
   { id:'aeonik-regular', title:'Aeonik Regular für UI-Texte', summary:'Viele T1- und Body-Texte wirken leichter und weniger gedrückt.', date:'9. Mai 2026', category:'Typography', section:'highlights', tone:'slate' },
   { id:'cursor-language', title:'Ruhigere Cursor-Sprache', summary:'Dashboard-Klickflächen behalten auf Desktop stärker den normalen Pfeil.', date:'9. Mai 2026', category:'UX', section:'workspace', tone:'paper' },
   { id:'settings-layout', title:'Settings besser skaliert', summary:'Profil, Sicherheit, Erscheinung und Billing bekommen mehr Abstand und Struktur.', date:'9. Mai 2026', category:'Settings', section:'workspace', tone:'amber' },
   { id:'avatar-storage-rls', title:'Avatar Storage gehärtet', summary:'Storage-Regeln für Avatar-Dateien sind auf Nutzerordner ausgelegt.', date:'8. Mai 2026', category:'Security', section:'security', tone:'green' },
-  { id:'tagro-memory', title:'Tagro Memory vorbereitet', summary:'Account-bezogene Erinnerungsschicht für bessere Antworten im Projektkontext.', date:'8. Mai 2026', category:'Tagro', section:'developer', tone:'blue' },
+  { id:'tagro-memory', title:'Veyra Memory vorbereitet', summary:'Account-bezogene Erinnerungsschicht für bessere Antworten im Projektkontext.', date:'8. Mai 2026', category:'Veyra', section:'developer', tone:'blue' },
   { id:'inbox-phase-two', title:'Inbox Phase 2 Schema', summary:'Threads, Items und System-Events werden für strukturierte Kundenkommunikation vorbereitet.', date:'8. Mai 2026', category:'Inbox', section:'developer', tone:'rose' },
   { id:'system-events', title:'System-Events für Garantien und Rechnungen', summary:'Festag-Ereignisse können automatisch in Inbox und Briefings gespiegelt werden.', date:'8. Mai 2026', category:'Automation', section:'developer', tone:'cyan' },
-  { id:'task-suggestions-inline', title:'Task-Vorschläge inline', summary:'Aufgabenvorschläge öffnen als Inhaltsbereich statt als hartes Modal.', date:'7. Mai 2026', category:'Tasks', section:'workspace', tone:'violet' },
-  { id:'task-suggestion-logic', title:'Tagro prüft Task-Vorschläge', summary:'Kundenideen werden erst übersetzt und geprüft, bevor sie in den Dev-Workflow gehen.', date:'7. Mai 2026', category:'Tasks', section:'delivery', tone:'green' },
+  { id:'task-suggestions-inline', title:'Task-Vorschläge inline', summary:'Aufgabenvorschläge öffnen als Inhaltsbereich statt als hartes Modal.', date:'7. Mai 2026', category:'Tasks', section:'workspace', tone:'primary' },
+  { id:'task-suggestion-logic', title:'Veyra prüft Task-Vorschläge', summary:'Kundenideen werden erst übersetzt und geprüft, bevor sie in den Dev-Workflow gehen.', date:'7. Mai 2026', category:'Tasks', section:'delivery', tone:'green' },
   { id:'agency-os-direction', title:'Agency OS bleibt zweite Phase', summary:'Agenturen bleiben Zielgruppe, aber Delivery für nicht-technische Unternehmen führt.', date:'7. Mai 2026', category:'Strategy', section:'delivery', tone:'paper' },
   { id:'kmus-focus', title:'Fokus auf KMUs ohne starke IT', summary:'Festag richtet sich auf Unternehmen aus, die Kontrolle über Software brauchen.', date:'6. Mai 2026', category:'Strategy', section:'delivery', tone:'amber' },
   { id:'delivery-care-plans', title:'Care-Pläne für laufende Betreuung', summary:'Briefings, Weiterentwicklung und Kontrolle werden Grundlage für wiederkehrende Umsätze.', date:'6. Mai 2026', category:'Billing', section:'billing', tone:'blue' },
   { id:'weekly-executive-summary', title:'Weekly Executive Summary', summary:'Wöchentliche Entscheider-Zusammenfassungen sind als Premium-Format vorgesehen.', date:'6. Mai 2026', category:'Briefings', section:'briefings', tone:'rose' },
   { id:'delivery-alerts', title:'Delivery Alerts', summary:'Kurze Hinweise bei Blockern, offenen Entscheidungen oder Meilensteinrisiken.', date:'6. Mai 2026', category:'Briefings', section:'briefings', tone:'cyan' },
-  { id:'email-design', title:'Magic-Link E-Mail Design', summary:'Login-Mails wirken stärker wie Festag und weniger wie generische Systemmails.', date:'5. Mai 2026', category:'Email', section:'security', tone:'violet' },
+  { id:'email-design', title:'Magic-Link E-Mail Design', summary:'Login-Mails wirken stärker wie Festag und weniger wie generische Systemmails.', date:'5. Mai 2026', category:'Email', section:'security', tone:'primary' },
   { id:'mobile-webapp-container', title:'Mobile Webapp Container sichtbarer', summary:'Register- und Login-Frames heben sich auf mobilen Screens stärker vom Hintergrund ab.', date:'5. Mai 2026', category:'Mobile', section:'highlights', tone:'green' },
   { id:'smooth-settings-transition', title:'Smooth Settings Transition', summary:'Wechsel zwischen Dashboard und Settings wird weicher und weniger ruckelig.', date:'5. Mai 2026', category:'Motion', section:'workspace', tone:'slate' },
   { id:'dashboard-entry-animation', title:'Dashboard Entry Animation', summary:'Nach Onboarding baut sich das Dashboard künftig kontrolliert und hochwertig auf.', date:'5. Mai 2026', category:'Motion', section:'workspace', tone:'amber' },
@@ -155,8 +155,8 @@ export default function WhatsNewPage() {
         .tone-blue { background:linear-gradient(135deg,#1D55EA,#88D3FF 58%,#E7E5CE); }
         .tone-green { background:linear-gradient(135deg,#0B6E52,#A8DAB6 58%,#DDE4B3); }
         .tone-amber { background:linear-gradient(135deg,#A55B1A,#F3B26D 58%,#F0E4C2); }
-        .tone-rose { background:linear-gradient(135deg,#CD5268,#F6A98C 55%,#DFC7F5); }
-        .tone-violet { background:linear-gradient(135deg,#4B42E8,#A870FF 55%,#F2B8D4); }
+        .tone-rose { background:linear-gradient(135deg,#CD5268,#F6A98C 55%,#d8c8c0); }
+        .tone-primary { background:linear-gradient(135deg,#6a738c,#8790a5 55%,#c7cedb); }
         .tone-slate { background:linear-gradient(135deg,#1A1D22,#667085 58%,#C8D0D4); }
         .tone-cyan { background:linear-gradient(135deg,#046A7C,#8DD9E8 55%,#D9F0D1); }
         .tone-paper { background:linear-gradient(135deg,#6D6657,#E4D5B4 58%,#F6F3E8); }

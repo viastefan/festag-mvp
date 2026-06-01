@@ -9,7 +9,7 @@ Festag is an AI-powered project visibility and accountability platform that turn
 - Festwerk defines what is being built.
 - Teams defines who is working on it.
 - Relations keeps communication simple for clients.
-- Tagro AI provides the interpretation layer: planning, context translation, progress intelligence, risk highlights, decision support, status reports, and optional audio briefings.
+- Veyra AI provides the interpretation layer: planning, context translation, progress intelligence, risk highlights, decision support, status reports, and optional audio briefings.
 - Workspaces hold the system together.
 
 The product must not feel like three separate apps.
@@ -29,14 +29,14 @@ The product experience should start from leadership questions:
 - Who owns the next step?
 - Which stakeholder needs to be informed?
 - What needs a decision?
-- What should Tagro summarize, escalate, explain, or turn into a briefing?
+- What should Veyra summarize, escalate, explain, or turn into a briefing?
 
-Default surfaces should feel like a calm operational cockpit, not a ticket board. Prefer views such as project health overview, today's executive briefing, active risks and blockers, waiting for decision, progress since last update, stakeholder update center, weekly status report, deliverable timeline, and Tagro recommendations.
+Default surfaces should feel like a calm operational cockpit, not a ticket board. Prefer views such as project health overview, today's executive briefing, active risks and blockers, waiting for decision, progress since last update, stakeholder update center, weekly status report, deliverable timeline, and Veyra recommendations.
 
 ## Product principles
 
 - Status before tickets: the main objects are project health, progress, ownership, blockers, risks, decisions, and next action.
-- AI as translation layer: Tagro converts raw activity into summaries for CEOs, clients, agency owners, developers, contractors, investors, and team leads.
+- AI as translation layer: Veyra converts raw activity into summaries for CEOs, clients, agency owners, developers, contractors, investors, and team leads.
 - Accountability without surveillance: use language around transparency, operational clarity, accountability, trust, progress visibility, and stakeholder alignment.
 - Client-facing communication: external stakeholders must understand the project without reading internal implementation chatter.
 - Reports as a core feature: executive briefings, weekly summaries, status reports, and audio briefings are central, not secondary.
@@ -48,7 +48,7 @@ Default surfaces should feel like a calm operational cockpit, not a ticket board
 
 - Do not turn Festag into a freelance marketplace.
 - Do not delete existing features just because they sit in the wrong place today.
-- Do not treat Tagro AI as a global random chatbot.
+- Do not treat Veyra AI as a global random chatbot.
 - Do not keep billing as a primary daily-work navigation item.
 
 ## Navigation target
@@ -70,7 +70,7 @@ Festag moves from a top toggle model to a workspace model.
 - Teams
 - Documents
 - Notes
-- Tagro AI
+- Veyra AI
 - Tools
 
 ### Footer / account navigation

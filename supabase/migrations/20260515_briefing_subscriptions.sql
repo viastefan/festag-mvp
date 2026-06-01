@@ -1,6 +1,6 @@
 -- Festag — Briefing-Zustellung
 --
--- Auto-deliver Tagro briefings to a client/team-side email at a chosen
+-- Auto-deliver Veyra briefings to a client/team-side email at a chosen
 -- cadence (daily, weekly, biweekly) in a chosen format (email, audio,
 -- both). Scoped per workspace + optional project. The cron worker
 -- (separate Edge Function) reads `next_run_at` and fires when due.

@@ -56,7 +56,7 @@ export default function DatenschutzPage() {
       <ul>
         <li><strong>Supabase</strong> (EU-Hosting) — Datenbank, Authentifizierung, Realtime</li>
         <li><strong>Vercel</strong> — Hosting der Web-App</li>
-        <li><strong>Anthropic Claude</strong> — KI-Funktionen (Tagro AI). Keine personenbezogenen Daten in Prompts ohne Notwendigkeit.</li>
+        <li><strong>Anthropic Claude</strong> — KI-Funktionen (Veyra AI). Keine personenbezogenen Daten in Prompts ohne Notwendigkeit.</li>
         <li><strong>Enjyn® Gruppe</strong> — technischer Zahlungsdienstleister (SEPA)</li>
       </ul>
 

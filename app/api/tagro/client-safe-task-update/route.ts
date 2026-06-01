@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { createClient as createCookieClient } from '@/lib/supabase/server'
-import { buildTagroContext, contextToPromptText } from '@/lib/tagro/task-context-builder'
+import { buildVeyraContext, contextToPromptText } from '@/lib/tagro/task-context-builder'
 import { clientSafeTransformerPrompt } from '@/lib/tagro/task-prompts'
 import { runOpenAIJson } from '@/lib/tagro/openai'
 import { clientSafeTaskUpdate } from '@/lib/tagro/client-safe-transformer'
-import { ensureProjectAccess, saveTagroRun } from '@/lib/tagro/task-actions'
+import { ensureProjectAccess, saveVeyraRun } from '@/lib/tagro/task-actions'
 
 export const runtime = 'nodejs'
 
@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
     const sb = serviceClient(cookieClient)
     await ensureProjectAccess(sb as any, projectId, user.id)
 
-    const context = await buildTagroContext({ sb: sb as any, projectId, purpose: 'client_safe' })
+    const context = await buildVeyraContext({ sb: sb as any, projectId, purpose: 'client_safe' })
     const prompt = clientSafeTransformerPrompt(rawUpdate, contextToPromptText(context))
     const result = await runOpenAIJson({
       prompt,
@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
       fallback: () => clientSafeTaskUpdate(rawUpdate),
     })
 
-    await saveTagroRun(sb as any, {
+    await saveVeyraRun(sb as any, {
       projectId,
       runType: 'client_safe_transform',
       inputJson: { taskId, rawUpdate },

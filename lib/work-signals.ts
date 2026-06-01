@@ -2,11 +2,11 @@
 // Festag Work Signals
 //
 // A Work Signal is a raw event observed in or submitted to a project.
-// Tagro interprets signals into status / risks / decisions / next actions
+// Veyra interprets signals into status / risks / decisions / next actions
 // and the client-safe translation that lands on the Client Panel.
 //
 // Pipeline:
-//   Signal  →  Tagro Classification  →  (Decision / Status Report / Task / Note)
+//   Signal  →  Veyra Classification  →  (Decision / Status Report / Task / Note)
 //
 // This module gives the canonical types + lightweight helpers to create
 // and read signals. The Execution Panel and integration adapters (GitHub,
@@ -34,17 +34,17 @@ export type WorkSignalAttachment = {
 }
 
 export type WorkSignalClassification = {
-  /** Tagro's reading of what this signal means for the project. */
+  /** Veyra's reading of what this signal means for the project. */
   meaning?: 'progress' | 'blocker' | 'risk' | 'decision_needed' | 'approval_needed'
     | 'scope_change' | 'quality_issue' | 'delay' | 'next_step' | 'internal_noise'
     | 'client_relevant'
   /** Should this surface in the Client Panel (after translation)? */
   client_visible?: boolean
-  /** Tagro-generated client-safe sentence — what the client reads. */
+  /** Veyra-generated client-safe sentence — what the client reads. */
   client_translation?: string
   /** Internal short summary for the team/owner. */
   internal_summary?: string
-  /** Optional suggested follow-ups Tagro extracted. */
+  /** Optional suggested follow-ups Veyra extracted. */
   suggested_actions?: Array<{
     kind: 'create_task' | 'create_decision' | 'create_risk'
       | 'request_approval' | 'notify_client' | 'update_status_report'
@@ -98,7 +98,7 @@ export type CreateWorkSignalInput = {
  * accidental cross-type signals don't pollute the timeline.
  * Returns the inserted row, or null on validation/insert failure.
  *
- * Tagro classification stays empty here — the interpreter runs as a
+ * Veyra classification stays empty here — the interpreter runs as a
  * downstream step (Phase: separate `lib/tagro/classify-signal.ts` similar
  * to the decisions framer).
  */
@@ -184,7 +184,7 @@ export async function listWorkSignals(
 
 /**
  * Convenience: return only signals that have been translated for the client
- * (Tagro classification marked client_visible). This is what feeds the
+ * (Veyra classification marked client_visible). This is what feeds the
  * Client Panel timeline.
  */
 export async function listClientVisibleSignals(
