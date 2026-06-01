@@ -889,6 +889,32 @@ input[type="reset"],
   border-radius: var(--button-radius) !important;
 }
 
+/* Compact surfaces: popup/menu/sidebar controls stay crisp instead of pill-shaped. */
+:where([class*="menu"], [class*="popover"], [class*="dropdown"], [class*="sidebar"], [class^="sb-"]) :is(button, a[role="button"], [role="menuitem"], [role="option"]) {
+  border-radius: 8px !important;
+}
+
+/* Small icon-only controls should remain round. */
+button.sb-help-trigger,
+button.sb-video-dismiss,
+.sb-video-modal-head button,
+:where(.task-tool, .task-plus, .npm-icon-btn) {
+  border-radius: 999px !important;
+}
+
+button.sb-video-teaser {
+  border-radius: 22px !important;
+}
+
+.sb-video-teaser-wrap > button.sb-video-teaser {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  min-height: 292px !important;
+  background: #050506 !important;
+  color: #f4f4f5 !important;
+}
+
 /* Tagro Audio Briefings */
 .audio-briefing-wrap { position: relative; display: inline-flex; }
 .audio-briefing-button {

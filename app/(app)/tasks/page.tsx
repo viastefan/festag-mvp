@@ -602,7 +602,7 @@ export default function TasksPage() {
           display:inline-flex; align-items:center; gap:7px;
           max-width:240px;
           height:28px; padding:0 11px 0 12px;
-          border-radius:999px;
+          border-radius:32px;
           border:1px solid color-mix(in srgb, var(--border) 70%, transparent);
           background:color-mix(in srgb, var(--surface-2) 30%, transparent);
           color:var(--text); font:inherit; font-size:12px;
@@ -629,7 +629,7 @@ export default function TasksPage() {
           padding:6px;
           background:var(--card);
           border:1px solid color-mix(in srgb, var(--border) 70%, transparent);
-          border-radius:12px;
+          border-radius:8px;
           box-shadow:0 1px 2px rgba(15,23,42,.06), 0 20px 50px rgba(15,23,42,.14);
           display:flex; flex-direction:column; gap:2px;
           animation:scopeIn .14s cubic-bezier(.16,1,.3,1) both;
@@ -646,9 +646,7 @@ export default function TasksPage() {
           gap:10px; align-items:center;
           width:100%; padding:10px 12px;
           border:0; background:transparent;
-          /* Festag rule: items inherit the outer container's radius
-             — task-scope-menu is 12px, items match. No pill, no 32px. */
-          border-radius:12px !important;
+          border-radius:8px !important;
           color:var(--text); font:inherit; font-size:12.5px;
           font-weight:500; letter-spacing:.012em;
           cursor:pointer; text-align:left;
@@ -677,9 +675,7 @@ export default function TasksPage() {
           overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
         }
         .task-scope-divider {
-          height:1px;
-          background:color-mix(in srgb, var(--border) 60%, transparent);
-          margin:4px 6px;
+          display:none;
         }
         .task-plus {
           width:28px;
@@ -688,7 +684,7 @@ export default function TasksPage() {
           background:transparent;
           color:var(--task-soft-text);
           cursor:pointer;
-          border-radius:7px;
+          border-radius:999px;
           font:inherit;
           font-size:20px;
           line-height:1;
@@ -738,7 +734,7 @@ export default function TasksPage() {
           height:30px;
           padding:0 9px 0 12px;
           border:1px solid transparent;
-          border-radius:8px;
+          border-radius:32px;
           background:transparent;
           color:var(--task-soft-text);
           display:flex;
@@ -830,7 +826,7 @@ export default function TasksPage() {
           width:190px;
           z-index:20;
           border:0;
-          border-radius:12px !important;
+          border-radius:8px !important;
           background:var(--surface);
           box-shadow:0 18px 44px rgba(0,0,0,.16);
           padding:6px;

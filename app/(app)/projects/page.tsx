@@ -256,7 +256,7 @@ function ProjectsPageInner() {
         .pj-title { margin:0; font-size:14.5px; font-weight:500; letter-spacing:0; }
         .pj-create {
           height:30px; padding:0 9px 0 12px;
-          border:1px solid transparent; border-radius:8px;
+          border:1px solid transparent; border-radius:32px;
           background:transparent; color:var(--pj-soft);
           display:flex; align-items:center; gap:8px;
           font:inherit; font-size:12px; font-weight:500; cursor:pointer;
@@ -303,7 +303,7 @@ function ProjectsPageInner() {
         }
         .pj-menu {
           position:absolute; top:38px; right:0; width:198px; z-index:20;
-          border:0; border-radius:12px; padding:6px;
+          border:0; border-radius:8px; padding:6px;
           background:var(--surface);
           box-shadow:0 18px 44px rgba(0,0,0,.16);
           animation:pjIn .16s cubic-bezier(.16,1,.3,1) both;

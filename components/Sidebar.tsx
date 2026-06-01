@@ -19,7 +19,8 @@ import {
   Clock, CheckSquare, Code, FileCode,
   Tray, MagnifyingGlass, SpeakerHigh, Pulse,
   Question, DownloadSimple, ChatTeardropDots,
-  Scales, Keyboard, CheckCircle,
+  Scales, Keyboard, CheckCircle, PlayCircle,
+  ArrowSquareOut,
 } from '@phosphor-icons/react'
 import { autoAvatarColor, avatarInitials } from '@/lib/avatar'
 import {
@@ -134,7 +135,7 @@ const CLIENT_MOB_PRIMARY: NavItem[] = [
   { href:'/more',      icon:'more',    label:'Mehr' },
 ]
 const CLIENT_MOB_QUICK = [
-  { href:'/new-project', icon:'plus',     label:'Neues Projekt', primary: true },
+  { href:'/projects?new=1', icon:'plus', label:'Neues Projekt', primary: true },
   { href:'/messages',    icon:'chat',     label:'Nachrichten' },
   { href:'/documents',   icon:'doc',      label:'Dokumente' },
   { href:'/docs',        icon:'doc',      label:'Docs' },
@@ -248,6 +249,8 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
   const reportsAutoSeededRef = useRef(false)
   const [toolsExp, setToolsExp] = useState(false)
   const [whatsNewOpen, setWhatsNewOpen] = useState(false)
+  const [videoTeaserVisible, setVideoTeaserVisible] = useState(true)
+  const [videoModalOpen, setVideoModalOpen] = useState(false)
   // Sidebar customisation: prefs control which items show, which hide
   // into the "Mehr" popover, and how badges render. Default behaviour
   // is unchanged until the user touches the modal.
@@ -262,6 +265,20 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
     if (r) setMorePos({ left: r.left, top: r.bottom + 6 })
     setMoreOpen((v) => !v)
   }
+
+  useEffect(() => {
+    if (!videoModalOpen) return
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') setVideoModalOpen(false)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => {
+      document.body.style.overflow = prevOverflow
+      window.removeEventListener('keydown', onKey)
+    }
+  }, [videoModalOpen])
   const [colorPickId, setColorPickId] = useState<string|null>(null)
   const [monitoringDock, setMonitoringDock] = useState<MonitoringDockState>({
     loaded: false,
@@ -760,7 +777,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
                   className="ni-add"
                   title="Neues Projekt anlegen"
                   aria-label="Neues Projekt anlegen"
-                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); router.push('/new-project') }}
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); router.push('/projects?new=1') }}
                 >
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
                 </button>
@@ -1161,12 +1178,16 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         [data-theme="dark"] .sb-top-icon:hover { background:rgba(255,255,255,0.04); }
         .sb-bottom-actions {
           position:fixed;
-          bottom:16px;
-          left:16px;
-          width:auto;
-          max-width:220px;
+          bottom:22px;
+          left:38px;
+          width:min(342px, calc(100vw - 76px));
+          max-width:none;
           padding:0;
           z-index:170;
+          display:flex;
+          flex-direction:column;
+          align-items:flex-start;
+          gap:12px;
         }
         .sb-bottom-backdrop {
           position:fixed;
@@ -1185,8 +1206,139 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
              backdrop's stacking neighbour. */
           z-index:2;
         }
+        .sb-video-teaser-wrap {
+          position:relative;
+          width:100%;
+          z-index:1;
+          filter: drop-shadow(0 18px 36px rgba(0,0,0,.32));
+        }
+        .sb-video-teaser {
+          width:100%;
+          overflow:hidden;
+          display:flex;
+          flex-direction:column !important;
+          padding:0;
+          border:1px solid rgba(255,255,255,.12);
+          border-radius:22px !important;
+          background:#050506 !important;
+          color:#f4f4f5;
+          text-align:left;
+          cursor:pointer;
+          box-shadow:inset 0 0 0 1px rgba(255,255,255,.025);
+          min-height:292px;
+          aspect-ratio:1.16;
+          transform-origin:left bottom;
+          transition:transform .16s ease, border-color .16s ease, box-shadow .16s ease;
+        }
+        .sb-video-teaser:hover {
+          transform:translateY(-2px);
+          border-color:rgba(255,255,255,.22);
+          box-shadow:inset 0 0 0 1px rgba(255,255,255,.035), 0 18px 48px rgba(0,0,0,.26);
+        }
+        .sb-video-thumb {
+          position:relative;
+          height:174px;
+          flex:0 0 174px;
+          display:block;
+          overflow:hidden;
+          background:
+            radial-gradient(circle at 82% 28%, rgba(88,92,255,.24), transparent 22%),
+            linear-gradient(135deg, rgba(19,22,28,.98), rgba(9,11,14,.92) 42%, rgba(35,44,41,.92));
+        }
+        .sb-video-thumb::before {
+          content:"";
+          position:absolute;
+          inset:-18% -8%;
+          background:
+            linear-gradient(110deg, transparent 0 16%, rgba(255,255,255,.08) 17%, transparent 18% 42%, rgba(255,255,255,.05) 43%, transparent 44%),
+            repeating-linear-gradient(0deg, rgba(255,255,255,.05) 0 1px, transparent 1px 18px);
+          transform:rotate(-8deg) translateY(8px);
+          opacity:.6;
+          filter:blur(.2px);
+        }
+        .sb-video-code-line {
+          position:absolute;
+          left:26px;
+          height:7px;
+          border-radius:999px;
+          background:rgba(150,162,184,.6);
+          z-index:1;
+        }
+        .sb-video-code-line.one { top:44px; width:104px; }
+        .sb-video-code-line.two { top:62px; width:72px; opacity:.78; }
+        .sb-video-code-line.three { top:80px; width:124px; opacity:.5; }
+        .sb-video-play {
+          position:absolute;
+          right:22px;
+          bottom:20px;
+          width:42px;
+          height:42px;
+          display:inline-flex;
+          align-items:center;
+          justify-content:center;
+          border-radius:999px;
+          background:rgba(255,255,255,.08);
+          color:#f5f5f5;
+          backdrop-filter:blur(10px);
+          z-index:2;
+        }
+        .sb-video-copy {
+          min-height:118px;
+          display:flex;
+          flex-direction:column;
+          justify-content:center;
+          gap:12px;
+          padding:22px 26px 24px;
+          background:linear-gradient(180deg, #050506, #030304) !important;
+        }
+        .sb-video-copy strong {
+          display:block;
+          font-size:24px;
+          line-height:1.08;
+          font-weight:500;
+          letter-spacing:0;
+          color:#f6f6f7;
+          white-space:normal;
+        }
+        .sb-video-copy span {
+          display:block;
+          max-width:none;
+          font-size:23px;
+          line-height:1.14;
+          font-weight:500;
+          letter-spacing:0;
+          color:rgba(245,245,247,.58);
+          white-space:normal;
+        }
+        .sb-video-dismiss {
+          position:absolute;
+          right:10px;
+          top:10px;
+          width:28px;
+          height:28px;
+          display:inline-flex;
+          align-items:center;
+          justify-content:center;
+          border:0;
+          border-radius:999px;
+          color:rgba(255,255,255,.7);
+          background:rgba(0,0,0,.24);
+          cursor:pointer;
+          z-index:3;
+          opacity:0;
+          transition:background .12s ease, color .12s ease, opacity .12s ease;
+        }
+        .sb-video-teaser-wrap:hover .sb-video-dismiss,
+        .sb-video-dismiss:focus-visible {
+          opacity:1;
+        }
+        .sb-video-dismiss:hover {
+          background:rgba(255,255,255,.12);
+          color:#fff;
+        }
         .sb-help-trigger {
-          width: 32px; height: 32px; border-radius: 999px;
+          width: 32px; height: 32px; border-radius: 999px !important;
+          aspect-ratio:1;
           display: inline-flex; align-items: center; justify-content: center;
           border: 1px solid color-mix(in srgb, var(--border) 75%, transparent);
           background: color-mix(in srgb, var(--card) 94%, transparent);
@@ -1203,6 +1355,35 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         .sb-help-trigger[aria-expanded="true"] {
           color: var(--text);
           background: color-mix(in srgb, var(--surface-2) 85%, transparent);
+        }
+        .sb-video-teaser-wrap .sb-video-teaser {
+          width:100% !important;
+          min-height:292px !important;
+          display:flex !important;
+          flex-direction:column !important;
+          align-items:stretch !important;
+          border-radius:22px !important;
+          background:#050506 !important;
+          color:#f4f4f5 !important;
+        }
+        .sb-video-teaser-wrap .sb-video-thumb {
+          display:block !important;
+          width:100% !important;
+          height:174px !important;
+          flex:0 0 174px !important;
+        }
+        .sb-video-teaser-wrap .sb-video-copy {
+          width:100% !important;
+          min-height:118px !important;
+          background:linear-gradient(180deg, #050506, #030304) !important;
+        }
+        .sb-help-dock .sb-help-trigger {
+          border-radius:999px !important;
+          width:32px !important;
+          height:32px !important;
+          min-width:32px !important;
+          min-height:32px !important;
+          aspect-ratio:1 !important;
         }
 
         /* ── "Mehr" trigger + popover ─────────────────────────────── */
@@ -1297,7 +1478,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           min-height: 34px;
           padding: 0 10px;
           border: 0; background: transparent;
-          border-radius: 10px !important;
+          border-radius: 8px !important;
           color: var(--text);
           text-decoration: none;
           font: inherit;
@@ -1394,6 +1575,218 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           font-size: 13.5px;
           font-weight: 500;
           letter-spacing: .02em;
+        }
+        .sb-video-modal-layer {
+          position:fixed;
+          inset:0;
+          z-index:12600;
+          display:flex;
+          align-items:flex-start;
+          justify-content:center;
+          padding:86px 24px 28px;
+        }
+        .sb-video-modal-backdrop {
+          position:absolute;
+          inset:0;
+          border:0;
+          background:rgba(0,0,0,.56);
+          cursor:default;
+        }
+        .sb-video-modal {
+          position:relative;
+          z-index:1;
+          width:min(760px, calc(100vw - 40px));
+          max-height:calc(100dvh - 112px);
+          overflow:hidden;
+          display:flex;
+          flex-direction:column;
+          border-radius:18px;
+          border:1px solid rgba(255,255,255,.12);
+          background:linear-gradient(180deg, #1b1b1d, #19191b);
+          color:#f4f4f5;
+          box-shadow:0 32px 120px rgba(0,0,0,.62);
+          animation:sbVideoModalIn .2s cubic-bezier(.16,1,.3,1) both;
+        }
+        @keyframes sbVideoModalIn {
+          from { opacity:0; transform:translateY(10px) scale(.985); }
+          to { opacity:1; transform:none; }
+        }
+        .sb-video-modal-head {
+          height:54px;
+          display:grid;
+          grid-template-columns:1fr auto 1fr;
+          align-items:center;
+          padding:0 20px;
+          border-bottom:1px solid rgba(255,255,255,.1);
+          color:rgba(245,245,247,.62);
+          font-size:18px;
+          letter-spacing:0;
+          flex-shrink:0;
+        }
+        .sb-video-modal-head strong {
+          display:inline-flex;
+          align-items:center;
+          gap:6px;
+          justify-self:center;
+          color:#f4f4f5;
+          font-size:17px;
+          font-weight:500;
+        }
+        .sb-video-modal-head button {
+          justify-self:end;
+          width:34px;
+          height:34px;
+          display:inline-flex;
+          align-items:center;
+          justify-content:center;
+          border:0;
+          border-radius:10px;
+          background:transparent;
+          color:rgba(245,245,247,.56);
+          cursor:pointer;
+        }
+        .sb-video-modal-head button:hover {
+          background:rgba(255,255,255,.08);
+          color:#fff;
+        }
+        .sb-video-modal-body {
+          overflow:auto;
+          padding:46px 44px 56px;
+        }
+        .sb-video-modal-body h1 {
+          margin:0 0 32px;
+          font-size:31px;
+          line-height:1.15;
+          font-weight:500;
+          letter-spacing:0;
+          color:#fff;
+        }
+        .sb-video-stage {
+          overflow:hidden;
+          width:100%;
+          aspect-ratio:16 / 9;
+          border-radius:3px;
+          background:#000;
+          box-shadow:0 16px 44px rgba(0,0,0,.36);
+        }
+        .sb-video-stage-placeholder {
+          position:relative;
+          width:100%;
+          height:100%;
+          overflow:hidden;
+          background:
+            radial-gradient(circle at 74% 28%, rgba(101,97,255,.28), transparent 24%),
+            linear-gradient(135deg, #050607, #12161d 48%, #060708);
+        }
+        .sb-stage-grid {
+          position:absolute;
+          inset:-18% -8%;
+          background:
+            repeating-linear-gradient(0deg, rgba(255,255,255,.045) 0 1px, transparent 1px 28px),
+            repeating-linear-gradient(90deg, rgba(255,255,255,.035) 0 1px, transparent 1px 44px);
+          transform:perspective(600px) rotateX(54deg) translateY(20%);
+          opacity:.55;
+        }
+        .sb-stage-card {
+          position:absolute;
+          border-radius:18px;
+          border:1px solid rgba(255,255,255,.1);
+          background:rgba(255,255,255,.055);
+          box-shadow:0 18px 60px rgba(0,0,0,.38);
+          transform:rotate(-7deg);
+        }
+        .sb-stage-card.one {
+          width:46%;
+          height:34%;
+          left:12%;
+          top:23%;
+        }
+        .sb-stage-card.two {
+          width:52%;
+          height:26%;
+          right:10%;
+          bottom:18%;
+          opacity:.72;
+        }
+        .sb-stage-play {
+          position:absolute;
+          left:50%;
+          top:50%;
+          transform:translate(-50%, -50%);
+          display:inline-flex;
+          align-items:center;
+          justify-content:center;
+          width:78px;
+          height:78px;
+          border-radius:999px;
+          background:rgba(255,255,255,.12);
+          color:#fff;
+          backdrop-filter:blur(12px);
+        }
+        .sb-stage-label {
+          position:absolute;
+          left:20px;
+          bottom:18px;
+          color:rgba(245,245,247,.68);
+          font-size:13px;
+          font-weight:500;
+          letter-spacing:.02em;
+        }
+        .sb-video-copy-block {
+          margin:42px 0 40px;
+          display:flex;
+          flex-direction:column;
+          gap:18px;
+        }
+        .sb-video-copy-block p {
+          margin:0;
+          max-width:650px;
+          font-size:19px;
+          line-height:1.42;
+          font-weight:400;
+          letter-spacing:0;
+          color:rgba(245,245,247,.88);
+        }
+        .sb-video-feature-card {
+          overflow:hidden;
+          border-radius:4px;
+          background:#050506;
+          border:1px solid rgba(255,255,255,.08);
+        }
+        .sb-video-feature-visual {
+          position:relative;
+          height:250px;
+          overflow:hidden;
+          background:
+            radial-gradient(circle at 32% 38%, rgba(20,184,166,.18), transparent 26%),
+            linear-gradient(135deg, #10141a, #030405 58%);
+        }
+        .sb-video-feature-visual span {
+          position:absolute;
+          height:22px;
+          border-radius:999px;
+          background:rgba(255,255,255,.08);
+          transform:rotate(-9deg);
+        }
+        .sb-video-feature-visual span:nth-child(1) { width:58%; left:16%; top:32%; }
+        .sb-video-feature-visual span:nth-child(2) { width:44%; left:24%; top:48%; opacity:.68; }
+        .sb-video-feature-visual span:nth-child(3) { width:52%; left:34%; top:62%; opacity:.42; }
+        .sb-video-feature-card > div:last-child {
+          padding:26px 32px 30px;
+        }
+        .sb-video-feature-card h2 {
+          margin:0 0 10px;
+          font-size:23px;
+          font-weight:500;
+          letter-spacing:0;
+          color:#fff;
+        }
+        .sb-video-feature-card p {
+          margin:0;
+          max-width:560px;
+          font-size:18px;
+          line-height:1.45;
+          color:rgba(245,245,247,.66);
         }
         .sb-nav-scroll {
           flex:1 1 auto;
@@ -1614,7 +2007,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
                         >
                           {/* Neues Projekt — always reachable, even with one project. */}
                           <Link
-                            href="/new-project"
+                            href="/projects?new=1"
                             role="menuitem"
                             className="sb-more-item"
                             onClick={() => setMoreOpen(false)}
@@ -1745,6 +2138,38 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
 
           <div className="sb-bottom-actions">
             {whatsNewOpen ? <div className="sb-bottom-backdrop" onClick={() => setWhatsNewOpen(false)} /> : null}
+            {videoTeaserVisible ? (
+              <div className="sb-video-teaser-wrap">
+                <button
+                  type="button"
+                  className="sb-video-teaser"
+                  onClick={() => {
+                    setWhatsNewOpen(false)
+                    setVideoModalOpen(true)
+                  }}
+                  aria-label="So funktioniert Festag öffnen"
+                >
+                  <span className="sb-video-thumb" aria-hidden>
+                    <span className="sb-video-code-line one" />
+                    <span className="sb-video-code-line two" />
+                    <span className="sb-video-code-line three" />
+                    <span className="sb-video-play"><PlayCircle size={25} weight="fill" /></span>
+                  </span>
+                  <span className="sb-video-copy">
+                    <strong>So funktioniert Festag</strong>
+                    <span>15-Sekunden-Überblick</span>
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  className="sb-video-dismiss"
+                  aria-label="Video-Hinweis schließen"
+                  onClick={() => setVideoTeaserVisible(false)}
+                >
+                  <X size={15} />
+                </button>
+              </div>
+            ) : null}
             <div className="sb-help-dock" style={{ position:'relative' }}>
               {whatsNewOpen ? (
                 <div className="sb-help-pop" role="menu" aria-label="Hilfe und Einführung">
@@ -1894,6 +2319,71 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           </div>
         </>
       )}
+
+      {videoModalOpen ? (
+        <div className="sb-video-modal-layer" role="dialog" aria-modal="true" aria-label="So funktioniert Festag">
+          <button
+            type="button"
+            className="sb-video-modal-backdrop"
+            aria-label="Dialog schließen"
+            onClick={() => setVideoModalOpen(false)}
+          />
+          <article className="sb-video-modal">
+            <header className="sb-video-modal-head">
+              <span>Jun 1</span>
+              <strong>Festag Guide <ArrowSquareOut size={15} weight="bold" /></strong>
+              <button type="button" onClick={() => setVideoModalOpen(false)} aria-label="Schließen">
+                <X size={20} />
+              </button>
+            </header>
+
+            <div className="sb-video-modal-body">
+              <h1>So funktioniert Festag</h1>
+
+              <div className="sb-video-stage">
+                <div className="sb-video-stage-placeholder">
+                  <span className="sb-stage-grid" />
+                  <span className="sb-stage-card one" />
+                  <span className="sb-stage-card two" />
+                  <span className="sb-stage-play"><PlayCircle size={56} weight="fill" /></span>
+                  <span className="sb-stage-label">Video-Platzhalter</span>
+                </div>
+              </div>
+
+              <section className="sb-video-copy-block">
+                <p>
+                  Festag sammelt Projekt-Signale, übersetzt sie in klare Briefings und zeigt dir,
+                  was wirklich passiert: Fortschritt, Risiken, Entscheidungen und nächste Schritte.
+                </p>
+                <p>
+                  Statt jeden Status manuell zusammenzusuchen, bekommst du eine ruhige Übersicht:
+                  Projekte, Tasks, Meilensteine und Tagro liegen an einem Ort und bleiben für Kunden
+                  verständlich.
+                </p>
+                <p>
+                  Wenn ein Projekt startet, strukturiert Tagro dein Briefing, bereitet Aufgaben vor
+                  und hält die Kommunikation so nah am echten Lieferstand wie möglich.
+                </p>
+              </section>
+
+              <div className="sb-video-feature-card">
+                <div className="sb-video-feature-visual" aria-hidden>
+                  <span />
+                  <span />
+                  <span />
+                </div>
+                <div>
+                  <h2>Von Rohsignal zu Klarheit</h2>
+                  <p>
+                    Updates, Entscheidungen und offene Punkte werden in eine Kundensicht übersetzt,
+                    damit niemand raten muss, wo das Projekt steht.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+      ) : null}
 
       <CustomizeSidebarModal
         open={customizeOpen}
