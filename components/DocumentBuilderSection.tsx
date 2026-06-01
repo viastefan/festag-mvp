@@ -211,7 +211,6 @@ function DocumentBuilder({ kind, workspaceId, clients, projects, onClose, onCrea
         <button type="button" className="db-veyra-btn" onClick={draftWithVeyra} disabled={drafting || !brief.trim()}>
           {drafting ? 'Veyra füllt aus…' : 'Felder ausfüllen'}
         </button>
-        <p className="db-veyra-hint">Veyra füllt die Felder unten aus — prüfe und passe sie an, bevor du erstellst.</p>
       </div>
 
       <div className="db-grid">
@@ -250,9 +249,8 @@ function DocumentBuilder({ kind, workspaceId, clients, projects, onClose, onCrea
           <label key={f.key} className="db-field">
             <span>{f.label}{f.required && <i className="db-req"> *</i>}</span>
             {f.type === 'longtext'
-              ? <textarea className="db-input db-area" value={data[f.key] ?? ''} placeholder={f.help || ''} onChange={e => set(f.key, e.target.value)} rows={3} />
-              : <input className="db-input" type={f.type === 'date' ? 'date' : 'text'} value={data[f.key] ?? ''} placeholder={f.help || ''} onChange={e => set(f.key, e.target.value)} />}
-            {f.help && f.type !== 'date' && <span className="db-help">{f.help}</span>}
+              ? <textarea className="db-input db-area" value={data[f.key] ?? ''} placeholder={f.help || '…'} onChange={e => set(f.key, e.target.value)} rows={2} />
+              : <input className="db-input" type={f.type === 'date' ? 'date' : 'text'} value={data[f.key] ?? ''} placeholder={f.help || '…'} onChange={e => set(f.key, e.target.value)} />}
           </label>
         )
       })}
@@ -279,33 +277,45 @@ const CSS = `
   .dbs-row-sub { font-size:11.5px; color:var(--text-muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .dbs-row-total { font-size:13px; font-weight:500; color:var(--text); font-variant-numeric:tabular-nums; }
   .dbs-row-status { height:30px; border:1px solid var(--border); border-radius:8px; background:var(--bg); color:var(--text); font:inherit; font-size:12px; padding:0 8px; }
-  .dbs-row-pdf { display:inline-flex; align-items:center; gap:6px; height:30px; padding:0 12px; border:1px solid var(--border); border-radius:8px; background:var(--surface-2); color:var(--text); font:inherit; font-size:12px; font-weight:500; cursor:pointer; }
+  .dbs-row-pdf { display:inline-flex; align-items:center; gap:6px; height:30px; padding:0 14px; border:1px solid var(--border); border-radius:32px; background:var(--surface-2); color:var(--text); font:inherit; font-size:12px; font-weight:500; cursor:pointer; }
   .dbs-row-pdf:hover { background:var(--border); }
   @media (max-width:760px) { .dbs-new { grid-template-columns:1fr; } .dbs-row { grid-template-columns:28px 1fr auto; } .dbs-row-status, .dbs-row-total { display:none; } }
 `
 
+/* Festag form language: no input boxes. Notepad-style — labels are quiet, the
+   value is written directly on the surface with only a hairline underline that
+   warms on focus. Calm, modern, minimal. Action buttons are 32px pills. */
 const BUILDER_CSS = `
-  .db-veyra { padding:12px 14px; border-radius:12px; border:1px solid color-mix(in srgb, var(--btn-prim) 30%, var(--border)); background:color-mix(in srgb, var(--btn-prim) 7%, var(--surface)); margin-bottom:16px; }
-  .db-veyra-head { display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600; color:var(--btn-prim); margin-bottom:8px; }
-  .db-veyra-input { background:var(--surface) !important; margin-bottom:8px; resize:vertical; min-height:48px; line-height:1.5; }
-  .db-veyra-btn { height:32px; padding:0 14px; border-radius:8px; border:1px solid var(--btn-prim); background:var(--btn-prim); color:var(--btn-prim-text); font:inherit; font-size:12.5px; font-weight:500; cursor:pointer; }
-  .db-veyra-btn:disabled { opacity:.5; cursor:not-allowed; }
-  .db-veyra-hint { margin:8px 0 0; font-size:11px; color:var(--text-muted); line-height:1.5; }
-  .db-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px; }
-  .db-field { display:flex; flex-direction:column; gap:5px; margin-bottom:12px; }
-  .db-field > span { font-size:11.5px; font-weight:600; color:var(--text-secondary); }
+  .db-veyra { margin:0 0 18px; padding:0 0 16px; border-bottom:1px solid var(--border); }
+  .db-veyra-head { display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:600; letter-spacing:.04em; text-transform:uppercase; color:var(--btn-prim); margin-bottom:6px; }
+  .db-veyra-input { width:100%; border:0; background:transparent; color:var(--text); font-family:inherit; font-size:14.5px; line-height:1.55; resize:vertical; min-height:46px; padding:2px 0; }
+  .db-veyra-input:focus { outline:none; }
+  .db-veyra-input::placeholder { color:var(--text-muted); }
+  .db-veyra-btn { margin-top:8px; height:32px; padding:0 16px; border-radius:32px; border:0; background:var(--btn-prim); color:var(--btn-prim-text); font:inherit; font-size:12.5px; font-weight:500; cursor:pointer; }
+  .db-veyra-btn:disabled { opacity:.45; cursor:not-allowed; }
+
+  .db-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px 28px; margin-bottom:6px; }
+  .db-field { display:flex; flex-direction:column; gap:2px; margin-bottom:14px; }
+  .db-field > span { font-size:11px; font-weight:500; letter-spacing:.02em; color:var(--text-muted); }
   .db-req { color:#c0362e; font-style:normal; }
-  .db-input { width:100%; padding:9px 11px; border-radius:8px; background:var(--bg); border:1px solid var(--border); color:var(--text); font-family:inherit; font-size:13.5px; }
-  .db-input:focus { outline:none; border-color:color-mix(in srgb, var(--text) 35%, var(--border)); }
-  .db-area { resize:vertical; min-height:72px; line-height:1.5; }
-  .db-help { font-size:11px; color:var(--text-muted); }
-  .db-positions { margin:6px 0 14px; }
-  .db-pos-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; font-size:11.5px; font-weight:600; color:var(--text-secondary); }
-  .db-add { display:inline-flex; align-items:center; gap:5px; height:28px; padding:0 10px; border:1px solid var(--border); border-radius:8px; background:var(--surface-2); color:var(--text); font:inherit; font-size:11.5px; font-weight:500; cursor:pointer; }
-  .db-pos-row { display:grid; grid-template-columns:1fr 70px 100px 26px; gap:7px; margin-bottom:7px; align-items:center; }
-  .db-pos-del { width:26px; height:34px; border:0; background:transparent; color:var(--text-muted); font-size:18px; cursor:pointer; border-radius:6px; }
-  .db-pos-del:hover { background:var(--surface-2); color:var(--text); }
-  .db-pos-total { text-align:right; font-size:13px; color:var(--text-secondary); margin-top:4px; }
-  .db-error { margin:8px 0 0; padding:9px 11px; border-radius:8px; background:rgba(192,54,46,.08); color:#c0362e; font-size:12px; }
-  @media (max-width:560px) { .db-grid { grid-template-columns:1fr; } .db-pos-row { grid-template-columns:1fr 56px 84px 24px; } }
+  .db-input {
+    width:100%; border:0; border-bottom:1px solid var(--border);
+    background:transparent; color:var(--text); font-family:inherit; font-size:15px;
+    padding:6px 0; border-radius:0;
+  }
+  .db-input:focus { outline:none; border-bottom-color:color-mix(in srgb, var(--text) 45%, var(--border)); }
+  .db-input::placeholder { color:var(--text-muted); }
+  select.db-input { cursor:pointer; }
+  .db-area { line-height:1.55; resize:vertical; min-height:46px; }
+
+  .db-positions { margin:4px 0 12px; }
+  .db-pos-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; font-size:11px; font-weight:500; letter-spacing:.02em; color:var(--text-muted); }
+  .db-add { display:inline-flex; align-items:center; gap:5px; height:32px; padding:0 14px; border:0; border-radius:32px; background:var(--surface-2); color:var(--text); font:inherit; font-size:12px; font-weight:500; cursor:pointer; }
+  .db-add:hover { background:var(--border); }
+  .db-pos-row { display:grid; grid-template-columns:1fr 64px 96px 24px; gap:14px; margin-bottom:2px; align-items:center; }
+  .db-pos-del { width:24px; height:36px; border:0; background:transparent; color:var(--text-muted); font-size:18px; cursor:pointer; }
+  .db-pos-del:hover { color:var(--text); }
+  .db-pos-total { text-align:right; font-size:13.5px; color:var(--text-secondary); margin-top:8px; }
+  .db-error { margin:8px 0 0; font-size:12.5px; color:#c0362e; }
+  @media (max-width:560px) { .db-grid { grid-template-columns:1fr; gap:0; } .db-pos-row { grid-template-columns:1fr 52px 78px 22px; gap:8px; } }
 `

@@ -932,8 +932,8 @@ button.sb-help-trigger {
 /* Audio-Briefing card actions (Bild 2) — premium 32px pills. */
 .dc-play-bar, .dc-read-bar { border-radius: 32px; }
 
-/* Pop-up / dialog action buttons (Bild 5) — tight 6px corner. */
-.modal-cta { border-radius: 6px; }
+/* Pop-up / dialog action buttons — 32px pill, the Festag action-button standard. */
+.modal-cta { border-radius: 32px; }
 
 /* Settings buttons — full 32px pill across the settings surfaces. */
 .set-btn { border-radius: 32px; }
