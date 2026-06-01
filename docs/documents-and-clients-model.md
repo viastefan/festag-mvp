@@ -106,3 +106,25 @@ this order: Kunde brand → workspace White-Label brand → Festag default.
 This is a **multi-step build** (template engine → PDF → delivery → numbering).
 Recommended first slice: the "Dokumente" section + the three core templates
 (Angebot, Vertrag, Rechnung) with download-only PDF, then add sending.
+
+### Veyra-driven document builder (preferred UX)
+Documents are created **conversationally through Veyra**: Veyra asks what the
+document is for and the key facts (Kunde, Leistung, Betrag, Laufzeit …), fills
+the chosen template, and produces the PDF — a guided "document builder" for
+Angebot / Vertrag / Rechnung / etc. The user-provided examples are the template
+basis. This means no blank forms: the agency (or the dev) just answers Veyra,
+and the branded PDF comes out ready to download or send.
+
+### Placement — where it lives + where to see created documents
+- **Entry to create**: from Veyra (a „Dokument erstellen"-Intent) *and* a
+  „+ Dokument" button in the **Dokumente** section. Both open the same builder.
+- **Where created documents live (both panels):**
+  - **Agency/Client app** → top-level **Dokumente** section: tab **„Erstellt"**
+    (filter by Kunde/Projekt/Typ/Status). Also surfaced on the **Kunde-Detail**
+    (that customer's documents) and on the **Projekt** (its documents).
+  - **Dev panel** → a **Dokumente** area under the project (and a global list),
+    so the dev sees + creates Angebote/Rechnungen for their projects too.
+  - The customer sees *their* finished documents (sent ones) in their **Client-
+    Panel** under the project — download + status (e.g. Rechnung: offen/bezahlt).
+- One shared `documents` store drives all these views (scoped by
+  workspace/client/project), exactly like the Kunden model.
