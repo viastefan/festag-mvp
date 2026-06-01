@@ -1176,8 +1176,11 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         }
         [data-theme="dark"] .sb-top-icon:hover { background:rgba(255,255,255,0.04); }
         .sb-bottom-actions {
-          position:relative;
-          width:100%;
+          position:absolute;
+          left:16px;
+          right:16px;
+          bottom:0;
+          width:auto;
           max-width:none;
           padding:6px 0 18px;
           z-index:170;
@@ -1200,6 +1203,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         .sb-help-dock {
           display:flex; align-items:center; gap:8px;
           position:relative;
+          width:32px;
           /* Lifts the dock + its absolutely-positioned popup above the
              backdrop's stacking neighbour. */
           z-index:2;
@@ -1238,20 +1242,27 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           flex:0 0 94px;
           display:block;
           overflow:hidden;
-          background:
-            radial-gradient(circle at 82% 28%, color-mix(in srgb, var(--accent, #6366f1) 22%, transparent), transparent 24%),
-            linear-gradient(135deg, color-mix(in srgb, var(--surface-2) 92%, var(--card)), var(--card));
+          background:#101821;
         }
         .sb-video-thumb::before {
+          display:none;
+        }
+        .sb-video-thumb img {
+          position:absolute;
+          inset:0;
+          width:100%;
+          height:100%;
+          object-fit:cover;
+          object-position:center center;
+          opacity:1;
+          filter:saturate(.92) contrast(1.04);
+        }
+        .sb-video-thumb::after {
           content:"";
           position:absolute;
-          inset:-18% -8%;
-          background:
-            linear-gradient(110deg, transparent 0 16%, color-mix(in srgb, var(--text) 8%, transparent) 17%, transparent 18% 42%, color-mix(in srgb, var(--text) 5%, transparent) 43%, transparent 44%),
-            repeating-linear-gradient(0deg, color-mix(in srgb, var(--border) 70%, transparent) 0 1px, transparent 1px 18px);
-          transform:rotate(-8deg) translateY(8px);
-          opacity:.6;
-          filter:blur(.2px);
+          inset:0;
+          background:linear-gradient(180deg, transparent 52%, rgba(0,0,0,.34));
+          pointer-events:none;
         }
         .sb-video-code-line {
           position:absolute;
@@ -1274,9 +1285,9 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           align-items:center;
           justify-content:center;
           border-radius:999px;
-          background:color-mix(in srgb, var(--card) 88%, transparent);
-          color:var(--text);
-          box-shadow:0 1px 8px rgba(15,23,42,.12);
+          background:rgba(8,10,14,.82);
+          color:#fff;
+          box-shadow:0 1px 8px rgba(15,23,42,.14);
           backdrop-filter:blur(8px);
           z-index:2;
         }
@@ -1287,7 +1298,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           justify-content:center;
           gap:5px;
           padding:12px 14px 14px;
-          background:var(--card) !important;
+          background:#050608 !important;
         }
         .sb-video-copy strong {
           display:block;
@@ -1295,7 +1306,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           line-height:1.16;
           font-weight:500;
           letter-spacing:0;
-          color:var(--text);
+          color:#f8fafc;
           white-space:normal;
         }
         .sb-video-copy span {
@@ -1305,7 +1316,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           line-height:1.18;
           font-weight:500;
           letter-spacing:0;
-          color:var(--text-muted);
+          color:rgba(226,232,240,.58);
           white-space:normal;
         }
         .sb-video-dismiss {
@@ -1344,17 +1355,17 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           background: color-mix(in srgb, var(--card) 94%, transparent);
           color: var(--text-secondary);
           cursor: pointer;
-          transition: color .12s, background .12s, border-color .12s, transform .12s;
-          box-shadow: 0 1px 2px rgba(15,23,42,.04);
+          transition: color .12s, background .12s, border-color .12s;
+          box-shadow:none;
         }
         .sb-help-trigger:hover {
-          color: var(--text);
-          background: color-mix(in srgb, var(--surface-2) 70%, transparent);
-          border-color: var(--border-strong);
+          color: var(--text-secondary);
+          background: color-mix(in srgb, var(--surface-2) 38%, transparent);
+          border-color: color-mix(in srgb, var(--border-strong) 58%, transparent);
         }
         .sb-help-trigger[aria-expanded="true"] {
           color: var(--text);
-          background: color-mix(in srgb, var(--surface-2) 85%, transparent);
+          background: color-mix(in srgb, var(--surface-2) 52%, transparent);
         }
         .sb-video-teaser-wrap .sb-video-teaser {
           width:100% !important;
@@ -1363,7 +1374,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           flex-direction:column !important;
           align-items:stretch !important;
           border-radius:18px !important;
-          background:var(--card) !important;
+          background:#050608 !important;
           color:var(--text) !important;
         }
         .sb-video-teaser-wrap .sb-video-thumb {
@@ -1375,7 +1386,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         .sb-video-teaser-wrap .sb-video-copy {
           width:100% !important;
           min-height:78px !important;
-          background:var(--card) !important;
+          background:#050608 !important;
         }
         .sb-help-dock .sb-help-trigger {
           border-radius:50% !important;
@@ -1453,7 +1464,10 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
 
         .sb-help-pop {
           position: absolute; left: 0; bottom: 44px;
-          width: 272px;
+          width: min(180px, calc(100vw - 32px));
+          max-height: min(520px, calc(100dvh - 96px));
+          overflow:auto;
+          scrollbar-width:none;
           padding: 10px;
           border-radius: 14px;
           border: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
@@ -1463,6 +1477,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
             0 18px 44px -20px rgba(15,23,42,.36);
           animation: sbHelpIn .14s cubic-bezier(.16,1,.3,1) both;
         }
+        .sb-help-pop::-webkit-scrollbar { display:none; }
         [data-theme="dark"] .sb-help-pop,
         [data-theme="classic-dark"] .sb-help-pop {
           background: color-mix(in srgb, var(--card) 94%, #fff 6%);
@@ -1677,9 +1692,15 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           width:100%;
           height:100%;
           overflow:hidden;
-          background:
-            radial-gradient(circle at 74% 28%, color-mix(in srgb, var(--accent, #6366f1) 20%, transparent), transparent 24%),
-            linear-gradient(135deg, color-mix(in srgb, var(--surface-2) 96%, var(--card)), var(--card) 58%, color-mix(in srgb, var(--surface-2) 72%, var(--card)));
+          background:#101821;
+        }
+        .sb-video-stage-image {
+          position:absolute;
+          inset:0;
+          width:100%;
+          height:100%;
+          object-fit:cover;
+          opacity:.96;
         }
         .sb-stage-grid {
           position:absolute;
@@ -1798,7 +1819,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           overflow-y:auto;
           overflow-x:hidden;
           scrollbar-width:none;
-          padding-bottom:12px;
+          padding-bottom:240px;
           overscroll-behavior:contain;
         }
         .sb-nav-scroll::-webkit-scrollbar {
@@ -2152,9 +2173,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
                   aria-label="So funktioniert Festag öffnen"
                 >
                   <span className="sb-video-thumb" aria-hidden>
-                    <span className="sb-video-code-line one" />
-                    <span className="sb-video-code-line two" />
-                    <span className="sb-video-code-line three" />
+                    <img src="/media/festag-guide-thumb.png" alt="" />
                     <span className="sb-video-play"><PlayCircle size={25} weight="fill" /></span>
                   </span>
                   <span className="sb-video-copy">
@@ -2217,7 +2236,6 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
               <button
                 type="button"
                 className="sb-help-trigger"
-                title="Hilfe & Einführung"
                 aria-label="Hilfe & Einführung öffnen"
                 aria-expanded={whatsNewOpen}
                 onClick={() => setWhatsNewOpen((value) => !value)}
@@ -2344,11 +2362,8 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
 
               <div className="sb-video-stage">
                 <div className="sb-video-stage-placeholder">
-                  <span className="sb-stage-grid" />
-                  <span className="sb-stage-card one" />
-                  <span className="sb-stage-card two" />
+                  <img className="sb-video-stage-image" src="/media/festag-guide-preview.png" alt="" />
                   <span className="sb-stage-play"><PlayCircle size={56} weight="fill" /></span>
-                  <span className="sb-stage-label">Video-Platzhalter</span>
                 </div>
               </div>
 

@@ -7,15 +7,18 @@ import { getTaskGroup, type TaskGroupKey } from '@/lib/tasks/groups'
 import { isCompletedTaskStillFresh } from '@/lib/tasks/status'
 import {
   Check,
+  Article,
   Code,
   FileText,
   FunnelSimple,
   Gauge,
   Globe,
   ListChecks,
+  MagnifyingGlass,
   Palette,
   Plugs,
   Plus,
+  RocketLaunch,
   ShieldCheck,
   Sparkle,
   SlidersHorizontal,
@@ -113,9 +116,12 @@ const STATE_POPOVER_ID = 'task-state-popover'
 const TASK_GROUP_ICONS: Record<TaskGroupKey, typeof FileText> = {
   legal: ShieldCheck,
   tech: Gauge,
+  qa: ListChecks,
+  seo: MagnifyingGlass,
+  launch: RocketLaunch,
   integration: Plugs,
   design: Palette,
-  content: FileText,
+  content: Article,
   web: Globe,
   code: Code,
   process: SlidersHorizontal,
@@ -359,6 +365,20 @@ export default function TasksPage() {
       })
   }, [tasks, view, sortMode, projectById, projectScope])
 
+  const taskCategoryGroups = useMemo(() => {
+    const groups = new Map<TaskGroupKey, { group: ReturnType<typeof getTaskGroup>; tasks: TaskRow[] }>()
+    for (const task of visibleTasks) {
+      const group = getTaskGroup(task)
+      const existing = groups.get(group.key)
+      if (existing) {
+        existing.tasks.push(task)
+      } else {
+        groups.set(group.key, { group, tasks: [task] })
+      }
+    }
+    return Array.from(groups.values()).sort((a, b) => a.group.sortWeight - b.group.sortWeight)
+  }, [visibleTasks])
+
   const scopedProject = projectScope === 'all' ? null : projects.find(p => p.id === projectScope)
   const scopeLabel = scopedProject?.title ?? 'Alle Projekte'
 
@@ -470,6 +490,88 @@ export default function TasksPage() {
   function closeComposer() {
     setComposerOpen(false)
     resetComposer()
+  }
+
+  function renderTaskRow(task: TaskRow, rowIndex: number) {
+    const normalized = normalizeStatus(taskState(task))
+    const isDone = normalized === 'done'
+    const progress = typeof task.progress === 'number' ? task.progress : progressFor(taskState(task))
+    const lead = task.developer_name || task.owner || task.assigned_to || 'Entwickler'
+    const group = getTaskGroup(task)
+    const GroupIcon = TASK_GROUP_ICONS[group.key]
+
+    return (
+      <div
+        key={task.id}
+        className="task-row task-row-flat"
+        role="button"
+        tabIndex={0}
+        style={{ ['--row-index' as string]: rowIndex, ['--task-group-color' as string]: group.color }}
+        onClick={() => openTaskDetail(task)}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault()
+            openTaskDetail(task)
+          }
+        }}
+      >
+        <div className="task-group-cell" title={group.label}>
+          <span className="task-group-icon">
+            <GroupIcon size={14} weight="regular" />
+          </span>
+        </div>
+        <div className="task-name">
+          <span className={`task-state-wrap${activeStatePopoverTaskId === task.id ? ' is-open' : ''}`}>
+            <button
+              type="button"
+              className={`task-state-mark${isDone ? ' done' : ''}`}
+              aria-label={isDone ? 'Erledigt-Logik anzeigen' : 'Status-Logik anzeigen'}
+              aria-expanded={activeStatePopoverTaskId === task.id}
+              aria-controls={STATE_POPOVER_ID}
+              aria-haspopup="dialog"
+              onClick={(event) => {
+                event.preventDefault()
+                event.stopPropagation()
+                if (activeStatePopoverTaskId === task.id) {
+                  closeStatePopover()
+                } else {
+                  openStatePopover(task.id, event.currentTarget)
+                }
+              }}
+              onKeyDown={(event) => {
+                event.stopPropagation()
+              }}
+            >
+              {isDone ? <Check size={9} weight="bold" /> : null}
+            </button>
+          </span>
+          <span className="task-name-text">
+            <strong>{task.title}</strong>
+          </span>
+        </div>
+
+        <div className={`task-health ${normalized}`}>
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {healthLabel(task)}
+          </span>
+        </div>
+
+        <div>{priorityLabel(task.priority)}</div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 7, minWidth: 0 }}>
+          <span className="task-lead-avatar">{lead.charAt(0).toUpperCase()}</span>
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{lead}</span>
+        </div>
+
+        <div>{dateLabel(task.updated_at || task.created_at)}</div>
+        <div>{sourceLabel(task.source)}</div>
+
+        <div className="task-progress" title={statusLabel(taskState(task))}>
+          <span className={`task-progress-dot ${normalized}`} />
+          <span>{normalized === 'done' ? '100%' : `${progress}%`}</span>
+        </div>
+      </div>
+    )
   }
 
   function addSuggestionLabel() {
@@ -899,6 +1001,38 @@ export default function TasksPage() {
           background:color-mix(in srgb, var(--surface-2) 60%, transparent);
           border-radius:8px !important;
         }
+        .task-category-section {
+          margin:10px 0 16px;
+          animation:taskGroupIn .22s cubic-bezier(.16,1,.3,1) both;
+          animation-delay:calc(var(--section-index, 0) * 34ms);
+        }
+        .task-category-head {
+          min-height:34px;
+          display:grid;
+          grid-template-columns:42px minmax(0,1fr) auto;
+          align-items:center;
+          gap:8px;
+          padding:0 12px 0 0;
+          color:var(--task-soft-text);
+          font-size:12px;
+          font-weight:500;
+          letter-spacing:.02em;
+        }
+        .task-category-icon {
+          width:24px;
+          height:24px;
+          border-radius:8px;
+          display:inline-flex;
+          align-items:center;
+          justify-content:center;
+          justify-self:center;
+          background:color-mix(in srgb, var(--task-group-color, var(--task-soft-text)) 15%, transparent);
+          color:color-mix(in srgb, var(--task-group-color, var(--task-soft-text)) 78%, var(--text));
+        }
+        .task-category-head em {
+          font-style:normal;
+          color:color-mix(in srgb, var(--task-soft-text) 82%, transparent);
+        }
         .task-project-section {
           margin:5px 0 8px;
           animation:taskGroupIn .22s cubic-bezier(.16,1,.3,1) both;
@@ -1258,8 +1392,8 @@ export default function TasksPage() {
           display:flex;
           align-items:center;
           justify-content:center;
-          background:color-mix(in srgb, var(--surface-2) 42%, transparent);
-          color:var(--task-soft-text);
+          background:color-mix(in srgb, var(--task-group-color, var(--surface-2)) 13%, transparent);
+          color:color-mix(in srgb, var(--task-group-color, var(--task-soft-text)) 72%, var(--task-soft-text));
           border:0;
         }
         .task-name {
@@ -2012,92 +2146,28 @@ export default function TasksPage() {
           <div className="task-empty">Lade Aufgaben…</div>
         ) : visibleTasks.length === 0 ? (
           <div className="task-empty">Keine Aufgaben in dieser Ansicht.</div>
-        ) : (
-          /* Flat list — top filter pills (Alle / Offen / In Arbeit / …)
-             already segment the table, so per-project collapse sections
-             would only repeat what the filter says. */
-          visibleTasks.map((task, rowIndex) => {
-            const normalized = normalizeStatus(taskState(task))
-            const isDone = normalized === 'done'
-            const progress = typeof task.progress === 'number' ? task.progress : progressFor(taskState(task))
-            const lead = task.developer_name || task.owner || task.assigned_to || 'Entwickler'
-            const group = getTaskGroup(task)
-            const GroupIcon = TASK_GROUP_ICONS[group.key]
-
-            return (
-              <div
-                key={task.id}
-                className="task-row task-row-flat"
-                role="button"
-                tabIndex={0}
-                style={{ ['--row-index' as string]: rowIndex }}
-                onClick={() => openTaskDetail(task)}
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter' || event.key === ' ') {
-                    event.preventDefault()
-                    openTaskDetail(task)
-                  }
-                }}
-              >
-                <div className="task-group-cell" title={group.label}>
-                  <span className="task-group-icon">
-                    <GroupIcon size={14} weight="regular" />
-                  </span>
-                </div>
-                <div className="task-name">
-                  <span className={`task-state-wrap${activeStatePopoverTaskId === task.id ? ' is-open' : ''}`}>
-                    <button
-                      type="button"
-                      className={`task-state-mark${isDone ? ' done' : ''}`}
-                      aria-label={isDone ? 'Erledigt-Logik anzeigen' : 'Status-Logik anzeigen'}
-                      aria-expanded={activeStatePopoverTaskId === task.id}
-                      aria-controls={STATE_POPOVER_ID}
-                      aria-haspopup="dialog"
-                      onClick={(event) => {
-                        event.preventDefault()
-                        event.stopPropagation()
-                        if (activeStatePopoverTaskId === task.id) {
-                          closeStatePopover()
-                        } else {
-                          openStatePopover(task.id, event.currentTarget)
-                        }
-                      }}
-                      onKeyDown={(event) => {
-                        event.stopPropagation()
-                      }}
-                    >
-                      {isDone ? <Check size={9} weight="bold" /> : null}
-                    </button>
-                  </span>
-                  <span className="task-name-text">
-                    <strong>{task.title}</strong>
-                  </span>
-                </div>
-
-                <div className={`task-health ${normalized}`}>
-                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {healthLabel(task)}
-                  </span>
-                </div>
-
-                <div>{priorityLabel(task.priority)}</div>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: 7, minWidth: 0 }}>
-                  <span className="task-lead-avatar">{lead.charAt(0).toUpperCase()}</span>
-                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{lead}</span>
-                </div>
-
-                <div>{dateLabel(task.updated_at || task.created_at)}</div>
-                <div>{sourceLabel(task.source)}</div>
-
-                <div className="task-progress" title={statusLabel(taskState(task))}>
-                  <span className={`task-progress-dot ${normalized}`} />
-                  <span>{normalized === 'done' ? '100%' : `${progress}%`}</span>
-                </div>
+        ) : taskCategoryGroups.map((category, sectionIndex) => {
+          const GroupIcon = TASK_GROUP_ICONS[category.group.key]
+          return (
+            <section
+              key={category.group.key}
+              className="task-category-section"
+              style={{
+                ['--section-index' as string]: sectionIndex,
+                ['--task-group-color' as string]: category.group.color,
+              }}
+            >
+              <div className="task-category-head">
+                <span className="task-category-icon">
+                  <GroupIcon size={14} weight="regular" />
+                </span>
+                <span>{category.group.label}</span>
+                <em>{category.tasks.length} {category.tasks.length === 1 ? 'Task' : 'Tasks'}</em>
               </div>
-            )
-          })
-        )}
+              {category.tasks.map((task, rowIndex) => renderTaskRow(task, sectionIndex * 100 + rowIndex))}
+            </section>
+          )
+        })}
       </div>}
 
       {activeStatePopoverTaskId && statePopoverPosition ? (

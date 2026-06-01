@@ -1442,12 +1442,6 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m√
                 )}
               </section>
 
-              {project.description && (
-                <section className="pv-desc-block">
-                  <h2 className="pv-section-title">Beschreibung</h2>
-                  <p className="pv-desc-text">{project.description}</p>
-                </section>
-              )}
             </div>
           )}
 

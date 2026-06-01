@@ -64,6 +64,8 @@ export type ExecutorModule =
   | 'my_tasks' | 'project_context' | 'deliverables' | 'status_to_tagro' | 'blockers' | 'client_feedback' | 'internal_notes' | 'priorities' | 'deadlines'
   // Developer-specific
   | 'technical_tasks' | 'acceptance_criteria' | 'pr_deployment' | 'bug_tracker' | 'testing_checklist' | 'environments'
+  // Website-specific
+  | 'website_stack' | 'provider_connection' | 'page_modules' | 'proof_pipeline' | 'client_status_reports'
   // Designer-specific
   | 'screens' | 'assets' | 'design_system' | 'variants' | 'feedback'
   // Marketing-specific
@@ -112,6 +114,7 @@ export type BriefingSection =
 
 export type DataSource =
   | 'live_url' | 'staging_url' | 'github' | 'vercel' | 'supabase' | 'sentry'
+  | 'wix_studio' | 'webflow' | 'framer' | 'wordpress' | 'shopify' | 'custom_webhook'
   | 'google_analytics' | 'search_console' | 'meta_ads' | 'google_ads' | 'instagram' | 'tiktok'
   | 'figma' | 'asset_library'
   | 'zapier' | 'make' | 'webhooks'
@@ -205,7 +208,8 @@ export const PROJECT_MODULE_REGISTRY: Record<ProjectType, ProjectModulePreset> =
       ],
       developer: [
         ...GENERIC_EXECUTOR_MODULES,
-        'technical_tasks', 'environments', 'pr_deployment',
+        'website_stack', 'provider_connection', 'page_modules', 'proof_pipeline',
+        'client_status_reports', 'technical_tasks', 'environments', 'pr_deployment',
       ],
       project_manager: [
         ...GENERIC_EXECUTOR_MODULES,
@@ -219,7 +223,10 @@ export const PROJECT_MODULE_REGISTRY: Record<ProjectType, ProjectModulePreset> =
       ...ALWAYS_BRIEFING_TAIL,
     ],
     suggestedRoles: ['designer', 'content_creator', 'developer', 'project_manager'],
-    suggestedDataSources: ['live_url', 'staging_url', 'google_analytics', 'search_console'],
+    suggestedDataSources: [
+      'live_url', 'staging_url', 'wix_studio', 'webflow', 'framer',
+      'wordpress', 'shopify', 'custom_webhook', 'google_analytics', 'search_console',
+    ],
     defaultMilestones: ['Konzept', 'Design', 'Aufbau', 'Inhalte', 'Launch'],
   },
 
@@ -507,6 +514,12 @@ export const EXECUTOR_MODULE_LABEL: Record<ExecutorModule, string> = {
   bug_tracker: 'Bug-Tracker',
   testing_checklist: 'Testing-Checkliste',
   environments: 'Environments',
+  // Website
+  website_stack: 'Website Stack',
+  provider_connection: 'Provider verbinden',
+  page_modules: 'Seitenmodule',
+  proof_pipeline: 'Proof-Pipeline',
+  client_status_reports: 'Client-Statusberichte',
   // Designer
   screens: 'Screens',
   assets: 'Assets',

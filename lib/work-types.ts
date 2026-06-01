@@ -33,6 +33,11 @@ export type ExecutionModuleId =
   | 'updates'
   | 'blockers'
   | 'decisions_link'
+  | 'website_stack'
+  | 'provider_connection'
+  | 'module_automation'
+  | 'proof_pipeline'
+  | 'client_status_reports'
   | 'github'
   | 'deployments'
   | 'bug_reports'
@@ -77,6 +82,9 @@ export const WORK_SIGNAL_TYPES = [
   'design_update',
   'code_update',
   'deployment_update',
+  'website_publish',
+  'cms_update',
+  'provider_event',
   'meeting_note',
   'voice_note',
   'photo_uploaded',
@@ -92,12 +100,14 @@ const SOFTWARE: WorkTypeConfig = {
   label: 'Software / Web / App',
   positioning: 'Code, Deploys, Bugs, technische Entscheidungen — übersetzt in Client-Sprache.',
   executionModules: [
-    'tasks', 'updates', 'github', 'deployments', 'bug_reports',
+    'tasks', 'updates', 'website_stack', 'provider_connection', 'module_automation',
+    'proof_pipeline', 'client_status_reports', 'github', 'deployments', 'bug_reports',
     'blockers', 'decisions_link', 'approvals',
   ],
   allowedSignalTypes: [
     'task_completed', 'blocker_reported', 'decision_needed', 'approval_requested',
     'approval_received', 'code_update', 'deployment_update', 'risk_reported',
+    'website_publish', 'cms_update', 'provider_event',
     'scope_change', 'status_note', 'comment_added', 'file_uploaded',
   ],
   tagroQuestions: [

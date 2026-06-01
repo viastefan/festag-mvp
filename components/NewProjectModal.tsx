@@ -203,8 +203,10 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
     [isAgency],
   )
   const selectedDelivery = deliveryOptions.find(d => d.id === delivery) ?? deliveryOptions[0]
-  const canStartChat = description.trim().length >= 12
-  const canCreate = chatHistory.some(turn => turn.role === 'user' && turn.text.trim().length >= 12)
+  const titleDraft = title.trim()
+  const descriptionDraft = description.trim()
+  const canStartChat = titleDraft.length >= 2 || descriptionDraft.length >= 12
+  const canCreate = chatHistory.some(turn => turn.role === 'user' && turn.text.trim().length >= 2)
 
   function suggestedTitle() {
     const source = tagroTitle || title.trim() || description.trim()
@@ -213,8 +215,8 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
 
   function buildInitialChatHistory(): ChatTurn[] {
     const parts = [
-      title.trim() ? `Projektname: ${title.trim()}` : '',
-      description.trim(),
+      titleDraft ? `Projektname: ${titleDraft}` : '',
+      descriptionDraft,
       milestones.length ? `Gewünschte Meilensteine: ${milestones.join(', ')}` : '',
       `Umsetzung: ${selectedDelivery.label}`,
     ].filter(Boolean)
@@ -619,8 +621,8 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
               {phase === 'chat'
                 ? <>Projekt vorbereiten <ArrowRight size={13} /></>
                 : phase === 'error'
-                  ? <>Mit Tagro schreiben <ArrowRight size={13} /></>
-                  : <>Mit Tagro schreiben <ArrowRight size={13} /></>}
+                  ? <>Mit Tagro fortfahren <ArrowRight size={13} /></>
+                  : <>Mit Tagro fortfahren <ArrowRight size={13} /></>}
             </button>
           </footer>
         )}
