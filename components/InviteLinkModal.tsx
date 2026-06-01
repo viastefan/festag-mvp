@@ -172,13 +172,17 @@ const CSS = `
   .ilm-seg { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
   .ilm-seg-btn {
     display: flex; align-items: center; gap: 10px;
-    padding: 12px 14px; border-radius: 10px;
-    border: 1px solid var(--border); background: var(--bg);
+    padding: 12px 14px; border-radius: 11px;
+    border: 1px solid transparent;
+    background: color-mix(in srgb, var(--surface-2) 50%, transparent);
     color: var(--text); cursor: pointer; text-align: left;
-    font-family: inherit; transition: border-color .12s, background .12s;
+    font-family: inherit; transition: box-shadow .12s, background .12s;
   }
-  .ilm-seg-btn:hover { background: var(--surface-2); }
-  .ilm-seg-btn.is-on { border-color: color-mix(in srgb, var(--text) 38%, var(--border)); background: var(--surface-2); }
+  .ilm-seg-btn:hover { background: color-mix(in srgb, var(--surface-2) 80%, transparent); }
+  .ilm-seg-btn.is-on {
+    background: var(--surface-2);
+    box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--text) 30%, var(--border));
+  }
   .ilm-seg-btn span span { display: block; }
   .ilm-seg-title { font-size: 13px; font-weight: 600; color: var(--text); }
   .ilm-seg-sub { font-size: 11.5px; color: var(--text-muted); margin-top: 1px; }

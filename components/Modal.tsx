@@ -122,8 +122,7 @@ export default function Modal({
           >
             {!bare && (title || subtitle) && (
               <div style={{
-                padding: '18px 22px 14px',
-                borderBottom: '1px solid var(--border)',
+                padding: '20px 22px 8px',
                 display: 'flex', alignItems: 'flex-start', gap: 12,
                 flexShrink: 0,
               }}>
@@ -153,7 +152,7 @@ export default function Modal({
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     borderRadius: 7,
                     background: 'transparent',
-                    border: '1px solid var(--border)',
+                    border: 'none',
                     color: 'var(--text-muted)',
                     cursor: 'pointer',
                     flexShrink: 0,
@@ -176,8 +175,7 @@ export default function Modal({
 
             {footer && (
               <div style={{
-                padding: '12px 22px 16px',
-                borderTop: '1px solid var(--border)',
+                padding: '8px 22px 18px',
                 display: 'flex', justifyContent: 'flex-end', gap: 8,
                 flexShrink: 0,
               }}>
