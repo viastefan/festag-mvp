@@ -566,7 +566,7 @@ export default function TasksPage() {
     setSuggestLabelInput('')
   }
 
-  async function createSuggestedTask() {
+  async function createSuggestedTask(options: { regenerate?: boolean } = {}) {
     const title = suggestTitle.trim()
     const description = suggestDescription.trim()
     const fallbackTitle = description.split(/\s+/).slice(0, 9).join(' ').replace(/[.,;:!?]+$/, '')
@@ -587,12 +587,14 @@ export default function TasksPage() {
           projectId: suggestProjectId,
           mode: composerMode,
           title: finalTitle,
-          description,
+          description: options.regenerate
+            ? `${description || finalTitle}\n\nBitte formuliere den Vorschlag noch kürzer, klarer und prüfbarer.`
+            : description,
           priority: suggestPriority === 'none' ? null : suggestPriority,
           dueDate: suggestDueDate || null,
           labels: suggestLabels,
-          proposal: tagroPreview,
-          confirmCreate: composerMode === 'manual' || Boolean(tagroPreview),
+          proposal: options.regenerate ? null : tagroPreview,
+          confirmCreate: composerMode === 'manual' || (!options.regenerate && Boolean(tagroPreview)),
         }),
       })
       const result = await response.json().catch(() => ({}))
@@ -603,7 +605,7 @@ export default function TasksPage() {
         return
       }
 
-      if (composerMode === 'tagro' && !tagroPreview && result.proposal) {
+      if (composerMode === 'tagro' && (!tagroPreview || options.regenerate) && result.proposal) {
         setVeyraPreview(result.proposal)
         return
       }
@@ -1256,12 +1258,34 @@ export default function TasksPage() {
         }
         .task-preview {
           display:grid;
+          grid-template-columns:26px minmax(0, 1fr);
           gap:10px;
           padding:12px 13px;
           border:1px solid color-mix(in srgb, var(--border) 80%, transparent);
           border-radius:12px;
           background:color-mix(in srgb, var(--surface-2) 38%, transparent);
           margin:0 0 14px;
+        }
+        .task-preview-avatar {
+          width:26px;
+          height:26px;
+          border-radius:8px;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          background:color-mix(in srgb, var(--accent-primary, #6a738c) 14%, transparent);
+          color:var(--accent-primary, #6a738c);
+          font-size:11px;
+          font-weight:700;
+        }
+        .task-preview-bubble {
+          min-width:0;
+          display:grid;
+          gap:7px;
+        }
+        .task-preview-kicker {
+          color:var(--task-soft-text);
+          font-size:11px;
         }
         .task-preview strong {
           color:var(--text);
@@ -1280,6 +1304,36 @@ export default function TasksPage() {
           gap:4px;
           padding-left:16px;
           margin:0;
+        }
+        .task-preview-actions {
+          display:flex;
+          flex-wrap:wrap;
+          gap:6px;
+          margin-top:2px;
+        }
+        .task-preview-actions button {
+          min-height:28px;
+          padding:0 10px;
+          border-radius:8px;
+          border:1px solid var(--border);
+          background:transparent;
+          color:var(--task-soft-text);
+          font:inherit;
+          font-size:11.5px;
+          cursor:pointer;
+        }
+        .task-preview-actions button:hover:not(:disabled) {
+          background:var(--surface-2);
+          color:var(--text);
+        }
+        .task-preview-actions button.primary {
+          background:var(--btn-prim);
+          border-color:var(--btn-prim);
+          color:var(--btn-prim-text);
+        }
+        .task-preview-actions button:disabled {
+          opacity:.5;
+          cursor:not-allowed;
         }
         .task-notice {
           padding:10px 12px;
@@ -2044,17 +2098,32 @@ export default function TasksPage() {
             {composerNotice ? <div className="task-notice">{composerNotice}</div> : null}
             {tagroPreview && (
               <div className="task-preview">
-                <strong>{tagroPreview.suggested_title || 'Veyra Preview'}</strong>
-                <p>{tagroPreview.client_summary || tagroPreview.suggested_description}</p>
-                {tagroPreview.possible_dev_interpretation ? <p>Mögliche Umsetzung: {tagroPreview.possible_dev_interpretation}</p> : null}
-                {tagroPreview.open_questions?.length ? (
-                  <ul>
-                    {tagroPreview.open_questions.slice(0, 3).map((question) => <li key={question}>{question}</li>)}
-                  </ul>
-                ) : null}
-                {tagroPreview.risks?.length ? (
-                  <p>Risiko: {tagroPreview.risks.slice(0, 2).join(' · ')}</p>
-                ) : null}
+                <span className="task-preview-avatar">V</span>
+                <div className="task-preview-bubble">
+                  <span className="task-preview-kicker">Veyra Vorschlag</span>
+                  <strong>{tagroPreview.suggested_title || 'Geprüfte Aufgabe'}</strong>
+                  <p>{tagroPreview.client_summary || tagroPreview.suggested_description}</p>
+                  {tagroPreview.possible_dev_interpretation ? <p>Mögliche Umsetzung: {tagroPreview.possible_dev_interpretation}</p> : null}
+                  {tagroPreview.open_questions?.length ? (
+                    <ul>
+                      {tagroPreview.open_questions.slice(0, 3).map((question) => <li key={question}>{question}</li>)}
+                    </ul>
+                  ) : null}
+                  {tagroPreview.risks?.length ? (
+                    <p>Risiko: {tagroPreview.risks.slice(0, 2).join(' · ')}</p>
+                  ) : null}
+                  <div className="task-preview-actions">
+                    <button type="button" onClick={() => { setVeyraPreview(null); setComposerNotice('Vorschlag verworfen. Du kannst den Text anpassen oder neu prüfen lassen.') }}>
+                      Ablehnen
+                    </button>
+                    <button type="button" onClick={() => createSuggestedTask({ regenerate: true })} disabled={creatingSuggestion}>
+                      Neu formulieren
+                    </button>
+                    <button type="button" className="primary" onClick={() => createSuggestedTask()} disabled={creatingSuggestion}>
+                      Vorschlag übernehmen
+                    </button>
+                  </div>
+                </div>
               </div>
             )}
 
@@ -2128,10 +2197,10 @@ export default function TasksPage() {
               <button
                 type="button"
                 className="primary"
-                onClick={createSuggestedTask}
+                onClick={() => createSuggestedTask()}
                 disabled={creatingSuggestion || !suggestProjectId || (!suggestTitle.trim() && !suggestDescription.trim())}
               >
-                {creatingSuggestion ? 'Sende...' : composerMode === 'tagro' ? (tagroPreview ? 'Als Aufgabe erstellen' : 'Mit Veyra vorbereiten') : 'Manuell erstellen'}
+                {creatingSuggestion ? 'Sende...' : composerMode === 'tagro' ? (tagroPreview ? 'Vorschlag übernehmen' : 'Mit Veyra vorbereiten') : 'Manuell erstellen'}
               </button>
             </div>
           </div>

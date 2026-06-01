@@ -6,7 +6,7 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import {
   Bell, CaretRight, Check, CheckCircle, Circle, DotsThree, LinkSimple,
-  Plus, Star, Target, Trash,
+  CaretDown, CaretUp, Copy, EnvelopeSimple, FilePdf, Plus, Sparkle, Star, Target, Trash,
 } from '@phosphor-icons/react'
 import { projectColor } from '@/components/Sidebar'
 import { effectiveRole, isDevOrAdmin } from '@/lib/role'
@@ -24,6 +24,15 @@ import { getRememberedProfileAvatarColor, subscribeProfileSync } from '@/lib/pro
 type Project = { id: string; title: string; description: string|null; status: string; project_type?: ProjectType | null }
 type Task = { id: string; title: string; status: string; priority?: string }
 type Msg = { id: string; message: string; created_at: string; sender_id: string; is_ai?: boolean }
+type ReportActionItem = {
+  type?: string
+  title: string
+  description?: string | null
+  priority?: string | null
+  owner_type?: string | null
+  client_visible?: boolean
+  related_reason?: string | null
+}
 
 const PHASES = ['intake','planning','active','testing','done']
 const PHASE_LABEL: Record<string,string> = { intake:'Intake', planning:'Planung', active:'In Arbeit', testing:'Testing', done:'Abgeschlossen' }
@@ -88,6 +97,11 @@ function ProjectPageInner() {
   const [taskModalOpen, setTaskModalOpen] = useState(false)
   const [aiThinking, setAiThinking] = useState(false)
   const [generatingAI, setGeneratingAI] = useState(false)
+  const [reportExpanded, setReportExpanded] = useState(true)
+  const [reportActionItems, setReportActionItems] = useState<ReportActionItem[]>([])
+  const [reportActionState, setReportActionState] = useState<'idle'|'extracting'|'ready'|'creating'|'created'|'error'>('idle')
+  const [reportActionNotice, setReportActionNotice] = useState('')
+  const [sendingReport, setSendingReport] = useState(false)
   const [online, setOnline] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [myExecutorRole, setMyExecutorRole] = useState<ExecutorRole | null>(null)
@@ -210,6 +224,16 @@ function ProjectPageInner() {
       if (payload.avatarColor) setBrandColor(payload.avatarColor)
     })
   }, [])
+
+  useEffect(() => {
+    try {
+      const stored = window.localStorage.getItem(`project-report-expanded-${id}`)
+      if (stored !== null) setReportExpanded(stored === 'true')
+    } catch {}
+    setReportActionItems([])
+    setReportActionState('idle')
+    setReportActionNotice('')
+  }, [id])
 
   useEffect(() => { msgEndRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [messages, aiThinking])
 
@@ -414,13 +438,185 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
         setGeneratingAI(false)
         return
       }
-      const { data: inserted, error } = await supabase.from('ai_updates').insert({ project_id: id, content, type: 'daily_summary' }).select().single()
+      const { data: inserted, error } = await supabase.from('ai_updates').insert({ project_id: id, content, type: 'status_report' }).select().single()
       if (error) { alert(`Speicherfehler: ${error.message}`); setGeneratingAI(false); return }
-      if (inserted) setAiUpdates(prev => [inserted, ...prev])
+      if (inserted) {
+        setAiUpdates(prev => [inserted, ...prev])
+        setReportExpandedPreference(true)
+        setReportActionItems([])
+        setReportActionState('idle')
+        setReportActionNotice('')
+      }
     } catch (e: any) {
       alert(`Fehler: ${e?.message ?? 'Verbindungsproblem'}`)
     }
     setGeneratingAI(false)
+  }
+
+  function setReportExpandedPreference(next: boolean) {
+    setReportExpanded(next)
+    try {
+      window.localStorage.setItem(`project-report-expanded-${id}`, String(next))
+    } catch {}
+  }
+
+  function escapeHtml(input: string) {
+    return input
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+  }
+
+  function stripMarkdown(input: string) {
+    return input
+      .replace(/\*\*(.*?)\*\*/g, '$1')
+      .replace(/^#{1,6}\s+/gm, '')
+      .replace(/`([^`]+)`/g, '$1')
+      .trim()
+  }
+
+  function buildStatusReportExportText() {
+    if (!project || !latestUpdate) return ''
+    return [
+      `Statusbericht — ${project.title}`,
+      `Stand: ${fmtDate(latestUpdate.created_at) || new Date().toLocaleDateString('de-DE')}`,
+      '',
+      stripMarkdown(latestUpdate.content || ''),
+    ].join('\n')
+  }
+
+  function openStatusReportMailto() {
+    if (!latestUpdate || !project) return
+    const subject = encodeURIComponent(`Statusbericht: ${project.title}`)
+    const body = encodeURIComponent(buildStatusReportExportText())
+    window.location.href = `mailto:?subject=${subject}&body=${body}`
+  }
+
+  function downloadStatusReportPdf() {
+    if (!latestUpdate || !project) return
+    const content = buildStatusReportExportText()
+    const title = `Statusbericht — ${project.title}`
+    const win = window.open('', '_blank', 'width=840,height=1020')
+    if (!win) {
+      const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `${project.title.toLowerCase().replace(/[^a-z0-9äöüß]+/gi, '-').slice(0, 48) || 'projekt'}-statusbericht.txt`
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      URL.revokeObjectURL(url)
+      return
+    }
+    win.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${escapeHtml(title)}</title>
+      <style>
+        @page { margin: 28mm 22mm; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color:#1A1F2B; max-width:690px; margin:0 auto; line-height:1.72; font-size:13.5px; }
+        h1 { margin:0 0 6px; font-size:22px; line-height:1.2; font-weight:600; letter-spacing:-.01em; }
+        .meta { color:#6a738c; font-size:12px; margin:0 0 24px; }
+        pre { white-space:pre-wrap; font:inherit; margin:0; }
+        .brand { margin-top:34px; padding-top:14px; border-top:1px solid #E7EBF0; color:#8B94A7; font-size:11px; }
+      </style></head><body>
+        <h1>${escapeHtml(title)}</h1>
+        <p class="meta">${escapeHtml(fmtDate(latestUpdate.created_at) || new Date().toLocaleDateString('de-DE'))} · Festag · Veyra AI</p>
+        <pre>${escapeHtml(stripMarkdown(latestUpdate.content || ''))}</pre>
+        <p class="brand">Erstellt mit Festag.</p>
+      </body></html>`)
+    win.document.close()
+    win.focus()
+    setTimeout(() => win.print(), 350)
+  }
+
+  async function copyStatusReport() {
+    if (!latestUpdate) return
+    try {
+      await navigator.clipboard.writeText(buildStatusReportExportText())
+      setReportActionNotice('Statusbericht kopiert.')
+    } catch {
+      setReportActionNotice('Kopieren wurde vom Browser blockiert.')
+    }
+  }
+
+  async function sendStatusReportByEmail() {
+    if (!latestUpdate) return
+    setSendingReport(true)
+    setReportActionNotice('')
+    try {
+      const res = await fetch('/api/briefings/send-now', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projectId: id }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (res.ok && data?.ok) {
+        setReportActionNotice('Statusbericht wurde per E-Mail gesendet.')
+      } else {
+        setReportActionNotice('E-Mail-Dienst nicht bereit. Mail-Entwurf wurde geöffnet.')
+        openStatusReportMailto()
+      }
+    } catch {
+      setReportActionNotice('E-Mail-Dienst nicht erreichbar. Mail-Entwurf wurde geöffnet.')
+      openStatusReportMailto()
+    } finally {
+      setSendingReport(false)
+    }
+  }
+
+  async function extractReportActionItems() {
+    if (!latestUpdate) return
+    setReportActionState('extracting')
+    setReportActionNotice('')
+    try {
+      const res = await fetch('/api/tagro/status-report-action-items', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projectId: id, content: latestUpdate.content }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok || !data?.ok) {
+        setReportActionState('error')
+        setReportActionNotice('Veyra konnte gerade keine Aufgaben ableiten.')
+        return
+      }
+      const items = Array.isArray(data.action_items) ? data.action_items : []
+      setReportActionItems(items)
+      setReportActionState(items.length ? 'ready' : 'idle')
+      setReportActionNotice(items.length ? '' : 'Veyra sieht im Bericht gerade keine konkrete Aufgabe.')
+    } catch {
+      setReportActionState('error')
+      setReportActionNotice('Veyra konnte gerade keine Aufgaben ableiten.')
+    }
+  }
+
+  async function createReportActionItems() {
+    if (!latestUpdate || reportActionItems.length === 0 || reportActionState === 'created') return
+    setReportActionState('creating')
+    setReportActionNotice('')
+    try {
+      const res = await fetch('/api/tagro/status-report-action-items', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectId: id,
+          content: latestUpdate.content,
+          actionItems: reportActionItems,
+          autoProcess: true,
+        }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok || !data?.ok) {
+        setReportActionState('error')
+        setReportActionNotice('Die Aufgaben konnten gerade nicht angelegt werden.')
+        return
+      }
+      setReportActionState('created')
+      setReportActionNotice(`${(data.created || []).length || reportActionItems.length} Eintrag${((data.created || []).length || reportActionItems.length) === 1 ? '' : 'e'} übernommen.`)
+      await loadAll()
+    } catch {
+      setReportActionState('error')
+      setReportActionNotice('Die Aufgaben konnten gerade nicht angelegt werden.')
+    }
   }
 
   // ─── Activity feed: messages + AI updates merged chronologically ───
@@ -1121,14 +1317,60 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
           padding-top: 8px;
           border-top: 1px solid color-mix(in srgb, var(--border) 45%, transparent);
         }
-        .pv-report-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+        .pv-report-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
         .pv-report-label {
           font-size: 13px; color: var(--text);
           letter-spacing: var(--ls-body, .017em);
         }
+        .pv-report-title-row {
+          display: inline-flex; align-items: center; gap: 8px;
+          min-width: 0;
+        }
+        .pv-report-actions {
+          display: inline-flex; align-items: center; justify-content: flex-end;
+          gap: 6px; flex-wrap: wrap;
+        }
+        .pv-report-btn {
+          height: 28px; padding: 0 10px;
+          display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+          border: 1px solid color-mix(in srgb, var(--border) 74%, transparent);
+          border-radius: 8px;
+          background: transparent;
+          color: var(--pv-soft);
+          font: inherit; font-size: 11.5px;
+          cursor: pointer;
+          transition: background .12s ease, border-color .12s ease, color .12s ease;
+        }
+        .pv-report-btn:hover:not(:disabled) {
+          background: color-mix(in srgb, var(--surface-2) 72%, transparent);
+          border-color: color-mix(in srgb, var(--border-strong) 56%, var(--border));
+          color: var(--text);
+        }
+        .pv-report-btn:disabled {
+          cursor: default; opacity: .58;
+        }
+        .pv-report-btn.primary {
+          border-color: color-mix(in srgb, var(--pv-slate) 42%, var(--border));
+          background: color-mix(in srgb, var(--pv-slate) 12%, transparent);
+          color: var(--text);
+        }
         .pv-report-meta {
           display: flex; align-items: center; gap: 6px;
           font-size: 11.5px; color: var(--pv-muted);
+        }
+        .pv-report-collapsed {
+          max-width: 680px;
+          padding: 10px 0 2px;
+          color: var(--pv-muted);
+          font-size: 13px;
+          line-height: 1.55;
+        }
+        .pv-report-collapsed p {
+          margin: 0;
+          overflow: hidden;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
         }
         .pv-report-body {
           font-size: 14.5px; line-height: 1.75; color: var(--text);
@@ -1147,6 +1389,60 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
           margin: 0; font-size: 13.5px; line-height: 1.6;
           color: var(--pv-muted); max-width: 560px;
           letter-spacing: var(--ls-body, .017em);
+        }
+        .pv-report-ai-panel {
+          max-width: 680px;
+          border: 1px solid color-mix(in srgb, var(--border) 58%, transparent);
+          border-radius: 10px;
+          padding: 12px;
+          background: color-mix(in srgb, var(--surface-2) 44%, transparent);
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+        .pv-report-ai-head {
+          display: flex; align-items: center; justify-content: space-between; gap: 10px;
+          font-size: 12px; color: var(--pv-muted);
+        }
+        .pv-report-ai-head strong {
+          color: var(--text);
+          font-size: 12.5px;
+        }
+        .pv-report-ai-list {
+          display: flex; flex-direction: column; gap: 8px;
+        }
+        .pv-report-ai-item {
+          display: grid; grid-template-columns: 24px minmax(0, 1fr);
+          gap: 9px;
+          padding: 9px;
+          border-radius: 8px;
+          background: color-mix(in srgb, var(--card) 72%, transparent);
+          border: 1px solid color-mix(in srgb, var(--border) 48%, transparent);
+        }
+        .pv-report-ai-icon {
+          width: 24px; height: 24px;
+          border-radius: 8px;
+          display: inline-flex; align-items: center; justify-content: center;
+          background: color-mix(in srgb, var(--pv-slate) 14%, transparent);
+          color: var(--pv-slate);
+        }
+        .pv-report-ai-item strong {
+          display: block;
+          color: var(--text);
+          font-size: 12.5px;
+          margin-bottom: 3px;
+        }
+        .pv-report-ai-item p {
+          margin: 0;
+          color: var(--pv-soft);
+          font-size: 12px;
+          line-height: 1.5;
+        }
+        .pv-report-ai-foot {
+          display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+        }
+        .pv-report-ai-foot span {
+          color: var(--pv-muted); font-size: 11.5px;
         }
         .pv-spin {
           display: inline-block; width: 11px; height: 11px; margin-right: 6px;
@@ -1415,12 +1711,48 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
                   it stands alone; the rest of overview stays minimal. */}
               <section className="pv-report">
                 <div className="pv-report-head">
-                  <span className="pv-report-label">Statusbericht</span>
-                  <button className="pv-update-btn" onClick={generateAIUpdate} disabled={generatingAI}>
-                    {generatingAI
-                      ? <><span className="pv-spin" aria-hidden />Veyra schreibt…</>
-                      : latestUpdate ? 'Neu erzeugen' : 'Statusbericht erzeugen'}
-                  </button>
+                  <span className="pv-report-title-row">
+                    <span className="pv-report-label">Statusbericht</span>
+                    {latestUpdate ? (
+                      <button
+                        type="button"
+                        className="pv-report-btn"
+                        onClick={() => setReportExpandedPreference(!reportExpanded)}
+                      >
+                        {reportExpanded ? <CaretUp size={12} /> : <CaretDown size={12} />}
+                        {reportExpanded ? 'Einklappen' : 'Ausklappen'}
+                      </button>
+                    ) : null}
+                  </span>
+                  <div className="pv-report-actions">
+                    {latestUpdate ? (
+                      <>
+                        <button type="button" className="pv-report-btn" onClick={downloadStatusReportPdf}>
+                          <FilePdf size={13} /> PDF
+                        </button>
+                        <button type="button" className="pv-report-btn" onClick={sendStatusReportByEmail} disabled={sendingReport}>
+                          <EnvelopeSimple size={13} /> {sendingReport ? 'Sendet…' : 'E-Mail'}
+                        </button>
+                        <button type="button" className="pv-report-btn" onClick={copyStatusReport}>
+                          <Copy size={13} /> Kopieren
+                        </button>
+                        <button
+                          type="button"
+                          className="pv-report-btn primary"
+                          onClick={extractReportActionItems}
+                          disabled={reportActionState === 'extracting' || reportActionState === 'creating'}
+                        >
+                          {reportActionState === 'extracting' ? <span className="pv-spin" aria-hidden /> : <Sparkle size={13} />}
+                          Tasks ableiten
+                        </button>
+                      </>
+                    ) : null}
+                    <button className="pv-update-btn" onClick={generateAIUpdate} disabled={generatingAI}>
+                      {generatingAI
+                        ? <><span className="pv-spin" aria-hidden />Veyra schreibt…</>
+                        : latestUpdate ? 'Neu erzeugen' : 'Statusbericht erzeugen'}
+                    </button>
+                  </div>
                 </div>
 
                 {latestUpdate ? (
@@ -1431,9 +1763,56 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
                       <span className="pv-sep">·</span>
                       <span>{fmtAgo(latestUpdate.created_at)}</span>
                     </div>
-                    <div className="pv-report-body">
-                      <ChatMarkdown text={latestUpdate.content || ''} />
-                    </div>
+                    {reportExpanded ? (
+                      <div className="pv-report-body">
+                        <ChatMarkdown text={latestUpdate.content || ''} />
+                      </div>
+                    ) : (
+                      <div className="pv-report-collapsed">
+                        <p>{stripMarkdown(latestUpdate.content || '').slice(0, 260)}{(latestUpdate.content || '').length > 260 ? '…' : ''}</p>
+                      </div>
+                    )}
+                    {(reportActionItems.length > 0 || reportActionNotice || reportActionState === 'extracting' || reportActionState === 'creating') ? (
+                      <div className="pv-report-ai-panel">
+                        <div className="pv-report-ai-head">
+                          <div>
+                            <strong>Veyra Aufgaben-Vorschläge</strong>
+                            <span> · aus diesem Statusbericht</span>
+                          </div>
+                          {(reportActionState === 'extracting' || reportActionState === 'creating') ? <span><span className="pv-spin" aria-hidden />arbeitet…</span> : null}
+                        </div>
+                        {reportActionItems.length > 0 ? (
+                          <div className="pv-report-ai-list">
+                            {reportActionItems.map((item, index) => (
+                              <article className="pv-report-ai-item" key={`${item.title}-${index}`}>
+                                <span className="pv-report-ai-icon"><Sparkle size={13} weight="bold" /></span>
+                                <div>
+                                  <strong>{item.title}</strong>
+                                  {item.description ? <p>{item.description}</p> : null}
+                                  <p>{item.priority ? `Priorität: ${item.priority}` : 'Priorität: mittel'} · {item.owner_type === 'client' ? 'Kundenseitig' : item.type === 'decision' ? 'Entscheidung' : 'Projektteam'}</p>
+                                </div>
+                              </article>
+                            ))}
+                          </div>
+                        ) : null}
+                        <div className="pv-report-ai-foot">
+                          <span>{reportActionNotice || 'Prüfe die Vorschläge, bevor Veyra sie in den Workflow übernimmt.'}</span>
+                          {reportActionItems.length > 0 ? (
+                            <div className="pv-report-actions">
+                              <button type="button" className="pv-report-btn" onClick={() => { setReportActionItems([]); setReportActionState('idle'); setReportActionNotice('Vorschläge verworfen.') }}>
+                                Ablehnen
+                              </button>
+                              <button type="button" className="pv-report-btn" onClick={extractReportActionItems} disabled={reportActionState === 'extracting' || reportActionState === 'creating'}>
+                                Neu prüfen
+                              </button>
+                              <button type="button" className="pv-report-btn primary" onClick={createReportActionItems} disabled={reportActionState === 'creating' || reportActionState === 'created'}>
+                                {reportActionState === 'created' ? 'Übernommen' : 'Übernehmen'}
+                              </button>
+                            </div>
+                          ) : null}
+                        </div>
+                      </div>
+                    ) : null}
                   </>
                 ) : (
                   <p className="pv-report-empty">

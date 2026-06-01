@@ -69,8 +69,12 @@ export async function POST(req: NextRequest) {
         projectTitle = (project as any).title
         const { data: latest } = await sb
           .from('ai_updates')
-          .select('content').eq('project_id', body.projectId).eq('type', 'status_report')
-          .order('created_at', { ascending: false }).limit(1).maybeSingle()
+          .select('content')
+          .eq('project_id', body.projectId)
+          .in('type', ['status_report', 'daily_summary'])
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle()
         bodyText = (latest as any)?.content
           || `Für "${projectTitle}" liegt noch kein generierter Statusbericht vor. Sobald Veyra neue Signale erkennt, landet hier eine Zusammenfassung.`
       }

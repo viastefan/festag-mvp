@@ -36,20 +36,33 @@ export async function POST(req: NextRequest) {
       reportContent = reportContent || report.content || report.summary || ''
     }
 
+    const providedActionItems = Array.isArray(body.actionItems)
+      ? body.actionItems
+      : Array.isArray(body.action_items)
+        ? body.action_items
+        : null
+
     if (!projectId) return NextResponse.json({ ok: false, error: 'project_id_required' }, { status: 400 })
-    if (!reportContent) return NextResponse.json({ ok: false, error: 'report_content_required' }, { status: 400 })
+    if (!reportContent && !providedActionItems?.length) {
+      return NextResponse.json({ ok: false, error: 'report_content_required' }, { status: 400 })
+    }
 
     await ensureProjectAccess(sb as any, projectId, user.id)
-    const result = await extractActionItemsFromStatusReport({ sb: sb as any, projectId, reportContent })
-    await saveVeyraRun(sb as any, {
-      projectId,
-      runType: 'action_item_extraction',
-      inputJson: { reportId, reportContent },
-      outputJson: result.output as Record<string, unknown>,
-      model: result.model,
-      status: result.status,
-      errorMessage: (result as any).error ?? null,
-    })
+    let actionItems = providedActionItems || []
+
+    if (!providedActionItems) {
+      const result = await extractActionItemsFromStatusReport({ sb: sb as any, projectId, reportContent })
+      actionItems = (result.output as any).action_items || []
+      await saveVeyraRun(sb as any, {
+        projectId,
+        runType: 'action_item_extraction',
+        inputJson: { reportId, reportContent },
+        outputJson: result.output as Record<string, unknown>,
+        model: result.model,
+        status: result.status,
+        errorMessage: (result as any).error ?? null,
+      })
+    }
 
     let created: Array<{ type: string; id: string; title: string }> = []
     if (body.autoProcess || body.process) {
@@ -58,7 +71,7 @@ export async function POST(req: NextRequest) {
         actorId: user.id,
         projectId,
         sourceReportId: reportId || null,
-        actionItems: (result.output as any).action_items || [],
+        actionItems,
       })
       await logAudit(sb as any, {
         actorId: user.id,
@@ -69,11 +82,10 @@ export async function POST(req: NextRequest) {
       })
     }
 
-    return NextResponse.json({ ok: true, action_items: (result.output as any).action_items || [], created })
+    return NextResponse.json({ ok: true, action_items: actionItems, created })
   } catch (error: any) {
     const message = error?.message || 'status_report_action_items_failed'
     const status = message === 'project_access_denied' ? 403 : 500
     return NextResponse.json({ ok: false, error: message }, { status })
   }
 }
-
