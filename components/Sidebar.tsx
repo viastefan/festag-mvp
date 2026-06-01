@@ -5,6 +5,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useState, useEffect, useRef } from 'react'
 import SidebarProfileFooter from '@/components/SidebarProfileFooter'
+import HowFestagWorks from '@/components/HowFestagWorks'
 import SettingsSidebar from '@/components/SettingsSidebar'
 import MobileActionSheet from '@/components/MobileActionSheet'
 import { mobileFabActions, mobileFabTitle } from '@/lib/mobile-actions'
@@ -1739,6 +1740,8 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
             </div>
 
           </div>
+
+          <HowFestagWorks />
 
           <div className="sb-bottom-actions">
             {whatsNewOpen ? <div className="sb-bottom-backdrop" onClick={() => setWhatsNewOpen(false)} /> : null}
