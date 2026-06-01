@@ -344,10 +344,11 @@ export default function OnboardingPage() {
       if (isLast) {
         setDone(true)
         // Land on the workspace-home slug (canonical URL), fall back to
-        // /dashboard if no slug was set.
+        // /dashboard if no slug was set. A fresh user is dropped straight
+        // into project creation — the new-project canvas opens on arrival.
         const target = wsSlug.trim()
-          ? `/${slugify(wsSlug.trim())}?tour=1`
-          : '/dashboard?tour=1'
+          ? `/${slugify(wsSlug.trim())}?tour=1&newproject=1`
+          : '/dashboard?tour=1&newproject=1'
         setTimeout(() => router.replace(target), 900)
       } else {
         transition(+1)

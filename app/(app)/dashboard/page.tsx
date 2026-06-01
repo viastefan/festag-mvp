@@ -27,6 +27,7 @@ import {
   Play, Plus, Pulse as PulseIcon, SlidersHorizontal, Stop,
 } from '@phosphor-icons/react'
 import Modal from '@/components/Modal'
+import NewProjectModal from '@/components/NewProjectModal'
 
 // ── Left-side contextual layer ─────────────────────────────────────────
 // One calm line by time of day + one rotating "Wusstest du…" fact. Both
@@ -147,6 +148,21 @@ export default function DashboardPage() {
   const [bulkProgress, setBulkProgress] = useState(0)
   const [greetingClock, setGreetingClock] = useState<{ hour: number; seed: number } | null>(null)
   const writeToken = useRef(0)
+
+  // New-project canvas. Auto-opens for a fresh user who just finished
+  // onboarding (?newproject=1) so the first thing they do is start a project.
+  const [newProjectOpen, setNewProjectOpen] = useState(false)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('newproject') === '1') {
+      setNewProjectOpen(true)
+      // Strip the flag so a refresh / back-nav doesn't reopen the canvas.
+      params.delete('newproject')
+      const qs = params.toString()
+      const clean = window.location.pathname + (qs ? `?${qs}` : '')
+      window.history.replaceState(null, '', clean)
+    }
+  }, [])
 
   useEffect(() => {
     const now = new Date()
@@ -2658,6 +2674,16 @@ export default function DashboardPage() {
             <p className="dc-read-empty">Noch kein Statusbericht vorhanden. Tippe auf „Aktualisieren", um einen zu erstellen.</p>
           )}
         </Modal>
+      )}
+
+      {newProjectOpen && (
+        <NewProjectModal
+          onClose={() => setNewProjectOpen(false)}
+          onCreated={(projectId) => {
+            setNewProjectOpen(false)
+            window.location.href = `/project/${projectId}`
+          }}
+        />
       )}
 
       <ObserverWelcomeModal />
