@@ -899,20 +899,30 @@ button.sb-help-trigger,
 button.sb-video-dismiss,
 .sb-video-modal-head button,
 :where(.task-tool, .task-plus, .npm-icon-btn) {
-  border-radius: 999px !important;
+  border-radius: 50% !important;
+  overflow: hidden !important;
 }
 
 button.sb-video-teaser {
-  border-radius: 22px !important;
+  border-radius: 18px !important;
 }
 
 .sb-video-teaser-wrap > button.sb-video-teaser {
   display: flex !important;
   flex-direction: column !important;
   align-items: stretch !important;
-  min-height: 292px !important;
-  background: #050506 !important;
-  color: #f4f4f5 !important;
+  min-height: 158px !important;
+  background: var(--card) !important;
+  color: var(--text) !important;
+}
+
+button.sb-help-trigger {
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  min-height: 32px !important;
+  aspect-ratio: 1 !important;
+  clip-path: circle(50% at 50% 50%) !important;
 }
 
 /* Tagro Audio Briefings */

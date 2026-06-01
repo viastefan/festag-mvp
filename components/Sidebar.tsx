@@ -1178,9 +1178,9 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         [data-theme="dark"] .sb-top-icon:hover { background:rgba(255,255,255,0.04); }
         .sb-bottom-actions {
           position:fixed;
-          bottom:22px;
-          left:38px;
-          width:min(342px, calc(100vw - 76px));
+          bottom:20px;
+          left:28px;
+          width:min(236px, calc(100vw - 56px));
           max-width:none;
           padding:0;
           z-index:170;
@@ -1210,7 +1210,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           position:relative;
           width:100%;
           z-index:1;
-          filter: drop-shadow(0 18px 36px rgba(0,0,0,.32));
+          filter: drop-shadow(0 14px 30px rgba(15,23,42,.14));
         }
         .sb-video-teaser {
           width:100%;
@@ -1218,114 +1218,114 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           display:flex;
           flex-direction:column !important;
           padding:0;
-          border:1px solid rgba(255,255,255,.12);
-          border-radius:22px !important;
-          background:#050506 !important;
-          color:#f4f4f5;
+          border:1px solid color-mix(in srgb, var(--border) 88%, transparent);
+          border-radius:18px !important;
+          background:var(--card) !important;
+          color:var(--text);
           text-align:left;
           cursor:pointer;
-          box-shadow:inset 0 0 0 1px rgba(255,255,255,.025);
-          min-height:292px;
-          aspect-ratio:1.16;
+          box-shadow:0 1px 2px rgba(15,23,42,.05);
+          min-height:158px;
           transform-origin:left bottom;
           transition:transform .16s ease, border-color .16s ease, box-shadow .16s ease;
         }
         .sb-video-teaser:hover {
           transform:translateY(-2px);
-          border-color:rgba(255,255,255,.22);
-          box-shadow:inset 0 0 0 1px rgba(255,255,255,.035), 0 18px 48px rgba(0,0,0,.26);
+          border-color:var(--border-strong);
+          box-shadow:0 18px 38px rgba(15,23,42,.16);
         }
         .sb-video-thumb {
           position:relative;
-          height:174px;
-          flex:0 0 174px;
+          height:86px;
+          flex:0 0 86px;
           display:block;
           overflow:hidden;
           background:
-            radial-gradient(circle at 82% 28%, rgba(88,92,255,.24), transparent 22%),
-            linear-gradient(135deg, rgba(19,22,28,.98), rgba(9,11,14,.92) 42%, rgba(35,44,41,.92));
+            radial-gradient(circle at 82% 28%, color-mix(in srgb, var(--accent, #6366f1) 22%, transparent), transparent 24%),
+            linear-gradient(135deg, color-mix(in srgb, var(--surface-2) 92%, var(--card)), var(--card));
         }
         .sb-video-thumb::before {
           content:"";
           position:absolute;
           inset:-18% -8%;
           background:
-            linear-gradient(110deg, transparent 0 16%, rgba(255,255,255,.08) 17%, transparent 18% 42%, rgba(255,255,255,.05) 43%, transparent 44%),
-            repeating-linear-gradient(0deg, rgba(255,255,255,.05) 0 1px, transparent 1px 18px);
+            linear-gradient(110deg, transparent 0 16%, color-mix(in srgb, var(--text) 8%, transparent) 17%, transparent 18% 42%, color-mix(in srgb, var(--text) 5%, transparent) 43%, transparent 44%),
+            repeating-linear-gradient(0deg, color-mix(in srgb, var(--border) 70%, transparent) 0 1px, transparent 1px 18px);
           transform:rotate(-8deg) translateY(8px);
           opacity:.6;
           filter:blur(.2px);
         }
         .sb-video-code-line {
           position:absolute;
-          left:26px;
-          height:7px;
+          left:18px;
+          height:5px;
           border-radius:999px;
-          background:rgba(150,162,184,.6);
+          background:color-mix(in srgb, var(--text-muted) 62%, transparent);
           z-index:1;
         }
-        .sb-video-code-line.one { top:44px; width:104px; }
-        .sb-video-code-line.two { top:62px; width:72px; opacity:.78; }
-        .sb-video-code-line.three { top:80px; width:124px; opacity:.5; }
+        .sb-video-code-line.one { top:24px; width:76px; }
+        .sb-video-code-line.two { top:38px; width:52px; opacity:.78; }
+        .sb-video-code-line.three { top:52px; width:92px; opacity:.5; }
         .sb-video-play {
           position:absolute;
-          right:22px;
-          bottom:20px;
-          width:42px;
-          height:42px;
-          display:inline-flex;
-          align-items:center;
-          justify-content:center;
-          border-radius:999px;
-          background:rgba(255,255,255,.08);
-          color:#f5f5f5;
-          backdrop-filter:blur(10px);
-          z-index:2;
-        }
-        .sb-video-copy {
-          min-height:118px;
-          display:flex;
-          flex-direction:column;
-          justify-content:center;
-          gap:12px;
-          padding:22px 26px 24px;
-          background:linear-gradient(180deg, #050506, #030304) !important;
-        }
-        .sb-video-copy strong {
-          display:block;
-          font-size:24px;
-          line-height:1.08;
-          font-weight:500;
-          letter-spacing:0;
-          color:#f6f6f7;
-          white-space:normal;
-        }
-        .sb-video-copy span {
-          display:block;
-          max-width:none;
-          font-size:23px;
-          line-height:1.14;
-          font-weight:500;
-          letter-spacing:0;
-          color:rgba(245,245,247,.58);
-          white-space:normal;
-        }
-        .sb-video-dismiss {
-          position:absolute;
-          right:10px;
-          top:10px;
+          right:12px;
+          bottom:10px;
           width:28px;
           height:28px;
           display:inline-flex;
           align-items:center;
           justify-content:center;
+          border-radius:999px;
+          background:color-mix(in srgb, var(--card) 88%, transparent);
+          color:var(--text);
+          box-shadow:0 1px 8px rgba(15,23,42,.12);
+          backdrop-filter:blur(8px);
+          z-index:2;
+        }
+        .sb-video-copy {
+          min-height:72px;
+          display:flex;
+          flex-direction:column;
+          justify-content:center;
+          gap:5px;
+          padding:12px 14px 14px;
+          background:var(--card) !important;
+        }
+        .sb-video-copy strong {
+          display:block;
+          font-size:15px;
+          line-height:1.16;
+          font-weight:500;
+          letter-spacing:0;
+          color:var(--text);
+          white-space:normal;
+        }
+        .sb-video-copy span {
+          display:block;
+          max-width:none;
+          font-size:14px;
+          line-height:1.18;
+          font-weight:500;
+          letter-spacing:0;
+          color:var(--text-muted);
+          white-space:normal;
+        }
+        .sb-video-dismiss {
+          position:absolute;
+          right:8px;
+          top:8px;
+          width:24px;
+          height:24px;
+          display:inline-flex;
+          align-items:center;
+          justify-content:center;
           border:0;
           border-radius:999px;
-          color:rgba(255,255,255,.7);
-          background:rgba(0,0,0,.24);
+          color:var(--text-muted);
+          background:color-mix(in srgb, var(--card) 84%, transparent);
           cursor:pointer;
           z-index:3;
-          opacity:0;
+          opacity:.76;
           transition:background .12s ease, color .12s ease, opacity .12s ease;
         }
         .sb-video-teaser-wrap:hover .sb-video-dismiss,
@@ -1333,12 +1333,14 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           opacity:1;
         }
         .sb-video-dismiss:hover {
-          background:rgba(255,255,255,.12);
-          color:#fff;
+          background:color-mix(in srgb, var(--surface-2) 82%, transparent);
+          color:var(--text);
         }
         .sb-help-trigger {
-          width: 32px; height: 32px; border-radius: 999px !important;
+          width: 32px; height: 32px; border-radius: 50% !important;
           aspect-ratio:1;
+          overflow:hidden !important;
+          clip-path:circle(50% at 50% 50%);
           display: inline-flex; align-items: center; justify-content: center;
           border: 1px solid color-mix(in srgb, var(--border) 75%, transparent);
           background: color-mix(in srgb, var(--card) 94%, transparent);
@@ -1358,32 +1360,34 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         }
         .sb-video-teaser-wrap .sb-video-teaser {
           width:100% !important;
-          min-height:292px !important;
+          min-height:158px !important;
           display:flex !important;
           flex-direction:column !important;
           align-items:stretch !important;
-          border-radius:22px !important;
-          background:#050506 !important;
-          color:#f4f4f5 !important;
+          border-radius:18px !important;
+          background:var(--card) !important;
+          color:var(--text) !important;
         }
         .sb-video-teaser-wrap .sb-video-thumb {
           display:block !important;
           width:100% !important;
-          height:174px !important;
-          flex:0 0 174px !important;
+          height:86px !important;
+          flex:0 0 86px !important;
         }
         .sb-video-teaser-wrap .sb-video-copy {
           width:100% !important;
-          min-height:118px !important;
-          background:linear-gradient(180deg, #050506, #030304) !important;
+          min-height:72px !important;
+          background:var(--card) !important;
         }
         .sb-help-dock .sb-help-trigger {
-          border-radius:999px !important;
+          border-radius:50% !important;
           width:32px !important;
           height:32px !important;
           min-width:32px !important;
           min-height:32px !important;
           aspect-ratio:1 !important;
+          overflow:hidden !important;
+          clip-path:circle(50% at 50% 50%) !important;
         }
 
         /* ── "Mehr" trigger + popover ─────────────────────────────── */
@@ -1581,30 +1585,30 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           inset:0;
           z-index:12600;
           display:flex;
-          align-items:flex-start;
+          align-items:center;
           justify-content:center;
-          padding:86px 24px 28px;
+          padding:24px;
         }
         .sb-video-modal-backdrop {
           position:absolute;
           inset:0;
           border:0;
-          background:rgba(0,0,0,.56);
+          background:rgba(15,23,42,.34);
           cursor:default;
         }
         .sb-video-modal {
           position:relative;
           z-index:1;
           width:min(760px, calc(100vw - 40px));
-          max-height:calc(100dvh - 112px);
+          max-height:calc(100dvh - 48px);
           overflow:hidden;
           display:flex;
           flex-direction:column;
           border-radius:18px;
-          border:1px solid rgba(255,255,255,.12);
-          background:linear-gradient(180deg, #1b1b1d, #19191b);
-          color:#f4f4f5;
-          box-shadow:0 32px 120px rgba(0,0,0,.62);
+          border:1px solid color-mix(in srgb, var(--border) 88%, transparent);
+          background:var(--card);
+          color:var(--text);
+          box-shadow:0 32px 100px rgba(15,23,42,.24);
           animation:sbVideoModalIn .2s cubic-bezier(.16,1,.3,1) both;
         }
         @keyframes sbVideoModalIn {
@@ -1617,8 +1621,8 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           grid-template-columns:1fr auto 1fr;
           align-items:center;
           padding:0 20px;
-          border-bottom:1px solid rgba(255,255,255,.1);
-          color:rgba(245,245,247,.62);
+          border-bottom:1px solid color-mix(in srgb, var(--border) 72%, transparent);
+          color:var(--text-muted);
           font-size:18px;
           letter-spacing:0;
           flex-shrink:0;
@@ -1628,7 +1632,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           align-items:center;
           gap:6px;
           justify-self:center;
-          color:#f4f4f5;
+          color:var(--text);
           font-size:17px;
           font-weight:500;
         }
@@ -1640,14 +1644,15 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           align-items:center;
           justify-content:center;
           border:0;
-          border-radius:10px;
+          border-radius:50% !important;
           background:transparent;
-          color:rgba(245,245,247,.56);
+          color:var(--text-muted);
           cursor:pointer;
+          overflow:hidden;
         }
         .sb-video-modal-head button:hover {
-          background:rgba(255,255,255,.08);
-          color:#fff;
+          background:color-mix(in srgb, var(--surface-2) 76%, transparent);
+          color:var(--text);
         }
         .sb-video-modal-body {
           overflow:auto;
@@ -1659,15 +1664,15 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           line-height:1.15;
           font-weight:500;
           letter-spacing:0;
-          color:#fff;
+          color:var(--text);
         }
         .sb-video-stage {
           overflow:hidden;
           width:100%;
           aspect-ratio:16 / 9;
           border-radius:3px;
-          background:#000;
-          box-shadow:0 16px 44px rgba(0,0,0,.36);
+          background:var(--surface-2);
+          box-shadow:0 16px 44px rgba(15,23,42,.12);
         }
         .sb-video-stage-placeholder {
           position:relative;
@@ -1675,24 +1680,24 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           height:100%;
           overflow:hidden;
           background:
-            radial-gradient(circle at 74% 28%, rgba(101,97,255,.28), transparent 24%),
-            linear-gradient(135deg, #050607, #12161d 48%, #060708);
+            radial-gradient(circle at 74% 28%, color-mix(in srgb, var(--accent, #6366f1) 20%, transparent), transparent 24%),
+            linear-gradient(135deg, color-mix(in srgb, var(--surface-2) 96%, var(--card)), var(--card) 58%, color-mix(in srgb, var(--surface-2) 72%, var(--card)));
         }
         .sb-stage-grid {
           position:absolute;
           inset:-18% -8%;
           background:
-            repeating-linear-gradient(0deg, rgba(255,255,255,.045) 0 1px, transparent 1px 28px),
-            repeating-linear-gradient(90deg, rgba(255,255,255,.035) 0 1px, transparent 1px 44px);
+            repeating-linear-gradient(0deg, color-mix(in srgb, var(--border) 68%, transparent) 0 1px, transparent 1px 28px),
+            repeating-linear-gradient(90deg, color-mix(in srgb, var(--border) 54%, transparent) 0 1px, transparent 1px 44px);
           transform:perspective(600px) rotateX(54deg) translateY(20%);
           opacity:.55;
         }
         .sb-stage-card {
           position:absolute;
           border-radius:18px;
-          border:1px solid rgba(255,255,255,.1);
-          background:rgba(255,255,255,.055);
-          box-shadow:0 18px 60px rgba(0,0,0,.38);
+          border:1px solid color-mix(in srgb, var(--border) 75%, transparent);
+          background:color-mix(in srgb, var(--card) 74%, transparent);
+          box-shadow:0 18px 60px rgba(15,23,42,.12);
           transform:rotate(-7deg);
         }
         .sb-stage-card.one {
@@ -1719,15 +1724,16 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           width:78px;
           height:78px;
           border-radius:999px;
-          background:rgba(255,255,255,.12);
-          color:#fff;
+          background:color-mix(in srgb, var(--card) 88%, transparent);
+          color:var(--text);
+          box-shadow:0 8px 32px rgba(15,23,42,.18);
           backdrop-filter:blur(12px);
         }
         .sb-stage-label {
           position:absolute;
           left:20px;
           bottom:18px;
-          color:rgba(245,245,247,.68);
+          color:var(--text-muted);
           font-size:13px;
           font-weight:500;
           letter-spacing:.02em;
@@ -1745,27 +1751,27 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           line-height:1.42;
           font-weight:400;
           letter-spacing:0;
-          color:rgba(245,245,247,.88);
+          color:var(--text);
         }
         .sb-video-feature-card {
           overflow:hidden;
           border-radius:4px;
-          background:#050506;
-          border:1px solid rgba(255,255,255,.08);
+          background:var(--surface);
+          border:1px solid color-mix(in srgb, var(--border) 80%, transparent);
         }
         .sb-video-feature-visual {
           position:relative;
           height:250px;
           overflow:hidden;
           background:
-            radial-gradient(circle at 32% 38%, rgba(20,184,166,.18), transparent 26%),
-            linear-gradient(135deg, #10141a, #030405 58%);
+            radial-gradient(circle at 32% 38%, color-mix(in srgb, var(--accent, #14b8a6) 15%, transparent), transparent 26%),
+            linear-gradient(135deg, color-mix(in srgb, var(--surface-2) 90%, var(--card)), var(--card) 58%);
         }
         .sb-video-feature-visual span {
           position:absolute;
           height:22px;
           border-radius:999px;
-          background:rgba(255,255,255,.08);
+          background:color-mix(in srgb, var(--text) 8%, transparent);
           transform:rotate(-9deg);
         }
         .sb-video-feature-visual span:nth-child(1) { width:58%; left:16%; top:32%; }
@@ -1779,14 +1785,14 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           font-size:23px;
           font-weight:500;
           letter-spacing:0;
-          color:#fff;
+          color:var(--text);
         }
         .sb-video-feature-card p {
           margin:0;
           max-width:560px;
           font-size:18px;
           line-height:1.45;
-          color:rgba(245,245,247,.66);
+          color:var(--text-muted);
         }
         .sb-nav-scroll {
           flex:1 1 auto;
