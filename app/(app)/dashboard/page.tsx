@@ -1315,8 +1315,8 @@ export default function DashboardPage() {
         /* Orb wrapper — generous vertical room, the centerpiece. */
         .dc-orb-zone {
           flex: 0 0 auto;
-          min-height: 186px;
-          padding: 6px 0;
+          min-height: 210px;
+          padding: 8px 0;
           display: flex; align-items: center; justify-content: center;
         }
 
@@ -1653,17 +1653,19 @@ export default function DashboardPage() {
         .dc-orb-stage:not(:disabled):hover { transform: translateY(-1px); }
         .dc-orb-stage:not(:disabled):active { transform: scale(.97); }
 
-        /* Ambient outer halo — soft white bleed behind everything */
+        /* Ambient outer halo — soft slate bleed + a bright caustic pool right
+           under the sphere (the reference's glow at the bottom). Brand slate
+           #6a738c only — no mint, no lavender. */
         .dc-orb-halo {
           position: absolute; left: 50%; top: 50%;
-          width: 180px; height: 180px;
-          margin: -90px 0 0 -90px;
+          width: 200px; height: 200px;
+          margin: -100px 0 0 -100px;
           border-radius: 50%;
           background:
-            radial-gradient(circle at 50% 45%, rgba(255,255,255,.55), rgba(255,255,255,0) 62%),
-            radial-gradient(circle at 50% 60%, color-mix(in srgb, #A8E6CF 22%, transparent), transparent 65%);
-          filter: blur(2px);
-          opacity: .55;
+            radial-gradient(circle at 50% 82%, rgba(150,160,185,.55), transparent 50%),
+            radial-gradient(circle at 50% 45%, rgba(106,115,140,.22), transparent 64%);
+          filter: blur(3px);
+          opacity: .6;
           z-index: 0;
           pointer-events: none;
           transition: opacity .35s ease;
@@ -1671,75 +1673,42 @@ export default function DashboardPage() {
         [data-theme="dark"] .dc-orb-halo,
         [data-theme="classic-dark"] .dc-orb-halo {
           background:
-            radial-gradient(circle at 50% 45%, rgba(255,255,255,.10), rgba(255,255,255,0) 62%),
-            radial-gradient(circle at 50% 60%, rgba(168,230,207,.16), transparent 65%);
-          opacity: .8;
+            radial-gradient(circle at 50% 82%, rgba(150,162,196,.34), transparent 52%),
+            radial-gradient(circle at 50% 44%, rgba(106,115,140,.26), transparent 66%);
+          opacity: .9;
         }
         .dc-orb-stage.speaking .dc-orb-halo { opacity: 1; }
 
-        /* Three stacked glass discs — biggest at back, smallest with the
-           mint→lavender gradient on top. Centred via absolute positioning
-           so all three stay perfectly concentric regardless of stage size. */
+        /* Faint orbital ring outlines behind the sphere — thin slate lines,
+           transparent fill (the reference's subtle orbit lines, not glass
+           plates). Centred via absolute positioning. */
         .dc-orb-disc {
           position: absolute; left: 50%; top: 50%;
           border-radius: 50%;
-          background:
-            radial-gradient(circle at 50% 30%, rgba(255,255,255,.95), rgba(255,255,255,.55) 50%, rgba(255,255,255,.18) 100%);
-          box-shadow:
-            inset 0 1px 0 rgba(255,255,255,.95),
-            inset 0 -8px 18px -8px rgba(255,255,255,.6),
-            0 14px 38px -16px rgba(60,80,110,.32);
-          border: 1px solid rgba(255,255,255,.7);
-          backdrop-filter: blur(8px);
-          -webkit-backdrop-filter: blur(8px);
+          background: transparent;
+          border: 1px solid rgba(106,115,140,.16);
           z-index: 2;
+          pointer-events: none;
         }
         .dc-orb-disc.disc-3 {
-          width: 176px; height: 176px;
-          margin: -88px 0 0 -88px;
-          opacity: .55;
-          background:
-            radial-gradient(circle at 50% 35%, rgba(255,255,255,.7), rgba(255,255,255,.25) 60%, rgba(255,255,255,.05) 100%);
+          width: 188px; height: 188px;
+          margin: -94px 0 0 -94px;
+          opacity: .5;
         }
         .dc-orb-disc.disc-2 {
-          width: 134px; height: 134px;
-          margin: -67px 0 0 -67px;
-          opacity: .82;
+          width: 142px; height: 142px;
+          margin: -71px 0 0 -71px;
+          opacity: .7;
         }
         .dc-orb-disc.disc-1 {
-          width: 100px; height: 100px;
-          margin: -50px 0 0 -50px;
+          width: 110px; height: 110px;
+          margin: -55px 0 0 -55px;
           z-index: 3;
-          overflow: hidden;
-        }
-        .dc-orb-gradient {
-          position: absolute; inset: 0;
-          border-radius: 50%;
-          background:
-            radial-gradient(circle at 50% 28%, rgba(255,255,255,.9), transparent 32%),
-            radial-gradient(circle at 50% 72%, rgba(199,182,255,.55), transparent 58%),
-            radial-gradient(circle at 50% 50%, rgba(168,230,207,.65), rgba(255,255,255,.2) 75%);
-          opacity: .85;
         }
 
-        /* Dark-mode variants — quieter glass, deeper shadow */
         [data-theme="dark"] .dc-orb-disc,
         [data-theme="classic-dark"] .dc-orb-disc {
-          background:
-            radial-gradient(circle at 50% 30%, rgba(255,255,255,.16), rgba(255,255,255,.04) 60%, rgba(255,255,255,0) 100%);
-          border-color: rgba(255,255,255,.10);
-          box-shadow:
-            inset 0 1px 0 rgba(255,255,255,.10),
-            inset 0 -8px 18px -8px rgba(255,255,255,.06),
-            0 18px 50px -16px rgba(0,0,0,.6);
-        }
-        [data-theme="dark"] .dc-orb-gradient,
-        [data-theme="classic-dark"] .dc-orb-gradient {
-          background:
-            radial-gradient(circle at 50% 28%, rgba(255,255,255,.18), transparent 36%),
-            radial-gradient(circle at 50% 72%, rgba(166,148,232,.42), transparent 58%),
-            radial-gradient(circle at 50% 50%, rgba(120,200,170,.40), rgba(255,255,255,.02) 78%);
-          opacity: .92;
+          border-color: rgba(170,180,205,.13);
         }
 
         /* ─── Centre 3D sphere — the spinning premium-AI centerpiece ───
@@ -1749,39 +1718,40 @@ export default function DashboardPage() {
         .dc-orb-core {
           position: relative;
           z-index: 4;
-          width: 92px; height: 92px;
+          width: 116px; height: 116px;
           border-radius: 50%;
           display: inline-flex; align-items: center; justify-content: center;
           isolation: isolate;
           overflow: hidden;
           background:
-            radial-gradient(circle at 35% 28%,
-              #ffffff 0%, #f1f3fd 14%, #d6ddf6 40%, #b3bdea 66%, #939ed8 100%);
+            radial-gradient(circle at 35% 27%,
+              #f4f6fa 0%, #d2d7e1 20%, #a6adbf 44%, #6a738c 70%, #474d61 100%);
           box-shadow:
-            inset -7px -9px 20px -6px rgba(74,84,150,.50),
-            inset 7px 9px 18px -5px rgba(255,255,255,.92),
-            0 18px 38px -14px rgba(70,90,150,.46),
-            0 3px 8px -3px rgba(70,90,150,.28);
+            inset -9px -11px 24px -6px rgba(44,49,64,.55),
+            inset 9px 11px 22px -6px rgba(255,255,255,.6),
+            inset 0 -3px 11px -2px rgba(160,170,195,.55),
+            0 24px 48px -16px rgba(44,49,64,.5),
+            0 4px 12px -4px rgba(44,49,64,.3);
           border: none;
-          color: #454c66;
-          animation: dcSphereBob 6s ease-in-out infinite;
+          color: #4a5066;
+          animation: dcSphereBob 6.5s ease-in-out infinite;
         }
-        /* Rotating surface sheen — gives the impression of a spinning globe.
+        /* Rotating surface bands — slate latitude sheens wrapping the ball.
            Two layers turn at different speeds/directions for depth. */
         .dc-orb-spin {
           position: absolute; inset: -22%;
           border-radius: 50%;
           background:
             conic-gradient(from 0deg,
-              rgba(168,230,207,0) 0deg,
-              rgba(168,230,207,.55) 58deg,
-              rgba(199,182,255,.0) 135deg,
-              rgba(160,196,255,.50) 205deg,
-              rgba(199,182,255,.0) 290deg,
-              rgba(168,230,207,0) 360deg);
+              rgba(196,203,218,0) 0deg,
+              rgba(206,213,227,.5) 58deg,
+              rgba(150,160,185,0) 135deg,
+              rgba(214,220,232,.42) 205deg,
+              rgba(150,160,185,0) 290deg,
+              rgba(196,203,218,0) 360deg);
           mix-blend-mode: screen;
           filter: blur(5px);
-          opacity: .85;
+          opacity: .8;
           z-index: 1;
           animation: dcSphereSpin 7.5s linear infinite;
         }
@@ -1789,52 +1759,56 @@ export default function DashboardPage() {
           inset: -10%;
           background:
             conic-gradient(from 140deg,
-              rgba(199,182,255,0) 0deg,
-              rgba(199,182,255,.45) 90deg,
-              rgba(168,230,207,0) 180deg,
-              rgba(168,210,255,.40) 270deg,
-              rgba(199,182,255,0) 360deg);
+              rgba(180,189,206,0) 0deg,
+              rgba(196,203,218,.42) 90deg,
+              rgba(150,160,185,0) 180deg,
+              rgba(206,213,227,.36) 270deg,
+              rgba(180,189,206,0) 360deg);
           filter: blur(7px);
-          opacity: .6;
+          opacity: .55;
           animation: dcSphereSpinR 11s linear infinite;
         }
-        /* Drifting specular hotspot — sells the curved glass surface. */
+        /* Drifting specular hotspot — the glossy white reflection top-left. */
         .dc-orb-spec {
-          position: absolute; left: 24%; top: 18%;
-          width: 34%; height: 26%;
+          position: absolute; left: 22%; top: 15%;
+          width: 38%; height: 30%;
           border-radius: 50%;
-          background: radial-gradient(circle at 50% 50%, rgba(255,255,255,.95), rgba(255,255,255,0) 70%);
+          background: radial-gradient(circle at 50% 50%, rgba(255,255,255,.98), rgba(255,255,255,0) 70%);
           filter: blur(1px);
           z-index: 3;
           animation: dcSphereSpec 6s ease-in-out infinite;
         }
-        /* Inner rim — crisp lit edge that keeps the ball reading as a sphere. */
+        /* Inner rim — crisp lit edge + a bright reflected-light arc at the
+           bottom, the way a glossy ball catches the surface glow beneath it. */
         .dc-orb-rim {
           position: absolute; inset: 0;
           border-radius: 50%;
           box-shadow:
             inset 0 1px 1px rgba(255,255,255,.9),
-            inset 0 -10px 22px -10px rgba(74,84,150,.4);
+            inset 0 -12px 24px -12px rgba(44,49,64,.45),
+            inset 0 -2px 6px -1px rgba(190,198,216,.5);
           z-index: 2;
           pointer-events: none;
         }
         [data-theme="dark"] .dc-orb-core,
         [data-theme="classic-dark"] .dc-orb-core {
           background:
-            radial-gradient(circle at 35% 28%,
-              #8a93dd 0%, #5159a0 24%, #2e3463 52%, #1a1f3c 78%, #0d1024 100%);
+            radial-gradient(circle at 35% 27%,
+              #c2c8d6 0%, #8a92a8 20%, #5b647c 46%, #3a4151 72%, #1c2029 100%);
           box-shadow:
-            inset -7px -9px 22px -6px rgba(0,0,0,.72),
-            inset 7px 9px 18px -5px rgba(142,150,255,.40),
-            0 20px 44px -14px rgba(0,0,0,.74),
-            0 3px 8px -3px rgba(0,0,0,.5);
+            inset -9px -11px 26px -6px rgba(0,0,0,.7),
+            inset 9px 11px 22px -6px rgba(180,190,212,.4),
+            inset 0 -3px 12px -2px rgba(120,132,160,.5),
+            0 26px 52px -16px rgba(0,0,0,.72),
+            0 4px 12px -4px rgba(0,0,0,.5);
           color: rgba(255,255,255,.9);
         }
         [data-theme="dark"] .dc-orb-rim,
         [data-theme="classic-dark"] .dc-orb-rim {
           box-shadow:
-            inset 0 1px 1px rgba(142,150,255,.35),
-            inset 0 -10px 24px -10px rgba(0,0,0,.6);
+            inset 0 1px 1px rgba(190,198,216,.3),
+            inset 0 -12px 26px -12px rgba(0,0,0,.6),
+            inset 0 -2px 7px -1px rgba(140,152,180,.4);
         }
         /* Spin speeds up when Tagro is active. */
         .dc-orb-stage.speaking .dc-orb-spin { animation-duration: 3.6s; }
@@ -1845,7 +1819,7 @@ export default function DashboardPage() {
         .dc-orb-play {
           position: relative; z-index: 5;
           display: inline-flex; align-items: center; justify-content: center;
-          filter: drop-shadow(0 2px 4px rgba(40,50,90,.28));
+          filter: drop-shadow(0 2px 5px rgba(44,49,64,.35));
         }
         .dc-orb-glyph { color: inherit; }
 
@@ -1891,10 +1865,10 @@ export default function DashboardPage() {
            Visible at idle (subtle), strengthens while Tagro speaks. */
         .dc-orb-pulse {
           position: absolute; left: 50%; top: 50%;
-          width: 100px; height: 100px;
-          margin: -50px 0 0 -50px;
+          width: 116px; height: 116px;
+          margin: -58px 0 0 -58px;
           border-radius: 50%;
-          border: 1px solid color-mix(in srgb, var(--text) 16%, transparent);
+          border: 1px solid rgba(106,115,140,.22);
           background: transparent;
           opacity: 0;
           transform: scale(0.85);
@@ -1907,7 +1881,7 @@ export default function DashboardPage() {
         .dc-orb-pulse.pulse-3 { animation-delay: 3.46s; }
         [data-theme="dark"] .dc-orb-pulse,
         [data-theme="classic-dark"] .dc-orb-pulse {
-          border-color: rgba(255,255,255,.20);
+          border-color: rgba(170,180,205,.18);
         }
         .dc-orb-stage.speaking .dc-orb-pulse {
           animation: dcOrbPulse 3.2s cubic-bezier(.22,.65,.35,1) infinite;
@@ -2594,7 +2568,7 @@ export default function DashboardPage() {
                   <span className="dc-orb-spec" aria-hidden />
                   <span className="dc-orb-rim" aria-hidden />
                   <span className="dc-orb-play">
-                    <TagroLogo size={30} thinking={tagroActive} />
+                    <TagroLogo size={34} thinking={tagroActive} />
                   </span>
                 </span>
               </button>
