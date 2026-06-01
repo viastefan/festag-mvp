@@ -2,7 +2,7 @@
 
 import { ArrowRight, Buildings, ListChecks, Sparkle, UsersThree } from '@phosphor-icons/react'
 import { motion, useReducedMotion } from 'framer-motion'
-import { useEffect, useState } from 'react'
+import { useEffect, useId, useState } from 'react'
 import { useTypewriter } from '@/hooks/useTypewriter'
 
 type ProjectCreationIntroAnimationProps = {
@@ -22,6 +22,9 @@ export default function ProjectCreationIntroAnimation({
 }: ProjectCreationIntroAnimationProps) {
   const reduceMotion = useReducedMotion()
   const compact = variant === 'teaser'
+  const pixelId = useId().replace(/:/g, '')
+  const pixelMaskId = `pciPixelMask${pixelId}`
+  const pixelPatternId = `pciPixelPattern${pixelId}`
   const [titleStarted, setTitleStarted] = useState(false)
   const [colorSelected, setColorSelected] = useState(false)
   const [descriptionStarted, setDescriptionStarted] = useState(false)
@@ -78,97 +81,127 @@ export default function ProjectCreationIntroAnimation({
   return (
     <div className={`pci pci-${variant} ${className}`} aria-label="Festag Projektstart Animation">
       <div className="pci-depth" aria-hidden />
-      <motion.div
-        className="pci-modal"
-        initial={
-          reduceMotion
-            ? false
-            : { rotateX: 58, rotateZ: -7, rotateY: -4, scale: 1.15, y: 40, opacity: 0.72 }
-        }
-        animate={{ rotateX: 0, rotateZ: 0, rotateY: 0, scale: 1, y: 0, opacity: 1 }}
-        transition={{ duration: animationDuration, ease: [0.16, 1, 0.3, 1] }}
-        style={{ transformStyle: 'preserve-3d' }}
-      >
-        <div className="pci-head">
-          <span>NEUES PROJEKT</span>
-          <h2>Was möchtest du umsetzen?</h2>
+      {compact ? (
+        <div className="pci-pixel-visual" aria-hidden>
+          <svg className="pci-pixel-wordmark" viewBox="0 0 280 94" role="img">
+            <defs>
+              <pattern id={pixelPatternId} width="8" height="8" patternUnits="userSpaceOnUse">
+                <rect className="pci-pixel-square" x="1.2" y="1.2" width="4.9" height="4.9" rx=".7" />
+              </pattern>
+              <mask id={pixelMaskId}>
+                <rect width="280" height="94" fill="black" />
+                <text className="pci-pixel-mask-text" x="26" y="61">
+                  festag
+                </text>
+              </mask>
+            </defs>
+            <rect className="pci-pixel-panel" x="15" y="11" width="250" height="72" rx="16" />
+            <path className="pci-pixel-line one" d="M24 27 H244" />
+            <path className="pci-pixel-line two" d="M18 50 H254" />
+            <rect
+              className="pci-pixel-word"
+              width="280"
+              height="94"
+              fill={`url(#${pixelPatternId})`}
+              mask={`url(#${pixelMaskId})`}
+            />
+            <rect className="pci-pixel-accent" x="27" y="68" width="86" height="5" rx="2.5" />
+            <rect className="pci-pixel-accent is-soft" x="120" y="68" width="36" height="5" rx="2.5" />
+          </svg>
         </div>
-
-        <div className="pci-title-row">
-          <span className="pci-title-line" />
-          <div className="pci-title-stack">
-            <div className={`pci-title-placeholder ${titleStarted ? 'is-hidden' : ''}`}>Projektname</div>
-            <div className="pci-title-value">
-              {typedTitle}
-              {titleStarted && !titleDone ? <span className="pci-cursor" /> : null}
-            </div>
-            <div className="pci-colors" aria-hidden>
-              {COLORS.map((color, index) => {
-                const selected = index === 0 && colorSelected
-                return (
-                  <motion.span
-                    key={color}
-                    className={selected ? 'is-selected' : ''}
-                    style={{ background: color }}
-                    animate={selected ? { scale: [1, 1.18, 1] } : { scale: 1 }}
-                    transition={{ duration: 0.62, ease: [0.16, 1, 0.3, 1] }}
-                  />
-                )
-              })}
-            </div>
-          </div>
-        </div>
-
-        <section className="pci-actions" aria-label="Umsetzung">
-          <div className="pci-label">UMSETZUNG</div>
-          <div className="pci-button-row">
-            <button className="is-selected" type="button">
-              <Sparkle size={15} weight="bold" />
-              Festag-Entwickler finden
-            </button>
-            <button type="button">
-              <UsersThree size={15} />
-              Eigenes Team
-            </button>
-            <button type="button">
-              <Buildings size={15} />
-              White-Label
-            </button>
-          </div>
-        </section>
-
-        <div className="pci-description">
-          <span className={`pci-description-placeholder ${descriptionStarted ? 'is-hidden' : ''}`}>
-            Schreibe eine Beschreibung, ein Projektbriefing oder sammle Ideen...
-          </span>
-          <p>
-            {typedDescription}
-            {descriptionStarted && !descriptionDone ? <span className="pci-cursor" /> : null}
-          </p>
-        </div>
-
+      ) : (
         <motion.div
-          className="pci-milestones"
-          initial={false}
-          animate={milestonesVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 8 }}
-          transition={{ duration: 0.56, ease: [0.16, 1, 0.3, 1] }}
+          className="pci-modal"
+          initial={
+            reduceMotion
+              ? false
+              : { rotateX: 58, rotateZ: -7, rotateY: -4, scale: 1.15, y: 40, opacity: 0.72 }
+          }
+          animate={{ rotateX: 0, rotateZ: 0, rotateY: 0, scale: 1, y: 0, opacity: 1 }}
+          transition={{ duration: animationDuration, ease: [0.16, 1, 0.3, 1] }}
+          style={{ transformStyle: 'preserve-3d' }}
         >
-          <ListChecks size={18} />
-          <div>
-            <strong>Meilensteine</strong>
-            <span>Optional vorbereiten</span>
+          <div className="pci-head">
+            <span>NEUES PROJEKT</span>
+            <h2>Was möchtest du umsetzen?</h2>
           </div>
-          <span className="pci-plus">+</span>
-        </motion.div>
 
-        <div className="pci-footer">
-          <button type="button">Abbrechen</button>
-          <button className={ctaActive ? 'is-active' : ''} type="button">
-            Mit Veyra schreiben
-            <ArrowRight size={16} />
-          </button>
-        </div>
-      </motion.div>
+          <div className="pci-title-row">
+            <span className="pci-title-line" />
+            <div className="pci-title-stack">
+              <div className={`pci-title-placeholder ${titleStarted ? 'is-hidden' : ''}`}>Projektname</div>
+              <div className="pci-title-value">
+                {typedTitle}
+                {titleStarted && !titleDone ? <span className="pci-cursor" /> : null}
+              </div>
+              <div className="pci-colors" aria-hidden>
+                {COLORS.map((color, index) => {
+                  const selected = index === 0 && colorSelected
+                  return (
+                    <motion.span
+                      key={color}
+                      className={selected ? 'is-selected' : ''}
+                      style={{ background: color }}
+                      animate={selected ? { scale: [1, 1.18, 1] } : { scale: 1 }}
+                      transition={{ duration: 0.62, ease: [0.16, 1, 0.3, 1] }}
+                    />
+                  )
+                })}
+              </div>
+            </div>
+          </div>
+
+          <section className="pci-actions" aria-label="Umsetzung">
+            <div className="pci-label">UMSETZUNG</div>
+            <div className="pci-button-row">
+              <button className="is-selected" type="button">
+                <Sparkle size={15} weight="bold" />
+                Festag-Entwickler finden
+              </button>
+              <button type="button">
+                <UsersThree size={15} />
+                Eigenes Team
+              </button>
+              <button type="button">
+                <Buildings size={15} />
+                White-Label
+              </button>
+            </div>
+          </section>
+
+          <div className="pci-description">
+            <span className={`pci-description-placeholder ${descriptionStarted ? 'is-hidden' : ''}`}>
+              Schreibe eine Beschreibung, ein Projektbriefing oder sammle Ideen...
+            </span>
+            <p>
+              {typedDescription}
+              {descriptionStarted && !descriptionDone ? <span className="pci-cursor" /> : null}
+            </p>
+          </div>
+
+          <motion.div
+            className="pci-milestones"
+            initial={false}
+            animate={milestonesVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 8 }}
+            transition={{ duration: 0.56, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <ListChecks size={18} />
+            <div>
+              <strong>Meilensteine</strong>
+              <span>Optional vorbereiten</span>
+            </div>
+            <span className="pci-plus">+</span>
+          </motion.div>
+
+          <div className="pci-footer">
+            <button type="button">Abbrechen</button>
+            <button className={ctaActive ? 'is-active' : ''} type="button">
+              Mit Veyra schreiben
+              <ArrowRight size={16} />
+            </button>
+          </div>
+        </motion.div>
+      )}
 
       <style jsx>{`
         .pci {
@@ -453,6 +486,81 @@ export default function ProjectCreationIntroAnimation({
           height:94px;
           border-radius:18px 18px 0 0;
           pointer-events:none;
+        }
+        .pci-pixel-visual {
+          position:absolute;
+          inset:0;
+          z-index:1;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          overflow:hidden;
+        }
+        .pci-pixel-wordmark {
+          width:100%;
+          height:100%;
+          display:block;
+          color:rgba(232,237,244,.86);
+          transform:translate3d(0,0,0);
+        }
+        .pci-pixel-panel {
+          fill:rgba(15,22,31,.28);
+          stroke:rgba(205,220,244,.06);
+          stroke-width:1;
+        }
+        .pci-pixel-line {
+          fill:none;
+          stroke:rgba(210,222,241,.055);
+          stroke-width:1;
+        }
+        .pci-pixel-line.one { transform:translateY(-1px); }
+        .pci-pixel-line.two { opacity:.72; }
+        .pci-pixel-square {
+          fill:currentColor;
+        }
+        .pci-pixel-mask-text {
+          fill:white;
+          font-family:var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+          font-size:47px;
+          font-weight:500;
+          letter-spacing:-.01em;
+          dominant-baseline:auto;
+        }
+        .pci-pixel-word {
+          opacity:.92;
+          filter:drop-shadow(0 8px 18px rgba(0,0,0,.12));
+        }
+        .pci-pixel-accent {
+          fill:rgba(106,115,140,.62);
+        }
+        .pci-pixel-accent.is-soft {
+          fill:rgba(232,237,244,.22);
+        }
+        :global([data-theme="light"]) .pci-pixel-wordmark,
+        :global([data-theme="pure-light"]) .pci-pixel-wordmark,
+        :global([data-theme="read"]) .pci-pixel-wordmark {
+          color:rgba(32,37,50,.74);
+        }
+        :global([data-theme="light"]) .pci-pixel-panel,
+        :global([data-theme="pure-light"]) .pci-pixel-panel,
+        :global([data-theme="read"]) .pci-pixel-panel {
+          fill:rgba(255,255,255,.34);
+          stroke:rgba(106,115,140,.10);
+        }
+        :global([data-theme="light"]) .pci-pixel-line,
+        :global([data-theme="pure-light"]) .pci-pixel-line,
+        :global([data-theme="read"]) .pci-pixel-line {
+          stroke:rgba(106,115,140,.11);
+        }
+        :global([data-theme="light"]) .pci-pixel-accent,
+        :global([data-theme="pure-light"]) .pci-pixel-accent,
+        :global([data-theme="read"]) .pci-pixel-accent {
+          fill:rgba(106,115,140,.52);
+        }
+        :global([data-theme="light"]) .pci-pixel-accent.is-soft,
+        :global([data-theme="pure-light"]) .pci-pixel-accent.is-soft,
+        :global([data-theme="read"]) .pci-pixel-accent.is-soft {
+          fill:rgba(32,37,50,.16);
         }
         .pci-teaser .pci-modal {
           left:12px;
