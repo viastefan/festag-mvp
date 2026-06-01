@@ -37,7 +37,7 @@ export async function GET() {
   // Recent intake/planning/active projects — what a dev would plausibly pick up.
   const { data: projects } = await (service as any)
     .from('projects')
-    .select('id,title,description,scope_summary,color,status,project_type,created_at,user_id')
+    .select('id,title,description,scope_summary,color,status,project_type,delivery_model,created_at,user_id')
     .neq('status', 'archived')
     .order('created_at', { ascending: false })
     .limit(80)
@@ -77,8 +77,13 @@ export async function GET() {
       created_at: p.created_at,
       assigned_count: countByProject.get(p.id) ?? 0,
     }
-    if (mineIds.has(p.id)) mine.push(shape)
-    else available.push(shape)
+    if (mineIds.has(p.id)) { mine.push(shape); continue }
+    // The open pool only holds Festag-directed jobs. White-label and
+    // team-internal projects are routed to a chosen developer directly and
+    // must never surface as up-for-grabs here. Legacy rows without a
+    // delivery_model are treated as Festag-directed (the original default).
+    const model = p.delivery_model ?? 'festag_delivery'
+    if (model === 'festag_delivery') available.push(shape)
   }
 
   return NextResponse.json({ available, mine })

@@ -28,6 +28,7 @@ import {
 } from '@phosphor-icons/react'
 import Modal from '@/components/Modal'
 import NewProjectModal from '@/components/NewProjectModal'
+import ProjectAcceptedCelebration from '@/components/ProjectAcceptedCelebration'
 
 // ── Left-side contextual layer ─────────────────────────────────────────
 // One calm line by time of day + one rotating "Wusstest du…" fact. Both
@@ -2688,6 +2689,7 @@ export default function DashboardPage() {
 
       <ObserverWelcomeModal />
       <WelcomeTour />
+      <ProjectAcceptedCelebration />
     </div>
   )
 }

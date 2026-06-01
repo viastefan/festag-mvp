@@ -884,6 +884,46 @@ export const festagDocsArticles: FestagDocArticle[] = [
       { type: 'paragraph', text: 'Im Dev Panel taucht jede aktive Entscheidung am Kopf des Projekt-Workspaces auf. Blockierte Tasks zeigen direkt, welche Entscheidung sie aufhält. Mit der Aktion „Entscheidung anfragen" an einem Task lässt sich eine neue Frage anstoßen — Tagro übernimmt das Rahmen und Übersetzen.' },
       { type: 'paragraph', text: 'Hinter beidem läuft Tagro als stille Schicht. Sie hat kein eigenes UI, sie ist die Schreibweise des Systems. Sichtbar wird sie nur im Audit-Log und in der ruhigen Tatsache, dass beide Seiten verstanden haben, was die andere meint.' },
     ], true, '7 Min.'),
+
+  richArticle('Sicherheit & Vertrauen', 'Die Festag-Garantie', 'festag-garantie',
+    'Was die Festag-Garantie abdeckt, wie sie funktioniert und warum jedes über Festag vermittelte Projekt von Anfang an abgesichert ist.',
+    ['Garantie', 'Vertrauen', 'Trust Layer', 'Verantwortlichkeit', 'Qualität'],
+    [
+      { type: 'lead', text: 'Wenn du ein Projekt über Festag vergibst, gibst du kein Briefing in eine Blackbox. Die Festag-Garantie sichert zu, dass dein Projekt von einem geprüften Entwickler umgesetzt, von Tagro begleitet und in einem nachvollziehbaren Ablauf zu Ende geführt wird.' },
+
+      { type: 'heading', level: 2, text: 'Was die Garantie zusichert', id: 'umfang' },
+      { type: 'list', items: [
+        'Geprüfte Umsetzung: Jeder Entwickler im Festag-Netzwerk ist verifiziert. Du bekommst keinen anonymen Auftragnehmer, sondern eine zugeordnete, verantwortliche Person.',
+        'Tagro als durchgehende Begleitung: Jeder Arbeitsschritt wird von Tagro in einen verständlichen Stand für dich übersetzt. Du musst nichts Technisches lesen, um zu wissen, wo dein Projekt steht.',
+        'Klare Verantwortlichkeit: Wer woran arbeitet und wer was freigibt, ist im System festgelegt — nach Rolle, nicht nach Zuruf. Nichts versickert in Chat-Verläufen.',
+        'Nachvollziehbarer Ablauf: Vom angenommenen Auftrag bis zur geprüften Fertigstellung ist jeder Status dokumentiert. Du kannst jederzeit nachsehen, was passiert ist.',
+      ]},
+
+      { type: 'heading', level: 2, text: 'Wie sie im Ablauf greift', id: 'ablauf' },
+      { type: 'mono', text: [
+        'Projekt angelegt',
+        '   |',
+        '   v',
+        'Festag-Entwickler nimmt an  ->  Garantie aktiv',
+        '   |',
+        '   +-- Tagro begleitet jeden Schritt',
+        '   +-- geprüfte Fortschritte statt Rohmeldungen',
+        '   +-- klare Verantwortlichkeit pro Aufgabe',
+        '   |',
+        '   v',
+        'Geprüfte Fertigstellung',
+      ].join('\n') },
+      { type: 'paragraph', text: 'Sobald ein Entwickler deinen Auftrag annimmt, ist die Garantie aktiv. Du erhältst eine Bestätigung, eine Übersicht der nächsten Schritte und diesen Garantie-Hinweis — alles ruhig zusammengefasst, ohne dass du selbst nachhaken musst.' },
+
+      { type: 'heading', level: 2, text: 'Was geprüfte Arbeit bedeutet', id: 'geprueft' },
+      { type: 'paragraph', text: 'Festag liefert dir keine ungefilterten Entwickler-Meldungen. Tagro prüft jedes Update auf Relevanz und Verständlichkeit, bevor es bei dir als Projektstand ankommt. „Fertig" heißt bei Festag: von Tagro entlang klarer Achsen geprüft — nicht nur als erledigt markiert.' },
+      { type: 'note', text: 'Die Garantie ersetzt keine fachliche oder rechtliche Beratung. Rechtliche, finanzielle und vertragliche Entscheidungen triffst immer du selbst — Festag sorgt dafür, dass die Grundlage dafür sauber aufbereitet ist.' },
+
+      { type: 'heading', level: 2, text: 'Wenn etwas nicht passt', id: 'eskalation' },
+      { type: 'paragraph', text: 'Stockt ein Projekt oder entspricht ein Ergebnis nicht der Absprache, ist der Weg derselbe wie für alles bei Festag: Du sprichst es im Tagro-Chat des Projekts an. Tagro ordnet das Anliegen ein, macht die Verantwortlichkeit sichtbar und sorgt dafür, dass es nicht zwischen den Beteiligten verloren geht.' },
+
+      { type: 'quote', text: 'Geprüfte Arbeit, klare Verantwortlichkeit, ein verlässlicher Ablauf — das ist die Festag-Garantie.' },
+    ], true, '5 Min.'),
 ]
 
 export function getDocArticle(slug: string) {
