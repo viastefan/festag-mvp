@@ -214,11 +214,12 @@ export function ModalButton({
   }
   return (
     <button
+      className="modal-cta"
       onClick={onClick}
       disabled={disabled || loading}
       style={{
         padding: '8px 14px',
-        borderRadius: 8,
+        borderRadius: 6,
         fontSize: 13, fontWeight: 600,
         cursor: disabled || loading ? 'default' : 'pointer',
         opacity: disabled ? 0.55 : 1,

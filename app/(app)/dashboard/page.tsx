@@ -1371,7 +1371,7 @@ export default function DashboardPage() {
           gap: 12px;
           width: 100%;
           height: 52px; padding: 0 16px;
-          border-radius: 14px;
+          border-radius: 32px;
           border: 1px solid color-mix(in srgb, var(--border) 55%, transparent);
           background: color-mix(in srgb, var(--surface-2) 35%, transparent);
           color: var(--text);
@@ -1404,7 +1404,7 @@ export default function DashboardPage() {
           display: inline-flex; align-items: center; justify-content: center; gap: 8px;
           width: 100%; height: 40px; padding: 0 16px;
           margin-top: -6px;
-          border-radius: 12px;
+          border-radius: 32px;
           border: 1px solid color-mix(in srgb, var(--border) 42%, transparent);
           background: transparent;
           color: var(--dc-soft);

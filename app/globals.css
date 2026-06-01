@@ -861,12 +861,17 @@ body.locked { overflow: hidden; touch-action: none; }
 html, body, button, input, select, textarea { font-family: var(--font-ui); }
 code, pre, kbd, samp { font-family: var(--font-mono); }
 
-/* Festag button language: in-app buttons are a soft 8px rounded rect — no
-   pills, no 32px (binding radius rule). Text inputs keep their own field
-   geometry. Auth screens (login / register / dev login, the .log- / .reg- /
-   .dl- prefixes) are EXEMPT: their large welcome CTAs are intentionally
-   rounded (32px) and stay that way. */
-button:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]),
+/* Festag button language: the general, app-wide corner logic is a soft 8px
+   rounded rect — components may keep their own geometry, but the blanket below
+   guarantees a uniform baseline. A few intentional, explicitly-named carve-outs
+   exist:
+     • Auth screens (.log- / .reg- / .dl- prefixes) — large welcome CTAs at 32px.
+     • The Audio-Briefing card actions (.dc-play-bar / .dc-read-bar) — premium
+       32px pills (Bild 2).
+     • Pop-up / dialog action buttons (.modal-cta) — a tight 6px corner (Bild 5).
+   The 32px "items inherit the container radius" rule now lives ONLY inside
+   pop-ups (Bild 3) — it is not a global behaviour. */
+button:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]):not(.dc-play-bar):not(.dc-read-bar):not(.modal-cta),
 a[role="button"]:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]),
 input[type="button"],
 input[type="submit"],
@@ -924,6 +929,12 @@ button.sb-help-trigger {
   aspect-ratio: 1 !important;
   clip-path: circle(50% at 50% 50%) !important;
 }
+
+/* Audio-Briefing card actions (Bild 2) — premium 32px pills. */
+.dc-play-bar, .dc-read-bar { border-radius: 32px; }
+
+/* Pop-up / dialog action buttons (Bild 5) — tight 6px corner. */
+.modal-cta { border-radius: 6px; }
 
 /* Tagro Audio Briefings */
 .audio-briefing-wrap { position: relative; display: inline-flex; }
