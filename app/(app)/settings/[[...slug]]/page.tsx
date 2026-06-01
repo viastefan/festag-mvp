@@ -1157,17 +1157,17 @@ export default function SettingsPage() {
         }
         .ws-mode-opt.on {
           cursor: default;
-          border-color: color-mix(in srgb, var(--set-text) 34%, var(--set-border));
-          background: color-mix(in srgb, var(--set-text) 6%, var(--set-bg));
+          border-color: color-mix(in srgb, #6a738c 60%, var(--set-border));
+          background: color-mix(in srgb, #6a738c 12%, var(--set-bg));
         }
         .ws-mode-opt:disabled:not(.on) { opacity: .55; cursor: default; }
         .ws-mode-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
         .ws-mode-name { font-size: 13.5px; font-weight: 500; letter-spacing: .017em; color: var(--set-text); }
         .ws-mode-desc { font-size: 11.5px; line-height: 1.5; color: var(--set-text-muted); }
         .ws-mode-badge {
-          font-size: 10px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase;
-          padding: 2px 8px; border-radius: 999px;
-          color: var(--set-text); border: 1px solid var(--set-border);
+          font-size: 10px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
+          padding: 2px 9px; border-radius: 999px;
+          color: #fff; background: #6a738c; border: 1px solid #6a738c;
         }
         .ws-mode-go { font-size: 11.5px; font-weight: 500; color: var(--set-text-muted); }
         .ws-mode-opt:hover:not(:disabled):not(.on) .ws-mode-go { color: var(--set-text); }
