@@ -266,7 +266,7 @@ const CSS = `
   .dbs-new-card { display:flex; align-items:center; gap:11px; padding:13px 15px; border:1px solid var(--border); border-radius:12px; background:var(--surface); color:var(--text); cursor:pointer; font:inherit; transition:border-color .14s, background .14s; }
   .dbs-new-card:hover:not(:disabled) { border-color:var(--border-strong); background:var(--surface-2); }
   .dbs-new-card:disabled { opacity:.5; cursor:not-allowed; }
-  .dbs-new-ico { width:32px; height:32px; border-radius:9px; display:inline-flex; align-items:center; justify-content:center; background:color-mix(in srgb, var(--btn-prim) 14%, var(--surface-2)); color:var(--btn-prim); flex-shrink:0; }
+  .dbs-new-ico { width:32px; height:32px; border-radius:9px; display:inline-flex; align-items:center; justify-content:center; background:var(--surface-2); color:var(--text-secondary); flex-shrink:0; }
   .dbs-new-title { font-size:13.5px; font-weight:500; flex:1; }
   .dbs-new-plus { color:var(--text-muted); }
   .dbs-list { display:flex; flex-direction:column; gap:6px; }

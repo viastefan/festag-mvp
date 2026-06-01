@@ -3,6 +3,8 @@ import { useEffect, useState, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { isDevOrAdmin } from '@/lib/role'
 import DocumentBuilderSection from '@/components/DocumentBuilderSection'
+import PageHeader from '@/components/ui/PageHeader'
+import FilterPills from '@/components/ui/FilterPills'
 
 function DocumentsEmptyState() {
   return (
@@ -212,12 +214,10 @@ export default function DocumentsPage() {
     : allItems.filter(x => x._type === tab.slice(0, -1))
 
   return (
-    <div className="page-content">
-      <div className="page-header">
-        <h1>Dokumente</h1>
-        <p>Angebot, Vertrag &amp; Rechnung erstellen — plus hochgeladene Dateien</p>
-      </div>
+    <div className="fui-page">
+      <PageHeader title="Dokumente" subtitle="Angebot, Vertrag & Rechnung erstellen — plus hochgeladene Dateien." />
 
+      <div className="fui-body">
       {/* Document builder (Angebot / Vertrag / Rechnung from templates) */}
       <DocumentBuilderSection />
 
@@ -247,18 +247,21 @@ export default function DocumentsPage() {
         </div>
       )}
 
-      <div className="animate-fade-up-1" style={{ display: 'flex', gap: 6, marginBottom: 16, overflowX: 'auto', paddingBottom: 2 }}>
-        {([
-          { k: 'all',       l: `Alle (${allItems.length})` },
-          { k: 'invoices',  l: `Rechnungen (${invoices.length})` },
-          { k: 'contracts', l: 'Verträge' },
-          { k: 'briefings', l: 'Briefings' },
-          { k: 'deliverables', l: 'Lieferungen' },
-        ] as const).map(t => (
-          <button key={t.k} onClick={() => setTab(t.k)} className="tap-scale" style={{ padding: '7px 14px', borderRadius: 12, border: '1px solid var(--border)', background: tab === t.k ? 'var(--accent)' : 'var(--surface)', color: tab === t.k ? 'var(--accent-text)' : 'var(--text-secondary)', fontSize: 12, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap', fontFamily: 'inherit' }}>{t.l}</button>
-        ))}
       </div>
 
+      <FilterPills
+        value={tab}
+        onChange={(v) => setTab(v as typeof tab)}
+        options={[
+          { id: 'all', label: `Alle (${allItems.length})` },
+          { id: 'invoices', label: `Rechnungen (${invoices.length})` },
+          { id: 'contracts', label: 'Verträge' },
+          { id: 'briefings', label: 'Briefings' },
+          { id: 'deliverables', label: 'Lieferungen' },
+        ]}
+      />
+
+      <div className="fui-body">
       {loading ? (
         <div style={{ display: 'flex', justifyContent: 'center', padding: 48 }}>
           <div style={{ width: 24, height: 24, border: '2px solid var(--border)', borderTopColor: 'var(--text)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
@@ -289,6 +292,7 @@ export default function DocumentsPage() {
           ))}
         </div>
       )}
+      </div>
     </div>
   )
 }
