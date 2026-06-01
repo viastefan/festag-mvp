@@ -5,6 +5,7 @@ import { isDevOrAdmin } from '@/lib/role'
 import Link from 'next/link'
 import { FileText } from '@phosphor-icons/react'
 import EmptyState from '@/components/EmptyState'
+import DocumentBuilderSection from '@/components/DocumentBuilderSection'
 
 export default function DocumentsPage() {
   const [documents, setDocuments] = useState<any[]>([])
@@ -86,8 +87,11 @@ export default function DocumentsPage() {
     <div className="page-content">
       <div className="page-header">
         <h1>Dokumente</h1>
-        <p>Rechnungen, Verträge und Briefings</p>
+        <p>Angebot, Vertrag &amp; Rechnung erstellen — plus hochgeladene Dateien</p>
       </div>
+
+      {/* Document builder (Angebot / Vertrag / Rechnung from templates) */}
+      <DocumentBuilderSection />
 
       {/* Upload bar (dev/admin only) */}
       {isDevOrAdmin(userRole) && (
