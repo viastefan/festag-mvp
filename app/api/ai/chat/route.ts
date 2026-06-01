@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { loadTagroMemoryContext, rememberTagroMemory } from '@/lib/tagro-memory'
-import { hasGeminiKey, runGeminiText } from '@/lib/tagro/gemini'
+import { hasTagroAI as hasGeminiKey, runTagroText as runGeminiText } from '@/lib/tagro/text'
 
 /**
  * Festag AI proxy — leitet an Minimax weiter, behaelt aber das Anthropic-

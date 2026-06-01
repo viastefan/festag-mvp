@@ -11,6 +11,13 @@ export async function runOpenAIJson({
   runType: string
   fallback: () => JsonObject
 }) {
+  // Provider priority: Claude (Anthropic) → Gemini → OpenAI → heuristic.
+  // Tagro runs on Claude whenever ANTHROPIC_API_KEY is set.
+  if (process.env.ANTHROPIC_API_KEY) {
+    const { runClaudeJson } = await import('@/lib/tagro/claude')
+    return runClaudeJson({ prompt, runType, fallback })
+  }
+
   if (process.env.GEMINI_API_KEY) {
     const { runGeminiJson } = await import('@/lib/tagro/gemini')
     return runGeminiJson({ prompt, runType, fallback })

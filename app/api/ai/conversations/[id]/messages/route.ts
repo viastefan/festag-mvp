@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { hasGeminiKey, runGeminiText } from '@/lib/tagro/gemini'
+import { hasTagroAI as hasGeminiKey, runTagroText as runGeminiText } from '@/lib/tagro/text'
 
 export const runtime = 'nodejs'
 

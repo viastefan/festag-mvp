@@ -3,7 +3,7 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 import { PROJECT_MODULE_REGISTRY, getProjectPreset, type ProjectType, type ExecutorRole, type DataSource } from '@/lib/project-modules'
-import { hasGeminiKey, runGeminiText } from '@/lib/tagro/gemini'
+import { hasTagroAI as hasGeminiKey, runTagroText as runGeminiText } from '@/lib/tagro/text'
 import { extractJsonObject } from '@/lib/tagro/json'
 
 export const runtime = 'nodejs'
