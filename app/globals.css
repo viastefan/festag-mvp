@@ -871,7 +871,7 @@ code, pre, kbd, samp { font-family: var(--font-mono); }
      • Pop-up / dialog action buttons (.modal-cta) — a tight 6px corner (Bild 5).
    The 32px "items inherit the container radius" rule now lives ONLY inside
    pop-ups (Bild 3) — it is not a global behaviour. */
-button:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]):not(.dc-play-bar):not(.dc-read-bar):not(.modal-cta),
+button:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]):not(.dc-play-bar):not(.dc-read-bar):not(.modal-cta):not(.set-btn),
 a[role="button"]:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]),
 input[type="button"],
 input[type="submit"],
@@ -879,7 +879,6 @@ input[type="reset"],
 .app-header-button,
 .app-page-header__action > a,
 .app-page-header__action > button,
-.set-btn,
 .dash-button,
 .vr-btn,
 .vr-chip,
@@ -887,7 +886,7 @@ input[type="reset"],
 .voice-icon-btn,
 .voice-field,
 .voice-text-btn,
-:is(a, button)[class*="btn"]:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]),
+:is(a, button)[class*="btn"]:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]):not(.set-btn),
 :is(a, button)[class*="button"]:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]),
 :is(a, button)[class*="chip"]:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]),
 :is(a, button)[class*="pill"]:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]) {
@@ -935,6 +934,9 @@ button.sb-help-trigger {
 
 /* Pop-up / dialog action buttons (Bild 5) — tight 6px corner. */
 .modal-cta { border-radius: 6px; }
+
+/* Settings buttons — full 32px pill across the settings surfaces. */
+.set-btn { border-radius: 32px; }
 
 /* Tagro Audio Briefings */
 .audio-briefing-wrap { position: relative; display: inline-flex; }

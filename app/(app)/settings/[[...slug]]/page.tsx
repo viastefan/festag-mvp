@@ -200,6 +200,13 @@ const INDUSTRIES = [
 ]
 const COUNTRIES = ['Deutschland', 'Österreich', 'Schweiz', 'Liechtenstein', 'Sonstiges']
 
+// Workspace types the owner can self-switch between (applies instantly).
+const WS_MODES: { id: 'delivery' | 'team' | 'agency'; label: string; short: string }[] = [
+  { id: 'delivery', label: 'Festag Delivery', short: 'Festag setzt dein Projekt mit geprüften Entwicklern um.' },
+  { id: 'team',     label: 'Team Workspace',  short: 'Internes OS für eigene Projekte, Devs und Aufgaben.' },
+  { id: 'agency',   label: 'Agency / White Label', short: 'Kundenprojekte über Festag steuern, optional unter eigener Marke.' },
+]
+
 export default function SettingsPage() {
   const supabase = useMemo(() => createClient(), [])
   const params = useParams<{ slug?: string[] }>()
@@ -213,6 +220,7 @@ export default function SettingsPage() {
   const [wsMode, setWsMode] = useState<'delivery' | 'team' | 'agency' | null>(null)
   const [wsName, setWsName] = useState<string>('')
   const [wsId, setWsId] = useState<string | null>(null)
+  const [switchingMode, setSwitchingMode] = useState(false)
   type Member = { user_id: string; role: string; joined_at: string; email: string | null; full_name: string | null; avatar_url: string | null }
   const [members, setMembers] = useState<Member[]>([])
   const [membersLoading, setMembersLoading] = useState(false)
@@ -741,6 +749,26 @@ export default function SettingsPage() {
     } catch (e: any) { setError(e?.message || 'Konnte Mitglied nicht entfernen.') }
   }
 
+  // Self-service workspace-type switch — applies instantly (no Festag request).
+  // RLS allows the workspace owner to update workspaces.mode directly.
+  async function changeWorkspaceMode(newMode: 'delivery' | 'team' | 'agency') {
+    if (!wsId || switchingMode || newMode === wsMode) return
+    const target = WS_MODES.find(m => m.id === newMode)?.label || newMode
+    if (typeof window !== 'undefined' && !window.confirm(`Workspace-Typ zu „${target}" wechseln? Rollen, Kundenbereiche und Projektlogik passen sich an — deine Daten bleiben erhalten.`)) return
+    const prev = wsMode
+    setSwitchingMode(true)
+    setWsMode(newMode) // optimistic
+    try {
+      const { error: updErr } = await supabase.from('workspaces').update({ mode: newMode }).eq('id', wsId)
+      if (updErr) { setWsMode(prev); setError(updErr.message || 'Wechsel fehlgeschlagen.'); return }
+      flashSaved('Workspace-Typ gewechselt')
+    } catch (e: any) {
+      setWsMode(prev); setError(e?.message || 'Wechsel fehlgeschlagen.')
+    } finally {
+      setSwitchingMode(false)
+    }
+  }
+
   async function saveNotif(next: Partial<{ email: boolean; push: boolean }>) {
     if (!profile) return
     if (typeof next.email === 'boolean') setNotifEmail(next.email)
@@ -1058,7 +1086,7 @@ export default function SettingsPage() {
         .set-btn {
           font-family: inherit; font-size: 13px; font-weight: 500;
           letter-spacing: .017em;
-          padding: 7px 14px; border-radius: 8px; cursor: pointer;
+          padding: 7px 16px; border-radius: 32px; cursor: pointer;
           border: 1px solid var(--set-border);
           background: var(--set-bg); color: var(--set-text);
           transition: background .15s, border-color .15s, opacity .15s, transform .25s cubic-bezier(0.34,1.56,0.64,1);
@@ -1111,6 +1139,37 @@ export default function SettingsPage() {
           background: color-mix(in srgb, #c0362e 8%, var(--set-bg));
           border-color: color-mix(in srgb, #c0362e 60%, var(--set-border));
         }
+
+        /* Workspace-type switcher — self-service, applies instantly. */
+        .ws-mode-switch { display: grid; gap: 8px; }
+        .ws-mode-opt {
+          display: flex; flex-direction: column; gap: 4px; text-align: left;
+          padding: 12px 14px; border-radius: 12px;
+          border: 1px solid var(--set-border);
+          background: var(--set-bg); color: var(--set-text);
+          cursor: pointer; font-family: inherit;
+          transition: border-color .15s, background .15s;
+        }
+        .ws-mode-opt:hover:not(:disabled):not(.on) {
+          background: color-mix(in srgb, var(--set-text) 5%, var(--set-bg));
+          border-color: color-mix(in srgb, var(--set-text) 22%, var(--set-border));
+        }
+        .ws-mode-opt.on {
+          cursor: default;
+          border-color: color-mix(in srgb, var(--set-text) 34%, var(--set-border));
+          background: color-mix(in srgb, var(--set-text) 6%, var(--set-bg));
+        }
+        .ws-mode-opt:disabled:not(.on) { opacity: .55; cursor: default; }
+        .ws-mode-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+        .ws-mode-name { font-size: 13.5px; font-weight: 500; letter-spacing: .017em; color: var(--set-text); }
+        .ws-mode-desc { font-size: 11.5px; line-height: 1.5; color: var(--set-text-muted); }
+        .ws-mode-badge {
+          font-size: 10px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase;
+          padding: 2px 8px; border-radius: 999px;
+          color: var(--set-text); border: 1px solid var(--set-border);
+        }
+        .ws-mode-go { font-size: 11.5px; font-weight: 500; color: var(--set-text-muted); }
+        .ws-mode-opt:hover:not(:disabled):not(.on) .ws-mode-go { color: var(--set-text); }
 
         /* Segment toggle (font picker) */
         .set-segment {
@@ -1915,20 +1974,34 @@ export default function SettingsPage() {
                     </div>
                   )
                 })()}
-                <div className="set-row">
+                <div className="set-row set-row-stack" style={{ flexDirection: 'column', alignItems: 'stretch', gap: 10, paddingTop: 6 }}>
                   <div>
-                    <div className="set-label">Workspace-Wechsel anfragen</div>
+                    <div className="set-label">Workspace-Typ wechseln</div>
                     <div className="set-label-sub">
-                      Ein Wechsel des Workspace-Typs kann Rollen, Abrechnung, Kundenbereiche und Projektlogik beeinflussen. Festag prüft den Wechsel, damit keine Daten oder Zugriffsrechte verloren gehen.
+                      Der Wechsel greift sofort — Rollen, Kundenbereiche und Projektlogik passen sich an den neuen Typ an. Deine Daten und Projekte bleiben erhalten.
                     </div>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                    <a
-                      className="set-btn"
-                      href={`mailto:hi@festag.app?subject=${encodeURIComponent('Festag — Workspace-Wechsel anfragen')}&body=${encodeURIComponent('Hallo Festag,\n\nIch möchte den Modus meines Workspace wechseln.\n\nAktueller Workspace: ' + (wsName || '') + '\nAktueller Modus: ' + modeLabel + '\nGewünschter Modus: \n\nGrund: \n\nViele Grüße')}`}
-                    >
-                      Wechsel anfragen
-                    </a>
+                  <div className="ws-mode-switch">
+                    {WS_MODES.map(m => {
+                      const active = wsMode === m.id
+                      return (
+                        <button
+                          key={m.id}
+                          type="button"
+                          className={`ws-mode-opt${active ? ' on' : ''}`}
+                          onClick={() => changeWorkspaceMode(m.id)}
+                          disabled={switchingMode || active}
+                        >
+                          <span className="ws-mode-top">
+                            <span className="ws-mode-name">{m.label}</span>
+                            {active
+                              ? <span className="ws-mode-badge">Aktiv</span>
+                              : switchingMode ? null : <span className="ws-mode-go">Wechseln</span>}
+                          </span>
+                          <span className="ws-mode-desc">{m.short}</span>
+                        </button>
+                      )
+                    })}
                   </div>
                 </div>
               </div>
