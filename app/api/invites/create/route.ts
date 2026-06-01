@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { randomBytes } from 'crypto'
 import { createClient } from '@/lib/supabase/server'
-import { getServiceClient } from '@/lib/supabase/service'
 
 export const runtime = 'nodejs'
 
@@ -76,13 +75,13 @@ export async function POST(req: NextRequest) {
     if (!allowed) return NextResponse.json({ error: 'forbidden' }, { status: 403 })
   }
 
-  const svc = getServiceClient()
-  if (!svc) return NextResponse.json({ error: 'service-key-missing' }, { status: 500 })
-
   const token = randomBytes(24).toString('hex')
   const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
 
-  const { error } = await svc.from('team_invites').insert({
+  // Insert through the user-bound (RLS) client — team_invites has an INSERT
+  // policy `with check (invited_by = auth.uid())`, so this works without the
+  // service-role key (which may be absent in the deployment).
+  const { error } = await (supa as any).from('team_invites').insert({
     token,
     email,
     role,
