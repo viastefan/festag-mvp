@@ -126,6 +126,10 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
   const [delivery, setDelivery] = useState<DeliveryModel>('festag_delivery')
   const [status, setStatus] = useState('intake')
   const [targetDate, setTargetDate] = useState('')
+  // White-label only: the developer this project is routed to. Festag
+  // provisions a dev account if the email has none yet (server-side).
+  const [devEmail, setDevEmail] = useState('')
+  const [devName, setDevName] = useState('')
 
   const [phase, setPhase] = useState<Phase>('form')
   const [loadingStep, setLoadingStep] = useState(0)
@@ -250,6 +254,28 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
         body: JSON.stringify({ description: description.trim(), projectId }),
       }).catch(() => {})
 
+      // White-label routing: hand the project to the chosen developer.
+      // The server looks the dev up by email, provisions a Festag dev
+      // account if none exists yet, links projects.assigned_dev and sends
+      // the credential + assignment emails. Fire-and-forget — the project
+      // is already created; routing failures surface in the dev's inbox
+      // flow, not as a blocking error here.
+      const trimmedDevEmail = devEmail.trim()
+      if (delivery === 'white_label_client' && /.+@.+\..+/.test(trimmedDevEmail)) {
+        fetch('/api/projects/assign-dev', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            projectId,
+            devEmail: trimmedDevEmail,
+            devName: devName.trim() || null,
+            projectTitle: title.trim(),
+            scope: description.trim().slice(0, 1200),
+          }),
+        }).catch(() => {})
+      }
+
       // Hold the success state for a beat so the user sees the result
       // line up before we hand off.
       setPhase('success')
@@ -352,6 +378,37 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
                 </button>
               </div>
             </div>
+
+            {/* White-label routing — who delivers this for the agency.
+                Festag provisions the dev account if the email is new. */}
+            {delivery === 'white_label_client' && (
+              <section className="npm-field npm-dev">
+                <label className="npm-label" htmlFor="npm-dev-email">Entwickler zuweisen</label>
+                <p className="npm-helper">
+                  Trag die E-Mail des Entwicklers ein, der das Projekt umsetzt. Hat er noch kein
+                  Festag-Konto, richten wir es ein und schicken ihm Zugangsdaten und den Auftrag zu.
+                </p>
+                <div className="npm-dev-row">
+                  <input
+                    id="npm-dev-email"
+                    type="email"
+                    className="npm-input"
+                    placeholder="entwickler@beispiel.de"
+                    value={devEmail}
+                    onChange={e => setDevEmail(e.target.value)}
+                    autoComplete="off"
+                  />
+                  <input
+                    type="text"
+                    className="npm-input"
+                    placeholder="Name (optional)"
+                    value={devName}
+                    onChange={e => setDevName(e.target.value)}
+                    autoComplete="off"
+                  />
+                </div>
+              </section>
+            )}
 
             {/* Brief */}
             <section className="npm-field">
@@ -742,6 +799,24 @@ const CSS = `
   .npm-milestones-text small {
     font-size: 11.5px; line-height: 1.45; color: var(--text-muted);
     font-weight: 500; letter-spacing: .015em;
+  }
+
+  /* White-label dev routing field */
+  .npm-dev-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .npm-input {
+    flex: 1; min-width: 180px; padding: 11px 13px;
+    background: color-mix(in srgb, var(--surface) 55%, var(--card) 45%);
+    border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+    border-radius: 10px;
+    color: var(--text); font: inherit;
+    font-size: 13.5px; font-weight: 500; letter-spacing: .015em;
+    outline: 0;
+    transition: border-color .14s, box-shadow .14s;
+  }
+  .npm-input::placeholder { color: var(--text-muted); opacity: .6; }
+  .npm-input:focus {
+    border-color: color-mix(in srgb, var(--btn-prim) 45%, var(--border));
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--btn-prim) 14%, transparent);
   }
 
   /* Error inline */

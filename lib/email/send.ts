@@ -177,12 +177,13 @@ export async function sendGettingStartedEmail(opts: {
 export async function sendDevCredentialsEmail(opts: {
   to:        string
   devName?:  string | null
-  password:  string
+  username:  string
+  pin:       string
   loginUrl:  string
   fromName?: string | null
 }): Promise<SendResult> {
   const { subject, html } = tplDevCredentials({
-    devName: opts.devName, email: opts.to, password: opts.password,
+    devName: opts.devName, username: opts.username, pin: opts.pin,
     loginUrl: opts.loginUrl, fromName: opts.fromName,
   })
   return sendMail({ to: opts.to, subject, html, replyTo: getFounderMail() ?? undefined })
