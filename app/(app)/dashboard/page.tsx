@@ -1742,37 +1742,126 @@ export default function DashboardPage() {
           opacity: .92;
         }
 
-        /* Centre core — the actual play surface */
+        /* ─── Centre 3D sphere — the spinning premium-AI centerpiece ───
+           A shaded ball (offset highlight top-left, terminator bottom-right)
+           with two counter-rotating surface sheens and a drifting specular
+           hotspot. The glyph floats in front, unaffected by the spin. */
         .dc-orb-core {
           position: relative;
           z-index: 4;
-          width: 64px; height: 64px;
+          width: 92px; height: 92px;
           border-radius: 50%;
           display: inline-flex; align-items: center; justify-content: center;
+          isolation: isolate;
+          overflow: hidden;
           background:
-            radial-gradient(circle at 50% 32%, rgba(255,255,255,1), rgba(255,255,255,.85) 55%, rgba(225,222,250,.95) 100%);
+            radial-gradient(circle at 35% 28%,
+              #ffffff 0%, #f1f3fd 14%, #d6ddf6 40%, #b3bdea 66%, #939ed8 100%);
           box-shadow:
-            inset 0 1px 0 rgba(255,255,255,.95),
-            inset 0 -4px 10px -3px rgba(190,180,230,.5),
-            0 8px 20px -8px rgba(60,80,110,.28);
-          border: 1px solid rgba(255,255,255,.85);
-          color: #4A5168;
+            inset -7px -9px 20px -6px rgba(74,84,150,.50),
+            inset 7px 9px 18px -5px rgba(255,255,255,.92),
+            0 18px 38px -14px rgba(70,90,150,.46),
+            0 3px 8px -3px rgba(70,90,150,.28);
+          border: none;
+          color: #454c66;
+          animation: dcSphereBob 6s ease-in-out infinite;
+        }
+        /* Rotating surface sheen — gives the impression of a spinning globe.
+           Two layers turn at different speeds/directions for depth. */
+        .dc-orb-spin {
+          position: absolute; inset: -22%;
+          border-radius: 50%;
+          background:
+            conic-gradient(from 0deg,
+              rgba(168,230,207,0) 0deg,
+              rgba(168,230,207,.55) 58deg,
+              rgba(199,182,255,.0) 135deg,
+              rgba(160,196,255,.50) 205deg,
+              rgba(199,182,255,.0) 290deg,
+              rgba(168,230,207,0) 360deg);
+          mix-blend-mode: screen;
+          filter: blur(5px);
+          opacity: .85;
+          z-index: 1;
+          animation: dcSphereSpin 7.5s linear infinite;
+        }
+        .dc-orb-spin.spin-b {
+          inset: -10%;
+          background:
+            conic-gradient(from 140deg,
+              rgba(199,182,255,0) 0deg,
+              rgba(199,182,255,.45) 90deg,
+              rgba(168,230,207,0) 180deg,
+              rgba(168,210,255,.40) 270deg,
+              rgba(199,182,255,0) 360deg);
+          filter: blur(7px);
+          opacity: .6;
+          animation: dcSphereSpinR 11s linear infinite;
+        }
+        /* Drifting specular hotspot — sells the curved glass surface. */
+        .dc-orb-spec {
+          position: absolute; left: 24%; top: 18%;
+          width: 34%; height: 26%;
+          border-radius: 50%;
+          background: radial-gradient(circle at 50% 50%, rgba(255,255,255,.95), rgba(255,255,255,0) 70%);
+          filter: blur(1px);
+          z-index: 3;
+          animation: dcSphereSpec 6s ease-in-out infinite;
+        }
+        /* Inner rim — crisp lit edge that keeps the ball reading as a sphere. */
+        .dc-orb-rim {
+          position: absolute; inset: 0;
+          border-radius: 50%;
+          box-shadow:
+            inset 0 1px 1px rgba(255,255,255,.9),
+            inset 0 -10px 22px -10px rgba(74,84,150,.4);
+          z-index: 2;
+          pointer-events: none;
         }
         [data-theme="dark"] .dc-orb-core,
         [data-theme="classic-dark"] .dc-orb-core {
           background:
-            radial-gradient(circle at 50% 32%, rgba(255,255,255,.22), rgba(255,255,255,.10) 55%, rgba(190,180,230,.22) 100%);
-          border-color: rgba(255,255,255,.18);
+            radial-gradient(circle at 35% 28%,
+              #8a93dd 0%, #5159a0 24%, #2e3463 52%, #1a1f3c 78%, #0d1024 100%);
           box-shadow:
-            inset 0 1px 0 rgba(255,255,255,.18),
-            inset 0 -4px 10px -3px rgba(190,180,230,.20),
-            0 10px 24px -8px rgba(0,0,0,.6);
-          color: rgba(255,255,255,.85);
+            inset -7px -9px 22px -6px rgba(0,0,0,.72),
+            inset 7px 9px 18px -5px rgba(142,150,255,.40),
+            0 20px 44px -14px rgba(0,0,0,.74),
+            0 3px 8px -3px rgba(0,0,0,.5);
+          color: rgba(255,255,255,.9);
         }
+        [data-theme="dark"] .dc-orb-rim,
+        [data-theme="classic-dark"] .dc-orb-rim {
+          box-shadow:
+            inset 0 1px 1px rgba(142,150,255,.35),
+            inset 0 -10px 24px -10px rgba(0,0,0,.6);
+        }
+        /* Spin speeds up when Tagro is active. */
+        .dc-orb-stage.speaking .dc-orb-spin { animation-duration: 3.6s; }
+        .dc-orb-stage.speaking .dc-orb-spin.spin-b { animation-duration: 5.4s; }
+        .dc-orb-stage.loading .dc-orb-spin { animation-duration: 2.2s; }
+        .dc-orb-stage.loading .dc-orb-spin.spin-b { animation-duration: 3.4s; }
+
         .dc-orb-play {
+          position: relative; z-index: 5;
           display: inline-flex; align-items: center; justify-content: center;
+          filter: drop-shadow(0 2px 4px rgba(40,50,90,.28));
         }
         .dc-orb-glyph { color: inherit; }
+
+        @keyframes dcSphereSpin { to { transform: rotate(360deg); } }
+        @keyframes dcSphereSpinR { to { transform: rotate(-360deg); } }
+        @keyframes dcSphereBob {
+          0%,100% { transform: translateY(0) scale(1); }
+          50%     { transform: translateY(-3px) scale(1.015); }
+        }
+        @keyframes dcSphereSpec {
+          0%,100% { left: 24%; top: 18%; opacity: .9; }
+          50%     { left: 30%; top: 22%; opacity: .7; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .dc-orb-spin, .dc-orb-spin.spin-b, .dc-orb-core, .dc-orb-spec { animation: none; }
+        }
 
         /* Breathing — entire orb gently inflates while idle, faster when speaking */
         .dc-orb-disc.disc-1,
@@ -2495,11 +2584,15 @@ export default function DashboardPage() {
 
                 <span className="dc-orb-disc disc-3" aria-hidden />
                 <span className="dc-orb-disc disc-2" aria-hidden />
-                <span className="dc-orb-disc disc-1" aria-hidden>
-                  <span className="dc-orb-gradient" aria-hidden />
-                </span>
 
+                {/* 3D sphere — a shaded ball with a continuously rotating
+                    surface sheen + drifting specular highlight. Reads as a
+                    slowly spinning premium-AI orb. */}
                 <span className="dc-orb-core" aria-hidden>
+                  <span className="dc-orb-spin" aria-hidden />
+                  <span className="dc-orb-spin spin-b" aria-hidden />
+                  <span className="dc-orb-spec" aria-hidden />
+                  <span className="dc-orb-rim" aria-hidden />
                   <span className="dc-orb-play">
                     <TagroLogo size={30} thinking={tagroActive} />
                   </span>
