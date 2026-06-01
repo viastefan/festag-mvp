@@ -228,6 +228,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
   const [fn,       setFn]       = useState('')
   const [fullName, setFullName] = useState('')
   const [workspaceName, setWorkspaceName] = useState('')
+  const [members, setMembers] = useState<{ id: string; name: string; color: string; avatarUrl: string | null }[]>([])
   const [avatar,   setAvatar]   = useState<string|null>(null)
   const [avatarColor, setAvatarColor] = useState<string|null>(null)
   const [role,     setRole]     = useState('client')
@@ -446,13 +447,34 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
       // the trigger, user identity in the dropdown).
       try {
         const { data: ws } = await sb
-          .from('workspaces').select('mode,name')
+          .from('workspaces').select('id,mode,name')
           .eq('primary_owner_id', data.user.id)
           .eq('is_personal', true).maybeSingle()
         const m = (ws as any)?.mode
         if (m === 'team' || m === 'agency' || m === 'delivery') setWsMode(m)
         const wn = (ws as any)?.name
         if (wn && typeof wn === 'string') setWorkspaceName(wn.trim())
+        // Team roster for the switcher — who else is in this workspace.
+        // Owner first, then members; honest count, real avatar colours.
+        const wsId = (ws as any)?.id
+        if (wsId) {
+          try {
+            const { data: mem } = await sb
+              .from('workspace_members').select('user_id,role').eq('workspace_id', wsId)
+            const memRows = (mem as any[]) ?? []
+            const ids = Array.from(new Set([data.user.id, ...memRows.map(r => r.user_id)].filter(Boolean)))
+            const { data: profs } = await sb
+              .from('profiles').select('id,full_name,first_name,email,avatar_url,avatar_color').in('id', ids)
+            const pById = new Map<string, any>(((profs as any[]) ?? []).map(p => [p.id, p]))
+            const toMember = (uidx: string) => {
+              const pr = pById.get(uidx)
+              const nm = (pr?.full_name || '').trim() || (pr?.first_name || '').trim() || (pr?.email || '').split('@')[0] || 'Mitglied'
+              return { id: uidx, name: nm, color: pr?.avatar_color || autoAvatarColor(uidx || pr?.email), avatarUrl: pr?.avatar_url ?? null }
+            }
+            const ordered = [data.user.id, ...memRows.map(r => r.user_id).filter((x: string) => x !== data.user.id)]
+            setMembers(Array.from(new Set(ordered)).map(toMember))
+          } catch {}
+        }
       } catch {}
       // ── Beobachtete Projekte: Projekte fremder Owner, für die ich joined-Observer bin
       try {
@@ -1523,6 +1545,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
               email={email}
               initials={init}
               isClient={isClient}
+              members={members}
               onAvatarColorChange={changeAvatarColor}
               onLogout={logout}
               plan={plan}
