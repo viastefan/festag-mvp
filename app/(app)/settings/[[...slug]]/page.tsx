@@ -29,6 +29,7 @@ import {
   getRememberedProfileAvatarColor,
   rememberProfileAvatarColor,
 } from '@/lib/profile-sync'
+import Modal, { ModalButton } from '@/components/Modal'
 
 type SectionId = 'profile' | 'appearance' | 'security' | 'notifications' | 'connected' | 'workspace' | 'company' | 'billing'
 
@@ -221,6 +222,7 @@ export default function SettingsPage() {
   const [wsName, setWsName] = useState<string>('')
   const [wsId, setWsId] = useState<string | null>(null)
   const [switchingMode, setSwitchingMode] = useState(false)
+  const [pendingMode, setPendingMode] = useState<'delivery' | 'team' | 'agency' | null>(null)
   type Member = { user_id: string; role: string; joined_at: string; email: string | null; full_name: string | null; avatar_url: string | null }
   const [members, setMembers] = useState<Member[]>([])
   const [membersLoading, setMembersLoading] = useState(false)
@@ -749,12 +751,10 @@ export default function SettingsPage() {
     } catch (e: any) { setError(e?.message || 'Konnte Mitglied nicht entfernen.') }
   }
 
-  // Self-service workspace-type switch — applies instantly (no Festag request).
-  // RLS allows the workspace owner to update workspaces.mode directly.
+  // Self-service workspace-type switch — confirmed in a popup, then applied
+  // instantly (no Festag request). RLS allows the owner to update mode directly.
   async function changeWorkspaceMode(newMode: 'delivery' | 'team' | 'agency') {
     if (!wsId || switchingMode || newMode === wsMode) return
-    const target = WS_MODES.find(m => m.id === newMode)?.label || newMode
-    if (typeof window !== 'undefined' && !window.confirm(`Workspace-Typ zu „${target}" wechseln? Rollen, Kundenbereiche und Projektlogik passen sich an — deine Daten bleiben erhalten.`)) return
     const prev = wsMode
     setSwitchingMode(true)
     setWsMode(newMode) // optimistic
@@ -766,6 +766,7 @@ export default function SettingsPage() {
       setWsMode(prev); setError(e?.message || 'Wechsel fehlgeschlagen.')
     } finally {
       setSwitchingMode(false)
+      setPendingMode(null)
     }
   }
 
@@ -1170,6 +1171,17 @@ export default function SettingsPage() {
         }
         .ws-mode-go { font-size: 11.5px; font-weight: 500; color: var(--set-text-muted); }
         .ws-mode-opt:hover:not(:disabled):not(.on) .ws-mode-go { color: var(--set-text); }
+
+        /* Switch-confirmation popup body */
+        .ws-switch-lead { margin: 0 0 12px; font-size: 13.5px; line-height: 1.6; color: var(--text-secondary); }
+        .ws-switch-list { margin: 0 0 14px; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; }
+        .ws-switch-list li { font-size: 12.5px; line-height: 1.5; color: var(--text-secondary); }
+        .ws-switch-from {
+          margin: 0; padding: 10px 12px; border-radius: 10px;
+          background: var(--surface-2); font-size: 12.5px; color: var(--text-muted);
+          display: flex; align-items: center; gap: 8px;
+        }
+        .ws-switch-from span { color: var(--text); font-weight: 500; }
 
         /* Segment toggle (font picker) */
         .set-segment {
@@ -1989,7 +2001,7 @@ export default function SettingsPage() {
                           key={m.id}
                           type="button"
                           className={`ws-mode-opt${active ? ' on' : ''}`}
-                          onClick={() => changeWorkspaceMode(m.id)}
+                          onClick={() => setPendingMode(m.id)}
                           disabled={switchingMode || active}
                         >
                           <span className="ws-mode-top">
@@ -2021,6 +2033,36 @@ export default function SettingsPage() {
                   </div>
                 </div>
               </div>
+
+              {/* Workspace-type switch — explanation popup, then applies automatically. */}
+              {pendingMode && (() => {
+                const target = WS_MODES.find(m => m.id === pendingMode)!
+                return (
+                  <Modal
+                    open
+                    onClose={() => { if (!switchingMode) setPendingMode(null) }}
+                    size="md"
+                    title={`Zu „${target.label}" wechseln?`}
+                    subtitle="Self-Service-Wechsel — er greift sofort, ganz ohne Anfrage."
+                    footer={
+                      <>
+                        <ModalButton variant="secondary" onClick={() => setPendingMode(null)} disabled={switchingMode}>Abbrechen</ModalButton>
+                        <ModalButton variant="primary" onClick={() => changeWorkspaceMode(pendingMode)} loading={switchingMode}>
+                          Jetzt wechseln
+                        </ModalButton>
+                      </>
+                    }
+                  >
+                    <p className="ws-switch-lead">{target.short}</p>
+                    <ul className="ws-switch-list">
+                      <li>Rollen &amp; Berechtigungen passen sich dem neuen Typ an.</li>
+                      <li>Kundenbereiche und Projektlogik richten sich neu aus.</li>
+                      <li>Deine Daten, Projekte und Mitglieder bleiben erhalten.</li>
+                    </ul>
+                    <p className="ws-switch-from"><span>{modeLabel}</span> → <span>{target.label}</span></p>
+                  </Modal>
+                )
+              })()}
             </>
           )
         })()}
@@ -2168,6 +2210,8 @@ function WhiteLabelCard({ workspaceId, workspaceName }: { workspaceId: string; w
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState('')
+  const [activateOpen, setActivateOpen] = useState(false)
+  const [activating, setActivating] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -2217,6 +2261,32 @@ function WhiteLabelCard({ workspaceId, workspaceName }: { workspaceId: string; w
     }
   }
 
+  // Self-service activation — normally a 799 €/Monat premium, but for now it is
+  // switched on for free (no payment). Sets the plan directly; the owner is
+  // gated by RLS. Branding fields are preserved.
+  async function activatePlan() {
+    setError(''); setActivating(true)
+    try {
+      const { error: e } = await supabase.from('workspace_branding').upsert({
+        workspace_id: workspaceId,
+        plan: 'full_white_label',
+        brand_name: brandName.trim() || null,
+        brand_color: brandColor.trim() || null,
+        logo_url: logoUrl.trim() || null,
+        domain: domain.trim() || null,
+        mail_from: mailFrom.trim() || null,
+        audio_intro: audioIntro.trim() || null,
+      }, { onConflict: 'workspace_id' })
+      if (e) throw e
+      setPlan('full_white_label')
+      setActivateOpen(false)
+    } catch (e: any) {
+      setError(e?.message || 'Aktivierung fehlgeschlagen.')
+    } finally {
+      setActivating(false)
+    }
+  }
+
   const isPremium = plan !== 'powered_by_festag'
   const planLabel = plan === 'full_white_label' ? 'Full White Label' : plan === 'agency_os' ? 'Agency OS' : 'Powered by Festag'
 
@@ -2240,12 +2310,9 @@ function WhiteLabelCard({ workspaceId, workspaceName }: { workspaceId: string; w
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, flexWrap: 'wrap' }}>
           <span className="set-value" style={{ alignSelf: 'center' }}>{planLabel}</span>
           {!isPremium && (
-            <a
-              className="set-btn"
-              href={`mailto:hi@festag.app?subject=${encodeURIComponent('Festag White-Label aktivieren')}&body=${encodeURIComponent(`Hallo Festag,\n\nIch möchte White Label für meinen Workspace "${workspaceName}" aktivieren.\n\nGewünschter Plan: Full White Label / Agency OS\nGewünschte Domain: ${domain || '—'}\nMarke: ${brandName || '—'}\n\nViele Grüße`)}`}
-            >
-              Aktivierung anfragen
-            </a>
+            <button type="button" className="set-btn set-btn-primary" onClick={() => setActivateOpen(true)}>
+              White Label aktivieren
+            </button>
           )}
         </div>
       </div>
@@ -2275,6 +2342,38 @@ function WhiteLabelCard({ workspaceId, workspaceName }: { workspaceId: string; w
           {saving ? 'Speichere…' : 'Branding speichern'}
         </button>
       </div>
+
+      {activateOpen && (
+        <Modal
+          open
+          onClose={() => { if (!activating) setActivateOpen(false) }}
+          size="md"
+          title="White Label aktivieren"
+          subtitle="Deine Marke statt Festag — in Briefings, Mails und PDFs."
+          footer={
+            <>
+              <ModalButton variant="secondary" onClick={() => setActivateOpen(false)} disabled={activating}>Abbrechen</ModalButton>
+              <ModalButton variant="primary" onClick={activatePlan} loading={activating}>
+                Jetzt kostenlos aktivieren
+              </ModalButton>
+            </>
+          }
+        >
+          <p className="ws-switch-lead">
+            Full White Label entfernt den „Powered by Festag"-Hinweis und bringt deine Marke,
+            Farbe und Domain in alle Client-Touchpoints — Briefings, E-Mails und PDF-Reports.
+          </p>
+          <ul className="ws-switch-list">
+            <li>Eigener Marken-Name, Farbe und Logo im Client-Portal.</li>
+            <li>Eigene Domain &amp; E-Mail-Absender für Briefings und Mails.</li>
+            <li>Kein Festag-Hinweis im Footer.</li>
+          </ul>
+          <p className="ws-switch-from" style={{ display: 'block' }}>
+            Regulär <span>799 €/Monat</span> — für dich aktuell <span>kostenlos</span> freigeschaltet,
+            ohne Zahlung. Du kannst es jederzeit wieder auf Standard zurückstellen.
+          </p>
+        </Modal>
+      )}
     </div>
   )
 }
