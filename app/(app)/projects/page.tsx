@@ -32,6 +32,27 @@ type TaskRow = {
   status?: string | null
   updated_at?: string | null
 }
+type DevProfile = {
+  id: string
+  full_name: string | null
+  avatar_url: string | null
+  github_avatar_url: string | null
+  github_username: string | null
+  email: string | null
+}
+
+function devInitials(d: DevProfile): string {
+  return (d.full_name || d.github_username || d.email || '·')
+    .replace(/^@/, '')
+    .split(/[\s._-]+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map(s => s[0]?.toUpperCase())
+    .join('') || '·'
+}
+function devLabel(d: DevProfile): string {
+  return d.full_name || (d.github_username ? `@${d.github_username}` : null) || d.email || 'Developer'
+}
 
 const DONE_STATES = new Set(['done', 'completed', 'erledigt', 'delivered'])
 const ACTIVE_STATES = new Set(['doing', 'active', 'in_progress', 'review'])
@@ -128,6 +149,9 @@ export default function ProjectsPage() {
 function ProjectsPageInner() {
   const [projects, setProjects] = useState<ProjectRow[]>([])
   const [tasks, setTasks] = useState<TaskRow[]>([])
+  // Responsible developer(s) per project — independent of which workspace the
+  // project lives in (read from project_assignments, RLS-gated).
+  const [devsByProject, setDevsByProject] = useState<Record<string, DevProfile[]>>({})
   const [loading, setLoading] = useState(true)
   const [showNewProject, setShowNewProject] = useState(false)
   const [filter, setFilter] = useState<FilterId>('all')
@@ -155,6 +179,34 @@ function ProjectsPageInner() {
     setProjects(projs)
     setTasks((taskData as TaskRow[]) ?? [])
     setLoading(false)
+    loadDevs(projs.map(p => p.id))
+  }
+
+  // Batched: one assignments query + one profiles query for all projects on
+  // screen, then group by project. Avoids per-row fetches/subscriptions.
+  async function loadDevs(projectIds: string[]) {
+    if (!projectIds.length) { setDevsByProject({}); return }
+    const { data: assigns } = await (supabase as any)
+      .from('project_assignments')
+      .select('project_id,user_id,created_at')
+      .in('project_id', projectIds)
+      .eq('active', true)
+      .order('created_at', { ascending: true })
+    const rows = (assigns ?? []) as { project_id: string; user_id: string }[]
+    const userIds = Array.from(new Set(rows.map(r => r.user_id))).filter(Boolean)
+    if (!userIds.length) { setDevsByProject({}); return }
+    const { data: profiles } = await (supabase as any)
+      .from('profiles')
+      .select('id,full_name,avatar_url,github_avatar_url,github_username,email')
+      .in('id', userIds)
+    const byId = new Map<string, DevProfile>(((profiles ?? []) as DevProfile[]).map(p => [p.id, p]))
+    const map: Record<string, DevProfile[]> = {}
+    for (const r of rows) {
+      const prof = byId.get(r.user_id)
+      if (!prof) continue
+      ;(map[r.project_id] ||= []).push(prof)
+    }
+    setDevsByProject(map)
   }
 
   useEffect(() => {
@@ -163,6 +215,7 @@ function ProjectsPageInner() {
       .channel('client-projects-overview')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'projects' }, () => loadProjects())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, () => loadProjects())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'project_assignments' }, () => loadProjects())
       .subscribe()
     return () => { supabase.removeChannel(channel) }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -326,7 +379,7 @@ function ProjectsPageInner() {
         .pj-table { width:100%; }
         .pj-head, .pj-row {
           display:grid;
-          grid-template-columns:42px minmax(180px,1.7fr) minmax(120px,.95fr) 128px 76px 72px;
+          grid-template-columns:42px minmax(180px,1.7fr) minmax(120px,.95fr) 128px 76px 72px 56px;
           align-items:center; gap:8px;
           padding:0 12px 0 0; box-sizing:border-box;
         }
@@ -345,7 +398,7 @@ function ProjectsPageInner() {
         .pj-group-row {
           width:100%; min-height:40px;
           display:grid;
-          grid-template-columns:42px minmax(180px,1.7fr) minmax(120px,.95fr) 128px 76px 72px;
+          grid-template-columns:42px minmax(180px,1.7fr) minmax(120px,.95fr) 128px 76px 72px 56px;
           align-items:center; gap:8px;
           padding:0 12px 0 0; box-sizing:border-box;
           border:0; border-radius:8px; background:transparent;
@@ -434,6 +487,22 @@ function ProjectsPageInner() {
         .pj-tasks { color:var(--pj-soft); font-size:12px; }
         .pj-date { color:var(--pj-soft); font-size:11.5px; }
 
+        /* Responsible-dev avatar(s) — who is building this, regardless of workspace. */
+        .pj-dev { display:flex; align-items:center; justify-self:start; }
+        .pj-dev-empty { color:var(--pj-soft); opacity:.5; font-size:12px; }
+        .pj-dev-stack { display:inline-flex; }
+        .pj-dev-av {
+          width:24px; height:24px; border-radius:50%;
+          border:1.5px solid var(--surface);
+          background:var(--surface-2); overflow:hidden;
+          display:inline-flex; align-items:center; justify-content:center;
+          margin-left:-7px; color:var(--text-secondary);
+          font-size:9.5px; font-weight:500; letter-spacing:.015em;
+        }
+        .pj-dev-av:first-child { margin-left:0; }
+        .pj-dev-av img { width:100%; height:100%; object-fit:cover; display:block; }
+        .pj-dev-more { background:var(--card); color:var(--pj-soft); font-size:9px; }
+
         .pj-empty {
           padding:60px 12px; text-align:center; color:var(--pj-soft);
           font-size:12.5px; font-weight:500;
@@ -443,7 +512,7 @@ function ProjectsPageInner() {
 
         @media (max-width:900px) {
           .pj-head, .pj-row, .pj-group-row {
-            grid-template-columns:34px minmax(0,1.7fr) minmax(96px,1fr) 62px;
+            grid-template-columns:34px minmax(0,1.7fr) minmax(96px,1fr) 62px 56px;
             gap:8px;
           }
           .pj-head .col-progress, .pj-head .col-tasks,
@@ -463,7 +532,8 @@ function ProjectsPageInner() {
             grid-template-columns:24px minmax(0,1fr) 50px;
             gap:9px;
           }
-          .pj-head .col-status, .pj-row > .pj-health { display:none; }
+          .pj-head .col-status, .pj-row > .pj-health,
+          .pj-head .col-dev, .pj-row > .pj-dev { display:none; }
           .pj-group-title { grid-column:2 / 3; }
           .pj-group-chevron { grid-column:3; }
           .pj-count-summary { display:none; }
@@ -583,6 +653,7 @@ function ProjectsPageInner() {
               <span className="col-progress">Fortschritt</span>
               <span className="col-tasks">Aufgaben</span>
               <span className="col-update">Update</span>
+              <span className="col-dev">Dev</span>
             </div>
 
             {/* Flat list — the top filter pills (Alle / Aktiv / Planung /
@@ -618,6 +689,27 @@ function ProjectsPageInner() {
                   </span>
                   <span className="pj-tasks">{related.length}</span>
                   <span className="pj-date">{dateLabel(project.updated_at || project.created_at)}</span>
+                  <span className="pj-dev">
+                    {(() => {
+                      const devs = devsByProject[project.id] || []
+                      if (devs.length === 0) return <span className="pj-dev-empty" title="Noch kein Dev zugewiesen">—</span>
+                      const shown = devs.slice(0, 3)
+                      const overflow = devs.length - shown.length
+                      return (
+                        <span className="pj-dev-stack">
+                          {shown.map((d, i) => {
+                            const src = d.avatar_url || d.github_avatar_url
+                            return (
+                              <span key={d.id} className="pj-dev-av" style={{ zIndex: shown.length - i }} title={devLabel(d)}>
+                                {src ? <img src={src} alt="" /> : <span>{devInitials(d)}</span>}
+                              </span>
+                            )
+                          })}
+                          {overflow > 0 && <span className="pj-dev-av pj-dev-more">+{overflow}</span>}
+                        </span>
+                      )
+                    })()}
+                  </span>
                 </Link>
               )
             })}

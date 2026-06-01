@@ -15,6 +15,7 @@ import { Milestone } from '@/components/MilestoneChart'
 import ProjectCompletionCelebration from '@/components/ProjectCompletionCelebration'
 import DeleteProjectModal from '@/components/DeleteProjectModal'
 import NewTaskModal from '@/components/NewTaskModal'
+import ProjectDevAvatars from '@/components/ProjectDevAvatars'
 import ChatMarkdown from '@/components/ChatMarkdown'
 import { getProjectPreset, type ExecutorRole, type ProjectType } from '@/lib/project-modules'
 import { autoAvatarColor, avatarTextColor } from '@/lib/avatar'
@@ -988,6 +989,12 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
         .pv-side-link { color: var(--text); text-decoration: none; }
         .pv-side-link:hover { text-decoration: underline; }
 
+        /* Verantwortlich row — show the dev avatar stack right-aligned; the
+           "Noch offen" fallback hides itself as soon as avatars render. */
+        .pv-side-row--dev .pv-side-row-val { display: flex; justify-content: flex-end; align-items: center; overflow: visible; }
+        .pv-side-dev-empty { color: var(--pv-muted); }
+        .pv-side-row--dev .pv-side-row-val:has(.pda-wrap) .pv-side-dev-empty { display: none; }
+
         .pv-side-milestones {
           list-style: none; padding: 0; margin: 0;
           display: flex; flex-direction: column; gap: 4px;
@@ -1602,6 +1609,15 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
               <div className="pv-side-row">
                 <span className="pv-side-row-key">Owner</span>
                 <span className="pv-side-row-val">{displayName}</span>
+              </div>
+              {/* Verantwortlicher Dev — wer baut das, unabhängig vom Workspace.
+                  Rendert nichts, solange kein Dev eingetragen ist. */}
+              <div className="pv-side-row pv-side-row--dev">
+                <span className="pv-side-row-key">Verantwortlich</span>
+                <span className="pv-side-row-val">
+                  <ProjectDevAvatars projectId={id} max={3} />
+                  <span className="pv-side-dev-empty">Noch offen</span>
+                </span>
               </div>
               {/* Target date — jumps to Overview where the picker is anchored */}
               <div className="pv-side-row">
