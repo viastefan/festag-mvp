@@ -17,6 +17,8 @@ import DeleteProjectModal from '@/components/DeleteProjectModal'
 import NewTaskModal from '@/components/NewTaskModal'
 import ChatMarkdown from '@/components/ChatMarkdown'
 import { getProjectPreset, type ExecutorRole, type ProjectType } from '@/lib/project-modules'
+import { autoAvatarColor, avatarTextColor } from '@/lib/avatar'
+import { getRememberedProfileAvatarColor, subscribeProfileSync } from '@/lib/profile-sync'
 
 type Project = { id: string; title: string; description: string|null; status: string; project_type?: ProjectType | null }
 type Task = { id: string; title: string; status: string; priority?: string }
@@ -61,6 +63,11 @@ function ProjectPageInner() {
   const [userId, setUserId] = useState('')
   const [userEmail, setUserEmail] = useState('')
   const [userRole, setUserRole] = useState<'client'|'dev'|'admin'|''>('')
+  // Workspace identity ‚Äî the breadcrumb mark must always carry the colour
+  // the user picks for themselves (profiles.avatar_color), so the project
+  // header and the sidebar switcher read as one workspace, not two.
+  const [brandColor, setBrandColor] = useState<string|null>(null)
+  const [workspaceName, setWorkspaceName] = useState('')
   const searchParams = useSearchParams()
   // Linear-style 3-tab layout. Legacy ?tab values map to the closest match:
   // decisions / risks / briefings / assets are surfaced as right-sidebar
@@ -129,9 +136,21 @@ function ProjectPageInner() {
       const uid = data.session.user.id
       setUserId(uid)
       setUserEmail(data.session.user.email ?? '')
-      const { data: prof } = await supabase.from('profiles').select('role').eq('id', uid).single()
+      setBrandColor(getRememberedProfileAvatarColor(uid))
+      const { data: prof } = await supabase.from('profiles').select('role,avatar_color').eq('id', uid).single()
       const role = (prof as any)?.role
       if (role === 'admin' || role === 'dev' || role === 'client') setUserRole(role)
+      const ac = (prof as any)?.avatar_color
+      if (ac) setBrandColor(ac)
+      // Workspace name ‚Üí the breadcrumb mark shows the workspace, mirroring
+      // the sidebar switcher (one identity, not a per-page email guess).
+      try {
+        const { data: ws } = await supabase
+          .from('workspaces').select('name')
+          .eq('primary_owner_id', uid).eq('is_personal', true).maybeSingle()
+        const wn = (ws as any)?.name
+        if (wn && typeof wn === 'string') setWorkspaceName(wn.trim())
+      } catch {}
       // Per-project executor role (best-effort; falls back to 'developer' for devs/admins)
       try {
         const { data: pm } = await supabase
@@ -182,6 +201,14 @@ function ProjectPageInner() {
 
     return () => { supabase.removeChannel(channel) }
   }, [id])
+
+  // Live colour sync ‚Äî if the user changes their workspace colour in Settings
+  // or the sidebar, the breadcrumb mark follows without a reload.
+  useEffect(() => {
+    return subscribeProfileSync((payload) => {
+      if (payload.avatarColor) setBrandColor(payload.avatarColor)
+    })
+  }, [])
 
   useEffect(() => { msgEndRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [messages, aiThinking])
 
@@ -428,11 +455,14 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m√
   const sidebarPreview = feedEvents.slice(0, 3)
   const latestUpdate = aiUpdates[0]
 
-  // Display name for breadcrumb workspace mark.
-  const displayName = userEmail
-    ? userEmail.split('@')[0].charAt(0).toUpperCase() + userEmail.split('@')[0].slice(1)
-    : 'Workspace'
+  // Display name + colour for the breadcrumb workspace mark. The workspace
+  // name (set in onboarding) wins, then the email local-part. The mark
+  // always carries the user's chosen colour so it matches the sidebar.
+  const displayName = workspaceName
+    || (userEmail ? userEmail.split('@')[0].charAt(0).toUpperCase() + userEmail.split('@')[0].slice(1) : 'Workspace')
   const displayInitial = (displayName.charAt(0) || 'W').toUpperCase()
+  const crumbColor = brandColor || autoAvatarColor(userId || userEmail)
+  const crumbFg = avatarTextColor(crumbColor)
 
   if (!project) return (
     <div style={{ display: 'flex', justifyContent: 'center', padding: 60 }}>
@@ -602,7 +632,7 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m√
         .pv-crumb-mark {
           display: inline-flex; align-items: center; justify-content: center;
           width: 17px; height: 17px; border-radius: 5px;
-          background: #2EA053; color: #fff;
+          /* colour is applied inline from the user's avatar_color */
           font-size: 10px; font-weight: 500;
         }
         .pv-icon-square {
@@ -1210,7 +1240,7 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m√
       <header className="pv-topbar">
         <div className="pv-crumbs">
           <Link href="/dashboard" className="pv-crumb">
-            <span className="pv-crumb-mark">{displayInitial}</span>
+            <span className="pv-crumb-mark" style={{ background: crumbColor, color: crumbFg }}>{displayInitial}</span>
             <span>{displayName}</span>
           </Link>
           <CaretRight size={11} weight="bold" className="pv-crumb-sep" />
