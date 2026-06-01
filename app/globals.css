@@ -861,11 +861,13 @@ body.locked { overflow: hidden; touch-action: none; }
 html, body, button, input, select, textarea { font-family: var(--font-ui); }
 code, pre, kbd, samp { font-family: var(--font-mono); }
 
-/* Festag button language: every button is a soft 8px rounded rect — no
+/* Festag button language: in-app buttons are a soft 8px rounded rect — no
    pills, no 32px (binding radius rule). Text inputs keep their own field
-   geometry. */
-button,
-a[role="button"],
+   geometry. Auth screens (login / register / dev login, the .log- / .reg- /
+   .dl- prefixes) are EXEMPT: their large welcome CTAs are intentionally
+   rounded (32px) and stay that way. */
+button:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]),
+a[role="button"]:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]),
 input[type="button"],
 input[type="submit"],
 input[type="reset"],
@@ -880,10 +882,10 @@ input[type="reset"],
 .voice-icon-btn,
 .voice-field,
 .voice-text-btn,
-:is(a, button)[class*="btn"],
-:is(a, button)[class*="button"],
-:is(a, button)[class*="chip"],
-:is(a, button)[class*="pill"] {
+:is(a, button)[class*="btn"]:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]),
+:is(a, button)[class*="button"]:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]),
+:is(a, button)[class*="chip"]:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]),
+:is(a, button)[class*="pill"]:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]) {
   border-radius: var(--button-radius) !important;
 }
 
