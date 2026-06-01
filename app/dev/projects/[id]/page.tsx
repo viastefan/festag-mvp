@@ -15,7 +15,7 @@ import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import {
-  ArrowRight, ArrowsClockwise, Check, Copy, ListChecks, PaperPlaneTilt, UserPlus,
+  ArrowRight, ArrowsClockwise, Check, Copy, ListChecks, PaperPlaneTilt, UserPlus, FileText,
 } from '@phosphor-icons/react'
 
 type Project = {
@@ -258,6 +258,9 @@ export default function DevProjectDetailPage() {
           <button className="dev-secondary-btn" onClick={load} disabled={loading}>
             <ArrowsClockwise size={14} /> Aktualisieren
           </button>
+          <Link href={`/dev/projects/${projectId}/inhalte`} className="dev-secondary-btn">
+            <FileText size={14} /> Inhalte
+          </Link>
           <Link href={`/dev/jobs?project=${projectId}`} className="dev-primary-btn">
             <ListChecks size={14} /> Execution Board
           </Link>

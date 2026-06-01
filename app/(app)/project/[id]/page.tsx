@@ -2024,6 +2024,10 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
                 </Link>
               </div>
               <div className="pv-side-row">
+                <span className="pv-side-row-key">Website-Inhalte</span>
+                <Link href={`/project/${id}/inhalte`} className="pv-side-row-val pv-side-link">Öffnen</Link>
+              </div>
+              <div className="pv-side-row">
                 <span className="pv-side-row-key">Meilensteine</span>
                 <button type="button" className="pv-side-row-val pv-side-btn" onClick={() => setActiveLeft('milestones')}>
                   {milestones.length} · ansehen
