@@ -5,7 +5,7 @@ import LanguageProvider from '@/components/LanguageProvider'
 import ServiceWorkerCleanup from '@/components/ServiceWorkerCleanup'
 import AuthSessionMemory from '@/components/AuthSessionMemory'
 
-const brandIconVersion = '20260601-pixel-f'
+const brandIconVersion = '20260602-festag-favicon'
 
 export const metadata: Metadata = {
   title: 'Festag — AI-native Softwareproduktion',
@@ -14,17 +14,21 @@ export const metadata: Metadata = {
   applicationName: 'Festag',
   appleWebApp: { capable: true, statusBarStyle: 'default', title: 'Festag' },
   icons: {
+    shortcut: [`/favicon.ico?v=${brandIconVersion}`],
     icon: [
       { url: `/brand/favicon.svg?v=${brandIconVersion}`, type: 'image/svg+xml' },
+      { url: `/favicon.ico?v=${brandIconVersion}`, sizes: 'any' },
+      { url: `/favicon-16.png?v=${brandIconVersion}`, sizes: '16x16', type: 'image/png' },
+      { url: `/favicon-32.png?v=${brandIconVersion}`, sizes: '32x32', type: 'image/png' },
       { url: `/brand/favicon-16.png?v=${brandIconVersion}`, sizes: '16x16', type: 'image/png' },
       { url: `/brand/favicon-32.png?v=${brandIconVersion}`, sizes: '32x32', type: 'image/png' },
       { url: `/brand/favicon-48.png?v=${brandIconVersion}`, sizes: '48x48', type: 'image/png' },
       { url: `/brand/favicon-64.png?v=${brandIconVersion}`, sizes: '64x64', type: 'image/png' },
-      { url: `/brand/icon-192.png?v=${brandIconVersion}`, sizes: '192x192', type: 'image/png' },
-      { url: `/brand/icon-512.png?v=${brandIconVersion}`, sizes: '512x512', type: 'image/png' },
+      { url: `/icon-192.png?v=${brandIconVersion}`, sizes: '192x192', type: 'image/png' },
+      { url: `/icon-512.png?v=${brandIconVersion}`, sizes: '512x512', type: 'image/png' },
     ],
     apple: [
-      { url: `/brand/apple-touch-icon.png?v=${brandIconVersion}`, sizes: '180x180' },
+      { url: `/apple-touch-icon.png?v=${brandIconVersion}`, sizes: '180x180' },
       { url: `/brand/icon-152.png?v=${brandIconVersion}`, sizes: '152x152' },
     ],
   },
@@ -48,14 +52,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="Festag" />
+        <link rel="shortcut icon" href={`/favicon.ico?v=${brandIconVersion}`} />
+        <link rel="icon" type="image/svg+xml" href={`/brand/favicon.svg?v=${brandIconVersion}`} />
+        <link rel="icon" href={`/favicon.ico?v=${brandIconVersion}`} sizes="any" />
+        <link rel="icon" type="image/png" sizes="16x16" href={`/favicon-16.png?v=${brandIconVersion}`} />
+        <link rel="icon" type="image/png" sizes="32x32" href={`/favicon-32.png?v=${brandIconVersion}`} />
         <link rel="icon" type="image/png" sizes="16x16" href={`/brand/favicon-16.png?v=${brandIconVersion}`} />
         <link rel="icon" type="image/png" sizes="32x32" href={`/brand/favicon-32.png?v=${brandIconVersion}`} />
         <link rel="icon" type="image/png" sizes="48x48" href={`/brand/favicon-48.png?v=${brandIconVersion}`} />
         <link rel="icon" type="image/png" sizes="64x64" href={`/brand/favicon-64.png?v=${brandIconVersion}`} />
-        <link rel="icon" type="image/png" sizes="192x192" href={`/brand/icon-192.png?v=${brandIconVersion}`} />
-        <link rel="icon" type="image/png" sizes="512x512" href={`/brand/icon-512.png?v=${brandIconVersion}`} />
-        <link rel="shortcut icon" href={`/brand/favicon-64.png?v=${brandIconVersion}`} />
-        <link rel="apple-touch-icon" href={`/brand/apple-touch-icon.png?v=${brandIconVersion}`} />
+        <link rel="icon" type="image/png" sizes="192x192" href={`/icon-192.png?v=${brandIconVersion}`} />
+        <link rel="icon" type="image/png" sizes="512x512" href={`/icon-512.png?v=${brandIconVersion}`} />
+        <link rel="apple-touch-icon" href={`/apple-touch-icon.png?v=${brandIconVersion}`} />
         {/* Pre-paint theme + bg sync — eliminates white flash between auth pages */}
         <script
           dangerouslySetInnerHTML={{
