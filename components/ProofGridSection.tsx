@@ -23,7 +23,7 @@ function fmt(iso: string): string {
   } catch { return '' }
 }
 
-export default function ProofGridSection({ projectId, canEdit }: { projectId: string; canEdit: boolean }) {
+export default function ProofGridSection({ projectId, canEdit, onChange }: { projectId: string; canEdit: boolean; onChange?: () => void }) {
   const supabase = useMemo(() => createClient(), [])
   const [rows, setRows] = useState<EvidenceRow[]>([])
   const [loading, setLoading] = useState(true)
@@ -79,6 +79,7 @@ export default function ProofGridSection({ projectId, canEdit }: { projectId: st
       if (e) throw new Error(e.message)
       resetForm(); setAdding(false)
       await load()
+      onChange?.()
     } catch (err: any) {
       setError(err?.message || 'Konnte Beleg nicht speichern.')
     } finally {
@@ -89,13 +90,13 @@ export default function ProofGridSection({ projectId, canEdit }: { projectId: st
   async function patch(id: string, p: Partial<EvidenceRow>) {
     setRows(prev => prev.map(r => r.id === id ? { ...r, ...p } as EvidenceRow : r)) // optimistic
     const { error: e } = await (supabase as any).from('evidence').update({ ...p, updated_at: new Date().toISOString() }).eq('id', id)
-    if (e) { setError(e.message); await load() }
+    if (e) { setError(e.message); await load() } else { onChange?.() }
   }
 
   async function remove(id: string) {
     setRows(prev => prev.filter(r => r.id !== id))
     const { error: e } = await (supabase as any).from('evidence').delete().eq('id', id)
-    if (e) { setError(e.message); await load() }
+    if (e) { setError(e.message); await load() } else { onChange?.() }
   }
 
   const clientCount = rows.filter(r => r.client_visible).length

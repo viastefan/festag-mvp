@@ -65,6 +65,7 @@ function ProjectPageInner() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
   const [project, setProject] = useState<Project | null>(null)
+  const [evidenceStats, setEvidenceStats] = useState<{ total: number; client: number }>({ total: 0, client: 0 })
   const [tasks, setTasks] = useState<Task[]>([])
   const [messages, setMessages] = useState<Msg[]>([])
   const [aiUpdates, setAiUpdates] = useState<any[]>([])
@@ -240,15 +241,24 @@ function ProjectPageInner() {
 
   useEffect(() => { msgEndRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [messages, aiThinking])
 
+  async function loadEvidenceCount() {
+    const { data } = await (supabase as any).from('evidence').select('id,client_visible').eq('project_id', id)
+    const rows = (data as any[]) ?? []
+    setEvidenceStats({ total: rows.length, client: rows.filter(r => r.client_visible).length })
+  }
+
   async function loadAll() {
-    const [{ data: proj }, { data: t }, { data: m }, { data: ai }, { data: ms }] = await Promise.all([
+    const [{ data: proj }, { data: t }, { data: m }, { data: ai }, { data: ms }, { data: ev }] = await Promise.all([
       supabase.from('projects').select('*').eq('id', id).single(),
       supabase.from('tasks').select('*').eq('project_id', id).order('created_at'),
       supabase.from('messages').select('*').eq('project_id', id).order('created_at'),
       supabase.from('ai_updates').select('*').eq('project_id', id).order('created_at', { ascending: false }),
       supabase.from('milestones').select('*').eq('project_id', id).order('order_index', { ascending: true }),
+      (supabase as any).from('evidence').select('id,client_visible').eq('project_id', id),
     ])
     if (proj) setProject(proj)
+    const evRows = (ev as any[]) ?? []
+    setEvidenceStats({ total: evRows.length, client: evRows.filter(r => r.client_visible).length })
     setTasks((t as any[]) ?? [])
     setMessages((m as any[]) ?? [])
     setAiUpdates((ai as any[]) ?? [])
@@ -765,6 +775,7 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m√
     reportAgeDays: ageInDays(latestUpdate?.created_at),
     phase: project.status,
     nextActionTitle: riskTasks[0]?.title ?? null,
+    clientVisibleEvidenceCount: evidenceStats.client,
   })
 
   // Nexora ‚Äî can the current status report go to the client?
@@ -774,6 +785,7 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m√
         blockedCount: riskTasks.length,
         decisionCount: decisionTasks.length,
         approvalCount: approvalTasks.length,
+        clientVisibleEvidenceCount: evidenceStats.client,
       })
     : null
 
@@ -2008,7 +2020,7 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m√
 
           {activeLeft === 'evidence' && (
             <div className="pv-pane">
-              <ProofGridSection projectId={id} canEdit={canEdit} />
+              <ProofGridSection projectId={id} canEdit={canEdit} onChange={loadEvidenceCount} />
             </div>
           )}
 
@@ -2088,6 +2100,12 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m√
               <div className="pv-side-row">
                 <span className="pv-side-row-key">Qualit√§t</span>
                 <span className="pv-side-row-val"><span className={`pv-pill tone-${qualityGate.tone}`}>{qualityGate.label}</span></span>
+              </div>
+              <div className="pv-side-row">
+                <span className="pv-side-row-key">Belege</span>
+                <button type="button" className="pv-side-row-val pv-side-btn" onClick={() => setActiveLeft('evidence')}>
+                  {evidenceStats.total === 0 ? 'Hinzuf√ºgen' : `${evidenceStats.total} ¬∑ ${evidenceStats.client} f√ºr Kunde`}
+                </button>
               </div>
               <div className="pv-side-row">
                 <span className="pv-side-row-key">Entscheidungen</span>

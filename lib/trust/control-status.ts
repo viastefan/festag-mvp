@@ -49,6 +49,8 @@ export type ControlStatusInput = {
   phase?: string | null
   /** Title of the single next action, if known. */
   nextActionTitle?: string | null
+  /** Client-visible evidence backing the work; null/undefined → skip the check. */
+  clientVisibleEvidenceCount?: number | null
 }
 
 const COLORS: Record<ControlTone, string> = {
@@ -109,6 +111,12 @@ export function computeControlStatus(input: ControlStatusInput): ControlStatusRe
   if (typeof reportAgeDays === 'number' && reportAgeDays > 10) {
     return result('needs_attention', 'Aufmerksamkeit nötig', 'warn',
       `Der letzte Statusbericht ist ${reportAgeDays} Tage alt — ein Update ist fällig.`)
+  }
+
+  // Low-priority nudge: work reported but nothing client-visible to prove it.
+  if (typeof input.clientVisibleEvidenceCount === 'number' && input.clientVisibleEvidenceCount === 0) {
+    return result('needs_attention', 'Aufmerksamkeit nötig', 'warn',
+      'Noch keine kundensichtbaren Belege — Fortschritt ist noch nicht nachgewiesen.')
   }
 
   // All clear.
