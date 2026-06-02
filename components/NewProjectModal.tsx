@@ -296,15 +296,39 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
         role: turn.role === 'tagro' ? 'ai' : 'user',
         text: turn.text,
       }))
-      const res = await fetch('/api/ai/decompose', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ chatHistory: decomposerHistory, userId }),
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data?.error || 'Tagro konnte das Projekt nicht strukturieren.')
-      const projectId: string | undefined = data?.projectId
-      if (!projectId) throw new Error('Projekt wurde analysiert, aber noch nicht gespeichert.')
+      // Preferred path: Tagro structures the project (epics/tasks) and persists
+      // it. This needs the server service-role key + a usable AI response.
+      let projectId: string | undefined
+      try {
+        const res = await fetch('/api/ai/decompose', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ chatHistory: decomposerHistory, userId }),
+        })
+        const data = await res.json().catch(() => null)
+        if (res.ok && typeof data?.projectId === 'string') projectId = data.projectId
+      } catch { /* fall through to direct create */ }
+
+      // Fallback: always be able to create a project, even when the AI
+      // structuring path is unavailable (no service-role key, AI offline,
+      // parse failure, or onboarding skipped). RLS allows a user to insert
+      // their own project, so a plain row is created directly.
+      if (!projectId) {
+        const { data: created, error: insErr } = await (supabase as any)
+          .from('projects')
+          .insert({
+            user_id: userId,
+            title: suggestedTitle(),
+            description: (tagroSummary || description.trim() || titleDraft).slice(0, 1200) || null,
+            status: isAgency ? 'intake' : 'planning',
+          })
+          .select('id')
+          .single()
+        if (insErr || !created?.id) {
+          throw new Error(insErr?.message || 'Projekt konnte nicht angelegt werden.')
+        }
+        projectId = created.id as string
+      }
 
       // Patch the project row with the user's explicit selections so the
       // structuring step's guesses don't overwrite them.

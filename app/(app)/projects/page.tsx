@@ -720,7 +720,7 @@ function ProjectsPageInner() {
       {showNewProject && (
         <NewProjectModal
           onClose={() => setShowNewProject(false)}
-          onCreated={(id) => { setShowNewProject(false); window.location.href = `/project/${id}` }}
+          onCreated={() => { setShowNewProject(false); loadProjects() }}
         />
       )}
     </div>
