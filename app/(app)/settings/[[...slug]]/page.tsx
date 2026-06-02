@@ -1019,11 +1019,17 @@ export default function SettingsPage() {
         .set-row:last-child { border-bottom: none; }
         @media (max-width: 720px) {
           .set-row { grid-template-columns: 1fr; gap: 8px; padding: 14px 0; }
+          .set-row > *:last-child { justify-self: stretch; text-align: left; }
+          .set-value { text-align: left; }
         }
         .set-row-stack { align-items: flex-start; }
         .set-label { font-size: 13.5px; font-weight: 500; letter-spacing: .017em; }
         .set-label-sub { font-size: 12px; font-weight: 400; letter-spacing: .017em; color: var(--set-text-muted); margin-top: 3px; line-height: 1.5; }
-        .set-value { font-size: 13.5px; font-weight: 500; letter-spacing: .017em; color: var(--set-text-secondary); }
+        .set-value { font-size: 13.5px; font-weight: 500; letter-spacing: .017em; color: var(--set-text-secondary); text-align: right; }
+        /* Consistent rows: left = title/desc, right = value/status/action.
+           The second column always aligns to the right edge. */
+        .set-row > *:last-child { justify-self: end; text-align: right; min-width: 0; }
+        .set-row.set-row-stack > *:last-child { justify-self: stretch; text-align: left; }
         .set-field-stack {
           width: 100%;
           display: flex;
@@ -1290,7 +1296,8 @@ export default function SettingsPage() {
           .set-title { font-size: 20px; }
           .set-profile-layout { grid-template-columns: 1fr; }
           .set-row { grid-template-columns: 1fr; padding: 14px 16px; gap: 10px; align-items: flex-start; }
-          .set-row > div:last-child { width: 100%; }
+          .set-row > *:last-child { width: 100%; justify-self: stretch; text-align: left; }
+          .set-value { text-align: left; }
           .set-input, .set-select { font-size: 16px; padding: 10px 12px; }
           .set-btn { min-height: 38px; padding: 8px 14px; }
           .set-card { border-radius: 10px; }
