@@ -861,11 +861,12 @@ const CSS = `
     .npm-delivery { grid-template-columns: 1fr; }
   }
 
-  /* Linear-style compose layout overrides */
+  /* Linear-style compose layout overrides.
+     Backdrop matches every other Festag modal — same dim + blur, full screen. */
   .npm-backdrop {
-    background: rgba(8,10,14,.16);
-    backdrop-filter: blur(5px) saturate(110%);
-    -webkit-backdrop-filter: blur(5px) saturate(110%);
+    background: rgba(8,10,14,.42);
+    backdrop-filter: blur(8px) saturate(120%);
+    -webkit-backdrop-filter: blur(8px) saturate(120%);
   }
   .npm-head {
     border-bottom: 0 !important;
