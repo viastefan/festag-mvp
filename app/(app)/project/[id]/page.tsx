@@ -17,6 +17,7 @@ import ProjectCompletionCelebration from '@/components/ProjectCompletionCelebrat
 import DeleteProjectModal from '@/components/DeleteProjectModal'
 import NewTaskModal from '@/components/NewTaskModal'
 import ProjectDevAvatars from '@/components/ProjectDevAvatars'
+import ProofGridSection from '@/components/ProofGridSection'
 import ChatMarkdown from '@/components/ChatMarkdown'
 import { getProjectPreset, type ExecutorRole, type ProjectType } from '@/lib/project-modules'
 import { autoAvatarColor, avatarTextColor } from '@/lib/avatar'
@@ -86,7 +87,7 @@ function ProjectPageInner() {
   // own primary tab.
   const initialTab = searchParams?.get('tab') as null
     | 'overview' | 'tasks' | 'milestones' | 'activity' | 'decisions' | 'risks' | 'briefings' | 'assets' | 'updates'
-  const [activeLeft, setActiveLeft] = useState<'overview'|'tasks'|'milestones'>(() => {
+  const [activeLeft, setActiveLeft] = useState<'overview'|'tasks'|'milestones'|'evidence'>(() => {
     if (initialTab === 'tasks') return 'tasks'
     if (initialTab === 'milestones') return 'milestones'
     return 'overview'
@@ -1603,6 +1604,11 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
           Meilensteine
           {milestones.length > 0 && <span className="pv-tab-count">{milestones.length}</span>}
         </button>
+        <button
+          role="tab" aria-selected={activeLeft === 'evidence'}
+          className={`pv-tab${activeLeft === 'evidence' ? ' on' : ''}`}
+          onClick={() => setActiveLeft('evidence')}
+        >Belege</button>
       </nav>
 
       {/* ─── BODY: main + right sidebar ─── */}
@@ -1966,6 +1972,12 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
                   })}
                 </div>
               )}
+            </div>
+          )}
+
+          {activeLeft === 'evidence' && (
+            <div className="pv-pane">
+              <ProofGridSection projectId={id} canEdit={canEdit} />
             </div>
           )}
 
