@@ -20,9 +20,10 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import type { ElementType } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import TagroLogo from '@/components/TagroLogo'
+import { useSpeechRecognition } from '@/hooks/useSpeechRecognition'
 import {
   ArrowRight, ArrowsClockwise, Buildings, ChatCircleText, Check,
-  ListChecks, PaperPlaneTilt, Plus, Sparkle, Trash, UsersThree, X,
+  ListChecks, Microphone, MicrophoneSlash, PaperPlaneTilt, Plus, Sparkle, Trash, UsersThree, X,
 } from '@phosphor-icons/react'
 
 interface Props {
@@ -195,6 +196,41 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
     const timers = ticks.map((t, i) => setTimeout(() => setLoadingStep(i + 1), t))
     return () => { timers.forEach(clearTimeout) }
   }, [phase])
+
+  // Voice dictation (Web Speech API, on-device). Festag is voice-first — you
+  // can speak the project instead of typing. Dictates into either the
+  // description (form) or the chat composer.
+  const dictationTargetRef = useRef<null | 'desc' | 'chat'>(null)
+  const dictationBaseRef = useRef('')
+  const [dictating, setDictating] = useState<null | 'desc' | 'chat'>(null)
+  const { supported: micSupported, listening: micListening, start: startMic, stop: stopMic } = useSpeechRecognition({
+    lang: 'de-DE',
+    onResult: (text, isFinal) => {
+      const target = dictationTargetRef.current
+      if (!target) return
+      const base = dictationBaseRef.current
+      const combined = (base ? base + ' ' : '') + text
+      if (target === 'desc') setDescription(combined)
+      else setChatInput(combined)
+      if (isFinal) dictationBaseRef.current = combined
+    },
+    onError: () => setDictating(null),
+  })
+  useEffect(() => {
+    if (!micListening) { setDictating(null); dictationTargetRef.current = null }
+  }, [micListening])
+
+  function toggleDictation(target: 'desc' | 'chat') {
+    if (!micSupported) return
+    if (micListening || dictating) {
+      stopMic(); setDictating(null); dictationTargetRef.current = null
+      return
+    }
+    dictationTargetRef.current = target
+    dictationBaseRef.current = (target === 'desc' ? description : chatInput).trim()
+    setDictating(target)
+    startMic()
+  }
 
   const isAgency = workspaceMode === 'agency'
   const deliveryOptions = useMemo(
@@ -475,12 +511,36 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
                 id="npm-desc"
                 ref={descRef}
                 className="npm-textarea"
-                placeholder="Schreibe eine Beschreibung, ein Projektbriefing oder sammle Ideen..."
+                placeholder="Schreibe oder sprich eine Beschreibung, ein Projektbriefing oder sammle Ideen..."
                 value={description}
                 onChange={e => setDescription(e.target.value)}
                 rows={8}
                 maxLength={2000}
               />
+              <div className="npm-input-tools">
+                {micSupported && (
+                  <button
+                    type="button"
+                    className={`npm-tool-btn${dictating === 'desc' ? ' rec' : ''}`}
+                    onClick={() => toggleDictation('desc')}
+                    aria-pressed={dictating === 'desc'}
+                    title={dictating === 'desc' ? 'Aufnahme stoppen' : 'Per Sprache diktieren'}
+                  >
+                    {dictating === 'desc' ? <MicrophoneSlash size={15} weight="fill" /> : <Microphone size={15} />}
+                    <span>{dictating === 'desc' ? 'Hört zu …' : 'Sprechen'}</span>
+                  </button>
+                )}
+                <button
+                  type="button"
+                  className="npm-tool-btn tagro"
+                  onClick={openTagroChat}
+                  disabled={!canStartChat}
+                  title="Mit Tagro strukturieren — Tagro kennt den Kontext"
+                >
+                  <TagroLogo size={16} />
+                  <span>Tagro fragen</span>
+                </button>
+              </div>
             </section>
 
             <section className="npm-section">
@@ -584,12 +644,26 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
                       sendChatMessage()
                     }
                   }}
-                  placeholder="Schreibe Tagro eine Antwort..."
+                  placeholder={dictating === 'chat' ? 'Sprich mit Tagro …' : 'Schreibe oder sprich mit Tagro...'}
                   rows={1}
                 />
-                <button type="button" onClick={sendChatMessage} disabled={!chatInput.trim() || chatLoading} aria-label="Nachricht senden">
-                  {chatLoading ? <ArrowsClockwise size={14} className="npm-spin" /> : <PaperPlaneTilt size={14} weight="fill" />}
-                </button>
+                <div className="npm-chat-actions">
+                  {micSupported && (
+                    <button
+                      type="button"
+                      className={`npm-chat-mic${dictating === 'chat' ? ' rec' : ''}`}
+                      onClick={() => toggleDictation('chat')}
+                      disabled={chatLoading}
+                      aria-pressed={dictating === 'chat'}
+                      aria-label={dictating === 'chat' ? 'Aufnahme stoppen' : 'Per Sprache antworten'}
+                    >
+                      {dictating === 'chat' ? <MicrophoneSlash size={15} weight="fill" /> : <Microphone size={15} />}
+                    </button>
+                  )}
+                  <button type="button" onClick={sendChatMessage} disabled={!chatInput.trim() || chatLoading} aria-label="Nachricht senden">
+                    {chatLoading ? <ArrowsClockwise size={14} className="npm-spin" /> : <PaperPlaneTilt size={14} weight="fill" />}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -1197,13 +1271,82 @@ const CSS = `
   .npm-chat-input {
     min-height: 48px;
     display: grid;
-    grid-template-columns: 24px minmax(0, 1fr) 36px;
+    grid-template-columns: 24px minmax(0, 1fr) auto;
     align-items: end;
     gap: 8px;
     padding: 6px 6px 6px 12px;
     border-radius: 18px;
     border: 1px solid color-mix(in srgb, var(--border) 74%, transparent);
     background: color-mix(in srgb, var(--surface) 68%, var(--card));
+  }
+  .npm-chat-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    align-self: end;
+  }
+  .npm-chat-mic {
+    width: 36px;
+    height: 36px;
+    border: 0;
+    border-radius: 999px !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: color-mix(in srgb, var(--surface-2) 70%, transparent);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: background .12s, color .12s;
+  }
+  .npm-chat-mic:hover:not(:disabled) { color: var(--text); background: color-mix(in srgb, var(--surface-2) 100%, transparent); }
+  .npm-chat-mic:disabled { opacity: .42; cursor: default; }
+  .npm-chat-mic.rec {
+    background: color-mix(in srgb, #e0564f 18%, transparent);
+    color: #e0564f;
+    animation: npmRecPulse 1.3s ease-in-out infinite;
+  }
+
+  /* Input tools row under the description — mic + Tagro hand-off */
+  .npm-input-tools {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+  }
+  .npm-tool-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    height: 32px;
+    padding: 0 12px;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--border) 76%, transparent);
+    background: color-mix(in srgb, var(--surface-2) 40%, transparent);
+    color: var(--text-secondary);
+    font: inherit;
+    font-size: 12.5px;
+    font-weight: 500;
+    letter-spacing: 0;
+    cursor: pointer;
+    transition: background .12s, color .12s, border-color .12s;
+  }
+  .npm-tool-btn:hover:not(:disabled) {
+    color: var(--text);
+    border-color: var(--border-strong);
+    background: color-mix(in srgb, var(--surface-2) 72%, transparent);
+  }
+  .npm-tool-btn:disabled { opacity: .45; cursor: not-allowed; }
+  .npm-tool-btn.tagro { color: var(--text); }
+  .npm-tool-btn.rec {
+    color: #e0564f;
+    border-color: color-mix(in srgb, #e0564f 40%, transparent);
+    background: color-mix(in srgb, #e0564f 12%, transparent);
+    animation: npmRecPulse 1.3s ease-in-out infinite;
+  }
+  @keyframes npmRecPulse {
+    0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, #e0564f 32%, transparent); }
+    50% { box-shadow: 0 0 0 5px color-mix(in srgb, #e0564f 0%, transparent); }
   }
   .npm-chat-input > svg {
     align-self: center;
