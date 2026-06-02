@@ -5,7 +5,7 @@ import LanguageProvider from '@/components/LanguageProvider'
 import ServiceWorkerCleanup from '@/components/ServiceWorkerCleanup'
 import AuthSessionMemory from '@/components/AuthSessionMemory'
 
-const brandIconVersion = '20260526-transparent-favicon'
+const brandIconVersion = '20260601-pixel-f'
 
 export const metadata: Metadata = {
   title: 'Festag — AI-native Softwareproduktion',
@@ -15,6 +15,7 @@ export const metadata: Metadata = {
   appleWebApp: { capable: true, statusBarStyle: 'default', title: 'Festag' },
   icons: {
     icon: [
+      { url: `/brand/favicon.svg?v=${brandIconVersion}`, type: 'image/svg+xml' },
       { url: `/brand/favicon-16.png?v=${brandIconVersion}`, sizes: '16x16', type: 'image/png' },
       { url: `/brand/favicon-32.png?v=${brandIconVersion}`, sizes: '32x32', type: 'image/png' },
       { url: `/brand/favicon-48.png?v=${brandIconVersion}`, sizes: '48x48', type: 'image/png' },
