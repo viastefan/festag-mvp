@@ -12,6 +12,7 @@ import { projectColor } from '@/components/Sidebar'
 import { effectiveRole, isDevOrAdmin } from '@/lib/role'
 import { taskStatusPatch } from '@/lib/tasks/status'
 import { computeControlStatus, ageInDays } from '@/lib/trust/control-status'
+import { computeReportReadiness } from '@/lib/trust/nexora'
 import { Milestone } from '@/components/MilestoneChart'
 import ProjectCompletionCelebration from '@/components/ProjectCompletionCelebration'
 import DeleteProjectModal from '@/components/DeleteProjectModal'
@@ -765,6 +766,16 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
     phase: project.status,
     nextActionTitle: riskTasks[0]?.title ?? null,
   })
+
+  // Nexora — can the current status report go to the client?
+  const reportReadiness = latestUpdate
+    ? computeReportReadiness({
+        reportContent: latestUpdate.content,
+        blockedCount: riskTasks.length,
+        decisionCount: decisionTasks.length,
+        approvalCount: approvalTasks.length,
+      })
+    : null
 
   // Tagro Intelligence — calm executive summary derived from state.
   const tagroNextAction = (() => {
@@ -1783,6 +1794,26 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
                       <span className="pv-sep">·</span>
                       <span>{fmtAgo(latestUpdate.created_at)}</span>
                     </div>
+                    {reportReadiness && (
+                      <div
+                        title={reportReadiness.checks.map(c => `${c.ok ? '✓' : '•'} ${c.label}`).join('\n')}
+                        style={{
+                          display: 'inline-flex', alignItems: 'center', gap: 8,
+                          margin: '2px 0 2px', padding: '5px 11px 5px 9px',
+                          borderRadius: 999, width: 'fit-content',
+                          background: `color-mix(in srgb, ${reportReadiness.color} 12%, transparent)`,
+                          border: `1px solid color-mix(in srgb, ${reportReadiness.color} 30%, transparent)`,
+                        }}
+                      >
+                        <span style={{ width: 7, height: 7, borderRadius: '50%', background: reportReadiness.color, flexShrink: 0 }} aria-hidden />
+                        <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text)', letterSpacing: '.01em' }}>
+                          Nexora: {reportReadiness.label}
+                        </span>
+                        <span style={{ fontSize: 12, color: 'var(--text-muted)', letterSpacing: '.01em' }}>
+                          {reportReadiness.reason}
+                        </span>
+                      </div>
+                    )}
                     {reportExpanded ? (
                       <div className="pv-report-body">
                         <ChatMarkdown text={latestUpdate.content || ''} />
