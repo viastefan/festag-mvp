@@ -11,6 +11,7 @@ import {
 import { projectColor } from '@/components/Sidebar'
 import { effectiveRole, isDevOrAdmin } from '@/lib/role'
 import { taskStatusPatch } from '@/lib/tasks/status'
+import { computeControlStatus, ageInDays } from '@/lib/trust/control-status'
 import { Milestone } from '@/components/MilestoneChart'
 import ProjectCompletionCelebration from '@/components/ProjectCompletionCelebration'
 import DeleteProjectModal from '@/components/DeleteProjectModal'
@@ -750,6 +751,19 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
     if (doneTasks.length === 0) return { tone: 'pending', label: 'Pending Review' }
     return { tone: 'review', label: 'Tagro Check' }
   })()
+
+  // Consolidated Control Status — the visible "AI control layer" line. One
+  // status + one-line reason, derived from existing signals (no 2nd score).
+  const controlStatus = computeControlStatus({
+    taskCount: tasks.length,
+    blockedCount: riskTasks.length,
+    decisionCount: decisionTasks.length,
+    approvalCount: approvalTasks.length,
+    hasReport: Boolean(latestUpdate),
+    reportAgeDays: ageInDays(latestUpdate?.created_at),
+    phase: project.status,
+    nextActionTitle: riskTasks[0]?.title ?? null,
+  })
 
   // Tagro Intelligence — calm executive summary derived from state.
   const tagroNextAction = (() => {
@@ -1961,6 +1975,21 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
         <aside className="pv-sidebar">
           <section className="pv-side-section">
             <header><span>Eigenschaften</span></header>
+            {/* Control Status — the consolidated "is this under control + why" line */}
+            <div
+              title={controlStatus.reason}
+              style={{
+                display: 'flex', gap: 10, alignItems: 'flex-start',
+                padding: '2px 0 13px', marginBottom: 9,
+                borderBottom: '1px solid color-mix(in srgb, var(--border) 45%, transparent)',
+              }}
+            >
+              <span style={{ width: 8, height: 8, borderRadius: '50%', background: controlStatus.color, marginTop: 5, flexShrink: 0 }} aria-hidden />
+              <span style={{ display: 'flex', flexDirection: 'column', gap: 3, minWidth: 0 }}>
+                <strong style={{ fontSize: 13, color: 'var(--text)', letterSpacing: '.01em' }}>{controlStatus.label}</strong>
+                <small style={{ fontSize: 11.5, lineHeight: 1.45, color: 'var(--pv-muted)', letterSpacing: '.01em' }}>{controlStatus.reason}</small>
+              </span>
+            </div>
             <div className="pv-side-rows">
               {/* Status — jumps to Overview where the phase menu is anchored */}
               <div className="pv-side-row">
