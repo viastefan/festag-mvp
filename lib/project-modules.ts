@@ -3,7 +3,7 @@
  *
  * Single source of truth for: "Given a project_type, what does the
  * Client Portal show, what does each Executor role need, what KPIs make
- * sense, what briefing sections does Veyra emit, which roles do we
+ * sense, what briefing sections does Tagro emit, which roles do we
  * suggest by default, which data sources are typical?"
  *
  * Every UI surface that renders a project should consume this — never
@@ -393,7 +393,7 @@ export const PROJECT_MODULE_REGISTRY: Record<ProjectType, ProjectModulePreset> =
 
   hybrid: {
     label: 'Hybrid-Projekt',
-    positioning: 'Mehrere Disziplinen in einem Projekt — Veyra mischt die Module aus den passenden Presets.',
+    positioning: 'Mehrere Disziplinen in einem Projekt — Tagro mischt die Module aus den passenden Presets.',
     clientModules: [
       ...ALWAYS_CLIENT,
       'feature_progress', 'preview_link', 'campaign_status', 'approvals',
@@ -501,7 +501,7 @@ export const EXECUTOR_MODULE_LABEL: Record<ExecutorModule, string> = {
   my_tasks: 'Meine Tasks',
   project_context: 'Projekt-Kontext',
   deliverables: 'Deliverables',
-  status_to_tagro: 'Status an Veyra',
+  status_to_tagro: 'Status an Tagro',
   blockers: 'Blocker',
   client_feedback: 'Kunden-Feedback',
   internal_notes: 'Interne Notizen',

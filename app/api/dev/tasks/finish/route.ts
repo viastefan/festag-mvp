@@ -11,7 +11,7 @@ import { emitTaskEvent } from '@/lib/sync/bus'
  *
  *   1. Verify the user is allowed to finish (assigned dev or admin).
  *   2. Flip task into `finished_by_dev`. Client mirror → `in_review`.
- *   3. Run the heuristic Veyra verification engine.
+ *   3. Run the heuristic Tagro verification engine.
  *   4. Persist a `tagro_verifications` row and update the task's
  *      `tagro_verification_status` / confidence / summaries.
  *   5. If the verdict is `verified`, advance dev_status to

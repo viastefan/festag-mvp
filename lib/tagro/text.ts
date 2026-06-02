@@ -2,20 +2,20 @@ import { hasClaudeKey, runClaudeText } from '@/lib/tagro/claude'
 import { hasGeminiKey, runGeminiText } from '@/lib/tagro/gemini'
 
 /**
- * Provider-agnostic Veyra text entry point.
+ * Provider-agnostic Tagro text entry point.
  *
  * Priority: Claude (Anthropic) → Gemini. Returns the same shape as
  * runGeminiText so existing routes can swap to it via an import alias:
  *
- *   import { hasVeyraAI as hasGeminiKey, runVeyraText as runGeminiText }
+ *   import { hasTagroAI as hasGeminiKey, runTagroText as runGeminiText }
  *     from '@/lib/tagro/text'
  */
 
-export function hasVeyraAI() {
+export function hasTagroAI() {
   return hasClaudeKey() || hasGeminiKey()
 }
 
-type VeyraTextOpts = {
+type TagroTextOpts = {
   system?: string
   prompt?: string
   messages?: Array<{ role?: string; content?: string; text?: string }>
@@ -24,7 +24,7 @@ type VeyraTextOpts = {
   responseMimeType?: 'application/json' | 'text/plain'
 }
 
-export async function runVeyraText(opts: VeyraTextOpts) {
+export async function runTagroText(opts: TagroTextOpts) {
   const { responseMimeType, ...base } = opts
 
   if (hasClaudeKey()) {

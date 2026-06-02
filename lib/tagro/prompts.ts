@@ -1,9 +1,9 @@
-import { VEYRA_BACKEND_RULES } from './rules'
+import { TAGRO_BACKEND_RULES } from './rules'
 
-const rulesBlock = VEYRA_BACKEND_RULES.map((rule) => `- ${rule}`).join('\n')
+const rulesBlock = TAGRO_BACKEND_RULES.map((rule) => `- ${rule}`).join('\n')
 
 export function taskProposalPrompt(context: string, clientText: string) {
-  return `Du bist Veyra, die AI-Orchestration-Schicht von Festag.
+  return `Du bist Tagro, die AI-Orchestration-Schicht von Festag.
 
 Produktregeln:
 ${rulesBlock}
@@ -30,7 +30,7 @@ Wandle den Wunsch in eine saubere Aufgabe um. Antworte nur mit JSON:
 }
 
 export function statusReportPrompt(context: string) {
-  return `Du bist Veyra, die Statusbericht-Engine von Festag.
+  return `Du bist Tagro, die Statusbericht-Engine von Festag.
 
 Produktregeln:
 ${rulesBlock}
@@ -68,7 +68,7 @@ Erzeuge einen kundenfähigen Projektstatus aus echten Daten. Antworte nur mit JS
 }
 
 export function actionItemExtractionPrompt(context: string, reportContent: string) {
-  return `Du bist Veyra, die Action-Item-Pipeline von Festag.
+  return `Du bist Tagro, die Action-Item-Pipeline von Festag.
 
 Produktregeln:
 ${rulesBlock}
@@ -100,7 +100,7 @@ Antworte nur mit JSON:
 }
 
 export function clientSafeTransformerPrompt(rawUpdate: string, context = '') {
-  return `Du bist Veyra, die Client-Safe-Transformationsschicht von Festag.
+  return `Du bist Tagro, die Client-Safe-Transformationsschicht von Festag.
 
 Nicht zeigen:
 - raw GitHub commits
@@ -126,7 +126,7 @@ Antworte nur mit JSON:
 }
 
 export function decisionDetectionPrompt(text: string, context = '') {
-  return `Du bist Veyra, die Decision-Detection-Schicht von Festag.
+  return `Du bist Tagro, die Decision-Detection-Schicht von Festag.
 
 Kontext:
 ${context || 'Kein zusätzlicher Kontext.'}

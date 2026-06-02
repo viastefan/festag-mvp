@@ -181,10 +181,10 @@ export default function ObserverWelcomeModal() {
           {titles.length > 0 ? (
             <>
               Ab jetzt kannst du <span className="ow-projects"><em>{projectLine}</em></span> still mitverfolgen
-              und in deiner Rolle mitwirken. Veyra hält dich automatisch auf dem Stand.
+              und in deiner Rolle mitwirken. Tagro hält dich automatisch auf dem Stand.
             </>
           ) : (
-            <>Ab jetzt kannst du als <em>{data.role}</em> mitwirken. Veyra hält dich automatisch auf dem Stand.</>
+            <>Ab jetzt kannst du als <em>{data.role}</em> mitwirken. Tagro hält dich automatisch auf dem Stand.</>
           )}
         </p>
         <div className="ow-actions">

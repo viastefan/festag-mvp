@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { createClient as createCookieClient } from '@/lib/supabase/server'
-import { ensureProjectAccess, logAudit, saveVeyraRun } from '@/lib/tagro/task-actions'
+import { ensureProjectAccess, logAudit, saveTagroRun } from '@/lib/tagro/task-actions'
 import { createTasksAndDecisionsFromActionItems, extractActionItemsFromStatusReport } from '@/lib/tagro/status-report-actions'
 
 export const runtime = 'nodejs'
@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
     if (!providedActionItems) {
       const result = await extractActionItemsFromStatusReport({ sb: sb as any, projectId, reportContent })
       actionItems = (result.output as any).action_items || []
-      await saveVeyraRun(sb as any, {
+      await saveTagroRun(sb as any, {
         projectId,
         runType: 'action_item_extraction',
         inputJson: { reportId, reportContent },

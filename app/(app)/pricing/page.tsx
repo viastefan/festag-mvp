@@ -35,7 +35,7 @@ const PLANS: Plan[] = [
       'High-End Website',
       'Individuelles Figma UI',
       'Projekt-Basis',
-      'Veyra AI Projekt-Aufnahme',
+      'Tagro AI Projekt-Aufnahme',
       'E-Mail Support',
     ],
     cta: 'Paket buchen',
@@ -420,7 +420,7 @@ export default function PricingPage() {
           Server in Deutschland · DSGVO-konform · Zahlung per SEPA
         </span>
         <Link href="/messages" style={{ fontSize:13, color:'var(--text)', fontWeight:600, textDecoration:'none' }}>
-          Fragen? Schreib Veyra →
+          Fragen? Schreib Tagro →
         </Link>
       </div>
 

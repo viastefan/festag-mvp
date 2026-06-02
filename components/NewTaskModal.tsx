@@ -19,7 +19,7 @@ const PRIORITY_OPTIONS = [
 ]
 
 type Project = { id: string; title: string; color: string | null }
-type VeyraPreview = {
+type TagroPreview = {
   client_summary?: string
   suggested_title?: string
   suggested_description?: string
@@ -52,8 +52,8 @@ export default function NewTaskModal({ onClose, onCreated, defaultProjectId, def
   const [tagInput, setTagInput] = useState('')
   const [creating, setCreating] = useState(false)
   const [entryMode, setEntryMode] = useState<'tagro' | 'manual'>(source === 'manual' ? 'manual' : 'tagro')
-  const [veyraPreview, setVeyraPreview] = useState<VeyraPreview | null>(null)
-  const [veyraNotice, setVeyraNotice] = useState('')
+  const [tagroPreview, setTagroPreview] = useState<TagroPreview | null>(null)
+  const [tagroNotice, setTagroNotice] = useState('')
 
   useEffect(() => {
     supabase.from('projects').select('id,title,color').order('created_at', { ascending: false })
@@ -66,12 +66,12 @@ export default function NewTaskModal({ onClose, onCreated, defaultProjectId, def
 
   const currentProject = projects.find(p => p.id === projectId)
 
-  async function requestVeyraPreview(regenerate = false) {
+  async function requestTagroPreview(regenerate = false) {
     const titleText = title.trim()
     const descriptionText = description.trim()
     if ((!titleText && !descriptionText) || !projectId || creating) return
     setCreating(true)
-    setVeyraNotice('')
+    setTagroNotice('')
     try {
       const response = await fetch('/api/tagro/task-proposal', {
         method: 'POST',
@@ -90,22 +90,22 @@ export default function NewTaskModal({ onClose, onCreated, defaultProjectId, def
       })
       const result = await response.json().catch(() => ({}))
       if (!response.ok || !result.ok || !result.proposal) {
-        setVeyraNotice('Veyra konnte den Vorschlag gerade nicht prüfen.')
+        setTagroNotice('Tagro konnte den Vorschlag gerade nicht prüfen.')
         return
       }
-      setVeyraPreview(result.proposal)
-      setVeyraNotice('')
+      setTagroPreview(result.proposal)
+      setTagroNotice('')
     } catch {
-      setVeyraNotice('Veyra konnte den Vorschlag gerade nicht prüfen.')
+      setTagroNotice('Tagro konnte den Vorschlag gerade nicht prüfen.')
     } finally {
       setCreating(false)
     }
   }
 
-  async function createFromVeyraPreview() {
-    if (!veyraPreview || !projectId || creating) return
+  async function createFromTagroPreview() {
+    if (!tagroPreview || !projectId || creating) return
     setCreating(true)
-    setVeyraNotice('')
+    setTagroNotice('')
     try {
       const response = await fetch('/api/tagro/task-proposal', {
         method: 'POST',
@@ -117,19 +117,19 @@ export default function NewTaskModal({ onClose, onCreated, defaultProjectId, def
           description: description.trim(),
           priority: priority === 'none' ? null : priority,
           labels: tags,
-          proposal: veyraPreview,
+          proposal: tagroPreview,
           confirmCreate: true,
         }),
       })
       const result = await response.json().catch(() => ({}))
       if (!response.ok || !result.ok || !result.task) {
-        setVeyraNotice('Der Vorschlag konnte gerade nicht übernommen werden.')
+        setTagroNotice('Der Vorschlag konnte gerade nicht übernommen werden.')
         return
       }
       onCreated?.(result.task.id)
       onClose()
     } catch {
-      setVeyraNotice('Der Vorschlag konnte gerade nicht übernommen werden.')
+      setTagroNotice('Der Vorschlag konnte gerade nicht übernommen werden.')
     } finally {
       setCreating(false)
     }
@@ -138,10 +138,10 @@ export default function NewTaskModal({ onClose, onCreated, defaultProjectId, def
   async function handleCreate() {
     if (!projectId || creating) return
     if (entryMode === 'tagro') {
-      if (veyraPreview) {
-        await createFromVeyraPreview()
+      if (tagroPreview) {
+        await createFromTagroPreview()
       } else {
-        await requestVeyraPreview(false)
+        await requestTagroPreview(false)
       }
       return
     }
@@ -177,13 +177,13 @@ export default function NewTaskModal({ onClose, onCreated, defaultProjectId, def
     setTagInput('')
   }
 
-  function clearVeyraPreview(message = '') {
-    setVeyraPreview(null)
-    setVeyraNotice(message)
+  function clearTagroPreview(message = '') {
+    setTagroPreview(null)
+    setTagroNotice(message)
   }
 
   const hasDraft = Boolean(title.trim() || description.trim())
-  const canSubmit = Boolean(projectId && (entryMode === 'tagro' ? (hasDraft || veyraPreview) : title.trim()) && !creating)
+  const canSubmit = Boolean(projectId && (entryMode === 'tagro' ? (hasDraft || tagroPreview) : title.trim()) && !creating)
 
   return (
     <>
@@ -268,34 +268,34 @@ export default function NewTaskModal({ onClose, onCreated, defaultProjectId, def
           </div>
 
           <div className="nt-mode" role="tablist" aria-label="Task-Erstellung">
-            <button type="button" className={entryMode === 'tagro' ? 'on' : ''} onClick={() => { setEntryMode('tagro'); clearVeyraPreview('') }}>{isSuggestion ? 'Veyra prüfen lassen' : 'Veyra generieren'}</button>
-            <button type="button" className={entryMode === 'manual' ? 'on' : ''} onClick={() => { setEntryMode('manual'); clearVeyraPreview('') }}>Manuell</button>
+            <button type="button" className={entryMode === 'tagro' ? 'on' : ''} onClick={() => { setEntryMode('tagro'); clearTagroPreview('') }}>{isSuggestion ? 'Tagro prüfen lassen' : 'Tagro generieren'}</button>
+            <button type="button" className={entryMode === 'manual' ? 'on' : ''} onClick={() => { setEntryMode('manual'); clearTagroPreview('') }}>Manuell</button>
           </div>
 
           {entryMode === 'tagro' && (
             <div className="nt-tagro-box">
               {isSuggestion
-                ? 'Veyra ist Standard: Dein Vorschlag wird erst in Projektkontext übersetzt und zur Prüfung vorbereitet. Er geht nicht direkt ungeprüft in den Dev-Workflow.'
-                : 'Veyra ist Standard: Beschreibe kurz das Ziel oder den Blocker. Daraus werden Titel, Priorität und nächste Schritte für den Developer ableitbar.'}
+                ? 'Tagro ist Standard: Dein Vorschlag wird erst in Projektkontext übersetzt und zur Prüfung vorbereitet. Er geht nicht direkt ungeprüft in den Dev-Workflow.'
+                : 'Tagro ist Standard: Beschreibe kurz das Ziel oder den Blocker. Daraus werden Titel, Priorität und nächste Schritte für den Developer ableitbar.'}
             </div>
           )}
-          {veyraNotice ? <div className="nt-notice">{veyraNotice}</div> : null}
-          {entryMode === 'tagro' && veyraPreview ? (
+          {tagroNotice ? <div className="nt-notice">{tagroNotice}</div> : null}
+          {entryMode === 'tagro' && tagroPreview ? (
             <div className="nt-ai-thread">
               <div className="nt-ai-avatar">V</div>
               <div className="nt-ai-bubble">
-                <span>Veyra Vorschlag</span>
-                <strong>{veyraPreview.suggested_title || 'Geprüfte Aufgabe'}</strong>
-                <p>{veyraPreview.client_summary || veyraPreview.suggested_description || 'Veyra hat deinen Vorschlag strukturiert.'}</p>
-                {veyraPreview.possible_dev_interpretation ? <p>Mögliche Umsetzung: {veyraPreview.possible_dev_interpretation}</p> : null}
-                {veyraPreview.open_questions?.length ? (
-                  <ul>{veyraPreview.open_questions.slice(0, 3).map(question => <li key={question}>{question}</li>)}</ul>
+                <span>Tagro Vorschlag</span>
+                <strong>{tagroPreview.suggested_title || 'Geprüfte Aufgabe'}</strong>
+                <p>{tagroPreview.client_summary || tagroPreview.suggested_description || 'Tagro hat deinen Vorschlag strukturiert.'}</p>
+                {tagroPreview.possible_dev_interpretation ? <p>Mögliche Umsetzung: {tagroPreview.possible_dev_interpretation}</p> : null}
+                {tagroPreview.open_questions?.length ? (
+                  <ul>{tagroPreview.open_questions.slice(0, 3).map(question => <li key={question}>{question}</li>)}</ul>
                 ) : null}
-                {veyraPreview.risks?.length ? <p>Risiko: {veyraPreview.risks.slice(0, 2).join(' · ')}</p> : null}
+                {tagroPreview.risks?.length ? <p>Risiko: {tagroPreview.risks.slice(0, 2).join(' · ')}</p> : null}
                 <div className="nt-ai-actions">
-                  <button type="button" onClick={() => clearVeyraPreview('Vorschlag verworfen. Du kannst den Text anpassen oder neu prüfen lassen.')}>Ablehnen</button>
-                  <button type="button" onClick={() => requestVeyraPreview(true)} disabled={creating}>Neu formulieren</button>
-                  <button type="button" className="primary" onClick={createFromVeyraPreview} disabled={creating}>Vorschlag übernehmen</button>
+                  <button type="button" onClick={() => clearTagroPreview('Vorschlag verworfen. Du kannst den Text anpassen oder neu prüfen lassen.')}>Ablehnen</button>
+                  <button type="button" onClick={() => requestTagroPreview(true)} disabled={creating}>Neu formulieren</button>
+                  <button type="button" className="primary" onClick={createFromTagroPreview} disabled={creating}>Vorschlag übernehmen</button>
                 </div>
               </div>
             </div>
@@ -305,18 +305,18 @@ export default function NewTaskModal({ onClose, onCreated, defaultProjectId, def
           <div style={{ padding:'14px 18px 4px' }}>
             <input
               className="nt-input"
-              placeholder={entryMode === 'tagro' ? (isSuggestion ? 'Welche Aufgabe möchtest du vorschlagen?' : 'Was soll Veyra als Aufgabe vorbereiten?') : 'Aufgabentitel'}
+              placeholder={entryMode === 'tagro' ? (isSuggestion ? 'Welche Aufgabe möchtest du vorschlagen?' : 'Was soll Tagro als Aufgabe vorbereiten?') : 'Aufgabentitel'}
               value={title}
-              onChange={e => { setTitle(e.target.value); clearVeyraPreview('') }}
+              onChange={e => { setTitle(e.target.value); clearTagroPreview('') }}
               onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleCreate() } }}
               style={{ fontSize:18, fontWeight:600, letterSpacing:'-.2px', marginBottom:8, display:'block' }}
               autoFocus
             />
             <textarea
               className="nt-input"
-              placeholder={entryMode === 'tagro' ? (isSuggestion ? 'Beschreibe Ziel, Kontext oder gewünschte Änderung. Veyra formuliert daraus einen prüfbaren Vorschlag…' : 'Beschreibe Kontext, Ziel, Akzeptanzkriterien oder was der Developer wissen muss…') : 'Beschreibung hinzufügen…'}
+              placeholder={entryMode === 'tagro' ? (isSuggestion ? 'Beschreibe Ziel, Kontext oder gewünschte Änderung. Tagro formuliert daraus einen prüfbaren Vorschlag…' : 'Beschreibe Kontext, Ziel, Akzeptanzkriterien oder was der Developer wissen muss…') : 'Beschreibung hinzufügen…'}
               value={description}
-              onChange={e => { setDescription(e.target.value); clearVeyraPreview('') }}
+              onChange={e => { setDescription(e.target.value); clearTagroPreview('') }}
               onKeyDown={e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); handleCreate() } }}
               rows={4}
               style={{ fontSize:13.5, lineHeight:1.6, color:'var(--text-secondary)', resize:'none', minHeight:80 }}
@@ -374,7 +374,7 @@ export default function NewTaskModal({ onClose, onCreated, defaultProjectId, def
           {/* Footer */}
           <div style={{ borderTop:'1px solid var(--border)', padding:'8px 12px', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
             <span style={{ fontSize:11, color:'var(--text-muted)' }}>
-              {isSuggestion ? 'Status: Zur Prüfung' : (entryMode === 'tagro' ? 'Veyra Auto-Generate' : (source === 'status_report' ? 'Aus Statusbericht' : 'Manuell erstellt'))}
+              {isSuggestion ? 'Status: Zur Prüfung' : (entryMode === 'tagro' ? 'Tagro Auto-Generate' : (source === 'status_report' ? 'Aus Statusbericht' : 'Manuell erstellt'))}
             </span>
             <div style={{ display:'flex', gap:6 }}>
               <button onClick={onClose}
@@ -393,10 +393,10 @@ export default function NewTaskModal({ onClose, onCreated, defaultProjectId, def
                   display:'flex', alignItems:'center', gap:6,
                 }}>
                 {creating
-                  ? (veyraPreview ? 'Übernimmt…' : 'Veyra prüft…')
+                  ? (tagroPreview ? 'Übernimmt…' : 'Tagro prüft…')
                   : (isSuggestion
-                    ? (entryMode === 'tagro' ? (veyraPreview ? 'Vorschlag übernehmen' : 'Mit Veyra prüfen') : 'Vorschlag senden')
-                    : (entryMode === 'tagro' ? (veyraPreview ? 'Vorschlag übernehmen' : 'Mit Veyra prüfen') : 'Task erstellen'))}
+                    ? (entryMode === 'tagro' ? (tagroPreview ? 'Vorschlag übernehmen' : 'Mit Tagro prüfen') : 'Vorschlag senden')
+                    : (entryMode === 'tagro' ? (tagroPreview ? 'Vorschlag übernehmen' : 'Mit Tagro prüfen') : 'Task erstellen'))}
                 {!creating && <span style={{ fontSize:10, opacity:.6 }}>↵</span>}
               </button>
             </div>

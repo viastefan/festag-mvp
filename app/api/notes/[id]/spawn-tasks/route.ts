@@ -7,7 +7,7 @@ export const runtime = 'nodejs'
 /**
  * POST /api/notes/:id/spawn-tasks  { indices: number[] }
  *
- * Turns the chosen Veyra task suggestions (indices into
+ * Turns the chosen Tagro task suggestions (indices into
  * notes.tagro_suggestions.tasks) into real rows in the tasks table.
  * Links each via notes_spawned_tasks so the UI can show "3 Tasks
  * aus dieser Notiz" without polluting the tasks schema.

@@ -1,4 +1,4 @@
-import { clampConfidence, clampPriority, type ActionItemType, type VeyraActionItem, type TaskType } from './task-rules'
+import { clampConfidence, clampPriority, type ActionItemType, type TagroActionItem, type TaskType } from './task-rules'
 import { defaultPriorityForTaskType, groupKeyForTaskType } from './status-mapper'
 
 export function classifyClientTask(input: string): {
@@ -20,7 +20,7 @@ export function classifyClientTask(input: string): {
   return { taskType: 'client_request', priority: 'medium' }
 }
 
-export function normalizeActionItem(item: VeyraActionItem): VeyraActionItem {
+export function normalizeActionItem(item: TagroActionItem): TagroActionItem {
   const type: ActionItemType = [
     'client_task',
     'dev_task',
@@ -41,7 +41,7 @@ export function normalizeActionItem(item: VeyraActionItem): VeyraActionItem {
   }
 }
 
-export function taskShapeForActionItem(item: VeyraActionItem) {
+export function taskShapeForActionItem(item: TagroActionItem) {
   switch (item.type) {
     case 'client_task':
       return {

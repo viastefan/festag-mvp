@@ -3,7 +3,7 @@ import { CLIENT_VISIBLE_LABEL, clientStatusFromDevFlow, type DevFlow } from '@/l
 import { getServiceClient } from '@/lib/supabase/service'
 
 /**
- * Veyra Sync Bus — the single place that fans dev-side task events out
+ * Tagro Sync Bus — the single place that fans dev-side task events out
  * into the surfaces the client and the dev workspaces consume:
  *
  *   1. `task_activity_logs`  — audit trail (per-task, RLS-scoped, the
@@ -13,11 +13,11 @@ import { getServiceClient } from '@/lib/supabase/service'
  *                              client) and write one row per recipient.
  *   3. `messages`            — for client-facing announcements (the
  *                              client portal already renders messages
- *                              with `is_ai=true` as Veyra updates).
+ *                              with `is_ai=true` as Tagro updates).
  *
  * The translation layer (`translateForClient`) hides every technical
  * artifact behind a calm sentence. The verbose dev story stays inside
- * `task_activity_logs` and Veyra internal summaries.
+ * `task_activity_logs` and Tagro internal summaries.
  */
 
 export type DevEventKind =
@@ -125,9 +125,9 @@ export function translateForClient(event: DevEventKind, ctx: EmitContext): strin
     case 'approved_by_owner':
       return `„${title}" ist abgeschlossen und im Workspace sichtbar.`
     case 'tagro_verified':
-      return `Veyra hat „${title}" geprüft — bereit zur finalen Freigabe.`
+      return `Tagro hat „${title}" geprüft — bereit zur finalen Freigabe.`
     case 'blocker_reported':
-      return `„${title}" wartet aktuell auf eine Klärung. Veyra bereitet die nächsten Schritte vor.`
+      return `„${title}" wartet aktuell auf eine Klärung. Tagro bereitet die nächsten Schritte vor.`
     default:
       return null
   }
@@ -220,7 +220,7 @@ async function sendEmailFanout(
     await sendGenericEmail({
       to: eligible,
       title,
-      subtitle: 'Festag · Veyra Update',
+      subtitle: 'Festag · Tagro Update',
       preheader: body ?? undefined,
       body: `<p>${(body || '').replace(/</g, '&lt;')}</p>
 <p style="margin-top:18px;"><a href="${origin}${link}" style="display:inline-block;padding:10px 18px;border-radius:999px;background:#5B647D;color:#FFFFFF;text-decoration:none;font-weight:500;">In Festag öffnen</a></p>`,
@@ -303,19 +303,19 @@ function renderNotification(event: DevEventKind, ctx: EmitContext): { title: str
     case 'finished_by_dev':
       return { title: `Bereit zur Prüfung: ${title}`, body: 'Der Developer hat den Task abgeschlossen.', link: taskLinkDev }
     case 'tagro_verified':
-      return { title: `Verifiziert: ${title}`, body: 'Veyra hat den Task geprüft und freigegeben.', link: taskLinkDev }
+      return { title: `Verifiziert: ${title}`, body: 'Tagro hat den Task geprüft und freigegeben.', link: taskLinkDev }
     case 'needs_review':
-      return { title: `Review nötig: ${title}`, body: 'Veyra fand Hinweise — ein Owner sollte prüfen.', link: taskLinkDev }
+      return { title: `Review nötig: ${title}`, body: 'Tagro fand Hinweise — ein Owner sollte prüfen.', link: taskLinkDev }
     case 'proof_missing':
-      return { title: `Nachweise fehlen: ${title}`, body: 'Veyra wartet auf Belege bevor verifiziert werden kann.', link: taskLinkDev }
+      return { title: `Nachweise fehlen: ${title}`, body: 'Tagro wartet auf Belege bevor verifiziert werden kann.', link: taskLinkDev }
     case 'quality_issue':
-      return { title: `Qualitätsfrage: ${title}`, body: 'Veyra hat Unstimmigkeiten gefunden.', link: taskLinkDev }
+      return { title: `Qualitätsfrage: ${title}`, body: 'Tagro hat Unstimmigkeiten gefunden.', link: taskLinkDev }
     case 'approved_by_owner':
       return { title: `Abgeschlossen: ${title}`, body: 'Im Workspace freigegeben.', link: taskLinkClient }
     case 'owner_changes_requested':
       return { title: `Änderungen angefordert: ${title}`, body: String(ctx.payload?.reason ?? '') || 'Owner hat Änderungen angefordert.', link: taskLinkDev }
     case 'blocker_reported':
-      return { title: `Blocker: ${title}`, body: 'Veyra bereitet die Klärung vor.', link: taskLinkClient }
+      return { title: `Blocker: ${title}`, body: 'Tagro bereitet die Klärung vor.', link: taskLinkClient }
     case 'task_assigned':
       return { title: `Neue Aufgabe: ${title}`, body: 'Du wurdest einem Task zugewiesen.', link: taskLinkDev }
     case 'client_request_created':

@@ -2,13 +2,13 @@
 import { useEffect, useState, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { createClient } from '@/lib/supabase/client'
-import VeyraLogo from '@/components/VeyraLogo'
+import TagroLogo from '@/components/TagroLogo'
 
 type Msg = { role: 'user' | 'ai'; text: string }
 
 const QUICK = ['Projektstatus prüfen', 'Risiken erkennen', 'Entscheidung vorbereiten', 'Update formulieren']
 
-const SYSTEM = `Du bist Veyra Copilot von Festag — das AI-native Softwareproduktionssystem.
+const SYSTEM = `Du bist Tagro Copilot von Festag — das AI-native Softwareproduktionssystem.
 Antworte immer auf Deutsch. Maximal 3 prägnante Sätze. Kein Smalltalk, keine Emojis.
 Du kannst Projektstatus, Tasks, Fortschritt und nächste Schritte erklären.
 Wenn du Projektdaten hast, nutze sie konkret.`
@@ -91,7 +91,7 @@ export default function CopilotPanel({ open, onClose }: { open: boolean; onClose
           messages: newMsgs.slice(-8).map(m => ({ role: m.role === 'ai' ? 'assistant' : 'user', content: m.text })),
         }),
       })
-      if (!res.ok) throw new Error('Veyra request failed')
+      if (!res.ok) throw new Error('Tagro request failed')
       const d = await res.json()
       setMsgs(m => [...m, { role: 'ai', text: d.content?.[0]?.text ?? 'Ich konnte gerade keine belastbare Antwort erzeugen. Bitte stelle die Frage noch einmal etwas konkreter.' }])
     } catch {
@@ -504,7 +504,7 @@ export default function CopilotPanel({ open, onClose }: { open: boolean; onClose
         <div className="cp-header">
           <div className="cp-header-left">
             <span className="cp-beta">BETA</span>
-            <p className="cp-title">Veyra Copilot</p>
+            <p className="cp-title">Tagro Copilot</p>
           </div>
           <div className="cp-window-actions" aria-label="Copilot Fensteraktionen">
             <button className="cp-action" onClick={onClose} aria-label="Copilot minimieren" type="button">
@@ -522,10 +522,10 @@ export default function CopilotPanel({ open, onClose }: { open: boolean; onClose
         <div className={`cp-thread${empty ? ' empty' : ''}`}>
           {empty ? (
             <div className="cp-empty-state">
-              <VeyraLogo size={38} className="cp-empty-logo" />
-              <h2 className="cp-empty-title">Willkommen bei Veyra</h2>
+              <TagroLogo size={38} className="cp-empty-logo" />
+              <h2 className="cp-empty-title">Willkommen bei Tagro</h2>
               <p className="cp-empty-copy">Frag nach Projektstatus, Risiken, Entscheidungen oder dem nächsten sinnvollen Schritt.</p>
-              <div className="cp-empty-actions" aria-label="Veyra Schnellstart">
+              <div className="cp-empty-actions" aria-label="Tagro Schnellstart">
                 {QUICK.slice(0, 3).map(q => (
                   <button key={q} className="cp-empty-action" onClick={() => send(q)} disabled={loading} type="button">{q}</button>
                 ))}
@@ -541,7 +541,7 @@ export default function CopilotPanel({ open, onClose }: { open: boolean; onClose
               {msgs.map((m, i) => (
                 <div key={i} className={`${i === msgs.length - 1 ? 'cp-msg-in ' : ''}cp-message-row ${m.role === 'user' ? 'user' : 'ai'}`}>
                   {m.role === 'ai' && (
-                    <VeyraLogo size={24} className="cp-msg-avatar" />
+                    <TagroLogo size={24} className="cp-msg-avatar" />
                   )}
                   <div className={`cp-bubble ${m.role === 'ai' ? 'ai' : 'user'}`}>
                     <p>{m.text}</p>
@@ -550,7 +550,7 @@ export default function CopilotPanel({ open, onClose }: { open: boolean; onClose
               ))}
               {loading && (
                 <div className="cp-msg-in cp-message-row ai">
-                  <VeyraLogo size={24} thinking />
+                  <TagroLogo size={24} thinking />
                   <div className="cp-typing" aria-label="Copilot antwortet">
                     {[0,1,2].map(j => <span key={j} style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--text-muted)', animation: `pulse 1.1s ${j*.18}s ease-in-out infinite` }} />)}
                   </div>
@@ -577,7 +577,7 @@ export default function CopilotPanel({ open, onClose }: { open: boolean; onClose
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); send() }}}
-              placeholder="Frag Veyra..."
+              placeholder="Frag Tagro..."
             />
             <div className="cp-composer-footer">
               <button className="cp-context-btn" type="button" aria-label="Copilot Kontext">

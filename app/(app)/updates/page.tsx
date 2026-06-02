@@ -11,7 +11,7 @@ const RELEASES = [
 
 const BLOG = [
   {
-    title: 'Veyra Statusbriefing: vom Dev-Update zum Client-Bericht.',
+    title: 'Tagro Statusbriefing: vom Dev-Update zum Client-Bericht.',
     href: '/docs/tagro-statusbriefing',
   },
   {
@@ -19,7 +19,7 @@ const BLOG = [
     href: null,
   },
   {
-    title: 'Warum Veyra AI als Orchestrierungsschicht für Teams funktioniert.',
+    title: 'Warum Tagro AI als Orchestrierungsschicht für Teams funktioniert.',
     href: null,
   },
   {

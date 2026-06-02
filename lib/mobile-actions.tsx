@@ -28,18 +28,18 @@ export function mobileFabActions(ctx: MobileFabContext): ActionSheetItem[] {
     const pid = ctx.projectId ?? p.split('/').filter(Boolean)[1]
     return [
       { label: 'Neuer Task',           meta: 'Aufgabe für dieses Projekt anlegen.', icon: <ListPlus size={16} />,   href: `/tasks?project=${pid}&new=1`, tone: 'primary' },
-      { label: 'Veyra fragen',         meta: 'Frage zum aktuellen Projektstand.',   icon: <Sparkle size={16} />,    href: `/ai?project=${pid}` },
+      { label: 'Tagro fragen',         meta: 'Frage zum aktuellen Projektstand.',   icon: <Sparkle size={16} />,    href: `/ai?project=${pid}` },
       { label: 'Statusbericht',        meta: 'Wochenbericht für dieses Projekt.',   icon: <ClipboardText size={16} />, href: `/reports?project=${pid}` },
       { label: 'Datei hochladen',      meta: 'Asset im Projekt ablegen.',           icon: <Paperclip size={16} />,  href: `/project/${pid}?tab=assets` },
       { label: 'Developer schreiben',  meta: 'Direkt im Projekt-Chat.',             icon: <ChatCircleDots size={16} />, href: `/ai?project=${pid}&mode=developer` },
-      { label: 'Entscheidung melden',  meta: 'Veyra priorisiert die Klärung.',      icon: <WarningCircle size={16} />, href: `/project/${pid}?tab=decisions` },
+      { label: 'Entscheidung melden',  meta: 'Tagro priorisiert die Klärung.',      icon: <WarningCircle size={16} />, href: `/project/${pid}?tab=decisions` },
     ]
   }
 
-  // Communication / Veyra AI
+  // Communication / Tagro AI
   if (p === '/ai' || p.startsWith('/ai')) {
     return [
-      { label: 'Neuer Veyra-Chat',      meta: 'AI-Fragen zum Projektstand.',         icon: <Sparkle size={16} />,        href: '/ai?new=tagro', tone: 'primary' },
+      { label: 'Neuer Tagro-Chat',      meta: 'AI-Fragen zum Projektstand.',         icon: <Sparkle size={16} />,        href: '/ai?new=tagro', tone: 'primary' },
       { label: 'Developer-Chat',        meta: 'Schreibe ans Entwicklerteam.',        icon: <ChatCircleDots size={16} />, href: '/ai?new=developer' },
       { label: 'Project-Owner-Chat',    meta: 'Freigaben, Qualität, Eskalation.',    icon: <ChatCircleDots size={16} />, href: '/ai?new=owner' },
       { label: 'Support kontaktieren',  meta: 'Konto, Abrechnung, Plattform.',       icon: <ChatCircleDots size={16} />, href: '/ai?new=support' },
@@ -49,9 +49,9 @@ export function mobileFabActions(ctx: MobileFabContext): ActionSheetItem[] {
   // Inbox
   if (p === '/inbox') {
     return [
-      { label: 'Veyra fragen',     meta: 'Schnelle Frage zum Status.',     icon: <Sparkle size={16} />,        href: '/ai', tone: 'primary' },
+      { label: 'Tagro fragen',     meta: 'Schnelle Frage zum Status.',     icon: <Sparkle size={16} />,        href: '/ai', tone: 'primary' },
       { label: 'Neuer Task',       meta: 'Aufgabe direkt anlegen.',        icon: <ListPlus size={16} />,       href: '/tasks?new=1' },
-      { label: 'Neues Projekt',    meta: 'Start mit Veyra-Setup.',         icon: <FolderSimple size={16} />,   href: '/projects?new=1' },
+      { label: 'Neues Projekt',    meta: 'Start mit Tagro-Setup.',         icon: <FolderSimple size={16} />,   href: '/projects?new=1' },
       { label: 'Support',          meta: 'Festag Team erreichen.',         icon: <ChatCircleDots size={16} />, href: '/ai?new=support' },
     ]
   }
@@ -60,24 +60,24 @@ export function mobileFabActions(ctx: MobileFabContext): ActionSheetItem[] {
   if (p === '/tasks' || p.startsWith('/tasks')) {
     return [
       { label: 'Neuer Task',                 meta: 'Aufgabe anlegen.',                       icon: <ListPlus size={16} />,    href: '/tasks?new=1', tone: 'primary' },
-      { label: 'Tasks aus Statusbericht',    meta: 'Veyra generiert Vorschläge.',            icon: <Sparkle size={16} />,     href: '/reports' },
-      { label: 'Veyra priorisieren lassen',  meta: 'Welche Tasks zuerst?',                    icon: <Stack size={16} />,       href: '/ai?prompt=prioritize' },
+      { label: 'Tasks aus Statusbericht',    meta: 'Tagro generiert Vorschläge.',            icon: <Sparkle size={16} />,     href: '/reports' },
+      { label: 'Tagro priorisieren lassen',  meta: 'Welche Tasks zuerst?',                    icon: <Stack size={16} />,       href: '/ai?prompt=prioritize' },
     ]
   }
 
   // Projects
   if (p === '/projects' || p.startsWith('/projects')) {
     return [
-      { label: 'Neues Projekt',           meta: 'Setup mit Veyra starten.',             icon: <FolderSimple size={16} />, href: '/projects?new=1', tone: 'primary' },
-      { label: 'Veyra fragen',            meta: 'Welches Projekt braucht Aufmerksamkeit?', icon: <Sparkle size={16} />, href: '/ai' },
+      { label: 'Neues Projekt',           meta: 'Setup mit Tagro starten.',             icon: <FolderSimple size={16} />, href: '/projects?new=1', tone: 'primary' },
+      { label: 'Tagro fragen',            meta: 'Welches Projekt braucht Aufmerksamkeit?', icon: <Sparkle size={16} />, href: '/ai' },
       { label: 'Tasks anlegen',           meta: 'Erst Aufgabe, später Projekt.',        icon: <ListPlus size={16} />,    href: '/tasks?new=1' },
     ]
   }
 
   // Home / Dashboard / default
   return [
-    { label: 'Neues Projekt',         meta: 'Setup mit Veyra starten.',           icon: <FolderSimple size={16} />,   href: '/projects?new=1', tone: 'primary' },
-    { label: 'Veyra fragen',          meta: 'Status, Risiken, Entscheidungen.',   icon: <Sparkle size={16} />,        href: '/ai' },
+    { label: 'Neues Projekt',         meta: 'Setup mit Tagro starten.',           icon: <FolderSimple size={16} />,   href: '/projects?new=1', tone: 'primary' },
+    { label: 'Tagro fragen',          meta: 'Status, Risiken, Entscheidungen.',   icon: <Sparkle size={16} />,        href: '/ai' },
     { label: 'Statusbericht erstellen', meta: 'Aktueller Stand aller Projekte.', icon: <ClipboardText size={16} />,  href: '/reports' },
     { label: 'Mitglied einladen',     meta: 'Team-Mitglied oder Beobachter.',     icon: <UserPlus size={16} />,       href: '/observers' },
     { label: 'Briefing aufnehmen',    meta: 'Audio-Brief in zwei Minuten.',       icon: <Microphone size={16} />,     href: '/voice-reports' },
@@ -86,10 +86,10 @@ export function mobileFabActions(ctx: MobileFabContext): ActionSheetItem[] {
 
 export function mobileFabTitle(ctx: MobileFabContext): { title: string; subtitle: string } {
   const p = ctx.pathname
-  if (p.startsWith('/project/'))        return { title: 'Aktion in diesem Projekt', subtitle: 'Veyra übernimmt die Strukturierung.' }
+  if (p.startsWith('/project/'))        return { title: 'Aktion in diesem Projekt', subtitle: 'Tagro übernimmt die Strukturierung.' }
   if (p.startsWith('/ai'))              return { title: 'Neuer Chat',                subtitle: 'Wähle, mit wem du sprichst.' }
   if (p === '/inbox')                   return { title: 'Schnellzugriff',            subtitle: 'Was möchtest du jetzt tun?' }
   if (p.startsWith('/tasks'))           return { title: 'Tasks',                     subtitle: 'Aufgabe anlegen oder priorisieren.' }
   if (p.startsWith('/projects'))        return { title: 'Projekte',                  subtitle: 'Was als nächstes?' }
-  return { title: 'Schnellzugriff', subtitle: 'Veyra hilft bei jedem Schritt.' }
+  return { title: 'Schnellzugriff', subtitle: 'Tagro hilft bei jedem Schritt.' }
 }

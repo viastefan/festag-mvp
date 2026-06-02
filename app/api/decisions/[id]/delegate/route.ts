@@ -7,7 +7,7 @@ export const runtime = 'nodejs'
 /**
  * POST /api/decisions/:id/delegate
  *
- * The client delegates this decision to Veyra. Veyra picks an option and
+ * The client delegates this decision to Tagro. Tagro picks an option and
  * documents why, the decision lands in 'decided' immediately with
  * `decided_by = null` and `tagro_delegation_reason` set. An override
  * window of 48 hours is recorded — the client can still revise via
@@ -48,7 +48,7 @@ export async function POST(_req: NextRequest, ctx: { params: { id: string } }) {
     return NextResponse.json({ error: 'delegate_not_allowed', reason: 'free_text decisions require human input' }, { status: 400 })
   }
 
-  // Pick Veyra's option:
+  // Pick Tagro's option:
   //   1. recommended_by_tagro=true option, if any.
   //   2. ordinal=0 option (first), if any.
   //   3. binary fallback: yes.
@@ -79,7 +79,7 @@ export async function POST(_req: NextRequest, ctx: { params: { id: string } }) {
     responseValue = { selected_option_id: chosen.external_id || chosen.id }
     reasonSuffix = `Gewählt: „${chosen.client_label || chosen.label}".`
   } else if (d.response_type === 'multi_choice') {
-    // For multi_choice, Veyra picks the single recommended option only —
+    // For multi_choice, Tagro picks the single recommended option only —
     // never multiple. Avoids cascading scope drift.
     if (!chosen) return NextResponse.json({ error: 'delegate_not_allowed', reason: 'no options available to pick' }, { status: 400 })
     responseValue = { selected_option_ids: [chosen.external_id || chosen.id] }
@@ -99,7 +99,7 @@ export async function POST(_req: NextRequest, ctx: { params: { id: string } }) {
   const { data: updated, error } = await (supa as any).from('decisions').update({
     response_value: responseValue,
     rationale: null,
-    decided_by: null, // null = Veyra-delegated; trigger detects this via tagro_delegation_reason being set
+    decided_by: null, // null = Tagro-delegated; trigger detects this via tagro_delegation_reason being set
     decided_at: new Date().toISOString(),
     tagro_delegation_reason: recommendationText,
     override_window_until: overrideWindowUntil,

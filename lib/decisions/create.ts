@@ -40,7 +40,7 @@ export async function persistFramedDecision(
 
   const initialStatus = framed.initialStatus
   const intent = framed.intent
-  const recommendedOption = framed.options.find((o) => o.recommendedByVeyra)
+  const recommendedOption = framed.options.find((o) => o.recommendedByTagro)
 
   // Legacy options_json kept populated so older surfaces / email render
   // paths keep working until Phase 4 swaps them to the structured table.
@@ -105,7 +105,7 @@ export async function persistFramedDecision(
     description: o.description ?? null,
     technical_notes: o.technicalNotes ?? null,
     implications_json: o.implications,
-    recommended_by_tagro: o.recommendedByVeyra,
+    recommended_by_tagro: o.recommendedByTagro,
   }))
 
   let optionIds: string[] = []

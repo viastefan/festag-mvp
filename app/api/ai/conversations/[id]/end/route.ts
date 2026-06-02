@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getServiceClient } from '@/lib/supabase/service'
-import { hasVeyraAI as hasGeminiKey, runVeyraText as runGeminiText } from '@/lib/tagro/text'
+import { hasTagroAI as hasGeminiKey, runTagroText as runGeminiText } from '@/lib/tagro/text'
 
 export const runtime = 'nodejs'
 
@@ -23,7 +23,7 @@ export const runtime = 'nodejs'
 const MINIMAX_ENDPOINT = 'https://api.minimax.io/v1/text/chatcompletion_v2'
 const MINIMAX_MODEL = 'MiniMax-M2.7'
 
-const SUMMARY_SYSTEM = `Du bist Veyra. Fasse einen Festag-Chat ruhig und executive zusammen.
+const SUMMARY_SYSTEM = `Du bist Tagro. Fasse einen Festag-Chat ruhig und executive zusammen.
 
 Antworte als kurzer deutscher Markdown-Block mit höchstens 5 Zeilen, optional einer Mini-Liste. Sektionen wenn relevant:
 **Kurzfassung:** ein Satz, was besprochen wurde.
@@ -61,7 +61,7 @@ export async function POST(_req: NextRequest, ctx: { params: { id: string } }) {
     .order('created_at', { ascending: true })
 
   const transcript = ((msgs as any[]) ?? []).map(m => {
-    const who = m.role === 'user' ? 'Nutzer' : m.role === 'assistant' ? 'Veyra' : 'System'
+    const who = m.role === 'user' ? 'Nutzer' : m.role === 'assistant' ? 'Tagro' : 'System'
     return `${who}: ${m.content}`
   }).join('\n')
 
@@ -123,7 +123,7 @@ export async function POST(_req: NextRequest, ctx: { params: { id: string } }) {
   const service = getServiceClient()
   const writer: any = service ?? supa
   const modeLabel: Record<string, string> = {
-    tagro: 'Veyra AI',
+    tagro: 'Tagro AI',
     developer: 'Developer',
     owner: 'Project Owner',
     support: 'Support',

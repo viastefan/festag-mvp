@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom'
 import { usePathname, useSearchParams } from 'next/navigation'
 import { ArrowLeft, ArrowRight, Check, X } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
-import VeyraLogo from '@/components/VeyraLogo'
+import TagroLogo from '@/components/TagroLogo'
 
 interface Props {
   forceOpen?: boolean
@@ -42,7 +42,7 @@ const TOUR_STEPS: TourStep[] = [
     id: 'voice',
     target: 'voice-briefing',
     title: 'Briefings statt Projektchaos',
-    description: 'Veyra fasst aktive Projekte, Aufgaben, Risiken und Entscheidungen in einem klaren Bericht zusammen.',
+    description: 'Tagro fasst aktive Projekte, Aufgaben, Risiken und Entscheidungen in einem klaren Bericht zusammen.',
     preferred: 'left',
   },
   {
@@ -62,8 +62,8 @@ const TOUR_STEPS: TourStep[] = [
   {
     id: 'tagro-chat',
     target: 'sidebar-tagro-chat',
-    title: 'Frag Veyra jederzeit',
-    description: 'Veyra übersetzt Projektarbeit in klare Antworten, nächste Schritte und Briefings.',
+    title: 'Frag Tagro jederzeit',
+    description: 'Tagro übersetzt Projektarbeit in klare Antworten, nächste Schritte und Briefings.',
     preferred: 'right',
   },
 ]
@@ -361,7 +361,7 @@ export default function WelcomeTour({ forceOpen = false, onDone }: Props) {
             <X size={15} />
           </button>
           <div className="wt-mark" aria-hidden>
-            <VeyraLogo size={32} />
+            <TagroLogo size={32} />
           </div>
           <p className="wt-eyebrow">ERSTER EINSTIEG</p>
           <h2 className="wt-title">Willkommen bei Festag</h2>

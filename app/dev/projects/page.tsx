@@ -161,7 +161,7 @@ export default function DevProjectsPage() {
                   </p>
                 )}
                 <p className="dp-desc">
-                  {p.scope_summary || p.description || 'Keine Beschreibung — Veyra klassifiziert beim Eintragen.'}
+                  {p.scope_summary || p.description || 'Keine Beschreibung — Tagro klassifiziert beim Eintragen.'}
                 </p>
                 <footer>
                   <span className="dp-count">
@@ -233,7 +233,7 @@ export default function DevProjectsPage() {
               status={animPhase}
             />
             <p className="dp-accept-sub">
-              Veyra hat dich dem Projekt zugewiesen. Der Client sieht dich jetzt klein auf seiner Projektseite.
+              Tagro hat dich dem Projekt zugewiesen. Der Client sieht dich jetzt klein auf seiner Projektseite.
             </p>
           </div>
         </div>

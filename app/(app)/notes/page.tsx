@@ -12,7 +12,7 @@
  *   ├──────────────┬──────────────────┬────────────────────── │
  *   │  RAIL        │  LIST            │  EDITOR              │
  *   │  Smart lists │  Compact rows    │  Title + body        │
- *   │  Projects    │  Pin/Project dot │  Veyra panel         │
+ *   │  Projects    │  Pin/Project dot │  Tagro panel         │
  *   │  Note types  │  "Neu" badge     │  Share / Spawn       │
  *   │  Tags cloud  │                  │  Backlinks           │
  *   └──────────────┴──────────────────┴────────────────────── │
@@ -20,11 +20,11 @@
  * Value loops baked in:
  *   • "Heute" Daily-Note — one-per-day, auto-pinned, idempotent backend.
  *   • Pin/Unpin — pinned notes sort to top per smart list.
- *   • Note types (journal/brief/meeting/research) shape Veyra behaviour.
+ *   • Note types (journal/brief/meeting/research) shape Tagro behaviour.
  *   • [[Backlink]] syntax — typing `[[X` shows a typeahead, saves to
  *     notes_mentions, surfaces as "Erwähnt von" in the editor footer.
- *   • Veyra panel → propose tasks → spawn into real tasks linked back.
- *   • Apply Veyra's suggested tags onto the note with one click.
+ *   • Tagro panel → propose tasks → spawn into real tasks linked back.
+ *   • Apply Tagro's suggested tags onto the note with one click.
  *   • Realtime: shared notes update live when collaborators edit.
  *   • Quick capture (⌘⇧N) drops anywhere into a new note + auto-opens.
  *
@@ -53,7 +53,7 @@ type Note = {
   tags: string[]
   status: 'active' | 'archived'
   shared_with: string[]
-  tagro_suggestions: VeyraSuggestions
+  tagro_suggestions: TagroSuggestions
   tagro_last_run_at: string | null
   pinned: boolean
   pinned_at: string | null
@@ -64,7 +64,7 @@ type Note = {
   updated_at: string
 }
 
-type VeyraSuggestions = {
+type TagroSuggestions = {
   summary?: string
   themes?: string[]
   tasks?: Array<{ title: string; why?: string; priority?: 'high'|'medium'|'low'; estimated_hours?: number }>
@@ -93,10 +93,10 @@ const SMART_LISTS: { id: SmartList; label: string; icon: any }[] = [
 ]
 
 const NOTE_TYPES: { id: NoteType; label: string; icon: any; hint: string }[] = [
-  { id: 'journal',  label: 'Journal',  icon: Notepad,    hint: 'Lose Gedanken — Veyra sammelt Themen' },
-  { id: 'brief',    label: 'Brief',    icon: Cards,      hint: 'Auftrag oder Spec — Veyra spawnt Tasks' },
-  { id: 'meeting',  label: 'Meeting',  icon: Microphone, hint: 'Protokoll — Veyra zieht Folgepunkte' },
-  { id: 'research', label: 'Research', icon: Books,      hint: 'Recherche — Veyra destilliert Risiken' },
+  { id: 'journal',  label: 'Journal',  icon: Notepad,    hint: 'Lose Gedanken — Tagro sammelt Themen' },
+  { id: 'brief',    label: 'Brief',    icon: Cards,      hint: 'Auftrag oder Spec — Tagro spawnt Tasks' },
+  { id: 'meeting',  label: 'Meeting',  icon: Microphone, hint: 'Protokoll — Tagro zieht Folgepunkte' },
+  { id: 'research', label: 'Research', icon: Books,      hint: 'Recherche — Tagro destilliert Risiken' },
 ]
 
 function formatTimeAgo(iso: string) {
@@ -407,7 +407,7 @@ export default function NotesPage() {
           <span>Projekt</span>
           <span>Typ</span>
           <span>Tags</span>
-          <span>Veyra</span>
+          <span>Tagro</span>
           <span>Aktualisiert</span>
         </div>
 
@@ -418,7 +418,7 @@ export default function NotesPage() {
             icon={Notepad}
             kicker="Notizen"
             title="Hier ist es ruhig"
-            description="Halte einen Gedanken fest — Veyra findet daraus Themen, Tasks und Risiken. ⌘⇧N legt überall in der App eine neue Notiz an."
+            description="Halte einen Gedanken fest — Tagro findet daraus Themen, Tasks und Risiken. ⌘⇧N legt überall in der App eine neue Notiz an."
             actions={[
               { label: 'Erste Notiz anlegen', icon: Plus, primary: true, onClick: () => setComposerOpen(true) },
             ]}
@@ -426,7 +426,7 @@ export default function NotesPage() {
         ) : visible.map(n => {
           const project = projects.find(p => p.id === n.project_id)
           const fresh = Date.now() - new Date(n.created_at).getTime() < 1000 * 60 * 60 * 12
-          const hasVeyra = n.tagro_last_run_at && (n.tagro_suggestions?.tasks?.length ?? 0) > 0
+          const hasTagro = n.tagro_last_run_at && (n.tagro_suggestions?.tasks?.length ?? 0) > 0
           return (
             <button
               key={n.id}
@@ -452,7 +452,7 @@ export default function NotesPage() {
                 {(n.tags || []).length > 2 && <span className="notes-cell-mute">+{n.tags.length - 2}</span>}
               </span>
               <span className="notes-row-tagro">
-                {hasVeyra
+                {hasTagro
                   ? <><Sparkle size={10} weight="fill" /> {n.tagro_suggestions?.tasks?.length} Idee{(n.tagro_suggestions?.tasks?.length || 0) === 1 ? '' : 'n'}</>
                   : <span className="notes-cell-mute">—</span>}
               </span>
@@ -482,14 +482,14 @@ export default function NotesPage() {
       )}
 
       {/* Create modal — proper composer (title/body/type/project/tags)
-          with three submit paths: plain, Veyra-analyse, or hand-to-AI. */}
+          with three submit paths: plain, Tagro-analyse, or hand-to-AI. */}
       {composerOpen && (
         <NewNoteModal
           projects={projects}
           defaultProjectId={projectFilter}
           onClose={() => setComposerOpen(false)}
           onCreated={(noteId) => {
-            // Re-fetch the row + slide the drawer in. If Veyra just ran,
+            // Re-fetch the row + slide the drawer in. If Tagro just ran,
             // the suggestions will be on the row already.
             setComposerOpen(false)
             ;(async () => {
@@ -535,8 +535,8 @@ function Editor({
   const [selectedTasks, setSelectedTasks] = useState<Set<number>>(new Set())
   const [spawned, setSpawned] = useState<SpawnedTask[]>([])
   const [backlinks, setBacklinks] = useState<Array<{id:string; title:string; updated_at:string}>>([])
-  const [s, setS] = useState<VeyraSuggestions>(note.tagro_suggestions || {})
-  const [showVeyraPanel, setShowVeyraPanel] = useState<boolean>(!!note.tagro_last_run_at)
+  const [s, setS] = useState<TagroSuggestions>(note.tagro_suggestions || {})
+  const [showTagroPanel, setShowTagroPanel] = useState<boolean>(!!note.tagro_last_run_at)
   const [linkMenu, setLinkMenu] = useState<{q: string; pos: number; results: Array<{id:string;title:string}>}|null>(null)
 
   const textareaRef = useRef<HTMLTextAreaElement|null>(null)
@@ -602,17 +602,17 @@ function Editor({
     saveTimerRef.current = setTimeout(() => persist({ body: next }), 300)
   }
 
-  async function runVeyra() {
+  async function runTagro() {
     if (suggesting) return
     setSuggesting(true)
     try {
-      // Save pending body first so Veyra reads the latest.
+      // Save pending body first so Tagro reads the latest.
       if (saveTimerRef.current) { clearTimeout(saveTimerRef.current); saveTimerRef.current = null; await persist({ body }) }
       const res = await fetch(`/api/notes/${note.id}/suggest`, { method: 'POST', credentials: 'include' })
       if (!res.ok) return
       const data = await res.json()
       setS(data.suggestions || {})
-      setShowVeyraPanel(true)
+      setShowTagroPanel(true)
       onPatch({ tagro_suggestions: data.suggestions, tagro_last_run_at: new Date().toISOString() } as Partial<Note>)
     } finally {
       setSuggesting(false)
@@ -642,7 +642,7 @@ function Editor({
     }
   }
 
-  async function applyVeyraTags() {
+  async function applyTagroTags() {
     const incoming = (s.tags || []).filter(t => !note.tags.includes(t))
     if (!incoming.length) return
     const merged = [...note.tags, ...incoming]
@@ -685,14 +685,14 @@ function Editor({
             {project && <> · <span className="editor-proj"><span className="editor-proj-dot" style={{ background: project.color || 'var(--text-muted)' }} />{project.title}</span></>}
           </span>
           <span className="editor-saved">
-            {suggesting ? 'Veyra liest…' : savedAt ? `Gespeichert · ${formatTimeAgo(savedAt)}` : `Aktualisiert ${formatTimeAgo(note.updated_at)}`}
+            {suggesting ? 'Tagro liest…' : savedAt ? `Gespeichert · ${formatTimeAgo(savedAt)}` : `Aktualisiert ${formatTimeAgo(note.updated_at)}`}
           </span>
         </div>
         <div className="editor-head-actions">
           <button className={`editor-icon-btn${note.pinned ? ' on' : ''}`} type="button" onClick={onTogglePin} title={note.pinned ? 'Pin lösen' : 'Anheften'} aria-pressed={note.pinned}>
             <PushPin size={13} weight={note.pinned ? 'fill' : 'regular'} />
           </button>
-          <button className="editor-icon-btn" type="button" onClick={handToAi} title="An Veyra übergeben">
+          <button className="editor-icon-btn" type="button" onClick={handToAi} title="An Tagro übergeben">
             <ArrowSquareOut size={13} />
           </button>
           <button className="editor-icon-btn" type="button" onClick={archive} title="Archivieren" disabled={!isOwner}>
@@ -755,7 +755,7 @@ function Editor({
             className="editor-textarea"
             value={body}
             onChange={e => onBodyChange(e.target.value)}
-            placeholder={`Schreib los — Veyra liest, wenn du analysieren willst.
+            placeholder={`Schreib los — Tagro liest, wenn du analysieren willst.
 
 Tipp: [[Notiz-Titel]] verlinkt auf eine andere Notiz.`}
             disabled={!isOwner}
@@ -771,21 +771,21 @@ Tipp: [[Notiz-Titel]] verlinkt auf eine andere Notiz.`}
           )}
         </div>
 
-        {/* Veyra panel */}
+        {/* Tagro panel */}
         <section className={`tagro-panel${hasSuggestions ? ' has' : ''}`}>
           <header className="tagro-head">
             <div>
-              <span className="tagro-kicker"><Sparkle size={11} weight="fill" /> Veyra · {currentType.label}-Modus</span>
+              <span className="tagro-kicker"><Sparkle size={11} weight="fill" /> Tagro · {currentType.label}-Modus</span>
               <span className="tagro-hint">{currentType.hint}</span>
             </div>
-            <button className="tagro-run" type="button" onClick={runVeyra} disabled={suggesting || !body.trim()}>
+            <button className="tagro-run" type="button" onClick={runTagro} disabled={suggesting || !body.trim()}>
               <ArrowsClockwise size={11} className={suggesting ? 'spin' : ''} />
               {suggesting ? 'Liest…' : note.tagro_last_run_at ? 'Neu analysieren' : 'Analysieren'}
             </button>
           </header>
 
           {!hasSuggestions && !suggesting && (
-            <p className="tagro-empty">Schreib ein paar Sätze, dann findet Veyra Themen, Tasks und Risiken.</p>
+            <p className="tagro-empty">Schreib ein paar Sätze, dann findet Tagro Themen, Tasks und Risiken.</p>
           )}
 
           {hasSuggestions && (
@@ -867,7 +867,7 @@ Tipp: [[Notiz-Titel]] verlinkt auf eine andere Notiz.`}
                     ))}
                   </div>
                   {(s.tags ?? []).some(t => !note.tags.includes(t)) && (
-                    <button type="button" className="apply-tags-btn" onClick={applyVeyraTags}>
+                    <button type="button" className="apply-tags-btn" onClick={applyTagroTags}>
                       <Check size={11} /> Tags übernehmen
                     </button>
                   )}
@@ -1269,7 +1269,7 @@ const NOTES_CSS = `
   .link-menu button:hover { background:var(--surface-2); }
   .link-menu button svg { color:var(--notes-soft); }
 
-  /* Veyra panel — accent-tinted card */
+  /* Tagro panel — accent-tinted card */
   .tagro-panel {
     border:1px solid color-mix(in srgb, var(--accent) 22%, var(--border));
     border-radius:14px; padding:14px 16px;
@@ -1375,7 +1375,7 @@ const NOTES_CSS = `
 
   /* ─── Responsive ───────────────────────────────────────── */
   @media (max-width: 900px) {
-    /* On narrow screens drop Typ/Tags/Veyra columns; keep title + project + time. */
+    /* On narrow screens drop Typ/Tags/Tagro columns; keep title + project + time. */
     .notes-table-head,
     .notes-row {
       grid-template-columns:minmax(180px, 2fr) minmax(110px, 1fr) 90px;

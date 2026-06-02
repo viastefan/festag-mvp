@@ -62,7 +62,7 @@ export const DEV_STATUSES = [
   'cancelled',
 ] as const
 
-export const VEYRA_RUN_TYPES = [
+export const TAGRO_RUN_TYPES = [
   'task_proposal',
   'status_report',
   'action_item_extraction',
@@ -76,7 +76,7 @@ export type TaskType = typeof TASK_TYPES[number]
 export type GroupKey = typeof GROUP_KEYS[number]
 export type ClientStatus = typeof CLIENT_STATUSES[number]
 export type DevStatus = typeof DEV_STATUSES[number]
-export type VeyraRunType = typeof VEYRA_RUN_TYPES[number]
+export type TagroRunType = typeof TAGRO_RUN_TYPES[number]
 export type Priority = 'critical' | 'high' | 'medium' | 'low'
 export type Audience = 'client' | 'developer' | 'admin' | 'tagro'
 
@@ -89,7 +89,7 @@ export type ActionItemType =
   | 'follow_up'
   | 'no_action'
 
-export type VeyraActionItem = {
+export type TagroActionItem = {
   type: ActionItemType
   title: string
   description?: string
@@ -125,27 +125,27 @@ export type StatusReportOutput = {
   client_required_actions: string[]
   dev_followups: string[]
   decisions_needed: string[]
-  suggested_action_items: VeyraActionItem[]
+  suggested_action_items: TagroActionItem[]
   confidence_score: number
 }
 
-export const VEYRA_BACKEND_RULES = [
+export const TAGRO_BACKEND_RULES = [
   'Client darf keine internen Dev-Felder, raw GitHub-Daten, private Admin Notes oder technische Token sehen.',
   'Developer sieht ausführbare technische Aufgaben, Quelle, Status, Acceptance Criteria und interne Updates.',
-  'Admin sieht Quellen, Veyra-Runs, Audit Logs, rohe Action Items und Zuweisungszustände.',
+  'Admin sieht Quellen, Tagro-Runs, Audit Logs, rohe Action Items und Zuweisungszustände.',
   'Keine Task-Erstellung ohne project_id.',
   'Jede Task braucht source, task_type, group_key, audience und auditierbare Herkunft.',
   'Entscheidungen gehören in decisions und nicht nur in tasks.',
   'Statusberichte können 0-2 Action Items erzeugen, aber nicht zwanghaft wenn nichts offen ist.',
   'Manuelle Client Tasks gehen direkt in den Dev Workflow, bleiben aber projektgebunden.',
-  'Veyra strukturiert Client-Wünsche, veröffentlicht kritische Entscheidungen aber nicht automatisch.',
+  'Tagro strukturiert Client-Wünsche, veröffentlicht kritische Entscheidungen aber nicht automatisch.',
   'Client Status und Dev Status bleiben getrennt und werden nur serverseitig gemappt.',
   'Keine technischen Erledigt-Behauptungen ohne Dev/GitHub/Status-Beleg.',
 ]
 
 export const CLIENT_SOURCE_LABELS: Record<TaskSource, string> = {
   client_manual: 'Manuell erstellt',
-  client_tagro: 'Von Veyra vorbereitet',
+  client_tagro: 'Von Tagro vorbereitet',
   status_report: 'Aus Statusbericht',
   decision: 'Aus Entscheidung',
   admin: 'Vom Projektteam',

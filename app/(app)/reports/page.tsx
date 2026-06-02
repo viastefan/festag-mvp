@@ -19,9 +19,9 @@ const BRIEFING_SECTION_LABELS: Record<string, string> = {
   blocker_risiken:           'Blocker / Risiken',
   naechste_schritte:         'Nächste Schritte',
   entscheidungen_vom_client: 'Entscheidungen vom Client benötigt',
-  verbesserungsvorschlaege:  'Verbesserungsvorschläge von Veyra',
+  verbesserungsvorschlaege:  'Verbesserungsvorschläge von Tagro',
   moegliche_neue_tasks:      'Mögliche neue Tasks',
-  tagro_prioritaet:          'Von Veyra empfohlene Priorität',
+  tagro_prioritaet:          'Von Tagro empfohlene Priorität',
   release_status:            'Release-Status',
   feature_summary:           'Feature-Zusammenfassung',
   launch_readiness:          'Launch-Bereitschaft',
@@ -104,7 +104,7 @@ Für dieses Projekt wurde noch kein Statusbericht generiert. Festag nutzt Projek
 - Noch kein abgeschlossener Bericht vorhanden.
 
 ## Was ist in Arbeit
-- Sobald Projektfortschritt, Aufgaben oder Updates vorliegen, kann Veyra daraus einen verständlichen Bericht erzeugen.
+- Sobald Projektfortschritt, Aufgaben oder Updates vorliegen, kann Tagro daraus einen verständlichen Bericht erzeugen.
 
 ## Blocker / Risiken
 - Noch keine Risiken erfasst.
@@ -117,13 +117,13 @@ Für dieses Projekt wurde noch kein Statusbericht generiert. Festag nutzt Projek
 ## Entscheidungen vom Client benötigt
 - Aktuell keine Entscheidung erfasst.
 
-## Verbesserungsvorschläge von Veyra
-- Sobald genug Daten vorliegen, listet Veyra hier konkrete Optimierungen für dein Projekt.
+## Verbesserungsvorschläge von Tagro
+- Sobald genug Daten vorliegen, listet Tagro hier konkrete Optimierungen für dein Projekt.
 
 ## Mögliche neue Tasks
 - Task-Vorschläge entstehen erst nach Berichtsanalyse.
 
-## Von Veyra empfohlene Priorität
+## Von Tagro empfohlene Priorität
 Mittel`
 
 function priorityLabel(priority: TaskSuggestion['priority']) {
@@ -216,7 +216,7 @@ function fallbackSuggestions(projectName: string): TaskSuggestion[] {
     {
       id: 'handoff-prepare',
       title: 'Team-Handoff vorbereiten',
-      description: 'Falls operative Umsetzung nötig ist, kann Veyra daraus technische Team-Tasks ableiten.',
+      description: 'Falls operative Umsetzung nötig ist, kann Tagro daraus technische Team-Tasks ableiten.',
       priority: 'high',
       kind: 'team',
       reason: 'Workspace Tasks strukturieren. Team Tasks setzen operativ um.',
@@ -381,7 +381,7 @@ function ReportsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           max_tokens: 950,
-          system: `Du bist Veyra, AI-Orchestrator von Festag. Erstelle ein ruhiges, verständliches deutsches Projektbriefing im podcast-tauglichen Stil — natürlich gesprochen, ohne Markdown-Geräusche.
+          system: `Du bist Tagro, AI-Orchestrator von Festag. Erstelle ein ruhiges, verständliches deutsches Projektbriefing im podcast-tauglichen Stil — natürlich gesprochen, ohne Markdown-Geräusche.
 
 Projekt-Typ-Kontext: ${preset.label}.
 Positionierung: ${preset.positioning}
@@ -392,7 +392,7 @@ ${sectionList}
 Regeln:
 - Jede Entscheidungs-/Vorschlags-Section verwendet Bulletpoints; alles andere darf Fließtext sein.
 - Entscheidungen sind konkrete ja/nein-Fragen, die der Client freigeben kann.
-- Verbesserungsvorschläge sind Veyra-empfohlene Tasks ohne automatische Scope-Erweiterung.
+- Verbesserungsvorschläge sind Tagro-empfohlene Tasks ohne automatische Scope-Erweiterung.
 - Keine Emojis. Keine Floskeln. Wenn keine Daten vorliegen, ehrlich "Noch keine Signale erkannt" sagen statt zu erfinden.
 - Sprich auf Augenhöhe mit einem Geschäftsführer, nicht mit einem Entwickler. Keine technischen Begriffe ohne Übersetzung.`,
           messages: [{ role: 'user', content: prompt }],
@@ -412,7 +412,7 @@ Regeln:
       }
       setTaskSuggestions(fallbackSuggestions(project.title))
     } catch (error: any) {
-      alert(error?.message ?? 'Veyra konnte den Bericht nicht generieren.')
+      alert(error?.message ?? 'Tagro konnte den Bericht nicht generieren.')
     } finally {
       setGenerating(false)
     }
@@ -457,7 +457,7 @@ Regeln:
       await (supabase as any).from('tasks').insert({
         project_id: projectId,
         title: task.title,
-        description: `${task.description}\n\nQuelle: Statusbericht / Veyra Vorschlag\nKontext: ${task.reason}`,
+        description: `${task.description}\n\nQuelle: Statusbericht / Tagro Vorschlag\nKontext: ${task.reason}`,
         status: 'suggested',
         priority: task.priority,
         source: task.kind === 'team' ? 'status_report_team_suggestion' : 'status_report_workspace_suggestion',
@@ -703,7 +703,7 @@ Regeln:
               <span style={{ color: 'var(--text-muted)', opacity: .5 }}>·</span>
               <span>{currentStatusRow.decisionCount === 1 ? '1 Entscheidung offen' : `${currentStatusRow.decisionCount} Entscheidungen offen`}</span>
             </span>
-          ) : 'Veyra fasst laufende Projektarbeit als ruhiges Client-Briefing zusammen.'}
+          ) : 'Tagro fasst laufende Projektarbeit als ruhiges Client-Briefing zusammen.'}
           action={(
             <button className="app-header-button app-header-button--primary" type="button" onClick={generateReport} disabled={!currentProject || generating}>
               <MagicWand size={15} weight="bold" />
@@ -713,7 +713,7 @@ Regeln:
         />
 
         {/* ── Audio Briefing Hero — compact podcast band ──────────── */}
-        <section className="audio-hero" aria-label="Veyra Audio Briefing">
+        <section className="audio-hero" aria-label="Tagro Audio Briefing">
           <div className="audio-hero-cover" style={{ background: `linear-gradient(135deg, ${currentProject?.color || '#5B647D'}, color-mix(in srgb, ${currentProject?.color || '#5B647D'} 35%, var(--bg)))` }}>
             <Headphones size={22} weight="duotone" color="rgba(255,255,255,.92)" />
           </div>
@@ -872,7 +872,7 @@ Regeln:
                 <DownloadSimple size={14} /> PDF exportieren
               </button>
               <Link className="reports-inline-action reports-inline-action--ghost" href="/ai?view=chat">
-                <ChatCircleText size={14} /> Mit Veyra sprechen
+                <ChatCircleText size={14} /> Mit Tagro sprechen
               </Link>
             </div>
           </div>
@@ -971,7 +971,7 @@ Regeln:
 
         <aside id="status-center" className="signals-rail" aria-label="Status Panel">
           <div className="signals-title">
-            <h2>Veyra Einschätzung</h2>
+            <h2>Tagro Einschätzung</h2>
             <SlidersHorizontal size={14} color="var(--text-muted)" />
           </div>
 
@@ -1211,11 +1211,11 @@ function BriefingDeliveryCard({ projectId, projectTitle }: { projectId: string |
         <span className="delivery-card-kicker">Briefing-Zustellung</span>
         <h3 className="delivery-card-title">
           {cadence === 'off'
-            ? 'Lass Veyra dir das Briefing automatisch zustellen'
-            : `Veyra liefert ${projectTitle ? `"${projectTitle}"` : 'deine Workspace-Briefings'} ${cadence === 'daily' ? 'täglich' : cadence === 'weekly' ? 'wöchentlich' : 'alle zwei Wochen'}`}
+            ? 'Lass Tagro dir das Briefing automatisch zustellen'
+            : `Tagro liefert ${projectTitle ? `"${projectTitle}"` : 'deine Workspace-Briefings'} ${cadence === 'daily' ? 'täglich' : cadence === 'weekly' ? 'wöchentlich' : 'alle zwei Wochen'}`}
         </h3>
         <p className="delivery-card-sub">
-          Aus dem Bericht wird ein Voice Report und/oder eine ruhige E-Mail. Wenn nichts Neues anliegt, schickt Veyra auch nichts.
+          Aus dem Bericht wird ein Voice Report und/oder eine ruhige E-Mail. Wenn nichts Neues anliegt, schickt Tagro auch nichts.
         </p>
         <div className="delivery-card-meta">
           <span><strong>Nächste Zustellung:</strong> {cadence === 'off' ? 'inaktiv' : nextLabel}</span>
@@ -1314,7 +1314,7 @@ function SuggestionBullets({ body, projectId }: { body: string; projectId: strin
         title: title.slice(0, 240),
         status: 'suggested',
         priority: 'medium',
-        description: `Aus Veyra-Briefing übernommen. Quelle: Verbesserungsvorschläge von Veyra.\n\nVorschlag: ${title}`,
+        description: `Aus Tagro-Briefing übernommen. Quelle: Verbesserungsvorschläge von Tagro.\n\nVorschlag: ${title}`,
       })
       if (error) throw error
       setPromoted(prev => ({ ...prev, [index]: 'done' }))

@@ -173,7 +173,7 @@ export default function SettingsRightPanel() {
         <p className="rail-kicker">Letzte Aktivität</p>
         <div className="rail-list">
           {activity.length === 0 ? (
-            <p className="rail-copy" style={{ margin: 0 }}>Noch keine Aktivitäten. Sobald Veyra, Projekte oder Teams arbeiten, erscheinen hier die wichtigsten Signale.</p>
+            <p className="rail-copy" style={{ margin: 0 }}>Noch keine Aktivitäten. Sobald Tagro, Projekte oder Teams arbeiten, erscheinen hier die wichtigsten Signale.</p>
           ) : activity.map((item) => (
             <div key={item.id} className="rail-row">
               <span style={{ color: 'var(--text-muted)', flexShrink: 0 }}><Icon name="activity" size={14} /></span>

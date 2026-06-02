@@ -246,7 +246,7 @@ export default function AdminPanel() {
               </div>
               <div style={{ background: 'var(--green-bg)', border: '1px solid var(--green-border)', borderRadius: 'var(--r)', padding: 18 }}>
                 <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--green-dark)', margin: '0 0 6px' }}>✓ Was passiert nach dem Erstellen?</p>
-                <p style={{ fontSize: 12, color: 'var(--green-dark)', margin: 0, lineHeight: 1.6, opacity: .8 }}>Das Projekt erscheint sofort im Kunden-Dashboard. Der Kunde kann es über seinen normalen Login sehen und mit Veyra kommunizieren.</p>
+                <p style={{ fontSize: 12, color: 'var(--green-dark)', margin: 0, lineHeight: 1.6, opacity: .8 }}>Das Projekt erscheint sofort im Kunden-Dashboard. Der Kunde kann es über seinen normalen Login sehen und mit Tagro kommunizieren.</p>
               </div>
               <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r)', padding: 18 }}>
                 <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '.06em', textTransform: 'uppercase', margin: '0 0 10px' }}>Zuletzt erstellt</p>

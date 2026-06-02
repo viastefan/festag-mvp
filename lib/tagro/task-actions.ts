@@ -62,7 +62,7 @@ export async function logAudit(
   }).then(() => null, () => null)
 }
 
-export async function saveVeyraRun(
+export async function saveTagroRun(
   sb: SupabaseClient<any>,
   input: {
     projectId: string
@@ -151,7 +151,7 @@ export async function createManualClientTask({
   return data
 }
 
-export async function createVeyraClientTask({
+export async function createTagroClientTask({
   sb,
   actorId,
   projectId,
@@ -198,8 +198,8 @@ export async function createVeyraClientTask({
     tags: labels?.length ? labels : null,
     label: labels?.[0] ?? null,
     progress: 0,
-    latest_client_update: 'Veyra hat den Vorschlag strukturiert und an den Projekt-Workflow übergeben.',
-    latest_dev_update: proposal.possible_dev_interpretation || 'Veyra-strukturierter Client-Vorschlag.',
+    latest_client_update: 'Tagro hat den Vorschlag strukturiert und an den Projekt-Workflow übergeben.',
+    latest_dev_update: proposal.possible_dev_interpretation || 'Tagro-strukturierter Client-Vorschlag.',
     tagro_result_json: proposal,
     requires_approval: false,
   }).select('*').single()

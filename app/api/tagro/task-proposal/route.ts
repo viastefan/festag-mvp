@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { createClient as createCookieClient } from '@/lib/supabase/server'
-import { buildVeyraContext, contextToPromptText } from '@/lib/tagro/task-context-builder'
+import { buildTagroContext, contextToPromptText } from '@/lib/tagro/task-context-builder'
 import { taskProposalPrompt } from '@/lib/tagro/task-prompts'
 import { runOpenAIJson } from '@/lib/tagro/openai'
 import { classifyClientTask } from '@/lib/tagro/task-classifier'
-import { createManualClientTask, createVeyraClientTask, ensureProjectAccess, saveVeyraRun } from '@/lib/tagro/task-actions'
+import { createManualClientTask, createTagroClientTask, ensureProjectAccess, saveTagroRun } from '@/lib/tagro/task-actions'
 import { clampConfidence, clampPriority } from '@/lib/tagro/task-rules'
 
 export const runtime = 'nodejs'
@@ -79,7 +79,7 @@ export async function POST(req: NextRequest) {
     let proposal = body.proposal
 
     if (!proposal) {
-      const context = await buildVeyraContext({ sb: sb as any, projectId, purpose: 'task_proposal' })
+      const context = await buildTagroContext({ sb: sb as any, projectId, purpose: 'task_proposal' })
       const prompt = taskProposalPrompt(contextToPromptText(context), `${title ? `${title}\n` : ''}${description}`)
       const result = await runOpenAIJson({
         prompt,
@@ -92,7 +92,7 @@ export async function POST(req: NextRequest) {
         priority: clampPriority((result.output as any).priority, 'medium'),
         confidence_score: clampConfidence((result.output as any).confidence_score),
       }
-      await saveVeyraRun(sb as any, {
+      await saveTagroRun(sb as any, {
         projectId,
         runType: 'task_proposal',
         inputJson: { title, description },
@@ -107,7 +107,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true, proposal })
     }
 
-    const task = await createVeyraClientTask({
+    const task = await createTagroClientTask({
       sb: sb as any,
       actorId: user.id,
       projectId,

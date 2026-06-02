@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
-import { rememberVeyraMemory } from '@/lib/tagro-memory'
+import { rememberTagroMemory } from '@/lib/tagro-memory'
 
 export const runtime = 'nodejs'
 
@@ -15,7 +15,7 @@ const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ''
  *
  * Idempotent. Called from the onboarding flow once the user completes it.
  * Reads the freshly-saved profile + onboarding_briefs and writes 3–5
- * Veyra-Memory entries so the bot is never empty on first use.
+ * Tagro-Memory entries so the bot is never empty on first use.
  *
  * No request body needed — derives the user from the session cookie.
  */
@@ -52,7 +52,7 @@ export async function POST(_req: NextRequest) {
     const p = (profile ?? {}) as Record<string, string | null>
     const b = (brief ?? {}) as Record<string, string | null>
 
-    const seeds: Array<Parameters<typeof rememberVeyraMemory>[0]> = []
+    const seeds: Array<Parameters<typeof rememberTagroMemory>[0]> = []
 
     const identity = [
       p.full_name?.trim(),
@@ -128,7 +128,7 @@ export async function POST(_req: NextRequest) {
       })
     }
 
-    const results = await Promise.all(seeds.map(s => rememberVeyraMemory(s)))
+    const results = await Promise.all(seeds.map(s => rememberTagroMemory(s)))
     return NextResponse.json({ ok: true, written: results.filter(Boolean).length, total: seeds.length })
   } catch (e: any) {
     return NextResponse.json({ ok: false, error: e?.message || 'seed_failed' }, { status: 500 })

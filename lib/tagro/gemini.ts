@@ -10,7 +10,7 @@ type GeminiMessage = {
 const GEMINI_ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models'
 
 export function getGeminiModel() {
-  return process.env.VEYRA_GEMINI_MODEL || process.env.GEMINI_MODEL || 'gemini-3.5-flash'
+  return process.env.TAGRO_GEMINI_MODEL || process.env.VEYRA_GEMINI_MODEL || process.env.GEMINI_MODEL || 'gemini-3.5-flash'
 }
 
 export function hasGeminiKey() {
@@ -112,7 +112,7 @@ export async function runGeminiJson({
 }) {
   try {
     const result = await runGeminiText({
-      system: system ?? `Du bist Veyra Backend Orchestration. Antworte fuer ${runType} strikt als valides JSON.`,
+      system: system ?? `Du bist Tagro Backend Orchestration. Antworte fuer ${runType} strikt als valides JSON.`,
       prompt,
       maxTokens,
       temperature: 0.2,

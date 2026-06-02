@@ -705,7 +705,7 @@ export default function ObserversPage() {
                     {[
                       { key:'comment',                title:'Kommentieren',         hint:'Rückfragen & Notizen.' },
                       { key:'create_tasks',           title:'Tasks erstellen',       hint:'Manuell neue Aufgaben anlegen.' },
-                      { key:'tagro_propose',          title:'Mit Veyra vorschlagen', hint:'Ideen via Veyra einreichen.' },
+                      { key:'tagro_propose',          title:'Mit Tagro vorschlagen', hint:'Ideen via Tagro einreichen.' },
                       { key:'review_status_reports', title:'Statusberichte prüfen', hint:'Briefings freigeben.' },
                       { key:'comment_dev_tasks',      title:'Dev-Tasks prüfen',     hint:'Auf Developer-Updates antworten.' },
                     ].map(p => {
@@ -861,7 +861,7 @@ export default function ObserversPage() {
                         { key:'read', label:'Lesen' },
                         { key:'comment', label:'Kommentieren' },
                         { key:'create_tasks', label:'Tasks erstellen' },
-                        { key:'tagro_propose', label:'Mit Veyra vorschlagen' },
+                        { key:'tagro_propose', label:'Mit Tagro vorschlagen' },
                         { key:'review_status_reports', label:'Statusberichte prüfen' },
                         { key:'comment_dev_tasks', label:'Dev-Tasks prüfen' },
                       ].map(p => {
@@ -953,7 +953,7 @@ export default function ObserversPage() {
             <ul className="obs-help-list">
               <li><span className="obs-help-bullet">1</span><span><strong>Read-only Zugriff.</strong> Mitwirkende sehen Status, Briefings und Tasks, können aber nichts ändern.</span></li>
               <li><span className="obs-help-bullet">2</span><span><strong>Projekt-scoped.</strong> Du wählst pro Person, welche Projekte sichtbar sind. Andere bleiben unsichtbar.</span></li>
-              <li><span className="obs-help-bullet">3</span><span><strong>Veyra hält sie informiert.</strong> Keine manuellen Status-Mails — Briefings landen automatisch.</span></li>
+              <li><span className="obs-help-bullet">3</span><span><strong>Tagro hält sie informiert.</strong> Keine manuellen Status-Mails — Briefings landen automatisch.</span></li>
               <li><span className="obs-help-bullet">4</span><span><strong>Jederzeit entziehbar.</strong> Zugriff per Klick widerrufen. Daten bleiben bei dir.</span></li>
             </ul>
 

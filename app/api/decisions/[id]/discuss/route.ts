@@ -12,7 +12,7 @@ export const runtime = 'nodejs'
  * trigger emits the state-transition event too; this endpoint enriches
  * the payload with the question text.
  *
- * Veyra picks the question up via a background re-framer (Phase 6) or
+ * Tagro picks the question up via a background re-framer (Phase 6) or
  * a manual re-frame action. This endpoint does not call the LLM.
  */
 

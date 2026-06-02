@@ -56,7 +56,7 @@ export const DEFAULT_VISIBILITY: Record<SidebarItemId, SidebarVisibility> = {
   observers:     'badged',
   members:       'never',
   teams:         'never',
-  // Veyra
+  // Tagro
   'tagro-chat':  'always',
   'tagro-notes': 'always',
   // Tools
@@ -77,7 +77,7 @@ export const ITEM_LABELS: Record<SidebarItemId, string> = {
   observers:     'Mitwirkende',
   members:       'Mitglieder',
   teams:         'Teams',
-  'tagro-chat':  'Veyra Chat',
+  'tagro-chat':  'Tagro Chat',
   'tagro-notes': 'Notizen',
   estimator:     'Preisschätzer',
   connectors:    'Connectors',
@@ -97,7 +97,7 @@ export const SECTION_LABELS: Record<SidebarSection, string> = {
   personal:  'Persönlich',
   workspace: 'Workspace',
   teams:     'Teams',
-  tagro:     'Veyra AI',
+  tagro:     'Tagro AI',
   tools:     'Tools',
 }
 

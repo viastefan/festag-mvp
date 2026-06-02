@@ -11,13 +11,13 @@ export const runtime = 'nodejs'
 /**
  * POST /api/decisions/request
  *
- * Engine-backed entry point. A developer (or project owner) asks Veyra to
+ * Engine-backed entry point. A developer (or project owner) asks Tagro to
  * frame and route a decision to the client. Wraps lib/decisions:
  *
  *   1. Builds a 'dev_request' DecisionSignal from the body.
  *   2. Calls runDecisionPipeline → detect → limit → duplicate → frame →
  *      persist (or refresh).
- *   3. Returns the resulting decision, including whether Veyra merged
+ *   3. Returns the resulting decision, including whether Tagro merged
  *      this request into an existing open decision.
  *
  * Body:

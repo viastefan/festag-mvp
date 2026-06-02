@@ -98,7 +98,7 @@ export default function DevOverviewPage() {
   const [loading, setLoading] = useState(true)
   const [tick, setTick] = useState(0)
 
-  // Daily prompt from Veyra (16:00 cron)
+  // Daily prompt from Tagro (16:00 cron)
   type DailyPrompt = { id: string; project_id: string | null; prompt_date: string; state: string; payload: any }
   const [dailyPrompts, setDailyPrompts] = useState<DailyPrompt[]>([])
   const [promptDraft, setPromptDraft] = useState('')
@@ -178,7 +178,7 @@ export default function DevOverviewPage() {
           }
         } catch { /* tolerate */ }
 
-        // open daily prompts (Veyra 16:00 ping)
+        // open daily prompts (Tagro 16:00 ping)
         try {
           const { data: prompts } = await (supabase as any)
             .from('dev_daily_prompts')
@@ -281,10 +281,10 @@ export default function DevOverviewPage() {
         </div>
       </header>
 
-      {/* Veyra daily prompt — appears around 16:00 once per day per project */}
+      {/* Tagro daily prompt — appears around 16:00 once per day per project */}
       {dailyPrompts.length > 0 && !promptDone && (
         <div className="dev-surface" style={{ padding: 16, marginBottom: 18 }}>
-          <p className="dev-section-title" style={{ marginBottom: 6, color: 'var(--accent)' }}>Veyra fragt</p>
+          <p className="dev-section-title" style={{ marginBottom: 6, color: 'var(--accent)' }}>Tagro fragt</p>
           <p style={{ margin: '0 0 12px', fontSize: 14, lineHeight: 1.5, color: 'var(--text)' }}>
             Was hast du heute an {dailyPrompts.length === 1
               ? (projects.find(p => p.id === dailyPrompts[0].project_id)?.title ?? 'deinem Projekt')
@@ -328,7 +328,7 @@ export default function DevOverviewPage() {
           </div>
           {voice.listening && (
             <p style={{ margin: '6px 2px 0', fontSize: 11.5, color: 'var(--accent)', letterSpacing: '.012em' }}>
-              Veyra hört zu… {interim ? <span style={{ color: 'var(--text-muted)' }}>„{interim}"</span> : 'sprich einfach.'}
+              Tagro hört zu… {interim ? <span style={{ color: 'var(--text-muted)' }}>„{interim}"</span> : 'sprich einfach.'}
             </p>
           )}
           <div style={{ display: 'flex', gap: 8, marginTop: 10, justifyContent: 'flex-end' }}>
@@ -372,7 +372,7 @@ export default function DevOverviewPage() {
                 } finally { setPromptBusy(false) }
               }}
             >
-              {promptBusy ? 'Sende…' : 'An Veyra schicken'}
+              {promptBusy ? 'Sende…' : 'An Tagro schicken'}
             </button>
           </div>
         </div>
@@ -477,7 +477,7 @@ export default function DevOverviewPage() {
         <aside>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
             <p className="dev-section-title" style={{ margin: 0 }}>Ready for Review</p>
-            <Link href="/dev/review" style={{ fontSize: 11, color: 'var(--accent)', textDecoration: 'none' }}>Veyra Review Center →</Link>
+            <Link href="/dev/review" style={{ fontSize: 11, color: 'var(--accent)', textDecoration: 'none' }}>Tagro Review Center →</Link>
           </div>
           <div className="dev-surface" style={{ overflow:'hidden', marginBottom: 18 }}>
             {reviewTasks.length === 0 ? (
@@ -517,7 +517,7 @@ export default function DevOverviewPage() {
               <WarningCircle size={16} />
               <div>
                 <p className="alert-1">{metrics.blocked} Blocker offen</p>
-                <p className="alert-2">Veyra wartet auf deine Notiz, bevor sie an den Client gespiegelt werden.</p>
+                <p className="alert-2">Tagro wartet auf deine Notiz, bevor sie an den Client gespiegelt werden.</p>
               </div>
               <Link href="/dev/tasks" className="dev-secondary-btn link-btn">Öffnen</Link>
             </div>

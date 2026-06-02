@@ -5,7 +5,7 @@
  *
  * Liest aus `inbox_items` (RLS: nur eigene). Eingänge entstehen durch:
  *   · die Willkommensnachricht (POST /api/inbox/welcome, idempotent)
- *   · Entwickler-Tagesstände (Veyra übersetzt → create_inbox_item)
+ *   · Entwickler-Tagesstände (Tagro übersetzt → create_inbox_item)
  *   · System-Events (Garantie, Rechnungen) via DB-Trigger
  *
  * UI-Regeln: corner-radius ≤ 8px, Aeonik Medium (500), keine schwarzen
@@ -30,7 +30,7 @@ const CATEGORIES: CategoryDef[] = [
   { id: 'project', label: 'Projekt',               icon: Briefcase,  hint: 'Updates, Deliverables und Fragen aus deinen Projekten.' },
   { id: 'billing', label: 'Rechnungen & Verträge', icon: Receipt,    hint: 'Festag-Rechnungen, Vertragsversand, Zahlungsbestätigungen.' },
   { id: 'account', label: 'Konto & Team',          icon: UsersThree, hint: 'Seats, Einladungen, Rollen.' },
-  { id: 'tagro',   label: 'Veyra Assist',          icon: Sparkle,    hint: 'Kuratierte Zusammenfassungen und Vorschläge von Veyra.' },
+  { id: 'tagro',   label: 'Tagro Assist',          icon: Sparkle,    hint: 'Kuratierte Zusammenfassungen und Vorschläge von Tagro.' },
 ]
 
 type Item = {
@@ -89,7 +89,7 @@ function sourceLabel(c: DbInboxRow['category']): string {
   if (c === 'billing') return 'Festag Abrechnung'
   if (c === 'system') return 'Festag'
   if (c === 'support') return 'Support'
-  if (c === 'tagro') return 'Veyra'
+  if (c === 'tagro') return 'Tagro'
   if (c === 'team') return 'Team'
   return 'Festag Team'
 }
@@ -432,7 +432,7 @@ function EmptyDetail() {
       <ChatCircle size={26} weight="regular" />
       <p className="ix-empty-title">Wähle einen Eintrag</p>
       <p className="ix-empty-sub">
-        Eingänge sind nach Projekt und Thema strukturiert. Für freie Fragen nutze den Veyra-Chat im jeweiligen Projekt.
+        Eingänge sind nach Projekt und Thema strukturiert. Für freie Fragen nutze den Tagro-Chat im jeweiligen Projekt.
       </p>
     </div>
   )

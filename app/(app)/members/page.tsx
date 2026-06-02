@@ -6,7 +6,7 @@
  * Runs inside the app shell (real sidebar + graphite theme). Loads real
  * workspace members from workspace_members + profiles, includes the owner
  * and any pending invites, and lazily resolves each member's assigned
- * projects + open tasks for the detail panel. Veyra Visibility is derived
+ * projects + open tasks for the detail panel. Tagro Visibility is derived
  * honestly from that activity — no fabricated presence/sync data.
  */
 
@@ -232,11 +232,11 @@ export default function MembersPage() {
   function closeDetails() { setOverlayOpen(false) }
 
   const tagroLine = (() => {
-    if (!selected || selected.pending) return 'Sobald die Einladung angenommen wird, beginnt Veyra mit der Sichtbarkeit.'
-    if (detailBusy || !detail) return 'Veyra liest die Aktivität…'
+    if (!selected || selected.pending) return 'Sobald die Einladung angenommen wird, beginnt Tagro mit der Sichtbarkeit.'
+    if (detailBusy || !detail) return 'Tagro liest die Aktivität…'
     const p = detail.projects.length, t = detail.openTasks
     if (p === 0 && t === 0) return 'Noch keine zugewiesenen Projekte oder offenen Aufgaben — keine Signale.'
-    return `Veyra verfolgt ${t} ${t === 1 ? 'offene Aufgabe' : 'offene Aufgaben'} über ${p} ${p === 1 ? 'Projekt' : 'Projekte'}. Keine kritischen Blocker erkannt.`
+    return `Tagro verfolgt ${t} ${t === 1 ? 'offene Aufgabe' : 'offene Aufgaben'} über ${p} ${p === 1 ? 'Projekt' : 'Projekte'}. Keine kritischen Blocker erkannt.`
   })()
 
   return (
@@ -318,7 +318,7 @@ export default function MembersPage() {
               </div>
 
               <section className="mb-tagro">
-                <div className="mb-tagro-head"><Sparkle size={13} weight="fill" /><span>Veyra Visibility</span></div>
+                <div className="mb-tagro-head"><Sparkle size={13} weight="fill" /><span>Tagro Visibility</span></div>
                 <p className="mb-tagro-insight">{tagroLine}</p>
                 <div className="mb-tagro-rows">
                   <div><span className="mb-k"><Warning size={12} /> Blocker</span><span className="mb-v">{selected.pending ? '—' : 'Keine kritischen Blocker'}</span></div>

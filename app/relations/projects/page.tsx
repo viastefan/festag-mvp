@@ -63,7 +63,7 @@ export default function RelProjectsPage() {
   const [aSaving,      setASaving]      = useState(false)
   const [aMsg,         setAMsg]         = useState('')
 
-  // Veyra generate
+  // Tagro generate
   const [generating,   setGenerating]   = useState(false)
 
   const titleRef = useRef<HTMLInputElement>(null)
@@ -148,12 +148,12 @@ export default function RelProjectsPage() {
     setNotes(ns => ns.map(n => n.id === note.id ? { ...n, status: next } : n))
   }
 
-  async function generateWithVeyra() {
+  async function generateWithTagro() {
     setGenerating(true)
-    // Simulate Veyra generating a note from project context
+    // Simulate Tagro generating a note from project context
     await new Promise(r => setTimeout(r, 1400))
     setNTitle('Projektanalyse – ' + new Date().toLocaleDateString('de-DE', { day:'2-digit', month:'short' }))
-    setNContent('Veyra hat folgende Punkte aus dem aktuellen Projektstatus zusammengefasst:\n\n• Aktueller Fortschritt läuft planmäßig\n• Nächste Milestone steht an\n• Offene Fragen wurden identifiziert\n\nBitte prüfen und ergänzen.')
+    setNContent('Tagro hat folgende Punkte aus dem aktuellen Projektstatus zusammengefasst:\n\n• Aktueller Fortschritt läuft planmäßig\n• Nächste Milestone steht an\n• Offene Fragen wurden identifiziert\n\nBitte prüfen und ergänzen.')
     setNShared(true)
     setGenerating(false)
   }
@@ -255,7 +255,7 @@ export default function RelProjectsPage() {
         {notes.length === 0 ? (
           <div style={{ border:'1px solid var(--border)', borderRadius:10, padding:'40px 0', textAlign:'center' }}>
             <p style={{ fontSize:13.5, fontWeight:600, color:'var(--text)', margin:'0 0 5px' }}>Noch keine Notizen</p>
-            <p style={{ fontSize:12.5, color:'var(--text-muted)', margin:'0 0 18px' }}>Erstelle eine Notiz, teile sie mit deinem Festag-Team oder lass Veyra eine Analyse erstellen.</p>
+            <p style={{ fontSize:12.5, color:'var(--text-muted)', margin:'0 0 18px' }}>Erstelle eine Notiz, teile sie mit deinem Festag-Team oder lass Tagro eine Analyse erstellen.</p>
             <button onClick={openNew}
               style={{ height:32, padding:'0 16px', background:'var(--btn-prim)', color:'var(--btn-prim-text)', border:'none', borderRadius:7, fontSize:12, fontWeight:600, cursor:'pointer', fontFamily:'inherit' }}>
               Erste Notiz erstellen
@@ -309,13 +309,13 @@ export default function RelProjectsPage() {
               </div>
               <div style={{ display:'flex', alignItems:'center', gap:6 }}>
                 {!editNote && (
-                  <button onClick={generateWithVeyra} disabled={generating}
+                  <button onClick={generateWithTagro} disabled={generating}
                     style={{ height:26, padding:'0 10px', background:'var(--surface-2)', border:'1px solid var(--border)', borderRadius:6, fontSize:11, fontWeight:600, color:'var(--text-secondary)', cursor:'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', gap:5 }}>
                     {generating
                       ? <span style={{ width:9, height:9, border:'1.5px solid var(--border)', borderTopColor:'var(--text)', borderRadius:'50%', animation:'spin .7s linear infinite' }}/>
                       : <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 2L9 9H2l5.5 4-2 7L12 16l6.5 4-2-7L22 9h-7z"/></svg>
                     }
-                    Veyra
+                    Tagro
                   </button>
                 )}
                 <button onClick={() => setShowNote(false)} style={{ background:'none', border:'none', cursor:'pointer', color:'var(--text-muted)', padding:4, display:'flex' }}>

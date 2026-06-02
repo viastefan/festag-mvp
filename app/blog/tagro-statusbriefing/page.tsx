@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
 
-export default function LegacyVeyraStatusbriefingPage() {
+export default function LegacyTagroStatusbriefingPage() {
   redirect('/docs/tagro-statusbriefing')
 }

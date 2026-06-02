@@ -7,7 +7,7 @@
  * A dev (in the dev panel) taps "Eintragen" on a Festag-directed job. The
  * join route writes a `kind = 'dev_accepted'` notification with the dev's
  * name + avatar in its payload. This component, mounted on the dashboard,
- * picks up the newest unread one and plays a calm celebration: the Veyra
+ * picks up the newest unread one and plays a calm celebration: the Tagro
  * orb on one side, the developer's photo on the other, a line drawing
  * between them. Dismissing (or opening the project) marks it read so it
  * never replays.
@@ -108,11 +108,11 @@ export default function ProjectAcceptedCelebration() {
         <p className="pac-kicker">Angenommen · live</p>
 
         <div className={`pac-stage phase-${phase}`}>
-          {/* Veyra orb (left) */}
+          {/* Tagro orb (left) */}
           <div className="pac-node pac-tagro">
             <span className="pac-orb-wave" aria-hidden />
             <span className="pac-orb-core"><Sparkle size={20} weight="fill" /></span>
-            <span className="pac-node-label">Veyra</span>
+            <span className="pac-node-label">Tagro</span>
           </div>
 
           {/* Connection line */}
@@ -139,7 +139,7 @@ export default function ProjectAcceptedCelebration() {
 
         <h2 className="pac-title">Dein Projekt ist startklar</h2>
         <p className="pac-sub">
-          <strong>{celebration.devName}</strong> übernimmt „{celebration.projectTitle}". Veyra begleitet
+          <strong>{celebration.devName}</strong> übernimmt „{celebration.projectTitle}". Tagro begleitet
           jeden Schritt und fasst dir alles ruhig und verständlich zusammen.
         </p>
 
@@ -213,7 +213,7 @@ const CSS = `
     max-width: 96px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
 
-  /* Veyra orb */
+  /* Tagro orb */
   .pac-tagro { position: relative; }
   .pac-orb-core {
     width: 62px; height: 62px; border-radius: 50%;

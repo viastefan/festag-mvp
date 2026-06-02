@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { hasVeyraAI as hasGeminiKey, runVeyraText as runGeminiText } from '@/lib/tagro/text'
+import { hasTagroAI as hasGeminiKey, runTagroText as runGeminiText } from '@/lib/tagro/text'
 
 const SUPABASE_URL = 'https://xsdkoepwuvpuroijjain.supabase.co'
 
-const DECOMPOSE_SYSTEM = `Du bist Veyra, der AI-Projektmanager von Festag.
+const DECOMPOSE_SYSTEM = `Du bist Tagro, der AI-Projektmanager von Festag.
 Deine Aufgabe: Zerlege ein Kundenprojekt aus einem Chat-Gespräch in eine strukturierte Projekt-Definition.
 
 Antworte NUR mit validen JSON — kein Markdown, kein erklärender Text außerhalb des JSON.
@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
 
     // Build conversation summary for decomposition
     const chatText = (chatHistory ?? [])
-      .map((m: any) => `${m.role === 'ai' ? 'Veyra' : 'Kunde'}: ${m.text}`)
+      .map((m: any) => `${m.role === 'ai' ? 'Tagro' : 'Kunde'}: ${m.text}`)
       .join('\n')
 
     let rawText = ''
@@ -205,7 +205,7 @@ export async function POST(req: NextRequest) {
       user_id: userId,
       project_id: projectId,
       type: 'project_status',
-      message: `Projekt "${decomposed.project_title}" wurde von Veyra AI strukturiert (${(decomposed.epics ?? []).length} Epics, ${(decomposed.epics ?? []).reduce((a: number, e: any) => a + (e.tasks?.length ?? 0), 0)} Tasks)`,
+      message: `Projekt "${decomposed.project_title}" wurde von Tagro AI strukturiert (${(decomposed.epics ?? []).length} Epics, ${(decomposed.epics ?? []).reduce((a: number, e: any) => a + (e.tasks?.length ?? 0), 0)} Tasks)`,
     }).catch(() => {})
 
     // Pool-wide fan-out: every approved dev gets an inbox row pointing

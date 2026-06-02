@@ -101,7 +101,7 @@ function typewriterEffect(
   }, 35)
 }
 
-export default function RelationsVeyra({
+export default function RelationsTagro({
   project,
 }: {
   project?: ProjectContext
@@ -113,8 +113,8 @@ export default function RelationsVeyra({
 
   useEffect(() => {
     const greeting = project
-      ? `Hallo! Ich bin Veyra, dein AI-Assistent für **${project.title}**. Status: \`${project.status}\`. Wie kann ich dir helfen?`
-      : 'Hallo! Ich bin Veyra, dein AI-Assistent im Relations-Panel. Frag mich zu Projekten, Angeboten oder Kommunikation.'
+      ? `Hallo! Ich bin Tagro, dein AI-Assistent für **${project.title}**. Status: \`${project.status}\`. Wie kann ich dir helfen?`
+      : 'Hallo! Ich bin Tagro, dein AI-Assistent im Relations-Panel. Frag mich zu Projekten, Angeboten oder Kommunikation.'
     setMsgs([{ role: 'ai', text: greeting, time: fmt() }])
   }, [project?.id])
 
@@ -216,7 +216,7 @@ export default function RelationsVeyra({
         </div>
         <div style={{ flex: 1 }}>
           <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)', margin: 0, lineHeight: 1.1 }}>
-            Veyra AI
+            Tagro AI
           </p>
           <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: '2px 0 0', lineHeight: 1 }}>
             {project ? `Kontext: ${project.title}` : 'Relations Assistent'}
@@ -276,7 +276,7 @@ export default function RelationsVeyra({
                   )}
                 </div>
                 <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>
-                  {m.role === 'ai' ? 'Veyra' : 'Du'} · {m.time}
+                  {m.role === 'ai' ? 'Tagro' : 'Du'} · {m.time}
                 </span>
               </div>
               {m.role === 'user' && (
@@ -366,7 +366,7 @@ export default function RelationsVeyra({
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Frag Veyra..."
+            placeholder="Frag Tagro..."
             rows={1}
             style={{
               flex: 1, padding: '10px 14px', borderRadius: 12,

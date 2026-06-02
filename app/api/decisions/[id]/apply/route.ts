@@ -15,7 +15,7 @@ export const runtime = 'nodejs'
  *       when it was 'waiting_for_client', otherwise leave as-is and just
  *       remove any explicit block reason. Always add an activity entry.
  *   - For each link_kind='affects' & target_kind='task':
- *       attach a Veyra note to the task describing how the decision affects it.
+ *       attach a Tagro note to the task describing how the decision affects it.
  *   - Decision row: set applied_at, status='applied'.
  *
  * The audit trigger emits the 'applied' event from the status transition.

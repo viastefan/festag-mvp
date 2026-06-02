@@ -6,11 +6,11 @@
  * Two parts in one component:
  *   1) A compact card that lives at the bottom of the sidebar. It shows a
  *      small, 3D-tilted, gently animated dashboard preview (our own mock —
- *      layered panels, a moving progress bar, a breathing Veyra orb). It is
+ *      layered panels, a moving progress bar, a breathing Tagro orb). It is
  *      dismissible and remembers that choice (localStorage).
  *   2) On click it opens a calm, flat modal with a ~15-second looping
  *      explainer that walks the Festag flow in four scenes:
- *        Idee → Veyra zerlegt → Entwickler arbeitet → Statusbericht.
+ *        Idee → Tagro zerlegt → Entwickler arbeitet → Statusbericht.
  *      Everything is pure CSS/SVG — no video asset, no external deps.
  *
  * Language stays on-brand: project intelligence, verified progress, calm
@@ -105,10 +105,10 @@ export default function HowFestagWorks() {
                     <span className="hfw-caret" />
                   </div>
                 </div>
-                {/* Scene 2 — Veyra zerlegt */}
+                {/* Scene 2 — Tagro zerlegt */}
                 <div className="hfw-scene s2">
                   <div className="hfw-panel">
-                    <span className="hfw-tag accent">Veyra zerlegt</span>
+                    <span className="hfw-tag accent">Tagro zerlegt</span>
                     <div className="hfw-rows">
                       <span className="hfw-chip d0" />
                       <span className="hfw-chip d1" />
@@ -151,7 +151,7 @@ export default function HowFestagWorks() {
               <p className="hfw-kicker">So funktioniert Festag</p>
               <h2 className="hfw-headline">Von der Idee zum geprüften Fortschritt</h2>
               <p className="hfw-body">
-                Du beschreibst dein Vorhaben. Veyra übersetzt und zerlegt es in klare
+                Du beschreibst dein Vorhaben. Tagro übersetzt und zerlegt es in klare
                 Schritte, der Entwickler setzt um — und du siehst jederzeit ruhig und
                 verständlich, wo dein Projekt steht.
               </p>

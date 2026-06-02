@@ -40,7 +40,7 @@ function line(label: string, value?: string | null) {
   return clean ? `- ${label}: ${clean}` : null
 }
 
-export async function loadVeyraMemoryContext({
+export async function loadTagroMemoryContext({
   userId,
   projectId,
   limit = 12,
@@ -66,7 +66,7 @@ export async function loadVeyraMemoryContext({
   const memoryRows = (memories as MemoryRow[] | null) ?? []
   if (memoryRows.length) {
     sections.push([
-      'Bekannte Veyra-Memory Einträge:',
+      'Bekannte Tagro-Memory Einträge:',
       ...memoryRows.map((m) => `- [${m.scope}${m.key ? `:${m.key}` : ''}] ${m.content}`),
     ].join('\n'))
   }
@@ -113,7 +113,7 @@ export async function loadVeyraMemoryContext({
   return sections.join('\n\n')
 }
 
-export async function rememberVeyraMemory({
+export async function rememberTagroMemory({
   userId,
   projectId = null,
   scope = 'account',

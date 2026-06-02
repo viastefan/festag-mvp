@@ -7,7 +7,7 @@
 //   Intent       — output of detect(): "yes, a decision is needed here, and
 //                  here is what the dev meant in raw language".
 //   FramedDec    — output of frame(): both client-safe and internal
-//                  language, structured options with implications, a Veyra
+//                  language, structured options with implications, a Tagro
 //                  recommendation. Ready to persist.
 //
 // Detection and framing are split so framing can be re-run independently
@@ -118,7 +118,7 @@ export type FramedDecisionOption = {
   description?: string
   technicalNotes?: string
   implications: DecisionOptionImplications
-  recommendedByVeyra: boolean
+  recommendedByTagro: boolean
 }
 
 export type FramedDecision = {

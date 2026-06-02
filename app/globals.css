@@ -995,7 +995,7 @@ button.sb-help-trigger {
 .fui-tag.tone-accent { color:#6a738c;                   border-color:color-mix(in srgb, #6a738c 45%, var(--border)); }
 .fui-tag.tone-muted  { color:var(--text-muted); }
 
-/* Veyra Audio Briefings */
+/* Tagro Audio Briefings */
 .audio-briefing-wrap { position: relative; display: inline-flex; }
 .audio-briefing-button {
   height: 32px; display:inline-flex; align-items:center; gap:7px;

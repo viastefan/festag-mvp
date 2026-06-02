@@ -3,7 +3,7 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 import { PROJECT_MODULE_REGISTRY, getProjectPreset, type ProjectType, type ExecutorRole, type DataSource } from '@/lib/project-modules'
-import { hasVeyraAI as hasGeminiKey, runVeyraText as runGeminiText } from '@/lib/tagro/text'
+import { hasTagroAI as hasGeminiKey, runTagroText as runGeminiText } from '@/lib/tagro/text'
 import { extractJsonObject } from '@/lib/tagro/json'
 
 export const runtime = 'nodejs'
@@ -189,7 +189,7 @@ function heuristicClassify(description: string, industryContext?: string) {
 async function classifyWithAI(description: string, industryContext?: string): Promise<{ type: ProjectType; confidence: number; reason: string } | null> {
   if (!description.trim()) return null
   try {
-    const prompt = `Du bist Veyra, ein Klassifizierer für Festag. Lies die Projektbeschreibung und entscheide den Projekt-Typ.
+    const prompt = `Du bist Tagro, ein Klassifizierer für Festag. Lies die Projektbeschreibung und entscheide den Projekt-Typ.
 
 Mögliche Typen:
 - software (App / Platform / SaaS / Backend)
@@ -250,7 +250,7 @@ Antworte AUSSCHLIESSLICH als JSON-Objekt mit dem Schema:
     return {
       type: t,
       confidence: typeof parsed.confidence === 'number' ? Math.max(0, Math.min(1, parsed.confidence)) : 0.7,
-      reason: parsed.reason || `Veyra hat ${t} erkannt.`,
+      reason: parsed.reason || `Tagro hat ${t} erkannt.`,
     }
   } catch {
     return null

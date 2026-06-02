@@ -289,7 +289,7 @@ function ProjectPageInner() {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             max_tokens: 200,
-            system: `Du bist Veyra, AI-System von Festag. Antworte klar, max 2 Sätze. Kein Smalltalk. Projekt: "${project?.title || 'Unbekannt'}"`,
+            system: `Du bist Tagro, AI-System von Festag. Antworte klar, max 2 Sätze. Kein Smalltalk. Projekt: "${project?.title || 'Unbekannt'}"`,
             messages: [{ role: 'user', content: msg }],
             userId,
             projectId: id,
@@ -413,7 +413,7 @@ function ProjectPageInner() {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           max_tokens: 500,
-          system: `Du bist Veyra, der AI-Projektmanager von Festag. Erstelle einen professionellen Statusbericht auf Deutsch.
+          system: `Du bist Tagro, der AI-Projektmanager von Festag. Erstelle einen professionellen Statusbericht auf Deutsch.
 Struktur (nutze Markdown):
 **Erledigt:** Was wurde abgeschlossen
 **In Arbeit:** Was läuft gerade
@@ -434,7 +434,7 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
       }
       const content = data.content?.[0]?.text
       if (!content) {
-        alert('Veyra hat keinen Inhalt zurückgegeben. Bitte erneut versuchen.')
+        alert('Tagro hat keinen Inhalt zurückgegeben. Bitte erneut versuchen.')
         setGeneratingAI(false)
         return
       }
@@ -519,7 +519,7 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
         .brand { margin-top:34px; padding-top:14px; border-top:1px solid #E7EBF0; color:#8B94A7; font-size:11px; }
       </style></head><body>
         <h1>${escapeHtml(title)}</h1>
-        <p class="meta">${escapeHtml(fmtDate(latestUpdate.created_at) || new Date().toLocaleDateString('de-DE'))} · Festag · Veyra AI</p>
+        <p class="meta">${escapeHtml(fmtDate(latestUpdate.created_at) || new Date().toLocaleDateString('de-DE'))} · Festag · Tagro AI</p>
         <pre>${escapeHtml(stripMarkdown(latestUpdate.content || ''))}</pre>
         <p class="brand">Erstellt mit Festag.</p>
       </body></html>`)
@@ -576,16 +576,16 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
       const data = await res.json().catch(() => ({}))
       if (!res.ok || !data?.ok) {
         setReportActionState('error')
-        setReportActionNotice('Veyra konnte gerade keine Aufgaben ableiten.')
+        setReportActionNotice('Tagro konnte gerade keine Aufgaben ableiten.')
         return
       }
       const items = Array.isArray(data.action_items) ? data.action_items : []
       setReportActionItems(items)
       setReportActionState(items.length ? 'ready' : 'idle')
-      setReportActionNotice(items.length ? '' : 'Veyra sieht im Bericht gerade keine konkrete Aufgabe.')
+      setReportActionNotice(items.length ? '' : 'Tagro sieht im Bericht gerade keine konkrete Aufgabe.')
     } catch {
       setReportActionState('error')
-      setReportActionNotice('Veyra konnte gerade keine Aufgaben ableiten.')
+      setReportActionNotice('Tagro konnte gerade keine Aufgaben ableiten.')
     }
   }
 
@@ -635,7 +635,7 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
     for (const m of messages) {
       events.push({
         id: `m-${m.id}`, ts: new Date(m.created_at).getTime(),
-        kind: 'message', title: m.is_ai ? 'Veyra' : 'Du',
+        kind: 'message', title: m.is_ai ? 'Tagro' : 'Du',
         body: m.message,
       })
     }
@@ -701,7 +701,7 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
   const decisionTasks = tasks.filter(t => t.status === 'waiting') as any[]
   const riskTasks = tasks.filter(t => t.status === 'blocked') as any[]
 
-  // Tasks awaiting owner approval — dev finished or Veyra verified.
+  // Tasks awaiting owner approval — dev finished or Tagro verified.
   // Only admins see the inline approve/reject buttons (the route
   // 403s anyone else anyway).
   const approvalTasks = tasks.filter((t: any) => {
@@ -748,10 +748,10 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
     if (project.status === 'done') return { tone: 'passed', label: 'Approved' }
     if (project.status === 'testing') return { tone: 'review', label: 'In Review' }
     if (doneTasks.length === 0) return { tone: 'pending', label: 'Pending Review' }
-    return { tone: 'review', label: 'Veyra Check' }
+    return { tone: 'review', label: 'Tagro Check' }
   })()
 
-  // Veyra Intelligence — calm executive summary derived from state.
+  // Tagro Intelligence — calm executive summary derived from state.
   const tagroNextAction = (() => {
     if (decisionTasks.length > 0) return decisionTasks[0].title
     if (riskTasks.length > 0)     return `Blocker beheben: ${riskTasks[0].title}`
@@ -761,7 +761,7 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
     return 'Projekt-Scope schärfen und nächsten Meilenstein definieren'
   })()
   const tagroSummary = (() => {
-    if (tasks.length === 0) return `Das Projekt steht ganz am Anfang. Veyra wartet auf Scope und erste Aufgaben.`
+    if (tasks.length === 0) return `Das Projekt steht ganz am Anfang. Tagro wartet auf Scope und erste Aufgaben.`
     const sentenceA = `Aktuell ${PHASE_LABEL[project.status] ?? project.status} · ${pct}% Fortschritt · ${doingTasks.length} aktive Tasks.`
     const sentenceB = riskTasks.length > 0
       ? `${riskTasks.length} Blocker brauchen Aufmerksamkeit.`
@@ -1749,7 +1749,7 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
                     ) : null}
                     <button className="pv-update-btn" onClick={generateAIUpdate} disabled={generatingAI}>
                       {generatingAI
-                        ? <><span className="pv-spin" aria-hidden />Veyra schreibt…</>
+                        ? <><span className="pv-spin" aria-hidden />Tagro schreibt…</>
                         : latestUpdate ? 'Neu erzeugen' : 'Statusbericht erzeugen'}
                     </button>
                   </div>
@@ -1776,7 +1776,7 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
                       <div className="pv-report-ai-panel">
                         <div className="pv-report-ai-head">
                           <div>
-                            <strong>Veyra Aufgaben-Vorschläge</strong>
+                            <strong>Tagro Aufgaben-Vorschläge</strong>
                             <span> · aus diesem Statusbericht</span>
                           </div>
                           {(reportActionState === 'extracting' || reportActionState === 'creating') ? <span><span className="pv-spin" aria-hidden />arbeitet…</span> : null}
@@ -1796,7 +1796,7 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
                           </div>
                         ) : null}
                         <div className="pv-report-ai-foot">
-                          <span>{reportActionNotice || 'Prüfe die Vorschläge, bevor Veyra sie in den Workflow übernimmt.'}</span>
+                          <span>{reportActionNotice || 'Prüfe die Vorschläge, bevor Tagro sie in den Workflow übernimmt.'}</span>
                           {reportActionItems.length > 0 ? (
                             <div className="pv-report-actions">
                               <button type="button" className="pv-report-btn" onClick={() => { setReportActionItems([]); setReportActionState('idle'); setReportActionNotice('Vorschläge verworfen.') }}>
@@ -1816,7 +1816,7 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
                   </>
                 ) : (
                   <p className="pv-report-empty">
-                    Veyra verdichtet den aktuellen Projektstand in einen ruhigen Bericht — Fortschritt, offene Punkte, nächste Schritte. Klick auf „Statusbericht erzeugen".
+                    Tagro verdichtet den aktuellen Projektstand in einen ruhigen Bericht — Fortschritt, offene Punkte, nächste Schritte. Klick auf „Statusbericht erzeugen".
                   </p>
                 )}
               </section>

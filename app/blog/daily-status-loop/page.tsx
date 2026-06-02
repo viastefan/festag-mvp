@@ -1,7 +1,7 @@
 'use client'
 
 /**
- * Engineering deep dive: how the 16:00 Veyra loop is wired end-to-end.
+ * Engineering deep dive: how the 16:00 Tagro loop is wired end-to-end.
  *
  * Audience: dev + internal + investor-curious. Diagrams every layer so
  * the reader sees who writes what, who reads what, and which guardrails
@@ -28,7 +28,7 @@ Vercel Cron ──► /api/cron/tagro-daily   Client klickt
    du heute mit X gekommen?"                  │
                 │                              │
                 ▼                              ▼
-   Dev sieht Card auf /dev          Veyra liest die letzten 24h
+   Dev sieht Card auf /dev          Tagro liest die letzten 24h
                 │                    developer_updates, baut einen
    Textarea: ein Satz                ruhigen Status-Bericht, schreibt
                 │                    via service-role in status_reports
@@ -51,7 +51,7 @@ const nervousSystem = `┌──────────────────
 │   AUSFÜHRUNG                ÜBERSETZUNG               SICHT    │
 │   ──────────                ───────────               ─────    │
 │                                                                │
-│   Dev Panel  ───►  developer_updates  ───►  Veyra Layer       │
+│   Dev Panel  ───►  developer_updates  ───►  Tagro Layer       │
 │   GitHub     ───►  github_commits     ───►  Plausibilität     │
 │   Tasks      ───►  tasks              ───►  Verdichtung       │
 │   Voice-Input ──►  raw_transcript     ───►  Übersetzung       │
@@ -67,7 +67,7 @@ const nervousSystem = `┌──────────────────
 │                                                                │
 └────────────────────────────────────────────────────────────────┘`
 
-const visibilityMatrix = `              │  Dev Panel │  Veyra Layer │  Client Panel
+const visibilityMatrix = `              │  Dev Panel │  Tagro Layer │  Client Panel
 ──────────────┼────────────┼──────────────┼─────────────────
 Rohes Update  │  ●         │  ● (filtert) │  ─
 Evidence      │  ●         │  ● (prüft)   │  ─
@@ -135,7 +135,7 @@ const trustLayer = `        Trust Layer
                │ generiert aus
                ▼
         ┌──────────────┐
-        │  VEYRA       │  ← Engine: Plausibilität, Confidence, Übersetzung
+        │  TAGRO       │  ← Engine: Plausibilität, Confidence, Übersetzung
         │  VERIFICATION│
         └──────┬───────┘
                │ liest
@@ -225,10 +225,10 @@ export default function DailyStatusLoopArticle() {
           Projektmanagement-Tools sammeln entweder zu wenig oder zu viel. Slack ist zu laut, Tickets sind zu trocken, und der Kunde bekommt entweder gar keine Updates oder eine ungefilterte Wand aus Commits. Beides macht Vertrauen kaputt.
         </p>
         <p>
-          Festag löst das mit einem strukturierten täglichen Mini-Ritual. <code>Veyra</code> fragt jeden Developer einmal am Tag — pünktlich um 16:00 Berlin — kurz nach dem Stand. Aus diesen Sätzen baut Veyra einen ruhigen, übersetzten Bericht, den der Client bei Bedarf sofort abrufen kann. Mehr nicht.
+          Festag löst das mit einem strukturierten täglichen Mini-Ritual. <code>Tagro</code> fragt jeden Developer einmal am Tag — pünktlich um 16:00 Berlin — kurz nach dem Stand. Aus diesen Sätzen baut Tagro einen ruhigen, übersetzten Bericht, den der Client bei Bedarf sofort abrufen kann. Mehr nicht.
         </p>
         <div className="bs-callout">
-          <strong>Der Kern:</strong> Devs schreiben einen Satz, Veyra macht daraus eine professionelle Lage. Kein Daily, kein Statusmeeting, keine Excel-Liste.
+          <strong>Der Kern:</strong> Devs schreiben einen Satz, Tagro macht daraus eine professionelle Lage. Kein Daily, kein Statusmeeting, keine Excel-Liste.
         </div>
 
         <h2 id="flow">Der Ablauf, end-to-end</h2>
@@ -242,7 +242,7 @@ export default function DailyStatusLoopArticle() {
 
         <h2 id="who-sees-what">Wer sieht was</h2>
         <p>
-          Sichtbarkeit ist Architektur, nicht UI. Veyra filtert nicht erst beim Render — die Trennung beginnt schon in der Datenbank, mit RLS-Policies und einer ausdrücklichen <code>visible_to_client</code>-Flag auf jedem Bericht.
+          Sichtbarkeit ist Architektur, nicht UI. Tagro filtert nicht erst beim Render — die Trennung beginnt schon in der Datenbank, mit RLS-Policies und einer ausdrücklichen <code>visible_to_client</code>-Flag auf jedem Bericht.
         </p>
 
         <BlogDiagram kicker="Grafik 02" title="Sichtbarkeitsmatrix" variant="light">
@@ -284,7 +284,7 @@ export default function DailyStatusLoopArticle() {
 
         <h2 id="trust-layer">Trust Layer</h2>
         <p>
-          Das eigentliche Festag-Prinzip steht hinter dem Loop: Ein Statusbericht darf nicht aus dünner Luft entstehen. Veyra liest, verdichtet, übersetzt — aber jeder Satz muss eine Wurzel in echter Arbeit haben.
+          Das eigentliche Festag-Prinzip steht hinter dem Loop: Ein Statusbericht darf nicht aus dünner Luft entstehen. Tagro liest, verdichtet, übersetzt — aber jeder Satz muss eine Wurzel in echter Arbeit haben.
         </p>
 
         <BlogDiagram kicker="Grafik 05" title="Trust Layer Stack" variant="light">
@@ -300,12 +300,12 @@ export default function DailyStatusLoopArticle() {
           Drei Ausbaustufen sind im Code schon vorbereitet:
         </p>
         <ol>
-          <li><strong>Veyra-LLM-Übersetzung</strong> statt der aktuellen Heuristik — bessere Tonalität, immer noch dieselbe Evidence-Wurzel.</li>
-          <li><strong>Voice-Input</strong> in der Dev-Card — der Dev darf sprechen statt tippen, Veyra transkribiert + übersetzt.</li>
+          <li><strong>Tagro-LLM-Übersetzung</strong> statt der aktuellen Heuristik — bessere Tonalität, immer noch dieselbe Evidence-Wurzel.</li>
+          <li><strong>Voice-Input</strong> in der Dev-Card — der Dev darf sprechen statt tippen, Tagro transkribiert + übersetzt.</li>
           <li><strong>Per-Project-Berichte</strong> mit Dropdown im Client-Dashboard — bei Kunden mit mehreren Projekten parallel.</li>
         </ol>
         <p>
-          Der Loop ist der erste vollständige Veyra-Kreis, der ohne Mensch in der Mitte funktioniert. Die nächsten Schichten — Risiken automatisch erkennen, Entscheidungen vorschlagen, Tasks aus Berichten ableiten — bauen alle darauf auf.
+          Der Loop ist der erste vollständige Tagro-Kreis, der ohne Mensch in der Mitte funktioniert. Die nächsten Schichten — Risiken automatisch erkennen, Entscheidungen vorschlagen, Tasks aus Berichten ableiten — bauen alle darauf auf.
         </p>
       </div>
     </BlogShell>

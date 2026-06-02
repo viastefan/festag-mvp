@@ -115,7 +115,7 @@ const CLIENT_TEAMS: NavItem[] = [
   { href:'/teams/tasks', icon:'task', label:'Tasks' },
   { href:'/teams/reports', icon:'activity', label:'Statusberichte' },
 ]
-const CLIENT_VEYRA: NavItem[] = [
+const CLIENT_TAGRO: NavItem[] = [
   { href:'/ai',    icon:'chat', label:'Chat' },
   { href:'/notes', icon:'card', label:'Notizen' },
 ]
@@ -132,7 +132,7 @@ const CLIENT_MOB_PRIMARY: NavItem[] = [
   { href:'/projects',  icon:'project', label:'Projekte' },
   // FAB sits here in the JSX
   { href:'/inbox',     icon:'inbox',   label:'Inbox' },
-  { href:'/ai',        icon:'sparkle', label:'Veyra' },
+  { href:'/ai',        icon:'sparkle', label:'Tagro' },
   { href:'/more',      icon:'more',    label:'Mehr' },
 ]
 const CLIENT_MOB_QUICK = [
@@ -245,7 +245,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
   const [workspaceExp, setWorkspaceExp] = useState(true)
   const [projectListExp, setProjectListExp] = useState(true)
   const [teamsExp, setTeamsExp] = useState(false)
-  const [tagroExp, setVeyraExp] = useState(true)
+  const [tagroExp, setTagroExp] = useState(true)
   const [reportsExp, setReportsExp] = useState(false)
   const reportsAutoSeededRef = useRef(false)
   const [toolsExp, setToolsExp] = useState(false)
@@ -376,7 +376,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
   )
   const coreNav = applyPrefs(coreNavRaw)
   const teamsNav: NavItem[] = applyPrefs(CLIENT_TEAMS)
-  const tagroNav: NavItem[] = applyPrefs(CLIENT_VEYRA)
+  const tagroNav: NavItem[] = applyPrefs(CLIENT_TAGRO)
   const toolsNavBase: NavItem[] = wsMode === 'agency'
     ? [...CLIENT_TOOLS, { href: '/settings/workspace', icon: 'sparkle', label: 'White Label' }]
     : CLIENT_TOOLS
@@ -405,12 +405,12 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
       const storedTeams = window.localStorage.getItem('sidebar-teams-expanded')
       const storedWorkspace = window.localStorage.getItem('sidebar-workspace-expanded')
       const storedProjects = window.localStorage.getItem('sidebar-project-list-expanded')
-      const storedVeyra = window.localStorage.getItem('sidebar-tagro-expanded')
+      const storedTagro = window.localStorage.getItem('sidebar-tagro-expanded')
       const storedTools = window.localStorage.getItem('sidebar-tools-expanded')
       if (storedTeams !== null) setTeamsExp(storedTeams === 'true')
       if (storedWorkspace !== null) setWorkspaceExp(storedWorkspace === 'true')
       if (storedProjects !== null) setProjectListExp(storedProjects === 'true')
-      if (storedVeyra !== null) setVeyraExp(storedVeyra === 'true')
+      if (storedTagro !== null) setTagroExp(storedTagro === 'true')
       if (storedTools !== null) setToolsExp(false)
     } catch {}
   }, [])
@@ -1875,7 +1875,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           border-color:var(--border-strong);
         }
 
-        /* ── Veyra Monitoring Capsule — single-line ── */
+        /* ── Tagro Monitoring Capsule — single-line ── */
         .sb-monitor-capsule {
           display:inline-flex; align-items:center; gap:7px;
           min-height:34px;
@@ -2157,9 +2157,9 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
 
             <div>
               <Section
-                label="Veyra AI"
+                label="Tagro AI"
                 expanded={tagroExp}
-                onToggle={() => setVeyraExp(v => !v)}
+                onToggle={() => setTagroExp(v => !v)}
               >
                 <NavItems items={tagroNav} />
               </Section>
@@ -2388,11 +2388,11 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
                 </p>
                 <p>
                   Statt jeden Status manuell zusammenzusuchen, bekommst du eine ruhige Übersicht:
-                  Projekte, Tasks, Meilensteine und Veyra liegen an einem Ort und bleiben für Kunden
+                  Projekte, Tasks, Meilensteine und Tagro liegen an einem Ort und bleiben für Kunden
                   verständlich.
                 </p>
                 <p>
-                  Wenn ein Projekt startet, strukturiert Veyra dein Briefing, bereitet Aufgaben vor
+                  Wenn ein Projekt startet, strukturiert Tagro dein Briefing, bereitet Aufgaben vor
                   und hält die Kommunikation so nah am echten Lieferstand wie möglich.
                 </p>
               </section>

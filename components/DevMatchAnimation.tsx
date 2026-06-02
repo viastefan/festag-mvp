@@ -118,7 +118,7 @@ export default function DevMatchAnimation({ mode, candidates=[], matched=null, s
 
       {phase === 'scanning' && mode === 'pool' && (
         <p style={{ position:'absolute', bottom:24, left:'50%', transform:'translateX(-50%)', fontSize:13, color:'var(--text-muted)', textAlign:'center', margin:0, fontWeight:600 }}>
-          Veyra analysiert {candidates.length} Festag-Developer…
+          Tagro analysiert {candidates.length} Festag-Developer…
         </p>
       )}
       {phase === 'matched' && matched && mode === 'pool' && (

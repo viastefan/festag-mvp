@@ -12,7 +12,7 @@ import { createClient } from '@/lib/supabase/server'
  *   - nimmt die top 5 als plan_json
  *   - generiert ein focus_summary aus den Task-Titeln
  *
- * Veyra-Übersetzung in einen wirklich erklärenden Plan kommt im Folge-
+ * Tagro-Übersetzung in einen wirklich erklärenden Plan kommt im Folge-
  * schritt; diese Version ist die ehrliche Baseline (keine Hallu).
  */
 
@@ -66,7 +66,7 @@ export async function POST() {
       expected_outcome: t.description ? String(t.description).slice(0, 140) : null,
     }))
     const focusSummary = ranked.length === 0
-      ? 'Aktuell sind keine zugewiesenen Tasks offen. Veyra wartet auf den nächsten Briefing-Eingang.'
+      ? 'Aktuell sind keine zugewiesenen Tasks offen. Tagro wartet auf den nächsten Briefing-Eingang.'
       : `Heutiger Fokus: ${ranked.length} Tasks, Schwerpunkt liegt auf ${ranked[0].title}.`
 
     // Upsert für (developer, date, project=null) — ein zusammenfassender Plan pro Tag

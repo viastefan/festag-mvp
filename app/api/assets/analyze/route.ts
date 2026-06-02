@@ -29,7 +29,7 @@ type AnalyzeOutput = {
  * Body: { assetId: string }
  *
  * Reads the asset (image / external link / file metadata) + the parent
- * project's type and produces a structured analysis Veyra can hand to
+ * project's type and produces a structured analysis Tagro can hand to
  * the rest of the system. Persists to project_assets.analysis_result +
  * analyzed_at and sets status='analyzed'. Also drops an inbox item so
  * the client sees the new signal without polling.
@@ -123,7 +123,7 @@ export async function POST(req: NextRequest) {
         p_project_id: (asset as any).project_id,
         p_category: 'tagro',
         p_type: 'system_event',
-        p_title: `Veyra hat ein Asset analysiert: ${(asset as any).title}`,
+        p_title: `Tagro hat ein Asset analysiert: ${(asset as any).title}`,
         p_body: analysis.summary,
         p_actor_id: null,
         p_source_table: 'project_assets',
@@ -192,7 +192,7 @@ async function analyzeWithOpenAI({ apiKey, projectTitle, projectType, projectTyp
         response_format: { type: 'json_object' },
         max_tokens: 600,
         messages: [
-          { role: 'system', content: 'Du bist Veyra, AI-Orchestrator von Festag. Du analysierst Produktionsartefakte und übersetzt sie in operative Empfehlungen. Nur JSON ausgeben.' },
+          { role: 'system', content: 'Du bist Tagro, AI-Orchestrator von Festag. Du analysierst Produktionsartefakte und übersetzt sie in operative Empfehlungen. Nur JSON ausgeben.' },
           { role: 'user', content: userContent as any },
         ],
       }),
@@ -203,7 +203,7 @@ async function analyzeWithOpenAI({ apiKey, projectTitle, projectType, projectTyp
     if (!content) return null
     const parsed = JSON.parse(content) as Partial<AnalyzeOutput>
     return {
-      summary: String(parsed.summary || '').trim() || 'Veyra hat das Asset registriert, aber noch keine eindeutige Lesart.',
+      summary: String(parsed.summary || '').trim() || 'Tagro hat das Asset registriert, aber noch keine eindeutige Lesart.',
       project_area: String(parsed.project_area || '').trim() || asset.title,
       affected_roles: Array.isArray(parsed.affected_roles) ? parsed.affected_roles.filter(Boolean).slice(0, 6) as ExecutorRole[] : [],
       suggested_tasks: Array.isArray(parsed.suggested_tasks) ? parsed.suggested_tasks.slice(0, 6).map((t: any) => ({
@@ -240,7 +240,7 @@ function heuristicAnalysis(asset: any, projectType: ProjectType, suggestedRoles:
   if (kind === 'image' || kind === 'screenshot') tasks.push({ title: `${asset.title}: Screenshot zuordnen, fehlt etwas im Build?`, priority: 'medium', reason: 'Screenshots dokumentieren Bugs oder Feature-Lücken.' })
 
   return {
-    summary: `Veyra hat ${asset.title} (${kind}) gesichtet. Eine vollständige AI-Analyse läuft, sobald der OpenAI-Key gesetzt ist.`,
+    summary: `Tagro hat ${asset.title} (${kind}) gesichtet. Eine vollständige AI-Analyse läuft, sobald der OpenAI-Key gesetzt ist.`,
     project_area: asset.title,
     affected_roles: baseRoles,
     suggested_tasks: tasks,

@@ -145,7 +145,7 @@ function DocumentBuilder({ kind, workspaceId, clients, projects, onClose, onCrea
   const [brief, setBrief] = useState('')
   const [drafting, setDrafting] = useState(false)
 
-  async function draftWithVeyra() {
+  async function draftWithTagro() {
     if (!brief.trim() || drafting) return
     setDrafting(true); setError('')
     try {
@@ -194,11 +194,11 @@ function DocumentBuilder({ kind, workspaceId, clients, projects, onClose, onCrea
       </>}>
       <style>{BUILDER_CSS}</style>
 
-      {/* Veyra assistant — describe the document, Veyra fills the fields. */}
-      <div className="db-veyra">
-        <div className="db-veyra-head"><Sparkle size={13} weight="fill" /> Mit Veyra ausfüllen</div>
+      {/* Tagro assistant — describe the document, Tagro fills the fields. */}
+      <div className="db-tagro">
+        <div className="db-tagro-head"><Sparkle size={13} weight="fill" /> Mit Tagro ausfüllen</div>
         <textarea
-          className="db-input db-veyra-input"
+          className="db-input db-tagro-input"
           placeholder={kind === 'rechnung'
             ? 'z. B. „Rechnung an Anna Kipp-Menke für eine Praxis-Website, 2500 €, zahlbar in 14 Tagen."'
             : kind === 'angebot'
@@ -208,8 +208,8 @@ function DocumentBuilder({ kind, workspaceId, clients, projects, onClose, onCrea
           onChange={e => setBrief(e.target.value)}
           rows={2}
         />
-        <button type="button" className="db-veyra-btn" onClick={draftWithVeyra} disabled={drafting || !brief.trim()}>
-          {drafting ? 'Veyra füllt aus…' : 'Felder ausfüllen'}
+        <button type="button" className="db-tagro-btn" onClick={draftWithTagro} disabled={drafting || !brief.trim()}>
+          {drafting ? 'Tagro füllt aus…' : 'Felder ausfüllen'}
         </button>
       </div>
 
@@ -286,13 +286,13 @@ const CSS = `
    value is written directly on the surface with only a hairline underline that
    warms on focus. Calm, modern, minimal. Action buttons are 32px pills. */
 const BUILDER_CSS = `
-  .db-veyra { margin:0 0 18px; padding:0 0 16px; border-bottom:1px solid var(--border); }
-  .db-veyra-head { display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:600; letter-spacing:.04em; text-transform:uppercase; color:var(--btn-prim); margin-bottom:6px; }
-  .db-veyra-input { width:100%; border:0; background:transparent; color:var(--text); font-family:inherit; font-size:14.5px; line-height:1.55; resize:vertical; min-height:46px; padding:2px 0; }
-  .db-veyra-input:focus { outline:none; }
-  .db-veyra-input::placeholder { color:var(--text-muted); }
-  .db-veyra-btn { margin-top:8px; height:32px; padding:0 16px; border-radius:32px; border:0; background:var(--btn-prim); color:var(--btn-prim-text); font:inherit; font-size:12.5px; font-weight:500; cursor:pointer; }
-  .db-veyra-btn:disabled { opacity:.45; cursor:not-allowed; }
+  .db-tagro { margin:0 0 18px; padding:0 0 16px; border-bottom:1px solid var(--border); }
+  .db-tagro-head { display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:600; letter-spacing:.04em; text-transform:uppercase; color:var(--btn-prim); margin-bottom:6px; }
+  .db-tagro-input { width:100%; border:0; background:transparent; color:var(--text); font-family:inherit; font-size:14.5px; line-height:1.55; resize:vertical; min-height:46px; padding:2px 0; }
+  .db-tagro-input:focus { outline:none; }
+  .db-tagro-input::placeholder { color:var(--text-muted); }
+  .db-tagro-btn { margin-top:8px; height:32px; padding:0 16px; border-radius:32px; border:0; background:var(--btn-prim); color:var(--btn-prim-text); font:inherit; font-size:12.5px; font-weight:500; cursor:pointer; }
+  .db-tagro-btn:disabled { opacity:.45; cursor:not-allowed; }
 
   .db-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px 28px; margin-bottom:6px; }
   .db-field { display:flex; flex-direction:column; gap:2px; margin-bottom:14px; }

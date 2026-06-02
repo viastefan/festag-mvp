@@ -1,7 +1,7 @@
 'use client'
 
 /**
- * /dev/plan — Tägliche Veyra-Plan-Vorschau.
+ * /dev/plan — Tägliche Tagro-Plan-Vorschau.
  *
  * Erste, ehrliche Version: liest existierende Pläne für heute aus
  * `developer_daily_plans`. Wenn keiner existiert, zeigt ein Empty-State
@@ -99,7 +99,7 @@ export default function DevPlanPage() {
           <Hourglass size={20} style={{ marginBottom: 8 }} />
           <p style={{ margin: 0, fontSize: 13 }}>Für heute gibt es noch keinen Plan.</p>
           <p style={{ margin: '4px 0 0', fontSize: 11.5 }}>
-            Klick auf „Plan erzeugen" — Veyra liest deine zugewiesenen Tasks und die letzte GitHub-Aktivität.
+            Klick auf „Plan erzeugen" — Tagro liest deine zugewiesenen Tasks und die letzte GitHub-Aktivität.
           </p>
         </div>
       ) : (

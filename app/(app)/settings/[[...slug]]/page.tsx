@@ -1479,7 +1479,7 @@ export default function SettingsPage() {
               <div className="set-row set-row-stack">
                 <div>
                   <div className="set-label">Kurze Bio</div>
-                  <div className="set-label-sub">Ein bis zwei Sätze über dich. Veyra nutzt das als Kontext, wenn neue Mitwirkende dazukommen.</div>
+                  <div className="set-label-sub">Ein bis zwei Sätze über dich. Tagro nutzt das als Kontext, wenn neue Mitwirkende dazukommen.</div>
                 </div>
                 <textarea
                   className="set-input"
@@ -1498,7 +1498,7 @@ export default function SettingsPage() {
               <div className="set-row">
                 <div>
                   <div className="set-label">Zeitzone</div>
-                  <div className="set-label-sub">Beeinflusst, wann Veyra Daily-Notes und tägliche Briefings ausspielt.</div>
+                  <div className="set-label-sub">Beeinflusst, wann Tagro Daily-Notes und tägliche Briefings ausspielt.</div>
                 </div>
                 <select
                   className="set-select"
@@ -1519,7 +1519,7 @@ export default function SettingsPage() {
               <div className="set-row">
                 <div>
                   <div className="set-label">Sprache</div>
-                  <div className="set-label-sub">In welcher Sprache Veyra mit dir spricht.</div>
+                  <div className="set-label-sub">In welcher Sprache Tagro mit dir spricht.</div>
                 </div>
                 <div className="set-segment">
                   <button
@@ -1541,7 +1541,7 @@ export default function SettingsPage() {
               <div className="set-mini-card">
                 <div className="set-mini-title">Profilvollständigkeit</div>
                 <p className="set-mini-copy">
-                  Ein vollständiges Profil hilft Veyra bei Zuordnung, Kommunikation und Projektkontext.
+                  Ein vollständiges Profil hilft Tagro bei Zuordnung, Kommunikation und Projektkontext.
                 </p>
                 <div className="set-progress" aria-hidden="true">
                   <span style={{ width: `${profileCompletionPct}%` }} />
@@ -1719,7 +1719,7 @@ export default function SettingsPage() {
                 <div>
                   <div className="set-label">Einführung erneut starten</div>
                   <div className="set-label-sub">
-                    Spielt die kurze Tour ab, die Dashboard, Projekte, Statusabfrage, Veyra und Teams erklärt. Bestehende Daten bleiben unberührt.
+                    Spielt die kurze Tour ab, die Dashboard, Projekte, Statusabfrage, Tagro und Teams erklärt. Bestehende Daten bleiben unberührt.
                   </div>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'flex-start', width: '100%' }}>
@@ -1751,7 +1751,7 @@ export default function SettingsPage() {
                 <div>
                   <div className="set-label">Konto löschen</div>
                   <div className="set-label-sub">
-                    Beendet deinen Festag-Zugang endgültig. Workspaces, Projekte, Briefings, Inbox-Items und Veyra-Memory werden mitgelöscht. Diese Aktion ist nicht rückgängig zu machen.
+                    Beendet deinen Festag-Zugang endgültig. Workspaces, Projekte, Briefings, Inbox-Items und Tagro-Memory werden mitgelöscht. Diese Aktion ist nicht rückgängig zu machen.
                   </div>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'flex-start', width: '100%' }}>
@@ -1773,7 +1773,7 @@ export default function SettingsPage() {
             <div className="set-row">
               <div>
                 <div className="set-label">E-Mail-Benachrichtigungen</div>
-                <div className="set-label-sub">Veyra-Updates, Aufgaben, Projektbriefings.</div>
+                <div className="set-label-sub">Tagro-Updates, Aufgaben, Projektbriefings.</div>
               </div>
               <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                 <button
@@ -1842,7 +1842,7 @@ export default function SettingsPage() {
               ]
             : [
                 { label: 'Eigenes Team hinzufügen', desc: 'Lade Co-Founder, Approver, Finance oder Viewer in dein Projekt ein.' },
-                { label: 'Briefing-Zustellung aktivieren', desc: 'Veyra schickt dein Projektbriefing automatisch per E-Mail oder Voice.' },
+                { label: 'Briefing-Zustellung aktivieren', desc: 'Tagro schickt dein Projektbriefing automatisch per E-Mail oder Voice.' },
                 { label: 'Neuen Team Workspace erstellen', desc: 'Falls du langfristig eigene Projekte und Entwickler steuern möchtest.' },
               ]
           return (
@@ -2106,7 +2106,7 @@ export default function SettingsPage() {
             <div className="set-row set-row-stack">
               <div>
                 <div className="set-label">Beschreibung</div>
-                <div className="set-label-sub">Kurze Beschreibung, die Veyra für Kontext nutzt.</div>
+                <div className="set-label-sub">Kurze Beschreibung, die Tagro für Kontext nutzt.</div>
               </div>
               <textarea
                 className="set-input"
@@ -2127,7 +2127,7 @@ export default function SettingsPage() {
                 <div>
                   <div className="set-label">Briefing & Voice Reports</div>
                   <div className="set-label-sub">
-                    Veyra Briefings sind das tägliche Kontrollsystem für Softwareprojekte. API-basierte Voice Reports werden separat kalkuliert; ein ChatGPT-Abo deckt die Festag-App-API nicht automatisch ab.
+                    Tagro Briefings sind das tägliche Kontrollsystem für Softwareprojekte. API-basierte Voice Reports werden separat kalkuliert; ein ChatGPT-Abo deckt die Festag-App-API nicht automatisch ab.
                   </div>
                 </div>
                 <div className="set-value" style={{ textAlign: 'right' }}>Growth Care / Business</div>
@@ -2579,7 +2579,7 @@ function AccountDeleteModal({ onClose }: { onClose: () => void }) {
             <h2 className="acc-del-title">Endgültig löschen?</h2>
             <p className="acc-del-sub">
               Mit dem Klick auf „Endgültig löschen" werden dein Konto, alle Workspaces, Projekte,
-              Briefings, Inbox-Items, Dateien und Veyra-Memory unwiderruflich entfernt. Niemand kann
+              Briefings, Inbox-Items, Dateien und Tagro-Memory unwiderruflich entfernt. Niemand kann
               das danach zurückholen — auch Festag nicht.
             </p>
             <div className="acc-del-warning">

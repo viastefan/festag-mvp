@@ -33,7 +33,7 @@ const iconMap: Record<string, React.ElementType> = {
   Projekte: FolderSimple,
   'Aufgaben & operative Arbeit': CheckSquare,
   Statusabfragen: ChartLineUp,
-  'Veyra AI': Sparkle,
+  'Tagro AI': Sparkle,
   'Reports & Briefings': Headphones,
   'Teams & Rollen': UsersThree,
   'Whitelabel & Agenturen': Briefcase,
@@ -198,7 +198,7 @@ function HomeView({
     <div className="docs-home">
       <section className="docs-hero">
         <h1>Festag Docs</h1>
-        <p>Lerne, wie Festag Projekte, Teams, Statusabfragen und Veyra-Briefings klar strukturiert.</p>
+        <p>Lerne, wie Festag Projekte, Teams, Statusabfragen und Tagro-Briefings klar strukturiert.</p>
       </section>
 
       {!hasResults ? (

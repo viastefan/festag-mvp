@@ -11,13 +11,13 @@
  * Three submit paths reflect Festag's note value-loop:
  *
  *   1. "Anlegen"             — saves a plain note, opens the drawer.
- *   2. "Mit Veyra analysieren" — saves AND immediately runs
+ *   2. "Mit Tagro analysieren" — saves AND immediately runs
  *      /api/notes/[id]/suggest so the drawer opens with themes,
  *      possible tasks, follow-ups and risks pre-loaded.
- *   3. "An Veyra übergeben"  — saves AND routes to /ai with the
+ *   3. "An Tagro übergeben"  — saves AND routes to /ai with the
  *      note prefilled as the first message context.
  *
- * Note types shape Veyra's behaviour: brief = spawn tasks aggressively,
+ * Note types shape Tagro's behaviour: brief = spawn tasks aggressively,
  * journal = mostly themes, meeting = follow-ups, research = risks.
  */
 
@@ -30,10 +30,10 @@ import {
 type NoteType = 'journal' | 'brief' | 'meeting' | 'research'
 
 const NOTE_TYPES: { id: NoteType; label: string; icon: any; hint: string }[] = [
-  { id: 'journal',  label: 'Journal',  icon: Notepad,    hint: 'Lose Gedanken — Veyra sammelt Themen' },
-  { id: 'brief',    label: 'Brief',    icon: Cards,      hint: 'Auftrag oder Spec — Veyra spawnt Tasks' },
-  { id: 'meeting',  label: 'Meeting',  icon: Microphone, hint: 'Protokoll — Veyra zieht Folgepunkte' },
-  { id: 'research', label: 'Research', icon: Books,      hint: 'Recherche — Veyra destilliert Risiken' },
+  { id: 'journal',  label: 'Journal',  icon: Notepad,    hint: 'Lose Gedanken — Tagro sammelt Themen' },
+  { id: 'brief',    label: 'Brief',    icon: Cards,      hint: 'Auftrag oder Spec — Tagro spawnt Tasks' },
+  { id: 'meeting',  label: 'Meeting',  icon: Microphone, hint: 'Protokoll — Tagro zieht Folgepunkte' },
+  { id: 'research', label: 'Research', icon: Books,      hint: 'Recherche — Tagro destilliert Risiken' },
 ]
 
 type ProjectLite = { id: string; title: string; color?: string | null }
@@ -113,7 +113,7 @@ export default function NewNoteModal({ projects, defaultProjectId, onCreated, on
 
       // 3. Per-mode follow-up
       if (mode === 'tagro') {
-        // Trigger Veyra analysis in the background — the drawer opens
+        // Trigger Tagro analysis in the background — the drawer opens
         // and re-fetches with the new tagro_suggestions populated.
         await fetch(`/api/notes/${note.id}/suggest`, { method: 'POST', credentials: 'include' })
         onCreated(note.id)
@@ -171,7 +171,7 @@ export default function NewNoteModal({ projects, defaultProjectId, onCreated, on
           </section>
 
           <section className="nnm-section">
-            <p className="nnm-label">Typ — bestimmt, wie Veyra liest</p>
+            <p className="nnm-label">Typ — bestimmt, wie Tagro liest</p>
             <div className="nnm-type-grid">
               {NOTE_TYPES.map(t => {
                 const Icon = t.icon
@@ -242,20 +242,20 @@ export default function NewNoteModal({ projects, defaultProjectId, onCreated, on
               className="nnm-btn ghost"
               onClick={() => submit('handoff')}
               disabled={!!submitting || !title.trim()}
-              title="Speichert die Notiz und übergibt sie als Kontext an Veyra Chat"
+              title="Speichert die Notiz und übergibt sie als Kontext an Tagro Chat"
             >
               <ArrowSquareOut size={12} />
-              {submitting === 'handoff' ? 'Übergibt…' : 'An Veyra übergeben'}
+              {submitting === 'handoff' ? 'Übergibt…' : 'An Tagro übergeben'}
             </button>
             <button
               type="button"
               className="nnm-btn ghost"
               onClick={() => submit('tagro')}
               disabled={!!submitting || !title.trim()}
-              title="Speichert die Notiz und lässt Veyra Themen, Tasks und Risiken vorschlagen"
+              title="Speichert die Notiz und lässt Tagro Themen, Tasks und Risiken vorschlagen"
             >
               <Sparkle size={12} weight="fill" />
-              {submitting === 'tagro' ? 'Veyra liest…' : 'Mit Veyra analysieren'}
+              {submitting === 'tagro' ? 'Tagro liest…' : 'Mit Tagro analysieren'}
             </button>
             <button
               type="button"

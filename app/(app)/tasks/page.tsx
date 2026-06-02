@@ -63,7 +63,7 @@ type ProjectRow = {
   color?: string | null
 }
 
-type VeyraPreview = {
+type TagroPreview = {
   client_summary?: string
   suggested_title?: string
   suggested_description?: string
@@ -175,7 +175,7 @@ function healthLabel(task: TaskRow) {
   if (raw === 'waiting_for_assignment') return 'Wartet auf Zuweisung'
   if (normalized === 'decision') return 'Wartet auf deine Entscheidung'
   if (normalized === 'active') return 'Entwickler arbeitet daran'
-  return 'Veyra hat die Aufgabe geplant'
+  return 'Tagro hat die Aufgabe geplant'
 }
 
 function priorityLabel(priority?: string | null) {
@@ -189,7 +189,7 @@ function priorityLabel(priority?: string | null) {
 
 function sourceLabel(source?: string | null) {
   if (source === 'client_manual') return 'Manuell erstellt'
-  if (source === 'client_tagro') return 'Von Veyra vorbereitet'
+  if (source === 'client_tagro') return 'Von Tagro vorbereitet'
   if (source === 'status_report') return 'Aus Statusbericht'
   if (source === 'decision') return 'Aus Entscheidung'
   if (source === 'admin' || source === 'developer') return 'Vom Projektteam'
@@ -232,7 +232,7 @@ export default function TasksPage() {
   const [suggestLabels, setSuggestLabels] = useState<string[]>([])
   const [creatingSuggestion, setCreatingSuggestion] = useState(false)
   const [composerNotice, setComposerNotice] = useState('')
-  const [tagroPreview, setVeyraPreview] = useState<VeyraPreview | null>(null)
+  const [tagroPreview, setTagroPreview] = useState<TagroPreview | null>(null)
   const [activeStatePopoverTaskId, setActiveStatePopoverTaskId] = useState<string | null>(null)
   const [statePopoverAnchor, setStatePopoverAnchor] = useState<{ left: number; top: number } | null>(null)
   const taskToolsRef = useRef<HTMLDivElement | null>(null)
@@ -417,7 +417,7 @@ export default function TasksPage() {
     setSuggestLabels([])
     setComposerMode('tagro')
     setComposerNotice('')
-    setVeyraPreview(null)
+    setTagroPreview(null)
   }
 
   function closeComposer() {
@@ -491,7 +491,7 @@ export default function TasksPage() {
                 onClick={(event) => event.stopPropagation()}
               >
                 <strong>So funktioniert Erledigt</strong>
-                <span>Veyra oder der Developer haken Aufgaben ab. Erledigte Aufgaben bleiben 24h sichtbar und verschwinden dann nur aus Standardansichten. Eigene Aufgaben kannst du löschen.</span>
+                <span>Tagro oder der Developer haken Aufgaben ab. Erledigte Aufgaben bleiben 24h sichtbar und verschwinden dann nur aus Standardansichten. Eigene Aufgaben kannst du löschen.</span>
               </span>
             ) : null}
           </span>
@@ -571,7 +571,7 @@ export default function TasksPage() {
       }
 
       if (composerMode === 'tagro' && (!tagroPreview || options.regenerate) && result.proposal) {
-        setVeyraPreview(result.proposal)
+        setTagroPreview(result.proposal)
         return
       }
 
@@ -2006,7 +2006,7 @@ export default function TasksPage() {
             icon={ListChecks}
             kicker="Aufgaben"
             title="Noch kein Projekt vorhanden"
-            description="Aufgaben entstehen innerhalb eines Projekts. Lege zuerst ein Projekt an oder starte ein Briefing mit Veyra."
+            description="Aufgaben entstehen innerhalb eines Projekts. Lege zuerst ein Projekt an oder starte ein Briefing mit Tagro."
             actions={[
               { label: 'Erstes Projekt anlegen', icon: Plus, primary: true, href: '/new-project' },
               { label: 'Projektbriefing starten', icon: Sparkle, href: '/ai' },
@@ -2042,7 +2042,7 @@ export default function TasksPage() {
               <span style={{ color:'var(--task-soft-text)', fontSize:12 }}>›</span>
               <span className="task-composer-title">
                 <strong>Aufgabe oder Wunsch vorschlagen</strong>
-                <span>Kurz beschreiben, Veyra ordnet ein.</span>
+                <span>Kurz beschreiben, Tagro ordnet ein.</span>
               </span>
             </div>
             <button className="task-plus" type="button" aria-label="Vorschlag schließen" onClick={closeComposer}>
@@ -2052,17 +2052,17 @@ export default function TasksPage() {
 
           <div className="task-composer-body">
             <div className="task-mode-tabs" role="tablist" aria-label="Vorschlagmodus">
-              <button type="button" className={composerMode === 'tagro' ? 'on' : ''} onClick={() => { setComposerMode('tagro'); setVeyraPreview(null); setComposerNotice('') }}>
-                Mit Veyra prüfen
+              <button type="button" className={composerMode === 'tagro' ? 'on' : ''} onClick={() => { setComposerMode('tagro'); setTagroPreview(null); setComposerNotice('') }}>
+                Mit Tagro prüfen
               </button>
-              <button type="button" className={composerMode === 'manual' ? 'on' : ''} onClick={() => { setComposerMode('manual'); setVeyraPreview(null); setComposerNotice('') }}>
+              <button type="button" className={composerMode === 'manual' ? 'on' : ''} onClick={() => { setComposerMode('manual'); setTagroPreview(null); setComposerNotice('') }}>
                 Manuell
               </button>
             </div>
 
             {composerMode === 'tagro' && (
               <div className="task-tagro-note">
-                Veyra prüft Kontext und Übergabe.
+                Tagro prüft Kontext und Übergabe.
               </div>
             )}
             {composerMode === 'manual' && (
@@ -2075,7 +2075,7 @@ export default function TasksPage() {
               <div className="task-preview">
                 <span className="task-preview-avatar">V</span>
                 <div className="task-preview-bubble">
-                  <span className="task-preview-kicker">Veyra Vorschlag</span>
+                  <span className="task-preview-kicker">Tagro Vorschlag</span>
                   <strong>{tagroPreview.suggested_title || 'Geprüfte Aufgabe'}</strong>
                   <p>{tagroPreview.client_summary || tagroPreview.suggested_description}</p>
                   {tagroPreview.possible_dev_interpretation ? <p>Mögliche Umsetzung: {tagroPreview.possible_dev_interpretation}</p> : null}
@@ -2088,7 +2088,7 @@ export default function TasksPage() {
                     <p>Risiko: {tagroPreview.risks.slice(0, 2).join(' · ')}</p>
                   ) : null}
                   <div className="task-preview-actions">
-                    <button type="button" onClick={() => { setVeyraPreview(null); setComposerNotice('Vorschlag verworfen. Du kannst den Text anpassen oder neu prüfen lassen.') }}>
+                    <button type="button" onClick={() => { setTagroPreview(null); setComposerNotice('Vorschlag verworfen. Du kannst den Text anpassen oder neu prüfen lassen.') }}>
                       Ablehnen
                     </button>
                     <button type="button" onClick={() => createSuggestedTask({ regenerate: true })} disabled={creatingSuggestion}>
@@ -2105,14 +2105,14 @@ export default function TasksPage() {
             <input
               className="task-composer-field title"
               value={suggestTitle}
-              onChange={(event) => { setSuggestTitle(event.target.value); setVeyraPreview(null) }}
+              onChange={(event) => { setSuggestTitle(event.target.value); setTagroPreview(null) }}
               placeholder="Aufgabe kurz benennen…"
               autoFocus
             />
             <textarea
               className="task-composer-field description"
               value={suggestDescription}
-              onChange={(event) => { setSuggestDescription(event.target.value); setVeyraPreview(null) }}
+              onChange={(event) => { setSuggestDescription(event.target.value); setTagroPreview(null) }}
               placeholder="Beschreibe Ziel, Kontext oder gewünschte Änderung…"
             />
           </div>
@@ -2166,7 +2166,7 @@ export default function TasksPage() {
           </div>
 
           <div className="task-composer-footer">
-            <span>{composerMode === 'tagro' ? 'Veyra prüft Kontext und Übergabe.' : 'Wartet ggf. auf Zuweisung.'}</span>
+            <span>{composerMode === 'tagro' ? 'Tagro prüft Kontext und Übergabe.' : 'Wartet ggf. auf Zuweisung.'}</span>
             <div className="task-composer-actions">
               <button type="button" onClick={closeComposer}>Abbrechen</button>
               <button
@@ -2175,7 +2175,7 @@ export default function TasksPage() {
                 onClick={() => createSuggestedTask()}
                 disabled={creatingSuggestion || !suggestProjectId || (!suggestTitle.trim() && !suggestDescription.trim())}
               >
-                {creatingSuggestion ? 'Sende...' : composerMode === 'tagro' ? (tagroPreview ? 'Vorschlag übernehmen' : 'Mit Veyra vorbereiten') : 'Manuell erstellen'}
+                {creatingSuggestion ? 'Sende...' : composerMode === 'tagro' ? (tagroPreview ? 'Vorschlag übernehmen' : 'Mit Tagro vorbereiten') : 'Manuell erstellen'}
               </button>
             </div>
           </div>

@@ -196,7 +196,7 @@ export default function ProjectCreationIntroAnimation({
           <div className="pci-footer">
             <button type="button">Abbrechen</button>
             <button className={ctaActive ? 'is-active' : ''} type="button">
-              Mit Veyra schreiben
+              Mit Tagro schreiben
               <ArrowRight size={16} />
             </button>
           </div>

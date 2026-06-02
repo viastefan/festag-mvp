@@ -110,7 +110,7 @@ export default function MilestoneChart({
           </div>
         ) : (
           <div style={{ padding:'10px 14px', background:'rgba(106,115,140,.08)', border:'1px solid rgba(106,115,140,.2)', borderRadius:11, marginBottom:14 }}>
-            <p style={{ fontSize:12.5, color:'var(--text)', margin:0 }}>🎉 Alle Meilensteine bezahlt — Veyra arbeitet auf Hochtouren.</p>
+            <p style={{ fontSize:12.5, color:'var(--text)', margin:0 }}>🎉 Alle Meilensteine bezahlt — Tagro arbeitet auf Hochtouren.</p>
           </div>
         )}
 

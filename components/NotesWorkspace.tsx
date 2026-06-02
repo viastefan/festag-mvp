@@ -157,11 +157,11 @@ export default function NotesWorkspace() {
     setNotes(current => current.map(item => item.id === note.id ? { ...item, status: next } : item))
   }
 
-  async function generateWithVeyra() {
+  async function generateWithTagro() {
     setGenerating(true)
     await new Promise(resolve => setTimeout(resolve, 900))
     setNTitle('Projektanalyse - ' + new Date().toLocaleDateString('de-DE', { day: '2-digit', month: 'short' }))
-    setNContent('Veyra hat folgende Punkte aus dem aktuellen Projektstatus zusammengefasst:\n\n- Aktueller Fortschritt läuft planmäßig\n- Nächster Milestone steht an\n- Offene Fragen wurden identifiziert\n\nBitte prüfen und ergänzen.')
+    setNContent('Tagro hat folgende Punkte aus dem aktuellen Projektstatus zusammengefasst:\n\n- Aktueller Fortschritt läuft planmäßig\n- Nächster Milestone steht an\n- Offene Fragen wurden identifiziert\n\nBitte prüfen und ergänzen.')
     setNShared(false)
     setGenerating(false)
   }
@@ -840,9 +840,9 @@ export default function NotesWorkspace() {
               </button>
               <input className="notes-date" type="date" value={nDue} onChange={event => setNDue(event.target.value)} />
               {!editNote && (
-                <button className="notes-option" type="button" onClick={generateWithVeyra} disabled={generating}>
+                <button className="notes-option" type="button" onClick={generateWithTagro} disabled={generating}>
                   <Sparkle size={12} weight="regular" />
-                  {generating ? 'Veyra schreibt...' : 'Veyra'}
+                  {generating ? 'Tagro schreibt...' : 'Tagro'}
                 </button>
               )}
             </div>

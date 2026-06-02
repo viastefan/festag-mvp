@@ -147,7 +147,7 @@ export default function AssetsPanel({ projectId, workspaceId }: { projectId: str
         title: t.title.slice(0, 240),
         status: 'suggested',
         priority: t.priority,
-        description: `Aus Veyra Asset-Analyse abgeleitet.\n\nGrund: ${t.reason}`,
+        description: `Aus Tagro Asset-Analyse abgeleitet.\n\nGrund: ${t.reason}`,
       })
       if (error) throw error
       setTaskState(prev => ({ ...prev, [key]: 'done' }))
@@ -173,7 +173,7 @@ export default function AssetsPanel({ projectId, workspaceId }: { projectId: str
     return () => { cancelled = true }
   }, [supabase, projectId])
 
-  // Fires the Veyra analyzer in the background and patches the local row
+  // Fires the Tagro analyzer in the background and patches the local row
   // with analysis_result + analyzed_at when it returns. Failures are silent.
   async function runAnalysis(assetId: string) {
     setItems(prev => prev.map(a => a.id === assetId ? { ...a, status: a.status === 'uploaded' ? a.status : a.status } : a))
@@ -287,7 +287,7 @@ export default function AssetsPanel({ projectId, workspaceId }: { projectId: str
         <div>
           <p className="ap-kicker">Produktionsartefakte</p>
           <h2 className="ap-title">Assets</h2>
-          <p className="ap-sub">Designs, Figma-Frames, Looms, Docs, Screenshots. Veyra analysiert hochgeladene Artefakte und verknüpft sie mit Tasks und Briefings.</p>
+          <p className="ap-sub">Designs, Figma-Frames, Looms, Docs, Screenshots. Tagro analysiert hochgeladene Artefakte und verknüpft sie mit Tasks und Briefings.</p>
         </div>
         <div className="ap-actions">
           <button type="button" className="ap-btn ap-btn-primary" onClick={() => setComposer('upload')}>
@@ -309,7 +309,7 @@ export default function AssetsPanel({ projectId, workspaceId }: { projectId: str
           <p className="ap-empty-title">Noch keine Assets in diesem Projekt</p>
           <p className="ap-empty-sub">
             Lade Designs hoch, paste Figma- oder Loom-Links rein, oder hänge PDFs an.<br />
-            Veyra erkennt automatisch worum es geht und schlägt passende Tasks vor.
+            Tagro erkennt automatisch worum es geht und schlägt passende Tasks vor.
           </p>
           <div className="ap-empty-actions">
             <button type="button" className="ap-chip" onClick={() => setComposer('upload')}><Upload size={13} /> Datei hochladen</button>
@@ -340,8 +340,8 @@ export default function AssetsPanel({ projectId, workspaceId }: { projectId: str
                       {asset.kind === 'figma' && <span className="ap-tag ap-tag-mute">Figma</span>}
                       {asset.kind === 'loom' && <span className="ap-tag ap-tag-mute">Loom</span>}
                       {asset.kind === 'pdf' && <span className="ap-tag ap-tag-mute">PDF</span>}
-                      {an && <span className="ap-tag ap-tag-tagro"><Sparkle size={9} weight="fill" /> Veyra analysiert</span>}
-                      {analyzing && <span className="ap-tag ap-tag-mute">Veyra analysiert…</span>}
+                      {an && <span className="ap-tag ap-tag-tagro"><Sparkle size={9} weight="fill" /> Tagro analysiert</span>}
+                      {analyzing && <span className="ap-tag ap-tag-mute">Tagro analysiert…</span>}
                     </div>
                     {asset.description && <p className="ap-desc">{asset.description}</p>}
                     {an?.summary && <p className="ap-desc ap-desc-tagro">{an.summary}</p>}
@@ -551,7 +551,7 @@ function AssetComposer({
             className="ac-input"
             value={description}
             onChange={e => setDescription(e.target.value)}
-            placeholder="Kontext, was Veyra wissen sollte (optional)"
+            placeholder="Kontext, was Tagro wissen sollte (optional)"
             rows={2}
           />
         </label>
@@ -684,7 +684,7 @@ const ASSETS_CSS = `
     border-left: 2px solid color-mix(in srgb, #D97706 60%, transparent);
   }
 
-  /* Veyra Analysis */
+  /* Tagro Analysis */
   .ap-analysis {
     display: flex; flex-direction: column; gap: 12px;
     padding: 14px 16px 16px;

@@ -3,7 +3,7 @@
 import { FormEvent, KeyboardEvent, useRef, useState } from 'react'
 import { ArrowUp, Plus } from '@phosphor-icons/react'
 
-type VeyraPromptComposerProps = {
+type TagroPromptComposerProps = {
   placeholder?: string
   mode?: string
   onSubmit: (value: string, mode?: string) => void | Promise<void>
@@ -16,8 +16,8 @@ type VeyraPromptComposerProps = {
   modes?: string[]
 }
 
-export default function VeyraPromptComposer({
-  placeholder = 'Beschreibe deine Idee oder frage Veyra...',
+export default function TagroPromptComposer({
+  placeholder = 'Beschreibe deine Idee oder frage Tagro...',
   mode = 'Standard',
   onSubmit,
   showPlus = true,
@@ -27,7 +27,7 @@ export default function VeyraPromptComposer({
   loading = false,
   initialValue = '',
   modes = ['Standard', 'Projekt', 'Task', 'Briefing'],
-}: VeyraPromptComposerProps) {
+}: TagroPromptComposerProps) {
   const [value, setValue] = useState(initialValue)
   const [selectedMode, setSelectedMode] = useState(mode)
   const textareaRef = useRef<HTMLTextAreaElement | null>(null)
@@ -148,11 +148,11 @@ export default function VeyraPromptComposer({
           onKeyDown={onKeyDown}
         />
         {showModeSelect && (
-          <select className="tagro-composer-mode" value={selectedMode} onChange={(event) => setSelectedMode(event.target.value)} aria-label="Veyra Modus">
+          <select className="tagro-composer-mode" value={selectedMode} onChange={(event) => setSelectedMode(event.target.value)} aria-label="Tagro Modus">
             {modes.map((item) => <option key={item} value={item}>{item}</option>)}
           </select>
         )}
-        <button className="tagro-composer-send" type="submit" disabled={!canSend} aria-label="An Veyra senden">
+        <button className="tagro-composer-send" type="submit" disabled={!canSend} aria-label="An Tagro senden">
           {loading ? '…' : <ArrowUp size={18} weight="bold" />}
         </button>
       </div>

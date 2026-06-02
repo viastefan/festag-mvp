@@ -11,7 +11,7 @@ import { translateDevUpdate } from '@/lib/tagro/translate-update'
  * Persists the developer's daily status:
  *   • marks the matching `dev_daily_prompts` row as submitted / skipped
  *   • inserts a `developer_updates` row (the raw text — internal only)
- *   • runs the raw note through Veyra's LLM translation
+ *   • runs the raw note through Tagro's LLM translation
  *     (lib/tagro/translate-update → OpenAI, heuristic fallback when no key)
  *   • writes a calm, client-safe `status_reports` row
  *   • notifies the client's project owner
@@ -75,7 +75,7 @@ export async function POST(req: Request) {
     }).select('*').single()
     if (duErr) return NextResponse.json({ error: duErr.message, stage: 'dev_update' }, { status: 400 })
 
-    // 2) Veyra translates the raw note → calm, client-safe status_report.
+    // 2) Tagro translates the raw note → calm, client-safe status_report.
     // Written through the service role so RLS doesn't block the client
     // from seeing it via the project policy.
     let projectTitle: string | null = null
@@ -119,7 +119,7 @@ export async function POST(req: Request) {
       }).select('id').maybeSingle()
       clientReportId = (reportRow as any)?.id ?? null
 
-      // Audit the Veyra run so the translation has a trace.
+      // Audit the Tagro run so the translation has a trace.
       await sb.from('tagro_runs').insert({
         project_id: effectiveProjectId,
         run_type: 'status_translation',
@@ -154,8 +154,8 @@ export async function POST(req: Request) {
           kind: 'tagro_daily_status',
           type: 'tagro_daily_status',
           title: projectTitle ? `${projectTitle} · neuer Stand` : 'Neuer Tagesstand',
-          body: 'Veyra hat den heutigen Stand übersetzt — kannst du im Workspace einsehen.',
-          message: 'Veyra hat den heutigen Stand übersetzt — kannst du im Workspace einsehen.',
+          body: 'Tagro hat den heutigen Stand übersetzt — kannst du im Workspace einsehen.',
+          message: 'Tagro hat den heutigen Stand übersetzt — kannst du im Workspace einsehen.',
           link: `/reports?project=${effectiveProjectId}`,
           payload: { source: 'daily_update', statusReportId: clientReportId },
           read: false,

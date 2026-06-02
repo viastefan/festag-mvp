@@ -253,7 +253,7 @@ export default function EstimatorPage() {
             {loading ? (
               <>
                 <span style={{ width: 18, height: 18, border: '2.5px solid rgba(128,128,128,.35)', borderTopColor: 'currentColor', borderRadius: '50%', animation: 'spin .7s linear infinite' }} />
-                Veyra schätzt…
+                Tagro schätzt…
               </>
             ) : result ? (
               '← Neue Schätzung'
@@ -360,7 +360,7 @@ export default function EstimatorPage() {
             <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 8, padding: '18px 20px', display: 'flex', gap: 14, alignItems: 'center' }}>
               <div style={{ flex: 1 }}>
                 <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)', margin: '0 0 4px' }}>Bereit dein Projekt zu starten?</p>
-                <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: 0 }}>Veyra begleitet dich durch den gesamten Entwicklungsprozess.</p>
+                <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: 0 }}>Tagro begleitet dich durch den gesamten Entwicklungsprozess.</p>
               </div>
               <Link href="/projects?new=1" style={{ textDecoration: 'none', flexShrink: 0 }}>
                 <button className="tap-scale" style={{ height: 42, padding: '0 20px', background: 'var(--btn-prim)', color: 'var(--btn-prim-text)', border: 'none', borderRadius: 12, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>

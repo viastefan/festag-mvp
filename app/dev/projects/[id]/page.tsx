@@ -140,7 +140,7 @@ export default function DevProjectDetailPage() {
   // Mirror profiles into a ref so the realtime callback never reads a stale map.
   useEffect(() => { profilesRef.current = profiles }, [profiles])
 
-  // Realtime — client / Veyra / co-dev messages on this project land instantly.
+  // Realtime — client / Tagro / co-dev messages on this project land instantly.
   useEffect(() => {
     if (!projectId) return
     const channel = supabase
@@ -174,7 +174,7 @@ export default function DevProjectDetailPage() {
     return 'dev'
   }
   function senderName(m: Message): string {
-    if (m.is_ai) return 'Veyra'
+    if (m.is_ai) return 'Tagro'
     const p = profiles[m.sender_id]
     return p?.full_name || p?.email || (m.sender_id === me ? 'Du' : 'Developer')
   }

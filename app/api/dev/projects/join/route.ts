@@ -97,7 +97,7 @@ export async function POST(req: NextRequest) {
 
   if (clientId) {
     // Celebration trigger — the client's dashboard reads the newest unread
-    // notification of this kind and plays the dev-photo + Veyra animation.
+    // notification of this kind and plays the dev-photo + Tagro animation.
     await (service as any).from('notifications').insert({
       user_id: clientId,
       project_id: projectId,
@@ -124,7 +124,7 @@ export async function POST(req: NextRequest) {
       const projectUrl = `${base}/project/${projectId}`
       const guaranteeUrl = `${base}/docs/festag-garantie`
 
-      // Three structured inbox items — accepted, next steps, Veyra intro —
+      // Three structured inbox items — accepted, next steps, Tagro intro —
       // mirrored by three emails, plus the Festag-Garantie note. All
       // best-effort; the assignment itself already succeeded.
       const mkItem = (sourceId: string, category: string, type: string, title: string, body: string, extra: Record<string, unknown> = {}) =>
@@ -155,15 +155,15 @@ export async function POST(req: NextRequest) {
       await Promise.allSettled([
         mkItem('accepted', 'project', 'project_event',
           'Dein Projekt ist startklar',
-          `${displayName} hat „${projectTitle}" angenommen und beginnt mit der Umsetzung. Veyra begleitet jeden Schritt für dich — verständlich, ohne Fachjargon.`,
+          `${displayName} hat „${projectTitle}" angenommen und beginnt mit der Umsetzung. Tagro begleitet jeden Schritt für dich — verständlich, ohne Fachjargon.`,
           { cta_label: 'Projekt öffnen', cta_url: projectUrl }),
         mkItem('next-steps', 'project', 'project_event',
           'So geht es jetzt weiter',
-          `Veyra strukturiert das Briefing in klare Schritte. Du musst nichts Technisches lesen — du bekommst ruhige Statusberichte, sobald es etwas Neues gibt.`,
+          `Tagro strukturiert das Briefing in klare Schritte. Du musst nichts Technisches lesen — du bekommst ruhige Statusberichte, sobald es etwas Neues gibt.`,
           { cta_label: 'Projekt öffnen', cta_url: projectUrl }),
         mkItem('tagro-intro', 'system', 'system_event',
-          'Veyra ist für dich da',
-          `Fragen zum Projekt? Stell sie jederzeit im Veyra-Chat des Projekts. Veyra übersetzt zwischen dir und dem Entwickler und hält dich ruhig auf dem Laufenden.`),
+          'Tagro ist für dich da',
+          `Fragen zum Projekt? Stell sie jederzeit im Tagro-Chat des Projekts. Tagro übersetzt zwischen dir und dem Entwickler und hält dich ruhig auf dem Laufenden.`),
         mkItem('guarantee', 'system', 'system_event',
           'Die Festag-Garantie',
           `Jedes Festag-Projekt ist durch die Festag-Garantie abgesichert: geprüfte Arbeit, klare Verantwortlichkeit und ein verlässlicher Ablauf. Die Details findest du im verlinkten Artikel.`,

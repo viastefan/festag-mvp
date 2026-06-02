@@ -163,7 +163,7 @@ export default function MitbeobachterArticle() {
           </div>
           <div className="obs-card">
             <h4>Briefings automatisch</h4>
-            <p>Veyra schickt zusammengefasste Updates, ohne dass du Mails tippst.</p>
+            <p>Tagro schickt zusammengefasste Updates, ohne dass du Mails tippst.</p>
           </div>
           <div className="obs-card">
             <h4>Nicht in deine Daten</h4>
@@ -186,7 +186,7 @@ export default function MitbeobachterArticle() {
           <div className="obs-step">
             <span className="obs-step-num">3</span>
             <h5>Mitlaufen</h5>
-            <p>Veyra hält still informiert, du arbeitest weiter.</p>
+            <p>Tagro hält still informiert, du arbeitest weiter.</p>
           </div>
         </div>
 
@@ -211,7 +211,7 @@ export default function MitbeobachterArticle() {
 
         <h2 id="privacy">Privatsphäre &amp; Vertrauen</h2>
         <p>
-          Mitwirkende sehen exakt das, was du freigegeben hast. Andere Projekte? Unsichtbar. Interne Veyra-Notizen? Versteckt. Dev-Notizen, die nur dein technisches Team kennt? Bleiben intern.
+          Mitwirkende sehen exakt das, was du freigegeben hast. Andere Projekte? Unsichtbar. Interne Tagro-Notizen? Versteckt. Dev-Notizen, die nur dein technisches Team kennt? Bleiben intern.
         </p>
         <p>
           Der Zugriff lässt sich mit einem Klick entfernen. Die Person verliert sofort Sicht, ihre Profildaten werden anonymisiert.

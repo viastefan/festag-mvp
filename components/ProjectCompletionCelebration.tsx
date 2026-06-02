@@ -174,7 +174,7 @@ export default function ProjectCompletionCelebration({ open, projectTitle, onClo
           animation:'pcc-fade-up .5s .55s both',
         }}>
           <strong style={{ color:'#fff' }}>{projectTitle}</strong> ist fertig.<br/>
-          Veyra AI hat alles dokumentiert.
+          Tagro AI hat alles dokumentiert.
         </p>
 
         {deliveryDate && (

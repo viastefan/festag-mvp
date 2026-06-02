@@ -1,7 +1,7 @@
 'use client'
 
 /**
- * VeyraOrb — the calm node/pixel-network mark for the dashboard Statusabfrage.
+ * TagroOrb — the calm node/pixel-network mark for the dashboard Statusabfrage.
  * A radial network of nodes (dots + squares) connected to a centre hub, in the
  * Festag accent #6a738c. Four quiet states (per festag_master_architecture):
  *   idle      — slow breathing
@@ -13,7 +13,7 @@
 
 import { useMemo } from 'react'
 
-export type VeyraOrbState = 'idle' | 'listening' | 'thinking' | 'speaking'
+export type TagroOrbState = 'idle' | 'listening' | 'thinking' | 'speaking'
 
 type Node = { x: number; y: number; s: number; square: boolean; i: number }
 
@@ -41,10 +41,10 @@ function buildNodes(): Node[] {
   return out
 }
 
-export default function VeyraOrb({ state = 'idle', size = 184 }: { state?: VeyraOrbState; size?: number }) {
+export default function TagroOrb({ state = 'idle', size = 184 }: { state?: TagroOrbState; size?: number }) {
   const nodes = useMemo(buildNodes, [])
   return (
-    <span className={`veyra-orb st-${state}`} style={{ width: size, height: size }} aria-hidden>
+    <span className={`tagro-orb st-${state}`} style={{ width: size, height: size }} aria-hidden>
       <svg viewBox="0 0 200 200" width="100%" height="100%">
         <g className="vo-net">
           {nodes.map(n => (
@@ -62,8 +62,8 @@ export default function VeyraOrb({ state = 'idle', size = 184 }: { state?: Veyra
         </g>
       </svg>
       <style jsx>{`
-        .veyra-orb { position: relative; display: inline-flex; align-items: center; justify-content: center; }
-        .veyra-orb::before {
+        .tagro-orb { position: relative; display: inline-flex; align-items: center; justify-content: center; }
+        .tagro-orb::before {
           content: ''; position: absolute; inset: 8%;
           border-radius: 50%;
           background: radial-gradient(circle at 50% 50%, rgba(106,115,140,.22), rgba(106,115,140,0) 62%);

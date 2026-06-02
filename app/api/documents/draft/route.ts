@@ -8,7 +8,7 @@ export const runtime = 'nodejs'
 /**
  * POST /api/documents/draft  { kind, brief }
  *
- * Veyra reads the free-text brief and fills the chosen document template —
+ * Tagro reads the free-text brief and fills the chosen document template —
  * returns a `data` object (field_key → value, positions[]) that pre-fills the
  * builder. Human reviews + edits before creating (legal documents stay
  * human-confirmed). Falls back to an empty object if no AI is configured.

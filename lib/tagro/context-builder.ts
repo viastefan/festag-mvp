@@ -1,13 +1,13 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 
-export type VeyraContextPurpose =
+export type TagroContextPurpose =
   | 'task_proposal'
   | 'status_report'
   | 'action_items'
   | 'client_safe'
   | 'decision_detection'
 
-export type VeyraContext = {
+export type TagroContext = {
   project: any
   clientProfile: any | null
   tasks: any[]
@@ -16,18 +16,18 @@ export type VeyraContext = {
   projectMembers: any[]
   files: any[]
   memories: any[]
-  purpose: VeyraContextPurpose
+  purpose: TagroContextPurpose
 }
 
-export async function buildVeyraContext({
+export async function buildTagroContext({
   sb,
   projectId,
   purpose,
 }: {
   sb: SupabaseClient<any>
   projectId: string
-  purpose: VeyraContextPurpose
-}): Promise<VeyraContext> {
+  purpose: TagroContextPurpose
+}): Promise<TagroContext> {
   if (!projectId) throw new Error('project_id_required')
 
   const { data: project, error } = await sb
@@ -76,7 +76,7 @@ export async function buildVeyraContext({
   }
 }
 
-export function contextToPromptText(context: VeyraContext) {
+export function contextToPromptText(context: TagroContext) {
   const openTasks = context.tasks.filter((task) => !['done', 'completed', 'cancelled'].includes(String(task.status ?? task.dev_status ?? task.client_status ?? '')))
   const completedTasks = context.tasks.filter((task) => ['done', 'completed'].includes(String(task.status ?? task.dev_status ?? task.client_status ?? '')))
   const openDecisions = context.decisions.filter((decision) => !['approved', 'rejected', 'cancelled'].includes(String(decision.status ?? '')))
@@ -92,7 +92,7 @@ export function contextToPromptText(context: VeyraContext) {
     `Offene Entscheidungen (${openDecisions.length}): ${openDecisions.slice(0, 8).map((decision) => decision.title).join('; ') || 'keine'}`,
     `Projektmitglieder: ${context.projectMembers.map((member) => `${member.user_id}:${member.role}`).join('; ') || 'keine'}`,
     `Dateien/Links: ${context.files.map((file) => file.title ?? file.name).filter(Boolean).slice(0, 10).join('; ') || 'keine'}`,
-    `Veyra Memory: ${context.memories.map((memory) => `${memory.memory_type}:${memory.key}=${JSON.stringify(memory.value_json)}`).slice(0, 10).join('; ') || 'keine'}`,
+    `Tagro Memory: ${context.memories.map((memory) => `${memory.memory_type}:${memory.key}=${JSON.stringify(memory.value_json)}`).slice(0, 10).join('; ') || 'keine'}`,
     `Letzte Statusberichte: ${context.statusReports.slice(0, 3).map((report) => report.summary ?? report.content).filter(Boolean).join('\n---\n') || 'keine'}`,
   ].filter(Boolean).join('\n')
 }

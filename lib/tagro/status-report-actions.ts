@@ -1,15 +1,15 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { actionItemExtractionPrompt } from './task-prompts'
-import { buildVeyraContext, contextToPromptText } from './task-context-builder'
+import { buildTagroContext, contextToPromptText } from './task-context-builder'
 import { runOpenAIJson } from './openai'
 import { normalizeActionItem, taskShapeForActionItem } from './task-classifier'
 import { findSimilarOpenTasks } from './deduplication'
-import { clampPriority, type VeyraActionItem } from './task-rules'
+import { clampPriority, type TagroActionItem } from './task-rules'
 import { runDecisionPipeline } from '@/lib/decisions'
 
 function fallbackActionItems(reportContent: string) {
   const text = reportContent.toLowerCase()
-  const actionItems: VeyraActionItem[] = []
+  const actionItems: TagroActionItem[] = []
 
   if (/\b(entscheidung|freigabe|approved?|wählen|auswählen)\b/.test(text)) {
     actionItems.push({
@@ -63,7 +63,7 @@ export async function extractActionItemsFromStatusReport({
   projectId: string
   reportContent: string
 }) {
-  const context = await buildVeyraContext({ sb, projectId, purpose: 'action_items' })
+  const context = await buildTagroContext({ sb, projectId, purpose: 'action_items' })
   const prompt = actionItemExtractionPrompt(contextToPromptText(context), reportContent)
   const result = await runOpenAIJson({
     prompt,
@@ -72,7 +72,7 @@ export async function extractActionItemsFromStatusReport({
   })
 
   const items = Array.isArray((result.output as any).action_items)
-    ? (result.output as any).action_items.map(normalizeActionItem).filter((item: VeyraActionItem) => item.title || item.type === 'no_action').slice(0, 2)
+    ? (result.output as any).action_items.map(normalizeActionItem).filter((item: TagroActionItem) => item.title || item.type === 'no_action').slice(0, 2)
     : []
 
   return {
@@ -92,7 +92,7 @@ export async function createTasksAndDecisionsFromActionItems({
   actorId: string | null
   projectId: string
   sourceReportId?: string | null
-  actionItems: VeyraActionItem[]
+  actionItems: TagroActionItem[]
 }) {
   const created: Array<{ type: string; id: string; title: string }> = []
 
@@ -101,7 +101,7 @@ export async function createTasksAndDecisionsFromActionItems({
 
     if (rawItem.type === 'decision') {
       // Route through the engine: status_report signal → detect → frame →
-      // anti-spam check → duplicate match → persist or refresh. Veyra
+      // anti-spam check → duplicate match → persist or refresh. Tagro
       // produces bidirectional framing (client_summary + internal_*) and
       // structured options instead of dropping a raw insert.
       try {
