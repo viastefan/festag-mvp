@@ -140,7 +140,10 @@ export default function RegisterPage() {
     setOauthLoading(true)
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/auth/callback?next=${postAuthNext}` },
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback?next=${postAuthNext}`,
+        queryParams: { prompt: 'select_account' },
+      },
     })
     if (oauthError) { setError(mapAuthError(oauthError.message)); setOauthLoading(false) }
   }

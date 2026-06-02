@@ -217,7 +217,12 @@ export default function LoginPage() {
     setOauthLoading(true)
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/auth/callback?next=${postAuthNext}` },
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback?next=${postAuthNext}`,
+        // Always let the user pick the account — avoids silent wrong-session
+        // sign-in on shared/multi-account mobile devices.
+        queryParams: { prompt: 'select_account' },
+      },
     })
     if (oauthError) { setError(mapAuthError(oauthError.message)); setOauthLoading(false) }
   }
