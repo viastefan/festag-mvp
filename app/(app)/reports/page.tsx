@@ -1048,7 +1048,7 @@ Regeln:
           {activeSignal === 'actions' && (
           <div className="signal-block">
             <div className="signal-label"><MagicWand size={14} /> Aktionen</div>
-            <button className="reports-ghost side-action" type="button" onClick={generateReport} disabled={!currentProject || generating}>Statusbericht generieren</button>
+            <button className="reports-ghost side-action" type="button" onClick={generateReport} disabled={!currentProject || generating}>Statusbericht erstellen</button>
             <button className="reports-ghost side-action" type="button" onClick={extractTaskSuggestions} disabled={!currentReport || extracting}>Task-Vorschläge prüfen</button>
             <button className="reports-ghost side-action" type="button" onClick={() => currentReport && navigator.clipboard.writeText(currentReport.content)} disabled={!currentReport}><PaperPlaneTilt size={14} /> Mit Team teilen</button>
             <button className="reports-ghost side-action" type="button"><Archive size={14} /> Archivieren</button>

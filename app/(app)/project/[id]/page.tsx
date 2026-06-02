@@ -1750,7 +1750,7 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
                     <button className="pv-update-btn" onClick={generateAIUpdate} disabled={generatingAI}>
                       {generatingAI
                         ? <><span className="pv-spin" aria-hidden />Tagro schreibt…</>
-                        : latestUpdate ? 'Neu erzeugen' : 'Statusbericht erzeugen'}
+                        : latestUpdate ? 'Aktualisieren' : 'Statusbericht erstellen'}
                     </button>
                   </div>
                 </div>
@@ -1816,7 +1816,7 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
                   </>
                 ) : (
                   <p className="pv-report-empty">
-                    Tagro verdichtet den aktuellen Projektstand in einen ruhigen Bericht — Fortschritt, offene Punkte, nächste Schritte. Klick auf „Statusbericht erzeugen".
+                    Tagro verdichtet den aktuellen Projektstand in einen ruhigen Bericht — Fortschritt, offene Punkte, nächste Schritte. Klick auf „Statusbericht erstellen".
                   </p>
                 )}
               </section>
