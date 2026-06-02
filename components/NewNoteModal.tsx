@@ -353,14 +353,14 @@ const CSS = `
   .nnm-title:focus { border-color: var(--text); }
   .nnm-title::placeholder { color: var(--text-muted); }
 
+  /* Notepad style — the note body is a writing surface, not a boxed field. */
   .nnm-body-area {
-    width: 100%; min-height: 110px; resize: vertical;
-    padding: 11px 13px;
-    background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px;
-    color: var(--text); font: inherit; font-size: 13.5px; line-height: 1.6; letter-spacing: .017em;
-    outline: 0; transition: border-color .14s;
+    width: 100%; min-height: 130px; resize: vertical;
+    padding: 8px 0;
+    background: transparent; border: 0; border-radius: 0;
+    color: var(--text); font: inherit; font-size: 14px; line-height: 1.65; letter-spacing: .017em;
+    outline: 0;
   }
-  .nnm-body-area:focus { border-color: color-mix(in srgb, var(--text) 30%, var(--border)); }
   .nnm-body-area::placeholder { color: var(--text-muted); white-space: pre-line; }
 
   .nnm-type-grid {

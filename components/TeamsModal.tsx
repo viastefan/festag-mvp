@@ -386,11 +386,11 @@ export default function TeamsModal({ open, onClose }: { open: boolean; onClose: 
               <p style={{ margin: 0, fontSize: 12.5, color: 'var(--text-secondary)' }}>{scenario.helper}</p>
               <label style={{ display: 'grid', gap: 5 }}>
                 <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Team name</span>
-                <input value={teamName} onChange={e => setTeamName(e.target.value)} placeholder="z. B. Product Core" style={inputStyle} />
+                <input value={teamName} onChange={e => setTeamName(e.target.value)} placeholder="z. B. Product Core" style={notepadStyle} />
               </label>
               <label style={{ display: 'grid', gap: 5 }}>
                 <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Beschreibung (optional)</span>
-                <textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} placeholder="Kurzer Kontext für das Team" style={{ ...inputStyle, resize: 'vertical', minHeight: 78 }} />
+                <textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} placeholder="Kurzer Kontext für das Team" style={{ ...notepadStyle, resize: 'vertical', minHeight: 78 }} />
               </label>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                 <label style={{ display: 'grid', gap: 5 }}>
@@ -482,7 +482,7 @@ export default function TeamsModal({ open, onClose }: { open: boolean; onClose: 
                 Neues Team-Projekt erstellen
               </label>
               {projectSelection === 'new' && (
-                <input value={newTeamProjectName} onChange={e => setNewTeamProjectName(e.target.value)} placeholder="Name des neuen Team-Projekts" style={inputStyle} />
+                <input value={newTeamProjectName} onChange={e => setNewTeamProjectName(e.target.value)} placeholder="Name des neuen Team-Projekts" style={notepadStyle} />
               )}
 
               <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
@@ -567,6 +567,20 @@ const inputStyle: CSSProperties = {
   color: 'var(--text)',
   fontSize: 12.5,
   fontFamily: 'inherit',
+}
+
+// Notepad style for free-text (names/descriptions) — hairline underline, no box.
+const notepadStyle: CSSProperties = {
+  width: '100%',
+  padding: '6px 0',
+  borderRadius: 0,
+  border: 'none',
+  borderBottom: '1px solid color-mix(in srgb, var(--border) 55%, transparent)',
+  background: 'transparent',
+  color: 'var(--text)',
+  fontSize: 13.5,
+  fontFamily: 'inherit',
+  outline: 'none',
 }
 
 const secondaryBtnStyle: CSSProperties = {
