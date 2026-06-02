@@ -263,7 +263,19 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
 
   function openMore() {
     const r = moreTriggerRef.current?.getBoundingClientRect()
-    if (r) setMorePos({ left: r.left, top: r.bottom + 6 })
+    if (r) {
+      const width = 232
+      const estHeight = 320
+      const vw = window.innerWidth
+      const vh = window.innerHeight
+      // Clamp horizontally so the menu never runs off the right edge.
+      const left = Math.max(12, Math.min(r.left, vw - width - 12))
+      // Flip upward when there isn't room below the trigger.
+      const top = r.bottom + 6 + estHeight > vh
+        ? Math.max(12, r.top - estHeight - 6)
+        : r.bottom + 6
+      setMorePos({ left, top })
+    }
     setMoreOpen((v) => !v)
   }
 
@@ -1483,7 +1495,10 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         }
 
         .sb-help-pop {
-          position: absolute; left: 0; bottom: 44px;
+          /* Fixed so it escapes the sidebar's overflow:hidden and is never
+             clipped on the right (it's wider than the 212px rail). */
+          position: fixed; left: 16px; bottom: 58px;
+          z-index: 121000;
           width: min(318px, calc(100vw - 32px));
           max-height: min(520px, calc(100dvh - 96px));
           overflow:auto;
