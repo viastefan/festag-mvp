@@ -221,6 +221,9 @@ export default function SettingsPage() {
   const [wsMode, setWsMode] = useState<'delivery' | 'team' | 'agency' | null>(null)
   const [wsName, setWsName] = useState<string>('')
   const [wsId, setWsId] = useState<string | null>(null)
+  // Tagro + Reports/Delivery prefs, persisted under workspaces.metadata.settings.
+  const [wsSettings, setWsSettings] = useState<Record<string, any>>({})
+  const wsMetaRef = useRef<Record<string, any>>({})
   const [switchingMode, setSwitchingMode] = useState(false)
   const [pendingMode, setPendingMode] = useState<'delivery' | 'team' | 'agency' | null>(null)
   type Member = { user_id: string; role: string; joined_at: string; email: string | null; full_name: string | null; avatar_url: string | null }
@@ -398,7 +401,7 @@ export default function SettingsPage() {
       try {
         const { data: ws } = await supabase
           .from('workspaces')
-          .select('id,mode,name')
+          .select('id,mode,name,metadata')
           .eq('primary_owner_id', uid)
           .eq('is_personal', true)
           .maybeSingle()
@@ -406,6 +409,8 @@ export default function SettingsPage() {
           setWsMode((ws as any).mode ?? null)
           setWsName((ws as any).name ?? '')
           setWsId((ws as any).id ?? null)
+          wsMetaRef.current = ((ws as any).metadata ?? {}) as Record<string, any>
+          setWsSettings((wsMetaRef.current.settings ?? {}) as Record<string, any>)
 
           // Load members with profile join
           setMembersLoading(true)
@@ -767,6 +772,23 @@ export default function SettingsPage() {
     } finally {
       setSwitchingMode(false)
       setPendingMode(null)
+    }
+  }
+
+  // Tagro + Reports/Delivery prefs → workspaces.metadata.settings (jsonb merge).
+  async function saveWsSetting(key: string, value: any) {
+    if (!wsId) return
+    const prev = wsSettings
+    const nextSettings = { ...wsSettings, [key]: value }
+    setWsSettings(nextSettings) // optimistic
+    const nextMeta = { ...wsMetaRef.current, settings: nextSettings }
+    try {
+      const { error: updErr } = await supabase.from('workspaces').update({ metadata: nextMeta }).eq('id', wsId)
+      if (updErr) { setWsSettings(prev); setError(updErr.message || 'Speichern fehlgeschlagen.'); return }
+      wsMetaRef.current = nextMeta
+      flashSaved('Gespeichert')
+    } catch (e: any) {
+      setWsSettings(prev); setError(e?.message || 'Speichern fehlgeschlagen.')
     }
   }
 
@@ -1903,6 +1925,68 @@ export default function SettingsPage() {
                     </div>
                   </div>
                 ))}
+              </div>
+
+              <div className="set-card">
+                <div className="set-row set-row-stack" style={{ paddingBottom: 8 }}>
+                  <div>
+                    <div className="set-label">Tagro &amp; Berichte</div>
+                    <div className="set-label-sub">Wie Tagro für diesen Workspace formuliert, plant und Berichte zustellt. Gilt für alle Projekte.</div>
+                  </div>
+                </div>
+                <div className="set-row">
+                  <div>
+                    <div className="set-label">Berichtssprache</div>
+                    <div className="set-label-sub">Sprache der Statusberichte und Briefings.</div>
+                  </div>
+                  <div className="set-segment">
+                    <button type="button" className={`set-segment-btn${(wsSettings.report_language ?? 'de') === 'de' ? ' on' : ''}`} onClick={() => saveWsSetting('report_language', 'de')}>Deutsch</button>
+                    <button type="button" className={`set-segment-btn${(wsSettings.report_language ?? 'de') === 'en' ? ' on' : ''}`} onClick={() => saveWsSetting('report_language', 'en')}>English</button>
+                  </div>
+                </div>
+                <div className="set-row">
+                  <div>
+                    <div className="set-label">Tagro-Ton</div>
+                    <div className="set-label-sub">Wie Tagro mit Kunden und Team kommuniziert.</div>
+                  </div>
+                  <select className="set-select" value={wsSettings.tagro_tone ?? 'neutral'} onChange={e => saveWsSetting('tagro_tone', e.target.value)}>
+                    <option value="calm">Ruhig &amp; erklärend</option>
+                    <option value="neutral">Neutral &amp; sachlich</option>
+                    <option value="direct">Direkt &amp; knapp</option>
+                  </select>
+                </div>
+                <div className="set-row">
+                  <div>
+                    <div className="set-label">Berichtsrhythmus</div>
+                    <div className="set-label-sub">Wie oft Tagro automatisch einen Statusbericht vorschlägt.</div>
+                  </div>
+                  <select className="set-select" value={wsSettings.report_frequency ?? 'weekly'} onChange={e => saveWsSetting('report_frequency', e.target.value)}>
+                    <option value="daily">Täglich</option>
+                    <option value="weekly">Wöchentlich</option>
+                    <option value="milestone">Bei Meilensteinen</option>
+                    <option value="on_demand">Nur auf Anfrage</option>
+                  </select>
+                </div>
+                <div className="set-row">
+                  <div>
+                    <div className="set-label">Standardmäßig kundensicher</div>
+                    <div className="set-label-sub">Neue Berichte starten im kundensicheren Modus (interne Notizen ausgeblendet).</div>
+                  </div>
+                  <div className="set-segment">
+                    <button type="button" className={`set-segment-btn${(wsSettings.default_client_safe ?? true) ? ' on' : ''}`} onClick={() => saveWsSetting('default_client_safe', true)}>An</button>
+                    <button type="button" className={`set-segment-btn${!(wsSettings.default_client_safe ?? true) ? ' on' : ''}`} onClick={() => saveWsSetting('default_client_safe', false)}>Aus</button>
+                  </div>
+                </div>
+                <div className="set-row">
+                  <div>
+                    <div className="set-label">Vor Versand prüfen</div>
+                    <div className="set-label-sub">Berichte und Briefings warten auf deine Freigabe, bevor der Kunde sie sieht.</div>
+                  </div>
+                  <div className="set-segment">
+                    <button type="button" className={`set-segment-btn${(wsSettings.review_before_send ?? true) ? ' on' : ''}`} onClick={() => saveWsSetting('review_before_send', true)}>An</button>
+                    <button type="button" className={`set-segment-btn${!(wsSettings.review_before_send ?? true) ? ' on' : ''}`} onClick={() => saveWsSetting('review_before_send', false)}>Aus</button>
+                  </div>
+                </div>
               </div>
 
               <div className="set-card">
