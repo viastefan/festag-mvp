@@ -17,6 +17,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { computeControlStatus } from '@/lib/trust/control-status'
 import ObserverWelcomeModal from '@/components/ObserverWelcomeModal'
 import WelcomeTour from '@/components/WelcomeTour'
 import TagroOrb, { type TagroOrbState } from '@/components/TagroOrb'
@@ -285,6 +286,20 @@ export default function DashboardPage() {
 
   const decisionTasks = allTasks.filter((t) => t.status === 'waiting')
   const riskTasks = allTasks.filter((t) => t.status === 'blocked')
+
+  // Workspace-wide Control Status — the calm dynamic sentence under the greeting.
+  // Reuses the shared trust layer; the dashboard doesn't load reports so it
+  // doesn't nag about report freshness here.
+  const controlSentence = computeControlStatus({
+    taskCount: allTasks.length,
+    blockedCount: riskTasks.length,
+    decisionCount: decisionTasks.length,
+    approvalCount: 0,
+    hasReport: true,
+    reportAgeDays: null,
+    phase: null,
+    nextActionTitle: riskTasks[0]?.title ?? null,
+  })
 
   const activeProjectCount = projects.filter((p) => {
     const s = (p.status || '').toLowerCase()
@@ -807,6 +822,17 @@ export default function DashboardPage() {
           line-height:1.2;
           letter-spacing: var(--ls-header, .012em);
           max-width: 620px;
+        }
+        .dc-control-line {
+          margin:10px 0 0;
+          display:flex; align-items:center; gap:9px;
+          color:var(--text-secondary);
+          font-size:13.5px; font-weight:500; line-height:1.5;
+          letter-spacing:.015em;
+          max-width:560px;
+        }
+        .dc-control-dot {
+          width:8px; height:8px; border-radius:50%; flex-shrink:0;
         }
         .dc-greeting-sub {
           margin:6px 0 0;
@@ -2408,6 +2434,10 @@ export default function DashboardPage() {
           {/* ── LEFT: daytime header + fact + report ── */}
           <main className="dc-left">
             <h1 className="dc-greeting">{contextLine}</h1>
+            <p className="dc-control-line">
+              <span className="dc-control-dot" style={{ background: controlSentence.color }} aria-hidden />
+              {controlSentence.reason}
+            </p>
             <p className="dc-fact">
               <span className="dc-fact-ico" aria-hidden><Lightbulb size={13} weight="regular" /></span>
               <span><span className="dc-fact-lead">Wusstest du?</span> {funFact}</span>
