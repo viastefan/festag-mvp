@@ -155,14 +155,25 @@ export default function DashboardPage() {
   const [newProjectOpen, setNewProjectOpen] = useState(false)
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
-    if (params.get('newproject') === '1') {
+    if (params.get('newproject') !== '1') return
+    const tourActive = params.get('tour') === '1'
+    // Strip the flag so a refresh / back-nav doesn't reopen the canvas.
+    params.delete('newproject')
+    const qs = params.toString()
+    window.history.replaceState(null, '', window.location.pathname + (qs ? `?${qs}` : ''))
+
+    if (!tourActive) {
       setNewProjectOpen(true)
-      // Strip the flag so a refresh / back-nav doesn't reopen the canvas.
-      params.delete('newproject')
-      const qs = params.toString()
-      const clean = window.location.pathname + (qs ? `?${qs}` : '')
-      window.history.replaceState(null, '', clean)
+      return
     }
+    // Onboarding sent us here with the tour AND the new-project popup. Don't
+    // cover the tour — wait until it's finished or skipped, then open it.
+    const onTourDone = () => {
+      setNewProjectOpen(true)
+      window.removeEventListener('festag:tour-finished', onTourDone)
+    }
+    window.addEventListener('festag:tour-finished', onTourDone)
+    return () => window.removeEventListener('festag:tour-finished', onTourDone)
   }, [])
 
   useEffect(() => {

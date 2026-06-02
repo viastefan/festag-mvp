@@ -5,7 +5,6 @@ import { createPortal } from 'react-dom'
 import { usePathname, useSearchParams } from 'next/navigation'
 import { ArrowLeft, ArrowRight, Check, X } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
-import TagroLogo from '@/components/TagroLogo'
 
 interface Props {
   forceOpen?: boolean
@@ -268,6 +267,9 @@ export default function WelcomeTour({ forceOpen = false, onDone }: Props) {
     writeStoredStatus('skipped')
     setState('skipped')
     void persistProfile('skipped', stepIdx)
+    // Immediate signal: anything queued behind the tour (e.g. the new-project
+    // canvas after onboarding) may run now that the tour is done.
+    window.dispatchEvent(new CustomEvent('festag:tour-finished'))
     window.setTimeout(() => {
       window.dispatchEvent(new CustomEvent('festag:onboarding-ended'))
     }, 3000)
@@ -278,6 +280,7 @@ export default function WelcomeTour({ forceOpen = false, onDone }: Props) {
     writeStoredStatus('completed')
     setState('completed')
     void persistProfile('completed', total)
+    window.dispatchEvent(new CustomEvent('festag:tour-finished'))
     window.setTimeout(() => {
       window.dispatchEvent(new CustomEvent('festag:onboarding-ended'))
     }, 3000)
@@ -361,7 +364,7 @@ export default function WelcomeTour({ forceOpen = false, onDone }: Props) {
             <X size={15} />
           </button>
           <div className="wt-mark" aria-hidden>
-            <TagroLogo size={32} />
+            <img src="/brand/favicon.svg" alt="" width={48} height={48} className="wt-mark-img" />
           </div>
           <p className="wt-eyebrow">ERSTER EINSTIEG</p>
           <h2 className="wt-title">Willkommen bei Festag</h2>
@@ -498,15 +501,19 @@ const CSS = `
   }
   .wt-close:hover { background: color-mix(in srgb, var(--surface-2) 64%, transparent); color: var(--text); }
   .wt-mark {
-    width: 58px;
-    height: 58px;
+    width: 48px;
+    height: 48px;
     margin: 0 auto 16px;
-    border-radius: 999px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background: color-mix(in srgb, var(--surface-2) 62%, transparent);
-    box-shadow: inset 0 1px 0 rgba(255,255,255,.58);
+  }
+  .wt-mark-img {
+    width: 48px;
+    height: 48px;
+    border-radius: 13px;
+    display: block;
+    box-shadow: 0 8px 22px -14px rgba(15,23,42,.5);
   }
   .wt-eyebrow,
   .wt-hint-eyebrow {
