@@ -563,6 +563,20 @@ button:active, a[role="button"]:active, .tap-scale:active {
 /* App-wide horizontal overflow guard.
    Festag should feel like a controlled operating surface, never a sideways
    canvas. Dense tables collapse columns instead of introducing x-scroll. */
+/* Gentle app entrance after the pixel preloader fades — the shell behind the
+   overlay eases in (jair.com-style reveal). Set briefly via a body class by
+   FestagPixelIntro when the intro starts leaving. */
+.festag-intro-revealing .app-workspace-scroll {
+  animation: festagAppReveal 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes festagAppReveal {
+  from { opacity: 0; transform: translateY(10px) scale(0.992); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .festag-intro-revealing .app-workspace-scroll { animation: none; }
+}
+
 .festag-app-shell,
 .app-workspace,
 .app-workspace-scroll,

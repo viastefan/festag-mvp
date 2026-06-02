@@ -20,7 +20,6 @@ import { createClient } from '@/lib/supabase/client'
 import ObserverWelcomeModal from '@/components/ObserverWelcomeModal'
 import WelcomeTour from '@/components/WelcomeTour'
 import TagroOrb, { type TagroOrbState } from '@/components/TagroOrb'
-import FestagPixelIntro from '@/components/FestagPixelIntro'
 import { speechVoiceId, useSpeechSynthesis } from '@/hooks/useSpeechSynthesis'
 import {
   ArrowClockwise, Article, CalendarCheck, CaretDown, CaretRight, Check, CheckCircle,
@@ -670,7 +669,6 @@ export default function DashboardPage() {
 
   return (
     <div className="page-content dashboard-os dash-calm">
-      <FestagPixelIntro />
       <style>{`
         @keyframes dcFade { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
         @keyframes dcBlink { 0%,49% { opacity:1; } 50%,100% { opacity:0; } }
