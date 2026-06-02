@@ -1828,22 +1828,23 @@ export default function SettingsPage() {
             : wsMode === 'agency'
             ? 'Für Agenturen, die Kundenprojekte über Festag steuern. Kundenbereiche, eigene Teams und optional White Label unter eigener Marke.'
             : 'Festag plant und setzt dein Projekt mit geprüften Entwicklern um. Dashboard, Briefings, Meilensteine und transparente Kommunikation.'
-          const extensions = wsMode === 'team'
+          type Ext = { label: string; desc: string; cta: string; href?: string; action?: () => void; contact?: boolean }
+          const extensions: Ext[] = wsMode === 'team'
             ? [
-                { label: 'Festag Delivery Support', desc: 'Geprüfte Festag-Entwickler oder Projektunterstützung für einzelne Aufgaben dazubuchen.' },
-                { label: 'Agency-Funktionen aktivieren', desc: 'Kundenportale und Kundenbereiche, falls du externe Kunden steuern willst.' },
-                { label: 'Zusätzliche Seats verwalten', desc: 'Mehr Teammitglieder einladen, sobald euer Plan das zulässt.' },
+                { label: 'Agency-Funktionen aktivieren', desc: 'Kundenportale und Kundenbereiche, um externe Kunden zu steuern.', cta: 'Aktivieren', action: () => setPendingMode('agency') },
+                { label: 'Mitglieder einladen', desc: 'Mehr Teammitglieder mit klaren Rollen einladen.', cta: 'Einladen', href: '/invite' },
+                { label: 'Festag Delivery Support', desc: 'Geprüfte Festag-Entwickler für einzelne Aufgaben dazubuchen.', cta: 'Kontakt aufnehmen', contact: true },
               ]
             : wsMode === 'agency'
             ? [
-                { label: 'White Label aktivieren', desc: 'Eigene Marke, eigene Domain, eigene Briefing-Vorlagen. Premium-Funktion (799 €/Monat).' },
-                { label: 'Festag Delivery Support', desc: 'Für einzelne Projekte zusätzliche Festag-Entwickler dazubuchen.' },
-                { label: 'Kundenbereiche verwalten', desc: 'Pro Kunde ein eigener Bereich mit Briefings, Dateien und Rechten.' },
+                { label: 'Kundenbereiche verwalten', desc: 'Pro Kunde ein eigener Bereich mit Briefings, Dateien und Rechten.', cta: 'Öffnen', href: '/clients' },
+                { label: 'Mitglieder einladen', desc: 'Co-Founder, Approver, Finance oder Viewer einladen.', cta: 'Einladen', href: '/invite' },
+                { label: 'Festag Delivery Support', desc: 'Für einzelne Projekte zusätzliche Festag-Entwickler dazubuchen.', cta: 'Kontakt aufnehmen', contact: true },
               ]
             : [
-                { label: 'Eigenes Team hinzufügen', desc: 'Lade Co-Founder, Approver, Finance oder Viewer in dein Projekt ein.' },
-                { label: 'Briefing-Zustellung aktivieren', desc: 'Tagro schickt dein Projektbriefing automatisch per E-Mail oder Voice.' },
-                { label: 'Neuen Team Workspace erstellen', desc: 'Falls du langfristig eigene Projekte und Entwickler steuern möchtest.' },
+                { label: 'Eigenes Team hinzufügen', desc: 'Lade Co-Founder, Approver, Finance oder Viewer ein.', cta: 'Einladen', href: '/invite' },
+                { label: 'Briefing-Zustellung', desc: 'Wie und wann Tagro Briefings zustellt.', cta: 'Öffnen', href: '/settings/notifications' },
+                { label: 'Auf Agency umstellen', desc: 'Kundenprojekte steuern, optional unter eigener Marke.', cta: 'Aktivieren', action: () => setPendingMode('agency') },
               ]
           return (
             <>
@@ -1885,12 +1886,13 @@ export default function SettingsPage() {
                       <div className="set-label-sub">{ext.desc}</div>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                      <a
-                        className="set-btn"
-                        href={`mailto:hi@festag.app?subject=${encodeURIComponent('Festag — ' + ext.label)}&body=${encodeURIComponent('Hallo Festag,\n\nIch möchte folgendes für meinen Workspace aktivieren: ' + ext.label + '.\n\nWorkspace: ' + (wsName || '') + '\nAktueller Modus: ' + modeLabel + '\n\nViele Grüße')}`}
-                      >
-                        Anfragen
-                      </a>
+                      {ext.action ? (
+                        <button type="button" className="set-btn" onClick={ext.action}>{ext.cta}</button>
+                      ) : ext.contact ? (
+                        <a className="set-btn" href={`mailto:hi@festag.app?subject=${encodeURIComponent('Festag — ' + ext.label)}&body=${encodeURIComponent('Hallo Festag,\n\nIch interessiere mich für: ' + ext.label + '.\n\nWorkspace: ' + (wsName || '') + '\n\nViele Grüße')}`}>{ext.cta}</a>
+                      ) : (
+                        <Link className="set-btn" href={ext.href || '#'}>{ext.cta}</Link>
+                      )}
                     </div>
                   </div>
                 ))}
