@@ -15,7 +15,7 @@ import {
   QUEUE_TEMPLATES, AUDIENCE_LABEL, DELIVERY_LABEL, queueTemplate,
   type QueueTemplate,
 } from '@/lib/tagro/queue-templates'
-import { Plus, Clock, Check, Trash, X, ShieldCheck } from '@phosphor-icons/react'
+import { Plus, Clock, Check, Trash, X, ShieldCheck, Sparkle, ArrowsClockwise, CaretDown, CaretUp } from '@phosphor-icons/react'
 
 type JobRow = {
   id: string
@@ -30,20 +30,45 @@ type JobRow = {
   created_at: string
 }
 
+type OutputRow = {
+  id: string
+  output_type: string
+  audience: string
+  title: string | null
+  content: string | null
+  status: 'draft' | 'in_review' | 'approved' | 'sent' | 'archived'
+  version: number
+  created_at: string
+}
+
+const OUTPUT_STATUS: Record<string, { label: string; color: string }> = {
+  draft:     { label: 'Entwurf',     color: '#6a738c' },
+  in_review: { label: 'Zur Freigabe', color: '#D4882B' },
+  approved:  { label: 'Freigegeben', color: '#3FB984' },
+  sent:      { label: 'Gesendet',    color: '#3FB984' },
+  archived:  { label: 'Archiviert',  color: '#6F7A89' },
+}
+
 export default function TagroQueueSection({ projectId, canEdit }: { projectId: string; canEdit: boolean }) {
   const supabase = useMemo(() => createClient(), [])
   const [jobs, setJobs] = useState<JobRow[]>([])
+  const [outputs, setOutputs] = useState<OutputRow[]>([])
   const [loading, setLoading] = useState(true)
   const [picking, setPicking] = useState(false)
   const [busy, setBusy] = useState(false)
+  const [running, setRunning] = useState<string | null>(null)
+  const [expanded, setExpanded] = useState<string | null>(null)
   const [error, setError] = useState('')
 
   const load = useCallback(async () => {
     setLoading(true)
-    const { data, error: e } = await (supabase as any)
-      .from('scheduled_ai_jobs').select('*').eq('project_id', projectId).order('created_at', { ascending: true })
+    const [{ data, error: e }, { data: outs }] = await Promise.all([
+      (supabase as any).from('scheduled_ai_jobs').select('*').eq('project_id', projectId).order('created_at', { ascending: true }),
+      (supabase as any).from('ai_outputs').select('id,output_type,audience,title,content,status,version,created_at').eq('project_id', projectId).order('created_at', { ascending: false }).limit(12),
+    ])
     if (e) setError(e.message)
     setJobs((data as JobRow[]) ?? [])
+    setOutputs((outs as OutputRow[]) ?? [])
     setLoading(false)
   }, [supabase, projectId])
 
@@ -91,6 +116,25 @@ export default function TagroQueueSection({ projectId, canEdit }: { projectId: s
     setJobs(prev => prev.filter(j => j.id !== id))
     const { error: e } = await (supabase as any).from('scheduled_ai_jobs').delete().eq('id', id)
     if (e) { setError(e.message); await load() }
+  }
+
+  async function runNow(jobId: string) {
+    if (running) return
+    setRunning(jobId); setError('')
+    try {
+      const res = await fetch('/api/tagro/queue/run', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jobId }),
+      })
+      const data = await res.json().catch(() => null)
+      if (!res.ok) throw new Error(data?.error || 'Tagro konnte den Job nicht ausführen.')
+      await load()
+      if (data?.output?.id) setExpanded(data.output.id)
+    } catch (err: any) {
+      setError(err?.message || 'Ausführung fehlgeschlagen.')
+    } finally {
+      setRunning(null)
+    }
   }
 
   return (
@@ -156,6 +200,10 @@ export default function TagroQueueSection({ projectId, canEdit }: { projectId: s
               </div>
               {canEdit && (
                 <div className="tq-item-actions">
+                  <button type="button" className="tq-run" onClick={() => runNow(job.id)} disabled={running === job.id} title="Jetzt einen Entwurf erzeugen">
+                    {running === job.id ? <ArrowsClockwise size={12} className="tq-spin" /> : <Sparkle size={12} />}
+                    {running === job.id ? 'Erzeugt …' : 'Jetzt erzeugen'}
+                  </button>
                   <button type="button" className={`tq-toggle${job.enabled ? ' on' : ''}`} onClick={() => toggle(job)} role="switch" aria-checked={job.enabled} title={job.enabled ? 'Aktiv' : 'Pausiert'}>
                     <span className="tq-toggle-knob">{job.enabled && <Check size={9} weight="bold" />}</span>
                   </button>
@@ -166,6 +214,32 @@ export default function TagroQueueSection({ projectId, canEdit }: { projectId: s
           )
         })}
       </div>
+
+      {outputs.length > 0 && (
+        <div className="tq-outputs">
+          <p className="tq-outputs-title">Erzeugte Entwürfe</p>
+          {outputs.map(o => {
+            const st = OUTPUT_STATUS[o.status] ?? OUTPUT_STATUS.draft
+            const open = expanded === o.id
+            return (
+              <article key={o.id} className="tq-output">
+                <button type="button" className="tq-output-head" onClick={() => setExpanded(open ? null : o.id)}>
+                  <span className="tq-output-main">
+                    <span className="tq-output-title">{o.title || 'Tagro Output'}</span>
+                    <span className="tq-output-meta">
+                      <span className="tq-ostatus"><span className="tq-odot" style={{ background: st.color }} />{st.label}</span>
+                      <span>· v{o.version}</span>
+                      <span>· {new Date(o.created_at).toLocaleDateString('de-DE', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
+                    </span>
+                  </span>
+                  {open ? <CaretUp size={13} /> : <CaretDown size={13} />}
+                </button>
+                {open && o.content && <pre className="tq-output-body">{o.content}</pre>}
+              </article>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }
@@ -248,4 +322,33 @@ const CSS = `
     color:var(--text-secondary); border-radius:8px; cursor:pointer; transition:color .12s, border-color .12s;
   }
   .tq-mini.danger:hover { color:#d44b4b; border-color:color-mix(in srgb, #d44b4b 40%, transparent); }
+  .tq-run {
+    display:inline-flex; align-items:center; gap:6px; height:30px; padding:0 11px; border-radius:8px;
+    border:1px solid color-mix(in srgb, var(--border) 60%, transparent); background:transparent;
+    color:var(--text); font:inherit; font-size:12px; font-weight:500; cursor:pointer; white-space:nowrap;
+    transition:background .12s, border-color .12s;
+  }
+  .tq-run:hover:not(:disabled) { background:color-mix(in srgb, var(--surface-2) 55%, transparent); border-color:var(--border-strong); }
+  .tq-run:disabled { opacity:.6; cursor:default; }
+  .tq-spin { animation:tqSpin 1s linear infinite; }
+  @keyframes tqSpin { to { transform:rotate(360deg); } }
+
+  .tq-outputs { margin-top:8px; display:flex; flex-direction:column; gap:8px; }
+  .tq-outputs-title { margin:0 0 2px; font-size:11px; font-weight:500; letter-spacing:.06em; text-transform:uppercase; color:var(--text-muted); }
+  .tq-output { border:1px solid color-mix(in srgb, var(--border) 50%, transparent); border-radius:11px; overflow:hidden; background:color-mix(in srgb, var(--surface-2) 18%, transparent); }
+  .tq-output-head {
+    width:100%; display:flex; align-items:center; justify-content:space-between; gap:12px;
+    padding:11px 13px; background:transparent; border:0; cursor:pointer; color:var(--text); text-align:left;
+  }
+  .tq-output-head:hover { background:color-mix(in srgb, var(--surface-2) 40%, transparent); }
+  .tq-output-main { display:flex; flex-direction:column; gap:4px; min-width:0; }
+  .tq-output-title { font-size:13px; font-weight:500; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .tq-output-meta { display:flex; align-items:center; gap:6px; font-size:11.5px; color:var(--text-muted); flex-wrap:wrap; }
+  .tq-ostatus { display:inline-flex; align-items:center; gap:5px; }
+  .tq-odot { width:7px; height:7px; border-radius:50%; }
+  .tq-output-body {
+    margin:0; padding:12px 14px; border-top:1px solid color-mix(in srgb, var(--border) 40%, transparent);
+    font:inherit; font-size:13px; line-height:1.6; color:var(--text-secondary);
+    white-space:pre-wrap; word-break:break-word; background:var(--card);
+  }
 `
