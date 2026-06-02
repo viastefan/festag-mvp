@@ -19,6 +19,7 @@ import DeleteProjectModal from '@/components/DeleteProjectModal'
 import NewTaskModal from '@/components/NewTaskModal'
 import ProjectDevAvatars from '@/components/ProjectDevAvatars'
 import ProofGridSection from '@/components/ProofGridSection'
+import TagroQueueSection from '@/components/TagroQueueSection'
 import ChatMarkdown from '@/components/ChatMarkdown'
 import { getProjectPreset, type ExecutorRole, type ProjectType } from '@/lib/project-modules'
 import { autoAvatarColor, avatarTextColor } from '@/lib/avatar'
@@ -89,7 +90,7 @@ function ProjectPageInner() {
   // own primary tab.
   const initialTab = searchParams?.get('tab') as null
     | 'overview' | 'tasks' | 'milestones' | 'activity' | 'decisions' | 'risks' | 'briefings' | 'assets' | 'updates'
-  const [activeLeft, setActiveLeft] = useState<'overview'|'tasks'|'milestones'|'evidence'>(() => {
+  const [activeLeft, setActiveLeft] = useState<'overview'|'tasks'|'milestones'|'evidence'|'queue'>(() => {
     if (initialTab === 'tasks') return 'tasks'
     if (initialTab === 'milestones') return 'milestones'
     return 'overview'
@@ -1632,6 +1633,11 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
           className={`pv-tab${activeLeft === 'evidence' ? ' on' : ''}`}
           onClick={() => setActiveLeft('evidence')}
         >Belege</button>
+        <button
+          role="tab" aria-selected={activeLeft === 'queue'}
+          className={`pv-tab${activeLeft === 'queue' ? ' on' : ''}`}
+          onClick={() => setActiveLeft('queue')}
+        >Zeitplan</button>
       </nav>
 
       {/* ─── BODY: main + right sidebar ─── */}
@@ -2021,6 +2027,12 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
           {activeLeft === 'evidence' && (
             <div className="pv-pane">
               <ProofGridSection projectId={id} canEdit={canEdit} onChange={loadEvidenceCount} />
+            </div>
+          )}
+
+          {activeLeft === 'queue' && (
+            <div className="pv-pane">
+              <TagroQueueSection projectId={id} canEdit={canEdit} />
             </div>
           )}
 
