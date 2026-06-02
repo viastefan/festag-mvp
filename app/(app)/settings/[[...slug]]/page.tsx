@@ -224,6 +224,9 @@ export default function SettingsPage() {
   // Tagro + Reports/Delivery prefs, persisted under workspaces.metadata.settings.
   const [wsSettings, setWsSettings] = useState<Record<string, any>>({})
   const wsMetaRef = useRef<Record<string, any>>({})
+  // Live Tagro AI connection status (which model answers).
+  const [tagroHealth, setTagroHealth] = useState<{ provider: string; model: string | null; reachable: boolean | null; message?: string } | null>(null)
+  const [tagroPinging, setTagroPinging] = useState(false)
   const [switchingMode, setSwitchingMode] = useState(false)
   const [pendingMode, setPendingMode] = useState<'delivery' | 'team' | 'agency' | null>(null)
   type Member = { user_id: string; role: string; joined_at: string; email: string | null; full_name: string | null; avatar_url: string | null }
@@ -772,6 +775,26 @@ export default function SettingsPage() {
     } finally {
       setSwitchingMode(false)
       setPendingMode(null)
+    }
+  }
+
+  // Load the live Tagro AI connection status once (which provider/model answers).
+  useEffect(() => {
+    let cancelled = false
+    fetch('/api/tagro/health')
+      .then(r => r.json())
+      .then(d => { if (!cancelled) setTagroHealth(d) })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [])
+
+  async function pingTagro() {
+    setTagroPinging(true)
+    try {
+      const r = await fetch('/api/tagro/health?ping=1')
+      setTagroHealth(await r.json())
+    } catch {/* keep prior */} finally {
+      setTagroPinging(false)
     }
   }
 
@@ -1932,6 +1955,33 @@ export default function SettingsPage() {
                   <div>
                     <div className="set-label">Tagro &amp; Berichte</div>
                     <div className="set-label-sub">Wie Tagro für diesen Workspace formuliert, plant und Berichte zustellt. Gilt für alle Projekte.</div>
+                  </div>
+                </div>
+                <div className="set-row">
+                  <div>
+                    <div className="set-label">KI-Modell</div>
+                    <div className="set-label-sub">
+                      {tagroHealth
+                        ? tagroHealth.provider === 'none'
+                          ? 'Keine KI verbunden — ANTHROPIC_API_KEY in der Umgebung setzen.'
+                          : `Tagro läuft auf ${tagroHealth.provider === 'claude' ? 'Claude (Anthropic)' : tagroHealth.provider === 'gemini' ? 'Gemini' : 'MiniMax'}${tagroHealth.model ? ` · ${tagroHealth.model}` : ''}.`
+                        : 'Verbindungsstatus wird geladen …'}
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, justifyContent: 'flex-end' }}>
+                    <span
+                      aria-hidden
+                      style={{
+                        width: 8, height: 8, borderRadius: '50%',
+                        background: !tagroHealth ? '#6F7A89'
+                          : tagroHealth.reachable === true ? '#3FB984'
+                          : tagroHealth.reachable === false ? '#D9534F'
+                          : tagroHealth.provider === 'none' ? '#D9534F' : '#6a738c',
+                      }}
+                    />
+                    <button type="button" className="set-btn" onClick={pingTagro} disabled={tagroPinging || tagroHealth?.provider === 'none'}>
+                      {tagroPinging ? 'Prüfe …' : 'Verbindung testen'}
+                    </button>
                   </div>
                 </div>
                 <div className="set-row">
