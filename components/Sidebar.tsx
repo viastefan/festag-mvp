@@ -1277,6 +1277,24 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           opacity:1;
           filter:saturate(.92) contrast(1.04);
         }
+        /* Crisp brand thumbnail — centered app icon, never stretched/blurred.
+           The card's overflow:hidden + radius clips the top corners cleanly. */
+        .sb-video-thumb-brand {
+          display:flex; align-items:center; justify-content:center;
+          background:
+            radial-gradient(120% 120% at 30% 0%,
+              color-mix(in srgb, #6a738c 18%, var(--card)),
+              color-mix(in srgb, var(--surface-2) 82%, var(--card)));
+        }
+        .sb-video-thumb-brand .sb-video-thumb-mark {
+          position:relative;
+          inset:auto;
+          width:46px; height:46px;
+          object-fit:contain;
+          border-radius:12px;
+          filter:none;
+          box-shadow:0 8px 20px -12px rgba(0,0,0,.55);
+        }
         .sb-video-thumb::after {
           content:"";
           position:absolute;
@@ -2205,8 +2223,8 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
                   }}
                   aria-label="So funktioniert Festag öffnen"
                 >
-                  <span className="sb-video-thumb" aria-hidden>
-                    <ProjectCreationIntroAnimation variant="teaser" />
+                  <span className="sb-video-thumb sb-video-thumb-brand" aria-hidden>
+                    <img src="/brand/favicon.svg" alt="" className="sb-video-thumb-mark" />
                   </span>
                   <span className="sb-video-copy">
                     <strong>So funktioniert Festag</strong>
