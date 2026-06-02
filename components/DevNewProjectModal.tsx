@@ -213,15 +213,23 @@ export default function DevNewProjectModal({
         .np-sub { margin: 0 0 18px; font-size: 13px; line-height: 1.55; color: var(--text-secondary); }
         .np-label { display: block; margin: 0 0 6px; font-size: 12px; font-weight: 600; letter-spacing: .01em; color: var(--text-secondary); }
         .np-label span { color: var(--text-muted); font-weight: 500; }
+        /* Notepad-style: title + description are written directly on the
+           surface with only a hairline underline that warms on focus — no
+           boxes (Festag form language). */
         .np-input, .np-textarea {
           width: 100%; box-sizing: border-box;
-          background: var(--inp, var(--surface-2)); border: 1px solid var(--border);
-          border-radius: 12px; padding: 11px 13px; color: var(--text);
-          font: inherit; font-size: 13.5px; outline: 0; margin-bottom: 16px;
-          transition: border-color .14s, box-shadow .14s;
+          background: transparent; border: 0;
+          border-bottom: 1px solid var(--border);
+          border-radius: 0; padding: 8px 2px; color: var(--text);
+          font: inherit; font-size: 15px; outline: 0; margin-bottom: 18px;
+          transition: border-color .14s;
         }
-        .np-input:focus, .np-textarea:focus { border-color: var(--border-strong); box-shadow: 0 0 0 3px var(--accent-soft, rgba(106,115,140,.14)); }
-        .np-textarea { min-height: 78px; resize: vertical; line-height: 1.5; }
+        .np-input::placeholder, .np-textarea::placeholder { color: var(--text-muted); }
+        .np-input:focus, .np-textarea:focus { border-bottom-color: color-mix(in srgb, var(--text) 45%, var(--border)); box-shadow: none; }
+        .np-textarea { min-height: 64px; resize: vertical; line-height: 1.55; }
+        /* The read-only invite link stays a tappable box (technical field). */
+        .np-linkinput { border: 1px solid var(--border); border-radius: 10px; background: var(--inp, var(--surface-2)); padding: 10px 12px; font-size: 13px; }
+        .np-linkinput:focus { border-bottom-color: var(--border); }
         .np-types { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 18px; }
         .np-types button {
           height: 32px; padding: 0 13px; border-radius: 999px;

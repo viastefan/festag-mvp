@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="de" class="theme-light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Festag — So funktioniert Festag (Pixel Guide)</title>
+<style>
+  /* ── Theme tokens ─────────────────────────────────────────────── */
+  :root {
+    --bg-page:#F7F8FA;
+    --popup-bg:rgba(255,255,255,.82);
+    --popup-border:rgba(15,23,42,.08);
+    --popup-border-hover:rgba(15,23,42,.16);
+    --text-primary:#111827;
+    --text-secondary:#6B7280;
+    --pixel-primary:#111827;
+    --pixel-accent:#6a738c;
+    --shadow:0 18px 50px rgba(15,23,42,.10);
+    --accent:#6a738c;
+  }
+  .theme-dark {
+    --bg-page:#070B12;
+    --popup-bg:rgba(11,17,24,.82);
+    --popup-border:rgba(255,255,255,.08);
+    --popup-border-hover:rgba(255,255,255,.18);
+    --text-primary:#E8EDF4;
+    --text-secondary:#9AA4B2;
+    --pixel-primary:#E8EDF4;
+    --pixel-accent:#6a738c;
+    --shadow:0 20px 60px rgba(0,0,0,.35);
+    --accent:#6a738c;
+  }
+  .theme-read {
+    --bg-page:#F4F1EA;
+    --popup-bg:rgba(255,252,245,.86);
+    --popup-border:rgba(70,60,45,.10);
+    --popup-border-hover:rgba(70,60,45,.20);
+    --text-primary:#2A2520;
+    --text-secondary:#756C60;
+    --pixel-primary:#2A2520;
+    --pixel-accent:#8a8170;   /* accent reduced in read mode */
+    --shadow:0 18px 45px rgba(70,60,45,.10);
+    --accent:#6a738c;
+  }
+
+  * { box-sizing:border-box; }
+  html, body { height:100%; }
+  body {
+    margin:0; background:var(--bg-page);
+    font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',Inter,Roboto,sans-serif;
+    transition:background .4s cubic-bezier(.16,1,.3,1);
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* ── Demo theme switch (not part of the component) ───────────────── */
+  .demo-switch {
+    position:fixed; top:16px; right:16px; z-index:50;
+    display:inline-flex; gap:4px; padding:4px;
+    border-radius:999px; background:var(--popup-bg); border:1px solid var(--popup-border);
+    box-shadow:var(--shadow); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+  }
+  .demo-switch button {
+    border:0; background:transparent; cursor:pointer;
+    font:inherit; font-size:12px; font-weight:500; color:var(--text-secondary);
+    padding:6px 12px; border-radius:999px; transition:background .15s, color .15s;
+  }
+  .demo-switch button.on { background:color-mix(in srgb, var(--text-primary) 9%, transparent); color:var(--text-primary); }
+
+  /* ── Guide popup ─────────────────────────────────────────────────── */
+  .fg-popup {
+    position:fixed; bottom:24px; left:24px; z-index:40;
+    width:340px; min-height:86px;
+    display:flex; align-items:center; gap:14px;
+    padding:16px; border-radius:18px;
+    background:var(--popup-bg); border:1px solid var(--popup-border);
+    box-shadow:var(--shadow);
+    backdrop-filter:blur(16px) saturate(140%); -webkit-backdrop-filter:blur(16px) saturate(140%);
+    cursor:pointer; text-align:left; font:inherit;
+    opacity:0; transform:translateY(12px) scale(.98);
+    transition:transform .28s cubic-bezier(.16,1,.3,1), border-color .2s ease, box-shadow .2s ease;
+  }
+  .fg-popup.mounted { opacity:1; transform:translateY(0) scale(1); transition:opacity .52s cubic-bezier(.16,1,.3,1), transform .52s cubic-bezier(.16,1,.3,1); }
+  .fg-popup:hover { transform:translateY(-2px); border-color:var(--popup-border-hover); }
+  .fg-popup:focus-visible { outline:2px solid var(--accent); outline-offset:3px; }
+
+  .fg-icon { width:44px; height:44px; flex-shrink:0; display:grid; place-items:center; }
+  .fg-grid { display:grid; gap:2px; }
+  .fg-px {
+    width:4px; height:4px; border-radius:1px; background:var(--pixel-primary);
+    opacity:0; transform:translate(var(--sx,0), var(--sy,0)) scale(.3); filter:blur(2px);
+    will-change:transform, opacity, filter;
+  }
+  .fg-px.accent { background:var(--pixel-accent); }
+  .fg-px.in { animation:fgIn var(--dur,900ms) cubic-bezier(.16,1,.3,1) var(--delay,0ms) forwards; }
+  @keyframes fgIn {
+    to { opacity:1; transform:translate(0,0) scale(1); filter:blur(0); }
+  }
+  .fg-px.pulse { animation:fgPulse 2.4s ease-in-out infinite; }
+  @keyframes fgPulse { 0%,100% { transform:scale(1); } 50% { transform:scale(1.45); opacity:.9; } }
+
+  .fg-text { min-width:0; flex:1; }
+  .fg-title { margin:0; font-size:14px; font-weight:600; letter-spacing:-.01em; color:var(--text-primary); line-height:1.3; }
+  .fg-sub { margin:3px 0 0; font-size:12px; color:var(--text-secondary); line-height:1.4; }
+  .fg-arrow { flex-shrink:0; color:var(--text-secondary); transition:transform .2s cubic-bezier(.16,1,.3,1), color .2s; }
+  .fg-popup:hover .fg-arrow { transform:translateX(2px); color:var(--text-primary); }
+
+  /* Expanded steps (small, upward) */
+  .fg-steps {
+    display:grid; grid-template-rows:0fr; overflow:hidden;
+    transition:grid-template-rows .32s cubic-bezier(.16,1,.3,1);
+  }
+  .fg-popup.expanded { flex-direction:column; align-items:stretch; }
+  .fg-popup.expanded .fg-head { display:flex; align-items:center; gap:14px; }
+  .fg-popup.expanded .fg-steps { grid-template-rows:1fr; margin-top:12px; }
+  .fg-steps-inner { min-height:0; display:flex; flex-direction:column; gap:8px; padding-top:12px; border-top:1px solid var(--popup-border); }
+  .fg-step { display:flex; align-items:center; gap:10px; font-size:12.5px; color:var(--text-secondary); }
+  .fg-step b { width:18px; height:18px; flex-shrink:0; display:grid; place-items:center; border-radius:6px;
+    background:color-mix(in srgb, var(--accent) 16%, transparent); color:var(--accent); font-size:10px; font-weight:600; }
+  .fg-step span { color:var(--text-primary); font-weight:500; }
+  .fg-head { display:contents; }
+
+  @media (max-width:560px) {
+    .fg-popup { left:16px; right:16px; bottom:16px; width:auto; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .fg-popup, .fg-px, .fg-px.in, .fg-px.pulse, body { transition:none !important; animation:none !important; }
+    .fg-popup { opacity:1; transform:none; }
+    .fg-px { opacity:1; transform:none; filter:none; }
+  }
+</style>
+</head>
+<body>
+  <div class="demo-switch" role="group" aria-label="Theme">
+    <button data-theme="light" class="on">Light</button>
+    <button data-theme="dark">Dark</button>
+    <button data-theme="read">Read</button>
+  </div>
+
+  <button class="fg-popup" id="fgPopup" aria-label="So funktioniert Festag öffnen">
+    <span class="fg-head">
+      <span class="fg-icon"><span class="fg-grid" id="fgGrid" aria-hidden="true"></span></span>
+      <span class="fg-text">
+        <p class="fg-title">So funktioniert Festag</p>
+        <p class="fg-sub">Projektstatus, Entscheidungen und Updates klar erklärt.</p>
+      </span>
+      <svg class="fg-arrow" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+    </span>
+    <span class="fg-steps"><span class="fg-steps-inner">
+      <span class="fg-step"><b>1</b><span>Projekt verbinden</span></span>
+      <span class="fg-step"><b>2</b><span>Fortschritt verstehen</span></span>
+      <span class="fg-step"><b>3</b><span>Entscheidungen klären</span></span>
+    </span></span>
+  </button>
+
+<script>
+  // Abstract F + network core (modular brand marker), 7x7.
+  const PIXEL_MAP = [
+    "1111000",
+    "1000100",
+    "1000000",
+    "1110100",
+    "1000000",
+    "1000100",
+    "1001000",
+  ];
+  // A few sparse accent cells = the isolated "network" nodes.
+  const ACCENT = new Set(["1,4","3,4","5,4","6,3"]);
+
+  function createPixelIcon() {
+    const grid = document.getElementById("fgGrid");
+    grid.style.gridTemplateColumns = `repeat(${PIXEL_MAP[0].length}, 4px)`;
+    const cells = [];
+    PIXEL_MAP.forEach((row, r) => {
+      row.split("").forEach((v, c) => {
+        const px = document.createElement("span");
+        px.className = "fg-px";
+        if (v === "1") {
+          if (ACCENT.has(r + "," + c)) px.classList.add("accent");
+          // scattered start offset
+          const sx = (Math.random() * 22 - 11).toFixed(1);
+          const sy = (Math.random() * 22 - 11).toFixed(1);
+          px.style.setProperty("--sx", sx + "px");
+          px.style.setProperty("--sy", sy + "px");
+          cells.push({ el: px, accent: px.classList.contains("accent") });
+        } else {
+          px.style.visibility = "hidden"; // keep grid alignment
+        }
+        grid.appendChild(px);
+      });
+    });
+    return cells;
+  }
+
+  function animatePixels(cells) {
+    cells.forEach((cell, i) => {
+      cell.el.style.setProperty("--delay", Math.round(Math.random() * 450) + "ms");
+      cell.el.style.setProperty("--dur", (700 + Math.round(Math.random() * 500)) + "ms");
+      cell.el.classList.add("in");
+    });
+    // After assembly, a very subtle recurring pulse on accent pixels only.
+    const accents = cells.filter(c => c.accent).map(c => c.el);
+    setTimeout(() => {
+      function pulseOnce() {
+        accents.forEach(el => { el.classList.add("pulse"); setTimeout(() => el.classList.remove("pulse"), 2400); });
+      }
+      pulseOnce();
+      setInterval(pulseOnce, 7000);
+    }, 1600);
+  }
+
+  function handleThemeSwitch() {
+    document.querySelectorAll(".demo-switch button").forEach(b => {
+      b.addEventListener("click", () => {
+        const t = b.getAttribute("data-theme");
+        document.documentElement.className = "theme-" + t;
+        document.querySelectorAll(".demo-switch button").forEach(x => x.classList.toggle("on", x === b));
+      });
+    });
+  }
+
+  function handlePopupClick() {
+    const popup = document.getElementById("fgPopup");
+    popup.addEventListener("click", () => {
+      console.log("Open Festag guide");
+      popup.classList.toggle("expanded");
+    });
+    document.addEventListener("keydown", e => {
+      if (e.key === "Escape") popup.classList.remove("expanded");
+    });
+  }
+
+  // init
+  const cells = createPixelIcon();
+  handleThemeSwitch();
+  handlePopupClick();
+  requestAnimationFrame(() => {
+    document.getElementById("fgPopup").classList.add("mounted");
+    setTimeout(() => animatePixels(cells), 220);
+  });
+</script>
+</body>
+</html>
