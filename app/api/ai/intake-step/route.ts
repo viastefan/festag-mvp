@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { hasTagroAI as hasGeminiKey, runTagroText as runGeminiText } from '@/lib/tagro/text'
+import { tagroComplete } from '@/lib/tagro/complete'
 
 export const runtime = 'nodejs'
 
@@ -95,9 +95,6 @@ export async function POST(req: NextRequest) {
     const chatHistory: ChatTurn[] = Array.isArray(body?.chatHistory) ? body.chatHistory : []
     const userTurnCount = chatHistory.filter(h => h.role === 'user').length
 
-    const apiKey = process.env.MINIMAX_API_KEY
-      || 'sk-cp-i7jkWRarSBe8qM82Zj2YXxHh7bXCCUAwciPjL5t-WrYRF3WHR4tgVXeJk-Y27k62RDsp7hrb1RJS2nr9rqXB-Q6GBMCKXU6-igQu2pPH6gerajhYbZySzHA'
-
     // Deterministic fallback — also kicks in if AI throws below.
     const fallback = () => {
       const idx = Math.max(0, Math.min(userTurnCount, FALLBACK_QUESTIONS.length - 1))
@@ -111,70 +108,23 @@ export async function POST(req: NextRequest) {
       })
     }
 
-    if (!apiKey) return fallback()
-
     const conversation = chatHistory.map(t => ({
       role: t.role === 'user' ? 'user' as const : 'assistant' as const,
       content: t.text,
     }))
 
-    if (hasGeminiKey()) {
-      const gemini = await runGeminiText({
-        system: SYSTEM_PROMPT,
-        messages: conversation.map(message => ({
-          role: message.role === 'assistant' ? 'model' as const : 'user' as const,
-          text: message.content,
-        })),
-        prompt: `So weit der bisherige Chat. Wir sind in Turn ${userTurnCount + 1}. Antworte mit dem JSON-Schema.`,
-        maxTokens: 1200,
-        temperature: 0.2,
-        responseMimeType: 'application/json',
-      })
-      if (gemini.ok && gemini.text) {
-        let parsed: any
-        try { parsed = parseJsonPayload(gemini.text) } catch { parsed = null }
-        if (parsed) {
-          const complete = Boolean(parsed?.complete) || userTurnCount >= 6
-          return NextResponse.json({
-            question: complete ? null : (typeof parsed?.question === 'string' ? parsed.question.trim() : null),
-            title: typeof parsed?.title === 'string' ? parsed.title.trim() || null : null,
-            summary: typeof parsed?.summary === 'string' ? parsed.summary.trim() || null : null,
-            complete,
-            reasoning: typeof parsed?.reasoning === 'string' ? parsed.reasoning.slice(0, 200) : '',
-          })
-        }
-      }
-    }
-
-    const res = await fetch('https://api.minimax.io/v1/text/chatcompletion_v2', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: 'MiniMax-M2.7',
-        max_tokens: 1200,
-        reasoning_effort: 'none',
-        response_format: { type: 'json_object' },
-        messages: [
-          { role: 'system', content: SYSTEM_PROMPT },
-          ...conversation,
-          {
-            role: 'user',
-            content: `So weit der bisherige Chat. Wir sind in Turn ${userTurnCount + 1}. Antworte mit dem JSON-Schema.`,
-          },
-        ],
-      }),
+    const ai = await tagroComplete({
+      system: SYSTEM_PROMPT,
+      messages: conversation,
+      prompt: `So weit der bisherige Chat. Wir sind in Turn ${userTurnCount + 1}. Antworte mit dem JSON-Schema.`,
+      maxTokens: 1200,
+      temperature: 0.2,
+      json: true,
     })
-
-    if (!res.ok) return fallback()
-    const ai = await res.json().catch(() => null)
-    const raw: string | undefined = ai?.choices?.[0]?.message?.content
-    if (!raw) return fallback()
+    if (!ai.ok || !ai.text) return fallback()
 
     let parsed: any
-    try { parsed = parseJsonPayload(raw) } catch { return fallback() }
+    try { parsed = parseJsonPayload(ai.text) } catch { return fallback() }
 
     // Force-complete after 6 user turns regardless of model output.
     const complete = Boolean(parsed?.complete) || userTurnCount >= 6

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { hasTagroAI as hasGeminiKey, runTagroText as runGeminiText } from '@/lib/tagro/text'
+import { tagroComplete } from '@/lib/tagro/complete'
 
 export const runtime = 'nodejs'
 
@@ -19,9 +19,6 @@ export const runtime = 'nodejs'
  * Stays JSON (no streaming) so it's easy to layer on top of the
  * existing Festag stack — frontend can fake a typing animation.
  */
-
-const MINIMAX_ENDPOINT = 'https://api.minimax.io/v1/text/chatcompletion_v2'
-const MINIMAX_MODEL = 'MiniMax-M2.7'
 
 const SYSTEM = `Du bist Tagro, das AI-Produktionssystem von Festag.
 
@@ -86,10 +83,6 @@ Tagro kann in Festag konkrete Aktionen vorbereiten:
 Wichtige Aktionen werden nie sofort ausgeführt. Schlage sie als bestätigungspflichtigen nächsten Schritt vor.${projectId ? `\n\nDie Conversation ist an Projekt-ID ${projectId} gekoppelt.` : ''}`
 }
 
-function stripThink(s: string): string {
-  return s.replace(/<think>[\s\S]*?<\/think>\s*/g, '').trim()
-}
-
 function deriveTitle(text: string): string {
   // Take the first sentence (or first line) up to ~48 chars.
   const cleaned = text.replace(/\s+/g, ' ').trim()
@@ -142,10 +135,7 @@ export async function POST(req: NextRequest, ctx: { params: { id: string } }) {
     .eq('conversation_id', ctx.params.id)
     .order('created_at', { ascending: true })
 
-  // 3. Call Tagro provider.
-  const apiKey = process.env.MINIMAX_API_KEY
-    || 'sk-cp-i7jkWRarSBe8qM82Zj2YXxHh7bXCCUAwciPjL5t-WrYRF3WHR4tgVXeJk-Y27k62RDsp7hrb1RJS2nr9rqXB-Q6GBMCKXU6-igQu2pPH6gerajhYbZySzHA'
-
+  // 3. Call Tagro provider (Claude → Gemini → MiniMax).
   let aiText = 'Tagro ist gerade kurz nicht erreichbar. Versuch es bitte gleich nochmal.'
   let thinking: string | null = null
   try {
@@ -157,46 +147,13 @@ export async function POST(req: NextRequest, ctx: { params: { id: string } }) {
       })),
     ]
 
-    if (hasGeminiKey()) {
-      const gemini = await runGeminiText({
-        system: systemPrompt,
-        messages: messages.map(message => ({
-          role: message.role === 'assistant' ? 'model' as const : 'user' as const,
-          text: message.content,
-        })),
-        maxTokens: 1200,
-        temperature: 0.2,
-      })
-      if (gemini.ok && gemini.text) {
-        aiText = gemini.text
-      }
-    }
-
-    if (aiText === 'Tagro ist gerade kurz nicht erreichbar. Versuch es bitte gleich nochmal.') {
-      const res = await fetch(MINIMAX_ENDPOINT, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
-        body: JSON.stringify({
-          model: MINIMAX_MODEL,
-          max_tokens: 1200,
-          reasoning_effort: 'none',
-          messages: [
-            { role: 'system' as const, content: systemPrompt },
-            ...messages,
-          ],
-        }),
-      })
-      if (res.ok) {
-        const ai = await res.json().catch(() => null)
-        const raw = ai?.choices?.[0]?.message?.content as string | undefined
-        if (raw) {
-          // Capture any think block separately, then strip from the visible reply.
-          const thinkMatch = raw.match(/<think>([\s\S]*?)<\/think>/)
-          thinking = thinkMatch ? thinkMatch[1].trim().slice(0, 4000) : null
-          aiText = stripThink(raw)
-        }
-      }
-    }
+    const ai = await tagroComplete({
+      system: systemPrompt,
+      messages,
+      maxTokens: 1200,
+      temperature: 0.2,
+    })
+    if (ai.ok && ai.text) aiText = ai.text
   } catch {
     // soft fallback already set
   }

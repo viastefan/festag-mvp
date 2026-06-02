@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { taskStatusPatch } from '@/lib/tasks/status'
-import { hasTagroAI as hasGeminiKey, runTagroText as runGeminiText } from '@/lib/tagro/text'
+import { tagroComplete } from '@/lib/tagro/complete'
 
 const SUPABASE_URL = 'https://xsdkoepwuvpuroijjain.supabase.co'
 
@@ -13,49 +13,14 @@ function fallbackCustomerUpdate(devNote: string) {
 
 async function translateWithTagro(devNote: string) {
   const system = 'Du bist Tagro, die Übersetzungsschicht von Festag. Übersetze technische Developer-Notizen in kundenfreundliche Projekt-Updates. Maximal 2 kurze Sätze. Deutsch. Kein Fachjargon. Ehrlich, ruhig, konkret.'
-
-  if (hasGeminiKey()) {
-    const gemini = await runGeminiText({
-      system,
-      prompt: `Developer-Notiz: ${devNote}`,
-      maxTokens: 700,
-      temperature: 0.2,
-    })
-    if (gemini.ok && gemini.text) return gemini.text.trim()
-  }
-
-  const apiKey = process.env.MINIMAX_API_KEY
-  if (!apiKey) return fallbackCustomerUpdate(devNote)
-
-  try {
-    const res = await fetch('https://api.minimax.io/v1/text/chatcompletion_v2', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: 'MiniMax-M2.7',
-        max_tokens: 700,
-        reasoning_effort: 'none',
-        messages: [
-          {
-            role: 'system',
-            content: system,
-          },
-          { role: 'user', content: `Developer-Notiz: ${devNote}` },
-        ],
-      }),
-    })
-
-    if (!res.ok) return fallbackCustomerUpdate(devNote)
-    const data = await res.json()
-    return (data?.choices?.[0]?.message?.content ?? fallbackCustomerUpdate(devNote))
-      .replace(/<think>[\s\S]*?<\/think>\s*/g, '')
-      .trim() || fallbackCustomerUpdate(devNote)
-  } catch {
-    return fallbackCustomerUpdate(devNote)
-  }
+  const ai = await tagroComplete({
+    system,
+    prompt: `Developer-Notiz: ${devNote}`,
+    maxTokens: 700,
+    temperature: 0.2,
+  })
+  if (ai.ok && ai.text.trim()) return ai.text.trim()
+  return fallbackCustomerUpdate(devNote)
 }
 
 export async function POST(req: NextRequest) {

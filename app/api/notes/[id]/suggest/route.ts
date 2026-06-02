@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { hasTagroAI as hasGeminiKey, runTagroText as runGeminiText } from '@/lib/tagro/text'
+import { tagroComplete } from '@/lib/tagro/complete'
 
 export const runtime = 'nodejs'
 
@@ -82,45 +82,18 @@ export async function POST(_req: NextRequest, ctx: { params: { id: string } }) {
     }
   }
 
-  const apiKey = process.env.MINIMAX_API_KEY
-    || 'sk-cp-i7jkWRarSBe8qM82Zj2YXxHh7bXCCUAwciPjL5t-WrYRF3WHR4tgVXeJk-Y27k62RDsp7hrb1RJS2nr9rqXB-Q6GBMCKXU6-igQu2pPH6gerajhYbZySzHA'
-
   let suggestions = emptyResult()
   try {
     const userPrompt = `Titel: ${note.title || '(ohne)'}\n\n${context ? context + '\n\n' : ''}Notiz:\n${body}`
-    let raw: string | null = null
 
-    if (hasGeminiKey()) {
-      const gemini = await runGeminiText({
-        system: SYSTEM,
-        prompt: userPrompt,
-        maxTokens: 2000,
-        temperature: 0.2,
-        responseMimeType: 'application/json',
-      })
-      if (gemini.ok && gemini.text) raw = gemini.text
-    }
-
-    if (!raw) {
-      const res = await fetch('https://api.minimax.io/v1/text/chatcompletion_v2', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
-        body: JSON.stringify({
-          model: 'MiniMax-M2.7',
-          max_tokens: 2000,
-          reasoning_effort: 'none',
-          response_format: { type: 'json_object' },
-          messages: [
-            { role: 'system', content: SYSTEM },
-            { role: 'user', content: userPrompt },
-          ],
-        }),
-      })
-      if (res.ok) {
-        const ai = await res.json().catch(() => null)
-        raw = ai?.choices?.[0]?.message?.content ?? null
-      }
-    }
+    const ai = await tagroComplete({
+      system: SYSTEM,
+      prompt: userPrompt,
+      maxTokens: 2000,
+      temperature: 0.2,
+      json: true,
+    })
+    const raw: string | null = ai.ok && ai.text ? ai.text : null
 
     if (raw) {
       const cleaned = stripCodeFence(raw).replace(/<think>[\s\S]*?<\/think>/g, '').trim()
