@@ -6,7 +6,7 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import {
   Bell, CaretRight, Check, CheckCircle, Circle, DotsThree, LinkSimple,
-  CaretDown, CaretUp, Copy, EnvelopeSimple, FilePdf, Plus, Sparkle, Star, Target, Trash,
+  CaretDown, CaretUp, Copy, EnvelopeSimple, FilePdf, Plus, Sparkle, Star, Target, Trash, UserPlus,
 } from '@phosphor-icons/react'
 import { projectColor } from '@/components/Sidebar'
 import { effectiveRole, isDevOrAdmin } from '@/lib/role'
@@ -16,6 +16,7 @@ import { computeReportReadiness } from '@/lib/trust/nexora'
 import { Milestone } from '@/components/MilestoneChart'
 import ProjectCompletionCelebration from '@/components/ProjectCompletionCelebration'
 import DeleteProjectModal from '@/components/DeleteProjectModal'
+import AssignDevModal from '@/components/AssignDevModal'
 import NewTaskModal from '@/components/NewTaskModal'
 import ProjectDevAvatars from '@/components/ProjectDevAvatars'
 import ProofGridSection from '@/components/ProofGridSection'
@@ -110,6 +111,7 @@ function ProjectPageInner() {
   const [sendingReport, setSendingReport] = useState(false)
   const [online, setOnline] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
+  const [assignDevOpen, setAssignDevOpen] = useState(false)
   const [projectMenuOpen, setProjectMenuOpen] = useState(false)
   const [myExecutorRole, setMyExecutorRole] = useState<ExecutorRole | null>(null)
   const msgEndRef = useRef<HTMLDivElement>(null)
@@ -1583,6 +1585,13 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
         onDeleted={() => { setDeleteOpen(false); window.location.href = '/dashboard' }}
       />
 
+      <AssignDevModal
+        open={assignDevOpen}
+        projectId={project.id}
+        projectTitle={project.title}
+        onClose={() => setAssignDevOpen(false)}
+      />
+
       {/* ─── TOP BAR — workspace breadcrumb ─── */}
       <header className="pv-topbar">
         <div className="pv-crumbs">
@@ -1621,6 +1630,20 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
                     borderRadius: 10, boxShadow: '0 16px 40px rgba(0,0,0,.18)',
                   }}
                 >
+                  <button
+                    role="menuitem"
+                    onClick={() => { setProjectMenuOpen(false); setAssignDevOpen(true) }}
+                    style={{
+                      width: '100%', display: 'flex', alignItems: 'center', gap: 9,
+                      padding: '8px 10px', borderRadius: 7, border: 0, background: 'transparent',
+                      color: 'var(--text)', font: 'inherit', fontSize: 13, fontWeight: 500,
+                      cursor: 'pointer', textAlign: 'left',
+                    }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--surface-2)' }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
+                  >
+                    <UserPlus size={14} /> Entwickler zuweisen
+                  </button>
                   <button
                     role="menuitem"
                     onClick={() => { setProjectMenuOpen(false); setDeleteOpen(true) }}

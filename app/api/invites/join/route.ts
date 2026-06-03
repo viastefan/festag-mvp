@@ -54,15 +54,45 @@ export async function POST(req: NextRequest) {
         { project_id: inv.project_id, user_id: user.id, role: memberRole },
         { onConflict: 'project_id,user_id', ignoreDuplicates: true },
       )
+    // Mirror into project_assignments — the table the dev panel and the client
+    // Team view actually read. Without this, a dev who joins via the invite
+    // link lands only in project_members and never surfaces in the dev panel
+    // (the two membership tables were out of sync).
+    await svc.from('project_assignments')
+      .upsert(
+        {
+          project_id: inv.project_id,
+          user_id: user.id,
+          role_on_project: memberRole === 'client' ? 'client' : 'developer',
+          assigned_by: user.id,
+          active: true,
+        },
+        { onConflict: 'project_id,user_id' },
+      )
+    if (memberRole === 'dev') {
+      const { data: proj } = await svc.from('projects').select('assigned_dev').eq('id', inv.project_id).maybeSingle()
+      if (proj && !(proj as any).assigned_dev) {
+        await svc.from('projects').update({ assigned_dev: user.id }).eq('id', inv.project_id)
+      }
+    }
   }
 
-  // Clients are read-side. Only set the legacy profile role to 'client' when it
-  // wouldn't downgrade an existing dev/admin account.
+  // Sync the profile role so the panel routing works. Contributors need the
+  // 'dev' role to actually reach the dev panel; never downgrade an existing
+  // dev/admin/project_owner account.
+  const { data: prof } = await svc.from('profiles').select('role,approval_status').eq('id', user.id).maybeSingle()
+  const cur = (prof as any)?.role
   if (kind === 'client') {
-    const { data: prof } = await svc.from('profiles').select('role').eq('id', user.id).maybeSingle()
-    const cur = (prof as any)?.role
     if (!cur || cur === 'client') {
       await svc.from('profiles').update({ role: 'client' }).eq('id', user.id)
+    }
+  } else {
+    // contributor → developer
+    if (cur !== 'dev' && cur !== 'admin' && cur !== 'project_owner') {
+      await svc.from('profiles').update({
+        role: 'dev',
+        approval_status: (prof as any)?.approval_status ?? 'approved',
+      }).eq('id', user.id)
     }
   }
 
