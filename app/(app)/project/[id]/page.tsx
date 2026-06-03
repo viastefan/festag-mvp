@@ -20,6 +20,7 @@ import NewTaskModal from '@/components/NewTaskModal'
 import ProjectDevAvatars from '@/components/ProjectDevAvatars'
 import ProofGridSection from '@/components/ProofGridSection'
 import TagroQueueSection from '@/components/TagroQueueSection'
+import MarketingPanelSection from '@/components/MarketingPanelSection'
 import ChatMarkdown from '@/components/ChatMarkdown'
 import { getProjectPreset, type ExecutorRole, type ProjectType } from '@/lib/project-modules'
 import { autoAvatarColor, avatarTextColor } from '@/lib/avatar'
@@ -90,7 +91,7 @@ function ProjectPageInner() {
   // own primary tab.
   const initialTab = searchParams?.get('tab') as null
     | 'overview' | 'tasks' | 'milestones' | 'activity' | 'decisions' | 'risks' | 'briefings' | 'assets' | 'updates'
-  const [activeLeft, setActiveLeft] = useState<'overview'|'tasks'|'milestones'|'evidence'|'queue'>(() => {
+  const [activeLeft, setActiveLeft] = useState<'overview'|'tasks'|'milestones'|'evidence'|'queue'|'marketing'>(() => {
     if (initialTab === 'tasks') return 'tasks'
     if (initialTab === 'milestones') return 'milestones'
     return 'overview'
@@ -1638,6 +1639,13 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
           className={`pv-tab${activeLeft === 'queue' ? ' on' : ''}`}
           onClick={() => setActiveLeft('queue')}
         >Zeitplan</button>
+        {projectType === 'marketing' && (
+          <button
+            role="tab" aria-selected={activeLeft === 'marketing'}
+            className={`pv-tab${activeLeft === 'marketing' ? ' on' : ''}`}
+            onClick={() => setActiveLeft('marketing')}
+          >Marketing</button>
+        )}
       </nav>
 
       {/* ─── BODY: main + right sidebar ─── */}
@@ -2033,6 +2041,12 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
           {activeLeft === 'queue' && (
             <div className="pv-pane">
               <TagroQueueSection projectId={id} canEdit={canEdit} />
+            </div>
+          )}
+
+          {activeLeft === 'marketing' && (
+            <div className="pv-pane">
+              <MarketingPanelSection projectId={id} canEdit={canEdit} />
             </div>
           )}
 
