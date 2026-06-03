@@ -49,7 +49,7 @@ export default function EmptyState({
   accent,
   kicker,
 }: Props) {
-  const tone = accent || 'var(--btn-prim)'
+  const tone = accent || 'var(--workspace-accent, var(--btn-prim))'
 
   return (
     <div className="es-wrap" style={{ ['--es-accent' as any]: tone }}>

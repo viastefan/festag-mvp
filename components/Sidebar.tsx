@@ -23,6 +23,7 @@ import {
   ArrowSquareOut,
 } from '@phosphor-icons/react'
 import { autoAvatarColor, avatarInitials } from '@/lib/avatar'
+import { applyWorkspaceAccent, WORKSPACE_COLOR_SYNC_EVENT } from '@/lib/workspace-accent'
 import {
   broadcastProfileSync,
   getRememberedProfileAvatarColor,
@@ -481,13 +482,15 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
       // the trigger, user identity in the dropdown).
       try {
         const { data: ws } = await sb
-          .from('workspaces').select('id,mode,name')
+          .from('workspaces').select('id,mode,name,metadata')
           .eq('primary_owner_id', data.user.id)
           .eq('is_personal', true).maybeSingle()
         const m = (ws as any)?.mode
         if (m === 'team' || m === 'agency' || m === 'delivery') setWsMode(m)
         const wn = (ws as any)?.name
         if (wn && typeof wn === 'string') setWorkspaceName(wn.trim())
+        // Apply the workspace brand colour app-wide (set in Settings → Workspace).
+        applyWorkspaceAccent((ws as any)?.metadata?.settings?.workspace_color ?? null)
         // Team roster for the switcher — who else is in this workspace.
         // Owner first, then members; honest count, real avatar colours.
         const wsId = (ws as any)?.id
@@ -644,6 +647,16 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
     }
     window.addEventListener(PROJECT_COLOR_SYNC_EVENT, onProjectColor)
     return () => window.removeEventListener(PROJECT_COLOR_SYNC_EVENT, onProjectColor)
+  }, [])
+
+  // Live workspace-accent updates from Settings → Workspace.
+  useEffect(() => {
+    const onWsColor = (event: Event) => {
+      if (!(event instanceof CustomEvent)) return
+      applyWorkspaceAccent(event.detail ?? null)
+    }
+    window.addEventListener(WORKSPACE_COLOR_SYNC_EVENT, onWsColor)
+    return () => window.removeEventListener(WORKSPACE_COLOR_SYNC_EVENT, onWsColor)
   }, [])
 
   const PROJ_COLORS = ['#6a738c','#5b647d','#64748b','#ef4444','#f97316','#eab308','#22c55e','#06b6d4','#3b82f6','#94a3b8']
