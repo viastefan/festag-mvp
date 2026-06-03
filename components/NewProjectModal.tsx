@@ -1300,10 +1300,12 @@ const CSS = `
   }
   .npm-chat-mic:hover:not(:disabled) { color: var(--text); background: color-mix(in srgb, var(--surface-2) 100%, transparent); }
   .npm-chat-mic:disabled { opacity: .42; cursor: default; }
+  /* Calm recording state — Festag slate instead of bright red, subtle opacity
+     pulse instead of a glowing box-shadow ring (no amateur audio look). */
   .npm-chat-mic.rec {
-    background: color-mix(in srgb, #e0564f 18%, transparent);
-    color: #e0564f;
-    animation: npmRecPulse 1.3s ease-in-out infinite;
+    background: color-mix(in srgb, #5B647D 22%, transparent);
+    color: #F4F4F4;
+    animation: npmRecPulse 1.4s ease-in-out infinite;
   }
 
   /* Input tools row under the description — mic + Tagro hand-off */
@@ -1339,14 +1341,15 @@ const CSS = `
   .npm-tool-btn:disabled { opacity: .45; cursor: not-allowed; }
   .npm-tool-btn.tagro { color: var(--text); }
   .npm-tool-btn.rec {
-    color: #e0564f;
-    border-color: color-mix(in srgb, #e0564f 40%, transparent);
-    background: color-mix(in srgb, #e0564f 12%, transparent);
-    animation: npmRecPulse 1.3s ease-in-out infinite;
+    color: #F4F4F4;
+    border-color: color-mix(in srgb, #5B647D 50%, transparent);
+    background: color-mix(in srgb, #5B647D 18%, transparent);
+    animation: npmRecPulse 1.6s ease-in-out infinite;
   }
+  /* Subtle opacity breath instead of a glowing ring — calmer, more premium. */
   @keyframes npmRecPulse {
-    0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, #e0564f 32%, transparent); }
-    50% { box-shadow: 0 0 0 5px color-mix(in srgb, #e0564f 0%, transparent); }
+    0%, 100% { opacity: 1; }
+    50% { opacity: .72; }
   }
   .npm-chat-input > svg {
     align-self: center;
