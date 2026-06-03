@@ -18,7 +18,8 @@ const GRID = 11 // 11×11 field, circle-masked
 const ACCENT = '#6a738c'
 
 export default function TagroPixelOrb({ state = 'idle', size = 188 }: { state?: TagroPixelState; size?: number }) {
-  const cell = size / (GRID + 1)
+  // Fit the gapped grid exactly inside `size`: total = cell*(GRID + 0.18*(GRID-1)).
+  const cell = size / (GRID + 0.18 * (GRID - 1))
   const gap = cell * 0.18
   const r = (GRID - 1) / 2
 
