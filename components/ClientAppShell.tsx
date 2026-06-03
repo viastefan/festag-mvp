@@ -221,25 +221,31 @@ export default function ClientAppShell({
           .app-workspace-scroll {
             overflow-y: visible;
           }
+          /* On mobile, NEVER fix-lock full-height pages — use native body
+             scroll. The desktop pattern (fixed shell with an internal scroll
+             container) breaks on phones: pages stop scrolling, and the bottom
+             nav covers content. Mobile gets relative shells + page scroll +
+             bottom padding so the bottom nav can't overlap. */
           .festag-app-shell.full-height {
-            position: fixed;
-            inset: 0;
-            height: 100dvh;
-            min-height: 0;
-            overflow: hidden;
+            position: relative;
+            inset: auto;
+            height: auto;
+            min-height: 100dvh;
+            overflow: visible;
           }
           .festag-app-shell.full-height .app-workspace {
-            position: fixed;
-            inset: 0;
-            height: 100dvh;
-            min-height: 0;
-            max-height: 100dvh;
-            overflow: hidden;
+            position: relative;
+            inset: auto;
+            height: auto;
+            min-height: 100dvh;
+            max-height: none;
+            overflow: visible;
+            padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
           }
           .festag-app-shell.full-height .app-workspace-scroll {
-            height: 100%;
-            min-height: 0;
-            overflow: hidden;
+            height: auto;
+            min-height: 100dvh;
+            overflow: visible;
           }
           .app-footer-controls { display:none; }
         }
