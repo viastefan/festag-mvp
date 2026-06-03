@@ -2522,11 +2522,9 @@ export default function DashboardPage() {
                   {projects.length === 0
                     ? 'Noch kein Projekt angelegt. Sobald du ein Projekt startest, fasst Tagro hier den aktuellen Stand zusammen — Fortschritt, offene Punkte und nächste Schritte.'
                     : [
-                        controlSentence.reason,
                         `${activeProjectCount} aktive${activeProjectCount === 1 ? 's' : ''} Projekt${activeProjectCount === 1 ? '' : 'e'}, ${openTaskCount} offene Aufgabe${openTaskCount === 1 ? '' : 'n'}.`,
                         decisionTasks.length ? `${decisionTasks.length} offene Entscheidung${decisionTasks.length === 1 ? '' : 'en'}.` : '',
                         riskTasks.length ? `${riskTasks.length} Blocker brauchen Aufmerksamkeit.` : '',
-                        'Für den ausführlichen Bericht: „Aktualisieren" oder „Bericht anhören".',
                       ].filter(Boolean).join(' ')}
                   {statusBusy && <span className="dc-caret" aria-hidden />}
                 </p>
@@ -2543,11 +2541,8 @@ export default function DashboardPage() {
                 <h2 className="dc-card-title">Audio Briefing</h2>
                 <p className="dc-card-sub">Dein täglicher Überblick.</p>
               </div>
-              {/* Status signal — aligned to the heading line. */}
-              <span className={`dc-pulse-pill tone-${pulse.tone}`}>
-                <span className="dot" />
-                {pulse.label}
-              </span>
+              {/* Status lives once, under the greeting (dc-control-line) — no
+                  second green-dot pill here. */}
             </header>
 
             {/* Scope — which project this briefing covers. Defaults to the
