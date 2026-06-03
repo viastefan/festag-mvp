@@ -33,14 +33,20 @@ const INSTRUCTIONS: Record<string, string> = {
     'Nenne, für welche berichtete Arbeit noch Belege fehlen, und welche Belege kundensichtbar gemacht werden sollten.',
   decision_digest:
     'Liste die offenen Entscheidungen als klare Ja/Nein-Fragen auf, die der Kunde/Owner freigeben kann. Wenn keine offen sind, sage das.',
+  marketing_report:
+    'Erstelle einen kundenfähigen Marketing-Wochenbericht: kurzer Status, was wurde gemacht, laufende Kampagnen, Budgeteinsatz ("wo ging das Geld hin?" — verständlich, nicht nur KPIs), erzeugte Leads, Ergebnisse, Empfehlungen und nächste Schritte. Erkläre Zahlen in normaler Sprache. Erfinde nichts.',
 }
 
 export async function buildProjectContext(sb: AnySb, projectId: string): Promise<{ title: string; context: string }> {
-  const [{ data: proj }, { data: tasks }, { data: ev }, { data: updates }] = await Promise.all([
+  const [{ data: proj }, { data: tasks }, { data: ev }, { data: updates }, { data: campaigns }, { data: budget }, { data: leads }] = await Promise.all([
     sb.from('projects').select('title,status,description,scope_summary').eq('id', projectId).maybeSingle(),
     sb.from('tasks').select('title,status,priority').eq('project_id', projectId).limit(50),
     sb.from('evidence').select('title,evidence_type,proof_strength,client_visible').eq('project_id', projectId).order('created_at', { ascending: false }).limit(20),
     sb.from('ai_updates').select('content,created_at').eq('project_id', projectId).order('created_at', { ascending: false }).limit(1),
+    // Marketing data — empty for non-marketing projects, so the block is skipped.
+    sb.from('marketing_campaigns').select('name,status,budget_planned,budget_spent,currency').eq('project_id', projectId).limit(20),
+    sb.from('marketing_budget_entries').select('type,amount').eq('project_id', projectId).limit(100),
+    sb.from('marketing_leads').select('status').eq('project_id', projectId).limit(500),
   ])
 
   const title = (proj as any)?.title ?? 'Projekt'
@@ -52,6 +58,25 @@ export async function buildProjectContext(sb: AnySb, projectId: string): Promise
   const evRows = (ev as any[]) ?? []
   const lastReport = (updates as any[])?.[0]?.content
 
+  // Marketing block (only when the project has marketing data).
+  const campRows = (campaigns as any[]) ?? []
+  const budgetRows = (budget as any[]) ?? []
+  const leadRows = (leads as any[]) ?? []
+  let marketingBlock = ''
+  if (campRows.length || budgetRows.length || leadRows.length) {
+    const spentTotal = budgetRows.reduce((s, b) => s + (Number(b.amount) || 0), 0)
+    const plannedTotal = campRows.reduce((s, c) => s + (Number(c.budget_planned) || 0), 0)
+    const byType = budgetRows.reduce((acc: Record<string, number>, b) => { acc[b.type] = (acc[b.type] || 0) + (Number(b.amount) || 0); return acc }, {})
+    const converted = leadRows.filter(l => l.status === 'converted').length
+    marketingBlock = [
+      'Marketing-Daten:',
+      `Budget: ${Math.round(plannedTotal)} € geplant, ${Math.round(spentTotal)} € eingesetzt.`,
+      Object.keys(byType).length ? `Budget nach Typ: ${Object.entries(byType).map(([t, a]) => `${t} ${Math.round(a as number)} €`).join(', ')}.` : '',
+      campRows.length ? `Kampagnen:\n${campRows.map(c => `- ${c.name} (${c.status})`).join('\n')}` : 'Keine Kampagnen erfasst.',
+      `Leads: ${leadRows.length} gesamt, ${converted} gewonnen.`,
+    ].filter(Boolean).join('\n')
+  }
+
   const lines = [
     `Projekt: ${title}`,
     `Status/Phase: ${(proj as any)?.status ?? 'unbekannt'}`,
@@ -61,6 +86,7 @@ export async function buildProjectContext(sb: AnySb, projectId: string): Promise
     evRows.length
       ? `Belege (ProofGrid):\n${evRows.slice(0, 12).map(e => `- ${e.title || e.evidence_type} · ${e.proof_strength}${e.client_visible ? ' · kundensichtbar' : ' · intern'}`).join('\n')}`
       : 'Belege: noch keine erfasst.',
+    marketingBlock,
     lastReport ? `Letzter Statusbericht (Auszug):\n${String(lastReport).slice(0, 500)}` : 'Noch kein Statusbericht.',
   ].filter(Boolean)
 

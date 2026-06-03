@@ -73,6 +73,13 @@ export const QUEUE_TEMPLATES: QueueTemplate[] = [
     schedule_type: 'recurring', cron: 'Freitags 16:30',
     audience: 'client', output_type: 'audio', delivery_mode: 'send_after_approval', review_required: true,
   },
+  {
+    job_type: 'marketing_report',
+    label: 'Marketing-Wochenbericht',
+    desc: 'Kampagnen, Budgeteinsatz („wo ging das Geld hin?"), Leads und Empfehlungen — kundenfähig erklärt.',
+    schedule_type: 'recurring', cron: 'Freitags 16:00',
+    audience: 'client', output_type: 'marketing_report', delivery_mode: 'send_after_approval', review_required: true,
+  },
 ]
 
 export const AUDIENCE_LABEL: Record<Audience, string> = {
