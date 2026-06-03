@@ -16,6 +16,7 @@ import {
   X,
 } from '@phosphor-icons/react'
 import EmptyState from '@/components/EmptyState'
+import HelpHint from '@/components/HelpHint'
 
 type TeamPanelMode = 'projects' | 'tasks' | 'reports'
 
@@ -267,8 +268,18 @@ export default function TeamWorkspacePanel({ mode }: { mode: TeamPanelMode }) {
   return (
     <div className="tw-page">
       <header className="tw-head">
-        <div>
+        <div className="tw-title-row">
           <h1>{title}</h1>
+          <HelpHint
+            title={title}
+            description={
+              mode === 'projects'
+                ? 'Alle Projekte im Team-Kontext mit Ownern, Zuständigkeiten und offenen Aufgaben.'
+                : mode === 'tasks'
+                  ? 'Aufgaben im Team-Kontext — getrennt von deinen persönlichen Tasks, jeder Person zuweisbar.'
+                  : 'Schriftliche Team-Berichte und operative Updates aus dem Workspace.'
+            }
+          />
         </div>
         <button type="button" className="tw-plus" onClick={() => setInviteOpen(true)} aria-label="Teammitglied einladen" title="Teammitglied einladen">
           <Plus size={18} weight="regular" />
@@ -421,6 +432,11 @@ export default function TeamWorkspacePanel({ mode }: { mode: TeamPanelMode }) {
           gap:20px;
           padding:0 28px;
           border-bottom:1px solid var(--border);
+        }
+        .tw-title-row {
+          display:flex;
+          align-items:center;
+          gap:9px;
         }
         .tw-head h1 {
           margin:0;

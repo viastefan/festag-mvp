@@ -21,6 +21,7 @@ import { computeControlStatus } from '@/lib/trust/control-status'
 import ObserverWelcomeModal from '@/components/ObserverWelcomeModal'
 import WelcomeTour from '@/components/WelcomeTour'
 import TagroOrb, { type TagroOrbState } from '@/components/TagroOrb'
+import TagroPixelOrb from '@/components/TagroPixelOrb'
 import { speechVoiceId, useSpeechSynthesis } from '@/hooks/useSpeechSynthesis'
 import {
   ArrowClockwise, Article, CalendarCheck, CaretDown, CaretRight, Check, CheckCircle,

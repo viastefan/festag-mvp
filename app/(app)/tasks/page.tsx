@@ -25,6 +25,7 @@ import {
   X,
 } from '@phosphor-icons/react'
 import EmptyState from '@/components/EmptyState'
+import HelpHint from '@/components/HelpHint'
 
 type TaskView = 'all' | 'open' | 'active' | 'decision' | 'review' | 'done'
 type SortMode = 'newest' | 'updated' | 'priority' | 'project' | 'group'
@@ -1894,7 +1895,13 @@ export default function TasksPage() {
       <div className="task-static-top">
         <div className="task-top">
           <div className="task-top-left">
-            <h1 className="task-title">Tasks</h1>
+            <span style={{ display:'inline-flex', alignItems:'center', gap:7, minWidth:0 }}>
+              <h1 className="task-title">Tasks</h1>
+              <HelpHint
+                title="Tasks"
+                description="Aufgaben und Wünsche zu deinen Projekten. Tagro ordnet neue Vorschläge ein und bereitet sie prüfbar für die Umsetzung vor."
+              />
+            </span>
             {/* Project scope dropdown — same UX as the dashboard's
                 "Gesamtbericht für alle Projekte" so users can narrow
                 down to a single project without losing the table. */}
