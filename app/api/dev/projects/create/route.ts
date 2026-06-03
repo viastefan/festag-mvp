@@ -34,6 +34,7 @@ export async function POST(req: Request) {
   const title = String(body?.title || '').trim()
   const description = String(body?.description || '').trim() || null
   const workType: WorkType = WORK_TYPES.includes(body?.workType) ? body.workType : 'software'
+  const clientId: string | null = body?.clientId ? String(body.clientId) : null
   if (!title) return NextResponse.json({ error: 'Titel fehlt.' }, { status: 400 })
   if (title.length > 160) return NextResponse.json({ error: 'Titel ist zu lang.' }, { status: 400 })
 
@@ -47,6 +48,26 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'not a developer' }, { status: 403 })
   }
 
+  // Variant (a): a dev may create a project directly FOR a client they are
+  // already connected to (shares ≥1 active project). The client owns + sees it
+  // instantly — no invite link needed. Verify the connection first.
+  let ownerId = user.id
+  if (clientId && clientId !== user.id) {
+    const { data: myAssigns } = await (service as any)
+      .from('project_assignments').select('project_id').eq('user_id', user.id).eq('active', true)
+    const myProjectIds = (myAssigns ?? []).map((a: any) => a.project_id).filter(Boolean)
+    let connected = false
+    if (myProjectIds.length) {
+      const { data: shared } = await (service as any)
+        .from('projects').select('id').eq('user_id', clientId).in('id', myProjectIds).limit(1)
+      connected = Boolean(shared && shared.length)
+    }
+    if (!connected && role !== 'admin') {
+      return NextResponse.json({ error: 'not connected to this client' }, { status: 403 })
+    }
+    ownerId = clientId
+  }
+
   // Round-robin a color from how many projects this dev already owns.
   const { count } = await (service as any)
     .from('projects')
@@ -54,10 +75,12 @@ export async function POST(req: Request) {
     .eq('user_id', user.id)
   const color = PALETTE[(count ?? 0) % PALETTE.length]
 
+  const forClient = ownerId !== user.id
+
   const { data: project, error: pErr } = await (service as any)
     .from('projects')
     .insert({
-      user_id: user.id,
+      user_id: ownerId,
       title,
       description,
       work_type: workType,
@@ -80,20 +103,40 @@ export async function POST(req: Request) {
     active: true,
   }, { onConflict: 'project_id,user_id' })
 
-  // Lead membership so workspace-style invite checks also pass cleanly.
+  // Membership: the dev leads; when built for a client, the client is a member
+  // so the project surfaces in their workspace immediately.
   await (service as any).from('project_members').upsert({
     project_id: project.id,
     user_id: user.id,
     role: 'lead',
   }, { onConflict: 'project_id,user_id', ignoreDuplicates: true })
+  if (forClient) {
+    await (service as any).from('project_members').upsert({
+      project_id: project.id,
+      user_id: ownerId,
+      role: 'client',
+    }, { onConflict: 'project_id,user_id', ignoreDuplicates: true })
+    // Tell the client a new project was set up for them.
+    await (service as any).from('notifications').insert({
+      user_id: ownerId,
+      project_id: project.id,
+      audience: 'client',
+      kind: 'project_created',
+      type: 'project_created',
+      title: 'Neues Projekt für dich angelegt',
+      body: `Dein Entwickler hat „${project.title}" für dich angelegt.`,
+      message: `Dein Entwickler hat „${project.title}" für dich angelegt.`,
+      read: false,
+    })
+  }
 
   await (service as any).from('audit_logs').insert({
     actor_id: user.id,
-    action: 'project.dev_created',
+    action: forClient ? 'project.dev_created_for_client' : 'project.dev_created',
     entity_type: 'project',
     entity_id: project.id,
-    metadata: { work_type: workType },
+    metadata: { work_type: workType, for_client: forClient ? ownerId : null },
   })
 
-  return NextResponse.json({ ok: true, project })
+  return NextResponse.json({ ok: true, project, forClient })
 }
