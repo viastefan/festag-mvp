@@ -218,14 +218,12 @@ export default function DevNewProjectModal({
            boxes (Festag form language). */
         .np-input, .np-textarea {
           width: 100%; box-sizing: border-box;
-          background: transparent; border: 0;
-          border-bottom: 1px solid var(--border);
-          border-radius: 0; padding: 8px 2px; color: var(--text);
+          background: transparent; border: 0; border-radius: 0;
+          padding: 8px 2px; color: var(--text);
           font: inherit; font-size: 15px; outline: 0; margin-bottom: 18px;
-          transition: border-color .14s;
         }
         .np-input::placeholder, .np-textarea::placeholder { color: var(--text-muted); }
-        .np-input:focus, .np-textarea:focus { border-bottom-color: color-mix(in srgb, var(--text) 45%, var(--border)); box-shadow: none; }
+        .np-input:focus, .np-textarea:focus { box-shadow: none; }
         .np-textarea { min-height: 64px; resize: vertical; line-height: 1.55; }
         /* The read-only invite link stays a tappable box (technical field). */
         .np-linkinput { border: 1px solid var(--border); border-radius: 10px; background: var(--inp, var(--surface-2)); padding: 10px 12px; font-size: 13px; }

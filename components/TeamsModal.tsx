@@ -569,13 +569,12 @@ const inputStyle: CSSProperties = {
   fontFamily: 'inherit',
 }
 
-// Notepad style for free-text (names/descriptions) — hairline underline, no box.
+// Notepad style for free-text (names/descriptions) — no box, no line.
 const notepadStyle: CSSProperties = {
   width: '100%',
   padding: '6px 0',
   borderRadius: 0,
   border: 'none',
-  borderBottom: '1px solid color-mix(in srgb, var(--border) 55%, transparent)',
   background: 'transparent',
   color: 'var(--text)',
   fontSize: 13.5,

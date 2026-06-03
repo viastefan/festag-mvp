@@ -261,13 +261,12 @@ const CSS = `
   }
   .pg-form-close:hover { background:color-mix(in srgb, var(--surface-2) 70%, transparent); color:var(--text); }
   .pg-np-title, .pg-np-desc {
-    width:100%; background:transparent; border:0; border-bottom:1px solid color-mix(in srgb, var(--border) 60%, transparent);
+    width:100%; background:transparent; border:0;
     color:var(--text); font:inherit; outline:0; padding:6px 0; resize:none;
   }
   .pg-np-title { font-size:16px; font-weight:500; letter-spacing:-.005em; padding-right:30px; }
   .pg-np-desc { font-size:13.5px; line-height:1.55; }
   .pg-np-title::placeholder, .pg-np-desc::placeholder { color:var(--text-muted); opacity:.6; }
-  .pg-np-title:focus, .pg-np-desc:focus { border-bottom-color:color-mix(in srgb, var(--btn-prim) 50%, var(--border)); }
 
   .pg-form-row { display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end; }
   .pg-field { display:flex; flex-direction:column; gap:5px; min-width:160px; flex:1; }

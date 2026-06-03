@@ -346,11 +346,10 @@ const CSS = `
 
   .nnm-title {
     width: 100%; padding: 4px 0;
-    background: transparent; border: 0; border-bottom: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+    background: transparent; border: 0;
     color: var(--text); font: inherit; font-size: 19px; font-weight: 500; letter-spacing: -.008em;
-    outline: 0; transition: border-color .14s;
+    outline: 0;
   }
-  .nnm-title:focus { border-color: var(--text); }
   .nnm-title::placeholder { color: var(--text-muted); }
 
   /* Notepad style — the note body is a writing surface, not a boxed field. */
