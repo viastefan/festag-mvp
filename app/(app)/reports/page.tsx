@@ -629,7 +629,8 @@ Regeln:
         .briefing-priority { margin:0 0 28px; }
         .briefing-priority .reports-section-kicker { margin:0 0 12px; }
         .priority-row { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:12px; }
-        .priority-card { display:flex; flex-direction:column; gap:10px; padding:14px 16px; border:1px solid color-mix(in srgb, var(--border) 80%, transparent); border-radius:12px; background:color-mix(in srgb, var(--surface) 70%, transparent); }
+        /* Notebook-style priority card — no border, soft tinted background. */
+        .priority-card { display:flex; flex-direction:column; gap:10px; padding:14px 16px; border:0; border-radius:12px; background:color-mix(in srgb, var(--surface-2) 38%, transparent); }
         .priority-tag { display:inline-flex; align-items:center; align-self:flex-start; padding:2px 8px; border-radius:4px; font-size:10.5px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; border:1px solid currentColor; background:transparent; }
         .priority-tag.decision { color:#0369A1; }
         .priority-tag.risk { color:#D97706; }

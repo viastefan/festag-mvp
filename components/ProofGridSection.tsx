@@ -247,12 +247,13 @@ const CSS = `
   }
   .pg-add-btn:hover { background:color-mix(in srgb, var(--surface-2) 50%, transparent); border-color:var(--border-strong); }
 
+  /* Notebook-style add panel: no border, soft tinted background. */
   .pg-form {
     position:relative;
     display:flex; flex-direction:column; gap:12px;
     padding:16px; border-radius:14px;
-    border:1px solid color-mix(in srgb, var(--border) 60%, transparent);
-    background:color-mix(in srgb, var(--surface-2) 26%, transparent);
+    border:0;
+    background:color-mix(in srgb, var(--surface-2) 36%, transparent);
   }
   .pg-form-close {
     position:absolute; top:10px; right:10px; width:26px; height:26px;

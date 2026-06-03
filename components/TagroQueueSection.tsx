@@ -259,10 +259,11 @@ const CSS = `
   }
   .tq-add-btn:hover { background:color-mix(in srgb, var(--surface-2) 50%, transparent); border-color:var(--border-strong); }
 
+  /* Notebook-style picker: no border, soft tinted background. */
   .tq-picker {
     position:relative; padding:14px; border-radius:14px;
-    border:1px solid color-mix(in srgb, var(--border) 60%, transparent);
-    background:color-mix(in srgb, var(--surface-2) 26%, transparent);
+    border:0;
+    background:color-mix(in srgb, var(--surface-2) 36%, transparent);
     display:flex; flex-direction:column; gap:10px;
   }
   .tq-picker-close { position:absolute; top:10px; right:10px; width:26px; height:26px; border:0; background:transparent; color:var(--text-muted); border-radius:8px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; }

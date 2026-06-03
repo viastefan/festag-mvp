@@ -1337,16 +1337,21 @@ const CSS = `
   .dec-answer-label {
     margin:0; font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--dec-soft);
   }
-  .dec-options { display:flex; flex-direction:column; gap:6px; }
+  /* Notebook-style options: no resting border; the selected state carries the
+     affordance via a soft surface tint + an inset accent stripe. */
+  .dec-options { display:flex; flex-direction:column; gap:2px; }
   .dec-option {
     display:flex; align-items:flex-start; gap:9px;
-    padding:11px 12px; border:1px solid var(--border); border-radius:10px;
-    cursor:pointer; transition:border-color .12s, background .12s;
-    position:relative;
+    padding:12px 10px; border:0; border-radius:10px;
+    cursor:pointer; transition:background .12s, box-shadow .12s;
+    position:relative; background:transparent;
   }
-  .dec-option:hover { border-color:color-mix(in srgb, var(--text) 25%, var(--border)); }
-  .dec-option.on { border-color:var(--text); background:color-mix(in srgb, var(--surface-2) 35%, transparent); }
-  .dec-option.tagro { border-color:color-mix(in srgb, var(--accent) 45%, var(--border)); }
+  .dec-option:hover { background:color-mix(in srgb, var(--surface-2) 38%, transparent); }
+  .dec-option.on {
+    background:color-mix(in srgb, var(--surface-2) 62%, transparent);
+    box-shadow:inset 3px 0 0 var(--text);
+  }
+  .dec-option.tagro { box-shadow:inset 3px 0 0 var(--accent); }
   .dec-option input { margin-top:3px; flex-shrink:0; }
   .dec-option-body { display:flex; flex-direction:column; gap:2px; min-width:0; flex:1; }
   .dec-option-body strong { font-size:13px; color:var(--text); font-weight:500; }
@@ -1357,15 +1362,15 @@ const CSS = `
     color:var(--accent); align-self:center;
   }
 
+  /* Notepad-style — no box, no underline. */
   .dec-note {
     width:100%; min-height:90px; resize:vertical;
-    background:var(--card); border:1px solid var(--border); border-radius:10px;
-    padding:10px 12px;
-    color:var(--text); font:inherit; font-size:12.5px; font-weight:500; line-height:1.55;
+    background:transparent; border:0; border-radius:0;
+    padding:6px 0;
+    color:var(--text); font:inherit; font-size:13.5px; font-weight:500; line-height:1.6;
     letter-spacing:.017em; outline:0;
   }
-  .dec-note:focus { border-color:color-mix(in srgb, var(--text) 30%, var(--border)); }
-  .dec-note::placeholder { color:var(--dec-soft); }
+  .dec-note::placeholder { color:var(--dec-soft); opacity:.6; }
 
   .dec-answer-actions { display:flex; gap:8px; align-items:center; }
   .dec-primary {
@@ -1390,10 +1395,12 @@ const CSS = `
   .dec-final-meta { font-size:11px; color:var(--dec-soft); }
 
   /* ── v1 additions: binary / multi / delegate / discuss / clarification ── */
+  /* Notebook-style notice: no border, soft tint + left accent only. */
   .dec-clarification {
-    border:1px solid color-mix(in srgb, #f59e0b 28%, var(--border));
-    background:color-mix(in srgb, #f59e0b 6%, transparent);
-    border-radius:12px; padding:12px 14px;
+    border:0;
+    background:color-mix(in srgb, #f59e0b 8%, transparent);
+    box-shadow:inset 3px 0 0 color-mix(in srgb, #f59e0b 55%, transparent);
+    border-radius:8px; padding:12px 14px;
     font-size:12.5px; line-height:1.55; color:var(--text); font-weight:500;
   }
 
