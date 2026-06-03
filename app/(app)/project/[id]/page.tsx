@@ -110,6 +110,7 @@ function ProjectPageInner() {
   const [sendingReport, setSendingReport] = useState(false)
   const [online, setOnline] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
+  const [projectMenuOpen, setProjectMenuOpen] = useState(false)
   const [myExecutorRole, setMyExecutorRole] = useState<ExecutorRole | null>(null)
   const msgEndRef = useRef<HTMLDivElement>(null)
   const supabase = createClient()
@@ -1597,11 +1598,47 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
             {project.title}
           </span>
           <button className="pv-icon-btn" title="Favorit"><Star size={13} /></button>
-          <button
-            className="pv-icon-btn"
-            title="Projekt löschen"
-            onClick={() => setDeleteOpen(true)}
-          ><DotsThree size={14} weight="bold" /></button>
+          <span style={{ position: 'relative', display: 'inline-flex' }}>
+            <button
+              className="pv-icon-btn"
+              title="Mehr"
+              aria-haspopup="menu"
+              aria-expanded={projectMenuOpen}
+              onClick={() => setProjectMenuOpen(o => !o)}
+            ><DotsThree size={14} weight="bold" /></button>
+            {projectMenuOpen && (
+              <>
+                <div
+                  onClick={() => setProjectMenuOpen(false)}
+                  style={{ position: 'fixed', inset: 0, zIndex: 60 }}
+                />
+                <div
+                  role="menu"
+                  style={{
+                    position: 'absolute', top: 'calc(100% + 6px)', right: 0, zIndex: 61,
+                    minWidth: 184, padding: 5,
+                    background: 'var(--surface)', border: '1px solid var(--border)',
+                    borderRadius: 10, boxShadow: '0 16px 40px rgba(0,0,0,.18)',
+                  }}
+                >
+                  <button
+                    role="menuitem"
+                    onClick={() => { setProjectMenuOpen(false); setDeleteOpen(true) }}
+                    style={{
+                      width: '100%', display: 'flex', alignItems: 'center', gap: 9,
+                      padding: '8px 10px', borderRadius: 7, border: 0, background: 'transparent',
+                      color: 'var(--red,#D14343)', font: 'inherit', fontSize: 13, fontWeight: 500,
+                      cursor: 'pointer', textAlign: 'left',
+                    }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'color-mix(in srgb, var(--red,#D14343) 10%, transparent)' }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
+                  >
+                    <Trash size={14} /> Projekt löschen
+                  </button>
+                </div>
+              </>
+            )}
+          </span>
         </div>
         <div className="pv-topbar-right">
           <button className="pv-icon-btn" title="Link kopieren"><LinkSimple size={13} /></button>
