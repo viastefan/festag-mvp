@@ -505,11 +505,18 @@ export default function DashboardPage() {
   const periodOptions = ['Heute', 'Letzte 7 Tage', 'Letzte 30 Tage', 'Letzte 90 Tage'] as const
   const writtenReportText = noteRevealed.trim() || audioText.trim()
 
-  // Read instead of listen — opens the written report. Generates one first
-  // when none exists yet, so the action always leads somewhere.
+  // Read instead of listen — the report lives in the LEFT notepad, not a modal.
+  // Reveal the existing report there, or generate one when none exists yet.
   function openWrittenReport() {
-    if (!writtenReportText.trim() && !statusBusy) { void refreshStatus() }
-    setReadOpen(true)
+    if (writtenReportText.trim()) {
+      if (!noteRevealed.trim()) setNoteRevealed(writtenReportText.trim())
+    } else if (!statusBusy) {
+      void refreshStatus()
+    }
+    // On mobile the notepad sits above — bring it into view.
+    if (typeof document !== 'undefined') {
+      document.querySelector('.dc-note-inline')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
   }
 
   function buildBriefingExportText() {
@@ -1260,8 +1267,9 @@ export default function DashboardPage() {
           border: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
           border-radius: 24px;
           background: color-mix(in srgb, var(--card) 94%, transparent);
-          padding: 24px 24px 20px;
-          display: flex; flex-direction: column; gap: 18px;
+          padding: 22px 24px 14px;
+          display: flex; flex-direction: column; gap: 15px;
+          align-self: start;
           box-shadow: var(--content-shadow);
           -webkit-backdrop-filter: blur(8px);
           backdrop-filter: blur(8px);
@@ -1377,8 +1385,8 @@ export default function DashboardPage() {
         /* Orb wrapper — generous vertical room, the centerpiece. */
         .dc-orb-zone {
           flex: 0 0 auto;
-          min-height: 210px;
-          padding: 8px 0;
+          min-height: 150px;
+          padding: 4px 0;
           display: flex; align-items: center; justify-content: center;
         }
 
@@ -1704,7 +1712,7 @@ export default function DashboardPage() {
         /* ─── Tagro Voice Orb · play-button with stacked glass discs ─── */
         .dc-orb-stage {
           position: relative;
-          width: 100%; aspect-ratio: 1.55 / 1; max-height: 240px; min-height: 200px;
+          width: 100%; aspect-ratio: 1.9 / 1; max-height: 168px; min-height: 130px;
           display: flex; align-items: center; justify-content: center;
           border: 0; background: transparent; padding: 0;
           font-family: inherit; cursor: pointer;
@@ -2566,7 +2574,7 @@ export default function DashboardPage() {
                     <button
                       type="button" role="option" aria-selected={isOverall}
                       className={`dc-scope2-opt${isOverall ? ' on' : ''}`}
-                      onClick={() => { setScope('overall'); setScopeOpen(false) }}
+                      onClick={() => { setScope('overall'); setScopeOpen(false); setNoteRevealed('') }}
                     >
                       <span className="dc-scope2-dot" style={{ background: 'var(--dc-soft)' }} />
                       <span><strong>Gesamtbericht</strong><small>Alle aktiven Projekte zusammengefasst</small></span>
@@ -2576,7 +2584,7 @@ export default function DashboardPage() {
                       <button
                         key={p.id} type="button" role="option" aria-selected={scope === p.id}
                         className={`dc-scope2-opt${scope === p.id ? ' on' : ''}`}
-                        onClick={() => { setScope(p.id); setScopeOpen(false) }}
+                        onClick={() => { setScope(p.id); setScopeOpen(false); setNoteRevealed('') }}
                       >
                         <span className="dc-scope2-dot" style={{ background: (p as any).color || 'var(--dc-muted)' }} />
                         <span><strong>{p.title}</strong></span>
@@ -2624,8 +2632,8 @@ export default function DashboardPage() {
                 }
                 aria-pressed={isBriefingPlaying}
               >
-                {/* Tagro branded pixel soundwave — idle / listening / thinking / speaking. */}
-                <TagroPixelWave state={orbState} size={188} />
+                {/* Tagro branded pixel mark — idle / listening / thinking / speaking. */}
+                <TagroPixelWave state={orbState} size={230} />
               </button>
             </div>
 
