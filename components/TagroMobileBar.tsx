@@ -13,9 +13,10 @@
  * (uses the existing `body.chat-composer-focused` signal pattern).
  */
 
-import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 import { Pencil, Sparkle } from '@phosphor-icons/react'
 import type { ReactNode } from 'react'
+import TagroContextSheet from '@/components/TagroContextSheet'
 
 export type TagroBarContext = {
   /** Object type: task / decision / status_report / document / project / etc. */
@@ -41,13 +42,11 @@ type Props = {
 }
 
 export default function TagroMobileBar({ context, leftLabel, leftIcon, onLeft, onRight }: Props) {
-  const router = useRouter()
+  const [sheetOpen, setSheetOpen] = useState(false)
 
   function openTagro() {
     if (onRight) { onRight(); return }
-    const q = new URLSearchParams({ contextType: context.type, contextId: context.id })
-    if (context.title) q.set('contextTitle', context.title)
-    router.push(`/ai?${q.toString()}`)
+    setSheetOpen(true)
   }
 
   const single = !onLeft
@@ -64,6 +63,8 @@ export default function TagroMobileBar({ context, leftLabel, leftIcon, onLeft, o
         <Sparkle size={15} weight="regular" />
         <span>Mit Tagro bearbeiten</span>
       </button>
+
+      <TagroContextSheet open={sheetOpen} onClose={() => setSheetOpen(false)} context={context} />
 
       <style jsx>{`
         .tmb {
