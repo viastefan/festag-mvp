@@ -784,8 +784,64 @@ export default function DashboardPage() {
           display:grid;
           grid-template-columns: minmax(0, 1fr) minmax(380px, 420px);
           column-gap: clamp(32px, 4vw, 60px);
-          align-items:start;
+          /* Stretch so the right-side Audio Briefing card scales down to the
+             content container bottom (with 24px breathing room). Greeting
+             column (.dc-left) opts back into top-alignment via align-self. */
+          align-items: stretch;
+          padding-bottom: 24px;
           animation:dcFade .3s cubic-bezier(.16,1,.3,1) both;
+        }
+        .dc-left { align-self: start; }
+        .dc-card.dc-card { align-self: stretch; }
+
+        /* ── "Was wichtig ist" — 3 calm focus cards (notebook style: soft
+              tinted surface, no borders, colored tag + title + small link). */
+        .dc-focus2-eyebrow {
+          margin: 0 0 8px;
+          font-size: 11px; font-weight: 500; letter-spacing: .12em;
+          text-transform: uppercase; color: var(--text-muted);
+        }
+        .dc-focus2 {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 10px;
+          margin-bottom: 18px;
+        }
+        @media (max-width: 720px) {
+          .dc-focus2 { grid-template-columns: 1fr; }
+        }
+        .dc-focus2-card {
+          display: flex; flex-direction: column; gap: 8px;
+          padding: 13px 14px;
+          border-radius: 14px;
+          background: color-mix(in srgb, var(--surface-2) 34%, transparent);
+          color: var(--text);
+          text-decoration: none;
+          transition: background .14s ease, transform .14s ease;
+        }
+        .dc-focus2-card:hover {
+          background: color-mix(in srgb, var(--surface-2) 58%, transparent);
+        }
+        .dc-focus2-card:active { transform: scale(.985); }
+        .dc-focus2-tag {
+          display: inline-flex; align-items: center; align-self: flex-start;
+          padding: 3px 9px; border-radius: 999px;
+          font-size: 10.5px; font-weight: 500; letter-spacing: .04em;
+          text-transform: uppercase;
+          border: 1px solid currentColor;
+          background: transparent;
+        }
+        .dc-focus2-card.dec  .dc-focus2-tag { color: #D4882B; }
+        .dc-focus2-card.risk .dc-focus2-tag { color: #D9534F; }
+        .dc-focus2-card.next .dc-focus2-tag { color: #3FB984; }
+        .dc-focus2-title {
+          font-size: 14px; font-weight: 500; line-height: 1.35;
+          letter-spacing: -.005em; color: var(--text);
+        }
+        .dc-focus2-action {
+          display: inline-flex; align-items: center; gap: 4px;
+          font-size: 12px; color: var(--text-muted);
+          margin-top: 2px;
         }
         .dc-left {
           padding-top: 16px;
@@ -2668,28 +2724,32 @@ export default function DashboardPage() {
               </li>
             </ul>
 
-            {/* Was wichtig ist — Entscheidung / Risiko / nächster Schritt. */}
+            {/* Was wichtig ist — 3 calm cards (Entscheidung benötigt / Risiko
+                erkannt / Nächster Schritt). The dc-focus2-row classes carried
+                no CSS before, so the labels collapsed into one wall of text.
+                Now: real 3-card grid with colored tag, title, action link. */}
+            <p className="dc-focus2-eyebrow">Was wichtig ist</p>
             <div className="dc-focus2" aria-label="Was wichtig ist">
-              <a className="dc-focus2-row dec" href="/decisions">
-                <span className="dc-focus2-badge">Entscheidung</span>
-                <span className="dc-focus2-text">
+              <a className="dc-focus2-card dec" href="/decisions">
+                <span className="dc-focus2-tag">Entscheidung benötigt</span>
+                <span className="dc-focus2-title">
                   {combinedDecisionsCount > 0
                     ? `${combinedDecisionsCount} ${combinedDecisionsCount === 1 ? 'wartet auf dich' : 'warten auf dich'}`
                     : 'Keine offenen Entscheidungen'}
                 </span>
-                <CaretRight size={12} className="dc-focus2-arrow" />
+                <span className="dc-focus2-action">Entscheidung ansehen <CaretRight size={11} /></span>
               </a>
-              <a className="dc-focus2-row risk" href="/decisions?tone=risk">
-                <span className="dc-focus2-badge">Risiko</span>
-                <span className="dc-focus2-text">
-                  {riskTasks.length > 0 ? `${riskTasks.length} Blocker` : 'Keine aktiven Blocker'}
+              <a className="dc-focus2-card risk" href="/decisions?tone=risk">
+                <span className="dc-focus2-tag">Risiko erkannt</span>
+                <span className="dc-focus2-title">
+                  {riskTasks.length > 0 ? `${riskTasks.length} aktive Blocker` : 'Keine aktiven Blocker'}
                 </span>
-                <CaretRight size={12} className="dc-focus2-arrow" />
+                <span className="dc-focus2-action">Risiko prüfen <CaretRight size={11} /></span>
               </a>
-              <a className="dc-focus2-row next" href="/tasks">
-                <span className="dc-focus2-badge">Nächster Schritt</span>
-                <span className="dc-focus2-text">{noteReport?.nextSteps?.[0] || 'Tasks öffnen und vorbereiten'}</span>
-                <CaretRight size={12} className="dc-focus2-arrow" />
+              <a className="dc-focus2-card next" href="/tasks">
+                <span className="dc-focus2-tag">Nächster Schritt</span>
+                <span className="dc-focus2-title">{noteReport?.nextSteps?.[0] || 'Tasks öffnen und vorbereiten'}</span>
+                <span className="dc-focus2-action">Tasks öffnen <CaretRight size={11} /></span>
               </a>
             </div>
 
