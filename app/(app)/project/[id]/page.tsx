@@ -20,6 +20,7 @@ import AssignDevModal from '@/components/AssignDevModal'
 import NewTaskModal from '@/components/NewTaskModal'
 import ProjectDevAvatars from '@/components/ProjectDevAvatars'
 import ProofGridSection from '@/components/ProofGridSection'
+import TagroMobileBar from '@/components/TagroMobileBar'
 import TagroQueueSection from '@/components/TagroQueueSection'
 import MarketingPanelSection from '@/components/MarketingPanelSection'
 import ChatMarkdown from '@/components/ChatMarkdown'
@@ -2239,6 +2240,14 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
           onCreated={() => { setTaskModalOpen(false); loadAll() }}
         />
       )}
+
+      {/* Mobile floating action bar: 2 buttons (edit + Mit Tagro bearbeiten).
+          Renders only on mobile; hides under the chat composer focus signal. */}
+      <TagroMobileBar
+        context={{ type: 'project', id, title: project.title }}
+        leftLabel="Projekt bearbeiten"
+        onLeft={canEdit ? () => setActiveLeft('overview') : undefined}
+      />
     </div>
   )
 }
