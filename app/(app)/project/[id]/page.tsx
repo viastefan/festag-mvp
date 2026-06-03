@@ -7,6 +7,7 @@ import Link from 'next/link'
 import {
   Bell, CaretRight, Check, CheckCircle, Circle, DotsThree, LinkSimple,
   CaretDown, CaretUp, Copy, EnvelopeSimple, FilePdf, Plus, Sparkle, Star, Target, Trash, UserPlus,
+  ListChecks, ShieldCheck, Receipt, ClockClockwise,
 } from '@phosphor-icons/react'
 import { projectColor } from '@/components/Sidebar'
 import { effectiveRole, isDevOrAdmin } from '@/lib/role'
@@ -21,6 +22,7 @@ import NewTaskModal from '@/components/NewTaskModal'
 import ProjectDevAvatars from '@/components/ProjectDevAvatars'
 import ProofGridSection from '@/components/ProofGridSection'
 import TagroMobileBar from '@/components/TagroMobileBar'
+import MobileObjectMenu from '@/components/MobileObjectMenu'
 import TagroQueueSection from '@/components/TagroQueueSection'
 import MarketingPanelSection from '@/components/MarketingPanelSection'
 import ChatMarkdown from '@/components/ChatMarkdown'
@@ -2247,6 +2249,22 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
         context={{ type: 'project', id, title: project.title }}
         leftLabel="Projekt bearbeiten"
         onLeft={canEdit ? () => setActiveLeft('overview') : undefined}
+      />
+
+      {/* Mobile top-right 3-dot menu: context-aware project actions. Hidden on
+          desktop. Never duplicates 'Mit Tagro bearbeiten' (that stays in the
+          bottom floating bar). */}
+      <MobileObjectMenu
+        title={`Projekt · ${project.title}`}
+        items={[
+          { label: 'Neue Aufgabe', icon: <Plus size={16} />, onClick: () => setTaskModalOpen(true) },
+          { label: 'Statusbericht erstellen', icon: <Sparkle size={16} />, onClick: generateAIUpdate },
+          { label: 'Tasks öffnen', icon: <ListChecks size={16} />, onClick: () => setActiveLeft('tasks') },
+          { label: 'Belege öffnen', icon: <ShieldCheck size={16} />, onClick: () => setActiveLeft('evidence') },
+          { label: 'Meilensteine öffnen', icon: <Receipt size={16} />, onClick: () => setActiveLeft('milestones') },
+          { label: 'Zeitplan öffnen', icon: <ClockClockwise size={16} />, onClick: () => setActiveLeft('queue') },
+          ...(canEdit ? [{ label: 'Projekt löschen', icon: <Trash size={16} />, onClick: () => setDeleteOpen(true), destructive: true }] : []),
+        ]}
       />
     </div>
   )

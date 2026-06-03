@@ -15,6 +15,7 @@ import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { ArrowLeft, ArrowRight, Plus, Check, PencilSimple } from '@phosphor-icons/react'
 import TagroMobileBar from '@/components/TagroMobileBar'
+import MobileObjectMenu from '@/components/MobileObjectMenu'
 import { createClient } from '@/lib/supabase/client'
 
 type ClientRow = {
@@ -268,6 +269,14 @@ export default function ClientDetailPage() {
       {/* Mobile floating action bar: client detail → right opens Tagro with
           this client attached. No standalone left edit (fields are inline). */}
       <TagroMobileBar context={{ type: 'client', id: client.id, title: client.name }} />
+
+      {/* Mobile top-right 3-dot menu — client-specific actions. */}
+      <MobileObjectMenu
+        title={`Kunde · ${client.name}`}
+        items={[
+          { label: 'Alle Kunden', onClick: () => { window.location.href = '/clients' } },
+        ]}
+      />
     </div>
   )
 }

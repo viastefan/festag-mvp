@@ -10,6 +10,7 @@ import { taskStatusPatch } from '@/lib/tasks/status'
 import TagroLogo from '@/components/TagroLogo'
 import NewTaskModal from '@/components/NewTaskModal'
 import TagroMobileBar from '@/components/TagroMobileBar'
+import MobileObjectMenu from '@/components/MobileObjectMenu'
 import {
   ArrowLeft,
   Brain,
@@ -735,6 +736,15 @@ export default function TaskWorkspaceDetail({ taskId, projectId }: TaskWorkspace
         context={{ type: 'task', id: task.id, title: task.title }}
         leftLabel="Folgeaufgabe"
         onLeft={() => setNewTaskOpen(true)}
+      />
+
+      {/* Mobile top-right 3-dot menu — task-specific actions. */}
+      <MobileObjectMenu
+        title={`Aufgabe · ${task.title}`}
+        items={[
+          { label: 'Folgeaufgabe anlegen', onClick: () => setNewTaskOpen(true) },
+          { label: 'Zum Projekt', onClick: () => router.push(`/project/${task.project_id}`) },
+        ]}
       />
     </div>
   )
