@@ -21,6 +21,7 @@ import {
   ArrowsClockwise, ChatCircleText, Check, CheckCircle, Clock, FunnelSimple,
   Sparkle, Warning, X, UserCircle, CaretDown,
 } from '@phosphor-icons/react'
+import HelpHint from '@/components/HelpHint'
 import { createClient } from '@/lib/supabase/client'
 
 type Option = { id: string; label: string; hint?: string }
@@ -304,7 +305,10 @@ function DecisionsPageInner() {
       <div className="dec-static-top">
         <div className="dec-top">
           <div className="dec-top-left">
-            <h1 className="dec-title">Entscheidungen</h1>
+            <span style={{ display:'inline-flex', alignItems:'center', gap:7, minWidth:0 }}>
+              <h1 className="dec-title">Entscheidungen</h1>
+              <HelpHint title="Entscheidungen" description="Offene Freigaben, die auf dich warten — als klare Ja/Nein-Fragen. Tagro sammelt sie aus deinen Projekten." />
+            </span>
             {hasProjects && (
               <div className="dec-scope">
                 <button

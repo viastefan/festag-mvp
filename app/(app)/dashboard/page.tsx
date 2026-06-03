@@ -320,8 +320,15 @@ export default function DashboardPage() {
     [riskTasks.length, decisionTasks.length],
   )
 
-  // Contextual left-side layer — resolved once per mount.
-  const contextLine = useMemo(() => daytimeLine(new Date().getHours()), [])
+  // Short greeting headline — the status sentence below carries the detail.
+  const contextLine = useMemo(() => {
+    const h = new Date().getHours()
+    const part = h >= 5 && h < 12 ? 'Guten Morgen'
+      : h >= 12 && h < 18 ? 'Guten Tag'
+      : h >= 18 && h < 24 ? 'Guten Abend'
+      : 'Hallo'
+    return firstName ? `${part}, ${firstName}.` : `${part}.`
+  }, [firstName])
   const funFact = useMemo(() => FUN_FACTS[Math.floor(Math.random() * FUN_FACTS.length)], [])
 
   // ── Scope: overall report vs single-project report ──────────────
@@ -2598,7 +2605,7 @@ export default function DashboardPage() {
                 aria-pressed={isBriefingPlaying}
               >
                 {/* Tagro node-network — idle / listening / thinking / speaking. */}
-                <TagroOrb state={orbState} size={188} />
+                <TagroPixelOrb state={orbState} size={188} />
               </button>
             </div>
 

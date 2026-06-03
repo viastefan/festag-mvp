@@ -19,6 +19,7 @@ import {
   ChatCircleDots, CheckCircle, ClipboardText, FunnelSimple,
   Sparkle, Tray, UserPlus, WarningCircle,
 } from '@phosphor-icons/react'
+import HelpHint from '@/components/HelpHint'
 
 type Notification = {
   id: string
@@ -165,7 +166,10 @@ export default function InboxPage() {
     <div className="inbox-page">
       <header className="ix-head">
         <div>
-          <h1>Inbox</h1>
+          <span style={{ display:'inline-flex', alignItems:'center', gap:7 }}>
+            <h1 style={{ margin:0 }}>Inbox</h1>
+            <HelpHint title="Inbox" description="Alle Hinweise, Erwähnungen und Updates aus deinen Projekten an einem Ort. Erledigtes wandert ins Archiv." />
+          </span>
           <p className="ix-meta">
             {loading ? 'Lade…' : `${counts.all} Items · ${counts.unread} ungelesen`}
           </p>
