@@ -297,7 +297,7 @@ export default function OnboardingPage() {
         }
         await supabase.from('onboarding_state').upsert({
           user_id: userId, current_step: 'done', updated_at: new Date().toISOString(),
-        })
+        }, { onConflict: 'user_id' })
       } else if (step === 'done') {
         const emails = invites.split(/[,;\s\n]+/).map(s => s.trim()).filter(isValidEmail)
         if (emails.length > 0) {
@@ -313,7 +313,7 @@ export default function OnboardingPage() {
           design_done: true,
           completed_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
-        })
+        }, { onConflict: 'user_id' })
 
         try {
           fetch('/api/onboarding/seed-memory', { method: 'POST', credentials: 'include' })

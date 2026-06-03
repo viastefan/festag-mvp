@@ -73,7 +73,30 @@ export async function middleware(request: NextRequest) {
         .select('completed_at')
         .eq('user_id', user.id)
         .maybeSingle()
+
       if (!onboarding || !onboarding.completed_at) {
+        // Self-heal: a user who already owns a workspace has completed the
+        // essential onboarding (workspace + profile). Never trap them in a
+        // re-onboarding loop just because completed_at didn't persist — this
+        // was the "I'm logged in but keep landing in onboarding" bug. Backfill
+        // completed_at once and let them through.
+        const { data: ws } = await supabase
+          .from('workspaces')
+          .select('id')
+          .eq('primary_owner_id', user.id)
+          .limit(1)
+          .maybeSingle()
+
+        if (ws) {
+          await supabase
+            .from('onboarding_state')
+            .upsert(
+              { user_id: user.id, completed_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+              { onConflict: 'user_id' },
+            )
+          return response
+        }
+
         return NextResponse.redirect(new URL('/onboarding', request.url))
       }
     } catch {
