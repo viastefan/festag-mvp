@@ -105,7 +105,6 @@ export default function ClientsPage() {
         <style>{CLIENTS_CSS}</style>
         <header className="cl-head">
           <div>
-            <p className="cl-kicker">Workspace · Kunden</p>
             <h1 className="cl-title">Kunden</h1>
             <p className="cl-sub">
               Kundenverwaltung ist für Agency-Workspaces gedacht. Wechsle in den Workspace-Settings

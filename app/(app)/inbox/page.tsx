@@ -165,7 +165,6 @@ export default function InboxPage() {
     <div className="inbox-page">
       <header className="ix-head">
         <div>
-          <p className="ix-eyebrow">Workspace</p>
           <h1>Inbox</h1>
           <p className="ix-meta">
             {loading ? 'Lade…' : `${counts.all} Items · ${counts.unread} ungelesen`}

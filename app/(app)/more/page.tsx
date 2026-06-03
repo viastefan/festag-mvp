@@ -99,7 +99,6 @@ export default function MorePage() {
   return (
     <div className="more-page">
       <header className="mp-head">
-        <p className="mp-eyebrow">Konto</p>
         <h1>Mehr</h1>
         {name && <p className="mp-meta">{name}{email ? ` · ${email}` : ''}</p>}
       </header>

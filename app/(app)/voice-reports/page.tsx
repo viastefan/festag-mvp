@@ -199,7 +199,6 @@ export default function VoiceReportsPage() {
       <section className="vr-sticky">
         <div className="vr-head">
           <div>
-            <p className="vr-kicker">Tagro Kontrollsystem</p>
             <h1 className="vr-title">Voice Reports</h1>
             <p className="vr-sub">Höre, was in deinen Projekten passiert — als ruhiges Executive Briefing von Tagro. Text bleibt die Quelle, Voice ist die hochwertige Kurzfassung für unterwegs.</p>
           </div>
