@@ -31,7 +31,7 @@ export default function DevNewProjectModal({
   onClose: () => void
   onCreated?: (project: CreatedProject) => void
 }) {
-  const [step, setStep] = useState<'form' | 'invite'>('form')
+  const [step, setStep] = useState<'form' | 'invite' | 'client-done'>('form')
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [workType, setWorkType] = useState<WorkType>('software')
@@ -41,14 +41,20 @@ export default function DevNewProjectModal({
   const [inviteLink, setInviteLink] = useState('')
   const [linkLoading, setLinkLoading] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [clients, setClients] = useState<{ id: string; name: string }[]>([])
+  const [clientId, setClientId] = useState('') // '' = new client (invite link)
   const titleRef = useRef<HTMLInputElement | null>(null)
 
   // Reset + focus whenever the modal opens.
   useEffect(() => {
     if (!open) return
     setStep('form'); setTitle(''); setDescription(''); setWorkType('software')
-    setSubmitting(false); setError(''); setCreated(null); setInviteLink(''); setCopied(false)
+    setSubmitting(false); setError(''); setCreated(null); setInviteLink(''); setCopied(false); setClientId('')
     const t = setTimeout(() => titleRef.current?.focus(), 80)
+    // Load already-connected clients so the dev can assign directly (variant a).
+    fetch('/api/dev/clients', { credentials: 'include' })
+      .then(r => r.json()).then(d => setClients(Array.isArray(d?.clients) ? d.clients : []))
+      .catch(() => setClients([]))
     return () => clearTimeout(t)
   }, [open])
 
@@ -68,15 +74,20 @@ export default function DevNewProjectModal({
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: title.trim(), description: description.trim(), workType }),
+        body: JSON.stringify({ title: title.trim(), description: description.trim(), workType, clientId: clientId || undefined }),
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) { setError(data.error || 'Projekt konnte nicht erstellt werden.'); return }
       const project = data.project as CreatedProject
       setCreated(project)
       onCreated?.(project)
-      setStep('invite')
-      void generateLink(project.id)
+      if (clientId) {
+        // Assigned directly to a connected client — they see it instantly, no link.
+        setStep('client-done')
+      } else {
+        setStep('invite')
+        void generateLink(project.id)
+      }
     } finally {
       setSubmitting(false)
     }
@@ -113,11 +124,40 @@ export default function DevNewProjectModal({
       <div className="np-card" onMouseDown={(e) => e.stopPropagation()}>
         <button className="np-close" onClick={onClose} aria-label="Schließen"><X size={17} /></button>
 
-        {step === 'form' ? (
+        {step === 'client-done' ? (
+          <>
+            <p className="np-kicker">Projekt steht</p>
+            <h2 className="np-title">„{created?.title}" ist angelegt.</h2>
+            <p className="np-sub">
+              Das Projekt gehört jetzt deinem verbundenen Kunden — er sieht es <strong>sofort</strong> in seinem Workspace, ganz ohne Einladungslink. Du bist als Entwickler zugewiesen.
+            </p>
+            <div className="np-actions">
+              <button className="dev-primary-btn np-full" onClick={onClose}>Fertig</button>
+            </div>
+          </>
+        ) : step === 'form' ? (
           <>
             <p className="np-kicker">Dev · neues Projekt</p>
             <h2 className="np-title">Projekt anlegen.</h2>
             <p className="np-sub">Leg ein Projekt an und lade direkt im Anschluss deinen Kunden per Link ein.</p>
+
+            {clients.length > 0 && (
+              <>
+                <label className="np-label" htmlFor="np-client">Für Kunden</label>
+                <select
+                  id="np-client"
+                  className="np-input"
+                  value={clientId}
+                  onChange={(e) => setClientId(e.target.value)}
+                  style={{ borderBottom: '1px solid var(--border)' }}
+                >
+                  <option value="">Neuer Kunde — per Link einladen</option>
+                  {clients.map((c) => (
+                    <option key={c.id} value={c.id}>{c.name} — sieht es sofort</option>
+                  ))}
+                </select>
+              </>
+            )}
 
             <label className="np-label" htmlFor="np-title">Projektname</label>
             <input
