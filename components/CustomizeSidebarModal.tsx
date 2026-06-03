@@ -227,78 +227,41 @@ function Row({
 }
 
 function Dropdown({
-  value, options, onChange, leadingNumber,
+  value, options, onChange,
 }: {
   value: string
   options: Array<{ value: string; label: string }>
   onChange: (value: string) => void
+  /** Kept for call-site compatibility; no longer rendered. */
   leadingNumber?: number | null
 }) {
-  const [openMenu, setOpenMenu] = useState(false)
+  // Native <select>: never clipped by the modal's scroll container and
+  // works reliably on every device. Styled to match the Festag chips.
+  const current = options.find((o) => o.label === value)?.value ?? options[0]?.value
   return (
-    <div style={{ position: 'relative' }}>
-      <button
-        type="button"
-        onClick={() => setOpenMenu((v) => !v)}
+    <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}>
+      <select
+        value={current}
+        onChange={(e) => onChange(e.target.value)}
         style={{
-          height: 28, padding: '0 10px', borderRadius: 7,
+          appearance: 'none', WebkitAppearance: 'none', MozAppearance: 'none',
+          height: 28, padding: '0 28px 0 10px', borderRadius: 7,
           border: '1px solid var(--border)',
           background: 'var(--surface)',
           color: 'var(--text)',
           font: 'inherit', fontSize: 12, fontWeight: 500, letterSpacing: '.015em',
-          cursor: 'pointer',
-          display: 'inline-flex', alignItems: 'center', gap: 7,
-          minWidth: 130, justifyContent: 'space-between',
+          cursor: 'pointer', minWidth: 150,
         }}
       >
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-          {typeof leadingNumber === 'number' && (
-            <span style={{ color: 'var(--text-muted)', fontSize: 11 }}>{leadingNumber}</span>
-          )}
-          {value}
-        </span>
-        <CaretDown size={10} weight="bold" />
-      </button>
-      {openMenu && (
-        <>
-          <div
-            onClick={() => setOpenMenu(false)}
-            style={{ position: 'fixed', inset: 0, zIndex: 9050 }}
-          />
-          <div
-            role="menu"
-            style={{
-              position: 'absolute', right: 0, top: 'calc(100% + 4px)',
-              zIndex: 9060,
-              background: 'var(--surface)',
-              border: '1px solid var(--border)',
-              borderRadius: 8,
-              boxShadow: '0 12px 32px rgba(0,0,0,.12)',
-              minWidth: 160,
-              padding: 4,
-              display: 'flex', flexDirection: 'column', gap: 1,
-            }}
-          >
-            {options.map((opt) => (
-              <button
-                key={opt.value}
-                type="button"
-                onClick={() => { onChange(opt.value); setOpenMenu(false) }}
-                style={{
-                  height: 30, padding: '0 10px',
-                  border: 0, background: 'transparent',
-                  color: 'var(--text)', textAlign: 'left',
-                  font: 'inherit', fontSize: 12.5, fontWeight: 500,
-                  letterSpacing: '.015em', borderRadius: 6,
-                  cursor: 'pointer',
-                }}
-                onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--surface-2)' }}
-                onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
-              >{opt.label}</button>
-            ))}
-          </div>
-        </>
-      )}
+        {options.map((opt) => (
+          <option key={opt.value} value={opt.value}>{opt.label}</option>
+        ))}
+      </select>
+      <CaretDown
+        size={10}
+        weight="bold"
+        style={{ position: 'absolute', right: 10, pointerEvents: 'none', color: 'var(--text-muted)' }}
+      />
     </div>
   )
 }

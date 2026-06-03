@@ -23,6 +23,7 @@ import { createClient } from '@/lib/supabase/client'
 import { getFontMode, setFontMode as applyFontMode, getTheme, setTheme as applyThemeMode, type FontMode, type ThemeMode } from '@/lib/theme'
 import { getLanguageMode, setLanguageMode, type LanguageMode } from '@/lib/language'
 import { AVATAR_COLORS, avatarTextColor } from '@/lib/avatar'
+import { broadcastWorkspaceAccent } from '@/lib/workspace-accent'
 import { rememberFestagEmail } from '@/lib/auth-device-memory'
 import {
   broadcastProfileSync,
@@ -739,6 +740,12 @@ export default function SettingsPage() {
     } else {
       flashSaved('Profilfarbe gespeichert')
     }
+  }
+
+  async function pickWorkspaceColor(color: string) {
+    // Live preview app-wide, then persist into workspaces.metadata.settings.
+    broadcastWorkspaceAccent(color)
+    await saveWsSetting('workspace_color', color)
   }
 
   async function changeMemberRole(userId: string, role: string) {
@@ -1914,6 +1921,24 @@ export default function SettingsPage() {
                     <div className="set-label-sub">Erscheint in Briefings, E-Mails und Workspace-Wechsler.</div>
                   </div>
                   <div className="set-value">{wsName || '—'}</div>
+                </div>
+                <div className="set-row">
+                  <div>
+                    <div className="set-label">Workspace-Farbe</div>
+                    <div className="set-label-sub">Akzentfarbe des Workspaces — färbt Tagro-Orbs und Akzente in der App.</div>
+                  </div>
+                  <div className="set-color-row">
+                    {AVATAR_COLORS.map(c => (
+                      <button
+                        key={c}
+                        type="button"
+                        className={`set-color-swatch${(wsSettings.workspace_color || '') === c ? ' on' : ''}`}
+                        onClick={() => pickWorkspaceColor(c)}
+                        style={{ background: c }}
+                        aria-label={`Workspace-Farbe ${c}`}
+                      />
+                    ))}
+                  </div>
                 </div>
                 <div className="set-row">
                   <div>

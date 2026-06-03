@@ -25,6 +25,7 @@ import {
   X,
 } from '@phosphor-icons/react'
 import EmptyState from '@/components/EmptyState'
+import HelpHint from '@/components/HelpHint'
 
 type TaskView = 'all' | 'open' | 'active' | 'decision' | 'review' | 'done'
 type SortMode = 'newest' | 'updated' | 'priority' | 'project' | 'group'
@@ -1110,11 +1111,11 @@ export default function TasksPage() {
           to { opacity:1; transform:none; }
         }
         .task-composer {
-          border:0;
-          border-radius:12px;
-          background:color-mix(in srgb, var(--surface) 72%, transparent);
-          box-shadow:0 18px 46px rgba(0,0,0,.06);
-          margin:0 0 22px;
+          border:1px solid var(--border);
+          border-radius:16px;
+          background:var(--card);
+          box-shadow:0 24px 60px -20px rgba(0,0,0,.28), 0 2px 6px rgba(0,0,0,.06);
+          margin:6px 0 26px;
           overflow:hidden;
           animation:taskComposerIn .18s cubic-bezier(.16,1,.3,1) both;
         }
@@ -1137,8 +1138,8 @@ export default function TasksPage() {
           font-weight:500;
         }
         [data-theme="dark"] .task-composer {
-          background:color-mix(in srgb, var(--surface) 82%, transparent);
-          box-shadow:0 18px 46px rgba(0,0,0,.22);
+          background:var(--card);
+          box-shadow:0 28px 70px -22px rgba(0,0,0,.6), 0 2px 6px rgba(0,0,0,.3);
         }
         @keyframes taskComposerIn {
           from { opacity:0; transform:translateY(-6px); }
@@ -1157,13 +1158,20 @@ export default function TasksPage() {
           align-items:center;
           gap:7px;
           min-width:0;
-          height:28px;
+          height:30px;
           padding:0 10px;
           border-radius:8px;
           border:1px solid var(--border);
-          background:color-mix(in srgb, var(--surface-2) 48%, transparent);
+          background:color-mix(in srgb, var(--surface-2) 60%, transparent);
           color:var(--text);
+          cursor:pointer;
+          transition:background .12s, border-color .12s;
         }
+        .task-project-select:hover {
+          background:var(--surface-2);
+          border-color:var(--border-strong, color-mix(in srgb, var(--text) 16%, var(--border)));
+        }
+        .task-project-select select { cursor:pointer; }
         .task-project-ring {
           position:relative;
           width:12px;
@@ -1342,7 +1350,7 @@ export default function TasksPage() {
           border-top:0;
         }
         .task-composer-chip {
-          height:26px;
+          height:28px;
           display:inline-flex;
           align-items:center;
           gap:7px;
@@ -1353,7 +1361,15 @@ export default function TasksPage() {
           color:var(--task-soft-text);
           font-size:12px;
           font-weight:500;
+          cursor:pointer;
+          transition:background .12s, border-color .12s;
         }
+        .task-composer-chip:hover {
+          background:var(--surface-2);
+          border-color:var(--border-strong, color-mix(in srgb, var(--text) 16%, var(--border)));
+        }
+        .task-composer-chip select,
+        .task-composer-chip input { cursor:pointer; }
         .task-composer-chip.has-value { color:var(--text); }
         .task-composer-chip input[type="date"] { color-scheme:inherit; max-width:124px; }
         .task-composer-footer {
@@ -1879,7 +1895,13 @@ export default function TasksPage() {
       <div className="task-static-top">
         <div className="task-top">
           <div className="task-top-left">
-            <h1 className="task-title">Tasks</h1>
+            <span style={{ display:'inline-flex', alignItems:'center', gap:7, minWidth:0 }}>
+              <h1 className="task-title">Tasks</h1>
+              <HelpHint
+                title="Tasks"
+                description="Aufgaben und Wünsche zu deinen Projekten. Tagro ordnet neue Vorschläge ein und bereitet sie prüfbar für die Umsetzung vor."
+              />
+            </span>
             {/* Project scope dropdown — same UX as the dashboard's
                 "Gesamtbericht für alle Projekte" so users can narrow
                 down to a single project without losing the table. */}
@@ -2041,8 +2063,7 @@ export default function TasksPage() {
               </label>
               <span style={{ color:'var(--task-soft-text)', fontSize:12 }}>›</span>
               <span className="task-composer-title">
-                <strong>Aufgabe oder Wunsch vorschlagen</strong>
-                <span>Kurz beschreiben, Tagro ordnet ein.</span>
+                <strong>Neue Aufgabe</strong>
               </span>
             </div>
             <button className="task-plus" type="button" aria-label="Vorschlag schließen" onClick={closeComposer}>
@@ -2060,16 +2081,6 @@ export default function TasksPage() {
               </button>
             </div>
 
-            {composerMode === 'tagro' && (
-              <div className="task-tagro-note">
-                Tagro prüft Kontext und Übergabe.
-              </div>
-            )}
-            {composerMode === 'manual' && (
-              <div className="task-tagro-note">
-                Direkt an den Projekt-Workflow.
-              </div>
-            )}
             {composerNotice ? <div className="task-notice">{composerNotice}</div> : null}
             {tagroPreview && (
               <div className="task-preview">
@@ -2166,7 +2177,7 @@ export default function TasksPage() {
           </div>
 
           <div className="task-composer-footer">
-            <span>{composerMode === 'tagro' ? 'Tagro prüft Kontext und Übergabe.' : 'Wartet ggf. auf Zuweisung.'}</span>
+            <span />
             <div className="task-composer-actions">
               <button type="button" onClick={closeComposer}>Abbrechen</button>
               <button

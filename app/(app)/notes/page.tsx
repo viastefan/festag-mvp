@@ -41,6 +41,7 @@ import {
 import { createClient } from '@/lib/supabase/client'
 import NewNoteModal from '@/components/NewNoteModal'
 import EmptyState from '@/components/EmptyState'
+import HelpHint from '@/components/HelpHint'
 
 type NoteType = 'journal' | 'brief' | 'meeting' | 'research'
 
@@ -312,7 +313,10 @@ export default function NotesPage() {
       <div className="notes-static-top">
         <div className="notes-top">
           <div className="notes-top-left">
-            <h1 className="notes-title">Notizen</h1>
+            <span style={{ display:'inline-flex', alignItems:'center', gap:7, minWidth:0 }}>
+              <h1 className="notes-title">Notizen</h1>
+              <HelpHint title="Notizen" description="Halte Gedanken fest — Tagro findet daraus Themen, Tasks und Risiken. ⌘⇧N legt überall eine neue Notiz an." />
+            </span>
             <span className="notes-count-pill">
               {loading ? '…' : `${visible.length} sichtbar`}
             </span>

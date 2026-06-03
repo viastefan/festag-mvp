@@ -21,6 +21,7 @@ import { computeControlStatus } from '@/lib/trust/control-status'
 import ObserverWelcomeModal from '@/components/ObserverWelcomeModal'
 import WelcomeTour from '@/components/WelcomeTour'
 import TagroOrb, { type TagroOrbState } from '@/components/TagroOrb'
+import TagroPixelOrb from '@/components/TagroPixelOrb'
 import { speechVoiceId, useSpeechSynthesis } from '@/hooks/useSpeechSynthesis'
 import {
   ArrowClockwise, Article, CalendarCheck, CaretDown, CaretRight, Check, CheckCircle,
@@ -319,8 +320,15 @@ export default function DashboardPage() {
     [riskTasks.length, decisionTasks.length],
   )
 
-  // Contextual left-side layer — resolved once per mount.
-  const contextLine = useMemo(() => daytimeLine(new Date().getHours()), [])
+  // Short greeting headline — the status sentence below carries the detail.
+  const contextLine = useMemo(() => {
+    const h = new Date().getHours()
+    const part = h >= 5 && h < 12 ? 'Guten Morgen'
+      : h >= 12 && h < 18 ? 'Guten Tag'
+      : h >= 18 && h < 24 ? 'Guten Abend'
+      : 'Hallo'
+    return firstName ? `${part}, ${firstName}.` : `${part}.`
+  }, [firstName])
   const funFact = useMemo(() => FUN_FACTS[Math.floor(Math.random() * FUN_FACTS.length)], [])
 
   // ── Scope: overall report vs single-project report ──────────────
@@ -339,6 +347,16 @@ export default function DashboardPage() {
     if (scope === 'overall') return
     if (!projects.find(p => p.id === scope)) setScope('overall')
   }, [projects, scope])
+
+  // When the scope changes, drop the previous report so stale content (e.g. the
+  // overall report) never lingers under a freshly-picked project. The auto
+  // refresh then regenerates for the new scope.
+  const scopeInitRef = useRef(true)
+  useEffect(() => {
+    if (scopeInitRef.current) { scopeInitRef.current = false; return }
+    setNoteReport(null)
+    setNoteRevealed('')
+  }, [scope])
 
   const activeProjects = useMemo(() => projects.filter(p => {
     const s = (p.status || '').toLowerCase()
@@ -2494,10 +2512,25 @@ export default function DashboardPage() {
                 )}
               </article>
             ) : (
-              <div className="dc-empty-line">
-                <span className="dc-empty-icon" aria-hidden><PencilSimple size={14} /></span>
-                <span>Tagro prüft deine Projekte und bereitet den aktuellen Status vor.</span>
-              </div>
+              /* No AI report yet — never leave the left empty. Show a calm
+                 notepad status built from current data. */
+              <article className="dc-note dc-note-inline" aria-label="Statusbericht">
+                <div className="dc-note-head">
+                  <span className="dc-note-stamp">{statusBusy ? 'Tagro schreibt …' : 'Aktueller Stand'}</span>
+                </div>
+                <p className="dc-note-text">
+                  {projects.length === 0
+                    ? 'Noch kein Projekt angelegt. Sobald du ein Projekt startest, fasst Tagro hier den aktuellen Stand zusammen — Fortschritt, offene Punkte und nächste Schritte.'
+                    : [
+                        controlSentence.reason,
+                        `${activeProjectCount} aktive${activeProjectCount === 1 ? 's' : ''} Projekt${activeProjectCount === 1 ? '' : 'e'}, ${openTaskCount} offene Aufgabe${openTaskCount === 1 ? '' : 'n'}.`,
+                        decisionTasks.length ? `${decisionTasks.length} offene Entscheidung${decisionTasks.length === 1 ? '' : 'en'}.` : '',
+                        riskTasks.length ? `${riskTasks.length} Blocker brauchen Aufmerksamkeit.` : '',
+                        'Für den ausführlichen Bericht: „Aktualisieren" oder „Bericht anhören".',
+                      ].filter(Boolean).join(' ')}
+                  {statusBusy && <span className="dc-caret" aria-hidden />}
+                </p>
+              </article>
             )}
 
             <a href="/reports" className="dc-history-link">Alle Statusberichte ansehen →</a>
@@ -2597,7 +2630,7 @@ export default function DashboardPage() {
                 aria-pressed={isBriefingPlaying}
               >
                 {/* Tagro node-network — idle / listening / thinking / speaking. */}
-                <TagroOrb state={orbState} size={188} />
+                <TagroPixelOrb state={orbState} size={188} />
               </button>
             </div>
 

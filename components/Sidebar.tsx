@@ -23,6 +23,7 @@ import {
   ArrowSquareOut,
 } from '@phosphor-icons/react'
 import { autoAvatarColor, avatarInitials } from '@/lib/avatar'
+import { applyWorkspaceAccent, WORKSPACE_COLOR_SYNC_EVENT } from '@/lib/workspace-accent'
 import {
   broadcastProfileSync,
   getRememberedProfileAvatarColor,
@@ -137,13 +138,16 @@ const CLIENT_MOB_PRIMARY: NavItem[] = [
 ]
 const CLIENT_MOB_QUICK = [
   { href:'/projects?new=1', icon:'plus', label:'Neues Projekt', primary: true },
+  { href:'/tasks',       icon:'task',     label:'Tasks' },
+  { href:'/decisions',   icon:'scales',   label:'Entscheidungen' },
+  { href:'/reports',     icon:'activity', label:'Statusberichte' },
+  { href:'/notes',       icon:'card',     label:'Notizen' },
   { href:'/messages',    icon:'chat',     label:'Nachrichten' },
   { href:'/documents',   icon:'doc',      label:'Dokumente' },
-  { href:'/docs',        icon:'doc',      label:'Docs' },
+  { href:'/voice-reports', icon:'audio',  label:'Audio Briefing' },
   { href:'/estimator',   icon:'estimate', label:'Preisschätzer' },
   { href:'/addons',      icon:'grid',     label:'Add-ons' },
-  { href:'/reports',     icon:'activity', label:'Projektbriefings' },
-  { href:'/voice-reports', icon:'audio', label:'Audio Briefing' },
+  { href:'/settings',    icon:'settings', label:'Einstellungen' },
 ]
 
 const DEV_MAIN: NavItem[] = [
@@ -478,13 +482,15 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
       // the trigger, user identity in the dropdown).
       try {
         const { data: ws } = await sb
-          .from('workspaces').select('id,mode,name')
+          .from('workspaces').select('id,mode,name,metadata')
           .eq('primary_owner_id', data.user.id)
           .eq('is_personal', true).maybeSingle()
         const m = (ws as any)?.mode
         if (m === 'team' || m === 'agency' || m === 'delivery') setWsMode(m)
         const wn = (ws as any)?.name
         if (wn && typeof wn === 'string') setWorkspaceName(wn.trim())
+        // Apply the workspace brand colour app-wide (set in Settings → Workspace).
+        applyWorkspaceAccent((ws as any)?.metadata?.settings?.workspace_color ?? null)
         // Team roster for the switcher — who else is in this workspace.
         // Owner first, then members; honest count, real avatar colours.
         const wsId = (ws as any)?.id
@@ -641,6 +647,16 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
     }
     window.addEventListener(PROJECT_COLOR_SYNC_EVENT, onProjectColor)
     return () => window.removeEventListener(PROJECT_COLOR_SYNC_EVENT, onProjectColor)
+  }, [])
+
+  // Live workspace-accent updates from Settings → Workspace.
+  useEffect(() => {
+    const onWsColor = (event: Event) => {
+      if (!(event instanceof CustomEvent)) return
+      applyWorkspaceAccent(event.detail ?? null)
+    }
+    window.addEventListener(WORKSPACE_COLOR_SYNC_EVENT, onWsColor)
+    return () => window.removeEventListener(WORKSPACE_COLOR_SYNC_EVENT, onWsColor)
   }, [])
 
   const PROJ_COLORS = ['#6a738c','#5b647d','#64748b','#ef4444','#f97316','#eab308','#22c55e','#06b6d4','#3b82f6','#94a3b8']
@@ -1993,7 +2009,8 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         .mob-fab:active { transform:scale(.88); }
         .mob-fab.open { background:var(--surface-2); box-shadow:0 0 0 1px rgba(255,255,255,.03); }
         .mbd { position:fixed; inset:0; z-index:198; background:rgba(0,0,0,.40); backdrop-filter:blur(3px); -webkit-backdrop-filter:blur(3px); }
-        .mob-quick { position:fixed; bottom:calc(96px + var(--safe-bottom)); left:50%; transform:translateX(-50%); width:calc(100% - 32px); max-width:340px; z-index:199; display:flex; flex-direction:column; gap:6px; animation:mqUp .2s cubic-bezier(.16,1,.3,1) both; }
+        .mob-quick { position:fixed; bottom:calc(96px + var(--safe-bottom)); left:50%; transform:translateX(-50%); width:calc(100% - 32px); max-width:340px; max-height:calc(100vh - 180px); overflow-y:auto; -webkit-overflow-scrolling:touch; z-index:199; display:flex; flex-direction:column; gap:6px; animation:mqUp .2s cubic-bezier(.16,1,.3,1) both; }
+        .mob-quick::-webkit-scrollbar { display:none; }
         @keyframes mqUp { from{opacity:0;transform:translateX(-50%) translateY(18px);}to{opacity:1;transform:translateX(-50%) translateY(0);} }
         .mqi { display:flex; align-items:center; gap:14px; padding:13px 16px; background:var(--card); border:1px solid var(--border); border-radius:18px; text-decoration:none; color:inherit; -webkit-tap-highlight-color:transparent; transition:background .1s; }
         .mqi:active { background:var(--hover); }
@@ -2322,6 +2339,23 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         {mobPrimary.slice(2).map(item => {
           const on      = isOn(item.href)
           const isAv    = item.icon === 'user' && !!avatar
+          // "Mehr" opens the pop-up sheet with everything else — it is not a
+          // page of its own on mobile (matches the ⋯ more-menu pattern).
+          if (item.href === '/more') {
+            return (
+              <button
+                key={item.href}
+                type="button"
+                className={`mt ${more?'on':'off'}`}
+                onClick={() => setMore(v => !v)}
+                aria-haspopup="menu"
+                aria-expanded={more}
+              >
+                <div className="mti"><Ico name="more" sz={21} c={more?'var(--text)':'var(--text-muted)'} weight={more?'bold':'regular'}/></div>
+                <span className="ml">Mehr</span>
+              </button>
+            )
+          }
           return (
             <Link key={item.href} href={resolve(item.href)} className={`mt ${on?'on':'off'} ${isAv?'has-avatar':''}`}>
               <div className="mti">

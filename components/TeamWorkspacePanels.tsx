@@ -7,11 +7,16 @@ import {
   ArrowRight,
   Check,
   EnvelopeSimple,
+  FolderSimple,
+  ListChecks,
   MagnifyingGlass,
+  NotePencil,
   Plus,
   UserPlus,
   X,
 } from '@phosphor-icons/react'
+import EmptyState from '@/components/EmptyState'
+import HelpHint from '@/components/HelpHint'
 
 type TeamPanelMode = 'projects' | 'tasks' | 'reports'
 
@@ -152,7 +157,13 @@ export default function TeamWorkspacePanel({ mode }: { mode: TeamPanelMode }) {
 
   const load = useCallback(async () => {
     setLoading(true)
-    const { data: { session } } = await supabase.auth.getSession()
+    let { data: { session } } = await supabase.auth.getSession()
+    if (!session) {
+      // Hydration race — this route is middleware-gated, so retry once
+      // before bouncing to /login (avoids the flash the user reported).
+      await new Promise((r) => setTimeout(r, 400))
+      session = (await supabase.auth.getSession()).data.session
+    }
     if (!session) {
       window.location.href = '/login'
       return
@@ -165,8 +176,14 @@ export default function TeamWorkspacePanel({ mode }: { mode: TeamPanelMode }) {
       (supabase as any).from('notifications').select('id,title,body,kind,type,project_id,created_at').order('created_at', { ascending: false }).limit(80),
     ])
 
+    // The role lives in `role_on_project` (not `role`) — reading the wrong
+    // column silently dropped every developer from the client-side Team view,
+    // so projects always looked like "Entwickler fehlt" even after a dev joined.
     let assignmentData: AssignmentRow[] = []
-    const assignmentsWithRole = await (supabase as any).from('project_assignments').select('project_id,user_id,role,active').eq('active', true)
+    const assignmentsWithRole = await (supabase as any)
+      .from('project_assignments')
+      .select('project_id,user_id,role:role_on_project,active')
+      .eq('active', true)
     if (assignmentsWithRole.error) {
       const assignmentsPlain = await (supabase as any).from('project_assignments').select('project_id,user_id,active').eq('active', true)
       assignmentData = ((assignmentsPlain.data as AssignmentRow[] | null) ?? [])
@@ -253,18 +270,22 @@ export default function TeamWorkspacePanel({ mode }: { mode: TeamPanelMode }) {
   }, [reports, query, projectsById])
 
   const title = mode === 'projects' ? 'Team Projekte' : mode === 'tasks' ? 'Team Tasks' : 'Team Statusberichte'
-  const subtitle = mode === 'projects'
-    ? 'Alle Team-Projekte mit Ownern, Zuständigkeiten und offenen Aufgaben.'
-    : mode === 'tasks'
-      ? 'Alle Aufgaben im Team-Kontext, getrennt von deinen persönlichen Tasks.'
-      : 'Schriftliche Team-Berichte und operative Updates aus dem Workspace.'
 
   return (
     <div className="tw-page">
       <header className="tw-head">
-        <div>
+        <div className="tw-title-row">
           <h1>{title}</h1>
-          <p>{subtitle}</p>
+          <HelpHint
+            title={title}
+            description={
+              mode === 'projects'
+                ? 'Alle Projekte im Team-Kontext mit Ownern, Zuständigkeiten und offenen Aufgaben.'
+                : mode === 'tasks'
+                  ? 'Aufgaben im Team-Kontext — getrennt von deinen persönlichen Tasks, jeder Person zuweisbar.'
+                  : 'Schriftliche Team-Berichte und operative Updates aus dem Workspace.'
+            }
+          />
         </div>
         <button type="button" className="tw-plus" onClick={() => setInviteOpen(true)} aria-label="Teammitglied einladen" title="Teammitglied einladen">
           <Plus size={18} weight="regular" />
@@ -303,7 +324,7 @@ export default function TeamWorkspacePanel({ mode }: { mode: TeamPanelMode }) {
               <span />
             </div>
             {loading ? <LoadingRows /> : filteredProjects.length === 0 ? (
-              <Empty title="Keine Team-Projekte" body="Sobald ein Projekt im Team bearbeitet wird, erscheint es hier." />
+              <EmptyState icon={FolderSimple} title="Keine Team-Projekte" />
             ) : filteredProjects.map(item => {
               const owner = item.owner ? profilesById.get(item.owner) : null
               return (
@@ -337,7 +358,7 @@ export default function TeamWorkspacePanel({ mode }: { mode: TeamPanelMode }) {
               <span />
             </div>
             {loading ? <LoadingRows /> : filteredTasks.length === 0 ? (
-              <Empty title="Keine Team-Tasks" body="Team-Aufgaben erscheinen hier, sobald sie einem Projekt oder einer Person zugeordnet sind." />
+              <EmptyState icon={ListChecks} title="Keine Team-Tasks" />
             ) : filteredTasks.map(task => {
               const project = task.project_id ? projectsById.get(task.project_id) : null
               const assignee = task.assigned_to ? profilesById.get(task.assigned_to) : null
@@ -362,24 +383,25 @@ export default function TeamWorkspacePanel({ mode }: { mode: TeamPanelMode }) {
         )}
 
         {mode === 'reports' && (
-          <section className="tw-reports">
-            {loading ? <LoadingRows /> : filteredReports.length === 0 ? (
-              <Empty
-                title="Noch keine Team-Statusberichte"
-                body="Wenn Tagro Team-Updates, Briefings oder schriftliche Statusberichte erstellt, liegen sie hier gesammelt."
-              />
-            ) : filteredReports.map(report => {
-              const project = report.project_id ? projectsById.get(report.project_id) : null
-              return (
-                <article key={report.id} className="tw-report">
-                  <span>{project?.title || 'Team'}</span>
-                  <h2>{report.title || 'Statusbericht'}</h2>
-                  <p>{report.body || 'Kein Text hinterlegt.'}</p>
-                  <small>{dateLabel(report.created_at)}</small>
-                </article>
-              )
-            })}
-          </section>
+          loading ? (
+            <section className="tw-reports"><LoadingRows /></section>
+          ) : filteredReports.length === 0 ? (
+            <EmptyState icon={NotePencil} title="Noch keine Team-Statusberichte" />
+          ) : (
+            <section className="tw-reports">
+              {filteredReports.map(report => {
+                const project = report.project_id ? projectsById.get(report.project_id) : null
+                return (
+                  <article key={report.id} className="tw-report">
+                    <span>{project?.title || 'Team'}</span>
+                    <h2>{report.title || 'Statusbericht'}</h2>
+                    <p>{report.body || 'Kein Text hinterlegt.'}</p>
+                    <small>{dateLabel(report.created_at)}</small>
+                  </article>
+                )
+              })}
+            </section>
+          )
         )}
       </main>
 
@@ -416,6 +438,11 @@ export default function TeamWorkspacePanel({ mode }: { mode: TeamPanelMode }) {
           gap:20px;
           padding:0 28px;
           border-bottom:1px solid var(--border);
+        }
+        .tw-title-row {
+          display:flex;
+          align-items:center;
+          gap:9px;
         }
         .tw-head h1 {
           margin:0;
@@ -701,15 +728,6 @@ function LoadingRows() {
       <div className="tw-skeleton" />
       <div className="tw-skeleton" />
     </>
-  )
-}
-
-function Empty({ title, body }: { title: string; body: string }) {
-  return (
-    <div className="tw-empty">
-      <h2>{title}</h2>
-      <p>{body}</p>
-    </div>
   )
 }
 

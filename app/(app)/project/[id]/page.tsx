@@ -6,7 +6,7 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import {
   Bell, CaretRight, Check, CheckCircle, Circle, DotsThree, LinkSimple,
-  CaretDown, CaretUp, Copy, EnvelopeSimple, FilePdf, Plus, Sparkle, Star, Target, Trash,
+  CaretDown, CaretUp, Copy, EnvelopeSimple, FilePdf, Plus, Sparkle, Star, Target, Trash, UserPlus,
 } from '@phosphor-icons/react'
 import { projectColor } from '@/components/Sidebar'
 import { effectiveRole, isDevOrAdmin } from '@/lib/role'
@@ -16,6 +16,7 @@ import { computeReportReadiness } from '@/lib/trust/nexora'
 import { Milestone } from '@/components/MilestoneChart'
 import ProjectCompletionCelebration from '@/components/ProjectCompletionCelebration'
 import DeleteProjectModal from '@/components/DeleteProjectModal'
+import AssignDevModal from '@/components/AssignDevModal'
 import NewTaskModal from '@/components/NewTaskModal'
 import ProjectDevAvatars from '@/components/ProjectDevAvatars'
 import ProofGridSection from '@/components/ProofGridSection'
@@ -110,6 +111,8 @@ function ProjectPageInner() {
   const [sendingReport, setSendingReport] = useState(false)
   const [online, setOnline] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
+  const [assignDevOpen, setAssignDevOpen] = useState(false)
+  const [projectMenuOpen, setProjectMenuOpen] = useState(false)
   const [myExecutorRole, setMyExecutorRole] = useState<ExecutorRole | null>(null)
   const msgEndRef = useRef<HTMLDivElement>(null)
   const supabase = createClient()
@@ -435,7 +438,7 @@ Struktur (nutze Markdown):
 **Nächste Schritte:** Was kommt als Nächstes
 **Risiken:** Falls erkennbar — sonst weglassen
 
-Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn möglich.`,
+Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — niemals chinesische, japanische, kyrillische oder andere fremde Schriftzeichen. Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn möglich.`,
           messages: [{ role: 'user', content: userPrompt }],
           userId,
           projectId: id,
@@ -901,7 +904,7 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
           background: transparent;
           color: var(--pv-soft);
           font: inherit; font-size: 12px; font-weight: 500;
-          cursor: pointer;
+          cursor: pointer; text-decoration: none;
           transition: background .1s, color .1s, border-color .1s;
         }
         .pv-tab:hover { color: var(--text); background: var(--surface-2); }
@@ -1389,6 +1392,9 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
         .pv-report-btn:disabled {
           cursor: default; opacity: .58;
         }
+        .pv-report-btn.icon-only {
+          width: 28px; padding: 0; gap: 0;
+        }
         .pv-report-btn.primary {
           border-color: color-mix(in srgb, var(--pv-slate) 42%, var(--border));
           background: color-mix(in srgb, var(--pv-slate) 12%, transparent);
@@ -1579,6 +1585,13 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
         onDeleted={() => { setDeleteOpen(false); window.location.href = '/dashboard' }}
       />
 
+      <AssignDevModal
+        open={assignDevOpen}
+        projectId={project.id}
+        projectTitle={project.title}
+        onClose={() => setAssignDevOpen(false)}
+      />
+
       {/* ─── TOP BAR — workspace breadcrumb ─── */}
       <header className="pv-topbar">
         <div className="pv-crumbs">
@@ -1594,11 +1607,61 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
             {project.title}
           </span>
           <button className="pv-icon-btn" title="Favorit"><Star size={13} /></button>
-          <button
-            className="pv-icon-btn"
-            title="Projekt löschen"
-            onClick={() => setDeleteOpen(true)}
-          ><DotsThree size={14} weight="bold" /></button>
+          <span style={{ position: 'relative', display: 'inline-flex' }}>
+            <button
+              className="pv-icon-btn"
+              title="Mehr"
+              aria-haspopup="menu"
+              aria-expanded={projectMenuOpen}
+              onClick={() => setProjectMenuOpen(o => !o)}
+            ><DotsThree size={14} weight="bold" /></button>
+            {projectMenuOpen && (
+              <>
+                <div
+                  onClick={() => setProjectMenuOpen(false)}
+                  style={{ position: 'fixed', inset: 0, zIndex: 60 }}
+                />
+                <div
+                  role="menu"
+                  style={{
+                    position: 'absolute', top: 'calc(100% + 6px)', right: 0, zIndex: 61,
+                    minWidth: 184, padding: 5,
+                    background: 'var(--surface)', border: '1px solid var(--border)',
+                    borderRadius: 10, boxShadow: '0 16px 40px rgba(0,0,0,.18)',
+                  }}
+                >
+                  <button
+                    role="menuitem"
+                    onClick={() => { setProjectMenuOpen(false); setAssignDevOpen(true) }}
+                    style={{
+                      width: '100%', display: 'flex', alignItems: 'center', gap: 9,
+                      padding: '8px 10px', borderRadius: 7, border: 0, background: 'transparent',
+                      color: 'var(--text)', font: 'inherit', fontSize: 13, fontWeight: 500,
+                      cursor: 'pointer', textAlign: 'left',
+                    }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--surface-2)' }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
+                  >
+                    <UserPlus size={14} /> Entwickler zuweisen
+                  </button>
+                  <button
+                    role="menuitem"
+                    onClick={() => { setProjectMenuOpen(false); setDeleteOpen(true) }}
+                    style={{
+                      width: '100%', display: 'flex', alignItems: 'center', gap: 9,
+                      padding: '8px 10px', borderRadius: 7, border: 0, background: 'transparent',
+                      color: 'var(--red,#D14343)', font: 'inherit', fontSize: 13, fontWeight: 500,
+                      cursor: 'pointer', textAlign: 'left',
+                    }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'color-mix(in srgb, var(--red,#D14343) 10%, transparent)' }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
+                  >
+                    <Trash size={14} /> Projekt löschen
+                  </button>
+                </div>
+              </>
+            )}
+          </span>
         </div>
         <div className="pv-topbar-right">
           <button className="pv-icon-btn" title="Link kopieren"><LinkSimple size={13} /></button>
@@ -1639,6 +1702,13 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
           className={`pv-tab${activeLeft === 'queue' ? ' on' : ''}`}
           onClick={() => setActiveLeft('queue')}
         >Zeitplan</button>
+        <Link
+          href={`/decisions?project=${project.id}`}
+          className="pv-tab"
+        >
+          Entscheidungen
+          {decisionTasks.length > 0 && <span className="pv-tab-count">{decisionTasks.length}</span>}
+        </Link>
         {projectType === 'marketing' && (
           <button
             role="tab" aria-selected={activeLeft === 'marketing'}
@@ -1773,25 +1843,26 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
                     {latestUpdate ? (
                       <button
                         type="button"
-                        className="pv-report-btn"
+                        className="pv-report-btn icon-only"
                         onClick={() => setReportExpandedPreference(!reportExpanded)}
+                        title={reportExpanded ? 'Einklappen' : 'Ausklappen'}
+                        aria-label={reportExpanded ? 'Einklappen' : 'Ausklappen'}
                       >
-                        {reportExpanded ? <CaretUp size={12} /> : <CaretDown size={12} />}
-                        {reportExpanded ? 'Einklappen' : 'Ausklappen'}
+                        {reportExpanded ? <CaretUp size={13} /> : <CaretDown size={13} />}
                       </button>
                     ) : null}
                   </span>
                   <div className="pv-report-actions">
                     {latestUpdate ? (
                       <>
-                        <button type="button" className="pv-report-btn" onClick={downloadStatusReportPdf}>
-                          <FilePdf size={13} /> PDF
+                        <button type="button" className="pv-report-btn icon-only" onClick={downloadStatusReportPdf} title="Als PDF herunterladen" aria-label="Als PDF herunterladen">
+                          <FilePdf size={14} />
                         </button>
-                        <button type="button" className="pv-report-btn" onClick={sendStatusReportByEmail} disabled={sendingReport}>
-                          <EnvelopeSimple size={13} /> {sendingReport ? 'Sendet…' : 'E-Mail'}
+                        <button type="button" className="pv-report-btn icon-only" onClick={sendStatusReportByEmail} disabled={sendingReport} title="Per E-Mail senden" aria-label="Per E-Mail senden">
+                          {sendingReport ? <span className="pv-spin" aria-hidden /> : <EnvelopeSimple size={14} />}
                         </button>
-                        <button type="button" className="pv-report-btn" onClick={copyStatusReport}>
-                          <Copy size={13} /> Kopieren
+                        <button type="button" className="pv-report-btn icon-only" onClick={copyStatusReport} title="Kopieren" aria-label="Kopieren">
+                          <Copy size={14} />
                         </button>
                         <button
                           type="button"
