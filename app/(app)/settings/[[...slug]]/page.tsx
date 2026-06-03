@@ -973,18 +973,27 @@ export default function SettingsPage() {
         /* Inner setting cards: solid white in light mode, popping above
            the lighter-gray .set-main canvas. Soft border + subtle shadow
            for the calm Festag 3-D feel. */
+        /* Notebook-style settings: no boxed card chrome — spacing + the row
+           hairlines do the structure. Cards become invisible grouping
+           containers, the surface stays calm and unbroken. */
         .set-card {
-          background: #fff;
-          border: 1px solid color-mix(in srgb, var(--set-border) 55%, transparent);
-          border-radius: 12px;
-          padding: 2px 22px;
-          margin-bottom: 10px;
-          box-shadow: var(--content-shadow);
+          background: transparent;
+          border: 0;
+          border-radius: 0;
+          padding: 0;
+          margin-bottom: 22px;
+          box-shadow: none;
         }
         [data-theme="dark"] .set-card,
         [data-theme="classic-dark"] .set-card {
-          background: color-mix(in srgb, var(--surface) 96%, #fff 6%);
-          box-shadow: var(--content-shadow);
+          background: transparent;
+          box-shadow: none;
+        }
+        /* Visual separation between groups instead of a card border: a single
+           hairline above each new card (except the first in its section). */
+        .set-card + .set-card {
+          padding-top: 18px;
+          border-top: 1px solid color-mix(in srgb, var(--set-border) 35%, transparent);
         }
         .set-profile-layout {
           display: grid;
@@ -1065,8 +1074,10 @@ export default function SettingsPage() {
           grid-template-columns: minmax(200px, 1fr) minmax(0, 1.4fr);
           gap: 28px;
           align-items: center;
-          padding: 18px 0;
-          border-bottom: 1px solid color-mix(in srgb, var(--set-border) 50%, transparent);
+          padding: 14px 0;
+          /* Almost-invisible hairline so rows still read as a list, but the
+             page no longer feels like a SaaS table. */
+          border-bottom: 1px solid color-mix(in srgb, var(--set-border) 28%, transparent);
         }
         .set-row:last-child { border-bottom: none; }
         @media (max-width: 720px) {
@@ -1352,7 +1363,6 @@ export default function SettingsPage() {
           .set-value { text-align: left; }
           .set-input, .set-select { font-size: 16px; padding: 10px 12px; }
           .set-btn { min-height: 38px; padding: 8px 14px; }
-          .set-card { border-radius: 10px; }
           .set-theme-cards { grid-template-columns: 1fr; gap: 8px; }
           .set-segment { width: 100%; }
           .set-segment button { flex: 1; }
