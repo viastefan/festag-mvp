@@ -20,87 +20,11 @@ function DocumentsEmptyState() {
           padding:64px 24px;
           color:var(--text);
         }
-        .docs-empty-art {
-          position:relative;
-          width:230px;
-          height:150px;
-          margin:0 0 30px;
-          transform:translateX(4px);
-        }
-        .docs-empty-sheet {
-          position:absolute;
-          inset:auto;
-          border:1px solid color-mix(in srgb, var(--border) 78%, transparent);
-          border-radius:16px;
-          background:
-            linear-gradient(180deg, color-mix(in srgb, var(--card) 96%, var(--surface) 4%), color-mix(in srgb, var(--surface) 86%, var(--card) 14%));
-          box-shadow:0 18px 50px -34px rgba(15,23,42,.42);
-          overflow:hidden;
-        }
-        .docs-empty-sheet.back {
-          width:174px;
-          height:106px;
-          left:30px;
-          top:0;
-          opacity:.46;
-          transform:rotate(-4deg);
-        }
-        .docs-empty-sheet.mid {
-          width:190px;
-          height:118px;
-          left:18px;
-          top:14px;
-          opacity:.72;
-          transform:rotate(3deg);
-        }
-        .docs-empty-sheet.front {
-          width:212px;
-          height:128px;
-          left:0;
-          top:22px;
-          transform:rotate(-1deg);
-        }
-        .docs-empty-sheet.front::before {
-          content:"";
-          position:absolute;
-          left:0;
-          right:0;
-          top:0;
-          height:34px;
-          background:linear-gradient(90deg, rgba(106,115,140,.18), rgba(106,115,140,.04));
-          border-bottom:1px solid color-mix(in srgb, var(--border) 55%, transparent);
-        }
-        .docs-empty-line {
-          position:absolute;
-          left:22px;
-          height:6px;
-          border-radius:999px;
-          background:color-mix(in srgb, var(--text-secondary) 44%, transparent);
-        }
-        .docs-empty-line.a { top:52px; width:118px; }
-        .docs-empty-line.b { top:70px; width:154px; opacity:.68; }
-        .docs-empty-line.c { top:88px; width:94px; opacity:.46; }
-        .docs-empty-total {
-          position:absolute;
-          right:18px;
-          bottom:18px;
-          width:48px;
-          height:20px;
-          border-radius:999px;
-          background:rgba(106,115,140,.13);
-          border:1px solid rgba(106,115,140,.20);
-        }
-        [data-theme="dark"] .docs-empty-sheet,
-        [data-theme="classic-dark"] .docs-empty-sheet {
-          box-shadow:0 18px 50px -30px rgba(0,0,0,.66);
-        }
-        .docs-empty-kicker {
-          margin:0 0 10px;
-          color:var(--text-muted);
-          font-size:11px;
-          font-weight:600;
-          letter-spacing:.12em;
-          text-transform:uppercase;
+        /* Linear-style minimal empty mark — fine stroked SVG, no boxy illustration. */
+        .docs-empty-mark {
+          width:56px; height:56px; margin:0 0 22px;
+          display:inline-flex; align-items:center; justify-content:center;
+          color: var(--text-muted);
         }
         .docs-empty h2 {
           margin:0 0 12px;
@@ -120,19 +44,17 @@ function DocumentsEmptyState() {
           letter-spacing:0;
         }
       `}</style>
-      <div className="docs-empty-art" aria-hidden="true">
-        <span className="docs-empty-sheet back" />
-        <span className="docs-empty-sheet mid" />
-        <span className="docs-empty-sheet front">
-          <span className="docs-empty-line a" />
-          <span className="docs-empty-line b" />
-          <span className="docs-empty-line c" />
-          <span className="docs-empty-total" />
-        </span>
-      </div>
-      <p className="docs-empty-kicker">Dokumente</p>
+      <span className="docs-empty-mark" aria-hidden>
+        <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
+          <rect x="14" y="8" width="28" height="40" rx="4"
+            stroke="currentColor" strokeOpacity="0.32" strokeWidth="1.2" />
+          <line x1="20" y1="20" x2="36" y2="20" stroke="currentColor" strokeOpacity="0.7" strokeWidth="1.2" strokeLinecap="round" />
+          <line x1="20" y1="28" x2="36" y2="28" stroke="currentColor" strokeOpacity="0.7" strokeWidth="1.2" strokeLinecap="round" />
+          <line x1="20" y1="36" x2="30" y2="36" stroke="currentColor" strokeOpacity="0.7" strokeWidth="1.2" strokeLinecap="round" />
+        </svg>
+      </span>
       <h2>Noch keine Dokumente</h2>
-      <p>Sobald dein Projekt aktiv wird, findest du hier Rechnungen, Briefings und Verträge.</p>
+      <p>Erstelle Angebot, Vertrag oder Rechnung über die Auswahl oben.</p>
     </div>
   )
 }

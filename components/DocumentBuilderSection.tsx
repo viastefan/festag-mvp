@@ -262,10 +262,19 @@ function DocumentBuilder({ kind, workspaceId, clients, projects, onClose, onCrea
 
 const CSS = `
   .dbs { margin-bottom: 18px; }
-  .dbs-new { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:10px; }
-  .dbs-new-card { display:flex; align-items:center; gap:11px; padding:13px 15px; border:1px solid var(--border); border-radius:12px; background:var(--surface); color:var(--text); cursor:pointer; font:inherit; transition:border-color .14s, background .14s; }
-  .dbs-new-card:hover:not(:disabled) { border-color:var(--border-strong); background:var(--surface-2); }
-  .dbs-new-card:disabled { opacity:.5; cursor:not-allowed; }
+  /* Borderless Linear-style tiles: soft surface tint, no outline; hover lifts
+     the tint subtly. Three calm options on the open page surface. */
+  .dbs-new { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:18px; }
+  .dbs-new-card {
+    display:flex; align-items:center; gap:11px;
+    padding:13px 15px;
+    border:0; border-radius:12px;
+    background: rgba(255,255,255,0.04);
+    color:var(--text); cursor:pointer; font:inherit;
+    transition: background .14s;
+  }
+  .dbs-new-card:hover:not(:disabled) { background: rgba(255,255,255,0.08); }
+  .dbs-new-card:disabled { opacity:.45; cursor:not-allowed; }
   .dbs-new-ico { width:32px; height:32px; border-radius:9px; display:inline-flex; align-items:center; justify-content:center; background:var(--surface-2); color:var(--text-secondary); flex-shrink:0; }
   .dbs-new-title { font-size:13.5px; font-weight:500; flex:1; }
   .dbs-new-plus { color:var(--text-muted); }

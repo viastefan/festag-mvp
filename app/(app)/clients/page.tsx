@@ -10,7 +10,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { Plus, ArrowRight, UsersThree, LinkSimple, Check } from '@phosphor-icons/react'
+import { Plus, ArrowRight, LinkSimple, Check } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 import Modal, { ModalButton } from '@/components/Modal'
 import InviteLinkModal from '@/components/InviteLinkModal'
@@ -103,16 +103,24 @@ export default function ClientsPage() {
     return (
       <div className="clients-page">
         <style>{CLIENTS_CSS}</style>
-        <header className="cl-head">
-          <div>
-            <h1 className="cl-title">Kunden</h1>
-            <p className="cl-sub">
-              Kundenverwaltung ist für Agency-Workspaces gedacht. Wechsle in den Workspace-Settings
-              auf „Agency / White Label Workspace", wenn du externe Kundenprojekte über Festag steuern willst.
+        <div className="cl-shell">
+          <header className="cl-head">
+            <div>
+              <h1 className="cl-title">Kunden</h1>
+              <p className="cl-sub">Kundenbereiche für Projekte, Dokumente und Briefings.</p>
+            </div>
+            <Link href="/settings/workspace" className="cl-link">Agency-Einstellungen</Link>
+          </header>
+          <div className="cl-empty">
+            <ClientsEmptyMark />
+            <p className="cl-empty-title">Agency-Workspace nötig</p>
+            <p className="cl-empty-sub">
+              Wechsle in den Workspace-Einstellungen auf „Agency / White Label", um Kundenbereiche zu erstellen.
             </p>
+            <Link href="/settings/workspace" className="cl-btn cl-btn-primary">Workspace-Einstellungen</Link>
+            <p className="cl-empty-foot">Projektbereiche · Dokumente · Briefings</p>
           </div>
-          <Link href="/settings/workspace" className="cl-btn">Workspace-Einstellungen</Link>
-        </header>
+        </div>
       </div>
     )
   }
@@ -123,14 +131,14 @@ export default function ClientsPage() {
 
       <PageHeader
         title="Kunden"
-        subtitle="Kundenprojekte unter einer Kunden-Identität bündeln — Branding optional via White-Label."
+        subtitle="Kundenbereiche für Projekte, Dokumente und Briefings."
         actions={
           <>
             <button type="button" className="fui-action" onClick={() => setInviteOpen(true)}>
-              <LinkSimple size={14} /> Kunde einladen
+              <LinkSimple size={14} /> Einladen
             </button>
             <button type="button" className="fui-action fui-action--primary" onClick={() => setComposerOpen(true)}>
-              <Plus size={14} weight="bold" /> Kunde anlegen
+              <Plus size={14} weight="bold" /> Kunde erstellen
             </button>
           </>
         }
@@ -149,34 +157,15 @@ export default function ClientsPage() {
 
       {clients.length === 0 ? (
         <div className="cl-empty">
-          {/* Custom Kunden illustration — layered client cards with brand-colour
-              avatar tiles. Calm, on-brand, slate-only (no accent fills). */}
-          <div className="cle-art" aria-hidden>
-            <span className="cle-card cle-card-3" />
-            <span className="cle-card cle-card-2" />
-            <span className="cle-card cle-card-1">
-              <span className="cle-avatar"><UsersThree size={15} weight="regular" /></span>
-              <span className="cle-lines">
-                <span className="cle-line cle-line-primary" />
-                <span className="cle-line cle-line-silver" />
-                <span className="cle-line cle-line-primary cle-line-short" />
-              </span>
-            </span>
-          </div>
-          <p className="cl-kicker">Kunden</p>
-          <p className="cl-empty-title">Noch keine Kunden im Workspace</p>
+          <ClientsEmptyMark />
+          <p className="cl-empty-title">Noch keine Kunden</p>
           <p className="cl-empty-sub">
-            Leg deinen ersten Kunden an. Du kannst danach bestehende Projekte zuordnen
-            oder ein neues Projekt direkt unter diesem Kunden starten.
+            Erstelle einen Kundenbereich, um Projekte, Ressourcen und Freigaben getrennt zu organisieren.
           </p>
-          <div className="cl-empty-actions">
-            <button type="button" className="cl-btn cl-btn-primary" onClick={() => setComposerOpen(true)}>
-              <Plus size={14} weight="bold" /> Ersten Kunden anlegen
-            </button>
-            <button type="button" className="cl-btn" onClick={() => setInviteOpen(true)}>
-              <LinkSimple size={14} /> Per Link einladen
-            </button>
-          </div>
+          <button type="button" className="cl-btn cl-btn-primary" onClick={() => setComposerOpen(true)}>
+            Kundenbereich erstellen
+          </button>
+          <p className="cl-empty-foot">Projektbereiche · Dokumente · Briefings</p>
         </div>
       ) : (
         <section className="cl-list">
@@ -364,24 +353,35 @@ const CLIENTS_CSS = `
      consistent across the app. */
   /* Shared shell: PageHeader (.fui-top) owns the top bar + hairline; the body
      keeps the 18px red-line consistent with Tasks/Entscheidungen. */
+  /* Linear-style shell: centred content, generous side padding, no outer
+     fullscreen container — the page lives on the open surface. */
   .clients-page {
     width: 100%;
     margin: 0;
-    padding: 20px 0 80px;
+    padding: 0 0 80px;
     color: var(--text);
     font-family: var(--font-aeonik,'Aeonik',Inter,sans-serif);
   }
-  .cl-body { padding: 18px 18px 0; }
+  .cl-shell {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 48px 48px 0;
+  }
+  .cl-body { max-width: 1080px; margin: 0 auto; padding: 24px 48px 0; }
   .cl-loading { padding: 80px 0; text-align: center; color: var(--text-muted); font-size: 13px; }
   .cl-head {
     display: flex; align-items: flex-start; justify-content: space-between;
-    gap: 16px; flex-wrap: wrap; margin-bottom: 16px;
+    gap: 16px; flex-wrap: wrap; margin-bottom: 48px;
   }
-  .cl-head-text { min-width: 0; }
-  .cl-head-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; flex-wrap: wrap; }
+  .cl-head > div { min-width: 0; }
   .cl-kicker { margin: 0; font-size: 11px; font-weight: 500; letter-spacing: .06em; color: var(--text-muted); text-transform: uppercase; }
-  .cl-title { margin: 7px 0 5px; font-size: 22px; font-weight: 500; letter-spacing: var(--ls-header, .012em); color: var(--text); }
-  .cl-sub { margin: 0; max-width: 560px; font-size: 13px; line-height: 1.6; color: var(--text-secondary); letter-spacing: var(--ls-body, .017em); }
+  .cl-title { margin: 0 0 6px; font-size: 22px; font-weight: 500; letter-spacing: var(--ls-header, .012em); color: var(--text); }
+  .cl-sub { margin: 0; max-width: 560px; font-size: 13.5px; line-height: 1.55; color: var(--text-secondary); letter-spacing: var(--ls-body, .017em); }
+  .cl-link {
+    font: inherit; font-size: 13px; font-weight: 500; color: var(--text-muted);
+    text-decoration: none; padding: 8px 0; transition: color .12s ease;
+  }
+  .cl-link:hover { color: var(--text); }
   .cl-meta {
     display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
     margin-bottom: 22px; font-size: 12.5px; color: var(--text-muted);
@@ -411,67 +411,26 @@ const CLIENTS_CSS = `
   }
   .cl-btn:disabled { opacity: .55; cursor: not-allowed; }
 
+  /* Linear-style empty state: centred, calm, hochwertig. Minimal SVG mark,
+     short copy, one primary action, dezenter Sub-Hinweis. */
   .cl-empty {
     display: flex; flex-direction: column; align-items: center; text-align: center;
-    padding: 72px 24px;
+    padding: 88px 24px 48px;
     color: var(--text-muted);
     animation: clFade .4s cubic-bezier(.16,1,.3,1) both;
   }
-  @keyframes clFade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
-  .cl-empty .cl-kicker { margin-bottom: 8px; }
-  .cl-empty-title { margin: 0 0 8px; font-size: 16px; font-weight: 500; color: var(--text); letter-spacing: var(--ls-header, .012em); }
-  .cl-empty-sub { margin: 0 0 22px; max-width: 440px; font-size: 13px; line-height: 1.62; color: var(--text-secondary); letter-spacing: var(--ls-body, .017em); }
-  .cl-empty-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center; }
-
-  /* Custom Kunden illustration — softly stacked client cards. */
-  .cle-art {
-    position: relative; width: 200px; height: 132px; margin-bottom: 26px;
-    animation: cleFloat 7s ease-in-out infinite;
-  }
-  @keyframes cleFloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
-  .cle-card {
-    position: absolute; left: 50%; border-radius: 14px;
-    border: 1px solid var(--border);
-    background: var(--surface);
-    box-shadow: 0 12px 30px -20px rgba(15,23,42,.5);
-  }
-  .cle-card-3 {
-    width: 150px; height: 64px; top: 0; margin-left: -75px;
-    transform: rotate(-7deg); opacity: .45;
-    background: color-mix(in srgb, var(--surface-2) 60%, var(--surface));
-  }
-  .cle-card-2 {
-    width: 162px; height: 70px; top: 10px; margin-left: -81px;
-    transform: rotate(4deg); opacity: .7;
-    background: color-mix(in srgb, var(--surface-2) 40%, var(--surface));
-  }
-  .cle-card-1 {
-    width: 176px; height: 78px; top: 30px; margin-left: -88px;
-    display: grid; grid-template-columns: 38px 1fr auto; align-items: center; gap: 12px;
-    padding: 0 16px;
-  }
-  .cle-avatar {
-    width: 38px; height: 38px; border-radius: 10px;
+  @keyframes clFade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  .cl-empty-mark {
+    width: 56px; height: 56px;
+    margin: 0 0 22px;
     display: inline-flex; align-items: center; justify-content: center;
-    background: color-mix(in srgb, var(--btn-prim) 16%, var(--surface-2));
-    color: var(--btn-prim);
-    border: 1px solid color-mix(in srgb, var(--btn-prim) 28%, var(--border));
+    color: var(--text-muted);
   }
-  /* Living lines on the front card — primary + silver, looping shimmer. */
-  .cle-lines { display: flex; flex-direction: column; gap: 8px; }
-  .cle-line {
-    height: 6px; border-radius: 4px; transform-origin: left center;
-    animation: cleLine 2.8s ease-in-out infinite;
+  .cl-empty-title { margin: 0 0 10px; font-size: 17px; font-weight: 500; color: var(--text); letter-spacing: var(--ls-header, .012em); }
+  .cl-empty-sub { margin: 0 0 26px; max-width: 420px; font-size: 13.5px; line-height: 1.6; color: var(--text-secondary); letter-spacing: var(--ls-body, .017em); }
+  .cl-empty-foot {
+    margin: 26px 0 0; font-size: 12px; color: var(--text-muted); letter-spacing: .04em;
   }
-  .cle-line-primary { width: 80px; background: linear-gradient(90deg, #6a738c, color-mix(in srgb, #6a738c 35%, transparent)); }
-  .cle-line-silver  { width: 60px; background: linear-gradient(90deg, #b9c0cc, color-mix(in srgb, #8f96a4 50%, transparent)); animation-delay: .45s; }
-  .cle-line-short   { width: 42px; animation-delay: .9s; }
-  @keyframes cleLine {
-    0%, 100% { transform: scaleX(.66); opacity: .5; }
-    50%      { transform: scaleX(1);   opacity: 1; }
-  }
-  @media (prefers-reduced-motion: reduce) { .cle-line { animation: none; opacity: .85; } }
-  [data-theme="dark"] .cle-card { box-shadow: 0 18px 44px -24px rgba(0,0,0,.7); }
 
   .cl-list { display: flex; flex-direction: column; gap: 10px; }
   .cl-card {
@@ -621,11 +580,30 @@ const CLIENTS_CSS = `
   .cl-modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; flex-wrap: wrap; }
 
   @media (max-width: 720px) {
-    .clients-page { padding: 16px 0 100px; }
-    .cl-body { padding: 16px 14px 0; }
+    .clients-page { padding: 0 0 100px; }
+    .cl-shell { padding: 24px 20px 0; }
+    .cl-body { padding: 16px 20px 0; }
+    .cl-head { margin-bottom: 28px; }
+    .cl-empty { padding: 56px 20px 32px; }
     .cl-card-head { grid-template-columns: 40px minmax(0, 1fr); }
     .cl-card-stats { grid-column: 1 / -1; flex-direction: row; gap: 10px; }
     .cl-grid { grid-template-columns: 1fr; }
     .cl-modal-actions .cl-btn { flex: 1; justify-content: center; min-height: 38px; }
   }
 `
+
+/** Minimal, Linear-style empty mark for the Clients page — three people
+ *  points inside a subtle workspace frame. Pure SVG, no fills, fine strokes. */
+function ClientsEmptyMark() {
+  return (
+    <span className="cl-empty-mark" aria-hidden>
+      <svg width="56" height="56" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="6" y="10" width="44" height="36" rx="8"
+          stroke="currentColor" strokeOpacity="0.32" strokeWidth="1.2" />
+        <circle cx="20" cy="26" r="3.2" stroke="currentColor" strokeOpacity="0.7" strokeWidth="1.2" />
+        <circle cx="28" cy="32" r="3.2" stroke="currentColor" strokeOpacity="0.7" strokeWidth="1.2" />
+        <circle cx="36" cy="26" r="3.2" stroke="currentColor" strokeOpacity="0.7" strokeWidth="1.2" />
+      </svg>
+    </span>
+  )
+}
