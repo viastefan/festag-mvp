@@ -21,7 +21,7 @@ import { computeControlStatus } from '@/lib/trust/control-status'
 import ObserverWelcomeModal from '@/components/ObserverWelcomeModal'
 import WelcomeTour from '@/components/WelcomeTour'
 import TagroOrb, { type TagroOrbState } from '@/components/TagroOrb'
-import TagroPixelOrb from '@/components/TagroPixelOrb'
+import TagroPixelWave from '@/components/TagroPixelWave'
 import { speechVoiceId, useSpeechSynthesis } from '@/hooks/useSpeechSynthesis'
 import {
   ArrowClockwise, Article, CalendarCheck, CaretDown, CaretRight, Check, CheckCircle,
@@ -2629,8 +2629,8 @@ export default function DashboardPage() {
                 }
                 aria-pressed={isBriefingPlaying}
               >
-                {/* Tagro node-network — idle / listening / thinking / speaking. */}
-                <TagroPixelOrb state={orbState} size={188} />
+                {/* Tagro branded pixel soundwave — idle / listening / thinking / speaking. */}
+                <TagroPixelWave state={orbState} size={188} />
               </button>
             </div>
 
