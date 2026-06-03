@@ -2159,6 +2159,9 @@ export default function SettingsPage() {
                     <div className="set-label">Workspace-Typ wechseln</div>
                     <div className="set-label-sub">
                       Der Wechsel greift sofort — Rollen, Kundenbereiche und Projektlogik passen sich an den neuen Typ an. Deine Daten und Projekte bleiben erhalten.
+                      {(wsMode === 'team' || wsMode === 'agency') && (
+                        <> Versehentlich den falschen Workspace erstellt? Wechsle hier jederzeit zurück zu <strong>Festag Delivery</strong> (Umsetzung durch Festag-Entwickler).</>
+                      )}
                     </div>
                   </div>
                   <div className="ws-mode-switch">
