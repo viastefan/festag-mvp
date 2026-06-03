@@ -7,11 +7,15 @@ import {
   ArrowRight,
   Check,
   EnvelopeSimple,
+  FolderSimple,
+  ListChecks,
   MagnifyingGlass,
+  NotePencil,
   Plus,
   UserPlus,
   X,
 } from '@phosphor-icons/react'
+import EmptyState from '@/components/EmptyState'
 
 type TeamPanelMode = 'projects' | 'tasks' | 'reports'
 
@@ -303,7 +307,7 @@ export default function TeamWorkspacePanel({ mode }: { mode: TeamPanelMode }) {
               <span />
             </div>
             {loading ? <LoadingRows /> : filteredProjects.length === 0 ? (
-              <Empty title="Keine Team-Projekte" body="Sobald ein Projekt im Team bearbeitet wird, erscheint es hier." />
+              <EmptyState icon={FolderSimple} title="Keine Team-Projekte" />
             ) : filteredProjects.map(item => {
               const owner = item.owner ? profilesById.get(item.owner) : null
               return (
@@ -337,7 +341,7 @@ export default function TeamWorkspacePanel({ mode }: { mode: TeamPanelMode }) {
               <span />
             </div>
             {loading ? <LoadingRows /> : filteredTasks.length === 0 ? (
-              <Empty title="Keine Team-Tasks" body="Team-Aufgaben erscheinen hier, sobald sie einem Projekt oder einer Person zugeordnet sind." />
+              <EmptyState icon={ListChecks} title="Keine Team-Tasks" />
             ) : filteredTasks.map(task => {
               const project = task.project_id ? projectsById.get(task.project_id) : null
               const assignee = task.assigned_to ? profilesById.get(task.assigned_to) : null
@@ -362,24 +366,25 @@ export default function TeamWorkspacePanel({ mode }: { mode: TeamPanelMode }) {
         )}
 
         {mode === 'reports' && (
-          <section className="tw-reports">
-            {loading ? <LoadingRows /> : filteredReports.length === 0 ? (
-              <Empty
-                title="Noch keine Team-Statusberichte"
-                body="Wenn Tagro Team-Updates, Briefings oder schriftliche Statusberichte erstellt, liegen sie hier gesammelt."
-              />
-            ) : filteredReports.map(report => {
-              const project = report.project_id ? projectsById.get(report.project_id) : null
-              return (
-                <article key={report.id} className="tw-report">
-                  <span>{project?.title || 'Team'}</span>
-                  <h2>{report.title || 'Statusbericht'}</h2>
-                  <p>{report.body || 'Kein Text hinterlegt.'}</p>
-                  <small>{dateLabel(report.created_at)}</small>
-                </article>
-              )
-            })}
-          </section>
+          loading ? (
+            <section className="tw-reports"><LoadingRows /></section>
+          ) : filteredReports.length === 0 ? (
+            <EmptyState icon={NotePencil} title="Noch keine Team-Statusberichte" />
+          ) : (
+            <section className="tw-reports">
+              {filteredReports.map(report => {
+                const project = report.project_id ? projectsById.get(report.project_id) : null
+                return (
+                  <article key={report.id} className="tw-report">
+                    <span>{project?.title || 'Team'}</span>
+                    <h2>{report.title || 'Statusbericht'}</h2>
+                    <p>{report.body || 'Kein Text hinterlegt.'}</p>
+                    <small>{dateLabel(report.created_at)}</small>
+                  </article>
+                )
+              })}
+            </section>
+          )
         )}
       </main>
 
@@ -701,15 +706,6 @@ function LoadingRows() {
       <div className="tw-skeleton" />
       <div className="tw-skeleton" />
     </>
-  )
-}
-
-function Empty({ title, body }: { title: string; body: string }) {
-  return (
-    <div className="tw-empty">
-      <h2>{title}</h2>
-      <p>{body}</p>
-    </div>
   )
 }
 
