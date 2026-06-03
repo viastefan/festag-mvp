@@ -176,8 +176,14 @@ export default function TeamWorkspacePanel({ mode }: { mode: TeamPanelMode }) {
       (supabase as any).from('notifications').select('id,title,body,kind,type,project_id,created_at').order('created_at', { ascending: false }).limit(80),
     ])
 
+    // The role lives in `role_on_project` (not `role`) — reading the wrong
+    // column silently dropped every developer from the client-side Team view,
+    // so projects always looked like "Entwickler fehlt" even after a dev joined.
     let assignmentData: AssignmentRow[] = []
-    const assignmentsWithRole = await (supabase as any).from('project_assignments').select('project_id,user_id,role,active').eq('active', true)
+    const assignmentsWithRole = await (supabase as any)
+      .from('project_assignments')
+      .select('project_id,user_id,role:role_on_project,active')
+      .eq('active', true)
     if (assignmentsWithRole.error) {
       const assignmentsPlain = await (supabase as any).from('project_assignments').select('project_id,user_id,active').eq('active', true)
       assignmentData = ((assignmentsPlain.data as AssignmentRow[] | null) ?? [])
