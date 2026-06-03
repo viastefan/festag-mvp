@@ -263,18 +263,12 @@ export default function TeamWorkspacePanel({ mode }: { mode: TeamPanelMode }) {
   }, [reports, query, projectsById])
 
   const title = mode === 'projects' ? 'Team Projekte' : mode === 'tasks' ? 'Team Tasks' : 'Team Statusberichte'
-  const subtitle = mode === 'projects'
-    ? 'Alle Team-Projekte mit Ownern, Zuständigkeiten und offenen Aufgaben.'
-    : mode === 'tasks'
-      ? 'Alle Aufgaben im Team-Kontext, getrennt von deinen persönlichen Tasks.'
-      : 'Schriftliche Team-Berichte und operative Updates aus dem Workspace.'
 
   return (
     <div className="tw-page">
       <header className="tw-head">
         <div>
           <h1>{title}</h1>
-          <p>{subtitle}</p>
         </div>
         <button type="button" className="tw-plus" onClick={() => setInviteOpen(true)} aria-label="Teammitglied einladen" title="Teammitglied einladen">
           <Plus size={18} weight="regular" />
