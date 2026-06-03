@@ -547,14 +547,28 @@ export default function LoginPage() {
 
         /* DESKTOP */
         .log-desktop { display:flex; min-height:100dvh; background:#fcfcfd; align-items:center; justify-content:center; position:relative; transition:background .3s; }
-        .log-desktop-shell { width:271px; display:flex; flex-direction:column; gap:24px; align-items:center; min-height:auto; justify-content:center; padding-top:0; transform:translateY(14px); }
+        .log-desktop-shell { width:271px; display:flex; flex-direction:column; gap:24px; align-items:center; min-height:auto; justify-content:center; padding-top:0; }
         .log-desktop-header { width:100%; display:flex; flex-direction:column; gap:24px; align-items:center; }
         .log-logo-desktop { display:flex; align-items:center; justify-content:center; width:100%; }
         .log-desktop-title { font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:21px; font-weight:500; color:#202532; line-height:normal; text-align:center; letter-spacing:0.21px; width:100%; transition:color .3s; }
 
         /* MOBILE */
-        .log-mobile { display:none; min-height:100svh; background:#fcfcfd; position:relative; overflow-x:hidden; overflow-y:auto; transition:background .3s; padding:32px 0 0; }
-        .log-mobile-shell { position:relative; z-index:2; width:min(100%, 420px); min-height:calc(100svh - 32px); margin:0 auto; padding:96px 24px 60px; display:flex; flex-direction:column; gap:28px; align-items:center; }
+        /* Mobile: flex-center auth content vertically + horizontally with
+           safe-area padding. Was top-aligned with 96px top padding, which made
+           the page feel shifted/bottom-hanging on smaller phones. */
+        .log-mobile {
+          display:none; min-height:100dvh; background:#fcfcfd; position:relative;
+          overflow-x:hidden; overflow-y:auto; transition:background .3s;
+          align-items:center; justify-content:center;
+          padding: max(28px, env(safe-area-inset-top)) 20px max(28px, env(safe-area-inset-bottom));
+          box-sizing:border-box;
+        }
+        .log-mobile-shell {
+          position:relative; z-index:2;
+          width:100%; max-width:380px; margin:0 auto;
+          padding:0;
+          display:flex; flex-direction:column; gap:28px; align-items:center;
+        }
         .log-mobile-logo-title { width:100%; display:flex; flex-direction:column; gap:9px; align-items:center; }
         .log-logo-mobile { display:flex; align-items:center; justify-content:center; width:100%; min-height:62px; }
         .log-mobile-inner { width:100%; display:flex; flex-direction:column; gap:32px; align-items:center; }
@@ -663,7 +677,8 @@ export default function LoginPage() {
 
         @media (max-width: 640px) {
           .log-desktop { display:none; }
-          .log-mobile { display:block; }
+          /* flex (not block) so .log-mobile's align-items/justify-content center the shell vertically */
+          .log-mobile { display:flex; }
           .log-theme-mobile { top:132px; right:54px; }
           .log-ssl-badge,
           .log-region-note { display:none; }

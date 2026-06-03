@@ -1399,7 +1399,7 @@ export default function DashboardPage() {
         }
         .dc-stat {
           display: grid;
-          grid-template-columns: 22px auto 1fr auto;
+          grid-template-columns: auto 1fr auto;
           align-items: center;
           gap: 10px;
           padding: 12px 10px;
@@ -2640,7 +2640,6 @@ export default function DashboardPage() {
             <ul className="dc-stats" aria-label="Übersicht">
               <li>
                 <a className="dc-stat" href="/tasks">
-                  <span className="dc-stat-ico"><PulseIcon size={14} /></span>
                   <strong className="dc-stat-num">{openTaskCount}</strong>
                   <span className="dc-stat-label">Offene Aufgaben</span>
                   <CaretRight size={12} className="dc-stat-arrow" />
@@ -2648,7 +2647,6 @@ export default function DashboardPage() {
               </li>
               <li>
                 <a className="dc-stat" href="/projects">
-                  <span className="dc-stat-ico"><Cube size={14} weight="duotone" /></span>
                   <strong className="dc-stat-num">{activeProjectCount}</strong>
                   <span className="dc-stat-label">Aktiv</span>
                   <CaretRight size={12} className="dc-stat-arrow" />
@@ -2656,7 +2654,6 @@ export default function DashboardPage() {
               </li>
               <li>
                 <a className="dc-stat" href="/tasks?filter=done">
-                  <span className="dc-stat-ico"><CheckCircle size={14} weight="duotone" /></span>
                   <strong className="dc-stat-num">{doneTaskCount}</strong>
                   <span className="dc-stat-label">Erledigt</span>
                   <CaretRight size={12} className="dc-stat-arrow" />
@@ -2664,13 +2661,37 @@ export default function DashboardPage() {
               </li>
               <li>
                 <a className="dc-stat" href="/projects">
-                  <span className="dc-stat-ico"><Cube size={14} /></span>
                   <strong className="dc-stat-num">{projects.length}</strong>
                   <span className="dc-stat-label">Projekte</span>
                   <CaretRight size={12} className="dc-stat-arrow" />
                 </a>
               </li>
             </ul>
+
+            {/* Was wichtig ist — Entscheidung / Risiko / nächster Schritt. */}
+            <div className="dc-focus2" aria-label="Was wichtig ist">
+              <a className="dc-focus2-row dec" href="/decisions">
+                <span className="dc-focus2-badge">Entscheidung</span>
+                <span className="dc-focus2-text">
+                  {combinedDecisionsCount > 0
+                    ? `${combinedDecisionsCount} ${combinedDecisionsCount === 1 ? 'wartet auf dich' : 'warten auf dich'}`
+                    : 'Keine offenen Entscheidungen'}
+                </span>
+                <CaretRight size={12} className="dc-focus2-arrow" />
+              </a>
+              <a className="dc-focus2-row risk" href="/decisions?tone=risk">
+                <span className="dc-focus2-badge">Risiko</span>
+                <span className="dc-focus2-text">
+                  {riskTasks.length > 0 ? `${riskTasks.length} Blocker` : 'Keine aktiven Blocker'}
+                </span>
+                <CaretRight size={12} className="dc-focus2-arrow" />
+              </a>
+              <a className="dc-focus2-row next" href="/tasks">
+                <span className="dc-focus2-badge">Nächster Schritt</span>
+                <span className="dc-focus2-text">{noteReport?.nextSteps?.[0] || 'Tasks öffnen und vorbereiten'}</span>
+                <CaretRight size={12} className="dc-focus2-arrow" />
+              </a>
+            </div>
 
             <button
               type="button"

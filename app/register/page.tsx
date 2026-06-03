@@ -385,16 +385,37 @@ export default function RegisterPage() {
         .reg-theme-mobile  { position:absolute; right:20px; top:48px; z-index:20; }
 
         .reg-desktop { display:flex; min-height:100dvh; background:#fcfcfd; align-items:center; justify-content:center; position:relative; transition:background .3s; }
-        .reg-desktop-shell { width:271px; display:flex; flex-direction:column; gap:24px; align-items:center; min-height:auto; justify-content:center; padding-top:0; transform:translateY(14px); }
+        .reg-desktop-shell { width:271px; display:flex; flex-direction:column; gap:24px; align-items:center; min-height:auto; justify-content:center; padding-top:0; }
         .reg-desktop-header { width:100%; display:flex; flex-direction:column; gap:24px; align-items:center; }
         .reg-logo-desktop { display:flex; align-items:center; justify-content:center; width:100%; }
         .reg-desktop-title { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:21px; font-weight:500; color:#202532; line-height:normal; text-align:center; letter-spacing:0.21px; width:100%; transition:color .3s; }
         .reg-dev { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:13px; font-weight:400 !important; line-height:20px; letter-spacing:0.02em; color:#7b8294; text-decoration:none; text-align:center; display:block; transition:color .3s; }
         .reg-dev:hover { color:#202532; }
 
-        .reg-mobile { display:none; min-height:100dvh; background:#edf1f6; position:relative; overflow:hidden; transition:background .3s; }
-        .reg-mobile-card { position:absolute; left:12px; right:12px; bottom:10px; top:32px; background:#fff; border:1px solid rgba(99,111,132,.16); border-radius:36px; box-shadow:0px 22px 70px rgba(46,58,82,0.15),0px 4px 18px rgba(46,58,82,0.08),0px 1px 0px rgba(255,255,255,0.85) inset; transition:background .3s, border-color .3s, box-shadow .3s; }
-        .reg-mobile-shell { position:absolute; left:50%; transform:translateX(-50%); top:175px; width:271px; display:flex; flex-direction:column; gap:28px; align-items:center; }
+        /* Mobile: flex-center auth content vertically + horizontally with
+           safe-area padding. Was position:absolute; top:175px (hardcoded),
+           which made the layout hang off-centre on smaller phones. */
+        .reg-mobile {
+          display:none; min-height:100dvh; background:#edf1f6; position:relative;
+          overflow-x:hidden; overflow-y:auto; transition:background .3s;
+          align-items:center; justify-content:center;
+          padding: max(28px, env(safe-area-inset-top)) 20px max(28px, env(safe-area-inset-bottom));
+          box-sizing:border-box;
+        }
+        .reg-mobile-card {
+          position:relative; left:auto; right:auto; bottom:auto; top:auto;
+          width:100%; max-width:360px; margin:0 auto;
+          padding: 28px 22px 32px;
+          background:#fff; border:1px solid rgba(99,111,132,.16); border-radius:32px;
+          box-shadow:0 22px 70px rgba(46,58,82,0.15), 0 4px 18px rgba(46,58,82,0.08), 0 1px 0 rgba(255,255,255,0.85) inset;
+          transition:background .3s, border-color .3s, box-shadow .3s;
+          box-sizing:border-box;
+        }
+        .reg-mobile-shell {
+          position:relative; left:auto; top:auto; transform:none;
+          width:100%; max-width:none;
+          display:flex; flex-direction:column; gap:24px; align-items:center;
+        }
         .reg-mobile-logo-title { width:100%; display:flex; flex-direction:column; gap:9px; align-items:center; }
         .reg-logo-mobile { display:flex; align-items:center; justify-content:center; width:100%; min-height:62px; }
         .reg-mobile-inner { width:100%; display:flex; flex-direction:column; gap:32px; align-items:center; }
@@ -470,7 +491,7 @@ export default function RegisterPage() {
         .reg-success { width:271px; background:rgba(34,197,94,.08); color:#16a34a; border-radius:10px; padding:10px 12px; font-size:12.5px; font-weight:500; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); }
         .reg-loader { width:16px; height:16px; border-radius:999px; border:2px solid rgba(255,255,255,.35); border-top-color:#fff; animation:regSpin .75s linear infinite; flex-shrink:0; }
         @keyframes regSpin { to { transform:rotate(360deg); } }
-        @media (max-width: 640px) { .reg-desktop { display:none; } .reg-mobile { display:block; } }
+        @media (max-width: 640px) { .reg-desktop { display:none; } .reg-mobile { display:flex; } }
 
         /* ═══ DARK MODE ═══ */
         .reg-root[data-theme="dark"] .reg-desktop { background:#07090b; }
