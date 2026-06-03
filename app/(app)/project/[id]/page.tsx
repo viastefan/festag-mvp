@@ -435,7 +435,7 @@ Struktur (nutze Markdown):
 **Nächste Schritte:** Was kommt als Nächstes
 **Risiken:** Falls erkennbar — sonst weglassen
 
-Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn möglich.`,
+Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — niemals chinesische, japanische, kyrillische oder andere fremde Schriftzeichen. Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn möglich.`,
           messages: [{ role: 'user', content: userPrompt }],
           userId,
           projectId: id,
@@ -1389,6 +1389,9 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
         .pv-report-btn:disabled {
           cursor: default; opacity: .58;
         }
+        .pv-report-btn.icon-only {
+          width: 28px; padding: 0; gap: 0;
+        }
         .pv-report-btn.primary {
           border-color: color-mix(in srgb, var(--pv-slate) 42%, var(--border));
           background: color-mix(in srgb, var(--pv-slate) 12%, transparent);
@@ -1773,25 +1776,26 @@ Regeln: Keine Emojis. Knapp und konkret. Beziehe dich auf konkrete Tasks wenn m�
                     {latestUpdate ? (
                       <button
                         type="button"
-                        className="pv-report-btn"
+                        className="pv-report-btn icon-only"
                         onClick={() => setReportExpandedPreference(!reportExpanded)}
+                        title={reportExpanded ? 'Einklappen' : 'Ausklappen'}
+                        aria-label={reportExpanded ? 'Einklappen' : 'Ausklappen'}
                       >
-                        {reportExpanded ? <CaretUp size={12} /> : <CaretDown size={12} />}
-                        {reportExpanded ? 'Einklappen' : 'Ausklappen'}
+                        {reportExpanded ? <CaretUp size={13} /> : <CaretDown size={13} />}
                       </button>
                     ) : null}
                   </span>
                   <div className="pv-report-actions">
                     {latestUpdate ? (
                       <>
-                        <button type="button" className="pv-report-btn" onClick={downloadStatusReportPdf}>
-                          <FilePdf size={13} /> PDF
+                        <button type="button" className="pv-report-btn icon-only" onClick={downloadStatusReportPdf} title="Als PDF herunterladen" aria-label="Als PDF herunterladen">
+                          <FilePdf size={14} />
                         </button>
-                        <button type="button" className="pv-report-btn" onClick={sendStatusReportByEmail} disabled={sendingReport}>
-                          <EnvelopeSimple size={13} /> {sendingReport ? 'Sendet…' : 'E-Mail'}
+                        <button type="button" className="pv-report-btn icon-only" onClick={sendStatusReportByEmail} disabled={sendingReport} title="Per E-Mail senden" aria-label="Per E-Mail senden">
+                          {sendingReport ? <span className="pv-spin" aria-hidden /> : <EnvelopeSimple size={14} />}
                         </button>
-                        <button type="button" className="pv-report-btn" onClick={copyStatusReport}>
-                          <Copy size={13} /> Kopieren
+                        <button type="button" className="pv-report-btn icon-only" onClick={copyStatusReport} title="Kopieren" aria-label="Kopieren">
+                          <Copy size={14} />
                         </button>
                         <button
                           type="button"
