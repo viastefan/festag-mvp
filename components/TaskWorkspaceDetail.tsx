@@ -9,6 +9,7 @@ import { getTaskGroup, type TaskGroupKey } from '@/lib/tasks/groups'
 import { taskStatusPatch } from '@/lib/tasks/status'
 import TagroLogo from '@/components/TagroLogo'
 import NewTaskModal from '@/components/NewTaskModal'
+import TagroMobileBar from '@/components/TagroMobileBar'
 import {
   ArrowLeft,
   Brain,
@@ -727,6 +728,14 @@ export default function TaskWorkspaceDetail({ taskId, projectId }: TaskWorkspace
           onCreated={() => setNewTaskOpen(false)}
         />
       )}
+
+      {/* Mobile floating action bar: right = Mit Tagro bearbeiten; left =
+          'Folgeaufgabe' as the closest in-page edit/follow-up action. */}
+      <TagroMobileBar
+        context={{ type: 'task', id: task.id, title: task.title }}
+        leftLabel="Folgeaufgabe"
+        onLeft={() => setNewTaskOpen(true)}
+      />
     </div>
   )
 }
