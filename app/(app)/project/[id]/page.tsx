@@ -902,7 +902,7 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
           background: transparent;
           color: var(--pv-soft);
           font: inherit; font-size: 12px; font-weight: 500;
-          cursor: pointer;
+          cursor: pointer; text-decoration: none;
           transition: background .1s, color .1s, border-color .1s;
         }
         .pv-tab:hover { color: var(--text); background: var(--surface-2); }
@@ -1679,6 +1679,13 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
           className={`pv-tab${activeLeft === 'queue' ? ' on' : ''}`}
           onClick={() => setActiveLeft('queue')}
         >Zeitplan</button>
+        <Link
+          href={`/decisions?project=${project.id}`}
+          className="pv-tab"
+        >
+          Entscheidungen
+          {decisionTasks.length > 0 && <span className="pv-tab-count">{decisionTasks.length}</span>}
+        </Link>
         {projectType === 'marketing' && (
           <button
             role="tab" aria-selected={activeLeft === 'marketing'}

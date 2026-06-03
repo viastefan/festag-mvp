@@ -185,7 +185,7 @@ function DecisionsPageInner() {
   const [projects, setProjects] = useState<Record<string, ProjectLite>>({})
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<Filter>('open')
-  const [projectScope, setProjectScope] = useState<string>('all')
+  const [projectScope, setProjectScope] = useState<string>(searchParams?.get('project') || 'all')
   const [scopeMenuOpen, setScopeMenuOpen] = useState(false)
   const [openId, setOpenId] = useState<string | null>(searchParams?.get('open') || null)
   const [me, setMe] = useState<string>('')
