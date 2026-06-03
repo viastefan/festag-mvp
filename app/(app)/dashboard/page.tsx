@@ -1318,17 +1318,18 @@ export default function DashboardPage() {
         .dc-card {
           position: relative;
           width: 100%;
-          /* Height follows the content — the card ends at the lower content
-             edge instead of leaving dead space below the actions. */
-          border: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
-          border-radius: 24px;
-          background: color-mix(in srgb, var(--card) 94%, transparent);
-          padding: 22px 24px 14px;
-          display: flex; flex-direction: column; gap: 15px;
+          /* Linear-quality: NO outer box. Typography + spacing carry the
+             structure; the audio briefing reads as a calm column on the open
+             surface, not as a bordered SaaS card. */
+          border: 0;
+          border-radius: 0;
+          background: transparent;
+          padding: 0;
+          display: flex; flex-direction: column; gap: 18px;
           align-self: start;
-          box-shadow: var(--content-shadow);
-          -webkit-backdrop-filter: blur(8px);
-          backdrop-filter: blur(8px);
+          box-shadow: none;
+          -webkit-backdrop-filter: none;
+          backdrop-filter: none;
         }
         [data-theme="dark"] .dc-card,
         [data-theme="classic-dark"] .dc-card {
@@ -1498,23 +1499,22 @@ export default function DashboardPage() {
           width: 100%;
           height: 52px; padding: 0 16px;
           border-radius: 32px;
-          border: 1px solid color-mix(in srgb, var(--border) 55%, transparent);
-          background: color-mix(in srgb, var(--surface-2) 35%, transparent);
+          /* Borderless surface — soft tint shows the button without a SaaS
+             outline. Hover lifts the tint subtly. */
+          border: 0;
+          background: rgba(255,255,255,0.04);
           color: var(--text);
           font: inherit; font-size: 14px; font-weight: 500; letter-spacing: var(--ls-body, .017em);
           cursor: pointer;
-          transition: background .18s ease, border-color .18s ease;
+          transition: background .18s ease;
         }
-        .dc-play-bar:hover:not(:disabled) {
-          background: color-mix(in srgb, var(--surface-2) 55%, transparent);
-          border-color: color-mix(in srgb, var(--border-strong) 60%, var(--border));
-        }
+        .dc-play-bar:hover:not(:disabled) { background: rgba(255,255,255,0.08); }
         .dc-play-bar:disabled { opacity: .55; cursor: not-allowed; }
         .dc-play-ico {
           width: 30px; height: 30px; border-radius: 50%;
           display: inline-flex; align-items: center; justify-content: center;
-          background: color-mix(in srgb, var(--card) 90%, transparent);
-          border: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+          background: rgba(255,255,255,0.10);
+          border: 0;
           color: var(--text);
         }
         .dc-play-label { text-align: left; }
@@ -1531,16 +1531,17 @@ export default function DashboardPage() {
           width: 100%; height: 40px; padding: 0 16px;
           margin-top: -6px;
           border-radius: 32px;
-          border: 1px solid color-mix(in srgb, var(--border) 42%, transparent);
+          /* Ghost — no border, hover reveals the surface. */
+          border: 0;
           background: transparent;
           color: var(--dc-soft);
           font: inherit; font-size: 13px; font-weight: 500; letter-spacing: var(--ls-body, .017em);
           cursor: pointer;
-          transition: background .18s ease, color .18s ease, border-color .18s ease;
+          transition: background .18s ease, color .18s ease;
         }
         .dc-read-bar:hover:not(:disabled) {
           color: var(--text);
-          background: color-mix(in srgb, var(--surface-2) 28%, transparent);
+          background: rgba(255,255,255,0.05);
         }
         .dc-read-bar:disabled { opacity: .55; cursor: not-allowed; }
 
@@ -2499,7 +2500,7 @@ export default function DashboardPage() {
           .dc-head { padding-top:20px; flex-direction:column; gap:14px; }
           .dc-head-actions { width:100%; justify-content:space-between; }
           .dc-head-status { flex:1; }
-          .dc-card { padding:22px 18px 18px; border-radius:20px; }
+          .dc-card { padding: 0; border-radius: 0; }
         }
         @media (max-width:600px) {
           .dash-calm { padding:0 16px 92px; }
