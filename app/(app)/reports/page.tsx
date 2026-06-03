@@ -245,7 +245,15 @@ function ReportsPage() {
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data }) => {
-      if (!data.session) {
+      let session = data.session
+      if (!session) {
+        // Hydration race: the session may not be restored from storage yet.
+        // This route is already gated by middleware (getUser), so retry once
+        // before assuming the user is logged out — avoids a flash to /login.
+        await new Promise((r) => setTimeout(r, 400))
+        session = (await supabase.auth.getSession()).data.session
+      }
+      if (!session) {
         window.location.href = '/login'
         return
       }

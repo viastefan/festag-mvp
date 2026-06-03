@@ -156,7 +156,13 @@ export default function TeamWorkspacePanel({ mode }: { mode: TeamPanelMode }) {
 
   const load = useCallback(async () => {
     setLoading(true)
-    const { data: { session } } = await supabase.auth.getSession()
+    let { data: { session } } = await supabase.auth.getSession()
+    if (!session) {
+      // Hydration race — this route is middleware-gated, so retry once
+      // before bouncing to /login (avoids the flash the user reported).
+      await new Promise((r) => setTimeout(r, 400))
+      session = (await supabase.auth.getSession()).data.session
+    }
     if (!session) {
       window.location.href = '/login'
       return
