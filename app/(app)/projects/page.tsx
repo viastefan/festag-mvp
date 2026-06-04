@@ -14,7 +14,8 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import NewProjectModal from '@/components/NewProjectModal'
-import { FunnelSimple, SlidersHorizontal, Stack, Plus } from '@phosphor-icons/react'
+import { FunnelSimple, SlidersHorizontal, Stack, Plus, Sparkle } from '@phosphor-icons/react'
+import { openTagro } from '@/components/TagroOverlay'
 import EmptyState from '@/components/EmptyState'
 
 type ProjectRow = {
@@ -545,10 +546,24 @@ function ProjectsPageInner() {
       <div className="pj-static">
         <div className="pj-top">
           <h1 className="pj-title">Projekte</h1>
-          <button className="pj-create" type="button" onClick={() => setShowNewProject(true)}>
-            Projekt anlegen
-            <span className="pj-create-plus" aria-hidden="true">+</span>
-          </button>
+          <div style={{ display:'inline-flex', gap:8, alignItems:'center' }}>
+            <button
+              type="button"
+              onClick={() => openTagro({ contextType: 'project', title: 'Neues Projekt mit Tagro' })}
+              style={{
+                display:'inline-flex', alignItems:'center', gap:7,
+                height:32, padding:'0 13px', borderRadius:999, border:0,
+                background:'#5B647D', color:'#FFF',
+                font:'inherit', fontSize:13, fontWeight:500, cursor:'pointer',
+              }}
+            >
+              <Sparkle size={13} /> Mit Tagro erstellen
+            </button>
+            <button className="pj-create" type="button" onClick={() => setShowNewProject(true)}>
+              Manuell anlegen
+              <span className="pj-create-plus" aria-hidden="true">+</span>
+            </button>
+          </div>
         </div>
 
         <div className="pj-toolbar">

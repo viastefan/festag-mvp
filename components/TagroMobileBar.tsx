@@ -13,10 +13,9 @@
  * (uses the existing `body.chat-composer-focused` signal pattern).
  */
 
-import { useState } from 'react'
 import { Pencil, Sparkle } from '@phosphor-icons/react'
 import type { ReactNode } from 'react'
-import TagroContextSheet from '@/components/TagroContextSheet'
+import { openTagro, type TagroContextType } from '@/components/TagroOverlay'
 
 export type TagroBarContext = {
   /** Object type: task / decision / status_report / document / project / etc. */
@@ -42,11 +41,10 @@ type Props = {
 }
 
 export default function TagroMobileBar({ context, leftLabel, leftIcon, onLeft, onRight }: Props) {
-  const [sheetOpen, setSheetOpen] = useState(false)
-
-  function openTagro() {
+  function openTagroOverlay() {
     if (onRight) { onRight(); return }
-    setSheetOpen(true)
+    // Always route through the global TagroOverlay — one source of truth.
+    openTagro({ contextType: context.type as TagroContextType, id: context.id, title: context.title })
   }
 
   const single = !onLeft
@@ -59,12 +57,10 @@ export default function TagroMobileBar({ context, leftLabel, leftIcon, onLeft, o
           <span>{leftLabel ?? 'Bearbeiten'}</span>
         </button>
       )}
-      <button type="button" className={`tmb-btn tmb-primary${single ? ' is-single' : ''}`} onClick={openTagro}>
+      <button type="button" className={`tmb-btn tmb-primary${single ? ' is-single' : ''}`} onClick={openTagroOverlay}>
         <Sparkle size={15} weight="regular" />
         <span>Mit Tagro bearbeiten</span>
       </button>
-
-      <TagroContextSheet open={sheetOpen} onClose={() => setSheetOpen(false)} context={context} />
 
       <style jsx>{`
         .tmb {

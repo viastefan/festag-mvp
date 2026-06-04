@@ -23,6 +23,7 @@ import ProjectDevAvatars from '@/components/ProjectDevAvatars'
 import ProofGridSection from '@/components/ProofGridSection'
 import TagroMobileBar from '@/components/TagroMobileBar'
 import MobileObjectMenu from '@/components/MobileObjectMenu'
+import { openTagro } from '@/components/TagroOverlay'
 import TagroQueueSection from '@/components/TagroQueueSection'
 import MarketingPanelSection from '@/components/MarketingPanelSection'
 import ChatMarkdown from '@/components/ChatMarkdown'
@@ -1882,6 +1883,13 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
                       {generatingAI
                         ? <><span className="pv-spin" aria-hidden />Tagro schreibt…</>
                         : latestUpdate ? 'Aktualisieren' : 'Statusbericht erstellen'}
+                    </button>
+                    <button
+                      type="button"
+                      className="pv-report-btn primary"
+                      onClick={() => openTagro({ contextType: latestUpdate ? 'status_report' : 'project', id, title: project.title, subtitle: latestUpdate ? 'Statusbericht' : 'Projekt' })}
+                    >
+                      <Sparkle size={13} /> Mit Tagro bearbeiten
                     </button>
                   </div>
                 </div>

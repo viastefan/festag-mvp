@@ -8,6 +8,7 @@ import CommandPalette from '@/components/CommandPalette'
 import CopilotPanel from '@/components/CopilotPanel'
 import FeedbackWidget from '@/components/FeedbackWidget'
 import FestagPixelIntro from '@/components/FestagPixelIntro'
+import TagroOverlay from '@/components/TagroOverlay'
 import LoadingScreen from '@/components/LoadingScreen'
 import PwaInstallBanner from '@/components/PwaInstallBanner'
 import Sidebar from '@/components/Sidebar'
@@ -124,6 +125,7 @@ export default function ClientAppShell({
       style={{ '--app-sidebar-width': sidebarWidth } as React.CSSProperties}
     >
       <FestagPixelIntro />
+      <TagroOverlay />
       <style>{`
         @keyframes panelFadeIn {
           from { opacity: 0; transform: translateY(6px); }
