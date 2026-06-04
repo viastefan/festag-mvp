@@ -12,6 +12,7 @@ import TagroOverlay from '@/components/TagroOverlay'
 import LoadingScreen from '@/components/LoadingScreen'
 import PwaInstallBanner from '@/components/PwaInstallBanner'
 import Sidebar from '@/components/Sidebar'
+import TagroIconRail from '@/components/TagroIconRail'
 import { createClient } from '@/lib/supabase/client'
 import { getTheme, setTheme, type ThemeMode } from '@/lib/theme'
 import { Check, FunnelSimple } from '@phosphor-icons/react'
@@ -39,11 +40,17 @@ export default function ClientAppShell({
   // While Tagro is in fullscreen, the sidebar gets temporarily collapsed so the
   // workspace owns the screen. Previous state is restored when Tagro closes.
   const [tagroFullscreen, setTagroFullscreen] = useState(false)
-  const tagroPrevSidebarRef = useRef<boolean | null>(null)
   const [themeMode, setThemeMode] = useState<ThemeMode>('read')
   const [themeMenuOpen, setThemeMenuOpen] = useState(false)
   const themeMenuRef = useRef<HTMLDivElement | null>(null)
-  const sidebarWidth = (sidebarCollapsed || tagroFullscreen) ? '0px' : '212px'
+  // Sidebar widths by mode:
+  //   - tagroFullscreen → 56px icon rail (Festag orientation must remain visible)
+  //   - sidebarCollapsed (user toggle) → 0px (return-arrow shows)
+  //   - default → 212px full sidebar
+  // /ai route always renders as fullscreen agent workspace → also 56px rail.
+  const aiRoute = pathname?.startsWith('/ai') || false
+  const railActive = tagroFullscreen || aiRoute
+  const sidebarWidth = railActive ? '56px' : (sidebarCollapsed ? '0px' : '212px')
 
   useEffect(() => {
     try { setSidebarCollapsed(localStorage.getItem('festag-sidebar-collapsed') === 'true') } catch {}
@@ -54,24 +61,18 @@ export default function ClientAppShell({
     try { localStorage.setItem('festag-sidebar-collapsed', String(sidebarCollapsed)) } catch {}
   }, [sidebarCollapsed])
 
-  // Bridge: TagroOverlay → app shell. When Tagro goes fullscreen we collapse
-  // the sidebar; on close we restore the user's previous preference.
+  // Bridge: TagroOverlay → app shell. When Tagro goes fullscreen we swap the
+  // full sidebar for a slim icon rail (NOT a fully hidden sidebar) so the user
+  // keeps Festag orientation. The user's own sidebarCollapsed preference is
+  // untouched and restored automatically once tagroFullscreen flips back off.
   useEffect(() => {
     function onTagroFs(e: Event) {
       const active = !!(e as CustomEvent<{ active: boolean }>).detail?.active
       setTagroFullscreen(active)
-      if (active) {
-        if (tagroPrevSidebarRef.current === null) tagroPrevSidebarRef.current = sidebarCollapsed
-      } else {
-        if (tagroPrevSidebarRef.current !== null) {
-          setSidebarCollapsed(tagroPrevSidebarRef.current)
-          tagroPrevSidebarRef.current = null
-        }
-      }
     }
     window.addEventListener('festag:tagro-fullscreen', onTagroFs as EventListener)
     return () => window.removeEventListener('festag:tagro-fullscreen', onTagroFs as EventListener)
-  }, [sidebarCollapsed])
+  }, [])
 
   useEffect(() => {
     document.body.classList.add('festag-app-mode')
@@ -432,14 +433,20 @@ export default function ClientAppShell({
         }
       `}</style>
 
-      {!sidebarCollapsed && (
+      {/* Tagro fullscreen + /ai: slim icon rail. Full sidebar otherwise (unless
+          user explicitly collapsed it, in which case the return arrow shows). */}
+      {railActive ? (
+        <div className="panel-enter" style={{ display: 'contents' }}>
+          <TagroIconRail />
+        </div>
+      ) : !sidebarCollapsed ? (
         <div className="panel-enter" style={{ display: 'contents' }}>
           <Sidebar onCollapse={() => setSidebarCollapsed(true)} />
         </div>
-      )}
+      ) : null}
 
       <main className="main-content app-workspace">
-        {sidebarCollapsed && (
+        {sidebarCollapsed && !railActive && (
           <button
             className="app-sidebar-return"
             type="button"
