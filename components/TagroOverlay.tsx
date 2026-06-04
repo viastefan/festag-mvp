@@ -31,6 +31,7 @@ import {
   Microphone, MicrophoneSlash, Plus, Lightbulb,
 } from '@phosphor-icons/react'
 import { useSpeechRecognition } from '@/hooks/useSpeechRecognition'
+import TagroIconRail from '@/components/TagroIconRail'
 
 // ── Public API ────────────────────────────────────────────────────────────
 
@@ -286,7 +287,17 @@ export default function TagroOverlay() {
 
   const node = (
     <div className={`tov${fullscreen ? ' tov-full' : ''} tov-mode-${mode}`} role="dialog" aria-modal="true" aria-label="Mit Tagro bearbeiten">
-      <div className="tov-backdrop" onClick={close} aria-hidden />
+      <div className="tov-backdrop" onClick={fullscreen ? undefined : close} aria-hidden />
+
+      {/* In fullscreen the overlay paints over the underlying shell rail —
+          to keep Festag navigation visible we mount an INLINE rail at the
+          left edge of the workspace itself. Hidden in compact mode. */}
+      {fullscreen && (
+        <div className="tov-rail-slot" aria-hidden={false}>
+          <TagroIconRail variant="inline" />
+        </div>
+      )}
+
       <div className="tov-shell" onClick={e => e.stopPropagation()}>
         {/* Header — minimal, ghost icons, context line */}
         <header className="tov-top">
@@ -303,6 +314,12 @@ export default function TagroOverlay() {
         {mode === 'initial' ? (
           <div className="tov-hero">
             <div className="tov-hero-inner">
+              {/* Tagro mark — small, centered, ABOVE the question.
+                  Replaces the awkward bulb that used to float inside the
+                  composer input. The composer now uses a clean + button. */}
+              <span className="tov-hero-mark" aria-hidden>
+                <Lightbulb size={18} weight="regular" />
+              </span>
               <h2 className="tov-hero-q">{question}</h2>
               {ctx.subtitle && <p className="tov-hero-sub">{ctx.subtitle}</p>}
 
@@ -391,9 +408,12 @@ function Composer({
 }) {
   return (
     <div className={`tov-composer tov-composer-${variant}`}>
-      <span className="tov-composer-ico" aria-hidden>
-        {variant === 'hero' ? <Lightbulb size={18} weight="regular" /> : <Plus size={16} weight="regular" />}
-      </span>
+      {/* Left action: always a + button (sources/people picker entry).
+          The Tagro mark/bulb lives ABOVE the question now, never inside
+          the input where it floated awkwardly. */}
+      <button type="button" className="tov-composer-plus" aria-label="Quellen oder Personen hinzufügen" title="Hinzufügen">
+        <Plus size={16} weight="regular" />
+      </button>
       <textarea
         ref={inputRef}
         className="tov-composer-input"
@@ -501,7 +521,12 @@ const STYLES = `
   animation: tov-in .22s ease both;
   transition: padding .35s cubic-bezier(.16,1,.3,1);
 }
-.tov.tov-full { padding: 0; }
+.tov.tov-full {
+  padding: 0;
+  /* In fullscreen we lay out as rail+workspace; flex centering would
+     fight the rail margin. */
+  justify-content: flex-start; align-items: stretch;
+}
 @media (max-width: 720px) { .tov { padding: 0; align-items: stretch; } }
 
 .tov-backdrop {
@@ -528,9 +553,32 @@ const STYLES = `
 @media (max-width: 720px) {
   .tov-shell { width: 100%; height: 100dvh; border-radius: 0; max-width: none; }
 }
+/* Fullscreen: rail painted at the left edge, workspace fills the rest.
+   The portal overlays the whole shell so we re-paint Festag navigation
+   here as an inline 56px rail; otherwise the overlay would hide it. */
+.tov-rail-slot {
+  position: fixed; top: 0; left: 0; bottom: 0;
+  width: 56px;
+  z-index: 1;
+  display: none;
+}
+.tov.tov-full .tov-rail-slot { display: block; }
+@media (max-width: 768px) {
+  .tov.tov-full .tov-rail-slot { display: none; }
+}
 .tov.tov-full .tov-shell {
-  width: 100vw; height: 100vh; max-width: none;
+  width: calc(100vw - 56px);
+  height: 100vh; max-width: none;
+  /* Rail is position:fixed (out of flow). Use a transform offset so flex
+     centering doesn't push the shell off-screen on either side. */
+  margin-left: 56px;
   border-radius: 0; border: 0; box-shadow: none;
+  border-left: 1px solid var(--tov-border);
+}
+@media (max-width: 768px) {
+  .tov.tov-full .tov-shell {
+    width: 100vw; margin-left: 0; border-left: 0;
+  }
 }
 .tov.tov-mode-conversation .tov-shell { grid-template-rows: auto 1fr auto; }
 
@@ -562,18 +610,37 @@ const STYLES = `
 .tov-hero-inner {
   width: 100%; max-width: 760px;
   display: flex; flex-direction: column; align-items: center;
-  gap: 22px;
+  gap: 18px;
+}
+/* Small Tagro mark above the question — replaces the bulb that used to
+   float inside the composer input. Muted, intentional, premium. */
+.tov-hero-mark {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px; border-radius: 999px;
+  background: var(--tov-pill); color: var(--tov-text-2);
+  margin-bottom: -6px;
 }
 .tov-hero-q {
   margin: 0; text-align: center;
-  font-size: 24px; font-weight: 500; letter-spacing: -.012em; color: var(--tov-text);
+  font-size: 26px; font-weight: 500; letter-spacing: -.012em; color: var(--tov-text);
+  line-height: 1.25;
 }
 .tov-hero-sub {
-  margin: -10px 0 6px;
+  margin: -8px 0 4px;
   text-align: center;
   font-size: 13.5px; line-height: 1.55; color: var(--tov-text-2); max-width: 56ch;
 }
-.tov.tov-full .tov-hero-inner { max-width: 820px; min-height: 60vh; justify-content: center; }
+.tov.tov-full .tov-hero-q { font-size: 32px; letter-spacing: -.018em; }
+.tov.tov-full .tov-hero { padding: 0 40px; }
+.tov.tov-full .tov-hero-inner {
+  max-width: 820px;
+  /* Position content slightly above geometric center so the composer +
+     suggestions sit in the visual sweet spot, not floating at the bottom. */
+  min-height: 100%;
+  justify-content: center;
+  padding-top: 4vh;
+  padding-bottom: 6vh;
+}
 
 /* Composer */
 .tov-composer {
@@ -583,7 +650,7 @@ const STYLES = `
   border-radius: 20px;
   padding: 14px 14px 14px 18px;
   display: grid;
-  grid-template-columns: 22px minmax(0, 1fr) auto auto;
+  grid-template-columns: 32px minmax(0, 1fr) auto auto;
   gap: 10px;
   align-items: center;
   box-shadow: 0 12px 32px -22px rgba(15,23,42,0.10);
@@ -596,6 +663,14 @@ const STYLES = `
 .tov-composer-hero { padding: 18px 18px 18px 22px; border-radius: 22px; }
 .tov-composer-sticky { padding: 10px 10px 10px 16px; border-radius: 18px; }
 .tov-composer-ico { color: var(--tov-muted); display: inline-flex; }
+.tov-composer-plus {
+  width: 32px; height: 32px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--tov-pill); color: var(--tov-text-2);
+  border: 0; border-radius: 999px; cursor: pointer;
+  transition: background .14s, color .14s;
+}
+.tov-composer-plus:hover { background: var(--tov-pill-h); color: var(--tov-text); }
 .tov-composer-input {
   width: 100%; border: 0; outline: 0; resize: none; background: transparent;
   color: var(--tov-text); font: inherit;

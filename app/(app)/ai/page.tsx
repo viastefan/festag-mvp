@@ -39,10 +39,10 @@ export default function TagroAIPage() {
     setOpened(true)
 
     // Listen for overlay close → bounce back to dashboard so the user never
-    // sees this thin shell as an empty page.
+    // sees this thin shell as an empty page. Use replace so the back button
+    // doesn't loop the user into another empty /ai mount.
     function onClose() {
-      // Small delay so the close animation completes before nav.
-      window.setTimeout(() => router.push('/dashboard'), 200)
+      router.replace('/dashboard')
     }
     window.addEventListener('festag:tagro-closed', onClose)
     return () => window.removeEventListener('festag:tagro-closed', onClose)
