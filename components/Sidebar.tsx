@@ -2314,7 +2314,20 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         </div>
       </aside>
 
-      {/* ══ MOBILE FLOATING NAV BAR ══ */}
+      {/* ══ MOBILE FLOATING NAV BAR ══
+          Hidden when the user is in an object/content context — those routes
+          use the 2-button TagroMobileBar instead (Statusbericht + Mit Tagro
+          bearbeiten). Top-level list pages still get the 5-button nav. */}
+      {!(
+        pathname === '/dashboard' ||
+        pathname.startsWith('/project/') ||
+        pathname.startsWith('/projects/') && pathname.split('/').length >= 4 ||
+        /^\/tasks\/[^/]+$/.test(pathname) ||
+        /^\/clients\/[^/]+$/.test(pathname) ||
+        pathname.startsWith('/reports/') ||
+        pathname.startsWith('/documents/') ||
+        pathname.startsWith('/decisions/')
+      ) && (
       <nav className="bottom-nav mob-bar">
         {mobPrimary.slice(0,2).map(item => {
           const on = isOn(item.href)
@@ -2369,6 +2382,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           )
         })}
       </nav>
+      )}
 
       {/* Mobile context-aware action sheet (FAB target) */}
       {(() => {

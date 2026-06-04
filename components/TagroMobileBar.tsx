@@ -54,7 +54,8 @@ export default function TagroMobileBar({ context, leftLabel, leftIcon, onLeft, o
       {!single && (
         <button type="button" className="tmb-btn tmb-secondary" onClick={onLeft}>
           {leftIcon ?? <Pencil size={15} weight="regular" />}
-          <span>{leftLabel ?? 'Bearbeiten'}</span>
+          {/* Spec: default to "Statusbericht" — context-specific overrides win. */}
+          <span>{leftLabel ?? 'Statusbericht'}</span>
         </button>
       )}
       <button type="button" className={`tmb-btn tmb-primary${single ? ' is-single' : ''}`} onClick={openTagroOverlay}>

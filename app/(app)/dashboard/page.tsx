@@ -22,6 +22,7 @@ import ObserverWelcomeModal from '@/components/ObserverWelcomeModal'
 import WelcomeTour from '@/components/WelcomeTour'
 import TagroOrb, { type TagroOrbState } from '@/components/TagroOrb'
 import TagroPixelWave from '@/components/TagroPixelWave'
+import TagroMobileBar from '@/components/TagroMobileBar'
 import { speechVoiceId, useSpeechSynthesis } from '@/hooks/useSpeechSynthesis'
 import {
   ArrowClockwise, Article, CalendarCheck, CaretDown, CaretRight, Check, CheckCircle,
@@ -2902,6 +2903,15 @@ export default function DashboardPage() {
       <ObserverWelcomeModal />
       <WelcomeTour />
       <ProjectAcceptedCelebration />
+
+      {/* Mobile object-context bar — replaces the 5-button bottom nav on
+          dashboard (a status context). Left = refresh/update status,
+          right = open Tagro overlay with dashboard context. */}
+      <TagroMobileBar
+        context={{ type: 'status_report', id: 'dashboard', title: 'Statusabfrage · Heute' }}
+        leftLabel="Statusbericht"
+        onLeft={() => { void refreshStatus() }}
+      />
     </div>
   )
 }
