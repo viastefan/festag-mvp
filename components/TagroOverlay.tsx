@@ -158,6 +158,180 @@ function quickActionsFor(t: TagroContextType): string[] {
   }
 }
 
+// ── Initial session builder ───────────────────────────────────────────────
+//
+// Tagro must never wait for the user to "name" the object — when opened
+// from any object/page, the attached context is rendered as an @-mention
+// chip above the composer AND an initial Tagro intro line replaces the
+// generic question. This helper centralizes all of that copy so every
+// surface (overlay, /ai, mobile sheet) speaks the same language.
+
+export type AttachedChip = { kind: 'object' | 'meta'; label: string }
+
+export type InitialSession = {
+  mentionLabel: string         // @-style chip pinned to the composer
+  introLead: string            // First sentence: "Ich bin in @…"
+  introHelp: string            // Second sentence: what Tagro can do next
+  chips: AttachedChip[]        // Pinned context chips above the composer
+  placeholder: string          // Context-specific composer placeholder
+  suggestions: string[]        // Context-specific suggestion grid
+}
+
+function objectKind(t: TagroContextType): string {
+  switch (t) {
+    case 'project': return 'Projekt'
+    case 'task': return 'Aufgabe'
+    case 'decision': return 'Entscheidung'
+    case 'document': return 'Dokument'
+    case 'pdf': return 'PDF'
+    case 'client': return 'Kunde'
+    case 'briefing': return 'Briefing'
+    case 'status_report': return 'Statusbericht'
+    case 'report': return 'Bericht'
+    case 'note': return 'Notiz'
+    case 'evidence': return 'Beleg'
+    case 'risk': return 'Risiko'
+    case 'approval': return 'Freigabe'
+    case 'dev_item': return 'Dev'
+    case 'marketing': return 'Marketing'
+    default: return 'Neu'
+  }
+}
+
+export function buildInitialSession(ctx: TagroOpenDetail): InitialSession {
+  const t = ctx.contextType
+  const kind = objectKind(t)
+  const title = (ctx.title || '').trim()
+  // "list" / "dev-overview" / "inbox" sentinel IDs mean "the page itself"
+  // rather than a real object — treat them as overview contexts.
+  const isOverview = !ctx.id || /^(list|inbox|dev-overview|dev-list|dev-plan|dev-updates|dev-inbox|github|dashboard)$/.test(ctx.id)
+  const mentionLabel = isOverview && !title ? `@${kind} Übersicht` : `@${kind}${title ? ' ' + title : ''}`
+
+  // Per-context intro + help. Falls back gracefully when title is missing.
+  const ref = title || (isOverview ? 'Übersicht' : kind)
+  const intro: Record<TagroContextType, { lead: string; help: string }> = {
+    project: {
+      lead: `Ich bin in @Projekt ${ref}.`,
+      help: 'Ich kann den Projektstatus zusammenfassen, offene Entscheidungen erkennen oder nächste Aufgaben ableiten.',
+    },
+    task: {
+      lead: `Ich bin in @Aufgabe ${ref}.`,
+      help: 'Du kannst mir kurz sagen, ob ich daraus eine Folgeaufgabe, Entscheidung, Statusmeldung oder Nachricht machen soll.',
+    },
+    decision: {
+      lead: `Ich bin in @Entscheidung ${ref}.`,
+      help: 'Ich kann Optionen formulieren, eine Empfehlung vorbereiten oder die Frage client-safe übersetzen.',
+    },
+    document: {
+      lead: isOverview
+        ? `Ich bin in @Dokumente Übersicht.`
+        : `Ich bin in @Dokument ${ref}.`,
+      help: isOverview
+        ? 'Ich kann dir ein Angebot, einen Vertrag, eine Rechnung oder eine Dokumentvorlage vorbereiten.'
+        : 'Ich kann das Dokument zusammenfassen, verbessern, Aufgaben ableiten oder es client-safe formulieren.',
+    },
+    pdf: {
+      lead: `Ich bin in @PDF ${ref}.`,
+      help: 'Ich kann es zusammenfassen, Aktionen ableiten oder mit einem Projekt verknüpfen.',
+    },
+    client: {
+      lead: isOverview ? 'Ich bin in @Kunden Übersicht.' : `Ich bin bei @Kunde ${ref}.`,
+      help: 'Ich kann ein Kundenupdate vorbereiten, offene Themen sammeln oder die nächste Kommunikation formulieren.',
+    },
+    briefing: {
+      lead: `Ich bin in @Briefing ${ref}.`,
+      help: 'Ich kann ein Wochenbriefing, ein Executive-Briefing oder ein Kunden-Update vorbereiten.',
+    },
+    status_report: {
+      lead: ref === 'Statusabfrage · Heute' || ref === 'Heute'
+        ? 'Ich bin in deiner @Statusabfrage Heute.'
+        : `Ich bin in @Statusbericht ${ref}.`,
+      help: 'Ich kann den Bericht aktualisieren, kundensicher machen oder nächste Schritte als Aufgaben ableiten.',
+    },
+    report: {
+      lead: `Ich bin in @Bericht ${ref}.`,
+      help: 'Ich kann kürzen, für Kunden zusammenfassen oder Risiken hervorheben.',
+    },
+    note: {
+      lead: `Ich bin in @Notiz ${ref}.`,
+      help: 'Ich kann strukturieren, Aufgaben ableiten oder mit einem Projekt verknüpfen.',
+    },
+    evidence: {
+      lead: `Ich bin in @Beleg ${ref}.`,
+      help: 'Ich kann den Beleg erklären, mit einem Bericht verknüpfen oder bestätigen.',
+    },
+    risk: {
+      lead: isOverview ? 'Ich bin in @Risiken Übersicht.' : `Ich bin in @Risiko ${ref}.`,
+      help: 'Ich kann das Risiko einschätzen, eine Gegenmaßnahme vorschlagen oder einen Owner zuweisen.',
+    },
+    approval: {
+      lead: `Ich bin in @Freigabe ${ref}.`,
+      help: 'Du kannst freigeben, eine Änderung anfordern oder eine Rückfrage formulieren.',
+    },
+    dev_item: {
+      lead: ctx.id === 'dev-overview'
+        ? 'Ich bin im @Dev Panel.'
+        : ctx.id === 'github'
+          ? 'Ich bin in @GitHub-Aktivität.'
+          : `Ich bin in @Dev ${ref}.`,
+      help: 'Ich kann deinen heutigen Fokus erstellen, Blocker prüfen, ein Update formulieren oder GitHub-Arbeit zusammenfassen.',
+    },
+    marketing: {
+      lead: `Ich bin in @Marketing ${ref}.`,
+      help: 'Ich kann die Performance erklären, eine Budgetentscheidung anfordern oder einen Creative-Review vorbereiten.',
+    },
+    empty: {
+      lead: 'Ich bin Tagro.',
+      help: 'Frag mich zu Projekten, Aufgaben, Entscheidungen oder Briefings — oder lass mich etwas vorbereiten.',
+    },
+  }
+
+  const placeholder: Record<TagroContextType, string> = {
+    project: 'Schreib kurz, was Tagro mit diesem Projekt machen soll …',
+    task: 'Schreib kurz, was mit dieser Aufgabe passieren soll …',
+    decision: 'Schreib kurz, welche Entscheidung vorbereitet werden soll …',
+    document: 'Was soll Tagro mit diesem Dokument machen?',
+    pdf: 'Was soll Tagro aus diesem PDF ableiten?',
+    client: 'Schreib kurz, was bei diesem Kunden anliegt …',
+    briefing: 'Welcher Zeitraum, welche Empfänger, welcher Fokus?',
+    status_report: 'Was soll Tagro im Statusbericht aktualisieren?',
+    report: 'Was soll Tagro mit diesem Bericht machen?',
+    note: 'Was soll Tagro aus dieser Notiz machen?',
+    evidence: 'Was soll Tagro mit diesem Beleg machen?',
+    risk: 'Wie soll Tagro dieses Risiko einschätzen?',
+    approval: 'Schreib kurz dein Feedback oder deine Freigabe …',
+    dev_item: 'Was soll Tagro aus deinem Dev-Kontext ableiten?',
+    marketing: 'Was soll Tagro für dieses Marketing-Element vorbereiten?',
+    empty: 'Frag Tagro über Projekte, Tasks, Risiken oder Briefings …',
+  }
+
+  // Overview-specific suggestions win for list/overview contexts.
+  const overviewSuggestions: Partial<Record<TagroContextType, string[]>> = {
+    document: ['Angebot erstellen', 'Vertrag vorbereiten', 'Rechnung erstellen', 'Vorlage anlegen'],
+    client: ['Kunde anlegen', 'Status-Update an alle', 'Offene Themen sammeln'],
+    risk: ['Risiken priorisieren', 'Gegenmaßnahmen vorschlagen', 'Owner zuweisen'],
+    dev_item: ['Heutigen Fokus erstellen', 'Blocker prüfen', 'Update senden', 'GitHub-Stand zusammenfassen'],
+  }
+
+  const suggestions = (isOverview && overviewSuggestions[t]) || CTX_CHIPS[t] || CTX_CHIPS.empty
+
+  // Pinned chips above the composer. Subtitle (when present) is pinned as
+  // a secondary metadata chip so the user sees full attached context.
+  const chips: AttachedChip[] = [{ kind: 'object', label: mentionLabel }]
+  if (ctx.subtitle && ctx.subtitle.trim()) {
+    chips.push({ kind: 'meta', label: ctx.subtitle.trim() })
+  }
+
+  return {
+    mentionLabel,
+    introLead: intro[t].lead,
+    introHelp: intro[t].help,
+    chips,
+    placeholder: placeholder[t] || placeholder.empty,
+    suggestions,
+  }
+}
+
 // ── Component ─────────────────────────────────────────────────────────────
 
 export default function TagroOverlay() {
@@ -249,7 +423,21 @@ export default function TagroOverlay() {
     try {
       const r = await fetch('/api/tagro/context/preview', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: ctx.contextType, id: ctx.id, title: ctx.title, input: value }),
+        body: JSON.stringify({
+          type: ctx.contextType,
+          id: ctx.id,
+          title: ctx.title,
+          subtitle: ctx.subtitle,
+          input: value,
+          // Attached @-mentions for backend continuity. Current object
+          // stays bound across every turn unless the user removes it.
+          attached: [{
+            type: ctx.contextType,
+            id: ctx.id,
+            title: ctx.title,
+            label: session.mentionLabel,
+          }],
+        }),
       })
       const data = await r.json().catch(() => null)
       const tagroMsg: Message = {
@@ -279,9 +467,13 @@ export default function TagroOverlay() {
     setInput(action); window.setTimeout(() => send(action), 30)
   }
 
-  const question = CTX_QUESTION[ctx.contextType] || CTX_QUESTION.empty
-  const placeholder = CTX_PLACEHOLDER[ctx.contextType] || CTX_PLACEHOLDER.empty
-  const chips = CTX_CHIPS[ctx.contextType] || CTX_CHIPS.empty
+  // One source of truth for everything the overlay shows: attached chips,
+  // intro lead, intro help, placeholder, suggestions. Computed from the
+  // current ctx so opening a task vs. a documents overview always speaks
+  // the right language without per-render guesswork.
+  const session = useMemo(() => buildInitialSession(ctx), [ctx])
+  const { chips: attachedChips, introLead, introHelp, placeholder, suggestions } = session
+  const chips = suggestions
 
   if (!open) return null
 
@@ -310,18 +502,30 @@ export default function TagroOverlay() {
           </div>
         </header>
 
-        {/* Initial hero — centered question + composer + suggestions */}
+        {/* Initial hero — attached @context + Tagro intro + composer + suggestions */}
         {mode === 'initial' ? (
           <div className="tov-hero">
             <div className="tov-hero-inner">
-              {/* Tagro mark — small, centered, ABOVE the question.
-                  Replaces the awkward bulb that used to float inside the
-                  composer input. The composer now uses a clean + button. */}
+              {/* Tagro mark — small, centered, ABOVE the intro. */}
               <span className="tov-hero-mark" aria-hidden>
                 <Lightbulb size={18} weight="regular" />
               </span>
-              <h2 className="tov-hero-q">{question}</h2>
-              {ctx.subtitle && <p className="tov-hero-sub">{ctx.subtitle}</p>}
+
+              {/* Initial Tagro intro — never empty, always says where it is. */}
+              <h2 className="tov-hero-q">{introLead}</h2>
+              <p className="tov-hero-sub">{introHelp}</p>
+
+              {/* Attached @-mention chips pinned ABOVE the composer so the
+                  user immediately sees what Tagro already knows. */}
+              {attachedChips.length > 0 && (
+                <div className="tov-attached" role="group" aria-label="Angehängter Kontext">
+                  {attachedChips.map((c, i) => (
+                    <span key={i} className={`tov-attached-chip tov-attached-${c.kind}`}>
+                      {c.label}
+                    </span>
+                  ))}
+                </div>
+              )}
 
               <Composer
                 inputRef={composerRef}
@@ -365,13 +569,26 @@ export default function TagroOverlay() {
             </div>
             <div className="tov-stickybar">
               <div className="tov-stickybar-inner">
+                {/* Attached @-context stays pinned across the whole
+                    conversation so the user always sees what Tagro is
+                    bound to. Click-to-remove can come later — for now
+                    chips are persistent. */}
+                {attachedChips.length > 0 && (
+                  <div className="tov-attached tov-attached-sticky" role="group" aria-label="Angehängter Kontext">
+                    {attachedChips.map((c, i) => (
+                      <span key={i} className={`tov-attached-chip tov-attached-${c.kind}`}>
+                        {c.label}
+                      </span>
+                    ))}
+                  </div>
+                )}
                 <Composer
                   inputRef={composerRef}
                   value={input}
                   onChange={setInput}
                   onSend={() => send()}
                   busy={busy}
-                  placeholder="Schreib weiter oder sag, was Tagro als Nächstes tun soll …"
+                  placeholder={placeholder}
                   micOk={micOk}
                   rec={rec}
                   onMic={toggleMic}
@@ -699,6 +916,36 @@ const STYLES = `
 .tov-composer-send:hover:not(:disabled) { opacity: .92; }
 .tov-composer-send:active:not(:disabled) { transform: scale(.95); }
 .tov-composer-send:disabled { opacity: .35; cursor: not-allowed; }
+
+/* Attached @-context chips. Pinned above the composer so the user
+   immediately sees what Tagro is bound to. Two visual tones:
+   object (slate filled pill) and meta (subtle outline). */
+.tov-attached {
+  width: 100%;
+  display: flex; flex-wrap: wrap; gap: 6px;
+  margin: -4px 0 -2px;
+  justify-content: center;
+}
+.tov-attached-sticky {
+  justify-content: flex-start;
+  margin: 0 0 8px;
+  padding: 0 4px;
+}
+.tov-attached-chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  height: 24px; padding: 0 10px;
+  font-size: 11.5px; font-weight: 500; letter-spacing: .012em;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.tov-attached-object {
+  background: #5B647D; color: #FFFFFF;
+}
+.tov-attached-meta {
+  background: transparent;
+  color: var(--tov-text-2);
+  border: 1px solid var(--tov-border);
+}
 
 /* Hero chips */
 .tov-chips { width: 100%; margin-top: 8px; }
