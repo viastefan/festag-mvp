@@ -41,6 +41,8 @@ export type TagroOpenDetail = {
   subtitle?: string
   /** Pre-fill the composer. */
   prefill?: string
+  /** Skip the compact popup and open straight in the agent workspace. */
+  fullscreen?: boolean
 }
 
 /** Open from anywhere: openTagro({ contextType: 'task', id, title }) */
@@ -156,7 +158,9 @@ export default function TagroOverlay() {
   useEffect(() => {
     function onOpen(e: Event) {
       const d = (e as CustomEvent<TagroOpenDetail>).detail || { contextType: 'empty' }
-      setCtx(d); setInput(d.prefill || ''); setDraft(null); setActions(new Set()); setStep('understand'); setOpen(true)
+      setCtx(d); setInput(d.prefill || ''); setDraft(null); setActions(new Set()); setStep('understand')
+      setFullscreen(!!d.fullscreen)
+      setOpen(true)
     }
     window.addEventListener('festag:open-tagro', onOpen as EventListener)
     return () => window.removeEventListener('festag:open-tagro', onOpen as EventListener)
@@ -199,7 +203,23 @@ export default function TagroOverlay() {
     micBaseRef.current = input.trim(); setRec(true); micStart()
   }
 
-  function close() { setOpen(false); setFullscreen(false) }
+  function close() {
+    setOpen(false); setFullscreen(false)
+    if (typeof window !== 'undefined') {
+      try { window.dispatchEvent(new CustomEvent('festag:tagro-closed')) } catch {}
+    }
+  }
+
+  // Tell the app shell to collapse its sidebar when we go fullscreen, restore
+  // on close — keeps the Tagro workspace clean and reference-aligned.
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const active = open && fullscreen
+    window.dispatchEvent(new CustomEvent('festag:tagro-fullscreen', { detail: { active } }))
+    return () => {
+      if (active) window.dispatchEvent(new CustomEvent('festag:tagro-fullscreen', { detail: { active: false } }))
+    }
+  }, [open, fullscreen])
 
   async function structure() {
     if (!input.trim() && ctx.contextType !== 'empty') return
@@ -482,16 +502,18 @@ const STYLES = `
     --t-pill: rgba(0,0,0,0.04);
     --t-pill-hover: rgba(0,0,0,0.07);
     --t-shadow: 0 30px 80px -24px rgba(15,23,42,0.18), 0 4px 18px rgba(15,23,42,0.06);
-    --t-backdrop: rgba(20,22,28,0.32);
+    --t-backdrop: rgba(20,22,28,0.18);
     --t-primary: #5B647D;
 
     position: fixed; inset: 0; z-index: 16000;
     display: flex; align-items: center; justify-content: center;
-    padding: 48px;
+    padding: 56px;
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
     color: var(--t-text);
     animation: tovIn .22s ease both;
+    transition: padding .35s cubic-bezier(.16,1,.3,1);
   }
+  .tov.tov-full { padding: 0; }
   @media (max-width: 720px) { .tov { padding: 0; align-items: flex-end; } }
 
   /* Dark tokens — same layout, only colours change. */
@@ -520,7 +542,7 @@ const STYLES = `
   }
   .tov-shell {
     position: relative;
-    width: min(1080px, calc(100vw - 96px));
+    width: min(1080px, calc(100vw - 112px));
     height: min(78vh, 760px);
     background: var(--t-bg);
     border: 1px solid var(--t-border-soft);
@@ -530,11 +552,17 @@ const STYLES = `
     grid-template-rows: auto auto 1fr auto;
     overflow: hidden;
     animation: tovUp .32s cubic-bezier(.16,1,.3,1) both;
+    transition: width .35s cubic-bezier(.16,1,.3,1), height .35s cubic-bezier(.16,1,.3,1), border-radius .35s, box-shadow .35s;
   }
   @media (max-width: 720px) {
     .tov-shell { width: 100%; height: 92dvh; border-radius: 22px 22px 0 0; max-width: none; }
   }
-  .tov-full .tov-shell { width: 100vw; height: 100vh; max-width: none; border-radius: 0; }
+  /* Fullscreen — true workspace, calm spacious surface. Composer floats at bottom. */
+  .tov-full .tov-shell {
+    width: 100vw; height: 100vh; max-width: none;
+    border-radius: 0; border: 0; box-shadow: none;
+  }
+  .tov-full .tov-body { padding-bottom: 140px; }
 
   /* Top bar — clean, ghost icons, calm context line. */
   .tov-top {
@@ -613,6 +641,26 @@ const STYLES = `
     box-shadow: 0 12px 32px -18px rgba(15,23,42,0.10), 0 1px 0 rgba(255,255,255,0.4) inset;
     transition: border-color .14s, box-shadow .14s;
   }
+  /* Fullscreen: composer becomes a sticky bottom-center anchor — agent workspace feel. */
+  .tov-full .tov-understand {
+    max-width: 920px;
+    min-height: calc(100vh - 240px);
+    justify-content: center;
+  }
+  .tov-full .tov-understand .tov-inputrow {
+    position: fixed;
+    left: 50%; bottom: 32px;
+    transform: translateX(-50%);
+    width: min(820px, calc(100vw - 64px));
+    background: var(--t-input);
+    box-shadow: 0 20px 50px -22px rgba(15,23,42,0.18);
+    z-index: 2;
+  }
+  :global(html[data-theme="dark"]) .tov-full .tov-understand .tov-inputrow,
+  :global(html[data-theme="classic-dark"]) .tov-full .tov-understand .tov-inputrow {
+    box-shadow: 0 20px 50px -22px rgba(0,0,0,0.55);
+  }
+  .tov-full .tov-understand .tov-tools { display: none; }
   :global(html[data-theme="dark"]) .tov-inputrow,
   :global(html[data-theme="classic-dark"]) .tov-inputrow {
     box-shadow: 0 12px 32px -18px rgba(0,0,0,0.45);

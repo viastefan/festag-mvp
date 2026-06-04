@@ -36,10 +36,14 @@ export default function ClientAppShell({
   const [checking, setChecking] = useState(true)
   const [copilotOpen, setCopilotOpen] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  // While Tagro is in fullscreen, the sidebar gets temporarily collapsed so the
+  // workspace owns the screen. Previous state is restored when Tagro closes.
+  const [tagroFullscreen, setTagroFullscreen] = useState(false)
+  const tagroPrevSidebarRef = useRef<boolean | null>(null)
   const [themeMode, setThemeMode] = useState<ThemeMode>('read')
   const [themeMenuOpen, setThemeMenuOpen] = useState(false)
   const themeMenuRef = useRef<HTMLDivElement | null>(null)
-  const sidebarWidth = sidebarCollapsed ? '0px' : '212px'
+  const sidebarWidth = (sidebarCollapsed || tagroFullscreen) ? '0px' : '212px'
 
   useEffect(() => {
     try { setSidebarCollapsed(localStorage.getItem('festag-sidebar-collapsed') === 'true') } catch {}
@@ -48,6 +52,25 @@ export default function ClientAppShell({
 
   useEffect(() => {
     try { localStorage.setItem('festag-sidebar-collapsed', String(sidebarCollapsed)) } catch {}
+  }, [sidebarCollapsed])
+
+  // Bridge: TagroOverlay → app shell. When Tagro goes fullscreen we collapse
+  // the sidebar; on close we restore the user's previous preference.
+  useEffect(() => {
+    function onTagroFs(e: Event) {
+      const active = !!(e as CustomEvent<{ active: boolean }>).detail?.active
+      setTagroFullscreen(active)
+      if (active) {
+        if (tagroPrevSidebarRef.current === null) tagroPrevSidebarRef.current = sidebarCollapsed
+      } else {
+        if (tagroPrevSidebarRef.current !== null) {
+          setSidebarCollapsed(tagroPrevSidebarRef.current)
+          tagroPrevSidebarRef.current = null
+        }
+      }
+    }
+    window.addEventListener('festag:tagro-fullscreen', onTagroFs as EventListener)
+    return () => window.removeEventListener('festag:tagro-fullscreen', onTagroFs as EventListener)
   }, [sidebarCollapsed])
 
   useEffect(() => {
