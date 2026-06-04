@@ -18,6 +18,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { ArrowRight, Sparkle, WarningCircle } from '@phosphor-icons/react'
+import TagroEntryButton from '@/components/TagroEntryButton'
 import { devFlowFromLegacy, type DevFlow } from '@/lib/tasks/work-types'
 
 type Update = {
@@ -143,6 +144,14 @@ export default function DevUpdatesPage() {
             Offene Risiken, von Tagro angelegte Arbeit und deine technischen Updates — an einer Stelle.
           </p>
         </div>
+        <TagroEntryButton
+          context={{
+            contextType: 'risk',
+            id: 'dev-updates',
+            title: 'Updates · Risiken & Auto-Work',
+            subtitle: `${risks.length} offene Risiko${risks.length === 1 ? '' : 'en'}`,
+          }}
+        />
       </header>
 
       {/* Signals: risks + auto-generated work */}

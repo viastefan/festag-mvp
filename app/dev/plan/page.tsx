@@ -12,6 +12,7 @@ import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { Sparkle, CheckCircle, Hourglass } from '@phosphor-icons/react'
+import TagroEntryButton from '@/components/TagroEntryButton'
 
 type Plan = {
   id: string
@@ -84,10 +85,15 @@ export default function DevPlanPage() {
             Today's plan is generated from your assigned tasks, project priorities, and recent activity.
           </p>
         </div>
-        <button className="dev-primary-btn" onClick={generatePlan} disabled={generating}>
-          <Sparkle size={13} style={{ marginRight: 6 }} />
-          {generating ? 'Plan wird erstellt…' : 'Plan erzeugen'}
-        </button>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+          <button className="dev-primary-btn" onClick={generatePlan} disabled={generating}>
+            <Sparkle size={13} style={{ marginRight: 6 }} />
+            {generating ? 'Plan wird erstellt…' : 'Plan erzeugen'}
+          </button>
+          <TagroEntryButton
+            context={{ contextType: 'empty', id: 'dev-plan', title: 'Plan für heute' }}
+          />
+        </div>
       </header>
 
       {msg && <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 12 }}>{msg}</p>}

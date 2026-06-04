@@ -21,6 +21,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useSpeechRecognition } from '@/hooks/useSpeechRecognition'
 import DevNewProjectModal from '@/components/DevNewProjectModal'
+import TagroEntryButton from '@/components/TagroEntryButton'
 import {
   ArrowRight, GitBranch, GitCommit, CheckSquare, Lightning, Microphone,
   Pause, Play, Plus, WarningCircle,
@@ -278,6 +279,16 @@ export default function DevOverviewPage() {
           <button className="dev-primary-btn link-btn" onClick={() => setNewOpen(true)}>
             <Plus size={13} /> Neues Projekt
           </button>
+          {/* Dev Overview → Tagro entry. Subtitle pulled from the same
+              live metrics shown above so the chat opens with full context. */}
+          <TagroEntryButton
+            context={{
+              contextType: 'empty',
+              id: 'dev-overview',
+              title: 'Dev · Heute',
+              subtitle: `${metrics.open} offen · ${metrics.review} Review · ${metrics.blocked} Blocker`,
+            }}
+          />
         </div>
       </header>
 

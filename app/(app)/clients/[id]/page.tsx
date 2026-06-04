@@ -15,6 +15,7 @@ import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { ArrowLeft, ArrowRight, Plus, Check, PencilSimple } from '@phosphor-icons/react'
 import TagroMobileBar from '@/components/TagroMobileBar'
+import TagroEntryButton from '@/components/TagroEntryButton'
 import MobileObjectMenu from '@/components/MobileObjectMenu'
 import { createClient } from '@/lib/supabase/client'
 
@@ -152,6 +153,14 @@ export default function ClientDetailPage() {
           <button type="button" className="cd-btn" onClick={() => setEditing(v => !v)}>
             <PencilSimple size={13} /> {editing ? 'Fertig' : 'Bearbeiten'}
           </button>
+          <TagroEntryButton
+            context={{
+              contextType: 'client',
+              id: client.id,
+              title: client.name,
+              subtitle: `${projects.length} Projekte · ${active} aktiv`,
+            }}
+          />
         </div>
       </header>
 

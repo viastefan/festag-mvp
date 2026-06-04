@@ -18,6 +18,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import TagroEntryButton from '@/components/TagroEntryButton'
 import {
   ArrowRight, ArrowsClockwise, ArrowSquareOut, CheckCircle, CheckSquare, Circle,
   Clock, Copy, FunnelSimple, GitBranch, GitCommit, GitPullRequest, Image as ImageIcon,
@@ -647,6 +648,14 @@ export default function DevTasksPage() {
           <StatPill value={stats.review}  label="Needs Review" tone="amber" />
           <StatPill value={stats.verified} label="Verified" tone="accent" />
           <StatPill value={stats.blocked} label="Blocked" tone="red" />
+          <TagroEntryButton
+            context={{
+              contextType: 'task',
+              id: 'dev-list',
+              title: 'Tasks · Dev',
+              subtitle: `${stats.active} aktiv · ${stats.review} Review · ${stats.blocked} blockiert`,
+            }}
+          />
         </div>
       </header>
 

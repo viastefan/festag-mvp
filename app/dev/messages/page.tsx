@@ -18,6 +18,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import TagroEntryButton from '@/components/TagroEntryButton'
 import {
   ArrowClockwise, ChatCircleDots, CheckCircle, ClipboardText, FunnelSimple,
   PaperPlaneTilt, Robot, Sparkle, Tray, UserPlus, WarningCircle, Sliders,
@@ -230,6 +231,14 @@ export default function DevMessagesPage() {
               Alles gelesen
             </button>
           )}
+          <TagroEntryButton
+            context={{
+              contextType: 'empty',
+              id: 'dev-inbox',
+              title: 'Inbox · Triage',
+              subtitle: `${counts.all} Einträge · ${counts.unread} ungelesen`,
+            }}
+          />
         </div>
       </header>
 

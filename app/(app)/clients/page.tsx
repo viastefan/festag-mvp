@@ -15,6 +15,7 @@ import { createClient } from '@/lib/supabase/client'
 import Modal, { ModalButton } from '@/components/Modal'
 import InviteLinkModal from '@/components/InviteLinkModal'
 import PageHeader from '@/components/ui/PageHeader'
+import TagroEntryButton from '@/components/TagroEntryButton'
 
 type WorkspaceMode = 'delivery' | 'team' | 'agency'
 
@@ -140,6 +141,14 @@ export default function ClientsPage() {
             <button type="button" className="fui-action fui-action--primary" onClick={() => setComposerOpen(true)}>
               <Plus size={14} weight="bold" /> Kunde erstellen
             </button>
+            <TagroEntryButton
+              context={{
+                contextType: 'client',
+                id: 'list',
+                title: 'Kunden · Übersicht',
+                subtitle: `${clients.length} Kunden`,
+              }}
+            />
           </>
         }
       />

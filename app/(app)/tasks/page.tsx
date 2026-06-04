@@ -26,6 +26,7 @@ import {
 } from '@phosphor-icons/react'
 import EmptyState from '@/components/EmptyState'
 import HelpHint from '@/components/HelpHint'
+import TagroEntryButton from '@/components/TagroEntryButton'
 
 type TaskView = 'all' | 'open' | 'active' | 'decision' | 'review' | 'done'
 type SortMode = 'newest' | 'updated' | 'priority' | 'project' | 'group'
@@ -2017,6 +2018,15 @@ export default function TasksPage() {
               </div>
             )}
           </div>
+          {/* Tagro entry on the tasks list — context = current scope. */}
+          <TagroEntryButton
+            context={{
+              contextType: 'task',
+              id: 'list',
+              title: 'Tasks · Übersicht',
+              subtitle: `${openCount} offen · ${activeCount} in Arbeit`,
+            }}
+          />
         </div>
         </div>
       </div>

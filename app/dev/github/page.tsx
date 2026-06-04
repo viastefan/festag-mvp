@@ -16,6 +16,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import TagroEntryButton from '@/components/TagroEntryButton'
 import {
   ArrowsClockwise, CheckCircle, GithubLogo, GitCommit, GitPullRequest, Plus, WarningCircle, XCircle,
 } from '@phosphor-icons/react'
@@ -232,6 +233,14 @@ export default function DevGithubPage() {
           <button className="dev-primary-btn" type="button" onClick={() => setAddOpen(v => !v)} disabled={!isConnected}>
             <Plus size={13} style={{ marginRight: 6 }} /> Repo verknüpfen
           </button>
+          <TagroEntryButton
+            context={{
+              contextType: 'dev_item',
+              id: 'github',
+              title: 'GitHub-Aktivität',
+              subtitle: `${repos.length} Repo${repos.length === 1 ? '' : 's'}`,
+            }}
+          />
         </div>
       </header>
 
