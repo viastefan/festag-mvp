@@ -20,6 +20,7 @@ import {
   Sparkle, Tray, UserPlus, WarningCircle,
 } from '@phosphor-icons/react'
 import HelpHint from '@/components/HelpHint'
+import { openTagro } from '@/components/TagroOverlay'
 
 type Notification = {
   id: string
@@ -183,6 +184,26 @@ export default function InboxPage() {
               Alles gelesen
             </button>
           )}
+          {/* Tagro entry — opens overlay with inbox scope, lets the user
+              ask Tagro to triage / summarize / extract decisions etc. */}
+          <button
+            type="button"
+            onClick={() => openTagro({
+              contextType: 'empty',
+              id: 'inbox',
+              title: 'Inbox · Triage',
+              subtitle: `${counts.all} Items · ${counts.unread} ungelesen`,
+            })}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              height: 28, padding: '0 14px', borderRadius: 32,
+              background: '#5B647D', color: '#fff', border: 0,
+              font: 'inherit', fontSize: 12, fontWeight: 500,
+              letterSpacing: '.012em', cursor: 'pointer',
+            }}
+          >
+            Mit Tagro bearbeiten
+          </button>
         </div>
       </header>
 

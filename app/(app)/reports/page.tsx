@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import ChatMarkdown from '@/components/ChatMarkdown'
 import AppPageHeader from '@/components/AppPageHeader'
+import { openTagro } from '@/components/TagroOverlay'
 import VoiceBriefingButton from '@/components/AudioBriefingButton'
 import VoiceControls from '@/components/VoiceControls'
 import { generateBriefingText } from '@/lib/briefings'
@@ -714,10 +715,32 @@ Regeln:
             </span>
           ) : 'Tagro fasst laufende Projektarbeit als ruhiges Client-Briefing zusammen.'}
           action={(
-            <button className="app-header-button app-header-button--primary" type="button" onClick={generateReport} disabled={!currentProject || generating}>
-              <MagicWand size={15} weight="bold" />
-              {generating ? 'Briefing wird aktualisiert…' : 'Briefing aktualisieren'}
-            </button>
+            <span style={{ display:'inline-flex', alignItems:'center', gap:8 }}>
+              <button className="app-header-button app-header-button--primary" type="button" onClick={generateReport} disabled={!currentProject || generating}>
+                <MagicWand size={15} weight="bold" />
+                {generating ? 'Briefing wird aktualisiert…' : 'Briefing aktualisieren'}
+              </button>
+              {/* Tagro entry on the briefing — context = current project's
+                  status_report, falls back to a list-level context. */}
+              <button
+                type="button"
+                onClick={() => openTagro({
+                  contextType: 'status_report',
+                  id: currentProject?.id || 'list',
+                  title: currentProject ? `Statusbericht · ${currentProject.title}` : 'Statusberichte',
+                  subtitle: currentStatusRow ? `${currentStatusRow.phase} · ${currentStatusRow.progress}%` : undefined,
+                })}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 6,
+                  height: 30, padding: '0 14px', borderRadius: 32,
+                  background: '#5B647D', color: '#fff', border: 0,
+                  font: 'inherit', fontSize: 12.5, fontWeight: 500,
+                  letterSpacing: '.012em', cursor: 'pointer',
+                }}
+              >
+                Mit Tagro bearbeiten
+              </button>
+            </span>
           )}
         />
 

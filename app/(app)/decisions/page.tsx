@@ -22,6 +22,7 @@ import {
   Sparkle, Warning, X, UserCircle, CaretDown,
 } from '@phosphor-icons/react'
 import HelpHint from '@/components/HelpHint'
+import { openTagro } from '@/components/TagroOverlay'
 import { createClient } from '@/lib/supabase/client'
 
 type Option = { id: string; label: string; hint?: string }
@@ -383,6 +384,19 @@ function DecisionsPageInner() {
             <ArrowsClockwise size={11} className={loading ? 'dec-spin' : ''} />
             {loading ? 'Lade…' : 'Aktualisieren'}
           </button>
+          {/* Tagro entry — opens overlay with the full decisions list as context. */}
+          <button
+            className="dec-tagro-cta"
+            type="button"
+            onClick={() => openTagro({
+              contextType: 'decision',
+              id: 'list',
+              title: 'Entscheidungen · Übersicht',
+              subtitle: `${counts.open} offen · ${counts.urgent} dringend`,
+            })}
+          >
+            Mit Tagro bearbeiten
+          </button>
         </div>
 
         <nav className="dec-tabs" role="tablist">
@@ -717,6 +731,19 @@ function Drawer({
             </span>
           </div>
           <div className="dec-drawer-actions">
+            {/* Per-decision Tagro entry — preloaded with this decision id+title. */}
+            <button
+              className="dec-tagro-cta"
+              type="button"
+              onClick={() => openTagro({
+                contextType: 'decision',
+                id: decision.id,
+                title: decision.client_title || decision.title,
+                subtitle: project?.title,
+              })}
+            >
+              Mit Tagro bearbeiten
+            </button>
             <button className="dec-icon-btn" onClick={onClose} title="Schließen" type="button">
               <X size={13} />
             </button>
@@ -1175,6 +1202,15 @@ const CSS = `
   }
   .dec-ghost:hover { background:var(--surface-2); color:var(--text); }
   .dec-ghost:disabled { opacity:.5; cursor:not-allowed; }
+  .dec-tagro-cta {
+    display:inline-flex; align-items:center; gap:6px;
+    height:28px; padding:0 13px; border-radius:32px;
+    background:#5B647D; color:#fff; border:0;
+    font:inherit; font-size:12px; font-weight:500; letter-spacing:.012em;
+    cursor:pointer; transition:background .12s, transform .12s;
+  }
+  .dec-tagro-cta:hover { background:#4d566c; }
+  .dec-tagro-cta:active { transform:scale(.985); }
   .dec-spin { animation:decSpin 1s linear infinite; }
   @keyframes decSpin { from { transform:rotate(0); } to { transform:rotate(360deg); } }
 

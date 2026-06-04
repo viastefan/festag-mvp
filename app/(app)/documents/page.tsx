@@ -5,6 +5,7 @@ import { isDevOrAdmin } from '@/lib/role'
 import DocumentBuilderSection from '@/components/DocumentBuilderSection'
 import PageHeader from '@/components/ui/PageHeader'
 import FilterPills from '@/components/ui/FilterPills'
+import { openTagro } from '@/components/TagroOverlay'
 
 function DocumentsEmptyState() {
   return (
@@ -137,7 +138,30 @@ export default function DocumentsPage() {
 
   return (
     <div className="fui-page">
-      <PageHeader title="Dokumente" subtitle="Angebot, Vertrag & Rechnung erstellen — plus hochgeladene Dateien." />
+      <PageHeader
+        title="Dokumente"
+        subtitle="Angebot, Vertrag & Rechnung erstellen — plus hochgeladene Dateien."
+        actions={
+          <button
+            type="button"
+            onClick={() => openTagro({
+              contextType: 'document',
+              id: 'list',
+              title: 'Dokumente · Übersicht',
+              subtitle: `${allItems.length} Dokument${allItems.length === 1 ? '' : 'e'}`,
+            })}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              height: 30, padding: '0 14px', borderRadius: 32,
+              background: '#5B647D', color: '#fff', border: 0,
+              font: 'inherit', fontSize: 12.5, fontWeight: 500,
+              letterSpacing: '.012em', cursor: 'pointer',
+            }}
+          >
+            Mit Tagro bearbeiten
+          </button>
+        }
+      />
 
       <div className="fui-body">
       {/* Document builder (Angebot / Vertrag / Rechnung from templates) */}
