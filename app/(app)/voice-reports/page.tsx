@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import VoiceControls from '@/components/VoiceControls'
+import TagroEntryButton from '@/components/TagroEntryButton'
 import {
   ArrowRight,
   Clock,
@@ -205,6 +206,13 @@ export default function VoiceReportsPage() {
           <div className="vr-actions">
             <Link className="vr-btn" href="/reports"><ReadCvLogo size={15} /> Projektbriefings lesen</Link>
             <button className="vr-btn primary" type="button" disabled={!hasVoiceReport}><MagicWand size={15} /> Report aktualisieren</button>
+            <TagroEntryButton
+              context={{
+                contextType: 'briefing',
+                id: selectedProject?.id || 'list',
+                title: selectedProject ? `Voice Report · ${selectedProject.title}` : 'Voice Reports',
+              }}
+            />
           </div>
         </div>
       </section>

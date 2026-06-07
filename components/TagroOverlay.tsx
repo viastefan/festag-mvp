@@ -627,8 +627,7 @@ function Composer({
   variant: 'hero' | 'sticky'
 }) {
   // Auto-grow: keep the textarea exactly one line by default, expand only
-  // as the user types more. This is what ChatGPT/Claude do. Capped so very
-  // long input becomes scrollable rather than pushing the page around.
+  // as the user types more. ChatGPT/Claude pattern.
   function autosize(el: HTMLTextAreaElement | null) {
     if (!el) return
     el.style.height = 'auto'
@@ -636,12 +635,29 @@ function Composer({
     el.style.height = Math.min(el.scrollHeight, max) + 'px'
   }
 
+  // People/Sources picker — opens via the + button OR by typing '@' in the
+  // textarea (current cursor position). For now this is the picker shell
+  // requested by the spec: real categories listed, clear placeholder copy
+  // so the user sees something happen (not a dead button). Actual person
+  // / object search lands in the next pass — the structure is here.
+  const [pickerOpen, setPickerOpen] = useState(false)
+
+  function openPicker() { setPickerOpen(true) }
+  function closePicker() { setPickerOpen(false) }
+
+  function onKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); onSend(); return }
+    // '@' triggers the people/object picker. We don't intercept the
+    // character itself — it stays in the input so the user can keep
+    // typing the name to filter when the real picker ships.
+    if (e.key === '@') setPickerOpen(true)
+  }
+
   return (
     <div className={`tov-composer tov-composer-${variant}`}>
       {/* Row 1: single-line textarea (auto-grows downward when needed). */}
       <textarea
         ref={(el) => {
-          // Forward to caller ref + run autosize on mount/value change.
           if (typeof inputRef === 'function') (inputRef as any)(el)
           else if (inputRef) (inputRef as any).current = el
           autosize(el)
@@ -651,15 +667,19 @@ function Composer({
         placeholder={placeholder}
         value={value}
         onChange={e => { autosize(e.currentTarget); onChange(e.target.value) }}
-        onKeyDown={e => {
-          if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); onSend() }
-        }}
+        onKeyDown={onKeyDown}
       />
 
       {/* Row 2: action bar pinned to the bottom edge with breathing room
           to the textarea. + on the left, mic/send on the right. */}
       <div className="tov-composer-actions">
-        <button type="button" className="tov-composer-plus" aria-label="Quellen oder Personen hinzufügen" title="Hinzufügen">
+        <button
+          type="button"
+          className="tov-composer-plus"
+          aria-label="Quellen oder Personen hinzufügen"
+          title="Quellen / @Personen / Objekte hinzufügen"
+          onClick={openPicker}
+        >
           <Plus size={16} weight="regular" />
         </button>
         <div className="tov-composer-actions-right">
@@ -672,6 +692,50 @@ function Composer({
             {busy ? <ArrowsClockwise size={16} className="tov-spin" /> : <ArrowUp size={16} weight="bold" />}
           </button>
         </div>
+      </div>
+
+      {pickerOpen && <PeopleObjectPicker onClose={closePicker} />}
+    </div>
+  )
+}
+
+// ── People / Sources / Objects picker shell ───────────────────────────────
+//
+// Spec calls for this picker to surface: people (@Max), tasks, projects,
+// documents, decisions, status reports, clients, dev items. Real search +
+// resolution lands in a follow-up — for now the shell renders the
+// categories with placeholder copy so the user immediately understands
+// "Tagro can pull these in" instead of facing a dead button.
+
+function PeopleObjectPicker({ onClose }: { onClose: () => void }) {
+  const cats = [
+    { id: 'person',   label: 'Personen',         hint: '@Max, @Sarah, …' },
+    { id: 'task',     label: 'Aufgaben',         hint: '@Aufgabe Titel' },
+    { id: 'project',  label: 'Projekte',         hint: '@Projekt Titel' },
+    { id: 'doc',      label: 'Dokumente',        hint: '@Dokument Datei' },
+    { id: 'decision', label: 'Entscheidungen',   hint: '@Entscheidung Titel' },
+    { id: 'report',   label: 'Statusberichte',   hint: '@Statusbericht …' },
+    { id: 'client',   label: 'Kunden',           hint: '@Kunde Name' },
+    { id: 'dev',      label: 'Dev Items',        hint: '@Commit / @PR / @Update' },
+  ]
+  return (
+    <div className="tov-pick" role="dialog" aria-label="Quellen und Personen hinzufügen">
+      <div className="tov-pick-backdrop" onClick={onClose} aria-hidden />
+      <div className="tov-pick-sheet" onClick={e => e.stopPropagation()}>
+        <p className="tov-pick-title">Hinzufügen</p>
+        <p className="tov-pick-sub">
+          Wähle aus, was Tagro mit diesem Chat verknüpfen soll. Du kannst auch
+          direkt im Text <code>@</code> tippen.
+        </p>
+        <div className="tov-pick-grid">
+          {cats.map(c => (
+            <button key={c.id} type="button" className="tov-pick-item" onClick={onClose}>
+              <strong>{c.label}</strong>
+              <span>{c.hint}</span>
+            </button>
+          ))}
+        </div>
+        <button type="button" className="tov-pick-close" onClick={onClose} aria-label="Schließen"><X size={14} /></button>
       </div>
     </div>
   )
@@ -1092,6 +1156,56 @@ const STYLES = `
 .tov.tov-full .tov-stickybar-inner { max-width: 920px; }
 
 .tov-err { margin: 0; color: #ef4444; font-size: 12.5px; }
+
+/* People / Sources / Objects picker — opens via the composer + button
+   or by typing '@'. Shell only for now; categories are listed so the
+   user sees what Tagro can pull in. */
+.tov-pick {
+  position: fixed; inset: 0; z-index: 16100;
+  display: flex; align-items: flex-end; justify-content: center;
+  animation: tov-in .14s ease both;
+}
+.tov-pick-backdrop {
+  position: absolute; inset: 0;
+  background: rgba(8,10,14,0.42);
+  backdrop-filter: blur(6px) saturate(140%);
+  -webkit-backdrop-filter: blur(6px) saturate(140%);
+}
+.tov-pick-sheet {
+  position: relative;
+  width: min(560px, calc(100vw - 24px));
+  margin-bottom: 14vh;
+  background: var(--tov-bg);
+  color: var(--tov-text);
+  border: 1px solid var(--tov-border);
+  border-radius: 18px;
+  box-shadow: var(--tov-shadow);
+  padding: 18px 18px 14px;
+  animation: tov-up .2s cubic-bezier(.16,1,.3,1) both;
+}
+.tov-pick-title { margin: 0; font-size: 14px; font-weight: 600; letter-spacing: -.005em; }
+.tov-pick-sub { margin: 4px 0 14px; font-size: 12.5px; color: var(--tov-text-2); }
+.tov-pick-sub code { background: var(--tov-pill); padding: 1px 5px; border-radius: 4px; font-size: 11.5px; }
+.tov-pick-grid { display: grid; gap: 6px; grid-template-columns: 1fr 1fr; }
+@media (max-width: 560px) { .tov-pick-grid { grid-template-columns: 1fr; } }
+.tov-pick-item {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
+  background: transparent; color: var(--tov-text); border: 1px solid var(--tov-border);
+  border-radius: 12px; padding: 9px 12px; text-align: left;
+  font: inherit; font-size: 12.5px; font-weight: 500; cursor: pointer;
+  transition: background .12s, border-color .12s;
+}
+.tov-pick-item strong { font-weight: 600; font-size: 13px; }
+.tov-pick-item span { color: var(--tov-text-2); font-size: 11.5px; font-weight: 400; }
+.tov-pick-item:hover { background: var(--tov-pill); border-color: var(--tov-border-2); }
+.tov-pick-close {
+  position: absolute; top: 12px; right: 12px;
+  width: 26px; height: 26px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: transparent; color: var(--tov-text-2);
+  border: 0; border-radius: 999px; cursor: pointer;
+}
+.tov-pick-close:hover { background: var(--tov-pill); color: var(--tov-text); }
 
 /* Animations */
 @keyframes tov-in { from { opacity: 0; } to { opacity: 1; } }

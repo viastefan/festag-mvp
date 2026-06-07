@@ -42,6 +42,7 @@ import { createClient } from '@/lib/supabase/client'
 import NewNoteModal from '@/components/NewNoteModal'
 import EmptyState from '@/components/EmptyState'
 import HelpHint from '@/components/HelpHint'
+import TagroEntryButton from '@/components/TagroEntryButton'
 
 type NoteType = 'journal' | 'brief' | 'meeting' | 'research'
 
@@ -336,6 +337,14 @@ export default function NotesPage() {
               <span>Neue Notiz</span>
               <span className="notes-create-plus" aria-hidden>+</span>
             </button>
+            <TagroEntryButton
+              context={{
+                contextType: 'note',
+                id: 'list',
+                title: 'Notizen · Übersicht',
+                subtitle: `${visible.length} sichtbar`,
+              }}
+            />
           </div>
         </div>
 
