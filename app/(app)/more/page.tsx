@@ -14,6 +14,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import TagroEntryButton from '@/components/TagroEntryButton'
 import {
   Briefcase, CaretRight, ChartLineUp, CreditCard, FileText, GearSix,
   GridFour, LinkSimple, NotePencil, Question, SignOut, SpeakerHigh,
@@ -98,9 +99,14 @@ export default function MorePage() {
 
   return (
     <div className="more-page">
-      <header className="mp-head">
-        <h1>Mehr</h1>
-        {name && <p className="mp-meta">{name}{email ? ` · ${email}` : ''}</p>}
+      <header className="mp-head" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+        <div>
+          <h1>Mehr</h1>
+          {name && <p className="mp-meta">{name}{email ? ` · ${email}` : ''}</p>}
+        </div>
+        <TagroEntryButton
+          context={{ contextType: 'empty', id: 'more', title: 'Mehr · Übersicht' }}
+        />
       </header>
 
       <div className="mp-sections">

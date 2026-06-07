@@ -23,6 +23,7 @@ import WelcomeTour from '@/components/WelcomeTour'
 import TagroOrb, { type TagroOrbState } from '@/components/TagroOrb'
 import TagroPixelWave from '@/components/TagroPixelWave'
 import TagroMobileBar from '@/components/TagroMobileBar'
+import TagroEntryButton from '@/components/TagroEntryButton'
 import { speechVoiceId, useSpeechSynthesis } from '@/hooks/useSpeechSynthesis'
 import {
   ArrowClockwise, Article, CalendarCheck, CaretDown, CaretRight, Check, CheckCircle,
@@ -771,6 +772,33 @@ export default function DashboardPage() {
           flex-direction:column;
           padding-top: 20px;
         }
+        /* Desktop-only header actions: Statusbericht refresh + Tagro pill.
+           Sits above .dc-shell-body, mirrors the mobile bar so users on
+           laptop get the same affordances without scrolling. */
+        .dc-desktop-actions {
+          display: flex; align-items: center; justify-content: flex-end;
+          gap: 8px;
+          padding: 0 0 12px;
+        }
+        .dc-desktop-action {
+          display: inline-flex; align-items: center; gap: 6px;
+          height: 30px; padding: 0 14px;
+          border-radius: 32px;
+          background: transparent;
+          color: var(--text);
+          border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+          font: inherit; font-size: 12.5px; font-weight: 500;
+          letter-spacing: .012em;
+          cursor: pointer;
+          transition: background .12s, border-color .12s;
+        }
+        .dc-desktop-action:hover {
+          background: color-mix(in srgb, var(--surface-2) 70%, transparent);
+        }
+        @media (max-width: 768px) {
+          .dc-desktop-actions { display: none; }
+        }
+
         /* Status pill sits in its OWN top row, right-aligned — never
            overlapping the audio card anymore. */
         .dc-shell-top {
@@ -2514,6 +2542,25 @@ export default function DashboardPage() {
       `}</style>
 
       <div className="dc-shell">
+        {/* Desktop-only header actions row — mobile keeps the 2-button
+            TagroMobileBar at the bottom edge. */}
+        <div className="dc-desktop-actions" aria-label="Statusbericht und Tagro">
+          <button
+            type="button"
+            className="dc-desktop-action"
+            onClick={() => { void refreshStatus() }}
+            title="Statusbericht aktualisieren"
+          >
+            Statusbericht
+          </button>
+          <TagroEntryButton
+            context={{
+              contextType: 'status_report',
+              id: 'dashboard',
+              title: 'Statusabfrage · Heute',
+            }}
+          />
+        </div>
         <div className="dc-shell-body">
           {/* ── LEFT: daytime header + fact + report ── */}
           <main className="dc-left">

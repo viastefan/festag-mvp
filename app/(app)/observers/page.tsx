@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Plus, Question, X, EnvelopeSimple, Eye, ChatCircle, Trash, Check, UsersThree } from '@phosphor-icons/react'
 import { autoAvatarColor, avatarInitials, avatarTextColor } from '@/lib/avatar'
 import { subscribeProfileSync } from '@/lib/profile-sync'
+import TagroEntryButton from '@/components/TagroEntryButton'
 
 type Observer = {
   id: string
@@ -625,10 +626,20 @@ export default function ObserversPage() {
             <Question size={11} weight="bold" />
           </button>
         </div>
-        <button className="obs-create" type="button" onClick={() => setInviteOpen(true)} aria-label="Mitwirkende einladen">
-          <span>Mitwirkende einladen</span>
-          <span className="obs-create-plus" aria-hidden="true"><Plus size={13} weight="bold" /></span>
-        </button>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+          <button className="obs-create" type="button" onClick={() => setInviteOpen(true)} aria-label="Mitwirkende einladen">
+            <span>Mitwirkende einladen</span>
+            <span className="obs-create-plus" aria-hidden="true"><Plus size={13} weight="bold" /></span>
+          </button>
+          <TagroEntryButton
+            context={{
+              contextType: 'client',
+              id: 'observers',
+              title: 'Mitwirkende · Übersicht',
+              subtitle: `${totalCount} mit Zugriff`,
+            }}
+          />
+        </span>
       </div>
 
       <div className="obs-meta-row">

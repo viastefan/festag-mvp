@@ -17,6 +17,7 @@ import {
 } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 import InviteLinkModal from '@/components/InviteLinkModal'
+import TagroEntryButton from '@/components/TagroEntryButton'
 
 type Row = {
   id: string                 // user id, or `invite:<id>` for pending
@@ -252,6 +253,14 @@ export default function MembersPage() {
         <div className="mb-head-right">
           <button type="button" className="mb-btn" onClick={() => setInviteOpen(true)}><UserPlus size={14} /> Einladen</button>
           <button type="button" className="mb-btn mb-btn-primary" onClick={() => setInviteOpen(true)} aria-label="Mitglied hinzufügen"><Plus size={14} weight="bold" /></button>
+          <TagroEntryButton
+            context={{
+              contextType: 'client',
+              id: 'members',
+              title: 'Mitglieder · Übersicht',
+              subtitle: `${rows.length} Mitglied${rows.length === 1 ? '' : 'er'}`,
+            }}
+          />
         </div>
       </header>
 

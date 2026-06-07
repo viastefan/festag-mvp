@@ -13,6 +13,7 @@
 
 import { useMemo, useState } from 'react'
 import { CATALOG, CATEGORIES, type AddonCategory } from '@/lib/addons-catalog'
+import TagroEntryButton from '@/components/TagroEntryButton'
 
 type Filter = AddonCategory | 'Alle' | 'Beliebt'
 
@@ -180,9 +181,19 @@ export default function AddonsPage() {
       `}</style>
 
       <div className="ad-static">
-        <div className="ad-top">
-          <h1 className="ad-title">Add-ons</h1>
-          <span className="ad-count">{filtered.length} von {CATALOG.length}</span>
+        <div className="ad-top" style={{ display: 'flex', alignItems: 'center', gap: 12, justifyContent: 'space-between' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}>
+            <h1 className="ad-title">Add-ons</h1>
+            <span className="ad-count">{filtered.length} von {CATALOG.length}</span>
+          </div>
+          <TagroEntryButton
+            context={{
+              contextType: 'empty',
+              id: 'addons',
+              title: 'Add-ons · Übersicht',
+              subtitle: `${filtered.length} von ${CATALOG.length}`,
+            }}
+          />
         </div>
         <p className="ad-intro">
           Bausteine, die dein Projekt erweitern — von Branding bis Automatisierung.
