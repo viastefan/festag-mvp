@@ -23,6 +23,9 @@ import { createPortal } from 'react-dom'
 import { CaretRight, DownloadSimple, GearSix, SignOut, UserPlus, UsersThree } from '@phosphor-icons/react'
 
 import { avatarTextColor } from '@/lib/avatar'
+import WorkspaceSymbol from '@/components/WorkspaceSymbol'
+import WorkspaceSymbolPicker from '@/components/WorkspaceSymbolPicker'
+import { loadSymbol, onSymbolChange } from '@/lib/workspace-symbol'
 
 type TeamMember = {
   id: string
@@ -104,6 +107,18 @@ export default function SidebarProfileFooter({
   const wsGlyph = firstLetter(wsLabel)
   const triggerName = wsLabel.length > 14 ? `${wsLabel.slice(0, 14)}…` : wsLabel
 
+  // Workspace mark — generative WorkspaceSymbol per the senior-design rule
+  // (no initials-in-a-circle). Prefs persist via localStorage and broadcast
+  // so any open tab refreshes instantly when the user picks a new look.
+  const wsKey = (workspaceName || displayName || email || 'festag').trim().toLowerCase()
+  const [wsPrefs, setWsPrefs] = useState(() => loadSymbol(wsKey))
+  useEffect(() => { setWsPrefs(loadSymbol(wsKey)) }, [wsKey])
+  useEffect(() => {
+    const off = onSymbolChange((k, p) => { if (k === wsKey) setWsPrefs(p) })
+    return off
+  }, [wsKey])
+  const [pickerOpen, setPickerOpen] = useState(false)
+
   // Team roster — owner is index 0 (passed in pre-ordered by the Sidebar).
   const memberCount = members.length
   const hasTeam = memberCount > 1
@@ -124,15 +139,32 @@ export default function SidebarProfileFooter({
       <div style={{ position: 'fixed', inset: 0, zIndex: 119990 }} onClick={() => setOpen(false)} />
       <div className="spf-pop" style={{ position: 'fixed', left: pos.left, top: pos.top }}>
         {/* ── Workspace identity ── */}
-        <div className="spf-ws">
-          <div className="spf-ws-glyph" style={{ background: avatarColor, color: avatarFg }}>
-            {wsGlyph}
+        <button
+          type="button"
+          className="spf-ws spf-ws-button"
+          onClick={() => setPickerOpen(o => !o)}
+          aria-expanded={pickerOpen}
+          aria-label="Workspace-Symbol anpassen"
+          title="Symbol anpassen"
+        >
+          <div className="spf-ws-glyph" style={{ padding: 0, background: 'transparent' }}>
+            <WorkspaceSymbol variant={wsPrefs.variant} scheme={wsPrefs.scheme} seed={wsPrefs.seed} size={28} />
           </div>
           <div className="spf-ws-text">
             <div className="spf-ws-name">{wsLabel}</div>
             <div className="spf-ws-meta">{wsMeta}</div>
           </div>
-        </div>
+        </button>
+
+        {pickerOpen && (
+          <div className="spf-ws-picker">
+            <WorkspaceSymbolPicker
+              workspaceKey={wsKey}
+              prefs={wsPrefs}
+              onChange={setWsPrefs}
+            />
+          </div>
+        )}
 
         {/* ── Team strip — who else is in this workspace ── */}
         <Link href={teamHref} className="spf-team" onClick={closeAndGo}>
@@ -229,15 +261,16 @@ export default function SidebarProfileFooter({
         onMouseEnter={e => { if (!open) e.currentTarget.style.background = 'var(--surface-2)' }}
         onMouseLeave={e => { if (!open) e.currentTarget.style.background = 'transparent' }}
       >
-        {/* Square glyph = workspace (vs. a person's round avatar) */}
-        <div style={{
-          width: 24, height: 24, borderRadius: 7,
-          background: avatarColor,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 11, fontWeight: 600, color: avatarFg,
-          flexShrink: 0, letterSpacing: '0.01em',
-        }}>
-          {wsGlyph}
+        {/* Square glyph = workspace (vs. a person's round avatar). The
+            generative WorkspaceSymbol replaces the initial-in-a-tile per
+            the senior design directive. Same identity, no boring letter. */}
+        <div style={{ width: 24, height: 24, flexShrink: 0, display: 'inline-flex' }}>
+          <WorkspaceSymbol
+            variant={wsPrefs.variant}
+            scheme={wsPrefs.scheme}
+            seed={wsPrefs.seed}
+            size={24}
+          />
         </div>
 
         <span style={{ flex: '1 1 auto', minWidth: 0, maxWidth: 82, display: 'inline-flex', alignItems: 'center', gap: 6, overflow: 'hidden' }}>
@@ -282,6 +315,30 @@ export default function SidebarProfileFooter({
         .spf-ws {
           display: flex; align-items: center; gap: 10px;
           padding: 8px 10px 9px;
+        }
+        .spf-ws-button {
+          width: 100%;
+          background: transparent; border: 0; cursor: pointer;
+          text-align: left;
+          border-radius: 10px;
+          transition: background .14s;
+        }
+        .spf-ws-button:hover { background: var(--surface-2); }
+        .spf-ws-button:focus-visible {
+          outline: 2px solid color-mix(in srgb, var(--text) 40%, transparent);
+          outline-offset: 2px;
+        }
+        .spf-ws-picker {
+          margin: 0 6px 8px;
+          padding: 8px 10px;
+          background: var(--surface-2);
+          border: 1px solid var(--border);
+          border-radius: 12px;
+          animation: spfPickerIn .18s cubic-bezier(.16,1,.3,1) both;
+        }
+        @keyframes spfPickerIn {
+          from { opacity: 0; transform: translateY(-4px); }
+          to   { opacity: 1; transform: translateY(0); }
         }
         .spf-ws-glyph {
           width: 32px; height: 32px; border-radius: 8px;
