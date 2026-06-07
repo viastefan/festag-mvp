@@ -342,6 +342,10 @@ export default function TagroOverlay() {
   const [input, setInput] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  // Extra @-attachments added by the user via the picker / @ trigger.
+  // Base chips come from the open context (buildInitialSession); these are
+  // additive and survive across the whole conversation until removed.
+  const [extraAttached, setExtraAttached] = useState<AttachedChip[]>([])
   const composerRef = useRef<HTMLTextAreaElement>(null)
   const timelineRef = useRef<HTMLDivElement>(null)
 
@@ -351,7 +355,7 @@ export default function TagroOverlay() {
   useEffect(() => {
     function onOpen(e: Event) {
       const d = (e as CustomEvent<TagroOpenDetail>).detail || { contextType: 'empty' }
-      setCtx(d); setInput(d.prefill || ''); setMessages([]); setError(''); setFullscreen(!!d.fullscreen); setOpen(true)
+      setCtx(d); setInput(d.prefill || ''); setMessages([]); setError(''); setExtraAttached([]); setFullscreen(!!d.fullscreen); setOpen(true)
     }
     window.addEventListener('festag:open-tagro', onOpen as EventListener)
     return () => window.removeEventListener('festag:open-tagro', onOpen as EventListener)
@@ -431,12 +435,16 @@ export default function TagroOverlay() {
           input: value,
           // Attached @-mentions for backend continuity. Current object
           // stays bound across every turn unless the user removes it.
-          attached: [{
-            type: ctx.contextType,
-            id: ctx.id,
-            title: ctx.title,
-            label: session.mentionLabel,
-          }],
+          // Extra picks (from the + picker or @ trigger) ride along too.
+          attached: [
+            {
+              type: ctx.contextType,
+              id: ctx.id,
+              title: ctx.title,
+              label: session.mentionLabel,
+            },
+            ...extraAttached.map(c => ({ kind: c.kind, label: c.label })),
+          ],
         }),
       })
       const data = await r.json().catch(() => null)
@@ -472,7 +480,12 @@ export default function TagroOverlay() {
   // current ctx so opening a task vs. a documents overview always speaks
   // the right language without per-render guesswork.
   const session = useMemo(() => buildInitialSession(ctx), [ctx])
-  const { chips: attachedChips, introLead, introHelp, placeholder, suggestions } = session
+  const { chips: baseChips, introLead, introHelp, placeholder, suggestions } = session
+  const attachedChips: AttachedChip[] = [...baseChips, ...extraAttached]
+  const attachExtra = (c: AttachedChip) =>
+    setExtraAttached(prev => prev.some(p => p.label === c.label) ? prev : [...prev, c])
+  const removeExtra = (label: string) =>
+    setExtraAttached(prev => prev.filter(p => p.label !== label))
   const chips = suggestions
 
   if (!open) return null
@@ -522,11 +535,25 @@ export default function TagroOverlay() {
                   user immediately sees what Tagro already knows. */}
               {attachedChips.length > 0 && (
                 <div className="tov-attached" role="group" aria-label="Angehängter Kontext">
-                  {attachedChips.map((c, i) => (
-                    <span key={i} className={`tov-attached-chip tov-attached-${c.kind}`}>
-                      {c.label}
-                    </span>
-                  ))}
+                  {attachedChips.map((c, i) => {
+                    // User-added chips (anything beyond the base session)
+                    // can be removed. Base context (object + meta) stays
+                    // pinned because that's where Tagro is "rooted".
+                    const isRemovable = i >= baseChips.length
+                    return (
+                      <span key={i} className={`tov-attached-chip tov-attached-${c.kind}`}>
+                        {c.label}
+                        {isRemovable && (
+                          <button
+                            type="button"
+                            className="tov-attached-x"
+                            aria-label="Entfernen"
+                            onClick={() => removeExtra(c.label)}
+                          ><X size={10} weight="bold" /></button>
+                        )}
+                      </span>
+                    )
+                  })}
                 </div>
               )}
 
@@ -541,6 +568,7 @@ export default function TagroOverlay() {
                 rec={rec}
                 onMic={toggleMic}
                 variant="hero"
+                onAttach={attachExtra}
               />
 
               <div className="tov-chips">
@@ -596,6 +624,7 @@ export default function TagroOverlay() {
                   rec={rec}
                   onMic={toggleMic}
                   variant="sticky"
+                  onAttach={attachExtra}
                 />
               </div>
             </div>
@@ -613,7 +642,7 @@ export default function TagroOverlay() {
 // ── Composer ──────────────────────────────────────────────────────────────
 
 function Composer({
-  inputRef, value, onChange, onSend, busy, placeholder, micOk, rec, onMic, variant,
+  inputRef, value, onChange, onSend, busy, placeholder, micOk, rec, onMic, variant, onAttach,
 }: {
   inputRef: React.RefObject<HTMLTextAreaElement>
   value: string
@@ -625,6 +654,10 @@ function Composer({
   rec: boolean
   onMic: () => void
   variant: 'hero' | 'sticky'
+  /** Called when the user picks an @-target from the People/Sources sheet
+   *  (or types '@' and chooses a result). Adds a chip to the overlay's
+   *  attached context. */
+  onAttach?: (chip: AttachedChip) => void
 }) {
   // Auto-grow: keep the textarea exactly one line by default, expand only
   // as the user types more. ChatGPT/Claude pattern.
@@ -694,7 +727,12 @@ function Composer({
         </div>
       </div>
 
-      {pickerOpen && <PeopleObjectPicker onClose={closePicker} />}
+      {pickerOpen && (
+        <PeopleObjectPicker
+          onClose={closePicker}
+          onPick={(chip) => { onAttach?.(chip); closePicker() }}
+        />
+      )}
     </div>
   )
 }
@@ -707,32 +745,129 @@ function Composer({
 // categories with placeholder copy so the user immediately understands
 // "Tagro can pull these in" instead of facing a dead button.
 
-function PeopleObjectPicker({ onClose }: { onClose: () => void }) {
-  const cats = [
-    { id: 'person',   label: 'Personen',         hint: '@Max, @Sarah, …' },
-    { id: 'task',     label: 'Aufgaben',         hint: '@Aufgabe Titel' },
-    { id: 'project',  label: 'Projekte',         hint: '@Projekt Titel' },
-    { id: 'doc',      label: 'Dokumente',        hint: '@Dokument Datei' },
-    { id: 'decision', label: 'Entscheidungen',   hint: '@Entscheidung Titel' },
-    { id: 'report',   label: 'Statusberichte',   hint: '@Statusbericht …' },
-    { id: 'client',   label: 'Kunden',           hint: '@Kunde Name' },
-    { id: 'dev',      label: 'Dev Items',        hint: '@Commit / @PR / @Update' },
-  ]
+type PickResult = {
+  group: 'Projekte' | 'Aufgaben' | 'Entscheidungen' | 'Notizen' | 'Kunden'
+  id: string
+  title: string
+  hint?: string
+}
+
+function PeopleObjectPicker({ onClose, onPick }: { onClose: () => void; onPick: (chip: AttachedChip) => void }) {
+  const [q, setQ] = useState('')
+  const [results, setResults] = useState<PickResult[]>([])
+  const [loading, setLoading] = useState(false)
+  const searchRef = useRef<HTMLInputElement>(null)
+
+  // Autofocus the search box on open — keyboard-first.
+  useEffect(() => { searchRef.current?.focus() }, [])
+
+  // Debounced search across the user's workspace. Reuses the same
+  // pattern as CommandPalette so results stay consistent. When the
+  // query is empty we still fetch a small "recent" set so the picker
+  // never opens to a blank list.
+  useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+    const t = window.setTimeout(async () => {
+      try {
+        // Lazy import the supabase client so this module stays lean for
+        // server-side rendering paths.
+        const { createClient } = await import('@/lib/supabase/client')
+        const sb = createClient() as any
+        const term = q.trim()
+        const like = term ? `%${term.replace(/[%_]/g, '\\$&')}%` : null
+        const projectsQ = like
+          ? sb.from('projects').select('id,title,status').ilike('title', like).limit(6)
+          : sb.from('projects').select('id,title,status').order('updated_at', { ascending: false }).limit(6)
+        const tasksQ = like
+          ? sb.from('tasks').select('id,title,project_id,status').ilike('title', like).limit(6)
+          : sb.from('tasks').select('id,title,project_id,status').order('updated_at', { ascending: false }).limit(6)
+        const decisionsQ = like
+          ? sb.from('decisions').select('id,title,status').ilike('title', like).limit(4)
+          : sb.from('decisions').select('id,title,status').order('updated_at', { ascending: false }).limit(4)
+        const clientsQ = like
+          ? sb.from('clients').select('id,name').ilike('name', like).limit(4)
+          : sb.from('clients').select('id,name').order('updated_at', { ascending: false }).limit(4)
+        const notesQ = like
+          ? sb.from('relations_notes').select('id,title,content').or(`title.ilike.${like},content.ilike.${like}`).limit(4)
+          : sb.from('relations_notes').select('id,title,content').order('updated_at', { ascending: false }).limit(4)
+        const [projects, tasks, decisions, clients, notes] = await Promise.all([
+          projectsQ.then((r: any) => r).catch(() => ({ data: [] })),
+          tasksQ.then((r: any) => r).catch(() => ({ data: [] })),
+          decisionsQ.then((r: any) => r).catch(() => ({ data: [] })),
+          clientsQ.then((r: any) => r).catch(() => ({ data: [] })),
+          notesQ.then((r: any) => r).catch(() => ({ data: [] })),
+        ])
+        if (cancelled) return
+        const out: PickResult[] = []
+        ;(projects.data || []).forEach((p: any) => out.push({ group: 'Projekte', id: p.id, title: p.title, hint: p.status }))
+        ;(tasks.data || []).forEach((t: any) => out.push({ group: 'Aufgaben', id: t.id, title: t.title, hint: t.status }))
+        ;(decisions.data || []).forEach((d: any) => out.push({ group: 'Entscheidungen', id: d.id, title: d.title, hint: d.status }))
+        ;(clients.data || []).forEach((c: any) => out.push({ group: 'Kunden', id: c.id, title: c.name }))
+        ;(notes.data || []).forEach((n: any) => out.push({ group: 'Notizen', id: n.id, title: n.title || (n.content || '').slice(0, 60) }))
+        setResults(out)
+      } catch {
+        if (!cancelled) setResults([])
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }, 180)
+    return () => { cancelled = true; window.clearTimeout(t) }
+  }, [q])
+
+  function pickResult(r: PickResult) {
+    const kindLabel = r.group === 'Projekte' ? 'Projekt'
+      : r.group === 'Aufgaben' ? 'Aufgabe'
+      : r.group === 'Entscheidungen' ? 'Entscheidung'
+      : r.group === 'Kunden' ? 'Kunde'
+      : 'Notiz'
+    onPick({ kind: 'object', label: `@${kindLabel} ${r.title}` })
+  }
+
+  // Group results for rendering.
+  const groups = useMemo(() => {
+    const map = new Map<string, PickResult[]>()
+    for (const r of results) {
+      if (!map.has(r.group)) map.set(r.group, [])
+      map.get(r.group)!.push(r)
+    }
+    return Array.from(map.entries())
+  }, [results])
+
   return (
     <div className="tov-pick" role="dialog" aria-label="Quellen und Personen hinzufügen">
       <div className="tov-pick-backdrop" onClick={onClose} aria-hidden />
       <div className="tov-pick-sheet" onClick={e => e.stopPropagation()}>
         <p className="tov-pick-title">Hinzufügen</p>
         <p className="tov-pick-sub">
-          Wähle aus, was Tagro mit diesem Chat verknüpfen soll. Du kannst auch
-          direkt im Text <code>@</code> tippen.
+          Wähle, was Tagro mit diesem Chat verknüpfen soll. Tipp im Text
+          auch <code>@</code> für Schnellzugriff.
         </p>
-        <div className="tov-pick-grid">
-          {cats.map(c => (
-            <button key={c.id} type="button" className="tov-pick-item" onClick={onClose}>
-              <strong>{c.label}</strong>
-              <span>{c.hint}</span>
-            </button>
+        <input
+          ref={searchRef}
+          type="text"
+          className="tov-pick-search"
+          placeholder="Suche Projekte, Aufgaben, Entscheidungen, Kunden, Notizen …"
+          value={q}
+          onChange={e => setQ(e.target.value)}
+        />
+        <div className="tov-pick-results">
+          {loading && results.length === 0 && (
+            <p className="tov-pick-empty">Lade …</p>
+          )}
+          {!loading && results.length === 0 && (
+            <p className="tov-pick-empty">Nichts gefunden{q ? ` für „${q}"` : ''}.</p>
+          )}
+          {groups.map(([group, items]) => (
+            <div key={group} className="tov-pick-group">
+              <p className="tov-pick-group-label">{group}</p>
+              {items.map(r => (
+                <button key={`${group}-${r.id}`} type="button" className="tov-pick-result" onClick={() => pickResult(r)}>
+                  <strong>{r.title}</strong>
+                  {r.hint && <span>{r.hint}</span>}
+                </button>
+              ))}
+            </div>
           ))}
         </div>
         <button type="button" className="tov-pick-close" onClick={onClose} aria-label="Schließen"><X size={14} /></button>
@@ -1048,6 +1183,17 @@ const STYLES = `
   color: var(--tov-text-2);
   border: 1px solid var(--tov-border);
 }
+.tov-attached-x {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 14px; height: 14px; margin-left: 2px;
+  border: 0; border-radius: 999px;
+  background: rgba(255,255,255,0.18); color: inherit;
+  cursor: pointer; opacity: .8;
+  transition: opacity .12s, background .12s;
+}
+.tov-attached-x:hover { opacity: 1; background: rgba(255,255,255,0.3); }
+.tov-attached-meta .tov-attached-x { background: var(--tov-pill); }
+.tov-attached-meta .tov-attached-x:hover { background: var(--tov-pill-h); }
 
 /* Hero chips */
 .tov-chips { width: 100%; margin-top: 8px; }
@@ -1186,18 +1332,52 @@ const STYLES = `
 .tov-pick-title { margin: 0; font-size: 14px; font-weight: 600; letter-spacing: -.005em; }
 .tov-pick-sub { margin: 4px 0 14px; font-size: 12.5px; color: var(--tov-text-2); }
 .tov-pick-sub code { background: var(--tov-pill); padding: 1px 5px; border-radius: 4px; font-size: 11.5px; }
-.tov-pick-grid { display: grid; gap: 6px; grid-template-columns: 1fr 1fr; }
-@media (max-width: 560px) { .tov-pick-grid { grid-template-columns: 1fr; } }
-.tov-pick-item {
-  display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
-  background: transparent; color: var(--tov-text); border: 1px solid var(--tov-border);
-  border-radius: 12px; padding: 9px 12px; text-align: left;
-  font: inherit; font-size: 12.5px; font-weight: 500; cursor: pointer;
-  transition: background .12s, border-color .12s;
+.tov-pick-search {
+  width: 100%;
+  height: 36px;
+  background: var(--tov-input);
+  border: 1px solid var(--tov-border);
+  border-radius: 10px;
+  padding: 0 12px;
+  font: inherit; font-size: 13px;
+  color: var(--tov-text);
+  outline: 0;
+  margin-bottom: 10px;
 }
-.tov-pick-item strong { font-weight: 600; font-size: 13px; }
-.tov-pick-item span { color: var(--tov-text-2); font-size: 11.5px; font-weight: 400; }
-.tov-pick-item:hover { background: var(--tov-pill); border-color: var(--tov-border-2); }
+.tov-pick-search::placeholder { color: var(--tov-muted); }
+.tov-pick-search:focus { border-color: var(--tov-border-2); background: var(--tov-input-2); }
+.tov-pick-results {
+  max-height: 320px;
+  overflow-y: auto;
+  display: flex; flex-direction: column; gap: 10px;
+  padding-right: 4px;
+}
+.tov-pick-group { display: flex; flex-direction: column; gap: 2px; }
+.tov-pick-group-label {
+  margin: 0 0 2px;
+  font-size: 10.5px; font-weight: 600; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--tov-muted);
+}
+.tov-pick-result {
+  display: flex; align-items: center; gap: 8px;
+  background: transparent; color: var(--tov-text);
+  border: 0; border-radius: 8px;
+  padding: 7px 10px; text-align: left;
+  font: inherit; font-size: 12.5px; font-weight: 500;
+  cursor: pointer;
+  transition: background .12s;
+}
+.tov-pick-result:hover { background: var(--tov-pill); }
+.tov-pick-result strong { font-weight: 500; flex: 1; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tov-pick-result span {
+  color: var(--tov-text-2); font-size: 11px; font-weight: 400;
+  flex-shrink: 0;
+}
+.tov-pick-empty {
+  margin: 0; padding: 16px 0;
+  text-align: center; font-size: 12.5px; color: var(--tov-text-2);
+}
 .tov-pick-close {
   position: absolute; top: 12px; right: 12px;
   width: 26px; height: 26px;
