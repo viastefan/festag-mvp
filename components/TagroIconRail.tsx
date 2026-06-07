@@ -1,57 +1,157 @@
 'use client'
 
 /**
- * TagroIconRail — slim 56px icon-only rail mirroring the real Festag
- * sidebar navigation (Personal · Workspace · Tagro · Tools). Rendered
- * during Tagro fullscreen mode and on /ai. Mobile-hidden.
+ * TagroIconRail — the real Festag sidebar collapsed into a 56px icon-only
+ * rail. NOT a separate placeholder nav. Items, routes, labels and icons
+ * all mirror the real sidebars 1:1 so clicks behave identically.
  *
- * Icons + routes come from the same component set the full Sidebar uses
- * — no random phosphor placeholders. Active state is tracked via
- * pathname so the user always sees where they are.
+ * Panel-aware:
+ *   - pathname starts with /dev/ → mirrors DevSidebar (Overview, Projects,
+ *     My Tasks, Tagro Review, Daily Plan, Zeiterfassung, Job Board,
+ *     GitHub, Updates, Team, Messages, Settings).
+ *   - otherwise → mirrors the main Festag sidebar nav (Statusabfrage,
+ *     Inbox, Kunden, Projekte, Tasks, Entscheidungen, Statusberichte,
+ *     Dokumente, Notizen, Tagro, Mehr, Settings).
  *
- * Two presentations are supported:
- *   - 'shell'  → fixed left rail used by ClientAppShell (default)
- *   - 'inline' → static rail rendered inside the Tagro overlay so the
- *                portal never visually covers the shell rail beneath it.
+ * Click behavior:
+ *   - shell variant (fixed in ClientAppShell): plain Link navigation.
+ *   - inline variant (mounted inside the TagroOverlay): the overlay
+ *     passes onNavigate to close itself before route change so the user
+ *     lands on the real page with the full sidebar restored.
+ *
+ * Mobile (<=768px): hidden — mobile keeps the 2-button object bar.
  */
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import {
+  Article,
+  Briefcase,
   ChatCircle,
+  ChatsCircle,
   CheckSquare,
+  Clock,
+  Compass,
+  DotsThreeOutline,
   FileText,
+  FolderOpen,
   FolderSimple,
   GearSix,
+  GithubLogo,
   House,
+  Kanban,
+  NotePencil,
+  Robot,
   Scales,
   Sparkle,
   Tray,
+  UsersThree,
 } from '@phosphor-icons/react'
-import type { ReactNode } from 'react'
+import type { MouseEvent } from 'react'
 
 type RailItem = {
   id: string
   label: string
-  icon: ReactNode
+  // Phosphor icons have a complex generic signature; React.ElementType
+  // sidesteps it without losing the size/weight props at the call site.
+  icon: React.ElementType
   href: string
+  /** Used to set active style. */
   match: (path: string) => boolean
 }
 
-const ITEMS: RailItem[] = [
-  // Mirrors the real Sidebar order (personal → workspace → tagro → tools).
-  { id: 'statusabfrage', label: 'Statusabfrage', icon: <House size={18} />,         href: '/dashboard',  match: (p) => p === '/dashboard' },
-  { id: 'inbox',         label: 'Inbox',         icon: <Tray size={18} />,          href: '/inbox',      match: (p) => p.startsWith('/inbox') },
-  { id: 'projects',      label: 'Projekte',      icon: <FolderSimple size={18} />,  href: '/projects',   match: (p) => p === '/projects' || p.startsWith('/project/') },
-  { id: 'tasks',         label: 'Tasks',         icon: <CheckSquare size={18} />,   href: '/tasks',      match: (p) => p.startsWith('/tasks') },
-  { id: 'decisions',     label: 'Entscheidungen',icon: <Scales size={18} />,        href: '/decisions',  match: (p) => p.startsWith('/decisions') },
-  { id: 'reports',       label: 'Statusberichte',icon: <FileText size={18} />,      href: '/reports',    match: (p) => p.startsWith('/reports') },
-  { id: 'tagro',         label: 'Tagro',         icon: <ChatCircle size={18} />,    href: '/ai',         match: (p) => p.startsWith('/ai') },
+/**
+ * Main app rail — matches the order of the full Festag sidebar so the
+ * user's spatial muscle memory carries over verbatim.
+ */
+const APP_ITEMS: RailItem[] = [
+  { id: 'statusabfrage', label: 'Statusabfrage', icon: House,        href: '/dashboard',  match: (p) => p === '/dashboard' || p === '/' },
+  { id: 'inbox',         label: 'Inbox',         icon: Tray,         href: '/inbox',      match: (p) => p.startsWith('/inbox') || p.startsWith('/messages') },
+  { id: 'clients',       label: 'Kunden',        icon: UsersThree,   href: '/clients',    match: (p) => p.startsWith('/clients') },
+  { id: 'projects',      label: 'Projekte',      icon: FolderSimple, href: '/projects',   match: (p) => p === '/projects' || p.startsWith('/project/') },
+  { id: 'tasks',         label: 'Tasks',         icon: CheckSquare,  href: '/tasks',      match: (p) => p.startsWith('/tasks') },
+  { id: 'decisions',     label: 'Entscheidungen',icon: Scales,       href: '/decisions',  match: (p) => p.startsWith('/decisions') },
+  { id: 'reports',       label: 'Statusberichte',icon: FileText,     href: '/reports',    match: (p) => p.startsWith('/reports') },
+  { id: 'documents',     label: 'Dokumente',     icon: FolderOpen,   href: '/documents',  match: (p) => p.startsWith('/documents') },
+  { id: 'notes',         label: 'Notizen',       icon: NotePencil,   href: '/notes',      match: (p) => p.startsWith('/notes') },
+  { id: 'tagro',         label: 'Tagro',         icon: ChatCircle,   href: '/ai',         match: (p) => p.startsWith('/ai') },
+  { id: 'more',          label: 'Mehr',          icon: DotsThreeOutline, href: '/more',   match: (p) => p.startsWith('/more') },
 ]
 
-export default function TagroIconRail({ variant = 'shell' }: { variant?: 'shell' | 'inline' } = {}) {
+/**
+ * Dev Panel rail — verbatim from DevSidebar NAV_MAIN + NAV_INTEGRATIONS
+ * + NAV_ORG. Same routes, same icons, same labels.
+ */
+const DEV_ITEMS: RailItem[] = [
+  { id: 'dev-overview', label: 'Overview',      icon: Compass,     href: '/dev',          match: (p) => p === '/dev' },
+  { id: 'dev-projects', label: 'Projects',      icon: FolderOpen,  href: '/dev/projects', match: (p) => p.startsWith('/dev/projects') },
+  { id: 'dev-tasks',    label: 'My Tasks',      icon: CheckSquare, href: '/dev/tasks',    match: (p) => p.startsWith('/dev/tasks') },
+  { id: 'dev-review',   label: 'Tagro Review',  icon: Robot,       href: '/dev/review',   match: (p) => p.startsWith('/dev/review') },
+  { id: 'dev-plan',     label: 'Daily Plan',    icon: Kanban,      href: '/dev/plan',     match: (p) => p.startsWith('/dev/plan') },
+  { id: 'dev-time',     label: 'Zeiterfassung', icon: Clock,       href: '/dev/time',     match: (p) => p.startsWith('/dev/time') },
+  { id: 'dev-jobs',     label: 'Job Board',     icon: Briefcase,   href: '/dev/jobs',     match: (p) => p.startsWith('/dev/jobs') },
+  { id: 'dev-github',   label: 'GitHub',        icon: GithubLogo,  href: '/dev/github',   match: (p) => p.startsWith('/dev/github') },
+  { id: 'dev-updates',  label: 'Updates',       icon: Article,     href: '/dev/updates',  match: (p) => p.startsWith('/dev/updates') },
+  { id: 'dev-team',     label: 'Team',          icon: UsersThree,  href: '/dev/team',     match: (p) => p.startsWith('/dev/team') },
+  { id: 'dev-messages', label: 'Messages',      icon: ChatsCircle, href: '/dev/messages', match: (p) => p.startsWith('/dev/messages') },
+]
+
+export type TagroIconRailProps = {
+  /** Layout: 'shell' is fixed positioned for the app shell, 'inline' is
+   *  static for use inside the TagroOverlay portal. */
+  variant?: 'shell' | 'inline'
+  /** Called BEFORE navigation — used by the overlay to close itself so the
+   *  user lands on the destination page with the full sidebar restored. */
+  onNavigate?: (href: string) => void
+}
+
+export default function TagroIconRail({ variant = 'shell', onNavigate }: TagroIconRailProps) {
   const pathname = usePathname() || ''
   const router = useRouter()
+
+  // Panel detection mirrors which sidebar would have been showing if Tagro
+  // wasn't covering it. /dev/* → dev sidebar. Everything else → main app.
+  const isDev = pathname.startsWith('/dev')
+  const items = isDev ? DEV_ITEMS : APP_ITEMS
+
+  // Bottom-pinned items: always Settings (panel-aware route).
+  const bottom: RailItem = isDev
+    ? { id: 'dev-settings', label: 'Einstellungen', icon: GearSix, href: '/dev/settings', match: (p) => p.startsWith('/dev/settings') }
+    : { id: 'settings',     label: 'Einstellungen', icon: GearSix, href: '/settings',     match: (p) => p.startsWith('/settings') }
+
+  function go(e: MouseEvent<HTMLAnchorElement>, href: string) {
+    // When the rail sits inside the overlay portal we MUST close the
+    // overlay first so it doesn't keep painting over the page we just
+    // navigated to. Then we route programmatically — Link's default nav
+    // would otherwise race with the close.
+    if (onNavigate) {
+      e.preventDefault()
+      onNavigate(href)
+      // Defer the route push so React commits the close before the new
+      // page mounts (avoids a flash of the overlay on top of the new route).
+      window.setTimeout(() => router.push(href), 0)
+    }
+  }
+
+  function renderItem(it: RailItem) {
+    const active = it.match(pathname)
+    const Icon = it.icon
+    return (
+      <Link
+        key={it.id}
+        href={it.href}
+        prefetch={false}
+        className={`tir-btn${active ? ' is-active' : ''}`}
+        aria-label={it.label}
+        aria-current={active ? 'page' : undefined}
+        title={it.label}
+        onClick={(e) => go(e, it.href)}
+      >
+        <span className="tir-ico" aria-hidden><Icon size={18} weight="regular" /></span>
+        <span className="tir-sr">{it.label}</span>
+      </Link>
+    )
+  }
 
   return (
     <aside className={`tir-rail tir-rail-${variant}`} role="navigation" aria-label="Festag Navigation">
@@ -60,35 +160,21 @@ export default function TagroIconRail({ variant = 'shell' }: { variant?: 'shell'
         className="tir-mark"
         aria-label="Festag"
         title="Festag"
-        onClick={() => router.push('/dashboard')}
+        onClick={() => {
+          const dest = isDev ? '/dev' : '/dashboard'
+          if (onNavigate) { onNavigate(dest); window.setTimeout(() => router.push(dest), 0) }
+          else router.push(dest)
+        }}
       >
         <Sparkle size={16} weight="fill" />
       </button>
 
       <nav className="tir-list">
-        {ITEMS.map(item => {
-          const active = item.match(pathname)
-          return (
-            <Link
-              key={item.id}
-              href={item.href}
-              prefetch={false}
-              className={`tir-btn${active ? ' is-active' : ''}`}
-              aria-label={item.label}
-              title={item.label}
-            >
-              <span className="tir-ico" aria-hidden>{item.icon}</span>
-              <span className="tir-sr">{item.label}</span>
-            </Link>
-          )
-        })}
+        {items.map(renderItem)}
       </nav>
 
       <div className="tir-bottom">
-        <Link href="/settings" prefetch={false} className={`tir-btn${pathname.startsWith('/settings') ? ' is-active' : ''}`} aria-label="Einstellungen" title="Einstellungen">
-          <span className="tir-ico" aria-hidden><GearSix size={18} /></span>
-          <span className="tir-sr">Einstellungen</span>
-        </Link>
+        {renderItem(bottom)}
       </div>
 
       <style>{`
@@ -136,7 +222,12 @@ export default function TagroIconRail({ variant = 'shell' }: { variant?: 'shell'
           flex: 1; width: 100%;
           display: flex; flex-direction: column; align-items: center;
           gap: 2px; padding-top: 4px;
+          overflow-y: auto;
+          /* Keep the rail clean — hide scrollbar but allow overflow scroll
+             when the dev nav has lots of items on short viewports. */
+          scrollbar-width: none;
         }
+        .tir-list::-webkit-scrollbar { display: none; }
         .tir-bottom {
           width: 100%;
           display: flex; flex-direction: column; align-items: center;
@@ -162,6 +253,10 @@ export default function TagroIconRail({ variant = 'shell' }: { variant?: 'shell'
         [data-theme="dark"] .tir-btn.is-active,
         [data-theme="classic-dark"] .tir-btn.is-active {
           color: #F4F4F4; background: rgba(255,255,255,.06);
+        }
+        .tir-btn:focus-visible {
+          outline: 2px solid color-mix(in srgb, var(--text) 50%, transparent);
+          outline-offset: 2px;
         }
         .tir-btn:active { transform: scale(.96); }
         .tir-ico { display: inline-flex; }

@@ -486,7 +486,10 @@ export default function TagroOverlay() {
           left edge of the workspace itself. Hidden in compact mode. */}
       {fullscreen && (
         <div className="tov-rail-slot" aria-hidden={false}>
-          <TagroIconRail variant="inline" />
+          {/* Rail click closes Tagro BEFORE the route changes so the user
+              lands on the destination page with the full Festag sidebar
+              fully restored — not a residual Tagro overlay covering it. */}
+          <TagroIconRail variant="inline" onNavigate={() => close()} />
         </div>
       )}
 
@@ -623,33 +626,53 @@ function Composer({
   onMic: () => void
   variant: 'hero' | 'sticky'
 }) {
+  // Auto-grow: keep the textarea exactly one line by default, expand only
+  // as the user types more. This is what ChatGPT/Claude do. Capped so very
+  // long input becomes scrollable rather than pushing the page around.
+  function autosize(el: HTMLTextAreaElement | null) {
+    if (!el) return
+    el.style.height = 'auto'
+    const max = 200 // ~8 lines
+    el.style.height = Math.min(el.scrollHeight, max) + 'px'
+  }
+
   return (
     <div className={`tov-composer tov-composer-${variant}`}>
-      {/* Left action: always a + button (sources/people picker entry).
-          The Tagro mark/bulb lives ABOVE the question now, never inside
-          the input where it floated awkwardly. */}
-      <button type="button" className="tov-composer-plus" aria-label="Quellen oder Personen hinzufügen" title="Hinzufügen">
-        <Plus size={16} weight="regular" />
-      </button>
+      {/* Row 1: single-line textarea (auto-grows downward when needed). */}
       <textarea
-        ref={inputRef}
+        ref={(el) => {
+          // Forward to caller ref + run autosize on mount/value change.
+          if (typeof inputRef === 'function') (inputRef as any)(el)
+          else if (inputRef) (inputRef as any).current = el
+          autosize(el)
+        }}
         className="tov-composer-input"
-        rows={variant === 'hero' ? 2 : 1}
+        rows={1}
         placeholder={placeholder}
         value={value}
-        onChange={e => onChange(e.target.value)}
+        onChange={e => { autosize(e.currentTarget); onChange(e.target.value) }}
         onKeyDown={e => {
           if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); onSend() }
         }}
       />
-      {micOk && (
-        <button type="button" className={`tov-composer-mic${rec ? ' is-rec' : ''}`} onClick={onMic} aria-label={rec ? 'Aufnahme stoppen' : 'Per Sprache diktieren'}>
-          {rec ? <MicrophoneSlash size={14} weight="fill" /> : <Microphone size={14} />}
+
+      {/* Row 2: action bar pinned to the bottom edge with breathing room
+          to the textarea. + on the left, mic/send on the right. */}
+      <div className="tov-composer-actions">
+        <button type="button" className="tov-composer-plus" aria-label="Quellen oder Personen hinzufügen" title="Hinzufügen">
+          <Plus size={16} weight="regular" />
         </button>
-      )}
-      <button type="button" className="tov-composer-send" onClick={onSend} disabled={busy || !value.trim()} aria-label="Senden">
-        {busy ? <ArrowsClockwise size={16} className="tov-spin" /> : <ArrowUp size={16} weight="bold" />}
-      </button>
+        <div className="tov-composer-actions-right">
+          {micOk && (
+            <button type="button" className={`tov-composer-mic${rec ? ' is-rec' : ''}`} onClick={onMic} aria-label={rec ? 'Aufnahme stoppen' : 'Per Sprache diktieren'}>
+              {rec ? <MicrophoneSlash size={14} weight="fill" /> : <Microphone size={14} />}
+            </button>
+          )}
+          <button type="button" className="tov-composer-send" onClick={onSend} disabled={busy || !value.trim()} aria-label="Senden">
+            {busy ? <ArrowsClockwise size={16} className="tov-spin" /> : <ArrowUp size={16} weight="bold" />}
+          </button>
+        </div>
+      </div>
     </div>
   )
 }
@@ -776,8 +799,12 @@ const STYLES = `
 .tov-rail-slot {
   position: fixed; top: 0; left: 0; bottom: 0;
   width: 56px;
-  z-index: 1;
+  /* Above the backdrop AND above the workspace shell so the icons are
+     always reachable on click — the previous z-index:1 let the shell's
+     own backdrop intercept pointer events in some browsers. */
+  z-index: 5;
   display: none;
+  pointer-events: auto;
 }
 .tov.tov-full .tov-rail-slot { display: block; }
 @media (max-width: 768px) {
@@ -860,16 +887,19 @@ const STYLES = `
 }
 
 /* Composer */
+/* ChatGPT/Claude-style composer:
+   ─ single-line textarea at the top (auto-grows down as you type)
+   ─ action bar pinned at the BOTTOM edge with breathing room
+   ─ buttons sit on the bottom border, not floating in the vertical middle */
 .tov-composer {
   width: 100%;
   background: var(--tov-input);
   border: 1px solid var(--tov-border);
-  border-radius: 20px;
-  padding: 14px 14px 14px 18px;
-  display: grid;
-  grid-template-columns: 32px minmax(0, 1fr) auto auto;
-  gap: 10px;
-  align-items: center;
+  border-radius: 22px;
+  padding: 14px 14px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   box-shadow: 0 12px 32px -22px rgba(15,23,42,0.10);
   transition: border-color .14s, background .14s;
 }
@@ -877,9 +907,14 @@ const STYLES = `
   box-shadow: 0 12px 32px -22px rgba(0,0,0,0.5);
 }
 .tov-composer:focus-within { border-color: var(--tov-border-2); background: var(--tov-input-2); }
-.tov-composer-hero { padding: 18px 18px 18px 22px; border-radius: 22px; }
-.tov-composer-sticky { padding: 10px 10px 10px 16px; border-radius: 18px; }
+.tov-composer-hero { padding: 16px 18px 12px; border-radius: 24px; }
+.tov-composer-sticky { padding: 10px 12px 8px; border-radius: 18px; }
 .tov-composer-ico { color: var(--tov-muted); display: inline-flex; }
+.tov-composer-actions {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 8px;
+}
+.tov-composer-actions-right { display: inline-flex; gap: 6px; align-items: center; }
 .tov-composer-plus {
   width: 32px; height: 32px;
   display: inline-flex; align-items: center; justify-content: center;
@@ -891,9 +926,12 @@ const STYLES = `
 .tov-composer-input {
   width: 100%; border: 0; outline: 0; resize: none; background: transparent;
   color: var(--tov-text); font: inherit;
-  font-size: 16px; line-height: 1.55;
-  min-height: 28px;
-  padding: 4px 0;
+  font-size: 16px; line-height: 1.5;
+  /* Exactly one line by default; JS auto-grows up to ~8 lines. */
+  min-height: 24px;
+  max-height: 200px;
+  padding: 2px 4px 0;
+  overflow-y: auto;
 }
 .tov-composer-input::placeholder { color: var(--tov-muted); }
 .tov-composer-mic {
