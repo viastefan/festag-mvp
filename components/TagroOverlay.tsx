@@ -601,7 +601,6 @@ export default function TagroOverlay() {
               />
 
               <div className="tov-chips">
-                <p className="tov-chips-label">Beispiele</p>
                 <div className="tov-chips-grid">
                   {chips.map(c => (
                     <button key={c} type="button" className="tov-chip" onClick={() => { setInput(c); window.setTimeout(() => composerRef.current?.focus(), 40) }}>
@@ -918,23 +917,16 @@ function UserMsg({ content }: { content: string }) {
 function TagroMsg({ msg, onAction }: { msg: Extract<Message, { role: 'tagro' }>; onAction: (a: string) => void }) {
   return (
     <div className="tov-msg tov-msg-tagro">
+      {/* No eyebrow labels — visual hierarchy carries the structure:
+          understanding = lead, opinion = secondary, preview = framed box. */}
       {msg.understanding && (
-        <section>
-          <p className="tov-msg-label">Ich verstehe dich so</p>
-          <p className="tov-msg-text">{msg.understanding}</p>
-        </section>
+        <p className="tov-msg-text tov-msg-lead">{msg.understanding}</p>
       )}
       {msg.opinion && (
-        <section>
-          <p className="tov-msg-label">Meine Einschätzung</p>
-          <p className="tov-msg-text">{msg.opinion}</p>
-        </section>
+        <p className="tov-msg-text">{msg.opinion}</p>
       )}
       {msg.preview && (
-        <section>
-          <p className="tov-msg-label">Vorschau</p>
-          <div className="tov-msg-preview">{msg.preview}</div>
-        </section>
+        <div className="tov-msg-preview">{msg.preview}</div>
       )}
       {msg.warnings && msg.warnings.length > 0 && (
         <div className="tov-warnings">
@@ -1276,7 +1268,13 @@ const STYLES = `
   font-size: 11px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--tov-muted);
 }
 .tov-msg-text {
-  margin: 0; font-size: 15px; line-height: 1.6; color: var(--tov-text);
+  margin: 0; font-size: 15px; line-height: 1.6; color: var(--tov-text-2);
+}
+.tov-msg-lead {
+  /* The understanding line is the lead answer — full-strength text,
+     slightly larger, carrying the structure without an eyebrow label. */
+  color: var(--tov-text);
+  font-size: 15.5px; font-weight: 500;
 }
 .tov-msg-preview {
   margin: 0; padding: 14px 16px;
