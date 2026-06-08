@@ -214,6 +214,13 @@ export default function MobileClientDock() {
             z-index: 190;
           }
           :global(body.chat-composer-focused) .mcd { transform: translateY(140%); transition: transform .2s ease; }
+          /* Make sure page content can scroll clear of the dock. */
+          :global(body.festag-client-dock) :global(.app-workspace),
+          :global(body.festag-client-dock) :global(.app-workspace-scroll) {
+            padding-bottom: calc(78px + env(safe-area-inset-bottom, 0px)) !important;
+          }
+          /* The desktop 'Copilot' footer controls have no place on mobile. */
+          :global(body.festag-client-dock) :global(.app-footer-controls) { display: none !important; }
         }
         .mcd-menu {
           flex: 0 0 auto;
