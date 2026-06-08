@@ -24,6 +24,8 @@ import { getFontMode, setFontMode as applyFontMode, getTheme, setTheme as applyT
 import { getLanguageMode, setLanguageMode, type LanguageMode } from '@/lib/language'
 import { AVATAR_COLORS, avatarTextColor } from '@/lib/avatar'
 import { broadcastWorkspaceAccent } from '@/lib/workspace-accent'
+import WorkspaceSymbol, { SYMBOL_SCHEMES, SYMBOL_VARIANTS } from '@/components/WorkspaceSymbol'
+import { loadSymbol, saveSymbol } from '@/lib/workspace-symbol'
 import { rememberFestagEmail } from '@/lib/auth-device-memory'
 import {
   broadcastProfileSync,
@@ -1696,6 +1698,13 @@ export default function SettingsPage() {
                 </button>
               </div>
             </div>
+            <div className="set-row set-row-stack">
+              <div>
+                <div className="set-label">Workspace-Symbol</div>
+                <div className="set-label-sub">Form und Farbe deines Workspace-Marks. Wird sofort im Sidebar übernommen.</div>
+              </div>
+              <WorkspaceSymbolSettings workspaceName={wsName} />
+            </div>
           </div>
         )}
 
@@ -2372,6 +2381,96 @@ export default function SettingsPage() {
           </>
         )}
       </main>
+    </div>
+  )
+}
+
+/**
+ * WorkspaceSymbolSettings — the roomy, no-eyebrow workspace-mark picker.
+ * Lives in Settings → Erscheinung (moved out of the cramped sidebar popover
+ * that overflowed). Big live preview + generous variant/colour grids.
+ */
+function WorkspaceSymbolSettings({ workspaceName }: { workspaceName: string }) {
+  const wsKey = (workspaceName || 'festag').trim().toLowerCase() || 'festag'
+  const [prefs, setPrefs] = useState(() => loadSymbol(wsKey))
+  useEffect(() => { setPrefs(loadSymbol(wsKey)) }, [wsKey])
+
+  function set(next: Partial<typeof prefs>) {
+    const merged = { ...prefs, ...next }
+    setPrefs(merged)
+    saveSymbol(wsKey, merged)
+  }
+
+  return (
+    <div className="wss">
+      <div className="wss-head">
+        <WorkspaceSymbol variant={prefs.variant} scheme={prefs.scheme} seed={prefs.seed} size={56} />
+        <div className="wss-head-text">
+          <strong>{workspaceName || 'Festag'}</strong>
+          <span>Dein Workspace-Mark</span>
+        </div>
+      </div>
+
+      <div className="wss-block">
+        <span className="wss-block-title">Form</span>
+        <div className="wss-grid">
+          {SYMBOL_VARIANTS.map(v => (
+            <button
+              key={v}
+              type="button"
+              className={`wss-cell${prefs.variant === v ? ' on' : ''}`}
+              aria-label={v}
+              aria-pressed={prefs.variant === v}
+              onClick={() => set({ variant: v })}
+            >
+              <WorkspaceSymbol variant={v} scheme={prefs.scheme} seed={prefs.seed} size={34} />
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="wss-block">
+        <span className="wss-block-title">Farbe</span>
+        <div className="wss-grid">
+          {SYMBOL_SCHEMES.map(sc => (
+            <button
+              key={sc}
+              type="button"
+              className={`wss-cell${prefs.scheme === sc ? ' on' : ''}`}
+              aria-label={sc}
+              aria-pressed={prefs.scheme === sc}
+              onClick={() => set({ scheme: sc })}
+            >
+              <WorkspaceSymbol variant={prefs.variant} scheme={sc} seed={prefs.seed} size={34} />
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <style jsx>{`
+        .wss { display: flex; flex-direction: column; gap: 18px; width: 100%; max-width: 440px; }
+        .wss-head { display: flex; align-items: center; gap: 14px; }
+        .wss-head-text { display: flex; flex-direction: column; gap: 2px; }
+        .wss-head-text strong { font-size: 14px; font-weight: 600; color: var(--text); }
+        .wss-head-text span { font-size: 12px; color: var(--text-muted); }
+        .wss-block { display: flex; flex-direction: column; gap: 9px; }
+        .wss-block-title { font-size: 12.5px; font-weight: 500; color: var(--text-secondary); }
+        .wss-grid {
+          display: grid; grid-template-columns: repeat(8, 1fr); gap: 8px;
+        }
+        @media (max-width: 600px) { .wss-grid { grid-template-columns: repeat(4, 1fr); } }
+        .wss-cell {
+          width: 100%; aspect-ratio: 1;
+          display: inline-flex; align-items: center; justify-content: center;
+          border: 0; border-radius: 12px; background: transparent;
+          padding: 4px; cursor: pointer;
+          outline: 2px solid transparent; outline-offset: 2px;
+          transition: outline-color .14s, transform .12s, background .12s;
+        }
+        .wss-cell:hover { background: var(--surface-2); }
+        .wss-cell.on { outline-color: var(--text); }
+        .wss-cell:active { transform: scale(.94); }
+      `}</style>
     </div>
   )
 }

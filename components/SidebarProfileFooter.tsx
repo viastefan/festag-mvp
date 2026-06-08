@@ -24,7 +24,6 @@ import { CaretRight, DownloadSimple, GearSix, SignOut, UserPlus, UsersThree } fr
 
 import { avatarTextColor } from '@/lib/avatar'
 import WorkspaceSymbol from '@/components/WorkspaceSymbol'
-import WorkspaceSymbolPicker from '@/components/WorkspaceSymbolPicker'
 import { loadSymbol, onSymbolChange } from '@/lib/workspace-symbol'
 import {
   DEFAULT_WORKSPACE_MODE,
@@ -126,7 +125,6 @@ export default function SidebarProfileFooter({
     const off = onSymbolChange((k, p) => { if (k === wsKey) setWsPrefs(p) })
     return off
   }, [wsKey])
-  const [pickerOpen, setPickerOpen] = useState(false)
 
   // Workspace MODE — client-delivery (default) vs internal-company. Bound to
   // the same workspace key so symbol + mode stay in sync, and broadcasts so
@@ -163,14 +161,14 @@ export default function SidebarProfileFooter({
     <>
       <div style={{ position: 'fixed', inset: 0, zIndex: 119990 }} onClick={() => setOpen(false)} />
       <div className="spf-pop" style={{ position: 'fixed', left: pos.left, top: pos.top }}>
-        {/* ── Workspace identity ── */}
-        <button
-          type="button"
+        {/* ── Workspace identity ── (symbol customization lives in
+            Settings → Erscheinung now; the popover just shows identity to
+            avoid the overflow the inline grid caused). */}
+        <Link
+          href="/settings/appearance"
           className="spf-ws spf-ws-button"
-          onClick={() => setPickerOpen(o => !o)}
-          aria-expanded={pickerOpen}
-          aria-label="Workspace-Symbol anpassen"
-          title="Symbol anpassen"
+          onClick={closeAndGo}
+          title="Symbol & Erscheinung in den Einstellungen"
         >
           <div className="spf-ws-glyph" style={{ padding: 0, background: 'transparent' }}>
             <WorkspaceSymbol variant={wsPrefs.variant} scheme={wsPrefs.scheme} seed={wsPrefs.seed} size={28} />
@@ -179,17 +177,7 @@ export default function SidebarProfileFooter({
             <div className="spf-ws-name">{wsLabel}</div>
             <div className="spf-ws-meta">{wsMeta}</div>
           </div>
-        </button>
-
-        {pickerOpen && (
-          <div className="spf-ws-picker">
-            <WorkspaceSymbolPicker
-              workspaceKey={wsKey}
-              prefs={wsPrefs}
-              onChange={setWsPrefs}
-            />
-          </div>
-        )}
+        </Link>
 
         {/* ── Workspace mode toggle (Internal Company ↔ Client Delivery) ── */}
         <div className="spf-mode" role="group" aria-label="Workspace-Modus">

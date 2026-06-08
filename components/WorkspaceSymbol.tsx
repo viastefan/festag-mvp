@@ -37,15 +37,19 @@ export const SYMBOL_SCHEMES: SymbolScheme[] = [
   'mint', 'indigo', 'graphite', 'lime', 'sand', 'rose', 'cyan', 'mono',
 ]
 
+// Modern vibrant gradient duets — the 2024 SaaS look (Linear/Vercel/Stripe):
+// a bright diagonal gradient tile with a light foreground mark that pops.
+// ink/soft are now light so the generative art reads as crisp highlights
+// over saturated colour rather than muted glyphs on a dark square.
 const SCHEME: Record<SymbolScheme, { bg0: string; bg1: string; ink: string; soft: string; spark: string }> = {
-  mint:     { bg0: '#0E2A22', bg1: '#0B1A18', ink: '#7CE2C5', soft: '#3FAE92', spark: '#D6F7EA' },
-  indigo:   { bg0: '#161634', bg1: '#0E0F22', ink: '#A8A6F7', soft: '#6A6BD1', spark: '#E5E4FF' },
-  graphite: { bg0: '#1A1D24', bg1: '#0F1116', ink: '#A4B0C2', soft: '#6B7383', spark: '#E5EBF3' },
-  lime:     { bg0: '#1A2010', bg1: '#10130A', ink: '#BFE45A', soft: '#7E9A33', spark: '#EAF6BD' },
-  sand:     { bg0: '#231B10', bg1: '#15110A', ink: '#E6BC7F', soft: '#A4823F', spark: '#F7E3C0' },
-  rose:     { bg0: '#2A1418', bg1: '#1A0C10', ink: '#F09AA8', soft: '#B5616F', spark: '#FAD7DD' },
-  cyan:     { bg0: '#0D2230', bg1: '#08151E', ink: '#7CD3F0', soft: '#3F8FAE', spark: '#D6EEFA' },
-  mono:     { bg0: '#1A1A1A', bg1: '#0D0D0D', ink: '#D4D4D4', soft: '#787878', spark: '#FFFFFF' },
+  mint:     { bg0: '#34D399', bg1: '#059669', ink: '#FFFFFF', soft: '#D1FAE5', spark: '#ECFDF5' },
+  indigo:   { bg0: '#818CF8', bg1: '#4F46E5', ink: '#FFFFFF', soft: '#E0E7FF', spark: '#EEF2FF' },
+  graphite: { bg0: '#94A3B8', bg1: '#334155', ink: '#FFFFFF', soft: '#E2E8F0', spark: '#F8FAFC' },
+  lime:     { bg0: '#BEF264', bg1: '#65A30D', ink: '#1A2E05', soft: '#ECFCCB', spark: '#F7FEE7' },
+  sand:     { bg0: '#FBBF24', bg1: '#D97706', ink: '#FFFFFF', soft: '#FEF3C7', spark: '#FFFBEB' },
+  rose:     { bg0: '#FB7185', bg1: '#E11D48', ink: '#FFFFFF', soft: '#FFE4E6', spark: '#FFF1F2' },
+  cyan:     { bg0: '#38BDF8', bg1: '#0891B2', ink: '#FFFFFF', soft: '#E0F2FE', spark: '#ECFEFF' },
+  mono:     { bg0: '#52525B', bg1: '#18181B', ink: '#FFFFFF', soft: '#D4D4D8', spark: '#FAFAFA' },
 }
 
 /** Deterministic pseudo-random from a string seed (mulberry32). */
