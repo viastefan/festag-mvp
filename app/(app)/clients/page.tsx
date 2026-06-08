@@ -132,7 +132,6 @@ export default function ClientsPage() {
 
       <PageHeader
         title="Kunden"
-        subtitle="Kundenbereiche für Projekte, Dokumente und Briefings."
         actions={
           <>
             <button type="button" className="fui-action" onClick={() => setInviteOpen(true)}>
@@ -223,7 +222,7 @@ export default function ClientsPage() {
 
       {unassignedProjects.length > 0 && (
         <section className="cl-unassigned">
-          <p className="cl-kicker">Noch keinem Kunden zugeordnet</p>
+          <p className="cl-section-title">Noch keinem Kunden zugeordnet</p>
           <p className="cl-sub">
             Diese Projekte gehören zum Agency-Workspace, sind aber noch nicht unter einem Kunden gebündelt.
             Du kannst sie beim Kunden-Detail später zuweisen.
@@ -367,16 +366,19 @@ const CLIENTS_CSS = `
   .clients-page {
     width: 100%;
     margin: 0;
-    padding: 0 0 80px;
+    /* Breathing room from the top so the header doesn't cling to the
+       workspace edge — matches Tasks/Entscheidungen rhythm. */
+    padding: 18px 0 80px;
     color: var(--text);
     font-family: var(--font-aeonik,'Aeonik',Inter,sans-serif);
   }
   .cl-shell {
-    max-width: 1080px;
     margin: 0 auto;
-    padding: 48px 48px 0;
+    padding: 48px 32px 0;
   }
-  .cl-body { max-width: 1080px; margin: 0 auto; padding: 24px 48px 0; }
+  /* Full-width body (no 1080 cap) so the page scales left↔right like the
+     other workspace pages. */
+  .cl-body { margin: 0; padding: 24px 32px 0; }
   .cl-loading { padding: 80px 0; text-align: center; color: var(--text-muted); font-size: 13px; }
   .cl-head {
     display: flex; align-items: flex-start; justify-content: space-between;
@@ -384,6 +386,8 @@ const CLIENTS_CSS = `
   }
   .cl-head > div { min-width: 0; }
   .cl-kicker { margin: 0; font-size: 11px; font-weight: 500; letter-spacing: .06em; color: var(--text-muted); text-transform: uppercase; }
+  /* Normal-case section title (replaces the uppercase eyebrow). */
+  .cl-section-title { margin: 0 0 4px; font-size: 14px; font-weight: 600; letter-spacing: var(--ls-header, .012em); color: var(--text); }
   .cl-title { margin: 0 0 6px; font-size: 22px; font-weight: 500; letter-spacing: var(--ls-header, .012em); color: var(--text); }
   .cl-sub { margin: 0; max-width: 560px; font-size: 13.5px; line-height: 1.55; color: var(--text-secondary); letter-spacing: var(--ls-body, .017em); }
   .cl-link {
