@@ -196,16 +196,14 @@ export default function MobileClientDock() {
           }
         }
 
-        /* ─── Buttons ─── */
+        /* ─── Buttons (1:1 with the ChatGPT search + action reference) ─── */
         .mcd-btn {
           display: inline-flex;
           align-items: center;
-          justify-content: center;
-          gap: 9px;
-          height: 56px;
-          padding: 0 22px;
+          gap: 11px;
+          height: 58px;
           border: 0;
-          border-radius: 999px;
+          border-radius: 999px;          /* full stadium ends */
           font: inherit;
           font-size: 16px;
           font-weight: 500;
@@ -215,36 +213,44 @@ export default function MobileClientDock() {
           -webkit-tap-highlight-color: transparent;
           transition: transform .14s ease, background .14s ease, box-shadow .14s ease;
         }
-        .mcd-btn:active { transform: scale(.975); }
-        .mcd-ico { width: 19px; height: 19px; flex-shrink: 0; }
+        .mcd-btn:active { transform: scale(.985); }
+        .mcd-ico { width: 20px; height: 20px; flex-shrink: 0; }
 
-        /* LEFT: large ghost pill, takes all the remaining width. */
+        /* LEFT: wide ghost pill, content LEFT-aligned like a search field. */
         .mcd-ghost {
           flex: 1 1 auto;
+          justify-content: flex-start;
+          padding: 0 24px;
           background: #FFFFFF;
-          color: #111111;
+          color: #1A1A1A;
           box-shadow:
-            inset 0 0 0 1px rgba(0,0,0,0.06),
-            0 8px 24px -10px rgba(15,23,42,0.18);
+            inset 0 0 0 1px rgba(0,0,0,0.05),
+            0 6px 20px -10px rgba(15,23,42,0.16);
         }
-        .mcd-ghost:active { background: #F7F7F5; }
+        .mcd-ghost .mcd-ico { color: #5A5A5A; }
+        .mcd-ghost:active { background: #F4F4F4; }
         :global([data-theme="dark"]) .mcd-ghost,
         :global([data-theme="classic-dark"]) .mcd-ghost {
-          background: #1A1A1A; color: #F4F4F4;
+          background: #1C1C1E; color: #F4F4F4;
           box-shadow:
-            inset 0 0 0 1px rgba(255,255,255,0.07),
+            inset 0 0 0 1px rgba(255,255,255,0.08),
             0 12px 28px -16px rgba(0,0,0,.7);
         }
+        :global([data-theme="dark"]) .mcd-ghost .mcd-ico,
+        :global([data-theme="classic-dark"]) .mcd-ghost .mcd-ico { color: #9A9A9A; }
         :global([data-theme="dark"]) .mcd-ghost:active,
-        :global([data-theme="classic-dark"]) .mcd-ghost:active { background: #232323; }
+        :global([data-theme="classic-dark"]) .mcd-ghost:active { background: #262628; }
 
-        /* RIGHT: solid filled action, sized to fit its label. */
+        /* RIGHT: solid filled action, centred, sized to fit its label. */
         .mcd-primary {
           flex: 0 0 auto;
+          justify-content: center;
+          padding: 0 24px;
           background: #5B647D;
           color: #FFFFFF;
-          box-shadow: 0 14px 30px -10px rgba(91,100,125,0.55);
+          box-shadow: 0 12px 26px -10px rgba(91,100,125,0.5);
         }
+        .mcd-primary .mcd-ico { color: #FFFFFF; }
         .mcd-primary:active { background: #4d566c; }
 
         /* ─── Picker sheet ─── */
