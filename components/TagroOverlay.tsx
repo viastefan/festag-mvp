@@ -1114,20 +1114,33 @@ const STYLES = `
   width: 100%;
   background: var(--tov-input);
   border: 1px solid var(--tov-border);
-  border-radius: 22px;
+  border-radius: 26px;
   padding: 14px 14px 10px;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  box-shadow: 0 12px 32px -22px rgba(15,23,42,0.10);
-  transition: border-color .14s, background .14s;
+  box-shadow: 0 1px 2px rgba(15,23,42,0.04), 0 12px 32px -22px rgba(15,23,42,0.12);
+  transition: border-color .16s ease, background .16s ease, box-shadow .16s ease;
 }
 [data-theme="dark"] .tov-composer, [data-theme="classic-dark"] .tov-composer {
-  box-shadow: 0 12px 32px -22px rgba(0,0,0,0.5);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.3), 0 12px 32px -22px rgba(0,0,0,0.5);
 }
-.tov-composer:focus-within { border-color: var(--tov-border-2); background: var(--tov-input-2); }
-.tov-composer-hero { padding: 16px 18px 12px; border-radius: 24px; }
-.tov-composer-sticky { padding: 10px 12px 8px; border-radius: 18px; }
+/* AI-leader focus treatment: soft ring instead of a hard border flip. */
+.tov-composer:focus-within {
+  border-color: color-mix(in srgb, var(--tov-text) 26%, transparent);
+  background: var(--tov-input-2);
+  box-shadow:
+    0 0 0 4px color-mix(in srgb, var(--tov-text) 7%, transparent),
+    0 8px 30px -18px rgba(15,23,42,0.18);
+}
+[data-theme="dark"] .tov-composer:focus-within,
+[data-theme="classic-dark"] .tov-composer:focus-within {
+  box-shadow:
+    0 0 0 4px rgba(255,255,255,0.06),
+    0 8px 30px -18px rgba(0,0,0,0.6);
+}
+.tov-composer-hero { padding: 18px 18px 12px; border-radius: 28px; }
+.tov-composer-sticky { padding: 11px 12px 9px; border-radius: 20px; }
 .tov-composer-ico { color: var(--tov-muted); display: inline-flex; }
 .tov-composer-actions {
   display: flex; align-items: center; justify-content: space-between;
@@ -1163,16 +1176,17 @@ const STYLES = `
 .tov-composer-mic:hover { background: var(--tov-pill-h); color: var(--tov-text); }
 .tov-composer-mic.is-rec { background: var(--tov-pill-h); color: var(--tov-text); animation: tov-pulse 1.4s ease-in-out infinite; }
 .tov-composer-send {
-  width: 36px; height: 36px;
+  width: 38px; height: 38px;
   border: 0; border-radius: 999px;
   background: var(--tov-send); color: var(--tov-send-text);
   display: inline-flex; align-items: center; justify-content: center;
   cursor: pointer;
-  transition: opacity .12s, transform .12s;
+  box-shadow: 0 6px 16px -8px color-mix(in srgb, var(--tov-send) 70%, transparent);
+  transition: opacity .12s, transform .12s, box-shadow .14s;
 }
-.tov-composer-send:hover:not(:disabled) { opacity: .92; }
+.tov-composer-send:hover:not(:disabled) { opacity: .92; transform: translateY(-1px); }
 .tov-composer-send:active:not(:disabled) { transform: scale(.95); }
-.tov-composer-send:disabled { opacity: .35; cursor: not-allowed; }
+.tov-composer-send:disabled { opacity: .35; cursor: not-allowed; box-shadow: none; }
 
 /* Attached @-context chips. Pinned above the composer so the user
    immediately sees what Tagro is bound to. Two visual tones:
