@@ -7,7 +7,7 @@ import Link from 'next/link'
 import {
   Bell, CaretRight, Check, CheckCircle, Circle, DotsThree, LinkSimple,
   CaretDown, CaretUp, Copy, EnvelopeSimple, FilePdf, Plus, Sparkle, Star, Target, Trash, UserPlus,
-  ListChecks, ShieldCheck, Receipt, ClockClockwise, PencilSimple,
+  ListChecks, ShieldCheck, Receipt, ClockClockwise, PencilSimple, Wrench,
 } from '@phosphor-icons/react'
 import { projectColor } from '@/components/Sidebar'
 import { effectiveRole, isDevOrAdmin } from '@/lib/role'
@@ -893,7 +893,22 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
           flex-shrink: 0;
         }
         .pv-icon-btn:hover { background: var(--surface-2); color: var(--text); }
-        .pv-topbar-right { display: flex; align-items: center; gap: 2px; flex-shrink: 0; }
+        .pv-topbar-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+        .pv-devlink {
+          display: inline-flex; align-items: center; gap: 6px;
+          height: 28px; padding: 0 11px;
+          border-radius: 999px;
+          border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+          background: transparent;
+          color: var(--pv-soft, var(--text-secondary));
+          font: inherit; font-size: 12px; font-weight: 500; letter-spacing: .012em;
+          text-decoration: none; white-space: nowrap;
+          transition: background .14s, color .14s, border-color .14s;
+        }
+        .pv-devlink:hover {
+          background: color-mix(in srgb, var(--surface-2) 70%, transparent);
+          color: var(--text); border-color: var(--border);
+        }
 
         /* ── TABS — pill-style segmented control ───────────────────── */
         .pv-tabs {
@@ -1668,6 +1683,13 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
           </span>
         </div>
         <div className="pv-topbar-right">
+          {/* Bidirectional link: dev/admin jump to the SAME project in the
+              Dev Panel (execution side). Hidden for clients. */}
+          {canEdit && (
+            <Link href={`/dev/projects/${id}`} className="pv-devlink" title="Im Dev-Panel öffnen">
+              <Wrench size={13} /> Dev-Panel
+            </Link>
+          )}
           <button className="pv-icon-btn" title="Link kopieren"><LinkSimple size={13} /></button>
           <button className="pv-icon-btn" title="Benachrichtigungen"><Bell size={13} /></button>
         </div>

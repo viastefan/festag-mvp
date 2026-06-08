@@ -15,7 +15,7 @@ import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import {
-  ArrowRight, ArrowsClockwise, Check, Copy, ListChecks, PaperPlaneTilt, UserPlus, FileText,
+  ArrowRight, ArrowsClockwise, Check, Copy, ListChecks, PaperPlaneTilt, UserPlus, FileText, Eye,
 } from '@phosphor-icons/react'
 
 type Project = {
@@ -243,7 +243,6 @@ export default function DevProjectDetailPage() {
       <header className="pd-head">
         <span className="pd-bar" style={{ background: project?.color || '#5B647D' }} />
         <div className="pd-head-main">
-          <p className="dev-eyebrow">Projekt-Kontext</p>
           <h1>{loading ? 'Lädt…' : (project?.title || 'Unbenanntes Projekt')}</h1>
           <div className="pd-meta">
             <span className="dev-chip">{statusLabel(project?.status)}</span>
@@ -258,6 +257,11 @@ export default function DevProjectDetailPage() {
           <button className="dev-secondary-btn" onClick={load} disabled={loading}>
             <ArrowsClockwise size={14} /> Aktualisieren
           </button>
+          {/* Bidirectional link: jump to the SAME project as the client
+              sees it. Same projectId, client-facing surface. */}
+          <Link href={`/project/${projectId}`} className="dev-secondary-btn">
+            <Eye size={14} /> Kunden-Ansicht
+          </Link>
           <Link href={`/dev/projects/${projectId}/inhalte`} className="dev-secondary-btn">
             <FileText size={14} /> Inhalte
           </Link>
