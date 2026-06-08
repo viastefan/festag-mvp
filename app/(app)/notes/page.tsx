@@ -415,14 +415,18 @@ export default function NotesPage() {
 
       {/* Flat table body ────────────────────────────────────────── */}
       <div className="notes-scroll-body">
-        <div className="notes-table-head">
-          <span>Titel</span>
-          <span>Projekt</span>
-          <span>Typ</span>
-          <span>Tags</span>
-          <span>Tagro</span>
-          <span>Aktualisiert</span>
-        </div>
+        {/* Column header only when there are rows — never floating above
+            an empty state. */}
+        {visible.length > 0 && (
+          <div className="notes-table-head">
+            <span>Titel</span>
+            <span>Projekt</span>
+            <span>Typ</span>
+            <span>Tags</span>
+            <span>Tagro</span>
+            <span>Aktualisiert</span>
+          </div>
+        )}
 
         {loading && visible.length === 0 ? (
           <p className="notes-empty">Notizen werden geladen…</p>

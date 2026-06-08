@@ -418,9 +418,12 @@ function DecisionsPageInner() {
       </div>
 
       <div className="dec-scroll-body">
-        <div className="dec-table-head">
-          <span>Entscheidung</span><span>Projekt</span><span>Dringlichkeit</span><span>Frist</span><span>Status</span><span>Erstellt</span>
-        </div>
+        {/* Column header only with rows — never above an empty state. */}
+        {filtered.length > 0 && (
+          <div className="dec-table-head">
+            <span>Entscheidung</span><span>Projekt</span><span>Dringlichkeit</span><span>Frist</span><span>Status</span><span>Erstellt</span>
+          </div>
+        )}
 
         {loading && filtered.length === 0 ? (
           <p className="dec-empty">Lade Entscheidungen…</p>

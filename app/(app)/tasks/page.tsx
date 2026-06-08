@@ -2204,16 +2204,19 @@ export default function TasksPage() {
       )}
 
       {hasProjects && <div className="task-table">
-        <div className="task-head">
-          <span aria-hidden />
-          <span>Task</span>
-          <span>Letztes Update</span>
-          <span>Priorität</span>
-          <span>Verantwortlich</span>
-          <span>Update</span>
-          <span>Quelle</span>
-          <span>Fortschritt</span>
-        </div>
+        {/* Column header only with rows — never above an empty/loading state. */}
+        {!loading && visibleTasks.length > 0 && (
+          <div className="task-head">
+            <span aria-hidden />
+            <span>Task</span>
+            <span>Letztes Update</span>
+            <span>Priorität</span>
+            <span>Verantwortlich</span>
+            <span>Update</span>
+            <span>Quelle</span>
+            <span>Fortschritt</span>
+          </div>
+        )}
 
         {loading ? (
           <div className="task-empty">Lade Aufgaben…</div>
