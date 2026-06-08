@@ -12,7 +12,6 @@ import TagroOverlay from '@/components/TagroOverlay'
 import LoadingScreen from '@/components/LoadingScreen'
 import PwaInstallBanner from '@/components/PwaInstallBanner'
 import Sidebar from '@/components/Sidebar'
-import TagroIconRail from '@/components/TagroIconRail'
 import { createClient } from '@/lib/supabase/client'
 import { getTheme, setTheme, type ThemeMode } from '@/lib/theme'
 import { Check, FunnelSimple } from '@phosphor-icons/react'
@@ -44,13 +43,13 @@ export default function ClientAppShell({
   const [themeMenuOpen, setThemeMenuOpen] = useState(false)
   const themeMenuRef = useRef<HTMLDivElement | null>(null)
   // Sidebar widths by mode:
-  //   - tagroFullscreen → 56px icon rail (Festag orientation must remain visible)
+  //   - tagroFullscreen / /ai → fully hidden so the workspace fills the
+  //     viewport (no icon rail, no chrome). User dismisses via X / collapse.
   //   - sidebarCollapsed (user toggle) → 0px (return-arrow shows)
   //   - default → 212px full sidebar
-  // /ai route always renders as fullscreen agent workspace → also 56px rail.
   const aiRoute = pathname?.startsWith('/ai') || false
   const railActive = tagroFullscreen || aiRoute
-  const sidebarWidth = railActive ? '56px' : (sidebarCollapsed ? '0px' : '212px')
+  const sidebarWidth = railActive ? '0px' : (sidebarCollapsed ? '0px' : '212px')
 
   useEffect(() => {
     try { setSidebarCollapsed(localStorage.getItem('festag-sidebar-collapsed') === 'true') } catch {}
@@ -433,13 +432,10 @@ export default function ClientAppShell({
         }
       `}</style>
 
-      {/* Tagro fullscreen + /ai: slim icon rail. Full sidebar otherwise (unless
-          user explicitly collapsed it, in which case the return arrow shows). */}
-      {railActive ? (
-        <div className="panel-enter" style={{ display: 'contents' }}>
-          <TagroIconRail />
-        </div>
-      ) : !sidebarCollapsed ? (
+      {/* Tagro fullscreen + /ai: no sidebar at all — the agent workspace
+          fills the entire viewport. Full sidebar otherwise (unless user
+          explicitly collapsed it, in which case the return arrow shows). */}
+      {railActive ? null : !sidebarCollapsed ? (
         <div className="panel-enter" style={{ display: 'contents' }}>
           <Sidebar onCollapse={() => setSidebarCollapsed(true)} />
         </div>
