@@ -43,6 +43,7 @@ import NewNoteModal from '@/components/NewNoteModal'
 import EmptyState from '@/components/EmptyState'
 import HelpHint from '@/components/HelpHint'
 import TagroEntryButton from '@/components/TagroEntryButton'
+import MobilePageHeader from '@/components/MobilePageHeader'
 
 type NoteType = 'journal' | 'brief' | 'meeting' | 'research'
 
@@ -312,6 +313,15 @@ export default function NotesPage() {
 
       {/* ── Sticky top: same chrome as /tasks + /decisions ── */}
       <div className="notes-static-top">
+        <MobilePageHeader
+          title="Notizen"
+          primaryIcon={Notepad}
+          primaryLabel="Neue Notiz"
+          onPrimary={() => setComposerOpen(true)}
+          menuItems={[
+            { id: 'today', label: 'Heute öffnen', onClick: openTodayNote },
+          ]}
+        />
         <div className="notes-top">
           <div className="notes-top-left">
             <span style={{ display:'inline-flex', alignItems:'center', gap:7, minWidth:0 }}>
@@ -1399,6 +1409,10 @@ const NOTES_CSS = `
     }
     .notes-table-head > :nth-child(n+4),
     .notes-row > :nth-child(n+4) { display:none; }
+  }
+  /* Mobile uses MobilePageHeader above; hide the desktop title row. */
+  @media (max-width: 768px) {
+    .notes-top { display: none !important; }
   }
   @media (max-width: 600px) {
     .notes-overlay .notes-editor { width:100vw; }

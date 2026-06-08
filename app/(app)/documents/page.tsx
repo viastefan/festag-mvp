@@ -6,6 +6,7 @@ import DocumentBuilderSection from '@/components/DocumentBuilderSection'
 import PageHeader from '@/components/ui/PageHeader'
 import FilterPills from '@/components/ui/FilterPills'
 import { openTagro } from '@/components/TagroOverlay'
+import MobilePageHeader from '@/components/MobilePageHeader'
 
 function DocumentsEmptyState() {
   return (
@@ -138,6 +139,7 @@ export default function DocumentsPage() {
 
   return (
     <div className="fui-page">
+      <MobilePageHeader title="Dokumente" />
       <PageHeader
         title="Dokumente"
         subtitle="Angebot, Vertrag & Rechnung erstellen — plus hochgeladene Dateien."

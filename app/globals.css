@@ -997,6 +997,8 @@ button.sb-help-trigger {
   min-height:34px; padding:2px 18px 12px;
   border-bottom:1px solid color-mix(in srgb, var(--border) 60%, transparent);
 }
+/* Mobile uses MobilePageHeader above each .fui-top consumer. */
+@media (max-width: 768px) { .fui-top { display: none !important; } }
 .fui-top-left { display:flex; flex-direction:column; gap:2px; min-width:0; }
 .fui-title { margin:0; font-size:14.5px; font-weight:500; letter-spacing:0; color:var(--text); }
 .fui-sub { margin:0; font-size:12px; color:var(--text-muted); letter-spacing:.012em; line-height:1.45; }

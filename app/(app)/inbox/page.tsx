@@ -20,6 +20,7 @@ import {
   Sparkle, Tray, UserPlus, WarningCircle,
 } from '@phosphor-icons/react'
 import HelpHint from '@/components/HelpHint'
+import MobilePageHeader from '@/components/MobilePageHeader'
 import { openTagro } from '@/components/TagroOverlay'
 
 type Notification = {
@@ -165,6 +166,13 @@ export default function InboxPage() {
 
   return (
     <div className="inbox-page">
+      <MobilePageHeader
+        title="Inbox"
+        menuItems={[
+          { id: 'refresh', label: 'Aktualisieren', onClick: load },
+          ...(counts.unread > 0 ? [{ id: 'allread', label: 'Alles gelesen', onClick: markAllRead }] : []),
+        ]}
+      />
       <header className="ix-head">
         <div>
           <span style={{ display:'inline-flex', alignItems:'center', gap:7 }}>
@@ -271,6 +279,8 @@ export default function InboxPage() {
         @media (min-width: 768px) { .inbox-page { padding: 26px 28px 48px; } }
 
         .ix-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; margin-bottom: 16px; }
+        /* Mobile uses MobilePageHeader above; hide desktop title row. */
+        @media (max-width: 768px) { .ix-head { display: none !important; } }
         .ix-eyebrow { margin: 0 0 4px; font-size: 10.5px; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; color: var(--text-muted); }
         h1 { margin: 0; font-size: 22px; font-weight: 500; letter-spacing: -.01em; color: var(--text); }
         .ix-meta { margin: 4px 0 0; font-size: 12.5px; color: var(--text-muted); font-weight: 500; }

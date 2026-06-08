@@ -17,6 +17,7 @@ import NewProjectModal from '@/components/NewProjectModal'
 import { FunnelSimple, SlidersHorizontal, Stack, Plus, Sparkle } from '@phosphor-icons/react'
 import { openTagro } from '@/components/TagroOverlay'
 import EmptyState from '@/components/EmptyState'
+import MobilePageHeader from '@/components/MobilePageHeader'
 
 type ProjectRow = {
   id: string
@@ -523,10 +524,14 @@ function ProjectsPageInner() {
         }
         @media (max-width:760px) {
           .pj-os { padding:14px 4px 0; }
-          .pj-top, .pj-toolbar { padding-left:8px; padding-right:8px; }
+          .pj-toolbar { padding-left:8px; padding-right:8px; }
           .pj-scroll { padding:0 8px 96px; }
           .pj-toolbar { flex-wrap:wrap; gap:8px; }
           .pj-count-summary { flex-basis:100%; padding-left:0; }
+        }
+        /* Mobile uses MobilePageHeader above; hide desktop title row. */
+        @media (max-width: 768px) {
+          .pj-top { display: none !important; }
         }
         @media (max-width:560px) {
           .pj-head, .pj-row, .pj-group-row {
@@ -544,6 +549,15 @@ function ProjectsPageInner() {
       `}</style>
 
       <div className="pj-static">
+        <MobilePageHeader
+          title="Projekte"
+          primaryIcon={Plus}
+          primaryLabel="Neues Projekt"
+          onPrimary={() => setShowNewProject(true)}
+          menuItems={[
+            { id: 'tagro', label: 'Mit Tagro erstellen', onClick: () => openTagro({ contextType: 'project', title: 'Neues Projekt mit Tagro' }) },
+          ]}
+        />
         <div className="pj-top">
           <h1 className="pj-title">Projekte</h1>
           <div style={{ display:'inline-flex', gap:8, alignItems:'center' }}>

@@ -22,6 +22,7 @@ import {
   Sparkle, Warning, X, UserCircle, CaretDown,
 } from '@phosphor-icons/react'
 import HelpHint from '@/components/HelpHint'
+import MobilePageHeader from '@/components/MobilePageHeader'
 import { openTagro } from '@/components/TagroOverlay'
 import { createClient } from '@/lib/supabase/client'
 
@@ -304,6 +305,13 @@ function DecisionsPageInner() {
       <style jsx>{CSS}</style>
 
       <div className="dec-static-top">
+        <MobilePageHeader
+          title="Entscheidungen"
+          menuItems={[
+            { id: 'refresh', label: 'Aktualisieren', onClick: load },
+            { id: 'tagro', label: 'Mit Tagro bearbeiten', onClick: () => openTagro({ contextType: 'decision', id: 'list', title: 'Entscheidungen · Übersicht' }) },
+          ]}
+        />
         <div className="dec-top">
           <div className="dec-top-left">
             <span style={{ display:'inline-flex', alignItems:'center', gap:7, minWidth:0 }}>
@@ -1542,5 +1550,9 @@ const CSS = `
     .dec-answer-actions { flex-direction:column; align-items:stretch; }
     .dec-answer-actions > button { width:100%; justify-content:center; }
     .dec-binary-btn { height:52px; font-size:15px; }
+  }
+  /* Mobile uses MobilePageHeader above — hide the desktop title row. */
+  @media (max-width: 768px) {
+    .dec-top { display: none !important; }
   }
 `

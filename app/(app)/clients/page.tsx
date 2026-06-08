@@ -16,6 +16,7 @@ import Modal, { ModalButton } from '@/components/Modal'
 import InviteLinkModal from '@/components/InviteLinkModal'
 import PageHeader from '@/components/ui/PageHeader'
 import TagroEntryButton from '@/components/TagroEntryButton'
+import MobilePageHeader from '@/components/MobilePageHeader'
 
 type WorkspaceMode = 'delivery' | 'team' | 'agency'
 
@@ -129,6 +130,16 @@ export default function ClientsPage() {
   return (
     <div className="clients-page">
       <style>{CLIENTS_CSS}</style>
+
+      <MobilePageHeader
+        title="Kunden"
+        primaryIcon={Plus}
+        primaryLabel="Kunde erstellen"
+        onPrimary={() => setComposerOpen(true)}
+        menuItems={[
+          { id: 'invite', label: 'Einladen', onClick: () => setInviteOpen(true) },
+        ]}
+      />
 
       <PageHeader
         title="Kunden"

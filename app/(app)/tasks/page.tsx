@@ -27,6 +27,8 @@ import {
 import EmptyState from '@/components/EmptyState'
 import HelpHint from '@/components/HelpHint'
 import TagroEntryButton from '@/components/TagroEntryButton'
+import MobilePageHeader from '@/components/MobilePageHeader'
+import { PencilSimple } from '@phosphor-icons/react'
 
 type TaskView = 'all' | 'open' | 'active' | 'decision' | 'review' | 'done'
 type SortMode = 'newest' | 'updated' | 'priority' | 'project' | 'group'
@@ -1695,12 +1697,9 @@ export default function TasksPage() {
         @media(max-width:760px) {
           .task-os { padding:12px 10px 0; overflow:hidden; }
           .task-scroll-body { padding-bottom:calc(110px + var(--safe-bottom)); }
-          .task-top {
-            min-height:auto;
-            align-items:center;
-            padding:0 2px 10px;
-            margin-bottom:10px;
-          }
+          /* Mobile uses the new Linear-style MobilePageHeader above; hide
+             the desktop title row entirely on phones. */
+          .task-top { display: none !important; }
           .task-toolbar {
             flex-direction:column;
             align-items:stretch;
@@ -1894,6 +1893,16 @@ export default function TasksPage() {
       `}</style>
 
       <div className="task-static-top">
+        {/* Mobile-only Linear-style header (replaces .task-top on phones). */}
+        <MobilePageHeader
+          title="Tasks"
+          primaryIcon={PencilSimple}
+          primaryLabel="Neue Aufgabe"
+          onPrimary={() => openComposer()}
+          menuItems={[
+            { id: 'refresh', label: 'Aktualisieren', onClick: () => setView(view) },
+          ]}
+        />
         <div className="task-top">
           <div className="task-top-left">
             <span style={{ display:'inline-flex', alignItems:'center', gap:7, minWidth:0 }}>
