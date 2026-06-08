@@ -20,8 +20,6 @@ import { createClient } from '@/lib/supabase/client'
 import { computeControlStatus } from '@/lib/trust/control-status'
 import ObserverWelcomeModal from '@/components/ObserverWelcomeModal'
 import WelcomeTour from '@/components/WelcomeTour'
-import TagroOrb, { type TagroOrbState } from '@/components/TagroOrb'
-import TagroPixelWave from '@/components/TagroPixelWave'
 import TagroMobileBar from '@/components/TagroMobileBar'
 import TagroEntryButton from '@/components/TagroEntryButton'
 import { speechVoiceId, useSpeechSynthesis } from '@/hooks/useSpeechSynthesis'
@@ -457,13 +455,6 @@ export default function DashboardPage() {
   // orb spins and the speech waveform dances during that time.
   const tagroActive = isBriefingPlaying || noteWriting || statusBusy
   const voiceLineActive = isBriefingActive || tagroActive
-  const orbState: TagroOrbState = statusBusy
-    ? 'thinking'
-    : isBriefingPlaying || noteWriting
-      ? 'speaking'
-      : speechState === 'paused'
-        ? 'listening'
-        : 'idle'
 
   const briefingStatusLabel = statusBusy
     ? 'Bericht wird vorbereitet'
@@ -763,6 +754,7 @@ export default function DashboardPage() {
         /* ── Greeting full-width, then a calm two-column body ────── */
         /* ── New shell: greeting + audio briefing card, Linear-calm ── */
         .dc-shell {
+          position: relative;
           width:100%;
           max-width: 1320px;
           margin:0 auto;
@@ -770,15 +762,16 @@ export default function DashboardPage() {
           min-height:0;
           display:flex;
           flex-direction:column;
-          padding-top: 20px;
+          padding-top: 16px;
         }
         /* Desktop-only header actions: Statusbericht refresh + Tagro pill.
-           Sits above .dc-shell-body, mirrors the mobile bar so users on
-           laptop get the same affordances without scrolling. */
+           FLOATS top-right (absolute) so it doesn't create a band that
+           pushes the greeting down — the greeting now scales from the top
+           like Tasks/Entscheidungen. */
         .dc-desktop-actions {
+          position: absolute; top: 16px; right: 0; z-index: 6;
           display: flex; align-items: center; justify-content: flex-end;
           gap: 8px;
-          padding: 0 0 12px;
         }
         .dc-desktop-action {
           display: inline-flex; align-items: center; gap: 6px;
@@ -823,54 +816,43 @@ export default function DashboardPage() {
         .dc-left { align-self: start; }
         .dc-card.dc-card { align-self: stretch; }
 
-        /* ── "Was wichtig ist" — 3 calm focus cards (notebook style: soft
-              tinted surface, no borders, colored tag + title + small link). */
-        .dc-focus2-eyebrow {
-          margin: 0 0 8px;
-          font-size: 11px; font-weight: 500; letter-spacing: .12em;
-          text-transform: uppercase; color: var(--text-muted);
-        }
+        /* ── Focus rows — colourless, near-flat, header + line. No pills,
+              no big radius, hairline-separated columns. */
         .dc-focus2 {
           display: grid;
           grid-template-columns: repeat(3, minmax(0, 1fr));
-          gap: 10px;
+          gap: 0;
           margin-bottom: 18px;
+          border-top: 1px solid color-mix(in srgb, var(--border) 55%, transparent);
         }
         @media (max-width: 720px) {
           .dc-focus2 { grid-template-columns: 1fr; }
+          .dc-focus2-card + .dc-focus2-card { border-left: 0; border-top: 1px solid color-mix(in srgb, var(--border) 45%, transparent); }
         }
         .dc-focus2-card {
-          display: flex; flex-direction: column; gap: 8px;
-          padding: 13px 14px;
-          border-radius: 14px;
-          background: color-mix(in srgb, var(--surface-2) 34%, transparent);
+          display: flex; flex-direction: column; gap: 6px;
+          padding: 14px 16px 14px 0;
           color: var(--text);
           text-decoration: none;
-          transition: background .14s ease, transform .14s ease;
+          transition: opacity .14s ease;
         }
-        .dc-focus2-card:hover {
-          background: color-mix(in srgb, var(--surface-2) 58%, transparent);
+        .dc-focus2-card + .dc-focus2-card {
+          padding-left: 16px;
+          border-left: 1px solid color-mix(in srgb, var(--border) 45%, transparent);
         }
-        .dc-focus2-card:active { transform: scale(.985); }
-        .dc-focus2-tag {
-          display: inline-flex; align-items: center; align-self: flex-start;
-          padding: 3px 9px; border-radius: 999px;
-          font-size: 10.5px; font-weight: 500; letter-spacing: .04em;
-          text-transform: uppercase;
-          border: 1px solid currentColor;
-          background: transparent;
+        .dc-focus2-card:hover { opacity: .72; }
+        .dc-focus2-head {
+          font-size: 12px; font-weight: 500; color: var(--text-muted);
+          letter-spacing: .005em;
         }
-        .dc-focus2-card.dec  .dc-focus2-tag { color: #D4882B; }
-        .dc-focus2-card.risk .dc-focus2-tag { color: #D9534F; }
-        .dc-focus2-card.next .dc-focus2-tag { color: #3FB984; }
         .dc-focus2-title {
-          font-size: 14px; font-weight: 500; line-height: 1.35;
+          font-size: 14.5px; font-weight: 500; line-height: 1.3;
           letter-spacing: -.005em; color: var(--text);
         }
         .dc-focus2-action {
           display: inline-flex; align-items: center; gap: 4px;
           font-size: 12px; color: var(--text-muted);
-          margin-top: 2px;
+          margin-top: auto; padding-top: 4px;
         }
         .dc-left {
           padding-top: 16px;
@@ -1359,6 +1341,12 @@ export default function DashboardPage() {
           box-shadow: none;
           -webkit-backdrop-filter: none;
           backdrop-filter: none;
+          /* Clear the floating Statusbericht/Tagro buttons that now live
+             top-right of the shell. */
+          margin-top: 46px;
+        }
+        @media (max-width: 768px) {
+          .dc-card { margin-top: 0; }
         }
         [data-theme="dark"] .dc-card,
         [data-theme="classic-dark"] .dc-card {
@@ -1471,9 +1459,42 @@ export default function DashboardPage() {
         /* Orb wrapper — generous vertical room, the centerpiece. */
         .dc-orb-zone {
           flex: 0 0 auto;
-          min-height: 150px;
+          min-height: 120px;
           padding: 4px 0;
           display: flex; align-items: center; justify-content: center;
+        }
+
+        /* Modern audio waveform — voice-memo style bars. Calm at rest;
+           bars breathe while playing/loading. Replaces the pixel grid. */
+        .dc-wave {
+          display: inline-flex; align-items: center; gap: 5px;
+          height: 56px;
+        }
+        .dc-wave-bar {
+          width: 5px; border-radius: 999px;
+          background: var(--dc-slate, #5B647D);
+          opacity: .9;
+          height: calc(16px + (var(--i) * 0) + 0px);
+        }
+        /* A pleasant static silhouette at rest (middle bars tallest). */
+        .dc-wave-bar:nth-child(1) { height: 16px; }
+        .dc-wave-bar:nth-child(2) { height: 28px; }
+        .dc-wave-bar:nth-child(3) { height: 44px; }
+        .dc-wave-bar:nth-child(4) { height: 56px; }
+        .dc-wave-bar:nth-child(5) { height: 44px; }
+        .dc-wave-bar:nth-child(6) { height: 28px; }
+        .dc-wave-bar:nth-child(7) { height: 16px; }
+        .dc-wave.is-playing .dc-wave-bar,
+        .dc-wave.is-loading .dc-wave-bar {
+          animation: dcWaveBar 1s ease-in-out infinite;
+          animation-delay: calc(var(--i) * 0.09s);
+        }
+        @keyframes dcWaveBar {
+          0%, 100% { transform: scaleY(.4); }
+          50% { transform: scaleY(1); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .dc-wave .dc-wave-bar { animation: none !important; }
         }
 
         /* Stat tiles — clean 2x2 grid, no divider lines. */
@@ -1519,36 +1540,37 @@ export default function DashboardPage() {
         }
         .dc-stat:hover .dc-stat-arrow { opacity: 1; }
 
-        /* Play bar — primary action. Calm hover: only a gentle brighten. */
+        /* Play bar — THE primary briefing action. Solid slate fill so it
+           reads as the main call-to-action, not a faint tint. */
         .dc-play-bar {
           display: grid;
           grid-template-columns: 30px 1fr auto;
           align-items: center;
           gap: 12px;
           width: 100%;
-          height: 52px; padding: 0 16px;
+          height: 54px; padding: 0 16px;
           border-radius: 32px;
-          /* Borderless surface — soft tint shows the button without a SaaS
-             outline. Hover lifts the tint subtly. */
           border: 0;
-          background: rgba(255,255,255,0.04);
-          color: var(--text);
-          font: inherit; font-size: 14px; font-weight: 500; letter-spacing: var(--ls-body, .017em);
+          background: #5B647D;
+          color: #FFFFFF;
+          font: inherit; font-size: 14.5px; font-weight: 500; letter-spacing: var(--ls-body, .017em);
           cursor: pointer;
-          transition: background .18s ease;
+          box-shadow: 0 14px 30px -14px rgba(91,100,125,0.6);
+          transition: background .18s ease, transform .14s ease;
         }
-        .dc-play-bar:hover:not(:disabled) { background: rgba(255,255,255,0.08); }
+        .dc-play-bar:hover:not(:disabled) { background: #4d566c; }
+        .dc-play-bar:active:not(:disabled) { transform: scale(.99); }
         .dc-play-bar:disabled { opacity: .55; cursor: not-allowed; }
         .dc-play-ico {
           width: 30px; height: 30px; border-radius: 50%;
           display: inline-flex; align-items: center; justify-content: center;
-          background: rgba(255,255,255,0.10);
+          background: rgba(255,255,255,0.18);
           border: 0;
-          color: var(--text);
+          color: #FFFFFF;
         }
         .dc-play-label { text-align: left; }
         .dc-play-meta {
-          color: var(--dc-muted);
+          color: rgba(255,255,255,0.72);
           font-size: 12.5px;
           font-variant-numeric: tabular-nums;
         }
@@ -2624,25 +2646,21 @@ export default function DashboardPage() {
                   </>
                 )}
               </article>
-            ) : (
-              /* No AI report yet — never leave the left empty. Show a calm
-                 notepad status built from current data. */
+            ) : statusBusy ? (
               <article className="dc-note dc-note-inline" aria-label="Statusbericht">
-                <div className="dc-note-head">
-                  <span className="dc-note-stamp">{statusBusy ? 'Tagro schreibt …' : 'Aktueller Stand'}</span>
-                </div>
+                <p className="dc-note-text">Tagro schreibt …<span className="dc-caret" aria-hidden /></p>
+              </article>
+            ) : projects.length === 0 ? (
+              /* Only the genuinely-helpful onboarding hint. The live counts
+                 are NOT duplicated here — they already live in the right
+                 box (Offene Aufgaben / Aktiv / Erledigt / Projekte). */
+              <article className="dc-note dc-note-inline" aria-label="Statusbericht">
                 <p className="dc-note-text">
-                  {projects.length === 0
-                    ? 'Noch kein Projekt angelegt. Sobald du ein Projekt startest, fasst Tagro hier den aktuellen Stand zusammen — Fortschritt, offene Punkte und nächste Schritte.'
-                    : [
-                        `${activeProjectCount} aktive${activeProjectCount === 1 ? 's' : ''} Projekt${activeProjectCount === 1 ? '' : 'e'}, ${openTaskCount} offene Aufgabe${openTaskCount === 1 ? '' : 'n'}.`,
-                        decisionTasks.length ? `${decisionTasks.length} offene Entscheidung${decisionTasks.length === 1 ? '' : 'en'}.` : '',
-                        riskTasks.length ? `${riskTasks.length} Blocker brauchen Aufmerksamkeit.` : '',
-                      ].filter(Boolean).join(' ')}
-                  {statusBusy && <span className="dc-caret" aria-hidden />}
+                  Noch kein Projekt angelegt. Sobald du ein Projekt startest, fasst Tagro hier den
+                  aktuellen Stand zusammen — Fortschritt, offene Punkte und nächste Schritte.
                 </p>
               </article>
-            )}
+            ) : null}
 
             <a href="/reports" className="dc-history-link">Alle Statusberichte ansehen →</a>
           </main>
@@ -2737,8 +2755,12 @@ export default function DashboardPage() {
                 }
                 aria-pressed={isBriefingPlaying}
               >
-                {/* Tagro branded pixel mark — idle / listening / thinking / speaking. */}
-                <TagroPixelWave state={orbState} size={230} />
+                {/* Modern audio waveform — replaces the old pixel grid. A
+                    voice-memo style mark: 7 bars that breathe while
+                    speaking/loading, calm when idle. */}
+                <span className={`dc-wave${isBriefingPlaying ? ' is-playing' : ''}${statusBusy ? ' is-loading' : ''}`} aria-hidden>
+                  {[0,1,2,3,4,5,6].map(i => <span key={i} className="dc-wave-bar" style={{ ['--i' as any]: i }} />)}
+                </span>
               </button>
             </div>
 
@@ -2773,14 +2795,11 @@ export default function DashboardPage() {
               </li>
             </ul>
 
-            {/* Was wichtig ist — 3 calm cards (Entscheidung benötigt / Risiko
-                erkannt / Nächster Schritt). The dc-focus2-row classes carried
-                no CSS before, so the labels collapsed into one wall of text.
-                Now: real 3-card grid with colored tag, title, action link. */}
-            <p className="dc-focus2-eyebrow">Was wichtig ist</p>
+            {/* Focus rows — no eyebrow, no colored pills, no big radius.
+                Just a quiet header + the line beneath, as requested. */}
             <div className="dc-focus2" aria-label="Was wichtig ist">
-              <a className="dc-focus2-card dec" href="/decisions">
-                <span className="dc-focus2-tag">Entscheidung benötigt</span>
+              <a className="dc-focus2-card" href="/decisions">
+                <span className="dc-focus2-head">Entscheidung benötigt</span>
                 <span className="dc-focus2-title">
                   {combinedDecisionsCount > 0
                     ? `${combinedDecisionsCount} ${combinedDecisionsCount === 1 ? 'wartet auf dich' : 'warten auf dich'}`
@@ -2788,15 +2807,15 @@ export default function DashboardPage() {
                 </span>
                 <span className="dc-focus2-action">Entscheidung ansehen <CaretRight size={11} /></span>
               </a>
-              <a className="dc-focus2-card risk" href="/decisions?tone=risk">
-                <span className="dc-focus2-tag">Risiko erkannt</span>
+              <a className="dc-focus2-card" href="/decisions?tone=risk">
+                <span className="dc-focus2-head">Risiko erkannt</span>
                 <span className="dc-focus2-title">
                   {riskTasks.length > 0 ? `${riskTasks.length} aktive Blocker` : 'Keine aktiven Blocker'}
                 </span>
                 <span className="dc-focus2-action">Risiko prüfen <CaretRight size={11} /></span>
               </a>
-              <a className="dc-focus2-card next" href="/tasks">
-                <span className="dc-focus2-tag">Nächster Schritt</span>
+              <a className="dc-focus2-card" href="/tasks">
+                <span className="dc-focus2-head">Nächster Schritt</span>
                 <span className="dc-focus2-title">{noteReport?.nextSteps?.[0] || 'Tasks öffnen und vorbereiten'}</span>
                 <span className="dc-focus2-action">Tasks öffnen <CaretRight size={11} /></span>
               </a>
