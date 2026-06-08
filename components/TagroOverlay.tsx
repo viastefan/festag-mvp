@@ -198,6 +198,24 @@ function objectKind(t: TagroContextType): string {
   }
 }
 
+/** Reads the workspace mode from localStorage without forcing a React
+ *  re-render path on every call site. Sessions are derived from ctx, and
+ *  ctx changes only when the overlay opens — that's the right cadence
+ *  to recompute the language posture. */
+function detectWorkspaceMode(): 'client_delivery' | 'internal_company' {
+  if (typeof window === 'undefined') return 'client_delivery'
+  try {
+    const keys = Object.keys(window.localStorage).filter(k => k.startsWith('festag_workspace_mode::'))
+    // First key wins — there's only one active workspace per browser
+    // session, and the picker writes one entry under the active key.
+    for (const k of keys) {
+      const v = window.localStorage.getItem(k)
+      if (v === 'internal_company') return 'internal_company'
+    }
+  } catch {}
+  return 'client_delivery'
+}
+
 export function buildInitialSession(ctx: TagroOpenDetail): InitialSession {
   const t = ctx.contextType
   const kind = objectKind(t)
@@ -209,18 +227,28 @@ export function buildInitialSession(ctx: TagroOpenDetail): InitialSession {
 
   // Per-context intro + help. Falls back gracefully when title is missing.
   const ref = title || (isOverview ? 'Übersicht' : kind)
+  // Workspace-mode flavour: in internal-company mode the help copy avoids
+  // 'client-safe' / 'Kunden' phrasing and steers toward team-OS language.
+  const mode = detectWorkspaceMode()
+  const isInternal = mode === 'internal_company'
   const intro: Record<TagroContextType, { lead: string; help: string }> = {
     project: {
-      lead: `Ich bin in @Projekt ${ref}.`,
-      help: 'Ich kann den Projektstatus zusammenfassen, offene Entscheidungen erkennen oder nächste Aufgaben ableiten.',
+      lead: `Ich bin in @${isInternal ? 'Internes Projekt' : 'Projekt'} ${ref}.`,
+      help: isInternal
+        ? 'Ich kann den Projektstand zusammenfassen, Blocker erkennen oder nächste Schritte fürs Team ableiten.'
+        : 'Ich kann den Projektstatus zusammenfassen, offene Entscheidungen erkennen oder nächste Aufgaben ableiten.',
     },
     task: {
       lead: `Ich bin in @Aufgabe ${ref}.`,
-      help: 'Du kannst mir kurz sagen, ob ich daraus eine Folgeaufgabe, Entscheidung, Statusmeldung oder Nachricht machen soll.',
+      help: isInternal
+        ? 'Sag mir kurz, ob ich daraus eine Folgeaufgabe, Entscheidung, ein Update fürs Team oder eine Nachricht machen soll.'
+        : 'Du kannst mir kurz sagen, ob ich daraus eine Folgeaufgabe, Entscheidung, Statusmeldung oder Nachricht machen soll.',
     },
     decision: {
       lead: `Ich bin in @Entscheidung ${ref}.`,
-      help: 'Ich kann Optionen formulieren, eine Empfehlung vorbereiten oder die Frage client-safe übersetzen.',
+      help: isInternal
+        ? 'Ich kann Optionen formulieren, eine Empfehlung vorbereiten oder die Frage fürs Team aufbereiten.'
+        : 'Ich kann Optionen formulieren, eine Empfehlung vorbereiten oder die Frage client-safe übersetzen.',
     },
     document: {
       lead: isOverview
