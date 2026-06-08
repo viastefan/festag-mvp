@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useState, useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import SidebarProfileFooter from '@/components/SidebarProfileFooter'
 import SettingsSidebar from '@/components/SettingsSidebar'
 import MobileActionSheet from '@/components/MobileActionSheet'
@@ -2228,7 +2229,15 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           </div>
 
           <div className="sb-bottom-actions">
-            {whatsNewOpen ? <div className="sb-bottom-backdrop" onClick={() => setWhatsNewOpen(false)} /> : null}
+            {whatsNewOpen && typeof document !== 'undefined'
+              ? createPortal(
+                  <div
+                    onClick={() => setWhatsNewOpen(false)}
+                    style={{ position: 'fixed', inset: 0, zIndex: 120999 }}
+                  />,
+                  document.body,
+                )
+              : null}
             {videoTeaserVisible ? (
               <div className="sb-video-teaser-wrap">
                 <button
@@ -2259,7 +2268,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
               </div>
             ) : null}
             <div className="sb-help-dock" style={{ position:'relative' }}>
-              {whatsNewOpen ? (
+              {whatsNewOpen && typeof document !== 'undefined' ? createPortal((
                 <div className="sb-help-pop" role="menu" aria-label="Hilfe und Einführung">
                   <div className="sb-help-list">
                     {HELP_ITEMS.map((item) => {
@@ -2299,7 +2308,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
                     </div>
                   </div>
                 </div>
-              ) : null}
+              ), document.body) : null}
               <button
                 type="button"
                 className="sb-help-trigger"
