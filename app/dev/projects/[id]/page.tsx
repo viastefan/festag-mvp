@@ -224,7 +224,6 @@ export default function DevProjectDetailPage() {
       <div className="dev-page">
         <header className="dev-page-header compact">
           <div>
-            <p className="dev-eyebrow">Projekt</p>
             <h1>Projekt nicht gefunden.</h1>
             <p className="meta">Es existiert nicht mehr oder du hast keinen Zugriff.</p>
           </div>

@@ -189,7 +189,6 @@ export default function DevTimePage() {
     <div className="dev-page">
       <header className="dev-page-header">
         <div>
-          <p className="dev-eyebrow">Execution · Zeiterfassung</p>
           <h1>Zeiterfassung</h1>
           <p className="meta">Erfasste Zeit pro Aufgabe. Bleibt intern — Tagro nutzt sie als Aktivitätssignal, nicht als Abrechnungsbühne.</p>
         </div>

@@ -220,7 +220,6 @@ export default function DevGithubPage() {
     <div className="dev-page">
       <header className="dev-page-header">
         <div>
-          <p className="dev-eyebrow">DEV · GitHub</p>
           <h1>GitHub-Aktivität</h1>
           <p className="meta">
             Tagro liest Commits und PRs read-only und übersetzt sie für Clients in verständliche Statusberichte. Du verknüpfst hier manuell, was automatisch nicht zugeordnet wurde.

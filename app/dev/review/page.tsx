@@ -228,7 +228,6 @@ export default function DevReviewPage() {
     <div className="dev-page">
       <header className="r-head">
         <div>
-          <p className="dev-eyebrow">DEV · Review</p>
           <h1>Tagro Review Center</h1>
           <p className="meta">
             Geprüfte Tasks, fehlende Belege und Empfehlungen — bevor etwas an den Client geht.

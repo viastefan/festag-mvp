@@ -79,7 +79,6 @@ export default function DevPlanPage() {
     <div className="dev-page">
       <header className="dev-page-header">
         <div>
-          <p className="dev-eyebrow">DEV · Daily Plan</p>
           <h1>Plan für heute</h1>
           <p className="meta">
             Today's plan is generated from your assigned tasks, project priorities, and recent activity.

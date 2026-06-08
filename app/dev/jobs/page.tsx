@@ -170,7 +170,6 @@ export default function DevJobsPage() {
     <div className="dev-page">
       <header className="dev-page-header compact">
         <div>
-          <p className="dev-eyebrow">Execution Board</p>
           <h1>Technische Umsetzung.</h1>
           <p className="meta">{counts.all} Tasks · {counts.active} aktiv · {counts.review} bereit zur Prüfung · {counts.blocked} Blocker</p>
         </div>
@@ -215,7 +214,6 @@ export default function DevJobsPage() {
           <aside className="drawer-panel">
             <div className="drawer-top">
               <div>
-                <p className="dev-eyebrow">Dev Task</p>
                 <h2>{selected.title}</h2>
               </div>
               <button className="icon-close" onClick={() => setSelected(null)}><X size={18} /></button>

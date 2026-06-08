@@ -261,7 +261,6 @@ export default function DevOverviewPage() {
     <div className="dev-page">
       <header className="dev-page-header">
         <div>
-          <p className="dev-eyebrow">DEV · Overview</p>
           <h1>Heute, {name ? name.split(' ')[0] : 'Developer'}.</h1>
           <p className="meta">
             {loading

@@ -129,7 +129,7 @@ export default function DevSettingsPage() {
   if (loading) {
     return (
       <div className="dev-page">
-        <header className="dev-page-header"><div><p className="dev-eyebrow">Execution · Einstellungen</p><h1>Einstellungen</h1></div></header>
+        <header className="dev-page-header"><div><h1>Einstellungen</h1></div></header>
         <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>Profil wird geladen…</p>
       </div>
     )
@@ -137,7 +137,7 @@ export default function DevSettingsPage() {
   if (!p) {
     return (
       <div className="dev-page">
-        <header className="dev-page-header"><div><p className="dev-eyebrow">Execution · Einstellungen</p><h1>Einstellungen</h1></div></header>
+        <header className="dev-page-header"><div><h1>Einstellungen</h1></div></header>
         <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>Kein Profil gefunden. Bitte neu anmelden.</p>
       </div>
     )
@@ -150,7 +150,6 @@ export default function DevSettingsPage() {
     <div className="dev-page">
       <header className="dev-page-header">
         <div>
-          <p className="dev-eyebrow">Execution · Einstellungen</p>
           <h1>Einstellungen</h1>
           <p className="meta">Profil, Verfügbarkeit und Integrationen. Änderungen werden automatisch gespeichert.</p>
         </div>

@@ -639,7 +639,6 @@ export default function DevTasksPage() {
       {/* Header */}
       <header className="t-head">
         <div>
-          <p className="dev-eyebrow">DEV · Tasks</p>
           <h1>Tasks</h1>
           <p className="meta">Your assigned work, verified by Tagro and synced with the client workspace.</p>
         </div>
@@ -1414,7 +1413,6 @@ function DrawerHeader({
     <div className="dh">
       <div className="dh-top">
         <div>
-          <p className="dev-eyebrow">Dev Task · {wt.label}</p>
           <h2>{task.title}</h2>
           <p className="dh-sub">
             {task.projects?.title || 'kein Projekt'}

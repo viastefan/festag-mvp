@@ -114,7 +114,6 @@ export default function DevProjectsPage() {
     <div className="dev-page">
       <header className="dev-page-header compact">
         <div>
-          <p className="dev-eyebrow">Project Pool</p>
           <h1>Verfügbare Projekte.</h1>
           <p className="meta">
             {pools.available.length} offen · {pools.mine.length} aktiv bei dir

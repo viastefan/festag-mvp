@@ -199,7 +199,6 @@ export default function DevTeamPage() {
     <div className="dev-page">
       <header className="tl-head">
         <div>
-          <p className="dev-eyebrow">DEV · Team</p>
           <h1>Team Layer</h1>
           <p className="meta">
             Operatives Lieferteam mit Live-Workload, offenen Reviews und Blockern — Accountability an einer Stelle.

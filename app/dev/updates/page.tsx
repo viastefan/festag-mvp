@@ -138,7 +138,6 @@ export default function DevUpdatesPage() {
     <div className="dev-page">
       <header className="dev-page-header">
         <div>
-          <p className="dev-eyebrow">DEV · Updates</p>
           <h1>Updates</h1>
           <p className="meta">
             Offene Risiken, von Tagro angelegte Arbeit und deine technischen Updates — an einer Stelle.

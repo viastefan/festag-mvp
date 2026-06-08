@@ -213,7 +213,6 @@ export default function DevMessagesPage() {
     <div className="dev-page">
       <header className="dev-page-header">
         <div>
-          <p className="dev-eyebrow">Execution · Inbox</p>
           <h1>Inbox</h1>
           <p className="meta">
             {loading ? 'Lade…'
