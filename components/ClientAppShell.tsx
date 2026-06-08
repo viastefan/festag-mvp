@@ -12,6 +12,7 @@ import TagroOverlay from '@/components/TagroOverlay'
 import LoadingScreen from '@/components/LoadingScreen'
 import PwaInstallBanner from '@/components/PwaInstallBanner'
 import Sidebar from '@/components/Sidebar'
+import MobileClientDock from '@/components/MobileClientDock'
 import { createClient } from '@/lib/supabase/client'
 import { getTheme, setTheme, type ThemeMode } from '@/lib/theme'
 import { Check, FunnelSimple } from '@phosphor-icons/react'
@@ -524,6 +525,9 @@ export default function ClientAppShell({
       <CommandPalette />
       <PwaInstallBanner />
       <BrowserTabTitle />
+      {/* Client mobile bottom dock — 2 focused actions (Statusbericht +
+          Mit Tagro bearbeiten). Replaces the legacy 5-tab nav on phones. */}
+      <MobileClientDock />
     </div>
   )
 }
