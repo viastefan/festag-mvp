@@ -445,6 +445,16 @@ export default function TagroOverlay() {
             },
             ...extraAttached.map(c => ({ kind: c.kind, label: c.label })),
           ],
+          // Prior turns so Tagro keeps short-term memory. Backend trims
+          // to the last 8 entries, so the full local timeline is fine.
+          history: messages.map(m => m.role === 'user'
+            ? { role: 'user' as const, content: m.content }
+            : {
+                role: 'tagro' as const,
+                understanding: m.understanding,
+                opinion: m.opinion,
+                preview: m.preview,
+              }),
         }),
       })
       const data = await r.json().catch(() => null)

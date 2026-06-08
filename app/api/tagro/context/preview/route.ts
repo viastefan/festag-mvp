@@ -39,13 +39,35 @@ Regeln:
 - warnings: 0–3 kurze Hinweise wenn Scope/Privacy/Client-safety beachten ist; sonst leeres Array.
 - Erfinde nichts. Wenn Daten fehlen, schreibe das ehrlich in understanding/opinion.`
 
+/** What the overlay actually sends. The earlier shape only covered the
+ *  base object; the overlay now also passes the subtitle (live metadata
+ *  like counts/phase), an attached array of @-mentions added via the
+ *  picker / @-trigger, and the full prior conversation so each turn
+ *  has agent-level memory instead of single-shot Q&A. */
+type AttachedRef = {
+  type?: string
+  id?: string
+  title?: string
+  label?: string
+  kind?: 'object' | 'meta'
+}
+type HistoryTurn = {
+  role: 'user' | 'tagro'
+  content?: string
+  understanding?: string
+  opinion?: string
+  preview?: string
+}
 type Body = {
   type?: string
   id?: string
   title?: string
+  subtitle?: string
   status?: string | null
   clientVisible?: boolean | null
   input?: string
+  attached?: AttachedRef[]
+  history?: HistoryTurn[]
 }
 
 function fallback(input: string): { understanding: string; opinion: string; preview: string; suggestedAction: string; warnings: string[] } {
@@ -69,12 +91,46 @@ export async function POST(req: NextRequest) {
   const contextLine = [
     body.type ? `Objekttyp: ${body.type}` : '',
     body.title ? `Titel: ${body.title}` : '',
+    body.subtitle ? `Kontext-Detail: ${body.subtitle}` : '',
     body.id ? `ID: ${body.id}` : '',
     body.status ? `Status: ${body.status}` : '',
     typeof body.clientVisible === 'boolean' ? `Client-sichtbar: ${body.clientVisible ? 'ja' : 'nein'}` : '',
   ].filter(Boolean).join('\n')
 
-  const userPrompt = `Aktuelles Objekt:\n${contextLine || '(unbekannt)'}\n\nNutzereingabe:\n${input}\n\nAntworte mit dem JSON-Schema.`
+  // Attached @-mentions: the base object first, then any extra picks the
+  // user added via the + picker or @ trigger. Tagro must treat these as
+  // "in scope" — answers should reference them by name when relevant.
+  const attachedList = Array.isArray(body.attached)
+    ? body.attached
+      .map(a => (a?.label || a?.title || a?.type || '').trim())
+      .filter(Boolean)
+    : []
+  const attachedLine = attachedList.length
+    ? `Angehängter Kontext (verbindlich):\n- ${attachedList.join('\n- ')}`
+    : ''
+
+  // Prior turns: trimmed to the last ~8 entries so the prompt stays
+  // bounded but Tagro keeps short-term memory across the conversation.
+  const history = Array.isArray(body.history) ? body.history.slice(-8) : []
+  const historyLine = history.length
+    ? `Bisheriger Chatverlauf:\n${history.map(t => {
+        if (t.role === 'user') return `Nutzer: ${(t.content || '').slice(0, 600)}`
+        const tagroBits = [
+          t.understanding && `Verstehe: ${t.understanding}`,
+          t.opinion && `Meinung: ${t.opinion}`,
+          t.preview && `Entwurf: ${t.preview}`,
+        ].filter(Boolean).join(' · ')
+        return `Tagro: ${tagroBits.slice(0, 800) || (t.content || '').slice(0, 600)}`
+      }).join('\n')}`
+    : ''
+
+  const userPrompt = [
+    `Aktuelles Objekt:\n${contextLine || '(unbekannt)'}`,
+    attachedLine,
+    historyLine,
+    `Neue Nutzereingabe:\n${input}`,
+    `Antworte mit dem JSON-Schema.`,
+  ].filter(Boolean).join('\n\n')
 
   const ai = await tagroComplete({
     system: SYSTEM,
