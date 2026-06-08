@@ -736,6 +736,7 @@ export default function TaskWorkspaceDetail({ taskId, projectId }: TaskWorkspace
       <TagroMobileBar
         context={{ type: 'task', id: task.id, title: task.title }}
         leftLabel="Folgeaufgabe"
+        leftIcon={<Plus size={17} weight="regular" />}
         onLeft={() => setNewTaskOpen(true)}
       />
 

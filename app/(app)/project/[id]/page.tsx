@@ -7,7 +7,7 @@ import Link from 'next/link'
 import {
   Bell, CaretRight, Check, CheckCircle, Circle, DotsThree, LinkSimple,
   CaretDown, CaretUp, Copy, EnvelopeSimple, FilePdf, Plus, Sparkle, Star, Target, Trash, UserPlus,
-  ListChecks, ShieldCheck, Receipt, ClockClockwise,
+  ListChecks, ShieldCheck, Receipt, ClockClockwise, PencilSimple,
 } from '@phosphor-icons/react'
 import { projectColor } from '@/components/Sidebar'
 import { effectiveRole, isDevOrAdmin } from '@/lib/role'
@@ -2256,6 +2256,7 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
       <TagroMobileBar
         context={{ type: 'project', id, title: project.title }}
         leftLabel="Projekt bearbeiten"
+        leftIcon={<PencilSimple size={17} weight="regular" />}
         onLeft={canEdit ? () => setActiveLeft('overview') : undefined}
       />
 
