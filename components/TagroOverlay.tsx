@@ -721,10 +721,20 @@ function Composer({
 
   return (
     <div className={`tov-composer tov-composer-${variant}`}>
-      {/* The text bubble: single rounded surface with a small corner-
-          expand icon top-right (modern AI-leader pattern — ChatGPT,
-          Claude, Perplexity all use this shape on mobile). */}
-      <div className="tov-composer-bubble">
+      {/* Single-row ChatGPT layout:  (+)  [ input … 🎤 ↑ ]
+          + sits OUTSIDE the pill on the left; mic + send sit INSIDE the
+          pill on the right. */}
+      <button
+        type="button"
+        className="tov-composer-plus"
+        aria-label="Quellen oder Personen hinzufügen"
+        title="Quellen / @Personen / Objekte hinzufügen"
+        onClick={openPicker}
+      >
+        <Plus size={20} weight="regular" />
+      </button>
+
+      <div className="tov-composer-bar">
         <textarea
           ref={(el) => {
             if (typeof inputRef === 'function') (inputRef as any)(el)
@@ -738,42 +748,14 @@ function Composer({
           onChange={e => { autosize(e.currentTarget); onChange(e.target.value) }}
           onKeyDown={onKeyDown}
         />
-        <button
-          type="button"
-          className="tov-composer-expand"
-          aria-label="Vergrößern"
-          title="Vergrößern"
-          onClick={(e) => {
-            e.preventDefault()
-            try { window.dispatchEvent(new CustomEvent('festag:tagro-fullscreen-toggle')) } catch {}
-          }}
-        >
-          <ArrowsOut size={14} weight="regular" />
-        </button>
-      </div>
-
-      {/* Action row OUTSIDE / BELOW the bubble — + on the left, mic +
-          send on the right. Matches the ChatGPT mobile composer 1:1. */}
-      <div className="tov-composer-actions">
-        <button
-          type="button"
-          className="tov-composer-plus"
-          aria-label="Quellen oder Personen hinzufügen"
-          title="Quellen / @Personen / Objekte hinzufügen"
-          onClick={openPicker}
-        >
-          <Plus size={18} weight="regular" />
-        </button>
-        <div className="tov-composer-actions-right">
-          {micOk && (
-            <button type="button" className={`tov-composer-mic${rec ? ' is-rec' : ''}`} onClick={onMic} aria-label={rec ? 'Aufnahme stoppen' : 'Per Sprache diktieren'}>
-              {rec ? <MicrophoneSlash size={16} weight="fill" /> : <Microphone size={16} />}
-            </button>
-          )}
-          <button type="button" className="tov-composer-send" onClick={onSend} disabled={busy || !value.trim()} aria-label="Senden">
-            {busy ? <ArrowsClockwise size={18} className="tov-spin" /> : <ArrowUp size={18} weight="bold" />}
+        {micOk && (
+          <button type="button" className={`tov-composer-mic${rec ? ' is-rec' : ''}`} onClick={onMic} aria-label={rec ? 'Aufnahme stoppen' : 'Per Sprache diktieren'}>
+            {rec ? <MicrophoneSlash size={18} weight="fill" /> : <Microphone size={18} />}
           </button>
-        </div>
+        )}
+        <button type="button" className="tov-composer-send" onClick={onSend} disabled={busy || !value.trim()} aria-label="Senden">
+          {busy ? <ArrowsClockwise size={18} className="tov-spin" /> : <ArrowUp size={18} weight="bold" />}
+        </button>
       </div>
 
       {pickerOpen && (
@@ -1089,19 +1071,26 @@ const STYLES = `
 }
 .tov-hero-q {
   margin: 0; text-align: center;
-  font-size: 26px; font-weight: 500; letter-spacing: -.014em; color: var(--tov-text);
-  line-height: 1.22;
+  font-size: 28px; font-weight: 600; letter-spacing: -.016em; color: var(--tov-text);
+  line-height: 1.18;
   /* Senior-designer touch: balance the wrap so the second line never
      orphans a single word. Falls back gracefully where unsupported. */
   text-wrap: balance;
 }
 .tov-hero-sub {
-  margin: -10px 0 2px;
+  margin: -8px 0 2px;
   text-align: center;
-  font-size: 13.5px; line-height: 1.55; color: var(--tov-text-2); max-width: 56ch;
+  font-size: 14.5px; line-height: 1.55; color: var(--tov-text-2); max-width: 56ch;
   text-wrap: balance;
 }
-.tov.tov-full .tov-hero-q { font-size: 30px; letter-spacing: -.018em; }
+.tov.tov-full .tov-hero-q { font-size: 32px; letter-spacing: -.02em; }
+/* Mobile: bigger, more confident heading — was visibly too small. */
+@media (max-width: 768px) {
+  .tov-hero-q { font-size: 30px; }
+  .tov.tov-full .tov-hero-q { font-size: 30px; }
+  .tov-hero-sub { font-size: 15px; }
+  .tov-hero-mark { width: 42px; height: 42px; }
+}
 .tov.tov-full .tov-hero {
   /* True vertical + horizontal centering of the agent block. The hero
      uses flex (align-items:center, justify-content:center) so the whole
@@ -1126,116 +1115,101 @@ const STYLES = `
   .tov.tov-full .tov-hero { padding: 24px 18px; }
 }
 
-/* Composer — modern AI-leader pattern (ChatGPT mobile / Claude):
-     ┌────────────────────────────────────────────────┐  ← rounded bubble
-     │  text …                                    ⤢   │     w/ corner expand
-     └────────────────────────────────────────────────┘
-       (+)                              (mic)  (↑)     ← actions OUTSIDE
-*/
+/* Composer — ChatGPT single-row layout 1:1:
+       (+)   [  input …                        🎤   ↑  ]
+     + is OUTSIDE the pill on the left; mic + send are INSIDE the pill
+     on the right. The pill is a stadium that grows for multi-line text. */
 .tov-composer {
   width: 100%;
   display: flex;
-  flex-direction: column;
+  align-items: flex-end;
   gap: 10px;
 }
-/* The bubble owns the surface; actions sit outside on a transparent row. */
-.tov-composer-bubble {
-  position: relative;
+
+/* + button — its own circle, OUTSIDE the input pill (ChatGPT style). */
+.tov-composer-plus {
+  flex: 0 0 auto;
+  width: 44px; height: 44px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--tov-input);
+  color: var(--tov-text);
+  border: 1px solid var(--tov-border);
+  border-radius: 999px; cursor: pointer;
+  transition: background .14s, color .14s, border-color .14s;
+}
+.tov-composer-plus:hover {
+  background: var(--tov-pill); border-color: var(--tov-border-2);
+}
+
+/* The input pill — holds the textarea + mic + send. */
+.tov-composer-bar {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
   background: var(--tov-input);
   border: 1px solid var(--tov-border);
-  border-radius: 22px;
-  padding: 14px 44px 14px 18px;     /* right padding clears the corner icon */
+  border-radius: 26px;
+  padding: 6px 6px 6px 18px;
   box-shadow:
     0 1px 2px rgba(15,23,42,0.04),
     0 12px 32px -22px rgba(15,23,42,0.12);
   transition: border-color .16s ease, background .16s ease, box-shadow .16s ease;
 }
-[data-theme="dark"] .tov-composer-bubble,
-[data-theme="classic-dark"] .tov-composer-bubble {
+[data-theme="dark"] .tov-composer-bar,
+[data-theme="classic-dark"] .tov-composer-bar {
   box-shadow: 0 1px 2px rgba(0,0,0,0.3), 0 12px 32px -22px rgba(0,0,0,0.5);
 }
-.tov-composer-bubble:focus-within {
+.tov-composer-bar:focus-within {
   border-color: color-mix(in srgb, var(--tov-text) 22%, transparent);
   background: var(--tov-input-2);
   box-shadow:
     0 0 0 4px color-mix(in srgb, var(--tov-text) 6%, transparent),
     0 8px 30px -18px rgba(15,23,42,0.18);
 }
-[data-theme="dark"] .tov-composer-bubble:focus-within,
-[data-theme="classic-dark"] .tov-composer-bubble:focus-within {
+[data-theme="dark"] .tov-composer-bar:focus-within,
+[data-theme="classic-dark"] .tov-composer-bar:focus-within {
   box-shadow:
     0 0 0 4px rgba(255,255,255,0.05),
     0 8px 30px -18px rgba(0,0,0,0.6);
 }
-.tov-composer-hero   .tov-composer-bubble { border-radius: 24px; padding: 16px 48px 16px 20px; }
-.tov-composer-sticky .tov-composer-bubble { border-radius: 18px; padding: 12px 40px 12px 16px; }
-
-/* Corner expand icon — top-right inside the bubble. */
-.tov-composer-expand {
-  position: absolute; top: 10px; right: 10px;
-  width: 26px; height: 26px;
-  display: inline-flex; align-items: center; justify-content: center;
-  background: transparent; color: var(--tov-muted);
-  border: 0; border-radius: 8px; cursor: pointer;
-  transition: background .12s, color .12s;
-}
-.tov-composer-expand:hover { background: var(--tov-pill); color: var(--tov-text); }
+.tov-composer-hero   .tov-composer-bar { padding: 8px 8px 8px 20px; }
+.tov-composer-sticky .tov-composer-bar { border-radius: 24px; }
 
 .tov-composer-input {
+  flex: 1 1 auto;
   width: 100%; border: 0; outline: 0; resize: none; background: transparent;
   color: var(--tov-text); font: inherit;
   font-size: 16px; line-height: 1.5;
-  min-height: 24px;
+  min-height: 32px;          /* aligns with the 32px round buttons */
   max-height: 200px;
-  padding: 0;
+  /* vertical breathing room so single-line text sits centred in the pill */
+  padding: 6px 0;
   overflow-y: auto;
 }
 .tov-composer-input::placeholder { color: var(--tov-muted); }
 
-/* Action row — outside the bubble. */
-.tov-composer-actions {
-  display: flex; align-items: center; justify-content: space-between;
-  gap: 8px;
-  padding: 0 6px;     /* keeps the buttons aligned to the bubble's content */
-}
-.tov-composer-actions-right { display: inline-flex; gap: 8px; align-items: center; }
-
-.tov-composer-plus {
-  width: 42px; height: 42px;
-  display: inline-flex; align-items: center; justify-content: center;
-  background: transparent;
-  color: var(--tov-text-2);
-  border: 1px solid var(--tov-border);
-  border-radius: 999px; cursor: pointer;
-  transition: background .14s, color .14s, border-color .14s;
-}
-.tov-composer-plus:hover {
-  background: var(--tov-pill); color: var(--tov-text);
-  border-color: var(--tov-border-2);
-}
+/* mic — ghost circle inside the pill. */
 .tov-composer-mic {
-  width: 42px; height: 42px;
+  flex: 0 0 auto;
+  width: 32px; height: 32px;
   display: inline-flex; align-items: center; justify-content: center;
-  background: transparent;
-  color: var(--tov-text-2);
-  border: 1px solid var(--tov-border);
-  border-radius: 999px; cursor: pointer;
-  transition: background .14s, color .14s, border-color .14s;
+  background: transparent; color: var(--tov-text-2);
+  border: 0; border-radius: 999px; cursor: pointer;
+  transition: background .14s, color .14s;
 }
-.tov-composer-mic:hover { background: var(--tov-pill); color: var(--tov-text); border-color: var(--tov-border-2); }
-.tov-composer-mic.is-rec {
-  background: var(--tov-pill-h); color: var(--tov-text);
-  border-color: var(--tov-border-2);
-  animation: tov-pulse 1.4s ease-in-out infinite;
-}
-/* Send — solid filled circle, the only confident colour in the row. */
+.tov-composer-mic:hover { background: var(--tov-pill); color: var(--tov-text); }
+.tov-composer-mic.is-rec { background: var(--tov-pill-h); color: var(--tov-text); animation: tov-pulse 1.4s ease-in-out infinite; }
+
+/* send — solid filled circle at the pill's right edge (ChatGPT). */
 .tov-composer-send {
-  width: 42px; height: 42px;
+  flex: 0 0 auto;
+  width: 36px; height: 36px;
   border: 0; border-radius: 999px;
   background: var(--tov-send); color: var(--tov-send-text);
   display: inline-flex; align-items: center; justify-content: center;
   cursor: pointer;
-  box-shadow: 0 8px 18px -8px color-mix(in srgb, var(--tov-send) 70%, transparent);
   transition: opacity .12s, transform .12s, box-shadow .14s;
 }
 .tov-composer-send:hover:not(:disabled) { opacity: .92; transform: translateY(-1px); }
