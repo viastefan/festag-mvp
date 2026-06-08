@@ -37,7 +37,8 @@ interface Props {
   actions?: EmptyAction[]
   /** Accent colour (workspace/brand). Defaults to slate primary. */
   accent?: string
-  /** Optional small kicker above the title (e.g. section name). */
+  /** @deprecated Eyebrow labels are banned across Festag — accepted for
+   *  source compatibility but never rendered. */
   kicker?: string
 }
 
@@ -47,7 +48,6 @@ export default function EmptyState({
   description,
   actions = [],
   accent,
-  kicker,
 }: Props) {
   const tone = accent || 'var(--workspace-accent, var(--btn-prim))'
 
@@ -127,10 +127,6 @@ export default function EmptyState({
           color:var(--es-accent);
           border:1px solid color-mix(in srgb, var(--es-accent) 26%, var(--border));
         }
-        .es-kicker {
-          font-size:11px; font-weight:600; letter-spacing:var(--ls-sidebar, .023em);
-          text-transform:uppercase; color:var(--text-muted); margin:0 0 8px;
-        }
         .es-title {
           font-size:17px; font-weight:600; color:var(--text);
           letter-spacing:var(--ls-header, .012em); margin:0 0 8px; line-height:1.3;
@@ -178,7 +174,6 @@ export default function EmptyState({
         </div>
       </div>
 
-      {kicker && <p className="es-kicker">{kicker}</p>}
       <h2 className="es-title">{title}</h2>
       {description && <p className="es-desc">{description}</p>}
 

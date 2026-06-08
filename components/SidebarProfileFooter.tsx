@@ -295,6 +295,7 @@ export default function SidebarProfileFooter({
         className="spf-trigger"
         type="button"
         onClick={() => setOpen(o => !o)}
+        title={`${wsLabel} · ${WORKSPACE_MODE_LABEL[wsMode]}`}
         style={{
           width: '100%', minWidth: 0,
           display: 'flex', alignItems: 'center', gap: 9,
@@ -309,17 +310,30 @@ export default function SidebarProfileFooter({
       >
         {/* Square glyph = workspace (vs. a person's round avatar). The
             generative WorkspaceSymbol replaces the initial-in-a-tile per
-            the senior design directive. Same identity, no boring letter. */}
-        <div style={{ width: 24, height: 24, flexShrink: 0, display: 'inline-flex' }}>
+            the senior design directive. A small slate dot on the corner
+            marks internal-company mode — never truncates, reads at a
+            glance, full mode is in the popover below. */}
+        <div style={{ position: 'relative', width: 24, height: 24, flexShrink: 0, display: 'inline-flex' }}>
           <WorkspaceSymbol
             variant={wsPrefs.variant}
             scheme={wsPrefs.scheme}
             seed={wsPrefs.seed}
             size={24}
           />
+          {wsMode === 'internal_company' && (
+            <span
+              aria-hidden
+              style={{
+                position: 'absolute', right: -2, bottom: -2,
+                width: 9, height: 9, borderRadius: 999,
+                background: '#5B647D',
+                boxShadow: '0 0 0 2px var(--surface, #fff)',
+              }}
+            />
+          )}
         </div>
 
-        <span style={{ flex: '1 1 auto', minWidth: 0, maxWidth: 82, display: 'inline-flex', alignItems: 'center', gap: 6, overflow: 'hidden' }}>
+        <span style={{ flex: '1 1 auto', minWidth: 0, display: 'inline-flex', alignItems: 'center', gap: 6, overflow: 'hidden' }}>
           <span style={{
             fontSize: 12.5, fontWeight: 500, color: 'var(--text)', letterSpacing: '0.02em',
             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
@@ -328,29 +342,11 @@ export default function SidebarProfileFooter({
           </span>
           {currentPlanLabel && (
             <>
-              <span style={{ color: 'var(--text-muted)', fontSize: 11 }}>·</span>
+              <span style={{ color: 'var(--text-muted)', fontSize: 11, flexShrink: 0 }}>·</span>
               <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--text-muted)', letterSpacing: '0.02em', flexShrink: 0 }}>
                 {currentPlanLabel}
               </span>
             </>
-          )}
-          {/* Intern-Mode badge — only when the user explicitly flipped the
-              workspace into internal-company mode. Slate fill so it reads
-              as a posture, not as a warning. */}
-          {wsMode === 'internal_company' && (
-            <span style={{
-              flexShrink: 0,
-              marginLeft: 4,
-              padding: '1px 6px',
-              borderRadius: 999,
-              background: '#5B647D',
-              color: '#FFFFFF',
-              fontSize: 9.5,
-              fontWeight: 600,
-              letterSpacing: '.06em',
-              textTransform: 'uppercase',
-              lineHeight: 1.4,
-            }}>Intern</span>
           )}
         </span>
 
