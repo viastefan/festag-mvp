@@ -13,6 +13,7 @@ import LoadingScreen from '@/components/LoadingScreen'
 import PwaInstallBanner from '@/components/PwaInstallBanner'
 import Sidebar from '@/components/Sidebar'
 import MobileClientDock from '@/components/MobileClientDock'
+import CaptureRecorder from '@/components/CaptureRecorder'
 import { createClient } from '@/lib/supabase/client'
 import { getTheme, setTheme, type ThemeMode } from '@/lib/theme'
 import { Check, FunnelSimple } from '@phosphor-icons/react'
@@ -528,6 +529,8 @@ export default function ClientAppShell({
       {/* Client mobile bottom dock — 2 focused actions (Statusbericht +
           Mit Tagro bearbeiten). Replaces the legacy 5-tab nav on phones. */}
       <MobileClientDock />
+      {/* Capture Loop — global recorder. openCapture() from anywhere. */}
+      <CaptureRecorder />
     </div>
   )
 }

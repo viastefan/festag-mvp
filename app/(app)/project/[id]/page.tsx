@@ -7,7 +7,7 @@ import Link from 'next/link'
 import {
   Bell, CaretRight, Check, CheckCircle, Circle, DotsThree, LinkSimple,
   CaretDown, CaretUp, Copy, EnvelopeSimple, FilePdf, Plus, Sparkle, Star, Target, Trash, UserPlus,
-  ListChecks, ShieldCheck, Receipt, ClockClockwise, PencilSimple, Wrench,
+  ListChecks, ShieldCheck, Receipt, ClockClockwise, PencilSimple, Wrench, Microphone,
 } from '@phosphor-icons/react'
 import { projectColor } from '@/components/Sidebar'
 import { effectiveRole, isDevOrAdmin } from '@/lib/role'
@@ -24,6 +24,7 @@ import ProofGridSection from '@/components/ProofGridSection'
 import TagroMobileBar from '@/components/TagroMobileBar'
 import MobileObjectMenu from '@/components/MobileObjectMenu'
 import { openTagro } from '@/components/TagroOverlay'
+import { openCapture } from '@/components/CaptureRecorder'
 import TagroQueueSection from '@/components/TagroQueueSection'
 import MarketingPanelSection from '@/components/MarketingPanelSection'
 import ChatMarkdown from '@/components/ChatMarkdown'
@@ -909,6 +910,19 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
           background: color-mix(in srgb, var(--surface-2) 70%, transparent);
           color: var(--text); border-color: var(--border);
         }
+        .pv-capture-btn {
+          display: inline-flex; align-items: center; gap: 6px;
+          height: 28px; padding: 0 12px;
+          border-radius: 999px;
+          border: 0;
+          background: #5B647D; color: #fff;
+          font: inherit; font-size: 12px; font-weight: 500; letter-spacing: .012em;
+          cursor: pointer; white-space: nowrap;
+          box-shadow: 0 8px 18px -10px rgba(91,100,125,0.6);
+          transition: background .14s, transform .14s;
+        }
+        .pv-capture-btn:hover { background: #4d566c; }
+        .pv-capture-btn:active { transform: scale(.98); }
 
         /* ── TABS — pill-style segmented control ───────────────────── */
         .pv-tabs {
@@ -1683,6 +1697,15 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
           </span>
         </div>
         <div className="pv-topbar-right">
+          {/* Capture Loop entry — opens the recorder on this project. */}
+          <button
+            type="button"
+            className="pv-capture-btn"
+            title="Feedback aufnehmen — Tagro macht daraus saubere Change-Scripts."
+            onClick={() => openCapture({ projectId: id, projectTitle: project.title })}
+          >
+            <Microphone size={13} /> Feedback aufnehmen
+          </button>
           {/* Bidirectional link: dev/admin jump to the SAME project in the
               Dev Panel (execution side). Hidden for clients. */}
           {canEdit && (
