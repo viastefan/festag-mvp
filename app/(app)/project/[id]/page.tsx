@@ -25,6 +25,7 @@ import TagroMobileBar from '@/components/TagroMobileBar'
 import MobileObjectMenu from '@/components/MobileObjectMenu'
 import { openTagro } from '@/components/TagroOverlay'
 import { openCapture } from '@/components/CaptureRecorder'
+import ProjectUrlBar from '@/components/ProjectUrlBar'
 import TagroQueueSection from '@/components/TagroQueueSection'
 import MarketingPanelSection from '@/components/MarketingPanelSection'
 import ChatMarkdown from '@/components/ChatMarkdown'
@@ -32,7 +33,14 @@ import { getProjectPreset, type ExecutorRole, type ProjectType } from '@/lib/pro
 import { autoAvatarColor, avatarTextColor } from '@/lib/avatar'
 import { getRememberedProfileAvatarColor, subscribeProfileSync } from '@/lib/profile-sync'
 
-type Project = { id: string; title: string; description: string|null; status: string; project_type?: ProjectType | null }
+type Project = {
+  id: string; title: string; description: string|null; status: string;
+  project_type?: ProjectType | null;
+  /** Set by the dev when there is something the client can review. The
+   *  Capture-Loop recorder is locked until this is non-empty. */
+  staging_url?: string | null;
+  live_url?: string | null;
+}
 type Task = { id: string; title: string; status: string; priority?: string }
 type Msg = { id: string; message: string; created_at: string; sender_id: string; is_ai?: boolean }
 type ReportActionItem = {
@@ -934,6 +942,11 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
         .pv-capture-btn:hover {
           background: color-mix(in srgb, var(--surface-2) 70%, transparent);
         }
+        .pv-capture-btn--locked {
+          opacity: .5; cursor: not-allowed;
+          color: var(--text-muted);
+        }
+        .pv-capture-btn--locked:hover { background: transparent; }
 
         /* ── TABS — pill-style segmented control ───────────────────── */
         .pv-tabs {
@@ -1717,15 +1730,31 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
           >
             <Sparkle size={13} weight="fill" /> Mit Tagro
           </button>
-          {/* Capture Loop entry — opens the live recorder on this project. */}
-          <button
-            type="button"
-            className="pv-capture-btn"
-            title="Live-Feedback aufnehmen — Tagro hört zu, während du durch die Website gehst."
-            onClick={() => openCapture({ projectId: id, projectTitle: project.title })}
-          >
-            <Microphone size={13} /> Live-Feedback
-          </button>
+          {/* Capture Loop entry — disabled until the project has a staging
+              URL set. The button shows a different label + tooltip in each
+              state so the client never wonders why nothing happens. */}
+          {project.staging_url ? (
+            <button
+              type="button"
+              className="pv-capture-btn"
+              title={`Live-Feedback aufnehmen — Tagro hört zu, während du durch ${project.staging_url} gehst.`}
+              onClick={() => openCapture({
+                projectId: id,
+                projectTitle: project.title,
+                defaultUrl: project.staging_url || undefined,
+              })}
+            >
+              <Microphone size={13} /> Live-Feedback
+            </button>
+          ) : (
+            <span
+              className="pv-capture-btn pv-capture-btn--locked"
+              title="Live-Feedback ist aktiv, sobald dein Developer eine Staging-URL hinterlegt hat."
+              aria-disabled="true"
+            >
+              <Microphone size={13} /> Live-Feedback · gesperrt
+            </span>
+          )}
           {/* Bidirectional link: dev/admin jump to the SAME project in the
               Dev Panel (execution side). Hidden for clients. */}
           {canEdit && (
@@ -1737,6 +1766,15 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
           <button className="pv-icon-btn" title="Benachrichtigungen"><Bell size={13} /></button>
         </div>
       </header>
+
+      {/* ─── Vorschau-URL Bar ─── */}
+      <ProjectUrlBar
+        projectId={id}
+        stagingUrl={project.staging_url || null}
+        liveUrl={project.live_url || null}
+        canEdit={canEdit}
+        onSaved={(patch) => setProject(p => p ? { ...p, ...patch } as Project : p)}
+      />
 
       {/* ─── TABS ─── */}
       <nav className="pv-tabs" role="tablist">

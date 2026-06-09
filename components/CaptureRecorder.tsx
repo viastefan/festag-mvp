@@ -311,35 +311,59 @@ export default function CaptureRecorder() {
           <div className="capx-setup">
             <h2>Live-Feedback aufnehmen</h2>
             <p>
-              Tagro hört zu, während du in einem zweiten Tab durch deine Website gehst.
+              Tagro hört zu, während du in einem zweiten Tab durch deine Vorschau gehst.
               Sprich frei — pro Seite ein paar Sätze. Am Ende macht Tagro daraus saubere
               Change-Scripts für deinen Developer, gegliedert nach Seite.
             </p>
-            <label className="capx-field">
-              <span><Globe size={13} /> Start-URL</span>
-              <input
-                type="url"
-                className="capx-input"
-                placeholder="https://staging.example.com/start"
-                value={pageUrl}
-                onChange={e => setPageUrl(e.target.value)}
-                autoFocus
-              />
-            </label>
+
+            {/* The URL is bound to the project — no free input. */}
+            <div className="capx-source">
+              <span className="capx-source-tag">Vorschau</span>
+              <span className="capx-source-url">{pageUrl || '— nicht hinterlegt —'}</span>
+              {pageUrl && (
+                <a className="capx-source-open" href={pageUrl} target="_blank" rel="noreferrer">
+                  <ArrowSquareOut size={13} /> Im neuen Tab öffnen
+                </a>
+              )}
+            </div>
+
+            {!pageUrl && (
+              <p className="capx-err">
+                Dein Developer hat noch keine Vorschau-URL hinterlegt. Sobald sie eingetragen
+                ist, kannst du das Live-Feedback hier starten.
+              </p>
+            )}
+
+            {/* Extension teaser — points to the deeper experience. */}
+            <aside className="capx-ext">
+              <div className="capx-ext-mark" aria-hidden>
+                <span /><span /><span />
+              </div>
+              <div className="capx-ext-text">
+                <strong>Tagro Chrome-Extension</strong>
+                <p>
+                  Für die volle Erfahrung — Orb-Recorder im Seitenpanel, Element-Klick
+                  mit Brainstorming-Bubble und Aufnahme auf jeder URL — installier die
+                  Festag Browser-Extension.
+                </p>
+                <span className="capx-ext-cta">Bald verfügbar — wir melden uns, sobald du sie installieren kannst.</span>
+              </div>
+            </aside>
+
             <p className="capx-hint">
-              Tipp: Öffne die URL in einem zweiten Tab und arbeite mit Alt-Tab / Cmd-Tab.
+              Tipp: Öffne die Vorschau in einem zweiten Tab und arbeite mit Alt-Tab / Cmd-Tab.
               Während der Aufnahme kannst du jederzeit eine neue Seite markieren.
               Maximale Aufnahme: 10 Minuten.
             </p>
-            {pageUrl.trim() && (
-              <a className="capx-tab-open" href={pageUrl} target="_blank" rel="noreferrer">
-                <ArrowSquareOut size={13} /> Im neuen Tab öffnen
-              </a>
-            )}
             {error && <p className="capx-err">{error}</p>}
             <div className="capx-setup-actions">
               <button type="button" className="capx-ghost" onClick={close}>Abbrechen</button>
-              <button type="button" className="capx-primary" onClick={beginSession}>
+              <button
+                type="button"
+                className="capx-primary"
+                onClick={beginSession}
+                disabled={!pageUrl}
+              >
                 <Play size={14} weight="fill" /> Aufnahme starten
               </button>
             </div>
@@ -547,6 +571,65 @@ export default function CaptureRecorder() {
           font-size: 12.5px; text-decoration: none;
         }
         .capx-tab-open:hover { color: var(--text); }
+
+        .capx-source {
+          display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+          padding: 12px 14px;
+          background: color-mix(in srgb, var(--surface-2) 60%, transparent);
+          border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+          border-radius: 14px;
+        }
+        .capx-source-tag {
+          display: inline-flex; align-items: center;
+          padding: 2px 7px; border-radius: 999px;
+          background: #5B647D; color: #fff;
+          font-size: 10px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
+        }
+        .capx-source-url {
+          flex: 1 1 auto; min-width: 0;
+          overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+          font-size: 13.5px; font-weight: 500; color: var(--text);
+          font-variant-numeric: tabular-nums;
+        }
+        .capx-source-open {
+          display: inline-flex; align-items: center; gap: 6px;
+          color: var(--text-secondary); font-size: 12.5px; text-decoration: none;
+        }
+        .capx-source-open:hover { color: var(--text); }
+
+        /* Extension teaser — points to the deeper Chrome experience. */
+        .capx-ext {
+          display: flex; align-items: flex-start; gap: 14px;
+          padding: 14px 14px;
+          background: color-mix(in srgb, #5B647D 8%, transparent);
+          border: 1px solid color-mix(in srgb, #5B647D 22%, transparent);
+          border-radius: 14px;
+        }
+        .capx-ext-mark {
+          position: relative;
+          width: 44px; height: 44px;
+          flex-shrink: 0;
+          border-radius: 999px;
+          background: radial-gradient(circle at 30% 30%, #7682A0, #4d566c);
+          display: inline-flex; align-items: center; justify-content: center;
+          overflow: hidden;
+        }
+        .capx-ext-mark span {
+          width: 4px; height: 14px; margin: 0 2px;
+          background: rgba(255,255,255,.85);
+          border-radius: 999px;
+          animation: capxOrb 1.4s ease-in-out infinite;
+        }
+        .capx-ext-mark span:nth-child(2) { animation-delay: .15s; height: 22px; }
+        .capx-ext-mark span:nth-child(3) { animation-delay: .3s; }
+        @keyframes capxOrb {
+          0%, 100% { transform: scaleY(.6); opacity: .7; }
+          50% { transform: scaleY(1); opacity: 1; }
+        }
+        .capx-ext-text { display: flex; flex-direction: column; gap: 3px; }
+        .capx-ext-text strong { font-size: 14px; font-weight: 600; color: var(--text); }
+        .capx-ext-text p { margin: 0; font-size: 12.5px; line-height: 1.5; color: var(--text-secondary); }
+        .capx-ext-cta { font-size: 11.5px; color: #5B647D; font-weight: 500; }
         .capx-setup-actions { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; margin-top: 6px; }
 
         /* ── Live transcript ───────────────────────────────────────── */
