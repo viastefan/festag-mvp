@@ -40,6 +40,7 @@ import {
   GithubLogo,
   House,
   Kanban,
+  Microphone,
   NotePencil,
   Robot,
   Scales,
@@ -85,6 +86,7 @@ const APP_ITEMS: RailItem[] = [
 const DEV_ITEMS: RailItem[] = [
   { id: 'dev-overview', label: 'Overview',      icon: Compass,     href: '/dev',          match: (p) => p === '/dev' },
   { id: 'dev-projects', label: 'Projects',      icon: FolderOpen,  href: '/dev/projects', match: (p) => p.startsWith('/dev/projects') },
+  { id: 'dev-captures', label: 'Client Captures', icon: Microphone, href: '/dev/captures', match: (p) => p.startsWith('/dev/captures') },
   { id: 'dev-tasks',    label: 'My Tasks',      icon: CheckSquare, href: '/dev/tasks',    match: (p) => p.startsWith('/dev/tasks') },
   { id: 'dev-review',   label: 'Tagro Review',  icon: Robot,       href: '/dev/review',   match: (p) => p.startsWith('/dev/review') },
   { id: 'dev-plan',     label: 'Daily Plan',    icon: Kanban,      href: '/dev/plan',     match: (p) => p.startsWith('/dev/plan') },
