@@ -910,19 +910,30 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
           background: color-mix(in srgb, var(--surface-2) 70%, transparent);
           color: var(--text); border-color: var(--border);
         }
-        .pv-capture-btn {
+        .pv-capture-btn,
+        .pv-tagro-btn {
           display: inline-flex; align-items: center; gap: 6px;
           height: 28px; padding: 0 12px;
           border-radius: 999px;
           border: 0;
-          background: #5B647D; color: #fff;
           font: inherit; font-size: 12px; font-weight: 500; letter-spacing: .012em;
           cursor: pointer; white-space: nowrap;
-          box-shadow: 0 8px 18px -10px rgba(91,100,125,0.6);
           transition: background .14s, transform .14s;
         }
-        .pv-capture-btn:hover { background: #4d566c; }
-        .pv-capture-btn:active { transform: scale(.98); }
+        .pv-capture-btn:active,
+        .pv-tagro-btn:active { transform: scale(.98); }
+        .pv-tagro-btn {
+          background: #5B647D; color: #fff;
+          box-shadow: 0 8px 18px -10px rgba(91,100,125,0.6);
+        }
+        .pv-tagro-btn:hover { background: #4d566c; }
+        .pv-capture-btn {
+          background: transparent; color: var(--text);
+          border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+        }
+        .pv-capture-btn:hover {
+          background: color-mix(in srgb, var(--surface-2) 70%, transparent);
+        }
 
         /* ── TABS — pill-style segmented control ───────────────────── */
         .pv-tabs {
@@ -1697,14 +1708,23 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
           </span>
         </div>
         <div className="pv-topbar-right">
-          {/* Capture Loop entry — opens the recorder on this project. */}
+          {/* Tagro overlay — primary AI entry on every project. */}
+          <button
+            type="button"
+            className="pv-tagro-btn"
+            title="Mit Tagro bearbeiten"
+            onClick={() => openTagro({ contextType: 'project', id, title: project.title })}
+          >
+            <Sparkle size={13} weight="fill" /> Mit Tagro
+          </button>
+          {/* Capture Loop entry — opens the live recorder on this project. */}
           <button
             type="button"
             className="pv-capture-btn"
-            title="Feedback aufnehmen — Tagro macht daraus saubere Change-Scripts."
+            title="Live-Feedback aufnehmen — Tagro hört zu, während du durch die Website gehst."
             onClick={() => openCapture({ projectId: id, projectTitle: project.title })}
           >
-            <Microphone size={13} /> Feedback aufnehmen
+            <Microphone size={13} /> Live-Feedback
           </button>
           {/* Bidirectional link: dev/admin jump to the SAME project in the
               Dev Panel (execution side). Hidden for clients. */}

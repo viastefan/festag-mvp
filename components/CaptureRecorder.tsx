@@ -1,35 +1,65 @@
 'use client'
 
 /**
- * CaptureRecorder — the client-side recorder for the capture loop.
+ * CaptureRecorder — Live-Session Recorder (Claude / Atlas style).
  *
- * Opens as a focused modal anchored to a project. The client:
- *   1. (Optional) sets the URL of the page they're commenting on.
- *   2. Speaks or types their feedback.
- *   3. Hits "Tagro vorbereiten" → POST /api/captures with process:true.
- *      Tagro structures the transcript into change scripts.
- *   4. Reviews the structured output and either approves (sends to dev)
- *      or keeps editing (saves as draft).
+ * The client opens a full-screen session, hits record, and walks through
+ * their website (in another tab) while talking. Tagro transcribes live,
+ * the client can hit "Neue Seite" each time they navigate, and at stop
+ * Tagro structures EVERYTHING into change-scripts grouped per section.
+ *
+ *   ┌──────────────────────────────────────────────────────────────┐
+ *   │  ● 02:14 / 10:00         Projektname · Live-Feedback     [×] │
+ *   ├──────────────────────────────────────────────────────────────┤
+ *   │                                                              │
+ *   │   ▣ Aktuelle Seite                                           │
+ *   │   https://staging.example.com/start                          │
+ *   │                                                              │
+ *   │   "Das Headline ist zu lang, kürz es um die hälfte."         │
+ *   │   "Tausch das Foto gegen etwas mit Menschen."                │
+ *   │                                                              │
+ *   │   ─── Neue Seite ───                                         │
+ *   │                                                              │
+ *   │   ▣ /preise                                                  │
+ *   │   "Die zweite Karte braucht einen klareren Button-Text."     │
+ *   │                                                              │
+ *   ├──────────────────────────────────────────────────────────────┤
+ *   │           [ + Neue Seite ]   [ ● Pause ]   [ ■ Stop ]        │
+ *   └──────────────────────────────────────────────────────────────┘
+ *
+ * Hard cap: 10 minutes. The timer counts down and auto-stops at 0.
+ * After stop, the session is POSTed to /api/captures with process:true
+ * and Tagro groups changes by section.
  *
  * Public API:
- *   <CaptureRecorder open onClose projectId projectTitle defaultUrl? />
- *
- * Or via the global event:
- *   window.dispatchEvent(new CustomEvent('festag:open-capture', {
- *     detail: { projectId, projectTitle, defaultUrl }
- *   }))
- *
- * The Recorder also lives mounted once in ClientAppShell so any page can
- * pop it open without per-page wiring.
+ *   openCapture({ projectId, projectTitle?, defaultUrl? })
  */
 
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import {
-  ArrowsClockwise, CheckCircle, Globe, Microphone, MicrophoneSlash,
-  PaperPlaneTilt, Sparkle, X,
+  ArrowsClockwise, ArrowSquareOut, CheckCircle, Globe, Microphone,
+  MicrophoneSlash, PaperPlaneTilt, Pause, Play, Plus, Stop, X,
 } from '@phosphor-icons/react'
 import { useSpeechRecognition } from '@/hooks/useSpeechRecognition'
+
+const MAX_SECONDS = 10 * 60   // hard cap
+
+type RecorderContext = {
+  projectId: string
+  projectTitle?: string
+  defaultUrl?: string
+}
+
+type Section = {
+  id: string
+  url: string
+  /** Each transcript chunk appended live. */
+  bullets: string[]
+  /** Live interim text (not yet committed). */
+  draft: string
+  startedAtMs: number
+}
 
 export type CaptureChange = {
   title?: string
@@ -50,105 +80,179 @@ export type CaptureRow = {
   status: string
 }
 
-type RecorderContext = {
-  projectId: string
-  projectTitle?: string
-  defaultUrl?: string
-}
-
 export function openCapture(detail: RecorderContext) {
   if (typeof window === 'undefined') return
   window.dispatchEvent(new CustomEvent<RecorderContext>('festag:open-capture', { detail }))
 }
 
+function uid() { return Math.random().toString(36).slice(2, 9) }
+function fmtClock(s: number) {
+  const m = Math.floor(s / 60); const r = Math.max(0, s % 60)
+  return `${String(m).padStart(2,'0')}:${String(r).padStart(2,'0')}`
+}
+
 export default function CaptureRecorder() {
   const [open, setOpen] = useState(false)
   const [ctx, setCtx] = useState<RecorderContext | null>(null)
-  const [pageUrl, setPageUrl] = useState('')
-  const [pageTitle, setPageTitle] = useState('')
-  const [transcript, setTranscript] = useState('')
+
+  // session state
+  const [phase, setPhase] = useState<'setup' | 'recording' | 'paused' | 'review'>('setup')
+  const [secondsLeft, setSecondsLeft] = useState(MAX_SECONDS)
+  const [sections, setSections] = useState<Section[]>([])
+  const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const [capture, setCapture] = useState<CaptureRow | null>(null)
-  const [error, setError] = useState('')
-  const inputRef = useRef<HTMLTextAreaElement | null>(null)
 
-  // Open event bridge
+  // setup form
+  const [pageUrl, setPageUrl] = useState('')
+
+  const tickRef = useRef<number | null>(null)
+  const bodyRef = useRef<HTMLDivElement | null>(null)
+
+  // ─── Open / close bridge ────────────────────────────────────────────────
   useEffect(() => {
     function onOpen(e: Event) {
       const d = (e as CustomEvent<RecorderContext>).detail
       if (!d?.projectId) return
       setCtx(d)
       setPageUrl(d.defaultUrl || '')
-      setPageTitle('')
-      setTranscript('')
-      setCapture(null)
-      setError('')
+      setSections([])
+      setPhase('setup')
+      setSecondsLeft(MAX_SECONDS)
+      setCapture(null); setError('')
       setOpen(true)
     }
     window.addEventListener('festag:open-capture', onOpen as EventListener)
     return () => window.removeEventListener('festag:open-capture', onOpen as EventListener)
   }, [])
 
-  // Esc + body scroll lock
   useEffect(() => {
     if (!open) return
     const prev = document.body.style.overflow
     document.body.style.overflow = 'hidden'
-    function onKey(e: KeyboardEvent) { if (e.key === 'Escape') close() }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        // Esc never throws away a recording silently — only closes setup/review.
+        if (phase === 'setup' || phase === 'review') close()
+      }
+    }
     document.addEventListener('keydown', onKey)
-    const t = window.setTimeout(() => inputRef.current?.focus(), 80)
     return () => {
       document.body.style.overflow = prev
       document.removeEventListener('keydown', onKey)
-      window.clearTimeout(t)
     }
-  }, [open])
+  }, [open, phase])
 
-  // Speech input
-  const dictBase = useRef('')
-  const [rec, setRec] = useState(false)
-  const { supported: micOk, listening: micOn, start: micStart, stop: micStop } = useSpeechRecognition({
-    lang: 'de-DE',
-    onResult: (text, isFinal) => {
-      const combined = (dictBase.current ? dictBase.current + ' ' : '') + text
-      setTranscript(combined); if (isFinal) dictBase.current = combined
-    },
-    onError: () => setRec(false),
-  })
-  useEffect(() => { if (!micOn) setRec(false) }, [micOn])
-  function toggleMic() {
-    if (!micOk) return
-    if (rec || micOn) { micStop(); setRec(false); return }
-    dictBase.current = transcript.trim(); setRec(true); micStart()
-  }
+  // ─── Speech recognition (live) ──────────────────────────────────────────
+  const { supported: micOk, listening: micOn, start: micStart, stop: micStop } =
+    useSpeechRecognition({
+      lang: 'de-DE',
+      onResult: (text, isFinal) => {
+        // Commit final chunks as new bullets in the current section.
+        setSections(prev => {
+          if (prev.length === 0) return prev
+          const last = prev[prev.length - 1]
+          const updated: Section = isFinal
+            ? { ...last, draft: '', bullets: text.trim() ? [...last.bullets, text.trim()] : last.bullets }
+            : { ...last, draft: text }
+          return [...prev.slice(0, -1), updated]
+        })
+      },
+      onError: () => setError('Sprachaufnahme unterbrochen.'),
+    })
 
+  // ─── Timer ──────────────────────────────────────────────────────────────
+  useEffect(() => {
+    if (phase !== 'recording') {
+      if (tickRef.current) { window.clearInterval(tickRef.current); tickRef.current = null }
+      return
+    }
+    tickRef.current = window.setInterval(() => {
+      setSecondsLeft(s => {
+        if (s <= 1) {
+          // hard stop
+          window.setTimeout(() => stopRecording(true), 0)
+          return 0
+        }
+        return s - 1
+      })
+    }, 1000)
+    return () => { if (tickRef.current) { window.clearInterval(tickRef.current); tickRef.current = null } }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase])
+
+  // Auto-scroll the bullet body when new lines land.
+  useEffect(() => {
+    const el = bodyRef.current
+    if (!el) return
+    el.scrollTop = el.scrollHeight
+  }, [sections])
+
+  // ─── Actions ────────────────────────────────────────────────────────────
   function close() {
-    setOpen(false); setCtx(null); setCapture(null); setError('')
-    setTranscript(''); setPageUrl(''); setPageTitle('')
+    setOpen(false); setCtx(null)
+    setSections([]); setPhase('setup'); setCapture(null); setError('')
+    if (micOn) micStop()
   }
 
-  async function structureCapture() {
-    if (!ctx?.projectId) return
-    const t = transcript.trim()
-    if (!t) { setError('Sag oder schreib kurz, was Tagro übersetzen soll.'); return }
-    setError(''); setBusy(true)
+  function beginSession() {
+    if (!micOk) {
+      setError('Dein Browser unterstützt die On-Device-Sprachaufnahme nicht. Probier Chrome oder Edge.')
+      return
+    }
+    // First section uses the URL the client entered in setup.
+    setSections([{ id: uid(), url: pageUrl.trim(), bullets: [], draft: '', startedAtMs: Date.now() }])
+    setPhase('recording')
+    setError('')
+    try { micStart() } catch { setError('Sprachaufnahme konnte nicht starten.') }
+  }
+
+  function newSection() {
+    const newUrl = window.prompt('URL der neuen Seite (optional):', '') ?? ''
+    setSections(prev => [...prev, { id: uid(), url: newUrl.trim(), bullets: [], draft: '', startedAtMs: Date.now() }])
+  }
+
+  function pauseRecording() {
+    setPhase('paused')
+    if (micOn) micStop()
+  }
+  function resumeRecording() {
+    setPhase('recording')
+    try { micStart() } catch {/* ignore */}
+  }
+
+  async function stopRecording(autoFromCap = false) {
+    if (micOn) micStop()
+    setPhase('review')
+    if (!ctx) return
+    // Build a single transcript composed of sections so backend can split.
+    const t = sections
+      .filter(s => s.bullets.length > 0 || s.draft.trim())
+      .map(s => {
+        const header = s.url ? `[Seite: ${s.url}]` : '[Seite: ohne URL]'
+        const lines = [...s.bullets, s.draft].filter(Boolean).map(b => `- ${b.trim()}`).join('\n')
+        return `${header}\n${lines}`
+      })
+      .join('\n\n')
+    if (!t.trim()) {
+      if (autoFromCap) setError('Aufnahme beendet — kein gesprochener Inhalt erkannt.')
+      return
+    }
+    setBusy(true)
     try {
       const r = await fetch('/api/captures', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           projectId: ctx.projectId,
-          pageUrl: pageUrl.trim() || null,
-          pageTitle: pageTitle.trim() || null,
+          pageUrl: sections[0]?.url || null,
+          pageTitle: ctx.projectTitle || null,
           transcript: t,
           source: 'in_app',
           process: true,
         }),
       })
       const d = await r.json().catch(() => null)
-      if (!r.ok) {
-        setError(d?.error ? `Fehler: ${d.error}` : 'Tagro konnte den Eintrag nicht anlegen.')
-        return
-      }
+      if (!r.ok) { setError(d?.error || 'Tagro konnte den Eintrag nicht anlegen.'); return }
       setCapture(d?.capture as CaptureRow)
     } catch (e: any) {
       setError(e?.message || 'Netzwerkfehler.')
@@ -167,293 +271,406 @@ export default function CaptureRecorder() {
       })
       const d = await r.json().catch(() => null)
       if (!r.ok) { setError(d?.error || 'Senden fehlgeschlagen.'); return }
-      // Quick confirmation flash, then close
-      window.setTimeout(close, 700)
       setCapture(prev => prev ? { ...prev, status: 'approved' } : prev)
-    } finally {
-      setBusy(false)
-    }
+      window.setTimeout(close, 800)
+    } finally { setBusy(false) }
   }
+
+  const totalBullets = useMemo(
+    () => sections.reduce((n, s) => n + s.bullets.length + (s.draft.trim() ? 1 : 0), 0),
+    [sections],
+  )
 
   if (!open) return null
 
   const node = (
-    <div className="cr" role="dialog" aria-modal="true" aria-label="Feedback aufnehmen">
-      <div className="cr-backdrop" onClick={close} aria-hidden />
-      <div className="cr-shell" onClick={e => e.stopPropagation()}>
-        <header className="cr-top">
-          <span className="cr-top-ctx">
-            <Sparkle size={13} weight="fill" />
-            Feedback aufnehmen
-            {ctx?.projectTitle ? <> · <strong>{ctx.projectTitle}</strong></> : null}
-          </span>
-          <button type="button" className="cr-iconbtn" onClick={close} aria-label="Schließen"><X size={16} /></button>
+    <div className="capx" role="dialog" aria-modal="true" aria-label="Live-Feedback">
+      <div className="capx-shell" onClick={e => e.stopPropagation()}>
+        {/* ── Header ─────────────────────────────────────────────────── */}
+        <header className="capx-top">
+          <div className="capx-top-left">
+            {phase === 'recording' || phase === 'paused' ? (
+              <span className={`capx-rec-dot${phase === 'recording' ? ' on' : ''}`} aria-hidden />
+            ) : null}
+            <span className="capx-clock">
+              {phase === 'setup' ? '10:00' : fmtClock(secondsLeft)}
+              <small> / 10:00</small>
+            </span>
+            <span className="capx-ctx">
+              {ctx?.projectTitle ? <strong>{ctx.projectTitle}</strong> : 'Projekt'}
+              <span> · Live-Feedback</span>
+            </span>
+          </div>
+          <button type="button" className="capx-iconbtn" onClick={close} aria-label="Schließen">
+            <X size={16} />
+          </button>
         </header>
 
-        {!capture ? (
-          /* ── recorder state ───────────────────────────────────────── */
-          <div className="cr-body">
-            <div className="cr-meta">
-              <label className="cr-field">
-                <span><Globe size={13} /> Seite</span>
-                <input
-                  type="url"
-                  className="cr-input"
-                  placeholder="https://staging.example.com/…"
-                  value={pageUrl}
-                  onChange={e => setPageUrl(e.target.value)}
-                />
-              </label>
-              <label className="cr-field">
-                <span>Bereich (optional)</span>
-                <input
-                  type="text"
-                  className="cr-input"
-                  placeholder="z.B. Startseite · Hero"
-                  value={pageTitle}
-                  onChange={e => setPageTitle(e.target.value)}
-                />
-              </label>
-            </div>
-
-            <div className="cr-record">
-              <textarea
-                ref={inputRef}
-                className="cr-textarea"
-                placeholder="Was soll geändert werden? Sprich oder schreib einfach drauflos — Tagro macht daraus saubere Change-Scripts für deinen Developer."
-                value={transcript}
-                onChange={e => setTranscript(e.target.value)}
-                rows={6}
+        {/* ── Body ───────────────────────────────────────────────────── */}
+        {phase === 'setup' && (
+          <div className="capx-setup">
+            <h2>Live-Feedback aufnehmen</h2>
+            <p>
+              Tagro hört zu, während du in einem zweiten Tab durch deine Website gehst.
+              Sprich frei — pro Seite ein paar Sätze. Am Ende macht Tagro daraus saubere
+              Change-Scripts für deinen Developer, gegliedert nach Seite.
+            </p>
+            <label className="capx-field">
+              <span><Globe size={13} /> Start-URL</span>
+              <input
+                type="url"
+                className="capx-input"
+                placeholder="https://staging.example.com/start"
+                value={pageUrl}
+                onChange={e => setPageUrl(e.target.value)}
+                autoFocus
               />
-              <div className="cr-record-actions">
-                {micOk && (
-                  <button type="button" className={`cr-mic${rec ? ' is-rec' : ''}`} onClick={toggleMic}>
-                    {rec ? <MicrophoneSlash size={16} weight="fill" /> : <Microphone size={16} />}
-                    {rec ? 'Aufnahme stoppen' : 'Per Sprache aufnehmen'}
-                  </button>
-                )}
-                <button type="button" className="cr-primary" onClick={structureCapture} disabled={busy || !transcript.trim()}>
-                  {busy ? <><ArrowsClockwise size={14} className="cr-spin" /> Tagro strukturiert …</> : <><Sparkle size={14} weight="fill" /> Tagro vorbereiten</>}
-                </button>
-              </div>
-              {error && <p className="cr-err">{error}</p>}
-            </div>
-          </div>
-        ) : (
-          /* ── review state ─────────────────────────────────────────── */
-          <div className="cr-body">
-            {capture.tagro_summary && (
-              <p className="cr-summary">{capture.tagro_summary}</p>
+            </label>
+            <p className="capx-hint">
+              Tipp: Öffne die URL in einem zweiten Tab und arbeite mit Alt-Tab / Cmd-Tab.
+              Während der Aufnahme kannst du jederzeit eine neue Seite markieren.
+              Maximale Aufnahme: 10 Minuten.
+            </p>
+            {pageUrl.trim() && (
+              <a className="capx-tab-open" href={pageUrl} target="_blank" rel="noreferrer">
+                <ArrowSquareOut size={13} /> Im neuen Tab öffnen
+              </a>
             )}
-            <div className="cr-changes">
-              {(capture.structured_changes || []).length === 0 ? (
-                <p className="cr-empty">Tagro konnte aus dem Transcript keine konkreten Änderungen ableiten. Du kannst den Text editieren und es nochmal versuchen.</p>
-              ) : (
-                (capture.structured_changes || []).map((ch, i) => (
-                  <article key={i} className="cr-change">
-                    <header>
-                      <strong>{ch.title || `Änderung ${i + 1}`}</strong>
-                      {ch.affected && <span className="cr-change-where">{ch.affected}</span>}
-                    </header>
-                    {ch.description && <p>{ch.description}</p>}
-                    {ch.suggested && <p className="cr-change-sug"><em>Vorschlag:</em> {ch.suggested}</p>}
-                  </article>
-                ))
-              )}
-            </div>
-            {(capture.warnings || []).length > 0 && (
-              <div className="cr-warns">
-                {(capture.warnings || []).map((w, i) => <p key={i} className="cr-warn">{w}</p>)}
-              </div>
-            )}
-            <div className="cr-review-actions">
-              <button type="button" className="cr-ghost" onClick={() => setCapture(null)}>Nochmal aufnehmen</button>
-              <button type="button" className="cr-primary" onClick={approveAndSend} disabled={busy || capture.status === 'approved'}>
-                {capture.status === 'approved'
-                  ? <><CheckCircle size={14} weight="fill" /> An Dev geschickt</>
-                  : <><PaperPlaneTilt size={14} /> An Dev senden</>}
+            {error && <p className="capx-err">{error}</p>}
+            <div className="capx-setup-actions">
+              <button type="button" className="capx-ghost" onClick={close}>Abbrechen</button>
+              <button type="button" className="capx-primary" onClick={beginSession}>
+                <Play size={14} weight="fill" /> Aufnahme starten
               </button>
             </div>
-            {error && <p className="cr-err">{error}</p>}
           </div>
+        )}
+
+        {(phase === 'recording' || phase === 'paused') && (
+          <div className="capx-live" ref={bodyRef}>
+            {sections.length === 0 ? (
+              <p className="capx-empty">Sprich los — Tagro hört zu.</p>
+            ) : sections.map((s, i) => (
+              <section key={s.id} className="capx-section">
+                {i > 0 && <div className="capx-divider"><span>Neue Seite</span></div>}
+                <header className="capx-section-head">
+                  <Globe size={12} />
+                  <strong>{s.url || `Abschnitt ${i + 1}`}</strong>
+                </header>
+                {s.bullets.length === 0 && !s.draft && (
+                  <p className="capx-section-empty">Noch keine Sätze für diesen Abschnitt.</p>
+                )}
+                <ul className="capx-bullets">
+                  {s.bullets.map((b, k) => <li key={k}>{b}</li>)}
+                  {s.draft && <li className="capx-draft">{s.draft}<span className="capx-caret" /></li>}
+                </ul>
+              </section>
+            ))}
+          </div>
+        )}
+
+        {phase === 'review' && (
+          <div className="capx-review">
+            {busy && !capture ? (
+              <div className="capx-processing">
+                <ArrowsClockwise size={28} className="capx-spin" />
+                <p>Tagro strukturiert deine Aufnahme …</p>
+              </div>
+            ) : capture ? (
+              <>
+                <h2>{capture.tagro_summary || 'Aufnahme strukturiert'}</h2>
+                <div className="capx-changes">
+                  {(capture.structured_changes || []).length === 0 ? (
+                    <p className="capx-empty">Tagro hat keine konkreten Änderungen erkannt. Probier eine neue Aufnahme mit mehr Detail.</p>
+                  ) : (
+                    (capture.structured_changes || []).map((ch, i) => (
+                      <article key={i} className="capx-change">
+                        <header>
+                          <strong>{ch.title || `Änderung ${i + 1}`}</strong>
+                          {ch.affected && <span>{ch.affected}</span>}
+                        </header>
+                        {ch.description && <p>{ch.description}</p>}
+                        {ch.suggested && <p className="capx-change-sug"><em>Vorschlag:</em> {ch.suggested}</p>}
+                      </article>
+                    ))
+                  )}
+                </div>
+                {(capture.warnings || []).length > 0 && (
+                  <div className="capx-warns">
+                    {(capture.warnings || []).map((w, i) => <p key={i}>{w}</p>)}
+                  </div>
+                )}
+                <div className="capx-review-actions">
+                  <button type="button" className="capx-ghost" onClick={() => { setCapture(null); setSections([]); setPhase('setup'); setSecondsLeft(MAX_SECONDS) }}>
+                    Neue Aufnahme
+                  </button>
+                  <button type="button" className="capx-primary" onClick={approveAndSend} disabled={busy || capture.status === 'approved'}>
+                    {capture.status === 'approved'
+                      ? <><CheckCircle size={14} weight="fill" /> An Dev geschickt</>
+                      : <><PaperPlaneTilt size={14} /> An Dev senden</>}
+                  </button>
+                </div>
+              </>
+            ) : (
+              <p className="capx-empty">{error || 'Keine Aufnahme.'}</p>
+            )}
+          </div>
+        )}
+
+        {/* ── Action bar (only while recording) ─────────────────────── */}
+        {(phase === 'recording' || phase === 'paused') && (
+          <footer className="capx-actions">
+            <button type="button" className="capx-action capx-action-ghost" onClick={newSection}>
+              <Plus size={14} /> Neue Seite
+            </button>
+            {phase === 'recording' ? (
+              <button type="button" className="capx-action capx-action-ghost" onClick={pauseRecording}>
+                <Pause size={14} weight="fill" /> Pause
+              </button>
+            ) : (
+              <button type="button" className="capx-action capx-action-ghost" onClick={resumeRecording}>
+                <Play size={14} weight="fill" /> Weiter
+              </button>
+            )}
+            <button type="button" className="capx-action capx-action-stop" onClick={() => stopRecording(false)}>
+              <Stop size={14} weight="fill" /> Aufnahme beenden
+            </button>
+            <span className="capx-action-meta">{totalBullets} Sätze · {sections.length} Abschnitt{sections.length === 1 ? '' : 'e'}</span>
+          </footer>
         )}
       </div>
 
       <style jsx>{`
-        .cr {
-          position: fixed; inset: 0; z-index: 16100;
-          display: flex; align-items: center; justify-content: center;
-          padding: 24px;
-          font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
-          color: var(--text);
-          animation: crFade .18s ease both;
-        }
-        @keyframes crFade { from { opacity: 0; } to { opacity: 1; } }
-        .cr-backdrop {
-          position: absolute; inset: 0;
-          background: rgba(8,10,14,0.55);
+        .capx {
+          position: fixed; inset: 0; z-index: 16200;
+          background: rgba(8,10,14,0.78);
           backdrop-filter: blur(8px) saturate(150%);
           -webkit-backdrop-filter: blur(8px) saturate(150%);
+          display: flex; align-items: stretch; justify-content: center;
+          font-family: var(--font-aeonik,'Aeonik',Inter,sans-serif);
+          color: var(--text);
         }
-        .cr-shell {
-          position: relative;
-          width: min(640px, 100%);
-          max-height: min(92vh, 800px);
-          display: grid;
-          grid-template-rows: auto 1fr;
+        .capx-shell {
+          width: min(760px, 100%);
+          max-height: 100dvh;
           background: var(--surface);
-          border: 1px solid var(--border);
-          border-radius: 22px;
-          box-shadow: 0 26px 80px -20px rgba(15,23,42,0.45);
+          border-left: 1px solid var(--border);
+          border-right: 1px solid var(--border);
+          display: grid;
+          grid-template-rows: auto 1fr auto;
           overflow: hidden;
-          animation: crUp .26s cubic-bezier(.16,1,.3,1) both;
         }
-        @keyframes crUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
-        @media (max-width: 768px) {
-          .cr { padding: 0; align-items: stretch; }
-          .cr-shell { width: 100%; max-height: 100dvh; border-radius: 0; border: 0; }
+        @media (min-width: 769px) {
+          .capx { padding: 18px; }
+          .capx-shell {
+            border-radius: 22px;
+            border: 1px solid var(--border);
+            max-height: min(92vh, 880px);
+            box-shadow: 0 30px 80px -20px rgba(0,0,0,.55);
+          }
         }
 
-        .cr-top {
+        /* ── Header ────────────────────────────────────────────────── */
+        .capx-top {
           display: flex; align-items: center; justify-content: space-between;
-          gap: 16px; padding: 16px 18px;
+          gap: 14px;
+          padding: 14px 18px;
           border-bottom: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
         }
-        .cr-top-ctx {
-          display: inline-flex; align-items: center; gap: 7px;
-          font-size: 13px; color: var(--text-secondary);
+        .capx-top-left { display: inline-flex; align-items: center; gap: 10px; min-width: 0; flex-wrap: wrap; }
+        .capx-rec-dot {
+          width: 10px; height: 10px; border-radius: 999px;
+          background: color-mix(in srgb, var(--text) 30%, transparent);
+        }
+        .capx-rec-dot.on {
+          background: #E11D48;
+          box-shadow: 0 0 0 0 rgba(225,29,72,.55);
+          animation: capxPulse 1.1s ease-out infinite;
+        }
+        @keyframes capxPulse {
+          0% { box-shadow: 0 0 0 0 rgba(225,29,72,.55); }
+          70% { box-shadow: 0 0 0 8px rgba(225,29,72,0); }
+          100% { box-shadow: 0 0 0 0 rgba(225,29,72,0); }
+        }
+        .capx-clock {
+          display: inline-flex; align-items: baseline; gap: 4px;
+          font-variant-numeric: tabular-nums;
+          font-size: 18px; font-weight: 600; letter-spacing: -.01em;
+        }
+        .capx-clock small { color: var(--text-muted); font-size: 12.5px; font-weight: 500; }
+        .capx-ctx {
+          display: inline-flex; align-items: baseline; gap: 5px;
+          color: var(--text-secondary); font-size: 13px;
           overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
         }
-        .cr-top-ctx strong { color: var(--text); font-weight: 500; }
-        .cr-iconbtn {
+        .capx-ctx strong { color: var(--text); font-weight: 500; }
+        .capx-iconbtn {
           width: 32px; height: 32px;
           display: inline-flex; align-items: center; justify-content: center;
           background: transparent; color: var(--text-secondary);
           border: 0; border-radius: 999px; cursor: pointer;
           transition: background .14s, color .14s;
         }
-        .cr-iconbtn:hover { background: color-mix(in srgb, var(--surface-2) 70%, transparent); color: var(--text); }
+        .capx-iconbtn:hover { background: color-mix(in srgb, var(--surface-2) 70%, transparent); color: var(--text); }
 
-        .cr-body {
+        /* ── Setup ─────────────────────────────────────────────────── */
+        .capx-setup {
+          padding: 24px 22px 22px;
+          display: flex; flex-direction: column; gap: 14px;
           overflow-y: auto;
-          padding: 18px;
-          display: flex; flex-direction: column; gap: 18px;
         }
-
-        /* meta fields */
-        .cr-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        @media (max-width: 540px) { .cr-meta { grid-template-columns: 1fr; } }
-        .cr-field { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
-        .cr-field > span {
+        .capx-setup h2 { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -.02em; }
+        .capx-setup p { margin: 0; color: var(--text-secondary); font-size: 14px; line-height: 1.55; }
+        .capx-field { display: flex; flex-direction: column; gap: 6px; }
+        .capx-field > span {
           display: inline-flex; align-items: center; gap: 6px;
-          font-size: 12px; font-weight: 500; color: var(--text-secondary);
+          font-size: 12.5px; font-weight: 500; color: var(--text-secondary);
         }
-        .cr-input {
-          height: 38px; padding: 0 12px;
+        .capx-input {
+          height: 42px; padding: 0 14px;
           background: var(--surface-2);
           border: 1px solid var(--border);
-          border-radius: 10px;
-          color: var(--text); font: inherit; font-size: 13.5px;
+          border-radius: 12px;
+          color: var(--text); font: inherit; font-size: 14.5px;
           outline: 0; transition: border-color .14s, background .14s;
         }
-        .cr-input:focus { border-color: color-mix(in srgb, var(--text) 25%, transparent); background: var(--surface); }
+        .capx-input:focus {
+          border-color: color-mix(in srgb, var(--text) 25%, transparent);
+          background: var(--surface);
+        }
+        .capx-hint { color: var(--text-muted); font-size: 12.5px; line-height: 1.5; }
+        .capx-tab-open {
+          align-self: flex-start;
+          display: inline-flex; align-items: center; gap: 6px;
+          padding: 7px 12px; border-radius: 999px;
+          background: var(--surface-2); color: var(--text-secondary);
+          font-size: 12.5px; text-decoration: none;
+        }
+        .capx-tab-open:hover { color: var(--text); }
+        .capx-setup-actions { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; margin-top: 6px; }
 
-        .cr-record { display: flex; flex-direction: column; gap: 10px; }
-        .cr-textarea {
-          width: 100%;
-          padding: 14px 16px;
-          background: var(--surface-2);
-          border: 1px solid var(--border);
-          border-radius: 16px;
-          color: var(--text); font: inherit;
-          font-size: 15px; line-height: 1.55;
-          resize: vertical;
-          min-height: 130px;
-          outline: 0;
-          transition: border-color .14s, background .14s;
+        /* ── Live transcript ───────────────────────────────────────── */
+        .capx-live {
+          padding: 18px 22px;
+          overflow-y: auto;
+          display: flex; flex-direction: column; gap: 18px;
         }
-        .cr-textarea:focus { border-color: color-mix(in srgb, var(--text) 25%, transparent); background: var(--surface); }
-        .cr-record-actions {
-          display: flex; gap: 8px; justify-content: space-between; flex-wrap: wrap;
-        }
-        .cr-mic {
+        .capx-empty { color: var(--text-muted); font-size: 14px; }
+        .capx-section { display: flex; flex-direction: column; gap: 8px; }
+        .capx-section-head {
           display: inline-flex; align-items: center; gap: 7px;
-          height: 40px; padding: 0 14px;
+          color: var(--text-secondary); font-size: 12.5px; font-weight: 500;
+        }
+        .capx-section-head strong { color: var(--text); font-weight: 600; font-size: 14px;
+          overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 60ch; }
+        .capx-section-empty { margin: 0; color: var(--text-muted); font-size: 13px; font-style: italic; }
+        .capx-bullets {
+          margin: 0; padding-left: 0;
+          list-style: none;
+          display: flex; flex-direction: column; gap: 6px;
+        }
+        .capx-bullets li {
+          position: relative;
+          padding: 8px 12px 8px 28px;
+          background: var(--surface-2);
+          border-radius: 10px;
+          font-size: 14.5px; line-height: 1.5; color: var(--text);
+        }
+        .capx-bullets li::before {
+          content: '';
+          position: absolute; left: 12px; top: 14px;
+          width: 6px; height: 6px; border-radius: 999px;
+          background: var(--text-muted);
+        }
+        .capx-draft { color: var(--text-muted) !important; font-style: italic; }
+        .capx-draft .capx-caret {
+          display: inline-block; width: 6px; height: 14px; vertical-align: -2px;
+          background: var(--text); margin-left: 4px; animation: capxBlink 1s steps(2) infinite;
+        }
+        @keyframes capxBlink { 50% { opacity: 0; } }
+        .capx-divider {
+          display: flex; align-items: center; gap: 10px;
+          color: var(--text-muted); font-size: 11px;
+          letter-spacing: .08em; text-transform: uppercase;
+        }
+        .capx-divider::before, .capx-divider::after {
+          content: ''; flex: 1; height: 1px;
+          background: color-mix(in srgb, var(--border) 60%, transparent);
+        }
+
+        /* ── Action bar ────────────────────────────────────────────── */
+        .capx-actions {
+          display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+          padding: 12px 18px;
+          border-top: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+          background: var(--surface);
+        }
+        .capx-action {
+          display: inline-flex; align-items: center; gap: 7px;
+          height: 38px; padding: 0 14px;
           background: transparent; color: var(--text);
           border: 1px solid var(--border); border-radius: 999px;
-          font: inherit; font-size: 13px; font-weight: 500; cursor: pointer;
-          transition: background .14s, border-color .14s;
+          font: inherit; font-size: 13.5px; font-weight: 500; cursor: pointer;
+          transition: background .14s, color .14s;
         }
-        .cr-mic:hover { background: var(--surface-2); }
-        .cr-mic.is-rec {
-          background: color-mix(in srgb, var(--text) 9%, transparent);
-          animation: crPulse 1.4s ease-in-out infinite;
+        .capx-action-ghost:hover { background: var(--surface-2); }
+        .capx-action-stop {
+          background: #E11D48; color: #fff; border-color: transparent;
+          margin-left: auto;
+          box-shadow: 0 10px 22px -10px rgba(225,29,72,.6);
         }
-        @keyframes crPulse { 0%,100%{ opacity:1; } 50%{ opacity:.72; } }
+        .capx-action-stop:hover { background: #be1740; }
+        .capx-action-meta { color: var(--text-muted); font-size: 12px; }
 
-        .cr-primary {
-          display: inline-flex; align-items: center; gap: 8px;
+        /* ── Buttons (primary / ghost shared) ─────────────────────── */
+        .capx-primary {
+          display: inline-flex; align-items: center; gap: 7px;
           height: 40px; padding: 0 18px;
           background: #5B647D; color: #fff; border: 0; border-radius: 999px;
           font: inherit; font-size: 13.5px; font-weight: 500; cursor: pointer;
           box-shadow: 0 12px 28px -14px rgba(91,100,125,0.6);
           transition: background .14s, transform .14s;
         }
-        .cr-primary:hover:not(:disabled) { background: #4d566c; }
-        .cr-primary:active:not(:disabled) { transform: scale(.985); }
-        .cr-primary:disabled { opacity: .45; cursor: not-allowed; box-shadow: none; }
-        .cr-spin { animation: crSpin 1s linear infinite; }
-        @keyframes crSpin { to { transform: rotate(360deg); } }
-
-        .cr-ghost {
+        .capx-primary:hover:not(:disabled) { background: #4d566c; }
+        .capx-primary:active:not(:disabled) { transform: scale(.985); }
+        .capx-primary:disabled { opacity: .45; cursor: not-allowed; box-shadow: none; }
+        .capx-ghost {
           display: inline-flex; align-items: center; gap: 7px;
           height: 40px; padding: 0 16px;
           background: transparent; color: var(--text-secondary);
           border: 1px solid var(--border); border-radius: 999px;
           font: inherit; font-size: 13px; font-weight: 500; cursor: pointer;
         }
-        .cr-ghost:hover { background: var(--surface-2); color: var(--text); }
+        .capx-ghost:hover { background: var(--surface-2); color: var(--text); }
 
-        .cr-err {
-          margin: 0;
-          padding: 10px 12px;
-          background: color-mix(in srgb, #d9534f 12%, transparent);
-          color: var(--text);
-          border-radius: 10px;
-          font-size: 13px;
+        /* ── Review ────────────────────────────────────────────────── */
+        .capx-review { padding: 22px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; }
+        .capx-review h2 { margin: 0; font-size: 17px; font-weight: 500; line-height: 1.45; }
+        .capx-processing {
+          display: flex; flex-direction: column; align-items: center; gap: 12px;
+          padding: 60px 0;
+          color: var(--text-muted);
         }
-
-        /* review state */
-        .cr-summary { margin: 0; font-size: 15px; line-height: 1.55; color: var(--text); }
-        .cr-changes { display: flex; flex-direction: column; gap: 10px; }
-        .cr-empty {
-          margin: 0; padding: 18px;
-          background: var(--surface-2); border-radius: 12px;
-          font-size: 13.5px; color: var(--text-muted); text-align: center;
-        }
-        .cr-change {
-          padding: 14px 16px;
-          background: var(--surface-2);
-          border: 1px solid var(--border);
-          border-radius: 14px;
-        }
-        .cr-change header {
-          display: flex; align-items: baseline; justify-content: space-between;
-          gap: 10px; margin-bottom: 6px;
-        }
-        .cr-change header strong { font-size: 14.5px; font-weight: 600; color: var(--text); }
-        .cr-change-where { font-size: 11.5px; color: var(--text-muted); }
-        .cr-change p { margin: 0; font-size: 13.5px; line-height: 1.55; color: var(--text-secondary); }
-        .cr-change-sug em { color: var(--text-muted); font-style: normal; }
-        .cr-warns { display: flex; flex-direction: column; gap: 6px; }
-        .cr-warn {
+        .capx-spin { animation: capxSpin 1s linear infinite; color: var(--text); }
+        @keyframes capxSpin { to { transform: rotate(360deg); } }
+        .capx-changes { display: flex; flex-direction: column; gap: 10px; }
+        .capx-change { padding: 14px 16px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 14px; }
+        .capx-change header { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
+        .capx-change header strong { font-size: 14.5px; font-weight: 600; }
+        .capx-change header span { font-size: 11.5px; color: var(--text-muted); }
+        .capx-change p { margin: 0; font-size: 13.5px; line-height: 1.55; color: var(--text-secondary); }
+        .capx-change-sug em { color: var(--text-muted); font-style: normal; }
+        .capx-warns { display: flex; flex-direction: column; gap: 6px; }
+        .capx-warns p {
           margin: 0; padding: 10px 12px;
-          background: color-mix(in srgb, #d4882b 10%, transparent);
-          border-radius: 8px;
-          font-size: 12.5px; color: var(--text);
+          background: color-mix(in srgb, #d4882b 12%, transparent);
+          border-radius: 8px; font-size: 12.5px; color: var(--text);
         }
-        .cr-review-actions {
-          display: flex; gap: 8px; justify-content: space-between; flex-wrap: wrap;
+        .capx-review-actions { display: flex; gap: 8px; justify-content: space-between; flex-wrap: wrap; margin-top: 6px; }
+        .capx-err {
+          margin: 0; padding: 10px 12px;
+          background: color-mix(in srgb, #d9534f 14%, transparent);
+          border-radius: 10px; font-size: 13px; color: var(--text);
         }
       `}</style>
     </div>

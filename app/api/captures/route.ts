@@ -107,16 +107,18 @@ async function structureCapture(sb: ReturnType<typeof createServerClient>, captu
   const { tagroComplete } = await import('@/lib/tagro/complete')
   const { extractJsonObject } = await import('@/lib/tagro/json')
 
-  const SYSTEM = `Du bist Tagro, die AI-Kontrollschicht von Festag. Du verarbeitest rohe Client-Feedback-Aufnahmen (gesprochen oder geschrieben) zu klaren, ausführbaren Change-Scripts für Developer. Du erfindest nichts.
+  const SYSTEM = `Du bist Tagro, die AI-Kontrollschicht von Festag. Du verarbeitest rohe Client-Feedback-Aufnahmen (gesprochen während einer Live-Walkthrough-Session) zu klaren, ausführbaren Change-Scripts für Developer. Du erfindest nichts.
+
+Eingabeformat: Der Transcript ist nach Seiten gegliedert. Jede Seite beginnt mit "[Seite: <url-oder-bereich>]" gefolgt von einer Liste aufgenommener Sätze. Mehrere Seiten sind möglich.
 
 Antworte AUSSCHLIESSLICH als valides JSON in diesem Schema:
 {
-  "summary": "Ein bis zwei Sätze: was will der Kunde insgesamt?",
+  "summary": "1-2 Sätze: was will der Kunde insgesamt, über alle Seiten hinweg?",
   "changes": [
     {
       "title": "kurz, imperativ",
       "description": "1-3 Sätze, sachlich, kein Marketing",
-      "affected": "z.B. Startseite · Hero · Button-Beschriftung",
+      "affected": "URL oder Bereich der Seite, plus konkretes Element falls genannt — z.B. '/preise · Hero · Headline'",
       "suggested": "Konkrete Umsetzung in einem Satz"
     }
   ],
@@ -124,9 +126,12 @@ Antworte AUSSCHLIESSLICH als valides JSON in diesem Schema:
 }
 
 Regeln:
-- changes: leer wenn der Transcript nichts Umsetzbares enthält.
-- max 6 changes pro Capture.
-- warnings: 0-3 kurze Hinweise (Scope unklar, technisch nicht möglich, etc.) oder leer.`
+- Eine "change" entspricht EINEM zusammenhängenden Wunsch. Pro Seite können mehrere changes entstehen.
+- affected muss die Seite ausweisen, damit der Dev weiß, wo er hin muss.
+- Wenn der Kunde redundant ist (mehrmals dasselbe sagt), fasse zusammen.
+- max 12 changes pro Capture.
+- warnings: 0-3 kurze Hinweise (Scope unklar, technisch nicht möglich, widersprüchliche Wünsche, etc.) oder leer.
+- changes: leer wenn der Transcript nichts Umsetzbares enthält.`
 
   const userPrompt = [
     cap.page_title ? `Seite: ${cap.page_title}` : '',
