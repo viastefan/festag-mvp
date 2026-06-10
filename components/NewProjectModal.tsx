@@ -26,6 +26,7 @@ import { createClient } from '@/lib/supabase/client'
 import TagroLogo from '@/components/TagroLogo'
 import AssignDevModal from '@/components/AssignDevModal'
 import { useSpeechRecognition } from '@/hooks/useSpeechRecognition'
+import { useMicLevel } from '@/hooks/useMicLevel'
 import {
   ArrowRight, ArrowsClockwise, CaretDown, ChatCircleText, Check, DotsNine,
   MagnifyingGlass, Microphone, MicrophoneSlash, PaperPlaneTilt, Question, X,
@@ -631,9 +632,7 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
                     {dictating === 'desc' ? <MicrophoneSlash size={14} weight="fill" /> : <Microphone size={14} />}
                   </button>
                 )}
-                <span className={`npm-visualizer${dictating === 'desc' ? ' is-rec' : ''}`} aria-hidden>
-                  {Array.from({ length: 15 }).map((_, i) => <i key={i} style={{ animationDelay: `${i * 60}ms` }} />)}
-                </span>
+                <Visualizer active={dictating === 'desc'} />
               </div>
               <button
                 type="button"
@@ -667,6 +666,26 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
   )
 
   return createPortal(tree, document.body)
+}
+
+function Visualizer({ active }: { active: boolean }) {
+  const levels = useMicLevel(active, 15)
+  return (
+    <span className={`npm-visualizer${active ? ' is-rec' : ''}`} aria-hidden>
+      {levels.map((v, i) => {
+        const h = active ? Math.max(0.08, Math.min(1, v * 1.6)) : 0
+        return (
+          <i
+            key={i}
+            style={{
+              transform: `scaleY(${h})`,
+              opacity: active ? 0.4 + h * 0.6 : 0,
+            }}
+          />
+        )
+      })}
+    </span>
+  )
 }
 
 const CSS = `
@@ -704,11 +723,11 @@ const CSS = `
   .npm-card {
     position: relative; z-index: 1;
     width: min(760px, calc(100vw - 64px));
-    min-height: 560px;
+    min-height: 640px;
     max-height: calc(100dvh - 64px);
     background: #FFFFFF;
     border-radius: 24px;
-    padding: 32px;
+    padding: 40px 32px 32px;
     box-sizing: border-box;
     box-shadow:
       0 1px 2px rgba(15,23,42,.06),
@@ -797,6 +816,7 @@ const CSS = `
     font-size: 35px; line-height: 1.1;
     font-weight: 400; letter-spacing: -.01em;
     padding: 4px 0;
+    caret-color: #5B647D;
   }
   .npm-title-input::placeholder {
     color: #ADB3BD; opacity: 1;
@@ -804,14 +824,15 @@ const CSS = `
   .npm-title-input:disabled { opacity: .7; }
 
   .npm-icon-btn {
-    width: 24px; height: 24px; border: 0; background: transparent;
+    width: 28px; height: 28px; border: 0; background: transparent;
     color: #2A3032; border-radius: 999px; cursor: pointer;
     display: inline-flex; align-items: center; justify-content: center;
     transition: opacity .12s;
     flex-shrink: 0;
-    margin-top: 6px;
+    margin-top: -4px;
     opacity: .85;
   }
+  .npm-icon-btn svg { width: 20px; height: 20px; }
   .npm-icon-btn:hover:not(:disabled) { opacity: 1; }
   .npm-icon-btn:disabled { opacity: .35; cursor: not-allowed; }
 
@@ -841,7 +862,8 @@ const CSS = `
   }
   .npm-delivery-label {
     display: inline-flex; align-items: center; gap: 6px;
-    color: #CBCFD6;
+    color: #ADB3BD;
+    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
     font-size: 15px; font-weight: 400; letter-spacing: 0;
   }
   .npm-help {
@@ -857,17 +879,20 @@ const CSS = `
   .npm-help:hover { background: #FFFFFF; }
 
   .npm-delivery-pills {
-    display: flex; flex-wrap: wrap; gap: 8px;
+    display: flex; flex-wrap: wrap; gap: 10px;
+    width: 100%;
   }
   .npm-pill {
-    height: 25px;
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 0 12px;
+    flex: 1 1 auto;
+    height: 38px;
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 0 18px;
     border-radius: 32px;
     border: 0;
     background: #F3F5F7;
     color: #848D9B;
-    font: inherit; font-size: 10px; font-weight: 400; letter-spacing: 0;
+    font: inherit; font-size: 13px; font-weight: 400; letter-spacing: 0;
+    white-space: nowrap;
     cursor: pointer;
     transition: background .12s, color .12s;
   }
@@ -964,20 +989,27 @@ const CSS = `
     min-width: 0; flex: 1;
   }
   .npm-mic-btn {
-    width: 40px; height: 40px;
-    border: 1px solid #E7EBF0;
-    border-radius: 999px;
-    background: #FFFFFF;
+    width: 44px; height: 44px;
+    border: 0;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 50% 35%, #FFFFFF 0%, #F7F9FC 100%);
     color: #2A3032;
     display: inline-flex; align-items: center; justify-content: center;
     cursor: pointer;
-    transition: background .12s, border-color .12s;
+    transition: transform .12s, box-shadow .18s;
     flex-shrink: 0;
+    box-shadow:
+      0 1px 1px rgba(255,255,255,.9) inset,
+      0 -1px 2px rgba(15,23,42,.04) inset,
+      0 1px 2px rgba(15,23,42,.06),
+      0 6px 14px -4px rgba(15,23,42,.18),
+      0 12px 28px -10px rgba(15,23,42,.22);
   }
-  .npm-mic-btn:hover { border-color: #CBCFD6; }
+  .npm-mic-btn:hover { transform: translateY(-1px); }
+  .npm-mic-btn:active { transform: translateY(0); }
   .npm-mic-btn.rec {
-    background: rgba(91,100,125,.14);
-    border-color: rgba(91,100,125,.45);
+    background: radial-gradient(circle at 50% 35%, #FFFFFF 0%, #EEF1F6 100%);
     color: #5B647D;
     animation: npmRecPulse 1.6s ease-in-out infinite;
   }
@@ -985,38 +1017,30 @@ const CSS = `
     0%, 100% { opacity: 1; } 50% { opacity: .72; }
   }
   .npm-visualizer {
-    display: inline-flex; align-items: center; gap: 10px; height: 15px;
-    /* Soft fade-out at the right edge — matches Figma node 185:362 */
-    mask-image: linear-gradient(to right, #000 0%, #000 60%, transparent 100%);
-    -webkit-mask-image: linear-gradient(to right, #000 0%, #000 60%, transparent 100%);
+    display: inline-flex; align-items: center; gap: 10px; height: 22px;
+    mask-image: linear-gradient(to right, #000 0%, #000 65%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, #000 0%, #000 65%, transparent 100%);
   }
   .npm-visualizer i {
-    width: 2px; height: 15px;
-    background: #CACFD4;
+    width: 2px; height: 22px;
+    background: #5B647D;
     border-radius: 12px;
     transform-origin: center;
-    opacity: .9;
-  }
-  /* Resting state = static bars (matches Figma node 185:326). Pulse only when
-     the user is actually dictating. */
-  .npm-visualizer.is-rec i {
-    animation: npmBar 1s ease-in-out infinite;
-  }
-  @keyframes npmBar {
-    0%, 100% { transform: scaleY(.35); opacity: .6; }
-    50% { transform: scaleY(1); opacity: 1; }
+    transform: scaleY(0);
+    opacity: 0;
+    transition: transform 90ms linear, opacity 120ms linear;
   }
 
   .npm-primary {
-    display: inline-flex; align-items: center; gap: 8px;
-    height: 30px; padding: 3px 7px 3px 14px;
-    border: 0; border-radius: 32px;
-    background: rgba(91,100,125,.9); color: #FFFFFF;
-    font: inherit; font-size: 12px; font-weight: 400;
+    display: inline-flex; align-items: center; gap: 10px;
+    height: 44px; padding: 0 18px 0 22px;
+    border: 0; border-radius: 999px;
+    background: rgba(91,100,125,.95); color: #FFFFFF;
+    font: inherit; font-size: 14px; font-weight: 400;
     letter-spacing: .24px;
     cursor: pointer;
-    box-shadow: 0 8px 24px rgba(200,169,91,.14);
-    transition: opacity .12s, transform .12s;
+    box-shadow: 0 10px 28px -10px rgba(91,100,125,.55);
+    transition: opacity .12s, transform .12s, background .12s;
   }
   .npm-primary:hover:not(:disabled) { background: rgba(91,100,125,1); }
   .npm-primary:active:not(:disabled) { transform: scale(.97); }
