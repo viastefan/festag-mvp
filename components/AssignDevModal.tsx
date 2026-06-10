@@ -207,11 +207,11 @@ const CSS = `
 
   .adm-card {
     position: relative; z-index: 1;
-    width: min(640px, calc(100vw - 32px));
+    width: min(440px, calc(100vw - 32px));
     background: #FFFFFF;
-    border-radius: 24px;
-    padding: 40px 40px 36px;
-    box-shadow: 0 1px 2px rgba(15,23,42,.06), 0 40px 96px -28px rgba(15,23,42,.45);
+    border-radius: 20px;
+    padding: 26px 26px 22px;
+    box-shadow: 0 1px 2px rgba(15,23,42,.06), 0 32px 80px -28px rgba(15,23,42,.35);
     animation: admPop .24s cubic-bezier(.16,1,.3,1) both;
     overflow: hidden !important;
   }
@@ -222,15 +222,15 @@ const CSS = `
   }
 
   .adm-close {
-    position: absolute; top: 22px; right: 22px;
-    width: 36px; height: 36px;
+    position: absolute; top: 14px; right: 14px;
+    width: 30px; height: 30px;
     border: 0; background: transparent;
     color: #ADB3BD; border-radius: 999px !important;
     cursor: pointer;
     display: inline-flex; align-items: center; justify-content: center;
     transition: background .14s, color .12s;
   }
-  .adm-close svg { width: 20px; height: 20px; }
+  .adm-close svg { width: 16px; height: 16px; }
   .adm-close:hover:not(:disabled) {
     color: #5B647D;
     background: #F1F3F6;
@@ -238,27 +238,27 @@ const CSS = `
   .adm-close:disabled { opacity: .35; cursor: not-allowed; }
 
   .adm-title {
-    margin: 0 36px 28px 0;
+    margin: 0 28px 18px 0;
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
-    font-size: 26px; line-height: 1.25;
+    font-size: 17px; line-height: 1.35;
     color: #1E2126;
     font-weight: 500;
-    letter-spacing: -.005em;
+    letter-spacing: -.002em;
   }
   .adm-title strong { font-weight: 500; color: #1E2126; }
   .adm-title .muted { color: #ADB3BD; font-weight: 500; }
 
   .adm-input {
     width: 100%;
-    height: 56px;
+    height: 42px;
     background: #F3F5F7;
     border: 0;
-    border-radius: 16px;
+    border-radius: 999px !important;
     outline: 0;
     color: #2A3032;
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
-    font-size: 16px; line-height: 1.5; font-weight: 400;
-    padding: 0 20px;
+    font-size: 13px; line-height: 1.5; font-weight: 400;
+    padding: 0 16px;
     transition: background .14s, box-shadow .14s;
   }
   .adm-input::placeholder { color: #ADB3BD; opacity: 1; }
@@ -270,26 +270,27 @@ const CSS = `
   .adm-primary {
     display: inline-flex; align-items: center; justify-content: center;
     width: 100%;
-    height: 56px; padding: 0 20px;
-    margin-top: 16px;
-    border: 1.5px solid #5B647D;
+    height: 42px; padding: 0 16px;
+    margin-top: 10px;
+    border: 0.7px solid #E7EBF0;
     border-radius: 999px !important;
-    background: #FFFFFF; color: #5B647D;
+    background: #FFFFFF; color: #202532;
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
-    font-size: 15px; font-weight: 400; letter-spacing: 0;
+    font-size: 13px; font-weight: 400; letter-spacing: .14px;
+    box-shadow: 0 1px 2px rgba(15,23,42,.03);
     cursor: pointer;
-    transition: background .12s, color .12s, transform .12s;
+    transition: background .12s, border-color .12s, transform .12s;
   }
   .adm-primary:hover:not(:disabled) {
-    background: #5B647D; color: #FFFFFF;
+    background: #F7F8FB; border-color: #DCE1EA;
   }
   .adm-primary:active:not(:disabled) { transform: scale(.985); }
   .adm-primary:disabled { opacity: .35; cursor: not-allowed; }
 
   .adm-help {
-    margin: 18px 0 0;
+    margin: 14px 0 0;
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
-    font-size: 13px; line-height: 1.55;
+    font-size: 11.5px; line-height: 1.55;
     color: #848D9B;
     font-weight: 400;
   }

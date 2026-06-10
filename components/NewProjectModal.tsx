@@ -334,11 +334,11 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
     await askTagro(initialHistory)
   }
 
-  // Option-A-Shortcut: Pill „Bestehendem Dev'ler zuweisen" oder „Dev'ler neu
-  // einladen" → keinen Tagro-Chat, kein Mit-Tagro-Fortfahren. Direkt Projekt
-  // anlegen (mit dem, was bisher eingegeben wurde) und sofort die passende
-  // AssignDevModal-Variante aufschlagen.
-  async function quickAssignFlow(target: DeliveryModel) {
+  // „Manuell anlegen" — Projekt direkt mit den eingegebenen Werten anlegen,
+  // Tagro-Chat überspringen. Danach abhängig vom Umsetzungs-Pill weiter:
+  // assign_existing_dev / invite_new_dev → AssignDevModal öffnen.
+  // festag_delivery / team_internal     → Modal schließen, weiter zum Projekt.
+  async function manualCreate() {
     if (phase === 'loading') return
     setError('')
     setPhase('loading')
@@ -360,15 +360,18 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
       const projectId = created.id as string
 
       try {
-        await (supabase as any).from('projects').update({ delivery_model: target }).eq('id', projectId)
+        await (supabase as any).from('projects').update({ delivery_model: delivery }).eq('id', projectId)
       } catch {}
 
       setPhase('success')
-      setPostFlow({
-        kind: target === 'assign_existing_dev' ? 'assign-existing' : 'assign-invite',
-        projectId,
-        projectTitle: fallbackTitle,
-      })
+      const next = selectedDelivery.postCreate
+      if (next) {
+        setTimeout(() => {
+          setPostFlow({ kind: next, projectId, projectTitle: fallbackTitle })
+        }, 200)
+      } else {
+        setTimeout(() => onCreated?.(projectId), 500)
+      }
     } catch (e: any) {
       setError(e?.message || 'Projekt konnte nicht angelegt werden.')
       setPhase('form')
@@ -542,12 +545,7 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
                         key={opt.id} type="button" role="radio"
                         aria-checked={delivery === opt.id}
                         className={`npm-pill${delivery === opt.id ? ' on' : ''}`}
-                        onClick={() => {
-                          setDelivery(opt.id)
-                          if (opt.id === 'assign_existing_dev' || opt.id === 'invite_new_dev') {
-                            void quickAssignFlow(opt.id)
-                          }
-                        }}
+                        onClick={() => setDelivery(opt.id)}
                         title={opt.meta}
                       >
                         {opt.label}
@@ -582,12 +580,7 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
                           <button
                             type="button" role="option" aria-selected={delivery === opt.id}
                             className={delivery === opt.id ? 'on' : ''}
-                            onClick={() => {
-                              setDelivery(opt.id); setDeliveryPickerOpen(false)
-                              if (opt.id === 'assign_existing_dev' || opt.id === 'invite_new_dev') {
-                                void quickAssignFlow(opt.id)
-                              }
-                            }}
+                            onClick={() => { setDelivery(opt.id); setDeliveryPickerOpen(false) }}
                           >
                             <span className="lbl">{opt.label}</span>
                             <span className="meta">{opt.meta}</span>
@@ -724,17 +717,28 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
                 )}
                 <Visualizer active={!!dictating} />
               </div>
-              <button
-                ref={primaryBtnRef}
-                type="button"
-                className="npm-primary"
-                onClick={phase === 'chat' ? createProject : openTagroChat}
-                disabled={phase === 'chat' ? (!canCreate || chatLoading) : !canSubmit}
-                aria-busy={phase === 'chat' ? chatLoading : undefined}
-              >
-                <span>Mit Tagro fortfahren</span>
-                <ArrowRight size={13} />
-              </button>
+              <div className="npm-foot-right">
+                {phase !== 'chat' && (
+                  <button
+                    type="button"
+                    className="npm-secondary"
+                    onClick={manualCreate}
+                  >
+                    Manuell anlegen
+                  </button>
+                )}
+                <button
+                  ref={primaryBtnRef}
+                  type="button"
+                  className="npm-primary"
+                  onClick={phase === 'chat' ? createProject : openTagroChat}
+                  disabled={phase === 'chat' ? (!canCreate || chatLoading) : !canSubmit}
+                  aria-busy={phase === 'chat' ? chatLoading : undefined}
+                >
+                  <span>Mit Tagro fortfahren</span>
+                  <ArrowRight size={13} />
+                </button>
+              </div>
             </footer>
           )}
         </div>
@@ -1141,6 +1145,27 @@ const CSS = `
     opacity: 0;
     transition: transform 90ms linear, opacity 120ms linear;
   }
+
+  .npm-foot-right {
+    display: inline-flex; align-items: center; gap: 10px;
+  }
+  .npm-secondary {
+    display: inline-flex; align-items: center; justify-content: center;
+    height: 47px; padding: 0 22px;
+    border: 0.7px solid #E7EBF0;
+    border-radius: 999px !important;
+    background: #FFFFFF; color: #202532;
+    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+    font-size: 14px; font-weight: 400; letter-spacing: .14px;
+    box-shadow: 0 1px 2px rgba(15,23,42,.03);
+    cursor: pointer;
+    transition: background .14s, border-color .14s, transform .12s;
+  }
+  .npm-secondary:hover:not(:disabled) {
+    background: #F7F8FB; border-color: #DCE1EA;
+  }
+  .npm-secondary:active:not(:disabled) { transform: scale(.985); }
+  .npm-secondary:disabled { opacity: .4; cursor: not-allowed; }
 
   .npm-primary {
     display: inline-flex; align-items: center; gap: 12px;
