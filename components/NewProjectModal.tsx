@@ -264,29 +264,10 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
     if (!micListening) { setDictating(null); dictationTargetRef.current = null }
   }, [micListening])
 
-  // Snapshot des Form-Stands beim Diktat-Start — für Insert-Chip.
-  const dictationSnapshotRef = useRef<{ title: string; description: string } | null>(null)
-
   function toggleDictation(explicitTarget?: DictationTarget) {
     if (!micSupported) return
     if (micListening || dictating) {
-      // STOP — Insert-Chip nur für title/desc, nicht für chat-input
-      const wasTarget = dictationTargetRef.current
       stopMic(); setDictating(null); dictationTargetRef.current = null
-      if ((wasTarget === 'title' || wasTarget === 'desc') && dictationSnapshotRef.current) {
-        const snap = dictationSnapshotRef.current
-        const currentTitle = title.trim()
-        const currentDesc = description.trim()
-        const titleAdded = currentTitle.length > snap.title.trim().length
-        const descAdded = currentDesc.length > snap.description.trim().length
-        const rawText = wasTarget === 'title'
-          ? currentTitle.slice(snap.title.trim().length).trim()
-          : currentDesc.slice(snap.description.trim().length).trim()
-        if (rawText.length >= 4 && (titleAdded || descAdded)) {
-          setTagroInsert({ target: wasTarget, rawText, snapshot: snap })
-        }
-      }
-      dictationSnapshotRef.current = null
       return
     }
     const target: DictationTarget = explicitTarget ?? lastFocusedRef.current ?? 'desc'
@@ -296,10 +277,6 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
       target === 'desc' ? description :
       chatInput
     dictationBaseRef.current = baseValue.trim()
-    if (target === 'title' || target === 'desc') {
-      dictationSnapshotRef.current = { title, description }
-      setTagroInsert(null)
-    }
     setDictating(target)
     startMic()
     setTimeout(() => {
@@ -309,39 +286,56 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
     }, 0)
   }
 
-  async function applyTagroInsert() {
-    if (!tagroInsert || tagroInsertBusy) return
+  // Tagro strukturiert/poliert/ergänzt Titel + Beschreibung basierend
+  // auf dem aktuellen Stand. Egal ob getippt oder diktiert. Snapshot
+  // wird vorm Aufruf gemerkt für Undo per X.
+  async function applyTagroStructure() {
+    if (tagroInsertBusy) return
     setTagroInsertBusy(true)
+    const snapshot = { title, description }
     try {
       const res = await fetch('/api/ai/intake-step', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           chatHistory: [{
             role: 'user',
-            text: `Strukturiere diese Sprach-Notiz in einen prägnanten Projekt-Titel (max 8 Wörter) und eine Beschreibung. Antworte als JSON {"title": "...", "summary": "..."}. Notiz:\n\n${tagroInsert.rawText}`,
+            text:
+              `Du strukturierst Projekt-Notizen für ein Festag-Projekt.\n` +
+              `Aktueller Titel: "${titleDraft || '(leer)'}"\n` +
+              `Aktuelle Beschreibung: "${descriptionDraft || '(leer)'}"\n\n` +
+              `Aufgabe:\n` +
+              `- Falls Titel und/oder Beschreibung zu kurz oder unspezifisch sind, ergänze sie sinnvoll.\n` +
+              `- Falls Inhalt vorhanden ist, formuliere kompakt und sachlich um.\n` +
+              `- Titel: max 8 Wörter, prägnant.\n` +
+              `- Beschreibung: 1-3 Sätze, was umgesetzt werden soll.\n` +
+              `- Keine Doppelungen. Beschreibung darf den Titel NICHT einfach wiederholen.\n` +
+              `Antworte als JSON {"title":"...","summary":"..."}.`,
           }],
         }),
       })
       const data = await res.json().catch(() => null)
       const nextTitle = typeof data?.title === 'string' && data.title.trim()
-        ? data.title.trim() : tagroInsert.snapshot.title
+        ? data.title.trim() : (titleDraft || 'Neues Projekt')
       const nextDesc = typeof data?.summary === 'string' && data.summary.trim()
-        ? data.summary.trim() : tagroInsert.rawText
+        ? data.summary.trim() : descriptionDraft
       setTitle(nextTitle)
       setDescription(nextDesc)
+      setTagroInsert({ target: 'desc', rawText: '', snapshot })
     } catch {
-      // Fallback: erster Satz → Titel, Rest → Beschreibung
-      const first = tagroInsert.rawText.split(/[.!?]\s+/)[0] || tagroInsert.rawText
-      const rest = tagroInsert.rawText.slice(first.length).replace(/^[.!?\s]+/, '')
-      setTitle(first.split(/\s+/).slice(0, 8).join(' '))
-      setDescription(rest || tagroInsert.rawText)
+      // Fallback: einfache Heuristik
+      if (!titleDraft && descriptionDraft) {
+        const first = descriptionDraft.split(/[.!?]\s+/)[0] || descriptionDraft
+        setTitle(first.split(/\s+/).slice(0, 8).join(' '))
+      } else if (titleDraft && !descriptionDraft) {
+        setDescription(`Projekt rund um ${titleDraft.toLowerCase()} — Details folgen.`)
+      }
+      setTagroInsert({ target: 'desc', rawText: '', snapshot })
     } finally {
       setTagroInsertBusy(false)
-      setTagroInsert(null)
     }
   }
 
-  function discardTagroInsert() {
+  function undoTagroStructure() {
     if (!tagroInsert) return
     setTitle(tagroInsert.snapshot.title)
     setDescription(tagroInsert.snapshot.description)
@@ -351,10 +345,13 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
   const selectedDelivery = DELIVERY_OPTIONS.find(d => d.id === delivery) ?? DELIVERY_OPTIONS[0]
   const titleDraft = title.trim()
   const descriptionDraft = description.trim()
-  // Erste Aktion: "Mit Tagro fortfahren" — auch ohne Eingabe erlaubt, weil Tagro
-  // dann selbst Vorschläge macht (siehe Docs).
-  const canSubmit = true
+  // Beide CTAs verlangen jetzt mindestens einen Projektnamen — sonst gibt es
+  // nichts, was Tagro oder das Backend strukturieren könnte.
+  const canSubmit = titleDraft.length >= 2
   const canCreate = canSubmit || chatHistory.some(turn => turn.role === 'user' && turn.text.trim().length >= 2)
+  // Tagro-Strukturieren steht zur Verfügung, sobald irgendwo Inhalt ist —
+  // egal ob getippt oder diktiert. Mindestens 8 Zeichen in einem der Felder.
+  const canStructure = (titleDraft.length + descriptionDraft.length) >= 8
 
   function suggestedTitle() {
     const source = tagroTitle || title.trim() || description.trim()
@@ -679,21 +676,24 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
 
               {error && <p className="npm-error" role="alert">{error}</p>}
 
-              {tagroInsert && (
-                <div className="npm-insert-chip" role="region" aria-label="Spracheingabe einsortieren">
+              {canStructure && (
+                <div className="npm-insert-chip" role="region" aria-label="Eingabe strukturieren">
                   <span className="npm-insert-label">
-                    Tagro kann deine Spracheingabe in Projektname & Beschreibung einsortieren.
+                    {tagroInsert
+                      ? 'Tagro hat strukturiert. Mit X wiederherstellen.'
+                      : 'Tagro kann deine Eingabe in Projektname & Beschreibung strukturieren.'}
                   </span>
                   <div className="npm-insert-actions">
-                    <button type="button" className="npm-insert-primary" onClick={applyTagroInsert} disabled={tagroInsertBusy}>
-                      {tagroInsertBusy ? 'Tagro sortiert…' : 'Mit Tagro einfügen'}
-                    </button>
-                    <button type="button" className="npm-insert-secondary" onClick={() => setTagroInsert(null)} disabled={tagroInsertBusy}>
-                      Manuell einfügen
-                    </button>
-                    <button type="button" className="npm-insert-x" onClick={discardTagroInsert} disabled={tagroInsertBusy} aria-label="Verwerfen">
-                      <X size={14} />
-                    </button>
+                    {!tagroInsert && (
+                      <button type="button" className="npm-insert-primary" onClick={applyTagroStructure} disabled={tagroInsertBusy}>
+                        {tagroInsertBusy ? 'Tagro sortiert…' : 'Mit Tagro strukturieren'}
+                      </button>
+                    )}
+                    {tagroInsert && (
+                      <button type="button" className="npm-insert-x" onClick={undoTagroStructure} disabled={tagroInsertBusy} aria-label="Wiederherstellen">
+                        <X size={14} />
+                      </button>
+                    )}
                   </div>
                 </div>
               )}
@@ -828,6 +828,7 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
                   onClick={phase === 'chat' ? createProject : openTagroChat}
                   disabled={phase === 'chat' ? (!canCreate || chatLoading) : !canSubmit}
                   aria-busy={phase === 'chat' ? chatLoading : undefined}
+                  title={!canSubmit && phase !== 'chat' ? 'Bitte zuerst einen Projektnamen eingeben' : undefined}
                 >
                   <span>Mit Tagro fortfahren</span>
                   <ArrowRight size={13} />
