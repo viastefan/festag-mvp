@@ -1092,10 +1092,11 @@ const CSS = `
 
   .npm-primary {
     display: inline-flex; align-items: center; gap: 12px;
-    height: 52px; padding: 0 28px;
+    height: 47px; padding: 0 28px;
     border: 0; border-radius: 999px;
     background: #5B647D !important; color: #FFFFFF !important;
-    font: inherit; font-size: 14px; font-weight: 500;
+    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+    font-size: 14px; font-weight: 400;
     letter-spacing: .24px;
     cursor: pointer;
     box-shadow:
