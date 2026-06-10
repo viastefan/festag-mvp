@@ -410,6 +410,15 @@ function renderBlockNode(block: ArticleBlock, index: number): React.ReactNode {
       )
     case 'divider':
       return <hr key={key} className="docs-divider" />
+    case 'illustration':
+      return (
+        <div
+          key={key}
+          className={`docs-illustration docs-illustration-${block.tone ?? 'sand'}`}
+          role="img"
+          aria-label={block.alt ?? 'Illustration'}
+        />
+      )
     default:
       return null
   }
@@ -1004,6 +1013,18 @@ const CSS = `
     border: 0;
     height: 1px;
     background: color-mix(in srgb, var(--docs-border) 78%, transparent);
+  }
+  .docs-illustration {
+    width: 100%;
+    aspect-ratio: 16 / 7;
+    margin: 8px 0 26px;
+    border-radius: 16px;
+    background: #F2E2B5;
+  }
+  .docs-illustration-mist  { background: #DDE3EC; }
+  .docs-illustration-slate { background: color-mix(in srgb, #5B647D 16%, #FFFFFF); }
+  @media (max-width: 720px) {
+    .docs-illustration { aspect-ratio: 4 / 3; margin: 6px 0 22px; border-radius: 12px; }
   }
   .docs-related {
     margin-top: 54px;

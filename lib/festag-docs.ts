@@ -22,6 +22,9 @@ export type ArticleBlock =
   | { type: 'mono'; text: string }
   | { type: 'kvtable'; rows: Array<[string, string]> }
   | { type: 'divider' }
+  // Tall coloured placeholder used as a visual anchor under the article title
+  // — matches the beige hero block in the Figma design (Sa43AzpBStYcfRjUruBeHj).
+  | { type: 'illustration'; tone?: 'sand' | 'mist' | 'slate'; alt?: string }
 
 export type FestagDocArticle = {
   title: string
@@ -242,6 +245,25 @@ export const festagDocsArticles: FestagDocArticle[] = [
       example: 'Statt "Website" ist "Praxis-Website für systemische Beratung mit Termin-Anfrage" deutlich besser.',
       nextStep: 'Nach der Anlage solltest du erste Aufgaben oder Mitwirkende hinzufügen.',
     }, true),
+  richArticle('Projekte', 'Neues Projekt erstellen', 'neues-projekt-erstellen',
+    'Wie Briefing, Beschreibung und Tagro zusammen aus einer ersten Idee ein Projekt werden lassen — und was passiert, wenn das Feld leer bleibt.',
+    ['Projekte', 'Projektanlage', 'Tagro', 'Briefing', 'Start'],
+    [
+      { type: 'illustration', tone: 'sand', alt: 'Neues Projekt erstellen — Tagro Briefing' },
+      { type: 'paragraph', text: 'Beim Erstellen eines neuen Projekts kannst du ein vollständiges Briefing verfassen, eine Anforderung beschreiben, erste Gedanken sammeln oder einfach erklären, was du erreichen möchtest. Dabei spielt es keine Rolle, ob du bereits einen detaillierten Plan hast oder nur einen groben Ausgangspunkt.' },
+      { type: 'paragraph', text: 'Tagro unterstützt dich dabei, aus diesen Informationen ein strukturiertes Projekt zu entwickeln. Das System analysiert deine Eingaben, erkennt Ziele und Zusammenhänge und hilft dabei, die Grundlage für die weitere Planung und Umsetzung zu schaffen. Statt sofort in Aufgaben, Meilensteine oder technische Details zu denken, konzentriert sich Tagro zunächst darauf, die eigentliche Absicht hinter deinem Projekt zu verstehen.' },
+      { type: 'paragraph', text: 'Das Beschreibungsfeld kann auch vollständig leer bleiben. In diesem Fall übernimmt Tagro eine aktivere Rolle. Basierend auf dem vorhandenen Kontext, bestehenden Projekten, Teamaktivitäten und verfügbaren Informationen kann Tagro eigenständig Vorschläge machen, neue Projektideen entwickeln oder eine erste Struktur erstellen. Manche Nutzer kommen mit einer klaren Vision, andere möchten sich zunächst inspirieren lassen. Festag unterstützt beide Wege.' },
+      { type: 'heading', level: 3, text: 'Entwickler finden', id: 'entwickler-finden' },
+      { type: 'paragraph', text: 'Nicht jedes Projekt startet mit einem bestehenden Team. Wenn du noch keine Entwickler zur Verfügung hast, kann Festag dabei helfen, passende Personen für dein Projekt zu identifizieren. Tagro analysiert dabei den Umfang, die Komplexität, den Zeitrahmen und die Anforderungen des Projekts und unterstützt bei der Zusammenstellung eines geeigneten Teams.' },
+      { type: 'paragraph', text: 'Dabei geht es nicht nur darum, verfügbare Entwickler zu finden, sondern eine sinnvolle Struktur für die Umsetzung zu schaffen. Während das Projekt wächst, behält Tagro Auslastung, Fortschritt und Anforderungen im Blick und sorgt dafür, dass die richtigen Personen zur richtigen Zeit eingebunden werden. Dabei kann es sich um interne Mitarbeiter, Freelancer, Agenturpartner oder andere externe Beteiligte handeln. Nach der ersten Auswahl bleibt die Steuerung bei dir — Tagro liefert die Übersicht, du triffst die Entscheidung.' },
+      { type: 'heading', level: 3, text: 'Bestehende Dev’ler zuweisen', id: 'bestehende-devler-zuweisen' },
+      { type: 'paragraph', text: 'Wenn du bereits mit einem Entwickler im Workspace arbeitest, kannst du ihm das neue Projekt direkt zuordnen. Die Person erhält die Nachricht „Neues Projekt“ in ihrem Dev-Panel und kann das Projekt damit bestätigen. Erst nach der Bestätigung wird das Projekt im operativen Verlauf für beide Seiten aktiv.' },
+      { type: 'heading', level: 3, text: 'Neue Dev’ler einladen', id: 'neue-devler-einladen' },
+      { type: 'paragraph', text: 'Soll ein Entwickler hinzukommen, der noch nicht Teil deines Workspaces ist, erstellt Festag einen einmaligen Einladungslink. Nach erfolgreicher Anmeldung im Dev-Panel werden Benutzername und PIN generiert. Die Person ist damit eindeutig zugeordnet und sieht das Projekt im eigenen Dashboard. Der gesamte Ablauf läuft ohne Mailwechsel oder zusätzliche Tools.' },
+      { type: 'note', text: 'Tipp: Wähle die Umsetzungsart bewusst — sie steuert, welcher nächste Schritt direkt nach dem Anlegen vorbereitet wird. Du kannst die Auswahl später ändern, aber die erste Wahl spart eine Runde.' },
+    ],
+    true,
+    '5 Min.'),
   article('Projekte', 'Projektfarben und Projektakzente nutzen', 'projektfarben-und-akzente',
     'Wie Projektakzente helfen, Projekte schneller wiederzuerkennen.',
     ['Projektfarben', 'Organisation', 'UI'],
