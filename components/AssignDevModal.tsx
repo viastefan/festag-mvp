@@ -170,16 +170,14 @@ export default function AssignDevModal({
               placeholder={mode === 'existing' ? '@Benutzer oder E-Mail' : 'E-Mail-Adresse'}
               autoComplete="off"
             />
-            {mode === 'invite' && (
-              <button
-                type="button"
-                className="adm-primary"
-                onClick={submit}
-                disabled={working || !value.trim()}
-              >
-                {working ? 'Sende …' : 'Einladungslink erstellen'}
-              </button>
-            )}
+            <button
+              type="button"
+              className="adm-primary"
+              onClick={submit}
+              disabled={working || !value.trim()}
+            >
+              {working ? 'Sende …' : (mode === 'existing' ? 'Einladung versenden' : 'Einladungslink erstellen')}
+            </button>
             {helper && <p className="adm-help">{helper}</p>}
             {error && <p className="adm-error" role="alert">{error}</p>}
           </>
