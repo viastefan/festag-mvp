@@ -21,7 +21,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
-  CaretDown, Check, FunnelSimple, MicrophoneSlash, Pause, PencilSimple,
+  CaretDown, Check, Funnel, MicrophoneSlash, Pause, PencilSimple,
   Play, Plus,
 } from '@phosphor-icons/react'
 import { getVoicePreferences } from '@/lib/voice'
@@ -176,7 +176,7 @@ export default function StatusPrompter({
           </div>
           <div className="spx-pop-wrap">
             <button type="button" className="spx-filter" title={periodLabel} onClick={() => { setPeriodOpen(v => !v); setScopeOpen(false) }} aria-expanded={periodOpen}>
-              <FunnelSimple size={16} />
+              <Funnel size={20} weight="fill" />
             </button>
             {periodOpen && (
               <>
@@ -219,26 +219,26 @@ export default function StatusPrompter({
         )}
       </div>
 
-      {/* ── Bottom bar ── */}
+      {/* ── Bottom bar (Figma 166:521/475/472) ── */}
       <footer className="spx-bar">
         <button type="button" className="spx-ghost" onClick={onRewrite} disabled={busy}>
-          <Plus size={15} weight="regular" />
-          Statusbericht neu schreiben
+          <span className="spx-btn-ico"><Plus size={24} weight="light" /></span>
+          <span className="spx-btn-label">Statusbericht neu schreiben</span>
         </button>
         <button type="button" className="spx-tagro" onClick={onTagro}>
-          <PencilSimple size={15} weight="fill" />
-          Mit Tagro bearbeiten
+          <span className="spx-btn-ico"><PencilSimple size={24} weight="fill" /></span>
+          <span className="spx-btn-label">Mit Tagro bearbeiten</span>
         </button>
 
         <div className="spx-wave-wrap" aria-hidden>
           <div className="spx-wave">
-            {Array.from({ length: 42 }).map((_, i) => <span key={i} />)}
+            {Array.from({ length: 32 }).map((_, i) => <span key={i} />)}
           </div>
           <span className="spx-dur">{durationLabel}</span>
         </div>
 
         <div className="spx-playzone">
-          <span className="spx-mic" aria-hidden><MicrophoneSlash size={14} /></span>
+          <span className="spx-mic" aria-hidden><MicrophoneSlash size={16} /></span>
           <button
             type="button"
             className="spx-play"
@@ -246,7 +246,7 @@ export default function StatusPrompter({
             disabled={!hasText || !supported}
             aria-label={playing ? 'Pausieren' : 'Bericht anhören'}
           >
-            {playing ? <Pause size={20} weight="fill" /> : <Play size={20} weight="fill" />}
+            {playing ? <Pause size={24} weight="fill" /> : <Play size={24} weight="fill" />}
           </button>
         </div>
       </footer>
@@ -254,183 +254,218 @@ export default function StatusPrompter({
       <style>{`
         .spx {
           height: 100%;
-          flex: 1 1 auto;       /* fills .dc-shell (flex column) reliably */
+          flex: 1 1 auto;
           min-height: 0;
           display: grid;
           grid-template-rows: auto 1fr auto;
-          gap: 8px;
-          padding: 26px 8px 18px;
+          padding: 34px 0 26px;
+          font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
         }
 
-        /* Head */
+        /* ── Head (Figma 166:537/541/539) ───────────────────────────── */
         .spx-head {
           display: flex; align-items: flex-start; justify-content: space-between;
           gap: 18px;
-          padding: 0 26px;
+          padding: 0 64px;
         }
         .spx-title {
           margin: 0;
-          font-size: clamp(26px, 2.6vw, 34px);
-          font-weight: 600;
-          letter-spacing: -.02em;
-          line-height: 1.15;
-          color: var(--text);
+          /* Aeonik MEDIUM — the only Medium on this screen. */
+          font-size: 40px;
+          font-weight: 500;
+          letter-spacing: -0.01em;
+          line-height: 1.12;
+          color: var(--text, #151617);
+          max-width: 600px;
         }
-        .spx-head-right { display: inline-flex; align-items: center; gap: 10px; flex-shrink: 0; }
+        .spx-head-right { display: inline-flex; align-items: center; gap: 14px; flex-shrink: 0; }
+        /* White 3D pill — shadow, NO border (Figma drop-shadow 0 2px 1px). */
         .spx-scope {
-          display: inline-flex; align-items: center; gap: 7px;
-          height: 38px; padding: 0 16px;
-          background: transparent;
-          color: var(--text-muted);
-          border: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
-          border-radius: 999px;
-          font: inherit; font-size: 14px; font-weight: 500;
+          display: inline-flex; align-items: center; gap: 12px;
+          height: 44px; padding: 0 19px 0 21px;
+          background: var(--surface, #fff);
+          color: #9397a2;
+          border: 0;
+          border-radius: 32px;
+          box-shadow: 0px 2px 1px rgba(46,47,51,0.15);
+          font: inherit; font-size: 18px; font-weight: 400; letter-spacing: 0.02em;
           cursor: pointer;
-          transition: color .14s, border-color .14s, background .14s;
+          transition: box-shadow .14s, transform .14s;
         }
-        .spx-scope:hover { color: var(--text); background: color-mix(in srgb, var(--surface-2) 60%, transparent); }
+        .spx-scope:hover { box-shadow: 0px 3px 6px rgba(46,47,51,0.18); }
+        .spx-scope:active { transform: translateY(1px); box-shadow: 0px 1px 1px rgba(46,47,51,0.15); }
         .spx-filter {
-          width: 38px; height: 38px;
+          width: 45px; height: 45px;
           display: inline-flex; align-items: center; justify-content: center;
-          background: transparent;
-          color: var(--text-muted);
-          border: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
-          border-radius: 999px;
+          background: var(--surface, #fff);
+          color: #2A3032;
+          border: 0;
+          border-radius: 32px;
+          box-shadow: 0px 1px 2px rgba(46,47,51,0.15);
           cursor: pointer;
-          transition: color .14s, background .14s;
+          transition: box-shadow .14s, transform .14s;
         }
-        .spx-filter:hover { color: var(--text); background: color-mix(in srgb, var(--surface-2) 60%, transparent); }
+        .spx-filter:hover { box-shadow: 0px 3px 6px rgba(46,47,51,0.18); }
+        .spx-filter:active { transform: translateY(1px); }
+        [data-theme="dark"] .spx-scope, [data-theme="classic-dark"] .spx-scope,
+        [data-theme="dark"] .spx-filter, [data-theme="classic-dark"] .spx-filter {
+          box-shadow: 0 0 0 1px rgba(255,255,255,.08), 0 2px 6px rgba(0,0,0,.4);
+        }
+        [data-theme="dark"] .spx-filter, [data-theme="classic-dark"] .spx-filter { color: #d9dce2; }
         .spx-pop-wrap { position: relative; }
         .spx-backdrop { position: fixed; inset: 0; z-index: 40; background: transparent; border: 0; cursor: default; }
         .spx-menu {
-          position: absolute; top: calc(100% + 6px); left: 0; z-index: 41;
-          min-width: 210px; padding: 5px;
+          position: absolute; top: calc(100% + 8px); left: 0; z-index: 41;
+          min-width: 220px; padding: 5px;
           background: var(--surface); border: 1px solid var(--border);
-          border-radius: 12px;
+          border-radius: 14px;
           box-shadow: 0 18px 44px -18px rgba(15,23,42,.3);
           display: flex; flex-direction: column; gap: 1px;
         }
         .spx-menu-right { left: auto; right: 0; }
         .spx-menu-item {
           display: flex; align-items: center; gap: 9px;
-          padding: 8px 10px; border: 0; border-radius: 8px;
+          padding: 9px 11px; border: 0; border-radius: 9px;
           background: transparent; color: var(--text);
-          font: inherit; font-size: 13px; font-weight: 500;
+          font: inherit; font-size: 14px; font-weight: 400;
           text-align: left; cursor: pointer;
         }
         .spx-menu-item:hover, .spx-menu-item.on { background: color-mix(in srgb, var(--surface-2) 80%, transparent); }
         .spx-menu-label { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .spx-dot { width: 8px; height: 8px; border-radius: 999px; flex-shrink: 0; }
 
-        /* Teleprompter body */
+        /* ── Teleprompter (Figma 166:506 + fades 542/507) ───────────── */
         .spx-body {
           min-height: 0;
           overflow-y: auto;
           scrollbar-width: none;
-          padding: 0 26px;
-          /* fade above + below — exactly the Figma look */
-          -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 22%, #000 78%, transparent 100%);
-          mask-image: linear-gradient(to bottom, transparent 0, #000 22%, #000 78%, transparent 100%);
+          padding: 0 64px;
+          -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 26%, #000 56%, transparent 86%);
+          mask-image: linear-gradient(to bottom, transparent 0, #000 26%, #000 56%, transparent 86%);
         }
         .spx-body::-webkit-scrollbar { display: none; }
         .spx-flow {
-          max-width: 880px;
+          max-width: 798px;
           margin: 0 auto;
-          /* breathing room so first/last sentence can reach the center */
-          padding: 38vh 0 38vh;
-          font-size: clamp(22px, 2.4vw, 31px);
-          font-weight: 500;
-          line-height: 2.45;
-          letter-spacing: -.005em;
-          color: color-mix(in srgb, var(--text) 16%, transparent);
-          transition: color .2s;
+          padding: 40vh 0 40vh;
+          /* Aeonik REGULAR, 35px on an 80px line — the Figma rhythm. */
+          font-size: 35px;
+          font-weight: 400;
+          line-height: 80px;
+          letter-spacing: 0.0005em;
+          color: #d5d5d5;
         }
         [data-theme="dark"] .spx-flow,
         [data-theme="classic-dark"] .spx-flow {
-          color: color-mix(in srgb, var(--text) 22%, transparent);
+          color: color-mix(in srgb, var(--text) 24%, transparent);
         }
         .spx-s { transition: color .35s ease; cursor: default; }
-        .spx-s.on { color: var(--text); }
+        .spx-s.on { color: var(--text, #16171c); }
         .spx-empty {
           height: 100%;
           display: flex; align-items: center; justify-content: center;
           margin: 0;
           color: var(--text-muted);
-          font-size: 15px;
+          font-size: 16px;
         }
 
-        /* Bottom bar */
+        /* ── Bottom bar (Figma 166:521/475/470/472/167:5) ───────────── */
         .spx-bar {
-          display: flex; align-items: center; gap: 12px;
-          padding: 4px 26px 0;
+          display: flex; align-items: center; gap: 16px;
+          padding: 0 64px;
         }
+        .spx-btn-ico {
+          position: absolute; left: 16px; top: 50%;
+          transform: translateY(-50%);
+          display: inline-flex;
+        }
+        .spx-btn-label { width: 100%; text-align: center; padding: 0 28px 0 36px; white-space: nowrap; }
+        /* Ghost: white, hairline border, true drop shadow (the 3D). */
         .spx-ghost {
-          display: inline-flex; align-items: center; gap: 9px;
-          height: 52px; padding: 0 22px;
-          background: var(--surface);
-          color: var(--text-secondary);
-          border: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
-          border-radius: 999px;
-          font: inherit; font-size: 14.5px; font-weight: 500;
+          position: relative;
+          height: 55px; min-width: 300px;
+          background: var(--surface, #fff);
+          color: #8a8c91;
+          border: 1px solid rgba(46,47,51,0.05);
+          border-radius: 32px;
+          box-shadow: 0px 2px 4px rgba(46,47,51,0.2);
+          font: inherit; font-size: 18px; font-weight: 400; letter-spacing: 0.02em;
           cursor: pointer;
-          transition: color .14s, background .14s;
-          white-space: nowrap;
+          transition: box-shadow .14s, transform .14s;
         }
-        .spx-ghost:hover:not(:disabled) { color: var(--text); background: color-mix(in srgb, var(--surface-2) 60%, transparent); }
+        .spx-ghost .spx-btn-ico { color: #2A3032; }
+        .spx-ghost:hover:not(:disabled) { box-shadow: 0px 4px 10px rgba(46,47,51,0.22); }
+        .spx-ghost:active:not(:disabled) { transform: translateY(1px); box-shadow: 0px 1px 2px rgba(46,47,51,0.2); }
         .spx-ghost:disabled { opacity: .55; cursor: not-allowed; }
+        [data-theme="dark"] .spx-ghost, [data-theme="classic-dark"] .spx-ghost {
+          border-color: rgba(255,255,255,.08);
+          box-shadow: 0 2px 6px rgba(0,0,0,.45);
+          color: #9aa;
+        }
+        [data-theme="dark"] .spx-ghost .spx-btn-ico,
+        [data-theme="classic-dark"] .spx-ghost .spx-btn-ico { color: #d9dce2; }
+        /* Slate: warm soft glow exactly like the mock. */
         .spx-tagro {
-          display: inline-flex; align-items: center; gap: 9px;
-          height: 52px; padding: 0 24px;
-          background: #5B647D; color: #fff;
-          border: 0; border-radius: 999px;
-          font: inherit; font-size: 14.5px; font-weight: 500;
-          cursor: pointer; white-space: nowrap;
-          box-shadow: 0 14px 30px -14px rgba(91,100,125,.55);
+          position: relative;
+          height: 55px; min-width: 290px;
+          background: #5b647d; color: #fff;
+          border: 0; border-radius: 32px;
+          box-shadow: 0px 8px 24px rgba(200,169,91,0.14);
+          font: inherit; font-size: 18px; font-weight: 400; letter-spacing: 0.02em;
+          cursor: pointer;
           transition: background .14s, transform .14s;
         }
+        .spx-tagro .spx-btn-ico { left: 19px; color: #fff; }
         .spx-tagro:hover { background: #4d566c; }
-        .spx-tagro:active { transform: scale(.985); }
+        .spx-tagro:active { transform: translateY(1px); }
 
+        /* Waveform — 2px bars, 30px, #cacfd4, edges fade out. */
         .spx-wave-wrap {
           flex: 1 1 auto; min-width: 0;
-          display: flex; flex-direction: column; align-items: flex-end; gap: 4px;
-          padding: 0 6px;
+          display: flex; flex-direction: column; align-items: flex-end; gap: 8px;
+          padding: 0 10px;
         }
         .spx-wave {
-          width: 100%; max-width: 380px;
+          width: 100%; max-width: 396px;
           height: 30px;
-          display: flex; align-items: center; justify-content: space-between; gap: 3px;
+          display: flex; align-items: center; justify-content: space-between;
+          -webkit-mask-image: linear-gradient(to right, transparent 0, #000 18%, #000 82%, transparent 100%);
+          mask-image: linear-gradient(to right, transparent 0, #000 18%, #000 82%, transparent 100%);
         }
         .spx-wave span {
-          flex: 1 1 auto;
-          height: 100%;
-          max-width: 3px;
-          border-radius: 999px;
-          background: color-mix(in srgb, var(--text) 12%, transparent);
+          width: 2px; height: 30px;
+          border-radius: 12px;
+          background: #cacfd4;
         }
-        .spx-wave span:nth-child(3n)  { height: 60%; }
-        .spx-wave span:nth-child(4n)  { height: 80%; }
-        .spx-wave span:nth-child(5n)  { height: 45%; }
-        .spx-dur { font-size: 12px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+        [data-theme="dark"] .spx-wave span,
+        [data-theme="classic-dark"] .spx-wave span { background: rgba(255,255,255,.22); }
+        .spx-dur {
+          font-size: 15px;
+          color: #979a9f;
+          letter-spacing: 0.02em;
+          font-variant-numeric: tabular-nums;
+          padding-right: 6px;
+        }
 
-        .spx-playzone { position: relative; flex-shrink: 0; }
+        /* Play 70px dark circle, mic-slash 38px white circle above it. */
+        .spx-playzone { position: relative; flex-shrink: 0; align-self: flex-start; }
         .spx-mic {
-          position: absolute; top: -14px; right: 54px;
-          width: 30px; height: 30px;
+          position: absolute; top: -50px; right: -8px;
+          width: 38px; height: 38px;
           display: inline-flex; align-items: center; justify-content: center;
-          background: var(--surface);
-          color: var(--text-muted);
-          border: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
+          background: var(--surface, #fff);
+          color: #2A3032;
           border-radius: 999px;
-          box-shadow: 0 4px 12px -6px rgba(15,23,42,.18);
+          box-shadow: 0px 2px 6px rgba(46,47,51,0.18);
         }
+        [data-theme="dark"] .spx-mic, [data-theme="classic-dark"] .spx-mic { color: #d9dce2; box-shadow: 0 0 0 1px rgba(255,255,255,.08), 0 2px 6px rgba(0,0,0,.4); }
         .spx-play {
-          width: 58px; height: 58px;
+          width: 70px; height: 70px;
           display: inline-flex; align-items: center; justify-content: center;
-          background: #16181D; color: #fff;
+          background: #16171c; color: #fff;
           border: 0; border-radius: 999px;
           cursor: pointer;
-          box-shadow: 0 16px 34px -14px rgba(0,0,0,.55);
+          box-shadow: 0px 10px 26px rgba(22,23,28,0.32);
           transition: transform .14s, background .14s;
         }
         .spx-play:hover:not(:disabled) { background: #23262d; }
@@ -439,17 +474,31 @@ export default function StatusPrompter({
         [data-theme="dark"] .spx-play,
         [data-theme="classic-dark"] .spx-play { background: #F0F0F0; color: #111; }
 
-        @media (max-width: 900px) {
-          .spx-bar { flex-wrap: wrap; }
-          .spx-wave-wrap { order: 4; flex-basis: 100%; align-items: center; }
+        /* ── Scaling ── */
+        @media (max-width: 1280px) {
+          .spx-head, .spx-body, .spx-bar { padding-left: 40px; padding-right: 40px; }
+          .spx-flow { font-size: 30px; line-height: 68px; }
+          .spx-ghost, .spx-tagro { min-width: 0; flex: 0 1 auto; }
+          .spx-btn-label { padding: 0 22px 0 40px; }
+        }
+        @media (max-width: 1024px) {
+          .spx-title { font-size: 32px; }
+          .spx-flow { font-size: 26px; line-height: 56px; }
+          .spx-wave-wrap { display: none; }
         }
         @media (max-width: 768px) {
-          .spx { padding: 14px 0 90px; }
-          .spx-head { padding: 0 16px; }
-          .spx-body { padding: 0 16px; }
-          .spx-bar { padding: 0 16px; gap: 8px; }
-          .spx-ghost, .spx-tagro { height: 46px; padding: 0 16px; font-size: 13.5px; }
-          .spx-wave-wrap { display: none; }
+          .spx { padding: 16px 0 96px; }
+          .spx-head, .spx-body, .spx-bar { padding-left: 16px; padding-right: 16px; }
+          .spx-title { font-size: 26px; }
+          .spx-flow { font-size: 22px; line-height: 46px; }
+          .spx-bar { flex-wrap: wrap; gap: 10px; }
+          .spx-ghost, .spx-tagro { height: 48px; font-size: 15px; }
+          .spx-btn-ico { left: 12px; }
+          .spx-scope { height: 38px; font-size: 14px; padding: 0 14px; }
+          .spx-filter { width: 38px; height: 38px; }
+          .spx-playzone { align-self: center; }
+          .spx-mic { display: none; }
+          .spx-play { width: 54px; height: 54px; }
         }
         @media (prefers-reduced-motion: reduce) {
           .spx-s { transition: none; }
