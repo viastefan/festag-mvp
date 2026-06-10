@@ -152,6 +152,7 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
     const apply = () => {
       micBtnRef.current?.style.setProperty('border-radius', '999px', 'important')
       primaryBtnRef.current?.style.setProperty('border-radius', '999px', 'important')
+      primaryBtnRef.current?.style.setProperty('font-weight', '400', 'important')
     }
     apply()
     const t = window.setTimeout(apply, 50)
@@ -1095,8 +1096,8 @@ const CSS = `
     height: 47px; padding: 0 28px;
     border: 0; border-radius: 999px;
     background: #5B647D !important; color: #FFFFFF !important;
-    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
-    font-size: 14px; font-weight: 400;
+    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif) !important;
+    font-size: 14px !important; font-weight: 400 !important;
     letter-spacing: .24px;
     cursor: pointer;
     box-shadow:
