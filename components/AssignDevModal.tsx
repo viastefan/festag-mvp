@@ -21,6 +21,7 @@
  */
 
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Check, X } from '@phosphor-icons/react'
 
 export type AssignDevMode = 'existing' | 'invite'
@@ -71,7 +72,9 @@ export default function AssignDevModal({
     return () => { document.body.style.overflow = prev }
   }, [open])
 
-  if (!open) return null
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => { setMounted(true) }, [])
+  if (!open || !mounted) return null
 
   async function submit() {
     const raw = value.trim()
@@ -124,7 +127,7 @@ export default function AssignDevModal({
       ? 'Der Dev’ler erhält die Nachricht „Neues Projekt“ in seinem Panel und kann dieses damit bestätigen.'
       : <>Nach erfolgreicher Anmeldung im Dev-Panel gibt es Benutzer und PIN. Finden Sie in <a href="/docs/neues-projekt-erstellen">festag Docs</a> den genauen Ablauf des Vorgangs beschrieben.</>
 
-  return (
+  return createPortal((
     <div className="adm-overlay" role="dialog" aria-modal="true" aria-label={mode === 'existing' ? 'Dev’ler zuweisen' : 'Dev’ler einladen'}>
       <style>{CSS}</style>
       <div
@@ -183,13 +186,13 @@ export default function AssignDevModal({
         )}
       </div>
     </div>
-  )
+  ), document.body)
 }
 
 const CSS = `
   /* Festag AssignDevModal — Fullscreen-Overlay, Figma 1:1 */
   .adm-overlay {
-    position: fixed; inset: 0; z-index: 13000;
+    position: fixed; inset: 0; z-index: 2147483600;
     display: flex; align-items: center; justify-content: center;
     padding: 24px;
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
@@ -197,9 +200,9 @@ const CSS = `
   }
   .adm-backdrop {
     position: absolute; inset: 0;
-    background: rgba(8,10,14,.42);
-    backdrop-filter: blur(8px) saturate(120%);
-    -webkit-backdrop-filter: blur(8px) saturate(120%);
+    background: rgba(15,18,24,.58);
+    backdrop-filter: blur(12px) saturate(115%);
+    -webkit-backdrop-filter: blur(12px) saturate(115%);
   }
   @keyframes admFade { from { opacity: 0 } to { opacity: 1 } }
   @keyframes admPop  { from { opacity: 0; transform: translateY(8px) scale(.985); } to { opacity: 1; transform: none; } }

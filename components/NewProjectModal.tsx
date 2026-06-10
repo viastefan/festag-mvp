@@ -21,6 +21,7 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { createClient } from '@/lib/supabase/client'
 import TagroLogo from '@/components/TagroLogo'
 import AssignDevModal from '@/components/AssignDevModal'
@@ -373,7 +374,12 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
   // Greeting tokens.
   const greeting = GREETING_PROMPTS[greetingIndex]
 
-  return (
+  // SSR-safe portal mount.
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => { setMounted(true) }, [])
+  if (!mounted) return null
+
+  const tree = (
     <>
       <div className={`npm-overlay${isMobile ? ' is-mobile' : ''}`} role="dialog" aria-modal="true" aria-label="Neues Projekt">
         <style>{CSS}</style>
@@ -625,11 +631,9 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
                     {dictating === 'desc' ? <MicrophoneSlash size={14} weight="fill" /> : <Microphone size={14} />}
                   </button>
                 )}
-                {dictating === 'desc' && (
-                  <span className="npm-visualizer" aria-hidden>
-                    {Array.from({ length: 14 }).map((_, i) => <i key={i} style={{ animationDelay: `${i * 60}ms` }} />)}
-                  </span>
-                )}
+                <span className={`npm-visualizer${dictating === 'desc' ? ' is-rec' : ''}`} aria-hidden>
+                  {Array.from({ length: 15 }).map((_, i) => <i key={i} style={{ animationDelay: `${i * 60}ms` }} />)}
+                </span>
               </div>
               <button
                 type="button"
@@ -661,26 +665,37 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
       )}
     </>
   )
+
+  return createPortal(tree, document.body)
 }
 
 const CSS = `
   /* ============================================================
-     Festag NewProjectModal — 1:1 Figma layout (Sa43AzpBStYcfRjUruBeHj)
-     Fullscreen overlay covers the whole viewport, sidebar included.
+     Festag NewProjectModal — 1:1 Figma (node 178:5)
+     Tokens direkt aus Figma, KEINE Theme-Variablen verwenden:
+       Card BG  #FFFFFF        Radius 24px        Padding 32px
+       Title    #ADB3BD  35px  Aeonik Regular
+       Label    #CBCFD6  15px  Aeonik Regular
+       Pill BG  #F3F5F7        Text #848D9B 10px  Radius 32px  H 25px
+       Desc     #ADB3BD  18px  LH 30px
+       CTA      rgba(91,100,125,.9)  Text #FFFFFF 12px  Tracking .24px
+                Radius 32px  Shadow 0 8 24 rgba(200,169,91,.14)
+       Visu.   #CACFD4  2×15  Gap 10
+     Overlay rendert via createPortal AUF document.body → deckt Sidebar.
      ============================================================ */
   .npm-overlay {
-    position: fixed; inset: 0; z-index: 12500;
+    position: fixed; inset: 0; z-index: 2147483600;
     display: flex; align-items: center; justify-content: center;
-    padding: 32px 24px;
+    padding: 32px;
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
     animation: npmFade .18s ease both;
   }
   .npm-overlay.is-mobile { padding: 0; align-items: flex-end; }
   .npm-backdrop {
     position: absolute; inset: 0;
-    background: rgba(8,10,14,.42);
-    backdrop-filter: blur(8px) saturate(120%);
-    -webkit-backdrop-filter: blur(8px) saturate(120%);
+    background: rgba(15,18,24,.58);
+    backdrop-filter: blur(12px) saturate(115%);
+    -webkit-backdrop-filter: blur(12px) saturate(115%);
   }
   @keyframes npmFade { from { opacity: 0 } to { opacity: 1 } }
   @keyframes npmPop  { from { opacity: 0; transform: translateY(10px) scale(.985); } to { opacity: 1; transform: none; } }
@@ -688,13 +703,16 @@ const CSS = `
 
   .npm-card {
     position: relative; z-index: 1;
-    width: min(640px, calc(100vw - 32px));
+    width: min(760px, calc(100vw - 64px));
+    min-height: 560px;
     max-height: calc(100dvh - 64px);
-    background: var(--card);
-    border-radius: 18px;
+    background: #FFFFFF;
+    border-radius: 24px;
+    padding: 32px;
+    box-sizing: border-box;
     box-shadow:
       0 1px 2px rgba(15,23,42,.06),
-      0 32px 80px -28px rgba(15,23,42,.35);
+      0 40px 96px -28px rgba(15,23,42,.45);
     display: flex; flex-direction: column;
     overflow: hidden;
     animation: npmPop .26s cubic-bezier(.16,1,.3,1) both;
@@ -702,16 +720,20 @@ const CSS = `
   .npm-card.is-sheet {
     width: 100%;
     max-width: 100%;
+    min-height: 0;
     max-height: calc(100dvh - 88px);
+    padding: 0;
     border-radius: 28px 28px 0 0;
     animation: npmSheet .36s cubic-bezier(.16,1,.3,1) both;
   }
   [data-theme="dark"] .npm-card,
   [data-theme="classic-dark"] .npm-card {
-    background: color-mix(in srgb, var(--card) 96%, #fff 4%);
+    /* Figma frame is pure white; im Dark-Theme bleibt das Modal hell, weil
+       das Layout-Mock auf Light-BG ausgelegt ist. Konsistenz schlägt Theme. */
+    background: #FFFFFF;
     box-shadow:
       0 1px 2px rgba(0,0,0,.5),
-      0 36px 90px -30px rgba(0,0,0,.7);
+      0 40px 96px -30px rgba(0,0,0,.7);
   }
 
   /* ---- Mobile greeting (above sheet) ---- */
@@ -765,33 +787,32 @@ const CSS = `
 
   /* ---- Desktop header (title input + close) ---- */
   .npm-head {
-    display: flex; align-items: center; gap: 16px;
-    padding: 22px 22px 8px;
+    display: flex; align-items: flex-start; gap: 16px;
+    padding: 0 0 4px;
   }
   .npm-title-input {
     flex: 1; min-width: 0;
     background: transparent; border: 0; outline: 0;
-    color: var(--text); font: inherit;
-    font-size: 30px; line-height: 1.12;
-    font-weight: 500; letter-spacing: -.015em;
+    color: #2A3032; font: inherit;
+    font-size: 35px; line-height: 1.1;
+    font-weight: 400; letter-spacing: -.01em;
     padding: 4px 0;
   }
   .npm-title-input::placeholder {
-    color: var(--text-muted); opacity: .42;
+    color: #ADB3BD; opacity: 1;
   }
   .npm-title-input:disabled { opacity: .7; }
 
   .npm-icon-btn {
-    width: 32px; height: 32px; border: 0; background: transparent;
-    color: var(--text-muted); border-radius: 999px; cursor: pointer;
+    width: 24px; height: 24px; border: 0; background: transparent;
+    color: #2A3032; border-radius: 999px; cursor: pointer;
     display: inline-flex; align-items: center; justify-content: center;
-    transition: background .12s, color .12s;
+    transition: opacity .12s;
     flex-shrink: 0;
+    margin-top: 6px;
+    opacity: .85;
   }
-  .npm-icon-btn:hover:not(:disabled) {
-    background: color-mix(in srgb, var(--surface-2) 65%, transparent);
-    color: var(--text);
-  }
+  .npm-icon-btn:hover:not(:disabled) { opacity: 1; }
   .npm-icon-btn:disabled { opacity: .35; cursor: not-allowed; }
 
   /* ---- Mobile title row ---- */
@@ -804,9 +825,10 @@ const CSS = `
 
   /* ---- Body ---- */
   .npm-body {
-    padding: 14px 22px 16px;
+    padding: 30px 0 0;
     overflow-y: auto;
-    display: flex; flex-direction: column; gap: 18px;
+    display: flex; flex-direction: column; gap: 28px;
+    flex: 1;
   }
   .npm-card.is-sheet .npm-body {
     padding: 12px 22px 18px;
@@ -815,49 +837,47 @@ const CSS = `
 
   /* ---- Delivery (desktop pills row) ---- */
   .npm-section.delivery {
-    display: flex; flex-direction: column; gap: 8px;
+    display: flex; flex-direction: column; gap: 12px;
   }
   .npm-delivery-label {
-    display: inline-flex; align-items: center; gap: 7px;
-    color: var(--text-muted);
-    font-size: 12.5px; font-weight: 500; letter-spacing: 0;
+    display: inline-flex; align-items: center; gap: 6px;
+    color: #CBCFD6;
+    font-size: 15px; font-weight: 400; letter-spacing: 0;
   }
   .npm-help {
-    width: 17px; height: 17px;
+    width: 15px; height: 15px;
     border-radius: 999px; border: 0;
-    background: color-mix(in srgb, var(--surface-2) 55%, transparent);
-    color: var(--text-muted);
+    background: rgba(255,255,255,.6);
+    color: #2A3032;
     display: inline-flex; align-items: center; justify-content: center;
     cursor: pointer; flex-shrink: 0;
-    transition: background .12s, color .12s;
+    box-shadow: 0 1px 4px rgba(46,47,51,.15);
+    transition: background .12s;
   }
-  .npm-help:hover {
-    background: color-mix(in srgb, var(--surface-2) 90%, transparent);
-    color: var(--text);
-  }
+  .npm-help:hover { background: #FFFFFF; }
 
   .npm-delivery-pills {
-    display: flex; flex-wrap: wrap; gap: 6px;
+    display: flex; flex-wrap: wrap; gap: 8px;
   }
   .npm-pill {
-    height: 28px;
+    height: 25px;
     display: inline-flex; align-items: center; gap: 6px;
     padding: 0 12px;
-    border-radius: 999px;
+    border-radius: 32px;
     border: 0;
-    background: color-mix(in srgb, var(--surface-2) 50%, transparent);
-    color: var(--text-secondary);
-    font: inherit; font-size: 12px; font-weight: 500; letter-spacing: 0;
+    background: #F3F5F7;
+    color: #848D9B;
+    font: inherit; font-size: 10px; font-weight: 400; letter-spacing: 0;
     cursor: pointer;
     transition: background .12s, color .12s;
   }
   .npm-pill:hover {
-    color: var(--text);
-    background: color-mix(in srgb, var(--surface-2) 80%, transparent);
+    color: #2A3032;
+    background: #E7EBF0;
   }
   .npm-pill.on {
-    color: var(--text);
-    background: color-mix(in srgb, var(--btn-prim) 14%, var(--surface-2));
+    color: #FFFFFF;
+    background: rgba(91,100,125,.9);
   }
 
   /* ---- Delivery (mobile dropdown pill) ---- */
@@ -906,13 +926,13 @@ const CSS = `
   }
 
   /* ---- Description textarea (borderless) ---- */
-  .npm-section.description { min-height: 110px; }
+  .npm-section.description { min-height: 180px; flex: 1; }
   .npm-textarea {
     width: 100%;
     background: transparent; border: 0; outline: 0; resize: none;
-    color: var(--text); font: inherit;
-    font-size: 14px; line-height: 1.55; font-weight: 500; letter-spacing: 0;
-    min-height: 110px; max-height: 280px;
+    color: #2A3032; font: inherit;
+    font-size: 18px; line-height: 30px; font-weight: 400; letter-spacing: 0;
+    min-height: 180px; max-height: 360px;
     padding: 0;
   }
   .npm-card.is-sheet .npm-textarea {
@@ -920,7 +940,7 @@ const CSS = `
     line-height: 1.6;
     min-height: 160px;
   }
-  .npm-textarea::placeholder { color: var(--text-muted); opacity: .55; }
+  .npm-textarea::placeholder { color: #ADB3BD; opacity: 1; }
 
   /* ---- Error inline ---- */
   .npm-error {
@@ -936,59 +956,69 @@ const CSS = `
   .npm-foot {
     display: flex; align-items: center; justify-content: space-between;
     gap: 14px;
-    padding: 14px 18px 18px;
+    padding: 24px 0 0;
   }
+  .npm-card.is-sheet .npm-foot { padding: 14px 18px 18px; }
   .npm-foot-left {
-    display: inline-flex; align-items: center; gap: 10px;
+    display: inline-flex; align-items: center; gap: 18px;
     min-width: 0; flex: 1;
   }
   .npm-mic-btn {
-    width: 34px; height: 34px;
-    border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+    width: 40px; height: 40px;
+    border: 1px solid #E7EBF0;
     border-radius: 999px;
-    background: var(--card);
-    color: var(--text-secondary);
+    background: #FFFFFF;
+    color: #2A3032;
     display: inline-flex; align-items: center; justify-content: center;
     cursor: pointer;
-    transition: background .12s, color .12s, border-color .12s;
+    transition: background .12s, border-color .12s;
     flex-shrink: 0;
   }
-  .npm-mic-btn:hover {
-    color: var(--text); border-color: var(--border-strong);
-  }
+  .npm-mic-btn:hover { border-color: #CBCFD6; }
   .npm-mic-btn.rec {
-    background: color-mix(in srgb, #5B647D 22%, transparent);
-    border-color: color-mix(in srgb, #5B647D 50%, transparent);
-    color: #F4F4F4;
+    background: rgba(91,100,125,.14);
+    border-color: rgba(91,100,125,.45);
+    color: #5B647D;
     animation: npmRecPulse 1.6s ease-in-out infinite;
   }
   @keyframes npmRecPulse {
     0%, 100% { opacity: 1; } 50% { opacity: .72; }
   }
   .npm-visualizer {
-    display: inline-flex; align-items: center; gap: 3px; height: 16px;
+    display: inline-flex; align-items: center; gap: 10px; height: 15px;
+    /* Soft fade-out at the right edge — matches Figma node 185:362 */
+    mask-image: linear-gradient(to right, #000 0%, #000 60%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, #000 0%, #000 60%, transparent 100%);
   }
   .npm-visualizer i {
-    width: 2px; height: 5px;
-    background: var(--text-muted);
-    border-radius: 999px;
+    width: 2px; height: 15px;
+    background: #CACFD4;
+    border-radius: 12px;
+    transform-origin: center;
+    opacity: .9;
+  }
+  /* Resting state = static bars (matches Figma node 185:326). Pulse only when
+     the user is actually dictating. */
+  .npm-visualizer.is-rec i {
     animation: npmBar 1s ease-in-out infinite;
   }
   @keyframes npmBar {
-    0%, 100% { height: 3px; opacity: .4; }
-    50% { height: 14px; opacity: 1; }
+    0%, 100% { transform: scaleY(.35); opacity: .6; }
+    50% { transform: scaleY(1); opacity: 1; }
   }
 
   .npm-primary {
     display: inline-flex; align-items: center; gap: 8px;
-    height: 38px; padding: 0 18px;
-    border: 0; border-radius: 999px;
-    background: var(--btn-prim); color: var(--btn-prim-text);
-    font: inherit; font-size: 13px; font-weight: 500; letter-spacing: 0;
+    height: 30px; padding: 3px 7px 3px 14px;
+    border: 0; border-radius: 32px;
+    background: rgba(91,100,125,.9); color: #FFFFFF;
+    font: inherit; font-size: 12px; font-weight: 400;
+    letter-spacing: .24px;
     cursor: pointer;
-    transition: opacity .12s, transform .12s, background .12s;
+    box-shadow: 0 8px 24px rgba(200,169,91,.14);
+    transition: opacity .12s, transform .12s;
   }
-  .npm-primary:hover:not(:disabled) { opacity: .92; }
+  .npm-primary:hover:not(:disabled) { background: rgba(91,100,125,1); }
   .npm-primary:active:not(:disabled) { transform: scale(.97); }
   .npm-primary:disabled { opacity: .45; cursor: not-allowed; }
 
