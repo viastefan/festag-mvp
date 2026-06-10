@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<style>
+  :root { color-scheme: light dark; }
+  body {
+    width: 300px; margin: 0; padding: 14px;
+    font: 13px/1.45 -apple-system, 'Aeonik', Inter, sans-serif;
+    background: #fff; color: #111;
+  }
+  @media (prefers-color-scheme: dark) { body { background: #111214; color: #f4f4f4; } }
+  h1 { margin: 0 0 4px; font-size: 15px; font-weight: 600; letter-spacing: -.01em; }
+  p { margin: 0 0 12px; color: #777; font-size: 12px; }
+  .row {
+    display: flex; align-items: center; gap: 9px;
+    width: 100%; padding: 9px 10px; margin-bottom: 4px;
+    background: transparent; border: 0; border-radius: 10px;
+    font: inherit; text-align: left; cursor: pointer; color: inherit;
+  }
+  .row:hover { background: rgba(125,125,125,.12); }
+  .dot { width: 9px; height: 9px; border-radius: 999px; background: #5B647D; flex-shrink: 0; }
+  .title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
+  .hint { font-size: 11px; color: #999; }
+  .login {
+    display: block; width: 100%; padding: 10px;
+    background: #5B647D; color: #fff; border: 0; border-radius: 999px;
+    font: inherit; font-weight: 500; cursor: pointer; text-align: center; text-decoration: none;
+  }
+  #status { font-size: 12px; color: #999; }
+</style>
+</head>
+<body>
+  <h1>Live-Feedback</h1>
+  <p>Projekt wählen — das Panel öffnet sich auf dieser Seite.</p>
+  <div id="status">Lade…</div>
+  <div id="list"></div>
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,3 @@
+/* Host element reset — everything else lives inside the Shadow DOM
+   (see content.js PANEL_CSS), so page CSS can't leak in or out. */
+festag-panel { all: initial; }
