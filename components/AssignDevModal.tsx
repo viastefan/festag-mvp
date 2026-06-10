@@ -119,7 +119,7 @@ export default function AssignDevModal({
     ? null
     : mode === 'existing'
       ? <>Vorhandenen Dev’ler zum Projekt hinzufügen.</>
-      : <><strong>Weise das Projekt einem neuen Dev’ler zu</strong>{' '}und lade diesen falls nötig damit zu festag ein.</>
+      : <><strong>Weise das Projekt einem neuen Dev’ler zu</strong>{' '}<span className="muted">und lade diesen falls nötig damit zu festag ein.</span></>
 
   const helper = done
     ? null
@@ -209,78 +209,91 @@ const CSS = `
 
   .adm-card {
     position: relative; z-index: 1;
-    width: min(440px, calc(100vw - 32px));
-    background: var(--card);
-    border-radius: 16px;
-    padding: 22px 22px 18px;
-    box-shadow: 0 1px 2px rgba(15,23,42,.06), 0 32px 80px -28px rgba(15,23,42,.35);
+    width: min(640px, calc(100vw - 32px));
+    background: #FFFFFF;
+    border-radius: 24px;
+    padding: 40px 40px 36px;
+    box-shadow: 0 1px 2px rgba(15,23,42,.06), 0 40px 96px -28px rgba(15,23,42,.45);
     animation: admPop .24s cubic-bezier(.16,1,.3,1) both;
+    overflow: hidden !important;
   }
   [data-theme="dark"] .adm-card,
   [data-theme="classic-dark"] .adm-card {
-    background: color-mix(in srgb, var(--card) 96%, #fff 4%);
-    box-shadow: 0 1px 2px rgba(0,0,0,.5), 0 36px 90px -30px rgba(0,0,0,.7);
+    background: #FFFFFF;
+    box-shadow: 0 1px 2px rgba(0,0,0,.5), 0 40px 96px -30px rgba(0,0,0,.7);
   }
 
   .adm-close {
-    position: absolute; top: 12px; right: 12px;
-    width: 28px; height: 28px;
+    position: absolute; top: 22px; right: 22px;
+    width: 36px; height: 36px;
     border: 0; background: transparent;
-    color: var(--text-muted); border-radius: 999px;
+    color: #ADB3BD; border-radius: 999px !important;
     cursor: pointer;
     display: inline-flex; align-items: center; justify-content: center;
-    transition: background .12s, color .12s;
+    transition: background .14s, color .12s;
   }
+  .adm-close svg { width: 20px; height: 20px; }
   .adm-close:hover:not(:disabled) {
-    color: var(--text);
-    background: color-mix(in srgb, var(--surface-2) 65%, transparent);
+    color: #5B647D;
+    background: #F1F3F6;
   }
   .adm-close:disabled { opacity: .35; cursor: not-allowed; }
 
   .adm-title {
-    margin: 4px 28px 14px 0;
-    font-size: 15px; line-height: 1.45;
-    color: var(--text);
-    font-weight: 400;
+    margin: 0 36px 28px 0;
+    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+    font-size: 26px; line-height: 1.25;
+    color: #1E2126;
+    font-weight: 500;
+    letter-spacing: -.005em;
   }
-  .adm-title strong { font-weight: 500; }
+  .adm-title strong { font-weight: 500; color: #1E2126; }
+  .adm-title .muted { color: #ADB3BD; font-weight: 500; }
 
   .adm-input {
     width: 100%;
-    background: transparent;
+    height: 56px;
+    background: #F3F5F7;
     border: 0;
-    border-bottom: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+    border-radius: 16px;
     outline: 0;
-    color: var(--text); font: inherit;
-    font-size: 14px; line-height: 1.5;
-    padding: 8px 0;
-    transition: border-color .14s;
+    color: #2A3032;
+    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+    font-size: 16px; line-height: 1.5; font-weight: 400;
+    padding: 0 20px;
+    transition: background .14s, box-shadow .14s;
   }
-  .adm-input::placeholder { color: var(--text-muted); opacity: .55; }
+  .adm-input::placeholder { color: #ADB3BD; opacity: 1; }
   .adm-input:focus {
-    border-bottom-color: color-mix(in srgb, var(--btn-prim) 60%, var(--border));
+    background: #EDF0F3;
+    box-shadow: 0 0 0 2px rgba(91,100,125,.12);
   }
 
   .adm-primary {
     display: inline-flex; align-items: center; justify-content: center;
     width: 100%;
-    height: 38px; padding: 0 16px;
-    margin-top: 12px;
-    border: 0; border-radius: 999px;
-    background: var(--btn-prim); color: var(--btn-prim-text);
-    font: inherit; font-size: 13px; font-weight: 500; letter-spacing: 0;
+    height: 56px; padding: 0 20px;
+    margin-top: 16px;
+    border: 1.5px solid #5B647D;
+    border-radius: 999px !important;
+    background: #FFFFFF; color: #5B647D;
+    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+    font-size: 15px; font-weight: 400; letter-spacing: 0;
     cursor: pointer;
-    transition: opacity .12s, transform .12s;
+    transition: background .12s, color .12s, transform .12s;
   }
-  .adm-primary:hover:not(:disabled) { opacity: .92; }
-  .adm-primary:active:not(:disabled) { transform: scale(.98); }
+  .adm-primary:hover:not(:disabled) {
+    background: #5B647D; color: #FFFFFF;
+  }
+  .adm-primary:active:not(:disabled) { transform: scale(.985); }
   .adm-primary:disabled { opacity: .35; cursor: not-allowed; }
 
   .adm-help {
-    margin: 12px 0 0;
-    font-size: 11.5px; line-height: 1.55;
-    color: var(--text-muted);
-    font-weight: 500;
+    margin: 18px 0 0;
+    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+    font-size: 13px; line-height: 1.55;
+    color: #848D9B;
+    font-weight: 400;
   }
   .adm-help a {
     color: var(--text-secondary);
