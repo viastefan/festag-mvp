@@ -745,7 +745,7 @@ const CSS = `
 
   .npm-card {
     position: relative; z-index: 1;
-    width: min(820px, calc(100vw - 64px));
+    width: min(960px, calc(100vw - 64px));
     min-height: 768px;
     max-height: calc(100dvh - 64px);
     background: #FFFFFF;
@@ -848,7 +848,7 @@ const CSS = `
 
   .npm-icon-btn {
     width: 36px; height: 36px; border: 0; background: transparent;
-    color: #2A3032; border-radius: 999px; cursor: pointer;
+    color: #ADB3BD; border-radius: 999px; cursor: pointer;
     display: inline-flex; align-items: center; justify-content: center;
     transition: background .14s, opacity .12s;
     flex-shrink: 0;
@@ -856,7 +856,7 @@ const CSS = `
     opacity: .85;
   }
   .npm-icon-btn svg { width: 20px; height: 20px; }
-  .npm-icon-btn:hover:not(:disabled) { opacity: 1; background: #F1F3F6; }
+  .npm-icon-btn:hover:not(:disabled) { opacity: 1; background: #F1F3F6; color: #5B647D; }
   .npm-icon-btn:disabled { opacity: .35; cursor: not-allowed; }
 
   /* ---- Mobile title row ---- */
@@ -871,6 +871,7 @@ const CSS = `
   .npm-body {
     padding: 30px 0 0;
     overflow-y: auto;
+    overflow-x: hidden;
     display: flex; flex-direction: column; gap: 28px;
     flex: 1;
   }

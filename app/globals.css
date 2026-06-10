@@ -934,10 +934,10 @@ input[type="reset"],
 .voice-icon-btn,
 .voice-field,
 .voice-text-btn,
-:is(a, button)[class*="btn"]:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]):not(.set-btn),
+:is(a, button)[class*="btn"]:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]):not(.set-btn):not(.npm-mic-btn):not(.npm-chat-mic),
 :is(a, button)[class*="button"]:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]),
 :is(a, button)[class*="chip"]:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]),
-:is(a, button)[class*="pill"]:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]) {
+:is(a, button)[class*="pill"]:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]):not(.npm-pill) {
   border-radius: var(--button-radius) !important;
 }
 
