@@ -45,6 +45,16 @@ export default function AssignDevModal({
   const [error, setError] = useState<string | null>(null)
   const [done, setDone] = useState<{ provisioned: boolean } | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const primaryRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    const apply = () => {
+      primaryRef.current?.style.setProperty('border-radius', '999px', 'important')
+    }
+    apply()
+    const t = window.setTimeout(apply, 50)
+    return () => window.clearTimeout(t)
+  })
 
   // Reset when the modal closes so the next open is clean.
   useEffect(() => {
@@ -171,6 +181,7 @@ export default function AssignDevModal({
               autoComplete="off"
             />
             <button
+              ref={primaryRef}
               type="button"
               className="adm-primary"
               onClick={submit}
@@ -253,7 +264,7 @@ const CSS = `
     height: 42px;
     background: #F3F5F7;
     border: 0;
-    border-radius: 999px !important;
+    border-radius: 8px !important;
     outline: 0;
     color: #2A3032;
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
@@ -270,19 +281,19 @@ const CSS = `
   .adm-primary {
     display: inline-flex; align-items: center; justify-content: center;
     width: 100%;
-    height: 42px; padding: 0 16px;
+    height: 47px; padding: 0 18px;
     margin-top: 10px;
-    border: 0.7px solid #E7EBF0;
+    border: 1px solid #DCE1EA;
     border-radius: 999px !important;
     background: #FFFFFF; color: #202532;
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
-    font-size: 13px; font-weight: 400; letter-spacing: .14px;
-    box-shadow: 0 1px 2px rgba(15,23,42,.03);
+    font-size: 14px; font-weight: 500; letter-spacing: .14px;
+    box-shadow: 0 1px 3px rgba(15,23,42,.06), 0 8px 24px -10px rgba(15,23,42,.12);
     cursor: pointer;
     transition: background .12s, border-color .12s, transform .12s;
   }
   .adm-primary:hover:not(:disabled) {
-    background: #F7F8FB; border-color: #DCE1EA;
+    background: #F7F8FB; border-color: #CBCFD6;
   }
   .adm-primary:active:not(:disabled) { transform: scale(.985); }
   .adm-primary:disabled { opacity: .35; cursor: not-allowed; }

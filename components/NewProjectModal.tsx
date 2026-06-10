@@ -145,14 +145,15 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
   const deliveryRef = useRef<HTMLDivElement>(null)
   const micBtnRef = useRef<HTMLButtonElement>(null)
   const primaryBtnRef = useRef<HTMLButtonElement>(null)
+  const secondaryBtnRef = useRef<HTMLButtonElement>(null)
 
-  // HARD-FORCE: setze border-radius mit !important direkt am DOM-Knoten,
-  // damit keinerlei globale CSS-Regel die Pill-Form zerstören kann.
   useEffect(() => {
     const apply = () => {
       micBtnRef.current?.style.setProperty('border-radius', '999px', 'important')
       primaryBtnRef.current?.style.setProperty('border-radius', '999px', 'important')
       primaryBtnRef.current?.style.setProperty('font-weight', '400', 'important')
+      secondaryBtnRef.current?.style.setProperty('border-radius', '999px', 'important')
+      secondaryBtnRef.current?.style.setProperty('font-weight', '400', 'important')
     }
     apply()
     const t = window.setTimeout(apply, 50)
@@ -236,6 +237,15 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
   const dictationBaseRef = useRef('')
   const lastFocusedRef = useRef<DictationTarget>('title')
   const [dictating, setDictating] = useState<null | DictationTarget>(null)
+  // „Mit Tagro einfügen" / „Manuell einfügen" Action-Chip nach einer Diktat-
+  // Session. Wir merken uns den Stand VOR der Diktion (für „X = verwerfen")
+  // und den danach erkannten Roh-Text (für „Mit Tagro einfügen").
+  const [tagroInsert, setTagroInsert] = useState<null | {
+    target: 'title' | 'desc'
+    rawText: string
+    snapshot: { title: string; description: string }
+  }>(null)
+  const [tagroInsertBusy, setTagroInsertBusy] = useState(false)
   const { supported: micSupported, listening: micListening, start: startMic, stop: stopMic } = useSpeechRecognition({
     lang: 'de-DE',
     onResult: (text, isFinal) => {
@@ -254,10 +264,29 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
     if (!micListening) { setDictating(null); dictationTargetRef.current = null }
   }, [micListening])
 
+  // Snapshot des Form-Stands beim Diktat-Start — für Insert-Chip.
+  const dictationSnapshotRef = useRef<{ title: string; description: string } | null>(null)
+
   function toggleDictation(explicitTarget?: DictationTarget) {
     if (!micSupported) return
     if (micListening || dictating) {
+      // STOP — Insert-Chip nur für title/desc, nicht für chat-input
+      const wasTarget = dictationTargetRef.current
       stopMic(); setDictating(null); dictationTargetRef.current = null
+      if ((wasTarget === 'title' || wasTarget === 'desc') && dictationSnapshotRef.current) {
+        const snap = dictationSnapshotRef.current
+        const currentTitle = title.trim()
+        const currentDesc = description.trim()
+        const titleAdded = currentTitle.length > snap.title.trim().length
+        const descAdded = currentDesc.length > snap.description.trim().length
+        const rawText = wasTarget === 'title'
+          ? currentTitle.slice(snap.title.trim().length).trim()
+          : currentDesc.slice(snap.description.trim().length).trim()
+        if (rawText.length >= 4 && (titleAdded || descAdded)) {
+          setTagroInsert({ target: wasTarget, rawText, snapshot: snap })
+        }
+      }
+      dictationSnapshotRef.current = null
       return
     }
     const target: DictationTarget = explicitTarget ?? lastFocusedRef.current ?? 'desc'
@@ -267,14 +296,56 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
       target === 'desc' ? description :
       chatInput
     dictationBaseRef.current = baseValue.trim()
+    if (target === 'title' || target === 'desc') {
+      dictationSnapshotRef.current = { title, description }
+      setTagroInsert(null)
+    }
     setDictating(target)
     startMic()
-    // Fokus auf das Zielfeld setzen, damit visuell klar ist wohin geschrieben wird.
     setTimeout(() => {
       if (target === 'title') titleRef.current?.focus()
       else if (target === 'desc') descRef.current?.focus()
       else chatInputRef.current?.focus()
     }, 0)
+  }
+
+  async function applyTagroInsert() {
+    if (!tagroInsert || tagroInsertBusy) return
+    setTagroInsertBusy(true)
+    try {
+      const res = await fetch('/api/ai/intake-step', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chatHistory: [{
+            role: 'user',
+            text: `Strukturiere diese Sprach-Notiz in einen prägnanten Projekt-Titel (max 8 Wörter) und eine Beschreibung. Antworte als JSON {"title": "...", "summary": "..."}. Notiz:\n\n${tagroInsert.rawText}`,
+          }],
+        }),
+      })
+      const data = await res.json().catch(() => null)
+      const nextTitle = typeof data?.title === 'string' && data.title.trim()
+        ? data.title.trim() : tagroInsert.snapshot.title
+      const nextDesc = typeof data?.summary === 'string' && data.summary.trim()
+        ? data.summary.trim() : tagroInsert.rawText
+      setTitle(nextTitle)
+      setDescription(nextDesc)
+    } catch {
+      // Fallback: erster Satz → Titel, Rest → Beschreibung
+      const first = tagroInsert.rawText.split(/[.!?]\s+/)[0] || tagroInsert.rawText
+      const rest = tagroInsert.rawText.slice(first.length).replace(/^[.!?\s]+/, '')
+      setTitle(first.split(/\s+/).slice(0, 8).join(' '))
+      setDescription(rest || tagroInsert.rawText)
+    } finally {
+      setTagroInsertBusy(false)
+      setTagroInsert(null)
+    }
+  }
+
+  function discardTagroInsert() {
+    if (!tagroInsert) return
+    setTitle(tagroInsert.snapshot.title)
+    setDescription(tagroInsert.snapshot.description)
+    setTagroInsert(null)
   }
 
   const selectedDelivery = DELIVERY_OPTIONS.find(d => d.id === delivery) ?? DELIVERY_OPTIONS[0]
@@ -340,18 +411,21 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
   // festag_delivery / team_internal     → Modal schließen, weiter zum Projekt.
   async function manualCreate() {
     if (phase === 'loading') return
+    if (!title.trim()) { setError('Bitte zuerst einen Projektnamen eingeben.'); return }
     setError('')
-    setPhase('loading')
+    const next = selectedDelivery.postCreate
+    // Bei Assign-Flow keine Loading-Animation — direkt zum Sub-Popup.
+    if (!next) setPhase('loading')
     try {
       const { data: sessionData } = await supabase.auth.getSession()
       const userId = sessionData.session?.user.id
       if (!userId) throw new Error('Bitte melde dich erneut an.')
-      const fallbackTitle = title.trim() || 'Neues Projekt'
+      const projectTitleVal = title.trim()
       const { data: created, error: insErr } = await (supabase as any)
         .from('projects')
         .insert({
           user_id: userId,
-          title: fallbackTitle,
+          title: projectTitleVal,
           description: description.trim().slice(0, 1200) || null,
           status: 'planning',
         })
@@ -363,13 +437,11 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
         await (supabase as any).from('projects').update({ delivery_model: delivery }).eq('id', projectId)
       } catch {}
 
-      setPhase('success')
-      const next = selectedDelivery.postCreate
       if (next) {
-        setTimeout(() => {
-          setPostFlow({ kind: next, projectId, projectTitle: fallbackTitle })
-        }, 200)
+        // Direkt das AssignDevModal aufschlagen — keine Erfolgs-Animation.
+        setPostFlow({ kind: next, projectId, projectTitle: projectTitleVal })
       } else {
+        setPhase('success')
         setTimeout(() => onCreated?.(projectId), 500)
       }
     } catch (e: any) {
@@ -606,6 +678,25 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
               </section>
 
               {error && <p className="npm-error" role="alert">{error}</p>}
+
+              {tagroInsert && (
+                <div className="npm-insert-chip" role="region" aria-label="Spracheingabe einsortieren">
+                  <span className="npm-insert-label">
+                    Tagro kann deine Spracheingabe in Projektname & Beschreibung einsortieren.
+                  </span>
+                  <div className="npm-insert-actions">
+                    <button type="button" className="npm-insert-primary" onClick={applyTagroInsert} disabled={tagroInsertBusy}>
+                      {tagroInsertBusy ? 'Tagro sortiert…' : 'Mit Tagro einfügen'}
+                    </button>
+                    <button type="button" className="npm-insert-secondary" onClick={() => setTagroInsert(null)} disabled={tagroInsertBusy}>
+                      Manuell einfügen
+                    </button>
+                    <button type="button" className="npm-insert-x" onClick={discardTagroInsert} disabled={tagroInsertBusy} aria-label="Verwerfen">
+                      <X size={14} />
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -720,9 +811,12 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
               <div className="npm-foot-right">
                 {phase !== 'chat' && (
                   <button
+                    ref={secondaryBtnRef}
                     type="button"
                     className="npm-secondary"
                     onClick={manualCreate}
+                    disabled={!title.trim()}
+                    title={!title.trim() ? 'Bitte zuerst einen Projektnamen eingeben' : undefined}
                   >
                     Manuell anlegen
                   </button>
@@ -1080,6 +1174,60 @@ const CSS = `
   }
   .npm-error.in-chat { margin: 0 22px 10px; }
 
+  /* ---- Tagro Insert Chip (nach Diktat) ---- */
+  .npm-insert-chip {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px;
+    margin-top: 6px;
+    padding: 12px 12px 12px 18px;
+    border: 1px solid #E7EBF0;
+    border-radius: 16px;
+    background: #FFFFFF;
+    box-shadow: 0 1px 2px rgba(15,23,42,.03), 0 12px 28px -16px rgba(15,23,42,.18);
+    animation: npmPop .24s cubic-bezier(.16,1,.3,1) both;
+  }
+  .npm-insert-label {
+    flex: 1; min-width: 0;
+    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+    font-size: 13px; line-height: 1.45;
+    color: #2A3032; font-weight: 400;
+  }
+  .npm-insert-actions {
+    display: inline-flex; align-items: center; gap: 8px; flex-shrink: 0;
+  }
+  .npm-insert-primary,
+  .npm-insert-secondary {
+    height: 36px; padding: 0 16px;
+    border-radius: 999px !important;
+    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+    font-size: 12.5px; font-weight: 400; letter-spacing: .14px;
+    cursor: pointer;
+    transition: background .12s, border-color .12s, color .12s;
+  }
+  .npm-insert-primary {
+    border: 0;
+    background: #5B647D !important; color: #FFFFFF !important;
+    box-shadow: 0 6px 16px -8px rgba(91,100,125,.45);
+  }
+  .npm-insert-primary:hover:not(:disabled) { background: #4E576E !important; }
+  .npm-insert-secondary {
+    border: 1px solid #DCE1EA;
+    background: #FFFFFF; color: #202532;
+  }
+  .npm-insert-secondary:hover:not(:disabled) { background: #F7F8FB; border-color: #CBCFD6; }
+  .npm-insert-primary:disabled,
+  .npm-insert-secondary:disabled { opacity: .4; cursor: not-allowed; }
+  .npm-insert-x {
+    width: 32px; height: 32px;
+    border: 0; border-radius: 999px;
+    background: transparent; color: #ADB3BD;
+    display: inline-flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: background .12s, color .12s;
+  }
+  .npm-insert-x:hover:not(:disabled) { background: #F1F3F6; color: #5B647D; }
+  .npm-insert-x:disabled { opacity: .4; cursor: not-allowed; }
+
   /* ---- Footer (mic + CTA) ---- */
   .npm-foot {
     display: flex; align-items: center; justify-content: space-between;
@@ -1191,45 +1339,53 @@ const CSS = `
     font-size: 14px;
   }
 
-  /* ---- Chat phase (mostly unchanged) ---- */
+  /* ---- Chat phase ---- */
   .npm-card.is-chat {
-    width: min(820px, calc(100vw - 32px));
-    min-height: min(720px, calc(100dvh - 64px));
+    /* gleiche Breite wie Form-Phase, damit nichts springt */
+    width: min(900px, calc(100vw - 64px));
+    min-height: 720px;
+    max-height: calc(100dvh - 64px);
   }
   .npm-chat {
     flex: 1; min-height: 0;
     display: flex; flex-direction: column;
-    background: color-mix(in srgb, var(--surface) 38%, var(--card));
+    background: #FFFFFF;
   }
   .npm-chat-main {
     flex: 1; min-height: 0; overflow-y: auto;
-    padding: 26px 30px;
-    display: flex; flex-direction: column; gap: 16px;
+    padding: 4px 0 12px;
+    display: flex; flex-direction: column; gap: 14px;
   }
-  .npm-chat-row { display: flex; align-items: flex-start; gap: 11px; }
+  .npm-chat-row { display: flex; align-items: flex-start; gap: 10px; }
   .npm-chat-row.user { justify-content: flex-end; }
   .npm-chat-avatar {
     width: 28px; height: 28px;
     display: inline-flex; align-items: center; justify-content: center;
     border-radius: 999px;
-    background: color-mix(in srgb, var(--surface-2) 70%, transparent);
+    background: #F3F5F7;
     flex-shrink: 0;
   }
   .npm-chat-bubble {
-    max-width: min(620px, 82%);
-    padding: 11px 14px;
+    max-width: min(620px, 78%);
+    padding: 12px 16px;
     border-radius: 16px;
-    background: color-mix(in srgb, var(--surface-2) 62%, transparent);
-    color: var(--text);
-    font-size: 13.5px; line-height: 1.5;
-    font-weight: 500; letter-spacing: 0;
+    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+    font-size: 13.5px; line-height: 1.55;
+    font-weight: 400; letter-spacing: 0;
     white-space: pre-wrap;
   }
+  /* Tagro = links, hellgraue Bubble, dunkler Text */
+  .npm-chat-row.tagro .npm-chat-bubble {
+    background: #F3F5F7;
+    color: #2A3032;
+    border-bottom-left-radius: 6px;
+  }
+  /* User = rechts, Slate solid, weißer Text */
   .npm-chat-row.user .npm-chat-bubble {
-    background: var(--btn-prim); color: var(--btn-prim-text);
+    background: #5B647D;
+    color: #FFFFFF;
     border-bottom-right-radius: 6px;
   }
-  .npm-chat-row.tagro .npm-chat-bubble { border-bottom-left-radius: 6px; }
   .npm-chat-bubble p { margin: 0; }
   .npm-chat-bubble.muted { width: 60px; padding: 12px 14px; }
   .npm-typing { display: inline-flex; gap: 4px; }
@@ -1245,8 +1401,8 @@ const CSS = `
     50% { transform: translateY(-3px); opacity: .9; }
   }
   .npm-chat-composer {
-    padding: 12px 18px 16px;
-    background: color-mix(in srgb, var(--card) 92%, transparent);
+    padding: 12px 0 4px;
+    background: transparent;
   }
   .npm-chat-ready {
     display: inline-flex; align-items: center; gap: 7px;
@@ -1254,13 +1410,14 @@ const CSS = `
     color: #22a06b; font-size: 12.5px; font-weight: 500;
   }
   .npm-chat-input {
-    min-height: 44px;
+    min-height: 48px;
     display: grid; grid-template-columns: 22px minmax(0, 1fr) auto;
     align-items: end; gap: 8px;
-    padding: 6px 6px 6px 12px;
+    padding: 8px 8px 8px 16px;
     border-radius: 999px;
-    border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
-    background: color-mix(in srgb, var(--surface) 68%, var(--card));
+    border: 1px solid #E7EBF0;
+    background: #FFFFFF;
+    box-shadow: 0 1px 2px rgba(15,23,42,.03);
   }
   .npm-chat-actions { display: inline-flex; align-items: center; gap: 6px; align-self: end; }
   .npm-chat-mic {
@@ -1292,7 +1449,7 @@ const CSS = `
     width: 34px; height: 34px;
     border: 0; border-radius: 999px;
     display: inline-flex; align-items: center; justify-content: center;
-    background: var(--btn-prim); color: var(--btn-prim-text); cursor: pointer;
+    background: #5B647D; color: #FFFFFF; cursor: pointer;
   }
   .npm-chat-input button:disabled { opacity: .42; cursor: default; }
 
