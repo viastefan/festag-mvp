@@ -652,7 +652,7 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
                     aria-label={dictating ? 'Aufnahme stoppen' : 'Per Sprache diktieren'}
                     title={dictating ? 'Aufnahme stoppen — schreibt ins fokussierte Feld' : 'Per Sprache diktieren — geht ins fokussierte Feld'}
                   >
-                    {dictating ? <MicrophoneSlash size={16} weight="fill" /> : <Microphone size={16} />}
+                    {dictating ? <MicrophoneSlash size={20} weight="fill" /> : <Microphone size={20} weight="light" />}
                   </button>
                 )}
                 <Visualizer active={!!dictating} />
@@ -1020,27 +1020,25 @@ const CSS = `
   }
   .npm-mic-btn {
     position: relative;
-    width: 48px; height: 48px;
+    width: 52px; height: 52px;
     border: 0;
     border-radius: 999px;
-    background:
-      radial-gradient(circle at 50% 32%, #FFFFFF 0%, #F4F6FA 100%);
+    background: #FFFFFF;
     color: #ADB3BD;
     display: inline-flex; align-items: center; justify-content: center;
     cursor: pointer;
     transition: transform .12s, box-shadow .18s, color .14s;
     flex-shrink: 0;
     box-shadow:
-      0 1px 1px rgba(255,255,255,.9) inset,
-      0 -1px 2px rgba(15,23,42,.05) inset,
-      0 1px 2px rgba(15,23,42,.06),
-      0 6px 16px -4px rgba(15,23,42,.18),
-      0 14px 32px -12px rgba(15,23,42,.22);
+      0 0 0 1px rgba(15,23,42,.04),
+      0 2px 4px rgba(15,23,42,.04),
+      0 10px 24px -8px rgba(15,23,42,.14),
+      0 22px 36px -16px rgba(15,23,42,.16);
   }
   .npm-mic-btn:hover { transform: translateY(-1px); color: #5B647D; }
   .npm-mic-btn:active { transform: translateY(0); }
   .npm-mic-btn.rec {
-    background: radial-gradient(circle at 50% 32%, #FFFFFF 0%, #EEF1F6 100%);
+    background: #FFFFFF;
     color: #5B647D;
   }
   .npm-mic-btn.rec::after {
@@ -1076,17 +1074,19 @@ const CSS = `
   }
 
   .npm-primary {
-    display: inline-flex; align-items: center; gap: 10px;
-    height: 48px; padding: 0 22px 0 26px;
+    display: inline-flex; align-items: center; gap: 12px;
+    height: 52px; padding: 0 28px;
     border: 0; border-radius: 999px;
-    background: #5B647D; color: #FFFFFF;
-    font: inherit; font-size: 14px; font-weight: 400;
+    background: #5B647D !important; color: #FFFFFF !important;
+    font: inherit; font-size: 14px; font-weight: 500;
     letter-spacing: .24px;
     cursor: pointer;
-    box-shadow: 0 10px 28px -10px rgba(91,100,125,.55);
-    transition: opacity .12s, transform .12s, background .12s;
+    box-shadow:
+      0 0 0 1px rgba(91,100,125,.08),
+      0 12px 28px -10px rgba(91,100,125,.45);
+    transition: background .12s, transform .12s;
   }
-  .npm-primary:hover:not(:disabled) { background: #4E576E; }
+  .npm-primary:hover:not(:disabled) { background: #4E576E !important; }
   .npm-primary:active:not(:disabled) { transform: scale(.97); }
   .npm-primary:disabled { opacity: .45; cursor: not-allowed; }
 
