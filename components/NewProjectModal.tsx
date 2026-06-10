@@ -143,6 +143,20 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
   const chatBodyRef = useRef<HTMLDivElement>(null)
   const chatInputRef = useRef<HTMLTextAreaElement>(null)
   const deliveryRef = useRef<HTMLDivElement>(null)
+  const micBtnRef = useRef<HTMLButtonElement>(null)
+  const primaryBtnRef = useRef<HTMLButtonElement>(null)
+
+  // HARD-FORCE: setze border-radius mit !important direkt am DOM-Knoten,
+  // damit keinerlei globale CSS-Regel die Pill-Form zerstören kann.
+  useEffect(() => {
+    const apply = () => {
+      micBtnRef.current?.style.setProperty('border-radius', '999px', 'important')
+      primaryBtnRef.current?.style.setProperty('border-radius', '999px', 'important')
+    }
+    apply()
+    const t = window.setTimeout(apply, 50)
+    return () => window.clearTimeout(t)
+  })
 
   // Mount state for SSR-safe portal — declared early so the focus effect can depend on it.
   const [mounted, setMounted] = useState(false)
@@ -645,6 +659,7 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
               <div className="npm-foot-left">
                 {micSupported && (
                   <button
+                    ref={micBtnRef}
                     type="button"
                     className={`npm-mic-btn${dictating ? ' rec' : ''}`}
                     onClick={() => toggleDictation()}
@@ -658,6 +673,7 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
                 <Visualizer active={!!dictating} />
               </div>
               <button
+                ref={primaryBtnRef}
                 type="button"
                 className="npm-primary"
                 onClick={phase === 'chat' ? createProject : openTagroChat}
@@ -745,13 +761,14 @@ const CSS = `
 
   .npm-card {
     position: relative; z-index: 1;
-    width: min(960px, calc(100vw - 64px));
-    min-height: 768px;
+    width: min(900px, calc(100vw - 64px));
+    min-height: 720px;
     max-height: calc(100dvh - 64px);
     background: #FFFFFF;
     border-radius: 24px;
     padding: 40px 32px 32px;
     box-sizing: border-box;
+    overflow: hidden !important;
     box-shadow:
       0 1px 2px rgba(15,23,42,.06),
       0 40px 96px -28px rgba(15,23,42,.45);
@@ -870,10 +887,10 @@ const CSS = `
   /* ---- Body ---- */
   .npm-body {
     padding: 30px 0 0;
-    overflow-y: auto;
-    overflow-x: hidden;
+    overflow: hidden !important;
     display: flex; flex-direction: column; gap: 28px;
     flex: 1;
+    min-height: 0;
   }
   .npm-card.is-sheet .npm-body {
     padding: 12px 22px 18px;
