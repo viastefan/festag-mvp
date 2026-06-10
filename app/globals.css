@@ -955,11 +955,11 @@ button.sb-video-dismiss,
   overflow: hidden !important;
 }
 
-/* NewProjectModal Mic + CTA: immer voll rund, globalen Button-Radius ignorieren. */
-:where(.npm-mic-btn, .npm-chat-mic) {
-  border-radius: 999px !important;
-}
-:where(.npm-primary) {
+/* NewProjectModal Mic + CTA: immer voll rund, globalen Button-Radius ignorieren.
+   KEIN :where() — sonst verliert die Regel gegen [class*="btn"]. */
+button.npm-mic-btn,
+button.npm-chat-mic,
+button.npm-primary {
   border-radius: 999px !important;
 }
 
