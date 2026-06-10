@@ -214,7 +214,7 @@ export default function CapturesPage() {
           <EmptyState
             icon={Microphone}
             title="Noch kein Feedback"
-            description={'Öffne ein Projekt und klick auf "Feedback aufnehmen". Tagro macht aus deinem Sprach- oder Text-Feedback saubere Change-Scripts, die direkt im Dev-Panel landen.'}
+            description={'Starte das Live-Feedback in einem Projekt — Tagro übernimmt den Rest.'}
             actions={[]}
           />
         ) : (

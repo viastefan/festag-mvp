@@ -1767,15 +1767,6 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
         </div>
       </header>
 
-      {/* ─── Vorschau-URL Bar ─── */}
-      <ProjectUrlBar
-        projectId={id}
-        stagingUrl={project.staging_url || null}
-        liveUrl={project.live_url || null}
-        canEdit={canEdit}
-        onSaved={(patch) => setProject(p => p ? { ...p, ...patch } as Project : p)}
-      />
-
       {/* ─── TABS ─── */}
       <nav className="pv-tabs" role="tablist">
         <button
@@ -1937,6 +1928,15 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
                     </>
                   )}
                 </div>
+
+                {/* Vorschau-URL — small chip, URL lives in the popover. */}
+                <ProjectUrlBar
+                  projectId={id}
+                  stagingUrl={project.staging_url || null}
+                  liveUrl={project.live_url || null}
+                  canEdit={canEdit}
+                  onSaved={(patch) => setProject(p => p ? { ...p, ...patch } as Project : p)}
+                />
 
                 <span className="pv-chip pv-chip-mute">{displayName}</span>
               </div>

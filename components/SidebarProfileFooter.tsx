@@ -25,15 +25,6 @@ import { CaretRight, DownloadSimple, GearSix, SignOut, UserPlus, UsersThree } fr
 import { avatarTextColor } from '@/lib/avatar'
 import WorkspaceSymbol from '@/components/WorkspaceSymbol'
 import { loadSymbol, onSymbolChange } from '@/lib/workspace-symbol'
-import {
-  DEFAULT_WORKSPACE_MODE,
-  WORKSPACE_MODE_DESCRIPTION,
-  WORKSPACE_MODE_LABEL,
-  loadWorkspaceMode,
-  onWorkspaceModeChange,
-  saveWorkspaceMode,
-  type WorkspaceMode,
-} from '@/lib/workspace-mode'
 
 type TeamMember = {
   id: string
@@ -126,22 +117,6 @@ export default function SidebarProfileFooter({
     return off
   }, [wsKey])
 
-  // Workspace MODE — client-delivery (default) vs internal-company. Bound to
-  // the same workspace key so symbol + mode stay in sync, and broadcasts so
-  // sidebar/Tagro listeners (added below + lib/workspace-mode subscribers)
-  // re-derive their language instantly.
-  const [wsMode, setWsMode] = useState<WorkspaceMode>(DEFAULT_WORKSPACE_MODE)
-  useEffect(() => { setWsMode(loadWorkspaceMode(wsKey)) }, [wsKey])
-  useEffect(() => {
-    const off = onWorkspaceModeChange((k, m) => { if (k === wsKey) setWsMode(m) })
-    return off
-  }, [wsKey])
-  function flipMode() {
-    const next: WorkspaceMode = wsMode === 'internal_company' ? 'client_delivery' : 'internal_company'
-    setWsMode(next)
-    saveWorkspaceMode(wsKey, next)
-  }
-
   // Team roster — owner is index 0 (passed in pre-ordered by the Sidebar).
   const memberCount = members.length
   const hasTeam = memberCount > 1
@@ -179,26 +154,6 @@ export default function SidebarProfileFooter({
           </div>
         </Link>
 
-        {/* ── Workspace mode toggle (Internal Company ↔ Client Delivery) ── */}
-        <div className="spf-mode" role="group" aria-label="Workspace-Modus">
-          <button
-            type="button"
-            className="spf-mode-row"
-            onClick={flipMode}
-            aria-pressed={wsMode === 'internal_company'}
-          >
-            <span className="spf-mode-text">
-              <strong>Modus · {WORKSPACE_MODE_LABEL[wsMode]}</strong>
-              <small>{WORKSPACE_MODE_DESCRIPTION[wsMode]}</small>
-            </span>
-            <span
-              className={`spf-mode-switch${wsMode === 'internal_company' ? ' on' : ''}`}
-              aria-hidden
-            >
-              <span className="spf-mode-knob" />
-            </span>
-          </button>
-        </div>
 
         {/* ── Team strip — who else is in this workspace ── */}
         <Link href={teamHref} className="spf-team" onClick={closeAndGo}>
@@ -283,7 +238,7 @@ export default function SidebarProfileFooter({
         className="spf-trigger"
         type="button"
         onClick={() => setOpen(o => !o)}
-        title={`${wsLabel} · ${WORKSPACE_MODE_LABEL[wsMode]}`}
+        title={wsLabel}
         style={{
           width: '100%', minWidth: 0,
           display: 'flex', alignItems: 'center', gap: 9,
@@ -298,9 +253,7 @@ export default function SidebarProfileFooter({
       >
         {/* Square glyph = workspace (vs. a person's round avatar). The
             generative WorkspaceSymbol replaces the initial-in-a-tile per
-            the senior design directive. A small slate dot on the corner
-            marks internal-company mode — never truncates, reads at a
-            glance, full mode is in the popover below. */}
+            the senior design directive. */}
         <div style={{ position: 'relative', width: 24, height: 24, flexShrink: 0, display: 'inline-flex' }}>
           <WorkspaceSymbol
             variant={wsPrefs.variant}
@@ -308,17 +261,6 @@ export default function SidebarProfileFooter({
             seed={wsPrefs.seed}
             size={24}
           />
-          {wsMode === 'internal_company' && (
-            <span
-              aria-hidden
-              style={{
-                position: 'absolute', right: -2, bottom: -2,
-                width: 9, height: 9, borderRadius: 999,
-                background: '#5B647D',
-                boxShadow: '0 0 0 2px var(--surface, #fff)',
-              }}
-            />
-          )}
         </div>
 
         <span style={{ flex: '1 1 auto', minWidth: 0, display: 'inline-flex', alignItems: 'center', gap: 6, overflow: 'hidden' }}>
@@ -383,43 +325,7 @@ export default function SidebarProfileFooter({
           border: 1px solid var(--border);
           border-radius: 12px;
           animation: spfPickerIn .18s cubic-bezier(.16,1,.3,1) both;
-        }
-        .spf-mode { margin: 0 6px 8px; }
-        .spf-mode-row {
-          width: 100%;
-          display: flex; align-items: center; gap: 10px;
-          padding: 9px 12px;
-          background: transparent; color: var(--text);
-          border: 1px solid var(--border);
-          border-radius: 12px;
-          font: inherit;
-          text-align: left;
-          cursor: pointer;
-          transition: background .14s, border-color .14s;
-        }
-        .spf-mode-row:hover { background: var(--surface-2); }
-        .spf-mode-text { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
-        .spf-mode-text strong { font-size: 12.5px; font-weight: 600; letter-spacing: -.002em; color: var(--text); }
-        .spf-mode-text small { font-size: 11px; color: var(--text-muted); line-height: 1.35; }
-        .spf-mode-switch {
-          position: relative;
-          flex-shrink: 0;
-          width: 30px; height: 18px;
-          border-radius: 999px;
-          background: color-mix(in srgb, var(--text) 14%, transparent);
-          transition: background .14s;
-        }
-        .spf-mode-switch.on { background: #5B647D; }
-        .spf-mode-knob {
-          position: absolute; top: 2px; left: 2px;
-          width: 14px; height: 14px;
-          border-radius: 999px;
-          background: #FFFFFF;
-          box-shadow: 0 1px 2px rgba(0,0,0,.18);
-          transition: transform .18s cubic-bezier(.16,1,.3,1);
-        }
-        .spf-mode-switch.on .spf-mode-knob { transform: translateX(12px); }
-        @keyframes spfPickerIn {
+        }        @keyframes spfPickerIn {
           from { opacity: 0; transform: translateY(-4px); }
           to   { opacity: 1; transform: translateY(0); }
         }

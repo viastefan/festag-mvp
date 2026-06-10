@@ -202,16 +202,10 @@ function objectKind(t: TagroContextType): string {
  *  ctx changes only when the overlay opens — that's the right cadence
  *  to recompute the language posture. */
 function detectWorkspaceMode(): 'client_delivery' | 'internal_company' {
-  if (typeof window === 'undefined') return 'client_delivery'
-  try {
-    const keys = Object.keys(window.localStorage).filter(k => k.startsWith('festag_workspace_mode::'))
-    // First key wins — there's only one active workspace per browser
-    // session, and the picker writes one entry under the active key.
-    for (const k of keys) {
-      const v = window.localStorage.getItem(k)
-      if (v === 'internal_company') return 'internal_company'
-    }
-  } catch {}
+  // The workspace-mode toggle was removed from the UI (it confused more
+  // than it helped — Festag has exactly two surfaces: client panel and
+  // dev panel). Always use the client-delivery language. The lib stays
+  // for a potential future opt-in via Settings.
   return 'client_delivery'
 }
 

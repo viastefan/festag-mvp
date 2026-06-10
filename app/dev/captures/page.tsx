@@ -166,10 +166,7 @@ export default function DevCapturesPage() {
       <header className="dev-page-header">
         <div>
           <h1>Client Captures</h1>
-          <p className="meta">
-            Live-Feedback-Aufnahmen, die der Kunde freigegeben hat. Tagro hat sie bereits in
-            Change-Scripts zerlegt. Du wählst: annehmen, Rückfrage stellen, oder begründet ablehnen.
-          </p>
+          <p className="meta">Freigegebenes Kunden-Feedback, von Tagro als Change-Scripts aufbereitet.</p>
         </div>
         <TagroEntryButton
           context={{

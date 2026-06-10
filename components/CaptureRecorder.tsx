@@ -310,11 +310,7 @@ export default function CaptureRecorder() {
         {phase === 'setup' && (
           <div className="capx-setup">
             <h2>Live-Feedback aufnehmen</h2>
-            <p>
-              Tagro hört zu, während du in einem zweiten Tab durch deine Vorschau gehst.
-              Sprich frei — pro Seite ein paar Sätze. Am Ende macht Tagro daraus saubere
-              Change-Scripts für deinen Developer, gegliedert nach Seite.
-            </p>
+            <p>Geh durch deine Vorschau und sprich frei — Tagro macht daraus Change-Scripts.</p>
 
             {/* The URL is bound to the project — no free input. */}
             <div className="capx-source">
@@ -341,20 +337,12 @@ export default function CaptureRecorder() {
               </div>
               <div className="capx-ext-text">
                 <strong>Tagro Chrome-Extension</strong>
-                <p>
-                  Für die volle Erfahrung — Orb-Recorder im Seitenpanel, Element-Klick
-                  mit Brainstorming-Bubble und Aufnahme auf jeder URL — installier die
-                  Festag Browser-Extension.
-                </p>
-                <span className="capx-ext-cta">Bald verfügbar — wir melden uns, sobald du sie installieren kannst.</span>
+                <p>Aufnehmen direkt auf der Website — mit Element-Markieren.</p>
+                <span className="capx-ext-cta">Bald verfügbar.</span>
               </div>
             </aside>
 
-            <p className="capx-hint">
-              Tipp: Öffne die Vorschau in einem zweiten Tab und arbeite mit Alt-Tab / Cmd-Tab.
-              Während der Aufnahme kannst du jederzeit eine neue Seite markieren.
-              Maximale Aufnahme: 10 Minuten.
-            </p>
+            <p className="capx-hint">Vorschau im zweiten Tab öffnen · max. 10 Minuten.</p>
             {error && <p className="capx-err">{error}</p>}
             <div className="capx-setup-actions">
               <button type="button" className="capx-ghost" onClick={close}>Abbrechen</button>
