@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { getDevUserFromRequest } from '@/lib/dev-auth'
 import { createClient } from '@/lib/supabase/server'
 
 /**
@@ -24,10 +25,12 @@ function today() {
 
 const PRIO_SCORE: Record<string, number> = { critical: 4, high: 3, medium: 2, low: 1 }
 
-export async function POST() {
+export async function POST(req: Request) {
   try {
     const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { user: cookieUser } } = await supabase.auth.getUser()
+    // PIN-Dev fallback: kein Supabase-Cookie, aber signierter Dev-Token.
+    const user = cookieUser ?? getDevUserFromRequest(req)
     if (!user) return NextResponse.json({ error: 'unauthenticated' }, { status: 401 })
 
     // Lade Assignments + Tasks

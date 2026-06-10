@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { getDevUserFromRequest } from '@/lib/dev-auth'
 import { createClient } from '@/lib/supabase/server'
 import { runTaskVerification } from '@/lib/tagro/verify-task'
 import { clientStatusFromDevFlow, devFlowFromLegacy, progressFromDevFlow, type DevFlow } from '@/lib/tasks/work-types'
@@ -40,7 +41,9 @@ function legacyStatus(devFlow: DevFlow): string {
 export async function POST(req: Request) {
   try {
     const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { user: cookieUser } } = await supabase.auth.getUser()
+    // PIN-Dev fallback: kein Supabase-Cookie, aber signierter Dev-Token.
+    const user = cookieUser ?? getDevUserFromRequest(req)
     if (!user) return NextResponse.json({ error: 'unauthenticated' }, { status: 401 })
 
     const body = await req.json().catch(() => ({}))

@@ -23,6 +23,7 @@ import { Check, FunnelSimple } from '@phosphor-icons/react'
 
 import DevSidebar from '@/components/DevSidebar'
 import LoadingScreen from '@/components/LoadingScreen'
+import TagroOverlay from '@/components/TagroOverlay'
 import { clearStoredDevSession, getStoredDevSession, type DevSession } from '@/lib/dev-session'
 import { createClient } from '@/lib/supabase/client'
 import { getTheme, setTheme, type ThemeMode } from '@/lib/theme'
@@ -208,6 +209,9 @@ export default function DevAppShell({
       className={`festag-app-shell${sidebarCollapsed ? ' sidebar-collapsed' : ''}`}
       style={{ '--app-sidebar-width': sidebarWidth } as React.CSSProperties}
     >
+      {/* Tagro works in the Dev Panel too — same global overlay as the
+          client shell, listening for festag:open-tagro events. */}
+      <TagroOverlay />
       <style>{`
         @keyframes panelFadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
         .panel-enter { animation: panelFadeIn .22s cubic-bezier(.16,1,.3,1) both; }

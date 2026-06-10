@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { getDevUserFromRequest } from '@/lib/dev-auth'
 import { createClient } from '@/lib/supabase/server'
 import { getServiceClient } from '@/lib/supabase/service'
 import { translateDevUpdate } from '@/lib/tagro/translate-update'
@@ -26,7 +27,9 @@ function todayBerlin(): string {
 export async function POST(req: Request) {
   try {
     const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { user: cookieUser } } = await supabase.auth.getUser()
+    // PIN-Dev fallback: kein Supabase-Cookie, aber signierter Dev-Token.
+    const user = cookieUser ?? getDevUserFromRequest(req)
     if (!user) return NextResponse.json({ error: 'unauthenticated' }, { status: 401 })
 
     const body = await req.json().catch(() => ({}))

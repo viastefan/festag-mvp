@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { getDevUserFromRequest } from '@/lib/dev-auth'
 import { createClient } from '@/lib/supabase/server'
 import { emitTaskEvent } from '@/lib/sync/bus'
 
@@ -15,7 +16,9 @@ import { emitTaskEvent } from '@/lib/sync/bus'
 
 export async function GET(req: Request) {
   const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const { data: { user: cookieUser } } = await supabase.auth.getUser()
+  // PIN-Dev fallback: kein Supabase-Cookie, aber signierter Dev-Token.
+  const user = cookieUser ?? getDevUserFromRequest(req)
   if (!user) return NextResponse.json({ error: 'unauthenticated' }, { status: 401 })
 
   const url = new URL(req.url)
@@ -32,7 +35,9 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const { data: { user: cookieUser } } = await supabase.auth.getUser()
+  // PIN-Dev fallback: kein Supabase-Cookie, aber signierter Dev-Token.
+  const user = cookieUser ?? getDevUserFromRequest(req)
   if (!user) return NextResponse.json({ error: 'unauthenticated' }, { status: 401 })
 
   const body = await req.json().catch(() => ({}))
@@ -78,7 +83,9 @@ export async function POST(req: Request) {
 
 export async function DELETE(req: Request) {
   const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const { data: { user: cookieUser } } = await supabase.auth.getUser()
+  // PIN-Dev fallback: kein Supabase-Cookie, aber signierter Dev-Token.
+  const user = cookieUser ?? getDevUserFromRequest(req)
   if (!user) return NextResponse.json({ error: 'unauthenticated' }, { status: 401 })
 
   const body = await req.json().catch(() => ({}))

@@ -91,21 +91,19 @@ export default function DevLoginPage() {
     if (!u || !p) { setError('Bitte Benutzername und PIN eingeben.'); return }
     setLoading(true)
     try {
-      const { data, error: rpcErr } = await supabase.rpc('verify_dev_pin', {
-        username_input: u,
-        pin_input: p,
+      // Server verifies the PIN AND sets the httpOnly dev-token cookie so
+      // API routes can authenticate PIN sessions (no Supabase auth session
+      // exists for PIN logins — this cookie is the bridge).
+      const res = await fetch('/api/dev/session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: u, pin: p }),
       })
-      if (rpcErr) { setError(mapError(rpcErr.message)); setLoading(false); return }
-      const row: any = Array.isArray(data) ? data[0] : data
-      if (!row?.user_id) { setError('Benutzername oder PIN ist nicht korrekt.'); setLoading(false); return }
-
-      const session = {
-        user_id: row.user_id,
-        user_email: row.user_email,
-        user_role: row.user_role,
-        expires: Date.now() + 1000 * 60 * 60 * 12, // 12h
+      const d = await res.json().catch(() => ({}))
+      if (!res.ok || !d?.ok || !d?.session?.user_id) {
+        setError(mapError(d?.error || 'invalid_credentials')); setLoading(false); return
       }
-      localStorage.setItem('festag_dev_session', JSON.stringify(session))
+      localStorage.setItem('festag_dev_session', JSON.stringify(d.session))
       window.location.href = '/dev'
     } catch (e: any) {
       setError(mapError(e?.message || ''))

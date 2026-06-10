@@ -17,6 +17,21 @@ import { createClient as createServerClient } from '@/lib/supabase/server'
 export const runtime = 'nodejs'
 export const maxDuration = 30
 
+// CORS allow-list: the Chrome extension content script posts to this
+// endpoint from arbitrary third-party origins (the page the client is
+// reviewing). We mirror the origin so credentials can ride along.
+const CORS_HEADERS = (origin: string | null) => ({
+  'Access-Control-Allow-Origin': origin || '*',
+  'Access-Control-Allow-Credentials': 'true',
+  'Access-Control-Allow-Methods': 'GET, POST, PATCH, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  'Vary': 'Origin',
+})
+
+export async function OPTIONS(req: NextRequest) {
+  return new NextResponse(null, { status: 204, headers: CORS_HEADERS(req.headers.get('origin')) })
+}
+
 type Body = {
   projectId?: string
   pageUrl?: string
