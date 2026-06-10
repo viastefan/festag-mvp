@@ -334,6 +334,47 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
     await askTagro(initialHistory)
   }
 
+  // Option-A-Shortcut: Pill „Bestehendem Dev'ler zuweisen" oder „Dev'ler neu
+  // einladen" → keinen Tagro-Chat, kein Mit-Tagro-Fortfahren. Direkt Projekt
+  // anlegen (mit dem, was bisher eingegeben wurde) und sofort die passende
+  // AssignDevModal-Variante aufschlagen.
+  async function quickAssignFlow(target: DeliveryModel) {
+    if (phase === 'loading') return
+    setError('')
+    setPhase('loading')
+    try {
+      const { data: sessionData } = await supabase.auth.getSession()
+      const userId = sessionData.session?.user.id
+      if (!userId) throw new Error('Bitte melde dich erneut an.')
+      const fallbackTitle = title.trim() || 'Neues Projekt'
+      const { data: created, error: insErr } = await (supabase as any)
+        .from('projects')
+        .insert({
+          user_id: userId,
+          title: fallbackTitle,
+          description: description.trim().slice(0, 1200) || null,
+          status: 'planning',
+        })
+        .select('id').single()
+      if (insErr || !created?.id) throw new Error(insErr?.message || 'Projekt konnte nicht angelegt werden.')
+      const projectId = created.id as string
+
+      try {
+        await (supabase as any).from('projects').update({ delivery_model: target }).eq('id', projectId)
+      } catch {}
+
+      setPhase('success')
+      setPostFlow({
+        kind: target === 'assign_existing_dev' ? 'assign-existing' : 'assign-invite',
+        projectId,
+        projectTitle: fallbackTitle,
+      })
+    } catch (e: any) {
+      setError(e?.message || 'Projekt konnte nicht angelegt werden.')
+      setPhase('form')
+    }
+  }
+
   async function sendChatMessage() {
     const text = chatInput.trim()
     if (!text || chatLoading || phase !== 'chat') return
@@ -501,7 +542,12 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
                         key={opt.id} type="button" role="radio"
                         aria-checked={delivery === opt.id}
                         className={`npm-pill${delivery === opt.id ? ' on' : ''}`}
-                        onClick={() => setDelivery(opt.id)}
+                        onClick={() => {
+                          setDelivery(opt.id)
+                          if (opt.id === 'assign_existing_dev' || opt.id === 'invite_new_dev') {
+                            void quickAssignFlow(opt.id)
+                          }
+                        }}
                         title={opt.meta}
                       >
                         {opt.label}
@@ -536,7 +582,12 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
                           <button
                             type="button" role="option" aria-selected={delivery === opt.id}
                             className={delivery === opt.id ? 'on' : ''}
-                            onClick={() => { setDelivery(opt.id); setDeliveryPickerOpen(false) }}
+                            onClick={() => {
+                              setDelivery(opt.id); setDeliveryPickerOpen(false)
+                              if (opt.id === 'assign_existing_dev' || opt.id === 'invite_new_dev') {
+                                void quickAssignFlow(opt.id)
+                              }
+                            }}
                           >
                             <span className="lbl">{opt.label}</span>
                             <span className="meta">{opt.meta}</span>
