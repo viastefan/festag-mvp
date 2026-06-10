@@ -22,6 +22,8 @@ import ObserverWelcomeModal from '@/components/ObserverWelcomeModal'
 import WelcomeTour from '@/components/WelcomeTour'
 import TagroMobileBar from '@/components/TagroMobileBar'
 import TagroEntryButton from '@/components/TagroEntryButton'
+import StatusPrompter from '@/components/StatusPrompter'
+import { openTagro } from '@/components/TagroOverlay'
 import { speechVoiceId, useSpeechSynthesis } from '@/hooks/useSpeechSynthesis'
 import {
   ArrowClockwise, Article, CalendarCheck, CaretDown, CaretRight, Check, CheckCircle,
@@ -2564,377 +2566,37 @@ export default function DashboardPage() {
       `}</style>
 
       <div className="dc-shell">
-        {/* Desktop-only header actions row — mobile keeps the 2-button
-            TagroMobileBar at the bottom edge. */}
-        <div className="dc-desktop-actions" aria-label="Statusbericht und Tagro">
-          <button
-            type="button"
-            className="dc-desktop-action"
-            onClick={() => { void refreshStatus() }}
-            title="Statusbericht aktualisieren"
-          >
-            Statusbericht
-          </button>
-          <TagroEntryButton
-            context={{
-              contextType: 'status_report',
-              id: 'dashboard',
-              title: 'Statusabfrage · Heute',
-            }}
-          />
-        </div>
-        <div className="dc-shell-body">
-          {/* ── LEFT: daytime header + fact + report ── */}
-          <main className="dc-left">
-            <h1 className="dc-greeting">{contextLine}</h1>
-            <p className="dc-control-line">
-              <span className="dc-control-dot" style={{ background: controlSentence.color }} aria-hidden />
-              {controlSentence.reason}
-            </p>
-            <p className="dc-fact">
-              <span className="dc-fact-ico" aria-hidden><Lightbulb size={13} weight="regular" /></span>
-              <span><span className="dc-fact-lead">Wusstest du?</span> {funFact}</span>
-            </p>
-
-            {noteRevealed ? (
-              <article className="dc-note dc-note-inline" aria-label="Statusbericht" data-tour="status-note">
-                {noteStamp && (
-                  <div className="dc-note-head">
-                    <span className="dc-note-stamp">Heute, {noteStamp} Uhr</span>
-                  </div>
-                )}
-                <p className="dc-note-text">
-                  {noteRevealed}
-                  {noteWriting && <span className="dc-caret" aria-hidden />}
-                </p>
-
-                {!noteWriting && noteReport &&
-                  (noteReport.currentWork.length + noteReport.blockers.length + noteReport.nextSteps.length) > 0 && (
-                  <>
-                    <div className="dc-note-sections">
-                      {renderSection('Aktuell in Arbeit', noteReport.currentWork, 'work')}
-                      {renderSection('Blocker', noteReport.blockers, 'blocker', true)}
-                      {renderSection('Nächste Schritte', noteReport.nextSteps, 'next')}
-                    </div>
-                    {noteReport.nextSteps.length > 0 && main && (
-                      <div className="dc-note-actions">
-                        <button
-                          type="button"
-                          className={`dc-note-action${allNextDone ? ' done' : ''}`}
-                          onClick={createAllTasks}
-                          disabled={allTasksBusy || allNextDone}
-                        >
-                          {allTasksBusy ? (
-                            <>
-                              <span className="dc-task-spin" aria-hidden />
-                              Tagro legt an… {bulkProgress}/{noteReport.nextSteps.length}
-                            </>
-                          ) : allNextDone ? (
-                            <>
-                              <Check size={13} weight="bold" />
-                              Alle als Aufgaben angelegt
-                            </>
-                          ) : (
-                            <>
-                              <Plus size={12} weight="bold" />
-                              Nächste Schritte als Aufgaben anlegen
-                            </>
-                          )}
-                        </button>
-                      </div>
-                    )}
-                  </>
-                )}
-              </article>
-            ) : statusBusy ? (
-              <article className="dc-note dc-note-inline" aria-label="Statusbericht">
-                <p className="dc-note-text">Tagro schreibt …<span className="dc-caret" aria-hidden /></p>
-              </article>
-            ) : projects.length === 0 ? (
-              /* Only the genuinely-helpful onboarding hint. The live counts
-                 are NOT duplicated here — they already live in the right
-                 box (Offene Aufgaben / Aktiv / Erledigt / Projekte). */
-              <article className="dc-note dc-note-inline" aria-label="Statusbericht">
-                <p className="dc-note-text">
-                  Noch kein Projekt angelegt. Sobald du ein Projekt startest, fasst Tagro hier den
-                  aktuellen Stand zusammen — Fortschritt, offene Punkte und nächste Schritte.
-                </p>
-              </article>
-            ) : null}
-
-            <a href="/reports" className="dc-history-link">Alle Statusberichte ansehen →</a>
-          </main>
-
-          {/* ── RIGHT: Audio Briefing card ── */}
-          <aside className="dc-card" aria-label="Tagro Audio Briefing" data-tour="voice-briefing">
-            <header className="dc-card-head">
-              <div className="dc-card-head-text">
-                <h2 className="dc-card-title">Audio Briefing</h2>
-                <p className="dc-card-sub">Dein täglicher Überblick.</p>
-              </div>
-              {/* Status lives once, under the greeting (dc-control-line) — no
-                  second green-dot pill here. */}
-            </header>
-
-            {/* Scope — which project this briefing covers. Defaults to the
-                overall report; lets you pick a single project too. */}
-            <div className="dc-scope2">
-              <button
-                type="button"
-                className="dc-scope2-trigger"
-                onClick={() => setScopeOpen((o) => !o)}
-                aria-haspopup="listbox"
-                aria-expanded={scopeOpen}
-              >
-                <span className="dc-scope2-dot" style={{ background: selectedProject ? ((selectedProject as any).color || 'var(--dc-muted)') : 'var(--dc-soft)' }} />
-                <span className="dc-scope2-label">{isOverall ? 'Gesamtbericht' : (selectedProject?.title ?? 'Projekt wählen')}</span>
-                <CaretDown size={11} weight="bold" />
-              </button>
-              {scopeOpen && (
-                <>
-                  <div className="dc-scope2-backdrop" onClick={() => setScopeOpen(false)} />
-                  <div className="dc-scope2-menu" role="listbox">
-                    <button
-                      type="button" role="option" aria-selected={isOverall}
-                      className={`dc-scope2-opt${isOverall ? ' on' : ''}`}
-                      onClick={() => { setScope('overall'); setScopeOpen(false); setNoteRevealed('') }}
-                    >
-                      <span className="dc-scope2-dot" style={{ background: 'var(--dc-soft)' }} />
-                      <span><strong>Gesamtbericht</strong><small>Alle aktiven Projekte zusammengefasst</small></span>
-                      {isOverall && <Check size={12} weight="bold" />}
-                    </button>
-                    {activeProjects.map((p) => (
-                      <button
-                        key={p.id} type="button" role="option" aria-selected={scope === p.id}
-                        className={`dc-scope2-opt${scope === p.id ? ' on' : ''}`}
-                        onClick={() => { setScope(p.id); setScopeOpen(false); setNoteRevealed('') }}
-                      >
-                        <span className="dc-scope2-dot" style={{ background: (p as any).color || 'var(--dc-muted)' }} />
-                        <span><strong>{p.title}</strong></span>
-                        {scope === p.id && <Check size={12} weight="bold" />}
-                      </button>
-                    ))}
-                  </div>
-                </>
-              )}
-            </div>
-
-            <nav className="dc-period" aria-label="Zeitraum">
-              {([
-                { v: 'Heute',          l: 'Heute' },
-                { v: 'Letzte 7 Tage',  l: '7 Tage' },
-                { v: 'Letzte 30 Tage', l: '30 Tage' },
-                { v: 'Letzte 90 Tage', l: '90 Tage' },
-              ] as const).map((opt) => (
-                <button
-                  key={opt.v}
-                  type="button"
-                  className={`dc-period-btn${period === opt.v ? ' on' : ''}`}
-                  aria-pressed={period === opt.v}
-                  onClick={() => setPeriod(opt.v)}
-                >
-                  {opt.l}
-                </button>
-              ))}
-            </nav>
-
-            <div className="dc-orb-zone">
-              <button
-                type="button"
-                className={`dc-orb-stage${tagroActive ? ' speaking' : ''}${statusBusy ? ' loading' : ''}${isBriefingPlaying ? ' playing' : ''}`}
-                onClick={handleVoicePress}
-                disabled={statusBusy || (!speechSupported && audioText.trim().length > 0)}
-                aria-label={
-                  statusBusy
-                    ? 'Statusbericht wird vorbereitet'
-                    : isBriefingPlaying
-                      ? 'Briefing pausieren'
-                      : speechState === 'paused'
-                        ? 'Briefing weiterhören'
-                        : 'Briefing anhören'
-                }
-                aria-pressed={isBriefingPlaying}
-              >
-                {/* Modern audio waveform — replaces the old pixel grid. A
-                    voice-memo style mark: 7 bars that breathe while
-                    speaking/loading, calm when idle. */}
-                <span className={`dc-wave${isBriefingPlaying ? ' is-playing' : ''}${statusBusy ? ' is-loading' : ''}`} aria-hidden>
-                  {[0,1,2,3,4,5,6].map(i => <span key={i} className="dc-wave-bar" style={{ ['--i' as any]: i }} />)}
-                </span>
-              </button>
-            </div>
-
-            <ul className="dc-stats" aria-label="Übersicht">
-              <li>
-                <a className="dc-stat" href="/tasks">
-                  <strong className="dc-stat-num">{openTaskCount}</strong>
-                  <span className="dc-stat-label">Offene Aufgaben</span>
-                  <CaretRight size={12} className="dc-stat-arrow" />
-                </a>
-              </li>
-              <li>
-                <a className="dc-stat" href="/projects">
-                  <strong className="dc-stat-num">{activeProjectCount}</strong>
-                  <span className="dc-stat-label">Aktiv</span>
-                  <CaretRight size={12} className="dc-stat-arrow" />
-                </a>
-              </li>
-              <li>
-                <a className="dc-stat" href="/tasks?filter=done">
-                  <strong className="dc-stat-num">{doneTaskCount}</strong>
-                  <span className="dc-stat-label">Erledigt</span>
-                  <CaretRight size={12} className="dc-stat-arrow" />
-                </a>
-              </li>
-              <li>
-                <a className="dc-stat" href="/projects">
-                  <strong className="dc-stat-num">{projects.length}</strong>
-                  <span className="dc-stat-label">Projekte</span>
-                  <CaretRight size={12} className="dc-stat-arrow" />
-                </a>
-              </li>
-            </ul>
-
-            {/* Focus rows — no eyebrow, no colored pills, no big radius.
-                Just a quiet header + the line beneath, as requested. */}
-            <div className="dc-focus2" aria-label="Was wichtig ist">
-              <a className="dc-focus2-card" href="/decisions">
-                <span className="dc-focus2-head">Entscheidung benötigt</span>
-                <span className="dc-focus2-title">
-                  {combinedDecisionsCount > 0
-                    ? `${combinedDecisionsCount} ${combinedDecisionsCount === 1 ? 'wartet auf dich' : 'warten auf dich'}`
-                    : 'Keine offenen Entscheidungen'}
-                </span>
-                <span className="dc-focus2-action">Entscheidung ansehen <CaretRight size={11} /></span>
-              </a>
-              <a className="dc-focus2-card" href="/decisions?tone=risk">
-                <span className="dc-focus2-head">Risiko erkannt</span>
-                <span className="dc-focus2-title">
-                  {riskTasks.length > 0 ? `${riskTasks.length} aktive Blocker` : 'Keine aktiven Blocker'}
-                </span>
-                <span className="dc-focus2-action">Risiko prüfen <CaretRight size={11} /></span>
-              </a>
-              <a className="dc-focus2-card" href="/tasks">
-                <span className="dc-focus2-head">Nächster Schritt</span>
-                <span className="dc-focus2-title">{noteReport?.nextSteps?.[0] || 'Tasks öffnen und vorbereiten'}</span>
-                <span className="dc-focus2-action">Tasks öffnen <CaretRight size={11} /></span>
-              </a>
-            </div>
-
-            <button
-              type="button"
-              className="dc-play-bar"
-              onClick={audioText.trim() ? handleBriefingToggle : refreshStatus}
-              disabled={statusBusy || (!speechSupported && audioText.trim().length > 0)}
-            >
-              <span className="dc-play-ico">
-                {statusBusy ? (
-                  <ArrowClockwise size={14} className="spin" />
-                ) : isBriefingPlaying ? (
-                  <Pause size={14} weight="fill" />
-                ) : (
-                  <Play size={14} weight="fill" />
-                )}
-              </span>
-              <span className="dc-play-label">
-                {statusBusy
-                  ? 'Tagro generiert…'
-                  : isBriefingPlaying
-                    ? 'Pausieren'
-                    : speechState === 'paused'
-                      ? 'Weiterhören'
-                      : 'Bericht anhören'}
-              </span>
-              <span className="dc-play-meta">{briefingDurationLabel}</span>
-            </button>
-
-            {/* Read instead of listen — for when you can't play audio. */}
-            <button
-              type="button"
-              className="dc-read-bar"
-              onClick={openWrittenReport}
-              disabled={statusBusy && !writtenReportText.trim()}
-            >
-              <Article size={15} weight="regular" />
-              <span>Bericht lesen</span>
-            </button>
-
-            <div className="dc-chip-row">
-              <button type="button" className="dc-chip" onClick={refreshStatus} disabled={statusBusy}>
-                <ArrowClockwise size={12} className={statusBusy ? 'spin' : ''} />
-                Aktualisieren
-              </button>
-              <button type="button" className="dc-chip" onClick={downloadBriefing}>
-                <DownloadSimple size={12} />
-                PDF
-              </button>
-              <button type="button" className="dc-chip" onClick={sendBriefingToSelf}>
-                <EnvelopeSimple size={12} />
-                An mich
-              </button>
-              <button
-                type="button"
-                className={`dc-chip${dailyDeliveryEnabled ? ' on' : ''}`}
-                onClick={() => setDailyDeliveryEnabled((enabled) => !enabled)}
-              >
-                <CalendarCheck size={12} />
-                Täglich
-              </button>
-              <button
-                type="button"
-                className={`dc-chip dc-chip-icon${briefingSettingsOpen ? ' on' : ''}`}
-                onClick={() => setBriefingSettingsOpen((o) => !o)}
-                title="Stimme & Tempo"
-                aria-label="Stimme & Tempo"
-                aria-expanded={briefingSettingsOpen}
-              >
-                <SlidersHorizontal size={14} weight="regular" />
-              </button>
-            </div>
-
-            {briefingSettingsOpen && (
-              <div className="dc-brief-backdrop" onClick={() => setBriefingSettingsOpen(false)} />
-            )}
-            {briefingSettingsOpen && (
-              <div className="dc-brief-settings" role="dialog" aria-label="Audioeinstellungen">
-                <label className="dc-setting-row">
-                  <span className="dc-setting-label">Tempo</span>
-                  <select
-                    className="dc-setting-select"
-                    value={preferences.rate}
-                    onChange={(e) => updatePreferences({ rate: Number(e.target.value) })}
-                  >
-                    <option value={0.85}>0.85x</option>
-                    <option value={0.95}>0.95x</option>
-                    <option value={1}>1.00x</option>
-                    <option value={1.1}>1.10x</option>
-                    <option value={1.15}>1.15x</option>
-                  </select>
-                </label>
-                <label className="dc-setting-row">
-                  <span className="dc-setting-label">Stimme</span>
-                  <select
-                    className="dc-setting-select"
-                    value={selectedVoiceId}
-                    onChange={(e) => updatePreferences({ voiceId: e.target.value || undefined, voiceName: undefined })}
-                  >
-                    {voiceChoices.length === 0 && <option value="">Systemstimme</option>}
-                    {voiceChoices.map((voice) => (
-                      <option key={speechVoiceId(voice)} value={speechVoiceId(voice)}>
-                        {formatVoiceLabel(voice)}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                {isBriefingActive && (
-                  <button type="button" className="dc-chip" onClick={stopBriefing}>
-                    <Stop size={12} weight="fill" /> Stopp
-                  </button>
-                )}
-              </div>
-            )}
-          </aside>
-        </div>
+        {/* ── Figma-Teleprompter: Statusbericht läuft von unten nach oben,
+            der aktive Satz steht dunkel in der Mitte. Ersetzt den alten
+            Zwei-Spalten-Container 1:1. */}
+        <StatusPrompter
+          headline={
+            statusBusy
+              ? 'Tagro schreibt \u2026'
+              : combinedDecisionsCount > 0
+                ? `${combinedDecisionsCount} ${combinedDecisionsCount === 1 ? 'Entscheidung wartet' : 'Entscheidungen warten'} auf dich.`
+                : riskTasks.length > 0
+                  ? `${riskTasks.length} ${riskTasks.length === 1 ? 'Risiko braucht' : 'Risiken brauchen'} einen Blick.`
+                  : 'Keine Entscheidungen, kein Stress\u2026'
+          }
+          sentences={(writtenReportText.match(/[^.!?\u2026]+[.!?\u2026]+(?:["')\]]+)?|[^.!?\u2026]+$/g) || [])
+            .map(s => s.trim())
+            .filter(s => s.length > 1)}
+          durationLabel={briefingDurationLabel}
+          scopeLabel={scopeLabel}
+          activeScopeId={scope}
+          scopeOptions={[
+            { id: 'overall', label: 'Gesamtbericht' },
+            ...projects.map(p => ({ id: p.id, label: p.title, color: (p as any).color })),
+          ]}
+          onScopeChange={(id) => setScope(id as any)}
+          periodLabel={period}
+          periodOptions={['Heute', 'Letzte 7 Tage', 'Letzte 30 Tage', 'Letzte 90 Tage']}
+          onPeriodChange={(p) => setPeriod(p as any)}
+          busy={statusBusy}
+          onRewrite={() => { void refreshStatus() }}
+          onTagro={() => openTagro({ contextType: 'status_report', id: 'dashboard', title: 'Statusabfrage \u00b7 Heute' })}
+        />
 
       </div>
 
