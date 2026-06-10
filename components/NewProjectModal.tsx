@@ -886,24 +886,25 @@ const CSS = `
   }
 
   .npm-delivery-pills {
-    display: flex; flex-wrap: nowrap; gap: 8px;
+    display: flex; flex-wrap: nowrap; gap: 10px;
     width: 100%;
   }
   .npm-pill {
-    flex: 1 1 0; min-width: 0;
+    flex: 0 0 auto;
     height: 36px;
     display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-    padding: 0 10px;
+    padding: 0 24px;
     border-radius: 999px;
     border: 0;
     background: #F3F5F7;
     color: #848D9B;
     font: inherit; font-size: 12.5px; font-weight: 400; letter-spacing: 0;
     white-space: nowrap;
-    overflow: hidden; text-overflow: ellipsis;
     cursor: pointer;
     transition: background .12s, color .12s;
   }
+  .npm-pill:focus { outline: none; }
+  .npm-pill:focus-visible { outline: 2px solid #5B647D; outline-offset: 2px; }
   .npm-pill:hover {
     color: #2A3032;
     background: #E7EBF0;
