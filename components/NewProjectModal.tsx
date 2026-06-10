@@ -214,10 +214,13 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
     return () => { timers.forEach(clearTimeout) }
   }, [phase])
 
-  // Voice dictation.
-  const dictationTargetRef = useRef<null | 'desc' | 'chat'>(null)
+  // Voice dictation — schreibt in das Feld, das den letzten Fokus hatte
+  // (Projektname / Beschreibung / Chat-Input).
+  type DictationTarget = 'title' | 'desc' | 'chat'
+  const dictationTargetRef = useRef<null | DictationTarget>(null)
   const dictationBaseRef = useRef('')
-  const [dictating, setDictating] = useState<null | 'desc' | 'chat'>(null)
+  const lastFocusedRef = useRef<DictationTarget>('title')
+  const [dictating, setDictating] = useState<null | DictationTarget>(null)
   const { supported: micSupported, listening: micListening, start: startMic, stop: stopMic } = useSpeechRecognition({
     lang: 'de-DE',
     onResult: (text, isFinal) => {
@@ -225,7 +228,8 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
       if (!target) return
       const base = dictationBaseRef.current
       const combined = (base ? base + ' ' : '') + text
-      if (target === 'desc') setDescription(combined)
+      if (target === 'title') setTitle(combined)
+      else if (target === 'desc') setDescription(combined)
       else setChatInput(combined)
       if (isFinal) dictationBaseRef.current = combined
     },
@@ -235,16 +239,27 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
     if (!micListening) { setDictating(null); dictationTargetRef.current = null }
   }, [micListening])
 
-  function toggleDictation(target: 'desc' | 'chat') {
+  function toggleDictation(explicitTarget?: DictationTarget) {
     if (!micSupported) return
     if (micListening || dictating) {
       stopMic(); setDictating(null); dictationTargetRef.current = null
       return
     }
+    const target: DictationTarget = explicitTarget ?? lastFocusedRef.current ?? 'desc'
     dictationTargetRef.current = target
-    dictationBaseRef.current = (target === 'desc' ? description : chatInput).trim()
+    const baseValue =
+      target === 'title' ? title :
+      target === 'desc' ? description :
+      chatInput
+    dictationBaseRef.current = baseValue.trim()
     setDictating(target)
     startMic()
+    // Fokus auf das Zielfeld setzen, damit visuell klar ist wohin geschrieben wird.
+    setTimeout(() => {
+      if (target === 'title') titleRef.current?.focus()
+      else if (target === 'desc') descRef.current?.focus()
+      else chatInputRef.current?.focus()
+    }, 0)
   }
 
   const selectedDelivery = DELIVERY_OPTIONS.find(d => d.id === delivery) ?? DELIVERY_OPTIONS[0]
@@ -426,6 +441,7 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
                 placeholder="Projektname"
                 value={title}
                 onChange={e => setTitle(e.target.value)}
+                onFocus={() => { lastFocusedRef.current = 'title' }}
                 maxLength={120}
                 disabled={phase === 'chat' || phase === 'loading'}
               />
@@ -448,6 +464,7 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
                 placeholder="Projektname"
                 value={title}
                 onChange={e => setTitle(e.target.value)}
+                onFocus={() => { lastFocusedRef.current = 'title' }}
                 maxLength={120}
               />
             </div>
@@ -523,6 +540,7 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
                   placeholder="Schreibe oder sprich eine Beschreibung, Projektbriefing, sammle Ideen oder lass Tagro entscheiden was erstellt wird. Du kannst das Feld auch leer lassen und Tagro bestimmt es."
                   value={description}
                   onChange={e => setDescription(e.target.value)}
+                  onFocus={() => { lastFocusedRef.current = 'desc' }}
                   rows={5}
                   maxLength={2000}
                 />
@@ -566,6 +584,7 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
                     ref={chatInputRef}
                     value={chatInput}
                     onChange={e => setChatInput(e.target.value)}
+                    onFocus={() => { lastFocusedRef.current = 'chat' }}
                     onKeyDown={e => {
                       if (e.key === 'Enter' && !e.shiftKey) {
                         e.preventDefault(); sendChatMessage()
@@ -627,16 +646,16 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
                 {micSupported && (
                   <button
                     type="button"
-                    className={`npm-mic-btn${dictating === 'desc' ? ' rec' : ''}`}
-                    onClick={() => toggleDictation('desc')}
-                    aria-pressed={dictating === 'desc'}
-                    aria-label={dictating === 'desc' ? 'Aufnahme stoppen' : 'Per Sprache diktieren'}
-                    title={dictating === 'desc' ? 'Aufnahme stoppen' : 'Per Sprache diktieren'}
+                    className={`npm-mic-btn${dictating ? ' rec' : ''}`}
+                    onClick={() => toggleDictation()}
+                    aria-pressed={!!dictating}
+                    aria-label={dictating ? 'Aufnahme stoppen' : 'Per Sprache diktieren'}
+                    title={dictating ? 'Aufnahme stoppen — schreibt ins fokussierte Feld' : 'Per Sprache diktieren — geht ins fokussierte Feld'}
                   >
-                    {dictating === 'desc' ? <MicrophoneSlash size={14} weight="fill" /> : <Microphone size={14} />}
+                    {dictating ? <MicrophoneSlash size={16} weight="fill" /> : <Microphone size={16} />}
                   </button>
                 )}
-                <Visualizer active={dictating === 'desc'} />
+                <Visualizer active={!!dictating} />
               </div>
               <button
                 type="button"
