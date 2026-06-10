@@ -910,7 +910,7 @@ const CSS = `
   }
   .npm-pill.on {
     color: #FFFFFF;
-    background: rgba(91,100,125,.9);
+    background: #5B647D;
   }
 
   /* ---- Delivery (mobile dropdown pill) ---- */
@@ -1057,14 +1057,14 @@ const CSS = `
     display: inline-flex; align-items: center; gap: 10px;
     height: 48px; padding: 0 22px 0 26px;
     border: 0; border-radius: 999px;
-    background: rgba(91,100,125,.95); color: #FFFFFF;
+    background: #5B647D; color: #FFFFFF;
     font: inherit; font-size: 14px; font-weight: 400;
     letter-spacing: .24px;
     cursor: pointer;
     box-shadow: 0 10px 28px -10px rgba(91,100,125,.55);
     transition: opacity .12s, transform .12s, background .12s;
   }
-  .npm-primary:hover:not(:disabled) { background: rgba(91,100,125,1); }
+  .npm-primary:hover:not(:disabled) { background: #4E576E; }
   .npm-primary:active:not(:disabled) { transform: scale(.97); }
   .npm-primary:disabled { opacity: .45; cursor: not-allowed; }
 
