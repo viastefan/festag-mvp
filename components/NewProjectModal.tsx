@@ -144,7 +144,14 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
   const chatInputRef = useRef<HTMLTextAreaElement>(null)
   const deliveryRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => { titleRef.current?.focus() }, [])
+  // Mount state for SSR-safe portal — declared early so the focus effect can depend on it.
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => { setMounted(true) }, [])
+  useEffect(() => {
+    if (!mounted) return
+    const t = window.setTimeout(() => titleRef.current?.focus(), 30)
+    return () => window.clearTimeout(t)
+  }, [mounted])
 
   // ESC closes — but never mid-loading so a half-finished submit can't be lost.
   useEffect(() => {
@@ -375,9 +382,6 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
   // Greeting tokens.
   const greeting = GREETING_PROMPTS[greetingIndex]
 
-  // SSR-safe portal mount.
-  const [mounted, setMounted] = useState(false)
-  useEffect(() => { setMounted(true) }, [])
   if (!mounted) return null
 
   const tree = (
@@ -722,8 +726,8 @@ const CSS = `
 
   .npm-card {
     position: relative; z-index: 1;
-    width: min(760px, calc(100vw - 64px));
-    min-height: 640px;
+    width: min(820px, calc(100vw - 64px));
+    min-height: 768px;
     max-height: calc(100dvh - 64px);
     background: #FFFFFF;
     border-radius: 24px;
@@ -824,16 +828,16 @@ const CSS = `
   .npm-title-input:disabled { opacity: .7; }
 
   .npm-icon-btn {
-    width: 28px; height: 28px; border: 0; background: transparent;
+    width: 36px; height: 36px; border: 0; background: transparent;
     color: #2A3032; border-radius: 999px; cursor: pointer;
     display: inline-flex; align-items: center; justify-content: center;
-    transition: opacity .12s;
+    transition: background .14s, opacity .12s;
     flex-shrink: 0;
-    margin-top: -4px;
+    margin-top: -6px;
     opacity: .85;
   }
   .npm-icon-btn svg { width: 20px; height: 20px; }
-  .npm-icon-btn:hover:not(:disabled) { opacity: 1; }
+  .npm-icon-btn:hover:not(:disabled) { opacity: 1; background: #F1F3F6; }
   .npm-icon-btn:disabled { opacity: .35; cursor: not-allowed; }
 
   /* ---- Mobile title row ---- */
@@ -861,38 +865,42 @@ const CSS = `
     display: flex; flex-direction: column; gap: 12px;
   }
   .npm-delivery-label {
-    display: inline-flex; align-items: center; gap: 6px;
-    color: #ADB3BD;
+    display: inline-flex; align-items: center; gap: 8px;
+    color: #848D9B;
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
     font-size: 15px; font-weight: 400; letter-spacing: 0;
   }
   .npm-help {
-    width: 15px; height: 15px;
-    border-radius: 999px; border: 0;
-    background: rgba(255,255,255,.6);
-    color: #2A3032;
+    width: 18px; height: 18px;
+    border-radius: 999px; border: 1px solid #E7EBF0;
+    background: #FFFFFF;
+    color: #848D9B;
     display: inline-flex; align-items: center; justify-content: center;
     cursor: pointer; flex-shrink: 0;
-    box-shadow: 0 1px 4px rgba(46,47,51,.15);
-    transition: background .12s;
+    transition: background .12s, color .12s, border-color .12s, transform .12s;
   }
-  .npm-help:hover { background: #FFFFFF; }
+  .npm-help svg { width: 11px; height: 11px; }
+  .npm-help:hover {
+    background: #F3F5F7; color: #2A3032; border-color: #CBCFD6;
+    transform: translateY(-.5px);
+  }
 
   .npm-delivery-pills {
-    display: flex; flex-wrap: wrap; gap: 10px;
+    display: flex; flex-wrap: nowrap; gap: 8px;
     width: 100%;
   }
   .npm-pill {
-    flex: 1 1 auto;
-    height: 38px;
+    flex: 1 1 0; min-width: 0;
+    height: 36px;
     display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-    padding: 0 18px;
-    border-radius: 32px;
+    padding: 0 10px;
+    border-radius: 999px;
     border: 0;
     background: #F3F5F7;
     color: #848D9B;
-    font: inherit; font-size: 13px; font-weight: 400; letter-spacing: 0;
+    font: inherit; font-size: 12.5px; font-weight: 400; letter-spacing: 0;
     white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis;
     cursor: pointer;
     transition: background .12s, color .12s;
   }
@@ -989,29 +997,43 @@ const CSS = `
     min-width: 0; flex: 1;
   }
   .npm-mic-btn {
-    width: 44px; height: 44px;
+    position: relative;
+    width: 48px; height: 48px;
     border: 0;
-    border-radius: 50%;
+    border-radius: 999px;
     background:
-      radial-gradient(circle at 50% 35%, #FFFFFF 0%, #F7F9FC 100%);
-    color: #2A3032;
+      radial-gradient(circle at 50% 32%, #FFFFFF 0%, #F4F6FA 100%);
+    color: #ADB3BD;
     display: inline-flex; align-items: center; justify-content: center;
     cursor: pointer;
-    transition: transform .12s, box-shadow .18s;
+    transition: transform .12s, box-shadow .18s, color .14s;
     flex-shrink: 0;
     box-shadow:
       0 1px 1px rgba(255,255,255,.9) inset,
-      0 -1px 2px rgba(15,23,42,.04) inset,
+      0 -1px 2px rgba(15,23,42,.05) inset,
       0 1px 2px rgba(15,23,42,.06),
-      0 6px 14px -4px rgba(15,23,42,.18),
-      0 12px 28px -10px rgba(15,23,42,.22);
+      0 6px 16px -4px rgba(15,23,42,.18),
+      0 14px 32px -12px rgba(15,23,42,.22);
   }
-  .npm-mic-btn:hover { transform: translateY(-1px); }
+  .npm-mic-btn:hover { transform: translateY(-1px); color: #5B647D; }
   .npm-mic-btn:active { transform: translateY(0); }
   .npm-mic-btn.rec {
-    background: radial-gradient(circle at 50% 35%, #FFFFFF 0%, #EEF1F6 100%);
+    background: radial-gradient(circle at 50% 32%, #FFFFFF 0%, #EEF1F6 100%);
     color: #5B647D;
-    animation: npmRecPulse 1.6s ease-in-out infinite;
+  }
+  .npm-mic-btn.rec::after {
+    content: "";
+    position: absolute; top: 6px; right: 6px;
+    width: 8px; height: 8px; border-radius: 999px;
+    background: #E5484D;
+    box-shadow:
+      0 0 0 2px #FFFFFF,
+      0 0 8px rgba(229,72,77,.55);
+    animation: npmRecDot 1.1s ease-in-out infinite;
+  }
+  @keyframes npmRecDot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: .45; transform: scale(.85); }
   }
   @keyframes npmRecPulse {
     0%, 100% { opacity: 1; } 50% { opacity: .72; }
@@ -1033,7 +1055,7 @@ const CSS = `
 
   .npm-primary {
     display: inline-flex; align-items: center; gap: 10px;
-    height: 44px; padding: 0 18px 0 22px;
+    height: 48px; padding: 0 22px 0 26px;
     border: 0; border-radius: 999px;
     background: rgba(91,100,125,.95); color: #FFFFFF;
     font: inherit; font-size: 14px; font-weight: 400;
