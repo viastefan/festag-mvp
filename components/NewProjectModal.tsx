@@ -29,7 +29,7 @@ import { useSpeechRecognition } from '@/hooks/useSpeechRecognition'
 import { useMicLevel } from '@/hooks/useMicLevel'
 import {
   ArrowRight, ArrowsClockwise, CaretDown, ChatCircleText, Check, DotsNine,
-  MagnifyingGlass, Microphone, MicrophoneSlash, PaperPlaneTilt, Question, X,
+  MagnifyingGlass, Microphone, MicrophoneSlash, PaperPlaneTilt, Question, Sparkle, X,
 } from '@phosphor-icons/react'
 
 interface Props {
@@ -246,6 +246,11 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
     snapshot: { title: string; description: string }
   }>(null)
   const [tagroInsertBusy, setTagroInsertBusy] = useState(false)
+  // Ghost-Suggestion — Tagro schlägt nach 1.5s Tipp-Pause eine Ergänzung
+  // der Beschreibung vor (kleines Chip, nicht inline-Text, damit es nicht
+  // den Cursor stört).
+  const [ghostSuggestion, setGhostSuggestion] = useState<string | null>(null)
+  const [ghostLoading, setGhostLoading] = useState(false)
   const { supported: micSupported, listening: micListening, start: startMic, stop: stopMic } = useSpeechRecognition({
     lang: 'de-DE',
     onResult: (text, isFinal) => {
@@ -345,13 +350,24 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
   const selectedDelivery = DELIVERY_OPTIONS.find(d => d.id === delivery) ?? DELIVERY_OPTIONS[0]
   const titleDraft = title.trim()
   const descriptionDraft = description.trim()
-  // Beide CTAs verlangen jetzt mindestens einen Projektnamen — sonst gibt es
-  // nichts, was Tagro oder das Backend strukturieren könnte.
-  const canSubmit = titleDraft.length >= 2
+  // Mit Tagro fortfahren immer erlaubt — Tagro fragt im Chat nach Fehlendem.
+  // Manuell anlegen verlangt aber zwingend einen Projektnamen.
+  const canSubmit = true
+  const canManual = titleDraft.length >= 2
   const canCreate = canSubmit || chatHistory.some(turn => turn.role === 'user' && turn.text.trim().length >= 2)
-  // Tagro-Strukturieren steht zur Verfügung, sobald irgendwo Inhalt ist —
-  // egal ob getippt oder diktiert. Mindestens 8 Zeichen in einem der Felder.
-  const canStructure = (titleDraft.length + descriptionDraft.length) >= 8
+  const canStructure = (titleDraft.length + descriptionDraft.length) >= 4
+
+  // Auto-Pill: Intent aus dem Freitext erkennen. Client-seitig, schnell.
+  const intentDelivery = useMemo<DeliveryModel | null>(() => {
+    const blob = (titleDraft + ' ' + descriptionDraft).toLowerCase()
+    if (!blob.trim()) return null
+    if (/\b(team|intern|mitarbeiter|selber bauen|wir bauen|kollegen|in[- ]?house)\b/.test(blob)) return 'team_internal'
+    if (/\b(bestehende[rn]?|aktuelle[rn]?|mein dev|mein entwickler|gleichen dev|vorhandenen?)\b/.test(blob)) return 'assign_existing_dev'
+    if (/\b(neu(en)? dev|neuen entwickler|jemand|einladen|einlade|onboarden|onboarding)\b/.test(blob)) return 'invite_new_dev'
+    if (/\b(festag (sucht|sollst|sollen|macht|find)|sucht mir|find(et|en) (mir|uns))\b/.test(blob)) return 'festag_delivery'
+    return null
+  }, [titleDraft, descriptionDraft])
+  const showIntentHint = !!intentDelivery && intentDelivery !== delivery
 
   function suggestedTitle() {
     const source = tagroTitle || title.trim() || description.trim()
@@ -359,12 +375,16 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
   }
 
   function buildInitialChatHistory(): ChatTurn[] {
-    const parts = [
-      titleDraft ? `Projektname: ${titleDraft}` : '',
-      descriptionDraft || '(keine Beschreibung — Tagro soll vorschlagen)',
-      `Umsetzung: ${selectedDelivery.label}`,
-    ].filter(Boolean)
-    return [{ role: 'user', text: parts.join('\n\n') }]
+    const known: string[] = []
+    if (titleDraft) known.push(`Projektname (vom Nutzer bereits eingegeben): ${titleDraft}`)
+    if (descriptionDraft) known.push(`Beschreibung (vom Nutzer bereits eingegeben): ${descriptionDraft}`)
+    known.push(`Umsetzungs-Modus: ${selectedDelivery.label}`)
+    const instructions = [
+      'WICHTIG: Frage NICHT nach Informationen, die der Nutzer oben bereits angegeben hat — bau darauf auf.',
+      titleDraft ? null : '- Da noch kein Projektname existiert, frage ZUERST danach.',
+      'Stelle nur Fragen, die der Entwickler später wirklich braucht (Scope, Zielgruppe, Tech-Stack falls Software, Termine, besondere Anforderungen).',
+    ].filter(Boolean).join('\n')
+    return [{ role: 'user', text: `${known.join('\n')}\n\n${instructions}` }]
   }
 
   async function askTagro(history: ChatTurn[]) {
@@ -377,7 +397,11 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data?.error || 'Tagro konnte gerade nicht antworten.')
-      setTagroTitle(typeof data?.title === 'string' ? data.title : null)
+      const newTitle = typeof data?.title === 'string' ? data.title.trim() : ''
+      setTagroTitle(newTitle || null)
+      // Wenn der Titel-Input leer ist und Tagro einen brauchbaren Titel
+      // erkannt hat → automatisch oben links eintragen.
+      if (newTitle && !titleDraft) setTitle(newTitle)
       setTagroSummary(typeof data?.summary === 'string' ? data.summary : null)
       setChatComplete(Boolean(data?.complete))
       const question = typeof data?.question === 'string' ? data.question.trim() : ''
@@ -621,6 +645,17 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
                       </button>
                     ))}
                   </div>
+                  {showIntentHint && (
+                    <button
+                      type="button"
+                      className="npm-intent-hint"
+                      onClick={() => intentDelivery && setDelivery(intentDelivery)}
+                      title="Diese Auswahl übernehmen"
+                    >
+                      <Sparkle size={11} weight="fill" />
+                      Tagro schlägt vor: „{DELIVERY_OPTIONS.find(o => o.id === intentDelivery)?.label}" — übernehmen
+                    </button>
+                  )}
                 </section>
               )}
 
@@ -677,22 +712,27 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
               {error && <p className="npm-error" role="alert">{error}</p>}
 
               {canStructure && (
-                <div className="npm-insert-chip" role="region" aria-label="Eingabe strukturieren">
+                <div className="npm-insert-chip" role="region" aria-label="Eingabe übersetzen">
                   <span className="npm-insert-label">
                     {tagroInsert
-                      ? 'Tagro hat strukturiert. Mit X wiederherstellen.'
-                      : 'Tagro kann deine Eingabe in Projektname & Beschreibung strukturieren.'}
+                      ? 'Tagro hat einen Vorschlag eingefügt. Übernehmen oder verwerfen?'
+                      : 'Tagro kann deine Eingabe in Projektname & Beschreibung übersetzen.'}
                   </span>
                   <div className="npm-insert-actions">
                     {!tagroInsert && (
                       <button type="button" className="npm-insert-primary" onClick={applyTagroStructure} disabled={tagroInsertBusy}>
-                        {tagroInsertBusy ? 'Tagro sortiert…' : 'Mit Tagro strukturieren'}
+                        {tagroInsertBusy ? 'Tagro übersetzt…' : 'Mit Tagro übersetzen'}
                       </button>
                     )}
                     {tagroInsert && (
-                      <button type="button" className="npm-insert-x" onClick={undoTagroStructure} disabled={tagroInsertBusy} aria-label="Wiederherstellen">
-                        <X size={14} />
-                      </button>
+                      <>
+                        <button type="button" className="npm-insert-primary" onClick={() => setTagroInsert(null)} disabled={tagroInsertBusy}>
+                          Übernehmen
+                        </button>
+                        <button type="button" className="npm-insert-x" onClick={undoTagroStructure} disabled={tagroInsertBusy} aria-label="Verwerfen">
+                          <X size={14} />
+                        </button>
+                      </>
                     )}
                   </div>
                 </div>
@@ -815,8 +855,8 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
                     type="button"
                     className="npm-secondary"
                     onClick={manualCreate}
-                    disabled={!title.trim()}
-                    title={!title.trim() ? 'Bitte zuerst einen Projektnamen eingeben' : undefined}
+                    disabled={!canManual}
+                    title={!canManual ? 'Bitte zuerst einen Projektnamen eingeben' : undefined}
                   >
                     Manuell anlegen
                   </button>
@@ -1154,7 +1194,8 @@ const CSS = `
     width: 100%;
     background: transparent; border: 0; outline: 0; resize: none;
     color: #2A3032; font: inherit;
-    font-size: 18px; line-height: 30px; font-weight: 400; letter-spacing: 0;
+    font-size: 18px; line-height: 30px; font-weight: 400;
+    letter-spacing: .01em;
     min-height: 180px; max-height: 360px;
     padding: 0;
   }
@@ -1175,7 +1216,25 @@ const CSS = `
   }
   .npm-error.in-chat { margin: 0 22px 10px; }
 
-  /* ---- Tagro Insert Chip (nach Diktat) ---- */
+  /* ---- Auto-Pill Hint ---- */
+  .npm-intent-hint {
+    display: inline-flex; align-items: center; gap: 6px;
+    margin-top: 10px;
+    padding: 6px 12px 6px 10px;
+    border: 0;
+    border-radius: 999px;
+    background: #F3F5F7;
+    color: #5B647D;
+    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+    font-size: 12px; font-weight: 500;
+    letter-spacing: .01em;
+    cursor: pointer;
+    width: fit-content;
+    transition: background .12s, color .12s;
+  }
+  .npm-intent-hint:hover { background: #E7EBF0; color: #2A3032; }
+
+  /* ---- Tagro Insert Chip (Eingabe-Übersetzung) ---- */
   .npm-insert-chip {
     display: flex; align-items: center; justify-content: space-between;
     gap: 16px;
@@ -1192,6 +1251,7 @@ const CSS = `
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
     font-size: 13px; line-height: 1.45;
     color: #2A3032; font-weight: 400;
+    letter-spacing: .01em;
   }
   .npm-insert-actions {
     display: inline-flex; align-items: center; gap: 8px; flex-shrink: 0;

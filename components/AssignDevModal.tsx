@@ -148,7 +148,7 @@ export default function AssignDevModal({
         }}
         aria-hidden
       />
-      <div className="adm-card" role="document" onMouseDown={e => e.stopPropagation()}>
+      <div className={`adm-card${done ? ' is-success' : ''}`} role="document" onMouseDown={e => e.stopPropagation()}>
         <button
           type="button" className="adm-close"
           onClick={onClose} disabled={working}
@@ -164,7 +164,7 @@ export default function AssignDevModal({
               <p className="adm-success-sub">Dein Dev’ler wird sich zeitnah dein Projekt bestätigen.</p>
             </div>
             <span className="adm-success-mark" aria-hidden>
-              <Check size={14} weight="bold" />
+              <Check size={22} weight="regular" />
             </span>
           </div>
         ) : (
@@ -216,6 +216,10 @@ const CSS = `
   @keyframes admFade { from { opacity: 0 } to { opacity: 1 } }
   @keyframes admPop  { from { opacity: 0; transform: translateY(8px) scale(.985); } to { opacity: 1; transform: none; } }
 
+  .adm-card.is-success {
+    width: min(520px, calc(100vw - 32px));
+    padding: 28px 30px;
+  }
   .adm-card {
     position: relative; z-index: 1;
     width: min(440px, calc(100vw - 32px));
@@ -304,6 +308,7 @@ const CSS = `
     font-size: 11.5px; line-height: 1.55;
     color: #848D9B;
     font-weight: 400;
+    letter-spacing: .01em;
   }
   .adm-help a {
     color: var(--text-secondary);
@@ -321,35 +326,41 @@ const CSS = `
     font-size: 12px; font-weight: 500; line-height: 1.5;
   }
 
-  /* ---- Success state ---- */
+  /* ---- Success state (Figma 184:88) ---- */
   .adm-success {
     display: flex; align-items: center; justify-content: space-between;
     gap: 18px;
-    padding: 6px 24px 4px 0;
+    padding: 4px 0 0;
   }
   .adm-success-text { flex: 1; min-width: 0; }
   .adm-success-title {
-    margin: 0 0 4px;
-    font-size: 14px; line-height: 1.45;
-    color: var(--text);
-    font-weight: 400;
+    margin: 0 0 6px;
+    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+    font-size: 17px; line-height: 1.3;
+    color: #1E2126;
+    font-weight: 500;
+    letter-spacing: -.002em;
   }
   .adm-success-title strong { font-weight: 500; }
   .adm-success-sub {
     margin: 0;
-    font-size: 13px; line-height: 1.5;
-    color: var(--text-muted);
+    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+    font-size: 17px; line-height: 1.35;
+    color: #ADB3BD;
     font-weight: 500;
+    letter-spacing: -.002em;
   }
   .adm-success-mark {
-    width: 30px; height: 30px;
-    border-radius: 10px;
-    border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
-    background: var(--card);
-    color: var(--text);
+    width: 56px; height: 56px;
+    border-radius: 999px !important;
+    border: 1px solid #E7EBF0;
+    background: #FFFFFF;
+    color: #5B647D;
     display: inline-flex; align-items: center; justify-content: center;
     flex-shrink: 0;
+    box-shadow: 0 1px 2px rgba(15,23,42,.04), 0 8px 20px -10px rgba(15,23,42,.18);
   }
+  .adm-success-mark svg { width: 22px; height: 22px; }
 
   @media (max-width: 480px) {
     .adm-card { padding: 22px 18px 16px; border-radius: 18px; }
