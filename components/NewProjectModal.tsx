@@ -1132,7 +1132,7 @@ const CSS = `
      statt dunklem Blur, alle Theme-Variablen hart auf Light. ===== */
   .npm-overlay.is-mobile { color-scheme: light; }
   .npm-overlay.is-mobile .npm-backdrop {
-    background: linear-gradient(180deg, #EEEFF7 0%, #F3F4FA 100%);
+    background: #FAFBFF;
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }
@@ -1161,10 +1161,14 @@ const CSS = `
     width: 100%;
     max-width: 100%;
     min-height: 0;
-    max-height: calc(100dvh - 88px);
+    /* Figma 185:198: Sheet startet bei ~113px from top, ist 761px hoch.
+       Wir mappen das auf 87% der Viewport-Höhe — füllt sauber den Großteil. */
+    height: 87dvh;
+    max-height: 87dvh;
     padding: 0;
-    border-radius: 28px 28px 0 0;
-    animation: npmSheet .36s cubic-bezier(.16,1,.3,1) both;
+    border-radius: 40px 40px 0 0;
+    box-shadow: 0 -1px 8px 2px rgba(207,213,230,.25);
+    animation: npmSheet .42s cubic-bezier(.16,1,.3,1) both;
   }
   [data-theme="dark"] .npm-card,
   [data-theme="classic-dark"] .npm-card {
@@ -1181,41 +1185,44 @@ const CSS = `
     position: absolute; inset: 0 0 auto 0;
     z-index: 2;
     display: flex; align-items: flex-start; justify-content: space-between;
-    padding: 28px 20px 0;
+    padding: 19px 17px 0;
     pointer-events: none;
   }
   .npm-greeting-text {
-    font-size: 22px;
-    line-height: 1.25;
+    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+    font-size: 25px;
+    line-height: 30px;
     font-weight: 500;
-    letter-spacing: -.005em;
+    letter-spacing: 0;
+    max-width: 220px;
     animation: npmGreetIn .55s cubic-bezier(.16,1,.3,1) both;
   }
-  .npm-greeting-text .primary { color: #1B1E26; }
-  .npm-greeting-text .muted   { color: #AEB3C0; opacity: 1; }
+  .npm-greeting-text .primary { color: #2E2F33; }
+  .npm-greeting-text .muted   { color: #ADB3BD; opacity: 1; }
   @keyframes npmGreetIn {
     from { opacity: 0; transform: translateY(-8px); }
     to   { opacity: 1; transform: none; }
   }
   .npm-greeting-pill {
     pointer-events: auto;
-    display: inline-flex; align-items: center; gap: 4px;
-    padding: 5px;
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 7px 12px;
+    height: 45px;
     background: #FFFFFF;
     border-radius: 999px;
-    box-shadow: 0 1px 2px rgba(15,23,42,.06), 0 8px 24px -10px rgba(15,23,42,.18);
+    box-shadow: 0 4px 4px rgba(207,213,230,.4);
   }
   .npm-greeting-pill button {
-    width: 28px; height: 28px;
-    border: 0; background: transparent; color: #6B7180;
+    width: 30px; height: 30px;
+    border: 0; background: transparent; color: #2A3032;
     border-radius: 999px; cursor: pointer;
     display: inline-flex; align-items: center; justify-content: center;
     transition: background .12s, color .12s;
   }
   .npm-greeting-pill button:hover {
-    color: #1B1E26;
     background: #F1F2F8;
   }
+  .npm-greeting-pill svg { width: 18px; height: 18px; }
 
   .npm-drag-area {
     width: 100%;
@@ -1227,9 +1234,9 @@ const CSS = `
   }
   .npm-drag-area:active { cursor: grabbing; }
   .npm-drag-handle {
-    width: 36px; height: 4px;
-    background: #D3D7E0;
-    border-radius: 999px;
+    width: 48px; height: 5px;
+    background: #ECECEE;
+    border-radius: 24px;
   }
 
   /* ---- Desktop header (title input + close) ---- */
@@ -1266,11 +1273,17 @@ const CSS = `
 
   /* ---- Mobile title row ---- */
   .npm-mobile-title {
-    padding: 20px 22px 0;
+    padding: 36px 33px 0;
   }
   .npm-title-input.mobile {
-    font-size: 32px;
-    letter-spacing: -.01em;
+    font-size: 35px;
+    font-weight: 400;
+    letter-spacing: 0;
+    color: #2A3032;
+  }
+  .npm-title-input.mobile::placeholder {
+    color: #CBCFD6;
+    opacity: 1;
   }
 
   /* ---- Body ---- */
@@ -1282,8 +1295,8 @@ const CSS = `
     min-height: 0;
   }
   .npm-card.is-sheet .npm-body {
-    padding: 12px 22px 18px;
-    gap: 14px;
+    padding: 28px 33px 18px;
+    gap: 32px;
   }
 
   /* ---- Delivery (desktop pills row) ---- */
@@ -1347,12 +1360,14 @@ const CSS = `
     flex-direction: row; align-items: center; gap: 8px;
   }
   .npm-pill.dropdown {
-    height: 38px;
+    height: 34px;
     background: #F3F5F7;
-    color: #5B647D;
-    padding: 0 16px;
-    font-size: 14px; font-weight: 500;
+    color: #848D9B;
+    padding: 0 8px 0 12px;
+    font-size: 13px; font-weight: 500;
+    gap: 6px;
   }
+  .npm-pill.dropdown svg { width: 18px; height: 18px; }
   .npm-pill.dropdown.on {
     background: #E7EBF0;
     color: #2A3032;
@@ -1403,9 +1418,13 @@ const CSS = `
     padding: 0;
   }
   .npm-card.is-sheet .npm-textarea {
-    font-size: 15.5px;
-    line-height: 1.6;
-    min-height: 160px;
+    font-size: 18px;
+    line-height: 35px;
+    min-height: 168px;
+    color: #2A3032;
+  }
+  .npm-card.is-sheet .npm-textarea::placeholder {
+    color: #CACFD4;
   }
   .npm-textarea::placeholder { color: #ADB3BD; opacity: 1; }
 
@@ -1662,30 +1681,36 @@ const CSS = `
   .npm-primary:active:not(:disabled) { transform: scale(.97); }
   .npm-primary:disabled { opacity: .45; cursor: not-allowed; }
 
-  /* Mobile-Footer wie Figma 185:198: Mic links + großer voller
-     "Mit Tagro fortfahren". "Manuell anlegen" = schlanker Ghost-Text-Link. */
-  .npm-card.is-sheet .npm-foot-right {
-    flex: 1; gap: 6px; align-items: center;
+  /* Mobile-Footer Figma 185:198 — NUR Mit-Tagro-CTA + Mic links.
+     "Manuell anlegen" ist auf Mobile bewusst nicht da. */
+  .npm-card.is-sheet .npm-foot {
+    padding: 0 17px 24px;
+    margin-top: auto;
   }
+  .npm-card.is-sheet .npm-foot-left { gap: 12px; }
+  .npm-card.is-sheet .npm-foot-right {
+    flex: 1; gap: 0; align-items: center;
+  }
+  .npm-card.is-sheet .npm-secondary { display: none !important; }
   .npm-card.is-sheet .npm-primary {
     flex: 1; justify-content: center;
-    height: 52px;
-    font-size: 15px;
-    padding: 0 16px;
+    height: 55px;
+    font-size: 16px;
+    font-weight: 400;
+    letter-spacing: .02em;
+    padding: 0 19px;
+    background: rgba(91,100,125,.9) !important;
+    box-shadow:
+      0 4px 4px rgba(152,162,179,.25),
+      inset 0 4px 4px rgba(132,141,155,.25);
   }
-  .npm-card.is-sheet .npm-secondary {
-    flex: 0 0 auto;
-    height: 52px;
-    padding: 0 14px;
-    background: transparent;
-    border: 0 !important;
-    box-shadow: none !important;
-    color: #6B7180;
-    font-size: 13px;
-    max-width: 120px;
-  }
-  .npm-card.is-sheet .npm-secondary:hover:not(:disabled) {
-    background: transparent; color: #2A3032;
+  .npm-card.is-sheet .npm-primary svg { width: 22px; height: 22px; }
+  .npm-card.is-sheet .npm-mic-btn {
+    width: 56px; height: 56px;
+    box-shadow:
+      0 0 0 1px rgba(15,23,42,.04),
+      0 2px 4px rgba(15,23,42,.04),
+      0 10px 20px -8px rgba(15,23,42,.14);
   }
 
   /* ---- Chat phase ---- */
