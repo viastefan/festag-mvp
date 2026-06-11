@@ -24,7 +24,7 @@ import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Check, X } from '@phosphor-icons/react'
 
-export type AssignDevMode = 'existing' | 'invite'
+export type AssignDevMode = 'existing' | 'invite' | 'team' | 'festag'
 
 interface Props {
   open: boolean
@@ -44,8 +44,27 @@ export default function AssignDevModal({
   const [working, setWorking] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [done, setDone] = useState<{ provisioned: boolean } | null>(null)
+  const [suggestions, setSuggestions] = useState<Array<{ handle: string; name?: string; email?: string }>>([])
   const inputRef = useRef<HTMLInputElement>(null)
   const primaryRef = useRef<HTMLButtonElement>(null)
+
+  // @-Autocomplete für Existing-Modus
+  useEffect(() => {
+    if (mode !== 'existing') { setSuggestions([]); return }
+    const raw = value.trim()
+    if (!raw.startsWith('@') || raw.length < 2) { setSuggestions([]); return }
+    const q = raw.slice(1)
+    const ctrl = new AbortController()
+    const t = window.setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/devs/suggest?q=${encodeURIComponent(q)}`, { signal: ctrl.signal })
+        if (!res.ok) return
+        const data = await res.json().catch(() => null)
+        if (Array.isArray(data?.devs)) setSuggestions(data.devs.slice(0, 6))
+      } catch {/* offline / no endpoint — silently */}
+    }, 250)
+    return () => { ctrl.abort(); window.clearTimeout(t) }
+  }, [value, mode])
 
   useEffect(() => {
     const apply = () => {
@@ -86,14 +105,22 @@ export default function AssignDevModal({
   useEffect(() => { setMounted(true) }, [])
   if (!open || !mounted) return null
 
+  // Robusterer Email-Regex (RFC 5322-light) — verbietet trivial-Schrott.
+  const EMAIL_RE = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,24}$/
+
   async function submit() {
     const raw = value.trim()
     setError(null)
-    // existing: erlaubt @username oder E-Mail. invite: nur E-Mail.
     if (mode === 'invite') {
-      if (!/.+@.+\..+/.test(raw)) { setError('Bitte eine gültige E-Mail-Adresse eingeben.'); return }
+      if (!EMAIL_RE.test(raw)) { setError('Bitte eine gültige E-Mail-Adresse eingeben.'); return }
     } else {
-      if (raw.length < 2) { setError('Bitte @Benutzer oder E-Mail-Adresse eingeben.'); return }
+      // existing: entweder @username (≥2 Zeichen) ODER vollständige Email
+      const isHandle = raw.startsWith('@') && raw.length >= 3 && /^@[\w.-]+$/.test(raw)
+      const isEmail = EMAIL_RE.test(raw)
+      if (!isHandle && !isEmail) {
+        setError('Bitte @benutzername oder eine gültige E-Mail-Adresse eingeben.')
+        return
+      }
     }
 
     setWorking(true)
@@ -129,13 +156,21 @@ export default function AssignDevModal({
     ? null
     : mode === 'existing'
       ? <>Vorhandenen Dev’ler zum Projekt hinzufügen.</>
-      : <><strong>Weise das Projekt einem neuen Dev’ler zu</strong>{' '}<span className="muted">und lade diesen falls nötig damit zu festag ein.</span></>
+      : mode === 'invite'
+        ? <><strong>Weise das Projekt einem neuen Dev’ler zu</strong>{' '}<span className="muted">und lade diesen falls nötig damit zu festag ein.</span></>
+        : mode === 'team'
+          ? <><strong>Team­mitglieder zum Projekt hinzufügen.</strong>{' '}<span className="muted">Wer mitarbeiten soll, wird zum Projekt eingeladen.</span></>
+          : <><strong>Festag findet den passenden Entwickler.</strong>{' '}<span className="muted">Du musst nichts weiter tun.</span></>
 
   const helper = done
     ? null
     : mode === 'existing'
       ? 'Der Dev’ler erhält die Nachricht „Neues Projekt“ in seinem Panel und kann dieses damit bestätigen.'
-      : <>Nach erfolgreicher Anmeldung im Dev-Panel gibt es Benutzer und PIN. Finden Sie in <a href="/docs/neues-projekt-erstellen">festag Docs</a> den genauen Ablauf des Vorgangs beschrieben.</>
+      : mode === 'invite'
+        ? <>Nach erfolgreicher Anmeldung im Dev-Panel gibt es Benutzer und PIN. Finden Sie in <a href="/docs/neues-projekt-erstellen">festag Docs</a> den genauen Ablauf des Vorgangs beschrieben.</>
+        : mode === 'team'
+          ? 'Jede Person erhält eine Einladung per E-Mail und sieht das Projekt nach Annahme direkt in ihrem Festag-Panel.'
+          : null
 
   return createPortal((
     <div className="adm-overlay" role="dialog" aria-modal="true" aria-label={mode === 'existing' ? 'Dev’ler zuweisen' : 'Dev’ler einladen'}>
@@ -167,19 +202,65 @@ export default function AssignDevModal({
               <Check size={22} weight="regular" />
             </span>
           </div>
+        ) : mode === 'festag' ? (
+          <>
+            <p className="adm-title">{title}</p>
+            <ul className="adm-info-list">
+              <li><span className="adm-info-num">1</span><span>Tagro analysiert dein Briefing und wählt den passenden Festag-Entwickler aus.</span></li>
+              <li><span className="adm-info-num">2</span><span>Du bekommst eine Benachrichtigung sobald jemand zugewiesen ist — meist innerhalb von 24 h.</span></li>
+              <li><span className="adm-info-num">3</span><span>Der Entwickler beginnt mit der Umsetzung. Du verfolgst den Fortschritt in deinem Panel.</span></li>
+            </ul>
+            <button
+              ref={primaryRef}
+              type="button"
+              className="adm-primary"
+              onClick={() => { setDone({ provisioned: false }); onAssigned?.('') }}
+              disabled={working}
+            >
+              Verstanden — Tagro übernimmt
+            </button>
+          </>
+        ) : mode === 'team' ? (
+          <>
+            <p className="adm-title">{title}</p>
+            <TeamInviteList
+              onAssigned={() => onAssigned?.('')}
+              onDone={() => setDone({ provisioned: false })}
+              primaryRef={primaryRef}
+              EMAIL_RE={EMAIL_RE}
+            />
+            {helper && <p className="adm-help">{helper}</p>}
+          </>
         ) : (
           <>
             <p className="adm-title">{title}</p>
-            <input
-              ref={inputRef}
-              className="adm-input"
-              type={mode === 'invite' ? 'email' : 'text'}
-              value={value}
-              onChange={e => setValue(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); submit() } }}
-              placeholder={mode === 'existing' ? '@Benutzer oder E-Mail' : 'E-Mail-Adresse'}
-              autoComplete="off"
-            />
+            <div className="adm-input-wrap">
+              <input
+                ref={inputRef}
+                className="adm-input"
+                type={mode === 'invite' ? 'email' : 'text'}
+                value={value}
+                onChange={e => setValue(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); submit() } }}
+                placeholder={mode === 'existing' ? '@Benutzer oder E-Mail' : 'E-Mail-Adresse'}
+                autoComplete="off"
+              />
+              {suggestions.length > 0 && (
+                <ul className="adm-suggest" role="listbox" aria-label="Vorschläge">
+                  {suggestions.map(s => (
+                    <li key={s.handle}>
+                      <button
+                        type="button"
+                        onMouseDown={e => { e.preventDefault(); setValue('@' + s.handle); setSuggestions([]) }}
+                      >
+                        <span className="adm-suggest-handle">@{s.handle}</span>
+                        {s.name && <span className="adm-suggest-name">{s.name}</span>}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
             <button
               ref={primaryRef}
               type="button"
@@ -198,6 +279,96 @@ export default function AssignDevModal({
   ), document.body)
 }
 
+// ----------------------------------------------------------------------------
+// TeamInviteList — Multi-Email-Chip-Eingabe für Mode 'team'
+// ----------------------------------------------------------------------------
+function TeamInviteList({
+  onAssigned, onDone, primaryRef, EMAIL_RE,
+}: {
+  onAssigned: () => void
+  onDone: () => void
+  primaryRef: React.RefObject<HTMLButtonElement>
+  EMAIL_RE: RegExp
+}) {
+  const [emails, setEmails] = useState<string[]>([])
+  const [input, setInput] = useState('')
+  const [err, setErr] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
+
+  function commit() {
+    const raw = input.trim().replace(/,$/, '')
+    if (!raw) return
+    if (!EMAIL_RE.test(raw)) { setErr('Bitte eine gültige E-Mail-Adresse.'); return }
+    if (emails.includes(raw)) { setErr('Diese Adresse steht bereits in der Liste.'); return }
+    setEmails([...emails, raw])
+    setInput(''); setErr(null)
+  }
+
+  function remove(e: string) { setEmails(emails.filter(x => x !== e)) }
+
+  async function send() {
+    if (busy || emails.length === 0) return
+    setErr(null); setBusy(true)
+    try {
+      // Best-effort gegen vorhandenes Endpoint; Fallback: alle einzeln.
+      const res = await fetch('/api/projects/assign-team', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ emails }),
+      }).catch(() => null)
+      if (!res || !res.ok) {
+        // Fallback: einzelne Einladungen
+        await Promise.all(emails.map(em => fetch('/api/projects/assign-dev', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ devEmail: em }),
+        }).catch(() => null)))
+      }
+      onAssigned()
+      onDone()
+    } catch (e: any) {
+      setErr(e?.message || 'Einladungen konnten nicht versendet werden.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <>
+      <div className="adm-chip-input">
+        {emails.map(e => (
+          <span key={e} className="adm-chip">
+            {e}
+            <button type="button" onClick={() => remove(e)} aria-label={`${e} entfernen`}><X size={11} weight="bold" /></button>
+          </span>
+        ))}
+        <input
+          className="adm-chip-input-field"
+          type="email"
+          value={input}
+          onChange={e => { setInput(e.target.value); setErr(null) }}
+          onKeyDown={e => {
+            if (e.key === 'Enter' || e.key === ',' || e.key === ' ') { e.preventDefault(); commit() }
+            if (e.key === 'Backspace' && !input && emails.length) {
+              remove(emails[emails.length - 1])
+            }
+          }}
+          onBlur={commit}
+          placeholder={emails.length ? '' : 'E-Mail-Adresse hinzufügen (Enter)'}
+        />
+      </div>
+      <button
+        ref={primaryRef}
+        type="button"
+        className="adm-primary"
+        onClick={send}
+        disabled={busy || emails.length === 0}
+      >
+        {busy ? 'Sende …' : `${emails.length || ''} ${emails.length === 1 ? 'Einladung versenden' : 'Einladungen versenden'}`.trim()}
+      </button>
+      {err && <p className="adm-error" role="alert">{err}</p>}
+    </>
+  )
+}
+
 const CSS = `
   /* Festag AssignDevModal — Fullscreen-Overlay, Figma 1:1 */
   .adm-overlay {
@@ -206,6 +377,12 @@ const CSS = `
     padding: 24px;
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
     animation: admFade .18s ease both;
+    letter-spacing: 0 !important;
+  }
+  .adm-overlay *,
+  .adm-overlay *::before,
+  .adm-overlay *::after {
+    letter-spacing: 0 !important;
   }
   .adm-backdrop {
     position: absolute; inset: 0;
@@ -266,7 +443,7 @@ const CSS = `
   .adm-input {
     width: 100%;
     height: 42px;
-    background: #F3F5F7;
+    background: #F7F8FB;
     border: 0;
     border-radius: 8px !important;
     outline: 0;
@@ -275,12 +452,95 @@ const CSS = `
     font-size: 13px; line-height: 1.5; font-weight: 400;
     padding: 0 16px;
     transition: background .14s, box-shadow .14s;
+    letter-spacing: .01em !important;
   }
-  .adm-input::placeholder { color: #ADB3BD; opacity: 1; }
+  .adm-input::placeholder { color: #C2C7D0; opacity: 1; letter-spacing: .01em !important; }
   .adm-input:focus {
-    background: #EDF0F3;
+    background: #F1F3F8;
     box-shadow: 0 0 0 2px rgba(91,100,125,.12);
   }
+
+  /* ---- Info-Liste (Mode festag) ---- */
+  .adm-info-list {
+    list-style: none; margin: 0 0 14px; padding: 0;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .adm-info-list li {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 12px 14px;
+    background: #F7F8FB;
+    border-radius: 12px;
+    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+    font-size: 13px; line-height: 1.5;
+    color: #2A3032;
+  }
+  .adm-info-num {
+    width: 22px; height: 22px; flex-shrink: 0;
+    border-radius: 999px;
+    background: #5B647D; color: #FFFFFF;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 500;
+  }
+
+  /* ---- Chip-Input (Mode team) ---- */
+  .adm-chip-input {
+    width: 100%;
+    min-height: 56px;
+    background: #F7F8FB;
+    border-radius: 12px;
+    padding: 8px 10px;
+    display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+    transition: background .14s, box-shadow .14s;
+  }
+  .adm-chip-input:focus-within {
+    background: #F1F3F8;
+    box-shadow: 0 0 0 2px rgba(91,100,125,.12);
+  }
+  .adm-chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    height: 28px; padding: 0 6px 0 10px;
+    background: #FFFFFF; color: #2A3032;
+    border: 1px solid #E7EBF0;
+    border-radius: 999px;
+    font-size: 12.5px; font-weight: 500;
+  }
+  .adm-chip button {
+    width: 20px; height: 20px;
+    border: 0; background: transparent;
+    color: #848D9B; border-radius: 999px;
+    display: inline-flex; align-items: center; justify-content: center;
+    cursor: pointer;
+  }
+  .adm-chip button:hover { background: #F1F3F6; color: #2A3032; }
+  .adm-chip-input-field {
+    flex: 1; min-width: 140px;
+    border: 0; outline: 0; background: transparent;
+    color: #2A3032; font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+    font-size: 13px;
+  }
+  .adm-chip-input-field::placeholder { color: #C2C7D0; }
+
+  /* ---- @-Autocomplete ---- */
+  .adm-input-wrap { position: relative; }
+  .adm-suggest {
+    list-style: none; margin: 6px 0 0; padding: 6px;
+    border: 1px solid #E7EBF0; border-radius: 12px;
+    background: #FFFFFF;
+    box-shadow: 0 1px 2px rgba(15,23,42,.04), 0 16px 36px -20px rgba(15,23,42,.25);
+    max-height: 220px; overflow-y: auto;
+  }
+  .adm-suggest li button {
+    width: 100%; display: flex; align-items: center; gap: 8px;
+    padding: 8px 10px; border: 0; border-radius: 8px !important;
+    background: transparent; color: #2A3032;
+    cursor: pointer; text-align: left;
+    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+    font-size: 13px; font-weight: 400;
+    transition: background .12s;
+  }
+  .adm-suggest li button:hover { background: #F3F5F7; }
+  .adm-suggest-handle { color: #5B647D; font-weight: 500; }
+  .adm-suggest-name { color: #848D9B; font-size: 12px; }
 
   .adm-primary {
     display: inline-flex; align-items: center; justify-content: center;

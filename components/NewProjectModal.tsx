@@ -49,7 +49,7 @@ type DeliveryOption = {
   meta: string
   tagroAfter: string
   /** Welcher Sub-Flow nach dem Anlegen geöffnet wird, falls vorhanden. */
-  postCreate?: 'assign-existing' | 'assign-invite'
+  postCreate?: 'assign-existing' | 'assign-invite' | 'assign-team' | 'assign-festag'
 }
 
 const DELIVERY_OPTIONS: DeliveryOption[] = [
@@ -58,6 +58,7 @@ const DELIVERY_OPTIONS: DeliveryOption[] = [
     label: 'Festag Entwickler finden',
     meta: 'Festag sucht einen passenden Entwickler und steuert die Umsetzung.',
     tagroAfter: 'Zusätzlich wird ein passender Festag-Entwickler für die Umsetzung gesucht.',
+    postCreate: 'assign-festag',
   },
   {
     id: 'assign_existing_dev',
@@ -78,6 +79,7 @@ const DELIVERY_OPTIONS: DeliveryOption[] = [
     label: 'Teamprojekt anlegen',
     meta: 'Mitarbeiter, Freelancer oder Partner aus deinem Workspace übernehmen.',
     tagroAfter: 'Die nächsten Schritte werden für das zuständige Team vorbereitet.',
+    postCreate: 'assign-team',
   },
 ]
 
@@ -136,7 +138,8 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
   }, [isMobile])
 
   // After-create sub-flow (Assign / Invite).
-  const [postFlow, setPostFlow] = useState<null | { kind: 'assign-existing' | 'assign-invite'; projectId: string; projectTitle: string }>(null)
+  type PostKind = 'assign-existing' | 'assign-invite' | 'assign-team' | 'assign-festag'
+  const [postFlow, setPostFlow] = useState<null | { kind: PostKind; projectId: string; projectTitle: string; requiresAssignment?: boolean; assigned?: boolean }>(null)
 
   const titleRef = useRef<HTMLInputElement>(null)
   const descRef = useRef<HTMLTextAreaElement>(null)
@@ -246,11 +249,13 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
     snapshot: { title: string; description: string }
   }>(null)
   const [tagroInsertBusy, setTagroInsertBusy] = useState(false)
-  // Ghost-Suggestion — Tagro schlägt nach 1.5s Tipp-Pause eine Ergänzung
-  // der Beschreibung vor (kleines Chip, nicht inline-Text, damit es nicht
-  // den Cursor stört).
+  // Ghost-Suggestion (für später).
   const [ghostSuggestion, setGhostSuggestion] = useState<string | null>(null)
   const [ghostLoading, setGhostLoading] = useState(false)
+  // Wenn der Nutzer einen Tagro-Vorschlag übernommen oder verworfen hat,
+  // wird der Chip ausgeblendet bis der Inhalt der Felder sich wieder ändert.
+  const [chipDismissed, setChipDismissed] = useState(false)
+  useEffect(() => { setChipDismissed(false) }, [title, description])
   const { supported: micSupported, listening: micListening, start: startMic, stop: stopMic } = useSpeechRecognition({
     lang: 'de-DE',
     onResult: (text, isFinal) => {
@@ -460,7 +465,9 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
 
       if (next) {
         // Direkt das AssignDevModal aufschlagen — keine Erfolgs-Animation.
-        setPostFlow({ kind: next, projectId, projectTitle: projectTitleVal })
+        // Wenn der Nutzer es OHNE Zuweisung schließt, wird das Projekt
+        // wieder gelöscht (siehe onClose-Handler unten).
+        setPostFlow({ kind: next, projectId, projectTitle: projectTitleVal, requiresAssignment: true })
       } else {
         setPhase('success')
         setTimeout(() => onCreated?.(projectId), 500)
@@ -711,7 +718,7 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
 
               {error && <p className="npm-error" role="alert">{error}</p>}
 
-              {canStructure && (
+              {canStructure && !chipDismissed && (
                 <div className="npm-insert-chip" role="region" aria-label="Eingabe übersetzen">
                   <span className="npm-insert-label">
                     {tagroInsert
@@ -726,10 +733,21 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
                     )}
                     {tagroInsert && (
                       <>
-                        <button type="button" className="npm-insert-primary" onClick={() => setTagroInsert(null)} disabled={tagroInsertBusy}>
+                        <button
+                          type="button"
+                          className="npm-insert-primary"
+                          onClick={() => { setTagroInsert(null); setChipDismissed(true) }}
+                          disabled={tagroInsertBusy}
+                        >
                           Übernehmen
                         </button>
-                        <button type="button" className="npm-insert-x" onClick={undoTagroStructure} disabled={tagroInsertBusy} aria-label="Verwerfen">
+                        <button
+                          type="button"
+                          className="npm-insert-x"
+                          onClick={() => { undoTagroStructure(); setChipDismissed(true) }}
+                          disabled={tagroInsertBusy}
+                          aria-label="Verwerfen"
+                        >
                           <X size={14} />
                         </button>
                       </>
@@ -884,10 +902,27 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
           open
           projectId={postFlow.projectId}
           projectTitle={postFlow.projectTitle}
-          mode={postFlow.kind === 'assign-existing' ? 'existing' : 'invite'}
-          onClose={() => {
+          mode={
+            postFlow.kind === 'assign-existing' ? 'existing' :
+            postFlow.kind === 'assign-invite' ? 'invite' :
+            postFlow.kind === 'assign-team' ? 'team' :
+            'festag'
+          }
+          onAssigned={() => {
+            // Markieren, dass eine Zuweisung erfolgt ist — Schließen ist
+            // jetzt erlaubt ohne Rollback.
+            setPostFlow(p => p ? { ...p, assigned: true } : p)
+          }}
+          onClose={async () => {
             const id = postFlow.projectId
+            const mustRollback = postFlow.requiresAssignment && !postFlow.assigned
             setPostFlow(null)
+            if (mustRollback) {
+              // Manuell-anlegen-Flow ohne Zuweisung → Projekt wieder weg.
+              try { await (supabase as any).from('projects').delete().eq('id', id) } catch {}
+              setPhase('form')
+              return
+            }
             onCreated?.(id)
           }}
         />
