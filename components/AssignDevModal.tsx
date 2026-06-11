@@ -287,6 +287,8 @@ export default function AssignDevModal({
               onDone={() => setDone({ provisioned: false })}
               primaryRef={primaryRef}
               EMAIL_RE={EMAIL_RE}
+              projectId={projectId}
+              projectTitle={projectTitle}
             />
             {helper && <p className="adm-help">{helper}</p>}
           </>
@@ -408,43 +410,55 @@ function FestagSphere() {
 // TeamInviteList — Multi-Email-Chip-Eingabe für Mode 'team'
 // ----------------------------------------------------------------------------
 function TeamInviteList({
-  onAssigned, onDone, primaryRef, EMAIL_RE,
+  onAssigned, onDone, primaryRef, EMAIL_RE, projectId, projectTitle,
 }: {
   onAssigned: () => void
   onDone: () => void
   primaryRef: React.RefObject<HTMLButtonElement>
   EMAIL_RE: RegExp
+  projectId: string
+  projectTitle: string
 }) {
   const [emails, setEmails] = useState<string[]>([])
   const [input, setInput] = useState('')
   const [err, setErr] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
 
-  function commit() {
-    const raw = input.trim().replace(/,$/, '')
-    if (!raw) return
-    if (!EMAIL_RE.test(raw)) { setErr('Bitte eine gültige E-Mail-Adresse.'); return }
-    if (emails.includes(raw)) { setErr('Diese Adresse steht bereits in der Liste.'); return }
-    setEmails([...emails, raw])
-    setInput(''); setErr(null)
+  const pending = input.trim().replace(/[,;]+$/, '')
+  const pendingValid = EMAIL_RE.test(pending)
+  // Button ist aktiv sobald es eine fertige Adresse gibt — entweder schon
+  // als Chip ODER eine gültige Adresse im Eingabefeld. KEIN Enter nötig.
+  const canSend = !busy && (emails.length > 0 || pendingValid)
+
+  function commit(): string[] | null {
+    if (!pending) return emails.length ? emails : null
+    if (!pendingValid) { setErr('Bitte eine gültige E-Mail-Adresse.'); return null }
+    if (emails.includes(pending)) { setInput(''); return emails }
+    const next = [...emails, pending]
+    setEmails(next); setInput(''); setErr(null)
+    return next
   }
 
   function remove(e: string) { setEmails(emails.filter(x => x !== e)) }
 
   async function send() {
-    if (busy || emails.length === 0) return
+    if (busy) return
+    // Offene Eingabe automatisch übernehmen, dann senden.
+    const finalEmails = commit()
+    if (!finalEmails || finalEmails.length === 0) {
+      setErr('Bitte mindestens eine gültige E-Mail-Adresse eingeben.')
+      return
+    }
     setErr(null); setBusy(true)
     try {
-      // Best-effort gegen vorhandenes Endpoint; Fallback: alle einzeln.
       const res = await fetch('/api/projects/assign-team', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ emails }),
+        body: JSON.stringify({ projectId, projectTitle, emails: finalEmails }),
       }).catch(() => null)
       if (!res || !res.ok) {
-        // Fallback: einzelne Einladungen
-        await Promise.all(emails.map(em => fetch('/api/projects/assign-dev', {
+        await Promise.all(finalEmails.map(em => fetch('/api/projects/assign-dev', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ devEmail: em }),
+          body: JSON.stringify({ projectId, projectTitle, devEmail: em }),
         }).catch(() => null)))
       }
       onAssigned()
@@ -455,6 +469,8 @@ function TeamInviteList({
       setBusy(false)
     }
   }
+
+  const count = emails.length + (pendingValid && !emails.includes(pending) ? 1 : 0)
 
   return (
     <>
@@ -471,13 +487,12 @@ function TeamInviteList({
           value={input}
           onChange={e => { setInput(e.target.value); setErr(null) }}
           onKeyDown={e => {
-            if (e.key === 'Enter' || e.key === ',' || e.key === ' ') { e.preventDefault(); commit() }
+            if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); commit() }
             if (e.key === 'Backspace' && !input && emails.length) {
               remove(emails[emails.length - 1])
             }
           }}
-          onBlur={commit}
-          placeholder={emails.length ? '' : 'E-Mail-Adresse hinzufügen (Enter)'}
+          placeholder={emails.length ? 'Weitere hinzufügen…' : 'E-Mail-Adresse'}
         />
       </div>
       <button
@@ -485,9 +500,9 @@ function TeamInviteList({
         type="button"
         className="adm-primary"
         onClick={send}
-        disabled={busy || emails.length === 0}
+        disabled={!canSend}
       >
-        {busy ? 'Sende …' : `${emails.length || ''} ${emails.length === 1 ? 'Einladung versenden' : 'Einladungen versenden'}`.trim()}
+        {busy ? 'Sende …' : (count > 1 ? `${count} Einladungen versenden` : 'Einladung versenden')}
       </button>
       {err && <p className="adm-error" role="alert">{err}</p>}
     </>
@@ -588,7 +603,7 @@ const CSS = `
   .adm-input {
     width: 100%;
     height: 42px;
-    background: #F7F8FB;
+    background: #F3F4FA;
     border: 0;
     border-radius: 8px !important;
     outline: 0;
@@ -601,7 +616,7 @@ const CSS = `
   }
   .adm-input::placeholder { color: #C2C7D0; opacity: 1; letter-spacing: .01em !important; }
   .adm-input:focus {
-    background: #F1F3F8;
+    background: #EDEFF8;
     box-shadow: 0 0 0 2px rgba(91,100,125,.12);
   }
 
@@ -677,14 +692,14 @@ const CSS = `
   .adm-chip-input {
     width: 100%;
     min-height: 42px;
-    background: #F7F8FB;
+    background: #F3F4FA;
     border-radius: 8px !important;
     padding: 0 16px;
     display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
     transition: background .14s, box-shadow .14s;
   }
   .adm-chip-input:focus-within {
-    background: #F1F3F8;
+    background: #EDEFF8;
     box-shadow: 0 0 0 2px rgba(91,100,125,.12);
   }
   .adm-chip {
