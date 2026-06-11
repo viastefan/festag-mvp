@@ -14,5 +14,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     || pathname.startsWith('/project/')
     || pathname.startsWith('/docs')
 
+  // Neue schmale Rail-Sidebar liefern die Seiten künftig selbst.
+  // /projects ist die erste Seite mit dem neuen Layout.
+  const usesOwnShell = pathname === '/projects'
+  if (usesOwnShell) return <>{children}</>
+
   return <ClientAppShell isFullHeight={isFullHeight} scrollId="app-main-scroll">{children}</ClientAppShell>
 }
