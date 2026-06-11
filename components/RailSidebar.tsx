@@ -24,15 +24,16 @@ import {
 
 type Item = { href: string; label: string; icon: React.ReactNode }
 
+const ICON_SIZE = 16
 const TOP_ITEMS: Item[] = [
-  { href: '/dashboard', label: 'Statusabfrage', icon: <Pulse size={20} weight="regular" /> },
-  { href: '/messages',  label: 'Inbox',         icon: <BellSimple size={20} weight="regular" /> },
+  { href: '/dashboard', label: 'Statusabfrage', icon: <Pulse size={ICON_SIZE} weight="regular" /> },
+  { href: '/messages',  label: 'Inbox',         icon: <BellSimple size={ICON_SIZE} weight="regular" /> },
 ]
 const PERSONAL_ITEMS: Item[] = [
-  { href: '/projects',  label: 'Projekte',      icon: <Cube size={20} weight="regular" /> },
-  { href: '/tasks',     label: 'Tasks',         icon: <FlowArrow size={20} weight="regular" /> },
-  { href: '/decisions', label: 'Entscheidungen', icon: <SquaresFour size={20} weight="regular" /> },
-  { href: '/docs',      label: 'Dokumente',     icon: <FileText size={20} weight="regular" /> },
+  { href: '/projects',  label: 'Projekte',      icon: <Cube size={ICON_SIZE} weight="regular" /> },
+  { href: '/tasks',     label: 'Tasks',         icon: <FlowArrow size={ICON_SIZE} weight="regular" /> },
+  { href: '/decisions', label: 'Entscheidungen', icon: <SquaresFour size={ICON_SIZE} weight="regular" /> },
+  { href: '/docs',      label: 'Dokumente',     icon: <FileText size={ICON_SIZE} weight="regular" /> },
 ]
 
 export default function RailSidebar() {
@@ -106,84 +107,86 @@ export default function RailSidebar() {
       </nav>
 
       <Link href="/support" className="rail-help" aria-label="Hilfe" title="Hilfe">
-        <Question size={18} weight="regular" />
+        <Question size={ICON_SIZE} weight="regular" />
       </Link>
     </aside>
   )
 }
 
 const CSS = `
+  /* Codex-Style Sidebar — sehr ruhig, kleine Icons, viel Whitespace. */
   .rail {
     position: fixed; left: 0; top: 0; bottom: 0;
-    width: 72px;
+    width: 60px;
     background: #FCFCFC;
     z-index: 80;
-    padding: 18px 0 18px;
+    padding: 22px 0 20px;
     display: flex; flex-direction: column; align-items: stretch;
     transition: width .26s cubic-bezier(.16,1,.3,1);
     overflow: hidden;
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
   }
   .rail:hover {
-    width: 232px;
-    box-shadow: 1px 0 0 rgba(15,23,42,.04), 2px 0 24px -10px rgba(15,23,42,.18);
+    width: 220px;
+    box-shadow: 1px 0 0 rgba(15,23,42,.04);
   }
 
   .rail-avatar {
-    width: 40px; height: 40px;
-    margin: 0 16px;
-    border: 1px solid #F3F5F7;
-    background: rgba(255,255,255,.8);
+    width: 32px; height: 32px;
+    margin: 0 14px;
+    border: 1px solid #F0F2F5;
+    background: #FFFFFF;
     border-radius: 999px;
     display: inline-flex; align-items: center; justify-content: center;
     color: #0F0F10;
-    font-size: 14px; font-weight: 500;
+    font-size: 11px; font-weight: 500;
     text-decoration: none;
     flex-shrink: 0;
+    letter-spacing: .02em;
   }
 
   .rail-nav {
     flex: 1; min-height: 0;
-    margin: 28px 0 0;
-    display: flex; flex-direction: column; gap: 8px;
+    margin: 32px 0 0;
+    display: flex; flex-direction: column; gap: 4px;
     overflow-y: auto;
+    overflow-x: hidden;
   }
   .rail-nav::-webkit-scrollbar { display: none; }
 
   .rail-group {
     list-style: none; margin: 0; padding: 0;
-    display: flex; flex-direction: column; gap: 2px;
+    display: flex; flex-direction: column;
   }
 
   .rail-sep {
-    margin: 8px 16px;
-    border-top: 1px solid #F0F2F5;
+    margin: 10px 20px 6px;
+    border-top: 1px solid #F2F3F6;
   }
 
   .rail-item {
-    display: flex; align-items: center; gap: 12px;
-    height: 40px;
-    padding: 0 26px;
-    color: #6E717E;
+    display: flex; align-items: center; gap: 14px;
+    height: 32px;
+    padding: 0 22px;
+    color: #9197A3;
     text-decoration: none;
-    border-radius: 0;
     transition: background .14s, color .14s;
     white-space: nowrap;
   }
   .rail-item:hover {
-    background: rgba(91,100,125,.06);
+    background: rgba(91,100,125,.04);
     color: #2A3032;
   }
   .rail-item.is-active {
     color: #1B1E26;
-    background: rgba(91,100,125,.06);
   }
   .rail-icon {
     display: inline-flex; align-items: center; justify-content: center;
-    width: 20px; height: 20px; flex-shrink: 0;
+    width: 16px; height: 16px; flex-shrink: 0;
   }
   .rail-label {
-    font-size: 14px;
+    font-size: 13px;
+    font-weight: 400;
     letter-spacing: .01em;
     opacity: 0;
     transform: translateX(-4px);
@@ -196,14 +199,13 @@ const CSS = `
 
   .rail-help {
     align-self: flex-start;
-    margin: 0 0 0 26px;
-    width: 20px; height: 20px;
-    color: #6E717E;
+    margin: 0 0 0 22px;
+    width: 16px; height: 16px;
+    color: #9197A3;
     display: inline-flex; align-items: center; justify-content: center;
   }
   .rail-help:hover { color: #2A3032; }
 
-  /* Hide rail on mobile — there the MobileTabBar handles navigation. */
   @media (max-width: 720px) {
     .rail { display: none; }
   }

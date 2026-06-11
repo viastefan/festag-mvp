@@ -232,8 +232,8 @@ function ProjectsPageInner() {
         <div className="pj2-card">
           <header className="pj2-head">
             <div className="pj2-title">
-              <h1>Projekte</h1>
-              <p>Alle Projekte auf einem Blick. KI-gesteuert.</p>
+              <h1>Aktuelle Projekte.</h1>
+              <p>Auf einem Blick. KI-gesteuert.</p>
             </div>
             <div className="pj2-actions">
               <div className="pj2-tool-wrap">
@@ -403,83 +403,94 @@ function ProjectsPageInner() {
 const CSS = `
   .pj-fallback { padding: 48px; color: #6E717E; font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif); }
 
+  /* Page-Container ist fixiert — kein Body-Scroll. Codex-Style:
+     White-on-white mit zarter Trennung Sidebar↔Content. */
+  html, body { overflow: hidden !important; height: 100% !important; }
+
   .pj2-page {
-    min-height: 100dvh;
+    position: fixed; inset: 0;
     background: #FCFCFC;
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
     color: #0F0F10;
     color-scheme: light;
+    overflow: hidden;
   }
   .pj2-page * { letter-spacing: 0; }
 
   .pj2-main {
-    margin-left: 72px;
-    padding: 24px 26px;
-    min-height: 100dvh;
+    margin-left: 60px;
+    height: 100%;
+    padding: 18px 18px 18px 0;
     box-sizing: border-box;
+    display: flex; flex-direction: column;
   }
 
   .pj2-card {
+    flex: 1; min-height: 0;
     background: #FFFFFF;
-    border-radius: 24px;
-    padding: 96px 96px 64px;
-    min-height: calc(100dvh - 48px);
-    box-shadow: 0 1px 2px rgba(15,23,42,.04);
+    border-radius: 22px;
+    padding: 64px 88px 48px;
+    box-shadow: 0 1px 2px rgba(15,23,42,.03);
     box-sizing: border-box;
     position: relative;
+    /* Nur INNEN scrollen — Page-Scroll bleibt aus */
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: none;
   }
+  .pj2-card::-webkit-scrollbar { display: none; }
 
   .pj2-head {
     display: flex; align-items: flex-start; justify-content: space-between;
     gap: 32px;
-    margin-bottom: 56px;
+    margin-bottom: 44px;
   }
   .pj2-title h1 {
     margin: 0;
-    font-size: 32px; font-weight: 400; letter-spacing: .02em;
+    font-size: 28px; font-weight: 500;
+    letter-spacing: -.005em;
     color: #0F0F10;
+    line-height: 1.2;
   }
   .pj2-title p {
-    margin: 10px 0 0;
-    font-size: 18px; font-weight: 400;
-    color: #90959F;
-    letter-spacing: .01em;
+    margin: 4px 0 0;
+    font-size: 16px; font-weight: 400;
+    color: #9197A3;
+    letter-spacing: 0;
+    line-height: 1.4;
   }
   .pj2-actions {
-    display: inline-flex; align-items: center; gap: 12px;
-    margin-top: 8px;
+    display: inline-flex; align-items: center; gap: 10px;
+    margin-top: 6px;
   }
   .pj2-tool-wrap { position: relative; }
   .pj2-tool {
-    width: 40px; height: 40px;
-    border: 1px solid rgba(202,207,212,.4);
+    width: 36px; height: 36px;
+    border: 1px solid #ECEFF3;
     border-radius: 999px;
     background: #FFFFFF;
-    color: #2A3032;
+    color: #6E717E;
     display: inline-flex; align-items: center; justify-content: center;
     cursor: pointer;
-    box-shadow: 0 2px 5px rgba(46,47,51,.05);
-    transition: transform .12s, box-shadow .14s;
+    box-shadow: 0 1px 2px rgba(15,23,42,.03);
+    transition: background .12s, color .14s;
   }
   .pj2-tool:hover, .pj2-tool.on {
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(46,47,51,.08);
+    background: #F7F8FB;
+    color: #2A3032;
   }
   .pj2-cta {
-    height: 40px; padding: 0 20px;
-    border: 1px solid rgba(202,207,212,.4);
+    height: 36px; padding: 0 18px;
+    border: 1px solid #ECEFF3;
     border-radius: 999px;
     background: #FFFFFF; color: #2A3032;
-    font: inherit; font-size: 14px; font-weight: 400;
-    letter-spacing: .03em;
-    box-shadow: 0 2px 5px rgba(46,47,51,.05);
+    font: inherit; font-size: 13px; font-weight: 400;
+    letter-spacing: .01em;
+    box-shadow: 0 1px 2px rgba(15,23,42,.03);
     cursor: pointer;
-    transition: transform .12s, box-shadow .14s, background .12s;
+    transition: background .12s;
   }
-  .pj2-cta:hover {
-    transform: translateY(-1px);
-    background: #F7F8FB;
-  }
+  .pj2-cta:hover { background: #F7F8FB; }
 
   .pj2-menu {
     position: absolute; top: 48px; right: 0; z-index: 30;
@@ -541,7 +552,7 @@ const CSS = `
 
   .pj2-item {
     position: relative;
-    height: 90px;
+    height: 76px;
     color: inherit;
     text-decoration: none;
     transition: background .14s;
@@ -549,23 +560,23 @@ const CSS = `
   }
   .pj2-item:hover,
   .pj2-item.is-active {
-    background: rgba(245,248,251,.9);
+    background: rgba(245,248,251,.7);
   }
 
   .pj2-name {
-    display: flex; flex-direction: column; gap: 4px;
+    display: flex; flex-direction: column; gap: 2px;
     min-width: 0;
   }
-  .pj2-name-row { display: inline-flex; align-items: center; gap: 12px; }
+  .pj2-name-row { display: inline-flex; align-items: center; gap: 10px; }
   .pj2-name strong {
-    font-size: 18px; font-weight: 400; color: #0F0F10;
-    letter-spacing: .02em;
+    font-size: 16px; font-weight: 500; color: #0F0F10;
+    letter-spacing: 0;
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-    max-width: 380px;
+    max-width: 360px;
   }
   .pj2-name small {
-    font-size: 14px; font-weight: 400; color: #90959F;
-    letter-spacing: .01em;
+    font-size: 13px; font-weight: 400; color: #9197A3;
+    letter-spacing: 0;
   }
   .pj2-new {
     display: inline-flex; align-items: center; justify-content: center;
@@ -580,43 +591,42 @@ const CSS = `
   }
 
   .pj2-status {
-    display: inline-flex; align-items: center; gap: 12px;
-    color: #90959F;
-    font-size: 14px; font-weight: 400;
-    letter-spacing: .02em;
+    display: inline-flex; align-items: center; gap: 10px;
+    color: #9197A3;
+    font-size: 13px; font-weight: 400;
+    letter-spacing: 0;
   }
   .pj2-status-dot {
-    width: 6px; height: 6px;
+    width: 7px; height: 7px;
     border-radius: 999px;
-    filter: blur(.5px);
     flex-shrink: 0;
   }
 
   .pj2-devs { display: inline-flex; align-items: center; }
-  .pj2-dev-empty { color: #C2C7D0; font-size: 14px; }
+  .pj2-dev-empty { color: #C2C7D0; font-size: 13px; }
   .pj2-dev-stack { display: inline-flex; align-items: center; }
   .pj2-dev-av {
-    width: 36px; height: 36px;
-    border: 3px solid #FFFFFF;
+    width: 30px; height: 30px;
+    border: 2.5px solid #FFFFFF;
     border-radius: 999px;
-    margin-right: -10px;
+    margin-right: -8px;
     overflow: hidden;
     background: #F3F5F7;
     color: #5B647D;
     display: inline-flex; align-items: center; justify-content: center;
-    font-size: 12px; font-weight: 500;
+    font-size: 11px; font-weight: 500;
     flex-shrink: 0;
   }
   .pj2-dev-av img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .pj2-dev-more {
     background: #5B647D; color: #FFFFFF;
-    font-size: 11px;
+    font-size: 10px;
   }
 
   .pj2-date {
-    color: #90959F;
-    font-size: 14px; font-weight: 400;
-    letter-spacing: .01em;
+    color: #9197A3;
+    font-size: 13px; font-weight: 400;
+    letter-spacing: 0;
   }
   .pj2-teams {
     color: #2A3032;
@@ -640,10 +650,10 @@ const CSS = `
     font-size: 14px;
   }
 
-  /* Tagro Round-Button (Figma 70x70) */
+  /* Tagro Round-Button — fix unten rechts an der Card */
   .pj2-tagro {
-    position: fixed; right: 56px; bottom: 56px; z-index: 60;
-    width: 64px; height: 64px;
+    position: fixed; right: 44px; bottom: 36px; z-index: 60;
+    width: 52px; height: 52px;
     border: 0; border-radius: 999px;
     background: #5B647D;
     color: #FFFFFF;
@@ -651,7 +661,7 @@ const CSS = `
     cursor: pointer;
     box-shadow:
       0 1px 2px rgba(15,23,42,.1),
-      0 18px 32px -12px rgba(91,100,125,.5);
+      0 12px 28px -10px rgba(91,100,125,.5);
     transition: transform .14s cubic-bezier(.16,1,.3,1), box-shadow .18s;
   }
   .pj2-tagro:hover {
@@ -659,14 +669,14 @@ const CSS = `
     background: #4E576E;
     box-shadow:
       0 1px 2px rgba(15,23,42,.1),
-      0 24px 40px -12px rgba(91,100,125,.6);
+      0 18px 36px -10px rgba(91,100,125,.6);
   }
   .pj2-tagro:active { transform: translateY(0); }
 
   /* ===== Tablet / Small Desktop ===== */
   @media (max-width: 1200px) {
-    .pj2-card { padding: 56px 48px 48px; }
-    .pj2-head { margin-bottom: 36px; }
+    .pj2-card { padding: 40px 40px 36px; }
+    .pj2-head { margin-bottom: 28px; }
     .pj2-row {
       grid-template-columns:
         minmax(180px, 1.6fr)
@@ -682,14 +692,14 @@ const CSS = `
 
   /* ===== Mobile ===== */
   @media (max-width: 720px) {
-    .pj2-main { margin-left: 0; padding: 14px 14px 88px; }
-    .pj2-card { padding: 24px 18px 32px; border-radius: 18px; min-height: 0; }
-    .pj2-head { flex-direction: column; align-items: stretch; gap: 16px; margin-bottom: 24px; }
-    .pj2-title h1 { font-size: 26px; }
+    .pj2-main { margin-left: 0; padding: 12px 12px 88px 12px; }
+    .pj2-card { padding: 22px 16px 28px; border-radius: 18px; }
+    .pj2-head { flex-direction: column; align-items: stretch; gap: 16px; margin-bottom: 22px; }
+    .pj2-title h1 { font-size: 24px; }
     .pj2-title p { font-size: 14px; }
     .pj2-actions { justify-content: flex-end; }
-    .pj2-cta { font-size: 13px; padding: 0 16px; height: 38px; }
-    .pj2-tool { width: 38px; height: 38px; }
+    .pj2-cta { font-size: 13px; padding: 0 14px; height: 34px; }
+    .pj2-tool { width: 34px; height: 34px; }
 
     .pj2-thead { display: none; }
     .pj2-divider { display: none; }
