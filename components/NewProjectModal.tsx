@@ -910,18 +910,18 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
                 <Visualizer active={!!dictating} />
               </div>
               <div className="npm-foot-right">
-                {phase !== 'chat' && (
-                  <button
-                    ref={secondaryBtnRef}
-                    type="button"
-                    className="npm-secondary"
-                    onClick={manualCreate}
-                    disabled={!canManual}
-                    title={!canManual ? 'Bitte zuerst einen Projektnamen eingeben' : undefined}
-                  >
-                    Manuell anlegen
-                  </button>
-                )}
+                <button
+                  ref={secondaryBtnRef}
+                  type="button"
+                  className={`npm-secondary${phase === 'chat' ? ' is-collapsed' : ''}`}
+                  onClick={manualCreate}
+                  disabled={!canManual || phase === 'chat'}
+                  aria-hidden={phase === 'chat'}
+                  tabIndex={phase === 'chat' ? -1 : 0}
+                  title={!canManual ? 'Bitte zuerst einen Projektnamen eingeben' : undefined}
+                >
+                  Manuell anlegen
+                </button>
                 <button
                   ref={primaryBtnRef}
                   type="button"
@@ -1442,10 +1442,27 @@ const CSS = `
 
   .npm-foot-right {
     display: inline-flex; align-items: center; gap: 10px;
+    /* Damit collapse-Animation des Manuell-Button sauber überblendet */
+    transition: gap .35s cubic-bezier(.16,1,.3,1);
+  }
+  /* Sub-Menü-Wechsel — der Sekundär-Button verschwindet nicht abrupt sondern
+     schrumpft mit Crossfade, Slide und Scale auf 0 zusammen. */
+  .npm-secondary.is-collapsed {
+    max-width: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    margin-right: -10px;
+    opacity: 0;
+    transform: translateX(8px) scale(.92);
+    pointer-events: none;
+    border-color: transparent !important;
+    box-shadow: none !important;
+    overflow: hidden;
   }
   .npm-secondary {
     display: inline-flex; align-items: center; justify-content: center;
     height: 47px; padding: 0 22px;
+    max-width: 240px;
     border: 0.7px solid #E7EBF0;
     border-radius: 999px !important;
     background: #FFFFFF; color: #202532;
@@ -1453,7 +1470,18 @@ const CSS = `
     font-size: 14px; font-weight: 400; letter-spacing: .14px;
     box-shadow: 0 1px 2px rgba(15,23,42,.03);
     cursor: pointer;
-    transition: background .14s, border-color .14s, transform .12s;
+    opacity: 1;
+    transform: translateX(0) scale(1);
+    transition:
+      max-width .42s cubic-bezier(.16,1,.3,1),
+      padding .42s cubic-bezier(.16,1,.3,1),
+      margin .42s cubic-bezier(.16,1,.3,1),
+      transform .38s cubic-bezier(.16,1,.3,1),
+      opacity .28s ease,
+      background .14s,
+      border-color .14s;
+    will-change: max-width, opacity, transform;
+    white-space: nowrap;
   }
   .npm-secondary:hover:not(:disabled) {
     background: #F7F8FB; border-color: #DCE1EA;
