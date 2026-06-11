@@ -47,6 +47,45 @@ export default function AssignDevModal({
   const [suggestions, setSuggestions] = useState<Array<{ handle: string; name?: string; email?: string }>>([])
   const inputRef = useRef<HTMLInputElement>(null)
   const primaryRef = useRef<HTMLButtonElement>(null)
+  const sheetRef = useRef<HTMLDivElement>(null)
+  const touchStartYRef = useRef<number | null>(null)
+  const touchDeltaRef = useRef(0)
+
+  const [isMobile, setIsMobile] = useState(false)
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 720px)')
+    const update = () => setIsMobile(mq.matches)
+    update()
+    mq.addEventListener?.('change', update)
+    return () => mq.removeEventListener?.('change', update)
+  }, [])
+
+  function onSheetTouchStart(e: React.TouchEvent) {
+    if (working) return
+    touchStartYRef.current = e.touches[0].clientY
+    touchDeltaRef.current = 0
+  }
+  function onSheetTouchMove(e: React.TouchEvent) {
+    if (touchStartYRef.current == null || !sheetRef.current) return
+    const dy = e.touches[0].clientY - touchStartYRef.current
+    if (dy <= 0) { sheetRef.current.style.transform = 'translateY(0)'; return }
+    touchDeltaRef.current = dy
+    sheetRef.current.style.transform = `translateY(${dy}px)`
+    sheetRef.current.style.transition = 'none'
+  }
+  function onSheetTouchEnd() {
+    if (!sheetRef.current) return
+    const dy = touchDeltaRef.current
+    sheetRef.current.style.transition = 'transform .3s cubic-bezier(.16,1,.3,1)'
+    if (dy > 110) {
+      sheetRef.current.style.transform = 'translateY(100%)'
+      setTimeout(onClose, 280)
+    } else {
+      sheetRef.current.style.transform = 'translateY(0)'
+    }
+    touchStartYRef.current = null
+    touchDeltaRef.current = 0
+  }
 
   // @-Autocomplete für Existing-Modus
   useEffect(() => {
@@ -173,7 +212,7 @@ export default function AssignDevModal({
           : null
 
   return createPortal((
-    <div className="adm-overlay" role="dialog" aria-modal="true" aria-label={mode === 'existing' ? 'Dev’ler zuweisen' : 'Dev’ler einladen'}>
+    <div className={`adm-overlay${isMobile ? ' is-mobile' : ''}`} role="dialog" aria-modal="true" aria-label={mode === 'existing' ? 'Dev’ler zuweisen' : 'Dev’ler einladen'}>
       <style>{CSS}</style>
       <div
         className="adm-backdrop"
@@ -183,7 +222,25 @@ export default function AssignDevModal({
         }}
         aria-hidden
       />
-      <div className={`adm-card${done ? ' is-success' : ''}`} role="document" onMouseDown={e => e.stopPropagation()}>
+      <div
+        ref={sheetRef}
+        className={`adm-card${done ? ' is-success' : ''}${isMobile ? ' is-sheet' : ''}`}
+        role="document"
+        onMouseDown={e => e.stopPropagation()}
+      >
+        {isMobile && (
+          <div
+            className="adm-drag-area"
+            onTouchStart={onSheetTouchStart}
+            onTouchMove={onSheetTouchMove}
+            onTouchEnd={onSheetTouchEnd}
+            role="button"
+            tabIndex={0}
+            aria-label="Nach unten ziehen zum Schließen"
+          >
+            <div className="adm-drag-handle" aria-hidden />
+          </div>
+        )}
         <button
           type="button" className="adm-close"
           onClick={onClose} disabled={working}
@@ -406,6 +463,26 @@ const CSS = `
     box-shadow: 0 1px 2px rgba(15,23,42,.06), 0 32px 80px -28px rgba(15,23,42,.35);
     animation: admPop .24s cubic-bezier(.16,1,.3,1) both;
     overflow: hidden !important;
+  }
+  /* Mobile Bottom-Sheet — gleiche Sprache wie das NewProjectModal */
+  .adm-overlay.is-mobile { padding: 0; align-items: flex-end; }
+  .adm-card.is-sheet {
+    width: 100% !important; max-width: 100% !important;
+    border-radius: 28px 28px 0 0;
+    padding: 6px 22px 28px;
+    box-shadow: 0 -8px 32px -12px rgba(15,23,42,.28);
+    animation: admSheetIn .38s cubic-bezier(.16,1,.3,1) both;
+  }
+  @keyframes admSheetIn { from { transform: translateY(100%); } to { transform: none; } }
+  .adm-drag-area {
+    width: 100%; padding: 8px 0 6px;
+    display: flex; justify-content: center;
+    cursor: grab; touch-action: pan-y;
+  }
+  .adm-drag-handle {
+    width: 36px; height: 4px;
+    background: color-mix(in srgb, #848D9B 32%, transparent);
+    border-radius: 999px;
   }
   [data-theme="dark"] .adm-card,
   [data-theme="classic-dark"] .adm-card {

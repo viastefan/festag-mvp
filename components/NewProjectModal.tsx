@@ -149,6 +149,36 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
   const micBtnRef = useRef<HTMLButtonElement>(null)
   const primaryBtnRef = useRef<HTMLButtonElement>(null)
   const secondaryBtnRef = useRef<HTMLButtonElement>(null)
+  const sheetRef = useRef<HTMLDivElement>(null)
+  const touchStartYRef = useRef<number | null>(null)
+  const touchDeltaRef = useRef(0)
+
+  function onSheetTouchStart(e: React.TouchEvent) {
+    if (phase === 'loading') return
+    touchStartYRef.current = e.touches[0].clientY
+    touchDeltaRef.current = 0
+  }
+  function onSheetTouchMove(e: React.TouchEvent) {
+    if (touchStartYRef.current == null || !sheetRef.current) return
+    const dy = e.touches[0].clientY - touchStartYRef.current
+    if (dy <= 0) { sheetRef.current.style.transform = 'translateY(0)'; return }
+    touchDeltaRef.current = dy
+    sheetRef.current.style.transform = `translateY(${dy}px)`
+    sheetRef.current.style.transition = 'none'
+  }
+  function onSheetTouchEnd() {
+    if (!sheetRef.current) return
+    const dy = touchDeltaRef.current
+    sheetRef.current.style.transition = 'transform .3s cubic-bezier(.16,1,.3,1)'
+    if (dy > 110) {
+      sheetRef.current.style.transform = 'translateY(100%)'
+      setTimeout(onClose, 280)
+    } else {
+      sheetRef.current.style.transform = 'translateY(0)'
+    }
+    touchStartYRef.current = null
+    touchDeltaRef.current = 0
+  }
 
   useEffect(() => {
     const apply = () => {
@@ -589,8 +619,21 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
           className={`npm-card${phase === 'chat' ? ' is-chat' : ''}${isMobile ? ' is-sheet' : ''}`}
           role="document"
           onMouseDown={e => e.stopPropagation()}
+          ref={sheetRef}
         >
-          {isMobile && <div className="npm-drag-handle" aria-hidden />}
+          {isMobile && (
+            <div
+              className="npm-drag-area"
+              onTouchStart={onSheetTouchStart}
+              onTouchMove={onSheetTouchMove}
+              onTouchEnd={onSheetTouchEnd}
+              role="button"
+              tabIndex={0}
+              aria-label="Nach unten ziehen zum Schließen"
+            >
+              <div className="npm-drag-handle" aria-hidden />
+            </div>
+          )}
 
           {!isMobile && (
             <header className="npm-head">
@@ -1062,12 +1105,19 @@ const CSS = `
     background: color-mix(in srgb, var(--surface-2) 65%, transparent);
   }
 
+  .npm-drag-area {
+    width: 100%;
+    padding: 8px 0 2px;
+    display: flex; justify-content: center;
+    cursor: grab;
+    flex-shrink: 0;
+    touch-action: pan-y;
+  }
+  .npm-drag-area:active { cursor: grabbing; }
   .npm-drag-handle {
     width: 36px; height: 4px;
     background: color-mix(in srgb, var(--text-muted) 32%, transparent);
     border-radius: 999px;
-    margin: 10px auto 0;
-    flex-shrink: 0;
   }
 
   /* ---- Desktop header (title input + close) ---- */
@@ -1429,10 +1479,15 @@ const CSS = `
   .npm-primary:active:not(:disabled) { transform: scale(.97); }
   .npm-primary:disabled { opacity: .45; cursor: not-allowed; }
 
-  .npm-card.is-sheet .npm-primary {
+  .npm-card.is-sheet .npm-foot-right {
+    flex: 1; gap: 8px;
+  }
+  .npm-card.is-sheet .npm-primary,
+  .npm-card.is-sheet .npm-secondary {
     flex: 1; justify-content: center;
     height: 48px;
     font-size: 14px;
+    padding: 0 12px;
   }
 
   /* ---- Chat phase ---- */
