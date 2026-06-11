@@ -262,10 +262,12 @@ export default function AssignDevModal({
         ) : mode === 'festag' ? (
           <>
             <p className="adm-title">{title}</p>
-            <ul className="adm-info-list">
-              <li><span className="adm-info-num">1</span><span>Tagro analysiert dein Briefing und wählt den passenden Festag-Entwickler aus.</span></li>
-              <li><span className="adm-info-num">2</span><span>Du bekommst eine Benachrichtigung sobald jemand zugewiesen ist — meist innerhalb von 24 h.</span></li>
-              <li><span className="adm-info-num">3</span><span>Der Entwickler beginnt mit der Umsetzung. Du verfolgst den Fortschritt in deinem Panel.</span></li>
+            <FestagSphere />
+            <ul className="adm-sphere-legend">
+              <li><span className="adm-sphere-dot dot-you" />Du brichtst Tagro ein</li>
+              <li><span className="adm-sphere-dot dot-tagro" />Tagro analysiert &amp; matched</li>
+              <li><span className="adm-sphere-dot dot-dev" />Entwickler setzt um</li>
+              <li><span className="adm-sphere-dot dot-festag" />Festag sichert Qualität ab</li>
             </ul>
             <button
               ref={primaryRef}
@@ -334,6 +336,72 @@ export default function AssignDevModal({
       </div>
     </div>
   ), document.body)
+}
+
+// ----------------------------------------------------------------------------
+// FestagSphere — Concentric Network Illustration für Mode 'festag'
+// ----------------------------------------------------------------------------
+function FestagSphere() {
+  // Konzentrische Ringe mit orbitierenden Knoten. Subtle pulse +
+  // rotation. Modern, ohne Logo-Spam — fokussiert auf die Beziehungen.
+  return (
+    <div className="adm-sphere-wrap" aria-hidden>
+      <svg viewBox="0 0 240 240" className="adm-sphere">
+        <defs>
+          <radialGradient id="admSphereBg" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="#5B647D" stopOpacity=".06" />
+            <stop offset="100%" stopColor="#5B647D" stopOpacity="0" />
+          </radialGradient>
+          <linearGradient id="admSphereLine" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#5B647D" stopOpacity=".0" />
+            <stop offset="50%" stopColor="#5B647D" stopOpacity=".5" />
+            <stop offset="100%" stopColor="#5B647D" stopOpacity=".0" />
+          </linearGradient>
+        </defs>
+
+        <circle cx="120" cy="120" r="118" fill="url(#admSphereBg)" />
+
+        {/* Drei konzentrische Ringe — Tagro · Dev · Festag */}
+        <circle cx="120" cy="120" r="46" fill="none" stroke="#E7EBF0" strokeWidth="1" />
+        <circle cx="120" cy="120" r="76" fill="none" stroke="#E7EBF0" strokeWidth="1" strokeDasharray="2 4" />
+        <circle cx="120" cy="120" r="106" fill="none" stroke="#E7EBF0" strokeWidth="1" />
+
+        {/* Verbindungslinien Center → Ring1 → Ring2 → Ring3 */}
+        <g className="adm-sphere-lines">
+          <line x1="120" y1="120" x2="120" y2="74" stroke="url(#admSphereLine)" strokeWidth="1.2" />
+          <line x1="120" y1="74" x2="166" y2="62" stroke="url(#admSphereLine)" strokeWidth="1.2" />
+          <line x1="166" y1="62" x2="214" y2="98" stroke="url(#admSphereLine)" strokeWidth="1.2" />
+          <line x1="120" y1="74" x2="74" y2="62" stroke="url(#admSphereLine)" strokeWidth="1.2" />
+          <line x1="74" y1="62" x2="26" y2="98" stroke="url(#admSphereLine)" strokeWidth="1.2" />
+        </g>
+
+        {/* Center: Du / Briefing */}
+        <g className="adm-sphere-node node-you">
+          <circle cx="120" cy="120" r="14" fill="#5B647D" />
+          <circle cx="120" cy="120" r="22" fill="none" stroke="#5B647D" strokeOpacity=".25" strokeWidth="1" />
+        </g>
+
+        {/* Ring 1: Tagro */}
+        <g className="adm-sphere-node node-tagro">
+          <circle cx="120" cy="74" r="9" fill="#FFFFFF" stroke="#5B647D" strokeWidth="1.5" />
+          <circle cx="120" cy="74" r="3.5" fill="#5B647D" />
+        </g>
+
+        {/* Ring 2: Entwickler (2 Knoten — könnte ja mehrere geben) */}
+        <g className="adm-sphere-node node-dev">
+          <circle cx="166" cy="62" r="7" fill="#FFFFFF" stroke="#848D9B" strokeWidth="1.3" />
+          <circle cx="74" cy="62" r="7" fill="#FFFFFF" stroke="#848D9B" strokeWidth="1.3" />
+        </g>
+
+        {/* Ring 3: Festag (Aussenring) */}
+        <g className="adm-sphere-node node-festag">
+          <circle cx="214" cy="98" r="6" fill="#FFFFFF" stroke="#C2C7D0" strokeWidth="1.2" />
+          <circle cx="26" cy="98" r="6" fill="#FFFFFF" stroke="#C2C7D0" strokeWidth="1.2" />
+          <circle cx="120" cy="226" r="6" fill="#FFFFFF" stroke="#C2C7D0" strokeWidth="1.2" />
+        </g>
+      </svg>
+    </div>
+  )
 }
 
 // ----------------------------------------------------------------------------
@@ -537,35 +605,81 @@ const CSS = `
     box-shadow: 0 0 0 2px rgba(91,100,125,.12);
   }
 
-  /* ---- Info-Liste (Mode festag) ---- */
-  .adm-info-list {
-    list-style: none; margin: 0 0 14px; padding: 0;
-    display: flex; flex-direction: column; gap: 10px;
+  /* ---- Festag Sphere (Mode festag) ---- */
+  .adm-sphere-wrap {
+    display: flex; justify-content: center; align-items: center;
+    margin: 4px 0 10px;
   }
-  .adm-info-list li {
-    display: flex; align-items: flex-start; gap: 12px;
-    padding: 12px 14px;
-    background: #F7F8FB;
-    border-radius: 12px;
-    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
-    font-size: 13px; line-height: 1.5;
-    color: #2A3032;
+  .adm-sphere {
+    width: 220px; height: 220px;
+    overflow: visible;
   }
-  .adm-info-num {
-    width: 22px; height: 22px; flex-shrink: 0;
-    border-radius: 999px;
-    background: #5B647D; color: #FFFFFF;
-    display: inline-flex; align-items: center; justify-content: center;
-    font-size: 11px; font-weight: 500;
+  .adm-sphere-node.node-you {
+    transform-origin: 120px 120px;
+    animation: admPulseCore 3.6s ease-in-out infinite;
+  }
+  .adm-sphere-node.node-tagro {
+    transform-origin: 120px 74px;
+    animation: admFloat1 4.8s ease-in-out infinite;
+  }
+  .adm-sphere-node.node-dev {
+    animation: admFloat2 5.2s ease-in-out infinite;
+  }
+  .adm-sphere-node.node-festag {
+    animation: admFloat3 6s ease-in-out infinite;
+  }
+  .adm-sphere-lines line {
+    stroke-dasharray: 80;
+    stroke-dashoffset: 0;
+    animation: admLineFlow 3.4s linear infinite;
+  }
+  @keyframes admPulseCore {
+    0%, 100% { transform: scale(1); }
+    50%      { transform: scale(1.08); }
+  }
+  @keyframes admFloat1 {
+    0%, 100% { transform: translate(0, 0); }
+    50%      { transform: translate(0, -3px); }
+  }
+  @keyframes admFloat2 {
+    0%, 100% { transform: translate(0, 0); }
+    50%      { transform: translate(2px, -2px); }
+  }
+  @keyframes admFloat3 {
+    0%, 100% { transform: translate(0, 0); }
+    50%      { transform: translate(-2px, 2px); }
+  }
+  @keyframes admLineFlow {
+    from { stroke-dashoffset: 80; }
+    to   { stroke-dashoffset: 0; }
   }
 
-  /* ---- Chip-Input (Mode team) ---- */
+  /* Legende — kleine Punkte + Text statt nummerierter Karten */
+  .adm-sphere-legend {
+    list-style: none; margin: 0 0 16px; padding: 0;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px;
+  }
+  .adm-sphere-legend li {
+    display: flex; align-items: center; gap: 8px;
+    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+    font-size: 12.5px; color: #2A3032; font-weight: 400;
+  }
+  .adm-sphere-dot {
+    width: 8px; height: 8px; border-radius: 999px;
+    flex-shrink: 0;
+  }
+  .adm-sphere-dot.dot-you    { background: #5B647D; }
+  .adm-sphere-dot.dot-tagro  { background: #FFFFFF; border: 1.5px solid #5B647D; }
+  .adm-sphere-dot.dot-dev    { background: #FFFFFF; border: 1.5px solid #848D9B; }
+  .adm-sphere-dot.dot-festag { background: #FFFFFF; border: 1.5px solid #C2C7D0; }
+
+  /* ---- Chip-Input (Mode team) — 1:1 wie .adm-input + Chip-Zeile oben ---- */
   .adm-chip-input {
     width: 100%;
-    min-height: 56px;
+    min-height: 42px;
     background: #F7F8FB;
-    border-radius: 12px;
-    padding: 8px 10px;
+    border-radius: 8px !important;
+    padding: 0 16px;
     display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
     transition: background .14s, box-shadow .14s;
   }
@@ -575,14 +689,14 @@ const CSS = `
   }
   .adm-chip {
     display: inline-flex; align-items: center; gap: 4px;
-    height: 28px; padding: 0 6px 0 10px;
+    height: 26px; padding: 0 6px 0 10px;
     background: #FFFFFF; color: #2A3032;
     border: 1px solid #E7EBF0;
     border-radius: 999px;
-    font-size: 12.5px; font-weight: 500;
+    font-size: 12px; font-weight: 500;
   }
   .adm-chip button {
-    width: 20px; height: 20px;
+    width: 18px; height: 18px;
     border: 0; background: transparent;
     color: #848D9B; border-radius: 999px;
     display: inline-flex; align-items: center; justify-content: center;
@@ -591,11 +705,13 @@ const CSS = `
   .adm-chip button:hover { background: #F1F3F6; color: #2A3032; }
   .adm-chip-input-field {
     flex: 1; min-width: 140px;
+    height: 40px;
     border: 0; outline: 0; background: transparent;
     color: #2A3032; font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
     font-size: 13px;
+    letter-spacing: .01em !important;
   }
-  .adm-chip-input-field::placeholder { color: #C2C7D0; }
+  .adm-chip-input-field::placeholder { color: #C2C7D0; letter-spacing: .01em !important; }
 
   /* ---- @-Autocomplete ---- */
   .adm-input-wrap { position: relative; }

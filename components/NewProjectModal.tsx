@@ -260,8 +260,29 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
     setLoadingStep(0)
     const ticks = [350, 900, 1500]
     const timers = ticks.map((t, i) => setTimeout(() => setLoadingStep(i + 1), t))
-    return () => { timers.forEach(clearTimeout) }
+    // Watchdog: wenn Loading > 10s steht, ist irgendwas hängen geblieben.
+    // Phase auf error setzen damit der Nutzer das Modal schließen kann.
+    const watchdog = setTimeout(() => {
+      setError('Es dauert länger als gewohnt. Bitte erneut versuchen oder schließen.')
+      setPhase('error')
+    }, 10000)
+    return () => { timers.forEach(clearTimeout); clearTimeout(watchdog) }
   }, [phase])
+
+  // ESC erlauben sobald Loading > 2s — falls hängt soll der Nutzer raus können.
+  useEffect(() => {
+    if (phase !== 'loading') return
+    const t = setTimeout(() => {
+      const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+      document.addEventListener('keydown', handler)
+      ;(window as any).__npmLoadingEsc = handler
+    }, 2000)
+    return () => {
+      clearTimeout(t)
+      const h = (window as any).__npmLoadingEsc
+      if (h) document.removeEventListener('keydown', h)
+    }
+  }, [phase, onClose])
 
   // Voice dictation — schreibt in das Feld, das den letzten Fokus hatte
   // (Projektname / Beschreibung / Chat-Input).
@@ -567,14 +588,19 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
         body: JSON.stringify({ description: description.trim(), projectId }),
       }).catch(() => {})
 
-      setPhase('success')
       const next = selectedDelivery.postCreate
       if (next) {
-        // Direkt in den Assign-Dev-Sub-Flow wechseln, wie in Figma gezeigt.
-        setTimeout(() => {
-          setPostFlow({ kind: next, projectId: projectId!, projectTitle: suggestedTitle() })
-        }, 350)
+        // Pill verlangt einen Sub-Flow: KEINE Erfolgs-Animation, direkt
+        // das passende Popup aufschlagen. Pflicht-Flag, damit das Projekt
+        // bei Abbruch wieder rolled back wird.
+        setPostFlow({
+          kind: next,
+          projectId: projectId!,
+          projectTitle: suggestedTitle(),
+          requiresAssignment: true,
+        })
       } else {
+        setPhase('success')
         setTimeout(() => onCreated?.(projectId!), 700)
       }
     } catch (e: any) {
@@ -866,7 +892,7 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
             </div>
           )}
 
-          {phase === 'loading' && (
+          {phase === 'loading' && !postFlow && (
             <div className="npm-busy">
               <div className="npm-busy-mark"><ArrowsClockwise size={20} className="npm-spin" /></div>
               <h3>Tagro strukturiert dein Projekt…</h3>
@@ -1634,8 +1660,10 @@ const CSS = `
 
   /* ---- Loading + success states ---- */
   .npm-busy {
-    padding: 40px 26px 36px;
-    display: flex; flex-direction: column; align-items: center; text-align: center;
+    flex: 1; min-height: 0;
+    padding: 24px 26px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; text-align: center;
     gap: 14px;
   }
   .npm-busy h3 {
