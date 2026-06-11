@@ -453,6 +453,12 @@ function TeamInviteList({
   const [input, setInput] = useState('')
   const [err, setErr] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const fieldRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    const t = window.setTimeout(() => fieldRef.current?.focus(), 80)
+    return () => window.clearTimeout(t)
+  }, [])
 
   const pending = input.trim().replace(/[,;]+$/, '')
   const pendingValid = EMAIL_RE.test(pending)
@@ -509,7 +515,7 @@ function TeamInviteList({
 
   return (
     <>
-      <div className="adm-chip-input">
+      <div className="adm-chip-input" onClick={() => fieldRef.current?.focus()}>
         {emails.map(e => (
           <span key={e} className="adm-chip">
             {e}
@@ -517,6 +523,7 @@ function TeamInviteList({
           </span>
         ))}
         <input
+          ref={fieldRef}
           className="adm-chip-input-field"
           type="email"
           value={input}
@@ -638,7 +645,7 @@ const CSS = `
   .adm-input {
     width: 100%;
     height: 42px;
-    background: #F3F4FA;
+    background: #F3F5F7;
     border: 0;
     border-radius: 8px !important;
     outline: 0;
@@ -646,13 +653,14 @@ const CSS = `
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
     font-size: 13px; line-height: 1.5; font-weight: 400;
     padding: 0 16px;
-    transition: background .14s, box-shadow .14s;
+    transition: background .14s;
     letter-spacing: .01em !important;
+    caret-color: #5B647D;
   }
   .adm-input::placeholder { color: #C2C7D0; opacity: 1; letter-spacing: .01em !important; }
   .adm-input:focus {
-    background: #EDEFF8;
-    box-shadow: 0 0 0 2px rgba(91,100,125,.12);
+    background: #ECEFF2;
+    box-shadow: none;
   }
 
   /* ---- Festag Sphere (Mode festag) ---- */
@@ -727,15 +735,16 @@ const CSS = `
   .adm-chip-input {
     width: 100%;
     min-height: 42px;
-    background: #F3F4FA;
+    background: #F3F5F7;
     border-radius: 8px !important;
     padding: 0 16px;
     display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
-    transition: background .14s, box-shadow .14s;
+    transition: background .14s;
+    cursor: text;
   }
   .adm-chip-input:focus-within {
-    background: #EDEFF8;
-    box-shadow: 0 0 0 2px rgba(91,100,125,.12);
+    background: #ECEFF2;
+    box-shadow: none;
   }
   .adm-chip {
     display: inline-flex; align-items: center; gap: 4px;
@@ -760,6 +769,7 @@ const CSS = `
     color: #2A3032; font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
     font-size: 13px;
     letter-spacing: .01em !important;
+    caret-color: #5B647D;
   }
   .adm-chip-input-field::placeholder { color: #C2C7D0; letter-spacing: .01em !important; }
 
