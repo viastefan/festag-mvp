@@ -24,7 +24,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { createClient } from '@/lib/supabase/client'
 import TagroLogo from '@/components/TagroLogo'
-import AssignDevModal from '@/components/AssignDevModal'
+import AssignDevModal, { type AssignDraftPayload } from '@/components/AssignDevModal'
 import { useSpeechRecognition } from '@/hooks/useSpeechRecognition'
 import { useMicLevel } from '@/hooks/useMicLevel'
 import {
@@ -139,7 +139,9 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
 
   // After-create sub-flow (Assign / Invite).
   type PostKind = 'assign-existing' | 'assign-invite' | 'assign-team' | 'assign-festag'
-  const [postFlow, setPostFlow] = useState<null | { kind: PostKind; projectId: string; projectTitle: string; requiresAssignment?: boolean; assigned?: boolean }>(null)
+  const [postFlow, setPostFlow] = useState<null | { kind: PostKind; projectId: string; projectTitle: string; requiresAssignment?: boolean; assigned?: boolean; draft?: boolean }>(null)
+  // Daten aus dem Sub-Popup, die beim FINALISIEREN angewendet werden.
+  const [pendingAssign, setPendingAssign] = useState<null | { kind: PostKind; payload: AssignDraftPayload }>(null)
 
   const titleRef = useRef<HTMLInputElement>(null)
   const descRef = useRef<HTMLTextAreaElement>(null)
@@ -486,18 +488,38 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
   // Tagro-Chat überspringen. Danach abhängig vom Umsetzungs-Pill weiter:
   // assign_existing_dev / invite_new_dev → AssignDevModal öffnen.
   // festag_delivery / team_internal     → Modal schließen, weiter zum Projekt.
-  async function manualCreate() {
+  /** Click auf "Manuell anlegen" — öffnet das Sub-Popup im DRAFT-Modus
+   *  ohne das Projekt schon in der DB anzulegen. */
+  function manualCreate() {
     if (phase === 'loading') return
     if (!title.trim()) { setError('Bitte zuerst einen Projektnamen eingeben.'); return }
     setError('')
     const next = selectedDelivery.postCreate
-    // Bei Assign-Flow keine Loading-Animation — direkt zum Sub-Popup.
-    if (!next) setPhase('loading')
+    if (next) {
+      // Sub-Popup mit draft=true → sammelt Daten, kein DB-Write.
+      setPostFlow({
+        kind: next,
+        projectId: '',                 // existiert noch nicht
+        projectTitle: title.trim(),
+        draft: true,
+      })
+      return
+    }
+    // Keine Sub-Pill → direkt finalisieren.
+    void finalize(null)
+  }
+
+  /** Erstellt das Projekt JETZT WIRKLICH in der DB und führt — falls
+   *  pendingAssign vorhanden — die Zuweisung durch. */
+  async function finalize(pending: typeof pendingAssign) {
+    if (phase === 'loading') return
+    setError('')
+    setPhase('loading')
     try {
       const { data: sessionData } = await supabase.auth.getSession()
       const userId = sessionData.session?.user.id
       if (!userId) throw new Error('Bitte melde dich erneut an.')
-      const projectTitleVal = title.trim()
+      const projectTitleVal = title.trim() || 'Neues Projekt'
       const { data: created, error: insErr } = await (supabase as any)
         .from('projects')
         .insert({
@@ -514,15 +536,38 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
         await (supabase as any).from('projects').update({ delivery_model: delivery }).eq('id', projectId)
       } catch {}
 
-      if (next) {
-        // Direkt das AssignDevModal aufschlagen — keine Erfolgs-Animation.
-        // Wenn der Nutzer es OHNE Zuweisung schließt, wird das Projekt
-        // wieder gelöscht (siehe onClose-Handler unten).
-        setPostFlow({ kind: next, projectId, projectTitle: projectTitleVal, requiresAssignment: true })
-      } else {
-        setPhase('success')
-        setTimeout(() => onCreated?.(projectId), 500)
+      // Falls beim Sub-Popup Assign-Daten gesammelt wurden: jetzt versenden.
+      if (pending?.payload) {
+        const p = pending.payload
+        try {
+          if (p.mode === 'existing' || p.mode === 'invite') {
+            await fetch('/api/projects/assign-dev', {
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                projectId, projectTitle: projectTitleVal,
+                devEmail: 'devEmail' in p ? p.devEmail : undefined,
+                devHandle: 'devHandle' in p ? p.devHandle : undefined,
+              }),
+            }).catch(() => null)
+          } else if (p.mode === 'team') {
+            const res = await fetch('/api/projects/assign-team', {
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ projectId, projectTitle: projectTitleVal, emails: p.emails }),
+            }).catch(() => null)
+            if (!res || !res.ok) {
+              await Promise.all(p.emails.map(em => fetch('/api/projects/assign-dev', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ projectId, projectTitle: projectTitleVal, devEmail: em }),
+              }).catch(() => null)))
+            }
+          }
+          // mode 'festag' braucht keine extra API — Tagro übernimmt asynchron.
+        } catch { /* still complete project creation */ }
       }
+
+      setPendingAssign(null)
+      setPhase('success')
+      setTimeout(() => onCreated?.(projectId), 500)
     } catch (e: any) {
       setError(e?.message || 'Projekt konnte nicht angelegt werden.')
       setPhase('form')
@@ -787,6 +832,26 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
 
               {error && <p className="npm-error" role="alert">{error}</p>}
 
+              {pendingAssign && (
+                <div className="npm-pending-chip" role="status">
+                  <Check size={14} weight="bold" />
+                  <span>
+                    {pendingAssign.payload.mode === 'team'
+                      ? `${pendingAssign.payload.emails.length} Einladung${pendingAssign.payload.emails.length === 1 ? '' : 'en'} vorbereitet`
+                      : pendingAssign.payload.mode === 'festag'
+                      ? 'Tagro wählt den passenden Entwickler aus'
+                      : 'devEmail' in pendingAssign.payload && pendingAssign.payload.devEmail
+                      ? `Einladung an ${pendingAssign.payload.devEmail}`
+                      : 'devHandle' in pendingAssign.payload && pendingAssign.payload.devHandle
+                      ? `Dev @${pendingAssign.payload.devHandle} wird zugewiesen`
+                      : 'Daten gesammelt'}
+                  </span>
+                  <button type="button" onClick={() => setPendingAssign(null)} aria-label="Verwerfen">
+                    <X size={11} />
+                  </button>
+                </div>
+              )}
+
               {canStructure && !chipDismissed && (
                 <div className="npm-insert-chip" role="region" aria-label="Eingabe übersetzen">
                   <span className="npm-insert-label">
@@ -939,14 +1004,22 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
                 <button
                   ref={secondaryBtnRef}
                   type="button"
-                  className={`npm-secondary${phase === 'chat' ? ' is-collapsed' : ''}`}
-                  onClick={manualCreate}
+                  className={`npm-secondary${phase === 'chat' ? ' is-collapsed' : ''}${pendingAssign ? ' is-finalize' : ''}`}
+                  onClick={() => {
+                    if (pendingAssign) void finalize(pendingAssign)
+                    else manualCreate()
+                  }}
                   disabled={!canManual || phase === 'chat'}
                   aria-hidden={phase === 'chat'}
                   tabIndex={phase === 'chat' ? -1 : 0}
                   title={!canManual ? 'Bitte zuerst einen Projektnamen eingeben' : undefined}
                 >
-                  Manuell anlegen
+                  {pendingAssign ? (
+                    <>
+                      <Check size={14} weight="bold" />
+                      <span>Finalisieren</span>
+                    </>
+                  ) : 'Manuell anlegen'}
                 </button>
                 <button
                   ref={primaryBtnRef}
@@ -977,22 +1050,27 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
             postFlow.kind === 'assign-team' ? 'team' :
             'festag'
           }
+          draft={postFlow.draft}
+          onSubmitDraft={(payload) => {
+            // Daten merken, Sub-Popup schließen, zurück zur Form.
+            // Button wird zu "Finalisieren".
+            setPendingAssign({ kind: postFlow.kind, payload })
+            setPostFlow(null)
+          }}
           onAssigned={() => {
-            // Markieren, dass eine Zuweisung erfolgt ist — Schließen ist
-            // jetzt erlaubt ohne Rollback.
             setPostFlow(p => p ? { ...p, assigned: true } : p)
           }}
           onClose={async () => {
             const id = postFlow.projectId
-            const mustRollback = postFlow.requiresAssignment && !postFlow.assigned
+            const mustRollback = !postFlow.draft && postFlow.requiresAssignment && !postFlow.assigned
             setPostFlow(null)
-            if (mustRollback) {
-              // Manuell-anlegen-Flow ohne Zuweisung → Projekt wieder weg.
+            if (mustRollback && id) {
               try { await (supabase as any).from('projects').delete().eq('id', id) } catch {}
               setPhase('form')
               return
             }
-            onCreated?.(id)
+            if (postFlow.draft) return  // bleibt im NewProjectModal
+            if (id) onCreated?.(id)
           }}
         />
       )}
@@ -1340,6 +1418,43 @@ const CSS = `
     font-size: 12.5px; font-weight: 500; line-height: 1.5;
   }
   .npm-error.in-chat { margin: 0 22px 10px; }
+
+  /* ---- Pending Assign Chip — zeigt was beim Finalize angewendet wird ---- */
+  .npm-pending-chip {
+    display: inline-flex; align-items: center; gap: 8px;
+    width: fit-content; max-width: 100%;
+    padding: 8px 8px 8px 14px;
+    background: #EEF1F8;
+    color: #5B647D;
+    border-radius: 999px;
+    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+    font-size: 12.5px; font-weight: 500;
+    letter-spacing: .01em;
+    animation: npmPop .24s cubic-bezier(.16,1,.3,1) both;
+  }
+  .npm-pending-chip > span {
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .npm-pending-chip button {
+    width: 22px; height: 22px;
+    border: 0; border-radius: 999px !important;
+    background: transparent; color: #5B647D;
+    display: inline-flex; align-items: center; justify-content: center;
+    cursor: pointer; flex-shrink: 0;
+    transition: background .12s;
+  }
+  .npm-pending-chip button:hover { background: rgba(91,100,125,.12); }
+
+  /* Finalize-State des Secondary-Buttons — Slate-Akzent statt neutral */
+  .npm-secondary.is-finalize {
+    border-color: #5B647D !important;
+    color: #5B647D !important;
+    gap: 8px;
+  }
+  .npm-secondary.is-finalize:hover:not(:disabled) {
+    background: #5B647D !important;
+    color: #FFFFFF !important;
+  }
 
   /* ---- Auto-Pill Hint ---- */
   .npm-intent-hint {

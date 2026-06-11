@@ -26,6 +26,13 @@ import { Check, X } from '@phosphor-icons/react'
 
 export type AssignDevMode = 'existing' | 'invite' | 'team' | 'festag'
 
+/** Was im Draft-Modus eingesammelt wird (Projekt existiert noch nicht). */
+export type AssignDraftPayload =
+  | { mode: 'existing'; devHandle?: string; devEmail?: string }
+  | { mode: 'invite'; devEmail: string }
+  | { mode: 'team'; emails: string[] }
+  | { mode: 'festag' }
+
 interface Props {
   open: boolean
   projectId: string
@@ -34,11 +41,15 @@ interface Props {
   onAssigned?: (devId: string) => void
   /** existing = Benutzer/E-Mail-Lookup, invite = neuer Einladungslink. */
   mode?: AssignDevMode
+  /** Draft-Modus: keine API-Calls, nur Daten einsammeln und via
+   *  onSubmitDraft zurückgeben. Verwendet wenn Projekt noch nicht in DB. */
+  draft?: boolean
+  onSubmitDraft?: (payload: AssignDraftPayload) => void
 }
 
 export default function AssignDevModal({
   open, projectId, projectTitle, onClose, onAssigned,
-  mode = 'invite',
+  mode = 'invite', draft = false, onSubmitDraft,
 }: Props) {
   const [value, setValue] = useState('')
   const [working, setWorking] = useState(false)
@@ -162,10 +173,21 @@ export default function AssignDevModal({
       }
     }
 
+    const looksLikeEmail = /.+@.+\..+/.test(raw)
+    const handle = !looksLikeEmail ? raw.replace(/^@/, '') : null
+
+    // Draft-Modus: nur Daten zurückgeben, kein API-Call. Projekt wird
+    // erst beim Finalisieren im NewProjectModal angelegt.
+    if (draft) {
+      const payload: AssignDraftPayload = mode === 'invite'
+        ? { mode: 'invite', devEmail: raw.toLowerCase() }
+        : { mode: 'existing', ...(handle ? { devHandle: handle } : { devEmail: raw.toLowerCase() }) }
+      onSubmitDraft?.(payload)
+      return
+    }
+
     setWorking(true)
     try {
-      const looksLikeEmail = /.+@.+\..+/.test(raw)
-      const handle = !looksLikeEmail ? raw.replace(/^@/, '') : null
       const res = await fetch('/api/projects/assign-dev', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -273,7 +295,10 @@ export default function AssignDevModal({
               ref={primaryRef}
               type="button"
               className="adm-primary"
-              onClick={() => { setDone({ provisioned: false }); onAssigned?.('') }}
+              onClick={() => {
+                if (draft) { onSubmitDraft?.({ mode: 'festag' }); return }
+                setDone({ provisioned: false }); onAssigned?.('')
+              }}
               disabled={working}
             >
               Verstanden — Tagro übernimmt
@@ -289,6 +314,8 @@ export default function AssignDevModal({
               EMAIL_RE={EMAIL_RE}
               projectId={projectId}
               projectTitle={projectTitle}
+              draft={draft}
+              onSubmitDraft={onSubmitDraft}
             />
             {helper && <p className="adm-help">{helper}</p>}
           </>
@@ -411,6 +438,7 @@ function FestagSphere() {
 // ----------------------------------------------------------------------------
 function TeamInviteList({
   onAssigned, onDone, primaryRef, EMAIL_RE, projectId, projectTitle,
+  draft, onSubmitDraft,
 }: {
   onAssigned: () => void
   onDone: () => void
@@ -418,6 +446,8 @@ function TeamInviteList({
   EMAIL_RE: RegExp
   projectId: string
   projectTitle: string
+  draft?: boolean
+  onSubmitDraft?: (payload: AssignDraftPayload) => void
 }) {
   const [emails, setEmails] = useState<string[]>([])
   const [input, setInput] = useState('')
@@ -447,6 +477,11 @@ function TeamInviteList({
     const finalEmails = commit()
     if (!finalEmails || finalEmails.length === 0) {
       setErr('Bitte mindestens eine gültige E-Mail-Adresse eingeben.')
+      return
+    }
+    // Draft-Modus: nur Daten zurückgeben.
+    if (draft) {
+      onSubmitDraft?.({ mode: 'team', emails: finalEmails })
       return
     }
     setErr(null); setBusy(true)
@@ -794,32 +829,25 @@ const CSS = `
     font-size: 12px; font-weight: 500; line-height: 1.5;
   }
 
-  /* ---- Success state (Figma 184:88) ---- */
+  /* ---- Success state (Figma 184:88) — EIN Satz, kleiner Zeilenabstand ---- */
   .adm-success {
-    display: flex; align-items: center; justify-content: space-between;
-    gap: 18px;
-    padding: 4px 0 0;
+    display: flex; align-items: center; gap: 16px;
+    padding: 4px 60px 0 0;  /* rechts Platz lassen damit Check NICHT ans X stößt */
   }
   .adm-success-text { flex: 1; min-width: 0; }
-  .adm-success-title {
-    margin: 0 0 6px;
-    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
-    font-size: 17px; line-height: 1.3;
-    color: #1E2126;
-    font-weight: 500;
-    letter-spacing: -.002em;
-  }
-  .adm-success-title strong { font-weight: 500; }
+  .adm-success-title,
   .adm-success-sub {
     margin: 0;
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
-    font-size: 17px; line-height: 1.35;
-    color: #ADB3BD;
+    font-size: 16px; line-height: 1.35;
     font-weight: 500;
     letter-spacing: -.002em;
   }
+  .adm-success-title { color: #1E2126; }
+  .adm-success-title strong { font-weight: 500; }
+  .adm-success-sub { color: #ADB3BD; }
   .adm-success-mark {
-    width: 56px; height: 56px;
+    width: 48px; height: 48px;
     border-radius: 999px !important;
     border: 1px solid #E7EBF0;
     background: #FFFFFF;
@@ -828,6 +856,7 @@ const CSS = `
     flex-shrink: 0;
     box-shadow: 0 1px 2px rgba(15,23,42,.04), 0 8px 20px -10px rgba(15,23,42,.18);
   }
+  .adm-success-mark svg { width: 20px; height: 20px; }
   .adm-success-mark svg { width: 22px; height: 22px; }
 
   @media (max-width: 480px) {
