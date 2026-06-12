@@ -22,6 +22,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { motion, useDragControls, type PanInfo } from 'framer-motion'
 import { createClient } from '@/lib/supabase/client'
 import TagroLogo from '@/components/TagroLogo'
 import AssignDevModal, { type AssignDraftPayload } from '@/components/AssignDevModal'
@@ -83,13 +84,6 @@ const DELIVERY_OPTIONS: DeliveryOption[] = [
   },
 ]
 
-const GREETING_PROMPTS = [
-  ['Was möchten Sie', 'neu umsetzten?'],
-  ['Welche Idee', 'wollen Sie starten?'],
-  ['Womit soll', 'Tagro beginnen?'],
-  ['Was steht', 'als nächstes an?'],
-] as const
-
 type Phase = 'form' | 'chat' | 'loading' | 'success' | 'error'
 type ChatTurn = { role: 'user' | 'tagro'; text: string }
 
@@ -127,16 +121,6 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
     return () => mq.removeEventListener?.('change', update)
   }, [])
 
-  // Animated greeting (mobile only) — rotates every 4.5 s.
-  const [greetingIndex, setGreetingIndex] = useState(0)
-  useEffect(() => {
-    if (!isMobile) return
-    const t = window.setInterval(() => {
-      setGreetingIndex(i => (i + 1) % GREETING_PROMPTS.length)
-    }, 4500)
-    return () => window.clearInterval(t)
-  }, [isMobile])
-
   // After-create sub-flow (Assign / Invite).
   type PostKind = 'assign-existing' | 'assign-invite' | 'assign-team' | 'assign-festag'
   const [postFlow, setPostFlow] = useState<null | { kind: PostKind; projectId: string; projectTitle: string; requiresAssignment?: boolean; assigned?: boolean; draft?: boolean }>(null)
@@ -152,40 +136,48 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
   const primaryBtnRef = useRef<HTMLButtonElement>(null)
   const secondaryBtnRef = useRef<HTMLButtonElement>(null)
   const sheetRef = useRef<HTMLDivElement>(null)
-  const touchStartYRef = useRef<number | null>(null)
-  const touchDeltaRef = useRef(0)
+  // Drag init is restricted to the handle (dragListener=false). Entrance,
+  // snap-back and slide-down-to-close are declarative (initial/animate) so the
+  // spring is robust to the isMobile flip and React StrictMode re-mounts.
+  const dragControls = useDragControls()
+  const [closing, setClosing] = useState(false)
+  // Mount the sheet hidden (y:100%), then flip `entered` next frame so the
+  // `animate` target CHANGES → framer reliably runs the spring-up transition.
+  const [entered, setEntered] = useState(false)
+  useEffect(() => {
+    if (!isMobile) { setEntered(false); return }
+    const id = requestAnimationFrame(() => setEntered(true))
+    return () => { cancelAnimationFrame(id); setEntered(false) }
+  }, [isMobile])
 
-  function onSheetTouchStart(e: React.TouchEvent) {
+  // High-quality iOS spring for entrance + snap-back; quick ease-out for close.
+  const SHEET_SPRING = { type: 'spring' as const, stiffness: 320, damping: 32, mass: 0.9 }
+  const SHEET_CLOSE = { type: 'tween' as const, duration: 0.3, ease: [0.32, 0.72, 0, 1] as [number, number, number, number] }
+
+  /** Close that respects the layout: mobile slides the sheet down first (then
+   *  onAnimationComplete fires onClose); desktop closes immediately. Never
+   *  closes mid-loading. */
+  function requestClose() {
     if (phase === 'loading') return
-    touchStartYRef.current = e.touches[0].clientY
-    touchDeltaRef.current = 0
+    if (isMobile) setClosing(true)
+    else onClose()
   }
-  function onSheetTouchMove(e: React.TouchEvent) {
-    if (touchStartYRef.current == null || !sheetRef.current) return
-    const dy = e.touches[0].clientY - touchStartYRef.current
-    if (dy <= 0) { sheetRef.current.style.transform = 'translateY(0)'; return }
-    touchDeltaRef.current = dy
-    sheetRef.current.style.transform = `translateY(${dy}px)`
-    sheetRef.current.style.transition = 'none'
-  }
-  function onSheetTouchEnd() {
-    if (!sheetRef.current) return
-    const dy = touchDeltaRef.current
-    sheetRef.current.style.transition = 'transform .3s cubic-bezier(.16,1,.3,1)'
-    if (dy > 110) {
-      sheetRef.current.style.transform = 'translateY(100%)'
-      setTimeout(onClose, 280)
-    } else {
-      sheetRef.current.style.transform = 'translateY(0)'
-    }
-    touchStartYRef.current = null
-    touchDeltaRef.current = 0
+
+  /** Release handler for the draggable sheet. Dismiss when dragged past ~35 %
+   *  of the sheet height or flicked down fast; otherwise framer-motion springs
+   *  it back to rest (animate y:0) on its own. */
+  function onSheetDragEnd(_e: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) {
+    const sheetH = sheetRef.current?.offsetHeight ?? window.innerHeight
+    const draggedFar = info.offset.y > sheetH * 0.35
+    const flickedDown = info.velocity.y > 700
+    if (info.offset.y > 0 && (draggedFar || flickedDown)) setClosing(true)
   }
 
   useEffect(() => {
     const apply = () => {
       micBtnRef.current?.style.setProperty('border-radius', '999px', 'important')
-      primaryBtnRef.current?.style.setProperty('border-radius', '999px', 'important')
+      // Mobile CTA = Figma 32px radius; desktop CTA = full pill.
+      primaryBtnRef.current?.style.setProperty('border-radius', isMobile ? '32px' : '999px', 'important')
       primaryBtnRef.current?.style.setProperty('font-weight', '400', 'important')
       secondaryBtnRef.current?.style.setProperty('border-radius', '999px', 'important')
       secondaryBtnRef.current?.style.setProperty('font-weight', '400', 'important')
@@ -199,22 +191,25 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
   const [mounted, setMounted] = useState(false)
   useEffect(() => { setMounted(true) }, [])
   useEffect(() => {
-    if (!mounted) return
+    // No auto-focus on mobile — opening the keyboard would fight the sheet
+    // slide-up and the safe-area layout.
+    if (!mounted || isMobile) return
     const t = window.setTimeout(() => titleRef.current?.focus(), 30)
     return () => window.clearTimeout(t)
-  }, [mounted])
+  }, [mounted, isMobile])
 
   // ESC closes — but never mid-loading so a half-finished submit can't be lost.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && phase !== 'loading') {
         if (deliveryPickerOpen) { setDeliveryPickerOpen(false); return }
-        onClose()
+        requestClose()
       }
     }
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
-  }, [onClose, phase, deliveryPickerOpen])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [onClose, phase, deliveryPickerOpen, isMobile])
 
   // Click outside delivery picker (mobile dropdown) closes it.
   useEffect(() => {
@@ -654,9 +649,6 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
     }
   }
 
-  // Greeting tokens.
-  const greeting = GREETING_PROMPTS[greetingIndex]
-
   if (!mounted) return null
 
   const tree = (
@@ -665,44 +657,58 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
         <style>{CSS}</style>
         <div
           className="npm-backdrop"
-          onMouseDown={e => {
+          onPointerDown={e => {
             if (phase === 'loading') return
-            if (e.target === e.currentTarget) onClose()
+            if (e.target === e.currentTarget) requestClose()
           }}
           aria-hidden
         />
 
-        {/* Mobile greeting bar lives ABOVE the sheet so it animates separately. */}
+        {/* Static header (Figma 259:329 + 259:307) — lives ABOVE the sheet and
+            never animates, slides, or re-renders. Only the sheet moves. */}
         {isMobile && phase === 'form' && (
-          <div className="npm-greeting" aria-hidden>
-            <div className="npm-greeting-text" key={greetingIndex}>
-              <span className="primary">{greeting[0]}</span>{' '}
-              <span className="muted">{greeting[1]}</span>
+          <div className="npm-greeting">
+            <div className="npm-greeting-text">
+              <span className="primary">Was steht an?</span>
+              <br />
+              <span className="muted">Was wird umgesetzt?</span>
             </div>
             <div className="npm-greeting-pill">
-              <button type="button" aria-label="Suchen"><MagnifyingGlass size={14} weight="regular" /></button>
-              <button type="button" aria-label="Mehr"><DotsNine size={14} weight="regular" /></button>
+              <button type="button" aria-label="Suchen"><MagnifyingGlass size={16} weight="regular" /></button>
+              <button type="button" aria-label="Mehr"><DotsNine size={18} weight="regular" /></button>
             </div>
           </div>
         )}
 
-        <div
+        <motion.div
+          key={isMobile ? 'sheet' : 'modal'}
           className={`npm-card${phase === 'chat' ? ' is-chat' : ''}${isMobile ? ' is-sheet' : ''}`}
           role="document"
           onMouseDown={e => e.stopPropagation()}
           ref={sheetRef}
+          {...(isMobile
+            ? {
+                drag: 'y' as const,
+                dragControls,
+                dragListener: false,
+                dragConstraints: { top: 0 },
+                dragElastic: 0,
+                dragMomentum: false,
+                onDragEnd: onSheetDragEnd,
+                initial: { y: '100%' },
+                animate: { y: (entered && !closing) ? '0%' : '100%' },
+                transition: closing ? SHEET_CLOSE : SHEET_SPRING,
+                onAnimationComplete: () => { if (closing) onClose() },
+              }
+            : {})}
         >
           {isMobile && (
             <div
               className="npm-drag-area"
-              onTouchStart={onSheetTouchStart}
-              onTouchMove={onSheetTouchMove}
-              onTouchEnd={onSheetTouchEnd}
-              role="button"
-              tabIndex={0}
-              aria-label="Nach unten ziehen zum Schließen"
+              onPointerDown={e => { if (phase !== 'loading') dragControls.start(e) }}
+              aria-hidden
             >
-              <div className="npm-drag-handle" aria-hidden />
+              <div className="npm-drag-handle" />
             </div>
           )}
 
@@ -789,13 +795,13 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
                     aria-haspopup="listbox" aria-expanded={deliveryPickerOpen}
                   >
                     <span>{selectedDelivery.id === 'festag_delivery' ? 'Umsetzung wählen' : selectedDelivery.label}</span>
-                    <CaretDown size={11} weight="regular" />
+                    <CaretDown size={16} weight="fill" />
                   </button>
                   <button
-                    type="button" className="npm-help"
+                    type="button" className="npm-help mobile"
                     aria-label="Was bedeutet Umsetzung?" title="Wie soll dein Projekt umgesetzt werden?"
                   >
-                    <Question size={11} weight="regular" />
+                    <span aria-hidden>?</span>
                   </button>
 
                   {deliveryPickerOpen && (
@@ -1036,7 +1042,10 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
               </div>
             </footer>
           )}
-        </div>
+
+          {/* Figma 259:310 — faint secondary indicator in the lower sheet. */}
+          {isMobile && phase === 'form' && <div className="npm-deco-bar" aria-hidden />}
+        </motion.div>
       </div>
 
       {postFlow && (
@@ -1128,17 +1137,18 @@ const CSS = `
     backdrop-filter: blur(12px) saturate(115%);
     -webkit-backdrop-filter: blur(12px) saturate(115%);
   }
-  /* ===== MOBILE = IMMER LIGHT (Figma 185:198). Heller Lavendel-Backdrop
-     statt dunklem Blur, alle Theme-Variablen hart auf Light. ===== */
-  .npm-overlay.is-mobile { color-scheme: light; }
+  /* ===== MOBILE = IMMER LIGHT (Figma 259:304). Heller Backdrop rgba(252,252,252,.9).
+     Overlay selbst animiert NICHT — nur der Backdrop blendet auf, das Sheet
+     federt rein. Header bleibt komplett statisch. ===== */
+  .npm-overlay.is-mobile { color-scheme: light; animation: none; }
   .npm-overlay.is-mobile .npm-backdrop {
-    background: #FAFBFF;
+    background: rgba(252,252,252,0.9);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
+    animation: npmFade .2s ease both;
   }
   @keyframes npmFade { from { opacity: 0 } to { opacity: 1 } }
   @keyframes npmPop  { from { opacity: 0; transform: translateY(10px) scale(.985); } to { opacity: 1; transform: none; } }
-  @keyframes npmSheet { from { transform: translateY(100%); } to { transform: none; } }
 
   .npm-card {
     position: relative; z-index: 1;
@@ -1157,18 +1167,24 @@ const CSS = `
     overflow: hidden;
     animation: npmPop .26s cubic-bezier(.16,1,.3,1) both;
   }
+  /* ---- Bottom sheet (Figma 259:311) ----
+     bg rgba(252,252,252,.7) · radius 40 oben · shadow 0 -2 4 rgba(144,149,159,.07).
+     Füllt von unterhalb des statischen Headers bis zur Bildschirmunterkante;
+     env(safe-area-inset-top) hält das Sheet frei von Dynamic Island.
+     Bewegung wird komplett von framer-motion getrieben → KEINE CSS-Animation. */
   .npm-card.is-sheet {
     width: 100%;
     max-width: 100%;
     min-height: 0;
-    /* Figma 185:198: Sheet startet bei ~113px from top, ist 761px hoch.
-       Wir mappen das auf 87% der Viewport-Höhe — füllt sauber den Großteil. */
-    height: 87dvh;
-    max-height: 87dvh;
+    height: calc(100dvh - env(safe-area-inset-top) - 96px);
+    max-height: calc(100dvh - env(safe-area-inset-top) - 56px);
     padding: 0;
+    background: rgba(252,252,252,0.7);
     border-radius: 40px 40px 0 0;
-    box-shadow: 0 -1px 8px 2px rgba(207,213,230,.25);
-    animation: npmSheet .42s cubic-bezier(.16,1,.3,1) both;
+    box-shadow: 0px -2px 4px 0px rgba(144,149,159,0.07);
+    animation: none;
+    will-change: transform;
+    touch-action: pan-y;
   }
   [data-theme="dark"] .npm-card,
   [data-theme="classic-dark"] .npm-card {
@@ -1180,29 +1196,26 @@ const CSS = `
       0 40px 96px -30px rgba(0,0,0,.7);
   }
 
-  /* ---- Mobile greeting (above sheet) ---- */
+  /* ---- Static header (Figma 259:329 text @ 24/24, 259:307 pill @ 296/14) ----
+     Niemals animiert. Safe-area schiebt unter die Dynamic Island. */
   .npm-greeting {
     position: absolute; inset: 0 0 auto 0;
     z-index: 2;
     display: flex; align-items: flex-start; justify-content: space-between;
-    padding: 19px 17px 0;
+    padding: calc(env(safe-area-inset-top) + 14px) 16px 0 24px;
     pointer-events: none;
   }
   .npm-greeting-text {
+    margin-top: 10px;          /* Pill @ 14, Text @ 24 → +10 */
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
     font-size: 25px;
-    line-height: 30px;
-    font-weight: 500;
+    line-height: normal;
+    font-weight: 400;
     letter-spacing: 0;
-    max-width: 220px;
-    animation: npmGreetIn .55s cubic-bezier(.16,1,.3,1) both;
+    white-space: nowrap;   /* 2 Zeilen via <br>, kein zusätzlicher Umbruch */
   }
-  .npm-greeting-text .primary { color: #2E2F33; }
-  .npm-greeting-text .muted   { color: #ADB3BD; opacity: 1; }
-  @keyframes npmGreetIn {
-    from { opacity: 0; transform: translateY(-8px); }
-    to   { opacity: 1; transform: none; }
-  }
+  .npm-greeting-text .primary { color: #0F0F10; }
+  .npm-greeting-text .muted   { color: #90959F; }
   .npm-greeting-pill {
     pointer-events: auto;
     display: inline-flex; align-items: center; gap: 8px;
@@ -1222,21 +1235,33 @@ const CSS = `
   .npm-greeting-pill button:hover {
     background: #F1F2F8;
   }
-  .npm-greeting-pill svg { width: 18px; height: 18px; }
 
+  /* ---- Drag handle (Figma 259:314: 48×5, rgba(144,149,159,.25), r24, @12px) ---- */
   .npm-drag-area {
     width: 100%;
-    padding: 8px 0 2px;
+    min-height: 0;            /* override globalen 44px Touch-Mindestwert */
+    padding: 12px 0 7px;
     display: flex; justify-content: center;
     cursor: grab;
     flex-shrink: 0;
-    touch-action: pan-y;
+    touch-action: none;
   }
   .npm-drag-area:active { cursor: grabbing; }
   .npm-drag-handle {
     width: 48px; height: 5px;
-    background: #ECECEE;
+    background: rgba(144,149,159,0.25);
     border-radius: 24px;
+  }
+
+  /* ---- Faint secondary indicator (Figma 259:310: 46×4, rgba(91,100,125,.4), r12) ---- */
+  .npm-deco-bar {
+    position: absolute;
+    left: 50%; transform: translateX(-50%);
+    top: 64%;
+    width: 46px; height: 4px;
+    border-radius: 12px;
+    background: rgba(91,100,125,0.4);
+    pointer-events: none;
   }
 
   /* ---- Desktop header (title input + close) ---- */
@@ -1271,18 +1296,22 @@ const CSS = `
   .npm-icon-btn:hover:not(:disabled) { opacity: 1; background: #F1F3F6; color: #5B647D; }
   .npm-icon-btn:disabled { opacity: .35; cursor: not-allowed; }
 
-  /* ---- Mobile title row ---- */
+  /* ---- Mobile title row (Figma 259:313: "Projektname" #90959F 32px @ 41/182) ---- */
   .npm-mobile-title {
-    padding: 36px 33px 0;
+    padding: 45px 41px 0;
   }
   .npm-title-input.mobile {
-    font-size: 35px;
+    width: 100%;
+    height: 41px;            /* Figma 259:313 Box-Höhe */
+    padding: 0;
+    font-size: 32px;
+    line-height: 41px;
     font-weight: 400;
     letter-spacing: 0;
     color: #2A3032;
   }
   .npm-title-input.mobile::placeholder {
-    color: #CBCFD6;
+    color: #90959F;
     opacity: 1;
   }
 
@@ -1294,9 +1323,15 @@ const CSS = `
     flex: 1;
     min-height: 0;
   }
+  /* Mobile body — Dropdown @ 41/271 (48px unter Projektname), Beschreibung
+     @ 44/341 (36px unter Dropdown). Overflow sichtbar fürs Dropdown-Menü. */
   .npm-card.is-sheet .npm-body {
-    padding: 28px 33px 18px;
-    gap: 32px;
+    padding: 48px 34px 0 41px;
+    gap: 36px;
+    overflow: visible !important;
+  }
+  .npm-card.is-sheet .npm-section.description {
+    margin-left: 3px;   /* 41 + 3 = 44 (Figma 259:312) */
   }
 
   /* ---- Delivery (desktop pills row) ---- */
@@ -1354,24 +1389,45 @@ const CSS = `
     background: #5B647D;
   }
 
-  /* ---- Delivery (mobile dropdown pill) — IMMER LIGHT ---- */
+  /* ---- Delivery (mobile dropdown — Figma 259:324) ----
+     bg rgba(255,255,255,.9) · h34 · pl16 pr8 py7 · gap6 · text #90959F 13 Medium
+     · shadow 0 2 4 rgba(144,149,159,.07). "?" sitzt 13px rechts daneben. */
   .npm-section.delivery.mobile {
     position: relative;
-    flex-direction: row; align-items: center; gap: 8px;
+    flex-direction: row; align-items: center; gap: 13px;
   }
   .npm-pill.dropdown {
     height: 34px;
-    background: #F3F5F7;
-    color: #848D9B;
-    padding: 0 8px 0 12px;
+    min-height: 34px;   /* override globalen 44px Touch-Mindestwert */
+    background: rgba(255,255,255,0.9);
+    color: #90959F;
+    padding: 7px 8px 7px 16px;
     font-size: 13px; font-weight: 500;
     gap: 6px;
+    box-shadow: 0px 2px 4px 0px rgba(144,149,159,0.07);
   }
-  .npm-pill.dropdown svg { width: 18px; height: 18px; }
+  .npm-pill.dropdown svg { width: 16px; height: 16px; color: #90959F; }
   .npm-pill.dropdown.on {
-    background: #E7EBF0;
+    background: rgba(255,255,255,0.95);
     color: #2A3032;
   }
+  .npm-pill.dropdown.on svg { color: #2A3032; }
+
+  /* ---- Mobile help "?" (Figma 259:322) ---- */
+  .npm-help.mobile {
+    width: 20px; height: 20px; min-height: 20px;
+    padding: 0; border: 0;
+    border-radius: 999px;
+    background: rgba(251,251,255,0.2);
+    box-shadow: 0px 4px 4px 0px rgba(91,100,125,0.25);
+    color: #848D9B;
+    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+    font-size: 14px; font-weight: 500; letter-spacing: 0.28px; line-height: 1;
+    display: inline-flex; align-items: center; justify-content: center;
+    cursor: pointer; flex-shrink: 0;
+    transition: background .12s;
+  }
+  .npm-help.mobile:hover { background: rgba(251,251,255,0.5); }
   .npm-delivery-menu {
     position: absolute; top: calc(100% + 8px); left: 0;
     z-index: 5;
@@ -1417,14 +1473,16 @@ const CSS = `
     min-height: 180px; max-height: 360px;
     padding: 0;
   }
+  /* Mobile Beschreibung (Figma 259:312): 17px / LH 35 / #90959F, Höhe 168 */
   .npm-card.is-sheet .npm-textarea {
-    font-size: 18px;
+    font-size: 17px;
     line-height: 35px;
     min-height: 168px;
+    letter-spacing: 0;
     color: #2A3032;
   }
   .npm-card.is-sheet .npm-textarea::placeholder {
-    color: #CACFD4;
+    color: #90959F;
   }
   .npm-textarea::placeholder { color: #ADB3BD; opacity: 1; }
 
@@ -1681,37 +1739,50 @@ const CSS = `
   .npm-primary:active:not(:disabled) { transform: scale(.97); }
   .npm-primary:disabled { opacity: .45; cursor: not-allowed; }
 
-  /* Mobile-Footer Figma 185:198 — NUR Mit-Tagro-CTA + Mic links.
-     "Manuell anlegen" ist auf Mobile bewusst nicht da. */
+  /* Mobile-Footer (Figma 259:315) — Frame @ 22/800, gap 12, 14px über Unterkante.
+     Mic 60×60 (259:316) + CTA 286×60 (259:318). "Manuell anlegen" entfällt mobil. */
   .npm-card.is-sheet .npm-foot {
-    padding: 0 17px 24px;
+    padding: 0 22px max(14px, env(safe-area-inset-bottom));
     margin-top: auto;
+    gap: 12px;
+    align-items: flex-end;
   }
-  .npm-card.is-sheet .npm-foot-left { gap: 12px; }
+  .npm-card.is-sheet .npm-foot-left { gap: 12px; flex: 0 0 auto; }
+  /* Figma-Mobile-Footer hat KEINEN Visualizer — nur Mic + CTA. */
+  .npm-card.is-sheet .npm-visualizer { display: none; }
   .npm-card.is-sheet .npm-foot-right {
     flex: 1; gap: 0; align-items: center;
   }
   .npm-card.is-sheet .npm-secondary { display: none !important; }
+  /* CTA (Figma 259:318): #5B647D · 60h · r32 · pad19 · gap32 · justify-end
+     · Text 16/#FFF/.32px · Shadow außen + innen. */
   .npm-card.is-sheet .npm-primary {
-    flex: 1; justify-content: center;
-    height: 55px;
-    font-size: 16px;
-    font-weight: 400;
-    letter-spacing: .02em;
-    padding: 0 19px;
-    background: rgba(91,100,125,.9) !important;
+    flex: 1;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 32px;
+    height: 60px;
+    border-radius: 32px !important;
+    font-size: 16px !important;
+    font-weight: 400 !important;
+    letter-spacing: 0.32px;
+    padding: 19px;
+    white-space: nowrap;
+    background: #5B647D !important;
     box-shadow:
-      0 4px 4px rgba(152,162,179,.25),
-      inset 0 4px 4px rgba(132,141,155,.25);
+      0px 4px 4px 0px rgba(152,162,179,0.25),
+      inset 0px 4px 4px 0px rgba(132,141,155,0.25);
   }
-  .npm-card.is-sheet .npm-primary svg { width: 22px; height: 22px; }
+  .npm-card.is-sheet .npm-primary svg { width: 24px; height: 24px; }
+  /* Mic (Figma 259:316): 60×60 weißer Kreis. */
   .npm-card.is-sheet .npm-mic-btn {
-    width: 56px; height: 56px;
+    width: 60px; height: 60px;
     box-shadow:
       0 0 0 1px rgba(15,23,42,.04),
       0 2px 4px rgba(15,23,42,.04),
       0 10px 20px -8px rgba(15,23,42,.14);
   }
+  .npm-card.is-sheet .npm-mic-btn svg { width: 26px; height: 26px; }
 
   /* ---- Chat phase ---- */
   .npm-card.is-chat {
