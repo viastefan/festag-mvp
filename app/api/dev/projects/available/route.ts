@@ -40,7 +40,7 @@ export async function GET(req: Request) {
   // Recent intake/planning/active projects — what a dev would plausibly pick up.
   const { data: projects } = await (service as any)
     .from('projects')
-    .select('id,title,description,scope_summary,color,status,project_type,delivery_model,created_at,user_id,workspace_id,client_id')
+    .select('id,title,description,scope_summary,color,status,project_type,delivery_model,created_at,user_id,workspace_id,client_id,budget_min,budget_max,budget_currency')
     .neq('status', 'archived')
     .order('created_at', { ascending: false })
     .limit(80)
@@ -82,6 +82,31 @@ export async function GET(req: Request) {
     ;(cp ?? []).forEach((c: any) => clientName.set(c.id, c.full_name || c.email || null))
   }
 
+  // Proposals: filter out projects that already have an active proposal
+  const { data: myProposals } = ids.length ? await (service as any)
+    .from('project_proposals')
+    .select('project_id,status')
+    .eq('dev_id', user.id)
+    .in('project_id', ids)
+    .in('status', ['proposed', 'budget_clarification', 'accepted']) : { data: [] as any[] }
+  const proposalProjectIds = new Set((myProposals ?? []).map((p: any) => p.project_id))
+
+  // Projects with ANY active proposal (from any dev) — for pool filtering
+  const { data: activeProposals } = ids.length ? await (service as any)
+    .from('project_proposals')
+    .select('project_id')
+    .in('project_id', ids)
+    .in('status', ['proposed', 'budget_clarification', 'accepted']) : { data: [] as any[] }
+  const projectsWithActiveProposal = new Set((activeProposals ?? []).map((p: any) => p.project_id))
+
+  // Pending proposals for the dev (shown as "Wartet auf deine Antwort")
+  const { data: pendingProposals } = await (service as any)
+    .from('project_proposals')
+    .select('id,project_id,status,dev_proposed_price,dev_clarification_translated,client_response_translated,role_on_project,is_team_lead,created_at,expires_at')
+    .eq('dev_id', user.id)
+    .in('status', ['proposed', 'budget_clarification'])
+    .order('created_at', { ascending: false })
+
   const available: any[] = []
   const mine: any[] = []
   for (const p of (projects ?? [])) {
@@ -97,15 +122,16 @@ export async function GET(req: Request) {
       assigned_count: countByProject.get(p.id) ?? 0,
       workspace_name: p.workspace_id ? (workspaceName.get(p.workspace_id) ?? null) : null,
       client_name: p.client_id ? (clientName.get(p.client_id) ?? null) : null,
+      budget_min: p.budget_min,
+      budget_max: p.budget_max,
+      budget_currency: p.budget_currency,
     }
     if (mineIds.has(p.id)) { mine.push(shape); continue }
-    // The open pool only holds Festag-directed jobs. White-label and
-    // team-internal projects are routed to a chosen developer directly and
-    // must never surface as up-for-grabs here. Legacy rows without a
-    // delivery_model are treated as Festag-directed (the original default).
     const model = p.delivery_model ?? 'festag_delivery'
-    if (model === 'festag_delivery') available.push(shape)
+    if (model === 'festag_delivery' && !projectsWithActiveProposal.has(p.id)) {
+      available.push(shape)
+    }
   }
 
-  return NextResponse.json({ available, mine })
+  return NextResponse.json({ available, mine, pendingProposals: pendingProposals ?? [] })
 }
