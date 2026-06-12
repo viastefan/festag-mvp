@@ -873,16 +873,18 @@ const CSS = `
     .pjm-t { display: inline !important; }
 
     .pj2-page {
-      background: #FCFCFC;
-      backdrop-filter: none;
-      -webkit-backdrop-filter: none;
+      background: #FCFCFC !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      overflow-x: hidden !important;
     }
 
-    /* ── Mobile header icons: connected pill (top-right) ── */
+    /* ── Mobile header icons: connected pill ── */
     .pjm-header-icons {
       display: flex !important;
       position: fixed;
-      top: 24px; right: 24px;
+      top: env(safe-area-inset-top, 12px);
+      right: 20px;
       z-index: 20;
       gap: 0;
       align-items: center;
@@ -893,6 +895,7 @@ const CSS = `
     }
     .pjm-header-icons button {
       width: 40px !important; height: 40px !important;
+      min-width: 0 !important;
       border: 0 !important; border-radius: 999px !important;
       background: transparent !important;
       color: #2A3032 !important;
@@ -901,31 +904,29 @@ const CSS = `
       padding: 0 !important;
       box-shadow: none !important;
     }
-    .pjm-icon-sep {
-      display: none !important;
-    }
+    .pjm-icon-sep { display: none !important; }
 
-    /* ── Main layout: no sidebar, no card ── */
+    /* ── Main layout ── */
     .pj2-main {
-      margin-left: 0;
-      padding: 0;
-      height: 100%;
-      display: flex; flex-direction: column;
+      margin-left: 0 !important;
+      padding: 0 !important;
+      height: 100% !important;
+      display: flex !important; flex-direction: column !important;
     }
     .pj2-card {
-      flex: 1; min-height: 0;
-      background: transparent;
-      border-radius: 0;
-      padding: 24px 24px 140px;
-      overflow-y: auto;
-      overflow-x: hidden;
-      box-shadow: none;
+      flex: 1 !important; min-height: 0 !important;
+      background: transparent !important;
+      border-radius: 0 !important;
+      padding: 20px 20px 160px !important;
+      overflow-y: auto !important;
+      overflow-x: hidden !important;
+      box-shadow: none !important;
     }
 
     /* ── Header ── */
     .pj2-head {
-      display: block;
-      margin-bottom: 24px;
+      display: block !important;
+      margin-bottom: 20px !important;
     }
     .pj2-title h1 {
       font-size: 25px !important;
@@ -946,27 +947,28 @@ const CSS = `
       margin: 0 !important;
     }
 
-    /* ── Mobile toolbar (right-aligned with content) ── */
+    /* ── Mobile toolbar ── */
     .pjm-toolbar {
       display: flex !important;
-      align-items: center;
-      justify-content: flex-end;
-      gap: 8px;
-      margin-bottom: 20px;
+      align-items: center !important;
+      justify-content: flex-end !important;
+      gap: 8px !important;
+      margin-bottom: 16px !important;
     }
     .pjm-toolbar-left {
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      display: flex !important;
+      align-items: center !important;
+      gap: 10px !important;
     }
     .pjm-tool-btn {
       width: 30px !important; height: 30px !important;
+      min-width: 30px !important; min-height: 30px !important;
       border: 0 !important;
       border-radius: 999px !important;
       background: #FFFFFF !important;
       color: #2A3032 !important;
       display: inline-flex !important; align-items: center !important; justify-content: center !important;
-      cursor: pointer;
+      cursor: pointer !important;
       box-shadow: 0 0 0 1px rgba(0,0,0,0.04), 0 2px 8px rgba(91,100,125,0.18) !important;
       padding: 0 !important;
     }
@@ -981,28 +983,60 @@ const CSS = `
       font-size: 12px !important;
       font-weight: 400 !important;
       letter-spacing: 0.24px !important;
-      cursor: pointer;
+      cursor: pointer !important;
       box-shadow: 0 0 0 1px rgba(0,0,0,0.04), 0 2px 8px rgba(91,100,125,0.18) !important;
-      white-space: nowrap;
+      white-space: nowrap !important;
+    }
+
+    /* ── Filter/sort dropdown menus on mobile ── */
+    .pj2-tool-wrap { position: relative !important; }
+    .pjm-toolbar .pj2-menu,
+    .pjm-toolbar-left .pj2-menu {
+      position: fixed !important;
+      top: auto !important;
+      bottom: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      z-index: 100 !important;
+      min-width: 0 !important;
+      width: 100% !important;
+      border-radius: 20px 20px 0 0 !important;
+      padding: 8px 16px calc(8px + env(safe-area-inset-bottom, 0px)) !important;
+      box-shadow: 0 -4px 24px rgba(15,23,42,0.12) !important;
+      animation: pjmSlideUp .22s cubic-bezier(.16,1,.3,1) both !important;
+    }
+    .pjm-toolbar .pj2-menu button,
+    .pjm-toolbar-left .pj2-menu button {
+      height: 44px !important;
+      font-size: 15px !important;
+      padding: 0 16px !important;
+      border-radius: 12px !important;
+    }
+    @keyframes pjmSlideUp {
+      from { opacity: 0; transform: translateY(100%); }
+      to { opacity: 1; transform: none; }
     }
 
     /* ── Hide desktop table elements ── */
-    .pj2-thead { display: none; }
-    .pj2-divider { display: none; }
-    .pj2-table { display: flex; flex-direction: column; gap: 0; }
+    .pj2-thead { display: none !important; }
+    .pj2-divider { display: none !important; }
+    .pj2-table {
+      display: flex !important; flex-direction: column !important;
+      gap: 0 !important;
+    }
 
-    /* ── Project items: flat list with hover container ── */
+    /* ── Project items ── */
     .pj2-row.pj2-item {
       display: flex !important;
       align-items: flex-start !important;
       justify-content: space-between !important;
-      padding: 14px 16px !important;
+      padding: 14px 12px !important;
       height: auto !important;
-      min-height: 66px !important;
+      min-height: 60px !important;
       border-radius: 16px !important;
       background: transparent !important;
       box-shadow: none !important;
-      margin: 0 -16px !important;
+      margin: 0 -12px !important;
       column-gap: 0 !important;
       transition: background .15s, box-shadow .15s;
     }
@@ -1011,72 +1045,77 @@ const CSS = `
     .pj2-row.pj2-item.is-active {
       background: #FFFFFF !important;
       border-radius: 16px !important;
-      box-shadow: 0 2px 6px rgba(144,149,159,0.09) !important;
-      padding: 14px 16px !important;
-      margin: 0 -16px !important;
+      box-shadow: 0 1px 4px rgba(144,149,159,0.1) !important;
+      padding: 14px 12px !important;
+      margin: 0 -12px !important;
     }
 
-    /* ── Left block: name + status ── */
+    /* ── Left block ── */
     .pj2-left {
       display: flex !important;
-      flex-direction: column;
-      gap: 8px;
-      flex: 1;
-      min-width: 0;
+      flex-direction: column !important;
+      gap: 6px !important;
+      flex: 1 !important;
+      min-width: 0 !important;
     }
     .pj2-name {
-      display: flex; flex-direction: column; gap: 4px;
-      min-width: 0;
+      display: flex !important; flex-direction: column !important; gap: 3px !important;
+      min-width: 0 !important;
     }
-    .pj2-name-row { gap: 8px; }
+    .pj2-name-row { gap: 8px !important; }
     .pj2-name strong {
-      font-size: 18px;
-      font-weight: 500;
-      color: #0F0F10;
-      letter-spacing: 0.36px;
-      max-width: none;
+      font-size: 17px !important;
+      font-weight: 500 !important;
+      color: #0F0F10 !important;
+      letter-spacing: 0.2px !important;
+      max-width: none !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
     }
     .pj2-name small {
-      font-size: 14px;
-      font-weight: 400;
-      color: #90959F;
-      letter-spacing: 0.28px;
+      font-size: 13px !important;
+      font-weight: 400 !important;
+      color: #90959F !important;
+      letter-spacing: 0.2px !important;
     }
     .pj2-status {
-      gap: 8px;
-      font-size: 12px;
-      font-weight: 500;
-      color: #90959F;
-      letter-spacing: 0.24px;
+      gap: 6px !important;
+      font-size: 12px !important;
+      font-weight: 500 !important;
+      color: #90959F !important;
+      letter-spacing: 0.2px !important;
     }
+    .pj2-new { display: none !important; }
 
-    /* ── Right block: avatars + date ── */
+    /* ── Right block ── */
     .pj2-right {
       display: flex !important;
-      flex-direction: column;
-      align-items: flex-end;
-      gap: 16px;
-      flex-shrink: 0;
-      margin-left: 16px;
+      flex-direction: column !important;
+      align-items: flex-end !important;
+      gap: 12px !important;
+      flex-shrink: 0 !important;
+      margin-left: 12px !important;
     }
     .pj2-devs {
       display: inline-flex !important;
-      align-items: center;
+      align-items: center !important;
     }
-    .pj2-dev-stack { display: inline-flex; align-items: center; }
+    .pj2-dev-stack { display: inline-flex !important; align-items: center !important; }
     .pj2-dev-av {
-      width: 32px; height: 32px;
-      border: 1.5px solid #FFFFFF;
-      margin-right: -12px;
+      width: 30px !important; height: 30px !important;
+      border: 1.5px solid #FFFFFF !important;
+      margin-right: -10px !important;
     }
-    .pj2-dev-empty { display: none; }
+    .pj2-dev-empty { display: none !important; }
     .pj2-dev-placeholder { display: inline-flex !important; }
     .pj2-date {
-      font-size: 14px;
-      font-weight: 400;
-      color: #90959F;
-      letter-spacing: 0.14px;
-      text-align: right;
+      font-size: 13px !important;
+      font-weight: 400 !important;
+      color: #90959F !important;
+      letter-spacing: 0.1px !important;
+      text-align: right !important;
+      white-space: nowrap !important;
     }
 
     /* ── Hide desktop-only columns ── */
@@ -1086,83 +1125,85 @@ const CSS = `
     /* ── Bottom dock ── */
     .pjm-dock {
       display: flex !important;
-      flex-direction: column;
-      align-items: center;
-      position: fixed;
-      bottom: 0; left: 0; right: 0;
-      z-index: 50;
+      position: fixed !important;
+      bottom: 0 !important; left: 0 !important; right: 0 !important;
+      z-index: 50 !important;
     }
     .pjm-dock-actions {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0;
-      width: 100%;
-      box-sizing: border-box;
-      background: #F4F4F5;
-      border-radius: 24px 24px 0 0;
-      box-shadow: 0 -1px 3px rgba(144,149,159,0.08);
-      padding: 10px 24px 18px;
-      padding-bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: center !important;
+      width: 100% !important;
+      box-sizing: border-box !important;
+      background: #F4F4F5 !important;
+      border-radius: 24px 24px 0 0 !important;
+      box-shadow: 0 -1px 3px rgba(144,149,159,0.08) !important;
+      padding: 10px 16px 16px !important;
+      padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px)) !important;
     }
     .pjm-home-indicator {
-      width: 48px; height: 5px;
-      background: rgba(144,149,159,0.3);
-      border-radius: 24px;
-      margin-bottom: 14px;
-      cursor: grab;
-      flex-shrink: 0;
+      width: 48px !important; height: 5px !important;
+      background: rgba(144,149,159,0.3) !important;
+      border-radius: 24px !important;
+      margin-bottom: 12px !important;
+      cursor: grab !important;
+      flex-shrink: 0 !important;
     }
     .pjm-dock-row {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      width: 100%;
+      display: flex !important;
+      align-items: center !important;
+      gap: 10px !important;
+      width: 100% !important;
     }
     .pjm-status-btn {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      gap: 30px;
-      height: auto;
-      padding: 18px 22px;
-      border: 1px solid rgba(228,231,235,0.6);
+      flex: 1 !important;
+      min-width: 0 !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      gap: 12px !important;
+      height: 52px !important;
+      padding: 0 16px !important;
+      border: 1px solid rgba(228,231,235,0.6) !important;
       border-radius: 32px !important;
-      background: #FFFFFF;
-      color: #6E6F71;
-      font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
-      font-size: 16px;
-      font-weight: 400;
-      cursor: pointer;
-      box-shadow: 0 1px 3px rgba(15,23,42,0.06), 0 4px 12px rgba(91,100,125,0.06);
-      white-space: nowrap;
+      background: #FFFFFF !important;
+      color: #6E6F71 !important;
+      font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif) !important;
+      font-size: 15px !important;
+      font-weight: 400 !important;
+      cursor: pointer !important;
+      box-shadow: 0 1px 3px rgba(15,23,42,0.06) !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
     }
     .pjm-status-btn svg {
-      flex-shrink: 0;
-      color: #2A3032;
+      flex-shrink: 0 !important;
+      color: #2A3032 !important;
+      width: 20px !important; height: 20px !important;
+    }
+    .pjm-status-btn span {
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
     }
     .pjm-tagro {
-      width: 60px; height: 60px;
-      flex-shrink: 0;
-      border: 0;
+      width: 52px !important; height: 52px !important;
+      flex-shrink: 0 !important;
+      border: 0 !important;
       border-radius: 999px !important;
-      background: #5B647D;
-      color: #FFFFFF;
-      display: inline-flex; align-items: center; justify-content: center;
-      cursor: pointer;
+      background: #5B647D !important;
+      color: #FFFFFF !important;
+      display: inline-flex !important; align-items: center !important; justify-content: center !important;
+      cursor: pointer !important;
+      padding: 0 !important;
       box-shadow:
         0 1px 2px rgba(15,23,42,.1),
-        0 12px 28px -10px rgba(91,100,125,.5);
+        0 8px 20px -8px rgba(91,100,125,.45) !important;
+    }
+    .pjm-tagro svg {
+      width: 22px !important; height: 22px !important;
     }
 
     /* ── Tagro desktop hidden ── */
     .pj2-tagro { display: none !important; }
-
-    /* ── Menu positioning for mobile toolbar ── */
-    .pjm-toolbar .pj2-menu {
-      top: 38px;
-      right: 0;
-      left: auto;
-    }
   }
 `
