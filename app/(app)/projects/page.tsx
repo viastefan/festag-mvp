@@ -238,7 +238,6 @@ function ProjectsPageInner() {
       {/* Mobile header icons (top-right): connected pill */}
       <div className="pjm-header-icons">
         <button type="button" aria-label="Suche"><MagnifyingGlass size={18} weight="regular" /></button>
-        <span className="pjm-icon-sep" />
         <button type="button" aria-label="Ansicht"><DotsNine size={18} weight="regular" /></button>
       </div>
 
@@ -492,33 +491,35 @@ function ProjectsPageInner() {
 
       {/* Mobile: Bottom dock */}
       <div className="pjm-dock">
-        <div
-          className="pjm-home-indicator"
-          onTouchStart={(e) => {
-            const startY = e.touches[0].clientY
-            const onMove = (ev: TouchEvent) => {
-              if (startY - ev.touches[0].clientY > 40) {
-                setShowNewProject(true)
+        <div className="pjm-dock-actions">
+          <div
+            className="pjm-home-indicator"
+            onTouchStart={(e) => {
+              const startY = e.touches[0].clientY
+              const onMove = (ev: TouchEvent) => {
+                if (startY - ev.touches[0].clientY > 40) {
+                  setShowNewProject(true)
+                  document.removeEventListener('touchmove', onMove)
+                  document.removeEventListener('touchend', onEnd)
+                }
+              }
+              const onEnd = () => {
                 document.removeEventListener('touchmove', onMove)
                 document.removeEventListener('touchend', onEnd)
               }
-            }
-            const onEnd = () => {
-              document.removeEventListener('touchmove', onMove)
-              document.removeEventListener('touchend', onEnd)
-            }
-            document.addEventListener('touchmove', onMove, { passive: true })
-            document.addEventListener('touchend', onEnd, { once: true })
-          }}
-        />
-        <div className="pjm-dock-actions">
-          <button type="button" className="pjm-status-btn" onClick={() => setShowNewProject(true)}>
-            <Plus size={24} weight="regular" />
-            <span>Statusbericht erstellen</span>
-          </button>
-          <button type="button" className="pjm-tagro" aria-label="Tagro öffnen" onClick={tagroHandler}>
-            <PencilSimple size={24} weight="regular" />
-          </button>
+              document.addEventListener('touchmove', onMove, { passive: true })
+              document.addEventListener('touchend', onEnd, { once: true })
+            }}
+          />
+          <div className="pjm-dock-row">
+            <button type="button" className="pjm-status-btn" onClick={() => setShowNewProject(true)}>
+              <Plus size={24} weight="regular" />
+              <span>Statusbericht erstellen</span>
+            </button>
+            <button type="button" className="pjm-tagro" aria-label="Tagro öffnen" onClick={tagroHandler}>
+              <PencilSimple size={24} weight="regular" />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -899,10 +900,7 @@ const CSS = `
       cursor: pointer;
     }
     .pjm-icon-sep {
-      display: block !important;
-      width: 1px; height: 18px;
-      background: rgba(144,149,159,0.15);
-      flex-shrink: 0;
+      display: none !important;
     }
 
     /* ── Main layout: no sidebar, no card ── */
@@ -989,27 +987,29 @@ const CSS = `
     .pj2-divider { display: none; }
     .pj2-table { display: flex; flex-direction: column; gap: 0; }
 
-    /* ── Project items: Figma flat list — NO hover effect ── */
+    /* ── Project items: flat list with hover container ── */
     .pj2-row.pj2-item {
       display: flex;
       align-items: flex-start;
       justify-content: space-between;
-      padding: 14px 0;
+      padding: 14px 16px;
       height: auto;
       min-height: 66px;
-      border-radius: 0;
+      border-radius: 16px;
       background: transparent;
       box-shadow: none;
-      margin: 0;
+      margin: 0 -16px;
       column-gap: 0;
+      transition: background .15s, box-shadow .15s;
     }
     .pj2-row.pj2-item:hover,
+    .pj2-row.pj2-item:active,
     .pj2-row.pj2-item.is-active {
-      background: transparent;
-      border-radius: 0;
-      box-shadow: none;
-      padding: 14px 0;
-      margin: 0;
+      background: #FFFFFF;
+      border-radius: 16px;
+      box-shadow: 0 2px 6px rgba(144,149,159,0.09);
+      padding: 14px 16px;
+      margin: 0 -16px;
     }
 
     /* ── Left block: name + status ── */
@@ -1088,26 +1088,32 @@ const CSS = `
       bottom: 0; left: 0; right: 0;
       z-index: 50;
     }
+    .pjm-dock-actions {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+      width: 100%;
+      box-sizing: border-box;
+      background: #F4F4F5;
+      border-radius: 24px 24px 0 0;
+      box-shadow: 0 -1px 3px rgba(144,149,159,0.08);
+      padding: 10px 24px 18px;
+      padding-bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+    }
     .pjm-home-indicator {
       width: 48px; height: 5px;
-      background: rgba(144,149,159,0.25);
+      background: rgba(144,149,159,0.3);
       border-radius: 24px;
-      margin-bottom: 11px;
+      margin-bottom: 14px;
       cursor: grab;
+      flex-shrink: 0;
     }
-    .pjm-dock-actions {
+    .pjm-dock-row {
       display: flex;
       align-items: center;
       gap: 12px;
       width: 100%;
-      box-sizing: border-box;
-      background: rgba(252,252,252,0.85);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border-radius: 32px 32px 0 0;
-      box-shadow: 0 -2px 4px rgba(144,149,159,0.07);
-      padding: 18px 24px;
-      padding-bottom: calc(18px + env(safe-area-inset-bottom, 0px));
     }
     .pjm-status-btn {
       flex: 1;
@@ -1116,7 +1122,7 @@ const CSS = `
       gap: 30px;
       height: auto;
       padding: 18px 22px;
-      border: 0;
+      border: 1px solid rgba(228,231,235,0.6);
       border-radius: 32px !important;
       background: #FFFFFF;
       color: #6E6F71;
@@ -1124,7 +1130,7 @@ const CSS = `
       font-size: 16px;
       font-weight: 400;
       cursor: pointer;
-      box-shadow: 0 2px 2px 0.5px rgba(144,149,159,0.07);
+      box-shadow: 0 1px 3px rgba(15,23,42,0.06), 0 4px 12px rgba(91,100,125,0.06);
       white-space: nowrap;
     }
     .pjm-status-btn svg {
