@@ -114,35 +114,37 @@ export default function RailSidebar() {
 }
 
 const CSS = `
-  /* Codex-Style Sidebar — sehr ruhig, kleine Icons, viel Whitespace. */
   .rail {
     position: fixed; left: 0; top: 0; bottom: 0;
     width: 60px;
     background: #FCFCFC;
+    border-top-right-radius: 24px;
+    border-bottom-right-radius: 24px;
     z-index: 80;
     padding: 22px 0 20px;
     display: flex; flex-direction: column; align-items: stretch;
-    transition: width .26s cubic-bezier(.16,1,.3,1);
+    transition: width .26s cubic-bezier(.16,1,.3,1), border-radius .26s;
     overflow: hidden;
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
   }
   .rail:hover {
     width: 220px;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
     box-shadow: 1px 0 0 rgba(15,23,42,.04);
   }
 
   .rail-avatar {
-    width: 32px; height: 32px;
-    margin: 0 14px;
-    border: 1px solid #F0F2F5;
-    background: #FFFFFF;
+    width: 40px; height: 40px;
+    margin: 0 10px;
+    border: 1px solid #F3F5F7;
+    background: rgba(255,255,255,0.8);
     border-radius: 999px;
     display: inline-flex; align-items: center; justify-content: center;
     color: #0F0F10;
-    font-size: 11px; font-weight: 500;
+    font-size: 14px; font-weight: 500;
     text-decoration: none;
     flex-shrink: 0;
-    letter-spacing: .02em;
   }
 
   .rail-nav {
@@ -168,7 +170,7 @@ const CSS = `
     display: flex; align-items: center; gap: 14px;
     height: 32px;
     padding: 0 22px;
-    color: #9197A3;
+    color: #6E717E;
     text-decoration: none;
     transition: background .14s, color .14s;
     white-space: nowrap;
@@ -178,7 +180,7 @@ const CSS = `
     color: #2A3032;
   }
   .rail-item.is-active {
-    color: #1B1E26;
+    color: #0F0F10;
   }
   .rail-icon {
     display: inline-flex; align-items: center; justify-content: center;
@@ -201,7 +203,7 @@ const CSS = `
     align-self: flex-start;
     margin: 0 0 0 22px;
     width: 16px; height: 16px;
-    color: #9197A3;
+    color: #6E717E;
     display: inline-flex; align-items: center; justify-content: center;
   }
   .rail-help:hover { color: #2A3032; }

@@ -139,6 +139,7 @@ function ProjectsPageInner() {
   const [filterOpen, setFilterOpen] = useState(false)
   const [sortOpen, setSortOpen] = useState(false)
   const [activeRow, setActiveRow] = useState<string | null>(null)
+  const [menuOpenId, setMenuOpenId] = useState<string | null>(null)
   const searchParams = useSearchParams()
   const supabase = useMemo(() => createClient(), [])
 
@@ -201,17 +202,17 @@ function ProjectsPageInner() {
   }, [searchParams])
 
   useEffect(() => {
-    if (!filterOpen && !sortOpen) return
+    if (!filterOpen && !sortOpen && !menuOpenId) return
     function onDown(e: MouseEvent) {
-      if (!(e.target as HTMLElement)?.closest?.('.pj2-tool-wrap')) {
-        setFilterOpen(false); setSortOpen(false)
-      }
+      const t = e.target as HTMLElement
+      if (!t?.closest?.('.pj2-tool-wrap')) { setFilterOpen(false); setSortOpen(false) }
+      if (!t?.closest?.('.pj2-more-wrap')) setMenuOpenId(null)
     }
-    function onEsc(e: KeyboardEvent) { if (e.key === 'Escape') { setFilterOpen(false); setSortOpen(false) } }
+    function onEsc(e: KeyboardEvent) { if (e.key === 'Escape') { setFilterOpen(false); setSortOpen(false); setMenuOpenId(null) } }
     window.addEventListener('mousedown', onDown)
     window.addEventListener('keydown', onEsc)
     return () => { window.removeEventListener('mousedown', onDown); window.removeEventListener('keydown', onEsc) }
-  }, [filterOpen, sortOpen])
+  }, [filterOpen, sortOpen, menuOpenId])
 
   const visible = useMemo(() => {
     let list = projects
@@ -232,49 +233,51 @@ function ProjectsPageInner() {
         <div className="pj2-card">
           <header className="pj2-head">
             <div className="pj2-title">
-              <h1>Aktuelle Projekte.</h1>
-              <p>Auf einem Blick. KI-gesteuert.</p>
+              <h1>Alle Projekte.</h1>
+              <p>Auf einem Blick. KI gesteuert.</p>
             </div>
             <div className="pj2-actions">
-              <div className="pj2-tool-wrap">
-                <button
-                  type="button"
-                  className={`pj2-tool${filterOpen ? ' on' : ''}`}
-                  aria-label="Filter"
-                  onClick={() => { setFilterOpen(v => !v); setSortOpen(false) }}
-                >
-                  <FunnelSimple size={16} weight="regular" />
-                </button>
-                {filterOpen && (
-                  <div className="pj2-menu" role="menu">
-                    {FILTERS.map(f => (
-                      <button key={f.id} type="button" className={filter === f.id ? 'on' : ''} onClick={() => { setFilter(f.id); setFilterOpen(false) }}>
-                        <span>{f.label}</span>
-                        {filter === f.id && <span className="check">✓</span>}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-              <div className="pj2-tool-wrap">
-                <button
-                  type="button"
-                  className={`pj2-tool${sortOpen ? ' on' : ''}`}
-                  aria-label="Sortieren"
-                  onClick={() => { setSortOpen(v => !v); setFilterOpen(false) }}
-                >
-                  <SlidersHorizontal size={16} weight="regular" />
-                </button>
-                {sortOpen && (
-                  <div className="pj2-menu" role="menu">
-                    {SORTS.map(s => (
-                      <button key={s.id} type="button" className={sort === s.id ? 'on' : ''} onClick={() => { setSort(s.id); setSortOpen(false) }}>
-                        <span>{s.label}</span>
-                        {sort === s.id && <span className="check">✓</span>}
-                      </button>
-                    ))}
-                  </div>
-                )}
+              <div className="pj2-tool-group">
+                <div className="pj2-tool-wrap">
+                  <button
+                    type="button"
+                    className={`pj2-tool${filterOpen ? ' on' : ''}`}
+                    aria-label="Filter"
+                    onClick={() => { setFilterOpen(v => !v); setSortOpen(false) }}
+                  >
+                    <FunnelSimple size={18} weight="regular" />
+                  </button>
+                  {filterOpen && (
+                    <div className="pj2-menu" role="menu">
+                      {FILTERS.map(f => (
+                        <button key={f.id} type="button" className={filter === f.id ? 'on' : ''} onClick={() => { setFilter(f.id); setFilterOpen(false) }}>
+                          <span>{f.label}</span>
+                          {filter === f.id && <span className="check">✓</span>}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div className="pj2-tool-wrap">
+                  <button
+                    type="button"
+                    className={`pj2-tool${sortOpen ? ' on' : ''}`}
+                    aria-label="Sortieren"
+                    onClick={() => { setSortOpen(v => !v); setFilterOpen(false) }}
+                  >
+                    <SlidersHorizontal size={18} weight="regular" />
+                  </button>
+                  {sortOpen && (
+                    <div className="pj2-menu" role="menu">
+                      {SORTS.map(s => (
+                        <button key={s.id} type="button" className={sort === s.id ? 'on' : ''} onClick={() => { setSort(s.id); setSortOpen(false) }}>
+                          <span>{s.label}</span>
+                          {sort === s.id && <span className="check">✓</span>}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
               <button type="button" className="pj2-cta" onClick={() => setShowNewProject(true)}>
                 Neues Projekt
@@ -360,14 +363,41 @@ function ProjectsPageInner() {
                     <span className="pj2-teams" aria-label={isTeam ? 'Teamprojekt' : 'Einzeldev'}>
                       {isTeam ? <UsersThree size={22} weight="thin" /> : <User size={22} weight="thin" />}
                     </span>
-                    <button
-                      type="button"
-                      className="pj2-more"
-                      aria-label="Mehr"
-                      onClick={(e) => { e.preventDefault(); e.stopPropagation() }}
-                    >
-                      <DotsThree size={20} weight="bold" />
-                    </button>
+                    <div className="pj2-more-wrap">
+                      <button
+                        type="button"
+                        className="pj2-more"
+                        aria-label="Mehr"
+                        onClick={(e) => {
+                          e.preventDefault(); e.stopPropagation()
+                          setMenuOpenId(prev => prev === project.id ? null : project.id)
+                        }}
+                      >
+                        <DotsThree size={20} weight="bold" />
+                      </button>
+                      {menuOpenId === project.id && (
+                        <div className="pj2-row-menu" role="menu">
+                          {[
+                            { label: 'Projekt als erledigt markieren', action: 'complete' },
+                            { label: 'Projekt löschen', action: 'delete' },
+                            { label: 'Projekt teilen', action: 'share' },
+                            { label: 'Mitwirkende einladen', action: 'invite' },
+                            { label: 'Support anfragen', action: 'support' },
+                          ].map(item => (
+                            <button
+                              key={item.action}
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault(); e.stopPropagation()
+                                setMenuOpenId(null)
+                              }}
+                            >
+                              {item.label}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </Link>
                 )
               })
@@ -387,7 +417,7 @@ function ProjectsPageInner() {
           subtitle: `${visible.length} Projekt${visible.length === 1 ? '' : 'e'}`,
         })}
       >
-        <PencilSimple size={20} weight="regular" />
+        <PencilSimple size={24} weight="regular" />
       </button>
 
       {showNewProject && (
@@ -403,8 +433,6 @@ function ProjectsPageInner() {
 const CSS = `
   .pj-fallback { padding: 48px; color: #6E717E; font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif); }
 
-  /* Page-Container ist fixiert — kein Body-Scroll. Codex-Style:
-     White-on-white mit zarter Trennung Sidebar↔Content. */
   html, body { overflow: hidden !important; height: 100% !important; }
 
   .pj2-page {
@@ -415,7 +443,6 @@ const CSS = `
     color-scheme: light;
     overflow: hidden;
   }
-  .pj2-page * { letter-spacing: 0; }
 
   .pj2-main {
     margin-left: 60px;
@@ -428,12 +455,10 @@ const CSS = `
   .pj2-card {
     flex: 1; min-height: 0;
     background: #FFFFFF;
-    border-radius: 22px;
-    padding: 64px 88px 48px;
-    box-shadow: 0 1px 2px rgba(15,23,42,.03);
+    border-radius: 24px;
+    padding: 96px 164px;
     box-sizing: border-box;
     position: relative;
-    /* Nur INNEN scrollen — Page-Scroll bleibt aus */
     overflow-y: auto;
     overflow-x: hidden;
     scrollbar-width: none;
@@ -447,32 +472,35 @@ const CSS = `
   }
   .pj2-title h1 {
     margin: 0;
-    font-size: 28px; font-weight: 500;
-    letter-spacing: -.005em;
+    font-size: 28px; font-weight: 400;
+    letter-spacing: 0.56px;
     color: #0F0F10;
     line-height: 1.2;
   }
   .pj2-title p {
-    margin: 4px 0 0;
-    font-size: 16px; font-weight: 400;
-    color: #9197A3;
-    letter-spacing: 0;
-    line-height: 1.4;
+    margin: 0;
+    font-size: 28px; font-weight: 400;
+    color: #8F93A4;
+    letter-spacing: 0.56px;
+    line-height: 1.2;
   }
   .pj2-actions {
-    display: inline-flex; align-items: center; gap: 10px;
+    display: inline-flex; align-items: center; gap: 16px;
     margin-top: 6px;
+  }
+  .pj2-tool-group {
+    display: inline-flex; align-items: center; gap: 12px;
   }
   .pj2-tool-wrap { position: relative; }
   .pj2-tool {
-    width: 36px; height: 36px;
-    border: 1px solid #ECEFF3;
-    border-radius: 999px;
+    width: 40px; height: 40px;
+    border: 1px solid rgba(202,207,212,0.2);
+    border-radius: 32px;
     background: #FFFFFF;
     color: #6E717E;
     display: inline-flex; align-items: center; justify-content: center;
     cursor: pointer;
-    box-shadow: 0 1px 2px rgba(15,23,42,.03);
+    box-shadow: 0 2px 5px 0.5px rgba(46,47,51,0.05);
     transition: background .12s, color .14s;
   }
   .pj2-tool:hover, .pj2-tool.on {
@@ -480,13 +508,13 @@ const CSS = `
     color: #2A3032;
   }
   .pj2-cta {
-    height: 36px; padding: 0 18px;
-    border: 1px solid #ECEFF3;
-    border-radius: 999px;
+    height: 40px; padding: 0 20px;
+    border: 1px solid rgba(202,207,212,0.2);
+    border-radius: 32px;
     background: #FFFFFF; color: #2A3032;
-    font: inherit; font-size: 13px; font-weight: 400;
-    letter-spacing: .01em;
-    box-shadow: 0 1px 2px rgba(15,23,42,.03);
+    font: inherit; font-size: 14px; font-weight: 400;
+    letter-spacing: 0.42px;
+    box-shadow: 0 2px 5px 0.5px rgba(46,47,51,0.05);
     cursor: pointer;
     transition: background .12s;
   }
@@ -517,7 +545,6 @@ const CSS = `
   .pj2-menu button.on { background: #F0F2F7; color: #5B647D; }
   .pj2-menu button .check { color: #5B647D; font-size: 12px; }
 
-  /* ===== Table ===== */
   .pj2-table { width: 100%; }
   .pj2-row {
     display: grid;
@@ -530,91 +557,95 @@ const CSS = `
       48px;
     align-items: center;
     column-gap: 24px;
-    padding: 0 24px;
+    padding: 0 26px;
     border-radius: 16px;
   }
   .pj2-thead {
     color: #6E717E;
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
     font-size: 12px; font-weight: 500;
+    letter-spacing: 0.12px;
     padding-bottom: 8px;
   }
   .pj2-divider {
-    height: 1px;
+    height: 0.5px;
     background: linear-gradient(90deg,
-      rgba(233,239,246,.4) 0%,
-      rgb(227,232,239) 27%,
-      rgb(233,239,246) 64%,
-      rgba(233,239,246,.4) 100%
+      rgba(233,239,246,0.4) 0%,
+      rgb(227,232,239) 27.4%,
+      rgb(233,239,246) 63.7%,
+      rgba(233,239,246,0.4) 100%
     );
     margin-bottom: 8px;
   }
 
   .pj2-item {
     position: relative;
-    height: 76px;
+    height: 90px;
     color: inherit;
     text-decoration: none;
-    transition: background .14s;
+    transition: background .14s, box-shadow .14s;
     cursor: pointer;
   }
   .pj2-item:hover,
   .pj2-item.is-active {
-    background: rgba(245,248,251,.7);
+    background: #FCFCFC;
+    border-radius: 16px;
+    box-shadow: 0 2px 5px rgba(144,149,159,0.2);
   }
 
   .pj2-name {
-    display: flex; flex-direction: column; gap: 2px;
+    display: flex; flex-direction: column; gap: 4px;
     min-width: 0;
   }
   .pj2-name-row { display: inline-flex; align-items: center; gap: 10px; }
   .pj2-name strong {
-    font-size: 16px; font-weight: 500; color: #0F0F10;
-    letter-spacing: 0;
+    font-size: 18px; font-weight: 400; color: #000000;
+    letter-spacing: 0.36px;
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     max-width: 360px;
   }
   .pj2-name small {
-    font-size: 13px; font-weight: 400; color: #9197A3;
-    letter-spacing: 0;
+    font-size: 14px; font-weight: 400; color: #6E717E;
+    letter-spacing: 0.14px;
   }
   .pj2-new {
     display: inline-flex; align-items: center; justify-content: center;
     height: 22px; padding: 0 8px;
     background: #FCFCFC;
     border-radius: 12px;
-    color: #0F0F10;
+    color: #000000;
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
     font-size: 11px; font-weight: 500;
-    letter-spacing: .01em;
-    box-shadow: 0 2px 5px rgba(46,47,51,.1), inset 0 1px 1px rgba(0,0,0,.05);
+    letter-spacing: 0.11px;
+    box-shadow: 0 2px 5px 1px rgba(46,47,51,0.1), inset 0 1px 1px rgba(0,0,0,0.05);
   }
 
   .pj2-status {
-    display: inline-flex; align-items: center; gap: 10px;
-    color: #9197A3;
-    font-size: 13px; font-weight: 400;
-    letter-spacing: 0;
+    display: inline-flex; align-items: center; gap: 12px;
+    color: #6E717E;
+    font-size: 14px; font-weight: 400;
+    letter-spacing: 0.28px;
   }
   .pj2-status-dot {
-    width: 7px; height: 7px;
-    border-radius: 999px;
+    width: 6px; height: 6px;
+    border-radius: 32px;
     flex-shrink: 0;
+    filter: blur(2px);
   }
 
   .pj2-devs { display: inline-flex; align-items: center; }
-  .pj2-dev-empty { color: #C2C7D0; font-size: 13px; }
+  .pj2-dev-empty { color: #C2C7D0; font-size: 14px; }
   .pj2-dev-stack { display: inline-flex; align-items: center; }
   .pj2-dev-av {
-    width: 30px; height: 30px;
-    border: 2.5px solid #FFFFFF;
+    width: 40px; height: 40px;
+    border: 3px solid #FFFFFF;
     border-radius: 999px;
-    margin-right: -8px;
+    margin-right: -12px;
     overflow: hidden;
     background: #F3F5F7;
     color: #5B647D;
     display: inline-flex; align-items: center; justify-content: center;
-    font-size: 11px; font-weight: 500;
+    font-size: 12px; font-weight: 500;
     flex-shrink: 0;
   }
   .pj2-dev-av img { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -624,14 +655,15 @@ const CSS = `
   }
 
   .pj2-date {
-    color: #9197A3;
-    font-size: 13px; font-weight: 400;
-    letter-spacing: 0;
+    color: #6E717E;
+    font-size: 14px; font-weight: 400;
+    letter-spacing: 0.14px;
   }
   .pj2-teams {
-    color: #2A3032;
+    color: #6E717E;
     display: inline-flex; align-items: center; justify-content: flex-start;
   }
+  .pj2-more-wrap { position: relative; }
   .pj2-more {
     width: 32px; height: 32px;
     border: 0; border-radius: 999px;
@@ -643,17 +675,39 @@ const CSS = `
   }
   .pj2-more:hover { background: rgba(91,100,125,.08); color: #2A3032; }
 
+  .pj2-row-menu {
+    position: absolute; top: 36px; right: 0; z-index: 40;
+    min-width: 240px;
+    padding: 6px;
+    background: #FFFFFF;
+    border: 1px solid #ECEFF3;
+    border-radius: 14px;
+    box-shadow: 0 1px 2px rgba(15,23,42,.04), 0 24px 60px -20px rgba(15,23,42,.24);
+    animation: pj2In .18s cubic-bezier(.16,1,.3,1) both;
+  }
+  .pj2-row-menu button {
+    width: 100%; height: 36px; padding: 0 12px;
+    border: 0; background: transparent;
+    border-radius: 10px;
+    display: flex; align-items: center;
+    color: #2A3032;
+    font: inherit; font-size: 13px; font-weight: 400;
+    cursor: pointer;
+    transition: background .12s;
+    text-align: left;
+  }
+  .pj2-row-menu button:hover { background: #F3F5F7; }
+
   .pj2-empty {
     text-align: center;
     padding: 48px 0;
-    color: #90959F;
+    color: #6E717E;
     font-size: 14px;
   }
 
-  /* Tagro Round-Button — fix unten rechts an der Card */
   .pj2-tagro {
-    position: fixed; right: 44px; bottom: 36px; z-index: 60;
-    width: 52px; height: 52px;
+    position: fixed; right: 50px; bottom: 44px; z-index: 60;
+    width: 70px; height: 70px;
     border: 0; border-radius: 999px;
     background: #5B647D;
     color: #FFFFFF;
@@ -673,10 +727,14 @@ const CSS = `
   }
   .pj2-tagro:active { transform: translateY(0); }
 
-  /* ===== Tablet / Small Desktop ===== */
+  @media (max-width: 1400px) {
+    .pj2-card { padding: 64px 80px; }
+  }
   @media (max-width: 1200px) {
     .pj2-card { padding: 40px 40px 36px; }
     .pj2-head { margin-bottom: 28px; }
+    .pj2-title h1 { font-size: 24px; }
+    .pj2-title p { font-size: 24px; }
     .pj2-row {
       grid-template-columns:
         minmax(180px, 1.6fr)
@@ -690,13 +748,12 @@ const CSS = `
     }
   }
 
-  /* ===== Mobile ===== */
   @media (max-width: 720px) {
     .pj2-main { margin-left: 0; padding: 12px 12px 88px 12px; }
     .pj2-card { padding: 22px 16px 28px; border-radius: 18px; }
     .pj2-head { flex-direction: column; align-items: stretch; gap: 16px; margin-bottom: 22px; }
-    .pj2-title h1 { font-size: 24px; }
-    .pj2-title p { font-size: 14px; }
+    .pj2-title h1 { font-size: 22px; }
+    .pj2-title p { font-size: 16px; }
     .pj2-actions { justify-content: flex-end; }
     .pj2-cta { font-size: 13px; padding: 0 14px; height: 34px; }
     .pj2-tool { width: 34px; height: 34px; }
@@ -715,14 +772,14 @@ const CSS = `
       box-shadow: 0 1px 2px rgba(15,23,42,.04);
       margin-bottom: 10px;
     }
-    .pj2-item { background: #FFFFFF; }
+    .pj2-item { height: auto; background: #FFFFFF; }
     .pj2-name { grid-area: name; }
     .pj2-name strong { font-size: 16px; max-width: none; }
     .pj2-status { grid-area: status; font-size: 13px; }
     .pj2-devs { display: none; }
     .pj2-date { grid-area: date; text-align: right; font-size: 13px; }
     .pj2-teams { grid-area: teams; align-self: start; }
-    .pj2-more { display: none; }
+    .pj2-more-wrap { display: none; }
 
     .pj2-tagro { right: 16px; bottom: 16px; width: 56px; height: 56px; }
   }
