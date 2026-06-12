@@ -21,7 +21,7 @@ import { openTagro } from '@/components/TagroOverlay'
 import EmptyState from '@/components/EmptyState'
 import {
   FunnelSimple, SlidersHorizontal, Plus, PencilSimple, DotsThree,
-  User, UsersThree, Stack,
+  User, UsersThree, Stack, MagnifyingGlass, SquaresFour,
 } from '@phosphor-icons/react'
 
 type ProjectRow = {
@@ -223,25 +223,37 @@ function ProjectsPageInner() {
     })
   }, [projects, filter, sort])
 
+  const tagroHandler = () => openTagro({
+    contextType: ‘project’,
+    title: ‘Projekte’,
+    subtitle: `${visible.length} Projekt${visible.length === 1 ? ‘’ : ‘e’}`,
+  })
+
   return (
     <div className="pj2-page">
       <style>{CSS}</style>
 
       <RailSidebar />
 
+      {/* Mobile header icons (top-right) */}
+      <div className="pjm-header-icons">
+        <button type="button" aria-label="Suche"><MagnifyingGlass size={20} weight="regular" /></button>
+        <button type="button" aria-label="Ansicht"><SquaresFour size={20} weight="regular" /></button>
+      </div>
+
       <main className="pj2-main">
         <div className="pj2-card">
           <header className="pj2-head">
             <div className="pj2-title">
-              <h1>Alle Projekte.</h1>
-              <p>Auf einem Blick. KI gesteuert.</p>
+              <h1><span className="pj2-dt">Alle Projekte.</span><span className="pjm-t">Aktuelle Projekte.</span></h1>
+              <p><span className="pj2-dt">Auf einem Blick. KI gesteuert.</span><span className="pjm-t">Alles auf einen Blick. </span></p>
             </div>
-            <div className="pj2-actions">
+            <div className="pj2-actions pj2-dt">
               <div className="pj2-tool-group">
                 <div className="pj2-tool-wrap">
                   <button
                     type="button"
-                    className={`pj2-tool${filterOpen ? ' on' : ''}`}
+                    className={`pj2-tool${filterOpen ? ‘ on’ : ‘’}`}
                     aria-label="Filter"
                     onClick={() => { setFilterOpen(v => !v); setSortOpen(false) }}
                   >
@@ -250,7 +262,7 @@ function ProjectsPageInner() {
                   {filterOpen && (
                     <div className="pj2-menu" role="menu">
                       {FILTERS.map(f => (
-                        <button key={f.id} type="button" className={filter === f.id ? 'on' : ''} onClick={() => { setFilter(f.id); setFilterOpen(false) }}>
+                        <button key={f.id} type="button" className={filter === f.id ? ‘on’ : ‘’} onClick={() => { setFilter(f.id); setFilterOpen(false) }}>
                           <span>{f.label}</span>
                           {filter === f.id && <span className="check">✓</span>}
                         </button>
@@ -261,7 +273,7 @@ function ProjectsPageInner() {
                 <div className="pj2-tool-wrap">
                   <button
                     type="button"
-                    className={`pj2-tool${sortOpen ? ' on' : ''}`}
+                    className={`pj2-tool${sortOpen ? ‘ on’ : ‘’}`}
                     aria-label="Sortieren"
                     onClick={() => { setSortOpen(v => !v); setFilterOpen(false) }}
                   >
@@ -270,7 +282,7 @@ function ProjectsPageInner() {
                   {sortOpen && (
                     <div className="pj2-menu" role="menu">
                       {SORTS.map(s => (
-                        <button key={s.id} type="button" className={sort === s.id ? 'on' : ''} onClick={() => { setSort(s.id); setSortOpen(false) }}>
+                        <button key={s.id} type="button" className={sort === s.id ? ‘on’ : ‘’} onClick={() => { setSort(s.id); setSortOpen(false) }}>
                           <span>{s.label}</span>
                           {sort === s.id && <span className="check">✓</span>}
                         </button>
@@ -284,6 +296,55 @@ function ProjectsPageInner() {
               </button>
             </div>
           </header>
+
+          {/* Mobile toolbar (filter + sort + neues projekt) */}
+          <div className="pjm-toolbar">
+            <div className="pjm-toolbar-left">
+              <div className="pj2-tool-wrap">
+                <button
+                  type="button"
+                  className="pjm-tool-btn"
+                  aria-label="Filter"
+                  onClick={() => { setFilterOpen(v => !v); setSortOpen(false) }}
+                >
+                  <FunnelSimple size={16} weight="regular" />
+                </button>
+                {filterOpen && (
+                  <div className="pj2-menu" role="menu">
+                    {FILTERS.map(f => (
+                      <button key={f.id} type="button" className={filter === f.id ? ‘on’ : ‘’} onClick={() => { setFilter(f.id); setFilterOpen(false) }}>
+                        <span>{f.label}</span>
+                        {filter === f.id && <span className="check">✓</span>}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div className="pj2-tool-wrap">
+                <button
+                  type="button"
+                  className="pjm-tool-btn"
+                  aria-label="Sortieren"
+                  onClick={() => { setSortOpen(v => !v); setFilterOpen(false) }}
+                >
+                  <SlidersHorizontal size={16} weight="regular" />
+                </button>
+                {sortOpen && (
+                  <div className="pj2-menu" role="menu">
+                    {SORTS.map(s => (
+                      <button key={s.id} type="button" className={sort === s.id ? ‘on’ : ‘’} onClick={() => { setSort(s.id); setSortOpen(false) }}>
+                        <span>{s.label}</span>
+                        {sort === s.id && <span className="check">✓</span>}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+            <button type="button" className="pjm-new-btn" onClick={() => setShowNewProject(true)}>
+              Neues Projekt
+            </button>
+          </div>
 
           <div className="pj2-table">
             <div className="pj2-row pj2-thead">
@@ -299,15 +360,15 @@ function ProjectsPageInner() {
             {loading ? (
               <div className="pj2-empty">Projekte werden geladen…</div>
             ) : visible.length === 0 ? (
-              filter === 'all' ? (
-                <div style={{ padding: '40px 0' }}>
+              filter === ‘all’ ? (
+                <div style={{ padding: ‘40px 0’ }}>
                   <EmptyState
                     icon={Stack}
                     kicker="Projekte"
                     title="Noch kein Projekt"
                     description="Erstelle ein Projekt, damit Tagro Roadmap und Aufgaben vorbereiten kann."
                     actions={[
-                      { label: 'Projekt anlegen', icon: Plus, primary: true, onClick: () => setShowNewProject(true) },
+                      { label: ‘Projekt anlegen’, icon: Plus, primary: true, onClick: () => setShowNewProject(true) },
                     ]}
                   />
                 </div>
@@ -319,48 +380,54 @@ function ProjectsPageInner() {
                 const st = statusKeyOf(project)
                 const meta = STATUS_META[st]
                 const devs = devsByProject[project.id] || []
-                const isTeam = project.delivery_model === 'team_internal' || devs.length >= 2
+                const isTeam = project.delivery_model === ‘team_internal’ || devs.length >= 2
                 const isActive = activeRow === project.id
                 return (
                   <Link
                     key={project.id}
                     href={`/project/${project.id}`}
-                    className={`pj2-row pj2-item${isActive ? ' is-active' : ''}`}
+                    className={`pj2-row pj2-item${isActive ? ‘ is-active’ : ‘’}`}
                     onMouseEnter={() => setActiveRow(project.id)}
                     onMouseLeave={() => setActiveRow(prev => prev === project.id ? null : prev)}
                   >
-                    <span className="pj2-name">
-                      <span className="pj2-name-row">
-                        <strong>{project.title}</strong>
-                        {project.created_at && isFresh(project.created_at) && (
-                          <span className="pj2-new">Neu</span>
+                    {/* Left: name + status (desktop grid cells + mobile left block) */}
+                    <span className="pj2-left">
+                      <span className="pj2-name">
+                        <span className="pj2-name-row">
+                          <strong>{project.title}</strong>
+                          {project.created_at && isFresh(project.created_at) && (
+                            <span className="pj2-new">Neu</span>
+                          )}
+                        </span>
+                        <small>{subLabelFor(project)}</small>
+                      </span>
+                      <span className="pj2-status">
+                        <span className="pj2-status-dot" style={{ background: meta.color }} />
+                        <span>{meta.label}</span>
+                      </span>
+                    </span>
+                    {/* Right: devs + date (desktop grid cells + mobile right block) */}
+                    <span className="pj2-right">
+                      <span className="pj2-devs">
+                        {devs.length === 0 ? (
+                          <span className="pj2-dev-empty">—</span>
+                        ) : (
+                          <span className="pj2-dev-stack">
+                            {devs.slice(0, 3).map((d, i) => {
+                              const src = d.avatar_url || d.github_avatar_url
+                              return (
+                                <span key={d.id} className="pj2-dev-av" style={{ zIndex: 3 - i }} title={devLabel(d)}>
+                                  {src ? <img src={src} alt="" /> : <span>{devInitials(d)}</span>}
+                                </span>
+                              )
+                            })}
+                            {devs.length > 3 && <span className="pj2-dev-av pj2-dev-more">+{devs.length - 3}</span>}
+                          </span>
                         )}
                       </span>
-                      <small>{subLabelFor(project)}</small>
+                      <span className="pj2-date">{relTime(project.updated_at || project.created_at)}</span>
                     </span>
-                    <span className="pj2-status">
-                      <span className="pj2-status-dot" style={{ background: meta.color }} />
-                      <span>{meta.label}</span>
-                    </span>
-                    <span className="pj2-devs">
-                      {devs.length === 0 ? (
-                        <span className="pj2-dev-empty">—</span>
-                      ) : (
-                        <span className="pj2-dev-stack">
-                          {devs.slice(0, 3).map((d, i) => {
-                            const src = d.avatar_url || d.github_avatar_url
-                            return (
-                              <span key={d.id} className="pj2-dev-av" style={{ zIndex: 3 - i }} title={devLabel(d)}>
-                                {src ? <img src={src} alt="" /> : <span>{devInitials(d)}</span>}
-                              </span>
-                            )
-                          })}
-                          {devs.length > 3 && <span className="pj2-dev-av pj2-dev-more">+{devs.length - 3}</span>}
-                        </span>
-                      )}
-                    </span>
-                    <span className="pj2-date">{relTime(project.updated_at || project.created_at)}</span>
-                    <span className="pj2-teams" aria-label={isTeam ? 'Teamprojekt' : 'Einzeldev'}>
+                    <span className="pj2-teams" aria-label={isTeam ? ‘Teamprojekt’ : ‘Einzeldev’}>
                       {isTeam ? <UsersThree size={22} weight="thin" /> : <User size={22} weight="thin" />}
                     </span>
                     <div className="pj2-more-wrap">
@@ -378,11 +445,11 @@ function ProjectsPageInner() {
                       {menuOpenId === project.id && (
                         <div className="pj2-row-menu" role="menu">
                           {[
-                            { label: 'Projekt als erledigt markieren', action: 'complete' },
-                            { label: 'Projekt löschen', action: 'delete' },
-                            { label: 'Projekt teilen', action: 'share' },
-                            { label: 'Mitwirkende einladen', action: 'invite' },
-                            { label: 'Support anfragen', action: 'support' },
+                            { label: ‘Projekt als erledigt markieren’, action: ‘complete’ },
+                            { label: ‘Projekt löschen’, action: ‘delete’ },
+                            { label: ‘Projekt teilen’, action: ‘share’ },
+                            { label: ‘Mitwirkende einladen’, action: ‘invite’ },
+                            { label: ‘Support anfragen’, action: ‘support’ },
                           ].map(item => (
                             <button
                               key={item.action}
@@ -406,19 +473,29 @@ function ProjectsPageInner() {
         </div>
       </main>
 
-      {/* Tagro-Round-Button unten rechts — context-aware */}
+      {/* Desktop: Tagro-Round-Button */}
       <button
         type="button"
-        className="pj2-tagro"
+        className="pj2-tagro pj2-dt"
         aria-label="Tagro öffnen"
-        onClick={() => openTagro({
-          contextType: 'project',
-          title: 'Projekte',
-          subtitle: `${visible.length} Projekt${visible.length === 1 ? '' : 'e'}`,
-        })}
+        onClick={tagroHandler}
       >
         <PencilSimple size={24} weight="regular" />
       </button>
+
+      {/* Mobile: Bottom dock */}
+      <div className="pjm-dock">
+        <div className="pjm-home-indicator" />
+        <div className="pjm-dock-actions">
+          <button type="button" className="pjm-status-btn" onClick={() => setShowNewProject(true)}>
+            <Plus size={24} weight="regular" />
+            <span>Statusbericht erstellen</span>
+          </button>
+          <button type="button" className="pjm-tagro" aria-label="Tagro öffnen" onClick={tagroHandler}>
+            <PencilSimple size={24} weight="regular" />
+          </button>
+        </div>
+      </div>
 
       {showNewProject && (
         <NewProjectModal
@@ -434,6 +511,12 @@ const CSS = `
   .pj-fallback { padding: 48px; color: #6E717E; font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif); }
 
   html, body { overflow: hidden !important; height: 100% !important; }
+
+  /* ── Mobile-only / Desktop-only visibility ── */
+  .pjm-t { display: none; }
+  .pjm-header-icons { display: none; }
+  .pjm-toolbar { display: none; }
+  .pjm-dock { display: none; }
 
   .pj2-page {
     position: fixed; inset: 0;
@@ -548,6 +631,8 @@ const CSS = `
   .pj2-menu button .check { color: #5B647D; font-size: 12px; }
 
   .pj2-table { width: 100%; }
+  .pj2-left { display: contents; }
+  .pj2-right { display: contents; }
   .pj2-row {
     display: grid;
     grid-template-columns:
@@ -750,39 +835,282 @@ const CSS = `
     }
   }
 
+  /* ─────────────────────────────────────────────────
+     MOBILE — 1:1 Figma node 252:58
+     ───────────────────────────────────────────────── */
   @media (max-width: 720px) {
-    .pj2-main { margin-left: 0; padding: 12px 12px 88px 12px; }
-    .pj2-card { padding: 22px 16px 28px; border-radius: 18px; }
-    .pj2-head { flex-direction: column; align-items: stretch; gap: 16px; margin-bottom: 22px; }
-    .pj2-title h1 { font-size: 22px; }
-    .pj2-title p { font-size: 16px; }
-    .pj2-actions { justify-content: flex-end; }
-    .pj2-cta { font-size: 13px; padding: 0 14px; height: 34px; }
-    .pj2-tool { width: 34px; height: 34px; }
+    .pj2-dt { display: none !important; }
+    .pjm-t { display: inline !important; }
 
+    .pj2-page {
+      background: rgba(245,245,245,0.9);
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+    }
+
+    /* ── Mobile header icons (top-right) ── */
+    .pjm-header-icons {
+      display: flex !important;
+      position: fixed;
+      top: 24px; right: 24px;
+      z-index: 20;
+      gap: 4px;
+      align-items: center;
+    }
+    .pjm-header-icons button {
+      width: 45px; height: 45px;
+      border: 0; border-radius: 999px;
+      background: #FFFFFF;
+      color: #2A3032;
+      display: inline-flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 1px 2px rgba(46,47,51,0.1);
+    }
+
+    /* ── Main layout: no sidebar, no card ── */
+    .pj2-main {
+      margin-left: 0;
+      padding: 0;
+      height: 100%;
+      display: flex; flex-direction: column;
+    }
+    .pj2-card {
+      flex: 1; min-height: 0;
+      background: transparent;
+      border-radius: 0;
+      padding: 24px 24px 140px;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+
+    /* ── Header ── */
+    .pj2-head {
+      display: block;
+      margin-bottom: 24px;
+    }
+    .pj2-title h1 {
+      font-size: 25px;
+      font-weight: 400;
+      letter-spacing: 0;
+      color: #0F0F10;
+      line-height: normal;
+      margin: 0;
+    }
+    .pj2-title p {
+      font-size: 25px;
+      font-weight: 400;
+      color: #90959F;
+      letter-spacing: 0;
+      line-height: normal;
+      margin: 0;
+    }
+
+    /* ── Mobile toolbar ── */
+    .pjm-toolbar {
+      display: flex !important;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .pjm-toolbar-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .pjm-tool-btn {
+      width: 30px; height: 30px;
+      border: 0;
+      border-radius: 32px;
+      background: #FFFFFF;
+      color: #2A3032;
+      display: inline-flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 0 40px rgba(91,100,125,0.25), 0 1px 2px rgba(46,47,51,0.1);
+      padding: 0;
+    }
+    .pjm-new-btn {
+      height: 30px;
+      padding: 0 12px;
+      border: 0;
+      border-radius: 32px;
+      background: #FFFFFF;
+      color: #0F0F10;
+      font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+      font-size: 9px;
+      font-weight: 400;
+      letter-spacing: 0.27px;
+      cursor: pointer;
+      box-shadow: 0 1px 2px rgba(46,47,51,0.1);
+      white-space: nowrap;
+    }
+
+    /* ── Hide desktop table elements ── */
     .pj2-thead { display: none; }
     .pj2-divider { display: none; }
-    .pj2-row {
-      grid-template-columns: 1fr auto;
-      grid-template-areas:
-        'name    teams'
-        'status  date';
-      row-gap: 6px; column-gap: 12px;
-      padding: 14px 12px;
-      height: auto; min-height: 78px;
-      background: #FFFFFF;
-      box-shadow: 0 1px 2px rgba(15,23,42,.04);
-      margin-bottom: 10px;
-    }
-    .pj2-item { height: auto; background: #FFFFFF; }
-    .pj2-name { grid-area: name; }
-    .pj2-name strong { font-size: 16px; max-width: none; }
-    .pj2-status { grid-area: status; font-size: 13px; }
-    .pj2-devs { display: none; }
-    .pj2-date { grid-area: date; text-align: right; font-size: 13px; }
-    .pj2-teams { grid-area: teams; align-self: start; }
-    .pj2-more-wrap { display: none; }
+    .pj2-table { display: flex; flex-direction: column; gap: 0; }
 
-    .pj2-tagro { right: 16px; bottom: 16px; width: 56px; height: 56px; }
+    /* ── Project items: Figma flat list ── */
+    .pj2-row.pj2-item {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      padding: 12px 0;
+      height: auto;
+      min-height: 66px;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+      margin: 0;
+      column-gap: 0;
+    }
+    .pj2-row.pj2-item:hover,
+    .pj2-row.pj2-item.is-active {
+      background: #FFFFFF;
+      border-radius: 12px;
+      box-shadow: 0 2px 4px rgba(144,149,159,0.07);
+      padding: 12px 15px;
+      margin: 0 -15px;
+    }
+
+    /* ── Left block: name + status ── */
+    .pj2-left {
+      display: flex !important;
+      flex-direction: column;
+      gap: 8px;
+      flex: 1;
+      min-width: 0;
+    }
+    .pj2-name {
+      display: flex; flex-direction: column; gap: 4px;
+      min-width: 0;
+    }
+    .pj2-name-row { gap: 8px; }
+    .pj2-name strong {
+      font-size: 18px;
+      font-weight: 500;
+      color: #0F0F10;
+      letter-spacing: 0.36px;
+      max-width: none;
+    }
+    .pj2-name small {
+      font-size: 14px;
+      font-weight: 400;
+      color: #90959F;
+      letter-spacing: 0.28px;
+    }
+    .pj2-status {
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 500;
+      color: #90959F;
+      letter-spacing: 0.24px;
+    }
+
+    /* ── Right block: avatars + date ── */
+    .pj2-right {
+      display: flex !important;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 16px;
+      flex-shrink: 0;
+      margin-left: 16px;
+    }
+    .pj2-devs {
+      display: inline-flex !important;
+      align-items: center;
+    }
+    .pj2-dev-stack { display: inline-flex; align-items: center; }
+    .pj2-dev-av {
+      width: 32px; height: 32px;
+      border: 1.5px solid #FFFFFF;
+      margin-right: -12px;
+    }
+    .pj2-dev-empty { display: none; }
+    .pj2-date {
+      font-size: 14px;
+      font-weight: 400;
+      color: #90959F;
+      letter-spacing: 0.14px;
+      text-align: right;
+    }
+
+    /* ── Hide desktop-only columns ── */
+    .pj2-teams { display: none !important; }
+    .pj2-more-wrap { display: none !important; }
+
+    /* ── Bottom dock ── */
+    .pjm-dock {
+      display: flex !important;
+      flex-direction: column;
+      align-items: center;
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      z-index: 50;
+    }
+    .pjm-home-indicator {
+      width: 48px; height: 5px;
+      background: rgba(144,149,159,0.25);
+      border-radius: 24px;
+      margin-bottom: 11px;
+    }
+    .pjm-dock-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 24px;
+      width: 100%;
+      box-sizing: border-box;
+      background: rgba(252,252,252,0.7);
+      border-radius: 32px 32px 0 0;
+      box-shadow: 0 -2px 4px rgba(144,149,159,0.07);
+      padding: 18px 24px;
+      padding-bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+    }
+    .pjm-status-btn {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 30px;
+      height: auto;
+      padding: 18px 22px;
+      border: 0;
+      border-radius: 32px;
+      background: #FFFFFF;
+      color: #6E6F71;
+      font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+      font-size: 16px;
+      font-weight: 400;
+      cursor: pointer;
+      box-shadow: 0 2px 2px 0.5px rgba(144,149,159,0.07);
+      white-space: nowrap;
+    }
+    .pjm-status-btn svg {
+      flex-shrink: 0;
+      color: #2A3032;
+    }
+    .pjm-tagro {
+      width: 60px; height: 60px;
+      flex-shrink: 0;
+      border: 0;
+      border-radius: 999px;
+      background: #5B647D;
+      color: #FFFFFF;
+      display: inline-flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      box-shadow:
+        0 1px 2px rgba(15,23,42,.1),
+        0 12px 28px -10px rgba(91,100,125,.5);
+    }
+
+    /* ── Tagro desktop hidden ── */
+    .pj2-tagro { display: none !important; }
+
+    /* ── Menu positioning for mobile toolbar ── */
+    .pjm-toolbar .pj2-menu {
+      top: 38px;
+      left: 0;
+      right: auto;
+    }
   }
 `
