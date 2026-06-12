@@ -7,7 +7,6 @@ import BrowserTabTitle from '@/components/BrowserTabTitle'
 import CommandPalette from '@/components/CommandPalette'
 import CopilotPanel from '@/components/CopilotPanel'
 import FeedbackWidget from '@/components/FeedbackWidget'
-import FestagPixelIntro from '@/components/FestagPixelIntro'
 import TagroOverlay from '@/components/TagroOverlay'
 import LoadingScreen from '@/components/LoadingScreen'
 import PwaInstallBanner from '@/components/PwaInstallBanner'
@@ -149,7 +148,6 @@ export default function ClientAppShell({
       className={`festag-app-shell${sidebarCollapsed ? ' sidebar-collapsed' : ''}${isFullHeight ? ' full-height' : ''}`}
       style={{ '--app-sidebar-width': sidebarWidth } as React.CSSProperties}
     >
-      <FestagPixelIntro />
       <TagroOverlay />
       <style>{`
         @keyframes panelFadeIn {
