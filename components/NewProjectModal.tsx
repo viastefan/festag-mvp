@@ -77,7 +77,7 @@ const DELIVERY_OPTIONS: DeliveryOption[] = [
   },
   {
     id: 'team_internal',
-    label: 'Teamprojekt anlegen',
+    label: 'Dev-Team-Projekt',
     meta: 'Mitarbeiter, Freelancer oder Partner aus deinem Workspace übernehmen.',
     tagroAfter: 'Die nächsten Schritte werden für das zuständige Team vorbereitet.',
     postCreate: 'assign-team',
@@ -535,28 +535,38 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
       if (pending?.payload) {
         const p = pending.payload
         try {
-          if (p.mode === 'existing' || p.mode === 'invite') {
-            await fetch('/api/projects/assign-dev', {
+          if (p.mode === 'existing') {
+            await fetch('/api/projects/assign-existing', {
               method: 'POST', headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
-                projectId, projectTitle: projectTitleVal,
+                projectId,
                 devEmail: 'devEmail' in p ? p.devEmail : undefined,
                 devHandle: 'devHandle' in p ? p.devHandle : undefined,
               }),
             }).catch(() => null)
-          } else if (p.mode === 'team') {
-            const res = await fetch('/api/projects/assign-team', {
+          } else if (p.mode === 'invite') {
+            await fetch('/api/projects/invite-dev', {
               method: 'POST', headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ projectId, projectTitle: projectTitleVal, emails: p.emails }),
+              body: JSON.stringify({
+                projectId,
+                devEmail: 'devEmail' in p ? p.devEmail : undefined,
+                devName: 'devName' in p ? (p as any).devName : undefined,
+              }),
             }).catch(() => null)
-            if (!res || !res.ok) {
-              await Promise.all(p.emails.map(em => fetch('/api/projects/assign-dev', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ projectId, projectTitle: projectTitleVal, devEmail: em }),
-              }).catch(() => null)))
-            }
+          } else if (p.mode === 'team') {
+            await fetch('/api/projects/assign-team', {
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                projectId,
+                members: (p.emails || []).map((em: string) => ({ email: em })),
+              }),
+            }).catch(() => null)
+          } else if (p.mode === 'festag') {
+            await fetch('/api/projects/festag-pool', {
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ projectId }),
+            }).catch(() => null)
           }
-          // mode 'festag' braucht keine extra API — Tagro übernimmt asynchron.
         } catch { /* still complete project creation */ }
       }
 
