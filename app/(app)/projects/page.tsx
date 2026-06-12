@@ -491,26 +491,26 @@ function ProjectsPageInner() {
 
       {/* Mobile: Bottom dock */}
       <div className="pjm-dock">
-        <div className="pjm-dock-actions">
-          <div
-            className="pjm-home-indicator"
-            onTouchStart={(e) => {
-              const startY = e.touches[0].clientY
-              const onMove = (ev: TouchEvent) => {
-                if (startY - ev.touches[0].clientY > 40) {
-                  setShowNewProject(true)
-                  document.removeEventListener('touchmove', onMove)
-                  document.removeEventListener('touchend', onEnd)
-                }
-              }
-              const onEnd = () => {
+        <div
+          className="pjm-dock-actions"
+          onTouchStart={(e) => {
+            const startY = e.touches[0].clientY
+            const onMove = (ev: TouchEvent) => {
+              if (startY - ev.touches[0].clientY > 40) {
+                setShowNewProject(true)
                 document.removeEventListener('touchmove', onMove)
                 document.removeEventListener('touchend', onEnd)
               }
-              document.addEventListener('touchmove', onMove, { passive: true })
-              document.addEventListener('touchend', onEnd, { once: true })
-            }}
-          />
+            }
+            const onEnd = () => {
+              document.removeEventListener('touchmove', onMove)
+              document.removeEventListener('touchend', onEnd)
+            }
+            document.addEventListener('touchmove', onMove, { passive: true })
+            document.addEventListener('touchend', onEnd, { once: true })
+          }}
+        >
+          <div className="pjm-home-indicator" />
           <div className="pjm-dock-row">
             <button type="button" className="pjm-status-btn" onClick={() => setShowNewProject(true)}>
               <Plus size={24} weight="regular" />
@@ -928,17 +928,19 @@ const CSS = `
     .pj2-title h1 {
       font-size: 25px;
       font-weight: 400;
+      font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
       letter-spacing: 0;
       color: #0F0F10;
-      line-height: normal;
+      line-height: 30px;
       margin: 0;
     }
     .pj2-title p {
       font-size: 25px;
       font-weight: 400;
+      font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
       color: #90959F;
       letter-spacing: 0;
-      line-height: normal;
+      line-height: 30px;
       margin: 0;
     }
 
@@ -957,20 +959,20 @@ const CSS = `
     }
     .pjm-tool-btn {
       width: 30px; height: 30px;
-      border: 1px solid rgba(228,231,235,0.8);
-      border-radius: 32px !important;
+      border: 0;
+      border-radius: 999px !important;
       background: #FFFFFF;
       color: #2A3032;
       display: inline-flex; align-items: center; justify-content: center;
       cursor: pointer;
-      box-shadow: 0 1px 2px rgba(15,23,42,0.06);
+      box-shadow: 0 0 0 1px rgba(0,0,0,0.04), 0 2px 8px rgba(91,100,125,0.18);
       padding: 0;
     }
     .pjm-new-btn {
       height: 30px;
       padding: 0 14px;
-      border: 1px solid rgba(228,231,235,0.8);
-      border-radius: 32px !important;
+      border: 0;
+      border-radius: 999px !important;
       background: #FFFFFF;
       color: #0F0F10;
       font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
@@ -978,7 +980,7 @@ const CSS = `
       font-weight: 400;
       letter-spacing: 0.24px;
       cursor: pointer;
-      box-shadow: 0 1px 2px rgba(15,23,42,0.06);
+      box-shadow: 0 0 0 1px rgba(0,0,0,0.04), 0 2px 8px rgba(91,100,125,0.18);
       white-space: nowrap;
     }
 
@@ -989,27 +991,27 @@ const CSS = `
 
     /* ── Project items: flat list with hover container ── */
     .pj2-row.pj2-item {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      padding: 14px 16px;
-      height: auto;
-      min-height: 66px;
-      border-radius: 16px;
-      background: transparent;
-      box-shadow: none;
-      margin: 0 -16px;
-      column-gap: 0;
+      display: flex !important;
+      align-items: flex-start !important;
+      justify-content: space-between !important;
+      padding: 14px 16px !important;
+      height: auto !important;
+      min-height: 66px !important;
+      border-radius: 16px !important;
+      background: transparent !important;
+      box-shadow: none !important;
+      margin: 0 -16px !important;
+      column-gap: 0 !important;
       transition: background .15s, box-shadow .15s;
     }
     .pj2-row.pj2-item:hover,
     .pj2-row.pj2-item:active,
     .pj2-row.pj2-item.is-active {
-      background: #FFFFFF;
-      border-radius: 16px;
-      box-shadow: 0 2px 6px rgba(144,149,159,0.09);
-      padding: 14px 16px;
-      margin: 0 -16px;
+      background: #FFFFFF !important;
+      border-radius: 16px !important;
+      box-shadow: 0 2px 6px rgba(144,149,159,0.09) !important;
+      padding: 14px 16px !important;
+      margin: 0 -16px !important;
     }
 
     /* ── Left block: name + status ── */
