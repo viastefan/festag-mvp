@@ -117,7 +117,7 @@ const CSS = `
   .rail {
     position: fixed; left: 0; top: 0; bottom: 0;
     width: 60px;
-    background: #FCFCFC;
+    background: transparent;
     border-top-right-radius: 24px;
     border-bottom-right-radius: 24px;
     z-index: 80;
