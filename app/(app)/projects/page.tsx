@@ -437,7 +437,9 @@ const CSS = `
 
   .pj2-page {
     position: fixed; inset: 0;
-    background: #FCFCFC;
+    background: rgba(245,245,245,0.9);
+    backdrop-filter: blur(40px) saturate(1.4);
+    -webkit-backdrop-filter: blur(40px) saturate(1.4);
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
     color: #0F0F10;
     color-scheme: light;
