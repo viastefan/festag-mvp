@@ -495,7 +495,7 @@ const CSS = `
   .pj2-tool {
     width: 40px; height: 40px;
     border: 1px solid rgba(202,207,212,0.2);
-    border-radius: 32px;
+    border-radius: 32px !important;
     background: #FFFFFF;
     color: #6E717E;
     display: inline-flex; align-items: center; justify-content: center;
@@ -510,7 +510,7 @@ const CSS = `
   .pj2-cta {
     height: 40px; padding: 0 20px;
     border: 1px solid rgba(202,207,212,0.2);
-    border-radius: 32px;
+    border-radius: 32px !important;
     background: #FFFFFF; color: #2A3032;
     font: inherit; font-size: 14px; font-weight: 400;
     letter-spacing: 0.42px;
@@ -666,7 +666,7 @@ const CSS = `
   .pj2-more-wrap { position: relative; }
   .pj2-more {
     width: 32px; height: 32px;
-    border: 0; border-radius: 999px;
+    border: 0; border-radius: 999px !important;
     background: transparent;
     color: #6E717E;
     display: inline-flex; align-items: center; justify-content: center;
@@ -708,7 +708,7 @@ const CSS = `
   .pj2-tagro {
     position: fixed; right: 50px; bottom: 44px; z-index: 60;
     width: 70px; height: 70px;
-    border: 0; border-radius: 999px;
+    border: 0; border-radius: 999px !important;
     background: #5B647D;
     color: #FFFFFF;
     display: inline-flex; align-items: center; justify-content: center;
