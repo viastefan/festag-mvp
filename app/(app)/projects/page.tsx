@@ -892,12 +892,14 @@ const CSS = `
       box-shadow: 0 1px 3px rgba(15,23,42,0.08);
     }
     .pjm-header-icons button {
-      width: 40px; height: 40px;
-      border: 0; border-radius: 999px !important;
-      background: transparent;
-      color: #2A3032;
-      display: inline-flex; align-items: center; justify-content: center;
+      width: 40px !important; height: 40px !important;
+      border: 0 !important; border-radius: 999px !important;
+      background: transparent !important;
+      color: #2A3032 !important;
+      display: inline-flex !important; align-items: center !important; justify-content: center !important;
       cursor: pointer;
+      padding: 0 !important;
+      box-shadow: none !important;
     }
     .pjm-icon-sep {
       display: none !important;
@@ -926,22 +928,22 @@ const CSS = `
       margin-bottom: 24px;
     }
     .pj2-title h1 {
-      font-size: 25px;
-      font-weight: 400;
-      font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
-      letter-spacing: 0;
-      color: #0F0F10;
-      line-height: 30px;
-      margin: 0;
+      font-size: 25px !important;
+      font-weight: 400 !important;
+      font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif) !important;
+      letter-spacing: 0 !important;
+      color: #0F0F10 !important;
+      line-height: 30px !important;
+      margin: 0 !important;
     }
     .pj2-title p {
-      font-size: 25px;
-      font-weight: 400;
-      font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
-      color: #90959F;
-      letter-spacing: 0;
-      line-height: 30px;
-      margin: 0;
+      font-size: 25px !important;
+      font-weight: 400 !important;
+      font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif) !important;
+      color: #90959F !important;
+      letter-spacing: 0 !important;
+      line-height: 30px !important;
+      margin: 0 !important;
     }
 
     /* ── Mobile toolbar (right-aligned with content) ── */
@@ -958,29 +960,29 @@ const CSS = `
       gap: 8px;
     }
     .pjm-tool-btn {
-      width: 30px; height: 30px;
-      border: 0;
+      width: 30px !important; height: 30px !important;
+      border: 0 !important;
       border-radius: 999px !important;
-      background: #FFFFFF;
-      color: #2A3032;
-      display: inline-flex; align-items: center; justify-content: center;
+      background: #FFFFFF !important;
+      color: #2A3032 !important;
+      display: inline-flex !important; align-items: center !important; justify-content: center !important;
       cursor: pointer;
-      box-shadow: 0 0 0 1px rgba(0,0,0,0.04), 0 2px 8px rgba(91,100,125,0.18);
-      padding: 0;
+      box-shadow: 0 0 0 1px rgba(0,0,0,0.04), 0 2px 8px rgba(91,100,125,0.18) !important;
+      padding: 0 !important;
     }
     .pjm-new-btn {
-      height: 30px;
-      padding: 0 14px;
-      border: 0;
+      height: 30px !important;
+      padding: 0 14px !important;
+      border: 0 !important;
       border-radius: 999px !important;
-      background: #FFFFFF;
-      color: #0F0F10;
-      font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
-      font-size: 12px;
-      font-weight: 400;
-      letter-spacing: 0.24px;
+      background: #FFFFFF !important;
+      color: #0F0F10 !important;
+      font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif) !important;
+      font-size: 12px !important;
+      font-weight: 400 !important;
+      letter-spacing: 0.24px !important;
       cursor: pointer;
-      box-shadow: 0 0 0 1px rgba(0,0,0,0.04), 0 2px 8px rgba(91,100,125,0.18);
+      box-shadow: 0 0 0 1px rgba(0,0,0,0.04), 0 2px 8px rgba(91,100,125,0.18) !important;
       white-space: nowrap;
     }
 
