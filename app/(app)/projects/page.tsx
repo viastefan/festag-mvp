@@ -224,9 +224,9 @@ function ProjectsPageInner() {
   }, [projects, filter, sort])
 
   const tagroHandler = () => openTagro({
-    contextType: ‘project’,
-    title: ‘Projekte’,
-    subtitle: `${visible.length} Projekt${visible.length === 1 ? ‘’ : ‘e’}`,
+    contextType: 'project',
+    title: 'Projekte',
+    subtitle: `${visible.length} Projekt${visible.length === 1 ? '' : 'e'}`,
   })
 
   return (
@@ -253,7 +253,7 @@ function ProjectsPageInner() {
                 <div className="pj2-tool-wrap">
                   <button
                     type="button"
-                    className={`pj2-tool${filterOpen ? ‘ on’ : ‘’}`}
+                    className={`pj2-tool${filterOpen ? ' on' : ''}`}
                     aria-label="Filter"
                     onClick={() => { setFilterOpen(v => !v); setSortOpen(false) }}
                   >
@@ -262,7 +262,7 @@ function ProjectsPageInner() {
                   {filterOpen && (
                     <div className="pj2-menu" role="menu">
                       {FILTERS.map(f => (
-                        <button key={f.id} type="button" className={filter === f.id ? ‘on’ : ‘’} onClick={() => { setFilter(f.id); setFilterOpen(false) }}>
+                        <button key={f.id} type="button" className={filter === f.id ? 'on' : ''} onClick={() => { setFilter(f.id); setFilterOpen(false) }}>
                           <span>{f.label}</span>
                           {filter === f.id && <span className="check">✓</span>}
                         </button>
@@ -273,7 +273,7 @@ function ProjectsPageInner() {
                 <div className="pj2-tool-wrap">
                   <button
                     type="button"
-                    className={`pj2-tool${sortOpen ? ‘ on’ : ‘’}`}
+                    className={`pj2-tool${sortOpen ? ' on' : ''}`}
                     aria-label="Sortieren"
                     onClick={() => { setSortOpen(v => !v); setFilterOpen(false) }}
                   >
@@ -282,7 +282,7 @@ function ProjectsPageInner() {
                   {sortOpen && (
                     <div className="pj2-menu" role="menu">
                       {SORTS.map(s => (
-                        <button key={s.id} type="button" className={sort === s.id ? ‘on’ : ‘’} onClick={() => { setSort(s.id); setSortOpen(false) }}>
+                        <button key={s.id} type="button" className={sort === s.id ? 'on' : ''} onClick={() => { setSort(s.id); setSortOpen(false) }}>
                           <span>{s.label}</span>
                           {sort === s.id && <span className="check">✓</span>}
                         </button>
@@ -312,7 +312,7 @@ function ProjectsPageInner() {
                 {filterOpen && (
                   <div className="pj2-menu" role="menu">
                     {FILTERS.map(f => (
-                      <button key={f.id} type="button" className={filter === f.id ? ‘on’ : ‘’} onClick={() => { setFilter(f.id); setFilterOpen(false) }}>
+                      <button key={f.id} type="button" className={filter === f.id ? 'on' : ''} onClick={() => { setFilter(f.id); setFilterOpen(false) }}>
                         <span>{f.label}</span>
                         {filter === f.id && <span className="check">✓</span>}
                       </button>
@@ -332,7 +332,7 @@ function ProjectsPageInner() {
                 {sortOpen && (
                   <div className="pj2-menu" role="menu">
                     {SORTS.map(s => (
-                      <button key={s.id} type="button" className={sort === s.id ? ‘on’ : ‘’} onClick={() => { setSort(s.id); setSortOpen(false) }}>
+                      <button key={s.id} type="button" className={sort === s.id ? 'on' : ''} onClick={() => { setSort(s.id); setSortOpen(false) }}>
                         <span>{s.label}</span>
                         {sort === s.id && <span className="check">✓</span>}
                       </button>
@@ -350,7 +350,7 @@ function ProjectsPageInner() {
             <div className="pj2-row pj2-thead">
               <span>Projekt</span>
               <span>Status</span>
-              <span>Dev’ler</span>
+              <span>Dev'ler</span>
               <span>Aktualisiert</span>
               <span>In Teams</span>
               <span />
@@ -360,15 +360,15 @@ function ProjectsPageInner() {
             {loading ? (
               <div className="pj2-empty">Projekte werden geladen…</div>
             ) : visible.length === 0 ? (
-              filter === ‘all’ ? (
-                <div style={{ padding: ‘40px 0’ }}>
+              filter === 'all' ? (
+                <div style={{ padding: '40px 0' }}>
                   <EmptyState
                     icon={Stack}
                     kicker="Projekte"
                     title="Noch kein Projekt"
                     description="Erstelle ein Projekt, damit Tagro Roadmap und Aufgaben vorbereiten kann."
                     actions={[
-                      { label: ‘Projekt anlegen’, icon: Plus, primary: true, onClick: () => setShowNewProject(true) },
+                      { label: 'Projekt anlegen', icon: Plus, primary: true, onClick: () => setShowNewProject(true) },
                     ]}
                   />
                 </div>
@@ -380,13 +380,13 @@ function ProjectsPageInner() {
                 const st = statusKeyOf(project)
                 const meta = STATUS_META[st]
                 const devs = devsByProject[project.id] || []
-                const isTeam = project.delivery_model === ‘team_internal’ || devs.length >= 2
+                const isTeam = project.delivery_model === 'team_internal' || devs.length >= 2
                 const isActive = activeRow === project.id
                 return (
                   <Link
                     key={project.id}
                     href={`/project/${project.id}`}
-                    className={`pj2-row pj2-item${isActive ? ‘ is-active’ : ‘’}`}
+                    className={`pj2-row pj2-item${isActive ? ' is-active' : ''}`}
                     onMouseEnter={() => setActiveRow(project.id)}
                     onMouseLeave={() => setActiveRow(prev => prev === project.id ? null : prev)}
                   >
@@ -427,7 +427,7 @@ function ProjectsPageInner() {
                       </span>
                       <span className="pj2-date">{relTime(project.updated_at || project.created_at)}</span>
                     </span>
-                    <span className="pj2-teams" aria-label={isTeam ? ‘Teamprojekt’ : ‘Einzeldev’}>
+                    <span className="pj2-teams" aria-label={isTeam ? 'Teamprojekt' : 'Einzeldev'}>
                       {isTeam ? <UsersThree size={22} weight="thin" /> : <User size={22} weight="thin" />}
                     </span>
                     <div className="pj2-more-wrap">
@@ -445,11 +445,11 @@ function ProjectsPageInner() {
                       {menuOpenId === project.id && (
                         <div className="pj2-row-menu" role="menu">
                           {[
-                            { label: ‘Projekt als erledigt markieren’, action: ‘complete’ },
-                            { label: ‘Projekt löschen’, action: ‘delete’ },
-                            { label: ‘Projekt teilen’, action: ‘share’ },
-                            { label: ‘Mitwirkende einladen’, action: ‘invite’ },
-                            { label: ‘Support anfragen’, action: ‘support’ },
+                            { label: 'Projekt als erledigt markieren', action: 'complete' },
+                            { label: 'Projekt löschen', action: 'delete' },
+                            { label: 'Projekt teilen', action: 'share' },
+                            { label: 'Mitwirkende einladen', action: 'invite' },
+                            { label: 'Support anfragen', action: 'support' },
                           ].map(item => (
                             <button
                               key={item.action}
