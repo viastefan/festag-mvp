@@ -569,7 +569,7 @@ const CSS = `
   .pj2-main {
     margin-left: 60px;
     height: 100%;
-    padding: 18px 18px 18px 0;
+    padding: 8px 8px 18px 0;
     box-sizing: border-box;
     display: flex; flex-direction: column;
   }
