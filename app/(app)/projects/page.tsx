@@ -243,6 +243,7 @@ function ProjectsPageInner() {
 
       <main className="pj2-main">
         <div className="pj2-card">
+          <div className="pj2-sticky-head">
           <header className="pj2-head">
             <div className="pj2-title">
               <h1><span className="pj2-dt">Alle Projekte.</span><span className="pjm-t">Aktuelle Projekte.</span></h1>
@@ -345,6 +346,7 @@ function ProjectsPageInner() {
               Neues Projekt
             </button>
           </div>
+          </div>{/* /pj2-sticky-head */}
 
           <div className="pj2-table">
             <div className="pj2-row pj2-thead">
@@ -434,7 +436,15 @@ function ProjectsPageInner() {
                       <span className="pj2-date">{relTime(project.updated_at || project.created_at)}</span>
                     </span>
                     <span className="pj2-teams" aria-label={isTeam ? 'Teamprojekt' : 'Einzeldev'}>
-                      {isTeam ? <UsersThree size={22} weight="thin" /> : <User size={22} weight="thin" />}
+                      {isTeam ? (
+                        <span className="pj2-team-dots">
+                          <span className="pj2-team-dot" /><span className="pj2-team-dot" />
+                        </span>
+                      ) : (
+                        <span className="pj2-team-dots solo">
+                          <span className="pj2-team-dot" />
+                        </span>
+                      )}
                     </span>
                     <div className="pj2-more-wrap">
                       <button
@@ -568,7 +578,7 @@ const CSS = `
     flex: 1; min-height: 0;
     background: #FFFFFF;
     border-radius: 12px;
-    padding: 80px 164px;
+    padding: 0 164px 80px;
     box-sizing: border-box;
     position: relative;
     overflow-y: auto;
@@ -578,21 +588,50 @@ const CSS = `
   }
   .pj2-card::-webkit-scrollbar { display: none; }
 
+  /* ── Sticky header + gradient shield ── */
+  .pj2-sticky-head {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: #FFFFFF;
+    padding-top: 80px;
+    padding-bottom: 0;
+  }
+  .pj2-sticky-head::after {
+    content: '';
+    display: block;
+    position: absolute;
+    left: -164px; right: -164px;
+    bottom: -60px;
+    height: 60px;
+    background: linear-gradient(
+      to bottom,
+      rgba(255,255,255,1) 0%,
+      rgba(255,255,255,0.96) 40%,
+      rgba(255,255,255,0.85) 70%,
+      rgba(255,255,255,0) 100%
+    );
+    pointer-events: none;
+    z-index: 5;
+  }
+
   .pj2-head {
     display: flex; align-items: flex-start; justify-content: space-between;
     gap: 32px;
-    margin-bottom: 44px;
+    margin-bottom: 32px;
   }
   .pj2-title h1 {
     margin: 0;
-    font-size: 28px; font-weight: 400;
+    font-size: 28px; font-weight: 400 !important;
+    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif) !important;
     letter-spacing: 0.56px;
     color: #0F0F10;
     line-height: 1.2;
   }
   .pj2-title p {
     margin: 0;
-    font-size: 28px; font-weight: 400;
+    font-size: 28px; font-weight: 400 !important;
+    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif) !important;
     color: #8F93A4;
     letter-spacing: 0.56px;
     line-height: 1.2;
@@ -607,32 +646,38 @@ const CSS = `
   .pj2-tool-wrap { position: relative; }
   .pj2-tool {
     width: 38px; height: 38px;
-    border: 1px solid rgba(228,231,235,0.8);
+    border: 1px solid rgba(230,233,238,0.7);
     border-radius: 32px !important;
     background: #FFFFFF;
-    color: #6E717E;
+    color: #8E93A0;
     display: inline-flex; align-items: center; justify-content: center;
     cursor: pointer;
-    box-shadow: 0 1px 2px rgba(15,23,42,0.06);
-    transition: background .12s, color .14s, border-color .14s;
+    box-shadow: 0 1px 3px rgba(15,23,42,0.05), 0 1px 1px rgba(15,23,42,0.03);
+    transition: background .14s, color .14s, border-color .14s, box-shadow .14s;
   }
   .pj2-tool:hover, .pj2-tool.on {
     background: #FAFBFC;
     color: #2A3032;
     border-color: rgba(210,215,222,0.9);
+    box-shadow: 0 2px 6px rgba(15,23,42,0.08), 0 1px 1px rgba(15,23,42,0.04);
   }
   .pj2-cta {
     height: 38px; padding: 0 18px;
-    border: 1px solid rgba(228,231,235,0.8);
+    border: 1px solid rgba(230,233,238,0.7);
     border-radius: 32px !important;
     background: #FFFFFF; color: #2A3032;
     font: inherit; font-size: 14px; font-weight: 400;
+    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
     letter-spacing: 0.42px;
-    box-shadow: 0 1px 2px rgba(15,23,42,0.06);
+    box-shadow: 0 1px 3px rgba(15,23,42,0.05), 0 1px 1px rgba(15,23,42,0.03);
     cursor: pointer;
-    transition: background .12s, border-color .14s;
+    transition: background .14s, border-color .14s, box-shadow .14s;
   }
-  .pj2-cta:hover { background: #FAFBFC; border-color: rgba(210,215,222,0.9); }
+  .pj2-cta:hover {
+    background: #FAFBFC;
+    border-color: rgba(210,215,222,0.9);
+    box-shadow: 0 2px 6px rgba(15,23,42,0.08), 0 1px 1px rgba(15,23,42,0.04);
+  }
 
   .pj2-menu {
     position: absolute; top: 48px; right: 0; z-index: 30;
@@ -780,6 +825,24 @@ const CSS = `
     color: #6E717E;
     display: inline-flex; align-items: center; justify-content: flex-start;
   }
+  .pj2-team-dots {
+    display: inline-flex; align-items: center;
+    gap: 0;
+  }
+  .pj2-team-dot {
+    width: 8px; height: 8px;
+    border-radius: 999px;
+    background: #C8CCD4;
+    border: 1.5px solid #FFFFFF;
+    flex-shrink: 0;
+  }
+  .pj2-team-dots:not(.solo) .pj2-team-dot:nth-child(2) {
+    margin-left: -3px;
+    background: #A8AEBB;
+  }
+  .pj2-team-dots.solo .pj2-team-dot {
+    background: #D4D8DE;
+  }
   .pj2-more-wrap { position: relative; }
   .pj2-more {
     width: 32px; height: 32px;
@@ -845,11 +908,15 @@ const CSS = `
   .pj2-tagro:active { transform: translateY(0); }
 
   @media (max-width: 1400px) {
-    .pj2-card { padding: 60px 80px; }
+    .pj2-card { padding: 0 80px 60px; }
+    .pj2-sticky-head { padding-top: 60px; }
+    .pj2-sticky-head::after { left: -80px; right: -80px; }
   }
   @media (max-width: 1200px) {
-    .pj2-card { padding: 40px 40px 36px; }
-    .pj2-head { margin-bottom: 28px; }
+    .pj2-card { padding: 0 40px 36px; }
+    .pj2-sticky-head { padding-top: 40px; }
+    .pj2-sticky-head::after { left: -40px; right: -40px; }
+    .pj2-head { margin-bottom: 24px; }
     .pj2-title h1 { font-size: 24px; }
     .pj2-title p { font-size: 24px; }
     .pj2-row {
@@ -878,6 +945,13 @@ const CSS = `
       -webkit-backdrop-filter: none !important;
       overflow-x: hidden !important;
     }
+    .pj2-sticky-head {
+      position: relative !important;
+      padding-top: 0 !important;
+      z-index: auto !important;
+      background: transparent !important;
+    }
+    .pj2-sticky-head::after { display: none !important; }
 
     /* ── Mobile header icons: connected pill ── */
     .pjm-header-icons {
