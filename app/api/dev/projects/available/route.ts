@@ -82,30 +82,36 @@ export async function GET(req: Request) {
     ;(cp ?? []).forEach((c: any) => clientName.set(c.id, c.full_name || c.email || null))
   }
 
-  // Proposals: filter out projects that already have an active proposal
-  const { data: myProposals } = ids.length ? await (service as any)
-    .from('project_proposals')
-    .select('project_id,status')
-    .eq('dev_id', user.id)
-    .in('project_id', ids)
-    .in('status', ['proposed', 'budget_clarification', 'accepted']) : { data: [] as any[] }
-  const proposalProjectIds = new Set((myProposals ?? []).map((p: any) => p.project_id))
+  // Proposals: filter out projects that already have an active proposal.
+  // The project_proposals table may not exist yet (feature not migrated) —
+  // gracefully fall back to empty arrays so the pool still renders.
+  let proposalProjectIds = new Set<string>()
+  let projectsWithActiveProposal = new Set<string>()
+  let pendingProposals: any[] = []
+  try {
+    const { data: myProposals } = ids.length ? await (service as any)
+      .from('project_proposals')
+      .select('project_id,status')
+      .eq('dev_id', user.id)
+      .in('project_id', ids)
+      .in('status', ['proposed', 'budget_clarification', 'accepted']) : { data: [] as any[] }
+    proposalProjectIds = new Set((myProposals ?? []).map((p: any) => p.project_id))
 
-  // Projects with ANY active proposal (from any dev) — for pool filtering
-  const { data: activeProposals } = ids.length ? await (service as any)
-    .from('project_proposals')
-    .select('project_id')
-    .in('project_id', ids)
-    .in('status', ['proposed', 'budget_clarification', 'accepted']) : { data: [] as any[] }
-  const projectsWithActiveProposal = new Set((activeProposals ?? []).map((p: any) => p.project_id))
+    const { data: activeProposals } = ids.length ? await (service as any)
+      .from('project_proposals')
+      .select('project_id')
+      .in('project_id', ids)
+      .in('status', ['proposed', 'budget_clarification', 'accepted']) : { data: [] as any[] }
+    projectsWithActiveProposal = new Set((activeProposals ?? []).map((p: any) => p.project_id))
 
-  // Pending proposals for the dev (shown as "Wartet auf deine Antwort")
-  const { data: pendingProposals } = await (service as any)
-    .from('project_proposals')
-    .select('id,project_id,status,dev_proposed_price,dev_clarification_translated,client_response_translated,role_on_project,is_team_lead,created_at,expires_at')
-    .eq('dev_id', user.id)
-    .in('status', ['proposed', 'budget_clarification'])
-    .order('created_at', { ascending: false })
+    const { data: pp } = await (service as any)
+      .from('project_proposals')
+      .select('id,project_id,status,dev_proposed_price,dev_clarification_translated,client_response_translated,role_on_project,is_team_lead,created_at,expires_at')
+      .eq('dev_id', user.id)
+      .in('status', ['proposed', 'budget_clarification'])
+      .order('created_at', { ascending: false })
+    pendingProposals = pp ?? []
+  } catch {}
 
   const available: any[] = []
   const mine: any[] = []
