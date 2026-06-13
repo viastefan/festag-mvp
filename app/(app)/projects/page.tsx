@@ -163,10 +163,6 @@ function ProjectsPageInner() {
       (supabase as any).from('tasks').select('id,project_id,status,updated_at'),
     ])
     const projs = (projectData as ProjectRow[]) ?? []
-    if (projs.length === 1 && searchParams?.get('new') !== '1') {
-      window.location.href = `/project/${projs[0].id}`
-      return
-    }
     setProjects(projs)
     setTasks((taskData as TaskRow[]) ?? [])
     setLoading(false)
