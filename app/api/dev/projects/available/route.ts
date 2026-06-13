@@ -113,6 +113,11 @@ export async function GET(req: Request) {
     pendingProposals = pp ?? []
   } catch {}
 
+  console.log('[dev/projects/available] user:', user.id, 'profile:', profile?.role, 'totalProjects:', (projects ?? []).length, 'mineCount:', mineIds.size, 'proposalsBlocked:', projectsWithActiveProposal.size)
+  for (const p of (projects ?? []).slice(0, 5)) {
+    console.log('[dev/projects/available] project:', p.id, 'model:', p.delivery_model, 'status:', p.status)
+  }
+
   const available: any[] = []
   const mine: any[] = []
   for (const p of (projects ?? [])) {
