@@ -17,10 +17,20 @@ export const runtime = 'nodejs'
  * application code (dev role check + active assignment check).
  */
 export async function GET(req: Request) {
-  const supa = createClient()
-  const { data: { user: cookieUser } } = await supa.auth.getUser()
-  // PIN-Dev fallback: kein Supabase-Cookie, aber signierter Dev-Token.
-  const user = cookieUser ?? getDevUserFromRequest(req)
+  // PIN-Dev token first (fast, no network call). Supabase auth only as fallback.
+  let user: { id: string; role?: string } | null = getDevUserFromRequest(req)
+  if (!user) {
+    try {
+      const supa = createClient()
+      const result = await Promise.race([
+        supa.auth.getUser(),
+        new Promise<never>((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000)),
+      ])
+      user = result.data?.user ?? null
+    } catch {
+      // Supabase auth timed out or errored — continue without it
+    }
+  }
   if (!user) return NextResponse.json({ error: 'unauthenticated' }, { status: 401 })
 
   const service = getServiceClient()
