@@ -1284,7 +1284,7 @@ const CSS = `
     background: transparent; border: 0; outline: 0;
     color: #2A3032; font: inherit;
     font-size: 35px; line-height: 1.1;
-    font-weight: 400; letter-spacing: -.01em;
+    font-weight: 400; letter-spacing: 0.015em;
     padding: 4px 0;
     caret-color: #5B647D;
   }
