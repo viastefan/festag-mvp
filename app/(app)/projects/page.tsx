@@ -17,11 +17,13 @@ import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import NewProjectModal from '@/components/NewProjectModal'
 import RailSidebar from '@/components/RailSidebar'
-import { openTagro } from '@/components/TagroOverlay'
+import TagroOverlay, { openTagro } from '@/components/TagroOverlay'
+import DeleteProjectModal from '@/components/DeleteProjectModal'
+import InviteLinkModal from '@/components/InviteLinkModal'
 import EmptyState from '@/components/EmptyState'
 import {
   FunnelSimple, SlidersHorizontal, Plus, PencilSimple, DotsThree,
-  User, UsersThree, Stack, MagnifyingGlass, DotsNine,
+  User, UsersThree, Stack, MagnifyingGlass, DotsNine, Copy, Check, X,
 } from '@phosphor-icons/react'
 
 type ProjectRow = {
@@ -140,6 +142,16 @@ function ProjectsPageInner() {
   const [sortOpen, setSortOpen] = useState(false)
   const [activeRow, setActiveRow] = useState<string | null>(null)
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null)
+  const [completeTarget, setCompleteTarget] = useState<ProjectRow | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<ProjectRow | null>(null)
+  const [shareTarget, setShareTarget] = useState<ProjectRow | null>(null)
+  const [inviteTarget, setInviteTarget] = useState<ProjectRow | null>(null)
+  const [supportTarget, setSupportTarget] = useState<ProjectRow | null>(null)
+  const [shareCopied, setShareCopied] = useState(false)
+  const [supportMsg, setSupportMsg] = useState('')
+  const [supportUrgency, setSupportUrgency] = useState<'normal' | 'today' | 'now'>('normal')
+  const [supportSending, setSupportSending] = useState(false)
+  const [supportSent, setSupportSent] = useState(false)
   const searchParams = useSearchParams()
   const supabase = useMemo(() => createClient(), [])
 
@@ -183,6 +195,54 @@ function ProjectsPageInner() {
       ;(map[r.project_id] ||= []).push(prof)
     }
     setDevsByProject(map)
+  }
+
+  function handleMenuAction(project: ProjectRow, action: string) {
+    setMenuOpenId(null)
+    switch (action) {
+      case 'complete':  setCompleteTarget(project); break
+      case 'delete':    setDeleteTarget(project); break
+      case 'share':     setShareTarget(project); break
+      case 'invite':    setInviteTarget(project); break
+      case 'support':   setSupportTarget(project); setSupportMsg(''); setSupportUrgency('normal'); setSupportSending(false); setSupportSent(false); break
+    }
+  }
+
+  async function confirmComplete() {
+    if (!completeTarget) return
+    await (supabase as any).from('projects')
+      .update({ status: 'done', updated_at: new Date().toISOString() })
+      .eq('id', completeTarget.id)
+    setCompleteTarget(null)
+    loadProjects()
+  }
+
+  async function copyShareLink() {
+    if (!shareTarget) return
+    try {
+      await navigator.clipboard.writeText(`https://festag.app/c/${shareTarget.id}`)
+      setShareCopied(true)
+      setTimeout(() => setShareCopied(false), 2000)
+    } catch {}
+  }
+
+  async function submitSupport() {
+    if (!supportTarget || !supportMsg.trim() || supportSending) return
+    setSupportSending(true)
+    try {
+      const urgencyLabel = supportUrgency === 'now' ? '[SOFORT] ' : supportUrgency === 'today' ? '[HEUTE] ' : ''
+      await fetch('/api/support/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: `${urgencyLabel}Projekt: ${supportTarget.title}\n\n${supportMsg.trim()}`,
+          page: `/projects (Projekt: ${supportTarget.id})`,
+        }),
+      })
+      setSupportSent(true)
+      setTimeout(() => { setSupportTarget(null); setSupportSent(false) }, 1800)
+    } catch {}
+    setSupportSending(false)
   }
 
   useEffect(() => {
@@ -254,7 +314,7 @@ function ProjectsPageInner() {
                 <div className="pj2-tool-wrap">
                   <button
                     type="button"
-                    className={`pj2-tool${filterOpen ? ' on' : ''}`}
+                    className={`pj2-tool${filterOpen ? ' on' : ''}${filter !== 'all' ? ' on' : ''}`}
                     aria-label="Filter"
                     onClick={() => { setFilterOpen(v => !v); setSortOpen(false) }}
                   >
@@ -472,7 +532,7 @@ function ProjectsPageInner() {
                               type="button"
                               onClick={(e) => {
                                 e.preventDefault(); e.stopPropagation()
-                                setMenuOpenId(null)
+                                handleMenuAction(project, item.action)
                               }}
                             >
                               {item.label}
@@ -539,6 +599,108 @@ function ProjectsPageInner() {
           onCreated={() => { setShowNewProject(false); loadProjects() }}
         />
       )}
+
+      {/* Complete confirm */}
+      {completeTarget && (
+        <div className="pj2-overlay" onClick={() => setCompleteTarget(null)}>
+          <div className="pj2-confirm-card" onClick={e => e.stopPropagation()}>
+            <h2 className="pj2-confirm-title">{completeTarget.title} als erledigt markieren?</h2>
+            <p className="pj2-confirm-text">Tagro wird das Projekt aus deinen aktiven Übersichten ausblenden und einen Abschluss-Bericht für die Beteiligten anfragen.</p>
+            <div className="pj2-confirm-actions">
+              <button type="button" className="pj2-confirm-ghost" onClick={() => setCompleteTarget(null)}>Abbrechen</button>
+              <button type="button" className="pj2-confirm-primary" onClick={confirmComplete}>Erledigt markieren</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete */}
+      <DeleteProjectModal
+        open={!!deleteTarget}
+        projectId={deleteTarget?.id ?? null}
+        projectTitle={deleteTarget?.title ?? ''}
+        onClose={() => setDeleteTarget(null)}
+        onDeleted={() => { setDeleteTarget(null); loadProjects() }}
+      />
+
+      {/* Share */}
+      {shareTarget && (
+        <div className="pj2-overlay" onClick={() => { setShareTarget(null); setShareCopied(false) }}>
+          <div className="pj2-confirm-card" onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+              <h2 className="pj2-confirm-title" style={{ margin: 0 }}>Projekt teilen</h2>
+              <button type="button" className="pj2-confirm-ghost" style={{ padding: '4px 8px' }} onClick={() => { setShareTarget(null); setShareCopied(false) }}>
+                <X size={16} weight="regular" />
+              </button>
+            </div>
+            <div className="pj2-share-link-row">
+              <input
+                className="pj2-share-link-input"
+                readOnly
+                value={`https://festag.app/c/${shareTarget.id}`}
+                onFocus={e => e.currentTarget.select()}
+              />
+              <button type="button" className="pj2-share-copy-btn" onClick={copyShareLink}>
+                {shareCopied ? <><Check size={14} weight="bold" /> Kopiert!</> : <><Copy size={14} /> Kopieren</>}
+              </button>
+            </div>
+            <p className="pj2-confirm-text" style={{ marginTop: 14 }}>Teile diesen Link mit Personen, die einen ruhigen Überblick zum Projekt erhalten sollen. Du kannst den Zugriff jederzeit wieder schließen.</p>
+          </div>
+        </div>
+      )}
+
+      {/* Invite */}
+      <InviteLinkModal
+        open={!!inviteTarget}
+        onClose={() => setInviteTarget(null)}
+        defaultProjectId={inviteTarget?.id ?? null}
+        projects={projects.map(p => ({ id: p.id, title: p.title, color: p.color }))}
+      />
+
+      {/* Support */}
+      {supportTarget && (
+        <div className="pj2-overlay" onClick={() => setSupportTarget(null)}>
+          <div className="pj2-confirm-card" onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+              <h2 className="pj2-confirm-title" style={{ margin: 0 }}>Support für {supportTarget.title}</h2>
+              <button type="button" className="pj2-confirm-ghost" style={{ padding: '4px 8px' }} onClick={() => setSupportTarget(null)}>
+                <X size={16} weight="regular" />
+              </button>
+            </div>
+            {supportSent ? (
+              <p className="pj2-confirm-text" style={{ textAlign: 'center', padding: '20px 0' }}>Tagro hat deine Anfrage erhalten.</p>
+            ) : (
+              <>
+                <textarea
+                  className="pj2-support-textarea"
+                  placeholder="Was beschäftigt dich? Tagro reicht das mit Projekt-Kontext an unser Team weiter."
+                  value={supportMsg}
+                  onChange={e => setSupportMsg(e.target.value)}
+                  autoFocus
+                />
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 12 }}>
+                  <select
+                    className="pj2-support-urgency"
+                    value={supportUrgency}
+                    onChange={e => setSupportUrgency(e.target.value as any)}
+                  >
+                    <option value="normal">Normal</option>
+                    <option value="today">Heute</option>
+                    <option value="now">Sofort</option>
+                  </select>
+                  <div style={{ flex: 1 }} />
+                  <button type="button" className="pj2-confirm-ghost" onClick={() => setSupportTarget(null)}>Abbrechen</button>
+                  <button type="button" className="pj2-confirm-primary" onClick={submitSupport} disabled={!supportMsg.trim() || supportSending}>
+                    {supportSending ? 'Sende…' : 'Absenden'}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      <TagroOverlay />
     </div>
   )
 }
@@ -567,24 +729,28 @@ const CSS = `
   }
 
   .pj2-main {
-    margin-left: 60px;
+    margin-left: 240px;
     height: 100%;
     padding: 8px 8px 18px 0;
     box-sizing: border-box;
     display: flex; flex-direction: column;
+    transition: margin-left .26s cubic-bezier(.16,1,.3,1);
+  }
+  body:has(.rail[data-collapsed="1"]) .pj2-main {
+    margin-left: 60px;
   }
 
   .pj2-card {
     flex: 1; min-height: 0;
     background: #FFFFFF;
-    border-radius: 12px;
-    padding: 0 164px 80px;
+    border-radius: 16px;
+    padding: 0 164px 64px;
     box-sizing: border-box;
     position: relative;
     overflow-y: auto;
     overflow-x: hidden;
     scrollbar-width: none;
-    box-shadow: 0 -2px 4px rgba(110,113,126,0.05), 0 2px 8px rgba(110,113,126,0.06);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.06);
   }
   .pj2-card::-webkit-scrollbar { display: none; }
 
@@ -594,7 +760,7 @@ const CSS = `
     top: 0;
     z-index: 10;
     background: #FFFFFF;
-    padding-top: 80px;
+    padding-top: 64px;
     padding-bottom: 0;
   }
   .pj2-sticky-head::after {
@@ -624,7 +790,7 @@ const CSS = `
     margin: 0;
     font-size: 28px; font-weight: 400 !important;
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif) !important;
-    letter-spacing: 0.56px;
+    letter-spacing: -0.01em;
     color: #0F0F10;
     line-height: 1.2;
   }
@@ -633,7 +799,7 @@ const CSS = `
     font-size: 28px; font-weight: 400 !important;
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif) !important;
     color: #8F93A4;
-    letter-spacing: 0.56px;
+    letter-spacing: -0.01em;
     line-height: 1.2;
   }
   .pj2-actions {
@@ -645,38 +811,77 @@ const CSS = `
   }
   .pj2-tool-wrap { position: relative; }
   .pj2-tool {
+    position: relative;
     width: 38px; height: 38px;
-    border: 1px solid rgba(230,233,238,0.7);
+    border: 1px solid rgba(228,231,235,0.6);
     border-radius: 32px !important;
     background: #FFFFFF;
     color: #8E93A0;
     display: inline-flex; align-items: center; justify-content: center;
     cursor: pointer;
-    box-shadow: 0 1px 3px rgba(15,23,42,0.05), 0 1px 1px rgba(15,23,42,0.03);
-    transition: background .14s, color .14s, border-color .14s, box-shadow .14s;
+    box-shadow:
+      0 1px 0 rgba(15,23,42,0.04),
+      0 2px 4px rgba(15,23,42,0.06),
+      0 6px 12px -4px rgba(15,23,42,0.05);
+    transition: background .14s, color .14s, border-color .14s, box-shadow .14s, transform .14s;
   }
   .pj2-tool:hover, .pj2-tool.on {
-    background: #FAFBFC;
+    background: #FFFFFF;
     color: #2A3032;
     border-color: rgba(210,215,222,0.9);
-    box-shadow: 0 2px 6px rgba(15,23,42,0.08), 0 1px 1px rgba(15,23,42,0.04);
+    box-shadow:
+      0 1px 0 rgba(15,23,42,0.05),
+      0 3px 6px rgba(15,23,42,0.08),
+      0 10px 20px -6px rgba(15,23,42,0.08);
+    transform: translateY(-0.5px);
+  }
+  .pj2-tool:active {
+    transform: translateY(0);
+    box-shadow:
+      0 1px 0 rgba(15,23,42,0.04),
+      0 1px 2px rgba(15,23,42,0.06);
+  }
+  .pj2-tool.on {
+    border-color: #5B647D;
+  }
+  .pj2-tool.on::after {
+    content: '';
+    position: absolute;
+    top: -2px; right: -2px;
+    width: 6px; height: 6px;
+    border-radius: 999px;
+    background: #5B647D;
+    border: 1.5px solid #FFFFFF;
   }
   .pj2-cta {
     height: 38px; padding: 0 18px;
-    border: 1px solid rgba(230,233,238,0.7);
+    border: 1px solid rgba(228,231,235,0.6);
     border-radius: 32px !important;
     background: #FFFFFF; color: #2A3032;
     font: inherit; font-size: 14px; font-weight: 400;
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
     letter-spacing: 0.42px;
-    box-shadow: 0 1px 3px rgba(15,23,42,0.05), 0 1px 1px rgba(15,23,42,0.03);
+    box-shadow:
+      0 1px 0 rgba(15,23,42,0.04),
+      0 2px 4px rgba(15,23,42,0.06),
+      0 6px 12px -4px rgba(15,23,42,0.05);
     cursor: pointer;
-    transition: background .14s, border-color .14s, box-shadow .14s;
+    transition: background .14s, border-color .14s, box-shadow .14s, transform .14s;
   }
   .pj2-cta:hover {
-    background: #FAFBFC;
+    background: #FFFFFF;
     border-color: rgba(210,215,222,0.9);
-    box-shadow: 0 2px 6px rgba(15,23,42,0.08), 0 1px 1px rgba(15,23,42,0.04);
+    box-shadow:
+      0 1px 0 rgba(15,23,42,0.05),
+      0 3px 6px rgba(15,23,42,0.08),
+      0 10px 20px -6px rgba(15,23,42,0.08);
+    transform: translateY(-0.5px);
+  }
+  .pj2-cta:active {
+    transform: translateY(0);
+    box-shadow:
+      0 1px 0 rgba(15,23,42,0.04),
+      0 1px 2px rgba(15,23,42,0.06);
   }
 
   .pj2-menu {
@@ -693,7 +898,7 @@ const CSS = `
   .pj2-menu button {
     width: 100%; height: 36px; padding: 0 12px;
     border: 0; background: transparent;
-    border-radius: 10px;
+    border-radius: 8px;
     display: flex; align-items: center; justify-content: space-between;
     color: #2A3032;
     font: inherit; font-size: 13px; font-weight: 500;
@@ -722,11 +927,11 @@ const CSS = `
     border-radius: 16px;
   }
   .pj2-thead {
-    color: #6E717E;
+    color: #5B647D;
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
     font-size: 12px; font-weight: 500;
-    letter-spacing: 0.12px;
-    padding-bottom: 8px;
+    letter-spacing: 0.32px;
+    padding-bottom: 12px;
   }
   .pj2-divider {
     height: 0.5px;
@@ -736,7 +941,7 @@ const CSS = `
       rgb(233,239,246) 63.7%,
       rgba(233,239,246,0.4) 100%
     );
-    margin-bottom: 8px;
+    margin-bottom: 6px;
   }
 
   .pj2-item {
@@ -868,7 +1073,7 @@ const CSS = `
   .pj2-row-menu button {
     width: 100%; height: 36px; padding: 0 12px;
     border: 0; background: transparent;
-    border-radius: 10px;
+    border-radius: 8px;
     display: flex; align-items: center;
     color: #2A3032;
     font: inherit; font-size: 13px; font-weight: 400;
@@ -906,6 +1111,119 @@ const CSS = `
       0 18px 36px -10px rgba(91,100,125,.6);
   }
   .pj2-tagro:active { transform: translateY(0); }
+
+  /* ── Confirm / Share / Support modals ── */
+  .pj2-overlay {
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(15,23,42,0.25);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    display: flex; align-items: center; justify-content: center;
+    animation: pj2FadeIn .18s ease both;
+  }
+  @keyframes pj2FadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .pj2-confirm-card {
+    background: #FFFFFF;
+    border-radius: 16px;
+    padding: 28px 32px;
+    max-width: 440px;
+    width: 90%;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+    animation: pj2In .18s cubic-bezier(.16,1,.3,1) both;
+  }
+  .pj2-confirm-title {
+    margin: 0 0 10px;
+    font-size: 17px; font-weight: 500;
+    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+    letter-spacing: 0.01em;
+    color: #0F0F10;
+  }
+  .pj2-confirm-text {
+    margin: 0;
+    font-size: 14px; font-weight: 400;
+    color: #6E717E;
+    line-height: 1.55;
+    letter-spacing: 0.01em;
+  }
+  .pj2-confirm-actions {
+    display: flex; align-items: center; justify-content: flex-end;
+    gap: 10px;
+    margin-top: 22px;
+  }
+  .pj2-confirm-ghost {
+    height: 36px; padding: 0 16px;
+    border: 0; border-radius: 8px;
+    background: transparent;
+    color: #6E717E;
+    font: inherit; font-size: 14px; font-weight: 400;
+    cursor: pointer;
+    transition: background .12s;
+  }
+  .pj2-confirm-ghost:hover { background: #F3F5F7; }
+  .pj2-confirm-primary {
+    height: 36px; padding: 0 20px;
+    border: 0; border-radius: 8px;
+    background: #5B647D;
+    color: #FFFFFF;
+    font: inherit; font-size: 14px; font-weight: 500;
+    cursor: pointer;
+    transition: background .12s;
+  }
+  .pj2-confirm-primary:hover { background: #4E576E; }
+  .pj2-confirm-primary:disabled { opacity: .5; cursor: not-allowed; }
+
+  .pj2-share-link-row {
+    display: flex; align-items: center; gap: 8px;
+  }
+  .pj2-share-link-input {
+    flex: 1; min-width: 0;
+    padding: 10px 12px;
+    background: #F8F9FA;
+    border: 1px solid #ECEFF3;
+    border-radius: 8px;
+    font: inherit; font-size: 13px;
+    color: #6E717E;
+    outline: none;
+  }
+  .pj2-share-copy-btn {
+    flex-shrink: 0;
+    display: inline-flex; align-items: center; gap: 6px;
+    height: 38px; padding: 0 14px;
+    border: 1px solid #ECEFF3;
+    border-radius: 8px;
+    background: #FFFFFF;
+    color: #2A3032;
+    font: inherit; font-size: 13px; font-weight: 500;
+    cursor: pointer;
+    transition: background .12s;
+  }
+  .pj2-share-copy-btn:hover { background: #F3F5F7; }
+
+  .pj2-support-textarea {
+    width: 100%; min-height: 100px;
+    padding: 12px;
+    background: #F8F9FA;
+    border: 1px solid #ECEFF3;
+    border-radius: 10px;
+    font: inherit; font-size: 14px;
+    color: #2A3032;
+    resize: vertical;
+    outline: none;
+    box-sizing: border-box;
+    transition: border-color .14s;
+  }
+  .pj2-support-textarea:focus { border-color: #5B647D; }
+  .pj2-support-textarea::placeholder { color: #ADB3BD; }
+  .pj2-support-urgency {
+    height: 34px; padding: 0 10px;
+    border: 1px solid #ECEFF3;
+    border-radius: 8px;
+    background: #FFFFFF;
+    font: inherit; font-size: 13px;
+    color: #2A3032;
+    cursor: pointer;
+    outline: none;
+  }
 
   @media (max-width: 1400px) {
     .pj2-card { padding: 0 80px 60px; }
