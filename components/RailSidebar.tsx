@@ -20,6 +20,7 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import {
   Pulse, BellSimple, Cube, FlowArrow, SquaresFour, FileText, Question,
+  SidebarSimple,
 } from '@phosphor-icons/react'
 
 type Item = { href: string; label: string; icon: React.ReactNode }
@@ -39,6 +40,27 @@ const PERSONAL_ITEMS: Item[] = [
 export default function RailSidebar() {
   const pathname = usePathname() || ''
   const [initials, setInitials] = useState('ST')
+  const [collapsed, setCollapsed] = useState(false)
+
+  useEffect(() => {
+    try {
+      const v = localStorage.getItem('festag:rail-collapsed')
+      if (v === '1') setCollapsed(true)
+    } catch {}
+  }, [])
+
+  function toggleCollapsed() {
+    setCollapsed(c => {
+      const next = !c
+      try { localStorage.setItem('festag:rail-collapsed', next ? '1' : '0') } catch {}
+      document.body.dataset.railCollapsed = next ? '1' : '0'
+      return next
+    })
+  }
+
+  useEffect(() => {
+    document.body.dataset.railCollapsed = collapsed ? '1' : '0'
+  }, [collapsed])
 
   useEffect(() => {
     let alive = true
@@ -63,8 +85,18 @@ export default function RailSidebar() {
   }
 
   return (
-    <aside className="rail" aria-label="Hauptnavigation">
+    <aside className="rail" aria-label="Hauptnavigation" data-collapsed={collapsed ? '1' : '0'}>
       <style>{CSS}</style>
+
+      <button
+        type="button"
+        className="rail-toggle"
+        onClick={toggleCollapsed}
+        aria-label={collapsed ? 'Sidebar ausklappen' : 'Sidebar einklappen'}
+        title={collapsed ? 'Ausklappen' : 'Einklappen'}
+      >
+        <SidebarSimple size={16} weight="regular" />
+      </button>
 
       <Link href="/account" className="rail-avatar" aria-label="Profil">
         <span>{initials}</span>
@@ -87,7 +119,7 @@ export default function RailSidebar() {
           ))}
         </ul>
 
-        <div className="rail-sep" aria-hidden />
+        <div className="rail-section-label">Persönlicher Bereich</div>
 
         <ul className="rail-group">
           {PERSONAL_ITEMS.map(it => (
@@ -116,23 +148,39 @@ export default function RailSidebar() {
 const CSS = `
   .rail {
     position: fixed; left: 0; top: 0; bottom: 0;
-    width: 60px;
-    background: transparent;
-    border-top-right-radius: 24px;
-    border-bottom-right-radius: 24px;
+    width: 240px;
+    background: rgba(252,252,252,0.92);
+    backdrop-filter: blur(20px) saturate(1.4);
+    -webkit-backdrop-filter: blur(20px) saturate(1.4);
+    border-right: 1px solid rgba(15,23,42,.05);
     z-index: 80;
-    padding: 22px 0 20px;
+    padding: 44px 0 20px;
     display: flex; flex-direction: column; align-items: stretch;
-    transition: width .26s cubic-bezier(.16,1,.3,1), border-radius .26s;
+    transition: width .26s cubic-bezier(.16,1,.3,1);
     overflow: hidden;
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
   }
-  .rail:hover {
-    width: 220px;
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
-    box-shadow: 1px 0 0 rgba(15,23,42,.04);
+  .rail[data-collapsed="1"] {
+    width: 60px;
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border-right-color: transparent;
   }
+
+  .rail-toggle {
+    align-self: flex-end;
+    margin: 0 14px 8px 0;
+    width: 28px; height: 28px;
+    border: 0; background: transparent;
+    border-radius: 8px;
+    color: #9AA0AC; cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: background .14s, color .14s;
+    flex-shrink: 0;
+  }
+  .rail-toggle:hover { background: rgba(91,100,125,.08); color: #2A3032; }
+  .rail[data-collapsed="1"] .rail-toggle { align-self: center; margin-right: 0; }
 
   .rail-avatar {
     width: 40px; height: 40px;
@@ -161,10 +209,17 @@ const CSS = `
     display: flex; flex-direction: column;
   }
 
-  .rail-sep {
-    margin: 10px 20px 6px;
-    border-top: 1px solid #F2F3F6;
+  .rail-section-label {
+    margin: 22px 0 8px 22px;
+    font-size: 11px; font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #9AA0AC;
+    white-space: nowrap;
+    opacity: 1;
+    transition: opacity .18s ease;
   }
+  .rail[data-collapsed="1"] .rail-section-label { opacity: 0; pointer-events: none; height: 12px; }
 
   .rail-item {
     display: flex; align-items: center; gap: 14px;
@@ -190,14 +245,12 @@ const CSS = `
     font-size: 13px;
     font-weight: 400;
     letter-spacing: .01em;
-    opacity: 0;
-    transform: translateX(-4px);
-    transition: opacity .18s ease .04s, transform .26s cubic-bezier(.16,1,.3,1);
-  }
-  .rail:hover .rail-label {
     opacity: 1;
-    transform: translateX(0);
+    transform: none;
+    transition: opacity .18s ease;
+    white-space: nowrap;
   }
+  .rail[data-collapsed="1"] .rail-label { opacity: 0; pointer-events: none; }
 
   .rail-help {
     align-self: flex-start;
