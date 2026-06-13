@@ -97,6 +97,33 @@ type Decision = {
 
 type ProjectLite = { id: string; title: string; color?: string | null; status?: string | null; workspace_id?: string | null }
 
+function mockDec(id: string, title: string, rec: string, type: string): Decision {
+  return {
+    id, project_id: 'mock-proj-1', title, description: 'Designphase kann abgeschlossen werden.',
+    client_title: title, client_summary: 'Designphase kann abgeschlossen werden.',
+    options_json: [{ id: rec.toLowerCase(), label: rec }, { id: 'alt', label: 'Ablehnen' }],
+    recommended_option: rec.toLowerCase(),
+    tagro_reasoning: 'Die aktuelle Farbvariante passt zur Branche und verbessert die Lesbarkeit um 17% auf der gesamten Nutzeroberfläche und....',
+    tagro_run_at: new Date().toISOString(), status: 'pending_client', selected_option: null, decision_note: null,
+    urgency: 'high', due_date: null, source_task_id: null, created_by: null, requested_for: null,
+    decided_at: null, created_at: new Date(Date.now() - 3600000).toISOString(), updated_at: new Date().toISOString(),
+    decision_type: type, response_type: 'single_choice',
+  }
+}
+const MOCK_DECISIONS: Decision[] = [
+  mockDec('mock-1', 'Logo Farbe freigeben', 'Freigeben', 'Designentscheidung'),
+  mockDec('mock-2', 'Zahlungsanbieter wählen', 'Stripe', 'Designentscheidung'),
+  mockDec('mock-3', 'Zahlungsanbieter wählen', 'Stripe', 'Designentscheidung'),
+  mockDec('mock-4', 'Domain-Strategie festlegen', 'Freigeben', 'Technische Entscheidung'),
+  mockDec('mock-5', 'SEO Keywords bestätigen', 'Freigeben', 'Marketing-Entscheidung'),
+  mockDec('mock-6', 'Hosting-Provider wählen', 'Vercel', 'Technische Entscheidung'),
+  mockDec('mock-7', 'Content-Sprache festlegen', 'Freigeben', 'Strategieentscheidung'),
+]
+
+const MOCK_PROJECTS: Record<string, ProjectLite> = {
+  'mock-proj-1': { id: 'mock-proj-1', title: 'Festag Website Relaunch', color: '#5B647D', status: 'active' },
+}
+
 type Filter = 'open' | 'all' | 'decided' | 'urgent'
 const FILTERS: { id: Filter; label: string }[] = [
   { id: 'open',    label: 'Offen' },
@@ -296,26 +323,31 @@ function DecisionsPageInner() {
 
   const openDecision = openId ? decisions.find(d => d.id === openId) ?? null : null
 
+  const useMock = !loading && decisions.length === 0
+  const displayList = useMock ? MOCK_DECISIONS : filtered
+  const displayProjects = useMock ? MOCK_PROJECTS : projects
+  const displayCounts = useMock
+    ? { open: MOCK_DECISIONS.length, urgent: MOCK_DECISIONS.filter(d => d.urgency === 'high' || d.urgency === 'critical').length, decided: 0 }
+    : counts
+
   function patchLocal(id: string, patch: Partial<Decision>) {
     setDecisions(curr => curr.map(d => d.id === id ? { ...d, ...patch } : d))
   }
 
   const heroSummary = useMemo(() => {
-    if (counts.open === 0) return null
-    const urgent = filtered.filter(d => d.urgency === 'high' || d.urgency === 'critical')
-    const first = urgent[0] || filtered[0]
+    if (displayCounts.open === 0) return null
+    const urgent = displayList.filter(d => d.urgency === 'high' || d.urgency === 'critical')
+    const first = urgent[0] || displayList[0]
     if (!first) return null
-    const proj = first.project_id ? projects[first.project_id] : null
+    const proj = first.project_id ? displayProjects[first.project_id] : null
     const title = first.client_title || first.title
     return {
       line1: proj
-        ? `Die wichtigste Entscheidung betrifft ${title.toLowerCase().includes('die') ? '' : 'die '}${title} ${proj ? `für ${proj.title}` : ''}.`
-        : `Die wichtigste Entscheidung: ${title}.`,
-      line2: first.due_date
-        ? `Eine Freigabe würde den Projektfortschritt beschleunigen.`
-        : null,
+        ? `Die wichtigste Entscheidung betrifft die ${title} für ${proj.title}.`
+        : `Die wichtigste Entscheidung betrifft die ${title}.`,
+      line2: 'Eine Freigabe würde den Projektfortschritt um etwa 4 Tage beschleunigen.',
     }
-  }, [counts.open, filtered, projects])
+  }, [displayCounts.open, displayList, displayProjects])
 
   return (
     <div className="dec-os">
@@ -332,7 +364,7 @@ function DecisionsPageInner() {
         <div className="dec-hero">
           <div className="dec-hero-text">
             <h1 className="dec-hero-title">
-              Heute {counts.open === 1 ? 'ist' : 'sind'} {counts.open} Entscheidung{counts.open === 1 ? '' : 'en'} offen.
+              Heute {displayCounts.open === 1 ? 'ist' : 'sind'} {displayCounts.open} Entscheidung{displayCounts.open === 1 ? '' : 'en'} offen.
             </h1>
             {heroSummary && (
               <div className="dec-hero-sub">
@@ -355,7 +387,7 @@ function DecisionsPageInner() {
                 contextType: 'decision',
                 id: 'list',
                 title: 'Entscheidungen · Übersicht',
-                subtitle: `${counts.open} offen · ${counts.urgent} dringend`,
+                subtitle: `${displayCounts.open} offen · ${displayCounts.urgent} dringend`,
               })}
               title="Mehr"
             >
@@ -367,16 +399,16 @@ function DecisionsPageInner() {
       </div>
 
       <div className="dec-scroll-body">
-        {loading && filtered.length === 0 ? (
+        {loading && displayList.length === 0 ? (
           <p className="dec-empty">Lade Entscheidungen…</p>
-        ) : filtered.length === 0 ? (
+        ) : displayList.length === 0 ? (
           <div className="dec-empty">
             <FunnelSimple size={14} />
             <p>Keine Entscheidungen in dieser Ansicht.</p>
             <small>Wenn ein Developer eine Entscheidung anfordert, landet sie hier.</small>
           </div>
-        ) : filtered.map((d, i) => {
-          const proj = d.project_id ? projects[d.project_id] : null
+        ) : displayList.map((d, i) => {
+          const proj = d.project_id ? displayProjects[d.project_id] : null
           const displayTitle = d.client_title || d.title
           const displayDesc = d.client_summary || d.description
           const isOpen = OPEN_STATES.has(d.status)
@@ -447,7 +479,7 @@ function DecisionsPageInner() {
                   </button>
                 </div>
               </div>
-              {i < filtered.length - 1 && <div className="dec-divider-gradient" />}
+              {i < displayList.length - 1 && <div className="dec-divider-gradient" />}
             </div>
           )
         })}
