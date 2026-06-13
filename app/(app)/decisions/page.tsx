@@ -240,9 +240,9 @@ function PortalSidebar() {
 
 const PORTAL_NAV_CSS = `
   .portal-nav {
-    width:180px; flex-shrink:0;
+    width:100%; height:100%;
     display:flex; flex-direction:column; justify-content:space-between;
-    padding:12px 0; height:100%;
+    padding:12px 0;
     font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
   }
   .portal-nav-top { display:flex; flex-direction:column; gap:45px; }
@@ -253,7 +253,7 @@ const PORTAL_NAV_CSS = `
     font-size:14px; font-weight:500; color:#0f0f10;
     margin-left:12px;
   }
-  .portal-nav-items { display:flex; flex-direction:column; gap:4px; }
+  .portal-nav-items { display:flex; flex-direction:column; gap:8px; }
   .portal-nav-item {
     display:flex; align-items:center; gap:20px;
     padding:8px 12px; border-radius:6px;
@@ -273,35 +273,51 @@ const PORTAL_NAV_CSS = `
     transition:color .12s;
   }
   .portal-nav-help:hover { color:#0f0f10; }
-  @media (max-width: 900px) {
-    .portal-nav { display:none; }
-  }
 `
 
 export default function DecisionsPage() {
   return (
     <div className="decisions-shell">
-      <style jsx>{`
+      <style>{`
         .decisions-shell {
-          display:flex; width:100%; height:100vh;
-          background:rgba(241,243,245,.9);
-          padding:8px 8px 8px 16px;
+          position:fixed; inset:0;
+          background:rgba(240,240,240,.9);
+          backdrop-filter:blur(40px) saturate(1.4);
+          -webkit-backdrop-filter:blur(40px) saturate(1.4);
           font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
+          color:#0F0F10; color-scheme:light;
+          overflow:hidden;
+          display:flex;
+        }
+        .decisions-nav-col {
+          width:200px; flex-shrink:0;
+          padding:8px 0 18px 16px;
+          box-sizing:border-box;
+        }
+        .decisions-main-col {
+          flex:1; min-width:0;
+          padding:8px 8px 18px 0;
+          box-sizing:border-box;
+          display:flex; flex-direction:column;
         }
         .decisions-main {
-          flex:1; min-width:0; height:100%;
-          background:#fff; border-radius:12px;
-          box-shadow:0 -2px 4px rgba(110,113,126,.05), 0 2px 4px rgba(110,113,126,.05);
-          overflow:hidden; position:relative;
+          flex:1; min-height:0;
+          background:#FFFFFF;
+          border-radius:16px;
+          box-shadow:0 8px 30px rgba(0,0,0,.06);
+          overflow:hidden;
+          display:flex; flex-direction:column;
+          position:relative;
         }
         [data-theme="dark"] .decisions-shell,
         [data-theme="classic-dark"] .decisions-shell {
           background:var(--bg);
+          backdrop-filter:none;
         }
         [data-theme="dark"] .decisions-main,
         [data-theme="classic-dark"] .decisions-main {
           background:var(--card);
-          box-shadow:0 2px 4px rgba(0,0,0,.2);
+          box-shadow:0 8px 30px rgba(0,0,0,.2);
         }
         [data-theme="dark"] .portal-nav-avatar,
         [data-theme="classic-dark"] .portal-nav-avatar {
@@ -317,15 +333,20 @@ export default function DecisionsPage() {
         [data-theme="dark"] .portal-nav-item.active,
         [data-theme="classic-dark"] .portal-nav-item.active { background:rgba(255,255,255,.08); }
         @media (max-width: 900px) {
-          .decisions-shell { padding:0; }
+          .decisions-nav-col { display:none; }
+          .decisions-main-col { padding:0; }
           .decisions-main { border-radius:0; }
         }
       `}</style>
-      <PortalSidebar />
-      <div className="decisions-main">
-        <Suspense fallback={<div style={{ padding: 48, color: 'var(--text-muted)' }}>Entscheidungen werden geladen…</div>}>
-          <DecisionsPageInner />
-        </Suspense>
+      <div className="decisions-nav-col">
+        <PortalSidebar />
+      </div>
+      <div className="decisions-main-col">
+        <div className="decisions-main">
+          <Suspense fallback={<div style={{ padding: 48, color: 'var(--text-muted)' }}>Entscheidungen werden geladen…</div>}>
+            <DecisionsPageInner />
+          </Suspense>
+        </div>
       </div>
     </div>
   )
@@ -1253,9 +1274,25 @@ const CSS = `
     --dec-dark: var(--text);
   }
 
-  .dec-static-top { flex:0 0 auto; position:relative; z-index:8; padding:64px 164px 0; }
+  .dec-static-top {
+    flex:0 0 auto; position:sticky; top:0; z-index:8;
+    background:#FFFFFF; padding:64px 164px 0;
+  }
+  .dec-static-top::after {
+    content:''; display:block; position:absolute;
+    left:0; right:0; bottom:-24px; height:24px;
+    background:linear-gradient(to bottom, #FFFFFF, transparent);
+    pointer-events:none;
+  }
+  [data-theme="dark"] .dec-static-top,
+  [data-theme="classic-dark"] .dec-static-top {
+    background:var(--card);
+  }
+  [data-theme="dark"] .dec-static-top::after,
+  [data-theme="classic-dark"] .dec-static-top::after {
+    background:linear-gradient(to bottom, var(--card), transparent);
+  }
 
-  /* ── Hero header (Figma) ── */
   .dec-hero { display:flex; justify-content:space-between; align-items:flex-start; gap:24px; }
   .dec-hero-text { max-width:600px; }
   .dec-hero-title {
@@ -1263,7 +1300,7 @@ const CSS = `
     letter-spacing:.02em; line-height:1.2;
     font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
   }
-  .dec-hero-sub { margin-top:12px; }
+  .dec-hero-sub { margin-top:16px; }
   .dec-hero-sub p {
     margin:0; font-size:20px; font-weight:400; color:var(--dec-soft);
     line-height:1.35; letter-spacing:.02em;
@@ -1283,7 +1320,6 @@ const CSS = `
   .dec-divider-gradient {
     height:.5px; width:100%;
     background:linear-gradient(90deg, rgba(233,239,246,.4) 0%, #e3e8ef 27%, #e9eff6 64%, rgba(233,239,246,.4) 100%);
-    margin:32px 0 0;
   }
   [data-theme="dark"] .dec-divider-gradient,
   [data-theme="classic-dark"] .dec-divider-gradient {
@@ -1296,13 +1332,16 @@ const CSS = `
   .dec-scroll-body {
     flex:1 1 auto; min-height:0;
     overflow-y:auto; overflow-x:hidden;
-    padding:24px 164px 80px; overscroll-behavior:contain;
+    padding:32px 164px 64px;
+    overscroll-behavior:contain;
+    scrollbar-width:none;
   }
+  .dec-scroll-body::-webkit-scrollbar { display:none; }
 
   /* ── Decision card rows (Figma) ── */
   .dec-card {
     display:flex; gap:56px; align-items:center;
-    padding:24px 24px; width:100%;
+    padding:16px 24px; width:100%;
     transition:background .12s;
   }
   .dec-card.alt {
@@ -1310,7 +1349,7 @@ const CSS = `
     border-radius:12px;
     box-shadow:0 2px 3px rgba(0,0,0,.05);
   }
-  .dec-card.on { background:rgba(241,243,245,.65); }
+  .dec-card.on { background:rgba(241,243,245,.65); border-radius:12px; }
 
   .dec-card-left { width:179px; flex-shrink:0; display:flex; flex-direction:column; gap:32px; }
   .dec-card-title-block { display:flex; flex-direction:column; gap:8px; }
@@ -1669,13 +1708,17 @@ const CSS = `
   }
   .dec-delegation-reason svg { margin-top:3px; flex-shrink:0; color:var(--accent); }
 
-  @media (max-width: 1200px) {
-    .dec-static-top { padding:48px 48px 0; }
-    .dec-scroll-body { padding:24px 48px 80px; }
+  @media (max-width: 1400px) {
+    .dec-static-top { padding:48px 80px 0; }
+    .dec-scroll-body { padding:24px 80px 60px; }
+  }
+  @media (max-width: 1100px) {
+    .dec-static-top { padding:40px 40px 0; }
+    .dec-scroll-body { padding:20px 40px 48px; }
   }
   @media (max-width: 900px) {
-    .dec-static-top { padding:32px 20px 0; }
-    .dec-scroll-body { padding:16px 20px 80px; }
+    .dec-static-top { padding:24px 20px 0; }
+    .dec-scroll-body { padding:16px 20px 40px; }
     .dec-card { flex-direction:column; gap:20px; align-items:stretch; padding:20px 16px; }
     .dec-card-left, .dec-card-mid, .dec-card-meta, .dec-card-actions { width:100%; }
     .dec-card-actions { flex-direction:row; flex-wrap:wrap; gap:8px; }
@@ -1690,6 +1733,5 @@ const CSS = `
   }
   @media (max-width: 768px) {
     .dec-hero { display:none; }
-    .dec-divider-gradient { margin-top:0; }
   }
 `
