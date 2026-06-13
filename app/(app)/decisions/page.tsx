@@ -300,6 +300,23 @@ function DecisionsPageInner() {
     setDecisions(curr => curr.map(d => d.id === id ? { ...d, ...patch } : d))
   }
 
+  const heroSummary = useMemo(() => {
+    if (counts.open === 0) return null
+    const urgent = filtered.filter(d => d.urgency === 'high' || d.urgency === 'critical')
+    const first = urgent[0] || filtered[0]
+    if (!first) return null
+    const proj = first.project_id ? projects[first.project_id] : null
+    const title = first.client_title || first.title
+    return {
+      line1: proj
+        ? `Die wichtigste Entscheidung betrifft ${title.toLowerCase().includes('die') ? '' : 'die '}${title} ${proj ? `für ${proj.title}` : ''}.`
+        : `Die wichtigste Entscheidung: ${title}.`,
+      line2: first.due_date
+        ? `Eine Freigabe würde den Projektfortschritt beschleunigen.`
+        : null,
+    }
+  }, [counts.open, filtered, projects])
+
   return (
     <div className="dec-os">
       <style jsx>{CSS}</style>
@@ -312,165 +329,126 @@ function DecisionsPageInner() {
             { id: 'tagro', label: 'Mit Tagro bearbeiten', onClick: () => openTagro({ contextType: 'decision', id: 'list', title: 'Entscheidungen · Übersicht' }) },
           ]}
         />
-        <div className="dec-top">
-          <div className="dec-top-left">
-            <span style={{ display:'inline-flex', alignItems:'center', gap:7, minWidth:0 }}>
-              <h1 className="dec-title">Entscheidungen</h1>
-              <HelpHint title="Entscheidungen" description="Offene Freigaben, die auf dich warten — als klare Ja/Nein-Fragen. Tagro sammelt sie aus deinen Projekten." />
-            </span>
-            {hasProjects && (
-              <div className="dec-scope">
-                <button
-                  type="button"
-                  className="dec-scope-trigger"
-                  aria-haspopup="listbox"
-                  aria-expanded={scopeMenuOpen}
-                  onClick={() => setScopeMenuOpen(open => !open)}
-                >
-                  <span>{scopeLabel}</span>
-                  <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </button>
-                {scopeMenuOpen && (
-                  <>
-                    <button
-                      type="button"
-                      className="dec-scope-backdrop"
-                      aria-hidden="true"
-                      onClick={() => setScopeMenuOpen(false)}
-                    />
-                    <div className="dec-scope-menu" role="listbox" aria-label="Projektfilter">
-                      <button
-                        type="button"
-                        role="option"
-                        aria-selected={projectScope === 'all'}
-                        className={`dec-scope-opt${projectScope === 'all' ? ' on' : ''}`}
-                        onClick={() => {
-                          setProjectScope('all')
-                          setScopeMenuOpen(false)
-                        }}
-                      >
-                        <span className="dec-scope-dot" />
-                        <span className="dec-scope-main">
-                          <strong>Alle Projekte</strong>
-                          <small>{decisions.length} Entscheidung{decisions.length === 1 ? '' : 'en'} insgesamt</small>
-                        </span>
-                        {projectScope === 'all' ? <Check size={12} weight="bold" /> : null}
-                      </button>
-                      <div className="dec-scope-divider" />
-                      {projectList.map(project => {
-                        const decisionCount = decisions.filter(d => d.project_id === project.id).length
-                        return (
-                          <button
-                            key={project.id}
-                            type="button"
-                            role="option"
-                            aria-selected={projectScope === project.id}
-                            className={`dec-scope-opt${projectScope === project.id ? ' on' : ''}`}
-                            onClick={() => {
-                              setProjectScope(project.id)
-                              setScopeMenuOpen(false)
-                            }}
-                          >
-                            <span className="dec-scope-dot" style={{ background: project.color || 'var(--text-muted)' }} />
-                            <span className="dec-scope-main">
-                              <strong>{project.title}</strong>
-                              <small>{decisionCount} Entscheidung{decisionCount === 1 ? '' : 'en'}</small>
-                            </span>
-                            {projectScope === project.id ? <Check size={12} weight="bold" /> : null}
-                          </button>
-                        )
-                      })}
-                    </div>
-                  </>
-                )}
+        <div className="dec-hero">
+          <div className="dec-hero-text">
+            <h1 className="dec-hero-title">
+              Heute {counts.open === 1 ? 'ist' : 'sind'} {counts.open} Entscheidung{counts.open === 1 ? '' : 'en'} offen.
+            </h1>
+            {heroSummary && (
+              <div className="dec-hero-sub">
+                <p>{heroSummary.line1}</p>
+                {heroSummary.line2 && <p>{heroSummary.line2}</p>}
               </div>
             )}
           </div>
-          <button className="dec-ghost" type="button" onClick={load} disabled={loading}>
-            <ArrowsClockwise size={11} className={loading ? 'dec-spin' : ''} />
-            {loading ? 'Lade…' : 'Aktualisieren'}
-          </button>
-          {/* Tagro entry — opens overlay with the full decisions list as context. */}
-          <button
-            className="dec-tagro-cta"
-            type="button"
-            onClick={() => openTagro({
-              contextType: 'decision',
-              id: 'list',
-              title: 'Entscheidungen · Übersicht',
-              subtitle: `${counts.open} offen · ${counts.urgent} dringend`,
-            })}
-          >
-            Mit Tagro bearbeiten
-          </button>
-        </div>
-
-        <nav className="dec-tabs" role="tablist">
-          {FILTERS.map(f => (
-            <button
-              key={f.id}
-              type="button"
-              role="tab"
-              aria-selected={filter === f.id}
-              className={`dec-tab${filter === f.id ? ' on' : ''}`}
-              onClick={() => setFilter(f.id)}
-            >
-              {f.label}
-              {f.id === 'open' && counts.open > 0 && <span className="dec-tab-count">{counts.open}</span>}
-              {f.id === 'urgent' && counts.urgent > 0 && <span className="dec-tab-count">{counts.urgent}</span>}
+          <div className="dec-hero-actions">
+            <button className="dec-icon-circle" type="button" onClick={() => setFilter(f => f === 'open' ? 'all' as Filter : 'open' as Filter)} title="Filter">
+              <FunnelSimple size={16} weight="regular" />
             </button>
-          ))}
-        </nav>
+            <button className="dec-icon-circle" type="button" onClick={load} disabled={loading} title="Aktualisieren">
+              <ArrowsClockwise size={16} className={loading ? 'dec-spin' : ''} />
+            </button>
+            <button
+              className="dec-icon-circle"
+              type="button"
+              onClick={() => openTagro({
+                contextType: 'decision',
+                id: 'list',
+                title: 'Entscheidungen · Übersicht',
+                subtitle: `${counts.open} offen · ${counts.urgent} dringend`,
+              })}
+              title="Mehr"
+            >
+              <svg width="14" height="3" viewBox="0 0 14 3" fill="none"><circle cx="2" cy="1.5" r="1.5" fill="currentColor"/><circle cx="7" cy="1.5" r="1.5" fill="currentColor"/><circle cx="12" cy="1.5" r="1.5" fill="currentColor"/></svg>
+            </button>
+          </div>
+        </div>
+        <div className="dec-divider-gradient" />
       </div>
 
       <div className="dec-scroll-body">
-        {/* Column header only with rows — never above an empty state. */}
-        {filtered.length > 0 && (
-          <div className="dec-table-head">
-            <span>Entscheidung</span><span>Projekt</span><span>Dringlichkeit</span><span>Frist</span><span>Status</span><span>Erstellt</span>
-          </div>
-        )}
-
         {loading && filtered.length === 0 ? (
           <p className="dec-empty">Lade Entscheidungen…</p>
         ) : filtered.length === 0 ? (
           <div className="dec-empty">
             <FunnelSimple size={14} />
             <p>Keine Entscheidungen in dieser Ansicht.</p>
-            <small>Wenn ein Developer eine Entscheidung anfordert, landet sie hier — du bekommst gleichzeitig Push, Mail oder WhatsApp (wenn aktiviert).</small>
+            <small>Wenn ein Developer eine Entscheidung anfordert, landet sie hier.</small>
           </div>
-        ) : filtered.map(d => {
+        ) : filtered.map((d, i) => {
           const proj = d.project_id ? projects[d.project_id] : null
-          const dueIn = fmtDueIn(d.due_date)
-          const statusLabel = STATUS_LABEL[d.status] || d.status
-          const statusTone = STATUS_TONE[d.status] || 'muted'
           const displayTitle = d.client_title || d.title
           const displayDesc = d.client_summary || d.description
+          const isOpen = OPEN_STATES.has(d.status)
+          const tagroText = d.tagro_reasoning
+          const impactText = displayDesc?.slice(0, 120)
+          const isAnswered = d.status === 'decided' || d.status === 'applied'
+          const primaryLabel = isAnswered
+            ? (d.selected_option || 'Entschieden')
+            : d.recommended_option && d.recommended_option !== 'freeform'
+              ? d.recommended_option
+              : 'Freigeben'
           return (
-            <button
-              key={d.id}
-              type="button"
-              className={`dec-row${openId === d.id ? ' on' : ''}`}
-              onClick={() => setOpenId(d.id)}
-            >
-              <span className="dec-row-main">
-                <strong>{displayTitle}</strong>
-                {displayDesc && <small>{displayDesc.slice(0, 140)}</small>}
-              </span>
-              <span className="dec-row-proj">
-                {proj ? (
-                  <><span className="dec-row-dot" style={{ background: proj.color || 'var(--text-muted)' }} />{proj.title}</>
-                ) : <span className="dec-row-mute">—</span>}
-              </span>
-              <span className={`dec-pill tone-${URGENCY_TONE[d.urgency] || 'muted'}`}>{URGENCY_LABEL[d.urgency] || 'Normal'}</span>
-              <span className="dec-row-mute">
-                {dueIn ? <><Clock size={10} /> {dueIn}</> : '—'}
-              </span>
-              <span className={`dec-pill tone-${statusTone}`}>{statusLabel}</span>
-              <span className="dec-row-mute">{fmtAgo(d.created_at)}</span>
-            </button>
+            <div key={d.id}>
+              <div className={`dec-card${openId === d.id ? ' on' : ''}${i % 2 === 1 ? ' alt' : ''}`}>
+                <div className="dec-card-left">
+                  <div className="dec-card-title-block">
+                    <p className="dec-card-title">{displayTitle}</p>
+                    <p className="dec-card-project">{proj?.title || '—'}</p>
+                  </div>
+                  <div className="dec-card-type-pill">
+                    <span className="dec-card-dot" style={{ background: proj?.color || '#5B647D' }} />
+                    {d.decision_type || 'Entscheidung'}
+                  </div>
+                </div>
+
+                <div className="dec-card-mid">
+                  <div className="dec-card-section">
+                    <p className="dec-card-label">Tagro empfiehlt..</p>
+                    <p className="dec-card-muted">{tagroText ? tagroText.slice(0, 120) + (tagroText.length > 120 ? '...' : '') : 'Noch nicht analysiert.'}</p>
+                  </div>
+                  <div className="dec-card-section">
+                    <p className="dec-card-label">Auswirkung</p>
+                    <p className="dec-card-muted">{impactText || 'Wird nach Analyse sichtbar.'}</p>
+                  </div>
+                </div>
+
+                <div className="dec-card-meta">
+                  <div className="dec-card-section">
+                    <p className="dec-card-label">Benötigte Zeit</p>
+                    <p className="dec-card-muted">30 Sekunden</p>
+                  </div>
+                  <div className="dec-card-section">
+                    <p className="dec-card-label">Priorität</p>
+                    <span className="dec-card-prio-pill">{URGENCY_LABEL[d.urgency] || 'Normal'}</span>
+                  </div>
+                </div>
+
+                <div className="dec-card-actions">
+                  <button className="dec-card-dots" type="button" onClick={(e) => { e.stopPropagation(); setOpenId(d.id) }}>
+                    <svg width="14" height="3" viewBox="0 0 14 3" fill="none"><circle cx="2" cy="1.5" r="1.5" fill="currentColor"/><circle cx="7" cy="1.5" r="1.5" fill="currentColor"/><circle cx="12" cy="1.5" r="1.5" fill="currentColor"/></svg>
+                  </button>
+                  {isOpen && !isAnswered && (
+                    <button
+                      className="dec-card-btn-primary"
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); setOpenId(d.id) }}
+                    >
+                      {primaryLabel}
+                    </button>
+                  )}
+                  {isOpen && !isAnswered && (
+                    <button className="dec-card-btn-outline" type="button" onClick={(e) => { e.stopPropagation(); setOpenId(d.id) }}>
+                      Optionen
+                    </button>
+                  )}
+                  <button className="dec-card-btn-outline" type="button" onClick={() => setOpenId(d.id)}>
+                    Details
+                  </button>
+                </div>
+              </div>
+              {i < filtered.length - 1 && <div className="dec-divider-gradient" />}
+            </div>
           )
         })}
       </div>
@@ -1105,114 +1083,177 @@ function renderResponseValue(decision: Decision, options: DecOption[]) {
 }
 
 const CSS = `
-  /* ───────────────────────────────────────────────────────
-   * .dec-os — same flat Festag chrome as /tasks + /teams
-   * ─────────────────────────────────────────────────────── */
   .dec-os {
-    --dec-soft:#4E5567;
-    width:100%; height:100%; min-height:0; color:var(--text);
-    padding:20px 0 0; display:flex; flex-direction:column; overflow:hidden;
-    letter-spacing:.017em;
+    --dec-soft:#8f93a4;
+    --dec-dark:#0f0f10;
+    width:100%; height:100%; min-height:0; color:var(--dec-dark);
+    display:flex; flex-direction:column; overflow:hidden;
+    letter-spacing:.02em;
     font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
-    font-weight:500;
+    font-weight:400;
   }
-  .dec-os, .dec-os * { font-weight:500; letter-spacing:.017em; }
   [data-theme="dark"] .dec-os, [data-theme="classic-dark"] .dec-os, [data-theme="read"] .dec-os {
     --dec-soft: var(--text-secondary);
+    --dec-dark: var(--text);
   }
 
-  .dec-static-top { flex:0 0 auto; position:relative; z-index:8; }
-  .dec-top {
-    display:flex; align-items:center; justify-content:space-between;
-    gap:12px; min-height:34px; padding:0 18px 12px;
-    border-bottom:1px solid color-mix(in srgb, var(--border) 60%, transparent);
+  .dec-static-top { flex:0 0 auto; position:relative; z-index:8; padding:64px 164px 0; }
+
+  /* ── Hero header (Figma) ── */
+  .dec-hero { display:flex; justify-content:space-between; align-items:flex-start; gap:24px; }
+  .dec-hero-text { max-width:600px; }
+  .dec-hero-title {
+    margin:0; font-size:28px; font-weight:400; color:var(--dec-dark);
+    letter-spacing:.02em; line-height:1.2;
+    font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
   }
-  .dec-top-left { display:flex; align-items:center; gap:10px; min-width:0; }
-  .dec-title { margin:0; font-size:14.5px; font-weight:500; color:var(--text); }
-  .dec-scope { position:relative; min-width:0; }
-  .dec-scope-trigger {
-    display:inline-flex; align-items:center; gap:7px;
-    max-width:240px; height:28px; padding:0 11px 0 12px;
-    border-radius:999px;
-    border:1px solid color-mix(in srgb, var(--border) 70%, transparent);
-    background:color-mix(in srgb, var(--surface-2) 30%, transparent);
-    color:var(--text); font:inherit; font-size:12px; font-weight:500;
-    letter-spacing:.012em; cursor:pointer;
-    transition:background .12s, border-color .12s;
+  .dec-hero-sub { margin-top:12px; }
+  .dec-hero-sub p {
+    margin:0; font-size:20px; font-weight:400; color:var(--dec-soft);
+    line-height:1.35; letter-spacing:.02em;
   }
-  .dec-scope-trigger:hover {
-    background:color-mix(in srgb, var(--surface-2) 65%, transparent);
-    border-color:var(--border);
+  .dec-hero-actions { display:flex; gap:12px; align-items:center; flex-shrink:0; }
+  .dec-icon-circle {
+    width:40px; height:40px; border-radius:32px;
+    background:#fff; border:1px solid rgba(202,207,212,.2);
+    box-shadow:0 2px 5px .5px rgba(46,47,51,.05);
+    display:inline-flex; align-items:center; justify-content:center;
+    color:var(--dec-dark); cursor:pointer;
+    transition:background .12s, box-shadow .12s;
   }
-  .dec-scope-trigger span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .dec-scope-trigger svg { color:var(--dec-soft); flex-shrink:0; }
-  .dec-scope-backdrop {
-    position:fixed; inset:0; z-index:14;
-    background:transparent; border:0; padding:0; cursor:default;
+  .dec-icon-circle:hover { background:#f8f9fa; box-shadow:0 2px 8px rgba(46,47,51,.1); }
+  .dec-icon-circle:disabled { opacity:.5; cursor:not-allowed; }
+
+  .dec-divider-gradient {
+    height:.5px; width:100%;
+    background:linear-gradient(90deg, rgba(233,239,246,.4) 0%, #e3e8ef 27%, #e9eff6 64%, rgba(233,239,246,.4) 100%);
+    margin:32px 0 0;
   }
-  .dec-scope-menu {
-    position:absolute; top:calc(100% + 6px); left:0; z-index:15;
-    min-width:260px; max-width:320px; max-height:340px;
-    overflow-y:auto; padding:6px;
-    background:var(--card);
-    border:1px solid color-mix(in srgb, var(--border) 70%, transparent);
+  [data-theme="dark"] .dec-divider-gradient,
+  [data-theme="classic-dark"] .dec-divider-gradient {
+    background:linear-gradient(90deg, rgba(255,255,255,.04) 0%, rgba(255,255,255,.1) 27%, rgba(255,255,255,.06) 64%, rgba(255,255,255,.04) 100%);
+  }
+
+  .dec-spin { animation:decSpin 1s linear infinite; }
+  @keyframes decSpin { from { transform:rotate(0); } to { transform:rotate(360deg); } }
+
+  .dec-scroll-body {
+    flex:1 1 auto; min-height:0;
+    overflow-y:auto; overflow-x:hidden;
+    padding:24px 164px 80px; overscroll-behavior:contain;
+  }
+
+  /* ── Decision card rows (Figma) ── */
+  .dec-card {
+    display:flex; gap:56px; align-items:center;
+    padding:24px 24px; width:100%;
+    transition:background .12s;
+  }
+  .dec-card.alt {
+    background:rgba(241,243,245,.4);
     border-radius:12px;
-    box-shadow:0 1px 2px rgba(15,23,42,.06), 0 20px 50px rgba(15,23,42,.14);
-    display:flex; flex-direction:column; gap:2px;
-    animation:decScopeIn .14s cubic-bezier(.16,1,.3,1) both;
+    box-shadow:0 2px 3px rgba(0,0,0,.05);
   }
-  [data-theme="dark"] .dec-scope-menu,
-  [data-theme="classic-dark"] .dec-scope-menu,
-  [data-theme="read"] .dec-scope-menu {
-    background:color-mix(in srgb, var(--card) 95%, #fff 5%);
-    box-shadow:0 1px 2px rgba(0,0,0,.2), 0 20px 50px rgba(0,0,0,.34);
+  .dec-card.on { background:rgba(241,243,245,.65); }
+
+  .dec-card-left { width:179px; flex-shrink:0; display:flex; flex-direction:column; gap:32px; }
+  .dec-card-title-block { display:flex; flex-direction:column; gap:8px; }
+  .dec-card-title {
+    margin:0; font-size:18px; font-weight:500; color:var(--dec-dark);
+    font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
   }
-  @keyframes decScopeIn {
-    from { opacity:0; transform:translateY(-4px) scale(.98); }
-    to { opacity:1; transform:translateY(0) scale(1); }
+  .dec-card-project {
+    margin:0; font-size:14px; font-weight:400; color:var(--dec-soft);
+    letter-spacing:.02em;
   }
-  .dec-scope-opt {
-    display:grid; grid-template-columns:8px 1fr auto;
-    gap:10px; align-items:center;
-    width:100%; padding:10px 12px;
-    border:0; background:transparent; border-radius:12px !important;
-    color:var(--text); font:inherit; font-size:12.5px; font-weight:500;
-    letter-spacing:.012em; cursor:pointer; text-align:left;
-    transition:background .1s;
+  .dec-card-type-pill {
+    display:inline-flex; align-items:center; gap:8px;
+    padding:6px 12px; border-radius:999px;
+    background:#f1f3f5; color:var(--dec-dark);
+    font-size:14px; font-weight:400; letter-spacing:.02em;
+    width:fit-content;
   }
-  .dec-scope-opt:hover { background:color-mix(in srgb, var(--surface-2) 55%, transparent); }
-  .dec-scope-opt.on { background:color-mix(in srgb, var(--surface-2) 75%, transparent); }
-  .dec-scope-opt svg { color:var(--text); }
-  .dec-scope-dot {
-    width:8px; height:8px; border-radius:50%;
-    background:var(--dec-soft);
+  .dec-card-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+
+  .dec-card-mid { width:298px; flex-shrink:0; display:flex; flex-direction:column; gap:24px; }
+  .dec-card-section { display:flex; flex-direction:column; gap:8px; }
+  .dec-card-label {
+    margin:0; font-size:14px; font-weight:500; color:var(--dec-dark);
+    letter-spacing:.01em;
+    font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
   }
-  .dec-scope-main {
-    min-width:0; display:flex; flex-direction:column; gap:1px;
+  .dec-card-muted {
+    margin:0; font-size:14px; font-weight:400; color:var(--dec-soft);
+    line-height:1.45; letter-spacing:.02em;
   }
-  .dec-scope-main strong {
-    font-size:12.5px; font-weight:500;
-    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+
+  .dec-card-meta { width:93px; flex-shrink:0; display:flex; flex-direction:column; gap:57px; }
+  .dec-card-prio-pill {
+    display:inline-flex; align-items:center;
+    padding:6px 12px; border-radius:999px;
+    background:#f1f3f5; color:var(--dec-dark);
+    font-size:14px; font-weight:400; letter-spacing:.02em;
+    width:fit-content;
   }
-  .dec-scope-main small {
-    font-size:10.5px; color:var(--dec-soft); font-weight:500;
-    letter-spacing:.012em;
-    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+
+  .dec-card-actions {
+    width:105px; flex-shrink:0; display:flex; flex-direction:column; gap:12px; align-items:flex-end;
   }
-  .dec-scope-divider {
-    height:1px;
-    background:color-mix(in srgb, var(--border) 60%, transparent);
-    margin:4px 6px;
+  .dec-card-dots {
+    border:0; background:transparent; color:var(--dec-soft);
+    cursor:pointer; padding:4px; transition:color .12s;
   }
-  .dec-ghost {
-    display:inline-flex; align-items:center; gap:5px;
-    height:28px; padding:0 11px; border-radius:8px;
-    background:transparent; border:0; color:var(--dec-soft);
-    font:inherit; font-size:12px; font-weight:500;
-    cursor:pointer; transition:background .12s, color .12s;
+  .dec-card-dots:hover { color:var(--dec-dark); }
+  .dec-card-btn-primary {
+    width:100%; height:33px; border-radius:32px;
+    background:#5b647d; color:#fff; border:0;
+    font:inherit; font-size:14px; font-weight:400; letter-spacing:.02em;
+    cursor:pointer; transition:background .12s, transform .12s;
+    box-shadow:0 8px 24px rgba(200,169,91,.14);
   }
-  .dec-ghost:hover { background:var(--surface-2); color:var(--text); }
-  .dec-ghost:disabled { opacity:.5; cursor:not-allowed; }
+  .dec-card-btn-primary:hover { background:#4d566c; }
+  .dec-card-btn-primary:active { transform:scale(.97); }
+  .dec-card-btn-outline {
+    width:100%; height:33px; border-radius:32px;
+    background:#fff; color:#202532; border:.7px solid #e7ebf0;
+    font:inherit; font-size:14px; font-weight:400; letter-spacing:.02em;
+    cursor:pointer; transition:background .12s, border-color .12s;
+    box-shadow:0 2px 2px rgba(0,0,0,.05);
+  }
+  .dec-card-btn-outline:hover { background:#f8f9fa; border-color:#d0d5dd; }
+
+  /* Dark theme card overrides */
+  [data-theme="dark"] .dec-card.alt,
+  [data-theme="classic-dark"] .dec-card.alt {
+    background:rgba(255,255,255,.04);
+    box-shadow:0 2px 3px rgba(0,0,0,.15);
+  }
+  [data-theme="dark"] .dec-card-type-pill,
+  [data-theme="dark"] .dec-card-prio-pill,
+  [data-theme="classic-dark"] .dec-card-type-pill,
+  [data-theme="classic-dark"] .dec-card-prio-pill {
+    background:rgba(255,255,255,.08); color:var(--text);
+  }
+  [data-theme="dark"] .dec-card-btn-outline,
+  [data-theme="classic-dark"] .dec-card-btn-outline {
+    background:var(--card); color:var(--text); border-color:var(--border);
+  }
+  [data-theme="dark"] .dec-icon-circle,
+  [data-theme="classic-dark"] .dec-icon-circle {
+    background:var(--card); border-color:var(--border);
+    box-shadow:0 2px 5px rgba(0,0,0,.2);
+  }
+
+  .dec-empty {
+    padding:48px 6px; color:var(--dec-soft);
+    font-size:14px; text-align:center;
+    display:flex; flex-direction:column; align-items:center; gap:8px;
+  }
+  .dec-empty svg { color:var(--dec-soft); }
+  .dec-empty p { margin:0; }
+  .dec-empty small { font-size:13px; opacity:.75; max-width:420px; line-height:1.5; }
+
+  /* Shared elements used by Drawer */
   .dec-tagro-cta {
     display:inline-flex; align-items:center; gap:6px;
     height:28px; padding:0 13px; border-radius:32px;
@@ -1222,89 +1263,18 @@ const CSS = `
   }
   .dec-tagro-cta:hover { background:#4d566c; }
   .dec-tagro-cta:active { transform:scale(.985); }
-  .dec-spin { animation:decSpin 1s linear infinite; }
-  @keyframes decSpin { from { transform:rotate(0); } to { transform:rotate(360deg); } }
-
-  .dec-tabs {
-    display:flex; gap:5px; padding:12px 18px 10px;
-    overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none;
-  }
-  .dec-tabs::-webkit-scrollbar { display:none; }
-  .dec-tab {
-    display:inline-flex; align-items:center; gap:5px;
-    height:27px; padding:0 11px;
-    border:1px solid var(--border); border-radius:999px;
-    background:transparent; color:var(--dec-soft);
-    font:inherit; font-size:11.5px; font-weight:500;
-    cursor:pointer; white-space:nowrap; flex-shrink:0;
-    transition:background .12s, color .12s;
-  }
-  .dec-tab:hover { color:var(--text); }
-  .dec-tab.on { background:var(--surface-2); color:var(--text); }
-  .dec-tab-count {
-    display:inline-flex; align-items:center; justify-content:center;
-    min-width:15px; height:15px; padding:0 4px; border-radius:999px;
-    background:color-mix(in srgb, var(--text) 12%, transparent);
-    color:var(--text); font-size:9.5px;
-  }
-
-  .dec-scroll-body {
-    flex:1 1 auto; min-height:0;
-    overflow-y:auto; overflow-x:hidden;
-    padding:0 18px 80px; overscroll-behavior:contain;
-  }
-
-  .dec-table-head {
-    display:grid; gap:14px;
-    grid-template-columns:minmax(220px, 1.8fr) minmax(140px, 1fr) 100px 110px 100px 100px;
-    padding:14px 8px 9px;
-    font-size:10px; letter-spacing:.14em; text-transform:uppercase;
-    color:var(--dec-soft);
-    /* No border-bottom — the first row's border-top already separates
-       the header from the data. Stefan flagged the extra divider line. */
-  }
-
-  .dec-row {
-    display:grid; gap:14px; align-items:center;
-    grid-template-columns:minmax(220px, 1.8fr) minmax(140px, 1fr) 100px 110px 100px 100px;
-    padding:11px 8px;
-    border:0; border-bottom:1px solid color-mix(in srgb, var(--border) 26%, transparent);
-    background:transparent; color:var(--text); font:inherit; font-size:12.5px;
-    text-align:left; cursor:pointer; width:100%; transition:background .1s;
-  }
-  .dec-row:hover { background:color-mix(in srgb, var(--surface-2) 45%, transparent); }
-  .dec-row.on { background:color-mix(in srgb, var(--surface-2) 80%, transparent); }
-  .dec-row-main { display:flex; flex-direction:column; gap:1px; min-width:0; }
-  .dec-row-main strong { font-size:13px; font-weight:500; color:var(--text); }
-  .dec-row-main small {
-    font-size:11px; color:var(--dec-soft); font-weight:500;
-    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
-    display:block;
-  }
-  .dec-row-proj { display:inline-flex; align-items:center; gap:5px; font-size:12px; }
-  .dec-row-dot { width:7px; height:7px; border-radius:50%; display:inline-block; }
-  .dec-row-mute { color:var(--dec-soft); font-size:11.5px; display:inline-flex; align-items:center; gap:4px; }
-
   .dec-pill {
     display:inline-flex; align-items:center; gap:4px;
     height:18px; padding:0 8px; border-radius:999px;
     font-size:10px; letter-spacing:.04em; text-transform:uppercase;
-    background:color-mix(in srgb, var(--surface-2) 70%, transparent);
-    color:var(--text); white-space:nowrap;
+    background:color-mix(in srgb, var(--surface-2, #f1f3f5) 70%, transparent);
+    color:var(--dec-dark); white-space:nowrap;
   }
   .dec-pill.tone-red    { background:color-mix(in srgb, #ef4444 14%, transparent); color:#ef4444; }
   .dec-pill.tone-amber  { background:color-mix(in srgb, #f59e0b 14%, transparent); color:#f59e0b; }
   .dec-pill.tone-good   { background:color-mix(in srgb, #22c55e 14%, transparent); color:#22c55e; }
-  .dec-pill.tone-muted  { background:color-mix(in srgb, var(--surface-2) 70%, transparent); color:var(--dec-soft); }
-
-  .dec-empty {
-    padding:38px 6px; color:var(--dec-soft);
-    font-size:12.5px; text-align:center;
-    display:flex; flex-direction:column; align-items:center; gap:8px;
-  }
-  .dec-empty svg { color:var(--dec-soft); }
-  .dec-empty p { margin:0; }
-  .dec-empty small { font-size:11.5px; opacity:.75; max-width:420px; line-height:1.5; }
+  .dec-pill.tone-muted  { background:color-mix(in srgb, var(--surface-2, #f1f3f5) 70%, transparent); color:var(--dec-soft); }
+  .dec-row-dot { width:7px; height:7px; border-radius:50%; display:inline-block; }
 
   /* ── Drawer ─────────────────────────────────────────────── */
   .dec-overlay { position:fixed; inset:0; z-index:1200; display:flex; justify-content:flex-end; }
@@ -1543,16 +1513,27 @@ const CSS = `
   }
   .dec-delegation-reason svg { margin-top:3px; flex-shrink:0; color:var(--accent); }
 
+  @media (max-width: 1200px) {
+    .dec-static-top { padding:48px 48px 0; }
+    .dec-scroll-body { padding:24px 48px 80px; }
+  }
   @media (max-width: 900px) {
-    .dec-table-head { display:none; }
-    .dec-row { grid-template-columns:1fr; gap:5px; padding:12px 8px; }
+    .dec-static-top { padding:32px 20px 0; }
+    .dec-scroll-body { padding:16px 20px 80px; }
+    .dec-card { flex-direction:column; gap:20px; align-items:stretch; padding:20px 16px; }
+    .dec-card-left, .dec-card-mid, .dec-card-meta, .dec-card-actions { width:100%; }
+    .dec-card-actions { flex-direction:row; flex-wrap:wrap; gap:8px; }
+    .dec-card-actions > button { width:auto; flex:1; min-width:80px; }
+    .dec-card-meta { flex-direction:row; gap:24px; }
+    .dec-hero-title { font-size:22px; }
+    .dec-hero-sub p { font-size:16px; }
     .dec-panel { width:100vw; }
     .dec-answer-actions { flex-direction:column; align-items:stretch; }
     .dec-answer-actions > button { width:100%; justify-content:center; }
     .dec-binary-btn { height:52px; font-size:15px; }
   }
-  /* Mobile uses MobilePageHeader above — hide the desktop title row. */
   @media (max-width: 768px) {
-    .dec-top { display: none !important; }
+    .dec-hero { display:none; }
+    .dec-divider-gradient { margin-top:0; }
   }
 `
