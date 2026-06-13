@@ -17,9 +17,11 @@
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import {
   ArrowsClockwise, ChatCircleText, Check, CheckCircle, Clock, FunnelSimple,
   Sparkle, Warning, X, UserCircle, CaretDown,
+  Pulse, Bell, Folder, Scissors, ListChecks, File, UsersThree, Question,
 } from '@phosphor-icons/react'
 import HelpHint from '@/components/HelpHint'
 import MobilePageHeader from '@/components/MobilePageHeader'
@@ -199,11 +201,133 @@ function fmtDueIn(due: string | null) {
   return `in ${d} Tagen`
 }
 
+const PORTAL_NAV = [
+  { href: '/statusabfrage', label: 'Statusabfrage', icon: Pulse },
+  { href: '/inbox', label: 'Inbox', icon: Bell },
+  { href: '/projects', label: 'Projekte', icon: Folder },
+  { href: '/decisions', label: 'Entscheidungen', icon: Scissors },
+  { href: '/tasks', label: 'Tasks', icon: ListChecks },
+  { href: '/docs', label: 'Dokumente', icon: File },
+  { href: '/teams', label: 'Teams', icon: UsersThree },
+]
+
+function PortalSidebar() {
+  const pathname = usePathname()
+  return (
+    <nav className="portal-nav">
+      <style jsx>{PORTAL_NAV_CSS}</style>
+      <div className="portal-nav-top">
+        <div className="portal-nav-avatar">ST</div>
+        <div className="portal-nav-items">
+          {PORTAL_NAV.map(item => {
+            const Icon = item.icon
+            const active = pathname === item.href
+            return (
+              <Link key={item.href} href={item.href} className={`portal-nav-item${active ? ' active' : ''}`}>
+                <Icon size={18} weight="regular" />
+                <span>{item.label}</span>
+              </Link>
+            )
+          })}
+        </div>
+      </div>
+      <button className="portal-nav-help" type="button">
+        <Question size={20} weight="light" />
+      </button>
+    </nav>
+  )
+}
+
+const PORTAL_NAV_CSS = `
+  .portal-nav {
+    width:180px; flex-shrink:0;
+    display:flex; flex-direction:column; justify-content:space-between;
+    padding:12px 0; height:100%;
+    font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
+  }
+  .portal-nav-top { display:flex; flex-direction:column; gap:45px; }
+  .portal-nav-avatar {
+    width:40px; height:40px; border-radius:999px;
+    background:rgba(255,255,255,.8); border:1px solid #f3f5f7;
+    display:flex; align-items:center; justify-content:center;
+    font-size:14px; font-weight:500; color:#0f0f10;
+    margin-left:12px;
+  }
+  .portal-nav-items { display:flex; flex-direction:column; gap:4px; }
+  .portal-nav-item {
+    display:flex; align-items:center; gap:20px;
+    padding:8px 12px; border-radius:6px;
+    color:#6e717e; font-size:16px; font-weight:400;
+    letter-spacing:.02em; text-decoration:none;
+    transition:color .12s, background .12s;
+  }
+  .portal-nav-item:hover { color:#0f0f10; }
+  .portal-nav-item.active {
+    color:#0f0f10; background:rgba(255,255,255,.8);
+  }
+  .portal-nav-item svg { flex-shrink:0; }
+  .portal-nav-help {
+    margin-left:12px; width:24px; height:24px;
+    border:0; background:transparent; color:#6e717e;
+    cursor:pointer; padding:0;
+    transition:color .12s;
+  }
+  .portal-nav-help:hover { color:#0f0f10; }
+  @media (max-width: 900px) {
+    .portal-nav { display:none; }
+  }
+`
+
 export default function DecisionsPage() {
   return (
-    <Suspense fallback={<div style={{ padding: 48, color: 'var(--text-muted)' }}>Entscheidungen werden geladen…</div>}>
-      <DecisionsPageInner />
-    </Suspense>
+    <div className="decisions-shell">
+      <style jsx>{`
+        .decisions-shell {
+          display:flex; width:100%; height:100vh;
+          background:rgba(241,243,245,.9);
+          padding:8px 8px 8px 16px;
+          font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
+        }
+        .decisions-main {
+          flex:1; min-width:0; height:100%;
+          background:#fff; border-radius:12px;
+          box-shadow:0 -2px 4px rgba(110,113,126,.05), 0 2px 4px rgba(110,113,126,.05);
+          overflow:hidden; position:relative;
+        }
+        [data-theme="dark"] .decisions-shell,
+        [data-theme="classic-dark"] .decisions-shell {
+          background:var(--bg);
+        }
+        [data-theme="dark"] .decisions-main,
+        [data-theme="classic-dark"] .decisions-main {
+          background:var(--card);
+          box-shadow:0 2px 4px rgba(0,0,0,.2);
+        }
+        [data-theme="dark"] .portal-nav-avatar,
+        [data-theme="classic-dark"] .portal-nav-avatar {
+          background:rgba(255,255,255,.1); border-color:rgba(255,255,255,.08);
+          color:var(--text);
+        }
+        [data-theme="dark"] .portal-nav-item,
+        [data-theme="classic-dark"] .portal-nav-item { color:var(--text-secondary); }
+        [data-theme="dark"] .portal-nav-item:hover,
+        [data-theme="dark"] .portal-nav-item.active,
+        [data-theme="classic-dark"] .portal-nav-item:hover,
+        [data-theme="classic-dark"] .portal-nav-item.active { color:var(--text); }
+        [data-theme="dark"] .portal-nav-item.active,
+        [data-theme="classic-dark"] .portal-nav-item.active { background:rgba(255,255,255,.08); }
+        @media (max-width: 900px) {
+          .decisions-shell { padding:0; }
+          .decisions-main { border-radius:0; }
+        }
+      `}</style>
+      <PortalSidebar />
+      <div className="decisions-main">
+        <Suspense fallback={<div style={{ padding: 48, color: 'var(--text-muted)' }}>Entscheidungen werden geladen…</div>}>
+          <DecisionsPageInner />
+        </Suspense>
+      </div>
+    </div>
   )
 }
 
