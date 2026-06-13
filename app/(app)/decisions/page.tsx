@@ -208,6 +208,7 @@ const PORTAL_NAV = [
   { href: '/decisions', label: 'Entscheidungen', icon: Scissors },
   { href: '/tasks', label: 'Tasks', icon: ListChecks },
   { href: '/docs', label: 'Dokumente', icon: File },
+  { href: '/tagro', label: 'Tagro Co-Pilot', icon: Sparkle },
   { href: '/teams', label: 'Teams', icon: UsersThree },
 ]
 
@@ -217,7 +218,16 @@ function PortalSidebar() {
     <nav className="portal-nav">
       <style jsx>{PORTAL_NAV_CSS}</style>
       <div className="portal-nav-top">
-        <div className="portal-nav-avatar">ST</div>
+        <div className="portal-nav-header">
+          <div className="portal-nav-ws">
+            <div className="portal-nav-avatar">ST</div>
+            <div className="portal-nav-ws-text">
+              <span className="portal-nav-ws-label">Workspace</span>
+              <span className="portal-nav-ws-value">Delivery</span>
+            </div>
+            <CaretDown size={8} weight="regular" className="portal-nav-ws-caret" />
+          </div>
+        </div>
         <div className="portal-nav-items">
           {PORTAL_NAV.map(item => {
             const Icon = item.icon
@@ -245,15 +255,35 @@ const PORTAL_NAV_CSS = `
     padding:12px 0;
     font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
   }
-  .portal-nav-top { display:flex; flex-direction:column; gap:45px; }
+  .portal-nav-top { display:flex; flex-direction:column; gap:24px; }
+  .portal-nav-header {
+    display:flex; align-items:center; justify-content:space-between;
+    width:184px;
+  }
+  .portal-nav-ws {
+    display:flex; align-items:center; gap:8px;
+  }
   .portal-nav-avatar {
-    width:40px; height:40px; border-radius:999px;
+    width:41px; height:40px; border-radius:999px;
     background:rgba(255,255,255,.8); border:1px solid #f3f5f7;
     display:flex; align-items:center; justify-content:center;
     font-size:14px; font-weight:500; color:#0f0f10;
-    margin-left:12px;
+    flex-shrink:0;
   }
-  .portal-nav-items { display:flex; flex-direction:column; gap:8px; }
+  .portal-nav-ws-text {
+    display:flex; flex-direction:column; align-items:flex-start;
+    line-height:1;
+  }
+  .portal-nav-ws-label {
+    font-size:9px; font-weight:400; color:#6e717e;
+  }
+  .portal-nav-ws-value {
+    font-size:14px; font-weight:400; color:#0f0f10;
+  }
+  .portal-nav-ws-caret {
+    color:#6e717e; margin-left:4px;
+  }
+  .portal-nav-items { display:flex; flex-direction:column; gap:24px; }
   .portal-nav-item {
     display:flex; align-items:center; gap:20px;
     padding:8px 12px; border-radius:6px;
@@ -281,30 +311,31 @@ export default function DecisionsPage() {
       <style>{`
         .decisions-shell {
           position:fixed; inset:0;
-          background:rgba(240,240,240,.9);
+          background:rgba(241,243,245,.9);
           backdrop-filter:blur(40px) saturate(1.4);
           -webkit-backdrop-filter:blur(40px) saturate(1.4);
           font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
           color:#0F0F10; color-scheme:light;
           overflow:hidden;
           display:flex;
+          gap:16px;
+          padding:8px 8px 8px 16px;
+          box-sizing:border-box;
         }
         .decisions-nav-col {
           width:200px; flex-shrink:0;
-          padding:8px 0 18px 16px;
           box-sizing:border-box;
         }
         .decisions-main-col {
           flex:1; min-width:0;
-          padding:8px 8px 18px 0;
           box-sizing:border-box;
           display:flex; flex-direction:column;
         }
         .decisions-main {
           flex:1; min-height:0;
           background:#FFFFFF;
-          border-radius:16px;
-          box-shadow:0 8px 30px rgba(0,0,0,.06);
+          border-radius:12px;
+          box-shadow:0 -2px 4px 0 rgba(110,113,126,.05), 0 2px 4px 0 rgba(110,113,126,.05);
           overflow:hidden;
           display:flex; flex-direction:column;
           position:relative;
@@ -603,7 +634,7 @@ function DecisionsPageInner() {
 
                 <div className="dec-card-actions">
                   <button className="dec-card-dots" type="button" onClick={(e) => { e.stopPropagation(); setOpenId(d.id) }}>
-                    <svg width="14" height="3" viewBox="0 0 14 3" fill="none"><circle cx="2" cy="1.5" r="1.5" fill="currentColor"/><circle cx="7" cy="1.5" r="1.5" fill="currentColor"/><circle cx="12" cy="1.5" r="1.5" fill="currentColor"/></svg>
+                    <svg width="3" height="14" viewBox="0 0 3 14" fill="none"><circle cx="1.5" cy="2" r="1.5" fill="currentColor"/><circle cx="1.5" cy="7" r="1.5" fill="currentColor"/><circle cx="1.5" cy="12" r="1.5" fill="currentColor"/></svg>
                   </button>
                   {isOpen && !isAnswered && (
                     <button
@@ -1303,7 +1334,7 @@ const CSS = `
   .dec-hero-sub { margin-top:16px; }
   .dec-hero-sub p {
     margin:0; font-size:20px; font-weight:400; color:var(--dec-soft);
-    line-height:1.35; letter-spacing:.02em;
+    line-height:1.25; letter-spacing:.02em;
   }
   .dec-hero-actions { display:flex; gap:12px; align-items:center; flex-shrink:0; }
   .dec-icon-circle {
