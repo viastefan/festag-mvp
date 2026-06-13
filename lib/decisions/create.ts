@@ -76,6 +76,13 @@ export async function persistFramedDecision(
     authority: framed.authority,
     delegate_allowed: framed.delegateAllowed,
     urgency: framed.urgency,
+    // v2 classification + timing inputs (engine derives due_at / urgency_score).
+    reversibility: framed.reversibility,
+    auto_resolve_strategy: framed.autoResolveStrategy,
+    deadline_hard: framed.deadlineHard,
+    lead_time_days: framed.leadTimeDays,
+    deliberation_hours: framed.deliberationHours,
+    cost_of_delay_per_day: framed.costOfDelayPerDay,
     status: initialStatus,
     visible_to_client: initialStatus === 'pending_client',
     created_by: opts.createdBy ?? null,
@@ -153,7 +160,22 @@ export async function persistFramedDecision(
     }
   }
 
-  return { decision, optionIds, linkIds }
+  // Schedule it now: decision_publish sets surfaced_at, derives due_at/urgency,
+  // and applies the open-decision cap. Runs only for live (non-draft) decisions;
+  // drafted ones publish later via the owner review gate. Links are already in
+  // place so due derivation sees the blocked tasks. Non-fatal on error — the
+  // heartbeat (decisions_tick) backfills the schedule on its next run.
+  let scheduled = decision
+  if (initialStatus === 'pending_client') {
+    const { data: pub, error: pubError } = await supa.rpc('decision_publish', { p_decision: decision.id })
+    if (pubError) {
+      console.error('persistFramedDecision: decision_publish failed', pubError.message)
+    } else if (pub) {
+      scheduled = pub as DecisionRow
+    }
+  }
+
+  return { decision: scheduled, optionIds, linkIds }
 }
 
 

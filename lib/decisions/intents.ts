@@ -15,9 +15,11 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import type {
+  AutoResolveStrategy,
   DecisionAuthority,
   DecisionLinkTargetKind,
   DecisionOptionImplications,
+  DecisionReversibility,
   DecisionType,
   DecisionUrgency,
   ResponseType,
@@ -135,6 +137,13 @@ export type FramedDecision = {
   authority: DecisionAuthority
   delegateAllowed: boolean
   urgency: DecisionUrgency
+  // v2 classification + timing inputs (the engine derives due_at from these).
+  reversibility: DecisionReversibility
+  autoResolveStrategy: AutoResolveStrategy
+  deadlineHard: string | null
+  leadTimeDays: number
+  deliberationHours: number | null
+  costOfDelayPerDay: number | null
   options: FramedDecisionOption[]
   // Model used for framing — 'heuristic' when the LLM path was skipped.
   model: string

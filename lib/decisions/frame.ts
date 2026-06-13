@@ -25,8 +25,14 @@ import type {
 } from './intents'
 import {
   defaultAuthorityFor,
+  defaultAutoResolveStrategyFor,
+  defaultReversibilityFor,
   delegateAllowedFor,
+  isAutoResolveStrategy,
+  isReversibility,
+  type AutoResolveStrategy,
   type DecisionOptionImplications,
+  type DecisionReversibility,
   type ResponseType,
 } from './types'
 
@@ -45,6 +51,9 @@ const FRAMER_SYSTEM = [
   '- Maximal eine Option mit recommended_by_tagro=true. Wenn keine sichere Empfehlung möglich → alle false und recommendation_reason=null.',
   '- tagro_reasoning erklärt in 1–2 Sätzen, warum diese Entscheidung jetzt ansteht.',
   '- tagro_confidence_in_framing zwischen 0 und 1: hoch nur wenn der Kontext eindeutig ist.',
+  '- reversibility klassifizieren: "two_way_door" (leicht umkehrbar) oder "one_way_door" (teuer/irreversibel: legal, contract, payment, data_protection, scope-brechend). Im Zweifel "one_way_door".',
+  '- auto_resolve_strategy: "tagro_default" nur bei two_way_door direction/tradeoff mit Empfehlung; sonst "escalate_only"; bei legal/contract/payment/data_protection immer "hold".',
+  '- deadline_hard nur bei echter externer Wand (Vertragsdatum, Launch, Frist) als ISO-Datum, sonst null. lead_time_days = Vorlauf nach Entscheid bis Arbeit starten kann (meist 0).',
   '- Du entscheidest niemals selbst. Du rahmst nur.',
 ].join('\n')
 
@@ -57,6 +66,12 @@ type FramerOutput = {
   tagro_recommendation_reason?: string | null
   tagro_confidence_in_framing?: number
   response_type?: ResponseType
+  reversibility?: string
+  auto_resolve_strategy?: string
+  deadline_hard?: string | null
+  lead_time_days?: number
+  deliberation_hours?: number | null
+  cost_of_delay_per_day?: number | null
   options?: Array<{
     label?: string
     client_label?: string
@@ -80,7 +95,6 @@ export async function frameDecision(
 ): Promise<FramedDecision> {
   const responseTypeHint = intent.hints?.responseType
   const authority = intent.hints?.authority || defaultAuthorityFor(intent.decisionType)
-  const delegateAllowed = delegateAllowedFor(intent.decisionType)
 
   const prompt = buildFramerPrompt(intent, responseTypeHint)
   const { output, model, status } = await runOpenAIJson({
@@ -100,6 +114,20 @@ export async function frameDecision(
       : status === 'fallback' ? 0.4 : 0.7,
   )
 
+  // ── v2 classification (door + auto-resolve), with safety clamps ────────────
+  const reversibility = resolveReversibility(intent.decisionType, framedRaw.reversibility, opts)
+  const autoResolveStrategy = resolveAutoResolveStrategy(
+    intent.decisionType,
+    reversibility,
+    framedRaw.auto_resolve_strategy,
+  )
+  // Delegation requires a reversible, non-compliance decision that actually
+  // carries a recommendation (docs §8).
+  const delegateAllowed =
+    delegateAllowedFor(intent.decisionType) &&
+    reversibility === 'two_way_door' &&
+    opts.some((o) => o.recommendedByTagro)
+
   return {
     intent,
     internalTitle: nonEmpty(framedRaw.internal_title) ?? intent.rawTitle,
@@ -117,10 +145,70 @@ export async function frameDecision(
     authority,
     delegateAllowed,
     urgency: intent.urgency,
+    reversibility,
+    autoResolveStrategy,
+    deadlineHard: nonEmpty(framedRaw.deadline_hard ?? null),
+    leadTimeDays: clampInt(framedRaw.lead_time_days, 0, 0, 365),
+    deliberationHours:
+      typeof framedRaw.deliberation_hours === 'number' && framedRaw.deliberation_hours > 0
+        ? framedRaw.deliberation_hours
+        : null,
+    costOfDelayPerDay:
+      typeof framedRaw.cost_of_delay_per_day === 'number' && framedRaw.cost_of_delay_per_day > 0
+        ? framedRaw.cost_of_delay_per_day
+        : null,
     options: opts,
     model: status === 'fallback' ? 'heuristic' : (model || 'openai'),
     initialStatus: options.ownerReviewBeforePublish ? 'drafted' : 'pending_client',
   }
+}
+
+
+// ── v2 classification resolvers ──────────────────────────────────────────────
+
+// Resolve the Bezos door. Honour an explicit model choice; otherwise apply the
+// matrix default. For the `depends` types (scope, risk_response) inspect option
+// implications. `unknown` always collapses to the safe default (one_way_door).
+function resolveReversibility(
+  type: Parameters<typeof defaultReversibilityFor>[0],
+  modelChoice: string | undefined,
+  options: FramedDecisionOption[],
+): DecisionReversibility {
+  if (isReversibility(modelChoice) && modelChoice !== 'unknown') return modelChoice
+
+  if (type === 'scope' || type === 'risk_response') {
+    const heavy = options.some((o) => {
+      const i = o.implications
+      const broadens = i.scope_delta === 'broadens'
+      const costly = i.cost_delta === 'high' || i.cost_delta === 'medium' ||
+        (typeof i.cost_delta === 'number' && i.cost_delta > 0)
+      const slow = (typeof i.time_delta_days === 'number' && i.time_delta_days > 2) ||
+        i.time_delta_days === 'high'
+      const risky = i.risk_delta === 'high'
+      return risky || (broadens && (costly || slow))
+    })
+    return heavy ? 'one_way_door' : 'two_way_door'
+  }
+
+  return defaultReversibilityFor(type)
+}
+
+// Resolve the auto-resolve strategy, then clamp for safety: a one-way door or a
+// compliance type may NEVER be tagro_default (docs §6).
+function resolveAutoResolveStrategy(
+  type: Parameters<typeof defaultAutoResolveStrategyFor>[0],
+  reversibility: DecisionReversibility,
+  modelChoice: string | undefined,
+): AutoResolveStrategy {
+  let strategy: AutoResolveStrategy = isAutoResolveStrategy(modelChoice)
+    ? modelChoice
+    : defaultAutoResolveStrategyFor(type)
+
+  const compliance = type === 'legal' || type === 'contract' || type === 'payment' || type === 'data_protection'
+  if (strategy === 'tagro_default' && (reversibility !== 'two_way_door' || compliance)) {
+    strategy = compliance ? 'hold' : 'escalate_only'
+  }
+  return strategy
 }
 
 
@@ -141,7 +229,7 @@ function buildFramerPrompt(intent: DecisionIntent, responseTypeHint: ResponseTyp
     intent.rawOptionSeeds.forEach((s, i) => lines.push(`  ${i + 1}. ${s}`))
   }
   lines.push('')
-  lines.push('Antworte als JSON mit Feldern: internal_title, internal_description, client_title, client_summary, tagro_reasoning, tagro_recommendation_reason, tagro_confidence_in_framing, response_type, options.')
+  lines.push('Antworte als JSON mit Feldern: internal_title, internal_description, client_title, client_summary, tagro_reasoning, tagro_recommendation_reason, tagro_confidence_in_framing, response_type, reversibility, auto_resolve_strategy, deadline_hard, lead_time_days, deliberation_hours, cost_of_delay_per_day, options.')
   lines.push('options[i]: { label, client_label, description, technical_notes, implications {cost_delta, time_delta_days, risk_delta, scope_delta}, recommended_by_tagro }.')
   return lines.join('\n')
 }
@@ -305,4 +393,10 @@ function clamp01(value: number): number {
   if (value < 0) return 0
   if (value > 1) return 1
   return Number(value.toFixed(2))
+}
+
+function clampInt(value: unknown, fallback: number, min: number, max: number): number {
+  const n = typeof value === 'number' ? Math.round(value) : fallback
+  if (!Number.isFinite(n)) return fallback
+  return Math.min(max, Math.max(min, n))
 }

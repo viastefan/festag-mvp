@@ -91,6 +91,35 @@ export const URGENCIES = ['low', 'normal', 'high', 'critical'] as const
 export type DecisionUrgency = (typeof URGENCIES)[number]
 
 
+// ── v2 orchestration — reversibility, auto-resolve, due derivation ───────────
+
+// Bezos door. Drives auto-resolve eligibility, delegation, and the default
+// deliberation window.
+export const REVERSIBILITIES = ['two_way_door', 'one_way_door', 'unknown'] as const
+export type DecisionReversibility = (typeof REVERSIBILITIES)[number]
+
+// What the engine may do at the deadline when still unanswered.
+export const AUTO_RESOLVE_STRATEGIES = ['tagro_default', 'escalate_only', 'hold'] as const
+export type AutoResolveStrategy = (typeof AUTO_RESOLVE_STRATEGIES)[number]
+
+// How the engine derived due_at (recorded for legibility — never a black box).
+export const EFFECTIVE_DUE_SOURCES = [
+  'deadline_hard',
+  'blocking_horizon',
+  'deliberation_floor',
+  'type_default',
+] as const
+export type EffectiveDueSource = (typeof EFFECTIVE_DUE_SOURCES)[number]
+
+export function isReversibility(value: unknown): value is DecisionReversibility {
+  return typeof value === 'string' && (REVERSIBILITIES as readonly string[]).includes(value)
+}
+
+export function isAutoResolveStrategy(value: unknown): value is AutoResolveStrategy {
+  return typeof value === 'string' && (AUTO_RESOLVE_STRATEGIES as readonly string[]).includes(value)
+}
+
+
 // ── Response payload (jsonb shape) ───────────────────────────────────────────
 
 export type DecisionResponseValue =
@@ -165,6 +194,24 @@ export type DecisionRow = {
   deadline_hard: string | null
   approved_by_owner: string | null
   approved_by_owner_at: string | null
+
+  // v2 orchestration — classification + scheduling (engine-derived where noted)
+  reversibility: DecisionReversibility
+  auto_resolve_strategy: AutoResolveStrategy
+  lead_time_days: number
+  deliberation_hours: number | null
+  cost_of_delay_per_day: number | null
+  blocking_horizon: string | null
+  surfaced_at: string | null            // engine: when it became visible to the decider
+  due_at: string | null                 // engine: derived deadline
+  effective_due_source: EffectiveDueSource | null  // engine
+  auto_resolve_at: string | null        // engine: when it acts on silence
+  urgency_score: number                 // engine: 0..100
+  escalation_level: number              // engine: 0 fresh · 1 reminded · 2 escalated · 3 auto/locked
+  reminder_count: number                // engine
+  last_reminded_at: string | null       // engine
+  next_reminder_at: string | null       // engine
+  queued: boolean                       // engine: held back by the open-decision cap
 }
 
 export type DecisionOptionRow = {
@@ -318,5 +365,46 @@ export function defaultAuthorityFor(type: DecisionType): DecisionAuthority {
     case 'clarification':
     default:
       return 'client'
+  }
+}
+
+// Default Bezos door for a type, per the classification matrix (docs §2).
+// `scope` and `risk_response` are `depends` — the framer must inspect option
+// implications; we return the safe default (one_way) until it does.
+export function defaultReversibilityFor(type: DecisionType): DecisionReversibility {
+  switch (type) {
+    case 'direction':
+    case 'tradeoff':
+    case 'approval':
+    case 'clarification':
+      return 'two_way_door'
+    case 'legal':
+    case 'contract':
+    case 'payment':
+    case 'data_protection':
+    case 'budget':
+      return 'one_way_door'
+    case 'scope':
+    case 'risk_response':
+    case 'escalation':
+    default:
+      return 'one_way_door' // safe default; framer refines `depends` cases
+  }
+}
+
+// Default auto-resolve strategy, per the matrix. Only reversible direction/
+// tradeoff decisions are eligible for tagro_default; compliance types hold.
+export function defaultAutoResolveStrategyFor(type: DecisionType): AutoResolveStrategy {
+  switch (type) {
+    case 'direction':
+    case 'tradeoff':
+      return 'tagro_default'
+    case 'payment':
+    case 'contract':
+    case 'legal':
+    case 'data_protection':
+      return 'hold'
+    default:
+      return 'escalate_only'
   }
 }
