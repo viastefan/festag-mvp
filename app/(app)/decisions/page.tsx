@@ -20,7 +20,7 @@ import { useSearchParams } from 'next/navigation'
 import { usePathname } from 'next/navigation'
 import {
   ArrowsClockwise, ChatCircleText, Check, CheckCircle, Clock, FunnelSimple,
-  Sparkle, Warning, X, UserCircle, CaretDown,
+  Sparkle, Warning, WarningCircle, X, UserCircle, CaretDown,
   Pulse, Bell, Folder, Scissors, ListChecks, File, UsersThree, Question,
 } from '@phosphor-icons/react'
 import HelpHint from '@/components/HelpHint'
@@ -85,6 +85,13 @@ type Decision = {
   override_window_until?: string | null
   // Lifecycle
   applied_at?: string | null
+  // v2 orchestration (engine-derived). Optional so legacy rows render fine.
+  reversibility?: 'two_way_door' | 'one_way_door' | 'unknown' | null
+  auto_resolve_strategy?: 'tagro_default' | 'escalate_only' | 'hold' | null
+  effective_due_source?: 'deadline_hard' | 'blocking_horizon' | 'deliberation_floor' | 'type_default' | null
+  urgency_score?: number | null
+  escalation_level?: number | null
+  due_at?: string | null
   // Meta
   urgency: 'low' | 'normal' | 'high' | 'critical'
   due_date: string | null
@@ -199,6 +206,26 @@ function fmtDueIn(due: string | null) {
   if (d === 0) return 'heute'
   if (d === 1) return 'morgen'
   return `in ${d} Tagen`
+}
+
+// Short Std/Min countdown for the 24h owner-override window. `nowTs` is passed
+// in so the caller can re-render on a tick and keep it live.
+function fmtCountdown(iso: string, nowTs: number): string {
+  const ms = new Date(iso).getTime() - nowTs
+  if (ms <= 0) return 'abgelaufen'
+  const totalMin = Math.floor(ms / 60000)
+  const h = Math.floor(totalMin / 60)
+  const m = totalMin % 60
+  if (h <= 0) return `noch ${m} Min`
+  return `noch ${h} Std ${m} Min`
+}
+
+// German label for how the engine derived the deadline — keeps urgency legible.
+const DUE_SOURCE_LABEL: Record<string, string> = {
+  deadline_hard: 'feste Frist',
+  blocking_horizon: 'blockiert Arbeit',
+  deliberation_floor: 'Bedenkzeit',
+  type_default: 'Standardfrist',
 }
 
 const PORTAL_NAV = [
@@ -628,7 +655,15 @@ function DecisionsPageInner() {
                   </div>
                   <div className="dec-card-section">
                     <p className="dec-card-label">Priorität</p>
-                    <span className="dec-card-prio-pill">{URGENCY_LABEL[d.urgency] || 'Normal'}</span>
+                    <span className="dec-card-prio-pill">
+                      {(d.escalation_level ?? 0) >= 2 && OPEN_STATES.has(d.status) && (
+                        <WarningCircle size={11} weight="fill" style={{ marginRight: 4, color: 'var(--danger, #C2503E)', verticalAlign: '-1px' }} />
+                      )}
+                      {URGENCY_LABEL[d.urgency] || 'Normal'}
+                      {typeof d.urgency_score === 'number' && (
+                        <span style={{ marginLeft: 5, opacity: 0.55 }}>{Math.round(d.urgency_score)}</span>
+                      )}
+                    </span>
                   </div>
                 </div>
 
@@ -715,6 +750,15 @@ function Drawer({
   const [discussOpen, setDiscussOpen] = useState(false)
   const [discussQuestion, setDiscussQuestion] = useState('')
   const [error, setError] = useState<string>('')
+
+  // Live clock for the override-window countdown. Ticks once a minute and only
+  // while a window is actually open — no idle timers otherwise.
+  const [nowTs, setNowTs] = useState(() => Date.now())
+  useEffect(() => {
+    if (!decision.override_window_until) return
+    const id = setInterval(() => setNowTs(Date.now()), 30000)
+    return () => clearInterval(id)
+  }, [decision.override_window_until])
 
   // ── Delegation to a teammate (e.g. a co-founder once a team exists) ──
   const supabase = useMemo(() => createClient(), [])
@@ -913,7 +957,17 @@ function Drawer({
   const isAnswered = decision.status === 'decided' || decision.status === 'applied'
   const isDelegated = !!decision.tagro_delegation_reason && !decision.decided_by
   const isAwaitingClarification = decision.status === 'awaiting_clarification'
-  const canDelegate = !!decision.delegate_allowed && responseType !== 'free_text' && !isAnswered && isDecider
+  // Delegation is offered only on a reversible (two-way door) decision — the
+  // engine never auto-resolves a one-way door, so neither does the client.
+  const canDelegate =
+    !!decision.delegate_allowed &&
+    decision.reversibility === 'two_way_door' &&
+    responseType !== 'free_text' &&
+    !isAnswered &&
+    isDecider
+  // Escalation badge: level 2 = raised to owner, level 3 = auto-resolved/locked.
+  const escalationLevel = decision.escalation_level ?? 0
+  const isEscalated = escalationLevel >= 2 && !isAnswered
 
   return (
     <div className="dec-overlay" role="dialog" aria-modal="true">
@@ -956,9 +1010,25 @@ function Drawer({
           <div className="dec-d-meta">
             <span className={`dec-pill tone-${URGENCY_TONE[decision.urgency] || 'muted'}`}>
               Dringlichkeit: {URGENCY_LABEL[decision.urgency] || 'Normal'}
+              {typeof decision.urgency_score === 'number' && (
+                <strong style={{ marginLeft: 5, fontWeight: 500, opacity: 0.7 }}>
+                  {Math.round(decision.urgency_score)}
+                </strong>
+              )}
             </span>
-            {decision.due_date && (
-              <span className="dec-pill tone-muted"><Clock size={10} /> {fmtDueIn(decision.due_date)}</span>
+            {isEscalated && (
+              <span className="dec-pill tone-red">
+                <WarningCircle size={10} weight="fill" />
+                {escalationLevel >= 3 ? 'Frist abgelaufen' : 'An Owner eskaliert'}
+              </span>
+            )}
+            {(decision.due_at || decision.due_date) && (
+              <span className="dec-pill tone-muted">
+                <Clock size={10} /> {fmtDueIn(decision.due_at || decision.due_date)}
+                {decision.effective_due_source && DUE_SOURCE_LABEL[decision.effective_due_source] && (
+                  <span style={{ opacity: 0.6 }}> · {DUE_SOURCE_LABEL[decision.effective_due_source]}</span>
+                )}
+              </span>
             )}
             {isAnswered && (
               <span className="dec-pill tone-good">
@@ -1213,11 +1283,17 @@ function Drawer({
                   <Sparkle size={11} weight="fill" /> {decision.tagro_delegation_reason}
                 </p>
               )}
-              {isDelegated && decision.override_window_until && (
-                <small className="dec-final-meta">
-                  Du kannst diese Entscheidung bis {new Date(decision.override_window_until).toLocaleString('de-DE')} überstimmen.
-                </small>
-              )}
+              {isDelegated && decision.override_window_until && (() => {
+                const expired = new Date(decision.override_window_until).getTime() <= nowTs
+                return (
+                  <small className={`dec-final-meta dec-override-window${expired ? ' expired' : ''}`}>
+                    <Clock size={10} />
+                    {expired
+                      ? 'Override-Fenster geschlossen — die Entscheidung steht.'
+                      : <>Override offen ({fmtCountdown(decision.override_window_until, nowTs)}) — bis {new Date(decision.override_window_until).toLocaleString('de-DE')} überstimmbar.</>}
+                  </small>
+                )
+              })()}
               <small className="dec-final-meta">
                 {decision.decided_at && `Entschieden ${fmtAgo(decision.decided_at)}`}
                 {decision.applied_at && ` · umgesetzt ${fmtAgo(decision.applied_at)}`}
@@ -1636,6 +1712,12 @@ const CSS = `
   .dec-final-pick svg { color:#22c55e; }
   .dec-final-note { margin:0; font-size:12.5px; color:var(--text); line-height:1.55; }
   .dec-final-meta { font-size:11px; color:var(--dec-soft); }
+  .dec-override-window {
+    display:inline-flex; align-items:center; gap:5px;
+    color:color-mix(in srgb, #f59e0b 78%, var(--text));
+  }
+  .dec-override-window.expired { color:var(--dec-soft); }
+  .dec-override-window svg { flex:none; }
 
   /* ── v1 additions: binary / multi / delegate / discuss / clarification ── */
   /* Notebook-style notice: no border, soft tint + left accent only. */
