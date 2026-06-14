@@ -60,9 +60,12 @@ export async function dispatchRelayItem(
     }
   }
 
-  // Project + client recipient.
-  const { data: project } = await sb.from('projects').select('id, client_id, title').eq('id', projectId).maybeSingle()
-  const clientId: string | null = project?.client_id ?? null
+  // Project + client recipient. Mirrors the established convention (see
+  // app/api/dev/proposals/[id]/accept): the recipient user is project.client_id,
+  // falling back to the project owner when no client user is set. (projects.
+  // client_id is treated as a user id by existing inbox/notification flows.)
+  const { data: project } = await sb.from('projects').select('id, client_id, user_id, title').eq('id', projectId).maybeSingle()
+  const clientId: string | null = project?.client_id ?? project?.user_id ?? null
 
   // Attachments to carry along (intersection of this item's ids and the
   // message_assets the dev marked send_to_client).
@@ -119,7 +122,7 @@ export async function dispatchRelayItem(
         task_type: 'client_action',
         client_visible: true,
         client_status: 'submitted',
-        status: 'in_progress',
+        status: 'todo',   // tasks.status check allows only todo|doing|done
         source: 'tagro_relay',
         created_by: developerId,
       }).select('id').single()
