@@ -34,6 +34,7 @@ type RelayItem = {
 }
 type RelayPlan = { items: RelayItem[]; summary: string; model: string }
 type Dispatch = { id: string; relay_kind: string; client_text: string | null; dispatched_at: string | null; created_at: string }
+type TranscriptItem = { id: string; body: string | null; actor_id: string | null; type: string; created_at: string }
 
 const KIND_META: Record<RelayItem['relay_kind'], { label: string; icon: any; tone: string }> = {
   status_update:  { label: 'Status', icon: Pulse, tone: 'info' },
@@ -59,6 +60,7 @@ export default function DevConsolePage() {
   const [tab, setTab] = useState<'compose' | 'ledger'>('compose')
   const [ledger, setLedger] = useState<Dispatch[]>([])
   const [sentNote, setSentNote] = useState<string>('')
+  const [transcript, setTranscript] = useState<TranscriptItem[]>([])
 
   const project = projects.find((p) => p.id === projectId)
 
@@ -100,12 +102,23 @@ export default function DevConsolePage() {
   }, [projectId, loadThreads, loadHints, loadLedger])
 
   function startNewChat() {
-    setActiveThreadId(null); setPlan(null); setMessageItemId(null); setText(''); setSentNote('')
+    setActiveThreadId(null); setPlan(null); setMessageItemId(null); setText(''); setSentNote(''); setTranscript([])
   }
 
-  async function openThread(id: string) {
-    setActiveThreadId(id); setPlan(null); setMessageItemId(null); setSentNote('')
-  }
+  const openThread = useCallback(async (id: string) => {
+    setActiveThreadId(id); setPlan(null); setMessageItemId(null); setSentNote(''); setTab('compose')
+    const r = await fetch(`/api/dev/console/thread/${id}`).then((x) => x.json()).catch(() => ({}))
+    if (r.thread?.project_id) setProjectId(r.thread.project_id)
+    setTranscript((r.items ?? []) as TranscriptItem[])
+  }, [])
+
+  // Open a specific chat when arrived via the global Dev sidebar history
+  // (/dev/console?thread=<id>). Read from the URL to avoid a Suspense boundary.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const tid = params.get('thread')
+    if (tid) openThread(tid)
+  }, [openThread])
 
   async function send() {
     if (!text.trim() || !projectId || busy) return
@@ -190,7 +203,17 @@ export default function DevConsolePage() {
 
         {tab === 'compose' && (
           <div className="tc-center">
-            <h1 className="tc-hero">{heroQuestion}</h1>
+            {transcript.length === 0 && <h1 className="tc-hero">{heroQuestion}</h1>}
+
+            {transcript.length > 0 && (
+              <div className="tc-transcript">
+                {transcript.map((m) => (
+                  <div key={m.id} className={`tc-bubble ${m.actor_id ? 'dev' : 'tagro'}`}>
+                    {m.body}
+                  </div>
+                ))}
+              </div>
+            )}
 
             <div className="tc-composer">
               <textarea
@@ -318,6 +341,10 @@ const CSS = `
 
   .tc-center { flex:1; max-width:760px; width:100%; margin:0 auto; padding:48px 24px 64px; }
   .tc-hero { font-size:30px; font-weight:500; letter-spacing:-.01em; text-align:center; color:var(--text); margin:0 0 28px; line-height:1.25; }
+  .tc-transcript { display:flex; flex-direction:column; gap:8px; margin-bottom:20px; }
+  .tc-bubble { max-width:80%; padding:9px 13px; border-radius:14px; font-size:13.5px; line-height:1.5; white-space:pre-wrap; }
+  .tc-bubble.dev { align-self:flex-end; background:#5B647D; color:#fff; border-bottom-right-radius:5px; }
+  .tc-bubble.tagro { align-self:flex-start; background:var(--surface-2,#F1F1F3); color:var(--text); border-bottom-left-radius:5px; }
   .tc-composer { border:1px solid var(--border,#E4E4E7); border-radius:20px; background:var(--surface,#fff);
     box-shadow:0 8px 30px rgba(0,0,0,0.08); padding:14px 16px 10px; }
   .tc-input { width:100%; border:0; outline:0; resize:none; font-size:15px; line-height:1.5; background:transparent; color:var(--text); font-family:inherit; }

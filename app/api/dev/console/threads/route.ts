@@ -4,10 +4,11 @@ import { createClient } from '@/lib/supabase/server'
 export const runtime = 'nodejs'
 
 /**
- * GET /api/dev/console/threads?projectId=
+ * GET /api/dev/console/threads[?projectId=]
  *
- * The chat-history sidebar: all of the dev's tagro threads for a project,
- * pinned first then by recency. RLS scopes to the calling user's own threads.
+ * The chat-history sidebar: the dev's tagro threads, pinned first then by
+ * recency. With projectId → scoped to that project (console rail); without →
+ * all projects (global Dev sidebar history). RLS scopes to the caller.
  */
 export async function GET(req: NextRequest) {
   const supa = createClient()
@@ -15,11 +16,13 @@ export async function GET(req: NextRequest) {
   if (!user) return NextResponse.json({ error: 'unauthenticated' }, { status: 401 })
 
   const projectId = new URL(req.url).searchParams.get('projectId')
-  if (!projectId) return NextResponse.json({ error: 'projectId required' }, { status: 400 })
 
-  const { data, error } = await (supa as any).from('inbox_threads')
-    .select('id, title, summary, unread_count, pinned, last_item_at, created_at')
-    .eq('user_id', user.id).eq('project_id', projectId).eq('category', 'tagro')
+  let q = (supa as any).from('inbox_threads')
+    .select('id, title, summary, unread_count, pinned, last_item_at, created_at, project_id')
+    .eq('user_id', user.id).eq('category', 'tagro')
+  if (projectId) q = q.eq('project_id', projectId)
+
+  const { data, error } = await q
     .order('pinned', { ascending: false })
     .order('last_item_at', { ascending: false, nullsFirst: false })
     .order('created_at', { ascending: false })

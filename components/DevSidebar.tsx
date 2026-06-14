@@ -22,7 +22,7 @@ import { usePathname } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   Article, Briefcase, ChatsCircle, CheckSquare, Clock, Compass, FolderOpen, GearSix,
-  GitBranch, GithubLogo, GitCommit, Kanban, Microphone, Pause, Play, Robot, SignOut,
+  GitBranch, GithubLogo, GitCommit, Kanban, Lightning, Microphone, Pause, Play, Plus, Robot, SignOut,
   UsersThree, WarningCircle,
 } from '@phosphor-icons/react'
 
@@ -33,6 +33,7 @@ import type { DevIdentity } from '@/components/DevAppShell'
 type NavRow = { href: string; icon: React.ElementType; label: string }
 const NAV_MAIN: NavRow[] = [
   { href: '/dev',           icon: Compass,     label: 'Overview' },
+  { href: '/dev/console',   icon: Lightning,   label: 'Tagro Console' },
   { href: '/dev/projects',  icon: FolderOpen,  label: 'Projects' },
   { href: '/dev/captures',  icon: Microphone,  label: 'Client Captures' },
   { href: '/dev/tasks',     icon: CheckSquare, label: 'My Tasks' },
@@ -209,6 +210,20 @@ export default function DevSidebar({
 
   const liveSeconds = openSession ? Math.floor((Date.now() - new Date(openSession.started_at).getTime()) / 1000) : 0
 
+  // Tagro Console chat history (all projects) — AI-style sidebar list.
+  const [chats, setChats] = useState<Array<{ id: string; title: string | null; unread_count: number; pinned: boolean }>>([])
+  useEffect(() => {
+    let cancelled = false
+    fetch('/api/dev/console/threads').then((r) => r.json()).then((r) => {
+      if (!cancelled) setChats((r.threads ?? []).slice(0, 12))
+    }).catch(() => {})
+    return () => { cancelled = true }
+  }, [pathname])  // refresh when navigating (e.g. after a new chat)
+
+  const activeThreadId = pathname === '/dev/console'
+    ? (typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('thread') : null)
+    : null
+
   const isActive = (href: string) => {
     if (href === '/dev') return pathname === '/dev'
     return pathname === href || pathname.startsWith(href + '/')
@@ -312,6 +327,21 @@ export default function DevSidebar({
             <span>{syncing ? 'Sync läuft…' : 'Sync GitHub'}</span>
           </button>
           {syncToast && <p className="ds-sync-toast">{syncToast}</p>}
+
+          {/* Tagro Console — chat history (AI-style). New chat + recents. */}
+          <div className="ds-chats">
+            <Link href="/dev/console" className="ds-newchat">
+              <Plus size={13} weight="bold" /> <span>Neuer Chat</span>
+            </Link>
+            {chats.length > 0 && <p className="ds-section-label">Zuletzt verwendet</p>}
+            {chats.map((c) => (
+              <Link key={c.id} href={`/dev/console?thread=${c.id}`}
+                className={`ds-chat-row${activeThreadId === c.id ? ' active' : ''}`}>
+                <span className="ds-chat-title">{c.title || 'Gespräch'}</span>
+                {c.unread_count > 0 && <span className="ds-chat-dot" />}
+              </Link>
+            ))}
+          </div>
         </div>
 
         {/* Footer */}
@@ -466,6 +496,23 @@ export default function DevSidebar({
         .ds-sync-toast {
           margin: 4px 8px 0; font-size: 10.5px; color: var(--text-muted);
         }
+
+        .ds-chats { margin-top: 14px; display: flex; flex-direction: column; gap: 1px; }
+        .ds-newchat {
+          display: flex; align-items: center; gap: 7px; padding: 7px 10px; margin: 0 2px 2px;
+          border-radius: 8px; font-size: 12.5px; color: var(--text-secondary, var(--text-muted));
+          text-decoration: none; transition: background .12s ease, color .12s ease;
+        }
+        .ds-newchat:hover { background: color-mix(in srgb, var(--surface-2) 80%, transparent); color: var(--text); }
+        .ds-chat-row {
+          display: flex; align-items: center; gap: 8px; padding: 6px 10px; margin: 0 2px;
+          border-radius: 8px; font-size: 12.5px; color: var(--text-secondary, var(--text-muted));
+          text-decoration: none; overflow: hidden;
+        }
+        .ds-chat-row:hover { background: color-mix(in srgb, var(--surface-2) 80%, transparent); color: var(--text); }
+        .ds-chat-row.active { background: color-mix(in srgb, var(--surface-2) 92%, transparent); color: var(--text); }
+        .ds-chat-title { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .ds-chat-dot { width: 6px; height: 6px; border-radius: 50%; background: #5B647D; flex: none; }
 
         @media (max-width: 768px) {
           .sidebar { display: none; }

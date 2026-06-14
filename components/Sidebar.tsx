@@ -371,6 +371,26 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
     const id = setInterval(tick, 45000)
     return () => { cancelled = true; clearInterval(id) }
   }, [])
+
+  // Mark a relay category read when the client opens its surface — clears the
+  // badge across all projects. Centralised here (vs. per-page) so all four
+  // relay surfaces behave the same. Optimistically zeroes the local count.
+  useEffect(() => {
+    const surface: Record<string, string> = {
+      '/tasks': 'task_event', '/decisions': 'decision',
+      '/reports': 'status_update', '/messages': 'message',
+    }
+    const match = Object.keys(surface).find((h) => pathname === h || pathname?.startsWith(h + '/'))
+    if (!match) return
+    const category = surface[match]
+    // Optimistically clear the inbox-driven badge. (decisionsOpen tracks actual
+    // open decisions via its own query, so it isn't cleared just by visiting.)
+    if (category === 'task_event') setTaskEvents(0)
+    fetch('/api/inbox/read', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ category }),
+    }).catch(() => {})
+  }, [pathname])
   // Map href → SidebarItemId so the prefs store can decide what to show
   // and what to push into the "Mehr" popover.
   const HREF_TO_ITEM_ID: Record<string, SidebarItemId> = {
