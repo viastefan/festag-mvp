@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
   if (!user) return NextResponse.json({ error: 'unauthenticated' }, { status: 401 })
 
   const b = (await req.json().catch(() => ({}))) as {
-    projectId?: string; text?: string; threadId?: string; newThread?: boolean
+    projectId?: string; text?: string; threadId?: string; newThread?: boolean; assetIds?: string[]
   }
   if (!b.projectId || !b.text?.trim()) {
     return NextResponse.json({ error: 'projectId and text required' }, { status: 400 })
@@ -60,7 +60,17 @@ export async function POST(req: NextRequest) {
   }).select('id').single()
   if (msgErr || !msg) return NextResponse.json({ error: msgErr?.message ?? 'message_failed' }, { status: 500 })
 
-  // Decompose (+ any pre-attached assets bound to this message).
+  // Bind staged assets to this message so the framer sees them and dispatch
+  // can carry them. send_to_client defaults true (the tray's "An Kunde").
+  const assetIds = Array.isArray(b.assetIds) ? b.assetIds.filter((x) => typeof x === 'string') : []
+  if (assetIds.length > 0) {
+    await sb.from('message_assets').upsert(
+      assetIds.map((asset_id) => ({ inbox_item_id: msg.id, asset_id, send_to_client: true })),
+      { onConflict: 'inbox_item_id,asset_id' },
+    )
+  }
+
+  // Decompose (+ the attachments now bound to this message).
   const attachments = await listMessageAssets(sb, msg.id)
   const plan = await decomposeDevMessage(sb, {
     projectId: b.projectId, developerId: user.id, text: b.text.trim(),

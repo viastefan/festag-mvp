@@ -13,7 +13,7 @@
  * /console/threads, /console/thread/[id], /console/hints.
  */
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import {
@@ -35,6 +35,8 @@ type RelayItem = {
 type RelayPlan = { items: RelayItem[]; summary: string; model: string }
 type Dispatch = { id: string; relay_kind: string; client_text: string | null; dispatched_at: string | null; created_at: string }
 type TranscriptItem = { id: string; body: string | null; actor_id: string | null; type: string; created_at: string }
+type StagedAsset = { assetId: string; title: string; kind: string }
+type PickAsset = { id: string; title: string | null; kind: string; external_url?: string | null }
 
 const KIND_META: Record<RelayItem['relay_kind'], { label: string; icon: any; tone: string }> = {
   status_update:  { label: 'Status', icon: Pulse, tone: 'info' },
@@ -61,6 +63,11 @@ export default function DevConsolePage() {
   const [ledger, setLedger] = useState<Dispatch[]>([])
   const [sentNote, setSentNote] = useState<string>('')
   const [transcript, setTranscript] = useState<TranscriptItem[]>([])
+  // Client asset tray — staged before send, bound to the message on /console.
+  const [staged, setStaged] = useState<StagedAsset[]>([])
+  const [attachOpen, setAttachOpen] = useState(false)
+  const [picker, setPicker] = useState<PickAsset[] | null>(null)
+  const fileRef = useRef<HTMLInputElement>(null)
 
   const project = projects.find((p) => p.id === projectId)
 
@@ -102,7 +109,7 @@ export default function DevConsolePage() {
   }, [projectId, loadThreads, loadHints, loadLedger])
 
   function startNewChat() {
-    setActiveThreadId(null); setPlan(null); setMessageItemId(null); setText(''); setSentNote(''); setTranscript([])
+    setActiveThreadId(null); setPlan(null); setMessageItemId(null); setText(''); setSentNote(''); setTranscript([]); setStaged([])
   }
 
   const openThread = useCallback(async (id: string) => {
@@ -126,7 +133,10 @@ export default function DevConsolePage() {
     try {
       const r = await fetch('/api/dev/console', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ projectId, text: text.trim(), threadId: activeThreadId, newThread: !activeThreadId }),
+        body: JSON.stringify({
+          projectId, text: text.trim(), threadId: activeThreadId, newThread: !activeThreadId,
+          assetIds: staged.map((s) => s.assetId),
+        }),
       }).then((x) => x.json())
       if (r.error) { setSentNote(`Fehler: ${r.error}`); return }
       setActiveThreadId(r.threadId)
@@ -140,6 +150,48 @@ export default function DevConsolePage() {
     } finally { setBusy(false) }
   }
 
+  // ── Client asset tray ──────────────────────────────────────────────────────
+  async function uploadFile(file: File) {
+    if (!projectId) return
+    const { data: { user } } = await supabase.auth.getUser(); if (!user) return
+    const ext = (file.name.split('.').pop() || 'bin').toLowerCase().replace(/[^a-z0-9]+/g, '') || 'bin'
+    const { data: row } = await (supabase as any).from('project_assets').insert({
+      project_id: projectId, uploaded_by: user.id, title: file.name.slice(0, 200),
+      kind: file.type.startsWith('image/') ? 'image' : 'file', category: 'client_files',
+      visibility: 'team_only', mime_type: file.type || null, size_bytes: file.size,
+    }).select('id, kind, title').single()
+    if (!row) return
+    const path = `${projectId}/${row.id}.${ext}`
+    const { error } = await supabase.storage.from('project-assets').upload(path, file, { contentType: file.type || undefined, upsert: true })
+    if (error) { await (supabase as any).from('project_assets').delete().eq('id', row.id); setSentNote(`Upload fehlgeschlagen: ${error.message}`); return }
+    await (supabase as any).from('project_assets').update({ storage_path: path }).eq('id', row.id)
+    setStaged((p) => [...p, { assetId: row.id, title: row.title || file.name, kind: row.kind || 'file' }])
+  }
+
+  async function attachLink() {
+    setAttachOpen(false)
+    const url = window.prompt('Link einfügen (Figma, Loom, Drive, GitHub-PR …)')
+    if (!url?.trim()) return
+    const r = await fetch('/api/dev/console/asset', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ projectId, url: url.trim() }),
+    }).then((x) => x.json()).catch(() => ({}))
+    if (r.asset) setStaged((p) => [...p, { assetId: r.asset.id, title: r.asset.title || url.trim(), kind: r.asset.kind || 'link' }])
+  }
+
+  async function openPicker() {
+    setAttachOpen(false)
+    const r = await fetch(`/api/dev/console/asset?projectId=${projectId}`).then((x) => x.json()).catch(() => ({}))
+    setPicker(r.assets ?? [])
+  }
+
+  function pickAsset(a: PickAsset) {
+    setStaged((p) => p.some((s) => s.assetId === a.id) ? p : [...p, { assetId: a.id, title: a.title || 'Asset', kind: a.kind || 'file' }])
+    setPicker(null)
+  }
+
+  const removeStaged = (id: string) => setStaged((p) => p.filter((s) => s.assetId !== id))
+
   async function dispatch() {
     if (!messageItemId || sending) return
     setSending(true)
@@ -151,7 +203,7 @@ export default function DevConsolePage() {
       if (r.error) { setSentNote(`Fehler: ${r.error}`); return }
       const n = (r.dispatched ?? []).filter((d: any) => !d.skipped).length
       setSentNote(`${n} Punkt${n === 1 ? '' : 'e'} an den Kunden gesendet.`)
-      setPlan(null); setMessageItemId(null); setText('')
+      setPlan(null); setMessageItemId(null); setText(''); setStaged([])
       loadLedger(projectId); loadThreads(projectId)
     } finally { setSending(false) }
   }
@@ -225,7 +277,20 @@ export default function DevConsolePage() {
                 onKeyDown={(e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) send() }}
               />
               <div className="tc-composer-bar">
-                <button className="tc-icon" type="button" title="Anhang"><Paperclip size={15} /></button>
+                <div className="tc-attach-wrap">
+                  <button className="tc-icon" type="button" title="Anhang" onClick={() => setAttachOpen((v) => !v)}>
+                    <Paperclip size={15} />
+                  </button>
+                  {attachOpen && (
+                    <div className="tc-attach-menu" role="menu">
+                      <button type="button" onClick={() => { setAttachOpen(false); fileRef.current?.click() }}>Datei / Bild</button>
+                      <button type="button" onClick={attachLink}>Link (Figma, Loom, Drive, PR)</button>
+                      <button type="button" onClick={openPicker}>Aus Projekt wählen</button>
+                    </div>
+                  )}
+                </div>
+                <input ref={fileRef} type="file" hidden
+                  onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadFile(f); e.currentTarget.value = '' }} />
                 <span className="tc-recipient">An: Kunde</span>
                 <div className="tc-spacer" />
                 {project && <span className="tc-pill-ctx">{project.title}</span>}
@@ -251,9 +316,20 @@ export default function DevConsolePage() {
             {!plan && (
               <div className="tc-tray">
                 <p className="tc-tray-label">Für den Kunden — Dokumente, Bilder & Links, die er bekommen soll</p>
-                <p className="tc-tray-hint">
-                  Hänge Assets über <Paperclip size={11} /> an; sie werden mit dem passenden Punkt an den Kunden gesendet.
-                </p>
+                {staged.length === 0 ? (
+                  <p className="tc-tray-hint">
+                    Hänge Assets über <Paperclip size={11} /> an; sie werden mit dem passenden Punkt an den Kunden gesendet.
+                  </p>
+                ) : (
+                  <div className="tc-staged">
+                    {staged.map((s) => (
+                      <span key={s.assetId} className="tc-chip" title={s.title}>
+                        <Paperclip size={11} /> {s.title.slice(0, 28)}
+                        <button type="button" className="tc-chip-x" onClick={() => removeStaged(s.assetId)} aria-label="Entfernen"><X size={10} /></button>
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
@@ -312,6 +388,25 @@ export default function DevConsolePage() {
           </div>
         )}
       </main>
+
+      {picker !== null && (
+        <div className="tc-picker-overlay" onClick={() => setPicker(null)}>
+          <div className="tc-picker" onClick={(e) => e.stopPropagation()}>
+            <div className="tc-picker-head">
+              <span>Asset aus Projekt wählen</span>
+              <button type="button" onClick={() => setPicker(null)} aria-label="Schließen"><X size={14} /></button>
+            </div>
+            {picker.length === 0 && <p className="tc-rail-empty">Noch keine Assets im Projekt.</p>}
+            {picker.map((a) => (
+              <button key={a.id} type="button" className="tc-picker-row" onClick={() => pickAsset(a)}>
+                <Paperclip size={12} />
+                <span className="tc-picker-title">{a.title || 'Asset'}</span>
+                <span className="tc-picker-kind">{a.kind}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -322,6 +417,28 @@ const CSS = `
   .tc-newchat { display:flex; align-items:center; gap:7px; width:100%; padding:9px 12px; border-radius:10px;
     border:1px solid var(--border,#ECECEE); background:transparent; font-size:13px; font-weight:500; cursor:pointer; color:var(--text); }
   .tc-newchat:hover { background:var(--surface-2,#F6F6F7); }
+  .tc-attach-wrap { position:relative; display:inline-flex; }
+  .tc-attach-menu { position:absolute; bottom:32px; left:0; z-index:20; min-width:210px;
+    background:var(--surface,#fff); border:1px solid var(--border,#ECECEE); border-radius:12px;
+    box-shadow:0 8px 30px rgba(0,0,0,.10); padding:5px; display:flex; flex-direction:column; }
+  .tc-attach-menu button { text-align:left; padding:8px 10px; border:0; background:transparent; border-radius:8px;
+    font-size:12.5px; color:var(--text); cursor:pointer; }
+  .tc-attach-menu button:hover { background:var(--surface-2,#F6F6F7); }
+  .tc-staged { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+  .tc-chip { display:inline-flex; align-items:center; gap:5px; padding:4px 7px; border-radius:8px;
+    background:var(--surface,#fff); border:1px solid var(--border,#ECECEE); font-size:11.5px; color:var(--text); }
+  .tc-chip-x { display:inline-flex; border:0; background:transparent; cursor:pointer; color:var(--text-muted); padding:0; }
+  .tc-chip-x:hover { color:var(--text); }
+  .tc-picker-overlay { position:fixed; inset:0; background:rgba(0,0,0,.32); z-index:60; display:flex; align-items:center; justify-content:center; }
+  .tc-picker { width:min(440px,92vw); max-height:70vh; overflow:auto; background:var(--surface,#fff);
+    border:1px solid var(--border,#ECECEE); border-radius:16px; box-shadow:0 12px 40px rgba(0,0,0,.18); padding:8px; }
+  .tc-picker-head { display:flex; align-items:center; justify-content:space-between; padding:8px 10px 10px; font-size:13px; font-weight:500; }
+  .tc-picker-head button { border:0; background:transparent; cursor:pointer; color:var(--text-muted); }
+  .tc-picker-row { display:flex; align-items:center; gap:8px; width:100%; padding:9px 10px; border:0; background:transparent;
+    border-radius:9px; cursor:pointer; font-size:12.5px; color:var(--text); text-align:left; }
+  .tc-picker-row:hover { background:var(--surface-2,#F6F6F7); }
+  .tc-picker-title { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .tc-picker-kind { font-size:11px; color:var(--text-muted); }
   .tc-rail-section { font-size:11px; letter-spacing:.02em; color:var(--text-muted,#8A8F98); margin:14px 4px 4px; }
   .tc-threads { display:flex; flex-direction:column; gap:1px; overflow-y:auto; }
   .tc-rail-empty { font-size:12.5px; color:var(--text-muted,#8A8F98); padding:6px 4px; }
