@@ -351,6 +351,46 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
     })()
     return () => { cancelled = true }
   }, [])
+
+  // Task-event badge: unread inbox items the Dev Console relay routed to the
+  // client as client tasks (category 'task_event'). Polls (30–60s) — light, no
+  // extra realtime channel. /decisions and /messages already carry badges.
+  const [taskEvents, setTaskEvents] = useState(0)
+  useEffect(() => {
+    let cancelled = false
+    const sb = createClient()
+    const tick = async () => {
+      const { data: { user } } = await sb.auth.getUser()
+      if (!user || cancelled) return
+      const { count } = await (sb as any).from('inbox_items')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', user.id).eq('category', 'task_event').is('read_at', null)
+      if (!cancelled) setTaskEvents(count ?? 0)
+    }
+    tick()
+    const id = setInterval(tick, 45000)
+    return () => { cancelled = true; clearInterval(id) }
+  }, [])
+
+  // Mark a relay category read when the client opens its surface — clears the
+  // badge across all projects. Centralised here (vs. per-page) so all four
+  // relay surfaces behave the same. Optimistically zeroes the local count.
+  useEffect(() => {
+    const surface: Record<string, string> = {
+      '/tasks': 'task_event', '/decisions': 'decision',
+      '/reports': 'status_update', '/messages': 'message',
+    }
+    const match = Object.keys(surface).find((h) => pathname === h || pathname?.startsWith(h + '/'))
+    if (!match) return
+    const category = surface[match]
+    // Optimistically clear the inbox-driven badge. (decisionsOpen tracks actual
+    // open decisions via its own query, so it isn't cleared just by visiting.)
+    if (category === 'task_event') setTaskEvents(0)
+    fetch('/api/inbox/read', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ category }),
+    }).catch(() => {})
+  }, [pathname])
   // Map href → SidebarItemId so the prefs store can decide what to show
   // and what to push into the "Mehr" popover.
   const HREF_TO_ITEM_ID: Record<string, SidebarItemId> = {
@@ -388,9 +428,11 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
     })
   }
 
-  const coreNavRaw: NavItem[] = CLIENT_CORE.map(item =>
-    item.href === '/decisions' && decisionsOpen > 0 ? { ...item, badge: decisionsOpen } : item,
-  )
+  const coreNavRaw: NavItem[] = CLIENT_CORE.map(item => {
+    if (item.href === '/decisions' && decisionsOpen > 0) return { ...item, badge: decisionsOpen }
+    if (item.href === '/tasks' && taskEvents > 0) return { ...item, badge: taskEvents }
+    return item
+  })
   const coreNav = applyPrefs(coreNavRaw)
   const teamsNav: NavItem[] = applyPrefs(CLIENT_TEAMS)
   const tagroNav: NavItem[] = applyPrefs(CLIENT_TAGRO)

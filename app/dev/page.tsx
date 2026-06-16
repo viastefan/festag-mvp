@@ -269,6 +269,9 @@ export default function DevOverviewPage() {
           </p>
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <Link href="/dev/console" className="dev-primary-btn link-btn">
+            <Lightning size={13} weight="fill" /> Mit Tagro schreiben
+          </Link>
           <Link href="/dev/github" className="dev-secondary-btn link-btn">
             <GitBranch size={13} /> GitHub
           </Link>
