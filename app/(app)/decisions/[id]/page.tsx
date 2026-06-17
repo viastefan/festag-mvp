@@ -6,6 +6,7 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { ArrowLeft, Clock } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 import { openTagro } from '@/components/TagroOverlay'
+import { tagroOpenFromDecision } from '@/lib/tagro/open-context'
 import TagroContentFab from '@/components/TagroContentFab'
 import MobilePageHeader from '@/components/MobilePageHeader'
 import {
@@ -118,14 +119,7 @@ function DecisionDetailInner() {
           {
             id: 'tagro',
             label: 'Mit Tagro bearbeiten',
-            onClick: () => openTagro({
-              contextType: 'decision',
-              id: decision.id,
-              title,
-              subtitle: project?.title,
-              status: decision.status,
-              projectId: decision.project_id ?? project?.id,
-            }),
+            onClick: () => openTagro(tagroOpenFromDecision(decision, project)),
           },
         ]}
       />
