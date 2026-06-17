@@ -21,6 +21,7 @@ import { computeControlStatus } from '@/lib/trust/control-status'
 import ObserverWelcomeModal from '@/components/ObserverWelcomeModal'
 import WelcomeTour from '@/components/WelcomeTour'
 import TagroMobileBar from '@/components/TagroMobileBar'
+import DashboardMobileStart from '@/components/dashboard/DashboardMobileStart'
 import TagroEntryButton from '@/components/TagroEntryButton'
 import StatusPrompter from '@/components/StatusPrompter'
 import { openTagro } from '@/components/TagroOverlay'
@@ -499,6 +500,12 @@ export default function DashboardPage() {
 
   const periodOptions = ['Heute', 'Letzte 7 Tage', 'Letzte 30 Tage', 'Letzte 90 Tage'] as const
   const writtenReportText = noteRevealed.trim() || audioText.trim()
+  const prompterSentences = useMemo(
+    () => (writtenReportText.match(/[^.!?\u2026]+[.!?\u2026]+(?:["')\]]+)?|[^.!?\u2026]+$/g) || [])
+      .map(s => s.trim())
+      .filter(s => s.length > 1),
+    [writtenReportText],
+  )
 
   // Read instead of listen — the report lives in the LEFT notepad, not a modal.
   // Reveal the existing report there, or generate one when none exists yet.
@@ -736,6 +743,17 @@ export default function DashboardPage() {
           --dc-soft: #4E5567;
           --dc-slate: #5B647D;
         }
+        @media (max-width: 768px) {
+          .dash-calm {
+            padding: 0;
+            overflow: hidden;
+            background: rgba(252, 252, 252, 0.9);
+            height: 100dvh;
+            min-height: 100dvh;
+          }
+          .dash-calm .dc-shell { display: none !important; }
+          .dash-calm .tmb { display: none !important; }
+        }
         [data-theme="dark"] .dash-calm,
         [data-theme="classic-dark"] .dash-calm {
           --dc-muted: #8D98A6;
@@ -765,6 +783,13 @@ export default function DashboardPage() {
           display:flex;
           flex-direction:column;
           padding-top: 16px;
+        }
+        @media (min-width: 769px) {
+          .dash-calm {
+            height: 100dvh;
+            min-height: 100dvh;
+            padding: 0 24px 10px;
+          }
         }
         /* Desktop-only header actions: Statusbericht refresh + Tagro pill.
            FLOATS top-right (absolute) so it doesn't create a band that
@@ -2579,9 +2604,7 @@ export default function DashboardPage() {
                   ? `${riskTasks.length} ${riskTasks.length === 1 ? 'Risiko braucht' : 'Risiken brauchen'} einen Blick.`
                   : 'Keine Entscheidungen, kein Stress\u2026'
           }
-          sentences={(writtenReportText.match(/[^.!?\u2026]+[.!?\u2026]+(?:["')\]]+)?|[^.!?\u2026]+$/g) || [])
-            .map(s => s.trim())
-            .filter(s => s.length > 1)}
+          sentences={prompterSentences}
           durationLabel={briefingDurationLabel}
           scopeLabel={scopeLabel}
           activeScopeId={scope}
@@ -2635,6 +2658,14 @@ export default function DashboardPage() {
       {/* Mobile object-context bar — replaces the 5-button bottom nav on
           dashboard (a status context). Left = refresh/update status,
           right = open Tagro overlay with dashboard context. */}
+      <DashboardMobileStart
+        sentences={prompterSentences}
+        busy={statusBusy}
+        openDecisionsCount={combinedDecisionsCount}
+        blockersCount={riskTasks.length}
+        onCreateReport={() => { void refreshStatus() }}
+      />
+
       <TagroMobileBar
         context={{ type: 'status_report', id: 'dashboard', title: 'Statusabfrage · Heute' }}
         leftLabel="Statusbericht"
