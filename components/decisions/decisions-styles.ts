@@ -746,20 +746,18 @@ export const DECISION_CSS = `
   }
   [data-theme="dark"] .dec-card-actions .fui-pill-btn:not(.fui-pill-btn--primary),
   [data-theme="classic-dark"] .dec-card-actions .fui-pill-btn:not(.fui-pill-btn--primary) {
-    background:rgba(255,255,255,.05);
-    border-color:rgba(255,255,255,.11);
+    background:rgba(255,255,255,.06);
+    border:none;
     color:#e4e4e8;
     box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
   }
   [data-theme="dark"] .dec-card:hover .fui-pill-btn:not(.fui-pill-btn--primary),
   [data-theme="classic-dark"] .dec-card:hover .fui-pill-btn:not(.fui-pill-btn--primary) {
-    background:rgba(255,255,255,.07);
-    border-color:rgba(255,255,255,.14);
+    background:rgba(255,255,255,.08);
   }
   [data-theme="dark"] .dec-card-actions .fui-pill-btn:not(.fui-pill-btn--primary):hover:not(:disabled),
   [data-theme="classic-dark"] .dec-card-actions .fui-pill-btn:not(.fui-pill-btn--primary):hover:not(:disabled) {
-    background:rgba(255,255,255,.09);
-    border-color:rgba(255,255,255,.15);
+    background:rgba(255,255,255,.1);
     color:#f4f4f4;
   }
   .dec-card-actions .fui-pill-btn--primary {
