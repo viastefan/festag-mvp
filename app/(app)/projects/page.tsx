@@ -144,7 +144,6 @@ function ProjectsPageInner() {
   const [sort, setSort] = useState<SortId>('recent')
   const [filterOpen, setFilterOpen] = useState(false)
   const [sortOpen, setSortOpen] = useState(false)
-  const [viewOpen, setViewOpen] = useState(false)
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null)
   const [completeTarget, setCompleteTarget] = useState<ProjectRow | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<ProjectRow | null>(null)
@@ -263,17 +262,17 @@ function ProjectsPageInner() {
   }, [searchParams])
 
   useEffect(() => {
-    if (!filterOpen && !sortOpen && !viewOpen && !menuOpenId) return
+    if (!filterOpen && !sortOpen && !menuOpenId) return
     function onDown(e: MouseEvent) {
       const t = e.target as HTMLElement
-      if (!t?.closest?.('.pj2-tool-wrap')) { setFilterOpen(false); setSortOpen(false); setViewOpen(false) }
+      if (!t?.closest?.('.pj2-tool-wrap')) { setFilterOpen(false); setSortOpen(false) }
       if (!t?.closest?.('.pj2-more-wrap')) setMenuOpenId(null)
     }
-    function onEsc(e: KeyboardEvent) { if (e.key === 'Escape') { setFilterOpen(false); setSortOpen(false); setViewOpen(false); setMenuOpenId(null) } }
+    function onEsc(e: KeyboardEvent) { if (e.key === 'Escape') { setFilterOpen(false); setSortOpen(false); setMenuOpenId(null) } }
     window.addEventListener('mousedown', onDown)
     window.addEventListener('keydown', onEsc)
     return () => { window.removeEventListener('mousedown', onDown); window.removeEventListener('keydown', onEsc) }
-  }, [filterOpen, sortOpen, viewOpen, menuOpenId])
+  }, [filterOpen, sortOpen, menuOpenId])
 
   const visible = useMemo(() => {
     let list = projects
@@ -377,34 +376,48 @@ function ProjectsPageInner() {
             </div>
           </header>
 
-          {/* Mobile actions — + standalone, filter+sort combined */}
+          {/* Mobile actions — primary +, filter | sort in split pill */}
           <div className="pjm-actions">
             <button type="button" className="pjm-add-btn" aria-label="Neues Projekt" onClick={() => setShowNewProject(true)}>
-              <Plus size={16} weight="regular" />
+              <Plus size={18} weight="bold" />
             </button>
             <div className="pjm-actions-bar">
               <div className="pj2-tool-wrap">
                 <button
                   type="button"
-                  className={`pjm-chip${viewOpen || filter !== 'all' || sort !== 'recent' ? ' on' : ''}`}
-                  aria-label="Filtern und sortieren"
-                  onClick={() => setViewOpen(v => !v)}
+                  className={`pjm-chip${filterOpen ? ' on' : ''}${filter !== 'all' ? ' has-active' : ''}`}
+                  aria-label="Filter"
+                  onClick={() => { setFilterOpen(v => !v); setSortOpen(false) }}
                 >
-                  <FunnelSimple size={15} weight="regular" />
-                  <SlidersHorizontal size={15} weight="regular" />
+                  <FunnelSimple size={17} weight="regular" />
                 </button>
-                {viewOpen && (
-                  <div className="pj2-menu pjm-view-menu" role="menu">
-                    <p className="pjm-menu-label">Filtern</p>
+                {filterOpen && (
+                  <div className="pj2-menu" role="menu">
+                    <p className="pjm-sheet-title">Filtern</p>
                     {FILTERS.map(f => (
-                      <button key={f.id} type="button" className={`pj2-menu-item${filter === f.id ? ' on' : ''}`} onClick={() => setFilter(f.id)}>
+                      <button key={f.id} type="button" className={`pj2-menu-item${filter === f.id ? ' on' : ''}`} onClick={() => { setFilter(f.id); setFilterOpen(false) }}>
                         <span>{f.label}</span>
                         {filter === f.id && <span className="check">✓</span>}
                       </button>
                     ))}
-                    <p className="pjm-menu-label pjm-menu-label--sort">Sortieren</p>
+                  </div>
+                )}
+              </div>
+              <span className="pjm-actions-divider" aria-hidden />
+              <div className="pj2-tool-wrap">
+                <button
+                  type="button"
+                  className={`pjm-chip${sortOpen ? ' on' : ''}${sort !== 'recent' ? ' has-active' : ''}`}
+                  aria-label="Sortieren"
+                  onClick={() => { setSortOpen(v => !v); setFilterOpen(false) }}
+                >
+                  <SlidersHorizontal size={17} weight="regular" />
+                </button>
+                {sortOpen && (
+                  <div className="pj2-menu" role="menu">
+                    <p className="pjm-sheet-title">Sortieren</p>
                     {SORTS.map(s => (
-                      <button key={s.id} type="button" className={`pj2-menu-item${sort === s.id ? ' on' : ''}`} onClick={() => setSort(s.id)}>
+                      <button key={s.id} type="button" className={`pj2-menu-item${sort === s.id ? ' on' : ''}`} onClick={() => { setSort(s.id); setSortOpen(false) }}>
                         <span>{s.label}</span>
                         {sort === s.id && <span className="check">✓</span>}
                       </button>
@@ -414,12 +427,12 @@ function ProjectsPageInner() {
               </div>
             </div>
           </div>
-          {viewOpen && (
+          {(filterOpen || sortOpen) && (
             <button
               type="button"
               className="pjm-sheet-backdrop"
               aria-label="Schließen"
-              onClick={() => setViewOpen(false)}
+              onClick={() => { setFilterOpen(false); setSortOpen(false) }}
             />
           )}
           </div>{/* /pj2-sticky-head */}
@@ -986,13 +999,34 @@ const CSS = `
     height: 90px;
     color: inherit;
     text-decoration: none;
-    transition: background .14s, box-shadow .14s;
+    border: 1px solid transparent;
+    transition:
+      background .18s ease,
+      box-shadow .18s ease,
+      border-color .18s ease,
+      transform .18s ease,
+      backdrop-filter .18s ease;
     cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
   }
-  .pj2-item:hover {
-    background: #FCFCFC;
+  @media (hover: hover) {
+    .pj2-item:hover {
+      background: rgba(255, 255, 255, 0.78);
+      backdrop-filter: blur(16px) saturate(170%);
+      -webkit-backdrop-filter: blur(16px) saturate(170%);
+      border-color: rgba(255, 255, 255, 0.92);
+      border-radius: 16px;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 1),
+        0 8px 24px -10px rgba(15, 23, 42, 0.12),
+        0 2px 6px rgba(144, 149, 159, 0.1);
+      transform: translateY(-1px);
+    }
+  }
+  .pj2-item:focus-visible {
+    outline: 2px solid color-mix(in srgb, #5B647D 45%, transparent);
+    outline-offset: 2px;
     border-radius: 16px;
-    box-shadow: 0 2px 5px rgba(144,149,159,0.2);
   }
 
   .pj2-name {
@@ -1400,39 +1434,45 @@ const CSS = `
       letter-spacing: inherit !important;
     }
 
-    /* ── Mobile action chips — + standalone, filter+sort bar ── */
+    /* ── Mobile action chips — primary +, split filter | sort pill ── */
     .pjm-actions {
       display: flex !important;
       align-items: center !important;
-      gap: 8px !important;
+      gap: 12px !important;
       margin-bottom: 32px !important;
     }
     .pjm-add-btn {
-      width: 30px !important;
-      height: 30px !important;
-      min-width: 30px !important;
-      min-height: 30px !important;
+      width: 36px !important;
+      height: 36px !important;
+      min-width: 36px !important;
+      min-height: 36px !important;
       border: 0 !important;
       border-radius: 999px !important;
-      background: transparent !important;
-      color: #2A3032 !important;
+      background: var(--portal-btn-primary, #5b647d) !important;
+      color: #ffffff !important;
       display: inline-flex !important;
       align-items: center !important;
       justify-content: center !important;
       cursor: pointer !important;
       padding: 0 !important;
       flex-shrink: 0 !important;
-      box-shadow: none !important;
+      box-shadow:
+        0 2px 10px rgba(91, 100, 125, 0.32),
+        0 1px 3px rgba(46, 47, 51, 0.14) !important;
       -webkit-tap-highlight-color: transparent;
+      transition: transform .12s ease, background .12s ease, box-shadow .12s ease;
     }
     .pjm-add-btn:active {
       transform: scale(0.96);
-      opacity: 0.88;
+      background: color-mix(in srgb, var(--portal-btn-primary, #5b647d) 88%, #000) !important;
+      box-shadow:
+        0 1px 4px rgba(91, 100, 125, 0.24),
+        0 1px 2px rgba(46, 47, 51, 0.1) !important;
     }
     .pjm-actions-bar {
       display: inline-flex !important;
       align-items: center !important;
-      gap: 2px !important;
+      gap: 0 !important;
       padding: 4px !important;
       border-radius: 999px !important;
       background: #FFFFFF !important;
@@ -1440,11 +1480,19 @@ const CSS = `
         0 0 40px rgba(91, 100, 125, 0.25),
         0 1px 2px rgba(46, 47, 51, 0.1) !important;
     }
+    .pjm-actions-divider {
+      width: 1px !important;
+      height: 20px !important;
+      flex-shrink: 0 !important;
+      background: rgba(15, 23, 42, 0.1) !important;
+      margin: 0 1px !important;
+    }
     .pjm-chip {
-      width: auto !important;
-      min-width: 30px !important;
-      height: 30px !important;
-      min-height: 30px !important;
+      position: relative !important;
+      width: 36px !important;
+      min-width: 36px !important;
+      height: 36px !important;
+      min-height: 36px !important;
       border: 0 !important;
       border-radius: 999px !important;
       background: transparent !important;
@@ -1452,8 +1500,8 @@ const CSS = `
       display: inline-flex !important;
       align-items: center !important;
       justify-content: center !important;
-      gap: 4px !important;
-      padding: 0 8px !important;
+      gap: 0 !important;
+      padding: 0 !important;
       cursor: pointer !important;
       flex-shrink: 0 !important;
       box-shadow: none !important;
@@ -1462,11 +1510,29 @@ const CSS = `
     }
     .pjm-chip.on {
       background: rgba(0, 0, 0, 0.055) !important;
-      box-shadow: none !important;
+    }
+    .pjm-chip.has-active::after {
+      content: '' !important;
+      position: absolute !important;
+      top: 7px !important;
+      right: 7px !important;
+      width: 5px !important;
+      height: 5px !important;
+      border-radius: 50% !important;
+      background: var(--portal-btn-primary, #5b647d) !important;
+      box-shadow: 0 0 0 1.5px #ffffff !important;
     }
     .pjm-chip:active {
       transform: scale(0.96);
       opacity: 0.88;
+    }
+    .pjm-sheet-title {
+      margin: 0 0 4px !important;
+      padding: 4px 16px 8px !important;
+      font-size: 13px !important;
+      font-weight: 500 !important;
+      letter-spacing: 0.02em !important;
+      color: #90959F !important;
     }
     .pjm-sheet-backdrop {
       display: block !important;
@@ -1531,24 +1597,6 @@ const CSS = `
       color: #0F0F10 !important;
       font-size: 14px !important;
     }
-    .pjm-view-menu {
-      gap: 2px !important;
-    }
-    .pjm-menu-label {
-      margin: 8px 0 4px !important;
-      padding: 0 16px !important;
-      font-size: 12px !important;
-      font-weight: 500 !important;
-      letter-spacing: 0.04em !important;
-      text-transform: uppercase !important;
-      color: #90959F !important;
-    }
-    .pjm-menu-label:first-child {
-      margin-top: 4px !important;
-    }
-    .pjm-menu-label--sort {
-      margin-top: 12px !important;
-    }
     @keyframes pjmSlideUp {
       from { opacity: 0; transform: translateY(100%); }
       to { opacity: 1; transform: none; }
@@ -1576,11 +1624,17 @@ const CSS = `
       height: auto !important;
       border-radius: 12px !important;
       background: #FFFFFF !important;
+      border: 1px solid rgba(255, 255, 255, 0.9) !important;
       box-shadow: 0 2px 4px rgba(144, 149, 159, 0.07) !important;
       margin: 0 !important;
       column-gap: 0 !important;
       border-bottom: 0 !important;
-      transition: transform .14s ease, box-shadow .14s ease;
+      transition:
+        transform .18s ease,
+        box-shadow .18s ease,
+        background .18s ease,
+        border-color .18s ease,
+        backdrop-filter .18s ease;
       -webkit-tap-highlight-color: transparent;
     }
     .pj2-row.pj2-item:last-child {
@@ -1588,11 +1642,20 @@ const CSS = `
     }
     .pj2-row.pj2-item:active {
       transform: scale(0.995);
+      background: rgba(255, 255, 255, 0.92) !important;
       box-shadow: 0 1px 3px rgba(144, 149, 159, 0.12) !important;
     }
     @media (hover: hover) {
       .pj2-row.pj2-item:hover {
-        box-shadow: 0 4px 10px rgba(144, 149, 159, 0.12) !important;
+        background: rgba(255, 255, 255, 0.72) !important;
+        backdrop-filter: blur(18px) saturate(175%) !important;
+        -webkit-backdrop-filter: blur(18px) saturate(175%) !important;
+        border-color: rgba(255, 255, 255, 0.95) !important;
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 1),
+          0 12px 32px -12px rgba(15, 23, 42, 0.14),
+          0 4px 10px rgba(144, 149, 159, 0.1) !important;
+        transform: translateY(-1px);
       }
     }
 
