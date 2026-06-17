@@ -4,14 +4,12 @@
  * TagroOverlay — the central object-aware Tagro Agent Workspace.
  *
  * Behaviour:
- *   1. Opens via `openTagro({ contextType, id, title })`.
- *   2. Initial state: sana.ai-style task picker — featured card, examples grid.
- *   3. On first send or "Von Grund auf starten": fullscreen workspace with
- *      icon rail, chat timeline, floating composer (sana screenshots 3+4).
- *   4. Tagro responses render as structured assistant messages inline
- *      (Ich verstehe dich so / Meine Einschätzung / Vorschau + quick actions).
- *   5. Fullscreen switch dispatches `festag:tagro-fullscreen` so the app shell
- *      can collapse its sidebar.
+ *   1. Opens via `openTagro({ contextType, id, title })` — always as a centred popup.
+ *   2. Initial state: task picker (question, context chips, suggestions, composer).
+ *   3. On first send / template / "Von Grund auf starten": chat stays in the SAME
+ *      popup shell — user remains in task context, not a separate AI surface.
+ *   4. Expand (↗) is the ONLY way to open fullscreen workspace + icon rail.
+ *   5. Collapse (↙) returns to the compact popup with conversation intact.
  *
  * Theming:
  *   Lightmode is the visual master (per the references). Darkmode is the same
@@ -407,18 +405,13 @@ export default function TagroOverlay() {
   const composerRef = useRef<HTMLTextAreaElement>(null)
   const timelineRef = useRef<HTMLDivElement>(null)
 
-  // Two modes only: collapsed picker popup OR expanded fullscreen chat.
-  const showWorkspace = fullscreen && (messages.length > 0 || fromScratch)
+  // Popup chat vs picker — independent of fullscreen.
+  const inConversation = messages.length > 0 || fromScratch
 
-  /** Expand/collapse between popup picker and fullscreen chat. */
+  /** Expand/collapse: popup ↔ fullscreen. Conversation state is preserved. */
   const togglePresentation = useCallback(() => {
-    if (fullscreen) {
-      setFullscreen(false)
-    } else {
-      setFullscreen(true)
-      setFromScratch(true)
-    }
-  }, [fullscreen])
+    setFullscreen(prev => !prev)
+  }, [])
 
   // Global open event
   useEffect(() => {
@@ -491,19 +484,16 @@ export default function TagroOverlay() {
 
   // Auto-scroll to bottom when new messages land.
   useEffect(() => {
-    if (!showWorkspace || messages.length === 0) return
+    if (!inConversation || messages.length === 0) return
     const el = timelineRef.current; if (!el) return
     el.scrollTop = el.scrollHeight
-  }, [messages, showWorkspace])
+  }, [messages, inConversation, busy])
 
   async function send(textOverride?: string) {
     const value = (textOverride ?? input).trim()
     if (!value || busy) return
     setError('')
-    if (messages.length === 0) {
-      setFullscreen(true)
-      setFromScratch(true)
-    }
+    if (messages.length === 0) setFromScratch(true)
     const userMsg: Message = { id: uid(), role: 'user', content: value }
     setMessages(prev => [...prev, userMsg])
     setInput('')
@@ -570,18 +560,12 @@ export default function TagroOverlay() {
     setInput(action); window.setTimeout(() => send(action), 30)
   }
 
-  function expandToWorkspace() {
-    setFullscreen(true)
+  function startFromScratch() {
     setFromScratch(true)
     window.setTimeout(() => composerRef.current?.focus(), 80)
   }
 
-  function startFromScratch() {
-    expandToWorkspace()
-  }
-
   function runExample(title: string) {
-    setFullscreen(true)
     setFromScratch(true)
     window.setTimeout(() => send(title), 60)
   }
@@ -609,32 +593,42 @@ export default function TagroOverlay() {
     setExtraAttached(prev => prev.filter(p => p.label !== label))
   const examples = useMemo(() => buildExampleItems(suggestions), [suggestions])
   const question = CTX_QUESTION[ctx.contextType]
+  const contextLine = ctx.title
+    ? `${CTX_CHIP[ctx.contextType]} · ${ctx.title}`
+    : CTX_CHIP[ctx.contextType]
 
   if (!open) return null
 
   const node = (
-    <div className={`tov${fullscreen ? ' tov-full' : ''} tov-mode-${showWorkspace ? 'conversation' : 'initial'}`} role="dialog" aria-modal="true" aria-label="Mit Tagro bearbeiten">
+    <div className={`tov${fullscreen ? ' tov-full' : ''}${inConversation ? ' tov-mode-conversation' : ' tov-mode-initial'}`} role="dialog" aria-modal="true" aria-label="Mit Tagro bearbeiten">
       <div className="tov-backdrop" onClick={fullscreen ? undefined : close} aria-hidden />
 
       <div className="tov-shell" onClick={e => e.stopPropagation()}>
-        {showWorkspace ? (
-          /* ── Sana-style workspace (screenshots 3 + 4) ── */
-          <div className="tov-workspace">
+        {inConversation ? (
+          <div className={`tov-workspace${fullscreen ? '' : ' tov-workspace-compact'}`}>
             {fullscreen && (
-              <TagroIconRail
-                variant="inline"
-                onNavigate={() => close()}
-              />
+              <TagroIconRail variant="inline" onNavigate={() => close()} />
             )}
 
             <div className="tov-main">
-              <header className="tov-top">
-                <span className="tov-top-ctx">{CTX_CHIP[ctx.contextType]}{ctx.title ? ` · ${ctx.title}` : ''}</span>
+              <header className={fullscreen ? 'tov-top' : 'tov-compact-head'}>
+                {fullscreen ? (
+                  <span className="tov-top-ctx">{contextLine}</span>
+                ) : (
+                  <span className="tov-compact-ctx" title={contextLine}>{contextLine}</span>
+                )}
                 <div className="tov-top-controls">
-                  <button type="button" className="tov-iconbtn" onClick={togglePresentation} aria-label="Verkleinern">
-                    <ArrowsIn size={16} weight="bold" />
+                  <button
+                    type="button"
+                    className="tov-iconbtn"
+                    onClick={togglePresentation}
+                    aria-label={fullscreen ? 'Verkleinern' : 'Vergrößern'}
+                  >
+                    {fullscreen ? <ArrowsIn size={16} weight="bold" /> : <ArrowsOut size={16} weight="bold" />}
                   </button>
-                  <button type="button" className="tov-iconbtn" onClick={close} aria-label="Schließen"><X size={16} weight="bold" /></button>
+                  <button type="button" className="tov-iconbtn" onClick={close} aria-label="Schließen">
+                    <X size={16} weight="bold" />
+                  </button>
                 </div>
               </header>
 
@@ -648,7 +642,7 @@ export default function TagroOverlay() {
                     : <TagroMsg key={m.id} msg={m} onAction={runQuickAction} />)}
                   {busy && (
                     <div className="tov-typing-row">
-                      <TagroLogo size={20} thinking />
+                      <TagroLogo size={fullscreen ? 20 : 18} thinking />
                       <div className="tov-typing"><span /><span /><span /></div>
                     </div>
                   )}
@@ -667,7 +661,7 @@ export default function TagroOverlay() {
                     micOk={micOk}
                     rec={rec}
                     onMic={toggleMic}
-                    variant="sticky"
+                    variant={fullscreen ? 'sticky' : 'compact'}
                     onAttach={attachExtra}
                     fullscreen={fullscreen}
                     extraShelfChips={extraAttached}
@@ -677,8 +671,7 @@ export default function TagroOverlay() {
             </div>
           </div>
         ) : (
-          /* ── Sana-style task picker + Festag context logic ── */
-          <div className="tov-picker">
+          <div className={`tov-picker${fullscreen ? ' tov-picker-fs' : ''}`}>
             <div className="tov-picker-view">
               <div className="tov-picker-card">
                 <div className="tov-picker-top">
@@ -805,7 +798,7 @@ function Composer({
   micOk: boolean
   rec: boolean
   onMic: () => void
-  variant: 'hero' | 'sticky'
+  variant: 'hero' | 'sticky' | 'compact'
   onAttach?: (chip: AttachedChip) => void
   fullscreen?: boolean
   extraShelfChips?: AttachedChip[]
@@ -1181,16 +1174,27 @@ const STYLES = `
   flex-direction: column;
   overflow: hidden;
   animation: tov-up .32s cubic-bezier(.16,1,.3,1) both;
-  transition: width .35s cubic-bezier(.16,1,.3,1), height .35s, border-radius .35s, box-shadow .35s, max-height .35s;
+  transition: width .35s cubic-bezier(.16,1,.3,1), height .35s cubic-bezier(.16,1,.3,1), max-height .35s cubic-bezier(.16,1,.3,1), border-radius .35s, box-shadow .35s;
 }
-.tov.tov-mode-conversation .tov-shell,
 .tov.tov-full .tov-shell {
   width: 100%; max-width: none; max-height: none;
   height: 100%; border-radius: 0; box-shadow: none;
   background: var(--tov-bg);
 }
+.tov.tov-mode-conversation:not(.tov-full) .tov-shell {
+  width: min(520px, calc(100vw - 48px));
+  height: min(68vh, 640px);
+  max-height: min(68vh, 640px);
+  display: flex;
+  flex-direction: column;
+}
 @media (max-width: 720px) {
   .tov-shell { width: 100%; max-height: 100dvh; border-radius: 0; }
+  .tov.tov-mode-conversation:not(.tov-full) .tov-shell {
+    width: 100%;
+    height: min(88dvh, 640px);
+    max-height: min(88dvh, 640px);
+  }
 }
 
 /* ── Task picker (sana modal + Festag context) ── */
@@ -1408,6 +1412,111 @@ const STYLES = `
 }
 .tov.tov-full .tov-main {
   background: var(--tov-bg);
+}
+
+/* Compact popup chat — same shell as picker, conversation inside */
+.tov-workspace-compact {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+.tov-workspace-compact .tov-main {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  height: 100%;
+}
+.tov-compact-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px 8px;
+  border-bottom: 1px solid var(--tov-border);
+  flex-shrink: 0;
+}
+.tov-compact-ctx {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--tov-text-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  flex: 1;
+  letter-spacing: -.01em;
+}
+.tov-workspace-compact .tov-timeline {
+  padding: 10px 14px 6px;
+}
+.tov-workspace-compact .tov-timeline-inner {
+  gap: 14px;
+  max-width: none;
+  padding-top: 0;
+}
+.tov-workspace-compact .tov-msg-user {
+  max-width: 92%;
+}
+.tov-workspace-compact .tov-msg-user-bubble {
+  font-size: 13.5px;
+  padding: 9px 12px;
+  border-radius: 14px 14px 4px 14px;
+}
+.tov-workspace-compact .tov-msg-user-avatar {
+  width: 24px; height: 24px;
+}
+.tov-workspace-compact .tov-msg-text {
+  font-size: 13.5px;
+}
+.tov-workspace-compact .tov-msg-preview {
+  font-size: 13px;
+  padding: 10px 12px;
+  border-radius: 12px;
+}
+.tov-workspace-compact .tov-quickactions {
+  padding-left: 0;
+  gap: 6px;
+}
+.tov-workspace-compact .tov-quickaction {
+  height: 28px;
+  font-size: 12px;
+  padding: 0 10px;
+}
+.tov-workspace-compact .tov-floatbar {
+  padding: 0 14px max(12px, env(safe-area-inset-bottom, 0px));
+  background: linear-gradient(to top, var(--tov-bg) 85%, transparent);
+}
+.tov-workspace-compact .tov-floatbar-inner {
+  max-width: none;
+}
+.tov-workspace-compact .tov-empty-hint {
+  padding: 16px 4px 8px;
+  font-size: 13px;
+  text-align: left;
+  align-self: stretch;
+}
+.tov-composer-compact .tov-composer-panel {
+  border-radius: 14px;
+  box-shadow: 0 2px 12px rgba(15, 23, 42, 0.06);
+}
+.tov-composer-compact .tov-composer-input {
+  font-size: 14px;
+  min-height: 36px;
+  padding: 12px 14px 2px;
+}
+.tov-composer-compact .tov-composer-toolbar {
+  padding: 2px 8px 8px;
+}
+.tov-picker-fs .tov-picker-view {
+  padding: 40px 32px 20px;
+}
+.tov-picker-fs .tov-picker-card,
+.tov-picker-fs .tov-picker-footer .tov-composer {
+  max-width: 560px;
 }
 .tov-main {
   flex: 1; min-width: 0; min-height: 0;
