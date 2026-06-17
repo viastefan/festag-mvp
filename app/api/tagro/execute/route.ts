@@ -28,6 +28,7 @@ export async function POST(req: Request) {
       id: ctx.id ? String(ctx.id) : undefined,
       projectId: ctx.projectId ? String(ctx.projectId) : undefined,
       title: ctx.title ? String(ctx.title) : undefined,
+      surface: ctx.surface === 'dev' ? 'dev' : 'client',
     },
   })
 
@@ -39,7 +40,9 @@ export async function POST(req: Request) {
     }, { status: 422 })
   }
 
-  const notificationId = body?.notificationId ? String(body.notificationId) : null
+  const notificationId = typeof (body as { notificationId?: unknown })?.notificationId === 'string'
+    ? (body as { notificationId: string }).notificationId
+    : null
   if (notificationId) {
     await supabase.from('notifications')
       .update({ read: true, read_at: new Date().toISOString() })

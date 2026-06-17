@@ -8,7 +8,7 @@ import {
 } from '@phosphor-icons/react'
 import { INBOX_CSS } from '@/components/inbox/inbox-styles'
 import { openTagro } from '@/components/TagroOverlay'
-import { tagroContextForDevItem } from '@/lib/inbox/tagro-triage'
+import { tagroContextForDevItem, tagroContextForClientItem } from '@/lib/inbox/tagro-triage'
 import type { InboxFeedItem, InboxProject } from '@/components/inbox/useInboxFeed'
 import {
   CLIENT_CATEGORIES, DEV_CATEGORIES, DEV_ACTIONABLE_KINDS,
@@ -439,6 +439,15 @@ function ThreadDetail({
             onClick={() => openTagro(tagroContextForDevItem(item, project?.title))}
           >
             <Sparkle size={13} weight="fill" /> Mit Tagro bearbeiten
+          </button>
+        )}
+        {variant === 'client' && (
+          <button
+            type="button"
+            className="ix-btn primary"
+            onClick={() => openTagro(tagroContextForClientItem(item, project?.title))}
+          >
+            <Sparkle size={13} weight="fill" /> Mit Tagro erklären
           </button>
         )}
         {link && variant === 'dev' ? (

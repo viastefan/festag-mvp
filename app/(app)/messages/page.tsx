@@ -5,17 +5,13 @@ import InboxMasterDetail from '@/components/inbox/InboxMasterDetail'
 import MobileCodexListChrome from '@/components/mobile/MobileCodexListChrome'
 import MobilePageHeader from '@/components/MobilePageHeader'
 import { openTagro } from '@/components/TagroOverlay'
+import { tagroContextForClientInbox } from '@/lib/inbox/tagro-triage'
 import { useClientInboxFeed } from '@/components/inbox/useInboxFeed'
 
 export default function MessagesPage() {
   const { items, projects, loading, unreadTotal, load, markRead, markAllRead } = useClientInboxFeed()
 
-  const tagroInbox = () => openTagro({
-    contextType: 'empty',
-    id: 'inbox',
-    title: 'Inbox · Triage',
-    subtitle: `${items.length} Items · ${unreadTotal} ungelesen`,
-  })
+  const tagroInbox = () => openTagro(tagroContextForClientInbox(items, unreadTotal))
 
   return (
     <MobileCodexListChrome

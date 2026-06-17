@@ -22,9 +22,10 @@ import { createClient } from '@/lib/supabase/client'
 import { useSpeechRecognition } from '@/hooks/useSpeechRecognition'
 import DevNewProjectModal from '@/components/DevNewProjectModal'
 import TagroEntryButton from '@/components/TagroEntryButton'
+import { openTagro } from '@/components/TagroOverlay'
 import {
   ArrowRight, GitBranch, GitCommit, CheckSquare, Lightning, Microphone,
-  Pause, Play, Plus, WarningCircle,
+  Pause, Play, Plus, Sparkle, WarningCircle,
 } from '@phosphor-icons/react'
 
 type Task = {
@@ -341,7 +342,28 @@ export default function DevOverviewPage() {
               Tagro hört zu… {interim ? <span style={{ color: 'var(--text-muted)' }}>„{interim}"</span> : 'sprich einfach.'}
             </p>
           )}
-          <div style={{ display: 'flex', gap: 8, marginTop: 10, justifyContent: 'flex-end' }}>
+          <div style={{ display: 'flex', gap: 8, marginTop: 10, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              className="dev-secondary-btn"
+              disabled={promptBusy}
+              onClick={() => {
+                const p = dailyPrompts[0]
+                const projTitle = p?.project_id
+                  ? projects.find(pr => pr.id === p.project_id)?.title
+                  : undefined
+                openTagro({
+                  contextType: p?.project_id ? 'project' : 'dev_item',
+                  id: p?.project_id ?? 'daily-prompt',
+                  projectId: p?.project_id ?? undefined,
+                  title: projTitle ? `Tagesabschluss · ${projTitle}` : 'Tagesabschluss',
+                  prefill: promptDraft.trim()
+                    || 'Formuliere ein kurzes client-sicheres Update: Was wurde erledigt, was blockiert, was kommt als Nächstes?',
+                })
+              }}
+            >
+              <Sparkle size={13} weight="fill" /> Mit Tagro formulieren
+            </button>
             <button
               className="dev-secondary-btn"
               type="button"

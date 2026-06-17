@@ -25,6 +25,12 @@ const KIND_PREFILL: Record<string, string> = {
     'Team-Vorschlag prüfen: Offene Punkte, Budget und nächste Klärung mit Tagro.',
   finished_by_dev:
     'Abgeschlossene Arbeit für Review zusammenfassen und Nachweise prüfen.',
+  decision_answered:
+    'Client-Antwort umsetzen: Was ändert sich technisch, welche Tasks sind betroffen, nächster Schritt.',
+  decision_applied:
+    'Freigegebene Tasks fortsetzen: Scope bestätigen und Umsetzung starten.',
+  decision_requested:
+    'Offene Entscheidung nachverfolgen: fehlende Infos sammeln oder Client-Erinnerung vorbereiten.',
 }
 
 export function tagroContextForDevItem(
@@ -33,8 +39,20 @@ export function tagroContextForDevItem(
 ): TagroOpenDetail {
   const kind = String(item.metadata?.kind ?? item.type ?? '')
   const taskId = item.metadata?.task_id ? String(item.metadata.task_id) : undefined
+  const decisionId = item.metadata?.decision_id ? String(item.metadata.decision_id) : undefined
   const label = DEV_KIND_LABEL[kind] ?? 'Execution Inbox'
   const prefill = KIND_PREFILL[kind] ?? (item.body?.trim() || undefined)
+
+  if (decisionId) {
+    return {
+      contextType: 'decision',
+      id: decisionId,
+      projectId: item.project_id ?? undefined,
+      title: item.title,
+      subtitle: projectTitle ? `${label} · ${projectTitle}` : label,
+      prefill,
+    }
+  }
 
   if (taskId) {
     return {
@@ -83,5 +101,59 @@ export function tagroContextForDevInbox(
     prefill: actionCount > 0
       ? 'Priorisiere die offenen Execution-Inbox-Einträge und schlage die nächsten Schritte vor.'
       : 'Gibt es Blocker oder Client-Updates, die ich vorbereiten soll?',
+  }
+}
+
+export function tagroContextForClientItem(
+  item: InboxFeedItem,
+  projectTitle?: string | null,
+): TagroOpenDetail {
+  const taskId = item.metadata?.task_id ? String(item.metadata.task_id) : undefined
+  const subtitle = projectTitle ?? 'Nachrichten'
+
+  if (taskId) {
+    return {
+      contextType: 'task',
+      id: taskId,
+      projectId: item.project_id ?? undefined,
+      title: item.title,
+      subtitle,
+      prefill: 'Was bedeutet das für mich und was passiert als Nächstes?',
+    }
+  }
+
+  if (item.project_id) {
+    return {
+      contextType: 'project',
+      id: item.project_id,
+      projectId: item.project_id,
+      title: item.title,
+      subtitle,
+      prefill: item.body?.trim() || 'Erkläre mir dieses Update in einfachen Worten.',
+    }
+  }
+
+  return {
+    contextType: 'empty',
+    id: item.id,
+    title: item.title,
+    subtitle,
+    prefill: item.body?.trim() || 'Was bedeutet das für mein Projekt?',
+  }
+}
+
+export function tagroContextForClientInbox(
+  items: InboxFeedItem[],
+  unreadTotal: number,
+): TagroOpenDetail {
+  const firstUnread = items.find(i => !i.read_at)
+  if (firstUnread) return tagroContextForClientItem(firstUnread)
+
+  return {
+    contextType: 'empty',
+    id: 'client-inbox',
+    title: 'Posteingang',
+    subtitle: `${items.length} Nachrichten · ${unreadTotal} ungelesen`,
+    prefill: 'Fasse meine offenen Projekt-Updates zusammen und sag mir, was ich tun sollte.',
   }
 }
