@@ -255,12 +255,15 @@ export const DECISION_CSS = `
   .dec-card-dots:hover { color:var(--dec-dark); }
   .dec-card-menu {
     position:absolute; top:28px; right:0; z-index:30;
-    min-width:210px; padding:6px;
-    border-radius:12px;
-    border:1px solid color-mix(in srgb, var(--portal-btn-outline-border, #e7ebf0) 90%, transparent);
+    min-width:248px; width:max-content; max-width:min(320px, 90vw);
+    padding:4px;
+    border-radius:10px;
+    border:1px solid rgba(15,23,42,.08);
     background:var(--portal-card, #fff);
-    box-shadow:0 12px 36px -12px rgba(15,23,42,.22);
-    display:flex; flex-direction:column; gap:2px;
+    box-shadow:
+      0 4px 14px rgba(15,23,42,.07),
+      0 16px 36px -12px rgba(15,23,42,.14);
+    display:flex; flex-direction:column; gap:1px;
   }
   [data-theme="dark"] .dec-card-menu,
   [data-theme="classic-dark"] .dec-card-menu {
@@ -269,27 +272,37 @@ export const DECISION_CSS = `
     box-shadow:0 16px 40px -12px rgba(0,0,0,.45);
   }
   .dec-card-menu-item {
-    display:flex; align-items:center; gap:9px;
-    width:100%; min-height:34px; padding:0 10px;
-    border:0; border-radius:8px; background:transparent;
-    font:inherit; font-size:13px; font-weight:400;
+    display:flex; align-items:center; gap:10px;
+    width:100%; min-height:36px; padding:0 10px;
+    border:0; border-radius:6px !important; background:transparent;
+    font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
+    font-size:14px; font-weight:400; letter-spacing:0;
     color:var(--dec-dark); text-align:left; cursor:pointer;
+    white-space:nowrap;
     transition:background .12s ease, color .12s ease;
-    letter-spacing:var(--ls-body, 0.017em);
   }
   .dec-card-menu-item:hover:not(:disabled) {
-    background:var(--portal-row-hover, rgba(241,243,245,.55));
+    background:rgba(15,23,42,.04);
   }
   .dec-card-menu-item:disabled { opacity:.5; cursor:not-allowed; }
-  .dec-card-menu-item.is-danger { color:#d14343; }
+  .dec-card-menu-item.is-danger { color:#FF3B30; }
   .dec-card-menu-item.is-danger:hover:not(:disabled) {
-    background:rgba(209,67,67,.08);
+    background:rgba(255,59,48,.08);
   }
   .dec-card-menu-icon {
     width:16px; display:inline-flex; align-items:center; justify-content:center;
-    color:var(--dec-soft); flex-shrink:0;
+    color:#8E8E93; flex-shrink:0;
   }
-  .dec-card-menu-item.is-danger .dec-card-menu-icon { color:#d14343; }
+  .dec-card-menu-label { flex:1; min-width:0; white-space:nowrap; }
+  .dec-card-menu-item.is-danger .dec-card-menu-icon { color:#FF3B30; }
+  [data-theme="dark"] .dec-card-menu-item:hover:not(:disabled),
+  [data-theme="classic-dark"] .dec-card-menu-item:hover:not(:disabled) {
+    background:rgba(255,255,255,.06);
+  }
+  [data-theme="dark"] .dec-card-menu-icon,
+  [data-theme="classic-dark"] .dec-card-menu-icon {
+    color:#9aa0ac;
+  }
   .dec-card-actions .fui-pill-btn {
     height:40px; min-height:40px; font-size:13px; width:100%;
   }

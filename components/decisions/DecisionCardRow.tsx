@@ -307,7 +307,7 @@ export default function DecisionCardRow({
                   }}
                 >
                   <span className="dec-card-menu-icon">{action.icon}</span>
-                  <span>{action.label}</span>
+                  <span className="dec-card-menu-label">{action.label}</span>
                 </button>
               ))}
             </div>
