@@ -19,6 +19,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import TagroEntryButton from '@/components/TagroEntryButton'
+import { openTagro } from '@/components/TagroOverlay'
+import { tagroOpenFromTask } from '@/lib/tagro/open-context'
 import DevFilterDropdown from '@/components/dev/DevFilterDropdown'
 import {
   ArrowRight, ArrowsClockwise, ArrowSquareOut, CheckCircle, CheckSquare, Circle,
@@ -1457,6 +1459,18 @@ function DrawerHeader({
 
       {/* primary actions */}
       <div className="dh-actions">
+        <button
+          type="button"
+          className="dh-btn"
+          onClick={() => openTagro(tagroOpenFromTask(
+            task,
+            task.project_id && task.projects?.title
+              ? { id: task.project_id, title: task.projects.title }
+              : null,
+          ))}
+        >
+          <Sparkle size={13} weight="fill" /> Mit Tagro
+        </button>
         {task.assigned_to !== userId && (
           <button className="dh-btn primary" onClick={onClaim} disabled={busy}>
             <PlusCircle size={13} /> Übernehmen

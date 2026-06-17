@@ -28,6 +28,7 @@
  */
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient as createServerClient } from '@/lib/supabase/server'
+import { runDecisionPipeline } from '@/lib/decisions'
 
 export const runtime = 'nodejs'
 
@@ -80,32 +81,43 @@ export async function PATCH(req: NextRequest, ctx: { params: { id: string } }) {
       break
     }
     case 'ask_decision': {
-      // Create a decision row linked back to the capture.
       const q = (body.question || '').trim()
       if (!q) return NextResponse.json({ error: 'question_required' }, { status: 400 })
-      const { data: dec, error: dErr } = await sb
-        .from('decisions')
-        .insert({
-          project_id: cap.project_id,
-          workspace_id: cap.workspace_id,
-          title: q.slice(0, 180),
-          description: `Rückfrage aus Capture: ${cap.transcript.slice(0, 400)}`,
-          status: 'open',
+
+      const { data: proj } = await sb.from('projects')
+        .select('user_id,client_id')
+        .eq('id', cap.project_id)
+        .maybeSingle()
+      const requestedFor = proj?.client_id || proj?.user_id || null
+
+      try {
+        const outcome = await runDecisionPipeline(sb as any, {
+          kind: 'dev_request',
+          projectId: cap.project_id,
+          authorUserId: user.id,
+          question: `Capture-Rückfrage: ${q}`,
           urgency: 'normal',
-          due_date: body.due_date ?? null,
-          created_by: user.id,
+        }, {
+          requestedFor,
+          createdBy: user.id,
         })
-        .select('id')
-        .single()
-      if (dErr) {
-        // The decisions schema may differ — fall back to just transitioning
-        // status so the workflow still advances even if the decision insert
-        // shape needs tuning later.
+
+        const decision = outcome.status === 'created'
+          ? outcome.result.decision
+          : outcome.status === 'refreshed'
+            ? outcome.existing
+            : null
+
+        if (decision?.id) {
+          patch = { status: 'needs_decision', decision_id: decision.id }
+        } else {
+          patch = { status: 'needs_decision' }
+          extra = { decision_skipped: outcome.status }
+        }
+      } catch (err: any) {
         patch = { status: 'needs_decision' }
-        extra = { decision_insert_error: dErr.message }
-        break
+        extra = { pipeline_error: err?.message ?? 'pipeline_failed' }
       }
-      patch = { status: 'needs_decision', decision_id: dec?.id ?? null }
       break
     }
     case 'apply': {

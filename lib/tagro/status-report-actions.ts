@@ -6,6 +6,7 @@ import { normalizeActionItem, taskShapeForActionItem } from './task-classifier'
 import { findSimilarOpenTasks } from './deduplication'
 import { clampPriority, type TagroActionItem } from './task-rules'
 import { runDecisionPipeline } from '@/lib/decisions'
+import { emitTaskEvent } from '@/lib/sync/bus'
 
 function fallbackActionItems(reportContent: string) {
   const text = reportContent.toLowerCase()
@@ -158,6 +159,16 @@ export async function createTasksAndDecisionsFromActionItems({
 
     if (task?.id) {
       created.push({ type: 'task', id: task.id, title: task.title })
+      if (rawItem.client_visible !== false) {
+        await emitTaskEvent(sb, 'client_request_created', {
+          taskId: task.id,
+          projectId,
+          actorId,
+          actorKind: 'tagro',
+          taskTitle: task.title,
+          payload: { source: 'status_report' },
+        }).catch(() => undefined)
+      }
     }
   }
 
