@@ -76,8 +76,12 @@ export default function ClientAppShell({
 
   useEffect(() => {
     document.body.classList.add('festag-app-mode')
-    return () => document.body.classList.remove('festag-app-mode')
-  }, [])
+    if (aiRoute) document.body.classList.add('festag-tagro-agent')
+    return () => {
+      document.body.classList.remove('festag-app-mode')
+      document.body.classList.remove('festag-tagro-agent')
+    }
+  }, [aiRoute])
 
   useEffect(() => {
     let cancelled = false
@@ -168,6 +172,26 @@ export default function ClientAppShell({
              the floating workspace never read as a different, half-filled
              shade. The workspace box is the only lifted surface. */
           background: var(--bg-app, var(--bg));
+        }
+        /* /ai — Tagro agent owns the full viewport; no floating workspace chrome */
+        body.festag-tagro-agent .festag-app-shell {
+          background: #FFFFFF;
+        }
+        body.festag-tagro-agent .app-workspace {
+          top: 0; right: 0; bottom: 0; left: 0;
+          max-height: none;
+          border: 0; border-radius: 0;
+          box-shadow: none;
+          background: transparent;
+        }
+        body.festag-tagro-agent .app-workspace-scroll > .route-fade {
+          padding: 0;
+        }
+        body.festag-tagro-agent .app-footer-controls { display: none; }
+        body.festag-tagro-agent .mcd { display: none !important; }
+        [data-theme="dark"] body.festag-tagro-agent .festag-app-shell,
+        [data-theme="classic-dark"] body.festag-tagro-agent .festag-app-shell {
+          background: #0A0A0A;
         }
         .app-workspace {
           position: fixed;

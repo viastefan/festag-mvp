@@ -24,6 +24,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { usePathname } from 'next/navigation'
 import {
   X, ArrowUp, ArrowsClockwise, ArrowsOut, ArrowsIn,
   Microphone, MicrophoneSlash, Plus, Lightbulb, CaretRight,
@@ -49,6 +50,8 @@ export type TagroOpenDetail = {
   subtitle?: string
   prefill?: string
   fullscreen?: boolean
+  /** Skip the task-picker modal — open the sana fullscreen agent workspace directly. */
+  workspace?: boolean
 }
 
 export function openTagro(detail: TagroOpenDetail) {
@@ -416,17 +419,29 @@ export default function TagroOverlay() {
   // additive and survive across the whole conversation until removed.
   const [extraAttached, setExtraAttached] = useState<AttachedChip[]>([])
   const [fromScratch, setFromScratch] = useState(false)
+  const [agentRoute, setAgentRoute] = useState(false)
+  const pathname = usePathname() || ''
   const composerRef = useRef<HTMLTextAreaElement>(null)
   const timelineRef = useRef<HTMLDivElement>(null)
 
   const mode: 'initial' | 'conversation' = messages.length === 0 ? 'initial' : 'conversation'
-  const showWorkspace = mode === 'conversation' || fromScratch
+  const showWorkspace = mode === 'conversation' || fromScratch || agentRoute
+  const isAgentSurface = agentRoute && fullscreen
 
   // Global open event
   useEffect(() => {
     function onOpen(e: Event) {
       const d = (e as CustomEvent<TagroOpenDetail>).detail || { contextType: 'empty' }
-      setCtx(d); setInput(d.prefill || ''); setMessages([]); setError(''); setExtraAttached([]); setFromScratch(false); setFullscreen(!!d.fullscreen); setOpen(true)
+      const workspace = !!d.workspace || pathname.startsWith('/ai')
+      setCtx(d)
+      setInput(d.prefill || '')
+      setMessages([])
+      setError('')
+      setExtraAttached([])
+      setFromScratch(workspace)
+      setAgentRoute(workspace)
+      setFullscreen(!!d.fullscreen || workspace)
+      setOpen(true)
     }
     function onToggleFs() { setFullscreen(v => !v) }
     window.addEventListener('festag:open-tagro', onOpen as EventListener)
@@ -435,7 +450,7 @@ export default function TagroOverlay() {
       window.removeEventListener('festag:open-tagro', onOpen as EventListener)
       window.removeEventListener('festag:tagro-fullscreen-toggle', onToggleFs as EventListener)
     }
-  }, [])
+  }, [pathname])
 
   // Body scroll lock + Esc + composer focus
   useEffect(() => {
@@ -478,7 +493,7 @@ export default function TagroOverlay() {
   }
 
   function close() {
-    setOpen(false); setFullscreen(false); setMessages([]); setInput(''); setError(''); setFromScratch(false)
+    setOpen(false); setFullscreen(false); setMessages([]); setInput(''); setError(''); setFromScratch(false); setAgentRoute(false)
     if (typeof window !== 'undefined') {
       try { window.dispatchEvent(new CustomEvent('festag:tagro-closed')) } catch {}
     }
@@ -596,7 +611,7 @@ export default function TagroOverlay() {
   if (!open) return null
 
   const node = (
-    <div className={`tov${fullscreen ? ' tov-full' : ''} tov-mode-${showWorkspace ? 'conversation' : 'initial'}`} role="dialog" aria-modal="true" aria-label="Mit Tagro bearbeiten">
+    <div className={`tov${fullscreen ? ' tov-full' : ''}${isAgentSurface ? ' tov-agent' : ''} tov-mode-${showWorkspace ? 'conversation' : 'initial'}`} role="dialog" aria-modal="true" aria-label="Mit Tagro bearbeiten">
       <div className="tov-backdrop" onClick={fullscreen ? undefined : close} aria-hidden />
 
       <div className="tov-shell" onClick={e => e.stopPropagation()}>
@@ -611,18 +626,31 @@ export default function TagroOverlay() {
             )}
 
             <div className="tov-main">
-              <header className="tov-top">
-                <span className="tov-top-ctx">{CTX_CHIP[ctx.contextType]}{ctx.title ? ` · ${ctx.title}` : ''}</span>
-                <div className="tov-top-controls">
-                  <button type="button" className="tov-iconbtn" onClick={() => setFullscreen(v => !v)} aria-label={fullscreen ? 'Verkleinern' : 'Vergrößern'}>
-                    {fullscreen ? <ArrowsIn size={15} /> : <ArrowsOut size={15} />}
-                  </button>
-                  <button type="button" className="tov-iconbtn" onClick={close} aria-label="Schließen"><X size={16} /></button>
-                </div>
-              </header>
+              {!isAgentSurface && (
+                <header className="tov-top">
+                  <span className="tov-top-ctx">{CTX_CHIP[ctx.contextType]}{ctx.title ? ` · ${ctx.title}` : ''}</span>
+                  <div className="tov-top-controls">
+                    <button type="button" className="tov-iconbtn" onClick={() => setFullscreen(v => !v)} aria-label={fullscreen ? 'Verkleinern' : 'Vergrößern'}>
+                      {fullscreen ? <ArrowsIn size={15} /> : <ArrowsOut size={15} />}
+                    </button>
+                    <button type="button" className="tov-iconbtn" onClick={close} aria-label="Schließen"><X size={16} /></button>
+                  </div>
+                </header>
+              )}
+
+              {isAgentSurface && (
+                <header className="tov-agent-top">
+                  <button type="button" className="tov-agent-close" onClick={close} aria-label="Schließen"><X size={16} /></button>
+                </header>
+              )}
 
               <div className="tov-timeline" ref={timelineRef}>
                 <div className="tov-timeline-inner">
+                  {isAgentSurface && messages.length === 0 && !busy && (
+                    <div className="tov-agent-empty" aria-hidden>
+                      <TagroLogo size={28} />
+                    </div>
+                  )}
                   {messages.map(m => m.role === 'user'
                     ? <UserMsg key={m.id} content={m.content} />
                     : <TagroMsg key={m.id} msg={m} onAction={runQuickAction} contextChips={attachedChips} />)}
@@ -643,7 +671,7 @@ export default function TagroOverlay() {
                     onChange={setInput}
                     onSend={() => send()}
                     busy={busy}
-                    placeholder={fullscreen ? 'Frag Tagro …' : placeholder}
+                    placeholder={isAgentSurface ? 'Frag Tagro …' : fullscreen ? 'Frag Tagro …' : placeholder}
                     micOk={micOk}
                     rec={rec}
                     onMic={toggleMic}
@@ -1454,6 +1482,48 @@ const STYLES = `
 .tov-floatbar-auto {
   margin-left: auto;
   font-size: 12.5px; color: var(--tov-muted); font-weight: 500;
+}
+
+/* ── /ai agent surface (sana screenshots 3 + 4) ── */
+.tov.tov-agent {
+  padding: 0;
+  justify-content: stretch; align-items: stretch;
+}
+.tov.tov-agent .tov-shell {
+  width: 100%; max-width: none; max-height: none;
+  height: 100%; border-radius: 0; box-shadow: none;
+  background: var(--tov-bg);
+}
+.tov-agent-top {
+  display: flex; justify-content: flex-end;
+  padding: 12px 16px 0;
+  position: absolute; top: 0; right: 0; z-index: 2;
+  pointer-events: none;
+}
+.tov-agent-close {
+  pointer-events: auto;
+  width: 36px; height: 36px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--tov-pill); color: var(--tov-text-2);
+  border: 0; border-radius: 999px; cursor: pointer;
+  transition: background .14s, color .14s;
+}
+.tov-agent-close:hover { background: var(--tov-pill-h); color: var(--tov-text); }
+.tov-agent-empty {
+  flex: 1;
+  display: flex; align-items: center; justify-content: center;
+  min-height: min(48vh, 420px);
+  opacity: .35;
+}
+.tov.tov-agent .tov-timeline {
+  display: flex; flex-direction: column;
+  padding-top: 48px;
+}
+.tov.tov-agent .tov-timeline-inner {
+  flex: 1; display: flex; flex-direction: column;
+}
+.tov.tov-agent .tov-floatbar {
+  padding-bottom: max(28px, env(safe-area-inset-bottom, 0px));
 }
 
 .tov-err { margin: 12px 0 0; color: #ef4444; font-size: 12.5px; text-align: center; }
