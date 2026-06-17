@@ -403,7 +403,6 @@ function ProjectsPageInner() {
                   </div>
                 )}
               </div>
-              <span className="pjm-actions-divider" aria-hidden />
               <div className="pj2-tool-wrap">
                 <button
                   type="button"
@@ -1328,6 +1327,9 @@ const CSS = `
     .pjm-t { display: inline !important; }
 
     .pj2-page {
+      --pjm-white-elev:
+        inset 0 1px 0 rgba(255, 255, 255, 0.95),
+        0 2px 4px rgba(144, 149, 159, 0.09);
       background: #FCFCFC !important;
       backdrop-filter: none !important;
       -webkit-backdrop-filter: none !important;
@@ -1356,7 +1358,7 @@ const CSS = `
     .pjm-section { display: none !important; }
     .pjm-sub {
       display: inline !important;
-      font-size: 25px !important;
+      font-size: 28px !important;
       font-weight: 400 !important;
       color: #90959F !important;
       letter-spacing: -0.5px !important;
@@ -1414,13 +1416,13 @@ const CSS = `
       margin: 0 !important;
     }
     .pj2-title h1 {
-      font-size: 25px !important;
+      font-size: 28px !important;
       letter-spacing: -0.5px !important;
       line-height: 1.12 !important;
       color: #0F0F10 !important;
     }
     .pj2-title p {
-      font-size: 25px !important;
+      font-size: 28px !important;
       letter-spacing: -0.5px !important;
       line-height: 1.12 !important;
       display: flex !important;
@@ -1434,7 +1436,7 @@ const CSS = `
       letter-spacing: inherit !important;
     }
 
-    /* ── Mobile action chips — primary +, split filter | sort pill ── */
+    /* ── Mobile action chips — primary +, filter/sort pill ── */
     .pjm-actions {
       display: flex !important;
       align-items: center !important;
@@ -1472,20 +1474,11 @@ const CSS = `
     .pjm-actions-bar {
       display: inline-flex !important;
       align-items: center !important;
-      gap: 0 !important;
+      gap: 2px !important;
       padding: 4px !important;
       border-radius: 999px !important;
       background: #FFFFFF !important;
-      box-shadow:
-        0 0 40px rgba(91, 100, 125, 0.25),
-        0 1px 2px rgba(46, 47, 51, 0.1) !important;
-    }
-    .pjm-actions-divider {
-      width: 1px !important;
-      height: 20px !important;
-      flex-shrink: 0 !important;
-      background: rgba(15, 23, 42, 0.1) !important;
-      margin: 0 1px !important;
+      box-shadow: var(--pjm-white-elev) !important;
     }
     .pjm-chip {
       position: relative !important;
@@ -1525,6 +1518,9 @@ const CSS = `
     .pjm-chip:active {
       transform: scale(0.96);
       opacity: 0.88;
+    }
+    .pj2-page .cx-action-pill {
+      box-shadow: var(--pjm-white-elev) !important;
     }
     .pjm-sheet-title {
       margin: 0 0 4px !important;
@@ -1816,9 +1812,7 @@ const CSS = `
       font-weight: 400 !important;
       letter-spacing: -0.01em !important;
       cursor: pointer !important;
-      box-shadow:
-        0 2px 12px rgba(0, 0, 0, 0.08),
-        0 1px 3px rgba(0, 0, 0, 0.04) !important;
+      box-shadow: var(--pjm-white-elev) !important;
       overflow: hidden !important;
     }
     .pjm-status-btn:active {
@@ -1867,6 +1861,164 @@ const CSS = `
     }
     .pjm-tagro svg {
       width: 20px !important; height: 20px !important;
+    }
+
+    /* ── Dark mode — portal tokens + Codex glass surfaces ── */
+    [data-theme="dark"] .pj2-page,
+    [data-theme="classic-dark"] .pj2-page {
+      --pjm-white-elev:
+        inset 0 1px 0 rgba(255, 255, 255, 0.07),
+        0 2px 4px rgba(0, 0, 0, 0.34);
+      background: transparent !important;
+      color: var(--portal-text, #f4f4f4);
+    }
+    [data-theme="dark"] .pj2-page .pj2-title h1,
+    [data-theme="classic-dark"] .pj2-page .pj2-title h1 {
+      color: var(--portal-text, #f4f4f4) !important;
+    }
+    [data-theme="dark"] .pj2-page .pj2-title p,
+    [data-theme="classic-dark"] .pj2-page .pj2-title p,
+    [data-theme="dark"] .pj2-page .pjm-sub,
+    [data-theme="classic-dark"] .pj2-page .pjm-sub,
+    [data-theme="dark"] .pj2-page .pjm-sheet-title,
+    [data-theme="classic-dark"] .pj2-page .pjm-sheet-title {
+      color: var(--portal-muted, #9aa0ac) !important;
+    }
+    [data-theme="dark"] .pj2-page .pjm-add-btn,
+    [data-theme="classic-dark"] .pj2-page .pjm-add-btn {
+      background: #ffffff !important;
+      color: #121214 !important;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.92),
+        0 2px 6px rgba(0, 0, 0, 0.36) !important;
+    }
+    [data-theme="dark"] .pj2-page .pjm-add-btn:active,
+    [data-theme="classic-dark"] .pj2-page .pjm-add-btn:active {
+      background: #f0f0f2 !important;
+    }
+    [data-theme="dark"] .pj2-page .pjm-actions-bar,
+    [data-theme="classic-dark"] .pj2-page .pjm-actions-bar {
+      background: rgba(255, 255, 255, 0.08) !important;
+      box-shadow: var(--pjm-white-elev) !important;
+    }
+    [data-theme="dark"] .pj2-page .pjm-chip,
+    [data-theme="classic-dark"] .pj2-page .pjm-chip {
+      color: rgba(255, 255, 255, 0.88) !important;
+    }
+    [data-theme="dark"] .pj2-page .pjm-chip.on,
+    [data-theme="classic-dark"] .pj2-page .pjm-chip.on {
+      background: rgba(255, 255, 255, 0.1) !important;
+    }
+    [data-theme="dark"] .pj2-page .pjm-chip.has-active::after,
+    [data-theme="classic-dark"] .pj2-page .pjm-chip.has-active::after {
+      background: #ffffff !important;
+      box-shadow: 0 0 0 1.5px #141416 !important;
+    }
+    [data-theme="dark"] .pj2-page .cx-action-pill,
+    [data-theme="classic-dark"] .pj2-page .cx-action-pill {
+      box-shadow: var(--pjm-white-elev) !important;
+    }
+    [data-theme="dark"] .pj2-page .pjm-actions .pj2-menu,
+    [data-theme="classic-dark"] .pj2-page .pjm-actions .pj2-menu {
+      background: #1c1c1e !important;
+      box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.45) !important;
+    }
+    [data-theme="dark"] .pj2-page .pjm-actions .pj2-menu-item,
+    [data-theme="classic-dark"] .pj2-page .pjm-actions .pj2-menu-item {
+      color: #f4f4f4 !important;
+    }
+    [data-theme="dark"] .pj2-page .pjm-actions .pj2-menu-item:hover,
+    [data-theme="classic-dark"] .pj2-page .pjm-actions .pj2-menu-item:hover {
+      background: rgba(255, 255, 255, 0.06) !important;
+      color: #f4f4f4 !important;
+    }
+    [data-theme="dark"] .pj2-page .pjm-actions .pj2-menu-item.on,
+    [data-theme="classic-dark"] .pj2-page .pjm-actions .pj2-menu-item.on {
+      background: rgba(255, 255, 255, 0.09) !important;
+      color: #f4f4f4 !important;
+    }
+    [data-theme="dark"] .pj2-page .pjm-actions .pj2-menu-item .check,
+    [data-theme="classic-dark"] .pj2-page .pjm-actions .pj2-menu-item .check {
+      color: #f4f4f4 !important;
+    }
+    [data-theme="dark"] .pj2-page .pjm-sheet-backdrop,
+    [data-theme="classic-dark"] .pj2-page .pjm-sheet-backdrop {
+      background: rgba(0, 0, 0, 0.52) !important;
+    }
+    [data-theme="dark"] .pj2-page .pj2-row.pj2-item,
+    [data-theme="classic-dark"] .pj2-page .pj2-row.pj2-item {
+      background: rgba(255, 255, 255, 0.06) !important;
+      border-color: rgba(255, 255, 255, 0.1) !important;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.05),
+        0 2px 4px rgba(0, 0, 0, 0.28) !important;
+    }
+    [data-theme="dark"] .pj2-page .pj2-row.pj2-item:active,
+    [data-theme="classic-dark"] .pj2-page .pj2-row.pj2-item:active {
+      background: rgba(255, 255, 255, 0.09) !important;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.04),
+        0 1px 3px rgba(0, 0, 0, 0.32) !important;
+    }
+    @media (hover: hover) {
+      [data-theme="dark"] .pj2-page .pj2-row.pj2-item:hover,
+      [data-theme="classic-dark"] .pj2-page .pj2-row.pj2-item:hover {
+        background: rgba(255, 255, 255, 0.09) !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        border-color: rgba(255, 255, 255, 0.14) !important;
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.08),
+          0 4px 10px rgba(0, 0, 0, 0.32) !important;
+        transform: translateY(-1px);
+      }
+    }
+    [data-theme="dark"] .pj2-page .pj2-name strong,
+    [data-theme="classic-dark"] .pj2-page .pj2-name strong {
+      color: #f4f4f4 !important;
+    }
+    [data-theme="dark"] .pj2-page .pj2-name small,
+    [data-theme="classic-dark"] .pj2-page .pj2-name small,
+    [data-theme="dark"] .pj2-page .pj2-status,
+    [data-theme="classic-dark"] .pj2-page .pj2-status,
+    [data-theme="dark"] .pj2-page .pj2-date,
+    [data-theme="classic-dark"] .pj2-page .pj2-date {
+      color: #9aa0ac !important;
+    }
+    [data-theme="dark"] .pj2-page .pj2-dev-av,
+    [data-theme="classic-dark"] .pj2-page .pj2-dev-av {
+      border-color: #141416 !important;
+    }
+    [data-theme="dark"] .pj2-page .pjm-dock-actions,
+    [data-theme="classic-dark"] .pj2-page .pjm-dock-actions {
+      background: #1c1c1e !important;
+      box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.42) !important;
+    }
+    [data-theme="dark"] .pj2-page .pjm-home-indicator,
+    [data-theme="classic-dark"] .pj2-page .pjm-home-indicator {
+      background: rgba(255, 255, 255, 0.22) !important;
+    }
+    [data-theme="dark"] .pj2-page .pjm-status-btn,
+    [data-theme="classic-dark"] .pj2-page .pjm-status-btn {
+      background: rgba(255, 255, 255, 0.08) !important;
+      color: #9aa0ac !important;
+      box-shadow: var(--pjm-white-elev) !important;
+    }
+    [data-theme="dark"] .pj2-page .pjm-status-btn-icon,
+    [data-theme="classic-dark"] .pj2-page .pjm-status-btn-icon {
+      color: #9aa0ac !important;
+    }
+    [data-theme="dark"] .pj2-page .pjm-tagro,
+    [data-theme="classic-dark"] .pj2-page .pjm-tagro {
+      background: #ffffff !important;
+      color: #121214 !important;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.92),
+        0 2px 8px rgba(0, 0, 0, 0.36) !important;
+    }
+    [data-theme="dark"] .pj2-page .pjm-tagro:active,
+    [data-theme="classic-dark"] .pj2-page .pjm-tagro:active {
+      background: #f0f0f2 !important;
     }
 
     /* ── Tagro desktop hidden ── */

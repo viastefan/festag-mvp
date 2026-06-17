@@ -14,8 +14,8 @@ export const CODEX_ORB_CSS = `
     background: var(--cx-orb-bg, #fff);
     color: var(--cx-orb-fg, #1c1c1e);
     box-shadow:
-      0 2px 10px rgba(0, 0, 0, 0.07),
-      0 1px 3px rgba(0, 0, 0, 0.04);
+      inset 0 1px 0 rgba(255, 255, 255, 0.95),
+      0 2px 4px rgba(144, 149, 159, 0.09);
     transition: transform 0.14s ease, background 0.14s ease;
   }
   .cx-orb:active {
@@ -30,7 +30,9 @@ export const CODEX_ORB_CSS = `
     --cx-orb-bg: rgba(255, 255, 255, 0.1);
     --cx-orb-bg-active: rgba(255, 255, 255, 0.14);
     --cx-orb-fg: rgba(255, 255, 255, 0.88);
-    box-shadow: none;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.07),
+      0 2px 4px rgba(0, 0, 0, 0.34);
   }
   .cx-topbar {
     position: absolute;
@@ -55,13 +57,34 @@ export const CODEX_ORB_CSS = `
     border-radius: 999px;
     background: var(--cx-orb-bg, #fff);
     box-shadow:
-      0 2px 10px rgba(0, 0, 0, 0.07),
-      0 1px 3px rgba(0, 0, 0, 0.04);
+      inset 0 1px 0 rgba(255, 255, 255, 0.95),
+      0 2px 4px rgba(144, 149, 159, 0.09);
   }
   .cx-action-pill--dark {
     --cx-orb-bg: rgba(255, 255, 255, 0.1);
     --cx-orb-fg: rgba(255, 255, 255, 0.88);
-    box-shadow: none;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.07),
+      0 2px 4px rgba(0, 0, 0, 0.34);
+  }
+  [data-theme="dark"] .cx-action-pill,
+  [data-theme="classic-dark"] .cx-action-pill {
+    --cx-orb-bg: rgba(255, 255, 255, 0.08);
+    --cx-orb-bg-active: rgba(255, 255, 255, 0.12);
+    --cx-orb-fg: rgba(255, 255, 255, 0.88);
+    background: var(--cx-orb-bg);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.07),
+      0 2px 4px rgba(0, 0, 0, 0.34);
+  }
+  [data-theme="dark"] .cx-orb,
+  [data-theme="classic-dark"] .cx-orb {
+    --cx-orb-bg: rgba(255, 255, 255, 0.08);
+    --cx-orb-bg-active: rgba(255, 255, 255, 0.12);
+    --cx-orb-fg: rgba(255, 255, 255, 0.88);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.07),
+      0 2px 4px rgba(0, 0, 0, 0.34);
   }
   .cx-action-pill-btn {
     width: 42px;
