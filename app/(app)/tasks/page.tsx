@@ -605,15 +605,19 @@ export default function TasksPage() {
           --task-soft-text:#4E5567;
           --task-header-text: color-mix(in srgb, #4E5567 62%, transparent);
           width:100%;
+          max-width:var(--festag-content-max, 1080px);
+          margin-left:auto;
+          margin-right:auto;
           height:100%;
           min-height:0;
           color:var(--text);
-          padding:20px 0 0;
+          padding:0;
           display:flex;
           flex-direction:column;
           overflow:hidden;
           /* Figma-style breathing room across every text inside the page */
           letter-spacing: .012em;
+          box-sizing:border-box;
         }
         .task-os strong { letter-spacing: .012em; }
         [data-theme="dark"] .task-os,
@@ -631,7 +635,7 @@ export default function TasksPage() {
           min-height:0;
           overflow-y:auto;
           overflow-x:hidden;
-          padding:0 32px 76px 18px;
+          padding:0 0 76px;
           scrollbar-gutter:stable;
           overscroll-behavior:contain;
         }
@@ -1676,7 +1680,7 @@ export default function TasksPage() {
           }
         }
         @media(max-width:960px) {
-          .task-os { padding:16px 14px 0; }
+          .task-os { padding:0; }
           .task-top { padding-left:4px; padding-right:4px; }
           .task-toolbar { padding-left:4px; padding-right:4px; }
           .task-head,
@@ -1695,7 +1699,7 @@ export default function TasksPage() {
           .task-count-summary { flex-basis:100%; padding-left:0; }
         }
         @media(max-width:760px) {
-          .task-os { padding:12px 10px 0; overflow:hidden; }
+          .task-os { padding:0; overflow:hidden; }
           .task-scroll-body { padding-bottom:calc(110px + var(--safe-bottom)); }
           /* Mobile uses the new Linear-style MobilePageHeader above; hide
              the desktop title row entirely on phones. */

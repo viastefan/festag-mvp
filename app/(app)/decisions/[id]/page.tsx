@@ -75,7 +75,7 @@ function DecisionDetailInner() {
     return (
       <div className="dec-os dec-os-detail">
         <style>{DECISION_CSS}</style>
-        <MobilePageHeader title="Entscheidung" backHref="/decisions" />
+        <MobilePageHeader title="Entscheidung" />
         <div className="dec-detail-hero dec-detail-hero--loading">
           <p className="dec-detail-loading">Entscheidung wird geladen…</p>
         </div>
@@ -87,7 +87,7 @@ function DecisionDetailInner() {
     return (
       <div className="dec-os dec-os-detail">
         <style>{DECISION_CSS}</style>
-        <MobilePageHeader title="Entscheidung" backHref="/decisions" />
+        <MobilePageHeader title="Entscheidung" />
         <div className="dec-detail-empty">
           <p className="dec-detail-empty-title">Entscheidung nicht gefunden.</p>
           <p className="dec-detail-empty-copy">Sie wurde möglicherweise archiviert oder du hast keinen Zugriff.</p>
@@ -113,8 +113,7 @@ function DecisionDetailInner() {
       <style>{DECISION_CSS}</style>
 
       <MobilePageHeader
-        title="Entscheidung"
-        backHref="/decisions"
+        title={title}
         menuItems={[
           {
             id: 'tagro',

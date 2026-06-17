@@ -318,6 +318,12 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --glass-nav-hover: rgba(0, 0, 0, 0.035);
   --glass-shell-bg: #F5F5F5;
   --festag-sidebar-width: 260px;
+
+  /* Codex-style content frame — centered column inside workspace panels */
+  --festag-content-max: 1080px;
+  --festag-content-pad-x: clamp(40px, 5.5vw, 88px);
+  --festag-content-pad-y: clamp(40px, 4.5vh, 56px);
+  --festag-content-pad-bottom: 88px;
 }
 [data-theme="dark"],
 [data-theme="classic-dark"] {
@@ -493,15 +499,37 @@ button:active, a[role="button"]:active, .tap-scale:active {
   background:var(--surface);
 }
 
-/* Aligned to the app red-line (18px) + compact header language used by
-   Tasks/Entscheidungen, so every page sits in one system. */
+/* Aligned to Codex-style centered content column inside workspace shells. */
 .page-content {
-  padding: 20px 18px 96px;
   width: 100%;
+  max-width: var(--festag-content-max, 1080px);
+  margin-left: auto;
+  margin-right: auto;
+  padding: var(--festag-content-pad-y, 40px) var(--festag-content-pad-x, 40px) var(--festag-content-pad-bottom, 88px);
+  box-sizing: border-box;
 }
 .page-content-full {
-  padding: 20px 18px 96px;
   width: 100%;
+  max-width: none;
+  margin-left: 0;
+  margin-right: 0;
+  padding: var(--festag-content-pad-y, 40px) var(--festag-content-pad-x, 40px) var(--festag-content-pad-bottom, 88px);
+  box-sizing: border-box;
+}
+.festag-content-frame {
+  width: 100%;
+  max-width: var(--festag-content-max, 1080px);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--festag-content-pad-x, 40px);
+  padding-right: var(--festag-content-pad-x, 40px);
+  box-sizing: border-box;
+}
+/* Full-height workspace pages inherit shell gutters; avoid double horizontal pad. */
+.app-workspace .page-content,
+.app-workspace .page-content-full {
+  padding-left: 0;
+  padding-right: 0;
 }
 .page-header {
   margin: 0 0 16px;
@@ -546,6 +574,13 @@ button:active, a[role="button"]:active, .tap-scale:active {
 }
 
 /* ═══ MOBILE ═══ */
+@media (max-width: 900px) {
+  :root {
+    --festag-content-pad-x: clamp(20px, 5vw, 28px);
+    --festag-content-pad-y: clamp(24px, 4vh, 32px);
+    --festag-content-pad-bottom: 64px;
+  }
+}
 @media(max-width:768px) {
   h1 { font-size:22px; }
   h2 { font-size:18px; }
@@ -556,12 +591,17 @@ button:active, a[role="button"]:active, .tap-scale:active {
     padding:0 !important;
   }
   .page-content {
-    padding: 20px 16px calc(118px + var(--safe-bottom)) !important;
+    padding: 24px 20px calc(118px + var(--safe-bottom)) !important;
     max-width: 100% !important;
   }
   .page-content-full {
-    padding: 20px 16px calc(118px + var(--safe-bottom)) !important;
+    padding: 24px 20px calc(118px + var(--safe-bottom)) !important;
     max-width: 100% !important;
+  }
+  .app-workspace .page-content,
+  .app-workspace .page-content-full {
+    padding-left: 20px !important;
+    padding-right: 20px !important;
   }
   .grid-cols-4          { grid-template-columns:repeat(2,1fr) !important; }
   .grid-cols-2-mobile-1 { grid-template-columns:1fr !important; }

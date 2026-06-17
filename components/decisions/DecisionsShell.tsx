@@ -6,7 +6,7 @@ import CommandPalette from '@/components/CommandPalette'
 
 export const DECISIONS_SHELL_CSS = `
   .decisions-shell {
-    --portal-bg: #F6F9FC;
+    --portal-bg: #F6F6F7;
     --portal-card: #FFFFFF;
     --portal-text: #0f0f10;
     --portal-muted: #6e717e;
@@ -77,16 +77,18 @@ export const DECISIONS_SHELL_CSS = `
     flex:1; min-width:0;
     box-sizing:border-box;
     display:flex; flex-direction:column;
-    padding:8px;
+    padding:clamp(16px, 2.5vw, 28px);
+    background:var(--portal-bg, #F6F6F7);
   }
   .decisions-main {
     flex:1; min-height:0;
     background:var(--portal-card);
-    border-radius:10px;
-    border:1px solid color-mix(in srgb, var(--portal-btn-outline-border, #e7ebf0) 65%, transparent);
+    border-radius:12px;
+    border:1px solid color-mix(in srgb, var(--portal-btn-outline-border, #e7ebf0) 50%, transparent);
     overflow:hidden;
     display:flex; flex-direction:column;
     position:relative;
+    box-shadow:none;
   }
   [data-theme="dark"] .decisions-main,
   [data-theme="classic-dark"] .decisions-main {
@@ -147,6 +149,7 @@ export const DECISIONS_SHELL_CSS = `
   @media (max-width: 900px) {
     .decisions-nav-col { display:none; }
     .decisions-shell { padding:0; gap:0; }
+    .decisions-main-col { padding:0; }
     .decisions-main { border-radius:0; border:0; }
   }
 `

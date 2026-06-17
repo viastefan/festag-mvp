@@ -228,6 +228,25 @@ export default function ClientAppShell({
           scroll-behavior: auto;
           -webkit-overflow-scrolling: touch;
         }
+        .app-workspace-scroll > .route-fade {
+          min-height: 100%;
+          box-sizing: border-box;
+          padding:
+            var(--festag-content-pad-y, 40px)
+            var(--festag-content-pad-x, 40px)
+            40px;
+        }
+        .festag-app-shell.full-height .app-workspace-scroll > .route-fade {
+          height: 100%;
+          padding-bottom: 0;
+          display: flex;
+          flex-direction: column;
+        }
+        .festag-app-shell.full-height .app-workspace-scroll > .route-fade > .task-os,
+        .festag-app-shell.full-height .app-workspace-scroll > .route-fade > .reports-os {
+          flex: 1;
+          min-height: 0;
+        }
         @media(max-width:768px) {
           .festag-app-shell {
             position: relative;
@@ -245,6 +264,12 @@ export default function ClientAppShell({
           }
           .app-workspace-scroll {
             overflow-y: visible;
+          }
+          .app-workspace-scroll > .route-fade {
+            padding:
+              var(--festag-content-pad-y, 24px)
+              var(--festag-content-pad-x, 20px)
+              calc(118px + var(--safe-bottom));
           }
           /* On mobile, NEVER fix-lock full-height pages — use native body
              scroll. The desktop pattern (fixed shell with an internal scroll
