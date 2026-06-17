@@ -167,3 +167,91 @@ Antworte als JSON:
     model: result.model,
   }
 }
+
+/**
+ * Aggregate dev/tagro signals across all active projects into one Gesamtbericht.
+ */
+export async function translateOverallStatusDigest(input: {
+  projects: Array<{
+    title: string
+    updates: Array<{ text: string; blocker: boolean }>
+  }>
+}): Promise<TranslatedUpdate> {
+  const active = input.projects.filter((p) => p.updates.length > 0)
+  if (active.length === 0) {
+    const titles = input.projects.map((p) => p.title).filter(Boolean)
+    const hint = titles.length
+      ? `Heute gibt es noch keine neuen Updates zu ${titles.slice(0, 3).join(', ')}${titles.length > 3 ? ' und weiteren Projekten' : ''}.`
+      : 'Heute gibt es noch keine neuen Projekt-Updates.'
+    return {
+      clientSummary: `${hint} Sobald jemand an den Projekten arbeitet, fasse ich den Stand hier ruhig zusammen.`,
+      currentWork: [],
+      blockers: [],
+      nextSteps: [],
+      confidence: 0.6,
+      model: 'heuristic',
+    }
+  }
+
+  const updateList = active
+    .flatMap((p) =>
+      p.updates.map((u, i) => `${p.title} — ${i + 1}. ${u.blocker ? '[Blocker] ' : ''}${u.text}`),
+    )
+    .join('\n')
+
+  const prompt = `Mehrere interne Entwickler- und Tagro-Updates der letzten 24 Stunden über mehrere Projekte:
+
+"""
+${updateList}
+"""
+
+Verdichte das zu EINEM ruhigen Gesamtbericht für den Kunden (alle Projekte zusammen).
+
+Regeln:
+- Client-safe: kein Jargon, keine Commit-Hashes, keine Dateinamen.
+- Ruhig, professionell, 3 bis 5 Sätze in "client_summary".
+- Nenne Projektnamen nur wenn nötig, sonst "über deine Projekte".
+- Ehrlich bei Blockern.
+- Deutsch.
+
+Antworte als JSON:
+{
+  "client_summary": string,
+  "current_work": string[],
+  "blockers": string[],
+  "next_steps": string[],
+  "confidence": number
+}`
+
+  const result = await runOpenAIJson({
+    prompt,
+    runType: 'status_digest_overall',
+    fallback: () => {
+      const blockers = active.flatMap((p) => p.updates.filter((u) => u.blocker).map((u) => `${p.title}: ${u.text}`))
+      const work = active.flatMap((p) => p.updates.filter((u) => !u.blocker).map((u) => `${p.title}: ${u.text}`))
+      const lead = blockers.length > 0
+        ? `Über deine ${active.length} aktiven Projekte läuft die Arbeit; ein Punkt braucht Aufmerksamkeit.`
+        : `Die Arbeit an deinen ${active.length} aktiven Projekten ist heute vorangekommen.`
+      return {
+        client_summary: `${lead}${work[0] ? ` Zuletzt: ${work[0]}.` : ''}`,
+        current_work: work.slice(0, 4),
+        blockers: blockers.slice(0, 3),
+        next_steps: [],
+        confidence: 0.5,
+      }
+    },
+  })
+
+  const out = result.output as Record<string, unknown>
+  const toStrArray = (v: unknown): string[] =>
+    Array.isArray(v) ? v.map((x) => String(x)).filter(Boolean).slice(0, 4) : []
+
+  return {
+    clientSummary: String(out.client_summary ?? ''),
+    currentWork: toStrArray(out.current_work),
+    blockers: toStrArray(out.blockers),
+    nextSteps: toStrArray(out.next_steps),
+    confidence: typeof out.confidence === 'number' ? Math.max(0, Math.min(1, out.confidence)) : 0.5,
+    model: result.model,
+  }
+}

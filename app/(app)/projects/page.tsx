@@ -12,7 +12,7 @@
 
 import { Suspense, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import NewProjectModal from '@/components/NewProjectModal'
 import { openTagro } from '@/components/TagroOverlay'
@@ -26,6 +26,7 @@ import {
 import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
 import MobileNavSheet from '@/components/mobile/MobileNavSheet'
 import MobileProjectPickerSheet, { type ProjectPickerMode } from '@/components/mobile/MobileProjectPickerSheet'
+import ProjectsStatusBriefingSheet from '@/components/mobile/ProjectsStatusBriefingSheet'
 
 type ProjectRow = {
   id: string
@@ -162,9 +163,10 @@ function ProjectsPageInner() {
   const [supportSending, setSupportSending] = useState(false)
   const [supportSent, setSupportSent] = useState(false)
   const [navOpen, setNavOpen] = useState(false)
+  const [briefingOpen, setBriefingOpen] = useState(false)
+  const [briefingStale, setBriefingStale] = useState(false)
   const [dockPicker, setDockPicker] = useState<ProjectPickerMode | null>(null)
   const searchParams = useSearchParams()
-  const router = useRouter()
   const supabase = useMemo(() => createClient(), [])
 
   async function loadProjects() {
@@ -283,11 +285,21 @@ function ProjectsPageInner() {
   }, [filterOpen, sortOpen, menuOpenId])
 
   useEffect(() => {
-    if (!dockPicker) return
-    const prev = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => { document.body.style.overflow = prev }
-  }, [dockPicker])
+    if (!briefingOpen) return
+    const markStale = () => setBriefingStale(true)
+    const channel = supabase
+      .channel('projects-briefing-signals')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'developer_updates' }, markStale)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'ai_updates' }, markStale)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'status_reports' }, markStale)
+      .subscribe()
+    return () => { supabase.removeChannel(channel) }
+  }, [briefingOpen, supabase])
+
+  function openBriefingSheet() {
+    setBriefingStale(false)
+    setBriefingOpen(true)
+  }
 
   const visible = useMemo(() => {
     let list = projects
@@ -321,12 +333,6 @@ function ProjectsPageInner() {
     title: 'Alle Projekte',
     subtitle: `${visible.length} Projekt${visible.length === 1 ? '' : 'e'}`,
   })
-
-  function handlePickStatus(projectId: string | null) {
-    setDockPicker(null)
-    const q = projectId ? `?project=${projectId}` : ''
-    router.push(`/reports${q}`)
-  }
 
   function handlePickTagro(projectId: string | null, title: string) {
     setDockPicker(null)
@@ -631,7 +637,7 @@ function ProjectsPageInner() {
             const startY = e.touches[0].clientY
             const onMove = (ev: TouchEvent) => {
               if (startY - ev.touches[0].clientY > 40) {
-                setDockPicker('status')
+                openBriefingSheet()
                 document.removeEventListener('touchmove', onMove)
                 document.removeEventListener('touchend', onEnd)
               }
@@ -646,7 +652,7 @@ function ProjectsPageInner() {
         >
           <div className="pjm-home-indicator" />
           <div className="pjm-dock-row">
-            <button type="button" className="pjm-status-btn" onClick={() => setDockPicker('status')}>
+            <button type="button" className="pjm-status-btn" onClick={openBriefingSheet}>
               <span className="pjm-status-btn-icon" aria-hidden>
                 <WaveSine size={14} weight="regular" />
               </span>
@@ -659,12 +665,20 @@ function ProjectsPageInner() {
         </div>
       </div>
 
+      <ProjectsStatusBriefingSheet
+        open={briefingOpen}
+        onClose={() => setBriefingOpen(false)}
+        projects={projects}
+        tasks={tasks}
+        stale={briefingStale}
+      />
+
       <MobileProjectPickerSheet
-        mode={dockPicker}
+        mode={dockPicker === 'tagro' ? 'tagro' : null}
         projects={pickerProjects}
         loading={loading}
         onClose={() => setDockPicker(null)}
-        onPickStatus={handlePickStatus}
+        onPickStatus={() => {}}
         onPickTagro={handlePickTagro}
       />
 

@@ -235,7 +235,7 @@ export default function DashboardPageContent() {
     let cancelled = false
     ;(async () => {
       try {
-        const res = await fetch('/api/client/status-now', { method: 'GET' })
+        const res = await fetch('/api/client/status-now?scope=overall', { method: 'GET' })
         const d = await res.json().catch(() => ({}))
         if (cancelled || !d?.report) return
         const r = normalizeReport(d.report)
@@ -685,7 +685,7 @@ export default function DashboardPageContent() {
     setStatusBusy(true)
     try {
       // Honour the scope dropdown: 'overall' → no projectId, single → that project.
-      const scopedBody = isOverall ? {} : { projectId: scope }
+      const scopedBody = isOverall ? { scope: 'overall' } : { projectId: scope, scope: 'project' }
       const res = await fetch('/api/client/status-now', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
