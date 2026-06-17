@@ -376,13 +376,21 @@ function ProjectsPageInner() {
 
       <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
 
-      <main className="pj2-main">
-        <div className="pj2-card">
-          <div className="pj2-sticky-head">
-          <header className="pj2-head">
-            <div className="pj2-title">
-              <h1><span className="pj2-dt">Alle Projekte.</span><span className="pjm-t">Was steht an?</span></h1>
-              <p><span className="pj2-dt">Auf einem Blick. KI gesteuert.</span><span className="pjm-t pjm-sub">Was wird umgesetzt?</span></p>
+      <div className="pj2-shell">
+        <div className="pj2-static-top">
+          <header className="pj2-page-head">
+            <div className="pj2-page-head-copy">
+              <h1 className="pj2-page-title">
+                <span className="pj2-dt">Projekte</span>
+                <span className="pjm-t">Was steht an?</span>
+              </h1>
+              <p className="pj2-m-subline">
+                <span className="pjm-t pjm-sub">Was wird umgesetzt?</span>
+              </p>
+              <div className="pj2-page-lead pj2-dt">
+                <p className="pj2-page-lead-line">{leadLine1}</p>
+                <p className="pj2-page-lead-line">{leadLine2}</p>
+              </div>
             </div>
             <div className="pjm-head-actions">
               <CodexMobileActionPill
@@ -390,50 +398,75 @@ function ProjectsPageInner() {
                 onSearch={() => window.dispatchEvent(new CustomEvent('open-command-palette'))}
               />
             </div>
-            <div className="pj2-actions pj2-dt">
-              <div className="pj2-tool-group">
-                <div className="pj2-tool-wrap">
+            <div className="pj2-page-actions pj2-dt">
+              <div className="pj2-page-actions-group">
+                <div className="pj2-filter-wrap pj2-tool-wrap">
                   <button
                     type="button"
-                    className={`pj2-tool${filterOpen ? ' on' : ''}${filter !== 'all' ? ' on' : ''}`}
+                    className={`pj2-head-tool${filterOpen || filter !== 'all' ? ' on' : ''}`}
                     aria-label="Filter"
+                    aria-expanded={filterOpen}
                     onClick={() => { setFilterOpen(v => !v); setSortOpen(false) }}
                   >
-                    <FunnelSimple size={18} weight="regular" />
+                    <FunnelSimple size={15} weight="regular" />
                   </button>
                   {filterOpen && (
-                    <div className="pj2-menu" role="menu">
+                    <div className="pj2-filter-menu" role="menu" aria-label="Filter">
+                      <p className="pj2-filter-menu-label">Status</p>
                       {FILTERS.map(f => (
-                        <button key={f.id} type="button" className={`pj2-menu-item${filter === f.id ? ' on' : ''}`} onClick={() => { setFilter(f.id); setFilterOpen(false) }}>
+                        <button
+                          key={f.id}
+                          type="button"
+                          role="menuitem"
+                          className={`pj2-filter-menu-item${filter === f.id ? ' on' : ''}`}
+                          onClick={() => { setFilter(f.id); setFilterOpen(false) }}
+                        >
                           <span>{f.label}</span>
-                          {filter === f.id && <span className="check">✓</span>}
+                          {filter === f.id && <span className="pj2-filter-check">✓</span>}
                         </button>
                       ))}
                     </div>
                   )}
                 </div>
-                <div className="pj2-tool-wrap">
+                <div className="pj2-filter-wrap pj2-tool-wrap">
                   <button
                     type="button"
-                    className={`pj2-tool${sortOpen ? ' on' : ''}`}
+                    className={`pj2-head-tool${sortOpen || sort !== 'recent' ? ' on' : ''}`}
                     aria-label="Sortieren"
+                    aria-expanded={sortOpen}
                     onClick={() => { setSortOpen(v => !v); setFilterOpen(false) }}
                   >
-                    <SlidersHorizontal size={18} weight="regular" />
+                    <SlidersHorizontal size={15} weight="regular" />
                   </button>
                   {sortOpen && (
-                    <div className="pj2-menu" role="menu">
+                    <div className="pj2-filter-menu" role="menu" aria-label="Sortieren">
+                      <p className="pj2-filter-menu-label">Sortierung</p>
                       {SORTS.map(s => (
-                        <button key={s.id} type="button" className={`pj2-menu-item${sort === s.id ? ' on' : ''}`} onClick={() => { setSort(s.id); setSortOpen(false) }}>
+                        <button
+                          key={s.id}
+                          type="button"
+                          role="menuitem"
+                          className={`pj2-filter-menu-item${sort === s.id ? ' on' : ''}`}
+                          onClick={() => { setSort(s.id); setSortOpen(false) }}
+                        >
                           <span>{s.label}</span>
-                          {sort === s.id && <span className="check">✓</span>}
+                          {sort === s.id && <span className="pj2-filter-check">✓</span>}
                         </button>
                       ))}
                     </div>
                   )}
                 </div>
               </div>
-              <button type="button" className="pj2-cta" onClick={() => setShowNewProject(true)}>
+              <button
+                type="button"
+                className="pj2-head-tool"
+                title="Aktualisieren"
+                aria-label="Aktualisieren"
+                onClick={() => void loadProjects()}
+              >
+                <ArrowsClockwise size={15} weight="regular" />
+              </button>
+              <button type="button" className="pj2-head-new" onClick={() => setShowNewProject(true)}>
                 Neues Projekt
               </button>
             </div>
@@ -505,8 +538,9 @@ function ProjectsPageInner() {
               onClick={() => { setFilterOpen(false); setSortOpen(false) }}
             />
           )}
-          </div>{/* /pj2-sticky-head */}
+        </div>
 
+        <div className="pj2-scroll-body">
           <h2 className="pjm-section">Projekte</h2>
 
           <div className="pj2-table">
@@ -647,17 +681,11 @@ function ProjectsPageInner() {
             )}
           </div>
         </div>
-      </main>
+      </div>
 
-      {/* Desktop: Tagro-Round-Button */}
-      <button
-        type="button"
-        className="pj2-tagro pj2-dt"
-        aria-label="Tagro öffnen"
-        onClick={tagroHandler}
-      >
-        <PencilSimple size={24} weight="regular" />
-      </button>
+      <div className="pj2-fab-desktop">
+        <TagroContentFab position="fixed" context={tagroContext} />
+      </div>
 
       <MobilePageDock
         onDragUp={() => setShowNewProject(true)}
@@ -820,6 +848,9 @@ const CSS = `
   .pjm-icon-sep { display: none; }
 
     .pj2-page {
+      --pj-soft: var(--portal-muted, #8f93a4);
+      --pj-dark: var(--portal-text, #0f0f10);
+      --pj-card-bg: var(--portal-card, #fff);
       width: 100%;
       height: 100%;
       min-height: 0;
@@ -827,169 +858,288 @@ const CSS = `
       flex-direction: column;
       background: transparent;
       font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
-      color: #0F0F10;
+      color: var(--pj-dark);
       color-scheme: light;
       overflow: hidden;
+      letter-spacing: 0;
+    }
+    [data-theme="dark"] .pj2-page,
+    [data-theme="classic-dark"] .pj2-page {
+      --pj-soft: var(--portal-muted, #9aa0ac);
+      --pj-card-bg: var(--portal-card, #141416);
+      color-scheme: dark;
     }
 
-  .pj2-main {
-    margin-left: 0;
-    flex: 1;
-    min-height: 0;
-    height: 100%;
-    padding: 0;
-    box-sizing: border-box;
+  .pj2-shell {
     display: flex;
     flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
   }
+  .pj2-static-top,
+  .pj2-scroll-body { position: relative; z-index: 1; }
 
-  .pj2-card {
-    flex: 1; min-height: 0;
-    background: transparent;
-    border-radius: 0;
-    max-width: var(--festag-content-max, 1080px);
-    width: 100%;
-    margin: 0 auto;
-    padding: 0 var(--festag-content-pad-x, 40px) var(--festag-content-pad-bottom, 88px);
-    box-sizing: border-box;
-    position: relative;
-    overflow-y: auto;
-    overflow-x: hidden;
-    scrollbar-width: none;
-    box-shadow: none;
-  }
-  .pj2-card::-webkit-scrollbar { display: none; }
-
-  /* ── Sticky header + gradient shield ── */
-  .pj2-sticky-head {
+  .pj2-static-top {
+    flex: 0 0 auto;
     position: sticky;
     top: 0;
-    z-index: 10;
-    background: #FFFFFF;
-    padding-top: var(--festag-content-pad-y, 40px);
-    padding-bottom: 0;
+    z-index: 8;
+    background: var(--pj-card-bg);
+    width: 100%;
+    max-width: var(--festag-content-max, 1080px);
+    margin: 0 auto;
+    padding: clamp(64px, 7vh, 88px) var(--festag-content-pad-x, 56px) 0;
+    box-sizing: border-box;
   }
-  .pj2-sticky-head::after {
+  .pj2-static-top::after {
     content: '';
     display: block;
     position: absolute;
-    left: calc(-1 * var(--festag-content-pad-x, 40px));
-    right: calc(-1 * var(--festag-content-pad-x, 40px));
-    bottom: -60px;
-    height: 60px;
+    left: 0;
+    right: 0;
+    bottom: -20px;
+    height: 20px;
     background: linear-gradient(
       to bottom,
-      rgba(255,255,255,1) 0%,
-      rgba(255,255,255,0.96) 40%,
-      rgba(255,255,255,0.85) 70%,
-      rgba(255,255,255,0) 100%
+      var(--pj-card-bg) 0%,
+      color-mix(in srgb, var(--pj-card-bg) 75%, transparent) 55%,
+      transparent 100%
     );
     pointer-events: none;
-    z-index: 5;
   }
 
-  .pj2-head {
-    display: flex; align-items: flex-start; justify-content: space-between;
-    gap: 32px;
-    margin-bottom: 32px;
+  .pj2-scroll-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    width: 100%;
+    max-width: var(--festag-content-max, 1080px);
+    margin: 0 auto;
+    padding: 28px var(--festag-content-pad-x, 56px) var(--festag-content-pad-bottom, 88px);
+    box-sizing: border-box;
+    overscroll-behavior: contain;
+    scrollbar-width: none;
   }
-  .pj2-title h1 {
+  .pj2-scroll-body::-webkit-scrollbar { display: none; }
+
+  .pj2-page-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    padding-bottom: 28px;
+  }
+  .pj2-page-head-copy {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .pj2-page-title {
     margin: 0;
-    font-size: 28px; font-weight: 400 !important;
-    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif) !important;
-    letter-spacing: -0.01em;
-    color: #0F0F10;
-    line-height: 1.2;
-  }
-  .pj2-title p {
-    margin: 0;
-    font-size: 28px; font-weight: 400 !important;
-    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif) !important;
-    color: #8F93A4;
-    letter-spacing: -0.01em;
-    line-height: 1.2;
-  }
-  .pj2-actions {
-    display: inline-flex; align-items: center; gap: 12px;
-    margin-top: 6px;
-  }
-  .pj2-tool-group {
-    display: inline-flex; align-items: center; gap: 8px;
-  }
-  .pj2-tool-wrap { position: relative; }
-  .pj2-tool {
-    position: relative;
-    width: 38px; height: 38px;
-    border: 1px solid rgba(228,231,235,0.6);
-    border-radius: 32px !important;
-    background: #FFFFFF;
-    color: #8E93A0;
-    display: inline-flex; align-items: center; justify-content: center;
-    cursor: pointer;
-    box-shadow:
-      0 1px 0 rgba(15,23,42,0.04),
-      0 2px 4px rgba(15,23,42,0.06),
-      0 6px 12px -4px rgba(15,23,42,0.05);
-    transition: background .14s, color .14s, border-color .14s, box-shadow .14s, transform .14s;
-  }
-  .pj2-tool:hover, .pj2-tool.on {
-    background: #FFFFFF;
-    color: #2A3032;
-    border-color: rgba(210,215,222,0.9);
-    box-shadow:
-      0 1px 0 rgba(15,23,42,0.05),
-      0 3px 6px rgba(15,23,42,0.08),
-      0 10px 20px -6px rgba(15,23,42,0.08);
-    transform: translateY(-0.5px);
-  }
-  .pj2-tool:active {
-    transform: translateY(0);
-    box-shadow:
-      0 1px 0 rgba(15,23,42,0.04),
-      0 1px 2px rgba(15,23,42,0.06);
-  }
-  .pj2-tool.on {
-    border-color: #5B647D;
-  }
-  .pj2-tool.on::after {
-    content: '';
-    position: absolute;
-    top: -2px; right: -2px;
-    width: 6px; height: 6px;
-    border-radius: 999px;
-    background: #5B647D;
-    border: 1.5px solid #FFFFFF;
-  }
-  .pj2-cta {
-    height: 38px; padding: 0 18px;
-    border: 1px solid rgba(228,231,235,0.6);
-    border-radius: 32px !important;
-    background: #FFFFFF; color: #2A3032;
-    font: inherit; font-size: 14px; font-weight: 400;
+    font-size: 32px;
+    font-weight: 400;
+    color: var(--pj-dark);
+    letter-spacing: var(--ls-header, 0.012em);
+    line-height: 1.15;
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
-    letter-spacing: 0.42px;
-    box-shadow:
-      0 1px 0 rgba(15,23,42,0.04),
-      0 2px 4px rgba(15,23,42,0.06),
-      0 6px 12px -4px rgba(15,23,42,0.05);
+  }
+  .pj2-m-subline {
+    margin: 0;
+    display: none;
+  }
+  .pj2-page-lead {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-width: 680px;
+  }
+  .pj2-page-lead-line {
+    margin: 0;
+    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+    font-size: 17px;
+    font-weight: 400;
+    color: var(--pj-soft);
+    line-height: 1.5;
+    letter-spacing: 0;
+  }
+  .pj2-page-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    padding-top: 6px;
+  }
+  .pj2-page-actions-group {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+  .pj2-filter-wrap {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+  }
+  .pj2-head-tool {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    min-height: 32px;
+    padding: 0;
+    flex-shrink: 0;
+    box-sizing: border-box;
+    border: 1px solid rgba(15,23,42,.09);
+    border-radius: 50%;
+    background: #fff;
+    color: #6e717e;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
-    transition: background .14s, border-color .14s, box-shadow .14s, transform .14s;
-  }
-  .pj2-cta:hover {
-    background: #FFFFFF;
-    border-color: rgba(210,215,222,0.9);
     box-shadow:
-      0 1px 0 rgba(15,23,42,0.05),
-      0 3px 6px rgba(15,23,42,0.08),
-      0 10px 20px -6px rgba(15,23,42,0.08);
-    transform: translateY(-0.5px);
+      inset 0 1px 0 rgba(255,255,255,1),
+      0 1px 0 rgba(15,23,42,.03),
+      0 2px 5px -1px rgba(15,23,42,.11),
+      0 5px 12px -4px rgba(15,23,42,.09);
+    transition: background .12s, box-shadow .12s, color .12s, transform .1s, border-color .12s;
   }
-  .pj2-cta:active {
-    transform: translateY(0);
+  .pj2-head-tool svg { width: 15px; height: 15px; flex-shrink: 0; }
+  .pj2-head-tool:hover {
+    color: #2a3032;
+    background: #fafafa;
+    border-color: rgba(15,23,42,.11);
+  }
+  .pj2-head-tool:active { transform: translateY(1px); }
+  .pj2-head-tool.on {
+    color: var(--pj-dark);
+    border-color: color-mix(in srgb, var(--portal-btn-primary, #5b647d) 35%, transparent);
+    background: color-mix(in srgb, var(--portal-btn-primary, #5b647d) 8%, #fff);
+  }
+  [data-theme="dark"] .pj2-head-tool,
+  [data-theme="classic-dark"] .pj2-head-tool {
+    background: rgba(255,255,255,.06);
+    border-color: rgba(255,255,255,.10);
+    color: #9aa0ac;
     box-shadow:
-      0 1px 0 rgba(15,23,42,0.04),
-      0 1px 2px rgba(15,23,42,0.06);
+      inset 0 1px 0 rgba(255,255,255,.07),
+      0 2px 6px -2px rgba(0,0,0,.28),
+      0 6px 14px -6px rgba(0,0,0,.24);
   }
+  [data-theme="dark"] .pj2-head-tool:hover,
+  [data-theme="classic-dark"] .pj2-head-tool:hover {
+    background: rgba(255,255,255,.09);
+    color: #f4f4f4;
+    border-color: rgba(255,255,255,.14);
+  }
+  [data-theme="dark"] .pj2-head-tool.on,
+  [data-theme="classic-dark"] .pj2-head-tool.on {
+    color: #f4f4f4;
+    background: rgba(255,255,255,.1);
+    border-color: rgba(255,255,255,.16);
+  }
+  .pj2-head-new {
+    height: 32px;
+    padding: 0 14px;
+    border: 1px solid rgba(15,23,42,.09);
+    border-radius: 999px;
+    background: var(--portal-btn-primary, #5b647d);
+    color: #fff;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 400;
+    letter-spacing: 0;
+    cursor: pointer;
+    white-space: nowrap;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.12),
+      0 2px 6px -2px rgba(91,100,125,.35);
+    transition: background .12s, transform .1s;
+  }
+  .pj2-head-new:hover {
+    background: color-mix(in srgb, var(--portal-btn-primary, #5b647d) 90%, #000);
+  }
+  [data-theme="dark"] .pj2-head-new,
+  [data-theme="classic-dark"] .pj2-head-new {
+    background: #fff;
+    color: #121214;
+    border-color: transparent;
+  }
+
+  .pj2-filter-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    z-index: 30;
+    min-width: 220px;
+    width: max-content;
+    max-width: min(280px, 90vw);
+    padding: 4px;
+    border-radius: 10px;
+    border: 1px solid rgba(15,23,42,.08);
+    background: var(--portal-card, #fff);
+    box-shadow:
+      0 4px 14px rgba(15,23,42,.07),
+      0 16px 36px -12px rgba(15,23,42,.14);
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    animation: pj2MenuIn .16s cubic-bezier(.16,1,.3,1) both;
+  }
+  @keyframes pj2MenuIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: none; }
+  }
+  [data-theme="dark"] .pj2-filter-menu,
+  [data-theme="classic-dark"] .pj2-filter-menu {
+    background: var(--portal-card, #141416);
+    border-color: rgba(255,255,255,.1);
+    box-shadow: 0 16px 40px -12px rgba(0,0,0,.45);
+  }
+  .pj2-filter-menu-label {
+    margin: 6px 10px 4px;
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--pj-soft);
+  }
+  .pj2-filter-menu-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    width: 100%;
+    min-height: 36px;
+    padding: 0 10px;
+    border: 0;
+    border-radius: 8px !important;
+    background: transparent;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--pj-dark);
+    text-align: left;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background .12s ease;
+  }
+  .pj2-filter-menu-item:hover { background: rgba(15,23,42,.04); }
+  .pj2-filter-menu-item.on { background: rgba(15,23,42,.055); }
+  .pj2-filter-check { font-size: 13px; color: var(--pj-soft); flex-shrink: 0; }
+  [data-theme="dark"] .pj2-filter-menu-item:hover,
+  [data-theme="classic-dark"] .pj2-filter-menu-item:hover {
+    background: rgba(255,255,255,.06);
+  }
+  [data-theme="dark"] .pj2-filter-menu-item.on,
+  [data-theme="classic-dark"] .pj2-filter-menu-item.on {
+    background: rgba(255,255,255,.08);
+  }
+
+  .pj2-fab-desktop { display: block; }
+
+  .pj2-tool-wrap { position: relative; }
 
   .pj2-menu {
     position: absolute; top: 48px; right: 0; z-index: 30;
@@ -1025,7 +1175,7 @@ const CSS = `
   .pj2-table {
     width: 100%;
     box-sizing: border-box;
-    padding: 0 20px;
+    padding: 0;
   }
   .pj2-left { display: contents; }
   .pj2-right { display: contents; }
@@ -1040,8 +1190,8 @@ const CSS = `
       48px;
     align-items: center;
     column-gap: 24px;
-    padding: 0 26px;
-    border-radius: 16px;
+    padding: 0 8px;
+    border-radius: 12px;
   }
   .pj2-thead {
     color: #5B647D;
@@ -1234,31 +1384,9 @@ const CSS = `
   .pj2-empty {
     text-align: center;
     padding: 48px 0;
-    color: #6E717E;
+    color: var(--pj-soft);
     font-size: 14px;
   }
-
-  .pj2-tagro {
-    position: fixed; right: 50px; bottom: 44px; z-index: 60;
-    width: 70px; height: 70px;
-    border: 0; border-radius: 999px !important;
-    background: #5B647D;
-    color: #FFFFFF;
-    display: inline-flex; align-items: center; justify-content: center;
-    cursor: pointer;
-    box-shadow:
-      0 1px 2px rgba(15,23,42,.1),
-      0 12px 28px -10px rgba(91,100,125,.5);
-    transition: transform .14s cubic-bezier(.16,1,.3,1), box-shadow .18s;
-  }
-  .pj2-tagro:hover {
-    transform: translateY(-2px);
-    background: #4E576E;
-    box-shadow:
-      0 1px 2px rgba(15,23,42,.1),
-      0 18px 36px -10px rgba(91,100,125,.6);
-  }
-  .pj2-tagro:active { transform: translateY(0); }
 
   /* ── Confirm / Share / Support modals ── */
   .pj2-overlay {
@@ -1374,17 +1502,16 @@ const CSS = `
   }
 
   @media (max-width: 1400px) {
-    .pj2-card { padding: 0 80px 60px; }
-    .pj2-sticky-head { padding-top: 60px; }
-    .pj2-sticky-head::after { left: -80px; right: -80px; }
+    .pj2-static-top { padding-top: clamp(56px, 6.5vh, 72px); }
+    .pj2-scroll-body { padding-bottom: 72px; }
+  }
+  @media (max-width: 1100px) {
+    .pj2-static-top { padding-top: clamp(52px, 6vh, 64px); }
+    .pj2-scroll-body { padding-bottom: 64px; }
   }
   @media (max-width: 1200px) {
-    .pj2-card { padding: 0 40px 36px; }
-    .pj2-sticky-head { padding-top: 40px; }
-    .pj2-sticky-head::after { left: -40px; right: -40px; }
-    .pj2-head { margin-bottom: 24px; }
-    .pj2-title h1 { font-size: 24px; }
-    .pj2-title p { font-size: 24px; }
+    .pj2-page-title { font-size: 28px; }
+    .pj2-page-lead-line { font-size: 15px; }
     .pj2-row {
       grid-template-columns:
         minmax(180px, 1.6fr)
@@ -1394,7 +1521,7 @@ const CSS = `
         minmax(70px, .4fr)
         40px;
       column-gap: 16px;
-      padding: 0 16px;
+      padding: 0 4px;
     }
   }
 
@@ -1416,13 +1543,20 @@ const CSS = `
       -webkit-backdrop-filter: none !important;
       overflow-x: hidden !important;
     }
-    .pj2-sticky-head {
+    .pj2-sticky-head,
+    .pj2-static-top {
       position: relative !important;
-      padding-top: 0 !important;
+      padding: 0 !important;
       z-index: auto !important;
       background: transparent !important;
+      max-width: none !important;
+      margin: 0 !important;
     }
-    .pj2-sticky-head::after { display: none !important; }
+    .pj2-static-top::after { display: none !important; }
+
+    .pj2-fab-desktop { display: none !important; }
+    .pj2-page-actions { display: none !important; }
+    .pj2-page-lead { display: none !important; }
 
     /* Hide global dock — projects has its own bottom bar */
     :global(.mcd) { display: none !important; }
@@ -1458,60 +1592,62 @@ const CSS = `
     }
 
     /* ── Main layout ── */
-    .pj2-main {
-      margin-left: 0 !important;
-      padding: 0 !important;
-      height: 100% !important;
-      display: flex !important; flex-direction: column !important;
-    }
-    .pj2-card {
-      flex: 1 !important; min-height: 0 !important;
-      background: transparent !important;
-      border-radius: 0 !important;
-      padding: calc(20px + env(safe-area-inset-top, 0px)) 20px 160px !important;
+    .pj2-shell {
+      flex: 1 1 auto !important;
+      min-height: 0 !important;
       overflow-y: auto !important;
       overflow-x: hidden !important;
-      box-shadow: none !important;
+      padding: calc(20px + env(safe-area-inset-top, 0px)) 20px 160px !important;
+      box-sizing: border-box !important;
+      -webkit-overflow-scrolling: touch;
+    }
+    .pj2-scroll-body {
+      flex: 0 0 auto !important;
+      min-height: 0 !important;
+      overflow: visible !important;
+      max-width: none !important;
+      margin: 0 !important;
+      padding: 0 !important;
     }
 
     /* ── Header: title links, action pill rechts, eine Schriftgröße ── */
-    .pj2-head {
+    .pj2-page-head {
       display: flex !important;
       align-items: flex-start !important;
       justify-content: space-between !important;
       gap: 12px !important;
       margin-bottom: 28px !important;
-      padding-right: 0 !important;
+      padding-bottom: 0 !important;
     }
-    .pj2-title {
+    .pj2-page-head-copy {
       display: flex;
       flex-direction: column;
       gap: 0;
       flex: 1 1 auto;
       min-width: 0;
     }
-    .pj2-title h1,
-    .pj2-title p {
+    .pj2-page-title,
+    .pj2-m-subline {
       font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif) !important;
       font-weight: 400 !important;
       margin: 0 !important;
     }
-    .pj2-title h1 {
+    .pj2-page-title {
       font-size: 29px !important;
       letter-spacing: -0.5px !important;
       line-height: 1.02 !important;
       color: #0F0F10 !important;
     }
-    .pj2-title p {
+    .pj2-m-subline {
+      display: flex !important;
       font-size: 29px !important;
       letter-spacing: -0.5px !important;
       line-height: 1.02 !important;
-      display: flex !important;
       width: fit-content !important;
       color: #90959F !important;
       margin-top: -2px !important;
     }
-    .pj2-title .pjm-t {
+    .pj2-m-subline .pjm-t {
       font-size: inherit !important;
       font-weight: 400 !important;
       letter-spacing: inherit !important;
@@ -1850,13 +1986,13 @@ const CSS = `
       background: transparent !important;
       color: var(--portal-text, #f4f4f4);
     }
-    [data-theme="dark"] .pj2-page .pj2-title h1,
-    [data-theme="classic-dark"] .pj2-page .pj2-title h1 {
+    [data-theme="dark"] .pj2-page .pj2-page-title,
+    [data-theme="classic-dark"] .pj2-page .pj2-page-title {
       color: var(--portal-text, #f4f4f4) !important;
       font-size: 29px !important;
     }
-    [data-theme="dark"] .pj2-page .pj2-title p,
-    [data-theme="classic-dark"] .pj2-page .pj2-title p,
+    [data-theme="dark"] .pj2-page .pj2-m-subline,
+    [data-theme="classic-dark"] .pj2-page .pj2-m-subline,
     [data-theme="dark"] .pj2-page .pjm-sub,
     [data-theme="classic-dark"] .pj2-page .pjm-sub {
       color: var(--portal-muted, #9aa0ac) !important;
@@ -1979,6 +2115,5 @@ const CSS = `
     }
 
     /* ── Tagro desktop hidden ── */
-    .pj2-tagro { display: none !important; }
   }
 `
