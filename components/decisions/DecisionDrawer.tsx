@@ -37,6 +37,7 @@ export function DecisionDrawer({
   // Response type drives the answer form. Default to single_choice for
   // back-compat with legacy decisions where the field is null.
   const responseType: ResponseType = (decision.response_type as ResponseType) || 'single_choice'
+  const isMock = isDecisionDemoId(decision.id)
 
   // Structured options live in decision_options (loaded via expand);
   // legacy options_json acts as a fallback for older decisions.
@@ -133,8 +134,6 @@ export function DecisionDrawer({
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
   }, [onClose, variant])
-
-  const isMock = isDecisionDemoId(decision.id)
 
   // Pull structured options when drawer opens.
   useEffect(() => {
