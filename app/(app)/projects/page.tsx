@@ -1429,7 +1429,7 @@ const CSS = `
     .pjm-section { display: none !important; }
     .pjm-sub {
       display: inline !important;
-      font-size: 32px !important;
+      font-size: 29px !important;
       font-weight: 400 !important;
       color: #90959F !important;
       letter-spacing: -0.5px !important;
@@ -1487,13 +1487,13 @@ const CSS = `
       margin: 0 !important;
     }
     .pj2-title h1 {
-      font-size: 32px !important;
+      font-size: 29px !important;
       letter-spacing: -0.5px !important;
       line-height: 1.02 !important;
       color: #0F0F10 !important;
     }
     .pj2-title p {
-      font-size: 32px !important;
+      font-size: 29px !important;
       letter-spacing: -0.5px !important;
       line-height: 1.02 !important;
       display: flex !important;
@@ -1952,14 +1952,14 @@ const CSS = `
     [data-theme="dark"] .pj2-page .pj2-title h1,
     [data-theme="classic-dark"] .pj2-page .pj2-title h1 {
       color: var(--portal-text, #f4f4f4) !important;
-      font-size: 32px !important;
+      font-size: 29px !important;
     }
     [data-theme="dark"] .pj2-page .pj2-title p,
     [data-theme="classic-dark"] .pj2-page .pj2-title p,
     [data-theme="dark"] .pj2-page .pjm-sub,
     [data-theme="classic-dark"] .pj2-page .pjm-sub {
       color: var(--portal-muted, #9aa0ac) !important;
-      font-size: 32px !important;
+      font-size: 29px !important;
     }
     [data-theme="dark"] .pj2-page .pjm-sheet-title,
     [data-theme="classic-dark"] .pj2-page .pjm-sheet-title {
