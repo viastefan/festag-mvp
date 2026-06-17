@@ -1194,9 +1194,9 @@ const CSS = `
     height: calc(100dvh - env(safe-area-inset-top) - 96px);
     max-height: calc(100dvh - env(safe-area-inset-top) - 56px);
     padding: 0;
-    background: rgba(252,252,252,0.7);
-    border-radius: 40px 40px 0 0;
-    box-shadow: 0px -2px 4px 0px rgba(144,149,159,0.07);
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 32px 32px 0 0;
+    box-shadow: 0px -2px 4px 0px rgba(144, 149, 159, 0.07);
     animation: none;
     will-change: transform;
     touch-action: pan-y;
@@ -1432,20 +1432,20 @@ const CSS = `
 
   /* ---- Mobile help "?" (Figma 259:322) ---- */
   .npm-help.mobile {
-    width: 34px; height: 34px; min-height: 34px;
+    width: 34px; height: 34px; min-width: 34px; min-height: 34px;
     padding: 0;
-    border: ${MOBILE_WHITE_BORDER};
-    border-radius: 999px;
-    background: #FFFFFF;
-    box-shadow: ${MOBILE_WHITE_ELEV};
+    border: 0;
+    border-radius: 32px;
+    background: rgba(251, 251, 255, 0.2);
     color: #848D9B;
-    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
-    font-size: 14px; font-weight: 500; letter-spacing: 0.28px; line-height: 1;
+    font-size: 14px; font-weight: 500;
+    letter-spacing: 0.28px;
+    box-shadow: 0px 4px 4px 0px rgba(91, 100, 125, 0.25);
     display: inline-flex; align-items: center; justify-content: center;
     cursor: pointer; flex-shrink: 0;
     transition: background .12s, transform .12s;
   }
-  .npm-help.mobile:hover { background: #FAFAFA; }
+  .npm-help.mobile:hover { background: rgba(251, 251, 255, 0.35); }
   .npm-help.mobile:active { transform: scale(0.96); }
   .npm-delivery-menu {
     position: absolute; top: calc(100% + 8px); left: 0;

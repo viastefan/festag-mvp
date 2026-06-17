@@ -360,8 +360,8 @@ function ProjectsPageInner() {
           <div className="pj2-sticky-head">
           <header className="pj2-head">
             <div className="pj2-title">
-              <h1><span className="pj2-dt">Alle Projekte.</span><span className="pjm-t">Aktuelle Projekte.</span></h1>
-              <p><span className="pj2-dt">Auf einem Blick. KI gesteuert.</span><span className="pjm-t pjm-sub">Alles auf einen Blick.</span></p>
+              <h1><span className="pj2-dt">Alle Projekte.</span><span className="pjm-t">Was steht an?</span></h1>
+              <p><span className="pj2-dt">Auf einem Blick. KI gesteuert.</span><span className="pjm-t pjm-sub">Was wird umgesetzt?</span></p>
             </div>
             <div className="pjm-head-actions">
               <CodexMobileActionPill
@@ -424,6 +424,14 @@ function ProjectsPageInner() {
               <Plus size={18} weight="bold" />
             </button>
             <div className="pjm-actions-group">
+              <button
+                type="button"
+                className={`pjm-ctl${briefingOpen ? ' on' : ''}`}
+                aria-label="Statusbericht"
+                onClick={openBriefingSheet}
+              >
+                <WaveSine size={17} weight="regular" />
+              </button>
               <div className="pj2-tool-wrap">
                 <button
                   type="button"
@@ -633,11 +641,11 @@ function ProjectsPageInner() {
       <MobilePageDock
         onDragUp={() => setShowNewProject(true)}
         primary={{
-          id: 'status',
-          label: 'Statusbericht erstellen...',
-          icon: <WaveSine size={14} weight="regular" />,
-          onClick: openBriefingSheet,
-          ariaLabel: 'Statusbericht erstellen',
+          id: 'new-project',
+          label: 'Neues Projekt...',
+          icon: <Plus size={14} weight="bold" />,
+          onClick: () => setShowNewProject(true),
+          ariaLabel: 'Neues Projekt',
         }}
         secondary={{
           id: 'tagro',
