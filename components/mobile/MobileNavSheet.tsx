@@ -1,33 +1,19 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { usePathname } from 'next/navigation'
-import {
-  Pulse, Bell, Cube, SquaresFour, ListChecks, File, Plugs, UsersThree, GearSix, X, CaretRight,
-} from '@phosphor-icons/react'
+import { CaretRight, X } from '@phosphor-icons/react'
+import { PORTAL_NAV, PORTAL_SETTINGS } from '@/lib/portal-nav'
 
-const FEATURED = {
-  href: '/dashboard',
-  label: 'Statusabfrage',
-  hint: 'Gesamtbericht · Voice',
-  Icon: Pulse,
-} as const
-
-const CORE = [
-  { href: '/projects', label: 'Projekte', Icon: Cube },
-  { href: '/decisions', label: 'Entscheidungen', Icon: SquaresFour },
-  { href: '/tasks', label: 'Tasks', Icon: ListChecks },
-  { href: '/messages', label: 'Inbox', Icon: Bell },
-] as const
-
+const FEATURED = PORTAL_NAV[0]
+const CORE = PORTAL_NAV.slice(1, 5)
 const MORE = [
-  { href: '/docs', label: 'Dokumente', Icon: File },
-  { href: '/connectors', label: 'Connectors', Icon: Plugs },
-  { href: '/teams', label: 'Teams', Icon: UsersThree },
-] as const
-
-const SETTINGS = { href: '/settings', label: 'Einstellungen', Icon: GearSix } as const
+  ...PORTAL_NAV.slice(5).map((item) =>
+    item.href === '/docs' ? { ...item, href: '/documents' } : item,
+  ),
+]
 
 type Props = {
   open: boolean
@@ -36,6 +22,9 @@ type Props = {
 
 export default function MobileNavSheet({ open, onClose }: Props) {
   const pathname = usePathname() || ''
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => { setMounted(true) }, [])
 
   useEffect(() => {
     if (!open) return
@@ -44,18 +33,18 @@ export default function MobileNavSheet({ open, onClose }: Props) {
     return () => { document.body.style.overflow = prev }
   }, [open])
 
-  if (!open) return null
+  if (!open || !mounted) return null
 
-  function isActive(href: string) {
-    if (href === '/dashboard') return pathname === '/dashboard'
-    if (href === '/settings') return pathname.startsWith('/settings')
+  function isActive(href: string, match?: (path: string) => boolean) {
+    if (match) return match(pathname)
     return pathname === href || pathname.startsWith(`${href}/`)
   }
 
   const FeaturedIcon = FEATURED.Icon
+  const SettingsIcon = PORTAL_SETTINGS.Icon
 
-  return (
-    <>
+  return createPortal(
+    <div className="mns-root" role="presentation">
       <button type="button" className="mns-backdrop" aria-label="Schließen" onClick={onClose} />
       <nav className="mns-sheet" aria-label="Navigation">
         <div className="mns-grip" aria-hidden />
@@ -72,32 +61,32 @@ export default function MobileNavSheet({ open, onClose }: Props) {
 
         <Link
           href={FEATURED.href}
-          className={`mns-hero${isActive(FEATURED.href) ? ' on' : ''}`}
+          className={`mns-hero${isActive(FEATURED.href, FEATURED.match) ? ' on' : ''}`}
           onClick={onClose}
-          style={{ animationDelay: '40ms' }}
         >
           <span className="mns-hero-icon" aria-hidden>
             <FeaturedIcon size={22} weight="regular" />
           </span>
           <span className="mns-hero-copy">
             <strong>{FEATURED.label}</strong>
-            <small>{FEATURED.hint}</small>
+            <small>Gesamtbericht · Voice</small>
           </span>
-          <CaretRight size={16} weight="bold" className="mns-hero-caret" />
+          <span className="mns-hero-caret" aria-hidden>
+            <CaretRight size={16} weight="bold" />
+          </span>
         </Link>
 
         <p className="mns-section">Arbeit</p>
         <div className="mns-grid">
-          {CORE.map((item, i) => {
+          {CORE.map((item) => {
             const Icon = item.Icon
-            const active = isActive(item.href)
+            const active = isActive(item.href, item.match)
             return (
               <Link
                 key={item.href}
                 href={item.href}
                 className={`mns-tile${active ? ' on' : ''}`}
                 onClick={onClose}
-                style={{ animationDelay: `${80 + i * 35}ms` }}
               >
                 <span className="mns-tile-icon" aria-hidden>
                   <Icon size={18} weight="regular" />
@@ -110,22 +99,23 @@ export default function MobileNavSheet({ open, onClose }: Props) {
 
         <p className="mns-section">Workspace</p>
         <div className="mns-list">
-          {MORE.map((item, i) => {
+          {MORE.map((item) => {
             const Icon = item.Icon
-            const active = isActive(item.href)
+            const active = isActive(item.href, item.match)
             return (
               <Link
                 key={item.href}
                 href={item.href}
                 className={`mns-row${active ? ' on' : ''}`}
                 onClick={onClose}
-                style={{ animationDelay: `${220 + i * 30}ms` }}
               >
                 <span className="mns-row-icon" aria-hidden>
                   <Icon size={17} weight="regular" />
                 </span>
                 <span className="mns-row-label">{item.label}</span>
-                <CaretRight size={14} weight="bold" className="mns-row-caret" />
+                <span className="mns-row-caret" aria-hidden>
+                  <CaretRight size={14} weight="bold" />
+                </span>
               </Link>
             )
           })}
@@ -133,29 +123,35 @@ export default function MobileNavSheet({ open, onClose }: Props) {
 
         <div className="mns-foot">
           <Link
-            href={SETTINGS.href}
-            className={`mns-settings${isActive(SETTINGS.href) ? ' on' : ''}`}
+            href={PORTAL_SETTINGS.href}
+            className={`mns-settings${isActive(PORTAL_SETTINGS.href, PORTAL_SETTINGS.match) ? ' on' : ''}`}
             onClick={onClose}
-            style={{ animationDelay: '320ms' }}
           >
-            <GearSix size={17} weight="regular" />
-            <span>{SETTINGS.label}</span>
+            <SettingsIcon size={17} weight="regular" />
+            <span>{PORTAL_SETTINGS.label}</span>
           </Link>
         </div>
       </nav>
 
       <style jsx>{`
-        .mns-backdrop {
+        .mns-root {
           position: fixed;
           inset: 0;
-          z-index: 800;
+          z-index: 20000;
+          display: flex;
+          flex-direction: column;
+          justify-content: flex-end;
+          pointer-events: auto;
+        }
+        .mns-backdrop {
+          position: absolute;
+          inset: 0;
+          z-index: 0;
           border: 0;
           padding: 0;
+          margin: 0;
           cursor: default;
-          background: rgba(15, 15, 16, 0.38);
-          backdrop-filter: blur(6px);
-          -webkit-backdrop-filter: blur(6px);
-          animation: mnsFade 0.22s ease both;
+          background: rgba(15, 15, 16, 0.58);
         }
         .mns-sheet {
           --mns-elev:
@@ -164,19 +160,19 @@ export default function MobileNavSheet({ open, onClose }: Props) {
             0 4px 10px rgba(144, 149, 159, 0.14);
           --mns-border: 1px solid rgba(0, 0, 0, 0.06);
 
-          position: fixed;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          z-index: 801;
-          max-height: 88vh;
+          position: relative;
+          z-index: 1;
+          width: 100%;
+          max-height: min(86dvh, 720px);
           overflow-y: auto;
+          overflow-x: hidden;
+          -webkit-overflow-scrolling: touch;
           background: #fcfcfc;
           color: #0f0f10;
-          border-radius: 28px 28px 0 0;
-          padding: 8px 18px calc(14px + env(safe-area-inset-bottom, 0px));
-          box-shadow: 0 -24px 64px -20px rgba(15, 23, 42, 0.22);
-          animation: mnsUp 0.34s cubic-bezier(0.16, 1, 0.3, 1) both;
+          border-radius: 24px 24px 0 0;
+          padding: 8px 18px calc(16px + env(safe-area-inset-bottom, 0px));
+          box-shadow: 0 -20px 48px -16px rgba(15, 23, 42, 0.28);
+          animation: mnsUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
           font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
         }
         :global([data-theme="dark"]) .mns-sheet,
@@ -187,15 +183,14 @@ export default function MobileNavSheet({ open, onClose }: Props) {
           --mns-border: 1px solid rgba(255, 255, 255, 0.1);
           background: #141416;
           color: #f4f4f4;
-          box-shadow: 0 -24px 64px -20px rgba(0, 0, 0, 0.55);
+          box-shadow: 0 -20px 48px -16px rgba(0, 0, 0, 0.55);
         }
         .mns-grip {
           width: 40px;
           height: 4px;
-          margin: 4px auto 16px;
+          margin: 4px auto 14px;
           border-radius: 999px;
           background: rgba(15, 15, 16, 0.12);
-          flex-shrink: 0;
         }
         :global([data-theme="dark"]) .mns-grip,
         :global([data-theme="classic-dark"]) .mns-grip {
@@ -206,7 +201,7 @@ export default function MobileNavSheet({ open, onClose }: Props) {
           align-items: flex-start;
           justify-content: space-between;
           gap: 12px;
-          margin-bottom: 16px;
+          margin-bottom: 14px;
         }
         .mns-kicker {
           margin: 0 0 2px;
@@ -236,6 +231,7 @@ export default function MobileNavSheet({ open, onClose }: Props) {
           cursor: pointer;
           box-shadow: var(--mns-elev);
           flex-shrink: 0;
+          padding: 0;
         }
         :global([data-theme="dark"]) .mns-close,
         :global([data-theme="classic-dark"]) .mns-close {
@@ -246,64 +242,71 @@ export default function MobileNavSheet({ open, onClose }: Props) {
         .mns-hero {
           display: flex;
           align-items: center;
-          gap: 14px;
-          padding: 16px 16px 16px 14px;
-          margin-bottom: 18px;
-          border-radius: 18px;
+          gap: 12px;
+          width: 100%;
+          box-sizing: border-box;
+          padding: 14px 14px 14px 12px;
+          margin: 0 0 16px;
+          border: 0;
+          border-radius: 16px;
           text-decoration: none;
-          color: #fff;
-          background: linear-gradient(145deg, #5b647d 0%, #4a5268 52%, #434b60 100%);
+          color: #fff !important;
+          background: linear-gradient(145deg, #5b647d 0%, #4a5268 52%, #434b60 100%) !important;
           box-shadow:
             inset 0 1px 0 rgba(255, 255, 255, 0.14),
-            0 10px 28px -8px rgba(91, 100, 125, 0.55);
-          animation: mnsItemIn 0.36s cubic-bezier(0.16, 1, 0.3, 1) both;
+            0 8px 24px -10px rgba(91, 100, 125, 0.55);
           -webkit-tap-highlight-color: transparent;
-          transition: transform 0.14s ease, box-shadow 0.14s ease;
-        }
-        .mns-hero:active {
-          transform: scale(0.985);
         }
         .mns-hero.on {
           box-shadow:
             inset 0 1px 0 rgba(255, 255, 255, 0.2),
-            0 0 0 2px rgba(255, 255, 255, 0.28),
-            0 10px 28px -8px rgba(91, 100, 125, 0.55);
+            0 0 0 2px rgba(255, 255, 255, 0.24),
+            0 8px 24px -10px rgba(91, 100, 125, 0.55);
         }
         .mns-hero-icon {
-          width: 44px;
-          height: 44px;
+          width: 42px;
+          height: 42px;
           border-radius: 999px;
           display: inline-flex;
           align-items: center;
           justify-content: center;
           background: rgba(255, 255, 255, 0.14);
           flex-shrink: 0;
+          color: #fff;
         }
         .mns-hero-copy {
           display: flex;
           flex-direction: column;
-          gap: 3px;
-          flex: 1;
+          gap: 2px;
+          flex: 1 1 auto;
           min-width: 0;
         }
         .mns-hero-copy strong {
+          display: block;
           font-size: 16px;
           font-weight: 400;
           letter-spacing: 0.005em;
+          color: #fff;
         }
         .mns-hero-copy small {
+          display: block;
           font-size: 12px;
           font-weight: 400;
           color: rgba(255, 255, 255, 0.72);
           letter-spacing: 0.01em;
         }
-        .mns-hero :global(.mns-hero-caret) {
+        .mns-hero-caret {
+          width: 20px;
+          height: 20px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
           flex-shrink: 0;
-          opacity: 0.72;
+          color: rgba(255, 255, 255, 0.8);
         }
 
         .mns-section {
-          margin: 0 0 10px 4px;
+          margin: 0 0 8px 2px;
           font-size: 11px;
           font-weight: 400;
           letter-spacing: 0.07em;
@@ -314,44 +317,37 @@ export default function MobileNavSheet({ open, onClose }: Props) {
           display: grid;
           grid-template-columns: 1fr 1fr;
           gap: 10px;
-          margin-bottom: 18px;
+          margin-bottom: 16px;
         }
         .mns-tile {
           display: flex;
           flex-direction: column;
           justify-content: space-between;
-          gap: 14px;
-          min-height: 92px;
-          padding: 14px;
+          gap: 12px;
+          min-height: 88px;
+          padding: 12px;
           border-radius: 14px;
           border: var(--mns-border);
-          background: #fff;
-          color: #0f0f10;
-          text-decoration: none;
+          background: #fff !important;
+          color: #0f0f10 !important;
+          text-decoration: none !important;
           box-shadow: var(--mns-elev);
-          animation: mnsItemIn 0.36s cubic-bezier(0.16, 1, 0.3, 1) both;
           -webkit-tap-highlight-color: transparent;
-          transition: transform 0.12s ease, background 0.12s ease;
         }
-        .mns-tile:active { transform: scale(0.98); }
         .mns-tile.on {
-          background: #f8f8fa;
+          background: #f8f8fa !important;
           box-shadow:
             var(--mns-elev),
-            inset 0 0 0 1px rgba(91, 100, 125, 0.22);
+            inset 0 0 0 1px rgba(91, 100, 125, 0.2);
         }
         :global([data-theme="dark"]) .mns-tile,
         :global([data-theme="classic-dark"]) .mns-tile {
-          background: rgba(255, 255, 255, 0.07);
-          color: #f4f4f4;
-        }
-        :global([data-theme="dark"]) .mns-tile.on,
-        :global([data-theme="classic-dark"]) .mns-tile.on {
-          background: rgba(255, 255, 255, 0.11);
+          background: rgba(255, 255, 255, 0.07) !important;
+          color: #f4f4f4 !important;
         }
         .mns-tile-icon {
-          width: 36px;
-          height: 36px;
+          width: 34px;
+          height: 34px;
           border-radius: 999px;
           display: inline-flex;
           align-items: center;
@@ -374,39 +370,31 @@ export default function MobileNavSheet({ open, onClose }: Props) {
         .mns-list {
           display: flex;
           flex-direction: column;
-          gap: 6px;
-          margin-bottom: 14px;
+          gap: 8px;
+          margin-bottom: 12px;
         }
         .mns-row {
           display: flex;
           align-items: center;
-          gap: 12px;
+          gap: 10px;
           min-height: 48px;
           padding: 0 12px 0 10px;
           border-radius: 12px;
           border: var(--mns-border);
-          background: #fff;
-          color: #2a3032;
-          text-decoration: none;
+          background: #fff !important;
+          color: #2a3032 !important;
+          text-decoration: none !important;
           box-shadow: var(--mns-elev);
-          animation: mnsItemIn 0.36s cubic-bezier(0.16, 1, 0.3, 1) both;
           -webkit-tap-highlight-color: transparent;
-          transition: transform 0.12s ease;
         }
-        .mns-row:active { transform: scale(0.99); }
         .mns-row.on {
-          background: #f8f8fa;
-          color: #0f0f10;
+          background: #f8f8fa !important;
+          color: #0f0f10 !important;
         }
         :global([data-theme="dark"]) .mns-row,
         :global([data-theme="classic-dark"]) .mns-row {
-          background: rgba(255, 255, 255, 0.07);
-          color: #d9dce2;
-        }
-        :global([data-theme="dark"]) .mns-row.on,
-        :global([data-theme="classic-dark"]) .mns-row.on {
-          background: rgba(255, 255, 255, 0.11);
-          color: #f4f4f4;
+          background: rgba(255, 255, 255, 0.07) !important;
+          color: #d9dce2 !important;
         }
         .mns-row-icon {
           width: 32px;
@@ -423,18 +411,24 @@ export default function MobileNavSheet({ open, onClose }: Props) {
           background: rgba(255, 255, 255, 0.1);
         }
         .mns-row-label {
-          flex: 1;
+          flex: 1 1 auto;
+          min-width: 0;
           font-size: 14px;
           font-weight: 400;
           letter-spacing: 0.005em;
         }
-        .mns-row :global(.mns-row-caret) {
-          color: #b0b4be;
+        .mns-row-caret {
+          width: 16px;
+          height: 16px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
           flex-shrink: 0;
+          color: #b0b4be;
         }
 
         .mns-foot {
-          padding-top: 4px;
+          padding-top: 6px;
           border-top: 1px solid rgba(0, 0, 0, 0.06);
         }
         :global([data-theme="dark"]) .mns-foot,
@@ -446,48 +440,25 @@ export default function MobileNavSheet({ open, onClose }: Props) {
           align-items: center;
           gap: 10px;
           min-height: 44px;
-          padding: 8px 4px;
-          color: #6e717e;
-          text-decoration: none;
+          padding: 8px 2px;
+          color: #6e717e !important;
+          text-decoration: none !important;
           font-size: 14px;
           font-weight: 400;
           letter-spacing: 0.005em;
-          animation: mnsItemIn 0.36s cubic-bezier(0.16, 1, 0.3, 1) both;
         }
-        .mns-settings.on { color: #0f0f10; }
+        .mns-settings.on { color: #0f0f10 !important; }
         :global([data-theme="dark"]) .mns-settings,
-        :global([data-theme="classic-dark"]) .mns-settings { color: #9aa0ac; }
+        :global([data-theme="classic-dark"]) .mns-settings { color: #9aa0ac !important; }
         :global([data-theme="dark"]) .mns-settings.on,
-        :global([data-theme="classic-dark"]) .mns-settings.on { color: #f4f4f4; }
+        :global([data-theme="classic-dark"]) .mns-settings.on { color: #f4f4f4 !important; }
 
-        @keyframes mnsFade {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
         @keyframes mnsUp {
           from { transform: translateY(100%); }
           to { transform: translateY(0); }
         }
-        @keyframes mnsItemIn {
-          from {
-            opacity: 0;
-            transform: translateY(10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-          .mns-hero,
-          .mns-tile,
-          .mns-row,
-          .mns-settings {
-            animation: none;
-          }
-        }
       `}</style>
-    </>
+    </div>,
+    document.body,
   )
 }

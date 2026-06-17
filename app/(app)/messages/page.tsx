@@ -11,7 +11,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   Tray, Briefcase, Receipt, UsersThree, Sparkle,
-  CheckCircle, ChatCircle, ArrowSquareOut, Play, Funnel, CaretDown, Check, CaretLeft,
+  CheckCircle, Bell, ArrowSquareOut, Play, Funnel, CaretDown, Check, CaretLeft,
 } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 import { INBOX_CSS } from '@/components/inbox/inbox-styles'
@@ -417,7 +417,7 @@ function EmptyList({ active, unreadOnly }: { active: Category; unreadOnly: boole
   const cat = CATEGORIES.find(c => c.id === active)
   return (
     <div className="ix-empty-list">
-      <Tray size={24} weight="regular" />
+      <Bell size={24} weight="regular" />
       <p className="ix-empty-title">{unreadOnly ? 'Alles gelesen' : 'Noch nichts hier'}</p>
       <p className="ix-empty-sub">
         {unreadOnly
@@ -434,7 +434,7 @@ function EmptyDetail() {
   return (
     <div className="ix-empty-detail">
       <div className="ix-empty-visual" aria-hidden>
-        <ChatCircle size={30} weight="light" />
+        <Bell size={30} weight="light" />
       </div>
       <p className="ix-empty-title">Wähle einen Eingang</p>
       <p className="ix-empty-sub">
