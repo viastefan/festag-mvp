@@ -264,7 +264,7 @@ function PortalSidebar() {
   const pathname = usePathname()
   return (
     <nav className="portal-nav">
-      <style jsx>{PORTAL_NAV_CSS}</style>
+      <style>{PORTAL_NAV_CSS}</style>
       <div className="portal-nav-top">
         <div className="portal-nav-header">
           <div className="portal-nav-ws">
@@ -592,7 +592,7 @@ function DecisionsPageInner() {
 
   return (
     <div className="dec-os">
-      <style jsx>{CSS}</style>
+      <style>{CSS}</style>
 
       <div className="dec-hero-bg dec-hero-bg-top" aria-hidden>
         <img src="/decisions/hero-top.png" alt="" />
