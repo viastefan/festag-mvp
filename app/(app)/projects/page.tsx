@@ -12,7 +12,7 @@
 
 import { Suspense, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import NewProjectModal from '@/components/NewProjectModal'
 import { openTagro } from '@/components/TagroOverlay'
@@ -21,10 +21,11 @@ import InviteLinkModal from '@/components/InviteLinkModal'
 import EmptyState from '@/components/EmptyState'
 import {
   FunnelSimple, SlidersHorizontal, Plus, PencilSimple, DotsThree,
-  User, UsersThree, Stack, MagnifyingGlass, DotsNine, Copy, Check, X, Folder, CaretRight,
+  User, UsersThree, Stack, MagnifyingGlass, DotsNine, Copy, Check, X, Folder, CaretRight, WaveSine,
 } from '@phosphor-icons/react'
 import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
 import MobileNavSheet from '@/components/mobile/MobileNavSheet'
+import MobileProjectPickerSheet, { type ProjectPickerMode } from '@/components/mobile/MobileProjectPickerSheet'
 
 type ProjectRow = {
   id: string
@@ -62,6 +63,7 @@ function devLabel(d: DevProfile): string {
 
 const DONE_STATES = new Set(['done', 'completed', 'erledigt', 'delivered'])
 const ACTIVE_STATES = new Set(['doing', 'active', 'in_progress', 'review'])
+const TASK_DONE_STATES = new Set(['done', 'completed', 'erledigt', 'closed', 'cancelled'])
 
 type StatusKey = 'arbeit' | 'planung' | 'erledigt'
 const STATUS_META: Record<StatusKey, { label: string; color: string }> = {
@@ -101,9 +103,7 @@ function isFresh(createdAt?: string | null) {
   if (Number.isNaN(t)) return false
   return Date.now() - t < FRESH_WINDOW_MS
 }
-function subLabelFor(p: ProjectRow): string {
-  // Aus delivery_model oder description ein kurzes Subtitel ableiten —
-  // Figma zeigt "App Entwicklung" als ruhigen Untertitel.
+function subLabelFor(p: ProjectRow, tasks: TaskRow[]): string {
   const map: Record<string, string> = {
     festag_delivery: 'App Entwicklung',
     assign_existing_dev: 'App Entwicklung',
@@ -111,6 +111,12 @@ function subLabelFor(p: ProjectRow): string {
     team_internal: 'Team-Projekt',
   }
   if (p.delivery_model && map[p.delivery_model]) return map[p.delivery_model]
+  const projectTasks = tasks.filter(t => t.project_id === p.id)
+  if (projectTasks.length > 0) {
+    const open = projectTasks.filter(t => !TASK_DONE_STATES.has((t.status || '').toLowerCase())).length
+    if (open > 0) return `${open} offene Aufgabe${open === 1 ? '' : 'n'}`
+    return 'Alle Aufgaben erledigt'
+  }
   return p.description?.split(/[.!?\n]/)[0]?.slice(0, 32) || 'Projekt'
 }
 function relTime(value?: string | null): string {
@@ -156,7 +162,9 @@ function ProjectsPageInner() {
   const [supportSending, setSupportSending] = useState(false)
   const [supportSent, setSupportSent] = useState(false)
   const [navOpen, setNavOpen] = useState(false)
+  const [dockPicker, setDockPicker] = useState<ProjectPickerMode | null>(null)
   const searchParams = useSearchParams()
+  const router = useRouter()
   const supabase = useMemo(() => createClient(), [])
 
   async function loadProjects() {
@@ -274,6 +282,13 @@ function ProjectsPageInner() {
     return () => { window.removeEventListener('mousedown', onDown); window.removeEventListener('keydown', onEsc) }
   }, [filterOpen, sortOpen, menuOpenId])
 
+  useEffect(() => {
+    if (!dockPicker) return
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = prev }
+  }, [dockPicker])
+
   const visible = useMemo(() => {
     let list = projects
     if (filter !== 'all') list = list.filter(p => statusKeyOf(p) === filter)
@@ -306,6 +321,26 @@ function ProjectsPageInner() {
     title: 'Alle Projekte',
     subtitle: `${visible.length} Projekt${visible.length === 1 ? '' : 'e'}`,
   })
+
+  function handlePickStatus(projectId: string | null) {
+    setDockPicker(null)
+    const q = projectId ? `?project=${projectId}` : ''
+    router.push(`/reports${q}`)
+  }
+
+  function handlePickTagro(projectId: string | null, title: string) {
+    setDockPicker(null)
+    if (projectId) {
+      openTagro({ contextType: 'project', id: projectId, title, projectId })
+      return
+    }
+    openTagro({ contextType: 'empty', id: 'all', title: 'Alle Projekte', subtitle: 'Gesamtbericht' })
+  }
+
+  const pickerProjects = useMemo(
+    () => projects.map(p => ({ id: p.id, title: p.title, color: p.color, status: p.status })),
+    [projects],
+  )
 
   return (
     <div className="pj2-page">
@@ -489,7 +524,7 @@ function ProjectsPageInner() {
                             <span className="pj2-new">Neu</span>
                           )}
                         </span>
-                        <small>{subLabelFor(project)}</small>
+                        <small>{subLabelFor(project, tasks)}</small>
                       </span>
                       <span className="pj2-status">
                         <span className="pj2-status-dot" style={{ background: meta.color }} />
@@ -596,7 +631,7 @@ function ProjectsPageInner() {
             const startY = e.touches[0].clientY
             const onMove = (ev: TouchEvent) => {
               if (startY - ev.touches[0].clientY > 40) {
-                setShowNewProject(true)
+                setDockPicker('status')
                 document.removeEventListener('touchmove', onMove)
                 document.removeEventListener('touchend', onEnd)
               }
@@ -611,18 +646,27 @@ function ProjectsPageInner() {
         >
           <div className="pjm-home-indicator" />
           <div className="pjm-dock-row">
-            <button type="button" className="pjm-status-btn" onClick={() => setShowNewProject(true)}>
+            <button type="button" className="pjm-status-btn" onClick={() => setDockPicker('status')}>
               <span className="pjm-status-btn-icon" aria-hidden>
-                <Plus size={14} weight="regular" />
+                <WaveSine size={14} weight="regular" />
               </span>
               <span className="pjm-status-btn-label">Statusbericht erstellen...</span>
             </button>
-            <button type="button" className="pjm-tagro" aria-label="Tagro öffnen" onClick={tagroHandler}>
+            <button type="button" className="pjm-tagro" aria-label="Mit Tagro bearbeiten" onClick={() => setDockPicker('tagro')}>
               <PencilSimple size={20} weight="regular" />
             </button>
           </div>
         </div>
       </div>
+
+      <MobileProjectPickerSheet
+        mode={dockPicker}
+        projects={pickerProjects}
+        loading={loading}
+        onClose={() => setDockPicker(null)}
+        onPickStatus={handlePickStatus}
+        onPickTagro={handlePickTagro}
+      />
 
       {showNewProject && (
         <NewProjectModal
@@ -1375,7 +1419,7 @@ const CSS = `
       font-weight: 400 !important;
       color: #90959F !important;
       letter-spacing: -0.5px !important;
-      line-height: 1.12 !important;
+      line-height: 1.02 !important;
     }
     .pjm-status {
       display: none !important;
@@ -1418,7 +1462,7 @@ const CSS = `
     .pj2-title {
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 0;
       flex: 1 1 auto;
       min-width: 0;
     }
@@ -1431,17 +1475,17 @@ const CSS = `
     .pj2-title h1 {
       font-size: 32px !important;
       letter-spacing: -0.5px !important;
-      line-height: 1.12 !important;
+      line-height: 1.02 !important;
       color: #0F0F10 !important;
     }
     .pj2-title p {
       font-size: 32px !important;
       letter-spacing: -0.5px !important;
-      line-height: 1.12 !important;
+      line-height: 1.02 !important;
       display: flex !important;
       width: fit-content !important;
       color: #90959F !important;
-      margin-top: 0 !important;
+      margin-top: -2px !important;
     }
     .pj2-title .pjm-t {
       font-size: inherit !important;
@@ -1496,7 +1540,7 @@ const CSS = `
       height: 36px !important;
       min-height: 36px !important;
       border: var(--pjm-white-border) !important;
-      border-radius: 6px !important;
+      border-radius: 999px !important;
       background: #FFFFFF !important;
       color: #1C1C1E !important;
       display: inline-flex !important;
@@ -1515,8 +1559,8 @@ const CSS = `
     .pjm-ctl.has-active::after {
       content: '' !important;
       position: absolute !important;
-      top: 5px !important;
-      right: 5px !important;
+      top: 7px !important;
+      right: 7px !important;
       width: 5px !important;
       height: 5px !important;
       border-radius: 50% !important;
@@ -1817,7 +1861,7 @@ const CSS = `
       justify-content: center !important;
       height: 54px !important;
       padding: 0 20px !important;
-      border: var(--pjm-white-border) !important;
+      border: 1px solid rgba(0, 0, 0, 0.05) !important;
       border-radius: 999px !important;
       background: #FFFFFF !important;
       color: #8E8E93 !important;
@@ -1859,7 +1903,7 @@ const CSS = `
       font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif) !important;
       font-size: 16px !important;
       font-weight: 400 !important;
-      letter-spacing: -0.01em !important;
+      letter-spacing: 0.5% !important;
     }
     .pjm-tagro {
       width: 54px !important; height: 54px !important;
@@ -2030,7 +2074,7 @@ const CSS = `
     [data-theme="dark"] .pj2-page .pjm-status-btn,
     [data-theme="classic-dark"] .pj2-page .pjm-status-btn {
       background: rgba(255, 255, 255, 0.11) !important;
-      border: var(--pjm-white-border) !important;
+      border: 1px solid rgba(255, 255, 255, 0.1) !important;
       color: #9aa0ac !important;
       box-shadow: var(--pjm-white-elev) !important;
     }

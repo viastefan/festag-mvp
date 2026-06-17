@@ -999,10 +999,14 @@ input[type="reset"],
 
 /* Menu list rows — 6px corners (must not match global [class*="btn"] 32px rule). */
 button.pj2-menu-item,
-.pj2-menu-item,
+.pj2-menu-item {
+  border-radius: 6px !important;
+}
+
+/* Mobile projects icon controls — fully round. */
 button.pjm-ctl,
 .pjm-ctl {
-  border-radius: 6px !important;
+  border-radius: 999px !important;
 }
 
 /* Small icon-only controls should remain round. */
