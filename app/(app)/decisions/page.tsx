@@ -15,16 +15,14 @@
  */
 
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
-import { usePathname } from 'next/navigation'
 import {
   ArrowsClockwise, ChatCircleText, Check, CheckCircle, Clock, FunnelSimple,
-  Sparkle, Warning, WarningCircle, X, UserCircle, CaretDown, Lightning,
-  Pulse, Bell, Folder, Scissors, ListChecks, File, UsersThree, Question,
+  Sparkle, Warning, WarningCircle, X, UserCircle, CaretDown, Lightning, List,
 } from '@phosphor-icons/react'
 import HelpHint from '@/components/HelpHint'
 import MobilePageHeader from '@/components/MobilePageHeader'
+import PortalSidebar from '@/components/PortalSidebar'
 import { openTagro } from '@/components/TagroOverlay'
 import { createClient } from '@/lib/supabase/client'
 
@@ -249,126 +247,68 @@ const DUE_SOURCE_LABEL: Record<string, string> = {
   type_default: 'Standardfrist',
 }
 
-const PORTAL_NAV = [
-  { href: '/statusabfrage', label: 'Statusabfrage', icon: Pulse },
-  { href: '/inbox', label: 'Inbox', icon: Bell },
-  { href: '/projects', label: 'Projekte', icon: Folder },
-  { href: '/decisions', label: 'Entscheidungen', icon: Scissors },
-  { href: '/tasks', label: 'Tasks', icon: ListChecks },
-  { href: '/docs', label: 'Dokumente', icon: File },
-  { href: '/tagro', label: 'Tagro Co-Pilot', icon: Sparkle },
-  { href: '/teams', label: 'Teams', icon: UsersThree },
-]
-
-function PortalSidebar() {
-  const pathname = usePathname()
-  return (
-    <nav className="portal-nav">
-      <style>{PORTAL_NAV_CSS}</style>
-      <div className="portal-nav-top">
-        <div className="portal-nav-header">
-          <div className="portal-nav-ws">
-            <div className="portal-nav-avatar">ST</div>
-            <div className="portal-nav-ws-text">
-              <span className="portal-nav-ws-label">Workspace</span>
-              <span className="portal-nav-ws-value">Delivery</span>
-            </div>
-            <CaretDown size={8} weight="regular" className="portal-nav-ws-caret" />
-          </div>
-        </div>
-        <div className="portal-nav-items">
-          {PORTAL_NAV.map(item => {
-            const Icon = item.icon
-            const active = pathname === item.href
-            return (
-              <Link key={item.href} href={item.href} className={`portal-nav-item${active ? ' active' : ''}`}>
-                <Icon size={18} weight="regular" />
-                <span>{item.label}</span>
-              </Link>
-            )
-          })}
-        </div>
-      </div>
-      <button className="portal-nav-help" type="button">
-        <Question size={20} weight="light" />
-      </button>
-    </nav>
-  )
-}
-
-const PORTAL_NAV_CSS = `
-  .portal-nav {
-    width:100%; height:100%;
-    display:flex; flex-direction:column; justify-content:space-between;
-    padding:12px 0;
-    font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
-  }
-  .portal-nav-top { display:flex; flex-direction:column; gap:24px; }
-  .portal-nav-header {
-    display:flex; align-items:center; justify-content:space-between;
-    width:184px;
-  }
-  .portal-nav-ws {
-    display:flex; align-items:center; gap:8px;
-  }
-  .portal-nav-avatar {
-    width:41px; height:40px; border-radius:999px;
-    background:rgba(255,255,255,.8); border:1px solid #f3f5f7;
-    display:flex; align-items:center; justify-content:center;
-    font-size:14px; font-weight:500; color:#0f0f10;
-    flex-shrink:0;
-  }
-  .portal-nav-ws-text {
-    display:flex; flex-direction:column; align-items:flex-start;
-    line-height:1;
-  }
-  .portal-nav-ws-label {
-    font-size:9px; font-weight:400; color:#6e717e;
-  }
-  .portal-nav-ws-value {
-    font-size:14px; font-weight:400; color:#0f0f10;
-  }
-  .portal-nav-ws-caret {
-    color:#6e717e; margin-left:4px;
-  }
-  .portal-nav-items { display:flex; flex-direction:column; gap:24px; }
-  .portal-nav-item {
-    display:flex; align-items:center; gap:20px;
-    padding:8px 12px; border-radius:6px;
-    color:#6e717e; font-size:16px; font-weight:400;
-    letter-spacing:.02em; text-decoration:none;
-    transition:color .12s, background .12s;
-  }
-  .portal-nav-item:hover { color:#0f0f10; }
-  .portal-nav-item.active {
-    color:#0f0f10; background:rgba(255,255,255,.8);
-  }
-  .portal-nav-item svg { flex-shrink:0; }
-  .portal-nav-help {
-    margin-left:12px; width:24px; height:24px;
-    border:0; background:transparent; color:#6e717e;
-    cursor:pointer; padding:0;
-    transition:color .12s;
-  }
-  .portal-nav-help:hover { color:#0f0f10; }
-`
-
 export default function DecisionsPage() {
   return (
     <div className="decisions-shell">
       <style>{`
         .decisions-shell {
+          --portal-bg: rgba(241,243,245,.9);
+          --portal-card: #FFFFFF;
+          --portal-text: #0f0f10;
+          --portal-muted: #6e717e;
+          --portal-soft: #8f93a4;
+          --portal-nav-active-bg: rgba(255,255,255,.8);
+          --portal-nav-avatar-bg: rgba(255,255,255,.8);
+          --portal-nav-avatar-border: #f3f5f7;
+          --portal-pill-bg: #f1f3f5;
+          --portal-btn-primary: #5b647d;
+          --portal-btn-outline-bg: #fff;
+          --portal-btn-outline-border: #e7ebf0;
+          --portal-btn-outline-text: #202532;
+          --portal-row-alt: rgba(241,243,245,.4);
+          --portal-row-on: rgba(241,243,245,.65);
+          --portal-icon-border: rgba(202,207,212,.2);
+          --portal-shadow-card: 0 -2px 4px rgba(110,113,126,.05), 0 2px 4px rgba(110,113,126,.05);
+
           position:fixed; inset:0;
-          background:rgba(241,243,245,.9);
+          background:var(--portal-bg);
           backdrop-filter:blur(40px) saturate(1.4);
           -webkit-backdrop-filter:blur(40px) saturate(1.4);
           font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
-          color:#0F0F10; color-scheme:light;
+          color:var(--portal-text);
+          color-scheme:light;
           overflow:hidden;
           display:flex;
           gap:16px;
           padding:8px 8px 8px 16px;
           box-sizing:border-box;
+        }
+        [data-theme="dark"] .decisions-shell,
+        [data-theme="classic-dark"] .decisions-shell {
+          --portal-bg: #07090b;
+          --portal-card: #141416;
+          --portal-text: #f4f4f4;
+          --portal-muted: #9aa0ac;
+          --portal-soft: #8f93a4;
+          --portal-nav-active-bg: rgba(255,255,255,.08);
+          --portal-nav-avatar-bg: rgba(255,255,255,.06);
+          --portal-nav-avatar-border: rgba(255,255,255,.08);
+          --portal-pill-bg: rgba(255,255,255,.08);
+          --portal-btn-primary: #7b849c;
+          --portal-btn-outline-bg: rgba(255,255,255,.04);
+          --portal-btn-outline-border: rgba(255,255,255,.1);
+          --portal-btn-outline-text: #f4f4f4;
+          --portal-row-alt: rgba(255,255,255,.04);
+          --portal-row-on: rgba(255,255,255,.07);
+          --portal-icon-border: rgba(255,255,255,.1);
+          --portal-shadow-card: 0 8px 30px rgba(0,0,0,.28);
+          color-scheme: dark;
+          backdrop-filter:none;
+          -webkit-backdrop-filter:none;
+        }
+        [data-theme="light"] .decisions-shell,
+        [data-theme="read"] .decisions-shell {
+          color-scheme: light;
         }
         .decisions-nav-col {
           width:200px; flex-shrink:0;
@@ -381,36 +321,13 @@ export default function DecisionsPage() {
         }
         .decisions-main {
           flex:1; min-height:0;
-          background:#FFFFFF;
+          background:var(--portal-card);
           border-radius:12px;
-          box-shadow:0 -2px 4px rgba(110,113,126,.05), 0 2px 4px rgba(110,113,126,.05);
+          box-shadow:var(--portal-shadow-card);
           overflow:hidden;
           display:flex; flex-direction:column;
           position:relative;
         }
-        [data-theme="dark"] .decisions-shell,
-        [data-theme="classic-dark"] .decisions-shell {
-          background:var(--bg);
-          backdrop-filter:none;
-        }
-        [data-theme="dark"] .decisions-main,
-        [data-theme="classic-dark"] .decisions-main {
-          background:var(--card);
-          box-shadow:0 8px 30px rgba(0,0,0,.2);
-        }
-        [data-theme="dark"] .portal-nav-avatar,
-        [data-theme="classic-dark"] .portal-nav-avatar {
-          background:rgba(255,255,255,.1); border-color:rgba(255,255,255,.08);
-          color:var(--text);
-        }
-        [data-theme="dark"] .portal-nav-item,
-        [data-theme="classic-dark"] .portal-nav-item { color:var(--text-secondary); }
-        [data-theme="dark"] .portal-nav-item:hover,
-        [data-theme="dark"] .portal-nav-item.active,
-        [data-theme="classic-dark"] .portal-nav-item:hover,
-        [data-theme="classic-dark"] .portal-nav-item.active { color:var(--text); }
-        [data-theme="dark"] .portal-nav-item.active,
-        [data-theme="classic-dark"] .portal-nav-item.active { background:rgba(255,255,255,.08); }
         @media (max-width: 900px) {
           .decisions-nav-col { display:none; }
           .decisions-main-col { padding:0; }
@@ -622,24 +539,26 @@ function DecisionsPageInner() {
             </div>
           </div>
           <div className="dec-hero-actions">
-            <button className="dec-icon-circle" type="button" onClick={() => setFilter(f => f === 'open' ? 'all' as Filter : 'open' as Filter)} title="Filter">
-              <FunnelSimple size={16} weight="fill" />
-            </button>
-            <button
-              className="dec-icon-circle dec-icon-accent"
-              type="button"
-              onClick={() => openTagro({
-                contextType: 'decision',
-                id: 'list',
-                title: 'Entscheidungen · Übersicht',
-                subtitle: `${displayCounts.open} offen · ${displayCounts.urgent} dringend`,
-              })}
-              title="Tagro"
-            >
-              <Lightning size={16} weight="fill" />
-            </button>
-            <button className="dec-icon-circle" type="button" title="Mehr">
-              <svg width="14" height="3" viewBox="0 0 14 3" fill="none"><circle cx="2" cy="1.5" r="1.5" fill="currentColor"/><circle cx="7" cy="1.5" r="1.5" fill="currentColor"/><circle cx="12" cy="1.5" r="1.5" fill="currentColor"/></svg>
+            <div className="dec-hero-actions-group">
+              <button className="dec-icon-circle" type="button" onClick={() => setFilter(f => f === 'open' ? 'all' as Filter : 'open' as Filter)} title="Filter">
+                <List size={20} weight="regular" />
+              </button>
+              <button
+                className="dec-icon-circle dec-icon-bolt"
+                type="button"
+                onClick={() => openTagro({
+                  contextType: 'decision',
+                  id: 'list',
+                  title: 'Entscheidungen · Übersicht',
+                  subtitle: `${displayCounts.open} offen · ${displayCounts.urgent} dringend`,
+                })}
+                title="Tagro"
+              >
+                <Lightning size={18} weight="fill" />
+              </button>
+            </div>
+            <button className="dec-icon-circle" type="button" title="Mehr" onClick={load}>
+              <svg width="14" height="3" viewBox="0 0 14 3" fill="none" aria-hidden><circle cx="2" cy="1.5" r="1.5" fill="currentColor"/><circle cx="7" cy="1.5" r="1.5" fill="currentColor"/><circle cx="12" cy="1.5" r="1.5" fill="currentColor"/></svg>
             </button>
           </div>
         </div>
@@ -708,9 +627,6 @@ function DecisionsPageInner() {
                         <WarningCircle size={11} weight="fill" style={{ marginRight: 4, color: 'var(--danger, #C2503E)', verticalAlign: '-1px' }} />
                       )}
                       {URGENCY_LABEL[d.urgency] || 'Normal'}
-                      {typeof d.urgency_score === 'number' && (
-                        <span style={{ marginLeft: 5, opacity: 0.55 }}>{Math.round(d.urgency_score)}</span>
-                      )}
                     </span>
                   </div>
                 </div>
@@ -1416,8 +1332,9 @@ function renderResponseValue(decision: Decision, options: DecOption[]) {
 
 const CSS = `
   .dec-os {
-    --dec-soft:#8f93a4;
-    --dec-dark:#0f0f10;
+    --dec-soft: var(--portal-soft, #8f93a4);
+    --dec-dark: var(--portal-text, #0f0f10);
+    --dec-card-bg: var(--portal-card, #fff);
     width:100%; height:100%; min-height:0; color:var(--dec-dark);
     display:flex; flex-direction:column; overflow:hidden;
     letter-spacing:.02em;
@@ -1433,28 +1350,16 @@ const CSS = `
   .dec-hero-bg-top { top:0; height:255px; }
   .dec-hero-bg-bottom { bottom:0; height:129px; }
   .dec-static-top, .dec-scroll-body { position:relative; z-index:1; }
-  [data-theme="dark"] .dec-os, [data-theme="classic-dark"] .dec-os, [data-theme="read"] .dec-os {
-    --dec-soft: var(--text-secondary);
-    --dec-dark: var(--text);
-  }
 
   .dec-static-top {
     flex:0 0 auto; position:sticky; top:0; z-index:8;
-    background:#FFFFFF; padding:64px 164px 0;
+    background:var(--dec-card-bg); padding:64px 164px 0;
   }
   .dec-static-top::after {
     content:''; display:block; position:absolute;
     left:0; right:0; bottom:-48px; height:48px;
-    background:linear-gradient(to bottom, #FFFFFF 0%, rgba(255,255,255,.92) 40%, transparent 100%);
+    background:linear-gradient(to bottom, var(--dec-card-bg) 0%, color-mix(in srgb, var(--dec-card-bg) 92%, transparent) 40%, transparent 100%);
     pointer-events:none;
-  }
-  [data-theme="dark"] .dec-static-top,
-  [data-theme="classic-dark"] .dec-static-top {
-    background:var(--card);
-  }
-  [data-theme="dark"] .dec-static-top::after,
-  [data-theme="classic-dark"] .dec-static-top::after {
-    background:linear-gradient(to bottom, var(--card), transparent);
   }
 
   .dec-hero { display:flex; justify-content:space-between; align-items:flex-start; gap:24px; padding-bottom:24px; }
@@ -1469,18 +1374,27 @@ const CSS = `
     margin:0; font-size:20px; font-weight:400; color:var(--dec-soft);
     line-height:1.25; letter-spacing:.02em;
   }
-  .dec-hero-actions { display:flex; gap:12px; align-items:center; flex-shrink:0; }
+  .dec-hero-actions { display:flex; gap:16px; align-items:center; flex-shrink:0; }
+  .dec-hero-actions-group { display:flex; gap:12px; align-items:center; }
   .dec-icon-circle {
     width:40px; height:40px; border-radius:32px;
-    background:#fff; border:1px solid rgba(202,207,212,.2);
+    background:var(--portal-btn-outline-bg, #fff);
+    border:1px solid var(--portal-icon-border, rgba(202,207,212,.2));
     box-shadow:0 2px 5px .5px rgba(46,47,51,.05);
     display:inline-flex; align-items:center; justify-content:center;
     color:var(--dec-dark); cursor:pointer;
-    transition:background .12s, box-shadow .12s;
+    transition:background .12s, box-shadow .12s, border-color .12s;
   }
-  .dec-icon-circle:hover { background:#f8f9fa; box-shadow:0 2px 8px rgba(46,47,51,.1); }
+  .dec-icon-circle:hover { background:color-mix(in srgb, var(--portal-pill-bg) 55%, var(--portal-btn-outline-bg)); box-shadow:0 2px 8px rgba(46,47,51,.1); }
   .dec-icon-circle:disabled { opacity:.5; cursor:not-allowed; }
-  .dec-icon-accent { color:#5b647d; }
+  .dec-icon-bolt {
+    color:var(--portal-text);
+    box-shadow:0 2px 5px .5px rgba(46,47,51,.05), 0 0 0 1px rgba(202,207,212,.15);
+  }
+  [data-theme="dark"] .dec-icon-circle,
+  [data-theme="classic-dark"] .dec-icon-circle {
+    box-shadow:0 2px 5px rgba(0,0,0,.22);
+  }
 
   .dec-divider-gradient {
     height:.5px; width:100%;
@@ -1510,11 +1424,11 @@ const CSS = `
     transition:background .12s;
   }
   .dec-card.alt {
-    background:rgba(241,243,245,.4);
+    background:var(--portal-row-alt);
     border-radius:12px;
     box-shadow:0 2px 3px rgba(0,0,0,.05);
   }
-  .dec-card.on { background:rgba(241,243,245,.65); border-radius:12px; }
+  .dec-card.on { background:var(--portal-row-on); border-radius:12px; }
 
   .dec-card-left { width:179px; flex-shrink:0; display:flex; flex-direction:column; gap:32px; }
   .dec-card-title-block { display:flex; flex-direction:column; gap:8px; }
@@ -1529,7 +1443,7 @@ const CSS = `
   .dec-card-type-pill {
     display:inline-flex; align-items:center; gap:8px;
     padding:6px 12px; border-radius:999px;
-    background:#f1f3f5; color:var(--dec-dark);
+    background:var(--portal-pill-bg); color:var(--dec-dark);
     font-size:14px; font-weight:400; letter-spacing:.02em;
     width:fit-content;
   }
@@ -1551,7 +1465,7 @@ const CSS = `
   .dec-card-prio-pill {
     display:inline-flex; align-items:center;
     padding:6px 12px; border-radius:999px;
-    background:#f1f3f5; color:var(--dec-dark);
+    background:var(--portal-pill-bg); color:var(--dec-dark);
     font-size:14px; font-weight:400; letter-spacing:.02em;
     width:fit-content;
   }
@@ -1566,42 +1480,27 @@ const CSS = `
   .dec-card-dots:hover { color:var(--dec-dark); }
   .dec-card-btn-primary {
     width:100%; height:33px; border-radius:32px;
-    background:#5b647d; color:#fff; border:0;
+    background:var(--portal-btn-primary); color:#fff; border:0;
     font:inherit; font-size:14px; font-weight:400; letter-spacing:.02em;
     cursor:pointer; transition:background .12s, transform .12s;
     box-shadow:0 8px 24px rgba(200,169,91,.14);
   }
-  .dec-card-btn-primary:hover { background:#4d566c; }
+  .dec-card-btn-primary:hover { background:color-mix(in srgb, var(--portal-btn-primary) 88%, #000); }
   .dec-card-btn-primary:active { transform:scale(.97); }
   .dec-card-btn-outline {
     width:100%; height:33px; border-radius:32px;
-    background:#fff; color:#202532; border:.7px solid #e7ebf0;
+    background:var(--portal-btn-outline-bg); color:var(--portal-btn-outline-text);
+    border:.7px solid var(--portal-btn-outline-border);
     font:inherit; font-size:14px; font-weight:400; letter-spacing:.02em;
     cursor:pointer; transition:background .12s, border-color .12s;
     box-shadow:0 2px 2px rgba(0,0,0,.05);
   }
-  .dec-card-btn-outline:hover { background:#f8f9fa; border-color:#d0d5dd; }
+  .dec-card-btn-outline:hover { background:color-mix(in srgb, var(--portal-pill-bg) 45%, var(--portal-btn-outline-bg)); border-color:color-mix(in srgb, var(--portal-btn-outline-border) 80%, var(--dec-dark)); }
 
   /* Dark theme card overrides */
   [data-theme="dark"] .dec-card.alt,
   [data-theme="classic-dark"] .dec-card.alt {
-    background:rgba(255,255,255,.04);
     box-shadow:0 2px 3px rgba(0,0,0,.15);
-  }
-  [data-theme="dark"] .dec-card-type-pill,
-  [data-theme="dark"] .dec-card-prio-pill,
-  [data-theme="classic-dark"] .dec-card-type-pill,
-  [data-theme="classic-dark"] .dec-card-prio-pill {
-    background:rgba(255,255,255,.08); color:var(--text);
-  }
-  [data-theme="dark"] .dec-card-btn-outline,
-  [data-theme="classic-dark"] .dec-card-btn-outline {
-    background:var(--card); color:var(--text); border-color:var(--border);
-  }
-  [data-theme="dark"] .dec-icon-circle,
-  [data-theme="classic-dark"] .dec-icon-circle {
-    background:var(--card); border-color:var(--border);
-    box-shadow:0 2px 5px rgba(0,0,0,.2);
   }
 
   .dec-empty {
