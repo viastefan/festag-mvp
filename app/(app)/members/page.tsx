@@ -13,11 +13,14 @@
 import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import {
   UsersThree, UserPlus, Plus, X, Sparkle, ShieldCheck, Warning, CaretRight,
-  DotOutline, Briefcase,
+  DotOutline, Briefcase, PencilSimple,
 } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 import InviteLinkModal from '@/components/InviteLinkModal'
 import TagroEntryButton from '@/components/TagroEntryButton'
+import MobilePageHeader from '@/components/MobilePageHeader'
+import MobileCodexListChrome from '@/components/mobile/MobileCodexListChrome'
+import { openTagro } from '@/components/TagroOverlay'
 
 type Row = {
   id: string                 // user id, or `invite:<id>` for pending
@@ -240,11 +243,55 @@ export default function MembersPage() {
     return `Tagro verfolgt ${t} ${t === 1 ? 'offene Aufgabe' : 'offene Aufgaben'} über ${p} ${p === 1 ? 'Projekt' : 'Projekte'}. Keine kritischen Blocker erkannt.`
   })()
 
-  return (
-    <div className="mb">
-      <style>{CSS}</style>
+  const tagroMembers = () => openTagro({
+    contextType: 'client',
+    id: 'members',
+    title: 'Mitglieder · Übersicht',
+    subtitle: `${rows.length} Mitglied${rows.length === 1 ? '' : 'er'}`,
+  })
 
-      <header className="mb-head">
+  const openInvite = () => setInviteOpen(true)
+
+  return (
+    <>
+    <MobileCodexListChrome
+      className="mb"
+      title="Mitglieder"
+      subtitle={`${rows.length} Mitglied${rows.length === 1 ? '' : 'er'}`}
+      legacyHeader={(
+        <MobilePageHeader
+          title="Mitglieder"
+          primaryIcon={UserPlus}
+          primaryLabel="Einladen"
+          onPrimary={openInvite}
+        />
+      )}
+      mobileActions={(
+        <>
+          <button type="button" className="mcl-add-btn" aria-label="Mitglied einladen" onClick={openInvite}>
+            <Plus size={18} weight="bold" />
+          </button>
+        </>
+      )}
+      dock={{
+        onDragUp: openInvite,
+        primary: {
+          id: 'invite',
+          label: 'Mitglied einladen...',
+          icon: <UserPlus size={14} weight="regular" />,
+          onClick: openInvite,
+          ariaLabel: 'Mitglied einladen',
+        },
+        secondary: {
+          id: 'tagro',
+          icon: <PencilSimple size={20} weight="bold" />,
+          onClick: tagroMembers,
+          ariaLabel: 'Mit Tagro bearbeiten',
+        },
+      }}
+      extraCss={CSS}
+    >
+      <header className="mb-head mb-dt">
         <div className="mb-head-left">
           <span className="mb-head-ico"><UsersThree size={16} weight="regular" /></span>
           <h1>Mitglieder</h1>
@@ -366,6 +413,7 @@ export default function MembersPage() {
           </aside>
         )}
       </div>
+    </MobileCodexListChrome>
 
       <InviteLinkModal
         open={inviteOpen}
@@ -374,7 +422,7 @@ export default function MembersPage() {
         defaultKind="contributor"
         projects={projects}
       />
-    </div>
+    </>
   )
 }
 
@@ -482,9 +530,28 @@ const CSS = `
   @media (max-width: 1100px) { .mb-col-joined { display: none; } .mb-thead, .mb-row { grid-template-columns: minmax(0,1.7fr) 110px 116px 140px 130px 120px; } }
   @media (max-width: 900px)  { .mb-col-team { display: none; } .mb-thead, .mb-row { grid-template-columns: minmax(0,1.7fr) 110px 116px 130px 120px; } }
   @media (max-width: 720px) {
+    .mb-head.mb-dt { display: none !important; }
+    .mb-body { min-height: 0; }
     .mb-thead { display: none; }
-    .mb-tbody { padding: 10px; }
-    .mb-row { grid-template-columns: 1fr auto; grid-auto-rows: min-content; gap: 8px 10px; padding: 13px; margin: 0 0 8px; background: var(--surface); border: 1px solid var(--border); }
+    .mb-tbody { padding: 0; }
+    .mb-row {
+      grid-template-columns: 1fr auto;
+      grid-auto-rows: min-content;
+      gap: 8px 10px;
+      padding: 16px 14px;
+      margin: 0 0 12px;
+      border: 1px solid rgba(0, 0, 0, 0.07);
+      border-radius: 14px;
+      background: #FFFFFF;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,1), 0 1px 0 rgba(0,0,0,0.04), 0 4px 10px rgba(144,149,159,0.16);
+    }
+    [data-theme="dark"] .mb-row,
+    [data-theme="classic-dark"] .mb-row {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.14);
+    }
+    .mb-name { font-size: 17px; font-weight: 500; letter-spacing: -0.02em; }
+    .mb-email { font-size: 14px; }
     .mb-cell-name { grid-column: 1; grid-row: 1; }
     .mb-row > .mb-cell:nth-child(2) { grid-column: 2; grid-row: 1; justify-self: end; align-self: center; }
     .mb-row > .mb-cell:nth-child(3) { grid-column: 1; grid-row: 2; }
