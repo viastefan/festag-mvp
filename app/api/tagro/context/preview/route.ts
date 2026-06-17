@@ -3,6 +3,7 @@ import { createClient as createCookieClient } from '@/lib/supabase/server'
 import { tagroComplete } from '@/lib/tagro/complete'
 import { extractJsonObject } from '@/lib/tagro/json'
 import { loadTagroMemoryContext } from '@/lib/tagro-memory'
+import { enrichTagroObjectContext } from '@/lib/tagro/context-enrich'
 
 export const runtime = 'nodejs'
 export const maxDuration = 30
@@ -91,13 +92,27 @@ export async function POST(req: NextRequest) {
   const input = (body.input || '').trim()
   if (!input) return NextResponse.json({ error: 'input_required' }, { status: 400 })
 
+  const enriched = await enrichTagroObjectContext({
+    type: body.type,
+    id: body.id,
+    title: body.title,
+    subtitle: body.subtitle,
+    status: body.status,
+    projectId: body.projectId,
+  })
+  const subtitle = body.subtitle || enriched.subtitle
+  const status = body.status ?? enriched.status
+  const clientVisible = typeof body.clientVisible === 'boolean' ? body.clientVisible : enriched.clientVisible
+  const projectId = body.projectId || enriched.projectId
+
   const contextLine = [
     body.type ? `Objekttyp: ${body.type}` : '',
     body.title ? `Titel: ${body.title}` : '',
-    body.subtitle ? `Kontext-Detail: ${body.subtitle}` : '',
+    subtitle ? `Kontext-Detail: ${subtitle}` : '',
     body.id ? `ID: ${body.id}` : '',
-    body.status ? `Status: ${body.status}` : '',
-    typeof body.clientVisible === 'boolean' ? `Client-sichtbar: ${body.clientVisible ? 'ja' : 'nein'}` : '',
+    status ? `Status: ${status}` : '',
+    typeof clientVisible === 'boolean' ? `Client-sichtbar: ${clientVisible ? 'ja' : 'nein'}` : '',
+    projectId ? `Projekt-ID: ${projectId}` : '',
   ].filter(Boolean).join('\n')
 
   // Attached @-mentions: the base object first, then any extra picks the
@@ -129,7 +144,7 @@ export async function POST(req: NextRequest) {
 
   const cookieClient = createCookieClient()
   const { data: { user } } = await cookieClient.auth.getUser()
-  const memoryProjectId = body.projectId
+  const memoryProjectId = projectId
     || (body.type === 'project' ? body.id : null)
     || null
   const memoryContext = user

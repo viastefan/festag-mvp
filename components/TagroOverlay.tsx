@@ -28,7 +28,7 @@ import {
   Microphone, MicrophoneSlash, Plus, Lightbulb, CaretRight,
   MagnifyingGlass, User, ChartLine, Scales, CheckSquare,
   UsersThree, Warning, FileText, Briefcase, Sun, EnvelopeSimple,
-  Copy, ThumbsUp, ThumbsDown, SpeakerHigh, Stack,
+  Copy,
 } from '@phosphor-icons/react'
 import { useSpeechRecognition } from '@/hooks/useSpeechRecognition'
 import TagroLogo from '@/components/TagroLogo'
@@ -38,6 +38,7 @@ import {
   buildMessageActions,
   executeTagroPreview,
 } from '@/lib/tagro/overlay-execute'
+import { pickResultToChip, searchTagroPicker, type PickGroup, type PickResult } from '@/lib/tagro/picker-search'
 
 // ── Public API ────────────────────────────────────────────────────────────
 
@@ -558,6 +559,36 @@ export default function TagroOverlay() {
     return () => { if (active) window.dispatchEvent(new CustomEvent('festag:tagro-fullscreen', { detail: { active: false } })) }
   }, [open, fullscreen])
 
+  // Hydrate live object metadata (status, subtitle, project) when opening from a bound object.
+  useEffect(() => {
+    if (!open || !ctx.id) return
+    const skip = /^(list|inbox|dev-overview|dev-list|dev-plan|dev-updates|dev-inbox|github|dashboard|all)$/.test(ctx.id)
+    if (skip) return
+    let cancelled = false
+    const qs = new URLSearchParams({
+      type: ctx.contextType,
+      id: ctx.id,
+      ...(ctx.title ? { title: ctx.title } : {}),
+      ...(ctx.subtitle ? { subtitle: ctx.subtitle } : {}),
+      ...(ctx.status ? { status: String(ctx.status) } : {}),
+      ...(ctx.projectId ? { projectId: ctx.projectId } : {}),
+    })
+    fetch(`/api/tagro/context/enrich?${qs}`)
+      .then(r => r.json())
+      .then(data => {
+        if (cancelled || !data?.ok) return
+        setCtx(prev => ({
+          ...prev,
+          subtitle: prev.subtitle || data.subtitle,
+          status: prev.status ?? data.status ?? prev.status,
+          clientVisible: typeof prev.clientVisible === 'boolean' ? prev.clientVisible : data.clientVisible,
+          projectId: prev.projectId || data.projectId,
+        }))
+      })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [open, ctx.id, ctx.contextType])
+
   // Mic
   const dictBaseRef = useRef('')
   const [rec, setRec] = useState(false)
@@ -696,6 +727,21 @@ export default function TagroOverlay() {
             applyNotice: result.message,
           }
         : m))
+      if (result.ok && msg.preview && typeof window !== 'undefined') {
+        const memoryProjectId = ctx.projectId || (ctx.contextType === 'project' ? ctx.id : undefined)
+        fetch('/api/tagro/memory', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            projectId: memoryProjectId,
+            scope: 'handoff',
+            content: msg.preview.slice(0, 500),
+          }),
+        }).catch(() => {})
+        window.dispatchEvent(new CustomEvent('festag:tagro-applied', {
+          detail: { mode: result.mode, created: result.created, contextType: ctx.contextType },
+        }))
+      }
     } catch {
       setMessages(prev => prev.map(m => m.id === messageId && m.role === 'tagro'
         ? { ...m, applyBusy: false, applyNotice: 'Übernahme fehlgeschlagen.' }
@@ -745,15 +791,24 @@ export default function TagroOverlay() {
   const session = useMemo(() => buildInitialSession(ctx), [ctx])
   const { chips: baseChips, introLead, introHelp, placeholder, suggestions } = session
   const attachedChips: AttachedChip[] = [...baseChips, ...extraAttached]
-  const attachExtra = (c: AttachedChip) =>
+  const attachExtra = (c: AttachedChip) => {
     setExtraAttached(prev => prev.some(p => p.label === c.label) ? prev : [...prev, c])
+    setInput(prev => {
+      const label = c.label.trim()
+      if (!label || prev.includes(label)) return prev
+      const base = prev.trim()
+      return base ? `${base} ${label}` : label
+    })
+  }
   const removeExtra = (label: string) =>
     setExtraAttached(prev => prev.filter(p => p.label !== label))
   const examples = useMemo(() => buildExampleItems(suggestions), [suggestions])
   const question = CTX_QUESTION[ctx.contextType]
-  const contextLine = ctx.title
-    ? `${CTX_CHIP[ctx.contextType]} · ${ctx.title}`
-    : CTX_CHIP[ctx.contextType]
+  const contextLine = [
+    ctx.title ? `${CTX_CHIP[ctx.contextType]} · ${ctx.title}` : CTX_CHIP[ctx.contextType],
+    ctx.subtitle,
+    ctx.status ? `Status: ${ctx.status}` : '',
+  ].filter(Boolean).join(' · ')
 
   if (!open) return null
 
@@ -1009,11 +1064,7 @@ function Composer({
     el.style.height = Math.min(el.scrollHeight, max) + 'px'
   }
 
-  // People/Sources picker — opens via the + button OR by typing '@' in the
-  // textarea (current cursor position). For now this is the picker shell
-  // requested by the spec: real categories listed, clear placeholder copy
-  // so the user sees something happen (not a dead button). Actual person
-  // / object search lands in the next pass — the structure is here.
+  // People/Sources picker — opens via the + button or by typing '@'.
   const [pickerOpen, setPickerOpen] = useState(false)
 
   function openPicker() { setPickerOpen(true) }
@@ -1092,75 +1143,49 @@ function Composer({
   )
 }
 
-// ── People / Sources / Objects picker shell ───────────────────────────────
-//
-// Spec calls for this picker to surface: people (@Max), tasks, projects,
-// documents, decisions, status reports, clients, dev items. Real search +
-// resolution lands in a follow-up — for now the shell renders the
-// categories with placeholder copy so the user immediately understands
-// "Tagro can pull these in" instead of facing a dead button.
+// ── People / Sources / Objects picker ─────────────────────────────────────
 
-type PickResult = {
-  group: 'Projekte' | 'Aufgaben' | 'Entscheidungen' | 'Notizen' | 'Kunden'
-  id: string
-  title: string
-  hint?: string
+const PICK_GROUP_ORDER: PickGroup[] = [
+  'Personen', 'Projekte', 'Aufgaben', 'Entscheidungen', 'Berichte', 'Kunden', 'Notizen',
+]
+
+function pickGroupIcon(group: PickGroup) {
+  switch (group) {
+    case 'Personen': return <User size={14} weight="fill" />
+    case 'Projekte': return <Briefcase size={14} />
+    case 'Aufgaben': return <CheckSquare size={14} />
+    case 'Entscheidungen': return <Scales size={14} />
+    case 'Berichte': return <ChartLine size={14} />
+    case 'Kunden': return <UsersThree size={14} />
+    default: return <FileText size={14} />
+  }
 }
 
 function PeopleObjectPicker({ onClose, onPick, fullscreen = false }: { onClose: () => void; onPick: (chip: AttachedChip) => void; fullscreen?: boolean }) {
   const [q, setQ] = useState('')
   const [results, setResults] = useState<PickResult[]>([])
   const [loading, setLoading] = useState(false)
+  const [activeIdx, setActiveIdx] = useState(0)
   const searchRef = useRef<HTMLInputElement>(null)
 
-  // Autofocus the search box on open — keyboard-first.
   useEffect(() => { searchRef.current?.focus() }, [])
 
-  // Debounced search across the user's workspace. Reuses the same
-  // pattern as CommandPalette so results stay consistent. When the
-  // query is empty we still fetch a small "recent" set so the picker
-  // never opens to a blank list.
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [onClose])
+
   useEffect(() => {
     let cancelled = false
     setLoading(true)
     const t = window.setTimeout(async () => {
       try {
-        // Lazy import the supabase client so this module stays lean for
-        // server-side rendering paths.
-        const { createClient } = await import('@/lib/supabase/client')
-        const sb = createClient() as any
-        const term = q.trim()
-        const like = term ? `%${term.replace(/[%_]/g, '\\$&')}%` : null
-        const projectsQ = like
-          ? sb.from('projects').select('id,title,status').ilike('title', like).limit(6)
-          : sb.from('projects').select('id,title,status').order('updated_at', { ascending: false }).limit(6)
-        const tasksQ = like
-          ? sb.from('tasks').select('id,title,project_id,status').ilike('title', like).limit(6)
-          : sb.from('tasks').select('id,title,project_id,status').order('updated_at', { ascending: false }).limit(6)
-        const decisionsQ = like
-          ? sb.from('decisions').select('id,title,status').ilike('title', like).limit(4)
-          : sb.from('decisions').select('id,title,status').order('updated_at', { ascending: false }).limit(4)
-        const clientsQ = like
-          ? sb.from('clients').select('id,name').ilike('name', like).limit(4)
-          : sb.from('clients').select('id,name').order('updated_at', { ascending: false }).limit(4)
-        const notesQ = like
-          ? sb.from('relations_notes').select('id,title,content').or(`title.ilike.${like},content.ilike.${like}`).limit(4)
-          : sb.from('relations_notes').select('id,title,content').order('updated_at', { ascending: false }).limit(4)
-        const [projects, tasks, decisions, clients, notes] = await Promise.all([
-          projectsQ.then((r: any) => r).catch(() => ({ data: [] })),
-          tasksQ.then((r: any) => r).catch(() => ({ data: [] })),
-          decisionsQ.then((r: any) => r).catch(() => ({ data: [] })),
-          clientsQ.then((r: any) => r).catch(() => ({ data: [] })),
-          notesQ.then((r: any) => r).catch(() => ({ data: [] })),
-        ])
-        if (cancelled) return
-        const out: PickResult[] = []
-        ;(projects.data || []).forEach((p: any) => out.push({ group: 'Projekte', id: p.id, title: p.title, hint: p.status }))
-        ;(tasks.data || []).forEach((t: any) => out.push({ group: 'Aufgaben', id: t.id, title: t.title, hint: t.status }))
-        ;(decisions.data || []).forEach((d: any) => out.push({ group: 'Entscheidungen', id: d.id, title: d.title, hint: d.status }))
-        ;(clients.data || []).forEach((c: any) => out.push({ group: 'Kunden', id: c.id, title: c.name }))
-        ;(notes.data || []).forEach((n: any) => out.push({ group: 'Notizen', id: n.id, title: n.title || (n.content || '').slice(0, 60) }))
-        setResults(out)
+        const out = await searchTagroPicker(q)
+        if (!cancelled) {
+          setResults(out)
+          setActiveIdx(0)
+        }
       } catch {
         if (!cancelled) setResults([])
       } finally {
@@ -1170,48 +1195,60 @@ function PeopleObjectPicker({ onClose, onPick, fullscreen = false }: { onClose: 
     return () => { cancelled = true; window.clearTimeout(t) }
   }, [q])
 
-  function pickResult(r: PickResult) {
-    const kindLabel = r.group === 'Projekte' ? 'Projekt'
-      : r.group === 'Aufgaben' ? 'Aufgabe'
-      : r.group === 'Entscheidungen' ? 'Entscheidung'
-      : r.group === 'Kunden' ? 'Kunde'
-      : 'Notiz'
-    const objectType = r.group === 'Projekte' ? 'project'
-      : r.group === 'Aufgaben' ? 'task'
-      : r.group === 'Entscheidungen' ? 'decision'
-      : r.group === 'Kunden' ? 'client'
-      : 'note'
-    onPick({
-      kind: 'object',
-      label: `@${kindLabel} ${r.title}`,
-      objectType,
-      objectId: r.id,
-    })
-  }
-
-  // Group results for rendering.
   const groups = useMemo(() => {
-    const map = new Map<string, PickResult[]>()
+    const map = new Map<PickGroup, PickResult[]>()
     for (const r of results) {
       if (!map.has(r.group)) map.set(r.group, [])
       map.get(r.group)!.push(r)
     }
-    return Array.from(map.entries())
+    return PICK_GROUP_ORDER
+      .filter(g => map.has(g))
+      .map(g => [g, map.get(g)!] as const)
   }, [results])
+
+  const flatResults = useMemo(() => groups.flatMap(([, items]) => items), [groups])
+
+  function pickAt(idx: number) {
+    const r = flatResults[idx]
+    if (!r) return
+    onPick(pickResultToChip(r))
+    onClose()
+  }
+
+  function onSearchKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (!flatResults.length) return
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      setActiveIdx(i => Math.min(i + 1, flatResults.length - 1))
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      setActiveIdx(i => Math.max(i - 1, 0))
+    } else if (e.key === 'Enter') {
+      e.preventDefault()
+      pickAt(activeIdx)
+    }
+  }
+
+  let flatCursor = 0
 
   return (
     <div className={`tov-pick${fullscreen ? ' tov-pick-full' : ''}`} role="dialog" aria-label="Quellen und Personen hinzufügen">
       <div className="tov-pick-backdrop" onClick={onClose} aria-hidden />
       <div className="tov-pick-sheet" onClick={e => e.stopPropagation()}>
+        <div className="tov-pick-head">
+          <p className="tov-pick-kicker">Kontext hinzufügen</p>
+          <button type="button" className="tov-pick-close" onClick={onClose} aria-label="Schließen"><X size={14} /></button>
+        </div>
         <div className="tov-pick-searchbar">
           <MagnifyingGlass size={16} weight="regular" />
           <input
             ref={searchRef}
             type="text"
             className="tov-pick-search"
-            placeholder="Projekte, Aufgaben, Entscheidungen, Kunden …"
+            placeholder="Personen, Projekte, Aufgaben, Berichte …"
             value={q}
             onChange={e => setQ(e.target.value)}
+            onKeyDown={onSearchKeyDown}
           />
         </div>
         <div className="tov-pick-results">
@@ -1223,36 +1260,30 @@ function PeopleObjectPicker({ onClose, onPick, fullscreen = false }: { onClose: 
           )}
           {groups.map(([group, items]) => (
             <div key={group} className="tov-pick-group">
-              {items.map(r => (
-                <button key={`${group}-${r.id}`} type="button" className="tov-pick-result" onClick={() => pickResult(r)}>
-                  <span className="tov-pick-result-ico" aria-hidden>
-                    {group === 'Projekte' ? <Briefcase size={14} />
-                      : group === 'Aufgaben' ? <CheckSquare size={14} />
-                      : group === 'Entscheidungen' ? <Scales size={14} />
-                      : group === 'Kunden' ? <UsersThree size={14} />
-                      : <FileText size={14} />}
-                  </span>
+              <p className="tov-pick-group-label">{group}</p>
+              {items.map(r => {
+                const idx = flatCursor++
+                const isActive = idx === activeIdx
+                return (
+                <button
+                  key={`${group}-${r.id}`}
+                  type="button"
+                  className={`tov-pick-result${isActive ? ' is-active' : ''}`}
+                  onMouseEnter={() => setActiveIdx(idx)}
+                  onClick={() => { onPick(pickResultToChip(r)); onClose() }}
+                >
+                  <span className="tov-pick-result-ico" aria-hidden>{pickGroupIcon(group)}</span>
                   <span className="tov-pick-result-body">
                     <strong>{r.title}</strong>
                     {r.hint && <span>{r.hint}</span>}
-                    {group === 'Projekte' && <em className="tov-pick-tag">/Projekt</em>}
-                    {group === 'Kunden' && <em className="tov-pick-tag tov-pick-tag-purple">#Kunde</em>}
                   </span>
+                  <span className="tov-pick-mention">{r.mentionLabel}</span>
                 </button>
-              ))}
+                )
+              })}
             </div>
           ))}
         </div>
-        <div className="tov-pick-footer">
-          <button type="button" className="tov-pick-sources"><Stack size={13} /> Quellen</button>
-          <div className="tov-pick-footer-actions">
-            <button type="button" aria-label="Kopieren"><Copy size={14} /></button>
-            <button type="button" aria-label="Gut"><ThumbsUp size={14} /></button>
-            <button type="button" aria-label="Schlecht"><ThumbsDown size={14} /></button>
-            <button type="button" aria-label="Vorlesen"><SpeakerHigh size={14} /></button>
-          </div>
-        </div>
-        <button type="button" className="tov-pick-close" onClick={onClose} aria-label="Schließen"><X size={14} /></button>
       </div>
     </div>
   )
@@ -2569,9 +2600,18 @@ const STYLES = `
   overflow: hidden;
   animation: tov-up .2s cubic-bezier(.16,1,.3,1) both;
 }
+.tov-pick-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px 0;
+}
+.tov-pick-kicker {
+  margin: 0;
+  font-size: 12px; font-weight: 600; letter-spacing: 0.04em;
+  text-transform: uppercase; color: var(--tov-muted);
+}
 .tov-pick-searchbar {
   display: flex; align-items: center; gap: 10px;
-  margin: 16px 16px 8px;
+  margin: 12px 16px 8px;
   padding: 0 14px;
   height: 44px;
   background: var(--tov-input);
@@ -2585,8 +2625,13 @@ const STYLES = `
 .tov-pick-search::placeholder { color: var(--tov-muted); }
 .tov-pick-results {
   flex: 1; overflow-y: auto;
-  padding: 4px 12px 8px;
-  display: flex; flex-direction: column; gap: 2px;
+  padding: 4px 12px 16px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.tov-pick-group-label {
+  margin: 8px 10px 4px;
+  font-size: 11px; font-weight: 600; letter-spacing: 0.03em;
+  text-transform: uppercase; color: var(--tov-muted);
 }
 .tov-pick-result {
   display: flex; align-items: flex-start; gap: 12px;
@@ -2596,7 +2641,11 @@ const STYLES = `
   font: inherit; cursor: pointer;
   transition: background .12s;
 }
-.tov-pick-result:hover { background: var(--tov-pill); }
+.tov-pick-result:hover,
+.tov-pick-result.is-active { background: var(--tov-pill); }
+.tov-pick-result.is-active {
+  box-shadow: inset 0 0 0 1px var(--tov-accent-ring);
+}
 .tov-pick-result-ico {
   flex: 0 0 auto;
   width: 32px; height: 32px;
@@ -2615,44 +2664,20 @@ const STYLES = `
 .tov-pick-result-body span {
   font-size: 12px; color: var(--tov-text-2);
 }
-.tov-pick-tag {
-  display: inline-block; margin-top: 4px;
-  font-size: 11px; font-style: normal; font-weight: 500;
-  padding: 2px 8px; border-radius: 999px;
-  background: #E0F2F1; color: #0D7377;
-  width: fit-content;
+.tov-pick-mention {
+  flex: 0 0 auto;
+  max-width: 42%;
+  font-size: 11px; font-weight: 500;
+  color: var(--tov-link);
+  text-align: right;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  padding-top: 2px;
 }
-.tov-pick-tag-purple { background: #EDE7F6; color: #5E35B1; }
 .tov-pick-empty {
   margin: 0; padding: 24px 0;
   text-align: center; font-size: 13px; color: var(--tov-text-2);
 }
-.tov-pick-footer {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 10px 16px 14px;
-  border-top: 1px solid var(--tov-border);
-}
-.tov-pick-sources {
-  display: inline-flex; align-items: center; gap: 6px;
-  background: transparent; border: 0;
-  font: inherit; font-size: 12.5px; font-weight: 500;
-  color: var(--tov-text-2); cursor: pointer;
-}
-.tov-pick-footer-actions {
-  display: inline-flex; gap: 4px;
-}
-.tov-pick-footer-actions button {
-  width: 30px; height: 30px;
-  display: inline-flex; align-items: center; justify-content: center;
-  background: transparent; border: 0; border-radius: 8px;
-  color: var(--tov-muted); cursor: pointer;
-  transition: background .12s, color .12s;
-}
-.tov-pick-footer-actions button:hover {
-  background: var(--tov-pill); color: var(--tov-text);
-}
 .tov-pick-close {
-  position: absolute; top: 12px; right: 12px;
   width: 28px; height: 28px;
   display: inline-flex; align-items: center; justify-content: center;
   background: var(--tov-pill); color: var(--tov-text-2);

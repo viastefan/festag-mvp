@@ -216,6 +216,31 @@ export async function executeTagroPreview(input: TagroExecuteInput): Promise<Tag
     }
   }
 
+  if (action === 'note' || action === 'message') {
+    if (projectId) {
+      const res = await fetch('/api/notes/quick', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: preview, project_id: projectId }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (res.ok && data?.note?.id) {
+        return {
+          ok: true,
+          mode: 'clipboard',
+          message: `Notiz „${data.note.title || 'Neu'}" gespeichert.`,
+          created: [{ type: 'note', id: data.note.id, title: data.note.title || 'Notiz' }],
+        }
+      }
+    }
+    const copied = await copyToClipboard(preview)
+    return {
+      ok: copied,
+      mode: 'clipboard',
+      message: copied ? 'Entwurf in die Zwischenablage kopiert.' : 'Entwurf konnte nicht kopiert werden.',
+    }
+  }
+
   const copied = await copyToClipboard(preview)
   return {
     ok: copied,
