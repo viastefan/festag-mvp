@@ -888,6 +888,7 @@ export default function TagroOverlay() {
                           onAction={runQuickAction}
                           onApply={() => applyTagroResult(m.id)}
                           onCopy={() => copyTagroPreview(m.id)}
+                          onNavigate={close}
                           contextChips={attachedChips}
                         />)}
                     {busy && (
@@ -901,6 +902,9 @@ export default function TagroOverlay() {
 
                 <div className="tov-floatbar">
                   <div className="tov-floatbar-inner">
+                    {messages.length === 0 && !busy && (
+                      <SuggestionPills examples={examples} onPick={fillSuggestion} />
+                    )}
                     <Composer
                       inputRef={composerRef}
                       value={input}
@@ -1362,12 +1366,13 @@ function UserMsg({ content }: { content: string }) {
 }
 
 function TagroMsg({
-  msg, onAction, onApply, onCopy, contextChips = [],
+  msg, onAction, onApply, onCopy, onNavigate, contextChips = [],
 }: {
   msg: Extract<Message, { role: 'tagro' }>
   onAction: (a: string) => void
   onApply: () => void
   onCopy: () => void
+  onNavigate?: () => void
   contextChips?: AttachedChip[]
 }) {
   const applyLabel = applyLabelForAction(msg.suggestedAction)
@@ -1424,7 +1429,7 @@ function TagroMsg({
             const href = tagroCreatedHref(item)
             const label = item.title || item.type
             return href
-              ? <Link key={`${item.type}-${item.id}`} href={href} className="tov-created-link">{label} öffnen →</Link>
+              ? <Link key={`${item.type}-${item.id}`} href={href} className="tov-created-link" onClick={onNavigate}>{label} öffnen →</Link>
               : <span key={`${item.type}-${item.id}`} className="tov-created-link-static">{label}</span>
           })}
         </div>
@@ -1685,36 +1690,39 @@ const STYLES = `
   padding: 0 2px;
   margin-bottom: 14px;
 }
-.tov-featured:hover {
-  border-color: color-mix(in srgb, var(--tov-accent) 24%, var(--tov-border));
-  box-shadow: 0 10px 32px -22px var(--tov-accent-glow);
-  transform: translateY(-1px);
-}
 .tov-featured-ico {
   flex: 0 0 auto;
   margin-top: 2px;
   color: var(--tov-muted);
+  opacity: .7;
 }
 .tov-featured-text {
   flex: 1; margin: 0;
-  font-size: 13.5px; line-height: 1.5; color: var(--tov-text-2);
+  font-size: 13.5px; line-height: 1.55; color: var(--tov-text-2);
 }
 .tov-featured-lead {
   display: block;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--tov-text);
   margin-bottom: 4px;
 }
 .tov-featured-link { color: var(--tov-link); font-weight: 500; }
 .tov-featured-go {
   flex: 0 0 auto;
-  width: 32px; height: 32px;
+  width: 30px; height: 30px;
   display: inline-flex; align-items: center; justify-content: center;
-  background: var(--tov-send); color: var(--tov-send-text);
-  border: 0; border-radius: 999px; cursor: pointer;
-  transition: opacity .12s, transform .12s;
+  background: transparent;
+  color: var(--tov-muted);
+  border: 1px solid var(--tov-border);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background .12s, color .12s, border-color .12s;
 }
-.tov-featured-go:hover { opacity: .9; transform: scale(1.03); }
+.tov-featured-go:hover {
+  background: var(--tov-pill);
+  color: var(--tov-text);
+  border-color: var(--tov-border-2);
+}
 
 /* Attached @-context chips */
 .tov-attached {
@@ -2377,27 +2385,33 @@ const STYLES = `
 .tov-source-pills { display: flex; flex-wrap: wrap; gap: 8px; padding-left: 28px; }
 .tov-source-pill {
   display: inline-flex; align-items: center; gap: 6px;
-  height: 30px; padding: 0 12px;
-  font-size: 12.5px; font-weight: 500;
+  height: 28px; padding: 0 10px;
+  font-size: 11.5px; font-weight: 400;
   border-radius: 999px;
   border: 1px solid var(--tov-border);
-  background: var(--tov-bg);
+  background: transparent;
+  color: var(--tov-text-2);
 }
-.tov-source-pill-0 { background: var(--tov-source-green); border-color: transparent; color: var(--tov-text); }
-.tov-source-pill-1 { background: var(--tov-source-blue); border-color: transparent; color: var(--tov-text); }
+.tov-source-pill-0,
+.tov-source-pill-1 {
+  background: transparent;
+  border-color: var(--tov-border);
+  color: var(--tov-text-2);
+}
 [data-theme="dark"] .tov-source-pill,
 [data-theme="classic-dark"] .tov-source-pill {
-  color: var(--tov-text);
+  color: var(--tov-text-2);
   border-color: var(--tov-border);
 }
 
 .tov-msg-preview {
   margin: 0; padding: 14px 16px;
-  background: var(--tov-bg-2);
-  border: 1px solid var(--tov-border);
-  border-radius: 14px;
-  font-size: 14.5px; line-height: 1.6;
+  background: var(--tov-input);
+  border: 0;
+  border-radius: 12px;
+  font-size: 14px; line-height: 1.6;
   white-space: pre-wrap;
+  color: var(--tov-text);
 }
 .tov-warnings { display: flex; flex-direction: column; gap: 6px; }
 .tov-warning {
@@ -2415,24 +2429,25 @@ const STYLES = `
 .tov-msg-secondary,
 .tov-msg-primary {
   display: inline-flex; align-items: center; gap: 6px;
-  height: 34px; padding: 0 14px;
+  height: 32px; padding: 0 13px;
   border-radius: 999px;
-  font: inherit; font-size: 13px; font-weight: 500;
+  font: inherit; font-size: 12.5px; font-weight: 500;
   cursor: pointer;
-  transition: background .12s, opacity .12s;
+  transition: background .12s, opacity .12s, border-color .12s;
 }
 .tov-msg-secondary {
   border: 1px solid var(--tov-border);
-  background: var(--tov-bg);
+  background: transparent;
   color: var(--tov-text-2);
 }
-.tov-msg-secondary:hover { background: var(--tov-pill); }
+.tov-msg-secondary:hover { background: var(--tov-pill); color: var(--tov-text); }
 .tov-msg-primary {
-  border: 0;
-  background: var(--tov-send);
-  color: var(--tov-send-text);
+  border: 1px solid var(--tov-border);
+  background: var(--tov-pill);
+  color: var(--tov-text);
 }
-.tov-msg-primary:disabled { opacity: .55; cursor: default; }
+.tov-msg-primary:hover:not(:disabled) { background: var(--tov-pill-h); }
+.tov-msg-primary:disabled { opacity: .45; cursor: default; }
 .tov-fallback-note {
   margin: 0 0 8px;
   font-size: 12.5px; line-height: 1.45;
@@ -2462,10 +2477,10 @@ const STYLES = `
 .tov-quickaction {
   border: 1px solid var(--tov-border);
   border-radius: 999px;
-  height: 32px; padding: 0 13px;
-  background: var(--tov-bg);
+  height: 30px; padding: 0 12px;
+  background: transparent;
   color: var(--tov-text-2);
-  font: inherit; font-size: 13px; font-weight: 500; cursor: pointer;
+  font: inherit; font-size: 12px; font-weight: 400; cursor: pointer;
   transition: background .12s, border-color .12s, color .12s;
 }
 .tov-quickaction:hover { background: var(--tov-pill); color: var(--tov-text); border-color: var(--tov-border-2); }
@@ -2496,6 +2511,9 @@ const STYLES = `
 }
 .tov-floatbar-inner {
   max-width: 720px; margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 .tov.tov-full .tov-floatbar-inner { max-width: 760px; }
 

@@ -93,8 +93,8 @@ if (url && service?.startsWith('eyJ')) {
       { headers: { apikey: service, Authorization: `Bearer ${service}` } },
     )
     const rows = await res.json()
-    if (Array.isArray(rows) && rows.length > 0) ok('Notification mirror migration applied')
-    else warn('No mirrored inbox_items yet — run: npm run db:push')
+    if (Array.isArray(rows) && rows.length > 0) ok('Client notification mirror applied (inbox_items)')
+    else warn('No mirrored client inbox_items — run: npm run db:push')
   } catch (e) {
     warn(`Could not check migration: ${e.message}`)
   }

@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import type { InboxVariant } from '@/lib/inbox/catalog'
 
 export type InboxFeedItem = {
   id: string
@@ -20,25 +19,19 @@ export type InboxFeedItem = {
 
 export type InboxProject = { title: string; color: string | null }
 
-type UseInboxFeedOpts = {
-  variant: InboxVariant
-  enabled?: boolean
-}
-
-export function useInboxFeed({ variant, enabled = true }: UseInboxFeedOpts) {
+/** Client Posteingang — structured inbox_items (Visibility Layer). */
+export function useClientInboxFeed(enabled = true) {
   const supabase = useMemo(() => createClient(), [])
   const [items, setItems] = useState<InboxFeedItem[]>([])
   const [projects, setProjects] = useState<Record<string, InboxProject>>({})
   const [loading, setLoading] = useState(true)
   const [unreadTotal, setUnreadTotal] = useState(0)
 
-  const audience = variant === 'dev' ? 'dev' : 'client'
-
   const load = useCallback(async () => {
     if (!enabled) return
     setLoading(true)
     try {
-      const res = await fetch(`/api/inbox/items?limit=120&audience=${audience}`, { cache: 'no-store' })
+      const res = await fetch('/api/inbox/items?limit=120', { cache: 'no-store' })
       if (!res.ok) { setLoading(false); return }
       const data = await res.json()
       setItems((data.items ?? []) as InboxFeedItem[])
@@ -47,11 +40,10 @@ export function useInboxFeed({ variant, enabled = true }: UseInboxFeedOpts) {
     } finally {
       setLoading(false)
     }
-  }, [audience, enabled])
+  }, [enabled])
 
   useEffect(() => { load() }, [load])
 
-  // Realtime on inbox_items (publication added in 20260617 migration)
   useEffect(() => {
     if (!enabled) return
     let userId: string | null = null
@@ -63,21 +55,18 @@ export function useInboxFeed({ variant, enabled = true }: UseInboxFeedOpts) {
       if (!userId) return
 
       channel = supabase
-        .channel(`inbox-feed-${variant}-${userId}`)
+        .channel(`client-inbox-${userId}`)
         .on('postgres_changes', {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'inbox_items',
+          event: 'INSERT', schema: 'public', table: 'inbox_items',
           filter: `user_id=eq.${userId}`,
         }, payload => {
           const row = payload.new as InboxFeedItem
+          if (row.category === 'team') return
           setItems(prev => [row, ...prev.filter(i => i.id !== row.id)])
           if (!row.read_at) setUnreadTotal(c => c + 1)
         })
         .on('postgres_changes', {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'inbox_items',
+          event: 'UPDATE', schema: 'public', table: 'inbox_items',
           filter: `user_id=eq.${userId}`,
         }, payload => {
           const row = payload.new as InboxFeedItem
@@ -87,7 +76,7 @@ export function useInboxFeed({ variant, enabled = true }: UseInboxFeedOpts) {
     })()
 
     return () => { if (channel) supabase.removeChannel(channel) }
-  }, [supabase, variant, enabled])
+  }, [supabase, enabled])
 
   const markRead = useCallback(async (id: string) => {
     setItems(prev => prev.map(i => i.id === id ? { ...i, read_at: new Date().toISOString() } : i))
@@ -104,6 +93,101 @@ export function useInboxFeed({ variant, enabled = true }: UseInboxFeedOpts) {
     setItems(prev => prev.map(i => ({ ...i, read_at: i.read_at ?? now })))
     setUnreadTotal(0)
     await fetch('/api/inbox/items', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ markAllRead: true }),
+    }).catch(() => undefined)
+  }, [])
+
+  return { items, projects, loading, unreadTotal, load, markRead, markAllRead }
+}
+
+/** Dev Execution Inbox — notifications table (Human Execution Layer). */
+export function useDevExecutionFeed(enabled = true) {
+  const supabase = useMemo(() => createClient(), [])
+  const [items, setItems] = useState<InboxFeedItem[]>([])
+  const [projects, setProjects] = useState<Record<string, InboxProject>>({})
+  const [loading, setLoading] = useState(true)
+  const [unreadTotal, setUnreadTotal] = useState(0)
+
+  const load = useCallback(async () => {
+    if (!enabled) return
+    setLoading(true)
+    try {
+      const res = await fetch('/api/dev/execution-inbox?limit=200', { cache: 'no-store' })
+      if (!res.ok) { setLoading(false); return }
+      const data = await res.json()
+      setItems((data.items ?? []) as InboxFeedItem[])
+      setProjects((data.projects ?? {}) as Record<string, InboxProject>)
+      setUnreadTotal(Number(data.unread ?? 0))
+    } finally {
+      setLoading(false)
+    }
+  }, [enabled])
+
+  useEffect(() => { load() }, [load])
+
+  useEffect(() => {
+    if (!enabled) return
+    let userId: string | null = null
+    let channel: ReturnType<typeof supabase.channel> | null = null
+
+    ;(async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      userId = session?.user.id ?? null
+      if (!userId) return
+
+      channel = supabase
+        .channel(`dev-execution-inbox-${userId}`)
+        .on('postgres_changes', {
+          event: 'INSERT', schema: 'public', table: 'notifications',
+          filter: `user_id=eq.${userId}`,
+        }, payload => {
+          const n = payload.new as Record<string, unknown>
+          const row: InboxFeedItem = {
+            id: String(n.id),
+            thread_id: String(n.id),
+            user_id: String(n.user_id),
+            project_id: (n.project_id as string) ?? null,
+            category: 'execution',
+            type: String(n.kind ?? n.type ?? ''),
+            title: String(n.title ?? 'Update'),
+            body: (n.body ?? n.message) as string | null,
+            metadata: {
+              kind: n.kind ?? n.type,
+              link: n.link,
+              task_id: n.task_id,
+              notification_id: n.id,
+              source_label: 'Festag Ops',
+              ...(n.payload as Record<string, unknown> ?? {}),
+            },
+            read_at: n.read ? String(n.read_at ?? n.created_at) : null,
+            created_at: String(n.created_at),
+          }
+          setItems(prev => [row, ...prev.filter(i => i.id !== row.id)])
+          if (!row.read_at) setUnreadTotal(c => c + 1)
+        })
+        .subscribe()
+    })()
+
+    return () => { if (channel) supabase.removeChannel(channel) }
+  }, [supabase, enabled])
+
+  const markRead = useCallback(async (id: string) => {
+    setItems(prev => prev.map(i => i.id === id ? { ...i, read_at: new Date().toISOString() } : i))
+    setUnreadTotal(c => Math.max(0, c - 1))
+    await fetch('/api/dev/execution-inbox', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id }),
+    }).catch(() => undefined)
+  }, [])
+
+  const markAllRead = useCallback(async () => {
+    const now = new Date().toISOString()
+    setItems(prev => prev.map(i => ({ ...i, read_at: i.read_at ?? now })))
+    setUnreadTotal(0)
+    await fetch('/api/dev/execution-inbox', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ markAllRead: true }),

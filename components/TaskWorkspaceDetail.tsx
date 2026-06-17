@@ -13,6 +13,7 @@ import TagroMobileBar from '@/components/TagroMobileBar'
 import MobileObjectMenu from '@/components/MobileObjectMenu'
 import MobileObjectPrep from '@/components/mobile/MobileObjectPrep'
 import { openTagro } from '@/components/TagroOverlay'
+import { tagroOpenFromTask } from '@/lib/tagro/open-context'
 import {
   ArrowLeft,
   Brain,
@@ -741,15 +742,7 @@ export default function TaskWorkspaceDetail({ taskId, projectId }: TaskWorkspace
             <button type="button" className="task-action" onClick={requestDecision} disabled={decisionBusy || decisionDone || !(project?.id ?? task.project_id)}>
               <ShieldCheck size={14} /> {decisionDone ? 'Entscheidung erstellt' : decisionBusy ? 'Wird angefragt…' : 'Entscheidung anfordern'}
             </button>
-            <button type="button" className="task-action task-action-primary" onClick={() => openTagro({
-              contextType: 'task',
-              id: task.id,
-              title: task.title,
-              subtitle: project?.title,
-              projectId: project?.id ?? task.project_id ?? undefined,
-              status: task.status,
-              clientVisible: task.client_visible,
-            })}>
+            <button type="button" className="task-action task-action-primary" onClick={() => openTagro(tagroOpenFromTask(task, project ?? undefined))}>
               <Sparkle size={14} /> Mit Tagro bearbeiten
             </button>
             {manageable ? <button type="button" className="task-action" onClick={pauseTask} disabled={busy}><Pause size={14} /> Aussetzen</button> : null}

@@ -143,12 +143,13 @@ export async function executeTagroPreview(input: TagroExecuteInput): Promise<Tag
           : 'Kein Projekt gefunden. Bitte Entwurf manuell kopieren.',
       }
     }
+    const taskId = ctx.contextType === 'task' ? ctx.id : undefined
     const res = await fetch('/api/decisions/request', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         project_id: projectId,
-        task_id: ctx.contextType === 'task' ? ctx.id : undefined,
+        task_id: taskId,
         question: preview,
       }),
     })

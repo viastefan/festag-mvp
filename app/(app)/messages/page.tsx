@@ -1,15 +1,10 @@
 'use client'
 
-/**
- * Festag Posteingang — strukturierte Projekt-Kommunikation.
- * Master-Detail-Inbox im Portal-Shell-Stil.
- */
-
 import InboxMasterDetail from '@/components/inbox/InboxMasterDetail'
-import { useInboxFeed } from '@/components/inbox/useInboxFeed'
+import { useClientInboxFeed } from '@/components/inbox/useInboxFeed'
 
 export default function InboxPage() {
-  const { items, projects, loading, markRead } = useInboxFeed({ variant: 'client' })
+  const { items, projects, loading, markRead } = useClientInboxFeed()
 
   return (
     <InboxMasterDetail

@@ -9,6 +9,7 @@ import FestagPillButton from '@/components/ui/FestagPillButton'
 import ClampedTip from '@/components/decisions/ClampedTip'
 import DecisionExternalHandoffModal from '@/components/decisions/DecisionExternalHandoffModal'
 import { openTagro } from '@/components/TagroOverlay'
+import { tagroOpenFromDecision } from '@/lib/tagro/open-context'
 import { createClient } from '@/lib/supabase/client'
 import type { ExternalHandoff } from '@/lib/decisions/external-handoffs'
 import { resolveHandoffFromOption } from '@/lib/decisions/external-handoffs'
@@ -133,6 +134,8 @@ export function DecisionDrawer({
     return () => document.removeEventListener('keydown', onKey)
   }, [onClose, variant])
 
+  const isMock = isDecisionDemoId(decision.id)
+
   // Pull structured options when drawer opens.
   useEffect(() => {
     if (isMock) {
@@ -154,8 +157,6 @@ export function DecisionDrawer({
       .finally(() => { if (!abort) setOptionsLoading(false) })
     return () => { abort = true }
   }, [decision.id, decision.options_json, isMock])
-
-  const isMock = isDecisionDemoId(decision.id)
 
   async function runTagro() {
     if (suggesting) return
@@ -373,12 +374,7 @@ export function DecisionDrawer({
               <button
                 className="dec-tagro-cta"
                 type="button"
-                onClick={() => openTagro({
-                  contextType: 'decision',
-                  id: decision.id,
-                  title: decision.client_title || decision.title,
-                  subtitle: project?.title,
-                })}
+                onClick={() => openTagro(tagroOpenFromDecision(decision, project))}
               >
                 Mit Tagro bearbeiten
               </button>

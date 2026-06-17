@@ -1,5 +1,5 @@
 import type { Decision, ProjectLite } from '@/components/decisions/decisions-shared'
-import { OPEN_STATES, fmtDueIn } from '@/components/decisions/decisions-shared'
+import { fmtDueIn, isOpenDecisionStatus } from '@/components/decisions/decisions-shared'
 
 export type DecisionRiskSeverity = 'critical' | 'high' | 'medium'
 
@@ -37,7 +37,7 @@ export function evaluateDecisionRisk(
   d: Decision,
   project?: ProjectLite | null,
 ): DecisionRiskSignal | null {
-  if (!OPEN_STATES.has(d.status)) return null
+  if (!isOpenDecisionStatus(d.status)) return null
 
   const title = (d.client_title || d.title || 'Entscheidung').trim()
   const projectTitle = project?.title

@@ -1,14 +1,14 @@
 'use client'
 
 /**
- * /dev/messages — Execution Inbox.
- * Master-Detail wie Client-Posteingang, mit Dev-Kategorien und Ops-Hinweisen.
+ * /dev/messages — Execution Inbox (Human Execution Layer).
+ * Reads notifications via /api/dev/execution-inbox — separate from client Posteingang.
  */
 
 import { ArrowClockwise, Sliders } from '@phosphor-icons/react'
 import TagroEntryButton from '@/components/TagroEntryButton'
 import InboxMasterDetail from '@/components/inbox/InboxMasterDetail'
-import { useInboxFeed } from '@/components/inbox/useInboxFeed'
+import { useDevExecutionFeed } from '@/components/inbox/useInboxFeed'
 import { DEV_ACTIONABLE_KINDS } from '@/lib/inbox/catalog'
 import type { InboxFeedItem } from '@/components/inbox/useInboxFeed'
 
@@ -17,14 +17,14 @@ function rawKind(item: InboxFeedItem) {
 }
 
 export default function DevMessagesPage() {
-  const { items, projects, loading, unreadTotal, load, markRead, markAllRead } = useInboxFeed({ variant: 'dev' })
+  const { items, projects, loading, unreadTotal, load, markRead, markAllRead } = useDevExecutionFeed()
 
   const actionCount = items.filter(i => !i.read_at && DEV_ACTIONABLE_KINDS.has(rawKind(i))).length
 
   return (
     <InboxMasterDetail
       variant="dev"
-      title="Inbox"
+      title="Execution Inbox"
       items={items}
       projects={projects}
       loading={loading}
@@ -44,8 +44,8 @@ export default function DevMessagesPage() {
             context={{
               contextType: 'empty',
               id: 'dev-inbox',
-              title: 'Inbox · Triage',
-              subtitle: `${items.length} Einträge · ${unreadTotal} ungelesen`,
+              title: 'Execution Inbox · Triage',
+              subtitle: `${items.length} Ereignisse · ${unreadTotal} ungelesen`,
             }}
           />
         </>
@@ -57,7 +57,7 @@ export default function DevMessagesPage() {
             {actionCount > 0
               ? `${unreadTotal} ungelesen · ${actionCount} mit offener Aktion. `
               : ''}
-            Tagro übersetzt operative Ereignisse in geprüfte Statusinformationen. Diese Inbox zeigt deine internen Hinweise — der Client sieht nur die freigegebene Sicht.
+            Operative Ereignisse für deine Ausführung — Client-Anfragen, Blocker, Reviews. Der Client-Posteingang zeigt nur die freigegebene Sicht.
           </span>
         </>
       )}

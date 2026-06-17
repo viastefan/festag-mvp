@@ -10,6 +10,7 @@ import FestagPillButton from '@/components/ui/FestagPillButton'
 import ClampedTip from '@/components/decisions/ClampedTip'
 import DecisionExternalHandoffModal from '@/components/decisions/DecisionExternalHandoffModal'
 import { openTagro } from '@/components/TagroOverlay'
+import { tagroOpenFromDecision } from '@/lib/tagro/open-context'
 import type { ExternalHandoff } from '@/lib/decisions/external-handoffs'
 import { resolvePrimaryHandoff } from '@/lib/decisions/external-handoffs'
 import type { Decision, ProjectLite } from '@/components/decisions/decisions-shared'
@@ -100,14 +101,7 @@ export default function DecisionCardRow({
 
   function openTagroForDecision() {
     setMenuOpen(false)
-    openTagro({
-      contextType: 'decision',
-      id: d.id,
-      title: displayTitle,
-      subtitle: proj?.title,
-      status: d.status,
-      projectId: d.project_id ?? proj?.id,
-    })
+    openTagro(tagroOpenFromDecision(d, proj))
   }
 
   async function runAction(fn: () => void | Promise<void>) {

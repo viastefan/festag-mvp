@@ -92,7 +92,14 @@ function DecisionsPageInner() {
     }
 
     try {
-      const res = await fetch('/api/decisions', { credentials: 'include' })
+      const controller = new AbortController()
+      const timeout = setTimeout(() => controller.abort(), 12_000)
+      let res: Response
+      try {
+        res = await fetch('/api/decisions', { credentials: 'include', signal: controller.signal })
+      } finally {
+        clearTimeout(timeout)
+      }
       const data = res.ok ? await res.json().catch(() => null) : null
       const apiRows: Decision[] = data?.decisions ?? []
       const showDemo = !blockDemo && apiRows.length === 0

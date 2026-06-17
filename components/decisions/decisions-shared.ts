@@ -263,6 +263,11 @@ import { DECISION_OPEN_STATES } from '@/lib/decisions/types'
 
 export const OPEN_STATES = DECISION_OPEN_STATES
 
+/** Loose status check for API/UI rows where status is still typed as string. */
+export function isOpenDecisionStatus(status: string): boolean {
+  return (OPEN_STATES as Set<string>).has(status)
+}
+
 const STATUS_LABEL: Record<string, string> = {
   drafted: 'Entwurf',
   pending_client: 'Wartet auf Freigabe',
@@ -314,7 +319,7 @@ export function tagroSummaryLine(d: Decision): string {
 
 export function listStatusLabel(d: Decision): string {
   if (d.status === 'decided' || d.status === 'applied') return STATUS_LABEL[d.status] || 'Entschieden'
-  if (OPEN_STATES.has(d.status)) return 'Wartet auf Freigabe'
+  if (isOpenDecisionStatus(d.status)) return 'Wartet auf Freigabe'
   return STATUS_LABEL[d.status] || d.status
 }
 
