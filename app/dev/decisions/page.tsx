@@ -425,42 +425,46 @@ export default function DevDecisionsPage() {
         .dev-dec-head-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
         .dev-dec-btn {
           display: inline-flex; align-items: center; gap: 6px;
-          height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--border);
-          background: var(--surface-2); color: var(--text); font-size: 12.5px; cursor: pointer;
+          height: 32px; padding: 0 12px; border-radius: 8px; border: none;
+          background: color-mix(in srgb, var(--surface-2) 88%, var(--text) 3%);
+          color: var(--text); font-size: 12.5px; cursor: pointer;
           text-decoration: none;
+          box-shadow: inset 0 1px 0 rgba(255,255,255,.45);
         }
-        .dev-dec-btn:hover { background: color-mix(in srgb, var(--surface-2) 80%, var(--text) 4%); }
-        .dev-dec-btn.ghost { background: transparent; }
+        .dev-dec-btn:hover { background: color-mix(in srgb, var(--surface-2) 72%, var(--text) 6%); }
+        .dev-dec-btn.ghost { background: rgba(15,23,42,.05); box-shadow: inset 0 1px 0 rgba(255,255,255,.35); }
         .dev-dec-btn:disabled { opacity: 0.5; cursor: not-allowed; }
         .dev-dec-filters { display: flex; gap: 6px; margin-bottom: 16px; }
         .dev-dec-filter {
-          height: 28px; padding: 0 10px; border-radius: 999px; border: 1px solid var(--border);
-          background: transparent; font-size: 12px; color: var(--text-muted); cursor: pointer;
+          height: 28px; padding: 0 10px; border-radius: 999px; border: none;
+          background: rgba(15,23,42,.05); font-size: 12px; color: var(--text-muted); cursor: pointer;
         }
-        .dev-dec-filter.on { background: var(--surface-2); color: var(--text); border-color: color-mix(in srgb, var(--border) 60%, var(--text) 20%); }
+        .dev-dec-filter.on { background: color-mix(in srgb, var(--surface-2) 90%, var(--text) 4%); color: var(--text); }
         .dev-dec-compose {
-          border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 16px;
-          background: color-mix(in srgb, var(--surface) 92%, var(--text) 2%);
+          border: none; border-radius: 12px; padding: 14px; margin-bottom: 16px;
+          background: color-mix(in srgb, var(--surface-2) 70%, var(--surface));
+          box-shadow: inset 0 1px 0 rgba(255,255,255,.4);
         }
         .dev-dec-compose-label { margin: 0 0 10px; font-size: 12px; font-weight: 500; color: var(--text-muted); }
         .dev-dec-compose-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
         .dev-dec-compose-row label { display: flex; flex-direction: column; gap: 4px; font-size: 11px; color: var(--text-muted); }
-        .dev-dec-compose-row select { height: 32px; border-radius: 8px; border: 1px solid var(--border); padding: 0 8px; background: var(--surface); color: var(--text); }
+        .dev-dec-compose-row select { height: 32px; border-radius: 8px; border: none; padding: 0 8px; background: color-mix(in srgb, var(--surface) 88%, var(--text) 2%); color: var(--text); }
         .dev-dec-input {
-          width: 100%; margin-bottom: 8px; height: 36px; border-radius: 8px; border: 1px solid var(--border);
-          padding: 0 10px; background: var(--surface); color: var(--text); font-size: 13px;
+          width: 100%; margin-bottom: 8px; height: 36px; border-radius: 8px; border: none;
+          padding: 0 10px; background: color-mix(in srgb, var(--surface) 88%, var(--text) 2%); color: var(--text); font-size: 13px;
         }
         .dev-dec-compose-actions { display: flex; gap: 8px; margin-top: 4px; }
         .dev-dec-err { display: flex; align-items: center; gap: 6px; margin: 8px 0 0; font-size: 12px; color: #c44; }
         .dev-dec-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
         .dev-dec-row {
           display: flex; justify-content: space-between; align-items: center; gap: 12px;
-          padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px;
-          background: var(--surface);
+          padding: 12px 14px; border: none; border-radius: 10px;
+          background: color-mix(in srgb, var(--surface-2) 55%, var(--surface));
+          box-shadow: inset 0 1px 0 rgba(255,255,255,.35);
         }
         .dev-dec-row--open {
-          border-color: color-mix(in srgb, var(--accent, #007aff) 40%, var(--border));
-          background: color-mix(in srgb, var(--accent, #007aff) 6%, var(--surface));
+          background: color-mix(in srgb, var(--accent, #007aff) 8%, var(--surface));
+          box-shadow: inset 0 1px 0 rgba(255,255,255,.4), inset 3px 0 0 color-mix(in srgb, var(--accent, #007aff) 55%, transparent);
         }
         .dev-dec-hint {
           display: flex; align-items: center; gap: 8px; padding: 10px 14px; margin-bottom: 16px;
@@ -489,8 +493,8 @@ export default function DevDecisionsPage() {
         .dev-dec-toast {
           position: fixed; bottom: 24px; right: 24px; z-index: 50;
           display: flex; align-items: center; gap: 12px; padding: 10px 14px;
-          border-radius: 10px; background: var(--surface-2); border: 1px solid var(--border);
-          font-size: 13px; box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+          border-radius: 10px; background: var(--surface-2); border: none;
+          font-size: 13px; box-shadow: 0 8px 24px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,.4);
         }
         .dev-dec-toast button { background: none; border: none; font-size: 18px; cursor: pointer; color: var(--text-muted); }
       `}</style>
