@@ -107,6 +107,7 @@ export default function DevOverviewPage() {
   const [promptBusy, setPromptBusy] = useState(false)
   const [promptDone, setPromptDone] = useState(false)
   const [interim, setInterim] = useState('')
+  const [githubSummarizing, setGithubSummarizing] = useState(false)
 
   // Voice input for the daily update — on-device, Web Speech API.
   // Final chunks are appended to the draft; interim text is a live preview.
@@ -125,6 +126,28 @@ export default function DevOverviewPage() {
   function toggleVoice() {
     if (voice.listening) { voice.stop(); setInterim('') }
     else voice.start()
+  }
+
+  async function openGithubDigest() {
+    setGithubSummarizing(true)
+    try {
+      const qs = new URLSearchParams({ limit: '30' })
+      const pid = commits.find(c => c.project_id)?.project_id || projects[0]?.id
+      if (pid) qs.set('projectId', pid)
+      const res = await fetch(`/api/github/tagro-summary?${qs}`, { cache: 'no-store', credentials: 'include' })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) return
+      openTagro({
+        contextType: data.projectId ? 'project' : 'dev_item',
+        id: data.projectId || 'github',
+        projectId: data.projectId ?? undefined,
+        title: data.projectTitle ? `GitHub · ${data.projectTitle}` : 'GitHub · Tagro Digest',
+        subtitle: `${data.stats?.commits ?? 0} Commits · ${data.stats?.prs ?? 0} PRs · ${data.stats?.unlinked ?? 0} offen`,
+        prefill: data.digest || 'Fasse die GitHub-Aktivität zusammen und schlage ein client-sicheres Update vor.',
+      })
+    } finally {
+      setGithubSummarizing(false)
+    }
   }
 
   useEffect(() => {
@@ -471,7 +494,20 @@ export default function DevOverviewPage() {
             })}
           </div>
 
-          <p className="dev-section-title" style={{ marginTop: 22 }}>Letzte Commits</p>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, marginTop: 22, marginBottom: 8 }}>
+            <p className="dev-section-title" style={{ margin: 0 }}>Letzte Commits</p>
+            {commits.length > 0 && (
+              <button
+                type="button"
+                className="dev-secondary-btn"
+                onClick={() => void openGithubDigest()}
+                disabled={githubSummarizing}
+              >
+                <Sparkle size={12} weight="fill" />
+                {githubSummarizing ? 'Tagro lädt…' : 'Stand zusammenfassen'}
+              </button>
+            )}
+          </div>
           <div className="dev-surface" style={{ overflow:'hidden' }}>
             {commits.length === 0 ? (
               <p className="empty">Noch keine Commits sichtbar — synct ein Repo unter <Link href="/dev/github">GitHub</Link>.</p>

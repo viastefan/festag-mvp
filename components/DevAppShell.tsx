@@ -286,21 +286,23 @@ export default function DevAppShell({
           height: 36px; border-radius: 999px; padding: 0 16px;
           display: inline-flex; align-items: center; justify-content: center; gap: 7px;
           line-height: 1; white-space: nowrap;
-          border: 1px solid var(--border);
+          border: none;
           font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
           font-size: 13px; font-weight: 400;
           letter-spacing: 0;
           cursor: pointer;
-          transition: background .14s ease, border-color .14s ease;
+          transition: background .14s ease, box-shadow .14s ease;
+          box-shadow: inset 0 1px 0 rgba(255,255,255,.4);
         }
-        .dev-primary-btn { background: var(--btn-prim); color: var(--btn-prim-text); border-color: var(--btn-prim); }
+        .dev-primary-btn { background: var(--btn-prim); color: var(--btn-prim-text); box-shadow: inset 0 1px 0 rgba(255,255,255,.12), 0 1px 2px rgba(15,23,42,.08); }
         .dev-primary-btn:hover { background: color-mix(in srgb, var(--btn-prim) 86%, #fff); }
-        .dev-secondary-btn { background: var(--surface); color: var(--text); }
-        .dev-secondary-btn:hover { background: color-mix(in srgb, var(--surface-2) 60%, var(--surface)); border-color: var(--border-strong); }
+        .dev-secondary-btn { background: color-mix(in srgb, var(--surface-2) 88%, var(--text) 3%); color: var(--text); }
+        .dev-secondary-btn:hover { background: color-mix(in srgb, var(--surface-2) 72%, var(--text) 6%); }
         .dev-surface {
-          border: 1px solid var(--border);
-          background: var(--surface);
+          border: none;
+          background: color-mix(in srgb, var(--surface-2) 55%, var(--surface));
           border-radius: 10px;
+          box-shadow: inset 0 1px 0 rgba(255,255,255,.35);
         }
         .dev-row {
           display: grid; align-items: center; gap: 14px;
@@ -316,9 +318,10 @@ export default function DevAppShell({
         .dev-chip {
           display: inline-flex; align-items: center; gap: 6px;
           min-height: 22px; padding: 0 8px; border-radius: 5px;
-          background: var(--surface-2); color: var(--text-secondary);
+          background: color-mix(in srgb, var(--surface-2) 90%, var(--text) 2%);
+          color: var(--text-secondary);
           font-size: 11px; font-weight: 500;
-          border: 1px solid color-mix(in srgb, var(--border) 55%, transparent);
+          border: none;
         }
 
         @media (max-width: 768px) {
