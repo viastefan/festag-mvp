@@ -20,7 +20,7 @@ import { useSearchParams } from 'next/navigation'
 import { usePathname } from 'next/navigation'
 import {
   ArrowsClockwise, ChatCircleText, Check, CheckCircle, Clock, FunnelSimple,
-  Sparkle, Warning, WarningCircle, X, UserCircle, CaretDown,
+  Sparkle, Warning, WarningCircle, X, UserCircle, CaretDown, Lightning,
   Pulse, Bell, Folder, Scissors, ListChecks, File, UsersThree, Question,
 } from '@phosphor-icons/react'
 import HelpHint from '@/components/HelpHint'
@@ -185,6 +185,12 @@ const STATUS_TONE: Record<string, 'good' | 'amber' | 'red' | 'muted'> = {
   expired: 'muted',
   cancelled: 'muted',
   closed: 'muted',
+}
+
+function impactLine(d: Decision): string {
+  const raw = d.client_summary || d.description
+  if (!raw?.trim()) return 'Wird nach Freigabe umgesetzt.'
+  return raw.trim()
 }
 
 function tagroSummaryLine(d: Decision): string {
@@ -361,7 +367,7 @@ export default function DecisionsPage() {
           overflow:hidden;
           display:flex;
           gap:16px;
-          padding:16px;
+          padding:8px 8px 8px 16px;
           box-sizing:border-box;
         }
         .decisions-nav-col {
@@ -376,8 +382,8 @@ export default function DecisionsPage() {
         .decisions-main {
           flex:1; min-height:0;
           background:#FFFFFF;
-          border-radius:32px;
-          box-shadow:0 1px 2px rgba(15,15,16,.04), 0 8px 32px rgba(110,113,126,.08);
+          border-radius:12px;
+          box-shadow:0 -2px 4px rgba(110,113,126,.05), 0 2px 4px rgba(110,113,126,.05);
           overflow:hidden;
           display:flex; flex-direction:column;
           position:relative;
@@ -555,10 +561,10 @@ function DecisionsPageInner() {
   const executiveSummary = useMemo(() => {
     const open = displayCounts.open
     if (open === 0) {
-      return [
-        'Keine offenen Entscheidungen.',
-        'Tagro überwacht deine Projekte und meldet sich, sobald etwas ansteht.',
-      ]
+      return {
+        line1: 'Keine offenen Entscheidungen.',
+        line2: 'Tagro überwacht deine Projekte und meldet sich bei Bedarf.',
+      }
     }
 
     const openItems = displayList.filter(d => OPEN_STATES.has(d.status))
@@ -566,30 +572,34 @@ function DecisionsPageInner() {
     const top = urgentItems[0] || openItems[0]
     const topTitle = (top?.client_title || top?.title || '').toLowerCase()
 
-    const lines: string[] = [
-      `${open} Entscheidung${open === 1 ? '' : 'en'} benötigen Aufmerksamkeit.`,
-    ]
-
+    let line1 = 'Die wichtigste Entscheidung wartet auf deine Freigabe.'
     if (topTitle.includes('zahlung') || topTitle.includes('stripe') || topTitle.includes('payment')) {
-      lines.push('Die wichtigste Entscheidung betrifft die Zahlungsintegration.')
+      line1 = 'Die wichtigste Entscheidung betrifft die Zahlungsintegration der Festag Plattform.'
     } else if (top) {
-      lines.push(`Die wichtigste Entscheidung betrifft „${top.client_title || top.title}".`)
+      line1 = `Die wichtigste Entscheidung betrifft „${top.client_title || top.title}".`
     }
 
     const accelerators = openItems.filter(d => d.urgency !== 'low').length
-    if (accelerators >= 2) {
-      lines.push(`${accelerators} Entscheidungen können den Projektfortschritt beschleunigen.`)
-    }
-
     const hasCritical = openItems.some(d => d.urgency === 'critical' || (d.escalation_level ?? 0) >= 2)
-    lines.push(hasCritical ? 'Mindestens eine Entscheidung erfordert umgehende Prüfung.' : 'Keine kritischen Risiken erkannt.')
+    const line2 = hasCritical
+      ? 'Mindestens eine Entscheidung sollte heute entschieden werden.'
+      : accelerators >= 2
+        ? 'Eine Freigabe würde den Projektfortschritt um etwa 4 Tage beschleunigen.'
+        : 'Keine kritischen Risiken erkannt.'
 
-    return lines.slice(0, 4)
+    return { line1, line2 }
   }, [displayCounts.open, displayList])
 
   return (
     <div className="dec-os">
       <style jsx>{CSS}</style>
+
+      <div className="dec-hero-bg dec-hero-bg-top" aria-hidden>
+        <img src="/decisions/hero-top.png" alt="" />
+      </div>
+      <div className="dec-hero-bg dec-hero-bg-bottom" aria-hidden>
+        <img src="/decisions/hero-bottom.png" alt="" />
+      </div>
 
       <div className="dec-static-top">
         <MobilePageHeader
@@ -602,23 +612,21 @@ function DecisionsPageInner() {
         <div className="dec-hero">
           <div className="dec-hero-text">
             <h1 className="dec-hero-title">
-              {displayCounts.open === 0 ? 'Entscheidungen' : `${displayCounts.open} Entscheidung${displayCounts.open === 1 ? '' : 'en'}`}
+              {displayCounts.open === 0
+                ? 'Keine Entscheidungen offen.'
+                : `Heute ${displayCounts.open === 1 ? 'ist' : 'sind'} ${displayCounts.open} Entscheidung${displayCounts.open === 1 ? '' : 'en'} offen.`}
             </h1>
-            <div className="dec-executive-summary">
-              {executiveSummary.map((line) => (
-                <p key={line}>{line}</p>
-              ))}
+            <div className="dec-hero-sub">
+              <p>{executiveSummary.line1}</p>
+              <p>{executiveSummary.line2}</p>
             </div>
           </div>
           <div className="dec-hero-actions">
             <button className="dec-icon-circle" type="button" onClick={() => setFilter(f => f === 'open' ? 'all' as Filter : 'open' as Filter)} title="Filter">
-              <FunnelSimple size={16} weight="regular" />
-            </button>
-            <button className="dec-icon-circle" type="button" onClick={load} disabled={loading} title="Aktualisieren">
-              <ArrowsClockwise size={16} className={loading ? 'dec-spin' : ''} />
+              <FunnelSimple size={16} weight="fill" />
             </button>
             <button
-              className="dec-icon-circle"
+              className="dec-icon-circle dec-icon-accent"
               type="button"
               onClick={() => openTagro({
                 contextType: 'decision',
@@ -626,8 +634,11 @@ function DecisionsPageInner() {
                 title: 'Entscheidungen · Übersicht',
                 subtitle: `${displayCounts.open} offen · ${displayCounts.urgent} dringend`,
               })}
-              title="Mehr"
+              title="Tagro"
             >
+              <Lightning size={16} weight="fill" />
+            </button>
+            <button className="dec-icon-circle" type="button" title="Mehr">
               <svg width="14" height="3" viewBox="0 0 14 3" fill="none"><circle cx="2" cy="1.5" r="1.5" fill="currentColor"/><circle cx="7" cy="1.5" r="1.5" fill="currentColor"/><circle cx="12" cy="1.5" r="1.5" fill="currentColor"/></svg>
             </button>
           </div>
@@ -649,6 +660,12 @@ function DecisionsPageInner() {
           const displayTitle = d.client_title || d.title
           const isOpen = OPEN_STATES.has(d.status)
           const isAnswered = d.status === 'decided' || d.status === 'applied'
+          const tagroText = tagroSummaryLine(d)
+          const impactText = impactLine(d)
+          const timeNeeded = d.response_type === 'multi_choice' || d.response_type === 'ranked_choice'
+            ? '2 Minuten'
+            : '30 Sekunden'
+          const secondaryLabel = d.response_type === 'binary' ? 'Ablehnen' : 'Optionen'
           const primaryLabel = isAnswered
             ? (d.selected_option || 'Entschieden')
             : d.recommended_option && d.recommended_option !== 'freeform'
@@ -656,18 +673,49 @@ function DecisionsPageInner() {
               : 'Freigeben'
           return (
             <div key={d.id}>
-              <div className={`dec-row${openId === d.id ? ' on' : ''}${i % 2 === 1 ? ' alt' : ''}`}>
-                <div className="dec-row-content">
-                  <p className="dec-row-title">{displayTitle}</p>
-                  <p className="dec-row-rec">{tagroSummaryLine(d)}</p>
-                  <p className="dec-row-meta">
-                    <span>Projekt: {proj?.title || '—'}</span>
-                    <span className="dec-row-meta-sep">·</span>
-                    <span>Status: {listStatusLabel(d)}</span>
-                  </p>
+              <div className={`dec-card${openId === d.id ? ' on' : ''}${i % 2 === 1 ? ' alt' : ''}`}>
+                <div className="dec-card-left">
+                  <div className="dec-card-title-block">
+                    <p className="dec-card-title">{displayTitle}</p>
+                    <p className="dec-card-project">{proj?.title || '—'}</p>
+                  </div>
+                  <div className="dec-card-type-pill">
+                    <span className="dec-card-dot" style={{ background: proj?.color || '#5B647D' }} />
+                    {d.decision_type || listStatusLabel(d)}
+                  </div>
                 </div>
 
-                <div className="dec-row-actions">
+                <div className="dec-card-mid">
+                  <div className="dec-card-section">
+                    <p className="dec-card-label">Tagro empfiehlt..</p>
+                    <p className="dec-card-muted">{tagroText}</p>
+                  </div>
+                  <div className="dec-card-section">
+                    <p className="dec-card-label">Auswirkung</p>
+                    <p className="dec-card-muted">{impactText}</p>
+                  </div>
+                </div>
+
+                <div className="dec-card-meta">
+                  <div className="dec-card-section">
+                    <p className="dec-card-label">Benötigte Zeit</p>
+                    <p className="dec-card-muted">{timeNeeded}</p>
+                  </div>
+                  <div className="dec-card-section">
+                    <p className="dec-card-label">Priorität</p>
+                    <span className="dec-card-prio-pill">
+                      {(d.escalation_level ?? 0) >= 2 && OPEN_STATES.has(d.status) && (
+                        <WarningCircle size={11} weight="fill" style={{ marginRight: 4, color: 'var(--danger, #C2503E)', verticalAlign: '-1px' }} />
+                      )}
+                      {URGENCY_LABEL[d.urgency] || 'Normal'}
+                      {typeof d.urgency_score === 'number' && (
+                        <span style={{ marginLeft: 5, opacity: 0.55 }}>{Math.round(d.urgency_score)}</span>
+                      )}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="dec-card-actions">
                   <button className="dec-card-dots" type="button" onClick={(e) => { e.stopPropagation(); setOpenId(d.id) }}>
                     <svg width="3" height="14" viewBox="0 0 3 14" fill="none"><circle cx="1.5" cy="2" r="1.5" fill="currentColor"/><circle cx="1.5" cy="7" r="1.5" fill="currentColor"/><circle cx="1.5" cy="12" r="1.5" fill="currentColor"/></svg>
                   </button>
@@ -682,7 +730,7 @@ function DecisionsPageInner() {
                   )}
                   {isOpen && !isAnswered && (
                     <button className="dec-card-btn-outline" type="button" onClick={(e) => { e.stopPropagation(); setOpenId(d.id) }}>
-                      Optionen
+                      {secondaryLabel}
                     </button>
                   )}
                   <button className="dec-card-btn-outline" type="button" onClick={() => setOpenId(d.id)}>
@@ -1375,7 +1423,16 @@ const CSS = `
     letter-spacing:.02em;
     font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
     font-weight:400;
+    position:relative;
   }
+  .dec-hero-bg {
+    position:absolute; left:0; right:0; pointer-events:none; z-index:0;
+    overflow:hidden;
+  }
+  .dec-hero-bg img { width:100%; height:100%; object-fit:cover; display:block; }
+  .dec-hero-bg-top { top:0; height:255px; }
+  .dec-hero-bg-bottom { bottom:0; height:129px; }
+  .dec-static-top, .dec-scroll-body { position:relative; z-index:1; }
   [data-theme="dark"] .dec-os, [data-theme="classic-dark"] .dec-os, [data-theme="read"] .dec-os {
     --dec-soft: var(--text-secondary);
     --dec-dark: var(--text);
@@ -1383,12 +1440,12 @@ const CSS = `
 
   .dec-static-top {
     flex:0 0 auto; position:sticky; top:0; z-index:8;
-    background:#FFFFFF; padding:56px 72px 20px;
+    background:#FFFFFF; padding:64px 164px 0;
   }
   .dec-static-top::after {
     content:''; display:block; position:absolute;
-    left:0; right:0; bottom:-56px; height:56px;
-    background:linear-gradient(to bottom, #FFFFFF 0%, rgba(255,255,255,.96) 35%, rgba(255,255,255,.72) 65%, transparent 100%);
+    left:0; right:0; bottom:-48px; height:48px;
+    background:linear-gradient(to bottom, #FFFFFF 0%, rgba(255,255,255,.92) 40%, transparent 100%);
     pointer-events:none;
   }
   [data-theme="dark"] .dec-static-top,
@@ -1400,17 +1457,17 @@ const CSS = `
     background:linear-gradient(to bottom, var(--card), transparent);
   }
 
-  .dec-hero { display:flex; justify-content:space-between; align-items:flex-start; gap:32px; padding-bottom:8px; }
-  .dec-hero-text { max-width:640px; flex:1; min-width:0; }
+  .dec-hero { display:flex; justify-content:space-between; align-items:flex-start; gap:24px; padding-bottom:24px; }
+  .dec-hero-text { max-width:600px; flex:1; min-width:0; }
   .dec-hero-title {
-    margin:0 0 20px; font-size:40px; font-weight:500; color:var(--dec-dark);
-    letter-spacing:-.03em; line-height:1.05;
+    margin:0; font-size:28px; font-weight:400; color:var(--dec-dark);
+    letter-spacing:.02em; line-height:1.2;
     font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
   }
-  .dec-executive-summary { display:flex; flex-direction:column; gap:10px; }
-  .dec-executive-summary p {
-    margin:0; font-size:17px; font-weight:400; color:var(--dec-soft);
-    line-height:1.45; letter-spacing:.01em;
+  .dec-hero-sub { margin-top:16px; display:flex; flex-direction:column; gap:0; }
+  .dec-hero-sub p {
+    margin:0; font-size:20px; font-weight:400; color:var(--dec-soft);
+    line-height:1.25; letter-spacing:.02em;
   }
   .dec-hero-actions { display:flex; gap:12px; align-items:center; flex-shrink:0; }
   .dec-icon-circle {
@@ -1423,6 +1480,7 @@ const CSS = `
   }
   .dec-icon-circle:hover { background:#f8f9fa; box-shadow:0 2px 8px rgba(46,47,51,.1); }
   .dec-icon-circle:disabled { opacity:.5; cursor:not-allowed; }
+  .dec-icon-accent { color:#5b647d; }
 
   .dec-divider-gradient {
     height:.5px; width:100%;
@@ -1439,45 +1497,67 @@ const CSS = `
   .dec-scroll-body {
     flex:1 1 auto; min-height:0;
     overflow-y:auto; overflow-x:hidden;
-    padding:12px 72px 72px;
+    padding:32px 164px 64px;
     overscroll-behavior:contain;
     scrollbar-width:none;
   }
   .dec-scroll-body::-webkit-scrollbar { display:none; }
 
-  /* ── Decision rows ── */
-  .dec-row {
-    display:flex; gap:40px; align-items:flex-start; justify-content:space-between;
-    padding:22px 8px; width:100%;
+  /* ── Decision card rows (Figma) ── */
+  .dec-card {
+    display:flex; gap:56px; align-items:center;
+    padding:16px 24px; width:100%;
     transition:background .12s;
   }
-  .dec-row.alt {
-    background:rgba(241,243,245,.35);
-    border-radius:16px;
-    padding-left:16px;
-    padding-right:16px;
+  .dec-card.alt {
+    background:rgba(241,243,245,.4);
+    border-radius:12px;
+    box-shadow:0 2px 3px rgba(0,0,0,.05);
   }
-  .dec-row.on { background:rgba(241,243,245,.55); border-radius:16px; padding-left:16px; padding-right:16px; }
+  .dec-card.on { background:rgba(241,243,245,.65); border-radius:12px; }
 
-  .dec-row-content { flex:1; min-width:0; display:flex; flex-direction:column; gap:10px; }
-  .dec-row-title {
-    margin:0; font-size:20px; font-weight:500; color:var(--dec-dark);
-    letter-spacing:-.02em; line-height:1.2;
+  .dec-card-left { width:179px; flex-shrink:0; display:flex; flex-direction:column; gap:32px; }
+  .dec-card-title-block { display:flex; flex-direction:column; gap:8px; }
+  .dec-card-title {
+    margin:0; font-size:18px; font-weight:500; color:var(--dec-dark);
     font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
   }
-  .dec-row-rec {
-    margin:0; font-size:15px; font-weight:400; color:var(--dec-soft);
-    line-height:1.5; letter-spacing:.01em; max-width:720px;
+  .dec-card-project {
+    margin:0; font-size:14px; font-weight:400; color:var(--dec-soft);
+    letter-spacing:.02em;
   }
-  .dec-row-meta {
-    margin:4px 0 0; font-size:13px; font-weight:400; color:#8f93a4;
-    letter-spacing:.02em; display:flex; flex-wrap:wrap; gap:8px; align-items:center;
+  .dec-card-type-pill {
+    display:inline-flex; align-items:center; gap:8px;
+    padding:6px 12px; border-radius:999px;
+    background:#f1f3f5; color:var(--dec-dark);
+    font-size:14px; font-weight:400; letter-spacing:.02em;
+    width:fit-content;
   }
-  .dec-row-meta-sep { opacity:.45; }
+  .dec-card-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
 
-  .dec-row-actions {
-    width:105px; flex-shrink:0; display:flex; flex-direction:column;
-    gap:12px; align-items:flex-end; padding-top:2px;
+  .dec-card-mid { width:298px; flex-shrink:0; display:flex; flex-direction:column; gap:24px; }
+  .dec-card-section { display:flex; flex-direction:column; gap:8px; }
+  .dec-card-label {
+    margin:0; font-size:14px; font-weight:500; color:var(--dec-dark);
+    letter-spacing:.01em;
+    font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
+  }
+  .dec-card-muted {
+    margin:0; font-size:14px; font-weight:400; color:var(--dec-soft);
+    line-height:1.45; letter-spacing:.02em;
+  }
+
+  .dec-card-meta { width:93px; flex-shrink:0; display:flex; flex-direction:column; gap:57px; }
+  .dec-card-prio-pill {
+    display:inline-flex; align-items:center;
+    padding:6px 12px; border-radius:999px;
+    background:#f1f3f5; color:var(--dec-dark);
+    font-size:14px; font-weight:400; letter-spacing:.02em;
+    width:fit-content;
+  }
+
+  .dec-card-actions {
+    width:105px; flex-shrink:0; display:flex; flex-direction:column; gap:12px; align-items:flex-end;
   }
   .dec-card-dots {
     border:0; background:transparent; color:var(--dec-soft);
@@ -1810,12 +1890,13 @@ const CSS = `
   @media (max-width: 900px) {
     .dec-static-top { padding:24px 20px 12px; }
     .dec-scroll-body { padding:8px 20px 40px; }
-    .dec-row { flex-direction:column; gap:20px; padding:18px 4px; }
-    .dec-row.alt, .dec-row.on { padding-left:12px; padding-right:12px; }
-    .dec-row-actions { width:100%; flex-direction:row; flex-wrap:wrap; gap:8px; align-items:stretch; }
-    .dec-row-actions > button { width:auto; flex:1; min-width:80px; }
-    .dec-hero-title { font-size:28px; }
-    .dec-executive-summary p { font-size:15px; }
+    .dec-card { flex-direction:column; gap:20px; padding:18px 12px; align-items:stretch; }
+    .dec-card-left, .dec-card-mid, .dec-card-meta, .dec-card-actions { width:100%; }
+    .dec-card-meta { gap:24px; flex-direction:row; }
+    .dec-card-actions { flex-direction:row; flex-wrap:wrap; gap:8px; align-items:stretch; }
+    .dec-card-actions > button { width:auto; flex:1; min-width:80px; }
+    .dec-hero-title { font-size:24px; }
+    .dec-hero-sub p { font-size:16px; }
     .dec-panel { width:100vw; }
     .dec-answer-actions { flex-direction:column; align-items:stretch; }
     .dec-answer-actions > button { width:100%; justify-content:center; }
