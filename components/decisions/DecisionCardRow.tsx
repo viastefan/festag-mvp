@@ -9,10 +9,10 @@ import {
 import FestagPillButton from '@/components/ui/FestagPillButton'
 import ClampedTip from '@/components/decisions/ClampedTip'
 import { openTagro } from '@/components/TagroOverlay'
-import type { Decision, ProjectLite } from '@/app/(app)/decisions/page'
+import type { Decision, ProjectLite } from '@/components/decisions/decisions-shared'
 import {
   OPEN_STATES, URGENCY_LABEL, impactLine, listStatusLabel, tagroSummaryLine,
-} from '@/app/(app)/decisions/page'
+} from '@/components/decisions/decisions-shared'
 
 export function capitalizeDE(s: string): string {
   const t = (s || '').trim()

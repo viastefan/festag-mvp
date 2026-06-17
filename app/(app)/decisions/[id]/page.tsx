@@ -8,8 +8,6 @@ import { createClient } from '@/lib/supabase/client'
 import { openTagro } from '@/components/TagroOverlay'
 import TagroContentFab from '@/components/TagroContentFab'
 import {
-  DECISION_CSS,
-  DecisionDrawer,
   MOCK_DECISIONS,
   MOCK_PROJECTS,
   URGENCY_LABEL,
@@ -17,7 +15,9 @@ import {
   fmtAgo,
   type Decision,
   type ProjectLite,
-} from '../page'
+} from '@/components/decisions/decisions-shared'
+import { DecisionDrawer } from '@/components/decisions/DecisionDrawer'
+import { DECISION_CSS } from '@/components/decisions/decisions-styles'
 
 function DecisionDetailInner() {
   const { id } = useParams<{ id: string }>()
