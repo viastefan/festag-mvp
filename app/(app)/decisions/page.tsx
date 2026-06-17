@@ -28,6 +28,7 @@ import { openTagro } from '@/components/TagroOverlay'
 import { createClient } from '@/lib/supabase/client'
 import {
   type Decision, type ProjectLite, OPEN_STATES, URGENCY_LABEL, URGENCY_TONE,
+  MOCK_DECISIONS, MOCK_PROJECTS,
 } from '@/components/decisions/decisions-shared'
 import { DecisionDrawer } from '@/components/decisions/DecisionDrawer'
 import { DECISION_CSS } from '@/components/decisions/decisions-styles'

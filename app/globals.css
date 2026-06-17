@@ -251,12 +251,19 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
   --r:12px; --r-xs:8px; --r-sm:10px; --r-md:12px; --r-lg:12px; --r-xl:12px;
 }
-[data-theme="read"] body {
-  background:
-    radial-gradient(1200px 600px at 10% -10%, rgba(149,127,78,0.08), transparent 55%),
-    radial-gradient(1000px 520px at 100% 0%, rgba(104,88,56,0.06), transparent 50%),
-    var(--bg);
-}
+  [data-theme="read"] body {
+    background:
+      radial-gradient(1200px 600px at 10% -10%, rgba(149,127,78,0.08), transparent 55%),
+      radial-gradient(1000px 520px at 100% 0%, rgba(104,88,56,0.06), transparent 50%),
+      var(--bg);
+  }
+  body.festag-portal-shell {
+    background: #F6F9FC !important;
+  }
+  [data-theme="dark"] body.festag-portal-shell,
+  [data-theme="classic-dark"] body.festag-portal-shell {
+    background: #0a0d11 !important;
+  }
 [data-theme="read"] .sidebar-inner {
   background: transparent;
   border-color: transparent;

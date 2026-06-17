@@ -6,7 +6,7 @@ import CommandPalette from '@/components/CommandPalette'
 
 export const DECISIONS_SHELL_CSS = `
   .decisions-shell {
-    --portal-bg: var(--bg, #f5f5f5);
+    --portal-bg: #F6F9FC;
     --portal-card: #FFFFFF;
     --portal-text: #0f0f10;
     --portal-muted: #6e717e;
@@ -63,8 +63,8 @@ export const DECISIONS_SHELL_CSS = `
     width:var(--festag-sidebar-width, 260px); flex-shrink:0;
     box-sizing:border-box;
     display:flex; flex-direction:column;
-    background:var(--sidebar-bg, #f5f5f5);
-    border-right:1px solid var(--sidebar-border, #e8e8e8);
+    background:transparent;
+    border-right:none;
     overflow:hidden;
     transition:width .22s cubic-bezier(.16,1,.3,1);
   }
@@ -159,6 +159,11 @@ export default function DecisionsShell({ children }: { children: React.ReactNode
     try {
       setSidebarCollapsed(localStorage.getItem(STORAGE_KEY) === 'true')
     } catch { /* noop */ }
+  }, [])
+
+  useEffect(() => {
+    document.body.classList.add('festag-portal-shell')
+    return () => { document.body.classList.remove('festag-portal-shell') }
   }, [])
 
   function toggleSidebar() {

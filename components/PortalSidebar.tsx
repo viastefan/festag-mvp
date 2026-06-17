@@ -216,7 +216,7 @@ const CSS = `
     letter-spacing: var(--ls-sidebar, 0.005em);
     overflow: hidden;
     box-sizing: border-box;
-    background: var(--sidebar-bg, #f5f5f5);
+    background: transparent;
   }
 
   .portal-nav-top {
@@ -348,7 +348,7 @@ const CSS = `
     position: absolute; top: -2px; right: -3px;
     width: 6px; height: 6px; border-radius: 50%;
     background: #007aff;
-    border: 1.5px solid var(--sidebar-bg, #f5f5f5);
+    border: 1.5px solid var(--portal-bg, #F6F9FC);
   }
   .portal-nav-item.active .portal-nav-badge {
     border-color: var(--glass-nav-active, rgba(0,0,0,.055));
@@ -365,23 +365,24 @@ const CSS = `
     flex: 1 1 auto;
     min-height: 0;
     display: flex; flex-direction: column;
-    gap: 4px;
-    margin-top: 18px;
-    padding-top: 14px;
-    border-top: 1px solid color-mix(in srgb, var(--sidebar-border, #e8e8e8) 80%, transparent);
+    gap: 2px;
+    margin-top: 14px;
+    padding-top: 0;
+    border-top: none;
     overflow: hidden;
+    font-weight: 400;
   }
 
   .portal-nav-recent-label {
-    margin: 0 0 4px 10px;
-    font-size: 12px; font-weight: 400;
+    margin: 0 0 2px 10px;
+    font-size: 13px; font-weight: 400;
     color: var(--portal-muted, #8f93a4);
     letter-spacing: var(--ls-sidebar, 0.005em);
     text-transform: none;
   }
 
   .portal-nav-recent {
-    display: flex; flex-direction: column; gap: 1px;
+    display: flex; flex-direction: column; gap: 2px;
     flex: 1 1 auto;
     min-height: 0;
     overflow-y: auto;
@@ -392,18 +393,22 @@ const CSS = `
 
   .portal-nav-recent-item {
     display: flex; align-items: center;
-    padding: 7px 10px;
-    border-radius: 8px;
+    padding: 8px 10px;
+    min-height: 34px;
+    border-radius: 10px;
     font-size: 13px; font-weight: 400;
-    line-height: 1.35;
+    line-height: 1;
     color: var(--portal-muted, #6e717e);
     text-decoration: none;
     letter-spacing: var(--ls-sidebar, 0.005em);
     transition: color .14s ease, background .14s ease;
+    box-sizing: border-box;
   }
   .portal-nav-recent-text {
     min-width: 0;
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    font-size: 13px;
+    font-weight: 400;
   }
   .portal-nav-recent-item:hover {
     color: var(--portal-text, #0f0f10);
@@ -420,7 +425,7 @@ const CSS = `
     gap: 8px;
     padding: 10px 4px 2px;
     margin-top: 8px;
-    border-top: 1px solid color-mix(in srgb, var(--sidebar-border, #e8e8e8) 80%, transparent);
+    border-top: none;
   }
 
   .portal-nav-footer-link {

@@ -9,9 +9,20 @@ export default function AppError({ error, reset }: { error: Error & { digest?: s
   }, [error])
 
   return (
-    <main className="page-content" style={{ maxWidth: 760 }}>
+    <main className="page-content app-error-page" style={{ maxWidth: 760 }}>
       <section className="app-error-shell">
         <style>{`
+          .app-error-page {
+            min-height: 100dvh;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            background: #F6F9FC;
+          }
+          [data-theme="dark"] .app-error-page,
+          [data-theme="classic-dark"] .app-error-page {
+            background: #0a0d11;
+          }
           .app-error-shell {
             margin: clamp(28px, 8vh, 76px) auto;
             padding: clamp(22px, 4vw, 34px);
