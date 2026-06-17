@@ -27,6 +27,7 @@ import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
 import MobileNavSheet from '@/components/mobile/MobileNavSheet'
 import MobileProjectPickerSheet, { type ProjectPickerMode } from '@/components/mobile/MobileProjectPickerSheet'
 import ProjectsStatusBriefingSheet from '@/components/mobile/ProjectsStatusBriefingSheet'
+import MobilePageDock from '@/components/mobile/MobilePageDock'
 
 type ProjectRow = {
   id: string
@@ -629,41 +630,22 @@ function ProjectsPageInner() {
         <PencilSimple size={24} weight="regular" />
       </button>
 
-      {/* Mobile: Bottom dock */}
-      <div className="pjm-dock">
-        <div
-          className="pjm-dock-actions"
-          onTouchStart={(e) => {
-            const startY = e.touches[0].clientY
-            const onMove = (ev: TouchEvent) => {
-              if (startY - ev.touches[0].clientY > 40) {
-                openBriefingSheet()
-                document.removeEventListener('touchmove', onMove)
-                document.removeEventListener('touchend', onEnd)
-              }
-            }
-            const onEnd = () => {
-              document.removeEventListener('touchmove', onMove)
-              document.removeEventListener('touchend', onEnd)
-            }
-            document.addEventListener('touchmove', onMove, { passive: true })
-            document.addEventListener('touchend', onEnd, { once: true })
-          }}
-        >
-          <div className="pjm-home-indicator" />
-          <div className="pjm-dock-row">
-            <button type="button" className="pjm-status-btn" onClick={openBriefingSheet}>
-              <span className="pjm-status-btn-icon" aria-hidden>
-                <WaveSine size={14} weight="regular" />
-              </span>
-              <span className="pjm-status-btn-label">Statusbericht erstellen...</span>
-            </button>
-            <button type="button" className="pjm-tagro" aria-label="Mit Tagro bearbeiten" onClick={() => setDockPicker('tagro')}>
-              <PencilSimple size={20} weight="regular" />
-            </button>
-          </div>
-        </div>
-      </div>
+      <MobilePageDock
+        onDragUp={() => setShowNewProject(true)}
+        primary={{
+          id: 'status',
+          label: 'Statusbericht erstellen...',
+          icon: <WaveSine size={14} weight="regular" />,
+          onClick: openBriefingSheet,
+          ariaLabel: 'Statusbericht erstellen',
+        }}
+        secondary={{
+          id: 'tagro',
+          icon: <PencilSimple size={20} weight="regular" />,
+          onClick: () => setDockPicker('tagro'),
+          ariaLabel: 'Mit Tagro bearbeiten',
+        }}
+      />
 
       <ProjectsStatusBriefingSheet
         open={briefingOpen}
@@ -806,7 +788,6 @@ const CSS = `
   .pjm-status-dot { display: none; }
   .pjm-actions { display: none; }
   .pjm-sheet-backdrop { display: none; }
-  .pjm-dock { display: none; }
   .pjm-icon-sep { display: none; }
 
     .pj2-page {
@@ -1830,115 +1811,6 @@ const CSS = `
     .pj2-teams { display: none !important; }
     .pj2-more-wrap { display: none !important; }
 
-    /* ── Bottom dock ── */
-    .pjm-dock {
-      display: flex !important;
-      position: fixed !important;
-      bottom: 0 !important; left: 0 !important; right: 0 !important;
-      z-index: 50 !important;
-    }
-    .pjm-dock-actions {
-      display: flex !important;
-      flex-direction: column !important;
-      align-items: center !important;
-      width: 100% !important;
-      box-sizing: border-box !important;
-      background: #FFFFFF !important;
-      border-top: 0 !important;
-      border-radius: 36px 36px 0 0 !important;
-      box-shadow:
-        0 -10px 40px rgba(0, 0, 0, 0.10),
-        0 -2px 12px rgba(0, 0, 0, 0.05) !important;
-      padding: 10px 16px 16px !important;
-      padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px)) !important;
-    }
-    .pjm-home-indicator {
-      width: 40px !important; height: 4px !important;
-      background: rgba(0, 0, 0, 0.12) !important;
-      border-radius: 999px !important;
-      margin-bottom: 14px !important;
-      cursor: grab !important;
-      flex-shrink: 0 !important;
-    }
-    .pjm-dock-row {
-      display: flex !important;
-      align-items: center !important;
-      gap: 10px !important;
-      width: 100% !important;
-    }
-    .pjm-status-btn {
-      position: relative !important;
-      flex: 1 !important;
-      min-width: 0 !important;
-      display: flex !important;
-      align-items: center !important;
-      justify-content: center !important;
-      height: 54px !important;
-      padding: 0 20px !important;
-      border: 1px solid rgba(0, 0, 0, 0.05) !important;
-      border-radius: 999px !important;
-      background: #FFFFFF !important;
-      color: #8E8E93 !important;
-      font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif) !important;
-      font-size: 16px !important;
-      font-weight: 400 !important;
-      letter-spacing: -0.01em !important;
-      cursor: pointer !important;
-      box-shadow: var(--pjm-white-elev) !important;
-      overflow: hidden !important;
-    }
-    .pjm-status-btn:active {
-      background: #F8F8F8 !important;
-      transform: scale(0.985);
-    }
-    .pjm-status-btn-icon {
-      position: absolute !important;
-      left: 20px !important;
-      top: 50% !important;
-      transform: translateY(-50%) !important;
-      display: inline-flex !important;
-      align-items: center !important;
-      justify-content: center !important;
-      flex-shrink: 0 !important;
-      color: #8E8E93 !important;
-      pointer-events: none !important;
-    }
-    .pjm-status-btn-icon svg {
-      width: 14px !important;
-      height: 14px !important;
-    }
-    .pjm-status-btn-label {
-      width: 100% !important;
-      text-align: center !important;
-      overflow: hidden !important;
-      text-overflow: ellipsis !important;
-      white-space: nowrap !important;
-      pointer-events: none !important;
-      font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif) !important;
-      font-size: 16px !important;
-      font-weight: 400 !important;
-      letter-spacing: 0.5% !important;
-    }
-    .pjm-tagro {
-      width: 54px !important; height: 54px !important;
-      flex-shrink: 0 !important;
-      border: 0 !important;
-      border-radius: 999px !important;
-      background: var(--btn-prim, #5B647D) !important;
-      color: var(--btn-prim-text, #FFFFFF) !important;
-      display: inline-flex !important; align-items: center !important; justify-content: center !important;
-      cursor: pointer !important;
-      padding: 0 !important;
-      box-shadow: 0 4px 18px color-mix(in srgb, var(--btn-prim, #5B647D) 34%, transparent) !important;
-    }
-    .pjm-tagro:active {
-      transform: scale(0.97);
-      background: color-mix(in srgb, var(--btn-prim, #5B647D) 88%, #000) !important;
-    }
-    .pjm-tagro svg {
-      width: 20px !important; height: 20px !important;
-    }
-
     /* ── Dark mode — portal tokens + Codex glass surfaces ── */
     [data-theme="dark"] .pj2-page,
     [data-theme="classic-dark"] .pj2-page {
@@ -2075,38 +1947,6 @@ const CSS = `
     [data-theme="dark"] .pj2-page .pj2-dev-av,
     [data-theme="classic-dark"] .pj2-page .pj2-dev-av {
       border-color: #141416 !important;
-    }
-    [data-theme="dark"] .pj2-page .pjm-dock-actions,
-    [data-theme="classic-dark"] .pj2-page .pjm-dock-actions {
-      background: #1c1c1e !important;
-      box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.42) !important;
-    }
-    [data-theme="dark"] .pj2-page .pjm-home-indicator,
-    [data-theme="classic-dark"] .pj2-page .pjm-home-indicator {
-      background: rgba(255, 255, 255, 0.22) !important;
-    }
-    [data-theme="dark"] .pj2-page .pjm-status-btn,
-    [data-theme="classic-dark"] .pj2-page .pjm-status-btn {
-      background: rgba(255, 255, 255, 0.11) !important;
-      border: 1px solid rgba(255, 255, 255, 0.1) !important;
-      color: #9aa0ac !important;
-      box-shadow: var(--pjm-white-elev) !important;
-    }
-    [data-theme="dark"] .pj2-page .pjm-status-btn-icon,
-    [data-theme="classic-dark"] .pj2-page .pjm-status-btn-icon {
-      color: #9aa0ac !important;
-    }
-    [data-theme="dark"] .pj2-page .pjm-tagro,
-    [data-theme="classic-dark"] .pj2-page .pjm-tagro {
-      background: #ffffff !important;
-      color: #121214 !important;
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.92),
-        0 2px 8px rgba(0, 0, 0, 0.36) !important;
-    }
-    [data-theme="dark"] .pj2-page .pjm-tagro:active,
-    [data-theme="classic-dark"] .pj2-page .pjm-tagro:active {
-      background: #f0f0f2 !important;
     }
 
     /* ── Tagro desktop hidden ── */

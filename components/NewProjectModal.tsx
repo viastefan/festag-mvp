@@ -32,6 +32,11 @@ import {
   ArrowRight, ArrowsClockwise, CaretDown, ChatCircleText, Check, DotsNine,
   MagnifyingGlass, Microphone, MicrophoneSlash, PaperPlaneTilt, Question, Sparkle, X,
 } from '@phosphor-icons/react'
+import {
+  MOBILE_PRIMARY_ELEV,
+  MOBILE_WHITE_BORDER,
+  MOBILE_WHITE_ELEV,
+} from '@/components/mobile/mobile-surface-tokens'
 
 interface Props {
   onClose: () => void
@@ -1232,8 +1237,9 @@ const CSS = `
     padding: 7px 12px;
     height: 45px;
     background: #FFFFFF;
+    border: ${MOBILE_WHITE_BORDER};
     border-radius: 999px;
-    box-shadow: 0 4px 4px rgba(207,213,230,.4);
+    box-shadow: ${MOBILE_WHITE_ELEV};
   }
   .npm-greeting-pill button {
     width: 30px; height: 30px;
@@ -1409,12 +1415,13 @@ const CSS = `
   .npm-pill.dropdown {
     height: 34px;
     min-height: 34px;   /* override globalen 44px Touch-Mindestwert */
-    background: rgba(255,255,255,0.9);
+    background: #FFFFFF;
     color: #90959F;
     padding: 7px 8px 7px 16px;
     font-size: 13px; font-weight: 500;
     gap: 6px;
-    box-shadow: 0px 2px 4px 0px rgba(144,149,159,0.07);
+    border: ${MOBILE_WHITE_BORDER};
+    box-shadow: ${MOBILE_WHITE_ELEV};
   }
   .npm-pill.dropdown svg { width: 16px; height: 16px; color: #90959F; }
   .npm-pill.dropdown.on {
@@ -1425,19 +1432,21 @@ const CSS = `
 
   /* ---- Mobile help "?" (Figma 259:322) ---- */
   .npm-help.mobile {
-    width: 20px; height: 20px; min-height: 20px;
-    padding: 0; border: 0;
+    width: 34px; height: 34px; min-height: 34px;
+    padding: 0;
+    border: ${MOBILE_WHITE_BORDER};
     border-radius: 999px;
-    background: rgba(251,251,255,0.2);
-    box-shadow: 0px 4px 4px 0px rgba(91,100,125,0.25);
+    background: #FFFFFF;
+    box-shadow: ${MOBILE_WHITE_ELEV};
     color: #848D9B;
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
     font-size: 14px; font-weight: 500; letter-spacing: 0.28px; line-height: 1;
     display: inline-flex; align-items: center; justify-content: center;
     cursor: pointer; flex-shrink: 0;
-    transition: background .12s;
+    transition: background .12s, transform .12s;
   }
-  .npm-help.mobile:hover { background: rgba(251,251,255,0.5); }
+  .npm-help.mobile:hover { background: #FAFAFA; }
+  .npm-help.mobile:active { transform: scale(0.96); }
   .npm-delivery-menu {
     position: absolute; top: calc(100% + 8px); left: 0;
     z-index: 5;
@@ -1779,18 +1788,14 @@ const CSS = `
     padding: 19px;
     white-space: nowrap;
     background: #5B647D !important;
-    box-shadow:
-      0px 4px 4px 0px rgba(152,162,179,0.25),
-      inset 0px 4px 4px 0px rgba(132,141,155,0.25);
+    box-shadow: ${MOBILE_PRIMARY_ELEV};
   }
   .npm-card.is-sheet .npm-primary svg { width: 24px; height: 24px; }
-  /* Mic (Figma 259:316): 60×60 weißer Kreis. */
+  /* Mic (Figma 259:316): 60×60 weißer Kreis — gleiche Elev wie Projekte-Dock. */
   .npm-card.is-sheet .npm-mic-btn {
     width: 60px; height: 60px;
-    box-shadow:
-      0 0 0 1px rgba(15,23,42,.04),
-      0 2px 4px rgba(15,23,42,.04),
-      0 10px 20px -8px rgba(15,23,42,.14);
+    border: ${MOBILE_WHITE_BORDER};
+    box-shadow: ${MOBILE_WHITE_ELEV};
   }
   .npm-card.is-sheet .npm-mic-btn svg { width: 26px; height: 26px; }
 
