@@ -1,15 +1,24 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
+import { getSupabaseAnonKey, getSupabaseUrl } from '@/lib/supabase/env'
 
 const PUBLIC_PATHS = ['/', '/blog', '/docs', '/login', '/register', '/auth', '/loading', '/redeem', '/invite', '/agb', '/terms', '/terms-of-use', '/privacy', '/datenschutz', '/impressum', '/widerruf', '/nutzungsbedingungen', '/dev-login', '/dev-access', '/_next', '/api', '/brand', '/fonts', '/bg-office.jpg', '/manifest.json', '/favicon']
-const SUPABASE_URL =
-  process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'https://xsdkoepwuvpuroijjain.supabase.co'
-const SUPABASE_ANON_KEY =
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhzZGtvZXB3dXZwdXJvaWpqYWluIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyOTMyNTksImV4cCI6MjA5MTg2OTI1OX0.XL6nisBsFNkxCKAGKdYfdqsXGytEOrWPfBzxqjsPcRk'
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
+
+  let supabaseUrl: string
+  let supabaseAnonKey: string
+  try {
+    supabaseUrl = getSupabaseUrl()
+    supabaseAnonKey = getSupabaseAnonKey()
+  } catch {
+    // Misconfigured env — allow public paths, block protected routes.
+    if (PUBLIC_PATHS.some(p => pathname === p || pathname.startsWith(p + '/'))) {
+      return NextResponse.next()
+    }
+    return NextResponse.redirect(new URL('/login', request.url))
+  }
 
   // IMPORTANT: a single Supabase client + getUser() runs on EVERY request so
   // the auth cookie is refreshed continuously. Skipping the refresh on
@@ -21,8 +30,8 @@ export async function middleware(request: NextRequest) {
   // carries the refreshed Set-Cookie headers.
   const response = NextResponse.next()
   const supabase = createServerClient(
-    SUPABASE_URL,
-    SUPABASE_ANON_KEY,
+    supabaseUrl,
+    supabaseAnonKey,
     {
       cookies: {
         getAll() { return request.cookies.getAll() },

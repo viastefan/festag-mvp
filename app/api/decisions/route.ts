@@ -92,8 +92,10 @@ function escapeHtml(s: string) {
  *   notification to requested_for.
  */
 
+import { DECISION_OPEN_STATES } from '@/lib/decisions/types'
+
 const URGENCY = new Set(['low', 'normal', 'high', 'critical'])
-const OPEN_STATES = new Set(['open', 'waiting_for_client', 'in_progress'])
+const OPEN_STATES = DECISION_OPEN_STATES
 
 export async function GET(req: NextRequest) {
   const supa = createClient()

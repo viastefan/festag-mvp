@@ -36,7 +36,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Archive, ArrowsClockwise, Check, CheckCircle, FunnelSimple, MagnifyingGlass,
   Plus, PushPin, Share, Sparkle, Tag, X, ArrowSquareOut, Notepad, Cards, Microphone, Books,
-  ArrowsOut, ArrowsIn, CaretLeft, CaretRight,
+  ArrowsOut, ArrowsIn, CaretLeft, CaretRight, PencilSimple, WaveSine,
 } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 import NewNoteModal from '@/components/NewNoteModal'
@@ -44,6 +44,11 @@ import EmptyState from '@/components/EmptyState'
 import HelpHint from '@/components/HelpHint'
 import TagroEntryButton from '@/components/TagroEntryButton'
 import MobilePageHeader from '@/components/MobilePageHeader'
+import MobilePageDock from '@/components/mobile/MobilePageDock'
+import MobileNavSheet from '@/components/mobile/MobileNavSheet'
+import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
+import { MOBILE_CODEX_LIST_CSS } from '@/components/mobile/mobile-codex-list-styles'
+import { openTagro } from '@/components/TagroOverlay'
 
 type NoteType = 'journal' | 'brief' | 'meeting' | 'research'
 
@@ -135,6 +140,7 @@ export default function NotesPage() {
   const [openId, setOpenId] = useState<string | null>(null)
   const [creating, setCreating] = useState(false)
   const [composerOpen, setComposerOpen] = useState(false)
+  const [navOpen, setNavOpen] = useState(false)
   const [editorWide, setEditorWide] = useState(false)
   const [railOpen, setRailOpen] = useState(true)
   const [searchFocused, setSearchFocused] = useState(false)
@@ -307,12 +313,48 @@ export default function NotesPage() {
     { id: 'archived', label: 'Archiv' },
   ]
 
+  const tagroNotes = () => openTagro({
+    contextType: 'note',
+    id: 'list',
+    title: 'Notizen · Übersicht',
+    subtitle: `${visible.length} sichtbar`,
+  })
+
   return (
-    <div className="notes-os">
+    <div className="notes-os mcl-page">
+      <style>{MOBILE_CODEX_LIST_CSS}</style>
       <style jsx>{NOTES_CSS}</style>
 
+      <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
+
+      <div className="notes-m-shell">
       {/* ── Sticky top: same chrome as /tasks + /decisions ── */}
       <div className="notes-static-top">
+        <header className="mcl-head">
+          <div className="mcl-head-copy">
+            <h1><span className="mcl-m">Notizen</span></h1>
+            <p className="mcl-page-sub"><span className="mcl-m">Alles auf einen Blick.</span></p>
+          </div>
+          <div className="mcl-head-actions">
+            <CodexMobileActionPill
+              onMenu={() => setNavOpen(true)}
+              onSearch={() => window.dispatchEvent(new CustomEvent('open-command-palette'))}
+            />
+          </div>
+        </header>
+
+        <div className="mcl-actions">
+          <button type="button" className="mcl-add-btn" aria-label="Neue Notiz" onClick={() => setComposerOpen(true)}>
+            <Plus size={18} weight="bold" />
+          </button>
+          <div className="mcl-actions-group">
+            <button type="button" className="mcl-ctl" aria-label="Heute öffnen" onClick={openTodayNote}>
+              <Notepad size={17} weight="regular" />
+            </button>
+          </div>
+        </div>
+
+        <div className="notes-legacy-mph">
         <MobilePageHeader
           title="Notizen"
           primaryIcon={Notepad}
@@ -322,6 +364,7 @@ export default function NotesPage() {
             { id: 'today', label: 'Heute öffnen', onClick: openTodayNote },
           ]}
         />
+        </div>
         <div className="notes-top">
           <div className="notes-top-left">
             <span style={{ display:'inline-flex', alignItems:'center', gap:7, minWidth:0 }}>
@@ -532,6 +575,24 @@ export default function NotesPage() {
           }}
         />
       )}
+      </div>
+
+      <MobilePageDock
+        onDragUp={() => setComposerOpen(true)}
+        primary={{
+          id: 'note',
+          label: 'Neue Notiz erstellen...',
+          icon: <WaveSine size={14} weight="regular" />,
+          onClick: () => setComposerOpen(true),
+          ariaLabel: 'Neue Notiz erstellen',
+        }}
+        secondary={{
+          id: 'tagro',
+          icon: <PencilSimple size={20} weight="bold" />,
+          onClick: tagroNotes,
+          ariaLabel: 'Mit Tagro bearbeiten',
+        }}
+      />
     </div>
   )
 }
@@ -964,6 +1025,9 @@ const NOTES_CSS = `
 
   /* ─── Sticky top ────────────────────────────────────────── */
   .notes-static-top { flex:0 0 auto; position:relative; z-index:8; }
+  .notes-m-shell {
+    display:flex; flex-direction:column; flex:1 1 auto; min-height:0;
+  }
   .notes-top {
     display:flex; align-items:center; justify-content:space-between;
     min-height:34px; padding:0 18px 12px;
@@ -1412,6 +1476,20 @@ const NOTES_CSS = `
   }
   /* Mobile uses MobilePageHeader above; hide the desktop title row. */
   @media (max-width: 768px) {
+    :global(.mcd) { display: none !important; }
+    .notes-legacy-mph, .notes-legacy-mph :global(.mph) { display: none !important; }
+    .notes-os { background: #FCFCFC !important; }
+    [data-theme="dark"] .notes-os,
+    [data-theme="classic-dark"] .notes-os { background: var(--portal-bg, #0d0d0f) !important; }
+    .notes-m-shell {
+      flex: 1 1 auto !important;
+      min-height: 0 !important;
+      overflow-y: auto !important;
+      overflow-x: hidden !important;
+      padding: calc(20px + env(safe-area-inset-top, 0px)) 20px 160px !important;
+      box-sizing: border-box !important;
+    }
+    .notes-static-top { padding: 0 !important; position: relative !important; }
     .notes-top { display: none !important; }
   }
   @media (max-width: 600px) {

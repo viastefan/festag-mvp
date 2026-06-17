@@ -15,6 +15,7 @@ import { resolveHandoffFromOption } from '@/lib/decisions/external-handoffs'
 import {
   type Decision, type ProjectLite, type ResponseType, type DecOption, type ResponseValue,
   URGENCY_LABEL, URGENCY_TONE, fmtAgo, fmtDueIn, fmtCountdown, DUE_SOURCE_LABEL,
+  isDecisionDemoId,
 } from '@/components/decisions/decisions-shared'
 
 type WorkspaceMember = { id: string; full_name: string | null; email: string | null; avatar_url: string | null; role?: string | null }
@@ -95,6 +96,11 @@ export function DecisionDrawer({
     if (assigning) return
     setAssigning(true); setError('')
     try {
+      if (isMock) {
+        onPatch({ requested_for: userId } as Partial<Decision>)
+        setAssignOpen(false)
+        return
+      }
       const res = await fetch(`/api/decisions/${decision.id}/assign`, {
         method: 'POST', credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -129,6 +135,13 @@ export function DecisionDrawer({
 
   // Pull structured options when drawer opens.
   useEffect(() => {
+    if (isMock) {
+      setStructuredOptions(
+        (decision.options_json || []).map((o) => ({ id: o.id, label: o.label, description: o.hint })),
+      )
+      setOptionsLoading(false)
+      return
+    }
     let abort = false
     setOptionsLoading(true)
     fetch(`/api/decisions/${decision.id}?expand=options`, { credentials: 'include' })
@@ -140,12 +153,22 @@ export function DecisionDrawer({
       })
       .finally(() => { if (!abort) setOptionsLoading(false) })
     return () => { abort = true }
-  }, [decision.id])
+  }, [decision.id, decision.options_json, isMock])
+
+  const isMock = isDecisionDemoId(decision.id)
 
   async function runTagro() {
     if (suggesting) return
     setSuggesting(true); setError('')
     try {
+      if (isMock) {
+        onPatch({
+          recommended_option: decision.recommended_option || 'opt-1',
+          tagro_reasoning: decision.tagro_reasoning || 'Tagro empfiehlt die schnellste Route zum Projektziel.',
+          tagro_run_at: new Date().toISOString(),
+        } as Partial<Decision>)
+        return
+      }
       const res = await fetch(`/api/decisions/${decision.id}/suggest`, { method: 'POST', credentials: 'include' })
       if (!res.ok) { setError('Tagro konnte gerade nicht antworten.'); return }
       const data = await res.json()
@@ -186,6 +209,22 @@ export function DecisionDrawer({
   async function performDecide(responseValue: ResponseValue) {
     setDeciding(true); setError('')
     try {
+      if (isMock) {
+        const selectedLegacy =
+          responseValue && 'selected_option_id' in responseValue ? responseValue.selected_option_id
+          : responseValue && 'binary_value' in responseValue ? responseValue.binary_value
+          : null
+        onPatch({
+          status: 'decided',
+          response_value: responseValue,
+          selected_option: selectedLegacy,
+          decided_at: new Date().toISOString(),
+          decided_by: me,
+          rationale: rationale.trim() || null,
+        } as Partial<Decision>)
+        onClose()
+        return
+      }
       const res = await fetch(`/api/decisions/${decision.id}/decide`, {
         method: 'POST', credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -245,6 +284,15 @@ export function DecisionDrawer({
     if (delegating) return
     setDelegating(true); setError('')
     try {
+      if (isMock) {
+        onPatch({
+          status: 'decided',
+          tagro_delegation_reason: 'Tagro hat diese Entscheidung übernommen.',
+          decided_at: new Date().toISOString(),
+        } as Partial<Decision>)
+        onClose()
+        return
+      }
       const res = await fetch(`/api/decisions/${decision.id}/delegate`, {
         method: 'POST', credentials: 'include',
       })
@@ -265,6 +313,15 @@ export function DecisionDrawer({
     if (discussing || !discussQuestion.trim()) return
     setDiscussing(true); setError('')
     try {
+      if (isMock) {
+        onPatch({
+          status: 'awaiting_clarification',
+          decision_note: discussQuestion.trim(),
+        } as Partial<Decision>)
+        setDiscussOpen(false)
+        setDiscussQuestion('')
+        return
+      }
       const res = await fetch(`/api/decisions/${decision.id}/discuss`, {
         method: 'POST', credentials: 'include',
         headers: { 'Content-Type': 'application/json' },

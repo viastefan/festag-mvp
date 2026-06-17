@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { normalizeResponseValue, type DecisionResponseValue, type ResponseType } from '@/lib/decisions/types'
+import { propagateDecisionApply } from '@/lib/decisions/apply-propagation'
 
 export const runtime = 'nodejs'
 
@@ -111,6 +112,15 @@ export async function POST(req: NextRequest, ctx: { params: { id: string } }) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
+  // Auto-apply: unblock linked tasks after client decides (best-effort).
+  let applied = updated
+  try {
+    const applyResult = await propagateDecisionApply(supa as any, ctx.params.id, user.id)
+    applied = applyResult.decision as typeof updated
+  } catch {
+    // Decision stays at 'decided' — dev can apply manually later.
+  }
+
   // Notify the requesting dev — they need to see the answer.
   if (d.created_by && d.created_by !== user.id) {
     await (supa as any).from('notifications').insert({
@@ -129,5 +139,5 @@ export async function POST(req: NextRequest, ctx: { params: { id: string } }) {
     })
   }
 
-  return NextResponse.json({ decision: updated })
+  return NextResponse.json({ decision: applied })
 }

@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { DECISION_OPEN_STATUS_LIST } from '@/lib/decisions/types'
 import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import SidebarProfileFooter from '@/components/SidebarProfileFooter'
@@ -334,7 +335,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
       const { count } = await (sb as any).from('decisions')
         .select('id', { count: 'exact', head: true })
         .eq('requested_for', user.id)
-        .in('status', ['open', 'waiting_for_client', 'in_progress'])
+        .in('status', DECISION_OPEN_STATUS_LIST)
       if (!cancelled) setDecisionsOpen(count ?? 0)
 
       const ch = (sb as any)
@@ -343,7 +344,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           const { count: c2 } = await (sb as any).from('decisions')
             .select('id', { count: 'exact', head: true })
             .eq('requested_for', user.id)
-            .in('status', ['open', 'waiting_for_client', 'in_progress'])
+            .in('status', DECISION_OPEN_STATUS_LIST)
           if (!cancelled) setDecisionsOpen(c2 ?? 0)
         })
         .subscribe()

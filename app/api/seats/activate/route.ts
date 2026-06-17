@@ -1,9 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
-
-const SUPABASE_URL = 'https://xsdkoepwuvpuroijjain.supabase.co'
-const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhzZGtvZXB3dXZwdXJvaWpqYWluIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyOTMyNTksImV4cCI6MjA5MTg2OTI1OX0.XL6nisBsFNkxCKAGKdYfdqsXGytEOrWPfBzxqjsPcRk'
+import { createClient } from '@/lib/supabase/server'
 
 export const runtime = 'nodejs'
 
@@ -20,18 +16,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'missing-seat-id' }, { status: 400 })
     }
 
-    const cookieStore = cookies()
-    const sb = createServerClient(SUPABASE_URL, SUPABASE_ANON, {
-      cookies: {
-        getAll() { return cookieStore.getAll() },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            cookieStore.set(name, value, options)
-          })
-        },
-      },
-    })
-
+    const sb = createClient()
     const { data: { user } } = await sb.auth.getUser()
     if (!user) {
       return NextResponse.json({ error: 'not-authenticated' }, { status: 401 })
@@ -41,10 +26,8 @@ export async function POST(req: NextRequest) {
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 400 })
     }
-
     return NextResponse.json({ ok: true, seat: data })
   } catch (e: any) {
-    console.error('[seats/activate] error:', e)
     return NextResponse.json({ error: e?.message ?? 'unknown' }, { status: 500 })
   }
 }

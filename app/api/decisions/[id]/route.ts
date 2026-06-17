@@ -110,7 +110,7 @@ export async function DELETE(req: NextRequest, ctx: { params: { id: string } }) 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
     return NextResponse.json({ ok: true, deleted: 'hard' })
   }
-  const { error } = await (supa as any).from('decisions').update({ status: 'cancelled' }).eq('id', ctx.params.id)
+  const { error } = await (supa as any).from('decisions').update({ status: 'archived' }).eq('id', ctx.params.id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json({ ok: true, deleted: 'soft' })
+  return NextResponse.json({ ok: true, deleted: 'soft', status: 'archived' })
 }

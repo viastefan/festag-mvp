@@ -1,9 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
-
-const SUPABASE_URL = 'https://xsdkoepwuvpuroijjain.supabase.co'
-const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhzZGtvZXB3dXZwdXJvaWpqYWluIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyOTMyNTksImV4cCI6MjA5MTg2OTI1OX0.XL6nisBsFNkxCKAGKdYfdqsXGytEOrWPfBzxqjsPcRk'
+import { createClient } from '@/lib/supabase/server'
 
 export const runtime = 'nodejs'
 
@@ -20,25 +16,11 @@ export const runtime = 'nodejs'
  *   - state 'locked' → immer abgelehnt (paid milestone)
  */
 
-function client() {
-  const cookieStore = cookies()
-  return createServerClient(SUPABASE_URL, SUPABASE_ANON, {
-    cookies: {
-      getAll() { return cookieStore.getAll() },
-      setAll(cookiesToSet) {
-        cookiesToSet.forEach(({ name, value, options }) => {
-          cookieStore.set(name, value, options)
-        })
-      },
-    },
-  })
-}
-
 export async function GET(req: NextRequest) {
   try {
     const id = new URL(req.url).searchParams.get('id')
     if (!id) return NextResponse.json({ error: 'missing-id' }, { status: 400 })
-    const sb = client()
+    const sb = createClient()
     const { data: { user } } = await sb.auth.getUser()
     if (!user) return NextResponse.json({ error: 'not-authenticated' }, { status: 401 })
 
@@ -55,7 +37,7 @@ export async function POST(req: NextRequest) {
     const { id, confirmation } = await req.json()
     if (!id) return NextResponse.json({ error: 'missing-id' }, { status: 400 })
 
-    const sb = client()
+    const sb = createClient()
     const { data: { user } } = await sb.auth.getUser()
     if (!user) return NextResponse.json({ error: 'not-authenticated' }, { status: 401 })
 

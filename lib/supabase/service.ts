@@ -1,4 +1,5 @@
 import { createClient as createServiceClient } from '@supabase/supabase-js'
+import { getServiceRoleKey, getSupabaseUrl } from '@/lib/supabase/env'
 
 /**
  * Service-role Supabase client.
@@ -8,15 +9,13 @@ import { createClient as createServiceClient } from '@supabase/supabase-js'
  * Never thread untrusted user input through this client without
  * application-level checks.
  *
- * Returns `null` when `SUPABASE_SERVICE_ROLE_KEY` is missing — callers
- * decide whether to skip silently or fall back to the user-session client.
+ * Returns `null` when `SUPABASE_SERVICE_ROLE_KEY` is missing or invalid —
+ * callers decide whether to skip silently or fall back to the user-session client.
  */
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'https://xsdkoepwuvpuroijjain.supabase.co'
-
 export function getServiceClient() {
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+  const key = getServiceRoleKey()
   if (!key) return null
-  return createServiceClient(SUPABASE_URL, key, {
+  return createServiceClient(getSupabaseUrl(), key, {
     auth: { autoRefreshToken: false, persistSession: false },
   })
 }

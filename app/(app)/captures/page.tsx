@@ -16,12 +16,14 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import {
-  ArrowsClockwise, CheckCircle, Clock, Globe, Microphone, PaperPlaneTilt,
-  WarningCircle,
+  ArrowsClockwise, CheckCircle, Clock, FunnelSimple, Globe, Microphone,
+  PaperPlaneTilt, PencilSimple, WarningCircle,
 } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 import { openCapture } from '@/components/CaptureRecorder'
 import MobilePageHeader from '@/components/MobilePageHeader'
+import MobileCodexListChrome from '@/components/mobile/MobileCodexListChrome'
+import { openTagro } from '@/components/TagroOverlay'
 import EmptyState from '@/components/EmptyState'
 
 type Capture = {
@@ -86,7 +88,20 @@ export default function CapturesPage() {
   const [projects, setProjects] = useState<Record<string, ProjectLite>>({})
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<string>('all')
+  const [filterOpen, setFilterOpen] = useState(false)
   const [busyId, setBusyId] = useState<string | null>(null)
+
+  function recordNew() {
+    const firstId = captures[0]?.project_id || Object.keys(projects)[0]
+    if (firstId) openCapture({ projectId: firstId, projectTitle: projects[firstId]?.title })
+  }
+
+  const tagroCaptures = () => openTagro({
+    contextType: 'empty',
+    id: 'captures',
+    title: 'Feedback · Übersicht',
+    subtitle: `${counts.all} Captures · ${counts.ready_review} zu prüfen`,
+  })
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -158,19 +173,82 @@ export default function CapturesPage() {
   }
 
   return (
-    <div className="caps">
-      <MobilePageHeader
-        title="Feedback"
-        primaryIcon={Microphone}
-        primaryLabel="Neu aufnehmen"
-        onPrimary={() => {
-          // Open the recorder against the first project if any; the client
-          // can still change the URL inside the modal.
-          const firstId = captures[0]?.project_id || Object.keys(projects)[0]
-          if (firstId) openCapture({ projectId: firstId, projectTitle: projects[firstId]?.title })
-        }}
-        menuItems={[{ id: 'refresh', label: 'Aktualisieren', onClick: () => void load() }]}
-      />
+    <MobileCodexListChrome
+      className="caps"
+      title="Feedback"
+      titleMobile="Feedback"
+      legacyHeader={(
+        <MobilePageHeader
+          title="Feedback"
+          primaryIcon={Microphone}
+          primaryLabel="Neu aufnehmen"
+          onPrimary={recordNew}
+          menuItems={[{ id: 'refresh', label: 'Aktualisieren', onClick: () => void load() }]}
+        />
+      )}
+      mobileActions={(
+        <>
+          <button type="button" className="mcl-add-btn" aria-label="Neu aufnehmen" onClick={recordNew}>
+            <Microphone size={18} weight="bold" />
+          </button>
+          <div className="mcl-actions-group">
+            <button
+              type="button"
+              className={`mcl-ctl${filterOpen ? ' on' : ''}${filter !== 'all' ? ' has-active' : ''}`}
+              aria-label="Filter"
+              onClick={() => setFilterOpen(v => !v)}
+            >
+              <FunnelSimple size={17} weight="regular" />
+            </button>
+            <button type="button" className="mcl-ctl" aria-label="Aktualisieren" onClick={() => void load()}>
+              <ArrowsClockwise size={17} weight="regular" />
+            </button>
+          </div>
+          {filterOpen && (
+            <button type="button" className="mcl-sheet-backdrop" aria-label="Schließen" onClick={() => setFilterOpen(false)} />
+          )}
+        </>
+      )}
+      dock={{
+        onDragUp: recordNew,
+        primary: {
+          id: 'record',
+          label: 'Feedback aufnehmen...',
+          icon: <Microphone size={14} weight="regular" />,
+          onClick: recordNew,
+          ariaLabel: 'Feedback aufnehmen',
+        },
+        secondary: {
+          id: 'tagro',
+          icon: <PencilSimple size={20} weight="bold" />,
+          onClick: tagroCaptures,
+          ariaLabel: 'Mit Tagro bearbeiten',
+        },
+      }}
+      extraCss={`
+        @media (max-width: 768px) {
+          .caps { padding: 0 !important; }
+          .caps-top { display: none !important; }
+          .caps-tab {
+            height: 32px !important;
+            padding: 0 14px !important;
+            border: var(--mcl-white-border) !important;
+            background: #fff !important;
+            box-shadow: var(--mcl-white-elev) !important;
+            color: #6e717e !important;
+          }
+          .caps-tab.on {
+            background: var(--portal-btn-primary, #5b647d) !important;
+            color: #fff !important;
+            border-color: transparent !important;
+          }
+          .caps-card {
+            border-radius: 12px !important;
+            box-shadow: 0 2px 4px rgba(144,149,159,.07) !important;
+          }
+        }
+      `}
+    >
 
       <header className="caps-top">
         <div>
@@ -181,10 +259,7 @@ export default function CapturesPage() {
               : `${counts.all} Captures · ${counts.ready_review} zu prüfen · ${counts.approved} unterwegs`}
           </p>
         </div>
-        <button className="caps-record" type="button" onClick={() => {
-          const firstId = captures[0]?.project_id || Object.keys(projects)[0]
-          if (firstId) openCapture({ projectId: firstId, projectTitle: projects[firstId]?.title })
-        }}>
+        <button className="caps-record" type="button" onClick={recordNew}>
           <Microphone size={14} /> Neu aufnehmen
         </button>
       </header>
@@ -304,7 +379,7 @@ export default function CapturesPage() {
       </div>
 
       <style>{CSS}</style>
-    </div>
+    </MobileCodexListChrome>
   )
 }
 

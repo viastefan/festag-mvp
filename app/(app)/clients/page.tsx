@@ -10,13 +10,15 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { Plus, ArrowRight, LinkSimple, Check } from '@phosphor-icons/react'
+import { Plus, ArrowRight, LinkSimple, Check, PencilSimple } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 import Modal, { ModalButton } from '@/components/Modal'
 import InviteLinkModal from '@/components/InviteLinkModal'
 import PageHeader from '@/components/ui/PageHeader'
 import TagroEntryButton from '@/components/TagroEntryButton'
 import MobilePageHeader from '@/components/MobilePageHeader'
+import MobileCodexListChrome from '@/components/mobile/MobileCodexListChrome'
+import { openTagro } from '@/components/TagroOverlay'
 
 type WorkspaceMode = 'delivery' | 'team' | 'agency'
 
@@ -128,19 +130,56 @@ export default function ClientsPage() {
   }
 
   return (
-    <div className="clients-page">
-      <style>{CLIENTS_CSS}</style>
-
-      <MobilePageHeader
-        title="Kunden"
-        primaryIcon={Plus}
-        primaryLabel="Kunde erstellen"
-        onPrimary={() => setComposerOpen(true)}
-        menuItems={[
-          { id: 'invite', label: 'Einladen', onClick: () => setInviteOpen(true) },
-        ]}
-      />
-
+    <MobileCodexListChrome
+      className="clients-page"
+      title="Kunden"
+      legacyHeader={(
+        <MobilePageHeader
+          title="Kunden"
+          primaryIcon={Plus}
+          primaryLabel="Kunde erstellen"
+          onPrimary={() => setComposerOpen(true)}
+          menuItems={[
+            { id: 'invite', label: 'Einladen', onClick: () => setInviteOpen(true) },
+          ]}
+        />
+      )}
+      mobileActions={(
+        <>
+          <button type="button" className="mcl-add-btn" aria-label="Kunde erstellen" onClick={() => setComposerOpen(true)}>
+            <Plus size={18} weight="bold" />
+          </button>
+          <div className="mcl-actions-group">
+            <button type="button" className="mcl-ctl" aria-label="Einladen" onClick={() => setInviteOpen(true)}>
+              <LinkSimple size={17} weight="regular" />
+            </button>
+          </div>
+        </>
+      )}
+      dock={{
+        onDragUp: () => setComposerOpen(true),
+        primary: {
+          id: 'create',
+          label: 'Kunde erstellen...',
+          icon: <Plus size={14} weight="bold" />,
+          onClick: () => setComposerOpen(true),
+          ariaLabel: 'Kunde erstellen',
+        },
+        secondary: {
+          id: 'tagro',
+          icon: <PencilSimple size={20} weight="bold" />,
+          onClick: () => openTagro({
+            contextType: 'client',
+            id: 'list',
+            title: 'Kunden · Übersicht',
+            subtitle: `${clients.length} Kunden`,
+          }),
+          ariaLabel: 'Mit Tagro bearbeiten',
+        },
+      }}
+      extraCss={CLIENTS_CSS}
+    >
+      <div className="cl-dt-only">
       <PageHeader
         title="Kunden"
         actions={
@@ -162,6 +201,7 @@ export default function ClientsPage() {
           </>
         }
       />
+      </div>
 
       <div className="cl-body">
       {clients.length > 0 && (
@@ -263,7 +303,7 @@ export default function ClientsPage() {
         defaultKind="client"
         projects={inviteProjects}
       />
-    </div>
+    </MobileCodexListChrome>
   )
 }
 
@@ -604,11 +644,16 @@ const CLIENTS_CSS = `
   .cl-modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; flex-wrap: wrap; }
 
   @media (max-width: 720px) {
-    .clients-page { padding: 0 0 100px; }
+    .clients-page { padding: 0 !important; }
     .cl-shell { padding: 24px 20px 0; }
-    .cl-body { padding: 16px 20px 0; }
+    .cl-body { padding: 0 !important; }
     .cl-head { margin-bottom: 28px; }
+    .cl-dt-only { display: none !important; }
     .cl-empty { padding: 56px 20px 32px; }
+    .cl-card {
+      border-radius: 12px !important;
+      box-shadow: 0 2px 4px rgba(144, 149, 159, 0.07) !important;
+    }
     .cl-card-head { grid-template-columns: 40px minmax(0, 1fr); }
     .cl-card-stats { grid-column: 1 / -1; flex-direction: row; gap: 10px; }
     .cl-grid { grid-template-columns: 1fr; }

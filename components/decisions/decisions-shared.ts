@@ -259,10 +259,9 @@ export function urgencyDotColor(urgency?: string | null): string {
   return URGENCY_DOT_COLOR[urgency || 'normal'] || URGENCY_DOT_COLOR.normal
 }
 
-export const OPEN_STATES = new Set([
-  'drafted', 'pending_client', 'awaiting_clarification',
-  'open', 'waiting_for_client', 'in_progress',
-])
+import { DECISION_OPEN_STATES } from '@/lib/decisions/types'
+
+export const OPEN_STATES = DECISION_OPEN_STATES
 
 const STATUS_LABEL: Record<string, string> = {
   drafted: 'Entwurf',

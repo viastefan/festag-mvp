@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { deriveDecisionRisks } from '@/lib/decisions/risks'
+import { DECISION_OPEN_STATES } from '@/lib/decisions/types'
 
 export const runtime = 'nodejs'
 
-const OPEN_STATES = new Set(['open', 'waiting_for_client', 'in_progress'])
+const OPEN_STATES = DECISION_OPEN_STATES
 
 /**
  * GET /api/decisions/risks

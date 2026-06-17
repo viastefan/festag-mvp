@@ -17,7 +17,7 @@
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import {
-  ArrowsClockwise, FunnelSimple, Lightning, DotsThree, PencilSimple,
+  ArrowsClockwise, FunnelSimple, Lightning, PencilSimple,
 } from '@phosphor-icons/react'
 import MobilePageHeader from '@/components/MobilePageHeader'
 import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
@@ -337,6 +337,7 @@ function DecisionsPageInner() {
   const tagroListHandler = () => openTagro({
     contextType: 'decision',
     id: 'list',
+    projectId: projectScope !== 'all' ? projectScope : projectList[0]?.id,
     title: 'Entscheidungen · Übersicht',
     subtitle: `${counts.open} offen · ${counts.urgent} dringend`,
   })
@@ -492,7 +493,7 @@ function DecisionsPageInner() {
               aria-label="Aktualisieren"
               onClick={load}
             >
-              <DotsThree size={15} weight="bold" />
+              <ArrowsClockwise size={15} weight="regular" />
             </button>
           </div>
         </header>
@@ -603,6 +604,7 @@ function DecisionsPageInner() {
           context={{
             contextType: 'decision',
             id: 'list',
+            projectId: projectScope !== 'all' ? projectScope : projectList[0]?.id,
             title: 'Entscheidungen · Übersicht',
             subtitle: `${counts.open} offen · ${counts.urgent} dringend`,
           }}

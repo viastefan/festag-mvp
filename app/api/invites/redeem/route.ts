@@ -1,10 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerClient } from '@supabase/ssr'
-import { createClient } from '@supabase/supabase-js'
-import { cookies } from 'next/headers'
-
-const SUPABASE_URL = 'https://xsdkoepwuvpuroijjain.supabase.co'
-const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhzZGtvZXB3dXZwdXJvaWpqYWluIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyOTMyNTksImV4cCI6MjA5MTg2OTI1OX0.XL6nisBsFNkxCKAGKdYfdqsXGytEOrWPfBzxqjsPcRk'
+import { createClient } from '@/lib/supabase/server'
+import { getServiceClient } from '@/lib/supabase/service'
 
 export const runtime = 'nodejs'
 
@@ -26,27 +22,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'missing-fields' }, { status: 400 })
     }
 
-    // Auth über SSR-Client (cookies)
-    const cookieStore = cookies()
-    const sbAuth = createServerClient(SUPABASE_URL, SUPABASE_ANON, {
-      cookies: {
-        getAll() { return cookieStore.getAll() },
-        setAll() { /* read-only here */ },
-      },
-    })
+    const sbAuth = createClient()
     const { data: { user } } = await sbAuth.auth.getUser()
     if (!user) {
       return NextResponse.json({ error: 'not-authenticated' }, { status: 401 })
     }
 
-    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-    if (!serviceKey) {
+    const sb = getServiceClient()
+    if (!sb) {
       return NextResponse.json({ error: 'service-key-missing' }, { status: 500 })
     }
-
-    const sb = createClient(SUPABASE_URL, serviceKey, {
-      auth: { autoRefreshToken: false, persistSession: false },
-    })
 
     const { data, error } = await sb.rpc('redeem_invite_pin', {
       p_email:   email,
@@ -70,7 +55,6 @@ export async function POST(req: NextRequest) {
       tenantId:  row.tenant_id,
       role:      row.role,
       teamId:    row.team_id,
-      // Routing-Hinweis fürs Frontend:
       redirect:  row.role === 'dev' ? '/dev'
               :  row.role === 'admin' ? '/master-control'
               :  '/dashboard',

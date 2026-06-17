@@ -22,7 +22,7 @@ import { usePathname } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   Article, Briefcase, ChatsCircle, CheckSquare, Clock, Compass, FolderOpen, GearSix,
-  GitBranch, GithubLogo, GitCommit, Kanban, Microphone, Pause, Play, Robot, SignOut,
+  GitBranch, GithubLogo, GitCommit, Kanban, Microphone, Pause, Play, Robot, Scales, SignOut,
   UsersThree, WarningCircle,
 } from '@phosphor-icons/react'
 
@@ -36,6 +36,7 @@ const NAV_MAIN: NavRow[] = [
   { href: '/dev/projects',  icon: FolderOpen,  label: 'Projects' },
   { href: '/dev/captures',  icon: Microphone,  label: 'Client Captures' },
   { href: '/dev/tasks',     icon: CheckSquare, label: 'My Tasks' },
+  { href: '/dev/decisions', icon: Scales,      label: 'Entscheidungen' },
   { href: '/dev/review',    icon: Robot,       label: 'Tagro Review' },
   { href: '/dev/plan',      icon: Kanban,      label: 'Daily Plan' },
   { href: '/dev/time',      icon: Clock,       label: 'Zeiterfassung' },

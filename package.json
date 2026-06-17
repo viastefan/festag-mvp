@@ -11,7 +11,8 @@
     "supabase:link": "supabase link --project-ref xsdkoepwuvpuroijjain",
     "db:push": "supabase db push",
     "db:pull": "supabase db pull",
-    "db:status": "supabase migration list"
+    "db:status": "supabase migration list",
+    "check:supabase": "node scripts/check-supabase.mjs"
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",

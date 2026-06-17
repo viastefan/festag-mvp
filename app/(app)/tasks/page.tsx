@@ -28,7 +28,12 @@ import EmptyState from '@/components/EmptyState'
 import HelpHint from '@/components/HelpHint'
 import TagroEntryButton from '@/components/TagroEntryButton'
 import MobilePageHeader from '@/components/MobilePageHeader'
-import { PencilSimple } from '@phosphor-icons/react'
+import MobilePageDock from '@/components/mobile/MobilePageDock'
+import MobileNavSheet from '@/components/mobile/MobileNavSheet'
+import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
+import { MOBILE_CODEX_LIST_CSS } from '@/components/mobile/mobile-codex-list-styles'
+import { openTagro } from '@/components/TagroOverlay'
+import { PencilSimple, WaveSine, ArrowsClockwise } from '@phosphor-icons/react'
 
 type TaskView = 'all' | 'open' | 'active' | 'decision' | 'review' | 'done'
 type SortMode = 'newest' | 'updated' | 'priority' | 'project' | 'group'
@@ -225,6 +230,7 @@ export default function TasksPage() {
   // re-learn how scoping works across the app.
   const [projectScope, setProjectScope] = useState<string>('all')
   const [scopeMenuOpen, setScopeMenuOpen] = useState(false)
+  const [navOpen, setNavOpen] = useState(false)
   const [composerOpen, setComposerOpen] = useState(false)
   const [composerMode, setComposerMode] = useState<ComposerMode>('tagro')
   const [suggestProjectId, setSuggestProjectId] = useState('')
@@ -598,9 +604,16 @@ export default function TasksPage() {
     setComposerOpen((open) => !open)
   }
 
+  const tagroTasks = () => openTagro({
+    contextType: 'empty',
+    id: 'tasks',
+    title: 'Tasks · Übersicht',
+    subtitle: `${openCount} offen · ${activeCount} in Arbeit`,
+  })
+
   return (
-    <div className="task-os">
-      <style>{`
+    <div className="task-os mcl-page">
+      <style>{MOBILE_CODEX_LIST_CSS}{`
         .task-os {
           --task-soft-text:#4E5567;
           --task-header-text: color-mix(in srgb, #4E5567 62%, transparent);
@@ -629,6 +642,12 @@ export default function TasksPage() {
           flex:0 0 auto;
           position:relative;
           z-index:8;
+        }
+        .task-m-shell {
+          display:flex;
+          flex-direction:column;
+          flex:1 1 auto;
+          min-height:0;
         }
         .task-scroll-body {
           flex:1 1 auto;
@@ -1699,8 +1718,22 @@ export default function TasksPage() {
           .task-count-summary { flex-basis:100%; padding-left:0; }
         }
         @media(max-width:760px) {
+          :global(.mcd) { display: none !important; }
+          .task-legacy-mph, .task-legacy-mph .mph { display: none !important; }
+          .task-m-shell {
+            flex: 1 1 auto !important;
+            min-height: 0 !important;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+            padding: calc(20px + env(safe-area-inset-top, 0px)) 20px 160px !important;
+            box-sizing: border-box !important;
+          }
+          .task-static-top { padding: 0 !important; position: relative !important; }
+          .task-os { background: #FCFCFC !important; max-width: none !important; }
+          [data-theme="dark"] .task-os,
+          [data-theme="classic-dark"] .task-os { background: var(--portal-bg, #0d0d0f) !important; }
           .task-os { padding:0; overflow:hidden; }
-          .task-scroll-body { padding-bottom:calc(110px + var(--safe-bottom)); }
+          .task-scroll-body { padding-bottom: 0; overflow: visible !important; }
           /* Mobile uses the new Linear-style MobilePageHeader above; hide
              the desktop title row entirely on phones. */
           .task-top { display: none !important; }
@@ -1896,7 +1929,50 @@ export default function TasksPage() {
         }
       `}</style>
 
+      <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
+
+      <div className="task-m-shell">
       <div className="task-static-top">
+        <header className="mcl-head task-m-head">
+          <div className="mcl-head-copy">
+            <h1>
+              <span className="mcl-m">Aufgaben</span>
+            </h1>
+            <p className="mcl-page-sub"><span className="mcl-m">Alles auf einen Blick.</span></p>
+          </div>
+          <div className="mcl-head-actions">
+            <CodexMobileActionPill
+              onMenu={() => setNavOpen(true)}
+              onSearch={() => window.dispatchEvent(new CustomEvent('open-command-palette'))}
+            />
+          </div>
+        </header>
+
+        <div className="mcl-actions task-m-actions">
+          <button type="button" className="mcl-add-btn" aria-label="Neue Aufgabe" disabled={!hasProjects} onClick={openComposer}>
+            <Plus size={18} weight="bold" />
+          </button>
+          <div className="mcl-actions-group">
+            <button
+              type="button"
+              className={`mcl-ctl${filterMenuOpen ? ' on' : ''}${view !== 'all' ? ' has-active' : ''}`}
+              aria-label="Filter"
+              onClick={() => { setFilterMenuOpen(v => !v); setSortMenuOpen(false) }}
+            >
+              <FunnelSimple size={17} weight="regular" />
+            </button>
+            <button
+              type="button"
+              className={`mcl-ctl${sortMenuOpen ? ' on' : ''}${sortMode !== 'newest' ? ' has-active' : ''}`}
+              aria-label="Sortieren"
+              onClick={() => { setSortMenuOpen(v => !v); setFilterMenuOpen(false) }}
+            >
+              <SlidersHorizontal size={17} weight="regular" />
+            </button>
+          </div>
+        </div>
+
+        <div className="task-legacy-mph">
         {/* Mobile-only Linear-style header (replaces .task-top on phones). */}
         <MobilePageHeader
           title="Tasks"
@@ -1907,6 +1983,7 @@ export default function TasksPage() {
             { id: 'refresh', label: 'Aktualisieren', onClick: () => setView(view) },
           ]}
         />
+        </div>
         <div className="task-top">
           <div className="task-top-left">
             <span style={{ display:'inline-flex', alignItems:'center', gap:7, minWidth:0 }}>
@@ -2262,6 +2339,24 @@ export default function TasksPage() {
       </div>}
 
       </div>
+      </div>
+
+      <MobilePageDock
+        onDragUp={openComposer}
+        primary={{
+          id: 'suggest',
+          label: 'Aufgabe vorschlagen...',
+          icon: <WaveSine size={14} weight="regular" />,
+          onClick: openComposer,
+          ariaLabel: 'Aufgabe vorschlagen',
+        }}
+        secondary={{
+          id: 'tagro',
+          icon: <PencilSimple size={20} weight="bold" />,
+          onClick: tagroTasks,
+          ariaLabel: 'Mit Tagro bearbeiten',
+        }}
+      />
     </div>
   )
 }

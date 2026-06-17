@@ -16,11 +16,12 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import {
-  ChatCircleDots, CheckCircle, ClipboardText, FunnelSimple,
-  Sparkle, Tray, UserPlus, WarningCircle,
+  ChatCircleDots, Check, CheckCircle, ClipboardText, FunnelSimple,
+  Sparkle, Tray, UserPlus, WarningCircle, PencilSimple, ArrowsClockwise, WaveSine,
 } from '@phosphor-icons/react'
 import HelpHint from '@/components/HelpHint'
 import MobilePageHeader from '@/components/MobilePageHeader'
+import MobileCodexListChrome from '@/components/mobile/MobileCodexListChrome'
 import { openTagro } from '@/components/TagroOverlay'
 
 type Notification = {
@@ -112,6 +113,7 @@ export default function InboxPage() {
   const [items, setItems] = useState<Notification[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<FilterId>('all')
+  const [filterOpen, setFilterOpen] = useState(false)
   const [projectsById, setProjectsById] = useState<Map<string, { title: string; color: string | null }>>(new Map())
 
   const load = useCallback(async () => {
@@ -164,15 +166,169 @@ export default function InboxPage() {
     await (supabase as any).from('notifications').update({ read: true, read_at: new Date().toISOString() }).in('id', unreadIds)
   }
 
+  const tagroInbox = () => openTagro({
+    contextType: 'empty',
+    id: 'inbox',
+    title: 'Inbox · Triage',
+    subtitle: `${counts.all} Items · ${counts.unread} ungelesen`,
+  })
+
   return (
-    <div className="inbox-page">
-      <MobilePageHeader
-        title="Inbox"
-        menuItems={[
-          { id: 'refresh', label: 'Aktualisieren', onClick: load },
-          ...(counts.unread > 0 ? [{ id: 'allread', label: 'Alles gelesen', onClick: markAllRead }] : []),
-        ]}
-      />
+    <MobileCodexListChrome
+      className="inbox-page"
+      title="Inbox"
+      legacyHeader={(
+        <MobilePageHeader
+          title="Inbox"
+          menuItems={[
+            { id: 'refresh', label: 'Aktualisieren', onClick: load },
+            ...(counts.unread > 0 ? [{ id: 'allread', label: 'Alles gelesen', onClick: markAllRead }] : []),
+          ]}
+        />
+      )}
+      mobileActions={(
+        <>
+          {counts.unread > 0 ? (
+            <button type="button" className="mcl-add-btn" aria-label="Alles gelesen" onClick={markAllRead}>
+              <Check size={18} weight="bold" />
+            </button>
+          ) : (
+            <button type="button" className="mcl-add-btn" aria-label="Tagro Triage" onClick={tagroInbox}>
+              <Sparkle size={17} weight="fill" />
+            </button>
+          )}
+          <div className="mcl-actions-group">
+            <button
+              type="button"
+              className={`mcl-ctl${filterOpen ? ' on' : ''}${filter !== 'all' ? ' has-active' : ''}`}
+              aria-label="Filter"
+              aria-expanded={filterOpen}
+              onClick={() => setFilterOpen(v => !v)}
+            >
+              <FunnelSimple size={17} weight="regular" />
+            </button>
+            {filterOpen && (
+              <div className="ix-m-filter-menu" role="menu">
+                <p className="mcl-sheet-title">Filtern</p>
+                {FILTERS.map(f => (
+                  <button
+                    key={f.id}
+                    type="button"
+                    role="menuitem"
+                    className={`ix-m-filter-item${filter === f.id ? ' on' : ''}`}
+                    onClick={() => { setFilter(f.id); setFilterOpen(false) }}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+            )}
+            <button type="button" className="mcl-ctl" aria-label="Aktualisieren" onClick={load} disabled={loading}>
+              <ArrowsClockwise size={17} weight="regular" />
+            </button>
+          </div>
+          {filterOpen && (
+            <button
+              type="button"
+              className="mcl-sheet-backdrop"
+              aria-label="Schließen"
+              onClick={() => setFilterOpen(false)}
+            />
+          )}
+        </>
+      )}
+      dock={{
+        onDragUp: tagroInbox,
+        primary: {
+          id: 'summarize',
+          label: counts.unread > 0 ? 'Inbox zusammenfassen...' : 'Inbox durchgehen...',
+          icon: <WaveSine size={14} weight="regular" />,
+          onClick: tagroInbox,
+          ariaLabel: 'Inbox mit Tagro',
+        },
+        secondary: {
+          id: 'tagro',
+          icon: <PencilSimple size={20} weight="bold" />,
+          onClick: tagroInbox,
+          ariaLabel: 'Mit Tagro bearbeiten',
+        },
+      }}
+      extraCss={`
+        @media (max-width: 768px) {
+          .inbox-page { padding: 0 !important; max-width: none !important; }
+          .ix-head { display: none !important; }
+          .ix-toolbar { margin-bottom: 8px !important; }
+          .ix-filters {
+            background: transparent !important;
+            padding: 0 !important;
+            gap: 8px !important;
+          }
+          .ix-filter {
+            height: 32px !important;
+            padding: 0 14px !important;
+            border: var(--mcl-white-border) !important;
+            background: #fff !important;
+            box-shadow: var(--mcl-white-elev) !important;
+            color: #6e717e !important;
+            font-size: 13px !important;
+          }
+          .ix-filter.on {
+            background: #f8f8fa !important;
+            color: #0f0f10 !important;
+          }
+          .ix-row {
+            border-radius: 12px !important;
+            background: #fff !important;
+            border: 1px solid rgba(255,255,255,.9) !important;
+            box-shadow: 0 2px 4px rgba(144,149,159,.07) !important;
+          }
+          [data-theme="dark"] .ix-filter,
+          [data-theme="classic-dark"] .ix-filter {
+            background: rgba(255,255,255,.06) !important;
+            border-color: rgba(255,255,255,.1) !important;
+            color: #9aa0ac !important;
+          }
+          [data-theme="dark"] .ix-row,
+          [data-theme="classic-dark"] .ix-row {
+            background: rgba(255,255,255,.06) !important;
+            border-color: rgba(255,255,255,.1) !important;
+          }
+          .ix-m-filter-menu {
+            position: fixed !important;
+            bottom: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            z-index: 100 !important;
+            padding: 8px 16px calc(8px + env(safe-area-inset-bottom)) !important;
+            border-radius: 20px 20px 0 0 !important;
+            background: #fff !important;
+            box-shadow: 0 -4px 24px rgba(15,23,42,.12) !important;
+          }
+          .ix-m-filter-item {
+            display: flex !important;
+            width: 100% !important;
+            align-items: center !important;
+            min-height: 48px !important;
+            padding: 0 12px !important;
+            border: 0 !important;
+            border-radius: 12px !important;
+            background: transparent !important;
+            color: #2a3032 !important;
+            font: inherit !important;
+            font-size: 15px !important;
+            cursor: pointer !important;
+            text-align: left !important;
+          }
+          .ix-m-filter-item.on { background: #f8f8fa !important; font-weight: 500 !important; }
+          [data-theme="dark"] .ix-m-filter-menu,
+          [data-theme="classic-dark"] .ix-m-filter-menu {
+            background: #1c1c1e !important;
+          }
+          [data-theme="dark"] .ix-m-filter-item,
+          [data-theme="classic-dark"] .ix-m-filter-item { color: #f4f4f4 !important; }
+        }
+      `}
+    >
       <header className="ix-head">
         <div>
           <span style={{ display:'inline-flex', alignItems:'center', gap:7 }}>
@@ -194,14 +350,7 @@ export default function InboxPage() {
           )}
           {/* Tagro entry — opens overlay with inbox scope, lets the user
               ask Tagro to triage / summarize / extract decisions etc. */}
-          <button
-            type="button"
-            onClick={() => openTagro({
-              contextType: 'empty',
-              id: 'inbox',
-              title: 'Inbox · Triage',
-              subtitle: `${counts.all} Items · ${counts.unread} ungelesen`,
-            })}
+          <button type="button" onClick={tagroInbox}
             style={{
               display: 'inline-flex', alignItems: 'center', gap: 6,
               height: 28, padding: '0 14px', borderRadius: 32,
@@ -388,6 +537,6 @@ export default function InboxPage() {
           display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
         }
       `}</style>
-    </div>
+    </MobileCodexListChrome>
   )
 }

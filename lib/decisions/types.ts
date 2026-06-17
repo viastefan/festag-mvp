@@ -44,6 +44,9 @@ export const DECISION_OPEN_STATES: ReadonlySet<DecisionStatus> = new Set<Decisio
   'in_progress',
 ])
 
+/** For Supabase `.in('status', …)` filters — keep in sync with DECISION_OPEN_STATES. */
+export const DECISION_OPEN_STATUS_LIST: DecisionStatus[] = Array.from(DECISION_OPEN_STATES)
+
 // States that mean "resolved, no further action required".
 export const DECISION_TERMINAL_STATES: ReadonlySet<DecisionStatus> = new Set<DecisionStatus>([
   'applied',
