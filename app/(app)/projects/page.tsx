@@ -341,7 +341,7 @@ function ProjectsPageInner() {
                   {filterOpen && (
                     <div className="pj2-menu" role="menu">
                       {FILTERS.map(f => (
-                        <button key={f.id} type="button" className={filter === f.id ? 'on' : ''} onClick={() => { setFilter(f.id); setFilterOpen(false) }}>
+                        <button key={f.id} type="button" className={`pj2-menu-btn${filter === f.id ? ' on' : ''}`} onClick={() => { setFilter(f.id); setFilterOpen(false) }}>
                           <span>{f.label}</span>
                           {filter === f.id && <span className="check">✓</span>}
                         </button>
@@ -361,7 +361,7 @@ function ProjectsPageInner() {
                   {sortOpen && (
                     <div className="pj2-menu" role="menu">
                       {SORTS.map(s => (
-                        <button key={s.id} type="button" className={sort === s.id ? 'on' : ''} onClick={() => { setSort(s.id); setSortOpen(false) }}>
+                        <button key={s.id} type="button" className={`pj2-menu-btn${sort === s.id ? ' on' : ''}`} onClick={() => { setSort(s.id); setSortOpen(false) }}>
                           <span>{s.label}</span>
                           {sort === s.id && <span className="check">✓</span>}
                         </button>
@@ -393,7 +393,7 @@ function ProjectsPageInner() {
               {filterOpen && (
                 <div className="pj2-menu" role="menu">
                   {FILTERS.map(f => (
-                    <button key={f.id} type="button" className={filter === f.id ? 'on' : ''} onClick={() => { setFilter(f.id); setFilterOpen(false) }}>
+                    <button key={f.id} type="button" className={`pj2-menu-btn${filter === f.id ? ' on' : ''}`} onClick={() => { setFilter(f.id); setFilterOpen(false) }}>
                       <span>{f.label}</span>
                       {filter === f.id && <span className="check">✓</span>}
                     </button>
@@ -413,7 +413,7 @@ function ProjectsPageInner() {
               {sortOpen && (
                 <div className="pj2-menu" role="menu">
                   {SORTS.map(s => (
-                    <button key={s.id} type="button" className={sort === s.id ? 'on' : ''} onClick={() => { setSort(s.id); setSortOpen(false) }}>
+                    <button key={s.id} type="button" className={`pj2-menu-btn${sort === s.id ? ' on' : ''}`} onClick={() => { setSort(s.id); setSortOpen(false) }}>
                       <span>{s.label}</span>
                       {sort === s.id && <span className="check">✓</span>}
                     </button>
@@ -928,20 +928,25 @@ const CSS = `
     animation: pj2In .18s cubic-bezier(.16,1,.3,1) both;
   }
   @keyframes pj2In { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
-  .pj2-menu button {
+  .pj2-menu button,
+  .pj2-menu-btn {
     width: 100%; height: 36px; padding: 0 12px;
     border: 0; background: transparent;
-    border-radius: 4px;
+    border-radius: 6px !important;
     display: flex; align-items: center; justify-content: space-between;
     color: #0F0F10;
     font: inherit; font-size: 13px; font-weight: 400;
     cursor: pointer;
     transition: background .12s, color .12s;
   }
-  .pj2-menu button:hover { background: rgba(0,0,0,.04); color: #0F0F10; }
-  .pj2-menu button.on { background: rgba(0,0,0,.055); color: #0F0F10; }
-  .pj2-menu button:active { background: rgba(0,0,0,.07); }
-  .pj2-menu button .check { color: #0F0F10; font-size: 13px; }
+  .pj2-menu button:hover,
+  .pj2-menu-btn:hover { background: rgba(0,0,0,.04); color: #0F0F10; }
+  .pj2-menu button.on,
+  .pj2-menu-btn.on { background: rgba(0,0,0,.055); color: #0F0F10; }
+  .pj2-menu button:active,
+  .pj2-menu-btn:active { background: rgba(0,0,0,.07); }
+  .pj2-menu button .check,
+  .pj2-menu-btn .check { color: #0F0F10; font-size: 13px; }
 
   .pj2-table {
     width: 100%;
@@ -1473,26 +1478,31 @@ const CSS = `
       gap: 2px !important;
       background: #FFFFFF !important;
     }
-    .pjm-actions .pj2-menu button {
+    .pjm-actions .pj2-menu button,
+    .pjm-actions .pj2-menu-btn {
       height: 44px !important;
       font-size: 15px !important;
       font-weight: 400 !important;
       padding: 0 16px !important;
-      border-radius: 4px !important;
+      border-radius: 6px !important;
       color: #0F0F10 !important;
     }
-    .pjm-actions .pj2-menu button:hover {
+    .pjm-actions .pj2-menu button:hover,
+    .pjm-actions .pj2-menu-btn:hover {
       background: rgba(0,0,0,.04) !important;
       color: #0F0F10 !important;
     }
-    .pjm-actions .pj2-menu button.on {
+    .pjm-actions .pj2-menu button.on,
+    .pjm-actions .pj2-menu-btn.on {
       background: rgba(0,0,0,.055) !important;
       color: #0F0F10 !important;
     }
-    .pjm-actions .pj2-menu button:active {
+    .pjm-actions .pj2-menu button:active,
+    .pjm-actions .pj2-menu-btn:active {
       background: rgba(0,0,0,.07) !important;
     }
-    .pjm-actions .pj2-menu button .check {
+    .pjm-actions .pj2-menu button .check,
+    .pjm-actions .pj2-menu-btn .check {
       color: #0F0F10 !important;
       font-size: 14px !important;
     }
