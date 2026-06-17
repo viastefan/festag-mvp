@@ -1,0 +1,12 @@
+---
+description: Context-effizient arbeiten — enge Scopes, Subagents, kleine Diffs (Festag)
+globs: "{app,components,lib}/**/*"
+alwaysApply: false
+---
+
+# Agent context efficiency (Festag)
+
+- Prefer **@-mentions** and narrow paths over repo-wide search; use **Task** for broad exploration.
+- Read large files with **offset/limit**; do not echo full file contents in replies.
+- Prefer **StrReplace** over **Write** on existing files.
+- After a large feature pass or topic switch, suggest a **new chat** so prior tool outputs do not bloat context.
