@@ -15,9 +15,12 @@ import {
   URGENCY_LABEL,
   URGENCY_TONE,
   fmtAgo,
+  isOpenDecisionStatus,
+  resolveDecisionType,
   type Decision,
   type ProjectLite,
 } from '@/components/decisions/decisions-shared'
+import DecisionDetailBrief from '@/components/decisions/DecisionDetailBrief'
 import { DecisionDrawer } from '@/components/decisions/DecisionDrawer'
 import { DECISION_CSS } from '@/components/decisions/decisions-styles'
 
@@ -106,8 +109,9 @@ function DecisionDetailInner() {
     (!decision.requested_for && decision.created_by !== me)
 
   const title = decision.client_title || decision.title
-  const subtitle = decision.client_summary || decision.description
+  const typeMeta = resolveDecisionType(decision.decision_type)
   const isAnswered = decision.status === 'decided' || decision.status === 'applied'
+  const escalation = decision.escalation_level ?? 0
 
   return (
     <div className="dec-os dec-os-detail">
@@ -136,7 +140,6 @@ function DecisionDetailInner() {
           <div className="dec-detail-hero-main">
             <div className="dec-detail-hero-text">
               <h1 className="dec-detail-title">{title}</h1>
-              {subtitle && <p className="dec-detail-subtitle">{subtitle}</p>}
             </div>
           </div>
 
@@ -148,11 +151,22 @@ function DecisionDetailInner() {
             </span>
           )}
           {decision.decision_type && (
-            <span className="dec-detail-meta-chip">{decision.decision_type}</span>
+            <span
+              className="dec-detail-meta-chip dec-detail-meta-chip--type"
+              style={{ ['--dec-dot-color' as string]: typeMeta.color }}
+            >
+              <span className="dec-detail-project-dot" aria-hidden />
+              {typeMeta.label}
+            </span>
           )}
           <span className={`dec-detail-meta-chip dec-detail-meta-chip--${URGENCY_TONE[decision.urgency] || 'muted'}`}>
             {URGENCY_LABEL[decision.urgency] || 'Normal'}
           </span>
+          {escalation >= 2 && isOpenDecisionStatus(decision.status) && (
+            <span className="dec-detail-meta-chip dec-detail-meta-chip--red">
+              {escalation >= 3 ? 'Frist abgelaufen' : 'Eskaliert'}
+            </span>
+          )}
           {isAnswered && (
             <span className="dec-detail-meta-chip dec-detail-meta-chip--good">Entschieden</span>
           )}
@@ -161,6 +175,8 @@ function DecisionDetailInner() {
             {fmtAgo(decision.updated_at)}
           </span>
           </div>
+
+          <DecisionDetailBrief decision={decision} project={project} />
         </div>
       </header>
 
