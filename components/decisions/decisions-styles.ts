@@ -11,8 +11,7 @@ export const DECISION_CSS = `
     position:relative;
   }
   .dec-hero-bg {
-    position:absolute; left:0; right:0; pointer-events:none; z-index:0;
-    overflow:hidden;
+    display:none;
   }
   .dec-hero-bg img { width:100%; height:100%; object-fit:cover; display:block; }
   .dec-hero-bg-top { top:0; height:255px; }
@@ -25,7 +24,7 @@ export const DECISION_CSS = `
     width:100%;
     max-width:var(--festag-content-max, 1080px);
     margin:0 auto;
-    padding:var(--festag-content-pad-y, 48px) var(--festag-content-pad-x, 56px) 0;
+    padding:clamp(64px, 7vh, 88px) var(--festag-content-pad-x, 56px) 0;
     box-sizing:border-box;
   }
   .dec-static-top::after {
@@ -33,6 +32,54 @@ export const DECISION_CSS = `
     left:0; right:0; bottom:-20px; height:20px;
     background:linear-gradient(to bottom, var(--dec-card-bg) 0%, color-mix(in srgb, var(--dec-card-bg) 75%, transparent) 55%, transparent 100%);
     pointer-events:none;
+  }
+
+  .dec-page-head {
+    display:flex; align-items:flex-start; justify-content:space-between;
+    gap:24px; padding-bottom:28px;
+  }
+  .dec-page-head-copy { flex:1; min-width:0; display:flex; flex-direction:column; gap:10px; }
+  .dec-page-title {
+    margin:0; font-size:32px; font-weight:500; color:var(--dec-dark);
+    letter-spacing:-0.02em; line-height:1.15;
+    font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
+  }
+  .dec-page-lead { display:flex; flex-direction:column; gap:4px; max-width:640px; }
+  .dec-page-lead p {
+    margin:0; font-size:15px; font-weight:400; color:var(--dec-soft);
+    line-height:1.5; letter-spacing:0;
+  }
+  .dec-page-actions {
+    display:flex; align-items:center; gap:8px; flex-shrink:0;
+    padding-top:6px;
+  }
+  .dec-page-actions-group { display:flex; gap:8px; align-items:center; }
+  .dec-head-tool {
+    width:38px; height:38px;
+    border:1px solid color-mix(in srgb, var(--portal-btn-outline-border, #e7ebf0) 70%, transparent);
+    border-radius:999px;
+    background:var(--dec-card-bg);
+    color:var(--dec-soft);
+    display:inline-flex; align-items:center; justify-content:center;
+    cursor:pointer;
+    box-shadow:0 1px 2px rgba(15,23,42,.04);
+    transition:background .14s ease, color .14s ease, border-color .14s ease;
+  }
+  .dec-head-tool:hover {
+    background:var(--portal-row-hover, rgba(241,243,245,.55));
+    color:var(--dec-dark);
+    border-color:color-mix(in srgb, var(--portal-btn-outline-border, #e7ebf0) 100%, transparent);
+  }
+  [data-theme="dark"] .dec-head-tool,
+  [data-theme="classic-dark"] .dec-head-tool {
+    background:rgba(255,255,255,.04);
+    border-color:rgba(255,255,255,.1);
+    box-shadow:none;
+  }
+  [data-theme="dark"] .dec-head-tool:hover,
+  [data-theme="classic-dark"] .dec-head-tool:hover {
+    background:rgba(255,255,255,.08);
+    color:var(--dec-dark);
   }
 
   .dec-hero { display:flex; justify-content:space-between; align-items:flex-start; gap:24px; padding-bottom:24px; }
@@ -737,16 +784,19 @@ export const DECISION_CSS = `
   .dec-delegation-reason svg { margin-top:3px; flex-shrink:0; color:var(--accent); }
 
   @media (max-width: 1400px) {
-    .dec-static-top { padding-top:var(--festag-content-pad-y, 40px); }
+    .dec-static-top { padding-top:clamp(56px, 6.5vh, 72px); }
     .dec-scroll-body { padding-bottom:72px; }
   }
   @media (max-width: 1100px) {
-    .dec-static-top { padding-top:var(--festag-content-pad-y, 36px); }
+    .dec-static-top { padding-top:clamp(52px, 6vh, 64px); }
     .dec-scroll-body { padding-bottom:64px; }
   }
   @media (max-width: 900px) {
     .dec-static-top { padding-top:var(--festag-content-pad-y, 24px); }
     .dec-scroll-body { padding-bottom:var(--festag-content-pad-bottom, 64px); }
+    .dec-page-title { font-size:28px; }
+    .dec-page-lead p { font-size:14px; }
+    .dec-panel { width:100vw; }
     .dec-card { flex-direction:column; gap:20px; padding:18px 12px; align-items:stretch; }
     .dec-card-left, .dec-card-mid, .dec-card-meta, .dec-card-actions { width:100%; }
     .dec-card-meta { gap:24px; flex-direction:row; }
@@ -764,9 +814,8 @@ export const DECISION_CSS = `
     .dec-detail-meta-row { margin-top:16px; }
     .dec-detail-loading { padding:32px 20px; }
     .dec-detail-empty { padding:48px 20px; }
-    .dec-hero-title { font-size:30px; }
-    .dec-hero-sub p { font-size:18px; }
-    .dec-panel { width:100vw; }
+    .dec-page-head { display:none; }
+    .dec-hero { display:none; }
     .dec-answer-actions { flex-direction:column; align-items:stretch; }
     .dec-answer-actions > button { width:100%; justify-content:center; }
     .dec-binary-btn { height:52px; font-size:15px; }

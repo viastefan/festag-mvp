@@ -20,7 +20,6 @@ import {
   ArrowsClockwise, ChatCircleText, Check, CheckCircle, Clock, FunnelSimple,
   Sparkle, Warning, WarningCircle, X, UserCircle, CaretDown, Lightning, List,
 } from '@phosphor-icons/react'
-import FestagIconButton from '@/components/ui/FestagIconButton'
 import MobilePageHeader from '@/components/MobilePageHeader'
 import DecisionCardRow from '@/components/decisions/DecisionCardRow'
 import TagroContentFab from '@/components/TagroContentFab'
@@ -230,41 +229,57 @@ function DecisionsPageInner() {
             { id: 'tagro', label: 'Mit Tagro bearbeiten', onClick: () => openTagro({ contextType: 'decision', id: 'list', title: 'Entscheidungen · Übersicht' }) },
           ]}
         />
-        <div className="dec-hero">
-          <div className="dec-hero-text">
-            <h1 className="dec-hero-title">
-              {displayCounts.open === 0
-                ? 'Keine Entscheidungen offen.'
-                : `Heute ${displayCounts.open === 1 ? 'ist' : 'sind'} ${displayCounts.open} Entscheidung${displayCounts.open === 1 ? '' : 'en'} offen.`}
-            </h1>
-            <div className="dec-hero-sub">
-              <p>{executiveSummary.line1}</p>
-              <p>{executiveSummary.line2}</p>
+        <header className="dec-page-head">
+          <div className="dec-page-head-copy">
+            <h1 className="dec-page-title">Entscheidungen</h1>
+            <div className="dec-page-lead">
+              <p>
+                {displayCounts.open === 0
+                  ? 'Keine Entscheidungen offen.'
+                  : `Heute ${displayCounts.open === 1 ? 'ist' : 'sind'} ${displayCounts.open} Entscheidung${displayCounts.open === 1 ? '' : 'en'} offen.`}
+              </p>
+              {(executiveSummary.line1 || executiveSummary.line2) && (
+                <p>{[executiveSummary.line1, executiveSummary.line2].filter(Boolean).join(' ')}</p>
+              )}
             </div>
           </div>
-          <div className="dec-hero-actions">
-            <div className="dec-hero-actions-group">
-              <FestagIconButton onClick={() => setFilter(f => f === 'open' ? 'all' as Filter : 'open' as Filter)} title="Filter" aria-label="Filter">
-                <List size={14} weight="regular" />
-              </FestagIconButton>
-              <FestagIconButton
+          <div className="dec-page-actions">
+            <div className="dec-page-actions-group">
+              <button
+                type="button"
+                className="dec-head-tool"
+                title="Filter"
+                aria-label="Filter"
+                onClick={() => setFilter(f => f === 'open' ? 'all' as Filter : 'open' as Filter)}
+              >
+                <List size={18} weight="regular" />
+              </button>
+              <button
+                type="button"
+                className="dec-head-tool"
+                title="Tagro"
+                aria-label="Tagro"
                 onClick={() => openTagro({
                   contextType: 'decision',
                   id: 'list',
                   title: 'Entscheidungen · Übersicht',
                   subtitle: `${displayCounts.open} offen · ${displayCounts.urgent} dringend`,
                 })}
-                title="Tagro"
-                aria-label="Tagro"
               >
-                <Lightning size={14} weight="fill" />
-              </FestagIconButton>
+                <Lightning size={18} weight="fill" />
+              </button>
             </div>
-            <FestagIconButton title="Aktualisieren" aria-label="Aktualisieren" onClick={load}>
+            <button
+              type="button"
+              className="dec-head-tool"
+              title="Aktualisieren"
+              aria-label="Aktualisieren"
+              onClick={load}
+            >
               <svg width="14" height="3" viewBox="0 0 14 3" fill="none" aria-hidden><circle cx="2" cy="1.5" r="1.5" fill="currentColor"/><circle cx="7" cy="1.5" r="1.5" fill="currentColor"/><circle cx="12" cy="1.5" r="1.5" fill="currentColor"/></svg>
-            </FestagIconButton>
+            </button>
           </div>
-        </div>
+        </header>
       </div>
 
       <div className="dec-scroll-body">
