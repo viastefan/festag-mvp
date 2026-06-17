@@ -44,9 +44,9 @@ export const DECISION_CSS = `
     letter-spacing:var(--ls-header, 0.012em); line-height:1.15;
     font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
   }
-  .dec-page-lead { display:flex; flex-direction:column; gap:4px; max-width:640px; }
+  .dec-page-lead { display:flex; flex-direction:column; gap:6px; max-width:680px; }
   .dec-page-lead p {
-    margin:0; font-size:15px; font-weight:400; color:var(--dec-soft);
+    margin:0; font-size:17px; font-weight:400; color:var(--dec-soft);
     line-height:1.5; letter-spacing:0;
   }
   .dec-page-actions {
@@ -838,7 +838,7 @@ export const DECISION_CSS = `
     .dec-static-top { padding-top:var(--festag-content-pad-y, 24px); }
     .dec-scroll-body { padding-bottom:var(--festag-content-pad-bottom, 64px); }
     .dec-page-title { font-size:28px; }
-    .dec-page-lead p { font-size:14px; }
+    .dec-page-lead p { font-size:15px; }
     .dec-panel { width:100vw; }
     .dec-card { flex-direction:column; gap:20px; padding:18px 12px; align-items:stretch; }
     .dec-card-left, .dec-card-mid, .dec-card-meta, .dec-card-actions { width:100%; }

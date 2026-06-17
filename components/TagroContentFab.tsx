@@ -29,7 +29,7 @@ export default function TagroContentFab({
         title="Mit Tagro bearbeiten"
         onClick={() => openTagro(context)}
       >
-        <TagroComposeIcon size={20} />
+        <TagroComposeIcon size={22} />
       </button>
       <style jsx>{`
         .festag-content-fab {
@@ -54,6 +54,11 @@ export default function TagroContentFab({
             box-shadow 0.18s ease,
             background 0.14s ease,
             border-color 0.14s ease;
+        }
+        .festag-content-fab :global(svg) {
+          display: block;
+          flex-shrink: 0;
+          pointer-events: none;
         }
         .festag-content-fab--absolute {
           position: absolute;
