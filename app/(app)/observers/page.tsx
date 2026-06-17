@@ -4,10 +4,13 @@ import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { Plus, Question, X, EnvelopeSimple, Eye, ChatCircle, Trash, Check, UsersThree } from '@phosphor-icons/react'
+import { Plus, Question, X, EnvelopeSimple, Eye, ChatCircle, Trash, Check, UsersThree, PencilSimple } from '@phosphor-icons/react'
 import { autoAvatarColor, avatarInitials, avatarTextColor } from '@/lib/avatar'
 import { subscribeProfileSync } from '@/lib/profile-sync'
 import TagroEntryButton from '@/components/TagroEntryButton'
+import MobilePageHeader from '@/components/MobilePageHeader'
+import MobileCodexListChrome from '@/components/mobile/MobileCodexListChrome'
+import { openTagro } from '@/components/TagroOverlay'
 
 type Observer = {
   id: string
@@ -206,9 +209,58 @@ export default function ObserversPage() {
 
   const totalCount = observers.length + 1 // +1 for owner
 
+  const tagroObservers = () => openTagro({
+    contextType: 'client',
+    id: 'observers',
+    title: 'Mitwirkende · Übersicht',
+    subtitle: `${totalCount} mit Zugriff`,
+  })
+
+  const openInvite = () => setInviteOpen(true)
+
   return (
-    <div className="obs-os">
-      <style>{`
+    <>
+    <MobileCodexListChrome
+      className="obs-os"
+      title="Mitwirkende"
+      subtitle={loading ? 'Wird geladen…' : `${totalCount} ${totalCount === 1 ? 'Person' : 'Personen'} mit Zugriff`}
+      legacyHeader={(
+        <MobilePageHeader
+          title="Mitwirkende"
+          primaryIcon={Plus}
+          primaryLabel="Einladen"
+          onPrimary={openInvite}
+        />
+      )}
+      mobileActions={(
+        <>
+          <button type="button" className="mcl-add-btn" aria-label="Mitwirkende einladen" onClick={openInvite}>
+            <Plus size={18} weight="bold" />
+          </button>
+          <div className="mcl-actions-group">
+            <button type="button" className="mcl-ctl" aria-label="Hilfe" onClick={() => setHelpOpen(true)}>
+              <Question size={17} weight="bold" />
+            </button>
+          </div>
+        </>
+      )}
+      dock={{
+        onDragUp: openInvite,
+        primary: {
+          id: 'invite',
+          label: 'Mitwirkende einladen...',
+          icon: <Plus size={14} weight="bold" />,
+          onClick: openInvite,
+          ariaLabel: 'Mitwirkende einladen',
+        },
+        secondary: {
+          id: 'tagro',
+          icon: <PencilSimple size={20} weight="bold" />,
+          onClick: tagroObservers,
+          ariaLabel: 'Mit Tagro bearbeiten',
+        },
+      }}
+      extraCss={`
         .obs-os {
           width:100%; height:100%; min-height:0;
           color:var(--text);
@@ -612,14 +664,34 @@ export default function ObserversPage() {
         .obs-help-link:hover { color:var(--text); }
 
         @media(max-width:760px) {
-          .obs-head-row, .obs-row {
-            grid-template-columns: minmax(0, 1fr) 100px 28px;
+          .obs-top, .obs-meta-row.obs-dt { display: none !important; }
+          .obs-scroll { padding: 0 !important; overflow: visible !important; }
+          .obs-head-row { display: none !important; }
+          .obs-row {
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: stretch !important;
+            gap: 10px !important;
+            padding: 16px 14px !important;
+            margin-bottom: 12px !important;
+            border: 1px solid rgba(0, 0, 0, 0.07) !important;
+            border-radius: 14px !important;
+            background: #FFFFFF !important;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,1), 0 1px 0 rgba(0,0,0,0.04), 0 4px 10px rgba(144,149,159,0.16) !important;
           }
-          .obs-col-projects, .obs-col-invited, .obs-col-seen { display:none; }
+          [data-theme="dark"] .obs-row,
+          [data-theme="classic-dark"] .obs-row {
+            background: rgba(255,255,255,0.06) !important;
+            border: 1px solid rgba(255,255,255,0.14) !important;
+          }
+          .obs-col-projects, .obs-col-invited, .obs-col-seen { display: none !important; }
+          .obs-name { font-size: 17px !important; font-weight: 500 !important; letter-spacing: -0.02em !important; }
+          .obs-email { font-size: 14px !important; }
+          .obs-row-action { opacity: 1 !important; }
         }
-      `}</style>
-
-      <div className="obs-top">
+      `}
+    >
+      <div className="obs-top obs-dt">
         <div className="obs-title-wrap">
           <h1 className="obs-title">Mitwirkende</h1>
           <button className="obs-help-btn" onClick={() => setHelpOpen(true)} aria-label="Was sind Mitwirkende?" title="Was sind Mitwirkende?">
@@ -642,7 +714,7 @@ export default function ObserversPage() {
         </span>
       </div>
 
-      <div className="obs-meta-row">
+      <div className="obs-meta-row obs-dt">
         <span className="obs-count">{loading ? 'Wird geladen…' : `${totalCount} ${totalCount === 1 ? 'Person' : 'Personen'} mit Zugriff`}</span>
       </div>
 
@@ -936,8 +1008,7 @@ export default function ObserversPage() {
         )}
       </div>
       </div>
-
-      {/* Invite-Composer wird jetzt INLINE über der Tabelle gerendert (siehe Schreib-Position weiter oben) — kein Modal mehr. */}
+    </MobileCodexListChrome>
 
       {/* ── Help Modal — portal to body ── */}
       {helpOpen && typeof document !== 'undefined' && createPortal(
@@ -975,6 +1046,6 @@ export default function ObserversPage() {
         </div>,
         document.body
       )}
-    </div>
+    </>
   )
 }
