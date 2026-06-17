@@ -429,7 +429,7 @@ function DecisionsPageInner() {
             </h1>
             <p>
               <span className="dec-dt">{leadLine1}</span>
-              <span className="dec-m-t dec-m-sub">Alles auf einen Blick.</span>
+              <span className="dec-m-t dec-m-sub">{counts.open} offen · {counts.urgent} dringend</span>
             </p>
             <div className="dec-page-lead dec-dt">
               <p className="dec-page-lead-line">{leadLine1}</p>
