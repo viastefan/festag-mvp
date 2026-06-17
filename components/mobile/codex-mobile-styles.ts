@@ -45,4 +45,41 @@ export const CODEX_ORB_CSS = `
   }
   .cx-topbar > * { pointer-events: auto; }
   .cx-topbar-spacer { width: 44px; height: 44px; flex-shrink: 0; }
+
+  .cx-action-pill {
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+    height: 44px;
+    padding: 0 2px;
+    border-radius: 999px;
+    background: var(--cx-orb-bg, #fff);
+    box-shadow:
+      0 2px 10px rgba(0, 0, 0, 0.07),
+      0 1px 3px rgba(0, 0, 0, 0.04);
+  }
+  .cx-action-pill--dark {
+    --cx-orb-bg: rgba(255, 255, 255, 0.1);
+    --cx-orb-fg: rgba(255, 255, 255, 0.88);
+    box-shadow: none;
+  }
+  .cx-action-pill-btn {
+    width: 42px;
+    height: 42px;
+    border: 0;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    background: transparent;
+    color: var(--cx-orb-fg, #1c1c1e);
+    transition: background 0.14s ease, transform 0.14s ease;
+  }
+  .cx-action-pill-btn:active {
+    transform: scale(0.96);
+    background: var(--cx-orb-bg-active, #f8f8f8);
+  }
 `

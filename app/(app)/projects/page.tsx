@@ -25,7 +25,7 @@ import {
   FunnelSimple, SlidersHorizontal, Plus, PencilSimple, DotsThree,
   User, UsersThree, Stack, MagnifyingGlass, DotsNine, Copy, Check, X, Folder, CaretRight,
 } from '@phosphor-icons/react'
-import CodexMobileTopBar from '@/components/mobile/CodexMobileTopBar'
+import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
 import MobileNavSheet from '@/components/mobile/MobileNavSheet'
 
 type ProjectRow = {
@@ -293,12 +293,6 @@ function ProjectsPageInner() {
 
       <RailSidebar />
 
-      <CodexMobileTopBar
-        left="menu"
-        right="search"
-        onLeft={() => setNavOpen(true)}
-        onRight={() => window.dispatchEvent(new CustomEvent('open-command-palette'))}
-      />
       <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
 
       <main className="pj2-main">
@@ -308,6 +302,12 @@ function ProjectsPageInner() {
             <div className="pj2-title">
               <h1><span className="pj2-dt">Alle Projekte.</span><span className="pjm-t">Projekte</span></h1>
               <p><span className="pj2-dt">Auf einem Blick. KI gesteuert.</span><span className="pjm-t pjm-status"><span className="pjm-status-dot" aria-hidden />{visible.length} {visible.length === 1 ? 'Projekt' : 'Projekte'}</span></p>
+            </div>
+            <div className="pjm-head-actions">
+              <CodexMobileActionPill
+                onMenu={() => setNavOpen(true)}
+                onSearch={() => window.dispatchEvent(new CustomEvent('open-command-palette'))}
+              />
             </div>
             <div className="pj2-actions pj2-dt">
               <div className="pj2-tool-group">
@@ -714,6 +714,7 @@ const CSS = `
   /* ── Mobile-only / Desktop-only visibility ── */
   .pjm-t { display: none; }
   .pjm-header-icons { display: none; }
+  .pjm-head-actions { display: none; }
   .pjm-section { display: none; }
   .pjm-folder { display: none; }
   .pjm-chevron { display: none; }
@@ -1276,30 +1277,24 @@ const CSS = `
     /* Hide global dock — projects has its own bottom bar */
     :global(.mcd) { display: none !important; }
 
-    /* ── Mobile header icons: Codex-style floating circles ── */
+    /* ── Mobile header icons: merged Codex action pill in header row ── */
     .pjm-header-icons { display: none !important; }
-
-    .pj2-page :global(.cx-topbar) {
-      position: fixed;
-      z-index: 30;
+    .pjm-head-actions {
+      display: flex !important;
+      align-items: flex-start;
+      flex-shrink: 0;
+      padding-top: 2px;
     }
 
-    .pjm-section {
-      display: block !important;
-      margin: 8px 0 12px;
-      padding: 0 4px;
-      font-size: 15px;
-      font-weight: 500;
-      letter-spacing: -0.01em;
-      color: #0f0f10;
-    }
+    .pjm-section { display: none !important; }
     .pjm-status {
       display: inline-flex !important;
       align-items: center;
       gap: 8px;
-      font-size: 14px !important;
+      font-size: inherit !important;
       font-weight: 400 !important;
-      color: #6e717e !important;
+      color: #8E8E93 !important;
+      letter-spacing: inherit !important;
     }
     .pjm-status-dot {
       display: inline-block !important;
@@ -1328,54 +1323,49 @@ const CSS = `
       flex: 1 !important; min-height: 0 !important;
       background: transparent !important;
       border-radius: 0 !important;
-      padding: calc(64px + env(safe-area-inset-top, 0px)) 20px 160px !important;
+      padding: calc(20px + env(safe-area-inset-top, 0px)) 20px 160px !important;
       overflow-y: auto !important;
       overflow-x: hidden !important;
       box-shadow: none !important;
     }
 
-    /* ── Header: zwei Zeilen, engerer Rhythmus ── */
+    /* ── Header: title links, action pill rechts, eine Schriftgröße ── */
     .pj2-head {
-      display: block !important;
+      display: flex !important;
+      align-items: flex-start !important;
+      justify-content: space-between !important;
+      gap: 12px !important;
       margin-bottom: 20px !important;
-      padding-right: 108px !important;
+      padding-right: 0 !important;
     }
     .pj2-title {
       display: flex;
       flex-direction: column;
       gap: 4px;
+      flex: 1 1 auto;
+      min-width: 0;
     }
-    .pj2-title h1 {
-      font-size: 18px !important;
-      font-weight: 400 !important;
-      font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif) !important;
-      letter-spacing: -0.5px !important;
-      color: #000000 !important;
-      line-height: 1.2 !important;
-      margin: 0 !important;
-    }
+    .pj2-title h1,
     .pj2-title p {
-      display: flex !important;
-      width: fit-content !important;
       font-size: 30px !important;
       font-weight: 400 !important;
       font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif) !important;
-      color: #8E8E93 !important;
       letter-spacing: -0.5px !important;
       line-height: 1.12 !important;
       margin: 0 !important;
     }
-    .pj2-title h1 .pjm-t {
-      font-size: 18px !important;
-      font-weight: 400 !important;
-      letter-spacing: -0.5px !important;
+    .pj2-title h1 {
+      color: #000000 !important;
     }
-    .pj2-title p .pjm-t {
+    .pj2-title p {
       display: flex !important;
       width: fit-content !important;
-      font-size: 30px !important;
+      color: #8E8E93 !important;
+    }
+    .pj2-title .pjm-t {
+      font-size: inherit !important;
       font-weight: 400 !important;
-      letter-spacing: -0.5px !important;
+      letter-spacing: inherit !important;
     }
 
     /* ── Mobile toolbar ── */
