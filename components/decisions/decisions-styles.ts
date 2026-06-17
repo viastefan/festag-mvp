@@ -45,6 +45,9 @@ export const DECISION_CSS = `
   .dec-m-sheet-backdrop { display: none; }
   .dec-m-sheet-title { display: none; }
 
+  .dec-m-shell {
+    display:flex; flex-direction:column; flex:1 1 auto; min-height:0;
+  }
   .dec-static-top, .dec-scroll-body { position:relative; z-index:1; }
 
   .dec-static-top {
@@ -1563,12 +1566,22 @@ export const DECISION_CSS = `
     .dec-fab-desktop { display: none !important; }
     .dec-hero-bg { display: none !important; }
 
+    .dec-m-shell {
+      flex: 1 1 auto !important;
+      min-height: 0 !important;
+      overflow-y: auto !important;
+      overflow-x: hidden !important;
+      padding: calc(20px + env(safe-area-inset-top, 0px)) 20px 160px !important;
+      box-sizing: border-box !important;
+      -webkit-overflow-scrolling: touch;
+    }
+
     .dec-static-top {
       position: relative !important;
       flex: 0 0 auto !important;
       max-width: none !important;
       margin: 0 !important;
-      padding: calc(20px + env(safe-area-inset-top, 0px)) 20px 0 !important;
+      padding: 0 !important;
       background: transparent !important;
       box-sizing: border-box !important;
     }
@@ -1588,28 +1601,38 @@ export const DECISION_CSS = `
       min-width: 0 !important;
       gap: 0 !important;
     }
-    .dec-page-title {
+    .dec-page-head-copy h1,
+    .dec-page-head-copy p {
+      font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif) !important;
+      font-weight: 400 !important;
+      margin: 0 !important;
+    }
+    .dec-page-title,
+    .dec-page-head-copy h1 {
       font-size: 29px !important;
       font-weight: 400 !important;
       letter-spacing: -0.5px !important;
       line-height: 1.02 !important;
       color: #0F0F10 !important;
-      margin: 0 !important;
     }
-    .dec-page-sub {
-      display: flex !important;
-      width: fit-content !important;
-      margin: -2px 0 0 !important;
-      font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif) !important;
-      font-weight: 400 !important;
-    }
-    .dec-m-sub {
-      display: inline !important;
+    .dec-page-sub,
+    .dec-page-head-copy p {
       font-size: 29px !important;
-      font-weight: 400 !important;
-      color: #90959F !important;
       letter-spacing: -0.5px !important;
       line-height: 1.02 !important;
+      display: flex !important;
+      width: fit-content !important;
+      color: #90959F !important;
+      margin-top: -2px !important;
+    }
+    .dec-m-sub,
+    .dec-page-head-copy .dec-m-t {
+      display: inline !important;
+      font-size: inherit !important;
+      font-weight: 400 !important;
+      color: inherit !important;
+      letter-spacing: inherit !important;
+      line-height: inherit !important;
     }
     .dec-page-lead { display: none !important; }
     .dec-m-head-actions {
@@ -1637,25 +1660,28 @@ export const DECISION_CSS = `
       height: 36px !important;
       min-width: 36px !important;
       min-height: 36px !important;
-      border: var(--dec-m-white-border) !important;
+      border: 0 !important;
       border-radius: 999px !important;
-      background: #FFFFFF !important;
-      color: #1C1C1E !important;
+      background: var(--portal-btn-primary, #5b647d) !important;
+      color: #ffffff !important;
       display: inline-flex !important;
       align-items: center !important;
       justify-content: center !important;
       cursor: pointer !important;
       padding: 0 !important;
       flex-shrink: 0 !important;
-      box-shadow: var(--dec-m-white-elev) !important;
+      box-shadow:
+        0 2px 10px rgba(91, 100, 125, 0.32),
+        0 1px 3px rgba(46, 47, 51, 0.14) !important;
       -webkit-tap-highlight-color: transparent;
       transition: background .12s ease, transform .12s ease, box-shadow .12s ease;
     }
     .dec-m-risks-btn.on {
-      background: #F8F8F8 !important;
+      background: color-mix(in srgb, var(--portal-btn-primary, #5b647d) 92%, #000) !important;
     }
     .dec-m-risks-btn:active {
       transform: scale(0.96);
+      background: color-mix(in srgb, var(--portal-btn-primary, #5b647d) 88%, #000) !important;
     }
     .dec-m-risks-badge {
       position: absolute !important;
@@ -1795,15 +1821,15 @@ export const DECISION_CSS = `
     }
 
     .dec-scroll-body {
-      flex: 1 1 auto !important;
+      flex: 0 0 auto !important;
       min-height: 0 !important;
       max-width: none !important;
       margin: 0 !important;
-      padding: 4px 20px 160px !important;
+      padding: 4px 0 0 !important;
       display: flex !important;
       flex-direction: column !important;
       gap: 12px !important;
-      overflow-y: auto !important;
+      overflow: visible !important;
       background: transparent !important;
     }
     .dec-divider-gradient { display: none !important; }
@@ -1899,12 +1925,16 @@ export const DECISION_CSS = `
     }
 
     [data-theme="dark"] .dec-page-title,
-    [data-theme="classic-dark"] .dec-page-title {
+    [data-theme="classic-dark"] .dec-page-title,
+    [data-theme="dark"] .dec-page-head-copy h1,
+    [data-theme="classic-dark"] .dec-page-head-copy h1 {
       color: #f4f4f4 !important;
       font-size: 29px !important;
     }
-    [data-theme="dark"] .dec-m-sub,
-    [data-theme="classic-dark"] .dec-m-sub {
+    [data-theme="dark"] .dec-page-sub,
+    [data-theme="classic-dark"] .dec-page-sub,
+    [data-theme="dark"] .dec-page-head-copy p,
+    [data-theme="classic-dark"] .dec-page-head-copy p {
       color: #9aa0ac !important;
       font-size: 29px !important;
     }
@@ -1915,7 +1945,17 @@ export const DECISION_CSS = `
       box-shadow: var(--dec-m-white-elev) !important;
     }
     [data-theme="dark"] .dec-m-risks-btn,
-    [data-theme="classic-dark"] .dec-m-risks-btn,
+    [data-theme="classic-dark"] .dec-m-risks-btn {
+      background: #ffffff !important;
+      color: #121214 !important;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.92),
+        0 2px 6px rgba(0, 0, 0, 0.36) !important;
+    }
+    [data-theme="dark"] .dec-m-risks-btn.on,
+    [data-theme="classic-dark"] .dec-m-risks-btn.on {
+      background: #f0f0f2 !important;
+    }
     [data-theme="dark"] .dec-m-ctl,
     [data-theme="classic-dark"] .dec-m-ctl {
       background: rgba(255, 255, 255, 0.11) !important;

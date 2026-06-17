@@ -402,7 +402,8 @@ function DecisionsPageInner() {
         <img src="/decisions/hero-bottom.png" alt="" />
       </div>
 
-      <div className="dec-static-top">
+      <div className="dec-m-shell">
+        <div className="dec-static-top">
         <div className="dec-legacy-mph">
           <MobilePageHeader
             title="Entscheidungen"
@@ -595,6 +596,7 @@ function DecisionsPageInner() {
           />
         ))}
       </div>
+      </div>
 
       <div className="dec-fab-desktop">
         <TagroContentFab
@@ -618,7 +620,7 @@ function DecisionsPageInner() {
         }}
         secondary={{
           id: 'tagro',
-          icon: <PencilSimple size={20} weight="regular" />,
+          icon: <PencilSimple size={20} weight="bold" />,
           onClick: tagroListHandler,
           ariaLabel: 'Mit Tagro bearbeiten',
         }}
