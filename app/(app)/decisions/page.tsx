@@ -17,12 +17,12 @@
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import {
-  ArrowsClockwise, FunnelSimple, Lightning, DotsThree,
+  ArrowsClockwise, FunnelSimple, Lightning, DotsThree, PencilSimple,
 } from '@phosphor-icons/react'
 import MobilePageHeader from '@/components/MobilePageHeader'
 import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
 import MobileNavSheet from '@/components/mobile/MobileNavSheet'
-import TagroComposeIcon from '@/components/icons/TagroComposeIcon'
+import MobilePageDock from '@/components/mobile/MobilePageDock'
 import DecisionCardRow from '@/components/decisions/DecisionCardRow'
 import TagroContentFab from '@/components/TagroContentFab'
 import { openTagro } from '@/components/TagroOverlay'
@@ -418,7 +418,11 @@ function DecisionsPageInner() {
               <span className="dec-dt">Entscheidungen</span>
               <span className="dec-m-t">Entscheidungen</span>
             </h1>
-            <div className="dec-page-lead">
+            <p className="dec-page-sub">
+              <span className="dec-dt">{leadLine1}</span>
+              <span className="dec-m-t dec-m-sub">Alles auf einen Blick.</span>
+            </p>
+            <div className="dec-page-lead dec-dt">
               <p className="dec-page-lead-line">{leadLine1}</p>
               <p className="dec-page-lead-line">{leadLine2}</p>
             </div>
@@ -603,24 +607,22 @@ function DecisionsPageInner() {
         />
       </div>
 
-      <div className="dec-m-dock">
-        <div className="dec-m-dock-actions">
-          <div className="dec-m-home-indicator" aria-hidden />
-          <div className="dec-m-dock-row">
-            <button type="button" className="dec-m-dock-primary" onClick={tagroListHandler}>
-              <span className="dec-m-dock-primary-icon" aria-hidden>
-                <Lightning size={14} weight="regular" />
-              </span>
-              <span className="dec-m-dock-primary-label">
-                {counts.open === 0 ? 'Mit Tagro besprechen…' : 'Entscheidungen besprechen…'}
-              </span>
-            </button>
-            <button type="button" className="dec-m-tagro" aria-label="Mit Tagro bearbeiten" onClick={tagroListHandler}>
-              <TagroComposeIcon size={20} />
-            </button>
-          </div>
-        </div>
-      </div>
+      <MobilePageDock
+        onDragUp={tagroListHandler}
+        primary={{
+          id: 'discuss',
+          label: counts.open === 0 ? 'Mit Tagro besprechen...' : 'Entscheidungen besprechen...',
+          icon: <Lightning size={14} weight="regular" />,
+          onClick: tagroListHandler,
+          ariaLabel: 'Mit Tagro besprechen',
+        }}
+        secondary={{
+          id: 'tagro',
+          icon: <PencilSimple size={20} weight="regular" />,
+          onClick: tagroListHandler,
+          ariaLabel: 'Mit Tagro bearbeiten',
+        }}
+      />
 
       {openDecision && (
         <DecisionDrawer
