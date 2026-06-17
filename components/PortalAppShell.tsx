@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import PortalSidebar from '@/components/PortalSidebar'
 import CommandPalette from '@/components/CommandPalette'
+import TagroOverlay from '@/components/TagroOverlay'
 
 export const PORTAL_APP_SHELL_CSS = `
   .portal-app-shell {
@@ -198,6 +199,7 @@ export default function PortalAppShell({ children }: { children: React.ReactNode
         </div>
       </div>
       <CommandPalette theme="portal" />
+      <TagroOverlay />
     </div>
   )
 }

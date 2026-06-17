@@ -13,8 +13,16 @@ import {
   Pulse, Bell, Cube, SquaresFour, ListChecks, File, Plugs, UsersThree,
   SidebarSimple, CaretDown, GearSix,
 } from '@phosphor-icons/react'
+import WorkspaceSymbol from '@/components/WorkspaceSymbol'
 import { createClient } from '@/lib/supabase/client'
+import { loadSymbol, onSymbolChange } from '@/lib/workspace-symbol'
 import { useNotifications } from '@/hooks/useNotifications'
+
+const WORKSPACE_MODE_LABELS: Record<string, string> = {
+  delivery: 'Festag Delivery',
+  team: 'Teams',
+  agency: 'Agency',
+}
 
 const ICON = 18
 
@@ -62,8 +70,10 @@ function fmtRecentAge(iso?: string | null): string {
 export default function PortalSidebar({ collapsed = false, onToggleCollapse }: Props) {
   const pathname = usePathname() || ''
   const onProjectsContext = pathname === '/projects' || pathname.startsWith('/project/')
-  const [initials, setInitials] = useState('ST')
-  const [workspace, setWorkspace] = useState('Delivery')
+  const [workspaceName, setWorkspaceName] = useState('')
+  const [workspaceMode, setWorkspaceMode] = useState('delivery')
+  const [wsSymbolKey, setWsSymbolKey] = useState('festag')
+  const [wsPrefs, setWsPrefs] = useState(() => loadSymbol('festag'))
   const [recent, setRecent] = useState<RecentItem[]>([])
   const { unread } = useNotifications({ unreadOnly: true, limit: 1 })
 
@@ -123,21 +133,35 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
         const u = sessionData.session?.user
         if (!u || !alive) return
 
-        const name: string = (u.user_metadata?.full_name || u.email || 'ST')
-        const parts = name.replace(/^@/, '').split(/[\s._-]+/).filter(Boolean).slice(0, 2)
-        setInitials(parts.map(p => p[0]?.toUpperCase()).join('') || 'ST')
-
         const { data: ws } = await supabase
           .from('workspaces')
-          .select('name')
+          .select('name, mode')
           .eq('primary_owner_id', u.id)
-          .limit(1)
+          .eq('is_personal', true)
           .maybeSingle()
-        if (ws?.name && alive) setWorkspace(ws.name)
+        if (!alive) return
+        const mode = (ws as { mode?: string } | null)?.mode
+        if (mode === 'team' || mode === 'agency' || mode === 'delivery') setWorkspaceMode(mode)
+        const wn = typeof (ws as { name?: string } | null)?.name === 'string'
+          ? (ws as { name: string }).name.trim()
+          : ''
+        if (wn) setWorkspaceName(wn)
+        const symbolKey = (wn || mode || u.email || 'festag').trim().toLowerCase()
+        setWsSymbolKey(symbolKey)
+        setWsPrefs(loadSymbol(symbolKey))
       } catch { /* noop */ }
     })()
     return () => { alive = false }
   }, [])
+
+  useEffect(() => {
+    const off = onSymbolChange((key, prefs) => {
+      if (key === wsSymbolKey) setWsPrefs(prefs)
+    })
+    return off
+  }, [wsSymbolKey])
+
+  const workspaceLabel = workspaceName.trim() || WORKSPACE_MODE_LABELS[workspaceMode] || 'Festag Delivery'
 
   useEffect(() => {
     if (onProjectsContext) loadProjectsSidebar()
@@ -170,11 +194,18 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
 
       <div className="portal-nav-top">
         <div className="portal-nav-header">
-          <div className="portal-nav-ws">
-            <div className="portal-nav-avatar" aria-hidden>{initials}</div>
+          <div className="portal-nav-ws" title={workspaceLabel}>
+            <div className="portal-nav-ws-mark" aria-hidden>
+              <WorkspaceSymbol
+                variant={wsPrefs.variant}
+                scheme={wsPrefs.scheme}
+                seed={wsPrefs.seed}
+                size={24}
+              />
+            </div>
             <div className="portal-nav-ws-text">
               <span className="portal-nav-ws-label">Workspace</span>
-              <span className="portal-nav-ws-value">{workspace}</span>
+              <span className="portal-nav-ws-value">{workspaceLabel}</span>
             </div>
             <CaretDown size={8} weight="bold" className="portal-nav-ws-caret" aria-hidden />
           </div>
@@ -280,27 +311,28 @@ const CSS = `
     display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1;
   }
 
-  .portal-nav-avatar {
-    width: 24px; height: 24px; border-radius: 6px;
-    background: var(--portal-nav-avatar-bg, #fff);
-    border: 0;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 10px; font-weight: 500;
-    color: var(--portal-text, #1c1c1e);
+  .portal-nav-ws-mark {
+    width: 24px; height: 24px;
     flex-shrink: 0;
-    letter-spacing: 0;
+    display: inline-flex; align-items: center; justify-content: center;
   }
 
   .portal-nav-ws-text {
     display: flex; flex-direction: column; align-items: flex-start;
-    gap: 0; line-height: 1.2; min-width: 0;
+    gap: 1px; line-height: 1.15; min-width: 0;
     transition: opacity .18s ease, width .18s ease;
   }
 
-  .portal-nav-ws-label { display: none; }
+  .portal-nav-ws-label {
+    font-size: 10px; font-weight: 500;
+    color: var(--portal-muted, #8e8e93);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
 
   .portal-nav-ws-value {
-    font-size: 13px; font-weight: 400;
+    font-size: 13px; font-weight: 500;
     color: var(--portal-text, #1c1c1e);
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     max-width: 120px;
@@ -528,17 +560,25 @@ const CSS = `
   .portal-nav.is-collapsed .portal-nav-ws-caret,
   .portal-nav.is-collapsed .portal-nav-middle,
   .portal-nav.is-collapsed .portal-nav-footer {
-    opacity: 0; height: 0; overflow: hidden; pointer-events: none;
+    opacity: 0; width: 0; height: 0; overflow: hidden; pointer-events: none;
     margin: 0; padding: 0; border: 0;
   }
   .portal-nav.is-collapsed .portal-nav-header {
-    flex-direction: column; align-items: center; gap: 8px;
+    flex-direction: column; align-items: center; gap: 10px;
     padding: 0;
   }
   .portal-nav.is-collapsed .portal-nav-ws {
+    order: -1;
+    flex: 0 0 auto;
+    width: 100%;
     justify-content: center;
+    padding: 2px 0 0;
+  }
+  .portal-nav.is-collapsed .portal-nav-ws-mark {
+    width: 28px; height: 28px;
   }
   .portal-nav.is-collapsed .portal-nav-utilities {
+    order: 0;
     flex-direction: column; gap: 4px;
   }
   .portal-nav.is-collapsed .portal-nav-label {

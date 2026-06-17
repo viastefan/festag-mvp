@@ -15,7 +15,7 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import NewProjectModal from '@/components/NewProjectModal'
-import TagroOverlay, { openTagro } from '@/components/TagroOverlay'
+import { openTagro } from '@/components/TagroOverlay'
 import DeleteProjectModal from '@/components/DeleteProjectModal'
 import InviteLinkModal from '@/components/InviteLinkModal'
 import EmptyState from '@/components/EmptyState'
@@ -77,7 +77,7 @@ function statusKeyOf(p: ProjectRow): StatusKey {
 }
 
 type FilterId = 'all' | 'arbeit' | 'planung' | 'erledigt'
-type SortId = 'recent' | 'name'
+type SortId = 'recent' | 'created' | 'created_asc' | 'name' | 'name_desc' | 'status'
 
 const FILTERS: { id: FilterId; label: string }[] = [
   { id: 'all',      label: 'Alle' },
@@ -86,8 +86,12 @@ const FILTERS: { id: FilterId; label: string }[] = [
   { id: 'erledigt', label: 'Erledigt' },
 ]
 const SORTS: { id: SortId; label: string }[] = [
-  { id: 'recent', label: 'Zuletzt aktualisiert' },
-  { id: 'name',   label: 'Name' },
+  { id: 'recent',       label: 'Zuletzt aktualisiert' },
+  { id: 'created',      label: 'Neueste zuerst' },
+  { id: 'created_asc',  label: 'Älteste zuerst' },
+  { id: 'name',         label: 'Name (A–Z)' },
+  { id: 'name_desc',    label: 'Name (Z–A)' },
+  { id: 'status',       label: 'Status' },
 ]
 
 const FRESH_WINDOW_MS = 2 * 60 * 60 * 1000
@@ -274,8 +278,25 @@ function ProjectsPageInner() {
     let list = projects
     if (filter !== 'all') list = list.filter(p => statusKeyOf(p) === filter)
     return [...list].sort((a, b) => {
-      if (sort === 'name') return a.title.localeCompare(b.title)
-      return new Date(b.updated_at || b.created_at || 0).getTime() - new Date(a.updated_at || a.created_at || 0).getTime()
+      switch (sort) {
+        case 'name':
+          return a.title.localeCompare(b.title, 'de')
+        case 'name_desc':
+          return b.title.localeCompare(a.title, 'de')
+        case 'created':
+          return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
+        case 'created_asc':
+          return new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime()
+        case 'status': {
+          const order: Record<StatusKey, number> = { arbeit: 0, planung: 1, erledigt: 2 }
+          const byStatus = order[statusKeyOf(a)] - order[statusKeyOf(b)]
+          if (byStatus !== 0) return byStatus
+          return a.title.localeCompare(b.title, 'de')
+        }
+        case 'recent':
+        default:
+          return new Date(b.updated_at || b.created_at || 0).getTime() - new Date(a.updated_at || a.created_at || 0).getTime()
+      }
     })
   }, [projects, filter, sort])
 
@@ -698,7 +719,6 @@ function ProjectsPageInner() {
         </div>
       )}
 
-      <TagroOverlay />
     </div>
   )
 }
@@ -904,16 +924,17 @@ const CSS = `
   .pj2-menu button {
     width: 100%; height: 36px; padding: 0 12px;
     border: 0; background: transparent;
-    border-radius: 8px;
+    border-radius: 4px;
     display: flex; align-items: center; justify-content: space-between;
-    color: #2A3032;
-    font: inherit; font-size: 13px; font-weight: 500;
+    color: #0F0F10;
+    font: inherit; font-size: 13px; font-weight: 400;
     cursor: pointer;
-    transition: background .12s;
+    transition: background .12s, color .12s;
   }
-  .pj2-menu button:hover { background: #F3F5F7; }
-  .pj2-menu button.on { background: #F0F2F7; color: #5B647D; }
-  .pj2-menu button .check { color: #5B647D; font-size: 12px; }
+  .pj2-menu button:hover { background: rgba(0,0,0,.04); color: #0F0F10; }
+  .pj2-menu button.on { background: rgba(0,0,0,.055); color: #0F0F10; }
+  .pj2-menu button:active { background: rgba(0,0,0,.07); }
+  .pj2-menu button .check { color: #0F0F10; font-size: 13px; }
 
   .pj2-table {
     width: 100%;
@@ -1296,18 +1317,15 @@ const CSS = `
     .pjm-status {
       display: inline-flex !important;
       align-items: center;
-      gap: 8px;
-      font-size: inherit !important;
+      gap: 0;
+      font-size: 15px !important;
       font-weight: 400 !important;
       color: #8E8E93 !important;
-      letter-spacing: inherit !important;
+      letter-spacing: -0.01em !important;
+      line-height: 1.35 !important;
     }
     .pjm-status-dot {
-      display: inline-block !important;
-      width: 8px; height: 8px;
-      border-radius: 999px;
-      background: #34c759;
-      flex-shrink: 0;
+      display: none !important;
     }
 
     .pjm-folder {
@@ -1353,20 +1371,24 @@ const CSS = `
     }
     .pj2-title h1,
     .pj2-title p {
-      font-size: 30px !important;
-      font-weight: 400 !important;
       font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif) !important;
-      letter-spacing: -0.5px !important;
-      line-height: 1.12 !important;
+      font-weight: 400 !important;
       margin: 0 !important;
     }
     .pj2-title h1 {
+      font-size: 30px !important;
+      letter-spacing: -0.5px !important;
+      line-height: 1.12 !important;
       color: #000000 !important;
     }
     .pj2-title p {
+      font-size: 15px !important;
+      letter-spacing: -0.01em !important;
+      line-height: 1.35 !important;
       display: flex !important;
       width: fit-content !important;
       color: #8E8E93 !important;
+      margin-top: 4px !important;
     }
     .pj2-title .pjm-t {
       font-size: inherit !important;
@@ -1443,13 +1465,37 @@ const CSS = `
       padding: 8px 16px calc(8px + env(safe-area-inset-bottom, 0px)) !important;
       box-shadow: 0 -4px 24px rgba(15,23,42,0.12) !important;
       animation: pjmSlideUp .22s cubic-bezier(.16,1,.3,1) both !important;
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 2px !important;
     }
     .pjm-toolbar .pj2-menu button,
     .pjm-toolbar-left .pj2-menu button {
       height: 44px !important;
       font-size: 15px !important;
+      font-weight: 400 !important;
       padding: 0 16px !important;
-      border-radius: 12px !important;
+      border-radius: 4px !important;
+      color: #0F0F10 !important;
+    }
+    .pjm-toolbar .pj2-menu button:hover,
+    .pjm-toolbar-left .pj2-menu button:hover {
+      background: rgba(0,0,0,.04) !important;
+      color: #0F0F10 !important;
+    }
+    .pjm-toolbar .pj2-menu button.on,
+    .pjm-toolbar-left .pj2-menu button.on {
+      background: rgba(0,0,0,.055) !important;
+      color: #0F0F10 !important;
+    }
+    .pjm-toolbar .pj2-menu button:active,
+    .pjm-toolbar-left .pj2-menu button:active {
+      background: rgba(0,0,0,.07) !important;
+    }
+    .pjm-toolbar .pj2-menu button .check,
+    .pjm-toolbar-left .pj2-menu button .check {
+      color: #0F0F10 !important;
+      font-size: 14px !important;
     }
     @keyframes pjmSlideUp {
       from { opacity: 0; transform: translateY(100%); }
@@ -1461,8 +1507,8 @@ const CSS = `
     .pj2-divider { display: none !important; }
     .pj2-table {
       display: flex !important; flex-direction: column !important;
-      gap: 8px !important;
-      padding: 0 10px !important;
+      gap: 0 !important;
+      padding: 0 !important;
     }
 
     /* ── Project rows — Figma node 252:245 (Component 5) ── */
@@ -1473,15 +1519,15 @@ const CSS = `
       gap: 12px !important;
       width: 100% !important;
       box-sizing: border-box !important;
-      padding: 0 2px !important;
+      padding: 16px 2px !important;
       height: auto !important;
-      min-height: 66px !important;
+      min-height: 0 !important;
       border-radius: 12px !important;
       background: transparent !important;
       box-shadow: none !important;
       margin: 0 !important;
       column-gap: 0 !important;
-      border-bottom: 0 !important;
+      border-bottom: 1px solid rgba(15, 23, 42, 0.06) !important;
       transition: background .14s ease, box-shadow .14s ease;
       -webkit-tap-highlight-color: transparent;
     }
@@ -1505,7 +1551,7 @@ const CSS = `
       flex-direction: column !important;
       align-items: flex-start !important;
       justify-content: flex-start !important;
-      gap: 8px !important;
+      gap: 10px !important;
       flex: 1 1 auto !important;
       min-width: 0 !important;
       max-width: calc(100% - 88px) !important;
@@ -1514,7 +1560,7 @@ const CSS = `
     .pj2-name {
       display: flex !important;
       flex-direction: column !important;
-      gap: 4px !important;
+      gap: 5px !important;
       min-width: 0 !important;
       width: 100% !important;
     }
@@ -1565,11 +1611,11 @@ const CSS = `
       flex-direction: column !important;
       align-items: flex-end !important;
       justify-content: flex-start !important;
-      gap: 16px !important;
+      gap: 12px !important;
       flex: 0 0 auto !important;
       width: auto !important;
       margin-left: 0 !important;
-      padding-top: 1px !important;
+      padding-top: 2px !important;
     }
     .pjm-chevron { display: none !important; }
     .pj2-devs {
