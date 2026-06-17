@@ -59,12 +59,14 @@ export default function SupportButton() {
     try {
       const { createClient } = await import('@/lib/supabase/client')
       const sb = createClient()
-      const { data: u } = await sb.auth.getUser()
-      await sb.from('support_messages').insert({
-        user_id: u.user?.id ?? null,
-        email: u.user?.email ?? null,
-        message: msg.trim(),
-        page: window.location.pathname,
+      const { data: { session } } = await sb.auth.getSession()
+      await fetch('/api/support/send', {
+        method:'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(session?.access_token ? { 'Authorization': `Bearer ${session.access_token}` } : {}),
+        },
+        body: JSON.stringify({ message: msg.trim(), page: window.location.pathname }),
       })
     } catch { /* ignore */ }
     setTimeout(() => { setOpen(false); setSent(false); setMsg('') }, 1800)
@@ -99,13 +101,13 @@ export default function SupportButton() {
 
       {/* Channels */}
       <div style={{ padding:'8px 8px 4px' }}>
-        <a href="mailto:hello@festag.io" className="sb-row" style={{ display:'flex', alignItems:'center', gap:10, padding:'9px 10px', borderRadius:9, textDecoration:'none', color:'var(--text)' }}>
+        <a href="mailto:stefandirnberger@viawen.com" className="sb-row" style={{ display:'flex', alignItems:'center', gap:10, padding:'9px 10px', borderRadius:9, textDecoration:'none', color:'var(--text)' }}>
           <span style={{ width:30, height:30, borderRadius:8, background:'var(--surface-2)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, color:'var(--text)' }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 7l10 7 10-7"/></svg>
           </span>
           <span style={{ flex:1, minWidth:0 }}>
             <span style={{ fontSize:12.5, fontWeight:700, display:'block' }}>E-Mail</span>
-            <span style={{ fontSize:11, color:'var(--text-muted)', display:'block' }}>hello@festag.io</span>
+            <span style={{ fontSize:11, color:'var(--text-muted)', display:'block' }}>stefandirnberger@viawen.com</span>
           </span>
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
         </a>

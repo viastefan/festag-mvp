@@ -1,25 +1,42 @@
 import './globals.css'
 import type { Metadata, Viewport } from 'next'
 import ThemeProvider from '@/components/ThemeProvider'
+import LanguageProvider from '@/components/LanguageProvider'
+import ServiceWorkerCleanup from '@/components/ServiceWorkerCleanup'
+import AuthSessionMemory from '@/components/AuthSessionMemory'
+
+const brandIconVersion = '20260602-festag-favicon'
 
 export const metadata: Metadata = {
   title: 'Festag — AI-native Softwareproduktion',
   description: 'Kein Informationsverlust mehr. Die KI versteht, plant und liefert.',
-  manifest: '/manifest.json',
+  manifest: `/manifest.json?v=${brandIconVersion}`,
   applicationName: 'Festag',
   appleWebApp: { capable: true, statusBarStyle: 'default', title: 'Festag' },
   icons: {
-    icon: '/brand/icon-192.png',
+    shortcut: [`/favicon.ico?v=${brandIconVersion}`],
+    icon: [
+      { url: `/brand/favicon.svg?v=${brandIconVersion}`, type: 'image/svg+xml' },
+      { url: `/favicon.ico?v=${brandIconVersion}`, sizes: 'any' },
+      { url: `/favicon-16.png?v=${brandIconVersion}`, sizes: '16x16', type: 'image/png' },
+      { url: `/favicon-32.png?v=${brandIconVersion}`, sizes: '32x32', type: 'image/png' },
+      { url: `/brand/favicon-16.png?v=${brandIconVersion}`, sizes: '16x16', type: 'image/png' },
+      { url: `/brand/favicon-32.png?v=${brandIconVersion}`, sizes: '32x32', type: 'image/png' },
+      { url: `/brand/favicon-48.png?v=${brandIconVersion}`, sizes: '48x48', type: 'image/png' },
+      { url: `/brand/favicon-64.png?v=${brandIconVersion}`, sizes: '64x64', type: 'image/png' },
+      { url: `/icon-192.png?v=${brandIconVersion}`, sizes: '192x192', type: 'image/png' },
+      { url: `/icon-512.png?v=${brandIconVersion}`, sizes: '512x512', type: 'image/png' },
+    ],
     apple: [
-      { url: '/brand/apple-touch-icon.png', sizes: '180x180' },
-      { url: '/brand/icon-152.png', sizes: '152x152' },
+      { url: `/apple-touch-icon.png?v=${brandIconVersion}`, sizes: '180x180' },
+      { url: `/brand/icon-152.png?v=${brandIconVersion}`, sizes: '152x152' },
     ],
   },
   formatDetection: { telephone: false, email: false },
 }
 
 export const viewport: Viewport = {
-  themeColor: '#181D1C',
+  themeColor: '#07090b',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
@@ -29,16 +46,63 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="de" data-theme="dark">
+    <html lang="de" data-theme="dark" suppressHydrationWarning>
       <head>
+        <meta charSet="utf-8" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="Festag" />
-        <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png" />
-        {/* Aeonik wird lokal aus /fonts/ geladen — Inter als Fallback via system */}
+        <link rel="shortcut icon" href={`/favicon.ico?v=${brandIconVersion}`} />
+        <link rel="icon" type="image/svg+xml" href={`/brand/favicon.svg?v=${brandIconVersion}`} />
+        <link rel="icon" href={`/favicon.ico?v=${brandIconVersion}`} sizes="any" />
+        <link rel="icon" type="image/png" sizes="16x16" href={`/favicon-16.png?v=${brandIconVersion}`} />
+        <link rel="icon" type="image/png" sizes="32x32" href={`/favicon-32.png?v=${brandIconVersion}`} />
+        <link rel="icon" type="image/png" sizes="16x16" href={`/brand/favicon-16.png?v=${brandIconVersion}`} />
+        <link rel="icon" type="image/png" sizes="32x32" href={`/brand/favicon-32.png?v=${brandIconVersion}`} />
+        <link rel="icon" type="image/png" sizes="48x48" href={`/brand/favicon-48.png?v=${brandIconVersion}`} />
+        <link rel="icon" type="image/png" sizes="64x64" href={`/brand/favicon-64.png?v=${brandIconVersion}`} />
+        <link rel="icon" type="image/png" sizes="192x192" href={`/icon-192.png?v=${brandIconVersion}`} />
+        <link rel="icon" type="image/png" sizes="512x512" href={`/icon-512.png?v=${brandIconVersion}`} />
+        <link rel="apple-touch-icon" href={`/apple-touch-icon.png?v=${brandIconVersion}`} />
+        {/* Pre-paint theme + bg sync — eliminates white flash between auth pages */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+(function(){try{
+  var t = localStorage.getItem('festag_theme');
+  if (t === 'magic-blue') { t = 'dark'; try { localStorage.setItem('festag_theme','dark'); } catch(_){} }
+  if (t !== 'light' && t !== 'dark' && t !== 'read') t = 'dark';
+  var attr = (t === 'read') ? 'read' : t;
+  document.documentElement.setAttribute('data-theme', attr);
+  var bg = t === 'dark' ? '#07090b' : t === 'read' ? '#F7F4EC' : '#F6F9FC';
+  document.documentElement.style.backgroundColor = bg;
+  document.documentElement.style.colorScheme = (t === 'dark') ? 'dark' : 'light';
+  var lang = localStorage.getItem('festag_language');
+  if (lang !== 'en' && lang !== 'de') lang = 'de';
+  document.documentElement.lang = lang;
+  document.documentElement.setAttribute('data-language', lang);
+}catch(e){}})();
+            `.trim(),
+          }}
+        />
+        <style dangerouslySetInnerHTML={{ __html: `
+          /* Force scrollbar track always visible so content width never jumps
+             when navigating between pages of different scroll height. */
+          html { overflow-y: scroll; }
+          html[data-theme="dark"]  { background:#07090b; color-scheme:dark; }
+          html[data-theme="read"]  { background:#F7F4EC; color-scheme:light; }
+          html[data-theme="light"] { background:#F6F9FC; color-scheme:light; }
+          html[data-theme="dark"]  body { background:#07090b; }
+          html[data-theme="read"]  body { background:#F7F4EC; }
+          html[data-theme="light"] body { background:#F6F9FC; }
+        `}} />
       </head>
       <body>
-        <ThemeProvider>{children}</ThemeProvider>
+        <ServiceWorkerCleanup />
+        <AuthSessionMemory />
+        <ThemeProvider>
+          <LanguageProvider>{children}</LanguageProvider>
+        </ThemeProvider>
       </body>
     </html>
   )

@@ -1,238 +1,620 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useMemo, useState, type CSSProperties } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import {
-  X, Envelope, Check, Star, Code, Buildings, Briefcase,
-  Eye, EyeSlash, CaretRight, UsersThree,
-} from '@phosphor-icons/react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { Check, Plus, X } from '@phosphor-icons/react'
+import Modal, { ModalButton } from '@/components/Modal'
 
-const MODELS = [
+type TeamScenarioId = 'strategic_core' | 'execution_squad' | 'agency_ecosystem' | 'corporate_integration'
+type InviteMethod = 'email' | 'pin'
+type AccessScope = 'workspace' | 'projects' | 'docs_status' | 'technical_tasks' | 'read_only'
+
+type ScenarioConfig = {
+  id: TeamScenarioId
+  title: string
+  subtitle: string
+  purpose: string
+  visibility: string[]
+  cta: string
+  helper: string
+  roles: string[]
+}
+
+type InviteDraft = {
+  email: string
+  role: string
+  access: AccessScope
+  project: string
+  activeWork: boolean
+  inviteMethod: InviteMethod
+}
+
+type TeamMember = InviteDraft & {
+  id: string
+  seatRequired: boolean
+}
+
+const SCENARIOS: ScenarioConfig[] = [
   {
-    id: 'client',  Icon: Star, eyebrow: 'COLLABORATION',
-    title: 'Client Team', subtitle: 'Founder & Co-Founder',
-    desc: 'Maximale Kontrolle für die Führungsebene.',
-    access: ['AI-Kontext & Roadmap', 'Budget & Strategie', 'Progress-Reports'],
-    denied: [],
+    id: 'strategic_core',
+    title: 'Strategic Core',
+    subtitle: 'Founder & Co-Founder',
+    purpose: 'Strategie, Budget, Roadmap, AI-Kontext und Progress Reports gemeinsam steuern.',
+    visibility: [
+      'Voller Zugriff auf AI-Kontext',
+      'Roadmap und Projektbriefings',
+      'Projektentscheidungen und Notizen',
+      'Aufgaben übergreifend steuern',
+    ],
+    cta: 'Strategic Core erstellen',
+    helper: 'Lade Co-Founder oder Partner ein, die Strategie, Roadmap und AI-Kontext mitsteuern sollen.',
+    roles: ['Founder', 'Co-Founder', 'Lead Dev', 'Viewer'],
   },
   {
-    id: 'dev', Icon: Code, eyebrow: 'EXECUTION',
-    title: 'Developer Team', subtitle: 'Lead Dev & Dev-Partner',
-    desc: 'Fokus auf Code-Produktion. Tasks, Deployments und Doku geteilt.',
-    access: ['Tasks & Sprint-Board', 'Deployments', 'Tech-Doku'],
-    denied: ['Founder-Strategie'],
-    badge: 'BELIEBT',
+    id: 'execution_squad',
+    title: 'Execution Squad',
+    subtitle: 'Developer & Partner-Dev',
+    purpose: 'Technische Umsetzung, Tasks, Sprint Board, Deployments und Dokumentation.',
+    visibility: [
+      'Technische Tasks und Doku',
+      'Deployments und Blocker',
+      'Keine privaten Founder-Chats',
+      'Keine Budgetstrategie ohne Freigabe',
+    ],
+    cta: 'Execution Squad erstellen',
+    helper: 'Erstelle einen technischen Arbeitsbereich für Developer, Tasks, Sprint Board und Deployments.',
+    roles: ['Developer', 'Lead Developer', 'Technical Partner', 'Viewer'],
   },
   {
-    id: 'agency', Icon: Buildings, eyebrow: 'MULTI-CLIENT',
-    title: 'Agency Ecosystem', subtitle: 'Agentur & Clients (isoliert)',
-    desc: 'Jeder Client = ein isolierter Team-Context.',
-    access: ['Team-Switcher', 'Eigener Kontext pro Client'],
-    denied: ['Andere Client-Workspaces'],
+    id: 'agency_ecosystem',
+    title: 'Agency Ecosystem',
+    subtitle: 'Multi-Client Management',
+    purpose: 'Viele Kundenprojekte getrennt verwalten, Developer zuweisen und Client-Workspaces isolieren.',
+    visibility: [
+      'Agentur Admin sieht eigene Kunden',
+      'Kunde A sieht niemals Kunde B',
+      'Developer sehen nur zugewiesene Projekte',
+      'AI-Kontext pro Kunde getrennt',
+    ],
+    cta: 'Agency Ecosystem erstellen',
+    helper: 'Richte einen Agentur-Arbeitsbereich ein, um Kunden, Projekte und Developer getrennt zu verwalten.',
+    roles: ['Agency Admin', 'Agency Developer', 'Client Member', 'Viewer'],
   },
   {
-    id: 'corporate', Icon: Briefcase, eyebrow: 'ENTERPRISE',
-    title: 'Corporate Integration', subtitle: 'Unternehmen & Inhouse-Dev',
-    desc: 'Festangestellter Dev mit dediziertem Zugang.',
-    access: ['Zugewiesene Projekte', 'Technische Tasks'],
-    denied: ['Strategie-Dashboard'],
-    badge: 'ENTERPRISE',
-    mailto: 'mailto:hello@festag.io?subject=Corporate%20Integration',
+    id: 'corporate_integration',
+    title: 'Corporate Integration',
+    subtitle: 'Inhouse / Outbound Teams',
+    purpose: 'Eigene Mitarbeiter oder externe Developer strukturiert in Projekte einbinden.',
+    visibility: [
+      'Nur zugewiesene Projekte',
+      'Technische Aufgaben und Dokumente',
+      'Projektstatus je Zugriff',
+      'Keine anderen Unternehmensprojekte',
+    ],
+    cta: 'Corporate Integration erstellen',
+    helper: 'Binde interne Mitarbeiter oder externe Auftragnehmer kontrolliert in Projekte ein.',
+    roles: ['Enterprise Member', 'Inhouse Developer', 'External Contractor', 'Viewer'],
   },
 ]
 
-export default function TeamsModal({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const [email,   setEmail]   = useState('')
-  const [role,    setRole]    = useState<'collaborator'|'dev'>('collaborator')
-  const [sent,    setSent]    = useState(false)
-  const [sending, setSending] = useState(false)
+const STEPS = ['Szenario', 'Setup', 'Einladen', 'Projekte', 'Seats', 'Review'] as const
 
-  async function send() {
-    if (!email.includes('@')) return
-    setSending(true)
+function slugify(v: string) {
+  return v
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+}
+
+export default function TeamsModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const router = useRouter()
+
+  const [step, setStep] = useState(0)
+  const [scenarioId, setScenarioId] = useState<TeamScenarioId | null>(null)
+
+  const [teamName, setTeamName] = useState('')
+  const [description, setDescription] = useState('')
+  const [teamIcon, setTeamIcon] = useState('')
+  const [workspaceRef, setWorkspaceRef] = useState('')
+  const [visibilityPreset, setVisibilityPreset] = useState<'standard' | 'restricted' | 'open'>('standard')
+
+  const [inviteEmail, setInviteEmail] = useState('')
+  const [inviteRole, setInviteRole] = useState('')
+  const [inviteAccess, setInviteAccess] = useState<AccessScope>('projects')
+  const [inviteProject, setInviteProject] = useState('')
+  const [inviteMethod, setInviteMethod] = useState<InviteMethod>('email')
+  const [activeWork, setActiveWork] = useState(true)
+  const [members, setMembers] = useState<TeamMember[]>([])
+
+  const [projectSelection, setProjectSelection] = useState<'existing' | 'new' | 'later'>('later')
+  const [selectedProjectId, setSelectedProjectId] = useState('')
+  const [newTeamProjectName, setNewTeamProjectName] = useState('')
+
+  const [projects, setProjects] = useState<{ id: string; title: string }[]>([])
+  const [creating, setCreating] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
+
+  const scenario = useMemo(() => SCENARIOS.find(s => s.id === scenarioId) ?? null, [scenarioId])
+
+  const seatSummary = useMemo(() => {
+    const required = members.filter(m => m.seatRequired).length
+    const viewers = members.filter(m => !m.seatRequired).length
+    return { required, viewers }
+  }, [members])
+
+  useEffect(() => {
+    if (!open) return
+    setError(null)
+    setSuccess(null)
+    setStep(0)
+    setScenarioId(null)
+    setTeamName('')
+    setDescription('')
+    setTeamIcon('')
+    setWorkspaceRef('')
+    setVisibilityPreset('standard')
+    setInviteEmail('')
+    setInviteRole('')
+    setInviteAccess('projects')
+    setInviteProject('')
+    setInviteMethod('email')
+    setActiveWork(true)
+    setMembers([])
+    setProjectSelection('later')
+    setSelectedProjectId('')
+    setNewTeamProjectName('')
+
+    let cancelled = false
+    ;(async () => {
+      try {
+        const sb = createClient()
+        const { data } = await (sb as any)
+          .from('projects')
+          .select('id,title')
+          .order('created_at', { ascending: false })
+          .limit(20)
+        if (!cancelled) setProjects((data as any[]) ?? [])
+      } catch {
+        if (!cancelled) setProjects([])
+      }
+    })()
+
+    return () => {
+      cancelled = true
+    }
+  }, [open])
+
+  useEffect(() => {
+    if (!scenario) return
+    if (!inviteRole) setInviteRole(scenario.roles[0])
+  }, [scenario, inviteRole])
+
+  useEffect(() => {
+    if (scenario && !teamName) setTeamName(scenario.title)
+  }, [scenario, teamName])
+
+  function nextStep() {
+    if (step === 0 && !scenarioId) {
+      setError('Bitte zuerst ein Team-Szenario auswählen.')
+      return
+    }
+    if (step === 1 && !teamName.trim()) {
+      setError('Bitte gib einen Teamnamen ein.')
+      return
+    }
+    setError(null)
+    setStep(prev => Math.min(prev + 1, STEPS.length - 1))
+  }
+
+  function prevStep() {
+    setError(null)
+    setStep(prev => Math.max(prev - 1, 0))
+  }
+
+  function addMemberDraft() {
+    if (!inviteEmail.includes('@')) {
+      setError('Bitte gib eine gültige E-Mail ein.')
+      return
+    }
+    if (!inviteRole) {
+      setError('Bitte wähle eine Rolle.')
+      return
+    }
+    setError(null)
+    const newMember: TeamMember = {
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      email: inviteEmail.trim().toLowerCase(),
+      role: inviteRole,
+      access: inviteAccess,
+      project: inviteProject,
+      activeWork,
+      inviteMethod,
+      seatRequired: activeWork,
+    }
+    setMembers(prev => [newMember, ...prev])
+    setInviteEmail('')
+    setInviteProject('')
+    setActiveWork(true)
+    setInviteMethod('email')
+  }
+
+  function removeMember(id: string) {
+    setMembers(prev => prev.filter(m => m.id !== id))
+  }
+
+  async function createTeam() {
+    if (!scenario) return
+    setCreating(true)
+    setError(null)
+    setSuccess(null)
+
     try {
       const sb = createClient()
-      const { data: { user } } = await sb.auth.getUser()
-      await (sb.from('team_invites') as any).insert({
-        email: email.trim().toLowerCase(), role,
-        invited_by: user?.id, status: 'pending', access_mode: 'team',
-      })
-      setSent(true); setEmail('')
-      setTimeout(() => setSent(false), 2800)
-    } catch (e) { console.error(e) }
-    setSending(false)
+      const { data: authData } = await sb.auth.getUser()
+      const user = authData.user
+      if (!user) {
+        setError('Bitte neu einloggen und erneut versuchen.')
+        setCreating(false)
+        return
+      }
+
+      const teamSetupDraft = {
+        createdBy: user.id,
+        name: teamName.trim(),
+        slug: slugify(teamName),
+        description: description.trim() || null,
+        icon: teamIcon.trim() || null,
+        workspaceRef: workspaceRef.trim() || null,
+        scenario: scenario.id,
+        visibilityPreset,
+        projectSelection,
+        selectedProjectId: selectedProjectId || null,
+        newTeamProjectName: newTeamProjectName || null,
+        members,
+        seatRequired: seatSummary.required,
+      }
+      try {
+        window.localStorage.setItem('festag-team-setup-draft', JSON.stringify(teamSetupDraft))
+      } catch {}
+
+      for (const member of members) {
+        if (member.inviteMethod !== 'email') continue
+        await fetch('/api/invites/send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: member.email,
+            role: member.role,
+            fromUserId: user.id,
+            fromUserEmail: user.email ?? null,
+            accessMode: 'team',
+          }),
+        }).catch(() => null)
+      }
+
+      setSuccess('Team erstellt. Du wirst zur Teams-Übersicht weitergeleitet…')
+      setTimeout(() => {
+        onClose()
+        router.push('/teams?tab=overview')
+      }, 800)
+    } catch (e: any) {
+      setError(e?.message ?? 'Team konnte nicht erstellt werden.')
+    } finally {
+      setCreating(false)
+    }
   }
 
   return (
-    <AnimatePresence>
-      {open && (
-        <>
-          {/* Backdrop */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: .18 }}
-            onClick={onClose}
-            style={{
-              position:'fixed', inset:0, zIndex:9000,
-              background:'rgba(0,0,0,0.45)',
-              backdropFilter:'blur(14px) saturate(160%)',
-              WebkitBackdropFilter:'blur(14px) saturate(160%)',
-            }}
-          />
-          {/* Panel */}
-          <motion.div
-            initial={{ opacity: 0, scale: .96, y: 12 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: .97, y: 8 }}
-            transition={{ type:'spring', stiffness:380, damping:32 }}
-            style={{
-              position:'fixed', top:'50%', left:'50%',
-              transform:'translate(-50%,-50%)', zIndex:9001,
-              width:'min(720px, calc(100vw - 32px))',
-              maxHeight:'min(720px, calc(100vh - 40px))',
-              display:'flex', flexDirection:'column',
-              background:'var(--sidebar-bg)',
-              backdropFilter:'blur(40px) saturate(200%)',
-              WebkitBackdropFilter:'blur(40px) saturate(200%)',
-              border:'1px solid var(--border-strong)',
-              borderRadius:24,
-              boxShadow:'0 32px 80px rgba(0,0,0,0.32), inset 0 1px 0 rgba(255,255,255,0.08)',
-              overflow:'hidden',
-            }}
-          >
-            {/* Header */}
-            <div style={{
-              padding:'20px 24px 16px',
-              display:'flex', alignItems:'center', justifyContent:'space-between',
-              borderBottom:'1px solid var(--border)',
-            }}>
-              <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-                <div style={{
-                  width:36, height:36, borderRadius:11,
-                  background:'var(--surface-2)', border:'1px solid var(--border)',
-                  display:'flex', alignItems:'center', justifyContent:'center',
+    <Modal
+      open={open}
+      onClose={onClose}
+      size="xl"
+      title="Team einrichten"
+      subtitle="Wähle, wie Zusammenarbeit in diesem Workspace funktionieren soll."
+    >
+      <div style={{ display: 'grid', gridTemplateColumns: '180px 1fr', gap: 20 }}>
+        <aside style={{ borderRight: '1px solid var(--border)', paddingRight: 14 }}>
+          {STEPS.map((label, idx) => {
+            const active = idx === step
+            const done = idx < step
+            return (
+              <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 0' }}>
+                <span style={{
+                  width: 18,
+                  height: 18,
+                  borderRadius: 999,
+                  border: `1px solid ${active || done ? 'var(--text)' : 'var(--border)'}`,
+                  background: done ? 'var(--text)' : 'transparent',
+                  color: done ? 'var(--bg)' : 'var(--text-muted)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: 10,
+                  fontWeight: 700,
+                  flexShrink: 0,
                 }}>
-                  <UsersThree size={18} weight="regular" color="var(--text)" />
-                </div>
-                <div>
-                  <h2 style={{ margin:0, fontSize:17, fontWeight:700, letterSpacing:'-.3px' }}>Teams</h2>
-                  <p style={{ margin:'2px 0 0', fontSize:12, color:'var(--text-muted)' }}>Mitglieder einladen & Modell wählen</p>
-                </div>
+                  {done ? <Check size={11} weight="bold" /> : idx + 1}
+                </span>
+                <span style={{ fontSize: 12.5, color: active ? 'var(--text)' : 'var(--text-muted)', fontWeight: active ? 600 : 500 }}>{label}</span>
               </div>
-              <button onClick={onClose}
-                style={{ width:32, height:32, borderRadius:9, border:'1px solid var(--border)', background:'transparent', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:'var(--text-muted)', transition:'background .12s, color .12s' }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color='var(--text)'; (e.currentTarget as HTMLElement).style.background='var(--card)' }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color='var(--text-muted)'; (e.currentTarget as HTMLElement).style.background='transparent' }}>
-                <X size={14} weight="bold" />
-              </button>
-            </div>
+            )
+          })}
+        </aside>
 
-            {/* Body */}
-            <div style={{ padding:'18px 24px 22px', overflowY:'auto', flex:1 }}>
-
-              {/* Quick Invite */}
-              <div style={{
-                padding:'14px 16px',
-                background:'var(--surface)', border:'1px solid var(--border)',
-                borderRadius:14, marginBottom:18,
-              }}>
-                <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10 }}>
-                  <p style={{ fontSize:11, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.08em', textTransform:'uppercase', margin:0 }}>Schnell-Einladung</p>
-                  {sent && (
-                    <motion.span
-                      initial={{ opacity:0, x:-4 }} animate={{ opacity:1, x:0 }}
-                      style={{ display:'flex', alignItems:'center', gap:5, fontSize:11, fontWeight:700, color:'var(--green)' }}>
-                      <Check size={11} weight="bold" /> Gesendet
-                    </motion.span>
-                  )}
-                </div>
-                <div style={{ display:'flex', gap:6 }}>
-                  <input
-                    value={email} onChange={e => setEmail(e.target.value)}
-                    onKeyDown={e => e.key === 'Enter' && send()}
-                    type="email" placeholder="name@firma.com"
-                    style={{ flex:1, padding:'10px 13px', background:'var(--bg)', border:'1.5px solid var(--border)', borderRadius:10, fontSize:13.5, color:'var(--text)', fontFamily:'inherit', outline:'none', transition:'border-color .15s' }}
-                    onFocus={e => (e.target.style.borderColor = 'var(--border-strong)')}
-                    onBlur={e => (e.target.style.borderColor = 'var(--border)')}
-                  />
-                  <select value={role} onChange={e => setRole(e.target.value as any)}
-                    style={{ padding:'10px 12px', background:'var(--bg)', border:'1.5px solid var(--border)', borderRadius:10, fontSize:13, color:'var(--text)', fontFamily:'inherit', outline:'none', cursor:'pointer' }}>
-                    <option value="collaborator">Client</option>
-                    <option value="dev">Developer</option>
-                  </select>
-                  <button onClick={send} disabled={!email.includes('@') || sending}
-                    style={{ padding:'10px 16px', borderRadius:10, border:'none',
-                      background: email.includes('@') ? 'var(--btn-prim)' : 'var(--surface-2)',
-                      color: email.includes('@') ? 'var(--btn-prim-text)' : 'var(--text-muted)',
-                      fontSize:13, fontWeight:700, cursor: email.includes('@') ? 'pointer' : 'default',
-                      fontFamily:'inherit', display:'flex', alignItems:'center', gap:6, whiteSpace:'nowrap',
-                      transition:'background .15s, color .15s',
-                    }}>
-                    {sending
-                      ? <span style={{ width:13, height:13, border:'2px solid transparent', borderTopColor:'currentColor', borderRadius:'50%', animation:'spin .7s linear infinite' }}/>
-                      : <Envelope size={13} weight="bold" />
-                    }
-                    Senden
-                  </button>
-                </div>
-                <p style={{ fontSize:11, color:'var(--text-muted)', margin:'8px 0 0', lineHeight:1.5 }}>
-                  Direkt einladen — der Eingeladene bekommt nach Prüfung den Zugang per E-Mail.
-                </p>
-              </div>
-
-              {/* Models */}
-              <div style={{ marginBottom:8 }}>
-                <p style={{ fontSize:11, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.08em', textTransform:'uppercase', margin:'0 0 10px' }}>Team-Modelle</p>
-                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
-                  {MODELS.map(m => (
-                    <div key={m.id}
-                      style={{ position:'relative', padding:'14px 14px 12px', background:'var(--surface)', border:'1px solid var(--border)', borderRadius:14, display:'flex', flexDirection:'column' }}>
-                      {m.badge && (
-                        <span style={{ position:'absolute', top:10, right:10, padding:'2px 7px', borderRadius:999, background:'var(--surface-2)', color:'var(--text-muted)', fontSize:8.5, fontWeight:700, letterSpacing:'.1em' }}>{m.badge}</span>
-                      )}
-                      <div style={{ width:30, height:30, borderRadius:9, background:'var(--surface-2)', display:'flex', alignItems:'center', justifyContent:'center', marginBottom:10 }}>
-                        <m.Icon size={14} weight="regular" color="var(--text-secondary)" />
-                      </div>
-                      <p style={{ fontSize:9, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.1em', margin:'0 0 2px' }}>{m.eyebrow}</p>
-                      <h3 style={{ fontSize:14, fontWeight:700, margin:'0 0 1px', letterSpacing:'-.2px' }}>{m.title}</h3>
-                      <p style={{ fontSize:10.5, color:'var(--text-muted)', margin:'0 0 7px', fontWeight:500 }}>{m.subtitle}</p>
-                      <p style={{ fontSize:11.5, color:'var(--text-secondary)', margin:'0 0 10px', lineHeight:1.5, flex:1 }}>{m.desc}</p>
-                      <div style={{ display:'flex', flexDirection:'column', gap:1, marginBottom:10 }}>
-                        {m.access.map(a => (
-                          <div key={a} style={{ display:'flex', alignItems:'center', gap:6, padding:'2px 0' }}>
-                            <Eye size={9} weight="regular" color="var(--green)" />
-                            <span style={{ fontSize:10.5, color:'var(--text-secondary)' }}>{a}</span>
-                          </div>
-                        ))}
-                        {m.denied.map(d => (
-                          <div key={d} style={{ display:'flex', alignItems:'center', gap:6, padding:'2px 0' }}>
-                            <EyeSlash size={9} weight="regular" color="var(--text-muted)" />
-                            <span style={{ fontSize:10.5, color:'var(--text-muted)' }}>{d}</span>
-                          </div>
-                        ))}
-                      </div>
-                      {m.mailto ? (
-                        <a href={m.mailto} style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:5, padding:'7px 10px', background:'var(--surface-2)', color:'var(--text)', borderRadius:8, fontSize:11.5, fontWeight:700, textDecoration:'none', border:'1px solid var(--border)' }}>
-                          Anfragen <CaretRight size={9} weight="bold" />
-                        </a>
-                      ) : (
-                        <button onClick={() => { setRole(m.id === 'dev' ? 'dev' : 'collaborator'); document.querySelector<HTMLInputElement>('input[type=email]')?.focus() }}
-                          style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:5, width:'100%', padding:'7px 10px', background:'var(--surface-2)', color:'var(--text)', borderRadius:8, fontSize:11.5, fontWeight:700, border:'1px solid var(--border)', cursor:'pointer', fontFamily:'inherit' }}>
-                          Wählen <CaretRight size={9} weight="bold" />
-                        </button>
-                      )}
+        <section>
+          {step === 0 && (
+            <div style={{ display: 'grid', gap: 10 }}>
+              {SCENARIOS.map(s => {
+                const selected = scenarioId === s.id
+                return (
+                  <button
+                    key={s.id}
+                    type="button"
+                    onClick={() => setScenarioId(s.id)}
+                    style={{
+                      textAlign: 'left',
+                      border: `1px solid ${selected ? 'var(--text)' : 'var(--border)'}`,
+                      background: selected ? 'var(--surface-2)' : 'var(--surface)',
+                      borderRadius: 10,
+                      padding: '12px 14px',
+                      cursor: 'pointer',
+                      display: 'grid',
+                      gap: 5,
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                      <strong style={{ fontSize: 14 }}>{s.title}</strong>
+                      <span style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>{selected ? s.cta : s.subtitle}</span>
                     </div>
-                  ))}
-                </div>
+                    <p style={{ margin: 0, fontSize: 12.5, color: 'var(--text-secondary)', lineHeight: 1.45 }}>{s.purpose}</p>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                      {s.visibility.slice(0, 3).map(v => (
+                        <span key={v} style={{ fontSize: 11, color: 'var(--text-muted)', border: '1px solid var(--border)', borderRadius: 999, padding: '2px 8px' }}>{v}</span>
+                      ))}
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+          )}
+
+          {step === 1 && scenario && (
+            <div style={{ display: 'grid', gap: 12 }}>
+              <p style={{ margin: 0, fontSize: 12.5, color: 'var(--text-secondary)' }}>{scenario.helper}</p>
+              <label style={{ display: 'grid', gap: 5 }}>
+                <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Team name</span>
+                <input value={teamName} onChange={e => setTeamName(e.target.value)} placeholder="z. B. Product Core" style={notepadStyle} />
+              </label>
+              <label style={{ display: 'grid', gap: 5 }}>
+                <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Beschreibung (optional)</span>
+                <textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} placeholder="Kurzer Kontext für das Team" style={{ ...notepadStyle, resize: 'vertical', minHeight: 78 }} />
+              </label>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                <label style={{ display: 'grid', gap: 5 }}>
+                  <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Icon (optional)</span>
+                  <input value={teamIcon} onChange={e => setTeamIcon(e.target.value)} placeholder="z. B. 🧠" style={inputStyle} />
+                </label>
+                <label style={{ display: 'grid', gap: 5 }}>
+                  <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Workspace / Projektbezug (optional)</span>
+                  <input value={workspaceRef} onChange={e => setWorkspaceRef(e.target.value)} placeholder="z. B. Stefan Workspace" style={inputStyle} />
+                </label>
+              </div>
+              <label style={{ display: 'grid', gap: 5 }}>
+                <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Standard-Sichtbarkeit</span>
+                <select value={visibilityPreset} onChange={e => setVisibilityPreset(e.target.value as any)} style={inputStyle}>
+                  <option value="standard">Standard</option>
+                  <option value="restricted">Restricted</option>
+                  <option value="open">Open</option>
+                </select>
+              </label>
+            </div>
+          )}
+
+          {step === 2 && scenario && (
+            <div style={{ display: 'grid', gap: 12 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1.25fr 1fr 1fr', gap: 8 }}>
+                <input value={inviteEmail} onChange={e => setInviteEmail(e.target.value)} placeholder="name@firma.com" style={inputStyle} />
+                <select value={inviteRole} onChange={e => setInviteRole(e.target.value)} style={inputStyle}>
+                  {scenario.roles.map(r => <option key={r} value={r}>{r}</option>)}
+                </select>
+                <select value={inviteAccess} onChange={e => setInviteAccess(e.target.value as AccessScope)} style={inputStyle}>
+                  <option value="workspace">gesamter Workspace</option>
+                  <option value="projects">bestimmte Projekte</option>
+                  <option value="docs_status">nur Dokumente/Status</option>
+                  <option value="technical_tasks">nur technische Tasks</option>
+                  <option value="read_only">nur Read-only</option>
+                </select>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr auto', gap: 8, alignItems: 'center' }}>
+                <input value={inviteProject} onChange={e => setInviteProject(e.target.value)} placeholder="Projektzuweisung (optional)" style={inputStyle} />
+                <select value={inviteMethod} onChange={e => setInviteMethod(e.target.value as InviteMethod)} style={inputStyle}>
+                  <option value="email">Email Invite</option>
+                  <option value="pin">PIN Invite</option>
+                </select>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12.5, color: 'var(--text-secondary)' }}>
+                  <input type="checkbox" checked={activeWork} onChange={e => setActiveWork(e.target.checked)} />
+                  aktive Mitarbeit
+                </label>
+                <ModalButton variant="secondary" onClick={addMemberDraft}>
+                  <Plus size={12} /> Hinzufügen
+                </ModalButton>
+              </div>
+
+              <p style={{ margin: 0, fontSize: 12, color: 'var(--text-muted)' }}>
+                Eingeladene Personen sehen nur den für sie freigegebenen Kontext.
+              </p>
+
+              <div style={{ border: '1px solid var(--border)', borderRadius: 10, overflow: 'hidden' }}>
+                {members.length === 0 ? (
+                  <p style={{ margin: 0, padding: '12px 14px', fontSize: 12.5, color: 'var(--text-muted)' }}>Noch keine Mitglieder hinzugefügt.</p>
+                ) : members.map((m, idx) => (
+                  <div key={m.id} style={{ display: 'grid', gridTemplateColumns: '1.5fr .9fr .9fr .8fr auto', gap: 8, alignItems: 'center', padding: '9px 12px', borderTop: idx === 0 ? 'none' : '1px solid var(--border)' }}>
+                    <span style={{ fontSize: 12.5, color: 'var(--text)' }}>{m.email}</span>
+                    <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{m.role}</span>
+                    <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{m.access.replace('_', ' ')}</span>
+                    <span style={{ fontSize: 12, color: m.seatRequired ? 'var(--text)' : 'var(--text-muted)' }}>{m.seatRequired ? 'Seat nötig' : 'Viewer'}</span>
+                    <button type="button" onClick={() => removeMember(m.id)} style={iconBtnStyle}><X size={12} /></button>
+                  </div>
+                ))}
               </div>
             </div>
-          </motion.div>
-          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-        </>
-      )}
-    </AnimatePresence>
+          )}
+
+          {step === 3 && (
+            <div style={{ display: 'grid', gap: 11 }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
+                <input type="radio" checked={projectSelection === 'existing'} onChange={() => setProjectSelection('existing')} />
+                Bestehendes Projekt zuweisen
+              </label>
+              {projectSelection === 'existing' && (
+                <select value={selectedProjectId} onChange={e => setSelectedProjectId(e.target.value)} style={inputStyle}>
+                  <option value="">Projekt wählen…</option>
+                  {projects.map(p => <option key={p.id} value={p.id}>{p.title}</option>)}
+                </select>
+              )}
+
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
+                <input type="radio" checked={projectSelection === 'new'} onChange={() => setProjectSelection('new')} />
+                Neues Team-Projekt erstellen
+              </label>
+              {projectSelection === 'new' && (
+                <input value={newTeamProjectName} onChange={e => setNewTeamProjectName(e.target.value)} placeholder="Name des neuen Team-Projekts" style={notepadStyle} />
+              )}
+
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
+                <input type="radio" checked={projectSelection === 'later'} onChange={() => setProjectSelection('later')} />
+                Später zuweisen
+              </label>
+            </div>
+          )}
+
+          {step === 4 && (
+            <div style={{ display: 'grid', gap: 11 }}>
+              <p style={{ margin: 0, fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                Für aktive Mitarbeit wird ein zusätzlicher Sitz benötigt. Du kannst den Sitz jetzt hinzufügen oder die Person zunächst als Viewer einladen.
+              </p>
+              <div style={{ border: '1px solid var(--border)', borderRadius: 10, padding: 12, display: 'grid', gap: 6 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12.5 }}>
+                  <span style={{ color: 'var(--text-secondary)' }}>Seat erforderlich</span>
+                  <strong>{seatSummary.required}</strong>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12.5 }}>
+                  <span style={{ color: 'var(--text-secondary)' }}>Als Viewer möglich</span>
+                  <strong>{seatSummary.viewers}</strong>
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                <button type="button" onClick={() => setMembers(prev => prev.map(m => ({ ...m, seatRequired: false, activeWork: false })))} style={secondaryBtnStyle}>Als Viewer einladen</button>
+                <button type="button" onClick={() => setMembers(prev => prev.map(m => ({ ...m, seatRequired: m.activeWork })))} style={secondaryBtnStyle}>Seat hinzufügen</button>
+                <button type="button" style={ghostBtnStyle}>Später entscheiden</button>
+              </div>
+            </div>
+          )}
+
+          {step === 5 && scenario && (
+            <div style={{ display: 'grid', gap: 10 }}>
+              <SummaryRow label="Team-Szenario" value={scenario.title} />
+              <SummaryRow label="Teamname" value={teamName || '—'} />
+              <SummaryRow label="Mitglieder" value={`${members.length}`} />
+              <SummaryRow label="Rollen" value={members.map(m => m.role).slice(0, 4).join(', ') || '—'} />
+              <SummaryRow label="Projekt" value={projectSelection === 'existing' ? (projects.find(p => p.id === selectedProjectId)?.title || 'Nicht gewählt') : projectSelection === 'new' ? (newTeamProjectName || 'Neues Team-Projekt') : 'Später'} />
+              <SummaryRow label="Seat Status" value={`${seatSummary.required} aktiv · ${seatSummary.viewers} viewer`} />
+            </div>
+          )}
+
+          {error && <p style={{ margin: '10px 0 0', fontSize: 12.5, color: 'var(--red)' }}>{error}</p>}
+          {success && <p style={{ margin: '10px 0 0', fontSize: 12.5, color: 'var(--green)' }}>{success}</p>}
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 16 }}>
+            <div>
+              {step > 0 ? (
+                <ModalButton variant="ghost" onClick={prevStep}>Zurück</ModalButton>
+              ) : null}
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              {step < STEPS.length - 1 ? (
+                <ModalButton variant="primary" onClick={nextStep}>Weiter</ModalButton>
+              ) : (
+                <ModalButton variant="primary" onClick={createTeam} loading={creating}>Team erstellen</ModalButton>
+              )}
+            </div>
+          </div>
+        </section>
+      </div>
+    </Modal>
   )
+}
+
+function SummaryRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: '170px 1fr', gap: 10, fontSize: 12.5, padding: '7px 0', borderBottom: '1px solid var(--border)' }}>
+      <span style={{ color: 'var(--text-muted)' }}>{label}</span>
+      <span style={{ color: 'var(--text)' }}>{value}</span>
+    </div>
+  )
+}
+
+const inputStyle: CSSProperties = {
+  width: '100%',
+  padding: '9px 10px',
+  borderRadius: 8,
+  border: '1px solid var(--border)',
+  background: 'var(--bg)',
+  color: 'var(--text)',
+  fontSize: 12.5,
+  fontFamily: 'inherit',
+}
+
+// Notepad style for free-text (names/descriptions) — no box, no line.
+const notepadStyle: CSSProperties = {
+  width: '100%',
+  padding: '6px 0',
+  borderRadius: 0,
+  border: 'none',
+  background: 'transparent',
+  color: 'var(--text)',
+  fontSize: 13.5,
+  fontFamily: 'inherit',
+  outline: 'none',
+}
+
+const secondaryBtnStyle: CSSProperties = {
+  border: '1px solid var(--border)',
+  background: 'var(--surface-2)',
+  color: 'var(--text)',
+  borderRadius: 8,
+  padding: '7px 10px',
+  fontSize: 12,
+  fontWeight: 600,
+  cursor: 'pointer',
+  fontFamily: 'inherit',
+}
+
+const ghostBtnStyle: CSSProperties = {
+  border: '1px solid transparent',
+  background: 'transparent',
+  color: 'var(--text-secondary)',
+  borderRadius: 8,
+  padding: '7px 10px',
+  fontSize: 12,
+  fontWeight: 600,
+  cursor: 'pointer',
+  fontFamily: 'inherit',
+}
+
+const iconBtnStyle: CSSProperties = {
+  width: 22,
+  height: 22,
+  border: '1px solid var(--border)',
+  borderRadius: 6,
+  background: 'transparent',
+  color: 'var(--text-muted)',
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  cursor: 'pointer',
 }

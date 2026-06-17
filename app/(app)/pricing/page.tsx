@@ -205,7 +205,7 @@ export default function PricingPage() {
 
   function buy(plan: Plan) {
     if (!plan.price) {
-      window.location.href = 'mailto:hello@festag.io?subject=' + encodeURIComponent(`Anfrage: ${plan.name} Plan`)
+      window.location.href = 'mailto:stefandirnberger@viawen.com?subject=' + encodeURIComponent(`Anfrage: ${plan.name} Plan`)
       return
     }
     if (purchases[plan.id]?.status === 'active') return
@@ -218,7 +218,7 @@ export default function PricingPage() {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async function buyViaMollie(plan: Plan) {
     if (!plan.price) {
-      window.location.href = 'mailto:hello@festag.io?subject=' + encodeURIComponent(`Anfrage: ${plan.name} Plan`); return
+      window.location.href = 'mailto:stefandirnberger@viawen.com?subject=' + encodeURIComponent(`Anfrage: ${plan.name} Plan`); return
     }
     setLoadingPlan(plan.id); setError(null)
     try {
@@ -235,7 +235,7 @@ export default function PricingPage() {
   }
 
   return (
-    <div className="page-content animate-fade-up" style={{ maxWidth:1240, padding:'24px 22px 80px' }}>
+    <div className="page-content animate-fade-up" style={{ maxWidth: undefined, padding:'24px 22px 80px' }}>
       <style>{`
         .pp-card { transition: border-color .2s ease, transform .2s ease; will-change: transform; }
         .pp-card:hover { transform: translateY(-2px); }
@@ -408,7 +408,7 @@ export default function PricingPage() {
               </li>
             ))}
           </ul>
-          <a href="mailto:hello@festag.io?subject=Managed%20Service%20Anfrage" className="pp-cta" style={{ textDecoration:'none' }}>
+          <a href="mailto:stefandirnberger@viawen.com?subject=Managed%20Service%20Anfrage" className="pp-cta" style={{ textDecoration:'none' }}>
             Managed Service anfragen
           </a>
         </div>
@@ -417,7 +417,7 @@ export default function PricingPage() {
       {/* Footer */}
       <div style={{ marginTop:36, padding:'18px 22px', background:'var(--surface)', border:'1px solid var(--border)', borderRadius:'var(--r-lg)', display:'flex', gap:14, justifyContent:'space-between', alignItems:'center', flexWrap:'wrap' }}>
         <span style={{ fontSize:12.5, color:'var(--text-secondary)', fontWeight:500 }}>
-          Server in Deutschland · DSGVO-konform · Zahlung über Enjyn · SEPA
+          Server in Deutschland · DSGVO-konform · Zahlung per SEPA
         </span>
         <Link href="/messages" style={{ fontSize:13, color:'var(--text)', fontWeight:600, textDecoration:'none' }}>
           Fragen? Schreib Tagro →

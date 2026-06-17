@@ -1,513 +1,972 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+/**
+ * Festag Onboarding — Linear-Pattern, vollständig im Festag-Dark-Theme.
+ *
+ * 5 Schritte:
+ *   1. workspace  — Name, URL (slug), Region
+ *   2. profile    — Name, Titel (optional Avatar später)
+ *   3. project    — „Woran arbeitest du gerade?" (Tagro-Briefing)
+ *   4. team       — Mehrfachauswahl: Alleine / Entwicklerteam / Kunden / Festag-Support
+ *   5. done       — Bereit, optional E-Mail-Einladungen, „Zum Dashboard"
+ *
+ * Jedes Schritt-Submit persistiert sofort, sodass Resume nach Reload
+ * funktioniert. Keine Daten gehen verloren. Buttons + Inputs übernehmen
+ * den Slate/Festag-Dark-Look aus dem Login-Screen.
+ */
+
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import ChatMarkdown from '@/components/ChatMarkdown'
-import ChatInput from '@/components/ChatInput'
-import Link from 'next/link'
+import { setTheme } from '@/lib/theme'
+import FestagLoader from '@/components/FestagLoader'
+import { rememberFestagAccount } from '@/lib/auth-device-memory'
+import { User } from '@phosphor-icons/react'
 
-type Msg  = { role: 'ai' | 'user'; text: string }
-type Mode = 'chat' | 'manual'
+type StepId = 'workspace' | 'profile' | 'project' | 'team' | 'done'
+type WorkspaceRegion = 'eu' | 'us' | 'global'
+type TeamFlag = 'alone' | 'existing_team' | 'clients_partners' | 'festag_support'
+type WorkspaceMode = 'delivery' | 'team' | 'agency'
 
-const PROJECT_TYPES = ['Web-App / SaaS','Mobile App (iOS/Android)','E-Commerce / Shop','Dashboard / Analytics','API / Backend','Landing Page / Website','AI-Integration','Anderes']
-const BUDGETS       = ['Unter €5.000','€5.000 – €20.000','€20.000 – €50.000','Über €50.000','Noch nicht definiert']
-const TIMELINES     = ['Unter 4 Wochen','1–3 Monate','3–6 Monate','Über 6 Monate','Flexibel']
-const TEST_TRIGGER  = /^\s*test[\s\-_]*projekt\s*$/i
+const STEPS: StepId[] = ['workspace', 'profile', 'project', 'team', 'done']
 
-const AI_SYSTEM = `Du bist Tagro, der AI-Projektmanager von Festag — das AI-native Softwareproduktionssystem.
+const REGION_LABEL: Record<WorkspaceRegion, string> = {
+  eu:     'European Union',
+  us:     'United States',
+  global: 'Weltweit',
+}
 
-FESTAG PRINZIP: Kein Informationsverlust. Du sprichst Business für Kunden und Technik für Entwickler.
+const TEAM_OPTIONS: Array<{ id: TeamFlag; title: string; desc: string }> = [
+  { id: 'alone',            title: 'Alleine',                        desc: 'Ich organisiere und steuere das Projekt selbst.' },
+  { id: 'existing_team',    title: 'Mit bestehendem Entwicklerteam', desc: 'Wir haben bereits Entwickler oder externe Partner.' },
+  { id: 'clients_partners', title: 'Mit Kunden oder mehreren Beteiligten', desc: 'Mehrere Personen sollen Fortschritt und Aufgaben verfolgen.' },
+  { id: 'festag_support',   title: 'Unterstützung durch Festag',     desc: 'Wir benötigen technische oder operative Unterstützung.' },
+]
 
-PERSÖNLICHKEIT: Warm, aufmerksam, kompetent. Wie ein erfahrener Senior Tech-Lead, der dem Kunden auf Augenhöhe begegnet. Niemals kalt oder roboterhaft. Du machst Mut und gibst Sicherheit, dass das Projekt gelingen wird.
+// The team choice configures the workspace mode and the follow-up invite.
+const WORKSPACE_MODE_FOR: Record<TeamFlag, WorkspaceMode> = {
+  alone:            'team',      // solo founder steering their own project
+  existing_team:    'team',      // internal dev team
+  clients_partners: 'agency',    // multiple stakeholders / client portals
+  festag_support:   'delivery',  // wants Festag to plan + deliver
+}
 
-DEINE AUFGABE: Führe ein strukturiertes — aber freundliches — Aufnahmegespräch. Sammle:
-1. Was soll gebaut werden? (Ziel, Problem, Lösung)
-2. Für wen? (Zielgruppe, Markt)
-3. Was sind die wichtigsten Features? (Scope)
-4. Budget-Rahmen und Timeline?
-5. Gibt es technische Anforderungen oder Risiken?
+type InviteNeed = 'devs' | 'clients' | 'none'
+const INVITE_NEED_FOR: Record<TeamFlag, InviteNeed> = {
+  alone:            'none',
+  existing_team:    'devs',
+  clients_partners: 'clients',
+  festag_support:   'none',
+}
 
-GESPRÄCHSFÜHRUNG:
-- Bestätige kurz, was du verstanden hast (1 Satz), dann stelle GENAU EINE konkrete Folgefrage
-- Max. 3 Sätze pro Antwort
-- Kein leeres Bla, aber zeige Empathie ("Verstanden — klingt nach einem klaren Use Case." / "Spannend.")
-- Klinge wie ein erfahrener CTO im Erstgespräch — nicht wie ein Formular
-- Sprache: Deutsch
+// Per-choice copy for the final step.
+const DONE_COPY: Record<TeamFlag, { title: string; lede: string; inviteLabel?: string; invitePlaceholder?: string; note?: string }> = {
+  alone: {
+    title: 'Festag ist bereit',
+    lede: 'Du startest alleine — du kannst jederzeit später Mitwirkende oder ein Team einladen.',
+  },
+  existing_team: {
+    title: 'Entwickler einladen',
+    lede: 'Lade dein Entwicklerteam ein. Sie bekommen Zugriff aufs Execution Panel und ihre Tasks.',
+    inviteLabel: 'Entwickler-E-Mails',
+    invitePlaceholder: 'dev1@team.de, dev2@team.de',
+  },
+  clients_partners: {
+    title: 'Beteiligte einladen',
+    lede: 'Lade Kunden oder Stakeholder ein. Sie sehen ruhige, geprüfte Statusberichte — keine Roh-Arbeit.',
+    inviteLabel: 'E-Mails der Beteiligten',
+    invitePlaceholder: 'kunde@firma.com, partner@agentur.de',
+  },
+  festag_support: {
+    title: 'Festag übernimmt',
+    lede: 'Unser Team meldet sich, um dein Projekt mit geprüften Entwicklern aufzusetzen. Du musst nichts weiter tun.',
+    note: 'Du bekommst innerhalb von 24 Stunden eine Nachricht von Festag.',
+  },
+}
 
-FORMATIERUNG: Markdown ist erlaubt — **fett** für Schlüsselbegriffe. Halte den Text knapp.
+function slugify(value: string): string {
+  return value
+    .toLowerCase()
+    .normalize('NFKD').replace(/[̀-ͯ]/g, '')
+    .replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 32)
+}
 
-ABSCHLUSS: Nach 5-7 Antworten des Kunden hast du genug. Schreibe dann:
-"Ich habe alle relevanten Informationen. Ich zerlege dein Projekt jetzt strukturiert."
-Dann schreibe auf einer neuen Zeile exakt: {"ready":true}
-
-Starte das Gespräch mit: "Schön, dass du da bist. Erzähl mir kurz: **was möchtest du bauen — und welches Problem löst es konkret?**"`
+function isValidEmail(s: string): boolean {
+  return /\S+@\S+\.\S+/.test(s)
+}
 
 export default function OnboardingPage() {
-  const [msgs,       setMsgs]       = useState<Msg[]>([])
-  const [input,      setInput]      = useState('')
-  const [aiLoading,  setAiLoading]  = useState(false)
-  const [ready,      setReady]      = useState(false)
-  const [decomposing,setDecomposing]= useState(false)
-  const [projectId,  setProjectId]  = useState<string|null>(null)
-  const [userId,     setUserId]     = useState<string|null>(null)
-  const [phase,      setPhase]      = useState<'chat'|'decompose'|'done'>('chat')
-  const [mode,       setMode]       = useState<Mode>('chat')
-  const [decomposeErr,setDecomposeErr]= useState('')
-  const [mTitle,     setMTitle]     = useState('')
-  const [mDesc,      setMDesc]      = useState('')
-  const [mType,      setMType]      = useState('')
-  const [mBudget,    setMBudget]    = useState('')
-  const [mTimeline,  setMTimeline]  = useState('')
-  const [mContact,   setMContact]   = useState('')
-  const [mSubmitting,setMSubmitting]= useState(false)
-  const [mError,     setMError]     = useState('')
-  const bottomRef = useRef<HTMLDivElement>(null)
-  const textRef   = useRef<HTMLTextAreaElement>(null)
-  const supabase  = createClient()
+  const router = useRouter()
+  const supabase = useMemo(() => createClient(), [])
 
+  const [stepIdx, setStepIdx]   = useState(0)
+  const [userId, setUserId]     = useState<string | null>(null)
+  const [workspaceId, setWorkspaceId] = useState<string | null>(null)
+  const [submitting, setSubmitting]   = useState(false)
+  const [error, setError]       = useState('')
+  const [done, setDone]         = useState(false)
+  const [animating, setAnimating] = useState(false)
+
+  // ── Form state per step ───────────────────────────────────────────
+  const [wsName, setWsName] = useState('')
+  const [wsSlug, setWsSlug] = useState('')
+  const [wsSlugTouched, setWsSlugTouched] = useState(false)
+  const [wsRegion, setWsRegion] = useState<WorkspaceRegion>('eu')
+
+  const [fullName, setFullName] = useState('')
+  const [position, setPosition] = useState('')
+
+  const [project, setProject]   = useState('')
+
+  // Single-select: exactly one working mode at a time. This is the
+  // architectural choice that configures the workspace, so it must be
+  // unambiguous (not multiple toggles on at once).
+  const [teamChoice, setTeamChoice] = useState<TeamFlag>('alone')
+
+  const [invites, setInvites]   = useState('')
+
+  // Force dark theme for the onboarding regardless of stored pref.
   useEffect(() => {
-    supabase.auth.getSession().then(async ({ data }) => {
-      if (!data.session) { window.location.href = '/login'; return }
-      const uid = data.session.user.id
-      setUserId(uid)
-      const { data: profile } = await supabase.from('profiles').select('onboarding_step').eq('id', uid).single()
-      if ((profile as any)?.onboarding_step === 99) { window.location.href = '/dashboard'; return }
-      setAiLoading(true)
-      try {
-        const res = await fetch('/api/ai/chat', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ system: AI_SYSTEM, max_tokens: 200, messages: [{ role: 'user', content: 'Start' }] })
-        })
-        const d = await res.json()
-        setMsgs([{ role: 'ai', text: d.content?.[0]?.text ?? 'Was möchtest du bauen — und welches Problem löst es konkret?' }])
-      } catch {
-        setMsgs([{ role: 'ai', text: 'Was möchtest du bauen — und welches Problem löst es konkret?' }])
-      }
-      setAiLoading(false)
-    })
+    if (typeof document !== 'undefined') {
+      document.documentElement.setAttribute('data-theme', 'dark')
+      document.documentElement.style.backgroundColor = '#0A0D14'
+      document.documentElement.style.colorScheme = 'dark'
+    }
+    setTheme('dark')
   }, [])
 
-  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [msgs, aiLoading])
+  // ── Load session + hydrate from any saved progress ────────────────
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (cancelled) return
+      if (!session) { router.replace('/login'); return }
+      const uid = session.user.id
+      setUserId(uid)
+      const meta: any = session.user.user_metadata || {}
+      const guessName = meta.full_name || meta.name || ''
+      if (guessName) setFullName(guessName)
 
-  async function createTestProject() {
-    if (!userId) return
-    setPhase('decompose'); setDecomposing(true)
-    try {
-      const res = await fetch('/api/ai/test-project', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId }),
-      })
-      const d = await res.json()
-      if (d.projectId) {
-        setProjectId(d.projectId)
-        await supabase.from('profiles').update({ onboarding_step: 99 }).eq('id', userId)
-        setPhase('done')
-      } else {
-        setPhase('chat'); setDecomposing(false)
-        setMsgs(m => [...m, { role: 'ai', text: 'Konnte Test-Projekt nicht anlegen. Bitte erneut versuchen.' }])
+      const [{ data: state }, { data: profile }, { data: brief }, { data: ws }] = await Promise.all([
+        supabase.from('onboarding_state').select('current_step,completed_at').eq('user_id', uid).maybeSingle(),
+        supabase.from('profiles').select('full_name,position,work_mode,theme_pref').eq('id', uid).maybeSingle(),
+        supabase.from('onboarding_briefs').select('description').eq('user_id', uid).maybeSingle(),
+        supabase.from('workspaces').select('id,name,slug,region,metadata').eq('primary_owner_id', uid).eq('is_personal', true).maybeSingle(),
+      ])
+      if (cancelled) return
+
+      if (state?.completed_at) { router.replace('/dashboard'); return }
+
+      if (profile?.full_name) setFullName(profile.full_name)
+      if (profile?.position) setPosition(profile.position)
+      if (brief?.description) setProject(brief.description)
+
+      if (ws?.id) {
+        setWorkspaceId(ws.id)
+        if (ws.name) setWsName(ws.name)
+        if (ws.slug) { setWsSlug(ws.slug); setWsSlugTouched(true) }
+        if (ws.region) setWsRegion(ws.region as WorkspaceRegion)
+        const savedChoice = (ws.metadata as any)?.team_choice
+        if (savedChoice === 'alone' || savedChoice === 'existing_team'
+            || savedChoice === 'clients_partners' || savedChoice === 'festag_support') {
+          setTeamChoice(savedChoice)
+        }
       }
-    } catch {
-      setPhase('chat'); setDecomposing(false)
-      setMsgs(m => [...m, { role: 'ai', text: 'Verbindungsfehler beim Anlegen des Test-Projekts.' }])
-    }
-  }
 
-  async function send() {
-    if (!input.trim() || aiLoading) return
-    const msg = input.trim(); setInput('')
-    if (textRef.current) { textRef.current.style.height = 'auto' }
-    const newMsgs: Msg[] = [...msgs, { role: 'user', text: msg }]
-    setMsgs(newMsgs)
-    if (TEST_TRIGGER.test(msg)) {
-      setMsgs(m => [...m, { role: 'ai', text: '**Test-Modus erkannt.** Lege ein vordefiniertes Demo-Projekt an.' }])
-      setTimeout(() => createTestProject(), 400); return
-    }
-    setAiLoading(true)
-    try {
-      const res = await fetch('/api/ai/chat', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ system: AI_SYSTEM, max_tokens: 300,
-          messages: newMsgs.map(m => ({ role: m.role === 'ai' ? 'assistant' : 'user', content: m.text })) })
-      })
-      const d = await res.json()
-      let text: string = d.content?.[0]?.text ?? ''
-      if (!text && d.error) {
-        const hint = d.error === 'not configured'
-          ? 'Tagro AI ist gerade nicht aktiv (API-Schlüssel fehlt). Schreibe trotzdem deine Antwort weiter — wir lesen mit und melden uns persönlich.'
-          : `Tagro hat gerade nicht geantwortet (${d.error}). Bitte erneut versuchen oder das Formular nutzen.`
-        setMsgs(m => [...m, { role: 'ai', text: hint }])
-      } else if (text.includes('{"ready":true}')) {
-        setMsgs(m => [...m, { role: 'ai', text: text.replace('{"ready":true}', '').trim() }])
-        setReady(true)
-      } else {
-        setMsgs(m => [...m, { role: 'ai', text: text || 'Hmm, ich brauche kurz einen Moment. Schreib gerne weiter.' }])
+      // Jump to saved step
+      const stepMap: Record<string, number> = {
+        workspace: 0, mode: 0, design: 0,
+        profile: 1, project: 2, team: 3, invite: 4, done: 4,
       }
-    } catch {
-      setMsgs(m => [...m, { role: 'ai', text: 'Verbindung unterbrochen. Versuche es nochmal — oder klicke oben auf **Formular**, falls es wiederholt fehlschlägt.' }])
-    }
-    setAiLoading(false)
+      const idx = state?.current_step ? stepMap[state.current_step] : 0
+      if (typeof idx === 'number' && idx > 0 && idx < STEPS.length) setStepIdx(idx)
+    })()
+    return () => { cancelled = true }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [router, supabase])
+
+  // Auto-derive slug from name until the user touches it.
+  useEffect(() => {
+    if (!wsSlugTouched) setWsSlug(slugify(wsName))
+  }, [wsName, wsSlugTouched])
+
+  const current = STEPS[stepIdx]
+  const isLast  = stepIdx === STEPS.length - 1
+
+  function transition(delta: number) {
+    if (animating) return
+    setError('')
+    setAnimating(true)
+    setTimeout(() => {
+      setStepIdx((i) => Math.max(0, Math.min(STEPS.length - 1, i + delta)))
+      setAnimating(false)
+    }, 160)
   }
 
-  async function decompose() {
-    if (!userId) { setDecomposeErr('Sitzung abgelaufen — bitte Seite neu laden.'); return }
-    setDecomposing(true); setPhase('decompose'); setDecomposeErr('')
+  // ── Persist per step ──────────────────────────────────────────────
+  const persist = useCallback(async (step: StepId): Promise<boolean> => {
+    if (!userId) return false
     try {
-      const res = await fetch('/api/ai/decompose', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ chatHistory: msgs, userId })
-      })
-      const d = await res.json()
-      if (d.projectId) {
-        setProjectId(d.projectId)
-        await supabase.from('profiles').update({ onboarding_step: 99 }).eq('id', userId)
-        setPhase('done')
-      } else {
-        setPhase('chat'); setDecomposing(false)
-        setDecomposeErr(d.error ?? 'Fehler beim Strukturieren. Bitte erneut versuchen.')
+      if (step === 'workspace') {
+        const name = wsName.trim()
+        if (!name) { setError('Bitte gib deinem Workspace einen Namen.'); return false }
+        const slug = (wsSlug.trim() || slugify(name)).slice(0, 32)
+        if (!slug) { setError('Bitte gib eine gültige URL an.'); return false }
+
+        // Upsert the personal workspace.
+        let wsId = workspaceId
+        if (!wsId) {
+          // Try to find one created by trigger / earlier session.
+          const { data: existing } = await supabase
+            .from('workspaces')
+            .select('id')
+            .eq('primary_owner_id', userId)
+            .eq('is_personal', true)
+            .maybeSingle()
+          wsId = (existing as any)?.id ?? null
+        }
+        if (wsId) {
+          const { error: err } = await supabase
+            .from('workspaces')
+            .update({ name, slug, region: wsRegion })
+            .eq('id', wsId)
+          if (err) { setError(err.message); return false }
+        } else {
+          const { data: created, error: err } = await supabase
+            .from('workspaces')
+            .insert({
+              name, slug, region: wsRegion,
+              primary_owner_id: userId, is_personal: true,
+              mode: 'team', metadata: {},
+            })
+            .select('id')
+            .single()
+          if (err) { setError(err.message); return false }
+          wsId = (created as any)?.id ?? null
+          if (wsId) setWorkspaceId(wsId)
+        }
+
+        await supabase.from('onboarding_state').upsert({
+          user_id: userId, current_step: 'profile',
+          workspace_done: true, updated_at: new Date().toISOString(),
+        })
+      } else if (step === 'profile') {
+        await supabase.from('profiles').update({
+          full_name: fullName.trim() || null,
+          position:  position.trim() || null,
+        }).eq('id', userId)
+        await supabase.from('onboarding_state').upsert({
+          user_id: userId, current_step: 'project',
+          profile_done: true, updated_at: new Date().toISOString(),
+        })
+      } else if (step === 'project') {
+        if (project.trim()) {
+          await supabase.from('onboarding_briefs').upsert({
+            user_id: userId, description: project.trim(), updated_at: new Date().toISOString(),
+          })
+        }
+        await supabase.from('onboarding_state').upsert({
+          user_id: userId, current_step: 'team', updated_at: new Date().toISOString(),
+        })
+      } else if (step === 'team') {
+        // The single team choice configures the whole workspace:
+        //   - profiles.work_mode      : self-declared mode (drives sidebar nav)
+        //   - workspaces.mode         : delivery | team | agency (architecture)
+        //   - workspaces.metadata     : team_choice + derived needs flags
+        // and decides which invite step follows (devs vs clients vs none).
+        const wsMode = WORKSPACE_MODE_FOR[teamChoice]
+        const needs = INVITE_NEED_FOR[teamChoice]
+
+        await supabase.from('profiles').update({ work_mode: teamChoice }).eq('id', userId)
+        if (workspaceId) {
+          const { data: ws } = await supabase.from('workspaces').select('metadata').eq('id', workspaceId).maybeSingle()
+          const merged = {
+            ...((ws?.metadata as any) || {}),
+            team_choice: teamChoice,
+            needs_devs: needs === 'devs',
+            needs_clients: needs === 'clients',
+            festag_managed: teamChoice === 'festag_support',
+          }
+          await supabase.from('workspaces')
+            .update({ mode: wsMode, metadata: merged })
+            .eq('id', workspaceId)
+        }
+        await supabase.from('onboarding_state').upsert({
+          user_id: userId, current_step: 'done', updated_at: new Date().toISOString(),
+        }, { onConflict: 'user_id' })
+      } else if (step === 'done') {
+        const emails = invites.split(/[,;\s\n]+/).map(s => s.trim()).filter(isValidEmail)
+        if (emails.length > 0) {
+          await supabase.from('onboarding_invites').insert(
+            emails.map(email => ({ user_id: userId, email })),
+          )
+        }
+        await supabase.from('onboarding_state').upsert({
+          user_id: userId,
+          current_step: 'done',
+          profile_done: true,
+          workspace_done: true,
+          design_done: true,
+          completed_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }, { onConflict: 'user_id' })
+
+        try {
+          fetch('/api/onboarding/seed-memory', { method: 'POST', credentials: 'include' })
+        } catch {}
+        // Fire the two welcome emails (welcome + how-it-works). The route is
+        // idempotent, so this only ever sends once per account.
+        try {
+          fetch('/api/onboarding/welcome-emails', { method: 'POST', credentials: 'include' })
+        } catch {}
+        const { data: { session } } = await supabase.auth.getSession()
+        if (session) {
+          rememberFestagAccount({
+            userId: session.user.id,
+            email: session.user.email ?? null,
+            method: session.user.app_metadata?.provider === 'google' ? 'google' : 'email',
+            onboardingCompleted: true,
+          })
+        }
       }
-    } catch {
-      setPhase('chat'); setDecomposing(false)
-      setDecomposeErr('Verbindungsfehler. Bitte erneut versuchen.')
+      return true
+    } catch (e: any) {
+      setError(e?.message || 'Speichern fehlgeschlagen.')
+      return false
     }
-  }
+  }, [userId, workspaceId, wsName, wsSlug, wsRegion, fullName, position, project, teamChoice, invites, supabase])
 
-  function handleKey(e: React.KeyboardEvent) {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() }
-  }
-
-  async function submitManual(e: React.FormEvent) {
-    e.preventDefault()
-    if (!userId || !mTitle.trim()) { setMError('Projektname ist erforderlich.'); return }
-    setMSubmitting(true); setMError('')
+  async function handleContinue() {
+    if (submitting || animating) return
+    setSubmitting(true)
     try {
-      const description = [mDesc, mType && `Typ: ${mType}`, mBudget && `Budget: ${mBudget}`, mTimeline && `Timeline: ${mTimeline}`, mContact && `Kontakt: ${mContact}`].filter(Boolean).join('\n')
-      const { data: project, error } = await supabase.from('projects').insert({
-        user_id: userId, title: mTitle.trim(), description: description || null, status: 'intake'
-      }).select().single()
-      if (error) throw error
-      await supabase.from('profiles').update({ onboarding_step: 99 }).eq('id', userId)
-      await supabase.from('activity_feed').insert({ user_id: userId, project_id: (project as any).id, type: 'project_status', message: `Projekt "${mTitle.trim()}" wurde manuell angelegt.` }).catch(() => {})
-      setProjectId((project as any).id); setPhase('done')
-    } catch (err: any) { setMError(err.message ?? 'Fehler. Bitte erneut versuchen.') }
-    setMSubmitting(false)
+      const ok = await persist(current)
+      if (!ok) return
+      if (isLast) {
+        setDone(true)
+        // Land on the workspace-home slug (canonical URL), fall back to
+        // /dashboard if no slug was set. A fresh user is dropped straight
+        // into project creation — the new-project canvas opens on arrival.
+        const target = wsSlug.trim()
+          ? `/${slugify(wsSlug.trim())}?tour=1&newproject=1`
+          : '/dashboard?tour=1&newproject=1'
+        setTimeout(() => router.replace(target), 900)
+      } else {
+        transition(+1)
+      }
+    } finally {
+      setSubmitting(false)
+    }
   }
 
-  /* ─── GLOBAL STYLES ─────────────────────────────────────── */
-  const globalStyle = `
-    @keyframes spin   { to { transform: rotate(360deg); } }
-    @keyframes pulse  { 0%,100%{opacity:1;} 50%{opacity:.3;} }
-    @keyframes fadeUp { from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;} }
-    @keyframes dot    { from{opacity:.2;transform:scale(.75);}to{opacity:1;transform:scale(1);} }
-    @keyframes scanLine { 0%{top:0%;}100%{top:100%;} }
-    .ob-msg-in { animation: fadeUp .22s cubic-bezier(.16,1,.3,1) both; }
-    .ob-input-wrap:focus-within { border-color: var(--accent) !important; box-shadow: 0 0 0 3px rgba(var(--accent-rgb,.4,.4,.4),.13), 0 2px 20px rgba(0,0,0,.18) !important; }
-    .ob-cta-btn { transition: opacity .15s, transform .1s; }
-    .ob-cta-btn:hover:not(:disabled) { opacity:.88; }
-    .ob-cta-btn:active:not(:disabled) { transform:scale(.98); }
-    .ob-chip { transition: background .12s, color .12s; }
-    .ob-chip:hover { background: var(--card) !important; color: var(--text) !important; }
-    @media(max-width:640px) {
-      .ob-header-right .ob-form-btn { display:none !important; }
+  async function handleSkip() {
+    if (submitting || animating) return
+    if (current === 'workspace') return // workspace is required
+    if (isLast) return
+    // Persist anyway so resume works, but skip validation friction.
+    setSubmitting(true)
+    try {
+      await persist(current)
+      transition(+1)
+    } finally {
+      setSubmitting(false)
     }
-  `
+  }
 
-  /* ─── MANUAL FORM ─────────────────────────────────────────── */
-  if (mode === 'manual') return (
-    <div style={{ minHeight:'100dvh', background:'var(--bg)', display:'flex', flexDirection:'column' }}>
-      <style>{globalStyle}</style>
-      <header style={{ position:'sticky', top:0, zIndex:50, display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 24px', height:56, borderBottom:'1px solid var(--border)', background:'var(--bg)' }}>
-        <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-          <img src="/brand/logo.svg" alt="festag" style={{ height:17, filter:'var(--logo-filter,none)' }}/>
-          <span style={{ fontSize:11, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.08em', textTransform:'uppercase' }}>Projekt-Aufnahme</span>
-        </div>
-        <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-          <button onClick={() => setMode('chat')} style={{ height:32, padding:'0 14px', background:'transparent', border:'1px solid var(--border)', borderRadius:8, fontSize:12, fontWeight:600, color:'var(--text-secondary)', cursor:'pointer', fontFamily:'inherit' }}>← AI-Chat</button>
-          <Link href="/dashboard" style={{ textDecoration:'none' }}>
-            <button style={{ height:32, padding:'0 14px', background:'transparent', border:'1px solid var(--border)', borderRadius:8, fontSize:12, fontWeight:600, color:'var(--text-muted)', cursor:'pointer', fontFamily:'inherit' }}>Überspringen</button>
-          </Link>
-        </div>
-      </header>
-      <div style={{ flex:1, overflowY:'auto', padding:'36px 24px 80px', maxWidth:640, width:'100%', margin:'0 auto' }}>
-        {/* Contact banner */}
-        <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:14, padding:'18px 20px', marginBottom:28 }}>
-          <p style={{ fontSize:13, fontWeight:700, color:'var(--text)', margin:'0 0 4px' }}>Lieber persönlich?</p>
-          <p style={{ fontSize:12, color:'var(--text-secondary)', margin:'0 0 14px', lineHeight:1.6 }}>Wir melden uns innerhalb 24h. Oder direkt:</p>
-          <div style={{ display:'flex', gap:10 }}>
-            <a href="mailto:hello@festag.io" style={{ flex:1, display:'flex', alignItems:'center', gap:10, padding:'10px 13px', background:'var(--surface)', border:'1px solid var(--border)', borderRadius:10, textDecoration:'none' }}>
-              <div style={{ width:30, height:30, borderRadius:8, background:'var(--accent)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text)" strokeWidth="2" strokeLinecap="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 7l10 7 10-7"/></svg>
-              </div>
-              <div><p style={{ fontSize:9, fontWeight:700, color:'var(--text-muted)', margin:0, letterSpacing:'.06em' }}>E-MAIL</p><p style={{ fontSize:12, fontWeight:600, color:'var(--text)', margin:'1px 0 0' }}>hello@festag.io</p></div>
-            </a>
-            <a href="https://wa.me/4989123456" target="_blank" rel="noopener" style={{ flex:1, display:'flex', alignItems:'center', gap:10, padding:'10px 13px', background:'var(--surface)', border:'1px solid var(--border)', borderRadius:10, textDecoration:'none' }}>
-              <div style={{ width:30, height:30, borderRadius:8, background:'rgba(34,197,94,.12)', border:'1px solid rgba(34,197,94,.2)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2" strokeLinecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.3h3a2 2 0 0 1 2 1.72c.13.81.37 1.6.7 2.35a2 2 0 0 1-.45 2.11L7.91 9.4a16 16 0 0 0 6.19 6.19l.95-.95a2 2 0 0 1 2.1-.45c.75.33 1.54.57 2.35.7A2 2 0 0 1 22 16.92z"/></svg>
-              </div>
-              <div><p style={{ fontSize:9, fontWeight:700, color:'var(--text-muted)', margin:0, letterSpacing:'.06em' }}>WHATSAPP</p><p style={{ fontSize:12, fontWeight:600, color:'var(--text)', margin:'1px 0 0' }}>+49 089 123 456 78</p></div>
-            </a>
-          </div>
-        </div>
+  const userInitial = (fullName.trim().charAt(0) || '?').toUpperCase()
 
-        <form onSubmit={submitManual}>
-          <h2 style={{ fontSize:22, fontWeight:700, color:'var(--text)', margin:'0 0 22px', letterSpacing:'-.4px' }}>Projekt beschreiben</h2>
-          <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
-            <div>
-              <label style={{ fontSize:11, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.07em', display:'block', marginBottom:6 }}>PROJEKTNAME *</label>
-              <input value={mTitle} onChange={e => setMTitle(e.target.value)} required placeholder="z.B. Kunden-Portal mit AI-Chat"
-                style={{ width:'100%', padding:'11px 14px', background:'var(--card)', border:'1.5px solid var(--border)', borderRadius:10, fontSize:14, color:'var(--text)', fontFamily:'inherit', outline:'none', boxSizing:'border-box', transition:'border-color .15s' }}
-                onFocus={e => (e.currentTarget.style.borderColor='var(--accent)')}
-                onBlur={e => (e.currentTarget.style.borderColor='var(--border)')}/>
-            </div>
-            <div>
-              <label style={{ fontSize:11, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.07em', display:'block', marginBottom:6 }}>PROJEKTBESCHREIBUNG</label>
-              <textarea value={mDesc} onChange={e => setMDesc(e.target.value)} rows={4}
-                placeholder="Was soll gebaut werden? Für wen? Welches Problem löst es?"
-                style={{ width:'100%', padding:'11px 14px', background:'var(--card)', border:'1.5px solid var(--border)', borderRadius:10, fontSize:14, color:'var(--text)', fontFamily:'inherit', outline:'none', resize:'vertical', boxSizing:'border-box', lineHeight:1.6, transition:'border-color .15s' }}
-                onFocus={e => (e.currentTarget.style.borderColor='var(--accent)')}
-                onBlur={e => (e.currentTarget.style.borderColor='var(--border)')}/>
-            </div>
-            <div>
-              <label style={{ fontSize:11, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.07em', display:'block', marginBottom:8 }}>PROJEKTTYP</label>
-              <div style={{ display:'flex', flexWrap:'wrap', gap:7 }}>
-                {PROJECT_TYPES.map(t => (
-                  <button key={t} type="button" onClick={() => setMType(t===mType?'':t)} className="ob-chip"
-                    style={{ padding:'6px 13px', borderRadius:20, border:`1.5px solid ${mType===t?'var(--accent)':'var(--border)'}`, background:mType===t?'var(--accent)':'var(--card)', color:mType===t?'var(--accent-text)':'var(--text-secondary)', fontSize:12, fontWeight:600, cursor:'pointer', fontFamily:'inherit' }}>{t}</button>
-                ))}
-              </div>
-            </div>
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
-              <div>
-                <label style={{ fontSize:11, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.07em', display:'block', marginBottom:6 }}>BUDGET</label>
-                <select value={mBudget} onChange={e => setMBudget(e.target.value)}
-                  style={{ width:'100%', padding:'11px 14px', background:'var(--card)', border:'1.5px solid var(--border)', borderRadius:10, fontSize:13, color:'var(--text)', fontFamily:'inherit', outline:'none', cursor:'pointer' }}>
-                  <option value="">Bitte wählen</option>{BUDGETS.map(b => <option key={b} value={b}>{b}</option>)}
-                </select>
-              </div>
-              <div>
-                <label style={{ fontSize:11, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.07em', display:'block', marginBottom:6 }}>TIMELINE</label>
-                <select value={mTimeline} onChange={e => setMTimeline(e.target.value)}
-                  style={{ width:'100%', padding:'11px 14px', background:'var(--card)', border:'1.5px solid var(--border)', borderRadius:10, fontSize:13, color:'var(--text)', fontFamily:'inherit', outline:'none', cursor:'pointer' }}>
-                  <option value="">Bitte wählen</option>{TIMELINES.map(t => <option key={t} value={t}>{t}</option>)}
-                </select>
-              </div>
-            </div>
-            <div>
-              <label style={{ fontSize:11, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.07em', display:'block', marginBottom:6 }}>KONTAKT (OPTIONAL)</label>
-              <input value={mContact} onChange={e => setMContact(e.target.value)} placeholder="Telefon, WhatsApp oder E-Mail für Rückfragen"
-                style={{ width:'100%', padding:'11px 14px', background:'var(--card)', border:'1.5px solid var(--border)', borderRadius:10, fontSize:14, color:'var(--text)', fontFamily:'inherit', outline:'none', boxSizing:'border-box', transition:'border-color .15s' }}
-                onFocus={e => (e.currentTarget.style.borderColor='var(--accent)')}
-                onBlur={e => (e.currentTarget.style.borderColor='var(--border)')}/>
-            </div>
-            {mError && <p style={{ fontSize:13, color:'#ef4444', background:'rgba(239,68,68,.08)', padding:'10px 14px', borderRadius:9, margin:0, border:'1px solid rgba(239,68,68,.15)' }}>{mError}</p>}
-            <button type="submit" disabled={!mTitle.trim()||mSubmitting} className="ob-cta-btn"
-              style={{ width:'100%', padding:'14px', background:mTitle.trim()&&!mSubmitting?'var(--btn-prim)':'var(--surface-2)', color:mTitle.trim()&&!mSubmitting?'var(--btn-prim-text)':'var(--text-muted)', border:'none', borderRadius:12, fontSize:15, fontWeight:700, cursor:mTitle.trim()&&!mSubmitting?'pointer':'default', fontFamily:'inherit', display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
-              {mSubmitting?<><span style={{ width:16, height:16, border:'2px solid rgba(128,128,128,.3)', borderTopColor:'currentColor', borderRadius:'50%', animation:'spin .7s linear infinite' }}/> Wird erstellt…</>:'Projekt einreichen →'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  )
+  if (done) return <FestagLoader fullscreen label="Festag wird vorbereitet…" />
 
-  /* ─── DONE STATE ──────────────────────────────────────────── */
-  if (phase === 'done') return (
-    <div style={{ minHeight:'100dvh', background:'var(--bg)', display:'flex', alignItems:'center', justifyContent:'center', padding:24 }}>
-      <style>{globalStyle}</style>
-      <div style={{ maxWidth:480, width:'100%', textAlign:'center' }}>
-        <div style={{ width:68, height:68, borderRadius:'50%', background:'rgba(34,197,94,.1)', border:'1.5px solid rgba(34,197,94,.25)', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 28px' }}>
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
-        </div>
-        <h1 style={{ fontSize:28, fontWeight:700, color:'var(--text)', letterSpacing:'-.6px', marginBottom:10 }}>Projekt strukturiert.</h1>
-        <p style={{ fontSize:15, color:'var(--text-secondary)', lineHeight:1.65, marginBottom:36, maxWidth:380, margin:'0 auto 36px' }}>
-          Tagro hat dein Projekt in Epics und Tasks zerlegt. Das Team kann jetzt mit der Arbeit beginnen.
-        </p>
-        <Link href={`/project/${projectId}`} style={{ textDecoration:'none' }}>
-          <button className="ob-cta-btn" style={{ width:'100%', padding:'15px', background:'var(--btn-prim)', color:'var(--btn-prim-text)', border:'none', borderRadius:12, fontSize:15, fontWeight:700, cursor:'pointer', fontFamily:'inherit', marginBottom:10 }}>
-            Projekt öffnen →
-          </button>
-        </Link>
-        <Link href="/dashboard" style={{ textDecoration:'none' }}>
-          <button style={{ width:'100%', padding:'13px', background:'transparent', color:'var(--text-muted)', border:'none', fontSize:13, cursor:'pointer', fontFamily:'inherit' }}>
-            Zum Dashboard
-          </button>
-        </Link>
-      </div>
-    </div>
-  )
-
-  /* ─── DECOMPOSE STATE ─────────────────────────────────────── */
-  if (phase === 'decompose') return (
-    <div style={{ minHeight:'100dvh', background:'var(--bg)', display:'flex', alignItems:'center', justifyContent:'center', padding:24 }}>
-      <style>{globalStyle}</style>
-      <div style={{ maxWidth:400, width:'100%', textAlign:'center' }}>
-        <div style={{ position:'relative', width:56, height:56, margin:'0 auto 28px' }}>
-          <div style={{ width:56, height:56, border:'2px solid var(--border)', borderTopColor:'var(--accent)', borderRadius:'50%', animation:'spin .9s linear infinite' }}/>
-          <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center' }}>
-            <span style={{ fontSize:18, color:'var(--accent)' }}>✦</span>
-          </div>
-        </div>
-        <h2 style={{ fontSize:22, fontWeight:700, color:'var(--text)', marginBottom:8, letterSpacing:'-.4px' }}>Tagro analysiert</h2>
-        <p style={{ fontSize:14, color:'var(--text-secondary)', lineHeight:1.6, marginBottom:28 }}>
-          Erstelle Epics, Tasks, Prioritäten und Akzeptanzkriterien…
-        </p>
-        <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
-          {['Ziele & Scope definieren','Epics strukturieren','Tasks & Subtasks erstellen','Prioritäten setzen','Akzeptanzkriterien formulieren'].map((s, i) => (
-            <div key={i} style={{ display:'flex', alignItems:'center', gap:10, padding:'9px 14px', background:'var(--card)', borderRadius:10, border:'1px solid var(--border)' }}>
-              <div style={{ width:6, height:6, borderRadius:'50%', background:'var(--accent)', animation:`pulse 1.8s ${i*0.25}s ease-in-out infinite`, flexShrink:0 }}/>
-              <span style={{ fontSize:13, color:'var(--text-secondary)' }}>{s}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  )
-
-  /* ─── CHAT STATE ──────────────────────────────────────────── */
   return (
-    <div style={{ minHeight:'100dvh', background:'var(--bg)', display:'flex', flexDirection:'column', fontFamily:"'Inter',-apple-system,sans-serif", WebkitFontSmoothing:'antialiased' }}>
-      <style>{globalStyle}</style>
+    <main className="onb" data-theme="dark">
+      <style jsx global>{CSS}</style>
 
-      {/* ── Header ── */}
-      <header style={{ position:'sticky', top:0, zIndex:50, display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 20px', height:54, borderBottom:'1px solid var(--border)', background:'var(--bg)', backdropFilter:'blur(12px)', WebkitBackdropFilter:'blur(12px)' }}>
-        <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-          <button onClick={() => { if (msgs.length > 1 && !confirm('Zurück zum Dashboard? Dein Chat geht verloren.')) return; window.location.href='/dashboard' }}
-            title="Zurück" aria-label="Zurück"
-            style={{ width:30, height:30, display:'flex', alignItems:'center', justifyContent:'center', background:'transparent', border:'1px solid var(--border)', borderRadius:8, cursor:'pointer', color:'var(--text-secondary)' }}>
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-          </button>
-          <img src="/brand/logo.svg" alt="festag" style={{ height:16, filter:'var(--logo-filter,none)' }}/>
-          <span style={{ fontSize:11, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.08em', textTransform:'uppercase' }}>Projekt-Aufnahme</span>
-        </div>
-        <div className="ob-header-right" style={{ display:'flex', alignItems:'center', gap:7 }}>
-          <button onClick={() => setMode('manual')} className="ob-form-btn"
-            style={{ height:30, padding:'0 12px', background:'var(--card)', border:'1px solid var(--border)', borderRadius:8, fontSize:11, fontWeight:600, color:'var(--text-secondary)', cursor:'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', gap:5 }}>
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-            Formular
-          </button>
-          <Link href="/dashboard" style={{ textDecoration:'none' }}>
-            <button style={{ height:30, padding:'0 12px', background:'transparent', border:'1px solid var(--border)', borderRadius:8, fontSize:11, fontWeight:600, color:'var(--text-muted)', cursor:'pointer', fontFamily:'inherit' }}>
-              Überspringen
-            </button>
-          </Link>
-        </div>
-      </header>
+      <div className="onb-stage">
+        <div className={`onb-card${animating ? ' is-animating' : ''}`}>
+          {current === 'workspace' && (
+            <>
+              <h1 className="onb-title">Workspace erstellen</h1>
+              <p className="onb-lede">Dein zentraler Bereich für Projekte, Teams und Tagro-Briefings.</p>
 
-      {/* ── Chat area ── */}
-      <div style={{ flex:1, overflowY:'auto', WebkitOverflowScrolling:'touch', scrollbarWidth:'thin' }}>
-        <div style={{ maxWidth:720, margin:'0 auto', padding:'40px 20px 0' }}>
+              <Field label="Name">
+                <input
+                  className="onb-input is-primary"
+                  value={wsName}
+                  onChange={(e) => setWsName(e.target.value)}
+                  placeholder="z. B. Studio Müller"
+                  maxLength={64}
+                  autoFocus
+                />
+              </Field>
 
-          {/* Tagro identity header */}
-          <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:32 }}>
-            <div style={{ width:36, height:36, borderRadius:10, background:'var(--accent)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-              <span style={{ fontSize:15, color:'var(--accent-text)', fontWeight:700 }}>✦</span>
-            </div>
-            <div>
-              <p style={{ fontSize:14, fontWeight:700, color:'var(--text)', margin:0, lineHeight:1 }}>Tagro AI</p>
-              <p style={{ fontSize:11, color:'var(--text-muted)', margin:'3px 0 0', lineHeight:1 }}>Festag Projekt-Aufnahme</p>
-            </div>
-            <div style={{ marginLeft:'auto', display:'flex', alignItems:'center', gap:5, padding:'4px 10px', background:'var(--card)', border:'1px solid var(--border)', borderRadius:20, fontSize:10, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.05em' }}>
-              <span style={{ width:5, height:5, borderRadius:'50%', background:'#22c55e', animation:'pulse 2s infinite' }}/>
-              AI AKTIV
-            </div>
-          </div>
-
-          {/* Messages */}
-          <div style={{ display:'flex', flexDirection:'column', gap:20 }}>
-            {msgs.map((m, i) => (
-              <div key={i} className={i === msgs.length-1 ? 'ob-msg-in' : ''} style={{ display:'flex', justifyContent:m.role==='user'?'flex-end':'flex-start', gap:10 }}>
-                {m.role === 'ai' ? (
-                  <div style={{ maxWidth:'82%' }}>
-                    <div style={{ fontSize:15, lineHeight:1.68, color:'var(--text)', fontWeight:450 }}>
-                      <ChatMarkdown text={m.text} variant="plain" />
-                    </div>
-                  </div>
-                ) : (
-                  <div style={{ maxWidth:'78%', padding:'12px 17px', background:'var(--accent)', color:'var(--accent-text)', borderRadius:'18px 18px 4px 18px', fontSize:15, fontWeight:600, lineHeight:1.5, wordBreak:'break-word' }}>
-                    {m.text}
-                  </div>
-                )}
-              </div>
-            ))}
-
-            {/* AI loading dots */}
-            {aiLoading && (
-              <div className="ob-msg-in" style={{ display:'flex', gap:5, paddingLeft:2 }}>
-                {[0,1,2].map(i => (
-                  <div key={i} style={{ width:7, height:7, borderRadius:'50%', background:'var(--text-muted)', animation:`dot .9s ${i*0.16}s ease-in-out infinite alternate` }}/>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Decompose error */}
-          {decomposeErr && (
-            <div style={{ margin:'20px 0', padding:'12px 16px', background:'rgba(239,68,68,.08)', border:'1px solid rgba(239,68,68,.2)', borderRadius:10, display:'flex', alignItems:'flex-start', gap:10 }}>
-              <span style={{ color:'#ef4444', fontSize:16, lineHeight:1, flexShrink:0 }}>⚠</span>
-              <p style={{ fontSize:13, color:'#ef4444', margin:0, lineHeight:1.5 }}>{decomposeErr}</p>
-              <button onClick={decompose} style={{ marginLeft:'auto', flexShrink:0, fontSize:12, fontWeight:700, color:'#ef4444', background:'transparent', border:'none', cursor:'pointer', fontFamily:'inherit' }}>Erneut →</button>
-            </div>
-          )}
-
-          {/* Ready CTA */}
-          {ready && !decomposing && (
-            <div className="ob-msg-in" style={{ margin:'28px 0', padding:'22px 24px', background:'var(--card)', borderRadius:16, border:'1px solid var(--border)', boxShadow:'0 4px 24px rgba(0,0,0,.07)' }}>
-              <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:8 }}>
-                <div style={{ width:30, height:30, borderRadius:8, background:'var(--accent)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                  <span style={{ fontSize:13, color:'var(--accent-text)', fontWeight:700 }}>✦</span>
+              <Field label="URL">
+                <div className="onb-url">
+                  <span className="onb-url-prefix">festag.app/</span>
+                  <input
+                    className="onb-input onb-url-input"
+                    value={wsSlug}
+                    onChange={(e) => { setWsSlugTouched(true); setWsSlug(slugify(e.target.value)) }}
+                    placeholder="studio-mueller"
+                    maxLength={32}
+                  />
                 </div>
-                <p style={{ fontSize:14, fontWeight:700, color:'var(--text)', margin:0 }}>Tagro ist bereit</p>
+              </Field>
+
+              <Field label="Region">
+                <div className="onb-select-wrap">
+                  <select
+                    className="onb-input onb-select"
+                    value={wsRegion}
+                    onChange={(e) => setWsRegion(e.target.value as WorkspaceRegion)}
+                  >
+                    {(['eu', 'us', 'global'] as WorkspaceRegion[]).map((r) => (
+                      <option key={r} value={r}>{REGION_LABEL[r]}</option>
+                    ))}
+                  </select>
+                  <svg className="onb-select-caret" viewBox="0 0 12 8" aria-hidden>
+                    <path d="M1 1.5L6 6.5L11 1.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                  </svg>
+                </div>
+              </Field>
+
+              <div className="onb-actions onb-actions-full">
+                <button
+                  type="button"
+                  className="onb-primary onb-primary-full"
+                  onClick={handleContinue}
+                  disabled={submitting || !wsName.trim()}
+                >
+                  {submitting ? 'Workspace wird erstellt…' : 'Workspace erstellen'}
+                </button>
               </div>
-              <p style={{ fontSize:13, color:'var(--text-secondary)', margin:'0 0 18px', lineHeight:1.6 }}>
-                Ich zerlege dein Projekt jetzt vollautomatisch in Epics, Tasks und Akzeptanzkriterien.
-              </p>
-              <button onClick={decompose} className="ob-cta-btn"
-                style={{ width:'100%', padding:'14px 20px', background:'var(--btn-prim)', color:'var(--btn-prim-text)', border:'none', borderRadius:11, fontSize:14, fontWeight:700, cursor:'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
-                <span style={{ fontSize:14 }}>✦</span>
-                Projekt strukturieren
-              </button>
-            </div>
+            </>
           )}
 
-          <div ref={bottomRef} style={{ height:160 }}/>
-        </div>
-      </div>
+          {current === 'profile' && (
+            <>
+              <h1 className="onb-title">Profil einrichten</h1>
+              <p className="onb-lede">So wirst du im Workspace und in Briefings angezeigt.</p>
 
-      {/* ── Input bar (sticky bottom) ── */}
-      {!ready && (
-        <div style={{ position:'sticky', bottom:0, background:'linear-gradient(to top, var(--bg) 78%, transparent)', padding:'14px 20px 22px', paddingBottom:'calc(22px + env(safe-area-inset-bottom))' }}>
-          <div style={{ maxWidth:720, margin:'0 auto' }}>
-            <ChatInput
-              value={input}
-              onChange={setInput}
-              onSend={send}
-              loading={aiLoading}
-              placeholder="Beschreibe deine Idee — z.B. eine Website für systemische Beratung…"
-              modes={[
-                { id:'standard', label:'Standard' },
-                { id:'fokus',    label:'Fokus' },
-                { id:'detail',   label:'Detail' },
-              ]}
-              mode="standard"
-              onModeChange={() => {}}
-              banner={
-                <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginTop:11, padding:'10px 14px', background:'var(--surface-2)', border:'1px solid var(--border)', borderRadius:12 }}>
-                  <div style={{ display:'flex', alignItems:'center', gap:9, minWidth:0 }}>
-                    <div style={{ width:24, height:24, borderRadius:7, background:'var(--text)', color:'var(--bg)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8"/></svg>
-                    </div>
-                    <p style={{ fontSize:12, color:'var(--text-secondary)', margin:0, lineHeight:1.45 }}>
-                      <strong style={{ color:'var(--text)' }}>Tagro AI</strong> versteht jede Idee. Tipp: schreibe <code style={{ fontFamily:'ui-monospace,monospace', background:'var(--surface)', padding:'1px 5px', borderRadius:4, fontSize:10.5 }}>test projekt</code> für eine Demo.
-                    </p>
+              <Field label="Name & Bild">
+                <div className="onb-name-row">
+                  <div className="onb-avatar" aria-hidden>
+                    {fullName.trim()
+                      ? <span className="onb-avatar-initial">{userInitial}</span>
+                      : <User size={18} weight="regular" />}
                   </div>
-                  <button onClick={() => setMode('manual')} style={{ flexShrink:0, marginLeft:8, padding:'5px 11px', background:'var(--btn-prim)', color:'var(--btn-prim-text)', fontSize:11, fontWeight:700, border:'none', borderRadius:7, cursor:'pointer', fontFamily:'inherit' }}>
-                    Lieber Formular?
+                  <input
+                    className="onb-input"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    placeholder="Dein Name"
+                    maxLength={64}
+                    autoFocus
+                  />
+                </div>
+              </Field>
+
+              <Field label="Titel">
+                <input
+                  className="onb-input"
+                  value={position}
+                  onChange={(e) => setPosition(e.target.value)}
+                  placeholder="Software Engineer, Founder, Designer…"
+                  maxLength={64}
+                />
+              </Field>
+
+              <DefaultActions
+                onSkip={handleSkip}
+                onContinue={handleContinue}
+                submitting={submitting}
+                continueDisabled={false}
+              />
+            </>
+          )}
+
+          {current === 'project' && (
+            <>
+              <h1 className="onb-title">Woran arbeitest du gerade?</h1>
+              <p className="onb-lede">Tagro organisiert daraus die nächsten Schritte.</p>
+
+              <Field label="Projekt">
+                <textarea
+                  className="onb-input onb-textarea"
+                  value={project}
+                  onChange={(e) => setProject(e.target.value)}
+                  placeholder={'z. B. Software zur Buchung unserer Hotelzimmer, internes Tool für Kundenverwaltung, mobile App für unser Startup…'}
+                  rows={5}
+                  maxLength={2000}
+                  autoFocus
+                />
+              </Field>
+
+              <DefaultActions
+                onSkip={handleSkip}
+                onContinue={handleContinue}
+                submitting={submitting}
+                continueDisabled={false}
+              />
+            </>
+          )}
+
+          {current === 'team' && (
+            <>
+              <h1 className="onb-title">Managst du im Team oder alleine?</h1>
+              <p className="onb-lede">Lade Co-Founder, Mitarbeiter oder Externe später per Teams ein.</p>
+
+              <ul className="onb-toggle-list" role="radiogroup" aria-label="Arbeitsweise">
+                {TEAM_OPTIONS.map((opt) => {
+                  const active = teamChoice === opt.id
+                  return (
+                    <li
+                      key={opt.id}
+                      className={`onb-toggle-row${active ? ' is-active' : ''}`}
+                      role="radio"
+                      aria-checked={active}
+                      tabIndex={0}
+                      onClick={() => setTeamChoice(opt.id)}
+                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setTeamChoice(opt.id) } }}
+                    >
+                      <div className="onb-toggle-text">
+                        <p className="onb-toggle-title">{opt.title}</p>
+                        <p className="onb-toggle-desc">{opt.desc}</p>
+                      </div>
+                      <span className={`onb-radio${active ? ' is-on' : ''}`} aria-hidden>
+                        <span className="onb-radio-dot" />
+                      </span>
+                    </li>
+                  )
+                })}
+              </ul>
+
+              <DefaultActions
+                onSkip={handleSkip}
+                onContinue={handleContinue}
+                submitting={submitting}
+                continueDisabled={false}
+              />
+            </>
+          )}
+
+          {current === 'done' && (() => {
+            const copy = DONE_COPY[teamChoice]
+            const wantsInvite = INVITE_NEED_FOR[teamChoice] !== 'none'
+            return (
+              <>
+                <h1 className="onb-title">{copy.title}</h1>
+                <p className="onb-lede">{copy.lede}</p>
+
+                {wantsInvite && (
+                  <Field label={copy.inviteLabel || 'E-Mails einladen'}>
+                    <textarea
+                      className="onb-input onb-textarea"
+                      value={invites}
+                      onChange={(e) => setInvites(e.target.value)}
+                      placeholder={copy.invitePlaceholder || 'anna@firma.com, max@agentur.de'}
+                      rows={4}
+                      maxLength={2000}
+                      autoFocus
+                    />
+                  </Field>
+                )}
+
+                {wantsInvite && (
+                  <p className="onb-fine">Wir senden eine ruhige E-Mail mit einem Beitrittslink. Keine Werbung.</p>
+                )}
+
+                {copy.note && (
+                  <div className="onb-note">{copy.note}</div>
+                )}
+
+                <div className="onb-actions">
+                  {wantsInvite && (
+                    <button
+                      type="button"
+                      className="onb-ghost"
+                      onClick={() => { setInvites(''); handleContinue() }}
+                      disabled={submitting}
+                    >
+                      Ohne Einladung weiter
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className="onb-primary"
+                    onClick={handleContinue}
+                    disabled={submitting}
+                  >
+                    {submitting ? 'Speichere…' : 'Zum Dashboard'}
                   </button>
                 </div>
-              }
-            />
-          </div>
+              </>
+            )
+          })()}
+
+          {error && <p className="onb-error" role="alert">{error}</p>}
         </div>
-      )}
+
+        <ol className="onb-dots" aria-label="Onboarding-Fortschritt">
+          {STEPS.map((s, i) => (
+            <li
+              key={s}
+              className={`onb-dot${i === stepIdx ? ' is-active' : ''}${i < stepIdx ? ' is-done' : ''}`}
+              aria-current={i === stepIdx ? 'step' : undefined}
+            />
+          ))}
+        </ol>
+      </div>
+    </main>
+  )
+}
+
+// ─── Helpers ────────────────────────────────────────────────────────
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="onb-field">
+      <label className="onb-label">{label}</label>
+      {children}
     </div>
   )
 }
+
+function DefaultActions({
+  onSkip, onContinue, submitting, continueDisabled,
+}: {
+  onSkip: () => void
+  onContinue: () => void
+  submitting: boolean
+  continueDisabled: boolean
+}) {
+  return (
+    <div className="onb-actions">
+      <button type="button" className="onb-ghost" onClick={onSkip} disabled={submitting}>
+        Überspringen
+      </button>
+      <button
+        type="button"
+        className="onb-primary"
+        onClick={onContinue}
+        disabled={submitting || continueDisabled}
+      >
+        {submitting ? 'Speichere…' : 'Weiter'}
+      </button>
+    </div>
+  )
+}
+
+// ─── Styles ─────────────────────────────────────────────────────────
+
+const CSS = `
+  html, body { background: #0A0D14; color: #E8E8E5; }
+  .onb {
+    min-height: 100dvh; width: 100%;
+    background: #0A0D14;
+    color: #E8E8E5;
+    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+    font-weight: 500;
+    letter-spacing: var(--ls-body, 0.017em);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: geometricPrecision;
+    display: flex; align-items: stretch; justify-content: center;
+    position: relative;
+    padding: 32px 20px 96px;
+  }
+  .onb-stage {
+    width: 100%; max-width: 480px;
+    display: flex; flex-direction: column;
+    align-items: stretch;
+    margin: auto 0;
+  }
+  .onb-card {
+    display: flex; flex-direction: column;
+    transition: opacity .18s ease, transform .18s ease;
+  }
+  .onb-card.is-animating { opacity: 0; transform: translateY(6px); }
+
+  .onb-title {
+    margin: 0;
+    font-size: 28px; font-weight: 500;
+    letter-spacing: var(--ls-header, 0.012em);
+    line-height: 1.2;
+    text-align: center;
+    color: #FFFFFF;
+  }
+  .onb-lede {
+    margin: 10px 0 36px;
+    font-size: 14.5px;
+    color: rgba(255,255,255,.58);
+    text-align: center;
+    line-height: 1.55;
+    letter-spacing: var(--ls-body, 0.017em);
+  }
+
+  .onb-field { display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px; }
+  .onb-label {
+    font-size: 12.5px; font-weight: 500;
+    color: rgba(255,255,255,.58);
+    letter-spacing: var(--ls-body, 0.017em);
+  }
+
+  .onb-input {
+    width: 100%;
+    height: 44px;
+    background: rgba(255,255,255,.02);
+    border: 1px solid rgba(255,255,255,.10);
+    border-radius: 10px;
+    padding: 0 14px;
+    color: #FFFFFF;
+    font: inherit; font-size: 14px; font-weight: 500;
+    letter-spacing: .01em;
+    outline: 0;
+    transition: border-color .14s ease, background .14s ease, box-shadow .14s ease;
+  }
+  .onb-input::placeholder { color: rgba(255,255,255,.30); font-weight: 500; }
+  .onb-input:hover { border-color: rgba(255,255,255,.18); }
+  .onb-input:focus {
+    border-color: rgba(140,148,170,.65);
+    background: rgba(255,255,255,.035);
+    box-shadow: 0 0 0 3px rgba(91,100,125,.18);
+  }
+  .onb-input.is-primary:focus {
+    border-color: rgba(140,148,170,.85);
+    box-shadow: 0 0 0 3px rgba(91,100,125,.28);
+  }
+  .onb-textarea {
+    height: auto;
+    min-height: 116px;
+    padding: 12px 14px;
+    line-height: 1.55;
+    resize: vertical;
+  }
+
+  /* URL field — prefix segment */
+  .onb-url {
+    display: flex; align-items: stretch;
+    border: 1px solid rgba(255,255,255,.10);
+    border-radius: 10px;
+    background: rgba(255,255,255,.02);
+    overflow: hidden;
+    transition: border-color .14s ease;
+  }
+  .onb-url:focus-within {
+    border-color: rgba(140,148,170,.65);
+    box-shadow: 0 0 0 3px rgba(91,100,125,.18);
+  }
+  .onb-url-prefix {
+    display: inline-flex; align-items: center;
+    padding: 0 14px;
+    background: rgba(255,255,255,.04);
+    color: rgba(255,255,255,.45);
+    font-size: 13.5px; font-weight: 500;
+    border-right: 1px solid rgba(255,255,255,.06);
+    flex-shrink: 0;
+  }
+  .onb-url-input {
+    border: 0 !important;
+    background: transparent !important;
+    border-radius: 0;
+    box-shadow: none !important;
+  }
+
+  /* Select wrapper */
+  .onb-select-wrap { position: relative; }
+  .onb-select {
+    appearance: none; -webkit-appearance: none;
+    padding-right: 38px;
+    cursor: pointer;
+  }
+  .onb-select-caret {
+    position: absolute; right: 14px; top: 50%;
+    width: 11px; height: 7px;
+    transform: translateY(-50%);
+    color: rgba(255,255,255,.55);
+    pointer-events: none;
+  }
+  .onb-select option { background: #10151D; color: #FFFFFF; }
+
+  /* Profile name row */
+  .onb-name-row { display: flex; align-items: center; gap: 12px; }
+  .onb-avatar {
+    width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0;
+    border: 1px solid rgba(255,255,255,.12);
+    background: rgba(255,255,255,.03);
+    display: inline-flex; align-items: center; justify-content: center;
+    color: rgba(255,255,255,.55);
+  }
+  .onb-avatar-initial { font-size: 14px; font-weight: 500; color: rgba(255,255,255,.85); }
+
+  /* Toggle list */
+  .onb-toggle-list {
+    list-style: none; padding: 0; margin: 0 0 28px;
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 12px;
+    background: rgba(255,255,255,.02);
+    overflow: hidden;
+  }
+  .onb-toggle-row {
+    display: flex; align-items: center; gap: 16px;
+    padding: 14px 16px;
+    border-top: 1px solid rgba(255,255,255,.06);
+    cursor: pointer;
+    transition: background .12s ease;
+    outline: none;
+  }
+  .onb-toggle-row:first-child { border-top: 0; }
+  .onb-toggle-row:hover { background: rgba(255,255,255,.025); }
+  .onb-toggle-row.is-active { background: rgba(91,100,125,.12); }
+  .onb-toggle-row:focus-visible { box-shadow: inset 0 0 0 1px rgba(140,148,170,.5); }
+  .onb-toggle-text { flex: 1; min-width: 0; }
+  .onb-toggle-title {
+    margin: 0; font-size: 13.5px; color: #FFFFFF;
+    font-weight: 500; letter-spacing: var(--ls-body, 0.017em);
+  }
+  .onb-toggle-desc {
+    margin: 2px 0 0; font-size: 12px; color: rgba(255,255,255,.45);
+    line-height: 1.45; letter-spacing: var(--ls-body, 0.017em);
+  }
+  /* Single-select radio — only one choice can be active. */
+  .onb-radio {
+    flex-shrink: 0;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(255,255,255,.22);
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: border-color .14s ease, background .14s ease;
+  }
+  .onb-radio.is-on { border-color: #8C94AA; background: rgba(91,100,125,.20); }
+  .onb-radio-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #FFFFFF;
+    transform: scale(0);
+    transition: transform .15s cubic-bezier(.22,.65,.35,1);
+  }
+  .onb-radio.is-on .onb-radio-dot { transform: scale(1); }
+
+  .onb-note {
+    margin: -4px 0 22px;
+    padding: 12px 14px;
+    border: 1px solid rgba(91,100,125,.28);
+    background: rgba(91,100,125,.10);
+    border-radius: 10px;
+    font-size: 12.5px; color: rgba(255,255,255,.78);
+    line-height: 1.5; letter-spacing: var(--ls-body, 0.017em);
+  }
+
+  /* Actions — Linear-style: größer, mit weichem 3D-Touch (Inset-Highlight
+     + Soft-Shadow), aktiv-state senkt sich leicht ein. */
+  .onb-actions {
+    display: flex; align-items: center; justify-content: flex-end;
+    gap: 10px; margin-top: 18px;
+  }
+  .onb-actions-full { justify-content: stretch; }
+  .onb-primary {
+    height: 42px; padding: 0 22px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,.08);
+    background: linear-gradient(180deg, #262E3A 0%, #1B222B 100%);
+    color: #FFFFFF;
+    font: inherit; font-size: 13.5px; font-weight: 500;
+    letter-spacing: var(--ls-body, 0.017em);
+    cursor: pointer;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.08),
+      0 1px 2px rgba(0,0,0,.35),
+      0 6px 18px -6px rgba(0,0,0,.45);
+    transition: transform .14s ease, box-shadow .14s ease, background .14s ease, opacity .14s ease;
+  }
+  .onb-primary:hover:not(:disabled) {
+    background: linear-gradient(180deg, #2D3543 0%, #1F2731 100%);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.10),
+      0 2px 4px rgba(0,0,0,.40),
+      0 10px 24px -8px rgba(0,0,0,.55);
+    transform: translateY(-1px);
+  }
+  .onb-primary:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.04),
+      0 1px 1px rgba(0,0,0,.30);
+  }
+  .onb-primary:disabled { opacity: .42; cursor: not-allowed; }
+  .onb-primary-full {
+    width: 100%; height: 48px; padding: 0 28px; font-size: 14.5px;
+  }
+
+  .onb-ghost {
+    height: 42px; padding: 0 18px;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: rgba(255,255,255,.55);
+    font: inherit; font-size: 13.5px; font-weight: 500;
+    letter-spacing: var(--ls-body, 0.017em);
+    cursor: pointer;
+    transition: color .14s ease, background .14s ease, border-color .14s ease;
+  }
+  .onb-ghost:hover:not(:disabled) {
+    color: rgba(255,255,255,.92);
+    background: rgba(255,255,255,.04);
+    border-color: rgba(255,255,255,.06);
+  }
+  .onb-ghost:disabled { opacity: .4; cursor: not-allowed; }
+
+  .onb-fine {
+    margin: -8px 0 22px;
+    font-size: 11.5px; color: rgba(255,255,255,.40);
+    line-height: 1.5;
+  }
+
+  /* Error */
+  .onb-error {
+    margin: 18px 0 0;
+    padding: 10px 12px;
+    border: 1px solid rgba(209,67,67,.35);
+    background: rgba(209,67,67,.08);
+    border-radius: 8px;
+    font-size: 12.5px;
+    color: #F5B5B5;
+    text-align: center;
+  }
+
+  /* Step dots — pinned to the viewport bottom, centred horizontally. */
+  .onb-dots {
+    list-style: none; padding: 0; margin: 0;
+    position: fixed;
+    left: 50%;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 28px);
+    transform: translateX(-50%);
+    display: flex; align-items: center; justify-content: center;
+    gap: 8px;
+    z-index: 5;
+    pointer-events: none;
+  }
+  .onb-dot {
+    width: 6px; height: 6px;
+    border-radius: 999px;
+    background: rgba(255,255,255,.15);
+    transition: width .25s ease, background .25s ease;
+  }
+  .onb-dot.is-active {
+    width: 24px;
+    background: rgba(255,255,255,.85);
+  }
+  .onb-dot.is-done { background: rgba(255,255,255,.35); }
+
+  @media (max-width: 520px) {
+    .onb { padding: 24px 16px 84px; }
+    .onb-title { font-size: 24px; }
+    .onb-lede { margin-bottom: 26px; font-size: 14px; }
+    .onb-input { height: 46px; font-size: 15px; }
+    .onb-primary-full { height: 50px; font-size: 15px; }
+    .onb-primary { height: 44px; font-size: 14px; }
+    .onb-ghost { height: 44px; font-size: 14px; }
+    .onb-dots { bottom: calc(env(safe-area-inset-bottom, 0px) + 18px); }
+  }
+`

@@ -2,7 +2,64 @@
 import { useEffect, useState, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { isDevOrAdmin } from '@/lib/role'
-import Link from 'next/link'
+import DocumentBuilderSection from '@/components/DocumentBuilderSection'
+import PageHeader from '@/components/ui/PageHeader'
+import FilterPills from '@/components/ui/FilterPills'
+import { openTagro } from '@/components/TagroOverlay'
+import MobilePageHeader from '@/components/MobilePageHeader'
+
+function DocumentsEmptyState() {
+  return (
+    <div className="docs-empty">
+      <style>{`
+        .docs-empty {
+          min-height:430px;
+          display:flex;
+          flex-direction:column;
+          align-items:center;
+          justify-content:center;
+          text-align:center;
+          padding:64px 24px;
+          color:var(--text);
+        }
+        /* Linear-style minimal empty mark — fine stroked SVG, no boxy illustration. */
+        .docs-empty-mark {
+          width:56px; height:56px; margin:0 0 22px;
+          display:inline-flex; align-items:center; justify-content:center;
+          color: var(--text-muted);
+        }
+        .docs-empty h2 {
+          margin:0 0 12px;
+          color:var(--text);
+          font-size:22px;
+          line-height:1.2;
+          font-weight:500;
+          letter-spacing:0;
+        }
+        .docs-empty p {
+          max-width:430px;
+          margin:0;
+          color:var(--text-secondary);
+          font-size:15px;
+          line-height:1.55;
+          font-weight:500;
+          letter-spacing:0;
+        }
+      `}</style>
+      <span className="docs-empty-mark" aria-hidden>
+        <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
+          <rect x="14" y="8" width="28" height="40" rx="4"
+            stroke="currentColor" strokeOpacity="0.32" strokeWidth="1.2" />
+          <line x1="20" y1="20" x2="36" y2="20" stroke="currentColor" strokeOpacity="0.7" strokeWidth="1.2" strokeLinecap="round" />
+          <line x1="20" y1="28" x2="36" y2="28" stroke="currentColor" strokeOpacity="0.7" strokeWidth="1.2" strokeLinecap="round" />
+          <line x1="20" y1="36" x2="30" y2="36" stroke="currentColor" strokeOpacity="0.7" strokeWidth="1.2" strokeLinecap="round" />
+        </svg>
+      </span>
+      <h2>Noch keine Dokumente</h2>
+      <p>Erstelle Angebot, Vertrag oder Rechnung über die Auswahl oben.</p>
+    </div>
+  )
+}
 
 export default function DocumentsPage() {
   const [documents, setDocuments] = useState<any[]>([])
@@ -81,11 +138,36 @@ export default function DocumentsPage() {
     : allItems.filter(x => x._type === tab.slice(0, -1))
 
   return (
-    <div className="page-content">
-      <div className="page-header">
-        <h1>Dokumente</h1>
-        <p>Rechnungen, Verträge und Briefings</p>
-      </div>
+    <div className="fui-page">
+      <MobilePageHeader title="Dokumente" />
+      <PageHeader
+        title="Dokumente"
+        subtitle="Angebot, Vertrag & Rechnung erstellen — plus hochgeladene Dateien."
+        actions={
+          <button
+            type="button"
+            onClick={() => openTagro({
+              contextType: 'document',
+              id: 'list',
+              title: 'Dokumente · Übersicht',
+              subtitle: `${allItems.length} Dokument${allItems.length === 1 ? '' : 'e'}`,
+            })}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              height: 30, padding: '0 14px', borderRadius: 32,
+              background: '#5B647D', color: '#fff', border: 0,
+              font: 'inherit', fontSize: 12.5, fontWeight: 500,
+              letterSpacing: '.012em', cursor: 'pointer',
+            }}
+          >
+            Mit Tagro bearbeiten
+          </button>
+        }
+      />
+
+      <div className="fui-body">
+      {/* Document builder (Angebot / Vertrag / Rechnung from templates) */}
+      <DocumentBuilderSection />
 
       {/* Upload bar (dev/admin only) */}
       {isDevOrAdmin(userRole) && (
@@ -113,32 +195,27 @@ export default function DocumentsPage() {
         </div>
       )}
 
-      <div className="animate-fade-up-1" style={{ display: 'flex', gap: 6, marginBottom: 16, overflowX: 'auto', paddingBottom: 2 }}>
-        {([
-          { k: 'all',       l: `Alle (${allItems.length})` },
-          { k: 'invoices',  l: `Rechnungen (${invoices.length})` },
-          { k: 'contracts', l: 'Verträge' },
-          { k: 'briefings', l: 'Briefings' },
-          { k: 'deliverables', l: 'Lieferungen' },
-        ] as const).map(t => (
-          <button key={t.k} onClick={() => setTab(t.k)} className="tap-scale" style={{ padding: '7px 14px', borderRadius: 12, border: '1px solid var(--border)', background: tab === t.k ? 'var(--accent)' : 'var(--surface)', color: tab === t.k ? 'var(--accent-text)' : 'var(--text-secondary)', fontSize: 12, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap', fontFamily: 'inherit' }}>{t.l}</button>
-        ))}
       </div>
 
+      <FilterPills
+        value={tab}
+        onChange={(v) => setTab(v as typeof tab)}
+        options={[
+          { id: 'all', label: `Alle (${allItems.length})` },
+          { id: 'invoices', label: `Rechnungen (${invoices.length})` },
+          { id: 'contracts', label: 'Verträge' },
+          { id: 'briefings', label: 'Briefings' },
+          { id: 'deliverables', label: 'Lieferungen' },
+        ]}
+      />
+
+      <div className="fui-body">
       {loading ? (
         <div style={{ display: 'flex', justifyContent: 'center', padding: 48 }}>
           <div style={{ width: 24, height: 24, border: '2px solid var(--border)', borderTopColor: 'var(--text)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
         </div>
       ) : shown.length === 0 ? (
-        <div className="animate-fade-up-2" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', padding: '56px 24px', textAlign: 'center' }}>
-          <div style={{ width: 48, height: 48, borderRadius: 12, background: 'var(--surface-2)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" style={{color:"var(--text)"}} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>
-          </div>
-          <h2 style={{ marginBottom: 8 }}>Noch keine Dokumente</h2>
-          <p style={{ fontSize: 14, color: 'var(--text-secondary)', margin: '0 auto', maxWidth: 380 }}>
-            Sobald dein Projekt aktiv wird, findest du hier Rechnungen, Briefings und Verträge.
-          </p>
-        </div>
+        <DocumentsEmptyState />
       ) : (
         <div className="animate-fade-up-2" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', overflow: 'hidden' }}>
           {shown.map((item, i) => (
@@ -163,6 +240,7 @@ export default function DocumentsPage() {
           ))}
         </div>
       )}
+      </div>
     </div>
   )
 }

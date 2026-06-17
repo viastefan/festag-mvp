@@ -1,142 +1,270 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { createClient } from '@/lib/supabase/client'
+/**
+ * /addons — Festag Add-on-Katalog.
+ *
+ * Bewusst ruhig: ein durchsuchbarer Katalog, kein Marktplatz-Karneval.
+ * Keine Icons, keine Preise, keine Zahlung — das kommt später. Hier
+ * sieht der Client nur, was es gibt und was geliefert wird.
+ *
+ * Gleiche Designlinie wie /tasks und /projects: kleiner Titel, ruhige
+ * Filter-Pills, Hairline-Karten, 8px-Radien, Aeonik Medium.
+ */
 
-type Addon = {
-  id: string; name: string; description: string; price: number;
-  category: string;
-}
+import { useMemo, useState } from 'react'
+import { CATALOG, CATEGORIES, type AddonCategory } from '@/lib/addons-catalog'
+import TagroEntryButton from '@/components/TagroEntryButton'
 
-const CATALOG: Addon[] = [
-  { id: 'ai-video',   name: 'AI Video Generation',      description: 'Cinematische Videos aus Text für Produkt, Werbung und Tutorials', price: 890,  category: 'AI' },
-  { id: 'branding',   name: 'Branding Paket',            description: 'Logo, Farbpalette, Typografie und Brand Guidelines',              price: 1290, category: 'Design' },
-  { id: 'saas-ext',   name: 'SaaS Extensions',           description: 'Subscriptions, Analytics, Admin und SaaS-spezifische Features',   price: 1490, category: 'Development' },
-  { id: 'automation', name: 'Automation System',         description: 'Workflows, Integrationen und APIs für wiederkehrende Prozesse',  price: 790,  category: 'System' },
-  { id: 'website',    name: 'Website Development',       description: 'Landing Page, Marketing Site und SEO-optimierte Umsetzung',       price: 1190, category: 'Development' },
-  { id: 'hosting',    name: 'Hosting & Infrastructure',  description: 'Setup, Deployment, Monitoring und zwölf Monate Hosting',         price: 490,  category: 'System' },
-  { id: 'seo',        name: 'SEO Expert',                description: 'Technisches SEO, Content-Strategie und Ranking-Optimierung',      price: 590,  category: 'Marketing' },
-  { id: 'ai-chatbot', name: 'AI Chatbot',                description: 'Custom AI-Assistent für deine Plattform mit Firmenkontext',       price: 890,  category: 'AI' },
-]
+type Filter = AddonCategory | 'Alle' | 'Beliebt'
 
 export default function AddonsPage() {
-  const [selected, setSelected] = useState<Set<string>>(new Set())
-  const [projects, setProjects] = useState<any[]>([])
-  const [category, setCategory] = useState('Alle')
+  const [search, setSearch] = useState('')
+  const [active, setActive] = useState<Filter>('Alle')
 
-  useEffect(() => {
-    const supabase = createClient()
-    supabase.auth.getSession().then(({ data }) => {
-      if (!data.session) { window.location.href = '/login'; return }
-      supabase.from('projects').select('id,title,status').then(({ data: p }) => setProjects(p ?? []))
-    })
+  const counts = useMemo(() => {
+    const c: Record<string, number> = {
+      Alle: CATALOG.length,
+      Beliebt: CATALOG.filter((a) => a.popular).length,
+    }
+    CATEGORIES.forEach((cat) => { c[cat.key] = CATALOG.filter((a) => a.category === cat.key).length })
+    return c
   }, [])
 
-  const toggle = (id: string) => {
-    setSelected(prev => {
-      const next = new Set(prev)
-      if (next.has(id)) next.delete(id); else next.add(id)
-      return next
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase()
+    return CATALOG.filter((a) => {
+      if (active === 'Beliebt' && !a.popular) return false
+      if (active !== 'Alle' && active !== 'Beliebt' && a.category !== active) return false
+      if (!q) return true
+      return (
+        a.name.toLowerCase().includes(q) ||
+        a.description.toLowerCase().includes(q) ||
+        a.category.toLowerCase().includes(q) ||
+        a.tags.some((t) => t.toLowerCase().includes(q))
+      )
     })
-  }
-
-  const total = [...selected].reduce((sum, id) => sum + (CATALOG.find(a => a.id === id)?.price ?? 0), 0)
-  const categories = ['Alle', ...Array.from(new Set(CATALOG.map(a => a.category)))]
-  const visible = category === 'Alle' ? CATALOG : CATALOG.filter(a => a.category === category)
+  }, [search, active])
 
   return (
-    <div>
-      <div className="animate-fade-up" style={{ marginBottom: 24 }}>
-        <h1 style={{ marginBottom: 4 }}>Add-ons</h1>
-        <p style={{ fontSize: 14, color: 'var(--text-secondary)' }}>
-          Erweitere dein Projekt mit zusätzlichen Services
-        </p>
-      </div>
+    <div className="ad-os">
+      <style>{`
+        .ad-os {
+          --ad-soft:#4E5567;
+          width:100%; height:100%; min-height:0;
+          color:var(--text);
+          display:flex; flex-direction:column; overflow:hidden;
+          padding:20px 0 0;
+          letter-spacing:.012em;
+        }
+        [data-theme="dark"] .ad-os,
+        [data-theme="classic-dark"] .ad-os,
+        [data-theme="read"] .ad-os { --ad-soft:var(--text-secondary); }
+        .ad-os * { letter-spacing:.012em; }
 
-      <div className="animate-fade-up-1" style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 14 }}>
-        {categories.map(c => (
-          <button
-            key={c}
-            onClick={() => setCategory(c)}
-            style={{
-              height: 32,
-              padding: '0 12px',
-              borderRadius: 'var(--r)',
-              border: '1px solid var(--border)',
-              background: category === c ? 'var(--text)' : 'var(--surface)',
-              color: category === c ? 'var(--btn-prim-text)' : 'var(--text-secondary)',
-              fontSize: 12,
-              fontWeight: 650,
-              fontFamily: 'inherit',
-            }}
-          >
-            {c}
-          </button>
-        ))}
-      </div>
+        .ad-static { flex:0 0 auto; }
+        .ad-scroll {
+          flex:1 1 auto; min-height:0; overflow-y:auto; overflow-x:hidden;
+          padding:0 clamp(16px,3vw,32px) 80px;
+        }
 
-      <div className="animate-fade-up-2" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', overflow: 'hidden', marginBottom: 100 }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 132px 110px 118px', gap: 14, padding: '11px 16px', background: 'var(--bg)', borderBottom: '1px solid var(--border)', color: 'var(--text-muted)', fontSize: 11, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase' }}>
-          <span>Service</span>
-          <span>Kategorie</span>
-          <span>Preis</span>
-          <span></span>
-        </div>
-        {visible.map(a => {
-          const isSelected = selected.has(a.id)
-          return (
-            <div key={a.id} style={{
-              display: 'grid',
-              gridTemplateColumns: 'minmax(0, 1fr) 132px 110px 118px',
-              gap: 14,
-              alignItems: 'center',
-              padding: '15px 16px',
-              borderBottom: '1px solid var(--border)',
-              background: isSelected ? 'var(--bg)' : 'var(--surface)',
-              cursor: 'pointer',
-              transition: 'background .12s',
-            }} onClick={() => toggle(a.id)}>
-              <div style={{ minWidth: 0 }}>
-                <h3 style={{ margin: '0 0 3px', fontSize: 14 }}>{a.name}</h3>
-                <p style={{ fontSize: 12.5, color: 'var(--text-secondary)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.description}</p>
-              </div>
-              <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 650 }}>{a.category}</span>
-              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>EUR {a.price.toLocaleString('de')}</span>
-              <button style={{
-                height: 32,
-                border: '1px solid var(--border)',
-                borderRadius: 'var(--r)',
-                background: isSelected ? 'var(--text)' : 'var(--surface)',
-                color: isSelected ? 'var(--btn-prim-text)' : 'var(--text-secondary)',
-                fontSize: 12,
-                fontWeight: 650,
-                cursor: 'pointer',
-                fontFamily: 'inherit',
-              }}>
-                {isSelected ? 'Ausgewählt' : 'Hinzufügen'}
-              </button>
-            </div>
-          )
-        })}
-      </div>
+        /* top row */
+        .ad-top {
+          display:flex; align-items:baseline; gap:10px;
+          min-height:34px;
+          border-bottom:1px solid color-mix(in srgb, var(--border) 60%, transparent);
+          padding:0 clamp(16px,3vw,32px) 12px;
+        }
+        .ad-title { margin:0; font-size:14.5px; font-weight:500; }
+        .ad-count { color:var(--ad-soft); font-size:11.5px; }
+        .ad-intro {
+          margin:12px clamp(16px,3vw,32px) 0;
+          color:var(--ad-soft); font-size:12.5px; line-height:1.5; max-width:540px;
+        }
 
-      {selected.size > 0 && (
-        <div style={{
-          position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)',
-          background: 'var(--text)', color: '#fff', padding: '14px 20px',
-          borderRadius: 'var(--r-lg)', boxShadow: 'var(--shadow-lg)',
-          display: 'flex', alignItems: 'center', gap: 16, zIndex: 300, animation: 'slideUp 0.2s ease',
-          maxWidth: 'calc(100% - 32px)',
-        }}>
-          <div>
-            <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', margin: 0 }}>{selected.size} Add-on{selected.size > 1 ? 's' : ''}</p>
-            <p style={{ fontSize: 18, fontWeight: 700, color: '#fff', margin: 0 }}>EUR {total.toLocaleString('de')}</p>
+        /* toolbar */
+        .ad-toolbar {
+          display:flex; flex-direction:column; gap:11px;
+          padding:14px clamp(16px,3vw,32px) 14px;
+        }
+        .ad-search {
+          width:100%; max-width:380px; height:36px;
+          padding:0 13px; border:0; border-radius:8px;
+          background:color-mix(in srgb, var(--surface-2) 55%, transparent);
+          color:var(--text); font:inherit; font-size:13px; outline:none;
+        }
+        .ad-search::placeholder { color:var(--ad-soft); }
+        .ad-cats { display:flex; gap:6px; flex-wrap:wrap; }
+        .ad-cat {
+          height:27px; padding:0 11px;
+          border:1px solid var(--border); border-radius:8px;
+          background:transparent; color:var(--ad-soft);
+          font:inherit; font-size:11.5px; font-weight:500;
+          cursor:pointer; white-space:nowrap;
+          transition:background .12s ease, color .12s ease;
+        }
+        .ad-cat:hover { color:var(--text); }
+        .ad-cat.on { background:color-mix(in srgb, var(--surface-2) 90%, transparent); color:var(--text); }
+        .ad-cat .n { margin-left:5px; color:var(--ad-soft); font-size:10.5px; }
+        .ad-cat.on .n { color:var(--text); }
+
+        /* grid + cards */
+        .ad-grid {
+          display:grid;
+          grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));
+          gap:12px;
+          padding-top:6px;
+        }
+        .ad-card {
+          display:flex; flex-direction:column;
+          padding:16px 17px;
+          border:1px solid var(--border);
+          border-radius:8px;
+          background:var(--surface);
+          box-shadow:var(--content-shadow);
+          transition:border-color .12s ease, box-shadow .12s ease;
+        }
+        .ad-card:hover { border-color:var(--border-strong); }
+        [data-theme="dark"] .ad-card,
+        [data-theme="classic-dark"] .ad-card {
+          background:color-mix(in srgb, var(--surface) 92%, #fff 8%);
+        }
+        .ad-card-head {
+          display:flex; align-items:center; justify-content:space-between;
+          gap:10px; margin-bottom:9px;
+        }
+        .ad-card-cat { color:var(--ad-soft); font-size:10.5px; }
+        .ad-card-flag {
+          color:var(--ad-soft); font-size:10px;
+          padding:2px 7px; border-radius:6px;
+          background:color-mix(in srgb, var(--surface-2) 70%, transparent);
+        }
+        .ad-card-name {
+          margin:0 0 6px; color:var(--text);
+          font-size:14px; font-weight:500; line-height:1.3;
+        }
+        .ad-card-desc {
+          margin:0; color:var(--ad-soft);
+          font-size:12.5px; line-height:1.55;
+        }
+        .ad-card-feats {
+          margin:12px 0 0; display:flex; flex-direction:column; gap:5px;
+        }
+        .ad-card-feat {
+          display:flex; align-items:flex-start; gap:8px;
+          color:var(--ad-soft); font-size:12px; line-height:1.45;
+        }
+        .ad-card-feat .d {
+          margin-top:6px; width:4px; height:4px; border-radius:999px;
+          background:var(--border-strong); flex-shrink:0;
+        }
+        .ad-card-tags {
+          margin-top:13px; display:flex; gap:6px; flex-wrap:wrap;
+        }
+        .ad-tag {
+          color:var(--ad-soft); font-size:10.5px;
+          padding:2px 7px; border-radius:6px;
+          background:color-mix(in srgb, var(--surface-2) 55%, transparent);
+        }
+
+        .ad-empty {
+          padding:64px 16px; text-align:center; color:var(--ad-soft);
+        }
+        .ad-empty strong { display:block; color:var(--text); font-size:14px; margin-bottom:5px; }
+        .ad-empty p { margin:0; font-size:12.5px; }
+
+        @media (max-width:600px) {
+          .ad-grid { grid-template-columns:1fr; }
+          .ad-cats { flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none; }
+          .ad-cats::-webkit-scrollbar { display:none; }
+          .ad-cat { flex-shrink:0; }
+        }
+      `}</style>
+
+      <div className="ad-static">
+        <div className="ad-top" style={{ display: 'flex', alignItems: 'center', gap: 12, justifyContent: 'space-between' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}>
+            <h1 className="ad-title">Add-ons</h1>
+            <span className="ad-count">{filtered.length} von {CATALOG.length}</span>
           </div>
-          <button className="tap-scale" style={{ padding: '10px 18px', background: '#fff', color: 'var(--text)', border: 'none', borderRadius: 'var(--r-sm)', fontSize: 13, fontWeight: 600, cursor: 'pointer', minHeight: 40 }}>
-            Zum Projekt hinzufügen
-          </button>
+          <TagroEntryButton
+            context={{
+              contextType: 'empty',
+              id: 'addons',
+              title: 'Add-ons · Übersicht',
+              subtitle: `${filtered.length} von ${CATALOG.length}`,
+            }}
+          />
         </div>
-      )}
+        <p className="ad-intro">
+          Bausteine, die dein Projekt erweitern — von Branding bis Automatisierung.
+          Stöbere in Ruhe; Buchung und Preise klären wir gemeinsam mit deinem Team.
+        </p>
+
+        <div className="ad-toolbar">
+          <input
+            className="ad-search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Add-ons durchsuchen"
+          />
+          <div className="ad-cats" role="tablist" aria-label="Kategorien">
+            {([
+              { key: 'Alle' as Filter, label: 'Alle' },
+              { key: 'Beliebt' as Filter, label: 'Beliebt' },
+              ...CATEGORIES.map((c) => ({ key: c.key as Filter, label: c.label })),
+            ]).map((c) => (
+              <button
+                key={c.key}
+                type="button"
+                className={`ad-cat${active === c.key ? ' on' : ''}`}
+                onClick={() => setActive(c.key)}
+              >
+                {c.label}
+                <span className="n">{counts[c.key] ?? 0}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="ad-scroll">
+        {filtered.length === 0 ? (
+          <div className="ad-empty">
+            <strong>Keine Add-ons gefunden</strong>
+            <p>Versuche eine andere Suche oder Kategorie.</p>
+          </div>
+        ) : (
+          <div className="ad-grid">
+            {filtered.map((a) => (
+              <article className="ad-card" key={a.id}>
+                <div className="ad-card-head">
+                  <span className="ad-card-cat">{a.category}</span>
+                  {a.popular && <span className="ad-card-flag">Beliebt</span>}
+                </div>
+                <h3 className="ad-card-name">{a.name}</h3>
+                <p className="ad-card-desc">{a.description}</p>
+                {a.features.length > 0 && (
+                  <div className="ad-card-feats">
+                    {a.features.slice(0, 4).map((f, i) => (
+                      <div className="ad-card-feat" key={i}>
+                        <span className="d" aria-hidden />
+                        <span>{f}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {a.tags.length > 0 && (
+                  <div className="ad-card-tags">
+                    {a.tags.slice(0, 4).map((t) => (
+                      <span className="ad-tag" key={t}>{t}</span>
+                    ))}
+                  </div>
+                )}
+              </article>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   )
 }

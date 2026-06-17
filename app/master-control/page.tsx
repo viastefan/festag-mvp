@@ -92,7 +92,7 @@ export default function MasterControlPage() {
     setTimeout(() => setBroadcastSent(false), 2400)
   }
 
-  if (checking) return <div style={{ minHeight:'100vh', background:'#0a0a0f', display:'flex', alignItems:'center', justifyContent:'center' }}><div style={{ width:32, height:32, border:'2px solid rgba(255,255,255,.1)', borderTopColor:'#a78bfa', borderRadius:'50%', animation:'spin .8s linear infinite' }}/><style>{`@keyframes spin{to{transform:rotate(360deg);}}`}</style></div>
+  if (checking) return <div style={{ minHeight:'100vh', background:'#0a0a0f', display:'flex', alignItems:'center', justifyContent:'center' }}><div style={{ width:32, height:32, border:'2px solid rgba(255,255,255,.1)', borderTopColor:'#6a738c', borderRadius:'50%', animation:'spin .8s linear infinite' }}/><style>{`@keyframes spin{to{transform:rotate(360deg);}}`}</style></div>
   if (!authed) return null
 
   const TABS: { key: Tab; label: string }[] = [
@@ -109,23 +109,23 @@ export default function MasterControlPage() {
       <style>{`
         @keyframes spin{to{transform:rotate(360deg);}}
         @keyframes mc-pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
-        .mc-card { background:linear-gradient(180deg, rgba(167,139,250,.04), rgba(15,23,42,.4)); border:1px solid rgba(255,255,255,.08); border-radius:14px; }
+        .mc-card { background:linear-gradient(180deg, rgba(106,115,140,.04), rgba(15,23,42,.4)); border:1px solid rgba(255,255,255,.08); border-radius:14px; }
         .mc-tab { padding:8px 14px; font-size:12.5px; font-weight:700; border:1px solid rgba(255,255,255,.08); border-radius:8px; background:rgba(255,255,255,.02); color:#94a3b8; cursor:pointer; font-family:inherit; transition:all .12s; }
-        .mc-tab.on { background:#a78bfa; color:#0a0a0f; border-color:#a78bfa; }
+        .mc-tab.on { background:#6a738c; color:#0a0a0f; border-color:#6a738c; }
         .mc-tab:hover:not(.on) { background:rgba(255,255,255,.06); color:#e2e8f0; }
       `}</style>
 
       <header style={{ borderBottom:'1px solid rgba(255,255,255,.08)', padding:'14px 18px', display:'flex', alignItems:'center', justifyContent:'space-between', position:'sticky', top:0, background:'rgba(10,10,15,.8)', backdropFilter:'blur(12px)', zIndex:50, gap:10, flexWrap:'wrap' }}>
         <div style={{ display:'flex', alignItems:'center', gap:12 }}>
           <img src="/brand/logo.svg" alt="festag" style={{ height:18, filter:'brightness(0) invert(1)' }}/>
-          <span style={{ padding:'3px 9px', borderRadius:6, background:'linear-gradient(135deg,#a78bfa,#ec4899)', color:'#fff', fontSize:10, fontWeight:800, letterSpacing:'.1em' }}>MASTER · CLASSIFIED</span>
+          <span style={{ padding:'3px 9px', borderRadius:6, background:'linear-gradient(135deg,#6a738c,#8790a5)', color:'#fff', fontSize:10, fontWeight:800, letterSpacing:'.1em' }}>MASTER · CLASSIFIED</span>
           <span style={{ padding:'3px 8px', borderRadius:5, background:'rgba(34,197,94,.15)', color:'#22c55e', fontSize:9.5, fontWeight:700, letterSpacing:'.06em', display:'flex', alignItems:'center', gap:5 }}>
             <span style={{ width:5, height:5, borderRadius:'50%', background:'#22c55e', animation:'mc-pulse 1.6s infinite' }}/>SYSTEM ONLINE
           </span>
         </div>
         <div style={{ display:'flex', gap:10, alignItems:'center' }}>
           <span style={{ fontSize:11, color:'#64748b' }}>Hi, {email.split('@')[0]}</span>
-          <Link href="/dashboard" style={{ fontSize:11, color:'#a78bfa', textDecoration:'none', fontWeight:700 }}>App ↗</Link>
+          <Link href="/dashboard" style={{ fontSize:11, color:'#6a738c', textDecoration:'none', fontWeight:700 }}>App ↗</Link>
         </div>
       </header>
 
@@ -136,11 +136,11 @@ export default function MasterControlPage() {
         {/* Pulse stats */}
         <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(160px, 1fr))', gap:10, marginBottom:24 }}>
           {[
-            { label:'PROJEKTE',  value: stats.projects, color:'#a78bfa' },
+            { label:'PROJEKTE',  value: stats.projects, color:'#6a738c' },
             { label:'KUNDEN',    value: stats.clients, color:'#22d3ee' },
             { label:'DEVS+ADMIN',value: stats.devs, color:'#22c55e' },
             { label:'OFFEN. TASKS', value: stats.openTasks, color:'#f59e0b' },
-            { label:'MSGS / 24H',value: stats.msgsToday, color:'#ec4899' },
+            { label:'MSGS / 24H',value: stats.msgsToday, color:'#8790a5' },
             { label:'SUPPORT',   value: support.length, color:'#ef4444' },
           ].map(s => (
             <div key={s.label} className="mc-card" style={{ padding:'14px 18px' }}>
@@ -167,7 +167,7 @@ export default function MasterControlPage() {
               <div style={{ display:'flex', flexDirection:'column', gap:8, maxHeight:480, overflowY:'auto' }}>
                 {activity.map(a => (
                   <div key={a.id} style={{ display:'flex', gap:10, padding:'10px 12px', background:'rgba(255,255,255,.02)', borderRadius:10, border:'1px solid rgba(255,255,255,.04)' }}>
-                    <span style={{ width:8, height:8, borderRadius:'50%', background:'#a78bfa', flexShrink:0, marginTop:5 }}/>
+                    <span style={{ width:8, height:8, borderRadius:'50%', background:'#6a738c', flexShrink:0, marginTop:5 }}/>
                     <div style={{ flex:1, minWidth:0 }}>
                       <p style={{ fontSize:12.5, color:'#e2e8f0', margin:0, lineHeight:1.5 }}>{a.message}</p>
                       <p style={{ fontSize:10.5, color:'#64748b', margin:'2px 0 0' }}>{new Date(a.created_at).toLocaleString('de')} · {a.type}</p>
@@ -191,7 +191,7 @@ export default function MasterControlPage() {
                       <p style={{ fontSize:10.5, color:'#64748b', margin:0 }}>{new Date(s.created_at).toLocaleString('de')}</p>
                     </div>
                     <p style={{ fontSize:13, color:'#cbd5e1', margin:'4px 0 8px', lineHeight:1.55 }}>{s.message}</p>
-                    {s.email && <a href={`mailto:${s.email}`} style={{ fontSize:11, color:'#a78bfa', fontWeight:700 }}>Antworten →</a>}
+                    {s.email && <a href={`mailto:${s.email}`} style={{ fontSize:11, color:'#6a738c', fontWeight:700 }}>Antworten →</a>}
                   </div>
                 ))}
               </div>
@@ -201,7 +201,7 @@ export default function MasterControlPage() {
 
         {tab === 'reports' && (
           <div className="mc-card" style={{ padding:18 }}>
-            <h3 style={{ fontSize:15, fontWeight:700, color:'#fff', margin:'0 0 14px' }}>Alle Statusberichte</h3>
+            <h3 style={{ fontSize:15, fontWeight:700, color:'#fff', margin:'0 0 14px' }}>Alle Projektbriefings</h3>
             {reports.length === 0 ? <p style={{ color:'#64748b', fontSize:13 }}>Noch keine Berichte.</p> : (
               <div style={{ display:'flex', flexDirection:'column', gap:8, maxHeight:560, overflowY:'auto' }}>
                 {reports.map(r => (
@@ -246,7 +246,7 @@ export default function MasterControlPage() {
             <p style={{ fontSize:12.5, color:'#94a3b8', margin:'0 0 14px' }}>Erscheint im Activity-Feed aller User. Nutze das nur für wichtige System-News.</p>
             <textarea value={broadcastMsg} onChange={e => setBroadcastMsg(e.target.value)} rows={4} placeholder="Nachricht an alle…"
               style={{ width:'100%', padding:'12px 14px', background:'rgba(255,255,255,.04)', border:'1px solid rgba(255,255,255,.08)', borderRadius:10, color:'#fff', fontSize:13.5, fontFamily:'inherit', outline:'none', resize:'vertical', boxSizing:'border-box', lineHeight:1.5 }}/>
-            <button onClick={broadcast} disabled={!broadcastMsg.trim()} style={{ marginTop:10, padding:'10px 18px', background:'linear-gradient(135deg,#a78bfa,#ec4899)', color:'#fff', border:'none', borderRadius:10, fontSize:13, fontWeight:700, cursor:broadcastMsg.trim()?'pointer':'default', opacity:broadcastMsg.trim()?1:.5, fontFamily:'inherit' }}>
+            <button onClick={broadcast} disabled={!broadcastMsg.trim()} style={{ marginTop:10, padding:'10px 18px', background:'linear-gradient(135deg,#6a738c,#8790a5)', color:'#fff', border:'none', borderRadius:10, fontSize:13, fontWeight:700, cursor:broadcastMsg.trim()?'pointer':'default', opacity:broadcastMsg.trim()?1:.5, fontFamily:'inherit' }}>
               {broadcastSent ? '✓ Gesendet' : 'Broadcast senden'}
             </button>
           </div>
@@ -261,8 +261,8 @@ export default function MasterControlPage() {
               • DB role = "admin" ist.<br/><br/>
               Konfiguriere die Allowlist im Code (<code style={{ background:'rgba(255,255,255,.06)', padding:'1px 6px', borderRadius:4 }}>app/master-control/page.tsx</code>) oder per ENV.
             </p>
-            <div style={{ marginTop:14, padding:'12px 14px', background:'rgba(167,139,250,.08)', border:'1px solid rgba(167,139,250,.2)', borderRadius:10 }}>
-              <p style={{ fontSize:11, color:'#a78bfa', margin:'0 0 4px', fontWeight:700 }}>Aktuelle Allowlist:</p>
+            <div style={{ marginTop:14, padding:'12px 14px', background:'rgba(106,115,140,.08)', border:'1px solid rgba(106,115,140,.2)', borderRadius:10 }}>
+              <p style={{ fontSize:11, color:'#6a738c', margin:'0 0 4px', fontWeight:700 }}>Aktuelle Allowlist:</p>
               {MASTER_EMAILS.map(e => <p key={e} style={{ fontSize:12, color:'#cbd5e1', margin:'1px 0', fontFamily:'ui-monospace,monospace' }}>{e}</p>)}
             </div>
           </div>

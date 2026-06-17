@@ -29,7 +29,7 @@ export default function AddonDetailModal({ addon, status, projectTitle, onClose,
     >
       <div style={{
         width: '100%', maxWidth: 560, background: 'var(--surface)',
-        border: '1px solid var(--border)', borderRadius: 18, overflow: 'hidden',
+        border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden',
         boxShadow: '0 24px 64px rgba(0,0,0,0.25)',
         animation: 'slideIn .25s cubic-bezier(.16,1,.3,1) both',
         maxHeight: '92vh', display: 'flex', flexDirection: 'column',

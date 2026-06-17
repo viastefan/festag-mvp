@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "Festag — Tagro Live-Feedback",
+  "version": "0.1.0",
+  "description": "Sprich oder tippe Feedback direkt auf deiner Projekt-Vorschau. Tagro macht daraus Change-Scripts für deinen Developer.",
+  "permissions": ["storage", "activeTab", "scripting"],
+  "host_permissions": [
+    "https://festag.app/*",
+    "https://www.festag.app/*",
+    "http://localhost:3000/*"
+  ],
+  "background": { "service_worker": "background.js" },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Festag Live-Feedback"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "css": ["panel.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "icons": {}
+}

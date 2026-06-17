@@ -1,85 +1,362 @@
-@font-face { font-family:'Aeonik'; src:url('/fonts/Aeonik-Regular.ttf') format('truetype'); font-weight:400; font-display:swap; }
-@font-face { font-family:'Aeonik'; src:url('/fonts/Aeonik-Medium.ttf') format('truetype'); font-weight:500; font-display:swap; }
-@font-face { font-family:'Aeonik'; src:url('/fonts/Aeonik-Bold.ttf') format('truetype'); font-weight:700; font-display:swap; }
+/* Qurova DEMO */
+@font-face {
+  font-family: 'Qurova DEMO';
+  src: url('/fonts/QurovaDEMO-Medium.otf') format('opentype');
+  font-weight: 500; font-style: normal; font-display: swap;
+}
+
+/* Editors Note — für editorial Kursive (statt Aeonik italic).
+   Verwende ausschließlich für betonte/zitierte Wörter in Blog/Help-UI. */
+@font-face {
+  font-family: 'Editors Note';
+  src: url('/fonts/EditorsNote-MediumItalic.otf') format('opentype');
+  font-weight: 500; font-style: italic; font-display: swap;
+}
+
+/* Aeonik — lokal aus /public/fonts/, Medium als Standardgewicht */
+@font-face {
+  font-family: 'Aeonik';
+  src: url('/fonts/Aeonik-Regular.ttf') format('truetype');
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Aeonik';
+  src: url('/fonts/Aeonik-Medium.ttf') format('truetype');
+  font-weight: 500; font-style: normal; font-display: swap;
+}
+/* Aeonik Bold ist VERBOTEN in der App (siehe festag_letter_spacing_rule).
+   Die @font-face-Defs für Bold-Weights zeigen daher absichtlich auf
+   Aeonik-Medium.ttf. So rendert selbst ein vergessenes
+   `font-weight: 700` weiterhin Medium — bulletproof. */
+@font-face {
+  font-family: 'Aeonik';
+  src: url('/fonts/Aeonik-Medium.ttf') format('truetype');
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Aeonik';
+  src: url('/fonts/Aeonik-Medium.ttf') format('truetype');
+  font-weight: 700; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Aeonik';
+  src: url('/fonts/Aeonik-Medium.ttf') format('truetype');
+  font-weight: 800; font-style: normal; font-display: swap;
+}
 
 *,*::before,*::after { box-sizing:border-box; padding:0; margin:0; }
+
+/* Native-tool cursor model: interactive UI keeps the quiet arrow cursor. */
+*,
+*::before,
+*::after {
+  cursor:default !important;
+}
+
+input,
+textarea {
+  cursor:text !important;
+}
+
+a, button, [role="button"], label[for] { cursor:default !important; }
+a { -webkit-tap-highlight-color: transparent; }
+button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
 
 /* ═══════════════════════════════════════════════
    THEME VARIABLES — set via data-theme on <html>
 ═══════════════════════════════════════════════ */
 :root, [data-theme="light"] {
-  --bg:#F6F7F8; --surface:#FFFFFF; --card:#F2F3F5;
-  --border:rgba(15,23,42,0.09); --border-strong:rgba(15,23,42,0.18);
-  --text:#111315; --text-secondary:#59616B; --text-muted:#9AA3AF;
-  --btn-prim:#323635; --btn-prim-text:#FFFFFF;
-  --inp:#FFFFFF; --inp-border:rgba(0,0,0,0.12); --inp-focus:#FFFFFF; --inp-focus-border:#323635;
-  --glow:rgba(50,54,53,0.07);
-  --sidebar-bg:rgba(255,255,255,0.88); --sidebar-border:rgba(15,23,42,0.08);
-  --nav-on:#ECEEF2; --nav-on-text:#111315; --nav-off-text:#6B7280;
-  /* Keep legacy compat vars */
-  --surface-2:#EEF1F4; --green:#16A36C; --green-bg:#ECFDF5; --green-border:#B7E7D0; --green-dark:#0B7F50;
-  --blue:#2563EB; --blue-bg:#EFF6FF; --blue-border:#BFDBFE;
-  --amber:#D97706; --red:#DC2626; --red-bg:#FEF2F2;
-  --r-xs:5px; --r-sm:7px; --r:9px; --r-lg:12px;
-  --shadow-xs:0 1px 2px rgba(15,23,42,.04); --shadow-sm:0 2px 8px rgba(15,23,42,.05);
-  --shadow:0 10px 30px rgba(15,23,42,.06); --shadow-lg:0 18px 50px rgba(15,23,42,.09);
+  /* Light — Auth-aligned. Cool slate primary, app shell on #F6F9FC.
+     Greys verschoben Richtung dunkler/seriöser:
+     - text-secondary war #7B8294 → jetzt #4E5567 (besser lesbar, seriös)
+     - text-muted war #C7CDD6 → jetzt #7B8294 (eigene Akzentstufe) */
+  --bg:#F6F9FC; --surface:#FFFFFF; --card:#FFFFFF;
+  --border:#E7EBF0; --border-strong:#C7CDD6;
+  --text:#202532; --text-secondary:#4E5567; --text-muted:#7B8294;
+  --btn-prim:#5B647D; --btn-prim-text:#FFFFFF;
+  --accent:#5B647D; --accent-text:#FFFFFF;
+  --inp:#FFFFFF; --inp-border:#E7EBF0; --inp-focus:#FFFFFF; --inp-focus-border:#5B647D;
+  --glow:rgba(32,37,50,0.05);
+  --sidebar-bg:#F6F9FC; --sidebar-border:#E7EBF0;
+  --nav-on:#EEF2F7; --nav-on-text:#202532; --nav-off-text:#4E5567;
+  --surface-2:#EEF2F7;
+  --green:#34C759; --green-bg:rgba(52,199,89,0.08); --green-border:rgba(52,199,89,0.22); --green-dark:#28A745;
+  --amber:#B98700; --amber-bg:rgba(185,135,0,0.08); --amber-dark:#8A6500;
+  --red:#D14343; --red-bg:rgba(209,67,67,0.07);
+  --shadow-xs:0 1px 2px rgba(32,37,50,.03); --shadow-sm:0 2px 6px rgba(32,37,50,.04);
+  --shadow:0 4px 16px rgba(32,37,50,.05); --shadow-lg:0 12px 32px rgba(32,37,50,.07);
+  --content-shadow:0 1px 2px rgba(15,23,42,.035), 0 18px 46px -42px rgba(15,23,42,.42);
+  --focus-ring:rgba(91,100,125,0.30);
+  /* Modal backdrop — soft slate tint over the page, theme-aware.
+     Replaces the old generic rgba(0,0,0,.45) so the dimmed wall feels
+     like the theme rather than a black wash. */
+  --modal-backdrop:rgba(32,37,50,0.38);
+  --modal-backdrop-blur:8px;
   --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
+  --r:12px; --r-xs:8px; --r-sm:10px; --r-md:12px; --r-lg:12px; --r-xl:12px;
 }
 
+/* ── DARK — Festag cool-graphite dark, global design system ──
+   Premium near-black graphite with a VERY restrained cool-blue undertone in
+   the neutrals + borders. Reads as graphite first, never visibly blue.
+   Primary (#6a738c) is a SUBTLE accent only (focus ring, active nav,
+   highlights) — never a coloured button fill. Primary buttons are
+   dark-elevated cool-neutral surfaces. */
 [data-theme="dark"] {
-  --bg:#0E0F0E; --surface:#161917; --card:#1C1F1C;
-  --border:rgba(255,255,255,0.08); --border-strong:rgba(255,255,255,0.15);
-  --text:#F4F5F4; --text-secondary:#7A8780; --text-muted:#3E4642;
-  --btn-prim:#FFFFFF; --btn-prim-text:#0E0F0E;
-  --inp:rgba(255,255,255,0.05); --inp-border:rgba(255,255,255,0.1);
-  --inp-focus:rgba(255,255,255,0.09); --inp-focus-border:rgba(255,255,255,0.35);
-  --glow:rgba(255,255,255,0.05);
-  --sidebar-bg:rgba(22,25,23,0.97); --sidebar-border:rgba(255,255,255,0.07);
-  --nav-on:rgba(255,255,255,0.1); --nav-on-text:#FFFFFF; --nav-off-text:#4A5450;
-  --surface-2:#1C1F1C; --green:#34A06E; --green-bg:rgba(52,160,110,0.12);
-  --green-border:rgba(52,160,110,0.25); --green-dark:#5DC98A;
-  --blue:#60A5FA; --blue-bg:rgba(96,165,250,0.12); --blue-border:rgba(96,165,250,0.24);
-  --amber:#F59E0B; --red:#EF4444; --red-bg:rgba(239,68,68,0.1);
-  --r-xs:5px; --r-sm:7px; --r:9px; --r-lg:12px;
-  --shadow-xs:0 1px 4px rgba(0,0,0,.3); --shadow-sm:0 2px 8px rgba(0,0,0,.35);
-  --shadow:0 4px 20px rgba(0,0,0,.4); --shadow-lg:0 8px 30px rgba(0,0,0,.5);
+  --modal-backdrop:rgba(4,6,9,0.66);
+  --modal-backdrop-blur:10px;
+
+  /* Core surfaces — cool graphite (subtle blue cast inside the neutrals). */
+  --bg:#0a0d11;               /* main workspace */
+  --surface:#10141a;          /* primary canvas / cards */
+  --card:#10141a;             /* cards / panels */
+  --surface-2:#131922;        /* hover fills / denser controls / overlays */
+  --hover:#171e28;
+  --active:#1c2430;
+  --flat-control-bg:var(--surface);
+
+  --border:rgba(210,225,255,0.075);
+  --border-strong:rgba(210,225,255,0.16);
+
+  --text:#e8ebf1;
+  --text-secondary:#a8b0bc;
+  --text-muted:#7f8997;
+
+  /* Buttons — dark elevated cool-neutral, never coloured. Hover lifts with
+     a soft accent response (applied per-component). */
+  --btn-prim:#1c2430; --btn-prim-text:#e8ebf1;
+  --accent:#6a738c; --accent-text:#ffffff;
+
+  --inp:#111720;
+  --inp-border:rgba(210,225,255,0.085);
+  --inp-focus:#131922;
+  --inp-focus-border:rgba(106,115,140,0.45);
+  --glow:rgba(106,115,140,0.10);
+
+  --sidebar-bg:#07090b;
+  --sidebar-border:rgba(210,225,255,0.06);
+  --nav-on:#1c2430;
+  --nav-on-text:#e8ebf1;
+  --nav-off-text:#a8b0bc;
+
+  /* Green */
+  --green:#35c878;
+  --green-bg:rgba(53,200,120,0.12);
+  --green-border:rgba(53,200,120,0.22);
+  --green-dark:#2bb069;
+
+  /* Amber */
+  --amber:#d5a655;
+  --amber-bg:rgba(213,166,85,0.12);
+  --amber-dark:#bb9047;
+
+  --red:#e06666;
+  --red-bg:rgba(224,102,102,0.12);
+
+  --shadow-xs:0 1px 2px rgba(0,0,0,.34);
+  --shadow-sm:0 2px 8px rgba(0,0,0,.40);
+  --shadow:0 8px 28px rgba(0,0,0,.42);
+  --shadow-lg:0 20px 80px rgba(0,0,0,.5);
+  --content-shadow:0 1px 2px rgba(0,0,0,.30), 0 18px 46px -36px rgba(0,0,0,.62);
+  --focus-ring:rgba(106,115,140,0.32);
+
   --logo-filter:brightness(0) invert(1);
+  --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
+  --r:12px; --r-xs:8px; --r-sm:10px; --r-md:12px; --r-lg:14px; --r-xl:18px;
+
+  /* ── Cool-graphite design-system tokens (spec names) — available app-wide. ── */
+  --bg-app:#07090b; --bg-shell:#06080a; --bg-sidebar:#07090b; --bg-main:#0a0d11;
+  --surface-0:#0c0f13; --surface-1:#10141a; --surface-3:#18202a;
+  --surface-raised:#111720; --surface-overlay:#151c26;
+  --state-hover:#171e28; --state-active:#1c2430; --state-selected:#202a36; --state-pressed:#25303d;
+  --border-hairline:rgba(210,225,255,0.045); --border-subtle:rgba(210,225,255,0.075); --border-medium:rgba(210,225,255,0.11);
+  --text-primary:#e8ebf1; --text-tertiary:#7f8997; --text-faint:#606a77; --text-disabled:#444c57;
+  --accent-primary:#6a738c; --accent-primary-soft:rgba(106,115,140,0.14); --accent-primary-border:rgba(106,115,140,0.28);
+  --accent-blue:#5ba8ff; --accent-green:#35c878; --accent-amber:#d5a655; --accent-red:#e06666;
+  --success-bg:rgba(53,200,120,0.12); --success-text:#a9e7c1; --success-dot:#35c878;
+  --warning-bg:rgba(213,166,85,0.12); --warning-text:#ead3a6; --warning-dot:#d5a655;
+  --danger-bg:rgba(224,102,102,0.12); --danger-text:#efb2b2; --danger-dot:#e06666;
+  --info-bg:rgba(91,168,255,0.12); --info-text:#b4d7ff; --info-dot:#5ba8ff;
+  --shadow-soft:0 8px 28px rgba(0,0,0,0.28); --shadow-panel:0 20px 80px rgba(0,0,0,0.38);
+  --shadow-focus:0 0 0 1px rgba(106,115,140,0.30), 0 0 0 4px rgba(106,115,140,0.10);
+  --radius-2xl:24px;
+  --ease-premium:cubic-bezier(0.16,1,0.3,1);
+  --motion-fast:140ms var(--ease-premium); --motion-base:220ms var(--ease-premium); --motion-slow:360ms var(--ease-premium);
 }
 
 [data-theme="read"] {
-  --bg:#F5F0E8; --surface:#FDFAF4; --card:#EDE8DE;
-  --border:rgba(0,0,0,0.07); --border-strong:rgba(0,0,0,0.14);
-  --text:#2C2416; --text-secondary:#6B5E47; --text-muted:#A09278;
-  --btn-prim:#2C2416; --btn-prim-text:#FDFAF4;
-  --inp:#FDFAF4; --inp-border:rgba(0,0,0,0.1); --inp-focus:#FFFFFF; --inp-focus-border:#2C2416;
-  --glow:rgba(44,36,22,0.06);
-  --sidebar-bg:rgba(253,250,244,0.95); --sidebar-border:rgba(0,0,0,0.06);
-  --nav-on:#EDE8DE; --nav-on-text:#2C2416; --nav-off-text:#8B7355;
-  --surface-2:#EDE8DE; --green:#4A7C59; --green-bg:rgba(74,124,89,0.1);
-  --green-border:rgba(74,124,89,0.2); --green-dark:#3A6347;
-  --blue:#3568B8; --blue-bg:rgba(53,104,184,0.1); --blue-border:rgba(53,104,184,0.2);
-  --amber:#B8860B; --red:#8B3A3A; --red-bg:rgba(139,58,58,0.08);
-  --r-xs:5px; --r-sm:7px; --r:9px; --r-lg:12px;
-  --shadow-xs:0 1px 4px rgba(44,36,22,.05); --shadow-sm:0 2px 8px rgba(44,36,22,.06);
-  --shadow:0 4px 20px rgba(44,36,22,.08); --shadow-lg:0 8px 30px rgba(44,36,22,.1);
+  --bg:#F7F4EC; --surface:#FFFDF7; --card:#F1EDE3;
+  --border:rgba(38,33,24,0.10); --border-strong:rgba(38,33,24,0.18);
+  --text:#1C1914; --text-secondary:#4E493F; --text-muted:#8D8678;
+  /* Buttons: neutral dark (not warm brown) */
+  --btn-prim:#1C1914; --btn-prim-text:#FFFDF7;
+  --accent:#1C1914; --accent-text:#FFFDF7;
+  --inp:#FFFDF8; --inp-border:rgba(38,33,24,0.12); --inp-focus:#FFFFFF; --inp-focus-border:#1C1914;
+  --glow:rgba(28,25,20,0.08);
+  --sidebar-bg:rgba(255,252,243,0.76); --sidebar-border:rgba(38,33,24,0.09);
+  --nav-on:#E8E2D3; --nav-on-text:#1C1914; --nav-off-text:#777165;
+  --surface-2:#ECE6D8; --green:#2E7A50; --green-bg:rgba(46,122,80,0.09);
+  --green-border:rgba(46,122,80,0.20); --green-dark:#256040;
+  /* Amber stays but in a warm-neutral tone */
+  --amber:#8A7200; --amber-bg:rgba(138,114,0,0.10); --amber-dark:#6E5B00;
+  --red:#6E2E2E; --red-bg:rgba(110,46,46,0.09);
+  --shadow-xs:0 1px 3px rgba(28,25,20,.06); --shadow-sm:0 3px 10px rgba(28,25,20,.08);
+  --shadow:0 8px 28px rgba(28,25,20,.10); --shadow-lg:0 16px 40px rgba(28,25,20,.12);
+  --content-shadow:0 1px 2px rgba(28,25,20,.045), 0 18px 46px -40px rgba(28,25,20,.44);
+  --focus-ring:rgba(28,25,20,0.20);
+  --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
+  --r:12px; --r-xs:8px; --r-sm:10px; --r-md:12px; --r-lg:12px; --r-xl:12px;
+}
+
+[data-theme="pure-light"] {
+  --bg:#F6F9FC; --surface:#FFFFFF; --card:#FFFFFF;
+  --border:#E7EBF0; --border-strong:#C7CDD6;
+  --text:#202532; --text-secondary:#4E5567; --text-muted:#7B8294;
+  --btn-prim:#5B647D; --btn-prim-text:#FFFFFF;
+  --accent:#5B647D; --accent-text:#FFFFFF;
+  --inp:#FFFFFF; --inp-border:#E7EBF0; --inp-focus:#FFFFFF; --inp-focus-border:#5B647D;
+  --glow:rgba(32,37,50,0.05);
+  --sidebar-bg:#F6F9FC; --sidebar-border:#E7EBF0;
+  --nav-on:#EEF2F7; --nav-on-text:#202532; --nav-off-text:#4E5567;
+  --surface-2:#EEF2F7; --green:#22C55E; --green-bg:rgba(34,197,94,0.08);
+  --green-border:rgba(34,197,94,0.22); --green-dark:#16A34A;
+  --amber:#C18409; --amber-bg:rgba(193,132,9,0.08); --amber-dark:#946100;
+  --red:#D14343; --red-bg:rgba(209,67,67,0.07);
+  --shadow-xs:0 1px 2px rgba(32,37,50,.03); --shadow-sm:0 2px 6px rgba(32,37,50,.04);
+  --shadow:0 4px 16px rgba(32,37,50,.05); --shadow-lg:0 12px 32px rgba(32,37,50,.07);
+  --content-shadow:0 1px 2px rgba(15,23,42,.035), 0 18px 46px -42px rgba(15,23,42,.42);
+  --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
+  --r:12px; --r-xs:8px; --r-sm:10px; --r-md:12px; --r-lg:12px; --r-xl:12px;
+}
+
+[data-theme="classic-dark"],
+[data-theme="custom"] {
+  --bg:#111111; --surface:#181818; --card:#1F1F1F;
+  --border:rgba(255,255,255,0.08); --border-strong:rgba(255,255,255,0.16);
+  --text:#F0F0F0; --text-secondary:#A0A0A0; --text-muted:#636363;
+  --btn-prim:#F0F0F0; --btn-prim-text:#111111;
+  --accent:#6a738c; --accent-text:#FFFFFF;
+  --inp:rgba(255,255,255,0.05); --inp-border:rgba(255,255,255,0.10); --inp-focus:rgba(255,255,255,0.07); --inp-focus-border:rgba(255,255,255,0.22);
+  --glow:rgba(106,115,140,0.07);
+  --sidebar-bg:rgba(18,18,18,0.78); --sidebar-border:rgba(255,255,255,0.09);
+  --nav-on:rgba(255,255,255,0.10); --nav-on-text:#F0F0F0; --nav-off-text:#707070;
+  --surface-2:#262626; --green:#32D583; --green-bg:rgba(50,213,131,0.09);
+  --green-border:rgba(50,213,131,0.20); --green-dark:#24B86D;
+  --amber:#D6A038; --amber-bg:rgba(214,160,56,0.09); --amber-dark:#B8892E;
+  --red:#E25D5D; --red-bg:rgba(226,93,93,0.09);
+  --shadow-xs:0 1px 3px rgba(0,0,0,.70); --shadow-sm:0 2px 8px rgba(0,0,0,.78);
+  --shadow:0 4px 20px rgba(0,0,0,.86); --shadow-lg:0 12px 40px rgba(0,0,0,.92);
+  --content-shadow:0 1px 2px rgba(0,0,0,.34), 0 18px 46px -36px rgba(0,0,0,.72);
+  --logo-filter:brightness(0) invert(1);
+  --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
+  --r:12px; --r-xs:8px; --r-sm:10px; --r-md:12px; --r-lg:12px; --r-xl:12px;
+}
+[data-theme="read"] body {
+  background:
+    radial-gradient(1200px 600px at 10% -10%, rgba(149,127,78,0.08), transparent 55%),
+    radial-gradient(1000px 520px at 100% 0%, rgba(104,88,56,0.06), transparent 50%),
+    var(--bg);
+}
+[data-theme="read"] .sidebar-inner {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+[data-theme="read"] .ni-on {
+  background: color-mix(in srgb, var(--surface-2) 92%, #ddd3bb 8%);
+}
+[data-theme="read"] .proj-row.active {
+  background: color-mix(in srgb, var(--surface-2) 86%, #d6ccb3 14%);
+}
+
+/* Quiet native controls: selected borderless dark-mode actions sit on the
+   same subtle surface as the main content container instead of floating. */
+[data-theme="dark"] body .task-create,
+[data-theme="dark"] body .task-plus,
+[data-theme="dark"] body .projects-plus,
+[data-theme="dark"] body .ix-iconbtn,
+[data-theme="dark"] body .ix-tab,
+[data-theme="dark"] body .tagro-mic,
+[data-theme="dark"] body .ci-mode {
+  background:var(--flat-control-bg);
+}
+
+[data-theme="dark"] body .task-create:hover,
+[data-theme="dark"] body .task-plus:hover,
+[data-theme="dark"] body .projects-plus:hover,
+[data-theme="dark"] body .ix-iconbtn:hover,
+[data-theme="dark"] body .ix-tab:hover,
+[data-theme="dark"] body .tagro-mic:hover,
+[data-theme="dark"] body .ci-mode:hover {
+  background:var(--surface-2);
+}
+
+/* ── Festag-Letter-Spacing-Tokens (verbindlich) ────────────────────
+   Drei Werte, drei Kontexte. Siehe Memory festag_letter_spacing_rule.
+   Header  → 1.2 % (Figma-Standard für H1–H6 + .display + .metric)
+   Body    → 1.7 % (T1 / Standard-Text in Buttons, Inputs, p, span, ...)
+   Sidebar → 2.3 % (Sidebar.tsx + alle .sb-* Klassen)
+   Diese Tokens IMMER verwenden — keine eigenmächtigen Werte mehr. */
+:root {
+  --ls-header:  0.012em;
+  --ls-body:    0.017em;
+  --ls-sidebar: 0.023em;
 }
 
 html,body {
+  height:100dvh;
+  max-width:100%;
+  overflow-x:hidden;
   background:var(--bg); color:var(--text);
-  font-family:'Aeonik',-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;
+  font-family:var(--font-ui);
   font-weight:500; font-size:15px; line-height:1.55;
+  letter-spacing: var(--ls-body);
   -webkit-font-smoothing:antialiased;
   -webkit-tap-highlight-color:transparent;
   overscroll-behavior-y:none;
   transition:background .2s ease, color .2s ease;
 }
-p,span,div,label { font-weight:500; }
-h1 { font-size:28px;font-weight:700;letter-spacing:-.5px;line-height:1.2;color:var(--text); }
-h2 { font-size:20px;font-weight:700;letter-spacing:-.3px;line-height:1.25;color:var(--text); }
-h3 { font-size:16px;font-weight:600;letter-spacing:-.2px;color:var(--text); }
-p  { color:var(--text-secondary); }
+body.festag-app-mode {
+  overflow:hidden;
+  overflow-x:hidden;
+}
+@media(max-width:768px) {
+  body.festag-app-mode {
+    overflow:auto;
+  }
+}
+/* ── Festag-Typo-Gesetz (verbindlich) ──
+   Im gesamten App-Panel KEIN Aeonik Regular und KEIN Aeonik Bold mehr.
+   Default = Aeonik Medium (500). Letter-Spacing per Token:
+   Header → --ls-header  (1.2 %)
+   T1     → --ls-body    (1.7 %)
+   Sidebar (eigene Selektoren) → --ls-sidebar (2.3 %) */
+p,span,div,label,li,td,th {
+  font-weight:500;
+  font-family:var(--font-ui);
+  letter-spacing: var(--ls-body);
+}
+:where(a,button,input,textarea,select) { font-weight:500; letter-spacing: var(--ls-body); }
+strong,b { font-weight:500; letter-spacing: var(--ls-body); }
+.fw-medium { font-weight:500; letter-spacing: var(--ls-body); }
+.fw-regular { font-weight:400; letter-spacing: var(--ls-body); }
+/* Editorial display sizes — Apple keynote feel */
+h1,h2,h3,h4,h5,h6 { font-family:var(--font-ui); font-weight:500; letter-spacing: var(--ls-header); }
+h1 { font-size:24px; line-height:1.2; color:var(--text); }
+h2 { font-size:18px; line-height:1.3; color:var(--text); }
+h3 { font-size:15px; line-height:1.4; color:var(--text); }
+h4 { font-size:13.5px; color:var(--text); }
+p  { color:var(--text-secondary); font-weight:500; letter-spacing: var(--ls-body); }
+.eyebrow { font-size:11px; font-weight:500; letter-spacing:.18em; text-transform:uppercase; color:var(--text-muted); }
+.display { font-size:36px; font-weight:500; letter-spacing: var(--ls-header); line-height:1.1; color:var(--text); }
+.metric  { font-size:26px; font-weight:500; letter-spacing: var(--ls-header); line-height:1; color:var(--text); font-variant-numeric:tabular-nums; }
+/* Sidebar (jede Klasse mit sb- oder sidebar) — eigenes Token. */
+[class*="sb-"], [class*="sidebar"], [class*="side-nav"], nav.sb-list, aside.sb-os, .sb-os {
+  letter-spacing: var(--ls-sidebar);
+}
+.tabular { font-variant-numeric:tabular-nums; }
 a  { color:inherit;text-decoration:none; }
-button { -webkit-tap-highlight-color:transparent;cursor:pointer;border:none;background:none;font-family:inherit;font-weight:500; }
+button { -webkit-tap-highlight-color:transparent;cursor:default;border:none;background:none;font-family:inherit;font-weight:500; }
 input,textarea,select { font-size:16px;font-family:inherit;font-weight:500;color:var(--text); }
 @media(min-width:769px) { input,textarea,select { font-size:14px; } }
 ::-webkit-scrollbar { width:5px;height:5px; }
@@ -96,27 +373,150 @@ input,textarea,select { font-size:16px;font-family:inherit;font-weight:500;color
 .animate-fade-up-4 { animation:fadeUp .3s .20s cubic-bezier(.16,1,.3,1) both; }
 .tap-scale { transition:transform .1s ease,opacity .12s; }
 .tap-scale:active { transform:scale(.97);opacity:.88; }
-input:focus,textarea:focus,select:focus { outline:none; }
+*:focus { outline:none; }
+*:focus-visible {
+  outline:2px solid var(--focus-ring);
+  outline-offset:2px;
+}
+button:focus:not(:focus-visible),
+a:focus:not(:focus-visible),
+input:focus:not(:focus-visible),
+textarea:focus:not(:focus-visible),
+select:focus:not(:focus-visible),
+[role="button"]:focus:not(:focus-visible) {
+  outline:none !important;
+  box-shadow:none !important;
+}
+[data-theme="read"] {
+  letter-spacing: -.006em;
+}
+[data-theme="read"] p {
+  line-height: 1.62;
+}
+[data-theme="read"] h1,[data-theme="read"] h2,[data-theme="read"] h3 {
+  color: var(--text);
+}
+[data-theme="read"] .ni-off:hover {
+  background: color-mix(in srgb, var(--surface-2) 72%, transparent);
+}
+[data-theme="read"] .row-hover:hover,
+[data-theme="read"] .dash-row:hover {
+  background: color-mix(in srgb, var(--surface-2) 58%, transparent);
+}
+[data-theme="read"] input:focus-visible,
+[data-theme="read"] textarea:focus-visible,
+[data-theme="read"] select:focus-visible {
+  box-shadow: 0 0 0 2px rgba(28,25,20,0.10);
+}
+[data-theme="read"] ::selection {
+  background: rgba(116, 94, 46, 0.20);
+}
+
+/* ── Smooth Apple-grade interactions ── */
+button, a {
+  transition:
+    background-color .10s ease,
+    border-color     .10s ease,
+    color            .10s ease,
+    opacity          .10s ease,
+    box-shadow       .10s ease;
+}
+button:active, a[role="button"]:active, .tap-scale:active {
+  transform: scale(.97);
+  transition: transform .06s ease;
+}
+
+@media (pointer: coarse) {
+  a, button, [role="button"], label[for] { cursor:default !important; }
+  button { cursor:default !important; }
+  input, textarea { cursor:text !important; }
+}
+.row-hover { transition: background-color .16s cubic-bezier(.16,1,.3,1); }
+.dash-row  { transition: background-color .16s cubic-bezier(.16,1,.3,1); }
+.tm-card, .sc-card, .area-chip { transition: border-color .18s cubic-bezier(.16,1,.3,1), background-color .18s cubic-bezier(.16,1,.3,1), transform .18s cubic-bezier(.16,1,.3,1); }
+.proj-row, .ni, .usr-row, .quick-link { transition: background-color .08s ease, color .08s ease; }
+
+/* Almost-flat content lift. This keeps the app visually quiet while giving
+   large white containers the same barely-there grounding as Linear. */
+:where(
+  .pv-card,
+  .pv-chat,
+  .pv-control,
+  .pv-intel-block,
+  .dc-card,
+  .dc-brief,
+  .ix-row,
+  .ix-detail-card,
+  .set-card,
+  .ad-card,
+  .dev-surface,
+  .vr-panel,
+  .vr-box,
+  .vr-snapshot-card,
+  .b-card
+) {
+  box-shadow: var(--content-shadow);
+}
 
 /* ═══ DESKTOP ═══ */
 .sidebar    { display:flex; }
 .bottom-nav { display:none !important; }
 .main-content {
-  margin-left:256px;
+  margin-left:0;
   padding:0;
-  min-height:100vh;
+  min-height:0;
+  background:var(--surface);
+}
+
+/* Aligned to the app red-line (18px) + compact header language used by
+   Tasks/Entscheidungen, so every page sits in one system. */
+.page-content {
+  padding: 20px 18px 96px;
+  width: 100%;
+}
+.page-content-full {
+  padding: 20px 18px 96px;
+  width: 100%;
+}
+.page-header {
+  margin: 0 0 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+}
+.page-header h1 {
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: 0;
+  color: var(--text);
+  margin: 0 0 3px;
+  line-height: 1.25;
+}
+.page-header p {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  margin: 0;
+  line-height: 1.45;
 }
 
 .sidebar-inner {
-  position:fixed; top:12px; left:12px; bottom:12px; width:232px;
+  position:fixed; top:0; left:0; bottom:0; width:212px;
+  box-sizing:border-box;
   background:var(--sidebar-bg);
-  backdrop-filter:blur(20px) saturate(180%);
-  -webkit-backdrop-filter:blur(20px) saturate(180%);
-  border:1px solid var(--sidebar-border);
-  box-shadow:0 14px 40px rgba(15,23,42,.07);
-  border-radius:16px;
+  border:0;
+  box-shadow:none;
+  border-radius:0;
   display:flex; flex-direction:column; overflow:hidden;
   transition:background .2s ease, border-color .2s ease;
+}
+[data-theme="dark"] .sidebar-inner {
+  box-shadow:none;
+}
+
+/* App header — sticky desktop, scrollable mobile */
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
 }
 
 /* ═══ MOBILE ═══ */
@@ -127,7 +527,15 @@ input:focus,textarea:focus,select:focus { outline:none; }
   .bottom-nav { display:flex !important; }
   .main-content {
     margin-left:0 !important;
-    padding:calc(14px + var(--safe-top)) 14px calc(96px + var(--safe-bottom)) 14px !important;
+    padding:0 !important;
+  }
+  .page-content {
+    padding: 20px 16px calc(118px + var(--safe-bottom)) !important;
+    max-width: 100% !important;
+  }
+  .page-content-full {
+    padding: 20px 16px calc(118px + var(--safe-bottom)) !important;
+    max-width: 100% !important;
   }
   .grid-cols-4          { grid-template-columns:repeat(2,1fr) !important; }
   .grid-cols-2-mobile-1 { grid-template-columns:1fr !important; }
@@ -136,3 +544,675 @@ input:focus,textarea:focus,select:focus { outline:none; }
   div.show-mobile { display:block !important; }
 }
 @media(min-width:769px) { .show-mobile { display:none !important; } }
+
+/* App-wide horizontal overflow guard.
+   Festag should feel like a controlled operating surface, never a sideways
+   canvas. Dense tables collapse columns instead of introducing x-scroll. */
+/* Gentle app entrance after the pixel preloader fades — the shell behind the
+   overlay eases in (jair.com-style reveal). Set briefly via a body class by
+   FestagPixelIntro when the intro starts leaving. */
+.festag-intro-revealing .app-workspace-scroll {
+  animation: festagAppReveal 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes festagAppReveal {
+  from { opacity: 0; transform: translateY(10px) scale(0.992); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .festag-intro-revealing .app-workspace-scroll { animation: none; }
+}
+
+/* ── Notebook UI primitives — calm, box-light surfaces (UI simplification).
+   Default to spacing + typography over borders/cards. ── */
+.nb-page { max-width: 880px; margin: 0 auto; padding: 26px 18px 96px; display: flex; flex-direction: column; gap: 24px; }
+.nb-page-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.nb-page-title { margin: 0; font-size: 17px; font-weight: 500; letter-spacing: .01em; color: var(--text); }
+.nb-status { display: flex; align-items: center; gap: 9px; margin: 0; font-size: 14px; line-height: 1.5; font-weight: 500; letter-spacing: .012em; color: var(--text-secondary); }
+.nb-status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.nb-section { display: flex; flex-direction: column; gap: 10px; }
+.nb-section-label { font-size: 11px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); }
+.nb-list { display: flex; flex-direction: column; }
+.nb-row { display: flex; align-items: center; gap: 12px; padding: 11px 0; border: 0; background: transparent; width: 100%; text-align: left; font: inherit; color: var(--text); }
+.nb-row + .nb-row { box-shadow: inset 0 1px 0 rgba(255,255,255,0.045); }
+[data-theme="light"] .nb-row + .nb-row, [data-theme="read"] .nb-row + .nb-row { box-shadow: inset 0 1px 0 rgba(0,0,0,0.05); }
+.nb-row.is-click { cursor: pointer; transition: background .12s; }
+.nb-row.is-click:hover { background: color-mix(in srgb, var(--surface-2) 30%, transparent); border-radius: 8px; padding-left: 8px; padding-right: 8px; margin-left: -8px; margin-right: -8px; }
+.nb-row-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.nb-row-title { font-size: 14px; font-weight: 500; color: var(--text); }
+.nb-meta { font-size: 12px; color: var(--text-muted); font-weight: 500; letter-spacing: .01em; }
+.nb-quiet { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 11px; border-radius: 8px; border: 0; background: transparent; color: var(--text-secondary); font: inherit; font-size: 12.5px; font-weight: 500; cursor: pointer; transition: background .12s, color .12s; }
+.nb-quiet:hover { background: color-mix(in srgb, var(--surface-2) 45%, transparent); color: var(--text); }
+.nb-quiet:disabled { opacity: .45; cursor: not-allowed; }
+.nb-quiet.primary { background: var(--btn-prim); color: var(--btn-prim-text); }
+.nb-quiet.primary:hover { opacity: .92; background: var(--btn-prim); color: var(--btn-prim-text); }
+.nb-empty { padding: 8px 0; display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+.nb-empty-title { margin: 0; font-size: 14px; font-weight: 500; color: var(--text); }
+.nb-empty-sub { margin: 0; font-size: 12.5px; color: var(--text-muted); line-height: 1.5; max-width: 48ch; }
+.nb-composer { width: 100%; border: 0; background: transparent; outline: 0; resize: none; color: var(--text); font: inherit; font-size: 15px; line-height: 1.6; padding: 6px 0; }
+.nb-composer::placeholder { color: var(--text-muted); opacity: .6; }
+
+.festag-app-shell,
+.app-workspace,
+.app-workspace-scroll,
+.page-content,
+.page-content-full,
+.dashboard-os,
+.reports-intelligence,
+.task-os,
+.projects-os,
+.voice-reports-page {
+  min-width:0 !important;
+  max-width:100% !important;
+  overflow-x:hidden !important;
+}
+
+.md pre,
+.md code,
+.report-document,
+.briefing-body,
+.tagro-ai-block,
+.tagro-user-block {
+  max-width:100% !important;
+  overflow-x:hidden !important;
+  white-space:pre-wrap !important;
+  word-break:break-word !important;
+}
+
+.audio-hero-pills,
+.team-tabs,
+.ix-tabs {
+  overflow-x:hidden !important;
+  flex-wrap:wrap !important;
+}
+
+@media(max-width:1180px) {
+  .task-scroll-body,
+  .reports-scroll-body,
+  .projects-scroll,
+  .team-task-table-wrap,
+  .project-status-stream {
+    overflow-x:hidden !important;
+  }
+
+  .project-line-head,
+  .project-line {
+    min-width:0 !important;
+    max-width:100% !important;
+    grid-template-columns:minmax(0, 1.55fr) 92px 86px 86px !important;
+    gap:12px !important;
+  }
+  .project-line-head > :nth-child(n+5),
+  .project-line > :nth-child(n+5) {
+    display:none !important;
+  }
+
+  .team-task-head,
+  .team-task-row {
+    min-width:0 !important;
+    max-width:100% !important;
+    grid-template-columns:minmax(0, 1.65fr) 112px 82px 90px !important;
+    gap:12px !important;
+    padding-left:18px !important;
+    padding-right:18px !important;
+  }
+  .team-task-head > :nth-child(n+5),
+  .team-task-row > :nth-child(n+5) {
+    display:none !important;
+  }
+}
+
+@media(max-width:980px) {
+  .projects-head,
+  .projects-row {
+    min-width:0 !important;
+    max-width:100% !important;
+    grid-template-columns:minmax(0, 1fr) 86px 74px !important;
+    gap:10px !important;
+  }
+  .projects-head > :nth-child(n+4),
+  .projects-row > :nth-child(n+4) {
+    display:none !important;
+  }
+}
+
+@media(max-width:760px) {
+  .project-line-head,
+  .project-line,
+  .projects-head,
+  .projects-row,
+  .team-task-head,
+  .team-task-row {
+    grid-template-columns:minmax(0, 1fr) 58px !important;
+    gap:8px !important;
+    padding-left:8px !important;
+    padding-right:8px !important;
+  }
+  .project-line-head > :nth-child(n+3),
+  .project-line > :nth-child(n+3),
+  .projects-head > :nth-child(n+3),
+  .projects-row > :nth-child(n+3),
+  .team-task-head > :nth-child(n+3),
+  .team-task-row > :nth-child(n+3) {
+    display:none !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   APP-STORE-READY MOBILE POLISH
+   - 44px min tap targets (Apple HIG)
+   - Safe area insets respected
+   - No tap-highlight flash
+   - Smooth momentum scrolling
+   - PWA standalone mode polish
+═══════════════════════════════════════════════ */
+
+* { -webkit-tap-highlight-color: transparent; }
+
+button, a, [role="button"], [role="link"], [role="tab"] {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* iOS form-element default reset */
+input, textarea, select, button {
+  -webkit-appearance: none;
+  appearance: none;
+  font-family: inherit;
+}
+input[type="checkbox"], input[type="radio"] {
+  -webkit-appearance: auto;
+  appearance: auto;
+}
+
+/* Prevent iOS from auto-zooming text inputs (font-size must be >= 16px on focus) */
+@media(max-width:768px) {
+  input:not([type="checkbox"]):not([type="radio"]),
+  textarea, select {
+    font-size: max(16px, 1em);
+  }
+}
+
+/* Smooth iOS scroll containers */
+.scroll-smooth-touch {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* Ensure all main scroll containers use safe momentum */
+#app-main-scroll, .form-scroll {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Standalone PWA polish — full-bleed top spacing on iPhone */
+@supports (-webkit-touch-callout: none) {
+  @media (display-mode: standalone) {
+    body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
+  }
+}
+
+/* Mobile tap-to-scale animation for primary buttons */
+.tap-scale { transition: transform .1s ease-out; }
+.tap-scale:active { transform: scale(.96); }
+
+/* All buttons & links: minimum 44x44 hit area on mobile */
+@media(max-width:768px) {
+  button:not(.no-min-tap), a.btn-link:not(.no-min-tap), [role="button"]:not(.no-min-tap) {
+    min-height: 44px;
+  }
+  /* Smaller chips/secondary controls explicitly opt out via .no-min-tap */
+}
+
+/* Disable user-select on UI chrome (titles, badges) for better mobile feel */
+.no-select, .badge, .chip, header h1, .page-header h1 {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Prevent overscroll bounce when modal/sheet is open */
+body.locked { overflow: hidden; touch-action: none; }
+
+/* Festag Client Workspace Header System */
+.app-page-header {
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:20px;
+  width:100%;
+  margin:0 0 30px;
+}
+.app-page-header__copy { min-width:0; }
+.app-page-header h1 {
+  margin:0;
+  color:var(--text);
+  font-size:25px;
+  line-height:1.08;
+  font-weight:720;
+  letter-spacing:-.035em;
+}
+.app-page-header p {
+  margin:9px 0 0;
+  color:var(--text-secondary);
+  font-size:13.5px;
+  line-height:1.55;
+  font-weight:500;
+}
+.app-page-header__action {
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:8px;
+  flex-shrink:0;
+  padding-top:1px;
+}
+.app-page-header--compact {
+  align-items:center;
+  margin-bottom:16px;
+  padding-top:4px;
+}
+.app-page-header--compact h1 {
+  font-size:18px;
+  letter-spacing:-.025em;
+  font-weight:690;
+}
+.app-page-header--compact p {
+  margin-top:4px;
+  font-size:12.5px;
+}
+.app-page-header--hero {
+  align-items:flex-start;
+  margin-bottom:42px;
+  padding-top:10px;
+}
+.app-page-header--hero h1 {
+  font-size:30px;
+  line-height:1.04;
+  font-weight:720;
+  letter-spacing:-.055em;
+}
+.app-page-header--hero p {
+  margin-top:9px;
+  font-size:13.5px;
+}
+.app-header-button,
+.app-page-header__action > a,
+.app-page-header__action > button {
+  min-height:38px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  padding:0 15px;
+  border:1px solid color-mix(in srgb, var(--border) 90%, transparent);
+  border-radius:16px;
+  background:var(--card);
+  color:var(--text);
+  font:inherit;
+  font-size:12.5px;
+  font-weight:700;
+  text-decoration:none;
+  box-shadow:0 0 0 1px rgba(255,255,255,0.02);
+}
+.app-header-button--primary,
+.app-page-header__action > .primary,
+.app-page-header__action > button.primary,
+.app-page-header__action > a.primary {
+  background:var(--btn-prim);
+  color:var(--btn-prim-text);
+  border-color:transparent;
+}
+.app-page-header__action > button:disabled,
+.app-page-header__action > .app-header-button:disabled {
+  opacity:.55;
+  cursor:default;
+}
+@media (max-width: 760px) {
+  .app-page-header,
+  .app-page-header--hero {
+    flex-direction:column;
+    align-items:stretch;
+    gap:12px;
+  }
+  .app-page-header__action { justify-content:flex-start; flex-wrap:wrap; }
+}
+
+/* Global typography system */
+:root {
+  --font-aeonik: 'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+  --font-sf-pro: 'SF Pro Text', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+  --font-primary: var(--font-aeonik);
+  --font-ui: var(--font-primary);
+  --font-mono: 'SF Mono', 'Geist Mono', ui-monospace, Menlo, Monaco, Consolas, monospace;
+  --ui-density-scale: 1;
+  --button-radius: 32px;
+}
+[data-font="sf-pro"] { --font-primary: var(--font-sf-pro); --font-ui: var(--font-sf-pro); letter-spacing: -0.012em; }
+[data-font="aeonik"],
+[data-font="inter"],
+[data-font="geist"],
+[data-font="ibm-plex"] { --font-primary: var(--font-aeonik); --font-ui: var(--font-aeonik); }
+[data-density="compact"] { --ui-density-scale: .92; }
+html, body, button, input, select, textarea { font-family: var(--font-ui); }
+code, pre, kbd, samp { font-family: var(--font-mono); }
+
+/* Festag button language: the general, app-wide corner logic is a soft 8px
+   rounded rect — components may keep their own geometry, but the blanket below
+   guarantees a uniform baseline. A few intentional, explicitly-named carve-outs
+   exist:
+     • Auth screens (.log- / .reg- / .dl- prefixes) — large welcome CTAs at 32px.
+     • The Audio-Briefing card actions (.dc-play-bar / .dc-read-bar) — premium
+       32px pills (Bild 2).
+     • Pop-up / dialog action buttons (.modal-cta) — a tight 6px corner (Bild 5).
+   The 32px "items inherit the container radius" rule now lives ONLY inside
+   pop-ups (Bild 3) — it is not a global behaviour. */
+button:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]):not(.dc-play-bar):not(.dc-read-bar):not(.modal-cta):not(.set-btn):not([class*="fui-"]):not([class*="pj2-"]):not([class*="pjm-"]),
+a[role="button"]:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]):not([class*="fui-"]),
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+.app-header-button,
+.app-page-header__action > a,
+.app-page-header__action > button,
+.dash-button,
+.vr-btn,
+.vr-chip,
+.audio-briefing-button,
+.voice-icon-btn,
+.voice-field,
+.voice-text-btn,
+:is(a, button)[class*="btn"]:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]):not(.set-btn):not(.npm-mic-btn):not(.npm-chat-mic),
+:is(a, button)[class*="button"]:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]),
+:is(a, button)[class*="chip"]:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]),
+:is(a, button)[class*="pill"]:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]):not(.npm-pill) {
+  border-radius: var(--button-radius) !important;
+}
+
+/* Compact surfaces: popup/menu/sidebar controls stay crisp instead of pill-shaped. */
+:where([class*="menu"], [class*="popover"], [class*="dropdown"], [class*="sidebar"], [class^="sb-"]) :is(button, a[role="button"], [role="menuitem"], [role="option"]) {
+  border-radius: 8px !important;
+}
+
+/* Small icon-only controls should remain round. */
+button.sb-help-trigger,
+button.sb-video-dismiss,
+.sb-video-modal-head button,
+:where(.task-tool, .task-plus, .npm-icon-btn) {
+  border-radius: 50% !important;
+  overflow: hidden !important;
+}
+
+/* NewProjectModal Mic + CTA: immer voll rund, globalen Button-Radius ignorieren.
+   KEIN :where() — sonst verliert die Regel gegen [class*="btn"]. */
+button.npm-mic-btn,
+button.npm-chat-mic,
+button.npm-primary {
+  border-radius: 999px !important;
+}
+
+button.sb-video-teaser {
+  border-radius: 18px !important;
+}
+
+.sb-video-teaser-wrap > button.sb-video-teaser {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  min-height: 172px !important;
+  background: var(--card) !important;
+  color: var(--text) !important;
+}
+
+button.sb-help-trigger {
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  min-height: 32px !important;
+  aspect-ratio: 1 !important;
+  clip-path: circle(50% at 50% 50%) !important;
+}
+
+/* Audio-Briefing card actions (Bild 2) — premium 32px pills. */
+.dc-play-bar, .dc-read-bar { border-radius: 32px; }
+
+/* Pop-up / dialog action buttons — 32px pill, the Festag action-button standard. */
+.modal-cta { border-radius: 32px; }
+
+/* Settings buttons — full 32px pill across the settings surfaces. */
+.set-btn { border-radius: 32px; }
+
+/* ───────── Festag UI primitives — one design language across pages ─────────
+   Mirrors the Tasks/Entscheidungen pattern: a thin header bar with a hairline
+   underline, 999px pill filters, status tags and a quiet body. Used via the
+   components in components/ui/. Exempt from the blanket radius rule above so
+   each primitive controls its own geometry. */
+.fui-page { width:100%; padding:20px 0 80px; color:var(--text); font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); }
+.fui-top {
+  display:flex; align-items:flex-start; justify-content:space-between; gap:16px;
+  min-height:34px; padding:2px 18px 12px;
+  border-bottom:1px solid color-mix(in srgb, var(--border) 60%, transparent);
+}
+/* Mobile uses MobilePageHeader above each .fui-top consumer. */
+@media (max-width: 768px) { .fui-top { display: none !important; } }
+.fui-top-left { display:flex; flex-direction:column; gap:2px; min-width:0; }
+.fui-title { margin:0; font-size:14.5px; font-weight:500; letter-spacing:0; color:var(--text); }
+.fui-sub { margin:0; font-size:12px; color:var(--text-muted); letter-spacing:.012em; line-height:1.45; }
+.fui-actions { display:flex; align-items:center; gap:8px; flex-shrink:0; }
+.fui-action {
+  display:inline-flex; align-items:center; gap:6px;
+  height:30px; padding:0 14px; border-radius:32px;
+  border:1px solid var(--border); background:transparent;
+  color:var(--text); font:inherit; font-size:12.5px; font-weight:500; cursor:pointer;
+  transition:background .12s, border-color .12s;
+}
+.fui-action:hover { background:var(--surface-2); }
+.fui-action--primary { background:var(--btn-prim); color:var(--btn-prim-text); border-color:var(--btn-prim); }
+.fui-action--primary:hover { background:color-mix(in srgb, var(--btn-prim) 88%, #000); border-color:color-mix(in srgb, var(--btn-prim) 88%, #000); }
+
+.fui-bar { display:flex; align-items:center; gap:6px; flex-wrap:wrap; padding:14px 18px 0; }
+.fui-tab {
+  height:27px; padding:0 11px; border:1px solid var(--border); border-radius:999px;
+  background:transparent; color:var(--text-secondary);
+  font:inherit; font-size:11.5px; font-weight:500; letter-spacing:.02em; white-space:nowrap; cursor:pointer;
+  transition:background .12s, color .12s;
+}
+.fui-tab.on { background:var(--surface-2); color:var(--text); }
+.fui-tab:hover:not(.on) { color:var(--text); }
+
+.fui-body { padding:14px 18px 0; }
+
+/* Status tag (chip) — consistent across pages. */
+.fui-tag {
+  display:inline-flex; align-items:center; gap:6px;
+  height:22px; padding:0 9px; border-radius:999px;
+  font-size:11px; font-weight:500; letter-spacing:.01em;
+  border:1px solid var(--border); color:var(--text-muted); white-space:nowrap;
+}
+.fui-tag-dot { width:6px; height:6px; border-radius:50%; background:currentColor; flex:0 0 auto; }
+.fui-tag.tone-good   { color:var(--green-dark,#2bb069); border-color:color-mix(in srgb, var(--green-dark,#2bb069) 38%, var(--border)); }
+.fui-tag.tone-warn   { color:var(--amber,#d5a655);      border-color:color-mix(in srgb, var(--amber,#d5a655) 40%, var(--border)); }
+.fui-tag.tone-risk   { color:var(--red,#e06666);        border-color:color-mix(in srgb, var(--red,#e06666) 40%, var(--border)); }
+.fui-tag.tone-accent { color:#6a738c;                   border-color:color-mix(in srgb, #6a738c 45%, var(--border)); }
+.fui-tag.tone-muted  { color:var(--text-muted); }
+
+/* Tagro Audio Briefings */
+.audio-briefing-wrap { position: relative; display: inline-flex; }
+.audio-briefing-button {
+  height: 32px; display:inline-flex; align-items:center; gap:7px;
+  border:1px solid color-mix(in srgb, var(--border) 70%, transparent);
+  border-radius:8px; background:transparent; color:var(--text-secondary);
+  padding:0 11px; font-size:12.5px; font-weight:680;
+}
+.audio-briefing-button:hover { color:var(--text); background:color-mix(in srgb, var(--surface-2) 64%, transparent); }
+.audio-briefing-popover {
+  position:absolute; right:0; top:calc(100% + 10px); width:min(420px, calc(100vw - 32px));
+  z-index:7000; padding:14px; border-radius:16px;
+  background:color-mix(in srgb, var(--surface) 94%, transparent);
+  border:1px solid color-mix(in srgb, var(--border) 74%, transparent);
+  box-shadow:0 18px 56px rgba(0,0,0,.18), 0 4px 14px rgba(0,0,0,.08);
+  backdrop-filter: blur(18px);
+}
+.audio-briefing-backdrop {
+  position:fixed;
+  inset:0;
+  z-index:11990;
+  background:transparent;
+}
+.audio-briefing-layer {
+  position:fixed;
+  z-index:12000;
+  width:min(420px, calc(100vw - 32px));
+  padding:14px;
+  border-radius:18px;
+  background:color-mix(in srgb, var(--surface) 96%, transparent);
+  border:1px solid color-mix(in srgb, var(--border) 72%, transparent);
+  box-shadow:0 24px 72px rgba(0,0,0,.22), 0 7px 18px rgba(0,0,0,.10);
+  backdrop-filter: blur(22px) saturate(150%);
+  -webkit-backdrop-filter: blur(22px) saturate(150%);
+  animation:audioLayerIn .16s cubic-bezier(.16,1,.3,1) both;
+}
+@keyframes audioLayerIn {
+  from { opacity:0; transform:translateY(8px) scale(.985); }
+  to { opacity:1; transform:none; }
+}
+.audio-briefing-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:10px; }
+.audio-briefing-head p { margin:0; color:var(--text); font-size:12.5px; font-weight:760; }
+.audio-briefing-head span { display:block; margin-top:2px; color:var(--text-muted); font-size:11px; font-weight:620; }
+.audio-briefing-head button { width:26px; height:26px; border:0; border-radius:8px; background:transparent; color:var(--text-muted); display:flex; align-items:center; justify-content:center; }
+.audio-briefing-head button:hover { background:var(--surface-2); color:var(--text); }
+.audio-briefing-text { margin:0 0 12px; color:var(--text-secondary); font-size:12.5px; line-height:1.58; }
+.voice-controls { display:flex; align-items:center; gap:7px; flex-wrap:wrap; }
+.voice-icon-btn, .voice-field, .voice-text-btn { height:30px; display:inline-flex; align-items:center; gap:6px; border:1px solid var(--border); border-radius:8px; background:transparent; color:var(--text); padding:0 10px; font-size:11.5px; font-weight:700; }
+.voice-icon-btn:disabled { opacity:.42; cursor:default; }
+.voice-field { color:var(--text-muted); padding-right:8px; }
+.voice-field span { font-size:10.5px; }
+.voice-field select { border:0; background:transparent; color:var(--text); font:inherit; font-size:11.5px; outline:0; max-width:168px; }
+.voice-field--voice { max-width:220px; }
+.voice-text-btn { color:var(--text-muted); border-color:transparent; padding:0 4px; }
+.voice-text-btn:hover { color:var(--text); }
+.voice-state, .voice-note { color:var(--text-muted); font-size:11.5px; margin:0; }
+
+/* Final native-cursor lock. Kept at the end so page-local styles, inline-style
+   habits and menu controls cannot reintroduce the web hand cursor. */
+html,
+body,
+body *,
+body *::before,
+body *::after,
+:where(a, button, select, summary, label, option, optgroup, [role="button"], [role="menuitem"], [role="tab"], [role="option"], [role="switch"], [tabindex], [onclick], .tap-scale, .nav-item, .sidebar-item, .menu-item, .dropdown-item, .card, .proj-row, .task-row, .audio-briefing-button, .voice-icon-btn) {
+  cursor:default !important;
+}
+
+input,
+textarea,
+[contenteditable="true"] {
+  cursor:text !important;
+}
+
+/* ════════════════════════════════════════════════════════════════════
+ * MOBILE LAYER — phone-first behaviour for everything ≤ 768 px.
+ * Hides the desktop sidebar, pads content above the bottom nav,
+ * blocks horizontal scroll, single-columns common grids, lets filter
+ * chip rails scroll without the page going sideways.
+ * ════════════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  html, body { overflow-x: hidden !important; width: 100%; }
+  body { min-height: 100dvh; }
+  * { max-width: 100%; }
+  img, video, canvas, iframe { max-width: 100%; height: auto; }
+
+  /* Hide the client-app desktop rail entirely. The mob-bar at the
+     bottom + the /more page replace it. .ds-inner (DEV portal rail)
+     stays — it has its own mobile rules. */
+  .sidebar,
+  .sidebar-inner:not(.ds-inner),
+  aside.sidebar {
+    display: none !important;
+  }
+
+  /* Clear the fixed bottom nav (~72 px) + iOS home indicator. */
+  .main-content,
+  .app-workspace,
+  .app-workspace-scroll,
+  main.main-content {
+    padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+  .app-sidebar-return { display: none !important; }
+
+  /* Native-feel page padding. */
+  .page-content,
+  .dash-calm {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+
+  /* Force common desktop grids to a single column on phones. */
+  .dc-body { grid-template-columns: 1fr !important; }
+  .dc-grid,
+  .pv-grid,
+  .npm-meta-row {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+  .pv-control { grid-template-columns: 1fr 1fr !important; }
+
+  /* Horizontal-scrolling filter / tab rails — let them scroll without
+     the document itself going sideways. */
+  .tp-filters,
+  .ai-rail-filters,
+  .pv-tabs,
+  .ix-filters,
+  .task-filters,
+  .np-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    max-width: 100%;
+  }
+  .tp-filters::-webkit-scrollbar,
+  .ai-rail-filters::-webkit-scrollbar,
+  .pv-tabs::-webkit-scrollbar,
+  .ix-filters::-webkit-scrollbar,
+  .task-filters::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Mobile header rhythm */
+  h1 { font-size: 20px !important; letter-spacing: -.012em; }
+  h2 { font-size: 16px !important; }
+
+  /* Tame oversized hero text in the chat empty state. */
+  .ai-empty h2 { font-size: 22px !important; letter-spacing: -.014em; }
+  .ai-empty p  { font-size: 13.5px !important; }
+  .ai-empty-mark { width: 52px !important; height: 52px !important; }
+
+  /* Strip any leftover literal-white surfaces — old rules pinned
+     rgba(255,255,255,…) on starters, action cards, user bubbles and
+     composer, which looked broken in dark. */
+  .ai-starter,
+  .ai-action-card,
+  .ai-msg.user .ai-msg-body,
+  .ai-composer {
+    background: color-mix(in srgb, var(--surface-2) 60%, var(--card) 40%) !important;
+    border-color: color-mix(in srgb, var(--border) 60%, transparent) !important;
+    box-shadow: none !important;
+  }
+
+  a, button, [role="button"] { -webkit-tap-highlight-color: transparent; }
+
+  /* Bottom nav safe-area + ensure it sits above floating widgets. */
+  .mob-bar,
+  .bottom-nav {
+    padding-bottom: max(env(safe-area-inset-bottom, 0px), 8px) !important;
+  }
+
+  /* While the chat composer holds focus, retract the mobile bottom
+     nav so the soft keyboard + composer never overlap it. */
+  body.chat-composer-focused .mob-bar,
+  body.chat-composer-focused .bottom-nav {
+    transform: translateY(120%);
+    transition: transform .2s ease;
+  }
+}
+
+/* Seatbelt against future regressions — never let the document scroll
+   horizontally even on desktop. */
+html { overflow-x: hidden; }

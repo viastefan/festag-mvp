@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { Buildings, Sparkle } from '@phosphor-icons/react'
 
 /**
  * Three-mode dev assignment visualization:
@@ -46,7 +47,7 @@ export default function DevMatchAnimation({ mode, candidates=[], matched=null, s
     <div style={{ position:'relative', width:'100%', maxWidth:480, height:340, margin:'0 auto', display:'flex', alignItems:'center', justifyContent:'center' }}>
       <style>{`
         @keyframes dm-orbit { from{transform:rotate(0deg) translateX(120px) rotate(0deg);} to{transform:rotate(360deg) translateX(120px) rotate(-360deg);} }
-        @keyframes dm-pulse { 0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(99,102,241,.5);} 50%{transform:scale(1.04);box-shadow:0 0 0 16px rgba(99,102,241,0);} }
+        @keyframes dm-pulse { 0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(106,115,140,.5);} 50%{transform:scale(1.04);box-shadow:0 0 0 16px rgba(106,115,140,0);} }
         @keyframes dm-line  { 0%{stroke-dashoffset:240;opacity:0;} 30%{opacity:1;} 100%{stroke-dashoffset:0;opacity:1;} }
         @keyframes dm-pop   { from{transform:scale(0);opacity:0;} 60%{transform:scale(1.15);opacity:1;} to{transform:scale(1);opacity:1;} }
         @keyframes dm-fade  { from{opacity:0;transform:translateY(8px);} to{opacity:1;transform:none;} }
@@ -65,7 +66,8 @@ export default function DevMatchAnimation({ mode, candidates=[], matched=null, s
       <div className="dm-radar-ring"/>
       <div className="dm-center">
         {client?.avatar ? <img src={client.avatar} alt="" style={{ width:'100%', height:'100%', borderRadius:'50%', objectFit:'cover' }}/> :
-         <span>{client?.name?.charAt(0)?.toUpperCase() ?? '✦'}</span>}
+         client?.name ? <span>{client.name.charAt(0).toUpperCase()}</span> :
+         <Buildings size={30} weight="regular" />}
       </div>
 
       {/* Mode-specific rendering */}
@@ -83,7 +85,7 @@ export default function DevMatchAnimation({ mode, candidates=[], matched=null, s
                 style={{ transform: `translate(${x}px, ${y}px)` }}>
                 {d.avatar ? <img src={d.avatar} alt="" style={{ width:'100%', height:'100%', borderRadius:'50%', objectFit:'cover' }}/> : (d.initial ?? d.name.charAt(0).toUpperCase())}
                 {isMatch && (
-                  <div className="dm-pop" style={{ position:'absolute', top:-8, right:-8, width:22, height:22, background:'#22c55e', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', border:'2px solid #fff' }}>
+                  <div className="dm-pop" style={{ position:'absolute', top:-8, right:-8, width:22, height:22, background:'var(--green)', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', border:'2px solid var(--surface)' }}>
                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                   </div>
                 )}
@@ -121,7 +123,7 @@ export default function DevMatchAnimation({ mode, candidates=[], matched=null, s
       )}
       {phase === 'matched' && matched && mode === 'pool' && (
         <p className="dm-pop" style={{ position:'absolute', bottom:24, left:'50%', transform:'translateX(-50%)', fontSize:13.5, color:'var(--text)', textAlign:'center', margin:0, fontWeight:700 }}>
-          ✨ Dein Match: <span style={{ color:'#22c55e' }}>{matched.name}</span>
+          <Sparkle size={14} weight="fill" style={{ color:'var(--green-dark)', verticalAlign:'-2px', marginRight:5 }} />Dein Match: <span style={{ color:'var(--green-dark)' }}>{matched.name}</span>
         </p>
       )}
     </div>

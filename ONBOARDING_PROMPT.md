@@ -230,7 +230,7 @@ IF email_verified:
 │ Wähle was du erfahren möchtest:
 │                              │
 │ ☑ AI Updates & Tagesberichte │
-│   "Wenn Tagro Berichte erstellt"
+│   "Wenn Veyra Berichte erstellt"
 │                              │
 │ ☑ Developer-Aktivität        │
 │   "Tasks erledigt oder aktiv"

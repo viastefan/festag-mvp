@@ -1,94 +1,104 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { randomBytes } from 'crypto'
+import { sendInviteAcceptEmail, sendInviteEmail } from '@/lib/email/send'
 
 const SUPABASE_URL = 'https://xsdkoepwuvpuroijjain.supabase.co'
 
+// Force Node.js runtime — nodemailer + crypto need Node, not Edge.
+export const runtime = 'nodejs'
+
 /**
- * Sends a Festag invitation email via Resend.
- * Body: { email, role: 'dev'|'client'|'collaborator', invitedName?, accessMode?, projectId? }
+ * Sendet eine Festag-Einladung — Email-first Acceptance-Flow.
  *
- * Flow:
- *   1. Generates a 6-digit PIN + persists to team_invites (status=pending)
- *   2. Sends email to invitee with PIN + login link
- *   3. CCs founder mailbox so we can manually verify
+ * Body: { email, role, invitedName?, accessMode?, projectId?, fromUserId?, fromUserEmail?, teamId? }
+ *
+ * Flow (neu, Standard):
+ *   1. accept_token (32 bytes hex) erzeugen + in team_invites speichern
+ *   2. Mail mit Acceptance-Link an Empfänger (KEIN PIN), CC an Founder
+ *   3. Empfänger klickt Link → /invite/[token] → POST /api/invites/accept
+ *   4. Server generiert PIN + sendet 2. Mail mit PIN
+ *
+ * Legacy-Fallback (FESTAG_INVITE_DIRECT_PIN=1):
+ *   PIN wird sofort generiert und in der ersten Mail mitgeschickt.
  */
 export async function POST(req: NextRequest) {
   try {
-    const { email, role, invitedName, accessMode, projectId, fromUserId, fromUserEmail } = await req.json()
-    if (!email || !email.includes('@')) return NextResponse.json({ error:'invalid email' }, { status:400 })
+    const { email, role, invitedName, accessMode, projectId, teamId, fromUserId, fromUserEmail } = await req.json()
+    if (!email || !email.includes('@')) {
+      return NextResponse.json({ error: 'invalid email' }, { status: 400 })
+    }
 
-    const allowedRoles = ['dev','client','collaborator','admin']
-    const safeRole = allowedRoles.includes(role) ? role : 'collaborator'
-    const safeMode = ['open','closed','team','company'].includes(accessMode) ? accessMode : 'open'
+    const allowedRoles = ['dev', 'client', 'collaborator', 'admin'] as const
+    const safeRole: typeof allowedRoles[number] = (allowedRoles as readonly string[]).includes(role) ? role : 'collaborator'
+    const safeMode = ['open', 'closed', 'team', 'company'].includes(accessMode) ? accessMode : 'open'
 
-    const pin = String(Math.floor(100000 + Math.random()*900000))
+    const acceptToken = randomBytes(32).toString('hex')
+    const directPin   = process.env.FESTAG_INVITE_DIRECT_PIN === '1'
+    const pin         = directPin ? String(Math.floor(100000 + Math.random() * 900000)) : null
 
-    // Persist invite (best-effort)
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
     let inviteId: string | null = null
+
     if (serviceKey) {
-      const sb = createClient(SUPABASE_URL, serviceKey, { auth:{ autoRefreshToken:false, persistSession:false } })
-      const { data: ins } = await sb.from('team_invites').insert({
-        email: email.toLowerCase().trim(),
-        role: safeRole,
-        invited_by: fromUserId ?? null,
-        invited_name: invitedName ?? null,
-        access_mode: safeMode,
-        project_id: projectId ?? null,
-        pin,
-        status: 'pending',
+      const sb = createClient(SUPABASE_URL, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } })
+      const { data: ins, error } = await sb.from('team_invites').insert({
+        email:         email.toLowerCase().trim(),
+        role:          safeRole,
+        invited_by:    fromUserId ?? null,
+        invited_name:  invitedName ?? null,
+        access_mode:   safeMode,
+        project_id:    projectId ?? null,
+        team_id:       teamId    ?? null,
+        tenant_id:     fromUserId ?? null,
+        accept_token:  acceptToken,
+        pin:           pin,
+        pin_sent_at:   directPin && pin ? new Date().toISOString() : null,
+        status:        'pending',
+        expires_at:    new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
       }).select('id').single()
+
+      if (error) console.error('[invites/send] insert error:', error)
       inviteId = (ins as any)?.id ?? null
     }
 
-    const origin = req.headers.get('origin') ?? new URL(req.url).origin
-    const acceptUrl = `${origin}/login?invite=${inviteId ?? ''}&email=${encodeURIComponent(email)}`
+    const origin    = req.headers.get('origin') ?? new URL(req.url).origin
+    const acceptUrl = `${origin}/invite/${acceptToken}`
 
-    // Send via Resend if configured
-    const resendKey = process.env.RESEND_API_KEY
-    let mailSent = false
-    if (resendKey) {
-      const html = `<!doctype html><html><body style="font-family:-apple-system,sans-serif;max-width:520px;margin:32px auto;padding:0 24px;color:#0f172a;line-height:1.6;">
-        <div style="background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;padding:28px 28px;border-radius:14px 14px 0 0;">
-          <h1 style="margin:0 0 4px;font-size:22px;letter-spacing:-.4px;">Du wurdest zu Festag eingeladen</h1>
-          <p style="margin:0;opacity:.9;font-size:14px;">${invitedName ? `Hi ${invitedName}, ` : 'Hi, '} du wurdest als <strong>${safeRole === 'dev' ? 'Developer' : safeRole === 'client' ? 'Kunde' : 'Mitglied'}</strong> eingeladen.</p>
-        </div>
-        <div style="background:#fff;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 14px 14px;padding:28px;">
-          <p style="margin:0 0 16px;">${fromUserEmail ?? 'Festag'} hat dich eingeladen, deinem Festag Workspace beizutreten.</p>
-          <div style="background:#f1f5f9;border-radius:10px;padding:16px;margin:18px 0;text-align:center;">
-            <p style="margin:0 0 4px;font-size:11px;font-weight:700;letter-spacing:.1em;color:#64748b;">DEIN ZUGANGS-PIN</p>
-            <p style="margin:0;font-size:28px;font-weight:800;letter-spacing:.3em;font-family:ui-monospace,monospace;color:#0f172a;">${pin}</p>
-          </div>
-          <a href="${acceptUrl}" style="display:inline-block;width:100%;padding:14px;background:#0f172a;color:#fff;text-decoration:none;border-radius:10px;text-align:center;font-weight:700;box-sizing:border-box;">
-            Festag öffnen →
-          </a>
-          <p style="margin:18px 0 0;font-size:12px;color:#94a3b8;">Dieser PIN ist 7 Tage gültig. Nach dem Login wirst du gebeten, ihn zu ändern.</p>
-        </div>
-      </body></html>`
-
-      const r = await fetch('https://api.resend.com/emails', {
-        method:'POST',
-        headers: {
-          'Authorization': `Bearer ${resendKey}`,
-          'Content-Type':'application/json',
-        },
-        body: JSON.stringify({
-          from: process.env.RESEND_FROM ?? 'Festag <hello@festag.io>',
-          to: [email],
-          cc: ['stefandirnberger@viawen.com'],  // founder verification CC
-          subject: `Du wurdest zu Festag eingeladen ${safeMode === 'closed' ? '(Closed-System)' : ''}`,
-          html,
-        }),
+    let mailResult
+    if (directPin && pin) {
+      // Legacy fallback path — sofort PIN
+      mailResult = await sendInviteEmail({
+        to: email,
+        invitedName: invitedName ?? null,
+        role: safeRole,
+        fromName: fromUserEmail ?? 'Festag',
+        pin,
+        acceptUrl: `${origin}/login?invite=${inviteId ?? ''}&email=${encodeURIComponent(email)}`,
+        ccFounder: true,
       })
-      mailSent = r.ok
-      if (!r.ok) {
-        const errBody = await r.text().catch(() => '')
-        console.error('resend error:', errBody)
-      }
+    } else {
+      // Standard — Acceptance-Mail ohne PIN
+      mailResult = await sendInviteAcceptEmail({
+        to: email,
+        invitedName: invitedName ?? null,
+        role: safeRole,
+        fromName: fromUserEmail ?? 'Festag',
+        acceptUrl,
+        ccFounder: true,
+      })
     }
 
-    return NextResponse.json({ ok: true, inviteId, pin: mailSent ? undefined : pin, mailSent })
+    return NextResponse.json({
+      ok:        true,
+      inviteId,
+      flow:      directPin ? 'direct-pin' : 'accept-first',
+      mailSent:  mailResult.ok,
+      pin:       mailResult.ok ? undefined : pin ?? undefined,
+      mailError: mailResult.ok ? undefined : ('error' in mailResult ? mailResult.error : undefined),
+    })
   } catch (e: any) {
-    return NextResponse.json({ error: e?.message ?? 'unknown' }, { status:500 })
+    console.error('[invites/send] error:', e)
+    return NextResponse.json({ error: e?.message ?? 'unknown' }, { status: 500 })
   }
 }

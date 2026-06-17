@@ -4,166 +4,211 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
+type ProjectSnapshot = {
+  id: string
+  title: string
+  status: string | null
+}
+
+type ActivityItem = {
+  id: string
+  title: string
+  event_type?: string | null
+  actor_role?: string | null
+  created_at: string
+}
+
+const PHASE: Record<string, { label: string; tone: string }> = {
+  intake: { label: 'Intake', tone: 'var(--text-muted)' },
+  planning: { label: 'Planung', tone: '#F59E0B' },
+  active: { label: 'Aktiv', tone: 'var(--green)' },
+  testing: { label: 'Testing', tone: 'var(--text-secondary)' },
+  done: { label: 'Geliefert', tone: 'var(--green-dark)' },
+}
+
+function Icon({ name, size = 15 }: { name: 'project' | 'task' | 'message' | 'activity' | 'billing' | 'document' | 'ai' | 'arrow'; size?: number }) {
+  const paths: Record<typeof name, string[]> = {
+    project: ['M3 3h18v18H3z', 'M3 9h18', 'M9 21V9'],
+    task: ['M9 11l3 3L22 4', 'M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11'],
+    message: ['M21 12c0 4.4-4 8-9 8-1.4 0-2.8-.3-4-.8L3 21l1.8-5C4.3 15 4 13.5 4 12c0-4.4 4-8 9-8s9 3.6 9 8z'],
+    activity: ['M22 12h-4l-3 9L9 3l-3 9H2'],
+    billing: ['M2 5h20v14H2z', 'M2 10h20'],
+    document: ['M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z', 'M14 3v5h5'],
+    ai: ['M12 3v4', 'M12 17v4', 'M3 12h4', 'M17 12h4', 'M5.6 5.6l2.8 2.8', 'M15.6 15.6l2.8 2.8', 'M18.4 5.6l-2.8 2.8', 'M8.4 15.6l-2.8 2.8'],
+    arrow: ['M9 6l6 6-6 6'],
+  }
+
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      {paths[name].map((d) => <path key={d} d={d} />)}
+    </svg>
+  )
+}
+
 export default function SettingsRightPanel() {
-  const [stats,    setStats]    = useState({ projects:0, tasks:0, messages:0, done:0 })
-  const [activity, setActivity] = useState<any[]>([])
-  const [projects, setProjects] = useState<any[]>([])
+  const [stats, setStats] = useState({ projects: 0, tasks: 0, messages: 0, done: 0 })
+  const [activity, setActivity] = useState<ActivityItem[]>([])
+  const [projects, setProjects] = useState<ProjectSnapshot[]>([])
 
   useEffect(() => {
     const sb = createClient()
     sb.auth.getUser().then(async ({ data }) => {
       if (!data.user) return
-      const [{ data:projs }, { data:acts }] = await Promise.all([
-        sb.from('projects').select('id,title,status').order('created_at',{ascending:false}).limit(4),
-        sb.from('activity_feed').select('*').order('created_at',{ascending:false}).limit(6),
+      const [{ data: projs }, { data: acts }] = await Promise.all([
+        sb.from('projects').select('id,title,status').order('created_at', { ascending: false }).limit(4),
+        sb.from('activity_feed').select('id,title,event_type,actor_role,created_at').order('created_at', { ascending: false }).limit(5),
       ])
-      const ids = projs?.map(p => p.id) ?? []
-      let tc = 0, mc = 0, dc = 0
+      const ids = projs?.map((p) => p.id) ?? []
+      let taskCount = 0
+      let messageCount = 0
+      let doneCount = 0
       if (ids.length) {
-        const [{ count:t }, { count:m }, { count:d }] = await Promise.all([
-          sb.from('tasks').select('id',{count:'exact',head:true}).in('project_id', ids),
-          sb.from('messages').select('id',{count:'exact',head:true}).in('project_id', ids),
-          sb.from('tasks').select('id',{count:'exact',head:true}).in('project_id', ids).eq('status','done'),
+        const [{ count: tasks }, { count: messages }, { count: done }] = await Promise.all([
+          sb.from('tasks').select('id', { count: 'exact', head: true }).in('project_id', ids),
+          sb.from('messages').select('id', { count: 'exact', head: true }).in('project_id', ids),
+          sb.from('tasks').select('id', { count: 'exact', head: true }).in('project_id', ids).eq('status', 'done'),
         ])
-        tc = t??0; mc = m??0; dc = d??0
+        taskCount = tasks ?? 0
+        messageCount = messages ?? 0
+        doneCount = done ?? 0
       }
-      setStats({ projects:projs?.length??0, tasks:tc, messages:mc, done:dc })
-      setProjects(projs??[])
-      setActivity(acts??[])
+      setStats({ projects: projs?.length ?? 0, tasks: taskCount, messages: messageCount, done: doneCount })
+      setProjects(projs ?? [])
+      setActivity(acts ?? [])
     })
   }, [])
 
-  const PHASE: Record<string,{l:string,c:string}> = {
-    intake:   { l:'Intake',      c:'#94A3B8' },
-    planning: { l:'Planning',    c:'#F59E0B' },
-    active:   { l:'Development', c:'#10B981' },
-    testing:  { l:'Testing',     c:'#007AFF' },
-    done:     { l:'Delivered',   c:'#059669' },
-  }
-
-  const pct = stats.tasks ? Math.round(stats.done / stats.tasks * 100) : 0
+  const progress = stats.tasks ? Math.round((stats.done / stats.tasks) * 100) : 0
+  const signalCount = Math.max(1, stats.projects + stats.messages)
 
   return (
-    <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+    <aside className="settings-insight-rail" aria-label="Workspace Signale">
+      <style>{`
+        .settings-insight-rail { display:flex; flex-direction:column; gap:14px; }
+        .rail-panel { border:1px solid color-mix(in srgb, var(--border) 62%, transparent); background:color-mix(in srgb, var(--surface) 82%, transparent); border-radius:18px; padding:16px; box-shadow:0 18px 48px rgba(0,0,0,.045); backdrop-filter:blur(22px) saturate(150%); -webkit-backdrop-filter:blur(22px) saturate(150%); }
+        .rail-kicker { margin:0 0 10px; color:var(--text-muted); font-size:10px; font-weight:780; letter-spacing:.11em; text-transform:uppercase; }
+        .rail-title { margin:0; color:var(--text); font-size:17px; font-weight:790; letter-spacing:-.035em; line-height:1.16; }
+        .rail-copy { margin:6px 0 0; color:var(--text-muted); font-size:12px; line-height:1.55; }
+        .rail-stats { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin-top:14px; }
+        .rail-stat { min-height:72px; border-radius:14px; border:1px solid color-mix(in srgb, var(--border) 54%, transparent); background:color-mix(in srgb, var(--card) 66%, transparent); padding:12px; display:flex; flex-direction:column; justify-content:space-between; }
+        .rail-stat span { color:var(--text-muted); font-size:10.5px; font-weight:720; }
+        .rail-stat strong { color:var(--text); font-size:22px; line-height:1; letter-spacing:-.045em; }
+        .rail-progress { height:3px; background:color-mix(in srgb, var(--border) 70%, transparent); border-radius:999px; overflow:hidden; margin-top:12px; }
+        .rail-progress > span { display:block; height:100%; border-radius:inherit; background:var(--text); transition:width .6s cubic-bezier(.16,1,.3,1); }
+        .rail-list { display:flex; flex-direction:column; gap:2px; }
+        .rail-row { display:flex; align-items:center; gap:10px; min-height:38px; color:var(--text-secondary); border-radius:12px; padding:0 8px; transition:background .16s cubic-bezier(.16,1,.3,1), color .16s cubic-bezier(.16,1,.3,1); }
+        .rail-row:hover { background:color-mix(in srgb, var(--surface-2) 82%, transparent); color:var(--text); }
+        .rail-row-main { min-width:0; flex:1; }
+        .rail-row-title { margin:0; color:inherit; font-size:12.5px; font-weight:670; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .rail-row-meta { margin:1px 0 0; color:var(--text-muted); font-size:10.5px; font-weight:620; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .rail-dot { width:7px; height:7px; border-radius:999px; flex-shrink:0; background:var(--text-muted); opacity:.7; }
+        .rail-action { display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:40px; border-radius:13px; padding:0 10px; color:var(--text-secondary); text-decoration:none; transition:background .16s, color .16s; }
+        .rail-action:hover { background:var(--surface-2); color:var(--text); }
+      `}</style>
 
-      {/* ── Account Stats ── */}
-      <div style={{ background:'var(--surface)', border:'1px solid var(--border)', borderRadius:'var(--r-lg)', overflow:'hidden', boxShadow:'var(--shadow-xs)' }}>
-        <div style={{ padding:'13px 16px', borderBottom:'1px solid var(--border)', background:'var(--bg)' }}>
-          <p style={{ fontSize:10.5, fontWeight:700, color:'#94A3B8', letterSpacing:'.1em', margin:0 }}>DEIN ACCOUNT</p>
-        </div>
-        <div style={{ padding:'14px 16px', display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:8, textAlign:'left' }}>
+      <section className="rail-panel">
+        <p className="rail-kicker">Workspace Signals</p>
+        <h2 className="rail-title">Administration ohne Lärm.</h2>
+        <p className="rail-copy">Diese Einstellungen steuern Profil, Workspace, Zugriff, Voice Reports und die externe Tool-Schicht im Client Panel.</p>
+        <div className="rail-stats">
           {[
-            { l:'Projekte', v:stats.projects, c:'var(--text)' },
-            { l:'Tasks',    v:stats.tasks,    c:'var(--text)' },
-            { l:'Erledigt', v:stats.done,     c:'var(--green-dark)' },
-            { l:'Chats',    v:stats.messages, c:'var(--text)' },
-          ].map(s => (
-            <div key={s.l}>
-              <p style={{ fontSize:22, fontWeight:700, color:s.c, margin:'0 0 2px', lineHeight:1 }}>{s.v}</p>
-              <p style={{ fontSize:10.5, color:'#94A3B8', margin:0 }}>{s.l}</p>
+            ['Projekte', stats.projects],
+            ['Tasks', stats.tasks],
+            ['Erledigt', stats.done],
+            ['Signale', signalCount],
+          ].map(([label, value]) => (
+            <div key={label} className="rail-stat">
+              <span>{label}</span>
+              <strong>{value}</strong>
             </div>
           ))}
         </div>
-        {/* Progress bar */}
-        {stats.tasks > 0 && (
-          <div style={{ padding:'0 18px 14px' }}>
-            <div style={{ display:'flex', justifyContent:'space-between', marginBottom:6 }}>
-              <span style={{ fontSize:11.5, color:'#94A3B8' }}>Gesamtfortschritt</span>
-              <span style={{ fontSize:11.5, fontWeight:700, color:'#0F172A' }}>{pct}%</span>
-            </div>
-            <div style={{ height:4, background:'#F1F5F9', borderRadius:4, overflow:'hidden' }}>
-              <div style={{ height:'100%', width:`${pct}%`, background:'#0F172A', borderRadius:4, transition:'width .6s ease' }} />
-            </div>
-          </div>
-        )}
-      </div>
+        <div className="rail-progress" aria-label={`Gesamtfortschritt ${progress} Prozent`}>
+          <span style={{ width: `${progress}%` }} />
+        </div>
+        <p className="rail-copy" style={{ marginTop: 8 }}>Gesamtfortschritt · {progress}%</p>
+      </section>
 
-      {/* ── Active Projects ── */}
+      <section className="rail-panel">
+        <p className="rail-kicker">Setup Fokus</p>
+        <div className="rail-list">
+          {[
+            ['Workspace Daten prüfen', 'Name, Typ und Unternehmenskontext'],
+            ['Voice manuell lassen', 'Kein Autoplay, kein Always Listening'],
+            ['Rollen vorbereiten', 'Developer nur projektbasiert freigeben'],
+          ].map(([title, meta], index) => (
+            <div key={title} className="rail-row">
+              <span className="rail-dot" style={{ background: index === 0 ? 'var(--green)' : 'var(--text-muted)' }} />
+              <div className="rail-row-main">
+                <p className="rail-row-title">{title}</p>
+                <p className="rail-row-meta">{meta}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {projects.length > 0 && (
-        <div style={{ background:'#fff', border:'1px solid #EEF2F7', borderRadius:20, overflow:'hidden', boxShadow:'0 2px 16px rgba(15,23,42,.04)' }}>
-          <div style={{ padding:'13px 18px', borderBottom:'1px solid #F1F5F9', background:'#FAFBFD', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-            <p style={{ fontSize:10.5, fontWeight:700, color:'#94A3B8', letterSpacing:'.1em', margin:0 }}>PROJEKTE</p>
-            <Link href="/dashboard" style={{ fontSize:11.5, color:'var(--text-secondary)', fontWeight:600 }}>Alle</Link>
-          </div>
-          <div style={{ padding:'8px 0' }}>
-            {projects.map((p, i) => {
-              const ph = PHASE[p.status] ?? { l:p.status, c:'#94A3B8' }
+        <section className="rail-panel">
+          <p className="rail-kicker">Aktive Projekte</p>
+          <div className="rail-list">
+            {projects.map((project) => {
+              const phase = PHASE[project.status || ''] ?? { label: project.status || 'Offen', tone: 'var(--text-muted)' }
               return (
-                <Link key={p.id} href={`/project/${p.id}`}>
-                  <div style={{ padding:'9px 16px', display:'flex', alignItems:'center', gap:10, borderBottom:i<projects.length-1?'1px solid #F8FAFC':'none', cursor:'pointer', transition:'background .1s' }}
-                    onMouseEnter={e=>(e.currentTarget as HTMLElement).style.background='#FAFBFD'}
-                    onMouseLeave={e=>(e.currentTarget as HTMLElement).style.background='transparent'}
-                  >
-                    <div style={{ width:7, height:7, borderRadius:'50%', background:ph.c, flexShrink:0 }} />
-                    <p style={{ fontSize:13, color:'#0F172A', flex:1, margin:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', fontWeight:500 }}>{p.title}</p>
-                    <span style={{ fontSize:10.5, color:'#94A3B8', flexShrink:0 }}>{ph.l}</span>
+                <Link key={project.id} href={`/project/${project.id}`} className="rail-row" style={{ textDecoration: 'none' }}>
+                  <span className="rail-dot" style={{ background: phase.tone }} />
+                  <div className="rail-row-main">
+                    <p className="rail-row-title">{project.title}</p>
+                    <p className="rail-row-meta">{phase.label}</p>
                   </div>
+                  <Icon name="arrow" size={12} />
                 </Link>
               )
             })}
           </div>
-        </div>
+        </section>
       )}
 
-      {/* ── Recent Activity ── */}
-      <div style={{ background:'var(--surface)', border:'1px solid var(--border)', borderRadius:'var(--r-lg)', overflow:'hidden', boxShadow:'var(--shadow-xs)' }}>
-        <div style={{ padding:'13px 16px', borderBottom:'1px solid var(--border)', background:'var(--bg)', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-          <p style={{ fontSize:10.5, fontWeight:700, color:'#94A3B8', letterSpacing:'.1em', margin:0 }}>ZULETZT AKTIV</p>
-          <Link href="/activity" style={{ fontSize:11.5, color:'var(--text-secondary)', fontWeight:600 }}>Alle</Link>
-        </div>
-        <div style={{ padding:'6px 0' }}>
+      <section className="rail-panel">
+        <p className="rail-kicker">Letzte Aktivität</p>
+        <div className="rail-list">
           {activity.length === 0 ? (
-            <p style={{ fontSize:13, color:'#94A3B8', textAlign:'center', padding:'18px 0', margin:0 }}>Noch keine Aktivitäten</p>
-          ) : activity.map((a, i) => (
-            <div key={a.id} style={{ padding:'8px 16px', display:'flex', gap:10, alignItems:'center', borderBottom:i<activity.length-1?'1px solid #F8FAFC':'none' }}>
-              <span style={{ width:6,height:6,borderRadius:'50%',background:'var(--text-muted)',flexShrink:0 }} />
-              <div style={{ flex:1, minWidth:0 }}>
-                <p style={{ fontSize:12.5, color:'#0F172A', margin:0, fontWeight:500, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{a.title}</p>
-                <p style={{ fontSize:10.5, color:'#94A3B8', margin:0 }}>
-                  {new Date(a.created_at).toLocaleTimeString('de',{hour:'2-digit',minute:'2-digit'})}
-                  {a.actor_role && <span style={{ marginLeft:5, fontWeight:600, textTransform:'uppercase', fontSize:9.5, letterSpacing:'.05em' }}>{a.actor_role}</span>}
+            <p className="rail-copy" style={{ margin: 0 }}>Noch keine Aktivitäten. Sobald Tagro, Projekte oder Teams arbeiten, erscheinen hier die wichtigsten Signale.</p>
+          ) : activity.map((item) => (
+            <div key={item.id} className="rail-row">
+              <span style={{ color: 'var(--text-muted)', flexShrink: 0 }}><Icon name="activity" size={14} /></span>
+              <div className="rail-row-main">
+                <p className="rail-row-title">{item.title}</p>
+                <p className="rail-row-meta">
+                  {new Date(item.created_at).toLocaleDateString('de', { day: '2-digit', month: 'short' })}
+                  {item.actor_role ? ` · ${item.actor_role}` : ''}
                 </p>
               </div>
             </div>
           ))}
         </div>
-      </div>
+      </section>
 
-      {/* ── Dark Tagro CTA ── */}
-      <div style={{ background:'var(--text)', borderRadius:'var(--r-lg)', padding:'16px', position:'relative', overflow:'hidden' }}>
-        <p style={{ fontSize:13.5, fontWeight:700, color:'#fff', margin:'0 0 5px', lineHeight:1.3 }}>AI plant. Menschen bauen.</p>
-        <p style={{ fontSize:12, color:'rgba(255,255,255,.5)', margin:'0 0 14px', lineHeight:1.5 }}>Tagro analysiert deine Unternehmensdaten für bessere Projektergebnisse.</p>
-        <Link href="/ai">
-          <button style={{ padding:'7px 12px', background:'rgba(255,255,255,.1)', color:'#fff', border:'1px solid rgba(255,255,255,.15)', borderRadius:'var(--r)', fontSize:12, fontWeight:600, cursor:'pointer', fontFamily:'inherit' }}>
-            Tagro öffnen
-          </button>
-        </Link>
-      </div>
-
-      {/* ── Quick Links ── */}
-      <div style={{ background:'var(--surface)', border:'1px solid var(--border)', borderRadius:'var(--r-lg)', overflow:'hidden', boxShadow:'var(--shadow-xs)' }}>
-        <div style={{ padding:'12px 16px', borderBottom:'1px solid var(--border)', background:'var(--bg)' }}>
-          <p style={{ fontSize:10.5, fontWeight:700, color:'#94A3B8', letterSpacing:'.1em', margin:0 }}>SCHNELLZUGRIFF</p>
-        </div>
-        <div style={{ padding:'4px 0' }}>
-          {[
-            { l:'Dashboard',         href:'/dashboard' },
-            { l:'Aktuelles Projekt', href:'/project/current' },
-            { l:'Activity Feed',     href:'/activity' },
-            { l:'Billing',           href:'/billing' },
-            { l:'Dokumente',         href:'/documents' },
-          ].map((item, i) => (
-            <Link key={item.href} href={item.href}>
-              <div style={{ display:'flex', alignItems:'center', gap:10, padding:'9px 16px', borderBottom:i<4?'1px solid #F8FAFC':'none', cursor:'pointer', transition:'background .1s' }}
-                onMouseEnter={e=>(e.currentTarget as HTMLElement).style.background='#FAFBFD'}
-                onMouseLeave={e=>(e.currentTarget as HTMLElement).style.background='transparent'}
-              >
-                <span style={{ fontSize:13, color:'#475569', flex:1 }}>{item.l}</span>
-              </div>
+      <section className="rail-panel">
+        <p className="rail-kicker">Schnellzugriff</p>
+        <div className="rail-list">
+          {([
+            ['Dashboard', '/dashboard', 'project'],
+            ['Projektbriefings', '/reports', 'ai'],
+            ['Activity Feed', '/activity', 'activity'],
+            ['Billing', '/billing', 'billing'],
+            ['Dokumente', '/documents', 'document'],
+          ] as Array<[string, string, 'project'|'message'|'ai'|'document'|'billing'|'activity'|'task'|'arrow']>).map(([label, href, icon]) => (
+            <Link key={href} href={href} className="rail-action">
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 9 }}>
+                <Icon name={icon} />
+                <span style={{ fontSize: 12.5, fontWeight: 680 }}>{label}</span>
+              </span>
+              <Icon name="arrow" size={12} />
             </Link>
           ))}
         </div>
-      </div>
-    </div>
+      </section>
+    </aside>
   )
 }

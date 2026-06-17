@@ -1,34 +1,39 @@
 'use client'
-import { useEffect, useState } from 'react'
 
-const MSGS = ['System startet…','AI wird geladen…','Projekte synchronisiert…','Bereit.']
+import { useEffect } from 'react'
 
 export default function LoadingScreen({ onDone }: { onDone: () => void }) {
-  const [pct, setPct] = useState(0)
-  const [mi,  setMi]  = useState(0)
-
   useEffect(() => {
-    const start = Date.now(), dur = 2600
-    const iv = setInterval(() => {
-      const p = Math.min(100, Math.round((Date.now()-start)/dur*100))
-      setPct(p); setMi(Math.min(Math.floor(p/100*MSGS.length), MSGS.length-1))
-      if (p>=100) { clearInterval(iv); setTimeout(onDone, 180) }
-    }, 20)
-    return () => clearInterval(iv)
-  }, [])
+    const doneTimer = window.setTimeout(onDone, 900)
+    return () => {
+      window.clearTimeout(doneTimer)
+    }
+  }, [onDone])
 
   return (
-    <div style={{ position:'fixed',inset:0,background:'var(--bg)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:9999 }}>
-      <div style={{ display:'flex',flexDirection:'column',alignItems:'center',marginBottom:'4vh' }}>
-        {/* Logo: 32px, marginBottom 24px — much tighter to bar */}
-        <img src="/brand/logo.svg" alt="festag" style={{ height:32,display:'block',marginBottom:24,filter:'var(--logo-filter,none)' }} />
-        {/* Bar */}
-        <div style={{ width:200,height:2,background:'var(--border)',borderRadius:2,overflow:'hidden',marginBottom:12 }}>
-          <div style={{ height:'100%',width:`${pct}%`,background:'var(--text)',borderRadius:2,transition:'width .025s linear' }} />
-        </div>
-        {/* Message */}
-        <p style={{ fontSize:12,color:'var(--text-muted)',margin:0,letterSpacing:'.02em',fontFamily:'inherit' }}>{MSGS[mi]}</p>
-      </div>
+    <div className="festag-loader" aria-live="polite">
+      <style>{`
+        .festag-loader {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          min-height: 100dvh;
+          width: 100%;
+          background: transparent;
+        }
+        .festag-loader-spinner {
+          width: 18px;
+          height: 18px;
+          border-radius: 999px;
+          border: 2px solid rgba(25,26,28,.18);
+          border-top-color: rgba(25,26,28,.82);
+          animation: festagLoaderSpin .78s linear infinite;
+        }
+        @keyframes festagLoaderSpin {
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
+      <div className="festag-loader-spinner" aria-label="Lädt" />
     </div>
   )
 }

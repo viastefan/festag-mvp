@@ -1,215 +1,498 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { createClient } from '@/lib/supabase/client'
-import DevMatchAnimation from '@/components/DevMatchAnimation'
-import { effectiveRole, isDevOrAdmin } from '@/lib/role'
-
 /**
- * Invite hub — three connection modes:
- *   1. Open Pool   — Festag matches you with one of our devs (default)
- *   2. Invite Dev  — you have a known dev/agency partner; invite them by email
- *   3. Closed Mode — outsourced/internal: dev only sees this client's projects
+ * Einladung — calm, single-purpose page.
  *
- * Two flows from this single page:
- *   - Client invites their existing dev/agency → email + PIN
- *   - Dev invites their existing client → email + temporary password
+ * Brings a person into the user's workspace with a role. No emojis, no
+ * loud accent buttons, no competing flows on the same screen. Closed
+ * by default — the host stays in control of which projects the invitee
+ * sees.
  */
 
-type Flow = 'client_invites_dev' | 'dev_invites_client' | 'pool_match'
+import { useEffect, useState } from 'react'
+import Link from 'next/link'
+import { LinkSimple } from '@phosphor-icons/react'
+import { createClient } from '@/lib/supabase/client'
+import { effectiveRole, isDevOrAdmin } from '@/lib/role'
+import InviteLinkModal from '@/components/InviteLinkModal'
+
+type WorkspaceMode = 'delivery' | 'team' | 'agency' | null
+
+type RoleOption = {
+  id: string
+  label: string
+  description: string
+}
+
+const ROLE_OPTIONS_BY_MODE: Record<Exclude<WorkspaceMode, null>, RoleOption[]> = {
+  delivery: [
+    { id: 'approver', label: 'Approver',  description: 'Kann Entscheidungen und Meilensteine freigeben.' },
+    { id: 'finance',  label: 'Finance',   description: 'Sieht Rechnungen, Zahlungen und Meilensteine.' },
+    { id: 'member',   label: 'Mitglied',  description: 'Liest Briefings, kommentiert, lädt Dateien hoch.' },
+    { id: 'viewer',   label: 'Viewer',    description: 'Reiner Lesezugriff.' },
+  ],
+  team: [
+    { id: 'admin',           label: 'Admin',           description: 'Verwaltet Projekte, Rollen und Workspace-Einstellungen.' },
+    { id: 'project_manager', label: 'Project Manager', description: 'Steuert Projekte, Tasks und Briefings.' },
+    { id: 'developer',       label: 'Developer',       description: 'Bearbeitet zugewiesene technische Tasks.' },
+    { id: 'reviewer',        label: 'Reviewer',        description: 'Prüft Ergebnisse, gibt strukturiertes Feedback.' },
+    { id: 'viewer',          label: 'Viewer',          description: 'Reiner Lesezugriff.' },
+  ],
+  agency: [
+    { id: 'agency_admin',         label: 'Agency Admin',    description: 'Verwaltet Kundenprojekte, Team und Rollen.' },
+    { id: 'project_manager',      label: 'Project Manager', description: 'Steuert Kundenprojekte und Briefings.' },
+    { id: 'developer',            label: 'Developer',       description: 'Bearbeitet zugewiesene technische Tasks.' },
+    { id: 'client_owner',         label: 'Client Owner',    description: 'Hauptansprechpartner im Kundenportal.' },
+    { id: 'client_approver',      label: 'Client Approver', description: 'Kann Entscheidungen und Freigaben erteilen.' },
+    { id: 'client_viewer',        label: 'Client Viewer',   description: 'Liest Briefings und Status auf Kundenseite.' },
+    { id: 'finance',              label: 'Finance',         description: 'Sieht Rechnungen, Zahlungen und Meilensteine.' },
+    { id: 'white_label_manager',  label: 'White Label',     description: 'Verwaltet Branding, Domain, Briefing-Vorlagen.' },
+  ],
+}
+
+const DELIVERY_DEFAULT_ROLE = 'member'
+const TEAM_DEFAULT_ROLE = 'project_manager'
+const AGENCY_DEFAULT_ROLE = 'project_manager'
 
 export default function InvitePage() {
-  const [userRole, setUserRole] = useState<string>('')
-  const [flow, setFlow] = useState<Flow>('pool_match')
+  const sb = createClient()
+  const [loading, setLoading] = useState(true)
+  const [wsMode, setWsMode] = useState<WorkspaceMode>('delivery')
+  const [userRole, setUserRole] = useState<string>('client')
   const [email, setEmail] = useState('')
   const [name, setName] = useState('')
-  const [closedSystem, setClosedSystem] = useState(true)
+  const [role, setRole] = useState<string>(DELIVERY_DEFAULT_ROLE)
+  const [closed, setClosed] = useState(true)
   const [sending, setSending] = useState(false)
   const [sent, setSent] = useState(false)
   const [error, setError] = useState('')
-  const [showMatch, setShowMatch] = useState(false)
-  const sb = createClient()
+  const [linkOpen, setLinkOpen] = useState(false)
+  const [projects, setProjects] = useState<Array<{ id: string; title: string; color?: string | null }>>([])
 
   useEffect(() => {
-    sb.auth.getSession().then(async ({ data }) => {
-      if (!data.session) { window.location.href = '/login'; return }
-      const { data: p } = await sb.from('profiles').select('role').eq('id', data.session.user.id).single()
-      const r = (p as any)?.role ?? 'client'
+    let cancelled = false
+    ;(async () => {
+      const { data: { session } } = await sb.auth.getSession()
+      if (!session) { window.location.href = '/login'; return }
+      const uid = session.user.id
+
+      // Profile role (legacy) + workspace primary mode (modular)
+      const [{ data: profile }, { data: ws }] = await Promise.all([
+        sb.from('profiles').select('role').eq('id', uid).maybeSingle(),
+        sb.from('workspaces').select('id,mode').eq('primary_owner_id', uid).eq('is_personal', true).maybeSingle(),
+      ])
+      if (cancelled) return
+      const r = (profile as any)?.role ?? 'client'
       setUserRole(r)
-      setFlow(isDevOrAdmin(r) ? 'dev_invites_client' : 'pool_match')
-    })
+      const mode = ((ws as any)?.mode as WorkspaceMode) ?? 'delivery'
+      setWsMode(mode)
+
+      // Projects this person can assign an invite to (own + workspace).
+      const wsId = (ws as any)?.id ?? null
+      const projQuery = wsId
+        ? sb.from('projects').select('id,title,color').eq('workspace_id', wsId).is('deleted_at', null)
+        : sb.from('projects').select('id,title,color').eq('user_id', uid).is('deleted_at', null)
+      const { data: ps } = await projQuery
+      if (!cancelled && ps) setProjects(ps as any)
+      setRole(
+        mode === 'team'   ? TEAM_DEFAULT_ROLE
+        : mode === 'agency' ? AGENCY_DEFAULT_ROLE
+        : DELIVERY_DEFAULT_ROLE
+      )
+      setLoading(false)
+    })()
+    return () => { cancelled = true }
   }, [])
 
-  const eff = effectiveRole(userRole)
+  const effRole = effectiveRole(userRole)
+  const isStaff = isDevOrAdmin(userRole)
+  const roleOptions = ROLE_OPTIONS_BY_MODE[wsMode || 'delivery']
 
-  async function send() {
-    if (!email.includes('@')) { setError('Bitte gültige E-Mail.'); return }
-    setSending(true); setError('')
+  async function submit() {
+    setError('')
+    if (!email.includes('@')) { setError('Bitte eine gültige E-Mail eingeben.'); return }
+    setSending(true)
     try {
       const { data: { user } } = await sb.auth.getUser()
-      const role = flow === 'client_invites_dev' ? 'dev' : 'client'
       const res = await fetch('/api/invites/send', {
-        method:'POST', headers:{'Content-Type':'application/json'},
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: email.trim().toLowerCase(),
-          role,
+          // legacy role bucket — staff invites devs as 'dev', everyone else invites clients/team members
+          role: isStaff ? 'dev' : 'client',
           invitedName: name.trim() || null,
-          accessMode: closedSystem ? 'closed' : 'open',
+          workspaceRole: role,
+          accessMode: closed ? 'closed' : 'open',
           fromUserId: user?.id,
           fromUserEmail: user?.email,
         }),
       })
-      const d = await res.json()
-      if (d.error) throw new Error(d.error)
-      // Mirror to support_messages so the founder sees it in master-control
-      await sb.from('support_messages').insert({
-        user_id: user?.id, email: user?.email, page: '/invite',
-        message: `Neue ${role}-Einladung von ${user?.email} an ${email} (Mode: ${closedSystem?'closed':'open'}).${d.mailSent?' Mail versendet.':''}`,
-      }).catch(() => {})
+      const data = await res.json()
+      if (data?.error) throw new Error(data.error)
+      try {
+        await sb.from('support_messages').insert({
+          user_id: user?.id, email: user?.email, page: '/invite',
+          message: `Workspace-Einladung an ${email} (Rolle: ${role}, Mode: ${closed ? 'closed' : 'open'}).`,
+        })
+      } catch {}
       setSent(true)
-    } catch (e: any) { setError(e?.message ?? 'Fehler') }
-    setSending(false)
+    } catch (e: any) {
+      setError(e?.message || 'Einladung konnte nicht versendet werden.')
+    } finally {
+      setSending(false)
+    }
   }
 
-  if (showMatch) return (
-    <div className="page-content animate-fade-up" style={{ maxWidth:760 }}>
-      <DevMatchAnimation
-        mode="pool"
-        candidates={[
-          { id:'1', name:'Lukas',  initial:'L' },
-          { id:'2', name:'Anna',   initial:'A' },
-          { id:'3', name:'Marcus', initial:'M' },
-          { id:'4', name:'Sophie', initial:'S' },
-          { id:'5', name:'David',  initial:'D' },
-          { id:'6', name:'Emma',   initial:'E' },
-        ]}
-        matched={{ id:'2', name:'Anna', initial:'A' }}
-        status="matched"
-      />
-      <div style={{ textAlign:'center', marginTop:24 }}>
-        <button onClick={() => setShowMatch(false)} style={{ padding:'10px 20px', background:'var(--surface-2)', border:'1px solid var(--border)', borderRadius:10, fontSize:13, fontWeight:600, color:'var(--text)', cursor:'pointer', fontFamily:'inherit' }}>
-          ← Zurück
-        </button>
+  if (loading) {
+    return (
+      <div className="inv-page">
+        <style>{INVITE_CSS}</style>
+        <div className="inv-loading">Workspace wird geladen…</div>
       </div>
-    </div>
-  )
+    )
+  }
 
   return (
-    <div className="page-content animate-fade-up" style={{ maxWidth:780 }}>
-      <div className="page-header">
-        <h1>Team-Einladung</h1>
-        <p>Bring deine Mitstreiter an Bord — oder lass Tagro einen passenden Dev finden.</p>
-      </div>
+    <div className="inv-page">
+      <style>{INVITE_CSS}</style>
 
-      {/* Flow selector — only for admins */}
-      {isDevOrAdmin(userRole) && (
-        <div style={{ display:'flex', gap:6, marginBottom:18, padding:4, background:'var(--surface-2)', borderRadius:11, width:'fit-content' }}>
-          <button onClick={() => setFlow('dev_invites_client')} style={{ padding:'7px 14px', borderRadius:8, border:'none', background:flow==='dev_invites_client'?'var(--surface)':'transparent', color:flow==='dev_invites_client'?'var(--text)':'var(--text-muted)', fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>Client einladen</button>
-          <button onClick={() => setFlow('client_invites_dev')} style={{ padding:'7px 14px', borderRadius:8, border:'none', background:flow==='client_invites_dev'?'var(--surface)':'transparent', color:flow==='client_invites_dev'?'var(--text)':'var(--text-muted)', fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>Dev einladen (intern)</button>
-          <button onClick={() => setFlow('pool_match')} style={{ padding:'7px 14px', borderRadius:8, border:'none', background:flow==='pool_match'?'var(--surface)':'transparent', color:flow==='pool_match'?'var(--text)':'var(--text-muted)', fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>Match aus Pool</button>
-        </div>
-      )}
+      <header className="inv-head">
+        <div className="inv-kicker">Workspace · Einladung</div>
+        <h1 className="inv-title">Jemand zum Workspace einladen</h1>
+        <p className="inv-sub">
+          {wsMode === 'agency'
+            ? 'Lade Kunden, Team-Mitglieder oder externe Mitarbeiter ein. Jede Rolle bekommt eine eigene Sicht.'
+            : wsMode === 'team'
+              ? 'Bring Co-Founder, Mitarbeiter oder externe Spezialisten ins Team. Rollen steuern, was sichtbar ist.'
+              : 'Lade interne Stakeholder ein — Approver, Finance oder Lesezugriff. Festag liefert wie gewohnt.'}
+        </p>
+      </header>
 
-      {/* THREE MODE CARDS */}
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(220px, 1fr))', gap:14, marginBottom:22 }}>
-        {[
-          { id:'pool',    title:'Festag Pool',  desc:'Tagro AI matched dich mit dem perfekten Dev aus unserem Team. Schnellster Weg zum Start.', flow:'pool_match',
-            svg:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg> },
-          { id:'invited', title:'Eigener Dev',  desc:'Du arbeitest schon mit einem Dev oder einer Agentur. Lade ihn ein — er bekommt geschlossenen Zugang.', flow:'client_invites_dev',
-            svg:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> },
-          { id:'company', title:'Firmen-Setup', desc:'Du bist Agentur und willst deine Kunden hier verwalten. Lade Clients ein, behalte volle Kontrolle.', flow:'dev_invites_client',
-            svg:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg> },
-        ].map(m => {
-          const on = flow === m.flow
-          return (
-            <button key={m.id} onClick={() => setFlow(m.flow as Flow)}
-              style={{ textAlign:'left', padding:'18px 18px', background:'var(--surface)', border:`1.5px solid ${on?'var(--text)':'var(--border)'}`, borderRadius:'var(--r-lg)', cursor:'pointer', fontFamily:'inherit', transition:'border-color .15s' }}>
-              <div style={{ width:36, height:36, borderRadius:10, background:on?'var(--text)':'var(--surface-2)', color:on?'var(--bg)':'var(--text-secondary)', display:'inline-flex', alignItems:'center', justifyContent:'center', marginBottom:10 }}>
-                {m.svg}
-              </div>
-              <p style={{ fontSize:14, fontWeight:700, color:'var(--text)', margin:'0 0 4px' }}>{m.title}</p>
-              <p style={{ fontSize:12, color:'var(--text-secondary)', margin:0, lineHeight:1.5 }}>{m.desc}</p>
-            </button>
-          )
-        })}
-      </div>
-
-      {/* Flow content */}
-      {flow === 'pool_match' && (
-        <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:16, padding:24, textAlign:'center' }}>
-          <h2 style={{ fontSize:20, margin:'0 0 8px', letterSpacing:'-.3px' }}>Lass Tagro einen Dev finden</h2>
-          <p style={{ fontSize:14, color:'var(--text-secondary)', margin:'0 0 22px', lineHeight:1.6 }}>
-            Tagro AI analysiert dein Projekt und schlägt aus unserem Pool den passenden Developer vor. Du siehst die Match-Animation in Echtzeit.
+      <div className="inv-linkcta">
+        <div className="inv-linkcta-text">
+          <p className="inv-linkcta-title">Schneller: per Link einladen</p>
+          <p className="inv-linkcta-sub">
+            Erstelle einen Beitritts-Link und teile ihn selbst — kein PIN, keine Pflicht-Mail.
+            Die Person erstellt ihr eigenes Konto und das gewählte Projekt ist sofort sichtbar.
           </p>
-          <button onClick={() => setShowMatch(true)} style={{ padding:'13px 28px', background:'var(--btn-prim)', color:'var(--btn-prim-text)', border:'none', borderRadius:11, fontSize:14, fontWeight:700, cursor:'pointer', fontFamily:'inherit', boxShadow:'var(--shadow)' }}>
-            🎯 Match starten — Demo
-          </button>
         </div>
-      )}
+        <button type="button" className="inv-btn-primary" onClick={() => setLinkOpen(true)}>
+          <LinkSimple size={14} /> Einladungslink erstellen
+        </button>
+      </div>
 
-      {(flow === 'client_invites_dev' || flow === 'dev_invites_client') && (
-        <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:16, padding:24 }}>
-          <h2 style={{ fontSize:18, margin:'0 0 14px', letterSpacing:'-.3px' }}>
-            {flow === 'client_invites_dev' ? 'Dev / Agentur einladen' : 'Client einladen'}
-          </h2>
-          {sent ? (
-            <div style={{ padding:22, background:'rgba(34,197,94,.06)', border:'1px solid rgba(34,197,94,.2)', borderRadius:12, textAlign:'center' }}>
-              <div style={{ width:46, height:46, borderRadius:'50%', background:'#22c55e', display:'inline-flex', alignItems:'center', justifyContent:'center', marginBottom:10 }}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
-              </div>
-              <p style={{ fontSize:15, fontWeight:700, color:'var(--text)', margin:'0 0 6px' }}>Einladung versendet</p>
-              <p style={{ fontSize:12.5, color:'var(--text-secondary)', margin:0, lineHeight:1.55 }}>
-                Wir prüfen die Anfrage und senden den Zugang an <strong>{email}</strong>. Bestätigung läuft an unser Team.
-              </p>
-              <button onClick={() => { setSent(false); setEmail(''); setName('') }} style={{ marginTop:14, padding:'8px 16px', background:'transparent', border:'1px solid var(--border)', borderRadius:8, fontSize:12, fontWeight:600, color:'var(--text-secondary)', cursor:'pointer', fontFamily:'inherit' }}>
-                Weitere einladen
+      <InviteLinkModal
+        open={linkOpen}
+        onClose={() => setLinkOpen(false)}
+        allowClient={wsMode === 'agency'}
+        defaultKind={isStaff ? 'contributor' : (wsMode === 'agency' ? 'client' : 'contributor')}
+        projects={projects}
+      />
+
+      {sent ? (
+        <section className="inv-card inv-sent">
+          <div className="inv-sent-mark" aria-hidden>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          </div>
+          <div>
+            <p className="inv-sent-title">Einladung verschickt</p>
+            <p className="inv-sent-sub">
+              <strong>{email}</strong> bekommt gleich eine ruhige E-Mail mit Zugangslink und initialem PIN.
+            </p>
+          </div>
+          <div className="inv-sent-actions">
+            <button type="button" className="inv-btn-ghost" onClick={() => { setSent(false); setEmail(''); setName('') }}>Weitere Person einladen</button>
+            <Link href="/settings/workspace" className="inv-btn-ghost">Mitgliederliste öffnen</Link>
+          </div>
+        </section>
+      ) : (
+        <section className="inv-card">
+          <div className="inv-grid">
+            <label className="inv-field">
+              <span className="inv-label">Name</span>
+              <input
+                className="inv-input"
+                type="text"
+                value={name}
+                onChange={e => setName(e.target.value)}
+                placeholder="Optional — wird in der Mail-Anrede genutzt"
+              />
+            </label>
+
+            <label className="inv-field">
+              <span className="inv-label">E-Mail</span>
+              <input
+                className="inv-input"
+                type="email"
+                autoComplete="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') submit() }}
+                placeholder="name@firma.com"
+              />
+            </label>
+
+            <label className="inv-field">
+              <span className="inv-label">Rolle</span>
+              <select className="inv-input" value={role} onChange={e => setRole(e.target.value)}>
+                {roleOptions.map(opt => (
+                  <option key={opt.id} value={opt.id}>{opt.label}</option>
+                ))}
+              </select>
+              <span className="inv-hint">{roleOptions.find(o => o.id === role)?.description}</span>
+            </label>
+
+            <label className="inv-field inv-toggle">
+              <input type="checkbox" checked={closed} onChange={e => setClosed(e.target.checked)} />
+              <span>
+                <span className="inv-toggle-title">Geschlossener Zugriff</span>
+                <span className="inv-toggle-sub">
+                  Empfohlen. Die eingeladene Person sieht nur diesen Workspace und nichts anderes auf Festag. Lass den Haken weg, wenn die Person bereits Festag-Account-übergreifend arbeitet.
+                </span>
+              </span>
+            </label>
+
+            {error && <p className="inv-error">{error}</p>}
+
+            <div className="inv-actions">
+              <button
+                type="button"
+                className="inv-btn-primary"
+                onClick={submit}
+                disabled={!email || sending}
+              >
+                {sending ? 'Wird versendet…' : 'Einladung senden'}
               </button>
+              <Link href="/settings/workspace" className="inv-btn-ghost">
+                Workspace-Einstellungen
+              </Link>
             </div>
-          ) : (
-            <>
-              <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
-                <div>
-                  <label style={{ fontSize:11, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.07em', display:'block', marginBottom:6 }}>NAME (OPTIONAL)</label>
-                  <input value={name} onChange={e => setName(e.target.value)} placeholder="z.B. Max Mustermann"
-                    style={{ width:'100%', padding:'11px 14px', background:'var(--bg)', border:'1.5px solid var(--border)', borderRadius:10, fontSize:14, color:'var(--text)', fontFamily:'inherit', outline:'none', boxSizing:'border-box' }}/>
-                </div>
-                <div>
-                  <label style={{ fontSize:11, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.07em', display:'block', marginBottom:6 }}>E-MAIL *</label>
-                  <input value={email} type="email" onChange={e => setEmail(e.target.value)} placeholder={flow==='client_invites_dev'?'dev@deine-agentur.com':'kunde@firma.com'}
-                    style={{ width:'100%', padding:'11px 14px', background:'var(--bg)', border:'1.5px solid var(--border)', borderRadius:10, fontSize:14, color:'var(--text)', fontFamily:'inherit', outline:'none', boxSizing:'border-box' }}/>
-                </div>
-                <label style={{ display:'flex', alignItems:'flex-start', gap:10, padding:'12px 14px', background:'var(--bg)', border:'1.5px solid var(--border)', borderRadius:10, cursor:'pointer' }}>
-                  <input type="checkbox" checked={closedSystem} onChange={e => setClosedSystem(e.target.checked)} style={{ marginTop:3 }}/>
-                  <div>
-                    <p style={{ fontSize:13, fontWeight:700, color:'var(--text)', margin:'0 0 3px' }}>Geschlossenes System</p>
-                    <p style={{ fontSize:11.5, color:'var(--text-secondary)', margin:0, lineHeight:1.5 }}>
-                      {flow === 'client_invites_dev'
-                        ? 'Der Dev sieht NUR deine Projekte — keine öffentlichen Festag-Aufträge. Empfohlen für Outbound-Devs / Agenturen.'
-                        : 'Der Client kann nur mit dir arbeiten — kein anderer Festag-Dev kann sein Projekt übernehmen. Empfohlen für deine Stamm-Kunden.'}
-                    </p>
-                  </div>
-                </label>
-                {error && <p style={{ fontSize:13, color:'#ef4444', margin:0, padding:'8px 12px', background:'rgba(239,68,68,.06)', borderRadius:8 }}>{error}</p>}
-                <button onClick={send} disabled={!email || sending}
-                  style={{ padding:'12px 20px', background: email && !sending ? 'var(--btn-prim)' : 'var(--surface-2)', color: email && !sending ? 'var(--btn-prim-text)' : 'var(--text-muted)', border:'none', borderRadius:11, fontSize:14, fontWeight:700, cursor: email && !sending ? 'pointer' : 'default', fontFamily:'inherit' }}>
-                  {sending ? 'Wird versendet…' : 'Einladung absenden →'}
-                </button>
-              </div>
+          </div>
 
-              {/* How it works */}
-              <div style={{ marginTop:22, padding:'14px 16px', background:'var(--surface-2)', borderRadius:11, border:'1px solid var(--border)' }}>
-                <p style={{ fontSize:11, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.07em', margin:'0 0 8px' }}>SO LÄUFT DAS</p>
-                <ol style={{ margin:0, padding:'0 0 0 18px', display:'flex', flexDirection:'column', gap:5 }}>
-                  <li style={{ fontSize:12.5, color:'var(--text-secondary)', lineHeight:1.55 }}>Wir prüfen die Einladung intern (Sicherheits-Check).</li>
-                  <li style={{ fontSize:12.5, color:'var(--text-secondary)', lineHeight:1.55 }}>Eingeladene erhalten eine Mail mit Zugang + initialem PIN.</li>
-                  <li style={{ fontSize:12.5, color:'var(--text-secondary)', lineHeight:1.55 }}>Beim ersten Login muss der PIN geändert werden — Profil eingerichtet.</li>
-                  <li style={{ fontSize:12.5, color:'var(--text-secondary)', lineHeight:1.55 }}>Tagro AI lernt das neue Profil und passt Vorschläge an.</li>
-                </ol>
-              </div>
-            </>
-          )}
-        </div>
+          <aside className="inv-meta">
+            <p className="inv-meta-label">So läuft das</p>
+            <ol className="inv-meta-list">
+              <li>Festag prüft die Einladung intern auf Plausibilität.</li>
+              <li>Empfänger erhält eine ruhige Mail mit Link und initialem PIN.</li>
+              <li>Beim ersten Login wird der PIN geändert, das Profil eingerichtet.</li>
+              <li>Tagro lernt die neue Rolle und passt Briefings sowie Sichtbarkeit automatisch an.</li>
+            </ol>
+          </aside>
+        </section>
       )}
     </div>
   )
 }
+
+const INVITE_CSS = `
+  .inv-page {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 48px clamp(20px, 4vw, 48px) 80px;
+    color: var(--text);
+    font-family: var(--font-aeonik,'Aeonik',Inter,sans-serif);
+  }
+  .inv-loading {
+    padding: 80px 0;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 13px;
+  }
+  .inv-head { margin-bottom: 28px; }
+  .inv-kicker {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+  .inv-title {
+    margin: 0 0 6px;
+    font-size: 22px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    color: var(--text);
+  }
+  .inv-sub {
+    margin: 0;
+    max-width: 540px;
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: var(--text-secondary);
+  }
+
+  .inv-linkcta {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 18px; flex-wrap: wrap;
+    margin-bottom: 22px;
+    padding: 16px 18px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+  }
+  .inv-linkcta-text { min-width: 0; flex: 1; }
+  .inv-linkcta-title { margin: 0 0 3px; font-size: 13.5px; font-weight: 600; color: var(--text); }
+  .inv-linkcta-sub { margin: 0; font-size: 12.5px; line-height: 1.55; color: var(--text-muted); max-width: 460px; }
+  .inv-linkcta .inv-btn-primary { flex-shrink: 0; display: inline-flex; align-items: center; gap: 6px; }
+
+  .inv-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    gap: 32px;
+    padding: 24px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--surface);
+  }
+  .inv-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    min-width: 0;
+  }
+  .inv-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .inv-label {
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    color: var(--text-secondary);
+  }
+  .inv-input {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .inv-input:focus {
+    outline: none;
+    border-color: color-mix(in srgb, var(--text) 35%, var(--border));
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--text) 8%, transparent);
+  }
+  .inv-hint {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+  .inv-toggle {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--bg);
+    cursor: pointer;
+  }
+  .inv-toggle input { margin-top: 4px; }
+  .inv-toggle-title { display: block; font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+  .inv-toggle-sub { display: block; font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+  .inv-error {
+    margin: 0;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: rgba(192,54,46,0.08);
+    color: #c0362e;
+    font-size: 12.5px;
+    font-weight: 500;
+  }
+  .inv-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
+    flex-wrap: wrap;
+  }
+  .inv-btn-primary {
+    padding: 10px 18px;
+    border-radius: 8px;
+    border: 1px solid var(--text);
+    background: var(--text);
+    color: var(--bg);
+    font-family: inherit;
+    font-size: 13.5px;
+    font-weight: 500;
+    letter-spacing: -0.005em;
+    cursor: pointer;
+    transition: opacity .15s, transform .15s;
+  }
+  .inv-btn-primary:hover:not(:disabled) { opacity: 0.92; }
+  .inv-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+  .inv-btn-ghost {
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background .15s;
+  }
+  .inv-btn-ghost:hover { background: var(--surface-2); }
+
+  .inv-meta {
+    border-left: 1px solid var(--border);
+    padding-left: 24px;
+    min-width: 0;
+  }
+  .inv-meta-label {
+    margin: 0 0 10px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .inv-meta-list {
+    margin: 0;
+    padding-left: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: 12.5px;
+    color: var(--text-secondary);
+    line-height: 1.55;
+  }
+
+  .inv-sent {
+    grid-template-columns: 32px minmax(0, 1fr);
+    align-items: flex-start;
+    gap: 16px;
+  }
+  .inv-sent-mark {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: rgba(21, 128, 61, 0.12);
+    color: #15803D;
+    display: inline-flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .inv-sent-title { margin: 0 0 4px; font-size: 14.5px; font-weight: 600; color: var(--text); }
+  .inv-sent-sub { margin: 0; font-size: 13px; color: var(--text-secondary); line-height: 1.55; }
+  .inv-sent-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; grid-column: 1 / -1; }
+
+  @media (max-width: 760px) {
+    .inv-page { padding: 28px 18px 100px; }
+    .inv-card { grid-template-columns: 1fr; gap: 22px; padding: 20px; }
+    .inv-meta { border-left: none; border-top: 1px solid var(--border); padding-left: 0; padding-top: 22px; }
+    .inv-sent { grid-template-columns: 28px minmax(0, 1fr); }
+    .inv-actions .inv-btn-primary,
+    .inv-actions .inv-btn-ghost { flex: 1 1 calc(50% - 4px); justify-content: center; text-align: center; min-height: 38px; }
+  }
+`

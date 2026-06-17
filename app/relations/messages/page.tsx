@@ -123,7 +123,7 @@ export default function MessagesPage() {
       >
         <h1 style={{ margin: '0 0 6px' }}>Nachrichten</h1>
         <p style={{ fontSize: 14, color: 'var(--text-secondary)', margin: '0 0 28px' }}>
-          Alle Projektkonversationen im Ueberblick.
+          Alle Projektkonversationen im Überblick.
         </p>
 
         {projects.length === 0 ? (

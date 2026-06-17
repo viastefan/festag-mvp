@@ -1,414 +1,603 @@
 'use client'
-import { useEffect, useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
+
+/**
+ * /dev — Developer Overview.
+ *
+ * Liefert in einem Blick:
+ *   - KPIs (offen, review, blocker, commits 7d)
+ *   - Aktive Work-Session (Timer-Karte, falls offen)
+ *   - Heutiger Fokus (Top offene Tasks, klick → /dev/tasks?id=…)
+ *   - Letzte GitHub-Aktivität (5 jüngste Commits, Task-Link wenn vorhanden)
+ *   - Ready for Review (Tasks, die auf Prüfung warten)
+ *   - Aktive Projekte (kleine Liste rechts)
+ *
+ * Datenquelle: Supabase Auth + project_assignments + tasks + github_commits + dev_work_sessions.
+ * UI bewusst ruhig: kleiner Eyebrow, kleine Headline, 4 KPIs, knappe Sektionen.
+ */
+
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
+import { useSpeechRecognition } from '@/hooks/useSpeechRecognition'
+import DevNewProjectModal from '@/components/DevNewProjectModal'
+import TagroEntryButton from '@/components/TagroEntryButton'
+import {
+  ArrowRight, GitBranch, GitCommit, CheckSquare, Lightning, Microphone,
+  Pause, Play, Plus, WarningCircle,
+} from '@phosphor-icons/react'
 
-type AccessMode = 'pool' | 'closed' | 'company'
+type Task = {
+  id: string
+  title: string
+  status?: string | null
+  dev_status?: string | null
+  priority?: string | null
+  project_id?: string | null
+  updated_at?: string | null
+  last_dev_action_at?: string | null
+  task_type?: string | null
+  created_at?: string | null
+  projects?: { title?: string | null; color?: string | null } | null
+}
+type Project = { id: string; title: string; status?: string | null; color?: string | null }
+type Commit = {
+  id: string; commit_sha: string; message: string | null; committed_at: string | null;
+  commit_url: string | null; task_id: string | null; project_id: string | null
+}
+type Session = { id: string; task_id: string | null; started_at: string; ended_at: string | null }
 
-function Ico({ d, size = 16, sw = 1.7, c = 'currentColor' }: { d: string; size?: number; sw?: number; c?: string }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round">
-      <path d={d}/>
-    </svg>
-  )
+function devStatusOf(t: Task) {
+  const v = String(t.dev_status || t.status || 'todo').toLowerCase()
+  if (['done','completed'].includes(v)) return 'done'
+  if (['review','ready_review','ready_for_review','in_review'].includes(v)) return 'review'
+  if (['blocked','waiting'].includes(v)) return 'blocked'
+  if (['in_progress','doing','active'].includes(v)) return 'in_progress'
+  if (v === 'accepted') return 'accepted'
+  return 'todo'
+}
+function statusLabel(s: string) {
+  if (s === 'review') return 'Review'
+  if (s === 'blocked') return 'Blockiert'
+  if (s === 'in_progress') return 'In Arbeit'
+  if (s === 'accepted') return 'Angenommen'
+  if (s === 'done') return 'Erledigt'
+  return 'Geplant'
+}
+function priorityLabel(p?: string | null) {
+  if (p === 'critical') return 'Kritisch'
+  if (p === 'high') return 'Hoch'
+  if (p === 'low') return 'Niedrig'
+  return 'Mittel'
+}
+function dateLabel(v?: string | null) {
+  if (!v) return '—'
+  try { return new Intl.DateTimeFormat('de-DE', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' }).format(new Date(v)) }
+  catch { return '—' }
+}
+function shortSha(sha: string) { return sha.slice(0, 7) }
+
+function formatDuration(s: number) {
+  const sec = Math.max(0, Math.floor(s))
+  const h = Math.floor(sec / 3600); const m = Math.floor((sec % 3600) / 60); const r = sec % 60
+  if (h) return `${h}h ${String(m).padStart(2,'0')}m`
+  if (m) return `${m}m ${String(r).padStart(2,'0')}s`
+  return `${r}s`
 }
 
-const fmtMin = (m: number) => m === 0 ? '—' : m >= 60 ? `${Math.floor(m/60)}h ${m%60}min` : `${m}min`
+export default function DevOverviewPage() {
+  const supabase = useMemo(() => createClient(), [])
+  const router = useRouter()
+  const [newOpen, setNewOpen] = useState(false)
+  const [name, setName] = useState('')
+  const [tasks, setTasks] = useState<Task[]>([])
+  const [projects, setProjects] = useState<Project[]>([])
+  const [commits, setCommits] = useState<Commit[]>([])
+  const [openSession, setOpenSession] = useState<Session | null>(null)
+  const [openSessionTaskTitle, setOpenSessionTaskTitle] = useState<string | null>(null)
+  const [recentCommits, setRecentCommits] = useState<number>(0)
+  const [loading, setLoading] = useState(true)
+  const [tick, setTick] = useState(0)
 
-export default function DevHome() {
-  const [profile,       setProfile]       = useState<any>(null)
-  const [devInfo,       setDevInfo]       = useState<any>(null)
-  const [accessMode,    setAccessMode]    = useState<AccessMode>('pool')
-  const [stats,         setStats]         = useState({ active:0, completed:0, pending:0, jobs:0, todayMin:0, weekMin:0 })
-  const [newJobs,       setNewJobs]       = useState<any[]>([])
-  const [myProjects,    setMyProjects]    = useState<any[]>([])
-  const [myTasks,       setMyTasks]       = useState<any[]>([])
-  const [collaborators, setCollaborators] = useState<any[]>([])
+  // Daily prompt from Tagro (16:00 cron)
+  type DailyPrompt = { id: string; project_id: string | null; prompt_date: string; state: string; payload: any }
+  const [dailyPrompts, setDailyPrompts] = useState<DailyPrompt[]>([])
+  const [promptDraft, setPromptDraft] = useState('')
+  const [promptBusy, setPromptBusy] = useState(false)
+  const [promptDone, setPromptDone] = useState(false)
+  const [interim, setInterim] = useState('')
+
+  // Voice input for the daily update — on-device, Web Speech API.
+  // Final chunks are appended to the draft; interim text is a live preview.
+  const voice = useSpeechRecognition({
+    lang: 'de-DE',
+    onResult: (text, isFinal) => {
+      if (isFinal) {
+        setPromptDraft(prev => (prev ? `${prev} ${text}` : text).replace(/\s+/g, ' ').trimStart())
+        setInterim('')
+      } else {
+        setInterim(text)
+      }
+    },
+    onError: () => setInterim(''),
+  })
+  function toggleVoice() {
+    if (voice.listening) { voice.stop(); setInterim('') }
+    else voice.start()
+  }
 
   useEffect(() => {
-    const session = localStorage.getItem('festag_dev_session')
-    let info: any = session ? JSON.parse(session) : null
-    const sb = createClient()
-    sb.auth.getSession().then(async ({ data }) => {
-      const uid = data.session?.user.id ?? info?.user_id
-      if (!uid) { window.location.href = '/login'; return }
-      info = info ?? { user_id: uid, user_email: data.session?.user.email }
-      setDevInfo(info)
+    let cancelled = false
+    ;(async () => {
+      try {
+        // getUser() validates + refreshes the token; getSession() can read
+        // a stale/null snapshot mid-hydration and leave the dashboard empty.
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return
+        const uid = user.id
+        const { data: prof } = await supabase.from('profiles')
+          .select('first_name,full_name,github_username,email').eq('id', uid).maybeSingle()
+        const display = (prof as any)?.full_name || (prof as any)?.first_name || (prof as any)?.github_username || user.email || 'Developer'
+        if (cancelled) return
+        setName(display)
 
-      const { data: p } = await sb.from('profiles').select('*').eq('id', uid).single()
-      const prof = p as any
-      setProfile(prof)
-      const mode: AccessMode = prof?.access_mode === 'closed' ? 'closed'
-        : prof?.access_mode === 'company' ? 'company' : 'pool'
-      setAccessMode(mode)
-      loadData(uid, mode)
-    })
-  }, [])
+        // assigned projects
+        const { data: pa } = await supabase.from('project_assignments')
+          .select('project_id,projects(id,title,status,color)')
+          .eq('user_id', uid).eq('active', true)
+        const projList = ((pa as any[] | null) ?? []).map(r => r.projects).filter(Boolean) as Project[]
+        if (cancelled) return
+        setProjects(projList)
+        const projIds = projList.map(p => p.id).filter(Boolean)
 
-  async function loadData(userId: string, mode: AccessMode) {
-    const sb = createClient()
-    const dayStart  = new Date(); dayStart.setHours(0,0,0,0)
-    const weekStart = new Date(); weekStart.setDate(weekStart.getDate() - 7)
-    const safe = async (p: Promise<any>) => { try { return await p } catch { return { data: null } } }
+        // tasks
+        const taskQuery = supabase
+          .from('tasks')
+          .select('id,title,status,dev_status,priority,project_id,updated_at,last_dev_action_at,task_type,created_at,projects(title,color)')
+          .or(projIds.length > 0
+            ? `assigned_to.eq.${uid},project_id.in.(${projIds.join(',')})`
+            : `assigned_to.eq.${uid}`)
+          .order('last_dev_action_at', { ascending: false, nullsFirst: false })
+          .order('updated_at', { ascending: false })
+          .limit(80)
+        const { data: tRows } = await taskQuery
+        if (cancelled) return
+        setTasks((tRows as Task[] | null) ?? [])
 
-    const projectQuery = mode === 'pool'
-      ? sb.from('projects').select('*').in('status', ['planning','intake']).is('assigned_dev', null).order('created_at', { ascending: false }).limit(8)
-      : sb.from('project_members').select('project_id, projects(*)').eq('user_id', userId)
+        // recent commits (counter + list)
+        try {
+          const since = new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString()
+          const [{ count }, { data: list }] = await Promise.all([
+            (supabase as any).from('github_commits').select('*', { count: 'exact', head: true }).gte('committed_at', since),
+            (supabase as any).from('github_commits')
+              .select('id,commit_sha,message,committed_at,commit_url,task_id,project_id')
+              .order('committed_at', { ascending: false }).limit(8),
+          ])
+          if (!cancelled) {
+            setRecentCommits(count ?? 0)
+            setCommits(((list as Commit[] | null) ?? []))
+          }
+        } catch { /* tolerate */ }
 
-    const [tasksRes, timeRes, projsRes, tmRes] = await Promise.all([
-      safe(sb.from('tasks').select('*, projects(title, status, user_id)').eq('assigned_to', userId).limit(15)),
-      safe(sb.from('time_entries').select('seconds, started_at, project_id').eq('user_id', userId).gte('started_at', weekStart.toISOString())),
-      safe(projectQuery),
-      safe(sb.from('team_members').select('id, member_id').eq('owner_id', userId).limit(8)),
-    ])
+        // open daily prompts (Tagro 16:00 ping)
+        try {
+          const { data: prompts } = await (supabase as any)
+            .from('dev_daily_prompts')
+            .select('id, project_id, prompt_date, state, payload')
+            .eq('developer_id', uid)
+            .eq('state', 'open')
+            .order('created_at', { ascending: false }).limit(4)
+          if (!cancelled) setDailyPrompts(((prompts as any[]) ?? []) as DailyPrompt[])
+        } catch { /* noop */ }
 
-    const tasks   = (tasksRes.data as any[]) ?? []
-    const times   = (timeRes.data as any[]) ?? []
-    const projsRaw = (projsRes.data as any[]) ?? []
-    const tmRows  = (tmRes.data as any[]) ?? []
-
-    const memberIds = tmRows.map(t => t.member_id).filter(Boolean)
-    let collabs: any[] = []
-    if (memberIds.length > 0) {
-      const { data: mps } = await safe(sb.from('profiles').select('id,first_name,full_name,avatar_url,role').in('id', memberIds))
-      const map = new Map(((mps as any[]) ?? []).map(p => [p.id, p]))
-      collabs = tmRows.map(t => ({ id: t.id, profile: map.get(t.member_id) ?? null })).filter(t => t.profile)
-    }
-
-    setMyTasks(tasks)
-    if (mode === 'pool') {
-      setNewJobs(projsRaw)
-      const projIds = Array.from(new Set(tasks.map(t => t.project_id)))
-      if (projIds.length > 0) {
-        const { data: mine } = await sb.from('projects').select('*').in('id', projIds)
-        setMyProjects((mine as any[]) ?? [])
+        // open session
+        try {
+          const res = await fetch('/api/dev/work-sessions?open=1&limit=1')
+          const d = await res.json().catch(() => ({}))
+          const s: Session | null = d?.sessions?.[0] ?? null
+          if (!cancelled) {
+            setOpenSession(s)
+            if (s?.task_id) {
+              const found = ((tRows as Task[] | null) ?? []).find(t => t.id === s.task_id)
+              setOpenSessionTaskTitle(found?.title ?? null)
+            } else {
+              setOpenSessionTaskTitle(null)
+            }
+          }
+        } catch { /* noop */ }
+      } catch (error) {
+        console.error('Dev overview failed to load', error)
+      } finally {
+        if (!cancelled) {
+          setLoading(false)
+        }
       }
-    } else {
-      setMyProjects(projsRaw.map(r => r.projects).filter(Boolean))
-      setNewJobs([])
-    }
-    setCollaborators(collabs)
+    })()
+    return () => { cancelled = true }
+  }, [supabase])
 
-    const todaySec = times.filter(t => new Date(t.started_at) >= dayStart).reduce((s, t) => s + (t.seconds ?? 0), 0)
-    const weekSec  = times.reduce((s, t) => s + (t.seconds ?? 0), 0)
-    setStats({
-      active:    tasks.filter(t => t.status === 'doing').length,
-      completed: tasks.filter(t => t.status === 'done').length,
-      pending:   tasks.filter(t => t.status === 'todo').length,
-      jobs:      mode === 'pool' ? projsRaw.length : 0,
-      todayMin:  Math.round(todaySec / 60),
-      weekMin:   Math.round(weekSec / 60),
-    })
-  }
+  // tick for live timer
+  useEffect(() => {
+    if (!openSession) return
+    const id = setInterval(() => setTick(t => t + 1), 1000)
+    return () => clearInterval(id)
+  }, [openSession])
+  void tick
 
-  async function acceptJob(projectId: string) {
-    if (!devInfo) return
-    const sb = createClient()
-    await sb.from('project_members').upsert({ project_id: projectId, user_id: devInfo.user_id, role: 'dev' })
-    await sb.from('projects').update({ status: 'active', assigned_dev: devInfo.user_id }).eq('id', projectId)
-    await sb.from('messages').insert({ project_id: projectId, sender_id: devInfo.user_id, message: 'Developer übernimmt. Umsetzung beginnt jetzt.', is_ai: true }).catch(() => {})
-    setNewJobs(j => j.filter(x => x.id !== projectId))
-    setStats(s => ({ ...s, jobs: s.jobs - 1 }))
-  }
+  const metrics = useMemo(() => {
+    const open    = tasks.filter(t => !['done'].includes(devStatusOf(t))).length
+    const active  = tasks.filter(t => devStatusOf(t) === 'in_progress').length
+    const review  = tasks.filter(t => devStatusOf(t) === 'review').length
+    const blocked = tasks.filter(t => devStatusOf(t) === 'blocked').length
+    return { open, active, review, blocked }
+  }, [tasks])
 
-  const name = profile?.first_name ?? devInfo?.user_email?.split('@')[0] ?? 'Developer'
-  const h = new Date().getHours()
-  const greeting = h < 12 ? 'Guten Morgen' : h < 18 ? 'Guten Tag' : 'Guten Abend'
-  const modeLabel: Record<AccessMode, string> = { pool: 'Festag Pool', closed: 'Exklusiv', company: 'Agentur' }
+  const focus = useMemo(() =>
+    tasks
+      .filter(t => !['done','cancelled'].includes(devStatusOf(t)))
+      .filter(t => devStatusOf(t) !== 'review')
+      .sort((a, b) => {
+        const pa = a.priority === 'critical' ? 4 : a.priority === 'high' ? 3 : a.priority === 'low' ? 1 : 2
+        const pb = b.priority === 'critical' ? 4 : b.priority === 'high' ? 3 : b.priority === 'low' ? 1 : 2
+        if (pa !== pb) return pb - pa
+        return String(b.last_dev_action_at || b.updated_at).localeCompare(String(a.last_dev_action_at || a.updated_at))
+      })
+      .slice(0, 5),
+  [tasks])
 
-  const activeTasks  = myTasks.filter(t => t.status === 'doing')
-  const pendingTasks = myTasks.filter(t => t.status === 'todo')
+  const reviewTasks = tasks.filter(t => devStatusOf(t) === 'review').slice(0, 4)
+  // Tasks that the client opened themselves and are still untouched —
+  // these jump to the top because they need owner triage.
+  const clientRequests = useMemo(() =>
+    tasks
+      .filter(t => t.task_type === 'client_request' && ['todo', 'new', 'assigned'].includes(String(t.dev_status || t.status || '').toLowerCase()))
+      .sort((a, b) => String(b.created_at || b.updated_at).localeCompare(String(a.created_at || a.updated_at)))
+      .slice(0, 4),
+  [tasks])
+
+  const liveSeconds = openSession ? Math.floor((Date.now() - new Date(openSession.started_at).getTime()) / 1000) : 0
 
   return (
-    <div className="animate-fade-up" style={{ padding:'32px 28px 100px', maxWidth:1100, margin:'0 auto' }}>
-      <style>{`
-        @keyframes fadeUp { from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;} }
-        @keyframes pulse  { 0%,100%{opacity:1;}50%{opacity:.5;} }
-        .job-row { display:flex; align-items:flex-start; gap:16px; padding:16px 0; border-bottom:1px solid var(--border); transition:background .1s; }
-        .job-row:last-child { border-bottom: none; }
-        .task-row { display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid var(--border); text-decoration:none; color:inherit; transition:opacity .1s; }
-        .task-row:last-child { border-bottom: none; }
-        .task-row:hover { opacity:.75; }
-        .stat-box { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:18px 20px; }
-        .collab-chip { display:flex; align-items:center; gap:8px; padding:6px 12px 6px 6px; background:var(--surface); border:1px solid var(--border); border-radius:24px; }
-      `}</style>
-
-      {/* ── Header ── */}
-      <div style={{ marginBottom:40 }}>
-        <div style={{ display:'flex', alignItems:'center', gap:5, marginBottom:10 }}>
-          <span style={{ fontSize:11, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.1em' }}>DEVELOPER</span>
-          <span style={{ color:'var(--border-strong)', fontSize:11 }}>·</span>
-          <span style={{ fontSize:11, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.08em' }}>{modeLabel[accessMode].toUpperCase()}</span>
-          <span style={{ display:'inline-flex', alignItems:'center', gap:4, marginLeft:6, padding:'2px 8px', background:'rgba(52,199,89,.1)', border:'1px solid rgba(52,199,89,.25)', borderRadius:20 }}>
-            <span style={{ width:5, height:5, borderRadius:'50%', background:'var(--green)', animation:'pulse 2s infinite' }}/>
-            <span style={{ fontSize:10, fontWeight:700, color:'var(--green)', letterSpacing:'.06em' }}>ONLINE</span>
-          </span>
+    <div className="dev-page">
+      <header className="dev-page-header">
+        <div>
+          <h1>Heute, {name ? name.split(' ')[0] : 'Developer'}.</h1>
+          <p className="meta">
+            {loading
+              ? 'Lade Arbeitsbereich…'
+              : `${metrics.open} offen · ${metrics.review} Review · ${metrics.blocked} Blocker · ${recentCommits} Commits (7 Tage)`}
+          </p>
         </div>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <Link href="/dev/github" className="dev-secondary-btn link-btn">
+            <GitBranch size={13} /> GitHub
+          </Link>
+          <Link href="/dev/updates" className="dev-secondary-btn link-btn">
+            <Lightning size={13} /> Update senden
+          </Link>
+          <button className="dev-primary-btn link-btn" onClick={() => setNewOpen(true)}>
+            <Plus size={13} /> Neues Projekt
+          </button>
+          {/* Dev Overview → Tagro entry. Subtitle pulled from the same
+              live metrics shown above so the chat opens with full context. */}
+          <TagroEntryButton
+            context={{
+              contextType: 'empty',
+              id: 'dev-overview',
+              title: 'Dev · Heute',
+              subtitle: `${metrics.open} offen · ${metrics.review} Review · ${metrics.blocked} Blocker`,
+            }}
+          />
+        </div>
+      </header>
 
-        <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:16, flexWrap:'wrap' }}>
-          <div>
-            <h1 style={{ fontSize:36, fontWeight:700, letterSpacing:'-.8px', margin:'0 0 6px', lineHeight:1.1 }}>
-              {greeting},<br/>{name.charAt(0).toUpperCase() + name.slice(1)}.
-            </h1>
-            <p style={{ fontSize:14, color:'var(--text-secondary)', margin:0, fontWeight:400 }}>
-              {accessMode === 'pool'
-                ? `${stats.jobs} offene Jobs · ${stats.active} Tasks in Arbeit`
-                : accessMode === 'closed'
-                ? 'Exklusiver Client-Zugang aktiv'
-                : `${myProjects.length} Kunden-Projekte aktiv`}
+      {/* Tagro daily prompt — appears around 16:00 once per day per project */}
+      {dailyPrompts.length > 0 && !promptDone && (
+        <div className="dev-surface" style={{ padding: 16, marginBottom: 18 }}>
+          <p className="dev-section-title" style={{ marginBottom: 6, color: 'var(--accent)' }}>Tagro fragt</p>
+          <p style={{ margin: '0 0 12px', fontSize: 14, lineHeight: 1.5, color: 'var(--text)' }}>
+            Was hast du heute an {dailyPrompts.length === 1
+              ? (projects.find(p => p.id === dailyPrompts[0].project_id)?.title ?? 'deinem Projekt')
+              : `${dailyPrompts.length} Projekten`} gemacht?
+            Ein Satz reicht — ich übersetze ihn ruhig für deinen Client.
+          </p>
+          <div style={{ position: 'relative' }}>
+            <textarea
+              value={promptDraft}
+              onChange={(e) => setPromptDraft(e.target.value)}
+              placeholder="z. B. Hero-Section auf Mobile gefixt, Deploy steht. Morgen Login-Flow."
+              rows={3}
+              style={{
+                width: '100%', resize: 'vertical',
+                padding: '10px 44px 10px 12px', borderRadius: 8,
+                border: voice.listening ? '1px solid var(--accent)' : '1px solid var(--border)',
+                background: 'var(--surface-2)', color: 'var(--text)',
+                fontFamily: 'inherit', fontSize: 13.5, lineHeight: 1.5,
+                letterSpacing: '.012em', boxSizing: 'border-box',
+              }}
+            />
+            {voice.supported && (
+              <button
+                type="button"
+                onClick={toggleVoice}
+                aria-label={voice.listening ? 'Aufnahme stoppen' : 'Per Stimme diktieren'}
+                aria-pressed={voice.listening}
+                style={{
+                  position: 'absolute', top: 8, right: 8,
+                  width: 30, height: 30, borderRadius: 8,
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                  border: '1px solid ' + (voice.listening ? 'var(--accent)' : 'var(--border)'),
+                  background: voice.listening ? 'var(--accent)' : 'var(--surface)',
+                  color: voice.listening ? 'var(--accent-text)' : 'var(--text-secondary)',
+                  cursor: 'pointer',
+                }}
+              >
+                <Microphone size={15} weight={voice.listening ? 'fill' : 'regular'} />
+              </button>
+            )}
+          </div>
+          {voice.listening && (
+            <p style={{ margin: '6px 2px 0', fontSize: 11.5, color: 'var(--accent)', letterSpacing: '.012em' }}>
+              Tagro hört zu… {interim ? <span style={{ color: 'var(--text-muted)' }}>„{interim}"</span> : 'sprich einfach.'}
             </p>
-          </div>
-
-          {/* Avatar */}
-          <div style={{ width:52, height:52, borderRadius:16, background:'var(--surface-2)', border:'1px solid var(--border)', overflow:'hidden', flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center', fontSize:20, fontWeight:700, color:'var(--text)' }}>
-            {profile?.avatar_url
-              ? <img src={profile.avatar_url} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }}/>
-              : name.charAt(0).toUpperCase()}
+          )}
+          <div style={{ display: 'flex', gap: 8, marginTop: 10, justifyContent: 'flex-end' }}>
+            <button
+              className="dev-secondary-btn"
+              type="button"
+              disabled={promptBusy}
+              onClick={async () => {
+                voice.stop(); setInterim('')
+                setPromptBusy(true)
+                try {
+                  await Promise.all(dailyPrompts.map(p => fetch('/api/dev/daily-update', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ promptId: p.id, skip: true }),
+                  })))
+                  setDailyPrompts([]); setPromptDone(true)
+                } finally { setPromptBusy(false) }
+              }}
+            >
+              Heute nicht
+            </button>
+            <button
+              className="dev-secondary-btn"
+              type="button"
+              disabled={promptBusy || !promptDraft.trim()}
+              style={{
+                background: 'var(--accent)', color: 'var(--accent-text)', borderColor: 'var(--accent)',
+                opacity: promptBusy || !promptDraft.trim() ? 0.55 : 1,
+              }}
+              onClick={async () => {
+                if (!promptDraft.trim()) return
+                voice.stop(); setInterim('')
+                setPromptBusy(true)
+                try {
+                  // Send the same text against each open prompt (one per project).
+                  await Promise.all(dailyPrompts.map(p => fetch('/api/dev/daily-update', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ promptId: p.id, text: promptDraft.trim() }),
+                  })))
+                  setDailyPrompts([]); setPromptDraft(''); setPromptDone(true)
+                } finally { setPromptBusy(false) }
+              }}
+            >
+              {promptBusy ? 'Sende…' : 'An Tagro schicken'}
+            </button>
           </div>
         </div>
-      </div>
+      )}
 
-      {/* ── Stats row ── */}
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(120px, 1fr))', gap:8, marginBottom:32 }}>
-        {[
-          { label:'In Arbeit',  value: stats.active,          highlight: stats.active > 0 },
-          { label:'Offen',      value: stats.pending },
-          { label:'Erledigt',   value: stats.completed },
-          ...(accessMode === 'pool' ? [{ label:'Neue Jobs', value: stats.jobs, highlight: stats.jobs > 0 }] : []),
-          { label:'Heute',      value: fmtMin(stats.todayMin) },
-          { label:'Diese Woche',value: fmtMin(stats.weekMin) },
-        ].map((s, i) => (
-          <div key={i} className="stat-box" style={{ animation:`fadeUp .3s ${i*.05}s both` }}>
-            <p style={{ fontSize:10, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.08em', margin:'0 0 8px' }}>{s.label.toUpperCase()}</p>
-            <p style={{ fontSize:26, fontWeight:700, color:(s as any).highlight ? 'var(--text)' : 'var(--text)', margin:0, letterSpacing:'-.5px', lineHeight:1 }}>{s.value}</p>
+      {/* Active session card */}
+      {openSession && (
+        <div className="dev-surface session-card">
+          <span className="pulse"><Play size={11} weight="fill" /></span>
+          <div className="session-text">
+            <p className="st-1">
+              Timer läuft · {formatDuration(liveSeconds)}
+              {openSessionTaskTitle ? <> · <strong>{openSessionTaskTitle}</strong></> : null}
+            </p>
+            <p className="st-2">Diese Session wird automatisch geschlossen, sobald du eine neue startest.</p>
           </div>
-        ))}
+          <Link href={openSession.task_id ? `/dev/tasks?id=${openSession.task_id}` : '/dev/tasks'} className="dev-secondary-btn link-btn">
+            <Pause size={12} /> Verwalten
+          </Link>
+        </div>
+      )}
+
+      {/* KPI strip */}
+      <div className="dev-kpi-grid">
+        <div className="dev-surface dev-kpi"><strong>{metrics.open}</strong><span>Offene Tasks</span></div>
+        <div className="dev-surface dev-kpi"><strong>{metrics.review}</strong><span>Ready for Review</span></div>
+        <div className="dev-surface dev-kpi"><strong>{metrics.blocked}</strong><span>Blocker</span></div>
+        <div className="dev-surface dev-kpi"><strong>{recentCommits}</strong><span>Commits · 7 Tage</span></div>
       </div>
 
-      {/* ── Two-column layout ── */}
-      <div style={{ display:'grid', gridTemplateColumns:'1fr 320px', gap:16, alignItems:'start' }}>
-
-        {/* Left column */}
-        <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
-
-          {/* Pool: Available Jobs */}
-          {accessMode === 'pool' && (
-            <div>
-              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', marginBottom:16 }}>
-                <div>
-                  <h2 style={{ margin:'0 0 2px', fontSize:20, fontWeight:700, letterSpacing:'-.4px' }}>Verfügbare Aufträge</h2>
-                  <p style={{ margin:0, fontSize:12.5, color:'var(--text-muted)' }}>Projekte die auf einen Developer warten</p>
+      {/* Client requests — top-of-feed when present */}
+      {clientRequests.length > 0 && (
+        <section style={{ marginBottom: 22 }}>
+          <p className="dev-section-title">
+            Neue Anfragen vom Client · {clientRequests.length}
+          </p>
+          <div className="dev-surface" style={{ overflow: 'hidden' }}>
+            {clientRequests.map((t, i) => (
+              <Link key={t.id} href={`/dev/tasks?id=${t.id}`} className="row"
+                style={{ borderTop: i > 0 ? '1px solid var(--border)' : 'none' }}>
+                <span className="dot" style={{ '--project-color': 'var(--amber)' } as any} />
+                <div className="row-text">
+                  <p className="t-1">{t.title}</p>
+                  <p className="t-2">
+                    {t.projects?.title ?? 'kein Projekt'} · vom Client gestellt
+                  </p>
                 </div>
-                <Link href="/dev/jobs" style={{ fontSize:12.5, fontWeight:600, color:'var(--text)', textDecoration:'none', opacity:.7 }}>Alle ansehen →</Link>
-              </div>
-
-              <div style={{ background:'var(--surface)', border:'1px solid var(--border)', borderRadius:16, padding:'0 20px' }}>
-                {newJobs.length === 0 ? (
-                  <div style={{ padding:'40px 0', textAlign:'center', opacity:.5 }}>
-                    <p style={{ fontSize:14, fontWeight:600, color:'var(--text)', margin:'0 0 4px' }}>Keine offenen Jobs</p>
-                    <p style={{ fontSize:12.5, color:'var(--text-muted)', margin:0 }}>Tagro AI sucht aktiv nach passenden Aufträgen.</p>
-                  </div>
-                ) : (
-                  newJobs.slice(0, 5).map((j, idx) => (
-                    <div key={j.id} className="job-row" style={{ animation:`fadeUp .25s ${idx*.06}s both` }}>
-                      <div style={{ flex:1, minWidth:0 }}>
-                        <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:5 }}>
-                          <p style={{ fontSize:14.5, fontWeight:700, color:'var(--text)', margin:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{j.title}</p>
-                          {j.complexity && (
-                            <span style={{ fontSize:9, fontWeight:700, padding:'2px 6px', borderRadius:4, background:'var(--surface-2)', color:'var(--text-secondary)', flexShrink:0, textTransform:'uppercase', letterSpacing:'.06em' }}>{j.complexity}</span>
-                          )}
-                        </div>
-                        {j.description && (
-                          <p style={{ fontSize:12.5, color:'var(--text-secondary)', margin:'0 0 6px', lineHeight:1.5, display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden' }}>
-                            {j.description}
-                          </p>
-                        )}
-                        <p style={{ fontSize:11, color:'var(--text-muted)', margin:0 }}>
-                          {j.timeline && <>{j.timeline} · </>}
-                          {new Date(j.created_at).toLocaleDateString('de', { day:'numeric', month:'short' })}
-                        </p>
-                      </div>
-                      <button onClick={() => acceptJob(j.id)}
-                        style={{ padding:'8px 16px', background:'var(--btn-prim)', color:'var(--btn-prim-text)', border:'none', borderRadius:10, fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:'inherit', flexShrink:0, whiteSpace:'nowrap' }}>
-                        Annehmen
-                      </button>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* My projects (non-pool) */}
-          {myProjects.length > 0 && (
-            <div>
-              <h2 style={{ margin:'0 0 14px', fontSize:20, fontWeight:700, letterSpacing:'-.4px' }}>
-                {accessMode === 'company' ? 'Kunden-Projekte' : 'Meine Projekte'}
-              </h2>
-              <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(220px, 1fr))', gap:8 }}>
-                {myProjects.slice(0, 6).map(p => (
-                  <Link key={p.id} href={`/project/${p.id}`}
-                    style={{ display:'block', background:'var(--surface)', border:'1px solid var(--border)', borderRadius:14, padding:'14px 16px', textDecoration:'none', color:'inherit', transition:'border-color .12s' }}>
-                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:8 }}>
-                      <p style={{ fontSize:13.5, fontWeight:700, color:'var(--text)', margin:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', flex:1, paddingRight:8 }}>{p.title}</p>
-                      <span style={{ fontSize:9, fontWeight:700, padding:'2px 6px', borderRadius:4, background: p.status==='active'?'rgba(52,199,89,.1)':'var(--surface-2)', color: p.status==='active'?'var(--green)':'var(--text-muted)', textTransform:'uppercase', letterSpacing:'.06em', flexShrink:0 }}>{p.status}</span>
-                    </div>
-                    <p style={{ fontSize:11.5, color:'var(--text-muted)', margin:0 }}>Projekt ansehen →</p>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Active tasks */}
-          {activeTasks.length > 0 && (
-            <div>
-              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', marginBottom:14 }}>
-                <h2 style={{ margin:0, fontSize:20, fontWeight:700, letterSpacing:'-.4px' }}>In Arbeit</h2>
-                <Link href="/dev/tasks" style={{ fontSize:12.5, fontWeight:600, color:'var(--text)', textDecoration:'none', opacity:.7 }}>Alle Tasks →</Link>
-              </div>
-              <div style={{ background:'var(--surface)', border:'1px solid var(--border)', borderRadius:16, padding:'0 20px' }}>
-                {activeTasks.slice(0, 5).map((t, i) => (
-                  <Link key={t.id} href={`/project/${t.project_id}`} className="task-row" style={{ animation:`fadeUp .25s ${i*.05}s both` }}>
-                    <div style={{ width:8, height:8, borderRadius:'50%', background:'var(--green)', flexShrink:0 }}/>
-                    <div style={{ flex:1, minWidth:0 }}>
-                      <p style={{ fontSize:13.5, fontWeight:600, color:'var(--text)', margin:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{t.title}</p>
-                      {t.projects?.title && <p style={{ fontSize:11, color:'var(--text-muted)', margin:'2px 0 0' }}>{t.projects.title}</p>}
-                    </div>
-                    <span style={{ fontSize:9.5, fontWeight:700, padding:'2px 7px', borderRadius:4, background:'rgba(245,158,11,.1)', color:'var(--amber-dark)', letterSpacing:'.06em', textTransform:'uppercase', flexShrink:0 }}>
-                      AKTIV
-                    </span>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Pending tasks */}
-          {pendingTasks.length > 0 && (
-            <div>
-              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', marginBottom:14 }}>
-                <h2 style={{ margin:0, fontSize:20, fontWeight:700, letterSpacing:'-.4px' }}>Offene Tasks</h2>
-                <Link href="/dev/tasks" style={{ fontSize:12.5, fontWeight:600, color:'var(--text)', textDecoration:'none', opacity:.7 }}>Alle →</Link>
-              </div>
-              <div style={{ background:'var(--surface)', border:'1px solid var(--border)', borderRadius:16, padding:'0 20px' }}>
-                {pendingTasks.slice(0, 5).map((t, i) => (
-                  <Link key={t.id} href={`/project/${t.project_id}`} className="task-row" style={{ animation:`fadeUp .25s ${i*.05}s both` }}>
-                    <div style={{ width:8, height:8, borderRadius:'50%', border:'1.5px solid var(--border-strong)', flexShrink:0 }}/>
-                    <div style={{ flex:1, minWidth:0 }}>
-                      <p style={{ fontSize:13.5, fontWeight:500, color:'var(--text)', margin:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{t.title}</p>
-                      {t.projects?.title && <p style={{ fontSize:11, color:'var(--text-muted)', margin:'2px 0 0' }}>{t.projects.title}</p>}
-                    </div>
-                    <span style={{ fontSize:9.5, fontWeight:700, padding:'2px 7px', borderRadius:4, background:'var(--surface-2)', color:'var(--text-muted)', letterSpacing:'.06em', textTransform:'uppercase', flexShrink:0 }}>
-                      TODO
-                    </span>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Empty state */}
-          {myTasks.length === 0 && newJobs.length === 0 && myProjects.length === 0 && (
-            <div style={{ padding:'60px 20px', textAlign:'center', border:'1px dashed var(--border)', borderRadius:16 }}>
-              <p style={{ fontSize:16, fontWeight:700, color:'var(--text)', margin:'0 0 6px' }}>Noch keine Aktivität</p>
-              <p style={{ fontSize:13.5, color:'var(--text-muted)', margin:'0 0 20px' }}>Nimm deinen ersten Auftrag an oder warte auf eine Zuweisung.</p>
-              <Link href="/dev/jobs" style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'10px 20px', background:'var(--btn-prim)', color:'var(--btn-prim-text)', borderRadius:12, fontSize:13, fontWeight:700, textDecoration:'none' }}>
-                Jobs ansehen →
+                <span className="dev-chip">{priorityLabel(t.priority)}</span>
+                <span className="muted">{dateLabel(t.created_at || t.updated_at)}</span>
+                <ArrowRight size={12} className="muted-icon" />
               </Link>
-            </div>
-          )}
-        </div>
-
-        {/* Right column */}
-        <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
-
-          {/* Time tracking */}
-          <div style={{ background:'var(--surface)', border:'1px solid var(--border)', borderRadius:16, padding:'18px 20px' }}>
-            <p style={{ fontSize:10, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.1em', margin:'0 0 14px' }}>ZEITERFASSUNG</p>
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:14 }}>
-              <div>
-                <p style={{ fontSize:10, color:'var(--text-muted)', fontWeight:600, margin:'0 0 4px' }}>Heute</p>
-                <p style={{ fontSize:22, fontWeight:700, color:'var(--text)', margin:0, letterSpacing:'-.4px' }}>{fmtMin(stats.todayMin)}</p>
-              </div>
-              <div>
-                <p style={{ fontSize:10, color:'var(--text-muted)', fontWeight:600, margin:'0 0 4px' }}>Woche</p>
-                <p style={{ fontSize:22, fontWeight:700, color:'var(--text)', margin:0, letterSpacing:'-.4px' }}>{fmtMin(stats.weekMin)}</p>
-              </div>
-            </div>
-            <Link href="/dev/time" style={{ display:'block', padding:'9px', background:'var(--surface-2)', border:'1px solid var(--border)', borderRadius:10, fontSize:12.5, fontWeight:700, color:'var(--text)', textAlign:'center', textDecoration:'none' }}>
-              Zeit erfassen →
-            </Link>
+            ))}
           </div>
+        </section>
+      )}
 
-          {/* Quick links */}
-          <div style={{ background:'var(--surface)', border:'1px solid var(--border)', borderRadius:16, padding:'18px 20px' }}>
-            <p style={{ fontSize:10, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.1em', margin:'0 0 12px' }}>QUICK ACCESS</p>
-            <div style={{ display:'flex', flexDirection:'column', gap:4 }}>
-              {[
-                { href:'/dev/jobs',     label:'Job Board',       desc:'Aufträge ansehen' },
-                { href:'/dev/tasks',    label:'Meine Tasks',     desc:'Task-Übersicht' },
-                { href:'/dev/projects', label:'Meine Projekte',  desc:'Alle Projekte' },
-                { href:'/messages',     label:'Nachrichten',     desc:'Chats & Updates' },
-                { href:'/settings',     label:'Einstellungen',   desc:'Skills & Profil' },
-              ].map(l => (
-                <Link key={l.href} href={l.href}
-                  style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'9px 10px', borderRadius:10, textDecoration:'none', color:'inherit', transition:'background .1s' }}
-                  onMouseEnter={e => (e.currentTarget.style.background = 'var(--surface-2)')}
-                  onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
-                  <div>
-                    <p style={{ fontSize:13, fontWeight:600, color:'var(--text)', margin:0 }}>{l.label}</p>
-                    <p style={{ fontSize:11, color:'var(--text-muted)', margin:0 }}>{l.desc}</p>
+      <div className="cols">
+        <section>
+          <p className="dev-section-title">Heutiger Fokus</p>
+          <div className="dev-surface" style={{ overflow:'hidden' }}>
+            {focus.length === 0 ? (
+              <p className="empty">
+                Kein offener Fokus.
+                {projects.length === 0 ? ' Du bist aktuell keinem Projekt zugeordnet.' : ' Alles abgearbeitet.'}
+              </p>
+            ) : focus.map((t, i) => {
+              const s = devStatusOf(t)
+              return (
+                <Link key={t.id} href={`/dev/tasks?id=${t.id}`} className="row"
+                  style={{ borderTop: i > 0 ? '1px solid var(--border)' : 'none' }}>
+                  <span className="dot" style={{ '--project-color': t.projects?.color ?? 'var(--accent)' } as any} />
+                  <div className="row-text">
+                    <p className="t-1">{t.title}</p>
+                    <p className="t-2">{t.projects?.title ?? 'kein Projekt'}</p>
                   </div>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+                  <span className="dev-chip">{statusLabel(s)}</span>
+                  <span className="muted">{priorityLabel(t.priority)}</span>
+                  <ArrowRight size={12} className="muted-icon" />
                 </Link>
-              ))}
-            </div>
+              )
+            })}
           </div>
 
-          {/* Team / Collaborators */}
-          {collaborators.length > 0 && (
-            <div style={{ background:'var(--surface)', border:'1px solid var(--border)', borderRadius:16, padding:'18px 20px' }}>
-              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:14 }}>
-                <p style={{ fontSize:10, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.1em', margin:0 }}>TEAM</p>
-                <Link href="/teams" style={{ fontSize:11.5, fontWeight:600, color:'var(--text)', textDecoration:'none', opacity:.7 }}>→</Link>
+          <p className="dev-section-title" style={{ marginTop: 22 }}>Letzte Commits</p>
+          <div className="dev-surface" style={{ overflow:'hidden' }}>
+            {commits.length === 0 ? (
+              <p className="empty">Noch keine Commits sichtbar — synct ein Repo unter <Link href="/dev/github">GitHub</Link>.</p>
+            ) : commits.slice(0, 5).map((c, i) => (
+              <a key={c.id} href={c.commit_url || '#'} target="_blank" rel="noreferrer" className="row"
+                style={{ borderTop: i > 0 ? '1px solid var(--border)' : 'none' }}>
+                <GitCommit size={13} className="muted-icon" />
+                <div className="row-text">
+                  <p className="t-1">{String(c.message || c.commit_sha || '').split('\n')[0].slice(0, 86)}</p>
+                  <p className="t-2">{shortSha(c.commit_sha)} · {dateLabel(c.committed_at)}{c.task_id ? ' · verknüpft' : ''}</p>
+                </div>
+                <span className={`dev-chip ${c.task_id ? 'accent' : ''}`}>{c.task_id ? 'Task' : 'frei'}</span>
+              </a>
+            ))}
+          </div>
+        </section>
+
+        <aside>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
+            <p className="dev-section-title" style={{ margin: 0 }}>Ready for Review</p>
+            <Link href="/dev/review" style={{ fontSize: 11, color: 'var(--accent)', textDecoration: 'none' }}>Tagro Review Center →</Link>
+          </div>
+          <div className="dev-surface" style={{ overflow:'hidden', marginBottom: 18 }}>
+            {reviewTasks.length === 0 ? (
+              <p className="empty">Nichts wartet auf Prüfung.</p>
+            ) : reviewTasks.map((t, i) => (
+              <Link key={t.id} href={`/dev/tasks?id=${t.id}`} className="row"
+                style={{ borderTop: i > 0 ? '1px solid var(--border)' : 'none' }}>
+                <CheckSquare size={13} className="muted-icon" />
+                <div className="row-text">
+                  <p className="t-1">{t.title}</p>
+                  <p className="t-2">{t.projects?.title ?? 'kein Projekt'}</p>
+                </div>
+                <ArrowRight size={12} className="muted-icon" />
+              </Link>
+            ))}
+          </div>
+
+          <p className="dev-section-title">Aktive Projekte</p>
+          <div className="dev-surface" style={{ overflow:'hidden' }}>
+            {projects.length === 0 ? (
+              <p className="empty">Noch keine Projekte. Leg über „Neues Projekt" eins an und lade deinen Kunden ein.</p>
+            ) : projects.slice(0, 5).map((p, i) => (
+              <Link key={p.id} href={`/dev/projects/${p.id}`} className="row"
+                style={{ borderTop: i > 0 ? '1px solid var(--border)' : 'none' }}>
+                <span className="dot" style={{ '--project-color': p.color ?? 'var(--accent)' } as any} />
+                <div className="row-text">
+                  <p className="t-1">{p.title}</p>
+                  <p className="t-2">{p.status ?? 'aktiv'}</p>
+                </div>
+                <ArrowRight size={12} className="muted-icon" />
+              </Link>
+            ))}
+          </div>
+
+          {metrics.blocked > 0 && (
+            <div className="dev-surface alert-card">
+              <WarningCircle size={16} />
+              <div>
+                <p className="alert-1">{metrics.blocked} Blocker offen</p>
+                <p className="alert-2">Tagro wartet auf deine Notiz, bevor sie an den Client gespiegelt werden.</p>
               </div>
-              <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
-                {collaborators.slice(0, 4).map(c => {
-                  const p = c.profile
-                  const init = (p?.first_name ?? p?.full_name ?? '?').charAt(0).toUpperCase()
-                  return (
-                    <div key={c.id} className="collab-chip">
-                      <div style={{ width:28, height:28, borderRadius:'50%', background:'var(--surface-2)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:700, overflow:'hidden', border:'1px solid var(--border)', flexShrink:0 }}>
-                        {p?.avatar_url ? <img src={p.avatar_url} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }}/> : init}
-                      </div>
-                      <div style={{ flex:1, minWidth:0 }}>
-                        <p style={{ fontSize:12.5, fontWeight:600, color:'var(--text)', margin:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
-                          {p?.first_name ?? p?.full_name ?? 'Mitglied'}
-                        </p>
-                        <p style={{ fontSize:10, color:'var(--text-muted)', margin:0, textTransform:'capitalize' }}>{p?.role ?? 'dev'}</p>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
+              <Link href="/dev/tasks" className="dev-secondary-btn link-btn">Öffnen</Link>
             </div>
           )}
-
-          {/* Mode info */}
-          <div style={{ padding:'14px 16px', background:'var(--surface-2)', border:'1px solid var(--border)', borderRadius:14 }}>
-            <p style={{ fontSize:10, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.1em', margin:'0 0 4px' }}>ZUGRIFFSMODUS</p>
-            <p style={{ fontSize:13, fontWeight:700, color:'var(--text)', margin:'0 0 4px' }}>{modeLabel[accessMode]}</p>
-            <p style={{ fontSize:11.5, color:'var(--text-secondary)', margin:0, lineHeight:1.5 }}>
-              {accessMode === 'pool'
-                ? 'Öffentlicher Festag Job Pool — du siehst alle offenen Aufträge.'
-                : accessMode === 'closed'
-                ? 'Exklusiver Zugang — nur dein Client sichtbar.'
-                : 'Agentur-Modus — du verwaltest deine eigenen Clients.'}
-            </p>
-          </div>
-        </div>
+        </aside>
       </div>
+
+      <DevNewProjectModal
+        open={newOpen}
+        onClose={() => setNewOpen(false)}
+        onCreated={(p) => { setNewOpen(false); router.push(`/dev/projects/${p.id}`) }}
+      />
+
+      <style jsx>{`
+        .link-btn { display:inline-flex; align-items:center; gap:6px; text-decoration:none; }
+        .session-card {
+          margin-bottom:16px; padding:12px 14px;
+          display:flex; gap:12px; align-items:center;
+        }
+        .pulse {
+          width:24px; height:24px; border-radius:8px;
+          display:grid; place-items:center;
+          background: color-mix(in srgb, var(--accent) 18%, transparent);
+          color: var(--accent);
+        }
+        .session-text { flex:1; min-width:0; }
+        .st-1 { margin:0; font-size:13px; color:var(--text); font-weight:500; }
+        .st-1 strong { font-weight:500; }
+        .st-2 { margin:2px 0 0; font-size:11.5px; color:var(--text-muted); }
+
+        .cols {
+          display:grid; grid-template-columns: minmax(0,1.5fr) minmax(0,1fr); gap:22px;
+        }
+        .row {
+          display:grid; grid-template-columns:14px minmax(0,1fr) auto auto 14px;
+          align-items:center; gap:12px;
+          padding:9px 14px;
+          text-decoration:none; color:inherit;
+          transition:background .12s ease;
+        }
+        .row.gh { grid-template-columns:14px minmax(0,1fr) auto; }
+        .row:hover { background: color-mix(in srgb, var(--surface-2) 70%, transparent); }
+        .row .dot {
+          width:9px; height:9px; border-radius:50%;
+          border:2px solid var(--project-color, var(--accent));
+          background:transparent;
+          box-sizing:border-box;
+        }
+        .row-text { min-width:0; }
+        .t-1 { margin:0; font-size:12.8px; font-weight:500; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .t-2 { margin:2px 0 0; font-size:11px; color:var(--text-muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .muted { font-size:11.5px; color:var(--text-muted); }
+        .muted-icon { color: var(--text-muted); }
+        .empty { padding:18px; margin:0; font-size:12.5px; color:var(--text-muted); }
+        .dev-chip.accent { color:var(--accent); border-color:color-mix(in srgb, var(--accent) 35%, transparent); }
+
+        .alert-card {
+          margin-top:16px; padding:12px 14px;
+          display:flex; gap:12px; align-items:center;
+          border-color: color-mix(in srgb, var(--red) 38%, var(--border));
+        }
+        .alert-card svg { color:var(--red); flex:0 0 auto; }
+        .alert-card > div { flex:1; min-width:0; }
+        .alert-1 { margin:0; font-size:13px; color:var(--text); font-weight:500; }
+        .alert-2 { margin:2px 0 0; font-size:11.5px; color:var(--text-muted); }
+
+        @media (max-width: 980px) {
+          .cols { grid-template-columns: 1fr; }
+        }
+      `}</style>
     </div>
   )
 }

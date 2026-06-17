@@ -162,8 +162,8 @@ export default function RelationsChat({ projectId }: Props) {
     return (
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        minHeight: 300, background: 'var(--surface)', border: '1px solid var(--border)',
-        borderRadius: 'var(--r-lg)',
+        minHeight: 300, background: 'var(--card)', border: '1px solid var(--border)',
+        borderRadius: '24px',
       }}>
         <Spinner size={24} color="var(--text-muted)" style={{ animation: 'spin .8s linear infinite' }} />
       </div>
@@ -173,17 +173,19 @@ export default function RelationsChat({ projectId }: Props) {
   return (
     <div style={{
       display: 'flex', flexDirection: 'column',
-      background: 'var(--surface)', border: '1px solid var(--border)',
-      borderRadius: 'var(--r-lg)', overflow: 'hidden',
+      background: 'var(--card)', border: '1px solid var(--border)',
+      borderRadius: '24px', overflow: 'hidden',
       height: 'min(600px, 65vh)',
+      boxShadow: '0 0 0 1px rgba(255,255,255,0.02)',
     }}>
       {/* Messages area */}
       <div
         ref={scrollRef}
         style={{
-          flex: 1, overflowY: 'auto', padding: '20px 20px 8px',
+          flex: 1, overflowY: 'auto', padding: '24px 22px 12px',
           scrollbarWidth: 'thin',
           scrollbarColor: 'var(--border) transparent',
+          background: 'var(--surface)',
         }}
       >
         {messages.length === 0 ? (
@@ -213,12 +215,12 @@ export default function RelationsChat({ projectId }: Props) {
                   {/* Date divider */}
                   {showDateLabel && (
                     <div style={{
-                      textAlign: 'center', margin: '20px 0 16px',
+                      textAlign: 'center', margin: '28px 0 18px',
                       position: 'relative',
                     }}>
                       <span style={{
                         fontSize: 11, fontWeight: 600, color: 'var(--text-muted)',
-                        background: 'var(--surface)', padding: '0 12px',
+                        background: 'var(--surface)', padding: '0 14px',
                         position: 'relative', zIndex: 1,
                       }}>
                         {getDateLabel(msg.created_at)}
@@ -239,21 +241,21 @@ export default function RelationsChat({ projectId }: Props) {
                       style={{
                         display: 'flex',
                         justifyContent: isOwn ? 'flex-end' : 'flex-start',
-                        marginBottom: showAvatar ? 12 : 3,
+                        marginBottom: showAvatar ? 14 : 5,
                       }}
                     >
                       <div style={{
-                        maxWidth: '75%',
+                        width: 'min(100%, 720px)',
                         minWidth: 60,
                       }}>
                         <div style={{
-                          padding: '10px 14px',
-                          borderRadius: isOwn ? '14px 14px 4px 14px' : '14px 14px 14px 4px',
-                          background: isOwn ? 'var(--btn-prim)' : 'var(--card)',
-                          color: isOwn ? 'var(--btn-prim-text)' : 'var(--text)',
-                          border: isOwn ? 'none' : '1px solid var(--border)',
+                          padding: '14px 16px',
+                          borderRadius: 18,
+                          background: isOwn ? 'color-mix(in srgb, var(--surface-2) 84%, transparent)' : 'var(--card)',
+                          color: 'var(--text)',
+                          border: '1px solid var(--border)',
                           fontSize: 14,
-                          lineHeight: 1.55,
+                          lineHeight: 1.65,
                           wordBreak: 'break-word',
                         }}>
                           {msg.content}
@@ -281,9 +283,9 @@ export default function RelationsChat({ projectId }: Props) {
       {/* Input area */}
       <div style={{
         borderTop: '1px solid var(--border)',
-        padding: '12px 16px',
+        padding: '16px 18px 18px',
         display: 'flex', alignItems: 'flex-end', gap: 10,
-        background: 'var(--bg)',
+        background: 'var(--card)',
       }}>
         <textarea
           ref={inputRef}
@@ -296,8 +298,8 @@ export default function RelationsChat({ projectId }: Props) {
             flex: 1,
             resize: 'none',
             border: '1px solid var(--inp-border)',
-            borderRadius: 'var(--r-sm)',
-            padding: '10px 14px',
+            borderRadius: '18px',
+            padding: '12px 15px',
             fontSize: 14,
             fontFamily: 'inherit',
             fontWeight: 500,
@@ -306,10 +308,10 @@ export default function RelationsChat({ projectId }: Props) {
             outline: 'none',
             lineHeight: 1.5,
             maxHeight: 120,
-            transition: 'border-color .12s',
+            transition: 'border-color .12s, background .12s',
           }}
-          onFocus={e => e.currentTarget.style.borderColor = 'var(--inp-focus-border)'}
-          onBlur={e => e.currentTarget.style.borderColor = 'var(--inp-border)'}
+          onFocus={e => { e.currentTarget.style.borderColor = 'var(--inp-focus-border)'; e.currentTarget.style.background = 'var(--inp-focus)' }}
+          onBlur={e => { e.currentTarget.style.borderColor = 'var(--inp-border)'; e.currentTarget.style.background = 'var(--inp)' }}
           onInput={e => {
             const t = e.currentTarget
             t.style.height = 'auto'
@@ -320,9 +322,9 @@ export default function RelationsChat({ projectId }: Props) {
           onClick={handleSend}
           disabled={!newMessage.trim() || sending}
           style={{
-            width: 40, height: 40,
-            borderRadius: 'var(--r-sm)',
-            background: newMessage.trim() ? 'var(--btn-prim)' : 'var(--surface-2)',
+            width: 42, height: 42,
+            borderRadius: '16px',
+            background: newMessage.trim() ? 'var(--btn-prim)' : 'var(--hover)',
             color: newMessage.trim() ? 'var(--btn-prim-text)' : 'var(--text-muted)',
             border: 'none',
             cursor: newMessage.trim() ? 'pointer' : 'default',

@@ -29,7 +29,7 @@ type Connector = {
 
 const CONNECTORS: Connector[] = [
   { id:'notion',  name:'Notion',  category:'Wissen',
-    description:'Statusberichte automatisch in deine Notion-Datenbank.',
+    description:'Projektbriefings automatisch in deine Notion-Datenbank.',
     iconBg:'#000', iconText:'#fff', iconImg:'/brand/notion.svg',
     authMode:'oauth', docs:'https://developers.notion.com/' },
 
@@ -44,7 +44,7 @@ const CONNECTORS: Connector[] = [
     authMode:'oauth', docs:'https://api.slack.com/messaging/webhooks' },
 
   { id:'gmail',   name:'Gmail',   category:'E-Mail',
-    description:'Statusberichte direkt aus dem Projekt versenden.',
+    description:'Projektbriefings direkt aus dem Projekt versenden.',
     iconBg:'#EA4335', iconText:'#fff', iconImg:'/brand/gmail.svg',
     authMode:'oauth', docs:'https://developers.google.com/gmail/api' },
 
@@ -128,7 +128,7 @@ export default function ConnectorsPage() {
   const opened = CONNECTORS.find(c => c.id === open)
 
   return (
-    <div className="page-content animate-fade-up" style={{ maxWidth:1100 }}>
+    <div className="page-content animate-fade-up" style={{ maxWidth: undefined }}>
       <style>{`
         .conn-card { transition:transform .15s, border-color .15s, box-shadow .15s; }
         .conn-card:hover { transform:translateY(-2px); border-color:var(--border-strong); box-shadow:0 8px 24px rgba(15,23,42,.06); }

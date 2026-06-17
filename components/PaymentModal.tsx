@@ -172,7 +172,7 @@ export default function PaymentModal({ amount, note, itemTitle, onClose, onSucce
       <div
         style={{
           width: '100%', maxWidth: 460, background: 'var(--surface)',
-          border: '1px solid var(--border)', borderRadius: 18, overflow: 'hidden',
+          border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden',
           boxShadow: '0 24px 64px rgba(0,0,0,0.25)',
           animation: 'slideIn .25s cubic-bezier(.16,1,.3,1) both',
           maxHeight: '92vh', display: 'flex', flexDirection: 'column',
@@ -302,11 +302,11 @@ export default function PaymentModal({ amount, note, itemTitle, onClose, onSucce
           <div style={{
             position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.45)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            padding: 20, animation: 'fadeIn .15s ease', borderRadius: 18,
+            padding: 20, animation: 'fadeIn .15s ease', borderRadius: 8,
           }}>
             <div style={{
               width: '100%', maxWidth: 360, background: 'var(--surface)',
-              border: '1px solid var(--border)', borderRadius: 14, padding: '20px 22px',
+              border: '1px solid var(--border)', borderRadius: 8, padding: '20px 22px',
               boxShadow: '0 16px 40px rgba(0,0,0,0.3)',
               animation: 'slideIn .2s cubic-bezier(.16,1,.3,1) both',
             }}>

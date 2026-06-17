@@ -1,0 +1,235 @@
+'use client'
+
+/**
+ * MobileActionSheet — native-feel bottom sheet for the mobile FAB.
+ *
+ * Slides up from the bottom, has a drag handle, dark surface, rounded
+ * top corners. Closes on outside tap, Esc, or close button. Respects
+ * the bottom safe-area inset.
+ *
+ * Used by the global mobile bottom-nav: the centre + button opens it
+ * with a set of context-aware actions provided by the current page.
+ */
+
+import { useEffect, useRef } from 'react'
+import Link from 'next/link'
+import { X } from '@phosphor-icons/react'
+
+export type ActionSheetItem = {
+  label: string
+  meta?: string
+  icon?: React.ReactNode
+  href?: string
+  onClick?: () => void
+  tone?: 'default' | 'primary' | 'danger'
+  disabled?: boolean
+}
+
+interface Props {
+  open: boolean
+  onClose: () => void
+  title?: string
+  subtitle?: string
+  items: ActionSheetItem[]
+}
+
+export default function MobileActionSheet({ open, onClose, title, subtitle, items }: Props) {
+  const sheetRef = useRef<HTMLDivElement>(null)
+
+  // Esc to close + body scroll lock while open.
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', onKey)
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      document.body.style.overflow = prevOverflow
+    }
+  }, [open, onClose])
+
+  if (!open) return null
+
+  return (
+    <div className="mas-overlay" role="dialog" aria-modal="true" aria-label={title || 'Aktionen'}>
+      <button
+        type="button"
+        className="mas-backdrop"
+        aria-label="Schließen"
+        onClick={onClose}
+      />
+      <div className="mas-sheet" ref={sheetRef}>
+        <div className="mas-handle" aria-hidden />
+        {(title || subtitle) && (
+          <header className="mas-head">
+            <div>
+              {title && <h2>{title}</h2>}
+              {subtitle && <p>{subtitle}</p>}
+            </div>
+            <button type="button" className="mas-close" onClick={onClose} aria-label="Schließen">
+              <X size={15} weight="bold" />
+            </button>
+          </header>
+        )}
+        <div className="mas-list">
+          {items.map((item, i) => {
+            const cls = `mas-row${item.tone ? ` tone-${item.tone}` : ''}${item.disabled ? ' disabled' : ''}`
+            const inner = (
+              <>
+                {item.icon && <span className="mas-icon">{item.icon}</span>}
+                <span className="mas-text">
+                  <strong>{item.label}</strong>
+                  {item.meta && <span>{item.meta}</span>}
+                </span>
+              </>
+            )
+            if (item.href && !item.disabled) {
+              return (
+                <Link key={i} href={item.href} className={cls} onClick={onClose}>
+                  {inner}
+                </Link>
+              )
+            }
+            return (
+              <button
+                key={i}
+                type="button"
+                className={cls}
+                onClick={() => { if (!item.disabled) { item.onClick?.(); onClose() } }}
+                disabled={item.disabled}
+              >
+                {inner}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      <style jsx>{`
+        .mas-overlay {
+          position: fixed; inset: 0; z-index: 13500;
+          display: flex; flex-direction: column; justify-content: flex-end;
+          font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+        }
+        .mas-backdrop {
+          position: absolute; inset: 0;
+          background: rgba(8, 10, 14, .48);
+          backdrop-filter: blur(6px) saturate(120%);
+          -webkit-backdrop-filter: blur(6px) saturate(120%);
+          border: 0; padding: 0; cursor: default;
+          animation: masFade .2s ease both;
+        }
+        .mas-sheet {
+          position: relative;
+          width: 100%;
+          background: var(--card);
+          border-top: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+          border-radius: 22px 22px 0 0;
+          padding: 6px 6px calc(env(safe-area-inset-bottom, 0px) + 10px);
+          max-height: 85dvh;
+          overflow-y: auto;
+          box-shadow: 0 -1px 2px rgba(0, 0, 0, .12), 0 -24px 60px -28px rgba(0, 0, 0, .55);
+          animation: masIn .26s cubic-bezier(.16, 1, .3, 1) both;
+        }
+        [data-theme="dark"] .mas-sheet,
+        [data-theme="classic-dark"] .mas-sheet {
+          background: color-mix(in srgb, var(--card) 96%, #fff 4%);
+        }
+        @keyframes masFade { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes masIn { from { transform: translateY(28px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+        .mas-handle {
+          width: 36px; height: 4px; border-radius: 999px;
+          background: color-mix(in srgb, var(--text-muted) 60%, transparent);
+          opacity: .5;
+          margin: 6px auto 4px;
+        }
+
+        .mas-head {
+          display: flex; justify-content: space-between; align-items: flex-start;
+          padding: 10px 14px 12px;
+        }
+        .mas-head h2 {
+          margin: 0; font-size: 15px; font-weight: 500; letter-spacing: -.005em;
+          color: var(--text);
+        }
+        .mas-head p {
+          margin: 3px 0 0; font-size: 12px; font-weight: 500; letter-spacing: .012em;
+          color: var(--text-muted);
+        }
+        .mas-close {
+          width: 28px; height: 28px;
+          border: 0; background: transparent;
+          color: var(--text-muted); border-radius: 8px;
+          display: inline-flex; align-items: center; justify-content: center;
+          cursor: pointer; transition: background .12s, color .12s;
+        }
+        .mas-close:hover { background: color-mix(in srgb, var(--surface-2) 70%, transparent); color: var(--text); }
+
+        .mas-list {
+          display: flex; flex-direction: column;
+          gap: 2px;
+          padding: 2px 6px 4px;
+        }
+        .mas-row {
+          width: 100%;
+          display: grid; grid-template-columns: 32px 1fr; gap: 12px;
+          align-items: center;
+          padding: 12px 12px;
+          border: 0; background: transparent;
+          /* Items match container — 22px outer, items use 14px inner. */
+          border-radius: 14px !important;
+          color: var(--text);
+          text-decoration: none;
+          font: inherit;
+          text-align: left;
+          cursor: pointer;
+          transition: background .12s;
+        }
+        .mas-row:hover, .mas-row:active {
+          background: color-mix(in srgb, var(--surface-2) 70%, transparent);
+        }
+        .mas-row.tone-primary {
+          background: color-mix(in srgb, var(--btn-prim) 12%, transparent);
+        }
+        .mas-row.tone-primary:hover, .mas-row.tone-primary:active {
+          background: color-mix(in srgb, var(--btn-prim) 22%, transparent);
+        }
+        .mas-row.tone-danger { color: #ef4444; }
+        .mas-row.tone-danger:hover { background: color-mix(in srgb, #ef4444 10%, transparent); }
+        .mas-row.disabled { opacity: .42; cursor: not-allowed; }
+
+        .mas-icon {
+          width: 32px; height: 32px;
+          border-radius: 10px;
+          display: inline-flex; align-items: center; justify-content: center;
+          background: color-mix(in srgb, var(--surface-2) 70%, transparent);
+          color: var(--text-secondary);
+          flex-shrink: 0;
+        }
+        .mas-row.tone-primary .mas-icon {
+          background: color-mix(in srgb, var(--btn-prim) 22%, transparent);
+          color: var(--btn-prim);
+        }
+        .mas-text {
+          min-width: 0;
+          display: flex; flex-direction: column; gap: 2px;
+        }
+        .mas-text strong {
+          font-size: 13.5px; font-weight: 500; letter-spacing: -.005em;
+          overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .mas-text span {
+          font-size: 11.5px; font-weight: 500; letter-spacing: .012em;
+          color: var(--text-muted);
+          overflow: hidden; text-overflow: ellipsis;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          line-height: 1.4;
+        }
+      `}</style>
+    </div>
+  )
+}

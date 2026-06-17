@@ -19,36 +19,29 @@ export default function DatenschutzPage() {
       <h1>Datenschutzerklärung</h1>
       <p className="lead">
         Diese Datenschutzerklärung informiert dich über Art, Umfang und Zweck der Verarbeitung
-        personenbezogener Daten in unserem Online-Angebot. Verantwortlicher für die Datenverarbeitung
-        ist die <strong>Enjyn Gruppe</strong>, über welche festag seine Geschäftspraktiken abwickelt.
+        personenbezogener Daten im Online-Angebot <strong>festag</strong>.
       </p>
-
-      <div style={{ background:'var(--card,#f5f5f0)', border:'1px solid var(--border)', borderRadius:12, padding:'14px 18px', marginBottom:28 }}>
-        <p style={{ margin:0, fontSize:13.5, lineHeight:1.65, color:'var(--text-secondary)' }}>
-          <strong style={{ color:'var(--text)' }}>Hinweis:</strong> festag ist ein unabhängiges Softwareprojekt.
-          Alle Geschäftspraktiken, Vertragsabwicklungen und Zahlungen werden über die{' '}
-          <strong style={{ color:'var(--text)' }}>Enjyn® Gruppe</strong> (Inhaber: Ramon Dehner, Bruckberg) abgewickelt.
-          festag selbst speichert keine Zahlungsdaten.
-        </p>
-      </div>
 
       <h2>1. Verantwortlicher</h2>
       <p>
-        <strong>Enjyn® Gruppe</strong><br/>
-        Inhaber: Ramon Dehner<br/>
-        Bahnhofstraße 15, 84079 Bruckberg, Deutschland<br/>
-        Telefon: 08765 33 999 73<br/>
-        E-Mail: <a href="mailto:support@enjyn.de">support@enjyn.de</a>
+        <strong>Stefan Dirnberger</strong><br/>
+        Lindenstraße 15, 84036 Kumhausen, Deutschland<br/>
+        Telefon: <a href="tel:+4987653399973">08765 33 999 73</a><br/>
+        E-Mail: <a href="mailto:stefandirnberger@viawen.com">stefandirnberger@viawen.com</a>
       </p>
       <p>
         Inhaltlich verantwortlich nach § 18 Abs. 2 MStV: <strong>Stefan Dirnberger</strong>
+      </p>
+      <p style={{ fontSize:12.5, color:'var(--text-muted)', marginTop:4 }}>
+        Zahlungen werden über die <strong style={{ color:'var(--text-secondary)' }}>Enjyn® Gruppe</strong> entgegengenommen (Zahlungsstelle).
+        festag selbst speichert keine Zahlungsdaten.
       </p>
 
       <h2>2. Welche Daten wir verarbeiten</h2>
       <ul>
         <li><strong>Account-Daten:</strong> E-Mail, Name, Profilbild (via Google/Apple OAuth)</li>
         <li><strong>Projektdaten:</strong> Inhalte die du in der App erstellst (Projekte, Tasks, Nachrichten)</li>
-        <li><strong>Zahlungsdaten:</strong> Verarbeitung über die Enjyn Banking-API (SEPA-Referenz, Beträge — keine Kontodaten bei uns gespeichert)</li>
+        <li><strong>Zahlungsdaten:</strong> Verarbeitung über die Enjyn® Gruppe als technischen Zahlungsdienstleister (SEPA-Referenz, Beträge — keine Kontodaten bei uns gespeichert)</li>
         <li><strong>Technische Daten:</strong> IP-Adresse, Browser, Betriebssystem, Zeitstempel</li>
       </ul>
 
@@ -64,7 +57,7 @@ export default function DatenschutzPage() {
         <li><strong>Supabase</strong> (EU-Hosting) — Datenbank, Authentifizierung, Realtime</li>
         <li><strong>Vercel</strong> — Hosting der Web-App</li>
         <li><strong>Anthropic Claude</strong> — KI-Funktionen (Tagro AI). Keine personenbezogenen Daten in Prompts ohne Notwendigkeit.</li>
-        <li><strong>Enjyn Banking-API</strong> — Zahlungsabwicklung via SEPA</li>
+        <li><strong>Enjyn® Gruppe</strong> — technischer Zahlungsdienstleister (SEPA)</li>
       </ul>
 
       <h2>5. Cookies</h2>
@@ -94,7 +87,7 @@ export default function DatenschutzPage() {
       <h2>8. Kontakt</h2>
       <p>
         Bei Fragen zum Datenschutz wende dich an&nbsp;
-        <a href="mailto:support@enjyn.de">support@enjyn.de</a>.
+        <a href="mailto:stefandirnberger@viawen.com">stefandirnberger@viawen.com</a>.
       </p>
 
       <p style={{ marginTop:32, fontSize:12, color:'var(--text-muted)' }}>
