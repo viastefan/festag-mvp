@@ -1027,39 +1027,44 @@ function Composer({
   return (
     <div className={`tov-composer tov-composer-${variant}`}>
       <div className="tov-composer-stack">
-        <div className="tov-composer-panel">
-          <textarea
-            ref={(el) => {
-              if (typeof inputRef === 'function') (inputRef as any)(el)
-              else if (inputRef) (inputRef as any).current = el
-              autosize(el)
-            }}
-            className="tov-composer-input"
-            rows={1}
-            placeholder={placeholder}
-            value={value}
-            onChange={e => { autosize(e.currentTarget); onChange(e.target.value) }}
-            onKeyDown={onKeyDown}
-          />
-          <div className="tov-composer-toolbar">
-            <button
-              type="button"
-              className="tov-composer-plus"
-              aria-label="Quellen hinzufügen"
-              title="Quellen hinzufügen"
-              onClick={openPicker}
-            >
-              <Plus size={16} weight="regular" />
-            </button>
-            <span className="tov-composer-spacer" aria-hidden />
-            {micOk && (
-              <button type="button" className={`tov-composer-mic${rec ? ' is-rec' : ''}`} onClick={onMic} aria-label={rec ? 'Aufnahme stoppen' : 'Per Sprache diktieren'}>
-                {rec ? <MicrophoneSlash size={17} weight="fill" /> : <Microphone size={17} />}
+        <div className={`tov-composer-aura${value.trim() ? ' has-text' : ''}`}>
+          <div className="tov-composer-panel">
+            <textarea
+              ref={(el) => {
+                if (typeof inputRef === 'function') (inputRef as any)(el)
+                else if (inputRef) (inputRef as any).current = el
+                autosize(el)
+              }}
+              className="tov-composer-input"
+              rows={1}
+              placeholder={placeholder}
+              value={value}
+              onChange={e => { autosize(e.currentTarget); onChange(e.target.value) }}
+              onKeyDown={onKeyDown}
+            />
+            <div className="tov-composer-toolbar">
+              <button
+                type="button"
+                className="tov-composer-plus"
+                aria-label="Quellen hinzufügen"
+                title="Quellen hinzufügen"
+                onClick={openPicker}
+              >
+                <Plus size={16} weight="regular" />
               </button>
-            )}
-            <button type="button" className="tov-composer-send" onClick={onSend} disabled={busy || !value.trim()} aria-label="Senden">
-              {busy ? <ArrowsClockwise size={17} className="tov-spin" /> : <ArrowUp size={17} weight="bold" />}
-            </button>
+              <span className="tov-composer-spacer" aria-hidden />
+              {!value.trim() && !busy && (
+                <span className="tov-composer-hint" aria-hidden>Enter ↵</span>
+              )}
+              {micOk && (
+                <button type="button" className={`tov-composer-mic${rec ? ' is-rec' : ''}`} onClick={onMic} aria-label={rec ? 'Aufnahme stoppen' : 'Per Sprache diktieren'}>
+                  {rec ? <MicrophoneSlash size={17} weight="fill" /> : <Microphone size={17} />}
+                </button>
+              )}
+              <button type="button" className="tov-composer-send" onClick={onSend} disabled={busy || !value.trim()} aria-label="Senden">
+                {busy ? <ArrowsClockwise size={17} className="tov-spin" /> : <ArrowUp size={17} weight="bold" />}
+              </button>
+            </div>
           </div>
         </div>
         {extraShelfChips.length > 0 && (
@@ -1953,7 +1958,7 @@ const STYLES = `
 .tov-iconbtn:hover { background: var(--tov-pill-h); color: var(--tov-text); }
 .tov-iconbtn:active { transform: scale(.96); }
 
-/* Composer — stacked panel + context shelf */
+/* Composer — AI dock with gradient aura + glass panel */
 .tov-composer {
   width: 100%;
 }
@@ -1962,40 +1967,99 @@ const STYLES = `
   display: flex;
   flex-direction: column;
 }
+.tov-composer-aura {
+  position: relative;
+  border-radius: 24px;
+  padding: 1px;
+  background: color-mix(in srgb, var(--tov-border) 55%, transparent);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.04) inset,
+    0 18px 48px -28px rgba(15, 23, 42, 0.22);
+  transition:
+    background .28s ease,
+    box-shadow .28s ease,
+    transform .22s cubic-bezier(.16, 1, .3, 1);
+}
+.tov-composer-aura::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    125deg,
+    rgba(99, 102, 241, 0) 0%,
+    rgba(129, 140, 248, 0) 40%,
+    rgba(56, 189, 248, 0) 100%
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .28s ease;
+}
+.tov-composer-aura:focus-within {
+  background: linear-gradient(
+    135deg,
+    rgba(99, 102, 241, 0.42),
+    rgba(168, 85, 247, 0.28),
+    rgba(56, 189, 248, 0.32)
+  );
+  box-shadow:
+    0 0 0 1px rgba(129, 140, 248, 0.12),
+    0 20px 56px -24px rgba(79, 70, 229, 0.28),
+    0 8px 24px -12px rgba(15, 23, 42, 0.18);
+  transform: translateY(-1px);
+}
+.tov-composer-aura:focus-within::before { opacity: 1; }
+.tov-composer-aura.has-text:not(:focus-within) {
+  background: color-mix(in srgb, var(--tov-border-2) 70%, transparent);
+}
+[data-theme="dark"] .tov-composer-aura,
+[data-theme="classic-dark"] .tov-composer-aura {
+  background: rgba(255, 255, 255, 0.07);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.05) inset,
+    0 22px 60px -30px rgba(0, 0, 0, 0.72);
+}
+[data-theme="dark"] .tov-composer-aura:focus-within,
+[data-theme="classic-dark"] .tov-composer-aura:focus-within {
+  background: linear-gradient(
+    135deg,
+    rgba(129, 140, 248, 0.38),
+    rgba(167, 139, 250, 0.22),
+    rgba(56, 189, 248, 0.24)
+  );
+  box-shadow:
+    0 0 0 1px rgba(167, 139, 250, 0.14),
+    0 0 48px -12px rgba(99, 102, 241, 0.35),
+    0 24px 64px -28px rgba(0, 0, 0, 0.78);
+}
 .tov-composer-panel {
   position: relative;
-  z-index: 2;
-  background: var(--tov-input);
+  z-index: 1;
+  background: color-mix(in srgb, var(--tov-input) 94%, rgba(255, 255, 255, 0.04));
   border: none !important;
   outline: none;
-  border-radius: 20px;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.72),
-    0 1px 2px rgba(0, 0, 0, 0.04),
-    0 8px 28px rgba(0, 0, 0, 0.07);
+  border-radius: 23px;
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
   overflow: hidden;
-  transition: box-shadow .18s ease;
+  transition: background .18s ease;
 }
 [data-theme="dark"] .tov-composer-panel,
 [data-theme="classic-dark"] .tov-composer-panel {
-  background: var(--tov-input);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.07),
-    0 4px 24px rgba(0, 0, 0, 0.38);
+  background: color-mix(in srgb, var(--tov-input) 88%, rgba(255, 255, 255, 0.03));
 }
 .tov-composer-panel:focus-within {
   border: none !important;
   outline: none;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.8),
-    0 2px 4px rgba(0, 0, 0, 0.05),
-    0 12px 36px rgba(0, 0, 0, 0.1);
+  background: color-mix(in srgb, var(--tov-input) 96%, rgba(255, 255, 255, 0.06));
 }
 [data-theme="dark"] .tov-composer-panel:focus-within,
 [data-theme="classic-dark"] .tov-composer-panel:focus-within {
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.09),
-    0 6px 32px rgba(0, 0, 0, 0.45);
+  background: color-mix(in srgb, #161618 92%, rgba(129, 140, 248, 0.06));
 }
 .tov-composer-input {
   display: block;
@@ -2003,57 +2067,100 @@ const STYLES = `
   box-sizing: border-box;
   border: 0; outline: 0; resize: none; background: transparent;
   color: var(--tov-text); font: inherit;
-  font-size: 15px; line-height: 1.45;
-  min-height: 24px; max-height: 160px;
-  padding: 14px 16px 2px;
+  font-size: 15px; line-height: 1.5;
+  min-height: 26px; max-height: 160px;
+  padding: 15px 18px 4px;
   overflow-y: auto;
 }
+.tov-composer-hero .tov-composer-aura { border-radius: 26px; }
+.tov-composer-hero .tov-composer-panel { border-radius: 25px; }
 .tov-composer-hero .tov-composer-input {
-  min-height: 22px;
-  padding: 13px 16px 0;
-}
-.tov-composer-hero .tov-composer-panel {
-  border-radius: 24px;
+  min-height: 24px;
+  padding: 16px 18px 2px;
+  font-size: 15.5px;
 }
 .tov-composer-hero .tov-composer-toolbar {
-  padding: 6px 10px 10px;
+  padding: 8px 12px 12px;
 }
-.tov-composer-input::placeholder { color: var(--tov-muted); }
+.tov-composer-input::placeholder {
+  color: var(--tov-muted);
+  transition: color .2s ease;
+}
+.tov-composer-panel:focus-within .tov-composer-input::placeholder {
+  color: color-mix(in srgb, var(--tov-muted) 72%, transparent);
+}
 .tov-composer-toolbar {
-  display: flex; align-items: center; gap: 6px;
-  padding: 4px 10px 10px;
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 12px 12px;
 }
-.tov-composer-plus {
+.tov-composer-hint {
   flex: 0 0 auto;
-  width: 32px; height: 32px;
-  display: inline-flex; align-items: center; justify-content: center;
-  background: transparent; color: var(--tov-text-2);
-  border: 0; border-radius: 8px;
-  cursor: pointer;
-  transition: background .14s, color .14s;
+  font-size: 11px; font-weight: 500; letter-spacing: .02em;
+  color: var(--tov-muted);
+  padding: 0 2px;
+  opacity: .72;
+  user-select: none;
 }
-.tov-composer-plus:hover { background: var(--tov-pill); color: var(--tov-text); }
-.tov-composer-spacer { flex: 1 1 auto; min-width: 4px; }
+.tov-composer-plus,
 .tov-composer-mic {
-  flex: 0 0 auto; width: 32px; height: 32px;
+  flex: 0 0 auto;
+  width: 34px; height: 34px;
   display: inline-flex; align-items: center; justify-content: center;
-  background: transparent; color: var(--tov-text-2);
-  border: 0; border-radius: 8px; cursor: pointer;
-  transition: background .14s, color .14s;
+  background: color-mix(in srgb, var(--tov-pill) 65%, transparent);
+  color: var(--tov-text-2);
+  border: 1px solid color-mix(in srgb, var(--tov-border) 80%, transparent);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background .14s, color .14s, border-color .14s, transform .12s;
 }
-.tov-composer-mic:hover { background: var(--tov-pill); color: var(--tov-text); }
-.tov-composer-mic.is-rec { animation: tov-pulse 1.4s ease-in-out infinite; }
+.tov-composer-plus:hover,
+.tov-composer-mic:hover {
+  background: var(--tov-pill-h);
+  color: var(--tov-text);
+  border-color: var(--tov-border-2);
+}
+.tov-composer-plus:active,
+.tov-composer-mic:active { transform: scale(.96); }
+.tov-composer-spacer { flex: 1 1 auto; min-width: 4px; }
+.tov-composer-mic.is-rec {
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.35);
+  background: rgba(239, 68, 68, 0.1);
+  animation: tov-pulse 1.4s ease-in-out infinite;
+}
 .tov-composer-send {
-  flex: 0 0 auto; width: 34px; height: 34px;
-  min-width: 34px; min-height: 34px;
+  flex: 0 0 auto; width: 36px; height: 36px;
+  min-width: 36px; min-height: 36px;
   border: 0; border-radius: 50%;
-  background: var(--tov-send); color: var(--tov-send-text);
+  background: color-mix(in srgb, var(--tov-send) 42%, var(--tov-pill));
+  color: color-mix(in srgb, var(--tov-send-text) 55%, var(--tov-muted));
   display: inline-flex; align-items: center; justify-content: center;
   cursor: pointer;
-  transition: opacity .12s, transform .12s;
+  transition:
+    background .18s ease,
+    color .18s ease,
+    transform .14s cubic-bezier(.16, 1, .3, 1),
+    box-shadow .18s ease;
 }
-.tov-composer-send:hover:not(:disabled) { opacity: .9; }
-.tov-composer-send:disabled { opacity: .35; cursor: not-allowed; }
+.tov-composer-aura.has-text .tov-composer-send:not(:disabled) {
+  background: var(--tov-send);
+  color: var(--tov-send-text);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.16) inset,
+    0 4px 14px -4px rgba(99, 102, 241, 0.45);
+}
+[data-theme="dark"] .tov-composer-aura.has-text .tov-composer-send:not(:disabled),
+[data-theme="classic-dark"] .tov-composer-aura.has-text .tov-composer-send:not(:disabled) {
+  background: #f4f4f5;
+  color: #09090b;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 0 28px -6px rgba(255, 255, 255, 0.22),
+    0 8px 22px -8px rgba(0, 0, 0, 0.55);
+}
+.tov-composer-send:hover:not(:disabled) { transform: translateY(-1px) scale(1.03); }
+.tov-composer-send:active:not(:disabled) { transform: scale(.97); }
+.tov-composer-send:disabled { opacity: .4; cursor: not-allowed; }
 .tov-composer-shelf {
   position: relative;
   z-index: 1;
@@ -2455,9 +2562,8 @@ const STYLES = `
   .tov-picker-footer {
     padding: 6px 16px max(16px, env(safe-area-inset-bottom, 0px));
   }
-  .tov-composer-hero .tov-composer-panel {
-    border-radius: 22px;
-  }
+  .tov-composer-hero .tov-composer-aura { border-radius: 24px; }
+  .tov-composer-hero .tov-composer-panel { border-radius: 23px; }
   .tov-composer-input {
     font-size: 16px;
   }

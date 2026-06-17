@@ -1,7 +1,8 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { ArrowRight, Lightning, ShieldCheck, Warning, WarningCircle } from '@phosphor-icons/react'
+import { ArrowRight, ShieldCheck, Warning, WarningCircle } from '@phosphor-icons/react'
+import TagroLogo from '@/components/TagroLogo'
 import { openTagro } from '@/components/TagroOverlay'
 import type { DecisionRiskSignal } from '@/lib/decisions/risks'
 
@@ -25,34 +26,28 @@ export default function DecisionRisksPopover({ risks, onClose, openCount }: Prop
     router.push(`/decisions/${id}`)
   }
 
+  const headline = risks.length === 0
+    ? 'Keine aktiven Risiken'
+    : `${risks.length} Risiko${risks.length === 1 ? '' : 'en'}`
+
+  const emptyLine = openCount === 0
+    ? 'Aktuell liegen keine offenen Entscheidungen vor.'
+    : 'Keine Entscheidungen mit erhöhter Dringlichkeit oder naher Frist.'
+
   return (
     <div className="dec-risks-popover" role="dialog" aria-label="Entscheidungsrisiken">
-      <div className="dec-risks-popover-glass" aria-hidden />
       <header className="dec-risks-popover-head">
         <div className="dec-risks-popover-title-wrap">
-          <span className="dec-risks-popover-icon" aria-hidden>
-            <Lightning size={16} weight="fill" />
-          </span>
-          <div>
-            <p className="dec-risks-popover-kicker">Tagro Risiko-Radar</p>
-            <h2 className="dec-risks-popover-title">
-              {risks.length === 0
-                ? 'Alles ruhig'
-                : `${risks.length} Risiko${risks.length === 1 ? '' : 'en'} aktiv`}
-            </h2>
-          </div>
+          <h2 className="dec-risks-popover-title">{headline}</h2>
+          {openCount > 0 && (
+            <p className="dec-risks-popover-sub">{openCount} offen</p>
+          )}
         </div>
-        {openCount > 0 && (
-          <span className="dec-risks-popover-meta">{openCount} offen</span>
-        )}
       </header>
 
       <div className="dec-risks-popover-body">
         {risks.length === 0 ? (
-          <div className="dec-risks-empty">
-            <p>Keine akuten Risiken bei deinen offenen Entscheidungen.</p>
-            <small>Tagro überwacht Dringlichkeit, Fristen und Eskalationen automatisch.</small>
-          </div>
+          <p className="dec-risks-empty">{emptyLine}</p>
         ) : (
           <ul className="dec-risks-list">
             {risks.map(risk => (
@@ -106,7 +101,7 @@ export default function DecisionRisksPopover({ risks, onClose, openCount }: Prop
             })
           }}
         >
-          <Lightning size={14} weight="fill" />
+          <TagroLogo size={16} />
           Mit Tagro besprechen
         </button>
       </footer>

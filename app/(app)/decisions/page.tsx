@@ -17,7 +17,7 @@
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import {
-  ArrowsClockwise, FunnelSimple, Lightning, List, DotsThree,
+  ArrowsClockwise, FunnelSimple, Lightning, DotsThree,
 } from '@phosphor-icons/react'
 import MobilePageHeader from '@/components/MobilePageHeader'
 import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
@@ -387,28 +387,44 @@ function DecisionsPageInner() {
       </div>
 
       <div className="dec-static-top">
-        <MobilePageHeader
-          title="Entscheidungen"
-          menuItems={[
-            { id: 'refresh', label: 'Aktualisieren', onClick: load },
-            { id: 'tagro', label: 'Mit Tagro bearbeiten', onClick: () => openTagro({ contextType: 'decision', id: 'list', title: 'Entscheidungen · Übersicht' }) },
-          ]}
-        />
+        <div className="dec-legacy-mph">
+          <MobilePageHeader
+            title="Entscheidungen"
+            menuItems={[
+              { id: 'refresh', label: 'Aktualisieren', onClick: load },
+              { id: 'tagro', label: 'Mit Tagro bearbeiten', onClick: tagroListHandler },
+            ]}
+          />
+        </div>
         <header className="dec-page-head">
           <div className="dec-page-head-copy">
-            <h1 className="dec-page-title">Entscheidungen</h1>
+            <h1 className="dec-page-title">
+              <span className="dec-dt">Entscheidungen</span>
+              <span className="dec-m-t">Entscheidungen</span>
+            </h1>
             <div className="dec-page-lead">
               <p>
-                {counts.open === 0
-                  ? 'Keine Entscheidungen offen.'
-                  : `Heute ${counts.open === 1 ? 'ist' : 'sind'} ${counts.open} Entscheidung${counts.open === 1 ? '' : 'en'} offen.`}
+                <span className="dec-dt">
+                  {counts.open === 0
+                    ? 'Keine Entscheidungen offen.'
+                    : `Heute ${counts.open === 1 ? 'ist' : 'sind'} ${counts.open} Entscheidung${counts.open === 1 ? '' : 'en'} offen.`}
+                </span>
+                <span className="dec-m-t dec-m-sub">{mobileSubtitle}</span>
               </p>
               {(executiveSummary.line1 || executiveSummary.line2) && (
-                <p>{[executiveSummary.line1, executiveSummary.line2].filter(Boolean).join(' ')}</p>
+                <p className="dec-dt">
+                  {[executiveSummary.line1, executiveSummary.line2].filter(Boolean).join(' ')}
+                </p>
               )}
             </div>
           </div>
-          <div className="dec-page-actions">
+          <div className="dec-m-head-actions">
+            <CodexMobileActionPill
+              onMenu={() => setNavOpen(true)}
+              onSearch={() => window.dispatchEvent(new CustomEvent('open-command-palette'))}
+            />
+          </div>
+          <div className="dec-page-actions dec-dt">
             <div className="dec-page-actions-group">
               <div className="dec-filter-wrap" ref={filterWrapRef}>
                 <button
@@ -424,49 +440,7 @@ function DecisionsPageInner() {
                 >
                   <FunnelSimple size={15} weight="regular" />
                 </button>
-                {filterMenuOpen && (
-                  <div className="dec-filter-menu" role="menu" aria-label="Filter">
-                    <p className="dec-filter-menu-label">Status</p>
-                    {FILTERS.map(f => (
-                      <button
-                        key={f.id}
-                        type="button"
-                        role="menuitem"
-                        className={`dec-filter-menu-item${filter === f.id ? ' on' : ''}`}
-                        onClick={() => { setFilter(f.id); setFilterMenuOpen(false) }}
-                      >
-                        <span>{f.label}</span>
-                        {filter === f.id && <span className="dec-filter-check">✓</span>}
-                      </button>
-                    ))}
-                    {hasProjects && (
-                      <>
-                        <p className="dec-filter-menu-label">Projekt</p>
-                        <button
-                          type="button"
-                          role="menuitem"
-                          className={`dec-filter-menu-item${projectScope === 'all' ? ' on' : ''}`}
-                          onClick={() => { applyProjectScope('all'); setFilterMenuOpen(false) }}
-                        >
-                          <span>Alle Projekte</span>
-                          {projectScope === 'all' && <span className="dec-filter-check">✓</span>}
-                        </button>
-                        {projectList.map(p => (
-                          <button
-                            key={p.id}
-                            type="button"
-                            role="menuitem"
-                            className={`dec-filter-menu-item${projectScope === p.id ? ' on' : ''}`}
-                            onClick={() => { applyProjectScope(p.id); setFilterMenuOpen(false) }}
-                          >
-                            <span>{p.title}</span>
-                            {projectScope === p.id && <span className="dec-filter-check">✓</span>}
-                          </button>
-                        ))}
-                      </>
-                    )}
-                  </div>
-                )}
+                {renderFilterMenu()}
               </div>
               <div className="dec-risks-wrap" ref={risksWrapRef}>
                 <button
@@ -512,6 +486,74 @@ function DecisionsPageInner() {
             </button>
           </div>
         </header>
+
+        <div className="dec-m-actions">
+          <div className="dec-m-risks-wrap" ref={mobileRisksWrapRef}>
+            <button
+              type="button"
+              className={`dec-m-risks-btn${risksOpen ? ' on' : ''}`}
+              aria-label={risks.length ? `${risks.length} Risiken` : 'Risiken'}
+              aria-expanded={risksOpen}
+              onClick={() => {
+                setFilterMenuOpen(false)
+                setRisksOpen(v => !v)
+              }}
+            >
+              <Lightning size={18} weight={risks.length ? 'fill' : 'bold'} />
+              {risks.length > 0 && (
+                <span
+                  className={`dec-m-risks-badge${hasCriticalRisks ? ' dec-m-risks-badge--pulse' : ''}`}
+                  aria-hidden
+                >
+                  {risks.length > 9 ? '9+' : risks.length}
+                </span>
+              )}
+            </button>
+            {risksOpen && (
+              <DecisionRisksPopover
+                risks={risks}
+                openCount={counts.open}
+                onClose={() => setRisksOpen(false)}
+              />
+            )}
+          </div>
+          <div className="dec-m-actions-group">
+            <div className="dec-filter-wrap" ref={mobileFilterWrapRef}>
+              <button
+                type="button"
+                className={`dec-m-ctl${filterMenuOpen ? ' on' : ''}${filterActive ? ' has-active' : ''}`}
+                aria-label="Filter"
+                aria-expanded={filterMenuOpen}
+                onClick={() => {
+                  setRisksOpen(false)
+                  setFilterMenuOpen(v => !v)
+                }}
+              >
+                <FunnelSimple size={17} weight="regular" />
+              </button>
+              {renderFilterMenu()}
+            </div>
+            <button
+              type="button"
+              className="dec-m-ctl"
+              aria-label="Aktualisieren"
+              onClick={load}
+            >
+              <ArrowsClockwise size={17} weight="regular" />
+            </button>
+          </div>
+          {(filterMenuOpen || risksOpen) && (
+            <button
+              type="button"
+              className="dec-m-sheet-backdrop"
+              aria-label="Schließen"
+              onClick={() => {
+                setFilterMenuOpen(false)
+                setRisksOpen(false)
+              }}
+            />
+          )}
+        </div>
       </div>
 
       <div className="dec-scroll-body">
@@ -545,14 +587,35 @@ function DecisionsPageInner() {
         ))}
       </div>
 
-      <TagroContentFab
-        context={{
-          contextType: 'decision',
-          id: 'list',
-          title: 'Entscheidungen · Übersicht',
-          subtitle: `${counts.open} offen · ${counts.urgent} dringend`,
-        }}
-      />
+      <div className="dec-fab-desktop">
+        <TagroContentFab
+          context={{
+            contextType: 'decision',
+            id: 'list',
+            title: 'Entscheidungen · Übersicht',
+            subtitle: `${counts.open} offen · ${counts.urgent} dringend`,
+          }}
+        />
+      </div>
+
+      <div className="dec-m-dock">
+        <div className="dec-m-dock-actions">
+          <div className="dec-m-home-indicator" aria-hidden />
+          <div className="dec-m-dock-row">
+            <button type="button" className="dec-m-dock-primary" onClick={tagroListHandler}>
+              <span className="dec-m-dock-primary-icon" aria-hidden>
+                <Lightning size={14} weight="regular" />
+              </span>
+              <span className="dec-m-dock-primary-label">
+                {counts.open === 0 ? 'Mit Tagro besprechen…' : 'Entscheidungen besprechen…'}
+              </span>
+            </button>
+            <button type="button" className="dec-m-tagro" aria-label="Mit Tagro bearbeiten" onClick={tagroListHandler}>
+              <TagroComposeIcon size={20} />
+            </button>
+          </div>
+        </div>
+      </div>
 
       {openDecision && (
         <DecisionDrawer
