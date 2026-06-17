@@ -11,7 +11,7 @@ import ClampedTip from '@/components/decisions/ClampedTip'
 import { openTagro } from '@/components/TagroOverlay'
 import type { Decision, ProjectLite } from '@/components/decisions/decisions-shared'
 import {
-  OPEN_STATES, URGENCY_LABEL, impactLine, listStatusLabel, tagroSummaryLine,
+  OPEN_STATES, URGENCY_LABEL, impactLine, listStatusLabel, resolveDecisionType, tagroSummaryLine,
 } from '@/components/decisions/decisions-shared'
 
 export function capitalizeDE(s: string): string {
@@ -62,6 +62,7 @@ export default function DecisionCardRow({
       : 'Freigeben'
   const primaryLabel = capitalizeDE(rawPrimary)
   const secondaryLabel = d.response_type === 'binary' ? 'Ablehnen' : 'Optionen'
+  const typeMeta = resolveDecisionType(d.decision_type)
 
   const isMock = d.id.startsWith('mock-')
   const canDelegate =
@@ -96,6 +97,7 @@ export default function DecisionCardRow({
       id: d.id,
       title: displayTitle,
       subtitle: proj?.title,
+      workspace: true,
     })
   }
 
@@ -175,7 +177,7 @@ export default function DecisionCardRow({
     {
       id: 'tagro',
       label: 'Mit Tagro bearbeiten',
-      icon: <Lightning size={14} weight="fill" />,
+      icon: <Lightning size={14} weight="regular" />,
       onClick: openTagroForDecision,
     },
     ...(canDelegate ? [{
@@ -242,8 +244,8 @@ export default function DecisionCardRow({
             <p className="dec-card-project">{proj?.title || '—'}</p>
           </div>
           <div className="dec-card-type-pill">
-            <span className="dec-card-dot" style={{ background: proj?.color || '#5B647D' }} />
-            {d.decision_type || listStatusLabel(d)}
+            <span className="dec-card-dot" style={{ background: typeMeta.color }} />
+            {d.decision_type ? typeMeta.label : listStatusLabel(d)}
           </div>
         </div>
 

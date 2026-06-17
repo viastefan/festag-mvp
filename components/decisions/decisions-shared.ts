@@ -96,8 +96,8 @@ function mockDec(id: string, title: string, rec: string, type: string): Decision
 }
 export const MOCK_DECISIONS: Decision[] = [
   mockDec('mock-1', 'Logo Farbe freigeben', 'Freigeben', 'Designentscheidung'),
-  mockDec('mock-2', 'Zahlungsanbieter wählen', 'Stripe', 'Designentscheidung'),
-  mockDec('mock-3', 'Zahlungsanbieter wählen', 'Stripe', 'Designentscheidung'),
+  mockDec('mock-2', 'Zahlungsanbieter wählen', 'Stripe', 'payment'),
+  mockDec('mock-3', 'Zahlungsanbieter wählen', 'Stripe', 'payment'),
   mockDec('mock-4', 'Domain-Strategie festlegen', 'Freigeben', 'Technische Entscheidung'),
   mockDec('mock-5', 'SEO Keywords bestätigen', 'Freigeben', 'Marketing-Entscheidung'),
   mockDec('mock-6', 'Hosting-Provider wählen', 'Vercel', 'Technische Entscheidung'),
@@ -215,4 +215,57 @@ export const DUE_SOURCE_LABEL: Record<string, string> = {
   blocking_horizon: 'blockiert Arbeit',
   deliberation_floor: 'Bedenkzeit',
   type_default: 'Standardfrist',
+}
+
+type DecisionTypeMeta = { label: string; color: string }
+
+const CANONICAL_DECISION_TYPES: Record<string, DecisionTypeMeta> = {
+  direction: { label: 'Designentscheidung', color: '#7B5FD4' },
+  scope: { label: 'Technische Entscheidung', color: '#4B7B9D' },
+  budget: { label: 'Budgetentscheidung', color: '#C9870A' },
+  approval: { label: 'Freigabe', color: '#2EAD6B' },
+  payment: { label: 'Zahlungsentscheidung', color: '#0E9AA7' },
+  legal: { label: 'Rechtsentscheidung', color: '#4A5568' },
+  contract: { label: 'Vertragsentscheidung', color: '#4A5568' },
+  data_protection: { label: 'Datenschutz', color: '#6366F1' },
+  risk_response: { label: 'Risikoentscheidung', color: '#D14343' },
+  tradeoff: { label: 'Strategieentscheidung', color: '#6B7C3E' },
+  clarification: { label: 'Klärung', color: '#6E717E' },
+  escalation: { label: 'Eskalation', color: '#C2503E' },
+}
+
+function matchGermanDecisionType(raw: string): DecisionTypeMeta | null {
+  const t = raw.trim().toLowerCase()
+  if (t.includes('design')) return CANONICAL_DECISION_TYPES.direction
+  if (t.includes('techn')) return CANONICAL_DECISION_TYPES.scope
+  if (t.includes('marketing')) return { label: raw.trim(), color: '#E07A3A' }
+  if (t.includes('strateg')) return CANONICAL_DECISION_TYPES.tradeoff
+  if (t.includes('zahlung') || t.includes('payment') || t.includes('stripe')) {
+    return CANONICAL_DECISION_TYPES.payment
+  }
+  if (t.includes('budget')) return CANONICAL_DECISION_TYPES.budget
+  if (t.includes('freigab') || t.includes('approval')) return CANONICAL_DECISION_TYPES.approval
+  if (t.includes('risiko')) return CANONICAL_DECISION_TYPES.risk_response
+  if (t.includes('recht') || t.includes('legal')) return CANONICAL_DECISION_TYPES.legal
+  if (t.includes('vertrag') || t.includes('contract')) return CANONICAL_DECISION_TYPES.contract
+  if (t.includes('datenschutz')) return CANONICAL_DECISION_TYPES.data_protection
+  if (t.includes('klär') || t.includes('klaer')) return CANONICAL_DECISION_TYPES.clarification
+  if (t.includes('eskal')) return CANONICAL_DECISION_TYPES.escalation
+  return null
+}
+
+/** Client-facing label + dot color derived from engine type or legacy German strings. */
+export function resolveDecisionType(raw?: string | null): DecisionTypeMeta {
+  if (!raw?.trim()) {
+    return { label: 'Entscheidung', color: '#5B647D' }
+  }
+  const key = raw.trim().toLowerCase()
+  if (CANONICAL_DECISION_TYPES[key]) return CANONICAL_DECISION_TYPES[key]
+  const german = matchGermanDecisionType(raw)
+  if (german) {
+    return german.label === raw.trim()
+      ? german
+      : { label: raw.trim(), color: german.color }
+  }
+  return { label: raw.trim(), color: '#5B647D' }
 }

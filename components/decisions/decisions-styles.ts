@@ -85,7 +85,7 @@ export const DECISION_CSS = `
   .dec-hero { display:flex; justify-content:space-between; align-items:flex-start; gap:24px; padding-bottom:24px; }
   .dec-hero-text { max-width:600px; flex:1; min-width:0; }
   .dec-hero-title {
-    margin:0; font-size:30px; font-weight:500; color:var(--dec-dark);
+    margin:0; font-size:30px; font-weight:400; color:var(--dec-dark);
     letter-spacing:-0.01em; line-height:1.2;
     font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
   }
