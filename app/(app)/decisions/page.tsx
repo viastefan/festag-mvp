@@ -20,6 +20,9 @@ import {
   ArrowsClockwise, FunnelSimple, Lightning, List, DotsThree,
 } from '@phosphor-icons/react'
 import MobilePageHeader from '@/components/MobilePageHeader'
+import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
+import MobileNavSheet from '@/components/mobile/MobileNavSheet'
+import TagroComposeIcon from '@/components/icons/TagroComposeIcon'
 import DecisionCardRow from '@/components/decisions/DecisionCardRow'
 import TagroContentFab from '@/components/TagroContentFab'
 import { openTagro } from '@/components/TagroOverlay'
@@ -54,6 +57,10 @@ function DecisionsPageInner() {
   const searchParams = useSearchParams()
   const filterWrapRef = useRef<HTMLDivElement>(null)
   const risksWrapRef = useRef<HTMLDivElement>(null)
+  const mobileFilterWrapRef = useRef<HTMLDivElement>(null)
+  const mobileRisksWrapRef = useRef<HTMLDivElement>(null)
+
+  const [navOpen, setNavOpen] = useState(false)
 
   const [decisions, setDecisions] = useState<Decision[]>([])
   const [projects, setProjects] = useState<Record<string, ProjectLite>>({})
@@ -132,9 +139,11 @@ function DecisionsPageInner() {
   useEffect(() => {
     if (!filterMenuOpen) return
     function onDoc(e: MouseEvent) {
-      if (filterWrapRef.current && !filterWrapRef.current.contains(e.target as Node)) {
-        setFilterMenuOpen(false)
-      }
+      const t = e.target as Node
+      const inside =
+        filterWrapRef.current?.contains(t) ||
+        mobileFilterWrapRef.current?.contains(t)
+      if (!inside) setFilterMenuOpen(false)
     }
     function onKey(e: KeyboardEvent) {
       if (e.key === 'Escape') setFilterMenuOpen(false)
@@ -150,9 +159,11 @@ function DecisionsPageInner() {
   useEffect(() => {
     if (!risksOpen) return
     function onDoc(e: MouseEvent) {
-      if (risksWrapRef.current && !risksWrapRef.current.contains(e.target as Node)) {
-        setRisksOpen(false)
-      }
+      const t = e.target as Node
+      const inside =
+        risksWrapRef.current?.contains(t) ||
+        mobileRisksWrapRef.current?.contains(t)
+      if (!inside) setRisksOpen(false)
     }
     function onKey(e: KeyboardEvent) {
       if (e.key === 'Escape') setRisksOpen(false)
@@ -303,9 +314,70 @@ function DecisionsPageInner() {
 
   const filterActive = filter !== 'open' || projectScope !== 'all'
 
+  const tagroListHandler = () => openTagro({
+    contextType: 'decision',
+    id: 'list',
+    title: 'Entscheidungen · Übersicht',
+    subtitle: `${counts.open} offen · ${counts.urgent} dringend`,
+  })
+
+  const mobileSubtitle = counts.open === 0
+    ? 'Alles auf einen Blick.'
+    : `${counts.open} Entscheidung${counts.open === 1 ? '' : 'en'} offen.`
+
+  function renderFilterMenu() {
+    if (!filterMenuOpen) return null
+    return (
+      <div className="dec-filter-menu" role="menu" aria-label="Filter">
+        <p className="dec-m-sheet-title">Filtern</p>
+        <p className="dec-filter-menu-label dec-dt">Status</p>
+        {FILTERS.map(f => (
+          <button
+            key={f.id}
+            type="button"
+            role="menuitem"
+            className={`dec-filter-menu-item${filter === f.id ? ' on' : ''}`}
+            onClick={() => { setFilter(f.id); setFilterMenuOpen(false) }}
+          >
+            <span>{f.label}</span>
+            {filter === f.id && <span className="dec-filter-check">✓</span>}
+          </button>
+        ))}
+        {hasProjects && (
+          <>
+            <p className="dec-filter-menu-label dec-dt">Projekt</p>
+            <button
+              type="button"
+              role="menuitem"
+              className={`dec-filter-menu-item${projectScope === 'all' ? ' on' : ''}`}
+              onClick={() => { applyProjectScope('all'); setFilterMenuOpen(false) }}
+            >
+              <span>Alle Projekte</span>
+              {projectScope === 'all' && <span className="dec-filter-check">✓</span>}
+            </button>
+            {projectList.map(p => (
+              <button
+                key={p.id}
+                type="button"
+                role="menuitem"
+                className={`dec-filter-menu-item${projectScope === p.id ? ' on' : ''}`}
+                onClick={() => { applyProjectScope(p.id); setFilterMenuOpen(false) }}
+              >
+                <span>{p.title}</span>
+                {projectScope === p.id && <span className="dec-filter-check">✓</span>}
+              </button>
+            ))}
+          </>
+        )}
+      </div>
+    )
+  }
+
   return (
     <div className="dec-os">
       <style>{DECISION_CSS}</style>
+
+      <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
 
       <div className="dec-hero-bg dec-hero-bg-top" aria-hidden>
         <img src="/decisions/hero-top.png" alt="" />
