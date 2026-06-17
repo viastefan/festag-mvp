@@ -698,10 +698,9 @@ export const DECISION_CSS = `
   }
   .dec-card-menu-item {
     display:flex; align-items:center; gap:10px;
-    width:100%; min-height:36px; padding:0 10px;
+    width:100%; min-height:38px; padding:0 12px;
     border:0; border-radius:6px !important; background:transparent;
-    font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
-    font-size:14px; font-weight:400; letter-spacing:0;
+    font:inherit;
     color:var(--dec-dark); text-align:left; cursor:pointer;
     white-space:nowrap;
     transition:background .12s ease, color .12s ease;
@@ -716,9 +715,16 @@ export const DECISION_CSS = `
   }
   .dec-card-menu-icon {
     width:16px; display:inline-flex; align-items:center; justify-content:center;
-    color:#8E8E93; flex-shrink:0;
+    color:var(--dec-muted); flex-shrink:0;
   }
-  .dec-card-menu-label { flex:1; min-width:0; white-space:nowrap; }
+  .dec-card-menu-label {
+    flex:1; min-width:0; white-space:nowrap;
+    margin:0;
+    font-size:14px; font-weight:500; color:var(--dec-dark);
+    letter-spacing:0; line-height:1.35;
+    font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
+  }
+  .dec-card-menu-item.is-danger .dec-card-menu-label { color:#FF3B30; }
   .dec-card-menu-item.is-danger .dec-card-menu-icon { color:#FF3B30; }
   [data-theme="dark"] .dec-card-menu-item:hover:not(:disabled),
   [data-theme="classic-dark"] .dec-card-menu-item:hover:not(:disabled) {
@@ -726,7 +732,11 @@ export const DECISION_CSS = `
   }
   [data-theme="dark"] .dec-card-menu-icon,
   [data-theme="classic-dark"] .dec-card-menu-icon {
-    color:#9aa0ac;
+    color:var(--dec-muted);
+  }
+  [data-theme="dark"] .dec-card-menu-label,
+  [data-theme="classic-dark"] .dec-card-menu-label {
+    color:var(--dec-dark);
   }
   .dec-card-actions .fui-pill-btn {
     height:40px; min-height:40px; font-size:13px; width:100%;
