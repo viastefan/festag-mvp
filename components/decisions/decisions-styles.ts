@@ -292,7 +292,7 @@ export const DECISION_CSS = `
     right: -4px;
     z-index: 40;
     width: min(320px, calc(100vw - 32px));
-    border-radius: 6px;
+    border-radius: 6px !important;
     overflow: hidden;
     background: var(--dec-card-bg);
     border: 1px solid color-mix(in srgb, var(--portal-btn-outline-border, #e7ebf0) 72%, transparent);
@@ -308,7 +308,8 @@ export const DECISION_CSS = `
   }
   [data-theme="dark"] .dec-risks-popover,
   [data-theme="classic-dark"] .dec-risks-popover {
-    border-color: rgba(255,255,255,.1);
+    border: none;
+    border-color: transparent;
     box-shadow:
       0 24px 56px -18px rgba(0,0,0,.55),
       0 8px 20px -10px rgba(0,0,0,.35);
@@ -336,17 +337,18 @@ export const DECISION_CSS = `
     font-family: var(--font-aeonik,'Aeonik',Inter,sans-serif);
     font-size: 14px;
     font-weight: 500;
-    letter-spacing: -.015em;
+    letter-spacing: 0;
     color: var(--dec-dark);
-    line-height: 1.3;
+    line-height: 1.35;
   }
   .dec-risks-popover-sub {
     margin: 0;
     font-family: var(--font-aeonik,'Aeonik',Inter,sans-serif);
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 400;
-    color: var(--dec-soft);
-    line-height: 1.35;
+    color: var(--dec-muted);
+    line-height: 1.45;
+    letter-spacing: 0;
   }
   .dec-risks-popover-body {
     max-height: min(52vh, 360px);
@@ -376,27 +378,26 @@ export const DECISION_CSS = `
     align-items: flex-start;
     gap: 10px;
     width: 100%;
-    padding: 10px;
-    border: 1px solid rgba(15,23,42,.06);
-    border-radius: 6px;
+    padding: 10px 10px;
+    border: none;
+    border-radius: 6px !important;
     background: transparent;
     text-align: left;
     cursor: pointer;
-    transition: background .14s ease, border-color .14s ease;
+    font: inherit;
+    transition: background .14s ease;
   }
   .dec-risks-item:hover {
-    background: rgba(15,23,42,.03);
-    border-color: rgba(15,23,42,.1);
+    background: rgba(15,23,42,.04);
   }
   [data-theme="dark"] .dec-risks-item,
   [data-theme="classic-dark"] .dec-risks-item {
     background: transparent;
-    border-color: rgba(255,255,255,.08);
+    border: none;
   }
   [data-theme="dark"] .dec-risks-item:hover,
   [data-theme="classic-dark"] .dec-risks-item:hover {
-    background: rgba(255,255,255,.04);
-    border-color: rgba(255,255,255,.12);
+    background: rgba(255,255,255,.05);
   }
   .dec-risks-sev {
     width: 24px;
@@ -429,31 +430,33 @@ export const DECISION_CSS = `
   }
   .dec-risks-item-title {
     font-family: var(--font-aeonik,'Aeonik',Inter,sans-serif);
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 500;
-    letter-spacing: -.01em;
+    letter-spacing: 0;
     line-height: 1.35;
     color: var(--dec-dark);
   }
   .dec-risks-item-meta {
     font-family: var(--font-aeonik,'Aeonik',Inter,sans-serif);
-    font-size: 12px;
-    line-height: 1.4;
-    color: var(--dec-soft);
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 1.45;
+    letter-spacing: 0;
+    color: var(--dec-muted);
   }
-  .dec-risks-item--critical .dec-risks-item-meta {
-    color: color-mix(in srgb, #dc6b6b 55%, var(--dec-soft));
-  }
+  .dec-risks-item--critical .dec-risks-item-meta,
   .dec-risks-item--high .dec-risks-item-meta {
-    color: color-mix(in srgb, #c9953a 50%, var(--dec-soft));
+    color: var(--dec-muted);
   }
   .dec-risks-project,
   .dec-risks-detail {
     font-family: var(--font-aeonik,'Aeonik',Inter,sans-serif);
-    font-size: 11.5px;
-    line-height: 1.4;
-    color: var(--dec-soft);
-    opacity: .85;
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 1.45;
+    letter-spacing: 0;
+    color: var(--dec-muted);
+    opacity: 1;
   }
   .dec-risks-chevron {
     flex-shrink: 0;
@@ -480,11 +483,12 @@ export const DECISION_CSS = `
     background: transparent;
     color: var(--dec-dark);
     font-family: var(--font-aeonik,'Aeonik',Inter,sans-serif);
-    font-size: 13px;
-    font-weight: 400;
-    letter-spacing: -.01em;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0;
+    line-height: 1.35;
     cursor: pointer;
-    transition: background .14s ease, border-color .14s ease;
+    transition: background .14s ease;
   }
   .dec-risks-tagro-btn .tagro-logo .tagro-anim {
     animation: none;
@@ -495,14 +499,13 @@ export const DECISION_CSS = `
   }
   [data-theme="dark"] .dec-risks-tagro-btn,
   [data-theme="classic-dark"] .dec-risks-tagro-btn {
-    background: rgba(255,255,255,.06);
-    border-color: rgba(255,255,255,.1);
+    background: rgba(255,255,255,.07);
+    border: none;
     color: #f4f4f4;
   }
   [data-theme="dark"] .dec-risks-tagro-btn:hover,
   [data-theme="classic-dark"] .dec-risks-tagro-btn:hover {
-    background: rgba(255,255,255,.1);
-    border-color: rgba(255,255,255,.14);
+    background: rgba(255,255,255,.11);
   }
 
   .dec-hero { display:flex; justify-content:space-between; align-items:flex-start; gap:24px; padding-bottom:24px; }
