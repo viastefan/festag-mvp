@@ -283,7 +283,8 @@ function ProjectsPageInner() {
 
   const tagroHandler = () => openTagro({
     contextType: 'project',
-    title: 'Projekte',
+    id: 'list',
+    title: 'Alle Projekte',
     subtitle: `${visible.length} Projekt${visible.length === 1 ? '' : 'e'}`,
   })
 
