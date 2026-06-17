@@ -273,7 +273,7 @@ export default function DevCapturesPage() {
                 {isAwait && c.decision_id && (
                   <p className="dvc-card-wait">
                     <Question size={12} /> Rückfrage als Entscheidung an den Kunden gestellt.{' '}
-                    <Link href={`/decisions?id=${c.decision_id}`}>Entscheidung öffnen</Link>
+                    <Link href={`/decisions?open=${c.decision_id}`}>Entscheidung öffnen</Link>
                   </p>
                 )}
 

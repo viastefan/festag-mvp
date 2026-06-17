@@ -7,8 +7,11 @@ import {
 } from '@phosphor-icons/react'
 import FestagPillButton from '@/components/ui/FestagPillButton'
 import ClampedTip from '@/components/decisions/ClampedTip'
+import DecisionExternalHandoffModal from '@/components/decisions/DecisionExternalHandoffModal'
 import { openTagro } from '@/components/TagroOverlay'
 import { createClient } from '@/lib/supabase/client'
+import type { ExternalHandoff } from '@/lib/decisions/external-handoffs'
+import { resolveHandoffFromOption } from '@/lib/decisions/external-handoffs'
 import {
   type Decision, type ProjectLite, type ResponseType, type DecOption, type ResponseValue,
   URGENCY_LABEL, URGENCY_TONE, fmtAgo, fmtDueIn, fmtCountdown, DUE_SOURCE_LABEL,
@@ -51,6 +54,7 @@ export function DecisionDrawer({
   const [delegating, setDelegating] = useState(false)
   const [discussing, setDiscussing] = useState(false)
   const [discussOpen, setDiscussOpen] = useState(initialDiscussOpen)
+  const [handoff, setHandoff] = useState<ExternalHandoff | null>(null)
   const [discussQuestion, setDiscussQuestion] = useState('')
   const [error, setError] = useState<string>('')
 
@@ -179,13 +183,7 @@ export function DecisionDrawer({
     }
   }
 
-  async function submitDecision() {
-    if (deciding) return
-    const responseValue = buildResponseValue()
-    if (!responseValue) {
-      setError(responseType === 'free_text' ? 'Schreibe eine Antwort.' : 'Wähle eine Option.')
-      return
-    }
+  async function performDecide(responseValue: ResponseValue) {
     setDeciding(true); setError('')
     try {
       const res = await fetch(`/api/decisions/${decision.id}/decide`, {
@@ -194,13 +192,12 @@ export function DecisionDrawer({
         body: JSON.stringify({
           response_value: responseValue,
           rationale: rationale.trim() || undefined,
-          // Legacy mirrors for older /decide expectations.
           selected_option:
-            'selected_option_id' in responseValue ? responseValue.selected_option_id
-            : 'binary_value' in responseValue ? responseValue.binary_value
+            responseValue && 'selected_option_id' in responseValue ? responseValue.selected_option_id
+            : responseValue && 'binary_value' in responseValue ? responseValue.binary_value
             : null,
           decision_note:
-            'free_text' in responseValue ? responseValue.free_text
+            responseValue && 'free_text' in responseValue ? responseValue.free_text
             : rationale.trim() || null,
         }),
       })
@@ -211,6 +208,37 @@ export function DecisionDrawer({
     } finally {
       setDeciding(false)
     }
+  }
+
+  async function submitDecision() {
+    if (deciding) return
+    const responseValue = buildResponseValue()
+    if (!responseValue) {
+      setError(responseType === 'free_text' ? 'Schreibe eine Antwort.' : 'Wähle eine Option.')
+      return
+    }
+
+    if (
+      responseType === 'single_choice' &&
+      responseValue &&
+      'selected_option_id' in responseValue
+    ) {
+      const opts: DecOption[] = structuredOptions.length > 0
+        ? structuredOptions
+        : (decision.options_json || []).map((o) => ({ id: o.id, label: o.label, description: o.hint }))
+      const opt = opts.find(o =>
+        (o.external_id || o.id) === responseValue.selected_option_id,
+      )
+      if (opt) {
+        const resolved = resolveHandoffFromOption(opt, decision.decision_type)
+        if (resolved) {
+          setHandoff(resolved)
+          return
+        }
+      }
+    }
+
+    await performDecide(responseValue)
   }
 
   async function delegateToTagro() {
@@ -620,23 +648,44 @@ export function DecisionDrawer({
     </>
   )
 
+  const displayTitle = decision.client_title || decision.title
+
+  const handoffModal = handoff ? (
+    <DecisionExternalHandoffModal
+      handoff={handoff}
+      decisionTitle={displayTitle}
+      projectTitle={project?.title}
+      onClose={() => setHandoff(null)}
+      onConfirm={async () => {
+        await performDecide({ selected_option_id: handoff.optionId })
+        setHandoff(null)
+      }}
+    />
+  ) : null
+
   if (variant === 'page') {
     return (
-      <div className="dec-detail-page">
-        <article className="dec-detail-article">
-          {panelBody}
-        </article>
-      </div>
+      <>
+        <div className="dec-detail-page">
+          <article className="dec-detail-article">
+            {panelBody}
+          </article>
+        </div>
+        {handoffModal}
+      </>
     )
   }
 
   return (
-    <div className="dec-overlay" role="dialog" aria-modal="true">
-      <div className="dec-backdrop" onClick={onClose} />
-      <aside className="dec-panel">
-        {panelBody}
-      </aside>
-    </div>
+    <>
+      <div className="dec-overlay" role="dialog" aria-modal="true">
+        <div className="dec-backdrop" onClick={onClose} />
+        <aside className="dec-panel">
+          {panelBody}
+        </aside>
+      </div>
+      {handoffModal}
+    </>
   )
 }
 

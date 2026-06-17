@@ -138,6 +138,16 @@ export type DecisionOptionImplications = {
   time_delta_days?: number | DecisionImpactScalar
   risk_delta?: DecisionImpactScalar
   scope_delta?: 'narrows' | 'unchanged' | 'broadens'
+  /** Guided client setup in an external tool (Stripe, Vercel, …). */
+  external_handoff?: {
+    provider?: string
+    provider_label?: string
+    url: string
+    steps: Array<string | { title?: string; body: string }>
+    open_label?: string
+    confirm_label?: string
+    note?: string
+  }
 }
 
 

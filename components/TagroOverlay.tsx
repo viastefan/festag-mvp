@@ -709,8 +709,8 @@ export default function TagroOverlay() {
                             const Icon = ex.icon
                             return (
                               <button key={ex.title} type="button" className="tov-example" onClick={() => runExample(ex.title)}>
-                                <span className="tov-example-ico" aria-hidden><Icon size={16} weight="regular" /></span>
-                                <span className="tov-example-body"><strong>{ex.title}</strong></span>
+                                <span className="tov-example-ico" aria-hidden><Icon size={15} weight="regular" /></span>
+                                <span className="tov-example-label">{ex.title}</span>
                               </button>
                             )
                           })}
@@ -778,10 +778,8 @@ export default function TagroOverlay() {
                       const Icon = ex.icon
                       return (
                         <button key={ex.title} type="button" className="tov-example" onClick={() => runExample(ex.title)}>
-                          <span className="tov-example-ico" aria-hidden><Icon size={16} weight="regular" /></span>
-                          <span className="tov-example-body">
-                            <strong>{ex.title}</strong>
-                          </span>
+                          <span className="tov-example-ico" aria-hidden><Icon size={15} weight="regular" /></span>
+                          <span className="tov-example-label">{ex.title}</span>
                         </button>
                       )
                     })}
@@ -1233,11 +1231,12 @@ const STYLES = `
 
 .tov-shell {
   position: relative;
-  width: min(660px, calc(100vw - 32px));
-  max-height: min(90vh, 860px);
+  width: min(680px, calc(100vw - 28px));
+  max-height: min(92vh, 880px);
+  min-height: min(68vh, 660px);
   background: var(--tov-bg);
   border: 0;
-  border-radius: 24px;
+  border-radius: 20px;
   box-shadow: var(--tov-shadow);
   display: flex;
   flex-direction: column;
@@ -1251,11 +1250,15 @@ const STYLES = `
   background: transparent;
 }
 .tov.tov-mode-conversation:not(.tov-full) .tov-shell {
-  width: min(660px, calc(100vw - 32px));
-  height: min(76vh, 780px);
-  max-height: min(76vh, 780px);
+  width: min(680px, calc(100vw - 28px));
+  height: min(78vh, 800px);
+  max-height: min(78vh, 800px);
+  min-height: min(52vh, 520px);
   display: flex;
   flex-direction: column;
+}
+.tov.tov-mode-initial:not(.tov-full) .tov-shell {
+  min-height: min(68vh, 660px);
 }
 
 /* ── Task picker (sana modal + Festag context) ── */
@@ -1297,10 +1300,10 @@ const STYLES = `
 .tov-featured {
   display: flex; align-items: center; gap: 14px;
   background: var(--tov-bg-2);
-  border: none;
-  border-radius: 14px;
+  border: 1px solid var(--tov-border);
+  border-radius: 6px;
   padding: 14px 16px;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
 }
 .tov-featured-text {
   flex: 1; margin: 0;
@@ -1415,52 +1418,80 @@ const STYLES = `
 }
 .tov-scratch {
   display: inline-flex; align-items: center; gap: 4px;
-  margin: 0 0 20px;
-  padding: 6px 12px;
+  margin: 0 0 22px;
+  padding: 7px 12px;
   background: var(--tov-bg-2);
   color: var(--tov-text-2);
-  border: 0; border-radius: 999px;
+  border: 1px solid var(--tov-border);
+  border-radius: 6px;
   font: inherit; font-size: 13px; font-weight: 500;
   cursor: pointer;
   transition: background .12s, color .12s;
 }
 .tov-scratch:hover { background: var(--tov-pill-h); color: var(--tov-text); }
 
+.tov-examples {
+  margin-top: 2px;
+}
 .tov-examples-label {
-  margin: 0 0 10px;
-  font-size: 12px; font-weight: 600; color: var(--tov-muted);
-  letter-spacing: 0.02em;
+  margin: 0 0 8px;
+  font-size: 11px; font-weight: 500; color: var(--tov-muted);
+  letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 .tov-examples-grid {
-  display: grid; gap: 8px;
-  grid-template-columns: 1fr 1fr;
+  display: grid;
+  gap: 6px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
-@media (max-width: 520px) { .tov-examples-grid { grid-template-columns: 1fr; } }
+@media (max-width: 560px) {
+  .tov-examples-grid { grid-template-columns: 1fr; }
+}
 .tov-example {
-  display: flex; align-items: center; gap: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  box-sizing: border-box;
   text-align: left;
-  background: transparent; color: var(--tov-text);
-  border: 0; border-radius: 10px;
-  padding: 8px 6px;
-  font: inherit; cursor: pointer;
-  transition: background .12s;
+  background: color-mix(in srgb, var(--tov-bg-2) 90%, var(--tov-bg));
+  color: var(--tov-text-2);
+  border: 1px solid var(--tov-border);
+  border-radius: 6px;
+  font: inherit;
+  cursor: pointer;
+  transition: background .12s ease, border-color .12s ease, color .12s ease;
 }
-.tov-example:hover { background: var(--tov-pill); }
+.tov-example:hover {
+  background: var(--tov-pill-h);
+  border-color: color-mix(in srgb, var(--tov-text) 12%, var(--tov-border));
+  color: var(--tov-text);
+  border-radius: 6px;
+}
+.tov-example:active { transform: scale(0.995); }
 .tov-example-ico {
   flex: 0 0 auto;
-  width: 32px; height: 32px;
+  width: 28px; height: 28px;
   display: inline-flex; align-items: center; justify-content: center;
   background: var(--tov-bg);
   border: 1px solid var(--tov-border);
-  border-radius: 999px;
+  border-radius: 6px;
+  color: var(--tov-muted);
+  transition: color .12s ease, border-color .12s ease;
+}
+.tov-example:hover .tov-example-ico {
   color: var(--tov-text-2);
+  border-color: color-mix(in srgb, var(--tov-text) 8%, var(--tov-border));
 }
-.tov-example-body {
-  display: flex; flex-direction: column; gap: 0; min-width: 0;
-}
-.tov-example-body strong {
-  font-size: 13px; font-weight: 500; line-height: 1.35;
+.tov-example-label {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.35;
+  letter-spacing: -.01em;
 }
 
 /* ── Workspace layout ── */
@@ -1738,14 +1769,15 @@ const STYLES = `
   position: relative;
   z-index: 2;
   background: var(--tov-input);
-  border: none;
-  border-radius: 22px;
+  border: none !important;
+  outline: none;
+  border-radius: 20px;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.72),
     0 1px 2px rgba(0, 0, 0, 0.04),
     0 8px 28px rgba(0, 0, 0, 0.07);
   overflow: hidden;
-  transition: box-shadow .18s ease, transform .18s ease;
+  transition: box-shadow .18s ease;
 }
 [data-theme="dark"] .tov-composer-panel,
 [data-theme="classic-dark"] .tov-composer-panel {
@@ -1755,7 +1787,8 @@ const STYLES = `
     0 4px 24px rgba(0, 0, 0, 0.38);
 }
 .tov-composer-panel:focus-within {
-  border: none;
+  border: none !important;
+  outline: none;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.8),
     0 2px 4px rgba(0, 0, 0, 0.05),

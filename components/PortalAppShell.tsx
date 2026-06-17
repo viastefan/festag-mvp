@@ -155,6 +155,17 @@ export const PORTAL_APP_SHELL_CSS = `
     background:rgba(255,255,255,.08);
     color:var(--portal-text, #f4f4f4);
   }
+  [data-theme="dark"] .portal-app-shell .fui-pill-btn--primary,
+  [data-theme="classic-dark"] .portal-app-shell .fui-pill-btn--primary {
+    background:var(--portal-btn-primary, #7b849c);
+    border-color:transparent;
+    color:#fff;
+  }
+  [data-theme="dark"] .portal-app-shell .fui-pill-btn--primary:hover:not(:disabled),
+  [data-theme="classic-dark"] .portal-app-shell .fui-pill-btn--primary:hover:not(:disabled) {
+    background:color-mix(in srgb, var(--portal-btn-primary, #7b849c) 90%, #000);
+    color:#fff;
+  }
 
   @media (max-width: 900px) {
     .portal-app-nav-col { display:none; }

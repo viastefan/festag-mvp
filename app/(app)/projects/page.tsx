@@ -381,11 +381,11 @@ function ProjectsPageInner() {
             <button type="button" className="pjm-add-btn" aria-label="Neues Projekt" onClick={() => setShowNewProject(true)}>
               <Plus size={18} weight="bold" />
             </button>
-            <div className="pjm-actions-bar">
+            <div className="pjm-actions-group">
               <div className="pj2-tool-wrap">
                 <button
                   type="button"
-                  className={`pjm-chip${filterOpen ? ' on' : ''}${filter !== 'all' ? ' has-active' : ''}`}
+                  className={`pjm-ctl${filterOpen ? ' on' : ''}${filter !== 'all' ? ' has-active' : ''}`}
                   aria-label="Filter"
                   onClick={() => { setFilterOpen(v => !v); setSortOpen(false) }}
                 >
@@ -406,7 +406,7 @@ function ProjectsPageInner() {
               <div className="pj2-tool-wrap">
                 <button
                   type="button"
-                  className={`pjm-chip${sortOpen ? ' on' : ''}${sort !== 'recent' ? ' has-active' : ''}`}
+                  className={`pjm-ctl${sortOpen ? ' on' : ''}${sort !== 'recent' ? ' has-active' : ''}`}
                   aria-label="Sortieren"
                   onClick={() => { setSortOpen(v => !v); setFilterOpen(false) }}
                 >
@@ -985,12 +985,23 @@ const CSS = `
   .pj2-divider {
     height: 0.5px;
     background: linear-gradient(90deg,
-      rgba(233,239,246,0.4) 0%,
-      rgb(227,232,239) 27.4%,
-      rgb(233,239,246) 63.7%,
-      rgba(233,239,246,0.4) 100%
+      transparent 0%,
+      rgba(233,239,246,0.45) 14%,
+      rgb(227,232,239) 50%,
+      rgba(233,239,246,0.45) 86%,
+      transparent 100%
     );
     margin-bottom: 6px;
+  }
+  [data-theme="dark"] .pj2-divider,
+  [data-theme="classic-dark"] .pj2-divider {
+    background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.035) 14%,
+      rgba(255, 255, 255, 0.1) 50%,
+      rgba(255, 255, 255, 0.035) 86%,
+      transparent 100%
+    );
   }
 
   .pj2-item {
@@ -1322,7 +1333,7 @@ const CSS = `
   /* ─────────────────────────────────────────────────
      MOBILE — 1:1 Figma node 252:58
      ───────────────────────────────────────────────── */
-  @media (max-width: 720px) {
+  @media (max-width: 768px) {
     .pj2-dt { display: none !important; }
     .pjm-t { display: inline !important; }
 
@@ -1358,7 +1369,7 @@ const CSS = `
     .pjm-section { display: none !important; }
     .pjm-sub {
       display: inline !important;
-      font-size: 28px !important;
+      font-size: 32px !important;
       font-weight: 400 !important;
       color: #90959F !important;
       letter-spacing: -0.5px !important;
@@ -1416,13 +1427,13 @@ const CSS = `
       margin: 0 !important;
     }
     .pj2-title h1 {
-      font-size: 28px !important;
+      font-size: 32px !important;
       letter-spacing: -0.5px !important;
       line-height: 1.12 !important;
       color: #0F0F10 !important;
     }
     .pj2-title p {
-      font-size: 28px !important;
+      font-size: 32px !important;
       letter-spacing: -0.5px !important;
       line-height: 1.12 !important;
       display: flex !important;
@@ -1471,53 +1482,51 @@ const CSS = `
         0 1px 4px rgba(91, 100, 125, 0.24),
         0 1px 2px rgba(46, 47, 51, 0.1) !important;
     }
-    .pjm-actions-bar {
+    .pjm-actions-group {
       display: inline-flex !important;
       align-items: center !important;
-      gap: 2px !important;
-      padding: 4px !important;
-      border-radius: 999px !important;
-      background: #FFFFFF !important;
-      box-shadow: var(--pjm-white-elev) !important;
+      gap: 8px !important;
     }
-    .pjm-chip {
+    .pjm-ctl {
       position: relative !important;
       width: 36px !important;
       min-width: 36px !important;
       height: 36px !important;
       min-height: 36px !important;
       border: 0 !important;
-      border-radius: 999px !important;
-      background: transparent !important;
+      border-radius: 6px !important;
+      background: #FFFFFF !important;
       color: #2A3032 !important;
       display: inline-flex !important;
       align-items: center !important;
       justify-content: center !important;
-      gap: 0 !important;
       padding: 0 !important;
       cursor: pointer !important;
       flex-shrink: 0 !important;
-      box-shadow: none !important;
+      box-shadow: var(--pjm-white-elev) !important;
       -webkit-tap-highlight-color: transparent;
-      transition: background .12s ease, transform .12s ease, opacity .12s ease;
+      transition: background .12s ease, transform .12s ease, box-shadow .12s ease, opacity .12s ease;
     }
-    .pjm-chip.on {
-      background: rgba(0, 0, 0, 0.055) !important;
+    .pjm-ctl.on {
+      background: #F8F8F8 !important;
     }
-    .pjm-chip.has-active::after {
+    .pjm-ctl.has-active::after {
       content: '' !important;
       position: absolute !important;
-      top: 7px !important;
-      right: 7px !important;
+      top: 5px !important;
+      right: 5px !important;
       width: 5px !important;
       height: 5px !important;
       border-radius: 50% !important;
       background: var(--portal-btn-primary, #5b647d) !important;
       box-shadow: 0 0 0 1.5px #ffffff !important;
     }
-    .pjm-chip:active {
+    .pjm-ctl:active {
       transform: scale(0.96);
-      opacity: 0.88;
+      opacity: 0.92;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.9),
+        0 1px 2px rgba(144, 149, 159, 0.08) !important;
     }
     .pj2-page .cx-action-pill {
       box-shadow: var(--pjm-white-elev) !important;
@@ -1875,11 +1884,15 @@ const CSS = `
     [data-theme="dark"] .pj2-page .pj2-title h1,
     [data-theme="classic-dark"] .pj2-page .pj2-title h1 {
       color: var(--portal-text, #f4f4f4) !important;
+      font-size: 32px !important;
     }
     [data-theme="dark"] .pj2-page .pj2-title p,
     [data-theme="classic-dark"] .pj2-page .pj2-title p,
     [data-theme="dark"] .pj2-page .pjm-sub,
-    [data-theme="classic-dark"] .pj2-page .pjm-sub,
+    [data-theme="classic-dark"] .pj2-page .pjm-sub {
+      color: var(--portal-muted, #9aa0ac) !important;
+      font-size: 32px !important;
+    }
     [data-theme="dark"] .pj2-page .pjm-sheet-title,
     [data-theme="classic-dark"] .pj2-page .pjm-sheet-title {
       color: var(--portal-muted, #9aa0ac) !important;
@@ -1896,23 +1909,26 @@ const CSS = `
     [data-theme="classic-dark"] .pj2-page .pjm-add-btn:active {
       background: #f0f0f2 !important;
     }
-    [data-theme="dark"] .pj2-page .pjm-actions-bar,
-    [data-theme="classic-dark"] .pj2-page .pjm-actions-bar {
+    [data-theme="dark"] .pj2-page .pjm-ctl,
+    [data-theme="classic-dark"] .pj2-page .pjm-ctl {
       background: rgba(255, 255, 255, 0.08) !important;
+      color: rgba(255, 255, 255, 0.88) !important;
       box-shadow: var(--pjm-white-elev) !important;
     }
-    [data-theme="dark"] .pj2-page .pjm-chip,
-    [data-theme="classic-dark"] .pj2-page .pjm-chip {
-      color: rgba(255, 255, 255, 0.88) !important;
+    [data-theme="dark"] .pj2-page .pjm-ctl.on,
+    [data-theme="classic-dark"] .pj2-page .pjm-ctl.on {
+      background: rgba(255, 255, 255, 0.12) !important;
     }
-    [data-theme="dark"] .pj2-page .pjm-chip.on,
-    [data-theme="classic-dark"] .pj2-page .pjm-chip.on {
-      background: rgba(255, 255, 255, 0.1) !important;
-    }
-    [data-theme="dark"] .pj2-page .pjm-chip.has-active::after,
-    [data-theme="classic-dark"] .pj2-page .pjm-chip.has-active::after {
+    [data-theme="dark"] .pj2-page .pjm-ctl.has-active::after,
+    [data-theme="classic-dark"] .pj2-page .pjm-ctl.has-active::after {
       background: #ffffff !important;
       box-shadow: 0 0 0 1.5px #141416 !important;
+    }
+    [data-theme="dark"] .pj2-page .pjm-ctl:active,
+    [data-theme="classic-dark"] .pj2-page .pjm-ctl:active {
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.06),
+        0 1px 2px rgba(0, 0, 0, 0.28) !important;
     }
     [data-theme="dark"] .pj2-page .cx-action-pill,
     [data-theme="classic-dark"] .pj2-page .cx-action-pill {

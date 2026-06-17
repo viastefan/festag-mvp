@@ -8,7 +8,10 @@ import {
 } from '@phosphor-icons/react'
 import FestagPillButton from '@/components/ui/FestagPillButton'
 import ClampedTip from '@/components/decisions/ClampedTip'
+import DecisionExternalHandoffModal from '@/components/decisions/DecisionExternalHandoffModal'
 import { openTagro } from '@/components/TagroOverlay'
+import type { ExternalHandoff } from '@/lib/decisions/external-handoffs'
+import { resolvePrimaryHandoff } from '@/lib/decisions/external-handoffs'
 import type { Decision, ProjectLite } from '@/components/decisions/decisions-shared'
 import {
   OPEN_STATES, URGENCY_LABEL, impactLine, listStatusLabel, resolveDecisionType, tagroSummaryLine,
@@ -47,6 +50,7 @@ export default function DecisionCardRow({
   const router = useRouter()
   const [menuOpen, setMenuOpen] = useState(false)
   const [busy, setBusy] = useState(false)
+  const [handoff, setHandoff] = useState<ExternalHandoff | null>(null)
   const menuWrapRef = useRef<HTMLDivElement>(null)
 
   const displayTitle = d.client_title || d.title
@@ -221,6 +225,55 @@ export default function DecisionCardRow({
     setMenuOpen(v => !v)
   }
 
+  async function confirmHandoffChoice(active: ExternalHandoff) {
+    if (isMock) {
+      onPatch(d.id, {
+        status: 'decided',
+        selected_option: active.optionId,
+        decided_at: new Date().toISOString(),
+      })
+      return
+    }
+    const res = await fetch(`/api/decisions/${d.id}/decide`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        response_value: { selected_option_id: active.optionId },
+        rationale: `Einrichtung in ${active.providerLabel} bestätigt.`,
+        selected_option: active.optionId,
+      }),
+    })
+    if (!res.ok) return
+    const data = await res.json().catch(() => null)
+    if (data?.decision) onPatch(d.id, data.decision)
+    else onPatch(d.id, { status: 'decided', selected_option: active.optionId })
+  }
+
+  async function handlePrimaryClick(e: React.MouseEvent) {
+    e.stopPropagation()
+    if (!isOpen || isAnswered) {
+      router.push(`/decisions/${d.id}`)
+      return
+    }
+
+    let resolved = resolvePrimaryHandoff(d, null)
+    if (!resolved && !isMock) {
+      const res = await fetch(
+        `/api/decisions/${d.id}/handoff?option=${encodeURIComponent(rawPrimary)}`,
+        { credentials: 'include' },
+      )
+      const data = await res.json().catch(() => null)
+      resolved = data?.handoff ?? null
+    }
+
+    if (resolved) {
+      setHandoff(resolved)
+      return
+    }
+    router.push(`/decisions/${d.id}`)
+  }
+
   return (
     <div>
       <div
@@ -317,7 +370,7 @@ export default function DecisionCardRow({
             <FestagPillButton
               block
               variant="primary"
-              onClick={(e) => { e.stopPropagation(); router.push(`/decisions/${d.id}`) }}
+              onClick={handlePrimaryClick}
             >
               {primaryLabel}
             </FestagPillButton>
@@ -340,6 +393,15 @@ export default function DecisionCardRow({
           </Link>
         </div>
       </div>
+      {handoff && (
+        <DecisionExternalHandoffModal
+          handoff={handoff}
+          decisionTitle={displayTitle}
+          projectTitle={proj?.title}
+          onClose={() => setHandoff(null)}
+          onConfirm={() => confirmHandoffChoice(handoff)}
+        />
+      )}
       {!isLast && <div className="dec-divider-gradient" />}
     </div>
   )

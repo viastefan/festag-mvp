@@ -90,17 +90,19 @@ export default function TagroContentFab({
         }
         :global([data-theme='dark']) .festag-content-fab,
         :global([data-theme='classic-dark']) .festag-content-fab {
-          background: rgba(255, 255, 255, 0.08);
-          color: #f4f4f4;
-          border-color: rgba(255, 255, 255, 0.1);
+          background: #fff;
+          color: #0f0f10;
+          border-color: color-mix(in srgb, #e4e7eb 72%, transparent);
           box-shadow:
-            0 1px 0 rgba(255, 255, 255, 0.06) inset,
-            0 8px 24px -10px rgba(0, 0, 0, 0.45);
+            0 1px 0 rgba(255, 255, 255, 0.92) inset,
+            0 1px 2px rgba(15, 23, 42, 0.05),
+            0 2px 6px rgba(15, 23, 42, 0.06),
+            0 10px 24px -8px rgba(15, 23, 42, 0.14);
         }
         :global([data-theme='dark']) .festag-content-fab:hover,
         :global([data-theme='classic-dark']) .festag-content-fab:hover {
-          background: rgba(255, 255, 255, 0.12);
-          border-color: rgba(255, 255, 255, 0.14);
+          background: #fff;
+          border-color: color-mix(in srgb, #d2d7de 88%, transparent);
         }
         @media (max-width: 768px) {
           .festag-content-fab--absolute,

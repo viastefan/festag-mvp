@@ -24,6 +24,7 @@ import { Check, FunnelSimple } from '@phosphor-icons/react'
 import DevSidebar from '@/components/DevSidebar'
 import LoadingScreen from '@/components/LoadingScreen'
 import TagroOverlay from '@/components/TagroOverlay'
+import { DEV_SHELL_MENU_CSS } from '@/components/dev/dev-shell-styles'
 import { clearStoredDevSession, getStoredDevSession, type DevSession } from '@/lib/dev-session'
 import { createClient } from '@/lib/supabase/client'
 import { getTheme, setTheme, type ThemeMode } from '@/lib/theme'
@@ -259,19 +260,30 @@ export default function DevAppShell({
         }
         .app-workspace-inner { padding: 28px clamp(22px, 3vw, 44px) 60px; }
 
-        /* ── Shared /dev page primitives (restored from old layout) ── */
-        .dev-page { max-width: 1180px; margin: 0 auto; }
+        /* ── Shared /dev page primitives ── */
+        .dev-page {
+          max-width: 1180px; margin: 0 auto;
+          font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+          font-weight: 400;
+        }
         .dev-page-header { display: flex; justify-content: space-between; gap: 24px; align-items: flex-start; margin-bottom: 24px; }
-        .dev-eyebrow { margin: 0 0 6px; color: var(--text-muted); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; font-weight: 500; }
-        .dev-page h1 { margin: 0; font-size: 22px; line-height: 1.15; font-weight: 500; letter-spacing: -.012em; color: var(--text); }
-        .dev-page-header .meta { margin: 6px 0 0; color: var(--text-muted); font-size: 13px; }
+        .dev-eyebrow {
+          margin: 0 0 6px; color: var(--text-muted);
+          font-size: 12px; text-transform: uppercase; letter-spacing: .06em; font-weight: 400;
+        }
+        .dev-page h1 {
+          margin: 0; font-size: 28px; line-height: 1.15; font-weight: 400;
+          letter-spacing: 0; color: var(--text);
+        }
+        .dev-page-header .meta { margin: 8px 0 0; color: var(--text-muted); font-size: 14px; font-weight: 400; line-height: 1.45; }
         .dev-primary-btn, .dev-secondary-btn {
-          height: 34px; border-radius: 8px; padding: 0 14px;
+          height: 36px; border-radius: 999px; padding: 0 16px;
           display: inline-flex; align-items: center; justify-content: center; gap: 7px;
           line-height: 1; white-space: nowrap;
           border: 1px solid var(--border);
-          font: inherit; font-size: 12.5px; font-weight: 500;
-          letter-spacing: var(--ls-body, .017em);
+          font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+          font-size: 13px; font-weight: 400;
+          letter-spacing: 0;
           cursor: pointer;
           transition: background .14s ease, border-color .14s ease;
         }
@@ -390,6 +402,8 @@ export default function DevAppShell({
           color: color-mix(in srgb, var(--text) 78%, var(--text-muted));
           flex-shrink: 0;
         }
+
+        ${DEV_SHELL_MENU_CSS}
       `}</style>
 
       {!sidebarCollapsed && (

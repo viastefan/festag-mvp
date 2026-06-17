@@ -48,6 +48,7 @@ const FRAMER_SYSTEM = [
   '- Optionen nur, wenn sie aus dem Eingabekontext oder den Seeds gestützt sind. Erfinde keine.',
   '- Für response_type "free_text" gibst du ein leeres options-Array zurück.',
   '- Pro Option strukturierte implications: time_delta_days als Zahl oder "unknown", cost_delta als Zahl/Skala oder "unknown", risk_delta in {low,medium,high,unknown}, scope_delta in {narrows,unchanged,broadens}.',
+  '- Wenn eine Option eine Einrichtung in einem externen Tool erfordert (z. B. Stripe, Vercel, GitHub, Supabase), setze implications.external_handoff mit provider, provider_label, url, steps (Array aus {title, body}), open_label, confirm_label, note.',
   '- Maximal eine Option mit recommended_by_tagro=true. Wenn keine sichere Empfehlung möglich → alle false und recommendation_reason=null.',
   '- tagro_reasoning erklärt in 1–2 Sätzen, warum diese Entscheidung jetzt ansteht.',
   '- tagro_confidence_in_framing zwischen 0 und 1: hoch nur wenn der Kontext eindeutig ist.',

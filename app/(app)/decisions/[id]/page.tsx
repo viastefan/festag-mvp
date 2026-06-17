@@ -3,7 +3,7 @@
 import { Suspense, useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
-import { ArrowLeft, Clock, Lightning } from '@phosphor-icons/react'
+import { ArrowLeft, Clock } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 import { openTagro } from '@/components/TagroOverlay'
 import TagroContentFab from '@/components/TagroContentFab'
@@ -134,19 +134,6 @@ function DecisionDetailInner() {
             <ArrowLeft size={14} weight="regular" />
             Alle Entscheidungen
           </Link>
-          <button
-            type="button"
-            className="dec-detail-tagro-btn"
-            onClick={() => openTagro({
-              contextType: 'decision',
-              id: decision.id,
-              title,
-              subtitle: project?.title,
-            })}
-          >
-            <Lightning size={14} weight="regular" />
-            Mit Tagro bearbeiten
-          </button>
         </div>
 
         <div className="dec-detail-hero-main">

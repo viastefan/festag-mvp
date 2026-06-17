@@ -19,6 +19,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import TagroEntryButton from '@/components/TagroEntryButton'
+import DevFilterDropdown from '@/components/dev/DevFilterDropdown'
 import {
   ArrowRight, ArrowsClockwise, ArrowSquareOut, CheckCircle, CheckSquare, Circle,
   Clock, Copy, FunnelSimple, GitBranch, GitCommit, GitPullRequest, Image as ImageIcon,
@@ -666,32 +667,51 @@ export default function DevTasksPage() {
         </div>
         <div className="t-filters">
           <Pill active={filterMine} onClick={() => setFilterMine(v => !v)}>Mine</Pill>
-          <Select value={filterProject} onChange={setFilterProject} placeholder="Projekt">
-            <option value="">Alle Projekte</option>
-            {projects.map(p => <option key={p.id} value={p.id}>{p.title}</option>)}
-          </Select>
-          <Select value={filterStatus} onChange={v => setFilterStatus(v as DevFlow | '')} placeholder="Status">
-            <option value="">Alle Status</option>
-            {DEV_STEPS.map(s => <option key={s} value={s}>{DEV_FLOW_LABEL[s]}</option>)}
-          </Select>
-          <Select value={filterPriority} onChange={setFilterPriority} placeholder="Priorität">
-            <option value="">Alle Prioritäten</option>
-            <option value="critical">Kritisch</option>
-            <option value="high">Hoch</option>
-            <option value="medium">Mittel</option>
-            <option value="low">Niedrig</option>
-          </Select>
-          <Select value={filterWorkType} onChange={setFilterWorkType} placeholder="Arbeitstyp">
-            <option value="">Alle Typen</option>
-            {WORK_TYPES.map(w => <option key={w.id} value={w.id}>{w.label}</option>)}
-          </Select>
-          <Select value={filterVerification} onChange={setFilterVerification} placeholder="Verification">
-            <option value="">Alle</option>
-            <option value="verified">Verified</option>
-            <option value="needs_review">Needs Review</option>
-            <option value="proof_missing">Proof Missing</option>
-            <option value="quality_issue">Quality Issue</option>
-          </Select>
+          <DevFilterDropdown
+            value={filterProject}
+            onChange={setFilterProject}
+            placeholder="Projekt"
+            allLabel="Alle Projekte"
+            options={projects.map(p => ({ value: p.id, label: p.title }))}
+          />
+          <DevFilterDropdown
+            value={filterStatus}
+            onChange={v => setFilterStatus(v as DevFlow | '')}
+            placeholder="Status"
+            allLabel="Alle Status"
+            options={DEV_STEPS.map(s => ({ value: s, label: DEV_FLOW_LABEL[s] }))}
+          />
+          <DevFilterDropdown
+            value={filterPriority}
+            onChange={setFilterPriority}
+            placeholder="Priorität"
+            allLabel="Alle Prioritäten"
+            options={[
+              { value: 'critical', label: 'Kritisch' },
+              { value: 'high', label: 'Hoch' },
+              { value: 'medium', label: 'Mittel' },
+              { value: 'low', label: 'Niedrig' },
+            ]}
+          />
+          <DevFilterDropdown
+            value={filterWorkType}
+            onChange={setFilterWorkType}
+            placeholder="Arbeitstyp"
+            allLabel="Alle Typen"
+            options={WORK_TYPES.map(w => ({ value: w.id, label: w.label }))}
+          />
+          <DevFilterDropdown
+            value={filterVerification}
+            onChange={setFilterVerification}
+            placeholder="Verification"
+            allLabel="Alle"
+            options={[
+              { value: 'verified', label: 'Verified' },
+              { value: 'needs_review', label: 'Needs Review' },
+              { value: 'proof_missing', label: 'Proof Missing' },
+              { value: 'quality_issue', label: 'Quality Issue' },
+            ]}
+          />
         </div>
         <div className="t-view-switch">
           <button className={view === 'list' ? 'on' : ''} onClick={() => setView('list')}>Liste</button>
@@ -1004,6 +1024,14 @@ export default function DevTasksPage() {
                         } else {
                           setToast('Entscheidung an Tagro übergeben — wird gerahmt und zum Kunden geroutet')
                         }
+                        if (selected) {
+                          const { data: fresh } = await (supabase as any).from('decisions')
+                            .select('id,title,client_title,status,urgency,response_type,decided_at,tagro_delegation_reason')
+                            .eq('source_task_id', selected.id)
+                            .order('created_at', { ascending: false })
+                            .limit(10)
+                          setLinkedDecisions((fresh as any[]) ?? [])
+                        }
                       } finally {
                         setDecSubmitting(false)
                       }
@@ -1036,37 +1064,47 @@ export default function DevTasksPage() {
 
       <style jsx>{`
         /* Header */
-        .t-head { display: flex; justify-content: space-between; gap: 22px; align-items: flex-start; margin-bottom: 18px; flex-wrap: wrap; }
-        .t-head h1 { margin: 0; font-size: 22px; font-weight: 500; letter-spacing: -.012em; line-height: 1.15; }
-        .t-head .meta { margin: 6px 0 0; color: var(--text-muted); font-size: 13px; max-width: 540px; }
+        .t-head { display: flex; justify-content: space-between; gap: 22px; align-items: flex-start; margin-bottom: 20px; flex-wrap: wrap; }
+        .t-head h1 { margin: 0; font-size: 28px; font-weight: 400; letter-spacing: 0; line-height: 1.15; }
+        .t-head .meta { margin: 8px 0 0; color: var(--text-muted); font-size: 14px; font-weight: 400; max-width: 540px; line-height: 1.45; }
         .head-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; min-width: 320px; }
 
         /* Toolbar */
         .t-toolbar {
-          display: flex; gap: 8px; align-items: center; margin-bottom: 10px; flex-wrap: wrap;
+          display: flex; gap: 8px; align-items: center; margin-bottom: 12px; flex-wrap: wrap;
         }
         .t-search {
           display: inline-flex; align-items: center; gap: 6px;
-          height: 28px; padding: 0 10px;
-          border: 1px solid var(--border); border-radius: 8px;
+          height: 32px; padding: 0 12px;
+          border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+          border-radius: 999px;
           background: transparent; min-width: 220px;
         }
         .t-search svg { color: var(--text-muted); }
         .t-search input {
           flex: 1; border: 0; outline: 0; background: transparent;
-          font: inherit; font-size: 12.5px; color: var(--text);
+          font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+          font-size: 13px; font-weight: 400; color: var(--text);
         }
-        .t-filters { display: flex; gap: 6px; flex-wrap: wrap; }
-        .t-view-switch { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+        .t-filters { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+        .t-view-switch {
+          display: inline-flex;
+          border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+          border-radius: 999px; overflow: hidden;
+        }
         .t-view-switch button {
-          height: 28px; padding: 0 11px; background: transparent; color: var(--text-muted);
-          border: 0; border-right: 1px solid var(--border); font: inherit; font-size: 11.5px; font-weight: 500;
+          height: 32px; padding: 0 14px; background: transparent; color: var(--text-muted);
+          border: 0; border-right: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+          font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+          font-size: 13px; font-weight: 400;
           cursor: pointer;
         }
         .t-view-switch button:last-child { border-right: 0; }
-        .t-view-switch button.on { color: var(--text); background: var(--surface-2); }
+        .t-view-switch button.on { color: var(--text); background: color-mix(in srgb, var(--surface-2) 70%, transparent); }
         .t-refresh {
-          width: 28px; height: 28px; border: 1px solid var(--border); border-radius: 8px;
+          width: 32px; height: 32px;
+          border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+          border-radius: 999px;
           background: transparent; color: var(--text-muted); cursor: pointer;
         }
 
@@ -1319,33 +1357,9 @@ function StatPill({ value, label, tone }: { value: number; label: string; tone: 
 
 function Pill({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
-    <button onClick={onClick} className="filter-pill" data-on={active}>
+    <button type="button" onClick={onClick} className={`dev-filter-trigger${active ? ' on' : ''}`}>
       {children}
-      <style jsx>{`
-        .filter-pill {
-          height: 28px; padding: 0 11px; border-radius: 999px;
-          background: transparent; border: 1px solid var(--border);
-          color: var(--text-muted); font: inherit; font-size: 11.5px; font-weight: 500;
-          cursor: pointer;
-        }
-        .filter-pill[data-on="true"] { background: var(--surface-2); color: var(--text); }
-      `}</style>
     </button>
-  )
-}
-
-function Select({ value, onChange, placeholder, children }: { value: string; onChange: (v: string) => void; placeholder: string; children: React.ReactNode }) {
-  return (
-    <select value={value} onChange={e => onChange(e.target.value)} aria-label={placeholder}>
-      {children}
-      <style jsx>{`
-        select {
-          height: 28px; padding: 0 9px; border: 1px solid var(--border); border-radius: 8px;
-          background: transparent; color: var(--text);
-          font: inherit; font-size: 12px;
-        }
-      `}</style>
-    </select>
   )
 }
 

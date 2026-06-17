@@ -191,7 +191,7 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
                 variant={wsPrefs.variant}
                 scheme={wsPrefs.scheme}
                 seed={wsPrefs.seed}
-                size={24}
+                size={collapsed ? 28 : 24}
               />
             </div>
             <div className="portal-nav-ws-text">
@@ -568,25 +568,52 @@ const CSS = `
     gap: 10px;
     width: 100%;
     padding: 0;
+    margin: 0;
   }
   .portal-nav.is-collapsed .portal-nav-ws {
     order: -1;
     flex: 0 0 auto;
     width: 100%;
+    max-width: 56px;
+    margin: 0 auto;
     gap: 0;
-    justify-content: center;
     padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .portal-nav.is-collapsed .portal-nav-ws > :not(.portal-nav-ws-mark) {
+    display: none !important;
   }
   .portal-nav.is-collapsed .portal-nav-ws-mark {
     width: 28px; height: 28px;
-    margin: 0 auto;
+    margin: 0;
+    padding: 0;
+    flex: 0 0 auto;
     display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+    border-radius: 6px;
+  }
+  .portal-nav.is-collapsed .portal-nav-ws-mark > span {
+    width: 28px !important;
+    height: 28px !important;
+    border-radius: 6px !important;
+  }
+  .portal-nav.is-collapsed .portal-nav-ws-mark svg {
+    width: 28px !important;
+    height: 28px !important;
+    border-radius: 6px !important;
+    display: block;
   }
   .portal-nav.is-collapsed .portal-nav-utilities {
     order: 0;
     flex-direction: column; align-items: center;
     gap: 4px;
     width: 100%;
+    margin: 0 auto;
+  }
+  .portal-nav.is-collapsed .portal-nav-utilities .fui-icon-btn {
+    margin: 0;
   }
   .portal-nav.is-collapsed .portal-nav-label {
     opacity: 0; width: 0; pointer-events: none;

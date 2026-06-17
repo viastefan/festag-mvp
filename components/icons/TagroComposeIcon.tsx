@@ -3,7 +3,7 @@ type Props = {
   className?: string
 }
 
-/** Codex / iOS-style compose glyph — rounded note + corner pencil. */
+/** Codex-style compose glyph — rounded note with pencil editing inside. */
 export default function TagroComposeIcon({ size = 20, className }: Props) {
   return (
     <svg
@@ -15,25 +15,19 @@ export default function TagroComposeIcon({ size = 20, className }: Props) {
       className={className}
     >
       <rect
-        x="5"
-        y="7"
-        width="12"
-        height="12"
-        rx="3"
+        x="4.75"
+        y="5.25"
+        width="11.5"
+        height="13.5"
+        rx="2.75"
         stroke="currentColor"
-        strokeWidth="1.75"
+        strokeWidth="1.65"
       />
       <path
-        d="M14.25 6.25L18.75 4.75L17.25 9.25"
+        d="M13.75 7.25L17.25 10.75L10.5 17.5H7V13.75L13.75 7.25Z"
         stroke="currentColor"
-        strokeWidth="1.75"
-        strokeLinecap="round"
+        strokeWidth="1.65"
         strokeLinejoin="round"
-      />
-      <path
-        d="M8.5 14.75H14.5"
-        stroke="currentColor"
-        strokeWidth="1.75"
         strokeLinecap="round"
       />
     </svg>

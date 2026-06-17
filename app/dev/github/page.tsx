@@ -513,21 +513,28 @@ export default function DevGithubPage() {
 
         .picker {
           grid-column: 1 / -1;
-          margin-top:6px; padding:8px;
-          background: var(--surface-2);
-          border-radius:8px;
+          margin-top:6px; padding:4px;
+          background: var(--surface);
+          border: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
+          border-radius: 10px;
+          box-shadow: 0 8px 24px -8px rgba(15,23,42,.12);
         }
         .picker input {
-          width:100%; background:transparent; border:1px solid var(--border); border-radius:7px;
-          padding:7px 9px; font:inherit; font-size:12.5px; color:var(--text);
+          width:100%; background:transparent; border:1px solid color-mix(in srgb, var(--border) 80%, transparent);
+          border-radius: 999px;
+          padding:8px 12px;
+          font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+          font-size: 13px; font-weight: 400; color:var(--text);
         }
-        .picker ul { list-style:none; margin:6px 0 0; padding:0; max-height:160px; overflow:auto; }
-        .picker li { margin:2px 0; }
+        .picker ul { list-style:none; margin:4px 0 0; padding:0; max-height:160px; overflow:auto; }
+        .picker li { margin:1px 0; }
         .picker li button {
-          width:100%; text-align:left; border:0; background:transparent; color:var(--text-secondary);
-          padding:6px 8px; border-radius:6px; cursor:pointer; font:inherit; font-size:12.5px;
+          width:100%; text-align:left; border:0; background:transparent; color:var(--text);
+          padding:0 10px; min-height:36px; border-radius:6px; cursor:pointer;
+          font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+          font-size: 14px; font-weight: 400;
         }
-        .picker li button:hover { background:var(--bg); color:var(--text); }
+        .picker li button:hover { background: color-mix(in srgb, var(--surface-2) 80%, transparent); }
         .empty-pick { padding:6px 8px; font-size:12px; color:var(--text-muted); }
 
         .foot-text { margin-top:22px; font-size:11.5px; color:var(--text-muted); line-height:1.5; }
