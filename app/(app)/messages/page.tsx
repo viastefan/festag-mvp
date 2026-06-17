@@ -1,22 +1,18 @@
 'use client'
 
 /**
- * /messages — Festag Posteingang (Portal-Shell).
+ * Festag Posteingang — strukturierte Projekt-Kommunikation.
  *
- * Strukturierte Projekt-Kommunikation aus `inbox_items`.
- * Master-Detail im Codex/Portal-Stil — analog zu Entscheidungen.
+ * Master-Detail-Inbox (keine Entscheidungs-Liste). Portal-Shell außen,
+ * kompakte Thread-Liste links, Detail rechts — eine vertikale Trennlinie.
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   Tray, Briefcase, Receipt, UsersThree, Sparkle,
-  CheckCircle, ChatCircle, ArrowSquareOut, Play, FunnelSimple,
-  ArrowsClockwise, CaretLeft, Check,
+  CheckCircle, ChatCircle, ArrowSquareOut, Play, Funnel, CaretDown, Check, CaretLeft,
 } from '@phosphor-icons/react'
-import MobilePageHeader from '@/components/MobilePageHeader'
-import TagroContentFab from '@/components/TagroContentFab'
-import FestagPillButton from '@/components/ui/FestagPillButton'
 import { createClient } from '@/lib/supabase/client'
 import { INBOX_CSS } from '@/components/inbox/inbox-styles'
 
@@ -32,6 +28,8 @@ const CATEGORIES: CategoryDef[] = [
   { id: 'account', label: 'Konto & Team',          icon: UsersThree, hint: 'Seats, Einladungen, Rollen.' },
   { id: 'tagro',   label: 'Tagro Assist',          icon: Sparkle,    hint: 'Kuratierte Zusammenfassungen und Vorschläge von Tagro.' },
 ]
+
+const HINT_CATEGORIES = CATEGORIES.filter(c => c.id !== 'all')
 
 type Item = {
   id: string
@@ -131,57 +129,52 @@ export default function InboxPage() {
   const [projectTitles, setProjectTitles] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(true)
   const [unreadOnly, setUnreadOnly] = useState(false)
-  const [filterMenuOpen, setFilterMenuOpen] = useState(false)
-  const [mobileDetailOpen, setMobileDetailOpen] = useState(false)
-  const filterWrapRef = useRef<HTMLDivElement | null>(null)
+  const [catMenuOpen, setCatMenuOpen] = useState(false)
+  const [mobileDetail, setMobileDetail] = useState(false)
+  const catMenuRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
-    if (!filterMenuOpen) return
+    if (!catMenuOpen) return
     const onDown = (e: MouseEvent) => {
-      if (filterWrapRef.current && !filterWrapRef.current.contains(e.target as Node)) setFilterMenuOpen(false)
+      if (catMenuRef.current && !catMenuRef.current.contains(e.target as Node)) setCatMenuOpen(false)
     }
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setFilterMenuOpen(false) }
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setCatMenuOpen(false) }
     document.addEventListener('mousedown', onDown)
     document.addEventListener('keydown', onKey)
     return () => {
       document.removeEventListener('mousedown', onDown)
       document.removeEventListener('keydown', onKey)
     }
-  }, [filterMenuOpen])
-
-  const reload = async () => {
-    setLoading(true)
-    const { data: { session } } = await supabase.auth.getSession()
-    if (!session) { setLoading(false); return }
-
-    await fetch('/api/inbox/welcome', { method: 'POST' }).catch(() => {})
-
-    const [{ data: rows }, { data: projs }] = await Promise.all([
-      supabase.from('inbox_items')
-        .select('id,thread_id,user_id,project_id,category,type,title,body,metadata,read_at,created_at')
-        .eq('user_id', session.user.id)
-        .order('created_at', { ascending: false })
-        .limit(120),
-      supabase.from('projects').select('id,title'),
-    ])
-
-    const titleMap: Record<string, string> = {}
-    ;((projs as { id: string; title: string }[] | null) ?? []).forEach(p => { titleMap[p.id] = p.title })
-    setProjectTitles(titleMap)
-
-    const dbRows = (rows as DbInboxRow[] | null) ?? []
-    setItems(dbRows.map(r => dbRowToItem(r, titleMap)))
-    setLoading(false)
-  }
+  }, [catMenuOpen])
 
   useEffect(() => {
     let cancelled = false
     ;(async () => {
-      await reload()
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) { setLoading(false); return }
+
+      await fetch('/api/inbox/welcome', { method: 'POST' }).catch(() => {})
       if (cancelled) return
+
+      const [{ data: rows }, { data: projs }] = await Promise.all([
+        supabase.from('inbox_items')
+          .select('id,thread_id,user_id,project_id,category,type,title,body,metadata,read_at,created_at')
+          .eq('user_id', session.user.id)
+          .order('created_at', { ascending: false })
+          .limit(120),
+        supabase.from('projects').select('id,title'),
+      ])
+      if (cancelled) return
+
+      const titleMap: Record<string, string> = {}
+      ;((projs as { id: string; title: string }[] | null) ?? []).forEach(p => { titleMap[p.id] = p.title })
+      setProjectTitles(titleMap)
+
+      const dbRows = (rows as DbInboxRow[] | null) ?? []
+      setItems(dbRows.map(r => dbRowToItem(r, titleMap)))
+      setLoading(false)
     })()
     return () => { cancelled = true }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [supabase])
 
   useEffect(() => {
@@ -210,15 +203,6 @@ export default function InboxPage() {
     .filter(i => !unreadOnly || i.unread)
   const selected = filtered.find(i => i.id === selectedId) || null
 
-  const unreadTotal = items.filter(i => i.unread).length
-  const unreadByCategory: Record<Category, number> = {
-    all:     unreadTotal,
-    project: items.filter(i => i.unread && i.category === 'project').length,
-    billing: items.filter(i => i.unread && i.category === 'billing').length,
-    account: items.filter(i => i.unread && i.category === 'account').length,
-    tagro:   items.filter(i => i.unread && i.category === 'tagro').length,
-  }
-
   async function markRead(itemId: string) {
     setItems(prev => prev.map(i => i.id === itemId ? { ...i, unread: false } : i))
     try {
@@ -226,180 +210,126 @@ export default function InboxPage() {
     } catch { /* noop */ }
   }
 
+  const unreadByCategory: Record<Category, number> = {
+    all:     items.filter(i => i.unread).length,
+    project: items.filter(i => i.unread && i.category === 'project').length,
+    billing: items.filter(i => i.unread && i.category === 'billing').length,
+    account: items.filter(i => i.unread && i.category === 'account').length,
+    tagro:   items.filter(i => i.unread && i.category === 'tagro').length,
+  }
+
   useEffect(() => {
     setSelectedId(prev => (filtered.some(i => i.id === prev) ? prev : filtered[0]?.id ?? null))
   }, [active, unreadOnly, filtered.length]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const filterActive = active !== 'all' || unreadOnly
-  const activeCat = CATEGORIES.find(c => c.id === active) || CATEGORIES[0]
-
-  const leadLine = useMemo(() => {
-    if (loading) return 'Posteingang wird geladen…'
-    if (unreadTotal === 0) return 'Alles gelesen — keine neuen Eingänge.'
-    if (unreadTotal === 1) return '1 ungelesener Eingang wartet auf dich.'
-    return `${unreadTotal} ungelesene Eingänge — strukturiert nach Projekt und Thema.`
-  }, [loading, unreadTotal])
-
   function selectItem(id: string, unread: boolean) {
     setSelectedId(id)
     if (unread) markRead(id)
-    if (typeof window !== 'undefined' && window.innerWidth <= 900) {
-      setMobileDetailOpen(true)
-    }
+    if (typeof window !== 'undefined' && window.innerWidth <= 760) setMobileDetail(true)
   }
 
   return (
-    <div className="inb-os">
+    <div className="ix-root">
       <style>{INBOX_CSS}</style>
 
-      <div className="inb-static-top">
-        <MobilePageHeader
-          title="Posteingang"
-          menuItems={[
-            { id: 'refresh', label: 'Aktualisieren', onClick: reload },
-            { id: 'unread', label: unreadOnly ? 'Alle anzeigen' : 'Nur ungelesene', onClick: () => setUnreadOnly(v => !v) },
-          ]}
-        />
-        <header className="inb-page-head">
-          <div className="inb-page-head-copy">
-            <h1 className="inb-page-title">Posteingang</h1>
-            <div className="inb-page-lead">
-              <p>{leadLine}</p>
-            </div>
-          </div>
-          <div className="inb-page-actions">
-            <div className="inb-page-actions-group">
-              <div className="inb-filter-wrap" ref={filterWrapRef}>
-                <button
-                  type="button"
-                  className={`inb-head-tool${filterMenuOpen || filterActive ? ' on' : ''}`}
-                  title="Kategorie & Filter"
-                  aria-label="Kategorie & Filter"
-                  aria-expanded={filterMenuOpen}
-                  onClick={() => setFilterMenuOpen(v => !v)}
-                >
-                  <FunnelSimple size={15} weight="regular" />
-                </button>
-                {filterMenuOpen && (
-                  <div className="inb-filter-menu" role="listbox" aria-label="Kategorien">
-                    <p className="inb-filter-menu-label">Kategorie</p>
-                    {CATEGORIES.map(cat => {
-                      const Icon = cat.icon
-                      const isOn = active === cat.id
-                      const unread = unreadByCategory[cat.id]
-                      return (
-                        <button
-                          key={cat.id}
-                          type="button"
-                          role="option"
-                          aria-selected={isOn}
-                          className={`inb-filter-menu-item${isOn ? ' on' : ''}`}
-                          onClick={() => { setActive(cat.id); setFilterMenuOpen(false) }}
-                        >
-                          <Icon size={14} weight="regular" />
-                          <span className="inb-filter-menu-item-main">
-                            <strong>{cat.label}</strong>
-                            <small>{cat.hint}</small>
-                          </span>
-                          {unread > 0 && <span className="inb-filter-count">{unread}</span>}
-                          {isOn && <span className="inb-filter-check">✓</span>}
-                        </button>
-                      )
-                    })}
-                    <div className="inb-divider" />
-                    <p className="inb-filter-menu-label">Ansicht</p>
-                    <button
-                      type="button"
-                      role="option"
-                      aria-selected={unreadOnly}
-                      className={`inb-filter-menu-item${unreadOnly ? ' on' : ''}`}
-                      onClick={() => { setUnreadOnly(v => !v); setFilterMenuOpen(false) }}
-                    >
-                      <Tray size={14} weight="regular" />
-                      <span className="inb-filter-menu-item-main">
-                        <strong>Nur ungelesene</strong>
-                        <small>Blendet gelesene Eingänge aus</small>
-                      </span>
-                      {unreadOnly && <span className="inb-filter-check">✓</span>}
-                    </button>
-                  </div>
-                )}
-              </div>
+      <section className={`ix-list${mobileDetail ? ' ix-list--hidden' : ''}`} aria-label="Posteingang">
+        <header className="ix-list-head">
+          <div className="ix-list-title">Posteingang</div>
+          <div className="ix-head-tools">
+            <div className="ix-cat" ref={catMenuRef}>
               <button
                 type="button"
-                className={`inb-head-tool${unreadOnly ? ' on' : ''}`}
-                title={unreadOnly ? 'Alle anzeigen' : 'Nur ungelesene'}
-                aria-pressed={unreadOnly}
-                onClick={() => setUnreadOnly(v => !v)}
+                className={`ix-cat-trigger${catMenuOpen ? ' on' : ''}`}
+                onClick={() => setCatMenuOpen(v => !v)}
+                aria-expanded={catMenuOpen}
+                aria-haspopup="listbox"
+                title="Kategorie wählen"
               >
-                <Tray size={15} weight={unreadOnly ? 'fill' : 'regular'} />
+                {(() => {
+                  const cur = CATEGORIES.find(c => c.id === active) || CATEGORIES[0]
+                  const Icon = cur.icon
+                  return (
+                    <>
+                      <Icon size={13} weight="regular" />
+                      <span>{cur.label}</span>
+                    </>
+                  )
+                })()}
+                {unreadByCategory[active] > 0 && (
+                  <span className="ix-cat-count">{unreadByCategory[active]}</span>
+                )}
+                <CaretDown size={10} weight="bold" />
               </button>
+
+              {catMenuOpen && (
+                <div className="ix-cat-menu" role="listbox" aria-label="Kategorien">
+                  {CATEGORIES.map(cat => {
+                    const Icon = cat.icon
+                    const isOn = active === cat.id
+                    const unread = unreadByCategory[cat.id]
+                    return (
+                      <button
+                        key={cat.id}
+                        type="button"
+                        role="option"
+                        aria-selected={isOn}
+                        className={`ix-cat-opt${isOn ? ' on' : ''}`}
+                        onClick={() => { setActive(cat.id); setCatMenuOpen(false) }}
+                      >
+                        <Icon size={13} weight="regular" />
+                        <span className="ix-cat-opt-main">
+                          <strong>{cat.label}</strong>
+                          <small>{cat.hint}</small>
+                        </span>
+                        {unread > 0 && <span className="ix-cat-count">{unread}</span>}
+                        {isOn && <Check size={11} weight="bold" />}
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
             </div>
+
             <button
               type="button"
-              className="inb-head-tool"
-              title="Aktualisieren"
-              aria-label="Aktualisieren"
-              onClick={reload}
+              className={`ix-iconbtn${unreadOnly ? ' on' : ''}`}
+              onClick={() => setUnreadOnly(v => !v)}
+              title={unreadOnly ? 'Alle anzeigen' : 'Nur ungelesene'}
+              aria-pressed={unreadOnly}
             >
-              <ArrowsClockwise size={15} weight="regular" />
+              <Funnel size={15} weight={unreadOnly ? 'fill' : 'regular'} />
             </button>
           </div>
         </header>
-      </div>
 
-      <div className="inb-body">
-        <section
-          className={`inb-list-col${mobileDetailOpen ? ' inb-list-col--hidden' : ''}`}
-          aria-label="Eingänge"
-        >
-          <div className="inb-list-toolbar">
-            <span className="inb-list-toolbar-label">
-              {activeCat.label}
-              {filtered.length > 0 && ` · ${filtered.length}`}
-            </span>
-          </div>
-          <div className="inb-list-scroll">
-            {loading ? (
-              <p className="inb-loading">Posteingang wird geladen…</p>
-            ) : filtered.length === 0 ? (
-              <EmptyList active={active} unreadOnly={unreadOnly} />
-            ) : (
-              filtered.map(item => (
-                <ThreadRow
-                  key={item.id}
-                  item={item}
-                  selected={item.id === selectedId}
-                  onClick={() => selectItem(item.id, item.unread)}
-                />
-              ))
-            )}
-          </div>
-        </section>
-
-        <section
-          className={`inb-detail-col${mobileDetailOpen ? ' inb-detail-col--open' : ''}`}
-          aria-label="Eintrag"
-        >
-          {selected ? (
-            <ThreadDetail
-              item={selected}
-              onBack={() => setMobileDetailOpen(false)}
-            />
+        <div className="ix-thread-scroll">
+          {loading ? (
+            <div className="ix-empty-list"><span className="ix-empty-sub">Posteingang wird geladen…</span></div>
+          ) : filtered.length === 0 ? (
+            <EmptyList active={active} unreadOnly={unreadOnly} />
           ) : (
-            <EmptyDetail />
+            filtered.map(item => (
+              <ThreadRow
+                key={item.id}
+                item={item}
+                selected={item.id === selectedId}
+                onClick={() => selectItem(item.id, item.unread)}
+              />
+            ))
           )}
-        </section>
-      </div>
+        </div>
+      </section>
 
-      <TagroContentFab
-        context={{
-          contextType: 'empty',
-          id: 'inbox',
-          title: 'Posteingang',
-          subtitle: `${unreadTotal} ungelesen · ${items.length} gesamt`,
-        }}
-      />
+      <section
+        className={`ix-detail${selected ? ' ix-detail--filled' : ' ix-detail--empty'}${mobileDetail ? ' ix-detail--mobile' : ''}`}
+        aria-label="Eintrag"
+      >
+        {selected ? (
+          <ThreadDetail item={selected} onBack={() => setMobileDetail(false)} />
+        ) : (
+          <EmptyDetail />
+        )}
+      </section>
     </div>
   )
 }
@@ -408,21 +338,21 @@ function ThreadRow({ item, selected, onClick }: { item: Item; selected: boolean;
   return (
     <button
       type="button"
-      className={`inb-row${selected ? ' on' : ''}${item.unread ? ' unread' : ''}`}
+      className={`ix-row${selected ? ' on' : ''}${item.unread ? ' unread' : ''}`}
       onClick={onClick}
     >
-      <div className="inb-row-marker" style={{ background: item.unread ? 'var(--inb-slate)' : 'transparent' }} />
-      <div className="inb-row-body">
-        <div className="inb-row-head">
-          <span className="inb-row-source">{item.source}</span>
-          {item.project && <span className="inb-row-tag">{item.project}</span>}
-          <span className="inb-row-time">{formatTime(item.createdAt)}</span>
+      <div className="ix-row-marker" style={{ background: item.unread ? 'var(--ix-slate)' : 'transparent' }} />
+      <div className="ix-row-body">
+        <div className="ix-row-head">
+          <span className="ix-row-source">{item.source}</span>
+          {item.project && <span className="ix-row-tag">{item.project}</span>}
+          <span className="ix-row-time">{formatTime(item.createdAt)}</span>
         </div>
-        <div className="inb-row-title">{item.title}</div>
-        <div className="inb-row-preview">{item.preview}</div>
+        <div className="ix-row-title">{item.title}</div>
+        <div className="ix-row-preview">{item.preview}</div>
         {item.actionable && (
-          <span className="inb-row-actionable">
-            <CheckCircle size={12} weight="fill" /> Aktion erforderlich
+          <span className="ix-row-actionable">
+            <CheckCircle size={11} weight="fill" /> Aktion erforderlich
           </span>
         )}
       </div>
@@ -440,28 +370,28 @@ function ThreadDetail({ item, onBack }: { item: Item; onBack: () => void }) {
     : item.category === 'billing' ? 'Rechnungen öffnen' : 'Im Workspace öffnen'
 
   return (
-    <article className="inb-detail-inner">
-      <button type="button" className="inb-detail-back" onClick={onBack}>
+    <article className="ix-detail-card">
+      <button type="button" className="ix-detail-back" onClick={onBack}>
         <CaretLeft size={14} weight="bold" /> Zurück
       </button>
-      <header>
-        <div className="inb-detail-tags">
-          <span className="inb-type-badge">{ITEM_TYPE_LABEL[item.type]}</span>
-          {item.project && <span className="inb-detail-project">{item.project}</span>}
+      <header className="ix-detail-head">
+        <div className="ix-detail-tags">
+          <span className="ix-type-badge">{ITEM_TYPE_LABEL[item.type]}</span>
+          {item.project && <span className="ix-detail-project">{item.project}</span>}
         </div>
-        <h2 className="inb-detail-title">{item.title}</h2>
-        <div className="inb-detail-meta">
+        <h1 className="ix-detail-title">{item.title}</h1>
+        <div className="ix-detail-meta">
           <span>{item.source}</span><span>·</span><span>{formatTime(item.createdAt)}</span>
         </div>
       </header>
 
-      <div className="inb-detail-body">
+      <div className="ix-detail-body">
         <p>{item.body || item.preview}</p>
       </div>
 
       {item.videoUrl && (
-        <a className="inb-video" href={item.videoUrl} target="_blank" rel="noreferrer">
-          <span className="inb-video-play"><Play size={14} weight="fill" /></span>
+        <a className="ix-video" href={item.videoUrl} target="_blank" rel="noreferrer">
+          <span className="ix-video-play"><Play size={14} weight="fill" /></span>
           <span>
             <strong>Einführung ansehen</strong>
             <small>So funktioniert Festag — in 2 Minuten erklärt.</small>
@@ -469,15 +399,15 @@ function ThreadDetail({ item, onBack }: { item: Item; onBack: () => void }) {
         </a>
       )}
 
-      <footer className="inb-detail-actions">
+      <footer className="ix-detail-actions">
         {item.actionable && item.projectId && (
-          <FestagPillButton variant="primary" onClick={() => router.push(`/project/${item.projectId}`)}>
+          <button type="button" className="ix-btn primary" onClick={() => router.push(`/project/${item.projectId}`)}>
             Im Projekt ansehen
-          </FestagPillButton>
+          </button>
         )}
-        <FestagPillButton onClick={() => router.push(openHref)}>
-          <ArrowSquareOut size={14} weight="regular" /> {openLabel}
-        </FestagPillButton>
+        <button type="button" className="ix-btn" onClick={() => router.push(openHref)}>
+          <ArrowSquareOut size={13} weight="regular" /> {openLabel}
+        </button>
       </footer>
     </article>
   )
@@ -486,10 +416,10 @@ function ThreadDetail({ item, onBack }: { item: Item; onBack: () => void }) {
 function EmptyList({ active, unreadOnly }: { active: Category; unreadOnly: boolean }) {
   const cat = CATEGORIES.find(c => c.id === active)
   return (
-    <div className="inb-empty">
+    <div className="ix-empty-list">
       <Tray size={24} weight="regular" />
-      <p className="inb-empty-title">{unreadOnly ? 'Alles gelesen' : 'Noch nichts hier'}</p>
-      <p className="inb-empty-sub">
+      <p className="ix-empty-title">{unreadOnly ? 'Alles gelesen' : 'Noch nichts hier'}</p>
+      <p className="ix-empty-sub">
         {unreadOnly
           ? 'Keine ungelesenen Eingänge in dieser Ansicht.'
           : active === 'all'
@@ -502,12 +432,25 @@ function EmptyList({ active, unreadOnly }: { active: Category; unreadOnly: boole
 
 function EmptyDetail() {
   return (
-    <div className="inb-empty-detail">
-      <ChatCircle size={28} weight="regular" />
-      <p className="inb-empty-title">Wähle einen Eintrag</p>
-      <p className="inb-empty-sub">
-        Eingänge sind nach Projekt und Thema strukturiert. Für freie Fragen nutze den Tagro-Chat im jeweiligen Projekt.
+    <div className="ix-empty-detail">
+      <div className="ix-empty-visual" aria-hidden>
+        <ChatCircle size={30} weight="light" />
+      </div>
+      <p className="ix-empty-title">Wähle einen Eingang</p>
+      <p className="ix-empty-sub">
+        Updates, Rechnungen und Tagro-Zusammenfassungen erscheinen links. Für freie Fragen nutze Tagro im jeweiligen Projekt.
       </p>
+      <div className="ix-empty-hints">
+        {HINT_CATEGORIES.map(cat => {
+          const Icon = cat.icon
+          return (
+            <span key={cat.id} className="ix-empty-hint">
+              <Icon size={12} weight="regular" />
+              {cat.label}
+            </span>
+          )
+        })}
+      </div>
     </div>
   )
 }
