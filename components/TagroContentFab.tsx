@@ -5,7 +5,7 @@
  * Opens the global Tagro overlay with the supplied context.
  */
 
-import { NotePencil } from '@phosphor-icons/react'
+import TagroComposeIcon from '@/components/icons/TagroComposeIcon'
 import { openTagro, type TagroOpenDetail } from '@/components/TagroOverlay'
 
 type Props = {
@@ -29,7 +29,7 @@ export default function TagroContentFab({
         title="Mit Tagro bearbeiten"
         onClick={() => openTagro(context)}
       >
-        <NotePencil size={22} weight="regular" />
+        <TagroComposeIcon size={20} />
       </button>
       <style jsx>{`
         .festag-content-fab {

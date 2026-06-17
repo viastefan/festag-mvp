@@ -18,7 +18,7 @@ import { Suspense, useCallback, useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import {
   ArrowsClockwise, ChatCircleText, Check, CheckCircle, Clock, FunnelSimple,
-  Sparkle, Warning, WarningCircle, X, UserCircle, CaretDown, Lightning, List,
+  Sparkle, Warning, WarningCircle, X, UserCircle, CaretDown, Lightning, List, DotsThree,
 } from '@phosphor-icons/react'
 import MobilePageHeader from '@/components/MobilePageHeader'
 import DecisionCardRow from '@/components/decisions/DecisionCardRow'
@@ -252,7 +252,7 @@ function DecisionsPageInner() {
                 aria-label="Filter"
                 onClick={() => setFilter(f => f === 'open' ? 'all' as Filter : 'open' as Filter)}
               >
-                <List size={18} weight="regular" />
+                <List size={15} weight="regular" />
               </button>
               <button
                 type="button"
@@ -267,7 +267,7 @@ function DecisionsPageInner() {
                   workspace: true,
                 })}
               >
-                <Lightning size={18} weight="regular" />
+                <Lightning size={15} weight="regular" />
               </button>
             </div>
             <button
@@ -277,7 +277,7 @@ function DecisionsPageInner() {
               aria-label="Aktualisieren"
               onClick={load}
             >
-              <svg width="14" height="3" viewBox="0 0 14 3" fill="none" aria-hidden><circle cx="2" cy="1.5" r="1.5" fill="currentColor"/><circle cx="7" cy="1.5" r="1.5" fill="currentColor"/><circle cx="12" cy="1.5" r="1.5" fill="currentColor"/></svg>
+              <DotsThree size={15} weight="bold" />
             </button>
           </div>
         </header>

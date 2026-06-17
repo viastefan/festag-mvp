@@ -40,8 +40,8 @@ export const DECISION_CSS = `
   }
   .dec-page-head-copy { flex:1; min-width:0; display:flex; flex-direction:column; gap:10px; }
   .dec-page-title {
-    margin:0; font-size:32px; font-weight:500; color:var(--dec-dark);
-    letter-spacing:-0.02em; line-height:1.15;
+    margin:0; font-size:32px; font-weight:400; color:var(--dec-dark);
+    letter-spacing:var(--ls-header, 0.012em); line-height:1.15;
     font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
   }
   .dec-page-lead { display:flex; flex-direction:column; gap:4px; max-width:640px; }
@@ -69,6 +69,11 @@ export const DECISION_CSS = `
       0 2px 5px -1px rgba(15,23,42,.11),
       0 5px 12px -4px rgba(15,23,42,.09);
     transition:background .12s, box-shadow .12s, color .12s, transform .1s, border-color .12s;
+  }
+  .dec-head-tool svg {
+    width:15px;
+    height:15px;
+    flex-shrink:0;
   }
   .dec-head-tool:hover {
     color:#2a3032;
