@@ -192,6 +192,36 @@ export const MOBILE_CODEX_LIST_CSS = `
       letter-spacing: 0.02em !important;
       color: #90959F !important;
     }
+    .mcl-filter-menu {
+      position: fixed !important;
+      bottom: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      z-index: 100 !important;
+      padding: 8px 16px calc(8px + env(safe-area-inset-bottom)) !important;
+      border-radius: 20px 20px 0 0 !important;
+      background: #fff !important;
+      box-shadow: 0 -4px 24px rgba(15, 23, 42, 0.12) !important;
+    }
+    .mcl-filter-item {
+      display: flex !important;
+      width: 100% !important;
+      align-items: center !important;
+      min-height: 48px !important;
+      padding: 0 12px !important;
+      border: 0 !important;
+      border-radius: 12px !important;
+      background: transparent !important;
+      color: #2a3032 !important;
+      font: inherit !important;
+      font-size: 15px !important;
+      cursor: pointer !important;
+      text-align: left !important;
+    }
+    .mcl-filter-item.on {
+      background: #f8f8fa !important;
+      font-weight: 500 !important;
+    }
     .mcl-sheet-backdrop {
       display: block !important;
       position: fixed !important;
@@ -244,6 +274,14 @@ export const MOBILE_CODEX_LIST_CSS = `
     [data-theme="dark"] .mcl-sheet-backdrop,
     [data-theme="classic-dark"] .mcl-sheet-backdrop {
       background: rgba(0, 0, 0, 0.52) !important;
+    }
+    [data-theme="dark"] .mcl-filter-menu,
+    [data-theme="classic-dark"] .mcl-filter-menu {
+      background: #1c1c1e !important;
+    }
+    [data-theme="dark"] .mcl-filter-item,
+    [data-theme="classic-dark"] .mcl-filter-item {
+      color: #f4f4f4 !important;
     }
   }
 `
