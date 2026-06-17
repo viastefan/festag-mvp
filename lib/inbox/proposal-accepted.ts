@@ -4,6 +4,7 @@ import {
   sendProjectNextStepsEmail,
   sendFestagGuaranteeEmail,
 } from '@/lib/email/send'
+import { createInboxItem } from '@/lib/inbox/create-item'
 
 export async function fanOutProposalAccepted(opts: {
   sb: SupabaseClient<any>
@@ -43,18 +44,18 @@ export async function fanOutProposalAccepted(opts: {
     },
   })
 
-  const mkItem = (sourceId: string, category: string, type: string, title: string, body: string, extra: Record<string, unknown> = {}) =>
-    writer.rpc('create_inbox_item', {
-      p_user_id: clientId,
-      p_project_id: projectId,
-      p_category: category,
-      p_type: type,
-      p_title: title,
-      p_body: body,
-      p_actor_id: devId,
-      p_source_table: 'dev_accepted',
-      p_source_id: `${projectId}:${sourceId}`,
-      p_metadata: { thread_title: projectTitle, source_label: 'Festag', ...extra },
+  const mkItem = (sourceKey: string, category: 'client' | 'system', type: 'project_event' | 'system_event', title: string, body: string, extra: Record<string, unknown> = {}) =>
+    createInboxItem(writer, {
+      userId: clientId,
+      projectId,
+      category,
+      type,
+      title,
+      body,
+      actorId: devId,
+      sourceTable: 'dev_accepted',
+      sourceId: `${projectId}:${sourceKey}`,
+      metadata: { thread_title: projectTitle, source_label: 'Festag', ...extra },
     })
 
   const { data: clientProfile } = await writer
@@ -69,11 +70,11 @@ export async function fanOutProposalAccepted(opts: {
     ((clientProfile?.full_name as string | null)?.trim().split(/\s+/)[0] ?? null)
 
   await Promise.allSettled([
-    mkItem('accepted', 'project', 'project_event',
+    mkItem('accepted', 'client', 'project_event',
       'Dein Projekt ist startklar',
       `${devDisplayName} hat „${projectTitle}" angenommen und beginnt mit der Umsetzung. Tagro begleitet jeden Schritt für dich — verständlich, ohne Fachjargon.`,
       { cta_label: 'Projekt öffnen', cta_url: projectUrl }),
-    mkItem('next-steps', 'project', 'project_event',
+    mkItem('next-steps', 'client', 'project_event',
       'So geht es jetzt weiter',
       `Tagro strukturiert das Briefing in klare Schritte. Du musst nichts Technisches lesen — du bekommst ruhige Statusberichte, sobald es etwas Neues gibt.`,
       { cta_label: 'Projekt öffnen', cta_url: projectUrl }),
