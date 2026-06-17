@@ -95,9 +95,30 @@ if (url && service?.startsWith('eyJ')) {
     const rows = await res.json()
     if (Array.isArray(rows) && rows.length > 0) ok('Client notification mirror applied (inbox_items)')
     else warn('No mirrored client inbox_items — run: npm run db:push')
+
+    const decRes = await fetch(`${url}/rest/v1/decisions?select=id&limit=1`, {
+      headers: { apikey: service, Authorization: `Bearer ${service}` },
+    })
+    if (decRes.ok) ok('decisions table reachable (service role)')
+
+    const rpc = await fetch(`${url}/rest/v1/rpc/decisions_tick`, {
+      method: 'POST',
+      headers: {
+        apikey: service,
+        Authorization: `Bearer ${service}`,
+        'Content-Type': 'application/json',
+      },
+      body: '{}',
+    })
+    if (rpc.ok || rpc.status === 204) ok('decisions_tick RPC callable')
+    else if (rpc.status === 404) warn('decisions_tick RPC missing — run: npm run db:push')
+    else warn(`decisions_tick HTTP ${rpc.status}`)
   } catch (e) {
     warn(`Could not check migration: ${e.message}`)
   }
+} else if (url && anon) {
+  console.log('\nMigration status:')
+  warn('Service role missing — skipping migration/RPC probes (npm run db:push needs service key)')
 }
 
 console.log('')

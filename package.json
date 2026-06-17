@@ -12,7 +12,8 @@
     "db:push": "supabase db push",
     "db:pull": "supabase db pull",
     "db:status": "supabase migration list",
-    "check:supabase": "node scripts/check-supabase.mjs"
+    "check:supabase": "node scripts/check-supabase.mjs",
+    "setup:supabase": "node scripts/setup-supabase.mjs"
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",

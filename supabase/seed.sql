@@ -1,0 +1,2 @@
+-- Festag local seed placeholder (optional).
+-- Sample decisions: POST /api/dev/decisions/seed or Dev Panel → „Beispiele seeden“.
