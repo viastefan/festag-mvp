@@ -63,9 +63,9 @@ export const DECISIONS_SHELL_CSS = `
     width:var(--festag-sidebar-width, 260px); flex-shrink:0;
     box-sizing:border-box;
     display:flex; flex-direction:column;
-    background:var(--sidebar-bg, #F6F6F7);
-    border-right:0;
-    box-shadow:inset -1px 0 0 rgba(15,23,42,0.05);
+    background:transparent;
+    border-right:none;
+    box-shadow:none;
     overflow:hidden;
     transition:width .22s cubic-bezier(.16,1,.3,1);
   }
@@ -77,8 +77,7 @@ export const DECISIONS_SHELL_CSS = `
     flex:1; min-width:0;
     box-sizing:border-box;
     display:flex; flex-direction:column;
-    padding:clamp(16px, 2.5vw, 28px);
-    background:var(--portal-bg, #F6F6F7);
+    padding:8px 8px 8px 0;
   }
   .decisions-main {
     flex:1; min-height:0;
