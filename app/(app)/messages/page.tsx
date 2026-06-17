@@ -17,6 +17,7 @@ export default function MessagesPage() {
     <MobileCodexListChrome
       className="msg-page"
       title="Nachrichten"
+      subtitle={loading ? 'Wird geladen…' : unreadTotal > 0 ? `${unreadTotal} ungelesen` : `${items.length} Einträge`}
       legacyHeader={<MobilePageHeader title="Nachrichten" />}
       mobileActions={(
         <>

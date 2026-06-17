@@ -1661,7 +1661,7 @@ export const DECISION_CSS = `
         inset 0 1px 0 rgba(255, 255, 255, 1),
         0 1px 0 rgba(0, 0, 0, 0.04),
         0 4px 10px rgba(144, 149, 159, 0.16);
-      --dec-m-white-border: 1px solid rgba(0, 0, 0, 0.07);
+      --dec-m-white-border: none;
       background: #FCFCFC !important;
       overflow-x: hidden !important;
     }
@@ -1670,7 +1670,7 @@ export const DECISION_CSS = `
       --dec-m-white-elev:
         inset 0 1px 0 rgba(255, 255, 255, 0.1),
         0 2px 8px rgba(0, 0, 0, 0.42);
-      --dec-m-white-border: 1px solid rgba(255, 255, 255, 0.14);
+      --dec-m-white-border: none;
       background: var(--portal-bg, #0d0d0f) !important;
     }
 
@@ -1962,7 +1962,7 @@ export const DECISION_CSS = `
       padding: 18px 16px !important;
       border-radius: 14px !important;
       background: #FFFFFF !important;
-      border: 1px solid rgba(0, 0, 0, 0.06) !important;
+      border: none !important;
       box-shadow: var(--dec-m-white-elev) !important;
       margin: 0 !important;
       -webkit-tap-highlight-color: transparent;
@@ -2159,7 +2159,7 @@ export const DECISION_CSS = `
     [data-theme="dark"] .dec-card,
     [data-theme="classic-dark"] .dec-card {
       background: rgba(255, 255, 255, 0.06) !important;
-      border-color: rgba(255, 255, 255, 0.1) !important;
+      border: none !important;
       box-shadow:
         inset 0 1px 0 rgba(255, 255, 255, 0.05),
         0 2px 4px rgba(0, 0, 0, 0.28) !important;
