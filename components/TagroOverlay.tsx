@@ -1100,7 +1100,7 @@ const STYLES = `
   --tov-bg: #FFFFFF;
   --tov-bg-2: #F3F3F1;
   --tov-canvas: #ECECEA;
-  --tov-input: #F3F3F1;
+  --tov-input: #F5F5F3;
   --tov-input-2: #EBEBE9;
   --tov-text: #111111;
   --tov-text-2: #5C5C5C;
@@ -1152,7 +1152,7 @@ const STYLES = `
   padding: 0;
   justify-content: stretch; align-items: stretch;
 }
-@media (max-width: 720px) { .tov { padding: 0; align-items: stretch; } }
+@media (max-width: 720px) { .tov.tov-full { padding: 0; align-items: stretch; } }
 
 .tov-backdrop {
   position: absolute; inset: 0;
@@ -1164,11 +1164,11 @@ const STYLES = `
 
 .tov-shell {
   position: relative;
-  width: min(520px, calc(100vw - 48px));
-  max-height: min(86vh, 760px);
+  width: min(600px, calc(100vw - 40px));
+  max-height: min(88vh, 820px);
   background: var(--tov-bg);
   border: 0;
-  border-radius: 28px;
+  border-radius: 24px;
   box-shadow: var(--tov-shadow);
   display: flex;
   flex-direction: column;
@@ -1182,19 +1182,11 @@ const STYLES = `
   background: var(--tov-bg);
 }
 .tov.tov-mode-conversation:not(.tov-full) .tov-shell {
-  width: min(520px, calc(100vw - 48px));
-  height: min(68vh, 640px);
-  max-height: min(68vh, 640px);
+  width: min(600px, calc(100vw - 40px));
+  height: min(72vh, 720px);
+  max-height: min(72vh, 720px);
   display: flex;
   flex-direction: column;
-}
-@media (max-width: 720px) {
-  .tov-shell { width: 100%; max-height: 100dvh; border-radius: 0; }
-  .tov.tov-mode-conversation:not(.tov-full) .tov-shell {
-    width: 100%;
-    height: min(88dvh, 640px);
-    max-height: min(88dvh, 640px);
-  }
 }
 
 /* ── Task picker (sana modal + Festag context) ── */
@@ -1206,17 +1198,17 @@ const STYLES = `
 .tov-picker-view {
   flex: 1; min-height: 0; overflow-y: auto;
   display: flex; align-items: flex-start; justify-content: center;
-  padding: 20px 24px 12px;
+  padding: 24px 28px 16px;
 }
 .tov-picker-footer {
   flex: 0 0 auto;
-  padding: 8px 20px max(16px, env(safe-area-inset-bottom, 0px));
+  padding: 4px 24px max(20px, env(safe-area-inset-bottom, 0px));
   border-top: 0;
-  background: linear-gradient(to top, var(--tov-bg) 82%, transparent);
+  background: var(--tov-bg);
 }
-.tov-picker-footer .tov-composer { max-width: 520px; margin: 0 auto; }
+.tov-picker-footer .tov-composer { max-width: 100%; margin: 0 auto; }
 .tov-picker-card {
-  width: 100%; max-width: 520px;
+  width: 100%; max-width: 100%;
   position: relative;
 }
 .tov-picker-top {
@@ -1227,10 +1219,10 @@ const STYLES = `
   padding: 4px 0 8px;
 }
 .tov-picker-title {
-  margin: 0 0 16px;
+  margin: 0 0 20px;
   text-align: center;
-  font-size: 20px; font-weight: 600; letter-spacing: -.018em;
-  line-height: 1.25; color: var(--tov-text);
+  font-size: 21px; font-weight: 600; letter-spacing: -.02em;
+  line-height: 1.28; color: var(--tov-text);
   text-wrap: balance;
 }
 .tov-featured {
@@ -1500,8 +1492,7 @@ const STYLES = `
   align-self: stretch;
 }
 .tov-composer-compact .tov-composer-panel {
-  border-radius: 14px;
-  box-shadow: 0 2px 12px rgba(15, 23, 42, 0.06);
+  border-radius: 20px;
 }
 .tov-composer-compact .tov-composer-input {
   font-size: 14px;
@@ -1561,20 +1552,35 @@ const STYLES = `
 .tov-composer-panel {
   position: relative;
   z-index: 2;
-  background: var(--tov-bg);
-  border: 1px solid var(--tov-border-2);
-  border-radius: 16px;
+  background: var(--tov-input);
+  border: none;
+  border-radius: 22px;
   box-shadow:
-    0 8px 32px rgba(15, 23, 42, 0.08),
-    0 2px 8px rgba(15, 23, 42, 0.04);
+    inset 0 1px 0 rgba(255, 255, 255, 0.72),
+    0 1px 2px rgba(0, 0, 0, 0.04),
+    0 8px 28px rgba(0, 0, 0, 0.07);
   overflow: hidden;
-  transition: box-shadow .16s ease, border-color .16s ease;
+  transition: box-shadow .18s ease, transform .18s ease;
+}
+[data-theme="dark"] .tov-composer-panel,
+[data-theme="classic-dark"] .tov-composer-panel {
+  background: var(--tov-input);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    0 4px 24px rgba(0, 0, 0, 0.38);
 }
 .tov-composer-panel:focus-within {
-  border-color: color-mix(in srgb, var(--tov-text) 14%, var(--tov-border));
+  border: none;
   box-shadow:
-    0 12px 40px rgba(15, 23, 42, 0.10),
-    0 0 0 3px color-mix(in srgb, var(--tov-text) 4%, transparent);
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    0 2px 4px rgba(0, 0, 0, 0.05),
+    0 12px 36px rgba(0, 0, 0, 0.1);
+}
+[data-theme="dark"] .tov-composer-panel:focus-within,
+[data-theme="classic-dark"] .tov-composer-panel:focus-within {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.09),
+    0 6px 32px rgba(0, 0, 0, 0.45);
 }
 .tov-composer-input {
   display: block;
@@ -1583,9 +1589,19 @@ const STYLES = `
   border: 0; outline: 0; resize: none; background: transparent;
   color: var(--tov-text); font: inherit;
   font-size: 15px; line-height: 1.45;
-  min-height: 40px; max-height: 160px;
-  padding: 14px 16px 4px;
+  min-height: 24px; max-height: 160px;
+  padding: 14px 16px 2px;
   overflow-y: auto;
+}
+.tov-composer-hero .tov-composer-input {
+  min-height: 22px;
+  padding: 13px 16px 0;
+}
+.tov-composer-hero .tov-composer-panel {
+  border-radius: 24px;
+}
+.tov-composer-hero .tov-composer-toolbar {
+  padding: 6px 10px 10px;
 }
 .tov-composer-input::placeholder { color: var(--tov-muted); }
 .tov-composer-toolbar {
@@ -1626,13 +1642,12 @@ const STYLES = `
 .tov-composer-shelf {
   position: relative;
   z-index: 1;
-  margin-top: -6px;
-  padding: 14px 14px 10px;
-  display: flex; flex-wrap: wrap; align-items: center; gap: 10px;
-  background: var(--tov-bg-2);
-  border: 1px solid var(--tov-border);
-  border-top: 0;
-  border-radius: 0 0 16px 16px;
+  margin-top: -4px;
+  padding: 12px 12px 8px;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+  background: color-mix(in srgb, var(--tov-bg-2) 88%, transparent);
+  border: none;
+  border-radius: 0 0 20px 20px;
 }
 .tov-shelf-chip {
   display: inline-flex; align-items: center;
@@ -1943,30 +1958,42 @@ const STYLES = `
   .tov, .tov-shell, .tov-msg, .tov-spin, .tov-composer-mic.is-rec, .tov-typing span { animation: none !important; }
 }
 
-/* ── Mobile polish ── */
+/* ── Mobile — Codex-style bottom sheet ── */
 @media (max-width: 720px) {
   .tov:not(.tov-full) {
-    padding: 12px;
+    padding: 0;
     align-items: flex-end;
+    justify-content: center;
+  }
+  .tov:not(.tov-full) .tov-backdrop {
+    background: rgba(0, 0, 0, 0.45);
   }
   .tov:not(.tov-full) .tov-shell {
     width: 100%;
-    max-height: min(92dvh, 860px);
-    border-radius: 20px 20px 0 0;
+    max-width: 100%;
+    max-height: min(92dvh, 900px);
+    height: auto;
+    min-height: min(72dvh, 640px);
+    border-radius: 22px 22px 0 0;
+    box-shadow:
+      0 -4px 40px rgba(0, 0, 0, 0.18),
+      0 -1px 0 rgba(255, 255, 255, 0.06) inset;
+    animation: tov-sheet-up .34s cubic-bezier(.16, 1, .3, 1) both;
+  }
+  .tov.tov-mode-conversation:not(.tov-full) .tov-shell {
+    height: min(88dvh, 760px);
+    max-height: min(88dvh, 760px);
+    min-height: 0;
   }
   .tov.tov-full {
     padding: 0;
     align-items: stretch;
   }
   .tov.tov-full .tov-shell {
-    border-radius: 0;
+    width: 100%;
     max-height: 100dvh;
-  }
-  .tov.tov-full.tov-mode-initial .tov-picker {
-    min-height: 100%;
-  }
-  .tov.tov-full.tov-mode-initial .tov-picker-view {
-    padding: max(12px, env(safe-area-inset-top, 0px)) 20px 12px;
+    border-radius: 0;
+    min-height: 0;
   }
   .tov-picker-view {
     padding: 20px 20px 12px;
@@ -1976,19 +2003,25 @@ const STYLES = `
     margin-bottom: 18px;
   }
   .tov-picker-footer {
-    padding: 8px 14px max(14px, env(safe-area-inset-bottom, 0px));
+    padding: 6px 16px max(16px, env(safe-area-inset-bottom, 0px));
+  }
+  .tov-composer-hero .tov-composer-panel {
+    border-radius: 22px;
+  }
+  .tov-composer-input {
+    font-size: 16px;
   }
   .tov-floatbar {
+    padding: 0 16px max(14px, env(safe-area-inset-bottom, 0px));
+  }
+  .tov-workspace-compact .tov-floatbar {
     padding: 0 14px max(14px, env(safe-area-inset-bottom, 0px));
   }
   .tov-timeline {
     padding: 8px 16px 16px;
   }
-  .tov-context-lead {
-    font-size: 16px;
-  }
-  .tov-context-help {
-    font-size: 14px;
+  .tov-compact-head {
+    padding: 12px 16px 10px;
   }
   .tov.tov-full .tov-workspace .tov-main {
     padding-top: 52px;
@@ -2001,5 +2034,9 @@ const STYLES = `
     background: linear-gradient(to bottom, var(--tov-bg) 70%, transparent);
   }
   .tov-top-ctx { display: none; }
+}
+@keyframes tov-sheet-up {
+  from { opacity: 0; transform: translateY(100%); }
+  to { opacity: 1; transform: translateY(0); }
 }
 `
