@@ -73,9 +73,15 @@ export const DECISION_CSS = `
     font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
   }
   .dec-page-lead { display:flex; flex-direction:column; gap:6px; max-width:680px; }
+  .dec-page-lead-line,
   .dec-page-lead p {
-    margin:0; font-size:17px; font-weight:400; color:var(--dec-soft);
-    line-height:1.5; letter-spacing:0;
+    margin:0;
+    font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
+    font-size:17px;
+    font-weight:400;
+    color:var(--dec-soft);
+    line-height:1.5;
+    letter-spacing:0;
   }
   .dec-page-actions {
     display:flex; align-items:center; gap:8px; flex-shrink:0;
@@ -1500,7 +1506,8 @@ export const DECISION_CSS = `
     .dec-static-top { padding-top:var(--festag-content-pad-y, 24px); }
     .dec-scroll-body { padding-bottom:var(--festag-content-pad-bottom, 64px); }
     .dec-page-title { font-size:28px; }
-    .dec-page-lead p { font-size:15px; }
+    .dec-page-lead-line,
+    .dec-page-lead p { font-size:15px; font-weight:400; }
     .dec-panel { width:100vw; }
     .dec-card { flex-direction:column; gap:20px; padding:18px 12px; align-items:stretch; }
     .dec-card-left, .dec-card-mid, .dec-card-meta, .dec-card-actions { width:100%; }
@@ -1584,19 +1591,16 @@ export const DECISION_CSS = `
     }
     .dec-page-lead {
       max-width: none !important;
-      gap: 0 !important;
-      margin-top: -2px !important;
+      gap: 6px !important;
+      margin-top: 8px !important;
     }
+    .dec-page-lead-line,
     .dec-page-lead p {
-      font-size: 29px !important;
-      letter-spacing: -0.5px !important;
-      line-height: 1.02 !important;
-      color: #90959F !important;
-    }
-    .dec-m-sub {
-      font-size: inherit !important;
+      font-size: 17px !important;
       font-weight: 400 !important;
-      letter-spacing: inherit !important;
+      letter-spacing: 0 !important;
+      line-height: 1.5 !important;
+      color: #90959F !important;
     }
     .dec-m-head-actions {
       display: flex !important;
@@ -1988,10 +1992,10 @@ export const DECISION_CSS = `
     [data-theme="classic-dark"] .dec-page-title {
       color: #f4f4f5 !important;
     }
+    [data-theme="dark"] .dec-page-lead-line,
+    [data-theme="classic-dark"] .dec-page-lead-line,
     [data-theme="dark"] .dec-page-lead p,
-    [data-theme="classic-dark"] .dec-page-lead p,
-    [data-theme="dark"] .dec-m-sub,
-    [data-theme="classic-dark"] .dec-m-sub {
+    [data-theme="classic-dark"] .dec-page-lead p {
       color: #9aa0ac !important;
     }
     [data-theme="dark"] .dec-os .cx-action-pill,

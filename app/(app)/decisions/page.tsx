@@ -79,25 +79,35 @@ function DecisionsPageInner() {
 
   const load = useCallback(async () => {
     setLoading(true)
+    const forceDemo = searchParams?.get('demo') === '1'
+    const blockDemo = searchParams?.get('demo') === '0'
+
+    if (forceDemo) {
+      const demo = getDecisionDemoBundle()
+      setUsingDemo(true)
+      setDecisions(demo.decisions)
+      setProjects(demo.projects)
+      setLoading(false)
+      return
+    }
+
     try {
       const res = await fetch('/api/decisions', { credentials: 'include' })
-      if (!res.ok) return
-      // Guard the JSON parse: if the session expired mid-session, fetch
-      // may have followed a /login redirect and returned HTML — parsing
-      // that as JSON used to throw and crash the whole (app) shell.
-      const data = await res.json().catch(() => null)
-      if (!data) return
+      const data = res.ok ? await res.json().catch(() => null) : null
+      const apiRows: Decision[] = data?.decisions ?? []
+      const showDemo = !blockDemo && apiRows.length === 0
 
-      const apiRows: Decision[] = data.decisions ?? []
-      const forceDemo = searchParams?.get('demo') === '1'
-      const blockDemo = searchParams?.get('demo') === '0'
-      const showDemo = forceDemo || (!blockDemo && apiRows.length === 0)
-
-      if (showDemo) {
-        const demo = getDecisionDemoBundle()
-        setUsingDemo(true)
-        setDecisions(demo.decisions)
-        setProjects(demo.projects)
+      if (!res.ok || !data || showDemo) {
+        if (!blockDemo) {
+          const demo = getDecisionDemoBundle()
+          setUsingDemo(true)
+          setDecisions(demo.decisions)
+          setProjects(demo.projects)
+        } else {
+          setUsingDemo(false)
+          setDecisions(apiRows)
+          setProjects({})
+        }
         return
       }
 
@@ -114,7 +124,7 @@ function DecisionsPageInner() {
         setProjects({})
       }
     } catch {
-      if (searchParams?.get('demo') !== '0') {
+      if (!blockDemo) {
         const demo = getDecisionDemoBundle()
         setUsingDemo(true)
         setDecisions(demo.decisions)
@@ -124,6 +134,8 @@ function DecisionsPageInner() {
       setLoading(false)
     }
   }, [supabase, searchParams])
+
+  useEffect(() => { void load() }, [load])
 
   useEffect(() => {
     const open = searchParams?.get('open')
@@ -314,16 +326,20 @@ function DecisionsPageInner() {
 
   const filterActive = filter !== 'open' || projectScope !== 'all'
 
+  const leadLine1 = counts.open === 0
+    ? 'Keine Entscheidungen offen.'
+    : `Heute ${counts.open === 1 ? 'ist' : 'sind'} ${counts.open} Entscheidung${counts.open === 1 ? '' : 'en'} offen.`
+
+  const leadLine2 = counts.open === 0
+    ? 'Tagro überwacht deine Projekte und meldet sich bei Bedarf.'
+    : [executiveSummary.line1, executiveSummary.line2].filter(Boolean).join(' ')
+
   const tagroListHandler = () => openTagro({
     contextType: 'decision',
     id: 'list',
     title: 'Entscheidungen · Übersicht',
     subtitle: `${counts.open} offen · ${counts.urgent} dringend`,
   })
-
-  const mobileSubtitle = counts.open === 0
-    ? 'Alles auf einen Blick.'
-    : `${counts.open} Entscheidung${counts.open === 1 ? '' : 'en'} offen.`
 
   function renderFilterMenu() {
     if (!filterMenuOpen) return null
@@ -403,19 +419,8 @@ function DecisionsPageInner() {
               <span className="dec-m-t">Entscheidungen</span>
             </h1>
             <div className="dec-page-lead">
-              <p>
-                <span className="dec-dt">
-                  {counts.open === 0
-                    ? 'Keine Entscheidungen offen.'
-                    : `Heute ${counts.open === 1 ? 'ist' : 'sind'} ${counts.open} Entscheidung${counts.open === 1 ? '' : 'en'} offen.`}
-                </span>
-                <span className="dec-m-t dec-m-sub">{mobileSubtitle}</span>
-              </p>
-              {(executiveSummary.line1 || executiveSummary.line2) && (
-                <p className="dec-dt">
-                  {[executiveSummary.line1, executiveSummary.line2].filter(Boolean).join(' ')}
-                </p>
-              )}
+              <p className="dec-page-lead-line">{leadLine1}</p>
+              <p className="dec-page-lead-line">{leadLine2}</p>
             </div>
           </div>
           <div className="dec-m-head-actions">
