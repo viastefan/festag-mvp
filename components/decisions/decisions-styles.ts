@@ -291,15 +291,15 @@ export const DECISION_CSS = `
     top: calc(100% + 10px);
     right: -4px;
     z-index: 40;
-    width: min(340px, calc(100vw - 32px));
-    border-radius: 14px;
+    width: min(320px, calc(100vw - 32px));
+    border-radius: 6px;
     overflow: hidden;
     background: var(--dec-card-bg);
     border: 1px solid color-mix(in srgb, var(--portal-btn-outline-border, #e7ebf0) 72%, transparent);
     box-shadow:
-      0 20px 48px -16px rgba(15,23,42,.22),
-      0 8px 20px -10px rgba(15,23,42,.12);
-    animation: decRisksIn .2s cubic-bezier(.22,1,.36,1);
+      0 12px 28px -14px rgba(15,23,42,.18),
+      0 4px 12px -6px rgba(15,23,42,.08);
+    animation: decRisksIn .18s cubic-bezier(.22,1,.36,1);
     transform-origin: top right;
   }
   @keyframes decRisksIn {
@@ -323,7 +323,7 @@ export const DECISION_CSS = `
     align-items: flex-start;
     justify-content: space-between;
     gap: 12px;
-    padding: 16px 16px 0;
+    padding: 14px 14px 0;
   }
   .dec-risks-popover-title-wrap {
     display: flex;
@@ -334,25 +334,25 @@ export const DECISION_CSS = `
   .dec-risks-popover-title {
     margin: 0;
     font-family: var(--font-aeonik,'Aeonik',Inter,sans-serif);
-    font-size: 15px;
-    font-weight: 400;
-    letter-spacing: -.02em;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: -.015em;
     color: var(--dec-dark);
     line-height: 1.3;
   }
   .dec-risks-popover-sub {
     margin: 0;
     font-family: var(--font-aeonik,'Aeonik',Inter,sans-serif);
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 400;
     color: var(--dec-soft);
     line-height: 1.35;
   }
   .dec-risks-popover-body {
-    max-height: min(52vh, 380px);
+    max-height: min(52vh, 360px);
     overflow-y: auto;
     overscroll-behavior: contain;
-    padding: 12px 16px;
+    padding: 10px 14px 12px;
     scrollbar-width: thin;
   }
   .dec-risks-empty {
@@ -369,60 +369,56 @@ export const DECISION_CSS = `
     padding: 0;
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 4px;
   }
   .dec-risks-item {
     display: flex;
     align-items: flex-start;
     gap: 10px;
     width: 100%;
-    padding: 12px;
+    padding: 10px;
     border: 1px solid rgba(15,23,42,.06);
-    border-radius: 12px;
-    background: rgba(255,255,255,.55);
+    border-radius: 6px;
+    background: transparent;
     text-align: left;
     cursor: pointer;
-    transition: background .16s ease, border-color .16s ease, transform .16s ease, box-shadow .16s ease;
+    transition: background .14s ease, border-color .14s ease;
   }
   .dec-risks-item:hover {
-    background: rgba(255,255,255,.88);
+    background: rgba(15,23,42,.03);
     border-color: rgba(15,23,42,.1);
-    transform: translateY(-1px);
-    box-shadow: 0 8px 20px -14px rgba(15,23,42,.22);
   }
   [data-theme="dark"] .dec-risks-item,
   [data-theme="classic-dark"] .dec-risks-item {
-    background: rgba(255,255,255,.04);
+    background: transparent;
     border-color: rgba(255,255,255,.08);
   }
   [data-theme="dark"] .dec-risks-item:hover,
   [data-theme="classic-dark"] .dec-risks-item:hover {
-    background: rgba(255,255,255,.07);
+    background: rgba(255,255,255,.04);
     border-color: rgba(255,255,255,.12);
   }
   .dec-risks-sev {
-    width: 28px;
-    height: 28px;
-    border-radius: 9px;
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+    margin-top: 1px;
   }
   .dec-risks-sev--critical {
-    color: #ef4444;
-    background: rgba(239,68,68,.12);
-    border: 1px solid rgba(239,68,68,.2);
+    color: #dc6b6b;
+    background: rgba(220,107,107,.1);
   }
   .dec-risks-sev--high {
-    color: #f59e0b;
-    background: rgba(245,158,11,.12);
-    border: 1px solid rgba(245,158,11,.22);
+    color: #c9953a;
+    background: rgba(201,149,58,.1);
   }
   .dec-risks-sev--medium {
-    color: #64748b;
-    background: rgba(100,116,139,.1);
-    border: 1px solid rgba(100,116,139,.18);
+    color: #7a8494;
+    background: rgba(122,132,148,.1);
   }
   .dec-risks-item-copy {
     flex: 1;
@@ -431,85 +427,64 @@ export const DECISION_CSS = `
     flex-direction: column;
     gap: 3px;
   }
-  .dec-risks-item-top {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 8px;
-  }
-  .dec-risks-item-top strong {
+  .dec-risks-item-title {
     font-family: var(--font-aeonik,'Aeonik',Inter,sans-serif);
-    font-size: 13.5px;
-    font-weight: 400;
+    font-size: 13px;
+    font-weight: 500;
     letter-spacing: -.01em;
-    color: var(--dec-dark);
     line-height: 1.35;
+    color: var(--dec-dark);
   }
-  .dec-risks-pill {
-    flex-shrink: 0;
-    padding: 2px 7px;
-    border-radius: 999px;
-    font-family: var(--font-aeonik,'Aeonik',Inter,sans-serif);
-    font-size: 10px;
-    letter-spacing: .02em;
-    line-height: 1.4;
-    white-space: nowrap;
-  }
-  .dec-risks-pill--critical {
-    color: #b91c1c;
-    background: rgba(239,68,68,.1);
-    border: 1px solid rgba(239,68,68,.16);
-  }
-  .dec-risks-pill--high {
-    color: #b45309;
-    background: rgba(245,158,11,.12);
-    border: 1px solid rgba(245,158,11,.2);
-  }
-  .dec-risks-pill--medium {
-    color: #475569;
-    background: rgba(100,116,139,.1);
-    border: 1px solid rgba(100,116,139,.16);
-  }
-  .dec-risks-project,
-  .dec-risks-detail,
-  .dec-risks-due {
+  .dec-risks-item-meta {
     font-family: var(--font-aeonik,'Aeonik',Inter,sans-serif);
     font-size: 12px;
     line-height: 1.4;
     color: var(--dec-soft);
   }
-  .dec-risks-due { color: #b45309; }
+  .dec-risks-item--critical .dec-risks-item-meta {
+    color: color-mix(in srgb, #dc6b6b 55%, var(--dec-soft));
+  }
+  .dec-risks-item--high .dec-risks-item-meta {
+    color: color-mix(in srgb, #c9953a 50%, var(--dec-soft));
+  }
+  .dec-risks-project,
+  .dec-risks-detail {
+    font-family: var(--font-aeonik,'Aeonik',Inter,sans-serif);
+    font-size: 11.5px;
+    line-height: 1.4;
+    color: var(--dec-soft);
+    opacity: .85;
+  }
   .dec-risks-chevron {
     flex-shrink: 0;
-    margin-top: 6px;
+    margin-top: 5px;
     color: var(--dec-soft);
-    opacity: .55;
-    transition: opacity .16s ease, transform .16s ease;
+    opacity: .4;
+    transition: opacity .14s ease;
   }
   .dec-risks-item:hover .dec-risks-chevron {
-    opacity: 1;
-    transform: translateX(2px);
+    opacity: .75;
   }
   .dec-risks-popover-foot {
-    padding: 4px 12px 12px;
+    padding: 0 14px 14px;
   }
   .dec-risks-tagro-btn {
     width: 100%;
-    min-height: 40px;
+    min-height: 36px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
     border: 1px solid color-mix(in srgb, var(--portal-btn-outline-border, #e7ebf0) 80%, transparent);
-    border-radius: 999px;
+    border-radius: 6px !important;
     background: transparent;
     color: var(--dec-dark);
     font-family: var(--font-aeonik,'Aeonik',Inter,sans-serif);
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 400;
     letter-spacing: -.01em;
     cursor: pointer;
-    transition: background .16s ease, border-color .16s ease;
+    transition: background .14s ease, border-color .14s ease;
   }
   .dec-risks-tagro-btn .tagro-logo .tagro-anim {
     animation: none;
@@ -1817,7 +1792,7 @@ export const DECISION_CSS = `
       width: 100% !important;
       max-width: none !important;
       z-index: 100 !important;
-      border-radius: 20px 20px 0 0 !important;
+      border-radius: 6px 6px 0 0 !important;
       border: 0 !important;
       box-shadow: 0 -4px 24px rgba(15,23,42,0.14) !important;
       animation: decMSlideUp .22s cubic-bezier(.16,1,.3,1) both !important;

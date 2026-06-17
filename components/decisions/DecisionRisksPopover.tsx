@@ -13,9 +13,15 @@ type Props = {
 }
 
 function SeverityIcon({ severity }: { severity: DecisionRiskSignal['severity'] }) {
-  if (severity === 'critical') return <WarningCircle size={15} weight="fill" />
-  if (severity === 'high') return <Warning size={15} weight="fill" />
-  return <ShieldCheck size={15} weight="regular" />
+  if (severity === 'critical') return <WarningCircle size={13} weight="fill" />
+  if (severity === 'high') return <Warning size={13} weight="fill" />
+  return <ShieldCheck size={13} weight="regular" />
+}
+
+function riskCountLabel(count: number): string {
+  if (count === 0) return 'Keine aktiven Risiken'
+  if (count === 1) return '1 Risiko'
+  return `${count} Risiken`
 }
 
 export default function DecisionRisksPopover({ risks, onClose, openCount }: Props) {
@@ -26,9 +32,7 @@ export default function DecisionRisksPopover({ risks, onClose, openCount }: Prop
     router.push(`/decisions/${id}`)
   }
 
-  const headline = risks.length === 0
-    ? 'Keine aktiven Risiken'
-    : `${risks.length} Risiko${risks.length === 1 ? '' : 'en'}`
+  const headline = riskCountLabel(risks.length)
 
   const emptyLine = openCount === 0
     ? 'Aktuell liegen keine offenen Entscheidungen vor.'
@@ -61,11 +65,10 @@ export default function DecisionRisksPopover({ risks, onClose, openCount }: Prop
                     <SeverityIcon severity={risk.severity} />
                   </span>
                   <span className="dec-risks-item-copy">
-                    <span className="dec-risks-item-top">
-                      <strong>{risk.title}</strong>
-                      <span className={`dec-risks-pill dec-risks-pill--${risk.severity}`}>
-                        {risk.reason}
-                      </span>
+                    <strong className="dec-risks-item-title">{risk.title}</strong>
+                    <span className="dec-risks-item-meta">
+                      {risk.reason}
+                      {risk.dueLabel ? ` · ${risk.dueLabel}` : ''}
                     </span>
                     {risk.projectTitle && (
                       <span className="dec-risks-project">{risk.projectTitle}</span>
@@ -73,11 +76,8 @@ export default function DecisionRisksPopover({ risks, onClose, openCount }: Prop
                     {risk.detail && (
                       <span className="dec-risks-detail">{risk.detail}</span>
                     )}
-                    {risk.dueLabel && (
-                      <span className="dec-risks-due">{risk.dueLabel}</span>
-                    )}
                   </span>
-                  <ArrowRight size={14} weight="bold" className="dec-risks-chevron" aria-hidden />
+                  <ArrowRight size={13} weight="regular" className="dec-risks-chevron" aria-hidden />
                 </button>
               </li>
             ))}
@@ -96,7 +96,7 @@ export default function DecisionRisksPopover({ risks, onClose, openCount }: Prop
               id: 'risks',
               title: 'Entscheidungen · Risiken',
               subtitle: risks.length
-                ? `${risks.length} Risiko${risks.length === 1 ? '' : 'en'} · ${openCount} offen`
+                ? `${riskCountLabel(risks.length)} · ${openCount} offen`
                 : `${openCount} offen`,
             })
           }}

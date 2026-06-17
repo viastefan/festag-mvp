@@ -1009,6 +1009,15 @@ button.dec-filter-menu-item,
   border-radius: 8px !important;
 }
 
+/* Decisions risks popover — crisp 6px, not global 32px pill radius. */
+.dec-risks-popover,
+button.dec-risks-item,
+.dec-risks-item,
+button.dec-risks-tagro-btn,
+.dec-risks-tagro-btn {
+  border-radius: 6px !important;
+}
+
 /* Mobile projects icon controls — fully round. */
 button.pjm-ctl,
 .pjm-ctl {
