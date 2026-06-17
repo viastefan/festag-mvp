@@ -21,9 +21,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import { openTagro } from '@/components/TagroOverlay'
+import { tagroContextForReviewBacklog } from '@/lib/inbox/tagro-triage'
 import {
   ArrowRight, ArrowsClockwise, CheckCircle, Funnel, GitCommit, Image as ImageIcon,
-  Link as LinkIcon, Paperclip, Robot, WarningCircle, XCircle,
+  Link as LinkIcon, Paperclip, Robot, Sparkle, WarningCircle, XCircle,
 } from '@phosphor-icons/react'
 import {
   DEV_FLOW_LABEL, devFlowFromLegacy, PROOF_LABELS, type ProofType,
@@ -233,9 +235,21 @@ export default function DevReviewPage() {
             Geprüfte Tasks, fehlende Belege und Empfehlungen — bevor etwas an den Client geht.
           </p>
         </div>
-        <button className="r-refresh" onClick={() => load()} title="Aktualisieren" aria-label="Aktualisieren">
-          <ArrowsClockwise size={13} />
-        </button>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <button
+            type="button"
+            className="r-refresh"
+            onClick={() => openTagro(tagroContextForReviewBacklog(rows.length, counts.needs_review))}
+            title="Tagro Triage"
+            aria-label="Tagro Triage"
+            style={{ width: 'auto', padding: '0 10px', display: 'inline-flex', alignItems: 'center', gap: 6 }}
+          >
+            <Sparkle size={13} weight="fill" /> Tagro
+          </button>
+          <button className="r-refresh" onClick={() => load()} title="Aktualisieren" aria-label="Aktualisieren">
+            <ArrowsClockwise size={13} />
+          </button>
+        </div>
       </header>
 
       <div className="r-toolbar">

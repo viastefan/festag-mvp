@@ -23,6 +23,7 @@ export async function POST(req: Request) {
     const projectId = String(body?.projectId || '')
     const text = String(body?.text || '').trim()
     const taskId = body?.taskId ? String(body.taskId) : null
+    const previewOnly = !!body?.preview
     if (!projectId || !text) {
       return NextResponse.json({ error: 'project_and_text_required' }, { status: 400 })
     }
@@ -33,6 +34,21 @@ export async function POST(req: Request) {
       .eq('id', projectId)
       .maybeSingle()
     if (!project) return NextResponse.json({ error: 'project_not_found' }, { status: 404 })
+
+    if (previewOnly) {
+      const { translateDevUpdate } = await import('@/lib/tagro/translate-update')
+      const translated = await translateDevUpdate({
+        devText: text,
+        projectTitle: (project as any).title ?? null,
+      })
+      return NextResponse.json({
+        ok: true,
+        preview: true,
+        clientSummary: translated.clientSummary,
+        blockers: translated.blockers,
+        nextSteps: translated.nextSteps,
+      })
+    }
 
     const clientId = (project as any).client_id ?? (project as any).user_id
     if (!clientId) return NextResponse.json({ error: 'no_client' }, { status: 400 })

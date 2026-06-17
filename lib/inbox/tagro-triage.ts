@@ -157,3 +157,18 @@ export function tagroContextForClientInbox(
     prefill: 'Fasse meine offenen Projekt-Updates zusammen und sag mir, was ich tun sollte.',
   }
 }
+
+export function tagroContextForReviewBacklog(
+  openCount: number,
+  needsReviewCount: number,
+): TagroOpenDetail {
+  return {
+    contextType: 'dev_item',
+    id: 'dev-review',
+    title: 'Tagro Review Center',
+    subtitle: `${openCount} offen · ${needsReviewCount} brauchen Review`,
+    prefill: openCount > 0
+      ? 'Priorisiere die offenen Reviews: Was fehlt, was ist client-ready, welche Tasks brauchen Nachweise?'
+      : 'Gibt es Tasks, die ich vor Client-Freigabe noch prüfen sollte?',
+  }
+}

@@ -33,7 +33,7 @@ import MobileNavSheet from '@/components/mobile/MobileNavSheet'
 import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
 import { MOBILE_CODEX_LIST_CSS } from '@/components/mobile/mobile-codex-list-styles'
 import { openTagro } from '@/components/TagroOverlay'
-import { PencilSimple, WaveSine, ArrowsClockwise } from '@phosphor-icons/react'
+import { PencilSimple, ArrowsClockwise } from '@phosphor-icons/react'
 
 type TaskView = 'all' | 'open' | 'active' | 'decision' | 'review' | 'done'
 type SortMode = 'newest' | 'updated' | 'priority' | 'project' | 'group'
@@ -1737,12 +1737,8 @@ export default function TasksPage() {
           /* Mobile uses the new Linear-style MobilePageHeader above; hide
              the desktop title row entirely on phones. */
           .task-top { display: none !important; }
-          .task-toolbar {
-            flex-direction:column;
-            align-items:stretch;
-            gap:10px;
-            padding:0 2px 12px;
-          }
+          .task-toolbar { display: none !important; }
+          .task-m-actions { position: relative !important; }
           .task-filters {
             display:grid;
             grid-template-columns:repeat(2, minmax(0, 1fr));
@@ -1781,7 +1777,10 @@ export default function TasksPage() {
             width:100%;
             margin-left:0;
             margin-right:0;
-            padding-top:8px;
+            padding-top:4px;
+            display:flex;
+            flex-direction:column;
+            gap:12px;
           }
           .task-head {
             display:none;
@@ -1809,28 +1808,49 @@ export default function TasksPage() {
           }
           .task-row {
             display:grid;
-            grid-template-columns:minmax(0, 1fr);
-            gap:9px;
+            grid-template-columns:minmax(0, 1fr) auto;
+            grid-template-rows:auto auto;
+            gap:6px 10px;
             min-height:auto;
-            padding:12px 10px;
-            margin-bottom:8px;
-            border:0;
-            border-radius:8px !important;
-            background:color-mix(in srgb, var(--surface) 94%, transparent);
+            padding:16px 14px;
+            margin-bottom:0;
+            border:var(--mcl-white-border, 1px solid rgba(0,0,0,0.07));
+            border-radius:14px !important;
+            background:#FFFFFF;
+            box-shadow:var(--mcl-white-elev);
+            -webkit-tap-highlight-color:transparent;
+          }
+          [data-theme="dark"] .task-row,
+          [data-theme="classic-dark"] .task-row {
+            background:rgba(255,255,255,0.06);
+            border:var(--mcl-white-border);
+            box-shadow:var(--mcl-white-elev);
+          }
+          .task-row:active {
+            transform:scale(0.995);
+            background:#FAFAFA;
+          }
+          [data-theme="dark"] .task-row:active,
+          [data-theme="classic-dark"] .task-row:active {
+            background:rgba(255,255,255,0.09);
           }
           .task-row:hover {
-            background:color-mix(in srgb, var(--surface-2) 38%, var(--surface));
-            border-radius:8px !important;
+            background:#FFFFFF;
+            border-radius:14px !important;
           }
           .task-group-cell {
             display:none;
           }
           .task-name {
-            gap:8px;
+            gap:10px;
+            grid-column:1 / -1;
+            align-items:flex-start;
           }
           .task-state-mark {
-            width:17px;
-            height:17px;
+            width:20px;
+            height:20px;
+            margin-top:2px;
+            flex-shrink:0;
           }
           .task-state-popover {
             position:fixed;
@@ -1850,30 +1870,54 @@ export default function TasksPage() {
             transform:none;
           }
           .task-name-text strong {
-            font-size:12.5px;
+            font-family:var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+            font-size:18px;
+            font-weight:500;
+            letter-spacing:-0.02em;
             white-space:normal;
-            line-height:1.35;
+            line-height:1.28;
+            color:#0F0F10;
           }
-          .task-health,
-          .task-progress,
-          .task-row > div:nth-child(4),
-          .task-row > div:nth-child(5),
-          .task-row > div:nth-child(6),
-          .task-row > div:nth-child(7) {
+          [data-theme="dark"] .task-name-text strong,
+          [data-theme="classic-dark"] .task-name-text strong {
+            color:#f4f4f4;
+          }
+          .task-health {
+            grid-column:1;
             min-width:0;
             display:flex;
             align-items:center;
-            justify-content:space-between;
-            gap:10px;
-            color:var(--task-soft-text);
-            font-size:11.5px;
+            gap:6px;
+            color:#90959F;
+            font-size:13px;
+            font-weight:500;
           }
-          .task-health::before { content:'Letztes Update'; color:var(--task-soft-text); }
-          .task-row > div:nth-child(4)::before { content:'Priorität'; color:var(--task-soft-text); }
-          .task-row > div:nth-child(5)::before { content:'Verantwortlich'; color:var(--task-soft-text); }
-          .task-row > div:nth-child(6)::before { content:'Datum'; color:var(--task-soft-text); }
-          .task-row > div:nth-child(7)::before { content:'Quelle'; color:var(--task-soft-text); }
-          .task-progress::before { content:'Fortschritt'; color:var(--task-soft-text); margin-right:auto; }
+          .task-health::before { display:none; }
+          .task-row > div:nth-child(4) {
+            grid-column:2;
+            justify-self:end;
+            align-self:center;
+            min-width:0;
+            font-size:12px;
+            font-weight:500;
+            color:#4E5567;
+            padding:4px 10px;
+            border-radius:999px;
+            background:#F4F4F6;
+            white-space:nowrap;
+          }
+          [data-theme="dark"] .task-row > div:nth-child(4),
+          [data-theme="classic-dark"] .task-row > div:nth-child(4) {
+            background:rgba(255,255,255,0.1);
+            color:rgba(255,255,255,0.78);
+          }
+          .task-row > div:nth-child(4)::before { display:none; }
+          .task-row > div:nth-child(5),
+          .task-row > div:nth-child(6),
+          .task-row > div:nth-child(7),
+          .task-progress {
+            display:none !important;
+          }
           .task-empty {
             padding:34px 10px;
             font-size:11.5px;
@@ -1938,7 +1982,7 @@ export default function TasksPage() {
             <h1>
               <span className="mcl-m">Aufgaben</span>
             </h1>
-            <p className="mcl-page-sub"><span className="mcl-m">Alles auf einen Blick.</span></p>
+            <p className="mcl-page-sub"><span className="mcl-m">{openCount} offen · {activeCount} in Arbeit</span></p>
           </div>
           <div className="mcl-head-actions">
             <CodexMobileActionPill
@@ -1957,6 +2001,7 @@ export default function TasksPage() {
               type="button"
               className={`mcl-ctl${filterMenuOpen ? ' on' : ''}${view !== 'all' ? ' has-active' : ''}`}
               aria-label="Filter"
+              aria-expanded={filterMenuOpen}
               onClick={() => { setFilterMenuOpen(v => !v); setSortMenuOpen(false) }}
             >
               <FunnelSimple size={17} weight="regular" />
@@ -1965,11 +2010,53 @@ export default function TasksPage() {
               type="button"
               className={`mcl-ctl${sortMenuOpen ? ' on' : ''}${sortMode !== 'newest' ? ' has-active' : ''}`}
               aria-label="Sortieren"
+              aria-expanded={sortMenuOpen}
               onClick={() => { setSortMenuOpen(v => !v); setFilterMenuOpen(false) }}
             >
               <SlidersHorizontal size={17} weight="regular" />
             </button>
+            <button type="button" className="mcl-ctl" aria-label="Aktualisieren" onClick={() => void loadTasks()}>
+              <ArrowsClockwise size={17} weight="regular" />
+            </button>
           </div>
+          {filterMenuOpen && (
+            <>
+              <div className="mcl-filter-menu" role="menu">
+                <p className="mcl-sheet-title">Ansicht</p>
+                {VIEWS.map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    role="menuitem"
+                    className={`mcl-filter-item${view === item.id ? ' on' : ''}`}
+                    onClick={() => { setView(item.id); setFilterMenuOpen(false) }}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+              <button type="button" className="mcl-sheet-backdrop" aria-label="Schließen" onClick={() => setFilterMenuOpen(false)} />
+            </>
+          )}
+          {sortMenuOpen && (
+            <>
+              <div className="mcl-filter-menu" role="menu">
+                <p className="mcl-sheet-title">Sortieren</p>
+                {SORT_OPTIONS.map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    role="menuitem"
+                    className={`mcl-filter-item${sortMode === item.id ? ' on' : ''}`}
+                    onClick={() => { setSortMode(item.id); setSortMenuOpen(false) }}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+              <button type="button" className="mcl-sheet-backdrop" aria-label="Schließen" onClick={() => setSortMenuOpen(false)} />
+            </>
+          )}
         </div>
 
         <div className="task-legacy-mph">
@@ -2344,11 +2431,11 @@ export default function TasksPage() {
       <MobilePageDock
         onDragUp={openComposer}
         primary={{
-          id: 'suggest',
-          label: 'Aufgabe vorschlagen...',
-          icon: <WaveSine size={14} weight="regular" />,
+          id: 'new-task',
+          label: 'Neue Aufgabe...',
+          icon: <Plus size={14} weight="bold" />,
           onClick: openComposer,
-          ariaLabel: 'Aufgabe vorschlagen',
+          ariaLabel: 'Neue Aufgabe',
         }}
         secondary={{
           id: 'tagro',

@@ -17,8 +17,9 @@ import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import TagroEntryButton from '@/components/TagroEntryButton'
+import { openTagro } from '@/components/TagroOverlay'
 import {
-  ArrowsClockwise, CheckCircle, GithubLogo, GitCommit, GitPullRequest, Plus, WarningCircle, XCircle,
+  ArrowsClockwise, CheckCircle, GithubLogo, GitCommit, GitPullRequest, Plus, Sparkle, WarningCircle, XCircle,
 } from '@phosphor-icons/react'
 
 type Profile = {
@@ -74,6 +75,7 @@ export default function DevGithubPage() {
   const [syncingRepoId, setSyncingRepoId] = useState<string | null>(null)
   const [syncingAll, setSyncingAll] = useState(false)
   const [syncMsg, setSyncMsg] = useState<string | null>(null)
+  const [summarizing, setSummarizing] = useState(false)
 
   const [addOpen, setAddOpen] = useState(false)
   const [addFullName, setAddFullName] = useState('')
@@ -153,7 +155,7 @@ export default function DevGithubPage() {
       })
       const d = await res.json().catch(() => ({}))
       if (!res.ok) { setSyncMsg(d?.error || 'Sync nicht möglich.'); return }
-      setSyncMsg(`Sync ${repoId ? 'einzeln' : 'alle'} · ${d.commits ?? 0} commits · ${d.prs ?? 0} PRs · ${d.linked ?? 0} verknüpft`)
+      setSyncMsg(`Sync ${repoId ? 'einzeln' : 'alle'} · ${d.commits ?? 0} commits · ${d.prs ?? 0} PRs · ${d.linked ?? 0} verknüpft — „Stand zusammenfassen“ für Tagro-Update`)
       // refresh data
       const [{ data: rNew }, actRes] = await Promise.all([
         supabase.from('github_repositories').select('id,project_id,owner,repo_name,repo_full_name,repo_url,default_branch,active,created_at,last_synced_at,last_sync_status,last_sync_error').eq('developer_id', (await supabase.auth.getUser()).data.user!.id).order('created_at', { ascending: false }),
@@ -165,6 +167,28 @@ export default function DevGithubPage() {
       setPulls(act?.pulls ?? [])
     } finally {
       setSyncingRepoId(null); setSyncingAll(false)
+    }
+  }
+
+  async function openGithubTagroSummary() {
+    setSummarizing(true)
+    setSyncMsg(null)
+    try {
+      const res = await fetch('/api/github/tagro-summary?limit=30&clientPreview=1', { cache: 'no-store' })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) { setSyncMsg(data?.error || 'Tagro-Zusammenfassung fehlgeschlagen.'); return }
+      openTagro({
+        contextType: 'dev_item',
+        id: 'dev-github',
+        title: 'GitHub · Tagro Digest',
+        subtitle: `${data.stats?.commits ?? 0} Commits · ${data.stats?.prs ?? 0} PRs`,
+        prefill: data.digest || 'Fasse die GitHub-Aktivität zusammen und schlage ein client-sicheres Update vor.',
+      })
+      if (data.clientPreview) {
+        setSyncMsg(`Client-Vorschau: ${String(data.clientPreview).slice(0, 160)}…`)
+      }
+    } finally {
+      setSummarizing(false)
     }
   }
 
@@ -225,7 +249,16 @@ export default function DevGithubPage() {
             Tagro liest Commits und PRs read-only und übersetzt sie für Clients in verständliche Statusberichte. Du verknüpfst hier manuell, was automatisch nicht zugeordnet wurde.
           </p>
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <button
+            className="dev-secondary-btn"
+            type="button"
+            onClick={() => openGithubTagroSummary()}
+            disabled={summarizing || !isConnected || (commits.length === 0 && pulls.length === 0)}
+          >
+            <Sparkle size={13} weight="fill" style={{ marginRight: 6 }} />
+            {summarizing ? 'Tagro lädt…' : 'Stand zusammenfassen'}
+          </button>
           <button className="dev-secondary-btn" type="button" onClick={() => syncOne(null)} disabled={syncingAll || !isConnected || repos.length === 0}>
             <ArrowsClockwise size={13} style={{ marginRight: 6 }} /> {syncingAll ? 'Sync läuft…' : 'Alle synchronisieren'}
           </button>
