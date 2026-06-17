@@ -1,24 +1,24 @@
 'use client'
 
 /**
- * Festag Posteingang — strukturierte Projekt-Kommunikation.
+ * /messages — Festag Posteingang (Portal-Shell).
  *
- * Liest aus `inbox_items` (RLS: nur eigene). Eingänge entstehen durch:
- *   · die Willkommensnachricht (POST /api/inbox/welcome, idempotent)
- *   · Entwickler-Tagesstände (Tagro übersetzt → create_inbox_item)
- *   · System-Events (Garantie, Rechnungen) via DB-Trigger
- *
- * UI-Regeln: corner-radius ≤ 8px, Aeonik Medium (500), keine schwarzen
- * Buttons — Slate ist der einzige Akzent.
+ * Strukturierte Projekt-Kommunikation aus `inbox_items`.
+ * Master-Detail im Codex/Portal-Stil — analog zu Entscheidungen.
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   Tray, Briefcase, Receipt, UsersThree, Sparkle,
-  CheckCircle, ChatCircle, ArrowSquareOut, Play, Funnel, CaretDown, Check,
+  CheckCircle, ChatCircle, ArrowSquareOut, Play, FunnelSimple,
+  ArrowsClockwise, CaretLeft, Check,
 } from '@phosphor-icons/react'
+import MobilePageHeader from '@/components/MobilePageHeader'
+import TagroContentFab from '@/components/TagroContentFab'
+import FestagPillButton from '@/components/ui/FestagPillButton'
 import { createClient } from '@/lib/supabase/client'
+import { INBOX_CSS } from '@/components/inbox/inbox-styles'
 
 type Category = 'all' | 'project' | 'billing' | 'account' | 'tagro'
 type ItemType = 'update' | 'action' | 'question' | 'deliverable' | 'note'
@@ -131,57 +131,59 @@ export default function InboxPage() {
   const [projectTitles, setProjectTitles] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(true)
   const [unreadOnly, setUnreadOnly] = useState(false)
-  const [catMenuOpen, setCatMenuOpen] = useState(false)
-  const catMenuRef = useRef<HTMLDivElement | null>(null)
+  const [filterMenuOpen, setFilterMenuOpen] = useState(false)
+  const [mobileDetailOpen, setMobileDetailOpen] = useState(false)
+  const filterWrapRef = useRef<HTMLDivElement | null>(null)
 
-  // Close the category popover on outside click + Esc
   useEffect(() => {
-    if (!catMenuOpen) return
+    if (!filterMenuOpen) return
     const onDown = (e: MouseEvent) => {
-      if (catMenuRef.current && !catMenuRef.current.contains(e.target as Node)) setCatMenuOpen(false)
+      if (filterWrapRef.current && !filterWrapRef.current.contains(e.target as Node)) setFilterMenuOpen(false)
     }
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setCatMenuOpen(false) }
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setFilterMenuOpen(false) }
     document.addEventListener('mousedown', onDown)
     document.addEventListener('keydown', onKey)
     return () => {
       document.removeEventListener('mousedown', onDown)
       document.removeEventListener('keydown', onKey)
     }
-  }, [catMenuOpen])
+  }, [filterMenuOpen])
 
-  // Load: ensure the welcome message exists, then pull inbox items.
+  const reload = async () => {
+    setLoading(true)
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) { setLoading(false); return }
+
+    await fetch('/api/inbox/welcome', { method: 'POST' }).catch(() => {})
+
+    const [{ data: rows }, { data: projs }] = await Promise.all([
+      supabase.from('inbox_items')
+        .select('id,thread_id,user_id,project_id,category,type,title,body,metadata,read_at,created_at')
+        .eq('user_id', session.user.id)
+        .order('created_at', { ascending: false })
+        .limit(120),
+      supabase.from('projects').select('id,title'),
+    ])
+
+    const titleMap: Record<string, string> = {}
+    ;((projs as { id: string; title: string }[] | null) ?? []).forEach(p => { titleMap[p.id] = p.title })
+    setProjectTitles(titleMap)
+
+    const dbRows = (rows as DbInboxRow[] | null) ?? []
+    setItems(dbRows.map(r => dbRowToItem(r, titleMap)))
+    setLoading(false)
+  }
+
   useEffect(() => {
     let cancelled = false
     ;(async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) { setLoading(false); return }
-
-      // Idempotent — yields exactly one welcome item per account.
-      await fetch('/api/inbox/welcome', { method: 'POST' }).catch(() => {})
+      await reload()
       if (cancelled) return
-
-      const [{ data: rows }, { data: projs }] = await Promise.all([
-        supabase.from('inbox_items')
-          .select('id,thread_id,user_id,project_id,category,type,title,body,metadata,read_at,created_at')
-          .eq('user_id', session.user.id)
-          .order('created_at', { ascending: false })
-          .limit(120),
-        supabase.from('projects').select('id,title'),
-      ])
-      if (cancelled) return
-
-      const titleMap: Record<string, string> = {}
-      ;((projs as { id: string; title: string }[] | null) ?? []).forEach(p => { titleMap[p.id] = p.title })
-      setProjectTitles(titleMap)
-
-      const dbRows = (rows as DbInboxRow[] | null) ?? []
-      setItems(dbRows.map(r => dbRowToItem(r, titleMap)))
-      setLoading(false)
     })()
     return () => { cancelled = true }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [supabase])
 
-  // Realtime: prepend new inbox items, update changed ones.
   useEffect(() => {
     let userId: string | null = null
     supabase.auth.getSession().then(({ data }) => { userId = data.session?.user.id ?? null })
@@ -208,127 +210,196 @@ export default function InboxPage() {
     .filter(i => !unreadOnly || i.unread)
   const selected = filtered.find(i => i.id === selectedId) || null
 
-  async function markRead(itemId: string) {
-    setItems(prev => prev.map(i => i.id === itemId ? { ...i, unread: false } : i))
-    try {
-      await supabase.from('inbox_items').update({ read_at: new Date().toISOString() }).eq('id', itemId)
-    } catch {}
-  }
-
+  const unreadTotal = items.filter(i => i.unread).length
   const unreadByCategory: Record<Category, number> = {
-    all:     items.filter(i => i.unread).length,
+    all:     unreadTotal,
     project: items.filter(i => i.unread && i.category === 'project').length,
     billing: items.filter(i => i.unread && i.category === 'billing').length,
     account: items.filter(i => i.unread && i.category === 'account').length,
     tagro:   items.filter(i => i.unread && i.category === 'tagro').length,
   }
 
-  // Keep a valid selection as the list changes.
+  async function markRead(itemId: string) {
+    setItems(prev => prev.map(i => i.id === itemId ? { ...i, unread: false } : i))
+    try {
+      await supabase.from('inbox_items').update({ read_at: new Date().toISOString() }).eq('id', itemId)
+    } catch { /* noop */ }
+  }
+
   useEffect(() => {
     setSelectedId(prev => (filtered.some(i => i.id === prev) ? prev : filtered[0]?.id ?? null))
   }, [active, unreadOnly, filtered.length]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  const filterActive = active !== 'all' || unreadOnly
+  const activeCat = CATEGORIES.find(c => c.id === active) || CATEGORIES[0]
+
+  const leadLine = useMemo(() => {
+    if (loading) return 'Posteingang wird geladen…'
+    if (unreadTotal === 0) return 'Alles gelesen — keine neuen Eingänge.'
+    if (unreadTotal === 1) return '1 ungelesener Eingang wartet auf dich.'
+    return `${unreadTotal} ungelesene Eingänge — strukturiert nach Projekt und Thema.`
+  }, [loading, unreadTotal])
+
+  function selectItem(id: string, unread: boolean) {
+    setSelectedId(id)
+    if (unread) markRead(id)
+    if (typeof window !== 'undefined' && window.innerWidth <= 900) {
+      setMobileDetailOpen(true)
+    }
+  }
+
   return (
-    <div className="ix-root">
+    <div className="inb-os">
       <style>{INBOX_CSS}</style>
 
-      <section className="ix-list" aria-label="Posteingang">
-        <header className="ix-list-head">
-          <div className="ix-list-title">Posteingang</div>
-          <div className="ix-head-tools">
-            {/* Kategorien-Popover-Trigger — ersetzt die alte 5-Pill-Reihe.
-                Zeigt aktive Kategorie + Caret, öffnet Popover mit allen
-                Kategorien und ihren Ungelesen-Countern. */}
-            <div className="ix-cat" ref={catMenuRef}>
+      <div className="inb-static-top">
+        <MobilePageHeader
+          title="Posteingang"
+          menuItems={[
+            { id: 'refresh', label: 'Aktualisieren', onClick: reload },
+            { id: 'unread', label: unreadOnly ? 'Alle anzeigen' : 'Nur ungelesene', onClick: () => setUnreadOnly(v => !v) },
+          ]}
+        />
+        <header className="inb-page-head">
+          <div className="inb-page-head-copy">
+            <h1 className="inb-page-title">Posteingang</h1>
+            <div className="inb-page-lead">
+              <p>{leadLine}</p>
+            </div>
+          </div>
+          <div className="inb-page-actions">
+            <div className="inb-page-actions-group">
+              <div className="inb-filter-wrap" ref={filterWrapRef}>
+                <button
+                  type="button"
+                  className={`inb-head-tool${filterMenuOpen || filterActive ? ' on' : ''}`}
+                  title="Kategorie & Filter"
+                  aria-label="Kategorie & Filter"
+                  aria-expanded={filterMenuOpen}
+                  onClick={() => setFilterMenuOpen(v => !v)}
+                >
+                  <FunnelSimple size={15} weight="regular" />
+                </button>
+                {filterMenuOpen && (
+                  <div className="inb-filter-menu" role="listbox" aria-label="Kategorien">
+                    <p className="inb-filter-menu-label">Kategorie</p>
+                    {CATEGORIES.map(cat => {
+                      const Icon = cat.icon
+                      const isOn = active === cat.id
+                      const unread = unreadByCategory[cat.id]
+                      return (
+                        <button
+                          key={cat.id}
+                          type="button"
+                          role="option"
+                          aria-selected={isOn}
+                          className={`inb-filter-menu-item${isOn ? ' on' : ''}`}
+                          onClick={() => { setActive(cat.id); setFilterMenuOpen(false) }}
+                        >
+                          <Icon size={14} weight="regular" />
+                          <span className="inb-filter-menu-item-main">
+                            <strong>{cat.label}</strong>
+                            <small>{cat.hint}</small>
+                          </span>
+                          {unread > 0 && <span className="inb-filter-count">{unread}</span>}
+                          {isOn && <span className="inb-filter-check">✓</span>}
+                        </button>
+                      )
+                    })}
+                    <div className="inb-divider" />
+                    <p className="inb-filter-menu-label">Ansicht</p>
+                    <button
+                      type="button"
+                      role="option"
+                      aria-selected={unreadOnly}
+                      className={`inb-filter-menu-item${unreadOnly ? ' on' : ''}`}
+                      onClick={() => { setUnreadOnly(v => !v); setFilterMenuOpen(false) }}
+                    >
+                      <Tray size={14} weight="regular" />
+                      <span className="inb-filter-menu-item-main">
+                        <strong>Nur ungelesene</strong>
+                        <small>Blendet gelesene Eingänge aus</small>
+                      </span>
+                      {unreadOnly && <span className="inb-filter-check">✓</span>}
+                    </button>
+                  </div>
+                )}
+              </div>
               <button
                 type="button"
-                className={`ix-cat-trigger${catMenuOpen ? ' on' : ''}`}
-                onClick={() => setCatMenuOpen(v => !v)}
-                aria-expanded={catMenuOpen}
-                aria-haspopup="listbox"
-                title="Kategorie wählen"
+                className={`inb-head-tool${unreadOnly ? ' on' : ''}`}
+                title={unreadOnly ? 'Alle anzeigen' : 'Nur ungelesene'}
+                aria-pressed={unreadOnly}
+                onClick={() => setUnreadOnly(v => !v)}
               >
-                {(() => {
-                  const cur = CATEGORIES.find(c => c.id === active) || CATEGORIES[0]
-                  const Icon = cur.icon
-                  return (
-                    <>
-                      <Icon size={13} weight="regular" />
-                      <span>{cur.label}</span>
-                    </>
-                  )
-                })()}
-                {unreadByCategory[active] > 0 && (
-                  <span className="ix-cat-count">{unreadByCategory[active]}</span>
-                )}
-                <CaretDown size={10} weight="bold" />
+                <Tray size={15} weight={unreadOnly ? 'fill' : 'regular'} />
               </button>
-
-              {catMenuOpen && (
-                <div className="ix-cat-menu" role="listbox" aria-label="Kategorien">
-                  {CATEGORIES.map(cat => {
-                    const Icon = cat.icon
-                    const isOn = active === cat.id
-                    const unread = unreadByCategory[cat.id]
-                    return (
-                      <button
-                        key={cat.id}
-                        type="button"
-                        role="option"
-                        aria-selected={isOn}
-                        className={`ix-cat-opt${isOn ? ' on' : ''}`}
-                        onClick={() => { setActive(cat.id); setCatMenuOpen(false) }}
-                      >
-                        <Icon size={13} weight="regular" />
-                        <span className="ix-cat-opt-main">
-                          <strong>{cat.label}</strong>
-                          <small>{cat.hint}</small>
-                        </span>
-                        {unread > 0 && <span className="ix-cat-count">{unread}</span>}
-                        {isOn && <Check size={11} weight="bold" />}
-                      </button>
-                    )
-                  })}
-                </div>
-              )}
             </div>
-
             <button
               type="button"
-              className={`ix-iconbtn${unreadOnly ? ' on' : ''}`}
-              onClick={() => setUnreadOnly(v => !v)}
-              title={unreadOnly ? 'Alle anzeigen' : 'Nur ungelesene'}
-              aria-pressed={unreadOnly}
+              className="inb-head-tool"
+              title="Aktualisieren"
+              aria-label="Aktualisieren"
+              onClick={reload}
             >
-              <Funnel size={15} weight={unreadOnly ? 'fill' : 'regular'} />
+              <ArrowsClockwise size={15} weight="regular" />
             </button>
           </div>
         </header>
+      </div>
 
-        <div className="ix-thread-scroll">
-          {loading ? (
-            <div className="ix-empty-list"><span className="ix-empty-sub">Posteingang wird geladen…</span></div>
-          ) : filtered.length === 0 ? (
-            <EmptyList active={active} unreadOnly={unreadOnly} />
+      <div className="inb-body">
+        <section
+          className={`inb-list-col${mobileDetailOpen ? ' inb-list-col--hidden' : ''}`}
+          aria-label="Eingänge"
+        >
+          <div className="inb-list-toolbar">
+            <span className="inb-list-toolbar-label">
+              {activeCat.label}
+              {filtered.length > 0 && ` · ${filtered.length}`}
+            </span>
+          </div>
+          <div className="inb-list-scroll">
+            {loading ? (
+              <p className="inb-loading">Posteingang wird geladen…</p>
+            ) : filtered.length === 0 ? (
+              <EmptyList active={active} unreadOnly={unreadOnly} />
+            ) : (
+              filtered.map(item => (
+                <ThreadRow
+                  key={item.id}
+                  item={item}
+                  selected={item.id === selectedId}
+                  onClick={() => selectItem(item.id, item.unread)}
+                />
+              ))
+            )}
+          </div>
+        </section>
+
+        <section
+          className={`inb-detail-col${mobileDetailOpen ? ' inb-detail-col--open' : ''}`}
+          aria-label="Eintrag"
+        >
+          {selected ? (
+            <ThreadDetail
+              item={selected}
+              onBack={() => setMobileDetailOpen(false)}
+            />
           ) : (
-            filtered.map(item => (
-              <ThreadRow
-                key={item.id}
-                item={item}
-                selected={item.id === selectedId}
-                onClick={() => {
-                  setSelectedId(item.id)
-                  if (item.unread) markRead(item.id)
-                }}
-              />
-            ))
+            <EmptyDetail />
           )}
-        </div>
-      </section>
+        </section>
+      </div>
 
-      <section className="ix-detail" aria-label="Eintrag">
-        {selected ? <ThreadDetail item={selected} /> : <EmptyDetail />}
-      </section>
+      <TagroContentFab
+        context={{
+          contextType: 'empty',
+          id: 'inbox',
+          title: 'Posteingang',
+          subtitle: `${unreadTotal} ungelesen · ${items.length} gesamt`,
+        }}
+      />
     </div>
   )
 }
@@ -337,21 +408,21 @@ function ThreadRow({ item, selected, onClick }: { item: Item; selected: boolean;
   return (
     <button
       type="button"
-      className={`ix-row${selected ? ' on' : ''}${item.unread ? ' unread' : ''}`}
+      className={`inb-row${selected ? ' on' : ''}${item.unread ? ' unread' : ''}`}
       onClick={onClick}
     >
-      <div className="ix-row-marker" style={{ background: item.unread ? 'var(--ix-slate)' : 'transparent' }} />
-      <div className="ix-row-body">
-        <div className="ix-row-head">
-          <span className="ix-row-source">{item.source}</span>
-          {item.project && <span className="ix-row-tag">{item.project}</span>}
-          <span className="ix-row-time">{formatTime(item.createdAt)}</span>
+      <div className="inb-row-marker" style={{ background: item.unread ? 'var(--inb-slate)' : 'transparent' }} />
+      <div className="inb-row-body">
+        <div className="inb-row-head">
+          <span className="inb-row-source">{item.source}</span>
+          {item.project && <span className="inb-row-tag">{item.project}</span>}
+          <span className="inb-row-time">{formatTime(item.createdAt)}</span>
         </div>
-        <div className="ix-row-title">{item.title}</div>
-        <div className="ix-row-preview">{item.preview}</div>
+        <div className="inb-row-title">{item.title}</div>
+        <div className="inb-row-preview">{item.preview}</div>
         {item.actionable && (
-          <span className="ix-row-actionable">
-            <CheckCircle size={11} weight="fill" /> Aktion erforderlich
+          <span className="inb-row-actionable">
+            <CheckCircle size={12} weight="fill" /> Aktion erforderlich
           </span>
         )}
       </div>
@@ -359,7 +430,7 @@ function ThreadRow({ item, selected, onClick }: { item: Item; selected: boolean;
   )
 }
 
-function ThreadDetail({ item }: { item: Item }) {
+function ThreadDetail({ item, onBack }: { item: Item; onBack: () => void }) {
   const router = useRouter()
   const openHref = item.projectId
     ? `/project/${item.projectId}`
@@ -369,25 +440,28 @@ function ThreadDetail({ item }: { item: Item }) {
     : item.category === 'billing' ? 'Rechnungen öffnen' : 'Im Workspace öffnen'
 
   return (
-    <article className="ix-detail-card">
-      <header className="ix-detail-head">
-        <div className="ix-detail-tags">
-          <span className="ix-type-badge">{ITEM_TYPE_LABEL[item.type]}</span>
-          {item.project && <span className="ix-detail-project">{item.project}</span>}
+    <article className="inb-detail-inner">
+      <button type="button" className="inb-detail-back" onClick={onBack}>
+        <CaretLeft size={14} weight="bold" /> Zurück
+      </button>
+      <header>
+        <div className="inb-detail-tags">
+          <span className="inb-type-badge">{ITEM_TYPE_LABEL[item.type]}</span>
+          {item.project && <span className="inb-detail-project">{item.project}</span>}
         </div>
-        <h1 className="ix-detail-title">{item.title}</h1>
-        <div className="ix-detail-meta">
+        <h2 className="inb-detail-title">{item.title}</h2>
+        <div className="inb-detail-meta">
           <span>{item.source}</span><span>·</span><span>{formatTime(item.createdAt)}</span>
         </div>
       </header>
 
-      <div className="ix-detail-body">
+      <div className="inb-detail-body">
         <p>{item.body || item.preview}</p>
       </div>
 
       {item.videoUrl && (
-        <a className="ix-video" href={item.videoUrl} target="_blank" rel="noreferrer">
-          <span className="ix-video-play"><Play size={14} weight="fill" /></span>
+        <a className="inb-video" href={item.videoUrl} target="_blank" rel="noreferrer">
+          <span className="inb-video-play"><Play size={14} weight="fill" /></span>
           <span>
             <strong>Einführung ansehen</strong>
             <small>So funktioniert Festag — in 2 Minuten erklärt.</small>
@@ -395,15 +469,15 @@ function ThreadDetail({ item }: { item: Item }) {
         </a>
       )}
 
-      <footer className="ix-detail-actions">
+      <footer className="inb-detail-actions">
         {item.actionable && item.projectId && (
-          <button type="button" className="ix-btn primary" onClick={() => router.push(`/project/${item.projectId}`)}>
+          <FestagPillButton variant="primary" onClick={() => router.push(`/project/${item.projectId}`)}>
             Im Projekt ansehen
-          </button>
+          </FestagPillButton>
         )}
-        <button type="button" className="ix-btn" onClick={() => router.push(openHref)}>
-          <ArrowSquareOut size={13} weight="regular" /> {openLabel}
-        </button>
+        <FestagPillButton onClick={() => router.push(openHref)}>
+          <ArrowSquareOut size={14} weight="regular" /> {openLabel}
+        </FestagPillButton>
       </footer>
     </article>
   )
@@ -412,10 +486,10 @@ function ThreadDetail({ item }: { item: Item }) {
 function EmptyList({ active, unreadOnly }: { active: Category; unreadOnly: boolean }) {
   const cat = CATEGORIES.find(c => c.id === active)
   return (
-    <div className="ix-empty-list">
+    <div className="inb-empty">
       <Tray size={24} weight="regular" />
-      <p className="ix-empty-title">{unreadOnly ? 'Alles gelesen' : 'Noch nichts hier'}</p>
-      <p className="ix-empty-sub">
+      <p className="inb-empty-title">{unreadOnly ? 'Alles gelesen' : 'Noch nichts hier'}</p>
+      <p className="inb-empty-sub">
         {unreadOnly
           ? 'Keine ungelesenen Eingänge in dieser Ansicht.'
           : active === 'all'
@@ -428,239 +502,12 @@ function EmptyList({ active, unreadOnly }: { active: Category; unreadOnly: boole
 
 function EmptyDetail() {
   return (
-    <div className="ix-empty-detail">
-      <ChatCircle size={26} weight="regular" />
-      <p className="ix-empty-title">Wähle einen Eintrag</p>
-      <p className="ix-empty-sub">
+    <div className="inb-empty-detail">
+      <ChatCircle size={28} weight="regular" />
+      <p className="inb-empty-title">Wähle einen Eintrag</p>
+      <p className="inb-empty-sub">
         Eingänge sind nach Projekt und Thema strukturiert. Für freie Fragen nutze den Tagro-Chat im jeweiligen Projekt.
       </p>
     </div>
   )
 }
-
-const INBOX_CSS = `
-  .ix-root {
-    --ix-slate:#5B647D;
-    display: grid;
-    grid-template-columns: minmax(312px, 372px) minmax(0, 1fr);
-    height: 100%; min-height: 0;
-    background: var(--surface);
-    color: var(--text);
-    font-family: var(--font-aeonik,'Aeonik',Inter,sans-serif);
-  }
-  .ix-root *, .ix-root *::before, .ix-root *::after { letter-spacing: .012em; }
-
-  /* LIST COLUMN — shares the surface background with the detail pane
-     for a calm, single-canvas feel. Divider line is the only seam. */
-  .ix-list {
-    display: flex; flex-direction: column; min-height: 0;
-    background: var(--surface);
-    border-right: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
-  }
-  .ix-list-head {
-    display: flex; align-items: center; justify-content: space-between; gap: 8px;
-    padding: 20px 18px 14px;
-  }
-  .ix-list-title { font-size: 14.5px; font-weight: 500; color: var(--text); }
-  .ix-head-tools { display: flex; align-items: center; gap: 6px; }
-  .ix-iconbtn {
-    width: 30px; height: 30px;
-    display: flex; align-items: center; justify-content: center;
-    border-radius: 8px; border: none; background: transparent;
-    color: var(--text-muted); cursor: pointer;
-    transition: background .12s ease, color .12s ease;
-  }
-  .ix-iconbtn:hover { background: color-mix(in srgb, var(--surface-2) 70%, transparent); color: var(--text); }
-  .ix-iconbtn.on { background: color-mix(in srgb, var(--surface-2) 90%, transparent); color: var(--text); }
-
-  /* Category trigger — collapses the old 5-pill nav into one chip. */
-  .ix-cat { position: relative; }
-  .ix-cat-trigger {
-    display: inline-flex; align-items: center; gap: 6px;
-    height: 30px; padding: 0 9px 0 11px;
-    border-radius: 999px;
-    border: 1px solid color-mix(in srgb, var(--border) 65%, transparent);
-    background: color-mix(in srgb, var(--surface-2) 35%, transparent);
-    color: var(--text); font-family: inherit;
-    font-size: 12px; font-weight: 500; letter-spacing: .012em;
-    cursor: pointer; transition: background .12s, border-color .12s;
-  }
-  .ix-cat-trigger:hover, .ix-cat-trigger.on {
-    background: color-mix(in srgb, var(--surface-2) 70%, transparent); border-color: var(--border);
-  }
-  .ix-cat-trigger > svg { color: var(--text-muted); flex-shrink: 0; }
-  .ix-cat-trigger > svg:last-of-type { color: var(--text-muted); margin-left: 1px; }
-  .ix-cat-count {
-    display: inline-flex; align-items: center; justify-content: center;
-    min-width: 16px; height: 16px; padding: 0 5px;
-    border-radius: 999px;
-    background: color-mix(in srgb, var(--ix-slate) 18%, transparent);
-    color: var(--ix-slate);
-    font-size: 9.5px; font-weight: 500; letter-spacing: .04em;
-  }
-
-  .ix-cat-menu {
-    position: absolute; top: calc(100% + 6px); left: 0; z-index: 20;
-    min-width: 280px; max-width: 340px; padding: 6px;
-    background: var(--card);
-    border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
-    border-radius: 12px;
-    box-shadow: 0 1px 2px rgba(15,23,42,.08), 0 18px 44px rgba(15,23,42,.16);
-    display: flex; flex-direction: column; gap: 2px;
-    animation: ixMenuIn .14s cubic-bezier(.16,1,.3,1) both;
-  }
-  [data-theme="dark"] .ix-cat-menu,
-  [data-theme="classic-dark"] .ix-cat-menu {
-    background: color-mix(in srgb, var(--card) 94%, #fff 6%);
-    box-shadow: 0 1px 2px rgba(0,0,0,.4), 0 22px 52px rgba(0,0,0,.42);
-  }
-  @keyframes ixMenuIn { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:none; } }
-
-  .ix-cat-opt {
-    display: grid; grid-template-columns: 16px 1fr auto auto;
-    gap: 9px; align-items: center;
-    width: 100%; padding: 9px 10px;
-    border: 0; background: transparent;
-    /* Festag rule: inherit menu radius minus the inner gap — keeps the
-       hover surface flush with the card edge. */
-    border-radius: 10px !important;
-    color: var(--text); font-family: inherit; font-size: 12.5px; font-weight: 500;
-    letter-spacing: .012em; cursor: pointer; text-align: left;
-    transition: background .1s;
-  }
-  .ix-cat-opt > svg { color: var(--text-muted); }
-  .ix-cat-opt.on > svg { color: var(--text); }
-  .ix-cat-opt:hover { background: color-mix(in srgb, var(--surface-2) 60%, transparent); }
-  .ix-cat-opt.on { background: color-mix(in srgb, var(--surface-2) 85%, transparent); }
-  .ix-cat-opt-main { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
-  .ix-cat-opt-main strong { font-size: 12.5px; font-weight: 500; letter-spacing: .012em; color: var(--text); }
-  .ix-cat-opt-main small {
-    font-size: 11px; font-weight: 500; color: var(--text-muted); letter-spacing: .012em;
-    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 220px;
-  }
-
-  .ix-thread-scroll { flex: 1; min-height: 0; overflow-y: auto; padding: 4px 10px 18px; }
-
-  /* ROW */
-  .ix-row {
-    display: flex; align-items: stretch; gap: 9px;
-    width: 100%; border: none; background: transparent;
-    padding: 11px 11px 11px 8px;
-    text-align: left; border-radius: 8px; cursor: pointer;
-    font-family: inherit; color: var(--text);
-    transition: background .12s ease;
-  }
-  .ix-row:hover { background: color-mix(in srgb, var(--surface-2) 55%, transparent); }
-  .ix-row.on { background: color-mix(in srgb, var(--surface-2) 92%, transparent); }
-  .ix-row-marker { width: 3px; min-width: 3px; border-radius: 2px; align-self: stretch; }
-  .ix-row-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
-  .ix-row-head {
-    display: flex; align-items: center; gap: 6px;
-    font-size: 11px; font-weight: 500; color: var(--text-muted); line-height: 1.3;
-  }
-  .ix-row-source { color: var(--text-secondary); }
-  .ix-row-tag {
-    font-size: 10.5px; padding: 1px 6px; border-radius: 5px;
-    background: color-mix(in srgb, var(--surface-2) 80%, transparent);
-    color: var(--text-secondary);
-    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 130px;
-  }
-  .ix-row-time { margin-left: auto; font-size: 10.5px; color: var(--text-muted); flex-shrink: 0; }
-  .ix-row-title {
-    font-size: 13px; font-weight: 500; color: var(--text); line-height: 1.35;
-    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  }
-  .ix-row.unread .ix-row-title { color: var(--text); }
-  .ix-row:not(.unread) .ix-row-title { color: var(--text-secondary); }
-  .ix-row-preview {
-    font-size: 12px; color: var(--text-muted); line-height: 1.4;
-    overflow: hidden; text-overflow: ellipsis;
-    display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical;
-  }
-  .ix-row-actionable {
-    display: inline-flex; align-items: center; gap: 4px; margin-top: 3px;
-    font-size: 10.5px; font-weight: 500; color: var(--ix-slate);
-  }
-
-  /* DETAIL COLUMN */
-  .ix-detail {
-    display: flex; align-items: flex-start; justify-content: center;
-    padding: 40px clamp(20px, 4vw, 52px);
-    overflow-y: auto; min-height: 0; background: var(--surface);
-  }
-  .ix-detail-card { width: 100%; max-width: 680px; display: flex; flex-direction: column; gap: 20px; }
-  .ix-detail-tags { display: flex; align-items: center; gap: 9px; }
-  .ix-type-badge {
-    display: inline-flex; align-items: center;
-    height: 22px; padding: 0 9px; border-radius: 6px;
-    font-size: 10.5px; font-weight: 500;
-    background: color-mix(in srgb, var(--surface-2) 80%, transparent);
-    color: var(--text-secondary);
-  }
-  .ix-detail-project { font-size: 11px; color: var(--text-muted); font-weight: 500; }
-  .ix-detail-title {
-    margin: 0; font-size: 21px; font-weight: 500; color: var(--text);
-    letter-spacing: -.014em; line-height: 1.25;
-  }
-  .ix-detail-meta {
-    display: flex; align-items: center; gap: 6px;
-    font-size: 12px; color: var(--text-muted); margin-top: -12px;
-  }
-  .ix-detail-body { font-size: 14px; line-height: 1.7; color: var(--text-secondary); }
-  .ix-detail-body p { margin: 0; white-space: pre-wrap; }
-
-  .ix-video {
-    display: flex; align-items: center; gap: 12px;
-    padding: 12px 14px; border-radius: 8px; text-decoration: none;
-    background: color-mix(in srgb, var(--surface-2) 55%, transparent);
-    transition: background .12s ease;
-  }
-  .ix-video:hover { background: color-mix(in srgb, var(--surface-2) 85%, transparent); }
-  .ix-video-play {
-    width: 32px; height: 32px; flex-shrink: 0; border-radius: 8px;
-    display: flex; align-items: center; justify-content: center;
-    background: var(--ix-slate); color: #fff;
-  }
-  .ix-video strong { display: block; font-size: 12.5px; font-weight: 500; color: var(--text); }
-  .ix-video small { display: block; margin-top: 1px; font-size: 11.5px; color: var(--text-muted); }
-
-  .ix-detail-actions { display: flex; gap: 8px; align-items: center; padding-top: 4px; }
-  .ix-btn {
-    display: inline-flex; align-items: center; gap: 6px;
-    height: 36px; padding: 0 14px; border-radius: 8px;
-    border: 1px solid var(--border); background: transparent;
-    font-family: inherit; font-size: 12.5px; font-weight: 500;
-    color: var(--text); cursor: pointer;
-    transition: background .12s ease, border-color .12s ease;
-  }
-  .ix-btn:hover { background: color-mix(in srgb, var(--surface-2) 60%, transparent); }
-  .ix-btn.primary {
-    background: var(--ix-slate); color: #fff; border-color: var(--ix-slate);
-  }
-  .ix-btn.primary:hover { background: color-mix(in srgb, var(--ix-slate) 90%, #000 10%); }
-
-  /* EMPTY STATES */
-  .ix-empty-list, .ix-empty-detail {
-    display: flex; flex-direction: column; align-items: center;
-    text-align: center; gap: 7px; color: var(--text-muted);
-  }
-  .ix-empty-list { padding: 52px 24px 24px; }
-  .ix-empty-detail { padding: 76px 32px; max-width: 360px; margin: 0 auto; }
-  .ix-empty-title { font-size: 13px; font-weight: 500; color: var(--text-secondary); margin: 6px 0 0; }
-  .ix-empty-sub { font-size: 12.5px; line-height: 1.55; color: var(--text-muted); max-width: 320px; margin: 0; }
-
-  /* MOBILE */
-  @media (max-width: 760px) {
-    .ix-root { grid-template-columns: 1fr; }
-    .ix-detail { display: none; }
-    .ix-list-head { padding: 16px 14px 10px; }
-    .ix-tabs {
-      padding: 0 12px 10px; gap: 5px; overflow-x: auto;
-      flex-wrap: nowrap; scrollbar-width: none; -webkit-overflow-scrolling: touch;
-    }
-    .ix-tabs::-webkit-scrollbar { display: none; }
-    .ix-tab { flex-shrink: 0; }
-    .ix-row { padding: 13px 10px 13px 8px; min-height: 58px; }
-    .ix-thread-scroll { padding: 4px 8px 92px; }
-  }
-`

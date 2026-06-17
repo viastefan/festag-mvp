@@ -5,8 +5,7 @@ import ClientAppShell from '@/components/ClientAppShell'
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
-  const isFullHeight = pathname === '/messages'
-    || pathname === '/tasks'
+  const isFullHeight = pathname === '/tasks'
     || pathname === '/reports'
     || pathname === '/ai'
     || pathname === '/dashboard'
@@ -17,6 +16,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   // Portal-Shell (PortalSidebar) liefern /projects und /decisions über eigenes layout.tsx.
   const usesOwnShell = pathname === '/projects'
     || pathname.startsWith('/decisions')
+    || pathname === '/messages'
   if (usesOwnShell) return <>{children}</>
 
   return <ClientAppShell isFullHeight={isFullHeight} scrollId="app-main-scroll">{children}</ClientAppShell>

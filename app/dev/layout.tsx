@@ -18,7 +18,7 @@ import DevAppShell from '@/components/DevAppShell'
 
 export default function DevLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
-  const isFullHeight = pathname === '/dev/jobs'
+  const isFullHeight = pathname === '/dev/jobs' || pathname === '/dev/messages'
   return (
     <DevAppShell isFullHeight={isFullHeight}>
       {children}

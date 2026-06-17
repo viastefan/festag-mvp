@@ -1,24 +1,17 @@
 'use client'
 
 /**
- * /dev/messages — Execution Inbox.
+ * /dev/messages — Execution Inbox (Portal-Stil im Dev-Panel).
  *
- * The dev-side counterpart to the client `/inbox`. Reads the same
- * `notifications` table (RLS scopes every row to `user_id = auth.uid()`),
- * but classifies and labels events the way an operator needs to act on
- * them: client requests, blockers, verification handoffs, approvals,
- * assignments. Every actionable kind carries a calm "next action" hint
- * (festag_task_flow → Next Actions) so the dev always knows the move.
- *
- * Tagro is a writing layer, never a chat partner — so this surface stays
- * a quiet operations feed, not a messenger. Click a row → mark read +
- * jump to the underlying task or project.
+ * Operator-facing Feed aus `notifications` — gleiche visuelle Sprache
+ * wie Client-Posteingang und Entscheidungen.
  */
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import TagroEntryButton from '@/components/TagroEntryButton'
+import { INBOX_CSS } from '@/components/inbox/inbox-styles'
 import {
   ArrowClockwise, ChatCircleDots, CheckCircle, ClipboardText, FunnelSimple,
   PaperPlaneTilt, Robot, Sparkle, Tray, UserPlus, WarningCircle, Sliders,
@@ -43,7 +36,6 @@ type Notification = {
 
 type Tone = 'default' | 'good' | 'warn' | 'risk' | 'accent'
 
-/** Calm, operator-facing label per raw event kind. */
 const KIND_LABEL: Record<string, string> = {
   client_request_created: 'Client-Anfrage',
   blocker_reported:       'Blocker',
@@ -77,7 +69,6 @@ const KIND_TONE: Record<string, Tone> = {
   project_available:      'accent',
 }
 
-/** The move the dev should make — surfaced as a quiet hint, not a CTA shout. */
 const KIND_ACTION: Record<string, string> = {
   client_request_created: 'Anfrage sichten',
   blocker_reported:       'Klärung vorbereiten',
@@ -89,7 +80,6 @@ const KIND_ACTION: Record<string, string> = {
   project_available:      'Projekt ansehen',
 }
 
-/** Filter groups, by raw kind. */
 const GROUP: Record<string, string[]> = {
   client:   ['client_request_created'],
   blockers: ['blocker_reported', 'owner_changes_requested', 'quality_issue'],
@@ -97,7 +87,7 @@ const GROUP: Record<string, string[]> = {
   approved: ['approved_by_owner'],
   assigned: ['task_assigned', 'project_available'],
 }
-/** Kinds that demand a dev action (drives the "needs action" KPI + dot). */
+
 const ACTIONABLE = new Set([
   'client_request_created', 'blocker_reported', 'owner_changes_requested',
   'quality_issue', 'needs_review', 'proof_missing', 'task_assigned',
@@ -118,15 +108,14 @@ function rawKind(n: Notification) { return (n.kind ?? n.type ?? '') as string }
 function tone(n: Notification): Tone { return KIND_TONE[rawKind(n)] ?? 'default' }
 function iconFor(n: Notification) {
   const k = rawKind(n)
-  if (k === 'client_request_created') return <PaperPlaneTilt size={14} weight="regular" />
-  if (GROUP.blockers.includes(k))     return <WarningCircle size={14} weight="regular" />
-  if (k === 'tagro_verified' || k === 'approved_by_owner') return <CheckCircle size={14} weight="regular" />
-  if (GROUP.review.includes(k))       return <Robot size={14} weight="regular" />
-  if (k === 'task_assigned')          return <ClipboardText size={14} weight="regular" />
-  if (k === 'project_available')      return <ClipboardText size={14} weight="regular" />
-  if (k === 'conversation_summary')   return <ChatCircleDots size={14} weight="regular" />
-  if (k === 'dev_joined')             return <UserPlus size={14} weight="regular" />
-  return <Sparkle size={14} weight="regular" />
+  if (k === 'client_request_created') return <PaperPlaneTilt size={16} weight="regular" />
+  if (GROUP.blockers.includes(k))     return <WarningCircle size={16} weight="regular" />
+  if (k === 'tagro_verified' || k === 'approved_by_owner') return <CheckCircle size={16} weight="regular" />
+  if (GROUP.review.includes(k))       return <Robot size={16} weight="regular" />
+  if (k === 'task_assigned' || k === 'project_available') return <ClipboardText size={16} weight="regular" />
+  if (k === 'conversation_summary')   return <ChatCircleDots size={16} weight="regular" />
+  if (k === 'dev_joined')             return <UserPlus size={16} weight="regular" />
+  return <Sparkle size={16} weight="regular" />
 }
 function fmtAgo(iso: string) {
   const m = Math.floor((Date.now() - new Date(iso).getTime()) / 60000)
@@ -144,12 +133,30 @@ export default function DevMessagesPage() {
   const [items, setItems] = useState<Notification[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<FilterId>('all')
+  const [filterMenuOpen, setFilterMenuOpen] = useState(false)
   const [projectsById, setProjectsById] = useState<Map<string, { title: string; color: string | null }>>(new Map())
+  const filterWrapRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    if (!filterMenuOpen) return
+    function onDoc(e: MouseEvent) {
+      if (filterWrapRef.current && !filterWrapRef.current.contains(e.target as Node)) setFilterMenuOpen(false)
+    }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') setFilterMenuOpen(false)
+    }
+    document.addEventListener('mousedown', onDoc)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('mousedown', onDoc)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [filterMenuOpen])
 
   const load = useCallback(async () => {
     setLoading(true)
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { setLoading(false); return }   // DevAppShell gates access — never hard-bounce
+    if (!user) { setLoading(false); return }
     const [{ data: rows }, { data: projects }] = await Promise.all([
       (supabase as any).from('notifications')
         .select('id,project_id,task_id,audience,kind,type,title,body,message,link,payload,read,read_at,created_at')
@@ -167,7 +174,6 @@ export default function DevMessagesPage() {
 
   useEffect(() => { load() }, [load])
 
-  // Realtime: a new notification for me drops in without a manual refresh.
   useEffect(() => {
     let channel: any
     ;(async () => {
@@ -202,6 +208,7 @@ export default function DevMessagesPage() {
     setItems(curr => curr.map(n => n.id === id ? { ...n, read: true, read_at: new Date().toISOString() } : n))
     await (supabase as any).from('notifications').update({ read: true, read_at: new Date().toISOString() }).eq('id', id)
   }
+
   async function markAllRead() {
     const unreadIds = items.filter(n => !n.read).map(n => n.id)
     if (!unreadIds.length) return
@@ -209,206 +216,161 @@ export default function DevMessagesPage() {
     await (supabase as any).from('notifications').update({ read: true, read_at: new Date().toISOString() }).in('id', unreadIds)
   }
 
-  return (
-    <div className="dev-page">
-      <header className="dev-page-header">
-        <div>
-          <h1>Inbox</h1>
-          <p className="meta">
-            {loading ? 'Lade…'
-              : counts.action > 0
-                ? `${counts.unread} ungelesen · ${counts.action} mit offener Aktion`
-                : `${counts.all} Einträge · ${counts.unread} ungelesen`}
-          </p>
-        </div>
-        <div className="im-head-actions">
-          <button type="button" className="dev-secondary-btn" onClick={load} disabled={loading}>
-            <ArrowClockwise size={14} weight="regular" /> {loading ? 'Lade…' : 'Aktualisieren'}
-          </button>
-          {counts.unread > 0 && (
-            <button type="button" className="dev-secondary-btn" onClick={markAllRead}>
-              Alles gelesen
-            </button>
-          )}
-          <TagroEntryButton
-            context={{
-              contextType: 'empty',
-              id: 'dev-inbox',
-              title: 'Inbox · Triage',
-              subtitle: `${counts.all} Einträge · ${counts.unread} ungelesen`,
-            }}
-          />
-        </div>
-      </header>
+  const filterActive = filter !== 'all'
+  const activeFilter = FILTERS.find(f => f.id === filter) || FILTERS[0]
 
-      <div className="im-toolbar">
-        <div className="im-filters">
-          <FunnelSimple size={12} className="im-filter-icon" />
-          {FILTERS.map(f => {
-            const n = f.id === 'all' ? counts.all
-              : f.id === 'unread' ? counts.unread
-              : items.filter(it => (GROUP[f.id] ?? []).includes(rawKind(it))).length
-            return (
-              <button
-                key={f.id}
-                type="button"
-                className={`im-filter${filter === f.id ? ' on' : ''}`}
-                onClick={() => setFilter(f.id)}
-              >
-                {f.label}{n > 0 && <span className="im-filter-count">{n}</span>}
-              </button>
-            )
-          })}
-        </div>
+  const leadLine = loading
+    ? 'Inbox wird geladen…'
+    : counts.action > 0
+      ? `${counts.unread} ungelesen · ${counts.action} mit offener Aktion`
+      : counts.unread > 0
+        ? `${counts.unread} ungelesene Hinweise — sortiert nach Dringlichkeit.`
+        : `${counts.all} Einträge — alles gelesen.`
+
+  function countForFilter(id: FilterId) {
+    if (id === 'all') return counts.all
+    if (id === 'unread') return counts.unread
+    return items.filter(it => (GROUP[id] ?? []).includes(rawKind(it))).length
+  }
+
+  return (
+    <div className="inb-os inb-os--dev">
+      <style>{INBOX_CSS}</style>
+
+      <div className="inb-static-top">
+        <header className="inb-page-head">
+          <div className="inb-page-head-copy">
+            <h1 className="inb-page-title">Inbox</h1>
+            <div className="inb-page-lead">
+              <p>{leadLine}</p>
+            </div>
+          </div>
+          <div className="inb-page-actions">
+            <div className="inb-page-actions-group">
+              <div className="inb-filter-wrap" ref={filterWrapRef}>
+                <button
+                  type="button"
+                  className={`inb-head-tool${filterMenuOpen || filterActive ? ' on' : ''}`}
+                  title="Filter"
+                  aria-label="Filter"
+                  aria-expanded={filterMenuOpen}
+                  onClick={() => setFilterMenuOpen(v => !v)}
+                >
+                  <FunnelSimple size={15} weight="regular" />
+                </button>
+                {filterMenuOpen && (
+                  <div className="inb-filter-menu" role="menu" aria-label="Filter">
+                    <p className="inb-filter-menu-label">Ansicht</p>
+                    {FILTERS.map(f => {
+                      const n = countForFilter(f.id)
+                      return (
+                        <button
+                          key={f.id}
+                          type="button"
+                          role="menuitem"
+                          className={`inb-filter-menu-item${filter === f.id ? ' on' : ''}`}
+                          onClick={() => { setFilter(f.id); setFilterMenuOpen(false) }}
+                        >
+                          <Tray size={14} weight="regular" />
+                          <span className="inb-filter-menu-item-main">
+                            <strong>{f.label}</strong>
+                          </span>
+                          {n > 0 && <span className="inb-filter-count">{n}</span>}
+                          {filter === f.id && <span className="inb-filter-check">✓</span>}
+                        </button>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+              {counts.unread > 0 && (
+                <button type="button" className="inb-head-tool" title="Alles gelesen" onClick={markAllRead}>
+                  <CheckCircle size={15} weight="regular" />
+                </button>
+              )}
+            </div>
+            <button type="button" className="inb-head-tool" title="Aktualisieren" onClick={load} disabled={loading}>
+              <ArrowClockwise size={15} weight="regular" />
+            </button>
+            <TagroEntryButton
+              context={{
+                contextType: 'empty',
+                id: 'dev-inbox',
+                title: 'Inbox · Triage',
+                subtitle: `${counts.all} Einträge · ${counts.unread} ungelesen`,
+              }}
+            />
+          </div>
+        </header>
       </div>
 
-      <section className="im-list">
+      <div className="inb-scroll-body">
+        <div className="inb-list-toolbar" style={{ padding: '0 0 12px' }}>
+          <span className="inb-list-toolbar-label">
+            {activeFilter.label}
+            {filtered.length > 0 && ` · ${filtered.length}`}
+          </span>
+        </div>
+
         {loading && filtered.length === 0 ? (
-          <p className="im-loading">Inbox wird geladen…</p>
+          <p className="inb-loading">Inbox wird geladen…</p>
         ) : filtered.length === 0 ? (
-          <div className="im-empty dev-surface">
-            <Tray size={20} weight="regular" />
-            <p><strong>Keine Einträge.</strong></p>
-            <p>Client-Anfragen, Blocker, Prüf-Ergebnisse und Freigaben landen hier — sobald ein Projekt in die Ausführung geht.</p>
-            <Link href="/dev/tasks" className="dev-primary-btn">Zu meinen Aufgaben</Link>
+          <div className="inb-empty">
+            <Tray size={24} weight="regular" />
+            <p className="inb-empty-title">Keine Einträge</p>
+            <p className="inb-empty-sub">
+              Client-Anfragen, Blocker, Prüf-Ergebnisse und Freigaben landen hier — sobald ein Projekt in die Ausführung geht.
+            </p>
+            <Link href="/dev/tasks" style={{ marginTop: 8, textDecoration: 'none' }}>
+              <button type="button" className="inb-head-tool" style={{ width: 'auto', borderRadius: 999, padding: '0 16px', height: 36 }}>
+                Zu meinen Aufgaben
+              </button>
+            </Link>
           </div>
-        ) : filtered.map(n => {
-          const k = rawKind(n)
-          const t = tone(n)
-          const label = KIND_LABEL[k] ?? 'Update'
-          const action = !n.read ? KIND_ACTION[k] : undefined
-          const project = n.project_id ? projectsById.get(n.project_id) : null
-          const Wrap: any = n.link ? Link : 'div'
-          const wrapProps: any = n.link
-            ? { href: n.link, onClick: () => markRead(n.id) }
-            : { onClick: () => markRead(n.id) }
-          return (
-            <Wrap key={n.id} className={`im-row tone-${t}${n.read ? ' read' : ''}`} {...wrapProps}>
-              <span className="im-row-icon">{iconFor(n)}</span>
-              <div className="im-row-main">
-                <div className="im-row-meta">
-                  <span className={`im-badge tone-${t}`}>{label}</span>
-                  {project && (
-                    <span className="im-project">
-                      <span className="im-project-dot" style={{ background: project.color || 'var(--text-muted)' }} />
-                      {project.title}
-                    </span>
-                  )}
-                  {!n.read && <span className="im-unread-dot" aria-label="ungelesen" />}
-                  <span className="im-time">{fmtAgo(n.created_at)}</span>
-                </div>
-                <p className="im-title">{n.title || n.body || n.message || label}</p>
-                {(n.body || n.message) && n.title && <p className="im-body">{n.body || n.message}</p>}
-                {action && <span className="im-action">{action} →</span>}
-              </div>
-            </Wrap>
-          )
-        })}
-      </section>
+        ) : (
+          <div className="inb-feed">
+            {filtered.map(n => {
+              const k = rawKind(n)
+              const t = tone(n)
+              const label = KIND_LABEL[k] ?? 'Update'
+              const action = !n.read ? KIND_ACTION[k] : undefined
+              const project = n.project_id ? projectsById.get(n.project_id) : null
+              const Wrap: any = n.link ? Link : 'button'
+              const wrapProps: any = n.link
+                ? { href: n.link, onClick: () => markRead(n.id) }
+                : { type: 'button', onClick: () => markRead(n.id) }
+              return (
+                <Wrap key={n.id} className={`inb-feed-row tone-${t}${n.read ? ' read' : ''}`} {...wrapProps}>
+                  <span className="inb-feed-icon">{iconFor(n)}</span>
+                  <div className="inb-feed-main">
+                    <div className="inb-feed-meta">
+                      <span className={`inb-feed-badge tone-${t}`}>{label}</span>
+                      {project && (
+                        <span className="inb-feed-project">
+                          <span className="inb-feed-dot" style={{ background: project.color || 'var(--inb-muted)' }} />
+                          {project.title}
+                        </span>
+                      )}
+                      {!n.read && <span className="inb-feed-unread" aria-label="ungelesen" />}
+                    </div>
+                    <p className="inb-feed-title">{n.title || n.body || n.message || label}</p>
+                    {(n.body || n.message) && n.title && <p className="inb-feed-body">{n.body || n.message}</p>}
+                    {action && <span className="inb-feed-action">{action} →</span>}
+                  </div>
+                  <div className="inb-feed-side">
+                    <span className="inb-feed-time">{fmtAgo(n.created_at)}</span>
+                  </div>
+                </Wrap>
+              )
+            })}
+          </div>
+        )}
 
-      <p className="im-foot">
-        <Sliders size={12} weight="regular" />
-        Tagro übersetzt operative Ereignisse in geprüfte Statusinformationen. Diese Inbox zeigt deine internen Hinweise — der Client sieht nur die freigegebene Sicht.
-      </p>
-
-      <style jsx>{`
-        .im-head-actions { display: flex; gap: 8px; flex-shrink: 0; }
-
-        .im-toolbar { margin-bottom: 14px; }
-        .im-filters {
-          display: inline-flex; align-items: center; gap: 4px; padding: 4px;
-          border-radius: 10px; background: color-mix(in srgb, var(--surface-2) 55%, transparent);
-          border: 1px solid color-mix(in srgb, var(--border) 55%, transparent);
-          overflow-x: auto; max-width: 100%; -webkit-overflow-scrolling: touch;
-        }
-        .im-filter-icon { margin: 0 4px 0 6px; color: var(--text-muted); flex-shrink: 0; }
-        .im-filter {
-          height: 26px; padding: 0 11px; border: 0; border-radius: 7px;
-          background: transparent; color: var(--text-muted);
-          font: inherit; font-size: 12px; font-weight: 500; letter-spacing: var(--ls-body, .017em);
-          cursor: pointer; flex-shrink: 0; display: inline-flex; align-items: center; gap: 6px;
-          white-space: nowrap;
-        }
-        .im-filter:hover { color: var(--text); }
-        .im-filter.on { background: var(--surface); color: var(--text); box-shadow: 0 1px 2px color-mix(in srgb, #000 14%, transparent); }
-        .im-filter-count {
-          min-width: 16px; height: 16px; padding: 0 4px; border-radius: 5px;
-          display: inline-flex; align-items: center; justify-content: center;
-          font-size: 10px; font-weight: 500;
-          background: color-mix(in srgb, var(--surface-2) 80%, transparent); color: var(--text-secondary);
-        }
-        .im-filter.on .im-filter-count { background: color-mix(in srgb, var(--btn-prim) 18%, transparent); color: var(--btn-prim); }
-
-        .im-list { display: flex; flex-direction: column; gap: 7px; }
-        .im-loading { color: var(--text-muted); font-size: 12.5px; padding: 8px 2px; }
-        .im-empty {
-          display: flex; flex-direction: column; align-items: center; gap: 9px;
-          padding: 40px 20px; text-align: center;
-          color: var(--text-muted); font-size: 12.5px; line-height: 1.55;
-        }
-        .im-empty strong { color: var(--text); font-size: 14px; }
-        .im-empty :global(.dev-primary-btn) { margin-top: 6px; text-decoration: none; }
-
-        .im-row {
-          display: grid; grid-template-columns: 30px 1fr; gap: 12px; align-items: flex-start;
-          padding: 11px 13px; border-radius: 10px;
-          border: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
-          background: var(--surface);
-          color: var(--text); text-decoration: none;
-          cursor: pointer; transition: background .12s ease, border-color .12s ease;
-        }
-        .im-row:hover { background: color-mix(in srgb, var(--surface-2) 55%, var(--surface)); }
-        .im-row.read { opacity: .62; }
-        .im-row-icon {
-          width: 30px; height: 30px; border-radius: 8px;
-          display: inline-flex; align-items: center; justify-content: center;
-          background: color-mix(in srgb, var(--surface-2) 70%, transparent);
-          color: var(--text-secondary); flex-shrink: 0;
-        }
-        .im-row.tone-good .im-row-icon   { background: color-mix(in srgb, var(--green-dark) 16%, transparent); color: var(--green-dark); }
-        .im-row.tone-warn .im-row-icon   { background: color-mix(in srgb, var(--amber) 16%, transparent); color: var(--amber); }
-        .im-row.tone-risk .im-row-icon   { background: color-mix(in srgb, var(--red) 18%, transparent); color: var(--red); }
-        .im-row.tone-accent .im-row-icon { background: color-mix(in srgb, var(--accent) 18%, transparent); color: var(--accent); }
-
-        .im-row-main { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
-        .im-row-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; row-gap: 4px; }
-        .im-badge {
-          display: inline-flex; align-items: center; height: 18px; padding: 0 8px; border-radius: 5px;
-          font-size: 9.5px; font-weight: 500; letter-spacing: .07em; text-transform: uppercase;
-          background: color-mix(in srgb, var(--surface-2) 70%, transparent); color: var(--text-secondary);
-        }
-        .im-badge.tone-good   { color: var(--green-dark); background: color-mix(in srgb, var(--green-dark) 13%, transparent); }
-        .im-badge.tone-warn   { color: var(--amber); background: color-mix(in srgb, var(--amber) 13%, transparent); }
-        .im-badge.tone-risk   { color: var(--red); background: color-mix(in srgb, var(--red) 14%, transparent); }
-        .im-badge.tone-accent { color: var(--accent); background: color-mix(in srgb, var(--accent) 15%, transparent); }
-        .im-project {
-          display: inline-flex; align-items: center; gap: 5px;
-          font-size: 11px; color: var(--text-muted); font-weight: 500;
-          max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-        }
-        .im-project-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
-        .im-unread-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
-        .im-time { font-size: 11px; color: var(--text-muted); font-weight: 500; margin-left: auto; }
-        .im-title { margin: 0; font-size: 13px; font-weight: 500; letter-spacing: -.004em; color: var(--text); line-height: 1.42; }
-        .im-body {
-          margin: 0; font-size: 12px; line-height: 1.5; color: var(--text-muted); font-weight: 500;
-          display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
-        }
-        .im-action { font-size: 11px; font-weight: 500; color: var(--accent); letter-spacing: var(--ls-body, .017em); margin-top: 1px; }
-
-        .im-foot {
-          display: flex; align-items: flex-start; gap: 7px;
-          margin: 22px 0 0; padding-top: 14px;
-          border-top: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
-          font-size: 11.5px; line-height: 1.55; color: var(--text-muted); max-width: 720px;
-        }
-        .im-foot :global(svg) { flex-shrink: 0; margin-top: 2px; }
-
-        @media (max-width: 768px) {
-          .im-head-actions { width: 100%; }
-          .im-head-actions :global(.dev-secondary-btn) { flex: 1; }
-        }
-      `}</style>
+        <p className="inb-foot">
+          <Sliders size={13} weight="regular" />
+          Tagro übersetzt operative Ereignisse in geprüfte Statusinformationen. Diese Inbox zeigt deine internen Hinweise — der Client sieht nur die freigegebene Sicht.
+        </p>
+      </div>
     </div>
   )
 }
