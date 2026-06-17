@@ -774,6 +774,15 @@ export default function TagroOverlay() {
     window.setTimeout(() => composerRef.current?.focus(), 80)
   }
 
+  function resetConversation() {
+    setMessages([])
+    setInput('')
+    setError('')
+    setExtraAttached([])
+    setFromScratch(false)
+    window.setTimeout(() => composerRef.current?.focus(), 60)
+  }
+
   function runExample(title: string) {
     setFromScratch(true)
     window.setTimeout(() => send(title), 60)
@@ -837,6 +846,16 @@ export default function TagroOverlay() {
                     </div>
                   )}
                   <div className="tov-top-controls">
+                    {messages.length > 0 && (
+                      <button
+                        type="button"
+                        className="tov-reset-btn"
+                        onClick={resetConversation}
+                        aria-label="Neues Gespräch"
+                      >
+                        Neu
+                      </button>
+                    )}
                     <button
                       type="button"
                       className="tov-iconbtn"
@@ -2176,6 +2195,17 @@ const STYLES = `
 
 /* Top bar controls (shared) */
 .tov-top-controls { display: inline-flex; gap: 8px; flex-shrink: 0; align-items: center; }
+.tov-reset-btn {
+  height: 32px; padding: 0 12px;
+  border: 1px solid var(--tov-border);
+  border-radius: 999px;
+  background: var(--tov-bg);
+  color: var(--tov-text-2);
+  font: inherit; font-size: 12.5px; font-weight: 500;
+  cursor: pointer;
+  transition: background .12s, color .12s, border-color .12s;
+}
+.tov-reset-btn:hover { background: var(--tov-pill); color: var(--tov-text); border-color: var(--tov-border-2); }
 .tov-iconbtn {
   width: 36px; height: 36px;
   min-width: 36px; min-height: 36px;

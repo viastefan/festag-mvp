@@ -747,6 +747,8 @@ export default function TaskWorkspaceDetail({ taskId, projectId }: TaskWorkspace
               title: task.title,
               subtitle: project?.title,
               projectId: project?.id ?? task.project_id ?? undefined,
+              status: task.status,
+              clientVisible: task.client_visible,
             })}>
               <Sparkle size={14} /> Mit Tagro bearbeiten
             </button>

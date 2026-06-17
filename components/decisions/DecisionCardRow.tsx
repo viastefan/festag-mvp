@@ -15,7 +15,7 @@ import { resolvePrimaryHandoff } from '@/lib/decisions/external-handoffs'
 import type { Decision, ProjectLite } from '@/components/decisions/decisions-shared'
 import {
   OPEN_STATES, URGENCY_LABEL, impactLine, listStatusLabel, resolveDecisionType, tagroSummaryLine,
-  urgencyDotColor,
+  urgencyDotColor, isOpenDecisionStatus,
 } from '@/components/decisions/decisions-shared'
 
 export function capitalizeDE(s: string): string {
@@ -54,7 +54,7 @@ export default function DecisionCardRow({
   const menuWrapRef = useRef<HTMLDivElement>(null)
 
   const displayTitle = d.client_title || d.title
-  const isOpen = OPEN_STATES.has(d.status)
+  const isOpen = isOpenDecisionStatus(d.status)
   const isAnswered = d.status === 'decided' || d.status === 'applied'
   const tagroText = tagroSummaryLine(d)
   const impactText = impactLine(d)
@@ -102,6 +102,8 @@ export default function DecisionCardRow({
       id: d.id,
       title: displayTitle,
       subtitle: proj?.title,
+      status: d.status,
+      projectId: d.project_id ?? proj?.id,
     })
   }
 
@@ -328,7 +330,7 @@ export default function DecisionCardRow({
               style={{ ['--dec-dot-color' as string]: urgencyDotColor(d.urgency) }}
             >
               <span className="dec-card-dot dec-card-dot--prio" aria-hidden />
-              {(d.escalation_level ?? 0) >= 2 && OPEN_STATES.has(d.status) && (
+              {(d.escalation_level ?? 0) >= 2 && isOpenDecisionStatus(d.status) && (
                 <WarningCircle size={11} weight="fill" className="dec-card-prio-warn" />
               )}
               {URGENCY_LABEL[d.urgency] || 'Normal'}

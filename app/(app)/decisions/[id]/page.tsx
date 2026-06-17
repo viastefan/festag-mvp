@@ -123,6 +123,8 @@ function DecisionDetailInner() {
               id: decision.id,
               title,
               subtitle: project?.title,
+              status: decision.status,
+              projectId: decision.project_id ?? project?.id,
             }),
           },
         ]}
