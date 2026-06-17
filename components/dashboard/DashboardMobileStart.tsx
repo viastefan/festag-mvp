@@ -1,27 +1,26 @@
 'use client'
 
 /**
- * DashboardMobileStart — Figma App-Festag node 252:59 (1:1).
- * „Webapp Startbildschirm Ansicht Lightmode"
+ * DashboardMobileStart — Codex voice dashboard (mobile).
+ * Full-screen, minimal: diamond dots, Spotify-style status lines,
+ * scope context, three bottom controls (stop · mic · close).
  */
 
-import Image from 'next/image'
 import Link from 'next/link'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { DotsThree, MagnifyingGlass, Pause, Play, Plus, ShareNetwork } from '@phosphor-icons/react'
+import { Microphone, Square, X } from '@phosphor-icons/react'
+import { createClient } from '@/lib/supabase/client'
 import { getVoicePreferences } from '@/lib/voice'
-
-const ASSETS = {
-  chevron: '/dashboard-mobile/chevron.svg',
-} as const
+import { openTagro } from '@/components/TagroOverlay'
+import TagroDiamondDots from '@/components/dashboard/TagroDiamondDots'
 
 type Props = {
   sentences: string[]
   busy?: boolean
   openDecisionsCount: number
   blockersCount: number
+  scopeLabel: string
   onCreateReport: () => void
-  onSearch?: () => void
 }
 
 function pickGermanVoice(): SpeechSynthesisVoice | null {
@@ -42,18 +41,21 @@ export default function DashboardMobileStart({
   busy,
   openDecisionsCount,
   blockersCount,
+  scopeLabel,
   onCreateReport,
-  onSearch,
 }: Props) {
   const [active, setActive] = useState(-1)
   const [playing, setPlaying] = useState(false)
   const [paused, setPaused] = useState(false)
+  const [workspaceName, setWorkspaceName] = useState('')
   const bodyRef = useRef<HTMLDivElement | null>(null)
-  const flowRef = useRef<HTMLParagraphElement | null>(null)
+  const flowRef = useRef<HTMLDivElement | null>(null)
   const cancelledRef = useRef(false)
 
   const supported = typeof window !== 'undefined' && 'speechSynthesis' in window
   const hasText = sentences.length > 0
+  const speaking = playing || !!busy
+  const displayActive = (playing || paused) && active >= 0 ? active : -1
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 768px)')
@@ -69,24 +71,57 @@ export default function DashboardMobileStart({
   }, [])
 
   useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      try {
+        const sb = createClient()
+        const { data: { user } } = await sb.auth.getUser()
+        if (!user || cancelled) return
+        const { data: profile } = await sb
+          .from('profiles')
+          .select('company_name,full_name,first_name')
+          .eq('id', user.id)
+          .maybeSingle()
+        const { data: ws } = await sb
+          .from('workspaces')
+          .select('name')
+          .eq('primary_owner_id', user.id)
+          .eq('is_personal', true)
+          .maybeSingle()
+        const name =
+          (ws as { name?: string } | null)?.name?.trim()
+          || (profile as { company_name?: string } | null)?.company_name?.trim()
+          || (profile as { full_name?: string } | null)?.full_name?.trim()
+          || (profile as { first_name?: string } | null)?.first_name?.trim()
+          || 'Festag'
+        if (!cancelled) setWorkspaceName(name)
+      } catch {
+        if (!cancelled) setWorkspaceName('Festag')
+      }
+    })()
+    return () => { cancelled = true }
+  }, [])
+
+  useEffect(() => {
     const body = bodyRef.current
     const flow = flowRef.current
     if (!body || !flow) return
-    const span = flow.querySelector<HTMLElement>(`[data-i="${active}"]`)
-    if (!span) return
-    const target = span.offsetTop + span.offsetHeight / 2 - body.clientHeight / 2
-    body.scrollTo({ top: Math.max(0, target), behavior: 'smooth' })
-  }, [active])
+    const line = flow.querySelector<HTMLElement>(`[data-i="${displayActive}"]`)
+    if (!line) return
+    const target = line.offsetTop + line.offsetHeight / 2 - body.clientHeight / 2
+    body.scrollTo({ top: Math.max(0, target), behavior: playing ? 'smooth' : 'auto' })
+  }, [displayActive, playing])
 
   const stopAll = useCallback(() => {
     cancelledRef.current = true
     try { window.speechSynthesis.cancel() } catch {}
     setPlaying(false)
     setPaused(false)
+    setActive(-1)
   }, [])
 
   useEffect(() => () => { stopAll() }, [stopAll])
-  useEffect(() => { stopAll(); setActive(-1) }, [sentences.join('\n')]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { stopAll() }, [sentences.join('\n')]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const speakFrom = useCallback((startIdx: number) => {
     if (!supported || sentences.length === 0) return
@@ -130,103 +165,114 @@ export default function DashboardMobileStart({
       setPaused(false)
       return
     }
-    speakFrom(Math.max(0, active === -1 ? 0 : active))
+    speakFrom(0)
   }
 
-  function openSearch() {
-    if (onSearch) { onSearch(); return }
-    window.dispatchEvent(new CustomEvent('open-command-palette'))
+  function handleMic() {
+    if (!hasText && !busy) {
+      onCreateReport()
+      return
+    }
+    openTagro({ contextType: 'status_report', id: 'dashboard', title: 'Statusabfrage · Heute' })
   }
 
-  const decisionsTitle = openDecisionsCount === 0
-    ? 'Keine offenen Entscheidungen'
-    : openDecisionsCount === 1
-      ? '1 offene Entscheidung'
-      : `${openDecisionsCount} offene Entscheidungen`
-
-  const blockersTitle = blockersCount === 0
-    ? 'Keine aktiven Blocker'
-    : blockersCount === 1
-      ? '1 aktiver Blocker'
-      : `${blockersCount} aktive Blocker`
+  const metaParts: string[] = []
+  if (openDecisionsCount > 0) {
+    metaParts.push(
+      openDecisionsCount === 1 ? '1 Entscheidung' : `${openDecisionsCount} Entscheidungen`,
+    )
+  }
+  if (blockersCount > 0) {
+    metaParts.push(blockersCount === 1 ? '1 Blocker' : `${blockersCount} Blocker`)
+  }
 
   return (
-    <div className="dms" data-node-id="252:59" role="main" aria-label="Gesamtbericht">
-      <h1 className="dms-title" data-node-id="252:93">Gesamtbericht</h1>
+    <div className="dms" role="main" aria-label="Statusabfrage">
+      <header className="dms-head">
+        <p className="dms-brand">{workspaceName}</p>
+      </header>
 
-      <button type="button" className="dms-head-pill" aria-label="Suchen" onClick={openSearch}>
-        <MagnifyingGlass size={20} weight="bold" />
-        <DotsThree size={22} weight="bold" />
-      </button>
+      <div className="dms-stage">
+        <TagroDiamondDots active={speaking} size={52} />
 
-      <div className="dms-wave" data-node-id="252:61" aria-hidden>
-        {Array.from({ length: 30 }).map((_, i) => <span key={i} />)}
-      </div>
+        <button
+          type="button"
+          className="dms-lyrics-btn"
+          onClick={hasText ? togglePlay : onCreateReport}
+          disabled={busy && !hasText}
+          aria-label={hasText ? (playing ? 'Pausieren' : 'Bericht anhören') : 'Statusbericht erstellen'}
+        >
+          <div className="dms-lyrics-mask">
+            <div className="dms-lyrics" ref={bodyRef}>
+              {hasText ? (
+                <div className="dms-flow" ref={flowRef}>
+                  {sentences.map((s, i) => (
+                    <p
+                      key={i}
+                      data-i={i}
+                      className={`dms-line${
+                        i === displayActive ? ' on'
+                        : i === displayActive - 1 || i === displayActive + 1 ? ' near'
+                        : ''
+                      }`}
+                    >
+                      {s}
+                    </p>
+                  ))}
+                </div>
+              ) : (
+                <p className="dms-empty">
+                  {busy ? 'Tagro schreibt den Statusbericht …' : 'Tippe auf das Mikrofon, um einen Bericht zu erstellen.'}
+                </p>
+              )}
+            </div>
+          </div>
+        </button>
 
-      <div className="dms-prompter-wrap">
-        <div className="dms-text-fade" aria-hidden />
-        <div className="dms-prompter" ref={bodyRef}>
-          {hasText ? (
-            <p className="dms-flow" ref={flowRef} data-node-id="252:60">
-              {sentences.map((s, i) => (
-                <span key={i} data-i={i} className={`dms-s${i === active ? ' on' : ''}`}>
-                  {s}{' '}
-                </span>
-              ))}
-            </p>
-          ) : (
-            <p className="dms-empty">
-              {busy ? 'Tagro schreibt den Statusbericht …' : 'Noch kein Statusbericht — unten erstellen.'}
-            </p>
+        <div className="dms-context">
+          <span className="dms-scope">{scopeLabel}</span>
+          {metaParts.length > 0 && (
+            <div className="dms-meta">
+              {openDecisionsCount > 0 && (
+                <Link href="/decisions" className="dms-meta-link">{metaParts[0]}</Link>
+              )}
+              {openDecisionsCount > 0 && blockersCount > 0 && <span className="dms-meta-sep">·</span>}
+              {blockersCount > 0 && (
+                <Link href="/decisions?tone=risk" className="dms-meta-link">
+                  {openDecisionsCount > 0 ? metaParts[metaParts.length - 1] : metaParts[0]}
+                </Link>
+              )}
+            </div>
           )}
         </div>
       </div>
 
-      <section className="dms-sheet" data-node-id="252:98" aria-label="Status">
-        <div className="dms-grip" data-node-id="252:99" aria-hidden />
-
-        <div className="dms-sheet-body" data-node-id="252:100">
-          <div className="dms-row" data-node-id="252:101">
-            <p className="dms-row-title" data-node-id="252:103">{decisionsTitle}</p>
-            <Link href="/decisions" className="dms-row-link" data-node-id="252:104">
-              <span>Entscheidungen ansehen</span>
-              <Image src={ASSETS.chevron} alt="" width={4} height={7} />
-            </Link>
-          </div>
-          <div className="dms-row" data-node-id="252:107">
-            <p className="dms-row-title" data-node-id="252:109">{blockersTitle}</p>
-            <Link href="/decisions?tone=risk" className="dms-row-link" data-node-id="252:110">
-              <span>Entscheidungen ansehen</span>
-              <Image src={ASSETS.chevron} alt="" width={4} height={7} />
-            </Link>
-          </div>
-        </div>
-
-        <button type="button" className="dms-upload" data-node-id="252:120" aria-label="Bericht teilen">
-          <ShareNetwork size={20} weight="bold" />
-        </button>
-      </section>
-
-      <footer className="dms-actions" data-node-id="252:294">
+      <footer className="dms-controls" aria-label="Steuerung">
         <button
           type="button"
-          className="dms-create"
-          data-node-id="252:295"
-          onClick={onCreateReport}
-          disabled={busy}
+          className="dms-ctl dms-stop"
+          onClick={stopAll}
+          disabled={!playing && !paused}
+          aria-label="Stoppen"
         >
-          <Plus size={22} weight="bold" />
-          <span>Statusbericht erstellen</span>
+          <Square size={14} weight="fill" />
         </button>
         <button
           type="button"
-          className="dms-play"
-          data-node-id="252:299"
-          onClick={togglePlay}
-          disabled={!hasText || !supported}
-          aria-label={playing ? 'Pausieren' : 'Bericht anhören'}
+          className="dms-ctl dms-mic"
+          onClick={handleMic}
+          disabled={busy && !hasText}
+          aria-label={hasText ? 'Mit Tagro sprechen' : 'Statusbericht erstellen'}
         >
-          {playing ? <Pause size={24} weight="bold" /> : <Play size={24} weight="bold" />}
+          <Microphone size={26} weight="bold" />
+        </button>
+        <button
+          type="button"
+          className="dms-ctl dms-close"
+          onClick={stopAll}
+          aria-label="Schließen"
+        >
+          <X size={18} weight="bold" />
         </button>
       </footer>
 
@@ -237,273 +283,220 @@ export default function DashboardMobileStart({
 
         @media (max-width: 768px) {
           .dms {
-            display: block;
+            --dms-bg: #000;
+            --dms-text: #fff;
+            --dms-text-dim: rgba(255, 255, 255, 0.28);
+            --dms-text-near: rgba(255, 255, 255, 0.42);
+            --dms-dot: #fff;
+            --dms-ctl-bg: rgba(255, 255, 255, 0.1);
+            --dms-ctl-fg: rgba(255, 255, 255, 0.85);
+            --dms-mic-bg: #fff;
+            --dms-mic-fg: #000;
+            --dms-scope-fg: rgba(255, 255, 255, 0.72);
+
+            display: flex;
+            flex-direction: column;
             position: fixed;
             inset: 0;
             z-index: 500;
             width: 100%;
-            max-width: 402px;
+            max-width: 430px;
             margin: 0 auto;
-            background: rgba(252, 252, 252, 0.9);
+            background: var(--dms-bg);
+            color: var(--dms-text);
             font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
-            color: #202532;
             overflow: hidden;
-            padding-top: env(safe-area-inset-top, 0px);
-            padding-bottom: env(safe-area-inset-bottom, 0px);
+            padding:
+              calc(12px + env(safe-area-inset-top, 0px))
+              24px
+              calc(20px + env(safe-area-inset-bottom, 0px));
           }
 
-          /* 252:93 — Gesamtbericht */
-          .dms-title {
-            position: absolute;
-            left: 24px;
-            top: calc(20px + env(safe-area-inset-top, 0px));
+          :global([data-theme="light"]) .dms,
+          :global([data-theme="read"]) .dms,
+          :global([data-theme="pure-light"]) .dms {
+            --dms-bg: #fcfcfc;
+            --dms-text: #0f0f10;
+            --dms-text-dim: rgba(15, 15, 16, 0.22);
+            --dms-text-near: rgba(15, 15, 16, 0.38);
+            --dms-dot: #1c1c1e;
+            --dms-ctl-bg: rgba(15, 15, 16, 0.06);
+            --dms-ctl-fg: rgba(15, 15, 16, 0.72);
+            --dms-mic-bg: #1c1c1e;
+            --dms-mic-fg: #fff;
+            --dms-scope-fg: rgba(15, 15, 16, 0.55);
+          }
+
+          .dms-head {
+            flex-shrink: 0;
+            display: flex;
+            justify-content: center;
+            padding: 8px 0 0;
+          }
+          .dms-brand {
             margin: 0;
-            padding-right: 100px;
-            font-size: 28px;
+            font-size: 13px;
             font-weight: 400;
-            line-height: 1.12;
-            letter-spacing: -0.01em;
-            color: #0f0f10;
+            letter-spacing: 0.02em;
+            color: var(--dms-scope-fg);
           }
 
-          /* Header capsule — Codex-style */
-          .dms-head-pill {
-            position: absolute;
-            right: 20px;
-            top: calc(16px + env(safe-area-inset-top, 0px));
-            display: inline-flex;
+          .dms-stage {
+            flex: 1 1 auto;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
             align-items: center;
-            gap: 0;
-            width: auto;
-            height: 42px;
-            padding: 0 2px;
-            border: 1.5px solid rgba(15, 23, 42, 0.1);
-            border-radius: 999px;
-            background: #fff;
-            color: #1c1c1e;
+            justify-content: center;
+            gap: 28px;
+            padding: 0 4px;
+          }
+
+          .dms-lyrics-btn {
+            width: 100%;
+            border: 0;
+            background: transparent;
+            padding: 0;
             cursor: pointer;
             -webkit-tap-highlight-color: transparent;
-            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+            font: inherit;
+            color: inherit;
           }
-          .dms-head-pill :global(svg) {
-            width: 42px;
-            height: 42px;
-            padding: 11px;
-            box-sizing: border-box;
-          }
-          .dms-head-pill:active {
-            background: #f4f4f5;
+          .dms-lyrics-btn:disabled {
+            cursor: default;
           }
 
-          /* 252:61 — waveform */
-          .dms-wave {
-            position: absolute;
-            left: 63px;
-            top: 205px;
-            width: 267px;
-            height: 40px;
-            display: flex;
-            align-items: flex-start;
-            gap: 10px;
-            padding: 10px;
-            overflow: hidden;
-            pointer-events: none;
-            -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 18%, #000 46%, transparent 100%);
-            mask-image: linear-gradient(to right, transparent 0%, #000 18%, #000 46%, transparent 100%);
-          }
-          .dms-wave span {
-            width: 2px;
-            height: 20px;
-            border-radius: 12px;
-            background: #cacfd4;
-            flex-shrink: 0;
+          .dms-lyrics-mask {
+            width: 100%;
+            -webkit-mask-image: linear-gradient(
+              to bottom,
+              transparent 0%,
+              #000 22%,
+              #000 78%,
+              transparent 100%
+            );
+            mask-image: linear-gradient(
+              to bottom,
+              transparent 0%,
+              #000 22%,
+              #000 78%,
+              transparent 100%
+            );
           }
 
-          /* 252:60 + 252:123 — teleprompter */
-          .dms-prompter-wrap {
-            position: absolute;
-            left: 0;
-            right: 0;
-            top: 153px;
-            bottom: 280px;
-          }
-          .dms-text-fade {
-            position: absolute;
-            right: -20%;
-            top: 0;
-            width: 70%;
-            height: 238px;
-            pointer-events: none;
-            background: linear-gradient(90deg, transparent 0%, rgba(252, 252, 252, 0.85) 55%, rgba(252, 252, 252, 0.98) 100%);
-          }
-          .dms-prompter {
-            position: absolute;
-            inset: 119px 0 0;
+          .dms-lyrics {
+            height: 84px;
             overflow-y: auto;
+            overflow-x: hidden;
             scrollbar-width: none;
-            padding: 0 22px;
-            -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 20%, #000 60%, transparent 92%);
-            mask-image: linear-gradient(to bottom, transparent 0, #000 20%, #000 60%, transparent 92%);
+            scroll-behavior: smooth;
           }
-          .dms-prompter::-webkit-scrollbar { display: none; }
+          .dms-lyrics::-webkit-scrollbar { display: none; }
+
           .dms-flow {
-            margin: 0 auto;
-            max-width: 358px;
-            text-align: center;
-            font-size: 25px;
-            font-weight: 400;
-            line-height: 45px;
-            letter-spacing: 0.28px;
-            color: rgba(148, 154, 160, 0.4);
-            padding: 8vh 0 12vh;
+            padding: 28px 8px;
           }
-          .dms-s { transition: color .35s ease; }
-          .dms-s.on { color: #2e2f33; }
+          .dms-line {
+            margin: 0;
+            text-align: center;
+            font-size: 18px;
+            font-weight: 400;
+            line-height: 28px;
+            letter-spacing: 0.01em;
+            color: var(--dms-text-dim);
+            transition: color 0.35s ease, opacity 0.35s ease;
+          }
+          .dms-line.near {
+            color: var(--dms-text-near);
+          }
+          .dms-line.on {
+            color: var(--dms-text);
+          }
           .dms-empty {
             margin: 0;
-            padding: 40px 24px;
+            padding: 20px 12px;
             text-align: center;
             font-size: 16px;
             line-height: 1.5;
-            color: #90959f;
+            color: var(--dms-text-near);
           }
 
-          /* 252:98 — bottom sheet */
-          .dms-sheet {
-            position: absolute;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            height: 246px;
-            background: #f7f7f8;
-            border-top: 1px solid rgba(15, 23, 42, 0.08);
-            border-radius: 24px 24px 0 0;
-            box-shadow: none;
-            padding: 10px 24px 0;
-          }
-          .dms-grip {
-            width: 48px;
-            height: 5px;
-            margin: 0 auto 22px;
-            border-radius: 24px;
-            background: rgba(144, 149, 159, 0.25);
-          }
-          .dms-sheet-body {
+          .dms-context {
             display: flex;
             flex-direction: column;
-            gap: 0;
-            max-width: 297px;
+            align-items: center;
+            gap: 8px;
+            min-height: 40px;
           }
-          .dms-row {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            padding: 14px 0;
-            border-bottom: 1px solid rgba(15, 23, 42, 0.06);
-          }
-          .dms-row:last-child { border-bottom: 0; }
-          .dms-row-title {
-            margin: 0;
-            font-size: 16px;
+          .dms-scope {
+            font-size: 13px;
             font-weight: 400;
-            line-height: 1.3;
-            color: #0f0f10;
+            letter-spacing: 0.02em;
+            color: var(--dms-scope-fg);
           }
-          .dms-row-link {
+          .dms-meta {
             display: inline-flex;
             align-items: center;
-            gap: 10px;
+            gap: 6px;
             font-size: 12px;
-            font-weight: 400;
-            letter-spacing: 0.24px;
-            color: #90959f;
+          }
+          .dms-meta-link {
+            color: var(--dms-text-near);
             text-decoration: none;
           }
-
-          /* 252:120 — upload */
-          .dms-upload {
-            position: absolute;
-            right: 26px;
-            top: 127px;
-            width: 36px;
-            height: 36px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0;
-            border: 1.5px solid rgba(15, 23, 42, 0.1);
-            border-radius: 999px;
-            background: #fff;
-            color: #1c1c1e;
-            cursor: pointer;
-            -webkit-tap-highlight-color: transparent;
-            box-shadow: none;
-          }
-          .dms-upload:active {
-            background: #f4f4f5;
+          .dms-meta-sep {
+            color: var(--dms-text-dim);
           }
 
-          /* 252:294 — bottom actions */
-          .dms-actions {
-            position: absolute;
-            left: 24px;
-            right: 24px;
-            bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+          .dms-controls {
+            flex-shrink: 0;
             display: flex;
             align-items: center;
-            gap: 12px;
-            z-index: 2;
+            justify-content: center;
+            gap: 28px;
+            padding-top: 8px;
           }
-          .dms-create {
-            flex: 1 1 auto;
-            max-width: 282px;
-            display: inline-flex;
-            align-items: center;
-            gap: 12px;
-            height: 52px;
-            padding: 0 20px;
-            border: 1.5px solid rgba(15, 23, 42, 0.12);
-            border-radius: 999px;
-            background: #fff;
-            color: #1c1c1e;
-            font: inherit;
-            font-size: 15px;
-            font-weight: 400;
-            box-shadow: none;
-            cursor: pointer;
-            -webkit-tap-highlight-color: transparent;
-          }
-          .dms-create:active:not(:disabled) {
-            background: #f4f4f5;
-          }
-          .dms-create:disabled { opacity: .55; cursor: not-allowed; }
-          .dms-create span { white-space: nowrap; }
-          .dms-play {
-            flex-shrink: 0;
-            width: 52px;
-            height: 52px;
-            padding: 0;
-            border: 0;
-            border-radius: 999px;
-            background: #5b647d;
-            color: #fff;
+          .dms-ctl {
             display: inline-flex;
             align-items: center;
             justify-content: center;
+            border: 0;
+            border-radius: 999px;
             cursor: pointer;
             -webkit-tap-highlight-color: transparent;
-            box-shadow:
-              0 1px 2px rgba(15, 23, 42, 0.12),
-              0 8px 20px -8px rgba(91, 100, 125, 0.5);
+            transition: transform 0.14s ease, opacity 0.14s ease;
           }
-          .dms-play:active:not(:disabled) {
-            transform: scale(0.97);
+          .dms-ctl:active:not(:disabled) {
+            transform: scale(0.96);
           }
-          .dms-play:disabled { opacity: .4; cursor: not-allowed; }
+          .dms-ctl:disabled {
+            opacity: 0.35;
+            cursor: default;
+          }
+          .dms-stop,
+          .dms-close {
+            width: 48px;
+            height: 48px;
+            background: var(--dms-ctl-bg);
+            color: var(--dms-ctl-fg);
+          }
+          .dms-mic {
+            width: 64px;
+            height: 64px;
+            background: var(--dms-mic-bg);
+            color: var(--dms-mic-fg);
+            box-shadow: 0 8px 28px -10px rgba(0, 0, 0, 0.45);
+          }
+          :global([data-theme="light"]) .dms-mic,
+          :global([data-theme="read"]) .dms-mic,
+          :global([data-theme="pure-light"]) .dms-mic {
+            box-shadow: 0 8px 24px -10px rgba(15, 15, 16, 0.28);
+          }
         }
 
         @media (prefers-reduced-motion: reduce) {
-          .dms-s { transition: none; }
+          .dms-line { transition: none; }
+          .dms-lyrics { scroll-behavior: auto; }
         }
       `}</style>
     </div>

@@ -140,7 +140,6 @@ function ProjectsPageInner() {
   const [sort, setSort] = useState<SortId>('recent')
   const [filterOpen, setFilterOpen] = useState(false)
   const [sortOpen, setSortOpen] = useState(false)
-  const [activeRow, setActiveRow] = useState<string | null>(null)
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null)
   const [completeTarget, setCompleteTarget] = useState<ProjectRow | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<ProjectRow | null>(null)
@@ -293,8 +292,8 @@ function ProjectsPageInner() {
 
       {/* Mobile header icons (top-right): connected pill */}
       <div className="pjm-header-icons">
-        <button type="button" aria-label="Suche"><MagnifyingGlass size={20} weight="bold" /></button>
-        <button type="button" aria-label="Ansicht"><DotsNine size={20} weight="bold" /></button>
+        <button type="button" aria-label="Suche"><MagnifyingGlass size={20} weight="regular" /></button>
+        <button type="button" aria-label="Ansicht"><DotsNine size={20} weight="regular" /></button>
       </div>
 
       <main className="pj2-main">
@@ -364,7 +363,7 @@ function ProjectsPageInner() {
                   aria-label="Filter"
                   onClick={() => { setFilterOpen(v => !v); setSortOpen(false) }}
                 >
-                  <FunnelSimple size={18} weight="bold" />
+                  <FunnelSimple size={18} weight="regular" />
                 </button>
                 {filterOpen && (
                   <div className="pj2-menu" role="menu">
@@ -384,7 +383,7 @@ function ProjectsPageInner() {
                   aria-label="Sortieren"
                   onClick={() => { setSortOpen(v => !v); setFilterOpen(false) }}
                 >
-                  <SlidersHorizontal size={18} weight="bold" />
+                  <SlidersHorizontal size={18} weight="regular" />
                 </button>
                 {sortOpen && (
                   <div className="pj2-menu" role="menu">
@@ -439,14 +438,11 @@ function ProjectsPageInner() {
                 const meta = STATUS_META[st]
                 const devs = devsByProject[project.id] || []
                 const isTeam = project.delivery_model === 'team_internal' || devs.length >= 2
-                const isActive = activeRow === project.id
                 return (
                   <Link
                     key={project.id}
                     href={`/project/${project.id}`}
-                    className={`pj2-row pj2-item${isActive ? ' is-active' : ''}`}
-                    onMouseEnter={() => setActiveRow(project.id)}
-                    onMouseLeave={() => setActiveRow(prev => prev === project.id ? null : prev)}
+                    className="pj2-row pj2-item"
                   >
                     {/* Left: name + status (desktop grid cells + mobile left block) */}
                     <span className="pj2-left">
@@ -579,11 +575,11 @@ function ProjectsPageInner() {
           <div className="pjm-home-indicator" />
           <div className="pjm-dock-row">
             <button type="button" className="pjm-status-btn" onClick={() => setShowNewProject(true)}>
-              <Plus size={22} weight="bold" />
+              <Plus size={17} weight="regular" />
               <span>Statusbericht erstellen</span>
             </button>
             <button type="button" className="pjm-tagro" aria-label="Tagro öffnen" onClick={tagroHandler}>
-              <PencilSimple size={22} weight="bold" />
+              <PencilSimple size={20} weight="regular" />
             </button>
           </div>
         </div>
@@ -948,8 +944,7 @@ const CSS = `
     transition: background .14s, box-shadow .14s;
     cursor: pointer;
   }
-  .pj2-item:hover,
-  .pj2-item.is-active {
+  .pj2-item:hover {
     background: #FCFCFC;
     border-radius: 16px;
     box-shadow: 0 2px 5px rgba(144,149,159,0.2);
@@ -1267,34 +1262,40 @@ const CSS = `
     }
     .pj2-sticky-head::after { display: none !important; }
 
-    /* ── Mobile header icons: connected pill ── */
+    /* Hide global dock — projects has its own bottom bar */
+    :global(.mcd) { display: none !important; }
+
+    /* ── Mobile header icons: Codex-style floating circles ── */
     .pjm-header-icons {
       display: flex !important;
       position: fixed;
       top: calc(env(safe-area-inset-top, 12px) + 4px);
       right: 20px;
       z-index: 20;
-      gap: 0;
+      gap: 10px;
       align-items: center;
-      background: #FFFFFF;
-      border: 1.5px solid rgba(15, 23, 42, 0.1);
-      border-radius: 32px;
-      padding: 0 2px;
-      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+      background: transparent !important;
+      border: 0 !important;
+      border-radius: 0 !important;
+      padding: 0 !important;
+      box-shadow: none !important;
     }
     .pjm-header-icons button {
-      width: 42px !important; height: 42px !important;
+      width: 44px !important; height: 44px !important;
       min-width: 0 !important;
       border: 0 !important; border-radius: 999px !important;
-      background: transparent !important;
+      background: #FFFFFF !important;
       color: #1C1C1E !important;
       display: inline-flex !important; align-items: center !important; justify-content: center !important;
       cursor: pointer;
       padding: 0 !important;
-      box-shadow: none !important;
+      box-shadow:
+        0 2px 10px rgba(0, 0, 0, 0.07),
+        0 1px 3px rgba(0, 0, 0, 0.04) !important;
     }
     .pjm-header-icons button:active {
-      background: rgba(15, 23, 42, 0.05) !important;
+      background: #F8F8F8 !important;
+      transform: scale(0.97);
     }
     .pjm-icon-sep { display: none !important; }
 
@@ -1309,35 +1310,54 @@ const CSS = `
       flex: 1 !important; min-height: 0 !important;
       background: transparent !important;
       border-radius: 0 !important;
-      padding: 20px 20px 160px !important;
+      padding: 28px 24px 160px !important;
       overflow-y: auto !important;
       overflow-x: hidden !important;
       box-shadow: none !important;
     }
 
-    /* ── Header ── */
+    /* ── Header: zwei Zeilen, engerer Rhythmus ── */
     .pj2-head {
       display: block !important;
-      margin-bottom: 18px !important;
-      padding-right: 96px !important;
+      margin-bottom: 20px !important;
+      padding-right: 108px !important;
+    }
+    .pj2-title {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
     }
     .pj2-title h1 {
-      font-size: 28px !important;
+      font-size: 18px !important;
       font-weight: 400 !important;
       font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif) !important;
-      letter-spacing: -0.01em !important;
-      color: #0F0F10 !important;
-      line-height: 1.15 !important;
+      letter-spacing: -0.5px !important;
+      color: #000000 !important;
+      line-height: 1.2 !important;
       margin: 0 !important;
     }
     .pj2-title p {
-      font-size: 15px !important;
+      display: flex !important;
+      width: fit-content !important;
+      font-size: 30px !important;
       font-weight: 400 !important;
       font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif) !important;
       color: #8E8E93 !important;
-      letter-spacing: 0 !important;
-      line-height: 1.35 !important;
-      margin: 6px 0 0 !important;
+      letter-spacing: -0.5px !important;
+      line-height: 1.12 !important;
+      margin: 0 !important;
+    }
+    .pj2-title h1 .pjm-t {
+      font-size: 18px !important;
+      font-weight: 400 !important;
+      letter-spacing: -0.5px !important;
+    }
+    .pj2-title p .pjm-t {
+      display: flex !important;
+      width: fit-content !important;
+      font-size: 30px !important;
+      font-weight: 400 !important;
+      letter-spacing: -0.5px !important;
     }
 
     /* ── Mobile toolbar ── */
@@ -1354,37 +1374,43 @@ const CSS = `
       gap: 10px !important;
     }
     .pjm-tool-btn {
-      width: 36px !important; height: 36px !important;
-      min-width: 36px !important; min-height: 36px !important;
-      border: 1.5px solid rgba(15, 23, 42, 0.12) !important;
+      width: 40px !important; height: 40px !important;
+      min-width: 40px !important; min-height: 40px !important;
+      border: 0 !important;
       border-radius: 999px !important;
       background: #FFFFFF !important;
       color: #1C1C1E !important;
       display: inline-flex !important; align-items: center !important; justify-content: center !important;
       cursor: pointer !important;
-      box-shadow: none !important;
+      box-shadow:
+        0 2px 10px rgba(0, 0, 0, 0.07),
+        0 1px 3px rgba(0, 0, 0, 0.04) !important;
       padding: 0 !important;
     }
     .pjm-tool-btn:active {
-      background: #F4F4F5 !important;
+      background: #F8F8F8 !important;
+      transform: scale(0.97);
     }
     .pjm-new-btn {
-      height: 36px !important;
-      padding: 0 16px !important;
-      border: 1.5px solid rgba(15, 23, 42, 0.12) !important;
+      height: 40px !important;
+      padding: 0 18px !important;
+      border: 0 !important;
       border-radius: 999px !important;
       background: #FFFFFF !important;
-      color: #0F0F10 !important;
+      color: #000000 !important;
       font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif) !important;
-      font-size: 13px !important;
+      font-size: 14px !important;
       font-weight: 400 !important;
-      letter-spacing: 0 !important;
+      letter-spacing: -0.01em !important;
       cursor: pointer !important;
-      box-shadow: none !important;
+      box-shadow:
+        0 2px 10px rgba(0, 0, 0, 0.07),
+        0 1px 3px rgba(0, 0, 0, 0.04) !important;
       white-space: nowrap !important;
     }
     .pjm-new-btn:active {
-      background: #F4F4F5 !important;
+      background: #F8F8F8 !important;
+      transform: scale(0.98);
     }
 
     /* ── Filter/sort dropdown menus on mobile ── */
@@ -1421,7 +1447,8 @@ const CSS = `
     .pj2-divider { display: none !important; }
     .pj2-table {
       display: flex !important; flex-direction: column !important;
-      gap: 0 !important;
+      gap: 4px !important;
+      padding-top: 4px !important;
     }
 
     /* ── Project items ── */
@@ -1429,29 +1456,23 @@ const CSS = `
       display: flex !important;
       align-items: flex-start !important;
       justify-content: space-between !important;
-      padding: 16px 4px !important;
+      padding: 18px 12px !important;
       height: auto !important;
       min-height: 56px !important;
-      border-radius: 0 !important;
+      border-radius: 12px !important;
       background: transparent !important;
       box-shadow: none !important;
       margin: 0 !important;
       column-gap: 0 !important;
       border-bottom: 1px solid rgba(15, 23, 42, 0.06);
       transition: background .12s ease;
+      -webkit-tap-highlight-color: transparent;
     }
     .pj2-row.pj2-item:last-child {
       border-bottom: 0 !important;
     }
-    .pj2-row.pj2-item:hover,
-    .pj2-row.pj2-item:active,
-    .pj2-row.pj2-item.is-active {
-      background: rgba(15, 23, 42, 0.03) !important;
-      border-radius: 12px !important;
-      box-shadow: none !important;
-      padding: 16px 8px !important;
-      margin: 0 -8px !important;
-      border-bottom-color: transparent !important;
+    .pj2-row.pj2-item:active {
+      background: rgba(15, 23, 42, 0.04) !important;
     }
 
     /* ── Left block ── */
@@ -1539,18 +1560,20 @@ const CSS = `
       align-items: center !important;
       width: 100% !important;
       box-sizing: border-box !important;
-      background: #F7F7F8 !important;
-      border-top: 1px solid rgba(15, 23, 42, 0.08);
-      border-radius: 24px 24px 0 0 !important;
-      box-shadow: none !important;
+      background: #FFFFFF !important;
+      border-top: 0 !important;
+      border-radius: 36px 36px 0 0 !important;
+      box-shadow:
+        0 -10px 40px rgba(0, 0, 0, 0.10),
+        0 -2px 12px rgba(0, 0, 0, 0.05) !important;
       padding: 10px 16px 16px !important;
       padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px)) !important;
     }
     .pjm-home-indicator {
-      width: 48px !important; height: 5px !important;
-      background: rgba(144,149,159,0.3) !important;
-      border-radius: 24px !important;
-      margin-bottom: 12px !important;
+      width: 40px !important; height: 4px !important;
+      background: rgba(0, 0, 0, 0.12) !important;
+      border-radius: 999px !important;
+      margin-bottom: 14px !important;
       cursor: grab !important;
       flex-shrink: 0 !important;
     }
@@ -1565,53 +1588,57 @@ const CSS = `
       min-width: 0 !important;
       display: flex !important;
       align-items: center !important;
-      justify-content: center !important;
+      justify-content: flex-start !important;
       gap: 10px !important;
-      height: 52px !important;
-      padding: 0 18px !important;
-      border: 1.5px solid rgba(15, 23, 42, 0.12) !important;
+      height: 54px !important;
+      padding: 0 20px !important;
+      border: 0 !important;
       border-radius: 999px !important;
       background: #FFFFFF !important;
       color: #1C1C1E !important;
       font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif) !important;
-      font-size: 15px !important;
+      font-size: 16px !important;
       font-weight: 400 !important;
+      letter-spacing: -0.01em !important;
       cursor: pointer !important;
-      box-shadow: none !important;
+      box-shadow:
+        0 2px 12px rgba(0, 0, 0, 0.08),
+        0 1px 3px rgba(0, 0, 0, 0.04) !important;
       white-space: nowrap !important;
       overflow: hidden !important;
     }
     .pjm-status-btn:active {
-      background: #F4F4F5 !important;
+      background: #F8F8F8 !important;
+      transform: scale(0.985);
     }
     .pjm-status-btn svg {
       flex-shrink: 0 !important;
       color: #1C1C1E !important;
-      width: 22px !important; height: 22px !important;
+      width: 17px !important; height: 17px !important;
+      margin-left: 0 !important;
     }
     .pjm-status-btn span {
       overflow: hidden !important;
       text-overflow: ellipsis !important;
     }
     .pjm-tagro {
-      width: 52px !important; height: 52px !important;
+      width: 54px !important; height: 54px !important;
       flex-shrink: 0 !important;
       border: 0 !important;
       border-radius: 999px !important;
-      background: #5B647D !important;
+      background: #007AFF !important;
       color: #FFFFFF !important;
       display: inline-flex !important; align-items: center !important; justify-content: center !important;
       cursor: pointer !important;
       padding: 0 !important;
-      box-shadow:
-        0 1px 2px rgba(15, 23, 42, 0.12),
-        0 8px 20px -8px rgba(91, 100, 125, 0.5) !important;
+      box-shadow: 0 4px 18px rgba(0, 122, 255, 0.38) !important;
     }
     .pjm-tagro:active {
       transform: scale(0.97);
+      background: #0066DB !important;
     }
     .pjm-tagro svg {
-      width: 22px !important; height: 22px !important;
+      width: 20px !important; height: 20px !important;
     }
 
     /* ── Tagro desktop hidden ── */
