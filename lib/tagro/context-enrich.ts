@@ -63,6 +63,14 @@ export async function enrichTagroObjectContext(body: {
         subtitle: body.subtitle || data.summary?.slice(0, 120) || undefined,
       }
     }
+    if (type === 'document' || type === 'pdf') {
+      const { data } = await sb.from('documents').select('project_id,title,type,mime').eq('id', id).maybeSingle()
+      if (!data) return {}
+      return {
+        projectId: data.project_id ?? body.projectId,
+        subtitle: body.subtitle || [data.type, data.mime].filter(Boolean).join(' · ') || undefined,
+      }
+    }
   } catch {
     return {}
   }

@@ -171,6 +171,9 @@ export default function InboxPage() {
     id: 'inbox',
     title: 'Inbox · Triage',
     subtitle: `${counts.all} Items · ${counts.unread} ungelesen`,
+    prefill: counts.unread > 0
+      ? `Priorisiere die ${counts.unread} ungelesenen Inbox-Items und schlage klare nächste Schritte vor.`
+      : 'Fasse den Posteingang zusammen und markiere, was Aufmerksamkeit braucht.',
   })
 
   return (

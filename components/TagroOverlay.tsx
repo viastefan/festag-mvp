@@ -618,6 +618,8 @@ export default function TagroOverlay() {
 
   function close() {
     setOpen(false); setFullscreen(false); setMessages([]); setInput(''); setError(''); setFromScratch(false)
+    const el = composerRef.current
+    if (el) el.style.height = ''
     if (typeof window !== 'undefined') {
       try { window.dispatchEvent(new CustomEvent('festag:tagro-closed')) } catch {}
     }
@@ -1201,7 +1203,7 @@ function Composer({
 // ── People / Sources / Objects picker ─────────────────────────────────────
 
 const PICK_GROUP_ORDER: PickGroup[] = [
-  'Personen', 'Projekte', 'Aufgaben', 'Entscheidungen', 'Berichte', 'Kunden', 'Notizen',
+  'Personen', 'Projekte', 'Aufgaben', 'Entscheidungen', 'Berichte', 'Dokumente', 'Kunden', 'Notizen',
 ]
 
 function pickGroupIcon(group: PickGroup) {
@@ -1211,6 +1213,7 @@ function pickGroupIcon(group: PickGroup) {
     case 'Aufgaben': return <CheckSquare size={14} />
     case 'Entscheidungen': return <Scales size={14} />
     case 'Berichte': return <ChartLine size={14} />
+    case 'Dokumente': return <FileText size={14} />
     case 'Kunden': return <UsersThree size={14} />
     default: return <FileText size={14} />
   }

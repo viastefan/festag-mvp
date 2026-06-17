@@ -9,6 +9,7 @@ export type PickGroup =
   | 'Aufgaben'
   | 'Entscheidungen'
   | 'Berichte'
+  | 'Dokumente'
   | 'Notizen'
   | 'Kunden'
 
@@ -72,17 +73,25 @@ export async function searchTagroPicker(query: string): Promise<PickResult[]> {
   const reportsQ = like
     ? sb.from('status_reports').select('id,summary,content,project_id').or(`summary.ilike.${like},content.ilike.${like}`).limit(4)
     : sb.from('status_reports').select('id,summary,content,project_id').order('updated_at', { ascending: false }).limit(4)
+  const documentsQ = like
+    ? sb.from('documents').select('id,title,type').ilike('title', like).limit(4)
+    : sb.from('documents').select('id,title,type').order('created_at', { ascending: false }).limit(4)
+  const festagNotesQ = like
+    ? sb.from('notes').select('id,title,body').or(`title.ilike.${like},body.ilike.${like}`).limit(4)
+    : sb.from('notes').select('id,title,body').order('updated_at', { ascending: false }).limit(4)
   const peopleQ = like
     ? sb.from('profiles').select('id,full_name,first_name,email').or(`full_name.ilike.${like},first_name.ilike.${like},email.ilike.${like}`).limit(5)
     : sb.from('profiles').select('id,full_name,first_name,email').order('created_at', { ascending: false }).limit(5)
 
-  const [projects, tasks, decisions, clients, notes, reports, people] = await Promise.all([
+  const [projects, tasks, decisions, clients, notes, reports, documents, festagNotes, people] = await Promise.all([
     projectsQ.then((r: any) => r).catch(() => ({ data: [] })),
     tasksQ.then((r: any) => r).catch(() => ({ data: [] })),
     decisionsQ.then((r: any) => r).catch(() => ({ data: [] })),
     clientsQ.then((r: any) => r).catch(() => ({ data: [] })),
     notesQ.then((r: any) => r).catch(() => ({ data: [] })),
     reportsQ.then((r: any) => r).catch(() => ({ data: [] })),
+    documentsQ.then((r: any) => r).catch(() => ({ data: [] })),
+    festagNotesQ.then((r: any) => r).catch(() => ({ data: [] })),
     peopleQ.then((r: any) => r).catch(() => ({ data: [] })),
   ])
 
@@ -124,6 +133,13 @@ export async function searchTagroPicker(query: string): Promise<PickResult[]> {
       objectType: 'status_report', mentionLabel: `@Bericht ${title}`,
     })
   })
+  ;(documents.data || []).forEach((d: any) => {
+    const title = d.title || 'Dokument'
+    out.push({
+      group: 'Dokumente', id: d.id, title, hint: d.type || 'Dokument',
+      objectType: 'document', mentionLabel: `@Dokument ${title}`,
+    })
+  })
   ;(clients.data || []).forEach((c: any) => {
     out.push({
       group: 'Kunden', id: c.id, title: c.name,
@@ -134,6 +150,13 @@ export async function searchTagroPicker(query: string): Promise<PickResult[]> {
     const title = n.title || (n.content || '').slice(0, 60)
     out.push({
       group: 'Notizen', id: n.id, title,
+      objectType: 'note', mentionLabel: `@Notiz ${title}`,
+    })
+  })
+  ;(festagNotes.data || []).forEach((n: any) => {
+    const title = n.title || (n.body || '').slice(0, 60) || 'Notiz'
+    out.push({
+      group: 'Notizen', id: n.id, title, hint: 'Festag',
       objectType: 'note', mentionLabel: `@Notiz ${title}`,
     })
   })
