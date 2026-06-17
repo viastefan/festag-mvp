@@ -1671,48 +1671,42 @@ export const DECISION_CSS = `
       height: 36px !important;
       min-width: 36px !important;
       min-height: 36px !important;
-      border: 0 !important;
+      border: var(--dec-m-white-border) !important;
       border-radius: 999px !important;
-      background: var(--portal-btn-primary, #5b647d) !important;
-      color: #ffffff !important;
+      background: #FFFFFF !important;
+      color: #1C1C1E !important;
       display: inline-flex !important;
       align-items: center !important;
       justify-content: center !important;
+      gap: 5px !important;
       cursor: pointer !important;
       padding: 0 !important;
       flex-shrink: 0 !important;
-      box-shadow:
-        0 2px 10px rgba(91, 100, 125, 0.32),
-        0 1px 3px rgba(46, 47, 51, 0.14) !important;
+      box-shadow: var(--dec-m-white-elev) !important;
       -webkit-tap-highlight-color: transparent;
       transition: background .12s ease, transform .12s ease, box-shadow .12s ease;
     }
-    .dec-m-risks-btn.on {
-      background: color-mix(in srgb, var(--portal-btn-primary, #5b647d) 92%, #000) !important;
+    .dec-m-risks-btn.has-count {
+      width: auto !important;
+      min-width: 36px !important;
+      padding: 0 11px 0 10px !important;
     }
+    .dec-m-risks-btn.on { background: #F8F8F8 !important; }
     .dec-m-risks-btn:active {
       transform: scale(0.96);
-      background: color-mix(in srgb, var(--portal-btn-primary, #5b647d) 88%, #000) !important;
+      background: #FAFAFA !important;
     }
-    .dec-m-risks-badge {
-      position: absolute !important;
-      top: -4px !important;
-      right: -4px !important;
-      min-width: 16px !important;
-      height: 16px !important;
-      padding: 0 4px !important;
-      border-radius: 999px !important;
-      background: #ef4444 !important;
-      color: #fff !important;
-      font-size: 10px !important;
+    .dec-m-risks-count {
+      font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif) !important;
+      font-size: 13px !important;
       font-weight: 600 !important;
-      line-height: 16px !important;
-      text-align: center !important;
-      border: 2px solid #FCFCFC !important;
-      box-sizing: border-box !important;
+      font-variant-numeric: tabular-nums !important;
+      letter-spacing: -0.02em !important;
+      line-height: 1 !important;
+      color: #1C1C1E !important;
     }
-    .dec-m-risks-badge--pulse {
-      animation: decRisksPulse 1.8s ease-in-out infinite;
+    .dec-m-risks-count--pulse {
+      color: #FF3B30 !important;
     }
     .dec-m-actions-group {
       display: inline-flex !important;
@@ -1849,14 +1843,14 @@ export const DECISION_CSS = `
       display: flex !important;
       flex-direction: column !important;
       align-items: stretch !important;
-      gap: 16px !important;
+      gap: 14px !important;
       width: 100% !important;
       box-sizing: border-box !important;
-      padding: 16px !important;
-      border-radius: 12px !important;
+      padding: 18px 16px !important;
+      border-radius: 14px !important;
       background: #FFFFFF !important;
-      border: 1px solid rgba(255, 255, 255, 0.9) !important;
-      box-shadow: 0 2px 4px rgba(144, 149, 159, 0.07) !important;
+      border: 1px solid rgba(0, 0, 0, 0.06) !important;
+      box-shadow: var(--dec-m-white-elev) !important;
       margin: 0 !important;
       -webkit-tap-highlight-color: transparent;
       transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
@@ -1891,42 +1885,105 @@ export const DECISION_CSS = `
       align-items: flex-start !important;
       justify-content: space-between !important;
     }
-    .dec-card-title-block { flex: 1 1 auto !important; min-width: 0 !important; gap: 5px !important; }
+    .dec-card-title-block { flex: 1 1 auto !important; min-width: 0 !important; gap: 4px !important; }
     .dec-card-title {
-      font-size: 18px !important;
-      font-weight: 500 !important;
+      font-size: 20px !important;
+      font-weight: 400 !important;
+      letter-spacing: -0.02em !important;
+      line-height: 1.2 !important;
       white-space: nowrap !important;
       overflow: hidden !important;
       text-overflow: ellipsis !important;
     }
     .dec-card-project {
-      font-size: 14px !important;
+      font-size: 15px !important;
+      font-weight: 400 !important;
+      letter-spacing: -0.01em !important;
+      line-height: 1.25 !important;
+      color: #90959F !important;
       white-space: nowrap !important;
       overflow: hidden !important;
       text-overflow: ellipsis !important;
     }
-    .dec-card-type-pill { flex-shrink: 0 !important; }
+    .dec-card-type-pill {
+      flex-shrink: 0 !important;
+      font-size: 12px !important;
+      padding: 5px 10px !important;
+      gap: 5px !important;
+    }
+    .dec-card-type-pill .dec-card-dot {
+      width: 6px !important;
+      height: 6px !important;
+      box-shadow: none !important;
+    }
+    .dec-card-mid { gap: 10px !important; }
     .dec-card-mid .dec-card-section:last-child { display: none !important; }
+    .dec-card-label { display: none !important; }
+    .dec-card-mid .dec-card-muted {
+      font-size: 15px !important;
+      line-height: 1.45 !important;
+      letter-spacing: -0.01em !important;
+      color: #4E5567 !important;
+    }
     .dec-card-meta {
       flex-direction: row !important;
       align-items: center !important;
-      justify-content: space-between !important;
-      gap: 12px !important;
+      justify-content: flex-start !important;
+      gap: 10px !important;
+      margin-top: 2px !important;
     }
     .dec-card-meta .dec-card-section:first-child { display: none !important; }
+    .dec-card-prio-pill {
+      font-size: 13px !important;
+      font-weight: 500 !important;
+      padding: 5px 11px 5px 9px !important;
+      gap: 5px !important;
+    }
+    .dec-card-prio-pill .dec-card-dot--prio {
+      width: 6px !important;
+      height: 6px !important;
+      box-shadow: none !important;
+    }
+    .dec-card-prio-warn {
+      width: 12px !important;
+      height: 12px !important;
+      margin: 0 !important;
+      color: #FF3B30 !important;
+    }
     .dec-card-actions {
-      flex-direction: row !important;
-      flex-wrap: wrap !important;
+      flex-direction: column !important;
+      flex-wrap: nowrap !important;
       gap: 8px !important;
       align-items: stretch !important;
+      margin-top: 4px !important;
     }
     .dec-card-dots { display: none !important; }
     .dec-card-actions > button,
-    .dec-card-actions > a { flex: 1 1 auto !important; min-width: 0 !important; }
+    .dec-card-actions > a {
+      flex: 0 0 auto !important;
+      width: 100% !important;
+      min-width: 0 !important;
+      min-height: 44px !important;
+      font-size: 15px !important;
+    }
 
     .dec-demo-banner {
       border-radius: 12px !important;
-      margin-bottom: 4px !important;
+      margin-bottom: 8px !important;
+      padding: 10px 12px !important;
+      background: rgba(144, 149, 159, 0.08) !important;
+      border: 0 !important;
+      gap: 2px !important;
+    }
+    .dec-demo-banner span {
+      font-size: 14px !important;
+      font-weight: 400 !important;
+      letter-spacing: -0.01em !important;
+    }
+    .dec-demo-banner small {
+      font-size: 13px !important;
+      line-height: 1.4 !important;
+      opacity: 0.85 !important;
     }
     .dec-empty {
       padding: 32px 16px !important;
@@ -1957,15 +2014,22 @@ export const DECISION_CSS = `
     }
     [data-theme="dark"] .dec-m-risks-btn,
     [data-theme="classic-dark"] .dec-m-risks-btn {
-      background: #ffffff !important;
-      color: #121214 !important;
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.92),
-        0 2px 6px rgba(0, 0, 0, 0.36) !important;
+      background: rgba(255, 255, 255, 0.11) !important;
+      border: var(--dec-m-white-border) !important;
+      color: rgba(255, 255, 255, 0.92) !important;
+      box-shadow: var(--dec-m-white-elev) !important;
     }
     [data-theme="dark"] .dec-m-risks-btn.on,
     [data-theme="classic-dark"] .dec-m-risks-btn.on {
-      background: #f0f0f2 !important;
+      background: rgba(255, 255, 255, 0.14) !important;
+    }
+    [data-theme="dark"] .dec-m-risks-count,
+    [data-theme="classic-dark"] .dec-m-risks-count {
+      color: rgba(255, 255, 255, 0.92) !important;
+    }
+    [data-theme="dark"] .dec-m-risks-count--pulse,
+    [data-theme="classic-dark"] .dec-m-risks-count--pulse {
+      color: #FF6B6B !important;
     }
     [data-theme="dark"] .dec-m-ctl,
     [data-theme="classic-dark"] .dec-m-ctl {

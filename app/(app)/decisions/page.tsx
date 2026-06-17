@@ -502,7 +502,7 @@ function DecisionsPageInner() {
           <div className="dec-m-risks-wrap" ref={mobileRisksWrapRef}>
             <button
               type="button"
-              className={`dec-m-risks-btn${risksOpen ? ' on' : ''}`}
+              className={`dec-m-risks-btn${risksOpen ? ' on' : ''}${risks.length > 0 ? ' has-count' : ''}`}
               aria-label={risks.length ? `${risks.length} Risiken` : 'Risiken'}
               aria-expanded={risksOpen}
               onClick={() => {
@@ -510,10 +510,10 @@ function DecisionsPageInner() {
                 setRisksOpen(v => !v)
               }}
             >
-              <Lightning size={18} weight={risks.length ? 'fill' : 'bold'} />
+              <Lightning size={17} weight={risks.length ? 'fill' : 'regular'} />
               {risks.length > 0 && (
                 <span
-                  className={`dec-m-risks-badge${hasCriticalRisks ? ' dec-m-risks-badge--pulse' : ''}`}
+                  className={`dec-m-risks-count${hasCriticalRisks ? ' dec-m-risks-count--pulse' : ''}`}
                   aria-hidden
                 >
                   {risks.length > 9 ? '9+' : risks.length}

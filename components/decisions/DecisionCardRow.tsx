@@ -77,6 +77,9 @@ export default function DecisionCardRow({
     !isAnswered &&
     isOpen
 
+  const showPrioWarn =
+    (d.urgency === 'critical' || (d.escalation_level ?? 0) >= 2) && isOpen
+
   useEffect(() => {
     if (!menuOpen) return
     function onDoc(e: MouseEvent) {
@@ -329,9 +332,10 @@ export default function DecisionCardRow({
               className="dec-card-prio-pill"
               style={{ ['--dec-dot-color' as string]: urgencyDotColor(d.urgency) }}
             >
-              <span className="dec-card-dot dec-card-dot--prio" aria-hidden />
-              {(d.escalation_level ?? 0) >= 2 && isOpenDecisionStatus(d.status) && (
-                <WarningCircle size={11} weight="fill" className="dec-card-prio-warn" />
+              {showPrioWarn ? (
+                <WarningCircle size={12} weight="fill" className="dec-card-prio-warn" />
+              ) : (
+                <span className="dec-card-dot dec-card-dot--prio" aria-hidden />
               )}
               {URGENCY_LABEL[d.urgency] || 'Normal'}
             </span>
