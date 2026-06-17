@@ -9,7 +9,6 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
 import {
   ArrowsClockwise, ArrowSquareOut, Lightning, PaperPlaneTilt, Scales, Sparkle, WarningCircle,
 } from '@phosphor-icons/react'
@@ -61,9 +60,15 @@ function fmtAgo(iso: string) {
 }
 
 export default function DevDecisionsPage() {
-  const searchParams = useSearchParams()
-  const openId = searchParams?.get('open') || null
+  const [openId, setOpenId] = useState<string | null>(null)
   const highlightRef = useRef<HTMLLIElement | null>(null)
+
+  useEffect(() => {
+    try {
+      const id = new URL(window.location.href).searchParams.get('open')
+      if (id) setOpenId(id)
+    } catch {}
+  }, [])
   const [decisions, setDecisions] = useState<DecisionRow[]>([])
   const [projects, setProjects] = useState<Record<string, ProjectLite>>({})
   const [loading, setLoading] = useState(true)
@@ -172,7 +177,7 @@ export default function DevDecisionsPage() {
       if (data.skipped) {
         setToast('Beispieldaten existieren bereits — „Neu seeden“ erzwingt einen Neuaufbau.')
       } else {
-        setToast(`${data.created?.length ?? 0} Beispiel-Entscheidungen angelegt`)
+        setToast(`${data.created?.length ?? 0} Beispiel-Entscheidungen angelegt — Client: /decisions?demo=0`)
       }
       await load()
     } finally {
