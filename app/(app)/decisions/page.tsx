@@ -547,7 +547,6 @@ function DecisionsPageInner() {
                   {isOpen && !isAnswered && (
                     <FestagPillButton
                       variant="primary"
-                      block
                       onClick={(e) => { e.stopPropagation(); router.push(`/decisions/${d.id}`) }}
                     >
                       {primaryLabel}
@@ -1295,7 +1294,7 @@ export const DECISION_CSS = `
   .dec-hero { display:flex; justify-content:space-between; align-items:flex-start; gap:24px; padding-bottom:24px; }
   .dec-hero-text { max-width:600px; flex:1; min-width:0; }
   .dec-hero-title {
-    margin:0; font-size:28px; font-weight:400; color:var(--dec-dark);
+    margin:0; font-size:30px; font-weight:500; color:var(--dec-dark);
     letter-spacing:-0.01em; line-height:1.2;
     font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
   }
@@ -1374,10 +1373,10 @@ export const DECISION_CSS = `
     display:inline-flex; align-items:center; gap:8px;
     padding:6px 12px; border-radius:999px;
     background:var(--portal-pill-bg); color:var(--dec-dark);
-    font-size:14px; font-weight:400; letter-spacing:0;
+    font-size:12px; font-weight:500; letter-spacing:0;
     width:fit-content;
   }
-  .dec-card-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+  .dec-card-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
 
   .dec-card-mid { width:298px; flex-shrink:0; display:flex; flex-direction:column; gap:24px; }
   .dec-card-section { display:flex; flex-direction:column; gap:8px; }
@@ -1387,7 +1386,7 @@ export const DECISION_CSS = `
     font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
   }
   .dec-card-muted {
-    margin:0; font-size:14px; font-weight:400; color:var(--dec-soft);
+    margin:0; font-size:13px; font-weight:400; color:var(--dec-soft);
     line-height:1.45; letter-spacing:0;
   }
 
@@ -1396,7 +1395,8 @@ export const DECISION_CSS = `
     display:inline-flex; align-items:center;
     padding:6px 12px; border-radius:999px;
     background:var(--portal-pill-bg); color:var(--dec-dark);
-    font-size:14px; font-weight:400; letter-spacing:0;
+    font-size:12px; font-weight:500; letter-spacing:0;
+    font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
     width:fit-content;
   }
 
@@ -1408,6 +1408,26 @@ export const DECISION_CSS = `
     cursor:pointer; padding:4px; transition:color .12s;
   }
   .dec-card-dots:hover { color:var(--dec-dark); }
+  .dec-card-actions .fui-pill-btn {
+    height:40px; min-height:40px; font-size:13px;
+  }
+  .dec-card-actions .fui-pill-btn--primary {
+    border: none;
+    background: var(--portal-btn-primary, #5b647d);
+    background-image: none;
+    box-shadow: none;
+  }
+  .dec-card-actions .fui-pill-btn--primary:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--portal-btn-primary, #5b647d) 88%, #000);
+    background-image: none;
+    border: none;
+    box-shadow: none;
+  }
+  .dec-card-actions .fui-pill-btn--primary:active:not(:disabled) {
+    background: color-mix(in srgb, var(--portal-btn-primary, #5b647d) 80%, #000);
+    background-image: none;
+    box-shadow: none;
+  }
 
   .dec-empty {
     padding:48px 6px; color:var(--dec-soft);
@@ -1742,8 +1762,8 @@ export const DECISION_CSS = `
     .dec-card-actions > button, .dec-card-actions > a { width:auto; flex:1; min-width:80px; }
     .dec-detail-topbar { padding:16px 20px 0; }
     .dec-detail-page { padding:12px 20px 40px; }
-    .dec-hero-title { font-size:24px; }
-    .dec-hero-sub p { font-size:16px; }
+    .dec-hero-title { font-size:30px; }
+    .dec-hero-sub p { font-size:18px; }
     .dec-panel { width:100vw; }
     .dec-answer-actions { flex-direction:column; align-items:stretch; }
     .dec-answer-actions > button { width:100%; justify-content:center; }

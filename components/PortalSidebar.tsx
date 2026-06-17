@@ -26,7 +26,7 @@ const NAV = [
   { href: '/tasks', label: 'Tasks', Icon: ListChecks, gap: 21 },
   { href: '/docs', label: 'Dokumente', Icon: File, gap: 22 },
   { href: '/connectors', label: 'Connectors', Icon: Plugs, gap: 22 },
-  { href: '/teams', label: 'Teams', Icon: UsersThree, gap: 16 },
+  { href: '/teams', label: 'Teams', Icon: UsersThree, gap: 20 },
 ] as const
 
 type RecentItem = { id: string; label: string; href: string }
@@ -213,7 +213,8 @@ const CSS = `
 
   .portal-nav-top {
     display: flex; flex-direction: column; gap: 20px;
-    min-width: 0; flex: 1 1 auto; min-height: 0;
+    min-width: 0; width: 100%; height: fit-content;
+    background: unset;
   }
 
   .portal-nav-header {
@@ -246,11 +247,11 @@ const CSS = `
   .portal-nav-ws-label {
     font-size: 9px; font-weight: 400;
     color: var(--portal-muted, #6e717e);
-    letter-spacing: 0;
+    letter-spacing: 0.05px;
   }
 
   .portal-nav-ws-value {
-    font-size: 13px; font-weight: 400;
+    font-size: 14px; font-weight: 400;
     color: var(--portal-text, #0f0f10);
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     max-width: 88px;
@@ -268,6 +269,19 @@ const CSS = `
     display: flex; align-items: center; gap: 4px; flex-shrink: 0;
     padding-top: 2px;
   }
+  .portal-nav-utilities .fui-icon-btn {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+  }
+  .portal-nav-utilities .fui-icon-btn:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--portal-pill-bg, #f1f3f5) 55%, transparent);
+    border: none;
+    box-shadow: none;
+  }
+  .portal-nav-utilities .fui-icon-btn:active:not(:disabled) {
+    box-shadow: none;
+  }
 
   .portal-nav-items {
     display: flex; flex-direction: column; gap: 4px;
@@ -280,10 +294,10 @@ const CSS = `
   .portal-nav-item {
     display: flex; align-items: center;
     gap: var(--nav-gap, 20px);
-    padding: 7px 10px;
+    padding: 7px 12px;
     border-radius: 6px;
     color: var(--portal-muted, #6e717e);
-    font-size: 14px; font-weight: 400;
+    font-size: 13px; font-weight: 400;
     letter-spacing: 0; text-decoration: none;
     transition: color .12s, background .12s, box-shadow .12s;
     white-space: nowrap;
@@ -327,6 +341,7 @@ const CSS = `
   }
 
   .portal-nav-label {
+    font-size: 13px; font-weight: 400;
     overflow: hidden; text-overflow: ellipsis;
     transition: opacity .18s ease, width .18s ease;
   }
@@ -342,7 +357,7 @@ const CSS = `
 
   .portal-nav-recent-label {
     margin: 0 0 2px 10px;
-    font-size: 11px; font-weight: 400;
+    font-size: 12px; font-weight: 500;
     color: var(--portal-muted, #6e717e);
     letter-spacing: -0.01em;
   }
@@ -359,7 +374,7 @@ const CSS = `
     display: block;
     padding: 5px 8px;
     border-radius: 6px;
-    font-size: 12px; font-weight: 400;
+    font-size: 13px; font-weight: 400;
     line-height: 1.35;
     color: var(--portal-muted, #6e717e);
     text-decoration: none;

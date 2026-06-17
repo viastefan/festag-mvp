@@ -137,7 +137,7 @@ export default function MobilePageHeader({
           .mph-title {
             margin: 0;
             grid-column: 1;
-            font-size: 32px;
+            font-size: 30px;
             font-weight: 700;
             line-height: 1.1;
             letter-spacing: -.02em;
@@ -157,9 +157,14 @@ export default function MobilePageHeader({
           grid-column: 2;
           display: inline-flex;
           align-items: center;
-          padding: 4px;
-          gap: 2px;
-          background: var(--surface, #fff);
+          justify-content: center;
+          width: 40px;
+          height: 40px;
+          padding: 0;
+          gap: 0;
+          font-size: 13px;
+          color: rgba(141, 141, 150, 1);
+          background: #fff;
           border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
           border-radius: 999px;
           box-shadow: 0 1px 2px rgba(15,23,42,.06);
@@ -171,10 +176,10 @@ export default function MobilePageHeader({
           box-shadow: none;
         }
         .mph-icon-btn {
-          width: 38px; height: 38px;
+          width: 40px; height: 40px;
           display: inline-flex; align-items: center; justify-content: center;
           background: transparent;
-          color: var(--text, #111);
+          color: rgba(141, 141, 150, 1);
           border: 0;
           border-radius: 999px;
           cursor: pointer;
