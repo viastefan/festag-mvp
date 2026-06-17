@@ -3,6 +3,7 @@ import { getDevUserFromRequest } from '@/lib/dev-auth'
 import { createClient } from '@/lib/supabase/server'
 import { getServiceClient } from '@/lib/supabase/service'
 import { translateDevUpdate } from '@/lib/tagro/translate-update'
+import { createInboxItem } from '@/lib/inbox/create-item'
 
 /**
  * POST /api/dev/daily-update
@@ -166,18 +167,20 @@ export async function POST(req: Request) {
 
         // Live dev → client connection: the translated update also lands
         // in the client's structured inbox as a project status entry.
-        await sb.rpc('create_inbox_item', {
-          p_user_id: clientId,
-          p_project_id: effectiveProjectId,
-          p_category: 'client',
-          p_type: 'status_update',
-          p_title: projectTitle ? `${projectTitle} · neuer Stand` : 'Neuer Tagesstand',
-          p_body: clientSummary || 'Es gibt einen neuen Projektstand.',
-          p_actor_id: user.id,
-          p_source_table: 'status_reports',
-          p_source_id: clientReportId,
-          p_metadata: { source_label: 'Dein Team', thread_title: projectTitle ?? 'Projekt' },
-        }).then(() => null, () => null)
+        if (clientReportId) {
+          await createInboxItem(sb, {
+            userId: clientId,
+            projectId: effectiveProjectId,
+            category: 'client',
+            type: 'status_update',
+            title: projectTitle ? `${projectTitle} · neuer Stand` : 'Neuer Tagesstand',
+            body: clientSummary || 'Es gibt einen neuen Projektstand.',
+            actorId: user.id,
+            sourceTable: 'status_reports',
+            sourceId: clientReportId,
+            metadata: { source_label: 'Tagro', thread_title: projectTitle ?? 'Projekt', link: `/reports?project=${effectiveProjectId}` },
+          })
+        }
       }
     }
 

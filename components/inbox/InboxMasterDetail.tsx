@@ -335,6 +335,8 @@ function ThreadDetail({
   onBack: () => void
 }) {
   const router = useRouter()
+  const [publishing, setPublishing] = useState(false)
+  const [published, setPublished] = useState(false)
   const kind = rawKind(item)
   const link = typeof item.metadata?.link === 'string' ? item.metadata.link : null
   const ctaUrl = typeof item.metadata?.cta_url === 'string' ? item.metadata.cta_url : link
@@ -361,6 +363,26 @@ function ThreadDetail({
       : item.category === 'billing' ? 'Rechnungen öffnen' : 'Im Workspace öffnen')
 
   const devAction = isUnread(item) ? DEV_KIND_ACTION[kind] : undefined
+  const canPublishToClient = variant === 'dev' && !!item.project_id && !!(item.body || item.title)
+
+  async function publishViaTagro() {
+    if (!item.project_id || publishing) return
+    setPublishing(true)
+    try {
+      const res = await fetch('/api/dev/publish-to-client', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectId: item.project_id,
+          taskId: item.metadata?.task_id ?? null,
+          text: item.body || item.title,
+        }),
+      })
+      if (res.ok) setPublished(true)
+    } finally {
+      setPublishing(false)
+    }
+  }
 
   return (
     <article className="ix-detail-card">
@@ -399,9 +421,21 @@ function ThreadDetail({
 
       <footer className="ix-detail-actions">
         {link && variant === 'dev' ? (
-          <Link href={link} className="ix-btn primary">
-            <ArrowSquareOut size={13} weight="regular" /> {devAction ?? 'Task öffnen'}
-          </Link>
+          <>
+            {canPublishToClient && (
+              <button
+                type="button"
+                className="ix-btn primary"
+                disabled={publishing || published}
+                onClick={publishViaTagro}
+              >
+                {published ? 'An Client gesendet' : publishing ? 'Tagro übersetzt…' : 'Via Tagro an Client'}
+              </button>
+            )}
+            <Link href={link} className="ix-btn">
+              <ArrowSquareOut size={13} weight="regular" /> {devAction ?? 'Task öffnen'}
+            </Link>
+          </>
         ) : (
           <>
             {isActionable(item, variant) && item.project_id && variant === 'client' && (

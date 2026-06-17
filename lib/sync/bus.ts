@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { CLIENT_VISIBLE_LABEL, clientStatusFromDevFlow, type DevFlow } from '@/lib/tasks/work-types'
 import { getServiceClient } from '@/lib/supabase/service'
+import { publishTagroClientUpdate } from '@/lib/sync/client-bridge'
 
 /**
  * Tagro Sync Bus — the single place that fans dev-side task events out
@@ -171,6 +172,29 @@ async function fanoutNotifications(
     }))
   if (rows.length === 0) return
   await writer.from('notifications').insert(rows).then(() => null, () => null)
+
+  // 4) Client Posteingang — Tagro-translated visibility layer.
+  if (visibleToClient && ctx.projectId) {
+    const calm = translateForClient(event, ctx)
+    if (calm) {
+      const clientRecipients = recipients.filter(r => r.audience === 'client')
+      for (const r of clientRecipients) {
+        void publishTagroClientUpdate({
+          writer,
+          clientId: r.userId,
+          projectId: ctx.projectId,
+          devText: calm,
+          actorId: ctx.actorId,
+          taskId: ctx.taskId,
+          sourceTable: 'task_events',
+          sourceId: `${ctx.taskId}:${event}`,
+          inboxTitle: title,
+          link,
+          preTranslated: calm,
+        }).catch(() => undefined)
+      }
+    }
+  }
 
   // Email fan-out for the loud events. Best-effort, fire-and-forget,
   // never blocks the response or the notifications insert above.

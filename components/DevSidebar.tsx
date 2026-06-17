@@ -30,7 +30,7 @@ import { createClient } from '@/lib/supabase/client'
 import { devDisplayName } from '@/lib/dev-session'
 import type { DevIdentity } from '@/components/DevAppShell'
 
-type NavRow = { href: string; icon: React.ElementType; label: string }
+type NavRow = { href: string; icon: React.ElementType; label: string; badge?: number }
 const NAV_MAIN: NavRow[] = [
   { href: '/dev',           icon: Compass,     label: 'Overview' },
   { href: '/dev/projects',  icon: FolderOpen,  label: 'Projects' },
@@ -48,7 +48,7 @@ const NAV_INTEGRATIONS: NavRow[] = [
 ]
 const NAV_ORG: NavRow[] = [
   { href: '/dev/team',     icon: UsersThree,  label: 'Team' },
-  { href: '/dev/messages', icon: ChatsCircle, label: 'Messages' },
+  { href: '/dev/messages', icon: ChatsCircle, label: 'Execution Inbox' },
 ]
 
 const ROLE_LABEL: Record<string, string> = {
@@ -105,6 +105,7 @@ export default function DevSidebar({
   const [tick, setTick] = useState(0)
   const [syncing, setSyncing] = useState(false)
   const [syncToast, setSyncToast] = useState<string | null>(null)
+  const [inboxUnread, setInboxUnread] = useState(0)
 
   const userId = identity.kind === 'supabase' ? identity.userId : identity.session.user_id
   const displayName = identity.kind === 'supabase' ? identity.name : devDisplayName(identity.session)
@@ -162,6 +163,10 @@ export default function DevSidebar({
   useEffect(() => {
     loadStats()
     loadOpenSession()
+    fetch('/api/dev/execution-inbox?unread=1&limit=1', { cache: 'no-store' })
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d) setInboxUnread(Number(d.unread ?? 0)) })
+      .catch(() => undefined)
   }, [loadStats, loadOpenSession, pathname])
 
   // global Sync trigger — invoked from the footer Sync GitHub button
@@ -300,7 +305,7 @@ export default function DevSidebar({
         <div className="ds-scroll">
           <NavGroup label="Workspace" rows={NAV_MAIN} isActive={isActive} />
           <NavGroup label="Integrations" rows={NAV_INTEGRATIONS} isActive={isActive} />
-          <NavGroup label="Team" rows={NAV_ORG} isActive={isActive} />
+          <NavGroup label="Team" rows={NAV_ORG.map(r => r.href === '/dev/messages' ? { ...r, badge: inboxUnread } : r)} isActive={isActive} />
 
           <p className="ds-section-label">Quick</p>
           <button
@@ -512,6 +517,7 @@ function NavGroup({
             <Link key={r.href} href={r.href} className={`ds-nav-row${active ? ' active' : ''}`}>
               <Icon size={15} weight={active ? 'fill' : 'regular'} />
               <span>{r.label}</span>
+              {!!r.badge && r.badge > 0 && <span className="ds-nav-badge">{r.badge}</span>}
             </Link>
           )
         })}
@@ -521,6 +527,14 @@ function NavGroup({
           margin: 6px 6px 2px;
           font-size: 9.5px; font-weight: 500; letter-spacing: .02em;
           text-transform: uppercase; color: var(--text-muted);
+        }
+        .ds-nav-badge {
+          margin-left: auto;
+          min-width: 18px; height: 18px; padding: 0 5px;
+          border-radius: 999px; font-size: 10px; font-weight: 500;
+          display: inline-flex; align-items: center; justify-content: center;
+          background: color-mix(in srgb, var(--accent) 18%, transparent);
+          color: var(--accent);
         }
       `}</style>
     </div>

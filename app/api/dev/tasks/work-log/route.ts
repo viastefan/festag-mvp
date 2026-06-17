@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import { getDevUserFromRequest } from '@/lib/dev-auth'
 import { createClient } from '@/lib/supabase/server'
+import { getServiceClient } from '@/lib/supabase/service'
+import { publishTagroClientUpdate } from '@/lib/sync/client-bridge'
 import { emitTaskEvent } from '@/lib/sync/bus'
 
 /**
@@ -50,9 +52,10 @@ export async function POST(req: Request) {
   const text   = String(body?.text || '').trim()
   const status = body?.status ? String(body.status) : 'in_progress'
   const blockerDescription = body?.blockerDescription ? String(body.blockerDescription).slice(0, 800) : null
+  const publishToClient = !!body?.publishToClient
   if (!taskId || !text) return NextResponse.json({ error: 'task_and_text_required' }, { status: 400 })
 
-  const { data: task } = await supabase.from('tasks').select('id,title,project_id').eq('id', taskId).maybeSingle()
+  const { data: task } = await supabase.from('tasks').select('id,title,project_id,projects(title,user_id,client_id)').eq('id', taskId).maybeSingle()
 
   const { data: log, error } = await supabase.from('developer_updates').insert({
     developer_id: user.id,
@@ -79,5 +82,26 @@ export async function POST(req: Request) {
     last_dev_action_at: new Date().toISOString(),
   }).eq('id', taskId).then(() => null, () => null)
 
-  return NextResponse.json({ ok: true, log })
+  let clientPublished = false
+  if (publishToClient && (task as any)?.project_id) {
+    const writer = getServiceClient() ?? supabase
+    const clientId = (task as any).projects?.client_id ?? (task as any).projects?.user_id
+    if (clientId) {
+      await publishTagroClientUpdate({
+        writer: writer as any,
+        clientId,
+        projectId: (task as any).project_id,
+        projectTitle: (task as any).projects?.title ?? (task as any).title,
+        devText: text,
+        actorId: user.id,
+        taskId,
+        sourceTable: 'developer_updates',
+        sourceId: String((log as any).id),
+        link: `/project/${(task as any).project_id}`,
+      })
+      clientPublished = true
+    }
+  }
+
+  return NextResponse.json({ ok: true, log, clientPublished })
 }
