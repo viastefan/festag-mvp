@@ -1339,8 +1339,10 @@ const CSS = `
 
     .pj2-page {
       --pjm-white-elev:
-        inset 0 1px 0 rgba(255, 255, 255, 0.95),
-        0 2px 4px rgba(144, 149, 159, 0.09);
+        inset 0 1px 0 rgba(255, 255, 255, 1),
+        0 1px 0 rgba(0, 0, 0, 0.04),
+        0 4px 10px rgba(144, 149, 159, 0.16);
+      --pjm-white-border: 1px solid rgba(0, 0, 0, 0.07);
       background: #FCFCFC !important;
       backdrop-filter: none !important;
       -webkit-backdrop-filter: none !important;
@@ -1493,10 +1495,10 @@ const CSS = `
       min-width: 36px !important;
       height: 36px !important;
       min-height: 36px !important;
-      border: 0 !important;
+      border: var(--pjm-white-border) !important;
       border-radius: 6px !important;
       background: #FFFFFF !important;
-      color: #2A3032 !important;
+      color: #1C1C1E !important;
       display: inline-flex !important;
       align-items: center !important;
       justify-content: center !important;
@@ -1523,12 +1525,15 @@ const CSS = `
     }
     .pjm-ctl:active {
       transform: scale(0.96);
-      opacity: 0.92;
+      opacity: 0.96;
+      background: #FAFAFA !important;
       box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.9),
-        0 1px 2px rgba(144, 149, 159, 0.08) !important;
+        inset 0 1px 0 rgba(255, 255, 255, 0.95),
+        0 1px 3px rgba(144, 149, 159, 0.12) !important;
     }
     .pj2-page .cx-action-pill {
+      background: #FFFFFF !important;
+      border: var(--pjm-white-border) !important;
       box-shadow: var(--pjm-white-elev) !important;
     }
     .pjm-sheet-title {
@@ -1812,7 +1817,7 @@ const CSS = `
       justify-content: center !important;
       height: 54px !important;
       padding: 0 20px !important;
-      border: 0 !important;
+      border: var(--pjm-white-border) !important;
       border-radius: 999px !important;
       background: #FFFFFF !important;
       color: #8E8E93 !important;
@@ -1851,6 +1856,10 @@ const CSS = `
       text-overflow: ellipsis !important;
       white-space: nowrap !important;
       pointer-events: none !important;
+      font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif) !important;
+      font-size: 16px !important;
+      font-weight: 400 !important;
+      letter-spacing: -0.01em !important;
     }
     .pjm-tagro {
       width: 54px !important; height: 54px !important;
@@ -1876,8 +1885,9 @@ const CSS = `
     [data-theme="dark"] .pj2-page,
     [data-theme="classic-dark"] .pj2-page {
       --pjm-white-elev:
-        inset 0 1px 0 rgba(255, 255, 255, 0.07),
-        0 2px 4px rgba(0, 0, 0, 0.34);
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        0 2px 8px rgba(0, 0, 0, 0.42);
+      --pjm-white-border: 1px solid rgba(255, 255, 255, 0.14);
       background: transparent !important;
       color: var(--portal-text, #f4f4f4);
     }
@@ -1911,8 +1921,9 @@ const CSS = `
     }
     [data-theme="dark"] .pj2-page .pjm-ctl,
     [data-theme="classic-dark"] .pj2-page .pjm-ctl {
-      background: rgba(255, 255, 255, 0.08) !important;
-      color: rgba(255, 255, 255, 0.88) !important;
+      background: rgba(255, 255, 255, 0.11) !important;
+      border: var(--pjm-white-border) !important;
+      color: rgba(255, 255, 255, 0.92) !important;
       box-shadow: var(--pjm-white-elev) !important;
     }
     [data-theme="dark"] .pj2-page .pjm-ctl.on,
@@ -1932,6 +1943,8 @@ const CSS = `
     }
     [data-theme="dark"] .pj2-page .cx-action-pill,
     [data-theme="classic-dark"] .pj2-page .cx-action-pill {
+      background: rgba(255, 255, 255, 0.11) !important;
+      border: var(--pjm-white-border) !important;
       box-shadow: var(--pjm-white-elev) !important;
     }
     [data-theme="dark"] .pj2-page .pjm-actions .pj2-menu,
@@ -2016,7 +2029,8 @@ const CSS = `
     }
     [data-theme="dark"] .pj2-page .pjm-status-btn,
     [data-theme="classic-dark"] .pj2-page .pjm-status-btn {
-      background: rgba(255, 255, 255, 0.08) !important;
+      background: rgba(255, 255, 255, 0.11) !important;
+      border: var(--pjm-white-border) !important;
       color: #9aa0ac !important;
       box-shadow: var(--pjm-white-elev) !important;
     }
