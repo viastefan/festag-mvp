@@ -81,31 +81,163 @@ export type Decision = {
 
 export type ProjectLite = { id: string; title: string; color?: string | null; status?: string | null; workspace_id?: string | null }
 
-function mockDec(id: string, title: string, rec: string, type: string): Decision {
+function mockDec(opts: {
+  id: string
+  title: string
+  rec: string
+  type: string
+  urgency?: Decision['urgency']
+  hoursAgo?: number
+  escalation?: number
+  urgencyScore?: number
+  dueDays?: number | null
+  tagro?: string
+  impact?: string
+  status?: string
+  altOption?: string
+  responseType?: ResponseType
+  reversibility?: Decision['reversibility']
+}): Decision {
+  const recId = opts.rec.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'opt-1'
+  const created = new Date(Date.now() - (opts.hoursAgo ?? 2) * 3600000)
+  const due = opts.dueDays != null
+    ? new Date(Date.now() + opts.dueDays * 86400000).toISOString()
+    : null
+  const impact = opts.impact ?? 'Wird nach Freigabe umgesetzt.'
+  const tagro = opts.tagro ?? `Tagro empfiehlt ${opts.rec} — schnellste Route zum Projektziel.`
   return {
-    id, project_id: 'mock-proj-1', title, description: 'Designphase kann abgeschlossen werden.',
-    client_title: title, client_summary: 'Designphase kann abgeschlossen werden.',
-    options_json: [{ id: rec.toLowerCase(), label: rec }, { id: 'alt', label: 'Ablehnen' }],
-    recommended_option: rec.toLowerCase(),
-    tagro_reasoning: 'Die aktuelle Farbvariante passt zur Branche und verbessert die Lesbarkeit um 17% auf der gesamten Nutzeroberfläche und....',
-    tagro_run_at: new Date().toISOString(), status: 'pending_client', selected_option: null, decision_note: null,
-    urgency: 'high', due_date: null, source_task_id: null, created_by: null, requested_for: null,
-    decided_at: null, created_at: new Date(Date.now() - 3600000).toISOString(), updated_at: new Date().toISOString(),
-    decision_type: type, response_type: 'single_choice',
+    id: opts.id,
+    project_id: 'mock-proj-1',
+    title: opts.title,
+    description: impact,
+    client_title: opts.title,
+    client_summary: impact,
+    options_json: [
+      { id: recId, label: opts.rec, hint: opts.rec === 'Stripe' ? 'Zahlungsintegration im Dashboard einrichten' : undefined },
+      { id: 'ablehnen', label: opts.altOption ?? 'Ablehnen' },
+    ],
+    recommended_option: recId,
+    tagro_reasoning: tagro,
+    tagro_recommendation_reason: tagro,
+    tagro_run_at: new Date().toISOString(),
+    tagro_confidence_in_framing: 0.82,
+    status: opts.status ?? 'pending_client',
+    selected_option: null,
+    decision_note: null,
+    urgency: opts.urgency ?? 'high',
+    due_date: due,
+    due_at: due,
+    escalation_level: opts.escalation ?? 0,
+    urgency_score: opts.urgencyScore ?? 62,
+    effective_due_source: due ? 'deadline_hard' : 'type_default',
+    reversibility: opts.reversibility ?? (opts.type === 'payment' ? 'one_way_door' : 'two_way_door'),
+    delegate_allowed: true,
+    response_type: opts.responseType ?? 'binary',
+    decision_type: opts.type,
+    source_task_id: null,
+    created_by: 'mock-dev',
+    requested_for: 'mock-client',
+    decided_at: null,
+    created_at: created.toISOString(),
+    updated_at: new Date().toISOString(),
   }
 }
+
+/** Provisional UI preview rows — used when the API returns no decisions. */
 export const MOCK_DECISIONS: Decision[] = [
-  mockDec('mock-1', 'Logo Farbe freigeben', 'Freigeben', 'Designentscheidung'),
-  mockDec('mock-2', 'Zahlungsanbieter wählen', 'Stripe', 'payment'),
-  mockDec('mock-3', 'Zahlungsanbieter wählen', 'Stripe', 'payment'),
-  mockDec('mock-4', 'Domain-Strategie festlegen', 'Freigeben', 'Technische Entscheidung'),
-  mockDec('mock-5', 'SEO Keywords bestätigen', 'Freigeben', 'Marketing-Entscheidung'),
-  mockDec('mock-6', 'Hosting-Provider wählen', 'Vercel', 'Technische Entscheidung'),
-  mockDec('mock-7', 'Content-Sprache festlegen', 'Freigeben', 'Strategieentscheidung'),
+  mockDec({
+    id: 'mock-1',
+    title: 'Logo Farbe freigeben',
+    rec: 'Freigeben',
+    type: 'direction',
+    urgency: 'high',
+    hoursAgo: 1,
+    urgencyScore: 68,
+    tagro: 'Tagro empfiehlt Freigeben — die Variante verbessert die Lesbarkeit und passt zur Zielgruppe.',
+    impact: 'Die Designphase kann abgeschlossen werden. Entwicklung wartet auf die Freigabe für UI-Assets.',
+    responseType: 'binary',
+  }),
+  mockDec({
+    id: 'mock-2',
+    title: 'Zahlungsanbieter wählen',
+    rec: 'Stripe',
+    type: 'payment',
+    urgency: 'critical',
+    hoursAgo: 6,
+    escalation: 2,
+    urgencyScore: 88,
+    dueDays: -1,
+    tagro: 'Tagro empfiehlt Stripe — schnellste Integration für Karten und SEPA im deutschen Markt.',
+    impact: 'Ohne Zahlungsanbieter blockiert der Checkout. Eine Wahl heute hält den Launch im Plan.',
+    responseType: 'binary',
+    reversibility: 'one_way_door',
+  }),
+  mockDec({
+    id: 'mock-3',
+    title: 'Hosting-Provider wählen',
+    rec: 'Vercel',
+    type: 'scope',
+    urgency: 'high',
+    hoursAgo: 18,
+    escalation: 1,
+    urgencyScore: 74,
+    dueDays: 3,
+    tagro: 'Tagro empfiehlt Vercel — passt zum Next.js-Stack und beschleunigt Preview-Deployments.',
+    impact: 'Staging-URL und Produktions-Deploy hängen an dieser Entscheidung.',
+    responseType: 'binary',
+  }),
+  mockDec({
+    id: 'mock-4',
+    title: 'Domain-Strategie festlegen',
+    rec: 'Freigeben',
+    type: 'tradeoff',
+    urgency: 'normal',
+    hoursAgo: 48,
+    urgencyScore: 48,
+    tagro: 'Tagro empfiehlt die vorgeschlagene Domain-Strategie für SEO und Markenklarheit.',
+    impact: 'DNS und E-Mail-Setup können danach parallel starten.',
+  }),
+  mockDec({
+    id: 'mock-5',
+    title: 'SEO Keywords bestätigen',
+    rec: 'Freigeben',
+    type: 'tradeoff',
+    urgency: 'normal',
+    hoursAgo: 72,
+    urgencyScore: 42,
+    tagro: 'Tagro empfiehlt die Keyword-Liste für die ersten Landingpages.',
+    impact: 'Content-Team kann Briefings finalisieren.',
+  }),
+  {
+    ...mockDec({
+      id: 'mock-6',
+      title: 'Analytics-Tool freigeben',
+      rec: 'Freigeben',
+      type: 'approval',
+      urgency: 'low',
+      hoursAgo: 120,
+      urgencyScore: 28,
+      status: 'decided',
+      tagro: 'Tagro empfiehlt Plausible — datenschutzfreundlich und schnell eingebunden.',
+      impact: 'Tracking war Voraussetzung für den Soft-Launch.',
+    }),
+    status: 'decided',
+    selected_option: 'freigeben',
+    decided_at: new Date(Date.now() - 86400000).toISOString(),
+    decided_by: 'mock-client',
+  },
 ]
 
 export const MOCK_PROJECTS: Record<string, ProjectLite> = {
   'mock-proj-1': { id: 'mock-proj-1', title: 'Festag Website Relaunch', color: '#5B647D', status: 'active' },
+}
+
+export function isDecisionDemoId(id: string) {
+  return id.startsWith('mock-')
+}
+
+export function getDecisionDemoBundle() {
+  return { decisions: MOCK_DECISIONS, projects: MOCK_PROJECTS }
 }
 
 export const URGENCY_LABEL: Record<string, string> = {

@@ -26,6 +26,7 @@ import { openTagro } from '@/components/TagroOverlay'
 import { createClient } from '@/lib/supabase/client'
 import {
   type Decision, type ProjectLite, OPEN_STATES,
+  getDecisionDemoBundle, isDecisionDemoId,
 } from '@/components/decisions/decisions-shared'
 import { DecisionDrawer } from '@/components/decisions/DecisionDrawer'
 import DecisionRisksPopover from '@/components/decisions/DecisionRisksPopover'
@@ -61,6 +62,7 @@ function DecisionsPageInner() {
   const [projectScope, setProjectScope] = useState<string>(searchParams?.get('project') || 'all')
   const [filterMenuOpen, setFilterMenuOpen] = useState(false)
   const [risksOpen, setRisksOpen] = useState(false)
+  const [usingDemo, setUsingDemo] = useState(false)
   const [openId, setOpenId] = useState<string | null>(searchParams?.get('open') || null)
   const [me, setMe] = useState<string>('')
 
@@ -78,10 +80,24 @@ function DecisionsPageInner() {
       // that as JSON used to throw and crash the whole (app) shell.
       const data = await res.json().catch(() => null)
       if (!data) return
-      setDecisions(data.decisions ?? [])
 
-      // Pull projects in one round-trip
-      const projIds = Array.from(new Set((data.decisions ?? []).map((d: Decision) => d.project_id).filter(Boolean)))
+      const apiRows: Decision[] = data.decisions ?? []
+      const forceDemo = searchParams?.get('demo') === '1'
+      const blockDemo = searchParams?.get('demo') === '0'
+      const showDemo = forceDemo || (!blockDemo && apiRows.length === 0)
+
+      if (showDemo) {
+        const demo = getDecisionDemoBundle()
+        setUsingDemo(true)
+        setDecisions(demo.decisions)
+        setProjects(demo.projects)
+        return
+      }
+
+      setUsingDemo(false)
+      setDecisions(apiRows)
+
+      const projIds = Array.from(new Set(apiRows.map((d: Decision) => d.project_id).filter(Boolean)))
       if (projIds.length) {
         const { data: projs } = await (supabase as any).from('projects').select('id,title,color,status,workspace_id').in('id', projIds)
         const map: Record<string, ProjectLite> = {}
@@ -91,14 +107,16 @@ function DecisionsPageInner() {
         setProjects({})
       }
     } catch {
-      // Never let a transient fetch/parse error take down the page —
-      // the empty state is a safe fallback.
+      if (searchParams?.get('demo') !== '0') {
+        const demo = getDecisionDemoBundle()
+        setUsingDemo(true)
+        setDecisions(demo.decisions)
+        setProjects(demo.projects)
+      }
     } finally {
       setLoading(false)
     }
-  }, [supabase])
-
-  useEffect(() => { load() }, [load])
+  }, [supabase, searchParams])
 
   useEffect(() => {
     const open = searchParams?.get('open')
@@ -164,9 +182,9 @@ function DecisionsPageInner() {
     router.replace(qs ? `/decisions?${qs}` : '/decisions', { scroll: false })
   }
 
-  // Realtime — pick up new decisions live
+  // Realtime — pick up new decisions live (skip while demo preview is active)
   useEffect(() => {
-    if (!me) return
+    if (!me || usingDemo) return
     const ch = (supabase as any)
       .channel(`decisions-${me}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'decisions' }, (payload: any) => {
@@ -180,7 +198,7 @@ function DecisionsPageInner() {
       })
       .subscribe()
     return () => { (supabase as any).removeChannel(ch) }
-  }, [supabase, me])
+  }, [supabase, me, usingDemo])
 
   const projectList = useMemo(
     () => Object.values(projects).sort((a, b) => a.title.localeCompare(b.title, 'de')),
@@ -235,12 +253,20 @@ function DecisionsPageInner() {
 
   const openDecision = openId ? decisions.find(d => d.id === openId) ?? null : null
 
-  function removeLocal(id: string) {
-    setDecisions(curr => curr.filter(d => d.id !== id))
+  function patchLocal(id: string, patch: Partial<Decision>) {
+    if (isDecisionDemoId(id)) {
+      setDecisions(curr => curr.map(d => d.id === id ? { ...d, ...patch } : d))
+      return
+    }
+    setDecisions(curr => curr.map(d => d.id === id ? { ...d, ...patch } : d))
   }
 
-  function patchLocal(id: string, patch: Partial<Decision>) {
-    setDecisions(curr => curr.map(d => d.id === id ? { ...d, ...patch } : d))
+  function removeLocal(id: string) {
+    if (isDecisionDemoId(id)) {
+      setDecisions(curr => curr.filter(d => d.id !== id))
+      return
+    }
+    setDecisions(curr => curr.filter(d => d.id !== id))
   }
 
   const executiveSummary = useMemo(() => {
@@ -417,6 +443,12 @@ function DecisionsPageInner() {
       </div>
 
       <div className="dec-scroll-body">
+        {usingDemo && (
+          <div className="dec-demo-banner" role="status">
+            <span>Vorschau mit Beispieldaten</span>
+            <small>Leere Datenbank — echte Entscheidungen kommen aus dem Dev Panel. <code>?demo=0</code> blendet die Demo aus.</small>
+          </div>
+        )}
         {loading && filtered.length === 0 ? (
           <p className="dec-empty">Lade Entscheidungen…</p>
         ) : filtered.length === 0 ? (

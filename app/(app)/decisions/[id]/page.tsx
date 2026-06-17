@@ -91,7 +91,7 @@ function DecisionDetailInner() {
         <div className="dec-detail-empty">
           <p className="dec-detail-empty-title">Entscheidung nicht gefunden.</p>
           <p className="dec-detail-empty-copy">Sie wurde möglicherweise archiviert oder du hast keinen Zugriff.</p>
-          <Link href="/decisions" className="dec-detail-back dec-detail-back-btn">
+          <Link href="/decisions" className="dec-detail-back dec-detail-back-pill">
             <ArrowLeft size={16} />
             Zurück zur Übersicht
           </Link>
@@ -129,22 +129,22 @@ function DecisionDetailInner() {
       />
 
       <header className="dec-detail-hero">
-        <div className="dec-detail-toolbar">
-          <Link href="/decisions" className="dec-detail-back dec-detail-back-desktop">
-            <ArrowLeft size={14} weight="regular" />
-            Alle Entscheidungen
-          </Link>
-        </div>
-
-        <div className="dec-detail-hero-main">
-          <div className="dec-detail-hero-text">
-            <p className="dec-detail-kicker">Entscheidung</p>
-            <h1 className="dec-detail-title">{title}</h1>
-            {subtitle && <p className="dec-detail-subtitle">{subtitle}</p>}
+        <div className="dec-detail-col">
+          <div className="dec-detail-toolbar">
+            <Link href="/decisions" className="dec-detail-back dec-detail-back-pill dec-detail-back-desktop">
+              <ArrowLeft size={14} weight="regular" />
+              Alle Entscheidungen
+            </Link>
           </div>
-        </div>
 
-        <div className="dec-detail-meta-row">
+          <div className="dec-detail-hero-main">
+            <div className="dec-detail-hero-text">
+              <h1 className="dec-detail-title">{title}</h1>
+              {subtitle && <p className="dec-detail-subtitle">{subtitle}</p>}
+            </div>
+          </div>
+
+          <div className="dec-detail-meta-row">
           {project && (
             <span className="dec-detail-meta-chip">
               <span className="dec-detail-project-dot" style={{ background: project.color || '#5B647D' }} />
@@ -164,6 +164,7 @@ function DecisionDetailInner() {
             <Clock size={12} weight="regular" />
             {fmtAgo(decision.updated_at)}
           </span>
+          </div>
         </div>
       </header>
 
