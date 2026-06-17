@@ -10,6 +10,10 @@ export const INBOX_CSS = `
     min-height: 0;
     height: 100%;
   }
+  .ix-root--dev {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
 
   .ix-root {
     --ix-slate: var(--portal-btn-primary, #5b647d);
@@ -181,11 +185,16 @@ export const INBOX_CSS = `
   }
 
   .ix-detail {
-    display: flex; min-height: 0; background: var(--ix-surface);
+    display: flex; flex-direction: column;
+    min-height: 0; height: 100%; align-self: stretch;
+    background: var(--ix-surface);
     overflow-y: auto; scrollbar-width: none;
   }
   .ix-detail::-webkit-scrollbar { display: none; }
-  .ix-detail--empty { align-items: center; justify-content: center; }
+  .ix-detail--empty {
+    align-items: center; justify-content: center;
+    overflow: hidden;
+  }
   .ix-detail--filled { align-items: flex-start; justify-content: center; padding: 40px clamp(20px, 4vw, 52px); }
 
   .ix-detail-card { width: 100%; max-width: 680px; display: flex; flex-direction: column; gap: 20px; }
