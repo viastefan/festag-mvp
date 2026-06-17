@@ -605,73 +605,142 @@ export default function TagroOverlay() {
 
       <div className="tov-shell" onClick={e => e.stopPropagation()}>
         {inConversation ? (
-          <div className={`tov-workspace${fullscreen ? '' : ' tov-workspace-compact'}`}>
+          <div className={`tov-workspace${fullscreen ? ' tov-workspace-fs' : ' tov-workspace-compact'}`}>
             {fullscreen && (
               <TagroIconRail variant="inline" onNavigate={() => close()} />
             )}
 
-            <div className="tov-main">
-              <header className={fullscreen ? 'tov-top' : 'tov-compact-head'}>
-                {fullscreen ? (
-                  <span className="tov-top-ctx">{contextLine}</span>
-                ) : (
-                  <span className="tov-compact-ctx" title={contextLine}>{contextLine}</span>
-                )}
-                <div className="tov-top-controls">
-                  <button
-                    type="button"
-                    className="tov-iconbtn"
-                    onClick={togglePresentation}
-                    aria-label={fullscreen ? 'Verkleinern' : 'Vergrößern'}
-                  >
-                    {fullscreen ? <ArrowsIn size={16} weight="bold" /> : <ArrowsOut size={16} weight="bold" />}
-                  </button>
-                  <button type="button" className="tov-iconbtn" onClick={close} aria-label="Schließen">
-                    <X size={16} weight="bold" />
-                  </button>
-                </div>
-              </header>
-
-              <div className="tov-timeline" ref={timelineRef}>
-                <div className="tov-timeline-inner">
-                  {messages.length === 0 && !busy && (
-                    <p className="tov-empty-hint">{introHelp}</p>
-                  )}
-                  {messages.map(m => m.role === 'user'
-                    ? <UserMsg key={m.id} content={m.content} />
-                    : <TagroMsg key={m.id} msg={m} onAction={runQuickAction} />)}
-                  {busy && (
-                    <div className="tov-typing-row">
-                      <TagroLogo size={fullscreen ? 20 : 18} thinking />
-                      <div className="tov-typing"><span /><span /><span /></div>
+            <div className={fullscreen ? 'tov-stage-col' : undefined}>
+              <div className={fullscreen ? 'tov-stage-card' : 'tov-main'}>
+                <header className={fullscreen ? 'tov-stage-head' : 'tov-compact-head'}>
+                  {fullscreen ? (
+                    <div className="tov-stage-head-copy">
+                      <h1 className="tov-stage-title">Tagro</h1>
+                      <p className="tov-stage-sub">{contextLine}</p>
                     </div>
+                  ) : (
+                    <span className="tov-compact-ctx" title={contextLine}>{contextLine}</span>
                   )}
+                  <div className="tov-top-controls">
+                    <button
+                      type="button"
+                      className="tov-iconbtn"
+                      onClick={togglePresentation}
+                      aria-label={fullscreen ? 'Verkleinern' : 'Vergrößern'}
+                    >
+                      {fullscreen ? <ArrowsIn size={16} weight="bold" /> : <ArrowsOut size={16} weight="bold" />}
+                    </button>
+                    <button type="button" className="tov-iconbtn" onClick={close} aria-label="Schließen">
+                      <X size={16} weight="bold" />
+                    </button>
+                  </div>
+                </header>
+
+                <div className="tov-timeline" ref={timelineRef}>
+                  <div className="tov-timeline-inner">
+                    {messages.length === 0 && !busy && (
+                      <p className="tov-empty-hint">{introHelp}</p>
+                    )}
+                    {messages.map(m => m.role === 'user'
+                      ? <UserMsg key={m.id} content={m.content} />
+                      : <TagroMsg key={m.id} msg={m} onAction={runQuickAction} />)}
+                    {busy && (
+                      <div className="tov-typing-row">
+                        <TagroLogo size={fullscreen ? 20 : 18} thinking />
+                        <div className="tov-typing"><span /><span /><span /></div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="tov-floatbar">
+                  <div className="tov-floatbar-inner">
+                    <Composer
+                      inputRef={composerRef}
+                      value={input}
+                      onChange={setInput}
+                      onSend={() => send()}
+                      busy={busy}
+                      placeholder={placeholder}
+                      micOk={micOk}
+                      rec={rec}
+                      onMic={toggleMic}
+                      variant={fullscreen ? 'sticky' : 'compact'}
+                      onAttach={attachExtra}
+                      fullscreen={fullscreen}
+                      extraShelfChips={extraAttached}
+                    />
+                  </div>
                 </div>
               </div>
-
-              <div className="tov-floatbar">
-                <div className="tov-floatbar-inner">
-                  <Composer
-                    inputRef={composerRef}
-                    value={input}
-                    onChange={setInput}
-                    onSend={() => send()}
-                    busy={busy}
-                    placeholder={placeholder}
-                    micOk={micOk}
-                    rec={rec}
-                    onMic={toggleMic}
-                    variant={fullscreen ? 'sticky' : 'compact'}
-                    onAttach={attachExtra}
-                    fullscreen={fullscreen}
-                    extraShelfChips={extraAttached}
-                  />
+            </div>
+          </div>
+        ) : fullscreen ? (
+          <div className="tov-workspace tov-workspace-fs">
+            <TagroIconRail variant="inline" onNavigate={() => close()} />
+            <div className="tov-stage-col">
+              <div className="tov-stage-card tov-stage-card-picker">
+                <div className="tov-picker">
+                  <div className="tov-picker-view">
+                    <div className="tov-picker-card">
+                      <div className="tov-picker-top">
+                        <button type="button" className="tov-iconbtn" onClick={togglePresentation} aria-label="Verkleinern">
+                          <ArrowsIn size={16} weight="bold" />
+                        </button>
+                        <button type="button" className="tov-iconbtn" onClick={close} aria-label="Schließen"><X size={16} weight="bold" /></button>
+                      </div>
+                      <h1 className="tov-picker-title">{question}</h1>
+                      <AttachedChipsRow chips={attachedChips} baseCount={baseChips.length} onRemove={removeExtra} />
+                      <div className="tov-featured">
+                        <p className="tov-featured-text">{renderMentionText(introHelp)}</p>
+                        <button type="button" className="tov-featured-go" onClick={runFeatured} aria-label="Vorschlag starten">
+                          <CaretRight size={16} weight="bold" />
+                        </button>
+                      </div>
+                      <div className="tov-scratch-wrap">
+                        <button type="button" className="tov-scratch" onClick={startFromScratch}>
+                          Von Grund auf starten <CaretRight size={12} weight="bold" />
+                        </button>
+                      </div>
+                      <div className="tov-examples">
+                        <p className="tov-examples-label">Vorschläge</p>
+                        <div className="tov-examples-grid">
+                          {examples.map(ex => {
+                            const Icon = ex.icon
+                            return (
+                              <button key={ex.title} type="button" className="tov-example" onClick={() => runExample(ex.title)}>
+                                <span className="tov-example-ico" aria-hidden><Icon size={16} weight="regular" /></span>
+                                <span className="tov-example-body"><strong>{ex.title}</strong></span>
+                              </button>
+                            )
+                          })}
+                        </div>
+                      </div>
+                      {error && <p className="tov-err">{error}</p>}
+                    </div>
+                  </div>
+                  <div className="tov-picker-footer">
+                    <Composer
+                      inputRef={composerRef}
+                      value={input}
+                      onChange={setInput}
+                      onSend={() => send()}
+                      busy={busy}
+                      placeholder={placeholder}
+                      micOk={micOk}
+                      rec={rec}
+                      onMic={toggleMic}
+                      variant="hero"
+                      onAttach={attachExtra}
+                      extraShelfChips={extraAttached}
+                    />
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         ) : (
-          <div className={`tov-picker${fullscreen ? ' tov-picker-fs' : ''}`}>
+          <div className="tov-picker">
             <div className="tov-picker-view">
               <div className="tov-picker-card">
                 <div className="tov-picker-top">
@@ -1164,8 +1233,8 @@ const STYLES = `
 
 .tov-shell {
   position: relative;
-  width: min(600px, calc(100vw - 40px));
-  max-height: min(88vh, 820px);
+  width: min(660px, calc(100vw - 32px));
+  max-height: min(90vh, 860px);
   background: var(--tov-bg);
   border: 0;
   border-radius: 24px;
@@ -1179,12 +1248,12 @@ const STYLES = `
 .tov.tov-full .tov-shell {
   width: 100%; max-width: none; max-height: none;
   height: 100%; border-radius: 0; box-shadow: none;
-  background: var(--tov-bg);
+  background: transparent;
 }
 .tov.tov-mode-conversation:not(.tov-full) .tov-shell {
-  width: min(600px, calc(100vw - 40px));
-  height: min(72vh, 720px);
-  max-height: min(72vh, 720px);
+  width: min(660px, calc(100vw - 32px));
+  height: min(76vh, 780px);
+  max-height: min(76vh, 780px);
   display: flex;
   flex-direction: column;
 }
@@ -1198,11 +1267,11 @@ const STYLES = `
 .tov-picker-view {
   flex: 1; min-height: 0; overflow-y: auto;
   display: flex; align-items: flex-start; justify-content: center;
-  padding: 24px 28px 16px;
+  padding: 28px 32px 20px;
 }
 .tov-picker-footer {
   flex: 0 0 auto;
-  padding: 4px 24px max(20px, env(safe-area-inset-bottom, 0px));
+  padding: 6px 28px max(22px, env(safe-area-inset-bottom, 0px));
   border-top: 0;
   background: var(--tov-bg);
 }
@@ -1219,19 +1288,19 @@ const STYLES = `
   padding: 4px 0 8px;
 }
 .tov-picker-title {
-  margin: 0 0 20px;
+  margin: 0 0 22px;
   text-align: center;
-  font-size: 21px; font-weight: 600; letter-spacing: -.02em;
+  font-size: 22px; font-weight: 600; letter-spacing: -.02em;
   line-height: 1.28; color: var(--tov-text);
   text-wrap: balance;
 }
 .tov-featured {
-  display: flex; align-items: center; gap: 12px;
+  display: flex; align-items: center; gap: 14px;
   background: var(--tov-bg-2);
-  border: 1px solid var(--tov-border);
+  border: none;
   border-radius: 14px;
-  padding: 12px 14px;
-  margin-bottom: 12px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
 }
 .tov-featured-text {
   flex: 1; margin: 0;
@@ -1255,7 +1324,7 @@ const STYLES = `
   margin: 0 0 16px;
   justify-content: center;
 }
-.tov-picker-card .tov-attached { margin: 0 0 14px; }
+.tov-picker-card .tov-attached { margin: 0 0 18px; }
 .tov-attached-sticky {
   justify-content: flex-start;
   margin: 0 0 10px;
@@ -1364,7 +1433,7 @@ const STYLES = `
   text-transform: uppercase;
 }
 .tov-examples-grid {
-  display: grid; gap: 6px;
+  display: grid; gap: 8px;
   grid-template-columns: 1fr 1fr;
 }
 @media (max-width: 520px) { .tov-examples-grid { grid-template-columns: 1fr; } }
@@ -1402,8 +1471,133 @@ const STYLES = `
   overflow: hidden;
   background: var(--tov-canvas);
 }
-.tov.tov-full .tov-main {
+
+/* Fullscreen — mirrors PortalAppShell: canvas + rail + card */
+.tov.tov-full {
+  --tov-canvas: #F6F6F7;
+  --tov-bg: #FFFFFF;
+  --tov-border: rgba(0, 0, 0, 0.06);
+  --tov-input: #F5F5F3;
+}
+[data-theme="dark"] .tov.tov-full,
+[data-theme="classic-dark"] .tov.tov-full {
+  --tov-canvas: #0a0a0b;
+  --tov-bg: #141416;
+  --tov-border: rgba(255, 255, 255, 0.08);
+  --tov-input: #1a1a1a;
+}
+.tov-workspace-fs {
+  background: var(--tov-canvas);
+  padding: 8px 8px 8px 0;
+  box-sizing: border-box;
+  gap: 0;
+}
+.tov-workspace-fs .tir-rail-inline {
+  background: transparent;
+  border-right: none;
+}
+.tov-stage-col {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.tov-stage-card {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
   background: var(--tov-bg);
+  border-radius: 12px;
+  border: 1px solid var(--tov-border);
+  overflow: hidden;
+  box-shadow: none;
+}
+.tov-stage-card-picker {
+  display: flex;
+  flex-direction: column;
+  grid-template-rows: unset;
+}
+.tov-stage-card-picker .tov-picker {
+  flex: 1;
+  min-height: 0;
+}
+.tov-stage-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding: clamp(22px, 3.2vh, 36px) clamp(28px, 4vw, 52px) 18px;
+  border-bottom: 1px solid var(--tov-border);
+  flex-shrink: 0;
+}
+.tov-stage-head-copy {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.tov-stage-title {
+  margin: 0;
+  font-size: clamp(22px, 2.4vw, 28px);
+  font-weight: 400;
+  letter-spacing: -.02em;
+  line-height: 1.15;
+  color: var(--tov-text);
+}
+.tov-stage-sub {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--tov-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tov.tov-full .tov-timeline {
+  padding: 12px clamp(28px, 4vw, 52px) 28px;
+}
+.tov.tov-full .tov-timeline-inner {
+  max-width: min(720px, 100%);
+  margin: 0 auto;
+  gap: 36px;
+  padding-top: 4px;
+  padding-bottom: 8px;
+}
+.tov.tov-full .tov-floatbar {
+  padding: 16px clamp(28px, 4vw, 52px) max(24px, env(safe-area-inset-bottom, 0px));
+  background: var(--tov-bg);
+  border-top: 1px solid var(--tov-border);
+}
+.tov.tov-full .tov-floatbar-inner {
+  max-width: min(720px, 100%);
+  margin: 0 auto;
+}
+.tov.tov-full .tov-empty-hint {
+  padding: 32px 0 16px;
+  text-align: left;
+  max-width: 560px;
+}
+.tov.tov-full .tov-msg-user {
+  max-width: min(480px, 78%);
+}
+.tov.tov-full .tov-msg-tagro {
+  gap: 12px;
+  max-width: min(680px, 100%);
+}
+.tov.tov-full .tov-quickactions {
+  padding-left: 0;
+  gap: 8px;
+  margin-top: 2px;
+}
+.tov.tov-full .tov-msg-preview {
+  border: none;
+  background: var(--tov-bg-2);
+}
+.tov.tov-full .tov-warning {
+  border-radius: 10px;
 }
 
 /* Compact popup chat — same shell as picker, conversation inside */
@@ -1502,12 +1696,11 @@ const STYLES = `
 .tov-composer-compact .tov-composer-toolbar {
   padding: 2px 8px 8px;
 }
-.tov-picker-fs .tov-picker-view {
-  padding: 40px 32px 20px;
+.tov-stage-card-picker .tov-picker-view {
+  padding: clamp(20px, 3vh, 32px) clamp(28px, 4vw, 48px) 16px;
 }
-.tov-picker-fs .tov-picker-card,
-.tov-picker-fs .tov-picker-footer .tov-composer {
-  max-width: 560px;
+.tov-stage-card-picker .tov-picker-footer {
+  padding: 8px clamp(28px, 4vw, 48px) max(24px, env(safe-area-inset-bottom, 0px));
 }
 .tov-main {
   flex: 1; min-width: 0; min-height: 0;
@@ -1516,15 +1709,7 @@ const STYLES = `
   height: 100%;
 }
 
-/* Top bar */
-.tov-top {
-  display: flex; align-items: center; justify-content: space-between;
-  gap: 16px; padding: 16px 24px;
-}
-.tov-top-ctx {
-  font-size: 12px; font-weight: 500; color: var(--tov-muted);
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-}
+/* Top bar controls (shared) */
 .tov-top-controls { display: inline-flex; gap: 8px; flex-shrink: 0; align-items: center; }
 .tov-iconbtn {
   width: 36px; height: 36px;
@@ -1742,7 +1927,7 @@ const STYLES = `
   border-radius: 8px;
   font-size: 12.5px; line-height: 1.5; font-weight: 500;
 }
-.tov-quickactions { display: flex; flex-wrap: wrap; gap: 8px; padding-left: 28px; }
+.tov-quickactions { display: flex; flex-wrap: wrap; gap: 8px; padding-left: 0; }
 .tov-quickaction {
   border: 1px solid var(--tov-border);
   border-radius: 999px;
@@ -2023,17 +2208,22 @@ const STYLES = `
   .tov-compact-head {
     padding: 12px 16px 10px;
   }
-  .tov.tov-full .tov-workspace .tov-main {
-    padding-top: 52px;
+  .tov.tov-full .tov-stage-head {
+    padding: max(16px, env(safe-area-inset-top, 0px)) 20px 14px;
   }
-  .tov-top {
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    z-index: 3;
-    padding: max(12px, env(safe-area-inset-top, 0px)) 16px 8px;
-    background: linear-gradient(to bottom, var(--tov-bg) 70%, transparent);
+  .tov.tov-full .tov-timeline {
+    padding: 10px 20px 20px;
   }
-  .tov-top-ctx { display: none; }
+  .tov.tov-full .tov-floatbar {
+    padding: 12px 16px max(16px, env(safe-area-inset-bottom, 0px));
+  }
+  .tov-workspace-fs {
+    padding: 0;
+  }
+  .tov.tov-full .tov-stage-card {
+    border-radius: 0;
+    border: none;
+  }
 }
 @keyframes tov-sheet-up {
   from { opacity: 0; transform: translateY(100%); }
