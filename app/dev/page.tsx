@@ -131,67 +131,50 @@ export default function DevOverviewPage() {
     let cancelled = false
     ;(async () => {
       try {
-        // getUser() validates + refreshes the token; getSession() can read
-        // a stale/null snapshot mid-hydration and leave the dashboard empty.
-        const { data: { user } } = await supabase.auth.getUser()
-        if (!user) return
-        const uid = user.id
-        const { data: prof } = await supabase.from('profiles')
-          .select('first_name,full_name,github_username,email').eq('id', uid).maybeSingle()
-        const display = (prof as any)?.full_name || (prof as any)?.first_name || (prof as any)?.github_username || user.email || 'Developer'
-        if (cancelled) return
+        const meRes = await fetch('/api/dev/me', { credentials: 'include' })
+        if (!meRes.ok) return
+        const me = await meRes.json().catch(() => null)
+        const uid = me?.user?.id
+        if (!uid || cancelled) return
+
+        const display = me?.user?.full_name || me?.user?.email || 'Developer'
         setName(display)
 
-        // assigned projects
-        const { data: pa } = await supabase.from('project_assignments')
-          .select('project_id,projects(id,title,status,color)')
-          .eq('user_id', uid).eq('active', true)
-        const projList = ((pa as any[] | null) ?? []).map(r => r.projects).filter(Boolean) as Project[]
+        const tasksRes = await fetch('/api/dev/tasks', { credentials: 'include' })
+        const tasksData = tasksRes.ok ? await tasksRes.json().catch(() => null) : null
+        const tRows = (tasksData?.tasks as Task[] | null) ?? []
         if (cancelled) return
-        setProjects(projList)
-        const projIds = projList.map(p => p.id).filter(Boolean)
+        setProjects((tasksData?.projects as Project[] | null) ?? [])
+        setTasks(tRows)
 
-        // tasks
-        const taskQuery = supabase
-          .from('tasks')
-          .select('id,title,status,dev_status,priority,project_id,updated_at,last_dev_action_at,task_type,created_at,projects(title,color)')
-          .or(projIds.length > 0
-            ? `assigned_to.eq.${uid},project_id.in.(${projIds.join(',')})`
-            : `assigned_to.eq.${uid}`)
-          .order('last_dev_action_at', { ascending: false, nullsFirst: false })
-          .order('updated_at', { ascending: false })
-          .limit(80)
-        const { data: tRows } = await taskQuery
-        if (cancelled) return
-        setTasks((tRows as Task[] | null) ?? [])
+        const { data: { user: oauthUser } } = await supabase.auth.getUser()
 
-        // recent commits (counter + list)
-        try {
+        if (oauthUser) {
           const since = new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString()
-          const [{ count }, { data: list }] = await Promise.all([
-            (supabase as any).from('github_commits').select('*', { count: 'exact', head: true }).gte('committed_at', since),
-            (supabase as any).from('github_commits')
-              .select('id,commit_sha,message,committed_at,commit_url,task_id,project_id')
-              .order('committed_at', { ascending: false }).limit(8),
-          ])
-          if (!cancelled) {
-            setRecentCommits(count ?? 0)
-            setCommits(((list as Commit[] | null) ?? []))
-          }
-        } catch { /* tolerate */ }
+          try {
+            const [{ count }, { data: list }] = await Promise.all([
+              (supabase as any).from('github_commits').select('*', { count: 'exact', head: true }).gte('committed_at', since),
+              (supabase as any).from('github_commits')
+                .select('id,commit_sha,message,committed_at,commit_url,task_id,project_id')
+                .order('committed_at', { ascending: false }).limit(8),
+            ])
+            if (!cancelled) {
+              setRecentCommits(count ?? 0)
+              setCommits(((list as Commit[] | null) ?? []))
+            }
+          } catch { /* tolerate */ }
 
-        // open daily prompts (Tagro 16:00 ping)
-        try {
-          const { data: prompts } = await (supabase as any)
-            .from('dev_daily_prompts')
-            .select('id, project_id, prompt_date, state, payload')
-            .eq('developer_id', uid)
-            .eq('state', 'open')
-            .order('created_at', { ascending: false }).limit(4)
-          if (!cancelled) setDailyPrompts(((prompts as any[]) ?? []) as DailyPrompt[])
-        } catch { /* noop */ }
+          try {
+            const { data: prompts } = await (supabase as any)
+              .from('dev_daily_prompts')
+              .select('id, project_id, prompt_date, state, payload')
+              .eq('developer_id', uid)
+              .eq('state', 'open')
+              .order('created_at', { ascending: false }).limit(4)
+            if (!cancelled) setDailyPrompts(((prompts as any[]) ?? []) as DailyPrompt[])
+          } catch { /* noop */ }
+        }
 
-        // open session
         try {
           const res = await fetch('/api/dev/work-sessions?open=1&limit=1')
           const d = await res.json().catch(() => ({}))
@@ -199,7 +182,7 @@ export default function DevOverviewPage() {
           if (!cancelled) {
             setOpenSession(s)
             if (s?.task_id) {
-              const found = ((tRows as Task[] | null) ?? []).find(t => t.id === s.task_id)
+              const found = tRows.find(t => t.id === s.task_id)
               setOpenSessionTaskTitle(found?.title ?? null)
             } else {
               setOpenSessionTaskTitle(null)
