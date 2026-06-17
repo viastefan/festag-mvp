@@ -372,23 +372,9 @@ const EXAMPLE_ICONS: React.ElementType[] = [
 ]
 
 function buildExampleItems(suggestions: string[]): ExampleItem[] {
-  const descriptions: Record<string, string> = {
-    'Projektstatus zusammenfassen': 'Fasst den aktuellen Stand, Fortschritt und offene Punkte zusammen.',
-    'Offene Entscheidungen erkennen': 'Findet blockierende Entscheidungen und bereitet Optionen vor.',
-    'Nächste Aufgaben ableiten': 'Leitet konkrete nächste Schritte aus dem Projektstand ab.',
-    'Kundenbriefing erstellen': 'Erstellt ein client-sicheres Update für Stakeholder.',
-    'Risiken prüfen': 'Identifiziert Risiken und schlägt Gegenmaßnahmen vor.',
-    'Angebot erstellen': 'Bereitet ein strukturiertes Angebot aus Projektdaten vor.',
-    'Vertrag vorbereiten': 'Strukturiert Vertragsinhalte und offene Punkte.',
-    'Rechnung erstellen': 'Leitet Rechnungspositionen aus dem Projektstand ab.',
-    'Heutigen Fokus erstellen': 'Priorisiert die wichtigsten Aufgaben für heute.',
-    'Blocker prüfen': 'Findet Blocker und schlägt Lösungswege vor.',
-    'Update senden': 'Formuliert ein Team- oder Kunden-Update.',
-    'GitHub-Stand zusammenfassen': 'Fasst Commits, PRs und offene Arbeit zusammen.',
-  }
   return suggestions.slice(0, 4).map((title, i) => ({
     title,
-    description: descriptions[title] || 'Tagro führt diese Aktion im aktuellen Kontext aus.',
+    description: '',
     icon: EXAMPLE_ICONS[i % EXAMPLE_ICONS.length],
   }))
 }
@@ -615,7 +601,7 @@ export default function TagroOverlay() {
   // current ctx so opening a task vs. a documents overview always speaks
   // the right language without per-render guesswork.
   const session = useMemo(() => buildInitialSession(ctx), [ctx])
-  const { chips: baseChips, introLead, introHelp, placeholder, suggestions } = session
+  const { chips: baseChips, introHelp, placeholder, suggestions } = session
   const attachedChips: AttachedChip[] = [...baseChips, ...extraAttached]
   const attachExtra = (c: AttachedChip) =>
     setExtraAttached(prev => prev.some(p => p.label === c.label) ? prev : [...prev, c])
@@ -623,11 +609,6 @@ export default function TagroOverlay() {
     setExtraAttached(prev => prev.filter(p => p.label !== label))
   const examples = useMemo(() => buildExampleItems(suggestions), [suggestions])
   const question = CTX_QUESTION[ctx.contextType]
-
-  function openPickerFromMeta() {
-    const el = document.querySelector('.tov-composer-plus') as HTMLButtonElement | null
-    el?.click()
-  }
 
   if (!open) return null
 
@@ -660,17 +641,11 @@ export default function TagroOverlay() {
               <div className="tov-timeline" ref={timelineRef}>
                 <div className="tov-timeline-inner">
                   {messages.length === 0 && !busy && (
-                    <ContextIntroPanel
-                      introLead={introLead}
-                      introHelp={introHelp}
-                      chips={attachedChips}
-                      baseCount={baseChips.length}
-                      onRemove={removeExtra}
-                    />
+                    <p className="tov-empty-hint">{introHelp}</p>
                   )}
                   {messages.map(m => m.role === 'user'
                     ? <UserMsg key={m.id} content={m.content} />
-                    : <TagroMsg key={m.id} msg={m} onAction={runQuickAction} contextChips={attachedChips} />)}
+                    : <TagroMsg key={m.id} msg={m} onAction={runQuickAction} />)}
                   {busy && (
                     <div className="tov-typing-row">
                       <TagroLogo size={20} thinking />
@@ -682,12 +657,6 @@ export default function TagroOverlay() {
 
               <div className="tov-floatbar">
                 <div className="tov-floatbar-inner">
-                  <AttachedChipsRow
-                    chips={attachedChips}
-                    baseCount={baseChips.length}
-                    onRemove={removeExtra}
-                    sticky
-                  />
                   <Composer
                     inputRef={composerRef}
                     value={input}
@@ -701,18 +670,8 @@ export default function TagroOverlay() {
                     variant="sticky"
                     onAttach={attachExtra}
                     fullscreen={fullscreen}
-                    shelfChips={attachedChips}
-                    contextLabel={ctx.title ? `${CTX_CHIP[ctx.contextType]} · ${ctx.title}` : CTX_CHIP[ctx.contextType]}
+                    extraShelfChips={extraAttached}
                   />
-                  <div className="tov-floatbar-meta">
-                    <button type="button" className="tov-floatbar-link" onClick={openPickerFromMeta}>
-                      <Plus size={13} weight="bold" /> Erstellen
-                    </button>
-                    <button type="button" className="tov-floatbar-link" onClick={openPickerFromMeta}>
-                      <Plus size={13} weight="bold" /> Quellen
-                    </button>
-                    <span className="tov-floatbar-auto">Auto</span>
-                  </div>
                 </div>
               </div>
             </div>
@@ -738,12 +697,7 @@ export default function TagroOverlay() {
                 />
 
                 <div className="tov-featured">
-                  <span className="tov-featured-ico" aria-hidden><Lightbulb size={18} weight="regular" /></span>
-                  <p className="tov-featured-text">
-                    <span className="tov-featured-lead">{renderMentionText(introLead)}</span>
-                    {' '}
-                    {renderMentionText(introHelp)}
-                  </p>
+                  <p className="tov-featured-text">{renderMentionText(introHelp)}</p>
                   <button type="button" className="tov-featured-go" onClick={runFeatured} aria-label="Vorschlag starten">
                     <CaretRight size={16} weight="bold" />
                   </button>
@@ -756,35 +710,21 @@ export default function TagroOverlay() {
                 </div>
 
                 <div className="tov-examples">
-                  <p className="tov-examples-label">Beispiel als Vorlage</p>
+                  <p className="tov-examples-label">Vorschläge</p>
                   <div className="tov-examples-grid">
                     {examples.map(ex => {
                       const Icon = ex.icon
                       return (
                         <button key={ex.title} type="button" className="tov-example" onClick={() => runExample(ex.title)}>
-                          <span className="tov-example-ico" aria-hidden><Icon size={18} weight="regular" /></span>
+                          <span className="tov-example-ico" aria-hidden><Icon size={16} weight="regular" /></span>
                           <span className="tov-example-body">
                             <strong>{ex.title}</strong>
-                            <span>{ex.description}</span>
                           </span>
                         </button>
                       )
                     })}
                   </div>
                 </div>
-
-                {suggestions.length > 4 && (
-                  <div className="tov-chips">
-                    <p className="tov-chips-label">Weitere Vorschläge für diesen Kontext</p>
-                    <div className="tov-chips-grid">
-                      {suggestions.slice(4).map(c => (
-                        <button key={c} type="button" className="tov-chip" onClick={() => fillSuggestion(c)}>
-                          {c}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
 
                 {error && <p className="tov-err">{error}</p>}
               </div>
@@ -803,8 +743,7 @@ export default function TagroOverlay() {
                 onMic={toggleMic}
                 variant="hero"
                 onAttach={attachExtra}
-                shelfChips={attachedChips}
-                contextLabel={ctx.title ? `${CTX_CHIP[ctx.contextType]} · ${ctx.title}` : CTX_CHIP[ctx.contextType]}
+                extraShelfChips={extraAttached}
               />
             </div>
           </div>
@@ -851,38 +790,11 @@ function AttachedChipsRow({
   )
 }
 
-function ContextIntroPanel({
-  introLead,
-  introHelp,
-  chips,
-  baseCount,
-  onRemove,
-}: {
-  introLead: string
-  introHelp: string
-  chips: AttachedChip[]
-  baseCount: number
-  onRemove: (label: string) => void
-}) {
-  return (
-    <div className="tov-context-intro">
-      <div className="tov-context-intro-head">
-        <TagroLogo size={22} />
-        <div className="tov-context-intro-copy">
-          <p className="tov-context-lead">{renderMentionText(introLead)}</p>
-          <p className="tov-context-help">{renderMentionText(introHelp)}</p>
-        </div>
-      </div>
-      <AttachedChipsRow chips={chips} baseCount={baseCount} onRemove={onRemove} sticky />
-    </div>
-  )
-}
-
 // ── Composer ──────────────────────────────────────────────────────────────
 
 function Composer({
   inputRef, value, onChange, onSend, busy, placeholder, micOk, rec, onMic, variant, onAttach, fullscreen = false,
-  shelfChips = [], contextLabel,
+  extraShelfChips = [],
 }: {
   inputRef: React.RefObject<HTMLTextAreaElement>
   value: string
@@ -896,8 +808,7 @@ function Composer({
   variant: 'hero' | 'sticky'
   onAttach?: (chip: AttachedChip) => void
   fullscreen?: boolean
-  shelfChips?: AttachedChip[]
-  contextLabel?: string
+  extraShelfChips?: AttachedChip[]
 }) {
   // Auto-grow: keep the textarea exactly one line by default, expand only
   // as the user types more. ChatGPT/Claude pattern.
@@ -947,29 +858,26 @@ function Composer({
             <button
               type="button"
               className="tov-composer-plus"
-              aria-label="Quellen oder Personen hinzufügen"
-              title="Quellen / @Personen / Objekte hinzufügen"
+              aria-label="Quellen hinzufügen"
+              title="Quellen hinzufügen"
               onClick={openPicker}
             >
-              <Plus size={18} weight="regular" />
+              <Plus size={16} weight="regular" />
             </button>
-            {contextLabel && (
-              <span className="tov-composer-ctx-pill">{contextLabel}</span>
-            )}
             <span className="tov-composer-spacer" aria-hidden />
             {micOk && (
               <button type="button" className={`tov-composer-mic${rec ? ' is-rec' : ''}`} onClick={onMic} aria-label={rec ? 'Aufnahme stoppen' : 'Per Sprache diktieren'}>
-                {rec ? <MicrophoneSlash size={18} weight="fill" /> : <Microphone size={18} />}
+                {rec ? <MicrophoneSlash size={17} weight="fill" /> : <Microphone size={17} />}
               </button>
             )}
             <button type="button" className="tov-composer-send" onClick={onSend} disabled={busy || !value.trim()} aria-label="Senden">
-              {busy ? <ArrowsClockwise size={18} className="tov-spin" /> : <ArrowUp size={18} weight="bold" />}
+              {busy ? <ArrowsClockwise size={17} className="tov-spin" /> : <ArrowUp size={17} weight="bold" />}
             </button>
           </div>
         </div>
-        {shelfChips.length > 0 && (
-          <div className="tov-composer-shelf" role="group" aria-label="Kontext">
-            {shelfChips.slice(0, 3).map((c, i) => (
+        {extraShelfChips.length > 0 && (
+          <div className="tov-composer-shelf" role="group" aria-label="Zusätzliche Quellen">
+            {extraShelfChips.map((c, i) => (
               <span key={`${c.label}-${i}`} className={`tov-shelf-chip tov-shelf-${c.kind}`}>
                 {c.label}
               </span>
@@ -1157,11 +1065,10 @@ function UserMsg({ content }: { content: string }) {
 }
 
 function TagroMsg({
-  msg, onAction, contextChips = [],
+  msg, onAction,
 }: {
   msg: Extract<Message, { role: 'tagro' }>
   onAction: (a: string) => void
-  contextChips?: AttachedChip[]
 }) {
   return (
     <div className="tov-msg tov-msg-tagro">
@@ -1171,15 +1078,6 @@ function TagroMsg({
           <p className="tov-msg-text tov-msg-lead">{msg.understanding}</p>
         )}
       </div>
-      {contextChips.length > 0 && (
-        <div className="tov-source-pills">
-          {contextChips.slice(0, 2).map((c, i) => (
-            <span key={i} className={`tov-source-pill tov-source-pill-${i}`}>
-              {c.label}
-            </span>
-          ))}
-        </div>
-      )}
       {msg.opinion && (
         <p className="tov-msg-text">{msg.opinion}</p>
       )}
@@ -1273,8 +1171,8 @@ const STYLES = `
 
 .tov-shell {
   position: relative;
-  width: min(640px, calc(100vw - 96px));
-  max-height: min(88vh, 820px);
+  width: min(520px, calc(100vw - 48px));
+  max-height: min(86vh, 760px);
   background: var(--tov-bg);
   border: 0;
   border-radius: 28px;
@@ -1304,17 +1202,17 @@ const STYLES = `
 .tov-picker-view {
   flex: 1; min-height: 0; overflow-y: auto;
   display: flex; align-items: flex-start; justify-content: center;
-  padding: 28px 28px 16px;
+  padding: 20px 24px 12px;
 }
 .tov-picker-footer {
   flex: 0 0 auto;
-  padding: 10px 16px max(20px, env(safe-area-inset-bottom, 0px));
+  padding: 8px 20px max(16px, env(safe-area-inset-bottom, 0px));
   border-top: 0;
   background: linear-gradient(to top, var(--tov-bg) 82%, transparent);
 }
-.tov-picker-footer .tov-composer { max-width: 560px; margin: 0 auto; }
+.tov-picker-footer .tov-composer { max-width: 520px; margin: 0 auto; }
 .tov-picker-card {
-  width: 100%; max-width: 560px;
+  width: 100%; max-width: 520px;
   position: relative;
 }
 .tov-picker-top {
@@ -1325,39 +1223,28 @@ const STYLES = `
   padding: 4px 0 8px;
 }
 .tov-picker-title {
-  margin: 0 0 24px;
+  margin: 0 0 16px;
   text-align: center;
-  font-size: 22px; font-weight: 600; letter-spacing: -.018em;
+  font-size: 20px; font-weight: 600; letter-spacing: -.018em;
   line-height: 1.25; color: var(--tov-text);
   text-wrap: balance;
 }
 .tov-featured {
-  display: flex; align-items: center; gap: 14px;
-  background: var(--tov-bg);
+  display: flex; align-items: center; gap: 12px;
+  background: var(--tov-bg-2);
   border: 1px solid var(--tov-border);
-  border-radius: 16px;
-  padding: 16px 16px 16px 18px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.03);
-  margin-bottom: 14px;
-}
-.tov-featured-ico {
-  flex: 0 0 auto;
-  display: inline-flex; align-items: center; justify-content: center;
-  color: var(--tov-text-2);
+  border-radius: 14px;
+  padding: 12px 14px;
+  margin-bottom: 12px;
 }
 .tov-featured-text {
   flex: 1; margin: 0;
-  font-size: 14px; line-height: 1.55; color: var(--tov-text-2);
-}
-.tov-featured-lead {
-  display: inline;
-  color: var(--tov-text);
-  font-weight: 600;
+  font-size: 13.5px; line-height: 1.5; color: var(--tov-text-2);
 }
 .tov-featured-link { color: var(--tov-link); font-weight: 500; }
 .tov-featured-go {
   flex: 0 0 auto;
-  width: 36px; height: 36px;
+  width: 32px; height: 32px;
   display: inline-flex; align-items: center; justify-content: center;
   background: var(--tov-send); color: var(--tov-send-text);
   border: 0; border-radius: 999px; cursor: pointer;
@@ -1372,7 +1259,7 @@ const STYLES = `
   margin: 0 0 16px;
   justify-content: center;
 }
-.tov-picker-card .tov-attached { margin: -8px 0 18px; }
+.tov-picker-card .tov-attached { margin: 0 0 14px; }
 .tov-attached-sticky {
   justify-content: flex-start;
   margin: 0 0 10px;
@@ -1426,25 +1313,15 @@ const STYLES = `
 .tov-chip:hover { background: var(--tov-pill); border-color: var(--tov-border-2); }
 .tov-chip:active { transform: scale(.99); }
 
-/* Empty workspace — context intro */
-.tov-context-intro {
-  display: flex; flex-direction: column; gap: 16px;
-  padding: 12px 0 24px;
-  animation: tov-fadeup .25s ease both;
-}
-.tov-context-intro-head {
-  display: flex; align-items: flex-start; gap: 12px;
-}
-.tov-context-intro-copy { min-width: 0; }
-.tov-context-lead {
-  margin: 0 0 8px;
-  font-size: 17px; font-weight: 600; line-height: 1.45;
-  color: var(--tov-text);
-}
-.tov-context-help {
+/* Empty fullscreen chat */
+.tov-empty-hint {
   margin: 0;
-  font-size: 15px; line-height: 1.55;
+  padding: 28px 0 12px;
+  text-align: center;
+  font-size: 14px; line-height: 1.55;
   color: var(--tov-text-2);
+  max-width: 480px;
+  align-self: center;
 }
 
 .tov.tov-full:not(.tov-mode-conversation) .tov-shell {
@@ -1473,8 +1350,8 @@ const STYLES = `
 }
 .tov-scratch {
   display: inline-flex; align-items: center; gap: 4px;
-  margin: 0 0 28px;
-  padding: 8px 14px;
+  margin: 0 0 20px;
+  padding: 6px 12px;
   background: var(--tov-bg-2);
   color: var(--tov-text-2);
   border: 0; border-radius: 999px;
@@ -1485,41 +1362,40 @@ const STYLES = `
 .tov-scratch:hover { background: var(--tov-pill-h); color: var(--tov-text); }
 
 .tov-examples-label {
-  margin: 0 0 14px;
-  font-size: 13px; font-weight: 600; color: var(--tov-text);
+  margin: 0 0 10px;
+  font-size: 12px; font-weight: 600; color: var(--tov-muted);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
 }
 .tov-examples-grid {
-  display: grid; gap: 10px;
+  display: grid; gap: 6px;
   grid-template-columns: 1fr 1fr;
 }
 @media (max-width: 520px) { .tov-examples-grid { grid-template-columns: 1fr; } }
 .tov-example {
-  display: flex; align-items: flex-start; gap: 12px;
+  display: flex; align-items: center; gap: 10px;
   text-align: left;
   background: transparent; color: var(--tov-text);
-  border: 0; border-radius: 12px;
-  padding: 10px 8px;
+  border: 0; border-radius: 10px;
+  padding: 8px 6px;
   font: inherit; cursor: pointer;
   transition: background .12s;
 }
 .tov-example:hover { background: var(--tov-pill); }
 .tov-example-ico {
   flex: 0 0 auto;
-  width: 36px; height: 36px;
+  width: 32px; height: 32px;
   display: inline-flex; align-items: center; justify-content: center;
   background: var(--tov-bg);
   border: 1px solid var(--tov-border);
   border-radius: 999px;
-  color: var(--tov-text);
+  color: var(--tov-text-2);
 }
 .tov-example-body {
-  display: flex; flex-direction: column; gap: 3px; min-width: 0;
+  display: flex; flex-direction: column; gap: 0; min-width: 0;
 }
 .tov-example-body strong {
-  font-size: 13.5px; font-weight: 600; line-height: 1.3;
-}
-.tov-example-body span {
-  font-size: 12px; line-height: 1.45; color: var(--tov-text-2);
+  font-size: 13px; font-weight: 500; line-height: 1.35;
 }
 
 /* ── Workspace layout ── */
@@ -1597,15 +1473,15 @@ const STYLES = `
   box-sizing: border-box;
   border: 0; outline: 0; resize: none; background: transparent;
   color: var(--tov-text); font: inherit;
-  font-size: 15px; line-height: 1.5;
-  min-height: 44px; max-height: 200px;
-  padding: 16px 18px 6px;
+  font-size: 15px; line-height: 1.45;
+  min-height: 40px; max-height: 160px;
+  padding: 14px 16px 4px;
   overflow-y: auto;
 }
 .tov-composer-input::placeholder { color: var(--tov-muted); }
 .tov-composer-toolbar {
-  display: flex; align-items: center; gap: 8px;
-  padding: 6px 12px 12px;
+  display: flex; align-items: center; gap: 6px;
+  padding: 4px 10px 10px;
 }
 .tov-composer-plus {
   flex: 0 0 auto;
@@ -1617,17 +1493,7 @@ const STYLES = `
   transition: background .14s, color .14s;
 }
 .tov-composer-plus:hover { background: var(--tov-pill); color: var(--tov-text); }
-.tov-composer-ctx-pill {
-  display: inline-flex; align-items: center;
-  height: 28px; padding: 0 10px;
-  border-radius: 999px;
-  background: color-mix(in srgb, #5B647D 12%, transparent);
-  color: #5B647D;
-  font-size: 12px; font-weight: 500;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  max-width: min(220px, 42vw);
-}
-.tov-composer-spacer { flex: 1 1 auto; min-width: 8px; }
+.tov-composer-spacer { flex: 1 1 auto; min-width: 4px; }
 .tov-composer-mic {
   flex: 0 0 auto; width: 32px; height: 32px;
   display: inline-flex; align-items: center; justify-content: center;
@@ -1785,30 +1651,13 @@ const STYLES = `
 /* Floating bottom bar (sana) */
 .tov-floatbar {
   flex: 0 0 auto;
-  padding: 0 32px max(24px, env(safe-area-inset-bottom, 0px));
+  padding: 0 24px max(20px, env(safe-area-inset-bottom, 0px));
   background: linear-gradient(to top, var(--tov-bg) 70%, transparent);
 }
 .tov-floatbar-inner {
-  max-width: 760px; margin: 0 auto;
+  max-width: 720px; margin: 0 auto;
 }
-.tov.tov-full .tov-floatbar-inner { max-width: 820px; }
-.tov-floatbar-meta {
-  display: flex; align-items: center; gap: 16px;
-  margin-top: 10px; padding: 0 6px;
-}
-.tov-floatbar-link {
-  display: inline-flex; align-items: center; gap: 5px;
-  background: transparent; border: 0;
-  color: var(--tov-text-2);
-  font: inherit; font-size: 12.5px; font-weight: 500;
-  cursor: pointer;
-  transition: color .12s;
-}
-.tov-floatbar-link:hover { color: var(--tov-text); }
-.tov-floatbar-auto {
-  margin-left: auto;
-  font-size: 12.5px; color: var(--tov-muted); font-weight: 500;
-}
+.tov.tov-full .tov-floatbar-inner { max-width: 760px; }
 
 /* ── /ai agent surface (sana screenshots 3 + 4) ── */
 .tov.tov-agent {
