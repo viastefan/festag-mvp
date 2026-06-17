@@ -483,16 +483,19 @@ function SuggestionPills({
 }) {
   if (!examples.length) return null
   return (
-    <div className="tov-suggestions" role="group" aria-label="Vorschläge">
-      {examples.slice(0, 4).map(ex => {
-        const Icon = ex.icon
-        return (
-          <button key={ex.title} type="button" className="tov-suggestion" onClick={() => onPick(ex.title)}>
-            <Icon size={14} weight="regular" aria-hidden />
-            <span>{ex.title}</span>
-          </button>
-        )
-      })}
+    <div className="tov-chips" role="group" aria-label="Vorschläge">
+      <p className="tov-chips-label">Vorschläge</p>
+      <div className="tov-chips-grid">
+        {examples.slice(0, 4).map(ex => {
+          const Icon = ex.icon
+          return (
+            <button key={ex.title} type="button" className="tov-chip" onClick={() => onPick(ex.title)}>
+              <Icon size={15} weight="regular" aria-hidden />
+              <span>{ex.title}</span>
+            </button>
+          )
+        })}
+      </div>
     </div>
   )
 }
@@ -1185,16 +1188,19 @@ function Composer({
               title="Quellen hinzufügen"
               onClick={() => openPicker('')}
             >
-              <Plus size={18} weight="regular" />
+              <Plus size={variant === 'hero' ? 20 : 18} weight="regular" />
             </button>
             <span className="tov-composer-spacer" aria-hidden />
+            {variant === 'hero' && !value.trim() && (
+              <span className="tov-composer-enter-hint" aria-hidden>Enter ↵</span>
+            )}
             {micOk && (
               <button type="button" className={`tov-composer-mic${rec ? ' is-rec' : ''}`} onClick={onMic} aria-label={rec ? 'Aufnahme stoppen' : 'Per Sprache diktieren'}>
-                {rec ? <MicrophoneSlash size={18} weight="regular" /> : <Microphone size={18} weight="regular" />}
+                {rec ? <MicrophoneSlash size={variant === 'hero' ? 20 : 18} weight="regular" /> : <Microphone size={variant === 'hero' ? 20 : 18} weight="regular" />}
               </button>
             )}
             <button type="button" className="tov-composer-send" onClick={onSend} disabled={busy || !value.trim()} aria-label="Senden">
-              {busy ? <ArrowsClockwise size={17} className="tov-spin" /> : <ArrowUp size={17} weight="bold" />}
+              {busy ? <ArrowsClockwise size={variant === 'hero' ? 18 : 17} className="tov-spin" /> : <ArrowUp size={variant === 'hero' ? 18 : 17} weight="bold" />}
             </button>
           </div>
         </div>
@@ -1649,46 +1655,19 @@ const STYLES = `
 }
 .tov-picker-footer {
   flex: 0 0 auto;
-  padding: 10px 28px max(22px, env(safe-area-inset-bottom, 0px));
+  padding: 14px 28px max(24px, env(safe-area-inset-bottom, 0px));
   border-top: 1px solid var(--tov-border);
   background: var(--tov-bg);
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 14px;
 }
 .tov-picker-footer .tov-composer { max-width: 100%; margin: 0 auto; }
-.tov-suggestions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 8px;
+.tov-picker-footer .tov-chips {
   max-width: 720px;
   margin: 0 auto;
   width: 100%;
 }
-.tov-suggestion {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  min-height: 34px;
-  padding: 0 13px;
-  border: 1px solid var(--tov-border);
-  border-radius: 999px;
-  background: transparent;
-  color: var(--tov-text-2);
-  font: inherit;
-  font-size: 12.5px;
-  font-weight: 400;
-  line-height: 1.2;
-  cursor: pointer;
-  transition: background .14s ease, border-color .14s ease, color .14s ease;
-}
-.tov-suggestion:hover {
-  background: var(--tov-pill);
-  border-color: var(--tov-border-2);
-  color: var(--tov-text);
-}
-.tov-suggestion svg { flex-shrink: 0; opacity: .72; }
 .tov-picker-card {
   width: 100%; max-width: 100%;
   position: relative;
@@ -1701,19 +1680,31 @@ const STYLES = `
   padding: 4px 0 8px;
 }
 .tov-picker-title {
-  margin: 0 0 22px;
+  margin: 0 0 clamp(24px, 3vh, 32px);
   text-align: center;
-  font-size: 22px; font-weight: 600; letter-spacing: -.02em;
-  line-height: 1.28; color: var(--tov-text);
+  font-size: clamp(26px, 3.4vw, 36px);
+  font-weight: 500;
+  letter-spacing: -.025em;
+  line-height: 1.22;
+  color: var(--tov-text);
   text-wrap: balance;
 }
+.tov.tov-full.tov-mode-initial .tov-picker-title {
+  font-size: clamp(28px, 3.8vw, 40px);
+  margin-bottom: clamp(28px, 3.5vh, 36px);
+}
 .tov-featured {
-  display: flex; align-items: flex-start; gap: 12px;
-  background: transparent;
-  border: 0;
-  border-radius: 0;
-  padding: 0 2px;
-  margin-bottom: 14px;
+  display: flex; align-items: flex-start; gap: 14px;
+  background: var(--tov-bg-2);
+  border: 1px solid var(--tov-border);
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
+[data-theme="dark"] .tov-featured,
+[data-theme="classic-dark"] .tov-featured {
+  background: color-mix(in srgb, var(--tov-bg-2) 88%, transparent);
+  border-color: rgba(255, 255, 255, 0.08);
 }
 .tov-featured-ico {
   flex: 0 0 auto;
@@ -1734,19 +1725,23 @@ const STYLES = `
 .tov-featured-link { color: var(--tov-link); font-weight: 500; }
 .tov-featured-go {
   flex: 0 0 auto;
-  width: 30px; height: 30px;
+  width: 34px; height: 34px;
   display: inline-flex; align-items: center; justify-content: center;
-  background: transparent;
-  color: var(--tov-muted);
-  border: 1px solid var(--tov-border);
+  background: var(--tov-text);
+  color: var(--tov-bg);
+  border: none;
   border-radius: 999px;
   cursor: pointer;
-  transition: background .12s, color .12s, border-color .12s;
+  transition: opacity .14s ease, transform .12s ease;
+}
+[data-theme="dark"] .tov-featured-go,
+[data-theme="classic-dark"] .tov-featured-go {
+  background: #f4f4f5;
+  color: #18181b;
 }
 .tov-featured-go:hover {
-  background: var(--tov-pill);
-  color: var(--tov-text);
-  border-color: var(--tov-border-2);
+  opacity: .9;
+  transform: translateX(1px);
 }
 
 /* Attached @-context chips */
@@ -1789,26 +1784,38 @@ const STYLES = `
 .tov-attached-meta .tov-attached-x { background: var(--tov-pill); }
 .tov-attached-meta .tov-attached-x:hover { background: var(--tov-pill-h); }
 
-.tov-chips { width: 100%; margin-top: 8px; }
+.tov-chips { width: 100%; margin-top: 0; }
 .tov-chips-label {
   margin: 0 0 10px;
-  font-size: 11px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--tov-muted);
+  font-size: 10.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--tov-muted);
 }
 .tov-chips-grid { display: grid; gap: 8px; grid-template-columns: 1fr 1fr; }
 @media (max-width: 640px) { .tov-chips-grid { grid-template-columns: 1fr; } }
 .tov-chip {
-  display: flex; align-items: center; text-align: left;
+  display: flex; align-items: center; gap: 10px; text-align: left;
   background: var(--tov-bg-2);
   color: var(--tov-text);
   border: 1px solid var(--tov-border);
-  border-radius: 14px;
-  padding: 12px 14px;
-  font: inherit; font-size: 13.5px; font-weight: 500; line-height: 1.4;
+  border-radius: 12px;
+  padding: 13px 14px;
+  min-height: 48px;
+  font: inherit; font-size: 13px; font-weight: 500; line-height: 1.35;
   cursor: pointer;
-  transition: background .12s, border-color .12s, transform .12s;
+  transition: background .14s ease, border-color .14s ease, transform .12s ease;
 }
+.tov-chip svg { flex-shrink: 0; opacity: .65; color: var(--tov-text-2); }
 .tov-chip:hover { background: var(--tov-pill); border-color: var(--tov-border-2); }
 .tov-chip:active { transform: scale(.99); }
+[data-theme="dark"] .tov-chip,
+[data-theme="classic-dark"] .tov-chip {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+[data-theme="dark"] .tov-chip:hover,
+[data-theme="classic-dark"] .tov-chip:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.12);
+}
 
 /* Empty fullscreen chat */
 .tov-context-hint {
@@ -1845,12 +1852,12 @@ const STYLES = `
   min-height: 100%;
 }
 .tov.tov-full.tov-mode-initial .tov-picker-view {
-  padding: 40px 32px 24px;
+  padding: clamp(32px, 4vh, 48px) 32px 20px;
   align-items: flex-start;
   justify-content: center;
 }
 .tov.tov-full.tov-mode-initial .tov-picker-card {
-  max-width: 640px;
+  max-width: 660px;
 }
 .tov.tov-full.tov-mode-initial .tov-picker-footer {
   padding: 12px 32px max(28px, env(safe-area-inset-bottom, 0px));
@@ -2219,30 +2226,73 @@ const STYLES = `
   width: 100%;
   display: flex;
   flex-direction: column;
+  position: relative;
+  isolation: isolate;
+}
+.tov-composer-stack::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 30px;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--tov-accent) 4%, transparent) 0%,
+    color-mix(in srgb, var(--tov-accent) 10%, transparent) 55%,
+    color-mix(in srgb, var(--tov-accent) 5%, transparent) 100%
+  );
+  opacity: 0.85;
+  z-index: 0;
+  pointer-events: none;
+  transition: opacity .2s ease;
+}
+[data-theme="dark"] .tov-composer-stack::before,
+[data-theme="classic-dark"] .tov-composer-stack::before {
+  background: radial-gradient(
+    ellipse 120% 90% at 50% 100%,
+    rgba(91, 100, 125, 0.14) 0%,
+    rgba(91, 100, 125, 0.05) 45%,
+    transparent 72%
+  );
+  opacity: 1;
+}
+.tov-composer-stack:focus-within::before {
+  opacity: 1;
+  background: radial-gradient(
+    ellipse 120% 95% at 50% 100%,
+    color-mix(in srgb, var(--tov-accent) 18%, transparent) 0%,
+    color-mix(in srgb, var(--tov-accent) 6%, transparent) 50%,
+    transparent 75%
+  );
 }
 .tov-composer-shell {
   display: flex;
   flex-direction: column;
   width: 100%;
+  position: relative;
+  z-index: 1;
   border-radius: 26px;
-  border: 1px solid var(--tov-border);
+  border: none;
   background: var(--tov-input);
-  box-shadow: none;
-  transition: border-color .18s ease, background .18s ease;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 1px 2px rgba(0, 0, 0, 0.04);
+  transition: background .18s ease, box-shadow .18s ease;
 }
 .tov-composer-shell:focus-within {
-  border-color: color-mix(in srgb, var(--tov-text) 14%, var(--tov-border));
-  background: color-mix(in srgb, var(--tov-input) 96%, var(--tov-bg));
+  background: color-mix(in srgb, var(--tov-input) 94%, var(--tov-bg));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 2px 8px rgba(0, 0, 0, 0.06);
 }
 [data-theme="dark"] .tov-composer-shell,
 [data-theme="classic-dark"] .tov-composer-shell {
-  background: #2a2a2c;
-  border-color: rgba(255, 255, 255, 0.10);
+  background: rgba(38, 38, 42, 0.92);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 [data-theme="dark"] .tov-composer-shell:focus-within,
 [data-theme="classic-dark"] .tov-composer-shell:focus-within {
-  border-color: rgba(255, 255, 255, 0.16);
-  background: #303032;
+  background: rgba(42, 42, 46, 0.96);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
 }
 .tov-composer-input {
   display: block;
@@ -2261,14 +2311,30 @@ const STYLES = `
   padding: 16px 18px 6px;
   overflow-y: hidden;
   field-sizing: content;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--tov-muted) 55%, transparent) transparent;
+}
+.tov-composer-input::-webkit-scrollbar { width: 5px; }
+.tov-composer-input::-webkit-scrollbar-track { background: transparent; }
+.tov-composer-input::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--tov-muted) 50%, transparent);
+  border-radius: 999px;
+}
+.tov-composer-input::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--tov-muted) 70%, transparent);
 }
 .tov-composer-hero .tov-composer-shell { border-radius: 28px; }
+.tov-composer-hero .tov-composer-stack::before { border-radius: 32px; }
 .tov-composer-hero .tov-composer-input {
-  font-size: 15.5px;
+  font-size: 16px;
+  line-height: 1.55;
   padding: 18px 20px 8px;
 }
 .tov-composer-hero .tov-composer-toolbar {
-  padding: 4px 10px 12px;
+  padding: 4px 12px 14px;
+  gap: 8px;
+  min-height: 48px;
+  align-items: center;
 }
 .tov-composer-input::placeholder {
   color: var(--tov-muted);
@@ -2280,11 +2346,20 @@ const STYLES = `
   flex-shrink: 0;
   padding: 2px 10px 10px;
 }
+.tov-composer-enter-hint {
+  flex: 0 0 auto;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: .02em;
+  color: var(--tov-muted);
+  user-select: none;
+  padding: 0 4px;
+}
 .tov-composer-plus,
 .tov-composer-mic {
   flex: 0 0 auto;
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -2294,6 +2369,11 @@ const STYLES = `
   border-radius: 50%;
   cursor: pointer;
   transition: background .12s, color .12s;
+}
+.tov-composer-hero .tov-composer-plus,
+.tov-composer-hero .tov-composer-mic {
+  width: 38px;
+  height: 38px;
 }
 .tov-composer-plus:hover,
 .tov-composer-mic:hover {
@@ -2307,10 +2387,10 @@ const STYLES = `
 }
 .tov-composer-send {
   flex: 0 0 auto;
-  width: 34px;
-  height: 34px;
-  min-width: 34px;
-  min-height: 34px;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  min-height: 36px;
   border: 0;
   border-radius: 50%;
   background: color-mix(in srgb, var(--tov-text) 10%, var(--tov-pill));
@@ -2319,7 +2399,13 @@ const STYLES = `
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background .16s ease, color .16s ease, opacity .16s ease;
+  transition: background .16s ease, color .16s ease, opacity .16s ease, transform .12s ease;
+}
+.tov-composer-hero .tov-composer-send {
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  min-height: 40px;
 }
 .tov-composer-shell.has-text .tov-composer-send:not(:disabled) {
   background: var(--tov-send);
@@ -2752,13 +2838,27 @@ const STYLES = `
     padding: 20px 20px 12px;
   }
   .tov-picker-title {
-    font-size: 20px;
-    margin-bottom: 18px;
+    font-size: clamp(22px, 6vw, 28px);
+    margin-bottom: 20px;
   }
   .tov-picker-footer {
-    padding: 6px 16px max(16px, env(safe-area-inset-bottom, 0px));
+    padding: 10px 16px max(16px, env(safe-area-inset-bottom, 0px));
+    gap: 12px;
   }
   .tov-composer-hero .tov-composer-shell { border-radius: 24px; }
+  .tov-composer-hero .tov-composer-stack::before { border-radius: 28px; }
+  .tov-composer-hero .tov-composer-plus,
+  .tov-composer-hero .tov-composer-mic {
+    width: 36px;
+    height: 36px;
+  }
+  .tov-composer-hero .tov-composer-send {
+    width: 38px;
+    height: 38px;
+    min-width: 38px;
+    min-height: 38px;
+  }
+  .tov-composer-enter-hint { display: none; }
   .tov-composer-input {
     font-size: 16px;
   }
