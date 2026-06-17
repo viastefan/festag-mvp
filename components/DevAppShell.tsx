@@ -76,6 +76,12 @@ export default function DevAppShell({
     return () => document.body.classList.remove('festag-app-mode')
   }, [])
 
+  useEffect(() => {
+    function onTagroApplied() { router.refresh() }
+    window.addEventListener('festag:tagro-applied', onTagroApplied)
+    return () => window.removeEventListener('festag:tagro-applied', onTagroApplied)
+  }, [router])
+
   // theme event sync (e.g. when /settings page changes theme)
   useEffect(() => {
     const onTheme = (event: Event) => {

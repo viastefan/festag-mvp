@@ -26,6 +26,9 @@ export type TagroExecuteResult = {
   created?: Array<{ type: string; id: string; title: string }>
 }
 
+export type { TagroCreatedItem } from '@/lib/tagro/created-links'
+export { tagroCreatedHref } from '@/lib/tagro/created-links'
+
 export function applyLabelForAction(action?: string): string {
   switch (action as TagroSuggestedAction) {
     case 'task': return 'Als Aufgabe anlegen'

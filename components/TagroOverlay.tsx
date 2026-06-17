@@ -37,8 +37,11 @@ import {
   applyLabelForAction,
   buildMessageActions,
   executeTagroPreview,
+  tagroCreatedHref,
 } from '@/lib/tagro/overlay-execute'
-import { pickResultToChip, searchTagroPicker, type PickGroup, type PickResult } from '@/lib/tagro/picker-search'
+import { pickResultToChip, rememberRecentPick, searchTagroPicker, type PickGroup, type PickResult } from '@/lib/tagro/picker-search'
+import { replaceTrailingMention, trailingMentionQuery } from '@/lib/tagro/mention-input'
+import Link from 'next/link'
 
 // ── Public API ────────────────────────────────────────────────────────────
 
@@ -149,6 +152,7 @@ type Message =
       applyBusy?: boolean;
       applyNotice?: string;
       applied?: boolean;
+      applyCreated?: Array<{ type: string; id: string; title: string }>;
     }
 
 function uid() { return Math.random().toString(36).slice(2, 10) }
@@ -725,6 +729,7 @@ export default function TagroOverlay() {
             applyBusy: false,
             applied: result.ok,
             applyNotice: result.message,
+            applyCreated: result.ok ? result.created : undefined,
           }
         : m))
       if (result.ok && msg.preview && typeof window !== 'undefined') {
@@ -793,12 +798,6 @@ export default function TagroOverlay() {
   const attachedChips: AttachedChip[] = [...baseChips, ...extraAttached]
   const attachExtra = (c: AttachedChip) => {
     setExtraAttached(prev => prev.some(p => p.label === c.label) ? prev : [...prev, c])
-    setInput(prev => {
-      const label = c.label.trim()
-      if (!label || prev.includes(label)) return prev
-      const base = prev.trim()
-      return base ? `${base} ${label}` : label
-    })
   }
   const removeExtra = (label: string) =>
     setExtraAttached(prev => prev.filter(p => p.label !== label))
@@ -1066,16 +1065,44 @@ function Composer({
 
   // People/Sources picker — opens via the + button or by typing '@'.
   const [pickerOpen, setPickerOpen] = useState(false)
+  const [pickerQuery, setPickerQuery] = useState('')
 
-  function openPicker() { setPickerOpen(true) }
-  function closePicker() { setPickerOpen(false) }
+  function openPicker(seed = '') {
+    setPickerQuery(seed)
+    setPickerOpen(true)
+  }
+  function closePicker() {
+    setPickerOpen(false)
+    setPickerQuery('')
+  }
+
+  function handlePick(chip: AttachedChip) {
+    onAttach?.(chip)
+    onChange(replaceTrailingMention(value, chip.label))
+    closePicker()
+    window.setTimeout(() => inputRef.current?.focus(), 30)
+  }
 
   function onKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); onSend(); return }
-    // '@' triggers the people/object picker. We don't intercept the
-    // character itself — it stays in the input so the user can keep
-    // typing the name to filter when the real picker ships.
-    if (e.key === '@') setPickerOpen(true)
+    if (e.key === '@') {
+      window.setTimeout(() => {
+        const el = inputRef.current
+        if (!el) return
+        openPicker(trailingMentionQuery(el.value) ?? '')
+      }, 0)
+    }
+  }
+
+  function onInputChange(next: string) {
+    onChange(next)
+    const mentionQ = trailingMentionQuery(next)
+    if (mentionQ !== null) {
+      setPickerQuery(mentionQ)
+      if (!pickerOpen) setPickerOpen(true)
+    } else if (pickerOpen && pickerQuery) {
+      closePicker()
+    }
   }
 
   return (
@@ -1093,7 +1120,7 @@ function Composer({
               rows={1}
               placeholder={placeholder}
               value={value}
-              onChange={e => { autosize(e.currentTarget); onChange(e.target.value) }}
+              onChange={e => { autosize(e.currentTarget); onInputChange(e.target.value) }}
               onKeyDown={onKeyDown}
             />
             <div className="tov-composer-toolbar">
@@ -1102,7 +1129,7 @@ function Composer({
                 className="tov-composer-plus"
                 aria-label="Quellen hinzufügen"
                 title="Quellen hinzufügen"
-                onClick={openPicker}
+                onClick={() => openPicker('')}
               >
                 <Plus size={16} weight="regular" />
               </button>
@@ -1135,7 +1162,8 @@ function Composer({
       {pickerOpen && (
         <PeopleObjectPicker
           onClose={closePicker}
-          onPick={(chip) => { onAttach?.(chip); closePicker() }}
+          onPick={handlePick}
+          initialQuery={pickerQuery}
           fullscreen={fullscreen}
         />
       )}
@@ -1161,14 +1189,23 @@ function pickGroupIcon(group: PickGroup) {
   }
 }
 
-function PeopleObjectPicker({ onClose, onPick, fullscreen = false }: { onClose: () => void; onPick: (chip: AttachedChip) => void; fullscreen?: boolean }) {
-  const [q, setQ] = useState('')
+function PeopleObjectPicker({
+  onClose, onPick, initialQuery = '', fullscreen = false,
+}: {
+  onClose: () => void
+  onPick: (chip: AttachedChip) => void
+  initialQuery?: string
+  fullscreen?: boolean
+}) {
+  const [q, setQ] = useState(initialQuery)
   const [results, setResults] = useState<PickResult[]>([])
   const [loading, setLoading] = useState(false)
   const [activeIdx, setActiveIdx] = useState(0)
   const searchRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => { searchRef.current?.focus() }, [])
+
+  useEffect(() => { setQ(initialQuery) }, [initialQuery])
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) { if (e.key === 'Escape') onClose() }
@@ -1211,6 +1248,7 @@ function PeopleObjectPicker({ onClose, onPick, fullscreen = false }: { onClose: 
   function pickAt(idx: number) {
     const r = flatResults[idx]
     if (!r) return
+    rememberRecentPick(r)
     onPick(pickResultToChip(r))
     onClose()
   }
@@ -1270,7 +1308,7 @@ function PeopleObjectPicker({ onClose, onPick, fullscreen = false }: { onClose: 
                   type="button"
                   className={`tov-pick-result${isActive ? ' is-active' : ''}`}
                   onMouseEnter={() => setActiveIdx(idx)}
-                  onClick={() => { onPick(pickResultToChip(r)); onClose() }}
+                  onClick={() => { rememberRecentPick(r); onPick(pickResultToChip(r)); onClose() }}
                 >
                   <span className="tov-pick-result-ico" aria-hidden>{pickGroupIcon(group)}</span>
                   <span className="tov-pick-result-body">
@@ -1357,6 +1395,17 @@ function TagroMsg({
         </div>
       )}
       {msg.applyNotice && <p className="tov-apply-notice">{msg.applyNotice}</p>}
+      {msg.applyCreated && msg.applyCreated.length > 0 && (
+        <div className="tov-created-links">
+          {msg.applyCreated.map(item => {
+            const href = tagroCreatedHref(item)
+            const label = item.title || item.type
+            return href
+              ? <Link key={`${item.type}-${item.id}`} href={href} className="tov-created-link">{label} öffnen →</Link>
+              : <span key={`${item.type}-${item.id}`} className="tov-created-link-static">{label}</span>
+          })}
+        </div>
+      )}
       {(() => {
         const extraActions = (msg.actions ?? []).filter(a => a !== applyLabel).slice(0, 3)
         if (!extraActions.length) return null
@@ -2488,6 +2537,22 @@ const STYLES = `
   font-size: 12.5px; line-height: 1.45;
   color: var(--tov-text-2);
 }
+.tov-created-links {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  margin-top: 10px;
+}
+.tov-created-link,
+.tov-created-link-static {
+  display: inline-flex; align-items: center;
+  font-size: 12.5px; font-weight: 500;
+  padding: 6px 10px; border-radius: 999px;
+  background: var(--tov-accent-soft);
+  color: var(--tov-link);
+  text-decoration: none;
+  transition: background .12s;
+}
+.tov-created-link:hover { background: var(--tov-accent-mid); }
+.tov-created-link-static { opacity: .85; }
 .tov-quickaction {
   border: 1px solid var(--tov-border);
   border-radius: 999px;
@@ -2777,6 +2842,18 @@ const STYLES = `
     border-radius: 0;
     border: none;
   }
+  .tov-pick {
+    padding: 0;
+    align-items: flex-end;
+  }
+  .tov-pick-sheet {
+    width: 100%;
+    max-width: 100%;
+    max-height: min(78dvh, 640px);
+    border-radius: 22px 22px 0 0;
+    animation: tov-sheet-up .28s cubic-bezier(.16,1,.3,1) both;
+  }
+  .tov-pick-results { max-height: 50dvh; }
 }
 @keyframes tov-sheet-up {
   from { opacity: 0; transform: translateY(100%); }

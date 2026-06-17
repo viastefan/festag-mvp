@@ -25,6 +25,29 @@ function displayName(p: { full_name?: string | null; first_name?: string | null;
   return (p.full_name || p.first_name || p.email || 'Person').trim()
 }
 
+const RECENT_KEY = 'festag-tagro-recent-picks'
+const RECENT_MAX = 8
+
+function readRecent(): PickResult[] {
+  if (typeof window === 'undefined') return []
+  try {
+    const raw = localStorage.getItem(RECENT_KEY)
+    if (!raw) return []
+    const parsed = JSON.parse(raw)
+    return Array.isArray(parsed) ? parsed.slice(0, RECENT_MAX) : []
+  } catch {
+    return []
+  }
+}
+
+export function rememberRecentPick(r: PickResult) {
+  if (typeof window === 'undefined') return
+  try {
+    const prev = readRecent().filter(p => !(p.group === r.group && p.id === r.id))
+    localStorage.setItem(RECENT_KEY, JSON.stringify([r, ...prev].slice(0, RECENT_MAX)))
+  } catch { /* noop */ }
+}
+
 export async function searchTagroPicker(query: string): Promise<PickResult[]> {
   const { createClient } = await import('@/lib/supabase/client')
   const sb = createClient() as any
@@ -114,6 +137,18 @@ export async function searchTagroPicker(query: string): Promise<PickResult[]> {
       objectType: 'note', mentionLabel: `@Notiz ${title}`,
     })
   })
+
+  if (!term) {
+    const recent = readRecent()
+    const seen = new Set(out.map(r => `${r.group}:${r.id}`))
+    for (const r of recent) {
+      const key = `${r.group}:${r.id}`
+      if (!seen.has(key)) {
+        out.unshift(r)
+        seen.add(key)
+      }
+    }
+  }
 
   return out
 }
