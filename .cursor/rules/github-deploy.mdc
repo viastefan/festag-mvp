@@ -1,0 +1,20 @@
+---
+description: Commit and push to GitHub after product/UI changes so Vercel deploys
+alwaysApply: true
+---
+
+# GitHub deploy workflow (Festag)
+
+festag.app is deployed from **GitHub `main`**, not from local files alone.
+
+After completing requested **UI, product, or feature changes**:
+
+1. **Commit** relevant changes with a clear message (do not commit secrets, `.env`, or unrelated WIP).
+2. **Push** to `origin main` so Vercel can build and deploy.
+3. Confirm push succeeded (`git status` shows `main...origin/main` in sync).
+
+If push to `main` is blocked (protected branch), tell the user immediately and retry with their approval — do not leave changes only local when deployment was requested.
+
+Do **not** force-push to `main`.
+
+When the user says "deploy", "auf GitHub bauen", or similar, treat that as explicit permission to commit and push.
