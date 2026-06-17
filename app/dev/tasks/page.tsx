@@ -251,29 +251,29 @@ export default function DevTasksPage() {
     setProofMissingHint(null)
   }, [])
 
-  // ──────── initial load
+  // ──────── initial load — works for OAuth + PIN devs via /api/dev/*
   useEffect(() => {
     let cancelled = false
     ;(async () => {
-      // Server-validated + refreshes; DevAppShell already gates access, so a
-      // transient null must NOT hard-bounce to /login.
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-      const session = { user }
-      const uid = session.user.id
-      const { data: prof } = await supabase.from('profiles').select('role').eq('id', uid).maybeSingle()
-      if (cancelled) return
-      setUserId(uid); setRole((prof as any)?.role ?? null)
-      await reload(uid)
       try {
-        const res = await fetch('/api/dev/work-sessions?open=1&limit=1')
-        const d = await res.json().catch(() => ({}))
-        if (!cancelled) setOpenSession(d?.sessions?.[0] ?? null)
-      } catch {}
-      try {
-        const url = new URL(window.location.href)
-        const id = url.searchParams.get('id')
-        if (id && !cancelled) setSelectedId(id)
+        const meRes = await fetch('/api/dev/me', { credentials: 'include' })
+        if (!meRes.ok) return
+        const me = await meRes.json().catch(() => null)
+        const uid = me?.user?.id
+        if (!uid || cancelled) return
+        setUserId(uid)
+        setRole(me?.user?.role ?? null)
+        await reload(uid)
+        try {
+          const res = await fetch('/api/dev/work-sessions?open=1&limit=1')
+          const d = await res.json().catch(() => ({}))
+          if (!cancelled) setOpenSession(d?.sessions?.[0] ?? null)
+        } catch {}
+        try {
+          const url = new URL(window.location.href)
+          const id = url.searchParams.get('id')
+          if (id && !cancelled) setSelectedId(id)
+        } catch {}
       } catch {}
     })()
     return () => { cancelled = true }
@@ -288,30 +288,22 @@ export default function DevTasksPage() {
   }, [openSession])
   void tick
 
-  // ──────── tasks fetch
+  // ──────── tasks fetch (API — PIN devs have no Supabase session)
   async function reload(uid: string | null = userId) {
     if (!uid) return
     setLoading(true)
-    const { data: pa } = await supabase
-      .from('project_assignments').select('project_id,projects(id,title,color)')
-      .eq('user_id', uid).eq('active', true)
-    const projList = ((pa as any[]) ?? []).map(r => r.projects).filter(Boolean) as ProjectLite[]
-    setProjects(projList)
-    const projIds = projList.map(p => p.id)
-
-    let q = supabase
-      .from('tasks')
-      .select('id,title,description,dev_description,client_description,status,dev_status,client_status,client_visible_status,priority,project_id,parent_task_id,assigned_to,estimated_hours,branch_name,work_type,definition_of_done,expected_outcome,required_proof_types,tagro_verification_status,tagro_confidence,tagro_verification_summary,tagro_internal_notes,tagro_client_summary,finished_by_dev_at,verified_by_tagro_at,approved_by_owner_at,last_dev_action_at,created_at,updated_at,due_date,projects(title,color,user_id,client_id)')
-      .order('last_dev_action_at', { ascending: false, nullsFirst: false })
-      .order('updated_at', { ascending: false }).limit(300)
-    if (projIds.length > 0) {
-      q = q.or(`assigned_to.eq.${uid},project_id.in.(${projIds.join(',')})`)
-    } else {
-      q = q.eq('assigned_to', uid)
+    try {
+      const res = await fetch('/api/dev/tasks', { credentials: 'include' })
+      const data = res.ok ? await res.json().catch(() => null) : null
+      if (data?.projects) {
+        setProjects(data.projects as ProjectLite[])
+      }
+      setTasks((data?.tasks as Task[] | null) ?? [])
+    } catch {
+      setTasks([])
+    } finally {
+      setLoading(false)
     }
-    const { data } = await q
-    setTasks((data as Task[] | null) ?? [])
-    setLoading(false)
   }
 
   // ──────── realtime: new tasks land here without manual reload

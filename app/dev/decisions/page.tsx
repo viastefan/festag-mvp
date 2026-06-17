@@ -7,8 +7,9 @@
  * samples for client UI preview, and wires Tagro for framing new requests.
  */
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import {
   ArrowsClockwise, ArrowSquareOut, Lightning, PaperPlaneTilt, Scales, Sparkle, WarningCircle,
 } from '@phosphor-icons/react'
@@ -60,6 +61,9 @@ function fmtAgo(iso: string) {
 }
 
 export default function DevDecisionsPage() {
+  const searchParams = useSearchParams()
+  const openId = searchParams?.get('open') || null
+  const highlightRef = useRef<HTMLLIElement | null>(null)
   const [decisions, setDecisions] = useState<DecisionRow[]>([])
   const [projects, setProjects] = useState<Record<string, ProjectLite>>({})
   const [loading, setLoading] = useState(true)
@@ -74,12 +78,27 @@ export default function DevDecisionsPage() {
   const [composeUrgency, setComposeUrgency] = useState<'low' | 'normal' | 'high' | 'critical'>('normal')
   const [composeBusy, setComposeBusy] = useState(false)
   const [composeError, setComposeError] = useState('')
+  const [backendHint, setBackendHint] = useState<string | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
+    setBackendHint(null)
     try {
       const res = await fetch('/api/dev/decisions', { credentials: 'include' })
+      if (res.status === 401) {
+        setBackendHint('Nicht angemeldet — bitte erneut unter /dev/login einloggen.')
+        setDecisions([])
+        setProjects({})
+        return
+      }
+      if (res.status === 503) {
+        setBackendHint('Backend nicht erreichbar — SUPABASE_SERVICE_ROLE_KEY prüfen.')
+        return
+      }
       const data = res.ok ? await res.json().catch(() => null) : null
+      if (!res.ok) {
+        setBackendHint(data?.error || 'Entscheidungen konnten nicht geladen werden.')
+      }
       setDecisions(data?.decisions ?? [])
       const map: Record<string, ProjectLite> = {}
       for (const p of (data?.projects ?? []) as ProjectLite[]) map[p.id] = p
@@ -93,6 +112,31 @@ export default function DevDecisionsPage() {
   }, [composeProject])
 
   useEffect(() => { void load() }, [load])
+
+  useEffect(() => {
+    if (!openId || loading) return
+    const row = decisions.find(d => d.id === openId)
+    if (row && !isOpenDecisionStatus(row.status) && filter === 'open') {
+      setFilter('all')
+    }
+    requestAnimationFrame(() => {
+      highlightRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    })
+  }, [openId, loading, decisions, filter])
+
+  function openTagroCompose() {
+    const projectId = composeProject || projectList[0]?.id
+    openTagro({
+      contextType: 'decision',
+      id: 'compose',
+      projectId: projectId || undefined,
+      title: 'Entscheidung formulieren',
+      subtitle: projectList.find(p => p.id === projectId)?.title,
+      prefill: composeQuestion.trim()
+        ? `Formuliere eine Kunden-Entscheidung: ${composeQuestion.trim()}`
+        : 'Hilf mir, eine klare Kunden-Entscheidung zu formulieren — mit Optionen und Auswirkung.',
+    })
+  }
 
   const projectList = useMemo(
     () => Object.values(projects).sort((a, b) => a.title.localeCompare(b.title, 'de')),
@@ -212,6 +256,10 @@ export default function DevDecisionsPage() {
             <PaperPlaneTilt size={14} />
             Anfrage senden
           </button>
+          <button type="button" className="dev-dec-btn ghost" onClick={openTagroCompose}>
+            <Sparkle size={14} weight="fill" />
+            Mit Tagro formulieren
+          </button>
           <Link href="/decisions?demo=0" className="dev-dec-btn ghost" target="_blank" rel="noreferrer">
             <ArrowSquareOut size={14} />
             Client-Ansicht
@@ -227,6 +275,13 @@ export default function DevDecisionsPage() {
           />
         </div>
       </header>
+
+      {backendHint && (
+        <div className="dev-dec-hint" role="status">
+          <WarningCircle size={14} weight="fill" />
+          {backendHint}
+        </div>
+      )}
 
       <div className="dev-dec-filters">
         {(['open', 'decided', 'all'] as const).map(f => (
@@ -276,6 +331,10 @@ export default function DevDecisionsPage() {
             placeholder="Optionen (durch | getrennt) — leer = Freitext"
           />
           <div className="dev-dec-compose-actions">
+            <button type="button" className="dev-dec-btn ghost" onClick={openTagroCompose}>
+              <Sparkle size={14} weight="fill" />
+              Tagro fragen
+            </button>
             <button type="button" className="dev-dec-btn" disabled={composeBusy || !composeQuestion.trim()} onClick={submitCompose}>
               {composeBusy ? 'Sende…' : 'An Tagro übergeben'}
             </button>
@@ -301,7 +360,11 @@ export default function DevDecisionsPage() {
             const isOpen = isOpenDecisionStatus(d.status)
             const tone = isOpen ? 'amber' : (d.status === 'rejected' ? 'red' : 'good')
             return (
-              <li key={d.id} className="dev-dec-row">
+              <li
+                key={d.id}
+                ref={openId === d.id ? highlightRef : undefined}
+                className={`dev-dec-row${openId === d.id ? ' dev-dec-row--open' : ''}`}
+              >
                 <div className="dev-dec-row-main">
                   <span className={`dev-dec-pill tone-${tone}`}>{statusLabel(d.status)}</span>
                   <strong>{d.client_title || d.title}</strong>
@@ -389,6 +452,15 @@ export default function DevDecisionsPage() {
           display: flex; justify-content: space-between; align-items: center; gap: 12px;
           padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px;
           background: var(--surface);
+        }
+        .dev-dec-row--open {
+          border-color: color-mix(in srgb, var(--accent, #007aff) 40%, var(--border));
+          background: color-mix(in srgb, var(--accent, #007aff) 6%, var(--surface));
+        }
+        .dev-dec-hint {
+          display: flex; align-items: center; gap: 8px; padding: 10px 14px; margin-bottom: 16px;
+          border-radius: 8px; font-size: 13px; color: var(--text-muted);
+          background: color-mix(in srgb, #ff9500 10%, var(--surface-2));
         }
         .dev-dec-row-main { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
         .dev-dec-row-main strong { font-size: 14px; font-weight: 500; }

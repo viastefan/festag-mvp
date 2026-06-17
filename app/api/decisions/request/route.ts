@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { assertDevRole, devAccessibleProjectIds, resolveDevApiContext } from '@/lib/dev-api'
+import { getServiceClient } from '@/lib/supabase/service'
 import { runDecisionPipeline } from '@/lib/decisions'
 import type { DecisionSignal } from '@/lib/decisions'
 import type { DecisionType, DecisionUrgency, ResponseType } from '@/lib/decisions/types'
@@ -12,25 +13,7 @@ export const runtime = 'nodejs'
  * POST /api/decisions/request
  *
  * Engine-backed entry point. A developer (or project owner) asks Tagro to
- * frame and route a decision to the client. Wraps lib/decisions:
- *
- *   1. Builds a 'dev_request' DecisionSignal from the body.
- *   2. Calls runDecisionPipeline → detect → limit → duplicate → frame →
- *      persist (or refresh).
- *   3. Returns the resulting decision, including whether Tagro merged
- *      this request into an existing open decision.
- *
- * Body:
- *   {
- *     project_id      required
- *     task_id         optional — task this decision blocks
- *     question        required — what needs to be decided (dev language)
- *     suggested_options?     up to 4 strings
- *     suggested_response_type?  binary | single_choice | multi_choice | free_text
- *     suggested_decision_type?  one of DECISION_TYPES (defaults to 'direction')
- *     requested_for?   user id to route to; defaults to project client/owner
- *     owner_review?    if true, decision stays in 'drafted' until owner publishes
- *   }
+ * frame and route a decision to the client.
  */
 
 type Body = {
@@ -46,18 +29,25 @@ type Body = {
 }
 
 export async function POST(req: NextRequest) {
-  const supa = createClient()
-  const { data: { user } } = await supa.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'unauthenticated' }, { status: 401 })
+  const ctx = await resolveDevApiContext(req)
+  if (!ctx) return NextResponse.json({ error: 'unauthenticated' }, { status: 401 })
 
+  const isDev = await assertDevRole(ctx.db, ctx.user.id)
+  if (!isDev) return NextResponse.json({ error: 'not_a_developer' }, { status: 403 })
+
+  const user = ctx.user
   const b = (await req.json().catch(() => ({}))) as Body
   if (!b.project_id) return NextResponse.json({ error: 'project_id required' }, { status: 400 })
   if (!b.question || !b.question.trim()) return NextResponse.json({ error: 'question required' }, { status: 400 })
 
-  // Resolve recipient. Default = project client; fallback = project owner.
+  const accessible = await devAccessibleProjectIds(ctx.db, user.id)
+  if (!accessible.includes(b.project_id)) {
+    return NextResponse.json({ error: 'project_forbidden' }, { status: 403 })
+  }
+
   let requestedFor = b.requested_for || null
   if (!requestedFor) {
-    const { data: proj } = await (supa as any).from('projects')
+    const { data: proj } = await (ctx.db as any).from('projects')
       .select('user_id,client_id').eq('id', b.project_id).maybeSingle()
     requestedFor = proj?.client_id || proj?.user_id || null
   }
@@ -80,8 +70,10 @@ export async function POST(req: NextRequest) {
     urgency,
   }
 
+  const pipelineDb = getServiceClient() ?? ctx.db
+
   try {
-    const outcome = await runDecisionPipeline(supa as any, signal, {
+    const outcome = await runDecisionPipeline(pipelineDb as any, signal, {
       requestedFor,
       createdBy: user.id,
       ownerReviewBeforePublish: !!b.owner_review,

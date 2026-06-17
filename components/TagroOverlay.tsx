@@ -1972,9 +1972,11 @@ const STYLES = `
   min-height: 0;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
-  background: var(--tov-bg);
+  background: color-mix(in srgb, var(--tov-bg) 88%, transparent);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
   border-radius: 12px;
-  border: 1px solid var(--tov-border-2);
+  border: none;
   overflow: hidden;
   box-shadow:
     0 20px 56px -32px rgba(15, 23, 42, 0.18),
@@ -1982,9 +1984,9 @@ const STYLES = `
 }
 [data-theme="dark"] .tov-stage-card,
 [data-theme="classic-dark"] .tov-stage-card {
+  background: rgba(32, 32, 36, 0.72);
   box-shadow:
     0 24px 64px -28px rgba(0, 0, 0, 0.72),
-    0 0 0 1px rgba(255, 255, 255, 0.08),
     inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 .tov-stage-card-picker {
@@ -2002,8 +2004,13 @@ const STYLES = `
   justify-content: space-between;
   gap: 20px;
   padding: clamp(22px, 3.2vh, 36px) clamp(28px, 4vw, 52px) 18px;
-  border-bottom: 1px solid var(--tov-border);
+  border-bottom: none;
+  box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.06);
   flex-shrink: 0;
+}
+[data-theme="dark"] .tov-stage-head,
+[data-theme="classic-dark"] .tov-stage-head {
+  box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.05);
 }
 .tov-stage-head-copy {
   flex: 1;
@@ -2041,8 +2048,13 @@ const STYLES = `
 }
 .tov.tov-full .tov-floatbar {
   padding: 16px clamp(28px, 4vw, 52px) max(24px, env(safe-area-inset-bottom, 0px));
-  background: var(--tov-bg);
-  border-top: 1px solid var(--tov-border);
+  background: transparent;
+  border-top: none;
+  box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.06);
+}
+[data-theme="dark"] .tov.tov-full .tov-floatbar,
+[data-theme="classic-dark"] .tov.tov-full .tov-floatbar {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 .tov.tov-full .tov-floatbar-inner {
   max-width: min(720px, 100%);
@@ -2096,9 +2108,14 @@ const STYLES = `
   justify-content: space-between;
   gap: 12px;
   padding: 14px 16px 12px;
-  border-bottom: 1px solid var(--tov-border);
+  border-bottom: none;
+  box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.06);
   flex-shrink: 0;
-  background: var(--tov-bg);
+  background: transparent;
+}
+[data-theme="dark"] .tov-compact-head,
+[data-theme="classic-dark"] .tov-compact-head {
+  box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.05);
 }
 .tov-compact-head-copy {
   display: flex;
@@ -2147,7 +2164,7 @@ const STYLES = `
   padding: 10px 12px;
   border-radius: 14px 14px 4px 14px;
   background: var(--tov-input);
-  border: 1px solid var(--tov-border);
+  border: none;
 }
 .tov-workspace-compact .tov-msg-user-avatar {
   width: 24px; height: 24px;
@@ -2162,7 +2179,6 @@ const STYLES = `
   padding: 12px;
   border-radius: 12px;
   background: var(--tov-bg-2);
-  border-color: var(--tov-border);
 }
 .tov-workspace-compact .tov-msg-foot {
   flex-direction: column;
@@ -2185,8 +2201,8 @@ const STYLES = `
   height: 30px;
   font-size: 12px;
   padding: 0 12px;
-  border: 1px solid var(--tov-border);
-  background: var(--tov-bg);
+  border: none;
+  background: var(--tov-pill);
   color: var(--tov-text-2);
 }
 .tov-workspace-compact .tov-warning {
@@ -2196,8 +2212,13 @@ const STYLES = `
 .tov-workspace-compact .tov-floatbar {
   flex-shrink: 0;
   padding: 10px 14px max(14px, env(safe-area-inset-bottom, 0px));
-  border-top: 1px solid var(--tov-border);
-  background: var(--tov-bg);
+  border-top: none;
+  box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.06);
+  background: transparent;
+}
+[data-theme="dark"] .tov-workspace-compact .tov-floatbar,
+[data-theme="classic-dark"] .tov-workspace-compact .tov-floatbar {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 .tov-workspace-compact .tov-floatbar-inner {
   max-width: none;
@@ -2757,13 +2778,26 @@ const STYLES = `
   position: relative;
   width: min(680px, calc(100vw - 48px));
   max-height: min(72vh, 640px);
-  background: var(--tov-bg);
-  border: 1px solid var(--tov-border);
+  background: color-mix(in srgb, var(--tov-bg) 86%, transparent);
+  backdrop-filter: blur(32px) saturate(170%);
+  -webkit-backdrop-filter: blur(32px) saturate(170%);
+  border: none;
   border-radius: 20px;
-  box-shadow: var(--tov-shadow);
+  box-shadow:
+    0 36px 72px -32px rgba(0, 0, 0, 0.38),
+    0 14px 32px -18px rgba(0, 0, 0, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.65);
   display: flex; flex-direction: column;
   overflow: hidden;
   animation: tov-up .2s cubic-bezier(.16,1,.3,1) both;
+}
+[data-theme="dark"] .tov-pick-sheet,
+[data-theme="classic-dark"] .tov-pick-sheet {
+  background: rgba(32, 32, 36, 0.76);
+  box-shadow:
+    0 44px 96px -36px rgba(0, 0, 0, 0.82),
+    0 18px 42px -24px rgba(0, 0, 0, 0.52),
+    inset 0 1px 0 rgba(255, 255, 255, 0.09);
 }
 .tov-pick-head {
   display: flex; align-items: center; justify-content: space-between;

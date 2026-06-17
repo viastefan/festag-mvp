@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { resolveDevApiContext } from '@/lib/dev-api'
 import type { InboxFeedItem } from '@/components/inbox/useInboxFeed'
 
 type NotificationRow = {
@@ -47,21 +47,20 @@ function toFeedItem(n: NotificationRow): InboxFeedItem {
 
 /**
  * Dev Execution Inbox — notifications table (Human Execution Layer).
- * Completely separate from client Posteingang (/api/inbox/items).
  *
  *   GET   /api/dev/execution-inbox?unread=1&limit=200
  *   PATCH /api/dev/execution-inbox { id?, ids[]?, markAllRead?: true }
  */
 export async function GET(req: Request) {
-  const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'unauthenticated' }, { status: 401 })
+  const ctx = await resolveDevApiContext(req)
+  if (!ctx) return NextResponse.json({ error: 'unauthenticated' }, { status: 401 })
 
+  const user = ctx.user
   const url = new URL(req.url)
   const unread = url.searchParams.get('unread') === '1'
   const limit = Math.min(Number(url.searchParams.get('limit') ?? 200), 200)
 
-  let q = supabase
+  let q = (ctx.db as any)
     .from('notifications')
     .select('id,user_id,project_id,task_id,audience,kind,type,title,body,message,link,payload,read,read_at,created_at')
     .eq('user_id', user.id)
@@ -76,7 +75,7 @@ export async function GET(req: Request) {
 
   const items = ((rows as NotificationRow[] | null) ?? []).map(toFeedItem)
 
-  const { count: unreadCount } = await supabase
+  const { count: unreadCount } = await (ctx.db as any)
     .from('notifications')
     .select('*', { count: 'exact', head: true })
     .eq('user_id', user.id)
@@ -86,7 +85,7 @@ export async function GET(req: Request) {
   const projectIds = Array.from(new Set(items.map(i => i.project_id).filter(Boolean))) as string[]
   let projects: Record<string, { title: string; color: string | null }> = {}
   if (projectIds.length) {
-    const { data: projs } = await supabase.from('projects').select('id,title,color').in('id', projectIds)
+    const { data: projs } = await (ctx.db as any).from('projects').select('id,title,color').in('id', projectIds)
     for (const p of projs ?? []) projects[p.id] = { title: p.title, color: p.color }
   }
 
@@ -94,15 +93,15 @@ export async function GET(req: Request) {
 }
 
 export async function PATCH(req: Request) {
-  const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'unauthenticated' }, { status: 401 })
+  const ctx = await resolveDevApiContext(req)
+  if (!ctx) return NextResponse.json({ error: 'unauthenticated' }, { status: 401 })
 
+  const user = ctx.user
   const body = await req.json().catch(() => ({}))
   const now = new Date().toISOString()
 
   if (body?.markAllRead) {
-    await supabase.from('notifications')
+    await (ctx.db as any).from('notifications')
       .update({ read: true, read_at: now })
       .eq('user_id', user.id)
       .in('audience', ['dev', 'admin'])
@@ -114,7 +113,7 @@ export async function PATCH(req: Request) {
     : body?.id ? [String(body.id)] : []
   if (ids.length === 0) return NextResponse.json({ error: 'no_ids' }, { status: 400 })
 
-  await supabase.from('notifications')
+  await (ctx.db as any).from('notifications')
     .update({ read: true, read_at: now })
     .eq('user_id', user.id)
     .in('id', ids)

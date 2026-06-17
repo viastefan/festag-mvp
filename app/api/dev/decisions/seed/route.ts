@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { assertDevRole, devAccessibleProjectIds, devDefaultProjectId, resolveDevApiContext } from '@/lib/dev-api'
 import { getServiceClient } from '@/lib/supabase/service'
 import { runDecisionPipeline } from '@/lib/decisions'
 import type { DecisionSignal } from '@/lib/decisions'
@@ -18,39 +18,30 @@ export const maxDuration = 120
  *   force — delete existing sample-tagged rows and re-seed
  */
 export async function POST(req: NextRequest) {
-  const supa = createClient()
-  const { data: { user } } = await supa.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'unauthenticated' }, { status: 401 })
+  const ctx = await resolveDevApiContext(req)
+  if (!ctx) return NextResponse.json({ error: 'unauthenticated' }, { status: 401 })
 
+  const isDev = await assertDevRole(ctx.db, ctx.user.id)
+  if (!isDev) return NextResponse.json({ error: 'not_a_developer' }, { status: 403 })
+
+  const user = ctx.user
   const body = (await req.json().catch(() => ({}))) as { project_id?: string; force?: boolean }
-  const db = getServiceClient() ?? supa
+  const db = getServiceClient() ?? ctx.db
 
   let projectId = body.project_id || null
   if (!projectId) {
-    const { data: pa } = await (supa as any)
-      .from('project_assignments')
-      .select('project_id')
-      .eq('user_id', user.id)
-      .eq('active', true)
-      .limit(1)
-      .maybeSingle()
-    projectId = pa?.project_id ?? null
-  }
-  if (!projectId) {
-    const { data: owned } = await (supa as any)
-      .from('projects')
-      .select('id')
-      .or(`user_id.eq.${user.id},client_id.eq.${user.id}`)
-      .order('updated_at', { ascending: false })
-      .limit(1)
-      .maybeSingle()
-    projectId = owned?.id ?? null
+    projectId = await devDefaultProjectId(ctx.db, user.id)
   }
   if (!projectId) {
     return NextResponse.json({ error: 'no_project_found' }, { status: 400 })
   }
 
-  const { data: proj } = await (supa as any)
+  const accessible = await devAccessibleProjectIds(ctx.db, user.id)
+  if (!accessible.includes(projectId)) {
+    return NextResponse.json({ error: 'project_forbidden' }, { status: 403 })
+  }
+
+  const { data: proj } = await (ctx.db as any)
     .from('projects')
     .select('id,title,user_id,client_id')
     .eq('id', projectId)
