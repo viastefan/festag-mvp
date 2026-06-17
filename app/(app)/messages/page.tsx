@@ -69,6 +69,29 @@ export default function MessagesPage() {
 }
 
 const MSG_MOBILE_CSS = `
+  @media (min-width: 769px) {
+    .msg-page.mcl-page {
+      display: flex;
+      flex-direction: column;
+      flex: 1 1 auto;
+      min-height: 0;
+      height: 100%;
+    }
+    .msg-page .mcl-shell,
+    .msg-page .mcl-body,
+    .msg-page .ix-shell {
+      flex: 1 1 auto;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    .msg-page .ix-root {
+      flex: 1 1 auto;
+      min-height: 0;
+      height: 100%;
+    }
+  }
+
   @media (max-width: 768px) {
     .msg-page .mcl-body { padding: 0 !important; gap: 0 !important; }
     .msg-page .ix-shell { min-height: 0; }

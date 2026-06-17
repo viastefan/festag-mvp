@@ -158,8 +158,6 @@ export default function InboxMasterDetail({
       <style>{INBOX_CSS}</style>
       {variant === 'dev' && (
         <style>{`
-          .ix-shell--dev { display: flex; flex-direction: column; height: 100%; min-height: 0; }
-          .ix-root--dev { flex: 1; min-height: 0; }
           .ix-root--dev .ix-type-badge.tone-warn { color: var(--amber); background: color-mix(in srgb, var(--amber) 13%, transparent); }
           .ix-root--dev .ix-type-badge.tone-risk { color: var(--red); background: color-mix(in srgb, var(--red) 14%, transparent); }
           .ix-root--dev .ix-type-badge.tone-good { color: var(--green-dark); background: color-mix(in srgb, var(--green-dark) 13%, transparent); }
