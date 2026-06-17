@@ -28,8 +28,8 @@ import TagroContentFab from '@/components/TagroContentFab'
 import { openTagro } from '@/components/TagroOverlay'
 import { createClient } from '@/lib/supabase/client'
 import {
-  type Decision, type ProjectLite, OPEN_STATES,
-  getDecisionDemoBundle, isDecisionDemoId,
+  type Decision, type ProjectLite,
+  getDecisionDemoBundle, isDecisionDemoId, isOpenDecisionStatus,
 } from '@/components/decisions/decisions-shared'
 import { DecisionDrawer } from '@/components/decisions/DecisionDrawer'
 import DecisionRisksPopover from '@/components/decisions/DecisionRisksPopover'
@@ -241,12 +241,12 @@ function DecisionsPageInner() {
 
   const filtered = useMemo(() => {
     let xs = scopedDecisions
-    if (filter === 'open')    xs = xs.filter(d => OPEN_STATES.has(d.status))
-    if (filter === 'urgent')  xs = xs.filter(d => OPEN_STATES.has(d.status) && (d.urgency === 'high' || d.urgency === 'critical'))
+    if (filter === 'open')    xs = xs.filter(d => isOpenDecisionStatus(d.status))
+    if (filter === 'urgent')  xs = xs.filter(d => isOpenDecisionStatus(d.status) && (d.urgency === 'high' || d.urgency === 'critical'))
     if (filter === 'decided') xs = xs.filter(d => d.status === 'decided')
     // Sort: open first by urgency, then due_date, then created_at
     const order = (d: Decision) => {
-      if (!OPEN_STATES.has(d.status)) return 100
+      if (!isOpenDecisionStatus(d.status)) return 100
       if (d.urgency === 'critical') return 0
       if (d.urgency === 'high')     return 1
       if (d.urgency === 'normal')   return 2
@@ -263,8 +263,8 @@ function DecisionsPageInner() {
   }, [filter, scopedDecisions])
 
   const counts = useMemo(() => ({
-    open: scopedDecisions.filter(d => OPEN_STATES.has(d.status)).length,
-    urgent: scopedDecisions.filter(d => OPEN_STATES.has(d.status) && (d.urgency === 'high' || d.urgency === 'critical')).length,
+    open: scopedDecisions.filter(d => isOpenDecisionStatus(d.status)).length,
+    urgent: scopedDecisions.filter(d => isOpenDecisionStatus(d.status) && (d.urgency === 'high' || d.urgency === 'critical')).length,
     decided: scopedDecisions.filter(d => d.status === 'decided').length,
   }), [scopedDecisions])
 
@@ -301,7 +301,7 @@ function DecisionsPageInner() {
       }
     }
 
-    const openItems = filtered.filter(d => OPEN_STATES.has(d.status))
+    const openItems = filtered.filter(d => isOpenDecisionStatus(d.status))
     const urgentItems = openItems.filter(d => d.urgency === 'high' || d.urgency === 'critical')
     const top = urgentItems[0] || openItems[0]
     const topTitle = (top?.client_title || top?.title || '').toLowerCase()
@@ -415,12 +415,12 @@ function DecisionsPageInner() {
           />
         </div>
         <header className="dec-page-head">
-          <div className="dec-page-head-copy">
-            <h1 className="dec-page-title">
+          <div className="dec-page-head-copy dec-m-title">
+            <h1>
               <span className="dec-dt">Entscheidungen</span>
               <span className="dec-m-t">Entscheidungen</span>
             </h1>
-            <p className="dec-page-sub">
+            <p>
               <span className="dec-dt">{leadLine1}</span>
               <span className="dec-m-t dec-m-sub">Alles auf einen Blick.</span>
             </p>

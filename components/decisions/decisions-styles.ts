@@ -39,7 +39,6 @@ export const DECISION_CSS = `
 
   .dec-m-t,
   .dec-m-sub,
-  .dec-page-sub,
   .dec-m-head-actions,
   .dec-m-actions,
   .dec-m-sheet-backdrop { display: none; }
@@ -71,7 +70,8 @@ export const DECISION_CSS = `
     gap:24px; padding-bottom:28px;
   }
   .dec-page-head-copy { flex:1; min-width:0; display:flex; flex-direction:column; gap:10px; }
-  .dec-page-title {
+  .dec-page-title,
+  .dec-m-title h1 {
     margin:0; font-size:32px; font-weight:400; color:var(--dec-dark);
     letter-spacing:var(--ls-header, 0.012em); line-height:1.15;
     font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
@@ -1510,6 +1510,7 @@ export const DECISION_CSS = `
     .dec-static-top { padding-top:var(--festag-content-pad-y, 24px); }
     .dec-scroll-body { padding-bottom:var(--festag-content-pad-bottom, 64px); }
     .dec-page-title { font-size:28px; }
+    .dec-m-title h1 { font-size:28px; }
     .dec-page-lead-line,
     .dec-page-lead p { font-size:15px; font-weight:400; }
     .dec-panel { width:100vw; }
@@ -1596,27 +1597,30 @@ export const DECISION_CSS = `
       margin-bottom: 28px !important;
       flex-wrap: nowrap !important;
     }
-    .dec-page-head-copy {
+    /* ── Mobile header: 1:1 Projekte (.pj2-title / .pjm-sub) ── */
+    .dec-m-title {
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 0 !important;
       flex: 1 1 auto !important;
       min-width: 0 !important;
+    }
+    .dec-page-head-copy.dec-m-title {
       gap: 0 !important;
     }
-    .dec-page-head-copy h1,
-    .dec-page-head-copy p {
+    .dec-m-title h1,
+    .dec-m-title p {
       font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif) !important;
       font-weight: 400 !important;
       margin: 0 !important;
     }
-    .dec-page-title,
-    .dec-page-head-copy h1 {
+    .dec-m-title h1 {
       font-size: 29px !important;
-      font-weight: 400 !important;
       letter-spacing: -0.5px !important;
       line-height: 1.02 !important;
       color: #0F0F10 !important;
     }
-    .dec-page-sub,
-    .dec-page-head-copy p {
+    .dec-m-title p {
       font-size: 29px !important;
       letter-spacing: -0.5px !important;
       line-height: 1.02 !important;
@@ -1625,14 +1629,21 @@ export const DECISION_CSS = `
       color: #90959F !important;
       margin-top: -2px !important;
     }
-    .dec-m-sub,
-    .dec-page-head-copy .dec-m-t {
-      display: inline !important;
+    .dec-m-title .dec-m-t {
       font-size: inherit !important;
       font-weight: 400 !important;
-      color: inherit !important;
       letter-spacing: inherit !important;
       line-height: inherit !important;
+      font-family: inherit !important;
+    }
+    .dec-m-sub {
+      display: inline !important;
+      font-size: 29px !important;
+      font-weight: 400 !important;
+      color: #90959F !important;
+      letter-spacing: -0.5px !important;
+      line-height: 1.02 !important;
+      font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif) !important;
     }
     .dec-page-lead { display: none !important; }
     .dec-m-head-actions {
@@ -1924,19 +1935,19 @@ export const DECISION_CSS = `
       box-shadow: 0 2px 4px rgba(144, 149, 159, 0.07) !important;
     }
 
-    [data-theme="dark"] .dec-page-title,
-    [data-theme="classic-dark"] .dec-page-title,
-    [data-theme="dark"] .dec-page-head-copy h1,
-    [data-theme="classic-dark"] .dec-page-head-copy h1 {
+    [data-theme="dark"] .dec-m-title h1,
+    [data-theme="classic-dark"] .dec-m-title h1 {
       color: #f4f4f4 !important;
       font-size: 29px !important;
+      font-weight: 400 !important;
     }
-    [data-theme="dark"] .dec-page-sub,
-    [data-theme="classic-dark"] .dec-page-sub,
-    [data-theme="dark"] .dec-page-head-copy p,
-    [data-theme="classic-dark"] .dec-page-head-copy p {
+    [data-theme="dark"] .dec-m-title p,
+    [data-theme="classic-dark"] .dec-m-title p,
+    [data-theme="dark"] .dec-m-sub,
+    [data-theme="classic-dark"] .dec-m-sub {
       color: #9aa0ac !important;
       font-size: 29px !important;
+      font-weight: 400 !important;
     }
     [data-theme="dark"] .dec-os .cx-action-pill,
     [data-theme="classic-dark"] .dec-os .cx-action-pill {
