@@ -258,7 +258,7 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
       var(--bg);
   }
   body.festag-portal-shell {
-    background: #F6F9FC !important;
+    background: #F6F6F7 !important;
   }
   [data-theme="dark"] body.festag-portal-shell,
   [data-theme="classic-dark"] body.festag-portal-shell {

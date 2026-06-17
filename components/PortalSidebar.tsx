@@ -61,10 +61,34 @@ function fmtRecentAge(iso?: string | null): string {
 
 export default function PortalSidebar({ collapsed = false, onToggleCollapse }: Props) {
   const pathname = usePathname() || ''
+  const onProjectsContext = pathname === '/projects' || pathname.startsWith('/project/')
   const [initials, setInitials] = useState('ST')
   const [workspace, setWorkspace] = useState('Delivery')
   const [recent, setRecent] = useState<RecentItem[]>([])
   const { unread } = useNotifications({ unreadOnly: true, limit: 1 })
+
+  const loadProjectsSidebar = useCallback(async () => {
+    try {
+      const supabase = createClient()
+      const { data } = await supabase
+        .from('projects')
+        .select('id, title, updated_at')
+        .order('updated_at', { ascending: false })
+        .limit(8)
+      if (!data?.length) {
+        setRecent([])
+        return
+      }
+      setRecent(data.map(p => ({
+        id: p.id,
+        label: truncateLabel(p.title || 'Projekt'),
+        href: `/project/${p.id}`,
+        age: fmtRecentAge(p.updated_at),
+      })))
+    } catch {
+      setRecent([])
+    }
+  }, [])
 
   const loadRecent = useCallback(async () => {
     try {
@@ -115,10 +139,17 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
     return () => { alive = false }
   }, [])
 
-  useEffect(() => { loadRecent() }, [loadRecent])
+  useEffect(() => {
+    if (onProjectsContext) loadProjectsSidebar()
+    else loadRecent()
+  }, [onProjectsContext, loadProjectsSidebar, loadRecent])
 
   function isActive(href: string) {
     if (href === '/dashboard') return pathname === '/dashboard' || pathname === '/statusabfrage'
+    return pathname === href || pathname.startsWith(href + '/')
+  }
+
+  function isRecentActive(href: string) {
     return pathname === href || pathname.startsWith(href + '/')
   }
 
@@ -126,7 +157,8 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
     window.dispatchEvent(new CustomEvent('open-command-palette'))
   }
 
-  const displayRecent = recent.length ? recent : MOCK_RECENT
+  const displayRecent = onProjectsContext ? recent : (recent.length ? recent : MOCK_RECENT)
+  const recentLabel = onProjectsContext ? 'Deine Projekte' : 'Letzte ausgeführt'
 
   return (
     <nav
@@ -188,10 +220,16 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
       </div>
 
       <div className="portal-nav-middle">
-        <p className="portal-nav-recent-label">Letzte ausgeführt</p>
+        <p className="portal-nav-recent-label">{recentLabel}</p>
         <div className="portal-nav-recent" role="list">
           {displayRecent.map(item => (
-            <Link key={item.id} href={item.href} className="portal-nav-recent-item" role="listitem" title={item.label}>
+            <Link
+              key={item.id}
+              href={item.href}
+              className={`portal-nav-recent-item${isRecentActive(item.href) ? ' active' : ''}`}
+              role="listitem"
+              title={item.label}
+            >
               <span className="portal-nav-recent-text">{item.label}</span>
               {item.age ? <span className="portal-nav-recent-age">{item.age}</span> : null}
             </Link>
@@ -311,7 +349,7 @@ const CSS = `
     display: flex; align-items: center;
     gap: 12px;
     padding: 0 12px;
-    border-radius: 12px;
+    border-radius: 4px;
     color: var(--portal-muted, #6b6b6f);
     font-size: 13px; font-weight: 400;
     letter-spacing: 0;
@@ -400,7 +438,7 @@ const CSS = `
     gap: 10px;
     padding: 0 12px;
     min-height: 34px;
-    border-radius: 10px;
+    border-radius: 4px;
     font-size: 13px; font-weight: 400;
     line-height: 1.2;
     color: var(--portal-text, #1c1c1e);
@@ -408,6 +446,13 @@ const CSS = `
     letter-spacing: 0;
     transition: color .12s ease, background .12s ease;
     box-sizing: border-box;
+  }
+  .portal-nav-recent-item.active {
+    background: rgba(0,0,0,.05);
+  }
+  [data-theme="dark"] .portal-nav-recent-item.active,
+  [data-theme="classic-dark"] .portal-nav-recent-item.active {
+    background: rgba(255,255,255,.09);
   }
   .portal-nav-recent-text {
     min-width: 0;
@@ -443,7 +488,7 @@ const CSS = `
   .portal-nav-footer-link {
     display: inline-flex; align-items: center; gap: 8px;
     padding: 6px 8px;
-    border-radius: 8px;
+    border-radius: 4px;
     font-size: 13px; font-weight: 400;
     color: var(--portal-muted, #6b6b6f);
     text-decoration: none;
@@ -503,7 +548,7 @@ const CSS = `
     justify-content: center;
     gap: 0;
     padding: 8px;
-    border-radius: 10px;
+    border-radius: 4px;
   }
   .portal-nav.is-collapsed .portal-nav-items { align-items: center; }
 `

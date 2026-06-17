@@ -953,7 +953,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           position:relative;
           display:flex; align-items:center; gap:12px;
           min-height: var(--sb-row-h);
-          padding:0 var(--sb-x); border-radius:12px;
+          padding:0 var(--sb-x); border-radius:4px;
           font-size:var(--sb-font); font-weight:400;
           font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
           letter-spacing:0;
@@ -1076,7 +1076,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           gap:12px;
           min-height:36px;
           padding:0 var(--sb-x);
-          border-radius:12px;
+          border-radius:4px;
           font-size:13px; font-weight:400;
           font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
           letter-spacing:0;
@@ -1195,7 +1195,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           align-items:center;
           gap:8px;
           padding:6px 8px;
-          border-radius:8px;
+          border-radius:4px;
           font-size:13px;
           font-weight:400;
           color:var(--nav-off-text);
@@ -1487,7 +1487,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           background: transparent; border: 0; cursor: pointer;
           color: var(--text-muted);
           font: inherit; font-size: 12.5px; font-weight: 500; letter-spacing: .02em;
-          border-radius: 8px;
+          border-radius: 4px;
           margin-top: 1px;
           transition: background .12s, color .12s;
         }
@@ -1506,7 +1506,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
              scroll container and never gets clipped. */
           width: 232px; z-index: 121000;
           padding: 6px;
-          border-radius: 12px;
+          border-radius: 4px;
           border: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
           background: color-mix(in srgb, var(--card) 98%, #fff 2%);
           box-shadow:
@@ -1644,7 +1644,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           gap: 10px;
           padding: 0 10px;
           border: 0;
-          border-radius: 10px;
+          border-radius: 4px;
           background: transparent;
           color: var(--text);
           text-align: left;

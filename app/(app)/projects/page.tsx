@@ -3,8 +3,7 @@
 /**
  * /projects — neue 1:1 Figma-Umsetzung (node 198:411).
  *
- * Layout: Off-white Page-BG, weiße Card mit 24px radius, schmale Rail-
- * Sidebar links, Tagro-Round-Button unten rechts. Tabellen-Reihen mit
+ * Layout: Portal-Shell mit Codex-Sidebar, zentrierter Content-Spalte,
  * Hover-Pill, "Neu"-Badge für frische Projekte, Status-Dot mit Blur,
  * Dev-Avatar-Stack, "In Teams"-Indikator, ... Menü.
  *
@@ -16,7 +15,6 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import NewProjectModal from '@/components/NewProjectModal'
-import RailSidebar from '@/components/RailSidebar'
 import TagroOverlay, { openTagro } from '@/components/TagroOverlay'
 import DeleteProjectModal from '@/components/DeleteProjectModal'
 import InviteLinkModal from '@/components/InviteLinkModal'
@@ -291,8 +289,6 @@ function ProjectsPageInner() {
   return (
     <div className="pj2-page">
       <style>{CSS}</style>
-
-      <RailSidebar />
 
       <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
 
@@ -710,8 +706,6 @@ function ProjectsPageInner() {
 const CSS = `
   .pj-fallback { padding: 48px; color: #6E717E; font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif); }
 
-  html, body { overflow: hidden !important; height: 100% !important; }
-
   /* ── Mobile-only / Desktop-only visibility ── */
   .pjm-t { display: none; }
   .pjm-header-icons { display: none; }
@@ -725,37 +719,43 @@ const CSS = `
   .pjm-icon-sep { display: none; }
 
     .pj2-page {
-      position: fixed; inset: 0;
-      background: #fff;
-    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
-    color: #0F0F10;
-    color-scheme: light;
-    overflow: hidden;
-  }
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      background: transparent;
+      font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+      color: #0F0F10;
+      color-scheme: light;
+      overflow: hidden;
+    }
 
   .pj2-main {
-    margin-left: 240px;
+    margin-left: 0;
+    flex: 1;
+    min-height: 0;
     height: 100%;
-    padding: 8px 8px 18px 0;
+    padding: 0;
     box-sizing: border-box;
-    display: flex; flex-direction: column;
-    transition: margin-left .26s cubic-bezier(.16,1,.3,1);
-  }
-  body:has(.rail[data-collapsed="1"]) .pj2-main {
-    margin-left: 60px;
+    display: flex;
+    flex-direction: column;
   }
 
   .pj2-card {
     flex: 1; min-height: 0;
-    background: #FFFFFF;
-    border-radius: 16px;
-    padding: 0 164px 64px;
+    background: transparent;
+    border-radius: 0;
+    max-width: var(--festag-content-max, 1080px);
+    width: 100%;
+    margin: 0 auto;
+    padding: 0 var(--festag-content-pad-x, 40px) var(--festag-content-pad-bottom, 88px);
     box-sizing: border-box;
     position: relative;
     overflow-y: auto;
     overflow-x: hidden;
     scrollbar-width: none;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.06);
+    box-shadow: none;
   }
   .pj2-card::-webkit-scrollbar { display: none; }
 
@@ -765,14 +765,15 @@ const CSS = `
     top: 0;
     z-index: 10;
     background: #FFFFFF;
-    padding-top: 64px;
+    padding-top: var(--festag-content-pad-y, 40px);
     padding-bottom: 0;
   }
   .pj2-sticky-head::after {
     content: '';
     display: block;
     position: absolute;
-    left: -164px; right: -164px;
+    left: calc(-1 * var(--festag-content-pad-x, 40px));
+    right: calc(-1 * var(--festag-content-pad-x, 40px));
     bottom: -60px;
     height: 60px;
     background: linear-gradient(

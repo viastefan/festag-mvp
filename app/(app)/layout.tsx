@@ -14,8 +14,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     || pathname.startsWith('/project/')
     || pathname.startsWith('/docs')
 
-  // Neue schmale Rail-Sidebar liefern die Seiten künftig selbst.
-  // /projects ist die erste Seite mit dem neuen Layout.
+  // Portal-Shell (PortalSidebar) liefern /projects und /decisions über eigenes layout.tsx.
   const usesOwnShell = pathname === '/projects'
     || pathname.startsWith('/decisions')
   if (usesOwnShell) return <>{children}</>

@@ -224,7 +224,7 @@ const CSS = `
     display: flex; align-items: center; gap: 12px;
     min-height: 36px;
     padding: 0 12px;
-    border-radius: 12px;
+    border-radius: 4px;
     color: #6B6B6F;
     text-decoration: none;
     transition: background .12s, color .12s;

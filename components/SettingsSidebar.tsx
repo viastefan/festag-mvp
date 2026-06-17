@@ -76,7 +76,7 @@ export default function SettingsSidebar() {
           display: inline-flex; align-items: center; gap: 8px;
           padding: 0 12px; margin: 0 0 18px;
           min-height: 36px;
-          border-radius: 12px;
+          border-radius: 4px;
           font-size: 13px; font-weight: 400; letter-spacing: 0;
           color: var(--nav-off-text);
           text-decoration: none;
@@ -96,7 +96,7 @@ export default function SettingsSidebar() {
           margin: 0;
           padding: 0 12px;
           min-height: 36px;
-          border-radius: 12px;
+          border-radius: 4px;
           font-size: 13px; font-weight: 400;
           letter-spacing: 0;
           color: var(--nav-off-text);
