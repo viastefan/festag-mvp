@@ -293,7 +293,6 @@ export function DecisionDrawer({
                   id: decision.id,
                   title: decision.client_title || decision.title,
                   subtitle: project?.title,
-                  workspace: true,
                 })}
               >
                 Mit Tagro bearbeiten

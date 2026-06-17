@@ -123,7 +123,6 @@ function DecisionDetailInner() {
               id: decision.id,
               title,
               subtitle: project?.title,
-              workspace: true,
             }),
           },
         ]}
@@ -143,7 +142,6 @@ function DecisionDetailInner() {
               id: decision.id,
               title,
               subtitle: project?.title,
-              workspace: true,
             })}
           >
             <Lightning size={14} weight="regular" />
@@ -199,7 +197,6 @@ function DecisionDetailInner() {
           id: decision.id,
           title,
           subtitle: project?.title,
-          workspace: true,
         }}
       />
     </div>

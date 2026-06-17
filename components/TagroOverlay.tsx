@@ -24,7 +24,6 @@
 
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import { createPortal } from 'react-dom'
-import { usePathname } from 'next/navigation'
 import {
   X, ArrowUp, ArrowsClockwise, ArrowsOut, ArrowsIn,
   Microphone, MicrophoneSlash, Plus, Lightbulb, CaretRight,
@@ -419,41 +418,33 @@ export default function TagroOverlay() {
   // additive and survive across the whole conversation until removed.
   const [extraAttached, setExtraAttached] = useState<AttachedChip[]>([])
   const [fromScratch, setFromScratch] = useState(false)
-  const [agentRoute, setAgentRoute] = useState(false)
-  const pathname = usePathname() || ''
   const composerRef = useRef<HTMLTextAreaElement>(null)
   const timelineRef = useRef<HTMLDivElement>(null)
 
-  const mode: 'initial' | 'conversation' = messages.length === 0 ? 'initial' : 'conversation'
-  const showWorkspace = mode === 'conversation' || fromScratch
-  const isAgentSurface = agentRoute && fullscreen && showWorkspace
+  // Two modes only: collapsed picker popup OR expanded fullscreen chat.
+  const showWorkspace = fullscreen && (messages.length > 0 || fromScratch)
 
-  /** Expand/collapse the shell. Picker stays picker; empty workspace returns to picker on collapse. */
+  /** Expand/collapse between popup picker and fullscreen chat. */
   const togglePresentation = useCallback(() => {
     if (fullscreen) {
       setFullscreen(false)
-      if (messages.length === 0) {
-        setFromScratch(false)
-      }
     } else {
       setFullscreen(true)
+      setFromScratch(true)
     }
-  }, [fullscreen, messages.length])
+  }, [fullscreen])
 
   // Global open event
   useEffect(() => {
     function onOpen(e: Event) {
       const d = (e as CustomEvent<TagroOpenDetail>).detail || { contextType: 'empty' }
-      const workspace = !!d.workspace
-      const onAgentRoute = pathname.startsWith('/ai')
       setCtx(d)
       setInput(d.prefill || '')
       setMessages([])
       setError('')
       setExtraAttached([])
-      setFromScratch(workspace)
-      setAgentRoute(onAgentRoute || workspace)
-      setFullscreen(!!d.fullscreen || onAgentRoute)
+      setFromScratch(false)
+      setFullscreen(false)
       setOpen(true)
     }
     function onToggleFs() { togglePresentation() }
@@ -463,7 +454,7 @@ export default function TagroOverlay() {
       window.removeEventListener('festag:open-tagro', onOpen as EventListener)
       window.removeEventListener('festag:tagro-fullscreen-toggle', onToggleFs as EventListener)
     }
-  }, [pathname, togglePresentation])
+  }, [togglePresentation])
 
   // Body scroll lock + Esc + composer focus
   useEffect(() => {
@@ -506,7 +497,7 @@ export default function TagroOverlay() {
   }
 
   function close() {
-    setOpen(false); setFullscreen(false); setMessages([]); setInput(''); setError(''); setFromScratch(false); setAgentRoute(false)
+    setOpen(false); setFullscreen(false); setMessages([]); setInput(''); setError(''); setFromScratch(false)
     if (typeof window !== 'undefined') {
       try { window.dispatchEvent(new CustomEvent('festag:tagro-closed')) } catch {}
     }
@@ -514,10 +505,10 @@ export default function TagroOverlay() {
 
   // Auto-scroll to bottom when new messages land.
   useEffect(() => {
-    if (mode !== 'conversation') return
+    if (!showWorkspace || messages.length === 0) return
     const el = timelineRef.current; if (!el) return
     el.scrollTop = el.scrollHeight
-  }, [messages, mode])
+  }, [messages, showWorkspace])
 
   async function send(textOverride?: string) {
     const value = (textOverride ?? input).trim()
@@ -633,10 +624,15 @@ export default function TagroOverlay() {
   const examples = useMemo(() => buildExampleItems(suggestions), [suggestions])
   const question = CTX_QUESTION[ctx.contextType]
 
+  function openPickerFromMeta() {
+    const el = document.querySelector('.tov-composer-plus') as HTMLButtonElement | null
+    el?.click()
+  }
+
   if (!open) return null
 
   const node = (
-    <div className={`tov${fullscreen ? ' tov-full' : ''}${isAgentSurface ? ' tov-agent' : ''} tov-mode-${showWorkspace ? 'conversation' : 'initial'}`} role="dialog" aria-modal="true" aria-label="Mit Tagro bearbeiten">
+    <div className={`tov${fullscreen ? ' tov-full' : ''} tov-mode-${showWorkspace ? 'conversation' : 'initial'}`} role="dialog" aria-modal="true" aria-label="Mit Tagro bearbeiten">
       <div className="tov-backdrop" onClick={fullscreen ? undefined : close} aria-hidden />
 
       <div className="tov-shell" onClick={e => e.stopPropagation()}>
@@ -651,45 +647,26 @@ export default function TagroOverlay() {
             )}
 
             <div className="tov-main">
-              {!isAgentSurface && (
-                <header className="tov-top">
-                  <span className="tov-top-ctx">{CTX_CHIP[ctx.contextType]}{ctx.title ? ` · ${ctx.title}` : ''}</span>
-                  <div className="tov-top-controls">
-                    <button type="button" className="tov-iconbtn" onClick={togglePresentation} aria-label={fullscreen ? 'Verkleinern' : 'Vergrößern'}>
-                      {fullscreen ? <ArrowsIn size={16} weight="bold" /> : <ArrowsOut size={16} weight="bold" />}
-                    </button>
-                    <button type="button" className="tov-iconbtn" onClick={close} aria-label="Schließen"><X size={16} weight="bold" /></button>
-                  </div>
-                </header>
-              )}
-
-              {isAgentSurface && (
-                <header className="tov-agent-top">
-                  <div className="tov-top-controls">
-                    <button type="button" className="tov-iconbtn" onClick={togglePresentation} aria-label={fullscreen ? 'Verkleinern' : 'Vergrößern'}>
-                      {fullscreen ? <ArrowsIn size={16} weight="bold" /> : <ArrowsOut size={16} weight="bold" />}
-                    </button>
-                    <button type="button" className="tov-iconbtn" onClick={close} aria-label="Schließen"><X size={16} weight="bold" /></button>
-                  </div>
-                </header>
-              )}
+              <header className="tov-top">
+                <span className="tov-top-ctx">{CTX_CHIP[ctx.contextType]}{ctx.title ? ` · ${ctx.title}` : ''}</span>
+                <div className="tov-top-controls">
+                  <button type="button" className="tov-iconbtn" onClick={togglePresentation} aria-label="Verkleinern">
+                    <ArrowsIn size={16} weight="bold" />
+                  </button>
+                  <button type="button" className="tov-iconbtn" onClick={close} aria-label="Schließen"><X size={16} weight="bold" /></button>
+                </div>
+              </header>
 
               <div className="tov-timeline" ref={timelineRef}>
                 <div className="tov-timeline-inner">
                   {messages.length === 0 && !busy && (
-                    isAgentSurface ? (
-                      <div className="tov-agent-empty" aria-hidden>
-                        <TagroLogo size={28} />
-                      </div>
-                    ) : (
-                      <ContextIntroPanel
-                        introLead={introLead}
-                        introHelp={introHelp}
-                        chips={attachedChips}
-                        baseCount={baseChips.length}
-                        onRemove={removeExtra}
-                      />
-                    )
+                    <ContextIntroPanel
+                      introLead={introLead}
+                      introHelp={introHelp}
+                      chips={attachedChips}
+                      baseCount={baseChips.length}
+                      onRemove={removeExtra}
+                    />
                   )}
                   {messages.map(m => m.role === 'user'
                     ? <UserMsg key={m.id} content={m.content} />
@@ -717,28 +694,25 @@ export default function TagroOverlay() {
                     onChange={setInput}
                     onSend={() => send()}
                     busy={busy}
-                    placeholder={isAgentSurface ? 'Frag Tagro …' : placeholder}
+                    placeholder={placeholder}
                     micOk={micOk}
                     rec={rec}
                     onMic={toggleMic}
                     variant="sticky"
                     onAttach={attachExtra}
                     fullscreen={fullscreen}
+                    shelfChips={attachedChips}
+                    contextLabel={ctx.title ? `${CTX_CHIP[ctx.contextType]} · ${ctx.title}` : CTX_CHIP[ctx.contextType]}
                   />
-                  {fullscreen && (
-                    <div className="tov-floatbar-meta">
-                      <button type="button" className="tov-floatbar-link" onClick={() => composerRef.current?.focus()}>
-                        <Plus size={13} weight="bold" /> Erstellen
-                      </button>
-                      <button type="button" className="tov-floatbar-link" onClick={() => {
-                        const el = document.querySelector('.tov-composer-plus') as HTMLButtonElement | null
-                        el?.click()
-                      }}>
-                        <Plus size={13} weight="bold" /> Quellen
-                      </button>
-                      <span className="tov-floatbar-auto">Auto</span>
-                    </div>
-                  )}
+                  <div className="tov-floatbar-meta">
+                    <button type="button" className="tov-floatbar-link" onClick={openPickerFromMeta}>
+                      <Plus size={13} weight="bold" /> Erstellen
+                    </button>
+                    <button type="button" className="tov-floatbar-link" onClick={openPickerFromMeta}>
+                      <Plus size={13} weight="bold" /> Quellen
+                    </button>
+                    <span className="tov-floatbar-auto">Auto</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -829,6 +803,8 @@ export default function TagroOverlay() {
                 onMic={toggleMic}
                 variant="hero"
                 onAttach={attachExtra}
+                shelfChips={attachedChips}
+                contextLabel={ctx.title ? `${CTX_CHIP[ctx.contextType]} · ${ctx.title}` : CTX_CHIP[ctx.contextType]}
               />
             </div>
           </div>
@@ -906,6 +882,7 @@ function ContextIntroPanel({
 
 function Composer({
   inputRef, value, onChange, onSend, busy, placeholder, micOk, rec, onMic, variant, onAttach, fullscreen = false,
+  shelfChips = [], contextLabel,
 }: {
   inputRef: React.RefObject<HTMLTextAreaElement>
   value: string
@@ -919,6 +896,8 @@ function Composer({
   variant: 'hero' | 'sticky'
   onAttach?: (chip: AttachedChip) => void
   fullscreen?: boolean
+  shelfChips?: AttachedChip[]
+  contextLabel?: string
 }) {
   // Auto-grow: keep the textarea exactly one line by default, expand only
   // as the user types more. ChatGPT/Claude pattern.
@@ -949,41 +928,54 @@ function Composer({
 
   return (
     <div className={`tov-composer tov-composer-${variant}`}>
-      {/* Single-row ChatGPT layout:  (+)  [ input … 🎤 ↑ ]
-          + sits OUTSIDE the pill on the left; mic + send sit INSIDE the
-          pill on the right. */}
-      <button
-        type="button"
-        className="tov-composer-plus"
-        aria-label="Quellen oder Personen hinzufügen"
-        title="Quellen / @Personen / Objekte hinzufügen"
-        onClick={openPicker}
-      >
-        <Plus size={20} weight="regular" />
-      </button>
-
-      <div className="tov-composer-bar">
-        <textarea
-          ref={(el) => {
-            if (typeof inputRef === 'function') (inputRef as any)(el)
-            else if (inputRef) (inputRef as any).current = el
-            autosize(el)
-          }}
-          className="tov-composer-input"
-          rows={1}
-          placeholder={placeholder}
-          value={value}
-          onChange={e => { autosize(e.currentTarget); onChange(e.target.value) }}
-          onKeyDown={onKeyDown}
-        />
-        {micOk && (
-          <button type="button" className={`tov-composer-mic${rec ? ' is-rec' : ''}`} onClick={onMic} aria-label={rec ? 'Aufnahme stoppen' : 'Per Sprache diktieren'}>
-            {rec ? <MicrophoneSlash size={18} weight="fill" /> : <Microphone size={18} />}
-          </button>
+      <div className="tov-composer-stack">
+        <div className="tov-composer-panel">
+          <textarea
+            ref={(el) => {
+              if (typeof inputRef === 'function') (inputRef as any)(el)
+              else if (inputRef) (inputRef as any).current = el
+              autosize(el)
+            }}
+            className="tov-composer-input"
+            rows={1}
+            placeholder={placeholder}
+            value={value}
+            onChange={e => { autosize(e.currentTarget); onChange(e.target.value) }}
+            onKeyDown={onKeyDown}
+          />
+          <div className="tov-composer-toolbar">
+            <button
+              type="button"
+              className="tov-composer-plus"
+              aria-label="Quellen oder Personen hinzufügen"
+              title="Quellen / @Personen / Objekte hinzufügen"
+              onClick={openPicker}
+            >
+              <Plus size={18} weight="regular" />
+            </button>
+            {contextLabel && (
+              <span className="tov-composer-ctx-pill">{contextLabel}</span>
+            )}
+            <span className="tov-composer-spacer" aria-hidden />
+            {micOk && (
+              <button type="button" className={`tov-composer-mic${rec ? ' is-rec' : ''}`} onClick={onMic} aria-label={rec ? 'Aufnahme stoppen' : 'Per Sprache diktieren'}>
+                {rec ? <MicrophoneSlash size={18} weight="fill" /> : <Microphone size={18} />}
+              </button>
+            )}
+            <button type="button" className="tov-composer-send" onClick={onSend} disabled={busy || !value.trim()} aria-label="Senden">
+              {busy ? <ArrowsClockwise size={18} className="tov-spin" /> : <ArrowUp size={18} weight="bold" />}
+            </button>
+          </div>
+        </div>
+        {shelfChips.length > 0 && (
+          <div className="tov-composer-shelf" role="group" aria-label="Kontext">
+            {shelfChips.slice(0, 3).map((c, i) => (
+              <span key={`${c.label}-${i}`} className={`tov-shelf-chip tov-shelf-${c.kind}`}>
+                {c.label}
+              </span>
+            ))}
+          </div>
         )}
-        <button type="button" className="tov-composer-send" onClick={onSend} disabled={busy || !value.trim()} aria-label="Senden">
-          {busy ? <ArrowsClockwise size={18} className="tov-spin" /> : <ArrowUp size={18} weight="bold" />}
-        </button>
       </div>
 
       {pickerOpen && (
@@ -1536,6 +1528,10 @@ const STYLES = `
   display: flex; flex-direction: row;
   height: 100%;
   overflow: hidden;
+  background: var(--tov-canvas);
+}
+.tov.tov-full .tov-main {
+  background: var(--tov-bg);
 }
 .tov-main {
   flex: 1; min-width: 0; min-height: 0;
@@ -1568,59 +1564,75 @@ const STYLES = `
 .tov-iconbtn:hover { background: var(--tov-pill-h); color: var(--tov-text); }
 .tov-iconbtn:active { transform: scale(.96); }
 
-/* Composer — modern AI input */
+/* Composer — stacked panel + context shelf */
 .tov-composer {
   width: 100%;
-  display: flex; align-items: flex-end; gap: 10px;
 }
-.tov-composer-plus {
-  flex: 0 0 auto;
-  width: 40px; height: 40px;
-  min-width: 40px; min-height: 40px;
-  display: inline-flex; align-items: center; justify-content: center;
-  background: var(--tov-bg);
-  color: var(--tov-text);
-  border: 1px solid var(--tov-border);
-  border-radius: 50%;
-  cursor: pointer;
-  box-shadow: 0 1px 2px rgba(15,23,42,0.04);
-  transition: background .14s, border-color .14s;
+.tov-composer-stack {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
 }
-.tov-composer-plus:hover { background: var(--tov-pill); border-color: var(--tov-border-2); }
-.tov-composer-bar {
-  flex: 1 1 auto; min-width: 0;
-  display: flex; align-items: flex-end; gap: 4px;
+.tov-composer-panel {
+  position: relative;
+  z-index: 2;
   background: var(--tov-bg);
-  border: 1px solid var(--tov-border);
-  border-radius: 26px;
-  padding: 8px 8px 8px 16px;
-  min-height: 48px;
+  border: 1px solid var(--tov-border-2);
+  border-radius: 16px;
   box-shadow:
-    0 4px 20px rgba(15, 23, 42, 0.06),
-    0 1px 3px rgba(15, 23, 42, 0.04);
-  transition: background .16s ease, box-shadow .16s ease, border-color .16s ease;
+    0 8px 32px rgba(15, 23, 42, 0.08),
+    0 2px 8px rgba(15, 23, 42, 0.04);
+  overflow: hidden;
+  transition: box-shadow .16s ease, border-color .16s ease;
 }
-.tov-composer-bar:focus-within {
-  background: var(--tov-bg);
-  border-color: color-mix(in srgb, var(--tov-text) 12%, var(--tov-border));
+.tov-composer-panel:focus-within {
+  border-color: color-mix(in srgb, var(--tov-text) 14%, var(--tov-border));
   box-shadow:
-    0 6px 28px rgba(15, 23, 42, 0.08),
+    0 12px 40px rgba(15, 23, 42, 0.10),
     0 0 0 3px color-mix(in srgb, var(--tov-text) 4%, transparent);
 }
 .tov-composer-input {
-  flex: 1 1 auto; width: 100%;
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
   border: 0; outline: 0; resize: none; background: transparent;
   color: var(--tov-text); font: inherit;
-  font-size: 16px; line-height: 1.45;
-  min-height: 28px; max-height: 200px;
-  padding: 4px 0; overflow-y: auto;
+  font-size: 15px; line-height: 1.5;
+  min-height: 44px; max-height: 200px;
+  padding: 16px 18px 6px;
+  overflow-y: auto;
 }
 .tov-composer-input::placeholder { color: var(--tov-muted); }
+.tov-composer-toolbar {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 12px 12px;
+}
+.tov-composer-plus {
+  flex: 0 0 auto;
+  width: 32px; height: 32px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: transparent; color: var(--tov-text-2);
+  border: 0; border-radius: 8px;
+  cursor: pointer;
+  transition: background .14s, color .14s;
+}
+.tov-composer-plus:hover { background: var(--tov-pill); color: var(--tov-text); }
+.tov-composer-ctx-pill {
+  display: inline-flex; align-items: center;
+  height: 28px; padding: 0 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, #5B647D 12%, transparent);
+  color: #5B647D;
+  font-size: 12px; font-weight: 500;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  max-width: min(220px, 42vw);
+}
+.tov-composer-spacer { flex: 1 1 auto; min-width: 8px; }
 .tov-composer-mic {
   flex: 0 0 auto; width: 32px; height: 32px;
   display: inline-flex; align-items: center; justify-content: center;
   background: transparent; color: var(--tov-text-2);
-  border: 0; border-radius: 999px; cursor: pointer;
+  border: 0; border-radius: 8px; cursor: pointer;
   transition: background .14s, color .14s;
 }
 .tov-composer-mic:hover { background: var(--tov-pill); color: var(--tov-text); }
@@ -1636,6 +1648,31 @@ const STYLES = `
 }
 .tov-composer-send:hover:not(:disabled) { opacity: .9; }
 .tov-composer-send:disabled { opacity: .35; cursor: not-allowed; }
+.tov-composer-shelf {
+  position: relative;
+  z-index: 1;
+  margin-top: -6px;
+  padding: 14px 14px 10px;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 10px;
+  background: var(--tov-bg-2);
+  border: 1px solid var(--tov-border);
+  border-top: 0;
+  border-radius: 0 0 16px 16px;
+}
+.tov-shelf-chip {
+  display: inline-flex; align-items: center;
+  height: 26px; padding: 0 10px;
+  border-radius: 8px;
+  font-size: 12px; font-weight: 500;
+  color: var(--tov-text-2);
+  white-space: nowrap;
+}
+.tov-shelf-object {
+  background: #5B647D; color: #fff; border-radius: 999px;
+}
+.tov-shelf-meta {
+  background: transparent; color: var(--tov-muted);
+}
 
 /* Timeline / chat */
 .tov-timeline {
@@ -1646,8 +1683,15 @@ const STYLES = `
 .tov-timeline-inner {
   max-width: 760px; margin: 0 auto;
   display: flex; flex-direction: column; gap: 28px;
+  min-height: 100%;
+  justify-content: flex-start;
+  padding-top: 8px;
 }
-.tov.tov-full .tov-timeline-inner { max-width: 820px; }
+.tov.tov-full .tov-timeline-inner {
+  max-width: 820px;
+  padding-top: 16px;
+  padding-bottom: 12px;
+}
 
 .tov-msg { animation: tov-fadeup .25s ease both; }
 .tov-msg-user {

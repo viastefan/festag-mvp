@@ -36,7 +36,7 @@ export default function TagroAIPage() {
     const id = search?.get('contextId') || undefined
     const title = search?.get('contextTitle') || undefined
     const prefill = search?.get('prefill') || undefined
-    openTagro({ contextType, id, title, prefill, fullscreen: true })
+    openTagro({ contextType, id, title, prefill })
     setOpened(true)
 
     // Listen for overlay close → bounce back to dashboard so the user never

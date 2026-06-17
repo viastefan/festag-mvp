@@ -10,9 +10,9 @@ import { usePathname } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
 import FestagIconButton from '@/components/ui/FestagIconButton'
 import {
-  Pulse, Bell, Cube, SquaresFour, ListChecks, File, Plugs, UsersThree,
   SidebarSimple, CaretDown, GearSix,
 } from '@phosphor-icons/react'
+import { PORTAL_NAV } from '@/lib/portal-nav'
 import WorkspaceSymbol from '@/components/WorkspaceSymbol'
 import { createClient } from '@/lib/supabase/client'
 import { loadSymbol, onSymbolChange } from '@/lib/workspace-symbol'
@@ -26,16 +26,7 @@ const WORKSPACE_MODE_LABELS: Record<string, string> = {
 
 const ICON = 18
 
-const NAV = [
-  { href: '/dashboard', label: 'Statusabfrage', Icon: Pulse },
-  { href: '/messages', label: 'Inbox', Icon: Bell, badge: true },
-  { href: '/projects', label: 'Projekte', Icon: Cube },
-  { href: '/decisions', label: 'Entscheidungen', Icon: SquaresFour },
-  { href: '/tasks', label: 'Tasks', Icon: ListChecks },
-  { href: '/docs', label: 'Dokumente', Icon: File },
-  { href: '/connectors', label: 'Connectors', Icon: Plugs },
-  { href: '/teams', label: 'Teams', Icon: UsersThree },
-] as const
+const NAV = PORTAL_NAV
 
 type RecentItem = { id: string; label: string; href: string; age?: string }
 
@@ -161,7 +152,7 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
     return off
   }, [wsSymbolKey])
 
-  const workspaceLabel = workspaceName.trim() || WORKSPACE_MODE_LABELS[workspaceMode] || 'Festag Delivery'
+  const workspaceLabel = WORKSPACE_MODE_LABELS[workspaceMode] || 'Festag Delivery'
 
   useEffect(() => {
     if (onProjectsContext) loadProjectsSidebar()
@@ -230,7 +221,7 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
         <div className="portal-nav-items">
           {NAV.map(item => {
             const Icon = item.Icon
-            const active = isActive(item.href)
+            const active = item.match ? item.match(pathname) : isActive(item.href)
             const showBadge = 'badge' in item && item.badge && unread > 0
             return (
               <Link
@@ -556,30 +547,46 @@ const CSS = `
   }
 
   /* ── Collapsed rail ── */
+  .portal-nav.is-collapsed {
+    padding: 12px 0 14px;
+    align-items: center;
+  }
+  .portal-nav.is-collapsed .portal-nav-top {
+    align-items: center;
+    width: 100%;
+  }
   .portal-nav.is-collapsed .portal-nav-ws-text,
   .portal-nav.is-collapsed .portal-nav-ws-caret,
   .portal-nav.is-collapsed .portal-nav-middle,
   .portal-nav.is-collapsed .portal-nav-footer {
+    display: none;
     opacity: 0; width: 0; height: 0; overflow: hidden; pointer-events: none;
     margin: 0; padding: 0; border: 0;
   }
   .portal-nav.is-collapsed .portal-nav-header {
-    flex-direction: column; align-items: center; gap: 10px;
+    flex-direction: column; align-items: center; justify-content: flex-start;
+    gap: 10px;
+    width: 100%;
     padding: 0;
   }
   .portal-nav.is-collapsed .portal-nav-ws {
     order: -1;
     flex: 0 0 auto;
     width: 100%;
+    gap: 0;
     justify-content: center;
-    padding: 2px 0 0;
+    padding: 0;
   }
   .portal-nav.is-collapsed .portal-nav-ws-mark {
     width: 28px; height: 28px;
+    margin: 0 auto;
+    display: flex; align-items: center; justify-content: center;
   }
   .portal-nav.is-collapsed .portal-nav-utilities {
     order: 0;
-    flex-direction: column; gap: 4px;
+    flex-direction: column; align-items: center;
+    gap: 4px;
+    width: 100%;
   }
   .portal-nav.is-collapsed .portal-nav-label {
     opacity: 0; width: 0; pointer-events: none;

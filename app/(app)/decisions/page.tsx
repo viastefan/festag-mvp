@@ -226,7 +226,7 @@ function DecisionsPageInner() {
           title="Entscheidungen"
           menuItems={[
             { id: 'refresh', label: 'Aktualisieren', onClick: load },
-            { id: 'tagro', label: 'Mit Tagro bearbeiten', onClick: () => openTagro({ contextType: 'decision', id: 'list', title: 'Entscheidungen · Übersicht', workspace: true }) },
+            { id: 'tagro', label: 'Mit Tagro bearbeiten', onClick: () => openTagro({ contextType: 'decision', id: 'list', title: 'Entscheidungen · Übersicht' }) },
           ]}
         />
         <header className="dec-page-head">
@@ -264,7 +264,6 @@ function DecisionsPageInner() {
                   id: 'list',
                   title: 'Entscheidungen · Übersicht',
                   subtitle: `${displayCounts.open} offen · ${displayCounts.urgent} dringend`,
-                  workspace: true,
                 })}
               >
                 <Lightning size={15} weight="regular" />
@@ -310,7 +309,6 @@ function DecisionsPageInner() {
           id: 'list',
           title: 'Entscheidungen · Übersicht',
           subtitle: `${displayCounts.open} offen · ${displayCounts.urgent} dringend`,
-          workspace: true,
         }}
       />
 

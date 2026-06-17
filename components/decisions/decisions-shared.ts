@@ -115,6 +115,18 @@ export const URGENCY_TONE: Record<string, 'good' | 'amber' | 'red' | 'muted'> = 
   low: 'muted', normal: 'muted', high: 'amber', critical: 'red',
 }
 
+/** Apple system colors for urgency / status dots (light + dark readable). */
+export const URGENCY_DOT_COLOR: Record<string, string> = {
+  low: '#AEAEB2',
+  normal: '#8E8E93',
+  high: '#FF9500',
+  critical: '#FF3B30',
+}
+
+export function urgencyDotColor(urgency?: string | null): string {
+  return URGENCY_DOT_COLOR[urgency || 'normal'] || URGENCY_DOT_COLOR.normal
+}
+
 export const OPEN_STATES = new Set([
   'drafted', 'pending_client', 'awaiting_clarification',
   'open', 'waiting_for_client', 'in_progress',
@@ -220,25 +232,25 @@ export const DUE_SOURCE_LABEL: Record<string, string> = {
 type DecisionTypeMeta = { label: string; color: string }
 
 const CANONICAL_DECISION_TYPES: Record<string, DecisionTypeMeta> = {
-  direction: { label: 'Designentscheidung', color: '#7B5FD4' },
-  scope: { label: 'Technische Entscheidung', color: '#4B7B9D' },
-  budget: { label: 'Budgetentscheidung', color: '#C9870A' },
-  approval: { label: 'Freigabe', color: '#2EAD6B' },
-  payment: { label: 'Zahlungsentscheidung', color: '#0E9AA7' },
-  legal: { label: 'Rechtsentscheidung', color: '#4A5568' },
-  contract: { label: 'Vertragsentscheidung', color: '#4A5568' },
-  data_protection: { label: 'Datenschutz', color: '#6366F1' },
-  risk_response: { label: 'Risikoentscheidung', color: '#D14343' },
-  tradeoff: { label: 'Strategieentscheidung', color: '#6B7C3E' },
-  clarification: { label: 'Klärung', color: '#6E717E' },
-  escalation: { label: 'Eskalation', color: '#C2503E' },
+  direction: { label: 'Designentscheidung', color: '#AF52DE' },
+  scope: { label: 'Technische Entscheidung', color: '#007AFF' },
+  budget: { label: 'Budgetentscheidung', color: '#FF9500' },
+  approval: { label: 'Freigabe', color: '#34C759' },
+  payment: { label: 'Zahlungsentscheidung', color: '#32ADE6' },
+  legal: { label: 'Rechtsentscheidung', color: '#8E8E93' },
+  contract: { label: 'Vertragsentscheidung', color: '#636366' },
+  data_protection: { label: 'Datenschutz', color: '#5856D6' },
+  risk_response: { label: 'Risikoentscheidung', color: '#FF3B30' },
+  tradeoff: { label: 'Strategieentscheidung', color: '#30B0C7' },
+  clarification: { label: 'Klärung', color: '#AEAEB2' },
+  escalation: { label: 'Eskalation', color: '#FF453A' },
 }
 
 function matchGermanDecisionType(raw: string): DecisionTypeMeta | null {
   const t = raw.trim().toLowerCase()
   if (t.includes('design')) return CANONICAL_DECISION_TYPES.direction
   if (t.includes('techn')) return CANONICAL_DECISION_TYPES.scope
-  if (t.includes('marketing')) return { label: raw.trim(), color: '#E07A3A' }
+  if (t.includes('marketing')) return { label: raw.trim(), color: '#FF9500' }
   if (t.includes('strateg')) return CANONICAL_DECISION_TYPES.tradeoff
   if (t.includes('zahlung') || t.includes('payment') || t.includes('stripe')) {
     return CANONICAL_DECISION_TYPES.payment
@@ -257,7 +269,7 @@ function matchGermanDecisionType(raw: string): DecisionTypeMeta | null {
 /** Client-facing label + dot color derived from engine type or legacy German strings. */
 export function resolveDecisionType(raw?: string | null): DecisionTypeMeta {
   if (!raw?.trim()) {
-    return { label: 'Entscheidung', color: '#5B647D' }
+    return { label: 'Entscheidung', color: '#8E8E93' }
   }
   const key = raw.trim().toLowerCase()
   if (CANONICAL_DECISION_TYPES[key]) return CANONICAL_DECISION_TYPES[key]
@@ -267,5 +279,5 @@ export function resolveDecisionType(raw?: string | null): DecisionTypeMeta {
       ? german
       : { label: raw.trim(), color: german.color }
   }
-  return { label: raw.trim(), color: '#5B647D' }
+  return { label: raw.trim(), color: '#8E8E93' }
 }

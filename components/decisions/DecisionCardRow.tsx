@@ -12,6 +12,7 @@ import { openTagro } from '@/components/TagroOverlay'
 import type { Decision, ProjectLite } from '@/components/decisions/decisions-shared'
 import {
   OPEN_STATES, URGENCY_LABEL, impactLine, listStatusLabel, resolveDecisionType, tagroSummaryLine,
+  urgencyDotColor,
 } from '@/components/decisions/decisions-shared'
 
 export function capitalizeDE(s: string): string {
@@ -97,7 +98,6 @@ export default function DecisionCardRow({
       id: d.id,
       title: displayTitle,
       subtitle: proj?.title,
-      workspace: true,
     })
   }
 
@@ -243,15 +243,18 @@ export default function DecisionCardRow({
             <p className="dec-card-title">{displayTitle}</p>
             <p className="dec-card-project">{proj?.title || '—'}</p>
           </div>
-          <div className="dec-card-type-pill">
-            <span className="dec-card-dot" style={{ background: typeMeta.color }} />
+          <div
+            className="dec-card-type-pill"
+            style={{ ['--dec-dot-color' as string]: typeMeta.color }}
+          >
+            <span className="dec-card-dot" aria-hidden />
             {d.decision_type ? typeMeta.label : listStatusLabel(d)}
           </div>
         </div>
 
         <div className="dec-card-mid">
           <div className="dec-card-section">
-            <p className="dec-card-label">Tagro empfiehlt..</p>
+            <p className="dec-card-label">Tagro empfiehlt</p>
             <ClampedTip text={tagroText} lines={2} />
           </div>
           <div className="dec-card-section">
@@ -267,9 +270,13 @@ export default function DecisionCardRow({
           </div>
           <div className="dec-card-section">
             <p className="dec-card-label">Priorität</p>
-            <span className="dec-card-prio-pill">
+            <span
+              className="dec-card-prio-pill"
+              style={{ ['--dec-dot-color' as string]: urgencyDotColor(d.urgency) }}
+            >
+              <span className="dec-card-dot dec-card-dot--prio" aria-hidden />
               {(d.escalation_level ?? 0) >= 2 && OPEN_STATES.has(d.status) && (
-                <WarningCircle size={11} weight="fill" style={{ marginRight: 4, color: 'var(--danger, #C2503E)', verticalAlign: '-1px' }} />
+                <WarningCircle size={11} weight="fill" className="dec-card-prio-warn" />
               )}
               {URGENCY_LABEL[d.urgency] || 'Normal'}
             </span>

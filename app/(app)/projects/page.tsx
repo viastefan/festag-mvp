@@ -376,50 +376,52 @@ function ProjectsPageInner() {
             </div>
           </header>
 
-          {/* Mobile actions — Figma 252:58: + / filter / sort chips (30px) */}
+          {/* Mobile actions — + / filter / sort in one chip bar */}
           <div className="pjm-actions">
-            <button type="button" className="pjm-chip" aria-label="Neues Projekt" onClick={() => setShowNewProject(true)}>
-              <Plus size={16} weight="regular" />
-            </button>
-            <div className="pj2-tool-wrap">
-              <button
-                type="button"
-                className={`pjm-chip pjm-chip--filter${filter !== 'all' ? ' on' : ''}`}
-                aria-label="Filter"
-                onClick={() => { setFilterOpen(v => !v); setSortOpen(false) }}
-              >
-                <FunnelSimple size={16} weight="regular" />
+            <div className="pjm-actions-bar">
+              <button type="button" className="pjm-chip" aria-label="Neues Projekt" onClick={() => setShowNewProject(true)}>
+                <Plus size={16} weight="regular" />
               </button>
-              {filterOpen && (
-                <div className="pj2-menu" role="menu">
-                  {FILTERS.map(f => (
-                    <button key={f.id} type="button" className={`pj2-menu-btn${filter === f.id ? ' on' : ''}`} onClick={() => { setFilter(f.id); setFilterOpen(false) }}>
-                      <span>{f.label}</span>
-                      {filter === f.id && <span className="check">✓</span>}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-            <div className="pj2-tool-wrap">
-              <button
-                type="button"
-                className="pjm-chip"
-                aria-label="Sortieren"
-                onClick={() => { setSortOpen(v => !v); setFilterOpen(false) }}
-              >
-                <SlidersHorizontal size={16} weight="regular" />
-              </button>
-              {sortOpen && (
-                <div className="pj2-menu" role="menu">
-                  {SORTS.map(s => (
-                    <button key={s.id} type="button" className={`pj2-menu-btn${sort === s.id ? ' on' : ''}`} onClick={() => { setSort(s.id); setSortOpen(false) }}>
-                      <span>{s.label}</span>
-                      {sort === s.id && <span className="check">✓</span>}
-                    </button>
-                  ))}
-                </div>
-              )}
+              <div className="pj2-tool-wrap">
+                <button
+                  type="button"
+                  className={`pjm-chip${filterOpen || filter !== 'all' ? ' on' : ''}`}
+                  aria-label="Filter"
+                  onClick={() => { setFilterOpen(v => !v); setSortOpen(false) }}
+                >
+                  <FunnelSimple size={16} weight="regular" />
+                </button>
+                {filterOpen && (
+                  <div className="pj2-menu" role="menu">
+                    {FILTERS.map(f => (
+                      <button key={f.id} type="button" className={`pj2-menu-btn${filter === f.id ? ' on' : ''}`} onClick={() => { setFilter(f.id); setFilterOpen(false) }}>
+                        <span>{f.label}</span>
+                        {filter === f.id && <span className="check">✓</span>}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div className="pj2-tool-wrap">
+                <button
+                  type="button"
+                  className={`pjm-chip${sortOpen ? ' on' : ''}`}
+                  aria-label="Sortieren"
+                  onClick={() => { setSortOpen(v => !v); setFilterOpen(false) }}
+                >
+                  <SlidersHorizontal size={16} weight="regular" />
+                </button>
+                {sortOpen && (
+                  <div className="pj2-menu" role="menu">
+                    {SORTS.map(s => (
+                      <button key={s.id} type="button" className={`pj2-menu-btn${sort === s.id ? ' on' : ''}`} onClick={() => { setSort(s.id); setSortOpen(false) }}>
+                        <span>{s.label}</span>
+                        {sort === s.id && <span className="check">✓</span>}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
           {(filterOpen || sortOpen) && (
@@ -608,8 +610,10 @@ function ProjectsPageInner() {
           <div className="pjm-home-indicator" />
           <div className="pjm-dock-row">
             <button type="button" className="pjm-status-btn" onClick={() => setShowNewProject(true)}>
-              <Plus size={14} weight="regular" />
-              <span>Statusbericht erstellen...</span>
+              <span className="pjm-status-btn-icon" aria-hidden>
+                <Plus size={14} weight="regular" />
+              </span>
+              <span className="pjm-status-btn-label">Statusbericht erstellen...</span>
             </button>
             <button type="button" className="pjm-tagro" aria-label="Tagro öffnen" onClick={tagroHandler}>
               <PencilSimple size={20} weight="regular" />
@@ -1369,13 +1373,13 @@ const CSS = `
       align-items: flex-start !important;
       justify-content: space-between !important;
       gap: 12px !important;
-      margin-bottom: 20px !important;
+      margin-bottom: 28px !important;
       padding-right: 0 !important;
     }
     .pj2-title {
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 6px;
       flex: 1 1 auto;
       min-width: 0;
     }
@@ -1406,12 +1410,22 @@ const CSS = `
       letter-spacing: inherit !important;
     }
 
-    /* ── Mobile action chips — Figma 252:277 (+ / filter / sort, 30px) ── */
+    /* ── Mobile action chips — grouped bar (+ / filter / sort) ── */
     .pjm-actions {
       display: flex !important;
       align-items: center !important;
-      gap: 8px !important;
-      margin-bottom: 20px !important;
+      margin-bottom: 32px !important;
+    }
+    .pjm-actions-bar {
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 2px !important;
+      padding: 4px !important;
+      border-radius: 999px !important;
+      background: #FFFFFF !important;
+      box-shadow:
+        0 0 40px rgba(91, 100, 125, 0.25),
+        0 1px 2px rgba(46, 47, 51, 0.1) !important;
     }
     .pjm-chip {
       width: 30px !important;
@@ -1430,13 +1444,11 @@ const CSS = `
       flex-shrink: 0 !important;
       box-shadow: none !important;
       -webkit-tap-highlight-color: transparent;
+      transition: background .12s ease, transform .12s ease, opacity .12s ease;
     }
-    .pjm-chip--filter,
     .pjm-chip.on {
-      background: #FFFFFF !important;
-      box-shadow:
-        0 0 40px rgba(91, 100, 125, 0.25),
-        0 1px 2px rgba(46, 47, 51, 0.1) !important;
+      background: rgba(0, 0, 0, 0.055) !important;
+      box-shadow: none !important;
     }
     .pjm-chip:active {
       transform: scale(0.96);
@@ -1517,7 +1529,7 @@ const CSS = `
     .pj2-table {
       display: flex !important; flex-direction: column !important;
       gap: 12px !important;
-      padding: 0 !important;
+      padding: 4px 0 0 !important;
     }
 
     /* ── Project rows — Figma 252:245 white cards with spacing ── */
@@ -1693,12 +1705,12 @@ const CSS = `
       width: 100% !important;
     }
     .pjm-status-btn {
+      position: relative !important;
       flex: 1 !important;
       min-width: 0 !important;
       display: flex !important;
       align-items: center !important;
       justify-content: center !important;
-      gap: 8px !important;
       height: 54px !important;
       padding: 0 20px !important;
       border: 0 !important;
@@ -1713,38 +1725,51 @@ const CSS = `
       box-shadow:
         0 2px 12px rgba(0, 0, 0, 0.08),
         0 1px 3px rgba(0, 0, 0, 0.04) !important;
-      white-space: nowrap !important;
       overflow: hidden !important;
     }
     .pjm-status-btn:active {
       background: #F8F8F8 !important;
       transform: scale(0.985);
     }
-    .pjm-status-btn svg {
+    .pjm-status-btn-icon {
+      position: absolute !important;
+      left: 20px !important;
+      top: 50% !important;
+      transform: translateY(-50%) !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
       flex-shrink: 0 !important;
       color: #8E8E93 !important;
-      width: 14px !important; height: 14px !important;
+      pointer-events: none !important;
     }
-    .pjm-status-btn span {
+    .pjm-status-btn-icon svg {
+      width: 14px !important;
+      height: 14px !important;
+    }
+    .pjm-status-btn-label {
+      width: 100% !important;
+      text-align: center !important;
       overflow: hidden !important;
       text-overflow: ellipsis !important;
-      text-align: center !important;
+      white-space: nowrap !important;
+      pointer-events: none !important;
     }
     .pjm-tagro {
       width: 54px !important; height: 54px !important;
       flex-shrink: 0 !important;
       border: 0 !important;
       border-radius: 999px !important;
-      background: #007AFF !important;
-      color: #FFFFFF !important;
+      background: var(--btn-prim, #5B647D) !important;
+      color: var(--btn-prim-text, #FFFFFF) !important;
       display: inline-flex !important; align-items: center !important; justify-content: center !important;
       cursor: pointer !important;
       padding: 0 !important;
-      box-shadow: 0 4px 18px rgba(0, 122, 255, 0.38) !important;
+      box-shadow: 0 4px 18px color-mix(in srgb, var(--btn-prim, #5B647D) 34%, transparent) !important;
     }
     .pjm-tagro:active {
       transform: scale(0.97);
-      background: #0066DB !important;
+      background: color-mix(in srgb, var(--btn-prim, #5B647D) 88%, #000) !important;
     }
     .pjm-tagro svg {
       width: 20px !important; height: 20px !important;

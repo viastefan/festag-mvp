@@ -133,12 +133,12 @@ export const DECISION_CSS = `
   .dec-hero-actions-group { display:flex; gap:6px; align-items:center; }
 
   .dec-divider-gradient {
-    height:.5px; width:100%;
-    background:linear-gradient(90deg, rgba(233,239,246,.4) 0%, #e3e8ef 27%, #e9eff6 64%, rgba(233,239,246,.4) 100%);
+    height:1px; width:100%;
+    background:color-mix(in srgb, #e3e8ef 72%, transparent);
   }
   [data-theme="dark"] .dec-divider-gradient,
   [data-theme="classic-dark"] .dec-divider-gradient {
-    background:linear-gradient(90deg, rgba(255,255,255,.04) 0%, rgba(255,255,255,.1) 27%, rgba(255,255,255,.06) 64%, rgba(255,255,255,.04) 100%);
+    background:color-mix(in srgb, rgba(255,255,255,.1) 72%, transparent);
   }
 
   .dec-spin { animation:decSpin 1s linear infinite; }
@@ -160,14 +160,14 @@ export const DECISION_CSS = `
   /* ── Decision card rows (Figma) ── */
   .dec-card {
     display:flex; gap:56px; align-items:center;
-    padding:16px 24px; width:100%;
-    transition:background .12s, border-radius .12s;
+    padding:18px 24px; width:100%;
+    transition:background .14s, border-radius .14s;
     border-radius:12px;
     background:transparent;
     cursor:pointer;
   }
   .dec-card:hover {
-    background:var(--portal-row-hover, rgba(241,243,245,.4));
+    background:color-mix(in srgb, var(--portal-row-hover, rgba(241,243,245,.4)) 85%, #fff);
   }
   .dec-card:focus-visible {
     outline:2px solid color-mix(in srgb, var(--portal-btn-primary, #5b647d) 55%, transparent);
@@ -201,17 +201,23 @@ export const DECISION_CSS = `
     letter-spacing:0;
   }
   .dec-card-project {
-    margin:0; font-size:14px; font-weight:400; color:var(--dec-soft);
+    margin:0; font-size:14px; font-weight:400; color:#90959F;
     letter-spacing:0;
   }
   .dec-card-type-pill {
-    display:inline-flex; align-items:center; gap:8px;
-    padding:6px 12px; border-radius:999px;
-    background:var(--portal-pill-bg); color:var(--dec-dark);
+    display:inline-flex; align-items:center; gap:7px;
+    padding:6px 12px 6px 10px; border-radius:999px;
+    background:color-mix(in srgb, var(--dec-dot-color, #8E8E93) 11%, var(--portal-pill-bg, #f1f3f5));
+    color:var(--dec-dark);
     font-size:12px; font-weight:500; letter-spacing:0;
     width:fit-content;
   }
-  .dec-card-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+  .dec-card-dot {
+    width:8px; height:8px; border-radius:50%; flex-shrink:0;
+    background:var(--dec-dot-color, #8E8E93);
+    box-shadow:0 0 0 3px color-mix(in srgb, var(--dec-dot-color, #8E8E93) 24%, transparent);
+  }
+  .dec-card-dot--prio { width:7px; height:7px; box-shadow:0 0 0 2.5px color-mix(in srgb, var(--dec-dot-color, #8E8E93) 24%, transparent); }
 
   .dec-card-mid { width:298px; flex-shrink:0; display:flex; flex-direction:column; gap:16px; }
   .dec-card-section { display:flex; flex-direction:column; gap:4px; }
@@ -221,19 +227,21 @@ export const DECISION_CSS = `
     font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
   }
   .dec-card-muted {
-    margin:0; font-size:13px; font-weight:400; color:var(--dec-soft);
+    margin:0; font-size:13px; font-weight:400; color:#90959F;
     line-height:1.45; letter-spacing:0;
   }
 
   .dec-card-meta { width:93px; flex-shrink:0; display:flex; flex-direction:column; gap:16px; justify-content:flex-start; }
   .dec-card-prio-pill {
-    display:inline-flex; align-items:center;
-    padding:6px 12px; border-radius:999px;
-    background:var(--portal-pill-bg); color:var(--dec-dark);
+    display:inline-flex; align-items:center; gap:7px;
+    padding:6px 12px 6px 10px; border-radius:999px;
+    background:color-mix(in srgb, var(--dec-dot-color, #8E8E93) 11%, var(--portal-pill-bg, #f1f3f5));
+    color:var(--dec-dark);
     font-size:12px; font-weight:500; letter-spacing:0;
     font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
     width:fit-content;
   }
+  .dec-card-prio-warn { color:#FF3B30; flex-shrink:0; margin-left:-2px; }
 
   .dec-card-actions {
     width:105px; flex-shrink:0; display:flex; flex-direction:column; gap:8px; align-items:stretch;
