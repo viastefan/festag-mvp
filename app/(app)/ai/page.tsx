@@ -9,8 +9,8 @@
  * component as the object-level popup → same design system everywhere.
  *
  * If query params bring object context (?contextType=task&contextId=…&contextTitle=…)
- * the overlay opens already-attached. Without params it opens with the empty
- * "Alle Projekte" workspace state.
+ * the overlay opens already-attached. Without params it opens fullscreen with
+ * the Sana task-picker (featured prompt, examples, composer) — not an empty shell.
  */
 
 import { useEffect, useState } from 'react'
@@ -36,7 +36,7 @@ export default function TagroAIPage() {
     const id = search?.get('contextId') || undefined
     const title = search?.get('contextTitle') || undefined
     const prefill = search?.get('prefill') || undefined
-    openTagro({ contextType, id, title, prefill, fullscreen: true, workspace: true })
+    openTagro({ contextType, id, title, prefill, fullscreen: true })
     setOpened(true)
 
     // Listen for overlay close → bounce back to dashboard so the user never

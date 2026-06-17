@@ -425,34 +425,35 @@ export default function TagroOverlay() {
   const timelineRef = useRef<HTMLDivElement>(null)
 
   const mode: 'initial' | 'conversation' = messages.length === 0 ? 'initial' : 'conversation'
-  const showWorkspace = mode === 'conversation' || fromScratch || agentRoute
-  const isAgentSurface = agentRoute && fullscreen
+  const showWorkspace = mode === 'conversation' || fromScratch
+  const isAgentSurface = agentRoute && fullscreen && showWorkspace
 
   /** Expand/collapse the shell. Picker stays picker; empty workspace returns to picker on collapse. */
   const togglePresentation = useCallback(() => {
     if (fullscreen) {
       setFullscreen(false)
-      if (messages.length === 0 && fromScratch && !agentRoute) {
+      if (messages.length === 0) {
         setFromScratch(false)
       }
     } else {
       setFullscreen(true)
     }
-  }, [fullscreen, messages.length, fromScratch, agentRoute])
+  }, [fullscreen, messages.length])
 
   // Global open event
   useEffect(() => {
     function onOpen(e: Event) {
       const d = (e as CustomEvent<TagroOpenDetail>).detail || { contextType: 'empty' }
-      const workspace = !!d.workspace || pathname.startsWith('/ai')
+      const workspace = !!d.workspace
+      const onAgentRoute = pathname.startsWith('/ai')
       setCtx(d)
       setInput(d.prefill || '')
       setMessages([])
       setError('')
       setExtraAttached([])
       setFromScratch(workspace)
-      setAgentRoute(workspace)
-      setFullscreen(!!d.fullscreen || workspace)
+      setAgentRoute(onAgentRoute || workspace)
+      setFullscreen(!!d.fullscreen || onAgentRoute)
       setOpen(true)
     }
     function onToggleFs() { togglePresentation() }
@@ -1456,6 +1457,23 @@ const STYLES = `
 
 .tov.tov-full:not(.tov-mode-conversation) .tov-shell {
   background: var(--tov-bg);
+}
+.tov.tov-full.tov-mode-initial .tov-picker {
+  min-height: 100%;
+}
+.tov.tov-full.tov-mode-initial .tov-picker-view {
+  padding: 40px 32px 24px;
+  align-items: flex-start;
+  justify-content: center;
+}
+.tov.tov-full.tov-mode-initial .tov-picker-card {
+  max-width: 640px;
+}
+.tov.tov-full.tov-mode-initial .tov-picker-footer {
+  padding: 12px 32px max(28px, env(safe-area-inset-bottom, 0px));
+}
+.tov.tov-full.tov-mode-initial .tov-picker-footer .tov-composer {
+  max-width: 640px;
 }
 .tov-scratch-wrap {
   display: flex; justify-content: center;
