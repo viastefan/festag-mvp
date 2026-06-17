@@ -2,14 +2,19 @@
 
 import { Suspense, useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { useParams, useRouter } from 'next/navigation'
-import { ArrowLeft } from '@phosphor-icons/react'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
+import { ArrowLeft, Clock } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
+import { openTagro } from '@/components/TagroOverlay'
+import TagroContentFab from '@/components/TagroContentFab'
 import {
   DECISION_CSS,
   DecisionDrawer,
   MOCK_DECISIONS,
   MOCK_PROJECTS,
+  URGENCY_LABEL,
+  URGENCY_TONE,
+  fmtAgo,
   type Decision,
   type ProjectLite,
 } from '../page'
@@ -17,6 +22,8 @@ import {
 function DecisionDetailInner() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const discussOnLoad = searchParams?.get('discuss') === '1'
   const supabase = useMemo(() => createClient(), [])
   const [decision, setDecision] = useState<Decision | null>(null)
   const [project, setProject] = useState<ProjectLite | null>(null)
@@ -67,7 +74,9 @@ function DecisionDetailInner() {
     return (
       <div className="dec-os dec-os-detail">
         <style>{DECISION_CSS}</style>
-        <p style={{ padding: 48, color: 'var(--dec-soft)' }}>Entscheidung wird geladen…</p>
+        <div className="dec-detail-hero">
+          <p className="dec-detail-loading">Entscheidung wird geladen…</p>
+        </div>
       </div>
     )
   }
@@ -91,15 +100,63 @@ function DecisionDetailInner() {
     decision.requested_for === me ||
     (!decision.requested_for && decision.created_by !== me)
 
+  const title = decision.client_title || decision.title
+  const subtitle = decision.client_summary || decision.description
+  const isAnswered = decision.status === 'decided' || decision.status === 'applied'
+
   return (
     <div className="dec-os dec-os-detail">
       <style>{DECISION_CSS}</style>
-      <div className="dec-detail-topbar">
-        <Link href="/decisions" className="dec-detail-back">
-          <ArrowLeft size={16} />
-          Alle Entscheidungen
-        </Link>
-      </div>
+      <header className="dec-detail-hero">
+        <div className="dec-detail-toolbar">
+          <Link href="/decisions" className="dec-detail-back">
+            <ArrowLeft size={14} weight="regular" />
+            Alle Entscheidungen
+          </Link>
+          <button
+            type="button"
+            className="dec-detail-tagro-btn"
+            onClick={() => openTagro({
+              contextType: 'decision',
+              id: decision.id,
+              title,
+              subtitle: project?.title,
+            })}
+          >
+            Mit Tagro bearbeiten
+          </button>
+        </div>
+
+        <div className="dec-detail-hero-main">
+          <div className="dec-detail-hero-text">
+            <h1 className="dec-detail-title">{title}</h1>
+            {subtitle && <p className="dec-detail-subtitle">{subtitle}</p>}
+          </div>
+        </div>
+
+        <div className="dec-detail-meta-row">
+          {project && (
+            <span className="dec-detail-meta-chip">
+              <span className="dec-detail-project-dot" style={{ background: project.color || '#5B647D' }} />
+              {project.title}
+            </span>
+          )}
+          {decision.decision_type && (
+            <span className="dec-detail-meta-chip">{decision.decision_type}</span>
+          )}
+          <span className={`dec-detail-meta-chip dec-detail-meta-chip--${URGENCY_TONE[decision.urgency] || 'muted'}`}>
+            {URGENCY_LABEL[decision.urgency] || 'Normal'}
+          </span>
+          {isAnswered && (
+            <span className="dec-detail-meta-chip dec-detail-meta-chip--good">Entschieden</span>
+          )}
+          <span className="dec-detail-meta-chip dec-detail-meta-chip--time">
+            <Clock size={12} weight="regular" />
+            {fmtAgo(decision.updated_at)}
+          </span>
+        </div>
+      </header>
+
       <DecisionDrawer
         variant="page"
         decision={decision}
@@ -108,6 +165,16 @@ function DecisionDetailInner() {
         isDecider={isDecider}
         onClose={() => router.push('/decisions')}
         onPatch={patchLocal}
+        initialDiscussOpen={discussOnLoad}
+      />
+
+      <TagroContentFab
+        context={{
+          contextType: 'decision',
+          id: decision.id,
+          title,
+          subtitle: project?.title,
+        }}
       />
     </div>
   )
@@ -115,7 +182,7 @@ function DecisionDetailInner() {
 
 export default function DecisionDetailPage() {
   return (
-    <Suspense fallback={<div style={{ padding: 48 }}>Lade…</div>}>
+    <Suspense fallback={<div className="dec-detail-loading" style={{ padding: 48 }}>Lade…</div>}>
       <DecisionDetailInner />
     </Suspense>
   )

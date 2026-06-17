@@ -14,17 +14,16 @@
  * the dev back.
  */
 
-import Link from 'next/link'
-import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { Suspense, useCallback, useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import {
   ArrowsClockwise, ChatCircleText, Check, CheckCircle, Clock, FunnelSimple,
   Sparkle, Warning, WarningCircle, X, UserCircle, CaretDown, Lightning, List,
 } from '@phosphor-icons/react'
 import FestagIconButton from '@/components/ui/FestagIconButton'
-import FestagPillButton from '@/components/ui/FestagPillButton'
 import MobilePageHeader from '@/components/MobilePageHeader'
-import ClampedTip from '@/components/decisions/ClampedTip'
+import DecisionCardRow from '@/components/decisions/DecisionCardRow'
+import TagroContentFab from '@/components/TagroContentFab'
 import { openTagro } from '@/components/TagroOverlay'
 import { createClient } from '@/lib/supabase/client'
 
@@ -141,14 +140,14 @@ const FILTERS: { id: Filter; label: string }[] = [
   { id: 'all',     label: 'Alle' },
 ]
 
-const URGENCY_LABEL: Record<string, string> = {
+export const URGENCY_LABEL: Record<string, string> = {
   low: 'Niedrig', normal: 'Normal', high: 'Hoch', critical: 'Kritisch',
 }
-const URGENCY_TONE: Record<string, 'good' | 'amber' | 'red' | 'muted'> = {
+export const URGENCY_TONE: Record<string, 'good' | 'amber' | 'red' | 'muted'> = {
   low: 'muted', normal: 'muted', high: 'amber', critical: 'red',
 }
 
-const OPEN_STATES = new Set([
+export const OPEN_STATES = new Set([
   'drafted', 'pending_client', 'awaiting_clarification',
   'open', 'waiting_for_client', 'in_progress',
 ])
@@ -187,13 +186,13 @@ const STATUS_TONE: Record<string, 'good' | 'amber' | 'red' | 'muted'> = {
   closed: 'muted',
 }
 
-function impactLine(d: Decision): string {
+export function impactLine(d: Decision): string {
   const raw = d.client_summary || d.description
   if (!raw?.trim()) return 'Wird nach Freigabe umgesetzt.'
   return raw.trim()
 }
 
-function tagroSummaryLine(d: Decision): string {
+export function tagroSummaryLine(d: Decision): string {
   if (d.tagro_recommendation_reason?.trim()) return d.tagro_recommendation_reason.trim()
   const raw = d.tagro_reasoning?.trim()
   if (!raw) return 'Tagro analysiert diese Entscheidung und bereitet eine Empfehlung vor.'
@@ -202,13 +201,13 @@ function tagroSummaryLine(d: Decision): string {
   return `Tagro empfiehlt ${clean.charAt(0).toLowerCase()}${clean.slice(1)}.`
 }
 
-function listStatusLabel(d: Decision): string {
+export function listStatusLabel(d: Decision): string {
   if (d.status === 'decided' || d.status === 'applied') return STATUS_LABEL[d.status] || 'Entschieden'
   if (OPEN_STATES.has(d.status)) return 'Wartet auf Freigabe'
   return STATUS_LABEL[d.status] || d.status
 }
 
-function fmtAgo(iso: string) {
+export function fmtAgo(iso: string) {
   const m = Math.floor((Date.now() - new Date(iso).getTime()) / 60000)
   if (m < 1) return 'gerade eben'
   if (m < 60) return `vor ${m} min`
@@ -258,7 +257,6 @@ export default function DecisionsPage() {
 }
 
 function DecisionsPageInner() {
-  const router = useRouter()
   const supabase = useMemo(() => createClient(), [])
   const searchParams = useSearchParams()
 
@@ -381,6 +379,10 @@ function DecisionsPageInner() {
     ? { open: MOCK_DECISIONS.length, urgent: MOCK_DECISIONS.filter(d => d.urgency === 'high' || d.urgency === 'critical').length, decided: 0 }
     : counts
 
+  function removeLocal(id: string) {
+    setDecisions(curr => curr.filter(d => d.id !== id))
+  }
+
   function patchLocal(id: string, patch: Partial<Decision>) {
     setDecisions(curr => curr.map(d => d.id === id ? { ...d, ...patch } : d))
   }
@@ -471,7 +473,6 @@ function DecisionsPageInner() {
             </FestagIconButton>
           </div>
         </div>
-        <div className="dec-divider-gradient" />
       </div>
 
       <div className="dec-scroll-body">
@@ -483,93 +484,26 @@ function DecisionsPageInner() {
             <p>Keine Entscheidungen in dieser Ansicht.</p>
             <small>Wenn ein Developer eine Entscheidung anfordert, landet sie hier.</small>
           </div>
-        ) : displayList.map((d, i) => {
-          const proj = d.project_id ? displayProjects[d.project_id] : null
-          const displayTitle = d.client_title || d.title
-          const isOpen = OPEN_STATES.has(d.status)
-          const isAnswered = d.status === 'decided' || d.status === 'applied'
-          const tagroText = tagroSummaryLine(d)
-          const impactText = impactLine(d)
-          const timeNeeded = d.response_type === 'multi_choice' || d.response_type === 'ranked_choice'
-            ? '2 Minuten'
-            : '30 Sekunden'
-          const secondaryLabel = d.response_type === 'binary' ? 'Ablehnen' : 'Optionen'
-          const primaryLabel = isAnswered
-            ? (d.selected_option || 'Entschieden')
-            : d.recommended_option && d.recommended_option !== 'freeform'
-              ? d.recommended_option
-              : 'Freigeben'
-          return (
-            <div key={d.id}>
-              <div className="dec-card">
-                <div className="dec-card-left">
-                  <div className="dec-card-title-block">
-                    <p className="dec-card-title">{displayTitle}</p>
-                    <p className="dec-card-project">{proj?.title || '—'}</p>
-                  </div>
-                  <div className="dec-card-type-pill">
-                    <span className="dec-card-dot" style={{ background: proj?.color || '#5B647D' }} />
-                    {d.decision_type || listStatusLabel(d)}
-                  </div>
-                </div>
-
-                <div className="dec-card-mid">
-                  <div className="dec-card-section">
-                    <p className="dec-card-label">Tagro empfiehlt..</p>
-                    <ClampedTip text={tagroText} lines={2} />
-                  </div>
-                  <div className="dec-card-section">
-                    <p className="dec-card-label">Auswirkung</p>
-                    <ClampedTip text={impactText} lines={2} />
-                  </div>
-                </div>
-
-                <div className="dec-card-meta">
-                  <div className="dec-card-section">
-                    <p className="dec-card-label">Benötigte Zeit</p>
-                    <p className="dec-card-muted">{timeNeeded}</p>
-                  </div>
-                  <div className="dec-card-section">
-                    <p className="dec-card-label">Priorität</p>
-                    <span className="dec-card-prio-pill">
-                      {(d.escalation_level ?? 0) >= 2 && OPEN_STATES.has(d.status) && (
-                        <WarningCircle size={11} weight="fill" style={{ marginRight: 4, color: 'var(--danger, #C2503E)', verticalAlign: '-1px' }} />
-                      )}
-                      {URGENCY_LABEL[d.urgency] || 'Normal'}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="dec-card-actions">
-                  <button className="dec-card-dots" type="button" onClick={(e) => { e.stopPropagation(); router.push(`/decisions/${d.id}`) }}>
-                    <svg width="3" height="14" viewBox="0 0 3 14" fill="none"><circle cx="1.5" cy="2" r="1.5" fill="currentColor"/><circle cx="1.5" cy="7" r="1.5" fill="currentColor"/><circle cx="1.5" cy="12" r="1.5" fill="currentColor"/></svg>
-                  </button>
-                  {isOpen && !isAnswered && (
-                    <FestagPillButton
-                      variant="primary"
-                      onClick={(e) => { e.stopPropagation(); router.push(`/decisions/${d.id}`) }}
-                    >
-                      {primaryLabel}
-                    </FestagPillButton>
-                  )}
-                  {isOpen && !isAnswered && (
-                    <FestagPillButton
-                      block
-                      onClick={(e) => { e.stopPropagation(); router.push(`/decisions/${d.id}`) }}
-                    >
-                      {secondaryLabel}
-                    </FestagPillButton>
-                  )}
-                  <Link className="fui-pill-btn fui-pill-btn--block" href={`/decisions/${d.id}`}>
-                    Details
-                  </Link>
-                </div>
-              </div>
-              {i < displayList.length - 1 && <div className="dec-divider-gradient" />}
-            </div>
-          )
-        })}
+        ) : displayList.map((d, i) => (
+          <DecisionCardRow
+            key={d.id}
+            decision={d}
+            project={d.project_id ? displayProjects[d.project_id] : null}
+            isLast={i === displayList.length - 1}
+            onPatch={patchLocal}
+            onRemove={removeLocal}
+          />
+        ))}
       </div>
+
+      <TagroContentFab
+        context={{
+          contextType: 'decision',
+          id: 'list',
+          title: 'Entscheidungen · Übersicht',
+          subtitle: `${displayCounts.open} offen · ${displayCounts.urgent} dringend`,
+        }}
+      />
 
       {openDecision && (
         <DecisionDrawer
@@ -593,6 +527,7 @@ type WorkspaceMember = { id: string; full_name: string | null; email: string | n
 
 export function DecisionDrawer({
   decision, project, me, isDecider, onClose, onPatch, variant = 'drawer',
+  initialDiscussOpen = false,
 }: {
   decision: Decision
   project: ProjectLite | null
@@ -601,6 +536,7 @@ export function DecisionDrawer({
   onClose: () => void
   onPatch: (p: Partial<Decision>) => void
   variant?: 'drawer' | 'page'
+  initialDiscussOpen?: boolean
 }) {
   // Response type drives the answer form. Default to single_choice for
   // back-compat with legacy decisions where the field is null.
@@ -623,7 +559,7 @@ export function DecisionDrawer({
   const [deciding, setDeciding] = useState(false)
   const [delegating, setDelegating] = useState(false)
   const [discussing, setDiscussing] = useState(false)
-  const [discussOpen, setDiscussOpen] = useState(false)
+  const [discussOpen, setDiscussOpen] = useState(initialDiscussOpen)
   const [discussQuestion, setDiscussQuestion] = useState('')
   const [error, setError] = useState<string>('')
 
@@ -848,40 +784,46 @@ export function DecisionDrawer({
 
   const panelBody = (
     <>
-        <header className="dec-drawer-head">
-          <div className="dec-drawer-meta">
-            <span className="dec-kicker">Entscheidung</span>
-            <span className="dec-saved">
-              {project && <><span className="dec-row-dot" style={{ background: project.color || 'var(--text-muted)' }} /> {project.title} · </>}
-              {fmtAgo(decision.updated_at)}
-            </span>
-          </div>
-          <div className="dec-drawer-actions">
-            {/* Per-decision Tagro entry — preloaded with this decision id+title. */}
-            <button
-              className="dec-tagro-cta"
-              type="button"
-              onClick={() => openTagro({
-                contextType: 'decision',
-                id: decision.id,
-                title: decision.client_title || decision.title,
-                subtitle: project?.title,
-              })}
-            >
-              Mit Tagro bearbeiten
-            </button>
-            <button className="dec-icon-btn" onClick={onClose} title={variant === 'page' ? 'Zurück' : 'Schließen'} type="button">
-              <X size={13} />
-            </button>
-          </div>
-        </header>
+        {variant !== 'page' && (
+          <header className="dec-drawer-head">
+            <div className="dec-drawer-meta">
+              <span className="dec-kicker">Entscheidung</span>
+              <span className="dec-saved">
+                {project && <><span className="dec-row-dot" style={{ background: project.color || 'var(--text-muted)' }} /> {project.title} · </>}
+                {fmtAgo(decision.updated_at)}
+              </span>
+            </div>
+            <div className="dec-drawer-actions">
+              <button
+                className="dec-tagro-cta"
+                type="button"
+                onClick={() => openTagro({
+                  contextType: 'decision',
+                  id: decision.id,
+                  title: decision.client_title || decision.title,
+                  subtitle: project?.title,
+                })}
+              >
+                Mit Tagro bearbeiten
+              </button>
+              <button className="dec-icon-btn" onClick={onClose} title="Schließen" type="button">
+                <X size={13} />
+              </button>
+            </div>
+          </header>
+        )}
 
-        <div className="dec-drawer-body">
-          <h2 className="dec-d-title">{decision.client_title || decision.title}</h2>
-          {(decision.client_summary || decision.description) && (
-            <p className="dec-d-desc">{decision.client_summary || decision.description}</p>
+        <div className={`dec-drawer-body${variant === 'page' ? ' dec-page-body' : ''}`}>
+          {variant !== 'page' && (
+            <>
+              <h2 className="dec-d-title">{decision.client_title || decision.title}</h2>
+              {(decision.client_summary || decision.description) && (
+                <p className="dec-d-desc">{decision.client_summary || decision.description}</p>
+              )}
+            </>
           )}
 
+          {variant !== 'page' && (
           <div className="dec-d-meta">
             <span className={`dec-pill tone-${URGENCY_TONE[decision.urgency] || 'muted'}`}>
               Dringlichkeit: {URGENCY_LABEL[decision.urgency] || 'Normal'}
@@ -922,6 +864,7 @@ export function DecisionDrawer({
               </span>
             )}
           </div>
+          )}
 
           {isAwaitingClarification && (
             <div className="dec-clarification">
@@ -1189,9 +1132,9 @@ export function DecisionDrawer({
   if (variant === 'page') {
     return (
       <div className="dec-detail-page">
-        <aside className="dec-detail-panel">
+        <article className="dec-detail-article">
           {panelBody}
-        </aside>
+        </article>
       </div>
     )
   }
@@ -1282,12 +1225,12 @@ export const DECISION_CSS = `
 
   .dec-static-top {
     flex:0 0 auto; position:sticky; top:0; z-index:8;
-    background:var(--dec-card-bg); padding:64px 164px 0;
+    background:var(--dec-card-bg); padding:40px 56px 0;
   }
   .dec-static-top::after {
     content:''; display:block; position:absolute;
-    left:0; right:0; bottom:-48px; height:48px;
-    background:linear-gradient(to bottom, var(--dec-card-bg) 0%, color-mix(in srgb, var(--dec-card-bg) 92%, transparent) 40%, transparent 100%);
+    left:0; right:0; bottom:-20px; height:20px;
+    background:linear-gradient(to bottom, var(--dec-card-bg) 0%, color-mix(in srgb, var(--dec-card-bg) 75%, transparent) 55%, transparent 100%);
     pointer-events:none;
   }
 
@@ -1321,7 +1264,7 @@ export const DECISION_CSS = `
   .dec-scroll-body {
     flex:1 1 auto; min-height:0;
     overflow-y:auto; overflow-x:hidden;
-    padding:32px 164px 64px;
+    padding:24px 56px 96px;
     overscroll-behavior:contain;
     scrollbar-width:none;
   }
@@ -1334,9 +1277,14 @@ export const DECISION_CSS = `
     transition:background .12s, border-radius .12s;
     border-radius:12px;
     background:transparent;
+    cursor:pointer;
   }
   .dec-card:hover {
     background:var(--portal-row-hover, rgba(241,243,245,.4));
+  }
+  .dec-card:focus-visible {
+    outline:2px solid color-mix(in srgb, var(--portal-btn-primary, #5b647d) 55%, transparent);
+    outline-offset:2px;
   }
 
   .dec-clamp-wrap { position:relative; }
@@ -1378,8 +1326,8 @@ export const DECISION_CSS = `
   }
   .dec-card-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
 
-  .dec-card-mid { width:298px; flex-shrink:0; display:flex; flex-direction:column; gap:24px; }
-  .dec-card-section { display:flex; flex-direction:column; gap:8px; }
+  .dec-card-mid { width:298px; flex-shrink:0; display:flex; flex-direction:column; gap:16px; }
+  .dec-card-section { display:flex; flex-direction:column; gap:4px; }
   .dec-card-label {
     margin:0; font-size:14px; font-weight:500; color:var(--dec-dark);
     letter-spacing:0;
@@ -1390,7 +1338,7 @@ export const DECISION_CSS = `
     line-height:1.45; letter-spacing:0;
   }
 
-  .dec-card-meta { width:93px; flex-shrink:0; display:flex; flex-direction:column; gap:57px; }
+  .dec-card-meta { width:93px; flex-shrink:0; display:flex; flex-direction:column; gap:16px; justify-content:flex-start; }
   .dec-card-prio-pill {
     display:inline-flex; align-items:center;
     padding:6px 12px; border-radius:999px;
@@ -1401,15 +1349,54 @@ export const DECISION_CSS = `
   }
 
   .dec-card-actions {
-    width:105px; flex-shrink:0; display:flex; flex-direction:column; gap:8px; align-items:flex-end;
+    width:105px; flex-shrink:0; display:flex; flex-direction:column; gap:8px; align-items:stretch;
+    position:relative;
   }
   .dec-card-dots {
+    align-self:flex-end;
     border:0; background:transparent; color:var(--dec-soft);
     cursor:pointer; padding:4px; transition:color .12s;
   }
   .dec-card-dots:hover { color:var(--dec-dark); }
+  .dec-card-menu {
+    position:absolute; top:28px; right:0; z-index:30;
+    min-width:210px; padding:6px;
+    border-radius:12px;
+    border:1px solid color-mix(in srgb, var(--portal-btn-outline-border, #e7ebf0) 90%, transparent);
+    background:var(--portal-card, #fff);
+    box-shadow:0 12px 36px -12px rgba(15,23,42,.22);
+    display:flex; flex-direction:column; gap:2px;
+  }
+  [data-theme="dark"] .dec-card-menu,
+  [data-theme="classic-dark"] .dec-card-menu {
+    background:var(--portal-card, #141416);
+    border-color:rgba(255,255,255,.1);
+    box-shadow:0 16px 40px -12px rgba(0,0,0,.45);
+  }
+  .dec-card-menu-item {
+    display:flex; align-items:center; gap:9px;
+    width:100%; min-height:34px; padding:0 10px;
+    border:0; border-radius:8px; background:transparent;
+    font:inherit; font-size:13px; font-weight:400;
+    color:var(--dec-dark); text-align:left; cursor:pointer;
+    transition:background .12s ease, color .12s ease;
+    letter-spacing:var(--ls-body, 0.017em);
+  }
+  .dec-card-menu-item:hover:not(:disabled) {
+    background:var(--portal-row-hover, rgba(241,243,245,.55));
+  }
+  .dec-card-menu-item:disabled { opacity:.5; cursor:not-allowed; }
+  .dec-card-menu-item.is-danger { color:#d14343; }
+  .dec-card-menu-item.is-danger:hover:not(:disabled) {
+    background:rgba(209,67,67,.08);
+  }
+  .dec-card-menu-icon {
+    width:16px; display:inline-flex; align-items:center; justify-content:center;
+    color:var(--dec-soft); flex-shrink:0;
+  }
+  .dec-card-menu-item.is-danger .dec-card-menu-icon { color:#d14343; }
   .dec-card-actions .fui-pill-btn {
-    height:40px; min-height:40px; font-size:13px;
+    height:40px; min-height:40px; font-size:13px; width:100%;
   }
   .dec-card-actions .fui-pill-btn--primary {
     border: none;
@@ -1441,13 +1428,13 @@ export const DECISION_CSS = `
   /* Shared elements used by Drawer */
   .dec-tagro-cta {
     display:inline-flex; align-items:center; gap:6px;
-    height:28px; padding:0 13px; border-radius:32px;
-    background:#5B647D; color:#fff; border:0;
-    font:inherit; font-size:12px; font-weight:500; letter-spacing:.012em;
-    cursor:pointer; transition:background .12s, transform .12s;
+    height:30px; padding:0 14px; border-radius:8px;
+    background:var(--portal-btn-primary, #5B647D); color:#fff; border:0;
+    font:inherit; font-size:12px; font-weight:500; letter-spacing:.005em;
+    cursor:pointer; transition:background .14s ease;
   }
-  .dec-tagro-cta:hover { background:#4d566c; }
-  .dec-tagro-cta:active { transform:scale(.985); }
+  .dec-tagro-cta:hover { background:color-mix(in srgb, var(--portal-btn-primary, #5B647D) 88%, #000); }
+  .dec-tagro-cta:active { background:color-mix(in srgb, var(--portal-btn-primary, #5B647D) 80%, #000); }
   .dec-pill {
     display:inline-flex; align-items:center; gap:4px;
     height:18px; padding:0 8px; border-radius:999px;
@@ -1474,44 +1461,208 @@ export const DECISION_CSS = `
   }
   @keyframes decIn { from { transform:translateX(20px); opacity:0; } to { transform:none; opacity:1; } }
 
-  /* ── Detail sub-page ─────────────────────────────────────── */
+  /* ── Detail sub-page (Codex-style) ─────────────────────── */
   .dec-os-detail {
+    --text: var(--portal-text, #0f0f10);
+    --text-secondary: var(--portal-muted, #6e717e);
+    --dec-soft: var(--portal-soft, #8f93a4);
+    --dec-dark: var(--portal-text, #0f0f10);
+    --dec-card-bg: var(--portal-card, #fff);
+    --border: color-mix(in srgb, var(--portal-btn-outline-border, #e7ebf0) 85%, transparent);
+    --card: var(--portal-card, #fff);
+    --surface-2: var(--portal-pill-bg, #f1f3f5);
+    --accent: var(--portal-btn-primary, #5b647d);
+    --btn-prim: var(--portal-btn-primary, #5b647d);
+    --btn-prim-text: #fff;
     display:flex; flex-direction:column; overflow:hidden;
+    height:100%; min-height:0;
+    letter-spacing:var(--ls-body, 0.017em);
   }
-  .dec-detail-topbar {
-    flex:0 0 auto; padding:24px 164px 0;
+
+  .dec-detail-hero {
+    flex:0 0 auto;
+    padding:28px 48px 24px;
+    border-bottom:1px solid color-mix(in srgb, var(--portal-btn-outline-border, #e7ebf0) 65%, transparent);
     position:relative; z-index:2;
   }
+  [data-theme="dark"] .dec-detail-hero,
+  [data-theme="classic-dark"] .dec-detail-hero {
+    border-bottom-color:rgba(255,255,255,.08);
+  }
+
+  .dec-detail-toolbar {
+    display:flex; align-items:center; justify-content:space-between;
+    gap:16px; margin-bottom:28px;
+  }
   .dec-detail-back {
-    display:inline-flex; align-items:center; gap:8px;
-    font-size:14px; color:var(--dec-soft); text-decoration:none;
-    transition:color .12s;
+    display:inline-flex; align-items:center; gap:6px;
+    font-size:13px; color:var(--dec-soft); text-decoration:none;
+    transition:color .14s ease;
+    letter-spacing:var(--ls-body, 0.017em);
   }
   .dec-detail-back:hover { color:var(--dec-dark); }
+  .dec-detail-tagro-btn {
+    display:inline-flex; align-items:center; justify-content:center;
+    height:32px; padding:0 14px; border-radius:8px;
+    background:var(--portal-btn-primary, #5b647d); color:#fff; border:0;
+    font:inherit; font-size:13px; font-weight:500;
+    letter-spacing:var(--ls-body, 0.017em);
+    cursor:pointer; transition:background .14s ease;
+    flex-shrink:0;
+  }
+  .dec-detail-tagro-btn:hover {
+    background:color-mix(in srgb, var(--portal-btn-primary, #5b647d) 88%, #000);
+  }
+
+  .dec-detail-hero-main { margin-bottom:16px; }
+  .dec-detail-hero-text {
+    display:flex; flex-direction:column; gap:10px;
+    max-width:640px;
+  }
+  .dec-detail-title {
+    margin:0;
+    font-size:34px; font-weight:500; color:var(--dec-dark);
+    letter-spacing:-0.025em; line-height:1.12;
+    font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
+  }
+  .dec-detail-subtitle {
+    margin:0;
+    font-size:16px; font-weight:400; color:var(--dec-soft);
+    line-height:1.5; letter-spacing:var(--ls-body, 0.017em);
+    max-width:520px;
+  }
+
+  .dec-detail-meta-row {
+    display:flex; flex-wrap:wrap; align-items:center; gap:8px;
+  }
+  .dec-detail-meta-chip {
+    display:inline-flex; align-items:center; gap:6px;
+    height:26px; padding:0 10px; border-radius:7px;
+    font-size:12px; font-weight:500; color:var(--dec-soft);
+    background:var(--portal-pill-bg, #f1f3f5);
+    letter-spacing:var(--ls-body, 0.017em);
+  }
+  .dec-detail-meta-chip--amber { color:#b98700; background:rgba(185,135,0,.1); }
+  .dec-detail-meta-chip--red { color:#d14343; background:rgba(209,67,67,.1); }
+  .dec-detail-meta-chip--good { color:#28a745; background:rgba(52,199,89,.1); }
+  .dec-detail-meta-chip--muted { color:var(--dec-soft); }
+  .dec-detail-meta-chip--time { gap:5px; background:transparent; padding:0 4px 0 0; }
+  .dec-detail-project-dot {
+    width:7px; height:7px; border-radius:50%; flex-shrink:0;
+  }
+
+  .dec-detail-loading {
+    padding:48px 48px; color:var(--dec-soft); font-size:14px;
+  }
   .dec-detail-page {
     flex:1; min-height:0; overflow-y:auto;
-    padding:16px 164px 64px;
+    padding:32px 48px 72px;
     overscroll-behavior:contain;
+    scrollbar-width:none;
   }
-  .dec-detail-panel {
-    width:100%; max-width:720px; margin:0 auto;
-    background:var(--dec-card-bg);
-    border:1px solid color-mix(in srgb, var(--portal-btn-outline-border, #e7ebf0) 80%, transparent);
-    border-radius:16px;
+  .dec-detail-page::-webkit-scrollbar { display:none; }
+  .dec-detail-article {
+    width:100%; max-width:640px;
     display:flex; flex-direction:column;
-    box-shadow:var(--portal-shadow-card);
-    overflow:hidden;
   }
-  .dec-detail-panel .dec-drawer-head {
-    border-bottom:1px solid color-mix(in srgb, var(--portal-btn-outline-border, #e7ebf0) 70%, transparent);
-    padding:20px 24px 12px;
+
+  /* Page body — no drawer chrome */
+  .dec-page-body {
+    padding:0 !important;
+    gap:28px !important;
+    overflow:visible !important;
   }
-  .dec-detail-panel .dec-drawer-body {
-    padding:20px 24px 48px;
+  .dec-page-body .dec-tagro {
+    border-radius:12px;
+    border:1px solid color-mix(in srgb, var(--portal-btn-outline-border, #e7ebf0) 80%, transparent);
+    background:color-mix(in srgb, var(--portal-pill-bg, #f1f3f5) 45%, transparent);
+    padding:20px 22px;
   }
+  [data-theme="dark"] .dec-page-body .dec-tagro,
+  [data-theme="classic-dark"] .dec-page-body .dec-tagro {
+    border-color:rgba(255,255,255,.08);
+    background:rgba(255,255,255,.04);
+  }
+  .dec-page-body .dec-tagro-kicker {
+    font-size:12px; letter-spacing:var(--ls-body, 0.017em);
+    text-transform:none; font-weight:500; color:var(--dec-dark);
+  }
+  .dec-page-body .dec-tagro-run {
+    height:30px; padding:0 12px; border-radius:8px;
+    background:transparent;
+    border:1px solid color-mix(in srgb, var(--portal-btn-outline-border, #e7ebf0) 90%, transparent);
+    color:var(--dec-soft);
+    font-size:12px;
+  }
+  .dec-page-body .dec-tagro-run:hover:not(:disabled) {
+    background:var(--portal-row-hover, rgba(241,243,245,.4));
+    color:var(--dec-dark);
+  }
+  .dec-page-body .dec-tagro-text {
+    font-size:14px; line-height:1.55; color:var(--dec-dark);
+    font-weight:400;
+  }
+  .dec-page-body .dec-tagro-apply {
+    height:30px; border-radius:8px;
+    background:transparent;
+    border:1px solid color-mix(in srgb, var(--portal-btn-outline-border, #e7ebf0) 90%, transparent);
+    color:var(--dec-dark);
+    font-size:12px;
+  }
+  .dec-page-body .dec-tagro-apply:hover { background:var(--portal-row-hover); }
+
+  .dec-page-body .dec-answer-label {
+    margin:0 0 4px;
+    font-size:14px; font-weight:500;
+    text-transform:none; letter-spacing:var(--ls-body, 0.017em);
+    color:var(--dec-dark);
+  }
+  .dec-page-body .dec-options { gap:6px; }
+  .dec-page-body .dec-option {
+    padding:14px 16px;
+    border-radius:10px;
+    border:1px solid transparent;
+    background:transparent;
+    transition:background .14s ease, border-color .14s ease;
+  }
+  .dec-page-body .dec-option:hover {
+    background:var(--portal-row-hover, rgba(241,243,245,.4));
+  }
+  .dec-page-body .dec-option.on {
+    background:var(--glass-nav-active, rgba(0,0,0,.055));
+    border-color:color-mix(in srgb, var(--portal-btn-outline-border, #e7ebf0) 90%, transparent);
+    box-shadow:none;
+  }
+  [data-theme="dark"] .dec-page-body .dec-option.on,
+  [data-theme="classic-dark"] .dec-page-body .dec-option.on {
+    background:rgba(255,255,255,.08);
+    border-color:rgba(255,255,255,.1);
+  }
+  .dec-page-body .dec-option.tagro.on {
+    border-color:color-mix(in srgb, var(--portal-btn-primary, #5b647d) 35%, transparent);
+  }
+  .dec-page-body .dec-option-body strong {
+    font-size:14px; color:var(--dec-dark);
+  }
+  .dec-page-body .dec-note {
+    margin-top:4px;
+    padding:12px 0;
+    border-top:1px solid color-mix(in srgb, var(--portal-btn-outline-border, #e7ebf0) 60%, transparent);
+    font-size:14px; font-weight:400;
+  }
+  .dec-page-body .dec-answer-actions {
+    display:flex; flex-wrap:wrap; gap:8px;
+    padding-top:8px;
+    border-top:1px solid color-mix(in srgb, var(--portal-btn-outline-border, #e7ebf0) 60%, transparent);
+  }
+  .dec-page-body .dec-final {
+    border-top:1px solid color-mix(in srgb, var(--portal-btn-outline-border, #e7ebf0) 60%, transparent);
+    padding-top:20px;
+  }
+
   .dec-detail-empty {
-    padding:64px 24px; text-align:center; color:var(--dec-soft);
-    display:flex; flex-direction:column; align-items:center; gap:16px;
+    padding:64px 48px; color:var(--dec-soft);
+    display:flex; flex-direction:column; align-items:flex-start; gap:16px;
   }
 
   .dec-drawer-head {
@@ -1617,13 +1768,14 @@ export const DECISION_CSS = `
   .dec-answer-actions { display:flex; gap:8px; align-items:center; }
   .dec-primary {
     display:inline-flex; align-items:center; gap:5px;
-    height:32px; padding:0 14px; border-radius:999px;
-    background:var(--btn-prim); color:var(--btn-prim-text); border:0;
-    font:inherit; font-size:12px; font-weight:500; cursor:pointer;
-    transition:opacity .12s, transform .12s;
+    height:34px; padding:0 16px; border-radius:8px;
+    background:var(--portal-btn-primary, #5b647d); color:#fff; border:0;
+    font:inherit; font-size:13px; font-weight:500; cursor:pointer;
+    transition:background .14s ease;
+    letter-spacing:var(--ls-body, 0.017em);
   }
-  .dec-primary:hover:not(:disabled) { opacity:.92; }
-  .dec-primary:active:not(:disabled) { transform:scale(.97); }
+  .dec-primary:hover:not(:disabled) { background:color-mix(in srgb, var(--portal-btn-primary, #5b647d) 90%, #000); }
+  .dec-primary:active:not(:disabled) { background:color-mix(in srgb, var(--portal-btn-primary, #5b647d) 82%, #000); }
   .dec-primary:disabled { opacity:.4; cursor:not-allowed; }
   .dec-error { margin:0; font-size:12px; color:#ef4444; display:inline-flex; align-items:center; gap:4px; }
 
@@ -1670,15 +1822,16 @@ export const DECISION_CSS = `
 
   .dec-secondary {
     display:inline-flex; align-items:center; gap:5px;
-    height:32px; padding:0 14px; border-radius:999px;
-    background:var(--card); color:var(--text);
-    border:1px solid var(--border);
-    font:inherit; font-size:12px; font-weight:500; cursor:pointer;
-    transition:background .12s, border-color .12s;
+    height:34px; padding:0 16px; border-radius:8px;
+    background:transparent; color:var(--dec-dark);
+    border:1px solid color-mix(in srgb, var(--portal-btn-outline-border, #e7ebf0) 90%, transparent);
+    font:inherit; font-size:13px; font-weight:500; cursor:pointer;
+    transition:background .14s ease, border-color .14s ease;
+    letter-spacing:var(--ls-body, 0.017em);
   }
   .dec-secondary:hover:not(:disabled) {
-    background:var(--surface-2);
-    border-color:color-mix(in srgb, var(--text) 25%, var(--border));
+    background:var(--portal-row-hover, rgba(241,243,245,.4));
+    border-color:color-mix(in srgb, var(--portal-btn-outline-border, #e7ebf0) 100%, transparent);
   }
   .dec-secondary:disabled { opacity:.5; cursor:not-allowed; }
   .dec-secondary-quiet {
@@ -1745,12 +1898,12 @@ export const DECISION_CSS = `
   .dec-delegation-reason svg { margin-top:3px; flex-shrink:0; color:var(--accent); }
 
   @media (max-width: 1400px) {
-    .dec-static-top { padding:48px 56px 16px; }
-    .dec-scroll-body { padding:12px 56px 60px; }
+    .dec-static-top { padding:36px 40px 0; }
+    .dec-scroll-body { padding:20px 40px 60px; }
   }
   @media (max-width: 1100px) {
-    .dec-static-top { padding:40px 32px 16px; }
-    .dec-scroll-body { padding:12px 32px 48px; }
+    .dec-static-top { padding:32px 32px 0; }
+    .dec-scroll-body { padding:16px 32px 48px; }
   }
   @media (max-width: 900px) {
     .dec-static-top { padding:24px 20px 12px; }
@@ -1760,8 +1913,13 @@ export const DECISION_CSS = `
     .dec-card-meta { gap:24px; flex-direction:row; }
     .dec-card-actions { flex-direction:row; flex-wrap:wrap; gap:8px; align-items:stretch; }
     .dec-card-actions > button, .dec-card-actions > a { width:auto; flex:1; min-width:80px; }
-    .dec-detail-topbar { padding:16px 20px 0; }
-    .dec-detail-page { padding:12px 20px 40px; }
+    .dec-detail-hero { padding:20px 20px 18px; }
+    .dec-detail-page { padding:24px 20px 48px; }
+    .dec-detail-title { font-size:26px; }
+    .dec-detail-subtitle { font-size:15px; }
+    .dec-detail-toolbar { margin-bottom:20px; }
+    .dec-detail-loading { padding:32px 20px; }
+    .dec-detail-empty { padding:48px 20px; }
     .dec-hero-title { font-size:30px; }
     .dec-hero-sub p { font-size:18px; }
     .dec-panel { width:100vw; }

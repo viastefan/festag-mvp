@@ -60,7 +60,7 @@ export default function DevAppShell({
   const [themeMenuOpen, setThemeMenuOpen] = useState(false)
   const themeMenuRef = useRef<HTMLDivElement | null>(null)
 
-  const sidebarWidth = sidebarCollapsed ? '0px' : '212px'
+  const sidebarWidth = sidebarCollapsed ? '0px' : 'var(--festag-sidebar-width, 260px)'
 
   // local prefs
   useEffect(() => {

@@ -77,8 +77,8 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --accent:#5B647D; --accent-text:#FFFFFF;
   --inp:#FFFFFF; --inp-border:#E7EBF0; --inp-focus:#FFFFFF; --inp-focus-border:#5B647D;
   --glow:rgba(32,37,50,0.05);
-  --sidebar-bg:#F6F9FC; --sidebar-border:#E7EBF0;
-  --nav-on:#EEF2F7; --nav-on-text:#202532; --nav-off-text:#4E5567;
+  --sidebar-bg:#F5F5F5; --sidebar-border:#E8E8E8;
+  --nav-on:rgba(0,0,0,0.055); --nav-on-text:#202532; --nav-off-text:#6B7280;
   --surface-2:#EEF2F7;
   --green:#34C759; --green-bg:rgba(52,199,89,0.08); --green-border:rgba(52,199,89,0.22); --green-dark:#28A745;
   --amber:#B98700; --amber-bg:rgba(185,135,0,0.08); --amber-dark:#8A6500;
@@ -193,8 +193,8 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --accent:#1C1914; --accent-text:#FFFDF7;
   --inp:#FFFDF8; --inp-border:rgba(38,33,24,0.12); --inp-focus:#FFFFFF; --inp-focus-border:#1C1914;
   --glow:rgba(28,25,20,0.08);
-  --sidebar-bg:rgba(255,252,243,0.76); --sidebar-border:rgba(38,33,24,0.09);
-  --nav-on:#E8E2D3; --nav-on-text:#1C1914; --nav-off-text:#777165;
+  --sidebar-bg:#F7F4EF; --sidebar-border:rgba(38,33,24,0.09);
+  --nav-on:rgba(0,0,0,0.055); --nav-on-text:#1C1914; --nav-off-text:#777165;
   --surface-2:#ECE6D8; --green:#2E7A50; --green-bg:rgba(46,122,80,0.09);
   --green-border:rgba(46,122,80,0.20); --green-dark:#256040;
   /* Amber stays but in a warm-neutral tone */
@@ -216,8 +216,8 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --accent:#5B647D; --accent-text:#FFFFFF;
   --inp:#FFFFFF; --inp-border:#E7EBF0; --inp-focus:#FFFFFF; --inp-focus-border:#5B647D;
   --glow:rgba(32,37,50,0.05);
-  --sidebar-bg:#F6F9FC; --sidebar-border:#E7EBF0;
-  --nav-on:#EEF2F7; --nav-on-text:#202532; --nav-off-text:#4E5567;
+  --sidebar-bg:#F5F5F5; --sidebar-border:#E8E8E8;
+  --nav-on:rgba(0,0,0,0.055); --nav-on-text:#202532; --nav-off-text:#6B7280;
   --surface-2:#EEF2F7; --green:#22C55E; --green-bg:rgba(34,197,94,0.08);
   --green-border:rgba(34,197,94,0.22); --green-dark:#16A34A;
   --amber:#C18409; --amber-bg:rgba(193,132,9,0.08); --amber-dark:#946100;
@@ -300,7 +300,25 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
 :root {
   --ls-header:  0.012em;
   --ls-body:    0.017em;
-  --ls-sidebar: 0.023em;
+  --ls-sidebar: 0.005em;
+
+  /* Codex-inspired sidebar — flat rail, soft active fills */
+  --glass-blur: 40px;
+  --glass-saturate: 1.45;
+  --glass-sidebar-bg: var(--sidebar-bg);
+  --glass-sidebar-border: var(--sidebar-border);
+  --glass-nav-active: rgba(0, 0, 0, 0.055);
+  --glass-nav-hover: rgba(0, 0, 0, 0.035);
+  --glass-shell-bg: #F5F5F5;
+  --festag-sidebar-width: 260px;
+}
+[data-theme="dark"],
+[data-theme="classic-dark"] {
+  --glass-sidebar-bg: rgba(20, 22, 26, 0.62);
+  --glass-sidebar-border: rgba(255, 255, 255, 0.08);
+  --glass-nav-active: rgba(255, 255, 255, 0.09);
+  --glass-nav-hover: rgba(255, 255, 255, 0.06);
+  --glass-shell-bg: rgba(7, 9, 11, 0.92);
 }
 
 html,body {
@@ -330,7 +348,7 @@ body.festag-app-mode {
    Default = Aeonik Medium (500). Letter-Spacing per Token:
    Header → --ls-header  (1.2 %)
    T1     → --ls-body    (1.7 %)
-   Sidebar (eigene Selektoren) → --ls-sidebar (2.3 %) */
+   Sidebar (eigene Selektoren) → --ls-sidebar (0.5 %) */
 p,span,div,label,li,td,th {
   font-weight:500;
   font-family:var(--font-ui);
@@ -499,10 +517,11 @@ button:active, a[role="button"]:active, .tap-scale:active {
 }
 
 .sidebar-inner {
-  position:fixed; top:0; left:0; bottom:0; width:212px;
+  position:fixed; top:0; left:0; bottom:0; width:var(--festag-sidebar-width, 260px);
   box-sizing:border-box;
   background:var(--sidebar-bg);
   border:0;
+  border-right:1px solid var(--sidebar-border);
   box-shadow:none;
   border-radius:0;
   display:flex; flex-direction:column; overflow:hidden;
@@ -1338,6 +1357,22 @@ textarea,
   body.chat-composer-focused .bottom-nav {
     transform: translateY(120%);
     transition: transform .2s ease;
+  }
+
+  /* Dashboard mobile start screen (Figma 252:59) — hide legacy chrome. */
+  body.festag-dashboard-mobile .bottom-nav,
+  body.festag-dashboard-mobile .mob-bar,
+  body.festag-dashboard-mobile .mcd,
+  body.festag-dashboard-mobile .tmb,
+  body.festag-dashboard-mobile .app-footer-controls,
+  body.festag-dashboard-mobile .sidebar {
+    display: none !important;
+  }
+  body.festag-dashboard-mobile .festag-app-shell.full-height .app-workspace {
+    padding-bottom: 0 !important;
+  }
+  body.festag-dashboard-mobile .festag-app-shell {
+    overflow: hidden;
   }
 }
 

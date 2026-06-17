@@ -6,14 +6,14 @@ import CommandPalette from '@/components/CommandPalette'
 
 export const DECISIONS_SHELL_CSS = `
   .decisions-shell {
-    --portal-bg: rgba(241,243,245,.9);
+    --portal-bg: var(--bg, #f5f5f5);
     --portal-card: #FFFFFF;
     --portal-text: #0f0f10;
     --portal-muted: #6e717e;
     --portal-soft: #8f93a4;
-    --portal-nav-active-bg: rgba(255,255,255,.95);
-    --portal-nav-avatar-bg: rgba(255,255,255,.8);
-    --portal-nav-avatar-border: #f3f5f7;
+    --portal-nav-active-bg: var(--glass-nav-active, rgba(0,0,0,.055));
+    --portal-nav-avatar-bg: rgba(255,255,255,.72);
+    --portal-nav-avatar-border: rgba(255,255,255,.5);
     --portal-pill-bg: #f1f3f5;
     --portal-btn-primary: #5b647d;
     --portal-btn-outline-bg: #fff;
@@ -21,29 +21,27 @@ export const DECISIONS_SHELL_CSS = `
     --portal-btn-outline-text: #202532;
     --portal-row-hover: rgba(241,243,245,.4);
     --portal-icon-border: rgba(202,207,212,.2);
-    --portal-shadow-card: 0 -2px 4px rgba(110,113,126,.05), 0 2px 4px rgba(110,113,126,.05);
+    --portal-shadow-card: none;
 
     position:fixed; inset:0;
     background:var(--portal-bg);
-    backdrop-filter:blur(40px) saturate(1.4);
-    -webkit-backdrop-filter:blur(40px) saturate(1.4);
     font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
     color:var(--portal-text);
     color-scheme:light;
     overflow:hidden;
     display:flex;
-    gap:12px;
-    padding:8px 8px 8px 12px;
+    gap:0;
+    padding:0;
     box-sizing:border-box;
   }
   [data-theme="dark"] .decisions-shell,
   [data-theme="classic-dark"] .decisions-shell {
-    --portal-bg: #07090b;
+    --portal-bg: var(--glass-shell-bg, rgba(7,9,11,.92));
     --portal-card: #141416;
     --portal-text: #f4f4f4;
     --portal-muted: #9aa0ac;
     --portal-soft: #8f93a4;
-    --portal-nav-active-bg: rgba(255,255,255,.08);
+    --portal-nav-active-bg: var(--glass-nav-active, rgba(255,255,255,.09));
     --portal-nav-avatar-bg: rgba(255,255,255,.06);
     --portal-nav-avatar-border: rgba(255,255,255,.08);
     --portal-pill-bg: rgba(255,255,255,.08);
@@ -53,41 +51,102 @@ export const DECISIONS_SHELL_CSS = `
     --portal-btn-outline-text: #f4f4f4;
     --portal-row-hover: rgba(255,255,255,.06);
     --portal-icon-border: rgba(255,255,255,.1);
-    --portal-shadow-card: 0 8px 30px rgba(0,0,0,.28);
+    --portal-shadow-card: none;
     color-scheme: dark;
-    backdrop-filter:none;
-    -webkit-backdrop-filter:none;
   }
   [data-theme="light"] .decisions-shell,
   [data-theme="read"] .decisions-shell {
     color-scheme: light;
   }
+
   .decisions-nav-col {
-    width:200px; flex-shrink:0;
+    width:var(--festag-sidebar-width, 260px); flex-shrink:0;
     box-sizing:border-box;
+    display:flex; flex-direction:column;
+    background:var(--sidebar-bg, #f5f5f5);
+    border-right:1px solid var(--sidebar-border, #e8e8e8);
+    overflow:hidden;
     transition:width .22s cubic-bezier(.16,1,.3,1);
   }
   .decisions-shell.portal-sidebar-collapsed .decisions-nav-col {
-    width:52px;
+    width:56px;
   }
+
   .decisions-main-col {
     flex:1; min-width:0;
     box-sizing:border-box;
     display:flex; flex-direction:column;
+    padding:8px;
   }
   .decisions-main {
     flex:1; min-height:0;
     background:var(--portal-card);
-    border-radius:12px;
-    box-shadow:var(--portal-shadow-card);
+    border-radius:10px;
+    border:1px solid color-mix(in srgb, var(--portal-btn-outline-border, #e7ebf0) 65%, transparent);
     overflow:hidden;
     display:flex; flex-direction:column;
     position:relative;
   }
+  [data-theme="dark"] .decisions-main,
+  [data-theme="classic-dark"] .decisions-main {
+    border-color:rgba(255,255,255,.08);
+  }
+
+  /* Flat controls in portal — no 3D press */
+  .decisions-shell .fui-icon-btn,
+  .decisions-shell .fui-pill-btn {
+    background:transparent;
+    border:1px solid color-mix(in srgb, var(--portal-btn-outline-border, #e7ebf0) 80%, transparent);
+    box-shadow:none;
+    transform:none;
+    color:var(--portal-muted, #6e717e);
+  }
+  .decisions-shell .fui-icon-btn:hover:not(:disabled),
+  .decisions-shell .fui-pill-btn:hover:not(:disabled) {
+    background:var(--portal-row-hover, rgba(241,243,245,.4));
+    border-color:color-mix(in srgb, var(--portal-btn-outline-border, #e7ebf0) 100%, transparent);
+    box-shadow:none;
+    transform:none;
+    color:var(--portal-text, #0f0f10);
+  }
+  .decisions-shell .fui-icon-btn:active:not(:disabled),
+  .decisions-shell .fui-pill-btn:active:not(:disabled) {
+    background:var(--glass-nav-active, rgba(0,0,0,.055));
+    box-shadow:none;
+    transform:none;
+  }
+  .decisions-shell .fui-pill-btn--primary {
+    background:var(--portal-btn-primary, #5b647d);
+    border-color:transparent;
+    color:#fff;
+  }
+  .decisions-shell .fui-pill-btn--primary:hover:not(:disabled) {
+    background:color-mix(in srgb, var(--portal-btn-primary, #5b647d) 90%, #000);
+    color:#fff;
+  }
+  .decisions-shell .fui-pill-btn--primary:active:not(:disabled) {
+    background:color-mix(in srgb, var(--portal-btn-primary, #5b647d) 82%, #000);
+  }
+  [data-theme="dark"] .decisions-shell .fui-icon-btn,
+  [data-theme="dark"] .decisions-shell .fui-pill-btn,
+  [data-theme="classic-dark"] .decisions-shell .fui-icon-btn,
+  [data-theme="classic-dark"] .decisions-shell .fui-pill-btn {
+    background:rgba(255,255,255,.04);
+    border-color:rgba(255,255,255,.1);
+    color:var(--portal-muted, #9aa0ac);
+  }
+  [data-theme="dark"] .decisions-shell .fui-icon-btn:hover:not(:disabled),
+  [data-theme="dark"] .decisions-shell .fui-pill-btn:hover:not(:disabled),
+  [data-theme="classic-dark"] .decisions-shell .fui-icon-btn:hover:not(:disabled),
+  [data-theme="classic-dark"] .decisions-shell .fui-pill-btn:hover:not(:disabled) {
+    background:rgba(255,255,255,.08);
+    color:var(--portal-text, #f4f4f4);
+  }
+
   @media (max-width: 900px) {
     .decisions-nav-col { display:none; }
-    .decisions-main-col { padding:0; }
-    .decisions-main { border-radius:0; }
+    .decisions-shell { padding:0; gap:0; }
+    .decisions-main { border-radius:0; border:0; }
   }
 `
 

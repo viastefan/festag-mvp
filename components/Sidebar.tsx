@@ -834,7 +834,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
             fontFamily:'inherit', padding:0, textAlign:'left',
             width:'auto', maxWidth:'100%',
           }}>
-            <span style={{ fontSize:11.5, fontWeight:500, color:'var(--sb-sidebar-gray)', letterSpacing:'.02em', lineHeight:'18px' }}>{label}</span>
+            <span style={{ fontSize:12, fontWeight:400, color:'var(--sb-sidebar-gray)', letterSpacing:'var(--ls-sidebar, .005em)', lineHeight:'18px' }}>{label}</span>
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--sb-sidebar-gray)" strokeWidth="2.4" strokeLinecap="round"
               style={{ flexShrink:0, opacity:.72, transform:expanded?'rotate(90deg)':'rotate(0deg)', transition:'none' }}>
               <path d="M9 6l6 6-6 6"/>
@@ -938,11 +938,11 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
     <>
       <style>{`
         :root {
-          --sb-row-h: 32px;
+          --sb-row-h: 34px;
           --sb-icon: 16px;
           --sb-font: 13px;
-          --sb-x: 12px;
-          --sb-sidebar-gray: var(--text-secondary);
+          --sb-x: 10px;
+          --sb-sidebar-gray: var(--nav-off-text, #6B7280);
         }
         .sidebar-inner {
           min-height:0;
@@ -951,12 +951,12 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         /* ── Nav item ── */
         .ni {
           position:relative;
-          display:flex; align-items:center; gap:8px;
+          display:flex; align-items:center; gap:10px;
           min-height: var(--sb-row-h);
-          padding:0 var(--sb-x); border-radius:8px;
-          font-size:var(--sb-font); font-weight:500;
+          padding:0 var(--sb-x); border-radius:10px;
+          font-size:var(--sb-font); font-weight:400;
           font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
-          letter-spacing:.02em;
+          letter-spacing:var(--ls-sidebar, .005em);
           cursor:pointer; text-decoration:none; color:inherit;
           transition:background .12s, color .12s;
           white-space:nowrap; overflow:hidden;
@@ -1048,23 +1048,23 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           background:color-mix(in srgb, var(--surface) 88%, black 12%);
           box-shadow:0 12px 28px rgba(0,0,0,.22);
         }
-        .ni-on  { background:rgba(0,0,0,0.048); font-weight:500; color:var(--text); }
+        .ni-on  { background:var(--nav-on); font-weight:500; color:var(--nav-on-text); }
         [data-theme="dark"] .ni-on { background:var(--nav-on); color:var(--nav-on-text); }
-        [data-theme="read"] .ni-on { background:rgba(0,0,0,0.05); color:var(--text); }
-        .ni-off { color:var(--text-secondary); }
+        [data-theme="read"] .ni-on { background:var(--nav-on); color:var(--nav-on-text); }
+        .ni-off { color:var(--nav-off-text); }
         [data-theme="light"] .ni-off,
-        [data-theme="pure-light"] .ni-off { color:#4E5567; }
+        [data-theme="pure-light"] .ni-off { color:var(--nav-off-text); }
         [data-theme="light"] .sidebar-inner,
-        [data-theme="pure-light"] .sidebar-inner { --sb-sidebar-gray:#4E5567; }
-        .ni-off:hover { background:rgba(0,0,0,0.03); color:var(--text); }
-        [data-theme="dark"] .ni-off:hover { background:rgba(255,255,255,0.04); }
-        [data-theme="read"] .ni-off:hover { background:rgba(0,0,0,0.04); }
+        [data-theme="pure-light"] .sidebar-inner { --sb-sidebar-gray:var(--nav-off-text); }
+        .ni-off:hover { background:var(--glass-nav-hover, rgba(0,0,0,.035)); color:var(--text); }
+        [data-theme="dark"] .ni-off:hover { background:var(--glass-nav-hover, rgba(255,255,255,.06)); }
+        [data-theme="read"] .ni-off:hover { background:var(--glass-nav-hover, rgba(0,0,0,.035)); }
         .ni:focus { outline: none; }
         .ni:focus-visible {
           box-shadow: 0 0 0 2px var(--focus-ring, rgba(106, 115, 140, 0.35));
         }
         .sb-section {
-          margin: 26px 0 22px;
+          margin: 20px 0 16px;
         }
         .sb-section-head {
           display:flex;
@@ -1072,7 +1072,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           justify-content:space-between;
           gap:8px;
           min-height:22px;
-          padding:0 var(--sb-x) 7px;
+          padding:0 var(--sb-x) 6px;
         }
         .sb-section-head span {
           font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
@@ -1111,11 +1111,11 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           display:grid;
           grid-template-columns:16px minmax(0, 1fr);
           align-items:center;
-          gap:8px;
-          min-height:32px;
-          padding:0 var(--sb-x) 0 calc(var(--sb-x) + 4px);
-          border-radius:8px;
-          font-size:12.5px; font-weight:500;
+          gap:10px;
+          min-height:34px;
+          padding:0 var(--sb-x) 0 calc(var(--sb-x) + 2px);
+          border-radius:10px;
+          font-size:13px; font-weight:400;
           font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
           letter-spacing:.02em;
           cursor:pointer; text-decoration:none;
@@ -1148,8 +1148,8 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           outline:none;
           box-sizing:border-box;
         }
-        .proj-row:hover { background:rgba(0,0,0,0.04); color:var(--text); }
-        [data-theme="dark"] .proj-row:hover { background:rgba(255,255,255,0.04); }
+        .proj-row:hover { background:var(--glass-nav-hover, rgba(0,0,0,.035)); color:var(--text); }
+        [data-theme="dark"] .proj-row:hover { background:var(--glass-nav-hover, rgba(255,255,255,.06)); }
         .proj-row.active { background:var(--nav-on); color:var(--nav-on-text); font-weight:500; }
         .proj-row.proj-new { opacity:.55; transition:opacity .12s; }
         .proj-row.proj-new:hover { opacity:1; background:rgba(0,0,0,0.035); }
@@ -1167,8 +1167,8 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           display:grid;
           grid-template-columns:minmax(0, 1fr) 28px 28px;
           align-items:center;
-          gap:6px;
-          padding:0 4px 16px;
+          gap:4px;
+          padding:0 2px 14px;
           flex-shrink:0;
           min-width:0;
         }
@@ -1182,7 +1182,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         .sb-top-icon {
           width:28px;
           height:28px;
-          border-radius:12px;
+          border-radius:8px;
           display:flex;
           align-items:center;
           justify-content:center;
@@ -1203,13 +1203,13 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         }
         .sb-top-icon:hover {
           color:var(--text);
-          background:rgba(0,0,0,0.035);
+          background:var(--glass-nav-hover, rgba(0,0,0,.035));
         }
-        [data-theme="dark"] .sb-top-icon:hover { background:rgba(255,255,255,0.04); }
+        [data-theme="dark"] .sb-top-icon:hover { background:var(--glass-nav-hover, rgba(255,255,255,.06)); }
         .sb-bottom-actions {
           position:absolute;
-          left:16px;
-          right:16px;
+          left:10px;
+          right:10px;
           bottom:0;
           width:auto;
           max-width:none;
@@ -2022,7 +2022,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
 
       {/* ══ DESKTOP SIDEBAR ══ */}
       <aside className="sidebar" style={{ pointerEvents:'none' }}>
-        <div className="sidebar-inner" style={{ pointerEvents:'all', padding:'16px 16px 0', display:'flex', flexDirection:'column', position:'fixed' }}>
+        <div className="sidebar-inner" style={{ pointerEvents:'all', padding:'12px 10px 0', display:'flex', flexDirection:'column', position:'fixed' }}>
 
           <div className="sb-topbar">
             <SidebarProfileFooter

@@ -47,10 +47,10 @@ export default function ClientAppShell({
   //   - tagroFullscreen / /ai → fully hidden so the workspace fills the
   //     viewport (no icon rail, no chrome). User dismisses via X / collapse.
   //   - sidebarCollapsed (user toggle) → 0px (return-arrow shows)
-  //   - default → 212px full sidebar
+  //   - default → 260px full sidebar
   const aiRoute = pathname?.startsWith('/ai') || false
   const railActive = tagroFullscreen || aiRoute
-  const sidebarWidth = railActive ? '0px' : (sidebarCollapsed ? '0px' : '212px')
+  const sidebarWidth = railActive ? '0px' : (sidebarCollapsed ? '0px' : 'var(--festag-sidebar-width, 260px)')
 
   useEffect(() => {
     try { setSidebarCollapsed(localStorage.getItem('festag-sidebar-collapsed') === 'true') } catch {}
