@@ -914,7 +914,11 @@ const CSS = `
   .pj2-menu button.on { background: #F0F2F7; color: #5B647D; }
   .pj2-menu button .check { color: #5B647D; font-size: 12px; }
 
-  .pj2-table { width: 100%; }
+  .pj2-table {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0 20px;
+  }
   .pj2-left { display: contents; }
   .pj2-right { display: contents; }
   .pj2-row {
@@ -1456,112 +1460,139 @@ const CSS = `
     .pj2-divider { display: none !important; }
     .pj2-table {
       display: flex !important; flex-direction: column !important;
-      gap: 4px !important;
-      padding-top: 4px !important;
+      gap: 8px !important;
+      padding: 0 10px !important;
     }
 
-    /* ── Project items ── */
+    /* ── Project rows — Figma node 252:245 (Component 5) ── */
     .pj2-row.pj2-item {
       display: flex !important;
-      align-items: center !important;
+      align-items: flex-start !important;
       justify-content: space-between !important;
-      padding: 14px 8px !important;
+      gap: 12px !important;
+      width: 100% !important;
+      box-sizing: border-box !important;
+      padding: 0 2px !important;
       height: auto !important;
-      min-height: 52px !important;
+      min-height: 66px !important;
       border-radius: 12px !important;
       background: transparent !important;
       box-shadow: none !important;
       margin: 0 !important;
       column-gap: 0 !important;
       border-bottom: 0 !important;
-      transition: background .12s ease;
+      transition: background .14s ease, box-shadow .14s ease;
       -webkit-tap-highlight-color: transparent;
     }
     .pj2-row.pj2-item:last-child {
       border-bottom: 0 !important;
     }
     .pj2-row.pj2-item:active {
-      background: rgba(15, 23, 42, 0.04) !important;
+      background: #FFFFFF !important;
+      box-shadow: 0 2px 4px rgba(144, 149, 159, 0.07) !important;
+    }
+    @media (hover: hover) {
+      .pj2-row.pj2-item:hover {
+        background: #FFFFFF !important;
+        box-shadow: 0 2px 4px rgba(144, 149, 159, 0.07) !important;
+      }
     }
 
-    /* ── Left block ── */
+    /* ── Left: title + subtitle + status (no folder icon) ── */
     .pj2-left {
       display: flex !important;
-      flex-direction: row !important;
-      align-items: center !important;
-      gap: 12px !important;
-      flex: 1 !important;
+      flex-direction: column !important;
+      align-items: flex-start !important;
+      justify-content: flex-start !important;
+      gap: 8px !important;
+      flex: 1 1 auto !important;
       min-width: 0 !important;
+      max-width: calc(100% - 88px) !important;
     }
-    .pjm-folder {
-      display: inline-flex !important;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      color: #6e717e;
-    }
-    .pj2-status { display: none !important; }
-    .pjm-chevron {
-      display: inline-flex !important;
-      align-items: center;
-      margin-left: 4px;
-    }
+    .pjm-folder { display: none !important; }
     .pj2-name {
-      display: flex !important; flex-direction: column !important; gap: 3px !important;
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 4px !important;
       min-width: 0 !important;
+      width: 100% !important;
     }
     .pj2-name-row { gap: 8px !important; }
     .pj2-name strong {
-      font-size: 16px !important;
-      font-weight: 400 !important;
+      font-size: 18px !important;
+      font-weight: 500 !important;
       color: #0F0F10 !important;
-      letter-spacing: 0 !important;
-      max-width: none !important;
+      letter-spacing: 0.36px !important;
+      line-height: 1.2 !important;
+      max-width: 100% !important;
       white-space: nowrap !important;
       overflow: hidden !important;
       text-overflow: ellipsis !important;
     }
     .pj2-name small {
-      font-size: 13px !important;
+      font-size: 14px !important;
       font-weight: 400 !important;
       color: #90959F !important;
-      letter-spacing: 0.2px !important;
+      letter-spacing: 0.28px !important;
+      line-height: 1.25 !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
     }
     .pj2-status {
-      gap: 6px !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 8px !important;
       font-size: 12px !important;
       font-weight: 500 !important;
       color: #90959F !important;
-      letter-spacing: 0.2px !important;
+      letter-spacing: 0.24px !important;
+      line-height: 1 !important;
+    }
+    .pj2-status-dot {
+      width: 6px !important;
+      height: 6px !important;
+      border-radius: 32px !important;
+      flex-shrink: 0 !important;
+      filter: blur(2px) !important;
     }
     .pj2-new { display: none !important; }
 
-    /* ── Right block ── */
+    /* ── Right: avatars + date ── */
     .pj2-right {
       display: flex !important;
       flex-direction: column !important;
       align-items: flex-end !important;
-      gap: 12px !important;
-      flex-shrink: 0 !important;
-      margin-left: 12px !important;
+      justify-content: flex-start !important;
+      gap: 16px !important;
+      flex: 0 0 auto !important;
+      width: auto !important;
+      margin-left: 0 !important;
+      padding-top: 1px !important;
     }
+    .pjm-chevron { display: none !important; }
     .pj2-devs {
       display: inline-flex !important;
       align-items: center !important;
+      justify-content: flex-end !important;
     }
     .pj2-dev-stack { display: inline-flex !important; align-items: center !important; }
     .pj2-dev-av {
-      width: 30px !important; height: 30px !important;
+      width: 32px !important;
+      height: 32px !important;
       border: 1.5px solid #FFFFFF !important;
-      margin-right: -10px !important;
+      margin-right: -12px !important;
+      font-size: 11px !important;
     }
+    .pj2-dev-av:last-child { margin-right: 0 !important; }
     .pj2-dev-empty { display: none !important; }
     .pj2-dev-placeholder { display: inline-flex !important; }
     .pj2-date {
-      font-size: 13px !important;
+      font-size: 14px !important;
       font-weight: 400 !important;
       color: #90959F !important;
-      letter-spacing: 0.1px !important;
+      letter-spacing: 0.14px !important;
+      line-height: 1.2 !important;
       text-align: right !important;
       white-space: nowrap !important;
     }

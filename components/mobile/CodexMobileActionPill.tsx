@@ -1,6 +1,6 @@
 'use client'
 
-import { List, MagnifyingGlass } from '@phosphor-icons/react'
+import { DotsThree, MagnifyingGlass } from '@phosphor-icons/react'
 import { CODEX_ORB_CSS } from '@/components/mobile/codex-mobile-styles'
 
 type Props = {
@@ -18,7 +18,7 @@ export default function CodexMobileActionPill({ onMenu, onSearch, dark = false }
           <MagnifyingGlass size={20} weight="regular" />
         </button>
         <button type="button" className="cx-action-pill-btn" aria-label="Menü" onClick={onMenu}>
-          <List size={20} weight="regular" />
+          <DotsThree size={20} weight="bold" />
         </button>
       </div>
     </>

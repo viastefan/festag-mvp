@@ -22,7 +22,7 @@
  * the old Copilot.
  */
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { usePathname } from 'next/navigation'
 import {
@@ -428,6 +428,18 @@ export default function TagroOverlay() {
   const showWorkspace = mode === 'conversation' || fromScratch || agentRoute
   const isAgentSurface = agentRoute && fullscreen
 
+  /** Expand/collapse the shell. Picker stays picker; empty workspace returns to picker on collapse. */
+  const togglePresentation = useCallback(() => {
+    if (fullscreen) {
+      setFullscreen(false)
+      if (messages.length === 0 && fromScratch && !agentRoute) {
+        setFromScratch(false)
+      }
+    } else {
+      setFullscreen(true)
+    }
+  }, [fullscreen, messages.length, fromScratch, agentRoute])
+
   // Global open event
   useEffect(() => {
     function onOpen(e: Event) {
@@ -443,14 +455,14 @@ export default function TagroOverlay() {
       setFullscreen(!!d.fullscreen || workspace)
       setOpen(true)
     }
-    function onToggleFs() { setFullscreen(v => !v) }
+    function onToggleFs() { togglePresentation() }
     window.addEventListener('festag:open-tagro', onOpen as EventListener)
     window.addEventListener('festag:tagro-fullscreen-toggle', onToggleFs as EventListener)
     return () => {
       window.removeEventListener('festag:open-tagro', onOpen as EventListener)
       window.removeEventListener('festag:tagro-fullscreen-toggle', onToggleFs as EventListener)
     }
-  }, [pathname])
+  }, [pathname, togglePresentation])
 
   // Body scroll lock + Esc + composer focus
   useEffect(() => {
@@ -642,17 +654,22 @@ export default function TagroOverlay() {
                 <header className="tov-top">
                   <span className="tov-top-ctx">{CTX_CHIP[ctx.contextType]}{ctx.title ? ` · ${ctx.title}` : ''}</span>
                   <div className="tov-top-controls">
-                    <button type="button" className="tov-iconbtn" onClick={() => setFullscreen(v => !v)} aria-label={fullscreen ? 'Verkleinern' : 'Vergrößern'}>
-                      {fullscreen ? <ArrowsIn size={15} /> : <ArrowsOut size={15} />}
+                    <button type="button" className="tov-iconbtn" onClick={togglePresentation} aria-label={fullscreen ? 'Verkleinern' : 'Vergrößern'}>
+                      {fullscreen ? <ArrowsIn size={16} weight="bold" /> : <ArrowsOut size={16} weight="bold" />}
                     </button>
-                    <button type="button" className="tov-iconbtn" onClick={close} aria-label="Schließen"><X size={16} /></button>
+                    <button type="button" className="tov-iconbtn" onClick={close} aria-label="Schließen"><X size={16} weight="bold" /></button>
                   </div>
                 </header>
               )}
 
               {isAgentSurface && (
                 <header className="tov-agent-top">
-                  <button type="button" className="tov-agent-close" onClick={close} aria-label="Schließen"><X size={16} /></button>
+                  <div className="tov-top-controls">
+                    <button type="button" className="tov-iconbtn" onClick={togglePresentation} aria-label={fullscreen ? 'Verkleinern' : 'Vergrößern'}>
+                      {fullscreen ? <ArrowsIn size={16} weight="bold" /> : <ArrowsOut size={16} weight="bold" />}
+                    </button>
+                    <button type="button" className="tov-iconbtn" onClick={close} aria-label="Schließen"><X size={16} weight="bold" /></button>
+                  </div>
                 </header>
               )}
 
@@ -731,12 +748,10 @@ export default function TagroOverlay() {
             <div className="tov-picker-view">
               <div className="tov-picker-card">
                 <div className="tov-picker-top">
-                  {!fullscreen && (
-                    <button type="button" className="tov-iconbtn" onClick={expandToWorkspace} aria-label="Vergrößern">
-                      <ArrowsOut size={15} />
-                    </button>
-                  )}
-                  <button type="button" className="tov-iconbtn" onClick={close} aria-label="Schließen"><X size={16} /></button>
+                  <button type="button" className="tov-iconbtn" onClick={togglePresentation} aria-label={fullscreen ? 'Verkleinern' : 'Vergrößern'}>
+                    {fullscreen ? <ArrowsIn size={16} weight="bold" /> : <ArrowsOut size={16} weight="bold" />}
+                  </button>
+                  <button type="button" className="tov-iconbtn" onClick={close} aria-label="Schließen"><X size={16} weight="bold" /></button>
                 </div>
 
                 <h1 className="tov-picker-title">{question}</h1>
@@ -1300,9 +1315,9 @@ const STYLES = `
 }
 .tov-picker-footer {
   flex: 0 0 auto;
-  padding: 12px 24px max(20px, env(safe-area-inset-bottom, 0px));
-  border-top: 1px solid var(--tov-border);
-  background: var(--tov-bg);
+  padding: 10px 16px max(20px, env(safe-area-inset-bottom, 0px));
+  border-top: 0;
+  background: linear-gradient(to top, var(--tov-bg) 82%, transparent);
 }
 .tov-picker-footer .tov-composer { max-width: 560px; margin: 0 auto; }
 .tov-picker-card {
@@ -1310,8 +1325,11 @@ const STYLES = `
   position: relative;
 }
 .tov-picker-top {
-  display: flex; justify-content: flex-end; gap: 6px;
+  display: flex; justify-content: flex-end; gap: 8px;
   margin-bottom: 8px;
+  position: sticky; top: 0; z-index: 2;
+  background: var(--tov-bg);
+  padding: 4px 0 8px;
 }
 .tov-picker-title {
   margin: 0 0 24px;
@@ -1517,17 +1535,22 @@ const STYLES = `
   font-size: 12px; font-weight: 500; color: var(--tov-muted);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.tov-top-controls { display: inline-flex; gap: 6px; flex-shrink: 0; }
+.tov-top-controls { display: inline-flex; gap: 8px; flex-shrink: 0; align-items: center; }
 .tov-iconbtn {
-  width: 32px; height: 32px;
+  width: 36px; height: 36px;
+  min-width: 36px; min-height: 36px;
+  padding: 0;
   display: inline-flex; align-items: center; justify-content: center;
   background: var(--tov-pill); color: var(--tov-text-2);
-  border: 0; border-radius: 999px; cursor: pointer;
-  transition: background .14s, color .14s;
+  border: 0; border-radius: 50%; cursor: pointer;
+  flex-shrink: 0;
+  aspect-ratio: 1 / 1;
+  transition: background .14s, color .14s, transform .12s;
 }
 .tov-iconbtn:hover { background: var(--tov-pill-h); color: var(--tov-text); }
+.tov-iconbtn:active { transform: scale(.96); }
 
-/* Composer */
+/* Composer — modern AI input */
 .tov-composer {
   width: 100%;
   display: flex; align-items: flex-end; gap: 10px;
@@ -1535,33 +1558,44 @@ const STYLES = `
 .tov-composer-plus {
   flex: 0 0 auto;
   width: 40px; height: 40px;
+  min-width: 40px; min-height: 40px;
   display: inline-flex; align-items: center; justify-content: center;
-  background: var(--tov-input);
+  background: var(--tov-bg);
   color: var(--tov-text);
-  border: 0; border-radius: 999px; cursor: pointer;
-  transition: background .14s;
+  border: 1px solid var(--tov-border);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(15,23,42,0.04);
+  transition: background .14s, border-color .14s;
 }
-.tov-composer-plus:hover { background: var(--tov-pill-h); }
+.tov-composer-plus:hover { background: var(--tov-pill); border-color: var(--tov-border-2); }
 .tov-composer-bar {
   flex: 1 1 auto; min-width: 0;
-  display: flex; align-items: flex-end; gap: 6px;
-  background: var(--tov-input);
-  border: 0;
-  border-radius: 999px;
-  padding: 6px 6px 6px 18px;
-  transition: background .16s ease, box-shadow .16s ease;
+  display: flex; align-items: flex-end; gap: 4px;
+  background: var(--tov-bg);
+  border: 1px solid var(--tov-border);
+  border-radius: 26px;
+  padding: 8px 8px 8px 16px;
+  min-height: 48px;
+  box-shadow:
+    0 4px 20px rgba(15, 23, 42, 0.06),
+    0 1px 3px rgba(15, 23, 42, 0.04);
+  transition: background .16s ease, box-shadow .16s ease, border-color .16s ease;
 }
 .tov-composer-bar:focus-within {
-  background: var(--tov-input-2);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--tov-text) 5%, transparent);
+  background: var(--tov-bg);
+  border-color: color-mix(in srgb, var(--tov-text) 12%, var(--tov-border));
+  box-shadow:
+    0 6px 28px rgba(15, 23, 42, 0.08),
+    0 0 0 3px color-mix(in srgb, var(--tov-text) 4%, transparent);
 }
 .tov-composer-input {
   flex: 1 1 auto; width: 100%;
   border: 0; outline: 0; resize: none; background: transparent;
   color: var(--tov-text); font: inherit;
-  font-size: 15px; line-height: 1.5;
-  min-height: 32px; max-height: 200px;
-  padding: 6px 0; overflow-y: auto;
+  font-size: 16px; line-height: 1.45;
+  min-height: 28px; max-height: 200px;
+  padding: 4px 0; overflow-y: auto;
 }
 .tov-composer-input::placeholder { color: var(--tov-muted); }
 .tov-composer-mic {
@@ -1574,8 +1608,9 @@ const STYLES = `
 .tov-composer-mic:hover { background: var(--tov-pill); color: var(--tov-text); }
 .tov-composer-mic.is-rec { animation: tov-pulse 1.4s ease-in-out infinite; }
 .tov-composer-send {
-  flex: 0 0 auto; width: 36px; height: 36px;
-  border: 0; border-radius: 999px;
+  flex: 0 0 auto; width: 34px; height: 34px;
+  min-width: 34px; min-height: 34px;
+  border: 0; border-radius: 50%;
   background: var(--tov-send); color: var(--tov-send-text);
   display: inline-flex; align-items: center; justify-content: center;
   cursor: pointer;
@@ -1729,12 +1764,14 @@ const STYLES = `
   position: absolute; top: 0; right: 0; z-index: 2;
   pointer-events: none;
 }
+.tov-agent-top .tov-top-controls { pointer-events: auto; }
 .tov-agent-close {
   pointer-events: auto;
   width: 36px; height: 36px;
+  min-width: 36px; min-height: 36px;
   display: inline-flex; align-items: center; justify-content: center;
   background: var(--tov-pill); color: var(--tov-text-2);
-  border: 0; border-radius: 999px; cursor: pointer;
+  border: 0; border-radius: 50%; cursor: pointer;
   transition: background .14s, color .14s;
 }
 .tov-agent-close:hover { background: var(--tov-pill-h); color: var(--tov-text); }
@@ -1884,5 +1921,65 @@ const STYLES = `
 @keyframes tov-spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) {
   .tov, .tov-shell, .tov-msg, .tov-spin, .tov-composer-mic.is-rec, .tov-typing span { animation: none !important; }
+}
+
+/* ── Mobile polish ── */
+@media (max-width: 720px) {
+  .tov:not(.tov-full) {
+    padding: 12px;
+    align-items: flex-end;
+  }
+  .tov:not(.tov-full) .tov-shell {
+    width: 100%;
+    max-height: min(92dvh, 860px);
+    border-radius: 20px 20px 0 0;
+  }
+  .tov.tov-full {
+    padding: 0;
+    align-items: stretch;
+  }
+  .tov.tov-full .tov-shell {
+    border-radius: 0;
+    max-height: 100dvh;
+  }
+  .tov.tov-full.tov-mode-initial .tov-picker {
+    min-height: 100%;
+  }
+  .tov.tov-full.tov-mode-initial .tov-picker-view {
+    padding: max(12px, env(safe-area-inset-top, 0px)) 20px 12px;
+  }
+  .tov-picker-view {
+    padding: 20px 20px 12px;
+  }
+  .tov-picker-title {
+    font-size: 20px;
+    margin-bottom: 18px;
+  }
+  .tov-picker-footer {
+    padding: 8px 14px max(14px, env(safe-area-inset-bottom, 0px));
+  }
+  .tov-floatbar {
+    padding: 0 14px max(14px, env(safe-area-inset-bottom, 0px));
+  }
+  .tov-timeline {
+    padding: 8px 16px 16px;
+  }
+  .tov-context-lead {
+    font-size: 16px;
+  }
+  .tov-context-help {
+    font-size: 14px;
+  }
+  .tov.tov-full .tov-workspace .tov-main {
+    padding-top: 52px;
+  }
+  .tov-top {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    z-index: 3;
+    padding: max(12px, env(safe-area-inset-top, 0px)) 16px 8px;
+    background: linear-gradient(to bottom, var(--tov-bg) 70%, transparent);
+  }
+  .tov-top-ctx { display: none; }
 }
 `
