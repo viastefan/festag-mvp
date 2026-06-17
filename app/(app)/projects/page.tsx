@@ -20,9 +20,10 @@ import DeleteProjectModal from '@/components/DeleteProjectModal'
 import InviteLinkModal from '@/components/InviteLinkModal'
 import EmptyState from '@/components/EmptyState'
 import {
-  FunnelSimple, SlidersHorizontal, Plus, PencilSimple, DotsThree,
+  ArrowsClockwise, FunnelSimple, SlidersHorizontal, Plus, PencilSimple, DotsThree,
   User, UsersThree, Stack, MagnifyingGlass, DotsNine, Copy, Check, X, Folder, CaretRight, WaveSine,
 } from '@phosphor-icons/react'
+import TagroContentFab from '@/components/TagroContentFab'
 import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
 import MobileNavSheet from '@/components/mobile/MobileNavSheet'
 import MobileProjectPickerSheet, { type ProjectPickerMode } from '@/components/mobile/MobileProjectPickerSheet'
@@ -328,12 +329,32 @@ function ProjectsPageInner() {
     })
   }, [projects, filter, sort])
 
-  const tagroHandler = () => openTagro({
-    contextType: 'project',
+  const statusCounts = useMemo(() => ({
+    arbeit: projects.filter(p => statusKeyOf(p) === 'arbeit').length,
+    planung: projects.filter(p => statusKeyOf(p) === 'planung').length,
+    erledigt: projects.filter(p => statusKeyOf(p) === 'erledigt').length,
+  }), [projects])
+
+  const leadLine1 = projects.length === 0
+    ? 'Noch keine Projekte.'
+    : visible.length === projects.length
+      ? `${projects.length} Projekt${projects.length === 1 ? '' : 'e'} im Überblick.`
+      : `${visible.length} von ${projects.length} Projekt${projects.length === 1 ? '' : 'en'} in dieser Ansicht.`
+
+  const leadLine2 = statusCounts.arbeit > 0
+    ? `${statusCounts.arbeit} in aktiver Umsetzung${statusCounts.planung > 0 ? ` · ${statusCounts.planung} in Planung` : ''}.`
+    : statusCounts.planung > 0
+      ? `${statusCounts.planung} Projekt${statusCounts.planung === 1 ? '' : 'e'} in Planung.`
+      : 'Tagro fasst Stände zusammen, sobald etwas läuft.'
+
+  const tagroContext = {
+    contextType: 'project' as const,
     id: 'list',
-    title: 'Alle Projekte',
-    subtitle: `${visible.length} Projekt${visible.length === 1 ? '' : 'e'}`,
-  })
+    title: 'Projekte · Übersicht',
+    subtitle: `${visible.length} sichtbar · ${statusCounts.arbeit} in Arbeit`,
+  }
+
+  const tagroHandler = () => openTagro(tagroContext)
 
   function handlePickTagro(projectId: string | null, title: string) {
     setDockPicker(null)
