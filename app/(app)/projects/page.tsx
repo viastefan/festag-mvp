@@ -293,8 +293,8 @@ function ProjectsPageInner() {
 
       {/* Mobile header icons (top-right): connected pill */}
       <div className="pjm-header-icons">
-        <button type="button" aria-label="Suche"><MagnifyingGlass size={18} weight="regular" /></button>
-        <button type="button" aria-label="Ansicht"><DotsNine size={18} weight="regular" /></button>
+        <button type="button" aria-label="Suche"><MagnifyingGlass size={20} weight="bold" /></button>
+        <button type="button" aria-label="Ansicht"><DotsNine size={20} weight="bold" /></button>
       </div>
 
       <main className="pj2-main">
@@ -364,7 +364,7 @@ function ProjectsPageInner() {
                   aria-label="Filter"
                   onClick={() => { setFilterOpen(v => !v); setSortOpen(false) }}
                 >
-                  <FunnelSimple size={16} weight="regular" />
+                  <FunnelSimple size={18} weight="bold" />
                 </button>
                 {filterOpen && (
                   <div className="pj2-menu" role="menu">
@@ -384,7 +384,7 @@ function ProjectsPageInner() {
                   aria-label="Sortieren"
                   onClick={() => { setSortOpen(v => !v); setFilterOpen(false) }}
                 >
-                  <SlidersHorizontal size={16} weight="regular" />
+                  <SlidersHorizontal size={18} weight="bold" />
                 </button>
                 {sortOpen && (
                   <div className="pj2-menu" role="menu">
@@ -579,11 +579,11 @@ function ProjectsPageInner() {
           <div className="pjm-home-indicator" />
           <div className="pjm-dock-row">
             <button type="button" className="pjm-status-btn" onClick={() => setShowNewProject(true)}>
-              <Plus size={24} weight="regular" />
+              <Plus size={22} weight="bold" />
               <span>Statusbericht erstellen</span>
             </button>
             <button type="button" className="pjm-tagro" aria-label="Tagro öffnen" onClick={tagroHandler}>
-              <PencilSimple size={24} weight="regular" />
+              <PencilSimple size={22} weight="bold" />
             </button>
           </div>
         </div>
@@ -1271,26 +1271,30 @@ const CSS = `
     .pjm-header-icons {
       display: flex !important;
       position: fixed;
-      top: env(safe-area-inset-top, 12px);
+      top: calc(env(safe-area-inset-top, 12px) + 4px);
       right: 20px;
       z-index: 20;
       gap: 0;
       align-items: center;
       background: #FFFFFF;
+      border: 1.5px solid rgba(15, 23, 42, 0.1);
       border-radius: 32px;
-      padding: 0 4px;
-      box-shadow: 0 1px 3px rgba(15,23,42,0.08);
+      padding: 0 2px;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
     }
     .pjm-header-icons button {
-      width: 40px !important; height: 40px !important;
+      width: 42px !important; height: 42px !important;
       min-width: 0 !important;
       border: 0 !important; border-radius: 999px !important;
       background: transparent !important;
-      color: #2A3032 !important;
+      color: #1C1C1E !important;
       display: inline-flex !important; align-items: center !important; justify-content: center !important;
       cursor: pointer;
       padding: 0 !important;
       box-shadow: none !important;
+    }
+    .pjm-header-icons button:active {
+      background: rgba(15, 23, 42, 0.05) !important;
     }
     .pjm-icon-sep { display: none !important; }
 
@@ -1314,25 +1318,26 @@ const CSS = `
     /* ── Header ── */
     .pj2-head {
       display: block !important;
-      margin-bottom: 20px !important;
+      margin-bottom: 18px !important;
+      padding-right: 96px !important;
     }
     .pj2-title h1 {
-      font-size: 25px !important;
+      font-size: 28px !important;
       font-weight: 400 !important;
       font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif) !important;
-      letter-spacing: 0 !important;
+      letter-spacing: -0.01em !important;
       color: #0F0F10 !important;
-      line-height: 30px !important;
+      line-height: 1.15 !important;
       margin: 0 !important;
     }
     .pj2-title p {
-      font-size: 25px !important;
+      font-size: 15px !important;
       font-weight: 400 !important;
       font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif) !important;
-      color: #90959F !important;
+      color: #8E8E93 !important;
       letter-spacing: 0 !important;
-      line-height: 30px !important;
-      margin: 0 !important;
+      line-height: 1.35 !important;
+      margin: 6px 0 0 !important;
     }
 
     /* ── Mobile toolbar ── */
@@ -1349,31 +1354,37 @@ const CSS = `
       gap: 10px !important;
     }
     .pjm-tool-btn {
-      width: 30px !important; height: 30px !important;
-      min-width: 30px !important; min-height: 30px !important;
-      border: 0 !important;
+      width: 36px !important; height: 36px !important;
+      min-width: 36px !important; min-height: 36px !important;
+      border: 1.5px solid rgba(15, 23, 42, 0.12) !important;
       border-radius: 999px !important;
       background: #FFFFFF !important;
-      color: #2A3032 !important;
+      color: #1C1C1E !important;
       display: inline-flex !important; align-items: center !important; justify-content: center !important;
       cursor: pointer !important;
-      box-shadow: 0 0 0 1px rgba(0,0,0,0.04), 0 2px 8px rgba(91,100,125,0.18) !important;
+      box-shadow: none !important;
       padding: 0 !important;
     }
+    .pjm-tool-btn:active {
+      background: #F4F4F5 !important;
+    }
     .pjm-new-btn {
-      height: 30px !important;
-      padding: 0 14px !important;
-      border: 0 !important;
+      height: 36px !important;
+      padding: 0 16px !important;
+      border: 1.5px solid rgba(15, 23, 42, 0.12) !important;
       border-radius: 999px !important;
       background: #FFFFFF !important;
       color: #0F0F10 !important;
       font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif) !important;
-      font-size: 12px !important;
+      font-size: 13px !important;
       font-weight: 400 !important;
-      letter-spacing: 0.24px !important;
+      letter-spacing: 0 !important;
       cursor: pointer !important;
-      box-shadow: 0 0 0 1px rgba(0,0,0,0.04), 0 2px 8px rgba(91,100,125,0.18) !important;
+      box-shadow: none !important;
       white-space: nowrap !important;
+    }
+    .pjm-new-btn:active {
+      background: #F4F4F5 !important;
     }
 
     /* ── Filter/sort dropdown menus on mobile ── */
@@ -1418,24 +1429,29 @@ const CSS = `
       display: flex !important;
       align-items: flex-start !important;
       justify-content: space-between !important;
-      padding: 14px 12px !important;
+      padding: 16px 4px !important;
       height: auto !important;
-      min-height: 60px !important;
-      border-radius: 16px !important;
+      min-height: 56px !important;
+      border-radius: 0 !important;
       background: transparent !important;
       box-shadow: none !important;
-      margin: 0 -12px !important;
+      margin: 0 !important;
       column-gap: 0 !important;
-      transition: background .15s, box-shadow .15s;
+      border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+      transition: background .12s ease;
+    }
+    .pj2-row.pj2-item:last-child {
+      border-bottom: 0 !important;
     }
     .pj2-row.pj2-item:hover,
     .pj2-row.pj2-item:active,
     .pj2-row.pj2-item.is-active {
-      background: #FFFFFF !important;
-      border-radius: 16px !important;
-      box-shadow: 0 1px 4px rgba(144,149,159,0.1) !important;
-      padding: 14px 12px !important;
-      margin: 0 -12px !important;
+      background: rgba(15, 23, 42, 0.03) !important;
+      border-radius: 12px !important;
+      box-shadow: none !important;
+      padding: 16px 8px !important;
+      margin: 0 -8px !important;
+      border-bottom-color: transparent !important;
     }
 
     /* ── Left block ── */
@@ -1452,10 +1468,10 @@ const CSS = `
     }
     .pj2-name-row { gap: 8px !important; }
     .pj2-name strong {
-      font-size: 17px !important;
-      font-weight: 500 !important;
+      font-size: 16px !important;
+      font-weight: 400 !important;
       color: #0F0F10 !important;
-      letter-spacing: 0.2px !important;
+      letter-spacing: 0 !important;
       max-width: none !important;
       white-space: nowrap !important;
       overflow: hidden !important;
@@ -1523,9 +1539,10 @@ const CSS = `
       align-items: center !important;
       width: 100% !important;
       box-sizing: border-box !important;
-      background: #F4F4F5 !important;
+      background: #F7F7F8 !important;
+      border-top: 1px solid rgba(15, 23, 42, 0.08);
       border-radius: 24px 24px 0 0 !important;
-      box-shadow: 0 -1px 3px rgba(144,149,159,0.08) !important;
+      box-shadow: none !important;
       padding: 10px 16px 16px !important;
       padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px)) !important;
     }
@@ -1549,25 +1566,28 @@ const CSS = `
       display: flex !important;
       align-items: center !important;
       justify-content: center !important;
-      gap: 12px !important;
+      gap: 10px !important;
       height: 52px !important;
-      padding: 0 16px !important;
-      border: 1px solid rgba(228,231,235,0.6) !important;
-      border-radius: 32px !important;
+      padding: 0 18px !important;
+      border: 1.5px solid rgba(15, 23, 42, 0.12) !important;
+      border-radius: 999px !important;
       background: #FFFFFF !important;
-      color: #6E6F71 !important;
+      color: #1C1C1E !important;
       font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif) !important;
       font-size: 15px !important;
       font-weight: 400 !important;
       cursor: pointer !important;
-      box-shadow: 0 1px 3px rgba(15,23,42,0.06) !important;
+      box-shadow: none !important;
       white-space: nowrap !important;
       overflow: hidden !important;
     }
+    .pjm-status-btn:active {
+      background: #F4F4F5 !important;
+    }
     .pjm-status-btn svg {
       flex-shrink: 0 !important;
-      color: #2A3032 !important;
-      width: 20px !important; height: 20px !important;
+      color: #1C1C1E !important;
+      width: 22px !important; height: 22px !important;
     }
     .pjm-status-btn span {
       overflow: hidden !important;
@@ -1584,8 +1604,11 @@ const CSS = `
       cursor: pointer !important;
       padding: 0 !important;
       box-shadow:
-        0 1px 2px rgba(15,23,42,.1),
-        0 8px 20px -8px rgba(91,100,125,.45) !important;
+        0 1px 2px rgba(15, 23, 42, 0.12),
+        0 8px 20px -8px rgba(91, 100, 125, 0.5) !important;
+    }
+    .pjm-tagro:active {
+      transform: scale(0.97);
     }
     .pjm-tagro svg {
       width: 22px !important; height: 22px !important;

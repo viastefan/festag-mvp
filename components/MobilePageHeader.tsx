@@ -73,7 +73,7 @@ export default function MobilePageHeader({
             title={primaryLabel}
             onClick={onPrimary}
           >
-            <PrimaryIcon size={20} weight="regular" />
+            <PrimaryIcon size={20} weight="bold" />
           </button>
         ) : null}
         {menuItems.length > 0 ? (
@@ -110,7 +110,7 @@ export default function MobilePageHeader({
               const onClick = () => { setMenuOpen(false); item.onClick?.() }
               const content = (
                 <>
-                  {Icon ? <span className="mph-menu-ico"><Icon size={16} weight="regular" /></span> : null}
+                  {Icon ? <span className="mph-menu-ico"><Icon size={16} weight="bold" /></span> : null}
                   <span className="mph-menu-label">{item.label}</span>
                 </>
               )
@@ -137,10 +137,11 @@ export default function MobilePageHeader({
           .mph-title {
             margin: 0;
             grid-column: 1;
-            font-size: 30px;
-            font-weight: 700;
-            line-height: 1.1;
-            letter-spacing: -.02em;
+            font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+            font-size: 28px;
+            font-weight: 400;
+            line-height: 1.12;
+            letter-spacing: -0.01em;
             color: var(--text, #111);
             overflow: hidden;
             text-overflow: ellipsis;
@@ -158,16 +159,16 @@ export default function MobilePageHeader({
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          width: 40px;
-          height: 40px;
+          width: 42px;
+          height: 42px;
           padding: 0;
           gap: 0;
           font-size: 13px;
-          color: rgba(141, 141, 150, 1);
+          color: #1C1C1E;
           background: #fff;
-          border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+          border: 1.5px solid rgba(15, 23, 42, 0.1);
           border-radius: 999px;
-          box-shadow: 0 1px 2px rgba(15,23,42,.06);
+          box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
         }
         :global([data-theme="dark"]) .mph-capsule,
         :global([data-theme="classic-dark"]) .mph-capsule {
@@ -176,10 +177,10 @@ export default function MobilePageHeader({
           box-shadow: none;
         }
         .mph-icon-btn {
-          width: 40px; height: 40px;
+          width: 42px; height: 42px;
           display: inline-flex; align-items: center; justify-content: center;
           background: transparent;
-          color: rgba(141, 141, 150, 1);
+          color: #1C1C1E;
           border: 0;
           border-radius: 999px;
           cursor: pointer;
@@ -231,9 +232,10 @@ export default function MobilePageHeader({
           display: flex; align-items: center; gap: 10px;
           background: transparent;
           color: var(--text, #111);
-          border: 0; border-radius: 8px;
-          padding: 9px 10px;
-          font: inherit; font-size: 14px; font-weight: 500;
+          border: 0; border-radius: 10px;
+          padding: 10px 12px;
+          font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+          font-size: 14px; font-weight: 400;
           text-align: left; text-decoration: none;
           cursor: pointer;
           transition: background .12s ease;

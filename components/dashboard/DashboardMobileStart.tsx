@@ -8,14 +8,11 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { DotsThree, MagnifyingGlass, Pause, Play, Plus, ShareNetwork } from '@phosphor-icons/react'
 import { getVoicePreferences } from '@/lib/voice'
 
 const ASSETS = {
-  add: '/dashboard-mobile/add.svg',
-  playBtn: '/dashboard-mobile/play-btn.svg',
   chevron: '/dashboard-mobile/chevron.svg',
-  upload: '/dashboard-mobile/upload.svg',
-  headerPill: '/dashboard-mobile/header-pill.svg',
 } as const
 
 type Props = {
@@ -157,8 +154,9 @@ export default function DashboardMobileStart({
     <div className="dms" data-node-id="252:59" role="main" aria-label="Gesamtbericht">
       <h1 className="dms-title" data-node-id="252:93">Gesamtbericht</h1>
 
-      <button type="button" className="dms-head-pill" aria-label="Suchen und Menü" onClick={openSearch}>
-        <Image src={ASSETS.headerPill} alt="" width={90} height={45} priority />
+      <button type="button" className="dms-head-pill" aria-label="Suchen" onClick={openSearch}>
+        <MagnifyingGlass size={20} weight="bold" />
+        <DotsThree size={22} weight="bold" />
       </button>
 
       <div className="dms-wave" data-node-id="252:61" aria-hidden>
@@ -205,7 +203,7 @@ export default function DashboardMobileStart({
         </div>
 
         <button type="button" className="dms-upload" data-node-id="252:120" aria-label="Bericht teilen">
-          <Image src={ASSETS.upload} alt="" width={24} height={24} />
+          <ShareNetwork size={20} weight="bold" />
         </button>
       </section>
 
@@ -217,7 +215,7 @@ export default function DashboardMobileStart({
           onClick={onCreateReport}
           disabled={busy}
         >
-          <Image src={ASSETS.add} alt="" width={24} height={24} />
+          <Plus size={22} weight="bold" />
           <span>Statusbericht erstellen</span>
         </button>
         <button
@@ -228,7 +226,7 @@ export default function DashboardMobileStart({
           disabled={!hasText || !supported}
           aria-label={playing ? 'Pausieren' : 'Bericht anhören'}
         >
-          <Image src={ASSETS.playBtn} alt="" width={60} height={60} />
+          {playing ? <Pause size={24} weight="bold" /> : <Play size={24} weight="bold" />}
         </button>
       </footer>
 
@@ -258,27 +256,43 @@ export default function DashboardMobileStart({
           .dms-title {
             position: absolute;
             left: 24px;
-            top: calc(24px + env(safe-area-inset-top, 0px));
+            top: calc(20px + env(safe-area-inset-top, 0px));
             margin: 0;
-            font-size: 25px;
+            padding-right: 100px;
+            font-size: 28px;
             font-weight: 400;
-            line-height: 35px;
-            color: #202532;
-            white-space: nowrap;
+            line-height: 1.12;
+            letter-spacing: -0.01em;
+            color: #0f0f10;
           }
 
-          /* 252:288 — header pill */
+          /* Header capsule — Codex-style */
           .dms-head-pill {
             position: absolute;
-            right: 24px;
-            top: calc(24px + env(safe-area-inset-top, 0px));
-            width: 90px;
-            height: 45px;
-            padding: 0;
-            border: 0;
-            background: transparent;
+            right: 20px;
+            top: calc(16px + env(safe-area-inset-top, 0px));
+            display: inline-flex;
+            align-items: center;
+            gap: 0;
+            width: auto;
+            height: 42px;
+            padding: 0 2px;
+            border: 1.5px solid rgba(15, 23, 42, 0.1);
+            border-radius: 999px;
+            background: #fff;
+            color: #1c1c1e;
             cursor: pointer;
             -webkit-tap-highlight-color: transparent;
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+          }
+          .dms-head-pill :global(svg) {
+            width: 42px;
+            height: 42px;
+            padding: 11px;
+            box-sizing: border-box;
+          }
+          .dms-head-pill:active {
+            background: #f4f4f5;
           }
 
           /* 252:61 — waveform */
@@ -361,9 +375,10 @@ export default function DashboardMobileStart({
             right: 0;
             bottom: 0;
             height: 246px;
-            background: rgba(252, 252, 252, 0.7);
-            border-radius: 32px 32px 0 0;
-            box-shadow: 0px -2px 4px rgba(144, 149, 159, 0.07);
+            background: #f7f7f8;
+            border-top: 1px solid rgba(15, 23, 42, 0.08);
+            border-radius: 24px 24px 0 0;
+            box-shadow: none;
             padding: 10px 24px 0;
           }
           .dms-grip {
@@ -376,15 +391,22 @@ export default function DashboardMobileStart({
           .dms-sheet-body {
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            gap: 0;
             max-width: 297px;
           }
-          .dms-row { display: flex; flex-direction: column; gap: 4px; }
+          .dms-row {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding: 14px 0;
+            border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+          }
+          .dms-row:last-child { border-bottom: 0; }
           .dms-row-title {
             margin: 0;
-            font-size: 18px;
-            font-weight: 500;
-            line-height: 25px;
+            font-size: 16px;
+            font-weight: 400;
+            line-height: 1.3;
             color: #0f0f10;
           }
           .dms-row-link {
@@ -403,18 +425,22 @@ export default function DashboardMobileStart({
             position: absolute;
             right: 26px;
             top: 127px;
-            width: 28px;
-            height: 28px;
+            width: 36px;
+            height: 36px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             padding: 0;
-            border: 0;
-            border-radius: 32px;
-            background: rgba(251, 251, 255, 0.2);
-            box-shadow: 0px 4px 4px rgba(91, 100, 125, 0.25);
+            border: 1.5px solid rgba(15, 23, 42, 0.1);
+            border-radius: 999px;
+            background: #fff;
+            color: #1c1c1e;
             cursor: pointer;
             -webkit-tap-highlight-color: transparent;
+            box-shadow: none;
+          }
+          .dms-upload:active {
+            background: #f4f4f5;
           }
 
           /* 252:294 — bottom actions */
@@ -433,31 +459,45 @@ export default function DashboardMobileStart({
             max-width: 282px;
             display: inline-flex;
             align-items: center;
-            gap: 30px;
-            height: 60px;
-            padding: 18px 22px;
-            border: 0;
-            border-radius: 32px;
+            gap: 12px;
+            height: 52px;
+            padding: 0 20px;
+            border: 1.5px solid rgba(15, 23, 42, 0.12);
+            border-radius: 999px;
             background: #fff;
-            color: #6e6f71;
+            color: #1c1c1e;
             font: inherit;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 400;
-            box-shadow: 0px 2px 2px 0.5px rgba(144, 149, 159, 0.07);
+            box-shadow: none;
             cursor: pointer;
             -webkit-tap-highlight-color: transparent;
+          }
+          .dms-create:active:not(:disabled) {
+            background: #f4f4f5;
           }
           .dms-create:disabled { opacity: .55; cursor: not-allowed; }
           .dms-create span { white-space: nowrap; }
           .dms-play {
             flex-shrink: 0;
-            width: 60px;
-            height: 60px;
+            width: 52px;
+            height: 52px;
             padding: 0;
             border: 0;
-            background: transparent;
+            border-radius: 999px;
+            background: #5b647d;
+            color: #fff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             cursor: pointer;
             -webkit-tap-highlight-color: transparent;
+            box-shadow:
+              0 1px 2px rgba(15, 23, 42, 0.12),
+              0 8px 20px -8px rgba(91, 100, 125, 0.5);
+          }
+          .dms-play:active:not(:disabled) {
+            transform: scale(0.97);
           }
           .dms-play:disabled { opacity: .4; cursor: not-allowed; }
         }
