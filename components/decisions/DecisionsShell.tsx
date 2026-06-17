@@ -11,7 +11,7 @@ export const DECISIONS_SHELL_CSS = `
     --portal-text: #0f0f10;
     --portal-muted: #6e717e;
     --portal-soft: #8f93a4;
-    --portal-nav-active-bg: rgba(255,255,255,.8);
+    --portal-nav-active-bg: rgba(255,255,255,.95);
     --portal-nav-avatar-bg: rgba(255,255,255,.8);
     --portal-nav-avatar-border: #f3f5f7;
     --portal-pill-bg: #f1f3f5;
