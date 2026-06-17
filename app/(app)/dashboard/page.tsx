@@ -15,7 +15,7 @@
  *     Trennlinien zwischen Sektionen, keine schwarzen Buttons.
  */
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { computeControlStatus } from '@/lib/trust/control-status'
 import ObserverWelcomeModal from '@/components/ObserverWelcomeModal'
@@ -133,7 +133,7 @@ const PHASE: Record<string, string> = {
   intake: 'Intake', planning: 'Planung', active: 'In Arbeit', testing: 'Testing', done: 'Abgeschlossen',
 }
 
-export default function DashboardPage() {
+function DashboardPageContent() {
   const supabase = useMemo(() => createClient(), [])
 
   const [projects, setProjects] = useState<Project[]>([])
@@ -2672,5 +2672,17 @@ export default function DashboardPage() {
         onLeft={() => { void refreshStatus() }}
       />
     </div>
+  )
+}
+
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={
+      <div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted, #7B8294)' }}>
+        Lade…
+      </div>
+    }>
+      <DashboardPageContent />
+    </Suspense>
   )
 }
