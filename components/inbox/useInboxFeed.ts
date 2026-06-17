@@ -144,6 +144,8 @@ export function useDevExecutionFeed(enabled = true) {
           filter: `user_id=eq.${userId}`,
         }, payload => {
           const n = payload.new as Record<string, unknown>
+          const audience = String(n.audience ?? '')
+          if (audience !== 'dev' && audience !== 'admin') return
           const row: InboxFeedItem = {
             id: String(n.id),
             thread_id: String(n.id),
@@ -166,6 +168,21 @@ export function useDevExecutionFeed(enabled = true) {
           }
           setItems(prev => [row, ...prev.filter(i => i.id !== row.id)])
           if (!row.read_at) setUnreadTotal(c => c + 1)
+        })
+        .on('postgres_changes', {
+          event: 'UPDATE', schema: 'public', table: 'notifications',
+          filter: `user_id=eq.${userId}`,
+        }, payload => {
+          const n = payload.new as Record<string, unknown>
+          const audience = String(n.audience ?? '')
+          if (audience !== 'dev' && audience !== 'admin') return
+          const readAt = n.read ? String(n.read_at ?? n.created_at) : null
+          setItems(prev => prev.map(i => i.id === String(n.id)
+            ? { ...i, read_at: readAt }
+            : i))
+          if (n.read) {
+            setUnreadTotal(c => Math.max(0, c - 1))
+          }
         })
         .subscribe()
     })()

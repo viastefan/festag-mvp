@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { emitTaskEvent } from '@/lib/sync/bus'
 import { classifyClientTask, defaultTaskMeta } from './task-classifier'
 import { clientStatusFromDevStatus } from './status-mapper'
 import { clampPriority, type DevStatus, type TaskProposalOutput, type TaskType } from './task-rules'
@@ -41,6 +42,35 @@ export async function getProjectDevelopers(sb: SupabaseClient<any>, projectId: s
     const role = String(member.role ?? '').toLowerCase()
     return ['developer', 'dev', 'lead_dev', 'owner', 'admin'].includes(role)
   })
+}
+
+/** Fan Tagro/client task creation into the dev execution inbox. */
+async function notifyDevClientTaskCreated(
+  sb: SupabaseClient<any>,
+  task: { id: string; project_id: string; title: string; assigned_to?: string | null },
+  actorId: string,
+  source: 'client_manual' | 'client_tagro',
+) {
+  const actorKind = source === 'client_tagro' ? 'tagro' : 'client'
+  await emitTaskEvent(sb, 'client_request_created', {
+    taskId: task.id,
+    projectId: task.project_id,
+    actorId,
+    actorKind,
+    taskTitle: task.title,
+    payload: { source },
+  }).catch(() => undefined)
+
+  if (task.assigned_to) {
+    await emitTaskEvent(sb, 'task_assigned', {
+      taskId: task.id,
+      projectId: task.project_id,
+      actorId,
+      actorKind: 'system',
+      taskTitle: task.title,
+      payload: { auto_assigned: true, assigned_to: task.assigned_to },
+    }).catch(() => undefined)
+  }
 }
 
 export async function logAudit(
@@ -148,6 +178,7 @@ export async function createManualClientTask({
     entityId: data.id,
     metadata: { project_id: projectId, task_id: data.id, source: 'client_manual', actor_role: 'client' },
   })
+  await notifyDevClientTaskCreated(sb, data, actorId, 'client_manual')
   return data
 }
 
@@ -212,6 +243,7 @@ export async function createTagroClientTask({
     entityId: data.id,
     metadata: { project_id: projectId, task_id: data.id, source: 'client_tagro', actor_role: 'client' },
   })
+  await notifyDevClientTaskCreated(sb, data, actorId, 'client_tagro')
   return data
 }
 
@@ -337,6 +369,14 @@ export async function assignTaskToDeveloper(sb: SupabaseClient<any>, taskId: str
     .single()
   if (error) throw error
   await logAudit(sb, { actorId, action: 'admin_assigned_task', entityType: 'task', entityId: taskId, metadata: { task_id: taskId, assigned_to: developerId } })
+  await emitTaskEvent(sb, 'task_assigned', {
+    taskId,
+    projectId: (data as any)?.project_id ?? null,
+    actorId,
+    actorKind: 'human',
+    taskTitle: (data as any)?.title ?? 'Aufgabe',
+    payload: { assigned_to: developerId },
+  }).catch(() => undefined)
   return data
 }
 

@@ -163,11 +163,33 @@ export default function DevSidebar({
   useEffect(() => {
     loadStats()
     loadOpenSession()
-    fetch('/api/dev/execution-inbox?unread=1&limit=1', { cache: 'no-store' })
-      .then(r => r.ok ? r.json() : null)
-      .then(d => { if (d) setInboxUnread(Number(d.unread ?? 0)) })
-      .catch(() => undefined)
-  }, [loadStats, loadOpenSession, pathname])
+    const refreshUnread = () => {
+      fetch('/api/dev/execution-inbox?unread=1&limit=1', { cache: 'no-store' })
+        .then(r => r.ok ? r.json() : null)
+        .then(d => { if (d) setInboxUnread(Number(d.unread ?? 0)) })
+        .catch(() => undefined)
+    }
+    refreshUnread()
+
+    if (identity.kind !== 'supabase' || !userId) return
+    const channel = supabase
+      .channel(`dev-sidebar-inbox-${userId}`)
+      .on('postgres_changes', {
+        event: 'INSERT', schema: 'public', table: 'notifications',
+        filter: `user_id=eq.${userId}`,
+      }, payload => {
+        const n = payload.new as Record<string, unknown>
+        const aud = String(n.audience ?? '')
+        if (aud === 'dev' || aud === 'admin') refreshUnread()
+      })
+      .on('postgres_changes', {
+        event: 'UPDATE', schema: 'public', table: 'notifications',
+        filter: `user_id=eq.${userId}`,
+      }, () => { refreshUnread() })
+      .subscribe()
+
+    return () => { supabase.removeChannel(channel) }
+  }, [loadStats, loadOpenSession, pathname, supabase, userId, identity.kind])
 
   // global Sync trigger — invoked from the footer Sync GitHub button
   useEffect(() => {

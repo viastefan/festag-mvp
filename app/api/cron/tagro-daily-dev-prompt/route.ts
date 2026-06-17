@@ -93,7 +93,7 @@ export async function GET(req: Request) {
         : `Tagro fragt: dein Stand zu ${count} Projekten`,
       body: 'Schick einen kurzen Satz oder eine kleine Aufnahme — ich übersetze es ruhig für deinen Client.',
       message: 'Schick einen kurzen Satz oder eine kleine Aufnahme — ich übersetze es ruhig für deinen Client.',
-      link: '/dev',
+      link: '/dev/messages',
       payload: { date, project_count: count },
       read: false,
     })

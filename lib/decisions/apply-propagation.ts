@@ -4,6 +4,7 @@
  */
 
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { devDecisionLink, notifyDevDecisionEvent } from '@/lib/sync/decision-notify'
 
 export type ApplyPropagationResult = {
   decision: Record<string, unknown>
@@ -18,7 +19,7 @@ export async function propagateDecisionApply(
 ): Promise<ApplyPropagationResult> {
   const { data: d } = await supa
     .from('decisions')
-    .select('id,project_id,status,applied_at,client_title,internal_title,title,response_value,rationale,tagro_delegation_reason')
+    .select('id,project_id,status,applied_at,client_title,internal_title,title,response_value,rationale,tagro_delegation_reason,created_by,source_task_id')
     .eq('id', decisionId)
     .maybeSingle()
   if (!d) throw new Error('not_found')
@@ -136,6 +137,21 @@ export async function propagateDecisionApply(
       auto: true,
     },
   })
+
+  if (d.created_by && unblocked.length > 0) {
+    await notifyDevDecisionEvent(supa, {
+      userId: d.created_by,
+      projectId: d.project_id,
+      kind: 'decision_applied',
+      title: `Entscheidung angewendet: ${headline}`,
+      body: unblocked.length === 1
+        ? 'Ein blockierter Task wurde freigegeben — du kannst weitermachen.'
+        : `${unblocked.length} blockierte Tasks wurden freigegeben.`,
+      link: devDecisionLink(decisionId, d.source_task_id),
+      taskId: d.source_task_id ?? unblocked[0] ?? null,
+      payload: { decision_id: decisionId, unblocked_tasks: unblocked },
+    })
+  }
 
   return {
     decision: updated as Record<string, unknown>,

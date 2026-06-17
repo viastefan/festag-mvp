@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { normalizeResponseValue, type DecisionResponseValue, type ResponseType } from '@/lib/decisions/types'
 import { propagateDecisionApply } from '@/lib/decisions/apply-propagation'
+import { devDecisionLink, notifyDevDecisionEvent } from '@/lib/sync/decision-notify'
 
 export const runtime = 'nodejs'
 
@@ -37,7 +38,7 @@ export async function POST(req: NextRequest, ctx: { params: { id: string } }) {
   const body = (await req.json().catch(() => ({}))) as LegacyBody & V1Body
 
   const { data: d } = await (supa as any).from('decisions')
-    .select('id,created_by,project_id,title,client_title,requested_for,response_type,authority,status,delegate_allowed,decision_type')
+    .select('id,created_by,project_id,title,client_title,requested_for,response_type,authority,status,delegate_allowed,decision_type,source_task_id')
     .eq('id', ctx.params.id).maybeSingle()
   if (!d) return NextResponse.json({ error: 'not found' }, { status: 404 })
 
@@ -123,14 +124,14 @@ export async function POST(req: NextRequest, ctx: { params: { id: string } }) {
 
   // Notify the requesting dev — they need to see the answer.
   if (d.created_by && d.created_by !== user.id) {
-    await (supa as any).from('notifications').insert({
-      user_id: d.created_by,
-      project_id: d.project_id,
+    await notifyDevDecisionEvent(supa as any, {
+      userId: d.created_by,
+      projectId: d.project_id,
       kind: 'decision_answered',
-      type: 'decision_answered',
       title: `Entscheidung getroffen: ${d.client_title || d.title}`,
       body: noteLegacy?.slice(0, 200) || (selectedLegacy ? `Antwort: ${selectedLegacy}` : ''),
-      link: `/decisions?open=${ctx.params.id}`,
+      link: devDecisionLink(ctx.params.id, d.source_task_id),
+      taskId: d.source_task_id,
       payload: {
         decision_id: ctx.params.id,
         response_type: responseType,

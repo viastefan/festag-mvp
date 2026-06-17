@@ -11,6 +11,8 @@ export type TagroExecuteContext = {
   id?: string
   projectId?: string
   title?: string
+  /** When set, created-item links route to dev panel paths. */
+  surface?: 'client' | 'dev'
 }
 
 export type TagroExecuteInput = {
@@ -21,7 +23,7 @@ export type TagroExecuteInput = {
 
 export type TagroExecuteResult = {
   ok: boolean
-  mode: 'task' | 'decision' | 'status_report' | 'clipboard' | 'noop'
+  mode: 'task' | 'decision' | 'status_report' | 'clipboard' | 'noop' | 'dev_finish' | 'dev_status' | 'dev_update'
   message: string
   created?: Array<{ type: string; id: string; title: string }>
 }

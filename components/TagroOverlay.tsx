@@ -720,16 +720,33 @@ export default function TagroOverlay() {
       ? { ...m, applyBusy: true, applyNotice: '' }
       : m))
     try {
-      const result = await executeTagroPreview({
-        preview: msg.preview,
-        suggestedAction: msg.suggestedAction,
-        ctx: {
-          contextType: ctx.contextType,
-          id: ctx.id,
-          projectId: ctx.projectId,
-          title: ctx.title,
-        },
-      })
+      let result = await fetch('/api/tagro/execute', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          preview: msg.preview,
+          suggestedAction: msg.suggestedAction,
+          ctx: {
+            contextType: ctx.contextType,
+            id: ctx.id,
+            projectId: ctx.projectId,
+            title: ctx.title,
+          },
+        }),
+      }).then(r => r.ok ? r.json() : null).catch(() => null)
+
+      if (!result?.ok) {
+        result = await executeTagroPreview({
+          preview: msg.preview,
+          suggestedAction: msg.suggestedAction,
+          ctx: {
+            contextType: ctx.contextType,
+            id: ctx.id,
+            projectId: ctx.projectId,
+            title: ctx.title,
+          },
+        })
+      }
       setMessages(prev => prev.map(m => m.id === messageId && m.role === 'tagro'
         ? {
             ...m,

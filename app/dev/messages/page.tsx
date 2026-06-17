@@ -5,11 +5,12 @@
  * Reads notifications via /api/dev/execution-inbox — separate from client Posteingang.
  */
 
-import { ArrowClockwise, Sliders } from '@phosphor-icons/react'
-import TagroEntryButton from '@/components/TagroEntryButton'
+import { ArrowClockwise, Check, Sliders, Sparkle } from '@phosphor-icons/react'
 import InboxMasterDetail from '@/components/inbox/InboxMasterDetail'
 import { useDevExecutionFeed } from '@/components/inbox/useInboxFeed'
 import { DEV_ACTIONABLE_KINDS } from '@/lib/inbox/catalog'
+import { tagroContextForDevInbox } from '@/lib/inbox/tagro-triage'
+import { openTagro } from '@/components/TagroOverlay'
 import type { InboxFeedItem } from '@/components/inbox/useInboxFeed'
 
 function rawKind(item: InboxFeedItem) {
@@ -20,6 +21,7 @@ export default function DevMessagesPage() {
   const { items, projects, loading, unreadTotal, load, markRead, markAllRead } = useDevExecutionFeed()
 
   const actionCount = items.filter(i => !i.read_at && DEV_ACTIONABLE_KINDS.has(rawKind(i))).length
+  const triageTagro = () => openTagro(tagroContextForDevInbox(items, unreadTotal, actionCount))
 
   return (
     <InboxMasterDetail
@@ -37,17 +39,12 @@ export default function DevMessagesPage() {
           </button>
           {unreadTotal > 0 && (
             <button type="button" className="ix-iconbtn" onClick={markAllRead} title="Alles gelesen">
-              ✓
+              <Check size={14} weight="bold" />
             </button>
           )}
-          <TagroEntryButton
-            context={{
-              contextType: 'empty',
-              id: 'dev-inbox',
-              title: 'Execution Inbox · Triage',
-              subtitle: `${items.length} Ereignisse · ${unreadTotal} ungelesen`,
-            }}
-          />
+          <button type="button" className="ix-iconbtn on" onClick={triageTagro} title="Tagro Triage">
+            <Sparkle size={15} weight="fill" />
+          </button>
         </>
       )}
       footerNote={(
@@ -57,7 +54,7 @@ export default function DevMessagesPage() {
             {actionCount > 0
               ? `${unreadTotal} ungelesen · ${actionCount} mit offener Aktion. `
               : ''}
-            Operative Ereignisse für deine Ausführung — Client-Anfragen, Blocker, Reviews. Der Client-Posteingang zeigt nur die freigegebene Sicht.
+            Operative Signale für deine Ausführung — Tagro übersetzt sie für den Client, wenn du bereit bist.
           </span>
         </>
       )}

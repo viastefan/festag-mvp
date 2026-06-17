@@ -30,11 +30,11 @@ export const CLIENT_CATEGORIES: InboxCategoryDef[] = [
 ]
 
 export const DEV_KIND_GROUPS: Record<string, string[]> = {
-  client: ['client_request_created'],
+  client: ['client_request_created', 'decision_answered', 'decision_applied'],
   blockers: ['blocker_reported', 'owner_changes_requested', 'quality_issue'],
   review: ['finished_by_dev', 'needs_review', 'proof_missing', 'tagro_verified'],
   approved: ['approved_by_owner'],
-  assigned: ['task_assigned', 'project_available'],
+  assigned: ['task_assigned', 'project_available', 'proposal_received', 'tagro_daily_prompt', 'decision_requested'],
 }
 
 export const DEV_CATEGORIES: InboxCategoryDef[] = [
@@ -49,6 +49,8 @@ export const DEV_CATEGORIES: InboxCategoryDef[] = [
 export const DEV_ACTIONABLE_KINDS = new Set([
   'client_request_created', 'blocker_reported', 'owner_changes_requested',
   'quality_issue', 'needs_review', 'proof_missing', 'task_assigned',
+  'tagro_daily_prompt', 'proposal_received',
+  'decision_answered', 'decision_applied', 'decision_requested',
 ])
 
 export const DEV_KIND_LABEL: Record<string, string> = {
@@ -63,11 +65,16 @@ export const DEV_KIND_LABEL: Record<string, string> = {
   approved_by_owner: 'Freigegeben',
   task_assigned: 'Zugewiesen',
   project_available: 'Neues Projekt',
+  proposal_received: 'Team-Vorschlag',
+  tagro_daily_prompt: 'Tagesabschluss',
   work_log: 'Update',
   status_changed: 'Status',
   proof_added: 'Nachweis',
   conversation_summary: 'Zusammenfassung',
   dev_joined: 'Beigetreten',
+  decision_answered: 'Entscheidung beantwortet',
+  decision_applied: 'Entscheidung angewendet',
+  decision_requested: 'Entscheidung angefordert',
 }
 
 export const DEV_KIND_ACTION: Record<string, string> = {
@@ -79,6 +86,11 @@ export const DEV_KIND_ACTION: Record<string, string> = {
   proof_missing: 'Belege hochladen',
   task_assigned: 'Task öffnen',
   project_available: 'Projekt ansehen',
+  proposal_received: 'Vorschlag prüfen',
+  tagro_daily_prompt: 'Update senden',
+  decision_answered: 'Antwort umsetzen',
+  decision_applied: 'Task fortsetzen',
+  decision_requested: 'Entscheidung prüfen',
 }
 
 export const CLIENT_ITEM_TYPE_LABEL: Record<string, string> = {

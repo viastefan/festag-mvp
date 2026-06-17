@@ -4,9 +4,11 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
-  Bell, Check, CaretDown, CaretLeft, Funnel, ArrowSquareOut, Play, CheckCircle,
+  Bell, Check, CaretDown, CaretLeft, Funnel, ArrowSquareOut, Play, CheckCircle, Sparkle,
 } from '@phosphor-icons/react'
 import { INBOX_CSS } from '@/components/inbox/inbox-styles'
+import { openTagro } from '@/components/TagroOverlay'
+import { tagroContextForDevItem } from '@/lib/inbox/tagro-triage'
 import type { InboxFeedItem, InboxProject } from '@/components/inbox/useInboxFeed'
 import {
   CLIENT_CATEGORIES, DEV_CATEGORIES, DEV_ACTIONABLE_KINDS,
@@ -378,7 +380,17 @@ function ThreadDetail({
           text: item.body || item.title,
         }),
       })
-      if (res.ok) setPublished(true)
+      if (res.ok) {
+        setPublished(true)
+        const notifId = item.metadata?.notification_id
+        if (notifId) {
+          await fetch('/api/dev/execution-inbox', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: String(notifId) }),
+          }).catch(() => undefined)
+        }
+      }
     } finally {
       setPublishing(false)
     }
@@ -420,6 +432,15 @@ function ThreadDetail({
       )}
 
       <footer className="ix-detail-actions">
+        {variant === 'dev' && (
+          <button
+            type="button"
+            className="ix-btn primary"
+            onClick={() => openTagro(tagroContextForDevItem(item, project?.title))}
+          >
+            <Sparkle size={13} weight="fill" /> Mit Tagro bearbeiten
+          </button>
+        )}
         {link && variant === 'dev' ? (
           <>
             {canPublishToClient && (

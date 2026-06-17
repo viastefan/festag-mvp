@@ -65,6 +65,7 @@ export async function GET(req: Request) {
     .from('notifications')
     .select('id,user_id,project_id,task_id,audience,kind,type,title,body,message,link,payload,read,read_at,created_at')
     .eq('user_id', user.id)
+    .in('audience', ['dev', 'admin'])
     .order('created_at', { ascending: false })
     .limit(limit)
 
@@ -79,6 +80,7 @@ export async function GET(req: Request) {
     .from('notifications')
     .select('*', { count: 'exact', head: true })
     .eq('user_id', user.id)
+    .in('audience', ['dev', 'admin'])
     .eq('read', false)
 
   const projectIds = Array.from(new Set(items.map(i => i.project_id).filter(Boolean))) as string[]
@@ -103,6 +105,7 @@ export async function PATCH(req: Request) {
     await supabase.from('notifications')
       .update({ read: true, read_at: now })
       .eq('user_id', user.id)
+      .in('audience', ['dev', 'admin'])
       .eq('read', false)
     return NextResponse.json({ ok: true })
   }
