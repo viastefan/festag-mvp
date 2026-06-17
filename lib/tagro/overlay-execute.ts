@@ -91,6 +91,127 @@ async function copyToClipboard(text: string): Promise<boolean> {
   }
 }
 
+function isDevSurface(ctx: TagroExecuteContext): boolean {
+  if (ctx.surface === 'dev') return true
+  if (typeof window !== 'undefined' && window.location.pathname.startsWith('/dev')) return true
+  return false
+}
+
+const BLOCKER_HINT = /blocker|blockiert|warte auf|stuck|festgefahren/i
+
+/** Dev execution layer — prefer Tagro-orchestrated API calls over clipboard. */
+async function tryDevExecution(
+  action: TagroSuggestedAction,
+  preview: string,
+  ctx: TagroExecuteContext,
+  projectId: string | null,
+): Promise<TagroExecuteResult | null> {
+  if (!isDevSurface(ctx)) return null
+
+  const taskId = ctx.contextType === 'task' ? ctx.id : undefined
+
+  if (taskId && action === 'review') {
+    const res = await fetch('/api/dev/tasks/finish', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ taskId }),
+    })
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok) {
+      return { ok: false, mode: 'dev_finish', message: data?.error || 'Review konnte nicht gesendet werden.' }
+    }
+    return {
+      ok: true,
+      mode: 'dev_finish',
+      message: 'Arbeit zur Prüfung übergeben — Tagro verifiziert im Hintergrund.',
+      created: [{ type: 'task', id: taskId, title: ctx.title || 'Task' }],
+    }
+  }
+
+  if (taskId && (action === 'message' || action === 'note') && BLOCKER_HINT.test(preview)) {
+    const res = await fetch('/api/dev/tasks/status', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        taskId,
+        devStatus: 'blocked',
+        blockerDescription: preview.slice(0, 2000),
+      }),
+    })
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok) {
+      return { ok: false, mode: 'dev_status', message: data?.error || 'Blocker konnte nicht gemeldet werden.' }
+    }
+    return {
+      ok: true,
+      mode: 'dev_status',
+      message: 'Blocker gemeldet — Owner und Client werden informiert.',
+      created: [{ type: 'task', id: taskId, title: ctx.title || 'Task' }],
+    }
+  }
+
+  if (
+    projectId
+    && (ctx.contextType === 'dev_item' || ctx.contextType === 'project')
+    && (action === 'message' || action === 'handoff' || action === 'note')
+  ) {
+    const res = await fetch('/api/dev/daily-update', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ projectId, text: preview }),
+    })
+    const data = await res.json().catch(() => ({}))
+    if (res.ok && data?.ok) {
+      return {
+        ok: true,
+        mode: 'dev_update',
+        message: data?.skipped
+          ? 'Update übersprungen.'
+          : 'Status-Update an Lead gesendet — Tagro übersetzt für den Client.',
+      }
+    }
+  }
+
+  if ((ctx.contextType === 'dev_item' || ctx.contextType === 'task') && action === 'decision' && projectId) {
+    const res = await fetch('/api/decisions/request', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        project_id: projectId,
+        task_id: taskId,
+        question: preview,
+      }),
+    })
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok || data?.error) {
+      return { ok: false, mode: 'decision', message: 'Entscheidung konnte nicht angefordert werden.' }
+    }
+    const outcome = data?.outcome
+    const decision = outcome?.status === 'created'
+      ? outcome.result?.decision
+      : outcome?.status === 'refreshed'
+        ? outcome.existing
+        : null
+    if (!decision) {
+      return {
+        ok: false,
+        mode: 'decision',
+        message: outcome?.status === 'skipped'
+          ? 'Tagro hat keine neue Entscheidung angelegt.'
+          : 'Entscheidung konnte nicht angefordert werden.',
+      }
+    }
+    return {
+      ok: true,
+      mode: 'decision',
+      message: `Lead-Entscheidung „${decision.client_title || decision.title || 'Neu'}" vorbereitet.`,
+      created: [{ type: 'decision', id: decision.id, title: decision.client_title || decision.title || 'Entscheidung' }],
+    }
+  }
+
+  return null
+}
+
 export async function executeTagroPreview(input: TagroExecuteInput): Promise<TagroExecuteResult> {
   const preview = (input.preview || '').trim()
   if (!preview) {
@@ -100,6 +221,9 @@ export async function executeTagroPreview(input: TagroExecuteInput): Promise<Tag
   const action = (input.suggestedAction || 'note') as TagroSuggestedAction
   const ctx = input.ctx
   const projectId = await resolveProjectId(ctx)
+
+  const devResult = await tryDevExecution(action, preview, ctx, projectId)
+  if (devResult) return devResult
 
   if (action === 'task') {
     if (!projectId) {

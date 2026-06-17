@@ -513,6 +513,7 @@ export default function TagroOverlay() {
   const [extraAttached, setExtraAttached] = useState<AttachedChip[]>([])
   const [fromScratch, setFromScratch] = useState(false)
   const pathname = usePathname() || ''
+  const tagroSurface = pathname.startsWith('/dev') ? 'dev' as const : 'client' as const
   const composerRef = useRef<HTMLTextAreaElement>(null)
   const timelineRef = useRef<HTMLDivElement>(null)
 
@@ -731,6 +732,7 @@ export default function TagroOverlay() {
             id: ctx.id,
             projectId: ctx.projectId,
             title: ctx.title,
+            surface: tagroSurface,
           },
         }),
       }).then(r => r.ok ? r.json() : null).catch(() => null)
@@ -744,6 +746,7 @@ export default function TagroOverlay() {
             id: ctx.id,
             projectId: ctx.projectId,
             title: ctx.title,
+            surface: tagroSurface,
           },
         })
       }
@@ -904,6 +907,7 @@ export default function TagroOverlay() {
                       : <TagroMsg
                           key={m.id}
                           msg={m}
+                          linkSurface={tagroSurface}
                           onAction={runQuickAction}
                           onApply={() => applyTagroResult(m.id)}
                           onCopy={() => copyTagroPreview(m.id)}
@@ -1386,9 +1390,10 @@ function UserMsg({ content }: { content: string }) {
 }
 
 function TagroMsg({
-  msg, onAction, onApply, onCopy, onNavigate, contextChips = [],
+  msg, onAction, onApply, onCopy, onNavigate, contextChips = [], linkSurface = 'client',
 }: {
   msg: Extract<Message, { role: 'tagro' }>
+  linkSurface?: 'client' | 'dev'
   onAction: (a: string) => void
   onApply: () => void
   onCopy: () => void
@@ -1446,7 +1451,7 @@ function TagroMsg({
       {msg.applyCreated && msg.applyCreated.length > 0 && (
         <div className="tov-created-links">
           {msg.applyCreated.map(item => {
-            const href = tagroCreatedHref(item)
+            const href = tagroCreatedHref(item, linkSurface)
             const label = item.title || item.type
             return href
               ? <Link key={`${item.type}-${item.id}`} href={href} className="tov-created-link" onClick={onNavigate}>{label} öffnen →</Link>

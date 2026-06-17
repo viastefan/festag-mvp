@@ -13,7 +13,7 @@ export function tagroCreatedHref(
     case 'decision':
       return dev ? `/dev/decisions?open=${item.id}` : `/decisions/${item.id}`
     case 'note':
-      return dev ? `/dev/notes?open=${encodeURIComponent(item.id)}` : `/notes?open=${encodeURIComponent(item.id)}`
+      return `/notes?open=${encodeURIComponent(item.id)}`
     default:
       return null
   }
