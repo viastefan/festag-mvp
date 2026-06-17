@@ -69,7 +69,7 @@ function fuzzy(text: string, q: string): boolean {
   return true
 }
 
-export default function CommandPalette() {
+export default function CommandPalette({ theme = 'default' }: { theme?: 'default' | 'portal' }) {
   const router  = useRouter()
   const [open, setOpen] = useState(false)
   const [q,    setQ]    = useState('')
@@ -248,6 +248,9 @@ export default function CommandPalette() {
   results.forEach(c => { (grouped[c.group] ??= []).push(c) })
   const groupOrder = ['Tagro', 'Projekte', 'Tasks', 'Notizen', 'Workspace', 'Navigation', 'Aktionen']
 
+  const isPortal = theme === 'portal'
+  const panelClass = isPortal ? 'cp-panel cp-portal' : 'cp-panel'
+
   return (
     <AnimatePresence>
       {open && (
@@ -271,6 +274,33 @@ export default function CommandPalette() {
               display:flex; flex-direction:column;
               overflow:hidden;
             }
+            .cp-portal {
+              --surface: var(--portal-card, #fff);
+              --bg: var(--portal-card, #fff);
+              --text: var(--portal-text, #0f0f10);
+              --text-secondary: var(--portal-muted, #6e717e);
+              --text-muted: var(--portal-soft, #8f93a4);
+              --border: color-mix(in srgb, var(--portal-btn-outline-border, #e7ebf0) 85%, transparent);
+              --hover: var(--portal-row-hover, rgba(241,243,245,.45));
+              --inp: var(--portal-pill-bg, #f1f3f5);
+              --inp-focus: #fff;
+              --inp-focus-border: color-mix(in srgb, var(--portal-btn-primary, #5b647d) 35%, var(--portal-btn-outline-border, #e7ebf0));
+              --glow: color-mix(in srgb, var(--portal-btn-primary, #5b647d) 12%, transparent);
+              font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+              border-radius: 12px;
+              box-shadow:
+                0 -2px 4px rgba(110,113,126,.05),
+                0 8px 32px rgba(110,113,126,.12);
+            }
+            [data-theme="dark"] .cp-portal,
+            [data-theme="classic-dark"] .cp-portal {
+              box-shadow: 0 8px 30px rgba(0,0,0,.32);
+            }
+            .cp-portal .cp-head h2 { font-weight: 400; font-size: 16px; letter-spacing: .02em; }
+            .cp-portal .cp-section-head { font-weight: 500; font-size: 12px; color: var(--portal-muted, #6e717e); letter-spacing: .04em; text-transform: uppercase; }
+            .cp-portal .cp-row-title { font-weight: 400; font-size: 14px; }
+            .cp-portal .cp-search { border-radius: 8px; height: 38px; }
+            .cp-portal .cp-search input { font-weight: 400; font-size: 14px; }
             [data-theme="dark"] .cp-panel,
             [data-theme="classic-dark"] .cp-panel {
               box-shadow:
@@ -374,7 +404,7 @@ export default function CommandPalette() {
             onClick={() => setOpen(false)}
           />
           <motion.aside
-            className="cp-panel"
+            className={panelClass}
             role="dialog"
             aria-label="Suche"
             initial={{ x: 40, opacity: 0 }}

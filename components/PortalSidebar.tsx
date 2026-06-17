@@ -1,34 +1,87 @@
 'use client'
 
 /**
- * PortalSidebar — Figma App-Festag rail (node 323:140).
- * Used by /decisions and future portal-style pages.
+ * PortalSidebar — Figma App-Festag (node 307:84).
+ * Nav rail + „Letzte ausgeführt“ (Tagro/Chat-Verläufe).
  */
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+import FestagIconButton from '@/components/ui/FestagIconButton'
 import {
-  Pulse, Bell, Folder, Scissors, ListChecks, File, Sparkle, UsersThree, Question,
-  MagnifyingGlass, SidebarSimple, CaretDown,
+  Pulse, Bell, Cube, SquaresFour, ListChecks, File, Plugs, UsersThree, Question,
+  SidebarSimple, CaretDown,
 } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
+import { useNotifications } from '@/hooks/useNotifications'
+
+const ICON = 16
 
 const NAV = [
-  { href: '/dashboard', label: 'Statusabfrage', icon: Pulse, gap: 20 },
-  { href: '/messages', label: 'Inbox', icon: Bell, gap: 19 },
-  { href: '/projects', label: 'Projekte', icon: Folder, gap: 22 },
-  { href: '/decisions', label: 'Entscheidungen', icon: Scissors, gap: 22 },
-  { href: '/tasks', label: 'Tasks', icon: ListChecks, gap: 21 },
-  { href: '/docs', label: 'Dokumente', icon: File, gap: 22 },
-  { href: '/tagro', label: 'Tagro Co-Pilot', icon: Sparkle, gap: 22 },
-  { href: '/teams', label: 'Teams', icon: UsersThree, gap: 16 },
+  { href: '/dashboard', label: 'Statusabfrage', Icon: Pulse, gap: 20 },
+  { href: '/messages', label: 'Inbox', Icon: Bell, gap: 19, badge: true },
+  { href: '/projects', label: 'Projekte', Icon: Cube, gap: 22 },
+  { href: '/decisions', label: 'Entscheidungen', Icon: SquaresFour, gap: 22 },
+  { href: '/tasks', label: 'Tasks', Icon: ListChecks, gap: 21 },
+  { href: '/docs', label: 'Dokumente', Icon: File, gap: 22 },
+  { href: '/connectors', label: 'Connectors', Icon: Plugs, gap: 22 },
+  { href: '/teams', label: 'Teams', Icon: UsersThree, gap: 16 },
 ] as const
 
-export default function PortalSidebar() {
+type RecentItem = { id: string; label: string; href: string }
+
+const MOCK_RECENT: RecentItem[] = [
+  { id: 'm1', label: 'Entscheidung erteilt für Logo Farb..', href: '/decisions/mock-1' },
+  { id: 'm2', label: 'Blocker erteilt für Premium Featur..', href: '/tasks' },
+  { id: 'm3', label: 'Entscheidung abgelehnt Logo Farb..', href: '/decisions/mock-1' },
+  { id: 'm4', label: 'Entscheidung erteilt für Logo Farb..', href: '/decisions/mock-2' },
+  { id: 'm5', label: 'Blocker erteilt für Premium Featur..', href: '/tasks' },
+  { id: 'm6', label: 'Entscheidung abgelehnt Logo Farb..', href: '/decisions/mock-3' },
+  { id: 'm7', label: 'Entscheidung erteilt für Logo Farb..', href: '/decisions/mock-4' },
+  { id: 'm8', label: 'Blocker erteilt für Premium Featur..', href: '/tasks' },
+]
+
+type Props = {
+  collapsed?: boolean
+  onToggleCollapse?: () => void
+}
+
+function truncateLabel(text: string, max = 34) {
+  const t = text.trim()
+  if (t.length <= max) return t
+  return `${t.slice(0, max - 2).trimEnd()}..`
+}
+
+export default function PortalSidebar({ collapsed = false, onToggleCollapse }: Props) {
   const pathname = usePathname() || ''
   const [initials, setInitials] = useState('ST')
   const [workspace, setWorkspace] = useState('Delivery')
+  const [recent, setRecent] = useState<RecentItem[]>([])
+  const { unread } = useNotifications({ unreadOnly: true, limit: 1 })
+
+  const loadRecent = useCallback(async () => {
+    try {
+      const res = await fetch('/api/ai/conversations', { credentials: 'include' })
+      if (!res.ok) {
+        setRecent(MOCK_RECENT)
+        return
+      }
+      const data = await res.json().catch(() => null)
+      const rows = Array.isArray(data?.conversations) ? data.conversations : []
+      if (!rows.length) {
+        setRecent(MOCK_RECENT)
+        return
+      }
+      setRecent(rows.slice(0, 8).map((c: { id: string; title?: string; summary?: string }) => ({
+        id: c.id,
+        label: truncateLabel(c.summary || c.title || 'Tagro Chat'),
+        href: `/ai?contextType=empty&contextTitle=${encodeURIComponent(c.title || 'Chat')}`,
+      })))
+    } catch {
+      setRecent(MOCK_RECENT)
+    }
+  }, [])
 
   useEffect(() => {
     let alive = true
@@ -55,19 +108,31 @@ export default function PortalSidebar() {
     return () => { alive = false }
   }, [])
 
+  useEffect(() => { loadRecent() }, [loadRecent])
+
   function isActive(href: string) {
     if (href === '/dashboard') return pathname === '/dashboard' || pathname === '/statusabfrage'
     return pathname === href || pathname.startsWith(href + '/')
   }
 
+  function openSearch() {
+    window.dispatchEvent(new CustomEvent('open-command-palette'))
+  }
+
+  const displayRecent = recent.length ? recent : MOCK_RECENT
+
   return (
-    <nav className="portal-nav" aria-label="Portalnavigation">
+    <nav
+      className={`portal-nav${collapsed ? ' is-collapsed' : ''}`}
+      aria-label="Portalnavigation"
+      data-collapsed={collapsed ? '1' : '0'}
+    >
       <style>{CSS}</style>
 
       <div className="portal-nav-top">
         <div className="portal-nav-header">
           <div className="portal-nav-ws">
-            <div className="portal-nav-avatar">{initials}</div>
+            <div className="portal-nav-avatar" aria-hidden>{initials}</div>
             <div className="portal-nav-ws-text">
               <span className="portal-nav-ws-label">Workspace</span>
               <span className="portal-nav-ws-value">{workspace}</span>
@@ -75,37 +140,60 @@ export default function PortalSidebar() {
             <CaretDown size={8} weight="bold" className="portal-nav-ws-caret" aria-hidden />
           </div>
           <div className="portal-nav-utilities">
-            <button type="button" className="portal-nav-utility" aria-label="Suche" title="Suche">
-              <MagnifyingGlass size={14} weight="regular" />
-            </button>
-            <button type="button" className="portal-nav-utility" aria-label="Sidebar" title="Sidebar">
+            <FestagIconButton size={28} aria-label="Suche" title="Suche (⌘K)" onClick={openSearch}>
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
+                <circle cx="6.25" cy="6.25" r="4.25" stroke="currentColor" strokeWidth="1.25" />
+                <path d="M9.5 9.5L12 12" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" />
+              </svg>
+            </FestagIconButton>
+            <FestagIconButton
+              size={28}
+              aria-label={collapsed ? 'Sidebar ausklappen' : 'Sidebar einklappen'}
+              title={collapsed ? 'Ausklappen' : 'Einklappen'}
+              onClick={onToggleCollapse}
+            >
               <SidebarSimple size={14} weight="regular" />
-            </button>
+            </FestagIconButton>
           </div>
         </div>
 
         <div className="portal-nav-items">
           {NAV.map(item => {
-            const Icon = item.icon
+            const Icon = item.Icon
             const active = isActive(item.href)
+            const showBadge = 'badge' in item && item.badge && unread > 0
             return (
               <Link
                 key={item.href}
                 href={item.href}
                 className={`portal-nav-item${active ? ' active' : ''}`}
                 style={{ ['--nav-gap' as string]: `${item.gap}px` }}
+                title={collapsed ? item.label : undefined}
               >
-                <Icon size={18} weight="regular" />
-                <span>{item.label}</span>
+                <span className="portal-nav-icon-wrap">
+                  <Icon size={ICON} weight="regular" />
+                  {showBadge && <span className="portal-nav-badge" aria-label={`${unread} ungelesen`} />}
+                </span>
+                <span className="portal-nav-label">{item.label}</span>
               </Link>
             )
           })}
         </div>
       </div>
 
-      <Link href="/support" className="portal-nav-help" aria-label="Hilfe" title="Hilfe">
-        <Question size={20} weight="light" />
-      </Link>
+      <div className="portal-nav-bottom">
+        <p className="portal-nav-recent-label">Letzte ausgeführt</p>
+        <div className="portal-nav-recent" role="list">
+          {displayRecent.map(item => (
+            <Link key={item.id} href={item.href} className="portal-nav-recent-item" role="listitem" title={item.label}>
+              {item.label}
+            </Link>
+          ))}
+        </div>
+        <Link href="/support" className="portal-nav-help" aria-label="Hilfe" title="Hilfe">
+          <Question size={ICON} weight="regular" />
+        </Link>
+      </div>
     </nav>
   )
 }
@@ -113,17 +201,25 @@ export default function PortalSidebar() {
 const CSS = `
   .portal-nav {
     width: 100%; height: 100%;
-    display: flex; flex-direction: column; justify-content: space-between;
-    padding: 12px 0;
+    display: flex; flex-direction: column;
+    padding: 8px 0 10px;
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
     color: var(--portal-muted, #6e717e);
+    font-weight: 400;
+    letter-spacing: 0;
+    overflow: hidden;
+    box-sizing: border-box;
   }
 
-  .portal-nav-top { display: flex; flex-direction: column; gap: 24px; }
+  .portal-nav-top {
+    display: flex; flex-direction: column; gap: 20px;
+    min-width: 0; flex: 1 1 auto; min-height: 0;
+  }
 
   .portal-nav-header {
-    display: flex; align-items: center; justify-content: space-between;
-    width: 184px; gap: 8px;
+    display: flex; align-items: flex-start; justify-content: space-between;
+    gap: 6px; min-width: 0; flex-shrink: 0;
+    padding: 0 2px;
   }
 
   .portal-nav-ws {
@@ -131,73 +227,180 @@ const CSS = `
   }
 
   .portal-nav-avatar {
-    width: 41px; height: 40px; border-radius: 999px;
+    width: 36px; height: 36px; border-radius: 999px;
     background: var(--portal-nav-avatar-bg, rgba(255,255,255,.8));
     border: 1px solid var(--portal-nav-avatar-border, #f3f5f7);
     display: flex; align-items: center; justify-content: center;
-    font-size: 14px; font-weight: 500;
+    font-size: 12px; font-weight: 500;
     color: var(--portal-text, #0f0f10);
     flex-shrink: 0;
+    letter-spacing: 0;
   }
 
   .portal-nav-ws-text {
     display: flex; flex-direction: column; align-items: flex-start;
-    line-height: 1; min-width: 0;
+    gap: 2px; line-height: 1; min-width: 0;
+    transition: opacity .18s ease, width .18s ease;
   }
 
   .portal-nav-ws-label {
     font-size: 9px; font-weight: 400;
     color: var(--portal-muted, #6e717e);
+    letter-spacing: 0;
   }
 
   .portal-nav-ws-value {
-    font-size: 14px; font-weight: 400;
+    font-size: 13px; font-weight: 400;
     color: var(--portal-text, #0f0f10);
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    max-width: 72px;
+    max-width: 88px;
+    letter-spacing: -0.01em;
   }
 
-  .portal-nav-ws-caret { color: var(--portal-muted, #6e717e); flex-shrink: 0; }
+  .portal-nav-ws-caret {
+    color: var(--portal-muted, #6e717e);
+    flex-shrink: 0;
+    margin-top: 6px;
+    transition: opacity .18s ease;
+  }
 
   .portal-nav-utilities {
-    display: flex; align-items: center; gap: 6px; flex-shrink: 0;
+    display: flex; align-items: center; gap: 4px; flex-shrink: 0;
+    padding-top: 2px;
   }
 
-  .portal-nav-utility {
-    width: 18px; height: 18px; padding: 0; border: 0; background: transparent;
-    color: var(--portal-muted, #6e717e); cursor: pointer;
-    display: inline-flex; align-items: center; justify-content: center;
-    transition: color .12s;
+  .portal-nav-items {
+    display: flex; flex-direction: column; gap: 4px;
+    min-width: 0;
+    overflow-y: auto;
+    scrollbar-width: none;
   }
-  .portal-nav-utility:hover { color: var(--portal-text, #0f0f10); }
-
-  .portal-nav-items { display: flex; flex-direction: column; gap: 16px; }
+  .portal-nav-items::-webkit-scrollbar { display: none; }
 
   .portal-nav-item {
     display: flex; align-items: center;
     gap: var(--nav-gap, 20px);
-    padding: 8px 12px;
+    padding: 7px 10px;
     border-radius: 8px 6px 8px 8px;
     color: var(--portal-muted, #6e717e);
-    font-size: 16px; font-weight: 400;
-    letter-spacing: .02em; text-decoration: none;
-    transition: color .12s, background .12s;
+    font-size: 14px; font-weight: 400;
+    letter-spacing: 0; text-decoration: none;
+    transition: color .12s, background .12s, box-shadow .12s;
+    white-space: nowrap;
+    min-height: 32px;
+    box-sizing: border-box;
   }
-  .portal-nav-item:hover { color: var(--portal-text, #0f0f10); }
+  .portal-nav-item:hover:not(.active) {
+    color: var(--portal-text, #0f0f10);
+    background: var(--portal-row-hover, rgba(241,243,245,.4));
+  }
   .portal-nav-item.active {
     color: var(--portal-text, #0f0f10);
     background: var(--portal-nav-active-bg, rgba(255,255,255,.8));
+    box-shadow: 0 1px 3px rgba(0,0,0,.06);
   }
-  .portal-nav-item svg { flex-shrink: 0; }
+
+  .portal-nav-icon-wrap {
+    position: relative;
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 16px; height: 16px; flex-shrink: 0;
+  }
+  .portal-nav-badge {
+    position: absolute; top: -2px; right: -3px;
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #007aff;
+    border: 1.5px solid var(--portal-bg, #f1f3f5);
+  }
+  .portal-nav-item.active .portal-nav-badge {
+    border-color: var(--portal-nav-active-bg, #fff);
+  }
+
+  .portal-nav-label {
+    overflow: hidden; text-overflow: ellipsis;
+    transition: opacity .18s ease, width .18s ease;
+  }
+
+  .portal-nav-bottom {
+    flex: 0 0 auto;
+    display: flex; flex-direction: column;
+    gap: 8px; min-width: 0;
+    padding-top: 16px;
+    margin-top: 8px;
+    border-top: 1px solid color-mix(in srgb, var(--portal-btn-outline-border, #e7ebf0) 55%, transparent);
+  }
+
+  .portal-nav-recent-label {
+    margin: 0 0 2px 10px;
+    font-size: 11px; font-weight: 400;
+    color: var(--portal-muted, #6e717e);
+    letter-spacing: -0.01em;
+  }
+
+  .portal-nav-recent {
+    display: flex; flex-direction: column; gap: 2px;
+    max-height: 168px; overflow-y: auto;
+    scrollbar-width: none;
+    padding: 0 4px;
+  }
+  .portal-nav-recent::-webkit-scrollbar { display: none; }
+
+  .portal-nav-recent-item {
+    display: block;
+    padding: 5px 8px;
+    border-radius: 6px;
+    font-size: 12px; font-weight: 400;
+    line-height: 1.35;
+    color: var(--portal-muted, #6e717e);
+    text-decoration: none;
+    letter-spacing: 0;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    transition: color .12s, background .12s;
+  }
+  .portal-nav-recent-item:hover {
+    color: var(--portal-text, #0f0f10);
+    background: var(--portal-row-hover, rgba(241,243,245,.4));
+  }
 
   .portal-nav-help {
-    margin-left: 12px; width: 24px; height: 24px;
+    margin: 4px 0 0 10px; width: 28px; height: 28px;
     border: 0; background: transparent;
     color: var(--portal-muted, #6e717e);
     cursor: pointer; padding: 0;
     display: inline-flex; align-items: center; justify-content: center;
-    text-decoration: none;
-    transition: color .12s;
+    text-decoration: none; border-radius: 6px;
+    transition: color .12s, background .12s;
+    flex-shrink: 0;
   }
-  .portal-nav-help:hover { color: var(--portal-text, #0f0f10); }
+  .portal-nav-help:hover {
+    color: var(--portal-text, #0f0f10);
+    background: color-mix(in srgb, var(--portal-pill-bg, #f1f3f5) 55%, transparent);
+  }
+
+  /* ── Collapsed rail ── */
+  .portal-nav.is-collapsed .portal-nav-ws-text,
+  .portal-nav.is-collapsed .portal-nav-ws-caret,
+  .portal-nav.is-collapsed .portal-nav-bottom {
+    opacity: 0; height: 0; overflow: hidden; pointer-events: none;
+    margin: 0; padding: 0; border: 0;
+  }
+  .portal-nav.is-collapsed .portal-nav-header {
+    flex-direction: column; align-items: center; gap: 8px;
+    padding: 0;
+  }
+  .portal-nav.is-collapsed .portal-nav-ws {
+    justify-content: center;
+  }
+  .portal-nav.is-collapsed .portal-nav-utilities {
+    flex-direction: column; gap: 4px; padding-top: 0;
+  }
+  .portal-nav.is-collapsed .portal-nav-label {
+    opacity: 0; width: 0; pointer-events: none;
+  }
+  .portal-nav.is-collapsed .portal-nav-item {
+    justify-content: center;
+    gap: 0;
+    padding: 8px;
+    border-radius: 8px;
+  }
+  .portal-nav.is-collapsed .portal-nav-items { align-items: center; }
 `

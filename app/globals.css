@@ -1007,6 +1007,134 @@ button.sb-help-trigger {
 .fui-action--primary { background:var(--btn-prim); color:var(--btn-prim-text); border-color:var(--btn-prim); }
 .fui-action--primary:hover { background:color-mix(in srgb, var(--btn-prim) 88%, #000); border-color:color-mix(in srgb, var(--btn-prim) 88%, #000); }
 
+/* Linear-inspired 3D controls — inset top highlight + soft drop shadow.
+   Reference: linear.app issue toolbar (filter / display / layout pills). */
+.fui-icon-btn {
+  width:32px; height:32px; min-width:32px; min-height:32px;
+  padding:0; border-radius:50% !important;
+  display:inline-flex; align-items:center; justify-content:center;
+  flex-shrink:0; box-sizing:border-box;
+  background:#fff;
+  border:1px solid rgba(15,23,42,.08);
+  color:#6e717e;
+  cursor:pointer;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,1),
+    0 1px 1px rgba(15,23,42,.04),
+    0 1px 3px rgba(15,23,42,.07);
+  transition:background .12s, box-shadow .12s, color .12s, transform .1s, border-color .12s;
+}
+.fui-icon-btn--28 {
+  width:28px; height:28px; min-width:28px; min-height:28px;
+}
+.fui-icon-btn:hover:not(:disabled) {
+  color:#2a3032;
+  background:#fafafa;
+  border-color:rgba(15,23,42,.10);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,1),
+    0 1px 2px rgba(15,23,42,.06),
+    0 2px 6px rgba(15,23,42,.08);
+}
+.fui-icon-btn:active:not(:disabled) {
+  transform:translateY(1px);
+  box-shadow:
+    inset 0 1px 2px rgba(15,23,42,.08),
+    0 0 0 1px rgba(15,23,42,.05);
+}
+.fui-icon-btn:disabled { opacity:.45; cursor:not-allowed; }
+
+.fui-pill-btn {
+  display:inline-flex; align-items:center; justify-content:center;
+  height:28px; min-height:28px; padding:0 12px;
+  border-radius:999px !important;
+  font:inherit; font-size:12px; font-weight:400; letter-spacing:0;
+  white-space:nowrap; cursor:pointer; box-sizing:border-box;
+  background:#fff;
+  border:1px solid rgba(15,23,42,.08);
+  color:#202532;
+  text-decoration:none;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,1),
+    0 1px 1px rgba(15,23,42,.04),
+    0 1px 2px rgba(15,23,42,.06);
+  transition:background .12s, box-shadow .12s, color .12s, transform .1s, border-color .12s;
+}
+.fui-pill-btn--block { width:100%; }
+.fui-pill-btn:hover:not(:disabled) {
+  background:#fafafa;
+  border-color:rgba(15,23,42,.10);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,1),
+    0 1px 2px rgba(15,23,42,.06),
+    0 2px 5px rgba(15,23,42,.08);
+}
+.fui-pill-btn:active:not(:disabled) {
+  transform:translateY(1px);
+  box-shadow:
+    inset 0 1px 2px rgba(15,23,42,.08),
+    0 0 0 1px rgba(15,23,42,.05);
+}
+.fui-pill-btn:disabled { opacity:.45; cursor:not-allowed; }
+.fui-pill-btn--primary {
+  color:#fff;
+  border-color:rgba(15,23,42,.14);
+  background:linear-gradient(180deg, #646d85 0%, #5b647d 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.14),
+    0 1px 1px rgba(15,23,42,.10),
+    0 1px 3px rgba(91,100,125,.28);
+}
+.fui-pill-btn--primary:hover:not(:disabled) {
+  background:linear-gradient(180deg, #6d7690 0%, #535c73 100%);
+  border-color:rgba(15,23,42,.16);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.16),
+    0 1px 2px rgba(15,23,42,.12),
+    0 2px 6px rgba(91,100,125,.32);
+}
+.fui-pill-btn--primary:active:not(:disabled) {
+  background:linear-gradient(180deg, #5b647d 0%, #4f586f 100%);
+  box-shadow:
+    inset 0 1px 2px rgba(15,23,42,.18),
+    0 0 0 1px rgba(15,23,42,.08);
+}
+
+[data-theme="dark"] .fui-icon-btn,
+[data-theme="classic-dark"] .fui-icon-btn {
+  background:rgba(255,255,255,.06);
+  border-color:rgba(255,255,255,.10);
+  color:#9aa0ac;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.06),
+    0 1px 3px rgba(0,0,0,.22);
+}
+[data-theme="dark"] .fui-icon-btn:hover:not(:disabled),
+[data-theme="classic-dark"] .fui-icon-btn:hover:not(:disabled) {
+  background:rgba(255,255,255,.09);
+  color:#f4f4f4;
+  border-color:rgba(255,255,255,.14);
+}
+[data-theme="dark"] .fui-pill-btn,
+[data-theme="classic-dark"] .fui-pill-btn {
+  background:rgba(255,255,255,.04);
+  border-color:rgba(255,255,255,.10);
+  color:#f4f4f4;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.05),
+    0 1px 3px rgba(0,0,0,.2);
+}
+[data-theme="dark"] .fui-pill-btn:hover:not(:disabled),
+[data-theme="classic-dark"] .fui-pill-btn:hover:not(:disabled) {
+  background:rgba(255,255,255,.07);
+  border-color:rgba(255,255,255,.14);
+}
+[data-theme="dark"] .fui-pill-btn--primary,
+[data-theme="classic-dark"] .fui-pill-btn--primary {
+  background:linear-gradient(180deg, #7b849c 0%, #6a738c 100%);
+  border-color:rgba(255,255,255,.08);
+}
+
 .fui-bar { display:flex; align-items:center; gap:6px; flex-wrap:wrap; padding:14px 18px 0; }
 .fui-tab {
   height:27px; padding:0 11px; border:1px solid var(--border); border-radius:999px;
