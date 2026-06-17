@@ -367,6 +367,7 @@ function ReviewCard({
   onReVerify: (taskId: string) => void
   onApprove: (taskId: string) => void
 }) {
+  const [publishing, setPublishing] = useState(false)
   const tone = verificationTone(row.status)
   const flow = devFlowFromLegacy(row.task_legacy_status, row.task_dev_status)
   const evidence = row.evidence ?? {}
@@ -379,6 +380,25 @@ function ReviewCard({
   const checklistTotal = Number(evidence.checklistTotal ?? 0)
 
   const canApprove = isOwnerRole && flow === 'verified_by_tagro'
+  const canPublishSummary = !!row.project_id && !!row.client_summary && row.status === 'verified'
+
+  async function publishClientSummary() {
+    if (!row.project_id || !row.client_summary || publishing) return
+    setPublishing(true)
+    try {
+      await fetch('/api/dev/publish-to-client', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectId: row.project_id,
+          taskId: row.task_id,
+          text: row.client_summary,
+        }),
+      })
+    } finally {
+      setPublishing(false)
+    }
+  }
 
   return (
     <li className="rc">
@@ -449,6 +469,11 @@ function ReviewCard({
         {canApprove && (
           <button className="rc-btn primary" onClick={() => onApprove(row.task_id)} title="Für Client freigeben">
             <CheckCircle size={12} /> Approve & sync
+          </button>
+        )}
+        {canPublishSummary && (
+          <button className="rc-btn" onClick={publishClientSummary} disabled={publishing} title="Tagro-Summary an Client">
+            <Sparkle size={12} weight="fill" /> {publishing ? '…' : 'An Client'}
           </button>
         )}
         <Link href={`/dev/tasks?id=${row.task_id}`} className="rc-open" title="Task öffnen">

@@ -92,8 +92,8 @@ export async function buildGithubTagroSummary(
 
   const digest = formatGithubDigest(commitRows, pullRows)
   const resolvedProjectId = opts.projectId
-    ?? commitRows.find(c => (c as any).project_id)?.project_id
-    ?? pullRows.find(p => (p as any).project_id)?.project_id
+    ?? (commitRows.find(c => (c as { project_id?: string }).project_id) as { project_id?: string } | undefined)?.project_id
+    ?? (pullRows.find(p => (p as { project_id?: string }).project_id) as { project_id?: string } | undefined)?.project_id
     ?? null
 
   let projectTitle: string | null = null

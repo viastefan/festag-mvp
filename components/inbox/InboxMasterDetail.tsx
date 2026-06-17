@@ -339,6 +339,8 @@ function ThreadDetail({
   const router = useRouter()
   const [publishing, setPublishing] = useState(false)
   const [published, setPublished] = useState(false)
+  const [previewing, setPreviewing] = useState(false)
+  const [clientPreview, setClientPreview] = useState<string | null>(null)
   const kind = rawKind(item)
   const link = typeof item.metadata?.link === 'string' ? item.metadata.link : null
   const ctaUrl = typeof item.metadata?.cta_url === 'string' ? item.metadata.cta_url : link
@@ -366,6 +368,27 @@ function ThreadDetail({
 
   const devAction = isUnread(item) ? DEV_KIND_ACTION[kind] : undefined
   const canPublishToClient = variant === 'dev' && !!item.project_id && !!(item.body || item.title)
+
+  async function loadClientPreview() {
+    if (!item.project_id || previewing) return
+    setPreviewing(true)
+    try {
+      const res = await fetch('/api/dev/publish-to-client', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectId: item.project_id,
+          taskId: item.metadata?.task_id ?? null,
+          text: item.body || item.title,
+          preview: true,
+        }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (res.ok && data?.clientSummary) setClientPreview(String(data.clientSummary))
+    } finally {
+      setPreviewing(false)
+    }
+  }
 
   async function publishViaTagro() {
     if (!item.project_id || publishing) return
@@ -419,6 +442,12 @@ function ThreadDetail({
         {variant === 'dev' && devAction && (
           <p className="ix-dev-action-hint">{devAction} →</p>
         )}
+        {variant === 'dev' && clientPreview && (
+          <div className="ix-client-preview">
+            <strong>Client-Vorschau (Tagro)</strong>
+            <p>{clientPreview}</p>
+          </div>
+        )}
       </div>
 
       {videoUrl && (
@@ -453,14 +482,24 @@ function ThreadDetail({
         {link && variant === 'dev' ? (
           <>
             {canPublishToClient && (
-              <button
-                type="button"
-                className="ix-btn primary"
-                disabled={publishing || published}
-                onClick={publishViaTagro}
-              >
-                {published ? 'An Client gesendet' : publishing ? 'Tagro übersetzt…' : 'Via Tagro an Client'}
-              </button>
+              <>
+                <button
+                  type="button"
+                  className="ix-btn"
+                  disabled={previewing || published}
+                  onClick={loadClientPreview}
+                >
+                  {previewing ? 'Tagro übersetzt…' : clientPreview ? 'Vorschau aktualisieren' : 'Client-Vorschau'}
+                </button>
+                <button
+                  type="button"
+                  className="ix-btn primary"
+                  disabled={publishing || published}
+                  onClick={publishViaTagro}
+                >
+                  {published ? 'An Client gesendet' : publishing ? 'Wird gesendet…' : 'Via Tagro an Client'}
+                </button>
+              </>
             )}
             <Link href={link} className="ix-btn">
               <ArrowSquareOut size={13} weight="regular" /> {devAction ?? 'Task öffnen'}

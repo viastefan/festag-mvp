@@ -3,6 +3,14 @@
  * Keeps the original ix-* layout; tokens map to PortalAppShell light/dark.
  */
 export const INBOX_CSS = `
+  .ix-shell {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    height: 100%;
+  }
+
   .ix-root {
     --ix-slate: var(--portal-btn-primary, #5b647d);
     --ix-text: var(--portal-text, #0f0f10);
@@ -16,7 +24,10 @@ export const INBOX_CSS = `
 
     display: grid;
     grid-template-columns: minmax(312px, 372px) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+    flex: 1 1 auto;
     height: 100%; min-height: 0;
+    align-items: stretch;
     background: var(--ix-surface);
     color: var(--ix-text);
     font-family: var(--font-aeonik,'Aeonik',Inter,sans-serif);
@@ -39,6 +50,7 @@ export const INBOX_CSS = `
   /* Single vertical seam between list and detail */
   .ix-list {
     display: flex; flex-direction: column; min-height: 0;
+    height: 100%; align-self: stretch;
     background: var(--ix-surface);
     border-right: 1px solid var(--ix-divider);
   }
@@ -195,6 +207,14 @@ export const INBOX_CSS = `
   }
   .ix-detail-body { font-size: 15px; line-height: 1.7; color: var(--ix-soft); font-weight: 400; }
   .ix-detail-body p { margin: 0; white-space: pre-wrap; }
+  .ix-client-preview {
+    margin-top: 14px; padding: 12px 14px; border-radius: 10px;
+    border: 1px solid color-mix(in srgb, var(--ix-slate) 28%, var(--ix-border));
+    background: color-mix(in srgb, var(--ix-slate) 6%, transparent);
+    font-size: 13px; line-height: 1.55;
+  }
+  .ix-client-preview strong { display: block; margin-bottom: 6px; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--ix-muted); font-weight: 600; }
+  .ix-client-preview p { margin: 0; color: var(--ix-text); }
 
   .ix-video {
     display: flex; align-items: center; gap: 12px;

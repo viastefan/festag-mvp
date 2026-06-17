@@ -170,23 +170,24 @@ export default function DevGithubPage() {
     }
   }
 
-  async function openGithubTagroSummary() {
+  async function openGithubTagroSummary(projectId?: string | null) {
     setSummarizing(true)
     setSyncMsg(null)
     try {
-      const res = await fetch('/api/github/tagro-summary?limit=30&clientPreview=1', { cache: 'no-store' })
+      const qs = new URLSearchParams({ limit: '30' })
+      const pid = projectId || repos.find(r => r.project_id)?.project_id
+      if (pid) qs.set('projectId', pid)
+      const res = await fetch(`/api/github/tagro-summary?${qs}`, { cache: 'no-store' })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) { setSyncMsg(data?.error || 'Tagro-Zusammenfassung fehlgeschlagen.'); return }
       openTagro({
-        contextType: 'dev_item',
-        id: 'dev-github',
-        title: 'GitHub · Tagro Digest',
-        subtitle: `${data.stats?.commits ?? 0} Commits · ${data.stats?.prs ?? 0} PRs`,
+        contextType: data.projectId ? 'project' : 'dev_item',
+        id: data.projectId || 'github',
+        projectId: data.projectId ?? undefined,
+        title: data.projectTitle ? `GitHub · ${data.projectTitle}` : 'GitHub · Tagro Digest',
+        subtitle: `${data.stats?.commits ?? 0} Commits · ${data.stats?.prs ?? 0} PRs · ${data.stats?.unlinked ?? 0} offen`,
         prefill: data.digest || 'Fasse die GitHub-Aktivität zusammen und schlage ein client-sicheres Update vor.',
       })
-      if (data.clientPreview) {
-        setSyncMsg(`Client-Vorschau: ${String(data.clientPreview).slice(0, 160)}…`)
-      }
     } finally {
       setSummarizing(false)
     }
