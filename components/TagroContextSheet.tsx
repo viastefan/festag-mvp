@@ -148,7 +148,13 @@ export default function TagroContextSheet({ open, onClose, context }: TagroConte
       const res = await fetch('/api/tagro/context/preview', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...context, input: value }),
+        body: JSON.stringify({
+          type: context.type,
+          id: context.id,
+          title: context.title,
+          projectId: context.type === 'project' ? context.id : undefined,
+          input: value,
+        }),
       })
       const data = await res.json().catch(() => null)
       if (!res.ok) throw new Error(data?.error || 'Tagro konnte keine Vorschau erzeugen.')

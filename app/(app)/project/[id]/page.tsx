@@ -1726,7 +1726,7 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
             type="button"
             className="pv-tagro-btn"
             title="Mit Tagro bearbeiten"
-            onClick={() => openTagro({ contextType: 'project', id, title: project.title })}
+            onClick={() => openTagro({ contextType: 'project', id, title: project.title, projectId: id })}
           >
             <Sparkle size={13} weight="fill" /> Mit Tagro
           </button>
@@ -1990,7 +1990,13 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
                     <button
                       type="button"
                       className="pv-report-btn primary"
-                      onClick={() => openTagro({ contextType: latestUpdate ? 'status_report' : 'project', id, title: project.title, subtitle: latestUpdate ? 'Statusbericht' : 'Projekt' })}
+                      onClick={() => openTagro({
+                        contextType: latestUpdate ? 'status_report' : 'project',
+                        id,
+                        title: project.title,
+                        subtitle: latestUpdate ? 'Statusbericht' : 'Projekt',
+                        projectId: id,
+                      })}
                     >
                       <Sparkle size={13} /> Mit Tagro bearbeiten
                     </button>

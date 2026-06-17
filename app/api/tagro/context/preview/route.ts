@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createClient as createCookieClient } from '@/lib/supabase/server'
 import { tagroComplete } from '@/lib/tagro/complete'
 import { extractJsonObject } from '@/lib/tagro/json'
+import { loadTagroMemoryContext } from '@/lib/tagro-memory'
 
 export const runtime = 'nodejs'
 export const maxDuration = 30
@@ -65,6 +67,7 @@ type Body = {
   subtitle?: string
   status?: string | null
   clientVisible?: boolean | null
+  projectId?: string
   input?: string
   attached?: AttachedRef[]
   history?: HistoryTurn[]
@@ -124,16 +127,33 @@ export async function POST(req: NextRequest) {
       }).join('\n')}`
     : ''
 
+  const cookieClient = createCookieClient()
+  const { data: { user } } = await cookieClient.auth.getUser()
+  const memoryProjectId = body.projectId
+    || (body.type === 'project' ? body.id : null)
+    || null
+  const memoryContext = user
+    ? await loadTagroMemoryContext({ userId: user.id, projectId: memoryProjectId })
+    : ''
+
   const userPrompt = [
     `Aktuelles Objekt:\n${contextLine || '(unbekannt)'}`,
     attachedLine,
     historyLine,
+    memoryContext ? `Tagro Memory / Account-Kontext:\n${memoryContext}` : '',
     `Neue Nutzereingabe:\n${input}`,
     `Antworte mit dem JSON-Schema.`,
   ].filter(Boolean).join('\n\n')
 
+  const system = [
+    SYSTEM,
+    memoryContext
+      ? 'Nutze den Tagro-Memory- und Account-Kontext aktiv, wenn er für die Antwort relevant ist.'
+      : '',
+  ].filter(Boolean).join('\n\n')
+
   const ai = await tagroComplete({
-    system: SYSTEM,
+    system,
     prompt: userPrompt,
     maxTokens: 700,
     temperature: 0.25,

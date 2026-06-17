@@ -22,6 +22,7 @@
 
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import { createPortal } from 'react-dom'
+import { usePathname } from 'next/navigation'
 import {
   X, ArrowUp, ArrowsClockwise, ArrowsOut, ArrowsIn,
   Microphone, MicrophoneSlash, Plus, Lightbulb, CaretRight,
@@ -32,6 +33,11 @@ import {
 import { useSpeechRecognition } from '@/hooks/useSpeechRecognition'
 import TagroLogo from '@/components/TagroLogo'
 import TagroIconRail from '@/components/TagroIconRail'
+import {
+  applyLabelForAction,
+  buildMessageActions,
+  executeTagroPreview,
+} from '@/lib/tagro/overlay-execute'
 
 // ── Public API ────────────────────────────────────────────────────────────
 
@@ -46,6 +52,9 @@ export type TagroOpenDetail = {
   title?: string
   subtitle?: string
   prefill?: string
+  projectId?: string
+  status?: string | null
+  clientVisible?: boolean | null
   fullscreen?: boolean
   /** Skip the task-picker modal — open the sana fullscreen agent workspace directly. */
   workspace?: boolean
@@ -133,7 +142,12 @@ type Message =
       opinion?: string;
       preview?: string;
       warnings?: string[];
+      suggestedAction?: string;
+      fellBack?: boolean;
       actions?: string[];
+      applyBusy?: boolean;
+      applyNotice?: string;
+      applied?: boolean;
     }
 
 function uid() { return Math.random().toString(36).slice(2, 10) }
@@ -168,7 +182,12 @@ function quickActionsFor(t: TagroContextType): string[] {
 // generic question. This helper centralizes all of that copy so every
 // surface (overlay, /ai, mobile sheet) speaks the same language.
 
-export type AttachedChip = { kind: 'object' | 'meta'; label: string }
+export type AttachedChip = {
+  kind: 'object' | 'meta'
+  label: string
+  objectType?: string
+  objectId?: string
+}
 
 export type InitialSession = {
   mentionLabel: string         // @-style chip pinned to the composer
@@ -341,7 +360,12 @@ export function buildInitialSession(ctx: TagroOpenDetail): InitialSession {
 
   // Pinned chips above the composer. Subtitle (when present) is pinned as
   // a secondary metadata chip so the user sees full attached context.
-  const chips: AttachedChip[] = [{ kind: 'object', label: mentionLabel }]
+  const chips: AttachedChip[] = [{
+    kind: 'object',
+    label: mentionLabel,
+    objectType: t,
+    objectId: isOverview ? undefined : ctx.id,
+  }]
   if (ctx.subtitle && ctx.subtitle.trim()) {
     chips.push({ kind: 'meta', label: ctx.subtitle.trim() })
   }
@@ -387,6 +411,82 @@ function renderMentionText(text: string) {
   )
 }
 
+function FeaturedIntro({ introLead, introHelp }: { introLead: string; introHelp: string }) {
+  return (
+    <p className="tov-featured-text">
+      <span className="tov-featured-lead">{renderMentionText(introLead)}</span>
+      {' '}
+      {renderMentionText(introHelp)}
+    </p>
+  )
+}
+
+function ContextHint({ introLead, introHelp }: { introLead: string; introHelp: string }) {
+  return (
+    <div className="tov-context-hint">
+      <p className="tov-context-hint-lead">{renderMentionText(introLead)}</p>
+      <p className="tov-context-hint-help">{renderMentionText(introHelp)}</p>
+    </div>
+  )
+}
+
+function PickerCardBody({
+  attachedChips,
+  baseCount,
+  removeExtra,
+  introLead,
+  introHelp,
+  runFeatured,
+  startFromScratch,
+  examples,
+  runExample,
+  error,
+}: {
+  attachedChips: AttachedChip[]
+  baseCount: number
+  removeExtra: (label: string) => void
+  introLead: string
+  introHelp: string
+  runFeatured: () => void
+  startFromScratch: () => void
+  examples: ExampleItem[]
+  runExample: (title: string) => void
+  error: string | null
+}) {
+  return (
+    <>
+      <AttachedChipsRow chips={attachedChips} baseCount={baseCount} onRemove={removeExtra} />
+      <div className="tov-featured">
+        <span className="tov-featured-ico" aria-hidden><Lightbulb size={18} weight="regular" /></span>
+        <FeaturedIntro introLead={introLead} introHelp={introHelp} />
+        <button type="button" className="tov-featured-go" onClick={runFeatured} aria-label="Vorschlag starten">
+          <CaretRight size={16} weight="bold" />
+        </button>
+      </div>
+      <div className="tov-scratch-wrap">
+        <button type="button" className="tov-scratch" onClick={startFromScratch}>
+          Von Grund auf starten <CaretRight size={12} weight="bold" />
+        </button>
+      </div>
+      <div className="tov-examples">
+        <p className="tov-examples-label">Vorschläge</p>
+        <div className="tov-examples-grid">
+          {examples.map(ex => {
+            const Icon = ex.icon
+            return (
+              <button key={ex.title} type="button" className="tov-example" onClick={() => runExample(ex.title)}>
+                <span className="tov-example-ico" aria-hidden><Icon size={15} weight="regular" /></span>
+                <span className="tov-example-label">{ex.title}</span>
+              </button>
+            )
+          })}
+        </div>
+      </div>
+      {error && <p className="tov-err">{error}</p>}
+    </>
+  )
+}
+
 // ── Component ─────────────────────────────────────────────────────────────
 
 export default function TagroOverlay() {
@@ -402,6 +502,7 @@ export default function TagroOverlay() {
   // additive and survive across the whole conversation until removed.
   const [extraAttached, setExtraAttached] = useState<AttachedChip[]>([])
   const [fromScratch, setFromScratch] = useState(false)
+  const pathname = usePathname() || ''
   const composerRef = useRef<HTMLTextAreaElement>(null)
   const timelineRef = useRef<HTMLDivElement>(null)
 
@@ -422,8 +523,8 @@ export default function TagroOverlay() {
       setMessages([])
       setError('')
       setExtraAttached([])
-      setFromScratch(false)
-      setFullscreen(false)
+      setFromScratch(!!d.workspace)
+      setFullscreen(!!d.fullscreen || !!d.workspace || pathname.startsWith('/ai'))
       setOpen(true)
     }
     function onToggleFs() { togglePresentation() }
@@ -433,7 +534,7 @@ export default function TagroOverlay() {
       window.removeEventListener('festag:open-tagro', onOpen as EventListener)
       window.removeEventListener('festag:tagro-fullscreen-toggle', onToggleFs as EventListener)
     }
-  }, [togglePresentation])
+  }, [togglePresentation, pathname])
 
   // Body scroll lock + Esc + composer focus
   useEffect(() => {
@@ -507,21 +608,17 @@ export default function TagroOverlay() {
           id: ctx.id,
           title: ctx.title,
           subtitle: ctx.subtitle,
+          status: ctx.status,
+          clientVisible: ctx.clientVisible,
+          projectId: ctx.projectId || (ctx.contextType === 'project' ? ctx.id : undefined),
           input: value,
-          // Attached @-mentions for backend continuity. Current object
-          // stays bound across every turn unless the user removes it.
-          // Extra picks (from the + picker or @ trigger) ride along too.
-          attached: [
-            {
-              type: ctx.contextType,
-              id: ctx.id,
-              title: ctx.title,
-              label: session.mentionLabel,
-            },
-            ...extraAttached.map(c => ({ kind: c.kind, label: c.label })),
-          ],
-          // Prior turns so Tagro keeps short-term memory. Backend trims
-          // to the last 8 entries, so the full local timeline is fine.
+          attached: attachedChips.map(c => ({
+            type: c.objectType,
+            id: c.objectId,
+            label: c.label,
+            kind: c.kind,
+            title: c.label.replace(/^@\w+\s*/, ''),
+          })),
           history: messages.map(m => m.role === 'user'
             ? { role: 'user' as const, content: m.content }
             : {
@@ -533,21 +630,28 @@ export default function TagroOverlay() {
         }),
       })
       const data = await r.json().catch(() => null)
+      if (!r.ok) {
+        throw new Error(data?.error || 'Tagro konnte gerade nicht antworten.')
+      }
       const tagroMsg: Message = {
         id: uid(), role: 'tagro',
         understanding: data?.understanding || `Tagro hat „${value.slice(0, 80)}" verstanden.`,
         opinion: data?.opinion || '',
         preview: data?.preview || value,
         warnings: Array.isArray(data?.warnings) ? data.warnings.filter((w: any) => typeof w === 'string').slice(0, 3) : [],
-        actions: quickActionsFor(ctx.contextType),
+        suggestedAction: typeof data?.suggestedAction === 'string' ? data.suggestedAction : 'note',
+        fellBack: !!data?.fellBack,
+        actions: buildMessageActions(data?.suggestedAction, ctx.contextType, quickActionsFor(ctx.contextType)),
       }
       setMessages(prev => [...prev, tagroMsg])
     } catch (e: any) {
+      setError(e?.message || 'Tagro konnte gerade nicht antworten.')
       const tagroMsg: Message = {
         id: uid(), role: 'tagro',
-        understanding: `Tagro ist gerade nicht voll verbunden — der Entwurf basiert auf deiner Eingabe.`,
+        understanding: 'Tagro ist gerade nicht voll verbunden — der Entwurf basiert auf deiner Eingabe.',
         preview: value,
-        actions: quickActionsFor(ctx.contextType),
+        suggestedAction: 'note',
+        actions: buildMessageActions('note', ctx.contextType, quickActionsFor(ctx.contextType)),
       }
       setMessages(prev => [...prev, tagroMsg])
     } finally {
@@ -557,7 +661,61 @@ export default function TagroOverlay() {
   }
 
   function runQuickAction(action: string) {
+    const applyLabel = applyLabelForAction(
+      [...messages].reverse().find(m => m.role === 'tagro')?.suggestedAction,
+    )
+    if (action === applyLabel) {
+      const last = [...messages].reverse().find(m => m.role === 'tagro')
+      if (last?.role === 'tagro') { applyTagroResult(last.id); return }
+    }
     setInput(action); window.setTimeout(() => send(action), 30)
+  }
+
+  async function applyTagroResult(messageId: string) {
+    const msg = messages.find(m => m.id === messageId && m.role === 'tagro')
+    if (!msg || msg.role !== 'tagro' || !msg.preview || msg.applyBusy || msg.applied) return
+    setMessages(prev => prev.map(m => m.id === messageId && m.role === 'tagro'
+      ? { ...m, applyBusy: true, applyNotice: '' }
+      : m))
+    try {
+      const result = await executeTagroPreview({
+        preview: msg.preview,
+        suggestedAction: msg.suggestedAction,
+        ctx: {
+          contextType: ctx.contextType,
+          id: ctx.id,
+          projectId: ctx.projectId,
+          title: ctx.title,
+        },
+      })
+      setMessages(prev => prev.map(m => m.id === messageId && m.role === 'tagro'
+        ? {
+            ...m,
+            applyBusy: false,
+            applied: result.ok,
+            applyNotice: result.message,
+          }
+        : m))
+    } catch {
+      setMessages(prev => prev.map(m => m.id === messageId && m.role === 'tagro'
+        ? { ...m, applyBusy: false, applyNotice: 'Übernahme fehlgeschlagen.' }
+        : m))
+    }
+  }
+
+  async function copyTagroPreview(messageId: string) {
+    const msg = messages.find(m => m.id === messageId && m.role === 'tagro')
+    if (!msg || msg.role !== 'tagro' || !msg.preview) return
+    try {
+      await navigator.clipboard.writeText(msg.preview)
+      setMessages(prev => prev.map(m => m.id === messageId && m.role === 'tagro'
+        ? { ...m, applyNotice: 'Entwurf kopiert.' }
+        : m))
+    } catch {
+      setMessages(prev => prev.map(m => m.id === messageId && m.role === 'tagro'
+        ? { ...m, applyNotice: 'Kopieren nicht möglich.' }
+        : m))
+    }
   }
 
   function startFromScratch() {
@@ -585,7 +743,7 @@ export default function TagroOverlay() {
   // current ctx so opening a task vs. a documents overview always speaks
   // the right language without per-render guesswork.
   const session = useMemo(() => buildInitialSession(ctx), [ctx])
-  const { chips: baseChips, introHelp, placeholder, suggestions } = session
+  const { chips: baseChips, introLead, introHelp, placeholder, suggestions } = session
   const attachedChips: AttachedChip[] = [...baseChips, ...extraAttached]
   const attachExtra = (c: AttachedChip) =>
     setExtraAttached(prev => prev.some(p => p.label === c.label) ? prev : [...prev, c])
@@ -639,11 +797,18 @@ export default function TagroOverlay() {
                 <div className="tov-timeline" ref={timelineRef}>
                   <div className="tov-timeline-inner">
                     {messages.length === 0 && !busy && (
-                      <p className="tov-empty-hint">{introHelp}</p>
+                      <ContextHint introLead={introLead} introHelp={introHelp} />
                     )}
                     {messages.map(m => m.role === 'user'
                       ? <UserMsg key={m.id} content={m.content} />
-                      : <TagroMsg key={m.id} msg={m} onAction={runQuickAction} />)}
+                      : <TagroMsg
+                          key={m.id}
+                          msg={m}
+                          onAction={runQuickAction}
+                          onApply={() => applyTagroResult(m.id)}
+                          onCopy={() => copyTagroPreview(m.id)}
+                          contextChips={attachedChips}
+                        />)}
                     {busy && (
                       <div className="tov-typing-row">
                         <TagroLogo size={fullscreen ? 20 : 18} thinking />
@@ -690,33 +855,18 @@ export default function TagroOverlay() {
                         <button type="button" className="tov-iconbtn" onClick={close} aria-label="Schließen"><X size={16} weight="bold" /></button>
                       </div>
                       <h1 className="tov-picker-title">{question}</h1>
-                      <AttachedChipsRow chips={attachedChips} baseCount={baseChips.length} onRemove={removeExtra} />
-                      <div className="tov-featured">
-                        <p className="tov-featured-text">{renderMentionText(introHelp)}</p>
-                        <button type="button" className="tov-featured-go" onClick={runFeatured} aria-label="Vorschlag starten">
-                          <CaretRight size={16} weight="bold" />
-                        </button>
-                      </div>
-                      <div className="tov-scratch-wrap">
-                        <button type="button" className="tov-scratch" onClick={startFromScratch}>
-                          Von Grund auf starten <CaretRight size={12} weight="bold" />
-                        </button>
-                      </div>
-                      <div className="tov-examples">
-                        <p className="tov-examples-label">Vorschläge</p>
-                        <div className="tov-examples-grid">
-                          {examples.map(ex => {
-                            const Icon = ex.icon
-                            return (
-                              <button key={ex.title} type="button" className="tov-example" onClick={() => runExample(ex.title)}>
-                                <span className="tov-example-ico" aria-hidden><Icon size={15} weight="regular" /></span>
-                                <span className="tov-example-label">{ex.title}</span>
-                              </button>
-                            )
-                          })}
-                        </div>
-                      </div>
-                      {error && <p className="tov-err">{error}</p>}
+                      <PickerCardBody
+                        attachedChips={attachedChips}
+                        baseCount={baseChips.length}
+                        removeExtra={removeExtra}
+                        introLead={introLead}
+                        introHelp={introHelp}
+                        runFeatured={runFeatured}
+                        startFromScratch={startFromScratch}
+                        examples={examples}
+                        runExample={runExample}
+                        error={error}
+                      />
                     </div>
                   </div>
                   <div className="tov-picker-footer">
@@ -752,41 +902,18 @@ export default function TagroOverlay() {
 
                 <h1 className="tov-picker-title">{question}</h1>
 
-                <AttachedChipsRow
-                  chips={attachedChips}
+                <PickerCardBody
+                  attachedChips={attachedChips}
                   baseCount={baseChips.length}
-                  onRemove={removeExtra}
+                  removeExtra={removeExtra}
+                  introLead={introLead}
+                  introHelp={introHelp}
+                  runFeatured={runFeatured}
+                  startFromScratch={startFromScratch}
+                  examples={examples}
+                  runExample={runExample}
+                  error={error}
                 />
-
-                <div className="tov-featured">
-                  <p className="tov-featured-text">{renderMentionText(introHelp)}</p>
-                  <button type="button" className="tov-featured-go" onClick={runFeatured} aria-label="Vorschlag starten">
-                    <CaretRight size={16} weight="bold" />
-                  </button>
-                </div>
-
-                <div className="tov-scratch-wrap">
-                  <button type="button" className="tov-scratch" onClick={startFromScratch}>
-                    Von Grund auf starten <CaretRight size={12} weight="bold" />
-                  </button>
-                </div>
-
-                <div className="tov-examples">
-                  <p className="tov-examples-label">Vorschläge</p>
-                  <div className="tov-examples-grid">
-                    {examples.map(ex => {
-                      const Icon = ex.icon
-                      return (
-                        <button key={ex.title} type="button" className="tov-example" onClick={() => runExample(ex.title)}>
-                          <span className="tov-example-ico" aria-hidden><Icon size={15} weight="regular" /></span>
-                          <span className="tov-example-label">{ex.title}</span>
-                        </button>
-                      )
-                    })}
-                  </div>
-                </div>
-
-                {error && <p className="tov-err">{error}</p>}
               </div>
             </div>
 
@@ -1041,7 +1168,17 @@ function PeopleObjectPicker({ onClose, onPick, fullscreen = false }: { onClose: 
       : r.group === 'Entscheidungen' ? 'Entscheidung'
       : r.group === 'Kunden' ? 'Kunde'
       : 'Notiz'
-    onPick({ kind: 'object', label: `@${kindLabel} ${r.title}` })
+    const objectType = r.group === 'Projekte' ? 'project'
+      : r.group === 'Aufgaben' ? 'task'
+      : r.group === 'Entscheidungen' ? 'decision'
+      : r.group === 'Kunden' ? 'client'
+      : 'note'
+    onPick({
+      kind: 'object',
+      label: `@${kindLabel} ${r.title}`,
+      objectType,
+      objectId: r.id,
+    })
   }
 
   // Group results for rendering.
@@ -1125,11 +1262,15 @@ function UserMsg({ content }: { content: string }) {
 }
 
 function TagroMsg({
-  msg, onAction,
+  msg, onAction, onApply, onCopy, contextChips = [],
 }: {
   msg: Extract<Message, { role: 'tagro' }>
   onAction: (a: string) => void
+  onApply: () => void
+  onCopy: () => void
+  contextChips?: AttachedChip[]
 }) {
+  const applyLabel = applyLabelForAction(msg.suggestedAction)
   return (
     <div className="tov-msg tov-msg-tagro">
       <div className="tov-msg-tagro-head">
@@ -1138,17 +1279,45 @@ function TagroMsg({
           <p className="tov-msg-text tov-msg-lead">{msg.understanding}</p>
         )}
       </div>
+      {msg.fellBack && (
+        <p className="tov-fallback-note">Tagro ist gerade nicht voll verbunden — Vorschau basiert auf deiner Eingabe.</p>
+      )}
       {msg.opinion && (
         <p className="tov-msg-text">{msg.opinion}</p>
       )}
       {msg.preview && (
         <div className="tov-msg-preview">{msg.preview}</div>
       )}
+      {contextChips.length > 0 && (
+        <div className="tov-source-pills" aria-label="Quellen">
+          {contextChips.slice(0, 2).map((c, i) => (
+            <span key={`${c.label}-${i}`} className={`tov-source-pill tov-source-pill-${i % 2}`}>{c.label}</span>
+          ))}
+        </div>
+      )}
       {msg.warnings && msg.warnings.length > 0 && (
         <div className="tov-warnings">
           {msg.warnings.map((w, i) => <p key={i} className="tov-warning">{w}</p>)}
         </div>
       )}
+      {msg.preview && (
+        <div className="tov-msg-foot">
+          <button type="button" className="tov-msg-secondary" onClick={onCopy}>
+            <Copy size={14} /> Kopieren
+          </button>
+          <button
+            type="button"
+            className="tov-msg-primary"
+            onClick={onApply}
+            disabled={msg.applyBusy || msg.applied}
+          >
+            {msg.applyBusy
+              ? <><ArrowsClockwise size={14} className="tov-spin" /> Wird übernommen …</>
+              : msg.applied ? 'Übernommen' : applyLabel}
+          </button>
+        </div>
+      )}
+      {msg.applyNotice && <p className="tov-apply-notice">{msg.applyNotice}</p>}
       {msg.actions && msg.actions.length > 0 && (
         <div className="tov-quickactions">
           {msg.actions.map(a => (
@@ -1298,16 +1467,27 @@ const STYLES = `
   text-wrap: balance;
 }
 .tov-featured {
-  display: flex; align-items: center; gap: 14px;
+  display: flex; align-items: flex-start; gap: 14px;
   background: var(--tov-bg-2);
   border: 1px solid var(--tov-border);
   border-radius: 6px;
   padding: 14px 16px;
   margin-bottom: 18px;
 }
+.tov-featured-ico {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  color: var(--tov-muted);
+}
 .tov-featured-text {
   flex: 1; margin: 0;
   font-size: 13.5px; line-height: 1.5; color: var(--tov-text-2);
+}
+.tov-featured-lead {
+  display: block;
+  font-weight: 600;
+  color: var(--tov-text);
+  margin-bottom: 4px;
 }
 .tov-featured-link { color: var(--tov-link); font-weight: 500; }
 .tov-featured-go {
@@ -1382,6 +1562,23 @@ const STYLES = `
 .tov-chip:active { transform: scale(.99); }
 
 /* Empty fullscreen chat */
+.tov-context-hint {
+  margin: 0;
+  padding: 28px 0 12px;
+  text-align: center;
+  max-width: 480px;
+  align-self: center;
+}
+.tov-context-hint-lead {
+  margin: 0 0 8px;
+  font-size: 15px; font-weight: 600; line-height: 1.45;
+  color: var(--tov-text);
+}
+.tov-context-hint-help {
+  margin: 0;
+  font-size: 14px; line-height: 1.55;
+  color: var(--tov-text-2);
+}
 .tov-empty-hint {
   margin: 0;
   padding: 28px 0 12px;
@@ -1961,6 +2158,41 @@ const STYLES = `
   font-size: 12.5px; line-height: 1.5; font-weight: 500;
 }
 .tov-quickactions { display: flex; flex-wrap: wrap; gap: 8px; padding-left: 0; }
+.tov-msg-foot {
+  display: flex; align-items: center; gap: 8px;
+  margin-top: 10px;
+}
+.tov-msg-secondary,
+.tov-msg-primary {
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 34px; padding: 0 14px;
+  border-radius: 999px;
+  font: inherit; font-size: 13px; font-weight: 500;
+  cursor: pointer;
+  transition: background .12s, opacity .12s;
+}
+.tov-msg-secondary {
+  border: 1px solid var(--tov-border);
+  background: var(--tov-bg);
+  color: var(--tov-text-2);
+}
+.tov-msg-secondary:hover { background: var(--tov-pill); }
+.tov-msg-primary {
+  border: 0;
+  background: var(--tov-send);
+  color: var(--tov-send-text);
+}
+.tov-msg-primary:disabled { opacity: .55; cursor: default; }
+.tov-fallback-note {
+  margin: 0 0 8px;
+  font-size: 12.5px; line-height: 1.45;
+  color: var(--tov-muted);
+}
+.tov-apply-notice {
+  margin: 8px 0 0;
+  font-size: 12.5px; line-height: 1.45;
+  color: var(--tov-text-2);
+}
 .tov-quickaction {
   border: 1px solid var(--tov-border);
   border-radius: 999px;
