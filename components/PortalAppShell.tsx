@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import PortalSidebar from '@/components/PortalSidebar'
 import CommandPalette from '@/components/CommandPalette'
 import TagroOverlay from '@/components/TagroOverlay'
@@ -178,6 +179,7 @@ const STORAGE_KEY = 'festag-portal-sidebar-collapsed'
 
 export default function PortalAppShell({ children }: { children: React.ReactNode }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const router = useRouter()
 
   useEffect(() => {
     try {
@@ -189,6 +191,12 @@ export default function PortalAppShell({ children }: { children: React.ReactNode
     document.body.classList.add('festag-portal-shell')
     return () => { document.body.classList.remove('festag-portal-shell') }
   }, [])
+
+  useEffect(() => {
+    function onTagroApplied() { router.refresh() }
+    window.addEventListener('festag:tagro-applied', onTagroApplied)
+    return () => window.removeEventListener('festag:tagro-applied', onTagroApplied)
+  }, [router])
 
   function toggleSidebar() {
     setSidebarCollapsed(c => {

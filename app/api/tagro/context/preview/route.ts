@@ -120,7 +120,14 @@ export async function POST(req: NextRequest) {
   // "in scope" — answers should reference them by name when relevant.
   const attachedList = Array.isArray(body.attached)
     ? body.attached
-      .map(a => (a?.label || a?.title || a?.type || '').trim())
+      .map(a => {
+        const label = (a?.label || a?.title || '').trim()
+        const type = (a as { objectType?: string; type?: string }).objectType || a?.type || ''
+        const id = (a as { objectId?: string; id?: string }).objectId || a?.id || ''
+        if (!label && !type) return ''
+        const meta = [type && `typ:${type}`, id && `id:${id}`].filter(Boolean).join(', ')
+        return meta ? `${label || type} (${meta})` : label
+      })
       .filter(Boolean)
     : []
   const attachedLine = attachedList.length

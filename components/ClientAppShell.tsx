@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 
 import BrowserTabTitle from '@/components/BrowserTabTitle'
 import CommandPalette from '@/components/CommandPalette'
@@ -34,6 +34,7 @@ export default function ClientAppShell({
     { id: 'read', label: 'Read', tone: 'light' },
   ]
   const pathname = usePathname()
+  const router = useRouter()
   const [checking, setChecking] = useState(true)
   const [copilotOpen, setCopilotOpen] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
@@ -74,8 +75,14 @@ export default function ClientAppShell({
     return () => window.removeEventListener('festag:tagro-fullscreen', onTagroFs as EventListener)
   }, [])
 
+  // After Tagro applies a preview (task/decision/note), refresh server data on the current page.
   useEffect(() => {
-    document.body.classList.add('festag-app-mode')
+    function onTagroApplied() { router.refresh() }
+    window.addEventListener('festag:tagro-applied', onTagroApplied)
+    return () => window.removeEventListener('festag:tagro-applied', onTagroApplied)
+  }, [router])
+
+  useEffect(() => {
     if (aiRoute) document.body.classList.add('festag-tagro-agent')
     return () => {
       document.body.classList.remove('festag-app-mode')

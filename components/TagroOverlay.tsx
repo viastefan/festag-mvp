@@ -402,7 +402,7 @@ function buildExampleItems(suggestions: string[]): ExampleItem[] {
   }))
 }
 
-/** Highlight @-mentions in copy (sana blue links). */
+/** Highlight @-mentions in copy (Festag accent). */
 function renderMentionText(text: string) {
   const parts = text.split(/(@[^\s@]+(?:\s+[^\s@.,;:!?]+)?)/g)
   return parts.map((part, i) =>
