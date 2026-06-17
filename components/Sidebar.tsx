@@ -789,7 +789,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
               data-shortcut={navShortcut(item.label, item.href)}
               data-tour={tourTarget}
             >
-              <Ico name={item.icon} sz={14} c={on?'var(--text)':'var(--text-muted)'} weight={on?'bold':'regular'} />
+              <Ico name={item.icon} sz={18} c={on?'var(--nav-on-text)':'var(--nav-off-text)'} weight="regular" />
               <span className="ni-label">{item.label}</span>
               {item.badge ? (
                 <span className="ni-count">{item.badge > 99 ? '99+' : item.badge}</span>
@@ -834,9 +834,9 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
             fontFamily:'inherit', padding:0, textAlign:'left',
             width:'auto', maxWidth:'100%',
           }}>
-            <span style={{ fontSize:12, fontWeight:400, color:'var(--sb-sidebar-gray)', letterSpacing:'var(--ls-sidebar, .005em)', lineHeight:'18px' }}>{label}</span>
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--sb-sidebar-gray)" strokeWidth="2.4" strokeLinecap="round"
-              style={{ flexShrink:0, opacity:.72, transform:expanded?'rotate(90deg)':'rotate(0deg)', transition:'none' }}>
+            <span style={{ fontSize:11, fontWeight:500, color:'#8E8E93', letterSpacing:'0.05em', textTransform:'uppercase', lineHeight:'16px' }}>{label}</span>
+            <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#AEAEB2" strokeWidth="2.4" strokeLinecap="round"
+              style={{ flexShrink:0, opacity:.8, transform:expanded?'rotate(90deg)':'rotate(0deg)', transition:'transform .18s ease' }}>
               <path d="M9 6l6 6-6 6"/>
             </svg>
           </button>
@@ -938,11 +938,11 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
     <>
       <style>{`
         :root {
-          --sb-row-h: 34px;
-          --sb-icon: 16px;
+          --sb-row-h: 36px;
+          --sb-icon: 18px;
           --sb-font: 13px;
-          --sb-x: 10px;
-          --sb-sidebar-gray: var(--nav-off-text, #6B7280);
+          --sb-x: 12px;
+          --sb-sidebar-gray: #8E8E93;
         }
         .sidebar-inner {
           min-height:0;
@@ -951,12 +951,12 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         /* ── Nav item ── */
         .ni {
           position:relative;
-          display:flex; align-items:center; gap:10px;
+          display:flex; align-items:center; gap:12px;
           min-height: var(--sb-row-h);
-          padding:0 var(--sb-x); border-radius:10px;
+          padding:0 var(--sb-x); border-radius:12px;
           font-size:var(--sb-font); font-weight:400;
           font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
-          letter-spacing:var(--ls-sidebar, .005em);
+          letter-spacing:0;
           cursor:pointer; text-decoration:none; color:inherit;
           transition:background .12s, color .12s;
           white-space:nowrap; overflow:hidden;
@@ -969,8 +969,8 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         .ni span,
         .ni button {
           font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
-          font-weight:500;
-          letter-spacing:.02em;
+          font-weight:400;
+          letter-spacing:0;
         }
         .ni-label {
           min-width:0;
@@ -991,7 +991,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           color:var(--text);
         }
         /* Quiet hover "+" to create a new project from the Projekte row. */
-        .ni-wrap { position:relative; }
+        .ni-wrap { position:relative; margin-bottom:2px; }
         .ni-add {
           position:absolute; right:6px; top:50%; transform:translateY(-50%);
           width:22px; height:22px; display:inline-flex; align-items:center; justify-content:center;
@@ -1005,50 +1005,9 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         .ni-wrap-add:hover .ni[data-shortcut]::after { display:none; }
         .ni[data-shortcut]::after,
         .proj-row[data-shortcut]::after {
-          content:attr(data-shortcut);
-          position:absolute;
-          right:8px;
-          top:50%;
-          transform:translateY(-50%) translateX(3px);
-          min-width:28px;
-          height:19px;
-          padding:0 6px;
-          border-radius:6px;
-          border:1px solid color-mix(in srgb, var(--border) 82%, transparent);
-          background:color-mix(in srgb, var(--surface) 92%, transparent);
-          color:var(--text-secondary);
-          box-shadow:0 8px 18px rgba(15,23,42,.08);
-          display:inline-flex;
-          align-items:center;
-          justify-content:center;
-          font-size:10.5px;
-          font-weight:500;
-          letter-spacing:.02em;
-          line-height:1;
-          opacity:0;
-          pointer-events:none;
-          transition:opacity .12s ease, transform .12s ease;
-          transition-delay:0s;
+          display:none !important;
         }
-        .ni.ni-has-toggle[data-shortcut]::after {
-          right:30px;
-        }
-        .ni[data-shortcut]:hover::after,
-        .ni[data-shortcut]:focus-visible::after,
-        .proj-row[data-shortcut]:hover::after,
-        .proj-row[data-shortcut]:focus-visible::after {
-          opacity:1;
-          transform:translateY(-50%) translateX(0);
-          transition-delay:1.5s;
-        }
-        [data-theme="dark"] .ni[data-shortcut]::after,
-        [data-theme="classic-dark"] .ni[data-shortcut]::after,
-        [data-theme="dark"] .proj-row[data-shortcut]::after,
-        [data-theme="classic-dark"] .proj-row[data-shortcut]::after {
-          background:color-mix(in srgb, var(--surface) 88%, black 12%);
-          box-shadow:0 12px 28px rgba(0,0,0,.22);
-        }
-        .ni-on  { background:var(--nav-on); font-weight:500; color:var(--nav-on-text); }
+        .ni-on  { background:var(--nav-on); font-weight:400; color:var(--nav-on-text); }
         [data-theme="dark"] .ni-on { background:var(--nav-on); color:var(--nav-on-text); }
         [data-theme="read"] .ni-on { background:var(--nav-on); color:var(--nav-on-text); }
         .ni-off { color:var(--nav-off-text); }
@@ -1064,20 +1023,23 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           box-shadow: 0 0 0 2px var(--focus-ring, rgba(106, 115, 140, 0.35));
         }
         .sb-section {
-          margin: 20px 0 16px;
+          margin: 18px 0 10px;
         }
         .sb-section-head {
           display:flex;
           align-items:center;
           justify-content:space-between;
           gap:8px;
-          min-height:22px;
-          padding:0 var(--sb-x) 6px;
+          min-height:20px;
+          padding:0 var(--sb-x) 8px;
         }
         .sb-section-head span {
           font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
           font-weight:500;
-          letter-spacing:.02em;
+          letter-spacing:0.05em;
+          text-transform:uppercase;
+          font-size:11px;
+          color:#8E8E93;
         }
         .sb-section-head button {
           min-height: 18px;
@@ -1111,15 +1073,15 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           display:grid;
           grid-template-columns:16px minmax(0, 1fr);
           align-items:center;
-          gap:10px;
-          min-height:34px;
-          padding:0 var(--sb-x) 0 calc(var(--sb-x) + 2px);
-          border-radius:10px;
+          gap:12px;
+          min-height:36px;
+          padding:0 var(--sb-x);
+          border-radius:12px;
           font-size:13px; font-weight:400;
           font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
-          letter-spacing:.02em;
+          letter-spacing:0;
           cursor:pointer; text-decoration:none;
-          color:var(--text-muted);
+          color:var(--nav-off-text);
           transition:background .08s, color .08s;
           overflow:hidden;
           width:100%;
@@ -1134,8 +1096,8 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           text-overflow:ellipsis;
           white-space:nowrap;
           font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
-          font-weight:500;
-          letter-spacing:.02em;
+          font-weight:400;
+          letter-spacing:0;
         }
         .proj-dot-button {
           width:11px;
@@ -1150,7 +1112,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         }
         .proj-row:hover { background:var(--glass-nav-hover, rgba(0,0,0,.035)); color:var(--text); }
         [data-theme="dark"] .proj-row:hover { background:var(--glass-nav-hover, rgba(255,255,255,.06)); }
-        .proj-row.active { background:var(--nav-on); color:var(--nav-on-text); font-weight:500; }
+        .proj-row.active { background:var(--nav-on); color:var(--nav-on-text); font-weight:400; }
         .proj-row.proj-new { opacity:.55; transition:opacity .12s; }
         .proj-row.proj-new:hover { opacity:1; background:rgba(0,0,0,0.035); }
         [data-theme="dark"] .proj-row.proj-new:hover { background:rgba(255,255,255,0.05); }
@@ -1168,7 +1130,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           grid-template-columns:minmax(0, 1fr) 28px 28px;
           align-items:center;
           gap:4px;
-          padding:0 2px 14px;
+          padding:0 4px 12px;
           flex-shrink:0;
           min-width:0;
         }
@@ -1208,18 +1170,68 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         [data-theme="dark"] .sb-top-icon:hover { background:var(--glass-nav-hover, rgba(255,255,255,.06)); }
         .sb-bottom-actions {
           position:absolute;
-          left:10px;
-          right:10px;
+          left:14px;
+          right:14px;
           bottom:0;
           width:auto;
           max-width:none;
-          padding:6px 0 calc(18px + env(safe-area-inset-bottom, 0px));
+          padding:8px 0 calc(16px + env(safe-area-inset-bottom, 0px));
           z-index:170;
           display:flex;
           flex-direction:column;
-          align-items:flex-start;
-          gap:8px;
+          align-items:stretch;
+          gap:10px;
           flex-shrink:0;
+        }
+        .sb-codex-footer {
+          display:flex;
+          align-items:center;
+          justify-content:space-between;
+          gap:8px;
+          width:100%;
+        }
+        .sb-footer-settings {
+          display:inline-flex;
+          align-items:center;
+          gap:8px;
+          padding:6px 8px;
+          border-radius:8px;
+          font-size:13px;
+          font-weight:400;
+          color:var(--nav-off-text);
+          text-decoration:none;
+          transition:color .12s ease, background .12s ease;
+        }
+        .sb-footer-settings:hover {
+          color:var(--nav-on-text);
+          background:rgba(0,0,0,.035);
+        }
+        [data-theme="dark"] .sb-footer-settings:hover {
+          background:rgba(255,255,255,.06);
+        }
+        .sb-footer-pill {
+          display:inline-flex;
+          align-items:center;
+          justify-content:center;
+          padding:6px 14px;
+          border:0;
+          border-radius:999px;
+          background:rgba(0,0,0,.06);
+          color:var(--nav-on-text);
+          font:inherit;
+          font-size:12.5px;
+          font-weight:400;
+          cursor:pointer;
+          transition:background .12s ease;
+        }
+        .sb-footer-pill:hover {
+          background:rgba(0,0,0,.09);
+        }
+        [data-theme="dark"] .sb-footer-pill {
+          background:rgba(255,255,255,.08);
+        }
+        [data-theme="dark"] .sb-footer-pill:hover {
+          background:rgba(255,255,255,.12);
         }
         .sb-bottom-backdrop {
           position:fixed;
@@ -2022,7 +2034,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
 
       {/* ══ DESKTOP SIDEBAR ══ */}
       <aside className="sidebar" style={{ pointerEvents:'none' }}>
-        <div className="sidebar-inner" style={{ pointerEvents:'all', padding:'12px 10px 0', display:'flex', flexDirection:'column', position:'fixed' }}>
+        <div className="sidebar-inner" style={{ pointerEvents:'all', padding:'16px 14px 0', display:'flex', flexDirection:'column', position:'fixed' }}>
 
           <div className="sb-topbar">
             <SidebarProfileFooter
@@ -2267,57 +2279,63 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
                 </button>
               </div>
             ) : null}
-            <div className="sb-help-dock" style={{ position:'relative' }}>
-              {whatsNewOpen && typeof document !== 'undefined' ? createPortal((
-                <div className="sb-help-pop" role="menu" aria-label="Hilfe und Einführung">
-                  <div className="sb-help-list">
-                    {HELP_ITEMS.map((item) => {
-                      const Icon = item.icon
-                      return (
-                        <button
-                          key={item.title}
-                          type="button"
-                          className="sb-help-item"
-                          role="menuitem"
-                          onClick={() => { void handleHelpItem(item) }}
-                        >
-                          <span className="sb-help-icon">
-                            <Icon size={15} weight="regular" />
-                          </span>
-                          <span className="sb-help-title">{item.title}</span>
-                          {item.shortcut ? <span className="sb-help-shortcut">{item.shortcut}</span> : null}
-                        </button>
-                      )
-                    })}
-                    <div className="sb-help-section-title">Was ist neu</div>
-                    <div className="sb-help-news-list" role="group" aria-label="Was ist neu">
-                      {HELP_NEWS_ITEMS.map((item) => (
-                        <button
-                          key={item.title}
-                          type="button"
-                          className="sb-help-news-item"
-                          onClick={() => {
-                            setWhatsNewOpen(false)
-                            router.push(item.href)
-                          }}
-                        >
-                          <span className="sb-help-dot" />
-                          <span className="sb-help-news-label">{item.title}</span>
-                        </button>
-                      ))}
+            <div className="sb-codex-footer">
+              <Link href="/settings" className="sb-footer-settings">
+                <GearSix size={16} weight="regular" />
+                <span>Einstellungen</span>
+              </Link>
+              <div className="sb-help-dock" style={{ position:'relative', width:'auto', zIndex:2 }}>
+                {whatsNewOpen && typeof document !== 'undefined' ? createPortal((
+                  <div className="sb-help-pop" role="menu" aria-label="Hilfe und Einführung">
+                    <div className="sb-help-list">
+                      {HELP_ITEMS.map((item) => {
+                        const Icon = item.icon
+                        return (
+                          <button
+                            key={item.title}
+                            type="button"
+                            className="sb-help-item"
+                            role="menuitem"
+                            onClick={() => { void handleHelpItem(item) }}
+                          >
+                            <span className="sb-help-icon">
+                              <Icon size={15} weight="regular" />
+                            </span>
+                            <span className="sb-help-title">{item.title}</span>
+                            {item.shortcut ? <span className="sb-help-shortcut">{item.shortcut}</span> : null}
+                          </button>
+                        )
+                      })}
+                      <div className="sb-help-section-title">Was ist neu</div>
+                      <div className="sb-help-news-list" role="group" aria-label="Was ist neu">
+                        {HELP_NEWS_ITEMS.map((item) => (
+                          <button
+                            key={item.title}
+                            type="button"
+                            className="sb-help-news-item"
+                            onClick={() => {
+                              setWhatsNewOpen(false)
+                              router.push(item.href)
+                            }}
+                          >
+                            <span className="sb-help-dot" />
+                            <span className="sb-help-news-label">{item.title}</span>
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ), document.body) : null}
-              <button
-                type="button"
-                className="sb-help-trigger"
-                aria-label="Hilfe & Einführung öffnen"
-                aria-expanded={whatsNewOpen}
-                onClick={() => setWhatsNewOpen((value) => !value)}
-              >
-                <Question size={15} weight="bold" />
-              </button>
+                ), document.body) : null}
+                <button
+                  type="button"
+                  className="sb-footer-pill"
+                  aria-label="Hilfe & Einführung öffnen"
+                  aria-expanded={whatsNewOpen}
+                  onClick={() => setWhatsNewOpen((value) => !value)}
+                >
+                  Hilfe
+                </button>
+              </div>
             </div>
           </div>
         </div>

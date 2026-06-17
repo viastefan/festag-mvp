@@ -11,12 +11,12 @@ import { useCallback, useEffect, useState } from 'react'
 import FestagIconButton from '@/components/ui/FestagIconButton'
 import {
   Pulse, Bell, Cube, SquaresFour, ListChecks, File, Plugs, UsersThree,
-  SidebarSimple, CaretDown, GearSix, Question,
+  SidebarSimple, CaretDown, GearSix,
 } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 import { useNotifications } from '@/hooks/useNotifications'
 
-const ICON = 16
+const ICON = 18
 
 const NAV = [
   { href: '/dashboard', label: 'Statusabfrage', Icon: Pulse },
@@ -29,17 +29,17 @@ const NAV = [
   { href: '/teams', label: 'Teams', Icon: UsersThree },
 ] as const
 
-type RecentItem = { id: string; label: string; href: string }
+type RecentItem = { id: string; label: string; href: string; age?: string }
 
 const MOCK_RECENT: RecentItem[] = [
-  { id: 'm1', label: 'Entscheidung erteilt für Logo Farb..', href: '/decisions/mock-1' },
-  { id: 'm2', label: 'Blocker erteilt für Premium Featur..', href: '/tasks' },
-  { id: 'm3', label: 'Entscheidung abgelehnt Logo Farb..', href: '/decisions/mock-1' },
-  { id: 'm4', label: 'Entscheidung erteilt für Logo Farb..', href: '/decisions/mock-2' },
-  { id: 'm5', label: 'Blocker erteilt für Premium Featur..', href: '/tasks' },
-  { id: 'm6', label: 'Entscheidung abgelehnt Logo Farb..', href: '/decisions/mock-3' },
-  { id: 'm7', label: 'Entscheidung erteilt für Logo Farb..', href: '/decisions/mock-4' },
-  { id: 'm8', label: 'Blocker erteilt für Premium Featur..', href: '/tasks' },
+  { id: 'm1', label: 'Entscheidung erteilt für Logo Farb..', href: '/decisions/mock-1', age: '1 W' },
+  { id: 'm2', label: 'Blocker erteilt für Premium Featur..', href: '/tasks', age: '1 W' },
+  { id: 'm3', label: 'Entscheidung abgelehnt Logo Farb..', href: '/decisions/mock-1', age: '2 W' },
+  { id: 'm4', label: 'Entscheidung erteilt für Logo Farb..', href: '/decisions/mock-2', age: '2 W' },
+  { id: 'm5', label: 'Blocker erteilt für Premium Featur..', href: '/tasks', age: '3 W' },
+  { id: 'm6', label: 'Entscheidung abgelehnt Logo Farb..', href: '/decisions/mock-3', age: '3 W' },
+  { id: 'm7', label: 'Entscheidung erteilt für Logo Farb..', href: '/decisions/mock-4', age: '4 W' },
+  { id: 'm8', label: 'Blocker erteilt für Premium Featur..', href: '/tasks', age: '4 W' },
 ]
 
 type Props = {
@@ -51,6 +51,12 @@ function truncateLabel(text: string, max = 34) {
   const t = text.trim()
   if (t.length <= max) return t
   return `${t.slice(0, max - 2).trimEnd()}..`
+}
+
+function fmtRecentAge(iso?: string | null): string {
+  if (!iso) return ''
+  const weeks = Math.max(1, Math.floor((Date.now() - new Date(iso).getTime()) / (7 * 24 * 3600 * 1000)))
+  return `${weeks} W`
 }
 
 export default function PortalSidebar({ collapsed = false, onToggleCollapse }: Props) {
@@ -73,10 +79,11 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
         setRecent(MOCK_RECENT)
         return
       }
-      setRecent(rows.slice(0, 8).map((c: { id: string; title?: string; summary?: string }) => ({
+      setRecent(rows.slice(0, 8).map((c: { id: string; title?: string; summary?: string; updated_at?: string }) => ({
         id: c.id,
         label: truncateLabel(c.summary || c.title || 'Tagro Chat'),
         href: `/ai?contextType=empty&contextTitle=${encodeURIComponent(c.title || 'Chat')}`,
+        age: fmtRecentAge(c.updated_at),
       })))
     } catch {
       setRecent(MOCK_RECENT)
@@ -186,6 +193,7 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
           {displayRecent.map(item => (
             <Link key={item.id} href={item.href} className="portal-nav-recent-item" role="listitem" title={item.label}>
               <span className="portal-nav-recent-text">{item.label}</span>
+              {item.age ? <span className="portal-nav-recent-age">{item.age}</span> : null}
             </Link>
           ))}
         </div>
@@ -197,8 +205,7 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
           <span>Einstellungen</span>
         </Link>
         <Link href="/support" className="portal-nav-footer-btn" aria-label="Hilfe" title="Hilfe">
-          <Question size={14} weight="regular" />
-          <span>Hilfe</span>
+          Hilfe
         </Link>
       </div>
     </nav>
@@ -209,18 +216,18 @@ const CSS = `
   .portal-nav {
     width: 100%; height: 100%;
     display: flex; flex-direction: column;
-    padding: 12px 10px 10px;
+    padding: 16px 14px 14px;
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
-    color: var(--portal-muted, #6e717e);
+    color: var(--portal-muted, #6b6b6f);
     font-weight: 400;
-    letter-spacing: var(--ls-sidebar, 0.005em);
+    letter-spacing: 0;
     overflow: hidden;
     box-sizing: border-box;
     background: transparent;
   }
 
   .portal-nav-top {
-    display: flex; flex-direction: column; gap: 14px;
+    display: flex; flex-direction: column; gap: 12px;
     min-width: 0; width: 100%;
     flex-shrink: 0;
   }
@@ -228,7 +235,7 @@ const CSS = `
   .portal-nav-header {
     display: flex; align-items: center; justify-content: space-between;
     gap: 6px; min-width: 0; flex-shrink: 0;
-    padding: 0 2px;
+    padding: 0 4px;
   }
 
   .portal-nav-ws {
@@ -236,68 +243,65 @@ const CSS = `
   }
 
   .portal-nav-avatar {
-    width: 28px; height: 28px; border-radius: 8px;
+    width: 24px; height: 24px; border-radius: 6px;
     background: var(--portal-nav-avatar-bg, #fff);
-    border: 1px solid var(--portal-nav-avatar-border, #e8e8e8);
+    border: 0;
     display: flex; align-items: center; justify-content: center;
-    font-size: 11px; font-weight: 500;
-    color: var(--portal-text, #0f0f10);
+    font-size: 10px; font-weight: 500;
+    color: var(--portal-text, #1c1c1e);
     flex-shrink: 0;
     letter-spacing: 0;
   }
 
   .portal-nav-ws-text {
     display: flex; flex-direction: column; align-items: flex-start;
-    gap: 1px; line-height: 1.2; min-width: 0;
+    gap: 0; line-height: 1.2; min-width: 0;
     transition: opacity .18s ease, width .18s ease;
   }
 
-  .portal-nav-ws-label {
-    font-size: 10px; font-weight: 400;
-    color: var(--portal-muted, #8f93a4);
-    letter-spacing: var(--ls-sidebar, 0.005em);
-  }
+  .portal-nav-ws-label { display: none; }
 
   .portal-nav-ws-value {
-    font-size: 13px; font-weight: 500;
-    color: var(--portal-text, #0f0f10);
+    font-size: 13px; font-weight: 400;
+    color: var(--portal-text, #1c1c1e);
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    max-width: 100px;
-    letter-spacing: var(--ls-sidebar, 0.005em);
+    max-width: 120px;
+    letter-spacing: 0;
   }
 
   .portal-nav-ws-caret {
-    color: var(--portal-muted, #8f93a4);
+    color: var(--portal-muted, #8e8e93);
     flex-shrink: 0;
     transition: opacity .18s ease;
   }
 
   .portal-nav-utilities {
-    display: flex; align-items: center; gap: 2px; flex-shrink: 0;
+    display: flex; align-items: center; gap: 0; flex-shrink: 0;
   }
   .portal-nav-utilities .fui-icon-btn {
     background: transparent;
     border: none;
     box-shadow: none;
     transform: none;
-    color: var(--portal-muted, #6e717e);
+    color: var(--portal-muted, #6b6b6f);
     border-radius: 8px;
+    width: 28px; height: 28px;
   }
   .portal-nav-utilities .fui-icon-btn:hover:not(:disabled) {
-    background: var(--glass-nav-hover, rgba(0,0,0,.035));
+    background: rgba(0,0,0,.04);
     border: none;
     box-shadow: none;
     transform: none;
-    color: var(--portal-text, #0f0f10);
+    color: var(--portal-text, #1c1c1e);
   }
   .portal-nav-utilities .fui-icon-btn:active:not(:disabled) {
-    background: var(--glass-nav-active, rgba(0,0,0,.055));
+    background: rgba(0,0,0,.06);
     box-shadow: none;
     transform: none;
   }
 
   .portal-nav-items {
-    display: flex; flex-direction: column; gap: 2px;
+    display: flex; flex-direction: column; gap: 4px;
     min-width: 0;
     scrollbar-width: none;
   }
@@ -305,58 +309,58 @@ const CSS = `
 
   .portal-nav-item {
     display: flex; align-items: center;
-    gap: 10px;
-    padding: 8px 10px;
-    border-radius: 10px;
-    color: var(--portal-muted, #6e717e);
+    gap: 12px;
+    padding: 0 12px;
+    border-radius: 12px;
+    color: var(--portal-muted, #6b6b6f);
     font-size: 13px; font-weight: 400;
-    letter-spacing: var(--ls-sidebar, 0.005em);
+    letter-spacing: 0;
     text-decoration: none;
-    transition: color .14s ease, background .14s ease;
+    transition: color .12s ease, background .12s ease;
     white-space: nowrap;
-    min-height: 34px;
+    min-height: 36px;
     box-sizing: border-box;
   }
   .portal-nav-item:hover:not(.active) {
-    color: var(--portal-text, #0f0f10);
-    background: var(--glass-nav-hover, rgba(0,0,0,.035));
+    color: var(--portal-text, #1c1c1e);
+    background: rgba(0,0,0,.035);
     box-shadow: none;
   }
   .portal-nav-item.active {
-    color: var(--portal-text, #0f0f10);
-    background: var(--glass-nav-active, rgba(0,0,0,.055));
+    color: var(--portal-text, #1c1c1e);
+    background: rgba(0,0,0,.05);
     box-shadow: none;
-    font-weight: 500;
+    font-weight: 400;
   }
 
   [data-theme="dark"] .portal-nav-item:hover:not(.active),
   [data-theme="classic-dark"] .portal-nav-item:hover:not(.active) {
-    background: var(--glass-nav-hover, rgba(255,255,255,.06));
+    background: rgba(255,255,255,.06);
   }
   [data-theme="dark"] .portal-nav-item.active,
   [data-theme="classic-dark"] .portal-nav-item.active {
-    background: var(--glass-nav-active, rgba(255,255,255,.09));
+    background: rgba(255,255,255,.09);
     box-shadow: none;
   }
 
   .portal-nav-icon-wrap {
     position: relative;
     display: inline-flex; align-items: center; justify-content: center;
-    width: 16px; height: 16px; flex-shrink: 0;
+    width: 18px; height: 18px; flex-shrink: 0;
   }
   .portal-nav-badge {
-    position: absolute; top: -2px; right: -3px;
-    width: 6px; height: 6px; border-radius: 50%;
+    position: absolute; top: -2px; right: -4px;
+    width: 7px; height: 7px; border-radius: 50%;
     background: #007aff;
-    border: 1.5px solid var(--portal-bg, #F6F9FC);
+    border: 1.5px solid var(--portal-bg, #F6F6F7);
   }
   .portal-nav-item.active .portal-nav-badge {
-    border-color: var(--glass-nav-active, rgba(0,0,0,.055));
+    border-color: rgba(0,0,0,.05);
   }
 
   .portal-nav-label {
     font-size: 13px; font-weight: inherit;
-    letter-spacing: var(--ls-sidebar, 0.005em);
+    letter-spacing: 0;
     overflow: hidden; text-overflow: ellipsis;
     transition: opacity .18s ease, width .18s ease;
   }
@@ -365,8 +369,8 @@ const CSS = `
     flex: 1 1 auto;
     min-height: 0;
     display: flex; flex-direction: column;
-    gap: 2px;
-    margin-top: 14px;
+    gap: 6px;
+    margin-top: 18px;
     padding-top: 0;
     border-top: none;
     overflow: hidden;
@@ -374,11 +378,11 @@ const CSS = `
   }
 
   .portal-nav-recent-label {
-    margin: 0 0 2px 10px;
-    font-size: 13px; font-weight: 400;
-    color: var(--portal-muted, #8f93a4);
-    letter-spacing: var(--ls-sidebar, 0.005em);
-    text-transform: none;
+    margin: 0 0 4px 12px;
+    font-size: 11px; font-weight: 500;
+    color: var(--portal-muted, #8e8e93);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
   }
 
   .portal-nav-recent {
@@ -387,21 +391,22 @@ const CSS = `
     min-height: 0;
     overflow-y: auto;
     scrollbar-width: none;
-    padding: 0 2px;
+    padding: 0;
   }
   .portal-nav-recent::-webkit-scrollbar { display: none; }
 
   .portal-nav-recent-item {
-    display: flex; align-items: center;
-    padding: 8px 10px;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 10px;
+    padding: 0 12px;
     min-height: 34px;
     border-radius: 10px;
     font-size: 13px; font-weight: 400;
-    line-height: 1;
-    color: var(--portal-muted, #6e717e);
+    line-height: 1.2;
+    color: var(--portal-text, #1c1c1e);
     text-decoration: none;
-    letter-spacing: var(--ls-sidebar, 0.005em);
-    transition: color .14s ease, background .14s ease;
+    letter-spacing: 0;
+    transition: color .12s ease, background .12s ease;
     box-sizing: border-box;
   }
   .portal-nav-recent-text {
@@ -409,23 +414,30 @@ const CSS = `
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     font-size: 13px;
     font-weight: 400;
+    color: var(--portal-text, #1c1c1e);
+  }
+  .portal-nav-recent-age {
+    flex-shrink: 0;
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--portal-muted, #8e8e93);
+    font-variant-numeric: tabular-nums;
   }
   .portal-nav-recent-item:hover {
-    color: var(--portal-text, #0f0f10);
-    background: var(--glass-nav-hover, rgba(0,0,0,.035));
+    background: rgba(0,0,0,.035);
   }
   [data-theme="dark"] .portal-nav-recent-item:hover,
   [data-theme="classic-dark"] .portal-nav-recent-item:hover {
-    background: var(--glass-nav-hover, rgba(255,255,255,.06));
+    background: rgba(255,255,255,.06);
   }
 
   .portal-nav-footer {
     flex-shrink: 0;
     display: flex; align-items: center; justify-content: space-between;
     gap: 8px;
-    padding: 10px 4px 2px;
-    margin-top: 8px;
-    border-top: none;
+    padding: 12px 4px 0;
+    margin-top: 10px;
+    border-top: 0;
   }
 
   .portal-nav-footer-link {
@@ -433,35 +445,37 @@ const CSS = `
     padding: 6px 8px;
     border-radius: 8px;
     font-size: 13px; font-weight: 400;
-    color: var(--portal-muted, #6e717e);
+    color: var(--portal-muted, #6b6b6f);
     text-decoration: none;
-    transition: color .14s ease, background .14s ease;
+    transition: color .12s ease, background .12s ease;
   }
   .portal-nav-footer-link:hover {
-    color: var(--portal-text, #0f0f10);
-    background: var(--glass-nav-hover, rgba(0,0,0,.035));
+    color: var(--portal-text, #1c1c1e);
+    background: rgba(0,0,0,.035);
   }
 
   .portal-nav-footer-btn {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 5px 12px;
+    display: inline-flex; align-items: center; justify-content: center;
+    padding: 6px 14px;
     border-radius: 999px;
-    border: 1px solid color-mix(in srgb, var(--sidebar-border, #e8e8e8) 100%, transparent);
-    background: #fff;
-    font-size: 12.5px; font-weight: 500;
-    color: var(--portal-text, #0f0f10);
+    border: 0;
+    background: rgba(0,0,0,.06);
+    font-size: 12.5px; font-weight: 400;
+    color: var(--portal-text, #1c1c1e);
     text-decoration: none;
-    transition: background .14s ease, border-color .14s ease;
+    transition: background .12s ease;
   }
   .portal-nav-footer-btn:hover {
-    background: var(--glass-nav-hover, rgba(0,0,0,.02));
-    border-color: color-mix(in srgb, var(--sidebar-border, #e8e8e8) 120%, #c8c8c8);
+    background: rgba(0,0,0,.09);
   }
   [data-theme="dark"] .portal-nav-footer-btn,
   [data-theme="classic-dark"] .portal-nav-footer-btn {
-    background: rgba(255,255,255,.04);
-    border-color: rgba(255,255,255,.1);
+    background: rgba(255,255,255,.08);
     color: var(--portal-text, #f4f4f4);
+  }
+  [data-theme="dark"] .portal-nav-footer-btn:hover,
+  [data-theme="classic-dark"] .portal-nav-footer-btn:hover {
+    background: rgba(255,255,255,.12);
   }
 
   /* ── Collapsed rail ── */

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
@@ -13,7 +13,7 @@ type WelcomeData = {
   ownerName?: string
 }
 
-export default function ObserverWelcomeModal() {
+function ObserverWelcomeModalInner() {
   const params = useSearchParams()
   const router = useRouter()
   const [data, setData] = useState<WelcomeData | null>(null)
@@ -195,4 +195,12 @@ export default function ObserverWelcomeModal() {
     </div>
   )
   return createPortal(node, document.body)
+}
+
+export default function ObserverWelcomeModal() {
+  return (
+    <Suspense fallback={null}>
+      <ObserverWelcomeModalInner />
+    </Suspense>
+  )
 }

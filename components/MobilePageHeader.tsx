@@ -1,254 +1,193 @@
 'use client'
 
 /**
- * MobilePageHeader — 1:1 with the Linear "My issues" mobile header.
- *
- * Layout (mobile ≤768px):
- *
- *   My issues                              ┌────────┐
- *                                          │  ✎  ⋯  │   ← single white capsule
- *                                          └────────┘
- *
- *   Assigned │ ▽    Created   Subscribed   ← optional tabs row
- *
- * Title: very large (32px), weight 700, dark.
- * Right action pill: ONE pill, 56% rounded ends, holding the primary
- * action icon + a ⋯ More icon. Hairline border, soft shadow.
- *
- * Desktop is untouched — this component renders nothing above 768px so
- * each page's existing desktop chrome (PageHeader, AppPageHeader, etc.)
- * stays in charge there.
+ * MobilePageHeader — Codex-style mobile chrome.
+ * Two floating shadow orbs (menu + more), large title below — no stroke capsule.
  */
 
 import { useState } from 'react'
-import { DotsThree } from '@phosphor-icons/react'
+import { DotsThree, List } from '@phosphor-icons/react'
 import type { ReactNode } from 'react'
-
-// Phosphor's Icon type has a heavier generic signature than the props we
-// actually pass; React.ElementType keeps the call sites simple without
-// losing type safety at the usage site.
-type Glyph = React.ElementType
+import CodexOrbButton from '@/components/mobile/CodexOrbButton'
+import MobileNavSheet from '@/components/mobile/MobileNavSheet'
+import { CODEX_ORB_CSS } from '@/components/mobile/codex-mobile-styles'
 
 export type MobileMenuItem = {
   id: string
   label: string
-  icon?: Glyph
+  icon?: React.ElementType
   onClick?: () => void
   href?: string
   destructive?: boolean
 }
 
 export type MobilePageHeaderProps = {
-  /** The page title — Linear-style, large + bold. */
   title: ReactNode
-  /** Optional primary action icon button inside the right capsule
-   *  (e.g. "Edit" pencil). When omitted, the capsule only shows ⋯. */
-  primaryIcon?: Glyph
+  primaryIcon?: React.ElementType
   primaryLabel?: string
   onPrimary?: () => void
-  /** Items shown when the ⋯ menu is opened. When empty, the dots become
-   *  a static visual marker (still rendered for symmetry). */
   menuItems?: MobileMenuItem[]
-  /** Optional tabs row underneath (Assigned/Created/Subscribed style). */
   tabs?: ReactNode
+  showNav?: boolean
 }
 
 export default function MobilePageHeader({
-  title, primaryIcon: PrimaryIcon, primaryLabel = 'Aktion', onPrimary,
-  menuItems = [], tabs,
+  title,
+  primaryIcon: PrimaryIcon,
+  primaryLabel = 'Aktion',
+  onPrimary,
+  menuItems = [],
+  tabs,
+  showNav = true,
 }: MobilePageHeaderProps) {
+  const [navOpen, setNavOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
 
   return (
     <header className="mph">
-      <h1 className="mph-title">{title}</h1>
+      <style>{CODEX_ORB_CSS}</style>
 
-      {/* Single capsule on the right — exactly the Linear pattern. */}
-      <div className="mph-capsule">
-        {PrimaryIcon ? (
-          <button
-            type="button"
-            className="mph-icon-btn"
-            aria-label={primaryLabel}
-            title={primaryLabel}
-            onClick={onPrimary}
-          >
-            <PrimaryIcon size={20} weight="bold" />
-          </button>
-        ) : null}
-        {menuItems.length > 0 ? (
-          <button
-            type="button"
-            className="mph-icon-btn"
-            aria-label="Mehr"
-            aria-expanded={menuOpen}
-            onClick={() => setMenuOpen(v => !v)}
-          >
-            <DotsThree size={22} weight="bold" />
-          </button>
+      <div className="mph-top">
+        {showNav ? (
+          <CodexOrbButton ariaLabel="Menü" onClick={() => setNavOpen(true)}>
+            <List size={20} weight="regular" />
+          </CodexOrbButton>
         ) : (
-          <span className="mph-icon-btn mph-icon-btn--static" aria-hidden>
+          <span className="mph-spacer" aria-hidden />
+        )}
+
+        {menuItems.length > 0 || PrimaryIcon ? (
+          <CodexOrbButton ariaLabel="Mehr" onClick={() => setMenuOpen(v => !v)}>
             <DotsThree size={22} weight="bold" />
-          </span>
+          </CodexOrbButton>
+        ) : (
+          <span className="mph-spacer" aria-hidden />
         )}
       </div>
 
+      <h1 className="mph-title">{title}</h1>
       {tabs ? <div className="mph-tabs">{tabs}</div> : null}
 
-      {/* Action menu (anchored to the capsule). */}
-      {menuOpen && menuItems.length > 0 ? (
+      <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
+
+      {menuOpen && (menuItems.length > 0 || PrimaryIcon) && (
         <>
-          <button
-            type="button"
-            className="mph-menu-backdrop"
-            aria-label="Schließen"
-            onClick={() => setMenuOpen(false)}
-          />
+          <button type="button" className="mph-backdrop" aria-label="Schließen" onClick={() => setMenuOpen(false)} />
           <div className="mph-menu" role="menu">
+            {PrimaryIcon && onPrimary ? (
+              <button
+                type="button"
+                className="mph-menu-item"
+                onClick={() => { setMenuOpen(false); onPrimary() }}
+              >
+                <PrimaryIcon size={16} weight="regular" />
+                <span>{primaryLabel}</span>
+              </button>
+            ) : null}
             {menuItems.map(item => {
               const Icon = item.icon
               const onClick = () => { setMenuOpen(false); item.onClick?.() }
               const content = (
                 <>
-                  {Icon ? <span className="mph-menu-ico"><Icon size={16} weight="bold" /></span> : null}
-                  <span className="mph-menu-label">{item.label}</span>
+                  {Icon ? <Icon size={16} weight="regular" /> : null}
+                  <span>{item.label}</span>
                 </>
               )
               return item.href
-                ? <a key={item.id} href={item.href} className={`mph-menu-item${item.destructive ? ' is-destructive' : ''}`} onClick={() => setMenuOpen(false)}>{content}</a>
-                : <button key={item.id} type="button" role="menuitem" className={`mph-menu-item${item.destructive ? ' is-destructive' : ''}`} onClick={onClick}>{content}</button>
+                ? (
+                  <a
+                    key={item.id}
+                    href={item.href}
+                    className={`mph-menu-item${item.destructive ? ' is-destructive' : ''}`}
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    {content}
+                  </a>
+                )
+                : (
+                  <button
+                    key={item.id}
+                    type="button"
+                    role="menuitem"
+                    className={`mph-menu-item${item.destructive ? ' is-destructive' : ''}`}
+                    onClick={onClick}
+                  >
+                    {content}
+                  </button>
+                )
             })}
           </div>
         </>
-      ) : null}
+      )}
 
       <style jsx>{`
         .mph { display: none; }
         @media (max-width: 768px) {
           .mph {
             position: relative;
-            display: grid;
-            grid-template-columns: 1fr auto;
-            grid-template-rows: auto;
-            align-items: center;
-            gap: 12px;
-            padding: 14px 18px 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            padding:
+              calc(8px + env(safe-area-inset-top, 0px))
+              20px 12px;
           }
+          .mph-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 18px;
+          }
+          .mph-spacer { width: 44px; height: 44px; flex-shrink: 0; }
           .mph-title {
             margin: 0;
-            grid-column: 1;
             font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
-            font-size: 28px;
-            font-weight: 400;
-            line-height: 1.12;
-            letter-spacing: -0.01em;
-            color: var(--text, #111);
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
+            font-size: 34px;
+            font-weight: 500;
+            line-height: 1.08;
+            letter-spacing: -0.025em;
+            color: var(--text, #0f0f10);
           }
-          .mph-tabs {
-            grid-column: 1 / -1;
-            margin-top: 6px;
-          }
+          .mph-tabs { margin-top: 14px; }
         }
-
-        /* The right-side single white capsule. */
-        .mph-capsule {
-          grid-column: 2;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          width: 42px;
-          height: 42px;
-          padding: 0;
-          gap: 0;
-          font-size: 13px;
-          color: #1C1C1E;
-          background: #fff;
-          border: 1.5px solid rgba(15, 23, 42, 0.1);
-          border-radius: 999px;
-          box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
-        }
-        :global([data-theme="dark"]) .mph-capsule,
-        :global([data-theme="classic-dark"]) .mph-capsule {
-          background: rgba(255,255,255,0.06);
-          border-color: rgba(255,255,255,0.10);
-          box-shadow: none;
-        }
-        .mph-icon-btn {
-          width: 42px; height: 42px;
-          display: inline-flex; align-items: center; justify-content: center;
-          background: transparent;
-          color: #1C1C1E;
-          border: 0;
-          border-radius: 999px;
-          cursor: pointer;
-          -webkit-tap-highlight-color: transparent;
-          transition: background .12s ease;
-        }
-        .mph-icon-btn:hover,
-        .mph-icon-btn:active {
-          background: color-mix(in srgb, var(--surface-2) 70%, transparent);
-        }
-        :global([data-theme="dark"]) .mph-icon-btn,
-        :global([data-theme="classic-dark"]) .mph-icon-btn { color: #F4F4F4; }
-        :global([data-theme="dark"]) .mph-icon-btn:hover,
-        :global([data-theme="classic-dark"]) .mph-icon-btn:hover {
-          background: rgba(255,255,255,0.06);
-        }
-        .mph-icon-btn--static { cursor: default; }
-        .mph-icon-btn--static:hover { background: transparent; }
-
-        /* Anchored menu under the capsule. */
-        .mph-menu-backdrop {
-          position: fixed; inset: 0;
-          background: transparent;
-          border: 0; padding: 0; cursor: default;
-          z-index: 89;
+        .mph-backdrop {
+          position: fixed; inset: 0; z-index: 89;
+          background: transparent; border: 0; padding: 0; cursor: default;
         }
         .mph-menu {
           position: absolute;
-          top: calc(100% - 4px);
-          right: 18px;
+          top: calc(env(safe-area-inset-top, 0px) + 56px);
+          right: 20px;
           z-index: 90;
           min-width: 200px;
           padding: 6px;
           background: var(--surface, #fff);
-          border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
           border-radius: 14px;
-          box-shadow: 0 18px 40px -20px rgba(15,23,42,.32);
-          animation: mphIn .14s cubic-bezier(.16,1,.3,1) both;
+          box-shadow: 0 18px 40px -16px rgba(15, 23, 42, 0.28);
+          animation: mphIn .14s cubic-bezier(.16, 1, .3, 1) both;
         }
-        :global([data-theme="dark"]) .mph-menu,
-        :global([data-theme="classic-dark"]) .mph-menu {
-          background: #1C1C1E;
-          border-color: rgba(255,255,255,0.08);
-          box-shadow: 0 18px 40px -20px rgba(0,0,0,.7);
+        @keyframes mphIn {
+          from { opacity: 0; transform: translateY(-6px); }
+          to { opacity: 1; transform: translateY(0); }
         }
-        @keyframes mphIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
         .mph-menu-item {
           width: 100%;
           display: flex; align-items: center; gap: 10px;
+          min-height: 40px;
+          padding: 0 12px;
+          border: 0; border-radius: 10px;
           background: transparent;
           color: var(--text, #111);
-          border: 0; border-radius: 10px;
-          padding: 10px 12px;
           font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
           font-size: 14px; font-weight: 400;
           text-align: left; text-decoration: none;
           cursor: pointer;
-          transition: background .12s ease;
         }
         .mph-menu-item:hover,
-        .mph-menu-item:active { background: color-mix(in srgb, var(--surface-2) 70%, transparent); }
-        :global([data-theme="dark"]) .mph-menu-item,
-        :global([data-theme="classic-dark"]) .mph-menu-item { color: #F4F4F4; }
-        :global([data-theme="dark"]) .mph-menu-item:hover,
-        :global([data-theme="classic-dark"]) .mph-menu-item:hover { background: rgba(255,255,255,0.06); }
-        .mph-menu-item.is-destructive { color: #E11D48; }
-        .mph-menu-ico { display: inline-flex; color: inherit; opacity: .82; }
-        .mph-menu-label { flex: 1 1 auto; }
+        .mph-menu-item:active {
+          background: color-mix(in srgb, var(--surface-2, #f1f3f5) 80%, transparent);
+        }
+        .mph-menu-item.is-destructive { color: #e11d48; }
       `}</style>
     </header>
   )

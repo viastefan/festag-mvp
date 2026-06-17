@@ -16,8 +16,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   // Neue schmale Rail-Sidebar liefern die Seiten künftig selbst.
   // /projects ist die erste Seite mit dem neuen Layout.
-  const usesOwnShell = pathname === '/dashboard'
-    || pathname === '/projects'
+  const usesOwnShell = pathname === '/projects'
     || pathname.startsWith('/decisions')
   if (usesOwnShell) return <>{children}</>
 

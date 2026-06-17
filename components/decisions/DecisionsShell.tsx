@@ -63,8 +63,9 @@ export const DECISIONS_SHELL_CSS = `
     width:var(--festag-sidebar-width, 260px); flex-shrink:0;
     box-sizing:border-box;
     display:flex; flex-direction:column;
-    background:transparent;
-    border-right:none;
+    background:var(--sidebar-bg, #F6F6F7);
+    border-right:0;
+    box-shadow:inset -1px 0 0 rgba(15,23,42,0.05);
     overflow:hidden;
     transition:width .22s cubic-bezier(.16,1,.3,1);
   }

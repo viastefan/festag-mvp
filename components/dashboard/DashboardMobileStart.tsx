@@ -8,11 +8,15 @@
 
 import Link from 'next/link'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Microphone, Square, X } from '@phosphor-icons/react'
+import { Check, Microphone, Square, X } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 import { getVoicePreferences } from '@/lib/voice'
 import { openTagro } from '@/components/TagroOverlay'
 import TagroDiamondDots from '@/components/dashboard/TagroDiamondDots'
+import CodexMobileTopBar from '@/components/mobile/CodexMobileTopBar'
+import MobileNavSheet from '@/components/mobile/MobileNavSheet'
+
+type ScopeOption = { id: string; label: string; color?: string | null }
 
 type Props = {
   sentences: string[]
@@ -20,6 +24,12 @@ type Props = {
   openDecisionsCount: number
   blockersCount: number
   scopeLabel: string
+  scopeOptions?: ScopeOption[]
+  activeScopeId?: string
+  onScopeChange?: (id: string) => void
+  periodLabel?: string
+  periodOptions?: string[]
+  onPeriodChange?: (p: string) => void
   onCreateReport: () => void
 }
 
@@ -42,12 +52,20 @@ export default function DashboardMobileStart({
   openDecisionsCount,
   blockersCount,
   scopeLabel,
+  scopeOptions = [],
+  activeScopeId,
+  onScopeChange,
+  periodLabel,
+  periodOptions = [],
+  onPeriodChange,
   onCreateReport,
 }: Props) {
   const [active, setActive] = useState(-1)
   const [playing, setPlaying] = useState(false)
   const [paused, setPaused] = useState(false)
   const [workspaceName, setWorkspaceName] = useState('')
+  const [navOpen, setNavOpen] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
   const bodyRef = useRef<HTMLDivElement | null>(null)
   const flowRef = useRef<HTMLDivElement | null>(null)
   const cancelledRef = useRef(false)
@@ -188,6 +206,60 @@ export default function DashboardMobileStart({
 
   return (
     <div className="dms" role="main" aria-label="Statusabfrage">
+      <CodexMobileTopBar
+        left="menu"
+        right="more"
+        onLeft={() => setNavOpen(true)}
+        onRight={() => setMenuOpen(v => !v)}
+      />
+      <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
+
+      {menuOpen && (
+        <>
+          <button type="button" className="dms-menu-backdrop" aria-label="Schließen" onClick={() => setMenuOpen(false)} />
+          <div className="dms-menu" role="menu">
+            <p className="dms-menu-head">Bericht</p>
+            {scopeOptions.map(o => (
+              <button
+                key={o.id}
+                type="button"
+                className={`dms-menu-item${o.id === activeScopeId ? ' on' : ''}`}
+                onClick={() => { onScopeChange?.(o.id); setMenuOpen(false) }}
+              >
+                <span>{o.label}</span>
+                {o.id === activeScopeId ? <Check size={14} weight="bold" /> : null}
+              </button>
+            ))}
+            {periodOptions.length > 0 && (
+              <>
+                <p className="dms-menu-head">Zeitraum</p>
+                {periodOptions.map(p => (
+                  <button
+                    key={p}
+                    type="button"
+                    className={`dms-menu-item${p === periodLabel ? ' on' : ''}`}
+                    onClick={() => { onPeriodChange?.(p); setMenuOpen(false) }}
+                  >
+                    <span>{p}</span>
+                    {p === periodLabel ? <Check size={14} weight="bold" /> : null}
+                  </button>
+                ))}
+              </>
+            )}
+            <button
+              type="button"
+              className="dms-menu-item"
+              onClick={() => {
+                setMenuOpen(false)
+                window.dispatchEvent(new CustomEvent('open-command-palette'))
+              }}
+            >
+              <span>Suchen</span>
+            </button>
+          </div>
+        </>
+      )}
+
       <header className="dms-head">
         <p className="dms-brand">{workspaceName}</p>
       </header>
@@ -331,7 +403,7 @@ export default function DashboardMobileStart({
             flex-shrink: 0;
             display: flex;
             justify-content: center;
-            padding: 8px 0 0;
+            padding: 52px 0 0;
           }
           .dms-brand {
             margin: 0;
@@ -487,10 +559,82 @@ export default function DashboardMobileStart({
             color: var(--dms-mic-fg);
             box-shadow: 0 8px 28px -10px rgba(0, 0, 0, 0.45);
           }
+
+          .dms-menu-backdrop {
+            position: fixed; inset: 0; z-index: 520;
+            background: rgba(0, 0, 0, 0.35);
+            border: 0; padding: 0; cursor: default;
+          }
+          .dms-menu {
+            position: fixed;
+            top: calc(env(safe-area-inset-top, 0px) + 60px);
+            right: 20px;
+            z-index: 521;
+            min-width: 220px;
+            padding: 8px;
+            border-radius: 16px;
+            background: #fff;
+            box-shadow: 0 16px 48px rgba(15, 23, 42, 0.18);
+            font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+          }
+          :global([data-theme="dark"]) .dms-menu,
+          :global([data-theme="classic-dark"]) .dms-menu {
+            background: #1c1c1e;
+            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+          }
+          .dms-menu-head {
+            margin: 6px 10px 4px;
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--dms-scope-fg);
+          }
+          .dms-menu-item {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            min-height: 40px;
+            padding: 0 12px;
+            border: 0;
+            border-radius: 10px;
+            background: transparent;
+            color: var(--dms-text);
+            font: inherit;
+            font-size: 14px;
+            font-weight: 400;
+            text-align: left;
+            cursor: pointer;
+          }
+          .dms-menu-item.on {
+            background: var(--dms-ctl-bg);
+          }
+          .dms-menu-item:active {
+            background: var(--dms-ctl-bg);
+          }
           :global([data-theme="light"]) .dms-mic,
           :global([data-theme="read"]) .dms-mic,
           :global([data-theme="pure-light"]) .dms-mic {
             box-shadow: 0 8px 24px -10px rgba(15, 15, 16, 0.28);
+          }
+
+          .dms :global(.cx-orb) {
+            --cx-orb-bg: rgba(255, 255, 255, 0.1);
+            --cx-orb-bg-active: rgba(255, 255, 255, 0.14);
+            --cx-orb-fg: rgba(255, 255, 255, 0.88);
+            box-shadow: none;
+          }
+          :global([data-theme="light"]) .dms :global(.cx-orb),
+          :global([data-theme="read"]) .dms :global(.cx-orb),
+          :global([data-theme="pure-light"]) .dms :global(.cx-orb) {
+            --cx-orb-bg: #fff;
+            --cx-orb-bg-active: #f8f8f8;
+            --cx-orb-fg: #1c1c1e;
+            box-shadow:
+              0 2px 10px rgba(0, 0, 0, 0.07),
+              0 1px 3px rgba(0, 0, 0, 0.04);
           }
         }
 

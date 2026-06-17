@@ -3,10 +3,11 @@
 import { Suspense, useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
-import { ArrowLeft, Clock } from '@phosphor-icons/react'
+import { ArrowLeft, Clock, Lightning } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 import { openTagro } from '@/components/TagroOverlay'
 import TagroContentFab from '@/components/TagroContentFab'
+import MobilePageHeader from '@/components/MobilePageHeader'
 import {
   MOCK_DECISIONS,
   MOCK_PROJECTS,
@@ -74,7 +75,8 @@ function DecisionDetailInner() {
     return (
       <div className="dec-os dec-os-detail">
         <style>{DECISION_CSS}</style>
-        <div className="dec-detail-hero">
+        <MobilePageHeader title="Entscheidung" backHref="/decisions" />
+        <div className="dec-detail-hero dec-detail-hero--loading">
           <p className="dec-detail-loading">Entscheidung wird geladen…</p>
         </div>
       </div>
@@ -85,9 +87,11 @@ function DecisionDetailInner() {
     return (
       <div className="dec-os dec-os-detail">
         <style>{DECISION_CSS}</style>
+        <MobilePageHeader title="Entscheidung" backHref="/decisions" />
         <div className="dec-detail-empty">
-          <p>Entscheidung nicht gefunden.</p>
-          <Link href="/decisions" className="dec-detail-back">
+          <p className="dec-detail-empty-title">Entscheidung nicht gefunden.</p>
+          <p className="dec-detail-empty-copy">Sie wurde möglicherweise archiviert oder du hast keinen Zugriff.</p>
+          <Link href="/decisions" className="dec-detail-back dec-detail-back-btn">
             <ArrowLeft size={16} />
             Zurück zur Übersicht
           </Link>
@@ -107,9 +111,27 @@ function DecisionDetailInner() {
   return (
     <div className="dec-os dec-os-detail">
       <style>{DECISION_CSS}</style>
+
+      <MobilePageHeader
+        title="Entscheidung"
+        backHref="/decisions"
+        menuItems={[
+          {
+            id: 'tagro',
+            label: 'Mit Tagro bearbeiten',
+            onClick: () => openTagro({
+              contextType: 'decision',
+              id: decision.id,
+              title,
+              subtitle: project?.title,
+            }),
+          },
+        ]}
+      />
+
       <header className="dec-detail-hero">
         <div className="dec-detail-toolbar">
-          <Link href="/decisions" className="dec-detail-back">
+          <Link href="/decisions" className="dec-detail-back dec-detail-back-desktop">
             <ArrowLeft size={14} weight="regular" />
             Alle Entscheidungen
           </Link>
@@ -123,12 +145,14 @@ function DecisionDetailInner() {
               subtitle: project?.title,
             })}
           >
+            <Lightning size={14} weight="fill" />
             Mit Tagro bearbeiten
           </button>
         </div>
 
         <div className="dec-detail-hero-main">
           <div className="dec-detail-hero-text">
+            <p className="dec-detail-kicker">Entscheidung</p>
             <h1 className="dec-detail-title">{title}</h1>
             {subtitle && <p className="dec-detail-subtitle">{subtitle}</p>}
           </div>

@@ -242,7 +242,7 @@ export default function SidebarProfileFooter({
         style={{
           width: '100%', minWidth: 0,
           display: 'flex', alignItems: 'center', gap: 9,
-          padding: '5px 8px 5px 5px', borderRadius: 8,
+          padding: '4px 8px 4px 4px', borderRadius: 10,
           background: open ? 'var(--surface-2)' : 'transparent',
           border: 'none', cursor: 'pointer', fontFamily: 'inherit',
           transition: 'background .1s', justifyContent: 'flex-start',
@@ -265,19 +265,11 @@ export default function SidebarProfileFooter({
 
         <span style={{ flex: '1 1 auto', minWidth: 0, display: 'inline-flex', alignItems: 'center', gap: 6, overflow: 'hidden' }}>
           <span style={{
-            fontSize: 12.5, fontWeight: 500, color: 'var(--text)', letterSpacing: '0.02em',
+            fontSize: 13, fontWeight: 400, color: 'var(--nav-on-text, var(--text))', letterSpacing: 0,
             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
           }}>
             {triggerName}
           </span>
-          {currentPlanLabel && (
-            <>
-              <span style={{ color: 'var(--text-muted)', fontSize: 11, flexShrink: 0 }}>·</span>
-              <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--text-muted)', letterSpacing: '0.02em', flexShrink: 0 }}>
-                {currentPlanLabel}
-              </span>
-            </>
-          )}
         </span>
 
         <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2.5" strokeLinecap="round" style={{ flexShrink: 0, opacity: .55 }}>

@@ -23,8 +23,10 @@ import InviteLinkModal from '@/components/InviteLinkModal'
 import EmptyState from '@/components/EmptyState'
 import {
   FunnelSimple, SlidersHorizontal, Plus, PencilSimple, DotsThree,
-  User, UsersThree, Stack, MagnifyingGlass, DotsNine, Copy, Check, X,
+  User, UsersThree, Stack, MagnifyingGlass, DotsNine, Copy, Check, X, Folder, CaretRight,
 } from '@phosphor-icons/react'
+import CodexMobileTopBar from '@/components/mobile/CodexMobileTopBar'
+import MobileNavSheet from '@/components/mobile/MobileNavSheet'
 
 type ProjectRow = {
   id: string
@@ -151,6 +153,7 @@ function ProjectsPageInner() {
   const [supportUrgency, setSupportUrgency] = useState<'normal' | 'today' | 'now'>('normal')
   const [supportSending, setSupportSending] = useState(false)
   const [supportSent, setSupportSent] = useState(false)
+  const [navOpen, setNavOpen] = useState(false)
   const searchParams = useSearchParams()
   const supabase = useMemo(() => createClient(), [])
 
@@ -290,19 +293,21 @@ function ProjectsPageInner() {
 
       <RailSidebar />
 
-      {/* Mobile header icons (top-right): connected pill */}
-      <div className="pjm-header-icons">
-        <button type="button" aria-label="Suche"><MagnifyingGlass size={20} weight="regular" /></button>
-        <button type="button" aria-label="Ansicht"><DotsNine size={20} weight="regular" /></button>
-      </div>
+      <CodexMobileTopBar
+        left="menu"
+        right="search"
+        onLeft={() => setNavOpen(true)}
+        onRight={() => window.dispatchEvent(new CustomEvent('open-command-palette'))}
+      />
+      <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
 
       <main className="pj2-main">
         <div className="pj2-card">
           <div className="pj2-sticky-head">
           <header className="pj2-head">
             <div className="pj2-title">
-              <h1><span className="pj2-dt">Alle Projekte.</span><span className="pjm-t">Aktuelle Projekte.</span></h1>
-              <p><span className="pj2-dt">Auf einem Blick. KI gesteuert.</span><span className="pjm-t">Alles auf einen Blick. </span></p>
+              <h1><span className="pj2-dt">Alle Projekte.</span><span className="pjm-t">Projekte</span></h1>
+              <p><span className="pj2-dt">Auf einem Blick. KI gesteuert.</span><span className="pjm-t pjm-status"><span className="pjm-status-dot" aria-hidden />{visible.length} {visible.length === 1 ? 'Projekt' : 'Projekte'}</span></p>
             </div>
             <div className="pj2-actions pj2-dt">
               <div className="pj2-tool-group">
@@ -403,6 +408,8 @@ function ProjectsPageInner() {
           </div>
           </div>{/* /pj2-sticky-head */}
 
+          <h2 className="pjm-section">Projekte</h2>
+
           <div className="pj2-table">
             <div className="pj2-row pj2-thead">
               <span>Projekt</span>
@@ -446,6 +453,7 @@ function ProjectsPageInner() {
                   >
                     {/* Left: name + status (desktop grid cells + mobile left block) */}
                     <span className="pj2-left">
+                      <span className="pjm-folder" aria-hidden><Folder size={18} weight="regular" /></span>
                       <span className="pj2-name">
                         <span className="pj2-name-row">
                           <strong>{project.title}</strong>
@@ -486,6 +494,7 @@ function ProjectsPageInner() {
                         )}
                       </span>
                       <span className="pj2-date">{relTime(project.updated_at || project.created_at)}</span>
+                      <span className="pjm-chevron" aria-hidden><CaretRight size={14} weight="bold" /></span>
                     </span>
                     <span className="pj2-teams" aria-label={isTeam ? 'Teamprojekt' : 'Einzeldev'}>
                       {isTeam ? (
@@ -705,15 +714,17 @@ const CSS = `
   /* ── Mobile-only / Desktop-only visibility ── */
   .pjm-t { display: none; }
   .pjm-header-icons { display: none; }
+  .pjm-section { display: none; }
+  .pjm-folder { display: none; }
+  .pjm-chevron { display: none; }
+  .pjm-status-dot { display: none; }
   .pjm-toolbar { display: none; }
   .pjm-dock { display: none; }
   .pjm-icon-sep { display: none; }
 
-  .pj2-page {
-    position: fixed; inset: 0;
-    background: rgba(240,240,240,0.9);
-    backdrop-filter: blur(40px) saturate(1.4);
-    -webkit-backdrop-filter: blur(40px) saturate(1.4);
+    .pj2-page {
+      position: fixed; inset: 0;
+      background: #fff;
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
     color: #0F0F10;
     color-scheme: light;
@@ -1266,38 +1277,45 @@ const CSS = `
     :global(.mcd) { display: none !important; }
 
     /* ── Mobile header icons: Codex-style floating circles ── */
-    .pjm-header-icons {
-      display: flex !important;
+    .pjm-header-icons { display: none !important; }
+
+    .pj2-page :global(.cx-topbar) {
       position: fixed;
-      top: calc(env(safe-area-inset-top, 12px) + 4px);
-      right: 20px;
-      z-index: 20;
-      gap: 10px;
+      z-index: 30;
+    }
+
+    .pjm-section {
+      display: block !important;
+      margin: 8px 0 12px;
+      padding: 0 4px;
+      font-size: 15px;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+      color: #0f0f10;
+    }
+    .pjm-status {
+      display: inline-flex !important;
       align-items: center;
-      background: transparent !important;
-      border: 0 !important;
-      border-radius: 0 !important;
-      padding: 0 !important;
-      box-shadow: none !important;
+      gap: 8px;
+      font-size: 14px !important;
+      font-weight: 400 !important;
+      color: #6e717e !important;
     }
-    .pjm-header-icons button {
-      width: 44px !important; height: 44px !important;
-      min-width: 0 !important;
-      border: 0 !important; border-radius: 999px !important;
-      background: #FFFFFF !important;
-      color: #1C1C1E !important;
-      display: inline-flex !important; align-items: center !important; justify-content: center !important;
-      cursor: pointer;
-      padding: 0 !important;
-      box-shadow:
-        0 2px 10px rgba(0, 0, 0, 0.07),
-        0 1px 3px rgba(0, 0, 0, 0.04) !important;
+    .pjm-status-dot {
+      display: inline-block !important;
+      width: 8px; height: 8px;
+      border-radius: 999px;
+      background: #34c759;
+      flex-shrink: 0;
     }
-    .pjm-header-icons button:active {
-      background: #F8F8F8 !important;
-      transform: scale(0.97);
+
+    .pjm-folder {
+      display: none !important;
     }
-    .pjm-icon-sep { display: none !important; }
+    .pjm-chevron {
+      display: none !important;
+      color: #c7cdd6;
+    }
 
     /* ── Main layout ── */
     .pj2-main {
@@ -1310,7 +1328,7 @@ const CSS = `
       flex: 1 !important; min-height: 0 !important;
       background: transparent !important;
       border-radius: 0 !important;
-      padding: 28px 24px 160px !important;
+      padding: calc(64px + env(safe-area-inset-top, 0px)) 20px 160px !important;
       overflow-y: auto !important;
       overflow-x: hidden !important;
       box-shadow: none !important;
@@ -1454,17 +1472,17 @@ const CSS = `
     /* ── Project items ── */
     .pj2-row.pj2-item {
       display: flex !important;
-      align-items: flex-start !important;
+      align-items: center !important;
       justify-content: space-between !important;
-      padding: 18px 12px !important;
+      padding: 14px 8px !important;
       height: auto !important;
-      min-height: 56px !important;
+      min-height: 52px !important;
       border-radius: 12px !important;
       background: transparent !important;
       box-shadow: none !important;
       margin: 0 !important;
       column-gap: 0 !important;
-      border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+      border-bottom: 0 !important;
       transition: background .12s ease;
       -webkit-tap-highlight-color: transparent;
     }
@@ -1478,10 +1496,24 @@ const CSS = `
     /* ── Left block ── */
     .pj2-left {
       display: flex !important;
-      flex-direction: column !important;
-      gap: 6px !important;
+      flex-direction: row !important;
+      align-items: center !important;
+      gap: 12px !important;
       flex: 1 !important;
       min-width: 0 !important;
+    }
+    .pjm-folder {
+      display: inline-flex !important;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      color: #6e717e;
+    }
+    .pj2-status { display: none !important; }
+    .pjm-chevron {
+      display: inline-flex !important;
+      align-items: center;
+      margin-left: 4px;
     }
     .pj2-name {
       display: flex !important; flex-direction: column !important; gap: 3px !important;

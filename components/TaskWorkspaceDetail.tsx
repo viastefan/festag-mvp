@@ -11,6 +11,7 @@ import TagroLogo from '@/components/TagroLogo'
 import NewTaskModal from '@/components/NewTaskModal'
 import TagroMobileBar from '@/components/TagroMobileBar'
 import MobileObjectMenu from '@/components/MobileObjectMenu'
+import MobileObjectPrep from '@/components/mobile/MobileObjectPrep'
 import { openTagro } from '@/components/TagroOverlay'
 import {
   ArrowLeft,
@@ -529,7 +530,34 @@ export default function TaskWorkspaceDetail({ taskId, projectId }: TaskWorkspace
   const TaskGroupIcon = TASK_DETAIL_GROUP_ICONS[taskGroup.key]
 
   return (
-    <div className="task-detail-shell">
+    <>
+      <MobileObjectPrep
+        backHref={project?.id ? `/project/${project.id}?tab=tasks` : '/tasks'}
+        title={task.title}
+        subtitle={`${project?.title ?? 'Projekt'} · ${statusLabel(taskState(task))}`}
+        avatars={[
+          { label: project?.title ?? 'P', color: project?.color ?? '#5B647D' },
+          { label: ownerName.slice(0, 1), color: '#8f93a4' },
+        ]}
+        sections={[
+          {
+            title: 'Deine nächsten Schritte',
+            items: [
+              ...(decisionNeeded ? [{ id: 'dec', label: 'Entscheidung zu dieser Aufgabe treffen' }] : []),
+              ...(riskVisible ? [{ id: 'risk', label: 'Risiko mit Tagro einordnen' }] : []),
+              { id: 'status', label: `Status: ${statusLabel(taskState(task))}` },
+              { id: 'owner', label: `Verantwortlich: ${ownerName}` },
+            ],
+          },
+        ]}
+        contextLines={[
+          tagroExplanation || description,
+          latestUpdate !== 'Noch kein belastbares Update vorhanden.' ? `Letztes Update: ${latestUpdate}` : '',
+        ].filter(Boolean)}
+        tagroContext={{ type: 'task', id: task.id, title: task.title }}
+      />
+
+    <div className="task-detail-shell task-detail-desktop">
       <style>{detailStyles}</style>
 
       <div className="task-detail-topbar">
@@ -749,6 +777,7 @@ export default function TaskWorkspaceDetail({ taskId, projectId }: TaskWorkspace
         ]}
       />
     </div>
+    </>
   )
 }
 
@@ -1298,6 +1327,9 @@ const detailStyles = `
     }
   }
   @media(max-width:760px) {
+    .task-detail-desktop {
+      display: none !important;
+    }
     .task-detail-shell {
       padding:14px 12px calc(96px + var(--safe-bottom));
     }

@@ -62,20 +62,22 @@ export default function SettingsSidebar() {
         .sset {
           display: flex; flex-direction: column;
           height: 100%; min-height: 0;
-          padding: 12px 10px 18px;
+          padding: 16px 14px 18px;
           color: var(--text);
           font-family: var(--font-aeonik,'Aeonik',Inter,sans-serif);
           font-weight: 400;
-          letter-spacing: var(--ls-sidebar, .005em);
+          letter-spacing: 0;
           pointer-events: all;
           background: var(--sidebar-bg);
-          border-right: 1px solid var(--sidebar-border);
+          border-right: 0;
+          box-shadow: inset -1px 0 0 rgba(15,23,42,0.05);
         }
         .sset-back {
           display: inline-flex; align-items: center; gap: 8px;
-          padding: 8px 10px; margin: 0 2px 16px;
-          border-radius: 10px;
-          font-size: 13px; font-weight: 400; letter-spacing: var(--ls-sidebar, .005em);
+          padding: 0 12px; margin: 0 0 18px;
+          min-height: 36px;
+          border-radius: 12px;
+          font-size: 13px; font-weight: 400; letter-spacing: 0;
           color: var(--nav-off-text);
           text-decoration: none;
           transition: background .12s, color .12s;
@@ -84,18 +86,19 @@ export default function SettingsSidebar() {
         [data-theme="dark"] .sset-back:hover { background: var(--glass-nav-hover, rgba(255,255,255,.06)); }
         .sset-group { margin-bottom: 12px; }
         .sset-group-label {
-          padding: 6px 12px 6px;
-          font-size: 12px; font-weight: 400; letter-spacing: var(--ls-sidebar, .005em);
-          color: var(--nav-off-text);
+          padding: 6px 12px 8px;
+          font-size: 11px; font-weight: 500; letter-spacing: 0.05em;
+          text-transform: uppercase;
+          color: #8E8E93;
         }
         .sset-item {
-          display: flex; align-items: center; gap: 10px;
-          margin: 0 2px;
-          padding: 0 10px;
-          min-height: 34px;
-          border-radius: 10px;
+          display: flex; align-items: center; gap: 12px;
+          margin: 0;
+          padding: 0 12px;
+          min-height: 36px;
+          border-radius: 12px;
           font-size: 13px; font-weight: 400;
-          letter-spacing: var(--ls-sidebar, .005em);
+          letter-spacing: 0;
           color: var(--nav-off-text);
           text-decoration: none;
           transition: background .12s, color .12s;
@@ -103,7 +106,7 @@ export default function SettingsSidebar() {
         .sset-item:hover { background: var(--glass-nav-hover, rgba(0,0,0,.035)); color: var(--text); }
         [data-theme="dark"] .sset-item:hover { background: var(--glass-nav-hover, rgba(255,255,255,.06)); }
         .sset-item.on {
-          background: var(--nav-on); color: var(--nav-on-text); font-weight: 500;
+          background: var(--nav-on); color: var(--nav-on-text); font-weight: 400;
         }
         [data-theme="dark"] .sset-item.on { background: var(--nav-on); }
       `}</style>
@@ -127,7 +130,7 @@ export default function SettingsSidebar() {
                     href={href}
                     className={`sset-item${isActive ? ' on' : ''}`}
                   >
-                    <item.icon size={14} weight="regular" />
+                    <item.icon size={18} weight="regular" />
                     <span>{item.label}</span>
                   </Link>
                 )

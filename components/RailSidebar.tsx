@@ -1,17 +1,7 @@
 'use client'
 
 /**
- * RailSidebar — schmale Icon-Sidebar mit Hover-Expand.
- *
- * Default 72px breit, nur Icons. Sobald die Maus drüber geht, fährt
- * sie für den Mouseover-Moment auf 240px aus und zeigt die Labels.
- * Verlässt der Cursor die Sidebar, klappt sie zurück.
- *
- * Items: Statusabfrage · Inbox · (sep Persönlicher Bereich) Projekte ·
- *        Tasks · Entscheidungen · Dokumente.
- *
- * Tagro-Round-Button bleibt eine separate Komponente — sitzt
- * unten-rechts auf der Page, nicht in der Sidebar.
+ * RailSidebar — Codex-style flat desktop rail for /projects.
  */
 
 import Link from 'next/link'
@@ -19,13 +9,13 @@ import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import {
-  Pulse, BellSimple, Cube, FlowArrow, SquaresFour, FileText, Question,
+  Pulse, BellSimple, Cube, FlowArrow, SquaresFour, FileText, GearSix,
   SidebarSimple,
 } from '@phosphor-icons/react'
 
 type Item = { href: string; label: string; icon: React.ReactNode }
 
-const ICON_SIZE = 16
+const ICON_SIZE = 18
 const TOP_ITEMS: Item[] = [
   { href: '/dashboard', label: 'Statusabfrage', icon: <Pulse size={ICON_SIZE} weight="regular" /> },
   { href: '/messages',  label: 'Inbox',         icon: <BellSimple size={ICON_SIZE} weight="regular" /> },
@@ -88,19 +78,20 @@ export default function RailSidebar() {
     <aside className="rail" aria-label="Hauptnavigation" data-collapsed={collapsed ? '1' : '0'}>
       <style>{CSS}</style>
 
-      <button
-        type="button"
-        className="rail-toggle"
-        onClick={toggleCollapsed}
-        aria-label={collapsed ? 'Sidebar ausklappen' : 'Sidebar einklappen'}
-        title={collapsed ? 'Ausklappen' : 'Einklappen'}
-      >
-        <SidebarSimple size={16} weight="regular" />
-      </button>
-
-      <Link href="/account" className="rail-avatar" aria-label="Profil">
-        <span>{initials}</span>
-      </Link>
+      <div className="rail-head">
+        <Link href="/account" className="rail-avatar" aria-label="Profil">
+          <span>{initials}</span>
+        </Link>
+        <button
+          type="button"
+          className="rail-toggle"
+          onClick={toggleCollapsed}
+          aria-label={collapsed ? 'Sidebar ausklappen' : 'Sidebar einklappen'}
+          title={collapsed ? 'Ausklappen' : 'Einklappen'}
+        >
+          <SidebarSimple size={16} weight="regular" />
+        </button>
+      </div>
 
       <nav className="rail-nav">
         <ul className="rail-group">
@@ -138,9 +129,13 @@ export default function RailSidebar() {
         </ul>
       </nav>
 
-      <Link href="/support" className="rail-help" aria-label="Hilfe" title="Hilfe">
-        <Question size={ICON_SIZE} weight="regular" />
-      </Link>
+      <div className="rail-footer">
+        <Link href="/settings" className="rail-footer-link">
+          <GearSix size={16} weight="regular" />
+          <span>Einstellungen</span>
+        </Link>
+        <Link href="/support" className="rail-footer-pill">Hilfe</Link>
+      </div>
     </aside>
   )
 }
@@ -148,56 +143,61 @@ export default function RailSidebar() {
 const CSS = `
   .rail {
     position: fixed; left: 0; top: 0; bottom: 0;
-    width: 240px;
-    background: rgba(252,252,252,0.92);
-    backdrop-filter: blur(20px) saturate(1.4);
-    -webkit-backdrop-filter: blur(20px) saturate(1.4);
-    border-right: 1px solid rgba(15,23,42,.05);
+    width: var(--festag-sidebar-width, 260px);
+    background: var(--sidebar-bg, #F6F6F7);
+    box-shadow: inset -1px 0 0 rgba(15,23,42,0.05);
     z-index: 80;
-    padding: 44px 0 20px;
-    display: flex; flex-direction: column; align-items: stretch;
-    transition: width .26s cubic-bezier(.16,1,.3,1);
+    padding: 16px 14px 14px;
+    display: flex; flex-direction: column;
+    transition: width .22s cubic-bezier(.16,1,.3,1);
     overflow: hidden;
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+    box-sizing: border-box;
   }
   .rail[data-collapsed="1"] {
-    width: 60px;
-    background: transparent;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-    border-right-color: transparent;
+    width: 56px;
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
+  .rail-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 12px;
+    padding: 0 4px;
+  }
+  .rail[data-collapsed="1"] .rail-head {
+    flex-direction: column;
+    padding: 0;
   }
 
   .rail-toggle {
-    align-self: flex-end;
-    margin: 0 14px 8px 0;
     width: 28px; height: 28px;
     border: 0; background: transparent;
     border-radius: 8px;
-    color: #9AA0AC; cursor: pointer;
+    color: #6B6B6F; cursor: pointer;
     display: inline-flex; align-items: center; justify-content: center;
-    transition: background .14s, color .14s;
+    transition: background .12s, color .12s;
     flex-shrink: 0;
   }
-  .rail-toggle:hover { background: rgba(91,100,125,.08); color: #2A3032; }
-  .rail[data-collapsed="1"] .rail-toggle { align-self: center; margin-right: 0; }
+  .rail-toggle:hover { background: rgba(0,0,0,.04); color: #1C1C1E; }
 
   .rail-avatar {
-    width: 40px; height: 40px;
-    margin: 0 10px;
-    border: 1px solid #F3F5F7;
-    background: rgba(255,255,255,0.8);
-    border-radius: 999px;
+    width: 24px; height: 24px;
+    border: 0;
+    background: #fff;
+    border-radius: 6px;
     display: inline-flex; align-items: center; justify-content: center;
-    color: #0F0F10;
-    font-size: 14px; font-weight: 500;
+    color: #1C1C1E;
+    font-size: 10px; font-weight: 500;
     text-decoration: none;
     flex-shrink: 0;
   }
 
   .rail-nav {
     flex: 1; min-height: 0;
-    margin: 32px 0 0;
     display: flex; flex-direction: column; gap: 4px;
     overflow-y: auto;
     overflow-x: hidden;
@@ -206,60 +206,90 @@ const CSS = `
 
   .rail-group {
     list-style: none; margin: 0; padding: 0;
-    display: flex; flex-direction: column;
+    display: flex; flex-direction: column; gap: 4px;
   }
 
   .rail-section-label {
-    margin: 22px 0 8px 22px;
+    margin: 18px 0 8px 12px;
     font-size: 11px; font-weight: 500;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.05em;
     text-transform: uppercase;
-    color: #9AA0AC;
+    color: #8E8E93;
     white-space: nowrap;
-    opacity: 1;
     transition: opacity .18s ease;
   }
-  .rail[data-collapsed="1"] .rail-section-label { opacity: 0; pointer-events: none; height: 12px; }
+  .rail[data-collapsed="1"] .rail-section-label { opacity: 0; height: 0; margin: 8px 0; overflow: hidden; }
 
   .rail-item {
-    display: flex; align-items: center; gap: 14px;
-    height: 32px;
-    padding: 0 22px;
-    color: #6E717E;
+    display: flex; align-items: center; gap: 12px;
+    min-height: 36px;
+    padding: 0 12px;
+    border-radius: 12px;
+    color: #6B6B6F;
     text-decoration: none;
-    transition: background .14s, color .14s;
+    transition: background .12s, color .12s;
     white-space: nowrap;
   }
   .rail-item:hover {
-    background: rgba(91,100,125,.04);
-    color: #2A3032;
+    background: rgba(0,0,0,.035);
+    color: #1C1C1E;
   }
   .rail-item.is-active {
-    color: #0F0F10;
+    color: #1C1C1E;
+    background: rgba(0,0,0,.05);
   }
   .rail-icon {
     display: inline-flex; align-items: center; justify-content: center;
-    width: 16px; height: 16px; flex-shrink: 0;
+    width: 18px; height: 18px; flex-shrink: 0;
   }
   .rail-label {
     font-size: 13px;
     font-weight: 400;
-    letter-spacing: .01em;
-    opacity: 1;
-    transform: none;
+    letter-spacing: 0;
     transition: opacity .18s ease;
     white-space: nowrap;
   }
-  .rail[data-collapsed="1"] .rail-label { opacity: 0; pointer-events: none; }
+  .rail[data-collapsed="1"] .rail-label { opacity: 0; width: 0; overflow: hidden; pointer-events: none; }
+  .rail[data-collapsed="1"] .rail-item { justify-content: center; padding: 0; width: 40px; margin: 0 auto; }
 
-  .rail-help {
-    align-self: flex-start;
-    margin: 0 0 0 22px;
-    width: 16px; height: 16px;
-    color: #6E717E;
-    display: inline-flex; align-items: center; justify-content: center;
+  .rail-footer {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding-top: 12px;
+    margin-top: 8px;
   }
-  .rail-help:hover { color: #2A3032; }
+  .rail[data-collapsed="1"] .rail-footer { flex-direction: column; }
+  .rail-footer-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 400;
+    color: #6B6B6F;
+    text-decoration: none;
+    transition: background .12s, color .12s;
+  }
+  .rail-footer-link:hover { color: #1C1C1E; background: rgba(0,0,0,.035); }
+  .rail[data-collapsed="1"] .rail-footer-link span { display: none; }
+  .rail-footer-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 14px;
+    border-radius: 999px;
+    background: rgba(0,0,0,.06);
+    color: #1C1C1E;
+    font-size: 12.5px;
+    font-weight: 400;
+    text-decoration: none;
+    transition: background .12s;
+  }
+  .rail-footer-pill:hover { background: rgba(0,0,0,.09); }
 
   @media (max-width: 720px) {
     .rail { display: none; }

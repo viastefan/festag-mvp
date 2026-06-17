@@ -2664,6 +2664,15 @@ export default function DashboardPageContent() {
         openDecisionsCount={combinedDecisionsCount}
         blockersCount={riskTasks.length}
         scopeLabel={scopeLabel}
+        scopeOptions={[
+          { id: 'overall', label: 'Gesamtbericht' },
+          ...projects.map(p => ({ id: p.id, label: p.title, color: (p as any).color })),
+        ]}
+        activeScopeId={scope}
+        onScopeChange={(id) => setScope(id as any)}
+        periodLabel={period}
+        periodOptions={['Heute', 'Letzte 7 Tage', 'Letzte 30 Tage', 'Letzte 90 Tage']}
+        onPeriodChange={(p) => setPeriod(p as any)}
         onCreateReport={() => { void refreshStatus() }}
       />
 

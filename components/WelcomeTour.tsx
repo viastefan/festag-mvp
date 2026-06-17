@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { usePathname, useSearchParams } from 'next/navigation'
 import { ArrowLeft, ArrowRight, Check, X } from '@phosphor-icons/react'
@@ -158,7 +158,7 @@ function calculatePlacement(rect: DOMRect | null, preferred: TourStep['preferred
   }
 }
 
-export default function WelcomeTour({ forceOpen = false, onDone }: Props) {
+function WelcomeTourInner({ forceOpen = false, onDone }: Props) {
   const supabase = useMemo(() => createClient(), [])
   const searchParams = useSearchParams()
   const pathname = usePathname()
@@ -749,3 +749,11 @@ const CSS = `
     }
   }
 `
+
+export default function WelcomeTour(props: Props) {
+  return (
+    <Suspense fallback={null}>
+      <WelcomeTourInner {...props} />
+    </Suspense>
+  )
+}

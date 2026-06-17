@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
   ChatCircleText, Check, CheckCircle, Clock, Sparkle, Warning, WarningCircle, X, UserCircle, CaretDown,
+  ArrowsClockwise,
 } from '@phosphor-icons/react'
 import FestagPillButton from '@/components/ui/FestagPillButton'
 import ClampedTip from '@/components/decisions/ClampedTip'
@@ -10,7 +11,7 @@ import { openTagro } from '@/components/TagroOverlay'
 import { createClient } from '@/lib/supabase/client'
 import {
   type Decision, type ProjectLite, type ResponseType, type DecOption, type ResponseValue,
-  URGENCY_LABEL, URGENCY_TONE, fmtDueIn, fmtCountdown, DUE_SOURCE_LABEL,
+  URGENCY_LABEL, URGENCY_TONE, fmtAgo, fmtDueIn, fmtCountdown, DUE_SOURCE_LABEL,
 } from '@/components/decisions/decisions-shared'
 
 type WorkspaceMember = { id: string; full_name: string | null; email: string | null; avatar_url: string | null; role?: string | null }
