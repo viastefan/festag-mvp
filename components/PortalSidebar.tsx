@@ -7,14 +7,16 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import FestagIconButton from '@/components/ui/FestagIconButton'
+import PortalWorkspacePopover from '@/components/PortalWorkspacePopover'
 import {
   SidebarSimple, CaretDown, GearSix,
 } from '@phosphor-icons/react'
 import { PORTAL_NAV } from '@/lib/portal-nav'
 import WorkspaceSymbol from '@/components/WorkspaceSymbol'
 import { createClient } from '@/lib/supabase/client'
+import { autoAvatarColor, avatarInitials } from '@/lib/avatar'
 import { loadSymbol, onSymbolChange } from '@/lib/workspace-symbol'
 import { useNotifications } from '@/hooks/useNotifications'
 
@@ -29,6 +31,8 @@ const ICON = 18
 const NAV = PORTAL_NAV
 
 type RecentItem = { id: string; label: string; href: string; age?: string }
+
+type TeamMember = { id: string; name: string; color: string; avatarUrl: string | null }
 
 const MOCK_RECENT: RecentItem[] = [
   { id: 'm1', label: 'Entscheidung erteilt für Logo Farb..', href: '/decisions/mock-1', age: '1 W' },
@@ -61,10 +65,18 @@ function fmtRecentAge(iso?: string | null): string {
 export default function PortalSidebar({ collapsed = false, onToggleCollapse }: Props) {
   const pathname = usePathname() || ''
   const onProjectsContext = pathname === '/projects' || pathname.startsWith('/project/')
+  const wsTriggerRef = useRef<HTMLButtonElement | null>(null)
+  const [wsMenuOpen, setWsMenuOpen] = useState(false)
   const [workspaceName, setWorkspaceName] = useState('')
   const [workspaceMode, setWorkspaceMode] = useState('delivery')
   const [wsSymbolKey, setWsSymbolKey] = useState('festag')
   const [wsPrefs, setWsPrefs] = useState(() => loadSymbol('festag'))
+  const [displayName, setDisplayName] = useState('')
+  const [email, setEmail] = useState('')
+  const [initials, setInitials] = useState('F')
+  const [avatarColor, setAvatarColor] = useState('#5B647D')
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
+  const [members, setMembers] = useState<TeamMember[]>([])
   const [recent, setRecent] = useState<RecentItem[]>([])
   const { unread } = useNotifications({ unreadOnly: true, limit: 1 })
 
@@ -124,9 +136,31 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
         const u = sessionData.session?.user
         if (!u || !alive) return
 
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('full_name, first_name, email, avatar_url, avatar_color')
+          .eq('id', u.id)
+          .maybeSingle()
+
+        if (!alive) return
+        const p = profile as {
+          full_name?: string | null
+          first_name?: string | null
+          email?: string | null
+          avatar_url?: string | null
+          avatar_color?: string | null
+        } | null
+        const userEmail = p?.email || u.email || ''
+        const name = (p?.full_name || '').trim() || (p?.first_name || '').trim() || userEmail.split('@')[0] || 'Festag'
+        setDisplayName(name)
+        setEmail(userEmail)
+        setInitials(avatarInitials(name, userEmail))
+        setAvatarColor(p?.avatar_color || autoAvatarColor(u.id || userEmail))
+        setAvatarUrl(p?.avatar_url ?? null)
+
         const { data: ws } = await supabase
           .from('workspaces')
-          .select('name, mode')
+          .select('id, name, mode')
           .eq('primary_owner_id', u.id)
           .eq('is_personal', true)
           .maybeSingle()
@@ -137,7 +171,46 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
           ? (ws as { name: string }).name.trim()
           : ''
         if (wn) setWorkspaceName(wn)
-        const symbolKey = (wn || mode || u.email || 'festag').trim().toLowerCase()
+
+        const wsId = (ws as { id?: string } | null)?.id
+        if (wsId) {
+          try {
+            const { data: mem } = await supabase
+              .from('workspace_members')
+              .select('user_id, role')
+              .eq('workspace_id', wsId)
+            const memRows = (mem as { user_id: string }[] | null) ?? []
+            const ids = Array.from(new Set([u.id, ...memRows.map(r => r.user_id)].filter(Boolean)))
+            const { data: profs } = await supabase
+              .from('profiles')
+              .select('id, full_name, first_name, email, avatar_url, avatar_color')
+              .in('id', ids)
+            const pById = new Map(
+              ((profs ?? []) as Array<{
+                id: string
+                full_name?: string | null
+                first_name?: string | null
+                email?: string | null
+                avatar_url?: string | null
+                avatar_color?: string | null
+              }>).map(row => [row.id, row]),
+            )
+            const toMember = (uid: string): TeamMember => {
+              const pr = pById.get(uid)
+              const nm = (pr?.full_name || '').trim() || (pr?.first_name || '').trim() || (pr?.email || '').split('@')[0] || 'Mitglied'
+              return {
+                id: uid,
+                name: nm,
+                color: pr?.avatar_color || autoAvatarColor(uid || pr?.email),
+                avatarUrl: pr?.avatar_url ?? null,
+              }
+            }
+            const ordered = [u.id, ...memRows.map(r => r.user_id).filter(x => x !== u.id)]
+            setMembers(Array.from(new Set(ordered)).map(toMember))
+          } catch { /* noop */ }
+        }
+
+        const symbolKey = (wn || mode || userEmail || 'festag').trim().toLowerCase()
         setWsSymbolKey(symbolKey)
         setWsPrefs(loadSymbol(symbolKey))
       } catch { /* noop */ }
@@ -152,7 +225,13 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
     return off
   }, [wsSymbolKey])
 
-  const workspaceLabel = WORKSPACE_MODE_LABELS[workspaceMode] || 'Festag Delivery'
+  const workspaceLabel = workspaceName.trim() || WORKSPACE_MODE_LABELS[workspaceMode] || 'Festag Delivery'
+  const workspaceMeta = WORKSPACE_MODE_LABELS[workspaceMode] || 'Workspace'
+
+  async function logout() {
+    await createClient().auth.signOut()
+    window.location.href = '/login'
+  }
 
   useEffect(() => {
     if (onProjectsContext) loadProjectsSidebar()
@@ -164,16 +243,24 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
     return pathname === href || pathname.startsWith(href + '/')
   }
 
-  function isRecentActive(href: string) {
-    return pathname === href || pathname.startsWith(href + '/')
-  }
-
-  function openSearch() {
-    window.dispatchEvent(new CustomEvent('open-command-palette'))
+  function isRecentActive(item: RecentItem) {
+    if (item.href.startsWith('/decisions/')) {
+      return pathname === item.href
+    }
+    return pathname === item.href || pathname.startsWith(`${item.href}/`)
   }
 
   const displayRecent = onProjectsContext ? recent : (recent.length ? recent : MOCK_RECENT)
   const recentLabel = onProjectsContext ? 'Deine Projekte' : 'Letzte ausgeführt'
+
+  const activeRecentId = useMemo(() => {
+    const match = displayRecent.find(item => isRecentActive(item))
+    return match?.id ?? null
+  }, [pathname, displayRecent])
+
+  function openSearch() {
+    window.dispatchEvent(new CustomEvent('open-command-palette'))
+  }
 
   return (
     <nav
@@ -185,21 +272,47 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
 
       <div className="portal-nav-top">
         <div className="portal-nav-header">
-          <div className="portal-nav-ws" title={workspaceLabel}>
-            <div className="portal-nav-ws-mark" aria-hidden>
-              <WorkspaceSymbol
-                variant={wsPrefs.variant}
-                scheme={wsPrefs.scheme}
-                seed={wsPrefs.seed}
-                size={collapsed ? 28 : 24}
-              />
-            </div>
-            <div className="portal-nav-ws-text">
-              <span className="portal-nav-ws-label">Workspace</span>
-              <span className="portal-nav-ws-value">{workspaceLabel}</span>
-            </div>
-            <CaretDown size={8} weight="bold" className="portal-nav-ws-caret" aria-hidden />
-          </div>
+          <PortalWorkspacePopover
+            open={wsMenuOpen}
+            onOpenChange={setWsMenuOpen}
+            anchorRef={wsTriggerRef}
+            workspaceLabel={workspaceLabel}
+            workspaceMeta={workspaceMeta}
+            wsPrefs={wsPrefs}
+            displayName={displayName}
+            email={email}
+            initials={initials}
+            avatarColor={avatarColor}
+            avatarUrl={avatarUrl}
+            members={members}
+            onLogout={logout}
+            trigger={(
+              <button
+                ref={wsTriggerRef}
+                type="button"
+                className={`portal-nav-ws${wsMenuOpen ? ' is-open' : ''}`}
+                title={workspaceLabel}
+                aria-label="Workspace-Menü"
+                aria-haspopup="menu"
+                aria-expanded={wsMenuOpen}
+                onClick={() => setWsMenuOpen(v => !v)}
+              >
+                <div className="portal-nav-ws-mark" aria-hidden>
+                  <WorkspaceSymbol
+                    variant={wsPrefs.variant}
+                    scheme={wsPrefs.scheme}
+                    seed={wsPrefs.seed}
+                    size={collapsed ? 28 : 24}
+                  />
+                </div>
+                <div className="portal-nav-ws-text">
+                  <span className="portal-nav-ws-label">Workspace</span>
+                  <span className="portal-nav-ws-value">{workspaceLabel}</span>
+                </div>
+                <CaretDown size={8} weight="bold" className="portal-nav-ws-caret" aria-hidden />
+              </button>
+            )}
+          />
           <div className="portal-nav-utilities">
             <FestagIconButton size={28} aria-label="Suche" title="Suche (⌘K)" onClick={openSearch}>
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
@@ -248,7 +361,7 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
             <Link
               key={item.id}
               href={item.href}
-              className={`portal-nav-recent-item${isRecentActive(item.href) ? ' active' : ''}`}
+              className={`portal-nav-recent-item${activeRecentId === item.id ? ' active' : ''}`}
               role="listitem"
               title={item.label}
             >
@@ -300,6 +413,22 @@ const CSS = `
 
   .portal-nav-ws {
     display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1;
+    padding: 2px 4px 2px 2px;
+    margin: -2px -4px -2px -2px;
+    border: 0; background: transparent;
+    border-radius: 10px;
+    cursor: pointer;
+    font: inherit; text-align: left;
+    transition: background .12s ease;
+  }
+  .portal-nav-ws:hover,
+  .portal-nav-ws.is-open {
+    background: var(--portal-row-hover, rgba(242,242,247,.6));
+  }
+  .portal-nav-ws:focus { outline: none; }
+  .portal-nav-ws:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--portal-text, #1c1c1e) 35%, transparent);
+    outline-offset: 2px;
   }
 
   .portal-nav-ws-mark {
