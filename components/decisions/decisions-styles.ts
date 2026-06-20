@@ -1002,7 +1002,20 @@ export const DECISION_CSS = `
   .dec-detail-meta-chip--red { color:#d14343; background:rgba(209,67,67,.1); }
   .dec-detail-meta-chip--good { color:#28a745; background:rgba(52,199,89,.1); }
   .dec-detail-meta-chip--muted { color:var(--dec-soft); }
-  .dec-detail-meta-chip--time { gap:5px; background:transparent; padding:0 4px 0 0; }
+  .dec-detail-meta-chip--time {
+    gap: 6px;
+    height: auto;
+    min-height: 28px;
+    padding: 4px 0;
+    background: transparent;
+    white-space: nowrap;
+    flex-shrink: 0;
+    box-sizing: border-box;
+  }
+  [data-theme="dark"] .dec-detail-meta-chip--time,
+  [data-theme="classic-dark"] .dec-detail-meta-chip--time {
+    background: transparent;
+  }
   .dec-detail-project-dot {
     width:7px; height:7px; border-radius:50%; flex-shrink:0;
   }
