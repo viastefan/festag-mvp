@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { getDevUserFromRequest } from '@/lib/dev-auth'
 import { createClient } from '@/lib/supabase/server'
 import { getServiceClient } from '@/lib/supabase/service'
-import { publishTagroClientUpdate } from '@/lib/sync/client-bridge'
+import { emitDevActionToClient } from '@/lib/client/connection-bridge'
 
 export const runtime = 'nodejs'
 
@@ -50,30 +50,23 @@ export async function POST(req: Request) {
       })
     }
 
-    const clientId = (project as any).client_id ?? (project as any).user_id
-    if (!clientId) return NextResponse.json({ error: 'no_client' }, { status: 400 })
-
-    const sourceKey = taskId
-      ? `task:${taskId}:${Date.now()}`
-      : `manual:${user.id}:${Date.now()}`
-
-    const result = await publishTagroClientUpdate({
-      writer: writer as any,
-      clientId,
+    const { clientNotified, signalId } = await emitDevActionToClient(writer as any, {
       projectId,
-      projectTitle: (project as any).title,
-      devText: text,
-      actorId: user.id,
-      taskId,
-      sourceTable: 'dev_publish',
-      sourceId: sourceKey,
-      link: `/project/${projectId}`,
+      type: 'status_note',
+      content: text,
+      source: 'dev_publish',
+      visibility: 'client',
+      createdBy: user.id,
+      relatedTaskId: taskId,
+      inboxTitle: `${(project as any).title} · Team-Update`,
+      notifyClient: true,
     })
 
     return NextResponse.json({
       ok: true,
-      clientSummary: result.clientSummary,
-      inboxItemId: result.inboxItemId,
+      clientSummary: text,
+      inboxItemId: signalId,
+      clientNotified,
     })
   } catch (e: any) {
     return NextResponse.json({ error: e?.message ?? 'server_error' }, { status: 500 })

@@ -75,8 +75,11 @@ const STATIC_COMMANDS: Cmd[] = [
 
 const DEV_COMMANDS: Cmd[] = [
   { id:'dev-nav-tasks', group:'Navigation', label:'Dev-Aufgaben', href:'/dev/tasks', Icon: Kanban },
+  { id:'dev-nav-activity', group:'Navigation', label:'Dev-Aktivität', href:'/dev/activity', Icon: Broadcast, keywords:['feed','commits','signals'] },
   { id:'dev-nav-deliverables', group:'Navigation', label:'Dev-Lieferungen', href:'/dev/deliverables', Icon: Package, keywords:['upload','asset','deliverable'] },
   { id:'dev-nav-visibility', group:'Navigation', label:'Kunden-Sichtbarkeit', href:'/dev/visibility', Icon: Eye, keywords:['client','timeline','tagro'] },
+  { id:'dev-nav-briefing', group:'Navigation', label:'Tagesbriefing', href:'/dev/briefing', Icon: Sparkle, keywords:['daily','stand','update'] },
+  { id:'dev-nav-issues', group:'Navigation', label:'Dev-Vorfälle', href:'/dev/issues', Icon: WarningOctagon },
   { id:'dev-nav-captures', group:'Navigation', label:'Dev-Freigaben', href:'/dev/captures', Icon: SealCheck },
   { id:'dev-act-task', group:'Aktionen', label:'Neue Dev-Aufgabe', href:'/dev/tasks?new=1', Icon: Plus, keywords:['create','aufgabe'] },
   { id:'dev-act-review', group:'Aktionen', label:'Review-Warteschlange', href:'/dev/review', Icon: CheckSquare },
