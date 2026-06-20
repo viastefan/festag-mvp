@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { getDevUserFromRequest } from '@/lib/dev-auth'
 import { createClient } from '@/lib/supabase/server'
 import { getServiceClient } from '@/lib/supabase/service'
+import { devPanelSurfaceForProject } from '@/lib/projects/delivery-bridge'
 
 export const runtime = 'nodejs'
 
@@ -148,10 +149,14 @@ export async function GET(req: Request) {
       budget_currency: p.budget_currency,
     }
     if (mineIds.has(p.id)) { mine.push(shape); continue }
-    const model = p.delivery_model ?? 'festag_delivery'
-    if (model === 'festag_delivery' && !projectsWithActiveProposal.has(p.id)) {
-      available.push(shape)
-    }
+
+    const surface = devPanelSurfaceForProject({
+      deliveryModel: p.delivery_model,
+      devHasActiveAssignment: false,
+      devHasActiveProposal: proposalProjectIds.has(p.id),
+      projectHasBlockingProposal: projectsWithActiveProposal.has(p.id),
+    })
+    if (surface === 'pool_available') available.push(shape)
   }
 
   return NextResponse.json({ available, mine, pendingProposals: pendingProposals ?? [] })

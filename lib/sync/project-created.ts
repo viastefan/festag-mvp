@@ -5,8 +5,7 @@ import { getServiceClient } from '@/lib/supabase/service'
  * Fan out a "new project landed in the pool" inbox row to every
  * approved dev. Best-effort — never blocks the calling route.
  *
- * Called from /api/ai/decompose (project + tasks inserted) and the
- * manual create path in NewProjectModal (via /api/projects/classify).
+ * Called from publishFestagPool (/api/projects/publish, festag-pool).
  *
  * Lives outside lib/sync/bus.ts because the bus is task-event-shaped;
  * project creation is a project-level event with a different

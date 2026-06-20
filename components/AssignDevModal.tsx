@@ -213,6 +213,35 @@ export default function AssignDevModal({
     }
   }
 
+  async function submitFestag() {
+    if (draft) {
+      onSubmitDraft?.({ mode: 'festag' })
+      return
+    }
+    if (!projectId) return
+    setWorking(true)
+    setError(null)
+    try {
+      const res = await fetch('/api/projects/publish', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projectId, delivery: 'festag_delivery' }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        setError(data.error || 'Projekt konnte nicht im Dev-Pool veröffentlicht werden.')
+        return
+      }
+      setDone({ provisioned: false })
+      onAssigned?.('')
+    } catch (e: any) {
+      setError(e?.message ?? 'Netzwerkfehler.')
+    } finally {
+      setWorking(false)
+    }
+  }
+
   const title = done
     ? null
     : mode === 'existing'
@@ -295,10 +324,7 @@ export default function AssignDevModal({
               ref={primaryRef}
               type="button"
               className="adm-primary"
-              onClick={() => {
-                if (draft) { onSubmitDraft?.({ mode: 'festag' }); return }
-                setDone({ provisioned: false }); onAssigned?.('')
-              }}
+              onClick={() => { void submitFestag() }}
               disabled={working}
             >
               Verstanden — Tagro übernimmt

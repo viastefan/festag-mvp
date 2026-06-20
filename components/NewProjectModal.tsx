@@ -532,6 +532,59 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
     void finalize(null)
   }
 
+  /** Maps AssignDevModal draft payload → /api/projects/publish (or sibling routes). */
+  async function publishProjectDelivery(projectId: string, pending: typeof pendingAssign) {
+    if (!pending?.payload) return
+    const p = pending.payload
+    if (p.mode === 'festag') {
+      await fetch('/api/projects/publish', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projectId, delivery: 'festag_delivery' }),
+      }).catch(() => null)
+      return
+    }
+    if (p.mode === 'existing') {
+      await fetch('/api/projects/publish', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectId,
+          delivery: 'assign_existing_dev',
+          devEmail: 'devEmail' in p ? p.devEmail : undefined,
+          devHandle: 'devHandle' in p ? p.devHandle : undefined,
+        }),
+      }).catch(() => null)
+      return
+    }
+    if (p.mode === 'invite') {
+      await fetch('/api/projects/invite-dev', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectId,
+          devEmail: 'devEmail' in p ? p.devEmail : undefined,
+          devName: 'devName' in p ? (p as any).devName : undefined,
+        }),
+      }).catch(() => null)
+      return
+    }
+    if (p.mode === 'team') {
+      await fetch('/api/projects/assign-team', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectId,
+          members: (p.emails || []).map((em: string) => ({ email: em })),
+        }),
+      }).catch(() => null)
+    }
+  }
+
   /** Erstellt das Projekt JETZT WIRKLICH in der DB und führt — falls
    *  pendingAssign vorhanden — die Zuweisung durch. */
   async function finalize(pending: typeof pendingAssign) {
@@ -555,47 +608,8 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
       if (insErr || !created?.id) throw new Error(insErr?.message || 'Projekt konnte nicht angelegt werden.')
       const projectId = created.id as string
 
-      try {
-        await (supabase as any).from('projects').update({ delivery_model: delivery }).eq('id', projectId)
-      } catch {}
-
-      // Falls beim Sub-Popup Assign-Daten gesammelt wurden: jetzt versenden.
       if (pending?.payload) {
-        const p = pending.payload
-        try {
-          if (p.mode === 'existing') {
-            await fetch('/api/projects/assign-existing', {
-              method: 'POST', headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                projectId,
-                devEmail: 'devEmail' in p ? p.devEmail : undefined,
-                devHandle: 'devHandle' in p ? p.devHandle : undefined,
-              }),
-            }).catch(() => null)
-          } else if (p.mode === 'invite') {
-            await fetch('/api/projects/invite-dev', {
-              method: 'POST', headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                projectId,
-                devEmail: 'devEmail' in p ? p.devEmail : undefined,
-                devName: 'devName' in p ? (p as any).devName : undefined,
-              }),
-            }).catch(() => null)
-          } else if (p.mode === 'team') {
-            await fetch('/api/projects/assign-team', {
-              method: 'POST', headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                projectId,
-                members: (p.emails || []).map((em: string) => ({ email: em })),
-              }),
-            }).catch(() => null)
-          } else if (p.mode === 'festag') {
-            await fetch('/api/projects/festag-pool', {
-              method: 'POST', headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ projectId }),
-            }).catch(() => null)
-          }
-        } catch { /* still complete project creation */ }
+        await publishProjectDelivery(projectId, pending)
       }
 
       setPendingAssign(null)
@@ -657,7 +671,6 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
         scope_summary: (tagroSummary || description.trim()).slice(0, 1200),
         status: 'planning',
       }
-      try { (patch as any).delivery_model = delivery } catch {}
       await (supabase as any).from('projects').update(patch).eq('id', projectId)
 
       fetch('/api/projects/classify', {

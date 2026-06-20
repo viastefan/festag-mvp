@@ -182,19 +182,8 @@ export async function POST(req: NextRequest) {
       message: `Projekt "${decomposed.project_title}" wurde von Tagro AI strukturiert (${(decomposed.epics ?? []).length} Epics, ${(decomposed.epics ?? []).reduce((a: number, e: any) => a + (e.tasks?.length ?? 0), 0)} Tasks)`,
     }).catch(() => {})
 
-    // Pool-wide fan-out: every approved dev gets an inbox row pointing
-    // at the freshly-created project. Best-effort, never blocks.
-    if (projectId) {
-      try {
-        const { notifyProjectCreated } = await import('@/lib/sync/project-created')
-        await notifyProjectCreated({
-          sb: sb as any,
-          projectId,
-          projectTitle: decomposed.project_title || 'Neues Projekt',
-          actorId: userId,
-        })
-      } catch { /* swallow */ }
-    }
+    // Pool fan-out happens only after explicit publish via
+    // POST /api/projects/publish (festag_delivery) — not on raw decompose.
 
     return NextResponse.json({ decomposed, projectId })
   } catch (err: any) {
