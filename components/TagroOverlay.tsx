@@ -1833,24 +1833,21 @@ const STYLES = `
   min-height: 48px;
   font: inherit; font-size: 13px; font-weight: 500; line-height: 1.35;
   cursor: pointer;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
-  transition: background .14s ease, transform .12s ease, box-shadow .14s ease;
+  box-shadow: none;
+  transition: background .14s ease, transform .12s ease;
 }
 .tov-chip svg { flex-shrink: 0; opacity: .65; color: var(--tov-text-2); }
 .tov-chip:hover {
   background: var(--tov-pill-h);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 .tov-chip:active { transform: scale(.99); }
 [data-theme="dark"] .tov-chip,
 [data-theme="classic-dark"] .tov-chip {
   background: rgba(255, 255, 255, 0.05);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
 [data-theme="dark"] .tov-chip:hover,
 [data-theme="classic-dark"] .tov-chip:hover {
   background: rgba(255, 255, 255, 0.08);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 /* Empty fullscreen chat */
@@ -2307,72 +2304,28 @@ const STYLES = `
   display: flex;
   flex-direction: column;
   position: relative;
-  isolation: isolate;
-}
-.tov-composer-stack::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 30px;
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--tov-accent) 4%, transparent) 0%,
-    color-mix(in srgb, var(--tov-accent) 10%, transparent) 55%,
-    color-mix(in srgb, var(--tov-accent) 5%, transparent) 100%
-  );
-  opacity: 0.85;
-  z-index: 0;
-  pointer-events: none;
-  transition: opacity .2s ease;
-}
-[data-theme="dark"] .tov-composer-stack::before,
-[data-theme="classic-dark"] .tov-composer-stack::before {
-  background: radial-gradient(
-    ellipse 120% 90% at 50% 100%,
-    rgba(91, 100, 125, 0.08) 0%,
-    rgba(91, 100, 125, 0.03) 45%,
-    transparent 72%
-  );
-  opacity: 1;
-}
-.tov-composer-stack:focus-within::before {
-  opacity: 1;
-  background: radial-gradient(
-    ellipse 120% 95% at 50% 100%,
-    color-mix(in srgb, var(--tov-accent) 10%, transparent) 0%,
-    color-mix(in srgb, var(--tov-accent) 3%, transparent) 50%,
-    transparent 75%
-  );
 }
 .tov-composer-shell {
   display: flex;
   flex-direction: column;
   width: 100%;
   position: relative;
-  z-index: 1;
   border-radius: 26px;
   border: none;
   background: var(--tov-input);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.06),
-    0 1px 2px rgba(0, 0, 0, 0.04);
-  transition: background .18s ease, box-shadow .18s ease;
+  box-shadow: none;
+  transition: background .18s ease;
 }
 .tov-composer-shell:focus-within {
   background: color-mix(in srgb, var(--tov-input) 94%, var(--tov-bg));
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.08),
-    0 2px 8px rgba(0, 0, 0, 0.06);
 }
 [data-theme="dark"] .tov-composer-shell,
 [data-theme="classic-dark"] .tov-composer-shell {
   background: rgba(38, 38, 42, 0.92);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 [data-theme="dark"] .tov-composer-shell:focus-within,
 [data-theme="classic-dark"] .tov-composer-shell:focus-within {
   background: rgba(42, 42, 46, 0.96);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
 }
 .tov-composer-input {
   display: block;
@@ -2404,7 +2357,6 @@ const STYLES = `
   background: color-mix(in srgb, var(--tov-muted) 70%, transparent);
 }
 .tov-composer-hero .tov-composer-shell { border-radius: 28px; }
-.tov-composer-hero .tov-composer-stack::before { border-radius: 32px; }
 .tov-composer-hero .tov-composer-input {
   font-size: 16px;
   line-height: 1.55;
@@ -2947,7 +2899,6 @@ const STYLES = `
     gap: 12px;
   }
   .tov-composer-hero .tov-composer-shell { border-radius: 24px; }
-  .tov-composer-hero .tov-composer-stack::before { border-radius: 28px; }
   .tov-composer-hero .tov-composer-plus,
   .tov-composer-hero .tov-composer-mic {
     width: 36px;

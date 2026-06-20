@@ -970,7 +970,7 @@ code, pre, kbd, samp { font-family: var(--font-mono); }
      • Pop-up / dialog action buttons (.modal-cta) — a tight 6px corner (Bild 5).
    The 32px "items inherit the container radius" rule now lives ONLY inside
    pop-ups (Bild 3) — it is not a global behaviour. */
-button:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]):not(.dc-play-bar):not(.dc-read-bar):not(.modal-cta):not(.set-btn):not([class*="fui-"]):not([class*="pj2-"]):not([class*="pjm-"]):not(.pj2-menu-item):not(.dec-card-menu-item):not(.dec-filter-menu-item):not(.dec-risks-item):not(.dec-risks-tagro-btn):not(.ix-cat-opt),
+button:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]):not(.dc-play-bar):not(.dc-read-bar):not(.modal-cta):not(.set-btn):not([class*="fui-"]):not([class*="pj2-"]):not([class*="pjm-"]):not(.pj2-menu-item):not(.dec-card-menu-item):not(.dec-filter-menu-item):not(.dec-risks-item):not(.dec-risks-tagro-btn):not(.ix-cat-opt):not([class*="tov-"]),
 a[role="button"]:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]):not([class*="fui-"]),
 input[type="button"],
 input[type="submit"],
@@ -987,7 +987,7 @@ input[type="reset"],
 .voice-text-btn,
 :is(a, button)[class*="btn"]:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]):not(.set-btn):not(.npm-mic-btn):not(.npm-chat-mic):not(.pj2-menu-item):not(.pjm-add-btn):not(.pjm-ctl),
 :is(a, button)[class*="button"]:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]),
-:is(a, button)[class*="chip"]:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]):not(.pjm-chip):not(.pjm-ctl),
+:is(a, button)[class*="chip"]:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]):not(.pjm-chip):not(.pjm-ctl):not([class*="tov-"]),
 :is(a, button)[class*="pill"]:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]):not(.npm-pill) {
   border-radius: var(--button-radius) !important;
 }
