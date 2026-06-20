@@ -30,6 +30,7 @@ import {
   ArrowRight, ArrowsClockwise, CaretDown, ChatCircleText, Check,
   Microphone, MicrophoneSlash, PaperPlaneTilt, Question, Sparkle, X,
 } from '@phosphor-icons/react'
+import { MOBILE_PAGE_DOCK_CSS } from '@/components/mobile/mobile-page-dock-styles'
 import {
   MOBILE_PRIMARY_ELEV,
   MOBILE_WHITE_BORDER,
@@ -420,6 +421,23 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
   const canCreate = canSubmit || chatHistory.some(turn => turn.role === 'user' && turn.text.trim().length >= 2)
   const canStructure = (titleDraft.length + descriptionDraft.length) >= 4
 
+  const mobilePrimaryLabel = pendingAssign
+    ? 'Finalisieren'
+    : phase === 'chat'
+      ? 'Projekt erstellen'
+      : 'Mit Tagro fortfahren'
+  const mobilePrimaryDisabled = pendingAssign
+    ? false
+    : phase === 'chat'
+      ? (!canCreate || chatLoading)
+      : !canSubmit
+
+  function onMobilePrimaryClick() {
+    if (pendingAssign) void finalize(pendingAssign)
+    else if (phase === 'chat') createProject()
+    else openTagroChat()
+  }
+
   // Auto-Pill: Intent aus dem Freitext erkennen. Client-seitig, schnell.
   const intentDelivery = useMemo<DeliveryModel | null>(() => {
     const blob = (titleDraft + ' ' + descriptionDraft).toLowerCase()
@@ -674,7 +692,7 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
   const tree = (
     <>
       <div className={`npm-overlay${isMobile ? ' is-mobile' : ''}`} role="dialog" aria-modal="true" aria-label="Neues Projekt">
-        <style>{CSS}</style>
+        <style>{CSS}{isMobile ? MOBILE_PAGE_DOCK_CSS : ''}</style>
 
         {isMobile && <div className="npm-header-pass" aria-hidden />}
 
@@ -997,57 +1015,92 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
           )}
 
           {phase !== 'success' && phase !== 'loading' && (
-            <footer className="npm-foot">
-              <div className="npm-foot-left">
-                {micSupported && (
+            <footer className={`npm-foot${isMobile ? ' npm-foot--dock' : ''}`}>
+              {isMobile ? (
+                <div className="mpd-row npm-dock-row">
+                  {micSupported ? (
+                    <button
+                      ref={micBtnRef}
+                      type="button"
+                      className={`npm-dock-mic${dictating ? ' rec' : ''}`}
+                      onClick={() => toggleDictation()}
+                      aria-pressed={!!dictating}
+                      aria-label={dictating ? 'Aufnahme stoppen' : 'Per Sprache diktieren'}
+                      title={dictating ? 'Aufnahme stoppen — schreibt ins fokussierte Feld' : 'Per Sprache diktieren — geht ins fokussierte Feld'}
+                    >
+                      {dictating ? <MicrophoneSlash size={20} weight="fill" /> : <Microphone size={20} weight="regular" />}
+                    </button>
+                  ) : null}
                   <button
-                    ref={micBtnRef}
+                    ref={primaryBtnRef}
                     type="button"
-                    className={`npm-mic-btn${dictating ? ' rec' : ''}`}
-                    onClick={() => toggleDictation()}
-                    aria-pressed={!!dictating}
-                    aria-label={dictating ? 'Aufnahme stoppen' : 'Per Sprache diktieren'}
-                    title={dictating ? 'Aufnahme stoppen — schreibt ins fokussierte Feld' : 'Per Sprache diktieren — geht ins fokussierte Feld'}
+                    className={`mpd-ghost mpd-ghost--plain npm-dock-tagro${mobilePrimaryDisabled ? ' mpd-ghost--disabled' : ''}`}
+                    onClick={onMobilePrimaryClick}
+                    disabled={mobilePrimaryDisabled}
+                    aria-busy={phase === 'chat' ? chatLoading : undefined}
                   >
-                    {dictating ? <MicrophoneSlash size={20} weight="fill" /> : <Microphone size={20} weight="light" />}
+                    <span className="mpd-ghost-label">{mobilePrimaryLabel}</span>
+                    {pendingAssign ? (
+                      <Check size={18} weight="bold" className="npm-dock-tagro-icon" aria-hidden />
+                    ) : (
+                      <ArrowRight size={18} weight="regular" className="npm-dock-tagro-icon" aria-hidden />
+                    )}
                   </button>
-                )}
-                <Visualizer active={!!dictating} />
-              </div>
-              <div className="npm-foot-right">
-                <button
-                  ref={secondaryBtnRef}
-                  type="button"
-                  className={`npm-secondary${phase === 'chat' ? ' is-collapsed' : ''}${pendingAssign ? ' is-finalize' : ''}`}
-                  onClick={() => {
-                    if (pendingAssign) void finalize(pendingAssign)
-                    else manualCreate()
-                  }}
-                  disabled={!canManual || phase === 'chat'}
-                  aria-hidden={phase === 'chat'}
-                  tabIndex={phase === 'chat' ? -1 : 0}
-                  title={!canManual ? 'Bitte zuerst einen Projektnamen eingeben' : undefined}
-                >
-                  {pendingAssign ? (
-                    <>
-                      <Check size={14} weight="bold" />
-                      <span>Finalisieren</span>
-                    </>
-                  ) : 'Manuell anlegen'}
-                </button>
-                <button
-                  ref={primaryBtnRef}
-                  type="button"
-                  className="npm-primary"
-                  onClick={phase === 'chat' ? createProject : openTagroChat}
-                  disabled={phase === 'chat' ? (!canCreate || chatLoading) : !canSubmit}
-                  aria-busy={phase === 'chat' ? chatLoading : undefined}
-                  title={!canSubmit && phase !== 'chat' ? 'Bitte zuerst einen Projektnamen eingeben' : undefined}
-                >
-                  <span>Mit Tagro fortfahren</span>
-                  <ArrowRight size={isMobile ? 24 : 13} weight="regular" />
-                </button>
-              </div>
+                </div>
+              ) : (
+                <>
+                  <div className="npm-foot-left">
+                    {micSupported && (
+                      <button
+                        ref={micBtnRef}
+                        type="button"
+                        className={`npm-mic-btn${dictating ? ' rec' : ''}`}
+                        onClick={() => toggleDictation()}
+                        aria-pressed={!!dictating}
+                        aria-label={dictating ? 'Aufnahme stoppen' : 'Per Sprache diktieren'}
+                        title={dictating ? 'Aufnahme stoppen — schreibt ins fokussierte Feld' : 'Per Sprache diktieren — geht ins fokussierte Feld'}
+                      >
+                        {dictating ? <MicrophoneSlash size={20} weight="fill" /> : <Microphone size={20} weight="light" />}
+                      </button>
+                    )}
+                    <Visualizer active={!!dictating} />
+                  </div>
+                  <div className="npm-foot-right">
+                    <button
+                      ref={secondaryBtnRef}
+                      type="button"
+                      className={`npm-secondary${phase === 'chat' ? ' is-collapsed' : ''}${pendingAssign ? ' is-finalize' : ''}`}
+                      onClick={() => {
+                        if (pendingAssign) void finalize(pendingAssign)
+                        else manualCreate()
+                      }}
+                      disabled={!canManual || phase === 'chat'}
+                      aria-hidden={phase === 'chat'}
+                      tabIndex={phase === 'chat' ? -1 : 0}
+                      title={!canManual ? 'Bitte zuerst einen Projektnamen eingeben' : undefined}
+                    >
+                      {pendingAssign ? (
+                        <>
+                          <Check size={14} weight="bold" />
+                          <span>Finalisieren</span>
+                        </>
+                      ) : 'Manuell anlegen'}
+                    </button>
+                    <button
+                      ref={primaryBtnRef}
+                      type="button"
+                      className="npm-primary"
+                      onClick={phase === 'chat' ? createProject : openTagroChat}
+                      disabled={phase === 'chat' ? (!canCreate || chatLoading) : !canSubmit}
+                      aria-busy={phase === 'chat' ? chatLoading : undefined}
+                      title={!canSubmit && phase !== 'chat' ? 'Bitte zuerst einen Projektnamen eingeben' : undefined}
+                    >
+                      <span>Mit Tagro fortfahren</span>
+                      <ArrowRight size={13} weight="regular" />
+                    </button>
+                  </div>
+                </>
+              )}
             </footer>
           )}
         </motion.div>
@@ -1613,7 +1666,6 @@ const CSS = `
     gap: 14px;
     padding: 24px 0 0;
   }
-  .npm-card.is-sheet .npm-foot { padding: 14px 18px 18px; }
   .npm-foot-left {
     display: inline-flex; align-items: center; gap: 18px;
     min-width: 0; flex: 1;
@@ -1740,46 +1792,77 @@ const CSS = `
   .npm-primary:active:not(:disabled) { transform: scale(.97); }
   .npm-primary:disabled { opacity: .45; cursor: not-allowed; }
 
-  /* Mobile-Footer (Figma 259:315) — Frame @ 22/800, gap 12, 14px über Unterkante.
-     Mic 60×60 (259:316) + CTA 286×60 (259:318). "Manuell anlegen" entfällt mobil. */
-  .npm-card.is-sheet .npm-foot {
-    padding: 0 22px max(14px, env(safe-area-inset-bottom));
+  /* Mobile-Footer — gleiche Sprache wie MobilePageDock (/projects). */
+  .npm-foot--dock {
+    padding: 10px 16px calc(16px + env(safe-area-inset-bottom, 0px)) !important;
     margin-top: auto;
-    gap: 12px;
-    align-items: flex-end;
+    gap: 0;
+    align-items: stretch;
   }
-  .npm-card.is-sheet .npm-foot-left { gap: 12px; flex: 0 0 auto; }
-  /* Figma-Mobile-Footer hat KEINEN Visualizer — nur Mic + CTA. */
-  .npm-card.is-sheet .npm-visualizer { display: none; }
-  .npm-card.is-sheet .npm-foot-right {
-    flex: 1; gap: 0; align-items: center;
+  .npm-foot--dock .npm-dock-row {
+    width: 100%;
   }
-  .npm-card.is-sheet .npm-secondary { display: none !important; }
-  /* CTA (Figma 259:318): #5B647D · 60h · r32 · pad19 · gap32 · justify-end
-     · Text 16/#FFF/.32px · Shadow außen + innen. */
-  .npm-card.is-sheet .npm-primary {
+  .npm-foot--dock .npm-dock-mic {
+    position: relative;
+    width: 54px !important;
+    height: 54px !important;
+    min-width: 54px !important;
+    flex-shrink: 0;
+    border: ${MOBILE_WHITE_BORDER} !important;
+    border-radius: 999px !important;
+    background: #ffffff !important;
+    color: #8e8e93 !important;
+    box-shadow: ${MOBILE_WHITE_ELEV} !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform .12s ease, background .12s ease, color .12s ease;
+  }
+  .npm-foot--dock .npm-dock-mic:active {
+    transform: scale(0.97);
+    background: #fafafa !important;
+  }
+  .npm-foot--dock .npm-dock-mic.rec {
+    color: #5b647d !important;
+  }
+  .npm-foot--dock .npm-dock-mic.rec::after {
+    content: "";
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
+    background: #e5484d;
+    box-shadow:
+      0 0 0 2px #ffffff,
+      0 0 8px rgba(229, 72, 77, 0.55);
+    animation: npmRecDot 1.1s ease-in-out infinite;
+  }
+  .npm-foot--dock .npm-dock-tagro {
     flex: 1;
-    justify-content: flex-end;
-    align-items: center;
-    gap: 32px;
-    height: 60px;
-    border-radius: 32px !important;
-    font-size: 16px !important;
-    font-weight: 400 !important;
-    letter-spacing: 0.32px;
-    padding: 19px;
-    white-space: nowrap;
-    background: #5B647D !important;
-    box-shadow: ${MOBILE_PRIMARY_ELEV};
+    min-width: 0;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 0 18px !important;
+    color: #8e8e93 !important;
   }
-  .npm-card.is-sheet .npm-primary svg { width: 24px; height: 24px; }
-  /* Mic (Figma 259:316): 60×60 weißer Kreis — gleiche Elev wie Projekte-Dock. */
-  .npm-card.is-sheet .npm-mic-btn {
-    width: 60px; height: 60px;
-    border: ${MOBILE_WHITE_BORDER};
-    box-shadow: ${MOBILE_WHITE_ELEV};
+  .npm-foot--dock .npm-dock-tagro .mpd-ghost-label {
+    text-align: left;
+    flex: 1;
+    min-width: 0;
   }
-  .npm-card.is-sheet .npm-mic-btn svg { width: 26px; height: 26px; }
+  .npm-foot--dock .npm-dock-tagro-icon {
+    flex-shrink: 0;
+    color: #8e8e93;
+  }
+  .npm-foot--dock .npm-dock-tagro:not(:disabled):active {
+    background: #e5e5ea !important;
+    transform: scale(0.985);
+  }
 
   /* ---- Chat phase ---- */
   .npm-card.is-chat {
