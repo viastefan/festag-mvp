@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getServiceClient } from '@/lib/supabase/service'
 import { translateDevUpdate } from '@/lib/tagro/translate-update'
 import { createInboxItem } from '@/lib/inbox/create-item'
+import { emitDevActionToClient } from '@/lib/client/connection-bridge'
 
 /**
  * POST /api/dev/daily-update
@@ -132,6 +133,19 @@ export async function POST(req: Request) {
         model: translated.model,
         status: 'completed',
       }).then(() => null, () => null)
+
+      // Bridge → work_signals → client timeline (parallel to status_reports)
+      await emitDevActionToClient(sb as any, {
+        projectId: effectiveProjectId,
+        type: 'status_note',
+        content: `Tagesbriefing:\n${text}\n\n${translated.clientSummary}`,
+        source: 'daily_update',
+        visibility: 'client',
+        createdBy: user.id,
+        clientTranslation: translated.clientSummary,
+        inboxTitle: projectTitle ? `${projectTitle} · Tagesstand` : 'Tagesstand',
+        notifyClient: true,
+      }).catch(() => null)
     }
 
     // 3) Mark the prompt submitted.

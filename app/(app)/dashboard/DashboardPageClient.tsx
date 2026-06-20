@@ -533,6 +533,14 @@ export default function DashboardPageContent() {
       tone: 'approval',
       href: '/captures',
     },
+    ...(clientDeliverables.filter(d => d.approval_status === 'awaiting_review').length > 0 ? [{
+      count: clientDeliverables.filter(d => d.approval_status === 'awaiting_review').length,
+      label: clientDeliverables.filter(d => d.approval_status === 'awaiting_review').length === 1
+        ? 'Lieferung wartet auf Freigabe'
+        : 'Lieferungen warten auf Freigabe',
+      tone: 'approval' as const,
+      href: '/deliverables',
+    }] : []),
     {
       count: combinedDecisionsCount,
       label: combinedDecisionsCount === 1 ? 'Entscheidung wartet auf dich' : 'Entscheidungen warten auf dich',

@@ -9,6 +9,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import FestagIconButton from '@/components/ui/FestagIconButton'
+import NotificationsBell from '@/components/NotificationsBell'
 import PortalWorkspacePopover from '@/components/PortalWorkspacePopover'
 import {
   SidebarSimple, CaretDown, GearSix,
@@ -19,6 +20,7 @@ import { createClient } from '@/lib/supabase/client'
 import { autoAvatarColor, avatarInitials } from '@/lib/avatar'
 import { loadSymbol, onSymbolChange } from '@/lib/workspace-symbol'
 import { useNotifications } from '@/hooks/useNotifications'
+import { useInboxUnread } from '@/hooks/useInboxUnread'
 
 const WORKSPACE_MODE_LABELS: Record<string, string> = {
   delivery: 'Festag Delivery',
@@ -78,7 +80,8 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const [members, setMembers] = useState<TeamMember[]>([])
   const [recent, setRecent] = useState<RecentItem[]>([])
-  const { unread } = useNotifications({ unreadOnly: true, limit: 1 })
+  const { unread: notifUnread } = useNotifications({ unreadOnly: true, limit: 1 })
+  const { unread: inboxUnread } = useInboxUnread()
 
   const loadProjectsSidebar = useCallback(async () => {
     try {
@@ -320,6 +323,9 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
                 <path d="M9.5 9.5L12 12" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" />
               </svg>
             </FestagIconButton>
+            <div className="portal-nav-bell">
+              <NotificationsBell variant="portal" limit={14} />
+            </div>
             <FestagIconButton
               size={28}
               aria-label={collapsed ? 'Sidebar ausklappen' : 'Sidebar einklappen'}
@@ -335,7 +341,9 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
           {NAV.map(item => {
             const Icon = item.Icon
             const active = item.match ? item.match(pathname) : isActive(item.href)
-            const showBadge = 'badge' in item && item.badge && unread > 0
+            const isInbox = item.href === '/messages' || item.href.startsWith('/messages')
+            const itemUnread = isInbox ? inboxUnread : (item.badge ? notifUnread : 0)
+            const showBadge = item.badge && itemUnread > 0
             return (
               <Link
                 key={item.href}
@@ -345,9 +353,14 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
               >
                 <span className="portal-nav-icon-wrap">
                   <Icon size={ICON} weight="regular" />
-                  {showBadge && <span className="portal-nav-badge" aria-label={`${unread} ungelesen`} />}
+                  {showBadge && <span className="portal-nav-badge" aria-hidden />}
                 </span>
                 <span className="portal-nav-label">{item.label}</span>
+                {showBadge && !collapsed && (
+                  <span className="portal-nav-count" aria-label={`${itemUnread} ungelesen`}>
+                    {itemUnread > 99 ? '99+' : itemUnread}
+                  </span>
+                )}
               </Link>
             )
           })}
@@ -489,6 +502,10 @@ const CSS = `
     box-shadow: none;
     transform: none;
   }
+  .portal-nav-bell {
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
 
   .portal-nav-items {
     display: flex; flex-direction: column; gap: 4px;
@@ -510,6 +527,7 @@ const CSS = `
     white-space: nowrap;
     min-height: 36px;
     box-sizing: border-box;
+    width: 100%;
   }
   .portal-nav-item:hover:not(.active) {
     color: var(--portal-text, #1c1c1e);
@@ -539,13 +557,14 @@ const CSS = `
     width: 18px; height: 18px; flex-shrink: 0;
   }
   .portal-nav-badge {
-    position: absolute; top: -2px; right: -4px;
-    width: 7px; height: 7px; border-radius: 50%;
-    background: #007aff;
-    border: 1.5px solid var(--portal-bg, #F6F6F7);
+    position: absolute; top: -3px; right: -5px;
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #ff3b30;
+    border: 1.5px solid var(--portal-bg, #000000);
+    box-shadow: 0 0 0 1px rgba(255, 59, 48, 0.35);
   }
   .portal-nav-item.active .portal-nav-badge {
-    border-color: rgba(0,0,0,.05);
+    border-color: var(--portal-bg, #000);
   }
 
   .portal-nav-label {
@@ -553,6 +572,24 @@ const CSS = `
     letter-spacing: 0.5px;
     overflow: hidden; text-overflow: ellipsis;
     transition: opacity .18s ease, width .18s ease;
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .portal-nav-count {
+    margin-left: auto;
+    flex-shrink: 0;
+    min-width: 18px; height: 18px; padding: 0 5px;
+    border-radius: 999px;
+    background: rgba(255, 59, 48, 0.14);
+    color: #ff453a;
+    font-size: 10px; font-weight: 500;
+    letter-spacing: 0;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  [data-theme="light"] .portal-nav-count,
+  [data-theme="read"] .portal-nav-count {
+    color: #ff3b30;
+    background: rgba(255, 59, 48, 0.12);
   }
 
   .portal-nav-middle {
@@ -746,6 +783,12 @@ const CSS = `
   }
   .portal-nav.is-collapsed .portal-nav-utilities .fui-icon-btn {
     margin: 0;
+  }
+  .portal-nav.is-collapsed .portal-nav-count {
+    display: none;
+  }
+  .portal-nav.is-collapsed .portal-nav-bell {
+    display: none;
   }
   .portal-nav.is-collapsed .portal-nav-label {
     opacity: 0; width: 0; pointer-events: none;

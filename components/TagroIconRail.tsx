@@ -10,6 +10,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import WorkspaceSymbol from '@/components/WorkspaceSymbol'
 import { useNotifications } from '@/hooks/useNotifications'
+import { useInboxUnread } from '@/hooks/useInboxUnread'
 import { loadSymbol, onSymbolChange } from '@/lib/workspace-symbol'
 import { PORTAL_NAV, PORTAL_SETTINGS } from '@/lib/portal-nav'
 import type { MouseEvent } from 'react'
@@ -25,7 +26,8 @@ export default function TagroIconRail({ variant = 'shell', onNavigate }: TagroIc
   const pathname = usePathname() || ''
   const router = useRouter()
   const [wsPrefs, setWsPrefs] = useState(() => loadSymbol('festag'))
-  const { unread } = useNotifications({ unreadOnly: true, limit: 1 })
+  const { unread: notifUnread } = useNotifications({ unreadOnly: true, limit: 1 })
+  const { unread: inboxUnread } = useInboxUnread()
 
   useEffect(() => {
     const off = onSymbolChange((key, prefs) => {
@@ -49,7 +51,9 @@ export default function TagroIconRail({ variant = 'shell', onNavigate }: TagroIc
   function renderItem(item: typeof PORTAL_NAV[number]) {
     const active = isActive(item.href, item.match)
     const Icon = item.Icon
-    const showBadge = item.badge && unread > 0
+    const isInbox = item.href === '/messages' || item.href.startsWith('/messages')
+    const itemUnread = isInbox ? inboxUnread : (item.badge ? notifUnread : 0)
+    const showBadge = item.badge && itemUnread > 0
     return (
       <Link
         key={item.href}
@@ -63,7 +67,7 @@ export default function TagroIconRail({ variant = 'shell', onNavigate }: TagroIc
       >
         <span className="tir-ico-wrap">
           <Icon size={ICON} weight="regular" />
-          {showBadge && <span className="tir-badge" aria-label={`${unread} ungelesen`} />}
+          {showBadge && <span className="tir-badge" aria-label={`${itemUnread} ungelesen`} />}
         </span>
         <span className="tir-sr">{item.label}</span>
       </Link>
@@ -198,10 +202,11 @@ export default function TagroIconRail({ variant = 'shell', onNavigate }: TagroIc
           width: 18px; height: 18px;
         }
         .tir-badge {
-          position: absolute; top: -2px; right: -4px;
-          width: 7px; height: 7px; border-radius: 50%;
-          background: #007aff;
-          border: 1.5px solid var(--portal-bg, #F6F6F7);
+          position: absolute; top: -3px; right: -5px;
+          width: 8px; height: 8px; border-radius: 50%;
+          background: #ff3b30;
+          border: 1.5px solid var(--portal-bg, #000);
+          box-shadow: 0 0 0 1px rgba(255, 59, 48, 0.35);
         }
         .tir-sr {
           position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;

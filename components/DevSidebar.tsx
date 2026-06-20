@@ -21,9 +21,9 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
-  Article, ChatsCircle, CheckSquare, Clock, Compass, Eye, FolderOpen, GearSix,
+  Article, Broadcast, ChatsCircle, CheckSquare, Clock, Compass, Eye, FolderOpen, GearSix,
   GitBranch, GithubLogo, GitCommit, Kanban, Microphone, Package, Pause, Play, Robot, Scales, SignOut,
-  UsersThree, WarningCircle,
+  Sparkle, UsersThree, WarningCircle, WarningOctagon,
 } from '@phosphor-icons/react'
 
 import { createClient } from '@/lib/supabase/client'
@@ -36,8 +36,11 @@ const NAV_MAIN: NavRow[] = [
   { href: '/dev/projects',  icon: FolderOpen,  label: 'Projekte' },
   { href: '/dev/captures',  icon: Microphone,  label: 'Client-Aufnahmen' },
   { href: '/dev/tasks',     icon: CheckSquare, label: 'Meine Aufgaben' },
+  { href: '/dev/activity',  icon: Broadcast,   label: 'Aktivität' },
   { href: '/dev/deliverables', icon: Package,  label: 'Lieferungen' },
   { href: '/dev/visibility', icon: Eye,        label: 'Kunden-Sicht' },
+  { href: '/dev/issues',    icon: WarningOctagon, label: 'Vorfälle' },
+  { href: '/dev/briefing',  icon: Sparkle,     label: 'Tagesbriefing' },
   { href: '/dev/decisions', icon: Scales,      label: 'Entscheidungen' },
   { href: '/dev/review',    icon: Robot,       label: 'Tagro Review' },
   { href: '/dev/plan',      icon: Kanban,      label: 'Tagesplan' },

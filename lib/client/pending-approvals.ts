@@ -66,7 +66,7 @@ export async function listPendingApprovals(
         project_id: a.project_id,
         project_title: projectMap[a.project_id] ?? null,
         created_at: a.created_at,
-        href: '/documents',
+        href: '/deliverables',
       })
     }
   }

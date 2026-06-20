@@ -101,6 +101,26 @@ export async function POST(req: Request) {
           branch_name: branch,
         }, { onConflict: 'repo_id,commit_sha' })
       }
+
+      if (repo.project_id && commits.length > 0) {
+        try {
+          const { emitDevActionToClient } = await import('@/lib/client/connection-bridge')
+          const last = commits[commits.length - 1]
+          await emitDevActionToClient(supabase as any, {
+            projectId: repo.project_id,
+            type: 'code_update',
+            content: [
+              `Git push · ${branch || 'branch'}`,
+              `${commits.length} Commit(s)`,
+              String(last.message ?? '').slice(0, 240),
+            ].filter(Boolean).join('\n'),
+            source: 'github_push',
+            visibility: 'team',
+            createdBy: repo.developer_id ?? null,
+            notifyClient: false,
+          })
+        } catch { /* non-blocking */ }
+      }
     }
 
     if (event === 'pull_request') {
@@ -122,6 +142,22 @@ export async function POST(req: Request) {
           base_branch: p.base?.ref ?? null,
           raw_payload: p,
         }, { onConflict: 'repo_id,pr_number' })
+
+        if (repo.project_id && p.merged) {
+          try {
+            const { emitDevActionToClient } = await import('@/lib/client/connection-bridge')
+            await emitDevActionToClient(supabase as any, {
+              projectId: repo.project_id,
+              type: 'code_update',
+              content: `Pull Request gemerged: #${p.number} ${String(p.title ?? '').slice(0, 200)}`,
+              source: 'github_pr_merged',
+              visibility: 'client',
+              createdBy: repo.developer_id ?? null,
+              notifyClient: true,
+              inboxTitle: `Code gemerged · PR #${p.number}`,
+            })
+          } catch { /* non-blocking */ }
+        }
       }
     }
 

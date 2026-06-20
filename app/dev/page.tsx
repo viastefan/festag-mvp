@@ -24,7 +24,7 @@ import DevNewProjectModal from '@/components/DevNewProjectModal'
 import TagroEntryButton from '@/components/TagroEntryButton'
 import { openTagro } from '@/components/TagroOverlay'
 import {
-  ArrowRight, GitBranch, GitCommit, CheckSquare, Lightning, Microphone,
+  ArrowRight, Eye, GitBranch, GitCommit, CheckSquare, Lightning, Microphone,
   Pause, Play, Plus, Sparkle, WarningCircle,
 } from '@phosphor-icons/react'
 
@@ -276,6 +276,12 @@ export default function DevOverviewPage() {
           </p>
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <Link href="/dev/visibility" className="dev-secondary-btn link-btn">
+            <Eye size={13} /> Kunden-Sicht
+          </Link>
+          <Link href="/dev/briefing" className="dev-secondary-btn link-btn">
+            <Sparkle size={13} /> Tagesbriefing
+          </Link>
           <Link href="/dev/github" className="dev-secondary-btn link-btn">
             <GitBranch size={13} /> GitHub
           </Link>

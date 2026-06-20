@@ -6,6 +6,8 @@ import {
   DEV_FLOW, clientStatusFromDevFlow, progressFromDevFlow, type DevFlow,
 } from '@/lib/tasks/work-types'
 import { emitTaskEvent, type DevEventKind } from '@/lib/sync/bus'
+import { getServiceClient } from '@/lib/supabase/service'
+import { emitDevActionToClient } from '@/lib/client/connection-bridge'
 
 /**
  * POST /api/dev/tasks/status
@@ -107,6 +109,25 @@ export async function POST(req: Request) {
         blocker: devStatus === 'blocked',
         blocker_description: blockerDescription,
       }).then(() => null, () => null)
+    }
+
+    if ((task as any).project_id && (devStatus === 'blocked' || devStatus === 'needs_review')) {
+      const writer = getServiceClient() ?? supabase
+      const isBlocker = devStatus === 'blocked'
+      await emitDevActionToClient(writer as any, {
+        projectId: (task as any).project_id,
+        type: isBlocker ? 'blocker_reported' : 'status_note',
+        content: [
+          isBlocker ? `Blocker: ${(task as any).title}` : `Review angefordert: ${(task as any).title}`,
+          note || blockerDescription || '',
+        ].filter(Boolean).join('\n'),
+        source: 'dev_status',
+        visibility: isBlocker ? 'client' : 'team',
+        createdBy: user.id,
+        relatedTaskId: taskId,
+        notifyClient: isBlocker,
+        inboxTitle: isBlocker ? `Blocker · ${(task as any).title}` : undefined,
+      }).catch(() => null)
     }
 
     return NextResponse.json({

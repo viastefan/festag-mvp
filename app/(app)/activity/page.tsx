@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import Link from 'next/link'
 import {
   ArrowsClockwise, ChartBar, ChatCircle, CheckCircle, Circle, ClipboardText,
   FileText, Flag, FunnelSimple, Key, Lock, PuzzlePiece, Target, Tray, UserPlus, WarningCircle,
@@ -146,6 +147,9 @@ export default function ActivityPage() {
               </p>
               <div className="dec-page-lead dec-dt">
                 <p className="dec-page-lead-line">Slack, Vorfälle und Team-Aktivität in einem Feed.</p>
+                <Link href="/deliverables" style={{ fontSize: 13, color: 'var(--accent)', marginTop: 6, display: 'inline-block' }}>
+                  Client-Projektverlauf & Lieferungen →
+                </Link>
               </div>
             </div>
             <div className="dec-m-head-actions">

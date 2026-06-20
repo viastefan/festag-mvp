@@ -1210,7 +1210,7 @@ const CSS = `
   /* ===== MOBILE = IMMER LIGHT (Figma 259:304). Nur Seiten-Titel + Menü-Pill
      bleiben sichtbar; Sheet füllt den Rest bis zur Unterkante. */
   .npm-overlay.is-mobile {
-    --npm-header-reserve: calc(env(safe-area-inset-top, 0px) + 77px);
+    --npm-header-reserve: calc(env(safe-area-inset-top, 0px) + 92px);
     padding: var(--npm-header-reserve) 0 0;
     color-scheme: light;
     animation: none;
@@ -1386,10 +1386,10 @@ const CSS = `
   }
   .npm-title-input.mobile {
     width: 100%;
-    height: 38px;
+    height: 36px;
     padding: 0;
-    font-size: 32px;
-    line-height: 38px;
+    font-size: 30px;
+    line-height: 36px;
     font-weight: 400;
     letter-spacing: 0;
     color: #2A3032;

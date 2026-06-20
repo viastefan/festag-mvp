@@ -19,7 +19,7 @@ export default function NotificationsBell({
   variant = 'sidebar',
   limit = 18,
 }: {
-  variant?: 'sidebar' | 'header' | 'dock'
+  variant?: 'sidebar' | 'header' | 'dock' | 'portal'
   limit?: number
 }) {
   const { items, unread, markRead, markAllRead } = useNotifications({ limit })
@@ -87,6 +87,25 @@ export default function NotificationsBell({
         }
         .nb-trigger:hover { color: var(--text); background: color-mix(in srgb, var(--surface-2) 70%, transparent); }
         .nb-trigger.header { color: var(--text-secondary); }
+        .nb-trigger.portal {
+          width: 28px; min-width: 28px; height: 28px; padding: 0;
+          border-radius: 8px;
+          color: var(--portal-muted, #8E8E93);
+        }
+        .nb-trigger.portal:hover {
+          background: rgba(255,255,255,.08);
+          color: var(--portal-text, #fff);
+        }
+        [data-theme="light"] .nb-trigger.portal:hover,
+        [data-theme="read"] .nb-trigger.portal:hover {
+          background: rgba(0,0,0,.04);
+          color: var(--portal-text, #000);
+        }
+        .nb.portal .nb-pill {
+          top: 3px; right: 3px;
+          min-width: 12px; height: 12px;
+          font-size: 8px;
+        }
         .nb-trigger.dock {
           width:34px;
           min-width:34px;
