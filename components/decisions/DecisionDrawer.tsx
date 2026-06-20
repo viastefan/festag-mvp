@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   ChatCircleText, Check, CheckCircle, Clock, Sparkle, Warning, WarningCircle, X, UserCircle, CaretDown,
   ArrowsClockwise,
@@ -21,9 +21,20 @@ import {
 
 type WorkspaceMember = { id: string; full_name: string | null; email: string | null; avatar_url: string | null; role?: string | null }
 
+/** Mobile detail dock — primary CTA wired from DecisionDrawer state. */
+export type DecisionMobileDock = {
+  primaryLabel: string
+  primaryDisabled: boolean
+  primaryLoading: boolean
+  onPrimary: () => void
+  onTagro: () => void
+}
+
 export function DecisionDrawer({
   decision, project, me, isDecider, onClose, onPatch, variant = 'drawer',
   initialDiscussOpen = false,
+  mobileDock = false,
+  onMobileDockChange,
 }: {
   decision: Decision
   project: ProjectLite | null
@@ -33,6 +44,9 @@ export function DecisionDrawer({
   onPatch: (p: Partial<Decision>) => void
   variant?: 'drawer' | 'page'
   initialDiscussOpen?: boolean
+  /** Page variant on mobile: hide inline answer CTAs and expose dock actions. */
+  mobileDock?: boolean
+  onMobileDockChange?: (dock: DecisionMobileDock | null) => void
 }) {
   // Response type drives the answer form. Default to single_choice for
   // back-compat with legacy decisions where the field is null.
@@ -249,7 +263,7 @@ export function DecisionDrawer({
     }
   }
 
-  async function submitDecision() {
+  const submitDecision = useCallback(async () => {
     if (deciding) return
     const responseValue = buildResponseValue()
     if (!responseValue) {
@@ -278,7 +292,12 @@ export function DecisionDrawer({
     }
 
     await performDecide(responseValue)
-  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- performDecide closes over stable decision id
+  }, [deciding, responseType, structuredOptions, decision, selected, multiSelected, binaryValue, note])
+
+  const openTagroForDecision = useCallback(() => {
+    openTagro(tagroOpenFromDecision(decision, project))
+  }, [decision, project])
 
   async function delegateToTagro() {
     if (delegating) return
@@ -358,6 +377,57 @@ export function DecisionDrawer({
   const escalationLevel = decision.escalation_level ?? 0
   const isEscalated = escalationLevel >= 2 && !isAnswered
 
+  useEffect(() => {
+    if (!mobileDock || variant !== 'page') {
+      onMobileDockChange?.(null)
+      return
+    }
+
+    if (isAnswered) {
+      onMobileDockChange?.({
+        primaryLabel: 'Zur Übersicht',
+        primaryDisabled: false,
+        primaryLoading: false,
+        onPrimary: onClose,
+        onTagro: openTagroForDecision,
+      })
+      return
+    }
+
+    if (!isDecider) {
+      onMobileDockChange?.({
+        primaryLabel: 'Mit Tagro besprechen',
+        primaryDisabled: false,
+        primaryLoading: false,
+        onPrimary: openTagroForDecision,
+        onTagro: openTagroForDecision,
+      })
+      return
+    }
+
+    if (isAwaitingClarification) {
+      onMobileDockChange?.({
+        primaryLabel: 'Wartet auf Klärung',
+        primaryDisabled: true,
+        primaryLoading: false,
+        onPrimary: () => {},
+        onTagro: openTagroForDecision,
+      })
+      return
+    }
+
+    onMobileDockChange?.({
+      primaryLabel: deciding ? 'Speichere…' : 'Entscheidung absenden',
+      primaryDisabled: deciding,
+      primaryLoading: deciding,
+      onPrimary: () => { void submitDecision() },
+      onTagro: openTagroForDecision,
+    })
+  }, [
+    mobileDock, variant, isAnswered, isDecider, isAwaitingClarification, deciding,
+    onClose, onMobileDockChange, openTagroForDecision, submitDecision,
+  ])
+
   const panelBody = (
     <>
         {variant !== 'page' && (
@@ -384,7 +454,10 @@ export function DecisionDrawer({
           </header>
         )}
 
-        <div className={`dec-drawer-body${variant === 'page' ? ' dec-page-body' : ''}`}>
+        <div className={`dec-drawer-body${variant === 'page' ? ' dec-page-body' : ''}${mobileDock ? ' dec-page-body--mobile-dock' : ''}`}>
+          {variant === 'page' && (decision.client_summary || decision.description) && (
+            <p className="dec-d-desc dec-detail-lead">{decision.client_summary || decision.description}</p>
+          )}
           {variant !== 'page' && (
             <>
               <h2 className="dec-d-title">{decision.client_title || decision.title}</h2>
@@ -575,7 +648,7 @@ export function DecisionDrawer({
 
               {error && <p className="dec-error"><Warning size={11} /> {error}</p>}
 
-              <div className="dec-answer-actions">
+              <div className={`dec-answer-actions${mobileDock ? ' dec-answer-actions--desktop' : ''}`}>
                 <button type="button" className="dec-primary" onClick={submitDecision} disabled={deciding}>
                   <CheckCircle size={12} weight="bold" />
                   {deciding ? 'Speichere…' : 'Entscheidung absenden'}

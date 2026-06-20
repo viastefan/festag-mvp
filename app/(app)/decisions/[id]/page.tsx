@@ -3,12 +3,13 @@
 import { Suspense, useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
-import { ArrowLeft, Clock } from '@phosphor-icons/react'
+import { ArrowLeft, CheckCircle, Clock, Lightning, PencilSimple } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
-import { openTagro } from '@/components/TagroOverlay'
-import { tagroOpenFromDecision } from '@/lib/tagro/open-context'
 import TagroContentFab from '@/components/TagroContentFab'
-import MobilePageHeader from '@/components/MobilePageHeader'
+import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
+import CodexOrbButton from '@/components/mobile/CodexOrbButton'
+import MobileNavSheet from '@/components/mobile/MobileNavSheet'
+import MobilePageDock from '@/components/mobile/MobilePageDock'
 import {
   MOCK_DECISIONS,
   MOCK_PROJECTS,
@@ -21,7 +22,7 @@ import {
   type ProjectLite,
 } from '@/components/decisions/decisions-shared'
 import DecisionDetailBrief from '@/components/decisions/DecisionDetailBrief'
-import { DecisionDrawer } from '@/components/decisions/DecisionDrawer'
+import { DecisionDrawer, type DecisionMobileDock } from '@/components/decisions/DecisionDrawer'
 import { DECISION_CSS } from '@/components/decisions/decisions-styles'
 
 function DecisionDetailInner() {
@@ -34,6 +35,8 @@ function DecisionDetailInner() {
   const [project, setProject] = useState<ProjectLite | null>(null)
   const [loading, setLoading] = useState(true)
   const [me, setMe] = useState('')
+  const [navOpen, setNavOpen] = useState(false)
+  const [mobileDock, setMobileDock] = useState<DecisionMobileDock | null>(null)
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setMe(data?.user?.id || ''))
@@ -75,12 +78,15 @@ function DecisionDetailInner() {
     setDecision(curr => (curr ? { ...curr, ...patch } : curr))
   }
 
+  const handleMobileDockChange = useCallback((dock: DecisionMobileDock | null) => {
+    setMobileDock(dock)
+  }, [])
+
   if (loading) {
     return (
       <div className="dec-os dec-os-detail">
         <style>{DECISION_CSS}</style>
-        <MobilePageHeader title="Entscheidung" />
-        <div className="dec-detail-hero dec-detail-hero--loading">
+        <div className="dec-detail-m-shell">
           <p className="dec-detail-loading">Entscheidung wird geladen…</p>
         </div>
       </div>
@@ -91,14 +97,15 @@ function DecisionDetailInner() {
     return (
       <div className="dec-os dec-os-detail">
         <style>{DECISION_CSS}</style>
-        <MobilePageHeader title="Entscheidung" />
-        <div className="dec-detail-empty">
-          <p className="dec-detail-empty-title">Entscheidung nicht gefunden.</p>
-          <p className="dec-detail-empty-copy">Sie wurde möglicherweise archiviert oder du hast keinen Zugriff.</p>
-          <Link href="/decisions" className="dec-detail-back dec-detail-back-pill">
-            <ArrowLeft size={16} />
-            Zurück zur Übersicht
-          </Link>
+        <div className="dec-detail-m-shell">
+          <div className="dec-detail-empty">
+            <p className="dec-detail-empty-title">Entscheidung nicht gefunden.</p>
+            <p className="dec-detail-empty-copy">Sie wurde möglicherweise archiviert oder du hast keinen Zugriff.</p>
+            <Link href="/decisions" className="dec-detail-back dec-detail-back-pill">
+              <ArrowLeft size={16} />
+              Zurück zur Übersicht
+            </Link>
+          </div>
         </div>
       </div>
     )
@@ -111,94 +118,143 @@ function DecisionDetailInner() {
   const title = decision.client_title || decision.title
   const typeMeta = resolveDecisionType(decision.decision_type)
   const isAnswered = decision.status === 'decided' || decision.status === 'applied'
+  const isOpen = isOpenDecisionStatus(decision.status)
   const escalation = decision.escalation_level ?? 0
 
+  const mobileSubtitle = [
+    project?.title,
+    isAnswered ? 'Entschieden' : isOpen ? 'Offen' : URGENCY_LABEL[decision.urgency] || 'Normal',
+  ].filter(Boolean).join(' · ')
+
+  const dockPrimaryIcon = isAnswered
+    ? <ArrowLeft size={14} weight="regular" />
+    : isDecider && isOpen
+      ? <CheckCircle size={14} weight="regular" />
+      : <Lightning size={14} weight="regular" />
+
   return (
-    <div className="dec-os dec-os-detail">
+    <div className={`dec-os dec-os-detail${mobileDock ? ' dec-os-detail--dock' : ''}`}>
       <style>{DECISION_CSS}</style>
 
-      <MobilePageHeader
-        title={title}
-        menuItems={[
-          {
-            id: 'tagro',
-            label: 'Mit Tagro bearbeiten',
-            onClick: () => openTagro(tagroOpenFromDecision(decision, project)),
-          },
-        ]}
-      />
+      <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
 
-      <header className="dec-detail-hero">
-        <div className="dec-detail-col">
-          <div className="dec-detail-toolbar">
-            <Link href="/decisions" className="dec-detail-back dec-detail-back-pill dec-detail-back-desktop">
-              <ArrowLeft size={14} weight="regular" />
-              Alle Entscheidungen
-            </Link>
+      <div className="dec-detail-m-shell">
+        <header className="dec-detail-m-head">
+          <CodexOrbButton ariaLabel="Zurück" onClick={() => router.push('/decisions')}>
+            <ArrowLeft size={20} weight="regular" />
+          </CodexOrbButton>
+          <div className="dec-detail-m-copy">
+            <h1>{title}</h1>
+            {mobileSubtitle ? <p>{mobileSubtitle}</p> : null}
           </div>
+          <div className="dec-detail-m-head-actions">
+            <CodexMobileActionPill
+              onMenu={() => setNavOpen(true)}
+              onSearch={() => window.dispatchEvent(new CustomEvent('open-command-palette'))}
+            />
+          </div>
+        </header>
 
-          <div className="dec-detail-hero-main">
-            <div className="dec-detail-hero-text">
-              <h1 className="dec-detail-title">{title}</h1>
+        <header className="dec-detail-hero dec-detail-hero-desktop">
+          <div className="dec-detail-col">
+            <div className="dec-detail-toolbar">
+              <Link href="/decisions" className="dec-detail-back dec-detail-back-pill dec-detail-back-desktop">
+                <ArrowLeft size={14} weight="regular" />
+                Alle Entscheidungen
+              </Link>
             </div>
-          </div>
 
-          <div className="dec-detail-meta-row">
-          {project && (
-            <span className="dec-detail-meta-chip">
-              <span className="dec-detail-project-dot" style={{ background: project.color || '#5B647D' }} />
-              {project.title}
-            </span>
-          )}
-          {decision.decision_type && (
-            <span
-              className="dec-detail-meta-chip dec-detail-meta-chip--type"
-              style={{ ['--dec-dot-color' as string]: typeMeta.color }}
-            >
-              <span className="dec-detail-project-dot" aria-hidden />
-              {typeMeta.label}
-            </span>
-          )}
-          <span className={`dec-detail-meta-chip dec-detail-meta-chip--${URGENCY_TONE[decision.urgency] || 'muted'}`}>
-            {URGENCY_LABEL[decision.urgency] || 'Normal'}
-          </span>
-          {escalation >= 2 && isOpenDecisionStatus(decision.status) && (
-            <span className="dec-detail-meta-chip dec-detail-meta-chip--red">
-              {escalation >= 3 ? 'Frist abgelaufen' : 'Eskaliert'}
-            </span>
-          )}
-          {isAnswered && (
-            <span className="dec-detail-meta-chip dec-detail-meta-chip--good">Entschieden</span>
-          )}
-          <span className="dec-detail-meta-chip dec-detail-meta-chip--time">
-            <Clock size={12} weight="regular" />
-            {fmtAgo(decision.updated_at)}
-          </span>
-          </div>
+            <div className="dec-detail-hero-main">
+              <div className="dec-detail-hero-text">
+                <h1 className="dec-detail-title">{title}</h1>
+              </div>
+            </div>
 
+            <div className="dec-detail-meta-row">
+              {project && (
+                <span className="dec-detail-meta-chip">
+                  <span className="dec-detail-project-dot" style={{ background: project.color || '#5B647D' }} />
+                  {project.title}
+                </span>
+              )}
+              {decision.decision_type && (
+                <span
+                  className="dec-detail-meta-chip dec-detail-meta-chip--type"
+                  style={{ ['--dec-dot-color' as string]: typeMeta.color }}
+                >
+                  <span className="dec-detail-project-dot" aria-hidden />
+                  {typeMeta.label}
+                </span>
+              )}
+              <span className={`dec-detail-meta-chip dec-detail-meta-chip--${URGENCY_TONE[decision.urgency] || 'muted'}`}>
+                {URGENCY_LABEL[decision.urgency] || 'Normal'}
+              </span>
+              {escalation >= 2 && isOpen && (
+                <span className="dec-detail-meta-chip dec-detail-meta-chip--red">
+                  {escalation >= 3 ? 'Frist abgelaufen' : 'Eskaliert'}
+                </span>
+              )}
+              {isAnswered && (
+                <span className="dec-detail-meta-chip dec-detail-meta-chip--good">Entschieden</span>
+              )}
+              <span className="dec-detail-meta-chip dec-detail-meta-chip--time">
+                <Clock size={12} weight="regular" />
+                {fmtAgo(decision.updated_at)}
+              </span>
+            </div>
+
+            <DecisionDetailBrief decision={decision} project={project} />
+          </div>
+        </header>
+
+        <div className="dec-detail-m-brief">
           <DecisionDetailBrief decision={decision} project={project} />
         </div>
-      </header>
 
-      <DecisionDrawer
-        variant="page"
-        decision={decision}
-        project={project}
-        me={me}
-        isDecider={isDecider}
-        onClose={() => router.push('/decisions')}
-        onPatch={patchLocal}
-        initialDiscussOpen={discussOnLoad}
-      />
+        <DecisionDrawer
+          variant="page"
+          mobileDock
+          decision={decision}
+          project={project}
+          me={me}
+          isDecider={isDecider}
+          onClose={() => router.push('/decisions')}
+          onPatch={patchLocal}
+          initialDiscussOpen={discussOnLoad}
+          onMobileDockChange={handleMobileDockChange}
+        />
+      </div>
 
-      <TagroContentFab
-        context={{
-          contextType: 'decision',
-          id: decision.id,
-          title,
-          subtitle: project?.title,
-        }}
-      />
+      <div className="dec-fab-desktop">
+        <TagroContentFab
+          context={{
+            contextType: 'decision',
+            id: decision.id,
+            title,
+            subtitle: project?.title,
+          }}
+        />
+      </div>
+
+      {mobileDock && (
+        <MobilePageDock
+          onDragUp={mobileDock.onTagro}
+          primary={{
+            id: 'primary',
+            label: mobileDock.primaryLoading ? 'Speichere…' : mobileDock.primaryLabel,
+            icon: dockPrimaryIcon,
+            onClick: mobileDock.onPrimary,
+            ariaLabel: mobileDock.primaryLabel,
+            disabled: mobileDock.primaryDisabled,
+          }}
+          secondary={{
+            id: 'tagro',
+            icon: <PencilSimple size={20} weight="bold" />,
+            onClick: mobileDock.onTagro,
+            ariaLabel: 'Mit Tagro bearbeiten',
+          }}
+        />
+      )}
     </div>
   )
 }

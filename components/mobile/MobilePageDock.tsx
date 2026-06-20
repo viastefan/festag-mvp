@@ -16,6 +16,7 @@ export type MobileDockAction = {
   icon: ReactNode
   onClick: () => void
   ariaLabel: string
+  disabled?: boolean
 }
 
 type Props = {
@@ -58,9 +59,10 @@ export default function MobilePageDock({ onDragUp, primary, secondary }: Props) 
           <div className="mpd-row">
             <button
               type="button"
-              className="mpd-ghost"
+              className={`mpd-ghost${primary.disabled ? ' mpd-ghost--disabled' : ''}`}
               onClick={primary.onClick}
               aria-label={primary.ariaLabel}
+              disabled={primary.disabled}
             >
               <span className="mpd-ghost-icon" aria-hidden>{primary.icon}</span>
               {primary.label ? <span className="mpd-ghost-label">{primary.label}</span> : null}

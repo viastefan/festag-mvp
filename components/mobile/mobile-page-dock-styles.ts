@@ -69,6 +69,12 @@ export const MOBILE_PAGE_DOCK_CSS = `
     background: #e5e5ea;
     transform: scale(0.985);
   }
+  .mpd-ghost--disabled,
+  .mpd-ghost:disabled {
+    opacity: 0.52;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
   .mpd-ghost-icon {
     position: absolute;
     left: 20px;
