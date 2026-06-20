@@ -8,21 +8,21 @@ import TagroOverlay from '@/components/TagroOverlay'
 
 export const PORTAL_APP_SHELL_CSS = `
   .portal-app-shell {
-    --portal-bg: #F6F6F7;
+    --portal-bg: #FFFFFF;
     --portal-card: #FFFFFF;
-    --portal-text: #0f0f10;
-    --portal-muted: #6e717e;
-    --portal-soft: #8f93a4;
-    --portal-nav-active-bg: var(--glass-nav-active, rgba(0,0,0,.055));
+    --portal-text: #000000;
+    --portal-muted: #8E8E93;
+    --portal-soft: #AEAEB2;
+    --portal-nav-active-bg: var(--glass-nav-active, rgba(0,0,0,.06));
     --portal-nav-avatar-bg: rgba(255,255,255,.72);
     --portal-nav-avatar-border: rgba(255,255,255,.5);
-    --portal-pill-bg: #f1f3f5;
-    --portal-btn-primary: #5b647d;
+    --portal-pill-bg: #F2F2F7;
+    --portal-btn-primary: #000000;
     --portal-btn-outline-bg: #fff;
-    --portal-btn-outline-border: #e7ebf0;
-    --portal-btn-outline-text: #202532;
-    --portal-row-hover: rgba(241,243,245,.4);
-    --portal-icon-border: rgba(202,207,212,.2);
+    --portal-btn-outline-border: rgba(60,60,67,0.12);
+    --portal-btn-outline-text: #000000;
+    --portal-row-hover: rgba(242,242,247,.6);
+    --portal-icon-border: rgba(60,60,67,0.10);
     --portal-shadow-card: none;
 
     position:fixed; inset:0;
@@ -35,21 +35,21 @@ export const PORTAL_APP_SHELL_CSS = `
   }
   [data-theme="dark"] .portal-app-shell,
   [data-theme="classic-dark"] .portal-app-shell {
-    --portal-bg: var(--glass-shell-bg, rgba(7,9,11,.92));
-    --portal-card: #141416;
-    --portal-text: #f4f4f4;
-    --portal-muted: #9aa0ac;
-    --portal-soft: #8f93a4;
-    --portal-nav-active-bg: var(--glass-nav-active, rgba(255,255,255,.09));
+    --portal-bg: #000000;
+    --portal-card: #000000;
+    --portal-text: #FFFFFF;
+    --portal-muted: #8E8E93;
+    --portal-soft: #AEAEB2;
+    --portal-nav-active-bg: var(--glass-nav-active, rgba(255,255,255,.10));
     --portal-nav-avatar-bg: rgba(255,255,255,.06);
     --portal-nav-avatar-border: rgba(255,255,255,.08);
     --portal-pill-bg: rgba(255,255,255,.08);
-    --portal-btn-primary: #7b849c;
+    --portal-btn-primary: #FFFFFF;
     --portal-btn-outline-bg: rgba(255,255,255,.04);
-    --portal-btn-outline-border: rgba(255,255,255,.1);
-    --portal-btn-outline-text: #f4f4f4;
+    --portal-btn-outline-border: rgba(255,255,255,.10);
+    --portal-btn-outline-text: #FFFFFF;
     --portal-row-hover: rgba(255,255,255,.06);
-    --portal-icon-border: rgba(255,255,255,.1);
+    --portal-icon-border: rgba(255,255,255,.10);
     --portal-shadow-card: none;
     color-scheme: dark;
   }
@@ -94,8 +94,8 @@ export const PORTAL_APP_SHELL_CSS = `
   .portal-app-main {
     flex:1; min-height:0;
     background:var(--portal-card);
-    border-radius:12px;
-    border:1px solid color-mix(in srgb, var(--portal-btn-outline-border, #e7ebf0) 50%, transparent);
+    border-radius:24px;
+    border:1px solid color-mix(in srgb, var(--portal-btn-outline-border, rgba(60,60,67,0.12)) 50%, transparent);
     overflow:hidden;
     display:flex; flex-direction:column;
     position:relative;
@@ -129,17 +129,17 @@ export const PORTAL_APP_SHELL_CSS = `
     transform:none;
   }
   .portal-app-shell .fui-pill-btn--primary {
-    background:var(--portal-btn-primary, #5b647d);
+    background:var(--portal-btn-primary, #000);
     border-color:transparent;
-    color:#fff;
+    color:var(--portal-btn-primary-text, #fff);
   }
   .portal-app-shell .fui-pill-btn--primary:hover:not(:disabled) {
-    background:color-mix(in srgb, var(--portal-btn-primary, #5b647d) 90%, #000);
-    color:#fff;
+    background:color-mix(in srgb, var(--portal-btn-primary, #000) 88%, #fff);
+    color:var(--portal-btn-primary-text, #fff);
   }
   .portal-app-shell .fui-pill-btn--primary:active:not(:disabled) {
-    background:color-mix(in srgb, var(--portal-btn-primary, #5b647d) 82%, #000);
-    color:#fff;
+    background:color-mix(in srgb, var(--portal-btn-primary, #000) 92%, #000);
+    color:var(--portal-btn-primary-text, #fff);
   }
   [data-theme="dark"] .portal-app-shell .fui-icon-btn,
   [data-theme="dark"] .portal-app-shell .fui-pill-btn,
@@ -158,14 +158,14 @@ export const PORTAL_APP_SHELL_CSS = `
   }
   [data-theme="dark"] .portal-app-shell .fui-pill-btn--primary,
   [data-theme="classic-dark"] .portal-app-shell .fui-pill-btn--primary {
-    background:var(--portal-btn-primary, #7b849c);
+    background:var(--portal-btn-primary, #fff);
     border-color:transparent;
-    color:#fff;
+    color:#000;
   }
   [data-theme="dark"] .portal-app-shell .fui-pill-btn--primary:hover:not(:disabled),
   [data-theme="classic-dark"] .portal-app-shell .fui-pill-btn--primary:hover:not(:disabled) {
-    background:color-mix(in srgb, var(--portal-btn-primary, #7b849c) 90%, #000);
-    color:#fff;
+    background:color-mix(in srgb, var(--portal-btn-primary, #fff) 92%, #000);
+    color:#000;
   }
 
   @media (max-width: 900px) {

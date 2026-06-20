@@ -159,16 +159,19 @@ export default function TagroMobileBar({ context, leftLabel, leftIcon, onLeft, o
           background: rgba(245,245,245,1);
         }
 
-        /* PRIMARY · slate fill, the only solid surface in the row. */
+        /* PRIMARY — monochrome fill (white on dark, black on light). */
         .tmb-primary {
-          background: #5B647D;
-          color: #FFFFFF;
-          box-shadow:
-            inset 0 1px 0 rgba(255,255,255,0.10),
-            0 16px 36px -14px rgba(91,100,125,0.65),
-            0 4px 14px -6px rgba(15,23,42,0.32);
+          background: var(--btn-prim, #000);
+          color: var(--btn-prim-text, #FFF);
+          box-shadow: 0 8px 24px rgba(0,0,0,0.16);
         }
-        .tmb-primary:active { background: #4B5369; }
+        .tmb-primary:active { opacity: 0.88; }
+        :global([data-theme="dark"]) .tmb-primary,
+        :global([data-theme="classic-dark"]) .tmb-primary {
+          background: #FFFFFF;
+          color: #000000;
+          box-shadow: 0 8px 28px rgba(0,0,0,0.42);
+        }
         .tmb-primary.is-single { /* takes whole row when no left action */ }
 
         /* Reduced-motion: drop the slide-up. */

@@ -1,4 +1,4 @@
-/** Shared Codex-inspired mobile chrome — soft orbs, no strokes. */
+/** Shared Codex-inspired mobile chrome — Sana-style soft orbs, no strokes. */
 export const CODEX_ORB_CSS = `
   .cx-orb {
     width: 44px;
@@ -11,28 +11,24 @@ export const CODEX_ORB_CSS = `
     padding: 0;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
-    background: var(--cx-orb-bg, #fff);
-    color: var(--cx-orb-fg, #1c1c1e);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.95),
-      0 2px 4px rgba(144, 149, 159, 0.09);
+    background: var(--cx-orb-bg, #f2f2f7);
+    color: var(--cx-orb-fg, #000);
+    box-shadow: none;
     transition: transform 0.14s ease, background 0.14s ease;
   }
   .cx-orb:active {
     transform: scale(0.96);
-    background: var(--cx-orb-bg-active, #f8f8f8);
+    background: var(--cx-orb-bg-active, #e5e5ea);
   }
   .cx-orb:disabled {
     opacity: 0.4;
     cursor: default;
   }
   .cx-orb--dark {
-    --cx-orb-bg: rgba(255, 255, 255, 0.1);
+    --cx-orb-bg: rgba(255, 255, 255, 0.10);
     --cx-orb-bg-active: rgba(255, 255, 255, 0.14);
-    --cx-orb-fg: rgba(255, 255, 255, 0.88);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.07),
-      0 2px 4px rgba(0, 0, 0, 0.34);
+    --cx-orb-fg: rgba(255, 255, 255, 0.92);
+    box-shadow: none;
   }
   .cx-topbar {
     position: absolute;
@@ -79,12 +75,10 @@ export const CODEX_ORB_CSS = `
   }
   [data-theme="dark"] .cx-orb,
   [data-theme="classic-dark"] .cx-orb {
-    --cx-orb-bg: rgba(255, 255, 255, 0.08);
-    --cx-orb-bg-active: rgba(255, 255, 255, 0.12);
-    --cx-orb-fg: rgba(255, 255, 255, 0.88);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.07),
-      0 2px 4px rgba(0, 0, 0, 0.34);
+    --cx-orb-bg: rgba(255, 255, 255, 0.10);
+    --cx-orb-bg-active: rgba(255, 255, 255, 0.14);
+    --cx-orb-fg: rgba(255, 255, 255, 0.92);
+    box-shadow: none;
   }
   .cx-action-pill-btn {
     width: 42px;

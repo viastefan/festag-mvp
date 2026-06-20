@@ -151,36 +151,39 @@ export default function MobileClientDock() {
           flex: 1 1 auto;
           justify-content: flex-start;
           padding: 0 24px;
-          background: #FFFFFF;
-          color: #1A1A1A;
-          box-shadow:
-            inset 0 0 0 1px rgba(0,0,0,0.05),
-            0 6px 20px -10px rgba(15,23,42,0.16);
+          background: var(--surface-2, #F2F2F7);
+          color: var(--text, #000);
+          box-shadow: inset 0 0 0 1px var(--border, rgba(0,0,0,0.06));
         }
-        .mcd-ghost .mcd-ico { color: #5A5A5A; }
-        .mcd-ghost:active { background: #F4F4F4; }
+        .mcd-ghost .mcd-ico { color: var(--text-muted, #8E8E93); }
+        .mcd-ghost:active { background: var(--card, #E5E5EA); }
         :global([data-theme="dark"]) .mcd-ghost,
         :global([data-theme="classic-dark"]) .mcd-ghost {
-          background: #1C1C1E; color: #F4F4F4;
-          box-shadow:
-            inset 0 0 0 1px rgba(255,255,255,0.08),
-            0 12px 28px -16px rgba(0,0,0,.7);
+          background: var(--surface, #1C1C1E); color: var(--text, #FFF);
+          box-shadow: inset 0 0 0 1px var(--border, rgba(255,255,255,0.08));
         }
         :global([data-theme="dark"]) .mcd-ghost .mcd-ico,
-        :global([data-theme="classic-dark"]) .mcd-ghost .mcd-ico { color: #9A9A9A; }
+        :global([data-theme="classic-dark"]) .mcd-ghost .mcd-ico { color: var(--text-muted, #8E8E93); }
         :global([data-theme="dark"]) .mcd-ghost:active,
-        :global([data-theme="classic-dark"]) .mcd-ghost:active { background: #262628; }
+        :global([data-theme="classic-dark"]) .mcd-ghost:active { background: var(--card, #2C2C2E); }
 
         .mcd-primary {
           flex: 0 0 auto;
           justify-content: center;
           padding: 0 24px;
-          background: #5B647D;
-          color: #FFFFFF;
-          box-shadow: 0 12px 26px -10px rgba(91,100,125,0.5);
+          background: var(--btn-prim, #000);
+          color: var(--btn-prim-text, #FFF);
+          box-shadow: 0 8px 24px rgba(0,0,0,0.18);
         }
-        .mcd-primary .mcd-ico { color: #FFFFFF; }
-        .mcd-primary:active { background: #4d566c; }
+        .mcd-primary .mcd-ico { color: var(--btn-prim-text, #FFF); }
+        .mcd-primary:active { opacity: 0.88; }
+        :global([data-theme="dark"]) .mcd-primary,
+        :global([data-theme="classic-dark"]) .mcd-primary {
+          background: #FFFFFF; color: #000000;
+          box-shadow: 0 8px 28px rgba(0,0,0,0.42);
+        }
+        :global([data-theme="dark"]) .mcd-primary .mcd-ico,
+        :global([data-theme="classic-dark"]) .mcd-primary .mcd-ico { color: #000000; }
       `}</style>
     </>
   )

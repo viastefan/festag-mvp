@@ -36,7 +36,7 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: '#07090b',
+  themeColor: '#000000',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
@@ -50,7 +50,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <meta charSet="utf-8" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="Festag" />
         <link rel="shortcut icon" href={`/favicon.ico?v=${brandIconVersion}`} />
         <link rel="icon" type="image/svg+xml" href={`/brand/favicon.svg?v=${brandIconVersion}`} />
@@ -74,7 +74,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   if (t !== 'light' && t !== 'dark' && t !== 'read') t = 'dark';
   var attr = (t === 'read') ? 'read' : t;
   document.documentElement.setAttribute('data-theme', attr);
-  var bg = t === 'dark' ? '#07090b' : t === 'read' ? '#F7F4EC' : '#F6F9FC';
+  var bg = t === 'dark' ? '#000000' : t === 'read' ? '#F7F4EC' : '#FFFFFF';
   document.documentElement.style.backgroundColor = bg;
   document.documentElement.style.colorScheme = (t === 'dark') ? 'dark' : 'light';
   var lang = localStorage.getItem('festag_language');
@@ -89,12 +89,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           /* Force scrollbar track always visible so content width never jumps
              when navigating between pages of different scroll height. */
           html { overflow-y: scroll; }
-          html[data-theme="dark"]  { background:#07090b; color-scheme:dark; }
+          html[data-theme="dark"]  { background:#000000; color-scheme:dark; }
           html[data-theme="read"]  { background:#F7F4EC; color-scheme:light; }
-          html[data-theme="light"] { background:#F6F9FC; color-scheme:light; }
-          html[data-theme="dark"]  body { background:#07090b; }
+          html[data-theme="light"] { background:#FFFFFF; color-scheme:light; }
+          html[data-theme="dark"]  body { background:#000000; }
           html[data-theme="read"]  body { background:#F7F4EC; }
-          html[data-theme="light"] body { background:#F6F9FC; }
+          html[data-theme="light"] body { background:#FFFFFF; }
         `}} />
       </head>
       <body>

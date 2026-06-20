@@ -23,7 +23,7 @@ export const MOBILE_PAGE_DOCK_CSS = `
     width: 100%;
     box-sizing: border-box;
     background: #ffffff;
-    border-radius: 36px 36px 0 0;
+    border-radius: 32px 32px 0 0;
     box-shadow: ${MOBILE_DOCK_SHELL_SHADOW};
     padding: 10px 16px 16px;
     padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
@@ -55,7 +55,7 @@ export const MOBILE_PAGE_DOCK_CSS = `
     padding: 0 20px;
     border: ${MOBILE_WHITE_BORDER};
     border-radius: 999px;
-    background: #ffffff;
+    background: #f2f2f7;
     color: #8e8e93;
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
     font-size: 16px;
@@ -66,7 +66,7 @@ export const MOBILE_PAGE_DOCK_CSS = `
     -webkit-tap-highlight-color: transparent;
   }
   .mpd-ghost:active {
-    background: #f8f8f8;
+    background: #e5e5ea;
     transform: scale(0.985);
   }
   .mpd-ghost-icon {
@@ -99,8 +99,8 @@ export const MOBILE_PAGE_DOCK_CSS = `
     flex-shrink: 0;
     border: 0 !important;
     border-radius: 999px !important;
-    background: var(--portal-btn-primary, #5b647d) !important;
-    color: #ffffff !important;
+    background: var(--btn-prim, #000) !important;
+    color: var(--btn-prim-text, #fff) !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -112,18 +112,18 @@ export const MOBILE_PAGE_DOCK_CSS = `
   .mpd-primary svg {
     width: 20px !important;
     height: 20px !important;
-    color: #ffffff !important;
+    color: var(--btn-prim-text, #fff) !important;
     fill: currentColor;
   }
   .mpd-primary:active {
     transform: scale(0.97);
-    background: color-mix(in srgb, var(--portal-btn-primary, #5b647d) 88%, #000) !important;
+    opacity: 0.9;
   }
 
   [data-theme='dark'] .mpd-shell,
   [data-theme='classic-dark'] .mpd-shell {
     background: #1c1c1e;
-    box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.42);
+    box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.48);
   }
   [data-theme='dark'] .mpd-grip,
   [data-theme='classic-dark'] .mpd-grip {
@@ -131,28 +131,24 @@ export const MOBILE_PAGE_DOCK_CSS = `
   }
   [data-theme='dark'] .mpd-ghost,
   [data-theme='classic-dark'] .mpd-ghost {
-    background: rgba(255, 255, 255, 0.11);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: #9aa0ac;
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.1),
-      0 2px 8px rgba(0, 0, 0, 0.42);
+    background: #2c2c2e;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: #8e8e93;
+    box-shadow: none;
   }
   [data-theme='dark'] .mpd-ghost-icon,
   [data-theme='classic-dark'] .mpd-ghost-icon {
-    color: #9aa0ac;
+    color: #8e8e93;
   }
   [data-theme='dark'] .mpd-primary,
   [data-theme='classic-dark'] .mpd-primary {
     background: #ffffff !important;
-    color: #121214 !important;
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.92),
-      0 2px 8px rgba(0, 0, 0, 0.36) !important;
+    color: #000000 !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.42) !important;
   }
   [data-theme='dark'] .mpd-primary svg,
   [data-theme='classic-dark'] .mpd-primary svg {
-    color: #121214 !important;
+    color: #000000 !important;
   }
 
   @media (max-width: 768px) {

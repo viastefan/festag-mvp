@@ -162,8 +162,8 @@ export default function MobilePageHeader({
           min-width: 200px;
           padding: 6px;
           background: var(--surface, #fff);
-          border-radius: 14px;
-          box-shadow: 0 18px 40px -16px rgba(15, 23, 42, 0.28);
+          border-radius: 20px;
+          box-shadow: 0 12px 40px rgba(0, 0, 0, 0.16);
           animation: mphIn .14s cubic-bezier(.16, 1, .3, 1) both;
         }
         @keyframes mphIn {
@@ -173,9 +173,9 @@ export default function MobilePageHeader({
         .mph-menu-item {
           width: 100%;
           display: flex; align-items: center; gap: 10px;
-          min-height: 40px;
-          padding: 0 12px;
-          border: 0; border-radius: 10px;
+          min-height: 44px;
+          padding: 0 14px;
+          border: 0; border-radius: 14px;
           background: transparent;
           color: var(--text, #111);
           font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
