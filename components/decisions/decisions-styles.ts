@@ -170,7 +170,7 @@ export const DECISION_CSS = `
   [data-theme="dark"] .dec-filter-menu,
   [data-theme="classic-dark"] .dec-filter-menu {
     background: var(--portal-card, #141416);
-    border-color: rgba(255,255,255,.1);
+    border: none;
     box-shadow: 0 16px 40px -12px rgba(0,0,0,.45);
   }
   .dec-filter-menu-label {
@@ -674,7 +674,7 @@ export const DECISION_CSS = `
   [data-theme="dark"] .dec-card-menu,
   [data-theme="classic-dark"] .dec-card-menu {
     background:var(--portal-card, #141416);
-    border-color:rgba(255,255,255,.1);
+    border:none;
     box-shadow:0 16px 40px -12px rgba(0,0,0,.45);
   }
   .dec-card-menu-item {
@@ -721,13 +721,22 @@ export const DECISION_CSS = `
   }
   .dec-card-actions .fui-pill-btn {
     height:40px; min-height:40px; font-size:13px; width:100%;
+    text-decoration:none;
+    box-sizing:border-box;
+  }
+  .dec-card-actions a.fui-pill-btn {
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
   }
   [data-theme="dark"] .dec-card-actions .fui-pill-btn:not(.fui-pill-btn--primary),
-  [data-theme="classic-dark"] .dec-card-actions .fui-pill-btn:not(.fui-pill-btn--primary) {
+  [data-theme="classic-dark"] .dec-card-actions .fui-pill-btn:not(.fui-pill-btn--primary),
+  [data-theme="dark"] .dec-card-actions a.fui-pill-btn,
+  [data-theme="classic-dark"] .dec-card-actions a.fui-pill-btn {
     background:rgba(255,255,255,.06);
     border:none;
     color:#e4e4e8;
-    box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
+    box-shadow:none;
   }
   [data-theme="dark"] .dec-card:hover .fui-pill-btn:not(.fui-pill-btn--primary),
   [data-theme="classic-dark"] .dec-card:hover .fui-pill-btn:not(.fui-pill-btn--primary) {
@@ -824,7 +833,7 @@ export const DECISION_CSS = `
   [data-theme="dark"] .dec-demo-banner,
   [data-theme="classic-dark"] .dec-demo-banner {
     background:rgba(255,255,255,.05);
-    border-color:rgba(255,255,255,.08);
+    border:none;
   }
   [data-theme="dark"] .dec-demo-banner code,
   [data-theme="classic-dark"] .dec-demo-banner code {

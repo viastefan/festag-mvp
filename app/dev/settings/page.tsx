@@ -69,18 +69,37 @@ export default function DevSettingsPage() {
   const [loading, setLoading] = useState(true)
   const [save, setSave] = useState<SaveState>('idle')
   const [skillDraft, setSkillDraft] = useState('')
+  const [backendHealth, setBackendHealth] = useState<{ ok: boolean; hints: string[] } | null>(null)
   const savedTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const load = useCallback(async () => {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { setLoading(false); return }
+    const meRes = await fetch('/api/dev/me', { credentials: 'include' }).catch(() => null)
+    const me = meRes?.ok ? await meRes.json().catch(() => null) : null
+    const uid = me?.user?.id
+    if (!uid) {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { setLoading(false); return }
+      const { data } = await (supabase as any).from('profiles')
+        .select('id,email,full_name,role,position,bio,phone,linkedin_url,availability,skills,hourly_rate,timezone,language_pref,notif_email,notif_push,github_username,github_connected_at')
+        .eq('id', user.id).maybeSingle()
+      setP((data as Profile) ?? null)
+      setLoading(false)
+      return
+    }
     const { data } = await (supabase as any).from('profiles')
       .select('id,email,full_name,role,position,bio,phone,linkedin_url,availability,skills,hourly_rate,timezone,language_pref,notif_email,notif_push,github_username,github_connected_at')
-      .eq('id', user.id).maybeSingle()
+      .eq('id', uid).maybeSingle()
     setP((data as Profile) ?? null)
     setLoading(false)
   }, [supabase])
   useEffect(() => { load() }, [load])
+
+  useEffect(() => {
+    fetch('/api/dev/health', { credentials: 'include' })
+      .then(r => r.json())
+      .then(d => setBackendHealth({ ok: !!d?.ok, hints: d?.hints ?? [] }))
+      .catch(() => setBackendHealth({ ok: false, hints: ['Backend-Check fehlgeschlagen'] }))
+  }, [])
 
   /** Persist a patch for the current user, with a quiet status pill. */
   const persist = useCallback(async (patch: Partial<Profile>) => {
@@ -159,6 +178,20 @@ export default function DevSettingsPage() {
           {save === 'error'  && <><X size={13} /> Fehler — erneut versuchen</>}
         </div>
       </header>
+
+      {backendHealth && !backendHealth.ok && (
+        <section className="st-card dev-surface st-backend-warn">
+          <p className="st-card-hint"><Lightning size={13} weight="fill" /> Backend-Verbindung unvollständig</p>
+          <ul className="st-backend-list">
+            {backendHealth.hints.map(h => (
+              <li key={h}>{h}</li>
+            ))}
+          </ul>
+          <p className="st-backend-foot">
+            Lokal: <code>SUPABASE_SERVICE_ROLE_KEY</code> in <code>.env.local</code>, dann <code>npm run db:push</code>
+          </p>
+        </section>
+      )}
 
       {/* Identity */}
       <section className="st-card dev-surface">
@@ -353,6 +386,22 @@ export default function DevSettingsPage() {
           margin: 0 0 14px; font-size: 12px; color: var(--text-muted); line-height: 1.5;
         }
         .st-card-hint :global(svg) { color: var(--text-secondary); flex-shrink: 0; }
+
+        .st-backend-warn {
+          border: none;
+          background: color-mix(in srgb, #ff9500 8%, var(--surface));
+        }
+        .st-backend-list {
+          margin: 0 0 10px; padding-left: 18px;
+          font-size: 13px; line-height: 1.5; color: var(--text-muted);
+        }
+        .st-backend-foot {
+          margin: 0; font-size: 12px; color: var(--text-muted); line-height: 1.45;
+        }
+        .st-backend-foot code {
+          font-size: 11px; padding: 1px 5px; border-radius: 4px;
+          background: var(--surface-2);
+        }
 
         .st-identity { display: flex; align-items: center; gap: 13px; }
         .st-avatar {

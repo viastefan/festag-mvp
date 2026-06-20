@@ -357,11 +357,7 @@ export default function DevTasksPage() {
             .select('id,status,confidence,summary,client_summary,issues_json,evidence_json,recommended_next_action,created_at')
             .eq('task_id', selectedId).order('created_at', { ascending: false }).limit(6),
           fetch(`/api/dev/work-sessions?taskId=${selectedId}&limit=10`).then(r => r.json()),
-          (supabase as any).from('decisions')
-            .select('id,title,client_title,status,urgency,response_type,decided_at,tagro_delegation_reason')
-            .eq('source_task_id', selectedId)
-            .order('created_at', { ascending: false })
-            .limit(10),
+          fetch(`/api/dev/decisions?task_id=${encodeURIComponent(selectedId)}`, { credentials: 'include' }).then(r => r.json()),
         ])
         if (cancelled) return
         setProofs(p?.proofs ?? [])
@@ -372,7 +368,7 @@ export default function DevTasksPage() {
         setActivity(wl?.activity ?? [])
         setVerifications((vs?.data as Verification[]) ?? [])
         setTaskSessions(ws?.sessions ?? [])
-        setLinkedDecisions((ld?.data as any[]) ?? [])
+        setLinkedDecisions((ld?.decisions as any[]) ?? [])
       } catch {}
     })()
     return () => { cancelled = true }
@@ -906,7 +902,7 @@ export default function DevTasksPage() {
                     const isDelegated = !!d.tagro_delegation_reason
                     return (
                       <li key={d.id}>
-                        <a href={`/decisions?open=${d.id}`} className="linked-decision">
+                        <a href={`/dev/decisions?open=${d.id}`} className="linked-decision">
                           <span className={`linked-pill tone-${statusTone}`}>{statusLabel}</span>
                           <span className="linked-decision-title">{d.client_title || d.title || 'Entscheidung'}</span>
                           {isDelegated && <span className="linked-pill tone-muted"><Sparkle size={9} weight="fill" /> Tagro</span>}
@@ -968,6 +964,26 @@ export default function DevTasksPage() {
                   </label>
                   <button
                     type="button"
+                    className="t-btn ghost"
+                    disabled={decSubmitting}
+                    onClick={() => {
+                      if (!selected) return
+                      openTagro({
+                        contextType: 'task',
+                        id: selected.id,
+                        projectId: selected.project_id ?? undefined,
+                        title: selected.title || 'Aufgabe',
+                        subtitle: selected.projects?.title ?? undefined,
+                        prefill: decTitle.trim()
+                          ? `Formuliere eine Kunden-Entscheidung für diese Aufgabe: ${decTitle.trim()}${decBody.trim() ? ` — ${decBody.trim()}` : ''}`
+                          : 'Hilf mir, eine klare Kunden-Entscheidung für diese Aufgabe zu formulieren.',
+                      })
+                    }}
+                  >
+                    <Sparkle size={13} weight="fill" /> Mit Tagro formulieren
+                  </button>
+                  <button
+                    type="button"
                     className="t-btn"
                     disabled={decSubmitting || !decTitle.trim()}
                     onClick={async () => {
@@ -1019,12 +1035,11 @@ export default function DevTasksPage() {
                           setToast('Entscheidung an Tagro übergeben — wird gerahmt und zum Kunden geroutet')
                         }
                         if (selected) {
-                          const { data: fresh } = await (supabase as any).from('decisions')
-                            .select('id,title,client_title,status,urgency,response_type,decided_at,tagro_delegation_reason')
-                            .eq('source_task_id', selected.id)
-                            .order('created_at', { ascending: false })
-                            .limit(10)
-                          setLinkedDecisions((fresh as any[]) ?? [])
+                          const fresh = await fetch(
+                            `/api/dev/decisions?task_id=${encodeURIComponent(selected.id)}`,
+                            { credentials: 'include' },
+                          ).then(r => r.json()).catch(() => null)
+                          setLinkedDecisions((fresh?.decisions as any[]) ?? [])
                         }
                       } finally {
                         setDecSubmitting(false)
