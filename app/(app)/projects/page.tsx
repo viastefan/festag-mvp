@@ -866,7 +866,11 @@ const CSS = `
     [data-theme="dark"] .pj2-page,
     [data-theme="classic-dark"] .pj2-page {
       --pj-soft: var(--portal-muted, #9aa0ac);
-      --pj-card-bg: var(--portal-card, #141416);
+      --pj-dark: var(--portal-text, #f4f4f4);
+      --pj-card-bg: transparent;
+      --pj-row-hover-bg: color-mix(in srgb, var(--surface-2, #131922) 34%, transparent);
+      --pj-row-hover-inset: rgba(255, 255, 255, 0.05);
+      --pj-row-hover-ring: rgba(255, 255, 255, 0.07);
       color-scheme: dark;
     }
 
@@ -1194,7 +1198,7 @@ const CSS = `
     border-radius: 12px;
   }
   .pj2-thead {
-    color: #5B647D;
+    color: var(--pj-soft, #5B647D);
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
     font-size: 12px; font-weight: 500;
     letter-spacing: 0.32px;
@@ -1256,6 +1260,85 @@ const CSS = `
     outline-offset: 2px;
     border-radius: 16px;
   }
+  [data-theme="dark"] .pj2-static-top,
+  [data-theme="classic-dark"] .pj2-static-top {
+    background: transparent;
+  }
+  [data-theme="dark"] .pj2-static-top::after,
+  [data-theme="classic-dark"] .pj2-static-top::after {
+    display: none;
+  }
+  @media (hover: hover) {
+    [data-theme="dark"] .pj2-item:hover,
+    [data-theme="classic-dark"] .pj2-item:hover {
+      background: var(--pj-row-hover-bg);
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      border-color: var(--pj-row-hover-ring);
+      border-radius: 12px;
+      box-shadow:
+        inset 0 1px 0 var(--pj-row-hover-inset),
+        0 0 0 1px var(--pj-row-hover-ring);
+      transform: translateY(-1px);
+    }
+  }
+  [data-theme="dark"] .pj2-dev-av,
+  [data-theme="classic-dark"] .pj2-dev-av {
+    border-color: var(--portal-card, #141416);
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--pj-soft);
+  }
+  [data-theme="dark"] .pj2-team-dot,
+  [data-theme="classic-dark"] .pj2-team-dot {
+    border-color: var(--portal-card, #141416);
+  }
+  [data-theme="dark"] .pj2-more,
+  [data-theme="classic-dark"] .pj2-more {
+    color: var(--pj-soft);
+  }
+  [data-theme="dark"] .pj2-more:hover,
+  [data-theme="classic-dark"] .pj2-more:hover {
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--pj-dark);
+  }
+  [data-theme="dark"] .pj2-menu,
+  [data-theme="classic-dark"] .pj2-menu,
+  [data-theme="dark"] .pj2-row-menu,
+  [data-theme="classic-dark"] .pj2-row-menu {
+    background: var(--portal-card, #141416);
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 16px 40px -12px rgba(0, 0, 0, 0.45);
+  }
+  [data-theme="dark"] .pj2-menu button,
+  [data-theme="classic-dark"] .pj2-menu button,
+  [data-theme="dark"] .pj2-menu-item,
+  [data-theme="classic-dark"] .pj2-menu-item,
+  [data-theme="dark"] .pj2-row-menu button,
+  [data-theme="classic-dark"] .pj2-row-menu button {
+    color: var(--pj-dark);
+  }
+  [data-theme="dark"] .pj2-menu button:hover,
+  [data-theme="classic-dark"] .pj2-menu button:hover,
+  [data-theme="dark"] .pj2-menu-item:hover,
+  [data-theme="classic-dark"] .pj2-menu-item:hover,
+  [data-theme="dark"] .pj2-row-menu button:hover,
+  [data-theme="classic-dark"] .pj2-row-menu button:hover {
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--pj-dark);
+  }
+  [data-theme="dark"] .pj2-menu button.on,
+  [data-theme="classic-dark"] .pj2-menu button.on,
+  [data-theme="dark"] .pj2-menu-item.on,
+  [data-theme="classic-dark"] .pj2-menu-item.on {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--pj-dark);
+  }
+  [data-theme="dark"] .pj2-menu button .check,
+  [data-theme="classic-dark"] .pj2-menu button .check,
+  [data-theme="dark"] .pj2-menu-item .check,
+  [data-theme="classic-dark"] .pj2-menu-item .check {
+    color: var(--pj-soft);
+  }
 
   .pj2-name {
     display: flex; flex-direction: column; gap: 4px;
@@ -1263,13 +1346,13 @@ const CSS = `
   }
   .pj2-name-row { display: inline-flex; align-items: center; gap: 10px; }
   .pj2-name strong {
-    font-size: 18px; font-weight: 400; color: #0F0F10;
+    font-size: 18px; font-weight: 400; color: var(--pj-dark, #0F0F10);
     letter-spacing: 0.36px;
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     max-width: 360px;
   }
   .pj2-name small {
-    font-size: 14px; font-weight: 400; color: #6E717E;
+    font-size: 14px; font-weight: 400; color: var(--pj-soft, #6E717E);
     letter-spacing: 0.14px;
   }
   .pj2-new {
@@ -1286,7 +1369,7 @@ const CSS = `
 
   .pj2-status {
     display: inline-flex; align-items: center; gap: 12px;
-    color: #6E717E;
+    color: var(--pj-soft, #6E717E);
     font-size: 14px; font-weight: 400;
     letter-spacing: 0.28px;
   }
@@ -1320,12 +1403,12 @@ const CSS = `
   }
 
   .pj2-date {
-    color: #6E717E;
+    color: var(--pj-soft, #6E717E);
     font-size: 14px; font-weight: 400;
     letter-spacing: 0.14px;
   }
   .pj2-teams {
-    color: #6E717E;
+    color: var(--pj-soft, #6E717E);
     display: inline-flex; align-items: center; justify-content: flex-start;
   }
   .pj2-team-dots {
