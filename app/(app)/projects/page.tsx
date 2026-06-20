@@ -1137,6 +1137,7 @@ ${FESTAG_CONTENT_HEAD_CSS}
     width: 100%;
     box-sizing: border-box;
     padding: 0;
+    --pj-row-inset-x: 20px;
   }
   .pj2-left { display: contents; }
   .pj2-right { display: contents; }
@@ -1151,7 +1152,7 @@ ${FESTAG_CONTENT_HEAD_CSS}
       48px;
     align-items: center;
     column-gap: 24px;
-    padding: 0 8px;
+    padding: 0 var(--pj-row-inset-x, 20px);
     border-radius: 12px;
   }
   .pj2-thead {
@@ -1549,7 +1550,7 @@ ${FESTAG_CONTENT_HEAD_CSS}
         minmax(70px, .4fr)
         40px;
       column-gap: 16px;
-      padding: 0 4px;
+      padding: 0 16px;
     }
   }
 
