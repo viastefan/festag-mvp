@@ -3,6 +3,7 @@ export { CONNECTOR_SOURCES } from '@/lib/connectors/types'
 export { GitHubConnector, githubConnector } from '@/lib/connectors/github'
 export { LinearConnector, linearConnector, listLinearTeamsForToken } from '@/lib/connectors/linear'
 export { JiraConnector, jiraConnector, listJiraProjectsForAuth } from '@/lib/connectors/jira'
+export { SlackConnector, slackConnector, listSlackChannelsForAuth } from '@/lib/connectors/slack'
 
 import type { ConnectorSource } from '@/lib/connectors/types'
 import { githubConnector } from '@/lib/connectors/github'

@@ -5,6 +5,7 @@ import { FunnelSimple, PencilSimple } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 import LinearLinkModal from '@/components/connectors/LinearLinkModal'
 import JiraLinkModal from '@/components/connectors/JiraLinkModal'
+import SlackLinkModal from '@/components/connectors/SlackLinkModal'
 import MobileCodexListChrome from '@/components/mobile/MobileCodexListChrome'
 import { openTagro } from '@/components/TagroOverlay'
 
@@ -44,9 +45,9 @@ const CONNECTORS: Connector[] = [
     authMode:'webhook', docs:'https://zapier.com/apps/webhook' },
 
   { id:'slack',   name:'Slack',   category:'Kommunikation',
-    description:'Tagro postet Status-Updates und Alerts in deinen Channel.',
+    description:'Slack-Channels → Work Signals. Tagro interpretiert Team-Kommunikation.',
     iconBg:'#4A154B', iconText:'#fff', iconImg:'/brand/slack.svg',
-    authMode:'oauth', docs:'https://api.slack.com/messaging/webhooks' },
+    authMode:'token', docs:'https://api.slack.com/authentication/token-types' },
 
   { id:'gmail',   name:'Gmail',   category:'E-Mail',
     description:'Projektbriefings direkt aus dem Projekt versenden.',
@@ -92,6 +93,8 @@ export default function ConnectorsPage() {
   const [jiraLinkCount, setJiraLinkCount] = useState(0)
   const [jiraSite, setJiraSite] = useState('')
   const [jiraEmail, setJiraEmail] = useState('')
+  const [slackLinkOpen, setSlackLinkOpen] = useState(false)
+  const [slackLinkCount, setSlackLinkCount] = useState(0)
   const sb = createClient()
 
   const loadLinearLinks = async () => {
@@ -114,6 +117,16 @@ export default function ConnectorsPage() {
     }
   }
 
+  const loadSlackLinks = async () => {
+    try {
+      const res = await fetch('/api/slack/links', { credentials: 'include' })
+      const data = res.ok ? await res.json().catch(() => null) : null
+      setSlackLinkCount((data?.links ?? []).length)
+    } catch {
+      setSlackLinkCount(0)
+    }
+  }
+
   useEffect(() => {
     sb.auth.getSession().then(async ({ data }) => {
       if (!data.session) { window.location.href='/login'; return }
@@ -123,6 +136,7 @@ export default function ConnectorsPage() {
       setConns(map)
       if (map.linear === 'connected') void loadLinearLinks()
       if (map.jira === 'connected') void loadJiraLinks()
+      if (map.slack === 'connected') void loadSlackLinks()
     })
   }, [])
 
@@ -162,6 +176,10 @@ export default function ConnectorsPage() {
         void loadJiraLinks()
         setJiraLinkOpen(true)
       }
+      if (c.id === 'slack') {
+        void loadSlackLinks()
+        setSlackLinkOpen(true)
+      }
     } catch (e) { console.error(e) }
     setSaving(false)
   }
@@ -174,6 +192,7 @@ export default function ConnectorsPage() {
     setConns(prev => { const n = { ...prev }; delete n[c.id]; return n })
     if (c.id === 'linear') setLinearLinkCount(0)
     if (c.id === 'jira') setJiraLinkCount(0)
+    if (c.id === 'slack') setSlackLinkCount(0)
   }
 
   const cats = ['all', ...Array.from(new Set(CONNECTORS.map(c => c.category)))]
@@ -297,6 +316,12 @@ export default function ConnectorsPage() {
                 </p>
               )}
 
+              {c.id === 'slack' && connected && slackLinkCount > 0 && (
+                <p className="conn-slack-meta">
+                  {slackLinkCount} Channel{slackLinkCount === 1 ? '' : 's'} verknüpft
+                </p>
+              )}
+
               <div className="conn-actions">
                 {connected ? (
                   <>
@@ -316,6 +341,15 @@ export default function ConnectorsPage() {
                         onClick={() => setJiraLinkOpen(true)}
                       >
                         Projekte verknüpfen
+                      </button>
+                    )}
+                    {c.id === 'slack' && (
+                      <button
+                        type="button"
+                        className="conn-btn conn-btn-slack"
+                        onClick={() => setSlackLinkOpen(true)}
+                      >
+                        Channels verknüpfen
                       </button>
                     )}
                     <button type="button" className="conn-btn conn-btn-ghost" onClick={() => disconnect(c)}>Trennen</button>
@@ -376,7 +410,19 @@ export default function ConnectorsPage() {
               </div>
             )}
 
-            {opened.authMode === 'token' && opened.id !== 'jira' && (
+            {opened.authMode === 'token' && opened.id === 'slack' && (
+              <div style={{ marginBottom:14 }}>
+                <label style={{ fontSize:11, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.07em', display:'block', marginBottom:6 }}>BOT USER OAUTH TOKEN</label>
+                <input type="password" value={token} onChange={e => setToken(e.target.value)} placeholder="xoxb-…"
+                  style={{ width:'100%', padding:'11px 13px', background:'var(--bg)', border:'1.5px solid var(--border)', borderRadius:10, fontSize:13, color:'var(--text)', fontFamily:'ui-monospace,monospace', outline:'none', boxSizing:'border-box' }}/>
+                <p style={{ fontSize:11, color:'var(--text-muted)', margin:'6px 0 0', lineHeight:1.55 }}>
+                  Scopes: channels:history, channels:read, groups:history, groups:read. Bot in Ziel-Channels einladen.
+                </p>
+                <a href={opened.docs} target="_blank" rel="noopener" style={{ fontSize:11.5, color:'var(--text)', fontWeight:600, marginTop:6, display:'inline-block', textDecoration:'underline', textDecorationColor:'var(--border-strong)' }}>Token erstellen ↗</a>
+              </div>
+            )}
+
+            {opened.authMode === 'token' && opened.id !== 'jira' && opened.id !== 'slack' && (
               <div style={{ marginBottom:14 }}>
                 <label style={{ fontSize:11, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.07em', display:'block', marginBottom:6 }}>API TOKEN</label>
                 <input type="password" value={token} onChange={e => setToken(e.target.value)} placeholder={`Token aus ${opened.name}`}
@@ -399,7 +445,7 @@ export default function ConnectorsPage() {
               <button onClick={() => saveConnection(opened)}
                 disabled={
                   (opened.authMode !== 'oauth' && opened.id === 'jira' && (!token.trim() || !jiraSite.trim() || !jiraEmail.trim()))
-                  || (opened.authMode !== 'oauth' && opened.id !== 'jira' && !token.trim())
+                  || (opened.authMode !== 'oauth' && opened.id !== 'jira' && opened.authMode === 'token' && !token.trim())
                   || saving
                 }
                 style={{ flex:2, padding:'11px', background: opened.authMode === 'oauth' || token.trim() ? 'var(--text)' : 'var(--surface-2)', color: opened.authMode === 'oauth' || token.trim() ? 'var(--bg)' : 'var(--text-muted)', border:'none', borderRadius:11, fontSize:13, fontWeight:700, cursor: (opened.authMode === 'oauth' || token.trim()) && !saving ? 'pointer' : 'default', fontFamily:'inherit', opacity: saving ? .7 : 1 }}>
@@ -419,6 +465,11 @@ export default function ConnectorsPage() {
         open={jiraLinkOpen}
         onClose={() => setJiraLinkOpen(false)}
         onChanged={() => void loadJiraLinks()}
+      />
+      <SlackLinkModal
+        open={slackLinkOpen}
+        onClose={() => setSlackLinkOpen(false)}
+        onChanged={() => void loadSlackLinks()}
       />
     </>
   )
@@ -479,6 +530,12 @@ const CONN_CSS = `
     color: #0052CC;
     font-weight: 600;
   }
+  .conn-slack-meta {
+    margin: -4px 0 0;
+    font-size: 11.5px;
+    color: #4A154B;
+    font-weight: 600;
+  }
   .conn-actions { display: flex; gap: 7px; align-items: center; flex-wrap: wrap; }
   .conn-btn {
     flex: 1; padding: 8px 14px; border-radius: 8px; font-size: 12.5px;
@@ -490,6 +547,7 @@ const CONN_CSS = `
   .conn-btn-primary { background: var(--text); color: var(--bg); border: none; }
   .conn-btn-linear { background: #5E6AD2; color: #fff; border: none; flex: 1.2; }
   .conn-btn-jira { background: #0052CC; color: #fff; border: none; flex: 1.2; }
+  .conn-btn-slack { background: #4A154B; color: #fff; border: none; flex: 1.2; }
   .conn-chip {
     padding: 6px 12px; font-size: 11.5px; font-weight: 700;
     border: 1px solid var(--border); background: var(--card);
