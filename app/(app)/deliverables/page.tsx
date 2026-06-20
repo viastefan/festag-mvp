@@ -66,7 +66,7 @@ export default function DeliverablesPage() {
     if (delRes.ok) {
       setDeliverables(delRes.data?.items ?? [])
       setIsDemo(false)
-    } else if (shouldUseDemoFallback(delRes.status)) {
+    } else if (shouldUseDemoFallback(delRes.status) || delRes.status >= 500) {
       setDeliverables(DEMO_DELIVERABLES)
       setTimeline(DEMO_CLIENT_TIMELINE)
       setIsDemo(true)

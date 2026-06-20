@@ -5,20 +5,13 @@ import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { usePathname } from 'next/navigation'
 import { BookOpen, CaretRight, Moon, Sun, X } from '@phosphor-icons/react'
-import { PORTAL_NAV, PORTAL_SETTINGS } from '@/lib/portal-nav'
+import { PORTAL_SETTINGS } from '@/lib/portal-nav'
+import { usePortalNavItems } from '@/hooks/usePortalNavItems'
 import { getTheme, setTheme, type ThemeMode } from '@/lib/theme'
 import {
   MOBILE_WHITE_BORDER,
   MOBILE_WHITE_ELEV,
 } from '@/components/mobile/mobile-surface-tokens'
-
-const FEATURED = PORTAL_NAV[0]
-const CORE = PORTAL_NAV.slice(1, 5)
-const MORE = [
-  ...PORTAL_NAV.slice(5).map((item) =>
-    item.href === '/docs' ? { ...item, href: '/documents' } : item,
-  ),
-]
 
 const THEME_OPTIONS: { mode: ThemeMode; label: string; Icon: typeof Sun }[] = [
   { mode: 'light', label: 'Hell', Icon: Sun },
@@ -44,6 +37,13 @@ export default function MobileNavSheet({ open, onClose }: Props) {
   const pathname = usePathname() || ''
   const [mounted, setMounted] = useState(false)
   const [theme, setThemeState] = useState<ThemeMode>('light')
+  const { items: navItems } = usePortalNavItems()
+
+  const featured = navItems[0]
+  const core = navItems.slice(1, 5)
+  const more = navItems.slice(5).map(item =>
+    item.href === '/docs' ? { ...item, href: '/documents' } : item,
+  )
 
   useEffect(() => { setMounted(true) }, [])
 
@@ -77,7 +77,7 @@ export default function MobileNavSheet({ open, onClose }: Props) {
     setTheme(mode)
   }
 
-  const FeaturedIcon = FEATURED.Icon
+  const FeaturedIcon = featured?.Icon ?? PORTAL_SETTINGS.Icon
   const SettingsIcon = PORTAL_SETTINGS.Icon
 
   return createPortal(
@@ -96,9 +96,10 @@ export default function MobileNavSheet({ open, onClose }: Props) {
           </button>
         </header>
 
+        {featured && (
         <Link
-          href={FEATURED.href}
-          className={`mns-hero${isActive(FEATURED.href, FEATURED.match) ? ' on' : ''}`}
+          href={featured.href}
+          className={`mns-hero${isActive(featured.href, featured.match) ? ' on' : ''}`}
           style={{ background: HERO_GRADIENT }}
           onClick={onClose}
         >
@@ -106,17 +107,20 @@ export default function MobileNavSheet({ open, onClose }: Props) {
             <FeaturedIcon size={20} weight="regular" color="#fff" />
           </span>
           <span className="mns-hero-copy">
-            <strong>{FEATURED.label}</strong>
+            <strong>{featured.label}</strong>
             <small>Gesamtbericht · Voice</small>
           </span>
           <span className="mns-hero-caret" aria-hidden>
             <CaretRight size={15} weight="bold" color="rgba(255,255,255,0.85)" />
           </span>
         </Link>
+        )}
 
+        {core.length > 0 && (
+        <>
         <p className="mns-section">Arbeit</p>
         <div className="mns-grid">
-          {CORE.map((item) => {
+          {core.map((item) => {
             const Icon = item.Icon
             const active = isActive(item.href, item.match)
             return (
@@ -134,17 +138,21 @@ export default function MobileNavSheet({ open, onClose }: Props) {
             )
           })}
         </div>
+        </>
+        )}
 
+        {more.length > 0 && (
+        <>
         <p className="mns-section">Workspace</p>
         <div className="mns-group">
-          {MORE.map((item, index) => {
+          {more.map((item, index) => {
             const Icon = item.Icon
             const active = isActive(item.href, item.match)
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`mns-row${active ? ' on' : ''}${index < MORE.length - 1 ? ' has-divider' : ''}`}
+                className={`mns-row${active ? ' on' : ''}${index < more.length - 1 ? ' has-divider' : ''}`}
                 onClick={onClose}
               >
                 <span className="mns-row-icon" aria-hidden>
@@ -158,6 +166,8 @@ export default function MobileNavSheet({ open, onClose }: Props) {
             )
           })}
         </div>
+        </>
+        )}
 
         <footer className="mns-foot">
           <Link

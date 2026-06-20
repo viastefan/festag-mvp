@@ -14,7 +14,7 @@ import PortalWorkspacePopover from '@/components/PortalWorkspacePopover'
 import {
   SidebarSimple, CaretDown, GearSix,
 } from '@phosphor-icons/react'
-import { PORTAL_NAV } from '@/lib/portal-nav'
+import { usePortalNavItems } from '@/hooks/usePortalNavItems'
 import WorkspaceSymbol from '@/components/WorkspaceSymbol'
 import { createClient } from '@/lib/supabase/client'
 import { autoAvatarColor, avatarInitials } from '@/lib/avatar'
@@ -29,8 +29,6 @@ const WORKSPACE_MODE_LABELS: Record<string, string> = {
 }
 
 const ICON = 18
-
-const NAV = PORTAL_NAV
 
 type RecentItem = { id: string; label: string; href: string; age?: string }
 
@@ -82,6 +80,7 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
   const [recent, setRecent] = useState<RecentItem[]>([])
   const { unread: notifUnread } = useNotifications({ unreadOnly: true, limit: 1 })
   const { unread: inboxUnread } = useInboxUnread()
+  const { items: navItems } = usePortalNavItems()
 
   const loadProjectsSidebar = useCallback(async () => {
     try {
@@ -289,6 +288,7 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
             avatarUrl={avatarUrl}
             members={members}
             onLogout={logout}
+            railCollapsed={collapsed}
             trigger={(
               <button
                 ref={wsTriggerRef}
@@ -338,7 +338,7 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
         </div>
 
         <div className="portal-nav-items">
-          {NAV.map(item => {
+          {navItems.map(item => {
             const Icon = item.Icon
             const active = item.match ? item.match(pathname) : isActive(item.href)
             const isInbox = item.href === '/messages' || item.href.startsWith('/messages')
@@ -386,7 +386,7 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
       </div>
 
       <div className="portal-nav-footer">
-        <Link href="/settings" className="portal-nav-footer-link">
+        <Link href="/settings" className="portal-nav-footer-link" title="Einstellungen">
           <GearSix size={ICON} weight="regular" />
           <span>Einstellungen</span>
         </Link>
@@ -448,6 +448,12 @@ const CSS = `
     width: 24px; height: 24px;
     flex-shrink: 0;
     display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .portal-nav-ws-mark > span,
+  .portal-nav-ws-mark svg {
+    border-radius: 6px !important;
   }
 
   .portal-nav-ws-text {
@@ -726,11 +732,37 @@ const CSS = `
   }
   .portal-nav.is-collapsed .portal-nav-ws-text,
   .portal-nav.is-collapsed .portal-nav-ws-caret,
-  .portal-nav.is-collapsed .portal-nav-middle,
-  .portal-nav.is-collapsed .portal-nav-footer {
+  .portal-nav.is-collapsed .portal-nav-middle {
     display: none;
     opacity: 0; width: 0; height: 0; overflow: hidden; pointer-events: none;
     margin: 0; padding: 0; border: 0;
+  }
+  .portal-nav.is-collapsed .portal-nav-footer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    width: 100%;
+    margin-top: auto;
+    padding: 8px 0 0;
+    opacity: 1;
+    height: auto;
+    overflow: visible;
+    pointer-events: auto;
+  }
+  .portal-nav.is-collapsed .portal-nav-footer-link {
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border-radius: 4px;
+  }
+  .portal-nav.is-collapsed .portal-nav-footer-link span {
+    display: none;
+  }
+  .portal-nav.is-collapsed .portal-nav-footer-btn {
+    display: none;
   }
   .portal-nav.is-collapsed .portal-nav-header {
     flex-direction: column; align-items: center; justify-content: flex-start;
