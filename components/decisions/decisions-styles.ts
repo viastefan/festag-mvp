@@ -1,7 +1,8 @@
-import { FESTAG_CONTENT_HEAD_CSS } from '@/components/mobile/mobile-codex-list-styles'
+import { FESTAG_CONTENT_HEAD_CSS, FESTAG_LIST_ROW_HOVER_CSS } from '@/components/mobile/mobile-codex-list-styles'
 
 export const DECISION_CSS = `
 ${FESTAG_CONTENT_HEAD_CSS}
+${FESTAG_LIST_ROW_HOVER_CSS}
   .dec-os {
     --dec-soft: var(--portal-muted, #8f93a4);
     --dec-dark: var(--portal-text, #0f0f10);
@@ -561,31 +562,9 @@ ${FESTAG_CONTENT_HEAD_CSS}
   /* ── Decision card rows (Figma) ── */
   .dec-card {
     display:flex; gap:56px; align-items:center;
-    padding:18px 24px; width:100%;
-    transition:background .16s ease, box-shadow .16s ease;
-    border-radius:12px;
+    padding:18px var(--festag-list-row-inset-x, 20px); width:100%;
     background:transparent;
     cursor:pointer;
-    box-shadow:inset 0 1px 0 transparent, 0 0 0 1px transparent;
-  }
-  .dec-card:hover {
-    background:var(--dec-row-hover-bg);
-    box-shadow:
-      inset 0 1px 0 var(--dec-row-hover-inset),
-      0 0 0 1px var(--dec-row-hover-ring);
-  }
-  [data-theme="dark"] .dec-card:hover,
-  [data-theme="classic-dark"] .dec-card:hover {
-    background:var(--dec-row-hover-bg);
-    box-shadow:
-      inset 0 1px 0 var(--dec-row-hover-inset),
-      0 0 0 1px var(--dec-row-hover-ring);
-  }
-  @media (hover: none) {
-    .dec-card:hover {
-      background:transparent;
-      box-shadow:inset 0 1px 0 transparent, 0 0 0 1px transparent;
-    }
   }
   .dec-card:focus-visible {
     outline:2px solid color-mix(in srgb, var(--portal-btn-primary, #5b647d) 55%, transparent);
@@ -2025,18 +2004,6 @@ ${FESTAG_CONTENT_HEAD_CSS}
       transform: scale(0.995);
       background: rgba(255, 255, 255, 0.92) !important;
       box-shadow: 0 1px 3px rgba(144, 149, 159, 0.12) !important;
-    }
-    @media (hover: hover) {
-      .dec-card:hover {
-        background: rgba(255, 255, 255, 0.72) !important;
-        backdrop-filter: blur(18px) saturate(175%) !important;
-        -webkit-backdrop-filter: blur(18px) saturate(175%) !important;
-        box-shadow:
-          inset 0 1px 0 rgba(255, 255, 255, 1),
-          0 12px 32px -12px rgba(15, 23, 42, 0.14),
-          0 4px 10px rgba(144, 149, 159, 0.1) !important;
-        transform: translateY(-1px);
-      }
     }
     .dec-card-left,
     .dec-card-mid,

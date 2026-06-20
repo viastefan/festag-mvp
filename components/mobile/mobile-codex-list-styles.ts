@@ -58,7 +58,90 @@ export const FESTAG_CONTENT_HEAD_CSS = `
   }
 `
 
+/** Shared list-row hover — Projekte, Entscheidungen, künftige Inhaltscontainer. */
+export const FESTAG_LIST_ROW_HOVER_CSS = `
+  .pj2-page,
+  .dec-os,
+  .mcl-page {
+    --festag-list-row-hover-bg: rgba(15, 23, 42, 0.04);
+    --festag-list-row-inset-x: 20px;
+  }
+  [data-theme="dark"] .pj2-page,
+  [data-theme="classic-dark"] .pj2-page,
+  [data-theme="dark"] .dec-os,
+  [data-theme="classic-dark"] .dec-os,
+  [data-theme="dark"] .mcl-page,
+  [data-theme="classic-dark"] .mcl-page {
+    --festag-list-row-hover-bg: rgba(255, 255, 255, 0.045);
+  }
+
+  .festag-list-row,
+  .pj2-item,
+  .dec-card {
+    border: 1px solid transparent;
+    border-radius: 12px;
+    transition:
+      background .18s ease,
+      box-shadow .18s ease,
+      border-color .18s ease,
+      transform .18s ease,
+      backdrop-filter .18s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  @media (hover: hover) and (min-width: 769px) {
+    .festag-list-row:hover,
+    .pj2-item:hover,
+    .dec-card:hover {
+      background: var(--festag-list-row-hover-bg) !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      border-color: transparent !important;
+      box-shadow: none !important;
+      transform: none !important;
+    }
+  }
+
+  @media (hover: none) and (min-width: 769px) {
+    .festag-list-row:hover,
+    .pj2-item:hover,
+    .dec-card:hover {
+      background: transparent !important;
+      box-shadow: none !important;
+    }
+  }
+
+  @media (max-width: 768px) and (hover: hover) {
+    .pj2-row.pj2-item:hover,
+    .dec-card:hover {
+      background: rgba(255, 255, 255, 0.72) !important;
+      backdrop-filter: blur(18px) saturate(175%) !important;
+      -webkit-backdrop-filter: blur(18px) saturate(175%) !important;
+      border-color: rgba(255, 255, 255, 0.95) !important;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 1),
+        0 12px 32px -12px rgba(15, 23, 42, 0.14),
+        0 4px 10px rgba(144, 149, 159, 0.1) !important;
+      transform: translateY(-1px);
+    }
+    [data-theme="dark"] .pj2-row.pj2-item:hover,
+    [data-theme="classic-dark"] .pj2-row.pj2-item:hover,
+    [data-theme="dark"] .dec-card:hover,
+    [data-theme="classic-dark"] .dec-card:hover {
+      background: rgba(255, 255, 255, 0.09) !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      border-color: rgba(255, 255, 255, 0.14) !important;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.08),
+        0 4px 10px rgba(0, 0, 0, 0.32) !important;
+      transform: translateY(-1px);
+    }
+  }
+`
+
 export const MOBILE_CODEX_LIST_CSS = `
+${FESTAG_LIST_ROW_HOVER_CSS}
   .mcl-dt,
   .mcl-page-sub,
   .mcl-head,

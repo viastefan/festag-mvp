@@ -28,7 +28,7 @@ import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
 import MobileNavSheet from '@/components/mobile/MobileNavSheet'
 import MobileProjectPickerSheet, { type ProjectPickerMode } from '@/components/mobile/MobileProjectPickerSheet'
 import ProjectsStatusBriefingSheet from '@/components/mobile/ProjectsStatusBriefingSheet'
-import { FESTAG_CONTENT_HEAD_CSS } from '@/components/mobile/mobile-codex-list-styles'
+import { FESTAG_CONTENT_HEAD_CSS, FESTAG_LIST_ROW_HOVER_CSS } from '@/components/mobile/mobile-codex-list-styles'
 import MobilePageDock from '@/components/mobile/MobilePageDock'
 
 type ProjectRow = {
@@ -819,6 +819,7 @@ function ProjectsPageInner() {
 
 const CSS = `
 ${FESTAG_CONTENT_HEAD_CSS}
+${FESTAG_LIST_ROW_HOVER_CSS}
   .pj-fallback { padding: 48px; color: #6E717E; font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif); }
 
   /* ── Mobile-only / Desktop-only visibility ── */
@@ -1137,7 +1138,6 @@ ${FESTAG_CONTENT_HEAD_CSS}
     width: 100%;
     box-sizing: border-box;
     padding: 0;
-    --pj-row-inset-x: 20px;
   }
   .pj2-left { display: contents; }
   .pj2-right { display: contents; }
@@ -1152,7 +1152,7 @@ ${FESTAG_CONTENT_HEAD_CSS}
       48px;
     align-items: center;
     column-gap: 24px;
-    padding: 0 var(--pj-row-inset-x, 20px);
+    padding: 0 var(--festag-list-row-inset-x, 20px);
     border-radius: 12px;
   }
   .pj2-thead {
@@ -1189,26 +1189,7 @@ ${FESTAG_CONTENT_HEAD_CSS}
     height: 90px;
     color: inherit;
     text-decoration: none;
-    border: 1px solid transparent;
-    transition:
-      background .18s ease,
-      box-shadow .18s ease,
-      border-color .18s ease,
-      transform .18s ease,
-      backdrop-filter .18s ease;
     cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-  }
-  @media (hover: hover) {
-    .pj2-item:hover {
-      background: rgba(15, 23, 42, 0.04);
-      backdrop-filter: none;
-      -webkit-backdrop-filter: none;
-      border-color: transparent;
-      border-radius: 12px;
-      box-shadow: none;
-      transform: none;
-    }
   }
   .pj2-item:focus-visible {
     outline: 2px solid color-mix(in srgb, #5B647D 45%, transparent);
@@ -1218,18 +1199,6 @@ ${FESTAG_CONTENT_HEAD_CSS}
   [data-theme="dark"] .pj2-static-top,
   [data-theme="classic-dark"] .pj2-static-top {
     background: transparent;
-  }
-  @media (hover: hover) {
-    [data-theme="dark"] .pj2-item:hover,
-    [data-theme="classic-dark"] .pj2-item:hover {
-      background: var(--pj-row-hover-bg);
-      backdrop-filter: none;
-      -webkit-backdrop-filter: none;
-      border-color: transparent;
-      border-radius: 12px;
-      box-shadow: none;
-      transform: none;
-    }
   }
   [data-theme="dark"] .pj2-dev-av,
   [data-theme="classic-dark"] .pj2-dev-av {
@@ -1864,19 +1833,6 @@ ${FESTAG_CONTENT_HEAD_CSS}
       background: rgba(255, 255, 255, 0.92) !important;
       box-shadow: 0 1px 3px rgba(144, 149, 159, 0.12) !important;
     }
-    @media (hover: hover) {
-      .pj2-row.pj2-item:hover {
-        background: rgba(255, 255, 255, 0.72) !important;
-        backdrop-filter: blur(18px) saturate(175%) !important;
-        -webkit-backdrop-filter: blur(18px) saturate(175%) !important;
-        border-color: rgba(255, 255, 255, 0.95) !important;
-        box-shadow:
-          inset 0 1px 0 rgba(255, 255, 255, 1),
-          0 12px 32px -12px rgba(15, 23, 42, 0.14),
-          0 4px 10px rgba(144, 149, 159, 0.1) !important;
-        transform: translateY(-1px);
-      }
-    }
 
     /* ── Left: title + subtitle + status (no folder icon) ── */
     .pj2-left {
@@ -2084,19 +2040,6 @@ ${FESTAG_CONTENT_HEAD_CSS}
       box-shadow:
         inset 0 1px 0 rgba(255, 255, 255, 0.04),
         0 1px 3px rgba(0, 0, 0, 0.32) !important;
-    }
-    @media (hover: hover) {
-      [data-theme="dark"] .pj2-page .pj2-row.pj2-item:hover,
-      [data-theme="classic-dark"] .pj2-page .pj2-row.pj2-item:hover {
-        background: rgba(255, 255, 255, 0.09) !important;
-        backdrop-filter: none !important;
-        -webkit-backdrop-filter: none !important;
-        border-color: rgba(255, 255, 255, 0.14) !important;
-        box-shadow:
-          inset 0 1px 0 rgba(255, 255, 255, 0.08),
-          0 4px 10px rgba(0, 0, 0, 0.32) !important;
-        transform: translateY(-1px);
-      }
     }
     [data-theme="dark"] .pj2-page .pj2-name strong,
     [data-theme="classic-dark"] .pj2-page .pj2-name strong {
