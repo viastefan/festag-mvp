@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { FunnelSimple, PencilSimple } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 import LinearLinkModal from '@/components/connectors/LinearLinkModal'
+import JiraLinkModal from '@/components/connectors/JiraLinkModal'
 import MobileCodexListChrome from '@/components/mobile/MobileCodexListChrome'
 import { openTagro } from '@/components/TagroOverlay'
 
@@ -58,9 +59,14 @@ const CONNECTORS: Connector[] = [
     authMode:'token', docs:'https://docs.github.com/rest' },
 
   { id:'linear',  name:'Linear',  category:'Issues',
-    description:'Sync Tasks zwischen Linear und Festag in Echtzeit.',
+    description:'Issues aus Linear in Festag syncen — getrennt von Tasks.',
     iconBg:'#5E6AD2', iconText:'#fff',
     authMode:'token', docs:'https://developers.linear.app/' },
+
+  { id:'jira',  name:'Jira',  category:'Issues',
+    description:'Jira Cloud Issues in Festag Issues importieren.',
+    iconBg:'#0052CC', iconText:'#fff',
+    authMode:'token', docs:'https://developer.atlassian.com/cloud/jira/platform/rest/v3/' },
 
   { id:'figma',   name:'Figma',   category:'Design',
     description:'Embed Designs direkt in Festag-Tasks.',
@@ -82,6 +88,10 @@ export default function ConnectorsPage() {
   const [filterOpen, setFilterOpen] = useState(false)
   const [linearLinkOpen, setLinearLinkOpen] = useState(false)
   const [linearLinkCount, setLinearLinkCount] = useState(0)
+  const [jiraLinkOpen, setJiraLinkOpen] = useState(false)
+  const [jiraLinkCount, setJiraLinkCount] = useState(0)
+  const [jiraSite, setJiraSite] = useState('')
+  const [jiraEmail, setJiraEmail] = useState('')
   const sb = createClient()
 
   const loadLinearLinks = async () => {
@@ -94,6 +104,16 @@ export default function ConnectorsPage() {
     }
   }
 
+  const loadJiraLinks = async () => {
+    try {
+      const res = await fetch('/api/jira/links', { credentials: 'include' })
+      const data = res.ok ? await res.json().catch(() => null) : null
+      setJiraLinkCount((data?.links ?? []).length)
+    } catch {
+      setJiraLinkCount(0)
+    }
+  }
+
   useEffect(() => {
     sb.auth.getSession().then(async ({ data }) => {
       if (!data.session) { window.location.href='/login'; return }
@@ -102,6 +122,7 @@ export default function ConnectorsPage() {
       for (const c of (uc as any[]) ?? []) map[(c as any).connector_id] = (c as any).status
       setConns(map)
       if (map.linear === 'connected') void loadLinearLinks()
+      if (map.jira === 'connected') void loadJiraLinks()
     })
   }, [])
 
@@ -111,6 +132,7 @@ export default function ConnectorsPage() {
       setOpen(c.id)
     } else {
       setOpen(c.id); setToken('')
+      if (c.id === 'jira') { setJiraSite(''); setJiraEmail('') }
     }
   }
 
@@ -123,14 +145,22 @@ export default function ConnectorsPage() {
         user_id: user.id,
         connector_id: c.id,
         status: 'connected',
-        config: c.authMode === 'oauth' ? null : { token: token.trim() },
+        config: c.authMode === 'oauth'
+          ? null
+          : c.id === 'jira'
+            ? { site: jiraSite.trim(), email: jiraEmail.trim(), token: token.trim() }
+            : { token: token.trim() },
         connected_at: new Date().toISOString(),
       }, { onConflict: 'user_id,connector_id' }).catch(() => {})
       setConns(prev => ({ ...prev, [c.id]: 'connected' }))
-      setOpen(null); setToken('')
+      setOpen(null); setToken(''); setJiraSite(''); setJiraEmail('')
       if (c.id === 'linear') {
         void loadLinearLinks()
         setLinearLinkOpen(true)
+      }
+      if (c.id === 'jira') {
+        void loadJiraLinks()
+        setJiraLinkOpen(true)
       }
     } catch (e) { console.error(e) }
     setSaving(false)
@@ -143,6 +173,7 @@ export default function ConnectorsPage() {
     await sb.from('user_connectors').delete().eq('user_id', user.id).eq('connector_id', c.id).catch(() => {})
     setConns(prev => { const n = { ...prev }; delete n[c.id]; return n })
     if (c.id === 'linear') setLinearLinkCount(0)
+    if (c.id === 'jira') setJiraLinkCount(0)
   }
 
   const cats = ['all', ...Array.from(new Set(CONNECTORS.map(c => c.category)))]
@@ -260,6 +291,12 @@ export default function ConnectorsPage() {
                 </p>
               )}
 
+              {c.id === 'jira' && connected && jiraLinkCount > 0 && (
+                <p className="conn-jira-meta">
+                  {jiraLinkCount} Jira-Projekt{jiraLinkCount === 1 ? '' : 'e'} verknüpft
+                </p>
+              )}
+
               <div className="conn-actions">
                 {connected ? (
                   <>
@@ -270,6 +307,15 @@ export default function ConnectorsPage() {
                         onClick={() => setLinearLinkOpen(true)}
                       >
                         Teams verknüpfen
+                      </button>
+                    )}
+                    {c.id === 'jira' && (
+                      <button
+                        type="button"
+                        className="conn-btn conn-btn-jira"
+                        onClick={() => setJiraLinkOpen(true)}
+                      >
+                        Projekte verknüpfen
                       </button>
                     )}
                     <button type="button" className="conn-btn conn-btn-ghost" onClick={() => disconnect(c)}>Trennen</button>
@@ -309,7 +355,28 @@ export default function ConnectorsPage() {
               </div>
             )}
 
-            {opened.authMode === 'token' && (
+            {opened.authMode === 'token' && opened.id === 'jira' && (
+              <div style={{ marginBottom:14, display:'grid', gap:10 }}>
+                <div>
+                  <label style={{ fontSize:11, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.07em', display:'block', marginBottom:6 }}>JIRA SITE</label>
+                  <input value={jiraSite} onChange={e => setJiraSite(e.target.value)} placeholder="meinefirma.atlassian.net"
+                    style={{ width:'100%', padding:'11px 13px', background:'var(--bg)', border:'1.5px solid var(--border)', borderRadius:10, fontSize:13, color:'var(--text)', outline:'none', boxSizing:'border-box' }}/>
+                </div>
+                <div>
+                  <label style={{ fontSize:11, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.07em', display:'block', marginBottom:6 }}>ATLASSIAN E-MAIL</label>
+                  <input type="email" value={jiraEmail} onChange={e => setJiraEmail(e.target.value)} placeholder="du@firma.com"
+                    style={{ width:'100%', padding:'11px 13px', background:'var(--bg)', border:'1.5px solid var(--border)', borderRadius:10, fontSize:13, color:'var(--text)', outline:'none', boxSizing:'border-box' }}/>
+                </div>
+                <div>
+                  <label style={{ fontSize:11, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.07em', display:'block', marginBottom:6 }}>API TOKEN</label>
+                  <input type="password" value={token} onChange={e => setToken(e.target.value)} placeholder="API Token aus Atlassian"
+                    style={{ width:'100%', padding:'11px 13px', background:'var(--bg)', border:'1.5px solid var(--border)', borderRadius:10, fontSize:13, color:'var(--text)', fontFamily:'ui-monospace,monospace', outline:'none', boxSizing:'border-box' }}/>
+                  <a href={opened.docs} target="_blank" rel="noopener" style={{ fontSize:11.5, color:'var(--text)', fontWeight:600, marginTop:6, display:'inline-block', textDecoration:'underline', textDecorationColor:'var(--border-strong)' }}>Token erstellen ↗</a>
+                </div>
+              </div>
+            )}
+
+            {opened.authMode === 'token' && opened.id !== 'jira' && (
               <div style={{ marginBottom:14 }}>
                 <label style={{ fontSize:11, fontWeight:700, color:'var(--text-muted)', letterSpacing:'.07em', display:'block', marginBottom:6 }}>API TOKEN</label>
                 <input type="password" value={token} onChange={e => setToken(e.target.value)} placeholder={`Token aus ${opened.name}`}
@@ -330,7 +397,11 @@ export default function ConnectorsPage() {
             <div style={{ display:'flex', gap:8 }}>
               <button onClick={() => setOpen(null)} style={{ flex:1, padding:'11px', background:'var(--surface-2)', border:'1px solid var(--border)', borderRadius:11, fontSize:13, fontWeight:700, color:'var(--text-secondary)', cursor:'pointer', fontFamily:'inherit' }}>Abbrechen</button>
               <button onClick={() => saveConnection(opened)}
-                disabled={(opened.authMode !== 'oauth' && !token.trim()) || saving}
+                disabled={
+                  (opened.authMode !== 'oauth' && opened.id === 'jira' && (!token.trim() || !jiraSite.trim() || !jiraEmail.trim()))
+                  || (opened.authMode !== 'oauth' && opened.id !== 'jira' && !token.trim())
+                  || saving
+                }
                 style={{ flex:2, padding:'11px', background: opened.authMode === 'oauth' || token.trim() ? 'var(--text)' : 'var(--surface-2)', color: opened.authMode === 'oauth' || token.trim() ? 'var(--bg)' : 'var(--text-muted)', border:'none', borderRadius:11, fontSize:13, fontWeight:700, cursor: (opened.authMode === 'oauth' || token.trim()) && !saving ? 'pointer' : 'default', fontFamily:'inherit', opacity: saving ? .7 : 1 }}>
                 {saving ? 'Wird verbunden…' : opened.authMode === 'oauth' ? `Mit ${opened.name} fortfahren →` : 'Speichern & Verbinden'}
               </button>
@@ -343,6 +414,11 @@ export default function ConnectorsPage() {
         open={linearLinkOpen}
         onClose={() => setLinearLinkOpen(false)}
         onChanged={() => void loadLinearLinks()}
+      />
+      <JiraLinkModal
+        open={jiraLinkOpen}
+        onClose={() => setJiraLinkOpen(false)}
+        onChanged={() => void loadJiraLinks()}
       />
     </>
   )
@@ -397,6 +473,12 @@ const CONN_CSS = `
     color: #5E6AD2;
     font-weight: 600;
   }
+  .conn-jira-meta {
+    margin: -4px 0 0;
+    font-size: 11.5px;
+    color: #0052CC;
+    font-weight: 600;
+  }
   .conn-actions { display: flex; gap: 7px; align-items: center; flex-wrap: wrap; }
   .conn-btn {
     flex: 1; padding: 8px 14px; border-radius: 8px; font-size: 12.5px;
@@ -407,6 +489,7 @@ const CONN_CSS = `
   .conn-btn-docs { flex: 0; padding: 8px 11px; background: var(--surface-2); border: 1px solid var(--border); color: var(--text); }
   .conn-btn-primary { background: var(--text); color: var(--bg); border: none; }
   .conn-btn-linear { background: #5E6AD2; color: #fff; border: none; flex: 1.2; }
+  .conn-btn-jira { background: #0052CC; color: #fff; border: none; flex: 1.2; }
   .conn-chip {
     padding: 6px 12px; font-size: 11.5px; font-weight: 700;
     border: 1px solid var(--border); background: var(--card);

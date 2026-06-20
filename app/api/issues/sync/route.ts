@@ -6,6 +6,7 @@ import {
   type ImplementedConnectorSource,
 } from '@/lib/connectors'
 import { enrichProjectIssues } from '@/lib/tagro/issue-intelligence'
+import type { JiraAuth } from '@/lib/jira/api'
 
 export const runtime = 'nodejs'
 export const maxDuration = 60
@@ -34,6 +35,31 @@ async function resolveLinearToken(supa: any, userId: string): Promise<string | u
   return process.env.LINEAR_API_KEY
 }
 
+async function resolveJiraAuth(supa: any, userId: string): Promise<JiraAuth | null> {
+  const { data: conn } = await supa
+    .from('user_connectors')
+    .select('config,status')
+    .eq('user_id', userId)
+    .eq('connector_id', 'jira')
+    .maybeSingle()
+
+  if ((conn as any)?.status === 'connected') {
+    const cfg = (conn as any)?.config ?? {}
+    if (cfg.site && cfg.email && cfg.token) {
+      return { site: cfg.site, email: cfg.email, token: cfg.token }
+    }
+  }
+
+  if (process.env.JIRA_SITE && process.env.JIRA_EMAIL && process.env.JIRA_API_TOKEN) {
+    return {
+      site: process.env.JIRA_SITE,
+      email: process.env.JIRA_EMAIL,
+      token: process.env.JIRA_API_TOKEN,
+    }
+  }
+  return null
+}
+
 async function projectIdsForSource(
   supa: any,
   source: ImplementedConnectorSource,
@@ -50,16 +76,41 @@ async function projectIdsForSource(
     return Array.from(new Set(((repos as any[]) ?? []).map(r => r.project_id).filter(Boolean)))
   }
 
+  if (source === 'linear') {
+    const { data: links } = await supa
+      .from('linear_project_links')
+      .select('project_id')
+      .eq('active', true)
+    return Array.from(new Set(((links as any[]) ?? []).map(r => r.project_id).filter(Boolean)))
+  }
+
   const { data: links } = await supa
-    .from('linear_project_links')
+    .from('jira_project_links')
     .select('project_id')
     .eq('active', true)
   return Array.from(new Set(((links as any[]) ?? []).map(r => r.project_id).filter(Boolean)))
 }
 
+function connectorCredentials(
+  source: ImplementedConnectorSource,
+  githubToken?: string,
+  linearToken?: string,
+  jiraAuth?: JiraAuth | null,
+): { token?: string; config?: Record<string, unknown> } {
+  if (source === 'github') return { token: githubToken }
+  if (source === 'linear') return { token: linearToken }
+  if (source === 'jira' && jiraAuth) {
+    return {
+      token: jiraAuth.token,
+      config: { site: jiraAuth.site, email: jiraAuth.email, token: jiraAuth.token },
+    }
+  }
+  return {}
+}
+
 /**
  * POST /api/issues/sync
- * Body: { project_id?: string, source?: 'github' | 'linear' | 'all', enrich?: boolean }
+ * Body: { project_id?: string, source?: 'github' | 'linear' | 'jira' | 'all', enrich?: boolean }
  */
 export async function POST(req: NextRequest) {
   const supa = createClient()
@@ -79,6 +130,7 @@ export async function POST(req: NextRequest) {
 
   const githubToken = await resolveGitHubToken(supa, user.id)
   const linearToken = await resolveLinearToken(supa, user.id)
+  const jiraAuth = await resolveJiraAuth(supa, user.id)
   const synced: any[] = []
 
   for (const source of sources) {
@@ -88,8 +140,13 @@ export async function POST(req: NextRequest) {
       continue
     }
 
+    if (source === 'jira' && !jiraAuth) {
+      synced.push({ source, project_id: null, projects: 0, message: 'jira_not_connected' })
+      continue
+    }
+
     const connector = getConnector(source)
-    const token = source === 'github' ? githubToken : linearToken
+    const creds = connectorCredentials(source, githubToken, linearToken, jiraAuth)
 
     for (const projectId of projectIds) {
       const { data: project } = await (supa as any)
@@ -104,7 +161,8 @@ export async function POST(req: NextRequest) {
         projectId,
         workspaceId: project.workspace_id,
         userId: user.id,
-        token,
+        token: creds.token,
+        config: creds.config,
         enrich: false,
       })
 

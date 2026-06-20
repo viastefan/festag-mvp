@@ -1,7 +1,8 @@
 # Festag Product North Star
 
 Festag must become its own category: a client-facing Delivery Intelligence
-Platform.
+Platform — expanding into an **Operational Intelligence Layer** for modern
+organizations (Festag V2).
 
 More specifically, Festag is a white-labelable AI project clarity and delivery
 control system for agencies, software teams, web studios, freelancers,
@@ -9,7 +10,19 @@ consultants, and project-based businesses.
 
 Festag does not replace the tools where teams already work. It sits above them
 and turns scattered internal work into clear, client-ready project
-understanding.
+understanding — and, at portfolio level, into executive-ready operational
+intelligence (progress, issues, decisions, risks, forecast).
+
+## Festag V2 — Operational Intelligence
+
+Festag V2 extends the delivery layer without changing the core promise:
+
+- **Connectors** ingest signals from GitHub, Linear, Jira (and later Slack, Notion).
+- **Issues** are a first-class operational entity — distinct from Festag tasks.
+- **Executive** (`/executive`) aggregates portfolio health for CEOs and founders.
+- **Tagro** interprets raw signals into calm, decision-ready language.
+
+Festag still does not become a generic PM tool, chat app, or workspace clone.
 
 ## Category
 

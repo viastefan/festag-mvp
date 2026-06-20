@@ -267,7 +267,7 @@ function IssuesPageInner() {
       const sourceLabel = sources.length > 0 ? sources.join(' + ') : 'Connectors'
 
       if (rows.every((r: any) => r.message === 'no_links')) {
-        setSyncNote('Keine verbundenen GitHub-Repos oder Linear-Teams — zuerst unter Connectors verknüpfen.')
+        setSyncNote('Keine verbundenen Quellen — GitHub, Linear oder Jira unter /connectors verknüpfen.')
       } else {
         setSyncNote(
           imported > 0
@@ -414,7 +414,7 @@ function IssuesPageInner() {
               <button
                 type="button"
                 className="dec-head-tool"
-                title="Aus Connectors synchronisieren (GitHub + Linear)"
+                title="Aus Connectors synchronisieren (GitHub, Linear, Jira)"
                 aria-label="Aus Connectors synchronisieren"
                 disabled={syncBusy}
                 onClick={() => void syncFromConnectors()}
