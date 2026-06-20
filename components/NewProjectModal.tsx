@@ -1242,7 +1242,7 @@ const CSS = `
   }
   .npm-sheet-layer > .npm-mobile-title {
     position: absolute;
-    top: 8px;
+    top: 30px;
     left: 0;
     right: 0;
     z-index: 3;
