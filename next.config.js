@@ -1,3 +1,13 @@
+const supabaseUrl =
+  process.env.NEXT_PUBLIC_SUPABASE_URL
+  || process.env.SUPABASE_URL
+  || 'https://xsdkoepwuvpuroijjain.supabase.co'
+
+const supabaseAnonKey =
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  || process.env.SUPABASE_ANON_KEY
+  || process.env.SUPABASE_SERVICE_PUBLISHABLE_KEY
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   typescript: {
@@ -6,16 +16,11 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  // Map Vercel env names → NEXT_PUBLIC_* for client bundle + SSG.
+  // Map legacy Vercel env names → NEXT_PUBLIC_* for client bundle + SSG.
+  // Only set keys when a value exists — empty entries override .env.local in dev.
   env: {
-    NEXT_PUBLIC_SUPABASE_URL:
-      process.env.NEXT_PUBLIC_SUPABASE_URL
-      || process.env.SUPABASE_URL
-      || 'https://xsdkoepwuvpuroijjain.supabase.co',
-    NEXT_PUBLIC_SUPABASE_ANON_KEY:
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-      || process.env.SUPABASE_ANON_KEY
-      || process.env.SUPABASE_SERVICE_PUBLISHABLE_KEY,
+    NEXT_PUBLIC_SUPABASE_URL: supabaseUrl,
+    ...(supabaseAnonKey ? { NEXT_PUBLIC_SUPABASE_ANON_KEY: supabaseAnonKey } : {}),
   },
   // Credentials live in .env.local / Vercel only — never hardcode secrets here.
   async headers() {
