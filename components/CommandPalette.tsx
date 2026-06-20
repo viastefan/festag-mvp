@@ -20,7 +20,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   MagnifyingGlass, Sparkle, House, UsersThree,
   ChatCircle, Briefcase, GearSix, FolderSimple, FileText,
-  Plus, Brain, Code, Note, ListChecks, X, ChartLineUp, Bug, Plugs, Scales, Target, Tray, CheckSquare,
+  Plus, Brain, Code, Note, Kanban, X, Scales, Flag, Broadcast, CheckSquare, SealCheck,
+  LinkSimple, WarningOctagon, EnvelopeSimple, Eye,
 } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 
@@ -37,30 +38,33 @@ type Cmd = {
 
 const STATIC_COMMANDS: Cmd[] = [
   { id:'nav-projects', group:'Navigation', label:'Alle Projekte',              href:'/dashboard',          Icon: FolderSimple },
-  { id:'nav-executive', group:'Navigation', label:'Executive',                 href:'/executive',          Icon: ChartLineUp, keywords:['ceo','portfolio','overview'] },
-  { id:'nav-issues', group:'Navigation', label:'Issues',                       href:'/issues',             Icon: Bug, keywords:['github','linear','jira','blocker'] },
-  { id:'nav-activity', group:'Navigation', label:'Aktivität',                  href:'/activity',           Icon: Tray, keywords:['signals','slack','feed'] },
+  { id:'nav-executive', group:'Navigation', label:'Führung',                   href:'/executive',          Icon: Briefcase, keywords:['ceo','portfolio','überblick','executive'] },
+  { id:'nav-issues', group:'Navigation', label:'Vorfälle',                    href:'/issues',             Icon: WarningOctagon, keywords:['github','linear','jira','blocker','bug'] },
+  { id:'nav-activity', group:'Navigation', label:'Aktivität',                  href:'/activity',           Icon: Broadcast, keywords:['signals','slack','feed'] },
   { id:'nav-decisions', group:'Navigation', label:'Entscheidungen',            href:'/decisions',          Icon: Scales },
-  { id:'nav-captures', group:'Navigation', label:'Freigaben',                 href:'/captures',           Icon: CheckSquare, keywords:['approve','review','capture'] },
-  { id:'nav-objectives', group:'Navigation', label:'Objectives',               href:'/objectives',         Icon: Target, keywords:['okr','goals','ziele'] },
-  { id:'nav-connectors', group:'Navigation', label:'Connectors',               href:'/connectors',         Icon: Plugs },
+  { id:'nav-captures', group:'Navigation', label:'Freigaben',                 href:'/captures',           Icon: SealCheck, keywords:['approve','review','capture'] },
+  { id:'nav-objectives', group:'Navigation', label:'Ziele',                    href:'/objectives',         Icon: Flag, keywords:['okr','objectives','ziele'] },
+  { id:'nav-connectors', group:'Navigation', label:'Anbindungen',              href:'/connectors',         Icon: LinkSimple, keywords:['connectors','integration'] },
   { id:'nav-client-messages', group:'Navigation', label:'Client-Kommunikation', href:'/relations/messages', Icon: ChatCircle },
-  { id:'nav-team-messages', group:'Navigation', label:'Team-Kommunikation',     href:'/messages',           Icon: UsersThree },
-  { id:'nav-teams',    group:'Navigation', label:'Teams',                      href:'/teams',              Icon: UsersThree, keywords:['member','invite','seat'] },
+  { id:'nav-team-messages', group:'Navigation', label:'Team-Kommunikation',     href:'/messages',           Icon: EnvelopeSimple },
+  { id:'nav-teams',    group:'Navigation', label:'Team',                       href:'/teams',              Icon: UsersThree, keywords:['member','invite','seat','teams'] },
   { id:'nav-reports',  group:'Navigation', label:'Projektbriefings',             href:'/reports',            Icon: FileText },
-  { id:'nav-voice-reports', group:'Navigation', label:'Voice Reports',           href:'/voice-reports',      Icon: FileText },
+  { id:'nav-voice-reports', group:'Navigation', label:'Sprachberichte',          href:'/voice-reports',      Icon: FileText },
   { id:'nav-docs',     group:'Navigation', label:'Dokumente',                  href:'/documents',          Icon: FileText },
   { id:'nav-notes',    group:'Navigation', label:'Notizen',                    href:'/relations/notes',    Icon: Note },
   { id:'nav-quotes',   group:'Navigation', label:'Angebote',                   href:'/relations/quotes',   Icon: Briefcase },
   { id:'nav-billing',  group:'Navigation', label:'Abrechnung & Plan',          href:'/billing',            Icon: Briefcase },
   { id:'nav-settings', group:'Navigation', label:'Einstellungen',              href:'/settings',           Icon: GearSix },
+  { id:'nav-settings-intelligence', group:'Navigation', label:'Tagro & Klarheit', href:'/settings/intelligence', Icon: Sparkle, keywords:['settings','delivery','tagro','klarheit'] },
+  { id:'nav-settings-portal', group:'Navigation', label:'Client Portal', href:'/settings/portal', Icon: Eye, keywords:['settings','kunde','portal','preview'] },
+  { id:'nav-settings-privacy', group:'Navigation', label:'Datenschutz', href:'/settings/privacy', Icon: GearSix, keywords:['settings','export','gdpr','privacy'] },
 
   // Aktionen
   { id:'act-new-proj', group:'Aktionen',   label:'Neues Projekt anlegen', href:'/projects?new=1',        Icon: Plus,    keywords:['create','start'] },
-  { id:'act-new-task', group:'Aktionen',   label:'Neue Task anlegen',     href:'/tasks?new=1',           Icon: ListChecks, keywords:['create','aufgabe'] },
-  { id:'act-new-issue', group:'Aktionen',  label:'Neues Issue anlegen',   href:'/issues?new=1',          Icon: Bug,       keywords:['create','bug','blocker'] },
-  { id:'act-new-objective', group:'Aktionen', label:'Neues Objective anlegen', href:'/objectives?new=1', Icon: Target,    keywords:['create','okr','ziel'] },
-  { id:'act-captures', group:'Aktionen',   label:'Freigaben prüfen',      href:'/captures',              Icon: CheckSquare, keywords:['approve','review','capture'] },
+  { id:'act-new-task', group:'Aktionen',   label:'Neue Aufgabe anlegen',  href:'/tasks?new=1',           Icon: Kanban, keywords:['create','aufgabe','task'] },
+  { id:'act-new-issue', group:'Aktionen',  label:'Neuen Vorfall anlegen', href:'/issues?new=1',          Icon: WarningOctagon, keywords:['create','bug','blocker','issue'] },
+  { id:'act-new-objective', group:'Aktionen', label:'Neues Ziel anlegen', href:'/objectives?new=1', Icon: Flag, keywords:['create','okr','ziel','objective'] },
+  { id:'act-captures', group:'Aktionen',   label:'Freigaben prüfen',      href:'/captures',              Icon: SealCheck, keywords:['approve','review','capture'] },
   { id:'act-invite',   group:'Aktionen',   label:'Mitglied einladen',     href:'/teams', Icon: Plus, keywords:['invite','seat','team'] },
 
   // Tagro hint (immer sichtbar wenn Query leer ist)
@@ -68,10 +72,10 @@ const STATIC_COMMANDS: Cmd[] = [
 ]
 
 const DEV_COMMANDS: Cmd[] = [
-  { id:'dev-nav-tasks', group:'Navigation', label:'Dev Tasks', href:'/dev/tasks', Icon: ListChecks },
-  { id:'dev-nav-captures', group:'Navigation', label:'Dev Captures', href:'/dev/captures', Icon: CheckSquare },
-  { id:'dev-act-task', group:'Aktionen', label:'Neue Dev-Task', href:'/dev/tasks?new=1', Icon: Plus, keywords:['create','aufgabe'] },
-  { id:'dev-act-review', group:'Aktionen', label:'Review Queue', href:'/dev/review', Icon: CheckSquare },
+  { id:'dev-nav-tasks', group:'Navigation', label:'Dev-Aufgaben', href:'/dev/tasks', Icon: Kanban },
+  { id:'dev-nav-captures', group:'Navigation', label:'Dev-Freigaben', href:'/dev/captures', Icon: SealCheck },
+  { id:'dev-act-task', group:'Aktionen', label:'Neue Dev-Aufgabe', href:'/dev/tasks?new=1', Icon: Plus, keywords:['create','aufgabe'] },
+  { id:'dev-act-review', group:'Aktionen', label:'Review-Warteschlange', href:'/dev/review', Icon: CheckSquare },
 ]
 
 function fuzzy(text: string, q: string): boolean {
@@ -203,7 +207,7 @@ export default function CommandPalette({ theme = 'default' }: { theme?: 'default
         }))
         ;(tasks.data ?? []).forEach((t: any) => out.push({
           id: `task-${t.id}`, group: 'Tasks', label: t.title,
-          hint: t.status, href: `/project/${t.project_id}#task-${t.id}`, Icon: ListChecks,
+          hint: t.status, href: `/project/${t.project_id}#task-${t.id}`, Icon: Kanban,
         }))
         ;(notes.data ?? []).forEach((n: any) => out.push({
           id: `note-${n.id}`, group: 'Notizen',

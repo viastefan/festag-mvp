@@ -2,7 +2,7 @@
 
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { ArrowsClockwise, FunnelSimple, Plus, Target, WarningCircle } from '@phosphor-icons/react'
+import { ArrowsClockwise, Flag, FunnelSimple, Plus, WarningCircle } from '@phosphor-icons/react'
 import MobilePageHeader from '@/components/MobilePageHeader'
 import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
 import MobileNavSheet from '@/components/mobile/MobileNavSheet'
@@ -20,13 +20,13 @@ type FilterId = 'active' | 'all' | 'at_risk'
 
 const FILTERS: { id: FilterId; label: string }[] = [
   { id: 'active', label: 'Aktiv' },
-  { id: 'at_risk', label: 'At risk' },
+  { id: 'at_risk', label: 'Gefährdet' },
   { id: 'all', label: 'Alle' },
 ]
 
 export default function ObjectivesPage() {
   return (
-    <Suspense fallback={<div style={{ padding: 48, color: 'var(--text-muted)' }}>Objectives werden geladen…</div>}>
+    <Suspense fallback={<div style={{ padding: 48, color: 'var(--text-muted)' }}>Ziele werden geladen…</div>}>
       <ObjectivesPageInner />
     </Suspense>
   )
@@ -68,7 +68,7 @@ function ObjectivesPageInner() {
       if (!res.ok) {
         setObjectives([])
         setProjects({})
-        setLoadError(res.error || 'Objectives konnten nicht geladen werden.')
+        setLoadError(res.error || 'Ziele konnten nicht geladen werden.')
         return
       }
 
@@ -156,7 +156,7 @@ function ObjectivesPageInner() {
   const tagroHandler = () => openTagro({
     contextType: 'empty',
     id: 'objectives',
-    title: 'Objectives · Übersicht',
+    title: 'Ziele · Übersicht',
     subtitle: `${filtered.length} Ziele${atRiskCount > 0 ? ` · ${atRiskCount} at risk` : ''}`,
   })
 
@@ -175,7 +175,7 @@ function ObjectivesPageInner() {
         <div className="dec-static-top">
           <div className="dec-legacy-mph">
             <MobilePageHeader
-              title="Objectives"
+              title="Ziele"
               primaryLabel="Neu"
               onPrimary={() => setCreateOpen(true)}
               menuItems={[
@@ -189,8 +189,8 @@ function ObjectivesPageInner() {
           <header className="dec-page-head">
             <div className="dec-page-head-copy dec-m-title">
               <h1 className="dec-page-title">
-                <span className="dec-dt">Objectives</span>
-                <span className="dec-m-t">Objectives</span>
+                <span className="dec-dt">Ziele</span>
+                <span className="dec-m-t">Ziele</span>
               </h1>
               <p className="dec-m-subline">
                 <span className="dec-m-t dec-m-sub">
@@ -198,7 +198,7 @@ function ObjectivesPageInner() {
                 </span>
               </p>
               <div className="dec-page-lead dec-dt">
-                <p className="dec-page-lead-line">Tagro versteht durch Objectives, warum gearbeitet wird.</p>
+                <p className="dec-page-lead-line">Tagro versteht durch Ziele, warum gearbeitet wird.</p>
               </div>
             </div>
 
@@ -304,7 +304,7 @@ function ObjectivesPageInner() {
           context={{
             contextType: 'empty',
             id: 'objectives',
-            title: 'Objectives · Übersicht',
+            title: 'Ziele · Übersicht',
             subtitle: `${filtered.length} Ziele${atRiskCount > 0 ? ` · ${atRiskCount} at risk` : ''}`,
           }}
         />

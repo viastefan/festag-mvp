@@ -3,51 +3,20 @@
 /**
  * Settings-mode sidebar. Replaces the main app Sidebar while the user
  * is anywhere under /settings.
- *
- * Sections live under /settings/<slug>. The root /settings maps to "profile".
  */
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { CaretLeft } from '@phosphor-icons/react'
 import {
-  House, UserCircle, SunHorizon, ShieldCheck, Bell, LinkSimple,
-  Briefcase, Receipt, GearSix, CaretLeft,
-} from '@phosphor-icons/react'
-
-type Item = { slug: string; label: string; icon: React.ElementType }
-type Group = { label: string; items: Item[] }
-
-const GROUPS: Group[] = [
-  {
-    label: 'Konto',
-    items: [
-      { slug: '',              label: 'Profil',             icon: UserCircle },
-      { slug: 'appearance',    label: 'Erscheinung',        icon: SunHorizon },
-      { slug: 'security',      label: 'Sicherheit',         icon: ShieldCheck },
-      { slug: 'notifications', label: 'Benachrichtigungen', icon: Bell },
-      { slug: 'connected',     label: 'Verbundene Konten',  icon: LinkSimple },
-    ],
-  },
-  {
-    label: 'Arbeitsbereich',
-    items: [
-      { slug: 'workspace', label: 'Workspace',          icon: GearSix },
-      { slug: 'company',   label: 'Unternehmen',        icon: Briefcase },
-      { slug: 'billing',   label: 'Abrechnung & Steuer', icon: Receipt },
-    ],
-  },
-]
-
-function currentSlug(pathname: string | null) {
-  if (!pathname) return ''
-  // /settings → '', /settings/billing → 'billing'
-  const m = pathname.match(/^\/settings(?:\/([^/?#]+))?/)
-  return m?.[1] || ''
-}
+  SETTINGS_NAV_GROUPS,
+  settingsHref,
+  settingsSlugFromPath,
+} from '@/components/settings/settings-config'
 
 export default function SettingsSidebar() {
   const pathname = usePathname()
-  const active = currentSlug(pathname)
+  const active = settingsSlugFromPath(pathname)
 
   return (
     <>
@@ -58,6 +27,7 @@ export default function SettingsSidebar() {
           width: var(--festag-sidebar-width, 260px);
           box-sizing: border-box;
           pointer-events: none;
+          z-index: 20;
         }
         .sset {
           display: flex; flex-direction: column;
@@ -71,6 +41,7 @@ export default function SettingsSidebar() {
           background: var(--sidebar-bg);
           border-right: 0;
           box-shadow: inset -1px 0 0 rgba(15,23,42,0.05);
+          overflow-y: auto;
         }
         .sset-back {
           display: inline-flex; align-items: center; gap: 8px;
@@ -109,6 +80,9 @@ export default function SettingsSidebar() {
           background: var(--nav-on); color: var(--nav-on-text); font-weight: 400;
         }
         [data-theme="dark"] .sset-item.on { background: var(--nav-on); }
+        @media (max-width: 768px) {
+          .sset-shell { display: none !important; }
+        }
       `}</style>
 
       <aside className="sset-shell" aria-label="Einstellungen">
@@ -118,11 +92,11 @@ export default function SettingsSidebar() {
             <span>Zurück zur App</span>
           </Link>
 
-          {GROUPS.map(group => (
+          {SETTINGS_NAV_GROUPS.map(group => (
             <div key={group.label} className="sset-group">
               <div className="sset-group-label">{group.label}</div>
               {group.items.map(item => {
-                const href = item.slug ? `/settings/${item.slug}` : '/settings'
+                const href = settingsHref(item.slug)
                 const isActive = item.slug === active
                 return (
                   <Link

@@ -17,6 +17,11 @@ import {
 } from '@phosphor-icons/react'
 import EmptyState from '@/components/EmptyState'
 import HelpHint from '@/components/HelpHint'
+import {
+  clientStatusLabelDe,
+  clientViewBucket,
+  resolveClientVisibleStatus,
+} from '@/lib/tasks/client-view'
 
 type TeamPanelMode = 'projects' | 'tasks' | 'reports'
 
@@ -44,6 +49,7 @@ type TaskRow = {
   status?: string | null
   dev_status?: string | null
   client_status?: string | null
+  client_visible_status?: string | null
   priority?: string | null
   project_id?: string | null
   assigned_to?: string | null
@@ -106,20 +112,13 @@ function roleLabel(role?: string | null) {
 }
 
 function taskStatus(task: TaskRow): TaskFilter {
-  const raw = String(task.client_status || task.dev_status || task.status || 'open').toLowerCase()
-  if (TASK_DONE.has(raw)) return 'done'
-  if (TASK_REVIEW.has(raw)) return 'review'
-  if (TASK_ACTIVE.has(raw)) return 'active'
-  if (TASK_WAITING.has(raw)) return 'open'
-  return 'open'
+  const bucket = clientViewBucket(resolveClientVisibleStatus(task))
+  if (bucket === 'decision') return 'open'
+  return bucket
 }
 
 function statusLabel(task: TaskRow) {
-  const state = taskStatus(task)
-  if (state === 'done') return 'Erledigt'
-  if (state === 'review') return 'In Prüfung'
-  if (state === 'active') return 'In Arbeit'
-  return 'Offen'
+  return clientStatusLabelDe(resolveClientVisibleStatus(task))
 }
 
 function dateLabel(value?: string | null) {
@@ -169,9 +168,9 @@ export default function TeamWorkspacePanel({ mode }: { mode: TeamPanelMode }) {
       return
     }
 
-    const [{ data: projectData }, { data: taskData }, inviteRes, reportRes] = await Promise.all([
+    const [{ data: projectData }, taskApiRes, inviteRes, reportRes] = await Promise.all([
       (supabase as any).from('projects').select('id,title,color,status,user_id,updated_at,created_at').order('updated_at', { ascending: false }),
-      (supabase as any).from('tasks').select('id,title,status,dev_status,client_status,priority,project_id,assigned_to,updated_at,created_at').order('updated_at', { ascending: false }).limit(700),
+      fetch('/api/client/tasks').then(r => r.json()).catch(() => ({ tasks: [] })),
       (supabase as any).from('team_invites').select('id,email,role,invited_name,status,created_at').eq('status', 'pending').order('created_at', { ascending: false }).limit(50),
       (supabase as any).from('notifications').select('id,title,body,kind,type,project_id,created_at').order('created_at', { ascending: false }).limit(80),
     ])
@@ -192,7 +191,7 @@ export default function TeamWorkspacePanel({ mode }: { mode: TeamPanelMode }) {
     }
 
     const nextProjects = (projectData as ProjectRow[] | null) ?? []
-    const nextTasks = (taskData as TaskRow[] | null) ?? []
+    const nextTasks = (taskApiRes.tasks as TaskRow[] | null) ?? []
     const profileIds = new Set<string>()
     profileIds.add(session.user.id)
     nextProjects.forEach(p => { if (p.user_id) profileIds.add(p.user_id) })
@@ -269,7 +268,7 @@ export default function TeamWorkspacePanel({ mode }: { mode: TeamPanelMode }) {
     return reportLike.filter(r => `${r.title ?? ''} ${r.body ?? ''} ${projectsById.get(r.project_id || '')?.title ?? ''}`.toLowerCase().includes(q))
   }, [reports, query, projectsById])
 
-  const title = mode === 'projects' ? 'Team Projekte' : mode === 'tasks' ? 'Team Tasks' : 'Team Statusberichte'
+  const title = mode === 'projects' ? 'Team Projekte' : mode === 'tasks' ? 'Team Aufgaben' : 'Team Statusberichte'
 
   return (
     <div className="tw-page">
@@ -363,7 +362,7 @@ export default function TeamWorkspacePanel({ mode }: { mode: TeamPanelMode }) {
               const project = task.project_id ? projectsById.get(task.project_id) : null
               const assignee = task.assigned_to ? profilesById.get(task.assigned_to) : null
               return (
-                <Link key={task.id} href={`/tasks/${task.id}`} className="tw-row">
+                <Link key={task.id} href={`/tasks?open=${task.id}${task.project_id ? `&project=${task.project_id}` : ''}`} className="tw-row">
                   <span className="tw-project-cell">
                     <i style={{ borderColor: project?.color || '#94a3b8' }} />
                     <span>

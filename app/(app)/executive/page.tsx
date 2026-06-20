@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
-import { ArrowsClockwise, ChartLineUp, Sparkle, WarningCircle } from '@phosphor-icons/react'
+import { ArrowsClockwise, Briefcase, Sparkle, WarningCircle } from '@phosphor-icons/react'
 import MobilePageHeader from '@/components/MobilePageHeader'
 import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
 import MobileNavSheet from '@/components/mobile/MobileNavSheet'
@@ -39,7 +39,7 @@ export default function ExecutivePage() {
       setError(
         res.status === 401
           ? 'Bitte erneut anmelden.'
-          : res.error || 'Executive-Überblick konnte nicht geladen werden.',
+          : res.error || 'Führungsüberblick konnte nicht geladen werden.',
       )
     }
     setLoading(false)
@@ -89,7 +89,7 @@ export default function ExecutivePage() {
         <div className="dec-static-top">
           <div className="dec-legacy-mph">
             <MobilePageHeader
-              title="Executive"
+              title="Führung"
               menuItems={[
                 { id: 'refresh', label: 'Aktualisieren', onClick: () => void load() },
                 { id: 'tagro', label: 'Tagro Tagesbericht', onClick: () => void generateDailyReport() },
@@ -100,8 +100,8 @@ export default function ExecutivePage() {
           <header className="dec-page-head">
             <div className="dec-page-head-copy dec-m-title">
               <h1 className="dec-page-title">
-                <span className="dec-dt">Executive</span>
-                <span className="dec-m-t">Executive</span>
+                <span className="dec-dt">Führung</span>
+                <span className="dec-m-t">Führung</span>
               </h1>
               <p className="dec-m-subline">
                 <span className="dec-m-t dec-m-sub">
@@ -147,7 +147,7 @@ export default function ExecutivePage() {
 
         <div className="dec-scroll-body">
           {loading ? (
-            <p className="dec-empty">Lade Executive-Überblick…</p>
+            <p className="dec-empty">Lade Führungsüberblick…</p>
           ) : error ? (
             <div className="dec-empty">
               <WarningCircle size={16} />
@@ -171,7 +171,7 @@ export default function ExecutivePage() {
                   <p className="exec-metric-sub">über alle Projekte</p>
                 </div>
                 <div className="exec-metric">
-                  <p className="exec-metric-label">Issues</p>
+                  <p className="exec-metric-label">Vorfälle</p>
                   <p className="exec-metric-value">{overview.open_issues}</p>
                   <p className="exec-metric-sub">{overview.critical_issues} kritisch</p>
                 </div>
@@ -181,7 +181,7 @@ export default function ExecutivePage() {
                   <p className="exec-metric-sub">offen</p>
                 </div>
                 <Link href="/objectives" className="exec-metric exec-metric--link">
-                  <p className="exec-metric-label">Objectives</p>
+                  <p className="exec-metric-label">Ziele</p>
                   <p className="exec-metric-value">{overview.active_objectives}</p>
                   <p className="exec-metric-sub">{overview.objectives_at_risk} at risk</p>
                 </Link>
@@ -236,8 +236,8 @@ export default function ExecutivePage() {
               <div className="exec-projects">
                 {overview.projects.length === 0 ? (
                   <div className="dec-empty">
-                    <ChartLineUp size={16} />
-                    <p>Noch keine Projekte im Executive-Überblick.</p>
+                    <Briefcase size={16} />
+                    <p>Noch keine Projekte im Führungsüberblick.</p>
                     <small>Sobald Projekte laufen, zeigt Festag hier Fortschritt, Risiken und Forecast.</small>
                     <Link href="/projects" className="dec-cta" style={{ marginTop: 16, display: 'inline-flex' }}>
                       Projekte öffnen
@@ -258,7 +258,7 @@ export default function ExecutivePage() {
                     </div>
                     <div className="exec-cell">
                       <strong>{p.open_issues}</strong>
-                      Issues
+                      Vorfälle
                     </div>
                     <div className="exec-cell">
                       <strong>{p.open_decisions}</strong>
@@ -273,11 +273,11 @@ export default function ExecutivePage() {
               </div>
 
               <div className="exec-foot">
-                <Link href="/issues" className="exec-foot-link">Issues</Link>
-                <Link href="/objectives" className="exec-foot-link">Objectives</Link>
+                <Link href="/issues" className="exec-foot-link">Vorfälle</Link>
+                <Link href="/objectives" className="exec-foot-link">Ziele</Link>
                 <Link href="/decisions" className="exec-foot-link">Entscheidungen</Link>
                 <Link href="/dashboard" className="exec-foot-link">
-                  <ChartLineUp size={14} />
+                  <Briefcase size={14} />
                   Statusabfrage
                 </Link>
               </div>
@@ -291,7 +291,7 @@ export default function ExecutivePage() {
           context={{
             contextType: 'empty',
             id: 'executive',
-            title: 'Executive · Portfolio',
+            title: 'Führung · Portfolio',
             subtitle: overview
               ? `${overview.projects.length} Projekte · ${HEALTH_LABEL[overview.health]}`
               : 'Operational Intelligence',

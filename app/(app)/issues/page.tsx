@@ -9,7 +9,7 @@
 
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { ArrowsClockwise, Bug, FunnelSimple, Plugs, Plus, WarningCircle } from '@phosphor-icons/react'
+import { ArrowsClockwise, FunnelSimple, LinkSimple, Plus, WarningCircle, WarningOctagon } from '@phosphor-icons/react'
 import MobilePageHeader from '@/components/MobilePageHeader'
 import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
 import MobileNavSheet from '@/components/mobile/MobileNavSheet'
@@ -32,7 +32,7 @@ import { isOpenIssueStatus } from '@/lib/issues/types'
 
 export default function IssuesPage() {
   return (
-    <Suspense fallback={<div style={{ padding: 48, color: 'var(--text-muted)' }}>Issues werden geladen…</div>}>
+    <Suspense fallback={<div style={{ padding: 48, color: 'var(--text-muted)' }}>Vorfälle werden geladen…</div>}>
       <IssuesPageInner />
     </Suspense>
   )
@@ -80,7 +80,7 @@ function IssuesPageInner() {
       if (!res.ok) {
         setIssues([])
         setProjects({})
-        setLoadError((data as any)?.error || 'Issues konnten nicht geladen werden.')
+        setLoadError((data as any)?.error || 'Vorfälle konnten nicht geladen werden.')
         return
       }
       const rows: Issue[] = data?.issues ?? []
@@ -102,7 +102,7 @@ function IssuesPageInner() {
     } catch {
       setIssues([])
       setProjects({})
-      setLoadError('Issues konnten nicht geladen werden.')
+      setLoadError('Vorfälle konnten nicht geladen werden.')
     } finally {
       setLoading(false)
     }
@@ -230,8 +230,8 @@ function IssuesPageInner() {
   }
 
   const leadLine1 = counts.open === 0
-    ? 'Keine offenen Issues.'
-    : `${counts.open} Issue${counts.open === 1 ? '' : 's'} offen${counts.critical > 0 ? ` · ${counts.critical} kritisch` : ''}.`
+    ? 'Keine offenen Vorfälle.'
+    : `${counts.open} offene${counts.open === 1 ? 'r Vorfall' : ' Vorfälle'}${counts.critical > 0 ? ` · ${counts.critical} kritisch` : ''}.`
 
   const tagroBrief = useMemo(() => {
     const ranked = scopedIssues
@@ -244,12 +244,12 @@ function IssuesPageInner() {
   }, [scopedIssues])
 
   const leadLine2 = counts.open === 0
-    ? 'Tagro interpretiert Issues aus Connectors, sobald sie synchronisiert sind.'
+    ? 'Tagro interpretiert Vorfälle aus Anbindungen, sobald sie synchronisiert sind.'
     : tagroBrief
       ? tagroBrief
       : counts.critical > 0
-        ? 'Kritische Issues können Delivery und Launch-Daten direkt beeinflussen.'
-        : 'Issues sind getrennt von Tasks — für Bugs, Blocker und technische Risiken.'
+        ? 'Kritische Vorfälle können Liefer- und Launch-Termine direkt beeinflussen.'
+        : 'Vorfälle sind getrennt von Aufgaben — für Bugs, Blocker und technische Risiken.'
 
   async function syncFromConnectors() {
     setSyncBusy(true)
@@ -275,17 +275,17 @@ function IssuesPageInner() {
       )
       const enriched = rows.reduce((s: number, row: any) => s + (row.enriched ?? 0), 0)
       const sources = Array.from(new Set(rows.map((r: any) => r.source).filter(Boolean)))
-      const sourceLabel = sources.length > 0 ? sources.join(' + ') : 'Connectors'
+      const sourceLabel = sources.length > 0 ? sources.join(' + ') : 'Anbindungen'
 
       if (rows.every((r: any) => r.message === 'no_links')) {
         setSyncNote('Keine verbundenen Quellen — GitHub, Linear oder Jira unter /connectors verknüpfen.')
       } else {
         setSyncNote(
           imported > 0
-            ? `${imported} Issue${imported === 1 ? '' : 's'} aus ${sourceLabel}${enriched > 0 ? ` · Tagro hat ${enriched} interpretiert` : ''}.`
+            ? `${imported} Vorfall${imported === 1 ? '' : 'e'} aus ${sourceLabel}${enriched > 0 ? ` · Tagro hat ${enriched} interpretiert` : ''}.`
             : enriched > 0
-              ? `Tagro hat ${enriched} Issue${enriched === 1 ? '' : 's'} interpretiert.`
-              : `${sourceLabel}-Sync abgeschlossen — keine neuen Issues.`,
+              ? `Tagro hat ${enriched} Vorfall${enriched === 1 ? '' : 'e'} interpretiert.`
+              : `${sourceLabel}-Sync abgeschlossen — keine neuen Vorfälle.`,
         )
       }
       await load()
@@ -300,7 +300,7 @@ function IssuesPageInner() {
     contextType: 'empty',
     id: 'issues',
     projectId: projectScope !== 'all' ? projectScope : projectList[0]?.id,
-    title: 'Issues · Übersicht',
+    title: 'Vorfälle · Übersicht',
     subtitle: `${counts.open} offen · ${counts.critical} kritisch`,
   })
 
@@ -367,10 +367,10 @@ function IssuesPageInner() {
         <div className="dec-static-top">
           <div className="dec-legacy-mph">
             <MobilePageHeader
-              title="Issues"
+              title="Vorfälle"
               menuItems={[
                 { id: 'refresh', label: 'Aktualisieren', onClick: () => void load() },
-                { id: 'new', label: 'Neues Issue', onClick: () => setCreateOpen(true) },
+                { id: 'new', label: 'Neuen Vorfall anlegen', onClick: () => setCreateOpen(true) },
                 { id: 'tagro', label: 'Mit Tagro besprechen', onClick: tagroHandler },
               ]}
             />
@@ -379,8 +379,8 @@ function IssuesPageInner() {
           <header className="dec-page-head">
             <div className="dec-page-head-copy dec-m-title">
               <h1 className="dec-page-title">
-                <span className="dec-dt">Issues</span>
-                <span className="dec-m-t">Issues</span>
+                <span className="dec-dt">Vorfälle</span>
+                <span className="dec-m-t">Vorfälle</span>
               </h1>
               <p className="dec-m-subline">
                 <span className="dec-m-t dec-m-sub">{counts.open} offen · {counts.critical} kritisch</span>
@@ -414,7 +414,7 @@ function IssuesPageInner() {
                   {renderFilterMenu()}
                 </div>
                 {counts.critical > 0 && (
-                  <button type="button" className="dec-head-tool dec-head-tool--risks on" title="Kritische Issues" aria-label={`${counts.critical} kritische Issues`}>
+                  <button type="button" className="dec-head-tool dec-head-tool--risks on" title="Kritische Vorfälle" aria-label={`${counts.critical} kritische Vorfälle`}>
                     <span className="dec-head-tool-ico">
                       <WarningCircle size={15} weight="fill" />
                       <span className="dec-risks-badge" aria-hidden>{counts.critical > 9 ? '9+' : counts.critical}</span>
@@ -425,16 +425,16 @@ function IssuesPageInner() {
               <button
                 type="button"
                 className="dec-head-tool"
-                title="Aus Connectors synchronisieren (GitHub, Linear, Jira)"
-                aria-label="Aus Connectors synchronisieren"
+                title="Aus Anbindungen synchronisieren (GitHub, Linear, Jira)"
+                aria-label="Aus Anbindungen synchronisieren"
                 disabled={syncBusy}
                 onClick={() => void syncFromConnectors()}
               >
-                <Plugs size={15} weight="regular" />
+                <LinkSimple size={15} weight="regular" />
               </button>
               <button type="button" className="iss-create-btn" onClick={() => setCreateOpen(true)}>
                 <Plus size={14} weight="bold" />
-                Neues Issue
+                Neuer Vorfall
               </button>
               <button type="button" className="dec-head-tool" title="Aktualisieren" aria-label="Aktualisieren" onClick={() => void load()}>
                 <ArrowsClockwise size={15} weight="regular" />
@@ -466,7 +466,7 @@ function IssuesPageInner() {
         <div className="dec-scroll-body">
           {!tableReady && (
             <div className="dec-demo-banner" role="status">
-              <span>Issues-Datenbank noch nicht aktiv — einmalig <code>supabase db push</code> ausführen.</span>
+              <span>Vorfälle-Datenbank noch nicht aktiv — einmalig <code>supabase db push</code> ausführen.</span>
             </div>
           )}
           {syncNote && (
@@ -483,20 +483,20 @@ function IssuesPageInner() {
               </button>
             </div>
           ) : loading && filtered.length === 0 ? (
-            <p className="dec-empty">Lade Issues…</p>
+            <p className="dec-empty">Lade Vorfälle…</p>
           ) : filtered.length === 0 ? (
             <div className="dec-empty">
-              <Bug size={14} />
-              <p>{issues.length === 0 ? 'Noch keine Issues.' : 'Keine Issues in dieser Ansicht.'}</p>
+              <WarningOctagon size={14} />
+              <p>{issues.length === 0 ? 'Noch keine Vorfälle.' : 'Keine Vorfälle in dieser Ansicht.'}</p>
               <small>
                 {issues.length === 0
-                  ? 'Lege manuell ein Issue an oder importiere später aus GitHub, Jira oder Linear.'
+                  ? 'Lege manuell einen Vorfall an oder importiere später aus GitHub, Jira oder Linear.'
                   : 'Passe den Filter an oder wähle ein anderes Projekt.'}
               </small>
               {issues.length === 0 && (
                 <button type="button" className="iss-create-btn" style={{ marginTop: 16 }} onClick={() => setCreateOpen(true)}>
                   <Plus size={14} weight="bold" />
-                  Erstes Issue anlegen
+                  Ersten Vorfall anlegen
                 </button>
               )}
             </div>
@@ -518,7 +518,7 @@ function IssuesPageInner() {
             contextType: 'empty',
             id: 'issues',
             projectId: projectScope !== 'all' ? projectScope : projectList[0]?.id,
-            title: 'Issues · Übersicht',
+            title: 'Vorfälle · Übersicht',
             subtitle: `${counts.open} offen · ${counts.critical} kritisch`,
           }}
         />

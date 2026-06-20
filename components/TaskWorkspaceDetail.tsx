@@ -7,6 +7,14 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { getTaskGroup, type TaskGroupKey } from '@/lib/tasks/groups'
 import { taskStatusPatch } from '@/lib/tasks/status'
+import {
+  activityEventLabel,
+  clientProgress,
+  clientStatusHint,
+  clientStatusLabelDe,
+  clientSummaryText,
+  resolveClientVisibleStatus,
+} from '@/lib/tasks/client-view'
 import TagroLogo from '@/components/TagroLogo'
 import NewTaskModal from '@/components/NewTaskModal'
 import TagroMobileBar from '@/components/TagroMobileBar'
@@ -66,6 +74,8 @@ type TaskDetail = {
   client_visible?: boolean | null
   client_status?: string | null
   dev_status?: string | null
+  client_visible_status?: string | null
+  tagro_client_summary?: string | null
   latest_client_update?: string | null
   latest_dev_update?: string | null
   customer_update?: string | null
@@ -101,6 +111,14 @@ type Profile = {
   role?: string | null
 }
 
+type TaskActivityLog = {
+  id: string
+  event: string
+  actor_kind?: string | null
+  metadata?: Record<string, unknown> | null
+  created_at?: string | null
+}
+
 type ActivityItem = {
   id: string
   title?: string | null
@@ -116,11 +134,6 @@ type MessageItem = {
   created_at?: string | null
   is_ai?: boolean | null
 }
-
-const DONE_STATES = new Set(['done', 'completed', 'delivered', 'erledigt'])
-const ACTIVE_STATES = new Set(['doing', 'active', 'in_progress', 'development', 'in_development'])
-const DECISION_STATES = new Set(['blocked', 'waiting', 'needs_decision', 'client_decision', 'waiting_for_client', 'waiting_for_assignment'])
-const REVIEW_STATES = new Set(['review', 'ready_for_review', 'in_review', 'festag_review', 'suggested', 'zur_pruefung', 'verified', 'approved', 'festag_checked'])
 
 const TASK_DETAIL_GROUP_ICONS: Record<TaskGroupKey, typeof FileText> = {
   legal: ShieldCheck,
@@ -142,27 +155,8 @@ const TASK_DETAIL_GROUP_ICONS: Record<TaskGroupKey, typeof FileText> = {
   planning: FileText,
 }
 
-function normalizeStatus(status?: string | null) {
-  const value = (status || 'todo').toLowerCase()
-  if (DONE_STATES.has(value)) return 'done'
-  if (REVIEW_STATES.has(value)) return 'review'
-  if (DECISION_STATES.has(value)) return 'decision'
-  if (ACTIVE_STATES.has(value)) return 'active'
-  return 'open'
-}
-
-function taskState(task?: TaskDetail | null) {
-  if (!task) return 'submitted'
-  return task.client_status || task.status || task.dev_status || 'submitted'
-}
-
-function statusLabel(status?: string | null) {
-  const normalized = normalizeStatus(status)
-  if (normalized === 'done') return 'Erledigt'
-  if (normalized === 'review') return 'In Prüfung'
-  if (normalized === 'decision') return 'Warten'
-  if (normalized === 'active') return 'In Arbeit'
-  return 'Offen'
+function detailStatusLabel(task: TaskDetail) {
+  return clientStatusLabelDe(resolveClientVisibleStatus(task))
 }
 
 function priorityLabel(priority?: string | null) {
@@ -198,13 +192,7 @@ function sourceActor(source?: string | null) {
 }
 
 function progressFor(task: TaskDetail) {
-  if (typeof task.progress === 'number') return task.progress
-  const normalized = normalizeStatus(taskState(task))
-  if (normalized === 'done') return 100
-  if (normalized === 'review') return 82
-  if (normalized === 'decision') return 40
-  if (normalized === 'active') return 55
-  return 0
+  return clientProgress(task)
 }
 
 function dateLabel(value?: string | null) {
@@ -242,15 +230,15 @@ function initials(name: string) {
 }
 
 function hasDecisionNeed(task: TaskDetail) {
-  const status = taskState(task).toLowerCase()
+  const visible = resolveClientVisibleStatus(task)
   const text = `${task.title} ${task.latest_client_update ?? ''} ${task.client_description ?? ''}`.toLowerCase()
-  return DECISION_STATES.has(status) || /entscheidung|freigabe|approval|approve|client/.test(text)
+  return visible === 'waiting' || /entscheidung|freigabe|approval|approve|client/.test(text)
 }
 
 function hasRisk(task: TaskDetail) {
-  const status = taskState(task).toLowerCase()
+  const visible = resolveClientVisibleStatus(task)
   const text = `${task.title} ${task.latest_client_update ?? ''} ${task.dev_notes ?? ''} ${task.dev_description ?? ''}`.toLowerCase()
-  return status === 'blocked' || /blocker|risiko|risk|delay|verzöger|wartet/.test(text)
+  return visible === 'on_hold' || /blocker|risiko|risk|delay|verzöger|wartet/.test(text)
 }
 
 function safeText(value?: string | null) {
@@ -258,7 +246,7 @@ function safeText(value?: string | null) {
 }
 
 function buildFallbackExplanation(task: TaskDetail, project?: Project | null) {
-  const status = statusLabel(taskState(task)).toLowerCase()
+  const status = detailStatusLabel(task).toLowerCase()
   const projectPart = project?.title ? ` im Projekt "${project.title}"` : ''
   const expected = safeText(task.client_description) || safeText(task.description) || safeText(task.latest_client_update) || 'Der genaue Arbeitsumfang wird aus dem Projektkontext weiter konkretisiert.'
   const risk = hasRisk(task) ? ' Es gibt ein mögliches Risiko oder einen Blocker, der aktiv beobachtet werden sollte.' : ' Aktuell ist kein klarer Blocker erkennbar.'
@@ -277,9 +265,11 @@ function avatarFor(profile: Profile | null, fallbackName: string) {
 type TaskWorkspaceDetailProps = {
   taskId: string
   projectId?: string
+  variant?: 'drawer' | 'page'
+  onClose?: () => void
 }
 
-export default function TaskWorkspaceDetail({ taskId, projectId }: TaskWorkspaceDetailProps) {
+export default function TaskWorkspaceDetail({ taskId, projectId, variant = 'page', onClose }: TaskWorkspaceDetailProps) {
   const router = useRouter()
   const supabase = createClient()
   const [task, setTask] = useState<TaskDetail | null>(null)
@@ -289,6 +279,7 @@ export default function TaskWorkspaceDetail({ taskId, projectId }: TaskWorkspace
   const [workspaceName, setWorkspaceName] = useState<string | null>(null)
   const [profiles, setProfiles] = useState<Record<string, Profile>>({})
   const [activity, setActivity] = useState<ActivityItem[]>([])
+  const [taskLogs, setTaskLogs] = useState<TaskActivityLog[]>([])
   const [messages, setMessages] = useState<MessageItem[]>([])
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
@@ -298,6 +289,12 @@ export default function TaskWorkspaceDetail({ taskId, projectId }: TaskWorkspace
   const [newTaskOpen, setNewTaskOpen] = useState(false)
   const [decisionBusy, setDecisionBusy] = useState(false)
   const [decisionDone, setDecisionDone] = useState(false)
+
+  const isDrawer = variant === 'drawer'
+  const leaveDetail = () => {
+    if (onClose) onClose()
+    else router.push(project?.id ? `/project/${project.id}?tab=tasks` : '/tasks')
+  }
 
   useEffect(() => {
     let cancelled = false
@@ -324,9 +321,17 @@ export default function TaskWorkspaceDetail({ taskId, projectId }: TaskWorkspace
       const profileIds = [loadedTask.assigned_to, loadedTask.created_by, loadedTask.approved_by]
         .filter(Boolean) as string[]
 
-      const [projectResult, activityResult, messagesResult, profilesResult] = await Promise.all([
+      const [projectResult, activityResult, taskLogsResult, messagesResult, profilesResult] = await Promise.all([
         pid ? (supabase as any).from('projects').select('*').eq('id', pid).maybeSingle() : Promise.resolve({ data: null }),
         pid ? (supabase as any).from('activity_feed').select('id,title,message,event_type,actor_role,created_at').eq('project_id', pid).order('created_at', { ascending: false }).limit(8).then((result: any) => result, () => ({ data: [] })) : Promise.resolve({ data: [] }),
+        (supabase as any)
+          .from('task_activity_logs')
+          .select('id,event,actor_kind,metadata,created_at')
+          .eq('task_id', taskId)
+          .eq('visible_to_client', true)
+          .order('created_at', { ascending: false })
+          .limit(20)
+          .then((result: any) => result, () => ({ data: [] })),
         pid ? (supabase as any).from('messages').select('id,message,created_at,is_ai').eq('project_id', pid).order('created_at', { ascending: false }).limit(6).then((result: any) => result, () => ({ data: [] })) : Promise.resolve({ data: [] }),
         profileIds.length ? (supabase as any).from('profiles').select('id,email,full_name,first_name,avatar_url,avatar_color,role').in('id', profileIds).then((result: any) => result, () => ({ data: [] })) : Promise.resolve({ data: [] }),
       ])
@@ -348,6 +353,7 @@ export default function TaskWorkspaceDetail({ taskId, projectId }: TaskWorkspace
         setWorkspaceName(null)
       }
       setActivity((activityResult.data as ActivityItem[]) ?? [])
+      setTaskLogs((taskLogsResult.data as TaskActivityLog[]) ?? [])
       setMessages((messagesResult.data as MessageItem[]) ?? [])
       setProfiles(Object.fromEntries(profileMap))
       setLoading(false)
@@ -382,7 +388,7 @@ export default function TaskWorkspaceDetail({ taskId, projectId }: TaskWorkspace
         system: 'Du bist Tagro, die Verständlichkeitsschicht von Festag. Erkläre Tasks in ruhiger, einfacher, executive-freundlicher Sprache. Keine internen Annahmen, keine Fachbegriffe ohne kurze Einordnung. Antworte auf Deutsch in 3-5 kurzen Sätzen.',
         messages: [{
           role: 'user',
-          content: `Projekt: ${project?.title ?? 'Unbekannt'}\nAufgabe: ${task.title}\nStatus: ${statusLabel(taskState(task))}\nPriorität: ${priorityLabel(task.priority)}\nBeschreibung: ${task.client_description || task.description || task.dev_description || 'Keine Beschreibung'}\nLetztes Update: ${task.latest_client_update || task.customer_update || task.latest_dev_update || 'Kein Update'}\n\nErkläre: worum es geht, warum es für das Projekt wichtig ist, was noch fehlt, ob Risiko/Blocker/Entscheidung sichtbar ist und was der nächste sinnvolle Schritt ist.`,
+          content: `Projekt: ${project?.title ?? 'Unbekannt'}\nAufgabe: ${task.title}\nStatus: ${clientStatusLabelDe(resolveClientVisibleStatus(task))}\nPriorität: ${priorityLabel(task.priority)}\nBeschreibung: ${task.client_description || task.description || task.dev_description || 'Keine Beschreibung'}\nLetztes Update: ${clientSummaryText(task)}\n\nErkläre: worum es geht, warum es für das Projekt wichtig ist, was noch fehlt, ob Risiko/Blocker/Entscheidung sichtbar ist und was der nächste sinnvolle Schritt ist.`,
         }],
       }),
     })
@@ -414,6 +420,12 @@ export default function TaskWorkspaceDetail({ taskId, projectId }: TaskWorkspace
 
   const timeline = useMemo(() => {
     if (!task) return []
+    const logItems = taskLogs.map((item) => ({
+      id: item.id,
+      label: activityEventLabel(item.event, item.metadata),
+      meta: relativeDate(item.created_at),
+      kind: item.actor_kind === 'tagro' ? 'tagro' : 'log',
+    }))
     const items = [
       {
         id: 'created',
@@ -427,13 +439,14 @@ export default function TaskWorkspaceDetail({ taskId, projectId }: TaskWorkspace
         meta: task.updated_at ? relativeDate(task.updated_at) : 'aktuell',
         kind: 'owner',
       } : null,
-      task.latest_client_update ? {
+      clientSummaryText(task) !== clientStatusHint(resolveClientVisibleStatus(task)) ? {
         id: 'client-update',
-        label: task.latest_client_update,
-        meta: 'Client-sicheres Update',
+        label: clientSummaryText(task),
+        meta: 'Aktueller Stand',
         kind: 'update',
       } : null,
-      ...activity.slice(0, 4).map((item) => ({
+      ...logItems,
+      ...activity.slice(0, 2).map((item) => ({
         id: item.id,
         label: item.title || item.message || item.event_type || 'Projektaktivität',
         meta: relativeDate(item.created_at),
@@ -441,7 +454,7 @@ export default function TaskWorkspaceDetail({ taskId, projectId }: TaskWorkspace
       })),
     ].filter(Boolean)
     return items as { id: string; label: string; meta: string; kind: string }[]
-  }, [task, activity, ownerName])
+  }, [task, activity, taskLogs, ownerName])
 
   function openCopilot(prompt: string) {
     window.dispatchEvent(new CustomEvent('open-copilot'))
@@ -495,7 +508,7 @@ export default function TaskWorkspaceDetail({ taskId, projectId }: TaskWorkspace
     setBusy(true)
     try {
       await (supabase as any).from('tasks').delete().eq('id', task.id)
-      router.push(project?.id ? `/project/${project.id}?tab=tasks` : '/tasks')
+      leaveDetail()
     } finally {
       setBusy(false)
     }
@@ -524,7 +537,7 @@ export default function TaskWorkspaceDetail({ taskId, projectId }: TaskWorkspace
   }
 
   const description = safeText(task.client_description) || safeText(task.description) || safeText(task.dev_description) || 'Noch keine ausführliche Beschreibung hinterlegt.'
-  const latestUpdate = safeText(task.latest_client_update) || safeText(task.customer_update) || safeText(task.latest_dev_update) || safeText(task.dev_notes) || 'Noch kein belastbares Update vorhanden.'
+  const latestUpdate = task ? clientSummaryText(task) : 'Noch kein belastbares Update vorhanden.'
   const tags = [...(task.tags ?? []), task.label].filter(Boolean) as string[]
   const source = sourceLabel(task.source, task.origin)
   const taskGroup = getTaskGroup(task)
@@ -532,10 +545,11 @@ export default function TaskWorkspaceDetail({ taskId, projectId }: TaskWorkspace
 
   return (
     <>
+      {!isDrawer ? (
       <MobileObjectPrep
         backHref={project?.id ? `/project/${project.id}?tab=tasks` : '/tasks'}
         title={task.title}
-        subtitle={`${project?.title ?? 'Projekt'} · ${statusLabel(taskState(task))}`}
+        subtitle={`${project?.title ?? 'Projekt'} · ${detailStatusLabel(task)}`}
         avatars={[
           { label: project?.title ?? 'P', color: project?.color ?? '#5B647D' },
           { label: ownerName.slice(0, 1), color: '#8f93a4' },
@@ -546,7 +560,7 @@ export default function TaskWorkspaceDetail({ taskId, projectId }: TaskWorkspace
             items: [
               ...(decisionNeeded ? [{ id: 'dec', label: 'Entscheidung zu dieser Aufgabe treffen' }] : []),
               ...(riskVisible ? [{ id: 'risk', label: 'Risiko mit Tagro einordnen' }] : []),
-              { id: 'status', label: `Status: ${statusLabel(taskState(task))}` },
+              { id: 'status', label: `Status: ${detailStatusLabel(task)}` },
               { id: 'owner', label: `Verantwortlich: ${ownerName}` },
             ],
           },
@@ -557,10 +571,12 @@ export default function TaskWorkspaceDetail({ taskId, projectId }: TaskWorkspace
         ].filter(Boolean)}
         tagroContext={{ type: 'task', id: task.id, title: task.title }}
       />
+      ) : null}
 
-    <div className="task-detail-shell task-detail-desktop">
+    <div className={`task-detail-shell task-detail-desktop${isDrawer ? ' task-detail-drawer' : ''}`}>
       <style>{detailStyles}</style>
 
+      {!isDrawer ? (
       <div className="task-detail-topbar">
         <button type="button" onClick={() => router.back()} className="task-back">
           <ArrowLeft size={15} />
@@ -573,6 +589,7 @@ export default function TaskWorkspaceDetail({ taskId, projectId }: TaskWorkspace
           <strong>{task.title}</strong>
         </div>
       </div>
+      ) : null}
 
       {/* Tabs — pill-style, identical to the project view. */}
       <nav className="task-tabs" role="tablist" aria-label="Aufgaben-Ansicht">
@@ -717,7 +734,7 @@ export default function TaskWorkspaceDetail({ taskId, projectId }: TaskWorkspace
               <h2>Eigenschaften</h2>
               <span>{source}</span>
             </div>
-            <PropertyRow icon={<CheckCircle size={16} />} label="Status" value={statusLabel(taskState(task))} />
+            <PropertyRow icon={<CheckCircle size={16} />} label="Status" value={detailStatusLabel(task)} />
             <PropertyRow icon={<Flag size={16} />} label="Priorität" value={priorityLabel(task.priority)} />
             <PropertyRow
               icon={<span className="mini-avatar">{avatarFor(assignedProfile, ownerName)}</span>}

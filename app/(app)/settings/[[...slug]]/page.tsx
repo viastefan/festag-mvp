@@ -17,7 +17,7 @@
  */
 
 import Link from 'next/link'
-import { useParams } from 'next/navigation'
+import { useParams, usePathname } from 'next/navigation'
 import { useEffect, useMemo, useRef, useState, type MutableRefObject } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { getFontMode, setFontMode as applyFontMode, getTheme, setTheme as applyThemeMode, type FontMode, type ThemeMode } from '@/lib/theme'
@@ -33,30 +33,25 @@ import {
   rememberProfileAvatarColor,
 } from '@/lib/profile-sync'
 import Modal, { ModalButton } from '@/components/Modal'
+import SettingsMobileShell from '@/components/settings/SettingsMobileShell'
+import SettingsLoadingSkeleton from '@/components/settings/SettingsLoadingSkeleton'
+import SettingsExtraSections from '@/components/settings/SettingsExtraSections'
+import { SETTINGS_CODEX_CSS } from '@/components/settings/settings-styles'
+import {
+  resolveSettingsSection,
+  settingsHref,
+  type SettingsSectionId,
+} from '@/components/settings/settings-config'
+import {
+  applyUiDensity,
+  getReducedMotion,
+  getUiDensity,
+  setReducedMotion,
+  setUiDensity,
+  type UiDensity,
+} from '@/components/settings/settings-prefs'
 
-type SectionId = 'profile' | 'appearance' | 'security' | 'notifications' | 'connected' | 'workspace' | 'company' | 'billing'
-
-const SLUG_TO_SECTION: Record<string, SectionId> = {
-  '':              'profile',
-  'appearance':    'appearance',
-  'security':      'security',
-  'notifications': 'notifications',
-  'connected':     'connected',
-  'workspace':     'workspace',
-  'company':       'company',
-  'billing':       'billing',
-}
-
-const SECTION_TITLE: Record<SectionId, string> = {
-  profile:       'Profil',
-  appearance:    'Erscheinung',
-  security:      'Sicherheit',
-  notifications: 'Benachrichtigungen',
-  connected:     'Verbundene Konten',
-  workspace:     'Workspace',
-  company:       'Unternehmen',
-  billing:       'Abrechnung & Steuer',
-}
+type SectionId = SettingsSectionId
 
 type Profile = {
   id: string
@@ -214,11 +209,14 @@ const WS_MODES: { id: 'delivery' | 'team' | 'agency'; label: string; short: stri
 export default function SettingsPage() {
   const supabase = useMemo(() => createClient(), [])
   const params = useParams<{ slug?: string[] }>()
+  const pathname = usePathname()
   const slug = params?.slug?.[0] || ''
-  const section: SectionId = SLUG_TO_SECTION[slug] || 'profile'
+  const { section, invalid: invalidSlug } = resolveSettingsSection(slug)
   const [profile, setProfile] = useState<Profile | null>(null)
   const [theme, setLocalTheme] = useState<ThemeMode>('dark')
   const [font, setLocalFont] = useState<FontMode>('aeonik')
+  const [uiDensity, setLocalUiDensity] = useState<UiDensity>('comfortable')
+  const [reducedMotion, setLocalReducedMotion] = useState(false)
   const [avatarColor, setLocalAvatarColor] = useState<string>(AVATAR_COLORS[12])
   const [saving, setSaving] = useState(false)
   const [wsMode, setWsMode] = useState<'delivery' | 'team' | 'agency' | null>(null)
@@ -292,6 +290,12 @@ export default function SettingsPage() {
   useEffect(() => {
     setLocalTheme(getTheme())
     setLocalFont(getFontMode())
+    const density = getUiDensity()
+    const motion = getReducedMotion()
+    setLocalUiDensity(density)
+    setLocalReducedMotion(motion)
+    applyUiDensity(density)
+    document.documentElement.dataset.festagReducedMotion = motion ? '1' : '0'
     let cancelled = false
     ;(async () => {
       const { data: { session } } = await supabase.auth.getSession()
@@ -826,6 +830,22 @@ export default function SettingsPage() {
 
   async function saveNotif(next: Partial<{ email: boolean; push: boolean }>) {
     if (!profile) return
+    if (typeof next.push === 'boolean' && next.push) {
+      if (typeof window !== 'undefined' && 'Notification' in window) {
+        const perm = Notification.permission
+        if (perm === 'denied') {
+          setError('Push ist im Browser blockiert. Erlaube Benachrichtigungen in den Browser-Einstellungen.')
+          return
+        }
+        if (perm === 'default') {
+          const result = await Notification.requestPermission()
+          if (result !== 'granted') {
+            setError('Push-Benachrichtigungen wurden nicht erlaubt.')
+            return
+          }
+        }
+      }
+    }
     if (typeof next.email === 'boolean') setNotifEmail(next.email)
     if (typeof next.push === 'boolean')  setNotifPush(next.push)
     await updateProfileFields({
@@ -833,6 +853,16 @@ export default function SettingsPage() {
       notif_push:  next.push  ?? notifPush,
     })
     flashSaved('Benachrichtigungen gespeichert')
+  }
+
+  async function connectGoogle() {
+    setError('')
+    try {
+      const { error: oauthErr } = await supabase.auth.linkIdentity({ provider: 'google' })
+      if (oauthErr) throw oauthErr
+    } catch (e: any) {
+      setError(e?.message || 'Google-Verbindung konnte nicht gestartet werden.')
+    }
   }
 
   async function enrollPasskey() {
@@ -901,8 +931,11 @@ export default function SettingsPage() {
   const loginLabel = identities.find(i => i.provider === 'google') ? 'Google + Magic-Link' : 'Magic-Link'
   const avatarFg = avatarTextColor(avatarColor)
 
+  const savedLabel = saving ? 'Speichert automatisch…' : (savedTick || '')
+
   return (
-    <div className="set">
+    <div className="set set-codex" data-density={uiDensity}>
+      <style>{SETTINGS_CODEX_CSS}</style>
       <style>{`
         /* ── Outer surface — the WHOLE content area is the lighter
              gray. No nested box-in-box. White cards sit directly on
@@ -1346,8 +1379,8 @@ export default function SettingsPage() {
         }
 
         .set-error {
-          padding: 12px 22px;
-          margin: 0 22px 12px;
+          padding: 12px 14px;
+          margin: 0 0 12px;
           border-radius: 8px;
           background: rgba(239,68,68,0.05);
           color: #c0362e;
@@ -1371,15 +1404,25 @@ export default function SettingsPage() {
         }
       `}</style>
 
+      <SettingsMobileShell
+        section={section}
+        pathname={pathname}
+        savedLabel={savedLabel}
+        invalidSlug={invalidSlug}
+      >
       <main className="set-main">
-        <div className="set-header">
-          <h1 className="set-title">{SECTION_TITLE[section]}</h1>
-          <span className={`set-saved${saving || savedTick ? ' show' : ''}`}>
-            {saving ? 'Speichert automatisch…' : (savedTick || 'Alle Änderungen gespeichert')}
-          </span>
-        </div>
+        {invalidSlug && (
+          <div className="set-invalid-banner">
+            Dieser Einstellungsbereich existiert nicht.{' '}
+            <Link href={settingsHref('')}>Zurück zu Profil</Link>
+          </div>
+        )}
         {error && <div className="set-error">{error}</div>}
 
+        {!profileReady ? (
+          <SettingsLoadingSkeleton />
+        ) : invalidSlug ? null : (
+        <>
         {section === 'profile' && (
           <div className="set-profile-layout">
             <div>
@@ -1705,6 +1748,55 @@ export default function SettingsPage() {
               </div>
               <WorkspaceSymbolSettings workspaceName={wsName} />
             </div>
+            <div className="set-row">
+              <div>
+                <div className="set-label">Dichte</div>
+                <div className="set-label-sub">Kompakt für Power-User — mehr Zeilen auf einen Blick.</div>
+              </div>
+              <div className="set-segment">
+                <button
+                  type="button"
+                  className={uiDensity === 'comfortable' ? 'on' : ''}
+                  onClick={() => {
+                    setLocalUiDensity('comfortable')
+                    setUiDensity('comfortable')
+                    flashSaved('Dichte gespeichert')
+                  }}
+                >
+                  Normal
+                </button>
+                <button
+                  type="button"
+                  className={uiDensity === 'compact' ? 'on' : ''}
+                  onClick={() => {
+                    setLocalUiDensity('compact')
+                    setUiDensity('compact')
+                    flashSaved('Dichte gespeichert')
+                  }}
+                >
+                  Kompakt
+                </button>
+              </div>
+            </div>
+            <div className="set-row">
+              <div>
+                <div className="set-label">Reduzierte Bewegung</div>
+                <div className="set-label-sub">Weniger Animationen — ruhigeres Interface.</div>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <button
+                  type="button"
+                  className={`set-toggle${reducedMotion ? ' on' : ''}`}
+                  onClick={() => {
+                    const next = !reducedMotion
+                    setLocalReducedMotion(next)
+                    setReducedMotion(next)
+                    flashSaved('Erscheinung gespeichert')
+                  }}
+                  aria-label="Reduzierte Bewegung"
+                />
+              </div>
+            </div>
           </div>
         )}
 
@@ -1777,7 +1869,7 @@ export default function SettingsPage() {
                     className="set-btn"
                     onClick={async () => {
                       const { data: { user } } = await supabase.auth.getUser()
-                      if (!user) { alert('Bitte erneut anmelden.'); return }
+                      if (!user) { setError('Bitte erneut anmelden.'); return }
                       await supabase
                         .from('onboarding_state')
                         .update({ completed_at: null, current_step: 'mode', updated_at: new Date().toISOString() })
@@ -1805,7 +1897,7 @@ export default function SettingsPage() {
                     className="set-btn"
                     onClick={async () => {
                       const { data: { user } } = await supabase.auth.getUser()
-                      if (!user) { alert('Bitte erneut anmelden.'); return }
+                      if (!user) { setError('Bitte erneut anmelden.'); return }
                       await supabase
                         .from('profiles')
                         .update({ tour_completed_at: null, tour_step: 0 })
@@ -1859,13 +1951,14 @@ export default function SettingsPage() {
                   className={`set-toggle${notifEmail ? ' on' : ''}`}
                   onClick={() => saveNotif({ email: !notifEmail })}
                   aria-label="E-Mail-Benachrichtigungen"
+                  aria-pressed={notifEmail}
                 />
               </div>
             </div>
             <div className="set-row">
               <div>
                 <div className="set-label">Push-Benachrichtigungen</div>
-                <div className="set-label-sub">Nur im Browser, nicht für E-Mail-Empfang nötig.</div>
+                <div className="set-label-sub">Browser-Push — erfordert Erlaubnis in diesem Gerät.</div>
               </div>
               <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                 <button
@@ -1873,7 +1966,38 @@ export default function SettingsPage() {
                   className={`set-toggle${notifPush ? ' on' : ''}`}
                   onClick={() => saveNotif({ push: !notifPush })}
                   aria-label="Push-Benachrichtigungen"
+                  aria-pressed={notifPush}
                 />
+              </div>
+            </div>
+            <div className="set-row">
+              <div>
+                <div className="set-label">Entscheidungen & Freigaben</div>
+                <div className="set-label-sub">Sofort, wenn eine Freigabe auf dich wartet.</div>
+              </div>
+              <div className="set-segment">
+                <button type="button" className={`set-segment-btn${(wsSettings.notif_decisions ?? true) ? ' on' : ''}`} onClick={() => saveWsSetting('notif_decisions', true)}>An</button>
+                <button type="button" className={`set-segment-btn${!(wsSettings.notif_decisions ?? true) ? ' on' : ''}`} onClick={() => saveWsSetting('notif_decisions', false)}>Aus</button>
+              </div>
+            </div>
+            <div className="set-row">
+              <div>
+                <div className="set-label">Wöchentliche Zusammenfassung</div>
+                <div className="set-label-sub">Executive Summary — Montagmorgen, bevor der Kunde fragt.</div>
+              </div>
+              <div className="set-segment">
+                <button type="button" className={`set-segment-btn${(wsSettings.notif_weekly_summary ?? false) ? ' on' : ''}`} onClick={() => saveWsSetting('notif_weekly_summary', true)}>An</button>
+                <button type="button" className={`set-segment-btn${!(wsSettings.notif_weekly_summary ?? false) ? ' on' : ''}`} onClick={() => saveWsSetting('notif_weekly_summary', false)}>Aus</button>
+              </div>
+            </div>
+            <div className="set-row">
+              <div>
+                <div className="set-label">Ruhezeiten</div>
+                <div className="set-label-sub">Keine Pushs zwischen 22:00 und 08:00 (Gerätezeit).</div>
+              </div>
+              <div className="set-segment">
+                <button type="button" className={`set-segment-btn${(wsSettings.notif_quiet_hours ?? true) ? ' on' : ''}`} onClick={() => saveWsSetting('notif_quiet_hours', true)}>An</button>
+                <button type="button" className={`set-segment-btn${!(wsSettings.notif_quiet_hours ?? true) ? ' on' : ''}`} onClick={() => saveWsSetting('notif_quiet_hours', false)}>Aus</button>
               </div>
             </div>
           </div>
@@ -1884,15 +2008,36 @@ export default function SettingsPage() {
             <div className="set-row">
               <div>
                 <div className="set-label">Google</div>
-                <div className="set-label-sub">Anmeldung mit deinem Google-Account.</div>
+                <div className="set-label-sub">Anmeldung mit deinem Google-Account — optional zusätzlich zum Magic-Link.</div>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, flexWrap: 'wrap' }}>
                 {identities.find(i => i.provider === 'google') ? (
                   <span className="set-provider">Verbunden</span>
                 ) : (
-                  <span className="set-value">Nicht verbunden</span>
+                  <>
+                    <span className="set-value">Nicht verbunden</span>
+                    <button type="button" className="set-btn set-btn-primary" onClick={connectGoogle}>
+                      Verbinden
+                    </button>
+                  </>
                 )}
               </div>
+            </div>
+            <div className="set-row">
+              <div>
+                <div className="set-label">Magic-Link</div>
+                <div className="set-label-sub">Standard-Anmeldung per E-Mail — immer aktiv.</div>
+              </div>
+              <span className="set-provider">Aktiv</span>
+            </div>
+            <div className="set-row">
+              <div>
+                <div className="set-label">Passkeys</div>
+                <div className="set-label-sub">Geräte-Anmeldung — verwaltest du unter Sicherheit.</div>
+              </div>
+              <Link href={settingsHref('security')} className="set-btn">
+                {passkeys.length ? `${passkeys.length} Passkey${passkeys.length === 1 ? '' : 's'}` : 'Einrichten'}
+              </Link>
             </div>
           </div>
         )}
@@ -1998,7 +2143,10 @@ export default function SettingsPage() {
                 <div className="set-row set-row-stack" style={{ paddingBottom: 8 }}>
                   <div>
                     <div className="set-label">Tagro &amp; Berichte</div>
-                    <div className="set-label-sub">Wie Tagro für diesen Workspace formuliert, plant und Berichte zustellt. Gilt für alle Projekte.</div>
+                    <div className="set-label-sub">
+                      Basis-Einstellungen für diesen Workspace. Erweiterte Delivery-Intelligence findest du unter{' '}
+                      <Link href={settingsHref('intelligence')}>Tagro &amp; Klarheit</Link>.
+                    </div>
                   </div>
                 </div>
                 <div className="set-row">
@@ -2380,7 +2528,25 @@ export default function SettingsPage() {
             </div>
           </>
         )}
+
+        {(section === 'intelligence' || section === 'portal' || section === 'privacy' || section === 'shortcuts') && (
+          <SettingsExtraSections
+            section={section}
+            wsSettings={wsSettings}
+            saveWsSetting={saveWsSetting}
+            tagroHealth={tagroHealth}
+            tagroPinging={tagroPinging}
+            pingTagro={pingTagro}
+            wsName={wsName}
+            wsMode={wsMode}
+            setError={setError}
+            flashSaved={flashSaved}
+          />
+        )}
+        </>
+        )}
       </main>
+      </SettingsMobileShell>
     </div>
   )
 }

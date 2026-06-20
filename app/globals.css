@@ -1329,7 +1329,8 @@ textarea,
      stays — it has its own mobile rules. */
   .sidebar,
   .sidebar-inner:not(.ds-inner),
-  aside.sidebar {
+  aside.sidebar,
+  .sset-shell {
     display: none !important;
   }
 
