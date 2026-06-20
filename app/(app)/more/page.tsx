@@ -145,13 +145,23 @@ export default function MorePage() {
       <p className="mp-version">Festag · Build {new Date().toLocaleDateString('de-DE', { day: '2-digit', month: 'short', year: 'numeric' })}</p>
 
       <style jsx>{`
-        .more-page { padding: 22px 18px calc(96px + env(safe-area-inset-bottom, 0px)); max-width: 720px; margin: 0 auto; }
-        @media (min-width: 768px) { .more-page { padding: 26px 28px 48px; } }
+        .more-page { padding: calc(20px + env(safe-area-inset-top, 0px)) 20px calc(96px + env(safe-area-inset-bottom, 0px)); max-width: 720px; margin: 0 auto; background: #FCFCFC; min-height: 100%; }
+        @media (min-width: 768px) { .more-page { padding: 26px 28px 48px; background: transparent; } }
 
-        .mp-head { margin-bottom: 18px; }
+        .mp-head { margin-bottom: 28px; }
         .mp-eyebrow { margin: 0 0 4px; font-size: 10.5px; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; color: var(--text-muted); }
-        h1 { margin: 0; font-size: 22px; font-weight: 500; letter-spacing: -.01em; color: var(--text); }
-        .mp-meta { margin: 4px 0 0; font-size: 12.5px; color: var(--text-muted); font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        h1 {
+          margin: 0;
+          font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+          font-size: 29px;
+          font-weight: 400;
+          letter-spacing: -0.5px;
+          line-height: 1.02;
+          color: #0F0F10;
+        }
+        .mp-meta { margin: 6px 0 0; font-size: 15px; color: #90959F; font-weight: 400; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        [data-theme="dark"] h1, [data-theme="classic-dark"] h1 { color: #f4f4f4; }
+        [data-theme="dark"] .mp-meta, [data-theme="classic-dark"] .mp-meta { color: #9aa0ac; }
 
         .mp-sections { display: flex; flex-direction: column; gap: 16px; }
         .mp-section { display: flex; flex-direction: column; gap: 6px; }
@@ -162,9 +172,14 @@ export default function MorePage() {
         .mp-list {
           display: flex; flex-direction: column; gap: 2px;
           padding: 4px;
-          background: var(--card);
-          border: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+          background: #FFFFFF;
+          border: 1px solid rgba(0, 0, 0, 0.07);
           border-radius: 14px;
+          box-shadow: inset 0 1px 0 rgba(255,255,255,1), 0 1px 0 rgba(0,0,0,0.04), 0 4px 10px rgba(144,149,159,0.16);
+        }
+        [data-theme="dark"] .mp-list, [data-theme="classic-dark"] .mp-list {
+          background: rgba(255,255,255,0.06);
+          border: 1px solid rgba(255,255,255,0.14);
         }
         .mp-row {
           display: grid; grid-template-columns: 32px 1fr 12px;
