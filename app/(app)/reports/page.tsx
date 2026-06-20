@@ -1501,22 +1501,69 @@ export default function ReportsPageWrapper() {
 
 const REPORTS_MOBILE_CSS = `
   @media (max-width: 768px) {
-    .reports-intelligence .reports-scroll-body { padding-bottom: 24px !important; }
-    .reports-intelligence .audio-hero { border-radius: 12px !important; margin-bottom: 16px !important; }
+    .reports-intelligence .reports-static-top .app-page-header { display: none !important; }
+    .reports-intelligence .reports-commandline { display: none !important; }
+    .reports-intelligence .reports-scroll-body { padding-bottom: 24px !important; overflow: visible !important; }
+    .reports-intelligence .audio-hero {
+      flex-direction: column !important;
+      align-items: stretch !important;
+      border-radius: 14px !important;
+      margin-bottom: 16px !important;
+      border: 1px solid rgba(0, 0, 0, 0.07) !important;
+      background: #FFFFFF !important;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,1), 0 1px 0 rgba(0,0,0,0.04), 0 4px 10px rgba(144,149,159,0.16) !important;
+    }
+    [data-theme="dark"] .reports-intelligence .audio-hero,
+    [data-theme="classic-dark"] .reports-intelligence .audio-hero {
+      background: rgba(255,255,255,0.06) !important;
+      border: 1px solid rgba(255,255,255,0.14) !important;
+    }
+    .reports-intelligence .project-line-head { display: none !important; }
+    .reports-intelligence .project-status-stream { overflow: visible !important; margin-bottom: 24px !important; }
     .reports-intelligence .project-line {
-      border: none !important;
-      border-radius: 12px !important;
-      background: #fff !important;
-      box-shadow: var(--mcl-white-elev) !important;
-      margin-bottom: 8px !important;
-      padding: 14px 12px !important;
-      min-height: auto !important;
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: stretch !important;
+      gap: 10px !important;
+      min-width: 0 !important;
+      width: 100% !important;
+      border: 1px solid rgba(0, 0, 0, 0.07) !important;
+      border-top: 1px solid rgba(0, 0, 0, 0.07) !important;
+      border-radius: 14px !important;
+      background: #FFFFFF !important;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,1), 0 1px 0 rgba(0,0,0,0.04), 0 4px 10px rgba(144,149,159,0.16) !important;
+      margin-bottom: 12px !important;
+      padding: 16px 14px !important;
     }
     [data-theme="dark"] .reports-intelligence .project-line,
     [data-theme="classic-dark"] .reports-intelligence .project-line {
-      background: rgba(255,255,255,.06) !important;
+      background: rgba(255,255,255,0.06) !important;
+      border: 1px solid rgba(255,255,255,0.14) !important;
     }
-    .reports-intelligence .project-line-head { display: none !important; }
-    .reports-intelligence .project-status-stream { overflow: visible !important; }
+    .reports-intelligence .project-line:hover { background: #FAFAFA !important; }
+    .reports-intelligence .project-name-wrap strong {
+      font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+      font-size: 18px !important;
+      font-weight: 500 !important;
+      letter-spacing: -0.02em !important;
+    }
+    .reports-intelligence .progress-cell,
+    .reports-intelligence .soft-cell,
+    .reports-intelligence .signal-count { font-size: 13px !important; }
+    .reports-intelligence .open-report { opacity: 1 !important; padding: 0 !important; margin-top: 4px !important; }
+    .reports-intelligence .reports-operating-area { grid-template-columns: 1fr !important; gap: 20px !important; }
+    .reports-intelligence .signals-rail {
+      position: static !important;
+      border: 1px solid rgba(0, 0, 0, 0.07) !important;
+      border-radius: 14px !important;
+      background: #FFFFFF !important;
+      padding: 16px 14px !important;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,1), 0 1px 0 rgba(0,0,0,0.04), 0 4px 10px rgba(144,149,159,0.16) !important;
+    }
+    [data-theme="dark"] .reports-intelligence .signals-rail,
+    [data-theme="classic-dark"] .reports-intelligence .signals-rail {
+      background: rgba(255,255,255,0.06) !important;
+      border: 1px solid rgba(255,255,255,0.14) !important;
+    }
   }
 `
