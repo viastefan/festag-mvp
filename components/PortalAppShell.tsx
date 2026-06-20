@@ -208,7 +208,7 @@ export default function PortalAppShell({ children }: { children: React.ReactNode
 
   return (
     <div className={`portal-app-shell${sidebarCollapsed ? ' portal-sidebar-collapsed' : ''}`}>
-      <style>{PORTAL_APP_SHELL_CSS}</style>
+      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: PORTAL_APP_SHELL_CSS }} />
       <div className="portal-app-nav-col">
         <PortalSidebar collapsed={sidebarCollapsed} onToggleCollapse={toggleSidebar} />
       </div>

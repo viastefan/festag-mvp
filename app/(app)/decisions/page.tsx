@@ -430,7 +430,7 @@ function DecisionsPageInner() {
 
   return (
     <div className="dec-os">
-      <style>{DECISION_CSS}</style>
+      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: DECISION_CSS }} />
 
       {(filterMenuOpen || risksOpen) && (
         <button
@@ -467,11 +467,9 @@ function DecisionsPageInner() {
               <span className="dec-dt">Entscheidungen</span>
               <span className="dec-m-t">Entscheidungen</span>
             </h1>
-            <p>
-              <span className="dec-dt">{leadLine1}</span>
-            </p>
             <div className="dec-page-lead dec-dt">
-              <p className="dec-page-lead-line">{leadLine2}</p>
+              <p className="dec-page-lead-line">{leadLine1}</p>
+              {leadLine2 && <p className="dec-page-lead-line">{leadLine2}</p>}
               {leadLine3 && <p className="dec-page-lead-line">{leadLine3}</p>}
             </div>
           </div>

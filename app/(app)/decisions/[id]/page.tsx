@@ -1,8 +1,7 @@
 'use client'
 
 import { Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react'
-import Link from 'next/link'
-import { useParams, useRouter, useSearchParams } from 'next/navigation'
+import { useParams, useSearchParams } from 'next/navigation'
 import { ArrowLeft, CheckCircle, Clock, Lightning, PencilSimple } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 import TagroContentFab from '@/components/TagroContentFab'
@@ -27,7 +26,6 @@ import { DECISION_CSS } from '@/components/decisions/decisions-styles'
 
 function DecisionDetailInner() {
   const { id } = useParams<{ id: string }>()
-  const router = useRouter()
   const searchParams = useSearchParams()
   const discussOnLoad = searchParams?.get('discuss') === '1'
   const supabase = useMemo(() => createClient(), [])
@@ -51,14 +49,8 @@ function DecisionDetailInner() {
       window.dispatchEvent(new CustomEvent('festag:decisions-dismiss-overlays'))
     } catch { /* noop */ }
     document.body.style.overflow = ''
-    router.push('/decisions')
-  }
-
-  function prepareListNavigation() {
-    try {
-      window.dispatchEvent(new CustomEvent('festag:decisions-dismiss-overlays'))
-    } catch { /* noop */ }
-    document.body.style.overflow = ''
+    // Client router can stall after detail-page hydration recovery — hard nav is reliable.
+    window.location.assign('/decisions')
   }
 
   const load = useCallback(async () => {
@@ -104,7 +96,7 @@ function DecisionDetailInner() {
   if (loading) {
     return (
       <div className="dec-os dec-os-detail">
-        <style>{DECISION_CSS}</style>
+        <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: DECISION_CSS }} />
         <div className="dec-detail-m-shell">
           <p className="dec-detail-loading">Entscheidung wird geladen…</p>
         </div>
@@ -115,15 +107,15 @@ function DecisionDetailInner() {
   if (!decision) {
     return (
       <div className="dec-os dec-os-detail">
-        <style>{DECISION_CSS}</style>
+        <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: DECISION_CSS }} />
         <div className="dec-detail-m-shell">
           <div className="dec-detail-empty">
             <p className="dec-detail-empty-title">Entscheidung nicht gefunden.</p>
             <p className="dec-detail-empty-copy">Sie wurde möglicherweise archiviert oder du hast keinen Zugriff.</p>
-            <Link href="/decisions" className="dec-detail-back dec-detail-back-pill">
+            <button type="button" className="dec-detail-back dec-detail-back-pill" onClick={() => goToList()}>
               <ArrowLeft size={16} />
               Zurück zur Übersicht
-            </Link>
+            </button>
           </div>
         </div>
       </div>
@@ -153,13 +145,13 @@ function DecisionDetailInner() {
 
   return (
     <div className={`dec-os dec-os-detail${mobileDock ? ' dec-os-detail--dock' : ''}`}>
-      <style>{DECISION_CSS}</style>
+      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: DECISION_CSS }} />
 
       <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
 
       <div className="dec-detail-m-shell">
         <header className="dec-detail-m-head">
-          <CodexOrbButton ariaLabel="Zurück" onClick={goToList}>
+          <CodexOrbButton ariaLabel="Zurück" onClick={() => goToList()}>
             <ArrowLeft size={20} weight="regular" />
           </CodexOrbButton>
           <div className="dec-detail-m-copy">
@@ -177,14 +169,14 @@ function DecisionDetailInner() {
         <header className="dec-detail-hero dec-detail-hero-desktop">
           <div className="dec-detail-col">
             <div className="dec-detail-toolbar">
-              <Link
-                href="/decisions"
+              <button
+                type="button"
                 className="dec-detail-back dec-detail-back-pill dec-detail-back-desktop"
-                onClick={prepareListNavigation}
+                onClick={() => goToList()}
               >
                 <ArrowLeft size={14} weight="regular" />
                 Alle Entscheidungen
-              </Link>
+              </button>
             </div>
 
             <div className="dec-detail-hero-main">
@@ -220,7 +212,7 @@ function DecisionDetailInner() {
               {isAnswered && (
                 <span className="dec-detail-meta-chip dec-detail-meta-chip--good">Entschieden</span>
               )}
-              <span className="dec-detail-meta-chip dec-detail-meta-chip--time">
+              <span className="dec-detail-meta-chip dec-detail-meta-chip--time" suppressHydrationWarning>
                 <Clock size={12} weight="regular" />
                 {fmtAgo(decision.updated_at)}
               </span>
@@ -241,7 +233,7 @@ function DecisionDetailInner() {
           project={project}
           me={me}
           isDecider={isDecider}
-          onClose={goToList}
+          onClose={() => goToList()}
           onPatch={patchLocal}
           initialDiscussOpen={discussOnLoad}
           onMobileDockChange={handleMobileDockChange}

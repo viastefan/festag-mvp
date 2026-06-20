@@ -17,6 +17,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const usesOwnShell = pathname === '/projects'
     || pathname.startsWith('/decisions')
     || pathname.startsWith('/issues')
+    || pathname.startsWith('/executive')
     || pathname === '/messages'
   if (usesOwnShell) return <>{children}</>
 

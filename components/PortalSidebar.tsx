@@ -268,7 +268,7 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
       aria-label="Portalnavigation"
       data-collapsed={collapsed ? '1' : '0'}
     >
-      <style>{CSS}</style>
+      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: CSS }} />
 
       <div className="portal-nav-top">
         <div className="portal-nav-header">

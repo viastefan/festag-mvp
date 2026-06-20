@@ -84,6 +84,7 @@ export const DECISION_CSS = `
   .dec-os .dec-page-title .dec-dt,
   .dec-os .dec-m-title h1 .dec-dt,
   .dec-os header.dec-page-head .dec-page-head-copy.dec-m-title h1.dec-page-title > span.dec-dt {
+    font-weight:400 !important;
     letter-spacing:-1px !important;
   }
   .dec-os .dec-page-head-copy.dec-m-title > p,
@@ -113,7 +114,7 @@ export const DECISION_CSS = `
     line-height:1.5;
     letter-spacing:0;
   }
-  .dec-page-lead-line + .dec-page-lead-line {
+  .dec-page-lead .dec-page-lead-line:first-child {
     font-size:20px;
   }
   .dec-page-actions {
@@ -958,6 +959,14 @@ export const DECISION_CSS = `
     transition:background .14s ease, color .14s ease, border-color .14s ease, box-shadow .14s ease;
     font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
     letter-spacing:-0.01em;
+    cursor:pointer;
+  }
+  button.dec-detail-back {
+    border:0;
+    padding:0;
+    background:transparent;
+    appearance:none;
+    -webkit-appearance:none;
   }
   .dec-detail-back-pill {
     height:32px;
@@ -1665,7 +1674,7 @@ export const DECISION_CSS = `
     .dec-m-title h1 { font-size:29px; letter-spacing:-1px; line-height:1.02; }
     .dec-page-lead-line,
     .dec-page-lead p { font-size:15px; font-weight:400; }
-    .dec-page-lead-line + .dec-page-lead-line { font-size:18px; }
+    .dec-page-lead .dec-page-lead-line:first-child { font-size:18px; }
     .dec-panel { width:100vw; }
     .dec-card { flex-direction:column; gap:20px; padding:18px 12px; align-items:stretch; }
     .dec-card-left, .dec-card-mid, .dec-card-meta, .dec-card-actions { width:100%; }

@@ -79,6 +79,7 @@ type MonitoringDockState = {
 
 const CLIENT_TOP: NavItem[] = [
   { href:'/dashboard', icon:'pulse', label:'Statusabfrage' },
+  { href:'/executive', icon:'activity', label:'Executive' },
   { href:'/messages', icon:'inbox', label:'Inbox' },
 ]
 
@@ -359,6 +360,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
   // and what to push into the "Mehr" popover.
   const HREF_TO_ITEM_ID: Record<string, SidebarItemId> = {
     '/dashboard': 'statusabfrage',
+    '/executive': 'executive',
     '/messages':  'inbox',
     '/projects':  'projects',
     '/reports':   'reports',
