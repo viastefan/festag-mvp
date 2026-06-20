@@ -1,25 +1,19 @@
 /**
  * Central Supabase configuration — no credentials in source code.
  * All keys come from environment variables (.env.local / Vercel).
+ *
+ * IMPORTANT: use direct `process.env.NEXT_PUBLIC_*` reads — Next.js only
+ * inlines those into the client bundle (dynamic `process.env[name]` stays empty).
  */
-
-function read(name: string): string | undefined {
-  const v = process.env[name]?.trim()
-  return v || undefined
-}
-
-function readFirst(...names: string[]): string | undefined {
-  for (const name of names) {
-    const v = read(name)
-    if (v) return v
-  }
-  return undefined
-}
 
 const DEFAULT_SUPABASE_URL = 'https://xsdkoepwuvpuroijjain.supabase.co'
 
 export function getSupabaseUrl(): string {
-  const url = readFirst('NEXT_PUBLIC_SUPABASE_URL', 'SUPABASE_URL') ?? DEFAULT_SUPABASE_URL
+  const url = (
+    process.env.NEXT_PUBLIC_SUPABASE_URL
+    || process.env.SUPABASE_URL
+    || DEFAULT_SUPABASE_URL
+  ).trim()
   if (!url.startsWith('https://') || !url.includes('.supabase.co')) {
     throw new Error('NEXT_PUBLIC_SUPABASE_URL must be a valid https://*.supabase.co URL.')
   }
@@ -32,11 +26,12 @@ function isSupabaseAnonKey(key: string): boolean {
 }
 
 export function getSupabaseAnonKey(): string {
-  const key = readFirst(
-    'NEXT_PUBLIC_SUPABASE_ANON_KEY',
-    'SUPABASE_ANON_KEY',
-    'SUPABASE_SERVICE_PUBLISHABLE_KEY',
-  )
+  const key = (
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    || process.env.SUPABASE_ANON_KEY
+    || process.env.SUPABASE_SERVICE_PUBLISHABLE_KEY
+    || ''
+  ).trim()
   if (!key) {
     throw new Error(
       'Missing NEXT_PUBLIC_SUPABASE_ANON_KEY. Get it from Supabase Dashboard → Settings → API.',
@@ -55,7 +50,7 @@ export function getSupabaseAnonKey(): string {
  * Returns null when unset so callers can degrade gracefully.
  */
 export function getServiceRoleKey(): string | null {
-  const key = read('SUPABASE_SERVICE_ROLE_KEY')
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim()
   if (!key) return null
 
   // Supabase service_role keys are JWTs. Short sb_secret_* keys are invalid
@@ -79,9 +74,9 @@ export type SupabaseEnvStatus = {
 }
 
 export function checkSupabaseEnv(): SupabaseEnvStatus {
-  const url = read('NEXT_PUBLIC_SUPABASE_URL')
-  const anon = read('NEXT_PUBLIC_SUPABASE_ANON_KEY')
-  const service = read('SUPABASE_SERVICE_ROLE_KEY')
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim()
+  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim()
+  const service = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim()
   return {
     url: Boolean(url),
     anonKey: Boolean(anon && isSupabaseAnonKey(anon)),
