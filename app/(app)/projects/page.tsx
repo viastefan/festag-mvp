@@ -28,6 +28,7 @@ import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
 import MobileNavSheet from '@/components/mobile/MobileNavSheet'
 import MobileProjectPickerSheet, { type ProjectPickerMode } from '@/components/mobile/MobileProjectPickerSheet'
 import ProjectsStatusBriefingSheet from '@/components/mobile/ProjectsStatusBriefingSheet'
+import { FESTAG_CONTENT_HEAD_CSS } from '@/components/mobile/mobile-codex-list-styles'
 import MobilePageDock from '@/components/mobile/MobilePageDock'
 
 type ProjectRow = {
@@ -817,6 +818,7 @@ function ProjectsPageInner() {
 }
 
 const CSS = `
+${FESTAG_CONTENT_HEAD_CSS}
   .pj-fallback { padding: 48px; color: #6E717E; font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif); }
 
   /* ── Mobile-only / Desktop-only visibility ── */
@@ -908,16 +910,9 @@ const CSS = `
     min-width: 0;
     display: flex;
     flex-direction: column;
-    gap: 10px;
   }
   .pj2-page-title {
-    margin: 0;
-    font-size: 32px;
-    font-weight: 400;
     color: var(--pj-dark);
-    letter-spacing: var(--ls-header, 0.012em);
-    line-height: 1.15;
-    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
   }
   .pj2-m-subline {
     margin: 0;
@@ -930,13 +925,7 @@ const CSS = `
     max-width: 680px;
   }
   .pj2-page-lead-line {
-    margin: 0;
-    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
-    font-size: 17px;
-    font-weight: 400;
     color: var(--pj-soft);
-    line-height: 1.5;
-    letter-spacing: 0;
   }
   .pj2-page-actions {
     display: flex;
@@ -1550,7 +1539,6 @@ const CSS = `
     .pj2-scroll-body { padding-bottom: 64px; }
   }
   @media (max-width: 1200px) {
-    .pj2-page-title { font-size: 28px; }
     .pj2-page-lead-line { font-size: 15px; }
     .pj2-row {
       grid-template-columns:
@@ -1661,23 +1649,11 @@ const CSS = `
     .pj2-page-head-copy {
       display: flex;
       flex-direction: column;
-      gap: 0;
       flex: 1 1 auto;
       min-width: 0;
     }
-    .pj2-page-title {
-      font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif) !important;
-      font-weight: 400 !important;
-      margin: 0 !important;
-      font-size: 29px !important;
-      letter-spacing: 0 !important;
-      line-height: 1.02 !important;
-      color: #0F0F10 !important;
-    }
     .pj2-page-title .pjm-t {
       display: block !important;
-      font-weight: 400 !important;
-      letter-spacing: 0 !important;
     }
     .pj2-m-subline { display: none !important; }
 
@@ -2017,13 +1993,10 @@ const CSS = `
     [data-theme="dark"] .pj2-page .pj2-page-title,
     [data-theme="classic-dark"] .pj2-page .pj2-page-title {
       color: var(--portal-text, #f4f4f4) !important;
-      font-size: 29px !important;
-      letter-spacing: 0 !important;
     }
     [data-theme="dark"] .pj2-page .pj2-page-title .pjm-t,
     [data-theme="classic-dark"] .pj2-page .pj2-page-title .pjm-t {
-      font-weight: 400 !important;
-      letter-spacing: 0 !important;
+      color: #9aa0ac !important;
     }
     [data-theme="dark"] .pj2-page .pjm-sheet-title,
     [data-theme="classic-dark"] .pj2-page .pjm-sheet-title {

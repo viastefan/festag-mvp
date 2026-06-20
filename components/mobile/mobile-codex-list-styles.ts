@@ -1,4 +1,63 @@
 /** Shared Codex mobile list-page chrome — matches /projects + /decisions. */
+
+/** Festag content-container page header — reuse on new list/detail shells.
+ *  Title: Aeonik Regular (400), 29px, letter-spacing -1px.
+ *  Desktop lead: 17px soft copy only (no dynamic count line under the title).
+ *  Mobile: grey subtitle span inside h1 (.festag-m-sub / .pjm-t / .dec-m-sub). */
+export const FESTAG_CONTENT_HEAD_CSS = `
+  .festag-page-title,
+  .dec-os .dec-page-title,
+  .pj2-page .pj2-page-title {
+    margin: 0;
+    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif) !important;
+    font-weight: 400 !important;
+    font-size: 29px !important;
+    letter-spacing: -1px !important;
+    line-height: 1.02 !important;
+  }
+  .festag-page-title span,
+  .dec-os .dec-page-title span,
+  .pj2-page .pj2-page-title span {
+    font-weight: 400 !important;
+    font-family: inherit !important;
+    letter-spacing: inherit !important;
+  }
+  .festag-page-lead-line,
+  .dec-page-lead-line,
+  .dec-page-lead p,
+  .pj2-page-lead-line {
+    margin: 0;
+    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+    font-size: 17px;
+    font-weight: 400;
+    line-height: 1.5;
+    letter-spacing: 0;
+  }
+  .festag-page-head-copy,
+  .dec-page-head-copy,
+  .pj2-page-head-copy {
+    gap: 6px;
+  }
+  @media (max-width: 768px) {
+    .festag-m-sub,
+    .dec-m-sub,
+    .pj2-page .pj2-page-title .pjm-t {
+      display: block !important;
+      font-weight: 400 !important;
+      color: #90959F !important;
+      letter-spacing: -0.5px !important;
+    }
+    [data-theme="dark"] .festag-m-sub,
+    [data-theme="classic-dark"] .festag-m-sub,
+    [data-theme="dark"] .dec-m-sub,
+    [data-theme="classic-dark"] .dec-m-sub,
+    [data-theme="dark"] .pj2-page .pj2-page-title .pjm-t,
+    [data-theme="classic-dark"] .pj2-page .pj2-page-title .pjm-t {
+      color: #9aa0ac !important;
+    }
+  }
+`
+
 export const MOBILE_CODEX_LIST_CSS = `
   .mcl-dt,
   .mcl-page-sub,

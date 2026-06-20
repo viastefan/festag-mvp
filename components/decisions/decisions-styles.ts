@@ -1,4 +1,7 @@
+import { FESTAG_CONTENT_HEAD_CSS } from '@/components/mobile/mobile-codex-list-styles'
+
 export const DECISION_CSS = `
+${FESTAG_CONTENT_HEAD_CSS}
   .dec-os {
     --dec-soft: var(--portal-muted, #8f93a4);
     --dec-dark: var(--portal-text, #0f0f10);
@@ -73,18 +76,11 @@ export const DECISION_CSS = `
   .dec-page-head-copy { flex:1; min-width:0; display:flex; flex-direction:column; gap:6px; }
   .dec-os .dec-page-title,
   .dec-os .dec-m-title h1 {
-    margin:0;
-    font-size:29px !important;
-    font-weight:400 !important;
     color:var(--dec-dark);
-    letter-spacing:-1px !important;
-    line-height:1.02 !important;
-    font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif) !important;
   }
   .dec-os .dec-page-title .dec-dt,
   .dec-os .dec-m-title h1 .dec-dt,
   .dec-os header.dec-page-head .dec-page-head-copy.dec-m-title h1.dec-page-title > span.dec-dt {
-    font-weight:400 !important;
     letter-spacing:-1px !important;
   }
   .dec-os .dec-page-head-copy.dec-m-title > p,
@@ -107,15 +103,7 @@ export const DECISION_CSS = `
   .dec-page-lead-line,
   .dec-page-lead p {
     margin:0;
-    font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
-    font-size:17px;
-    font-weight:400;
     color:var(--dec-soft);
-    line-height:1.5;
-    letter-spacing:0;
-  }
-  .dec-page-lead .dec-page-lead-line:first-child {
-    font-size:20px;
   }
   .dec-page-actions {
     display:flex; align-items:center; gap:8px; flex-shrink:0;
@@ -1673,8 +1661,7 @@ export const DECISION_CSS = `
     .dec-page-title { font-size:29px; letter-spacing:-1px; line-height:1.02; }
     .dec-m-title h1 { font-size:29px; letter-spacing:-1px; line-height:1.02; }
     .dec-page-lead-line,
-    .dec-page-lead p { font-size:15px; font-weight:400; }
-    .dec-page-lead .dec-page-lead-line:first-child { font-size:18px; }
+    .dec-page-lead p { font-size:15px; }
     .dec-panel { width:100vw; }
     .dec-card { flex-direction:column; gap:20px; padding:18px 12px; align-items:stretch; }
     .dec-card-left, .dec-card-mid, .dec-card-meta, .dec-card-actions { width:100%; }
