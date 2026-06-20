@@ -15,6 +15,9 @@ import TagroDiamondDots from '@/components/dashboard/TagroDiamondDots'
 import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
 import MobileNavSheet from '@/components/mobile/MobileNavSheet'
 import { DASHBOARD_MOBILE_CSS } from '@/components/dashboard/dashboard-mobile-styles'
+import type { PendingApproval } from '@/lib/client/pending-approvals'
+import type { ClientActivityItem } from '@/lib/client/client-activity'
+import type { ClientDeliverable } from '@/lib/client/deliverables'
 
 type ScopeOption = { id: string; label: string; color?: string | null }
 
@@ -23,6 +26,9 @@ type Props = {
   busy?: boolean
   openDecisionsCount: number
   pendingApprovalCount?: number
+  pendingApprovals?: PendingApproval[]
+  clientActivity?: ClientActivityItem[]
+  clientDeliverables?: ClientDeliverable[]
   blockersCount: number
   scopeLabel: string
   scopeOptions?: ScopeOption[]
@@ -71,6 +77,9 @@ export default function DashboardMobileStart({
   busy,
   openDecisionsCount,
   pendingApprovalCount = 0,
+  pendingApprovals = [],
+  clientActivity = [],
+  clientDeliverables = [],
   blockersCount,
   scopeLabel,
   scopeOptions = [],
@@ -321,7 +330,17 @@ export default function DashboardMobileStart({
         <div className="dms-rows">
           <div className="dms-row">
             <p className="dms-row-title">{approvalsTitle}</p>
-            <Link href="/decisions" className="dms-row-link">Freigaben ansehen &gt;</Link>
+            {pendingApprovals.length > 0 ? (
+              <div className="dms-row-items">
+                {pendingApprovals.slice(0, 3).map(item => (
+                  <Link key={`${item.kind}-${item.id}`} href={item.href} className="dms-row-item">
+                    <span className="dms-row-item-title">{item.title}</span>
+                    {item.project_title ? <span className="dms-row-item-meta">{item.project_title}</span> : null}
+                  </Link>
+                ))}
+              </div>
+            ) : null}
+            <Link href="/captures" className="dms-row-link">Freigaben ansehen &gt;</Link>
           </div>
           <div className="dms-row">
             <p className="dms-row-title">{decisionsTitle}</p>
@@ -329,8 +348,39 @@ export default function DashboardMobileStart({
           </div>
           <div className="dms-row">
             <p className="dms-row-title">{blockersTitle}</p>
-            <Link href="/decisions?tone=risk" className="dms-row-link">Entscheidungen ansehen &gt;</Link>
+            <Link href="/decisions?tone=risk" className="dms-row-link">Risiken ansehen &gt;</Link>
           </div>
+          {clientDeliverables.filter(d => d.approval_status === 'awaiting_review').length > 0 && (
+            <div className="dms-row">
+              <p className="dms-row-title">
+                {clientDeliverables.filter(d => d.approval_status === 'awaiting_review').length === 1
+                  ? '1 Deliverable wartet auf Freigabe'
+                  : `${clientDeliverables.filter(d => d.approval_status === 'awaiting_review').length} Deliverables warten auf Freigabe`}
+              </p>
+              <div className="dms-row-items">
+                {clientDeliverables.filter(d => d.approval_status === 'awaiting_review').slice(0, 2).map(item => (
+                  <p key={item.id} className="dms-activity-line">
+                    {item.project_title ? `${item.project_title}: ` : ''}{item.title}
+                    {item.summary ? ` — ${item.summary.slice(0, 80)}${item.summary.length > 80 ? '…' : ''}` : ''}
+                  </p>
+                ))}
+              </div>
+              <Link href="/captures" className="dms-row-link">Deliverables prüfen &gt;</Link>
+            </div>
+          )}
+          {clientActivity.length > 0 && (
+            <div className="dms-row">
+              <p className="dms-row-title">Aktuelle Updates</p>
+              <div className="dms-row-items">
+                {clientActivity.slice(0, 2).map(item => (
+                  <p key={`${item.kind}-${item.id}`} className="dms-activity-line">
+                    {item.project_title ? `${item.project_title}: ` : ''}{item.body.slice(0, 120)}{item.body.length > 120 ? '…' : ''}
+                  </p>
+                ))}
+              </div>
+              <Link href="/activity" className="dms-row-link">Alle Updates &gt;</Link>
+            </div>
+          )}
         </div>
 
         <div className="dms-dock-wrap">

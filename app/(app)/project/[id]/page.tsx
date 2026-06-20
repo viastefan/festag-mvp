@@ -21,6 +21,7 @@ import AssignDevModal from '@/components/AssignDevModal'
 import NewTaskModal from '@/components/NewTaskModal'
 import ProjectDevAvatars from '@/components/ProjectDevAvatars'
 import ProofGridSection from '@/components/ProofGridSection'
+import AssetsPanel from '@/components/AssetsPanel'
 import TagroMobileBar from '@/components/TagroMobileBar'
 import MobileObjectMenu from '@/components/MobileObjectMenu'
 import { openTagro } from '@/components/TagroOverlay'
@@ -2226,6 +2227,11 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
           {activeLeft === 'evidence' && (
             <div className="pv-pane">
               <ProofGridSection projectId={id} canEdit={canEdit} onChange={loadEvidenceCount} />
+              {canEdit && (
+                <div style={{ marginTop: 28 }}>
+                  <AssetsPanel projectId={id} workspaceId={null} />
+                </div>
+              )}
             </div>
           )}
 

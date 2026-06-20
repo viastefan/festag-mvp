@@ -63,6 +63,11 @@ const TYPE_DEFAULTS: Partial<Record<WorkSignalType, WorkSignalClassification>> =
     client_visible: false,
     internal_summary: 'Meeting-Notiz.',
   },
+  file_uploaded: {
+    meaning: 'client_relevant',
+    client_visible: true,
+    internal_summary: 'Neues Deliverable hochgeladen.',
+  },
 }
 
 function heuristicClassify(signal: Pick<WorkSignalRow, 'type' | 'content' | 'source'>): SignalClassificationResult {

@@ -18,6 +18,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { computeControlStatus } from '@/lib/trust/control-status'
+import type { PendingApproval } from '@/lib/client/pending-approvals'
+import type { ClientActivityItem } from '@/lib/client/client-activity'
+import type { ClientDeliverable } from '@/lib/client/deliverables'
 import ObserverWelcomeModal from '@/components/ObserverWelcomeModal'
 import WelcomeTour from '@/components/WelcomeTour'
 import TagroMobileBar from '@/components/TagroMobileBar'
@@ -260,6 +263,9 @@ export default function DashboardPageContent() {
   // decisions show up immediately.
   const [openDecisionsCount, setOpenDecisionsCount] = useState(0)
   const [pendingApprovalCount, setPendingApprovalCount] = useState(0)
+  const [pendingApprovals, setPendingApprovals] = useState<PendingApproval[]>([])
+  const [clientActivity, setClientActivity] = useState<ClientActivityItem[]>([])
+  const [clientDeliverables, setClientDeliverables] = useState<ClientDeliverable[]>([])
   useEffect(() => {
     let cancelled = false
     const sb = createClient()
@@ -289,7 +295,32 @@ export default function DashboardPageContent() {
       const res = await fetch('/api/client/approvals', { credentials: 'include' })
       if (!res.ok || cancelled) return
       const data = await res.json()
-      if (!cancelled) setPendingApprovalCount(data.count ?? 0)
+      if (!cancelled) {
+        setPendingApprovalCount(data.count ?? 0)
+        setPendingApprovals(Array.isArray(data.items) ? data.items : [])
+      }
+    })()
+    return () => { cancelled = true }
+  }, [])
+
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      const res = await fetch('/api/client/deliverables', { credentials: 'include' })
+      if (!res.ok || cancelled) return
+      const data = await res.json()
+      if (!cancelled) setClientDeliverables(Array.isArray(data.items) ? data.items : [])
+    })()
+    return () => { cancelled = true }
+  }, [])
+
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      const res = await fetch('/api/client/activity', { credentials: 'include' })
+      if (!res.ok || cancelled) return
+      const data = await res.json()
+      if (!cancelled) setClientActivity(Array.isArray(data.items) ? data.items : [])
     })()
     return () => { cancelled = true }
   }, [])
@@ -500,7 +531,7 @@ export default function DashboardPageContent() {
       count: pendingApprovalCount,
       label: pendingApprovalCount === 1 ? 'Freigabe wartet auf dich' : 'Freigaben warten auf dich',
       tone: 'approval',
-      href: '/decisions',
+      href: '/captures',
     },
     {
       count: combinedDecisionsCount,
@@ -2683,6 +2714,9 @@ export default function DashboardPageContent() {
         busy={statusBusy}
         openDecisionsCount={combinedDecisionsCount}
         pendingApprovalCount={pendingApprovalCount}
+        pendingApprovals={pendingApprovals}
+        clientActivity={clientActivity}
+        clientDeliverables={clientDeliverables}
         blockersCount={riskTasks.length}
         scopeLabel={scopeLabel}
         scopeOptions={[

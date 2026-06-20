@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { runTaskVerification } from '@/lib/tagro/verify-task'
 import { clientStatusFromDevFlow, devFlowFromLegacy, progressFromDevFlow, type DevFlow } from '@/lib/tasks/work-types'
 import { emitTaskEvent } from '@/lib/sync/bus'
+import { emitDevActionToClient } from '@/lib/client/connection-bridge'
 
 /**
  * POST /api/dev/tasks/finish  { taskId }
@@ -143,6 +144,22 @@ export async function POST(req: Request) {
       taskTitle: (task as any).title,
       payload: { confidence: verdict.confidence, issues: verdict.issues, evidence: verdict.evidence },
     })
+
+    // Client↔Dev bridge: task completion → Tagro translation → client timeline
+    if ((task as any).project_id && verdict.clientSummary?.trim()) {
+      await emitDevActionToClient(supabase as any, {
+        projectId: (task as any).project_id,
+        type: 'task_completed',
+        content: `Aufgabe abgeschlossen: ${(task as any).title}\n\n${verdict.clientSummary}`,
+        source: 'dev_finish',
+        visibility: verdict.status === 'verified' ? 'client' : 'team',
+        createdBy: user.id,
+        relatedTaskId: taskId,
+        clientTranslation: verdict.clientSummary,
+        inboxTitle: `Aufgabe abgeschlossen · ${(task as any).title}`,
+        notifyClient: verdict.status === 'verified' || verdict.status === 'needs_review',
+      }).catch(() => null)
+    }
 
     // Audit shadow
     await supabase.from('audit_logs').insert({

@@ -31,6 +31,7 @@ export type TeamWorkloadOverview = {
     reviewBacklog: number
     blocked: number
     overloaded: number
+    velocity_7d: number
   }
   tagro_insights: string[]
 }
@@ -58,6 +59,9 @@ export async function buildTeamWorkload(
   const ids = members.map(m => m.id)
   const workloads: Record<string, MemberWorkload> = {}
 
+  const since7d = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+  let velocity_7d = 0
+
   if (ids.length > 0) {
     const { data: taskData } = await sb
       .from('tasks')
@@ -84,6 +88,8 @@ export async function buildTeamWorkload(
       else if (flow !== 'cancelled') bucket.open++
       const stamp = t.updated_at || t.finished_by_dev_at
       if (stamp && (!bucket.lastActive || stamp > bucket.lastActive)) bucket.lastActive = stamp
+      const isDone = DONE_FLOWS.has(flow) || ['done', 'completed'].includes(String(t.status ?? ''))
+      if (isDone && stamp && stamp >= since7d) velocity_7d++
     }
 
     for (const id of ids) {
@@ -110,6 +116,11 @@ export async function buildTeamWorkload(
   if (overloaded > 0) tagro_insights.push(`${overloaded} Teammitglied${overloaded === 1 ? '' : 'er'} überlastet`)
   if (blocked > 0) tagro_insights.push(`${blocked} offene Blocker im Team`)
   if (reviewBacklog >= 5) tagro_insights.push(`Review-Backlog: ${reviewBacklog} Tasks warten auf Freigabe`)
+  if (velocity_7d === 0 && members.length > 0) {
+    tagro_insights.push('Keine abgeschlossenen Tasks in den letzten 7 Tagen')
+  } else if (velocity_7d >= members.length * 3) {
+    tagro_insights.push(`Starke Velocity: ${velocity_7d} Tasks in 7 Tagen`)
+  }
 
   return {
     members,
@@ -120,6 +131,7 @@ export async function buildTeamWorkload(
       reviewBacklog,
       blocked,
       overloaded,
+      velocity_7d,
     },
     tagro_insights,
   }

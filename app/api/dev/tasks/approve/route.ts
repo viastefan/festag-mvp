@@ -3,6 +3,7 @@ import { getDevUserFromRequest } from '@/lib/dev-auth'
 import { createClient } from '@/lib/supabase/server'
 import { clientStatusFromDevFlow, progressFromDevFlow } from '@/lib/tasks/work-types'
 import { emitTaskEvent } from '@/lib/sync/bus'
+import { emitDevActionToClient } from '@/lib/client/connection-bridge'
 
 /**
  * POST /api/dev/tasks/approve  { taskId, decision: 'approve' | 'reject', reason?: string }
@@ -64,6 +65,19 @@ export async function POST(req: Request) {
         taskTitle: (task as any).title,
         payload: { reason: reason ?? null },
       })
+
+      await emitDevActionToClient(supabase as any, {
+        projectId: (task as any).project_id,
+        type: 'approval_received',
+        content: `Ergebnis freigegeben: ${(task as any).title}`,
+        source: 'owner_approve',
+        visibility: 'client',
+        createdBy: user.id,
+        relatedTaskId: taskId,
+        clientTranslation: `${(task as any).title} wurde freigegeben und ist abgeschlossen.`,
+        inboxTitle: `Freigabe · ${(task as any).title}`,
+        notifyClient: true,
+      }).catch(() => null)
     } else {
       // reject → back to in_progress, log
       const nextFlow = 'in_progress' as const

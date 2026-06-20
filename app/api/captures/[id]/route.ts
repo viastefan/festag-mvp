@@ -146,5 +146,20 @@ export async function PATCH(req: NextRequest, ctx: { params: { id: string } }) {
     .single()
   if (uErr) return NextResponse.json({ error: uErr.message }, { status: 500 })
 
+  if (body.action === 'approve' && updated?.project_id) {
+    try {
+      const { emitDevActionToClient } = await import('@/lib/client/connection-bridge')
+      await emitDevActionToClient(sb as any, {
+        projectId: updated.project_id,
+        type: 'approval_received',
+        content: `Client-Feedback freigegeben: ${updated.tagro_summary || updated.page_title || 'Capture'}`,
+        source: 'capture_approve',
+        visibility: 'team',
+        createdBy: user.id,
+        notifyClient: false,
+      })
+    } catch { /* non-blocking */ }
+  }
+
   return NextResponse.json({ capture: updated, ...extra })
 }

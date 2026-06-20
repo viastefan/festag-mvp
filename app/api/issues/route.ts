@@ -133,5 +133,18 @@ export async function POST(req: NextRequest) {
     await (supa as any).from('issue_task_links').insert(links)
   }
 
+  try {
+    const { emitDevActionToClient } = await import('@/lib/client/connection-bridge')
+    await emitDevActionToClient(supa as any, {
+      projectId: body.project_id,
+      type: 'risk_reported',
+      content: `Issue gemeldet: ${body.title.trim()} (${severity})${body.description ? `\n${body.description.slice(0, 400)}` : ''}`,
+      source: 'issue_create',
+      visibility: 'team',
+      createdBy: user.id,
+      notifyClient: false,
+    })
+  } catch { /* non-blocking */ }
+
   return NextResponse.json({ issue })
 }

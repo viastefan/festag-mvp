@@ -2,7 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 
 export type PendingApproval = {
   id: string
-  kind: 'capture' | 'decision'
+  kind: 'capture' | 'decision' | 'deliverable'
   title: string
   project_id: string | null
   project_title?: string | null
@@ -28,8 +28,8 @@ export async function listPendingApprovals(
 
   if (projectIds.length > 0) {
     const { data: captures } = await sb
-      .from('captures')
-      .select('id,title,project_id,created_at,status')
+      .from('client_captures')
+      .select('id,page_title,tagro_summary,project_id,created_at,status')
       .in('project_id', projectIds)
       .eq('status', 'ready_review')
       .order('created_at', { ascending: false })
@@ -39,11 +39,34 @@ export async function listPendingApprovals(
       items.push({
         id: c.id,
         kind: 'capture',
-        title: c.title || 'Capture zur Freigabe',
+        title: c.tagro_summary?.trim() || c.page_title || 'Feedback zur Freigabe',
         project_id: c.project_id,
         project_title: projectMap[c.project_id] ?? null,
         created_at: c.created_at,
         href: '/captures',
+      })
+    }
+
+    const { data: assets } = await sb
+      .from('project_assets')
+      .select('id,title,project_id,created_at,status,analysis_result,visibility')
+      .in('project_id', projectIds)
+      .in('visibility', ['client_visible', 'white_label_visible'])
+      .eq('status', 'analyzed')
+      .order('created_at', { ascending: false })
+      .limit(20)
+
+    for (const a of (assets as any[]) ?? []) {
+      const requires = Boolean((a.analysis_result as any)?.requires_client_approval)
+      if (!requires) continue
+      items.push({
+        id: a.id,
+        kind: 'deliverable',
+        title: a.title || 'Deliverable zur Freigabe',
+        project_id: a.project_id,
+        project_title: projectMap[a.project_id] ?? null,
+        created_at: a.created_at,
+        href: '/documents',
       })
     }
   }

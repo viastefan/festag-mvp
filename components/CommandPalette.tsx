@@ -20,7 +20,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   MagnifyingGlass, Sparkle, House, UsersThree,
   ChatCircle, Briefcase, GearSix, FolderSimple, FileText,
-  Plus, Brain, Code, Note, ListChecks, X, ChartLineUp, Bug, Plugs, Scales, Target, Tray,
+  Plus, Brain, Code, Note, ListChecks, X, ChartLineUp, Bug, Plugs, Scales, Target, Tray, CheckSquare,
 } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 
@@ -41,6 +41,7 @@ const STATIC_COMMANDS: Cmd[] = [
   { id:'nav-issues', group:'Navigation', label:'Issues',                       href:'/issues',             Icon: Bug, keywords:['github','linear','jira','blocker'] },
   { id:'nav-activity', group:'Navigation', label:'Aktivität',                  href:'/activity',           Icon: Tray, keywords:['signals','slack','feed'] },
   { id:'nav-decisions', group:'Navigation', label:'Entscheidungen',            href:'/decisions',          Icon: Scales },
+  { id:'nav-captures', group:'Navigation', label:'Freigaben',                 href:'/captures',           Icon: CheckSquare, keywords:['approve','review','capture'] },
   { id:'nav-objectives', group:'Navigation', label:'Objectives',               href:'/objectives',         Icon: Target, keywords:['okr','goals','ziele'] },
   { id:'nav-connectors', group:'Navigation', label:'Connectors',               href:'/connectors',         Icon: Plugs },
   { id:'nav-client-messages', group:'Navigation', label:'Client-Kommunikation', href:'/relations/messages', Icon: ChatCircle },
@@ -56,10 +57,21 @@ const STATIC_COMMANDS: Cmd[] = [
 
   // Aktionen
   { id:'act-new-proj', group:'Aktionen',   label:'Neues Projekt anlegen', href:'/projects?new=1',        Icon: Plus,    keywords:['create','start'] },
+  { id:'act-new-task', group:'Aktionen',   label:'Neue Task anlegen',     href:'/tasks?new=1',           Icon: ListChecks, keywords:['create','aufgabe'] },
+  { id:'act-new-issue', group:'Aktionen',  label:'Neues Issue anlegen',   href:'/issues?new=1',          Icon: Bug,       keywords:['create','bug','blocker'] },
+  { id:'act-new-objective', group:'Aktionen', label:'Neues Objective anlegen', href:'/objectives?new=1', Icon: Target,    keywords:['create','okr','ziel'] },
+  { id:'act-captures', group:'Aktionen',   label:'Freigaben prüfen',      href:'/captures',              Icon: CheckSquare, keywords:['approve','review','capture'] },
   { id:'act-invite',   group:'Aktionen',   label:'Mitglied einladen',     href:'/teams', Icon: Plus, keywords:['invite','seat','team'] },
 
   // Tagro hint (immer sichtbar wenn Query leer ist)
   { id:'tagro-hint',   group:'Tagro',      label:'Mit "tagro: …" Tagro fragen', hint:'z. B. tagro: Status zusammenfassen', Icon: Brain, keywords:['ai','assistent'] },
+]
+
+const DEV_COMMANDS: Cmd[] = [
+  { id:'dev-nav-tasks', group:'Navigation', label:'Dev Tasks', href:'/dev/tasks', Icon: ListChecks },
+  { id:'dev-nav-captures', group:'Navigation', label:'Dev Captures', href:'/dev/captures', Icon: CheckSquare },
+  { id:'dev-act-task', group:'Aktionen', label:'Neue Dev-Task', href:'/dev/tasks?new=1', Icon: Plus, keywords:['create','aufgabe'] },
+  { id:'dev-act-review', group:'Aktionen', label:'Review Queue', href:'/dev/review', Icon: CheckSquare },
 ]
 
 function fuzzy(text: string, q: string): boolean {
@@ -227,7 +239,10 @@ export default function CommandPalette({ theme = 'default' }: { theme?: 'default
       },
     }]
   } else {
-    const staticHits = STATIC_COMMANDS.filter(c =>
+    const baseCommands = pathname.startsWith('/dev')
+      ? [...STATIC_COMMANDS, ...DEV_COMMANDS]
+      : STATIC_COMMANDS
+    const staticHits = baseCommands.filter(c =>
       fuzzy(c.label, q) || (c.keywords ?? []).some(k => fuzzy(k, q))
     )
     // Bei leerer Query: nur Static. Sonst: Static-Hits + Live-DB-Treffer.

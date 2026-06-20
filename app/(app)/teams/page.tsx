@@ -109,6 +109,7 @@ export default function TeamsOverviewPage() {
                 <div className="team-metric"><p className="team-metric-label">Verfügbar</p><p className="team-metric-value">{overview.totals.available}</p></div>
                 <div className="team-metric"><p className="team-metric-label">Reviews</p><p className="team-metric-value">{overview.totals.reviewBacklog}</p></div>
                 <div className="team-metric"><p className="team-metric-label">Blockiert</p><p className="team-metric-value">{overview.totals.blocked}</p></div>
+                <div className="team-metric"><p className="team-metric-label">Velocity 7d</p><p className="team-metric-value">{overview.totals.velocity_7d}</p></div>
               </div>
 
               {overview.tagro_insights.length > 0 && (

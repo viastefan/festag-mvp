@@ -22,6 +22,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { Check, FunnelSimple } from '@phosphor-icons/react'
 
 import DevSidebar from '@/components/DevSidebar'
+import CommandPalette from '@/components/CommandPalette'
 import LoadingScreen from '@/components/LoadingScreen'
 import TagroOverlay from '@/components/TagroOverlay'
 import { DEV_SHELL_MENU_CSS } from '@/components/dev/dev-shell-styles'
@@ -490,6 +491,7 @@ export default function DevAppShell({
           )}
         </div>
       </div>
+      <CommandPalette theme="portal" />
     </div>
   )
 }

@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
     // 1) Pull asset + parent project for context.
     const { data: asset } = await sb
       .from('project_assets')
-      .select('id, project_id, workspace_id, kind, category, title, description, storage_path, external_url, mime_type, size_bytes')
+      .select('id, project_id, workspace_id, kind, category, title, description, storage_path, external_url, mime_type, size_bytes, visibility, primary_task_id, uploaded_by')
       .eq('id', assetId)
       .maybeSingle()
     if (!asset) return NextResponse.json({ ok: false, error: 'asset_not_found' }, { status: 404 })
@@ -135,6 +135,45 @@ export async function POST(req: NextRequest) {
         },
       })
     } catch { /* inbox failure must not block the analysis flow */ }
+
+    // 6) Bridge → work_signals → Tagro classify → client timeline
+    try {
+      const { emitDevActionToClient } = await import('@/lib/client/connection-bridge')
+      const a = asset as any
+      const content = [
+        `Deliverable: ${a.title}`,
+        `Typ: ${a.kind}`,
+        analysis.summary,
+        analysis.requires_client_approval ? 'Status: Wartet auf Client-Freigabe.' : '',
+      ].filter(Boolean).join('\n')
+
+      await emitDevActionToClient(sb, {
+        projectId: a.project_id,
+        type: 'file_uploaded',
+        content,
+        source: 'asset_analyze',
+        visibility: analysis.requires_client_approval || a.visibility === 'client_visible' ? 'client' : 'team',
+        createdBy: user.id,
+        relatedTaskId: a.primary_task_id ?? null,
+        attachments: [{
+          kind: (a.kind === 'image' || a.kind === 'screenshot') ? 'image' as const : 'file' as const,
+          storage_path: a.storage_path ?? undefined,
+          url: a.external_url ?? undefined,
+          label: a.title,
+          mime: a.mime_type ?? undefined,
+        }],
+        clientTranslation: analysis.summary,
+        inboxTitle: `${(project as any).title} · Neues Deliverable`,
+        notifyClient: analysis.requires_client_approval || a.visibility === 'client_visible',
+        workType: projectType,
+      })
+
+      if (analysis.requires_client_approval) {
+        await sb.from('project_assets')
+          .update({ visibility: 'client_visible' })
+          .eq('id', assetId)
+      }
+    } catch { /* bridge must not block analyze */ }
 
     return NextResponse.json({ ok: true, analysis })
   } catch (e: any) {

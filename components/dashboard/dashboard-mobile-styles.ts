@@ -226,6 +226,39 @@ export const DASHBOARD_MOBILE_CSS = `
       text-decoration: none;
     }
 
+    .dms-row-items {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin: 4px 0 2px;
+    }
+
+    .dms-row-item {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .dms-row-item-title {
+      font-size: 13px;
+      color: var(--dms-text);
+      line-height: 1.35;
+    }
+
+    .dms-row-item-meta {
+      font-size: 11px;
+      color: var(--dms-row-link);
+    }
+
+    .dms-activity-line {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.45;
+      color: var(--dms-row-link);
+    }
+
     .dms-dock-wrap {
       position: relative;
     }
