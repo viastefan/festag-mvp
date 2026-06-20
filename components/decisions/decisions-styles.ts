@@ -13,6 +13,7 @@ export const DECISION_CSS = `
     --dec-row-hover-ring: rgba(15,23,42,.06);
     width:100%; height:100%; min-height:0; color:var(--dec-dark);
     display:flex; flex-direction:column;     overflow:hidden;
+    position:relative;
     letter-spacing:0;
     font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
     font-weight:400;
@@ -69,13 +70,23 @@ export const DECISION_CSS = `
     display:flex; align-items:flex-start; justify-content:space-between;
     gap:24px; padding-bottom:28px;
   }
-  .dec-page-head-copy { flex:1; min-width:0; display:flex; flex-direction:column; gap:10px; }
-  .dec-page-title,
-  .dec-m-title h1 {
-    margin:0; font-size:32px; font-weight:400; color:var(--dec-dark);
-    letter-spacing:var(--ls-header, 0.012em); line-height:1.15;
-    font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
+  .dec-page-head-copy { flex:1; min-width:0; display:flex; flex-direction:column; gap:6px; }
+  .dec-os .dec-page-title,
+  .dec-os .dec-m-title h1 {
+    margin:0;
+    font-size:29px !important;
+    font-weight:400 !important;
+    color:var(--dec-dark);
+    letter-spacing:-0.544px !important;
+    line-height:1.02 !important;
+    font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif) !important;
   }
+  .dec-os .dec-page-title .dec-dt,
+  .dec-os .dec-m-title h1 .dec-dt,
+  .dec-os header.dec-page-head .dec-page-head-copy.dec-m-title h1.dec-page-title > span.dec-dt {
+    letter-spacing:-0.544px !important;
+  }
+  .dec-m-subline { display:none; margin:0; }
   .dec-page-lead { display:flex; flex-direction:column; gap:6px; max-width:680px; }
   .dec-page-lead-line,
   .dec-page-lead p {
@@ -286,8 +297,8 @@ export const DECISION_CSS = `
   }
   [data-theme="dark"] .dec-risks-popover,
   [data-theme="classic-dark"] .dec-risks-popover {
-    border: none;
-    border-color: transparent;
+    background: #1c1c1e;
+    border: 1px solid rgba(255,255,255,.1);
     box-shadow:
       0 24px 56px -18px rgba(0,0,0,.55),
       0 8px 20px -10px rgba(0,0,0,.35);
@@ -1632,8 +1643,8 @@ export const DECISION_CSS = `
   @media (max-width: 900px) {
     .dec-static-top { padding-top:var(--festag-content-pad-y, 24px); }
     .dec-scroll-body { padding-bottom:var(--festag-content-pad-bottom, 64px); }
-    .dec-page-title { font-size:28px; }
-    .dec-m-title h1 { font-size:28px; }
+    .dec-page-title { font-size:29px; letter-spacing:-0.544px; line-height:1.02; }
+    .dec-m-title h1 { font-size:29px; letter-spacing:-0.544px; line-height:1.02; }
     .dec-page-lead-line,
     .dec-page-lead p { font-size:15px; font-weight:400; }
     .dec-panel { width:100vw; }
@@ -1737,20 +1748,24 @@ export const DECISION_CSS = `
       font-weight: 400 !important;
       margin: 0 !important;
     }
-    .dec-m-title h1 {
-      font-size: 29px !important;
-      letter-spacing: -0.5px !important;
-      line-height: 1.02 !important;
-      color: #0F0F10 !important;
+    .dec-m-subline {
+      display:flex !important;
+      width:fit-content !important;
+      margin-top:-2px !important;
     }
-    .dec-m-title p {
-      font-size: 29px !important;
-      letter-spacing: -0.5px !important;
-      line-height: 1.02 !important;
-      display: flex !important;
-      width: fit-content !important;
-      color: #90959F !important;
-      margin-top: -2px !important;
+    .dec-m-title h1,
+    .dec-os .dec-page-title {
+      font-size:29px !important;
+      letter-spacing:-0.544px !important;
+      line-height:1.02 !important;
+      font-weight:400 !important;
+      color:#0F0F10 !important;
+    }
+    .dec-m-title p,
+    .dec-m-subline {
+      font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif) !important;
+      font-weight:400 !important;
+      margin:0 !important;
     }
     .dec-m-title .dec-m-t {
       font-size: inherit !important;
@@ -1884,7 +1899,7 @@ export const DECISION_CSS = `
     }
     .dec-m-sheet-backdrop {
       display: block !important;
-      position: fixed !important;
+      position: absolute !important;
       inset: 0 !important;
       z-index: 90 !important;
       border: 0 !important;
@@ -2179,6 +2194,8 @@ export const DECISION_CSS = `
     [data-theme="dark"] .dec-m-actions .dec-risks-popover,
     [data-theme="classic-dark"] .dec-m-actions .dec-risks-popover {
       background: #1c1c1e !important;
+      border: 1px solid rgba(255,255,255,.1) !important;
+      border-bottom: none !important;
       box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.45) !important;
     }
     [data-theme="dark"] .dec-m-actions .dec-filter-menu-item,
@@ -2358,160 +2375,287 @@ export const DECISION_CSS = `
     }
   }
 
-  /* ── External handoff modal (Stripe, Vercel, …) ── */
+  /* ── External handoff modal (Stripe, Vercel, …) — portaled to body ── */
   .dec-handoff-overlay {
-    position: fixed; inset: 0; z-index: 1300;
-    display: flex; align-items: center; justify-content: center;
-    padding: 24px 16px;
-    background: rgba(8,10,14,.48);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
-    animation: decHandoffIn .18s cubic-bezier(.16,1,.3,1) both;
+    position: fixed;
+    inset: 0;
+    z-index: 9000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: max(20px, env(safe-area-inset-top, 0px)) 20px max(20px, env(safe-area-inset-bottom, 0px));
+    background: rgba(8, 10, 14, 0.42);
+    backdrop-filter: blur(10px) saturate(130%);
+    -webkit-backdrop-filter: blur(10px) saturate(130%);
+    animation: decHandoffIn .2s cubic-bezier(.16, 1, .3, 1) both;
+  }
+  [data-theme="dark"] .dec-handoff-overlay,
+  [data-theme="classic-dark"] .dec-handoff-overlay {
+    background: rgba(0, 0, 0, 0.62);
+    backdrop-filter: blur(14px) saturate(120%);
+    -webkit-backdrop-filter: blur(14px) saturate(120%);
   }
   @keyframes decHandoffIn {
     from { opacity: 0; }
     to { opacity: 1; }
   }
   .dec-handoff-modal {
-    width: min(520px, 100%);
-    max-height: min(88vh, 720px);
-    display: flex; flex-direction: column;
-    border-radius: 16px;
-    border: 1px solid color-mix(in srgb, var(--portal-btn-outline-border, #e7ebf0) 70%, transparent);
-    background: var(--dec-card-bg);
-    box-shadow: 0 24px 64px -20px rgba(15,23,42,.28);
+    width: min(480px, 100%);
+    max-height: min(calc(100dvh - 40px), 640px);
+    display: flex;
+    flex-direction: column;
+    border-radius: 12px;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    background: #ffffff;
+    box-shadow:
+      0 1px 2px rgba(15, 23, 42, 0.04),
+      0 24px 64px -16px rgba(15, 23, 42, 0.22);
     overflow: hidden;
-    animation: decHandoffModalIn .22s cubic-bezier(.16,1,.3,1) both;
+    animation: decHandoffModalIn .24s cubic-bezier(.16, 1, .3, 1) both;
   }
   @keyframes decHandoffModalIn {
-    from { opacity: 0; transform: translateY(10px) scale(.98); }
+    from { opacity: 0; transform: translateY(8px) scale(0.985); }
     to { opacity: 1; transform: none; }
   }
   [data-theme="dark"] .dec-handoff-modal,
   [data-theme="classic-dark"] .dec-handoff-modal {
-    border-color: rgba(255,255,255,.1);
-    box-shadow: 0 28px 72px -24px rgba(0,0,0,.55);
+    background: #1c1c1e;
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.06) inset,
+      0 32px 80px -24px rgba(0, 0, 0, 0.72);
   }
   .dec-handoff-head {
-    display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
-    padding: 22px 22px 16px;
-    border-bottom: 1px solid color-mix(in srgb, var(--portal-btn-outline-border, #e7ebf0) 55%, transparent);
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 22px 22px 18px;
+    flex-shrink: 0;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.06);
   }
   [data-theme="dark"] .dec-handoff-head,
   [data-theme="classic-dark"] .dec-handoff-head {
-    border-bottom-color: rgba(255,255,255,.08);
+    border-bottom-color: rgba(255, 255, 255, 0.08);
   }
   .dec-handoff-head-copy { flex: 1; min-width: 0; }
   .dec-handoff-kicker {
-    margin: 0 0 6px;
-    font-family: var(--font-aeonik,'Aeonik',Inter,sans-serif);
-    font-size: 12px; font-weight: 400; color: var(--dec-soft);
-    letter-spacing: .04em; text-transform: uppercase;
+    margin: 0 0 8px;
+    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+    font-size: 11px;
+    font-weight: 500;
+    color: #8e8e93;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
   }
   .dec-handoff-title {
     margin: 0;
-    font-family: var(--font-aeonik,'Aeonik',Inter,sans-serif);
-    font-size: 22px; font-weight: 400; line-height: 1.2;
-    color: var(--dec-dark);
+    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+    font-size: 20px;
+    font-weight: 400;
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+    color: #0f0f10;
+  }
+  [data-theme="dark"] .dec-handoff-title,
+  [data-theme="classic-dark"] .dec-handoff-title {
+    color: #f4f4f4;
   }
   .dec-handoff-sub {
     margin: 6px 0 0;
-    font-size: 14px; font-weight: 400; color: var(--dec-muted);
+    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+    font-size: 13px;
+    font-weight: 400;
+    color: #8e8e93;
   }
   .dec-handoff-close {
-    width: 32px; height: 32px; border: 0; border-radius: 999px;
-    background: transparent; color: var(--dec-soft); cursor: pointer;
-    display: inline-flex; align-items: center; justify-content: center;
-    transition: background .12s, color .12s;
+    width: 30px;
+    height: 30px;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: #8e8e93;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background .12s ease, color .12s ease;
   }
-  .dec-handoff-close:hover { background: var(--dec-pill-surface); color: var(--dec-dark); }
+  .dec-handoff-close:hover {
+    background: rgba(15, 23, 42, 0.06);
+    color: #0f0f10;
+  }
+  [data-theme="dark"] .dec-handoff-close:hover,
+  [data-theme="classic-dark"] .dec-handoff-close:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #f4f4f4;
+  }
   .dec-handoff-body {
-    flex: 1 1 auto; min-height: 0; overflow-y: auto;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
     padding: 18px 22px 8px;
+    scrollbar-width: thin;
   }
   .dec-handoff-lead {
-    margin: 0 0 16px;
-    font-size: 15px; font-weight: 400; line-height: 1.5;
-    color: var(--dec-dark);
+    margin: 0 0 18px;
+    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.55;
+    color: #4e5567;
+  }
+  [data-theme="dark"] .dec-handoff-lead,
+  [data-theme="classic-dark"] .dec-handoff-lead {
+    color: #aeaeb2;
   }
   .dec-handoff-steps {
-    list-style: none; margin: 0; padding: 0;
-    display: flex; flex-direction: column; gap: 12px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    border-top: 1px solid rgba(15, 23, 42, 0.06);
+  }
+  [data-theme="dark"] .dec-handoff-steps,
+  [data-theme="classic-dark"] .dec-handoff-steps {
+    border-top-color: rgba(255, 255, 255, 0.08);
   }
   .dec-handoff-step {
-    display: flex; gap: 12px; align-items: flex-start;
-    padding: 12px 14px; border-radius: 12px;
-    background: color-mix(in srgb, var(--dec-pill-surface) 85%, transparent);
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    padding: 14px 0;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.06);
   }
   [data-theme="dark"] .dec-handoff-step,
   [data-theme="classic-dark"] .dec-handoff-step {
-    background: rgba(255,255,255,.05);
+    border-bottom-color: rgba(255, 255, 255, 0.06);
   }
+  .dec-handoff-step:last-child { border-bottom: 0; }
   .dec-handoff-step-num {
-    width: 24px; height: 24px; border-radius: 999px; flex-shrink: 0;
-    display: inline-flex; align-items: center; justify-content: center;
-    background: color-mix(in srgb, var(--portal-btn-primary, #5b647d) 14%, var(--dec-card-bg));
-    color: var(--dec-dark);
-    font-size: 12px; font-weight: 500;
+    width: 22px;
+    height: 22px;
+    border-radius: 999px;
+    flex-shrink: 0;
+    margin-top: 1px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(15, 23, 42, 0.05);
+    color: #6e717e;
+    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+    font-size: 11px;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
   }
   [data-theme="dark"] .dec-handoff-step-num,
   [data-theme="classic-dark"] .dec-handoff-step-num {
-    background: rgba(255,255,255,.1);
+    background: rgba(255, 255, 255, 0.08);
+    color: #aeaeb2;
+  }
+  .dec-handoff-step-copy { flex: 1; min-width: 0; }
+  .dec-handoff-step-copy strong {
+    display: block;
+    margin-bottom: 3px;
+    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+    font-size: 14px;
+    font-weight: 500;
+    color: #0f0f10;
+  }
+  [data-theme="dark"] .dec-handoff-step-copy strong,
+  [data-theme="classic-dark"] .dec-handoff-step-copy strong {
     color: #f4f4f4;
   }
-  .dec-handoff-step-copy { min-width: 0; }
-  .dec-handoff-step-copy strong {
-    display: block; margin-bottom: 4px;
-    font-size: 14px; font-weight: 500; color: var(--dec-dark);
-  }
   .dec-handoff-step-copy p {
-    margin: 0; font-size: 14px; font-weight: 400; line-height: 1.45;
-    color: var(--dec-muted);
+    margin: 0;
+    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 1.5;
+    color: #8e8e93;
   }
   .dec-handoff-note {
-    margin: 14px 0 0;
-    font-size: 13px; line-height: 1.45; color: var(--dec-soft);
+    margin: 16px 0 0;
+    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+    font-size: 12px;
+    line-height: 1.45;
+    color: #8e8e93;
   }
   .dec-handoff-foot {
-    display: flex; flex-direction: column; gap: 10px;
-    padding: 16px 22px 22px;
-    border-top: 1px solid color-mix(in srgb, var(--portal-btn-outline-border, #e7ebf0) 55%, transparent);
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 16px 22px 20px;
+    border-top: 1px solid rgba(15, 23, 42, 0.06);
+    background: rgba(15, 23, 42, 0.02);
   }
   [data-theme="dark"] .dec-handoff-foot,
   [data-theme="classic-dark"] .dec-handoff-foot {
-    border-top-color: rgba(255,255,255,.08);
+    border-top-color: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.03);
+  }
+  .dec-handoff-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
   }
   .dec-handoff-open,
   .dec-handoff-confirm {
-    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-    width: 100%; min-height: 44px; padding: 0 16px;
-    border-radius: 999px; border: 0;
-    font-family: var(--font-aeonik,'Aeonik',Inter,sans-serif);
-    font-size: 14px; font-weight: 400; cursor: pointer;
-    transition: background .14s, box-shadow .14s, transform .1s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    min-height: 42px;
+    padding: 0 16px;
+    border-radius: 999px;
+    border: 0;
+    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+    font-size: 14px;
+    font-weight: 400;
+    letter-spacing: 0;
+    cursor: pointer;
+    transition: background .14s ease, border-color .14s ease, transform .1s ease;
   }
   .dec-handoff-open {
     background: transparent;
-    border: 1px solid color-mix(in srgb, var(--portal-btn-outline-border, #e7ebf0) 90%, transparent);
-    color: var(--dec-dark);
+    border: 1px solid rgba(15, 23, 42, 0.1);
+    color: #0f0f10;
   }
   .dec-handoff-open:hover {
-    background: var(--dec-pill-surface);
+    background: rgba(15, 23, 42, 0.04);
+    border-color: rgba(15, 23, 42, 0.14);
+  }
+  [data-theme="dark"] .dec-handoff-open,
+  [data-theme="classic-dark"] .dec-handoff-open {
+    border-color: rgba(255, 255, 255, 0.12);
+    color: #f4f4f4;
+  }
+  [data-theme="dark"] .dec-handoff-open:hover,
+  [data-theme="classic-dark"] .dec-handoff-open:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.16);
   }
   .dec-handoff-confirm {
-    background: var(--dec-cta-bg);
-    color: var(--dec-cta-text);
-    box-shadow:
-      inset 0 1px 0 rgba(255,255,255,.12),
-      0 2px 8px -2px rgba(15,23,42,.12);
+    background: #0f0f10;
+    color: #ffffff;
+    box-shadow: none;
   }
   .dec-handoff-confirm:hover:not(:disabled) {
-    background: var(--dec-cta-hover);
+    background: #2a2a2c;
   }
-  .dec-handoff-confirm:disabled { opacity: .55; cursor: not-allowed; }
+  .dec-handoff-confirm:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
   [data-theme="dark"] .dec-handoff-confirm,
   [data-theme="classic-dark"] .dec-handoff-confirm {
-    background: #fff;
+    background: #ffffff;
     color: #121214;
   }
   [data-theme="dark"] .dec-handoff-confirm:hover:not(:disabled),
@@ -2519,7 +2663,11 @@ export const DECISION_CSS = `
     background: #f0f0f2;
   }
   .dec-handoff-hint {
-    margin: 0; text-align: center;
-    font-size: 12px; color: var(--dec-soft); line-height: 1.4;
+    margin: 0;
+    text-align: center;
+    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+    font-size: 11px;
+    color: #8e8e93;
+    line-height: 1.45;
   }
 `

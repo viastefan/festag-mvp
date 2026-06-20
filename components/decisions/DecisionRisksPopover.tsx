@@ -29,7 +29,11 @@ export default function DecisionRisksPopover({ risks, onClose, openCount }: Prop
 
   function openDecision(id: string) {
     onClose()
-    router.push(`/decisions/${id}`)
+    // Let the parent commit sheet/backdrop closed before navigation so the
+    // list route is not cached with an invisible overlay still active.
+    window.requestAnimationFrame(() => {
+      router.push(`/decisions/${id}`)
+    })
   }
 
   const headline = riskCountLabel(risks.length)

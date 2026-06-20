@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { ArrowSquareOut, CheckCircle, X } from '@phosphor-icons/react'
 import type { ExternalHandoff } from '@/lib/decisions/external-handoffs'
 
@@ -21,6 +22,24 @@ export default function DecisionExternalHandoffModal({
 }: Props) {
   const [busy, setBusy] = useState(false)
   const [openedExternal, setOpenedExternal] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') onClose()
+    }
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      document.body.style.overflow = prevOverflow
+    }
+  }, [onClose])
 
   function openExternal() {
     window.open(handoff.url, '_blank', 'noopener,noreferrer')
@@ -38,7 +57,9 @@ export default function DecisionExternalHandoffModal({
     }
   }
 
-  return (
+  if (!mounted || typeof document === 'undefined') return null
+
+  return createPortal(
     <div className="dec-handoff-overlay" role="presentation" onClick={onClose}>
       <div
         className="dec-handoff-modal"
@@ -49,12 +70,12 @@ export default function DecisionExternalHandoffModal({
       >
         <header className="dec-handoff-head">
           <div className="dec-handoff-head-copy">
-            <p className="dec-handoff-kicker">{handoff.providerLabel} · Schritt für Schritt</p>
+            <p className="dec-handoff-kicker">{handoff.providerLabel}</p>
             <h2 id="dec-handoff-title" className="dec-handoff-title">{decisionTitle}</h2>
             {projectTitle && <p className="dec-handoff-sub">{projectTitle}</p>}
           </div>
           <button type="button" className="dec-handoff-close" onClick={onClose} aria-label="Schließen">
-            <X size={16} weight="bold" />
+            <X size={15} weight="regular" />
           </button>
         </header>
 
@@ -77,24 +98,29 @@ export default function DecisionExternalHandoffModal({
         </div>
 
         <footer className="dec-handoff-foot">
-          <button type="button" className="dec-handoff-open" onClick={openExternal}>
-            <ArrowSquareOut size={15} weight="regular" />
-            {handoff.openLabel}
-          </button>
-          <button
-            type="button"
-            className="dec-handoff-confirm"
-            onClick={() => void confirm()}
-            disabled={busy}
-          >
-            <CheckCircle size={15} weight="bold" />
-            {busy ? 'Speichere…' : handoff.confirmLabel}
-          </button>
+          <div className="dec-handoff-actions">
+            <button type="button" className="dec-handoff-open" onClick={openExternal}>
+              <ArrowSquareOut size={15} weight="regular" />
+              {handoff.openLabel}
+            </button>
+            <button
+              type="button"
+              className="dec-handoff-confirm"
+              onClick={() => void confirm()}
+              disabled={busy}
+            >
+              <CheckCircle size={15} weight="bold" />
+              {busy ? 'Speichere…' : handoff.confirmLabel}
+            </button>
+          </div>
           {!openedExternal && (
-            <p className="dec-handoff-hint">Tipp: Öffne {handoff.providerLabel} in einem neuen Tab und arbeite die Schritte ab.</p>
+            <p className="dec-handoff-hint">
+              Tipp: Öffne {handoff.providerLabel} in einem neuen Tab und arbeite die Schritte ab.
+            </p>
           )}
         </footer>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }

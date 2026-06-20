@@ -14,8 +14,8 @@
  * the dev back.
  */
 
-import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import {
   ArrowsClockwise, FunnelSimple, Lightning, PencilSimple,
 } from '@phosphor-icons/react'
@@ -54,6 +54,7 @@ export default function DecisionsPage() {
 function DecisionsPageInner() {
   const supabase = useMemo(() => createClient(), [])
   const router = useRouter()
+  const pathname = usePathname()
   const searchParams = useSearchParams()
   const filterWrapRef = useRef<HTMLDivElement>(null)
   const risksWrapRef = useRef<HTMLDivElement>(null)
@@ -76,6 +77,32 @@ function DecisionsPageInner() {
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setMe(data?.user?.id || ''))
   }, [supabase])
+
+  // Router cache can restore filter/risks sheets as "open" after returning from
+  // a detail page — the invisible backdrop then blocks all taps on the list.
+  const dismissSheets = useCallback(() => {
+    setFilterMenuOpen(false)
+    setRisksOpen(false)
+    setNavOpen(false)
+    setOpenId(null)
+  }, [])
+
+  useLayoutEffect(() => {
+    dismissSheets()
+  }, [pathname, dismissSheets])
+
+  useEffect(() => {
+    dismissSheets()
+    function onDismiss() { dismissSheets() }
+    window.addEventListener('festag:decisions-dismiss-overlays', onDismiss)
+    return () => window.removeEventListener('festag:decisions-dismiss-overlays', onDismiss)
+  }, [pathname, dismissSheets])
+
+  useEffect(() => {
+    function onPageShow() { dismissSheets() }
+    window.addEventListener('pageshow', onPageShow)
+    return () => window.removeEventListener('pageshow', onPageShow)
+  }, [dismissSheets])
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -333,10 +360,6 @@ function DecisionsPageInner() {
 
   const filterActive = filter !== 'open' || projectScope !== 'all'
 
-  const leadLine1 = counts.open === 0
-    ? 'Keine Entscheidungen offen.'
-    : `Heute ${counts.open === 1 ? 'ist' : 'sind'} ${counts.open} Entscheidung${counts.open === 1 ? '' : 'en'} offen.`
-
   const leadLine2 = counts.open === 0
     ? 'Tagro überwacht deine Projekte und meldet sich bei Bedarf.'
     : [executiveSummary.line1, executiveSummary.line2].filter(Boolean).join(' ')
@@ -401,6 +424,15 @@ function DecisionsPageInner() {
     <div className="dec-os">
       <style>{DECISION_CSS}</style>
 
+      {(filterMenuOpen || risksOpen) && (
+        <button
+          type="button"
+          className="dec-m-sheet-backdrop"
+          aria-label="Schließen"
+          onClick={dismissSheets}
+        />
+      )}
+
       <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
 
       <div className="dec-hero-bg dec-hero-bg-top" aria-hidden>
@@ -423,16 +455,14 @@ function DecisionsPageInner() {
         </div>
         <header className="dec-page-head">
           <div className="dec-page-head-copy dec-m-title">
-            <h1>
+            <h1 className="dec-page-title">
               <span className="dec-dt">Entscheidungen</span>
               <span className="dec-m-t">Entscheidungen</span>
             </h1>
-            <p>
-              <span className="dec-dt">{leadLine1}</span>
+            <p className="dec-m-subline">
               <span className="dec-m-t dec-m-sub">{counts.open} offen · {counts.urgent} dringend</span>
             </p>
             <div className="dec-page-lead dec-dt">
-              <p className="dec-page-lead-line">{leadLine1}</p>
               <p className="dec-page-lead-line">{leadLine2}</p>
             </div>
           </div>
@@ -560,17 +590,6 @@ function DecisionsPageInner() {
               <ArrowsClockwise size={17} weight="regular" />
             </button>
           </div>
-          {(filterMenuOpen || risksOpen) && (
-            <button
-              type="button"
-              className="dec-m-sheet-backdrop"
-              aria-label="Schließen"
-              onClick={() => {
-                setFilterMenuOpen(false)
-                setRisksOpen(false)
-              }}
-            />
-          )}
         </div>
       </div>
 

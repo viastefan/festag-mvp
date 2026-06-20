@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense, useCallback, useEffect, useMemo, useState } from 'react'
+import { Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { ArrowLeft, CheckCircle, Clock, Lightning, PencilSimple } from '@phosphor-icons/react'
@@ -41,6 +41,25 @@ function DecisionDetailInner() {
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setMe(data?.user?.id || ''))
   }, [supabase])
+
+  useLayoutEffect(() => {
+    document.body.style.overflow = ''
+  }, [])
+
+  function goToList() {
+    try {
+      window.dispatchEvent(new CustomEvent('festag:decisions-dismiss-overlays'))
+    } catch { /* noop */ }
+    document.body.style.overflow = ''
+    router.push('/decisions')
+  }
+
+  function prepareListNavigation() {
+    try {
+      window.dispatchEvent(new CustomEvent('festag:decisions-dismiss-overlays'))
+    } catch { /* noop */ }
+    document.body.style.overflow = ''
+  }
 
   const load = useCallback(async () => {
     if (!id) return
@@ -140,7 +159,7 @@ function DecisionDetailInner() {
 
       <div className="dec-detail-m-shell">
         <header className="dec-detail-m-head">
-          <CodexOrbButton ariaLabel="Zurück" onClick={() => router.push('/decisions')}>
+          <CodexOrbButton ariaLabel="Zurück" onClick={goToList}>
             <ArrowLeft size={20} weight="regular" />
           </CodexOrbButton>
           <div className="dec-detail-m-copy">
@@ -158,7 +177,11 @@ function DecisionDetailInner() {
         <header className="dec-detail-hero dec-detail-hero-desktop">
           <div className="dec-detail-col">
             <div className="dec-detail-toolbar">
-              <Link href="/decisions" className="dec-detail-back dec-detail-back-pill dec-detail-back-desktop">
+              <Link
+                href="/decisions"
+                className="dec-detail-back dec-detail-back-pill dec-detail-back-desktop"
+                onClick={prepareListNavigation}
+              >
                 <ArrowLeft size={14} weight="regular" />
                 Alle Entscheidungen
               </Link>
@@ -218,7 +241,7 @@ function DecisionDetailInner() {
           project={project}
           me={me}
           isDecider={isDecider}
-          onClose={() => router.push('/decisions')}
+          onClose={goToList}
           onPatch={patchLocal}
           initialDiscussOpen={discussOnLoad}
           onMobileDockChange={handleMobileDockChange}

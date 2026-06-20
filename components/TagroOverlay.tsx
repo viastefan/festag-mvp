@@ -564,6 +564,24 @@ export default function TagroOverlay() {
     }
   }, [open])
 
+  // Close popup when navigating — avoids invisible full-screen blockers on other routes.
+  const pathnameRef = useRef(pathname)
+  useLayoutEffect(() => {
+    if (pathnameRef.current === pathname) return
+    pathnameRef.current = pathname
+    if (open) {
+      setOpen(false)
+      setFullscreen(false)
+      setMessages([])
+      setInput('')
+      setError('')
+      setFromScratch(false)
+      const el = composerRef.current
+      if (el) el.style.height = ''
+    }
+    document.body.style.overflow = ''
+  }, [pathname, open])
+
   // Sidebar bridge — app shell collapses its rail while we're fullscreen.
   useEffect(() => {
     if (typeof window === 'undefined') return
