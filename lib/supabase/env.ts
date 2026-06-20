@@ -8,13 +8,18 @@ function read(name: string): string | undefined {
   return v || undefined
 }
 
-export function getSupabaseUrl(): string {
-  const url = read('NEXT_PUBLIC_SUPABASE_URL')
-  if (!url) {
-    throw new Error(
-      'Missing NEXT_PUBLIC_SUPABASE_URL. Copy .env.local.example → .env.local and set your project URL.',
-    )
+function readFirst(...names: string[]): string | undefined {
+  for (const name of names) {
+    const v = read(name)
+    if (v) return v
   }
+  return undefined
+}
+
+const DEFAULT_SUPABASE_URL = 'https://xsdkoepwuvpuroijjain.supabase.co'
+
+export function getSupabaseUrl(): string {
+  const url = readFirst('NEXT_PUBLIC_SUPABASE_URL', 'SUPABASE_URL') ?? DEFAULT_SUPABASE_URL
   if (!url.startsWith('https://') || !url.includes('.supabase.co')) {
     throw new Error('NEXT_PUBLIC_SUPABASE_URL must be a valid https://*.supabase.co URL.')
   }
@@ -27,7 +32,11 @@ function isSupabaseAnonKey(key: string): boolean {
 }
 
 export function getSupabaseAnonKey(): string {
-  const key = read('NEXT_PUBLIC_SUPABASE_ANON_KEY')
+  const key = readFirst(
+    'NEXT_PUBLIC_SUPABASE_ANON_KEY',
+    'SUPABASE_ANON_KEY',
+    'SUPABASE_SERVICE_PUBLISHABLE_KEY',
+  )
   if (!key) {
     throw new Error(
       'Missing NEXT_PUBLIC_SUPABASE_ANON_KEY. Get it from Supabase Dashboard → Settings → API.',
