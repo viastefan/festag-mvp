@@ -141,6 +141,7 @@ export default function NotesPage() {
   const [creating, setCreating] = useState(false)
   const [composerOpen, setComposerOpen] = useState(false)
   const [navOpen, setNavOpen] = useState(false)
+  const [filterMenuOpen, setFilterMenuOpen] = useState(false)
   const [editorWide, setEditorWide] = useState(false)
   const [railOpen, setRailOpen] = useState(true)
   const [searchFocused, setSearchFocused] = useState(false)
@@ -343,15 +344,52 @@ export default function NotesPage() {
           </div>
         </header>
 
-        <div className="mcl-actions">
+        <div className="mcl-actions notes-m-actions">
           <button type="button" className="mcl-add-btn" aria-label="Neue Notiz" onClick={() => setComposerOpen(true)}>
             <Plus size={18} weight="bold" />
           </button>
           <div className="mcl-actions-group">
+            <button
+              type="button"
+              className={`mcl-ctl${filterMenuOpen ? ' on' : ''}${smartList !== 'all' ? ' has-active' : ''}`}
+              aria-label="Filter"
+              aria-expanded={filterMenuOpen}
+              onClick={() => setFilterMenuOpen(v => !v)}
+            >
+              <FunnelSimple size={17} weight="regular" />
+            </button>
             <button type="button" className="mcl-ctl" aria-label="Heute öffnen" onClick={openTodayNote}>
               <Notepad size={17} weight="regular" />
             </button>
           </div>
+          {filterMenuOpen && (
+            <>
+              <div className="mcl-filter-menu" role="menu">
+                <p className="mcl-sheet-title">Ansicht</p>
+                {SMART_FILTERS.map(f => {
+                  const count = (counts as Record<string, number>)[f.id]
+                  return (
+                    <button
+                      key={f.id}
+                      type="button"
+                      role="menuitem"
+                      className={`mcl-filter-item${smartList === f.id ? ' on' : ''}`}
+                      onClick={() => {
+                        setSmartList(f.id)
+                        setProjectFilter(null)
+                        setTypeFilter(null)
+                        setTagFilter(null)
+                        setFilterMenuOpen(false)
+                      }}
+                    >
+                      {f.label}{typeof count === 'number' && count > 0 && f.id !== 'all' ? ` (${count})` : ''}
+                    </button>
+                  )
+                })}
+              </div>
+              <button type="button" className="mcl-sheet-backdrop" aria-label="Schließen" onClick={() => setFilterMenuOpen(false)} />
+            </>
+          )}
         </div>
 
         <div className="notes-legacy-mph">
@@ -1491,6 +1529,48 @@ const NOTES_CSS = `
     }
     .notes-static-top { padding: 0 !important; position: relative !important; }
     .notes-top { display: none !important; }
+    .notes-tabs { display: none !important; }
+    .notes-m-actions { position: relative !important; }
+    .notes-table-head { display: none !important; }
+    .notes-scroll-body { padding-bottom: 0 !important; }
+    .notes-row {
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: stretch !important;
+      gap: 8px !important;
+      grid-template-columns: none !important;
+      min-height: auto !important;
+      padding: 16px 14px !important;
+      margin-bottom: 12px !important;
+      border: 1px solid rgba(0, 0, 0, 0.07) !important;
+      border-radius: 14px !important;
+      background: #FFFFFF !important;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,1), 0 1px 0 rgba(0,0,0,0.04), 0 4px 10px rgba(144,149,159,0.16) !important;
+      text-align: left !important;
+    }
+    [data-theme="dark"] .notes-row,
+    [data-theme="classic-dark"] .notes-row {
+      background: rgba(255,255,255,0.06) !important;
+      border: 1px solid rgba(255,255,255,0.14) !important;
+    }
+    .notes-row:hover { background: #FFFFFF !important; }
+    .notes-row.on { background: #FAFAFA !important; }
+    .notes-row-title strong {
+      font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+      font-size: 18px !important;
+      font-weight: 500 !important;
+      letter-spacing: -0.02em !important;
+      line-height: 1.28 !important;
+    }
+    .notes-row-proj { font-size: 14px !important; }
+    .notes-row > .notes-cell-mute:last-child {
+      display: flex !important;
+      font-size: 13px !important;
+      color: #90959F !important;
+    }
+    .notes-row > .notes-cell-mute:nth-child(3),
+    .notes-row-tags,
+    .notes-row-tagro { display: none !important; }
   }
   @media (max-width: 600px) {
     .notes-overlay .notes-editor { width:100vw; }
