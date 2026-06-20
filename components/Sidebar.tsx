@@ -22,7 +22,7 @@ import {
   Tray, MagnifyingGlass, SpeakerHigh, Pulse,
   Question, DownloadSimple, ChatTeardropDots,
   Scales, Keyboard, CheckCircle,
-  ArrowSquareOut,
+  ArrowSquareOut, Bug,
 } from '@phosphor-icons/react'
 import { autoAvatarColor, avatarInitials } from '@/lib/avatar'
 import { applyWorkspaceAccent, WORKSPACE_COLOR_SYNC_EVENT } from '@/lib/workspace-accent'
@@ -52,6 +52,7 @@ const ICONS: Record<string, React.ElementType> = {
   code: Code, task: FileCode, inbox: Tray, search: MagnifyingGlass,
   audio: SpeakerHigh, pulse: Pulse,
   scales: Scales,
+  issue: Bug,
 }
 
 function Ico({ name, sz=16, c='currentColor', weight='regular' }: {
@@ -108,6 +109,7 @@ const HELP_NEWS_ITEMS = [
 const CLIENT_CORE: NavItem[] = [
   { href:'/projects', icon:'project', label:'Projekte' },
   { href:'/tasks', icon:'task', label:'Tasks' },
+  { href:'/issues', icon:'issue', label:'Issues' },
   { href:'/decisions', icon:'scales', label:'Entscheidungen' },
   { href:'/documents', icon:'doc', label:'Dokumente' },
   // Statusberichte live now under Statusabfrage (dashboard) → full history;
@@ -141,6 +143,7 @@ const CLIENT_MOB_PRIMARY: NavItem[] = [
 const CLIENT_MOB_QUICK = [
   { href:'/projects?new=1', icon:'plus', label:'Neues Projekt', primary: true },
   { href:'/tasks',       icon:'task',     label:'Tasks' },
+  { href:'/issues',      icon:'issue',    label:'Issues' },
   { href:'/decisions',   icon:'scales',   label:'Entscheidungen' },
   { href:'/reports',     icon:'activity', label:'Statusberichte' },
   { href:'/notes',       icon:'card',     label:'Notizen' },
@@ -360,6 +363,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
     '/projects':  'projects',
     '/reports':   'reports',
     '/tasks':     'tasks',
+    '/issues':    'issues',
     '/decisions': 'decisions',
     '/observers': 'observers',
     '/ai':        'tagro-chat',

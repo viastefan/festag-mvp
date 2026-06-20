@@ -1146,7 +1146,7 @@ const CSS = `
   /* ===== MOBILE = IMMER LIGHT (Figma 259:304). Seiten-Header bleibt sichtbar
      (pointer-events durch die Reserve-Zone). Backdrop nur unterhalb des Headers. */
   .npm-overlay.is-mobile {
-    --npm-header-reserve: calc(env(safe-area-inset-top, 0px) + 96px);
+    --npm-header-reserve: calc(env(safe-area-inset-top, 0px) + 112px);
     color-scheme: light;
     animation: none;
     flex-direction: column;
@@ -1178,6 +1178,9 @@ const CSS = `
   body[data-npm-sheet] .pj2-static-top {
     position: relative;
     z-index: 2147483601;
+  }
+  body[data-npm-sheet] .mpd-root {
+    display: none !important;
   }
   .npm-overlay.is-mobile .npm-backdrop {
     background: rgba(252,252,252,0.9);
@@ -1217,8 +1220,10 @@ const CSS = `
     height: 100%;
     max-height: none;
     padding: 0;
-    background: rgba(255, 255, 255, 0.9);
-    border-radius: 32px 32px 0 0;
+    background: rgba(252, 252, 252, 0.72);
+    backdrop-filter: blur(24px) saturate(160%);
+    -webkit-backdrop-filter: blur(24px) saturate(160%);
+    border-radius: 40px 40px 0 0;
     box-shadow: 0px -2px 4px 0px rgba(144, 149, 159, 0.07);
     animation: none;
     will-change: transform;
@@ -1395,7 +1400,7 @@ const CSS = `
     background: #FFFFFF;
     color: #90959F;
     padding: 7px 8px 7px 16px;
-    font-size: 13px; font-weight: 500;
+    font-size: 13px; font-weight: 400;
     gap: 6px;
     border: ${MOBILE_WHITE_BORDER};
     box-shadow: ${MOBILE_WHITE_ELEV};

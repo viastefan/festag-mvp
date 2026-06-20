@@ -16,6 +16,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   // Portal-Shell (PortalSidebar) liefern /projects und /decisions über eigenes layout.tsx.
   const usesOwnShell = pathname === '/projects'
     || pathname.startsWith('/decisions')
+    || pathname.startsWith('/issues')
     || pathname === '/messages'
   if (usesOwnShell) return <>{children}</>
 

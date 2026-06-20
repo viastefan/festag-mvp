@@ -15,7 +15,7 @@
  */
 
 import { useEffect, useRef, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   MagnifyingGlass, Sparkle, House, UsersThree,
@@ -71,6 +71,7 @@ function fuzzy(text: string, q: string): boolean {
 
 export default function CommandPalette({ theme = 'default' }: { theme?: 'default' | 'portal' }) {
   const router  = useRouter()
+  const pathname = usePathname() || ''
   const [open, setOpen] = useState(false)
   const [q,    setQ]    = useState('')
   const [idx,  setIdx]  = useState(0)
@@ -155,6 +156,12 @@ export default function CommandPalette({ theme = 'default' }: { theme?: 'default
       requestAnimationFrame(() => inputRef.current?.focus())
     }
   }, [open])
+
+  useEffect(() => {
+    setOpen(false)
+    setQ('')
+    setIdx(0)
+  }, [pathname])
 
   // Live-Search über DB (Projekte, Tasks, Notizen) — debounced
   useEffect(() => {

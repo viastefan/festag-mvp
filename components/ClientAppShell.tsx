@@ -213,7 +213,7 @@ export default function ClientAppShell({
           max-height: calc(100dvh - 46px);
           border: 1px solid color-mix(in srgb, var(--border) 84%, transparent);
           border-radius: 10px;
-          background: var(--surface);
+          background: var(--workspace-bg, var(--surface));
           box-shadow: 0 0 0 1px rgba(255,255,255,.03);
           transition: left .18s cubic-bezier(.16,1,.3,1), border-color .18s ease, background .18s ease;
         }
@@ -247,9 +247,6 @@ export default function ClientAppShell({
         }
         .app-sidebar-return:active {
           transform: scale(.94);
-        }
-        [data-theme="dark"] .app-workspace {
-          background: var(--surface);
         }
         .app-workspace-scroll {
           height: 100%;

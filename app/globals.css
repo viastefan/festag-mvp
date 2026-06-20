@@ -153,6 +153,9 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
   --r:24px; --r-xs:12px; --r-sm:16px; --r-md:20px; --r-lg:24px; --r-xl:32px;
 
+  /* Floating workspace panel — slightly lifted from OLED sidebar black. */
+  --workspace-bg:#222224;
+
   /* ── Extended design-system tokens — Sana monochrome. ── */
   --bg-app:#000000; --bg-shell:#000000; --bg-sidebar:#000000; --bg-main:#000000;
   --surface-0:#1C1C1E; --surface-1:#2C2C2E; --surface-3:#3A3A3C;
@@ -220,6 +223,7 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
 
 [data-theme="classic-dark"],
 [data-theme="custom"] {
+  --workspace-bg:#1C1C1E;
   --bg:#111111; --surface:#181818; --card:#1F1F1F;
   --border:rgba(255,255,255,0.08); --border-strong:rgba(255,255,255,0.16);
   --text:#F0F0F0; --text-secondary:#A0A0A0; --text-muted:#636363;
