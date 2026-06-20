@@ -378,7 +378,8 @@ function ProjectsPageInner() {
             <div className="pj2-page-head-copy">
               <h1 className="pj2-page-title">
                 <span className="pj2-dt">Projekte</span>
-                <span className="pjm-t">{showNewProject ? 'Was steht an?' : 'Projekte'}</span>
+                <span className="pjm-t">{showNewProject ? 'Was steht an?' : 'Aktuelle Projekte.'}</span>
+                <span className="pj2-m-subline">{showNewProject ? 'Was wird umgesetzt?' : 'Alles auf einen Blick.'}</span>
               </h1>
               <div className="pj2-page-lead pj2-dt">
                 <p className="pj2-page-lead-line">Alle Projekte auf einem Blick. KI-gesteuert.</p>
@@ -1625,12 +1626,22 @@ ${FESTAG_LIST_ROW_HOVER_CSS}
       flex: 1 1 auto;
       min-width: 0;
     }
-    .pj2-page-title .pjm-t {
+    .pj2-page .pj2-page-title .pjm-t {
       display: block !important;
       color: var(--pj-dark) !important;
       letter-spacing: -1px !important;
+      font-size: 29px !important;
+      line-height: 1.02 !important;
     }
-    .pj2-m-subline { display: none !important; }
+    .pj2-page .pj2-page-title .pj2-m-subline {
+      display: block !important;
+      margin: 4px 0 0;
+      font-size: 17px;
+      font-weight: 400;
+      line-height: 1.35;
+      letter-spacing: 0;
+      color: #90959F;
+    }
 
     /* ── Mobile action chips — primary +, filter/sort pill ── */
     .pjm-actions {

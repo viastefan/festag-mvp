@@ -719,20 +719,6 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
             aria-hidden
           />
 
-          {isMobile && (phase === 'form' || phase === 'error') && (
-            <div className="npm-mobile-title">
-              <input
-                ref={titleRef}
-                className="npm-title-input mobile"
-                placeholder="Projektname"
-                value={title}
-                onChange={e => setTitle(e.target.value)}
-                onFocus={() => { lastFocusedRef.current = 'title' }}
-                maxLength={120}
-              />
-            </div>
-          )}
-
         <motion.div
           key={isMobile ? 'sheet' : 'modal'}
           className={`npm-card${phase === 'chat' ? ' is-chat' : ''}${isMobile ? ' is-sheet' : ''}`}
@@ -762,6 +748,20 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
               aria-hidden
             >
               <div className="npm-drag-handle" />
+            </div>
+          )}
+
+          {isMobile && (phase === 'form' || phase === 'error') && (
+            <div className="npm-mobile-title">
+              <input
+                ref={titleRef}
+                className="npm-title-input mobile"
+                placeholder="Projektname"
+                value={title}
+                onChange={e => setTitle(e.target.value)}
+                onFocus={() => { lastFocusedRef.current = 'title' }}
+                maxLength={120}
+              />
             </div>
           )}
 
@@ -1212,9 +1212,7 @@ const CSS = `
   /* ===== MOBILE = IMMER LIGHT (Figma 259:304). Nur Seiten-Titel + Menü-Pill
      bleiben sichtbar; Sheet füllt den Rest bis zur Unterkante. */
   .npm-overlay.is-mobile {
-    --npm-visible-header: calc(env(safe-area-inset-top, 0px) + 20px + 36px);
-    --npm-title-slot: 66px;
-    --npm-header-reserve: var(--npm-visible-header);
+    --npm-header-reserve: calc(env(safe-area-inset-top, 0px) + 20px + 57px);
     color-scheme: light;
     animation: none;
     flex-direction: column;
@@ -1239,16 +1237,6 @@ const CSS = `
     inset: 0;
     pointer-events: auto;
     border-radius: 40px 40px 0 0;
-  }
-  .npm-sheet-layer > .npm-mobile-title {
-    position: absolute;
-    top: 30px;
-    left: 0;
-    right: 0;
-    z-index: 3;
-    padding: 0 30px;
-    box-sizing: border-box;
-    pointer-events: auto;
   }
   .npm-overlay.is-mobile .npm-card.is-sheet {
     pointer-events: auto;
@@ -1319,7 +1307,7 @@ const CSS = `
     max-width: 100%;
     min-height: 0;
     height: auto;
-    max-height: calc(100% - var(--npm-title-slot, 44px));
+    max-height: 100%;
     flex: 1 1 auto;
     padding: 0;
     background: #FCFCFC;
@@ -1388,16 +1376,21 @@ const CSS = `
   .npm-icon-btn:hover:not(:disabled) { opacity: 1; background: #F1F3F6; color: #5B647D; }
   .npm-icon-btn:disabled { opacity: .35; cursor: not-allowed; }
 
-  /* ---- Mobile title — floats above sheet @ top 30px in npm-sheet-layer ---- */
+  /* ---- Mobile title — inside sheet, Figma 259:304 ---- */
+  .npm-card.is-sheet .npm-mobile-title {
+    flex-shrink: 0;
+    padding: 4px 30px 0;
+    box-sizing: border-box;
+  }
   .npm-mobile-title {
     padding: 0;
   }
   .npm-title-input.mobile {
     width: 100%;
-    height: 36px;
+    height: 38px;
     padding: 0;
-    font-size: 30px;
-    line-height: 36px;
+    font-size: 32px;
+    line-height: 38px;
     font-weight: 400;
     letter-spacing: 0;
     color: #2A3032;
@@ -1419,7 +1412,7 @@ const CSS = `
   /* Mobile body — Dropdown @ 41/271 (48px unter Projektname), Beschreibung
      @ 44/341 (36px unter Dropdown). Overflow sichtbar fürs Dropdown-Menü. */
   .npm-card.is-sheet .npm-body {
-    padding: 20px 30px 0;
+    padding: 12px 30px 0;
     gap: 28px;
     flex: 1 1 auto;
     min-height: 0;
