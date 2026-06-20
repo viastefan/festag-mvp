@@ -21,6 +21,11 @@ export function getSupabaseUrl(): string {
   return url
 }
 
+function isSupabaseAnonKey(key: string): boolean {
+  // Legacy JWT anon key (eyJ…) or newer publishable key (sb_publishable_…).
+  return key.startsWith('eyJ') || key.startsWith('sb_publishable_')
+}
+
 export function getSupabaseAnonKey(): string {
   const key = read('NEXT_PUBLIC_SUPABASE_ANON_KEY')
   if (!key) {
@@ -28,8 +33,10 @@ export function getSupabaseAnonKey(): string {
       'Missing NEXT_PUBLIC_SUPABASE_ANON_KEY. Get it from Supabase Dashboard → Settings → API.',
     )
   }
-  if (!key.startsWith('eyJ')) {
-    throw new Error('NEXT_PUBLIC_SUPABASE_ANON_KEY must be a JWT (starts with eyJ).')
+  if (!isSupabaseAnonKey(key)) {
+    throw new Error(
+      'NEXT_PUBLIC_SUPABASE_ANON_KEY must be a Supabase anon JWT (eyJ…) or publishable key (sb_publishable_…).',
+    )
   }
   return key
 }
@@ -68,7 +75,7 @@ export function checkSupabaseEnv(): SupabaseEnvStatus {
   const service = read('SUPABASE_SERVICE_ROLE_KEY')
   return {
     url: Boolean(url),
-    anonKey: Boolean(anon?.startsWith('eyJ')),
+    anonKey: Boolean(anon && isSupabaseAnonKey(anon)),
     serviceKey: Boolean(service),
     serviceKeyValid: Boolean(service?.startsWith('eyJ')),
   }
