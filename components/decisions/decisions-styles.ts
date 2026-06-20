@@ -2166,11 +2166,9 @@ ${FESTAG_CONTENT_HEAD_CSS}
     }
     [data-theme="dark"] .dec-m-title p,
     [data-theme="classic-dark"] .dec-m-title p,
-    [data-theme="dark"] .dec-m-sub,
-    [data-theme="classic-dark"] .dec-m-sub {
+    [data-theme="dark"] .dec-m-lead,
+    [data-theme="classic-dark"] .dec-m-lead {
       color: #9aa0ac !important;
-      font-size: 29px !important;
-      font-weight: 400 !important;
     }
     [data-theme="dark"] .dec-os .cx-action-pill,
     [data-theme="classic-dark"] .dec-os .cx-action-pill {
