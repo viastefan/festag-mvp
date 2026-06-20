@@ -145,7 +145,7 @@ export default function ActivityPage() {
                 <span className="dec-m-t dec-m-sub">{loading ? 'Lade…' : `${filtered.length} Signale`}</span>
               </p>
               <div className="dec-page-lead dec-dt">
-                <p className="dec-page-lead-line">Operational Intelligence — Slack, Issues und Team-Aktivität in einem Feed.</p>
+                <p className="dec-page-lead-line">Slack, Vorfälle und Team-Aktivität in einem Feed.</p>
               </div>
             </div>
             <div className="dec-m-head-actions">
@@ -188,7 +188,7 @@ export default function ActivityPage() {
             <div className="dec-empty">
               <Tray size={16} />
               <p>Noch keine Aktivitäten</p>
-              <small>Connectors verbinden oder Work Signals erzeugen — Tagro klassifiziert automatisch.</small>
+              <small>Anbindungen verbinden oder Work Signals erzeugen — Tagro klassifiziert automatisch.</small>
             </div>
           ) : (
             <div className="act-groups">

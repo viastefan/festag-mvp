@@ -207,7 +207,7 @@ export default function ConnectorsPage() {
   const tagroConnectors = () => openTagro({
     contextType: 'empty',
     id: 'connectors',
-    title: 'Connectors · Übersicht',
+    title: 'Anbindungen · Übersicht',
     subtitle: `${connectedCount} verbunden`,
   })
 
@@ -223,7 +223,7 @@ export default function ConnectorsPage() {
         <div className="dec-static-top">
           <div className="dec-legacy-mph">
             <MobilePageHeader
-              title="Connectors"
+              title="Anbindungen"
               menuItems={[
                 { id: 'tagro', label: 'Mit Tagro besprechen', onClick: tagroConnectors },
               ]}
@@ -233,8 +233,8 @@ export default function ConnectorsPage() {
           <header className="dec-page-head">
             <div className="dec-page-head-copy dec-m-title">
               <h1 className="dec-page-title">
-                <span className="dec-dt">Connectors</span>
-                <span className="dec-m-t">Connectors</span>
+                <span className="dec-dt">Anbindungen</span>
+                <span className="dec-m-t">Anbindungen</span>
               </h1>
               <p className="dec-m-subline">
                 <span className="dec-m-t dec-m-sub">{connectedCount} von {CONNECTORS.length} verbunden</span>
@@ -355,7 +355,7 @@ export default function ConnectorsPage() {
           context={{
             contextType: 'empty',
             id: 'connectors',
-            title: 'Connectors · Übersicht',
+            title: 'Anbindungen · Übersicht',
             subtitle: `${connectedCount} verbunden`,
           }}
         />

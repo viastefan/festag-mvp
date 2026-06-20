@@ -92,7 +92,7 @@ function ObjectivesPageInner() {
     } catch {
       setObjectives([])
       setProjects({})
-      setLoadError('Objectives konnten nicht geladen werden.')
+      setLoadError('Ziele konnten nicht geladen werden.')
     } finally {
       setLoading(false)
     }
@@ -180,7 +180,7 @@ function ObjectivesPageInner() {
               onPrimary={() => setCreateOpen(true)}
               menuItems={[
                 { id: 'refresh', label: 'Aktualisieren', onClick: () => void load() },
-                { id: 'new', label: 'Objective anlegen', onClick: () => setCreateOpen(true) },
+                { id: 'new', label: 'Ziel anlegen', onClick: () => setCreateOpen(true) },
                 { id: 'tagro', label: 'Mit Tagro besprechen', onClick: tagroHandler },
               ]}
             />
@@ -224,7 +224,7 @@ function ObjectivesPageInner() {
               </div>
               <button type="button" className="dec-cta" onClick={() => setCreateOpen(true)}>
                 <Plus size={14} weight="bold" />
-                Objective
+                Ziel anlegen
               </button>
               <button type="button" className="dec-head-tool" title="Aktualisieren" onClick={() => void load()}>
                 <ArrowsClockwise size={15} weight="regular" />
@@ -256,7 +256,7 @@ function ObjectivesPageInner() {
         <div className="dec-scroll-body">
           {!tableReady && (
             <div className="dec-demo-banner" role="status">
-              <span>Objectives-Datenbank noch nicht aktiv — einmalig <code>supabase db push</code> ausführen.</span>
+              <span>Ziele-Datenbank noch nicht aktiv — einmalig <code>supabase db push</code> ausführen.</span>
             </div>
           )}
 
@@ -269,11 +269,11 @@ function ObjectivesPageInner() {
               </button>
             </div>
           ) : loading && filtered.length === 0 ? (
-            <p className="dec-empty">Lade Objectives…</p>
+            <p className="dec-empty">Lade Ziele…</p>
           ) : filtered.length === 0 ? (
             <div className="dec-empty">
-              <Target size={16} />
-              <p>{objectives.length === 0 ? 'Noch keine Objectives.' : 'Keine Objectives in dieser Ansicht.'}</p>
+              <Flag size={16} />
+              <p>{objectives.length === 0 ? 'Noch keine Ziele.' : 'Keine Ziele in dieser Ansicht.'}</p>
               <small>
                 {objectives.length === 0
                   ? 'Lege das erste strategische Ziel an — Tasks können später verknüpft werden.'
@@ -282,7 +282,7 @@ function ObjectivesPageInner() {
               {objectives.length === 0 && tableReady && (
                 <button type="button" className="dec-cta" style={{ marginTop: 16 }} onClick={() => setCreateOpen(true)}>
                   <Plus size={14} weight="bold" />
-                  Erstes Objective anlegen
+                  Erstes Ziel anlegen
                 </button>
               )}
             </div>

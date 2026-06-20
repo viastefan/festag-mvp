@@ -55,7 +55,7 @@ export default function TeamsOverviewPage() {
         <div className="dec-static-top">
           <div className="dec-legacy-mph">
             <MobilePageHeader
-              title="Teams"
+              title="Team"
               menuItems={[
                 { id: 'refresh', label: 'Aktualisieren', onClick: () => void load() },
                 { id: 'projects', label: 'Team-Projekte', href: '/teams/projects' },
@@ -66,8 +66,8 @@ export default function TeamsOverviewPage() {
           <header className="dec-page-head">
             <div className="dec-page-head-copy dec-m-title">
               <h1 className="dec-page-title">
-                <span className="dec-dt">Teams</span>
-                <span className="dec-m-t">Teams</span>
+                <span className="dec-dt">Team</span>
+                <span className="dec-m-t">Team</span>
               </h1>
               <p className="dec-m-subline">
                 <span className="dec-m-t dec-m-sub">
@@ -160,7 +160,7 @@ export default function TeamsOverviewPage() {
           context={{
             contextType: 'empty',
             id: 'teams',
-            title: 'Teams · Kapazität',
+            title: 'Team · Kapazität',
             subtitle: overview ? `${overview.totals.members} Mitglieder` : 'Team Panel',
           }}
         />
